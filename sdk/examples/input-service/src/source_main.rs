@@ -7,7 +7,10 @@ mod support;
 use nieuw_os_display_client::{InputClient, NativeTransport};
 use nieuw_os_native_input_service::{
     boot::{self, SourceBoot},
-    source::{Progress, Source},
+    source::{
+        wait::{self, Action, Interest, Mode, Plan},
+        Progress, Source,
+    },
     Ipc, NativeIpc,
 };
 use nieuw_os_sdk_runtime::{native, Outgoing};
@@ -43,9 +46,8 @@ pub extern "C" fn _start() -> ! {
 #[inline(never)]
 fn run() -> ! {
     let boot = SourceBoot::decode(&words()).unwrap_or_else(|_| fail(1, None));
-    if native::abi_info() != Ok((1 << 32) | 8) {
-        fail(2, Some(&boot));
-    }
+    let mode = Mode::from_abi(native::abi_info().unwrap_or_else(|_| fail(2, Some(&boot))))
+        .unwrap_or_else(|| fail(2, Some(&boot)));
     let mut source = Source::new(boot.configuration).unwrap_or_else(|_| fail(3, Some(&boot)));
     let mut raw = InputClient::new(NativeTransport, boot.input);
     let mut io = NativeIpc;
@@ -54,6 +56,7 @@ fn run() -> ! {
     let mut ready_started = 0;
     loop {
         let now = native::monotonic_ticks().unwrap_or_else(|_| fail(4, Some(&boot)));
+        let mut ready_blocked = false;
         if let Some(message) = &pending_ready {
             if now.saturating_sub(ready_started)
                 > nieuw_os_native_input_service::source::EXCHANGE_TICKS
@@ -66,7 +69,9 @@ fn run() -> ! {
                     registered = true;
                     support::put(456, 1);
                 }
-                Err(error) if error.is_again() => {}
+                Err(error) if error.is_again() => {
+                    ready_blocked = true;
+                }
                 Err(_) => fail(5, Some(&boot)),
             }
         } else {
@@ -98,8 +103,43 @@ fn run() -> ! {
         ] {
             support::put(offset, value);
         }
-        if native::yield_now().is_err() {
-            fail(8, Some(&boot));
+        let action = if mode == Mode::Wait {
+            let fresh = native::monotonic_ticks().unwrap_or_else(|_| fail(4, Some(&boot)));
+            if ready_blocked {
+                let deadline = wait::expires_after(
+                    ready_started,
+                    nieuw_os_native_input_service::source::EXCHANGE_TICKS,
+                )
+                .unwrap_or_else(|_| fail(10, Some(&boot)));
+                if fresh >= deadline {
+                    Action::Run
+                } else {
+                    let mut plan = Plan::until(deadline).unwrap_or_else(|_| fail(10, Some(&boot)));
+                    plan.add(Interest::Send(boot.registry))
+                        .unwrap_or_else(|_| fail(10, Some(&boot)));
+                    Action::Park(plan)
+                }
+            } else if pending_ready.is_some() {
+                Action::Run
+            } else {
+                source
+                    .wait_plan(fresh)
+                    .unwrap_or_else(|_| fail(10, Some(&boot)))
+            }
+        } else {
+            Action::Run
+        };
+        match action {
+            Action::Run => {
+                if native::yield_now().is_err() {
+                    fail(8, Some(&boot));
+                }
+            }
+            Action::Park(plan) => {
+                if wait::park(&plan).is_err() {
+                    fail(10, Some(&boot));
+                }
+            }
         }
     }
 }

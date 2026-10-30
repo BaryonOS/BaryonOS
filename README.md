@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`a68ade6a`](https://github.com/simonvanieperen/nieuw-os/commit/a68ade6a1c7f372d1e29c82c79974043fcf563fd) ·
-**Ontwikkelbranch:** `codex/native-materiaal-accessibility-20261030`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-MATERIAAL-ACCESSIBILITY-3: keyboard-only native QMP-route en timeoutdiagnostiek.
-34% blijft 34%; Materiaal/toegankelijkheid blijft 0/15 en U01–U06 blijven open. Op exact 1ffd271 faalde de echte normale QMP-run raw35 na de bestaande 20.000 PIT-ticks: ready/editor/dirty, 28 key-events en 14 draftbytes, maar geen save/reopen/clean-stop. Dit rode bewijs blijft staan. Failure-only timeoutdiagnostiek is toegevoegd. Een aparte keyboard-only QMP-route gebruikt alleen send-key voor create/edit/save/list/reopen; 29 hosttests inclusief QMP-trace en fixture-replay slagen. Die route is nog niet native uitgevoerd; geen screenreader/spraak, schaal/contrast/reduced-motion, gebruikersproef of U-criterium is bewezen. De aparte runtimebron eabc27b rapporteert interactieve frames t/m save/list/reopen, maar gewone koude recovery is nog de lopende externe blokkade.
+**Bron:** [`d104fd9a`](https://github.com/simonvanieperen/nieuw-os/commit/d104fd9a7f33b478c3e1b43f8d99c6d65af73fd6) ·
+**Ontwikkelbranch:** `simon/native-interactive-cold`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Alle zes packagingreviewfixes en oorspronkelijk Windowsbewijs inhoudsbehoudend gecombineerd.
+34% blijft34%; minstens50% niet bereikt. Zes concrete preview/packaging/launcherreviewpunten inhoudsbehoudend gecombineerd met oorspronkelijk echt Windowsbewijs als identieke blobs. Nieuwe gezamenlijke host/native gates volgen; eerdere Windows-QEMUbediening en lokale testZIP blijven expliciet oudeeabc/c532brongebonden. Koude verkenning heeft volledig renderer-afgeleid lijstframe en exact reopenedframe zonder maskers maar is nog geen complete productacceptatierunner. Geen extra volledig rubriccriterium, menselijke audit of releaseclaim.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

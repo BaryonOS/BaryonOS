@@ -24,7 +24,7 @@ M6B_CASES = ("recover", "errors", "full", "corrupt", "vm-cut-before-ack", "vm-cu
 M6C_CASES = ("recover", "errors", "full", "corrupt", "legacy", "vm-cut-before-rename", "vm-cut-after-rename") + M6C_FAULT_CASES
 VOLUME_CASES = ("recover", "cut-data", "cut-table", "recover-cut", "corrupt", "cut-txn")
 VOLUME_FEATURES = ("native-volume", *(f"test-volume-{case}" for case in VOLUME_CASES))
-SUPERVISOR_CASES = ("crash", "denied", "parent-exit", "quota")
+SUPERVISOR_CASES = ("crash", "denied", "parent-exit", "quota", "wait")
 SUPERVISOR_FEATURES = ("native-supervisor", *(f"test-supervisor-{case}" for case in SUPERVISOR_CASES))
 KEYRING_CASES = ("no-device", "stuck", "timeout", "restart")
 KEYRING_FEATURES = ("native-keyring", *(f"test-keyring-{case}" for case in KEYRING_CASES))
@@ -45,8 +45,9 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc", "tes
                    "milestone-m6a", *(f"test-m6a-{case}" for case in M6A_CASES),
                    "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES),
                    "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0", "native-qsim", "native-qsim-job",
-                   "native-sdk-app", "test-sdk-app-denied", *VOLUME_FEATURES, *SUPERVISOR_FEATURES,
-                   *KEYRING_FEATURES, *MATERIAAL_FEATURES, *UPDATE_FEATURES, *SYSTEM_FEATURES, *MEMORY_FEATURES, "native-fpu", "framebuffer", "native-display-probe", "native-system-display-input"]
+                   "native-sdk-app", "test-sdk-app-denied", "native-ipc-wait",
+                   "native-tpm-crb", "test-tpm-crb-absent", *VOLUME_FEATURES, *SUPERVISOR_FEATURES,
+                   *KEYRING_FEATURES, *MATERIAAL_FEATURES, *UPDATE_FEATURES, *SYSTEM_FEATURES, *MEMORY_FEATURES, "native-fpu", "test-fpu-wait", "framebuffer", "native-display-probe", "native-system-display-input"]
 
 
 def inspect_elf(path):
@@ -151,7 +152,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
     elif kernel_feature in MEMORY_FEATURES:
         from run_memory import build_users as build_memory_users
         extra_env, qsim_report = build_memory_users()
-    elif kernel_feature == "native-fpu":
+    elif kernel_feature in ("native-fpu", "test-fpu-wait"):
         from run_fpu import build_users as build_fpu_users
         extra_env, qsim_report = build_fpu_users()
     elif kernel_feature == "native-qsim":
@@ -172,6 +173,15 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         if not qsim_report.get("passed") or sha256(output / "qsim-job-native.elf") != qsim_report["binary_sha256"]:
             raise ValueError("Native qsim job executable failed its artifact gate")
         extra_env = {"NOS_QSIM_JOB_ELF": str((output / "qsim-job-native.elf").resolve())}
+    elif kernel_feature in ("native-ipc-wait", "native-tpm-crb", "test-tpm-crb-absent"):
+        from build_users import inspect_user
+        app_target = TARGET / "ipc-wait-app"
+        run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/ipc-wait-probe/build.py")],
+                   "build-ipc-wait-app", extra_env={"CARGO_TARGET_DIR": str(app_target)})
+        app = app_target / "x86_64-unknown-none/release/ipc-wait-probe"
+        qsim_report = {"app_sha256": sha256(app), "app_elf": inspect_user(app)}
+        extra_env = {"NOS_SDK_APP_ELF": str(app.resolve()),
+                     "NOS_SDK_SERVICE_ELF": str(app.resolve())}
     elif kernel_feature in ("native-sdk-app", "test-sdk-app-denied"):
         from build_users import inspect_user
         app_target = TARGET / "sdk-app"
@@ -305,8 +315,10 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             manifest["display_probe"] = qsim_report
         elif kernel_feature in MEMORY_FEATURES:
             manifest["memory"] = qsim_report
-        elif kernel_feature == "native-fpu":
+        elif kernel_feature in ("native-fpu", "test-fpu-wait"):
             manifest["fpu"] = qsim_report
+        elif kernel_feature in ("native-ipc-wait", "native-tpm-crb", "test-tpm-crb-absent"):
+            manifest["ipc_wait"] = qsim_report
         elif kernel_feature in ("native-sdk-app", "test-sdk-app-denied"):
             manifest["sdk_app"] = qsim_report
         elif kernel_feature in VOLUME_FEATURES:

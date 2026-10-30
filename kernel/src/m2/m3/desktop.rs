@@ -2,6 +2,7 @@
 //! input decoding, document editing or storage policy is implemented here.
 //! The observer reads private result words only while their process is alive.
 use super::*;
+#[cfg(feature = "native-system-materiaal-probe")]
 #[path = "desktop_gate.rs"]
 mod gate;
 use capability_core::{BlockScope, BLOCK_FLUSH, BLOCK_READ, BLOCK_WRITE, RECV, SEND};
@@ -47,10 +48,12 @@ struct Observation {
     generation: u64,
     baseline: usize,
     kernel_tables: usize,
+    #[cfg(feature = "native-system-materiaal-probe")]
     stop_triggered: bool,
     controller_done: bool,
     init_done: bool,
     app_done: bool,
+    #[cfg(feature = "native-system-materiaal-probe")]
     gate: gate::Gate,
     sample_tick: u64,
 }
@@ -60,10 +63,12 @@ static mut OBSERVATION: Observation = Observation {
     generation: 0,
     baseline: 0,
     kernel_tables: 0,
+    #[cfg(feature = "native-system-materiaal-probe")]
     stop_triggered: false,
     controller_done: false,
     init_done: false,
     app_done: false,
+    #[cfg(feature = "native-system-materiaal-probe")]
     gate: gate::Gate::new(),
     sample_tick: u64::MAX,
 };

@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "source_commit": "ec8275579fa07f70180452d325738304b2edb6ab",
+  "source_fingerprint_version": 3,
+  "source_sha256": "4c472a18940ea6cd42a0f0d53d26f8c491c5204274c4b8a6b8d6070b659a79ad",
+  "scope": "Four actual native network VMs after B02 persistence integration and portable TPM runner fix. Test peers supply only synthetic protocol replies on localhost socketnetdev; no Internet, TAP, bridge, personal data or host OS client.",
+  "common_environment": {
+    "LD_LIBRARY_PATH": "$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu",
+    "NOS_QEMU_MACHINE": "pc-q35-8.2",
+    "NOS_TARGET_DIR": "$PWD/target/native-test-version/system"
+  },
+  "network": {
+    "command": "NOS_BUILD_DIR=\"$PWD/build/native-test-version/b02-net\" CARGO_TARGET_DIR=\"$PWD/target/native-test-version/system-host\" python3 -B tools/dev.py python3 -B -u tools/test_net_system.py",
+    "exit_status": 0,
+    "gate": "build/native-test-version/b02-net/net-system-gate.json",
+    "gate_sha256": "fd04bb3c1d2069afcea971560a811e597dd35e04bfc6a61f1063cd50ae7d891d",
+    "log": "/tmp/nieuw-os-b02-net.log",
+    "normal_result": "build/native-test-version/b02-net/run/system-normal-bf16cb575b624ec2b9d10efeb273efa5/result.json",
+    "normal_sha256": "adb41943b4a68d955fa80bcef84a3f9248637e5c6391ad3728876e9923e80f4b",
+    "normal_duration_s": 37.08499543700054,
+    "recover_result": "build/native-test-version/b02-net/run/system-recover-0c2d7b3965cb4062ae5d982e7b5178aa/result.json",
+    "recover_sha256": "00b54d6f5ff94505a5522554c0ec9bdae040202273b94fe7d4873f81cd6adeb7",
+    "recover_duration_s": 37.13826034500016,
+    "capture_command": "NOS_BUILD_DIR=\"$PWD/build/native-test-version/b02-net\" python3 -B tools/capture_system.py --network --destination docs/verification/full-release-native-wait-b02-net",
+    "capture_exit_status": 0,
+    "capture_log": "/tmp/nieuw-os-b02-net-capture.log"
+  },
+  "tcp": {
+    "command": "NOS_BUILD_DIR=\"$PWD/build/native-test-version/b02-tcp\" CARGO_TARGET_DIR=\"$PWD/target/native-test-version/tcp-host\" python3 -B tools/dev.py python3 -B -u tools/test_tcp_system.py",
+    "exit_status": 0,
+    "gate": "build/native-test-version/b02-tcp/tcp-system-gate.json",
+    "gate_sha256": "4621d3cd3d454762ecf8ac25b5766b2edcccf2a633ba74b318c6d1067b19b428",
+    "log": "/tmp/nieuw-os-b02-tcp.log",
+    "normal_result": "build/native-test-version/b02-tcp/run/system-normal-b6f343ebdf594011a5365783a181881e/result.json",
+    "normal_sha256": "03581610bd43e4977fbad2011d757f31c30adbaa266329b77e6aac89176a3969",
+    "normal_duration_s": 7.147503771000629,
+    "recover_result": "build/native-test-version/b02-tcp/run/system-recover-7e5550c4795c456fabffa382b0ffc23e/result.json",
+    "recover_sha256": "5a8894404c6a63a2e162b44e0f0a3dc013c2a6329ba10285a833620b6561b00d",
+    "recover_duration_s": 6.970569295999667,
+    "capture_command": "NOS_BUILD_DIR=\"$PWD/build/native-test-version/b02-tcp\" python3 -B tools/capture_system.py --tcp --destination docs/verification/full-release-native-wait-b02-tcp",
+    "capture_exit_status": 0,
+    "capture_log": "/tmp/nieuw-os-b02-tcp-capture.log",
+    "observations": "Actual HTTP/EOF, refused connection, post-GET reset, corrupt-checksum response refusal, first-SYN loss/retransmission and guest-clock blackhole timeout; exact peer/broker/app counts and unchanged cold image independently revalidated."
+  },
+  "all_native_raw_qemu_exit": 33,
+  "prerequisite_restoration": {
+    "initial_toolchain_command": "CARGO_TARGET_DIR=\"$PWD/target/native-test-version/tcp-host\" python3 -B tools/dev.py cargo +1.91.1 test --offline --locked --manifest-path services/net-stack/Cargo.toml",
+    "initial_toolchain_exit_status": 1,
+    "initial_toolchain_error": "already required Rust1.91.1 not installed",
+    "install_commands": [
+      "python3 -B tools/dev.py rustup toolchain install 1.91.1 --profile minimal",
+      "python3 -B tools/dev.py rustup target add --toolchain 1.91.1 x86_64-unknown-none"
+    ],
+    "install_exit_status": 0,
+    "install_log": "/tmp/nieuw-os-rust1911-install.log",
+    "offline_retry_exit_status": 101,
+    "offline_retry_error": "already pinned smoltcp missing from local cache",
+    "fetch_commands": [
+      "python3 -B tools/dev.py cargo +1.91.1 fetch --locked --manifest-path services/net-stack/Cargo.toml",
+      "python3 -B tools/dev.py cargo +1.91.1 fetch --locked --manifest-path sdk/examples/tcp-probe/Cargo.toml"
+    ],
+    "fetch_exit_status": 0,
+    "fetch_log": "/tmp/nieuw-os-tcp-fetch.log",
+    "boundary": "Only existing pinned prerequisites restored in project-local toolchain/cache after actual failures. No manifests/lockfiles or system default compiler changed."
+  },
+  "score_before": 34,
+  "score_after": 34,
+  "boundary": "N01 remains open: this bounded client/probe integration does not certify the full product network service, native general backpressure/resource handling or daily Internet configuration. No TLS, production entropy, Windows, physical hardware or human audit claim."
+}

@@ -258,6 +258,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6fe2267d4ed49bc07b63801559be28c718ea06c4738b7a03c94df7386d2cde46"
 
 [[package]]
+name = "hex-literal"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bcaaec4551594c969335c98c903c1397853d4198408ea609190f420500f6be71"
+
+[[package]]
 name = "hkdf"
 version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -270,9 +276,11 @@ dependencies = [
 name = "hkdf"
 version = "0.13.0"
 dependencies = [
+ "hex-literal 1.0.0",
  "hmac 0.13.0",
  "hybrid-array",
  "kdf",
+ "sha2 0.11.1",
  "zeroize",
 ]
 
@@ -290,7 +298,9 @@ name = "hmac"
 version = "0.13.0"
 dependencies = [
  "digest 0.11.3",
+ "hex-literal 1.0.0",
  "hybrid-array",
+ "sha2 0.11.1",
  "zeroize",
 ]
 
@@ -341,7 +351,7 @@ dependencies = [
  "chacha20 0.10.2",
  "chacha20 0.9.1",
  "chacha20poly1305",
- "hex-literal",
+ "hex-literal 0.4.1",
  "hkdf 0.12.4",
  "hkdf 0.13.0",
  "rand_core",
@@ -394,6 +404,10 @@ name = "nieuw-os-rtc"
 version = "0.1.0"
 
 [[package]]
+name = "nieuw-os-tpm-crb"
+version = "0.1.0"
+
+[[package]]
 name = "num-traits"
 version = "0.2.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -424,6 +438,7 @@ dependencies = [
  "nieuw-os-display-client",
  "nieuw-os-ps2",
  "nieuw-os-rtc",
+ "nieuw-os-tpm-crb",
  "object-core",
  "ui-core",
  "virtio-blk-driver",
@@ -600,7 +615,7 @@ name = "update-core"
 version = "0.1.0"
 dependencies = [
  "ed25519-dalek",
- "hex-literal",
+ "hex-literal 0.4.1",
  "ml-dsa",
  "sha2 0.10.9",
 ]

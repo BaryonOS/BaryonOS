@@ -1,8 +1,84 @@
 # Werkqueue — volledige native testrelease, 30 oktober 2026
 
-| Werkpakket | Toestand | Eigenaar / exclusieve writes | Acceptatie | Interface en bewijsgrens |
-|---|---|---|---|---|
-| NATIVE-MATERIAAL-ACCESSIBILITY-3 | timeout-diagnostiek toegevoegd; aparte keyboard-only QMP-route voor create/edit/save/list/reopen; hosttrace en replay getest, native run nog niet uitgevoerd | root; `tools/run_materiaal_probe.py`, `tools/tests/test_materiaal_probe.py`, `docs/implementation/NATIVE-MATERIAAL.md`; geen `tools/run_materiaal_preview.py`/tests of kernel/SDK-wait writes | U02/U04 deelvoorbereiding; echte keyboard-only native run, accessibilitybroker/schermlezer/spraak, voorkeuren en gebruikerstaken blijven open | `--case keyboard` gebruikt alleen `send-key`; hostsuite 29 tests groen. Dit is geen native runtime- of screenreaderbewijs; oude bron 1ffd271 houdt de bestaande timeoutgrens |
+## Actuele integratie en exclusieve schrijfgebieden
+
+Integrator `simon/native-test-version`: gepusht bewijscheckpoint `c532ba88`,
+geteste code `eabc27ba879fd3b5960863ae8eede800c5045a57`, runtime v3
+`a1998a126a3a1ccc18523925a422912d934c14bab865b3d7df346862a2c251a6`.
+De onderstaande oudere toewijzingen zijn historie, geen actieve reserveringen.
+IPC-wachten/consumenten, B02 en native TPM zijn geïntegreerd; normale GUI,
+save/list/reopen en koude probeheropening zijn op hun eigen bron bewezen.
+Alle zes volledige gewone zevenprocessenframes zijn nu op eabc27b native
+bytegelijk aan de opnieuw uitgevoerde referentie, met diskorakel na raw0.
+Bewijs: `verification/full-release-interactive-fixed/`.
+
+| Taak | Eigenaar / exclusieve writes | Toestand en bewijsgrens |
+|---|---|---|
+| WINDOWS-INTERACTIVE-1 | peer `Keuze native os-functionaliteit`; alleen eigen `docs/verification/windows-qemu-interactive-1/`, eigen tijdelijke adapter/bundel/state | Vaste c532ba8-kopie in eigen worktree. Lokale ZIP en echte Windows CheckOnly/start/readiness gemeld; bediening loopt nog, geen geverifieerde eindclaim of publicatie |
+| INTERACTIVE-COLD-1 | integrator; voorlopig alleen sessieartifacts en eigen gegenereerde cold-experiment-runs, daarna zo nodig `tools/run_materiaal_preview.py` en directe tests | Eerste exacte lijstvergelijking rood: verse Ready-status verschilt terecht van vorige Saved-status. Tweede verkennende run4019c620f8 bewijst volledig bytegelijk reopened-frame en onveranderde disk na QMP-quit/raw0, maar certificeert de initiële lijst niet (expliciete vaste wachttijd). Nog geen volledige koude acceptatie; renderer-afgeleid lijstorakel en strikt parent/artifact/trace-replay vereist. Geen kernel-/app-/SDK-writes |
+
+De Windowspeer heeft de vaste build read-only gekopieerd en alle bron/copy-
+hashes gecontroleerd; verder integratorwerk verandert haar vaste bron niet.
+Geen parallelle schrijvers voor de gedeelde voortgangsmeter/status.
+De integrator heeft de Materiaal-/toegankelijkheidssessie expliciet van deze
+runnerreservering op de hoogte gebracht. Score blijft34%;50% open.
+
+## Uitvoeringshistorie
+
+Afgeronde fundamentstap `TPM-NATIVE-1`, eigenaar `simon/native-test-version`, vanaf
+`cf02055`: alleen vaste supervisor-MMIO-adapter en read-only TPM2-property-
+proef met echte PIT-polls, afzonderlijk absent-geval en bestaande volledige
+CPL3-wachtacceptatie. Exclusieve writes: root/kernel Cargo-manifest/lock,
+exacte pagingseam, M3-TPM-fixture/testhook, waitfixture-observer,
+`tools/build.py`, `tools/run.py`, nieuwe `run_tpm.py`/hosttest en bewijsdocs.
+Geen keyring/system-opslagwijzigingen; actieve PR #64 bezit dat gebied.
+23 coretests, 4 harnastests en scalarbuild/ELF-inspectie groen. Beide echte
+native VM's slagen op `4b09869`: propertyquery/release en nul-write-absent-
+quarantaine, met volledige CPL3-wachtacceptatie. Eerste rode poging behouden;
+`verification/native-test-version/tpm-evidence.json`. ADR-052; fundament
+voor FR-B01/FR-O05, geen gesloten criterium. Integrator herhaalt nu de
+gedeelde gates/proefversie; nieuwe CI-step nog niet uitgevoerd.
+Voorafgaande sessiestap: alle zes echte K05-cases, inclusief twee Waiting-
+kills en schoon hergebruik, groen op `586c33c`; brongebonden bewijs in
+`verification/native-test-version/wait-lifecycle-evidence.json`.
+De normale/koude native GUI en FPU/wacht zijn eveneens inmiddels groen op
+hun eigen bron; oude rode queue-omschrijvingen hieronder zijn historisch.
+
+## Peerhistorie — Windows-QEMU-testversie, nu geïntegreerd
+
+`simon/windows-qemu-test-version`, basis `ad2b981`; codecheckpoint `f777f7a`.
+`TASK-WINDOWS-QEMU-TEST-VERSION` voegt een gecontroleerde ZIP-packager,
+PowerShell-launcher en bron-/hashgebonden QMP-previewrunner toe voor het echte
+zeven-app `native-system-materiaal`-profiel. De opgegeven map
+`C:\Program Files\qemu` is het ingebouwde standaarddetectiepad. De launcher
+vereist QEMU 10.2.1+, SDL en `rng-builtin`; QEMU zelf wordt niet meegeleverd.
+
+Hosttests (31: packager, transcript/frame-orakel en bestaande Materiaal-probe),
+strikte preflight en normale Materiaal-build slagen; de laatste build is
+waarschuwingvrij. De eerste QEMU-preview faalde door een onterechte vaste
+Source/Policy-volgorde in het hostorakel. Na correctie slaagt de echte run
+in 3,874 s: QEMU exit 0 na QMP-quit, 800×600 en 310 kleuren.
+Bewijs: `verification/windows-qemu-preview/`. Bundelgeneratie, GitHub-artifactjob en
+Windows-uitvoering staan nog open; de uiteindelijke bron wordt eerst met
+`simon/native-test-version` afgestemd. De lokale QEMU-build heeft QMP en
+`rng-builtin`, maar uitsluitend de `none`-displaybackend, zodat dit geen
+Windows-UI- of SDL-bewijs is. Geen volledige-release- of roadmapcriteria
+afgetekend; rubric blijft 34%.
+
+Windows-preflightaanvulling: echte PowerShell bereikt de opgegeven
+QEMU-installatie (11.1.0), met SDL en `rng-builtin`. Vijf launchertests met
+synthetische bestanden slagen zonder VM of state; `-CheckOnly` valideert
+bundelgrootte/SHA-256. Bewijs: `verification/windows-qemu-preview/windows-launcher.md`.
+Dit is geen Windows-gaststart of handmatige bediening. PR #65 is concept.
+
+Packager verifieert ook de ingelezen kernel-/loaderbytes en bron opnieuw
+vlak vóór archivering. 33 hosttests groen, inclusief artifactwissel na
+initiële validatie: fout zonder ZIP. Geen OS-bundel gemaakt.
+Historische CI41089090576 op f777 is rood (herstelde readinessvolgorde);
+huidige-head-CI blijft open.
+
+Eerstvolgende gate:
+`. .tools/nieuw-os/rtc-env.sh && PATH="$PWD/.tools/nieuw-os:$PATH" NOS_BUILD_DIR="$PWD/build/windows-qemu" NOS_TARGET_DIR="$PWD/target/windows-qemu" CARGO_TARGET_DIR="$PWD/target/windows-qemu" python3 -B -u tools/run_materiaal_preview.py --bios-rom .tools/nieuw-os/emulator/usr/share/seabios/bios-256k.bin --vga-rom .tools/nieuw-os/emulator/usr/share/seabios/vgabios-stdvga.bin`.
 
 Afgeronde deelstap `RTC-NATIVE-1`: `simonvanieperen-expert-disco`, basis
 `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. De opt-in `native-rtc`-bootstrap,
