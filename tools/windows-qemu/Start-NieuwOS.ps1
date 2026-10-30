@@ -1,5 +1,6 @@
 param(
-    [string]$QemuPath
+    [string]$QemuPath,
+    [switch]$CheckOnly
 )
 
 $ErrorActionPreference = "Stop"
@@ -33,15 +34,44 @@ if ($qemuVersion -lt [version]"10.2.1") {
 }
 
 $objectTypes = (& $QemuPath -object help 2>&1 | Out-String)
-if ($objectTypes -notmatch "(?m)^\s*rng-builtin\s*$") {
+if ($LASTEXITCODE -ne 0 -or $objectTypes -notmatch "(?m)^\s*rng-builtin\s*$") {
     throw "This QEMU build does not provide rng-builtin; install a current 64-bit build."
 }
 $displayTypes = (& $QemuPath -display help 2>&1 | Out-String)
-if ($displayTypes -notmatch "(?m)^\s*sdl\s*$") {
+if ($LASTEXITCODE -ne 0 -or $displayTypes -notmatch "(?m)^\s*sdl\s*$") {
     throw "This QEMU build does not provide the SDL display backend."
 }
 
 $bundle = $PSScriptRoot
+$manifestPath = Join-Path $bundle "manifest.json"
+$manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+if ($manifest.schema_version -ne 1 -or $manifest.kernel_feature -ne "native-system-materiaal") {
+    throw "Not a supported native Materiaal test bundle."
+}
+$requiredFiles = @(
+    "Start-NieuwOS.ps1", "README.md",
+    "OVMF_CODE.fd", "OVMF_VARS.template.fd", "bios-256k.bin", "VGA.rom",
+    "licenses/OVMF-COPYRIGHT", "licenses/SeaBIOS-COPYRIGHT",
+    "volume.empty.img", "esp/kernel.elf", "esp/EFI/BOOT/BOOTX64.EFI"
+)
+foreach ($relative in $requiredFiles) {
+    $entry = $manifest.files.PSObject.Properties[$relative]
+    if (-not $entry -or $entry.Value.sha256 -notmatch "^[0-9a-f]{64}$") {
+        throw "Missing or malformed bundle hash: $relative"
+    }
+    $path = Join-Path $bundle $relative
+    $item = Get-Item -LiteralPath $path -Force
+    if ($item.PSIsContainer -or $item.Length -ne $entry.Value.size_bytes) {
+        throw "Bundle file size differs: $relative"
+    }
+    if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne $entry.Value.sha256) {
+        throw "Bundle file hash differs: $relative"
+    }
+}
+if ($CheckOnly) {
+    Write-Output "Bundle integrity and QEMU $qemuVersion prerequisites passed; no VM started."
+    return
+}
 $state = Join-Path $bundle "state"
 New-Item -ItemType Directory -Path $state -Force | Out-Null
 $vars = Join-Path $state "OVMF_VARS.fd"

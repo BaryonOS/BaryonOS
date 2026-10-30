@@ -19,6 +19,17 @@ manifest.json bindt kernel, loader en firmware aan de bronversie.
    Laat `-QemuPath` weg als `qemu-system-x86_64.exe` op PATH staat of in de
    standaardinstallatiemap is geïnstalleerd. Het script wijzigt de
    PowerShell-uitvoeringspolicy niet.
+   Alleen de bundelhashes en QEMU-vereisten controleren, zonder een VM of
+   `state\` aan te maken:
+
+   ```powershell
+   .\Start-NieuwOS.ps1 -CheckOnly
+   ```
+
+   De SHA-256-controle detecteert beschadigde of gewijzigde bundelbestanden,
+   maar is geen handtekening of bewijs van de afzender. Download alleen uit
+   de afgesproken projectbron; vervang manifest of scripts niet door
+   bestanden van onbekende herkomst.
 3. Sluit de VM via het QEMU-venster. Opnieuw starten hergebruikt de
    VM-schijf en OVMF-variabelen uit `state\`. Om alleen de VM terug te zetten
    naar de lege beginstand: sluit QEMU volledig en verwijder

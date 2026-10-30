@@ -95,6 +95,12 @@ hostorakel slaagt de echte QEMU-preview: QMP-quit exit 0, 800×600, 310 kleuren.
 `verification/windows-qemu-preview/`. Windows-hostlaunch en ZIP-generatie zijn
 niet uitgevoerd; distributie-infrastructuur sluit geen productcriterium.
 
+Aanvullend op basis `19f2d33` met CheckOnly-wijziging: vijf echte Windows
+PowerShell-launchertests slagen met synthetische bestanden; QEMU 11.1.0,
+SDL en `rng-builtin` zijn aanwezig. Bundelgrootte/hash en profielweigering
+zijn gecontroleerd zonder VM of state. Geen Windows-gastacceptatie of
+extra punten: **34% → 34%**.
+
 RTC-NATIVE-1 (30 oktober 2026), basis `5c334f9`: **34% -> 34%**.
 De expliciet opt-in CMOS-bootstrap is een technische tijdproviderafhankelijkheid,
 geen productieklok of vertrouwde TLS-tijd. Geen rubricpunt of productcriterium

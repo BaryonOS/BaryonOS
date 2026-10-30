@@ -21,6 +21,12 @@ Windows-uitvoering staan nog open; de uiteindelijke bron wordt eerst met
 Windows-UI- of SDL-bewijs is. Geen volledige-release- of roadmapcriteria
 afgetekend; rubric blijft 34%.
 
+Windows-preflightaanvulling: echte PowerShell bereikt de opgegeven
+QEMU-installatie (11.1.0), met SDL en `rng-builtin`. Vijf launchertests met
+synthetische bestanden slagen zonder VM of state; `-CheckOnly` valideert
+bundelgrootte/SHA-256. Bewijs: `verification/windows-qemu-preview/windows-launcher.md`.
+Dit is geen Windows-gaststart of handmatige bediening. PR #65 is concept.
+
 Eerstvolgende gate:
 `. .tools/nieuw-os/rtc-env.sh && PATH="$PWD/.tools/nieuw-os:$PATH" NOS_BUILD_DIR="$PWD/build/windows-qemu" NOS_TARGET_DIR="$PWD/target/windows-qemu" CARGO_TARGET_DIR="$PWD/target/windows-qemu" python3 -B -u tools/run_materiaal_preview.py --bios-rom .tools/nieuw-os/emulator/usr/share/seabios/bios-256k.bin --vga-rom .tools/nieuw-os/emulator/usr/share/seabios/vgabios-stdvga.bin`.
 
