@@ -1,0 +1,633 @@
+{
+  "passed": false,
+  "source_commit": "ca45a7dabe6a040921de03bdc2fad3e5045a75ba",
+  "source_fingerprint_version": 3,
+  "source_sha256": "bda48571144d7771bff145cc17b0f0712e271cbc6ee323dec43bee099ea5e89d",
+  "source_files_sha256": {
+    "tools/run_cap_bench.py": "3b8ddefb704a99e6145f03150b1673f378a231412fe4b27a614c371a14984d56",
+    "tools/tests/test_cap_bench.py": "e4ec4da34cdb5ae52004c756a54ec6ca5ee70072a124257a6baaafe18dc3b5ab",
+    "tools/build.py": "e0733f60ed7653c3351da2d86e529ad6a85e847da855f568a9413bb69b5599b0",
+    "kernel/src/m2/m3/cap_bench.rs": "07b6dbe759178fa2a9862edea73e99d0b9e90b188bd234999fb45a825067b664",
+    "kernel/src/m2/m3.rs": "4fa3f41d6fe6c3fcb6726c0db84c974e464dc1343cc94d83aa5b87a11a6f04c3",
+    "kernel/Cargo.toml": "bbe6ced371d8dd117f667ea8cc3b0a33de0b60d1d2662bda380c5119fb7b5585",
+    "kernel/build.rs": "c5e8ca7845510e56b39154765a5280a7fa38699223ad0ce666d5550d48234390",
+    "crates/capability-core/src/lib.rs": "9c41ac47e783405901663423b0e0463d5fa665f445abfb8d62de1349debd9fb4",
+    "crates/capability-core/Cargo.toml": "e25dba4430b82587dcb9e65f209155238c9f9721d9f3114df890c370119017b6",
+    "Cargo.toml": "0bdbe29b683a9a603ce8bc7744cc7fb4a20faa1c2ead7ce2d48b92776dc55297",
+    "Cargo.lock": "4f1570a47aa99f5b508cb9ea3ac95a76b72947425a89b41f4019998d599b0a69",
+    "rust-toolchain.toml": "fdc1c499d524be4dc57534d10a6d41c854fa6340866f63fcc9abdaa22a540437",
+    ".cargo/config.toml": "798b66604e4ae63e9d0983160f4259b96d8b71e3b9f0612c3f13fcc6ec3abe06"
+  },
+  "frozen_sources": {
+    "source/tools/run_cap_bench.py": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/tools/run_cap_bench.py",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/tools/run_cap_bench.py",
+      "bytes": 16952,
+      "sha256": "3b8ddefb704a99e6145f03150b1673f378a231412fe4b27a614c371a14984d56",
+      "cargo_output": false,
+      "external": false
+    },
+    "source/tools/tests/test_cap_bench.py": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/tools/tests/test_cap_bench.py",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/tools/tests/test_cap_bench.py",
+      "bytes": 16370,
+      "sha256": "e4ec4da34cdb5ae52004c756a54ec6ca5ee70072a124257a6baaafe18dc3b5ab",
+      "cargo_output": false,
+      "external": false
+    },
+    "source/tools/build.py": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/tools/build.py",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/tools/build.py",
+      "bytes": 23769,
+      "sha256": "e0733f60ed7653c3351da2d86e529ad6a85e847da855f568a9413bb69b5599b0",
+      "cargo_output": false,
+      "external": false
+    },
+    "source/kernel/src/m2/m3/cap_bench.rs": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/kernel/src/m2/m3/cap_bench.rs",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/kernel/src/m2/m3/cap_bench.rs",
+      "bytes": 6224,
+      "sha256": "07b6dbe759178fa2a9862edea73e99d0b9e90b188bd234999fb45a825067b664",
+      "cargo_output": false,
+      "external": false
+    },
+    "source/kernel/src/m2/m3.rs": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/kernel/src/m2/m3.rs",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/kernel/src/m2/m3.rs",
+      "bytes": 71810,
+      "sha256": "4fa3f41d6fe6c3fcb6726c0db84c974e464dc1343cc94d83aa5b87a11a6f04c3",
+      "cargo_output": false,
+      "external": false
+    },
+    "source/kernel/Cargo.toml": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/kernel/Cargo.toml",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/kernel/Cargo.toml",
+      "bytes": 9735,
+      "sha256": "bbe6ced371d8dd117f667ea8cc3b0a33de0b60d1d2662bda380c5119fb7b5585",
+      "cargo_output": false,
+      "external": false
+    },
+    "source/kernel/build.rs": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/kernel/build.rs",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/kernel/build.rs",
+      "bytes": 2763,
+      "sha256": "c5e8ca7845510e56b39154765a5280a7fa38699223ad0ce666d5550d48234390",
+      "cargo_output": false,
+      "external": false
+    },
+    "source/crates/capability-core/src/lib.rs": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/crates/capability-core/src/lib.rs",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/crates/capability-core/src/lib.rs",
+      "bytes": 109804,
+      "sha256": "9c41ac47e783405901663423b0e0463d5fa665f445abfb8d62de1349debd9fb4",
+      "cargo_output": false,
+      "external": false
+    },
+    "source/crates/capability-core/Cargo.toml": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/crates/capability-core/Cargo.toml",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/crates/capability-core/Cargo.toml",
+      "bytes": 213,
+      "sha256": "e25dba4430b82587dcb9e65f209155238c9f9721d9f3114df890c370119017b6",
+      "cargo_output": false,
+      "external": false
+    },
+    "source/Cargo.toml": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/Cargo.toml",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/Cargo.toml",
+      "bytes": 684,
+      "sha256": "0bdbe29b683a9a603ce8bc7744cc7fb4a20faa1c2ead7ce2d48b92776dc55297",
+      "cargo_output": false,
+      "external": false
+    },
+    "source/Cargo.lock": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/Cargo.lock",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/Cargo.lock",
+      "bytes": 15410,
+      "sha256": "4f1570a47aa99f5b508cb9ea3ac95a76b72947425a89b41f4019998d599b0a69",
+      "cargo_output": false,
+      "external": false
+    },
+    "source/rust-toolchain.toml": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/rust-toolchain.toml",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/rust-toolchain.toml",
+      "bytes": 143,
+      "sha256": "fdc1c499d524be4dc57534d10a6d41c854fa6340866f63fcc9abdaa22a540437",
+      "cargo_output": false,
+      "external": false
+    },
+    "source/.cargo/config.toml": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/.cargo/config.toml",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/.cargo/config.toml",
+      "bytes": 617,
+      "sha256": "798b66604e4ae63e9d0983160f4259b96d8b71e3b9f0612c3f13fcc6ec3abe06",
+      "cargo_output": false,
+      "external": false
+    },
+    "build/manifest": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/build/r19-cap-digest/manifest.json",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/build/r19-cap-digest/manifest.json",
+      "bytes": 7425,
+      "sha256": "7aad421bd33eb2468aa354e32ddb75dc83105930fdf2f44718ad8fc11b98647a",
+      "cargo_output": false,
+      "external": false
+    },
+    "build/kernel": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/build/r19-cap-digest/esp/kernel.elf",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/build/r19-cap-digest/esp/kernel.elf",
+      "bytes": 1845648,
+      "sha256": "2db23196f16a3d67739a76acbd6d1179e9b688e0f6c93594402751dc2a4b0900",
+      "cargo_output": false,
+      "external": false
+    },
+    "build/loader": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/build/r19-cap-digest/esp/EFI/BOOT/BOOTX64.EFI",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/build/r19-cap-digest/esp/EFI/BOOT/BOOTX64.EFI",
+      "bytes": 28672,
+      "sha256": "e19372a3c0b3c5fef3bb0da402ecd2c072d6cbdf8ad074ac3b1ae4e0bcb5a97e",
+      "cargo_output": false,
+      "external": false
+    },
+    "elf/system_init": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/target/r19-cap-digest/system-system/x86_64-unknown-none/release/system-init",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/target/r19-cap-digest/system-system/x86_64-unknown-none/release/system-init",
+      "bytes": 44040,
+      "sha256": "6c73f4e4ed65e6c54a225d361afc47260c5cabee14d93dfd69a8eb610164c34f",
+      "cargo_output": true,
+      "external": false
+    },
+    "elf/system_app": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/target/r19-cap-digest/system-system/x86_64-unknown-none/release/system-app",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/target/r19-cap-digest/system-system/x86_64-unknown-none/release/system-app",
+      "bytes": 85696,
+      "sha256": "d6c5bcadc0078a04b782df6263f3b9954f1bf97892085b6e63b1857cfe0b235d",
+      "cargo_output": true,
+      "external": false
+    },
+    "elf/system_worker": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/target/r19-cap-digest/system-system/x86_64-unknown-none/release/system-worker",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/target/r19-cap-digest/system-system/x86_64-unknown-none/release/system-worker",
+      "bytes": 15088,
+      "sha256": "92847e0dcdc39c078442aea213d7c3376c23ff3f50fae822ee2e35c07eb9a643",
+      "cargo_output": true,
+      "external": false
+    },
+    "elf/keyring_service": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/target/r19-cap-digest/system-keyring/x86_64-unknown-none/release/keyring-service",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/target/r19-cap-digest/system-keyring/x86_64-unknown-none/release/keyring-service",
+      "bytes": 113312,
+      "sha256": "ee9205fb96ce9a31b8d6703ac03731fd0a2c3a6f060e0a27e5862e24935c3223",
+      "cargo_output": true,
+      "external": false
+    },
+    "elf/volume_service": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/target/r19-cap-digest/system-volume/x86_64-unknown-none/release/volume-service",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/target/r19-cap-digest/system-volume/x86_64-unknown-none/release/volume-service",
+      "bytes": 97544,
+      "sha256": "095cffbd1377d31b854b7f30d085aa447774f58b0c801e743b5bb3ec30f608cf",
+      "cargo_output": true,
+      "external": false
+    },
+    "qemu": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/bin/qemu-system-x86_64",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/bin/qemu-system-x86_64",
+      "bytes": 31328048,
+      "sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+      "cargo_output": false,
+      "external": true
+    },
+    "firmware/code": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/share/OVMF/OVMF_CODE_4M.fd",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/share/OVMF/OVMF_CODE_4M.fd",
+      "bytes": 3653632,
+      "sha256": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+      "cargo_output": false,
+      "external": true
+    },
+    "firmware/template": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/share/OVMF/OVMF_VARS_4M.fd",
+      "resolved": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/share/OVMF/OVMF_VARS_4M.fd",
+      "bytes": 540672,
+      "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "cargo_output": false,
+      "external": true
+    }
+  },
+  "expected_artifacts": {
+    "esp/kernel.elf": {
+      "sha256": "2db23196f16a3d67739a76acbd6d1179e9b688e0f6c93594402751dc2a4b0900",
+      "bytes": 1845648
+    },
+    "esp/EFI/BOOT/BOOTX64.EFI": {
+      "sha256": "e19372a3c0b3c5fef3bb0da402ecd2c072d6cbdf8ad074ac3b1ae4e0bcb5a97e",
+      "bytes": 28672
+    },
+    "inputs/manifest.json": {
+      "sha256": "7aad421bd33eb2468aa354e32ddb75dc83105930fdf2f44718ad8fc11b98647a",
+      "bytes": 7425
+    },
+    "inputs/system_init.elf": {
+      "sha256": "6c73f4e4ed65e6c54a225d361afc47260c5cabee14d93dfd69a8eb610164c34f",
+      "bytes": 44040
+    },
+    "inputs/system_app.elf": {
+      "sha256": "d6c5bcadc0078a04b782df6263f3b9954f1bf97892085b6e63b1857cfe0b235d",
+      "bytes": 85696
+    },
+    "inputs/system_worker.elf": {
+      "sha256": "92847e0dcdc39c078442aea213d7c3376c23ff3f50fae822ee2e35c07eb9a643",
+      "bytes": 15088
+    },
+    "inputs/keyring_service.elf": {
+      "sha256": "ee9205fb96ce9a31b8d6703ac03731fd0a2c3a6f060e0a27e5862e24935c3223",
+      "bytes": 113312
+    },
+    "inputs/volume_service.elf": {
+      "sha256": "095cffbd1377d31b854b7f30d085aa447774f58b0c801e743b5bb3ec30f608cf",
+      "bytes": 97544
+    },
+    "OVMF_CODE.fd": {
+      "sha256": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+      "bytes": 3653632
+    },
+    "OVMF_VARS.template.fd": {
+      "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "bytes": 540672
+    },
+    "volume.img": {
+      "sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "bytes": 1048576
+    },
+    "volume.json": {
+      "sha256": "ba1f221ebeb1470cea9176a67e02a60b4658f2699a8b2db54951c940cd3981c6",
+      "bytes": 155
+    },
+    "inputs/frozen-inputs.json": {
+      "sha256": "2fd142705de899a7ff2f456d2415bc843c2c66b8e8309a827c598fe2ab4a7431",
+      "bytes": 13447
+    }
+  },
+  "initial_mutable_artifacts": {
+    "OVMF_VARS.fd": {
+      "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "bytes": 540672
+    }
+  },
+  "scope": "Read-only CPL0 digest cost in own kernel before userspace/timer; no GUI, app, boot-latency or physical-cycle acceptance",
+  "command": [
+    "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,file=volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000"
+  ],
+  "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/build/r19-cap-digest/run/cap-bench-db85b5f414c04e2cbadbb0f8e4c940fd",
+  "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/build/r19-cap-digest/run/cap-bench-db85b5f414c04e2cbadbb0f8e4c940fd",
+  "manifest": {
+    "schema_version": 1,
+    "profile": "native-cap-digest-bench",
+    "kernel_feature": "native-cap-digest-bench",
+    "loader_feature": null,
+    "source_fingerprint_version": 3,
+    "source_sha256": "bda48571144d7771bff145cc17b0f0712e271cbc6ee323dec43bee099ea5e89d",
+    "loader": {
+      "sha256": "e19372a3c0b3c5fef3bb0da402ecd2c072d6cbdf8ad074ac3b1ae4e0bcb5a97e",
+      "format": "AMD64 PE32+",
+      "subsystem": "EFI_APPLICATION",
+      "imports": 0
+    },
+    "kernel": {
+      "sha256": "2db23196f16a3d67739a76acbd6d1179e9b688e0f6c93594402751dc2a4b0900",
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "offset": 4096,
+          "address": 33554432,
+          "filesz": 174519,
+          "memsz": 174519,
+          "page_start": 33554432,
+          "page_end": 33730560
+        },
+        {
+          "flags": 4,
+          "offset": 180224,
+          "address": 33730560,
+          "filesz": 378808,
+          "memsz": 378808,
+          "page_start": 33730560,
+          "page_end": 34111488
+        },
+        {
+          "flags": 6,
+          "offset": 561152,
+          "address": 34111488,
+          "filesz": 1258144,
+          "memsz": 4345208,
+          "page_start": 34111488,
+          "page_end": 38457344
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "size": 0
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "size": 174519
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 50,
+          "size": 378808
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "size": 1258144
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "flags": 3,
+          "size": 3083640
+        },
+        {
+          "name": ".symtab",
+          "type": 2,
+          "flags": 0,
+          "size": 7992
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "size": 52
+        },
+        {
+          "name": ".strtab",
+          "type": 3,
+          "flags": 0,
+          "size": 17789
+        }
+      ]
+    },
+    "sdk_runtime": false,
+    "document_session": false,
+    "system": {
+      "system_init": {
+        "sha256": "6c73f4e4ed65e6c54a225d361afc47260c5cabee14d93dfd69a8eb610164c34f",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1256,
+              "memsz": 1256,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 1905,
+              "memsz": 1905,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 20514,
+              "memsz": 20514,
+              "page_start": 1073872896,
+              "page_end": 1073897472
+            }
+          ]
+        }
+      },
+      "system_app": {
+        "sha256": "d6c5bcadc0078a04b782df6263f3b9954f1bf97892085b6e63b1857cfe0b235d",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1304,
+              "memsz": 1304,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 4493,
+              "memsz": 4493,
+              "page_start": 1073823744,
+              "page_end": 1073831936
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 20480,
+              "filesz": 52962,
+              "memsz": 52962,
+              "page_start": 1073872896,
+              "page_end": 1073926144
+            }
+          ]
+        }
+      },
+      "system_worker": {
+        "sha256": "92847e0dcdc39c078442aea213d7c3376c23ff3f50fae822ee2e35c07eb9a643",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 306,
+              "memsz": 306,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1040,
+              "memsz": 1040,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 519,
+              "memsz": 519,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            }
+          ]
+        }
+      },
+      "keyring_service": {
+        "sha256": "ee9205fb96ce9a31b8d6703ac03731fd0a2c3a6f060e0a27e5862e24935c3223",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1344,
+              "memsz": 1344,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 4307,
+              "memsz": 4307,
+              "page_start": 1073823744,
+              "page_end": 1073831936
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 20480,
+              "filesz": 78775,
+              "memsz": 78775,
+              "page_start": 1073872896,
+              "page_end": 1073954816
+            }
+          ]
+        }
+      },
+      "volume_service": {
+        "sha256": "095cffbd1377d31b854b7f30d085aa447774f58b0c801e743b5bb3ec30f608cf",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 57346,
+              "memsz": 57346,
+              "page_start": 1073741824,
+              "page_end": 1073803264
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 65536,
+              "filesz": 1304,
+              "memsz": 1304,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 69632,
+              "filesz": 18266,
+              "memsz": 18266,
+              "page_start": 1073823744,
+              "page_end": 1073844224
+            }
+          ]
+        }
+      }
+    }
+  },
+  "qemu_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+  "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "firmware_sha256": {
+    "code": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "raw_qemu_exit": 35,
+  "timed_out": false,
+  "duration_s": 2.4089814470025885,
+  "disk_before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+  "disk_after_sha256": null,
+  "error": "Native benchmark did not exit successfully",
+  "status": "failed"
+}

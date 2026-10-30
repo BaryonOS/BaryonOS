@@ -1,0 +1,39 @@
+{
+  "captured_at": "2026-10-30T19:04:14+0100",
+  "source_commit": "ca45a7dabe6a040921de03bdc2fad3e5045a75ba",
+  "source_fingerprint_v3": "bda48571144d7771bff145cc17b0f0712e271cbc6ee323dec43bee099ea5e89d",
+  "host": {
+    "system": "Linux",
+    "release": "6.18.54.1-microsoft-standard-WSL2",
+    "architecture": "x86_64",
+    "cpu_count": 32,
+    "loadavg": "3.53 3.42 2.89 4/668 2494082",
+    "mem_available_kib": 23531552,
+    "concurrent_process_counts": {
+      "qemu-system-x86_64": 0,
+      "cargo": 0,
+      "rustc": 0,
+      "x86_64-linux-gnu-gcc-15": 0
+    }
+  },
+  "environment_tier": "Linux/WSL host; QEMU TCG; not Windows-native or physical hardware",
+  "qemu": {
+    "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/bin/qemu-system-x86_64",
+    "version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)",
+    "sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb"
+  },
+  "firmware": {
+    "code_path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/share/OVMF/OVMF_CODE_4M.fd",
+    "code_sha256": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "vars_template_path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/share/OVMF/OVMF_VARS_4M.fd",
+    "vars_template_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "profile": {
+    "machine": "pc-q35-8.2",
+    "cpu": "qemu64",
+    "vcpus": 1,
+    "accelerator": "TCG single-thread",
+    "memory": "256M",
+    "guest": "Nieuw OS native-cap-digest-bench; no userspace/app or PIT"
+  }
+}

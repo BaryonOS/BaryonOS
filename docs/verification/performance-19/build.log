@@ -1,0 +1,101 @@
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/sdk/Cargo.toml", "-p", "nieuw-os-system-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/target/r19-cap-digest/system-system"}
+   Compiling typenum v1.20.1
+   Compiling version_check v0.9.5
+   Compiling zeroize v1.9.1
+   Compiling cmov v0.5.4
+   Compiling cfg-if v1.0.5
+   Compiling cpufeatures v0.2.17
+   Compiling subtle v2.6.1
+   Compiling opaque-debug v0.3.1
+   Compiling cpufeatures v0.3.1
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/sdk/runtime)
+   Compiling rand_core v0.10.1
+   Compiling catalog-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/services/catalog)
+   Compiling chacha20 v0.10.2
+   Compiling ctutils v0.4.7
+   Compiling generic-array v0.14.7
+   Compiling volume-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/services/volume)
+   Compiling nieuw-os-catalog-client v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/sdk/catalog-client)
+   Compiling nieuw-os-document-session v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/sdk/document-session)
+   Compiling hybrid-array v0.4.15
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling crypto-common v0.1.7
+   Compiling inout v0.1.4
+   Compiling universal-hash v0.5.1
+   Compiling aead v0.5.2
+   Compiling cipher v0.4.4
+   Compiling poly1305 v0.8.0
+   Compiling chacha20 v0.9.1
+   Compiling chacha20poly1305 v0.10.1
+   Compiling digest v0.11.3
+   Compiling hmac v0.13.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/services/keyring/vendor/hmac-0.13.0)
+   Compiling sha2 v0.11.1
+   Compiling hkdf v0.13.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/services/keyring/vendor/hkdf-0.13.0)
+   Compiling keyring-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/services/keyring)
+   Compiling nieuw-os-keyring-client v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/sdk/keyring-client)
+   Compiling nieuw-os-system-example v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/sdk/examples/system)
+    Finished `release` profile [optimized] target(s) in 2.26s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/target/r19-cap-digest/system-keyring"}
+   Compiling typenum v1.20.1
+   Compiling version_check v0.9.5
+   Compiling zeroize v1.9.1
+   Compiling cmov v0.5.4
+   Compiling cfg-if v1.0.5
+   Compiling subtle v2.6.1
+   Compiling cpufeatures v0.2.17
+   Compiling cpufeatures v0.3.1
+   Compiling opaque-debug v0.3.1
+   Compiling rand_core v0.10.1
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/sdk/runtime)
+   Compiling chacha20 v0.10.2
+   Compiling ctutils v0.4.7
+   Compiling generic-array v0.14.7
+   Compiling hybrid-array v0.4.15
+   Compiling block-buffer v0.12.1
+   Compiling crypto-common v0.2.2
+   Compiling crypto-common v0.1.7
+   Compiling inout v0.1.4
+   Compiling universal-hash v0.5.1
+   Compiling aead v0.5.2
+   Compiling cipher v0.4.4
+   Compiling poly1305 v0.8.0
+   Compiling chacha20 v0.9.1
+   Compiling chacha20poly1305 v0.10.1
+   Compiling digest v0.11.3
+   Compiling hmac v0.13.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/services/keyring/vendor/hmac-0.13.0)
+   Compiling sha2 v0.11.1
+   Compiling hkdf v0.13.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/services/keyring/vendor/hkdf-0.13.0)
+   Compiling keyring-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/services/keyring)
+   Compiling nieuw-os-keyring-example v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/sdk/examples/keyring)
+    Finished `release` profile [optimized] target(s) in 2.23s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/sdk/Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/target/r19-cap-digest/system-volume"}
+   Compiling catalog-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/services/catalog)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/sdk/runtime)
+   Compiling volume-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/services/volume)
+   Compiling nieuw-os-volume-docs-example v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/sdk/examples/volume-docs)
+    Finished `release` profile [optimized] target(s) in 0.80s
+   Compiling boot-protocol v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/crates/boot-protocol)
+   Compiling r-efi v7.1.0
+   Compiling elf-loader-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/crates/elf-loader-core)
+   Compiling os-loader v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/boot/loader)
+    Finished `release` profile [optimized] target(s) in 0.66s
+   Compiling virtio-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/crates/virtio-core)
+   Compiling os-kernel v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/kernel)
+   Compiling block-protocol v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/services/block)
+   Compiling kernel-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/crates/kernel-core)
+   Compiling capability-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/crates/capability-core)
+   Compiling boot-protocol v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/crates/boot-protocol)
+   Compiling virtio-rng-driver v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/drivers/virtio-rng)
+   Compiling virtio-blk-driver v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/drivers/virtio-blk)
+warning: function `timer_init` is never used
+    --> kernel/src/m2/m3.rs:1803:4
+     |
+1803 | fn timer_init() {
+     |    ^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` on by default
+
+warning: `os-kernel` (bin "os-kernel") generated 1 warning
+    Finished `release` profile [optimized] target(s) in 1.73s
+Built and inspected native-cap-digest-bench: 3 ELF load segments

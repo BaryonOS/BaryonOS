@@ -1,0 +1,2 @@
+CAPBENCH passed=False raw=35; /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-waffle/build/r19-cap-digest/run/cap-bench-db85b5f414c04e2cbadbb0f8e4c940fd
+Native benchmark did not exit successfully

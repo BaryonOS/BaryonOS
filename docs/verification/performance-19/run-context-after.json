@@ -1,0 +1,19 @@
+{
+  "captured_at": "2026-10-30T19:06:49+0100",
+  "host": {
+    "system": "Linux",
+    "release": "6.18.54.1-microsoft-standard-WSL2",
+    "architecture": "x86_64",
+    "cpu_count": 32,
+    "loadavg": "2.41 2.98 2.80 2/717 2553400",
+    "mem_available_kib": 23514972,
+    "concurrent_process_counts": {
+      "qemu-system-x86_64": 0,
+      "cargo": 0,
+      "rustc": 0,
+      "x86_64-linux-gnu-gcc-15": 0
+    }
+  },
+  "measurement_run_finished": true,
+  "no_repeat_started": true
+}
