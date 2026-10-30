@@ -1,6 +1,42 @@
 # B03-KEY-POLICY-1 — native signing-key lifecycle
 
-## Actuele herhaling na main748-integratie
+## Actuele herhaling na main94-integratie
+
+30 oktober 2026: main `94c8908ee363d06a5be51417c5cae635549d566f`
+(squashintegratie #66) inhoudsbehoudend opgenomen op geteste Gitbron
+`33cc4a7639e5bd4d0cb9a5bb65e40618a130bd00`. Nieuwe v3-fingerprint
+`c6b90b631f139a4dd307f65bd3ad49e0376e0b1fee63367869dc92c3f50071fa`.
+Alle main94 SDK-WAIT-/admin-/RANDOM-/TPM-bestanden, rootlock, vendor-/
+preflightwijzigingen en centrale status/score zijn ongewijzigd behouden.
+Het enige conflict was de toevoeging bovenin DECISIONS: zowel ADR-B03K1
+als main-ADR-053 zijn volledig behouden, zonder runtimekeuze.
+
+De volledige eerder beschreven `python3 -B -u tools/test_update.py` is
+**opnieuw echt uitgevoerd**, exit0, alle18 QEMU-stages, 15 Rusttests en
+12 Python-harnastests. De24 preflighttests, update-core/update-tool-Clippy
+met `-D warnings` en beide gerichte fmt-commands hieronder slagen eveneens.
+`python3 -B tools/progress.py --check` exit0/34; geen centrale assessmentwrite.
+
+Nieuwe brongebonden capture `b03-key-policy-main94/`, via
+`python3 -B tools/capture_update.py --destination docs/verification/b03-key-policy-main94`
+exit0; gate-JSON SHA256
+`b38755f69fcc9420a001d629abaad11dd59d91931af88d315e2c2485b7d1d715`,
+SHA256SUMS SHA256
+`6011c40ee515e646ad77d3e0b01f7a4be196cca1ac5a94ef31f0c1d07d8662c1`.
+Alle55 capturehashes worden opnieuw tegen de Git-blobs gecontroleerd.
+Log `/tmp/nieuw-os-security-update-main94.log` ook als `native-gate.log`
+gearchiveerd; Clippylog `/tmp/nieuw-os-security-update-clippy-main94.log`.
+De onveranderde main94 full-release raw-hostlogs bevatten bestaande lege
+EOF-regels: de merge-whitespacecontrole sloot die brongebonden captures uit
+en controleerde hun inhoud afzonderlijk exact gelijk aan main94.
+
+De oorspronkelijke codegerichte peerreview vond geen high-confidence fout;
+de lifecyclecoördinator controleerde inhoudsbehoud/capturehashes op c5.
+Dat is geen menselijke audit of actuele-head-CI-resultaat. Nieuwe-head-CI
+blijft een aparte integratiegate; alle open grenzen, #41 en34/security4of12
+blijven onveranderd.
+
+## Historische herhaling na main748-integratie
 
 30 oktober 2026: op geteste Gitbron
 `933591d4f9aadca357a3e3a4f1c1fd40c8734712` is main
