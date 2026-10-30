@@ -102,6 +102,35 @@ ongewijzigde lokale rapporten. De volledige originele coldreport-SHA256 is
 Raw serial/stderr zijn exact gekopieerd. Summaries zijn geen vervanging van
 de oorspronkelijke grote artifacts voor een volledige replay.
 
+## Volgende onafhankelijke infrastructuurstap: echte artifactnegatieven
+
+Na de gepushte native mijlpaal `24e45fada614a05952cc78e11fd288fa2837c93a`
+is de keten opnieuw offline uit de originele artifacts berekend:
+
+```sh
+python3 -B docs/verification/native-cold-acceptance/tamper_replay.py --build-dir "$PWD/build/native-cold-acceptance/gate1-parent"
+```
+
+Exit0, walltime 1.11s, resultaten `tamper-results.json`.
+Volledige coldtrace, frames, diskorakel, executable-/firmware-/bronbinding,
+referentie en parent opnieuw gecontroleerd zonder een VM te starten.
+Een verse tijdelijke bytekopie van de echte parent is eerst positief
+herhaald, daarna op acht manieren afzonderlijk vervalst: boolean raw-exit,
+andere bron, andere referentiehash, QMP-errorresponse, extra reset in plaats
+van quit, gewijzigde disk, gewijzigd frame en gewijzigde kernel.
+Alle acht zijn op hun concrete fout geweigerd; daarna is de herstelde
+controlekopie opnieuw geaccepteerd. Geen productieassertie versoepeld.
+Alle 66 oorspronkelijke artifactbestanden/rapporten zijn vóór/na gehasht
+en ongewijzigd; alleen tijdelijke kopieën zijn gemuteerd en opgeruimd.
+
+De eerste offline scriptaanroep faalde vóór artifactwrites met
+`KeyError: directory`: het bestaande rapport gebruikt `run_directory`.
+Die veldnaam is in uitsluitend dit bewijshelperscript hersteld; de native
+runner en zijn v3 zijn niet gewijzigd. Geen native mislukking verhuld.
+Logs `/tmp/nieuw-os-cold-gate1-tamper-replay.{json,log,time}`.
+Gerichte 14 tests en alle 152 tools-tests zijn daarna opnieuw exit0
+uitgevoerd; voortgangcheck/diffcheck eveneens exit0.
+
 ## Open acceptatie
 
 Deze smalle native coldketen is geslaagd. Clean shutdown,

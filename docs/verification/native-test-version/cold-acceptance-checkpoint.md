@@ -84,3 +84,11 @@ geforceerde host-QMP-stop na save, geen guest clean shutdown, abrupte
 powerloss, encryptie of volledige FR-acceptatie. De volgende onafhankelijke
 infrastructuurstap is tamper-replay op eigen kopieën van deze echte artifacts;
 originele geslaagde runs worden niet gewijzigd.
+
+Die vervolgstap is uitgevoerd: echte offline cold-/parent-/referentiereplay
+exit0 en acht gemuteerde-parentnegatieven op tijdelijke kopieën geweigerd.
+Alle 66 originele artifact-/rapportbestanden hashgelijk gebleven.
+Script en resultaten onder `../native-cold-acceptance/`; 14 gerichte en
+152 tools-tests opnieuw exit0. Geen gewijzigde native bron na420fac5,
+geen centrale status/progresswrites. Clean shutdown en de overige boven
+genoemde productgrenzen blijven open.
