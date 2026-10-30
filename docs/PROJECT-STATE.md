@@ -26,6 +26,11 @@ Assessmentbron is die nieuwe mainbasis; eigen vorige checkpoint is
 herlabeld. #66 is volgens live GitHubcontrole merged op 30 oktober
 17:24:22 UTC; lifecycle rapporteert 13/13 checks groen en volledige
 boomgelijkheid c096/main94. Postmerge-CI op main94 is nog een aparte gate.
+Latere lifecyclecontrole meldt nu ook alle tien actuele postmergechecks
+op main94 SUCCESS, inclusief IPC/TPM/native-system, Windows-packagecontrole
+en qemu-smoke. Manager heeft deze specifieke checkruns niet zelf herhaald.
+Volgende mergeprioriteit is #70 `68f4dd99`, CI nog lopend; geen
+voortdurende nieuwe bronfreeze wegens alleen een centrale docsmerge.
 Volledige `git diff --cached --check` tegen de vorige manager-HEAD gaf
 exit 2 door zes al in main94 aanwezige afsluitende lege regels in
 hashgebonden `full-release-native-wait-b02{,-net,-tcp}/host/*.stdout.txt`.
@@ -194,6 +199,50 @@ bron/clients/buffer vallen en herstelt uitsluitend de duurzame doeldisk;
 stale/quota/full laten het bestaande doel intact. Geen source-/format-/ABI-
 wijziging en geen punten. Lifecycle krijgt een aparte code-integratieroute;
 deze centrale managermerge neemt die test niet mee.
+De afzonderlijke concept-PR is #76, head `8a14770`; CI loopt.
+
+**Nieuwste gedeelde contract-/CI-stap:** release heeft voorstel `43b5670`
+gepusht, alleen `ARTIFACT-STORE-CONTRACT.md` plus ADR. Manager las het
+volledige contract, geen implementatie-/nativegate. AI heeft directe
+store-assigned ArtifactRef in plaats van u64-ID bevestigd en past positieve
+shortreads aan; ModelPin blijft aparte provenance. Root Message320-payload
+is volgens `sdk/runtime/src/message.rs` 256 bytes; 224 is geen algemene
+ABI-limiet maar eventuele leafdata na framing. Capacity-accountingscope en
+nul-lengthartifactbeleid zijn aan release als expliciete codekeuzes gegeven.
+Pure contractvalidators bewijzen geen kernel-authenticated afzender.
+Release bevestigt inmiddels de correcties: datum30okt, zelfde namespace/
+moment voor capacity/quota, nul-length Invalid; Apps/AI tekenen de gedeelde
+descriptor af. De concrete slice is exclusief `crates/artifact-store-core/**`
+plus root-workspacemember, geen backend/authority. Eerste hosttest faalt
+exit101 wegens ontbrekende cc; de bestaande UI-hosttoolroute is aangevraagd,
+geen routineherinstallatie. Nieuwe gerichte
+`.github/workflows/artifact-store-quality.yml` is aan release vrijgegeven
+na melding aan build; bestaande root-CI blijft buiten deze writeclaim.
+
+Apps heeft nieuwe #73-head `97c26c88b331217a3e123a3725e5be87c3e0e4ff`
+gepusht. Manager las de workflow en beide manifests: bestaande
+app-package-core als rootmember en echte standalone app-management worden
+allebei expliciet getest/geclippyd/geformatteerd/freestanding gebouwd.
+Daarmee is de bronmatige selectorgap aangepakt, niet de uitvoering bewezen:
+`gh pr view 73` geeft lege checks en `gh run list --commit 97c26c...`
+geen runs, beide commando's exit0. Owner onderzoekt de startoorzaak.
+De commit bevat bovendien zeven bestanden/2280 regels met nieuwe protocol-/
+storecode; oude c7-review is geen review van deze delta.
+
+Security meldt op aparte #72-integratie `4de7e56` een werkelijk gefaalde
+`--locked`-build van standalone ipc-wait-probe door de nieuwe SDK-zeroize-
+dependency. Gerichte consumerlock-updates liggen bij security, geen brede
+dependency-update of versoepeling van locked. Build is geïnformeerd om
+dubbele lockwriters te voorkomen. Native successen op 4de blijven eigen
+deelgates; nieuwe bron vereist de relevante system/B01/WAIT/RANDOM-gates.
+Geen nieuwe manager-VM, criteriumacceptatie of scorewijziging.
+Buildteam levert de cold-tools inmiddels als concept-PR #77,
+head `bef94615244f639a4df3934f54565551a6f0dc37`, main94 opgenomen,
+native uitvoeringsbron420fac onveranderd. Offline ketenreplay en
+8 parenttamper-/2 scope-stopnegatieven groen gemeld, 66 originele files
+hashgelijk; eigen volledige commands/logs onder native-cold-acceptance.
+CI nog niet als groen vastgesteld; eerder genoemde cleanstop/powerloss/
+Windows-/reproduceerbaarheidsgrenzen blijven ongewijzigd.
 Eerstvolgend bij hervatten: `git branch --show-current && git rev-parse HEAD
 && git status --short`, daarna verse `get_sessions_status` en actuele
 buildteam/release-rapportages lezen; geen oude groene PR-head overnemen.

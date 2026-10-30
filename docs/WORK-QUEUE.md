@@ -253,6 +253,36 @@ ingesteld en een verzonden bericht garandeert geen blijvende uitvoering na
 sessieonderbreking; hervatten begint met een verse sessie-/GitHub-controle.
 
 Laatste eigenaarsmijlpalen bij main94-integratie:
+Lifecycle meldt inmiddels main94-postmerge 10/10 SUCCESS; #70 `68f4dd99`
+heeft voorrang, #74 `798ef70` heeft 18 nieuwe native policystages groen
+gemeld maar eigen CI/integratie blijft apart. Centrale #75 is op main94
+gepusht als `41885e7`, inclusief letterlijk bewaarde PR65-conflictparagraaf/
+assessment; #65 pas sluiten na werkelijke mainopname en latestheadcontrole.
+
+Releasevoorstel `43b5670` is gepusht: immutable storedescriptor/opaque
+readhandle gescheiden van write-transacties en publisher-/modelprovenance.
+AI heeft directe ArtifactRef zonder u64-mapping afgetekend, shortreadfix
+volgt in eigen leaf. Manager las het contract en verifieerde rootpayload256;
+capacityscope/nul-lengthbeleid moeten expliciet, pure validators zijn geen
+kernelcallerbinding. Release bouwt de kleine afgesproken no_std-contractcrate.
+Gedeelde descriptor is nu door Apps/AI afgetekend; datum/capacityscope/
+nul-length Invalid gecorrigeerd. Release bezit concreet
+`crates/artifact-store-core/**`, root-workspacemember en de vrijgegeven
+nieuwe `artifact-store-quality.yml` na melding aan build. Hosttest faalt
+eerst exit101 door cc; UI geeft bestaande werkende read-only hosttoolenv
+door. Compile-only vervangt niet de uit te voeren hosttests.
+
+Nieuwe #73-head `97c26c88` bevat de twee echte cratejobs in één expliciete
+workflow; manager las workflow/manifests. GitHub meldt nog geen checks/runs:
+uitvoeringsgate blijft open. Zeven bestanden/2280 regels zijn ook nieuwe
+protocol-/storecode, dus oude packagecorereview niet hergebruiken.
+Lifecycle routeert een nieuwe begrensde review na freeze.
+
+SDK-zeroize in aparte #72-bron4de veroorzaakt een bewezen standalone
+ipc-wait-probe-lockbuildfout; security doet alleen de noodzakelijke
+consumerlock-updates en daarna relevante nativeherhaling. Build weet dat
+security deze locks beheert; geen dubbele schrijvers of locked-bypass.
+
 Buildteam meldt echte reference/gewone/coldchild-gates groen op
 `420fac5783fdf86ed6d6464a8f1498190fdf78ef`/v3 `f6d4ca78…`, aparte
 cold-toolbranch/buildroots, 14 gerichte en 152 tools-hosttests groen.
@@ -260,6 +290,12 @@ Volledige lijst/heropendbeelden en onveranderd diskoracle, archivering/
 tamper-negatieven volgen. Expliciet QMPquit-na-save, geen guestcleanstop,
 abrupte writepowerloss, Windowscold of byte-reproduceerbaarheid. Release
 heeft de concrete integratie-/herhaalopdracht.
+Archivering/tamperstap inmiddels opgeleverd als concept-PR #77,
+`bef94615244f639a4df3934f54565551a6f0dc37`: alleen drie nieuwe coldtool/
+testbestanden en eigen bewijs, main94 inhoudsbehoudend opgenomen.
+Offline replay plus acht parenttamper-/twee scope-stopnegatieven slagen
+volgens eigenaar, 66 bewijsfiles hashgelijk. CI blijft afzonderlijk;
+native uitvoeringsbron420fac en alle genoemde bewijsgrenzen behouden.
 
 NAS `ba557473` heeft drie werkelijke matrixcrates, host/target/stackfaultgates
 groen gemeld; GitHub-CI en echte NAS-QEMU blijven open. Security NV
