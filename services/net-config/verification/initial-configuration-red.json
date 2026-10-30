@@ -1,0 +1,26 @@
+{
+  "basis": "ca45a7dabe6a040921de03bdc2fad3e5045a75ba",
+  "evidence": "expected compile/interface failure, NOT executed runtime",
+  "command": [
+    "cargo",
+    "+1.91.1",
+    "test",
+    "--locked",
+    "--offline",
+    "--manifest-path",
+    "services/net-stack/Cargo.toml",
+    "--test",
+    "configuration",
+    "--target-dir",
+    "target/net-config-host"
+  ],
+  "exit_status": 101,
+  "duration_seconds_time_p": 1.28,
+  "source_sha256": {
+    "services/net-stack/src/lib.rs": "e66eca97a69d5b48cc2db00b4e36188f6dbd9f05a1118efe70afe736f3be107a",
+    "services/net-stack/src/device.rs": "a6577f8f2ce0e08d84fd17f4cc5b261f1679c57d9c5db958cb97fb1d10f55a30",
+    "services/net-stack/tests/configuration.rs": "7d76937053e26da7952f4089c17ca193fdb8dc5ef5030d247bd8ddcb60225c1a",
+    "services/net-config/README.md": "ca1a29aa55fd7dbf31c99fc438f539eb33f8c7f6bbc5d38764e826bb0e96a016"
+  },
+  "log_sha256": "8ec009728d38a7beec3d1342f525b1a5b34b40085ab30bce90572753bf915eb7"
+}

@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "gate": "crosscompile-and-elf-inspection-only",
+  "native_execution": false,
+  "binaries": {
+    "nas-probe": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-legendary-broccoli/target/nas-client-work/target/nas-client-stack-work/build/nas-client-stack/users/nas-probe.elf",
+      "bytes": 95784,
+      "sha256": "8f438d9c6b29f74404a9ef8ddb4cfe85e342f5ae667ac9cd83bac869ee1fd56e",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 33,
+            "memsz": 33,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1256,
+            "memsz": 1256,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073823744,
+            "offset": 12288,
+            "filesz": 4329,
+            "memsz": 4329,
+            "page_start": 1073823744,
+            "page_end": 1073831936
+          },
+          {
+            "flags": 5,
+            "address": 1073872896,
+            "offset": 20480,
+            "filesz": 66002,
+            "memsz": 66002,
+            "page_start": 1073872896,
+            "page_end": 1073942528
+          }
+        ]
+      },
+      "mapped_elf_bytes": 86016,
+      "zero_fill_bytes": 0
+    },
+    "nas-volume": {
+      "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-legendary-broccoli/target/nas-client-work/target/nas-client-stack-work/build/nas-client-stack/users/nas-volume.elf",
+      "bytes": 98176,
+      "sha256": "6b8c743866630960fba38c568c0b6fcbb90c31984b39d838e241f81aa04a8b9f",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 57346,
+            "memsz": 57346,
+            "page_start": 1073741824,
+            "page_end": 1073803264
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 65536,
+            "filesz": 1304,
+            "memsz": 1304,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073823744,
+            "offset": 69632,
+            "filesz": 18922,
+            "memsz": 18922,
+            "page_start": 1073823744,
+            "page_end": 1073844224
+          }
+        ]
+      },
+      "mapped_elf_bytes": 86016,
+      "zero_fill_bytes": 0
+    }
+  },
+  "private_stack_reserved": 65536,
+  "initial_private_heap_reserved": 65536,
+  "workspace_native_peak": "pending native execution; host workspace size is recorded separately",
+  "runtime_touched_stack_high_water": "startup word 448, pending native execution"
+}

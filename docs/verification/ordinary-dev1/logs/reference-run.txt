@@ -1,0 +1,2 @@
+Materiaal normal: passed=False; raw=0; /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/build/dev1-reference/run/materiaal-normal-ac4f038e86
+ValueError: Guest did not complete actual UI phase ready

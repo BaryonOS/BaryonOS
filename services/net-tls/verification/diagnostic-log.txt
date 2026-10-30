@@ -1,0 +1,7 @@
+SYSTEM normal: passed=False raw=0 duration=2.5s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-port-worktree/build/tcp-main94-regression/run/system-normal-a06babbb1f89497ab60b59c514d0ac3c
+ValueError: system marker sequence mismatch: ['BOOT:EBS_OK', 'KERNEL:ENTRY', 'BOOTINFO:OK']
+NATIVE TCP normal: passed=False /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-port-worktree/build/tcp-main94-regression/run/system-normal-a06babbb1f89497ab60b59c514d0ac3c
+ValueError: native joint-system/TCP profile did not pass
+real 2.66
+user 1.62
+sys 0.56

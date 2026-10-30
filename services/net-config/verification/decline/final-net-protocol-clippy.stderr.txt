@@ -1,0 +1,2 @@
+    Checking nieuw-os-net-protocol v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/services/net-protocol)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.38s

@@ -1,0 +1,109 @@
+   Compiling typenum v1.20.1
+   Compiling version_check v0.9.5
+   Compiling cmov v0.5.4
+   Compiling cfg-if v1.0.5
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/runtime)
+   Compiling subtle v2.6.1
+   Compiling cpufeatures v0.2.17
+   Compiling cpufeatures v0.3.1
+   Compiling opaque-debug v0.3.1
+   Compiling rand_core v0.10.1
+   Compiling nieuw-os-keyring-random-client v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/keyring-random-client)
+   Compiling chacha20 v0.10.2
+   Compiling ctutils v0.4.7
+   Compiling generic-array v0.14.7
+   Compiling hybrid-array v0.4.15
+   Compiling block-buffer v0.12.1
+   Compiling crypto-common v0.2.2
+   Compiling crypto-common v0.1.7
+   Compiling inout v0.1.4
+   Compiling universal-hash v0.5.1
+   Compiling aead v0.5.2
+   Compiling cipher v0.4.4
+   Compiling poly1305 v0.8.0
+   Compiling chacha20 v0.9.1
+   Compiling chacha20poly1305 v0.10.1
+   Compiling digest v0.11.3
+   Compiling hmac v0.13.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/services/keyring/vendor/hmac-0.13.0)
+   Compiling sha2 v0.11.1
+   Compiling hkdf v0.13.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/services/keyring/vendor/hkdf-0.13.0)
+   Compiling keyring-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/services/keyring)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.87s
+     Running unittests src/lib.rs (target/security-ipc/debug/deps/nieuw_os_keyring_random_client-d7d7990876d3e37f)
+
+running 2 tests
+test tests::exhausted_request_ids_close_before_any_publication ... ok
+test tests::sdk_owned_envelopes_are_zeroized_by_their_destructors ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/session.rs (target/security-ipc/debug/deps/session-e216a879bd6316d2)
+
+running 9 tests
+test canonical_not_ready_and_quota_return_no_bytes_allow_explicit_new_requests ... ok
+test eagain_is_bounded_and_post_enqueue_timeout_never_resends ... ok
+test degraded_and_unknown_status_close_lease_without_fallback ... ok
+test invalid_config_is_rejected ... ok
+test invalid_length_busy_idle_closed_do_not_publish ... ok
+test unexpected_caps_are_closed_even_when_reply_is_rejected_and_one_close_fails ... ok
+test transport_ambiguity_yield_failure_and_cancel_are_terminal_with_both_closes ... ok
+test malformed_responses_terminally_reject_sender_tag_op_index_id_status_prefix_count_and_padding ... ok
+test every_client_length_roundtrips_through_real_core_and_never_resends_after_queue ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/security-ipc/debug/deps/nieuw_os_sdk_runtime-27407dc0de021cd8)
+
+running 8 tests
+test clock::tests::wall_clock_values_always_carry_untrusted_quality ... ok
+test memory::tests::fresh_suffix_geometry_and_raw_access_are_preserved ... ok
+test memory::tests::malformed_or_nonprivate_kernel_extents_fail_closed ... ok
+test message::tests::received_handoff_clears_native_staging_bytes ... ok
+test message::tests::refused_native_handoff_preserves_bytes_for_capability_cleanup ... ok
+test wait_tests::all_full_handle_bits_and_interests_are_encoded_without_padding ... ok
+test wait_tests::minor_ten_preserves_old_abi_and_return_rules ... ok
+test wait_tests::returned_mask_is_bounded_by_count_including_empty_sleep ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/message.rs (target/security-ipc/debug/deps/message-75d1b89b70ee299c)
+
+running 14 tests
+test abi_check_accepts_only_existing_compatible_versions ... ok
+test block_completion_accepts_only_the_canonical_ticket_envelope ... ok
+test delegated_cap_descriptors_are_validated_and_preserved ... ok
+test handle_representation_does_not_accept_sentinels_or_slot_overflow ... ok
+test oversized_wire_lengths_never_index_or_truncate ... ok
+test known_rights_do_not_allow_unknown_permission_bits ... ok
+test received_length_must_equal_the_syscall_result ... ok
+test raw_send_rejects_spoofed_sender_and_every_unused_byte ... ok
+test every_payload_length_matches_the_current_kernel_decoder ... ok
+test received_envelope_rejects_missing_sender_reserved_and_padding ... ok
+test register_errors_remain_errors_and_secondary_errors_are_zero ... ok
+test refused_cap_append_does_not_modify_the_message ... ok
+test received_message_keeps_kernel_identity_and_exact_payload ... ok
+test sdk_messages_interoperate_with_actual_capability_engine ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/process.rs (target/security-ipc/debug/deps/process-3cb5c9b4a7850d34)
+
+running 3 tests
+test abi_1_3_through_1_10_are_accepted_and_future_minors_are_not ... ok
+test status_words_round_trip_and_reject_noncanonical_values ... ok
+test typed_handles_keep_their_representation ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nieuw_os_keyring_random_client
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nieuw_os_sdk_runtime
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

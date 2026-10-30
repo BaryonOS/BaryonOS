@@ -1,0 +1,80 @@
+{
+  "label": "native-ipc-wait",
+  "started_utc": "2026-10-30T17:33:27.784187+00:00",
+  "duration_s": 3.9173587369987217,
+  "timeout_s": 60,
+  "timed_out": false,
+  "raw_qemu_exit": 33,
+  "expected_exit": 33,
+  "required_markers": [
+    "M2:PASS",
+    "IPCWAIT:MANIFEST:PASS",
+    "IPCWAIT:REVOKED_FULL_QUEUE:PASS",
+    "IPCWAIT:NATIVE:PASS",
+    "IPCWAIT:CLEANUP:PASS",
+    "IPCWAIT:PASS",
+    "M1:PASS"
+  ],
+  "forbidden_markers": [
+    "IPCWAIT:FAIL:",
+    "PANIC",
+    "M3:FAIL:"
+  ],
+  "passed": true,
+  "command": [
+    "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/run/native-ipc-wait-808b57c13e/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/run/native-ipc-wait-808b57c13e/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/native-ipc-wait-808b57c13e/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-L",
+    "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/share"
+  ],
+  "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "profile": "development-package; pc-q35-8.2/qemu64/TCG/1CPU/256MiB",
+  "base_commit": "82b65d86d41a499b5697c999ae9007d6bafa627f",
+  "source_fingerprint_version": 3,
+  "source_sha256": "0c324daafefe5b73537771d70c7297a3f868b7568bfe120a25bb1387d5229960",
+  "artifact_sha256": {
+    "esp/kernel.elf": "43f1ef4689cb6fe240562b19c9fc0903d7a7f9cfa2116af0dbd7af7d7e878073",
+    "esp/EFI/BOOT/BOOTX64.EFI": "df3d968407b1594c39abd3b7a495ad0d81ecee8f2d1753f0319ab5cdf6d36971",
+    "OVMF_CODE.fd": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "firmware_source": [
+    "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/share/OVMF/OVMF_CODE_4M.fd",
+    "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/share/OVMF/OVMF_VARS_4M.fd"
+  ],
+  "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/native-ipc-wait-808b57c13e",
+  "stdout": "\u001b[2J\u001b[001;001H\u001b[=3h\u001b[2J\u001b[001;001H\u001b[2J\u001b[001;001H\u001b[8;056;240t\u001b[2J\u001b[001;001HBdsDxe: loading Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nIPCWAIT:MANIFEST:PASS\nIPCWAIT:REVOKED_FULL_QUEUE:PASS\nIPCWAIT:ASSERTIONS:00000000000000000111\nIPCWAIT:TICKS:00000000000000000161\nIPCWAIT:PHASE_MASK:00000000000000000063\nIPCWAIT:ASSERTIONS:00000000000000000083\nIPCWAIT:TICKS:00000000000000000201\nIPCWAIT:PHASE_MASK:00000000000000000060\nIPCWAIT:BLOCKED:00000000000000000014\nIPCWAIT:WAKE_READY:00000000000000000007\nIPCWAIT:WAKE_TIMEOUT:00000000000000000006\nIPCWAIT:WAKE_ERROR:00000000000000000001\nIPCWAIT:IDLE_IRQS:00000000000000000199\nIPCWAIT:NATIVE:PASS\nIPCWAIT:CLEANUP:PASS\nIPCWAIT:PASS\nM1:PASS\n",
+  "stderr": "",
+  "expected_artifact_sha256": {
+    "esp/kernel.elf": "43f1ef4689cb6fe240562b19c9fc0903d7a7f9cfa2116af0dbd7af7d7e878073",
+    "esp/EFI/BOOT/BOOTX64.EFI": "df3d968407b1594c39abd3b7a495ad0d81ecee8f2d1753f0319ab5cdf6d36971"
+  },
+  "artifact_binding_passed": true
+}

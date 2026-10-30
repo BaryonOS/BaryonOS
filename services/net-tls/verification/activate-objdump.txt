@@ -1,0 +1,23 @@
+
+build/tcp-main94-regression/run/system-normal-a06babbb1f89497ab60b59c514d0ac3c/esp/kernel.elf:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000002001300 <_ZN9os_kernel2m24arch8activate17h1b531ba7bf24c649E>:
+ 2001300:	48 83 ec 48          	sub    $0x48,%rsp
+ 2001304:	48 89 7c 24 08       	mov    %rdi,0x8(%rsp)
+ 2001309:	0f 22 df             	mov    %rdi,%cr3
+ 200130c:	0f 20 d8             	mov    %cr3,%rax
+ 200130f:	48 89 44 24 10       	mov    %rax,0x10(%rsp)
+ 2001314:	48 39 f8             	cmp    %rdi,%rax
+ 2001317:	75 05                	jne    200131e <_ZN9os_kernel2m24arch8activate17h1b531ba7bf24c649E+0x1e>
+ 2001319:	48 83 c4 48          	add    $0x48,%rsp
+ 200131d:	c3                   	ret
+ 200131e:	48 c7 44 24 18 00 00 	movq   $0x0,0x18(%rsp)
+ 2001325:	00 00 
+ 2001327:	48 8d 74 24 10       	lea    0x10(%rsp),%rsi
+ 200132c:	48 8d 54 24 08       	lea    0x8(%rsp),%rdx
+ 2001331:	48 8d 4c 24 18       	lea    0x18(%rsp),%rcx
+ 2001336:	41                   	rex.B
+ 2001337:	b8                   	.byte 0xb8

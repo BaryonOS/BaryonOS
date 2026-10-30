@@ -1,0 +1,12 @@
+    Checking zeroize v1.9.1
+    Checking untrusted v0.9.0
+    Checking subtle v2.6.1
+    Checking nieuw-os-sdk-runtime v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-ci-worktree/sdk/runtime)
+    Checking once_cell v1.21.4
+    Checking spin v0.12.3
+    Checking rustls-pki-types v1.15.1
+    Checking nieuw-os-keyring-random-client v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-ci-worktree/sdk/keyring-random-client)
+    Checking rustls-webpki v0.103.16
+    Checking rustls v0.23.46
+    Checking nieuw-os-net-tls v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-ci-worktree/services/net-tls)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.55s
