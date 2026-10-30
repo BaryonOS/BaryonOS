@@ -22,7 +22,8 @@ def archive_bytes(payload=b'synthetic archive member'):
 
 
 class RequiredToolProbes(unittest.TestCase):
-    def inventory(self, tool=None, strict=True, *, tool_name='cargo', mutate=None,
+    def inventory(self, tool=None, strict=True, *, strict_host_tests=False,
+                  tool_name='cargo', mutate=None,
                   compiler='rustc 1.90.0 (synthetic)', query_fault=None,
                   rustup=None, wrong_target=False, compiler_args=None):
         if compiler_args is None:
@@ -73,7 +74,11 @@ class RequiredToolProbes(unittest.TestCase):
                     result = root / 'lib/rustlib' / preflight.REQUIRED_TARGETS[1] / 'lib'
                 return subprocess.CompletedProcess(command, 0, str(result) + '\n', '')
 
-            command = ['preflight.py', '--firmware', str(code)] + (['--strict'] if strict else [])
+            command = ['preflight.py', '--firmware', str(code)]
+            if strict:
+                command.append('--strict')
+            if strict_host_tests:
+                command.append('--strict-host-tests')
             output = io.StringIO()
             with patch.object(sys, 'argv', command), patch.object(preflight, 'probe', side_effect=probe), \
                     patch.object(preflight.subprocess, 'run', side_effect=run), redirect_stdout(output):
@@ -97,6 +102,21 @@ class RequiredToolProbes(unittest.TestCase):
                 status, report = self.inventory(tool)
                 self.assertEqual(status, 0)
                 self.assertEqual(report['missing'], [])
+                self.assertEqual(report['missing_host_test_tools'], [])
+                self.assertTrue(report['baseline_tools_present'])
+
+    @unittest.skipUnless(preflight.HOST_TEST_TOOLS, 'host C linker check applies to POSIX')
+    def test_missing_host_linker_is_reported_separately_and_can_be_strict(self):
+        for strict_host_tests, expected_status in ((False, 0), (True, 2)):
+            with self.subTest(strict_host_tests=strict_host_tests):
+                status, report = self.inventory(
+                    {'available': False},
+                    strict_host_tests=strict_host_tests,
+                    tool_name='cc',
+                )
+                self.assertEqual(status, expected_status)
+                self.assertEqual(report['missing'], [])
+                self.assertEqual(report['missing_host_test_tools'], ['cc'])
                 self.assertTrue(report['baseline_tools_present'])
 
     def test_probe_exceptions_fail_strict_inventory(self):
