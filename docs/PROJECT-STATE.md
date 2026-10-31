@@ -56,7 +56,15 @@ prestatie-acceptatie, positieve hersteltest). Wacht op Simons bevestiging.
 host-, component- en lokaal native deelbewijs vervangen geen FR-gate,
 honderd koude starts, fysieke of menselijke acceptatie.
 
-**Eerstvolgend:** controleer de CI van de integratie-PR. Bij groen:
+**Blocker (31 oktober, 14:22 UTC):** GitHub Actions start op #120 geen enkele
+workflow. Push en pull_request eindigen allebei in `startup_failure` onder een
+placeholder `BuildFailed`, met 0 jobs. Er zijn geen workflowwijzigingen
+t.o.v. main. De laatste normale runs waren op 30 oktober rond 21:30 UTC. De
+oorzaak ligt waarschijnlijk op account- of repo-niveau (Actions-tegoed of
+-limiet, of een gewijzigde instelling); dit is niet geverifieerd. Simon moet
+dit in de GitHub-instellingen controleren.
+
+**Eerstvolgend:** controleer de CI van de integratie-PR (#120). Bij groen:
 squash-merge, de vijf component-PR's sluiten als overgenomen, en #109 en
 #110 sluiten. Daarna #114 na Simons antwoord.
 
