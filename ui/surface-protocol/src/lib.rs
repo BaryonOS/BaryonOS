@@ -358,6 +358,9 @@ pub struct Receiver {
     last_rejected: u64,
     frame: u64,
     next_tile: u64,
+    /// At least one frame of this epoch had every canonical tile committed.
+    /// Only then may later frames omit tiles the client has not changed.
+    complete: bool,
     stage: Option<Stage>,
     pixels: [u8; TILE_BYTES],
     closed: bool,
@@ -377,6 +380,7 @@ impl Receiver {
             last_rejected: 0,
             frame: 0,
             next_tile: 0,
+            complete: false,
             stage: None,
             pixels: [0; TILE_BYTES],
             closed: false,
@@ -488,9 +492,19 @@ impl Receiver {
                     return Ok(Action::Info(reply(header, Ok(0), Some(self.geometry))));
                 }
                 let rectangle = self.geometry.rectangle(header.tile)?;
+                // Until one full frame exists, tiles are dense from tile 0.
+                // Afterwards a frame may skip unchanged tiles but stays
+                // strictly increasing; skipped tiles keep this app's own
+                // previously committed pixels. The last tile completes a frame.
+                let sparse = self.complete;
                 if header.frame < self.frame
-                    || (header.frame == self.frame && header.tile != self.next_tile)
-                    || (header.frame > self.frame && header.tile != 0)
+                    || (header.frame == self.frame
+                        && if sparse {
+                            header.tile < self.next_tile
+                        } else {
+                            header.tile != self.next_tile
+                        })
+                    || (header.frame > self.frame && !sparse && header.tile != 0)
                 {
                     return Err(Error::Grid);
                 }
@@ -606,6 +620,7 @@ impl Receiver {
         if result.is_ok() {
             self.frame = stage.header.frame;
             self.next_tile = stage.header.tile.checked_add(1).ok_or(Error::Exhausted)?;
+            self.complete |= self.next_tile == self.geometry.tiles();
         }
         let header = Header {
             operation: Operation::Commit,

@@ -344,4 +344,23 @@ class ArtifactTests(unittest.TestCase):
         self.assertIs(d.load_json(self.build/"materiaal-probe-report.json")["passed"],False)
 
 
+
+class SparseFrameCounters(unittest.TestCase):
+    """SUR1 sparse frames: full first frame, then at least the final tile."""
+
+    def test_sparse_counts_accepted_and_incomplete_first_frame_rejected(self):
+        values=snapshots()
+        for i,value in enumerate(values):
+            value["TILES"]=d.TILES+i
+        previous=None
+        for value in values:
+            d.snapshot_checks(value,previous,"normal");previous=value
+        first=dict(values[0],TILES=d.TILES-1)
+        with self.assertRaises(Exception):
+            d.snapshot_checks(first,None,"normal")
+        stale=dict(values[1],TILES=values[0]["TILES"])
+        with self.assertRaises(Exception):
+            d.snapshot_checks(stale,values[0],"normal")
+
+
 if __name__ == "__main__":unittest.main()
