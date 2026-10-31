@@ -877,26 +877,38 @@ fn damage_cache_sends_only_changed_tiles() {
     assert!(later_tiles[1] * 10 < later_tiles[0], "{later_tiles:?}");
 }
 fn undersized_damage_cache_keeps_full_repaints() {
-    let h = Host::new();
-    let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
-    let mut cache = [0; 3];
-    let mut a = configured_app_with(
-        &h,
-        Buffers {
-            draft: &mut d,
-            original: &mut o,
-            staging: &mut s,
-        },
-        Scale::Percent100,
-        EditMode::ReadWrite,
-        Some(&mut cache[..]),
-    );
-    finish_paint(&mut a);
-    new_text(&h, &mut a);
-    finish_paint(&mut a);
-    assert_eq!(a.evidence().frames, 2);
-    assert!(a.evidence().tiles > 2 * geometry().tiles());
-    assert_eq!(cache, [0; 3]);
+    // The same input sequence with no cache at all is the dense reference: an
+    // undersized cache must send exactly the same tiles and pixels, so no
+    // extra tile from an abandoned partial frame can mask a skipped tile.
+    let mut runs = Vec::new();
+    for undersized in [false, true] {
+        let h = Host::new();
+        let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut cache = [0; 3];
+        let mut a = configured_app_with(
+            &h,
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+            Scale::Percent100,
+            EditMode::ReadWrite,
+            undersized.then_some(&mut cache[..]),
+        );
+        finish_paint(&mut a);
+        let first = a.evidence().tiles;
+        assert_eq!(first, geometry().tiles());
+        new_text(&h, &mut a);
+        finish_paint(&mut a);
+        assert_eq!(a.evidence().frames, 2);
+        assert!(a.evidence().tiles - first >= geometry().tiles());
+        let tiles = a.evidence().tiles;
+        drop(a);
+        assert_eq!(cache, [0; 3]);
+        runs.push((tiles, h.borrow().framebuffer.clone()));
+    }
+    assert_eq!(runs[0], runs[1]);
 }
 fn input_loss_after_ready() {
     let h = Host::new();
