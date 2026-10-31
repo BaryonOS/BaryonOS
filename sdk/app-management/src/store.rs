@@ -8,10 +8,11 @@
 //! `ArtifactRef` is store object identity; its generation is independent of
 //! publisher/source generations carried in package metadata. Descriptors
 //! describe bytes but do not prove origin, publisher, freshness, or
-//! authorization. A store adapter binds each read handle to the
-//! kernel-authenticated caller and its current store epoch, and rechecks both
-//! on every read; `open_checked` rejects a store descriptor that differs from
-//! the expected one.
+//! authorization. Contract requirement (no persistent adapter exists yet): a
+//! store adapter must bind each read handle to the kernel-authenticated caller
+//! and its current store epoch, and recheck both on every read. The test
+//! adapter checks only epoch and locator. `open_checked` rejects a store
+//! descriptor that differs from the expected one.
 
 use crate::protocol::ProtocolError;
 

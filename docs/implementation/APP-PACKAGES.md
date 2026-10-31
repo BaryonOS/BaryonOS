@@ -103,7 +103,10 @@ geïmplementeerd:** er is nog geen persistente storeadapter. Een toekomstige
 adapter implementeert `ArtifactStore`, construeert het opaque handle-type
 (niet serialiseerbaar of overdraagbaar), bindt de handle aan de
 kernel-geauthenticeerde clientcontext en de actuele store-epoch, en
-controleert beide bij iedere read; alleen de testadapter doet dat nu. `open_checked` weigert een
+controleert beide bij iedere read. De testadapter `FakeStore` controleert bij
+reads alleen `handle.epoch` en `handle.locator`; hij modelleert geen
+geauthenticeerde clientcontext, dus de clientbinding is nog nergens getest.
+`open_checked` weigert een
 store-autoritatieve descriptor die afwijkt van de verwachte (`Corrupt`);
 `read_bounded` gebruikt de descriptor uit de geopende handle, zodat een
 aanroeper geen andere descriptor kan meegeven. Iedere opslagoperatie is
