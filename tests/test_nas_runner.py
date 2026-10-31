@@ -188,6 +188,8 @@ class NasLifecycleTests(unittest.TestCase):
         self.assertIs(parent["passed"], True, parent.get("error"))
         payload = self.handoff / "payload.bin"
         original = payload.read_bytes()
+        # Both refusals must happen before any QEMU start.
+        before = self.executions
         payload.write_bytes(bytes(80))
         with self.assertRaises(ValueError):
             self.run_silently("recover", parent)
@@ -195,7 +197,6 @@ class NasLifecycleTests(unittest.TestCase):
         other = dict(parent, replay_handoff=dict(parent["replay_handoff"], origin_run_id="other-run"))
         with self.assertRaises(ValueError):
             self.run_silently("recover", other)
-        before = self.executions
         self.assertEqual(self.executions, before)
 
     def test_cold_input_changed_during_the_run_is_rejected(self):

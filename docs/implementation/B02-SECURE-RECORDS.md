@@ -310,8 +310,10 @@ externe geheim de lineage; zie ADR-051.
   niet, het blob draagt alleen `NOSKEY01`/versie/suite/volume-ID buiten de
   AEAD-body; generatie 3, drie chunks, domeinklokken [2, 1].
 
-Exacte uitvoering, hashes en grenzen: PROJECT-STATE.md en
-`docs/verification/full-release-b02-keystate-*`. Niet bewezen: vertrouwde
+Exacte uitvoering, hashes en grenzen: PROJECT-STATE.md,
+`docs/verification/full-release-b02-keystate-*` en, voor het reviewherstel
+van de admin-ingresscontrole (#116), `docs/verification/full-release-b02-review-followup/`.
+Niet bewezen: vertrouwde
 generatievloer, write-ahead per GENERATE/REVOKE binnen de dienst, verlies of
 compromittering van het externe geheim (= attacker-gekozen master bij koude
 start), meerdere schrijvers, een native tegenvoorbeeld voor de

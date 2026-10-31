@@ -28,3 +28,16 @@ private pad, de COM1-serial en de rapporten; `SHA256SUMS` bindt de bestanden.
 Niet als native run uitgevoerd: koude run zonder of met afwijkende invoer
 (alleen kernelcode `REPLAY_INPUT` en runner-hosttests). Geen claim over
 netwerk/TLS, E2EE, fysieke opslag of volledige P04-acceptatie.
+
+## Herkomstnotitie integratie 3 (31 oktober 2026)
+
+Onafhankelijke AI-review (geen menselijke audit) heeft de fingerprint
+herberekend: PR-head `fa97c692` geeft `5263a105…`; dezelfde head met
+`services/nas/native-probe/CONTRACT.md` van main geeft exact `7255534f…`.
+Kernel-, gast- en runnercode zijn dus precies zoals getest; alleen
+CONTRACT.md is na deze run bijgewerkt. De brongebonden native proef is de
+groene CI-gate `nas-native-normal-cold` op `fa97c692` en daarna op de
+integratiehead. Bekende beperking van de lekcontrole in `tools/test_nas.py`:
+die zoekt alleen het volledige 80-bytepaar als hex en schrijft `serial.txt`
+vóór de controle; losse 40-bytetokens worden niet apart gezocht. Dat staat
+als vervolgpunt in `docs/PROJECT-STATE.md`.
