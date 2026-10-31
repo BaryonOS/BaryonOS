@@ -277,12 +277,19 @@ native receivebuffer bij geldige envelope-overdracht en wist `Outgoing`- en
 Dit laat caller-owned arrays, mogelijke compiler-/registerkopieën en
 crashgeheugen buiten de garantie. De onderliggende ontvangen IPC-kopie is
 geheugenhygiëne, geen sleutelopslag- of volledige sleutelisolatiegarantie.
+De dienst weigert bij de start een admin-afzender die gelijk is aan de gewone
+sleutelclient of aan zichzelf, en admin- en RANDOM-ingress mogen geen handle
+delen. Init wist zijn eigen aanvraagkopieën na iedere uitwisseling. Een SEND
+naar dit ingress is gelijkwaardig aan de volledige sleutelnamespace (EXPORT
+onder een zelfgekozen geheim) en voor een koude instantie authenticeert het
+externe geheim de lineage; zie ADR-051.
 
 ### Geïntegreerd profiel (FR-I01, `native-system`/`test-system-recover`)
 
 - Manifest: admin-kanaal Key Service ← init, antwoordkanaal init ← Key
-  Service, volumedomein 1 voor init; de app bezit geen SEND naar het
-  admin-ingress (`APP_ADMIN_HANDLE`) en init's nieuwe handles dragen geen
+  Service, volumedomein 1 voor init; geen van de app-handles verwijst naar het
+  admin-ingress of zijn antwoordkanaal (`APP_ADMIN_HANDLE`, via de nieuwe
+  read-only `Engine::endpoint_object`) en init's nieuwe handles dragen geen
   entropy-/blok-/launch-/netwerkrecht (`INIT_AUTHORITY`).
 - Normale run: app genereert sleutel 0, verzegelt/ontzegelt, voert de tien
   contextweigeringen uit, trekt sleutel 0 in, genereert sleutel 1 en verzegelt
@@ -305,5 +312,7 @@ geheugenhygiëne, geen sleutelopslag- of volledige sleutelisolatiegarantie.
 
 Exacte uitvoering, hashes en grenzen: PROJECT-STATE.md en
 `docs/verification/full-release-b02-keystate-*`. Niet bewezen: vertrouwde
-generatievloer, write-ahead per GENERATE/REVOKE binnen de dienst, verlies van
-het externe geheim, meerdere schrijvers, fysieke hardware.
+generatievloer, write-ahead per GENERATE/REVOKE binnen de dienst, verlies of
+compromittering van het externe geheim (= attacker-gekozen master bij koude
+start), meerdere schrijvers, een native tegenvoorbeeld voor de
+admin-afzendercontrole, fysieke hardware.

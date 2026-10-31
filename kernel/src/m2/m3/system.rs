@@ -337,11 +337,25 @@ pub(super) fn manifest(s: &mut State) {
             b"INIT_AUTHORITY",
         );
     }
-    // The app cannot reach the administrative ingress by any handle it owns.
-    require(
-        e.check_endpoint(app, init_key_admin, SEND).is_err(),
-        b"APP_ADMIN_HANDLE",
-    );
+    // The app cannot reach the administrative ingress or its reply channel by
+    // any handle it owns: handle numbers are per process, so compare the
+    // endpoint objects behind every app handle with init's admin endpoints.
+    let admin_ingress_object = e.endpoint_object(init, init_key_admin).unwrap();
+    let admin_reply_object = e.endpoint_object(init, init_key_reply).unwrap();
+    for handle in [
+        key_reply,
+        app_key,
+        volume_reply,
+        app_volume,
+        app_registry,
+        app_control,
+    ] {
+        let object = e.endpoint_object(app, handle).unwrap();
+        require(
+            object != admin_ingress_object && object != admin_reply_object,
+            b"APP_ADMIN_HANDLE",
+        );
+    }
     require(e.check_invariants(), b"MANIFEST_ENGINE");
     let releasable: usize = s.processes[..initial]
         .iter()
