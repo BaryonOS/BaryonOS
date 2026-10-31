@@ -1,104 +1,24 @@
 #![forbid(unsafe_code)]
 
+//! Store surface for package management. The read side is the shared
+//! `artifact-store-core` contract (ADR-054): one definition of references,
+//! descriptors, capacity, errors, the 4 KiB read bound and the checked
+//! open/read helpers. This module adds only the streaming write transaction.
+//!
+//! `ArtifactRef` is store object identity; its generation is independent of
+//! publisher/source generations carried in package metadata. Descriptors
+//! describe bytes but do not prove origin, publisher, freshness, or
+//! authorization. A store adapter binds each read handle to the
+//! kernel-authenticated caller and its current store epoch, and rechecks both
+//! on every read; `open_checked` rejects a store descriptor that differs from
+//! the expected one.
+
 use crate::protocol::ProtocolError;
 
-pub const READ_CHUNK_MAX: usize = 4096;
-
-/// Store object identity; this generation is independent of publisher/source
-/// generations carried in package metadata.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ArtifactRef {
-    pub artifact_id: [u8; 32],
-    pub immutable_generation: u64,
-}
-
-/// Store metadata; these fields describe bytes but do not prove their origin,
-/// publisher, freshness, or authorization.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ArtifactDescriptor {
-    pub reference: ArtifactRef,
-    pub length: u64,
-    pub sha256: [u8; 32],
-}
-
-fn valid_descriptor(descriptor: &ArtifactDescriptor) -> bool {
-    descriptor
-        .reference
-        .artifact_id
-        .iter()
-        .any(|byte| *byte != 0)
-        && descriptor.reference.immutable_generation != 0
-        && descriptor.length != 0
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct StoreCapacity {
-    pub capacity_bytes: u64,
-    pub used_bytes: u64,
-    pub reserved_bytes: u64,
-    pub quota_bytes: u64,
-}
-
-impl StoreCapacity {
-    pub fn available_bytes(&self) -> Result<u64, StoreError> {
-        let committed = self
-            .used_bytes
-            .checked_add(self.reserved_bytes)
-            .ok_or(StoreError::Overflow)?;
-        core::cmp::min(self.capacity_bytes, self.quota_bytes)
-            .checked_sub(committed)
-            .ok_or(StoreError::Corrupt)
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum StoreError {
-    Invalid,
-    Unauthorized,
-    Stale,
-    Corrupt,
-    Truncated,
-    Overflow,
-    EndOfArtifact,
-    OutOfRange,
-    NotFound,
-    Full,
-    Quota,
-    Busy,
-    Replay,
-    OutOfOrder,
-    Incomplete,
-    CancelTooLate,
-    Unknown,
-    Io,
-    Protocol,
-}
-
-/// Read-only surface shared by package management and read-only consumers.
-/// `open` checks immutable metadata and content digest; it does not assert
-/// publisher trust or model safety. The associated handle type is opaque to
-/// callers and is constructed only by the concrete reader. Each read is
-/// checked against the authenticated client context and current store epoch.
-pub trait ArtifactReader {
-    type Handle;
-
-    fn open(
-        &mut self,
-        descriptor: &ArtifactDescriptor,
-        expected_store_epoch: u64,
-    ) -> Result<Self::Handle, StoreError>;
-
-    fn read_at(
-        &mut self,
-        handle: &Self::Handle,
-        descriptor: &ArtifactDescriptor,
-        expected_store_epoch: u64,
-        offset: u64,
-        output: &mut [u8],
-    ) -> Result<usize, StoreError>;
-
-    fn capacity(&mut self) -> Result<StoreCapacity, StoreError>;
-}
+pub use artifact_store_core::{
+    open_checked, read_bounded, ArtifactDescriptor, ArtifactReadHandle, ArtifactRef, ArtifactStore,
+    Error as StoreError, StoreCapacity, READ_CHUNK_MAX,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct TransactionKey {
@@ -146,64 +66,6 @@ pub trait ArtifactWriter {
     fn cancel(&mut self, key: TransactionKey) -> Result<(), StoreError>;
 
     fn outcome(&mut self, key: TransactionKey) -> Result<TransactionOutcome, StoreError>;
-}
-
-pub fn open_checked<R: ArtifactReader>(
-    reader: &mut R,
-    descriptor: &ArtifactDescriptor,
-    expected_store_epoch: u64,
-) -> Result<R::Handle, StoreError> {
-    if expected_store_epoch == 0 || !valid_descriptor(descriptor) {
-        return Err(StoreError::Invalid);
-    }
-    reader.open(descriptor, expected_store_epoch)
-}
-
-pub fn read_bounded<R: ArtifactReader>(
-    reader: &mut R,
-    handle: &R::Handle,
-    descriptor: &ArtifactDescriptor,
-    expected_store_epoch: u64,
-    offset: u64,
-    output: &mut [u8],
-) -> Result<usize, StoreError> {
-    if expected_store_epoch == 0 {
-        return Err(StoreError::Stale);
-    }
-    if !valid_descriptor(descriptor) {
-        return Err(StoreError::Invalid);
-    }
-    if output.is_empty() || output.len() > READ_CHUNK_MAX {
-        return Err(StoreError::Invalid);
-    }
-    if offset == descriptor.length {
-        return Err(StoreError::EndOfArtifact);
-    }
-    if offset > descriptor.length {
-        return Err(StoreError::OutOfRange);
-    }
-    let remaining = descriptor
-        .length
-        .checked_sub(offset)
-        .ok_or(StoreError::Overflow)?;
-    let requested = core::cmp::min(output.len() as u64, remaining) as usize;
-    offset
-        .checked_add(requested as u64)
-        .ok_or(StoreError::Overflow)?;
-    let read = reader.read_at(
-        handle,
-        descriptor,
-        expected_store_epoch,
-        offset,
-        &mut output[..requested],
-    )?;
-    if read == 0 {
-        return Err(StoreError::Truncated);
-    }
-    if read > requested {
-        return Err(StoreError::Protocol);
-    }
-    Ok(read)
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -262,9 +124,7 @@ impl InstallTransaction {
         if caller == 0 || request_id == 0 || service_epoch == 0 {
             return Err(StoreError::Invalid);
         }
-        if !valid_descriptor(&descriptor) {
-            return Err(StoreError::Invalid);
-        }
+        descriptor.validate()?;
         if matches!(
             self.state,
             InstallState::Receiving
@@ -539,53 +399,62 @@ mod tests {
         }
     }
 
+    /// Adapter-private handle: the store epoch and locator stay inside the
+    /// concrete store, as the shared contract requires.
     struct FakeHandle {
-        descriptor: ArtifactDescriptor,
         epoch: u64,
         locator: u64,
     }
 
-    struct FakeReader {
-        descriptor: ArtifactDescriptor,
+    struct FakeStore {
+        authoritative: ArtifactDescriptor,
         epoch: u64,
         locator: u64,
+        opens: usize,
         read_count: usize,
         read_error: Option<StoreError>,
     }
 
-    impl ArtifactReader for FakeReader {
+    impl FakeStore {
+        fn new(authoritative: ArtifactDescriptor, read_count: usize) -> Self {
+            Self {
+                authoritative,
+                epoch: 7,
+                locator: 11,
+                opens: 0,
+                read_count,
+                read_error: None,
+            }
+        }
+    }
+
+    impl ArtifactStore for FakeStore {
         type Handle = FakeHandle;
 
         fn open(
             &mut self,
-            descriptor: &ArtifactDescriptor,
-            expected_store_epoch: u64,
-        ) -> Result<Self::Handle, StoreError> {
-            if descriptor != &self.descriptor {
-                return Err(StoreError::Stale);
+            _expected: &ArtifactDescriptor,
+        ) -> Result<(Self::Handle, ArtifactDescriptor), StoreError> {
+            self.opens += 1;
+            if self.locator == 0 {
+                return Err(StoreError::NotFound);
             }
-            if expected_store_epoch != self.epoch || self.locator == 0 {
-                return Err(StoreError::Stale);
-            }
-            Ok(FakeHandle {
-                descriptor: self.descriptor,
-                epoch: self.epoch,
-                locator: self.locator,
-            })
+            Ok((
+                FakeHandle {
+                    epoch: self.epoch,
+                    locator: self.locator,
+                },
+                self.authoritative,
+            ))
         }
 
         fn read_at(
             &mut self,
             handle: &Self::Handle,
-            descriptor: &ArtifactDescriptor,
-            expected_store_epoch: u64,
             _offset: u64,
             output: &mut [u8],
         ) -> Result<usize, StoreError> {
-            if handle.epoch != expected_store_epoch
-                || handle.locator == 0
-                || handle.descriptor != *descriptor
-            {
+            if handle.epoch != self.epoch || handle.locator != self.locator {
                 return Err(StoreError::Stale);
             }
             if let Some(error) = self.read_error {
@@ -642,70 +511,98 @@ mod tests {
     #[test]
     fn immutable_handles_are_epoch_bound_and_reads_are_bounded() {
         let descriptor = descriptor(5000);
-        let mut reader = FakeReader {
-            descriptor,
-            epoch: 7,
-            locator: 11,
-            read_count: READ_CHUNK_MAX,
-            read_error: None,
-        };
-        let handle = open_checked(&mut reader, &descriptor, 7).unwrap();
+        let mut store = FakeStore::new(descriptor, READ_CHUNK_MAX);
+        let handle = open_checked(&mut store, &descriptor).unwrap();
+        assert_eq!(handle.descriptor(), &descriptor);
         let mut bytes = [0; READ_CHUNK_MAX];
         assert_eq!(
-            read_bounded(&mut reader, &handle, &descriptor, 7, 0, &mut bytes).unwrap(),
+            read_bounded(&mut store, &handle, 0, &mut bytes).unwrap(),
             READ_CHUNK_MAX
         );
         assert_eq!(bytes[0], 0x5a);
+        // A new store epoch invalidates every handle opened before it.
+        store.epoch = 8;
         assert_eq!(
-            read_bounded(&mut reader, &handle, &descriptor, 8, 0, &mut bytes),
+            read_bounded(&mut store, &handle, 0, &mut bytes),
             Err(StoreError::Stale)
         );
+        store.epoch = 7;
         assert_eq!(
-            read_bounded(&mut reader, &handle, &descriptor, 7, 5000, &mut bytes),
+            read_bounded(&mut store, &handle, 5000, &mut bytes),
             Err(StoreError::EndOfArtifact)
         );
         assert_eq!(
-            read_bounded(&mut reader, &handle, &descriptor, 7, 5001, &mut bytes),
+            read_bounded(&mut store, &handle, 5001, &mut bytes),
             Err(StoreError::OutOfRange)
         );
         assert_eq!(
-            read_bounded(
-                &mut reader,
-                &handle,
-                &descriptor,
-                7,
-                0,
-                &mut [0; READ_CHUNK_MAX + 1]
-            ),
+            read_bounded(&mut store, &handle, 0, &mut [0; READ_CHUNK_MAX + 1]),
             Err(StoreError::Invalid)
         );
-        assert_eq!(reader.capacity().unwrap().available_bytes(), Ok(1536));
+        assert_eq!(store.capacity().unwrap().available_bytes(), Ok(1536));
+    }
+
+    #[test]
+    fn open_rejects_a_store_descriptor_that_differs_from_the_expected_one() {
+        let expected = descriptor(8);
+        for authoritative in [
+            ArtifactDescriptor {
+                sha256: [6; 32],
+                ..expected
+            },
+            ArtifactDescriptor {
+                length: 9,
+                ..expected
+            },
+            ArtifactDescriptor {
+                reference: ArtifactRef {
+                    artifact_id: [1; 32],
+                    immutable_generation: 4,
+                },
+                ..expected
+            },
+            // A different artifact with identical generation, length and digest.
+            ArtifactDescriptor {
+                reference: ArtifactRef {
+                    artifact_id: [2; 32],
+                    immutable_generation: 3,
+                },
+                ..expected
+            },
+        ] {
+            let mut store = FakeStore::new(authoritative, 8);
+            assert!(matches!(
+                open_checked(&mut store, &expected),
+                Err(StoreError::Corrupt)
+            ));
+        }
+        // An invalid expectation is refused before the store is consulted.
+        let mut store = FakeStore::new(expected, 8);
+        assert!(matches!(
+            open_checked(&mut store, &descriptor(0)),
+            Err(StoreError::Invalid)
+        ));
+        assert_eq!(store.opens, 0);
     }
 
     #[test]
     fn read_errors_are_explicit_and_never_look_like_eof_success() {
         let descriptor = descriptor(8);
-        let mut reader = FakeReader {
-            descriptor,
-            epoch: 1,
-            locator: 1,
-            read_count: 0,
-            read_error: None,
-        };
-        let handle = open_checked(&mut reader, &descriptor, 1).unwrap();
+        let mut store = FakeStore::new(descriptor, 0);
+        let handle = open_checked(&mut store, &descriptor).unwrap();
         let mut bytes = [0; 8];
         assert_eq!(
-            read_bounded(&mut reader, &handle, &descriptor, 1, 0, &mut bytes),
+            read_bounded(&mut store, &handle, 0, &mut bytes),
             Err(StoreError::Truncated)
         );
-        reader.read_count = 9;
+        store.read_count = 9;
         assert_eq!(
-            read_bounded(&mut reader, &handle, &descriptor, 1, 0, &mut bytes),
+            read_bounded(&mut store, &handle, 0, &mut bytes),
             Err(StoreError::Protocol)
         );
-        reader.read_error = Some(StoreError::Overflow);
+        store.read_error = Some(StoreError::Overflow);
         assert_eq!(
-            read_bounded(&mut reader, &handle, &descriptor, 1, 0, &mut bytes),
+            read_bounded(&mut store, &handle, 0, &mut bytes),
             Err(StoreError::Overflow)
         );
     }
@@ -783,6 +680,37 @@ mod tests {
         transaction
             .begin(writer, 9, request_id, 4, descriptor(length))
             .unwrap();
+    }
+
+    #[test]
+    fn begin_rejects_invalid_descriptors_without_reaching_the_writer() {
+        let valid = descriptor(8);
+        for invalid in [
+            descriptor(0),
+            ArtifactDescriptor {
+                reference: ArtifactRef {
+                    artifact_id: [0; 32],
+                    immutable_generation: 3,
+                },
+                ..valid
+            },
+            ArtifactDescriptor {
+                reference: ArtifactRef {
+                    artifact_id: [1; 32],
+                    immutable_generation: 0,
+                },
+                ..valid
+            },
+        ] {
+            let mut transaction = InstallTransaction::new();
+            let mut writer = FakeWriter::default();
+            assert_eq!(
+                transaction.begin(&mut writer, 9, 1, 4, invalid),
+                Err(StoreError::Invalid)
+            );
+            assert_eq!(transaction.state(), InstallState::Idle);
+            assert!(writer.descriptor.is_none());
+        }
     }
 
     #[test]
