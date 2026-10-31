@@ -1,0 +1,317 @@
+{
+  "case": "recover",
+  "passed": true,
+  "source_sha256": "7255534f462eceba32f6d5059f2fc3b2219a8ea5e4ca18b1bca7626940ea648b",
+  "source_commit": "e08fb0e48c1bb0781e98357f588c2f73b6ae8500",
+  "manifest": {
+    "schema_version": 1,
+    "profile": "test-system-nas-recover",
+    "kernel_feature": "test-system-nas-recover",
+    "loader_feature": null,
+    "source_fingerprint_version": 3,
+    "source_sha256": "7255534f462eceba32f6d5059f2fc3b2219a8ea5e4ca18b1bca7626940ea648b",
+    "loader": {
+      "sha256": "a8fb85ce23ace4b3751f28b851e049d88a3c8c839395b14d2dcae2e33560b1a1",
+      "format": "AMD64 PE32+",
+      "subsystem": "EFI_APPLICATION",
+      "imports": 0
+    },
+    "kernel": {
+      "sha256": "fe4b1f21ed72c498d016346e474167538e4249440ce4fac5c37c0942dca41d20",
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "offset": 4096,
+          "address": 33554432,
+          "filesz": 138599,
+          "memsz": 138599,
+          "page_start": 33554432,
+          "page_end": 33693696
+        },
+        {
+          "flags": 4,
+          "offset": 143360,
+          "address": 33693696,
+          "filesz": 213976,
+          "memsz": 213976,
+          "page_start": 33693696,
+          "page_end": 33910784
+        },
+        {
+          "flags": 6,
+          "offset": 360448,
+          "address": 33910784,
+          "filesz": 1258144,
+          "memsz": 4350048,
+          "page_start": 33910784,
+          "page_end": 38264832
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "size": 0
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "size": 138599
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 50,
+          "size": 213976
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "size": 1258144
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "flags": 3,
+          "size": 3088480
+        },
+        {
+          "name": ".symtab",
+          "type": 2,
+          "flags": 0,
+          "size": 7800
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "size": 52
+        },
+        {
+          "name": ".strtab",
+          "type": 3,
+          "flags": 0,
+          "size": 17261
+        }
+      ]
+    },
+    "sdk_runtime": false,
+    "document_session": false,
+    "nas_probe": {
+      "schema_version": 1,
+      "gate": "crosscompile-and-elf-inspection-only",
+      "native_execution": false,
+      "binaries": {
+        "nas-probe": {
+          "path": "/home/simon/projects/nieuw-os-issues/build/nas-native/users/nas/nas-probe.elf",
+          "bytes": 95512,
+          "sha256": "4c537f45ba933922ac64326b4d97f0b63e6dfbebe9c6c89f0453398e7aec8295",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 33,
+                "memsz": 33,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1256,
+                "memsz": 1256,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073823744,
+                "offset": 12288,
+                "filesz": 3553,
+                "memsz": 3553,
+                "page_start": 1073823744,
+                "page_end": 1073827840
+              },
+              {
+                "flags": 5,
+                "address": 1073872896,
+                "offset": 16384,
+                "filesz": 69554,
+                "memsz": 69554,
+                "page_start": 1073872896,
+                "page_end": 1073942528
+              }
+            ]
+          },
+          "mapped_elf_bytes": 81920,
+          "zero_fill_bytes": 0
+        },
+        "nas-volume": {
+          "path": "/home/simon/projects/nieuw-os-issues/build/nas-native/users/nas/nas-volume.elf",
+          "bytes": 97736,
+          "sha256": "6ec290c902863742cc8cdee632384f57869bef359ddc768b77dd84f39879820a",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 57570,
+                "memsz": 57570,
+                "page_start": 1073741824,
+                "page_end": 1073803264
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 65536,
+                "filesz": 1304,
+                "memsz": 1304,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073823744,
+                "offset": 69632,
+                "filesz": 18210,
+                "memsz": 18210,
+                "page_start": 1073823744,
+                "page_end": 1073844224
+              }
+            ]
+          },
+          "mapped_elf_bytes": 86016,
+          "zero_fill_bytes": 0
+        }
+      },
+      "private_stack_reserved": 65536,
+      "initial_private_heap_reserved": 65536,
+      "workspace_native_peak": "pending native execution; host workspace size is recorded separately",
+      "runtime_touched_stack_high_water": "startup word 448, pending native execution"
+    }
+  },
+  "command": [
+    "/home/simon/projects/nieuw-os-b02/.tools/nieuw-os/emulator/usr/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/nas-native/run/nas-recover-e44c0dd360354e5f99a7d006738c5be5/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/nas-native/run/nas-recover-e44c0dd360354e5f99a7d006738c5be5/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/nas-native/run/nas-recover-e44c0dd360354e5f99a7d006738c5be5/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,readonly=on,file=build/nas-native/run/nas-recover-e44c0dd360354e5f99a7d006738c5be5/volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+    "-fw_cfg",
+    "name=opt/nieuw-os/nas-replay,file=/tmp/nos-nas-replay-8alzjj04/cold-input.bin"
+  ],
+  "image": "build/nas-native/run/nas-recover-e44c0dd360354e5f99a7d006738c5be5/volume.img",
+  "platform": {
+    "machine": "pc-q35-8.2",
+    "qemu_path": "/home/simon/projects/nieuw-os-b02/.tools/nieuw-os/emulator/usr/bin/qemu-system-x86_64",
+    "qemu_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+    "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "code_sha256": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "vars_template_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "qemu_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+  "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "firmware_sha256": {
+    "code": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "before_sha256": "77c800cff0a40e5d49e3451b8c88b2cf50bc5bcae0b4be34ada94db4388bd03d",
+  "run_directory": "/home/simon/projects/nieuw-os-issues/build/nas-native/run/nas-recover-e44c0dd360354e5f99a7d006738c5be5",
+  "raw_qemu_exit": 33,
+  "timed_out": false,
+  "duration_s": 3.647991796002316,
+  "after_sha256": "77c800cff0a40e5d49e3451b8c88b2cf50bc5bcae0b4be34ada94db4388bd03d",
+  "oracle": {
+    "schema_version": 1,
+    "oracle": "NAS-IPC-PROBE-1-fixed-end-state",
+    "image_sha256": "77c800cff0a40e5d49e3451b8c88b2cf50bc5bcae0b4be34ada94db4388bd03d",
+    "volume_generation": 11,
+    "core_generation": 6,
+    "status": "Evicted",
+    "epoch": 2,
+    "quota": 128,
+    "stored_ciphertext_bytes": 0,
+    "authority_history_versions": 0,
+    "scope_canaries_valid": true,
+    "cold_disk_unchanged": true,
+    "guest_execution": "not-assessed"
+  },
+  "evidence": {
+    "admin_pid": 1,
+    "guest_pid": 4,
+    "roles": [
+      {
+        "ROLE_SLOT": 0,
+        "RPC_OK": 4,
+        "RPC_ERRORS": 0,
+        "RIGHTS_DENIED": 0,
+        "STACK_TOUCHED": 3352
+      },
+      {
+        "ROLE_SLOT": 1,
+        "RPC_OK": 4,
+        "RPC_ERRORS": 5,
+        "RIGHTS_DENIED": 0,
+        "STACK_TOUCHED": 25184
+      },
+      {
+        "ROLE_SLOT": 3,
+        "RPC_OK": 0,
+        "RPC_ERRORS": 5,
+        "RIGHTS_DENIED": 1,
+        "STACK_TOUCHED": 4552
+      }
+    ],
+    "brokers": {
+      "ENTROPY_BYTES": 32,
+      "DISK_READS": 816,
+      "DISK_WRITES": 0,
+      "DISK_FLUSHES": 0
+    }
+  },
+  "replay_input": {
+    "payload_sha256": "0fd5eb0b18e1f5292e17dd6fc2f3883040856c471a5571eb87fe4a5a983dbb30",
+    "origin_run_id": "nas-normal-5824c64111e2485da206ea5c4095f52d"
+  }
+}
