@@ -105,6 +105,15 @@ Domeineigenaren mogen op eigen takken doorwerken; commits na een vastgelegde
 integratiebron worden als aparte delta beoordeeld, niet stil meegenomen of
 weggegooid. Integratiebesluiten staan per PR als commentaar.
 
+**Voortgezet op 31 oktober 2026:** op Simons opdracht "Ga verder waar de rest
+gebleven was" heeft een Claude Code-cloudsessie (branch
+`ccr-4bb5b18c-t9u3cv`) dit integratormandaat voortgezet voor integratie 3.
+In de open PR's was geen activiteit van de desktopsessie te zien na
+30 oktober 21:48 UTC. Bron en besluiten:
+[pr-integration-3-20261031.json](verification/pr-integration-3-20261031.json).
+Er mag nog steeds maar één integrator tegelijk actief zijn. Een sessie die
+hierna integreert, controleert eerst de live heads en dit register.
+
 ## Werkelijke sessies en primaire opdracht
 
 24 geregistreerde rollen zijn geen claim van 24 actieve agents.

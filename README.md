@@ -31,11 +31,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **34** |
 
-**Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`ed63ed25`](https://github.com/simonvanieperen/nieuw-os/commit/ed63ed2597460a0265ee094ebea366cda9ef2a7d) ·
-**Ontwikkelbranch:** `claude/integration-2-20261030`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Afhandeling van alle open pull requests en issues: integratie 1 (#96) en integratie 2 (#113).
-De productscore blijft 34/100. #96 is gesquash-merged na 30 groene checks, inclusief de native NAS normal/cold-gate. #113 neemt de resterende component-delta's op: Materiaal-semantiek en SR05–SR08-regressies, primary hover, app-source-snapshotkern en -contracten, DHCP-retries met expliciete entropiepoort, en documentatie- en bewijsbestanden. Alle opgenomen PR's zijn per commit na hun vastgelegde bron gecontroleerd. Reviewfixes: een net-stack-discardroute voor een ingehouden TX-frame met regressietest, en de Materiaal-chaintest volgt het nieuwe semantische buffercontract. Lokaal zijn host-tests, Clippy en fmt groen; de freestanding-build van app-package-core is lokaal niet uitgevoerd. Dit is host- en componentbewijs, geen native-, FR-, fysieke of menselijke acceptatie; vaste criteria en gewichten zijn ongewijzigd. Open: #109, #110 en de productmilestones #39–#43.
+**Herbeoordeeld:** 2026-10-31 · **Rubric:** v1 ·
+**Bron:** [`67bd84ec`](https://github.com/simonvanieperen/nieuw-os/commit/67bd84ec5f816c40f88d750fee83451e4a301067) ·
+**Ontwikkelbranch:** `ccr-4bb5b18c-t9u3cv`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Integratie 3: open PR's na #113 (#115–#119) afhandelen; #114 aangehouden.
+De productscore blijft 34/100. Integratie 3 neemt #118 (herstel post-merge review #113), #115 (app-management-leeszijde via artifact-store-core, sluit #109), #116 (B02: echte objectvergelijking in de admin-ingresscontrole), #119 (exacte boot-1 NAS-tokenreplay native, sluit #110) en #117 (SUR1 sparse frames) op, met reviewfixes en sterkere tests. Lokaal zijn host-tests, Clippy en fmt groen; native in QEMU 8.2 slagen NAS normal/cold, FR-I01 en de Materiaal-probe met #117 (frame na typen 9 in plaats van 1619 tegels), terwijl main die probe hier niet haalt. Dat is host-, component- en lokaal native deelbewijs, één run per bron, geen CI-gate voor de probe en geen FR-, fysieke of menselijke acceptatie; vaste criteria en gewichten zijn ongewijzigd. #114 (ADR-058) wacht op bevestiging door Simon.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

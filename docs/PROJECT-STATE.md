@@ -1,6 +1,66 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR- en issueafhandeling na integratie 1 en 2 — 30 oktober 2026
+## NEXT AGENT HANDOFF — integratie 3 (open PR's na #113) — 31 oktober 2026
+
+**Mandaat:** Simon vroeg op 31 oktober in een Claude Code-cloudsessie om
+verder te gaan waar de vorige sessies stopten. Deze sessie zette daarom het
+integratormandaat van 30 oktober voort (zie [WORK-QUEUE.md](WORK-QUEUE.md));
+er was geen activiteit van de desktopsessie na 30 oktober 21:48 UTC zichtbaar.
+
+**Bron:** main `e08fb0e`; integratiebranch `ccr-4bb5b18c-t9u3cv`.
+Alle bronnen, reviews, fixes en uitgevoerde commando's staan in
+[pr-integration-3-20261031.json](verification/pr-integration-3-20261031.json).
+
+**Opgenomen:**
+- #118: herstel van vier fouten uit de post-merge review van #113
+  (Materiaal-focus, pointerstatus, DHCP-retryschema per XID).
+- #115: app-management-leeszijde via `artifact-store-core` (sluit #109).
+- #116: B02-reviewherstel; de vacuüme `APP_ADMIN_HANDLE`-kernelcontrole
+  vergelijkt nu endpointobjecten.
+- #119: exacte boot-1 NAS-tokenreplay native actief (sluit #110).
+- #117: SUR1 sparse frames; na het eerste volledige frame worden alleen
+  gewijzigde tegels plus de laatste tegel verstuurd.
+- Reviewfixes: doc-overclaim over FakeStore, Nederlandse R113-notitie,
+  sterkere #117-tests (mutatie maakt ze rood), loze assert in de
+  NAS-runnertest, herkomstnotities.
+- #116 en #119 zijn onafhankelijk door AI gereviewd (MERGEN, geen
+  blockers). Dat is geen menselijke audit.
+
+**Native lokaal bewijs (QEMU 8.2.2, `pc-q35-8.2`, TCG):** NAS normal/cold
+en FR-I01 normal/recover `passed=True raw=33`. De Materiaal-probe
+[slaagt met #117](verification/sparse-frames-117/README.md) in 178,8 s;
+het frame na 28 getypte toetsen kost 9 in plaats van 1619 tegels. Main
+zelf faalt die probe in deze omgeving (raw 35, gasttime-outs). Dat is
+omgevingsafhankelijk, één run per bron, en geen CI-gate.
+
+**Niet opgenomen:** #114 (ADR-058, herkenbare desktop/inloggen). Het
+overschrijft de productambitie in de root-`AGENTS.md`. De PR schrijft het
+besluit aan Simon toe; dat is hier niet te verifiëren. Er staan 15 open
+CodeRabbit-threads, waarvan 5 major (secure-attention-oppervlak,
+sleutelovergang bij gebruikerswissel, te ruime app-claim, reproduceerbare
+prestatie-acceptatie, positieve hersteltest). Wacht op Simons bevestiging.
+
+**Open vervolgpunten:**
+- #116: de manifestcontrole dekt alleen de zes bekende app-handles. Voeg
+  een `available_slots`-telling toe (patroon `random_fixture.rs`); daarna
+  is nieuw native bewijs nodig.
+- #119: de lekcontrole in `tools/test_nas.py` zoekt alleen het volledige
+  80-bytepaar en schrijft `serial.txt` vóór de controle.
+- `native-foundation` faalde op #117 in de RANDOM-rawgate (raw 35 na
+  `SYSTEM:MANIFEST:PASS`); die image bevat geen #117-code. Als dit opnieuw
+  optreedt, onderzoek dan of het flaky is.
+- De native Materiaal-probe draait in geen enkele CI-workflow.
+- #39–#43: productmilestones; hun criteria zijn niet aangetoond.
+
+**Score:** 34/100 → 34/100. Geen criterium is volledig geaccepteerd:
+host-, component- en lokaal native deelbewijs vervangen geen FR-gate,
+honderd koude starts, fysieke of menselijke acceptatie.
+
+**Eerstvolgend:** controleer de CI van de integratie-PR. Bij groen:
+squash-merge, de vijf component-PR's sluiten als overgenomen, en #109 en
+#110 sluiten. Daarna #114 na Simons antwoord.
+
+## Vorige handoff — PR- en issueafhandeling na integratie 1 en 2 — 30 oktober 2026
 
 **Mandaat:** Simon heeft de Claude Code-sessie in de desktopapp op 30 oktober
 (~21:10 CET) aangewezen als enige operationele integrator voor alle open PR's
@@ -44,66 +104,8 @@ tegen main met `docs/verification/pr-integration-2-20261030.json` als
 bronbasis. Een volgende integratie start bij #109 of #110, of bij een
 DEV1-herproef op vastgelegde bron en slot.
 
-## Vorige handoff — centrale documentatie en bronbehoud (#96) — 30 oktober 2026
+## Eerdere handoffs
 
-**Integratieopdracht:** Simon heeft in deze sessie het oplossen, squashen en mergen
-van issues en pull requests opgedragen. Dit actuele mandaat geldt voor deze
-integratie; de historische queue en bronclaims blijven bewaard.
-
-**Bronbasis:** main `d791a342cc3bdb107245692f2f542d88d5fda7f1`;
-management en laatste overgenomen queue: PR #75 op
-`c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6`.
-[Bronindex en volledige historie](history/integration-2026-10-30/README.md)
-scheiden deze basis van oudere branchhandoffs. De gecombineerde implementatiebron is
-[`3fedd03e`](https://github.com/simonvanieperen/nieuw-os/commit/3fedd03eecff62d6bffae038ec959c56734e2137).
-Gerichte SDK- en netwerkregressies zijn groen; volledige kandidaat-CI
-en de native NAS normal/cold-gate blijven vereist vóór merge.
-
-**Eigenaars en claims:** de nieuwste vastgelegde [werkqueue](WORK-QUEUE.md)
-blijft de primaire bron voor taken, fileclaims en acceptatie.
-Assistent `5d5f8513-2d31-41af-96ce-81c5ef56ef80` is de enige queuewriter;
-teamleider 89f houdt technische samenhang, PROJECT-STATE en scorebestanden.
-De queueovername en e8-vrijgave/7f-ontvangst zijn vastgelegd; bestaande
-inhoudseigenaren en opdrachten blijven behouden. Stilte of een timeout
-geeft geen schrijfgebied vrij. De queuebron bewaart ook de afzonderlijke
-mergepauze rond #85; de managerhandoff beschrijft 7f als operationele
-integrator. Dit bronverschil is [expliciet geregistreerd](history/integration-2026-10-30/README.md#overdracht-en-bronverschil);
-dit checkpoint verzint geen later stop- of hervattingsbesluit.
-
-**Product en bewijs:** 34/100 blijft 34/100; criteria, gewichten, statussen
-en geaccepteerde evidence blijven gelijk aan de main-bron.
-Alle 62 FR-gates, 100 cold-starts, 24 uur, fysieke hardware en menselijke
-acceptatie blijven open. Het [DEV1-resultaat](https://github.com/simonvanieperen/nieuw-os/blob/557b85e26372cf3809c0760d40b430ec5ef7cc6b/docs/verification/ordinary-dev1/reference-ac4f038e86/result.json)
-op bron `ca45a7dabe6a040921de03bdc2fad3e5045a75ba` is mislukt
-(`passed=false`, raw exit 0), vóór het Materiaalmanifest.
-De [gecorrigeerde buildfreeze](https://github.com/simonvanieperen/nieuw-os/blob/557b85e26372cf3809c0760d40b430ec5ef7cc6b/docs/verification/ordinary-dev1/isolated-build-1/build-freeze.json)
-heeft `vm_gates_started=false`: geen nieuwe guestherproef uitgevoerd.
-Bron: Nieuw OS / S.W.J.B.M. van Ieperen, 30 oktober 2026;
-[volledige metadata en bewijsgrens](history/integration-2026-10-30/README.md#dev1-bronrecord).
-UI0818 is beperkt native deelbewijs. Store/READ, issuer,
-launch, TLS en NAS-lifecycle blijven productafhankelijkheden.
-B05 heeft in de managementbron geen bevestigde auditor; deze integratie
-is geen menselijke audit, externe opdracht of releaseaftekening.
-Het [cold77-hostverslag](verification/teamleader-cold77-host.json)
-houdt sourcefix, native herhaling en mergegoedkeuring apart.
-
-**App-management:** pakketvalidatie, SDK-identiteit, catalogus, protocol en
-transactiebewaking zijn samengevoegd. De gecombineerde SDK-hostsuite heeft
-26 tests; een testbackend bewijst geen duurzame journal- of native launch-keten.
-De volledige integratiechecks en de native NAS normal/cold-gate moeten op de
-feitelijke integratiecommit slagen. PR #93 blijft buiten deze integratie:
-de export en startupbinding van de vorige NAS-boot ontbreken nog.
-
-**Eerstvolgend:** controleer live head/base, concrete reviewpunten en
-vereiste checks voor de feitelijke integratiebron. Laat het progressscript
-README en het voortgangsoverzicht uit die bron genereren, met de vaste
-rubric en zonder oude assessments als nieuwe testuitvoering te presenteren.
-Behoud lopende domeintaken; voer een DEV1-herproef alleen op de daarvoor
-vastgelegde bron en bestaande slotafspraak uit. De historische volgorde,
-queued retries en oude groene runs zijn geen actuele integratiegate.
-
-**Historie:** de volledige main-DHCP-handoff, PR #75-managementgeschiedenis,
-beide PR #65-teksten plus hun 0e441a9-voorganger, en de oudere PR #73/#79-
-handoffs staan bytegetrouw in het [gelinkte archief](history/integration-2026-10-30/README.md).
-Daar blijven oorspronkelijke testbronnen, onzekerheden en assessments
-behouden. Alleen dit bovencheckpoint is het actuele hervatpunt.
+De handoff over centrale documentatie en bronbehoud (#96) staat bytegetrouw in
+[`e08fb0e:docs/PROJECT-STATE.md`](https://github.com/simonvanieperen/nieuw-os/blob/e08fb0e48c1bb0781e98357f588c2f73b6ae8500/docs/PROJECT-STATE.md);
+oudere handoffs staan in het [archief van 30 oktober](history/integration-2026-10-30/README.md).

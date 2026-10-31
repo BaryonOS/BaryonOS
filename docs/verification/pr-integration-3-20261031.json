@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-31",
+  "scope": "Third integration: all open component PRs created after integration 2 (#113), except #114 (product-direction ADR, held for Simon's confirmation). Host, component and local native evidence only; no FR, physical or human acceptance.",
+  "integrator": "Claude Code cloud session on Simon's instruction of 31 October 2026 ('Ga verder waar de rest gebleven was'), continuing the desktop integrator mandate recorded in WORK-QUEUE.md",
+  "base": {
+    "branch": "main",
+    "head": "e08fb0e48c1bb0781e98357f588c2f73b6ae8500"
+  },
+  "inputs": [
+    {
+      "pr": 118,
+      "head": "1ec2318795bce4841b2d6b7d84e61c51a7c037a1",
+      "commits": [
+        "810df85f67a8b14361feb828bbaacbe92e1eb8a6",
+        "1ec2318795bce4841b2d6b7d84e61c51a7c037a1"
+      ],
+      "ci_on_head": "30/30 success"
+    },
+    {
+      "pr": 115,
+      "closes_issue": 109,
+      "head": "018fd289c043193b271152085c369a847822c211",
+      "commits": [
+        "6359f4272e39073cb63c13669b78418cbe7d6c6a",
+        "376fc0f5da181f074f6725826a98681d30a0e566",
+        "018fd289c043193b271152085c369a847822c211"
+      ],
+      "ci_on_head": "29/29 success"
+    },
+    {
+      "pr": 117,
+      "head": "3f88a7f43983bfb33b257dac7b67f65cbc40db5c",
+      "commits": [
+        "3f88a7f43983bfb33b257dac7b67f65cbc40db5c"
+      ],
+      "ci_on_head": "29 success, 1 failure (native-foundation RANDOM raw gate, raw 35 after SYSTEM:MANIFEST:PASS; image contains no #117 code; treated as unrelated, must pass on the integration head)"
+    },
+    {
+      "pr": 116,
+      "head": "e2124512fbab69c3c82ab50434b09e9b34b058a7",
+      "commits": [
+        "e2124512fbab69c3c82ab50434b09e9b34b058a7"
+      ],
+      "ci_on_head": "29 success, 1 skipped (CodeRabbit, draft)"
+    },
+    {
+      "pr": 119,
+      "closes_issue": 110,
+      "head": "fa97c69221fd9b5635684c48b60e72bf67b2541a",
+      "commits": [
+        "0364e85d7a33a9a13510bafee11f194cd45ad26c",
+        "fa97c69221fd9b5635684c48b60e72bf67b2541a"
+      ],
+      "ci_on_head": "29 success, 1 skipped (CodeRabbit, draft)",
+      "activates": "replay guest code from #93 (466b89b)"
+    }
+  ],
+  "held": [
+    {
+      "pr": 114,
+      "reason": "ADR-058 overrides root AGENTS.md product ambition; decision attributed to Simon in the PR body but not verifiable from this session; 15 open CodeRabbit threads incl. 2 current and 3 outdated major (secure attention surface, key transition on user switch, over-broad app-protection claim, reproducible step-0 performance acceptance, positive recovery test)"
+    }
+  ],
+  "independent_reviews": {
+    "116": "AI read-only review: MERGE. Old APP_ADMIN_HANDLE check confirmed vacuous via mutant; new object comparison correct; endpoint_object read-only; zeroize-based secret wipe. Minor follow-up: check only covers the 6 known app handles (APP_HANDLE_COUNT require recommended).",
+    "119": "AI read-only review: MERGE. unsafe port I/O minimal and IF=0; fw_cfg strictly validated (exact 80 bytes); no guest I/O access (no IO bitmap, IOPL 0); fails closed. Minor: leak check only searches the full 80-byte pair and writes serial.txt before checking; vacuous assertion in test_nas_runner (fixed here).",
+    "117": "Integrator review of SUR1 receiver/client: complete flag per Receiver/epoch, tile bounds via geometry.rectangle, dense order until first complete frame; damage cache updated only after successful blit, final tile always sent, scan bounded at 64 tiles/step; FNV collision can only leave a stale tile of the app's own surface.",
+    "note": "AI review is not an independent human audit."
+  },
+  "integration_fixes": [
+    {
+      "file": "docs/implementation/APP-PACKAGES.md, sdk/app-management/src/store.rs",
+      "issue": "text claimed the test adapter binds client context; FakeStore checks only epoch and locator (CodeRabbit #115)",
+      "fix": "labelled as contract requirement, not tested anywhere yet"
+    },
+    {
+      "file": "docs/verification/native-semantic-consumer/R113-post-merge-fixes.md",
+      "issue": "English, wrong branch name (CodeRabbit #118, docs/AGENTS.md)",
+      "fix": "translated to Dutch, branch corrected"
+    },
+    {
+      "file": "sdk/examples/materiaal/tests/chain.rs",
+      "issue": "fallback assertion not frame-local (CodeRabbit #117)",
+      "fix": "undersized cache compared with identical no-cache run (same tiles and pixels); mutation without cache length check turns it red"
+    },
+    {
+      "file": "tools/tests/test_materiaal_probe.py",
+      "issue": "assertRaises(Exception); stale fixture already failed the cumulative check; Ruff E702 (CodeRabbit #117)",
+      "fix": "ValueError with message; fixture passes the cumulative bound so only the inter-snapshot rule rejects it; mutation turns it red"
+    },
+    {
+      "file": "tests/test_nas_runner.py",
+      "issue": "'no QEMU start' assertion was vacuous (review #119)",
+      "fix": "baseline taken before both refusals"
+    },
+    {
+      "file": "docs/verification/nas-replay-110/README.md, docs/implementation/B02-SECURE-RECORDS.md",
+      "issue": "fingerprint provenance and evidence references",
+      "fix": "documented"
+    }
+  ],
+  "local_validation": {
+    "toolchains": {
+      "1.90.0": "ui/native, sdk/examples/materiaal, ui/surface-protocol, sdk/app-management, capability-core, keyring-core, nas native-probe",
+      "1.91.1": "services/net-config"
+    },
+    "ui_native": {
+      "tests": 35,
+      "clippy_exit": 0,
+      "fmt_exit": 0
+    },
+    "sdk_examples_materiaal": {
+      "tests": 24,
+      "clippy_exit": 0,
+      "fmt_exit": 0
+    },
+    "ui_surface_protocol": {
+      "tests": 11,
+      "clippy_exit": 0,
+      "fmt_exit": 0
+    },
+    "app_management": {
+      "tests": 28,
+      "clippy_exit": 0,
+      "fmt_exit": 0
+    },
+    "net_config": {
+      "tests": 38,
+      "clippy_exit": 0,
+      "fmt_exit": 0
+    },
+    "capability_core_keyring_core_nas_probe": {
+      "cargo_tests": 140,
+      "clippy_exit": 0
+    },
+    "root_fmt_all_exit": 0,
+    "python": {
+      "nas_runner": 22,
+      "nas_native_probe": 17,
+      "system": 46,
+      "materiaal_probe": 23
+    },
+    "native_local": {
+      "environment": "QEMU 8.2.2 Ubuntu package, pc-q35-8.2, TCG, cloud container",
+      "nas_normal_cold": "passed=True raw=33 both stages (integration source before PROJECT-STATE commit)",
+      "system_fr_i01": "normal and recover passed=True raw=33",
+      "materiaal_probe_117": "passed=True raw=33, 178.8 s, see docs/verification/sparse-frames-117/",
+      "materiaal_probe_main_baseline": "passed=False raw=35, guest TIMEOUT_SLOT after dirty phase, 205.5 s"
+    },
+    "not_run_locally": [
+      "freestanding x86_64-unknown-none builds of app-management and ui/native (CI gate)",
+      "native-display-input, b03, k05, k07, m6e, s08 native gates (CI gate)"
+    ]
+  },
+  "score": {
+    "before": 34,
+    "after": 34,
+    "rubric_changed": false
+  }
+}
