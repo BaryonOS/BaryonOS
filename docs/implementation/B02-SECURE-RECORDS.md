@@ -287,10 +287,18 @@ externe geheim de lineage; zie ADR-051.
 ### Geïntegreerd profiel (FR-I01, `native-system`/`test-system-recover`)
 
 - Manifest: admin-kanaal Key Service ← init, antwoordkanaal init ← Key
-  Service, volumedomein 1 voor init; geen van de app-handles verwijst naar het
-  admin-ingress of zijn antwoordkanaal (`APP_ADMIN_HANDLE`, via de nieuwe
+  Service, volumedomein 1 voor init; geen van de zes app-handles verwijst naar
+  het admin-ingress of zijn antwoordkanaal (`APP_ADMIN_HANDLE`, via de nieuwe
   read-only `Engine::endpoint_object`) en init's nieuwe handles dragen geen
-  entropy-/blok-/launch-/netwerkrecht (`INIT_AUTHORITY`).
+  entropy-/blok-/launch-/netwerkrecht (`INIT_AUTHORITY`). Sinds INT3-FU-116
+  dekt die vergelijking de volledige app-handletabel: `APP_HANDLE_COUNT` eist
+  dat de zes handles onderling verschillen en dat
+  `Engine::available_slots(app)` precies `MAX_SLOTS` − 1 (gereserveerd
+  nulslot) − 6 is, zodat een zevende handle (bijvoorbeeld naar het
+  admin-ingress) het manifest laat falen. Dit geldt op het manifestmoment, in
+  ieder profiel dat `system::manifest` uitvoert; latere overdracht via IPC is
+  uitgesloten doordat geen admin-handle `TRANSFER` draagt (codelezing, geen
+  aparte native proef).
 - Normale run: app genereert sleutel 0, verzegelt/ontzegelt, voert de tien
   contextweigeringen uit, trekt sleutel 0 in, genereert sleutel 1 en verzegelt
   een 128-byterecord in RAM (context: volume `NOS-SYSTEM-VOL01`, object 1,

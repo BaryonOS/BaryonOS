@@ -273,7 +273,10 @@ worden sinds de B02-IPC-hygiënecheck wel gewist; caller-owned request-arrays en
 compiler-/registerkopieën vallen daar niet onder.
 De afzendercontrole van het admin-ingress heeft in dit profiel geen
 uitgevoerd native tegenvoorbeeld (geen ander proces bezit een SEND); dat is een
-open bewijs, geen impliciete goedkeuring.
+open bewijs, geen impliciete goedkeuring. Dat de app zo'n SEND niet bezit,
+controleert het manifest sinds INT3-FU-116 over de volledige app-handletabel:
+objectvergelijking per handle (`APP_ADMIN_HANDLE`) plus een exacte telling van
+de bezette app-slots (`APP_HANDLE_COUNT`).
 B02 blijft daarom open; de score verandert niet. Rollback: verwijder de twee
 opcodes, het admin-ingress en de init-/appstappen; bestaande KEY1-codes,
 formaten en het B01-profiel zijn ongewijzigd.
