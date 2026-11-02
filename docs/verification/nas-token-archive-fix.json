@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "source_commit": "05f97cc92c638f2d94ddc4d4a00e73683ac3dfbc",
+  "purpose": "Regression evidence for replay-token redaction before NAS CI artifact archiving.",
+  "checks": [
+    {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_nas_runner.py' -v",
+      "exit_code": 0,
+      "tests": 19,
+      "log": "/tmp/nieuw-os-nas-runner-tests.log"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_volume_runner.py' -v",
+      "exit_code": 0,
+      "tests": 3,
+      "log": "/tmp/nieuw-os-volume-runner-tests.log"
+    },
+    {
+      "command": "cargo +1.90.0 test --manifest-path sdk/examples/materiaal/Cargo.toml --locked --target-dir \"$PWD/target\"",
+      "exit_code": 127,
+      "result": "Not started: cargo is not installed or available in PATH.",
+      "log": "/tmp/nieuw-os-materiaal-cargo-test.log"
+    }
+  ],
+  "not_run": [
+    "cargo fmt for sdk/examples/materiaal: cargo is unavailable.",
+    "Native NAS normal/cold on this source commit: must be run by exact-head CI."
+  ],
+  "evidence_boundary": "Host tests prove the runner's redaction and rejection paths only. The green NAS CI run on 562be4d predates this fix and is not evidence for the changed source."
+}

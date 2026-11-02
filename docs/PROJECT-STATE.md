@@ -2,9 +2,10 @@
 
 ## NEXT AGENT HANDOFF — herstel NAS-tokenarchivering — 2 november 2026
 
-**Bron:** PR #125 is de concept-integratiebranch `simonvanieperen-studious-waddle`;
-de huidige lokale integratie combineert basis `e08fb0e48c1bb0781e98357f588c2f73b6ae8500`
-met PR #120-head `562be4d13b9d039d7e8fece2f0fc26e767dccb15`. PR #120 bevat de
+**Bron:** integratie-/reviewfixcommit `05f97cc92c638f2d94ddc4d4a00e73683ac3dfbc`,
+gepusht naar `origin/simonvanieperen-studious-waddle` voor concept-PR #125.
+Deze commit voegt de PR #120-head `562be4d13b9d039d7e8fece2f0fc26e767dccb15`
+toe aan basis `e08fb0e48c1bb0781e98357f588c2f73b6ae8500`. PR #120 bevat de
 implementaties voor #109 en #110 plus de overige componentdelta's; de volledige
 broninventaris staat in
 [pr-integration-3-20261031.json](verification/pr-integration-3-20261031.json).
@@ -26,7 +27,14 @@ bewijzen haar niet.
   exit 127, niet gestart omdat `cargo` ontbreekt.
 
 `cargo fmt` en de native NAS-gate zijn op deze nieuwe code niet uitgevoerd;
-PR #125 exacte-head CI moet die gates uitvoeren.
+de detailregistratie met exacte commando's, exits en logpaden staat in
+[nas-token-archive-fix.json](verification/nas-token-archive-fix.json).
+PR #125 exacte-head CI moet de Rust- en native gates uitvoeren.
+
+**Remote status:** de eerste checks op PR #125-head `05f97cc` startten
+normaal; meerdere component- en NAS-hostchecks zijn groen, terwijl
+`nas-native-normal-cold` en andere native/host-gates nog liepen. CodeRabbit
+wordt op de concept-PR overgeslagen. Dit is geen definitieve gate-uitkomst.
 
 **Issues:** #109 en #110 blijven open totdat PR #120 aantoonbaar met behoud
 van inhoud is geïntegreerd. #39 mist de volledige native netwerk- en
@@ -38,9 +46,9 @@ AI-review sluiten die acceptatiegaten niet.
 
 **Voortgang:** 34/100 → 34/100. Geen rubriccriterium is nieuw geaccepteerd.
 
-**Eerstvolgend:** maak de merge/fixcommit, werk de voortgangsassessment met
-de exacte broncommit bij en push PR #125; controleer daarna alle vereiste
-exacte-head checks en reviewthreads. Merge de vervangende integratie pas na
+**Eerstvolgend:** commit en push assessment plus verificatierecord; werk
+PR #125 bij en houd deze concept totdat alle vereiste exacte-head checks en
+reviewthreads zijn afgehandeld. Merge de vervangende integratie pas na
 groene checks en inhoudsvergelijking; sluit PR #120 en #109/#110 alleen
 nadat dezelfde wijzigingen aantoonbaar in `main` staan.
 

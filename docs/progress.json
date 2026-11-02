@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "e08fb0e48c1bb0781e98357f588c2f73b6ae8500",
+    "source_commit": "05f97cc92c638f2d94ddc4d4a00e73683ac3dfbc",
     "branch": "simonvanieperen-studious-waddle",
-    "task": "Open issues beoordelen en integratiekandidaat #120 voor #109/#110 controleren",
+    "task": "Issue-afhandeling: integratie #120, herstel NAS-tokenarchivering en gerelateerde reviewbevindingen",
     "previous_score": 34,
-    "summary": "34/100 blijft 34/100; geen nieuw rubriccriterium is geaccepteerd. #109 en #110 zijn opgenomen in integratie-PR #120 (head 562be4d), die na read-only review zonder concrete blocker gereed voor review is gemaakt; de exacte-head CI-controles lopen nog, dus beide issues zijn nog niet als opgelost te melden. PR #120 omvat ook de expliciete reviewcorrectie dat de testadapter geen geauthenticeerde clientcontext modelleert. #39–#43 blijven open: N01 en U01 hebben nog geen volledige native acceptatie, B03 vereist een nog niet geautoriseerde productie-sleutelceremonie, H02 vereist fysieke hardwareacceptatie en de route naar 50/100 is niet bereikt. Geen punten op basis van plannen, hostbewijs of deelproeven."
+    "summary": "34/100 blijft 34/100; geen nieuw rubriccriterium is geaccepteerd. PR #120 is op 05f97cc opgenomen in de concept-integratiebranch PR #125 voor #109/#110 en de componentdelta's. De NAS-runner controleert nu ruwe stdout/stderr op het volledige tokenpaar en beide tokenhelften vóór archivering, bewaart alleen allowlist-serialmarkers en houdt stderr achter als uitvoer niet veilig is geverifieerd. 19 NAS-runner- en 3 volume-runner-hosttests slagen; de Rust-toolchain ontbreekt lokaal, en de nieuwe exacte-head CI en native NAS-herproef zijn nog vereist. #39–#43 blijven open: netwerk- en sessieacceptatie missen volledige native bewijs, #41 vereist een nog niet geautoriseerde productie-sleutelhandeling, #42 fysieke hardwaretests en #43 een uitgevoerde bewijsroute naar 50%. Geen punten op basis van plannen, hostbewijs of deelproeven."
   },
   "tracks": [
     {
