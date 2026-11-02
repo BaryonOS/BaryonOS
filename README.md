@@ -31,11 +31,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **34** |
 
-**Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`ed63ed25`](https://github.com/simonvanieperen/nieuw-os/commit/ed63ed2597460a0265ee094ebea366cda9ef2a7d) ·
-**Ontwikkelbranch:** `claude/integration-2-20261030`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Afhandeling van alle open pull requests en issues: integratie 1 (#96) en integratie 2 (#113).
-De productscore blijft 34/100. #96 is gesquash-merged na 30 groene checks, inclusief de native NAS normal/cold-gate. #113 neemt de resterende component-delta's op: Materiaal-semantiek en SR05–SR08-regressies, primary hover, app-source-snapshotkern en -contracten, DHCP-retries met expliciete entropiepoort, en documentatie- en bewijsbestanden. Alle opgenomen PR's zijn per commit na hun vastgelegde bron gecontroleerd. Reviewfixes: een net-stack-discardroute voor een ingehouden TX-frame met regressietest, en de Materiaal-chaintest volgt het nieuwe semantische buffercontract. Lokaal zijn host-tests, Clippy en fmt groen; de freestanding-build van app-package-core is lokaal niet uitgevoerd. Dit is host- en componentbewijs, geen native-, FR-, fysieke of menselijke acceptatie; vaste criteria en gewichten zijn ongewijzigd. Open: #109, #110 en de productmilestones #39–#43.
+**Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
+**Bron:** [`c66b593d`](https://github.com/simonvanieperen/nieuw-os/commit/c66b593dda8d651e3cc73f0fe65bbe72ff7c7de7) ·
+**Ontwikkelbranch:** `simonvanieperen-studious-waddle`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Issues oplossen: ontbrekende PR #120-followups inhoudsbehoudend in #125 opnemen.
+34/100 blijft 34/100; geen nieuw rubriccriterium geaccepteerd. De inhoudscontrole vond dat #125 wel #120 tot 562be4d bevatte, maar nog niet de latere followups tot fb1e1a5. De samenvoeging behoudt de volledige app-handletabelcontrole, de 16-bytevensterlekcontrole inclusief misvormde captures, de handmatige Materiaal-meetworkflow en de #125-allowlist voor serialdiagnostiek. Alle 39 gerichte NAS-hosttests (35 runner), 3 volume-, 17 replay/oracle- en 23 Materiaal-harnastests slagen; Rustfmt en capability-Clippy slagen. Capability-testuitvoering is geblokkeerd door ontbrekende cc; nieuwe exacte-head CI en review blijven vereist. De eerdere NAS normal/cold-gate op c66b593 bewijst deze delta niet. De twee #126-reviewfixes zijn als 5dead467 gepusht voor CI, niet gemerged of als productacceptatie beoordeeld. #109/#110 blijven open tot main-integratie; #39–#43 behouden hun volledige native, fysieke en andere acceptatiegrenzen. Hosttests en integratiewerk leveren geen productpunten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

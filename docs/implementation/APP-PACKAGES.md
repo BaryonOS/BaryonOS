@@ -96,15 +96,24 @@ gereserveerde bytes en quota; er is geen globale productcap in dit contract.
 Een provider moet bij `begin` de volledige objectlengte atomair reserveren of
 falen vóór hij chunks accepteert.
 
-`ArtifactReader` heeft een geassocieerd opaque handle-type dat alleen de
-concrete storeadapter kan construeren; de handle zelf is niet serializeerbaar
-of overdraagbaar. De service bindt hem aan de kernel-geauthenticeerde
-clientcontext en valideert die context en store-epoch bij iedere read. De
-`read_at`-helper begrenst iedere opslagoperatie tot 4 KiB en geeft fouten
-expliciet terug: stale epoch, corruptie, truncatie vóór de gedeclareerde
-lengte, overflow, EOF (`EndOfArtifact`) en een offset buiten het object
-(`OutOfRange`). Dit is een storagelaaggrens; de bestaande Message320-IPC blijft
-maximaal 256 payloadbytes. Het app-management-chunkrequest gebruikt maximaal
+De leeszijde is sinds #109 het gedeelde `artifact-store-core`-contract
+(ADR-054, een contractvoorstel; native uitvoering staat open);
+app-management herdefinieert geen read-types meer. **Contracteis, nog niet
+geïmplementeerd:** er is nog geen persistente storeadapter. Een toekomstige
+adapter implementeert `ArtifactStore`, construeert het opaque handle-type
+(niet serialiseerbaar of overdraagbaar), bindt de handle aan de
+kernel-geauthenticeerde clientcontext en de actuele store-epoch, en
+controleert beide bij iedere read. De testadapter `FakeStore` controleert bij
+reads alleen `handle.epoch` en `handle.locator`; hij modelleert geen
+geauthenticeerde clientcontext, dus de clientbinding is nog nergens getest.
+`open_checked` weigert een
+store-autoritatieve descriptor die afwijkt van de verwachte (`Corrupt`);
+`read_bounded` gebruikt de descriptor uit de geopende handle, zodat een
+aanroeper geen andere descriptor kan meegeven. Iedere opslagoperatie is
+begrensd tot 4 KiB en fouten zijn expliciet: stale epoch, corruptie,
+truncatie vóór de gedeclareerde lengte, overflow, EOF (`EndOfArtifact`) en een
+offset buiten het object (`OutOfRange`). Dit is een storagelaaggrens; de
+bestaande Message320-IPC blijft maximaal 256 payloadbytes. Het app-management-chunkrequest gebruikt maximaal
 224 databytes per bericht.
 
 De schrijftransactie bindt `caller`, `request_id` en `service_epoch` aan de

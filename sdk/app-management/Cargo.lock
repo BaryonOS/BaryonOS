@@ -13,6 +13,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "artifact-store-core"
+version = "0.1.0"
+
+[[package]]
 name = "autocfg"
 version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -227,6 +231,7 @@ name = "nieuw-os-sdk-app-management"
 version = "0.1.0"
 dependencies = [
  "app-package-core",
+ "artifact-store-core",
  "nieuw-os-sdk-runtime",
 ]
 

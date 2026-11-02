@@ -105,6 +105,24 @@ Domeineigenaren mogen op eigen takken doorwerken; commits na een vastgelegde
 integratiebron worden als aparte delta beoordeeld, niet stil meegenomen of
 weggegooid. Integratiebesluiten staan per PR als commentaar.
 
+**Correctie exclusiviteit en huidige integrator — 2 november 2026:** het
+dossier voor integratie 3 vermeldt dat geen activiteit van de desktopsessie
+zichtbaar was na 30 oktober 21:48 UTC. Dat is geen expliciete stop of
+vrijgave; er is geen bewijs dat de desktopintegrator haar mandaat vóór de
+cloudwrites op 31 oktober beëindigde. Die historische overdracht wordt daarom
+niet achteraf als bewezen of geautoriseerd geregistreerd.
+
+Simon heeft op 2 november rechtstreeks en expliciet het exclusieve
+integratormandaat aan sessie `f090b913` overgedragen en de #85/#76-mergepauze
+opgeheven, met behoud van alle review-, test- en branchregels. De vorige
+integrator (`7f895683`) heeft de overdracht ontvangen en bevestigd dat er geen
+lopende of verzonden mutatie, actief WIP of conflictclaim is; die sessie doet
+geen operationele integratie meer. Vanaf deze expliciete overdracht is
+`f090b913` de enige operationele integrator. Dit is geen bewijs van een
+historische vrijgave vóór 31 oktober en geen toestemming om branchbeveiliging,
+review- of testregels te omzeilen. Bron en eerdere integratiebesluiten:
+[pr-integration-3-20261031.json](verification/pr-integration-3-20261031.json).
+
 ## Werkelijke sessies en primaire opdracht
 
 24 geregistreerde rollen zijn geen claim van 24 actieve agents.
