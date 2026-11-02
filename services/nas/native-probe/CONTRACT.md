@@ -222,10 +222,18 @@ afsluiten van de gast leest uitsluitend de kernelacceptatieharnas
 nulupload (`REPLAY_EXPORT`) en schrijft `NOSRPL01` gevolgd door de 80 bytes
 naar een eigen `isa-debugcon`-poort `0x4f8`. De runner (`tools/test_nas.py`)
 koppelt die poort aan een vooraf aangemaakt 0600-bestand in een private
-0700-map buiten de checkout, eist exact één frame van 88 bytes, controleert dat
-de tokenbytes niet in de gearchiveerde COM1-serial staan, en schrijft payload
-en manifest via `tests/replay_handoff.py` met volledige bron-/run-/rol-/stage-
-binding. Voor de koude run valideert de runner opnieuw, maakt een read-only
+0700-map buiten de checkout, eist exact één frame van 88 bytes en schrijft
+payload en manifest via `tests/replay_handoff.py` met volledige bron-/run-/rol-/stage-
+binding. Lekcontrole (#119, normale én koude run): vóórdat iets uit de
+QEMU-uitvoer in de runmap komt, zoekt de runner in de exacte ruwe stdout
+(COM1-serial) en stderr naar elk aaneengesloten 16-bytevenster van elk van
+beide 40-bytetokens, ruw en als hex ongeacht hoofdletters. Referentie is in
+de normale run de debugcon-capture, in de koude run het vóór de start
+gebonden paar. Bij een treffer of een onleesbare capture faalt de run en
+krijgen `serial.txt` en `stderr.txt` alleen een placeholder met de
+bevindingen (labels, geen bytes), lengte en SHA-256 van de originele bytes.
+Fragmenten korter dan 16 bytes en andere coderingen (base64, decimaal, hex
+met scheidingstekens, UTF-16) worden niet herkend. Voor de koude run valideert de runner opnieuw, maakt een read-only
 0400-kopie en geeft die als `-fw_cfg name=opt/nieuw-os/nas-replay` mee. De
 kernel leest het `fw_cfg`-bestand (signatuur `QEMU`, unieke naam, exact 80
 bytes), weigert ontbrekende/afwijkende invoer in de koude run
