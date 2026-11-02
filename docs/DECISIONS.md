@@ -1,5 +1,25 @@
 # Ontwerpbesluiten
 
+## Onderzoeksbesluit J-20261102 — herkenbare basis, expliciete installatiegrens
+
+**Datum:** 2 november 2026. **Status:** ontwerp-/onderzoekskeuze, geen
+gerealiseerde architectuur of native acceptatie. Na de
+[volledige OS-journeyvergelijking](research/2026-11-02/journey/README.md)
+is de voorkeursrichting één kerninterface met voorspelbare basisacties,
+lokale zoekaliassen en optionele herkomstgerichte hulp. Geen vier shells,
+herkomst als machtiging of vrije AI-uitvoering. De voorgestelde installer
+toont één compleet wijzigingsplan vóór iedere opslagmutatie, ook Advanced;
+onbekende schijf is niet leeg en een gewijzigd doel maakt autorisatie ongeldig.
+
+**Reden:** gedocumenteerde overeenkomsten helpen kennis overdragen, terwijl
+app-/vensterbetekenis, zoekbereik, installerfasen en vroege schrijfgrenzen
+daadwerkelijk verschillen. Een exacte nieuw-os-volgorde of betere bruikbaarheid
+is daarmee niet bewezen. **Gevolg:** afzonderlijke IN-/ON-/UX-criteria en
+service-/veiligheidsgates vóór uitvoering; P2, kernelkeuze, privacycontract en
+vaste scorecriteria blijven behouden. **Herzien:** op taakobservatie,
+actuele bron-/hardwareverschillen of een aantoonbare technische veiligheidsgrens.
+Details en begrensd vervolg: [PRODUCT-SPEC.md](implementation/PRODUCT-SPEC.md).
+
 ## OP-001 — Schrijvers, integratoroverdracht en Windows-afleverroute
 
 30 oktober 2026; vastlegging van de operationele besluiten uit PR #75.

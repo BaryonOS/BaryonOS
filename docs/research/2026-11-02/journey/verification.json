@@ -1,0 +1,70 @@
+{
+  "checked_on": "2026-11-02",
+  "starting_commit": "afb55cc22957884f36cbf6d40a9edb1fb63c451c",
+  "main_product_basis": "e08fb0e48c1bb0781e98357f588c2f73b6ae8500",
+  "later_observed_remote_main": "74a34d05ef5591b782a0da9da34e4669910d0722",
+  "integration": "Draft PR 131; later parallel main not merged into this documentation branch; reported merge conflicts require preserving current main status during integration",
+  "native_reference": "1f0dd9c93959e3b1335656da1e548525a288133e",
+  "errors": [],
+  "checks": {
+    "markdown_files": 16,
+    "required_documents": 7,
+    "local_links": 125,
+    "source_reference_occurrences": 798,
+    "source_records": {
+      "UI": 56,
+      "WI": 29,
+      "LI": 33,
+      "J": 6
+    },
+    "central_installation_rows": 31,
+    "windows_macos_installation_rows": 31,
+    "linux_installation_rows": 31,
+    "daily_tasks_rows": 28,
+    "unique_external_urls_in_checked_documents": 177,
+    "IN_criteria": 7,
+    "ON_criteria": 6,
+    "UX_criteria": 14
+  },
+  "rubric_criteria_and_evidence_unchanged": true,
+  "product_tree_unchanged": true,
+  "scope": "Documentation, matrix coverage, local links/anchors, source-ID consistency and repository scope; not a live URL census or OS runtime/usability test",
+  "independent_ai_reviews": {
+    "matrix": "31 rows and source consistency checked; early Windows/Fedora writes and precise LI citations corrected",
+    "installer_onboarding_principles": "No remaining reported material issue; IN/ON/UX are proposed criteria, no working security claim",
+    "human_audit": false
+  },
+  "not_run": [
+    "OS installations",
+    "product builds/typecheck/lint/runtime tests",
+    "QEMU",
+    "screenreader/keyboard/touch walkthrough",
+    "physical disk actions",
+    "human usability study"
+  ],
+  "validator_sha256": "db2f9233d4124cd37e8295a6b7173071d14197f5231d0fe940ac06157e267eea",
+  "final_commands": [
+    {
+      "command": [
+        "python",
+        "-B",
+        "tools/progress.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "stdout": "Nieuw OS: 34/100 punten (34%); rubric v1; consistent.\nDit controleert berekening, verwijzingen en weergave; geen nieuwe native tests of beoordeling van bewijsinhoud.",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

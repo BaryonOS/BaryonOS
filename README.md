@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`e08fb0e4`](https://github.com/simonvanieperen/nieuw-os/commit/e08fb0e48c1bb0781e98357f588c2f73b6ae8500) ·
+**Bron:** [`afb55cc2`](https://github.com/simonvanieperen/nieuw-os/commit/afb55cc22957884f36cbf6d40a9edb1fb63c451c) ·
 **Ontwikkelbranch:** `codex/os-research-phases-2-4-20261102`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Fase 2–4: gebruikersbehoeften, overstapbarrières en OS-ontwerptrends vastgelegd.
-34/100 blijft 34/100. Alleen onderzoeksdocumentatie en documentatiestatus gewijzigd; geen productcode of nieuwe native-, fysieke-, menselijke of releaseacceptatie. De oorspronkelijke Eurobarometer 572/QB6.4, tabel en methode zijn gecontroleerd: 58% betreft EU-gevestigde digitale dienstverleners, geen OS-migratie. Platformdossiers, behoeftematrix, barrières, ontwerpgeschiedenis, bronbeperkingen en de vergelijking met ontwikkelbron 1f0dd9c staan in docs/research/2026-11-02/. De elders vastgelegde ontwikkelscore 41/100 wordt niet naar deze mainbasis gekopieerd. Criteria, gewichten en bestaande evidence blijven ongewijzigd.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Fase 4 uitgebreid: volledige OS-installatie, day-one-taken, mentale modellen en installer-/onboardingvoorstellen vastgelegd.
+34/100 blijft 34/100. Alleen onderzoek, voorstellen en documentatiestatus gewijzigd: 31 installatieaspecten, 28 dagelijkse taken, overdraagbare kennis, herkomstprofielen, familiarity budget en voorgestelde installer-/onboarding-/UX-contracten. De bestaande productplanning is daarna begrensd aangevuld; P2 blijft bevroren. Geen productcode, installatie of nieuwe native-, fysieke-, menselijke of releaseacceptatie. Eurobarometer 572/QB6.4 blijft correct begrensd op 58% instemming met EU-dienstoverstap, geen OS-migratie. Bronnen en beperkingen staan in docs/research/2026-11-02/journey/ en de gekoppelde dossiers. Criteria, gewichten en evidence zijn ongewijzigd; ontwikkelscore 41/100 van bron 1f0dd9c wordt niet overgenomen.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -214,6 +214,7 @@ De actuele native implementatiegrenzen staan per spoor hierboven.
 - [Architectuur en kernelcontract](docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md).
 - [Materiaal en productambitie](docs/implementation/PRODUCT-SPEC.md).
 - [Gebruikersbehoeften, overstapbarrières en OS-ontwerptrends — onderzoek 2 november 2026](docs/research/2026-11-02/README.md).
+- [Volledige OS-journey: installatie, eerste gebruik, mentale modellen en installer-/onboardingvoorstellen](docs/research/2026-11-02/journey/README.md) — documentonderzoek; geen installer geïmplementeerd.
 - [Privacycontract](docs/LOCAL-PRIVACY-CONTRACT.md).
 - [Quantumspoor](docs/QUANTUM-RESEARCH.md).
 - [Beveiliging en postkwantumroute](docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md).

@@ -11,6 +11,11 @@ zijn gecontroleerd; 58% betreft digitale dienstverleners, geen OS-migratie.
 De hieronder beschreven verkenningen van 28 oktober blijven als gedateerde
 achtergrond behouden; actuele broncontroles en beperkingen staan in de aanvulling.
 
+[De volledige OS-journey](2026-11-02/journey/README.md) breidt fase 4 uit met
+installatie, 28 eerste-dagtaken, overdraagbare kennis en voorgestelde
+installer-/onboardingcontracten. Dit zijn documentanalyses en ontwerpen,
+geen uitgevoerde installaties of nieuw native acceptatiebewijs.
+
 Deze map bewaart de repositoryvertaling van twee onderzoeken van 28 oktober 2026:
 
 - het marktonderzoek naar gaten in de desktop-OS-markt, Europese alternatieven, ontwerp-/prestatietrends, positionering en blijvende overstap;

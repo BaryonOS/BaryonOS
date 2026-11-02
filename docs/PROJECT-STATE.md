@@ -1,6 +1,6 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — onderzoeksfase 2–4 vastgelegd — 2 november 2026
+## NEXT AGENT HANDOFF — volledige OS-journey vastgelegd — 2 november 2026
 
 **Scope:** uitsluitend onderzoek en documentatiestatus, geen productcode.
 Bronbasis main `e08fb0e48c1bb0781e98357f588c2f73b6ae8500`; branch
@@ -8,10 +8,20 @@ Bronbasis main `e08fb0e48c1bb0781e98357f588c2f73b6ae8500`; branch
 `codex/mature-native-session-20261102` is vastgepind op `1f0dd9c93959e3b1335656da1e548525a288133e`
 en niet in deze documentatiebranch geïntegreerd.
 
-**Geleverd:** [onderzoeksindex](research/2026-11-02/README.md), vastgelegde
-repositorybasis, Windows/macOS- en Linux/Android-dossiers, vergelijkende
-behoeftematrix, Europese adoptie/barrières, ontwerptijdlijn en toekomsthypothesen.
-Bronnen, raadpleegdatums en beperkingen staan per claim/register.
+**Parallelle integratie:** laatste remotecontrole ziet main
+`74a34d05ef5591b782a0da9da34e4669910d0722` (#125, nog 34/100).
+Deze onderzoeksbranch behoudt de bovenstaande bronbasis; er is geen
+productcode uit main ingemengd. Concept-PR #131 meldt integratieconflicten.
+De aangewezen integrator moet bij opname de nieuwste main-status en
+bestaande evidence behouden; onderzoeksvoorstellen leveren geen punten op.
+
+**Geleverd:** [fase 2–4](research/2026-11-02/README.md) en de
+[volledige installatie-/day-one-journey](research/2026-11-02/journey/README.md).
+De uitbreiding bevat 31 installatieaspecten, 28 dagelijkse taken,
+herkomstprofielen, mentale modellen, familiarity budget en afzonderlijk
+gelabelde installer-/onboarding-/interactievoorstellen. Het bestaande
+PRODUCT-SPEC/ROADMAP is pas na de vergelijking begrensd aangevuld;
+P2 blijft bevroren. Bronregisters geven versie, datum, passage en beperkingen.
 Eurobarometer 572/QB6.4 is gecontroleerd in originele vragenlijst, rapport en
 data-annex: 21+37=58% instemming met dienstoverstap, geen OS-migratie.
 Bronafwijkingen bij technische rapportkop en Cyprus-landlabel zijn zichtbaar bewaard.
@@ -19,17 +29,22 @@ Bronafwijkingen bij technische rapportkop en Cyprus-landlabel zijn zichtbaar bew
 **Bewijs en score:** mainbasis 34/100 → 34/100; geen nieuwe native, fysieke,
 menselijke of releaseacceptatie. Ontwikkelbron `1f0dd9c` rapporteert afzonderlijk
 41/100; deze onderzoekstaak kopieert die score niet naar main.
-Document-/bronverwijzingen, Eurobarometergegevens, scope en progressgeneratie
-worden vóór commit gecontroleerd; geen kernelbuild of QEMU-herhaling nodig voor
-uitsluitend documentatie. Definitieve controle-uitkomsten:
-[verification.json](research/2026-11-02/verification.json).
+Geen installaties, fysieke schijven, productcode of echte geheimen gebruikt.
+Document-/bronverwijzingen, matrixdekking, scope en progressgeneratie
+worden vóór commit gecontroleerd; geen kernelbuild/QEMU-herhaling voor deze
+documentatietaak. Definitieve controles:
+[fase 2–4](research/2026-11-02/verification.json) en
+[journey](research/2026-11-02/journey/verification.json).
 
-**Open:** geen eigen representatieve EU-gebruikersstudie, praktijkmigratie,
-betalings- of retentiemeting. Fase 5–8 kan nu concepten, prioriteiten en een
-implementatieplan uitwerken; productcode blijft uitdrukkelijk buiten deze stap.
-De bestaande integrator- en mergeafspraken blijven behouden. Eerstvolgend:
-lees onderzoeksindex en bronbeperkingen naast het actuele productcheckpoint;
-controleer bronstand opnieuw vóór een implementatievoorstel.
+**Open:** geen eigen gebruikers-/installatieproef, representatieve
+EU-studie, praktijkmigratie of retentiemeting. Exacte macOS-paneelposities en
+enkele KDE-staptellingen blijven onbekend; actuele KDE-ingangen zijn op
+v6.8.0-code bevestigd. Native installer, persoonlijke authenticatie,
+encryptie-/recoveryketen en OS-brede toegankelijkheid blijven afzonderlijke gates.
+**Eerstvolgend:** lees journey-index, installer IN-/onboarding ON-/UX-criteria
+naast de actuele ontwikkelbron. Hercontroleer code/services vóór een begrensde
+niet-schrijvende proef. Productcode blijft buiten deze opdracht. Bestaande
+integrator- en mergeafspraken blijven behouden; concept-PR wordt niet gemerged.
 
 ## Vorige handoff — PR- en issueafhandeling na integratie 1 en 2 — 30 oktober 2026
 

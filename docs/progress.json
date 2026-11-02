@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "e08fb0e48c1bb0781e98357f588c2f73b6ae8500",
+    "source_commit": "afb55cc22957884f36cbf6d40a9edb1fb63c451c",
     "branch": "codex/os-research-phases-2-4-20261102",
-    "task": "Fase 2–4: gebruikersbehoeften, overstapbarrières en OS-ontwerptrends vastgelegd",
+    "task": "Fase 4 uitgebreid: volledige OS-installatie, day-one-taken, mentale modellen en installer-/onboardingvoorstellen vastgelegd",
     "previous_score": 34,
-    "summary": "34/100 blijft 34/100. Alleen onderzoeksdocumentatie en documentatiestatus gewijzigd; geen productcode of nieuwe native-, fysieke-, menselijke of releaseacceptatie. De oorspronkelijke Eurobarometer 572/QB6.4, tabel en methode zijn gecontroleerd: 58% betreft EU-gevestigde digitale dienstverleners, geen OS-migratie. Platformdossiers, behoeftematrix, barrières, ontwerpgeschiedenis, bronbeperkingen en de vergelijking met ontwikkelbron 1f0dd9c staan in docs/research/2026-11-02/. De elders vastgelegde ontwikkelscore 41/100 wordt niet naar deze mainbasis gekopieerd. Criteria, gewichten en bestaande evidence blijven ongewijzigd."
+    "summary": "34/100 blijft 34/100. Alleen onderzoek, voorstellen en documentatiestatus gewijzigd: 31 installatieaspecten, 28 dagelijkse taken, overdraagbare kennis, herkomstprofielen, familiarity budget en voorgestelde installer-/onboarding-/UX-contracten. De bestaande productplanning is daarna begrensd aangevuld; P2 blijft bevroren. Geen productcode, installatie of nieuwe native-, fysieke-, menselijke of releaseacceptatie. Eurobarometer 572/QB6.4 blijft correct begrensd op 58% instemming met EU-dienstoverstap, geen OS-migratie. Bronnen en beperkingen staan in docs/research/2026-11-02/journey/ en de gekoppelde dossiers. Criteria, gewichten en evidence zijn ongewijzigd; ontwikkelscore 41/100 van bron 1f0dd9c wordt niet overgenomen."
   },
   "tracks": [
     {

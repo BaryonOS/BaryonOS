@@ -19,6 +19,8 @@ Onderzoeksdatum: **2 november 2026**, Europe/Amsterdam. Status: vastgelegde desk
 
 ## Dossiers en leesvolgorde
 
+**Uitbreiding fase 4:** [volledige installatie- en day-one-journey](journey/README.md), met 31 installatieaspecten, 28 dagelijkse taken, mentale modellen en afzonderlijk gelabelde installer-/onboarding-/interactievoorstellen. Geen implementatie. De vergelijking is eerst vastgelegd; daarna is het bestaande productplan begrensd aangevuld.
+
 | Document | Inhoud |
 |---|---|
 | [Repositorybasis](repository-baseline.md) | Fase 1 vastgelegd: main, nieuwere ontwikkelbranch en prototype/native-bewijsgrenzen |
