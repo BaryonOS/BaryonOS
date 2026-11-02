@@ -401,6 +401,9 @@ pub struct Receiver {
     last_rejected: u64,
     frame: u64,
     next_tile: u64,
+    /// At least one frame of this epoch had every canonical tile committed.
+    /// Only then may later frames omit tiles the client has not changed.
+    complete: bool,
     stage: Option<Stage>,
     pixels: [u8; TILE_BYTES],
     closed: bool,
@@ -426,6 +429,7 @@ impl Receiver {
             last_rejected: 0,
             frame: 0,
             next_tile: 0,
+            complete: false,
             stage: None,
             pixels: [0; TILE_BYTES],
             closed: false,
@@ -456,9 +460,23 @@ impl Receiver {
     }
     fn position(&self, header: Header) -> Result<(), Error> {
         self.geometry.rectangle(header.tile)?;
+        // Until one full frame exists, tiles are dense from tile 0.
+        // Afterwards a frame may skip unchanged tiles but stays
+        // strictly increasing; skipped tiles keep this app's own
+        // previously committed pixels. The last tile completes a frame.
+        // A retained receiver awaiting a full sync stays dense, and RETAIN
+        // keeps its explicit sequential coverage.
+        let sparse = self.complete
+            && header.operation != Operation::Retain
+            && !(self.retained && self.full_sync_required);
         if header.frame < self.frame
-            || (header.frame == self.frame && header.tile != self.next_tile)
-            || (header.frame > self.frame && header.tile != 0)
+            || (header.frame == self.frame
+                && if sparse {
+                    header.tile < self.next_tile
+                } else {
+                    header.tile != self.next_tile
+                })
+            || (header.frame > self.frame && !sparse && header.tile != 0)
             || (self.retained && self.full_sync_required && header.frame <= self.full_sync_after)
         {
             return Err(Error::Grid);
@@ -473,6 +491,7 @@ impl Receiver {
         }
     }
     fn finish_frame(&mut self) {
+        self.complete |= self.next_tile == self.geometry.tiles();
         if self.retained && self.next_tile == self.geometry.tiles() {
             // A failed transaction requires a NEW frame with only real
             // callbacks. Earlier retained coverage cannot repair that proof.

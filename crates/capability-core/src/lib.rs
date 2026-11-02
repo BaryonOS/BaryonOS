@@ -1188,6 +1188,17 @@ impl Engine {
         );
         Ok(self.attach(p, slot, self.node_id(node)))
     }
+    /// Identity of the endpoint object behind a live handle, for manifest
+    /// checks such as "process A holds no handle to endpoint X". Read-only; it
+    /// grants nothing and reveals only an internal table index to the kernel.
+    pub fn endpoint_object(&self, pid: u64, handle: u64) -> Result<usize, Error> {
+        let node = self.resolve(pid, handle)?;
+        let object = self.nodes[node].object;
+        if object.index as usize >= MAX_ENDPOINTS {
+            return Err(Error::Type);
+        }
+        Ok(object.index as usize)
+    }
     pub fn check_endpoint(&self, pid: u64, handle: u64, required: u64) -> Result<(), Error> {
         let node = self.resolve(pid, handle)?;
         if self.nodes[node].object.index as usize >= MAX_ENDPOINTS {
@@ -2855,6 +2866,112 @@ mod wait_readiness_tests {
             assert_eq!(e.stats().queued_messages, 0);
             assert_eq!(query(e, 1, sender, SEND), Ok(true));
             assert_eq!(query(e, 2, destination, RECV), Ok(false));
+        });
+    }
+}
+
+/// INT3-FU-116: the FR-I01 manifest (`kernel/src/m2/m3/system.rs`) proves the
+/// app holds only its listed handles via `available_slots(app) == MAX_SLOTS -
+/// 1 - list.len()`. These tests pin the counting rules that equation uses.
+#[cfg(test)]
+mod manifest_handle_count_tests {
+    extern crate std;
+    use super::*;
+
+    fn run(f: impl FnOnce(&mut Engine) + Send + 'static) {
+        std::thread::Builder::new()
+            .stack_size(16 * 1024 * 1024)
+            .spawn(move || {
+                let mut engine = Engine::new();
+                f(&mut engine);
+                assert!(engine.check_invariants());
+            })
+            .unwrap()
+            .join()
+            .unwrap();
+    }
+    /// Same helper as the kernel manifest: the owner keeps RECV, the sender
+    /// gets SEND, the temporary root is closed.
+    fn channel(e: &mut Engine, owner: u64, sender: u64) -> (u64, u64) {
+        let root = e.create_endpoint(owner).unwrap();
+        let receive = e.derive(owner, root, RECV).unwrap();
+        let send = e.bootstrap_delegate(owner, root, sender, SEND).unwrap();
+        e.close(owner, root).unwrap();
+        (receive, send)
+    }
+    const INIT: u64 = 1;
+    const KEY: u64 = 2;
+    const VOLUME: u64 = 3;
+    const APP: u64 = 4;
+    /// Builds the app's six manifest handles and returns them plus the admin
+    /// ingress root (still open, owned by KEY) for extra delegations.
+    fn manifest_app(e: &mut Engine) -> ([u64; 6], u64) {
+        for pid in [INIT, KEY, VOLUME, APP] {
+            e.register(pid).unwrap();
+        }
+        let registry = e.create_endpoint(INIT).unwrap();
+        let app_registry = e.bootstrap_delegate(INIT, registry, APP, SEND).unwrap();
+        let (app_control, _) = channel(e, APP, INIT);
+        let (key_reply, _) = channel(e, APP, KEY);
+        let (_, app_key) = channel(e, KEY, APP);
+        let admin_root = e.create_endpoint(KEY).unwrap();
+        e.derive(KEY, admin_root, RECV).unwrap();
+        e.bootstrap_delegate(KEY, admin_root, INIT, SEND).unwrap();
+        let (volume_reply, _) = channel(e, APP, VOLUME);
+        let (_, app_volume) = channel(e, VOLUME, APP);
+        (
+            [
+                key_reply,
+                app_key,
+                volume_reply,
+                app_volume,
+                app_registry,
+                app_control,
+            ],
+            admin_root,
+        )
+    }
+
+    #[test]
+    fn manifest_equation_is_exact_and_detects_a_seventh_app_handle() {
+        run(|e| {
+            let (handles, admin_root) = manifest_app(e);
+            // Closed channel roots leave no slot behind; slot 0 is never free.
+            assert_eq!(e.available_slots(APP), MAX_SLOTS - 1 - handles.len());
+            // The reviewer's scenario: an unlisted SEND to the admin ingress.
+            let extra = e.bootstrap_delegate(KEY, admin_root, APP, SEND).unwrap();
+            assert!(!handles.contains(&extra));
+            assert_eq!(e.available_slots(APP), MAX_SLOTS - 1 - handles.len() - 1);
+            // A revoked handle keeps its slot until closed: the count fails
+            // closed rather than hiding a stale entry.
+            e.revoke(KEY, admin_root).unwrap();
+            assert_eq!(e.endpoint_object(APP, extra), Err(Error::Revoked));
+            assert_eq!(e.available_slots(APP), MAX_SLOTS - 1 - handles.len() - 1);
+            e.close(APP, extra).unwrap();
+            assert_eq!(e.available_slots(APP), MAX_SLOTS - 1 - handles.len());
+            // Other processes' tables do not influence the app's count.
+            let other = e.create_endpoint(INIT).unwrap();
+            e.bootstrap_delegate(INIT, other, KEY, SEND).unwrap();
+            assert_eq!(e.available_slots(APP), MAX_SLOTS - 1 - handles.len());
+        });
+    }
+
+    #[test]
+    fn every_slot_except_zero_is_counted_until_the_table_is_full() {
+        run(|e| {
+            let (handles, _) = manifest_app(e);
+            let root = e.create_endpoint(APP).unwrap();
+            let mut held = handles.len() + 1;
+            assert_eq!(e.available_slots(APP), MAX_SLOTS - 1 - held);
+            while e.available_slots(APP) > 0 {
+                let handle = e.derive(APP, root, SEND).unwrap();
+                assert_ne!(handle & 0xffff_ffff, 0, "slot 0 is never handed out");
+                held += 1;
+                assert_eq!(e.available_slots(APP), MAX_SLOTS - 1 - held);
+            }
+            // Exactly MAX_SLOTS - 1 live handles fit; the next one is refused.
+            assert_eq!(held, MAX_SLOTS - 1);
+            assert_eq!(e.derive(APP, root, SEND), Err(Error::Quota));
         });
     }
 }

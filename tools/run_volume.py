@@ -72,7 +72,7 @@ def controlled(stdout: str) -> list[str]:
             if line in keep or line.startswith(("VOLUME:CASE:", "VOLUME:CUT:"))]
 
 
-def execute(args, env, *, cut_marker=None, timeout=MAX_TIMEOUT):
+def execute(args, env, *, cut_marker=None, timeout=MAX_TIMEOUT, capture_raw_output=False):
     process = subprocess.Popen(args, cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err, lines = [], [], queue.Queue()
 
@@ -110,8 +110,10 @@ def execute(args, env, *, cut_marker=None, timeout=MAX_TIMEOUT):
     process.wait()
     for thread in threads:
         thread.join(timeout=10)
-    return (process.returncode, b"".join(out).decode("utf-8", "replace"),
-            b"".join(err).decode("utf-8", "replace"), timed_out, killed, running_before_kill)
+    stdout, stderr = b"".join(out), b"".join(err)
+    result = (process.returncode, stdout.decode("utf-8", "replace"),
+              stderr.decode("utf-8", "replace"), timed_out, killed, running_before_kill)
+    return (*result, stdout, stderr) if capture_raw_output else result
 
 
 def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT):

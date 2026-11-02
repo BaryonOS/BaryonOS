@@ -857,6 +857,51 @@ fn partial_supersede_preserves_confirmed_base_and_requires_changed_tile_blit_imp
     assert_eq!(client.counts().committed_tiles, 6);
     assert_eq!(client.counts().retained_tiles, 3);
 }
+fn retained_sparse_blit_then_sequential_retain_impl() {
+    let host = Host::new_retained();
+    let mut client = session(&host);
+    let geometry = client.geometry().unwrap();
+    client.enable_retained().unwrap();
+    complete_retained_baseline(&mut client, geometry, 1);
+    let rect = geometry.rectangle(2).unwrap();
+    let pixels = [9, 8, 7, 0].repeat(rect.bytes() / 4);
+    client.blit(2, 2, rect, &pixels).unwrap();
+    assert_eq!(client.retained_base(), Some(1));
+    client.retain(2, 3, 1).unwrap();
+    assert_eq!(client.retained_base(), Some(2));
+    assert_eq!(host.borrow().receiver.retained_base(), Some(2));
+    assert_eq!(host.borrow().receiver.completed_frame(), Some(2));
+    // Sparse skipping applies to tile writes only; RETAIN stays sequential.
+    let before = host.borrow().published.len();
+    assert_eq!(client.retain(3, 1, 1), Err(ClientError::InvalidTile));
+    assert_eq!(host.borrow().published.len(), before);
+    assert!(!client.is_closed());
+    assert_eq!(client.counts().completed_frames, 2);
+}
+fn sparse_impl() {
+    let host = Host::new();
+    let mut client = session(&host);
+    let g = client.geometry().unwrap();
+    let tile = |index: u64| {
+        let r = g.rectangle(index).unwrap();
+        (r, vec![0; r.bytes()])
+    };
+    for index in 0..g.tiles() {
+        let (r, pixels) = tile(index);
+        client.blit(1, index, r, &pixels).unwrap();
+    }
+    let last = g.tiles() - 1;
+    let (r, pixels) = tile(5);
+    client.blit(2, 5, r, &pixels).unwrap();
+    let before = host.borrow().published.len();
+    let (r, pixels) = tile(3);
+    assert_eq!(client.blit(2, 3, r, &pixels), Err(ClientError::InvalidTile));
+    assert_eq!(host.borrow().published.len(), before);
+    let (r, pixels) = tile(last);
+    client.blit(2, last, r, &pixels).unwrap();
+    assert_eq!(host.borrow().blits as u64, g.tiles() + 2);
+    assert_eq!(host.borrow().receiver.completed_frame(), Some(2));
+}
 macro_rules! scenario {
     ($name:ident,$body:ident) => {
         #[test]
@@ -925,4 +970,12 @@ scenario!(
 scenario!(
     partial_supersede_keeps_base_without_certifying_abandoned_frame,
     partial_supersede_preserves_confirmed_base_and_requires_changed_tile_blit_impl
+);
+scenario!(
+    sparse_frames_follow_one_complete_frame_and_never_go_back,
+    sparse_impl
+);
+scenario!(
+    retained_sparse_tile_writes_keep_sequential_retain_coverage,
+    retained_sparse_blit_then_sequential_retain_impl
 );

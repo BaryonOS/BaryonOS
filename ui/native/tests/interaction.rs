@@ -2090,3 +2090,211 @@ scenario!(
     clipboard_selection_and_paste_keep_utf8_and_storage_state_atomic,
     clipboard_selection_and_paste_keep_utf8_and_storage_state_atomic_impl
 );
+
+/// Exactly one semantic node is focused, enabled and has visible bounds.
+fn assert_single_live_focus(ui_view: nieuw_os_materiaal::controller::View<'_>) -> SemanticId {
+    let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+    let count = Frame::new(ui_view).semantics(&mut nodes).unwrap();
+    let mut focused = nodes[..count].iter().filter(|node| node.focused);
+    let node = focused.next().expect("one semantic node must be focused");
+    assert!(focused.next().is_none(), "only one node may be focused");
+    assert!(node.enabled, "focused node {:?} must be enabled", node.id);
+    assert!(
+        node.bounds.width > 0 && node.bounds.height > 0,
+        "focused node {:?} must be visible",
+        node.id
+    );
+    node.id
+}
+
+// R113-1: a SaveAndBack BEGIN failure that keeps saving possible (quota)
+// must not leave focus on the modal-only SaveAndBack control in the editor.
+fn r113_save_and_back_begin_failure_refocuses_editor_control_impl() {
+    let host = Host::new();
+    host.borrow_mut().seed(0, b"Original");
+    let big = vec![b'a'; 4096 * 5];
+    for object in 1..7 {
+        host.borrow_mut().seed(object, &big);
+    }
+    host.borrow_mut().seed(7, &vec![b'b'; 4096 * 9]);
+    let (mut d, mut o, mut s) = ([0; 1024], [0; 1024], [0; 1024]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    ui.open(0).unwrap();
+    ui.insert("Mine ").unwrap();
+    ui.request_back().unwrap();
+    ui.deliver(envelope(
+        1,
+        1,
+        Event::Key(KeyboardEvent {
+            key: PhysicalKey::Tab,
+            action: KeyAction::Press,
+            modifiers: KeyboardModifiers {
+                left_shift: true,
+                ..KeyboardModifiers::default()
+            },
+        }),
+    ))
+    .unwrap();
+    assert_eq!(ui.view().focus, Focus::SaveAndBack);
+    assert_eq!(
+        ui.deliver(envelope(2, 1, key(PhysicalKey::Enter))),
+        Err(Error::Storage(StorageError::Service(
+            volume_core::Status::Quota
+        )))
+    );
+    assert_eq!(ui.view().screen, Screen::Editor);
+    assert!(ui.view().can_save);
+    assert_ne!(ui.view().focus, Focus::SaveAndBack);
+    assert_eq!(ui.view().focus, Focus::Save);
+    assert_eq!(assert_single_live_focus(ui.view()), SemanticId::Save);
+    // Enter retries the explicit save instead of hitting a dangling node.
+    assert_eq!(
+        ui.deliver(envelope(3, 1, key(PhysicalKey::Enter))),
+        Err(Error::Storage(StorageError::Service(
+            volume_core::Status::Quota
+        )))
+    );
+    assert_eq!(assert_single_live_focus(ui.view()), SemanticId::Save);
+    assert_eq!(ui.view().contents, Some("Mine Original"));
+}
+scenario!(
+    r113_save_and_back_begin_failure_refocuses_editor_control,
+    r113_save_and_back_begin_failure_refocuses_editor_control_impl
+);
+
+// R113-2: returning to Material in read-only mode must not focus the
+// disabled New control; it uses the read-only initial focus (Refresh).
+fn r113_read_only_back_focuses_enabled_refresh_impl() {
+    let host = Host::new();
+    host.borrow_mut().seed(0, b"Original");
+    host.borrow_mut().seed(1, b"Second");
+    let (mut d, mut o, mut s) = ([0; 1024], [0; 1024], [0; 1024]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadOnly,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    assert_eq!(ui.view().focus, Focus::Refresh);
+    ui.open(0).unwrap();
+    ui.deliver(envelope(1, 1, key(PhysicalKey::Escape)))
+        .unwrap();
+    assert_eq!(ui.view().screen, Screen::Material);
+    assert_eq!(ui.view().focus, Focus::Refresh);
+    assert_eq!(assert_single_live_focus(ui.view()), SemanticId::Refresh);
+    ui.deliver(envelope(2, 1, key(PhysicalKey::Enter))).unwrap();
+    assert_eq!(ui.view().screen, Screen::Material);
+    assert_eq!(assert_single_live_focus(ui.view()), SemanticId::Refresh);
+}
+scenario!(
+    r113_read_only_back_focuses_enabled_refresh,
+    r113_read_only_back_focuses_enabled_refresh_impl
+);
+
+// R113-3: a pending pointer press/drag is bound to the old screen/list and
+// must not survive an accepted semantic action that replaces that context.
+fn r113_semantic_action_cancels_pending_pointer_gesture_impl() {
+    let host = Host::new();
+    host.borrow_mut().seed_named(1, b"Een", b"one");
+    host.borrow_mut().seed_named(2, b"Twee", b"two");
+    let (mut d, mut o, mut s) = ([0; 1024], [0; 1024], [0; 1024]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    ui.refresh().unwrap();
+    let row = Frame::new(ui.view()).layout().object(0);
+    let mut mouse = Ps2Mouse::new();
+    let mut packet = |flags: u8| {
+        let mut input = None;
+        for byte in [flags, 0, 0] {
+            input = mouse.feed(byte).unwrap();
+        }
+        input.unwrap()
+    };
+    let (x, y) = (row.x + 10, row.y + 10);
+    ui.deliver(envelope(
+        1,
+        1,
+        Event::Mouse {
+            input: packet(0x09),
+            x,
+            y,
+        },
+    ))
+    .unwrap();
+    host.borrow_mut().seed_named(0, b"Nul", b"zero");
+    ui.activate_semantic(SemanticId::Refresh, ui.view().generation)
+        .unwrap();
+    assert_eq!(ui.view().objects.len(), 3);
+    ui.deliver(envelope(
+        2,
+        1,
+        Event::Mouse {
+            input: packet(0x08),
+            x,
+            y,
+        },
+    ))
+    .unwrap();
+    assert_ne!(
+        ui.view().contents,
+        Some("zero"),
+        "release opened an unpressed object"
+    );
+    assert_eq!(ui.view().screen, Screen::Material);
+    assert_eq!(ui.view().contents, None);
+
+    // A text drag must not keep extending a selection over replaced text.
+    ui.open(1).unwrap();
+    let editor = Frame::new(ui.view()).layout().editor;
+    ui.deliver(envelope(
+        3,
+        1,
+        Event::Mouse {
+            input: packet(0x09),
+            x: editor.x + 8,
+            y: editor.y + 8,
+        },
+    ))
+    .unwrap();
+    ui.set_semantic_value(SemanticId::Document, ui.view().generation, "replaced text")
+        .unwrap();
+    assert_eq!(ui.view().caret, "replaced text".len());
+    ui.deliver(envelope(
+        4,
+        1,
+        Event::Mouse {
+            input: packet(0x09),
+            x: editor.x + 8,
+            y: editor.y + 8,
+        },
+    ))
+    .unwrap();
+    assert_eq!(
+        ui.view().caret,
+        ui.view().anchor,
+        "stale drag changed the selection"
+    );
+    assert_eq!(ui.view().caret, "replaced text".len());
+}
+scenario!(
+    r113_semantic_action_cancels_pending_pointer_gesture,
+    r113_semantic_action_cancels_pending_pointer_gesture_impl
+);

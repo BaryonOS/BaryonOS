@@ -203,7 +203,7 @@ fn noncanonical_pixels_and_geometry_cannot_reach_blit_callback() {
 }
 
 #[test]
-fn grid_has_exact_short_edges_no_overlap_and_new_frame_starts_at_zero() {
+fn grid_has_exact_short_edges_no_overlap_and_completed_frames_are_final() {
     let g = Geometry {
         assigned: Rectangle {
             x: 8,
@@ -256,12 +256,9 @@ fn grid_has_exact_short_edges_no_overlap_and_new_frame_starts_at_zero() {
         ]
     );
     assert_eq!(receiver.completed_frame(), Some(1));
+    // A completed frame accepts no further tile, even a repeated tile 0.
     assert!(matches!(
         receiver.accept(7, 1, &begin(g, 5, 1, 0)),
-        Err(Error::Grid)
-    ));
-    assert!(matches!(
-        receiver.accept(7, 1, &begin(g, 5, 2, 1)),
         Err(Error::Grid)
     ));
     let token = ready(&mut receiver, g, 5, 2, 0, &[0; 1024]);
@@ -708,4 +705,84 @@ fn maximum_geometry_and_run_cover_last_bitmap_word_without_unbounded_ranges() {
     }
     assert_eq!(receiver.completed_frame(), Some(2));
     assert_eq!(receiver.retained_base(), Some(2));
+}
+
+#[test]
+fn retained_full_resynchronization_stays_dense_despite_sparse_history() {
+    let g = small_geometry();
+    let mut receiver = Receiver::new_retained(7, g, 10).unwrap();
+    initial_frame(&mut receiver, g);
+    // With a confirmed baseline a later frame may skip unchanged tile 0.
+    write_tile(&mut receiver, g, 3, 2, 1);
+    assert_eq!(receiver.completed_frame(), Some(2));
+    assert_eq!(receiver.retained_base(), Some(2));
+    // RETAIN keeps explicit sequential coverage; its refusal drops the base.
+    assert!(matches!(
+        receiver.accept(7, 1, &retain(4, 3, 1, 1, 2)),
+        Err(Error::Grid)
+    ));
+    assert_eq!(receiver.retained_base(), None);
+    assert_eq!(receiver.completed_frame(), None);
+    // The required full resynchronization may not skip tiles, even though
+    // this epoch already had a complete frame.
+    assert!(matches!(
+        receiver.accept(7, 1, &begin(g, 5, 4, 1)),
+        Err(Error::Grid)
+    ));
+    write_tile(&mut receiver, g, 6, 4, 0);
+    write_tile(&mut receiver, g, 7, 4, 1);
+    assert_eq!(receiver.retained_base(), Some(4));
+    assert_eq!(receiver.completed_frame(), Some(4));
+}
+
+#[test]
+fn sparse_frames_require_one_complete_frame_and_stay_increasing() {
+    let g = Geometry {
+        assigned: Rectangle {
+            x: 8,
+            y: 24,
+            width: 35,
+            height: 9,
+        },
+        ..geometry()
+    };
+    let mut receiver = Receiver::new(7, g, 100).unwrap();
+    let mut request = 0;
+    let mut commit = |receiver: &mut Receiver, frame: u64, tile: u64| {
+        request += 1;
+        let bytes = vec![0; g.rectangle(tile).unwrap().bytes()];
+        let token = ready(receiver, g, request, frame, tile, &bytes);
+        receiver
+            .commit_with(token, 1, |_, _| Ok::<(), ()>(()))
+            .unwrap();
+    };
+    // Before any complete frame: dense from tile 0, no gaps.
+    assert!(matches!(
+        receiver.accept(7, 1, &begin(g, 1, 1, 1)),
+        Err(Error::Grid)
+    ));
+    commit(&mut receiver, 1, 0);
+    assert!(matches!(
+        receiver.accept(7, 1, &begin(g, 9, 1, 2)),
+        Err(Error::Grid)
+    ));
+    for tile in 1..4 {
+        commit(&mut receiver, 1, tile);
+    }
+    assert_eq!(receiver.completed_frame(), Some(1));
+    // Afterwards a newer frame may send only changed tiles, but the frame is
+    // complete only once its final tile has been committed.
+    commit(&mut receiver, 2, 1);
+    assert_eq!(receiver.completed_frame(), None);
+    for (frame, tile) in [(2, 0), (2, 1), (1, 3)] {
+        assert!(matches!(
+            receiver.accept(7, 1, &begin(g, 20, frame, tile)),
+            Err(Error::Grid)
+        ));
+    }
+    commit(&mut receiver, 2, 3);
+    assert_eq!(receiver.completed_frame(), Some(2));
+    // A newer frame may also abandon nothing but its final tile.
+    commit(&mut receiver, 3, 3);
+    assert_eq!(receiver.completed_frame(), Some(3));
 }

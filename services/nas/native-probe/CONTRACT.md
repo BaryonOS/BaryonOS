@@ -214,17 +214,46 @@ afzonderlijke read-only 0400 inputkopie, vergelijkt SHA-256 vóór injectie en
 na de run en weigert elke afwijking. Hash is hier provenance/integriteitsbinding,
 geen cryptografische identiteit of productcredential.
 
-**Root-integratie is nog niet beschikbaar:** de huidige Release-runner bindt
-geen private normal-RAM-tokenexport aan een cold startup-bijlage. De leaf kan
-de bytes accepteren/weigeren maar kan zelf geen veilige host-QEMU-handoff
-creëren. Totdat Release de private extractie, manifest, inputkopie en
-bootstrapbinding op een expliciet gefrozen profiel implementeert, is de
-exacte replay-gastcode **niet actief** in `src/main.rs`: integratie #96 houdt
-de bestaande synthetische cold read (`[42; 40]`) aan, zodat de native
-normal/cold-gate geldig blijft in plaats van vast rood op stap 47/48. Die run
-is uitsluitend synthetische fixturedekking, geen exacte boot-1-replaybewijs.
-De replay-gastcode uit #93 (`466b89b`) wordt pas samen met de private handoff
-en aangepaste kernel-/runnertellers geactiveerd; zie #110.
+**Root-integratie (#110), actief sinds 30 oktober 2026.** De normale gast
+schrijft het exacte paar uit zijn echte `Stage`-reply (sessie en de nooit
+gecommitte pending-upload) na uitgifte in startupbytes 256..336. Bij het
+afsluiten van de gast leest uitsluitend de kernelacceptatieharnas
+(`kernel/src/m2/m3/nas.rs`) die tien woorden, weigert een nulsessie of
+nulupload (`REPLAY_EXPORT`) en schrijft `NOSRPL01` gevolgd door de 80 bytes
+naar een eigen `isa-debugcon`-poort `0x4f8`. De runner (`tools/test_nas.py`)
+koppelt die poort aan een vooraf aangemaakt 0600-bestand in een private
+0700-map buiten de checkout, eist exact één frame van 88 bytes en schrijft
+payload en manifest via `tests/replay_handoff.py` met volledige bron-/run-/rol-/stage-
+binding. Lekcontrole (#119, normale én koude run): vóórdat iets uit de
+QEMU-uitvoer in de runmap komt, zoekt de runner in de exacte ruwe stdout
+(COM1-serial) en stderr naar elk aaneengesloten 16-bytevenster van elk van
+beide 40-bytetokens, ruw en als hex ongeacht hoofdletters. Referentie is in
+de normale run de debugcon-capture, in de koude run het vóór de start
+gebonden paar. Bij een treffer of een onleesbare capture faalt de run en
+krijgen `serial.txt` en `stderr.txt` alleen een placeholder met de
+bevindingen (labels, geen bytes), lengte en SHA-256 van de originele bytes.
+Een capture die niet exact één frame van 88 bytes is, wordt in zijn geheel
+doorzocht; een lege capture exporteerde niets en blijft leesbaar. Bij een
+geslaagde lekcontrole bevat `serial.txt` uitsluitend allowlist-markers,
+vaste foutlabels en exact 20-cijferige diagnostiek. Evaluatie gebruikt de
+originele uitvoer; filtering maakt fouten niet onzichtbaar voor de gate. Fragmenten
+korter dan 16 bytes en andere coderingen (base64, decimaal, hex met
+scheidingstekens, UTF-16) worden niet herkend. Voor de koude run valideert de
+runner opnieuw, maakt een read-only
+0400-kopie en geeft die als `-fw_cfg name=opt/nieuw-os/nas-replay` mee. De
+kernel leest het `fw_cfg`-bestand (signatuur `QEMU`, unieke naam, exact 80
+bytes). In de koude run weigert hij ontbrekende of verkeerd geframede invoer
+(`REPLAY_INPUT`) en een volledig nul-paar (`REPLAY_INPUT_ZERO`); hij vergelijkt
+de tokens niet zelf met de normale run. In de normale run weigert hij iedere
+aanwezige of onleesbare replay-invoer (`REPLAY_INPUT_IN_NORMAL`). De runner
+controleert dat de payload overeenkomt met de SHA-256 in het gebonden manifest,
+maakt een read-only invoerkopie en vergelijkt die hash opnieuw na de run. Daarna
+verwijdert hij de privémap. Rapporten, serial en CI-artifacts bevatten alleen
+de SHA-256 van het paar.
+Firmware heeft geen apparaat of driver op poort 0x4f8 en leest geen
+`opt/nieuw-os/*`-bestanden; geen proces krijgt port-I/O of een nieuwe
+capability. Recoverytellers zijn nu `[(4,0),(4,5),(0,5)]` voor
+beheerder/NAS/gast: de extra foutreply is de `COMMIT`-replay.
 
 De hosttest maakt handles uitsluitend door de bestaande echte NAS-core-API
 aan te roepen: een sessie en upload uit een host-normaalmodel worden in RAM
@@ -244,7 +273,7 @@ levende bestaande volumedienst, alle counters, diskbytes en de koude
 herstelrun onafhankelijk valideren. De volumedienst heeft geen nieuwe
 shutdownopcode en hoeft niet als vierde proces succesvol af te sluiten.
 
-**Open native gates:** geen nieuwe manifest/VM-run of private tokenhandoff
-beschikbaar; geen claim van
+**Open native gates:** de koude run zonder of met afwijkende invoer is alleen
+door code en runner-hosttests afgedekt, niet als aparte native VM-run; geen claim van
 stroomuitval, fysieke secure erase, antirollback, netwerk/TLS, E2EE,
 achtergrondsync, apparatenrotatie/herstel, UI of volledige P04-acceptatie.

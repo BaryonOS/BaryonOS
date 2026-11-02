@@ -58,6 +58,24 @@ pub enum Error {
     Cleanup(nieuw_os_sdk_runtime::Error),
     Unsaved,
 }
+/// Tiles inspected per step while looking for a changed tile. Rendering is
+/// private CPU work; this keeps every iteration bounded and input-responsive.
+pub const SCAN_LIMIT: u64 = 64;
+/// One digest per tile of an 800x600 surface (25x75 tiles of 32x8).
+pub const DAMAGE_TILES: usize = 1875;
+
+/// FNV-1a over the exact canonical tile bytes. Used only to skip repainting
+/// this app's own unchanged pixels; a collision can leave one stale tile of
+/// the app's own surface, never another app's pixels or any authority.
+fn digest(bytes: &[u8]) -> u64 {
+    let mut hash = 0xcbf2_9ce4_8422_2325_u64 ^ bytes.len() as u64;
+    for &byte in bytes {
+        hash ^= u64::from(byte);
+        hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
+    }
+    hash
+}
+
 fn increment(value: &mut u64) -> Result<(), Error> {
     *value = value.checked_add(1).ok_or(Error::CounterExhausted)?;
     Ok(())
@@ -78,6 +96,10 @@ pub struct App<'a, V: Transport, I: Transport, S: Transport> {
     next_tile: u64,
     clipboard_enabled: bool,
     retained_enabled: bool,
+    /// Digest per tile of what this surface actually shows, valid only after
+    /// a complete frame in this epoch. `None` keeps full repaints.
+    damage: Option<&'a mut [u64]>,
+    damage_valid: bool,
 }
 impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     /// `geometry` must be the actual authenticated INFO response from this
@@ -114,7 +136,25 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             next_tile: 0,
             clipboard_enabled: false,
             retained_enabled: false,
+            damage: None,
+            damage_valid: false,
         })
+    }
+    /// Like `new`, but after the first complete frame only changed tiles (and
+    /// the final, frame-completing tile) are sent. `cache` must hold at least
+    /// one digest per surface tile; otherwise this falls back to full repaints.
+    pub fn with_damage_cache(
+        controller: Controller<'a, V>,
+        input: Input<I>,
+        surface: Surface<S>,
+        geometry: Geometry,
+        cache: &'a mut [u64],
+    ) -> Result<Self, Error> {
+        let mut app = Self::new(controller, input, surface, geometry)?;
+        if (cache.len() as u64) >= geometry.tiles() {
+            app.damage = Some(cache);
+        }
+        Ok(app)
     }
     pub fn controller(&self) -> &Controller<'a, V> {
         &self.controller
@@ -461,29 +501,58 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
                 retained += 1;
             }
         }
+        let mut accepted_digest = None;
         let result = if retained != 0 {
             self.surface.retain(self.frame, self.next_tile, retained)
         } else {
             let frame = Frame::new(view);
-            let rectangle = self
-                .geometry
-                .rectangle(self.next_tile)
-                .map_err(|_| Error::Binding)?;
-            let mut pixels = [0; TILE_PIXELS];
-            let rendered = frame
-                .render_tile(rectangle.x, rectangle.y, &mut pixels)
-                .map_err(|_| Error::Binding)?;
-            if rendered.width != u32::from(rectangle.width)
-                || rendered.height != u32::from(rectangle.height)
-            {
-                return Err(Error::Binding);
-            }
+            let last = self.geometry.tiles() - 1;
+            let mut scanned = 0;
             let mut bytes = [0; 1024];
-            for (p, chunk) in pixels
-                .iter()
-                .zip(bytes[..rectangle.bytes()].chunks_exact_mut(4))
-            {
-                chunk.copy_from_slice(&p.to_le_bytes());
+            let (rectangle, hash) = loop {
+                let rectangle = self
+                    .geometry
+                    .rectangle(self.next_tile)
+                    .map_err(|_| Error::Binding)?;
+                let mut pixels = [0; TILE_PIXELS];
+                let rendered = frame
+                    .render_tile(rectangle.x, rectangle.y, &mut pixels)
+                    .map_err(|_| Error::Binding)?;
+                if rendered.width != u32::from(rectangle.width)
+                    || rendered.height != u32::from(rectangle.height)
+                {
+                    return Err(Error::Binding);
+                }
+                for (p, chunk) in pixels
+                    .iter()
+                    .zip(bytes[..rectangle.bytes()].chunks_exact_mut(4))
+                {
+                    chunk.copy_from_slice(&p.to_le_bytes());
+                }
+                let hash = if !self.retained_enabled && self.damage.is_some() {
+                    digest(&bytes[..rectangle.bytes()])
+                } else {
+                    0
+                };
+                // Explicit retained coverage cannot also omit tiles via sparse digests.
+                let unchanged = !self.retained_enabled
+                    && self.damage_valid
+                    && self.next_tile != last
+                    && self
+                        .damage
+                        .as_deref()
+                        .is_some_and(|cache| cache[self.next_tile as usize] == hash);
+                if !unchanged {
+                    break (rectangle, hash);
+                }
+                self.next_tile += 1;
+                scanned += 1;
+                if scanned == SCAN_LIMIT {
+                    return Ok(());
+                }
+            };
+            if !self.retained_enabled {
+                accepted_digest = Some(hash);
             }
             self.surface.blit(
                 self.frame,
@@ -502,12 +571,16 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         }
         if retained == 0 {
             increment(&mut self.evidence.tiles)?;
+            if let (Some(cache), Some(hash)) = (self.damage.as_deref_mut(), accepted_digest) {
+                cache[self.next_tile as usize] = hash;
+            }
         }
         self.next_tile = self
             .next_tile
             .checked_add(u64::from(retained.max(1)))
             .ok_or(Error::Binding)?;
         if self.next_tile == self.geometry.tiles() {
+            self.damage_valid = self.damage.is_some() && !self.retained_enabled;
             if !self.controller.presented(self.frame, self.geometry.epoch) {
                 return Err(Error::Binding);
             }

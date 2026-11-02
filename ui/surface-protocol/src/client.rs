@@ -55,6 +55,8 @@ pub struct Session<T> {
     geometry: Option<Geometry>,
     frame: u64,
     next_tile: u64,
+    /// Mirrors `Receiver`: sparse frames only after one complete frame.
+    complete: bool,
     closed: bool,
     retained: bool,
     retained_base: Option<u64>,
@@ -90,6 +92,7 @@ impl<T: Transport> Session<T> {
             geometry: None,
             frame: 0,
             next_tile: 0,
+            complete: false,
             closed: false,
             retained: false,
             retained_base: None,
@@ -166,6 +169,7 @@ impl<T: Transport> Session<T> {
             if self.retained {
                 self.retained_base = Some(frame);
             }
+            self.complete = true;
         }
         self.frame = frame;
         self.next_tile = next_tile;
@@ -415,8 +419,13 @@ impl<T: Transport> Session<T> {
             || pixels.len() != rectangle.bytes()
             || pixels.chunks_exact(4).any(|p| p[3] != 0)
             || frame < self.frame
-            || (frame == self.frame && tile != self.next_tile)
-            || (frame > self.frame && tile != 0)
+            || (frame == self.frame
+                && if self.complete {
+                    tile < self.next_tile
+                } else {
+                    tile != self.next_tile
+                })
+            || (frame > self.frame && !self.complete && tile != 0)
         {
             return Err(Error::InvalidTile);
         }
