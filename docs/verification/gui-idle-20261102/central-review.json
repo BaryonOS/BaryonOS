@@ -2,7 +2,7 @@
   "source_commit": "1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b",
   "source_sha256": "8faf3f7f47e3f26409e446b2311673416ddd70d5735ef106d94c9f30d2c6847a",
   "root_review": "Primary reviewed app/native-loop and compositor code; two scoped read-only reviewers found no blocker. No 20ms guarantee or human-audit claim.",
-  "formal_data": "Original aggregate SHA verified; six native_gate/raw33 outcomes and per-arm medians recalculated by root from archived reports. Raw counter/time recomputation was separately performed by the local reviewer.",
+  "formal_data": "Root independently rehashed original aggregate, six native reports and serial transcripts, recalculated medians, and recomputed raw Win32 100ns CPU counters with Decimal against per-counter monotone midpoint intervals. No new Windows process execution; see root-cpu-recalculation.json.",
   "statistics": {
     "process_percent_one_logical_cpu": {
       "A": {
@@ -60,6 +60,15 @@
     "tested_OS_source_commit": "1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b",
     "tested_OS_source_v3": "8faf3f7f47e3f26409e446b2311673416ddd70d5735ef106d94c9f30d2c6847a",
     "current_full_source_v3": "084478cf4d2e137a3ba37bc6029716be3e38fecfdf76ca82fe55cd409b8536d0",
-    "compiled_OS_source_files": "Unchanged. Final normal loader/kernel/eight ELF byte identity will be checked; do not relabel old measurements as execution of this test-only commit."
+    "compiled_OS_source_files": "Unchanged. Final normal loader/kernel/eight ELF and all19 payload bytes independently verified byte-identical to ABA build on product source8faf; only bundle manifest differs. Old CPU reports retain original1f2/source8faf binding."
+  },
+  "integration": {
+    "pull_request": 123,
+    "tested_head": "2a7b74426027093a4793d78d5ddca94e15ae018a",
+    "merge_commit": "8289d60cd5caa8a26b7823a694858a15371dc2af",
+    "target_branch": "codex/mature-native-session-20261102",
+    "all_18_workflows": "success",
+    "merged_into_main": false,
+    "full_source_sha256": "084478cf4d2e137a3ba37bc6029716be3e38fecfdf76ca82fe55cd409b8536d0"
   }
 }

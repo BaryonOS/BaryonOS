@@ -1,0 +1,44 @@
+{
+  "ci-2a7b744-archive-index.json": {
+    "sha256": "39c23b532af2679656640ac9a2f77ac88802589838b3a68bd65923c68d64893c",
+    "bytes": 2428
+  },
+  "ci-2a7b744-native.json.gz": {
+    "sha256": "0be8454bc6eea30e425f566530b560ff75ebf434e354683b0f09a32a60a7fb89",
+    "bytes": 8307,
+    "uncompressed_sha256": "8244db3d03aa415bcff6831614e1a8fc77c89ab2eb92056f2cd160e48ef3ff1a"
+  },
+  "ci-2a7b744-serial.txt.gz": {
+    "sha256": "99dcc236ab338a0444ea1863303cc77fb96fa6f463e1e402d4b52beaaacb6a3c",
+    "bytes": 5577,
+    "uncompressed_sha256": "d9717aef37eda8cf3eafe9e94037fc6faddd93401199e999e8e53de6fd79d77d"
+  },
+  "ci-2a7b744-verification.json": {
+    "sha256": "22b5f495cc852bd48cd382803df92e3f69cc87aefd37996ec6fd77a3e5ea7809",
+    "bytes": 5017
+  },
+  "ci-2a7b744-workflows.json": {
+    "sha256": "3ec9263b2d23187f617f8c7bfee3c4e08475272522591f8e077f06f1d6be03b1",
+    "bytes": 7830
+  },
+  "package-2a7b744-binary-comparison.json": {
+    "sha256": "7d23fea20795957df2c8781527c0bdbf3a03062fb9c25875d2bf6c092323033b",
+    "bytes": 2251
+  },
+  "package-2a7b744-verification.json": {
+    "sha256": "7e1a84e4039afe6b01774fb51b2855e173aa43b75914d85c9291444c8108a5dc",
+    "bytes": 24431
+  },
+  "root-cpu-recalculation.json": {
+    "sha256": "ea9c15e1bdbea2d9b82937363f1c808fe3b8c63837986cdf4fcabfee1ffe8a7c",
+    "bytes": 3725
+  },
+  "ci-2a7b744-binary-comparison.json": {
+    "sha256": "cbc77673009e9ae41266759a0b1b4803896a27d7ebab478f969ce66b1f70ba49",
+    "bytes": 749
+  },
+  "ci-2a7b744-host-verification.json": {
+    "sha256": "c8c88cce03a79721933d45557acaa87221e9265f17390dec805e98a9dfc7dde7",
+    "bytes": 1020
+  }
+}

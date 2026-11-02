@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`1f2ac0ae`](https://github.com/simonvanieperen/nieuw-os/commit/1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b) ·
-**Ontwikkelbranch:** `codex/window-idle-wait-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Gereviewde GUI-idle-integratie met formele lokale CPU-proeven.
-41/100 blijft gelijk. U01/N01 behouden hun native acceptatie. Vier GUI-loops parkeren nu uitsluitend quiescent via bestaande IPC_WAIT; source8faf is volledig native op Windows/WHPX en in de nieuwe TCG-CI-venstergate geslaagd. Zes formele Windowsroutes, exactzelfde beelden, werk/fault/save/disk/cleanup en drie15smetingen per arm geven mediaan99,3724→11,6663% van éénlogischeCPU (88,2600%lager). Root en twee scoped reviewers vinden geen codeblocker; complete latency/clipboard/U02 en energie/auth/hardware-superioriteit worden niet geclaimd. CI-hostquality ontbrak op koude cache een gelockte workspacefetch vóór de strikte offline wipeharness; volgorde hersteld, geen testversoepeling. Centrale opname volgt pas na groene CI.
+**Bron:** [`8289d60c`](https://github.com/simonvanieperen/nieuw-os/commit/8289d60cd5caa8a26b7823a694858a15371dc2af) ·
+**Ontwikkelbranch:** `codex/mature-native-session-20261102`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Native desktop en GUI-idle geïntegreerd na centrale CI- en bewijscontrole.
+De score blijft 41/100 na de eerdere stijging van 34 door N01 (+3) en U01 (+4). De idlewijziging is na 18 groene CI-workflows opgenomen in de desktopbranch. Zes volledige Windows/WHPX-routes behouden beeld, invoer, herstel en opslag. In drie metingen per variant daalt de mediane procesCPU van 99,37% naar 11,67% van één logische processor; de ruwe tellers zijn opnieuw berekend. Dit levert geen extra punten op: U02, klembord, volledige interactiebudgetten en echte authenticatie blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -50,7 +50,30 @@ Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).
 <!-- OS-PROGRESS:END -->
 
-## Native sessiepreview — 2 november 2026
+## Native venstersessie — 2 november 2026
+
+[PR #122](https://github.com/simonvanieperen/nieuw-os/pull/122) bevat een eigen
+1280×720-desktop met proportionele letters, twee geïsoleerde vensters, focus,
+slepen, dock en aanwijzer. Materiaal en Rekenmachine behouden document en
+berekening bij een echte compositorcrash. De volledige native route met
+opslaan, heropenen en onafhankelijke schijfcontrole slaagt; **U01 is geaccepteerd**.
+
+[PR #123](https://github.com/simonvanieperen/nieuw-os/pull/123) is hierin
+geïntegreerd: vier GUI-processen wachten bij afwezig werk. In drie metingen
+per variant op één Windows/WHPX-pc daalt de mediane QEMU-procesCPU van 99,37%
+naar 11,67% van één logische processor (88,26% lager). Alle 18 CI-workflows op de
+geteste integratiehead slagen. Dit is geen algemene latency- of energiegarantie.
+
+```sh
+python3 -B tools/build.py --kernel-feature native-window-session
+```
+
+De roadmap steeg van 34 naar 41 door N01 en U01. U02, klembord, echte
+accountauthenticatie en de volledige testrelease blijven open.
+[U01-acceptatie](docs/verification/mature-session-20261102/U01-ACCEPTANCE.md) ·
+[idle-integratie en pakketbewijs](docs/verification/gui-idle-20261102/INTEGRATION.md).
+
+## Eerdere native sessiepreview — 2 november 2026
 
 [Concept-PR #121](https://github.com/simonvanieperen/nieuw-os/pull/121) voegt
 gebruikerskeuze, een herkenbaar aanmeldformulier, een expliciete openbare
@@ -65,7 +88,7 @@ python3 -B tools/build.py --kernel-feature native-system-session-preview
 
 De Windowsstarter kiest WHPX na een echte QMP-initprobe, met zichtbare
 TCG-terugval. Begrensde compositor-/tegelbatches verminderen protocolwerk;
-volledige schermopbouw blijft een ontwikkelbeperking. De score blijft 34/100.
+volledige schermopbouw blijft een ontwikkelbeperking. De score bleef bij die eerdere preview 34/100; de actuele meter staat bovenaan.
 [Onderzoek/ontwerp](docs/implementation/SESSION-AND-DESKTOP.md) ·
 [hardware en snelheid](docs/implementation/VM-HARDWARE-AND-PERFORMANCE.md) ·
 [proeven en reproductie](docs/verification/session-desktop-20261102/README.md).

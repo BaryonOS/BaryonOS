@@ -1423,3 +1423,24 @@ samengevoegde M4-, venster- en netwerkgates volgen. Hostmicrobenchmarks geven
 geen native latentiewaarborg of U02-punten. SMP of herintredende kernelcallbacks
 vragen een nieuw ontwerp. Details en bewijsgrenzen:
 `docs/implementation/EXACT-AUTHORITY-SNAPSHOTS.md`.
+
+## ADR-055 — Begrensde rust in GUI-processen via bestaande IPC_WAIT
+
+**Datum:** 2 november 2026. Materiaal, Rekenmachine, compositor en window-init
+parkeren uitsluitend na een echte lege ontvang-/invoercontrole en volledig
+afgehandeld eigen werk. De wachtroute gebruikt een bestaand ontvangstrecht en
+een checked deadline van één volgende PIT-tick. Wake-bits zijn hints: de
+oorspronkelijke receive/PEEK/antwoordvalidatie blijft verplicht. Control blijft
+bereikbaar; opslaan, onvolledige frames, backpressure, fouten, herstel en STOP
+blokkeren rust. Geen nieuw recht, kernel-ABI of gewijzigde transactiedeadline.
+
+Een leeg pull-inputantwoord is geen toekomstige pushbelofte; daarom is alleen
+op inputantwoord wachten onvoldoende. De korte deadline voorkomt dat nieuwe
+invoer onbeperkt blijft liggen. De compositor behoudt zijn tweepits-poldrempel;
+een harde20ms-/p95-garantie volgt daar niet uit. Zes volledige Windows/WHPX-gates
+en TCG-CI slagen; drie15smetingen per arm geven88,26%lagere mediane procesCPU
+bij hetzelfde volledige beeld op één pc. Dit is geen energie- of algemene
+prestatieclaim. Herzien bij een event-driven inputprotocol, SMP of gewijzigde
+herstelstaten; U02 vereist nog klembord en volledige interactiebudgetten.
+Contract en brongebonden bewijs: implementation/GUI-IDLE-WAIT.md en
+verification/gui-idle-20261102/INTEGRATION.md.

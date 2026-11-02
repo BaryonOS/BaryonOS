@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b",
-    "branch": "codex/window-idle-wait-20261102",
-    "task": "Gereviewde GUI-idle-integratie met formele lokale CPU-proeven",
+    "source_commit": "8289d60cd5caa8a26b7823a694858a15371dc2af",
+    "branch": "codex/mature-native-session-20261102",
+    "task": "Native desktop en GUI-idle geïntegreerd na centrale CI- en bewijscontrole",
     "previous_score": 41,
-    "summary": "41/100 blijft gelijk. U01/N01 behouden hun native acceptatie. Vier GUI-loops parkeren nu uitsluitend quiescent via bestaande IPC_WAIT; source8faf is volledig native op Windows/WHPX en in de nieuwe TCG-CI-venstergate geslaagd. Zes formele Windowsroutes, exactzelfde beelden, werk/fault/save/disk/cleanup en drie15smetingen per arm geven mediaan99,3724→11,6663% van éénlogischeCPU (88,2600%lager). Root en twee scoped reviewers vinden geen codeblocker; complete latency/clipboard/U02 en energie/auth/hardware-superioriteit worden niet geclaimd. CI-hostquality ontbrak op koude cache een gelockte workspacefetch vóór de strikte offline wipeharness; volgorde hersteld, geen testversoepeling. Centrale opname volgt pas na groene CI."
+    "summary": "De score blijft 41/100 na de eerdere stijging van 34 door N01 (+3) en U01 (+4). De idlewijziging is na 18 groene CI-workflows opgenomen in de desktopbranch. Zes volledige Windows/WHPX-routes behouden beeld, invoer, herstel en opslag. In drie metingen per variant daalt de mediane procesCPU van 99,37% naar 11,67% van één logische processor; de ruwe tellers zijn opnieuw berekend. Dit levert geen extra punten op: U02, klembord, volledige interactiebudgetten en echte authenticatie blijven open."
   },
   "tracks": [
     {
@@ -276,7 +276,8 @@
           "evidence": [
             "docs/implementation/GUI-IDLE-WAIT.md",
             "docs/verification/gui-idle-20261102/windows-ab/README.md",
-            "docs/verification/gui-idle-20261102/central-review.json"
+            "docs/verification/gui-idle-20261102/central-review.json",
+            "docs/verification/gui-idle-20261102/INTEGRATION.md"
           ]
         },
         {

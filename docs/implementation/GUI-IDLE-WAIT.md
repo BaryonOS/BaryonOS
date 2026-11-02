@@ -51,7 +51,7 @@ De centrale opvolger `337f2f29f1833ef4a8d2cd640b09419f85dbb83b` is afzonderlijk 
 
 ## Volledig native Windows-vervolg
 
-Op dezelfde functionele freeze1f2 slagen inmiddels alle zes formele Windows/WHPX-runs (3basis/3idle), inclusief de oorspronkelijke13fasen, echte crash/herstel, save/reopen, schijforacle en cleanup/rawexit33. QEMU-procesCPU daalt mediaan88,26% bij exact dezelfde volledige schermbeelden. Dit vervangt geen lokaleTCG-, fysieke-, energie- of authenticatieacceptatie. Ruwe tellers, gecomprimeerde native/seriële originelen, hashes, meethelper en beperkingen: [Windows A/B](../verification/gui-idle-20261102/windows-ab/README.md).
+Alle zes formele Windows/WHPX-runs slagen: drie basisruns A op337/source3919 en drie idleruns B op1f2/source8faf. Iedere run doorloopt de oorspronkelijke dertien fasen, echte crash/herstel, save/reopen, schijforacle en cleanup/raw exit33. QEMU-procesCPU daalt mediaan88,26% bij exact dezelfde volledige schermbeelden. Dit vervangt geen lokaleTCG-, fysieke-, energie- of authenticatieacceptatie. Ruwe tellers, gecomprimeerde native/seriële originelen, hashes, meethelper en beperkingen: [Windows A/B](../verification/gui-idle-20261102/windows-ab/README.md).
 
 ## Centrale review en meetgrens
 
@@ -63,3 +63,12 @@ of algemene prestatiegarantie. De compositor behoudt zijn2tick-polldrempel;
 een reeds verschuldigde poll kan door een1tick-wacht éénrustticklater volgen.
 Een harde20ms/p95-interactiegarantie en U02-acceptatie volgen hier niet uit.
 Zie windows-ab/README.md en central-review.json onder het verificatiearchief.
+
+## Centrale integratie afgerond
+
+PR123 is na achttien groene CI-workflows opgenomen in de desktopbranch van
+PR122 als 8289d60; geen merge naar main. De finale TCG-venstergate op
+head 2a7b744/source0844 slaagt met alle dertien fasen en raw33. De test-only
+Python-F12-fix verandert de volledige bronhash; gecompileerde OS-bronnen en
+alle tien normale binaries blijven gelijk. Formele CPU-metingen behouden
+1f2/source8faf als bron. [Integratie, artifactcontrole en pakketbewijs](../verification/gui-idle-20261102/INTEGRATION.md).

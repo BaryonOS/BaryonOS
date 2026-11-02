@@ -17,7 +17,9 @@ uitputtingsregressies staan daarnaast in `../n01-native-service-20261102/`.
 Een tweede AI-review is geen menselijke beveiligingsaudit. Geen claim van
 fysieke NIC-ondersteuning, dagelijks internet, DHCP of TLS; N02/N03/N04 blijven open.
 
-U01 is nog open. De eerste twee-app native grafische smokeproef toont echte
+Bij dit N01-checkpoint was U01 nog open; inmiddels is het afzonderlijk
+geaccepteerd in [U01-ACCEPTANCE.md](U01-ACCEPTANCE.md). De eerste twee-app
+native grafische smokeproef toonde echte
 vensters en geen fake UI, maar duurt142,08s in deze TCG-omgeving. Die meting is
 geen soepele-bedieningacceptatie. Focus/drag/compositorherstel en ongesneden
 hostbeeldvergelijking worden afzonderlijk beproefd vóór U01-punten.

@@ -1,48 +1,68 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — U01 geaccepteerd; idle-PR123 wordt beoordeeld — 2 november 2026
+## NEXT AGENT HANDOFF — native desktop en GUI-idle geïntegreerd — 2 november 2026
 
-Branch `codex/mature-native-session-20261102`, concept-PR122 op121. Functionele
-freeze337f2f29f1833ef4a8d2cd640b09419f85dbb83b/source-v3
-3919403542c923bc86467db3184345159a5ce6881567a0e11baa85f2d39f1995.
-**41/100**: N01+3 en nu U01+4 t.o.v. oude34. U02/auth/volledige release blijven open.
+Branch `codex/mature-native-session-20261102`, concept-PR122 op PR121. PR123 is
+na centrale review en **18/18 groene CI-workflows** geïntegreerd als
+`8289d60cd5caa8a26b7823a694858a15371dc2af`. Geen merge naar main;
+de bestaande integrator behoudt die verantwoordelijkheid. De bewijsupdate bevat alleen documentatie en rapporten; geen
+productcodewijziging na de geteste freeze.
 
-Volle13fasen slagen op exact337 in rootTCG(753,648s), echteCI(853,340s) en
-lokaleWindows/WHPX(gerapporteerd36,946s; eerstevolledigebeeld6,971s). Raw33,
-compositorud2→retire→beidePauseACK→nieuwePID/gen/epochs→Ready/Rebind, beideappPIDs,
-draft/berekening en completepixels behouden; save/list/reopen,14bytes/rev1 en
-canaries onafhankelijk gecontroleerd; nulprocessen/handles/queues/frametekort.
-Alle18CI-workflows groen. Zie verification/mature-session-20261102/U01-ACCEPTANCE.md
-met volledige bron/artifact/QMP/frame/serial/diskbinding. Rode2bb/b1resultaten blijven rood.
-GeenQEMU meer actief bijroot. UI-host/Clippy/scalar11archieven+179Python+8runner
-op337 groen. NormaleWindowsZIP337 inclusief19payloads/allefontnotices en22PS-
-launcher/33helperchecks gevalideerd; geen productie-release of nieuweSDLclaim.
+**Roadmap: 41/100**, tegenover 34 vóór deze opdracht: N01 +3 en U01 +4.
+De CPU-optimalisatie krijgt geen extra punten. U02, echte authenticatie,
+klembord, volledige interactiebudgetten en de volledige testrelease blijven open.
+
+**Eigen native desktop:** 1280×720, proportionele antialiased letters, eigen
+pictogrammen, twee geïsoleerde appvensters, focus, slepen, dock en aanwijzer.
+Materiaal en Rekenmachine behouden hun proces en inhoud bij een echte
+compositorcrash; nieuwe presentatie-/invoerprocessen krijgen verse epochs.
+Alle dertien fasen inclusief herstel/save/list/reopen slagen op 337 in root-TCG
+(753,648s), CI (853,340s) en lokale Windows/WHPX (36,946s).
+Raw exit 33, exacte appbeelden,14 bytes/revisie 1, onafhankelijke diskoracle, canaries en
+volledige cleanup. U01-bewijs: verification/mature-session-20261102/U01-ACCEPTANCE.md.
+Rode 2bb/b1-resultaten blijven rood; geen release- of authenticatieclaim.
 Screenshot: build/window-final/run/window-b42797a76f084c62a04223c8dbd9de1b/reopened.png.
 
-Geautoriseerde lokalechat heeft apart idle-vervolg gebouwd. ConceptPR123:
-https://github.com/simonvanieperen/nieuw-os/pull/123, head
-1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b/source8faf3f7f47e3f26409e446b2311673416ddd70d5735ef106d94c9f30d2c6847a
-(merge337 bovenop559c690). Alle4GUIloops gebruiken IPC_WAIT uitsluitend quiescent;
-geen kernel/ABI/rechten/deadlinewijziging. Lokale volledigeWHPXgate opidlepassed,
-pilotzelfdeheleframe100%→13,75%éénlogischeCPU; dit is nog geen formeleCPUacceptatie.
-De formele3x2metingen zijn gereed:6/6volledigeWHPXgates; CPUmediaan
-99,3724→11,6663% van éénlogischeCPU,88,2600%lager. Ruwe gziprapporten,
-exacteharness, sha-index en onafhankelijke lokale herberekening zijn opgenomen.
-Root heeft aggregateSHA en medianen opnieuw uit de gearchiveerde data berekend. Root en
-2read-onlyagents hebben actueleApp/Comp/init-diff gereviewd: geen blocker,
-maar geen harde20ms-intervalbelofte. Alle rustvoorwaarden en herstelstaten behouden.
-PR123 is in een aparte centrale integratieworktree samengevoegd met rootscore41;
-PR122 blijft tot groene CI op de geaccepteerde337-bron. Productsourcetree8faf
-blijft exactgelijk aan geteste1f2; alleen docs/bewijs en CI-fetchvolgorde wijzigen.
+**Idle:** vier GUI-lussen parkeren via bestaande IPC_WAIT uitsluitend als er
+geen onvoltooid werk is; kernel, ABI, rechten en transactiedeadlines blijven
+ongewijzigd. Zes formele Windows/WHPX-routes, drie per arm, hetzelfde volledige beeld
+vóór/na 15 s zonder QMP/invoer/pause tijdens ieder interval. ProcesCPU mediaan
+99,3724%→11,6663% van één logische CPU: 88,2600% lager. Gemapte vCPU-thread
+98,9558%→11,3538%. Root heeft ruwe 100ns-tellers en monotone meetintervallen
+onafhankelijk herberekend. Primaire en twee gerichte AI-bronreviews vonden
+geen blocker. Geen energie-, geen-redraw-, harde 20ms- of algemene latencyclaim.
 
-Eerstvolgend: gereviewdePR123-head met CI-fetchfix pushen, groene CI afwachten;
-gedeeldeREADME/progress/
-PROJECT-STATE-edits vanPR123 mogen rootscore41 niet overschrijven. Alleenna
-review/testbewijscode/bewijs bewust integreren, relevantehost/nativechecks+CI,
-nieuweWindowsbundle/sourcehash en voortgangsassessment bijwerken. Nog geen
-U02punten: klembord en volledigeinteractiebudgetten ontbreken. Pullrequest123 is
-al aan dezechat gekoppeld. Root eigenaarschap integratie; hoofdbranchmerges
-blijven bij bestaandeintegrator. Geen hostinstellingen/fysieke schijven/passthrough.
+**Bronbinding:** formele A 337/source39194035…f1995 tegenover
+B 1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b/source-v3
+8faf3f7f47e3f26409e446b2311673416ddd70d5735ef106d94c9f30d2c6847a.
+Head 2a7b74426027093a4793d78d5ddca94e15ae018a voegt alleen bewijs,
+CI-fetchvolgorde en een Python-F12-testfix toe. Volledige huidige source-v3:
+084478cf4d2e137a3ba37bc6029716be3e38fecfdf76ca82fe55cd409b8536d0.
+Loader/kernel/acht normale app-ELFs en alle19 pakketbytes zijn bytegelijk aan
+de productbron 8faf; alleen pakketmanifest verschilt. Oude metingen worden
+niet naar 2a omgelabeld. Alle 18 CI-workflows op2a slagen, inclusief de echte
+TCG-venstergate 41495583952 en gezamenlijke native systeemgate 41495583552.
+Bron-/artifact-/hashbewijs: verification/gui-idle-20261102/INTEGRATION.md.
+181 Python-tooltests, gerichte Rust-hosttests/Clippy/fmt,22 launcher- en 33 helperchecks
+slagen. De CI-fetchfix behoudt offline/locked; cachehit is geen cold-cachebewijs.
+
+**Windowspakket:** normale native-window-session zonder crashcontroller:
+`/workspace/nieuw-os-windows-package/build/window-package-2a7b744/NieuwOS-venstersessie-2a7b744-Windows-QEMU.zip`,
+SHA256 b685eb421e279da680da2c84bd280cc1edbc8684471f2019b2879c129c3ba1e0.
+19 payloads/8 ELFs/alle fontnotices teruggelezen, synthetische CheckOnly zonder state.
+Het oude 337-CI-pakket startte lokaal werkelijk via PS5.1/Whpx/SDL en sloot met 0;
+visuele/inputacceptatie van die normale bundel bleef open door capturefout
+0x800b0101. De volledige headless probes hebben hun eigen geslaagde beeld-
+en invoerbewijs. Geen hostinstellingen, fysieke disks of passthrough gewijzigd.
+
+**Eerstvolgende implementatiestap:** U02 aanvullen met expliciet begrensd,
+gebruikersgestuurd klembord tussen de afzonderlijke apps, intrekbare rechten,
+negatieve cross-app-proeven en gemeten invoer-/focus-/appwisselbudgetten.
+Bestaande documenten: implementation/NATIVE-WINDOW-SESSION.md,
+implementation/GUI-IDLE-WAIT.md en implementation/SESSION-AND-DESKTOP.md.
+Echte account-/sessiebroker, sleutelvrijgave, vergrendeling en FIDO2 blijven
+afzonderlijk noodzakelijk; gastaanmelding is geen beveiligde gebruikersgrens.
+Geen nieuwe roadmap of scopeverlaging; alle volledige releasecriteria behouden.
 
 ## Vorige afgeronde checkpoint — native sessiepreview
 
