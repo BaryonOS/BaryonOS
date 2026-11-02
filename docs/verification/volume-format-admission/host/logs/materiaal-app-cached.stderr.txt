@@ -1,0 +1,17 @@
+   Compiling nieuw-os-sdk-runtime v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\sdk\runtime)
+   Compiling ui-core v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\crates\ui-core)
+   Compiling noto-sans-mono-bitmap v0.3.2
+   Compiling kernel-core v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\crates\kernel-core)
+   Compiling nieuw-os-catalog-client v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\sdk\catalog-client)
+   Compiling nieuw-os-input-core v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\services\input-core)
+   Compiling nieuw-os-document-session v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\sdk\document-session)
+   Compiling nieuw-os-surface-protocol v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\ui\surface-protocol)
+   Compiling nieuw-os-input-client v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\sdk\input-client)
+   Compiling nieuw-os-materiaal v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\ui\native)
+   Compiling nieuw-os-materiaal-app v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\sdk\examples\materiaal)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.48s
+     Running unittests src\lib.rs (C:/Users/simon/Documents/Codex/2026-11-02/volume-format-admission/host/sdk-target\debug\deps\nieuw_os_materiaal_app-dbb2e99cac8592a5.exe)
+     Running tests\chain.rs (C:/Users/simon/Documents/Codex/2026-11-02/volume-format-admission/host/sdk-target\debug\deps\chain-3ac5df57668313db.exe)
+     Running tests\elf.rs (C:/Users/simon/Documents/Codex/2026-11-02/volume-format-admission/host/sdk-target\debug\deps\elf-8ddad502b4c1df88.exe)
+     Running tests\semantic_actions.rs (C:/Users/simon/Documents/Codex/2026-11-02/volume-format-admission/host/sdk-target\debug\deps\semantic_actions-1b781ac07d29ef77.exe)
+   Doc-tests nieuw_os_materiaal_app

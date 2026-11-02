@@ -1,0 +1,80 @@
+
+running 1 test
+test service::upload_token_tests::exhausted_token_counter_never_wraps_or_stages_a_new_upload ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+test mixed_attempts_for_one_generation_are_never_combined ... ok
+test recovery_makes_the_chosen_copy_durable_before_writing ... ok
+test recovered_instance_continues_after_interrupted_commit ... ok
+test every_crash_point_recovers_to_before_or_after ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 31.74s
+
+
+running 8 tests
+test malformed_s06_requests_are_rejected ... ok
+test read_only_refuses_every_s06_mutation ... ok
+test transactions_are_all_or_nothing ... ok
+test restoring_the_newest_history_version_keeps_the_oldest ... ok
+test stamps_do_not_reveal_other_domain_commits ... ok
+test collections_metadata_and_filtered_listing ... ok
+test collection_state_is_readable_and_resolves_unknown ... ok
+test history_restore_undelete_and_purge ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 3 tests
+test stale_source_does_not_start_or_overwrite_destination ... ok
+test independent_copy_survives_source_loss_and_cold_destination_recovery ... ok
+test quota_and_full_destination_preserve_existing_copy ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+
+running 21 tests
+test adjacent_generation_checks_do_not_wrap_or_panic ... ok
+test client_rejects_forged_collection_stat_replies ... ok
+test raw_zero_volume_is_not_implicitly_formatted ... ok
+test client_rejects_tampered_replies ... ok
+test client_rejects_inconsistent_stat_and_list_replies ... ok
+test certain_io_failures_abort_without_closing ... ok
+test explicitly_formatted_empty_volume_recovers_as_generation_zero ... ok
+test malformed_requests_are_rejected_without_io ... ok
+test read_only_instance_refuses_mutations ... ok
+test domains_are_isolated_and_listing_is_paged ... ok
+test delete_rename_and_tombstones ... ok
+test streaming_protocol_rules ... ok
+test large_document_roundtrip_beyond_old_128_byte_limit ... ok
+test formatted_empty_copy_requires_canonical_state_and_valid_seals ... ok
+test corrupted_content_and_tables_fail_closed ... ok
+test quota_and_full_are_reported_before_any_io ... ok
+test table_sector_layout_is_canonical ... ok
+test zero_headers_do_not_admit_unrelated_data_or_incomplete_metadata ... ok
+test space_is_reused_far_beyond_record_and_capacity_limits ... ok
+test first_commit_needs_a_valid_copy_and_legacy_generation_one_is_preserved ... ok
+test table_write_failure_is_unknown_and_closes_instance ... ok
+
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+
+running 8 tests
+test reply_token_mismatch_and_zero_begin_token_are_protocol_errors ... ok
+test domain_counters_are_independent_and_equal_tokens_keep_distinct_owners ... ok
+test uncertainty_precedes_legacy_guard_and_cannot_resume_token_upload ... ok
+test same_id_and_revision_cannot_replace_another_editor_or_principal ... ok
+test stale_token_cannot_abort_or_append_a_later_upload_with_identical_id ... ok
+test legacy_and_token_bound_uploads_cannot_take_over_each_other ... ok
+test trusted_detach_releases_only_owner_and_never_reuses_old_token ... ok
+test wrong_domain_and_malformed_token_envelopes_never_touch_staging ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

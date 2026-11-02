@@ -1,0 +1,30 @@
+test_bad_existing_report_is_rejected_before_vm_or_external_write (test_random.ArtifactTests.test_bad_existing_report_is_rejected_before_vm_or_external_write) ... ok
+test_changed_esp_loader_or_embedded_program_is_rejected (test_random.ArtifactTests.test_changed_esp_loader_or_embedded_program_is_rejected) ... ok
+test_command_snapshot_network_or_wrong_disk_is_rejected (test_random.ArtifactTests.test_command_snapshot_network_or_wrong_disk_is_rejected) ... ok
+test_complete_synthetic_artifacts_bind_serial_elf_and_disk (test_random.ArtifactTests.test_complete_synthetic_artifacts_bind_serial_elf_and_disk) ... ok
+test_copied_pass_flag_cannot_hide_false_capture_or_wrong_profile (test_random.ArtifactTests.test_copied_pass_flag_cannot_hide_false_capture_or_wrong_profile) ... ok
+test_delegate_exception_replaces_old_green_index_and_propagates_failure (test_random.ArtifactTests.test_delegate_exception_replaces_old_green_index_and_propagates_failure) ... ok
+test_generic_pass_cannot_publish_rng_pass_after_capture_error_or_source_drift (test_random.ArtifactTests.test_generic_pass_cannot_publish_rng_pass_after_capture_error_or_source_drift) ... ok
+test_linked_evidence_rejected_without_touching_external_content (test_random.ArtifactTests.test_linked_evidence_rejected_without_touching_external_content) ... ok
+test_manifest_alias_and_actual_six_program_set_cannot_contradict (test_random.ArtifactTests.test_manifest_alias_and_actual_six_program_set_cannot_contradict) ... ok
+test_preflight_failure_replaces_old_green_index_with_failed_attempt (test_random.ArtifactTests.test_preflight_failure_replaces_old_green_index_with_failed_attempt) ... ok
+test_source_esp_external_link_is_refused_before_delegate_or_marker_exposure (test_random.ArtifactTests.test_source_esp_external_link_is_refused_before_delegate_or_marker_exposure) ... ok
+test_source_esp_refuses_extra_file_hardlink_and_directory_link_before_copy (test_random.ArtifactTests.test_source_esp_refuses_extra_file_hardlink_and_directory_link_before_copy) ... ok
+test_stale_serial_or_wrong_initial_snapshot_never_uses_saved_counters (test_random.ArtifactTests.test_stale_serial_or_wrong_initial_snapshot_never_uses_saved_counters) ... ok
+test_true_disk_bytes_override_ui_or_oracle_success (test_random.ArtifactTests.test_true_disk_bytes_override_ui_or_oracle_success) ... ok
+test_actual_pid_binding_cannot_mix_callers_or_reused_slots (test_random.SequenceTests.test_actual_pid_binding_cannot_mix_callers_or_reused_slots) ... ok
+test_any_delivery_output_reseed_or_denial_cannot_be_omitted (test_random.SequenceTests.test_any_delivery_output_reseed_or_denial_cannot_be_omitted) ... ok
+test_four_distinct_profiles_and_both_legal_cancel_races (test_random.SequenceTests.test_four_distinct_profiles_and_both_legal_cancel_races) ... ok
+test_legacy_status_must_follow_terminal_rng_and_precede_probe_exit (test_random.SequenceTests.test_legacy_status_must_follow_terminal_rng_and_precede_probe_exit) ... ok
+test_missing_duplicate_reordered_unknown_and_overflow_counters_fail (test_random.SequenceTests.test_missing_duplicate_reordered_unknown_and_overflow_counters_fail) ... ok
+test_timeout_or_silence_is_not_actual_wrong_caller_rejection (test_random.SequenceTests.test_timeout_or_silence_is_not_actual_wrong_caller_rejection) ... ok
+test_uncertain_output_or_automatic_retry_never_counts_as_cancellation (test_random.SequenceTests.test_uncertain_output_or_automatic_retry_never_counts_as_cancellation) ... ok
+
+----------------------------------------------------------------------
+Ran 21 tests in 1.710s
+
+OK
+RANDOM raw: passed=False gate=False C:\Users\simon\AppData\Local\Temp\tmppfit4y53\checkout\build\run\system-normal-11111111111111111111111111111111
+ValueError: changed serial
+RANDOM raw: passed=False gate=False C:\Users\simon\AppData\Local\Temp\tmppfit4y53\checkout\build\run\system-normal-11111111111111111111111111111111
+ValueError: source, QEMU or firmware changed during RANDOM gate

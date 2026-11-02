@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "review_type": "independent AI-team artifact verification; not a human audit",
+  "verified_utc": "2026-11-02T22:09:57.543862+00:00",
+  "verifier_sha256": "fbdac1d7524f870df1bf68971ee1ba00195a85ab6e0512c793d9cb7f855816a2",
+  "no_vm_or_build_executed": true,
+  "passed": true,
+  "matrix_sha256": "27671e15d2ea338794d75754c11ab4b35abd47a2cdf73f237f62c1a5903f1101",
+  "source": {
+    "head": "94f12da0b9740a1a0ced1f08b4a30787f82ae79f",
+    "source_sha256": "2cffba892608c907b717158a83b8a1c66c7d79dc5843d2d03eabc4ff1831c028",
+    "runner_sha256": "dc5707cc6972b6b666d2e9d6925a275850d5afa9b48fa9bd68ce69d2c26175a0",
+    "test_hashes_checked": 3
+  },
+  "run_count": 10,
+  "runs": [
+    {
+      "label": "own-normal",
+      "passed": true,
+      "exit": 33,
+      "reads_recounted": 48000,
+      "writes_recounted": 4963,
+      "source_image_sha256_recomputed": "45e7b67b8940ac5ad287cd46071fcb67db13dcc58d70c956cf0db92ee6732ae6",
+      "probe_image_sha256_recomputed": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
+      "kernel_sha256_recomputed": "dd81e1b20e0bb4013abf4a87687330e373ee1e4d736d8a0b6eb4354c869e5f15",
+      "loader_sha256_recomputed": "6796338f8510674b935d265a50521350b46a3a59667fc3de3e0a278a76dfda6b"
+    },
+    {
+      "label": "own-cold-recover",
+      "passed": true,
+      "exit": 33,
+      "reads_recounted": 37756,
+      "writes_recounted": 0,
+      "source_image_sha256_recomputed": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
+      "probe_image_sha256_recomputed": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
+      "kernel_sha256_recomputed": "5e2e3c5126a7b588e7d3243c09c04285187637d51cffdbc65c1adde6afdbb84b",
+      "loader_sha256_recomputed": "6796338f8510674b935d265a50521350b46a3a59667fc3de3e0a278a76dfda6b"
+    },
+    {
+      "label": "btrfs-readonly",
+      "passed": true,
+      "exit": 35,
+      "reads_recounted": 328,
+      "writes_recounted": 0,
+      "source_image_sha256_recomputed": "0f3e5d9631ac9e8747abd7d6744538772620c0d2d9c6c5f40f2ed7e864edac39",
+      "probe_image_sha256_recomputed": "0f3e5d9631ac9e8747abd7d6744538772620c0d2d9c6c5f40f2ed7e864edac39",
+      "kernel_sha256_recomputed": "5e2e3c5126a7b588e7d3243c09c04285187637d51cffdbc65c1adde6afdbb84b",
+      "loader_sha256_recomputed": "6796338f8510674b935d265a50521350b46a3a59667fc3de3e0a278a76dfda6b"
+    },
+    {
+      "label": "btrfs-writable",
+      "passed": true,
+      "exit": 35,
+      "reads_recounted": 328,
+      "writes_recounted": 0,
+      "source_image_sha256_recomputed": "0f3e5d9631ac9e8747abd7d6744538772620c0d2d9c6c5f40f2ed7e864edac39",
+      "probe_image_sha256_recomputed": "0f3e5d9631ac9e8747abd7d6744538772620c0d2d9c6c5f40f2ed7e864edac39",
+      "kernel_sha256_recomputed": "dd81e1b20e0bb4013abf4a87687330e373ee1e4d736d8a0b6eb4354c869e5f15",
+      "loader_sha256_recomputed": "6796338f8510674b935d265a50521350b46a3a59667fc3de3e0a278a76dfda6b"
+    },
+    {
+      "label": "zero-readonly",
+      "passed": true,
+      "exit": 35,
+      "reads_recounted": 328,
+      "writes_recounted": 0,
+      "source_image_sha256_recomputed": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58",
+      "probe_image_sha256_recomputed": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58",
+      "kernel_sha256_recomputed": "5e2e3c5126a7b588e7d3243c09c04285187637d51cffdbc65c1adde6afdbb84b",
+      "loader_sha256_recomputed": "6796338f8510674b935d265a50521350b46a3a59667fc3de3e0a278a76dfda6b"
+    },
+    {
+      "label": "zero-writable",
+      "passed": true,
+      "exit": 35,
+      "reads_recounted": 328,
+      "writes_recounted": 0,
+      "source_image_sha256_recomputed": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58",
+      "probe_image_sha256_recomputed": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58",
+      "kernel_sha256_recomputed": "dd81e1b20e0bb4013abf4a87687330e373ee1e4d736d8a0b6eb4354c869e5f15",
+      "loader_sha256_recomputed": "6796338f8510674b935d265a50521350b46a3a59667fc3de3e0a278a76dfda6b"
+    },
+    {
+      "label": "zero-prefix-payload-tail-readonly",
+      "passed": true,
+      "exit": 35,
+      "reads_recounted": 328,
+      "writes_recounted": 0,
+      "source_image_sha256_recomputed": "3dd443382e1edb96c2ebcd6d11c0361f249096245afda8df4d43193e8234270b",
+      "probe_image_sha256_recomputed": "3dd443382e1edb96c2ebcd6d11c0361f249096245afda8df4d43193e8234270b",
+      "kernel_sha256_recomputed": "5e2e3c5126a7b588e7d3243c09c04285187637d51cffdbc65c1adde6afdbb84b",
+      "loader_sha256_recomputed": "6796338f8510674b935d265a50521350b46a3a59667fc3de3e0a278a76dfda6b"
+    },
+    {
+      "label": "zero-prefix-payload-tail-writable",
+      "passed": true,
+      "exit": 35,
+      "reads_recounted": 328,
+      "writes_recounted": 0,
+      "source_image_sha256_recomputed": "3dd443382e1edb96c2ebcd6d11c0361f249096245afda8df4d43193e8234270b",
+      "probe_image_sha256_recomputed": "3dd443382e1edb96c2ebcd6d11c0361f249096245afda8df4d43193e8234270b",
+      "kernel_sha256_recomputed": "dd81e1b20e0bb4013abf4a87687330e373ee1e4d736d8a0b6eb4354c869e5f15",
+      "loader_sha256_recomputed": "6796338f8510674b935d265a50521350b46a3a59667fc3de3e0a278a76dfda6b"
+    },
+    {
+      "label": "openzfs-leaf-readonly",
+      "passed": true,
+      "exit": 35,
+      "reads_recounted": 328,
+      "writes_recounted": 0,
+      "source_image_sha256_recomputed": "23a409ac5e9a844056d9096ead0453112f1d1e6e45d4b7d5db084a397baea4ea",
+      "probe_image_sha256_recomputed": "23a409ac5e9a844056d9096ead0453112f1d1e6e45d4b7d5db084a397baea4ea",
+      "kernel_sha256_recomputed": "5e2e3c5126a7b588e7d3243c09c04285187637d51cffdbc65c1adde6afdbb84b",
+      "loader_sha256_recomputed": "6796338f8510674b935d265a50521350b46a3a59667fc3de3e0a278a76dfda6b"
+    },
+    {
+      "label": "openzfs-leaf-writable",
+      "passed": true,
+      "exit": 35,
+      "reads_recounted": 328,
+      "writes_recounted": 0,
+      "source_image_sha256_recomputed": "23a409ac5e9a844056d9096ead0453112f1d1e6e45d4b7d5db084a397baea4ea",
+      "probe_image_sha256_recomputed": "23a409ac5e9a844056d9096ead0453112f1d1e6e45d4b7d5db084a397baea4ea",
+      "kernel_sha256_recomputed": "dd81e1b20e0bb4013abf4a87687330e373ee1e4d736d8a0b6eb4354c869e5f15",
+      "loader_sha256_recomputed": "6796338f8510674b935d265a50521350b46a3a59667fc3de3e0a278a76dfda6b"
+    }
+  ],
+  "cold_image_equal": true,
+  "readonly_and_writable_negative_cases_each": 4,
+  "zero_writes_on_all_negative_traces": true,
+  "native_btrfs_or_openzfs_support_verified": false,
+  "hashes_recomputed": 71,
+  "limitations": [
+    "Historical pre-run bytes are checked against the preserved source image plus recorded pre-run hashes; no independent observation of the original execution.",
+    "QEMU read/write traces and preserved artifacts verify this virtual-device test scope; not physical power-loss or hostile-device containment."
+  ]
+}

@@ -1,0 +1,3 @@
+    Updating crates.io index
+ Downloading crates ...
+  Downloaded noto-sans-mono-bitmap v0.3.2

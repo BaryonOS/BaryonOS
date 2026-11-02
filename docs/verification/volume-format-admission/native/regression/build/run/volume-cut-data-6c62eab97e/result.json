@@ -1,0 +1,448 @@
+{
+  "schema_version": 1,
+  "case": "cut-data",
+  "kernel_feature": "test-volume-cut-data",
+  "started_utc": "2026-11-02T22:10:47.664859+00:00",
+  "duration_s": 2.51805880000029,
+  "timeout_s": 600,
+  "timed_out": false,
+  "raw_qemu_exit": 1,
+  "host_kill": true,
+  "running_before_kill": true,
+  "command": [
+    "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\qemu\\qemu-system-x86_64.EXE",
+    "-machine",
+    "pc-q35-10.0",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=regression/build/run/volume-cut-data-6c62eab97e/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=regression/build/run/volume-cut-data-6c62eab97e/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:regression/build/run/volume-cut-data-6c62eab97e/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=regression/build/run/volume-image-d6d87cdc6d/volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6E-TEST"
+  ],
+  "qemu_version": "QEMU emulator version 11.1.0 (v11.1.0-12130-ge470268ff4)\nCopyright (c) 2003-2026 Fabrice Bellard and the QEMU Project developers",
+  "source_fingerprint_version": 3,
+  "source_sha256": "2cffba892608c907b717158a83b8a1c66c7d79dc5843d2d03eabc4ff1831c028",
+  "volume_identity": "29c2fb420d244dde9580fb803614b547",
+  "parent_case": null,
+  "volume_directory": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-image-d6d87cdc6d",
+  "before_sha256": "45e7b67b8940ac5ad287cd46071fcb67db13dcc58d70c956cf0db92ee6732ae6",
+  "after_sha256": "b264a6993a356c84c9f127be93cb9d2b9352910fa658a8a03398b93f0478645a",
+  "run_directory": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-cut-data-6c62eab97e",
+  "kernel_sha256": "04155254b4beb72fbade531ffc7850dbcaf1f0bb6759737ae02452913f690a3a",
+  "volume_docs": {
+    "app_sha256": "7e8b83e45514b4204ed603380595b42a636247668fe60da54e6904424ad3a514",
+    "app_elf": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 37714,
+          "memsz": 37714,
+          "page_start": 1073741824,
+          "page_end": 1073782784
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 45056,
+          "filesz": 1248,
+          "memsz": 1248,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 49152,
+          "filesz": 3416,
+          "memsz": 3416,
+          "page_start": 1073823744,
+          "page_end": 1073827840
+        }
+      ]
+    },
+    "service_sha256": "0fbbe0af1be46e3172fb232cc798fb24fac4a3b58c8676415557f022a8729c6a",
+    "service_elf": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 58002,
+          "memsz": 58002,
+          "page_start": 1073741824,
+          "page_end": 1073803264
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 65536,
+          "filesz": 1304,
+          "memsz": 1304,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 69632,
+          "filesz": 30682,
+          "memsz": 30682,
+          "page_start": 1073823744,
+          "page_end": 1073856512
+        }
+      ]
+    }
+  },
+  "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nVOLUME:MANIFEST:PASS\nVOLUME:CUT:DATA\n",
+  "stderr": "",
+  "passed": true,
+  "evidence": {},
+  "oracle": {
+    "generation": 1,
+    "clocks": [
+      1,
+      0
+    ],
+    "objects": [
+      {
+        "object": 0,
+        "revision": 1,
+        "present": true,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 1000001,
+        "versions": [
+          {
+            "revision": 1,
+            "length": 9000,
+            "name": "Voor de crash",
+            "content_revision": 1,
+            "chunks": [
+              0,
+              1,
+              2
+            ]
+          }
+        ]
+      },
+      {
+        "object": 1,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 2,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 3,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 4,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 5,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 6,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 7,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 8,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 9,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 10,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 11,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 12,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 13,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 14,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 15,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      }
+    ],
+    "collections": [
+      {
+        "index": 1,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 2,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 3,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 4,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 1,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 2,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 3,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 4,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      }
+    ],
+    "chunks_used": 3,
+    "slots": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    ],
+    "digests": [
+      16877639555860729380,
+      10252960164691450465
+    ],
+    "torn_sectors": 0
+  }
+}

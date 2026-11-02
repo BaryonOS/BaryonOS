@@ -1,0 +1,21 @@
+{
+  "command": [
+    "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+    "+1.90.0",
+    "build",
+    "--locked",
+    "--release",
+    "--target-dir",
+    "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\target",
+    "-p",
+    "os-kernel",
+    "--target",
+    "x86_64-unknown-none",
+    "--features",
+    "test-volume-cut-data"
+  ],
+  "cwd": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\source",
+  "started_unix": 1793657445.2888522,
+  "duration_s": 1.6306183338165283,
+  "returncode": 0
+}

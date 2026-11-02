@@ -1,0 +1,17 @@
+{
+  "command": [
+    "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+    "+1.90.0",
+    "clippy",
+    "--locked",
+    "-p",
+    "volume-core",
+    "--all-targets",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "cwd": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\source",
+  "exit_code": 0,
+  "duration_s": 1.6693919999997888
+}

@@ -1,0 +1,9 @@
+   Compiling volume-core v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\services\volume)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.23s
+     Running unittests src\lib.rs (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\host\target\debug\deps\volume_core-d045bee9068d18aa.exe)
+     Running tests\crash.rs (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\host\target\debug\deps\crash-7b8604448f0188d8.exe)
+     Running tests\history.rs (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\host\target\debug\deps\history-bbc09cfa0874ce60.exe)
+     Running tests\independent_copy.rs (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\host\target\debug\deps\independent_copy-f55e44128f93d621.exe)
+     Running tests\service.rs (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\host\target\debug\deps\service-ef833de91eb94d8b.exe)
+     Running tests\uploads.rs (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\host\target\debug\deps\uploads-fe71e0569f03b569.exe)
+   Doc-tests volume_core

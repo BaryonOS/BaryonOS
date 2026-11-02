@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "scope": "Root source and lossless archive integrity; no new VM execution",
+  "tested_commit": "94f12da0b9740a1a0ced1f08b4a30787f82ae79f",
+  "current_source_sha256": "2cffba892608c907b717158a83b8a1c66c7d79dc5843d2d03eabc4ff1831c028",
+  "runtime_diff_from_tested_commit": [],
+  "native_import_artifacts_checked": 183,
+  "all_imported_artifacts_byte_equal_to_original": true,
+  "gzip_roundtrip_verified": true,
+  "independent_ai_matrix_review_passed": true,
+  "independent_ai_regression_review_passed": true,
+  "verifier_sha256": "5847b1b8565de6202e317f26479735a64a6f340a4ff4022a0a58717ed499a7cb"
+}

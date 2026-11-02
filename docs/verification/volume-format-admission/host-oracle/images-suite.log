@@ -1,0 +1,29 @@
+test_bad_existing_output_fails_before_any_vm_or_external_write (test_images.ArtifactTests.test_bad_existing_output_fails_before_any_vm_or_external_write) ... ok
+test_changed_elf_esp_or_stored_image_inspection_fails (test_images.ArtifactTests.test_changed_elf_esp_or_stored_image_inspection_fails) ... ok
+test_copied_success_or_stale_profile_source_and_counters_are_rejected (test_images.ArtifactTests.test_copied_success_or_stale_profile_source_and_counters_are_rejected) ... ok
+test_delegate_exception_replaces_old_green_index_and_propagates_failure (test_images.ArtifactTests.test_delegate_exception_replaces_old_green_index_and_propagates_failure) ... ok
+test_generic_pass_cannot_authorize_after_capture_error_or_source_drift (test_images.ArtifactTests.test_generic_pass_cannot_authorize_after_capture_error_or_source_drift) ... ok
+test_links_are_rejected_without_mutating_external_content (test_images.ArtifactTests.test_links_are_rejected_without_mutating_external_content) ... ok
+test_manifest_alias_and_actual_six_program_set_cannot_contradict (test_images.ArtifactTests.test_manifest_alias_and_actual_six_program_set_cannot_contradict) ... ok
+test_preflight_failure_replaces_old_green_index_with_failed_attempt (test_images.ArtifactTests.test_preflight_failure_replaces_old_green_index_with_failed_attempt) ... ok
+test_snapshot_network_wrong_disk_and_host_success_command_are_rejected (test_images.ArtifactTests.test_snapshot_network_wrong_disk_and_host_success_command_are_rejected) ... ok
+test_source_esp_external_link_is_refused_before_delegate_or_marker_exposure (test_images.ArtifactTests.test_source_esp_external_link_is_refused_before_delegate_or_marker_exposure) ... ok
+test_source_esp_refuses_extra_file_hardlink_and_directory_link_before_copy (test_images.ArtifactTests.test_source_esp_refuses_extra_file_hardlink_and_directory_link_before_copy) ... ok
+test_stale_pixel_result_or_oracle_cannot_hide_changed_serial_or_disk (test_images.ArtifactTests.test_stale_pixel_result_or_oracle_cannot_hide_changed_serial_or_disk) ... ok
+test_synthetic_model_binds_all_six_elfs_disk_and_actual_serial (test_images.ArtifactTests.test_synthetic_model_binds_all_six_elfs_disk_and_actual_serial) ... ok
+test_actual_exit_fault_or_timeout_cannot_be_replaced_with_pass (test_images.SequenceTests.test_actual_exit_fault_or_timeout_cannot_be_replaced_with_pass) ... ok
+test_complete_image_scope_and_known_noncryptographic_fnv_vectors (test_images.SequenceTests.test_complete_image_scope_and_known_noncryptographic_fnv_vectors) ... ok
+test_exact_format_quality_pixel_negative_and_heap_stack_facts_remain_required (test_images.SequenceTests.test_exact_format_quality_pixel_negative_and_heap_stack_facts_remain_required) ... ok
+test_missing_duplicate_reordered_unknown_or_overflow_evidence_is_rejected (test_images.SequenceTests.test_missing_duplicate_reordered_unknown_or_overflow_evidence_is_rejected) ... ok
+test_original_system_crypto_storage_privilege_and_cleanup_cannot_disappear (test_images.SequenceTests.test_original_system_crypto_storage_privilege_and_cleanup_cannot_disappear) ... ok
+test_ticks_and_real_linked_elf_drift_cannot_reuse_a_prior_pixel_pass (test_images.SequenceTests.test_ticks_and_real_linked_elf_drift_cannot_reuse_a_prior_pixel_pass) ... ok
+test_wrong_or_reused_pid_cannot_reuse_a_bootstrap_identity (test_images.SequenceTests.test_wrong_or_reused_pid_cannot_reuse_a_bootstrap_identity) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 1.615s
+
+OK
+IMAGES normal: passed=False gate=False C:\Users\simon\AppData\Local\Temp\tmp8jqz19zm\checkout\build\run\system-normal-11111111111111111111111111111111
+ValueError: changed serial
+IMAGES normal: passed=False gate=False C:\Users\simon\AppData\Local\Temp\tmp8jqz19zm\checkout\build\run\system-normal-11111111111111111111111111111111
+ValueError: source, QEMU or firmware changed during image gate

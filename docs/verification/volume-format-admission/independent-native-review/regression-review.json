@@ -1,0 +1,196 @@
+{
+  "schema_version": 1,
+  "review_type": "independent AI-team artifact verification; not a human audit",
+  "verified_utc": "2026-11-02T22:12:35.978849+00:00",
+  "verifier_sha256": "51fd6750561876c85416fb6c2ddc37bbe883841c16c8884e6a59bdfc6c998cff",
+  "no_vm_or_build_executed": true,
+  "passed": true,
+  "invocation_sha256": "b7ca68aebcbd6ad8ef1d585f118a840567a85c17d2dab9cce75550e3147f216c",
+  "gate_sha256": "0ce9cfdc10141823c9ce354bc9dfe0417aae21602be7b44fcde7967e54f18eb0",
+  "source": {
+    "head": "94f12da0b9740a1a0ced1f08b4a30787f82ae79f",
+    "source_sha256": "2cffba892608c907b717158a83b8a1c66c7d79dc5843d2d03eabc4ff1831c028",
+    "runner_sha256": "dc5707cc6972b6b666d2e9d6925a275850d5afa9b48fa9bd68ce69d2c26175a0",
+    "test_hashes_checked": 3
+  },
+  "stage_count": 9,
+  "cold_pairs_verified": 4,
+  "host_checks": [
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "-p",
+        "volume-core"
+      ],
+      "exit": 0,
+      "totals_reconstructed": [
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 27.91s",
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s",
+        "test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s",
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ]
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-sdk-runtime"
+      ],
+      "exit": 0,
+      "totals_reconstructed": [
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s"
+      ]
+    },
+    {
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_volume_*.py"
+      ],
+      "exit": 0,
+      "totals_reconstructed": [
+        "Ran 31 tests in 1.634s",
+        "OK"
+      ]
+    }
+  ],
+  "stages": [
+    {
+      "case": "normal",
+      "parent": null,
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "after_sha256_recomputed": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
+      "kernel_sha256_recomputed": "dd81e1b20e0bb4013abf4a87687330e373ee1e4d736d8a0b6eb4354c869e5f15",
+      "loader_sha256_recomputed": "af70d133c771a84be24e76e3db09eda6b6a1a442f962dc0a0eb6c57bc86d4d2a",
+      "serial_sha256_recomputed": "7b0514b5f352bec7d68195d52ad6a5ab5cbab5ef5959e62e63f35f8ce71cfa09",
+      "manifest_sha256": "df4559b482350233e7f2ef1f4ba059b0d9b5a90b969d2f9a97b75816dcf35f44",
+      "host_kill_recorded": false
+    },
+    {
+      "case": "recover",
+      "parent": "normal",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "after_sha256_recomputed": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
+      "kernel_sha256_recomputed": "5e2e3c5126a7b588e7d3243c09c04285187637d51cffdbc65c1adde6afdbb84b",
+      "loader_sha256_recomputed": "af70d133c771a84be24e76e3db09eda6b6a1a442f962dc0a0eb6c57bc86d4d2a",
+      "serial_sha256_recomputed": "1a89bf6160614576b0788be4e6a65ea5b24a0af3c4c49388425127e8e9bf420f",
+      "manifest_sha256": "ff32430367c74ff694f0eeb491c9fa9958437aeb5cddba80059cb0da3c252c9a",
+      "host_kill_recorded": false
+    },
+    {
+      "case": "cut-data",
+      "parent": null,
+      "passed": true,
+      "raw_qemu_exit": 1,
+      "after_sha256_recomputed": "b264a6993a356c84c9f127be93cb9d2b9352910fa658a8a03398b93f0478645a",
+      "kernel_sha256_recomputed": "04155254b4beb72fbade531ffc7850dbcaf1f0bb6759737ae02452913f690a3a",
+      "loader_sha256_recomputed": "af70d133c771a84be24e76e3db09eda6b6a1a442f962dc0a0eb6c57bc86d4d2a",
+      "serial_sha256_recomputed": "143dc3cc133f1539c8f0f0e9c8508f99f4f9c5dd657bbc176640449034711eb5",
+      "manifest_sha256": "ef11cce0bdcc21ba870cd8b65fb7d7816f2fe2f2b3fe13439bf8b9e403310fec",
+      "host_kill_recorded": true
+    },
+    {
+      "case": "recover-cut",
+      "parent": "cut-data",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "after_sha256_recomputed": "b264a6993a356c84c9f127be93cb9d2b9352910fa658a8a03398b93f0478645a",
+      "kernel_sha256_recomputed": "26121e271109ef5473a614cc302a182e99d3d5454e553415c7871145ab566eba",
+      "loader_sha256_recomputed": "af70d133c771a84be24e76e3db09eda6b6a1a442f962dc0a0eb6c57bc86d4d2a",
+      "serial_sha256_recomputed": "0e9b47aa133d614ef8affc70691ea385dfa4083372a67bbaf825787939cc8c8e",
+      "manifest_sha256": "af27876632485cc9c05d1aef964b2bb8c0838895b8df2726996073c2d143b998",
+      "host_kill_recorded": false
+    },
+    {
+      "case": "cut-table",
+      "parent": null,
+      "passed": true,
+      "raw_qemu_exit": 1,
+      "after_sha256_recomputed": "53616c6d0816f9b78ffbd14c5098340ad0d1edd3c5407b966d4295155f6e97f9",
+      "kernel_sha256_recomputed": "52f6d92e485d7782e1c44ed112ddea7c291b80e1aa087aa600594301fc79bfe6",
+      "loader_sha256_recomputed": "af70d133c771a84be24e76e3db09eda6b6a1a442f962dc0a0eb6c57bc86d4d2a",
+      "serial_sha256_recomputed": "a93c4c2b70b9afd21448a1255629165b3e7e22226d24013bf375ed283fd1602d",
+      "manifest_sha256": "4c5441304b11c7454c78d8c7b57d10e9bf1e2bf22e403c30fc850668f0316d61",
+      "host_kill_recorded": true
+    },
+    {
+      "case": "recover-cut",
+      "parent": "cut-table",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "after_sha256_recomputed": "53616c6d0816f9b78ffbd14c5098340ad0d1edd3c5407b966d4295155f6e97f9",
+      "kernel_sha256_recomputed": "26121e271109ef5473a614cc302a182e99d3d5454e553415c7871145ab566eba",
+      "loader_sha256_recomputed": "af70d133c771a84be24e76e3db09eda6b6a1a442f962dc0a0eb6c57bc86d4d2a",
+      "serial_sha256_recomputed": "b5d8dbf19aa9efdf67bec1cd2d82e65196bf053b2151e25632687c8c8b4cbfe6",
+      "manifest_sha256": "af27876632485cc9c05d1aef964b2bb8c0838895b8df2726996073c2d143b998",
+      "host_kill_recorded": false
+    },
+    {
+      "case": "cut-txn",
+      "parent": null,
+      "passed": true,
+      "raw_qemu_exit": 1,
+      "after_sha256_recomputed": "ede3a54c8ed3e3012e68e11152e36eb14445da0e18f5905dc406673e96268b44",
+      "kernel_sha256_recomputed": "1c0a04646121c2fac8ecf50593cee8ca29280c782c6e6ce44f3beb67b773e87a",
+      "loader_sha256_recomputed": "af70d133c771a84be24e76e3db09eda6b6a1a442f962dc0a0eb6c57bc86d4d2a",
+      "serial_sha256_recomputed": "8b35df60ac54b8e020fe487612696b2790545a57838f5d2aea6630b94d143959",
+      "manifest_sha256": "4b52f6e2fbedc3e3f7b813eaa39556b765f9635ffe2d812e521b9a93df8c76f4",
+      "host_kill_recorded": true
+    },
+    {
+      "case": "recover-cut",
+      "parent": "cut-txn",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "after_sha256_recomputed": "ede3a54c8ed3e3012e68e11152e36eb14445da0e18f5905dc406673e96268b44",
+      "kernel_sha256_recomputed": "26121e271109ef5473a614cc302a182e99d3d5454e553415c7871145ab566eba",
+      "loader_sha256_recomputed": "af70d133c771a84be24e76e3db09eda6b6a1a442f962dc0a0eb6c57bc86d4d2a",
+      "serial_sha256_recomputed": "bed509af43cebbf1d7faa0b82d769a3d609693a79e8107ae046cfa95bb8c41ff",
+      "manifest_sha256": "af27876632485cc9c05d1aef964b2bb8c0838895b8df2726996073c2d143b998",
+      "host_kill_recorded": false
+    },
+    {
+      "case": "corrupt",
+      "parent": null,
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "after_sha256_recomputed": "2e43b6875326217c8506b15c87cd26a2b48e3b61685772f7fb712b1b777dbf82",
+      "kernel_sha256_recomputed": "bef5dbf968ee99571e66d897c046833c2410a601a51d1fd60a9ea5ee9c6e9225",
+      "loader_sha256_recomputed": "af70d133c771a84be24e76e3db09eda6b6a1a442f962dc0a0eb6c57bc86d4d2a",
+      "serial_sha256_recomputed": "ff42b27654049b73ada702df64cd5c7b38f2cb5226b3b205dbf1d499c4bc114b",
+      "manifest_sha256": "0359d7f9adf95b7154879b2dc795ffff2f03a8188103b6711ee10411413af094",
+      "host_kill_recorded": false
+    }
+  ],
+  "helper_sha256": "fbdac1d7524f870df1bf68971ee1ba00195a85ab6e0512c793d9cb7f855816a2",
+  "trace_recount_scope": "10-case matrix only; the standard nine-VM regression does not enable read/write tracing",
+  "native_btrfs_or_openzfs_support_verified": false,
+  "hashes_recomputed": 67,
+  "limitations": [
+    "Historical pre-run bytes are checked against the preserved source image plus recorded pre-run hashes; no independent observation of the original execution.",
+    "QEMU read/write traces and preserved artifacts verify this virtual-device test scope; not physical power-loss or hostile-device containment."
+  ]
+}

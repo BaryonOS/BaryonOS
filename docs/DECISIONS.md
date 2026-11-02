@@ -1555,3 +1555,48 @@ De native gate gebruikt volledige toegewezen appbeelden en een onafhankelijke
 schijfdecoder; koude heropening kopieert uitsluitend een opnieuw gevalideerde
 bron-/profielgebonden wegwerprun. U03 blijft open totdat de volledige route en
 regressie werkelijk slagen. Geen authenticatie-, encryptie- of hardwareclaim.
+
+## ADR-058 — Positieve volume-identiteit vóór toelating als lege opslag
+
+**Datum:** 2 november 2026. Uitvoeringsbasis: `74a34d0`.
+
+De native backendtoets liet zien dat een echte Btrfs-image in het onderzochte
+tabelbereik nulbytes heeft. De oude `choose`-fallback vertaalde ontbrekende
+geldige metadata daardoor naar `Table::EMPTY`; de app faalde pas later.
+
+Recovery vereist voortaan minstens één compleet gedecodeerde en verzegelde
+eigen `NOSVOL02`-kopie. De bestaande layout kan de expliciete lege toestand
+weergeven: generatie 0 in slot 0, request-ID en klokken 0 en exact canonieke
+lege objecten/collecties. De offline fixturebuilder maakt die toestand op
+een nieuw wegwerpbestand; de dienst krijgt geen formatteeractie of nieuwe
+bevoegdheid. Twee nul-/ongeldige kopieën en een gedeeltelijke eerste poging
+zonder geldige basis worden geweigerd. Vergelijkingen van aangrenzende
+generaties gebruiken gecontroleerde optelling, ook rond `u64::MAX`.
+
+Een geldige lege kopie blijft herstelbaar na een onderbroken eerste commit.
+Een complete bestaande generatie 1 met nulgevulde vorige kopie blijft geldig,
+evenals het bestaande herstel van latere commits. Uniform verzegelde maar
+semantisch corrupte metadata blijft een harde fout; geen stille terugval.
+
+Dit is een toelatingsfix in de bestaande gebruikersdienst, geen nieuwe
+bestandssysteemdriver, magic, geometrie, IPC of kernel. FNV-identificatie is
+geen authenticatie tegen bewust vervalste eigen metadata. De native poort
+vereist positieve normal/cold-recovery, onbekende images in read-only én
+schrijfbaar profiel zonder datawrites, en de bestaande crashregressie.
+
+Compatibiliteit: oudere kernel/orakelcode weigert het nieuwe sealed-gen0-beeld
+vóór de eerste volledige commit. Code en fixturetooling horen bij rollback
+bij elkaar; bestaande gecommitte data wordt niet opnieuw geformatteerd.
+Herzie dit contract vóór een echte formatter/installer of vrije-mediatoegang.
+Uitvoering en bewijs: `docs/verification/volume-format-admission/`.
+
+Native uitvoering op `94f12da0b9740a1a0ced1f08b4a30787f82ae79f`: 10/10 toelatingsproeven en
+de bestaande 9/9 volume-/crashgate slagen. Alle acht negatieve RO/RW-proeven
+weigeren opslag tijdens startup met Corrupt/-18, nul WRITE-traces en
+ongewijzigde bron-/proefhashes. Dit accepteert de toelatingsfix; de native
+Btrfs/OpenZFS-backendpoort blijft open. Zie de genoemde bewijsbundel.
+
+Integratieopmerking: dit besluit heette ADR-053 op bron94f12da. Main bevat
+inmiddels ook ADR-057; daarom is alleen het actuele toelatingsbesluit
+hernummerd. Het oude native bewijs blijft onveranderd aan bron94f12da gebonden.
+Gecombineerde native acceptatie op main380111b wordt afzonderlijk vastgelegd.

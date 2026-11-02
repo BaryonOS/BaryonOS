@@ -1,0 +1,17 @@
+{
+  "command": [
+    "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\rustfmt.EXE",
+    "+1.90.0",
+    "--edition",
+    "2021",
+    "services/volume/src/table.rs",
+    "services/volume/tests/common/mod.rs",
+    "services/volume/tests/service.rs",
+    "sdk/document-session/tests/volume.rs",
+    "sdk/examples/materiaal/tests/chain.rs",
+    "sdk/examples/materiaal/tests/semantic_actions.rs"
+  ],
+  "cwd": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\source",
+  "exit_code": 0,
+  "duration_s": 0.18169940000007045
+}

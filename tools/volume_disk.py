@@ -90,7 +90,7 @@ def classify(slot: int, index: int, sector: bytes):
     if sector == bytes(SECTOR):
         return ("zero", 0, 0)
     generation, attempt = struct.unpack_from("<QQ", sector, TRAILER)
-    if generation == 0 or struct.unpack_from("<Q", sector, 504)[0] != sector_sum(slot, index, sector):
+    if struct.unpack_from("<Q", sector, 504)[0] != sector_sum(slot, index, sector):
         return ("invalid", 0, 0)
     return ("valid", generation, attempt)
 
@@ -207,7 +207,8 @@ def decode_table(slot: int, sectors: list[bytes]):
     fields = struct.unpack_from("<8sHHHHQQHHBB", header, 0)
     clocks = list(struct.unpack_from(f"<{DOMAINS}Q", header, CLOCKS))
     if (generation % 2 != slot or fields[0] != MAGIC or fields[1:5] != (2, OBJECTS, CHUNKS, CHUNK_SECTORS)
-            or fields[5] != generation or fields[6] == 0 or fields[7:11] != (MAX_CHUNKS, QUOTA, HISTORY, COLLECTIONS)
+            or fields[5] != generation or (fields[6] == 0) != (generation == 0)
+            or fields[7:11] != (MAX_CHUNKS, QUOTA, HISTORY, COLLECTIONS)
             or any(header[38:CLOCKS]) or any(header[CLOCKS + 8 * DOMAINS:TRAILER])):
         raise ValueError("table header")
     # One commit advances exactly one domain clock; object and collection
@@ -235,19 +236,23 @@ def decode_table(slot: int, sectors: list[bytes]):
             raise ValueError("quota exceeded on disk")
     reflected = any(e["revision"] and e["request_id"] == fields[6] for e in entries) or \
         any(c["revision"] and c["request_id"] == fields[6] for c in collections)
-    if not reflected:
+    table = {"generation": generation, "request_id": fields[6], "clocks": clocks, "entries": entries,
+             "collections": collections}
+    if generation == 0:
+        if table != empty_table():
+            raise ValueError("format table is not canonical empty")
+    elif not reflected:
         raise ValueError("commit request not reflected")
-    return {"generation": generation, "request_id": fields[6], "clocks": clocks, "entries": entries,
-            "collections": collections}
+    return table
 
 
 def compatible(states, g: int, uniform_invalid: bool) -> bool:
     if uniform_invalid:
         return False
     for kind, found, _ in states:
-        if kind == "zero" and g != 1:
+        if kind == "zero" and g > 1:
             return False
-        if kind == "valid" and not (found + 1 == g or found == g + 1):
+        if kind == "valid" and not ((g > 0 and found == g - 1) or (g < MASK and found == g + 1)):
             return False
     return True
 
@@ -287,10 +292,6 @@ def choose(volume: bytes):
             if not compatible(other["states"], mine["table"]["generation"], other["uniform_invalid"]):
                 raise ValueError("other table copy unexplained")
             return mine["table"]
-    first_attempt = not b["uniform_invalid"] and all(
-        kind in ("zero", "invalid") or (kind == "valid" and g == 1) for kind, g, _ in b["states"])
-    if all(kind == "zero" for kind, _, _ in a["states"]) and first_attempt:
-        return empty_table()
     raise ValueError("no recoverable table")
 
 
@@ -427,17 +428,29 @@ def encode_table(generation: int, request_id: int, entries, collections=None, cl
     return [bytes(s) for s in sectors]
 
 
+def empty_image_bytes() -> bytes:
+    """Canonical disposable image with an explicit sealed generation-zero format.
+
+    The format table occupies slot 0; slot 1 and content are zero. Canaries
+    remain outside the granted volume. Zero bytes alone never authorize use.
+    """
+    image = bytearray().join(bytes(SECTOR) if FIRST <= index < FIRST + VOLUME_SECTORS else canary(index)
+                             for index in range(IMAGE_SECTORS))
+    for index, sector in enumerate(encode_table(0, 0, empty_table()["entries"])):
+        start = (FIRST + index) * SECTOR
+        image[start:start + SECTOR] = sector
+    return bytes(image)
+
+
 def create_image(path: Path, variant: str = "empty") -> dict:
-    """Create a fresh 1 MiB image: canaries outside the scope, zero volume.
+    """Create a fresh 1 MiB image with canaries and explicitly formatted storage.
 
     `corrupt` writes a fully sealed generation-1 table whose current version
     has a non-canonical name, which recovery must refuse before READY.
     """
     if path.exists():
         raise FileExistsError(path)
-    image = bytearray()
-    for index in range(IMAGE_SECTORS):
-        image += bytes(SECTOR) if FIRST <= index < FIRST + VOLUME_SECTORS else canary(index)
+    image = bytearray(empty_image_bytes())
     if variant == "corrupt":
         entries = [empty_entry() for _ in range(OBJECTS)]
         current = dict(empty_version(), revision=1, name=b"bad/name", content_sum=FNV_OFFSET)

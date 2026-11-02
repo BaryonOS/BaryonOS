@@ -1,0 +1,5 @@
+First attempted build command failed before any compiler build or VM:
+python -B native_admission.py build --expected-head 94f12da0b9740a1a0ced1f08b4a30787f82ae79f
+Exit status: 1
+Failure: native_admission.py line100, subprocess.check_output(['rustc', '+1.90.0', '-vV'], env=env), FileNotFoundError [WinError 2].
+Cause: on Windows executable lookup did not use the child env PATH. QEMU preflight trace listing had completed. No builds/, runs/, or environment.json were created. The original runner and its freeze are preserved here. Fix is absolute rustc resolution via shutil.which(..., path=env['PATH']); source checkpoint remains unchanged. This is a harness preflight failure, not native kernel evidence.

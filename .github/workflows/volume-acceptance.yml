@@ -12,14 +12,20 @@ on:
       - 'crates/**'
       - '.cargo/**'
       - 'sdk/**'
+      - 'ui/**'
+      - 'tests/test_volume_*.py'
+      - 'docs/verification/volume-format-admission/native/native_admission.py'
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'rust-toolchain.toml'
       - '.github/workflows/volume-acceptance.yml'
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: volume-acceptance-${{ github.ref }}
@@ -51,6 +57,10 @@ jobs:
           sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
       - name: Strict preflight
         run: python3 -B tools/preflight.py --strict
+      - name: Fetch locked dependencies for offline app builders
+        run: |
+          cargo +1.90.0 fetch --locked
+          cargo +1.90.0 fetch --locked --manifest-path sdk/Cargo.toml
       - name: M6e/S06 native volume gate (9 QEMU runs)
         run: python3 -B -u tools/test_volume.py
       - name: Upload M6e reports
@@ -62,4 +72,70 @@ jobs:
             build/ci-m6e/volume-gate.json
             build/ci-m6e/run/volume-*/result.json
             build/ci-m6e/run/volume-*/serial.txt
+          if-no-files-found: warn
+  admission:
+    name: native-volume-admission
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/ci-volume-admission
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/ci-volume-admission
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/ci-volume-admission
+      NOS_VOLUME_ADMISSION_FIXTURES: ${{ github.workspace }}/build/ci-volume-admission/fixtures
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Rust 1.90.0 and real targets
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal
+          rustup component add --toolchain 1.90.0 rustfmt clippy
+          rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+      - name: Disposable QEMU and OVMF
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+      - name: Strict preflight and locked dependency fetch
+        run: |
+          python3 -B tools/preflight.py --strict
+          cargo +1.90.0 fetch --locked
+          cargo +1.90.0 fetch --locked --manifest-path sdk/Cargo.toml
+      - name: Obtain the immutable foreign-image fixtures
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FIXTURE_RUN_ID: ${{ vars.VOLUME_ADMISSION_FIXTURE_RUN_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$FIXTURE_RUN_ID" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::VOLUME_ADMISSION_FIXTURE_RUN_ID must identify a same-repository run containing volume-admission-fixtures; absence is not a passed native matrix."
+            exit 1
+          fi
+          mkdir -p "$NOS_VOLUME_ADMISSION_FIXTURES"
+          gh run download "$FIXTURE_RUN_ID" --repo "$GITHUB_REPOSITORY" \
+            --name volume-admission-fixtures --dir "$NOS_VOLUME_ADMISSION_FIXTURES"
+      - name: Hash-pinned ten-run admission matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected_head="$(git rev-parse HEAD)"
+          python3 -B -u tools/run_volume_admission.py build --expected-head "$expected_head"
+          python3 -B -u tools/run_volume_admission.py matrix --expected-head "$expected_head"
+      - name: Upload source-bound admission evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: volume-admission-reports
+          path: |
+            build/ci-volume-admission/volume-admission/freeze.json
+            build/ci-volume-admission/volume-admission/environment.json
+            build/ci-volume-admission/volume-admission/matrix.json
+            build/ci-volume-admission/volume-admission/builds/*/manifest.json
+            build/ci-volume-admission/volume-admission/builds/*/build-invocation.json
+            build/ci-volume-admission/volume-admission/builds/*/build.*.txt
+            build/ci-volume-admission/volume-admission/runs/*/build-manifest.json
+            build/ci-volume-admission/volume-admission/runs/*/result.json
+            build/ci-volume-admission/volume-admission/runs/*/serial.txt
+            build/ci-volume-admission/volume-admission/runs/*/stderr-trace.txt
           if-no-files-found: warn
