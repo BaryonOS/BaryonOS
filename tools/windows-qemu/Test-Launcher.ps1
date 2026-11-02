@@ -5,6 +5,10 @@ param(
 
 $ErrorActionPreference = "Stop"
 $root = Join-Path ([System.IO.Path]::GetTempPath()) ("Nieuw OS launcher test " + [guid]::NewGuid())
+$notoNotices = @(
+    "licenses/NotoSansMono-NOTICE.md", "licenses/NotoSansMono-OFL.txt",
+    "licenses/noto-sans-mono-bitmap-MIT.txt"
+)
 $files = @(
     "Start-NieuwOS.ps1", "Acceleration.ps1", "README.md",
     "OVMF_CODE.fd", "OVMF_VARS.template.fd", "bios-256k.bin", "VGA.rom",
@@ -12,7 +16,7 @@ $files = @(
     "licenses/OpenSans-NOTICE.md", "licenses/OpenSans-Apache-2.0.txt",
     "licenses/Native-graphics-README.md", "licenses/OpenSans-font-provenance.json",
     "volume.empty.img", "esp/kernel.elf", "esp/EFI/BOOT/BOOTX64.EFI"
-)
+) + $notoNotices
 $passed = 0
 try {
     New-Item -ItemType Directory -Path $root | Out-Null
@@ -132,6 +136,38 @@ try {
         }
         if (-not $rejected) { throw "Unsupported window profile was accepted." }
         $passed++
+    }
+    foreach ($profile in @("native-system-materiaal", "native-window-session")) {
+        $manifest.kernel_feature = $profile
+        $manifest | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $manifestPath -Encoding UTF8
+        foreach ($relative in $notoNotices) {
+            $notice = Join-Path $root $relative
+            $noticeOriginal = [System.IO.File]::ReadAllBytes($notice)
+            Remove-Item -LiteralPath $notice
+            $rejected = $false
+            try { & $launcher -QemuPath $QemuPath -CheckOnly } catch {
+                if ($_.Exception.Message -ne "Bundle file does not exist: $relative") { throw }
+                $rejected = $true
+            }
+            if (-not $rejected) { throw "$profile accepted missing notice: $relative" }
+            $passed++
+            [System.IO.File]::WriteAllBytes($notice, $noticeOriginal)
+
+            $noticeChanged = $noticeOriginal.Clone()
+            $noticeChanged[0] = $noticeChanged[0] -bxor 1
+            [System.IO.File]::WriteAllBytes($notice, $noticeChanged)
+            $rejected = $false
+            try { & $launcher -QemuPath $QemuPath -CheckOnly } catch {
+                if ($_.Exception.Message -ne "Bundle file hash differs: $relative") { throw }
+                $rejected = $true
+            }
+            if (-not $rejected) { throw "$profile accepted changed notice: $relative" }
+            $passed++
+            [System.IO.File]::WriteAllBytes($notice, $noticeOriginal)
+        }
+    }
+    if (Test-Path -LiteralPath (Join-Path $root "state")) {
+        throw "Notice integrity checks created mutable VM state."
     }
     Write-Output "PASS: $passed Windows launcher tests; synthetic files only; no VM started."
 } finally {
