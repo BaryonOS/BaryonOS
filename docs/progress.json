@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "41d02693083aa5262eee435c583680b566808489",
-    "branch": "codex/native-clipboard-20261102",
-    "task": "U02 geselecteerde tekst delen en interactiebudgetten implementeren",
+    "source_commit": "9863a52651504c4838d6826b3e1b2240ae0ed6b2",
+    "branch": "codex/mature-native-session-20261102",
+    "task": "Native klembord met eenmalige invoerrechten geïntegreerd en brongebonden getest",
     "previous_score": 41,
-    "summary": "De score blijft41/100. Een klein contract voor native CtrlC/CtrlV met eenmalige focus-/inputgebonden machtiging en atomische paste is vastgelegd. Broker en beide apps worden afzonderlijk gebouwd; latencyonderzoek behoudt echte beeld-/ACK-/herstelgrenzen. Nieuwe native acceptatie en volledige U02-interactiebudgetten zijn nog niet aangetoond; U02 blijft open."
+    "summary": "De score blijft 41/100. Native kopiëren, plakken en wissen tussen twee geïsoleerde apps werkt nu met focus- en invoergebonden rechten. Twee volledige TCG-routes doorlopen alle 22 fasen, inclusief crashherstel, leeg klembord na herstel, opslaan en onafhankelijke schijfcontrole. Alle 18 CI-workflows slagen; bronrapporten en Windows-testpakket zijn gecontroleerd. Dit geeft geen extra punten: U02 vereist ook volledige interactiebudgetten en dagelijkse dekking. De eerste tekstcapaciteit is 192 UTF-8-bytes; ruimere capaciteit, vloeiende bediening en echte authenticatie blijven open."
   },
   "tracks": [
     {
@@ -277,7 +277,9 @@
             "docs/implementation/GUI-IDLE-WAIT.md",
             "docs/verification/gui-idle-20261102/windows-ab/README.md",
             "docs/verification/gui-idle-20261102/central-review.json",
-            "docs/verification/gui-idle-20261102/INTEGRATION.md"
+            "docs/verification/gui-idle-20261102/INTEGRATION.md",
+            "docs/implementation/NATIVE-CLIPBOARD.md",
+            "docs/verification/native-clipboard-20261102/README.md"
           ]
         },
         {

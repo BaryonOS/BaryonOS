@@ -1,0 +1,18 @@
+{
+  "source_commit": "d0ae570bd4666626096f92e57acef981c0f0d7b6",
+  "review_type": "Separate scoped read-only AI code review, not a human audit",
+  "verdict": "No concrete blocker in app clipboard integration or native runner within stated scope",
+  "app_checks": [
+    "Clipboard opt-in only on window profile; no credential/whole-document/old-answer fallback",
+    "Zeroizing Text applies only after actual input ACK Acknowledged; Superseded/error paths drop without edit",
+    "Full model validation and capacity checks precede mutation; paste never evaluates",
+    "Controller excludes overlay/wrong field/save/closed/uncertain/conflict; read-only paste remains prohibited"
+  ],
+  "runner_checks": [
+    "Original13 phases retained plus9 clipboard phases; actual fault/PID/epoch/disk/raw33/cleanup/immutable checks unchanged",
+    "Complete Material880x510 and Calculator320x484 app bodies compared with source-bound host oracles and no internal masks",
+    "CtrlShiftDelete correctly expects four modifier ACKs while consuming Delete edges"
+  ],
+  "measurement_limit": "Published READY/GEN snapshots may precede the correct phase image; claim full appbody pixels plus actual input ACKs, not causal last-generation/all-SUR-ACK correspondence. Recorded times include host/QMP/observation/capture, not whole-screen/guest/photon/p95 acceptance.",
+  "new_vm_or_tests_performed_by_reviewers": false
+}

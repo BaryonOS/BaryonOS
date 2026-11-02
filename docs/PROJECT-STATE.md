@@ -1,22 +1,78 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — U02 klembord in uitvoering — 2 november 2026
+## NEXT AGENT HANDOFF — native klembord geïntegreerd; U02 blijft open — 2 november 2026
 
-Branch `codex/native-clipboard-20261102`, basis41d0269. Doel: geselecteerde
-tekst via echte CtrlC/CtrlV tussen geïsoleerde apps, eenmalige inputgebonden
-machtiging en atomische paste. Contract: implementation/NATIVE-CLIPBOARD.md.
-Inputclient/window-compositorbuilder werkt in aparte clipboard-broker-worktree;
-root bezit beide appadapters/controllermodel/fixtures/runner/docs. Latencyspoor
-onderzoekt invoer→beeld en focusbudgetten, eerst read-only. Geen kernel-ABI of
-nieuwe apparaatrechten. SDK en broker zijn geïntegreerd;68 componenthosttests en scalar builds slagen.
-UI-, Materiaal- en Rekenmachine-hosttests/Clippy/fmt slagen; atomische paste en
-selectie/context/feedback zijn toegevoegd. De nieuwe --clipboard-runner behoudt
-alle dertien bestaande native fasen en voegt volledige appbeeldorakels voor
-kopieer/plak, ongeschikte tekst, wissen en post-fault leegte toe. Zestien gerichte
-runner/latencyhelpertests slagen. LateACK-apptransportregressie en native
-acceptatie zijn nog open. 41/100 blijft41; U02/auth/volledige release blijven open.
-Eerstvolgend: apptransportnegatieven, gecombineerde no_std/ELF-build, freeze en
-werkelijke uitgebreide native gate met bron-/fixture-/pixel-/disk-/exitbinding.
+Branch `codex/mature-native-session-20261102`, concept-PR122 op PR121.
+PR124 is na18 groene CI-workflows en code-/artifactreview opgenomen als
+`9863a52651504c4838d6826b3e1b2240ae0ed6b2`. Geen merge naar main;
+de bestaande integrator behoudt die verantwoordelijkheid. **41/100 blijft41**.
+U02, bredere clipboardcapaciteit, volledige interactiebudgetten, echte
+accountauthenticatie en de volledige release blijven open.
+
+**Nieuw:** echte CtrlC/CtrlV tussen twee geïsoleerde native processen. De
+compositor controleert huidige focus, echte PID/inputepoch en het eigen nog
+staande CtrlC/V-Press-aanbod; één aanbod geeft één gebruik. InputSession
+blijft de enige RX-eigenaar. Pendingbackpressure bewaart alleen ticketmetadata,
+geen plaintext; iedere flush valideert opnieuw. De app past ontvangen Text pas
+na echte ACKAcknowledged toe; Superseded en transportfalen wissen de tijdelijke
+kopie. Atomische rekenmachinepaste valideert de hele tekst vóór mutatie en
+start geen berekening. Copy wist vooraf oude inhoud; CtrlShiftDelete wist de
+vluchtige clipboard; compositorherstart begint leeg en behoudt de appmodellen.
+Geen nieuwe kernel-ABI, proces, apparaat-/opslag-/netwerkrecht of dependencyversie.
+Eerste capaciteit192 UTF-8-bytes met zichtbare weigering, zonder afkappen,
+historie, hele-document- of oude-antwoordfallback. Geen credential-/authclaim.
+
+**Bron en bewijs:** functionele d0ae570bd4666626096f92e57acef981c0f0d7b6,
+source-v3 05307fef9684d97480a77ea39050d80f6affcf522a6c09c7eb53340c789b35aa.
+Root-TCG/q35-8.2/qemu64/1CPU/256MiB/1280×720 slaagt in1196,887s,
+alle22fasen/raw33/clipboard_gate=true. Oorspronkelijke13fasen behouden,
+9clipboardfasen met werkelijk4Copy/5Paste/1Clear, roundtrip3→3+4,
+atomisch letters weigeren, clear en post-faultEmpty. Source/frame/ACK/fault/
+PID/epoch/werkbehoud en onafhankelijke diskoracle14bytes/rev1/canaries/cleanup0
+zijn gecontroleerd. Rawserialhashb5bd0b0e…72961. Run:
+build/clipboard-native/run/window-2efc331ed02d4f89bea34d7287840cde.
+Screenshot clipboard-calculator-copied.png is verliesloos uit de echtePPM.
+
+De finale e3182f0bba72f300596dd81417fbbd371a8d5d79 wijzigt daarna uitsluitend
+beide app-chain-hosttests. Volledige source-v3:
+038615b1b425d3f24ea2d9c52b36184ea666f81237c813303dc0fac93fb756ca.
+Herbouw op dezelfde omgeving geeft alle10binaireSHA256s identiek. Oude rootrun
+blijft op d0ae/source0530 gebonden. Alle18CI-workflows op e318 slagen. Echte
+CI-merge5754763ffb257d6420f74126cae7252e36afab1e/source0386 doorloopt dezelfde
+22fasen in1407,011s, native_gate/clipboard_gate/raw33,34hostorakels en17volledige
+appbody-pixelvergelijkingen. Opgeslagen beelden/serial/disk/8ingebeddeELFs en
+19normalepayloads/font/firmware zijn onafhankelijk teruggelezen. Geen masks.
+Bewijs: verification/native-clipboard-20261102/README.md met raw.gz en hashes.
+
+28client+40brokerhosttests/scalarbuilds; volledige UI/apphosttests/Clippy/fmt;
+46gerichte appketens voor opt-in/default-uit, echte focuscancel en transportverlies
+vóór én na serverACK zonder edit/eval/valseappACK.187Python-tooltests:184pass,
+3expliciete skips.16gerichte runner/latencychecks groen, zes overlappen die187.
+Geen menselijke audit. Fase-READY/GEN kan achterlopen op het juiste beeld:
+claim appbodypixels+echte inputACK, geen causale laatste-SUR-generatiegarantie.
+Tijdvelden omvatten host/QMP/observatie/capture, geen p95/whole-screen/scanout.
+De latencysample-recorder is gebouwd, zijn volledige workload niet uitgevoerd;
+TCG-schermopbouw blijft te traag. Geen performance- of veiligheidsvergelijking.
+
+**Windowspakket:** normale CI-bundel zonder crashcontroller:
+`/workspace/nieuw-os-windows-package/build/clipboard-e318/NieuwOS-klembord-e318-Windows-QEMU.zip`,
+SHA256 e29a6ca5933a0958b10238ae2f660237bbf5295c170d5c92146eb9d4ddf2fc3d.
+Alle19payloads/8ELFs/7fontinputs/firmware en fakeCheckOnly zonderstate/VM groen;
+20gerichtePython/22launcher/33helperchecks eenmaal groen. Een apart lokaal
+gebouwde ZIP heeft eigen hashes en wordt niet met CI vereenzelvigd. Nieuwe
+Windows/WHPX/SDL-runtime nog niet uitgevoerd in deze chat; lokale testchat heeft
+de exacte e318-bron en --clipboard opdracht gekregen. Geen hostinstellingen of
+fysieke schijven/doorgifte gewijzigd. Beide Linux-QEMU-proeven eindigden netjes.
+
+**Volgende stap:** U02-snelheid: meet invoer/focus/appwissel/plakken volgens het
+vooraf vastgelegde plan, onderzoek volledige1792tile-Materiaalhertekeningen en
+verminder onnodig werk/IPC zonder caller-/epoch-/bounds-/COMMIT-/deadlinechecks
+te schrappen. Complete-frame-100/250ms-doelen op de vaste WHPX-referentie blijven
+open; ruimere clipboardstreaming volgt apart. Eerstvolgende broninspectie:
+`rg -n 'paint_step|paint_tile|invalidate' sdk/examples/materiaal/src/lib.rs sdk/examples/calculator/src/app.rs ui/native/src/controller.rs`.
+Contracten: implementation/NATIVE-CLIPBOARD.md en GUI-IDLE-WAIT.md;
+meethelper tools/window_latency.py. Auth/sessiebroker/keyring-unlock/FIDO2,
+contextmenu/IME/toegankelijkheid en volledige releasecriteria blijven behouden.
 
 ## Vorig geïntegreerd checkpoint — desktop en GUI-idle
 

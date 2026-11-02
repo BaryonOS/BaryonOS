@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`41d02693`](https://github.com/simonvanieperen/nieuw-os/commit/41d02693083aa5262eee435c583680b566808489) ·
-**Ontwikkelbranch:** `codex/native-clipboard-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** U02 geselecteerde tekst delen en interactiebudgetten implementeren.
-De score blijft41/100. Een klein contract voor native CtrlC/CtrlV met eenmalige focus-/inputgebonden machtiging en atomische paste is vastgelegd. Broker en beide apps worden afzonderlijk gebouwd; latencyonderzoek behoudt echte beeld-/ACK-/herstelgrenzen. Nieuwe native acceptatie en volledige U02-interactiebudgetten zijn nog niet aangetoond; U02 blijft open.
+**Bron:** [`9863a526`](https://github.com/simonvanieperen/nieuw-os/commit/9863a52651504c4838d6826b3e1b2240ae0ed6b2) ·
+**Ontwikkelbranch:** `codex/mature-native-session-20261102`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Native klembord met eenmalige invoerrechten geïntegreerd en brongebonden getest.
+De score blijft 41/100. Native kopiëren, plakken en wissen tussen twee geïsoleerde apps werkt nu met focus- en invoergebonden rechten. Twee volledige TCG-routes doorlopen alle 22 fasen, inclusief crashherstel, leeg klembord na herstel, opslaan en onafhankelijke schijfcontrole. Alle 18 CI-workflows slagen; bronrapporten en Windows-testpakket zijn gecontroleerd. Dit geeft geen extra punten: U02 vereist ook volledige interactiebudgetten en dagelijkse dekking. De eerste tekstcapaciteit is 192 UTF-8-bytes; ruimere capaciteit, vloeiende bediening en echte authenticatie blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -68,10 +68,26 @@ geteste integratiehead slagen. Dit is geen algemene latency- of energiegarantie.
 python3 -B tools/build.py --kernel-feature native-window-session
 ```
 
-De roadmap steeg van 34 naar 41 door N01 en U01. U02, klembord, echte
+De roadmap steeg van 34 naar 41 door N01 en U01. U02, bredere klemborddekking, echte
 accountauthenticatie en de volledige testrelease blijven open.
 [U01-acceptatie](docs/verification/mature-session-20261102/U01-ACCEPTANCE.md) ·
 [idle-integratie en pakketbewijs](docs/verification/gui-idle-20261102/INTEGRATION.md).
+
+## Native klembord — 2 november 2026
+
+[PR #124](https://github.com/simonvanieperen/nieuw-os/pull/124) is in de
+desktopbranch opgenomen. Ctrl+C/Ctrl+V deelt geselecteerde tekst tussen Materiaal
+en Rekenmachine; Ctrl+Shift+Delete wist het klembord. Alleen de eigen huidige
+invoergebeurtenis en actieve venster geven één gebruik. Een vervallen actie
+verandert het document niet; compositorherstel begint met een leeg klembord.
+
+Twee volledige Linux/TCG-routes slagen met alle22fasen,34hostreferenties,
+17volledige appbeeldvergelijkingen, echt herstel en onafhankelijke schijfcontrole.
+Alle18CI-workflows zijn groen op de geteste bron. De eerste versie ondersteunt
+192UTF-8-bytes met zichtbare weigering zonder afkappen. Ruimere capaciteit,
+de volledige snelheidscriteria en echte authenticatie blijven open; **41/100**.
+[Contract](docs/implementation/NATIVE-CLIPBOARD.md) ·
+[Bron, native bewijs en Windows-testpakket](docs/verification/native-clipboard-20261102/README.md).
 
 ## Eerdere native sessiepreview — 2 november 2026
 

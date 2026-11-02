@@ -1444,3 +1444,32 @@ prestatieclaim. Herzien bij een event-driven inputprotocol, SMP of gewijzigde
 herstelstaten; U02 vereist nog klembord en volledige interactiebudgetten.
 Contract en brongebonden bewijs: implementation/GUI-IDLE-WAIT.md en
 verification/gui-idle-20261102/INTEGRATION.md.
+
+## ADR-056 — Klembord als eenmalige, focusgebonden tekstoverdracht
+
+**Datum:** 2 november2026. Het bestaande vertrouwde venstercompositorproces
+bemiddelt een vluchtig CLP1-klembord voor expliciet geselecteerde tekst. De
+bestaande app-inputendpoints en hun enige InputSession-eigenaar worden
+hergebruikt; geen nieuwe kernel-ABI, proces of apparaat-/opslag-/netwerkcap.
+Werkelijke PID, inputepoch, aangeboden CtrlC/CtrlV-Presssequence/generation,
+actuele focus en eenmalige brokerclaim zijn gezamenlijk vereist. Een
+appgeschreven intentlabel verleent niets. Pendingbackpressure bewaart alleen
+het ticket; iedere flush toetst opnieuw voordat plaintext wordt opgebouwd.
+
+Na een geldige leveringsresponse past de app tekst pas toe bij de echte
+inputACKAcknowledged. Superseded/transportfalen wist de tijdelijke kopie zonder
+edit. Reeds geënqueuede tekst kan de broker niet terughalen; intrekken stopt
+toekomstige grenspassages en is geen informatieflowgarantie. Copy wist oude
+clipboardinhoud al bij de vertrouwde toets, zodat lokale oversize/lege selectie
+geen stille oude-tekstfallback geeft. CtrlShiftDelete wist en trekt tickets in;
+compositorherstart begint leeg. Tekst staat nooit in logs/Debug of op schijf en
+eigen buffers worden met de bestaande gepinde zeroize gewist.
+
+De eerste versie heeft192 UTF-8-bytes zonder afkappen, geen historie, hele-doc-/
+antwoordfallback of automatisch uitvoeren. Dit blijft een afgebakende stap:
+U02 en bredere capaciteit/formaten/interactiebudgetten blijven open. Een
+verloren DeleteRelease kan na een clear conservatief één Delete-cyclus inslikken;
+de latch voorkomt dat een oude clear-repeat documenttekst wist. Herzien bij
+streaming, meer apps, veilige accountvelden of een echte sessiegrens.
+Contract, bron en nog lopende native gate: implementation/NATIVE-CLIPBOARD.md
+en verification/native-clipboard-20261102/.
