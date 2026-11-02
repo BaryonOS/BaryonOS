@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nieuw-os.invalid/docs/audit/os-completeness/matrix.schema.json",
+  "title": "Nieuw OS completeness audit matrix",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "audit_basis", "items"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "audit_basis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["branch", "commit", "date"],
+      "properties": {
+        "branch": { "type": "string", "minLength": 1 },
+        "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "date": { "type": "string", "format": "date" }
+      }
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/item" }
+    }
+  },
+  "$defs": {
+    "nonemptyStrings": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "domain", "feature", "status", "evidence_levels",
+        "release_profile", "priority", "implemented_on", "evidence",
+        "limitations", "blockers", "dependencies", "acceptance_criteria",
+        "recommended_next_step", "complexity", "impacts"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Z0-9][A-Z0-9-]+$" },
+        "domain": { "type": "string", "minLength": 1 },
+        "feature": { "type": "string", "minLength": 1 },
+        "status": {
+          "enum": [
+            "DONE", "PARTIAL", "PROTOTYPE", "DOCUMENTED", "MISSING",
+            "BLOCKED", "DEFERRED", "NOT_RECOMMENDED"
+          ]
+        },
+        "evidence_levels": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "SOURCE_ONLY", "HOST_TESTED", "VM_TESTED", "HARDWARE_TESTED",
+              "HUMAN_TESTED", "INDEPENDENTLY_REVIEWED", "RELEASE_VALIDATED"
+            ]
+          }
+        },
+        "release_profile": {
+          "enum": [
+            "TECHNICAL_PREVIEW", "EXPERIMENTAL_DESKTOP",
+            "DAILY_DRIVER_BETA", "CONSUMER_RELEASE"
+          ]
+        },
+        "priority": {
+          "enum": [
+            "P0_RELEASE_BLOCKER", "P1_DAILY_USE_CRITICAL",
+            "P2_ADOPTION_CRITICAL", "P3_DIFFERENTIATOR", "P4_LATER",
+            "RESEARCH"
+          ]
+        },
+        "implemented_on": { "$ref": "#/$defs/nonemptyStrings" },
+        "evidence": { "$ref": "#/$defs/nonemptyStrings" },
+        "limitations": { "$ref": "#/$defs/nonemptyStrings" },
+        "blockers": { "$ref": "#/$defs/nonemptyStrings" },
+        "dependencies": { "$ref": "#/$defs/nonemptyStrings" },
+        "acceptance_criteria": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "recommended_next_step": { "type": "string", "minLength": 1 },
+        "complexity": {
+          "enum": ["small", "medium", "large", "very_large", "research_program"]
+        },
+        "impacts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["user", "security", "accessibility"],
+          "properties": {
+            "user": { "type": "string", "minLength": 1 },
+            "security": { "type": "string", "minLength": 1 },
+            "accessibility": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    }
+  }
+}
