@@ -30,7 +30,7 @@
     "Gecombineerde pixeloracle vond echte stale-caretpixels: Layout::new miste de latere toolbarverplaatsing. Herstel controllerlayout en damage naar dezelfde for_screen/proportionele metrics als rendering; behoud ongewijzigde exacte oracle en >=90%-sendbudget.",
     "Een afzonderlijke rood/groen-regressie bevestigt dat de nieuwe apppalette Super+L, F3 en Menu niet vóór de vertrouwde shell mag consumeren. Geef die en de bestaande native F10/F12-routes voorrang; sluit en beschadig de oude palette volledig."
   ],
-  "validation": "Gerichte retentie-, proportionele damage- en shelltests geslaagd. Volledige gecombineerde host/lint/native/build-controles volgen in het brongebonden eindrapport.",
+  "validation": "Gecombineerde hosttests, fmt/Clippy, echte native targetchecks, volledige achtproces-window-build, werkelijke kernel-ELF-parser en vijf regressies voor de expliciet geautoriseerde documentdelta slagen. Exacte commando's, exits, aantallen, loghashes en source-v3 staan in stack130-validation.json. Geen nieuwe native runtime uitgevoerd.",
   "limits": [
     "QEMU/OVMF lokaal niet beschikbaar: geen boot-, runtime-, koude VM-, native pixel-, clipboardherstel- of Windows/WHPX-claim.",
     "PR130-uitbreiding 024cede1..13782f92 is daarna expliciet geautoriseerd, concreet gelezen en geïntegreerd. Het zijn uitsluitend 18 document-/bewijsbestanden; geen bronconflict en source-v3 onveranderd. Verdere ongelezen live drift wordt niet opgenomen.",
