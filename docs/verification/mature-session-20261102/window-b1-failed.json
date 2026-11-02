@@ -1,0 +1,19 @@
+{
+  "source_commit": "b1b292aadf244dacf029b7307aebdc6103756e0d",
+  "source_sha256": "f483ad51a7b0702c44baee136fd37bbbe993e2f03dd596d309a90bb6f14182e4",
+  "passed": false,
+  "native_gate": false,
+  "raw_qemu_exit": 35,
+  "duration_s": 314.717197381,
+  "stop_reason": "Natural guest failure; no signal sent by root. Compositor retirement succeeded, then Materiaal step18 because old mask31/pause0 emitted Rebind before any fresh group existed. Independently reproduced in CI.",
+  "serial_sha256": "84270089635b750017f1888919b69edce31c9727ad1226c7ca4f09a680160ede",
+  "phases": {
+    "boot": 110.23310197300088,
+    "initial": 113.51033558700146,
+    "editor": 185.46359876499992,
+    "dirty": 266.5190396800026,
+    "calculated": 308.77322873999947,
+    "moved": 314.2259153640007
+  },
+  "scope": "No recovery/save/disk/cleanup acceptance or U01 points."
+}

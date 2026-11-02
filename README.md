@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **37** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`ad8fbed2`](https://github.com/simonvanieperen/nieuw-os/commit/ad8fbed2f411a09fab6717c0863f0e067450f4a3) ·
+**Bron:** [`fdc2861d`](https://github.com/simonvanieperen/nieuw-os/commit/fdc2861dee3ad2ccd8505fe4467f1f9c39392e3c) ·
 **Ontwikkelbranch:** `codex/mature-native-session-20261102`.
-Deze opdracht: **37% → 37% (+0 procentpunt)**. **Opdracht:** Volledige native herhaling na typed presentatie-retirement.
-37/100 blijft gelijk. De werkelijke compositorherstelblokkade is gerepareerd met init-only retirement van oude presentatiekanalen vóór pauseACKs; echte-Engine en appcleanup/bindingnegatieven slagen. Read-only ownerpreflight voorkomt gedeeltelijke mutatie bij ongeldige appowner. Gerichte host/Clippy/formatters en179 Pythonchecks slagen; de volledige nieuwe native gate volgt. ABI1.11-wachten, snapshotwipe, Actionsvenstergate en fontnotices zijn geïntegreerd. RANDOMraw slaagt lokaal en in echteCI48267b6; de eerdere foutoorzaak en fragiele fixturetiming blijven afgebakend gedocumenteerd. LokaleCPUproef op oude344 bevestigt vCPU-busy zonderSDL, geen nieuwebronclaim. U01/U02 krijgen geen punten vooruit.
+Deze opdracht: **37% → 37% (+0 procentpunt)**. **Opdracht:** Werkelijk native herstel testen na expliciete generatie- en fasegating.
+37/100 blijft gelijk. B1 faalde werkelijk in cloud en CI: retirement werkte, maar oude readiness veroorzaakte te vroeg Rebind. De nieuwe Recovery helper bindt Pause/Ready/RebindAck aan expliciete fases en gevalideerde nieuwe groepsidentiteit; zes regressies en gerichte reviews slagen. Korte echte herstelhandshake volgt vóór de volledige pixel/werk/save/disk/cleanup-gate; die diagnose geeft nooit U01-punten. Launcher controleert alle19 payloads inclNoto-notices; root22PS/20packagertests groen. N01 en huidige native fundamenten blijven afzonderlijk geaccepteerd. RANDOMCI48267b6 slaagt, fixturetiming blijft afgebakend open. Lokale Windowsadapter en aparte idlebranch zijn afgestemd, geen nieuwebronruntimeclaim.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

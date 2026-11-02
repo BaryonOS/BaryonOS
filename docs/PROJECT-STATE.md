@@ -1,58 +1,56 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — retirementfix geïntegreerd; volledige herhaling — 2 november 2026
+## NEXT AGENT HANDOFF — expliciete herstelstaten; korte native handshake eerst — 2 november 2026
 
 Branch `codex/mature-native-session-20261102`, concept-PR #122 op #121.
-Laatste functionele commit `ad8fbed2f411a09fab6717c0863f0e067450f4a3`, source-v3
-`f483ad51a7b0702c44baee136fd37bbbe993e2f03dd596d309a90bb6f14182e4`. Score **37/100**; N01 geaccepteerd, U01/U02 open.
-Na deze docscheckpoint/push blijft alle bron bevroren tijdens native acceptatie.
+Laatste functionele commit `fdc2861`, source-v3 `3919403542c923bc86467db3184345159a5ce6881567a0e11baa85f2d39f1995`.
+Score **37/100**: N01 geaccepteerd; U01/U02 blijven open. Bron na checkpoint
+bevriezen. De nieuwe generatie-/stagefix is host/review/crossbuild-groen,
+maar moet nog werkelijk native slagen.
 
-De rode2bb-run is volledig behouden: initial/editor/dirty/calculated/moved exact,
-echte compositorud2(slot4/vector6), daarna init15; geen U01/save/disk/cleanup-pass.
-Ontbrekende pauseACKs ontstonden door app-owned replyRX die na compdeath openbleef.
-SUR/INP-RPC wachtte EAGAIN en blokkeerde de appcontrol-loop.
+Vorige b1 is afgekeurd, niet meer als eindfreeze gebruiken. M4/IPCwait/N01
+slagen, vensterboot110,24/editor185,47/dirty266,52/calculated308,78/moved314,23s
+exact; compud2 en PRESENTATION_RETIRED1 daarna Matstep18, naturalraw35 na314,717s.
+CI reproduceert hetzelfde in150,412s. Oorzaak: oude mask31/pause0 veroorzaakte
+Rebind8 vóór PauseACK/restart. Resultaat/rawgzip/CI-hashes zijn bewaard onder
+verification/mature-session-20261102/window-b1-* en window-ci-b1-failed.json.
 
-Nu geïntegreerd: onuitgebrachte window-only0x53/a2=1 retireert uitsluitend de
-vier kernel-recorded presentationleaves per app, onder dezelfde init/Launch/dead
-CompProcessrechten. Geen PID/epoch/allocation/storage/controlwijziging; oude
-Processcap blijft. Beide appowners worden read-only gepreflight; Dead/Dying/
-ontbrekende owner en onjuiste callers/args falen vóór mutatie. Onmogelijke
-commitfouten stoppen de kernel. Init retireert vóór Pause7; pas na echteACK3
-volgt bestaande volledige restartpreflight en Ready/Rebind. Geen deadline/POLL-
-of pixelversoepeling. Session.retire normaliseert exactBadHandle per afzonderlijke
-handle, behoudt alle andere fouten en sluit beide owners ook bij deels lokaal
-closed toestand. Draft/berekening blijven behouden. Zie
-`verification/window-presentation-retirement-20261102.md`.
+Nu geïntegreerd: echte Recovery helper met AwaitPause→AwaitFreshReady→
+AwaitRebindAck; mask3 bij begin/install. ACK7 alleen in Pause, ACK8 alleen in
+RebindAck, READY uitsluitend in FreshReady met huidige PID/gen/epochs. Alleen
+na echte beidepauseACKs, geslaagde0x53 en gevalideerde verseBoot gaat de helper
+naar FreshReady. Alle drieREADY en exacteinstalledGroup zijn nodig voor8;
+stage verandert vóór beide sends en voorkomt dubbele8. Zes daadwerkelijke
+helperregressies plus twee gerichte read-only agentreviews vinden geen blocker.
+Bestaande typed retirement, beideownerpreflight, per-handleBadHandlecleanup,
+alle model-/identity-/epoch-/pixelguards blijven. Geen timeout/POLLverruiming.
 
-Host actual-Engine regressies reproduceren pending PEEK/ACK/SUR na peerexit en
-bewijzen einde binnen éényield na retirement. Appmixed-owner-/bindingnegatieven
-slagen; gerichte root-SUR/input/Mat/Calc-tests, strictClippy en formatters groen.
-Alle179 Python-toolchecks slagen; packager20 en SDK30+3doctests/Clippy groen.
-Agent bouwde alle8ELFs+kernel/loader; de volledige nieuwe native gate volgt nu.
+Root voegde --recovery-handshake-only toe aan run_window_session: wacht op
+werkelijk eerstecommit, echteF12, kernelretirement/gen2 en Rec1/nieuweCompPID;
+QMPquit0. Deze diagnose is altijd smoke_only=true/native_gate=false en bewijst
+geen frames, werkbehoud, opslag of cleanup. Eerst die goedkope native route,
+daarnade volledige1800s-route op exactdezelfdebron met18hostoracles/13nativebeelden.
 
-Ook geïntegreerd: ABI1.11 gebruikt bestaande keyring/volume-wachtpaden met
-RANDOM/adminuitzonderingen; volledige volatile snapshotwipe zonder temps;
-falende runner bewaart exit/duur/QMPtrace; nieuwe Actionsgate produceert normale
-WindowsZIP pas na echte native pass; alle bekende OpenSans/Noto-fontnotices in ZIP.
-Compositor/Mat/Calc/init bevatten nog Ready-idleloops; U02 blijft open.
-De lokale chat bevestigde op oude344-bundel headless vrijwel100% éénvCPU actief
-tegen0,1042% gepauzeerd, met exacteframes. Dit is gerapporteerd oud-bronbewijs,
-geen nieuweprofielmeting of gastprocesattributie; zie local-idle-344-reported.json.
+Verder geïntegreerd: launcher hashcheckt nu ook alle3 Noto-notices; root22
+synthetischePowerShell en20packagertests slagen. Accelerationhelperfc506... is
+onveranderd. ABI1.11-parkingkeyring/volume en complete volatile snapshotwipe blijven.
+RANDOM foundation slaagt in echte48267b6CI; vroegere fout is niet gereproduceerd,
+hostcounterexample64RPC/100tick blijft bekend en diagnose beschikbaar.
 
-RANDOMraw-diagnostiek is geïntegreerd zonderrandombytes/policy/quotawijziging.
-Eén44346ad-localrun slaagt8,755s; echteCI48267b6 foundation slaagtinclraw9,3s.
-De oude2bb-CIerror15 is niet exact gereproduceerd. Hostcounterexample toont nog
-een fragiele64RPC/100tick-aanname; geen blinde retries/skip/quotaverhoging. Alleen
-bij een echte volgendefout de niet-geheimeDIAGvelden gebruiken; dit bewijst geen
-product-randomfout of structurele oplossing voor de fixturetiming.
+Geautoriseerde lokalechat01a19c13-c83d-7781-8f61-de0541ac6d95 bereidt Windows-
+QMPadapter buiten bron/OneDrive voor (originele runner, geen guards versoepeld).
+B1 geen meetreeks meer. Die chat bezit uitsluitend een afzonderlijke idlebranch
+vanaf b1: compositor/window-init en Materiaal/Calc quiescent IPC_WAIT-onderzoek,
+geen kernel/ABI/rechten/timeoutwijzigingen. Cloudroot neemt dat niet stil over;
+nieuwefreeze eerst doorgeven, diff en apartebrongebondenA/B-evidence vragen.
+Oud344-PCidlebewijs blijft apart gerapporteerd (geen nieuwebronclaim).
 
-Eerstvolgend: geactiveerde omgeving; native M4/IPCwait/N01normal+exit en volledige
-1800s-windowprobe op bronfreeze. Root gebruikt build/window-final +
-target/window-final en /tmp/window-retired-native.log. U01 alleen +4 bij alle
-focus/drag/fault/retire/rebind/behoud/pixel/save/disk/cleanup-asserties. Daarna
-normale Windowsbundel op exactdiebron/hash en lokaleWHPX/TCGoverdracht. Laat
-oude2bb/03e-kandidaten intact; geen oudeZIP als eindpakket labelen.
-Geen fysieke schijven/hostinstellingen/passthrough; andere integrator houdtmerges.
+Eerstvolgend: activate omgeving, build native-window-session-probe in
+build/window-final/target/window-final; kortehandshake --timeout120, daarna
+volledige --timeout1800 met explicieteSeaBIOS/VGA-ROMs. Geen andereVM tegelijk.
+Na echtepass U01 pas+4; normale Windowsbundle exactfreeze opnieuw bouwen,
+19payloads/8ELFs/fontlicenses/PSchecks bevestigen, lokaleWHPX/TCGoverdracht.
+Geen hostinstellingen/fysieke schijven/passthrough. Andere integrator houdtmerges.
 
 ## Vorige afgeronde checkpoint — native sessiepreview
 
