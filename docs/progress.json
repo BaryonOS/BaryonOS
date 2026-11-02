@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "2b479c1f5667976f98d3c22bcd1d81e21c6cd923",
+    "source_commit": "4b044f5e769053c851863693963657e934725133",
     "branch": "simonvanieperen-studious-waddle",
     "task": "Issues oplossen: PR #125-review, overdrachtsregistratie en NAS-tokenredactie",
     "previous_score": 34,

@@ -32,7 +32,7 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`2b479c1f`](https://github.com/simonvanieperen/nieuw-os/commit/2b479c1f5667976f98d3c22bcd1d81e21c6cd923) ·
+**Bron:** [`4b044f5e`](https://github.com/simonvanieperen/nieuw-os/commit/4b044f5e769053c851863693963657e934725133) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-waddle`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Issues oplossen: PR #125-review, overdrachtsregistratie en NAS-tokenredactie.
 34/100 blijft 34/100; geen rubriccriterium is nieuw geaccepteerd. PR #120 en #115/#119-gerelateerde wijzigingen voor #109/#110 zijn opgenomen in PR #125, nog niet in main. De eerdere tokenarchiveringsfix blijft gecontroleerd vóór archivering; de reviewdelta voegt een strikte allowlist voor NAS-foutdiagnostiek toe en verduidelijkt de replayvalidatiegrens. De gerichte NAS-runner-suite slaagt met 20 hosttests; git diff --check slaagt. Alle relevante checks en CodeRabbit waren groen op exacte PR-head 2b479c1 vóór deze lokale delta; nieuwe delta-CI is nog niet uitgevoerd. Simon heeft op 2 november het exclusieve integratormandaat overgedragen en de #85/#76-pauze expliciet opgeheven, met behoud van alle gates. #109/#110 blijven open tot aantoonbare main-integratie; #39–#43 blijven open wegens ontbrekende volledige native, fysieke of routeacceptatie. Hostbewijs, planning en deelproeven leveren geen punten.
