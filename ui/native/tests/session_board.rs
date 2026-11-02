@@ -291,6 +291,7 @@ fn render_eight_session_states_at_reference_resolutions() {
             }
             for (width, height, scale) in PROFILES {
                 let mut scene = Scene::new(width, height, scale, [1, 2]).unwrap();
+                scene.pointer = (width - 24 * scale, height - 88 * scale);
                 let backing = app_backing(&scene);
                 let mut images = Vec::new();
                 scene.shell = Shell::new(true);
