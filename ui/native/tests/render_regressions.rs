@@ -7,6 +7,8 @@ use nieuw_os_materiaal::{
 };
 
 fn view<'a>(viewport: Viewport, objects: &'a [ListEntry]) -> View<'a> {
+    static WORKSPACE: nieuw_os_materiaal::workspace::Workspace =
+        nieuw_os_materiaal::workspace::Workspace::new();
     View {
         draw_pointer: true,
         desktop: None,
@@ -17,10 +19,12 @@ fn view<'a>(viewport: Viewport, objects: &'a [ListEntry]) -> View<'a> {
         focus: Focus::New,
         status: Status::Ready,
         objects,
+        workspace: &WORKSPACE,
         list_loaded: true,
         list_scroll: 0,
         contents: None,
         title: b"Materiaal",
+        revision: 0,
         caret: 0,
         anchor: 0,
         scroll: 0,
@@ -117,6 +121,7 @@ fn primary_buttons_preserve_accent_and_focus_when_hovered_at_both_scales() {
                 Screen::Material => layout.new,
                 Screen::Editor => layout.save,
                 Screen::ConfirmClose => layout.modal_save,
+                _ => unreachable!("this test enumerates only primary screens"),
             };
             state.cursor = Some(((button.x + 8) * factor, (button.y + 8) * factor));
             let hovered = Frame::new(state);

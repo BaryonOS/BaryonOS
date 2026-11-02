@@ -7,7 +7,7 @@ use nieuw_os_graphics::{Canvas, Font, Icon, Rect as GraphicRect, Size, Weight};
 
 pub const MAX_TEXT_ROWS: usize = 48;
 /// Fixed material nodes, pagination controls and one entry per domain object.
-pub const MAX_SEMANTIC_NODES: usize = 8 + volume_core::PER_DOMAIN;
+pub const MAX_SEMANTIC_NODES: usize = 24 + volume_core::PER_DOMAIN;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Layout {
@@ -17,6 +17,16 @@ pub struct Layout {
     pub save: Rect,
     pub editor: Rect,
     pub status: Rect,
+    pub search: Rect,
+    pub filter: Rect,
+    pub rename: Rect,
+    pub organize: Rect,
+    pub history: Rect,
+    pub workspace_panel: Rect,
+    pub form_input: Rect,
+    pub form_confirm: Rect,
+    pub form_cancel: Rect,
+    pub preview: Rect,
     pub list_bottom: u32,
     pub list_top: u32,
     pub title_y: u32,
@@ -36,7 +46,7 @@ impl Layout {
         let width = viewport.logical_width();
         let height = viewport.logical_height();
         let compact = height < 360;
-        let controls_y = if compact { 64 } else { 80 };
+        let controls_y = if compact { 48 } else { 80 };
         let sidebar_width = if width >= 960 {
             208
         } else if width >= 720 {
@@ -57,7 +67,71 @@ impl Layout {
             height: 208,
         };
         let modal_button = (modal.width - 40) / 2;
+        let panel = Rect {
+            x: 16,
+            y: 16,
+            width: width - 32,
+            height: height - 80,
+        };
+        let short = height < 360;
+        let form_y = panel.y + if short { 44 } else { 100 };
+        let footer_y = panel.y + panel.height - 48;
         Self {
+            search: Rect {
+                x: content_left,
+                y: if compact { 96 } else { 140 },
+                width: width - content_left - d::PAD - 136,
+                height: 44,
+            },
+            filter: Rect {
+                x: width - d::PAD - 128,
+                y: if compact { 96 } else { 140 },
+                width: 128,
+                height: 44,
+            },
+            rename: Rect {
+                x: 136,
+                y: d::PAD,
+                width: 104,
+                height: 44,
+            },
+            organize: Rect {
+                x: 248,
+                y: d::PAD,
+                width: 104,
+                height: 44,
+            },
+            history: Rect {
+                x: 360,
+                y: d::PAD,
+                width: 132,
+                height: 44,
+            },
+            workspace_panel: panel,
+            form_input: Rect {
+                x: panel.x + 16,
+                y: form_y,
+                width: panel.width - 32,
+                height: 44,
+            },
+            form_confirm: Rect {
+                x: panel.x + panel.width / 2 + 4,
+                y: footer_y,
+                width: panel.width / 2 - 20,
+                height: 44,
+            },
+            form_cancel: Rect {
+                x: panel.x + 16,
+                y: footer_y,
+                width: panel.width / 2 - 20,
+                height: 44,
+            },
+            preview: Rect {
+                x: panel.x + 16,
+                y: panel.y + 164,
+                width: panel.width - 32,
+                height: panel.height.saturating_sub(232),
+            },
             new: Rect {
                 x: content_left,
                 y: controls_y,
@@ -89,28 +163,28 @@ impl Layout {
             },
             editor: Rect {
                 x: d::PAD,
-                y: 144,
+                y: if compact { 112 } else { 160 },
                 width: width - 2 * d::PAD,
-                height: height - 208,
+                height: height - if compact { 176 } else { 224 },
             },
             status: Rect {
                 x: content_left,
-                y: height - 48,
+                y: height - if compact { 24 } else { 48 },
                 width: width - content_left - d::PAD,
-                height: 48,
+                height: if compact { 24 } else { 48 },
             },
-            list_bottom: height - 56,
-            list_top: if compact { 120 } else { 144 },
+            list_bottom: height - if compact { 24 } else { 56 },
+            list_top: if compact { 144 } else { 204 },
             title_y: if compact { 16 } else { 20 },
             list_previous: Rect {
                 x: width - d::PAD - 96,
-                y: if compact { 8 } else { 20 },
+                y: if compact { 4 } else { 20 },
                 width: 44,
                 height: 44,
             },
             list_next: Rect {
                 x: width - d::PAD - 44,
-                y: if compact { 8 } else { 20 },
+                y: if compact { 4 } else { 20 },
                 width: 44,
                 height: 44,
             },
@@ -137,6 +211,93 @@ impl Layout {
             content_left,
             sidebar_width,
             scale: viewport.scale(),
+        }
+    }
+    pub fn for_screen(viewport: Viewport, screen: Screen) -> Self {
+        let mut layout = Self::new(viewport);
+        let (width, height) = (viewport.logical_width(), viewport.logical_height());
+        let compact = height < 360;
+        let max = match screen {
+            Screen::Rename => 272,
+            Screen::Organize => 328,
+            _ => 464,
+        };
+        let pw = (width - if compact { 16 } else { 32 }).min(760);
+        let ph = (height - if compact { 48 } else { 80 }).min(max);
+        let panel = Rect {
+            x: (width - pw) / 2,
+            y: (height - 48 - ph) / 2,
+            width: pw,
+            height: ph,
+        };
+        layout.workspace_panel = panel;
+        layout.form_input = Rect {
+            x: panel.x + 16,
+            y: panel.y + if compact { 36 } else { 100 },
+            width: panel.width - 32,
+            height: 44,
+        };
+        layout.form_confirm = Rect {
+            x: panel.x + panel.width / 2 + 4,
+            y: panel.y + panel.height - 48,
+            width: panel.width / 2 - 20,
+            height: 44,
+        };
+        layout.form_cancel = Rect {
+            x: panel.x + 16,
+            y: panel.y + panel.height - 48,
+            width: panel.width / 2 - 20,
+            height: 44,
+        };
+        layout.preview = Rect {
+            x: panel.x + 16,
+            y: panel.y + 164,
+            width: panel.width - 32,
+            height: panel.height.saturating_sub(232),
+        };
+        layout
+    }
+    pub fn collection_slot(self, index: usize) -> Rect {
+        let gap = 8;
+        let width = (self.workspace_panel.width - 32 - 3 * gap) / 4;
+        Rect {
+            x: self.workspace_panel.x + 16 + index as u32 * (width + gap),
+            y: self.form_input.y
+                + if self.workspace_panel.height < 240 {
+                    48
+                } else {
+                    52
+                },
+            width,
+            height: 44,
+        }
+    }
+    pub fn filter_slot(self, index: usize) -> Rect {
+        let columns = if self.workspace_panel.height < 280 {
+            3
+        } else {
+            2
+        };
+        let width = (self.workspace_panel.width - 32 - (columns - 1) * 8) / columns;
+        Rect {
+            x: self.workspace_panel.x + 16 + (index as u32 % columns) * (width + 8),
+            y: self.workspace_panel.y + 52 + (index as u32 / columns) * 48,
+            width,
+            height: 44,
+        }
+    }
+    pub fn history_slot(self, selector: usize) -> Rect {
+        let width = (self.workspace_panel.width - 40) / 2;
+        Rect {
+            x: self.workspace_panel.x + 16 + (selector.saturating_sub(1) as u32) * (width + 8),
+            y: self.workspace_panel.y
+                + if self.workspace_panel.height < 280 {
+                    48
+                } else {
+                    100
+                },
+            width,
+            height: 44,
         }
     }
     pub fn text_font(self) -> Font {
@@ -191,7 +352,7 @@ pub struct Frame<'a> {
 }
 impl<'a> Frame<'a> {
     pub fn new(view: View<'a>) -> Self {
-        let layout = Layout::new(view.viewport);
+        let layout = Layout::for_screen(view.viewport, view.screen);
         let mut frame = Self {
             view,
             layout,
@@ -277,9 +438,13 @@ impl<'a> Frame<'a> {
         }
         let layout = self.layout;
         match self.view.screen {
-            Screen::Material => {
+            Screen::Material | Screen::Filter => {
                 paint.material_chrome(layout, viewport);
-                paint.title(layout.content_left, layout.title_y, "Materiaal");
+                if viewport.logical_height() < 360 {
+                    paint.medium(layout.content_left, 12, "Materiaal", d::TEXT);
+                } else {
+                    paint.title(layout.content_left, layout.title_y, "Materiaal");
+                }
                 if self.view.list_scroll > 0 || self.view.objects.len() > layout.list_rows() {
                     paint.arrow(
                         layout.list_previous,
@@ -321,6 +486,20 @@ impl<'a> Frame<'a> {
                         ButtonStyle::Secondary,
                     );
                 }
+                paint.field(
+                    layout.search,
+                    self.view.workspace.query(),
+                    "Zoek in je materiaal",
+                    self.view.focus == Focus::Search,
+                    false,
+                );
+                paint.button(
+                    layout.filter,
+                    "Collecties",
+                    self.view.focus == Focus::Filter,
+                    true,
+                    ButtonStyle::Secondary,
+                );
                 if !self.view.list_loaded {
                     paint.wrapped(
                         layout.content_left,
@@ -453,7 +632,11 @@ impl<'a> Frame<'a> {
                     }
                 }
             }
-            Screen::Editor | Screen::ConfirmClose => {
+            Screen::Editor
+            | Screen::ConfirmClose
+            | Screen::Rename
+            | Screen::Organize
+            | Screen::History => {
                 paint.button(
                     layout.back,
                     "Terug",
@@ -482,8 +665,58 @@ impl<'a> Frame<'a> {
                         ButtonStyle::Primary
                     },
                 );
+                if viewport.logical_width() >= 700 {
+                    paint.button(
+                        layout.rename,
+                        "Hernoemen",
+                        self.view.focus == Focus::Rename,
+                        self.view.can_save && !self.view.saving,
+                        ButtonStyle::Secondary,
+                    );
+                    paint.button(
+                        layout.organize,
+                        "Ordenen",
+                        self.view.focus == Focus::Organize,
+                        self.view.can_save && !self.view.saving,
+                        ButtonStyle::Secondary,
+                    );
+                    paint.button(
+                        layout.history,
+                        "Geschiedenis",
+                        self.view.focus == Focus::History,
+                        self.view.can_save && !self.view.saving,
+                        ButtonStyle::Secondary,
+                    );
+                }
                 let title = core::str::from_utf8(self.view.title).unwrap_or("Naam niet leesbaar");
-                paint.wrapped(d::PAD, 80, title, layout.editor.width, d::TEXT);
+                paint.elided(
+                    d::PAD,
+                    if viewport.logical_height() < 360 {
+                        76
+                    } else {
+                        84
+                    },
+                    title,
+                    layout.editor.width,
+                    Size::Title,
+                    Weight::Semibold,
+                    d::TEXT,
+                );
+                if viewport.logical_height() >= 360 {
+                    let mut metadata = Label::new();
+                    use core::fmt::Write;
+                    let _ = write!(
+                        &mut metadata,
+                        "Op dit apparaat  ·  {}  ·  Revisie {}",
+                        if self.view.editable {
+                            "Lezen en bewerken"
+                        } else {
+                            "Alleen lezen"
+                        },
+                        self.view.revision
+                    );
+                    paint.small(d::PAD, 128, metadata.as_str(), d::MUTED);
+                }
                 paint.outlined(layout.editor, d::SURFACE, d::BORDER, d::CONTROL_RADIUS);
                 if self.view.focus == Focus::Document && self.view.screen == Screen::Editor {
                     paint.focus(layout.editor);
@@ -576,6 +809,12 @@ impl<'a> Frame<'a> {
                 },
                 d::ACCENT,
             );
+        }
+        if matches!(
+            self.view.screen,
+            Screen::Rename | Screen::Organize | Screen::History | Screen::Filter
+        ) {
+            paint.workspace(self.view, layout);
         }
         if self.view.screen == Screen::ConfirmClose {
             // Opaque application-local backdrop: no half-obscured controls or
@@ -725,10 +964,14 @@ impl<'a> Frame<'a> {
                     enabled,
                     actions: SemanticActions {
                         activate: enabled && matches!(role, Role::Button | Role::ListItem),
-                        set_value: enabled && role == Role::TextEditor && self.view.editable,
+                        set_value: enabled
+                            && role == Role::TextEditor
+                            && (self.view.editable || id == SemanticId::LibrarySearch),
                     },
-                    read_only: role == Role::TextEditor && !self.view.editable,
-                    selection: if role == Role::TextEditor {
+                    read_only: role == Role::TextEditor
+                        && !self.view.editable
+                        && id != SemanticId::LibrarySearch,
+                    selection: if id == SemanticId::Document {
                         Some((self.view.anchor, self.view.caret))
                     } else {
                         None
@@ -790,6 +1033,26 @@ impl<'a> Frame<'a> {
                     None,
                     l.refresh,
                     Some(Focus::Refresh),
+                    true,
+                );
+                push(
+                    SemanticId::LibrarySearch,
+                    Some(SemanticId::Window),
+                    Role::TextEditor,
+                    "Zoek in je materiaal · Ctrl+F",
+                    Some(self.view.workspace.query()),
+                    l.search,
+                    Some(Focus::Search),
+                    true,
+                );
+                push(
+                    SemanticId::CollectionFilter,
+                    Some(SemanticId::Window),
+                    Role::Button,
+                    "Collectie kiezen",
+                    None,
+                    l.filter,
+                    Some(Focus::Filter),
                     true,
                 );
                 push(
@@ -859,6 +1122,39 @@ impl<'a> Frame<'a> {
                 }
             }
             Screen::Editor => {
+                if self.view.viewport.logical_width() >= 700 {
+                    for (id, focus, bounds, label) in [
+                        (
+                            SemanticId::Rename,
+                            Focus::Rename,
+                            l.rename,
+                            "Naam wijzigen · F2",
+                        ),
+                        (
+                            SemanticId::Organize,
+                            Focus::Organize,
+                            l.organize,
+                            "Ordenen in collectie · Ctrl+G",
+                        ),
+                        (
+                            SemanticId::History,
+                            Focus::History,
+                            l.history,
+                            "Versiegeschiedenis · Alt+H",
+                        ),
+                    ] {
+                        push(
+                            id,
+                            Some(SemanticId::Window),
+                            Role::Button,
+                            label,
+                            None,
+                            bounds,
+                            Some(focus),
+                            self.view.can_save && !self.view.saving,
+                        );
+                    }
+                }
                 push(
                     SemanticId::Back,
                     Some(SemanticId::Window),
@@ -896,6 +1192,135 @@ impl<'a> Frame<'a> {
                     l.editor,
                     Some(Focus::Document),
                     !self.view.saving,
+                );
+            }
+            Screen::Rename | Screen::Organize | Screen::History | Screen::Filter => {
+                let workspace = self.view.workspace;
+                let parent = Some(SemanticId::Window);
+                if matches!(self.view.screen, Screen::Rename | Screen::Organize) {
+                    push(
+                        SemanticId::FormInput,
+                        parent,
+                        Role::TextEditor,
+                        if self.view.screen == Screen::Rename {
+                            "Documentnaam"
+                        } else {
+                            "Collectienaam"
+                        },
+                        Some(workspace.form()),
+                        l.form_input,
+                        Some(Focus::FormInput),
+                        true,
+                    );
+                    push(
+                        SemanticId::FormConfirm,
+                        parent,
+                        Role::Button,
+                        if self.view.screen == Screen::Rename {
+                            "Naam toepassen"
+                        } else {
+                            "Bewaren in collectie"
+                        },
+                        None,
+                        l.form_confirm,
+                        Some(Focus::FormConfirm),
+                        self.view.can_save,
+                    );
+                }
+                if self.view.screen == Screen::Organize {
+                    for i in 0..volume_core::COLLECTIONS {
+                        let name = core::str::from_utf8(workspace.collections()[i].name())
+                            .unwrap_or("Naam niet leesbaar");
+                        push(
+                            SemanticId::CollectionSlot(i),
+                            parent,
+                            Role::Button,
+                            if name.is_empty() {
+                                "Nieuwe collectie"
+                            } else {
+                                name
+                            },
+                            None,
+                            l.collection_slot(i),
+                            Some(Focus::CollectionSlot(i)),
+                            true,
+                        );
+                    }
+                }
+                if self.view.screen == Screen::History {
+                    if let Some(stat) = workspace.metadata() {
+                        for i in 1..=stat.history_count {
+                            push(
+                                SemanticId::HistoryVersion(i),
+                                parent,
+                                Role::Button,
+                                if i == 1 {
+                                    "Vorige versie"
+                                } else {
+                                    "Eerdere versie"
+                                },
+                                None,
+                                l.history_slot(i),
+                                Some(Focus::HistoryVersion(i)),
+                                true,
+                            );
+                        }
+                    }
+                    push(
+                        SemanticId::HistoryPreview,
+                        parent,
+                        Role::Status,
+                        "Eerdere inhoud",
+                        workspace.preview(),
+                        l.preview,
+                        None,
+                        true,
+                    );
+                    push(
+                        SemanticId::RestoreHistory,
+                        parent,
+                        Role::Button,
+                        "Herstel als nieuwe versie",
+                        None,
+                        l.form_confirm,
+                        Some(Focus::RestoreHistory),
+                        workspace.preview().is_some() && self.view.can_save,
+                    );
+                }
+                if self.view.screen == Screen::Filter {
+                    for i in 0..volume_core::COLLECTIONS + 2 {
+                        let label = if i == 0 {
+                            "Alle documenten"
+                        } else if i == 1 {
+                            "Zonder collectie"
+                        } else {
+                            if !workspace.collections()[i - 2].present {
+                                continue;
+                            }
+                            core::str::from_utf8(workspace.collections()[i - 2].name())
+                                .unwrap_or("Naam niet leesbaar")
+                        };
+                        push(
+                            SemanticId::FilterSlot(i),
+                            parent,
+                            Role::Button,
+                            label,
+                            None,
+                            l.filter_slot(i),
+                            Some(Focus::FilterSlot(i)),
+                            true,
+                        );
+                    }
+                }
+                push(
+                    SemanticId::FormCancel,
+                    parent,
+                    Role::Button,
+                    "Terug zonder wijzigen",
+                    None,
+                    l.form_cancel,
+                    Some(Focus::FormCancel),
+                    true,
                 );
             }
             Screen::ConfirmClose => {
@@ -1010,6 +1435,19 @@ pub enum SemanticId {
     SaveAndBack,
     KeepEditing,
     Discard,
+    LibrarySearch,
+    CollectionFilter,
+    Rename,
+    Organize,
+    History,
+    FormInput,
+    FormConfirm,
+    FormCancel,
+    CollectionSlot(usize),
+    FilterSlot(usize),
+    HistoryVersion(usize),
+    RestoreHistory,
+    HistoryPreview,
     Status,
 }
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -1066,6 +1504,16 @@ pub fn status_label(status: Status) -> &'static str {
         Status::Dirty => "Wijzigingen nog niet opgeslagen.",
         Status::Saving { .. } => "Opslaan...",
         Status::Saved { .. } => "Op dit apparaat opgeslagen.",
+        Status::Renamed => "Naam gewijzigd. Bewaar om de wijziging vast te leggen.",
+        Status::Organized { .. } => "Document in de collectie bewaard.",
+        Status::Restored { .. } => "Eerdere inhoud als nieuwe revisie bewaard.",
+        Status::RestoreRefreshFailed { .. } => {
+            "Herstel bewaard; opnieuw lezen mislukt. Bewerk deze oude weergave niet."
+        }
+        Status::NeedsSave => "Bewaar eerst je wijzigingen of ga verder met bewerken.",
+        Status::PreviewUnavailable => {
+            "Geen volledige tekstpreview beschikbaar; er is niets hersteld."
+        }
         Status::Cancelled => "Opslaan geannuleerd. Je tekst blijft open.",
         Status::InputLost => "Invoer onderbroken. Je tekst blijft open.",
         Status::ClipboardCopied => "Tekst gekopieerd.",
@@ -1105,6 +1553,31 @@ enum ButtonStyle {
     Secondary,
     Danger,
 }
+struct Label {
+    bytes: [u8; 112],
+    len: usize,
+}
+impl Label {
+    fn new() -> Self {
+        Self {
+            bytes: [0; 112],
+            len: 0,
+        }
+    }
+    fn as_str(&self) -> &str {
+        core::str::from_utf8(&self.bytes[..self.len]).unwrap_or("")
+    }
+}
+impl core::fmt::Write for Label {
+    fn write_str(&mut self, value: &str) -> core::fmt::Result {
+        if value.len() > self.bytes.len() - self.len {
+            return Err(core::fmt::Error);
+        }
+        self.bytes[self.len..self.len + value.len()].copy_from_slice(value.as_bytes());
+        self.len += value.len();
+        Ok(())
+    }
+}
 struct Paint<'a> {
     rect: Rect,
     pixels: &'a mut [u32],
@@ -1112,6 +1585,278 @@ struct Paint<'a> {
     cursor: Option<(u32, u32)>,
 }
 impl Paint<'_> {
+    fn elided(
+        &mut self,
+        x: u32,
+        y: u32,
+        value: &str,
+        width: u32,
+        size: Size,
+        weight: Weight,
+        color: u32,
+    ) {
+        let font = self.font(size, weight);
+        let limit = width * self.scale.factor();
+        if font.measure(value) <= limit {
+            self.ui_text(x, y, value, size, weight, color);
+            return;
+        }
+        let reserve = font.measure("…");
+        let mut end = 0;
+        for (at, ch) in value.char_indices() {
+            let next = at + ch.len_utf8();
+            if font.measure(&value[..next]).saturating_add(reserve) > limit {
+                break;
+            }
+            end = next;
+        }
+        self.ui_text(x, y, &value[..end], size, weight, color);
+        let advance = font.measure(&value[..end]).div_ceil(self.scale.factor());
+        self.ui_text(x + advance, y, "…", size, weight, color);
+    }
+    fn field(&mut self, r: Rect, value: &str, placeholder: &str, focused: bool, selected: bool) {
+        self.outlined(r, d::SURFACE, d::BORDER, d::CONTROL_RADIUS);
+        if focused {
+            self.focus(r);
+        }
+        let shown = if value.is_empty() { placeholder } else { value };
+        if selected && !value.is_empty() {
+            self.fill(
+                Rect {
+                    x: r.x + 12,
+                    y: r.y + 8,
+                    width: self
+                        .measure(value, Size::Body, Weight::Regular)
+                        .min(r.width - 24),
+                    height: 26,
+                },
+                d::ACCENT_SOFT,
+            );
+        }
+        self.elided(
+            r.x + 12,
+            r.y + 10,
+            shown,
+            r.width - 24,
+            Size::Body,
+            Weight::Regular,
+            if value.is_empty() { d::MUTED } else { d::TEXT },
+        );
+        if focused && !selected {
+            let x = r.x
+                + 12
+                + self
+                    .measure(value, Size::Body, Weight::Regular)
+                    .min(r.width - 28);
+            self.fill(
+                Rect {
+                    x,
+                    y: r.y + 10,
+                    width: 2,
+                    height: 24,
+                },
+                d::TEXT,
+            );
+        }
+    }
+    fn workspace(&mut self, view: View<'_>, l: Layout) {
+        use core::fmt::Write;
+        self.fill(
+            Rect {
+                x: 0,
+                y: 0,
+                width: view.viewport.logical_width(),
+                height: view.viewport.logical_height(),
+            },
+            d::BACKGROUND,
+        );
+        let p = l.workspace_panel;
+        self.rounded(p, d::SURFACE, 12);
+        let (heading, explanation) = match view.screen {
+            Screen::Rename => (
+                "Een naam voor je document",
+                "De naam wordt samen met je tekst bewaard.",
+            ),
+            Screen::Organize => (
+                "Bewaren in een collectie",
+                "Kies een collectie of geef een lege plek een naam.",
+            ),
+            Screen::History => (
+                "Versiegeschiedenis",
+                "Herstellen bewaart eerdere inhoud als een nieuwe revisie.",
+            ),
+            Screen::Filter => (
+                "Je materiaal ordenen",
+                "Bekijk alles, losse documenten of een eigen collectie.",
+            ),
+            _ => return,
+        };
+        let compact = p.height < 280;
+        self.elided(
+            p.x + 16,
+            p.y + if compact { 8 } else { 12 },
+            heading,
+            p.width - 32,
+            if compact { Size::Body } else { Size::Title },
+            Weight::Semibold,
+            d::TEXT,
+        );
+        if !compact {
+            self.elided(
+                p.x + 16,
+                p.y + 60,
+                explanation,
+                p.width - 32,
+                Size::Small,
+                Weight::Regular,
+                d::MUTED,
+            );
+        }
+        let workspace = view.workspace;
+        match view.screen {
+            Screen::Rename | Screen::Organize => {
+                self.field(
+                    l.form_input,
+                    workspace.form(),
+                    if view.screen == Screen::Rename {
+                        "Documentnaam"
+                    } else {
+                        "Naam van collectie"
+                    },
+                    view.focus == Focus::FormInput,
+                    workspace.form_selected(),
+                );
+                if view.screen == Screen::Organize {
+                    for i in 0..volume_core::COLLECTIONS {
+                        let collection = workspace.collections()[i];
+                        let name =
+                            core::str::from_utf8(collection.name()).unwrap_or("Naam niet leesbaar");
+                        self.button(
+                            l.collection_slot(i),
+                            if name.is_empty() { "Nieuw" } else { name },
+                            view.focus == Focus::CollectionSlot(i),
+                            true,
+                            if workspace.selected_collection() == i {
+                                ButtonStyle::Primary
+                            } else {
+                                ButtonStyle::Secondary
+                            },
+                        );
+                    }
+                }
+                self.button(
+                    l.form_confirm,
+                    if view.screen == Screen::Rename {
+                        "Naam toepassen"
+                    } else {
+                        "Bewaren in collectie"
+                    },
+                    view.focus == Focus::FormConfirm,
+                    view.can_save && !workspace.form().is_empty(),
+                    ButtonStyle::Primary,
+                );
+            }
+            Screen::Filter => {
+                for i in 0..volume_core::COLLECTIONS + 2 {
+                    let label = if i == 0 {
+                        "Alle documenten"
+                    } else if i == 1 {
+                        "Zonder collectie"
+                    } else {
+                        if !workspace.collections()[i - 2].present {
+                            continue;
+                        }
+                        core::str::from_utf8(workspace.collections()[i - 2].name())
+                            .unwrap_or("Naam niet leesbaar")
+                    };
+                    self.button(
+                        l.filter_slot(i),
+                        label,
+                        view.focus == Focus::FilterSlot(i),
+                        true,
+                        ButtonStyle::Secondary,
+                    );
+                }
+            }
+            Screen::History => {
+                if let Some(stat) = workspace.metadata() {
+                    for i in 1..=stat.history_count {
+                        let mut label = Label::new();
+                        let _ = write!(&mut label, "Revisie {}", stat.history[i - 1].revision);
+                        self.button(
+                            l.history_slot(i),
+                            label.as_str(),
+                            view.focus == Focus::HistoryVersion(i),
+                            true,
+                            if workspace.selected_history() == i {
+                                ButtonStyle::Primary
+                            } else {
+                                ButtonStyle::Secondary
+                            },
+                        );
+                    }
+                }
+                if l.preview.height >= d::LINE_HEIGHT {
+                    self.outlined(l.preview, d::BACKGROUND, d::BORDER, 8);
+                    if let Some(text) = workspace.preview() {
+                        let metrics = text::Proportional::new(
+                            self.font(Size::Body, Weight::Regular),
+                            (l.preview.width - 24) * self.scale.factor(),
+                        );
+                        let rows = l.preview.height.saturating_sub(16) / d::LINE_HEIGHT;
+                        for cell in metrics.cells(text) {
+                            if cell.position.row >= rows as usize {
+                                break;
+                            }
+                            if !matches!(cell.character, '\r' | '\n' | '\t') {
+                                self.proportional_character(
+                                    (l.preview.x + 12) * self.scale.factor()
+                                        + (cell.position.x_64 / 64) as u32,
+                                    (l.preview.y + 8 + cell.position.row as u32 * d::LINE_HEIGHT)
+                                        * self.scale.factor(),
+                                    cell.character,
+                                    d::TEXT,
+                                );
+                            }
+                        }
+                    } else {
+                        self.wrapped(
+                            l.preview.x + 12,
+                            l.preview.y + 12,
+                            "Geen volledige tekstpreview beschikbaar. Er is niets hersteld.",
+                            l.preview.width - 24,
+                            d::MUTED,
+                        );
+                    }
+                }
+                self.button(
+                    l.form_confirm,
+                    "Herstel als nieuwe versie",
+                    view.focus == Focus::RestoreHistory,
+                    workspace.preview().is_some() && view.can_save,
+                    ButtonStyle::Primary,
+                );
+            }
+            _ => {}
+        }
+        self.button(
+            l.form_cancel,
+            "Terug · Esc",
+            view.focus == Focus::FormCancel,
+            true,
+            ButtonStyle::Secondary,
+        );
+        self.elided(
+            24,
+            view.viewport.logical_height() - 40,
+            status_label(view.status),
+            view.viewport.logical_width() - 48,
+            Size::Small,
+            Weight::Regular,
+            status_color(view.status),
+        );
+    }
+
     fn material_chrome(&mut self, layout: Layout, viewport: Viewport) {
         let h = viewport.logical_height();
         if layout.sidebar_width > 0 {
@@ -1758,16 +2503,22 @@ impl Paint<'_> {
         if focused {
             self.focus(r);
         }
-        let width = self.measure(label, Size::Body, Weight::Semibold);
+        let width = self
+            .measure(label, Size::Body, Weight::Semibold)
+            .min(r.width.saturating_sub(16));
         let x = r.x + r.width.saturating_sub(width) / 2;
         let line = self.font(Size::Body, Weight::Semibold).height() / self.scale.factor();
-        self.medium(
+        self.elided(
             x,
             r.y + r.height.saturating_sub(line) / 2,
             label,
+            r.width.saturating_sub(16),
+            Size::Body,
+            Weight::Semibold,
             foreground,
         );
     }
+
     fn arrow(&mut self, r: Rect, previous: bool, focused: bool, enabled: bool) {
         self.button(r, "", focused, enabled, ButtonStyle::Secondary);
         for row in 0..13u32 {
