@@ -41,6 +41,14 @@ afzonderlijke oude handle als al gesloten. Andere sluitfouten blijven fouten,
 beide eigenaars worden geprobeerd en er ontstaat geen invoer- of frame-ACK.
 Normale `close()`-semantiek en de bestaande RPC-budgetten blijven ongewijzigd.
 
+De init-policy bewaakt daarna afzonderlijk Wacht-op-Pause, Wacht-op-verse-READY
+en Wacht-op-Rebind-ACK. Het oude gereedheidsmasker wordt bij herstelbegin gewist
+tot de twee blijvende appbits. Alleen een geslaagde constructiesyscall plus
+gevalideerde verse bootidentiteiten/generatie/epochs opent de READY-fase; die
+begint opnieuw met uitsluitend appbits. Rebind vereist alle drie actuele
+dienstmeldingen in die fase. ACK7 en ACK8 gelden uitsluitend in hun eigen fase;
+oude READY-meldingen kunnen de herbindpoort niet openen.
+
 De kernel bevat alleen de begrensde proces-/manifestmechaniek, geen rendering,
 invoerfocuspolicy of fontparser. Partial initialization, onjuiste aanroeper,
 levende oude dienst, stale procescapability, endpoint-/frametekort en foute

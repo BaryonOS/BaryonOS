@@ -55,3 +55,30 @@ Logs: `/workspace/scratch/window-recovery-{capability,calculator,materiaal}-{tes
 
 No VM was started for this change. Actual integrated crash recovery, preserved
 pixels, storage behavior and final cleanup remain for the root native gate.
+
+## Follow-up: explicit init recovery phases
+
+Integrated source `b1b292aadf244dacf029b7307aebdc6103756e0d` reached real
+presentation retirement in both CI and the root VM but then exited Material at
+step18 without a `RESTART_GENERATION` event. The init loop retained the old
+mask31 and could send Rebind8 in the very iteration that began Pause, before its
+two acknowledgements or construction syscall. This is a separate policy-order
+defect; it does not invalidate the demonstrated retirement wakeup mechanism.
+
+Init now uses the actual pure `recovery::Recovery` stage machine: AwaitPause,
+AwaitFreshReady and AwaitRebindAck. It resets mask3 both at recovery start and
+after installation. Only after successful syscall0x53 and the existing fresh
+process/capability identity guards can installation advance the stage. Both
+pause ACKs, all three current service READYs and both rebind ACKs are gated by
+their respective phases. The current sender/generation/epoch READY validator
+is shared with the host regressions. No identity guard or timeout was weakened.
+
+Six policy tests cover old-generation/mask31/pause0, partial pause ACKs, invalid
+installation, old generation/epochs/unbound sender READY, duplicate transitions
+and a second recovery. These targeted tests, strict Clippy and formatting
+passed; `/workspace/scratch/window-recovery-policy-{tests,clippy}.log` records
+the executions. The complete window host suite passed all 16 tests, and the
+full eight-ELF/kernel/loader native cross-build passed; corresponding logs are
+`/workspace/scratch/window-recovery-phase-{tests,clippy,native-build}.log`.
+No VM was started for this follow-up; root owns integration and
+the next native acceptance run.

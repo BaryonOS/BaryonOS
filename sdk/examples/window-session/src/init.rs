@@ -8,7 +8,10 @@ use nieuw_os_sdk_runtime::{
     process::{ChildProcess, LaunchImage, ProcessStatus},
     Handle, Outgoing, ReceiveEndpoint, SendEndpoint,
 };
-use nieuw_os_window_session::boot::{CONTROL, READY};
+use nieuw_os_window_session::{
+    boot::CONTROL,
+    recovery::{ready_bit, Group, Recovery},
+};
 #[derive(Clone, Copy)]
 struct Boot {
     generation: u64,
@@ -20,6 +23,15 @@ struct Boot {
     input_epoch: u64,
     launch: LaunchImage,
     process: ChildProcess,
+}
+impl Boot {
+    fn group(self) -> Group {
+        Group {
+            generation: self.generation,
+            surface_epoch: self.surface_epoch,
+            input_epoch: self.input_epoch,
+        }
+    }
 }
 fn fail(code: u64) -> ! {
     support::put(488, code);
@@ -76,9 +88,6 @@ fn send(to: SendEndpoint, op: u8) {
         }
     }
 }
-fn word(b: &[u8], at: usize) -> u64 {
-    u64::from_le_bytes(b[at..at + 8].try_into().unwrap())
-}
 #[no_mangle]
 #[link_section = ".text.entry"]
 pub extern "C" fn _start() -> ! {
@@ -92,6 +101,7 @@ fn run() -> ! {
     let mut running = false;
     let mut pause = 0u8;
     let mut recovering = false;
+    let mut recovery: Option<Recovery> = None;
     let mut rebound = 0u8;
     let mut stopping = false;
     let mut stopped = 0u8;
@@ -114,8 +124,17 @@ fn run() -> ! {
             if m.tag() == CONTROL && m.payload().len() == 1 {
                 match (index, m.payload()[0]) {
                     (Some(i), 1) if i < 2 && !running && !recovering => mask |= 1 << i,
-                    (Some(i), 7) if i < 2 && recovering => pause |= 1 << i,
-                    (Some(i), 8) if i < 2 && recovering => rebound |= 1 << i,
+                    (Some(i), 7)
+                        if i < 2 && recovery.as_ref().is_some_and(Recovery::awaiting_pause) =>
+                    {
+                        pause |= 1 << i
+                    }
+                    (Some(i), 8)
+                        if i < 2
+                            && recovery.as_ref().is_some_and(Recovery::awaiting_rebind_ack) =>
+                    {
+                        rebound |= 1 << i
+                    }
                     (Some(i), 3) if i < 2 && stopping => {
                         stopped |= 1 << i;
                         if i == 0 {
@@ -136,34 +155,16 @@ fn run() -> ! {
                 }
                 continue;
             }
-            let b = m.payload();
-            if m.tag() != READY
-                || b.len() != 32
-                || &b[..4] != b"IPD1"
-                || b[4..6] != 1u16.to_le_bytes()
-                || word(b, 16) != boot.generation
-            {
+            // Old readiness cannot prefill the replacement mask while waiting
+            // for app pause or rebind acknowledgements.
+            if recovering && !recovery.as_ref().is_some_and(Recovery::awaiting_ready) {
                 rejected += 1;
                 continue;
             }
-            let role = u16::from_le_bytes([b[6], b[7]]);
-            let (expected, epoch, bit) = match role {
-                1 => (3, boot.input_epoch, 8),
-                2 => (4, boot.input_epoch, 16),
-                3 => (2, boot.surface_epoch, 4),
-                _ => {
-                    rejected += 1;
-                    continue;
-                }
+            let Some(bit) = ready_bit(boot.group(), index, m.tag(), m.payload()) else {
+                rejected += 1;
+                continue;
             };
-            if (role == 2 && word(b, 24) != 0) || (role != 2 && word(b, 24) == 0) {
-                rejected += 1;
-                continue;
-            }
-            if index != Some(expected) || word(b, 8) != epoch {
-                rejected += 1;
-                continue;
-            }
             mask |= bit;
         }
         if !running && !recovering && mask == 31 {
@@ -183,6 +184,8 @@ fn run() -> ! {
                     native::retire_service_group_presentation(boot.launch, boot.process)
                         .unwrap_or_else(|_| fail(17));
                     recovering = true;
+                    recovery = Some(Recovery::begin(boot.group()).unwrap_or_else(|_| fail(18)));
+                    mask = 3;
                     pause = 0;
                     rebound = 0;
                     start = tick();
@@ -193,7 +196,10 @@ fn run() -> ! {
                 ProcessStatus::Killed => fail(10),
             }
         }
-        if recovering && pause == 3 {
+        if recovery
+            .as_ref()
+            .is_some_and(|state| state.can_restart(pause))
+        {
             let process = native::restart_service_group(boot.launch, boot.process)
                 .unwrap_or_else(|_| fail(11));
             let updated = read();
@@ -206,20 +212,37 @@ fn run() -> ! {
             {
                 fail(12);
             }
+            recovery
+                .as_mut()
+                .unwrap_or_else(|| fail(18))
+                .installed(updated.group(), pause)
+                .unwrap_or_else(|_| fail(18));
             boot = updated;
             mask = 3;
             pause = 0;
             rebound = 0;
             restarts = restarts.checked_add(1).unwrap_or_else(|| fail(14));
         }
-        if recovering && mask == 31 && pause == 0 {
+        if recovery
+            .as_ref()
+            .is_some_and(|state| state.can_rebind(boot.group(), mask, pause))
+        {
+            recovery
+                .as_mut()
+                .unwrap_or_else(|| fail(18))
+                .rebind_sent(boot.group(), mask, pause)
+                .unwrap_or_else(|_| fail(18));
             for to in boot.apps {
                 send(to, 8);
             }
             pause = 4;
         }
-        if recovering && pause == 4 && rebound == 3 {
+        if recovery
+            .as_ref()
+            .is_some_and(|state| state.complete(rebound))
+        {
             recovering = false;
+            recovery = None;
             support::put(480, restarts);
         }
         if recovering && tick().saturating_sub(start) > 6000 {

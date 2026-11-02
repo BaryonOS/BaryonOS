@@ -5,4 +5,5 @@
 extern crate std;
 pub mod boot;
 pub mod input;
+pub mod recovery;
 pub mod scene;
