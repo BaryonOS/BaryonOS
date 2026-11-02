@@ -78,12 +78,16 @@ struct Host {
     control_send: u64,
     source_id: u64,
     control_id: u64,
+    actors: [u64; 3],
+    input_epoch: u64,
+    surface_epoch: u64,
     now: u64,
     blits: usize,
     framebuffer: Vec<u32>,
     closed: Vec<u64>,
     drop_input: bool,
     drop_blit: bool,
+    drop_final_blit: bool,
     fail_blit: bool,
     fail_close: bool,
 }
@@ -134,12 +138,16 @@ impl Host {
             control_send,
             source_id: 0,
             control_id: 0,
+            actors: [COMP, SOURCE, POLICY],
+            input_epoch: IE,
+            surface_epoch: SE,
             now: 0,
             blits: 0,
             framebuffer: vec![0; 800 * 600],
             closed: vec![],
             drop_input: false,
             drop_blit: false,
+            drop_final_blit: false,
             fail_blit: false,
             fail_close: false,
         }));
@@ -153,10 +161,10 @@ impl Host {
     fn actor(&mut self, source: bool, op: Operation, a: u64, b: u64) {
         let (index, pid, channel, id) = if source {
             self.source_id += 1;
-            (0, SOURCE, self.source_send, self.source_id)
+            (0, self.actors[1], self.source_send, self.source_id)
         } else {
             self.control_id += 1;
-            (1, COMP, self.control_send, self.control_id)
+            (1, self.actors[0], self.control_send, self.control_id)
         };
         let mut message = Message::new();
         message.tag = iw::TAG;
@@ -165,14 +173,17 @@ impl Host {
             &Request {
                 operation: op,
                 id,
-                epoch: IE,
+                epoch: self.input_epoch,
                 arg0: a,
                 arg1: b,
             }
             .encode(),
         );
         self.engine.send(pid, channel, &message).unwrap();
-        let actual = self.engine.receive(POLICY, self.roots[index]).unwrap();
+        let actual = self
+            .engine
+            .receive(self.actors[2], self.roots[index])
+            .unwrap();
         let received = Received::from_bytes(actual.encode(), actual.len as u64).unwrap();
         self.input
             .handle(recv(self.roots[index]), &received)
@@ -242,7 +253,9 @@ impl Host {
                             Ok(())
                         })
                         .unwrap();
-                    if self.drop_blit {
+                    if self.drop_blit
+                        || self.drop_final_blit && self.surface.completed_frame().is_some()
+                    {
                         return;
                     }
                     Some(reply.bytes().to_vec())
@@ -256,6 +269,73 @@ impl Host {
             reply.data[..response.len()].copy_from_slice(&response);
             self.engine.send(p.server, p.reply, &reply).unwrap();
         }
+    }
+    /// Host lifecycle plumbing only: real Engine exits invalidate every old
+    /// service principal before strictly larger PIDs and fresh leaf handles
+    /// are installed. This is not the native kernel's 0x53 implementation.
+    fn replace_services(&mut self) {
+        let [comp, source, policy] = self.actors;
+        for pid in [comp, source, policy] {
+            self.engine.exit(pid).unwrap();
+        }
+        self.surface.retire();
+        self.actors = [policy + 2, policy + 3, policy + 4];
+        let [comp, source, policy] = self.actors;
+        assert!(comp > INIT);
+        for pid in [comp, source, policy] {
+            self.engine.register(pid).unwrap();
+        }
+        self.input_epoch += 1;
+        self.surface_epoch += 1;
+        self.roots = core::array::from_fn(|_| self.engine.create_endpoint(policy).unwrap());
+        self.source_send = self
+            .engine
+            .bootstrap_delegate(policy, self.roots[0], source, SEND)
+            .unwrap();
+        self.control_send = self
+            .engine
+            .bootstrap_delegate(policy, self.roots[1], comp, SEND)
+            .unwrap();
+        self.pairs = [
+            pair(&mut self.engine, policy, Some(self.roots[3])),
+            pair(&mut self.engine, comp, None),
+        ];
+        self.input = input::Service::new(
+            input::Configuration {
+                epoch: self.input_epoch,
+                source: input::Actor {
+                    endpoint: recv(self.roots[0]),
+                    pid: source,
+                },
+                compositor: input::Actor {
+                    endpoint: recv(self.roots[1]),
+                    pid: comp,
+                },
+                supervisor: input::Actor {
+                    endpoint: recv(self.roots[2]),
+                    pid: INIT,
+                },
+                applications: recv(self.roots[3]),
+                width: 800,
+                height: 600,
+            },
+            &[input::ClientBinding { id: 101, pid: APP }],
+        )
+        .unwrap();
+        self.surface = surface::Receiver::new(
+            APP,
+            Geometry {
+                epoch: self.surface_epoch,
+                ..geometry()
+            },
+            100,
+        )
+        .unwrap();
+        self.source_id = 0;
+        self.control_id = 0;
+        self.actor(true, Operation::Sync, 1, 0);
+        self.actor(false, Operation::Focus, 101, 0);
+        assert!(self.engine.check_invariants());
     }
 }
 struct Port(Rc<RefCell<Host>>, usize);
@@ -338,6 +418,257 @@ fn keys(h: &Rc<RefCell<Host>>, a: &mut App<Port, Port>, bytes: &[u8]) {
     for byte in bytes {
         h.borrow_mut().key(*byte);
         a.step().unwrap();
+    }
+}
+fn replacement_sessions(
+    h: &Rc<RefCell<Host>>,
+    input_epoch: u64,
+) -> (Input<Port>, Surface<Port>, Geometry) {
+    let host = h.borrow();
+    let [p, s] = host.pairs;
+    let [comp, _, policy] = host.actors;
+    let surface_epoch = host.surface_epoch;
+    drop(host);
+    let input = Input::new(
+        Port(h.clone(), 0),
+        Binding {
+            epoch: input_epoch,
+            service_pid: policy,
+            client_id: 101,
+            width: 800,
+            height: 600,
+            send: send(p.send),
+            receive: recv(p.receive),
+        },
+        8,
+    )
+    .unwrap();
+    let mut surface = Surface::new(
+        Port(h.clone(), 1),
+        comp,
+        surface_epoch,
+        send(s.send),
+        recv(s.receive),
+        8,
+    )
+    .unwrap();
+    let geometry = surface.geometry().unwrap();
+    (input, surface, geometry)
+}
+fn computed_work(h: &Rc<RefCell<Host>>, a: &mut App<Port, Port>) {
+    finish(a);
+    // A real failed evaluation, reset, successful expression, then move its
+    // caret left: preservation is tested with nonzero counters and a caret
+    // different from the expression end, using authenticated scan events.
+    keys(h, a, &[0x1c, 0x9c, 0x2e, 0xae]);
+    keys(
+        h,
+        a,
+        &[
+            0x03, 0x83, 0x2a, 0x0d, 0x8d, 0xaa, 0x04, 0x84, 0x1c, 0x9c, 0xe0, 0x4b, 0xe0, 0xcb,
+        ],
+    );
+    finish(a);
+    assert_computed_work(a);
+}
+fn assert_computed_work(a: &App<Port, Port>) {
+    assert_eq!(a.model().expression(), "2+3");
+    assert_eq!(a.model().caret(), 2);
+    assert_eq!(a.model().selection(), 2..2);
+    assert_eq!(a.model().answer().unwrap().value.raw(), 5 * SCALE);
+    assert!(a.model().current());
+    assert_eq!(a.model().evaluations(), 1);
+    assert_eq!(a.model().failures(), 1);
+}
+fn assert_closed_pairs(h: &Host, pairs: [Pair; 2]) {
+    for pair in pairs {
+        assert_eq!(
+            h.engine.check_endpoint(APP, pair.send, SEND),
+            Err(capability_core::Error::BadHandle)
+        );
+        assert_eq!(
+            h.engine.check_endpoint(APP, pair.receive, RECV),
+            Err(capability_core::Error::BadHandle)
+        );
+    }
+}
+
+#[test]
+fn real_service_replacement_preserves_work_and_requires_new_complete_frame_acknowledgements() {
+    for drop_ack in [false, true] {
+        let h = Host::new();
+        let mut a = app(&h, 1);
+        computed_work(&h, &mut a);
+        let evidence = a.evidence();
+        let old_pairs = h.borrow().pairs;
+        a.detach_presentation().unwrap();
+        assert!(!a.evidence().ready);
+        assert_computed_work(&a);
+        {
+            let mut host = h.borrow_mut();
+            host.replace_services();
+            assert_closed_pairs(&host, old_pairs);
+            for pid in [COMP, SOURCE, POLICY] {
+                assert_eq!(
+                    host.engine.send(pid, old_pairs[0].send, &Message::new()),
+                    Err(capability_core::Error::BadHandle)
+                );
+            }
+            for pair in host.pairs {
+                assert!(host.engine.check_endpoint(APP, pair.send, SEND).is_ok());
+                assert!(host.engine.check_endpoint(APP, pair.receive, RECV).is_ok());
+            }
+            // Old epochs still fail even when carried over a genuinely fresh
+            // kernel-authenticated app channel to the replacement service.
+            let p = host.pairs[0];
+            let mut stale = Message::new();
+            stale.tag = iw::TAG;
+            stale.len = iw::SIZE as u32;
+            stale.data[..iw::SIZE].copy_from_slice(
+                &Request {
+                    operation: Operation::Peek,
+                    id: 900,
+                    epoch: IE,
+                    arg0: 0,
+                    arg1: 0,
+                }
+                .encode(),
+            );
+            host.engine.send(APP, p.send, &stale).unwrap();
+            let actual = host.engine.receive(p.server, p.ingress).unwrap();
+            let received = Received::from_bytes(actual.encode(), actual.len as u64).unwrap();
+            assert_eq!(received.sender(), APP);
+            assert!(matches!(
+                host.input.handle(recv(p.ingress), &received),
+                Err(input::Error::WrongEpoch)
+            ));
+            let p = host.pairs[1];
+            let payload = surface::Header {
+                operation: surface::Operation::Info,
+                request: 900,
+                epoch: SE,
+                frame: 0,
+                tile: 0,
+                arg0: 0,
+                arg1: 0,
+            }
+            .encode();
+            stale.tag = surface::TAG;
+            stale.len = payload.len() as u32;
+            stale.data[..payload.len()].copy_from_slice(&payload);
+            host.engine.send(APP, p.send, &stale).unwrap();
+            let actual = host.engine.receive(p.server, p.ingress).unwrap();
+            let now = host.now;
+            assert!(matches!(
+                host.surface
+                    .accept(actual.sender_pid, now, &actual.data[..actual.len as usize]),
+                Err(surface::Error::Epoch)
+            ));
+            assert_eq!(host.surface.completed_frame(), None);
+        }
+        let epoch = h.borrow().input_epoch;
+        let (input, surface, geometry) = replacement_sessions(&h, epoch);
+        a.rebind_presentation(input, surface, geometry).unwrap();
+        assert_computed_work(&a);
+        assert!(!a.evidence().ready);
+        assert_eq!(a.evidence().presented_generation, 0);
+        assert_eq!(a.evidence().frames, evidence.frames);
+        h.borrow_mut().drop_final_blit = drop_ack;
+        if drop_ack {
+            let blits = h.borrow().blits;
+            let mut failed = false;
+            for _ in 0..geometry.tiles().div_ceil(8) + 1 {
+                match a.step() {
+                    Ok(()) => assert!(!a.evidence().ready),
+                    Err(Error::Surface(_)) => {
+                        failed = true;
+                        break;
+                    }
+                    other => panic!("unexpected recovery result: {other:?}"),
+                }
+            }
+            assert!(failed);
+            assert_eq!(h.borrow().blits, blits + geometry.tiles() as usize);
+            assert!(h.borrow().surface.completed_frame().is_some());
+            assert!(!a.evidence().ready);
+            assert_eq!(a.evidence().frames, evidence.frames);
+            assert_eq!(a.evidence().tiles, evidence.tiles + geometry.tiles() - 1);
+            assert_eq!(a.evidence().presented_generation, 0);
+        } else {
+            a.step().unwrap();
+            assert!(!a.evidence().ready);
+            assert_eq!(a.evidence().frames, evidence.frames);
+            finish(&mut a);
+            assert!(a.evidence().ready);
+            assert_eq!(a.evidence().frames, evidence.frames + 1);
+            assert_eq!(a.evidence().presented_generation, a.model().generation());
+            assert_eq!(
+                h.borrow().surface.completed_frame(),
+                Some(a.model().generation())
+            );
+        }
+        assert_computed_work(&a);
+        a.stop_clean().unwrap();
+        assert!(h.borrow().engine.check_invariants());
+    }
+}
+
+#[test]
+fn rejected_rebind_epochs_and_small_scaled_geometry_close_fresh_channels_and_allow_retry() {
+    for invalid in 0..3 {
+        let h = Host::new();
+        let mut a = app(&h, 2);
+        computed_work(&h, &mut a);
+        a.detach_presentation().unwrap();
+        h.borrow_mut().replace_services();
+        if invalid == 2 {
+            let epoch = h.borrow().surface_epoch;
+            h.borrow_mut().surface = surface::Receiver::new(
+                APP,
+                Geometry {
+                    assigned: Rectangle {
+                        width: 320,
+                        height: 240,
+                        ..geometry().assigned
+                    },
+                    epoch,
+                    ..geometry()
+                },
+                100,
+            )
+            .unwrap();
+        }
+        let epoch = if invalid == 0 {
+            IE
+        } else {
+            h.borrow().input_epoch
+        };
+        let (input, surface, mut geometry) = replacement_sessions(&h, epoch);
+        if invalid == 1 {
+            geometry.epoch = SE;
+        }
+        let fresh = h.borrow().pairs;
+        assert_eq!(
+            a.rebind_presentation(input, surface, geometry),
+            Err(Error::Binding)
+        );
+        assert_closed_pairs(&h.borrow(), fresh);
+        assert_computed_work(&a);
+        assert!(!a.evidence().ready);
+        assert_eq!(h.borrow().surface.completed_frame(), None);
+
+        // Rejected sessions transfer no ownership into App. A later wholly
+        // fresh service group can still bind and render the preserved work.
+        h.borrow_mut().replace_services();
+        let epoch = h.borrow().input_epoch;
+        let (input, surface, geometry) = replacement_sessions(&h, epoch);
+        a.rebind_presentation(input, surface, geometry).unwrap();
+        assert!(!a.evidence().ready);
+        finish(&mut a);
+        assert!(a.evidence().ready);
+        assert_computed_work(&a);
+        a.stop_clean().unwrap();
+        assert!(h.borrow().engine.check_invariants());
     }
 }
 #[test]
