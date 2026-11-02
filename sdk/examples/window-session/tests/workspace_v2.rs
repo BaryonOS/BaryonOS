@@ -17,6 +17,37 @@ fn damage_covers(damage: &mut Damage, bounds: Rect) {
 }
 
 #[test]
+fn palette_does_not_swallow_trusted_lock_search_or_session_shortcuts() {
+    use nieuw_os_window_session::shell::Page;
+    for (width, height, scale) in [(1280, 720, 1), (1920, 1080, 2)] {
+        for (physical, super_key, expected) in [
+            (PhysicalKey::L, true, Page::Lock),
+            (PhysicalKey::F3, false, Page::Search),
+            (PhysicalKey::Menu, false, Page::Session),
+        ] {
+            let mut scene = Scene::new(width, height, scale, [1, 2]).unwrap();
+            let mut damage = Damage::new(width, height).unwrap();
+            scene.palette_open();
+            let key = KeyboardEvent {
+                key: physical,
+                action: KeyAction::Press,
+                modifiers: KeyboardModifiers {
+                    left_super: super_key,
+                    ..KeyboardModifiers::default()
+                },
+            };
+            assert!(!scene.palette_key(key, &mut damage).unwrap());
+            assert!(!scene.palette_is_open());
+            let effect = scene.shell.key(key, width, height, scale);
+            assert!(effect.consumed);
+            assert_eq!(scene.shell.page(), expected);
+            assert!(scene.shell.blocks_apps());
+            damage_covers(&mut damage, scene.palette_bounds());
+        }
+    }
+}
+
+#[test]
 fn palette_cannot_open_over_trusted_pages_and_can_reveal_a_hidden_app() {
     use nieuw_os_window_session::shell::Page;
     for (width, height, scale) in [(1280, 720, 1), (1920, 1080, 2)] {

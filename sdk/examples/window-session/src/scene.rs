@@ -239,6 +239,21 @@ impl Scene {
         key: KeyboardEvent,
         damage: &mut Damage,
     ) -> Result<bool, Invalid> {
+        // A userspace app launcher must not swallow the trusted lock/menu or
+        // the native shutdown/fault-injection routes owned by the outer loop.
+        if self.palette_is_open()
+            && matches!(key.action, KeyAction::Press | KeyAction::Repeat)
+            && ((key.key == PhysicalKey::L && key.modifiers.super_key())
+                || matches!(
+                    key.key,
+                    PhysicalKey::F3 | PhysicalKey::Menu | PhysicalKey::F10 | PhysicalKey::F12
+                ))
+        {
+            self.palette_close();
+            damage.mark(self.palette_bounds());
+            damage.mark(self.dock());
+            return Ok(false);
+        }
         let index = key.key as usize;
         if key.action == KeyAction::Release && self.palette_keys[index] {
             self.palette_keys[index] = false;

@@ -26,7 +26,8 @@
     "Behoud PR130 palette, documentgeometrie, library en rustige sessietokens. Integreer PR127 gedeelde proportionele calculatorrenderer en volledige veld-/result-/statusdamage.",
     "Native compositor-main niet integraal vervangen: behoud vroege input-ACK, openbare sessie, echte klok, ready/cold recovery en voeg palette-routing plus beide expiry-aanroeppaden toe.",
     "Palet kan niet over vertrouwde shellpagina's openen; geselecteerde verborgen app wordt weer zichtbaar. Shell en palette delen de werkelijke nieuwe dockgeometrie, hoverrendering en oude/nieuwe volledige damage.",
-    "Gecombineerde pixeloracle vond echte stale-caretpixels: Layout::new miste de latere toolbarverplaatsing. Herstel controllerlayout en damage naar dezelfde for_screen/proportionele metrics als rendering; behoud ongewijzigde exacte oracle en >=90%-sendbudget."
+    "Gecombineerde pixeloracle vond echte stale-caretpixels: Layout::new miste de latere toolbarverplaatsing. Herstel controllerlayout en damage naar dezelfde for_screen/proportionele metrics als rendering; behoud ongewijzigde exacte oracle en >=90%-sendbudget.",
+    "Een afzonderlijke rood/groen-regressie bevestigt dat de nieuwe apppalette Super+L, F3 en Menu niet vóór de vertrouwde shell mag consumeren. Geef die en de bestaande native F10/F12-routes voorrang; sluit en beschadig de oude palette volledig."
   ],
   "validation": "Gerichte retentie-, proportionele damage- en shelltests geslaagd. Volledige gecombineerde host/lint/native/build-controles volgen in het brongebonden eindrapport.",
   "limits": [
