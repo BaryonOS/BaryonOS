@@ -1,0 +1,2 @@
+# Preserve the exact raw pipe bytes, including firmware CRLF.
+*.txt -text
