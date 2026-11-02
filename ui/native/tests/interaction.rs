@@ -1782,3 +1782,170 @@ scenario!(
     pointer_only_cancel_requires_fresh_down_after_outside_release_and_reentry,
     pointer_only_cancel_requires_fresh_down_after_outside_release_and_reentry_impl
 );
+
+fn vm_desktop_guest_navigation_semantics_and_storage_impl() {
+    use nieuw_os_materiaal::desktop::{Page, Target};
+    let host = Host::new();
+    host.borrow_mut().seed_named(0, b"Prive naam", b"inhoud");
+    let (mut a, mut b, mut c) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut a,
+            original: &mut b,
+            staging: &mut c,
+        },
+    );
+    ui.enable_vm_desktop().unwrap();
+    {
+        let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let count = Frame::new(ui.view()).semantics(&mut nodes).unwrap();
+        assert_semantic_tree(&nodes, count);
+        assert!(!nodes[..count]
+            .iter()
+            .any(|node| node.label.contains("Prive")));
+    }
+    let activate = |ui: &mut nieuw_os_materiaal::controller::Controller<'_, Port>, target| {
+        ui.activate_semantic(SemanticId::Desktop(target), ui.view().generation)
+            .unwrap();
+    };
+    activate(&mut ui, Target::Guest);
+    assert_eq!(ui.view().desktop.unwrap().page(), Page::Login);
+    activate(&mut ui, Target::Submit);
+    assert_eq!(ui.view().desktop.unwrap().page(), Page::Home);
+    activate(&mut ui, Target::Search);
+    {
+        let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let count = Frame::new(ui.view()).semantics(&mut nodes).unwrap();
+        assert_semantic_tree(&nodes, count);
+        assert!(nodes[..count]
+            .iter()
+            .any(|n| n.id == SemanticId::Desktop(Target::SearchField)
+                && n.role == Role::TextEditor
+                && n.actions.set_value));
+    }
+    let generation = ui.view().generation;
+    ui.set_semantic_value(
+        SemanticId::Desktop(Target::SearchField),
+        generation,
+        "onbekend",
+    )
+    .unwrap();
+    assert!(ui
+        .activate_semantic(SemanticId::Desktop(Target::Material), ui.view().generation)
+        .is_err());
+    assert!(ui
+        .set_semantic_value(SemanticId::Desktop(Target::SearchField), generation, "mat")
+        .is_err());
+    ui.set_semantic_value(
+        SemanticId::Desktop(Target::SearchField),
+        ui.view().generation,
+        "mat",
+    )
+    .unwrap();
+    activate(&mut ui, Target::Material);
+    assert_eq!(ui.view().desktop.unwrap().page(), Page::Material);
+    assert_eq!(ui.view().objects.len(), 1);
+    ui.open(0).unwrap();
+    ui.insert("extra").unwrap();
+    // Escape from an editor must retain its normal unsaved-work dialog.
+    ui.deliver(envelope(1, 1, key(PhysicalKey::Escape)))
+        .unwrap();
+    assert_eq!(ui.view().screen, Screen::ConfirmClose);
+    assert!(ui.document().is_dirty());
+}
+scenario!(
+    vm_desktop_guest_navigation_semantics_and_storage,
+    vm_desktop_guest_navigation_semantics_and_storage_impl
+);
+
+fn vm_desktop_cancel_cannot_release_an_old_account_click_impl() {
+    use nieuw_os_materiaal::desktop::{Page, Target};
+    for cancellation in [true, false] {
+        let host = Host::new();
+        let (mut a, mut b, mut c) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut ui = controller(
+            &host,
+            EditMode::ReadWrite,
+            Buffers {
+                draft: &mut a,
+                original: &mut b,
+                staging: &mut c,
+            },
+        );
+        ui.enable_vm_desktop().unwrap();
+        let rect = ui
+            .view()
+            .desktop
+            .unwrap()
+            .controls(ui.view().viewport)
+            .into_iter()
+            .flatten()
+            .find(|(t, _, _)| *t == Target::Guest)
+            .unwrap()
+            .1;
+        let x = rect.x + 16;
+        let y = rect.y + 16;
+        let mut mouse = Ps2Mouse::new();
+        let mut event = None;
+        for byte in [0x09, 0, 0] {
+            if let Some(input) = mouse.feed(byte).unwrap() {
+                event = Some(Event::Mouse { input, x, y });
+            }
+        }
+        ui.deliver(envelope(1, 1, event.unwrap())).unwrap();
+        let mut sequence = 2;
+        if cancellation {
+            ui.deliver(envelope(
+                sequence,
+                1,
+                Event::Cancel(CancelReason::FocusLost),
+            ))
+            .unwrap();
+            sequence += 1;
+        }
+        for byte in [0x08, 0, 0] {
+            if let Some(input) = mouse.feed(byte).unwrap() {
+                event = Some(Event::Mouse { input, x, y });
+            }
+        }
+        ui.deliver(envelope(sequence, 2, event.unwrap())).unwrap();
+        assert_eq!(ui.view().desktop.unwrap().page(), Page::Accounts);
+    }
+}
+scenario!(
+    vm_desktop_cancel_cannot_release_an_old_account_click,
+    vm_desktop_cancel_cannot_release_an_old_account_click_impl
+);
+
+#[test]
+fn vm_desktop_controls_remain_inside_supported_viewports() {
+    use nieuw_os_materiaal::desktop::{Desktop, Target};
+    for (width, height, scale) in [
+        (320, 240, Scale::Percent100),
+        (800, 600, Scale::Percent200),
+        (768, 536, Scale::Percent100),
+    ] {
+        let viewport = Viewport::new(width, height, scale, 1).unwrap();
+        let mut desktop = Desktop::new();
+        for step in 0..4 {
+            for (_, bounds, _) in desktop.controls(viewport).into_iter().flatten() {
+                assert!(bounds.x + bounds.width <= viewport.logical_width());
+                assert!(bounds.y + bounds.height <= viewport.logical_height());
+            }
+            match step {
+                0 => {
+                    desktop.activate(Target::Guest);
+                }
+                1 => {
+                    desktop.activate(Target::Submit);
+                }
+                2 => {
+                    desktop.activate(Target::Search);
+                }
+                _ => {}
+            }
+        }
+    }
+}

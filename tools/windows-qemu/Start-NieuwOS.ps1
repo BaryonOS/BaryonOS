@@ -1,5 +1,6 @@
 param(
     [string]$QemuPath,
+    [ValidateSet("Auto", "Whpx", "Tcg")][string]$Acceleration = "Auto",
     [switch]$CheckOnly
 )
 
@@ -45,11 +46,11 @@ if ($LASTEXITCODE -ne 0 -or $displayTypes -notmatch "(?m)^\s*sdl\s*$") {
 $bundle = $PSScriptRoot
 $manifestPath = Join-Path $bundle "manifest.json"
 $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-if ($manifest.schema_version -ne 1 -or $manifest.kernel_feature -ne "native-system-materiaal") {
+if ($manifest.schema_version -ne 1 -or $manifest.kernel_feature -notin @("native-system-materiaal", "native-system-session-preview")) {
     throw "Not a supported native Materiaal test bundle."
 }
 $requiredFiles = @(
-    "Start-NieuwOS.ps1", "README.md",
+    "Start-NieuwOS.ps1", "Acceleration.ps1", "README.md",
     "OVMF_CODE.fd", "OVMF_VARS.template.fd", "bios-256k.bin", "VGA.rom",
     "licenses/OVMF-COPYRIGHT", "licenses/SeaBIOS-COPYRIGHT",
     "volume.empty.img", "esp/kernel.elf", "esp/EFI/BOOT/BOOTX64.EFI"
@@ -71,8 +72,19 @@ foreach ($relative in $requiredFiles) {
         throw "Bundle file hash differs: $relative"
     }
 }
+$accelerators = (& $QemuPath -accel help 2>&1 | Out-String)
+if ($LASTEXITCODE -ne 0) { throw "Could not query QEMU accelerators." }
+# Load code only after it has passed the same manifest hash check as the loader.
+. (Join-Path $bundle "Acceleration.ps1")
+$selection = Select-NieuwOSAcceleration -Request $Acceleration -Available $accelerators -CheckOnly:$CheckOnly -Probe {
+    Test-NieuwOSWhpx -QemuPath $QemuPath
+}
+Write-Output "Acceleration: $($selection.Name). $($selection.Reason)"
+if ($selection.Name -eq "tcg" -and $Acceleration -eq "Auto") {
+    Write-Warning "Hardware acceleration is unavailable; screen updates may be slow. See README.md for WHPX prerequisites."
+}
 if ($CheckOnly) {
-    Write-Output "Bundle integrity and QEMU $qemuVersion prerequisites passed; no VM started."
+    Write-Output "Bundle integrity and QEMU $qemuVersion prerequisites passed; no VM or mutable state created."
     return
 }
 $state = Join-Path $bundle "state"
@@ -88,10 +100,11 @@ if (-not (Test-Path -LiteralPath $volume -PathType Leaf)) {
 
 Push-Location $bundle
 try {
+    $acceleratorArgument = if ($selection.Name -eq "whpx") { "whpx" } else { "tcg,thread=single" }
     $arguments = @(
         "-L", ".",
         "-machine", "pc-q35-8.2",
-        "-accel", "tcg,thread=single",
+        "-accel", $acceleratorArgument,
         "-cpu", "qemu64",
         "-smp", "1",
         "-m", "256M",
@@ -110,6 +123,19 @@ try {
         "-drive", "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=state/volume.img",
         "-device", "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST"
     )
+    $configuration = [ordered]@{
+        requested_acceleration = $Acceleration
+        selected_acceleration = $selection.Name
+        acceleration_probe_passed = $selection.Checked
+        reason = $selection.Reason
+        qemu_version = $qemuVersion.ToString()
+        machine = "pc-q35-8.2"
+        cpu = "qemu64"
+        vcpus = 1
+        memory_mib = 256
+        started_at_utc = [DateTime]::UtcNow.ToString("o")
+    }
+    $configuration | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $state "launch.json") -Encoding UTF8
     & $QemuPath @arguments
     if ($LASTEXITCODE -ne 0) {
         throw "QEMU exited with code $LASTEXITCODE. See state/serial.txt for guest output."

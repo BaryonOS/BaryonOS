@@ -18,6 +18,7 @@ from build_users import inspect_user
 from common import BUILD, ROOT, sha256, source_hash
 
 PROFILE = "native-system-materiaal"
+SESSION_PROFILE = "native-system-session-preview"
 APP_NAMES = (
     "desktop-init",
     "keyring-service",
@@ -33,6 +34,7 @@ MAX_ROM_BYTES = 1024 * 1024
 MAX_LICENSE_BYTES = 1024 * 1024
 PACKAGE_FILES = (
     ("tools/windows-qemu/Start-NieuwOS.ps1", "Start-NieuwOS.ps1"),
+    ("tools/windows-qemu/Acceleration.ps1", "Acceleration.ps1"),
     ("tools/windows-qemu/README.md", "README.md"),
 )
 
@@ -95,7 +97,8 @@ def validate_build(build_directory: Path, *, verify_source: bool = True) -> tupl
     if not stat.S_ISDIR(build.lstat().st_mode):
         raise ValueError("Build path must be a real directory")
     manifest = load_json(build / "manifest.json", "build manifest")
-    if (manifest.get("kernel_feature") != PROFILE or manifest.get("loader_feature") != "framebuffer"
+    if (manifest.get("kernel_feature") not in (PROFILE, SESSION_PROFILE)
+            or manifest.get("loader_feature") != "framebuffer"
             or manifest.get("source_fingerprint_version") != 3
             or type(manifest.get("source_fingerprint_version")) is not int
             or not isinstance(manifest.get("source_sha256"), str)
@@ -218,19 +221,22 @@ def package_bundle(
         "schema_version": 1,
         "kind": "Nieuw OS native Materiaal QEMU test version",
         "scope": (
-            "Own x86_64 UEFI kernel; native-system-materiaal; one q35-8.2 CPU, "
-            "TCG, 256 MiB RAM; network disabled; read-only ESP directory exposed "
+            f"Own x86_64 UEFI kernel; {manifest['kernel_feature']}; one q35-8.2 CPU, "
+            "automatic WHPX initialization probe with explicit TCG fallback, 256 MiB RAM; "
+            "network disabled; read-only ESP directory exposed "
             "via fat:esp; no direct host disk or other host directories configured."
         ),
         "source_commit": git_commit(),
         "source_fingerprint_version": manifest["source_fingerprint_version"],
         "source_sha256": manifest["source_sha256"],
-        "kernel_feature": PROFILE,
+        "kernel_feature": manifest["kernel_feature"],
         "loader_feature": "framebuffer",
         "qemu": {
             "minimum_version": "10.2.1",
             "required_rng_backend": "rng-builtin",
             "machine": "pc-q35-8.2",
+            "interactive_acceleration": "auto-whpx-then-tcg",
+            "acceptance_acceleration": "tcg,thread=single",
         },
         "firmware": {
             "ovmf_package_version": ovmf_version,

@@ -60,6 +60,23 @@ class WindowsQemuPackageTests(unittest.TestCase):
     def test_validates_exact_seven_app_esp_and_embedded_images(self):
         self.assertEqual(self.validated[1]["kernel_feature"], package.PROFILE)
 
+    def test_accepts_session_preview_only_with_the_same_exact_app_and_esp_binding(self):
+        self.manifest["kernel_feature"] = package.SESSION_PROFILE
+        (self.build / "manifest.json").write_text(json.dumps(self.manifest))
+        with patch.object(package, "inspect_user", side_effect=lambda path: {"name": path.stem}):
+            _, result = package.validate_build(self.build, verify_source=False)
+        self.assertEqual(result["kernel_feature"], package.SESSION_PROFILE)
+
+    def test_package_preserves_the_exact_session_preview_profile(self):
+        self.manifest["kernel_feature"] = package.SESSION_PROFILE
+        (self.build / "manifest.json").write_text(json.dumps(self.manifest))
+        output = self.root / "session-preview.zip"
+        self.package_to(output)
+        with zipfile.ZipFile(output) as archive:
+            manifest = json.loads(archive.read("manifest.json"))
+        self.assertEqual(manifest["kernel_feature"], package.SESSION_PROFILE)
+        self.assertIn(package.SESSION_PROFILE, manifest["scope"])
+
     def test_rejects_extra_esp_payload(self):
         (self.esp / "unexpected.txt").write_text("extra")
         with patch.object(package, "inspect_user", side_effect=lambda path: {"name": path.stem}):
@@ -162,6 +179,7 @@ class WindowsQemuPackageTests(unittest.TestCase):
         repo = self.root / "repo"
         (repo / "tools/windows-qemu").mkdir(parents=True)
         (repo / "tools/windows-qemu/Start-NieuwOS.ps1").write_text("launcher")
+        (repo / "tools/windows-qemu/Acceleration.ps1").write_text("acceleration helper")
         (repo / "tools/windows-qemu/README.md").write_text("instructions")
         output = self.root / "bundle.zip"
         with (
@@ -184,6 +202,9 @@ class WindowsQemuPackageTests(unittest.TestCase):
             )
             with zipfile.ZipFile(output) as archive:
                 manifest = json.loads(archive.read("manifest.json"))
+                self.assertEqual(manifest["qemu"]["interactive_acceleration"], "auto-whpx-then-tcg")
+                self.assertEqual(manifest["qemu"]["acceptance_acceleration"], "tcg,thread=single")
+                self.assertIn("Acceleration.ps1", manifest["files"])
                 for name, record in manifest["files"].items():
                     payload = archive.read(name)
                     self.assertEqual(len(payload), record["size_bytes"])

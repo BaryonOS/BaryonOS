@@ -199,6 +199,9 @@ pub extern "C" fn materiaal_main() -> ! {
         config.input_epoch,
     )
     .unwrap_or_else(|_| fail(10));
+    if support::word(648) == 1 {
+        controller.enable_vm_desktop().unwrap_or_else(|_| fail(14));
+    }
     // A list failure is a genuine controller error screen, never an empty list
     // substituted for unavailable storage. Keep the application alive.
     let _ = controller.refresh();

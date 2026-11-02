@@ -1,5 +1,32 @@
 # Ontwerpbesluiten
 
+## ADR-056 — herkenbare sessieroute met expliciete VM-bewijsgrens
+
+2 november 2026. De gebruikersopdracht vraagt bekende stappen uit macOS,
+Windows en Linux binnen de eigen architectuur. Accountkeuze, credentialinvoer,
+verificatie, sessieactivatie en desktop worden afzonderlijke toestanden.
+Een app-lokale UI of een wachtwoordvergelijking in de renderer verleent geen
+kernelrechten. Alleen een toekomstige geauthenticeerde auth-/sessiebroker mag
+keys/grants vrijgeven en lock/revoke afdwingen. Annuleren, wisselen en lock
+maken oude brokerantwoorden ongeldig; authenticatie én activatie moeten slagen.
+
+Het nieuwe opt-in profiel `native-system-session-preview` gebruikt daarom
+expliciet een openbare VM-gast met uitsluitend synthetische testopslag. Het
+formulier voor een eigen gebruiker is een interactieproef; de standaardbroker
+weigert ieder wachtwoord en iedere nog niet geïmplementeerde hardwaremethode.
+Er komt geen gedeeld demowachtwoord en geen heimelijke auto-login voor echte
+accounts. Bestaande native Materiaal-probes blijven hun eigen profiel behouden.
+Taakbalk en programmasearch verlenen geen aanvullende opslag-/netwerkrechten.
+
+Windows mag via een gepauzeerde probe zonder schijven/devices/netwerk WHPX
+onderzoeken. Auto meldt TCG-terugval; strikt Whpx faalt bij ontbrekende backend.
+Dit verandert geen hostinstellingen of beveiligingsmitigaties. CPU-versnelling
+is geen GPU-passthrough of fysieke driveracceptatie. Herzien bij echte
+accountpersistentie, auth-IPC, compositor-lock, USB/CTAP of gewijzigd rendertransport.
+Bronnen, contract en open gates: [sessieonderzoek](implementation/SESSION-AND-DESKTOP.md)
+en [hardwareonderzoek](implementation/VM-HARDWARE-AND-PERFORMANCE.md).
+
+
 ## OP-001 — Schrijvers, integratoroverdracht en Windows-afleverroute
 
 30 oktober 2026; vastlegging van de operationele besluiten uit PR #75.

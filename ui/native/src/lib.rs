@@ -8,7 +8,9 @@
 
 pub mod controller;
 pub mod design;
+pub mod desktop;
 pub mod render;
+pub mod session;
 pub mod text;
 
 pub const TILE_WIDTH: u32 = 32;

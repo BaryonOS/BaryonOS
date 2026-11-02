@@ -71,3 +71,25 @@ Fontbron, gekozen features en notices staan in [THIRD-PARTY.md](THIRD-PARTY.md).
 Eigen native kleur-/radius-/spacingwaarden lezen compile-time uitsluitend de
 bestaande [tokens.css](../prototype/tokens.css). Het prototype zelf wordt niet
 als runtime gebruikt en doet geen werk namens het OS.
+
+## Sessieroute en bureaublad (2 november 2026)
+
+Het opt-in kernelprofiel `native-system-session-preview` geeft de native app
+startupwoord648=1. `Controller::enable_vm_desktop` toont gebruikerskeuze,
+een herkenbaar aanmeldformulier en een expliciete openbare VM-gastsessie,
+gevolgd door taakbalk, lokale programmasearch en echte Materiaalnavigatie.
+Esc in de Materiaallijst keert terug naar het bureaublad; editor/dirty-dialog
+behouden hun bestaande bescherming van onopgeslagen werk. Bestaande native
+Materiaalgates gebruiken dit profiel niet.
+
+`session.rs` bindt antwoorden aan request/epoch/account/methode en scheidt
+authenticatie van activatie. De native standaard `UnavailableBroker` weigert
+ieder echt wachtwoord; vingerafdruk/FIDO2 zijn niet gekoppeld. Dit is geen
+beveiligd accountbeheer of compositor-lock: de openbare gast blijft hetzelfde
+synthetische appdomein met vooraf verleende VM-rechten. Geen echte gegevens
+of productiecredentials in deze preview gebruiken. Zie het
+[sessiecontract](../../docs/implementation/SESSION-AND-DESKTOP.md).
+
+Aanvullende leerbron: OSDev, *Drawing In a Linear Framebuffer*, W004597,
+revisie30599 (21 mei 2026). De bestaande UEFI/GOP- en capabilitytransporten
+blijven leidend; geen tutorialcode is overgenomen.

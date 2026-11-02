@@ -31,11 +31,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **34** |
 
-**Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`ed63ed25`](https://github.com/simonvanieperen/nieuw-os/commit/ed63ed2597460a0265ee094ebea366cda9ef2a7d) ·
-**Ontwikkelbranch:** `claude/integration-2-20261030`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Afhandeling van alle open pull requests en issues: integratie 1 (#96) en integratie 2 (#113).
-De productscore blijft 34/100. #96 is gesquash-merged na 30 groene checks, inclusief de native NAS normal/cold-gate. #113 neemt de resterende component-delta's op: Materiaal-semantiek en SR05–SR08-regressies, primary hover, app-source-snapshotkern en -contracten, DHCP-retries met expliciete entropiepoort, en documentatie- en bewijsbestanden. Alle opgenomen PR's zijn per commit na hun vastgelegde bron gecontroleerd. Reviewfixes: een net-stack-discardroute voor een ingehouden TX-frame met regressietest, en de Materiaal-chaintest volgt het nieuwe semantische buffercontract. Lokaal zijn host-tests, Clippy en fmt groen; de freestanding-build van app-package-core is lokaal niet uitgevoerd. Dit is host- en componentbewijs, geen native-, FR-, fysieke of menselijke acceptatie; vaste criteria en gewichten zijn ongewijzigd. Open: #109, #110 en de productmilestones #39–#43.
+**Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
+**Bron:** [`e08fb0e4`](https://github.com/simonvanieperen/nieuw-os/commit/e08fb0e48c1bb0781e98357f588c2f73b6ae8500) ·
+**Ontwikkelbranch:** `codex/session-desktop-vm-20261102`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Herkenbare native aanmeldroute, bureaublad en veilige QEMU-versnelling.
+34/100 blijft gelijk. Opt-in native sessiepreview met expliciete openbare VM-gast, gebruikerskeuze, wachtwoordformulier zonder werkende authenticatieprovider, taakbalk en lokale programmasearch. Begrensde sessietoestanden weigeren onbevestigde authenticatie en stale antwoorden. Windowsstarter onderzoekt WHPX met veilige probe en zichtbare TCG-terugval. Gerichte hosttests slagen; gezamenlijke native schermproef, Windows-runtime en fysieke authenticatie zijn bij dit checkpoint nog niet uitgevoerd. FR-S01/S02/U01-U05 en productrelease blijven open; criteria en gewichten ongewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

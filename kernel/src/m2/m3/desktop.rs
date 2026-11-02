@@ -255,6 +255,8 @@ pub(super) fn manifest(s: &mut State) {
         (592, policy),
         (600, INPUT_EPOCH),
         (608, 1),
+        // Public VM navigation only; no authentication or new capability.
+        (648, u64::from(cfg!(feature = "native-system-session-preview"))),
         (
             616,
             if cfg!(feature = "test-system-materiaal-scale200") {

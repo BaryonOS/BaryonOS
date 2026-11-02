@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 $root = Join-Path ([System.IO.Path]::GetTempPath()) ("Nieuw OS launcher test " + [guid]::NewGuid())
 $files = @(
-    "Start-NieuwOS.ps1", "README.md",
+    "Start-NieuwOS.ps1", "Acceleration.ps1", "README.md",
     "OVMF_CODE.fd", "OVMF_VARS.template.fd", "bios-256k.bin", "VGA.rom",
     "licenses/OVMF-COPYRIGHT", "licenses/SeaBIOS-COPYRIGHT",
     "volume.empty.img", "esp/kernel.elf", "esp/EFI/BOOT/BOOTX64.EFI"
@@ -17,7 +17,7 @@ try {
     foreach ($relative in $files) {
         $path = Join-Path $root $relative
         New-Item -ItemType Directory -Path (Split-Path $path) -Force | Out-Null
-        if ($relative -eq "Start-NieuwOS.ps1") {
+        if ($relative -eq "Start-NieuwOS.ps1" -or $relative -eq "Acceleration.ps1") {
             Copy-Item -LiteralPath (Join-Path $PSScriptRoot $relative) -Destination $path
         } else {
             [System.IO.File]::WriteAllText($path, "Synthetic launcher test: $relative")
@@ -47,6 +47,20 @@ try {
     $passed++
     & $launcher -CheckOnly
     $passed++
+
+    $helper = Join-Path $root "Acceleration.ps1"
+    $helperOriginal = [System.IO.File]::ReadAllBytes($helper)
+    $helperChanged = $helperOriginal.Clone()
+    $helperChanged[0] = $helperChanged[0] -bxor 1
+    [System.IO.File]::WriteAllBytes($helper, $helperChanged)
+    $rejected = $false
+    try { & $launcher -QemuPath $QemuPath -CheckOnly } catch {
+        if ($_.Exception.Message -ne "Bundle file hash differs: Acceleration.ps1") { throw }
+        $rejected = $true
+    }
+    if (-not $rejected) { throw "Tampered acceleration code was accepted." }
+    $passed++
+    [System.IO.File]::WriteAllBytes($helper, $helperOriginal)
 
     $kernel = Join-Path $root "esp/kernel.elf"
     $original = [System.IO.File]::ReadAllBytes($kernel)

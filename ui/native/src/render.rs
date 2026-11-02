@@ -244,6 +244,11 @@ impl<'a> Frame<'a> {
                 .map(|(x, y)| (x / viewport.scale().factor(), y / viewport.scale().factor())),
         };
         paint.pixels.fill(d::BACKGROUND);
+        if let Some(desktop) = self.view.desktop.filter(|desktop| desktop.overlay()) {
+            paint.desktop(desktop, viewport);
+            paint.pointer(self.view.cursor);
+            return Ok(rect);
+        }
         let layout = self.layout;
         match self.view.screen {
             Screen::Material => {
@@ -539,6 +544,56 @@ impl<'a> Frame<'a> {
     }
 
     fn visit_semantics(&self, mut visit: impl FnMut(SemanticNode<'a>)) {
+        if let Some(desktop) = self.view.desktop.filter(|desktop| desktop.overlay()) {
+            visit(SemanticNode {
+                id: SemanticId::Window,
+                parent: None,
+                role: Role::Window,
+                label: "Nieuw OS",
+                bounds: self.view.viewport.bounds(),
+                enabled: true,
+                ..SemanticNode::EMPTY
+            });
+            for (target, bounds, label) in
+                desktop.controls(self.view.viewport).into_iter().flatten()
+            {
+                if target == crate::desktop::Target::Password && desktop.is_guest() {
+                    continue;
+                }
+                // Password bytes never enter the semantic tree. The native
+                // profile cannot grant authenticated access to a real account.
+                visit(SemanticNode {
+                    id: SemanticId::Desktop(target),
+                    parent: Some(SemanticId::Window),
+                    role: if matches!(
+                        target,
+                        crate::desktop::Target::Password | crate::desktop::Target::SearchField
+                    ) {
+                        Role::TextEditor
+                    } else {
+                        Role::Button
+                    },
+                    label,
+                    value: if target == crate::desktop::Target::SearchField {
+                        Some(desktop.query())
+                    } else {
+                        None
+                    },
+                    bounds: bounds.physical(self.view.viewport.scale()),
+                    enabled: true,
+                    focused: desktop.focus() == target,
+                    actions: SemanticActions {
+                        activate: !matches!(
+                            target,
+                            crate::desktop::Target::Password | crate::desktop::Target::SearchField
+                        ),
+                        set_value: target == crate::desktop::Target::SearchField,
+                    },
+                    ..SemanticNode::EMPTY
+                });
+            }
+            return;
+        }
         let mut push =
             |id, parent, role, label, value, bounds: Rect, focus: Option<Focus>, enabled| {
                 visit(SemanticNode {
@@ -826,6 +881,7 @@ pub enum Role {
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SemanticId {
+    Desktop(crate::desktop::Target),
     Empty,
     Window,
     Heading,
@@ -939,6 +995,264 @@ struct Paint<'a> {
     cursor: Option<(u32, u32)>,
 }
 impl Paint<'_> {
+    fn pointer(&mut self, cursor: Option<(u32, u32)>) {
+        if let Some((x, y)) = cursor {
+            for dy in 0..14 {
+                for dx in 0..=dy / 2 {
+                    self.pixel(
+                        i64::from(x + dx),
+                        i64::from(y + dy),
+                        if dx == 0 || dx == dy / 2 || dy == 13 {
+                            d::SURFACE
+                        } else {
+                            d::TEXT
+                        },
+                    );
+                }
+            }
+        }
+    }
+    fn desktop(&mut self, desktop: &crate::desktop::Desktop, viewport: Viewport) {
+        use crate::desktop::{Page, Target};
+        let w = viewport.logical_width();
+        let h = viewport.logical_height();
+        // Bounded per-tile wallpaper, using only the existing color tokens.
+        for dy in 0..self.rect.height {
+            for dx in 0..self.rect.width {
+                let x = self.rect.x + dx;
+                let y = self.rect.y + dy;
+                let diagonal = ((u64::from(x) * 110 / u64::from(viewport.width()))
+                    + (u64::from(y) * 55 / u64::from(viewport.height())))
+                .min(165) as u8;
+                self.pixels[(dy * self.rect.width + dx) as usize] =
+                    blend(d::ACCENT_SOFT, d::BACKGROUND, diagonal);
+            }
+        }
+        let compact = h < 420;
+        let controls = desktop.controls(viewport);
+        let width = w.saturating_sub(48).min(432);
+        let x = (w - width) / 2;
+        let y = h.saturating_sub(360) / 2;
+        match desktop.page() {
+            Page::Accounts | Page::Login => {
+                let panel = Rect {
+                    x: x.saturating_sub(16),
+                    y: y.saturating_sub(8),
+                    width: width + 32,
+                    height: if compact { h.saturating_sub(16) } else { 352 },
+                };
+                self.rounded(
+                    Rect {
+                        x: panel.x + 3,
+                        y: panel.y + 5,
+                        ..panel
+                    },
+                    d::LINE,
+                    24,
+                );
+                self.rounded(panel, d::SURFACE, 24);
+                if desktop.page() == Page::Accounts {
+                    self.title(x + 16, y + 20, "Welkom");
+                    self.label(x + 16, y + 64, "Kies je gebruiker", d::MUTED);
+                } else {
+                    self.label(
+                        x + 100,
+                        y + 26,
+                        if desktop.is_guest() {
+                            "Gast (VM-test)"
+                        } else {
+                            "Eigen gebruiker"
+                        },
+                        d::TEXT,
+                    );
+                    self.label(
+                        x,
+                        y + if compact { 60 } else { 88 },
+                        if desktop.is_guest() {
+                            "Openbare testsessie"
+                        } else {
+                            "Wachtwoord"
+                        },
+                        d::TEXT,
+                    );
+                    if !compact {
+                        self.label(
+                            x,
+                            y + 112,
+                            if desktop.is_guest() {
+                                "Gebruik uitsluitend testgegevens."
+                            } else {
+                                "Gebruik alleen testinvoer."
+                            },
+                            d::MUTED,
+                        );
+                    }
+                }
+                for (target, rect, label) in controls.into_iter().flatten() {
+                    if target == Target::Password {
+                        self.outlined(rect, d::BACKGROUND, d::BORDER, d::CONTROL_RADIUS);
+                        if desktop.is_guest() {
+                            self.label(
+                                rect.x + 12,
+                                rect.y + 14,
+                                "Geen wachtwoord voor gast",
+                                d::MUTED,
+                            );
+                        } else {
+                            for index in 0..desktop
+                                .password_len()
+                                .min((rect.width.saturating_sub(24) / 10) as usize)
+                            {
+                                self.character(
+                                    rect.x + 12 + index as u32 * 10,
+                                    rect.y + 14,
+                                    '*',
+                                    d::TEXT,
+                                );
+                            }
+                            if desktop.focus() == target {
+                                self.focus(rect);
+                            }
+                        }
+                    } else {
+                        self.button(
+                            rect,
+                            label,
+                            desktop.focus() == target,
+                            true,
+                            if target == Target::Submit {
+                                ButtonStyle::Primary
+                            } else {
+                                ButtonStyle::Secondary
+                            },
+                        );
+                    }
+                }
+                if desktop.unavailable() || !desktop.is_guest() && desktop.page() == Page::Login {
+                    self.wrapped(
+                        x + 8,
+                        h.saturating_sub(32),
+                        "Aanmelden nog niet beschikbaar.",
+                        width - 16,
+                        d::DANGER,
+                    );
+                }
+            }
+            Page::Home | Page::Search | Page::Material => {
+                self.title(
+                    24,
+                    if compact { 8 } else { 24 },
+                    if desktop.page() == Page::Search {
+                        "Zoeken"
+                    } else {
+                        "Je bureaublad"
+                    },
+                );
+                if !compact {
+                    self.label(24, 68, "Gast (VM-test)  /  Dit apparaat", d::MUTED);
+                }
+                if desktop.page() == Page::Home && h > 420 {
+                    let card = Rect {
+                        x: 24,
+                        y: 280,
+                        width: w - 48,
+                        height: 96,
+                    };
+                    self.rounded(card, d::SURFACE, d::SURFACE_RADIUS);
+                    self.label(40, 296, "Een eigen systeem. Jouw werk centraal.", d::TEXT);
+                    self.label(40, 328, "Open Materiaal om documenten te maken.", d::MUTED);
+                }
+                for (target, rect, _label) in controls.into_iter().flatten() {
+                    if target == Target::Material {
+                        self.rounded(rect, d::SURFACE, d::SURFACE_RADIUS);
+                        self.rounded(
+                            Rect {
+                                x: rect.x + 12,
+                                y: rect.y + 14,
+                                width: 40,
+                                height: 48,
+                            },
+                            d::ACCENT_SOFT,
+                            8,
+                        );
+                        self.fill(
+                            Rect {
+                                x: rect.x + 24,
+                                y: rect.y + 24,
+                                width: 16,
+                                height: 24,
+                            },
+                            d::ACCENT,
+                        );
+                        self.label(rect.x + 68, rect.y + 16, "Materiaal", d::TEXT);
+                        if rect.height > 60 {
+                            self.label(
+                                rect.x + 68,
+                                rect.y + 44,
+                                if w < 480 {
+                                    "Documenten"
+                                } else {
+                                    "Bestanden en documenten"
+                                },
+                                d::MUTED,
+                            );
+                        }
+                        if desktop.focus() == target {
+                            self.focus(rect);
+                        }
+                    } else if target == Target::SearchField {
+                        self.outlined(rect, d::SURFACE, d::BORDER, d::CONTROL_RADIUS);
+                        self.label(
+                            rect.x + 12,
+                            rect.y + 14,
+                            if desktop.query().is_empty() {
+                                "Zoek programma's..."
+                            } else {
+                                desktop.query()
+                            },
+                            d::TEXT,
+                        );
+                        if desktop.focus() == target {
+                            self.focus(rect);
+                        }
+                    }
+                }
+                if desktop.page() == Page::Search && !desktop.matches_material() {
+                    self.label(
+                        24,
+                        if compact { 112 } else { 164 },
+                        "Geen programma gevonden",
+                        d::MUTED,
+                    );
+                }
+                let bar = Rect {
+                    x: 8,
+                    y: h.saturating_sub(64),
+                    width: w - 16,
+                    height: 60,
+                };
+                self.rounded(bar, d::SURFACE, 16);
+                for (target, rect, label) in
+                    desktop.controls(viewport).into_iter().flatten().take(3)
+                {
+                    self.button(
+                        rect,
+                        label,
+                        desktop.focus() == target,
+                        true,
+                        if target == Target::Start {
+                            ButtonStyle::Primary
+                        } else {
+                            ButtonStyle::Secondary
+                        },
+                    );
+                }
+                if w > 640 {
+                    self.label(280, h - 36, "Nieuw OS  /  VM-test", d::MUTED);
+                }
+            }
+        }
+    }
     fn pixel(&mut self, x: i64, y: i64, color: u32) {
         if x < i64::from(self.rect.x)
             || y < i64::from(self.rect.y)

@@ -76,6 +76,7 @@ pub struct InputEnvelope {
 
 #[derive(Clone, Copy)]
 pub struct View<'a> {
+    pub desktop: Option<&'a crate::desktop::Desktop>,
     pub viewport: Viewport,
     pub generation: u64,
     pub dirty: bool,
@@ -98,6 +99,7 @@ pub struct View<'a> {
 }
 
 pub struct Controller<'a, T> {
+    desktop: Option<crate::desktop::Desktop>,
     document: DocumentSession<'a, T>,
     editable: bool,
     viewport: Viewport,
@@ -140,6 +142,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             return Err(Error::InputEpoch);
         }
         Ok(Self {
+            desktop: None,
             document,
             editable: mode == EditMode::ReadWrite,
             viewport,
@@ -221,6 +224,7 @@ impl<'a, T: Transport> Controller<'a, T> {
     pub fn view(&self) -> View<'_> {
         let draft = self.document.draft();
         View {
+            desktop: self.desktop.as_ref(),
             viewport: self.viewport,
             generation: self.generation,
             dirty: self.dirty,
@@ -260,8 +264,32 @@ impl<'a, T: Transport> Controller<'a, T> {
             false
         }
     }
+    /// Explicit public VM profile only. This does not revoke document caps or
+    /// protect data; secure login requires an independent native session broker.
+    pub fn enable_vm_desktop(&mut self) -> Result<(), Error> {
+        if self.document.is_dirty() || self.document.is_saving() {
+            return Err(Error::InvalidInput);
+        }
+        self.desktop = Some(crate::desktop::Desktop::new());
+        self.invalidate()
+    }
+    fn desktop_action(&mut self, action: crate::desktop::Action) -> Result<(), Error> {
+        if action == crate::desktop::Action::OpenMaterial {
+            self.screen = Screen::Material;
+            self.focus = if self.editable {
+                Focus::New
+            } else {
+                Focus::Refresh
+            };
+            self.refresh()?;
+        }
+        self.invalidate()
+    }
     pub fn resize(&mut self, viewport: Viewport) -> Result<(), Error> {
         self.viewport = viewport;
+        if let Some(desktop) = &mut self.desktop {
+            desktop.cancel_pointer();
+        }
         self.dragging = false;
         self.pressed = None;
         self.cursor = self
@@ -279,6 +307,9 @@ impl<'a, T: Transport> Controller<'a, T> {
     pub fn rebind_input(&mut self, new_epoch: u64) -> Result<(), Error> {
         if new_epoch == 0 || new_epoch == self.input_epoch {
             return Err(Error::InputEpoch);
+        }
+        if let Some(desktop) = &mut self.desktop {
+            desktop.cancel_input();
         }
         self.input_epoch = new_epoch;
         self.last_input = 0;
@@ -302,6 +333,9 @@ impl<'a, T: Transport> Controller<'a, T> {
     /// the adapter passes only actual source changed/down bits, never clamped
     /// outside coordinates or a synthetic press.
     pub fn cancel_pointer(&mut self) -> Result<(), Error> {
+        if let Some(desktop) = &mut self.desktop {
+            desktop.cancel_pointer();
+        }
         if !self.dragging && self.pressed.is_none() && self.cursor.is_none() {
             return Ok(());
         }
@@ -395,6 +429,11 @@ impl<'a, T: Transport> Controller<'a, T> {
         if !enabled || !actions.activate {
             return Err(Error::InvalidInput);
         }
+        if let SemanticId::Desktop(target) = id {
+            let desktop = self.desktop.as_mut().ok_or(Error::InvalidInput)?;
+            let action = desktop.activate(target);
+            return self.desktop_action(action);
+        }
         let focus = match id {
             SemanticId::NewDocument => Focus::New,
             SemanticId::Refresh => Focus::Refresh,
@@ -450,6 +489,19 @@ impl<'a, T: Transport> Controller<'a, T> {
         value: &str,
     ) -> Result<(), Error> {
         let (enabled, actions) = self.semantic_actions(id, expected_generation)?;
+        if enabled
+            && actions.set_value
+            && id == SemanticId::Desktop(crate::desktop::Target::SearchField)
+        {
+            if !self
+                .desktop
+                .as_mut()
+                .is_some_and(|desktop| desktop.set_query(value))
+            {
+                return Err(Error::InvalidInput);
+            }
+            return self.invalidate();
+        }
         if id != SemanticId::Document || !enabled || !actions.set_value {
             return Err(Error::InvalidInput);
         }
@@ -936,6 +988,9 @@ impl<'a, T: Transport> Controller<'a, T> {
         if let Event::Cancel(_) = envelope.event {
             self.cancelled_through = self.cancelled_through.max(envelope.generation);
             if envelope.generation >= self.focus_generation {
+                if let Some(desktop) = &mut self.desktop {
+                    desktop.cancel_input();
+                }
                 self.dragging = false;
                 self.pressed = None;
                 if !self.document.is_uncertain()
@@ -954,6 +1009,9 @@ impl<'a, T: Transport> Controller<'a, T> {
             return Err(Error::StaleInput);
         }
         if envelope.generation != self.focus_generation {
+            if let Some(desktop) = &mut self.desktop {
+                desktop.cancel_pointer();
+            }
             self.dragging = false;
             self.pressed = None;
             self.focus_generation = envelope.generation;
@@ -977,6 +1035,22 @@ impl<'a, T: Transport> Controller<'a, T> {
             self.invalidate()?;
         }
         match envelope.event {
+            event if self.desktop.as_ref().is_some_and(|d| d.overlay()) => {
+                if let Event::Mouse { x, y, .. } = event {
+                    self.cursor = Some((x, y));
+                }
+                let action = self.desktop.as_mut().unwrap().deliver(event, self.viewport);
+                self.desktop_action(action)
+            }
+            Event::Key(key)
+                if key.key == PhysicalKey::Escape
+                    && key.action == KeyAction::Press
+                    && self.screen == Screen::Material
+                    && self.desktop.is_some() =>
+            {
+                self.desktop.as_mut().unwrap().home();
+                self.invalidate()
+            }
             Event::Key(key) => self.key(key),
             Event::Mouse { input, x, y } => {
                 self.cursor = Some((x, y));
@@ -1008,7 +1082,7 @@ impl<'a, T: Transport> Controller<'a, T> {
     }
 }
 
-fn us_character(key: PhysicalKey, shift: bool, caps: bool) -> Option<u8> {
+pub(crate) fn us_character(key: PhysicalKey, shift: bool, caps: bool) -> Option<u8> {
     use PhysicalKey::*;
     let letter = match key {
         A => b'a',

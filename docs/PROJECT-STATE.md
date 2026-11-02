@@ -1,5 +1,37 @@
 # Actuele projectstatus
 
+## NEXT AGENT HANDOFF — native sessiepreview en QEMU — 2 november 2026
+
+Bronbasis `e08fb0e48c1bb0781e98357f588c2f73b6ae8500`, branch `codex/session-desktop-vm-20261102`.
+De actuele gebruikersopdracht is een herkenbare gebruikerskeuze → aanmelden →
+bureaublad/taakbalk/zoeken, met behoud van de eigen microkernel en echte
+beveiligingsgrenzen; tevens veilige hardwareversnelling onderzoeken.
+
+Geïmplementeerd: opt-in `native-system-session-preview` met openbare VM-gast,
+eigen no_std-sessiemodel en native taakbalk/zoekroute naar echte Materiaal;
+Windows Auto/Whpx/Tcg-selectie met begrensde probe zonder disks/netwerk/devices.
+De aanmeldinterface is geen nieuwe authenticatie-/sleutel-/revokegrens.
+Wachtwoord/biometrie/FIDO2 blijven gesloten via UnavailableBroker.
+[Onderzoek/contract](implementation/SESSION-AND-DESKTOP.md) en
+[hardware/prestaties](implementation/VM-HARDWARE-AND-PERFORMANCE.md).
+
+Checkpoint: 45 frontendhosttests slagen (31 interactie, 4 raster, 10 sessie),
+37 Python-launcher/previewtests en 18 synthetische PowerShellchecks door deelagent.
+Native build loopt; gezamenlijke native schermproef en Windows-runtime voor
+deze bron **nog niet uitgevoerd**. Brongebonden eindbewijs volgt onder
+`docs/verification/session-desktop-20261102/`. Score **34 → 34**; geen
+nieuwe FR-, fysieke of menselijke acceptatie. De bestaande integratorafspraak
+voor merges blijft behouden; deze branch wordt niet zelfstandig gemerged.
+
+Lokale chat `01a19c13-c83d-7781-8f61-de0541ac6d95` verzorgt pc-inventaris en
+geïsoleerde Windowsmetingen. Ryzen 9 9950X3D, 64 GiB, Windows11 25H2;
+WHPX-init op QEMU11.1 is apart geslaagd met oude bundel. Dat is geen bewijs
+voor dit nieuwe profiel. Geen hostconfiguratie wijzigen of hardware doorgeven.
+
+Eerstvolgend: bronfreeze, schone native build, `tools/run_session_preview.py`
+met exacte hostrastervergelijking en daarop gebaseerde Windowspakketoverdracht.
+
+
 ## NEXT AGENT HANDOFF — PR- en issueafhandeling na integratie 1 en 2 — 30 oktober 2026
 
 **Mandaat:** Simon heeft de Claude Code-sessie in de desktopapp op 30 oktober
