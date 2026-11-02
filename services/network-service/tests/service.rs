@@ -466,8 +466,135 @@ fn two_ipc_owners_fill_real_tcp_buffers_recover_backpressure_and_close() {
                 Status::Ok
             );
         }
+        service.poll(2200).unwrap();
         assert!(service.clean());
         assert_eq!(service.counters().sent, 8192);
         assert_eq!(service.counters().received, 8192);
+    });
+}
+
+#[test]
+fn one_owner_port_exhaustion_preserves_the_other_owners_budget() {
+    service!(s, configuration(), {
+        for turn in 0..12768u64 {
+            let opened = rpc(
+                &mut s,
+                0,
+                &request(Operation::OpenTcp, turn * 2 + 1, 0, 300, PEER, 8080, &[]),
+                0,
+            );
+            assert_eq!(opened.status(), Status::Ok);
+            assert_eq!(
+                rpc(
+                    &mut s,
+                    0,
+                    &request(
+                        Operation::CloseTcp,
+                        turn * 2 + 2,
+                        opened.header().connection,
+                        0,
+                        [0; 4],
+                        0,
+                        &[]
+                    ),
+                    0
+                )
+                .status(),
+                Status::Ok
+            );
+        }
+        assert_eq!(
+            rpc(
+                &mut s,
+                0,
+                &request(Operation::OpenTcp, 25537, 0, 300, PEER, 8080, &[]),
+                0
+            )
+            .status(),
+            Status::Exhausted
+        );
+        let b = rpc(
+            &mut s,
+            1,
+            &request(Operation::OpenTcp, 1, 0, 300, PEER, 8090, &[]),
+            0,
+        );
+        assert_eq!(b.status(), Status::Ok);
+        assert_eq!(
+            rpc(
+                &mut s,
+                1,
+                &request(
+                    Operation::State,
+                    2,
+                    b.header().connection,
+                    0,
+                    [0; 4],
+                    0,
+                    &[]
+                ),
+                0
+            )
+            .header()
+            .argument,
+            ConnectionState::Connecting as u32
+        );
+        assert_eq!(s.counters().opened, 12769);
+    });
+}
+
+#[test]
+fn terminal_channel_failure_retires_one_slot_without_releasing_live_transmission() {
+    service!(s, configuration(), {
+        for slot in 0..2 {
+            assert_eq!(
+                rpc(
+                    &mut s,
+                    slot,
+                    &request(
+                        Operation::OpenTcp,
+                        1,
+                        0,
+                        300,
+                        PEER,
+                        8080 + slot as u16 * 10,
+                        &[]
+                    ),
+                    0
+                )
+                .status(),
+                Status::Ok
+            );
+        }
+        s.poll(0).unwrap();
+        let frame = s.transmission().unwrap();
+        let (id, bytes) = (frame.id, frame.bytes.to_vec());
+        s.retire_slot(0, 0).unwrap();
+        assert_eq!(s.retired_mask(), 1);
+        assert_eq!(s.transmission().unwrap().id, id);
+        assert_eq!(s.transmission().unwrap().bytes, bytes);
+        assert_eq!(s.complete_transmission(id + 1), Err(Fault::Transport));
+        s.complete_transmission(id).unwrap();
+        s.poll(1).unwrap();
+        assert_eq!(
+            rpc(
+                &mut s,
+                0,
+                &request(Operation::OpenTcp, 2, 0, 300, PEER, 8080, &[]),
+                1
+            )
+            .status(),
+            Status::Closed
+        );
+        assert_eq!(
+            rpc(
+                &mut s,
+                1,
+                &request(Operation::State, 2, 258, 0, [0; 4], 0, &[]),
+                1
+            )
+            .status(),
+            Status::Ok
+        );
     });
 }

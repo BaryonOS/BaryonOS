@@ -255,6 +255,64 @@ fn run() -> ! {
         19,
     );
     bump(424);
+    if support::word(104) == 1 {
+        check(slot == 0, 48);
+        let connection = session
+            .open([192, 0, 2, 1], first + 4, 700)
+            .unwrap_or_else(|_| fail(49));
+        let start = tick();
+        while tick() - start < 3 {
+            yield_now();
+        }
+        let packet = Packet::request(
+            HeaderFields {
+                operation: Operation::State,
+                request: 3,
+                epoch,
+                connection: connection.id(),
+                argument: 0,
+                address: [0; 4],
+                port: 0,
+            },
+            &[],
+        )
+        .unwrap();
+        let message = Outgoing::new(wire::TAG, packet.bytes()).unwrap();
+        loop {
+            check(tick() - start < 100, 50);
+            match native::send(send, &message) {
+                Ok(()) => break,
+                Err(e) if e.is_again() => yield_now(),
+                Err(_) => fail(51),
+            }
+        }
+        // Enqueued request, then a real kernel close of the reply receiver:
+        // the service's pending reply must get Closed, never a fake ACK.
+        native::close(receive.handle()).unwrap_or_else(|_| fail(52));
+        // A reply might have reached the queue before close. Publish one more
+        // correlated request to force a send against the now-closed receiver;
+        // if the service already retired this ingress, Closed is expected.
+        let mut confirm = *packet.bytes();
+        confirm[8..16].copy_from_slice(&4u64.to_le_bytes());
+        let confirm = Outgoing::new(wire::TAG, &confirm).unwrap();
+        loop {
+            check(tick() - start < 100, 54);
+            match native::send(send, &confirm) {
+                Ok(()) => break,
+                Err(nieuw_os_sdk_runtime::Error::Kernel(-4 | -9 | -10)) => break,
+                Err(e) if e.is_again() => yield_now(),
+                Err(_) => fail(55),
+            }
+        }
+        native::close(send.handle()).unwrap_or_else(|_| fail(53));
+        support::put(536, 1);
+        let closed = tick();
+        while tick() - closed < 25 {
+            yield_now();
+        }
+        support::put(528, 1);
+        native::exit(0)
+    }
     let mut previous = None;
     for (offset, case) in [
         Case::Http,

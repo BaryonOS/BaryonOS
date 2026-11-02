@@ -4,16 +4,18 @@ use super::*;
 use capability_core::{PROCESS_EXITED, RECV, SEND};
 
 const EPOCH: u64 = 1;
-const OFFSETS: [u64; 18] = [
-    240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528,
+const OFFSETS: [u64; 19] = [
+    240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528, 536,
 ];
 struct Evidence {
-    snapshots: [Option<[u64; 18]>; 3],
+    snapshots: [Option<[u64; 19]>; 3],
     kernel_tables: usize,
+    exits: [u64; 3],
 }
 static mut EVIDENCE: Evidence = Evidence {
     snapshots: [None; 3],
     kernel_tables: 0,
+    exits: [0; 3],
 };
 fn evidence() -> &'static mut Evidence {
     // SAFETY: One CPU, IF=0; no borrow survives a scheduling point or cleanup.
@@ -102,6 +104,10 @@ pub(super) fn manifest(s: &mut State) {
             (80, app),
             (88, 8080 + index as u64 * 10),
             (96, 9000 + index as u64),
+            (
+                104,
+                u64::from(index == 0 && cfg!(feature = "test-net-service-client-exit")),
+            ),
         ] {
             put(s, slot, offset, value);
         }
@@ -136,7 +142,7 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _: u64) {
         slot < 3 && evidence().snapshots[slot].is_none(),
         b"EXIT_SLOT",
     );
-    let mut values = [0; 18];
+    let mut values = [0; 19];
     for (i, at) in OFFSETS.iter().enumerate() {
         values[i] = word(s, slot, *at);
     }
@@ -163,6 +169,13 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _: u64) {
         fail(b"USER_RESULT");
     }
     evidence().snapshots[slot] = Some(values);
+    evidence().exits[slot] = s.ticks;
+    if slot == 1 {
+        print_number(b"NETSVC:APP_A_EXIT_TICKS:", s.ticks);
+    }
+    if slot == 2 {
+        print_number(b"NETSVC:APP_B_EXIT_TICKS:", s.ticks);
+    }
     // This records status for runtime-spawned children. The three bootstrap
     // processes deliberately have no Process object, so `false` is expected.
     m4::engine().process_died(s.processes[slot].pid, PROCESS_EXITED, 0);
@@ -187,31 +200,53 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
         return None;
     }
     let service = evidence().snapshots[0].unwrap();
+    let departing = cfg!(feature = "test-net-service-client-exit");
+    let udp = if departing { 1 } else { 2 };
     require(
-        service[7] == 2
-            && service[8] == 2
-            && service[9] == 10
+        service[7] == udp
+            && service[8] == udp
+            && service[9] == if departing { 6 } else { 10 }
             && service[13] == 3
             && service[14] == 0
-            && service[15] >= 4
-            && service[16] >= 2,
+            && service[15] >= 2 * udp
+            && service[16] >= udp
+            && service[18] == u64::from(departing),
         b"SERVICE_EVIDENCE",
     );
-    for app in evidence().snapshots[1..].iter().flatten() {
+    for (index, app) in evidence().snapshots[1..].iter().flatten().enumerate() {
+        if departing && index == 0 {
+            require(
+                app[2] == 0
+                    && app[3] == 0
+                    && app[4] == 1
+                    && app[6] == 1
+                    && app[11] == 1
+                    && app[18] == 1,
+                b"DEPARTED_APP_EVIDENCE",
+            );
+        } else {
+            require(
+                app[2] == 2
+                    && app[3] == 1
+                    && app[4] == 1
+                    && app[5] >= 5
+                    && app[6] == 1
+                    && app[9] == 2
+                    && app[10] == 4
+                    && app[11] == 1
+                    && app[12] == 1
+                    && app[13] == 1
+                    && app[14] == 1
+                    && app[15] == 1
+                    && app[18] == 0,
+                b"APP_EVIDENCE",
+            );
+        }
+    }
+    if departing {
         require(
-            app[2] == 2
-                && app[3] == 1
-                && app[4] == 1
-                && app[5] >= 5
-                && app[6] == 1
-                && app[9] == 2
-                && app[10] == 4
-                && app[11] == 1
-                && app[12] == 1
-                && app[13] == 1
-                && app[14] == 1
-                && app[15] == 1,
-            b"APP_EVIDENCE",
+            evidence().exits[2] > evidence().exits[1],
+            b"SURVIVOR_PROGRESS",
         );
     }
     network::print_and_check(service[3], service[4]);

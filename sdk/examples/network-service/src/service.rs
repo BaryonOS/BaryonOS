@@ -191,6 +191,7 @@ fn run() -> ! {
         rx: [0; 1514],
     };
     let mut pending: [Option<wire::Packet>; 2] = [None, None];
+    let mut disabled = [false; 2];
     let mut drain = false;
     support::put(400, 1);
     loop {
@@ -220,21 +221,31 @@ fn run() -> ! {
             }
         }
         for slot in 0..2 {
+            if disabled[slot] {
+                continue;
+            }
             if let Some(reply) = &pending[slot] {
                 let message = Outgoing::new(wire::TAG, reply.bytes()).unwrap_or_else(|_| fail(21));
                 match native::send(replies[slot], &message) {
                     Ok(()) => pending[slot] = None,
                     Err(e) if e.is_again() => {}
                     Err(_) => {
-                        if drain {
-                            pending[slot] = None
-                        } else {
-                            fail(22)
+                        // A vanished app reply endpoint is local to that app.
+                        // Do not take the other app's shared service offline.
+                        service.retire_slot(slot, tick).unwrap_or_else(|_| fail(22));
+                        pending[slot] = None;
+                        disabled[slot] = true;
+                        for h in [receives[slot].handle(), replies[slot].handle()] {
+                            match native::close(h) {
+                                Ok(()) => {}
+                                Err(nieuw_os_sdk_runtime::Error::Kernel(-4 | -9 | -10)) => {}
+                                Err(_) => fail(29),
+                            }
                         }
                     }
                 }
             }
-            if pending[slot].is_none() && !drain {
+            if !disabled[slot] && pending[slot].is_none() && !drain {
                 match native::receive(receives[slot]) {
                     Ok(message) => {
                         if message.cap_count() != 0 {
@@ -256,7 +267,17 @@ fn run() -> ! {
                             .unwrap_or_else(|_| fail(24));
                     }
                     Err(e) if e.is_again() => {}
-                    Err(_) => fail(25),
+                    Err(_) => {
+                        service.retire_slot(slot, tick).unwrap_or_else(|_| fail(25));
+                        disabled[slot] = true;
+                        for h in [receives[slot].handle(), replies[slot].handle()] {
+                            match native::close(h) {
+                                Ok(()) => {}
+                                Err(nieuw_os_sdk_runtime::Error::Kernel(-4 | -9 | -10)) => {}
+                                Err(_) => fail(30),
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -273,12 +294,20 @@ fn run() -> ! {
             (496, service.retired_mask()),
             (512, c.malformed_frames),
             (520, c.dropped_datagrams),
+            (536, u64::from(disabled[0]) | (u64::from(disabled[1]) << 1)),
         ] {
             support::put(at, value)
         }
         if service.clean() && pending.iter().all(Option::is_none) && bridge.pending.is_none() {
-            for h in all {
+            for h in [source.handle(), entropy.handle()] {
                 native::close(h).unwrap_or_else(|_| fail(26));
+            }
+            for slot in 0..2 {
+                if !disabled[slot] {
+                    for h in [receives[slot].handle(), replies[slot].handle()] {
+                        native::close(h).unwrap_or_else(|_| fail(26));
+                    }
+                }
             }
             if let Some((h, _)) = control {
                 native::close(h.handle()).unwrap_or_else(|_| fail(27));

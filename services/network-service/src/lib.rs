@@ -58,6 +58,7 @@ struct Owner {
     client: Client,
     request: u64,
     generation: u64,
+    next_port: Option<u16>,
     token: u64,
     active: bool,
     closing: bool,
@@ -73,9 +74,9 @@ pub struct Service<'a> {
     stack: Stack<'a>,
     owners: [Owner; CLIENTS],
     last_tick: u64,
-    next_port: u16,
     identification: u16,
     counters: Counters,
+    needs_poll: bool,
 }
 impl<'a> Service<'a> {
     pub fn new(config: Configuration, buffers: Buffers<'a>, now: u64) -> Result<Self, Fault> {
@@ -126,11 +127,12 @@ impl<'a> Service<'a> {
             mac: config.link.mac,
             ipv4: config.link.ipv4,
         };
-        let make = |client| {
+        let make = |client, slot: u16| {
             Ok(Owner {
                 client,
                 request: 0,
                 generation: 0,
+                next_port: Some(40000 + slot),
                 token: 0,
                 active: false,
                 closing: false,
@@ -145,11 +147,11 @@ impl<'a> Service<'a> {
         Ok(Self {
             config,
             stack,
-            owners: [make(clients[0])?, make(clients[1])?],
+            owners: [make(clients[0], 0)?, make(clients[1], 1)?],
             last_tick: now,
-            next_port: 40000,
             identification: 0,
             counters: Counters::default(),
+            needs_poll: false,
         })
     }
     fn time(&self, now: u64) -> Result<(), Fault> {
@@ -179,6 +181,7 @@ impl<'a> Service<'a> {
     pub fn poll(&mut self, now: u64) -> Result<(), Fault> {
         self.time(now)?;
         self.stack.poll(now).map_err(|_| Fault::Clock)?;
+        self.needs_poll = false;
         self.last_tick = now;
         for owner in &mut self.owners {
             if owner.active
@@ -195,6 +198,7 @@ impl<'a> Service<'a> {
                     .map_err(|_| Fault::Transport)?;
                 owner.timed_out = true;
                 owner.closing = true;
+                self.needs_poll = true;
             }
         }
         Ok(())
@@ -265,10 +269,33 @@ impl<'a> Service<'a> {
                 .close(owner.client)
                 .map_err(|_| Fault::Transport)?;
         }
+        self.needs_poll = true;
+        Ok(())
+    }
+    /// Trusted adapter notification, never an app RPC: one peer's terminal
+    /// channel failure retires only that owner's authority. The shared device
+    /// transmission (possibly already published to the kernel) remains pinned
+    /// until its matching real completion. A subsequent poll emits cancellation
+    /// traffic when the bounded device slot becomes available.
+    pub fn retire_slot(&mut self, slot: usize, now: u64) -> Result<(), Fault> {
+        self.time(now)?;
+        let owner = self.owners.get_mut(slot).ok_or(Fault::Configuration)?;
+        owner.retired = true;
+        owner.active = false;
+        owner.closing = true;
+        owner.token = 0;
+        owner.udp.fill(0);
+        owner.udp_len = None;
+        owner.neighbor.cancel();
+        self.stack
+            .cancel(owner.client)
+            .map_err(|_| Fault::Transport)?;
+        self.needs_poll = true;
         Ok(())
     }
     pub fn clean(&self) -> bool {
-        self.retired_mask() == 3
+        !self.needs_poll
+            && self.retired_mask() == 3
             && self.stack.transmission().is_none()
             && self
                 .owners
@@ -368,13 +395,19 @@ impl<'a> Service<'a> {
                 {
                     return Ok(refusal(h, Status::Busy));
                 }
-                let generation = self.owners[slot]
+                let Some(generation) = self.owners[slot]
                     .generation
                     .checked_add(1)
                     .filter(|g| *g < u64::MAX >> 8)
-                    .ok_or(Fault::Exhausted)?;
-                let port = self.next_port;
-                self.next_port = self.next_port.checked_add(1).ok_or(Fault::Exhausted)?;
+                else {
+                    return Ok(refusal(h, Status::Exhausted));
+                };
+                // Each app has a disjoint bounded port namespace. Exhausting
+                // one namespace is an app result, never a service fault, and
+                // cannot consume the other owner's future connection budget.
+                let Some(port) = self.owners[slot].next_port else {
+                    return Ok(refusal(h, Status::Exhausted));
+                };
                 let deadline = now.checked_add(u64::from(h.argument)).ok_or(Fault::Clock)?;
                 match self.stack.connect(
                     self.owners[slot].client,
@@ -386,11 +419,13 @@ impl<'a> Service<'a> {
                     Ok(()) => {
                         let owner = &mut self.owners[slot];
                         owner.generation = generation;
+                        owner.next_port = port.checked_add(2);
                         owner.token = (generation << 8) | (slot as u64 + 1);
                         owner.active = true;
                         owner.closing = false;
                         owner.deadline = deadline;
                         owner.timed_out = false;
+                        self.needs_poll = true;
                         h.connection = owner.token;
                         self.counters.opened = self.counters.opened.saturating_add(1);
                         (Status::Ok, ConnectionState::Connecting as u32)
@@ -435,6 +470,7 @@ impl<'a> Service<'a> {
                     .close(self.owners[slot].client)
                     .map_err(|_| Fault::Transport)?;
                 self.owners[slot].closing = true;
+                self.needs_poll = true;
                 self.counters.closed = self.counters.closed.saturating_add(1);
                 (Status::Ok, 0)
             }
@@ -509,6 +545,7 @@ impl<'a> Service<'a> {
                 self.stack
                     .close(owner.client)
                     .map_err(|_| Fault::Transport)?;
+                self.needs_poll = true;
                 (Status::Ok, 0)
             }
         };
