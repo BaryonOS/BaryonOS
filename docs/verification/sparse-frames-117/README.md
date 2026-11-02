@@ -58,8 +58,50 @@ en eindigde met raw 35. De host-runner herkent dat record niet en meldt
 - Eén run per bron: geen herhaalbaarheid, geen p50/p95, geen meting van de
   zichtbare latentie per toets. De ~5 s per letter uit de PR-tekst is niet
   opnieuw gemeten.
-- Geen CI-workflow draait deze probe; dit is lokaal bewijs, geen
-  CI-gate. Geen FR-, fysieke of menselijke acceptatie.
+- Het bovenstaande is lokaal bewijs, geen CI-resultaat. Geen FR-, fysieke
+  of menselijke acceptatie.
 
 `SHA256SUMS` bindt de vier gekopieerde bestanden (serial en result per run).
 QMP-traces, PPM's en disks zijn niet in Git opgenomen.
+
+## CI-job (toegevoegd, nog niet in CI uitgevoerd)
+
+Status 1 november 2026 (taak INT3-FU-PROBE-CI): **geïmplementeerd als
+workflow, nog nooit in GitHub Actions gedraaid.** Actions faalt op dit
+moment accountbreed met `startup_failure`; er is dus geen CI-run, geen
+CI-artefact en geen groene CI-gate voor deze probe.
+
+Nieuwe workflow `.github/workflows/materiaal-probe.yml`, job
+`materiaal-probe`, gemodelleerd op `native-display-input.yml`: dezelfde
+triggers (pull request en push naar `main`), `permissions: contents: read`,
+eigen `concurrency`-groep met `cancel-in-progress`, `ubuntu-24.04`, dezelfde
+vastgepinde action-SHA's, `timeout-minutes: 40`. Een aparte workflow in
+plaats van een tweede job in `native-display-input.yml`, zodat
+concurrency, foutsignaal en artefact los blijven van de bestaande
+display/input-gate en die workflow ongewijzigd blijft.
+
+Stappen: Rust 1.90.0 met beide targets; apt `qemu-system-x86 ovmf seabios`
+met `dpkg-query`-pakketlog; SHA-256 van VGA-ROM en OVMF gelogd in
+`logs/firmware-sha256.txt` (bewust niet vastgepind: het seabios-pakket op
+de runner kan legitiem afwijken van het lokale pakket, en de probe legt de
+werkelijk gebruikte ROM-hash vast in `result.json`); `preflight.py --strict`;
+`cargo fetch --locked` voor de root-, SDK- en vier desktopmanifests; de
+host-tegenvoorbeelden `tools/tests/test_materiaal_probe.py` (QEMU
+gemockt, geen gastbewijs); `tools/build.py --kernel-feature
+native-system-materiaal-probe` met `CARGO_NET_OFFLINE=true`; daarna
+`tools/run_materiaal_probe.py --case normal --machine pc-q35-8.2
+--qmp-transport pipe --vga-rom /usr/share/seabios/vgabios-stdvga.bin
+--timeout 240` (stap-time-out 10 min); controle op een schone tracked
+tree; upload van `build/materiaal-probe-ci/` als artefact
+`materiaal-probe-evidence` (`if: always()`, 14 dagen).
+
+Lokaal in deze taak uitgevoerd (cloudcontainer, zonder VM): de
+fetchcommando's (exit 0), de build met `CARGO_NET_OFFLINE=true` (exit 0,
+19 s), de hosttest (exit 0, 23 tests), de firmwarelogregels zonder apt
+(exit 0) en een YAML-/`bash -n`-controle van de workflow. De probe zelf is
+in deze taak **niet** gedraaid; `actionlint` was niet beschikbaar.
+
+Open risico: `run_materiaal_probe.py` begrenst de VM-deadline hard op
+240 s en de lokale #117-run duurde 178,8 s (TCG, één thread). Een tragere
+GitHub-runner kan dus op tijd falen zonder functionele regressie; pas na
+echte CI-runs is te zeggen of de marge volstaat.
