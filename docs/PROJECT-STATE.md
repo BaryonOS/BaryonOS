@@ -1,17 +1,19 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — OS-completeness-audit op actuele main — 2 november 2026
+## NEXT AGENT HANDOFF — OS-completeness-audit in concept-PR #136 — 2 november 2026
 
-**Productbron:** auditbasis `main`/`origin/main` `380111b68688c981eec6abb8fab29174a29f5601`;
-worktreebranch `simonvanieperen-cautious-happiness` wees bij aanvang naar
-dezelfde commit en was schoon. De audit voegt alleen documentatie toe; geen
-productcode, criteria of gewichten gewijzigd. Roadmap **41/100 → 41/100**.
+**Productbasis:** `main` `380111b68688c981eec6abb8fab29174a29f5601`.
+Documentatiebranch `simonvanieperen-cautious-happiness` staat op
+`ccc852685a65b7dd7b0a31ed7b53ae5309328d06`; concept-PR #136 richt zich op die
+main-HEAD. Audit-only: geen productcode, criteria of gewichten gewijzigd.
+Roadmap **41/100 → 41/100**.
 
 **Audituitkomst:** 39 gegroepeerde feature-records staan in
 `docs/audit/os-completeness/`; alle 62 bindende `FR-*`-releasecriteria blijven
 open tot aftekening op de finale image. Native kernel-/opslag-/sessie-/
 netwerkcomponenten hebben scoped bewijs, maar geen dagelijkse complete OS- of
-releaseclaim. Open PR's/worktrees zijn apart gehouden.
+releaseclaim. Alle 62 bronrijen zijn één-op-één aan relevante auditgroepen
+gekoppeld. Open PR's/worktrees zijn apart gehouden.
 
 **Exacte-head bewijs:** alle 15 opgevraagde workflows op `380111b` zijn
 succesvol; run `41535553113` (`Native window session and Windows QEMU bundle`)
@@ -19,9 +21,12 @@ is afgerond met `success`. CI is geen volledige product-/releaseacceptatie.
 Deze audit heeft zelf geen lokale build, QEMU-run, hardwaretest, gebruikerstest,
 externe securityreview of releasevalidatie uitgevoerd.
 
-**Vervolg:** hervat de bestaande geïntegreerde releasequeue op de actuele
-groene HEAD en werk status/bewijs alleen bij op de exacte bron. Auditrapport
-en bronstand: `docs/audit/os-completeness/`.
+**GitHub:** concept-PR #136 is open op `ccc8526`, base `380111b`; de branch en
+remotecommit zijn gelijk. Nieuwe productcode is niet gestart: de bestaande
+werkqueue benoemt een exclusieve integrator en deze sessie heeft geen
+bestandsopdracht toegewezen gekregen. Vervolg de geïntegreerde releasequeue
+alleen na actuele eigenaars-/scopecontrole. Auditrapport en bronstand:
+`docs/audit/os-completeness/`.
 
 ## Eerder checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 

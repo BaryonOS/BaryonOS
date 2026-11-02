@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`380111b6`](https://github.com/simonvanieperen/nieuw-os/commit/380111b68688c981eec6abb8fab29174a29f5601) ·
+**Bron:** [`ccc85268`](https://github.com/simonvanieperen/nieuw-os/commit/ccc852685a65b7dd7b0a31ed7b53ae5309328d06) ·
 **Ontwikkelbranch:** `simonvanieperen-cautious-happiness`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Volledige OS-completeness-audit op exacte main-HEAD.
-Audit-only: score 41/100 → 41/100, rubric v1; geen productcode, criteria of gewichten gewijzigd. Op exacte main-HEAD 380111b zijn 39 auditgroepen vastgelegd; alle 62 verplichte FR-releasecriteria blijven open. Audit onderscheidt source/host/VM/hardware/human/releasebewijs en houdt open PR's apart. Alle 15 opgevraagde exacte-head workflows zijn succesvol, waaronder native window session/Windows QEMU; dit is geen volledige releasevalidatie. Geen lokale build/VM-runs, hardwaretests, gebruikerstests of externe securityreview door de audit uitgevoerd.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** OS-completeness-audit als concept-PR overdragen.
+Audit-only: score 41/100 → 41/100, rubric v1; geen productcode, criteria of gewichten gewijzigd. De audit op main 380111b bevat 39 groepen en koppelt alle 62 releasecriteria; alle 62 blijven open. Commit ccc852 is gepusht en staat in concept-PR #136 tegen main 380111b. PR-statuswijziging en overdracht voegen geen productbewijs toe. De audit zag 15/15 succesvolle workflows op de basis, maar voerde zelf geen lokale build/VM-, hardware-, gebruikerstest, onafhankelijke securityreview of releasevalidatie uit.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
