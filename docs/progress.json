@@ -2,12 +2,12 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-10-30",
-    "source_commit": "ed63ed2597460a0265ee094ebea366cda9ef2a7d",
-    "branch": "claude/integration-2-20261030",
-    "task": "Afhandeling van alle open pull requests en issues: integratie 1 (#96) en integratie 2 (#113)",
+    "date": "2026-11-02",
+    "source_commit": "c1d62d83acc8357c698c0ef576367834e81d4a21",
+    "branch": "simon/profiles-users-plan",
+    "task": "PR114: sleutel- en capabilityovergang bij gebruikerswissel expliciet ontwerpen",
     "previous_score": 34,
-    "summary": "De productscore blijft 34/100. #96 is gesquash-merged na 30 groene checks, inclusief de native NAS normal/cold-gate. #113 neemt de resterende component-delta's op: Materiaal-semantiek en SR05–SR08-regressies, primary hover, app-source-snapshotkern en -contracten, DHCP-retries met expliciete entropiepoort, en documentatie- en bewijsbestanden. Alle opgenomen PR's zijn per commit na hun vastgelegde bron gecontroleerd. Reviewfixes: een net-stack-discardroute voor een ingehouden TX-frame met regressietest, en de Materiaal-chaintest volgt het nieuwe semantische buffercontract. Lokaal zijn host-tests, Clippy en fmt groen; de freestanding-build van app-package-core is lokaal niet uitgevoerd. Dit is host- en componentbewijs, geen native-, FR-, fysieke of menselijke acceptatie; vaste criteria en gewichten zijn ongewijzigd. Open: #109, #110 en de productmilestones #39–#43."
+    "summary": "34/100 blijft34; geen nieuw criterium of gewicht. Het PR114-ontwerp beschrijft nu expliciet de sleutel- en handlelevensloop A naar B en terug, fail-closed overgang, domeinisolatie, stale-generatieafwijzing en afzonderlijk begrensde achtergronddelegatie. Nieuwe negatieve native acceptatie is vastgelegd maar niet uitgevoerd; er is geen sessiedienst gebouwd. Main74a34d05 bevat inmiddels PR125 en de aantoonbare oplossingen voor109/110. PR127 is een afzonderlijke ontwikkelkandidaat met score41, niet door deze documentbranch geaccepteerd. Hardware, menselijke audit, volledige release en profielen blijven open."
   },
   "tracks": [
     {

@@ -178,10 +178,41 @@ Invarianten (eerst ontwerpen, dan interface, dan code en negatieve tests):
    daarom vraagt het systeem buiten die route nooit om een geheim.
 9. Bij gebruikerswissel krijgen apps van de vergrendelde gebruiker geen
    invoer, tekenen zij niet op het scherm van de actieve gebruiker en lezen
-   zij diens oppervlakken, klembord of objecten niet.
+   zij diens oppervlakken, klembord of objecten niet. Omgekeerd kan de nieuwe
+   gebruiker ook de sleutelstatus, objecten en capabilities van de
+   vergrendelde gebruiker niet gebruiken; zie de overgang hieronder.
 10. Gastgegevens staan onder een vluchtige sleutel die alleen in het geheugen
     bestaat. Na afmelden, crash of stroomverlies zijn zij onleesbaar en de
     volgende start ruimt ze op.
+
+### Sleutelovergang A naar B en terug
+
+Dit is een te implementeren contract, geen bestaande sessiedienst:
+
+- Voor B actief wordt, vergrendelt de sessiedienst A en maakt zij A's
+  sessiegebonden input-, surface-, klembord- en sleuteloperatiehandles
+  onbruikbaar via intrekking of generatiecontrole. Een fout onderweg houdt
+  de overgang vergrendeld; er wordt geen gedeeltelijke B-sessie geactiveerd.
+- A's behouden sleutelmateriaal blijft uitsluitend in het geisoleerde
+  sleuteldomein van A. Iedere sleuteloperatie controleert de onveranderlijke
+  gebruikersidentiteit en actuele sessiegeneratie. B krijgt geen
+  sleutelhandle, geheugenmapping of objectgrant van A; er is geen globale
+  'huidige gebruiker'-sleutelcontext die oude handles naar B ombuigt.
+- Vooraf toegestane achtergrondsynchronisatie mag alleen met haar eigen,
+  afzonderlijk aan A gebonden delegatie doorgaan. Een gebruikerswissel
+  verleent of verruimt die delegatie niet en maakt haar nooit bruikbaar door B.
+- Terugkeren naar A vereist opnieuw authenticatie. Alleen daarna worden
+  nieuwe sessiehandles binnen A's bestaande rechten uitgegeven; oude
+  handles worden niet stilzwijgend opnieuw geldig.
+- Kan deze scheiding niet worden gegarandeerd, dan wordt wisselen geweigerd
+  totdat A expliciet afmeldt; afmelden wist A's sleutels. De interface meldt
+  die grens, zonder ongemerkt niet-opgeslagen werk weg te gooien.
+
+Native negatieve acceptatie voor A -> B -> A: B kan A's key-state, objecten
+en oude handles niet gebruiken, A's apps krijgen niets van B, stale handles
+blijven na terugkeer ongeldig, en een fout tussen intrekking en activatie
+laat beide domeinen afgesloten. Controleer toegestane A-achtergrondsync
+afzonderlijk op dezelfde identiteit, scope en intrekking, zonder B-toegang.
 
 Geen zelfbedachte cryptografie: hergebruik de bestaande
 XChaCha20-Poly1305/HKDF-SHA-256 uit de Key Service. Een Argon2id-implementatie

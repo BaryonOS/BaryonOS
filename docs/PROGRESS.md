@@ -85,6 +85,11 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR114-review (2 november 2026), bron `c1d62d83`: **34 -> 34**.
+Het gebruikerswisselcontract beschrijft sleutelisolatie en handlelevensloop
+in beide richtingen; native negatieve acceptatie is nog niet uitgevoerd.
+Alleen ontwerp, geen profielenimplementatie of nieuwe productpunten.
+
 WINDOWS-QEMU-TEST-VERSION (30 oktober 2026), implementatiebron `f777f7a`:
 **34% → 34%**. De branch voegt een hashvaliderende Windows-QEMU-bundel,
 launcher, native QMP-previewrunner en CI-artifactjob toe. Hosttests,

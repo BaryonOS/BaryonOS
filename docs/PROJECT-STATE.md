@@ -1,6 +1,29 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR- en issueafhandeling na integratie 1 en 2 — 30 oktober 2026
+## NEXT AGENT HANDOFF — PR114-gebruikerswisselcontract — 2 november 2026
+
+Bron `c1d62d83acc8357c698c0ef576367834e81d4a21`, alleen documentatie.
+De exclusieve integrator is `f090b913`; hieronder staat historisch mandaat,
+geen nieuwe toewijzing. Main is inmiddels `74a34d05` via PR125; #109/#110
+zijn aantoonbaar gesloten. Deze oude ontwerpbranch is nog niet met actuele
+main/desktopdocumentatie gecombineerd.
+
+PR114-review4428521664 is uitgewerkt: A's sessiehandles intrekken of via
+generatie blokkeren voordat B actief wordt; A's sleutels blijven uitsluitend
+in diens geisoleerde domein; B krijgt geen handles, objecten of mappings van A.
+Terugkeer vereist authenticatie en nieuwe handles, geen stille herleving.
+Afzonderlijk toegestane achtergrondsync blijft aan A en bestaande scope
+gebonden. Bij onvoldoende scheiding wisselen weigeren tot expliciet
+afmelden, geen stil verlies van werk. Native A/B/key-state/foutinjectie-
+acceptatie is benoemd, **niet uitgevoerd**; geen implementatieclaim.
+
+Controles: `python3 tools/progress.py --write`,
+`python3 tools/progress.py --check`, `git diff --check`.
+Score **34 -> 34**, nul nieuwe punten. Eerstvolgend: actuele main en
+overige ontwerpvoorstellen inhoudsbehoudend combineren en verse CI/review;
+PR127 heeft apart de gecombineerde desktop/native-netwerkgates lopen.
+
+## Historisch checkpoint — integratie 1 en 2 — 30 oktober 2026
 
 **Mandaat:** Simon heeft de Claude Code-sessie in de desktopapp op 30 oktober
 (~21:10 CET) aangewezen als enige operationele integrator voor alle open PR's
