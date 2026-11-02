@@ -24,7 +24,7 @@ De basis heeft een bekende hersteluitval: de normale volledige vensterprobe op b
 
 ## Uitgevoerde componentcontroles
 
-De compacte brongebonden checkpointmetadata staat onder `docs/verification/gui-idle-20261102/`. Op de implementatie vÃ³Ã³r opname van de volgende centrale herstelbron zijn daadwerkelijk geslaagd:
+De compacte brongebonden checkpointmetadata staat onder `docs/verification/gui-idle-20261102/`. Op de implementatie vóór opname van de volgende centrale herstelbron zijn daadwerkelijk geslaagd:
 
 - Materiaal:35 hosttests, Rekenmachine:24 hosttests, window-session:24 hosttests.
 - Native componentbuilds en ELF-inspectie; afzonderlijke Materiaal ELF-grenscontrole.
@@ -37,10 +37,14 @@ Dit zijn componentuitkomsten. Volledige native beeld-/herstel-/opslagacceptatie 
 
 1. Leg de nieuwe, herstelde basis vast; bouw baseline en idlevariant in verschillende checkouts/targets met dezelfde compiler, firmware, QEMU, backend, een vCPU en disposable media.
 2. Behoud de volledige bestaande run_window_session-probe: exacte appbeelden en beschermde randen, echte invoer-ACKs, compositorfault, model/epochbehoud, save/reopen, diskoracle, cleanup en rawexit33.
-3. Meet CPU pas bij exact overeenkomstige stabiele beelden en rapporteer beschikbare app-/rendercounters vÃ³Ã³r/na. Gebruik minimaal vijftien seconden monotone hosttijd, proces- en vCPU-threadaccounting. Een gecontroleerde QMP-pauze is uitsluitend diagnostiek en geen idleoptimalisatie.
+3. Meet CPU pas bij exact overeenkomstige stabiele beelden en rapporteer beschikbare app-/rendercounters vóór/na. Gebruik minimaal vijftien seconden monotone hosttijd, proces- en vCPU-threadaccounting. Een gecontroleerde QMP-pauze is uitsluitend diagnostiek en geen idleoptimalisatie.
 4. Controleer invoer en control/STOP na rust en herhaal met dezelfde backend. Rapporteer spreiding en hostbelasting. Doel is minstens80% lagere mediane CPU-belasting bij het geverifieerde stille beeld; zonder meting blijft dit een doel.
 5. Geen nieuwe roadmap-punten voor deze performancewijziging. U01/U02 en andere productgates hebben hun eigen acceptatie.
 
 ## Herstel
 
 De verandering staat in een afzonderlijke branch en kan als afgebakende commit worden teruggenomen. De bestaande kernel en protocolimplementaties worden niet aangepast. Geen BIOS-, driver-, Windows-feature-, beveiligings- of fysieke-apparaatwijziging is onderdeel van deze taak.
+
+## Geïntegreerde herstelbron337f2f2
+
+De centrale opvolger `337f2f29f1833ef4a8d2cd640b09419f85dbb83b` is afzonderlijk opgenomen. Zijn Recovery-fases en ready_bit-validatie zijn intact; recovery.rs en tests/recovery.rs zijn byte-identiek. Init weigert bovendien rust bij recovery.is_some(), ook als een recovering-vlag inconsistent zou zijn. De nieuwe echte-fasentest doorloopt pause, ready, rebind-ACK en complete. Na integratie slagen31 window-session-hosttests plus host/native/fault-Clippy, beide native componentbuilds/ELF, fmt en diff. Exacte commando's/loghashes staan in `../verification/gui-idle-20261102/recovery-integration/commands.json`. Volledige native acceptatie en CPU-winst moeten apart worden gemeten.

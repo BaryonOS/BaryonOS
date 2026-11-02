@@ -7,6 +7,7 @@ use nieuw_os_surface_protocol::{
 use nieuw_os_window_session::{
     idle::{CompositorState, Idle, IdleIo, InitState},
     input::Queue,
+    recovery::{Group, Recovery},
     scene::Damage,
     surface::TrackedReceiver,
 };
@@ -228,6 +229,10 @@ fn boot_missing_ready_recovery_stop_and_control_messages_prevent_init_parking() 
             ..quiet
         },
         InitState {
+            recovery_pending: true,
+            ..quiet
+        },
+        InitState {
             stopping: true,
             ..quiet
         },
@@ -244,6 +249,59 @@ fn boot_missing_ready_recovery_stop_and_control_messages_prevent_init_parking() 
             mask == 31
         );
     }
+}
+
+#[test]
+fn every_recovery_phase_blocks_idle_until_both_recovery_states_are_cleared() {
+    let old = Group {
+        generation: 1,
+        surface_epoch: 101,
+        input_epoch: 201,
+    };
+    let fresh = Group {
+        generation: 2,
+        surface_epoch: 102,
+        input_epoch: 202,
+    };
+    // Even a complete old readiness mask must not make recovery quiescent.
+    let state = |recovering, recovery: Option<Recovery>| InitState {
+        registry_empty: true,
+        running: true,
+        ready_mask: 31,
+        recovering,
+        recovery_pending: recovery.is_some(),
+        ..InitState::default()
+    };
+    let mut recovery = Recovery::begin(old).unwrap();
+    let mut phases = Vec::new();
+    assert!(recovery.awaiting_pause());
+    phases.push(recovery);
+    recovery.installed(fresh, 3).unwrap();
+    assert!(recovery.awaiting_ready());
+    phases.push(recovery);
+    recovery.rebind_sent(fresh, 31, 0).unwrap();
+    assert!(recovery.awaiting_rebind_ack());
+    assert!(!recovery.complete(1));
+    phases.push(recovery);
+    assert!(recovery.complete(3));
+    // Observing both ACKs alone does not clear the retained phase.
+    phases.push(recovery);
+    let mut idle = Idle::new(0x1_0000_000b).unwrap();
+    let mut io = Io::default();
+    for phase in phases {
+        for recovering in [true, false] {
+            let quiet = state(recovering, Some(phase)).quiescent();
+            assert!(!quiet);
+            idle.pause(quiet, endpoint(), &mut io).unwrap();
+        }
+    }
+    assert!(!state(true, None).quiescent());
+    assert!(io.waits.is_empty());
+    assert_eq!(io.yields, 8);
+    assert!(state(false, None).quiescent());
+    idle.pause(state(false, None).quiescent(), endpoint(), &mut io)
+        .unwrap();
+    assert_eq!(io.waits, [(endpoint(), 41)]);
 }
 
 #[test]

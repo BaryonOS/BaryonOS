@@ -76,6 +76,8 @@ pub struct InitState {
     pub running: bool,
     pub ready_mask: u8,
     pub recovering: bool,
+    /// Any retained recovery phase must finish before the supervisor parks.
+    pub recovery_pending: bool,
     pub stopping: bool,
 }
 impl InitState {
@@ -85,6 +87,7 @@ impl InitState {
             && self.running
             && self.ready_mask == 31
             && !self.recovering
+            && !self.recovery_pending
             && !self.stopping
     }
 }

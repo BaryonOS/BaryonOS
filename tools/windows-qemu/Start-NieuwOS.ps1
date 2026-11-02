@@ -66,6 +66,8 @@ $requiredFiles = @(
     "licenses/OVMF-COPYRIGHT", "licenses/SeaBIOS-COPYRIGHT",
     "licenses/OpenSans-NOTICE.md", "licenses/OpenSans-Apache-2.0.txt",
     "licenses/Native-graphics-README.md", "licenses/OpenSans-font-provenance.json",
+    "licenses/NotoSansMono-NOTICE.md", "licenses/NotoSansMono-OFL.txt",
+    "licenses/noto-sans-mono-bitmap-MIT.txt",
     "volume.empty.img", "esp/kernel.elf", "esp/EFI/BOOT/BOOTX64.EFI"
 )
 foreach ($relative in $requiredFiles) {

@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **37** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`b1b292aa`](https://github.com/simonvanieperen/nieuw-os/commit/b1b292aadf244dacf029b7307aebdc6103756e0d) ·
+**Bron:** [`337f2f29`](https://github.com/simonvanieperen/nieuw-os/commit/337f2f29f1833ef4a8d2cd640b09419f85dbb83b) ·
 **Ontwikkelbranch:** `codex/window-idle-wait-20261102`.
-Deze opdracht: **37% → 37% (+0 procentpunt)**. **Opdracht:** Afzonderlijk GUI IPC_WAIT-checkpoint vóór herstelintegratie.
-37/100 blijft gelijk. Vier GUI-processen gebruiken bestaande IPC_WAIT alleen bij gecontroleerde rust; hosttests en componentbuilds zijn groen. Geen native CPU-winst of U01/U02-acceptatie geclaimd: de b1-basis faalt werkelijk na compositorcrash met rawexit35 APP_EXIT. Eerst de afzonderlijke centrale herstelfix integreren en volledig native testen, daarna exacte-beeld-gebonden CPU-A/B. Kernel, ABI, rechten en transactietime-outs zijn ongewijzigd.
+Deze opdracht: **37% → 37% (+0 procentpunt)**. **Opdracht:** Expliciete herstelfasen integreren met afzonderlijke GUI IPC_WAIT.
+37/100 blijft gelijk. Vier GUI-processen gebruiken bestaande IPC_WAIT alleen bij gecontroleerde rust; hosttests en componentbuilds zijn groen. De bekende b1-hersteluitval blijft bewaard. Nieuwe centrale337f2f2 introduceert expliciete herstelstadia en heeft alleen de korte cloud-handshake al doorlopen. Volledige Windows-native acceptatie en exacte-beeld-gebonden CPU-A/B volgen op de geïntegreerde bron; U01/U02 blijven open. Kernel, ABI, rechten en transactietime-outs zijn in de idle-delta ongewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

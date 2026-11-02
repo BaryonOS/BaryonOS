@@ -157,13 +157,17 @@ def validate_build(frozen: str) -> dict:
     return manifest
 
 
-def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False) -> dict:
+def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
+        recovery_handshake: bool = False) -> dict:
     if not 30 <= timeout <= 1800:
         raise ValueError("Timeout must be bounded 30..1800 seconds")
+    if smoke and recovery_handshake:
+        raise ValueError("Choose one diagnostic mode")
+    diagnostic = smoke or recovery_handshake
     private_path(BUILD)
     frozen = source_hash()
     manifest = validate_build(frozen)
-    fixture = None if smoke else generate_fixture()
+    fixture = None if diagnostic else generate_fixture()
     env = environment()
     qemu = Path(shutil.which("qemu-system-x86_64", path=env["PATH"]) or "missing")
     qemu_hash = sha256(qemu)
@@ -195,7 +199,8 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False) -> 
                "-device", "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST"]
     start = time.monotonic()
     deadline = start + timeout
-    report = dict(schema_version=1, passed=False, native_gate=False, smoke_only=smoke, source_sha256=frozen,
+    report = dict(schema_version=1, passed=False, native_gate=False, smoke_only=diagnostic,
+                  recovery_handshake_only=recovery_handshake, source_sha256=frozen,
                   source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                   source_fingerprint_version=3, kernel_feature=FEATURE, manifest=manifest, command=command,
                   run_directory=str(directory), qemu_sha256=qemu_hash, immutable=immutable, phases={})
@@ -282,8 +287,28 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False) -> 
                 move(x, y); button(True); button(False)
                 observe("mouse focus", lambda raw: comp(raw).get("GENERATION") == group_generation[0] and comp(raw).get("FOCUSED") == index)
 
-            initial = wait("boot", lambda raw, s: all(s.values()) and 31 in numbers(raw, "WINDOW:INITMASK"))
-            if smoke:
+            initial = None if recovery_handshake else wait("boot", lambda raw, s: all(s.values()) and 31 in numbers(raw, "WINDOW:INITMASK"))
+            if recovery_handshake:
+                # Exercise the actual busy-RPC cancellation/retire/rebind path
+                # before waiting for full app paints. This never certifies
+                # pixels, preserved work, persistence or the complete U01 gate.
+                before = comp(observe("initial group", lambda raw:
+                    31 in numbers(raw, "WINDOW:INITMASK") and
+                    comp(raw).get("GENERATION") == 1 and comp(raw).get("COMMITS", 0) > 0))
+                control.command("send-key", {"keys": [{"type": "qcode", "data": "f12"}], "hold-time": 1})
+                raw = observe("actual fresh-group rebind", lambda raw:
+                    1 in numbers(raw, "WINDOW:RECOVERIES") and
+                    numbers(raw, "WINDOW:PRESENTATION_RETIRED") == [1] and
+                    numbers(raw, "WINDOW:RESTART_GENERATION") == [2] and
+                    comp(raw).get("GENERATION") == 2 and
+                    comp(raw).get("PID") != before["PID"])
+                if numbers(raw, "WINDOW:FAULT_SLOT") != [4] or numbers(raw, "WINDOW:FAULT_VECTOR") != [6]:
+                    raise ValueError("Wrong actual handshake fault")
+                report["handshake"] = {"before": before, "after": comp(raw),
+                                       "seconds": time.monotonic() - start,
+                                       "scope": "actual group rebind only; no full-frame, work, disk or cleanup acceptance"}
+                control.command("quit")
+            elif smoke:
                 control.command("quit")
             else:
                 move(1260, 50)
@@ -352,7 +377,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False) -> 
             process.wait(timeout=max(0.1, deadline - time.monotonic()))
             raw = serial(directory / "serial.txt")
             report["raw_qemu_exit"] = process.returncode
-            if smoke:
+            if diagnostic:
                 if process.returncode != 0:
                     raise ValueError("Smoke QEMU quit failed")
             else:
@@ -375,7 +400,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False) -> 
                     if sha256(private_path(fixture["directory"] / name, regular=True)) != digest:
                         raise ValueError("Host oracle changed")
                 report["oracle"] = fixture["metadata"]
-            report.update(passed=True, native_gate=not smoke, duration_s=time.monotonic() - start, serial_sha256=sha256(directory / "serial.txt"), qmp_trace=control.trace)
+            report.update(passed=True, native_gate=not diagnostic, duration_s=time.monotonic() - start, serial_sha256=sha256(directory / "serial.txt"), qmp_trace=control.trace)
     except Exception as error:
         report["error"] = f"{type(error).__name__}: {error}"
     finally:
@@ -410,5 +435,7 @@ if __name__ == "__main__":
     parser.add_argument("--bios-rom", type=Path, required=True)
     parser.add_argument("--vga-rom", type=Path, required=True)
     parser.add_argument("--smoke-only", action="store_true")
+    parser.add_argument("--recovery-handshake-only", action="store_true")
     args = parser.parse_args()
-    raise SystemExit(0 if run(timeout=args.timeout, bios_rom=args.bios_rom, vga_rom=args.vga_rom, smoke=args.smoke_only)["passed"] else 1)
+    raise SystemExit(0 if run(timeout=args.timeout, bios_rom=args.bios_rom, vga_rom=args.vga_rom,
+                            smoke=args.smoke_only, recovery_handshake=args.recovery_handshake_only)["passed"] else 1)

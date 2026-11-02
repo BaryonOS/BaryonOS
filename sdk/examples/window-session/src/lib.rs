@@ -6,5 +6,6 @@ extern crate std;
 pub mod boot;
 pub mod idle;
 pub mod input;
+pub mod recovery;
 pub mod scene;
 pub mod surface;
