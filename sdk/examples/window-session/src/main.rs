@@ -26,6 +26,8 @@ struct Backing(UnsafeCell<[u32; MAX_PIXELS]>);
 // entry. There is no shared mapping or callback that can reenter this code.
 unsafe impl Sync for Backing {}
 static BACKING: Backing = Backing(UnsafeCell::new([0; MAX_PIXELS]));
+type PendingReply = Option<(SendEndpoint, Outgoing, u64)>;
+const INPUT_POLL_TICKS: u64 = 2;
 fn fail(code: u64) -> ! {
     support::put(488, code);
     native::exit(code)
@@ -122,6 +124,46 @@ fn mark_focus(scene: &Scene, damage: &mut Damage) {
     }
     damage.mark(scene.dock());
 }
+/// Try a validated reply immediately and use exactly the same path for retry.
+/// EAGAIN retains the original deadline and blocks only this app's next RPC.
+fn flush_reply(
+    index: usize,
+    pending: &mut PendingReply,
+    queue: &mut Queue,
+    surface: &mut Receiver,
+    boot: &Bootstrap,
+    io: &mut impl Ipc,
+) -> bool {
+    let Some((to, mut message, start)) = pending.take() else {
+        return false;
+    };
+    let expired = tick().saturating_sub(start) > 200;
+    if !expired && u64::from_le_bytes(message.as_bytes()[8..16].try_into().unwrap()) == wire::TAG {
+        let mut prepared = [0u8; wire::SIZE];
+        prepared.copy_from_slice(&message.as_bytes()[64..64 + wire::SIZE]);
+        let reply = queue.refresh(&prepared).unwrap_or_else(|_| fail(34));
+        message = Outgoing::new(wire::TAG, &reply).unwrap_or_else(|_| fail(35));
+    }
+    let failed = if expired {
+        true
+    } else {
+        match io.send(to, &message) {
+            Ok(()) => false,
+            Err(e) if e.is_again() => {
+                *pending = Some((to, message, start));
+                return false;
+            }
+            Err(_) => true,
+        }
+    };
+    if failed {
+        surface.retire();
+        queue.retire();
+        let _ = native::close(boot.apps[index].surface_reply.handle());
+        let _ = native::close(boot.apps[index].input_reply.handle());
+    }
+    failed
+}
 #[no_mangle]
 #[link_section = ".text.entry"]
 pub extern "C" fn _start() -> ! {
@@ -180,136 +222,129 @@ fn run() -> ! {
     send(boot.registry, &ready);
     support::put(472, 1);
     let mut io = NativeIpc;
-    let mut pending: [Option<(SendEndpoint, Outgoing, u64)>; 2] = core::array::from_fn(|_| None);
+    let mut pending: [PendingReply; 2] = core::array::from_fn(|_| None);
     let mut received = 0u64;
     let mut commits = 0u64;
     let mut rejected = 0u64;
     let mut input_events = 0u64;
+    let mut next_input_tick = tick();
+    let mut app_pointer_capture = None;
     loop {
-        for _ in 0..4 {
-            let offer = match input.peek() {
-                Ok(Peek::Empty) => break,
-                Ok(Peek::Offer(o)) => o,
-                Err(_) => fail(15),
-            };
-            input_events = input_events.checked_add(1).unwrap_or_else(|| fail(16));
-            let previous = scene.focused;
-            let event = offer.event();
-            match event {
-                Event::Key(key) if key.key == PhysicalKey::F6 => {
-                    if key.action == KeyAction::Press {
-                        scene.cycle().unwrap_or_else(|_| fail(17));
+        if tick() >= next_input_tick {
+            next_input_tick = tick()
+                .checked_add(INPUT_POLL_TICKS)
+                .unwrap_or_else(|| fail(37));
+            for _ in 0..4 {
+                let offer = match input.peek() {
+                    Ok(Peek::Empty) => break,
+                    Ok(Peek::Offer(o)) => o,
+                    Err(_) => fail(15),
+                };
+                input_events = input_events.checked_add(1).unwrap_or_else(|| fail(16));
+                let previous = scene.focused;
+                let event = offer.event();
+                match event {
+                    Event::Key(key) if key.key == PhysicalKey::F6 => {
+                        if key.action == KeyAction::Press {
+                            scene.cycle().unwrap_or_else(|_| fail(17));
+                        }
                     }
-                }
-                #[cfg(feature = "fault-injection")]
-                Event::Key(key) if key.key == PhysicalKey::F12 => {
-                    if key.action == KeyAction::Press {
-                        // SAFETY: Deliberate CPL3 fault only in the explicitly
-                        // selected acceptance executable; no host instruction.
-                        unsafe {
-                            core::arch::asm!("ud2", options(noreturn));
+                    #[cfg(feature = "fault-injection")]
+                    Event::Key(key) if key.key == PhysicalKey::F12 => {
+                        if key.action == KeyAction::Press {
+                            // SAFETY: Deliberate CPL3 fault only in the explicitly
+                            // selected acceptance executable; no host instruction.
+                            unsafe {
+                                core::arch::asm!("ud2", options(noreturn));
+                            }
+                        }
+                    }
+                    Event::Key(key) if key.key == PhysicalKey::F10 => {
+                        if key.action == KeyAction::Press {
+                            send(
+                                boot.registry,
+                                &Outgoing::new(CONTROL, &[9]).unwrap_or_else(|_| fail(18)),
+                            );
+                        }
+                    }
+                    Event::Key(_) => queues[scene.focused]
+                        .push(event)
+                        .unwrap_or_else(|_| fail(19)),
+                    Event::Cancel(reason) => {
+                        app_pointer_capture = None;
+                        scene.cancel_pointer();
+                        for q in &mut queues {
+                            q.cancel(reason).unwrap_or_else(|_| fail(20));
+                        }
+                    }
+                    Event::Mouse { input: mouse, x, y } => {
+                        damage.mark(scene.pointer_bounds());
+                        let old_frames = [scene.paint_bounds(0), scene.paint_bounds(1)];
+                        let recipient = scene
+                            .mouse(
+                                x,
+                                y,
+                                mouse.changed.left() && mouse.buttons.left(),
+                                mouse.buttons.left(),
+                            )
+                            .unwrap_or_else(|_| fail(21));
+                        damage.mark(scene.pointer_bounds());
+                        for index in 0..2 {
+                            if old_frames[index] != scene.paint_bounds(index) {
+                                damage.mark(old_frames[index]);
+                                damage.mark(scene.paint_bounds(index));
+                            }
+                        }
+                        if let Some(index) = recipient {
+                            if mouse.changed.left() && mouse.buttons.left() {
+                                app_pointer_capture = Some(index);
+                            } else if mouse.changed.left() && !mouse.buttons.left() {
+                                app_pointer_capture = None;
+                            }
+                            let b = scene.windows[index].body;
+                            // Translate only into the immutable assigned app-local
+                            // rectangle. Window movement never widens its bounds.
+                            queues[index]
+                                .push(Event::Mouse {
+                                    input: mouse,
+                                    x: x - b.x as u32,
+                                    y: y - b.y as u32,
+                                })
+                                .unwrap_or_else(|_| fail(22));
+                        } else if let Some(captured) = app_pointer_capture.take() {
+                            // Leaving an app body must cancel an app-local press
+                            // or selection drag; do not retain an invisible grab.
+                            queues[captured]
+                                .cancel(CancelReason::Resync)
+                                .unwrap_or_else(|_| fail(22));
                         }
                     }
                 }
-                Event::Key(key) if key.key == PhysicalKey::F10 => {
-                    if key.action == KeyAction::Press {
-                        send(
-                            boot.registry,
-                            &Outgoing::new(CONTROL, &[9]).unwrap_or_else(|_| fail(18)),
-                        );
+                if scene.focused != previous {
+                    // A real click into the new body may already own a new grab;
+                    // drop only the old focus's capture, never the new title drag.
+                    if app_pointer_capture == Some(previous) {
+                        app_pointer_capture = None;
                     }
+                    queues[previous]
+                        .cancel(CancelReason::FocusLost)
+                        .unwrap_or_else(|_| fail(23));
+                    mark_focus(&scene, &mut damage);
                 }
-                Event::Key(_) => queues[scene.focused]
-                    .push(event)
-                    .unwrap_or_else(|_| fail(19)),
-                Event::Cancel(reason) => {
-                    scene.cancel_pointer();
-                    for q in &mut queues {
-                        q.cancel(reason).unwrap_or_else(|_| fail(20));
-                    }
-                }
-                Event::Mouse { input: mouse, x, y } => {
-                    damage.mark(scene.pointer_bounds());
-                    let old_frames = [scene.paint_bounds(0), scene.paint_bounds(1)];
-                    let recipient = scene
-                        .mouse(
-                            x,
-                            y,
-                            mouse.changed.left() && mouse.buttons.left(),
-                            mouse.buttons.left(),
-                        )
-                        .unwrap_or_else(|_| fail(21));
-                    damage.mark(scene.pointer_bounds());
-                    for index in 0..2 {
-                        if old_frames[index] != scene.paint_bounds(index) {
-                            damage.mark(old_frames[index]);
-                            damage.mark(scene.paint_bounds(index));
-                        }
-                    }
-                    if let Some(index) = recipient {
-                        let b = scene.windows[index].body;
-                        // Translate only into the immutable assigned app-local
-                        // rectangle. Window movement never widens its bounds.
-                        queues[index]
-                            .push(Event::Mouse {
-                                input: mouse,
-                                x: x - b.x as u32,
-                                y: y - b.y as u32,
-                            })
-                            .unwrap_or_else(|_| fail(22));
-                    } else {
-                        // Leaving an app body must cancel an app-local press
-                        // or selection drag; do not retain an invisible grab.
-                        queues[previous]
-                            .cancel(CancelReason::Resync)
-                            .unwrap_or_else(|_| fail(22));
-                    }
-                }
+                input.ack(&offer).unwrap_or_else(|_| fail(24));
             }
-            if scene.focused != previous {
-                queues[previous]
-                    .cancel(CancelReason::FocusLost)
-                    .unwrap_or_else(|_| fail(23));
-                mark_focus(&scene, &mut damage);
-            }
-            input.ack(&offer).unwrap_or_else(|_| fail(24));
         }
         repaint(&scene, backing, &mut display, &mut damage, 32).unwrap_or_else(|_| fail(25));
         for index in 0..2 {
-            if let Some((to, mut message, start)) = pending[index].take() {
-                let expired = tick().saturating_sub(start) > 200;
-                if !expired
-                    && u64::from_le_bytes(message.as_bytes()[8..16].try_into().unwrap())
-                        == wire::TAG
-                {
-                    let mut prepared = [0u8; wire::SIZE];
-                    prepared.copy_from_slice(&message.as_bytes()[64..64 + wire::SIZE]);
-                    let reply = queues[index]
-                        .refresh(&prepared)
-                        .unwrap_or_else(|_| fail(34));
-                    message = Outgoing::new(wire::TAG, &reply).unwrap_or_else(|_| fail(35));
-                }
-                let failed = if expired {
-                    true
-                } else {
-                    match io.send(to, &message) {
-                        Ok(()) => false,
-                        Err(e) if e.is_again() => {
-                            pending[index] = Some((to, message, start));
-                            continue;
-                        }
-                        Err(_) => true,
-                    }
-                };
-                if failed {
-                    // One unread reply cannot block the other app's staged
-                    // tile or input ACK. Only this window loses its channels.
-                    surfaces[index].retire();
-                    queues[index].retire();
-                    let _ = native::close(boot.apps[index].surface_reply.handle());
-                    let _ = native::close(boot.apps[index].input_reply.handle());
-                    rejected += 1;
-                }
+            if flush_reply(
+                index,
+                &mut pending[index],
+                &mut queues[index],
+                &mut surfaces[index],
+                &boot,
+                &mut io,
+            ) {
+                rejected += 1;
             }
         }
         for _ in 0..16 {
@@ -393,6 +428,19 @@ fn run() -> ! {
             };
             let _ = tag;
             pending[index] = Some((to, payload, tick()));
+            // A COMMIT response exists only after the validated backing copy
+            // and real DisplayClient write above. Do not defer that ACK behind
+            // the next input RPC/main-loop yield when its queue is writable.
+            if flush_reply(
+                index,
+                &mut pending[index],
+                &mut queues[index],
+                &mut surfaces[index],
+                &boot,
+                &mut io,
+            ) {
+                rejected += 1;
+            }
         }
         for (at, v) in [
             (400, 1),

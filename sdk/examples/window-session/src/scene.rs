@@ -246,6 +246,56 @@ impl Scene {
         ))
     }
     pub fn render(&self, rect: Rect, pixels: &mut [u32], backing: &[u32]) -> Result<(), Invalid> {
+        // Validate the same destination and backing extents as the composite
+        // path before taking the opaque-body shortcut. No pixels are borrowed
+        // from an app: this is the compositor's private, validated backing.
+        Canvas::new(rect, pixels).map_err(|_| Invalid)?;
+        for (index, window) in self.windows.iter().enumerate() {
+            if self.paint_bounds(index).intersects(rect)
+                && window
+                    .body
+                    .width
+                    .checked_mul(window.body.height)
+                    .and_then(|n| window.offset.checked_add(n as usize))
+                    .is_none_or(|end| end > backing.len())
+            {
+                return Err(Invalid);
+            }
+        }
+        let window = self.windows[self.focused];
+        let body = window.body;
+        let inside = rect.x >= body.x
+            && rect.y >= body.y
+            && i64::from(rect.x) + i64::from(rect.width)
+                <= i64::from(body.x) + i64::from(body.width)
+            && i64::from(rect.y) + i64::from(rect.height)
+                <= i64::from(body.y) + i64::from(body.height);
+        if inside && !rect.intersects(self.dock()) && !rect.intersects(self.pointer_bounds()) {
+            let left = (rect.x - body.x) as usize;
+            let top = (rect.y - body.y) as usize;
+            let width = rect.width as usize;
+            for row in 0..rect.height as usize {
+                let source = window.offset + (top + row) * body.width as usize + left;
+                for (out, color) in pixels[row * width..(row + 1) * width]
+                    .iter_mut()
+                    .zip(&backing[source..source + width])
+                {
+                    // Canvas::pixel also ignores the unused high color byte.
+                    *out = color & 0x00ff_ffff;
+                }
+            }
+            return Ok(());
+        }
+        self.render_reference(rect, pixels, backing)
+    }
+    /// Full composite path, retained as the original raster oracle for the
+    /// opaque-body optimization. It performs the same normal bounds checks.
+    pub fn render_reference(
+        &self,
+        rect: Rect,
+        pixels: &mut [u32],
+        backing: &[u32],
+    ) -> Result<(), Invalid> {
         let mut c = Canvas::new(rect, pixels).map_err(|_| Invalid)?;
         let palette = theme::MATERIAAL;
         theme::wallpaper(&mut c, Rect::new(0, 0, self.width, self.height), palette);
