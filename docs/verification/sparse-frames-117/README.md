@@ -99,9 +99,30 @@ Lokaal in deze taak uitgevoerd (cloudcontainer, zonder VM): de
 fetchcommando's (exit 0), de build met `CARGO_NET_OFFLINE=true` (exit 0,
 19 s), de hosttest (exit 0, 23 tests), de firmwarelogregels zonder apt
 (exit 0) en een YAML-/`bash -n`-controle van de workflow. De probe zelf is
-in deze taak **niet** gedraaid; `actionlint` was niet beschikbaar.
+in die taak **niet** gedraaid. Bij de integratie (2 november 2026) zijn
+daarna `actionlint` v1.7.7 (exit 0) en de nieuwe samenvattingsstap lokaal
+gecontroleerd; de probe-uitvoering staat hieronder.
 
-Open risico: `run_materiaal_probe.py` begrenst de VM-deadline hard op
-240 s en de lokale #117-run duurde 178,8 s (TCG, één thread). Een tragere
-GitHub-runner kan dus op tijd falen zonder functionele regressie; pas na
-echte CI-runs is te zeggen of de marge volstaat.
+Open risico: de bindende limiet is de gastwatchdog van 20.000 PIT-ticks
+(~100 Hz, ca. 200 s gasttijd; `kernel/src/m2/m3/desktop.rs`), niet de
+host-deadline van 240 s. Main faalde in deze omgeving precies daarop
+(`MATERIAAL:FAIL:TIMEOUT` na 205,5 s). Met 178,8 s voor #117 is de
+geschatte marge ca. 20–25 s (ruim 10 %), gebaseerd op één lokale run; de
+CPU van GitHub-runners is onbekend. De job logt daarom `nproc`/`lscpu` en
+zet `passed`, `duration_s`, `timed_out` en `guest_timeout` in de
+jobsamenvatting (diagnose, geen bewijs). Maak de job pas een verplichte
+check na meerdere gemeten CI-runs met voldoende marge; geen automatische
+herhaling die een timingfout zou maskeren.
+
+**Tweede lokale run (integratie 3, 2 november 2026): gefaald op tijd.**
+Zelfde CI-commandoreeks, integratiebranch (#115–#119 plus vervolgfixes),
+nieuwe container: 4 vCPU `Intel(R) Xeon(R) Processor @ 2.80GHz` (KVM), QEMU
+8.2.2, `pc-q35-8.2`. Hosttest exit 0, build exit 0, probe exit 1:
+`passed=False raw=35` na 208 s, gastwatchdog (`MATERIAAL:TIMEOUT_SLOT`) in
+fase 5 van 6 (`list`). De tegeltellingen per fase zijn vrijwel gelijk aan de
+geslaagde run (1608 / 2886 / 2895 / 2912 / 4038 tegenover 1608 / 2887 /
+2896 / 2913 / 4039), dus de code gedraagt zich hetzelfde; de host was
+trager. Daarom staat de workflow voorlopig op `workflow_dispatch`
+(handmatige meting) en niet op pull_request/push. Open besluit voor Simon:
+de watchdog van de probe verruimen (kernel `desktop.rs` en de 240 s-grens in
+`run_materiaal_probe.py`), of eerst meten op GitHub-runners.

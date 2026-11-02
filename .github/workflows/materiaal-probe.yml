@@ -1,9 +1,8 @@
 name: Native Materiaal probe acceptance
 
 # Separate workflow instead of a second job in native-display-input.yml:
-# - its concurrency group, failure signal and evidence artifact stay
-#   independent, so a cancelled or failing Materiaal run never cancels or
-#   masks the existing display/input gate (and vice versa);
+# - its concurrency group (cancel-in-progress), check name and evidence
+#   artifact stay independent of the existing display/input gate;
 # - it builds a different paired image (native-system-materiaal-probe, eight
 #   CPL3 programs) from a different locked-manifest set and needs its own
 #   clean NOS_BUILD_DIR/NOS_TARGET_DIR;
@@ -13,11 +12,15 @@ name: Native Materiaal probe acceptance
 # keys/mouse, exact pixel checks, plaintext fixture volume). No keyboard or
 # recover case, no FR, physical-hardware or human acceptance.
 
+# Measurement mode (manual) for now. A second local run on the integration
+# branch (2 November 2026, 4 vCPU Xeon @ 2.80 GHz, QEMU 8.2.2) hit the guest
+# watchdog after 208 s in phase 5 of 6, with the same tile counts as the
+# passing 178.8 s run: the ~200 s guest limit leaves no reliable margin on
+# slower CPUs. Promote to pull_request/push only after several measured
+# GitHub runs pass with margin, or after an explicit decision on the probe's
+# watchdog. No automatic retry or continue-on-error: that would hide timing.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -33,10 +36,13 @@ defaults:
 jobs:
   materiaal-probe:
     runs-on: ubuntu-24.04
-    # Bounded but generous: the VM itself is hard-capped at 240 s by
-    # run_materiaal_probe.py (it rejects larger timeouts); the remainder is
-    # apt/rustup setup and one cold release build of kernel, loader and the
-    # eight Materiaal ELFs.
+    # Bounded but generous. Two VM limits apply, and the guest one fires
+    # first: the probe kernel's watchdog fails after 20,000 PIT ticks at
+    # ~100 Hz, about 200 s of guest time (kernel/src/m2/m3/desktop.rs, prints
+    # MATERIAAL:TIMEOUT_SLOT / MATERIAAL:FAIL:TIMEOUT); run_materiaal_probe.py
+    # also caps the host wait at 240 s. Local evidence: 178.8 s with sparse
+    # frames, so the margin is only ~15 % (one run). The remainder of this
+    # budget is apt/rustup setup and one cold release build.
     timeout-minutes: 40
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
@@ -81,6 +87,8 @@ jobs:
           dpkg-query -W qemu-system-x86 ovmf seabios > "$NOS_BUILD_DIR/logs/ci-packages.txt"
           sha256sum "$VGA_ROM" "$OS_OVMF_CODE" "$OS_OVMF_VARS" | tee "$NOS_BUILD_DIR/logs/firmware-sha256.txt"
           qemu-system-x86_64 --version | tee "$NOS_BUILD_DIR/logs/qemu-version.txt"
+          # TCG with thread=single: per-core speed decides the timing margin.
+          { nproc; lscpu; } | tee "$NOS_BUILD_DIR/logs/runner-cpu.txt"
       - name: Strict preflight
         run: python3 -B tools/preflight.py --strict | tee "$NOS_BUILD_DIR/logs/preflight.json"
       - name: Fetch locked dependencies before offline component and native builds
@@ -111,7 +119,8 @@ jobs:
           CARGO_NET_OFFLINE: "true"
         run: python3 -B -u tools/build.py --kernel-feature native-system-materiaal-probe 2>&1 | tee "$NOS_BUILD_DIR/logs/materiaal-build.txt"
       - name: Actual QMP keys, mouse and exact pixels for the Materiaal chain
-        # Outer bound for a hung host harness; the VM deadline is 240 s.
+        # Outer bound for a hung host harness; inside, the guest watchdog
+        # (~200 s) and the host cap (240 s) bound the VM.
         timeout-minutes: 10
         run: |
           python3 -B -u tools/run_materiaal_probe.py \
@@ -127,6 +136,26 @@ jobs:
           git diff --exit-code
           git status --porcelain
           test -z "$(git status --porcelain)"
+      - name: Probe timing summary (diagnostics, not evidence)
+        # Makes a timing failure distinguishable from a functional one without
+        # downloading the artifact. Never changes the job result.
+        if: ${{ always() }}
+        run: |
+          python3 -B - <<'PY' >> "$GITHUB_STEP_SUMMARY" || true
+          import json, os, pathlib
+          path = pathlib.Path(os.environ["NOS_BUILD_DIR"]) / "materiaal-probe-report.json"
+          print("### Materiaal probe (diagnostics, not evidence)")
+          print("Limits: guest watchdog ~200 s (20,000 PIT ticks), host cap 240 s.")
+          try:
+              report = json.loads(path.read_text())
+          except (OSError, ValueError) as error:
+              print(f"No readable report: {type(error).__name__}")
+          else:
+              for key in ("passed", "stage", "raw_qemu_exit", "duration_s", "timeout_s",
+                          "timed_out", "guest_timeout", "error"):
+                  if key in report:
+                      print(f"- {key}: {report[key]}")
+          PY
       - name: Preserve bound inputs, raw frames and failure reports
         if: ${{ always() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
