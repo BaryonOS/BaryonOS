@@ -43,7 +43,8 @@ impl Layout {
         let width = viewport.logical_width();
         let height = viewport.logical_height();
         let compact = height < 360;
-        let controls_y = if compact { 64 } else { 80 };
+        let editor_top = if compact { 120 } else { 144 };
+        let controls_y = if compact { 64 } else { 104 };
         let sidebar_width = if width >= 960 {
             208
         } else if width >= 720 {
@@ -96,9 +97,9 @@ impl Layout {
             },
             editor: Rect {
                 x: d::PAD,
-                y: 144,
+                y: editor_top,
                 width: width - 2 * d::PAD,
-                height: height - 208,
+                height: height - editor_top - 64,
             },
             status: Rect {
                 x: content_left,
@@ -107,7 +108,7 @@ impl Layout {
                 height: 48,
             },
             list_bottom: height - 56,
-            list_top: if compact { 120 } else { 144 },
+            list_top: if compact { 120 } else { 168 },
             title_y: if compact { 16 } else { 20 },
             list_previous: Rect {
                 x: width - d::PAD - 96,
@@ -278,7 +279,10 @@ impl<'a> Frame<'a> {
         match self.view.screen {
             Screen::Material => {
                 paint.material_chrome(layout, viewport);
-                paint.title(layout.content_left, layout.title_y, "Materiaal");
+                paint.title(layout.content_left, layout.title_y, "Documenten");
+                if viewport.logical_height() >= 360 {
+                    paint.small(layout.content_left, 62, "Op dit apparaat", d::MUTED);
+                }
                 if self.view.list_scroll > 0 || self.view.objects.len() > layout.list_rows() {
                     paint.arrow(
                         layout.list_previous,
@@ -330,52 +334,36 @@ impl<'a> Frame<'a> {
                     );
                 } else if self.view.objects.is_empty() {
                     let available = viewport.logical_width() - layout.content_left - d::PAD;
-                    let icon_x = layout.content_left + available.saturating_sub(56) / 2;
+                    let icon_x = layout.content_left;
                     let top = layout.list_top
                         + if viewport.logical_height() > 480 {
-                            56
+                            40
                         } else {
                             8
                         };
-                    paint.rounded(
-                        Rect {
-                            x: icon_x - 8,
-                            y: top - 8,
-                            width: 72,
-                            height: 72,
-                        },
-                        d::ACCENT_SOFT,
-                        20,
-                    );
                     paint.icon(
                         Rect {
-                            x: icon_x + 4,
-                            y: top + 4,
-                            width: 48,
-                            height: 48,
+                            x: icon_x,
+                            y: top,
+                            width: 32,
+                            height: 32,
                         },
                         Icon::Folder,
                         d::ACCENT,
-                        2,
+                        1,
                     );
-                    let title = "Hier begint je werk";
-                    let width = paint.measure(title, Size::Body, Weight::Semibold);
-                    paint.medium(
-                        layout.content_left + available.saturating_sub(width) / 2,
-                        top + 84,
-                        title,
-                        d::TEXT,
-                    );
+                    let title = "Nog geen documenten";
+                    paint.medium(layout.content_left + 52, top, title, d::TEXT);
                     let body = if available >= 360 {
                         "Maak een document om aan de slag te gaan."
                     } else {
                         "Maak je eerste document."
                     };
-                    let width = paint.measure(body, Size::Body, Weight::Regular);
-                    paint.label(
-                        layout.content_left + available.saturating_sub(width) / 2,
-                        top + 116,
+                    paint.wrapped(
+                        layout.content_left + 52,
+                        top + 32,
                         body,
+                        available.saturating_sub(52),
                         d::MUTED,
                     );
                 } else {
@@ -393,21 +381,40 @@ impl<'a> Frame<'a> {
                         }
                         let focused = self.view.focus == Focus::Object(index);
                         let hovered = paint.cursor.is_some_and(|(x, y)| row.contains(x, y));
-                        paint.rounded(
+                        paint.fill(
                             row,
                             if focused || hovered {
                                 d::ACCENT_SOFT
                             } else {
                                 d::SURFACE
                             },
-                            10,
                         );
+                        paint.fill(
+                            Rect {
+                                x: row.x,
+                                y: row.y + row.height,
+                                width: row.width,
+                                height: 1,
+                            },
+                            d::LINE,
+                        );
+                        if focused {
+                            paint.fill(
+                                Rect {
+                                    x: row.x,
+                                    y: row.y + 12,
+                                    width: 3,
+                                    height: row.height - 24,
+                                },
+                                d::ACCENT,
+                            );
+                        }
                         paint.icon(
                             Rect {
                                 x: row.x + 14,
-                                y: row.y + 16,
-                                width: 28,
-                                height: 32,
+                                y: row.y + 20,
+                                width: 20,
+                                height: 24,
                             },
                             Icon::Material,
                             d::ACCENT,
@@ -453,13 +460,7 @@ impl<'a> Frame<'a> {
                 }
             }
             Screen::Editor | Screen::ConfirmClose => {
-                paint.button(
-                    layout.back,
-                    "Terug",
-                    self.view.focus == Focus::Back,
-                    true,
-                    ButtonStyle::Secondary,
-                );
+                paint.back_button(layout.back, self.view.focus == Focus::Back);
                 let label = if self.view.saving {
                     "Annuleren"
                 } else {
@@ -482,10 +483,30 @@ impl<'a> Frame<'a> {
                     },
                 );
                 let title = core::str::from_utf8(self.view.title).unwrap_or("Naam niet leesbaar");
-                paint.wrapped(d::PAD, 80, title, layout.editor.width, d::TEXT);
-                paint.outlined(layout.editor, d::SURFACE, d::BORDER, d::CONTROL_RADIUS);
+                paint.medium(d::PAD, 84, title, d::TEXT);
+                if viewport.logical_height() >= 360 {
+                    paint.small(d::PAD, 116, "Op dit apparaat", d::MUTED);
+                }
+                paint.fill(layout.editor, d::SURFACE);
+                paint.fill(
+                    Rect {
+                        x: layout.editor.x,
+                        y: layout.editor.y,
+                        width: layout.editor.width,
+                        height: 1,
+                    },
+                    d::LINE,
+                );
                 if self.view.focus == Focus::Document && self.view.screen == Screen::Editor {
-                    paint.focus(layout.editor);
+                    paint.fill(
+                        Rect {
+                            x: layout.editor.x.saturating_sub(8),
+                            y: layout.editor.y + 8,
+                            width: 3,
+                            height: 24,
+                        },
+                        d::ACCENT,
+                    );
                 }
                 if let Some(contents) = self.view.contents {
                     let selected = text::selection(self.view.anchor, self.view.caret);
@@ -552,11 +573,26 @@ impl<'a> Frame<'a> {
                 }
             }
         }
+        let status_x = if self.view.screen == Screen::Material {
+            layout.status.x
+        } else {
+            d::PAD
+        };
+        let status_width = viewport.logical_width() - status_x - d::PAD;
+        paint.fill(
+            Rect {
+                x: status_x,
+                y: layout.status.y.saturating_sub(8),
+                width: status_width,
+                height: 1,
+            },
+            d::LINE,
+        );
         paint.wrapped(
-            layout.status.x,
+            status_x,
             layout.status.y,
             status_label(self.view.status),
-            layout.status.width,
+            status_width,
             status_color(self.view.status),
         );
         if let Status::Saving { completed, total } = self.view.status {
@@ -1129,35 +1165,40 @@ impl Paint<'_> {
                     width: layout.sidebar_width,
                     height: h,
                 },
-                0xeaf0f2,
+                0xf0efe9,
             );
-            self.icon(
+            self.fill(
                 Rect {
-                    x: 24,
-                    y: 24,
-                    width: 28,
-                    height: 32,
+                    x: layout.sidebar_width - 1,
+                    y: 0,
+                    width: 1,
+                    height: h,
                 },
-                Icon::Material,
-                d::ACCENT,
-                2,
+                d::LINE,
             );
-            self.medium(64, 28, "Materiaal", d::TEXT);
-            self.small(24, 92, "WERKRUIMTE", d::MUTED);
-            self.rounded(
+            self.small(24, 28, "MIJN WERK", d::MUTED);
+            self.fill(
                 Rect {
-                    x: 12,
-                    y: 124,
-                    width: layout.sidebar_width - 24,
+                    x: 0,
+                    y: 80,
+                    width: layout.sidebar_width,
                     height: 44,
                 },
-                d::SURFACE,
-                10,
+                d::ACCENT_SOFT,
+            );
+            self.fill(
+                Rect {
+                    x: 0,
+                    y: 80,
+                    width: 3,
+                    height: 44,
+                },
+                d::ACCENT,
             );
             self.icon(
                 Rect {
                     x: 24,
-                    y: 136,
+                    y: 92,
                     width: 20,
                     height: 20,
                 },
@@ -1165,19 +1206,8 @@ impl Paint<'_> {
                 d::ACCENT,
                 1,
             );
-            self.medium(56, 134, "Documenten", d::TEXT);
-            self.icon(
-                Rect {
-                    x: 24,
-                    y: h.saturating_sub(64),
-                    width: 20,
-                    height: 20,
-                },
-                Icon::Shield,
-                d::MUTED,
-                1,
-            );
-            self.small(24, h.saturating_sub(34), "Lokale werkruimte", d::MUTED);
+            self.medium(56, 90, "Documenten", d::TEXT);
+            self.small(24, h.saturating_sub(34), "Dit apparaat", d::MUTED);
         }
     }
     fn icon_button(&mut self, r: Rect, icon: Icon, focused: bool, enabled: bool) {
@@ -1772,6 +1802,26 @@ impl Paint<'_> {
             label,
             foreground,
         );
+    }
+    fn back_button(&mut self, r: Rect, focused: bool) {
+        if self.cursor.is_some_and(|(x, y)| r.contains(x, y)) {
+            self.rounded(r, d::ACCENT_SOFT, 6);
+        }
+        self.icon(
+            Rect {
+                x: r.x + 4,
+                y: r.y + 12,
+                width: 20,
+                height: 20,
+            },
+            Icon::ChevronLeft,
+            d::TEXT,
+            1,
+        );
+        self.medium(r.x + 30, r.y + 10, "Terug", d::TEXT);
+        if focused {
+            self.focus(r);
+        }
     }
     fn arrow(&mut self, r: Rect, previous: bool, focused: bool, enabled: bool) {
         self.button(r, "", focused, enabled, ButtonStyle::Secondary);

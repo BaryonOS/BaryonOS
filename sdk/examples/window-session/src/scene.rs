@@ -13,6 +13,35 @@ pub struct Window {
     pub geometry: Geometry,
     pub offset: usize,
 }
+const APP_NAMES: [&str; WINDOWS] = ["Materiaal", "Rekenmachine"];
+const QUERY_BYTES: usize = 32;
+struct ProgramPalette {
+    open: bool,
+    query: [u8; QUERY_BYTES],
+    length: usize,
+    selected: Option<usize>,
+}
+impl ProgramPalette {
+    const fn new() -> Self {
+        Self {
+            open: false,
+            query: [0; QUERY_BYTES],
+            length: 0,
+            selected: None,
+        }
+    }
+    fn matches(&self, index: usize) -> bool {
+        let query = &self.query[..self.length];
+        query.is_empty()
+            || APP_NAMES[index]
+                .as_bytes()
+                .windows(query.len())
+                .any(|part| part.eq_ignore_ascii_case(query))
+    }
+    fn first_match(&self) -> Option<usize> {
+        (0..WINDOWS).find(|index| self.matches(*index))
+    }
+}
 pub struct Scene {
     pub width: u32,
     pub height: u32,
@@ -24,6 +53,7 @@ pub struct Scene {
     pub moves: u64,
     pub switches: u64,
     clipboard_notice: ClipboardNotice,
+    palette: ProgramPalette,
 }
 impl Scene {
     pub fn new(width: u32, height: u32, scale: u32, epochs: [u64; 2]) -> Result<Self, Invalid> {
@@ -83,6 +113,7 @@ impl Scene {
             moves: 0,
             switches: 0,
             clipboard_notice: ClipboardNotice::None,
+            palette: ProgramPalette::new(),
         })
     }
     pub fn frame(&self, index: usize) -> Rect {
@@ -93,6 +124,108 @@ impl Scene {
             b.width,
             b.height + 42 * self.scale,
         )
+    }
+    pub fn palette_open(&mut self) -> bool {
+        if self.palette.open {
+            return false;
+        }
+        self.palette.open = true;
+        self.palette.query.fill(0);
+        self.palette.length = 0;
+        self.palette.selected = Some(self.focused);
+        self.drag = None;
+        true
+    }
+    pub fn palette_is_open(&self) -> bool {
+        self.palette.open
+    }
+    pub fn palette_query(&self) -> &str {
+        core::str::from_utf8(&self.palette.query[..self.palette.length]).expect("ASCII app query")
+    }
+    pub fn palette_insert(&mut self, byte: u8) -> bool {
+        if !self.palette.open
+            || self.palette.length == QUERY_BYTES
+            || !(byte.is_ascii_alphanumeric() || byte == b' ')
+        {
+            return false;
+        }
+        self.palette.query[self.palette.length] = byte;
+        self.palette.length += 1;
+        self.palette.selected = self.palette.first_match();
+        true
+    }
+    pub fn palette_backspace(&mut self) -> bool {
+        if !self.palette.open || self.palette.length == 0 {
+            return false;
+        }
+        self.palette.length -= 1;
+        self.palette.query[self.palette.length] = 0;
+        self.palette.selected = self.palette.first_match();
+        true
+    }
+    pub fn palette_next(&mut self, reverse: bool) -> bool {
+        if !self.palette.open {
+            return false;
+        }
+        let before = self.palette.selected;
+        let start = before.unwrap_or(if reverse { 0 } else { WINDOWS - 1 });
+        self.palette.selected = (1..=WINDOWS)
+            .map(|step| {
+                if reverse {
+                    (start + WINDOWS - step) % WINDOWS
+                } else {
+                    (start + step) % WINDOWS
+                }
+            })
+            .find(|index| self.palette.matches(*index));
+        self.palette.selected != before
+    }
+    pub fn palette_selected(&self) -> Option<usize> {
+        self.palette
+            .selected
+            .filter(|index| self.palette.open && self.palette.matches(*index))
+    }
+    pub fn palette_close(&mut self) -> bool {
+        if !self.palette.open {
+            return false;
+        }
+        self.palette.open = false;
+        self.palette.query.fill(0);
+        self.palette.length = 0;
+        self.palette.selected = None;
+        true
+    }
+    /// Physical pixels, stable while open and after close for damage repair.
+    pub fn palette_bounds(&self) -> Rect {
+        let width = 540 * self.scale;
+        Rect::new(
+            (self.width - width) as i32 / 2,
+            84 * self.scale as i32,
+            width,
+            256 * self.scale,
+        )
+    }
+    fn palette_row(&self, index: usize) -> Option<Rect> {
+        if !self.palette.open || index >= WINDOWS || !self.palette.matches(index) {
+            return None;
+        }
+        let row = (0..index)
+            .filter(|other| self.palette.matches(*other))
+            .count();
+        let bounds = self.palette_bounds();
+        let s = self.scale;
+        Some(Rect::new(
+            bounds.x + 16 * s as i32,
+            bounds.y + (96 + row as i32 * 56) * s as i32,
+            bounds.width - 32 * s,
+            48 * s,
+        ))
+    }
+    pub fn palette_hit(&self, x: u32, y: u32) -> Option<usize> {
+        (0..WINDOWS).find(|index| {
+            self.palette_row(*index)
+                .is_some_and(|row| row.contains(x as i32, y as i32))
+        })
     }
     pub fn clipboard_notice_bounds(&self) -> Rect {
         Rect::new(
@@ -112,10 +245,10 @@ impl Scene {
     pub fn paint_bounds(&self, index: usize) -> Rect {
         let f = self.frame(index);
         Rect::new(
-            f.x,
-            f.y,
-            f.width + 4 * self.scale,
-            f.height + 8 * self.scale,
+            f.x - self.scale as i32,
+            f.y - self.scale as i32,
+            f.width + 2 * self.scale,
+            f.height + 2 * self.scale,
         )
     }
     pub fn select(&mut self, index: usize) -> Result<(), Invalid> {
@@ -176,15 +309,8 @@ impl Scene {
             return Ok(None);
         }
         if down {
-            let s = self.scale;
-            let dock = self.dock();
             for index in 0..WINDOWS {
-                let button = Rect::new(
-                    dock.x + (12 + index as i32 * 56) * s as i32,
-                    dock.y + 8 * s as i32,
-                    48 * s,
-                    48 * s,
-                );
+                let button = self.task_button(index);
                 if button.contains(x as i32, y as i32) {
                     self.select(index)?;
                     return Ok(None);
@@ -209,10 +335,22 @@ impl Scene {
     }
     pub fn dock(&self) -> Rect {
         Rect::new(
-            self.width as i32 / 2 - 68 * self.scale as i32,
-            self.height as i32 - 76 * self.scale as i32,
-            136 * self.scale,
-            64 * self.scale,
+            0,
+            self.height as i32 - 48 * self.scale as i32,
+            self.width,
+            48 * self.scale,
+        )
+    }
+    pub fn task_button(&self, index: usize) -> Rect {
+        if index >= WINDOWS {
+            return Rect::default();
+        }
+        let s = self.scale;
+        Rect::new(
+            (20 + index as i32 * 186) * s as i32,
+            self.dock().y + 6 * s as i32,
+            178 * s,
+            36 * s,
         )
     }
     pub fn copy_tile(
@@ -289,7 +427,11 @@ impl Scene {
                 <= i64::from(body.x) + i64::from(body.width)
             && i64::from(rect.y) + i64::from(rect.height)
                 <= i64::from(body.y) + i64::from(body.height);
-        if inside && !rect.intersects(self.dock()) && !rect.intersects(self.pointer_bounds()) {
+        if inside
+            && !rect.intersects(self.dock())
+            && !rect.intersects(self.pointer_bounds())
+            && !(self.palette_is_open() && rect.intersects(self.palette_bounds()))
+        {
             let left = (rect.x - body.x) as usize;
             let top = (rect.y - body.y) as usize;
             let width = rect.width as usize;
@@ -320,27 +462,34 @@ impl Scene {
         theme::wallpaper(&mut c, Rect::new(0, 0, self.width, self.height), palette);
         let s = self.scale;
         let font = Font::new(Size::Body, Weight::Semibold, s == 2);
-        c.fill_rect(Rect::new(0, 0, self.width, 40 * s), 0x122437);
+        c.fill_rect(Rect::new(0, 0, self.width, 40 * s), palette.desktop_start);
+        c.fill_rect(Rect::new(0, (40 * s - 1) as i32, self.width, 1), 0x33353d);
         c.icon(
             Rect::new(22 * s as i32, 10 * s as i32, 20 * s, 20 * s),
             Icon::Material,
-            0x8ed3c7,
+            0xbdb6ff,
             s,
         );
-        c.text(54 * s as i32, 9 * s as i32, "Nieuw OS", font, 0xf3f8fa);
+        c.text(
+            54 * s as i32,
+            9 * s as i32,
+            "Nieuw OS",
+            font,
+            theme::SHELL_TEXT,
+        );
         c.text(
             172 * s as i32,
             10 * s as i32,
             "Werkruimte",
             Font::new(Size::Small, Weight::Regular, s == 2),
-            0xb5cbd2,
+            theme::SHELL_MUTED,
         );
         c.text(
             320 * s as i32,
             10 * s as i32,
             self.clipboard_notice.label(),
             Font::new(Size::Small, Weight::Regular, s == 2),
-            0xb5e1d7,
+            theme::SHELL_TEXT,
         );
         for index in [1 - self.focused, self.focused] {
             let body = self.windows[index].body;
@@ -348,30 +497,25 @@ impl Scene {
             if !self.paint_bounds(index).intersects(rect) {
                 continue;
             }
-            c.rounded_rect(
-                Rect::new(
-                    frame.x + 4 * s as i32,
-                    frame.y + 8 * s as i32,
-                    frame.width,
-                    frame.height,
-                ),
-                12 * s,
-                0x132a38,
-            );
-            c.rounded_rect(
-                frame,
-                10 * s,
+            // A one-pixel structural contour outside the assigned app body.
+            // There is no offset shadow or fake elevation behind the window.
+            c.fill_rect(
+                self.paint_bounds(index),
                 if index == self.focused {
-                    0xffffff
+                    palette.border
                 } else {
-                    0xe9eff3
+                    0x565861
                 },
             );
-            let title = if index == 0 {
-                "Materiaal"
-            } else {
-                "Rekenmachine"
-            };
+            c.fill_rect(
+                frame,
+                if index == self.focused {
+                    palette.surface
+                } else {
+                    palette.background
+                },
+            );
+            let title = APP_NAMES[index];
             c.icon(
                 Rect::new(
                     frame.x + 15 * s as i32,
@@ -384,7 +528,11 @@ impl Scene {
                 } else {
                     Icon::Apps
                 },
-                0x167a70,
+                if index == self.focused {
+                    palette.accent
+                } else {
+                    palette.muted
+                },
                 s,
             );
             c.text(
@@ -392,7 +540,11 @@ impl Scene {
                 frame.y + 10 * s as i32,
                 title,
                 font,
-                0x172a3a,
+                if index == self.focused {
+                    palette.text
+                } else {
+                    palette.muted
+                },
             );
             // Trusted app identity and focus marker live outside app bounds.
             if index == self.focused {
@@ -403,7 +555,7 @@ impl Scene {
                         40 * s,
                         2 * s,
                     ),
-                    0x167a70,
+                    palette.accent,
                 );
             }
             c.fill_rect(body, palette.background);
@@ -426,39 +578,186 @@ impl Scene {
             }
         }
         let dock = self.dock();
-        c.rounded_rect(dock, 18 * s, 0xe9f0f2);
+        c.fill_rect(dock, palette.desktop_start);
+        c.fill_rect(Rect::new(0, dock.y, dock.width, s), 0x33353d);
         for index in 0..WINDOWS {
-            let r = Rect::new(
-                dock.x + (12 + index as i32 * 56) * s as i32,
-                dock.y + 8 * s as i32,
-                48 * s,
-                48 * s,
-            );
-            c.rounded_rect(
-                r,
-                12 * s,
-                if index == self.focused {
-                    0xd0e9e3
-                } else {
-                    0xf7f9fa
-                },
-            );
+            let r = self.task_button(index);
+            let hovered =
+                !self.palette_is_open() && r.contains(self.pointer.0 as i32, self.pointer.1 as i32);
+            if index == self.focused || hovered {
+                c.fill_rect(r, 0x2b2d37);
+            }
             c.icon(
-                Rect::new(r.x + 12 * s as i32, r.y + 12 * s as i32, 24 * s, 24 * s),
+                Rect::new(r.x + 10 * s as i32, r.y + 9 * s as i32, 18 * s, 18 * s),
                 if index == 0 {
                     Icon::Material
                 } else {
                     Icon::Apps
                 },
-                0x167a70,
-                2 * s,
+                if index == self.focused {
+                    0xbdb6ff
+                } else {
+                    theme::SHELL_MUTED
+                },
+                s,
             );
+            c.text(
+                r.x + 38 * s as i32,
+                r.y + 7 * s as i32,
+                APP_NAMES[index],
+                Font::new(Size::Body, Weight::Regular, s == 2),
+                theme::SHELL_TEXT,
+            );
+            if index == self.focused {
+                c.fill_rect(
+                    Rect::new(
+                        r.x + 10 * s as i32,
+                        r.y + 34 * s as i32,
+                        r.width - 20 * s,
+                        2 * s,
+                    ),
+                    0xbdb6ff,
+                );
+            }
         }
+        c.icon(
+            Rect::new(
+                self.width as i32 - 150 * s as i32,
+                dock.y + 16 * s as i32,
+                16 * s,
+                16 * s,
+            ),
+            Icon::Search,
+            theme::SHELL_MUTED,
+            s,
+        );
+        c.text(
+            self.width as i32 - 124 * s as i32,
+            dock.y + 14 * s as i32,
+            "Ctrl K · Apps",
+            Font::new(Size::Small, Weight::Regular, s == 2),
+            theme::SHELL_MUTED,
+        );
+        self.render_palette(&mut c);
         let (x, y) = (self.pointer.0 as i32, self.pointer.1 as i32);
         c.line(x, y, x, y + 18 * s as i32, 3 * s, 0xffffff);
         c.line(x, y, x + 12 * s as i32, y + 12 * s as i32, 3 * s, 0xffffff);
         c.line(x, y, x + 3 * s as i32, y + 15 * s as i32, s, 0x172a3a);
         Ok(())
+    }
+    fn render_palette(&self, c: &mut Canvas<'_>) {
+        if !self.palette_is_open() || !self.palette_bounds().intersects(c.bounds()) {
+            return;
+        }
+        let p = theme::MATERIAAL;
+        let r = self.palette_bounds();
+        let s = self.scale;
+        let small = Font::new(Size::Small, Weight::Regular, s == 2);
+        let body = Font::new(Size::Body, Weight::Regular, s == 2);
+        let strong = Font::new(Size::Body, Weight::Semibold, s == 2);
+        c.fill_rect(r, p.border);
+        c.fill_rect(
+            Rect::new(
+                r.x + s as i32,
+                r.y + s as i32,
+                r.width - 2 * s,
+                r.height - 2 * s,
+            ),
+            p.surface,
+        );
+        c.text(
+            r.x + 24 * s as i32,
+            r.y + 16 * s as i32,
+            "OPEN APPS",
+            small,
+            p.muted,
+        );
+        c.text(
+            r.x + r.width as i32 - 74 * s as i32,
+            r.y + 16 * s as i32,
+            "Esc terug",
+            small,
+            p.muted,
+        );
+        c.icon(
+            Rect::new(r.x + 24 * s as i32, r.y + 50 * s as i32, 20 * s, 20 * s),
+            Icon::Search,
+            p.accent,
+            s,
+        );
+        c.text(
+            r.x + 56 * s as i32,
+            r.y + 48 * s as i32,
+            if self.palette_query().is_empty() {
+                "Zoek een app"
+            } else {
+                self.palette_query()
+            },
+            body,
+            if self.palette_query().is_empty() {
+                p.muted
+            } else {
+                p.text
+            },
+        );
+        c.fill_rect(
+            Rect::new(
+                r.x + 24 * s as i32,
+                r.y + 80 * s as i32,
+                r.width - 48 * s,
+                s,
+            ),
+            p.accent,
+        );
+        if self.palette.first_match().is_none() {
+            c.text(
+                r.x + 24 * s as i32,
+                r.y + 112 * s as i32,
+                "Geen app met deze naam",
+                body,
+                p.text,
+            );
+        }
+        for (index, name) in APP_NAMES.iter().enumerate() {
+            let Some(row) = self.palette_row(index) else {
+                continue;
+            };
+            if self.palette_selected() == Some(index) {
+                c.fill_rect(row, p.accent_soft);
+                c.fill_rect(Rect::new(row.x, row.y, 3 * s, row.height), p.accent);
+            }
+            c.icon(
+                Rect::new(row.x + 14 * s as i32, row.y + 14 * s as i32, 20 * s, 20 * s),
+                if index == 0 {
+                    Icon::Material
+                } else {
+                    Icon::Apps
+                },
+                p.accent,
+                s,
+            );
+            c.text(
+                row.x + 46 * s as i32,
+                row.y + 12 * s as i32,
+                name,
+                strong,
+                p.text,
+            );
+            c.text(
+                row.x + row.width as i32 - 86 * s as i32,
+                row.y + 16 * s as i32,
+                "Activeren",
+                small,
+                p.muted,
+            );
+        }
+        c.text(
+            r.x + 24 * s as i32,
+            r.y + 226 * s as i32,
+            "Pijltjes kiezen · Enter activeren",
+            small,
+            p.muted,
+        );
     }
 }
 

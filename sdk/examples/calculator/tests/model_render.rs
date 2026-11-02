@@ -3,6 +3,7 @@ use nieuw_os_calculator::{
     model::{Command, Model, Notice},
     render::{self, Layout, Rect, Viewport},
 };
+use nieuw_os_graphics::{Font, Size, Weight};
 use ui_core::{KeyAction, KeyboardEvent, KeyboardModifiers, PhysicalKey};
 fn type_text(model: &mut Model, text: &str) {
     for byte in text.bytes() {
@@ -216,6 +217,7 @@ fn pointer_capture_does_not_activate_after_outside_cancel_or_focus_loss() {
 fn every_control_is_inside_both_scales_and_hit_testing_never_clamps() {
     for (w, h, s) in [
         (320, 240, 1),
+        (640, 608, 2),
         (768, 536, 1),
         (640, 480, 2),
         (768, 536, 2),
@@ -288,5 +290,176 @@ fn renderer_is_bounded_tracks_real_state_and_scrolls_long_input_at_both_scales()
         )
         .is_err());
         assert!(pixels.iter().all(|p| *p == 0xabcdef));
+    }
+}
+
+fn image(model: &Model, view: Viewport) -> Vec<u32> {
+    let mut pixels = vec![0; (view.width() * view.height()) as usize];
+    for y in (0..view.height()).step_by(8) {
+        for x in (0..view.width()).step_by(32) {
+            let rect = Rect {
+                x,
+                y,
+                width: 32.min(view.width() - x),
+                height: 8.min(view.height() - y),
+            };
+            let mut tile = [0; 256];
+            render::render_tile(model, view, rect, &mut tile).unwrap();
+            for row in 0..rect.height {
+                let from = (row * rect.width) as usize;
+                let to = ((rect.y + row) * view.width() + rect.x) as usize;
+                pixels[to..to + rect.width as usize]
+                    .copy_from_slice(&tile[from..from + rect.width as usize]);
+            }
+        }
+    }
+    pixels
+}
+
+#[test]
+fn proportional_formula_hit_testing_and_caret_follow_exact_visible_advances() {
+    for scale in [1, 2] {
+        let view = Viewport::new(320 * scale, 484 * scale, scale).unwrap();
+        let layout = Layout::new(view);
+        let font = Font::new(Size::Body, Weight::Regular, scale == 2);
+        assert_ne!(font.advance('.'), font.advance('1'));
+        let mut model = Model::new();
+        type_text(&mut model, "1.1+(8/2)");
+        let mut advance = 0u64;
+        for caret in 0..=model.expression().len() {
+            model.command(Command::Home(false));
+            for _ in 0..caret {
+                model.command(Command::Right(false));
+            }
+            assert_eq!(render::expression_start(&model, layout, scale), 0);
+            let physical = (layout.expression.x + 8) * scale + (advance / 64) as u32;
+            let logical = (physical + scale / 2) / scale;
+            assert_eq!(
+                render::expression_caret_at(&model, layout, scale, logical),
+                caret
+            );
+            if caret < model.expression().len() {
+                advance += u64::from(font.advance(model.expression().as_bytes()[caret] as char));
+            }
+        }
+        assert_eq!(render::expression_caret_at(&model, layout, scale, 0), 0);
+        assert_eq!(
+            render::expression_caret_at(&model, layout, scale, u32::MAX),
+            model.expression().len()
+        );
+        model.command(Command::Reset);
+        type_text(&mut model, &"1.".repeat(128));
+        let start = render::expression_start(&model, layout, scale);
+        assert!(start > 0 && start < model.caret());
+        assert_eq!(
+            render::expression_caret_at(&model, layout, scale, layout.expression.x),
+            start
+        );
+        assert_eq!(
+            render::expression_caret_at(&model, layout, scale, u32::MAX),
+            256
+        );
+        model.command(Command::Home(false));
+        let end = render::expression_caret_at(&model, layout, scale, u32::MAX);
+        assert!(end > 0 && end < 256);
+    }
+}
+
+#[test]
+fn selected_narrow_glyph_and_caret_use_same_pixel_edges_at_both_scales() {
+    for scale in [1, 2] {
+        let view = Viewport::new(320 * scale, 484 * scale, scale).unwrap();
+        let layout = Layout::new(view);
+        let font = Font::new(Size::Body, Weight::Regular, scale == 2);
+        let mut model = Model::new();
+        type_text(&mut model, "1.1");
+        model.command(Command::Home(false));
+        model.command(Command::Right(false));
+        model.command(Command::Right(true));
+        assert_eq!(model.selection(), 1..2);
+        let pixels = image(&model, view);
+        let origin = (layout.expression.x + 8) * scale;
+        let left = origin + font.advance('1') / 64;
+        let right = origin + (font.advance('1') + font.advance('.')) / 64;
+        let row = (layout.expression.y + 4) * scale;
+        for x in left..right {
+            assert_eq!(
+                pixels[(row * view.width() + x) as usize],
+                render::design::ACCENT_SOFT
+            );
+        }
+        assert_eq!(
+            pixels[(row * view.width() + right) as usize],
+            render::design::TEXT
+        );
+        assert_eq!(
+            pixels[(row * view.width() + left - 1) as usize],
+            render::design::BACKGROUND
+        );
+    }
+}
+
+#[test]
+fn longest_signed_answer_fits_with_actual_body_raster_at_both_scene_sizes() {
+    use nieuw_os_graphics::{Canvas, Rect as GraphicRect};
+    for (width, height, scale) in [(320, 484, 1), (640, 608, 2)] {
+        let view = Viewport::new(width, height, scale).unwrap();
+        let layout = Layout::new(view);
+        let mut model = Model::new();
+        type_text(&mut model, "-9999999999,999999999");
+        model.command(Command::Evaluate);
+        let answer = model.answer().unwrap().value.format();
+        let body = Font::new(Size::Body, Weight::Semibold, scale == 2);
+        let title = Font::new(Size::Title, Weight::Semibold, scale == 2);
+        assert!(title.measure(answer.as_str()) > layout.width * scale);
+        assert!(body.measure(answer.as_str()) <= layout.width * scale);
+        let pixels = image(&model, view);
+        let region = GraphicRect::new(
+            (layout.x * scale) as i32,
+            (layout.result_y * scale) as i32,
+            layout.width * scale,
+            body.height(),
+        );
+        let mut expected =
+            vec![render::design::BACKGROUND; (region.width * region.height) as usize];
+        Canvas::new(region, &mut expected).unwrap().text(
+            region.x + region.width as i32 - body.measure(answer.as_str()) as i32,
+            region.y,
+            answer.as_str(),
+            body,
+            render::design::TEXT,
+        );
+        for row in 0..region.height {
+            let actual = ((region.y as u32 + row) * width + region.x as u32) as usize;
+            let from = (row * region.width) as usize;
+            assert_eq!(
+                &pixels[actual..actual + region.width as usize],
+                &expected[from..from + region.width as usize]
+            );
+        }
+    }
+}
+
+#[test]
+fn paper_calculator_host_fixtures_use_the_real_bounded_renderer() {
+    use std::io::Write;
+    let Some(directory) = std::env::var_os("OS_CALCULATOR_RENDER_FIXTURE_DIRECTORY") else {
+        return;
+    };
+    let directory = std::path::PathBuf::from(directory);
+    for (width, height, scale) in [(320, 484, 1), (640, 608, 2), (640, 968, 2), (320, 240, 1)] {
+        let view = Viewport::new(width, height, scale).unwrap();
+        let mut model = Model::new();
+        type_text(&mut model, "12,5 * (8 - 3)");
+        model.command(Command::Evaluate);
+        let pixels = image(&model, view);
+        let path = directory.join(format!("calculator-{width}x{height}-s{scale}.ppm"));
+        let mut file = std::fs::File::create_new(path).unwrap();
+        write!(file, "P6\n{width} {height}\n255\n").unwrap();
+        for color in pixels {
+            file.write_all(&[(color >> 16) as u8, (color >> 8) as u8, color as u8])
+                .unwrap();
+        }
+        file.sync_all().unwrap();
     }
 }

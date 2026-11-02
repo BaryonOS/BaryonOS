@@ -44,6 +44,12 @@ impl Font {
     pub fn em(self) -> u32 {
         u32::from(atlas::FONTS[self.index()].size)
     }
+    /// Immutable glyph advance in 26.6 fixed-point pixels. Summing these and
+    /// flooring a prefix matches the exact placement used by the atlas drawer.
+    pub fn advance(self, character: char) -> u32 {
+        let first = usize::from(atlas::FONTS[self.index()].first);
+        u32::from(atlas::GLYPHS[first + index(character)].advance)
+    }
     pub fn measure(self, value: &str) -> u32 {
         let first = usize::from(atlas::FONTS[self.index()].first);
         let advance = value.chars().fold(0u64, |n, ch| {
