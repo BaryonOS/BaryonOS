@@ -13,59 +13,68 @@
     {
       "command": "cargo test --manifest-path sdk/examples/materiaal/Cargo.toml --offline --locked --target x86_64-unknown-linux-gnu",
       "exit_code": 0,
-      "log": "docs/verification/gui-idle-20261102/materiaal-host.log",
-      "sha256": "5911b162a9134d087c4392b20e56695d2e1db7fca1c100821bfd6ec940ad9bf0",
-      "tests_passed": 35
+      "log": "docs/verification/gui-idle-20261102/materiaal-host.txt",
+      "sha256": "f1e261b5663f0dea01ab571a3fabfd394f8ab4669dc8cb8870722bae8628093e",
+      "tests_passed": 35,
+      "raw_log_sha256": "5911b162a9134d087c4392b20e56695d2e1db7fca1c100821bfd6ec940ad9bf0"
     },
     {
       "command": "cargo clippy --manifest-path sdk/examples/materiaal/Cargo.toml --offline --locked --target x86_64-unknown-linux-gnu --all-targets -- -D warnings",
       "exit_code": 0,
-      "log": "docs/verification/gui-idle-20261102/materiaal-clippy.log",
-      "sha256": "9b3f48711971951e7eb9fe3d398489dfc034738d0a60f0d2eabf26b7bca59b17"
+      "log": "docs/verification/gui-idle-20261102/materiaal-clippy.txt",
+      "sha256": "9b3f48711971951e7eb9fe3d398489dfc034738d0a60f0d2eabf26b7bca59b17",
+      "raw_log_sha256": "9b3f48711971951e7eb9fe3d398489dfc034738d0a60f0d2eabf26b7bca59b17"
     },
     {
       "command": "cargo fmt --manifest-path sdk/examples/materiaal/Cargo.toml -- --check",
       "exit_code": 0,
-      "log": "docs/verification/gui-idle-20261102/materiaal-fmt.log",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      "log": "docs/verification/gui-idle-20261102/materiaal-fmt.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
       "command": "cargo test --manifest-path sdk/examples/calculator/Cargo.toml --offline --locked --target x86_64-unknown-linux-gnu",
       "exit_code": 0,
-      "log": "docs/verification/gui-idle-20261102/calculator-host.log",
-      "sha256": "aa40709ec7c15eae1400b052315280d5c93edb1e8d2bc58e7f65aad81d62019c",
-      "tests_passed": 24
+      "log": "docs/verification/gui-idle-20261102/calculator-host.txt",
+      "sha256": "730ba4acfa46481b0a51f101d2bd63201474a13dbb1c081f285018c06f9a0f9d",
+      "tests_passed": 24,
+      "raw_log_sha256": "aa40709ec7c15eae1400b052315280d5c93edb1e8d2bc58e7f65aad81d62019c"
     },
     {
       "command": "cargo clippy --manifest-path sdk/examples/calculator/Cargo.toml --offline --locked --target x86_64-unknown-linux-gnu --all-targets -- -D warnings",
       "exit_code": 0,
-      "log": "docs/verification/gui-idle-20261102/calculator-clippy.log",
-      "sha256": "19ab5c5d3b87ad572ea9959ef5c072990dffb03f2c5c400a1985e37b587ee831"
+      "log": "docs/verification/gui-idle-20261102/calculator-clippy.txt",
+      "sha256": "19ab5c5d3b87ad572ea9959ef5c072990dffb03f2c5c400a1985e37b587ee831",
+      "raw_log_sha256": "19ab5c5d3b87ad572ea9959ef5c072990dffb03f2c5c400a1985e37b587ee831"
     },
     {
       "command": "cargo fmt --manifest-path sdk/examples/calculator/Cargo.toml -- --check",
       "exit_code": 0,
-      "log": "docs/verification/gui-idle-20261102/calculator-fmt.log",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      "log": "docs/verification/gui-idle-20261102/calculator-fmt.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
       "command": "cargo test --manifest-path sdk/examples/window-session/Cargo.toml --offline --locked --target x86_64-unknown-linux-gnu",
       "exit_code": 0,
-      "log": "docs/verification/gui-idle-20261102/window-session-host.log",
-      "sha256": "a3762684b994b1a778a85fee62c7fc53c2a69a78864d26304f60d518aa2d0b76",
-      "tests_passed": 24
+      "log": "docs/verification/gui-idle-20261102/window-session-host.txt",
+      "sha256": "91ea9da85ff227079ecc1dd757ef27526e507173255a5dca2b6f1927860b1dd2",
+      "tests_passed": 24,
+      "raw_log_sha256": "a3762684b994b1a778a85fee62c7fc53c2a69a78864d26304f60d518aa2d0b76"
     },
     {
       "command": "cargo clippy --manifest-path sdk/examples/window-session/Cargo.toml --offline --locked --target x86_64-unknown-linux-gnu --all-targets -- -D warnings",
       "exit_code": 0,
-      "log": "docs/verification/gui-idle-20261102/window-session-clippy.log",
-      "sha256": "c2163d260d8a19c17863b3e03ec35dc83a3c3a4e8d70e0317f3cc8b69b0c9f6c"
+      "log": "docs/verification/gui-idle-20261102/window-session-clippy.txt",
+      "sha256": "c2163d260d8a19c17863b3e03ec35dc83a3c3a4e8d70e0317f3cc8b69b0c9f6c",
+      "raw_log_sha256": "c2163d260d8a19c17863b3e03ec35dc83a3c3a4e8d70e0317f3cc8b69b0c9f6c"
     },
     {
       "command": "cargo fmt --manifest-path sdk/examples/window-session/Cargo.toml -- --check",
       "exit_code": 0,
-      "log": "docs/verification/gui-idle-20261102/window-session-fmt.log",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      "log": "docs/verification/gui-idle-20261102/window-session-fmt.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   ],
   "source_files_sha256": {
@@ -123,5 +132,19 @@
     "watchdog_terminated": false,
     "qmp_cleanup_errors": false,
     "native_gate": false
-  }
+  },
+  "included_component_logs": {
+    "docs/verification/gui-idle-20261102/app-component-logs/calculator/chain-final.txt": "816fd065aa0eeeabb03ed5218c36a36c1902aebaa413ca5b066a7df53e43b339",
+    "docs/verification/gui-idle-20261102/app-component-logs/calculator/clippy-host.txt": "3ba1e4d31de7f26608ee9e192a9323893d778705d71814a0b85914c6dd167bd2",
+    "docs/verification/gui-idle-20261102/app-component-logs/calculator/clippy-native.txt": "5b898d717f580a1110c7e1242656c834a164248d9031e8d1fb6d8160f4135161",
+    "docs/verification/gui-idle-20261102/app-component-logs/calculator/host-test.txt": "5c7ea98256b98777357ff02019bfdd4a068e148531670cf442c54f0b79a2a14b",
+    "docs/verification/gui-idle-20261102/app-component-logs/calculator/native-build.txt": "dca9c66c4c7944647ba7f12cbe148fe45dddacc4caf8541e07f80e07cabf131c",
+    "docs/verification/gui-idle-20261102/app-component-logs/materiaal/chain-final.txt": "5c384aa17589c27a5b6dfe1709f9223aa93afe2f579e18e8d471fdcafd810b8f",
+    "docs/verification/gui-idle-20261102/app-component-logs/materiaal/clippy-host.txt": "72865d6a0ac1ea776ce7c83c7122a8f10ac819e6c93408dc571672af04191321",
+    "docs/verification/gui-idle-20261102/app-component-logs/materiaal/clippy-native.txt": "b69375f0eb160341e678ae60abfd2ab87c3c05573b89381396185faf719690a9",
+    "docs/verification/gui-idle-20261102/app-component-logs/materiaal/elf-test.txt": "c7419dc13eb59c919a4fca7caab13c994b6224a9a117f86d41e580e485e66ad8",
+    "docs/verification/gui-idle-20261102/app-component-logs/materiaal/host-test.txt": "e1fed5a4365ebeee4453a711cb436031b2fb4f8a6bba74a4083119b5a9b237d8",
+    "docs/verification/gui-idle-20261102/app-component-logs/materiaal/native-build.txt": "377d7bc46c73d3bbfa6fabad947ecad4c0cac83db5dc06582d3d9edb1411d5f7"
+  },
+  "log_copy_normalization": "Included .txt logs remove only trailing blank lines for git diff checks; raw SHA256 remains recorded. Original raw logs stay in local targets."
 }
