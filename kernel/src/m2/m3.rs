@@ -1070,6 +1070,7 @@ impl State {
                     if !valid {
                         // Invalid saved user state is a process failure, never a
                         // kernel assertion or an unchecked iretq to hostile state.
+                        #[cfg(not(feature = "native-window-session"))]
                         let expected = mode() == 16
                             && slot == 0
                             && c[20] == 0
@@ -1088,11 +1089,16 @@ impl State {
                             rip: c[17],
                             cr2: 0,
                         };
-                        self.unexpected |= !expected;
-                        if expected {
-                            serial::write(b"M3:INVALID_RSP:PASS\n");
+                        #[cfg(feature = "native-window-session")]
+                        window_session::observe_invalid_return(self, slot);
+                        #[cfg(not(feature = "native-window-session"))]
+                        {
+                            self.unexpected |= !expected;
+                            if expected {
+                                serial::write(b"M3:INVALID_RSP:PASS\n");
+                            }
+                            self.observer_survivor(slot);
                         }
-                        self.observer_survivor(slot);
                         self.fault = true;
                         self.processes[slot].status = Status::Dying;
                         self.cleanup(slot);

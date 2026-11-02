@@ -52,6 +52,10 @@ struct Runtime {
     app_generations: [u64; 2],
     #[cfg(feature = "native-window-session-probe")]
     compositor_commits: u64,
+    #[cfg(feature = "native-window-session-probe")]
+    compositor_sample_tick: u64,
+    #[cfg(feature = "native-window-session-probe")]
+    compositor_activity: [u64; 3],
 }
 static mut RUNTIME: Runtime = Runtime {
     generation: 1,
@@ -75,6 +79,10 @@ static mut RUNTIME: Runtime = Runtime {
     app_generations: [u64::MAX; 2],
     #[cfg(feature = "native-window-session-probe")]
     compositor_commits: u64::MAX,
+    #[cfg(feature = "native-window-session-probe")]
+    compositor_sample_tick: u64::MAX,
+    #[cfg(feature = "native-window-session-probe")]
+    compositor_activity: [u64::MAX; 3],
 };
 fn runtime() -> &'static mut Runtime {
     // SAFETY: Single CPU, IF=0, nonreentrant scheduler/syscall callbacks. Every
@@ -525,6 +533,8 @@ fn restart_checked(s: &mut State, slot: usize, a: [u64; 6]) -> Result<u64, i64> 
     {
         runtime().app_generations = [u64::MAX; 2];
         runtime().compositor_commits = u64::MAX;
+        runtime().compositor_sample_tick = u64::MAX;
+        runtime().compositor_activity = [u64::MAX; 3];
     }
     runtime().restarts = r
         .restarts
@@ -570,9 +580,21 @@ pub(super) fn observe_fault(s: &State, slot: usize, context: &[u64; 22], _: u64)
     print_number(b"WINDOW:FAULT_PID:", s.processes[slot].pid);
     print_number(b"WINDOW:FAULT_VECTOR:", context[15]);
     print_number(b"WINDOW:FAULT_RIP:", context[17]);
-    m4::engine().process_died(s.processes[slot].pid, PROCESS_FAULTED, s.last_event.code);
+    // ProcessStatus::Faulted carries the vector, not the exception error code.
+    m4::engine().process_died(s.processes[slot].pid, PROCESS_FAULTED, context[15]);
     require(slot == COMP, b"CRITICAL_SERVICE_FAULT");
 }
+/// Kernel return-layout validation rejected saved user registers before iret.
+/// Classify this as a general-protection failure (13) for the typed process
+/// ABI, while the distinct diagnostic identifies that no CPU exception ran.
+pub(super) fn observe_invalid_return(s: &State, slot: usize) {
+    print_number(b"WINDOW:INVALID_RETURN_SLOT:", slot as u64);
+    print_number(b"WINDOW:INVALID_RETURN_PID:", s.processes[slot].pid);
+    print_number(b"WINDOW:INVALID_RETURN_RIP:", s.last_event.rip);
+    m4::engine().process_died(s.processes[slot].pid, PROCESS_FAULTED, 13);
+    require(slot == COMP, b"CRITICAL_INVALID_RETURN");
+}
+
 /// Diagnostic observations are app-reported counters, never authority, a
 /// framebuffer oracle, or evidence that a task has succeeded. No text/keys are
 /// copied. The normal product profile omits these detailed synthetic-test logs.
@@ -656,8 +678,16 @@ fn snapshots(s: &State) {
     }
     if s.processes[COMP].status != Status::Dead && word(s, COMP, 400) == 1 {
         let commits = word(s, COMP, 416);
-        if commits != runtime().compositor_commits {
+        let activity = [word(s, COMP, 440), word(s, COMP, 448), word(s, COMP, 456)];
+        let previous = *runtime();
+        if previous.compositor_sample_tick == u64::MAX
+            || activity != previous.compositor_activity
+            || (commits != previous.compositor_commits
+                && s.ticks.saturating_sub(previous.compositor_sample_tick) >= 100)
+        {
             runtime().compositor_commits = commits;
+            runtime().compositor_sample_tick = s.ticks;
+            runtime().compositor_activity = activity;
             for (at, label) in [
                 (416, b"WINDOW:COMPOSITOR:COMMITS:".as_slice()),
                 (424, b"WINDOW:COMPOSITOR:INPUT:"),
@@ -715,6 +745,11 @@ pub(super) fn poll(s: &mut State) {
             b"APP_STOP_TIMEOUT",
         );
         return;
+    }
+    #[cfg(feature = "native-window-session-probe")]
+    {
+        runtime().compositor_sample_tick = u64::MAX;
+        snapshots(s);
     }
     let (_, _, entropy_idle) = keyring::broker_summary();
     let (submitted, completed, block_idle) = m5::broker_summary();
