@@ -1,6 +1,66 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR114-gebruikerswisselcontract — 2 november 2026
+## NEXT AGENT HANDOFF — ontwerp en onderzoek inhoudsbehoudend combineren — 2 november 2026
+
+Basis `517117fbd8359084eca10e2e2d5f4cdf1015b52c` (PR114 en main74a34d05)
+met PR131 `a03f7f0c355cedca72611893f07c4a766a7b7d4f`. Integrator `f090b913`.
+Geen runtimecode uit onderzoek; ADR-058 blijft leidend voor de shell,
+P2-bevriezing betreft het historische prototype. De onafhankelijke
+read-only broncontrole bevestigt de Eurobarometer58%-dienstoverstapclaim
+tegen de originele data-annex/PDF-hash; dit is geen OS-adoptiepercentage.
+De onderzoeks- en ontwerpcheckpointteksten hieronder blijven historisch
+behouden; hun toenmalige branchstatus is geen actuele integratie-instructie.
+Score34 blijft34; PR127 is nog een afzonderlijke native ontwikkelkandidaat.
+Vervolg: opslagbewijs en overige unieke documentatie behouden, gegenereerde
+voortgang controleren en verse exacte-head CI/review afwachten.
+
+## Onderzoekscheckpoint PR131 — volledige OS-journey — 2 november 2026
+
+**Scope:** uitsluitend onderzoek en documentatiestatus, geen productcode.
+Bronbasis main `e08fb0e48c1bb0781e98357f588c2f73b6ae8500`; branch
+`codex/os-research-phases-2-4-20261102`. De apart gelezen ontwikkelbranch
+`codex/mature-native-session-20261102` is vastgepind op `1f0dd9c93959e3b1335656da1e548525a288133e`
+en niet in deze documentatiebranch geïntegreerd.
+
+**Parallelle integratie:** laatste remotecontrole ziet main
+`74a34d05ef5591b782a0da9da34e4669910d0722` (#125, nog 34/100).
+Deze onderzoeksbranch behoudt de bovenstaande bronbasis; er is geen
+productcode uit main ingemengd. Concept-PR #131 meldt integratieconflicten.
+De aangewezen integrator moet bij opname de nieuwste main-status en
+bestaande evidence behouden; onderzoeksvoorstellen leveren geen punten op.
+
+**Geleverd:** [fase 2–4](research/2026-11-02/README.md) en de
+[volledige installatie-/day-one-journey](research/2026-11-02/journey/README.md).
+De uitbreiding bevat 31 installatieaspecten, 28 dagelijkse taken,
+herkomstprofielen, mentale modellen, familiarity budget en afzonderlijk
+gelabelde installer-/onboarding-/interactievoorstellen. Het bestaande
+PRODUCT-SPEC/ROADMAP is pas na de vergelijking begrensd aangevuld;
+P2 blijft bevroren. Bronregisters geven versie, datum, passage en beperkingen.
+Eurobarometer 572/QB6.4 is gecontroleerd in originele vragenlijst, rapport en
+data-annex: 21+37=58% instemming met dienstoverstap, geen OS-migratie.
+Bronafwijkingen bij technische rapportkop en Cyprus-landlabel zijn zichtbaar bewaard.
+
+**Bewijs en score:** mainbasis 34/100 → 34/100; geen nieuwe native, fysieke,
+menselijke of releaseacceptatie. Ontwikkelbron `1f0dd9c` rapporteert afzonderlijk
+41/100; deze onderzoekstaak kopieert die score niet naar main.
+Geen installaties, fysieke schijven, productcode of echte geheimen gebruikt.
+Document-/bronverwijzingen, matrixdekking, scope en progressgeneratie
+worden vóór commit gecontroleerd; geen kernelbuild/QEMU-herhaling voor deze
+documentatietaak. Definitieve controles:
+[fase 2–4](research/2026-11-02/verification.json) en
+[journey](research/2026-11-02/journey/verification.json).
+
+**Open:** geen eigen gebruikers-/installatieproef, representatieve
+EU-studie, praktijkmigratie of retentiemeting. Exacte macOS-paneelposities en
+enkele KDE-staptellingen blijven onbekend; actuele KDE-ingangen zijn op
+v6.8.0-code bevestigd. Native installer, persoonlijke authenticatie,
+encryptie-/recoveryketen en OS-brede toegankelijkheid blijven afzonderlijke gates.
+**Eerstvolgend:** lees journey-index, installer IN-/onboarding ON-/UX-criteria
+naast de actuele ontwikkelbron. Hercontroleer code/services vóór een begrensde
+niet-schrijvende proef. Productcode blijft buiten deze opdracht. Bestaande
+integrator- en mergeafspraken blijven behouden; concept-PR wordt niet gemerged.
+
+## Ontwerpcheckpoint PR114 — gebruikerswisselcontract — 2 november 2026
 
 Bron `c1d62d83acc8357c698c0ef576367834e81d4a21`, alleen documentatie.
 De exclusieve integrator is `f090b913`; hieronder staat historisch mandaat,

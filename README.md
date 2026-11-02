@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`68d427b7`](https://github.com/simonvanieperen/nieuw-os/commit/68d427b76fd4c5fc0a071433d567097038e71a65) ·
+**Bron:** [`517117fb`](https://github.com/simonvanieperen/nieuw-os/commit/517117fbd8359084eca10e2e2d5f4cdf1015b52c) ·
 **Ontwikkelbranch:** `simon/profiles-users-plan`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** PR114: sleutel- en capabilityovergang bij gebruikerswissel expliciet ontwerpen.
-34/100 blijft34; geen nieuw criterium of gewicht. Het PR114-ontwerp beschrijft nu expliciet de sleutel- en handlelevensloop A naar B en terug, fail-closed overgang, domeinisolatie, stale-generatieafwijzing en afzonderlijk begrensde achtergronddelegatie. Nieuwe negatieve native acceptatie is vastgelegd maar niet uitgevoerd; er is geen sessiedienst gebouwd. Main74a34d05 bevat inmiddels PR125 en de aantoonbare oplossingen voor109/110. PR127 is een afzonderlijke ontwikkelkandidaat met score41, niet door deze documentbranch geaccepteerd. Hardware, menselijke audit, volledige release en profielen blijven open.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** PR114 en PR131: gebruikersontwerp en gelabeld journeyonderzoek inhoudsbehoudend combineren.
+34/100 blijft34; geen nieuw criterium of gewicht. Het PR114-ontwerp bewaart de herkenbare eigen shell en is aangevuld met expliciete A/B-sleutel- en handlelevensloop. PR131 levert gelabeld onderzoek:31 installatieaspecten,28 dagelijkse taken, herkomstprofielen en voorgestelde installer-/onboardingcontracten. P2-bevriezing betreft het historische prototype, geen intrekking van ADR058. De kernclaim58% EU-dienstoverstap is onafhankelijk tegen de originele data-annex/PDF-hash gecontroleerd; geen OS-migratiepercentage. Geen productcode, gebouwde profielen/installer of nieuwe native/fysieke/menselijke acceptatie. Main74a34d05 bevat PR125 en oplossingen109/110. PR127 en diens ontwikkelscore41 blijven afzonderlijk; huidige native gates lopen.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -213,6 +213,8 @@ De actuele native implementatiegrenzen staan per spoor hierboven.
 
 - [Architectuur en kernelcontract](docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md).
 - [Materiaal en productambitie](docs/implementation/PRODUCT-SPEC.md).
+- [Gebruikersbehoeften, overstapbarrières en OS-ontwerptrends — onderzoek 2 november 2026](docs/research/2026-11-02/README.md).
+- [Volledige OS-journey: installatie, eerste gebruik, mentale modellen en installer-/onboardingvoorstellen](docs/research/2026-11-02/journey/README.md) — documentonderzoek; geen installer geïmplementeerd.
 - [Privacycontract](docs/LOCAL-PRIVACY-CONTRACT.md).
 - [Quantumspoor](docs/QUANTUM-RESEARCH.md).
 - [Beveiliging en postkwantumroute](docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md).
