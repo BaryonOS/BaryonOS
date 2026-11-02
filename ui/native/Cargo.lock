@@ -11,10 +11,30 @@ name = "catalog-core"
 version = "0.1.0"
 
 [[package]]
+name = "nieuw-os-calculator"
+version = "0.1.0"
+dependencies = [
+ "nieuw-os-graphics",
+ "nieuw-os-input-client",
+ "nieuw-os-input-core",
+ "nieuw-os-sdk-runtime",
+ "nieuw-os-surface-protocol",
+ "noto-sans-mono-bitmap",
+ "ui-core",
+]
+
+[[package]]
 name = "nieuw-os-catalog-client"
 version = "0.1.0"
 dependencies = [
  "catalog-core",
+ "nieuw-os-sdk-runtime",
+]
+
+[[package]]
+name = "nieuw-os-display-client"
+version = "0.1.0"
+dependencies = [
  "nieuw-os-sdk-runtime",
 ]
 
@@ -33,6 +53,17 @@ name = "nieuw-os-graphics"
 version = "0.1.0"
 
 [[package]]
+name = "nieuw-os-input-client"
+version = "0.1.0"
+dependencies = [
+ "nieuw-os-catalog-client",
+ "nieuw-os-input-core",
+ "nieuw-os-sdk-runtime",
+ "ui-core",
+ "zeroize",
+]
+
+[[package]]
 name = "nieuw-os-input-core"
 version = "0.1.0"
 dependencies = [
@@ -45,11 +76,13 @@ name = "nieuw-os-materiaal"
 version = "0.1.0"
 dependencies = [
  "capability-core",
+ "nieuw-os-calculator",
  "nieuw-os-catalog-client",
  "nieuw-os-document-session",
  "nieuw-os-graphics",
  "nieuw-os-input-core",
  "nieuw-os-sdk-runtime",
+ "nieuw-os-window-session",
  "noto-sans-mono-bitmap",
  "ui-core",
  "volume-core",
@@ -57,9 +90,41 @@ dependencies = [
 ]
 
 [[package]]
+name = "nieuw-os-native-input-service"
+version = "0.1.0"
+dependencies = [
+ "nieuw-os-display-client",
+ "nieuw-os-input-core",
+ "nieuw-os-sdk-runtime",
+]
+
+[[package]]
 name = "nieuw-os-sdk-runtime"
 version = "0.1.0"
 dependencies = [
+ "zeroize",
+]
+
+[[package]]
+name = "nieuw-os-surface-protocol"
+version = "0.1.0"
+dependencies = [
+ "nieuw-os-catalog-client",
+ "nieuw-os-sdk-runtime",
+]
+
+[[package]]
+name = "nieuw-os-window-session"
+version = "0.1.0"
+dependencies = [
+ "nieuw-os-display-client",
+ "nieuw-os-graphics",
+ "nieuw-os-input-client",
+ "nieuw-os-input-core",
+ "nieuw-os-native-input-service",
+ "nieuw-os-sdk-runtime",
+ "nieuw-os-surface-protocol",
+ "ui-core",
  "zeroize",
 ]
 
