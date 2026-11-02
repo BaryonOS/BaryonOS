@@ -26,6 +26,14 @@ enum Fault {
     AgainOnce,
     AgainAlways,
     UnknownSend,
+    WrongEpoch,
+    WrongFrame,
+    WrongTile,
+    WrongOperation,
+    GridAsAck,
+    OtherService,
+    ServiceGrid,
+    DropGrid,
 }
 struct Host {
     engine: Engine,
@@ -38,6 +46,7 @@ struct Host {
     fault: Fault,
     now: u64,
     published: Vec<Operation>,
+    payloads: Vec<Vec<u8>>,
     closed: Vec<u64>,
     blits: usize,
     bytes: Vec<u8>,
@@ -78,6 +87,7 @@ impl Host {
             fault: Fault::None,
             now: 0,
             published: Vec::new(),
+            payloads: Vec::new(),
             closed: Vec::new(),
             blits: 0,
             bytes: Vec::new(),
@@ -118,6 +128,9 @@ impl Host {
                 Err(error) => self.receiver.reject(message.sender_pid, payload, error),
             };
             if let Some(reply) = reply {
+                if matches!(self.fault, Fault::DropGrid) && reply.status() == Err(Error::Grid) {
+                    continue;
+                }
                 let mut response = Message::new();
                 response.tag = if matches!(self.fault, Fault::WrongTag) {
                     TAG + 1
@@ -131,6 +144,31 @@ impl Host {
                 }
                 if matches!(self.fault, Fault::WrongPixels) {
                     response.data[44] ^= 1;
+                }
+                for (fault, at) in [
+                    (matches!(self.fault, Fault::WrongEpoch), 16),
+                    (matches!(self.fault, Fault::WrongFrame), 24),
+                    (matches!(self.fault, Fault::WrongTile), 32),
+                ] {
+                    if fault {
+                        response.data[at] ^= 1;
+                    }
+                }
+                if matches!(self.fault, Fault::WrongOperation) {
+                    response.data[6..8]
+                        .copy_from_slice(&(Operation::Begin as u16 | REPLY).to_le_bytes());
+                }
+                if matches!(self.fault, Fault::GridAsAck) {
+                    response.data[40..44].fill(0);
+                }
+                if matches!(self.fault, Fault::OtherService | Fault::ServiceGrid) {
+                    let status = if matches!(self.fault, Fault::OtherService) {
+                        Error::Busy
+                    } else {
+                        Error::Grid
+                    };
+                    response.data[40..44].copy_from_slice(&(status as u32).to_le_bytes());
+                    response.data[44..48].fill(0);
                 }
                 if matches!(self.fault, Fault::Caps) {
                     let handle = self.engine.create_endpoint(2).unwrap();
@@ -169,6 +207,8 @@ impl Transport for Port {
             .send(1, endpoint.handle().raw(), &decoded)
             .map_err(|e| RuntimeError::Kernel(e.code()))?;
         h.published.push(operation);
+        h.payloads
+            .push(decoded.data[..decoded.len as usize].to_vec());
         if matches!(h.fault, Fault::UnknownSend) {
             Err(RuntimeError::InvalidReturn)
         } else {
@@ -357,6 +397,130 @@ fn preflight_impl() {
     assert_eq!(host.borrow().published.len(), before);
     assert!(!client.is_closed());
 }
+fn isolation_probe_impl() {
+    let host = Host::new();
+    let mut client = session(&host);
+    assert_eq!(client.verify_isolation_probe(), Err(ClientError::NotReady));
+    assert!(host.borrow().published.is_empty());
+    let geometry = client.geometry().unwrap();
+    host.borrow_mut().fault = Fault::AgainOnce;
+    client.verify_isolation_probe().unwrap();
+    assert!(!client.is_closed());
+    {
+        let h = host.borrow();
+        assert!(h.closed.is_empty());
+        assert_eq!(h.blits, 0);
+        assert_eq!(h.payloads.len(), 2);
+        let begin = &h.payloads[1];
+        let header = Header::decode(begin).unwrap();
+        let tile = geometry.rectangle(0).unwrap();
+        assert_eq!(header.operation, Operation::Begin);
+        assert_eq!((header.request, header.frame, header.tile), (2, 1, 0));
+        assert_eq!(header.arg0, u32::from(geometry.assigned.width));
+        assert_eq!(header.arg1, tile.y);
+        assert_eq!(begin.len(), 56);
+        assert_eq!(
+            u16::from_le_bytes(begin[48..50].try_into().unwrap()),
+            tile.width
+        );
+        assert_eq!(
+            u16::from_le_bytes(begin[50..52].try_into().unwrap()),
+            tile.height
+        );
+        assert_eq!(
+            u32::from_le_bytes(begin[52..56].try_into().unwrap()) as usize,
+            tile.bytes()
+        );
+        assert_eq!(h.receiver.completed_frame(), None);
+    }
+    client
+        .blit(1, 0, geometry.rectangle(0).unwrap(), &[0; 1024])
+        .unwrap();
+    assert_eq!(host.borrow().blits, 1);
+    assert_eq!(
+        Header::decode(&host.borrow().payloads[2]).unwrap().request,
+        3
+    );
+    let before = host.borrow().published.len();
+    assert_eq!(
+        client.verify_isolation_probe(),
+        Err(ClientError::InvalidTile)
+    );
+    assert_eq!(host.borrow().published.len(), before);
+}
+fn isolation_binding_impl() {
+    for fault in [
+        Fault::WrongPeer,
+        Fault::WrongTag,
+        Fault::WrongRequest,
+        Fault::WrongEpoch,
+        Fault::WrongFrame,
+        Fault::WrongTile,
+        Fault::WrongOperation,
+        Fault::WrongPixels,
+        Fault::Caps,
+        Fault::GridAsAck,
+    ] {
+        let host = Host::new();
+        let mut client = session(&host);
+        client.geometry().unwrap();
+        host.borrow_mut().fault = fault;
+        assert!(matches!(
+            client.verify_isolation_probe(),
+            Err(ClientError::Protocol { .. })
+        ));
+        assert!(client.is_closed());
+        assert_eq!(host.borrow().blits, 0);
+        assert_eq!(
+            host.borrow().closed.len(),
+            if matches!(fault, Fault::Caps) { 3 } else { 2 }
+        );
+        assert!(host.borrow().engine.check_invariants());
+    }
+}
+fn isolation_failures_impl() {
+    let host = Host::new();
+    let mut client = session(&host);
+    client.geometry().unwrap();
+    host.borrow_mut().fault = Fault::OtherService;
+    assert!(matches!(
+        client.verify_isolation_probe(),
+        Err(ClientError::Service {
+            error: Error::Busy,
+            ..
+        })
+    ));
+    assert!(client.is_closed());
+    let host = Host::new();
+    let mut client = session(&host);
+    client.geometry().unwrap();
+    host.borrow_mut().fault = Fault::DropGrid;
+    assert!(matches!(
+        client.verify_isolation_probe(),
+        Err(ClientError::Interrupted {
+            delivery: Delivery::Enqueued,
+            ..
+        })
+    ));
+    assert!(client.is_closed());
+    assert_eq!(host.borrow().published, [Operation::Info, Operation::Begin]);
+
+    // Grid is tolerated only by the explicit diagnostic. Ordinary blit keeps
+    // its existing fail-closed behavior even for that same service status.
+    let host = Host::new();
+    let mut client = session(&host);
+    let geometry = client.geometry().unwrap();
+    host.borrow_mut().fault = Fault::ServiceGrid;
+    assert!(matches!(
+        client.blit(1, 0, geometry.rectangle(0).unwrap(), &[0; 1024]),
+        Err(ClientError::Service {
+            error: Error::Grid,
+            ..
+        })
+    ));
+    assert!(client.is_closed());
+    assert_eq!(host.borrow().closed.len(), 2);
+}
 macro_rules! scenario {
     ($name:ident,$body:ident) => {
         #[test]
@@ -389,4 +553,16 @@ scenario!(
 scenario!(
     invalid_grid_and_noncanonical_pixels_fail_before_any_send,
     preflight_impl
+);
+scenario!(
+    real_grid_probe_consumes_only_request_and_next_real_blit_works,
+    isolation_probe_impl
+);
+scenario!(
+    probe_requires_exact_grid_peer_tag_correlation_and_no_caps,
+    isolation_binding_impl
+);
+scenario!(
+    only_explicit_probe_tolerates_grid_and_lost_reply_is_not_success,
+    isolation_failures_impl
 );

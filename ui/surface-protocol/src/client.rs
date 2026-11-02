@@ -153,7 +153,7 @@ impl<T: Transport> Session<T> {
             None,
         ))
     }
-    fn receive(&mut self, expected: Header) -> Result<Reply, Error> {
+    fn receive_reply(&mut self, expected: Header) -> Result<Reply, Error> {
         let message: Received = {
             let mut found = None;
             for _ in 0..self.budget {
@@ -189,7 +189,10 @@ impl<T: Transport> Session<T> {
         if message.sender() != self.peer || message.tag() != TAG {
             return Err(self.protocol());
         }
-        let reply = Reply::decode(message.payload(), expected).map_err(|_| self.protocol())?;
+        Reply::decode(message.payload(), expected).map_err(|_| self.protocol())
+    }
+    fn receive(&mut self, expected: Header) -> Result<Reply, Error> {
+        let reply = self.receive_reply(expected)?;
         if let Err(error) = reply.status() {
             let cleanup = self.close().err();
             return Err(Error::Service { error, cleanup });
@@ -216,6 +219,49 @@ impl<T: Transport> Session<T> {
         }
         self.geometry = Some(geometry);
         Ok(geometry)
+    }
+    /// Explicit native acceptance diagnostic, before the first tile. This
+    /// publishes a canonical BEGIN whose x lies just outside the assigned
+    /// local surface. Only the real peer's correlated COMMIT/Grid refusal
+    /// permits continued use. No positive tile ACK or local paint is implied.
+    /// Ordinary blit/geometry service failures still close the endpoint pair.
+    pub fn verify_isolation_probe(&mut self) -> Result<(), Error> {
+        if self.closed {
+            return Err(Error::Closed);
+        }
+        let geometry = self.geometry.ok_or(Error::NotReady)?;
+        if self.frame != 0 || self.next_tile != 0 {
+            return Err(Error::InvalidTile);
+        }
+        let rectangle = geometry.rectangle(0).map_err(|_| self.protocol())?;
+        let mut header = Header {
+            operation: Operation::Begin,
+            request: self.fresh()?,
+            epoch: self.epoch,
+            frame: 1,
+            tile: 0,
+            arg0: u32::from(geometry.assigned.width),
+            arg1: rectangle.y,
+        };
+        let mut begin = [0; HEADER + 8];
+        begin[..HEADER].copy_from_slice(&header.encode());
+        begin[48..50].copy_from_slice(&rectangle.width.to_le_bytes());
+        begin[50..52].copy_from_slice(&rectangle.height.to_le_bytes());
+        begin[52..56].copy_from_slice(&(rectangle.bytes() as u32).to_le_bytes());
+        let mut published = false;
+        self.send(&begin, &mut published)?;
+        header.operation = Operation::Commit;
+        header.arg0 = 0;
+        header.arg1 = 0;
+        let reply = self.receive_reply(header)?;
+        match reply.status() {
+            Err(ServiceError::Grid) => Ok(()),
+            Err(error) => Err(Error::Service {
+                error,
+                cleanup: self.close().err(),
+            }),
+            Ok(()) => Err(self.protocol()),
+        }
     }
     pub fn blit(
         &mut self,
