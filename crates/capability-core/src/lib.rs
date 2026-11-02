@@ -876,6 +876,10 @@ impl Engine {
     pub fn available_processes(&self) -> usize {
         self.processes.iter().filter(|p| !p.live).count()
     }
+    /// Read-only manifest lifecycle preflight. This reserves or grants nothing.
+    pub fn is_registered(&self, pid: u64) -> bool {
+        self.process(pid).is_ok()
+    }
     /// Free node count, so a caller can check all resources before committing.
     pub fn available_nodes(&self) -> usize {
         self.nodes.iter().filter(|n| !n.live && !n.retired).count()

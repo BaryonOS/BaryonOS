@@ -49,6 +49,13 @@ pub fn authorize(
     if process.state == PROCESS_RUNNING {
         return Err(-9);
     }
+    if authority
+        .apps
+        .iter()
+        .any(|(pid, _)| !engine.is_registered(*pid))
+    {
+        return Err(-9);
+    }
     Ok(phase)
 }
 
@@ -56,11 +63,23 @@ pub fn authorize(
 /// current compositor slot. Handles come from kernel bookkeeping, never the
 /// app's mutable startup page. No allocation or delegation occurs here.
 pub fn retire(engine: &mut Engine, authority: &Authority) -> Result<(), i64> {
+    // State and Engine lifecycle checks are separate. Even a stale adapter
+    // snapshot must not close app0 before discovering that app1 disappeared.
+    if authority
+        .apps
+        .iter()
+        .any(|(pid, _)| !engine.is_registered(*pid))
+    {
+        return Err(-9);
+    }
     for (pid, handles) in authority.apps {
         for handle in handles {
             match engine.close(pid, handle) {
                 Ok(()) | Err(Error::BadHandle) => {}
-                Err(error) => return Err(error.code()),
+                // Engine::close can currently return only BadHandle. Future
+                // unexpected commit-time errors are kernel invariant failures,
+                // never a recoverable error after a partially applied retire.
+                Err(error) => panic!("preflighted presentation close: {error:?}"),
             }
         }
     }

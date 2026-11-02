@@ -26,7 +26,7 @@ Executed on the isolated recovery worktree, Rust1.90.0, offline/locked:
 
 | Command / check | Actual result |
 |---|---|
-| `cargo test -p capability-core` | 66 unit, 7 wait and 2 actual-kernel retirement tests passed; one existing ignored test |
+| `cargo test -p capability-core` | 66 unit and 7 wait tests passed; one existing ignored test; the targeted actual-kernel retirement suite passed all 3 tests after the lifecycle follow-up |
 | `cargo test --manifest-path sdk/input-client/Cargo.toml` | 15 tests passed |
 | `cargo test --manifest-path ui/surface-protocol/Cargo.toml --features client` | 20 tests passed |
 | `cargo test --manifest-path sdk/examples/materiaal/Cargo.toml --test chain` | 29 tests passed |
@@ -42,6 +42,12 @@ the recorded leaves retire. No replay or positive ACK is fabricated. Tests also
 retain other cleanup errors when one handle is already absent. App-chain tests
 cover both still-open owners and an input owner already locally closed, while
 preserving the draft/caret and the calculation/result/counters.
+
+The lifecycle follow-up preflights both Engine app registrations independently
+of scheduler state, explicitly rejects Dying app slots, and treats an impossible
+commit-time Engine close error as a kernel invariant failure. A real Engine
+test exits app1 while app0 stays live: both authorization and direct retirement
+reject without changing any app0 handle or other engine byte.
 
 Logs: `/workspace/scratch/window-recovery-{capability,calculator,materiaal}-{tests,clippy}.log`,
 `/workspace/scratch/window-retirement-{input,surface}-{tests,clippy}.log`,

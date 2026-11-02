@@ -8,6 +8,25 @@ use capability_core::{
 use retirement::{Authority, Phase};
 const IMAGE: u32 = 0x5749_4e31;
 
+#[test]
+fn absent_second_app_fails_before_any_first_app_handle_changes() {
+    run(|e, authority, _| {
+        e.process_died(4, PROCESS_FAULTED, 6);
+        e.exit(4).unwrap();
+        e.exit(3).unwrap();
+        assert!(e.is_registered(2));
+        assert!(!e.is_registered(3));
+        let before = e.clone();
+        let args = [authority.launch, authority.process, 1, 0, 0, 0];
+        assert_eq!(retirement::authorize(e, 1, &authority, args), Err(-9));
+        assert_eq!(*e, before);
+        // A stale adapter snapshot must also fail at the mechanism boundary.
+        assert_eq!(retirement::retire(e, &authority), Err(-9));
+        assert_eq!(*e, before);
+        assert_eq!(e.receive(2, authority.apps[0].1[1]), Err(Error::Again));
+    });
+}
+
 fn channel(e: &mut Engine, owner: u64, sender: u64) -> (u64, u64) {
     let root = e.create_endpoint(owner).unwrap();
     let rx = e.derive(owner, root, RECV).unwrap();

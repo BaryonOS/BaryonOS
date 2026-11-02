@@ -479,7 +479,9 @@ fn restart_checked(s: &mut State, slot: usize, a: [u64; 6]) -> Result<u64, i64> 
     if s.processes[COMP].status != Status::Dead {
         return Err(-9);
     }
-    if APPS.iter().any(|i| s.processes[*i].status == Status::Dead)
+    if APPS
+        .iter()
+        .any(|i| matches!(s.processes[*i].status, Status::Dead | Status::Dying))
         || [SOURCE, POLICY].iter().enumerate().any(|(i, slot)| {
             s.processes[*slot].status == Status::Dead || s.processes[*slot].pid != r.pids[i + 1]
         })
