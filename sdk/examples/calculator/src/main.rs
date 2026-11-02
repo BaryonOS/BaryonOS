@@ -5,6 +5,8 @@
 //! raw-input/display grant, host backend, heap allocator or prepared results.
 #[path = "../../system/src/support.rs"]
 mod support;
+#[path = "../../window-session/src/probe.rs"]
+mod window_probe;
 use nieuw_os_calculator::{app::App, bootstrap::Bootstrap};
 use nieuw_os_input_client::{Binding, NativeTransport, Session as Input};
 use nieuw_os_sdk_runtime::{native, Outgoing, Received, SendEndpoint};
@@ -107,6 +109,18 @@ pub extern "C" fn calculator_main() -> ! {
     )
     .unwrap_or_else(|_| fail(5));
     let geometry = surface.geometry().unwrap_or_else(|_| fail(6));
+    if support::word(664) == 1 {
+        let count = window_probe::run(
+            &mut surface,
+            config.input_send,
+            config.input_receive,
+            config.compositor_pid,
+            config.input_epoch,
+            config.input_client,
+        )
+        .unwrap_or_else(|e| fail(80 + e.code()));
+        support::put(672, count);
+    }
     let input = Input::new(
         NativeTransport,
         Binding {
@@ -137,6 +151,14 @@ pub extern "C" fn calculator_main() -> ! {
         }
         let e = app.evidence();
         let model = app.model();
+        // Diagnostic only, never a security/integrity primitive. The probe
+        // observer binds this to the real retained expression, beyond length.
+        let expression_sum = model
+            .expression()
+            .bytes()
+            .fold(0xcbf29ce484222325u64, |sum, byte| {
+                (sum ^ u64::from(byte)).wrapping_mul(0x100000001b3)
+            });
         support::put(400, 0);
         for (at, value) in [
             (408, e.frames),
@@ -154,6 +176,7 @@ pub extern "C" fn calculator_main() -> ! {
             (504, model.caret() as u64),
             (512, u64::from(model.active())),
             (632, u64::from(config.scale)),
+            (680, expression_sum),
         ] {
             support::put(at, value);
         }
@@ -192,6 +215,28 @@ pub extern "C" fn calculator_main() -> ! {
                 )
                 .unwrap_or_else(|_| fail(16));
                 let geometry = surface.geometry().unwrap_or_else(|_| fail(17));
+                if support::word(664) == 1 {
+                    let stale = window_probe::stale(&[
+                        config.input_send.handle(),
+                        config.input_receive.handle(),
+                        config.surface_send.handle(),
+                        config.surface_receive.handle(),
+                    ])
+                    .unwrap_or_else(|e| fail(80 + e.code()));
+                    let refused = window_probe::run(
+                        &mut surface,
+                        next.input_send,
+                        next.input_receive,
+                        next.compositor_pid,
+                        next.input_epoch,
+                        next.input_client,
+                    )
+                    .unwrap_or_else(|e| fail(80 + e.code()));
+                    let count = support::word(672)
+                        .checked_add(stale + refused)
+                        .unwrap_or_else(|| fail(98));
+                    support::put(672, count);
+                }
                 let input = Input::new(
                     NativeTransport,
                     Binding {

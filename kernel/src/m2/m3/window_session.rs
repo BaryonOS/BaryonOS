@@ -55,7 +55,9 @@ struct Runtime {
     #[cfg(feature = "native-window-session-probe")]
     compositor_sample_tick: u64,
     #[cfg(feature = "native-window-session-probe")]
-    compositor_activity: [u64; 3],
+    compositor_activity: [u64; 6],
+    #[cfg(feature = "native-window-session-probe")]
+    input_progress: [[u64; 2]; 2],
 }
 static mut RUNTIME: Runtime = Runtime {
     generation: 1,
@@ -82,7 +84,9 @@ static mut RUNTIME: Runtime = Runtime {
     #[cfg(feature = "native-window-session-probe")]
     compositor_sample_tick: u64::MAX,
     #[cfg(feature = "native-window-session-probe")]
-    compositor_activity: [u64::MAX; 3],
+    compositor_activity: [u64::MAX; 6],
+    #[cfg(feature = "native-window-session-probe")]
+    input_progress: [[u64::MAX; 2]; 2],
 };
 fn runtime() -> &'static mut Runtime {
     // SAFETY: Single CPU, IF=0, nonreentrant scheduler/syscall callbacks. Every
@@ -231,6 +235,10 @@ pub(super) fn manifest(s: &mut State) {
             (184, init),
             (648, 0),
             (656, 1),
+            (
+                664,
+                u64::from(cfg!(feature = "native-window-session-probe")),
+            ),
         ] {
             put(s, slot, at, value);
         }
@@ -337,6 +345,10 @@ fn construct_group(s: &State) {
             (616, scale),
             (648, 0),
             (656, 1),
+            (
+                664,
+                u64::from(cfg!(feature = "native-window-session-probe")),
+            ),
         ] {
             put(s, slot, at, value);
         }
@@ -534,7 +546,7 @@ fn restart_checked(s: &mut State, slot: usize, a: [u64; 6]) -> Result<u64, i64> 
         runtime().app_generations = [u64::MAX; 2];
         runtime().compositor_commits = u64::MAX;
         runtime().compositor_sample_tick = u64::MAX;
-        runtime().compositor_activity = [u64::MAX; 3];
+        runtime().compositor_activity = [u64::MAX; 6];
     }
     runtime().restarts = r
         .restarts
@@ -620,6 +632,7 @@ fn snapshots(s: &State) {
                 (536, b"OBJECT"),
                 (632, b"SCALE"),
                 (472, b"ERRORS"),
+                (672, b"PROBES"),
             ][..],
         ),
         (
@@ -633,6 +646,7 @@ fn snapshots(s: &State) {
                 (464, b"EVALUATIONS"),
                 (472, b"FAILURES"),
                 (480, b"EXPRESSION_BYTES"),
+                (680, b"EXPRESSION_SUM"),
                 (488, b"CURRENT"),
                 (504, b"CARET"),
                 (512, b"ACTIVE"),
@@ -641,13 +655,32 @@ fn snapshots(s: &State) {
                 (536, b"HAS_ANSWER"),
                 (632, b"SCALE"),
                 (448, b"ERRORS"),
+                (672, b"PROBES"),
             ][..],
         ),
     ]
     .into_iter()
     .enumerate()
     {
-        if s.processes[slot].status == Status::Dead || word(s, slot, 400) != 1 {
+        if s.processes[slot].status == Status::Dead {
+            continue;
+        }
+        let progress = [
+            word(s, slot, 424),
+            word(s, slot, if index == 0 { 464 } else { 440 }),
+        ];
+        if progress != runtime().input_progress[index] {
+            runtime().input_progress[index] = progress;
+            for (label, value) in [
+                (b"KEYS".as_slice(), progress[0]),
+                (b"INPUT_ACKS".as_slice(), progress[1]),
+            ] {
+                serial::write(prefix);
+                serial::write(label);
+                print_number(b":", value);
+            }
+        }
+        if word(s, slot, 400) != 1 {
             continue;
         }
         let generation = word(s, slot, generation_at);
@@ -678,7 +711,14 @@ fn snapshots(s: &State) {
     }
     if s.processes[COMP].status != Status::Dead && word(s, COMP, 400) == 1 {
         let commits = word(s, COMP, 416);
-        let activity = [word(s, COMP, 440), word(s, COMP, 448), word(s, COMP, 456)];
+        let activity = [
+            word(s, COMP, 440),
+            word(s, COMP, 448),
+            word(s, COMP, 456),
+            word(s, COMP, 496),
+            word(s, COMP, 504),
+            word(s, COMP, 512),
+        ];
         let previous = *runtime();
         if previous.compositor_sample_tick == u64::MAX
             || activity != previous.compositor_activity
@@ -688,6 +728,9 @@ fn snapshots(s: &State) {
             runtime().compositor_commits = commits;
             runtime().compositor_sample_tick = s.ticks;
             runtime().compositor_activity = activity;
+            serial::write(b"WINDOW:COMPOSITOR:SNAPSHOT:BEGIN\n");
+            print_number(b"WINDOW:COMPOSITOR:GENERATION:", runtime().generation);
+            print_number(b"WINDOW:COMPOSITOR:PID:", s.processes[COMP].pid);
             for (at, label) in [
                 (416, b"WINDOW:COMPOSITOR:COMMITS:".as_slice()),
                 (424, b"WINDOW:COMPOSITOR:INPUT:"),
@@ -698,9 +741,13 @@ fn snapshots(s: &State) {
                 (464, b"WINDOW:COMPOSITOR:MATERIAL:"),
                 (480, b"WINDOW:COMPOSITOR:CALCULATOR:"),
                 (488, b"WINDOW:COMPOSITOR:FATAL:"),
+                (496, b"WINDOW:COMPOSITOR:POINTER_X:"),
+                (504, b"WINDOW:COMPOSITOR:POINTER_Y:"),
+                (512, b"WINDOW:COMPOSITOR:BUTTONS:"),
             ] {
                 print_number(label, word(s, COMP, at));
             }
+            serial::write(b"WINDOW:COMPOSITOR:SNAPSHOT:END\n");
         }
     }
 }

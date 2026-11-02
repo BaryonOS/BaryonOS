@@ -1,63 +1,52 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — 37/100; uitvoeromgeving onbeschikbaar — 2 november 2026
+## NEXT AGENT HANDOFF — hervat; native invoer en isolatie — 2 november 2026
 
-**Bevroren implementatie:** `4f146a6c2e5e1b07f79c4287147299157ca0447d`,
-branch `codex/mature-native-session-20261102`, concept-PR #122 op #121.
-**N01 is geaccepteerd (+3): 34 → 37/100. U01/U02 blijven open.**
-Alle functionele broncode is gecommit/gepusht. De latere checkpointcommits
-via de GitHub-connector veranderen uitsluitend documentatie; de lokale checkout
-moet na herstel eerst veilig worden bijgewerkt, met behoud van gegenereerd bewijs.
+Branch `codex/mature-native-session-20261102`, concept-PR#122 op#121. Score
+**37/100**, N01 geaccepteerd, U01/U02 blijven open. De uitvoeromgeving is
+hersteld. Remote doccheckpointcommits zijn veilig fast-forward binnengehaald;
+de gegenereerde UI-verifieroutputs van4f146a6 zijn apart bewaard/gecommit.
 
-**Blokkade:** de geselecteerde uitvoeromgeving werd unavailable. Zowel
-`exec_command` als `write_stdin` weigerden daarna ieder commando met
-"No usable execution environment is available". De lopende grafische proef kon
-niet worden uitgelezen; de uiteindelijke VM-status/resultaten zijn onbekend.
-Dit is geen geslaagde native herstel-/cleanupacceptatie en geen bewijs dat de
-VM is gestopt. Zie
-`docs/verification/mature-session-20261102/execution-interrupted.json`.
+De oude grafische eindrun was niet voltooid en er draaide geen QEMU meer.
+Het bewaarde snapshot bevatte slechts `nieut` (5bytes, gemetenFNV), terwijl het
+harnas14tekens op vaste40ms stuurde. Daarom vervangen we de vaste burst door
+waarneming van echte appKEYS/INPUT_ACKS; muisbewegingen en knopstatus krijgen
+hun eigen daadwerkelijke bevestiging. Native beelden/orakels worden niet
+versoepeld. De nieuwe aanvankelijke herstart is bewust gestopt vóór acceptatie.
 
-**Werkelijk bevestigd op de bevroren bron:**
-- N01 normale en defecte-clientcase slagen opnieuw, rawexit33, runnerexit0,
-  8,059s/7,432s, met bron/artifact/raw-byte/packet/cleanupguards.
-- Native window-probe en alle8 echte CPL3-apps bouwen/ELF-inspectie slagen.
-- UI-verifier host/Clippy/fmt/features/compiler/scalar-build exit0; exact11
-  objectarchives, zonder native claim. De laatste gegenereerde bestanden onder
-  `ui/native/verification/` zijn door de omgevinguitval nog niet gecommit.
-- Materiaal28 en Calculator8 echte hostketentests slagen, inclusief verse
-  kanalen/PIDs/epochs, behoud van document/upload en verlies van de laatste ACK.
-- Windowpolicy/render10 tests met816 exacte rastervergelijkingen, strikte
-  Clippy; Pythonrunner7 en Windowsbundelaar18 tests slagen.
-- De grafische VM bereikte boot113,55s, exact volledig appbeeld initial114,13s
-  en editor204,68s. Dit zijn éénmalige TCG-waarnemingen, geen algemene benchmark.
-  De eerste twee Materialbeelden matchen het volledige880×510-hostorakel zonder
-  masks. Dirty/rekenen/drag/echte compositorfout/herbinding/save/reopen/diskoracle/
-  cleanup zijn bij verlies van de omgeving nog niet bevestigd.
+Nieuwe bron: probe-only inputprogress en compositor-PID/generatie/cursor/knop/
+completed_frame-observaties; volledige verplaatste Calculatorbody moet exact
+kloppen vóór capture. Herstel eist verse compositor, beide nieuwe completeframes,
+behoud van draft en echte expressiechecksum/caret/current/evaluaties. Na herstel
+wordt Calculator via muisfocus opnieuw berekend en volledig vergeleken.
+CPL3-probes testen echte Grid/WrongRole/Access-afwijzingen en na herstelvier
+oude handles per app. Probe-aantallen3→10 zijn pas na echte RPC-uitkomsten gezet.
 
-**Windows:** ondersteuning voor het normale8-procesprofiel en fontlicenties is
-ingebouwd; de WHPX-helperhash blijft ongewijzigd. Er is nog geen nieuwe ZIP of
-nieuwe Windows-runtimeacceptatie. De laatste root PowerShell-proef op Linux
-faalde door ontbrekende LOCALAPPDATA; label die niet groen. De pakketagent had
-eerder wel10 launcher/33 accelerationsynthetische proeven met eigen fixture-
-omgeving. Geen hostinstellingen, fysieke schijven of passthrough gewijzigd.
+Gericht groen: probe/achtELF/kerneltargetbuild; SUR1-probe18hosttests; eerdere
+window10/816pixelvergelijkingen; runner8hostnegatieven. De nieuwe native gate
+moet nog volledig slagen. De hervatte synthetische PS-launchertest slaagt10/10
+met de fakeQEMU-directory op PATH. De eerdere diagnose LOCALAPPDATA was te
+specifiek: ontbrekende fixturePATH liet LinuxGet-Command in een legeWindows-
+ProgramFilesfallback komen; er was geen launcherbronfix nodig.
 
-**Eerstvolgend na herstel:** controleer eerst eventueel resterende eigen
-processen en `build/window-final/window-session-report.json` (runmap
-`build/window-final/run/window-3440458f8e194093b7af89e0ccafc4eb`), vóór opnieuw
-starten. PID62459 (QEMU) en61576 (runner) waren de eigen processen vóór verlies;
-verifieer actuele cmdline/runmap, want PIDs kunnen hergebruikt zijn.
-Behoud de niet-gecommitteerde verifieroutputs, haal de doccheckpointcommits op,
-en valideer een eventueel voltooid rapport opnieuw. Als de proef niet compleet
-is: bouw dezelfde probe via `tools/build.py --kernel-feature native-window-session-probe`
-met eigen BUILD/TARGET en voer `tools/run_window_session.py --timeout 1800`
-uit met de vaste disposable OVMF/SeaBIOS-inputs. Geen U01-punten tot werkelijk
-volledige acceptatie. Daarna normaal profiel bouwen en Windowsbundel maken.
+Concrete Windows-kandidaat op onveranderdebron4f146a6:
+`/workspace/nieuw-os-windows-package/build/window-package-4f146a6/NieuwOS-venstersessie-4f146a6-Windows-QEMU.zip`,
+SHA256`92b366a8e0da66b49ebfec1cf6a0cf435294b8c344e3f7770ee61639d250ced4`.
+AchtELFs, firmware/pakketlicenties, fontprovenance en ZIPpayloadhashes zijn
+nagelezen. Dit is een kandidaat, geen Windows-runtime- of U01-eindacceptatie.
+Na definitieve functionele freeze opnieuw bouwen/verpakken.
 
-**Nog open:** volledige native U01-herstelroute, interactieve latency/idle/
-clipboard(U02), uitgebreid documentbeheer(U03), echte accounts/FIDO2/biometrie,
-fysieke drivers en menselijke toegankelijkheids-/gebruikersacceptatie.
-De eigen microkernel en security floor blijven behouden; geen algemene
-veiligheidssuperioriteit geclaimd.
+Parallel ontwikkelt de performanceagent in eigen worktree een exacte,
+vooraf gereserveerde autoriteitssnapshot i.p.v. de dure diagnostische hashscan
+vóór elke IPC. Alle foutasserties en rechten-/pointerchecks blijven; volledige
+Eq vergelijkt alle velden en extra berichtkopieën worden vóór vrijgeven gewist.
+Nog niet geïntegreerd of als latentiewinst geaccepteerd. Nativebenchmark en
+onafhankelijke diffreview gaan vóór overname.
+
+Eerstvolgend: coherent snapshotresultaat beoordelen/integreren, uiteindelijke
+bronfreeze committen/pushen, volledige sourcegebonden1800s-QMPgate starten.
+N01 op de laatste gedeelde kern herhalen, bewijs/score actualiseren en normale
+Windowsbundel afleveren. Geen fysieke hardware-/echte authenticatieclaim.
 
 ## Vorige afgeronde checkpoint — native sessiepreview
 

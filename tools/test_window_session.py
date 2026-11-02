@@ -62,5 +62,16 @@ class WindowRunnerTests(unittest.TestCase):
         self.assertEqual(window.numbers(raw,"WINDOW:RESTARTS"),[1,2])
         self.assertEqual(window.numbers(b"WINDOW:RESTARTS:1\n","WINDOW:RESTARTS"),[])
 
+    def test_compositor_requires_complete_current_frame_and_input_observations(self):
+        prefix="WINDOW:COMPOSITOR:"
+        fields={name:0 for name in window.SNAPSHOT_FIELDS["COMPOSITOR"]}
+        fields.update(GENERATION=2,PID=9,MATERIAL=12,CALCULATOR=8,POINTER_X=1260,POINTER_Y=50)
+        raw=(prefix+"SNAPSHOT:BEGIN\n"+"".join(prefix+name+f":{value:020}\n" for name,value in fields.items())+prefix+"SNAPSHOT:END\n").encode()
+        self.assertEqual(window.snapshots(raw,"COMPOSITOR")[-1]["MATERIAL"],12)
+        self.assertEqual(window.snapshots(raw[:-1],"COMPOSITOR"),[])
+        for bad in (raw.replace(b"WINDOW:COMPOSITOR:PID:00000000000000000009\n",b""),
+                    raw.replace(b"WINDOW:COMPOSITOR:FATAL:00000000000000000000",b"WINDOW:COMPOSITOR:FATAL:00000000000000000001")):
+            with self.assertRaises(ValueError):window.snapshots(bad,"COMPOSITOR")
+
 
 if __name__=="__main__":unittest.main()

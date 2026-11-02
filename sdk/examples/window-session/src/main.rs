@@ -227,6 +227,7 @@ fn run() -> ! {
     let mut commits = 0u64;
     let mut rejected = 0u64;
     let mut input_events = 0u64;
+    let mut last_buttons = 0u64;
     let mut next_input_tick = tick();
     let mut app_pointer_capture = None;
     loop {
@@ -271,6 +272,7 @@ fn run() -> ! {
                         .push(event)
                         .unwrap_or_else(|_| fail(19)),
                     Event::Cancel(reason) => {
+                        last_buttons = 0;
                         app_pointer_capture = None;
                         scene.cancel_pointer();
                         for q in &mut queues {
@@ -278,6 +280,7 @@ fn run() -> ! {
                         }
                     }
                     Event::Mouse { input: mouse, x, y } => {
+                        last_buttons = u64::from(mouse.buttons.bits());
                         damage.mark(scene.pointer_bounds());
                         let old_frames = [scene.paint_bounds(0), scene.paint_bounds(1)];
                         let recipient = scene
@@ -453,6 +456,9 @@ fn run() -> ! {
             (456, scene.switches),
             (464, surfaces[0].completed_frame().unwrap_or(0)),
             (480, surfaces[1].completed_frame().unwrap_or(0)),
+            (496, u64::from(scene.pointer.0)),
+            (504, u64::from(scene.pointer.1)),
+            (512, last_buttons),
         ] {
             support::put(at, v);
         }

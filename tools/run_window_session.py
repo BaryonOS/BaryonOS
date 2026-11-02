@@ -34,9 +34,10 @@ FIXTURE_PHASES = ("initial", "editor", "dirty", "saved", "list", "reopened",
                   "dirty-focus-lost", "dirty-rebound", "dirty-recovered")
 SNAPSHOT_FIELDS = {
     "MATERIAL": {"PID", "SERVICE_GENERATION", "SURFACE_EPOCH", "INPUT_EPOCH", "READY", "GEN", "FRAMES",
-                 "SAVE_ACKS", "REVISION", "SAVED_BYTES", "SAVED_SUM", "SCREEN", "DIRTY", "DRAFT_BYTES", "DRAFT_SUM", "OBJECT", "SCALE", "ERRORS"},
+                 "SAVE_ACKS", "REVISION", "SAVED_BYTES", "SAVED_SUM", "SCREEN", "DIRTY", "DRAFT_BYTES", "DRAFT_SUM", "OBJECT", "SCALE", "ERRORS", "PROBES"},
     "CALCULATOR": {"PID", "SERVICE_GENERATION", "SURFACE_EPOCH", "INPUT_EPOCH", "READY", "GEN", "FRAMES",
-                   "EVALUATIONS", "FAILURES", "EXPRESSION_BYTES", "CURRENT", "CARET", "ACTIVE", "SCALE", "ERRORS", "ANSWER_LOW", "ANSWER_HIGH", "HAS_ANSWER"},
+                   "EVALUATIONS", "FAILURES", "EXPRESSION_BYTES", "EXPRESSION_SUM", "CURRENT", "CARET", "ACTIVE", "SCALE", "ERRORS", "ANSWER_LOW", "ANSWER_HIGH", "HAS_ANSWER", "PROBES"},
+    "COMPOSITOR": {"GENERATION", "PID", "COMMITS", "INPUT", "REJECTED", "FOCUSED", "MOVES", "SWITCHES", "MATERIAL", "CALCULATOR", "FATAL", "POINTER_X", "POINTER_Y", "BUTTONS"},
 }
 
 
@@ -128,7 +129,8 @@ def snapshots(raw: bytes, role: str) -> list[dict]:
             if field is None or field[1] in current or int(field[2]) > (1 << 64) - 1:
                 raise ValueError("Malformed/duplicate native app snapshot")
             current[field[1]] = int(field[2])
-        if set(current) != SNAPSHOT_FIELDS[role] or current.get("READY") != 1 or current.get("GEN", 0) == 0:
+        valid = (current.get("GENERATION", 0) > 0 and current.get("PID", 0) > 0 and current.get("FATAL") == 0) if role == "COMPOSITOR" else (current.get("READY") == 1 and current.get("GEN", 0) > 0)
+        if set(current) != SNAPSHOT_FIELDS[role] or not valid:
             raise ValueError("Unready native app snapshot")
         result.append(current)
     return result
@@ -208,8 +210,22 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False) -> 
             implementation_hash = sha256(implementation)
             report["qemu_implementation"] = {"path": str(implementation), "sha256": implementation_hash}
             captured = {}
+            group_generation = [1]
 
-            def wait(name, predicate, oracle=None):
+            def comp(raw):
+                values = snapshots(raw, "COMPOSITOR")
+                return values[-1] if values else {}
+
+            def observe(label, predicate):
+                while True:
+                    raw = serial(directory / "serial.txt")
+                    if predicate(raw):
+                        return raw
+                    if process.poll() is not None or time.monotonic() >= deadline:
+                        raise TimeoutError("Native input acknowledgement missing: " + label)
+                    time.sleep(0.02)
+
+            def wait(name, predicate, oracle=None, image_check=None):
                 while True:
                     raw = serial(directory / "serial.txt")
                     state = {role: snapshots(raw, role) for role in ("MATERIAL", "CALCULATOR")}
@@ -219,7 +235,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False) -> 
                         image = private_path(path, regular=True).read_bytes()
                         if ppm(image)[:2] != (1280, 720):
                             raise ValueError("Wrong actual GOP size")
-                        if oracle is not None and not material_matches(image, fixture["frames"][oracle]):
+                        if (oracle is not None and not material_matches(image, fixture["frames"][oracle])) or (image_check is not None and not image_check(image)):
                             if time.monotonic() >= deadline:
                                 raise TimeoutError("Native pixels differ from complete host oracle: " + name)
                             time.sleep(0.2)
@@ -235,8 +251,19 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False) -> 
                     time.sleep(0.05)
 
             def key(*keys):
+                raw = serial(directory / "serial.txt")
+                current = comp(raw)
+                if current.get("GENERATION") != group_generation[0]:
+                    raise ValueError("Keyboard injection lacks a current compositor observation")
+                role = "CALCULATOR" if current["FOCUSED"] == 1 else "MATERIAL"
+                old_keys = numbers(raw, f"WINDOW:{role}:KEYS")[-1]
+                old_acks = numbers(raw, f"WINDOW:{role}:INPUT_ACKS")[-1]
                 control.command("send-key", {"keys": [{"type": "qcode", "data": k} for k in keys], "hold-time": 1})
-                time.sleep(0.04)
+                if keys == ("f6",):
+                    observe("F6 focus", lambda raw: comp(raw).get("GENERATION") == group_generation[0] and comp(raw).get("FOCUSED") == 1-current["FOCUSED"])
+                elif keys not in (("f10",), ("f12",)):
+                    count = 2*len(keys)
+                    observe("/".join(keys), lambda raw: numbers(raw, f"WINDOW:{role}:KEYS")[-1] >= old_keys+count and numbers(raw, f"WINDOW:{role}:INPUT_ACKS")[-1] >= old_acks+count)
 
             pointer = [0, 0]
             def move(x, y):
@@ -245,11 +272,15 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False) -> 
                     events = [{"type": "rel", "data": {"axis": axis, "value": delta}} for axis, delta in zip(("x", "y"), changes) if delta]
                     control.command("input-send-event", {"events": events})
                     pointer[:] = [current + delta for current, delta in zip(pointer, changes)]
-                    time.sleep(0.04)
+                    observe("pointer", lambda raw: comp(raw).get("GENERATION") == group_generation[0] and (comp(raw).get("POINTER_X"), comp(raw).get("POINTER_Y")) == tuple(pointer))
 
             def button(down):
                 control.command("input-send-event", {"events": [{"type": "btn", "data": {"down": down, "button": "left"}}]})
-                time.sleep(0.1)
+                observe("mouse button", lambda raw: comp(raw).get("GENERATION") == group_generation[0] and comp(raw).get("BUTTONS") == int(down))
+
+            def select_title(x, y, index):
+                move(x, y); button(True); button(False)
+                observe("mouse focus", lambda raw: comp(raw).get("GENERATION") == group_generation[0] and comp(raw).get("FOCUSED") == index)
 
             initial = wait("boot", lambda raw, s: all(s.values()) and 31 in numbers(raw, "WINDOW:INITMASK"))
             if smoke:
@@ -257,6 +288,9 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False) -> 
             else:
                 move(1260, 50)
                 initial = wait("initial", lambda raw, s: all(s.values()), "initial")
+                initial_comp = comp(serial(directory / "serial.txt"))
+                if any(initial[r][-1]["PROBES"] != 3 for r in initial):
+                    raise ValueError("Missing initial real CPL3 isolation refusals")
                 key("ret")
                 wait("editor", lambda raw, s: s["MATERIAL"] and s["MATERIAL"][-1]["SCREEN"] == 2, "editor")
                 for char in TEXT.decode():
@@ -271,25 +305,41 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False) -> 
                 for keys in (("2",), ("shift", "equal"), ("3",), ("ret",)):
                     key(*keys)
                 calculated = wait("calculated", lambda raw, s: s["CALCULATOR"] and s["CALCULATOR"][-1].get("HAS_ANSWER") == 1 and s["CALCULATOR"][-1].get("ANSWER_LOW") == 5_000_000_000 and s["CALCULATOR"][-1].get("ANSWER_HIGH") == 0)
+                calc = calculated["CALCULATOR"][-1]
+                if any(calc[field] != value for field,value in {"EXPRESSION_BYTES":3,"EXPRESSION_SUM":volume_disk.fnv(b"2+3"),"EVALUATIONS":1,"CURRENT":1,"CARET":3,"FAILURES":0}.items()):
+                    raise ValueError("Actual calculator model differs from typed 2+3")
                 move(1060, 118); button(True); move(900, 100); button(False)
-                wait("moved", lambda raw, s: any(v > 0 for v in numbers(raw, "WINDOW:COMPOSITOR:MOVES")))
-                if crop(captured["calculated"], (932, 140, 320, 484)) != crop(captured["moved"], (772, 122, 320, 484)):
-                    raise ValueError("Moved opaque window did not preserve its actual app pixels")
+                wait("moved", lambda raw, s: comp(raw).get("MOVES", 0) > 0,
+                     image_check=lambda raw: crop(captured["calculated"], (932, 140, 320, 484)) == crop(raw, (772, 122, 320, 484)))
                 key("f6")
                 key("f12")
-                recovered = wait("recovered", lambda raw, s: 1 in numbers(raw, "WINDOW:RECOVERIES") and all(s.values()) and all(s[r][-1]["SERVICE_GENERATION"] == 2 for r in s))
+                recovered = wait("recovered", lambda raw, s: 1 in numbers(raw, "WINDOW:RECOVERIES") and all(s.values()) and all(s[r][-1]["SERVICE_GENERATION"] == 2 and s[r][-1]["PROBES"] == 10 for r in s) and comp(raw).get("GENERATION") == 2 and comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"] and comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
+                recovered_comp = comp(serial(directory / "serial.txt"))
+                if recovered_comp["PID"] == initial_comp["PID"]:
+                    raise ValueError("Recovery reused the compositor process")
                 for field in ("PID", "DRAFT_BYTES", "DRAFT_SUM", "DIRTY", "SAVE_ACKS", "OBJECT"):
                     if recovered["MATERIAL"][-1][field] != dirty["MATERIAL"][-1][field]:
                         raise ValueError("Recovery changed actual unsaved work: " + field)
-                for field in ("PID", "EXPRESSION_BYTES", "ANSWER_LOW", "ANSWER_HIGH", "HAS_ANSWER", "EVALUATIONS"):
+                for field in ("PID", "EXPRESSION_BYTES", "EXPRESSION_SUM", "ANSWER_LOW", "ANSWER_HIGH", "HAS_ANSWER", "EVALUATIONS", "CARET", "CURRENT", "FAILURES"):
                     if recovered["CALCULATOR"][-1][field] != calculated["CALCULATOR"][-1][field]:
                         raise ValueError("Recovery changed actual calculation: " + field)
                 for role in recovered:
-                    if any(recovered[role][-1][f] == initial[role][-1][f] for f in ("SURFACE_EPOCH", "INPUT_EPOCH")):
+                    if any(recovered[role][-1][f] <= initial[role][-1][f] for f in ("SURFACE_EPOCH", "INPUT_EPOCH")):
                         raise ValueError("Recovery reused presentation epoch")
+                    previous = dirty if role == "MATERIAL" else calculated
+                    if recovered[role][-1]["FRAMES"] <= previous[role][-1]["FRAMES"]:
+                        raise ValueError("Recovery did not complete a new app frame")
+                group_generation[0] = 2
                 pointer[:] = [0, 0]
                 move(1260, 50)
                 wait("rebound-editor", lambda raw, s: s["MATERIAL"][-1]["SERVICE_GENERATION"] == 2, "dirty-rebound")
+                select_title(1060, 118, 1)
+                move(1260, 50)
+                key("ret")
+                wait("calculator-restored", lambda raw, s: s["CALCULATOR"][-1]["EVALUATIONS"] == calculated["CALCULATOR"][-1]["EVALUATIONS"]+1 and s["CALCULATOR"][-1]["ANSWER_LOW"] == 5_000_000_000 and comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"],
+                     image_check=lambda raw: crop(captured["calculated"], (932, 140, 320, 484)) == crop(raw, (932, 140, 320, 484)))
+                select_title(300, 90, 0)
+                move(1260, 50)
                 key("right")
                 wait("restored-editor", lambda raw, s: s["MATERIAL"][-1]["SERVICE_GENERATION"] == 2, "dirty-recovered")
                 key("ctrl", "s")

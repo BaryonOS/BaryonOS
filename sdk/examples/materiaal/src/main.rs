@@ -5,6 +5,8 @@
 //! display, the isolated source owns raw PS/2, the volume service owns disk.
 #[path = "../../system/src/support.rs"]
 mod support;
+#[path = "../../window-session/src/probe.rs"]
+mod window_probe;
 use core::{arch::global_asm, cell::UnsafeCell};
 use nieuw_os_catalog_client::NativeTransport;
 use nieuw_os_document_session::{
@@ -147,6 +149,18 @@ pub extern "C" fn materiaal_main() -> ! {
     )
     .unwrap_or_else(|_| fail(5));
     let geometry = surface.geometry().unwrap_or_else(|_| fail(6));
+    if support::word(664) == 1 {
+        let count = window_probe::run(
+            &mut surface,
+            config.input_send,
+            config.input_receive,
+            config.compositor_pid,
+            config.input_epoch,
+            config.input_client,
+        )
+        .unwrap_or_else(|e| fail(80 + e.code()));
+        support::put(672, count);
+    }
     let viewport = Viewport::new(
         u32::from(geometry.assigned.width),
         u32::from(geometry.assigned.height),
@@ -257,6 +271,28 @@ pub extern "C" fn materiaal_main() -> ! {
                 )
                 .unwrap_or_else(|_| fail(19));
                 let geometry = surface.geometry().unwrap_or_else(|_| fail(20));
+                if support::word(664) == 1 {
+                    let stale = window_probe::stale(&[
+                        config.input_send.handle(),
+                        config.input_receive.handle(),
+                        config.surface_send.handle(),
+                        config.surface_receive.handle(),
+                    ])
+                    .unwrap_or_else(|e| fail(80 + e.code()));
+                    let refused = window_probe::run(
+                        &mut surface,
+                        next.input_send,
+                        next.input_receive,
+                        next.compositor_pid,
+                        next.input_epoch,
+                        next.input_client,
+                    )
+                    .unwrap_or_else(|e| fail(80 + e.code()));
+                    let count = support::word(672)
+                        .checked_add(stale + refused)
+                        .unwrap_or_else(|| fail(98));
+                    support::put(672, count);
+                }
                 let input = Input::new(
                     NativeTransport,
                     Binding {
