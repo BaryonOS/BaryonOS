@@ -14,9 +14,17 @@ intact; opnieuw openen zet de time-outstatus terug en vernieuwt het token.
 Zie `docs/verification/issue-43-receive-timeout.md` voor commando's en grenzen.
 Een tweede agent bevestigde het codepad alleen-lezen; dit is geen menselijke audit.
 
-**Open/eerstvolgend:** de bestaande QEMU-netwerkroutes `normal` en `client-exit`
-uitvoeren op deze bron, testbewijs aanvullen en één concept-PR voor #43 openen.
-Hosted CI en review volgen op de PR-head. #43 blijft open; geen issuewijziging,
+**Aanvullend bewijs:** 35 broker- (incl. 4 doctests), 26 stack-, 4 protocol-,
+6 client- en 11 peerharnastests groen. Native `normal` en `client-exit` op
+`5925c915f6b8d02842fffd89a94f21c0e018689a` slagen met raw QEMU-exit 33,
+bronhash `9a8b521f4b2e5a24b279142d8554538c5cf618e3e55a9cac3e7070e12ad4fc39`,
+peer compleet en volledige opruiming (8,27/7,79 s). Nieuwe ontvangstreproductie
+is hostbewijs; native gates herhalen de bestaande netwerkregressiedekking.
+Compacte hashes: `docs/verification/issue-43-receive-timeout.json`.
+
+**Open/eerstvolgend:** hosted CI en inhoudelijke review op de head van
+concept-PR https://github.com/simonvanieperen/nieuw-os/pull/134 controleren.
+De laatste commit wijzigt alleen documentatie/bewijs. #43 blijft open; geen issuewijziging,
 merge, nieuwe bevoegdheid of afhankelijkheid. **41 → 41/100**; geen nieuwe
 native productcriteria, hardware- of volledige releaseclaim.
 

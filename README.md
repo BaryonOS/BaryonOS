@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`380111b6`](https://github.com/simonvanieperen/nieuw-os/commit/380111b68688c981eec6abb8fab29174a29f5601) ·
+**Bron:** [`5925c915`](https://github.com/simonvanieperen/nieuw-os/commit/5925c915f6b8d02842fffd89a94f21c0e018689a) ·
 **Ontwikkelbranch:** `coderabbit/issue-43-receive-timeout`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Issue #43: terminale ReceiveTcp-status na verbindingstime-out.
-41/100 blijft 41/100. Gerichte reparatie binnen het N01-netwerkspoor: ReceiveTcp meldt Closed na een afgebroken verbindingstime-out, terwijl State TimedOut behoudt. Regressie op de oude code rood (Again in plaats van Closed); alle 10 service-hosttests, rustfmt, Clippy en de no_std-librarybuild voor x86_64-unknown-none slagen met Rust 1.91.1. Native QEMU-normal/client-exit volgen afzonderlijk; geen nieuwe rubriccriteria of fysieke, volledige release- of 50%-acceptatie.
+41/100 blijft 41/100. Gerichte N01-reparatie: ReceiveTcp meldt Closed na een verbindingstime-out; State behoudt TimedOut. Oude code rood (Again versus Closed); 10 service-, 35 broker- inclusief doctests, 26 stack-, 4 protocol-, 6 client- en 11 peer-hosttests groen. Rustfmt/Clippy en de no_std-librarybuild slagen. Bestaande native QEMU-normal en client-exit slagen op bron5925c915 met dezelfde bronhash: raw exit33, echte pakketten en volledige opruiming. Het specifieke nieuwe timeout-ontvangstscenario is alleen op de host rood/groen bewezen. Concept-PR134; hosted CI/review blijven afzonderlijk. Geen nieuwe criteria, fysieke hardware-, volledige release- of 50%-acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
