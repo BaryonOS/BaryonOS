@@ -1,6 +1,6 @@
 {
   "task": "STACK133-INTEGRATE",
-  "status": "Lokaal integratiecheckpoint; vervolgvalidatie loopt. Geen native runtime of GitHub-publicatie.",
+  "status": "Afgeronde schone lokale builderintegratie; alle vereiste beschikbare lokale controles slagen. Geen native runtime of GitHub-publicatie.",
   "base": "72b6ac4193986daba266176ad7177de00a326d6c",
   "frozen_pr133_head": "2f60e8ffb2a92e54405ea31609d6f22733928937",
   "branch": "integrate/stack133-local",
@@ -14,18 +14,2297 @@
   ],
   "ci": {
     "previous": "9VM op PR en handmatig, geen push-main; 10run-toelatingsmatrix niet bedraad.",
-    "current": "Bestaande9VM plus gepromoveerde bestaande10run-runner op relevante PR en push-main; eigen jobs/targets/images, onveranderde verdictfuncties en oracle.",
+    "current": "Bestaande9VM plus onverzwakt gepromoveerde bestaande10run-runner op relevante PR, push-main en workflow_dispatch; afzonderlijke hostedUbuntu-jobs/targets/images. Geen bestaande window- of netwerkgate verwijderd.",
     "fixture_delivery_blocker": "Geen foreign-imagebinaries in de repo. Parent moet een same-repository artifact volume-admission-fixtures beschikbaar maken met btrfs/baseline.img en openzfs/images/nieuwos_n3.0a en repositoryvariabele VOLUME_ADMISSION_FIXTURE_RUN_ID instellen op die run. Beide oorspronkelijke volledige SHA256-hashes zijn onveranderd vastgepind in de runner. Zonder die voorziening faalt de matrixjob expliciet; geen skip of groene claim.",
-    "executed": false
+    "executed": false,
+    "provisioning_state": "Niet via GitHub gemuteerd of als operationeel bevestigd. Zonder geldige fixture-run-ID of beide exacte imagehashes faalt de job; dit is geen native groen.",
+    "runner": {
+      "path": "tools/run_volume_admission.py",
+      "sha256": "755b28c3fb4a12df954b21ca303aa86da2dcfbbe78358a4a2bdb82d970413dd9",
+      "bytes": 19110
+    },
+    "runner_equivalence": "AST-hosttest vergelijkt run/matrix/prepare/source_state/frozen/regression/main/build_profiles met de frozen133-runner. Alleen expliciete common.qemu_machine()-selectie verschilt in de verdictpaden; oracle, asserts,10cases en tijdsbudgetten blijven gelijk.",
+    "machine": "CI expliciet pc-q35-8.2/TCG/1CPU/256MiB; historische proeven gebruikten pc-q35-10.0. Verse machine/firmware/toolversies worden in environment.json en de daadwerkelijke QEMU-commandos vastgelegd.",
+    "fixture_layout": {
+      "btrfs/baseline.img": "0f3e5d9631ac9e8747abd7d6744538772620c0d2d9c6c5f40f2ed7e864edac39",
+      "openzfs/images/nieuwos_n3.0a": "23a409ac5e9a844056d9096ead0453112f1d1e6e45d4b7d5db084a397baea4ea"
+    },
+    "parent_fresh_native_commands": [
+      "Freeze actual publication HEAD and use new own NOS_BUILD_DIR/NOS_TARGET_DIR/CARGO_TARGET_DIR; supply QEMU/OVMF and NOS_VOLUME_ADMISSION_FIXTURES pointing at the two hash-pinned regular files.",
+      "python3 -B -u tools/run_volume_admission.py build --expected-head \"$(git rev-parse HEAD)\"",
+      "python3 -B -u tools/run_volume_admission.py matrix --expected-head \"$(git rev-parse HEAD)\"",
+      "With separate fresh NOS_BUILD_DIR/NOS_TARGET_DIR/CARGO_TARGET_DIR: python3 -B -u tools/test_volume.py",
+      "Run the unchanged .github/workflows/native-window-session.yml gate (full native window, library write and cold reopen), unchanged net-broker-quality native jobs and remaining applicable CI on the actual integrated publication head."
+    ],
+    "required_native_verdicts": [
+      "matrix.json: passed=true, exactly10runs; normal raw33 with actual traced writes and generation84; cold raw33 exact normal-final bytes/digests, no writes.",
+      "Eight foreign/rawzero/zero-header-payload RO/RW cases: raw35, exactly one startup Corrupt/-18 and SERVICE_STARTUP, no READY/PASS/appdiagnostic, reads>0, writes=0, full source/probe SHA256 unchanged, no timeout.",
+      "volume-gate.json: passed=true, exactly9stages with real cut-data/cut-table/cut-txn kills and the existing ordered cold recoveries; no cached or historical result substitution."
+    ]
   },
   "evidence_boundary": {
     "historical_native_commit": "94f12da0b9740a1a0ced1f08b4a30787f82ae79f",
     "historical_native_source_v3": "2cffba892608c907b717158a83b8a1c66c7d79dc5843d2d03eabc4ff1831c028",
     "historical_matrix": "10runs en negen-VM-gate uitsluitend op94f12da; geen overdracht van groen naar2f60 of deze integratie.",
     "native_runtime_executed": false,
-    "unavailable": ["QEMU", "OVMF", "fysieke-hardwareacceptatie", "onafhankelijke menselijke audit"],
+    "unavailable": [
+      "QEMU",
+      "OVMF",
+      "fysieke-hardwareacceptatie",
+      "onafhankelijke menselijke audit"
+    ],
     "github_mutations": false,
     "system_installs": false,
     "progress": "Geen scorekeuze; centrale score41 ongewijzigd behouden. Parent is exclusieve eigenaar."
-  }
+  },
+  "assessment_datetime_europe_amsterdam": "2026-11-02T23:39:45.581385+01:00",
+  "verified_source_commit": "899c595feccf8de38409e19445c9d42c47009fbc",
+  "merge_commit": "899c595feccf8de38409e19445c9d42c47009fbc",
+  "merge_parents": [
+    "72b6ac4193986daba266176ad7177de00a326d6c",
+    "2f60e8ffb2a92e54405ea31609d6f22733928937"
+  ],
+  "report_commit_boundary": "De oplevercommit wijzigt na de geverifieerde merge uitsluitend dit gegenereerde JSON-verslag; runtimebron/source-v3 blijft gelijk.",
+  "source_fingerprint_version": 3,
+  "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc",
+  "source_hash_implementation_sha256": "4e6a20105b0f2809195f1f521c5eebfe707e005bc4883c3d8bb1e9154a478754",
+  "worktree": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr133-stack",
+  "ancestry_and_no_deletions": {
+    "stack130_base": {
+      "head": "72b6ac4193986daba266176ad7177de00a326d6c",
+      "ancestor_exit": 0,
+      "deleted_paths": []
+    },
+    "frozen_pr133": {
+      "head": "2f60e8ffb2a92e54405ea31609d6f22733928937",
+      "ancestor_exit": 0,
+      "deleted_paths": []
+    }
+  },
+  "central_metadata": {
+    "README.md": {
+      "base_sha256": "c491c9a6d87d74074d3515a361612a004068421a6c213e9abec15c597231d350",
+      "integration_sha256": "c491c9a6d87d74074d3515a361612a004068421a6c213e9abec15c597231d350",
+      "byte_equal_base": true,
+      "frozen_pr133_proposal_sha256": "c174f86d4bf4a9c2244ff1dfa93248a50722464c6cc7e38ae78e1bac88d4456b",
+      "proposal_not_adopted": true
+    },
+    "docs/progress.json": {
+      "base_sha256": "a0797e9bffd38b897d62ad195e8d6be7825a05826e0bb6f1db067e12d4b597a9",
+      "integration_sha256": "a0797e9bffd38b897d62ad195e8d6be7825a05826e0bb6f1db067e12d4b597a9",
+      "byte_equal_base": true,
+      "frozen_pr133_proposal_sha256": "b2427bfa49178cc4831997f3aa71e1c5edb08dd557ae4d5e84a3e5bc60953d53",
+      "proposal_not_adopted": true
+    },
+    "docs/PROGRESS.md": {
+      "base_sha256": "bec515aded017218dd1b605a35c6d6de403b3c5015830fb822cd16a8992ce195",
+      "integration_sha256": "bec515aded017218dd1b605a35c6d6de403b3c5015830fb822cd16a8992ce195",
+      "byte_equal_base": true,
+      "frozen_pr133_proposal_sha256": "bec515aded017218dd1b605a35c6d6de403b3c5015830fb822cd16a8992ce195",
+      "proposal_not_adopted": false
+    },
+    "docs/PROJECT-STATE.md": {
+      "base_sha256": "ee77f6de02fe88b5b2801b3a8fce5a5e0d99cdc279498b9279b7739879f5170b",
+      "integration_sha256": "ee77f6de02fe88b5b2801b3a8fce5a5e0d99cdc279498b9279b7739879f5170b",
+      "byte_equal_base": true,
+      "frozen_pr133_proposal_sha256": "614878cd7b56f456a68b5b15084436e45e7dbfb4a0f22cc1f3ac23f9f5f5aacd",
+      "proposal_not_adopted": true
+    },
+    "docs/assets/progress.svg": {
+      "base_sha256": "e369da8b0dfb07717bc988700706600b5d50170dfd56c429bd92d6cfacb4b46b",
+      "integration_sha256": "e369da8b0dfb07717bc988700706600b5d50170dfd56c429bd92d6cfacb4b46b",
+      "byte_equal_base": true,
+      "frozen_pr133_proposal_sha256": "e369da8b0dfb07717bc988700706600b5d50170dfd56c429bd92d6cfacb4b46b",
+      "proposal_not_adopted": false
+    }
+  },
+  "progress": {
+    "old_score": 41,
+    "new_score": 41,
+    "new_points_awarded": 0,
+    "assessment_owner": "parent f090b913",
+    "reason": "Geen nieuwe native acceptatie; behoud centrale vijf bestanden exact72b6. Parent verwerkt finale assessment, actuele documentatie114 en progress --write.",
+    "read_only_progress_check_exit": 0,
+    "progress_write_executed": false
+  },
+  "changed_files_except_immutable_pr133_archive": [
+    ".github/workflows/volume-acceptance.yml",
+    "docs/DECISIONS.md",
+    "docs/implementation/M6E-SCALABLE-VOLUME.md",
+    "docs/implementation/S06-COLLECTIONS-HISTORY.md",
+    "docs/verification/stack133-integration.json",
+    "sdk/document-session/tests/volume.rs",
+    "sdk/examples/materiaal/tests/chain.rs",
+    "sdk/examples/materiaal/tests/semantic_actions.rs",
+    "services/volume/src/table.rs",
+    "services/volume/tests/common/mod.rs",
+    "services/volume/tests/service.rs",
+    "tests/test_volume_admission_runner.py",
+    "tests/test_volume_disk.py",
+    "tests/test_volume_runner.py",
+    "tools/run_images.py",
+    "tools/run_materiaal_probe.py",
+    "tools/run_random.py",
+    "tools/run_volume_admission.py",
+    "tools/volume_disk.py",
+    "ui/native/tests/common/mod.rs"
+  ],
+  "immutable_pr133_archive": {
+    "path": "docs/verification/volume-format-admission",
+    "files": 234,
+    "frozen_tree": "047b0a8ed285fe509afafeac5278362351c577f3",
+    "integration_tree": "047b0a8ed285fe509afafeac5278362351c577f3",
+    "byte_identical": true,
+    "archived_native_runner": {
+      "path": "docs/verification/volume-format-admission/native/native_admission.py",
+      "sha256": "dc5707cc6972b6b666d2e9d6925a275850d5afa9b48fa9bd68ce69d2c26175a0",
+      "bytes": 19075
+    }
+  },
+  "conflict_resolution": {
+    "desktop": "Behoud72b6-versies van conflicterende kernel-, compositor-, proportionele renderer-, library-, app-, protocol- en relevante native-window-workflowbestanden; geen verloren functie of verlaagde budgetten. De nieuwe toelatingsfixture-init is expliciet in de latere chainfixture geport.",
+    "adr": "Behoud volledig ADR-SESSION en ADR-MATERIAL-LIBRARY uit72b6 en voeg volledige ADR-058 uit2f60 toe.",
+    "central": "README, PROJECT-STATE en progressconflicten niet overnemen. Ook PROGRESS en SVG expliciet op72b6 gehouden. Parent moet deze bewuste afwijking met doc114/main integreren; oude34- en41-scores zijn geen nieuwe acceptatie.",
+    "semantic_overlap": "SDK document-session bewaart de nieuwere library-/mutatie-/historie-negatieve tests én de gen0-init uit133. De materiaalprobe bewaart de nauwkeurige editor-/save-statuspixeloracle én de nieuwe sealed-empty-fixturecontrole.",
+    "coupled_regression": {
+      "red_log": "build/stack133/logs/native-ui-test.log",
+      "test": "semantic_actions_revalidate_current_controls_and_persist_only_on_save",
+      "red_exit": 101,
+      "cause": "Gecombineerde ui/native/tests/common RAM-disk had nog twee rawzero-tabellen, die de strengere hersteltoelating terecht weigert.",
+      "repair": "Alleen de hostfixture krijgt expliciet gecodeerde Table::EMPTY-gen0-sectoren; productiechoose en asserts ongewijzigd.",
+      "green_log": "build/stack133/logs/native-ui-test-final.log",
+      "green_exit": 0
+    }
+  },
+  "preservation": {
+    "baseline_byte_identical": [
+      "kernel/",
+      "ui/native/src/",
+      "ui/graphics/",
+      "ui/surface-protocol/",
+      "sdk/examples/window-session/",
+      "sdk/examples/calculator/",
+      "sdk/examples/materiaal/src/",
+      "sdk/document-session/src/",
+      "services/network-service/",
+      "services/net-config/",
+      "sdk/net-client/",
+      ".github/workflows/native-window-session.yml",
+      ".github/workflows/net-broker-quality.yml"
+    ],
+    "pr133_byte_identical": [
+      "services/volume/",
+      "tools/volume_disk.py",
+      "tests/test_volume_disk.py",
+      "tests/test_volume_runner.py",
+      "tools/run_images.py",
+      "tools/run_random.py",
+      "sdk/examples/materiaal/tests/semantic_actions.rs",
+      "docs/implementation/M6E-SCALABLE-VOLUME.md",
+      "docs/implementation/S06-COLLECTIONS-HISTORY.md",
+      "docs/verification/volume-format-admission/"
+    ],
+    "claims": "Deze exit0-bytecontroles plus hostregressies behouden rendering, SUR1-expiry/retained, library, clipboard, lock-/palettevoorrang en netwerkdeadline/terminalstate. Dit vervangt geen verse native-runtimeacceptatie."
+  },
+  "environment": {
+    "rust": "1.90.0",
+    "rustup_home": "/home/simon/.rustup",
+    "path_prefix": [
+      "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/rust-shims",
+      "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/host-linker",
+      "/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin"
+    ],
+    "cargo_net_offline": true,
+    "cargo_locked": true,
+    "targets": [
+      "target/stack133-host",
+      "target/stack133-native-check",
+      "target/stack133-elf-host",
+      "target/stack133-build-host",
+      "target/stack133-full-native"
+    ],
+    "scratch": [
+      "build/stack133/scratch",
+      "build/volume-admission-host-tests"
+    ],
+    "system_installs": false,
+    "cargo_clean": false,
+    "qemu_ovmf": "Read-only tools/preflight.py --strict eindigt met2: QEMU en OVMF ontbreken; beide Rust-targets en hostlinker zijn aanwezig.",
+    "network_191_tests": "Niet herhaald: netwerkbronnen en bijbehorende workflow blijven bytegelijk72b6. Geen nieuw netwerk-runtimebewijs."
+  },
+  "final_checks": [
+    {
+      "name": "root-test-final",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "-p",
+        "boot-protocol",
+        "-p",
+        "elf-loader-core",
+        "-p",
+        "kernel-core",
+        "-p",
+        "capability-core",
+        "-p",
+        "virtio-core",
+        "-p",
+        "ui-core",
+        "-p",
+        "virtio-blk-driver",
+        "-p",
+        "block-protocol",
+        "-p",
+        "object-core",
+        "-p",
+        "catalog-core",
+        "-p",
+        "volume-core",
+        "-p",
+        "keyring-core",
+        "-p",
+        "virtio-rng-driver",
+        "-p",
+        "virtio-net-driver"
+      ],
+      "exit": 0,
+      "seconds": 28.405,
+      "log": "build/stack133/logs/root-test-final.log",
+      "sha256": "ef702752c6c1e877121a3362dcf4661925577a8841d549d49108020d89c638fa",
+      "test_counts": {
+        "rust_passed": 387,
+        "rust_failed": 0,
+        "python_tests": []
+      },
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "root-clippy-final",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "-p",
+        "boot-protocol",
+        "-p",
+        "elf-loader-core",
+        "-p",
+        "kernel-core",
+        "-p",
+        "capability-core",
+        "-p",
+        "virtio-core",
+        "-p",
+        "ui-core",
+        "-p",
+        "virtio-blk-driver",
+        "-p",
+        "block-protocol",
+        "-p",
+        "object-core",
+        "-p",
+        "catalog-core",
+        "-p",
+        "volume-core",
+        "-p",
+        "keyring-core",
+        "-p",
+        "virtio-rng-driver",
+        "-p",
+        "virtio-net-driver",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 1.993,
+      "log": "build/stack133/logs/root-clippy-final.log",
+      "sha256": "e1bde308b68aba57a108e2d125dc0fbca7b174f17478eff7be59648210cf7ca1",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "root-fmt-final",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.527,
+      "log": "build/stack133/logs/root-fmt-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "python-volume-final",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_volume_*.py"
+      ],
+      "exit": 0,
+      "seconds": 1.167,
+      "log": "build/stack133/logs/python-volume-final.log",
+      "sha256": "df4de1c0271b1710913696ffb85b2585a4ef98118760edfbe3a1512d44b090f0",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": [
+          42
+        ]
+      },
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "python-oracles-final",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "tools.tests.test_images",
+        "tools.tests.test_random",
+        "tools.tests.test_materiaal_probe",
+        "tools.tests.test_materiaal_cold"
+      ],
+      "exit": 0,
+      "seconds": 12.886,
+      "log": "build/stack133/logs/python-oracles-final.log",
+      "sha256": "f91cb6fb89e56ef07d5c4098e0e39aceba3cf8189cc5a5abbb79dfbccb480de9",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": [
+          86
+        ]
+      },
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "python-window-final",
+      "command": [
+        "python3",
+        "-B",
+        "tools/test_window_session.py"
+      ],
+      "exit": 0,
+      "seconds": 0.119,
+      "log": "build/stack133/logs/python-window-final.log",
+      "sha256": "aba5ee50d66a7a5b12c97716b34b9c90c7b74b6f582e90a730fceb1bf2fb7aee",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": [
+          11
+        ]
+      },
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "runner-help-final",
+      "command": [
+        "python3",
+        "-B",
+        "tools/run_volume_admission.py",
+        "--help"
+      ],
+      "exit": 0,
+      "seconds": 0.043,
+      "log": "build/stack133/logs/runner-help-final.log",
+      "sha256": "59de18d102cdc232ac422edd8bfb1bfa6ecb06206fd1a844d62fce5d19095e5d",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "sdk-test-final",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 0.528,
+      "log": "build/stack133/logs/sdk-test-final.log",
+      "sha256": "98d92d8577576ec2b2b43b036282004fc72711381a021e8c0e5139fd2a526877",
+      "test_counts": {
+        "rust_passed": 109,
+        "rust_failed": 0,
+        "python_tests": []
+      },
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "sdk-fmt-final",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.525,
+      "log": "build/stack133/logs/sdk-fmt-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "sdk-clippy-final",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.27,
+      "log": "build/stack133/logs/sdk-clippy-final.log",
+      "sha256": "2bc683fb4e4f4f21ee9ee39e2b8ecce2efe20d3b1be57bda5316aa519ab3d30a",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "document-test-final",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/document-session/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 0.385,
+      "log": "build/stack133/logs/document-test-final.log",
+      "sha256": "03c34b5427b911203501a7512f57d45a7952c3dea77ea38d80d0d75a86a944ec",
+      "test_counts": {
+        "rust_passed": 50,
+        "rust_failed": 0,
+        "python_tests": []
+      },
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "document-fmt-final",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "sdk/document-session/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.557,
+      "log": "build/stack133/logs/document-fmt-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "document-clippy-final",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/document-session/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.185,
+      "log": "build/stack133/logs/document-clippy-final.log",
+      "sha256": "a41051563a4cb5fc1b1bcdd9aa0ba28ca80f7736d629d90cc138218756e8e3a9",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "materiaal-test-final",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 1.754,
+      "log": "build/stack133/logs/materiaal-test-final.log",
+      "sha256": "f21b8847402a91599f8a9f9891d1cd188f724f76c7f53d82489cadd03511a462",
+      "test_counts": {
+        "rust_passed": 44,
+        "rust_failed": 0,
+        "python_tests": []
+      },
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "materiaal-fmt-final",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.888,
+      "log": "build/stack133/logs/materiaal-fmt-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "materiaal-clippy-final",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.209,
+      "log": "build/stack133/logs/materiaal-clippy-final.log",
+      "sha256": "2b34696728dc82b03cbf6311d7e3a6a41658bbde097834c3010a78bc82842c1a",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "native-ui-test-final",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/native/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 27.914,
+      "log": "build/stack133/logs/native-ui-test-final.log",
+      "sha256": "fb09213977b6970d30345c42d9bc88d4d9d684f78758c8de9af64fc6ce7b05b2",
+      "test_counts": {
+        "rust_passed": 81,
+        "rust_failed": 0,
+        "python_tests": []
+      },
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "native-ui-fmt-final",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "ui/native/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.808,
+      "log": "build/stack133/logs/native-ui-fmt-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "native-ui-clippy-final",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/native/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 1.046,
+      "log": "build/stack133/logs/native-ui-clippy-final.log",
+      "sha256": "d1b3dda4b51b4490ee89110efb23b16a1c55429c159a5d83414eadda3d76b994",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "window-test-final",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 34.797,
+      "log": "build/stack133/logs/window-test-final.log",
+      "sha256": "f20398ba36a1049dd215dfe3e1e068df17a72b73c3c1400bd5e5e39435240a0c",
+      "test_counts": {
+        "rust_passed": 70,
+        "rust_failed": 0,
+        "python_tests": []
+      },
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "window-fmt-final",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.721,
+      "log": "build/stack133/logs/window-fmt-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "window-clippy-final",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.845,
+      "log": "build/stack133/logs/window-clippy-final.log",
+      "sha256": "4e2974b7eec4818217b4b1badeef8a7c8692e06d2038f01ce682633fa74eb6ec",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "surface-test-final",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--features",
+        "client"
+      ],
+      "exit": 0,
+      "seconds": 0.485,
+      "log": "build/stack133/logs/surface-test-final.log",
+      "sha256": "b6751c9d08524887d4df98a789948a19470ab6849c7ae486dd7fca8ea62d5999",
+      "test_counts": {
+        "rust_passed": 41,
+        "rust_failed": 0,
+        "python_tests": []
+      },
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "surface-fmt-final",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.528,
+      "log": "build/stack133/logs/surface-fmt-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "surface-clippy-final",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--features",
+        "client",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.489,
+      "log": "build/stack133/logs/surface-clippy-final.log",
+      "sha256": "2da58caf7654cd29cb0a4e8c2e700aa165f99ef368ef507a463e0ae7d88049c3",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "graphics-test-final",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/graphics/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 0.828,
+      "log": "build/stack133/logs/graphics-test-final.log",
+      "sha256": "f647d9fb797442f8277c2bd79e6f6cc1606ccae5d1b660bb7791b456461f9103",
+      "test_counts": {
+        "rust_passed": 13,
+        "rust_failed": 0,
+        "python_tests": []
+      },
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "graphics-fmt-final",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "ui/graphics/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.11,
+      "log": "build/stack133/logs/graphics-fmt-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "graphics-clippy-final",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/graphics/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.487,
+      "log": "build/stack133/logs/graphics-clippy-final.log",
+      "sha256": "0404c8ee8ebd1cb7e5a34bb930a5ea08bd31b7234acbb343b58d50f004a10bb3",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "volume-native-check-final",
+      "command": [
+        "cargo",
+        "check",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-volume-docs-example",
+        "--features",
+        "native",
+        "--bins",
+        "--target",
+        "x86_64-unknown-none"
+      ],
+      "exit": 0,
+      "seconds": 0.689,
+      "log": "build/stack133/logs/volume-native-check-final.log",
+      "sha256": "987565cabb88d530ff5520c2bdbba98b501a993a990309673b88c3677fdfbfc5",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "volume-native-clippy-final",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-volume-docs-example",
+        "--features",
+        "native",
+        "--bins",
+        "--target",
+        "x86_64-unknown-none",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.407,
+      "log": "build/stack133/logs/volume-native-clippy-final.log",
+      "sha256": "51e40d9a3b48bb0fa61560f20acacb6eda7c5d070c3182f4623fcedb1ab7aaf6",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "materiaal-native-check-final",
+      "command": [
+        "cargo",
+        "check",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml",
+        "--features",
+        "native",
+        "--bins",
+        "--target",
+        "x86_64-unknown-none"
+      ],
+      "exit": 0,
+      "seconds": 1.907,
+      "log": "build/stack133/logs/materiaal-native-check-final.log",
+      "sha256": "769e257db2b9d7545076d64c26ec82edb955f4a59f88485cf3340d17da52d4a3",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "materiaal-native-clippy-final",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml",
+        "--features",
+        "native",
+        "--bins",
+        "--target",
+        "x86_64-unknown-none",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.387,
+      "log": "build/stack133/logs/materiaal-native-clippy-final.log",
+      "sha256": "183ee38d7ddde96876de8befac2d9f673ac8729de6cfa7c11964ea05c784fa9d",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "window-native-check-final",
+      "command": [
+        "cargo",
+        "check",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--features",
+        "native,fault-injection,session-preview",
+        "--bins",
+        "--target",
+        "x86_64-unknown-none"
+      ],
+      "exit": 0,
+      "seconds": 0.898,
+      "log": "build/stack133/logs/window-native-check-final.log",
+      "sha256": "9a7421cf6b15733aaf21b9ea3da1b5e07f648a411fcd71af7f1019364b4c6aae",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "window-native-clippy-final",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--features",
+        "native,fault-injection,session-preview",
+        "--bins",
+        "--target",
+        "x86_64-unknown-none",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.541,
+      "log": "build/stack133/logs/window-native-clippy-final.log",
+      "sha256": "5ff6d713f11a95efe2ca814d8c7bb8b52301e8f875e8f5edfca3f8840e7c9c2a",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "native-window-session-probe-build-final",
+      "command": [
+        "python3",
+        "-B",
+        "-u",
+        "tools/build.py",
+        "--kernel-feature",
+        "native-window-session-probe"
+      ],
+      "environment": {
+        "NOS_BUILD_DIR": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr133-stack/build/stack133/native-probe",
+        "NOS_TARGET_DIR": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr133-stack/target/stack133-full-native",
+        "CARGO_TARGET_DIR": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr133-stack/target/stack133-build-host",
+        "CARGO_NET_OFFLINE": "true",
+        "RUSTUP_HOME": "/home/simon/.rustup"
+      },
+      "exit": 0,
+      "seconds": 3.291,
+      "log": "build/stack133/logs/native-window-session-probe-final.log",
+      "sha256": "9a9fe52ff44f803b5b3b30bcbc5b4aa9a142dab06df7f328b1dc1b4439d23108",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "native-volume-build-final",
+      "command": [
+        "python3",
+        "-B",
+        "-u",
+        "tools/build.py",
+        "--kernel-feature",
+        "native-volume"
+      ],
+      "environment": {
+        "NOS_BUILD_DIR": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr133-stack/build/stack133/native-volume",
+        "NOS_TARGET_DIR": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr133-stack/target/stack133-full-native",
+        "CARGO_TARGET_DIR": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr133-stack/target/stack133-build-host",
+        "CARGO_NET_OFFLINE": "true",
+        "RUSTUP_HOME": "/home/simon/.rustup"
+      },
+      "exit": 0,
+      "seconds": 3.108,
+      "log": "build/stack133/logs/native-volume-final.log",
+      "sha256": "a606bad340f3c70e4c3d15986462942ab3b0c1c47adefb021867d47b6930d4b6",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "test-volume-recover-build-final",
+      "command": [
+        "python3",
+        "-B",
+        "-u",
+        "tools/build.py",
+        "--kernel-feature",
+        "test-volume-recover"
+      ],
+      "environment": {
+        "NOS_BUILD_DIR": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr133-stack/build/stack133/native-volume-recover",
+        "NOS_TARGET_DIR": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr133-stack/target/stack133-full-native",
+        "CARGO_TARGET_DIR": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr133-stack/target/stack133-build-host",
+        "CARGO_NET_OFFLINE": "true",
+        "RUSTUP_HOME": "/home/simon/.rustup"
+      },
+      "exit": 0,
+      "seconds": 1.82,
+      "log": "build/stack133/logs/test-volume-recover-final.log",
+      "sha256": "21fba48c0a30d6958a40b3d4623b23be6796b84e7c12a772fa62dc37c1f7a2d3",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "actual-native-elf-final",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml",
+        "--features",
+        "verify-native-elf",
+        "--test",
+        "elf",
+        "--",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "seconds": 2.076,
+      "log": "build/stack133/logs/actual-native-elf-final.log",
+      "sha256": "906e3c2771c563795f99954552e934be5bebe08e468c45ef928a816459047a20",
+      "test_counts": {
+        "rust_passed": 1,
+        "rust_failed": 0,
+        "python_tests": []
+      },
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "workflow-syntax-final",
+      "command": [
+        "python3",
+        "-B",
+        "-c",
+        "from pathlib import Path\nimport subprocess, yaml\np=Path(\".github/workflows/volume-acceptance.yml\")\nx=yaml.load(p.read_text(),Loader=yaml.BaseLoader)\nassert {\"pull_request\",\"push\",\"workflow_dispatch\"} <= set(x[\"on\"])\nassert x[\"on\"][\"push\"][\"branches\"] == [\"main\"]\nassert set(x[\"jobs\"]) == {\"m6e\",\"admission\"}\nfor job in x[\"jobs\"].values():\n    assert job[\"runs-on\"] == \"ubuntu-24.04\"\n    for step in job[\"steps\"]:\n        if \"run\" in step:\n            subprocess.run([\"bash\",\"-n\"],input=step[\"run\"],text=True,check=True)\nprint(\"YAML parsed; PR/main/dispatch, both hosted jobs and every Bash run block validated. Not a GitHub execution.\")\n"
+      ],
+      "exit": 0,
+      "seconds": 0.036,
+      "log": "build/stack133/logs/workflow-syntax-final.log",
+      "sha256": "179ad73e3a3d0146aca93d2fe51f1ab429c5bbe36f14eeae79ae6090cecb569a",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "preflight-local-unavailable",
+      "command": [
+        "python3",
+        "-B",
+        "tools/preflight.py",
+        "--strict"
+      ],
+      "exit": 2,
+      "seconds": 0.448,
+      "log": "build/stack133/logs/preflight-local-unavailable.log",
+      "sha256": "42f527528ed88f4c95c0b8e5bcf418bae2822a2294efad8a548fa447835e56d4",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "progress-check-read-only",
+      "command": [
+        "python3",
+        "-B",
+        "tools/progress.py",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.033,
+      "log": "build/stack133/logs/progress-check-read-only.log",
+      "sha256": "1963f64b94a52a78464f272cac286fcafea13fea2314c5ea8cddbd65dd78be33",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "diff-check-final",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.004,
+      "log": "build/stack133/logs/diff-check-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "desktop-network-preservation",
+      "command": [
+        "git",
+        "diff",
+        "--exit-code",
+        "72b6ac4193986daba266176ad7177de00a326d6c",
+        "HEAD",
+        "--",
+        "kernel",
+        "ui/native/src",
+        "ui/graphics",
+        "ui/surface-protocol",
+        "sdk/examples/window-session",
+        "sdk/examples/calculator",
+        "sdk/examples/materiaal/src",
+        "sdk/document-session/src",
+        "services/network-service",
+        "services/net-config",
+        "sdk/net-client",
+        ".github/workflows/native-window-session.yml",
+        ".github/workflows/net-broker-quality.yml"
+      ],
+      "exit": 0,
+      "seconds": 0.003,
+      "log": "build/stack133/logs/desktop-network-preservation.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "pr133-admission-preservation",
+      "command": [
+        "git",
+        "diff",
+        "--exit-code",
+        "2f60e8ffb2a92e54405ea31609d6f22733928937",
+        "HEAD",
+        "--",
+        "services/volume",
+        "tools/volume_disk.py",
+        "tests/test_volume_disk.py",
+        "tests/test_volume_runner.py",
+        "tools/run_images.py",
+        "tools/run_random.py",
+        "sdk/examples/materiaal/tests/semantic_actions.rs",
+        "docs/implementation/M6E-SCALABLE-VOLUME.md",
+        "docs/implementation/S06-COLLECTIONS-HISTORY.md"
+      ],
+      "exit": 0,
+      "seconds": 0.003,
+      "log": "build/stack133/logs/pr133-admission-preservation.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    },
+    {
+      "name": "historical-pr133-evidence-preservation",
+      "command": [
+        "git",
+        "diff",
+        "--exit-code",
+        "2f60e8ffb2a92e54405ea31609d6f22733928937",
+        "HEAD",
+        "--",
+        "docs/verification/volume-format-admission"
+      ],
+      "exit": 0,
+      "seconds": 0.002,
+      "log": "build/stack133/logs/historical-pr133-evidence-preservation.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc"
+    }
+  ],
+  "all_available_required_final_checks_passed": true,
+  "initial_attempts_preserved": [
+    {
+      "name": "volume-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "-p",
+        "volume-core"
+      ],
+      "exit": 0,
+      "seconds": 25.546,
+      "log": "build/stack133/logs/volume-test.log",
+      "sha256": "f45181e932d8f97aae001b1efe021fbc1c3b4cd6a792e713ddd1304de0de1c0b"
+    },
+    {
+      "name": "sdk-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 2.814,
+      "log": "build/stack133/logs/sdk-test.log",
+      "sha256": "d964d69cb5dc31f9101f506436660ece1939429bae458e2f09ba4fb13995a1ab"
+    },
+    {
+      "name": "document-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/document-session/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 0.287,
+      "log": "build/stack133/logs/document-test.log",
+      "sha256": "27bd8771baca831e682b7485549cd64c96e83020902fa6f6a8500c01df962646"
+    },
+    {
+      "name": "materiaal-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 4.207,
+      "log": "build/stack133/logs/materiaal-test.log",
+      "sha256": "26b43b15419231df86519b1379b585f3629359d5d5982d1acb398507eafd8695"
+    },
+    {
+      "name": "python-volume",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_volume_*.py"
+      ],
+      "exit": 0,
+      "seconds": 1.075,
+      "log": "build/stack133/logs/python-volume.log",
+      "sha256": "b8576c03863ffc641f557160ff90d20f66b3c11c5927dc5a26b63514e2e6016f"
+    },
+    {
+      "name": "python-images",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_images_*.py"
+      ],
+      "exit": 5,
+      "seconds": 0.034,
+      "log": "build/stack133/logs/python-images.log",
+      "sha256": "e70fec2825d9bf206d27463a792768195039599cb39bcca66339f47283f84cce"
+    },
+    {
+      "name": "python-random",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_random_*.py"
+      ],
+      "exit": 5,
+      "seconds": 0.032,
+      "log": "build/stack133/logs/python-random.log",
+      "sha256": "e70fec2825d9bf206d27463a792768195039599cb39bcca66339f47283f84cce"
+    },
+    {
+      "name": "python-system",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_system_*.py"
+      ],
+      "exit": 0,
+      "seconds": 2.341,
+      "log": "build/stack133/logs/python-system.log",
+      "sha256": "6d5b050e3bbd6ada87fbe61731243f00e55301849aca9864a31d84b1c8c9ca5a"
+    },
+    {
+      "name": "python-materiaal",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_materiaal*.py"
+      ],
+      "exit": 5,
+      "seconds": 0.031,
+      "log": "build/stack133/logs/python-materiaal.log",
+      "sha256": "e70fec2825d9bf206d27463a792768195039599cb39bcca66339f47283f84cce"
+    },
+    {
+      "name": "window-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 35.67,
+      "log": "build/stack133/logs/window-test.log",
+      "sha256": "2a6f4a3cccf0b7d3200987c717c1168ce5889af36861d12a709420acc46c27e1"
+    },
+    {
+      "name": "native-ui-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/native/Cargo.toml"
+      ],
+      "exit": 101,
+      "seconds": 7.609,
+      "log": "build/stack133/logs/native-ui-test.log",
+      "sha256": "27182e1a5cb13a597ecdc09ce7ea09fe3fbbb98d500bc79130acd84d08b04212"
+    },
+    {
+      "name": "surface-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--features",
+        "client"
+      ],
+      "exit": 0,
+      "seconds": 0.98,
+      "log": "build/stack133/logs/surface-test.log",
+      "sha256": "dfa25d284827952118b242d2a4965317af54ddb94b8a36b2cd2dbaab045b6aa1"
+    },
+    {
+      "name": "root-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.536,
+      "log": "build/stack133/logs/root-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "volume-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "-p",
+        "volume-core",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.822,
+      "log": "build/stack133/logs/volume-clippy.log",
+      "sha256": "d53a104bc7b6297d510053c04cdee574f3585f35876edf78624824671430e554"
+    },
+    {
+      "name": "sdk-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.532,
+      "log": "build/stack133/logs/sdk-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "sdk-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 2.09,
+      "log": "build/stack133/logs/sdk-clippy.log",
+      "sha256": "d50304fe6e0faae400154ecff53256a337495c84c0f6b5cc8d3ffc1e9c26d08e"
+    },
+    {
+      "name": "document-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "sdk/document-session/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.514,
+      "log": "build/stack133/logs/document-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "document-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/document-session/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.196,
+      "log": "build/stack133/logs/document-clippy.log",
+      "sha256": "fecede7c2157efe2f16c8c8b9dce94b0fb4dd384dca8207046c8bf7636eb0ffe"
+    },
+    {
+      "name": "materiaal-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.902,
+      "log": "build/stack133/logs/materiaal-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "materiaal-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 2.025,
+      "log": "build/stack133/logs/materiaal-clippy.log",
+      "sha256": "08f6f76e9f3de973230c718c067b4c5ee1936446596dc058660cd531235f7365"
+    },
+    {
+      "name": "volume-native",
+      "command": [
+        "cargo",
+        "check",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-volume-docs-example",
+        "--features",
+        "native",
+        "--bins",
+        "--target",
+        "x86_64-unknown-none"
+      ],
+      "exit": 0,
+      "seconds": 0.693,
+      "log": "build/stack133/logs/volume-native.log",
+      "sha256": "600edcd5efe1c34b25e54404820423ebb96b442ecaaf7fbbb6c3b4f3284679d5"
+    },
+    {
+      "name": "volume-native-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-volume-docs-example",
+        "--features",
+        "native",
+        "--bins",
+        "--target",
+        "x86_64-unknown-none",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.434,
+      "log": "build/stack133/logs/volume-native-clippy.log",
+      "sha256": "ea7c213f1de782da5e7dbc9cdb3b1219f36b70f02d14ec30f5a74edbd20c48ad"
+    },
+    {
+      "name": "materiaal-native",
+      "command": [
+        "cargo",
+        "check",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml",
+        "--features",
+        "native",
+        "--bins",
+        "--target",
+        "x86_64-unknown-none"
+      ],
+      "exit": 0,
+      "seconds": 2.049,
+      "log": "build/stack133/logs/materiaal-native.log",
+      "sha256": "8d9aa2e4e0c2068b83609463e41b5274bdbaf77b7aeb73c01c2d009ef2c1aba8"
+    },
+    {
+      "name": "materiaal-native-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml",
+        "--features",
+        "native",
+        "--bins",
+        "--target",
+        "x86_64-unknown-none",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.395,
+      "log": "build/stack133/logs/materiaal-native-clippy.log",
+      "sha256": "183ee38d7ddde96876de8befac2d9f673ac8729de6cfa7c11964ea05c784fa9d"
+    },
+    {
+      "name": "window-native",
+      "command": [
+        "cargo",
+        "check",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--features",
+        "native,fault-injection,session-preview",
+        "--bins",
+        "--target",
+        "x86_64-unknown-none"
+      ],
+      "exit": 0,
+      "seconds": 0.892,
+      "log": "build/stack133/logs/window-native.log",
+      "sha256": "be2fb1891f45fb4d9ba977d0aa0a3182b6fdfc1fbccd7d24a6446583bb5ae2d7"
+    },
+    {
+      "name": "window-native-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--features",
+        "native,fault-injection,session-preview",
+        "--bins",
+        "--target",
+        "x86_64-unknown-none",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.572,
+      "log": "build/stack133/logs/window-native-clippy.log",
+      "sha256": "0e92214ce24cbd8d9fa8f1b0b23142309b027e727dd7101443b6dfc2dceec555"
+    },
+    {
+      "name": "native-window-build",
+      "command": [
+        "python3",
+        "-B",
+        "-u",
+        "tools/build.py",
+        "--kernel-feature",
+        "native-window-session-probe"
+      ],
+      "environment": {
+        "NOS_BUILD_DIR": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr133-stack/build/stack133/native-probe",
+        "NOS_TARGET_DIR": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr133-stack/target/stack133-full-native",
+        "CARGO_TARGET_DIR": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr133-stack/target/stack133-build-host",
+        "CARGO_NET_OFFLINE": "true",
+        "RUSTUP_HOME": "/home/simon/.rustup"
+      },
+      "exit": 0,
+      "seconds": 14.622,
+      "log": "build/stack133/logs/native-window-build.log",
+      "sha256": "fc30868f66ee7b7337b92d290cc8fde1602330b298ac8b63a2a6847c1b2ecf5c"
+    }
+  ],
+  "initial_attempts_explanation": [
+    "Drie verkeerde testselectoren zochten tools-tests onder tests en vonden nul tests (exit5). Dit zijn geen passes; de correcte gecombineerde tools-oraclesuite slaagt daarna met86tests.",
+    "De eerste native-UI-suite vond de gekoppelde rawzero-fixturefout (exit101). Na expliciete gen0-fixture-init slagen alle81UI-tests.",
+    "De eerste volledige windowbuild slaagde maar is na de laatste bronwijziging opnieuw uitgevoerd: alleen de final-buildmanifesten zijn aan de uiteindelijke source-v3 gebonden."
+  ],
+  "exploratory_check_without_retained_log": {
+    "command": [
+      "python3",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests",
+      "-p",
+      "test_volume_admission_runner.py",
+      "-v"
+    ],
+    "exit": 1,
+    "reason": "Tijdens schrijven van de nieuwe test was de verwachte archivehash nog een placeholder. Vervangen door de gemeten hash van de onveranderde frozen133-runner; de volledige11hosttests slagen daarna binnen de42volume-tests.",
+    "log": null,
+    "evidence_limit": "Tooltranscript, geen opgeslagen log/hash. Geen productvalidatie of nativeclaim aan deze poging verbinden."
+  },
+  "actual_native_builds": [
+    {
+      "profile": "native-window-session-probe",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc",
+      "manifest": {
+        "path": "build/stack133/native-probe/manifest.json",
+        "sha256": "28afea71b527b420f8819bcf6e2da4a72fd25ede145abf69a731badaaa1dc6f2",
+        "bytes": 13137
+      },
+      "kernel": {
+        "path": "build/stack133/native-probe/esp/kernel.elf",
+        "sha256": "5e3c3e5543d455fa7af4c616319fe552399cd66f37c22861ea052ab19ac34467",
+        "bytes": 3604744
+      },
+      "loader": {
+        "path": "build/stack133/native-probe/esp/EFI/BOOT/BOOTX64.EFI",
+        "sha256": "4a6fdcee17fcb045f2f722099071f3d03876f95eb4534d7cdb544b9b4c6bbeb8",
+        "bytes": 31744
+      },
+      "kernel_load_segments": 3,
+      "native_runtime_performed": false,
+      "apps": [
+        {
+          "name": "keyring-service",
+          "sha256": "3b1afe91b258493836421755670f2519fd29b1702f896664ca7bbe62f923adb1",
+          "load_segments": 4,
+          "load_pages": 23,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1344,
+              "memsz": 1344,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 3569,
+              "memsz": 3569,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 78359,
+              "memsz": 78359,
+              "page_start": 1073872896,
+              "page_end": 1073954816
+            }
+          ]
+        },
+        {
+          "name": "volume-service",
+          "sha256": "69cf8c12e52f5aafa47e8fe7f9ffaebc2206ddfb2078bb01ebd2cdf5967995fc",
+          "load_segments": 3,
+          "load_pages": 24,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 58002,
+              "memsz": 58002,
+              "page_start": 1073741824,
+              "page_end": 1073803264
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 65536,
+              "filesz": 1304,
+              "memsz": 1304,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 69632,
+              "filesz": 30730,
+              "memsz": 30730,
+              "page_start": 1073823744,
+              "page_end": 1073856512
+            }
+          ]
+        },
+        {
+          "name": "materiaal-app",
+          "sha256": "82a246ce962b508f224d8a6417f1ca376b3d749d92567bf0e1fdc491b255f597",
+          "load_segments": 5,
+          "load_pages": 158,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 19,
+              "memsz": 19,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1024,
+              "memsz": 1024,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 292040,
+              "memsz": 292040,
+              "page_start": 1073872896,
+              "page_end": 1074167808
+            },
+            {
+              "flags": 6,
+              "address": 1074462720,
+              "offset": 307200,
+              "filesz": 200,
+              "memsz": 200704,
+              "page_start": 1074462720,
+              "page_end": 1074663424
+            },
+            {
+              "flags": 5,
+              "address": 1074724864,
+              "offset": 311296,
+              "filesz": 140585,
+              "memsz": 140585,
+              "page_start": 1074724864,
+              "page_end": 1074868224
+            }
+          ]
+        },
+        {
+          "name": "input-source",
+          "sha256": "f781d62082610d1d1f50b13acf9609e032f8d5298272170738392b41c063f398",
+          "load_segments": 4,
+          "load_pages": 6,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1200,
+              "memsz": 1200,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 754,
+              "memsz": 754,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            },
+            {
+              "flags": 5,
+              "address": 1074003968,
+              "offset": 16384,
+              "filesz": 12263,
+              "memsz": 12263,
+              "page_start": 1074003968,
+              "page_end": 1074016256
+            }
+          ]
+        },
+        {
+          "name": "input-policy",
+          "sha256": "40f2f86454c1867eafed090a967bf3207ce158e6c678c6769135e319885afcd5",
+          "load_segments": 4,
+          "load_pages": 9,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1200,
+              "memsz": 1200,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 2522,
+              "memsz": 2522,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            },
+            {
+              "flags": 5,
+              "address": 1074003968,
+              "offset": 16384,
+              "filesz": 21575,
+              "memsz": 21575,
+              "page_start": 1074003968,
+              "page_end": 1074028544
+            }
+          ]
+        },
+        {
+          "name": "window-init",
+          "sha256": "9cd828da2a21de459ce7c5ec69d0f9b865d2668fdd8ddc59dcd88d07cf388209",
+          "load_segments": 5,
+          "load_pages": 7,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1024,
+              "memsz": 1024,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 799,
+              "memsz": 799,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            },
+            {
+              "flags": 6,
+              "address": 1074790400,
+              "offset": 16384,
+              "filesz": 72,
+              "memsz": 72,
+              "page_start": 1074790400,
+              "page_end": 1074794496
+            },
+            {
+              "flags": 5,
+              "address": 1090519040,
+              "offset": 20480,
+              "filesz": 9799,
+              "memsz": 9799,
+              "page_start": 1090519040,
+              "page_end": 1090531328
+            }
+          ]
+        },
+        {
+          "name": "window-compositor",
+          "sha256": "1eae5a43f4e9dbd56881a2844ed08676b767059d276b0d1585eee6187cf9d504",
+          "load_segments": 5,
+          "load_pages": 1459,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1024,
+              "memsz": 1024,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 286680,
+              "memsz": 286680,
+              "page_start": 1073872896,
+              "page_end": 1074159616
+            },
+            {
+              "flags": 6,
+              "address": 1074790400,
+              "offset": 299008,
+              "filesz": 184,
+              "memsz": 5600184,
+              "page_start": 1074790400,
+              "page_end": 1080393728
+            },
+            {
+              "flags": 5,
+              "address": 1090519040,
+              "offset": 303104,
+              "filesz": 75785,
+              "memsz": 75785,
+              "page_start": 1090519040,
+              "page_end": 1090596864
+            }
+          ]
+        },
+        {
+          "name": "calculator-app",
+          "sha256": "c241402029156d712b700f601932edef0f7131e4ea4b16dbddfdb2749d261c2a",
+          "load_segments": 5,
+          "load_pages": 92,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 19,
+              "memsz": 19,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1024,
+              "memsz": 1024,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 285128,
+              "memsz": 285128,
+              "page_start": 1073872896,
+              "page_end": 1074159616
+            },
+            {
+              "flags": 6,
+              "address": 1074790400,
+              "offset": 299008,
+              "filesz": 208,
+              "memsz": 208,
+              "page_start": 1074790400,
+              "page_end": 1074794496
+            },
+            {
+              "flags": 5,
+              "address": 1075052544,
+              "offset": 303104,
+              "filesz": 77398,
+              "memsz": 77398,
+              "page_start": 1075052544,
+              "page_end": 1075130368
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "profile": "native-volume",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc",
+      "manifest": {
+        "path": "build/stack133/native-volume/manifest.json",
+        "sha256": "ca651ac81f32c42db118b7a5deb066e15f07e3b0665526ce578febd613ec931c",
+        "bytes": 3788
+      },
+      "kernel": {
+        "path": "build/stack133/native-volume/esp/kernel.elf",
+        "sha256": "adb2abc5f173bb8b96d329a3e5eb26ea4e2c66ab168281446f55426eaec07f7d",
+        "bytes": 2064752
+      },
+      "loader": {
+        "path": "build/stack133/native-volume/esp/EFI/BOOT/BOOTX64.EFI",
+        "sha256": "75a6a63f6b7dde80a8dec5b41e3c294acbbfcec35c1aa4dd46a31b6e20294425",
+        "bytes": 28672
+      },
+      "kernel_load_segments": 3,
+      "native_runtime_performed": false,
+      "volume_docs": {
+        "app_sha256": "1d6d96a3c0ff8fd24fe757bd3e7d90b2b75210e2b38bad1ef1a7b44dfbb212b5",
+        "app_elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 37714,
+              "memsz": 37714,
+              "page_start": 1073741824,
+              "page_end": 1073782784
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 45056,
+              "filesz": 1248,
+              "memsz": 1248,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 49152,
+              "filesz": 3456,
+              "memsz": 3456,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            }
+          ]
+        },
+        "service_sha256": "69cf8c12e52f5aafa47e8fe7f9ffaebc2206ddfb2078bb01ebd2cdf5967995fc",
+        "service_elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 58002,
+              "memsz": 58002,
+              "page_start": 1073741824,
+              "page_end": 1073803264
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 65536,
+              "filesz": 1304,
+              "memsz": 1304,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 69632,
+              "filesz": 30730,
+              "memsz": 30730,
+              "page_start": 1073823744,
+              "page_end": 1073856512
+            }
+          ]
+        }
+      }
+    },
+    {
+      "profile": "test-volume-recover",
+      "source_sha256": "90fe77e0d0add034d48ca52e9cd3d288381f11f8f227c52446d0207e0664d4dc",
+      "manifest": {
+        "path": "build/stack133/native-volume-recover/manifest.json",
+        "sha256": "28273d30420bb99df284dd054c0653ad3339e6e3eed23c0424aae343e76af0a6",
+        "bytes": 3800
+      },
+      "kernel": {
+        "path": "build/stack133/native-volume-recover/esp/kernel.elf",
+        "sha256": "98b8e16a8b62c1eeeb9d83ed318e2ba6ed3d9f4c611285311797b17688b3632d",
+        "bytes": 2064744
+      },
+      "loader": {
+        "path": "build/stack133/native-volume-recover/esp/EFI/BOOT/BOOTX64.EFI",
+        "sha256": "75a6a63f6b7dde80a8dec5b41e3c294acbbfcec35c1aa4dd46a31b6e20294425",
+        "bytes": 28672
+      },
+      "kernel_load_segments": 3,
+      "native_runtime_performed": false,
+      "volume_docs": {
+        "app_sha256": "1d6d96a3c0ff8fd24fe757bd3e7d90b2b75210e2b38bad1ef1a7b44dfbb212b5",
+        "app_elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 37714,
+              "memsz": 37714,
+              "page_start": 1073741824,
+              "page_end": 1073782784
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 45056,
+              "filesz": 1248,
+              "memsz": 1248,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 49152,
+              "filesz": 3456,
+              "memsz": 3456,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            }
+          ]
+        },
+        "service_sha256": "69cf8c12e52f5aafa47e8fe7f9ffaebc2206ddfb2078bb01ebd2cdf5967995fc",
+        "service_elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 58002,
+              "memsz": 58002,
+              "page_start": 1073741824,
+              "page_end": 1073803264
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 65536,
+              "filesz": 1304,
+              "memsz": 1304,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 69632,
+              "filesz": 30730,
+              "memsz": 30730,
+              "page_start": 1073823744,
+              "page_end": 1073856512
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "test_count_boundary": "Aantallen per commando staan bij final_checks. SDK- en document-session-selectors overlappen; ze zijn niet opgeteld als unieke tests.",
+  "assumptions_and_risks": [
+    "Canoniek sealed-gen0 is positieve formaatidentiteit, geen cryptografische authenticatie. Geen nieuw wireformaat, capability, blokrecht of runtimeformatteeractie.",
+    "De NAS-/sessiegrenzen blijven die van72b6; guest blijft expliciet ongeauthenticeerd. Lock is geen sleutel-/opslagintrekking.",
+    "De bestaande eigen kernel en alle bestaande W^X-, geheugen-, segment- en sendbudgetten zijn niet verruimd.",
+    "De nieuwe CI-matrix is syntactisch en als onverzwakte hostrunner gecontroleerd, niet op GitHub uitgevoerd. Artifactualevering is expliciet nog te provisioneren/bevestigen door parent.",
+    "Historische native bestanden beschrijven94f12da, niet899c595f of de latere publicatiehead. Verse10+9VM- en volledige desktop-/library-/clipboard-/netwerkgates blijven vereist.",
+    "Geen fysieke disks, mounts, QPU, echte hardware, externe providers, privacyrechten of credentials gebruikt."
+  ],
+  "github_mutations": false,
+  "rollback": "Parent kan deze lokale integratie ongepubliceerd laten. Bij latere rollback moeten volume-core en alle sealed-gen0-fixturemakers/validators samen terug; geen bestaande gecommitte volumes herformatteren."
 }
