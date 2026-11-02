@@ -1,0 +1,18 @@
+[package]
+name = "nieuw-os-network-service"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.91"
+publish = false
+[workspace]
+exclude = ["protocol"]
+resolver = "3"
+[dependencies]
+nieuw-os-net-stack = { path = "../net-stack" }
+nieuw-os-net-protocol = { path = "../net-protocol" }
+nieuw-os-network-protocol = { path = "protocol" }
+[profile.release]
+panic = "abort"
+opt-level = "s"
+codegen-units = 1
+lto = false
