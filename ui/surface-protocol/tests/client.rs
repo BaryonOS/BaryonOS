@@ -357,6 +357,30 @@ fn preflight_impl() {
     assert_eq!(host.borrow().published.len(), before);
     assert!(!client.is_closed());
 }
+fn sparse_impl() {
+    let host = Host::new();
+    let mut client = session(&host);
+    let g = client.geometry().unwrap();
+    let tile = |index: u64| {
+        let r = g.rectangle(index).unwrap();
+        (r, vec![0; r.bytes()])
+    };
+    for index in 0..g.tiles() {
+        let (r, pixels) = tile(index);
+        client.blit(1, index, r, &pixels).unwrap();
+    }
+    let last = g.tiles() - 1;
+    let (r, pixels) = tile(5);
+    client.blit(2, 5, r, &pixels).unwrap();
+    let before = host.borrow().published.len();
+    let (r, pixels) = tile(3);
+    assert_eq!(client.blit(2, 3, r, &pixels), Err(ClientError::InvalidTile));
+    assert_eq!(host.borrow().published.len(), before);
+    let (r, pixels) = tile(last);
+    client.blit(2, last, r, &pixels).unwrap();
+    assert_eq!(host.borrow().blits as u64, g.tiles() + 2);
+    assert_eq!(host.borrow().receiver.completed_frame(), Some(2));
+}
 macro_rules! scenario {
     ($name:ident,$body:ident) => {
         #[test]
@@ -389,4 +413,8 @@ scenario!(
 scenario!(
     invalid_grid_and_noncanonical_pixels_fail_before_any_send,
     preflight_impl
+);
+scenario!(
+    sparse_frames_follow_one_complete_frame_and_never_go_back,
+    sparse_impl
 );

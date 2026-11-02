@@ -1,0 +1,663 @@
+{
+  "schema_version": 1,
+  "passed": false,
+  "scope": "partial native GUI/input/document chain on generated plaintext fixture; not full Materiaal, encrypted durable storage, release or physical hardware acceptance",
+  "case": "normal",
+  "source_sha256": "9add25cdb2dfc4cbaa33d729a06a5326d99fcfd3473963073219e5dcbac0619d",
+  "source_fingerprint_version": 3,
+  "kernel_feature": "native-system-materiaal-probe",
+  "source_commit": "e08fb0e48c1bb0781e98357f588c2f73b6ae8500",
+  "run_directory": "/tmp/claude-0/-home-user-nieuw-os/f1d54dc6-2bc8-515a-ad81-b6595b1fc490/scratchpad/wt-main/build/probe-main/run/materiaal-normal-dd026bf469",
+  "build_directory": "/tmp/claude-0/-home-user-nieuw-os/f1d54dc6-2bc8-515a-ad81-b6595b1fc490/scratchpad/wt-main/build/probe-main",
+  "cwd": "/tmp/claude-0/-home-user-nieuw-os/f1d54dc6-2bc8-515a-ad81-b6595b1fc490/scratchpad/wt-main/build/probe-main/run/materiaal-normal-dd026bf469",
+  "command": [
+    "/usr/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "file:serial.txt",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-device",
+    "VGA,vgamem_mb=16,romfile=VGA.rom",
+    "-qmp",
+    "stdio",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04"
+  ],
+  "qemu_entry_path": "/usr/bin/qemu-system-x86_64",
+  "qemu_entry_sha256": "8a35ccba41582fc6c38b9df85fc9e35fa1d42f414d2d7d8090ee9b2f5e7c0854",
+  "machine": "pc-q35-8.2",
+  "qmp_transport": "pipe",
+  "profile": "pc-q35-8.2/qemu64/TCG/1CPU/256MiB/VGA/PS2",
+  "qemu_version": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)\nCopyright (c) 2003-2023 Fabrice Bellard and the QEMU Project developers",
+  "frozen_artifacts": {
+    "OVMF_CODE.fd": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "VGA.rom": "4eecd8e752efc02c6c0fe87eb92bf66934cb9ea67b0e1bc41e86f8430c8bf8a0",
+    "esp/kernel.elf": "4304cb46993068b706c0b6af8cab8ea7294483c4f438e9fc41cc64d55cad2493",
+    "esp/EFI/BOOT/BOOTX64.EFI": "8459aed668ee77faaff564a23368af21e718329394a71a8365225240027f3277",
+    "inputs/desktop-init.elf": "7917c33c9f0e8de39c043e61a56137de20e1d7334bd2de5b9aee4106ae15eea5",
+    "inputs/keyring-service.elf": "e2de78cef4955f77c535946c30bfef1c32c02e53950094682ae08cd4fd2defdf",
+    "inputs/volume-service.elf": "ecb1c3980029b9545e35dc9703df01851e126f3b146f5110309b2e24b6be9848",
+    "inputs/materiaal-app.elf": "2e77491037d2d10324fee4aaacab689b1889b590aea69aadb3544a7209d0ed43",
+    "inputs/native-compositor.elf": "7d22e70f6b834dd30c6b4c56617824e39f4b7f0d576aa218322d36f4f31776a6",
+    "inputs/input-source.elf": "16427bd9374223265fb203b649c16ad892fc6a872fe4f287134bee2de76f9b00",
+    "inputs/input-policy.elf": "c970fc262d059cb1f3d932b963deed742b4f2781082909c3afbf2518159d53b4",
+    "inputs/desktop-controller.elf": "886d7c7959b60b078340e0d07b8962b8095ae653e72f0d2c4748a3c20fa5184f",
+    "inputs/manifest.json": "909ae3012e0aacaf0588ecc07b53ea4394765f52911d6bbbf8a4534b7b2378b4",
+    "inputs/build-report.json": "1986e06746d62217622a78f8f8d7355dd2ea99b6aae94155db2a2d2923415a0d"
+  },
+  "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+  "raw_qemu_exit": 35,
+  "timed_out": true,
+  "timeout_s": 240,
+  "parent_run": null,
+  "stages": [
+    {
+      "phase": "ready",
+      "snapshot": {
+        "READY": 1,
+        "PRESENTED_GEN": 2,
+        "FRAMES": 1,
+        "TILES": 1608,
+        "KEYS": 0,
+        "MOUSE": 0,
+        "INPUT_ACKS": 0,
+        "SAVE_ACKS": 0,
+        "SAVED_REVISION": 0,
+        "SAVED_BYTES": 0,
+        "SAVED_SUM": 0,
+        "SCREEN": 1,
+        "DRAFT_DIRTY": 0,
+        "DRAFT_BYTES": 0,
+        "DRAFT_SUM": 0,
+        "OBJECT": 18446744073709551615,
+        "SCALE": 1,
+        "ERRORS": 0
+      },
+      "serial_size": 1206,
+      "serial_sha256": "8f9069be04aeffca1da0043b52945efcd98b2254702ae045bf507aaead0f5107",
+      "qmp_index": 2
+    },
+    {
+      "phase": "editor",
+      "snapshot": {
+        "READY": 1,
+        "PRESENTED_GEN": 7,
+        "FRAMES": 2,
+        "TILES": 3221,
+        "KEYS": 0,
+        "MOUSE": 4,
+        "INPUT_ACKS": 4,
+        "SAVE_ACKS": 0,
+        "SAVED_REVISION": 0,
+        "SAVED_BYTES": 0,
+        "SAVED_SUM": 0,
+        "SCREEN": 2,
+        "DRAFT_DIRTY": 1,
+        "DRAFT_BYTES": 0,
+        "DRAFT_SUM": 14695981039346656037,
+        "OBJECT": 0,
+        "SCALE": 1,
+        "ERRORS": 0
+      },
+      "serial_size": 1975,
+      "serial_sha256": "8c92f464f36457e4b62fea6375d55466339d6ebce12add575ece4e79f42cb737",
+      "qmp_index": 7
+    },
+    {
+      "phase": "dirty",
+      "snapshot": {
+        "READY": 1,
+        "PRESENTED_GEN": 21,
+        "FRAMES": 3,
+        "TILES": 4840,
+        "KEYS": 28,
+        "MOUSE": 4,
+        "INPUT_ACKS": 32,
+        "SAVE_ACKS": 0,
+        "SAVED_REVISION": 0,
+        "SAVED_BYTES": 0,
+        "SAVED_SUM": 0,
+        "SCREEN": 2,
+        "DRAFT_DIRTY": 1,
+        "DRAFT_BYTES": 14,
+        "DRAFT_SUM": 2786778974461010050,
+        "OBJECT": 0,
+        "SCALE": 1,
+        "ERRORS": 0
+      },
+      "serial_size": 2744,
+      "serial_sha256": "610e76f597aa0e55544dedddbbef059930379f805f245499454e2fea6ab274a3",
+      "qmp_index": 22
+    }
+  ],
+  "checks": {},
+  "visual_quality_acceptance": false,
+  "qemu_implementation_path": "/usr/bin/qemu-system-x86_64",
+  "qemu_implementation_sha256": "8a35ccba41582fc6c38b9df85fc9e35fa1d42f414d2d7d8090ee9b2f5e7c0854",
+  "error": "ValueError: Unknown native record: MATERIAAL:TIMEOUT_SLOT:00000000000000000000",
+  "guest_timeout": true,
+  "guest_diagnostics": {
+    "guest_timeout": true,
+    "guest_failure": true,
+    "slots": [
+      {
+        "slot": 0,
+        "words": [
+          {
+            "offset": 40,
+            "value": 1
+          },
+          {
+            "offset": 192,
+            "value": 0
+          },
+          {
+            "offset": 240,
+            "value": 0
+          },
+          {
+            "offset": 400,
+            "value": 1
+          },
+          {
+            "offset": 408,
+            "value": 1
+          },
+          {
+            "offset": 416,
+            "value": 1
+          },
+          {
+            "offset": 424,
+            "value": 1
+          },
+          {
+            "offset": 432,
+            "value": 1
+          },
+          {
+            "offset": 440,
+            "value": 1
+          },
+          {
+            "offset": 472,
+            "value": 0
+          },
+          {
+            "offset": 480,
+            "value": 3
+          },
+          {
+            "offset": 488,
+            "value": 0
+          },
+          {
+            "offset": 496,
+            "value": 0
+          }
+        ]
+      },
+      {
+        "slot": 1,
+        "words": [
+          {
+            "offset": 40,
+            "value": 0
+          },
+          {
+            "offset": 192,
+            "value": 1
+          },
+          {
+            "offset": 240,
+            "value": 0
+          },
+          {
+            "offset": 400,
+            "value": 0
+          },
+          {
+            "offset": 408,
+            "value": 0
+          },
+          {
+            "offset": 416,
+            "value": 0
+          },
+          {
+            "offset": 424,
+            "value": 0
+          },
+          {
+            "offset": 432,
+            "value": 0
+          },
+          {
+            "offset": 440,
+            "value": 0
+          },
+          {
+            "offset": 472,
+            "value": 0
+          },
+          {
+            "offset": 480,
+            "value": 0
+          },
+          {
+            "offset": 488,
+            "value": 0
+          },
+          {
+            "offset": 496,
+            "value": 0
+          }
+        ]
+      },
+      {
+        "slot": 2,
+        "words": [
+          {
+            "offset": 40,
+            "value": 0
+          },
+          {
+            "offset": 192,
+            "value": 1
+          },
+          {
+            "offset": 240,
+            "value": 0
+          },
+          {
+            "offset": 400,
+            "value": 0
+          },
+          {
+            "offset": 408,
+            "value": 0
+          },
+          {
+            "offset": 416,
+            "value": 0
+          },
+          {
+            "offset": 424,
+            "value": 0
+          },
+          {
+            "offset": 432,
+            "value": 0
+          },
+          {
+            "offset": 440,
+            "value": 0
+          },
+          {
+            "offset": 472,
+            "value": 0
+          },
+          {
+            "offset": 480,
+            "value": 0
+          },
+          {
+            "offset": 488,
+            "value": 0
+          },
+          {
+            "offset": 496,
+            "value": 0
+          }
+        ]
+      },
+      {
+        "slot": 3,
+        "words": [
+          {
+            "offset": 40,
+            "value": 0
+          },
+          {
+            "offset": 192,
+            "value": 0
+          },
+          {
+            "offset": 240,
+            "value": 0
+          },
+          {
+            "offset": 400,
+            "value": 0
+          },
+          {
+            "offset": 408,
+            "value": 3
+          },
+          {
+            "offset": 416,
+            "value": 5414
+          },
+          {
+            "offset": 424,
+            "value": 32
+          },
+          {
+            "offset": 432,
+            "value": 4
+          },
+          {
+            "offset": 440,
+            "value": 1
+          },
+          {
+            "offset": 472,
+            "value": 0
+          },
+          {
+            "offset": 480,
+            "value": 1
+          },
+          {
+            "offset": 488,
+            "value": 0
+          },
+          {
+            "offset": 496,
+            "value": 0
+          }
+        ]
+      },
+      {
+        "slot": 4,
+        "words": [
+          {
+            "offset": 40,
+            "value": 1
+          },
+          {
+            "offset": 192,
+            "value": 0
+          },
+          {
+            "offset": 240,
+            "value": 0
+          },
+          {
+            "offset": 400,
+            "value": 670
+          },
+          {
+            "offset": 408,
+            "value": 37899
+          },
+          {
+            "offset": 416,
+            "value": 5414
+          },
+          {
+            "offset": 424,
+            "value": 1385984
+          },
+          {
+            "offset": 432,
+            "value": 0
+          },
+          {
+            "offset": 440,
+            "value": 0
+          },
+          {
+            "offset": 472,
+            "value": 1
+          },
+          {
+            "offset": 480,
+            "value": 1
+          },
+          {
+            "offset": 488,
+            "value": 0
+          },
+          {
+            "offset": 496,
+            "value": 1608
+          }
+        ]
+      },
+      {
+        "slot": 5,
+        "words": [
+          {
+            "offset": 40,
+            "value": 1
+          },
+          {
+            "offset": 192,
+            "value": 0
+          },
+          {
+            "offset": 240,
+            "value": 0
+          },
+          {
+            "offset": 400,
+            "value": 1
+          },
+          {
+            "offset": 408,
+            "value": 1
+          },
+          {
+            "offset": 416,
+            "value": 1
+          },
+          {
+            "offset": 424,
+            "value": 44
+          },
+          {
+            "offset": 432,
+            "value": 44
+          },
+          {
+            "offset": 440,
+            "value": 0
+          },
+          {
+            "offset": 472,
+            "value": 0
+          },
+          {
+            "offset": 480,
+            "value": 19999
+          },
+          {
+            "offset": 488,
+            "value": 0
+          },
+          {
+            "offset": 496,
+            "value": 0
+          }
+        ]
+      },
+      {
+        "slot": 6,
+        "words": [
+          {
+            "offset": 40,
+            "value": 1
+          },
+          {
+            "offset": 192,
+            "value": 0
+          },
+          {
+            "offset": 240,
+            "value": 0
+          },
+          {
+            "offset": 400,
+            "value": 5539
+          },
+          {
+            "offset": 408,
+            "value": 5539
+          },
+          {
+            "offset": 416,
+            "value": 0
+          },
+          {
+            "offset": 424,
+            "value": 0
+          },
+          {
+            "offset": 432,
+            "value": 0
+          },
+          {
+            "offset": 440,
+            "value": 5539
+          },
+          {
+            "offset": 472,
+            "value": 1
+          },
+          {
+            "offset": 480,
+            "value": 0
+          },
+          {
+            "offset": 488,
+            "value": 0
+          },
+          {
+            "offset": 496,
+            "value": 0
+          }
+        ]
+      },
+      {
+        "slot": 7,
+        "words": [
+          {
+            "offset": 40,
+            "value": 1
+          },
+          {
+            "offset": 192,
+            "value": 0
+          },
+          {
+            "offset": 240,
+            "value": 0
+          },
+          {
+            "offset": 400,
+            "value": 0
+          },
+          {
+            "offset": 408,
+            "value": 0
+          },
+          {
+            "offset": 416,
+            "value": 0
+          },
+          {
+            "offset": 424,
+            "value": 0
+          },
+          {
+            "offset": 432,
+            "value": 0
+          },
+          {
+            "offset": 440,
+            "value": 3
+          },
+          {
+            "offset": 472,
+            "value": 0
+          },
+          {
+            "offset": 480,
+            "value": 0
+          },
+          {
+            "offset": 488,
+            "value": 0
+          },
+          {
+            "offset": 496,
+            "value": 0
+          }
+        ]
+      }
+    ]
+  },
+  "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x2,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x2,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nMATERIAAL:MANIFEST:PASS\nMATERIAAL:POLICY:READY\nMATERIAAL:SOURCE:READY\nMATERIAAL:COMPOSITOR:READY\nMATERIAAL:FOCUS:READY\nMATERIAAL:SNAPSHOT:BEGIN\nMATERIAAL:READY:00000000000000000001\nMATERIAAL:PRESENTED_GEN:00000000000000000002\nMATERIAAL:FRAMES:00000000000000000001\nMATERIAAL:TILES:00000000000000001608\nMATERIAAL:KEYS:00000000000000000000\nMATERIAAL:MOUSE:00000000000000000000\nMATERIAAL:INPUT_ACKS:00000000000000000000\nMATERIAAL:SAVE_ACKS:00000000000000000000\nMATERIAAL:SAVED_REVISION:00000000000000000000\nMATERIAAL:SAVED_BYTES:00000000000000000000\nMATERIAAL:SAVED_SUM:00000000000000000000\nMATERIAAL:SCREEN:00000000000000000001\nMATERIAAL:DRAFT_DIRTY:00000000000000000000\nMATERIAAL:DRAFT_BYTES:00000000000000000000\nMATERIAAL:DRAFT_SUM:00000000000000000000\nMATERIAAL:OBJECT:18446744073709551615\nMATERIAAL:SCALE:00000000000000000001\nMATERIAAL:ERRORS:00000000000000000000\nMATERIAAL:SNAPSHOT:END\nMATERIAAL:SNAPSHOT:BEGIN\nMATERIAAL:READY:00000000000000000001\nMATERIAAL:PRESENTED_GEN:00000000000000000007\nMATERIAAL:FRAMES:00000000000000000002\nMATERIAAL:TILES:00000000000000003221\nMATERIAAL:KEYS:00000000000000000000\nMATERIAAL:MOUSE:00000000000000000004\nMATERIAAL:INPUT_ACKS:00000000000000000004\nMATERIAAL:SAVE_ACKS:00000000000000000000\nMATERIAAL:SAVED_REVISION:00000000000000000000\nMATERIAAL:SAVED_BYTES:00000000000000000000\nMATERIAAL:SAVED_SUM:00000000000000000000\nMATERIAAL:SCREEN:00000000000000000002\nMATERIAAL:DRAFT_DIRTY:00000000000000000001\nMATERIAAL:DRAFT_BYTES:00000000000000000000\nMATERIAAL:DRAFT_SUM:14695981039346656037\nMATERIAAL:OBJECT:00000000000000000000\nMATERIAAL:SCALE:00000000000000000001\nMATERIAAL:ERRORS:00000000000000000000\nMATERIAAL:SNAPSHOT:END\nMATERIAAL:SNAPSHOT:BEGIN\nMATERIAAL:READY:00000000000000000001\nMATERIAAL:PRESENTED_GEN:00000000000000000021\nMATERIAAL:FRAMES:00000000000000000003\nMATERIAAL:TILES:00000000000000004840\nMATERIAAL:KEYS:00000000000000000028\nMATERIAAL:MOUSE:00000000000000000004\nMATERIAAL:INPUT_ACKS:00000000000000000032\nMATERIAAL:SAVE_ACKS:00000000000000000000\nMATERIAAL:SAVED_REVISION:00000000000000000000\nMATERIAAL:SAVED_BYTES:00000000000000000000\nMATERIAAL:SAVED_SUM:00000000000000000000\nMATERIAAL:SCREEN:00000000000000000002\nMATERIAAL:DRAFT_DIRTY:00000000000000000001\nMATERIAAL:DRAFT_BYTES:00000000000000000014\nMATERIAAL:DRAFT_SUM:02786778974461010050\nMATERIAAL:OBJECT:00000000000000000000\nMATERIAAL:SCALE:00000000000000000001\nMATERIAAL:ERRORS:00000000000000000000\nMATERIAAL:SNAPSHOT:END\nMATERIAAL:TIMEOUT_SLOT:00000000000000000000\nMATERIAAL:AT:00000000000000000040\nMATERIAAL:VALUE:00000000000000000001\nMATERIAAL:AT:00000000000000000192\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000240\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000400\nMATERIAAL:VALUE:00000000000000000001\nMATERIAAL:AT:00000000000000000408\nMATERIAAL:VALUE:00000000000000000001\nMATERIAAL:AT:00000000000000000416\nMATERIAAL:VALUE:00000000000000000001\nMATERIAAL:AT:00000000000000000424\nMATERIAAL:VALUE:00000000000000000001\nMATERIAAL:AT:00000000000000000432\nMATERIAAL:VALUE:00000000000000000001\nMATERIAAL:AT:00000000000000000440\nMATERIAAL:VALUE:00000000000000000001\nMATERIAAL:AT:00000000000000000472\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000480\nMATERIAAL:VALUE:00000000000000000003\nMATERIAAL:AT:00000000000000000488\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000496\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:TIMEOUT_SLOT:00000000000000000001\nMATERIAAL:AT:00000000000000000040\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000192\nMATERIAAL:VALUE:00000000000000000001\nMATERIAAL:AT:00000000000000000240\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000400\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000408\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000416\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000424\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000432\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000440\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000472\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000480\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000488\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000496\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:TIMEOUT_SLOT:00000000000000000002\nMATERIAAL:AT:00000000000000000040\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000192\nMATERIAAL:VALUE:00000000000000000001\nMATERIAAL:AT:00000000000000000240\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000400\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000408\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000416\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000424\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000432\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000440\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000472\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000480\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000488\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000496\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:TIMEOUT_SLOT:00000000000000000003\nMATERIAAL:AT:00000000000000000040\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000192\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000240\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000400\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000408\nMATERIAAL:VALUE:00000000000000000003\nMATERIAAL:AT:00000000000000000416\nMATERIAAL:VALUE:00000000000000005414\nMATERIAAL:AT:00000000000000000424\nMATERIAAL:VALUE:00000000000000000032\nMATERIAAL:AT:00000000000000000432\nMATERIAAL:VALUE:00000000000000000004\nMATERIAAL:AT:00000000000000000440\nMATERIAAL:VALUE:00000000000000000001\nMATERIAAL:AT:00000000000000000472\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000480\nMATERIAAL:VALUE:00000000000000000001\nMATERIAAL:AT:00000000000000000488\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000496\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:TIMEOUT_SLOT:00000000000000000004\nMATERIAAL:AT:00000000000000000040\nMATERIAAL:VALUE:00000000000000000001\nMATERIAAL:AT:00000000000000000192\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000240\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000400\nMATERIAAL:VALUE:00000000000000000670\nMATERIAAL:AT:00000000000000000408\nMATERIAAL:VALUE:00000000000000037899\nMATERIAAL:AT:00000000000000000416\nMATERIAAL:VALUE:00000000000000005414\nMATERIAAL:AT:00000000000000000424\nMATERIAAL:VALUE:00000000000001385984\nMATERIAAL:AT:00000000000000000432\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000440\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000472\nMATERIAAL:VALUE:00000000000000000001\nMATERIAAL:AT:00000000000000000480\nMATERIAAL:VALUE:00000000000000000001\nMATERIAAL:AT:00000000000000000488\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000496\nMATERIAAL:VALUE:00000000000000001608\nMATERIAAL:TIMEOUT_SLOT:00000000000000000005\nMATERIAAL:AT:00000000000000000040\nMATERIAAL:VALUE:00000000000000000001\nMATERIAAL:AT:00000000000000000192\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000240\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000400\nMATERIAAL:VALUE:00000000000000000001\nMATERIAAL:AT:00000000000000000408\nMATERIAAL:VALUE:00000000000000000001\nMATERIAAL:AT:00000000000000000416\nMATERIAAL:VALUE:00000000000000000001\nMATERIAAL:AT:00000000000000000424\nMATERIAAL:VALUE:00000000000000000044\nMATERIAAL:AT:00000000000000000432\nMATERIAAL:VALUE:00000000000000000044\nMATERIAAL:AT:00000000000000000440\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000472\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000480\nMATERIAAL:VALUE:00000000000000019999\nMATERIAAL:AT:00000000000000000488\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000496\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:TIMEOUT_SLOT:00000000000000000006\nMATERIAAL:AT:00000000000000000040\nMATERIAAL:VALUE:00000000000000000001\nMATERIAAL:AT:00000000000000000192\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000240\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000400\nMATERIAAL:VALUE:00000000000000005539\nMATERIAAL:AT:00000000000000000408\nMATERIAAL:VALUE:00000000000000005539\nMATERIAAL:AT:00000000000000000416\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000424\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000432\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000440\nMATERIAAL:VALUE:00000000000000005539\nMATERIAAL:AT:00000000000000000472\nMATERIAAL:VALUE:00000000000000000001\nMATERIAAL:AT:00000000000000000480\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000488\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000496\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:TIMEOUT_SLOT:00000000000000000007\nMATERIAAL:AT:00000000000000000040\nMATERIAAL:VALUE:00000000000000000001\nMATERIAAL:AT:00000000000000000192\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000240\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000400\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000408\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000416\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000424\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000432\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000440\nMATERIAAL:VALUE:00000000000000000003\nMATERIAAL:AT:00000000000000000472\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000480\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000488\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:AT:00000000000000000496\nMATERIAAL:VALUE:00000000000000000000\nMATERIAAL:FAIL:TIMEOUT\n",
+  "after_sha256": "246c8f9773533796718a729389c26d6103f45f04e7a83b4d06503e17c6d4e07e",
+  "duration_s": 205.47640829300008,
+  "artifact_sha256": {
+    "VGA.rom": "4eecd8e752efc02c6c0fe87eb92bf66934cb9ea67b0e1bc41e86f8430c8bf8a0",
+    "editor.ppm": "1e6c9e54ec9d83193fb3e4708822d81775b13f65b470e1478ebf6bb0f000b307",
+    "serial.txt": "e94d1999f807950314906d8c42afc8f4f46762cf2f6cada182b73455fdd74111",
+    "volume.img": "246c8f9773533796718a729389c26d6103f45f04e7a83b4d06503e17c6d4e07e",
+    "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "volume.before.img": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "qmp-trace.json": "ea0bfd9d0c3ea4347b47e5c0fe5fe2d0c6683c7f128bd83caa9eb9ead33ce5ca",
+    "dirty.ppm": "8190ac298424262fac1e34ba24451d745aa28f4221eb2e9817cf24fa03a27dda",
+    "volume.json": "c032be38e2d162cb9de55fb0400b29e26cfc7764290c1d8673cc5515e3e71dcf",
+    "OVMF_VARS.fd": "ade37ba430d37976355b0c09bab5d5c9712a2e6df7971dabf234fd9ec7a6c562",
+    "ready.ppm": "89988554c6e93449245ccac8462e1a43af336e0af990affcf59004bb2eaed50f",
+    "OVMF_CODE.fd": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083",
+    "volume.after.img": "246c8f9773533796718a729389c26d6103f45f04e7a83b4d06503e17c6d4e07e",
+    "esp/kernel.elf": "4304cb46993068b706c0b6af8cab8ea7294483c4f438e9fc41cc64d55cad2493",
+    "inputs/input-policy.elf": "c970fc262d059cb1f3d932b963deed742b4f2781082909c3afbf2518159d53b4",
+    "inputs/materiaal-app.elf": "2e77491037d2d10324fee4aaacab689b1889b590aea69aadb3544a7209d0ed43",
+    "inputs/native-compositor.elf": "7d22e70f6b834dd30c6b4c56617824e39f4b7f0d576aa218322d36f4f31776a6",
+    "inputs/volume-service.elf": "ecb1c3980029b9545e35dc9703df01851e126f3b146f5110309b2e24b6be9848",
+    "inputs/input-source.elf": "16427bd9374223265fb203b649c16ad892fc6a872fe4f287134bee2de76f9b00",
+    "inputs/desktop-controller.elf": "886d7c7959b60b078340e0d07b8962b8095ae653e72f0d2c4748a3c20fa5184f",
+    "inputs/manifest.json": "909ae3012e0aacaf0588ecc07b53ea4394765f52911d6bbbf8a4534b7b2378b4",
+    "inputs/desktop-init.elf": "7917c33c9f0e8de39c043e61a56137de20e1d7334bd2de5b9aee4106ae15eea5",
+    "inputs/build-report.json": "1986e06746d62217622a78f8f8d7355dd2ea99b6aae94155db2a2d2923415a0d",
+    "inputs/keyring-service.elf": "e2de78cef4955f77c535946c30bfef1c32c02e53950094682ae08cd4fd2defdf",
+    "esp/EFI/BOOT/BOOTX64.EFI": "8459aed668ee77faaff564a23368af21e718329394a71a8365225240027f3277"
+  }
+}

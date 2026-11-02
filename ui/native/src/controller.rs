@@ -189,12 +189,17 @@ impl<'a, T: Transport> Controller<'a, T> {
         Ok(())
     }
     fn failed(&mut self, error: Error) -> Error {
-        if !self.document.is_saving()
-            && (self.focus == Focus::CancelSave
-                || (!self.view().can_save
-                    && matches!(self.focus, Focus::Save | Focus::SaveAndBack)))
-        {
-            self.focus = Focus::Document;
+        if !self.document.is_saving() {
+            let can_save = self.view().can_save;
+            if self.focus == Focus::CancelSave
+                || (!can_save && matches!(self.focus, Focus::Save | Focus::SaveAndBack))
+            {
+                self.focus = Focus::Document;
+            } else if self.focus == Focus::SaveAndBack && self.screen != Screen::ConfirmClose {
+                // SaveAndBack exists only in the close dialog; keep focus on a
+                // control of the current screen so Enter/typing stay live.
+                self.focus = Focus::Save;
+            }
         }
         self.status = Status::Failed(if self.document.is_uncertain() {
             Error::Storage(StorageError::Uncertain)
@@ -453,6 +458,10 @@ impl<'a, T: Transport> Controller<'a, T> {
             SemanticId::Discard => Focus::Discard,
             _ => return Err(Error::InvalidInput),
         };
+        // An accepted semantic action may replace the screen or object list;
+        // a pending pointer press/drag is bound to the old context.
+        self.dragging = false;
+        self.pressed = None;
         self.focus = focus;
         self.activate(focus)
     }
@@ -505,6 +514,9 @@ impl<'a, T: Transport> Controller<'a, T> {
         if id != SemanticId::Document || !enabled || !actions.set_value {
             return Err(Error::InvalidInput);
         }
+        // Replaced text invalidates any pending pointer press/drag selection.
+        self.dragging = false;
+        self.pressed = None;
         let current_length = self.view().contents.ok_or(Error::InvalidUtf8)?.len();
         self.document
             .replace_range(0..current_length, value.as_bytes())
@@ -586,7 +598,12 @@ impl<'a, T: Transport> Controller<'a, T> {
             self.focus = Focus::KeepEditing;
         } else {
             self.screen = Screen::Material;
-            self.focus = Focus::New;
+            // Same initial focus as the constructor: New is disabled read-only.
+            self.focus = if self.editable {
+                Focus::New
+            } else {
+                Focus::Refresh
+            };
             self.refresh()?;
         }
         self.dragging = false;
