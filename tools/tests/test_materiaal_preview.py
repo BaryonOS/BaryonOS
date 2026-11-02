@@ -12,6 +12,7 @@ from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import run_materiaal_preview as preview
+import run_session_preview as session_preview
 import run_fpu
 from run_materiaal_preview import BOOT, READY, verify_frame, verify_ready_transcript
 
@@ -494,6 +495,178 @@ class PreviewLifecycleTests(unittest.TestCase):
         report = json.loads((self.build / "preview-result.json").read_text())
         self.assertFalse(report["passed"])
         self.assertIn("Invalid reference", report["error"])
+
+    def test_two_walkthroughs_are_rejected_before_vm_start(self):
+        with self.assertRaisesRegex(ValueError, "one native walkthrough"):
+            preview.run_preview(
+                build_directory=self.build, bios_rom=self.files["bios"], vga_rom=self.files["vga"],
+                interactive_reference_run=self.root / "reference",
+                session_fixture_directory=self.root / "session",
+            )
+        preview.subprocess.Popen.assert_not_called()
+
+    def test_session_hook_revalidates_host_oracle_after_native_exit(self):
+        fixture = {
+            "directory": self.root / "session", "metadata": {"kind": session_preview.ORACLE_KIND},
+            "metadata_sha256": "c" * 64, "frames": {"host-only": b"host-oracle"},
+        }
+
+        def walkthrough(control, process, directory, reference, deadline):
+            self.assertTrue(self.handshake)
+            self.assertIsNone(process.poll())
+            (directory / "session-material.ppm").write_bytes(self.frames["ready"])
+            return {"stages": ["HOST_ONLY_HOOK_FIXTURE"]}
+
+        with (
+            patch.object(session_preview, "load_fixture", return_value=fixture) as load,
+            patch.object(session_preview, "run_walkthrough", side_effect=walkthrough) as walk,
+            patch.object(preview.probe, "disk_oracle") as disk,
+        ):
+            report = preview.run_preview(
+                build_directory=self.build, bios_rom=self.files["bios"], vga_rom=self.files["vga"],
+                session_fixture_directory=self.root / "session", timeout=240,
+            )
+        self.assertTrue(report["passed"])
+        self.assertEqual(load.call_count, 2)
+        walk.assert_called_once()
+        preview.load_reference.assert_not_called()
+        disk.assert_not_called()
+        self.assertIn("host-rendered", report["scope"])
+        self.assertEqual(report["session_walkthrough"]["stages"], ["HOST_ONLY_HOOK_FIXTURE"])
+
+
+def session_frames():
+    """Synthetic host-test pixels only; no native-execution claim."""
+    full = reference_frames()
+    cropped = {
+        name: b"P6\n768 536\n255\n" + session_preview.app_pixels(raw)
+        for name, raw in zip(session_preview.PHASES, full.values())
+    }
+    return cropped, {
+        name: raw for name, raw in zip(session_preview.PHASES, full.values())
+    }
+
+
+class SessionWalkthroughTests(unittest.TestCase):
+    def test_compares_every_app_pixel_and_explicitly_excludes_only_external_chrome(self):
+        cropped, full = session_frames()
+        raw, expected = full["accounts"], cropped["accounts"]
+        self.assertTrue(session_preview.matching_app_frame(raw, expected))
+        header = len(b"P6\n800 600\n255\n")
+        for x, y in ((16, 48), (783, 583), (160, 250)):
+            changed = bytearray(raw)
+            changed[header + (y * 800 + x) * 3] ^= 1
+            self.assertFalse(session_preview.matching_app_frame(bytes(changed), expected))
+        changed = bytearray(raw)
+        changed[header] ^= 1
+        self.assertTrue(session_preview.matching_app_frame(bytes(changed), expected))
+        with self.assertRaises(ValueError):
+            session_preview.matching_app_frame(b"P6\n1 1\n255\nabc", expected)
+        with self.assertRaises(ValueError):
+            session_preview.matching_app_frame(raw, b"P6\n1 1\n255\nabc")
+
+    def test_exact_keyboard_route_has_no_diagnostic_key_or_guest_marker(self):
+        groups = session_preview.input_groups()
+        self.assertEqual(tuple(name for name, _ in groups), session_preview.PHASES)
+        keys = [key["data"] for _, requests in groups for request in requests
+                for key in request["arguments"]["keys"]]
+        self.assertEqual(keys, ["ret", "ret", "tab", "tab", "ret", "m", "a", "t", "ret"])
+        self.assertNotIn("f12", keys)
+        self.assertEqual(groups[0][1], [])
+
+    def test_missing_or_wrong_geometry_oracle_never_sends_input(self):
+        frames, _ = session_frames()
+        for bad in ({}, {**frames, "search": b"P6\n1 1\n255\nabc"}):
+            control = Mock()
+            with self.assertRaises(ValueError):
+                session_preview.run_walkthrough(
+                    control, Mock(), Path("/owned/run"), {"frames": bad}, time.monotonic() + 5,
+                )
+            control.command.assert_not_called()
+
+    def test_all_five_frames_must_match_before_advancing(self):
+        cropped, full = session_frames()
+        with tempfile.TemporaryDirectory() as name:
+            directory = Path(name)
+            (directory / "serial.txt").write_bytes("\n".join((*BOOT, *READY)).encode())
+            process, control = Mock(), Mock()
+            process.poll.return_value = None
+            control.trace = []
+
+            def command(execute, arguments):
+                control.trace.append({"execute": execute, "arguments": arguments})
+                if execute == "screendump":
+                    path = Path(arguments["filename"])
+                    path.write_bytes(full[path.stem.removeprefix("session-")])
+
+            control.command.side_effect = command
+            with (
+                patch.object(session_preview, "private_path", side_effect=lambda path, **kwargs: path),
+                patch.object(session_preview.time, "sleep"),
+            ):
+                report = session_preview.run_walkthrough(
+                    control, process, directory, {"frames": cropped}, time.monotonic() + 10,
+                )
+            self.assertEqual([stage["phase"] for stage in report["stages"]], list(session_preview.PHASES))
+            self.assertEqual(report["pixel_masks_inside_app"], [])
+            self.assertFalse(report["host_oracle_is_native_evidence"])
+            self.assertEqual(control.trace[0]["execute"], "screendump")
+
+    def test_unmatched_accounts_frame_blocks_all_hardware_input(self):
+        cropped, full = session_frames()
+        with tempfile.TemporaryDirectory() as name:
+            directory = Path(name)
+            (directory / "serial.txt").write_bytes("\n".join((*BOOT, *READY)).encode())
+            process, control = Mock(), Mock()
+            process.poll.return_value = None
+            control.trace = []
+
+            def command(execute, arguments):
+                self.assertEqual(execute, "screendump")
+                Path(arguments["filename"]).write_bytes(full["login"])
+
+            control.command.side_effect = command
+            with (
+                patch.object(session_preview, "private_path", side_effect=lambda path, **kwargs: path),
+                patch.object(session_preview.time, "monotonic", side_effect=[0, 0, 0, 2]),
+                patch.object(session_preview.time, "sleep"),
+            ):
+                with self.assertRaisesRegex(TimeoutError, "accounts"):
+                    session_preview.run_walkthrough(control, process, directory, {"frames": cropped}, 1)
+            control.command.assert_called_once()
+
+    def test_source_profile_hash_and_changed_oracle_are_rejected(self):
+        cropped, _ = session_frames()
+        with tempfile.TemporaryDirectory() as name:
+            directory = Path(name)
+            frozen = "a" * 64
+            manifest = {"source_sha256": frozen, "kernel_feature": session_preview.FEATURE}
+            metadata = {
+                "schema_version": 1, "kind": session_preview.ORACLE_KIND,
+                "kernel_feature": session_preview.FEATURE,
+                "source_fingerprint_version": 3, "source_sha256": frozen,
+                "app_rectangle": list(session_preview.APP_RECT), "phases": list(session_preview.PHASES),
+                "generator_exit": 0,
+                "frames_sha256": {phase: hashlib.sha256(raw).hexdigest() for phase, raw in cropped.items()},
+            }
+            for phase, raw in cropped.items():
+                (directory / f"{phase}.ppm").write_bytes(raw)
+            path = directory / "fixture.json"
+            path.write_text(json.dumps(metadata))
+            with patch.object(session_preview, "private_path", side_effect=lambda path, **kwargs: path):
+                self.assertEqual(len(session_preview.load_fixture(directory, manifest, frozen)["frames"]), 5)
+                for changed in (
+                    {"source_sha256": "b" * 64}, {"schema_version": True},
+                    {"generator_exit": False}, {"kind": "native proof"},
+                    {"kernel_feature": "native-system-materiaal"}, {"frames_sha256": []},
+                ):
+                    path.write_text(json.dumps({**metadata, **changed}))
+                    with self.subTest(changed=changed), self.assertRaises(ValueError):
+                        session_preview.load_fixture(directory, manifest, frozen)
+                path.write_text(json.dumps(metadata))
+                (directory / "accounts.ppm").write_bytes(cropped["login"])
+                with self.assertRaisesRegex(ValueError, "changed"):
+                    session_preview.load_fixture(directory, manifest, frozen)
 
 
 if __name__ == "__main__":

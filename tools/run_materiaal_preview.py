@@ -206,13 +206,16 @@ def run_preview(
     timeout: int = 45,
     machine: str | None = None,
     interactive_reference_run: Path | None = None,
+    session_fixture_directory: Path | None = None,
 ) -> dict:
     report_path = private_path(Path(build_directory) / "preview-result.json")
     if report_path.exists():
         report_path.unlink()
     if os.name == "nt":
         raise RuntimeError("This evidence runner uses Linux QMP pipes; use the Windows bundle launcher.")
-    maximum = 240 if interactive_reference_run is not None else 60
+    if interactive_reference_run is not None and session_fixture_directory is not None:
+        raise ValueError("Choose one native walkthrough, not both")
+    maximum = 240 if interactive_reference_run is not None or session_fixture_directory is not None else 60
     if type(timeout) is not int or not 5 <= timeout <= maximum:
         raise ValueError(f"Preview timeout must be between 5 and {maximum} seconds")
     machine = qemu_machine(machine)
@@ -307,16 +310,35 @@ def run_preview(
         "started_utc": started,
     }
     reference = None
+    session_fixture = None
     if interactive_reference_run is not None:
         report["scope"] = (
             "Interactive seven-process native input/save/list/reopen against exact native "
             "reference pixels and post-quit disk bytes; no controller/snapshot/cleanup, "
             "cold recovery, manual UX, full release or Windows-host acceptance."
         )
+    if session_fixture_directory is not None:
+        report["scope"] = (
+            "Opt-in native guest accounts/login/desktop/search/Materiaal route through QMP; "
+            "all app-owned pixels match a same-source host-rendered Controller/Frame oracle. "
+            "No real account authentication, secure lock/key release, manual UX, release, "
+            "or physical/Windows-host acceptance."
+        )
     publish_json(report_path, report)
 
     process = control = None
     try:
+        if session_fixture_directory is not None:
+            import run_session_preview as session_preview
+            session_fixture = session_preview.load_fixture(
+                session_fixture_directory, manifest, frozen,
+            )
+            report["session_oracle"] = {
+                "directory": str(session_fixture["directory"]),
+                "metadata_sha256": session_fixture["metadata_sha256"],
+                **session_fixture["metadata"],
+            }
+            publish_json(report_path, report)
         if interactive_reference_run is not None:
             reference = load_reference(
                 interactive_reference_run, manifest, frozen, machine,
@@ -345,10 +367,10 @@ def run_preview(
                 bufsize=0,
             )
             control = QmpPipe(process, deadline)
-            if reference is not None:
+            if reference is not None or session_fixture is not None:
                 implementation = Path(os.readlink(f"/proc/{process.pid}/exe"))
                 report["qemu_implementation_sha256"] = sha256(implementation)
-                if report["qemu_implementation_sha256"] != reference["qemu_implementation_sha256"]:
+                if reference is not None and report["qemu_implementation_sha256"] != reference["qemu_implementation_sha256"]:
                     raise ValueError("Interactive QEMU implementation differs from native reference")
             expected = (*BOOT, *READY)
             while True:
@@ -362,7 +384,12 @@ def run_preview(
                     raise TimeoutError("Native Materiaal session did not reach all readiness gates")
                 time.sleep(0.02)
             observed = verify_ready_transcript(serial)
-            if reference is not None:
+            if session_fixture is not None:
+                report["session_walkthrough"] = session_preview.run_walkthrough(
+                    control, process, directory, session_fixture, deadline,
+                )
+                screenshot = directory / "session-material.ppm"
+            elif reference is not None:
                 report["interactive"] = run_interactive(
                     control, process, directory, reference, deadline
                 )
@@ -384,6 +411,16 @@ def run_preview(
         serial_hash = sha256(directory / "serial.txt")
         if source_hash() != frozen:
             raise ValueError("Source changed during native preview")
+        if session_fixture is not None:
+            confirmed = session_preview.load_fixture(
+                session_fixture["directory"], manifest, frozen,
+            )
+            if (confirmed["metadata_sha256"] != session_fixture["metadata_sha256"]
+                    or confirmed["frames"] != session_fixture["frames"]
+                    or sha256(implementation) != report["qemu_implementation_sha256"]
+                    or sha256(Path(qemu)) != report["qemu_sha256"]
+                    or source_hash() != frozen):
+                raise ValueError("Session oracle, source or QEMU identity changed during run")
         if reference is not None:
             report["interactive"].update(inspect_stopped_disk(process, directory))
             if (sha256(implementation) != report["qemu_implementation_sha256"]
