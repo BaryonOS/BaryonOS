@@ -38,9 +38,11 @@ ongewijzigd, volgende complete freeze weer expliciet binden.
 CI op2bb heeft een echte RANDOMraw-fout: codecNone/step15. Gecontroleerde echte
 service/codec-hostproef toont dat een64RPCburst over de100tickquotagrens mag
 rollen; dan is verwachtQuota een geldigOk en geeft de te smalle fixturedecoder
-None. Exacte CIrequest is nog onbekend. Agent maakt uitsluitend niet-geheime
-foutdiagnostiek en één gecontroleerde rawVM op eigen checkpoint44346ad in
-`/workspace/nieuw-os-windows-package/build/random-diagnostic-44346ad`. Geen
+None. Exacte CIrequest is nog onbekend. De niet-geheime foutdiagnostiek44346ad is als2efdc3e geïntegreerd. Eén
+gecontroleerde rawVM op44346ad slaagt lokaal (raw33,8,755 s); CIrequest is
+nog onbekend en wordt met deze diagnostiek opnieuw onderzocht. Bewijs staat
+in verification/mature-session-20261102/random-diagnostic-44346ad.json. De run in
+`/workspace/nieuw-os-windows-package/build/random-diagnostic-44346ad` is klaar; geenVM meer. Geen
 policy-/quotagrenswijziging. Geen randombytes of sleutels loggen.
 
 Eerstvolgend: sluitende RNGdiagnose en herstelpatch beoordelen, integreren,
