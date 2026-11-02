@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """Host adversarial checks of N01 peer/harness; no native success claim."""
 from __future__ import annotations
+import os
+from pathlib import Path
 import struct
+import sys
+import tempfile
 import unittest
 from network_service_peer import (ACK, FIN, PSH, RST, SYN, CLIENT_IP, CLIENT_MAC,
                                   PEER_IP, PEER_MAC, REQUESTS, RESPONSES, UDP_PAYLOADS,
                                   FrameDecoder, Machine, Peer, ProtocolError, checksum,
                                   framed, validate_transcript)
-from run_network_service import BOOT, OFFSETS, ROLES, sequence
+from run_network_service import BOOT, OFFSETS, ROLES, ROOT, execute_native, record_streams, sequence
 
 
 def client_ip(payload, protocol=6):
@@ -29,9 +33,9 @@ def client_udp(slot):
     return client_ip(udp[:6] + struct.pack("!H", value) + udp[8:], 17)
 
 
-def transcript():
+def transcript(case="normal"):
     """Construct legal synthetic client packets only for host parser checks."""
-    machine, actions, now = Machine(), [], 0.0
+    machine, actions, now = Machine(case), [], 0.0
     def feed(packet):
         nonlocal now
         now += 0.001
@@ -60,19 +64,28 @@ def transcript():
         feed(client_tcp(port, c.source, c.client_next, c.data_end, ACK))
         feed(client_tcp(port, c.source, c.client_next, c.data_end + 1, ACK))
         feed(client_tcp(port, c.source, c.client_next, c.data_end + 1, FIN | ACK))
-    # Two owners open before either HTTP transaction completes.
-    feed(client_tcp(8080, 40000, 100))
-    feed(client_tcp(8090, 40001, 200))
-    finish(8080)
-    finish(8090)
-    source = 40002
-    for offset in range(1, 5):
-        for base in (8080, 8090):
-            port = base + offset
+    if case == "normal":
+        # Two owners open before either HTTP transaction completes.
+        feed(client_tcp(8080, 40000, 100))
+        feed(client_tcp(8090, 40001, 200))
+        finish(8080)
+        finish(8090)
+        for offset in range(1, 5):
+            for slot, base in enumerate((8080, 8090)):
+                port, source = base + offset, 40000 + slot + offset * 2
+                feed(client_tcp(port, source, 1000 + source))
+                finish(port)
+        feed(client_udp(0))
+    else:
+        # A abandons a SYN-SENT connection. B continues after that event.
+        feed(client_tcp(8084, 40000, 100))
+        feed(client_tcp(8090, 40001, 200))
+        feed(client_tcp(8084, 40000, 101, flags=RST | ACK))
+        finish(8090)
+        for offset in range(1, 5):
+            port, source = 8090 + offset, 40001 + offset * 2
             feed(client_tcp(port, source, 1000 + source))
-            source += 1
             finish(port)
-    feed(client_udp(0))
     feed(client_udp(1))
     result = machine.summary()
     result.update(actions=actions, wire_frames_sent=result["counts"]["server_frames"],
@@ -80,7 +93,7 @@ def transcript():
     return result
 
 
-def native_serial():
+def native_serial(case="normal"):
     service = dict.fromkeys(OFFSETS, 0)
     service.update({400: 1, 408: 10, 416: 66, 424: 65, 432: 100, 440: 22,
                     448: 2, 456: 2, 464: 10, 472: 3 * sum(map(len, REQUESTS)),
@@ -89,19 +102,75 @@ def native_serial():
     app.update({400: 1, 408: 2, 416: 1, 424: 1, 432: 9, 440: 1, 448: 3,
                 456: len(RESPONSES[0]), 464: 2, 472: 4, 480: 1, 488: 1,
                 496: 1, 504: 1, 512: 1, 528: 1})
+    if case == "client-exit":
+        service.update({440: 13, 448: 1, 456: 1, 464: 6, 472: 3 * len(REQUESTS[1]),
+                        480: 2 * len(RESPONSES[1]), 488: 2, 512: 2, 520: 1, 536: 1})
     network = {"NET_TX_SUBMITTED": 66, "NET_TX_COMPLETED": 66, "NET_RX_COMPLETED": 65,
                "NET_RX_DELIVERED": 65, "NET_DENIED": 2, "NET_TX_TIMEOUTS": 0,
                "NET_RESETS": 1, "NET_RESET_ACKS": 1}
     lines = [*BOOT, "NETSVC:MANIFEST:PASS"]
     for role in ROLES:
         values = service if role == "SERVICE" else app
+        if role == "APP_A" and case == "client-exit":
+            values = dict.fromkeys(OFFSETS, 0)
+            values.update({400: 1, 424: 1, 440: 1, 480: 1, 528: 1, 536: 1})
         lines.extend(f"NETSVC:{role}:{offset}:{values[offset]:020d}" for offset in OFFSETS)
     lines.extend(f"SYSTEM:{name}:{value:020d}" for name, value in network.items())
-    lines.extend(["NETSVC:ENTROPY_BYTES:00000000000000000008", "NETSVC:CLEANUP:PASS", "NETSVC:PASS", "M1:PASS"])
+    lines.extend(["NETSVC:APP_A_EXIT_TICKS:00000000000000000030", "NETSVC:APP_B_EXIT_TICKS:00000000000000000500", "NETSVC:ENTROPY_BYTES:00000000000000000008", "NETSVC:CLEANUP:PASS", "NETSVC:PASS", "M1:PASS"])
     return "\n".join(lines) + "\n"
 
 
 class PeerChecks(unittest.TestCase):
+    def test_client_exit_case_requires_survivor_packets_and_correct_binding(self):
+        value = transcript("client-exit")
+        self.assertTrue(validate_transcript(value, case="client-exit")["complete"])
+        self.assertEqual(value["counts"]["udp_requests"], 1)
+        self.assertEqual(set(value["cases"]), {"8084", *map(str, range(8090, 8095))})
+        self.assertEqual(sequence(native_serial("client-exit"), "client-exit")["processes"]["SERVICE"]["536"], 1)
+        for wrong in ("normal", "unknown"):
+            with self.assertRaises(ValueError):
+                validate_transcript(value, case=wrong)
+        with self.assertRaises(ValueError):
+            sequence(native_serial("client-exit"), "normal")
+        bad = native_serial("client-exit").replace("NETSVC:APP_B_EXIT_TICKS:00000000000000000500", "NETSVC:APP_B_EXIT_TICKS:00000000000000000029")
+        with self.assertRaises(ValueError):
+            sequence(bad, "client-exit")
+        machine = Machine("client-exit")
+        with self.assertRaises(ProtocolError):
+            machine.handle(client_tcp(8080, 40000, 1))
+        with self.assertRaises(ProtocolError):
+            machine.handle(client_tcp(8091, 40002, 1))
+
+    def test_raw_binary_pipes_are_verbatim_and_utf8_failure_is_terminal(self):
+        raw = b"\xff\n" + native_serial().encode()
+        script = "import sys; sys.stdout.buffer.write(bytes.fromhex(sys.argv[1])); sys.stderr.buffer.write(b'err\\r\\n')"
+        rc, stdout, stderr, timed_out, overflow = execute_native([sys.executable, "-c", script, raw.hex()], os.environ, timeout=2)
+        self.assertEqual((rc, stdout, stderr, timed_out, overflow), (0, raw, b"err\r\n", False, False))
+        base = ROOT / "build"
+        base.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=base) as name:
+            directory = Path(name)
+            with self.assertRaises(UnicodeDecodeError):
+                record_streams(directory, stdout, stderr)
+            self.assertEqual((directory / "serial.txt").read_bytes(), raw)
+            self.assertEqual((directory / "stderr.txt").read_bytes(), b"err\r\n")
+            text = native_serial().encode()
+            self.assertEqual(record_streams(directory, text, b"err\r\n"), (text.decode(), "err\r\n"))
+            with self.assertRaises(UnicodeDecodeError):
+                record_streams(directory, text, b"\xff")
+
+    def test_process_output_and_lifetime_have_hard_bounds(self):
+        rc, stdout, stderr, timed_out, overflow = execute_native(
+            [sys.executable, "-c", "import sys;sys.stdout.buffer.write(b'x'*200000);sys.stdout.flush()"], os.environ, timeout=2, limit=100)
+        self.assertLessEqual(len(stdout), 100)
+        self.assertTrue(overflow)
+        self.assertFalse(timed_out)
+        rc, stdout, stderr, timed_out, overflow = execute_native(
+            [sys.executable, "-c", "import time;time.sleep(5)"], os.environ, timeout=0.05)
+        self.assertTrue(timed_out)
+        self.assertNotEqual(rc, 0)
+        self.assertFalse(overflow)
+
     def test_full_two_owner_wire_transcript_replays(self):
         value = transcript()
         summary = validate_transcript(value)

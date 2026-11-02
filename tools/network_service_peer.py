@@ -34,6 +34,7 @@ BODIES = (b"Nieuw OS service A\n", b"Nieuw OS service B\n")
 RESPONSES = tuple(b"HTTP/1.1 200 OK\r\nContent-Length: 19\r\nConnection: close\r\n\r\n" + b for b in BODIES)
 UDP_PAYLOADS = (b"Nieuw OS UDP app A", b"Nieuw OS UDP app B")
 CORRUPT_DELAY = 0.25
+CASES = ("normal", "client-exit")
 
 def owner(port: int) -> tuple[int, int]:
     if port not in PORTS:
@@ -107,7 +108,12 @@ class Connection:
 
 
 class Machine:
-    def __init__(self):
+    def __init__(self, case="normal"):
+        if case not in CASES:
+            raise ValueError("unknown native service peer case")
+        self.case = case
+        self.ports = PORTS if case == "normal" else (8084, *range(8090, 8095))
+        self.slots = (0, 1) if case == "normal" else (1,)
         self.connections = {}
         self.events = []
         self.udp = set()
@@ -192,6 +198,8 @@ class Machine:
                 or checksum(CLIENT_IP + PEER_IP + struct.pack("!BBH", 0, 17, size) + udp)):
             raise ProtocolError("UDP tuple, size or checksum")
         slot = source - 45000
+        if slot not in self.slots:
+            raise ProtocolError("UDP from retired fault-case owner")
         if slot in self.udp or udp[8:] != UDP_PAYLOADS[slot]:
             raise ProtocolError("UDP duplicate or wrong synthetic payload")
         if 8084 + slot * 10 not in self.connections:
@@ -214,6 +222,10 @@ class Machine:
         if len(frame) > 23 and frame[12:14] == b"\x08\x00" and frame[23] == 17:
             return self.udp_request(frame)
         s = tcp_segment(frame)
+        slot, relative = owner(s.target)
+        expected_source = 40000 if self.case == "client-exit" and s.target == 8084 else 40000 + slot + 2 * relative
+        if s.target not in self.ports or s.source != expected_source:
+            raise ProtocolError("TCP tuple outside selected native peer case")
         self.event("rx", "tcp", frame, port=s.target, seq=s.seq, ack=s.ack,
                    flags=s.flags, payload_length=len(s.payload))
         c = self.connections.get(s.target)
@@ -225,7 +237,7 @@ class Machine:
             if c is None:
                 if any(previous.source == s.source for previous in self.connections.values()):
                     raise ProtocolError("local TCP port reused by another tuple")
-                if case and (s.target - 1 not in self.connections or not self.done(self.connections[s.target - 1])):
+                if case and not (self.case == "client-exit" and s.target == 8084) and (s.target - 1 not in self.connections or not self.done(self.connections[s.target - 1])):
                     raise ProtocolError("owner cases out of order")
                 phase = "refused" if case == 1 else "blackhole" if case == 4 else "syn"
                 c = Connection(s.target, s.source, s.seq, s.options, 0x6e6f7300 + PORTS.index(s.target) * 0x1000, phase)
@@ -325,25 +337,30 @@ class Machine:
         cases = {str(p): dict(phase=c.phase, source=c.source, syns=c.syns, request_bytes=len(c.request),
                              request_sha256=hashlib.sha256(c.request).hexdigest(), data_acked=c.data_acked,
                              fin_sent=c.fin_sent, closed=c.closed) for p, c in self.connections.items()}
-        complete = (set(self.connections) == set(PORTS) and self.udp == {0, 1}
-                    and {c.source for c in self.connections.values()} == set(range(40000, 40010))
+        success_ports = (8080, 8083, 8090, 8093) if self.case == "normal" else (8090, 8093)
+        owners = len(self.slots)
+        complete = (set(self.connections) == set(self.ports) and self.udp == set(self.slots)
+                    and {c.source for c in self.connections.values()} == (set(range(40000, 40010)) if self.case == "normal" else {40000, 40001, 40003, 40005, 40007, 40009})
                     and all(self.done(c) for c in self.connections.values())
                     and all(self.connections[p].closed and self.connections[p].data_acked
-                            for p in (8080, 8083, 8090, 8093))
-                    and self.counts["first_syn_dropped"] == 2 and self.counts["retry_syns"] >= 2
-                    and self.counts["corrupt_data_sent"] == 2 and self.counts["valid_data_sent"] == 4
-                    and self.counts["client_fins_acked"] == 4)
-        return dict(complete=complete, counts=dict(self.counts), cases=cases, events=list(self.events),
+                            for p in success_ports)
+                    and self.counts["first_syn_dropped"] == owners and self.counts["retry_syns"] >= owners
+                    and self.counts["corrupt_data_sent"] == owners and self.counts["valid_data_sent"] == 2 * owners
+                    and self.counts["client_fins_acked"] == 2 * owners)
+        return dict(case=self.case, complete=complete, counts=dict(self.counts), cases=cases, events=list(self.events),
                     request_sha256=[hashlib.sha256(r).hexdigest() for r in REQUESTS],
                     response_sha256=[hashlib.sha256(r).hexdigest() for r in RESPONSES],
                     udp_sha256=[hashlib.sha256(r).hexdigest() for r in UDP_PAYLOADS])
 
 
-def validate_transcript(evidence):
+def validate_transcript(evidence, *, case=None):
+    selected = evidence.get("case") if case is None else case
+    if selected not in CASES or evidence.get("case") != selected:
+        raise ProtocolError("peer transcript case binding changed")
     actions = evidence.get("actions")
     if not isinstance(actions, list) or not 1 <= len(actions) <= MAX_EVENTS:
         raise ProtocolError("missing/bounded raw transcript")
-    machine, last = Machine(), 0.0
+    machine, last = Machine(selected), 0.0
     for action in actions:
         if not isinstance(action, dict) or set(action) not in ({"kind", "at", "input", "output"}, {"kind", "at", "output"}):
             raise ProtocolError("malformed transcript action")
@@ -376,11 +393,11 @@ def validate_transcript(evidence):
 
 
 class Peer:
-    def __init__(self, timeout=180):
+    def __init__(self, timeout=180, *, case="normal"):
         if type(timeout) not in (int, float) or not 0 < timeout <= 180:
             raise ValueError("bounded peer lifetime required")
         self.timeout, self.port = timeout, 0
-        self.machine, self.actions = Machine(), []
+        self.machine, self.actions = Machine(case), []
         self.socket = self.thread = None
         self.stop = threading.Event()
         self.connected, self.error, self.rejected_frame = False, None, None
