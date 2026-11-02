@@ -11,6 +11,114 @@ const GUEST: usize = 3;
 const RECOVER: bool = cfg!(feature = "test-system-nas-recover");
 const WORDS: [u64; 8] = [40, 240, 400, 408, 416, 424, 448, 192];
 
+/// Exact boot-1 token replay (#110): private test handoff, never a product
+/// interface. Token bytes leave the normal VM only on a dedicated
+/// `isa-debugcon` port that the runner binds to a private 0600 file outside
+/// the checkout, and enter the cold VM only as a QEMU `fw_cfg` file that the
+/// runner creates read-only from the validated handoff. COM1 serial, reports
+/// and CI artifacts never carry token bytes. No process gets port I/O or a new
+/// capability; only this kernel acceptance harness touches these ports.
+mod replay {
+    use core::arch::asm;
+
+    /// Guest startup bytes 256..336: exact session (40) and upload (40).
+    pub const OFFSET: u64 = 256;
+    pub const BYTES: usize = 80;
+    /// Private output frame: magic, then exactly 80 payload bytes.
+    pub const MAGIC: &[u8; 8] = b"NOSRPL01";
+    /// Dedicated debugcon port; firmware has no device or driver there.
+    const OUT_PORT: u16 = 0x4f8;
+    const FW_CFG_SELECTOR: u16 = 0x510;
+    const FW_CFG_DATA: u16 = 0x511;
+    const FW_CFG_SIGNATURE: u16 = 0x0000;
+    const FW_CFG_FILE_DIR: u16 = 0x0019;
+    /// QEMU `-fw_cfg name=...`; the guest kernel only reads it.
+    pub const FW_CFG_NAME: &[u8] = b"opt/nieuw-os/nas-replay";
+
+    fn out8(port: u16, value: u8) {
+        // SAFETY: CPL0 acceptance kernel, single CPU with IF=0. The debugcon
+        // port is a write-only byte sink; no memory is accessed.
+        unsafe {
+            asm!("out dx, al", in("dx") port, in("al") value, options(nomem, nostack, preserves_flags));
+        }
+    }
+    fn out16(port: u16, value: u16) {
+        // SAFETY: Same contract; selects a QEMU fw_cfg item, no memory access.
+        unsafe {
+            asm!("out dx, ax", in("dx") port, in("ax") value, options(nomem, nostack, preserves_flags));
+        }
+    }
+    fn in8(port: u16) -> u8 {
+        let value: u8;
+        // SAFETY: Same contract; reads one fw_cfg data byte, no memory access.
+        unsafe {
+            asm!("in al, dx", in("dx") port, out("al") value, options(nomem, nostack, preserves_flags));
+        }
+        value
+    }
+    fn read_into(out: &mut [u8]) {
+        for byte in out {
+            *byte = in8(FW_CFG_DATA);
+        }
+    }
+
+    /// Publish the exact pair on the private channel.
+    pub fn publish(payload: &[u8; BYTES]) {
+        for byte in MAGIC.iter().chain(payload.iter()) {
+            out8(OUT_PORT, *byte);
+        }
+    }
+
+    /// Locate the replay file. `Ok(None)`: absent. `Err`: no QEMU fw_cfg or a
+    /// malformed directory. Sizes other than exactly 80 bytes are returned so
+    /// the caller can reject them.
+    fn find() -> Result<Option<(u16, u32)>, ()> {
+        out16(FW_CFG_SELECTOR, FW_CFG_SIGNATURE);
+        let mut signature = [0; 4];
+        read_into(&mut signature);
+        if &signature != b"QEMU" {
+            return Err(());
+        }
+        out16(FW_CFG_SELECTOR, FW_CFG_FILE_DIR);
+        let mut count = [0; 4];
+        read_into(&mut count);
+        let count = u32::from_be_bytes(count);
+        if count > 4096 {
+            return Err(());
+        }
+        let mut found = None;
+        for _ in 0..count {
+            let mut entry = [0; 64];
+            read_into(&mut entry);
+            let size = u32::from_be_bytes([entry[0], entry[1], entry[2], entry[3]]);
+            let select = u16::from_be_bytes([entry[4], entry[5]]);
+            let name = &entry[8..];
+            let length = name.iter().position(|b| *b == 0).ok_or(())?;
+            if &name[..length] == FW_CFG_NAME {
+                if found.is_some() {
+                    return Err(());
+                }
+                found = Some((select, size));
+            }
+        }
+        Ok(found)
+    }
+
+    /// Present: exactly 80 bytes read. Absent: `Ok(None)`.
+    pub fn read() -> Result<Option<[u8; BYTES]>, ()> {
+        let Some((select, size)) = find()? else {
+            return Ok(None);
+        };
+        if size as usize != BYTES {
+            return Err(());
+        }
+        out16(FW_CFG_SELECTOR, select);
+        let mut payload = [0; BYTES];
+        read_into(&mut payload);
+        Ok(Some(payload))
+    }
+}
+
 struct Evidence {
     roles: [Option<[u64; 8]>; 4],
     kernel_tables: usize,
@@ -158,6 +266,27 @@ pub(super) fn manifest(s: &mut State) {
             );
         }
     }
+    // #110: the cold guest receives the exact boot-1 pair; a normal guest
+    // must start without one, so a normal run can never be fed tokens.
+    match (RECOVER, replay::read()) {
+        (true, Ok(Some(payload))) => {
+            require(payload.iter().any(|b| *b != 0), b"REPLAY_INPUT_ZERO");
+            for (index, chunk) in payload.chunks_exact(8).enumerate() {
+                let mut word = [0; 8];
+                word.copy_from_slice(chunk);
+                put(
+                    s,
+                    GUEST,
+                    replay::OFFSET + index as u64 * 8,
+                    u64::from_le_bytes(word),
+                );
+            }
+            serial::write(b"NAS:REPLAY_INPUT:PASS\n");
+        }
+        (false, Ok(None)) => {}
+        (true, _) => fail(b"REPLAY_INPUT"),
+        (false, _) => fail(b"REPLAY_INPUT_IN_NORMAL"),
+    }
     for (offset, value) in [
         (32, 1),
         (48, block),
@@ -192,6 +321,19 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _: u64) {
         fail(b"ROLE_RESULT");
     }
     require(evidence().roles[slot].is_none(), b"DUPLICATE_EXIT");
+    if slot == GUEST && !RECOVER {
+        // Snapshot before process cleanup: the guest's own published pair.
+        let mut payload = [0; replay::BYTES];
+        for (index, chunk) in payload.chunks_exact_mut(8).enumerate() {
+            chunk.copy_from_slice(&word(s, slot, replay::OFFSET + index as u64 * 8).to_le_bytes());
+        }
+        require(
+            payload[..40].iter().any(|b| *b != 0) && payload[40..].iter().any(|b| *b != 0),
+            b"REPLAY_EXPORT",
+        );
+        replay::publish(&payload);
+        serial::write(b"NAS:REPLAY_EXPORT:PASS\n");
+    }
     evidence().roles[slot] = Some(words);
     m4::engine().process_died(s.processes[slot].pid, PROCESS_EXITED, 0);
 }
@@ -218,8 +360,9 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     {
         return None;
     }
+    // Cold: the guest's exact-token COMMIT replay adds one Stale reply.
     let expected = if RECOVER {
-        [(4, 0), (4, 4), (0, 4)]
+        [(4, 0), (4, 5), (0, 5)]
     } else {
         [(6, 1), (12, 6), (6, 5)]
     };

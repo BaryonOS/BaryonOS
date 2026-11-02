@@ -89,3 +89,9 @@ docs/verification/rtc-native/**/*.txt -text whitespace=blank-at-eol,blank-at-eof
 docs/verification/rtc-native/**/*.json -text
 docs/verification/rtc-native/*.json -text
 docs/verification/rtc-native/SHA256SUMS -text
+docs/verification/nas-replay-110/*.txt -text
+
+# #117 sparse-frames native probe: exact firmware CRLF bound by SHA256SUMS.
+docs/verification/sparse-frames-117/*.txt -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+docs/verification/sparse-frames-117/*.json -text
+docs/verification/sparse-frames-117/SHA256SUMS -text

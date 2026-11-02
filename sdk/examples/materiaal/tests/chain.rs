@@ -397,6 +397,15 @@ fn configured_app<'a>(
     scale: Scale,
     mode: EditMode,
 ) -> App<'a, Port, Port, Port> {
+    configured_app_with(h, buffers, scale, mode, None)
+}
+fn configured_app_with<'a>(
+    h: &Rc<RefCell<Host>>,
+    buffers: Buffers<'a>,
+    scale: Scale,
+    mode: EditMode,
+    cache: Option<&'a mut [u64]>,
+) -> App<'a, Port, Port, Port> {
     let pairs = h.borrow().pairs;
     let p = pairs[0];
     let volume = VolumeSession::new(
@@ -444,7 +453,10 @@ fn configured_app<'a>(
     )
     .unwrap();
     let g = surface.geometry().unwrap();
-    App::new(controller, input, surface, g).unwrap()
+    match cache {
+        Some(cache) => App::with_damage_cache(controller, input, surface, g, cache).unwrap(),
+        None => App::new(controller, input, surface, g).unwrap(),
+    }
 }
 fn app<'a>(h: &Rc<RefCell<Host>>, buffers: Buffers<'a>) -> App<'a, Port, Port, Port> {
     configured_app(h, buffers, Scale::Percent100, EditMode::ReadWrite)
@@ -812,6 +824,92 @@ fn change_midframe() {
     );
     assert!(a.evidence().tiles > geometry().tiles());
 }
+fn damage_cache_sends_only_changed_tiles() {
+    // Same input on a full-repaint app and a damage-cache app: the shown
+    // framebuffers must be identical while the cache sends far fewer tiles.
+    let mut screens = Vec::new();
+    let mut later_tiles = Vec::new();
+    for cached in [false, true] {
+        let h = Host::new();
+        let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut cache = [0; nieuw_os_materiaal_app::DAMAGE_TILES];
+        let buffers = Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        };
+        let mut a = configured_app_with(
+            &h,
+            buffers,
+            Scale::Percent100,
+            EditMode::ReadWrite,
+            cached.then_some(&mut cache[..]),
+        );
+        let paint = |a: &mut App<'_, Port, Port, Port>| {
+            // The cache may need several bounded scan steps per sent tile.
+            for _ in 0..geometry().tiles() * 2 {
+                if !a.controller().view().dirty {
+                    return;
+                }
+                a.step().unwrap();
+            }
+            panic!("never completed current frame")
+        };
+        paint(&mut a);
+        assert_eq!(a.evidence().tiles, geometry().tiles());
+        new_text(&h, &mut a);
+        paint(&mut a);
+        let editor = a.evidence().tiles;
+        // One more typed character on the painted editor screen.
+        keys(&h, &mut a, &[0x17, 0x97]);
+        assert_eq!(a.controller().view().contents, Some("hii"));
+        paint(&mut a);
+        assert!(a.evidence().ready);
+        assert_eq!(
+            h.borrow().surface.completed_frame(),
+            Some(a.controller().view().generation)
+        );
+        later_tiles.push(a.evidence().tiles - editor);
+        screens.push(h.borrow().framebuffer.clone());
+    }
+    assert_eq!(screens[0], screens[1]);
+    assert!(later_tiles[1] > 0);
+    assert!(later_tiles[1] * 10 < later_tiles[0], "{later_tiles:?}");
+}
+fn undersized_damage_cache_keeps_full_repaints() {
+    // The same input sequence with no cache at all is the dense reference: an
+    // undersized cache must send exactly the same tiles and pixels, so no
+    // extra tile from an abandoned partial frame can mask a skipped tile.
+    let mut runs = Vec::new();
+    for undersized in [false, true] {
+        let h = Host::new();
+        let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut cache = [0; 3];
+        let mut a = configured_app_with(
+            &h,
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+            Scale::Percent100,
+            EditMode::ReadWrite,
+            undersized.then_some(&mut cache[..]),
+        );
+        finish_paint(&mut a);
+        let first = a.evidence().tiles;
+        assert_eq!(first, geometry().tiles());
+        new_text(&h, &mut a);
+        finish_paint(&mut a);
+        assert_eq!(a.evidence().frames, 2);
+        assert!(a.evidence().tiles - first >= geometry().tiles());
+        let tiles = a.evidence().tiles;
+        drop(a);
+        assert_eq!(cache, [0; 3]);
+        runs.push((tiles, h.borrow().framebuffer.clone()));
+    }
+    assert_eq!(runs[0], runs[1]);
+}
 fn input_loss_after_ready() {
     let h = Host::new();
     let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
@@ -1035,6 +1133,14 @@ fn stop_after_no_work() {
 }
 scenario!(negative_display_completion_never_presents, negative_blit);
 scenario!(generation_change_abandons_partial_frame, change_midframe);
+scenario!(
+    damage_cache_repaints_identical_pixels_with_fewer_tiles,
+    damage_cache_sends_only_changed_tiles
+);
+scenario!(
+    undersized_damage_cache_falls_back_to_full_repaints,
+    undersized_damage_cache_keeps_full_repaints
+);
 scenario!(
     input_failure_revokes_current_ready_flag,
     input_loss_after_ready

@@ -8,4 +8,5 @@ publish = false
 
 [dependencies]
 app-package-core = { path = "../../crates/app-package-core" }
+artifact-store-core = { path = "../../crates/artifact-store-core" }
 nieuw-os-sdk-runtime = { path = "../runtime" }

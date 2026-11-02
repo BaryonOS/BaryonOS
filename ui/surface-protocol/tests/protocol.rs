@@ -203,7 +203,7 @@ fn noncanonical_pixels_and_geometry_cannot_reach_blit_callback() {
 }
 
 #[test]
-fn grid_has_exact_short_edges_no_overlap_and_new_frame_starts_at_zero() {
+fn grid_has_exact_short_edges_no_overlap_and_completed_frames_are_final() {
     let g = Geometry {
         assigned: Rectangle {
             x: 8,
@@ -256,12 +256,9 @@ fn grid_has_exact_short_edges_no_overlap_and_new_frame_starts_at_zero() {
         ]
     );
     assert_eq!(receiver.completed_frame(), Some(1));
+    // A completed frame accepts no further tile, even a repeated tile 0.
     assert!(matches!(
         receiver.accept(7, 1, &begin(g, 5, 1, 0)),
-        Err(Error::Grid)
-    ));
-    assert!(matches!(
-        receiver.accept(7, 1, &begin(g, 5, 2, 1)),
         Err(Error::Grid)
     ));
     let token = ready(&mut receiver, g, 5, 2, 0, &[0; 1024]);
@@ -374,4 +371,56 @@ fn fresh_commit_admission_clock_rejects_expired_token_without_other_messages() {
     assert_eq!(response.pixels(), 0);
     assert_eq!(calls, 0);
     assert_eq!(receiver.completed_frame(), None);
+}
+
+#[test]
+fn sparse_frames_require_one_complete_frame_and_stay_increasing() {
+    let g = Geometry {
+        assigned: Rectangle {
+            x: 8,
+            y: 24,
+            width: 35,
+            height: 9,
+        },
+        ..geometry()
+    };
+    let mut receiver = Receiver::new(7, g, 100).unwrap();
+    let mut request = 0;
+    let mut commit = |receiver: &mut Receiver, frame: u64, tile: u64| {
+        request += 1;
+        let bytes = vec![0; g.rectangle(tile).unwrap().bytes()];
+        let token = ready(receiver, g, request, frame, tile, &bytes);
+        receiver
+            .commit_with(token, 1, |_, _| Ok::<(), ()>(()))
+            .unwrap();
+    };
+    // Before any complete frame: dense from tile 0, no gaps.
+    assert!(matches!(
+        receiver.accept(7, 1, &begin(g, 1, 1, 1)),
+        Err(Error::Grid)
+    ));
+    commit(&mut receiver, 1, 0);
+    assert!(matches!(
+        receiver.accept(7, 1, &begin(g, 9, 1, 2)),
+        Err(Error::Grid)
+    ));
+    for tile in 1..4 {
+        commit(&mut receiver, 1, tile);
+    }
+    assert_eq!(receiver.completed_frame(), Some(1));
+    // Afterwards a newer frame may send only changed tiles, but the frame is
+    // complete only once its final tile has been committed.
+    commit(&mut receiver, 2, 1);
+    assert_eq!(receiver.completed_frame(), None);
+    for (frame, tile) in [(2, 0), (2, 1), (1, 3)] {
+        assert!(matches!(
+            receiver.accept(7, 1, &begin(g, 20, frame, tile)),
+            Err(Error::Grid)
+        ));
+    }
+    commit(&mut receiver, 2, 3);
+    assert_eq!(receiver.completed_frame(), Some(2));
+    // A newer frame may also abandon nothing but its final tile.
+    commit(&mut receiver, 3, 3);
+    assert_eq!(receiver.completed_frame(), Some(3));
 }

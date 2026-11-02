@@ -986,6 +986,17 @@ impl Engine {
         );
         Ok(self.attach(p, slot, self.node_id(node)))
     }
+    /// Identity of the endpoint object behind a live handle, for manifest
+    /// checks such as "process A holds no handle to endpoint X". Read-only; it
+    /// grants nothing and reveals only an internal table index to the kernel.
+    pub fn endpoint_object(&self, pid: u64, handle: u64) -> Result<usize, Error> {
+        let node = self.resolve(pid, handle)?;
+        let object = self.nodes[node].object;
+        if object.index as usize >= MAX_ENDPOINTS {
+            return Err(Error::Type);
+        }
+        Ok(object.index as usize)
+    }
     pub fn check_endpoint(&self, pid: u64, handle: u64, required: u64) -> Result<(), Error> {
         let node = self.resolve(pid, handle)?;
         if self.nodes[node].object.index as usize >= MAX_ENDPOINTS {
