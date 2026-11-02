@@ -1,6 +1,26 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
+## NEXT AGENT HANDOFF — issue #43: ReceiveTcp na verbindingstime-out
+
+**Basis:** `380111b68688c981eec6abb8fab29174a29f5601` (main), branch
+`coderabbit/issue-43-receive-timeout`. Eén gerichte N01-reparatie: een al
+geannuleerde socket geeft bij ontvangst `Closed`, ook als de diagnostische
+status `TimedOut` is. De bestaande bufferafhandeling en tokencontroles blijven
+intact; opnieuw openen zet de time-outstatus terug en vernieuwt het token.
+
+**Bewijs:** regressietest op de oude code echt rood (exit 101: `Again` versus
+`Closed`); daarna alle 10 service-hosttests, rustfmt, Clippy en de
+`x86_64-unknown-none`-librarybuild groen (exit 0), Rust 1.91.1.
+Zie `docs/verification/issue-43-receive-timeout.md` voor commando's en grenzen.
+Een tweede agent bevestigde het codepad alleen-lezen; dit is geen menselijke audit.
+
+**Open/eerstvolgend:** de bestaande QEMU-netwerkroutes `normal` en `client-exit`
+uitvoeren op deze bron, testbewijs aanvullen en één concept-PR voor #43 openen.
+Hosted CI en review volgen op de PR-head. #43 blijft open; geen issuewijziging,
+merge, nieuwe bevoegdheid of afhankelijkheid. **41 → 41/100**; geen nieuwe
+native productcriteria, hardware- of volledige releaseclaim.
+
+## Vorig checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 
 **Basis:** PR127 `798706c2a53d0062ce0474e5f84f294b2c37b825`, drie lokale
 fixleaves en PR126 `8f08db4c12573f91b57e55c30fa417e7abd358e6`, met main
