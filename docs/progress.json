@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "ebdcebf6cd1f29fefe08b6abab65d0cfcceb71ca",
+    "source_commit": "64044318c622eaacab25272611acf856a5fca5d5",
     "branch": "codex/materiaal-library-20261102",
-    "task": "Native Materiaalbibliotheek en proportionele documentwerkruimte in uitvoering",
+    "task": "U03 native openen, bewerken, benoemen, organiseren en versieherstel geaccepteerd",
     "previous_score": 41,
-    "summary": "41/100 blijft 41. Naamzoeking, collecties, geschiedenis/restore en proportionele native documentbediening zijn geïntegreerd, met read-only/stale/pointer/conflict-negatieven en beperkte geverifieerde historiepreview. De eerste14 hostoracles en native app/ELF-build zijn geslaagd; finale bronherhaling en nieuwe QEMU-write/cold/regressiegates volgen. Een afgebroken volledige hostcontrole zonder exitstatus wordt niet geteld. U03 en alle bestaande gewichten blijven ongewijzigd open tot volledig bewijs."
+    "summary": "41→44/100 door uitsluitend U03 (+3). Echte native documenten worden via volume-v7 benoemd, lokaal gezocht, geordend en als nieuwe revisie hersteld. Write10/cold4/full-regressie22 slagen op bron6404431/source069666e5, met complete appbeelden, onafhankelijke schijf-/hashreadback, echte compositorfault/herstart, clipboard en cleanup.76 UI-,109 SDK-,41 app-,190 Python-tests en11 runnerchecks slagen; nieuwe negatieve cases behouden rechten/CAS/drafts. Materiaal LOADgeheugen195→156pagina’s gemeten. Grote TCG-paginaovergangen blijven45–53seconden; U02/U04/U05, echte authenticatie en hardware blijven open. Alle18 CI-workflows op640 zijn groen; de openbare native sessieroute slaagt opnieuw18toestanden met echteklok. Geen nieuweWindows-runtime-/VMware-/hardware-/releaseclaim."
   },
   "tracks": [
     {
@@ -286,9 +286,14 @@
           "id": "U03",
           "title": "Materiaal van openen tot bewaren",
           "points": 3,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "Gebruikers openen, bewerken, hernoemen en organiseren echte native documenten; rechten, historie en locatie blijven begrijpelijk en correct.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/materiaal-library-20261102/README.md",
+            "docs/verification/materiaal-library-20261102/native-write.json",
+            "docs/verification/materiaal-library-20261102/native-cold.json",
+            "docs/verification/materiaal-library-20261102/native-regression-readback.json"
+          ]
         },
         {
           "id": "U04",

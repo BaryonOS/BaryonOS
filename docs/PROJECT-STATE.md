@@ -1,6 +1,46 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Materiaalbibliotheek in uitvoering — 2 november 2026
+## NEXT AGENT HANDOFF — U03 native geaccepteerd,41→44/100 — 2 november 2026
+
+Branch `codex/materiaal-library-20261102`, concept-PR130 op PR129; begin159ad79.
+Functionele bron64044318c622eaacab25272611acf856a5fca5d5, source-v3
+069666e5406a893f64aa5d8e00298863f33f8be9cef57b6e0522b8bdf9648670.
+De volledige totaalprompt blijft actief. **U03+3 sluit; score41→44/100.**
+Geen criteria/gewichten verlaagd, geen mainmerge, geen volledigeOS-/authclaim.
+
+Gebouwd: gedeelde proportionele documentlayout inclcaret/selectie/wrap/pointer/
+navigatie/soft-wrap-affinity; prominente titel; echte lokale locatie/rechten/
+revisie; hernoemen+bewaren, lokale naamzoeking, vier echte collecties,
+geschiedenis met scroll/geverifieerdeprefix en herstel als nieuwe revisie.
+SDK bewaart CAS/domain/read-only/dirty/busy/uncertain en herhaalt geen mutaties.
+Negatieven voor stale acties, dialoog-overschrijdende muisklik, META-conflict na
+collectiecreate, onzekere commit/refresh en previewfouten slagen.
+
+Native640: write10fasen382,604s; cold4fasen191,301s; full22fasen487,007s,
+alle raw33/pass. Onafhankelijke readback controleert daadwerkelijke complete
+appbeelden, diskbytes/revisies/collecties/canaries, bytegelijke koude kopie,
+UD2slot4/vector6/PID5→9/apps4/8, verseepochs, clipboard en cleanup/framebaseline.
+Alle28host- en14nieuwe native librarybeelden zijn visueel beoordeeld.
+Bewijs/commando’s: `docs/verification/materiaal-library-20261102/README.md`.
+76UI/109SDK/41app/190Python+11runnerchecks, Clippy/fmt/build/echteELFparser groen.
+Gemeten Materiaal:195→156LOADpagina’s; R/RW/W^X/guards/caps blijven geldig.
+
+Grenzen: grote TCG-paginaovergangen duren nog45–53s; geen U02/dagelijksnelheidsclaim.
+Host200%-compacteditor verbergt toolbar/metadata maar behoudt toetsenroutes;
+shaping/IME/screenreader/menselijke acceptatie blijven open. Echte profiel-/auth-
+/sessieauthority en keyring/capability-revoke blijvenP0. VMware/Windows/hardware
+zijn niet nieuw uitgevoerd. Alle18 GitHub-workflows op640 zijn groen, inclusiefCI-full/write/cold en
+normalepakketbouw. Native openbare sessieroute640 slaagt opnieuw18toestanden
+met echteklok (lock7,769s/desktop91,174s); geen echteauthclaim.
+
+Volgende concrete stap: oude nativeMateriaal-oracle op actueleeditorbounds
+brengen (repro51legitieme metadatawijzigingen,0echteeditorwijzigingen). De
+UI-deelagent raakte quota; zijn WIP is behouden in aparteworktree
+`/workspace/nieuw-os-legacy-oracle`, rootneemtde2toolbestandenover. Alleen
+ondersteunde acties/negatieventesten, geenhost-/beeldgrensverzwakking. Daarna
+nieuwebron-/binairebinding vastleggen en nativepreview met klok opnieuw toetsen.
+
+## Vorig checkpoint — Materiaalbibliotheek in uitvoering — 2 november 2026
 
 Branch `codex/materiaal-library-20261102`, basis `159ad799d2a94fb6542d60e26ed8bbd22bdbd752`.
 De volledige gebruikersopdracht blijft actief. **41/100 blijft 41** tot U03 volledig

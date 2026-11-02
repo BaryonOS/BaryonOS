@@ -3,9 +3,9 @@
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 41% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 44% van de vaste productroadmap](docs/assets/progress.svg)
 
-**41% — 41 van 100 gewogen acceptatiepunten.** Dit is een
+**44% — 44 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -22,20 +22,20 @@ alleen een nette desktop haalt die eindgrens niet.
 | Eigen kern en procesisolatie | 15 | 13 |
 | Opslag en gegevensherstel | 15 | 13 |
 | Hardware, drivers en energie | 12 | 1 |
-| Native Materiaal en toegankelijkheid | 15 | 4 |
+| Native Materiaal en toegankelijkheid | 15 | 7 |
 | Internet en netwerkdiensten | 10 | 3 |
 | Beveiliging, privacy en updates | 12 | 4 |
 | Apps, SDK en installatie | 8 | 2 |
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **41** |
+| **Totaal** | **100** | **44** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`ebdcebf6`](https://github.com/simonvanieperen/nieuw-os/commit/ebdcebf6cd1f29fefe08b6abab65d0cfcceb71ca) ·
+**Bron:** [`64044318`](https://github.com/simonvanieperen/nieuw-os/commit/64044318c622eaacab25272611acf856a5fca5d5) ·
 **Ontwikkelbranch:** `codex/materiaal-library-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Native Materiaalbibliotheek en proportionele documentwerkruimte in uitvoering.
-41/100 blijft 41. Naamzoeking, collecties, geschiedenis/restore en proportionele native documentbediening zijn geïntegreerd, met read-only/stale/pointer/conflict-negatieven en beperkte geverifieerde historiepreview. De eerste14 hostoracles en native app/ELF-build zijn geslaagd; finale bronherhaling en nieuwe QEMU-write/cold/regressiegates volgen. Een afgebroken volledige hostcontrole zonder exitstatus wordt niet geteld. U03 en alle bestaande gewichten blijven ongewijzigd open tot volledig bewijs.
+Deze opdracht: **41% → 44% (+3 procentpunt)**. **Opdracht:** U03 native openen, bewerken, benoemen, organiseren en versieherstel geaccepteerd.
+41→44/100 door uitsluitend U03 (+3). Echte native documenten worden via volume-v7 benoemd, lokaal gezocht, geordend en als nieuwe revisie hersteld. Write10/cold4/full-regressie22 slagen op bron6404431/source069666e5, met complete appbeelden, onafhankelijke schijf-/hashreadback, echte compositorfault/herstart, clipboard en cleanup.76 UI-,109 SDK-,41 app-,190 Python-tests en11 runnerchecks slagen; nieuwe negatieve cases behouden rechten/CAS/drafts. Materiaal LOADgeheugen195→156pagina’s gemeten. Grote TCG-paginaovergangen blijven45–53seconden; U02/U04/U05, echte authenticatie en hardware blijven open. Alle18 CI-workflows op640 zijn groen; de openbare native sessieroute slaagt opnieuw18toestanden met echteklok. Geen nieuweWindows-runtime-/VMware-/hardware-/releaseclaim.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

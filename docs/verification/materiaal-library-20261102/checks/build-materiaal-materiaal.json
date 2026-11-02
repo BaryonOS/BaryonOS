@@ -1,0 +1,11 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "/workspace/nieuw-os/sdk/examples/materiaal/build.py"
+  ],
+  "cwd": "/workspace/nieuw-os",
+  "started_unix": 1793654682.520277,
+  "duration_s": 5.109019041061401,
+  "returncode": 0
+}

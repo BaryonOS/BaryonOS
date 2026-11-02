@@ -1,0 +1,194 @@
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 14 tests
+test failed_unexpected_cap_close_does_not_skip_other_caps_or_endpoints ... ok
+test full_queue_budget_exhaustion_never_enqueues_or_replays ... ok
+test actual_core_roundtrip_lists_creates_reads_cas_renames_and_deletes ... ok
+test cleanup_failure_is_reported_and_other_endpoint_is_still_closed ... ok
+test invalid_operation_is_local_and_leaves_session_usable ... ok
+test malformed_send_return_preserves_unknown_delivery_and_does_not_resend ... ok
+test lost_reply_after_state_commit_closes_without_replaying_mutation ... ok
+test invalid_poll_budgets_and_endpoint_alias_are_rejected ... ok
+test revoked_endpoint_is_a_real_kernel_error_before_enqueue ... ok
+test real_full_queue_can_retry_only_before_publication ... ok
+test service_unknown_is_never_a_mutation_ack_and_closes_endpoints ... ok
+test transport_and_yield_errors_preserve_delivery_fact_and_close ... ok
+test unexpected_capabilities_reach_b01_unchanged_then_all_are_closed ... ok
+test wrong_kernel_peer_tag_and_request_id_close_the_session ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 1 test
+test volume::tests::request_id_exhaustion_never_wraps_or_publishes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 14 tests
+test bounds_fail_before_mutation_or_transport ... ok
+test empty_maximum_and_non_utf8_contents_roundtrip ... ok
+test journal_full_preserves_edit_and_loaded_revision_without_retry ... ok
+test list_after_uncertain_or_closed_never_sends_and_retains_draft ... ok
+test list_preserves_dirty_conflicted_draft_and_server_error ... ok
+test load_edit_save_reopen_uses_exact_revision_and_flush_before_ack ... ok
+test lost_reply_after_commit_retains_draft_without_replay_and_recovers_from_records ... ok
+test open_missing_or_foreign_document_never_silently_discards_current_document ... ok
+test preenqueue_timeout_preserves_draft_and_does_not_claim_a_commit ... ok
+test readonly_is_local_policy_and_server_access_denial_preserves_writable_draft ... ok
+test service_unknown_remains_uncertain_even_after_explicit_local_discard ... ok
+test reverted_edits_and_explicit_discard_are_local_and_clean_save_is_noop ... ok
+test revoked_real_endpoint_cannot_be_restored_by_edit_mode ... ok
+test two_writers_conflict_without_rebase_or_draft_loss ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 35 tests
+test cancellation_retains_draft_and_never_publishes_commit ... ok
+test certain_data_io_failure_keeps_old_revision_and_local_edits ... ok
+test acknowledged_restore_with_failed_refresh_retains_old_draft_and_blocks_save ... ok
+test bounds_and_readonly_checks_do_not_send_or_change_draft ... ok
+test collection_table_io_failure_is_unknown_without_retry ... ok
+test empty_document_rename_editing_and_foreign_selector ... ok
+test filtered_list_never_publishes_a_partial_or_cross_generation_result ... ok
+test dropped_library_mutation_replies_are_uncertain_and_never_retried ... ok
+test history_prefix_never_cuts_a_utf8_character_and_readonly_can_preview ... ok
+test history_prefix_rejects_invalid_utf8_even_after_the_visible_prefix ... ok
+test history_preview_is_read_only_and_restore_is_a_new_revision ... ok
+test history_preview_keeps_dirty_draft_and_failed_read_keeps_output ... ok
+test independent_sessions_cannot_mix_upload_name_and_contents ... ok
+test history_prefix_stale_revision_or_busy_upload_preserves_output ... ok
+test history_prefix_tail_errors_and_timeouts_never_publish_partial_output ... ok
+test kernel_revocation_denies_next_save_and_preserves_draft ... ok
+test library_invalid_indices_revisions_and_domain_do_not_publish ... ok
+test library_pre_enqueue_timeout_does_not_claim_publication_or_retry ... ok
+test library_mutations_preserve_dirty_draft_and_async_upload ... ok
+test library_collections_metadata_filters_and_empty_only_delete ... ok
+test library_service_crash_after_enqueue_blocks_all_mutations ... ok
+test lost_commit_reply_is_uncertain_and_recovery_sees_actual_saved_bytes ... ok
+test library_wrong_domain_or_malformed_mutation_reply_is_not_success ... ok
+test malformed_commit_ack_never_marks_the_draft_saved ... ok
+test malformed_envelopes_close_both_endpoints_and_keep_prior_document ... ok
+test missing_collection_and_stale_collection_cas_preserve_the_document ... ok
+test partial_read_failure_preserves_previous_complete_document ... ok
+test stale_draft_has_no_automatic_retry ... ok
+test readonly_library_reads_but_never_mutates ... ok
+test stale_history_selection_cannot_restore_a_different_current_revision ... ok
+test table_io_unknown_is_sticky_and_does_not_retry_after_discard ... ok
+test stale_metadata_cas_is_sticky_without_automatic_retry ... ok
+test writable_app_cannot_bypass_readonly_volume_service ... ok
+test verified_history_prefix_uses_existing_staging_and_labels_truncation ... ok
+test large_stream_roundtrip_and_actual_volume_recovery ... ok
+
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+
+running 2 tests
+test tests::exhausted_request_ids_close_before_any_publication ... ok
+test tests::sdk_owned_envelopes_are_zeroized_by_their_destructors ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 9 tests
+test eagain_is_bounded_and_post_enqueue_timeout_never_resends ... ok
+test canonical_not_ready_and_quota_return_no_bytes_allow_explicit_new_requests ... ok
+test invalid_config_is_rejected ... ok
+test invalid_length_busy_idle_closed_do_not_publish ... ok
+test degraded_and_unknown_status_close_lease_without_fallback ... ok
+test transport_ambiguity_yield_failure_and_cancel_are_terminal_with_both_closes ... ok
+test unexpected_caps_are_closed_even_when_reply_is_rejected_and_one_close_fails ... ok
+test malformed_responses_terminally_reject_sender_tag_op_index_id_status_prefix_count_and_padding ... ok
+test every_client_length_roundtrips_through_real_core_and_never_resends_after_queue ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 9 tests
+test memory::tests::malformed_or_nonprivate_kernel_extents_fail_closed ... ok
+test memory::tests::fresh_suffix_geometry_and_raw_access_are_preserved ... ok
+test clock::tests::wall_clock_values_always_carry_untrusted_quality ... ok
+test message::tests::received_handoff_clears_native_staging_bytes ... ok
+test message::tests::refused_native_handoff_preserves_bytes_for_capability_cleanup ... ok
+test wait_tests::all_full_handle_bits_and_interests_are_encoded_without_padding ... ok
+test wait_tests::minor_eleven_preserves_old_abi_and_return_rules ... ok
+test wait_tests::returned_mask_is_bounded_by_count_including_empty_sleep ... ok
+test wait_tests::wait_support_includes_known_minor_eleven_and_rejects_other_profiles ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 14 tests
+test block_completion_accepts_only_the_canonical_ticket_envelope ... ok
+test every_payload_length_matches_the_current_kernel_decoder ... ok
+test delegated_cap_descriptors_are_validated_and_preserved ... ok
+test abi_check_accepts_only_existing_compatible_versions ... ok
+test handle_representation_does_not_accept_sentinels_or_slot_overflow ... ok
+test oversized_wire_lengths_never_index_or_truncate ... ok
+test received_length_must_equal_the_syscall_result ... ok
+test received_message_keeps_kernel_identity_and_exact_payload ... ok
+test known_rights_do_not_allow_unknown_permission_bits ... ok
+test register_errors_remain_errors_and_secondary_errors_are_zero ... ok
+test refused_cap_append_does_not_modify_the_message ... ok
+test raw_send_rejects_spoofed_sender_and_every_unused_byte ... ok
+test received_envelope_rejects_missing_sender_reserved_and_padding ... ok
+test sdk_messages_interoperate_with_actual_capability_engine ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+test abi_1_3_through_1_10_are_accepted_and_future_minors_are_not ... ok
+test status_words_round_trip_and_reject_noncanonical_values ... ok
+test typed_handles_keep_their_representation ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+test absent_source_is_an_explicit_failure ... ok
+test plausible_and_extreme_rtc_values_never_become_certificate_time ... ok
+test none_cannot_be_substituted_by_a_successful_rtc_fallback ... ok
+test stable_forward_and_backward_sequences_do_not_establish_trust ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+test tests::frames_round_trip_and_reject_bad_sizes_or_ops ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+test runtime/src/tls_time.rs - tls_time (line 15) - compile fail ... ok
+test runtime/src/tls_time.rs - tls_time (line 9) - compile fail ... ok
+test runtime/src/tls_time.rs - tls_time (line 21) - compile fail ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
