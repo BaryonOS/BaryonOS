@@ -1,6 +1,7 @@
 # Sessieroute — hostbeelden en visuele review
 
 **Datum:** 2 november 2026. **Rendererbron vóór polish:** `7d1858f`. **Na polish:** `20fc36e`.
+**Actuele artifactbron:** `703cc0705471062ffb1483a16f42a2e580a6fdf7`.
 **Bewijsniveau:** hostgerenderde echte Rustcode, synthetische data. Geen HTML,
 getekende vervangende app, QEMU-screenshot, echte authenticatie of hardwareproef.
 Score blijft 41/100; dit bewijs sluit geen nieuwe gate.
@@ -126,7 +127,7 @@ monospaced documentediting, beperkte fontcoverage/shaping, ontbrekende echte
 auth-/keyringbroker en OS-brede toegankelijkheid blijven open. Deze slice
 heeft herkenbare OS-bediening, maar dit is geen volwaardig dagelijks product.
 
-Aanvullende checks op de productbron, alle exit 0:
+Historische aanvullende checks op productbron `20fc36e`, alle exit 0:
 
 ```sh
 CARGO_TARGET_DIR="$PWD/build/graphics-polish" cargo test --manifest-path ui/graphics/Cargo.toml --offline --locked
@@ -148,62 +149,64 @@ controleren displaymetrics, glyphgrens, tiles en guardpixels. De no_std-build
 is geen native uitvoering. Logs staan buiten Git onder
 `/workspace/.nieuw-os-env/session-polish-*.log`.
 
+## Finale artifactherkoppeling op 703cc07
+
+De bestaande fixture is opnieuw gebouwd en uitgevoerd op de ongewijzigde
+codefreeze `703cc0705471062ffb1483a16f42a2e580a6fdf7`, detached worktree
+`/workspace/nieuw-os-session-final-board`. Er zijn geen bronbestanden, tests,
+manifesten, dependencies of locks aangepast. Dit is een nieuwe uitvoering,
+geen herlabeling van de oude PNG's.
+
+```sh
+source /workspace/.nieuw-os-env/activate.sh
+mkdir -p build/session-final-images
+OS_SESSION_BOARD_DIRECTORY="$PWD/build/session-final-images" CARGO_TARGET_DIR="$PWD/build/session-final-target" cargo test --manifest-path ui/native/Cargo.toml --test session_board --release --offline --locked
+```
+
+**Uitkomst:** exit 0; acht toestanden op vijf profielen (40 beelden) plus het
+board. Alle PPM's zijn opnieuw verliesloos naar RGB-PNG geconverteerd. Elke
+teruggelezen PNG is per pixel met de bijbehorende verse PPM vergeleken.
+De RGB-pixels van alle 40 matrixbeelden zijn exact gelijk aan de vorige
+matrix; het contactblad heeft een nieuw correct bronlabel. Dit ondersteunt
+de rastercontinuïteit na de cover-/readinesswijzigingen, geen claim over
+native displaylatency of runtime-input. Het oorspronkelijke vóór-board uit
+`7d1858f` is byte voor byte behouden en tegen de eerste artifactcommit getoetst.
+
+Opnieuw visueel bekeken: het hele primaire board, primaire twee-vensterbeeld,
+200%-lock/zoeklaag en de kleine 1024×768-werkruimte. Geen nieuwe clipping,
+onbedoelde control-overlap of onleesbare hoofdactie waargenomen. Geometriechecks
+in de fixture slagen op alle 40 toestanden. De eerder genoemde resterende
+tekortkomingen (monospaced editing, optische displayfontkwaliteit, brede
+vensterafstand op 1920 en ontbrekende echte accountdiensten/toegankelijkheid)
+blijven open. AI-beeldreview is geen menselijke gebruikerstest.
+
+De historische Clippy-/cratetestresultaten hierboven blijven bij hun eigen
+bron; voor deze pure artifacttaak is de bestaande matrixfixture opnieuw
+uitgevoerd. Root rapporteert de finale brede en native gates afzonderlijk.
+Log: `/workspace/.nieuw-os-env/session-final-board-render.log`.
+
 ## Artifactbinding
 
-Hashes hieronder binden de uitgevoerde renderoutputs; de visueel bekeken
-selectie staat hierboven expliciet beschreven. De before-board blijft
-op `7d1858f`; de actuele matrix is productbron `20fc36e`. Niet naar een latere
-integratorcommit herlabelen zonder nieuwe render-/integratiecontrole.
+Het machineleesbare [hashrapport](visual-artifact-hashes.json) bindt alle
+verse PPM-/PNG-/RGB-hashes, vijf profielen, acht toestanden, bronbestanden,
+rendercommando, exitstatus en bewaarde before-board. De source-v3-vingerafdruk
+is vóór/na genereren gecontroleerd:
 
-| Bestand | SHA-256 |
-|---|---|
-| `screenshots/1024x768-s1-auth.png` | `2c48c6b94c32d462962fb99fb4c89c2e0c7e72c68fb6e543bc71ae3c176da7fe` |
-| `screenshots/1024x768-s1-capability.png` | `b446d581177ccce2ab60db9604af8833ea70f1ffdfe2d9ab0f603fbfa17fe76f` |
-| `screenshots/1024x768-s1-empty-desktop.png` | `6bb1a2e3f0e0021d686a1c13834f96fbd4f6bf088e86d66a03f3d325a9159886` |
-| `screenshots/1024x768-s1-lock.png` | `7400bb0d8563fee1fdf3de9c55538a8bbe7bb0af8542afefadb7e963e569a4ea` |
-| `screenshots/1024x768-s1-search.png` | `d7d2c6868d4c4bcc8be53a63e8f885611d0d9c4844460c592eb1985f1a4b20df` |
-| `screenshots/1024x768-s1-settings.png` | `ee2efd5c4066d24e42fa65740a57e03fec19e1319f786f529a72f7a0fa2b1c92` |
-| `screenshots/1024x768-s1-two-windows.png` | `0c3aa62d05e743a68192d431dfde7f0d3f571c01f5d14afe0c10c5c8ba187002` |
-| `screenshots/1024x768-s1-users.png` | `8688252ac4b87c45bd7a41ed214541f3bec5d470f4fee21244ed85815d3c39fa` |
-| `screenshots/1280x720-s1-auth.png` | `e74c5737c80488b016c189dfee1a72003c74c3527448f805c19862a35df9d673` |
-| `screenshots/1280x720-s1-capability.png` | `329101c9f4052544e90effec6318b40d65a1fd6889a1d9c6489c94be6a02e69c` |
-| `screenshots/1280x720-s1-empty-desktop.png` | `fd71108d586b991d4d1ededfde10f06ae88dc9ebb08fd1813da4666dc8b35527` |
-| `screenshots/1280x720-s1-lock.png` | `51755b6a8719139b65f8176af1d189562063d6adb5a45e34002073f141cb823c` |
-| `screenshots/1280x720-s1-search.png` | `1127ed5dd6036fc5437d107838740f1ba08061a20b03a9ba87e39f23e662a164` |
-| `screenshots/1280x720-s1-settings.png` | `b71bca734175055f5172a85b22330618ce06abe0e4ae2843760dffba767a9a20` |
-| `screenshots/1280x720-s1-two-windows.png` | `b843b3eb53849b5eef5273b44e338059f38340bcdadf2f09e4c1422341bb4614` |
-| `screenshots/1280x720-s1-users.png` | `55adc0d524ba68699591c82f28aec771d4a0d9b713bc347221975d80de886c4a` |
-| `screenshots/1440x900-s1-auth.png` | `514ae0109bb2533997b1fde73917e27c7605257e38f695b54cd475c063fc53b3` |
-| `screenshots/1440x900-s1-capability.png` | `914d0567c5c379d50301bcc43ef7f277b18c6bbf836e8345e99e2d81b5316a32` |
-| `screenshots/1440x900-s1-empty-desktop.png` | `dfe6babeda0b69219778f78f32ba83a4a97b84d3d23a8b5c89d0c6d5da46b184` |
-| `screenshots/1440x900-s1-lock.png` | `b7afd1b2c4c8999fdad56591b3fdda322cc95d04a3d62b863596b7197d26c391` |
-| `screenshots/1440x900-s1-search.png` | `b61e0b1dbe792229d7d38585395f1e74852e44c7339dd361c7de07309e5ff2a6` |
-| `screenshots/1440x900-s1-settings.png` | `6020c574a3491391935f1a2c2f5154298625a1a13e571fef6a16fee50b185cfd` |
-| `screenshots/1440x900-s1-two-windows.png` | `59e585a4eb94abcaa25b4287d710956718ad58972bd04a37fbe9507074414e2f` |
-| `screenshots/1440x900-s1-users.png` | `277dd48eb32555d5eea9702301bb5d1ecca24b33dd0631d5fa4a17b52eb27ab1` |
-| `screenshots/1920x1080-s1-auth.png` | `94b385e4b745a34ca150f63edf750aeaf2d0d9bbce1e485d2bdd76d61d18f925` |
-| `screenshots/1920x1080-s1-capability.png` | `68adf530b941507a0b9b5c7069d81bab97b70061d40bc43c50cc24a0444e259e` |
-| `screenshots/1920x1080-s1-empty-desktop.png` | `ed8ad7620bb99628de411e095f596e2357c9fc97a182c5192303577866b02034` |
-| `screenshots/1920x1080-s1-lock.png` | `877560a1ed054235366cb441a3b7b9af2e1849ae170fd0f55f6c46763771884c` |
-| `screenshots/1920x1080-s1-search.png` | `a71d8636856476a3f2fa559ee3eaab61a82c35e31002e155a5d1c924212f50d0` |
-| `screenshots/1920x1080-s1-settings.png` | `e036da7d29feb3914a41318ca1bc6149d7a391c73e7bc56198334cadd8fe2826` |
-| `screenshots/1920x1080-s1-two-windows.png` | `a6a3c282d100a34ff6e62b167f7cc67aaff090e4f84850d4b3b8d47db92579df` |
-| `screenshots/1920x1080-s1-users.png` | `5418be795497f32a05601e4ab1daa1ca974ba2932ca51549da68245c615d1c17` |
-| `screenshots/1920x1080-s2-auth.png` | `86fc74d3a4d60d8af302bc946f2696c9b951e38f86024219151d5b13a30dd9d2` |
-| `screenshots/1920x1080-s2-capability.png` | `78405992eb4ceecb3c24d856af9cf71e8cc87a567df7a595d20d8a9fd5036086` |
-| `screenshots/1920x1080-s2-empty-desktop.png` | `9d55c78fad81db06dbdf958e39c0b03c8c6b088d8e58d5464768dd51272831b1` |
-| `screenshots/1920x1080-s2-lock.png` | `87dd9b21da8d5ef89432085fe410fd085f29a8ce8c86279f3b737422ce12b12a` |
-| `screenshots/1920x1080-s2-search.png` | `bba4f9d34a432a11a9990d9d60f91b0f66b61efdedd5dd20c9d84f07f55c05c1` |
-| `screenshots/1920x1080-s2-settings.png` | `ed1af4273090947f4b06dd94d0ffa5d13b5827ef8bdec5b5920e2e01cb9e7f0c` |
-| `screenshots/1920x1080-s2-two-windows.png` | `e5622270360e745bdb5aefe969bb490d8f81b5aa386812e1a37da061ac729e0f` |
-| `screenshots/1920x1080-s2-users.png` | `9ec3c2a80b8968fb58c78c249be7786ee95f30a01983417b78eca1d6f08f69ce` |
-| `screenshots/session-board-before-polish-host.png` | `af7e6655087c0d4fd94a35431747be1b8cf19ce38c3197bc33942686f697d56b` |
-| `screenshots/session-board-host.png` | `1187ca3956ffa5d101df1d5af1bacf84e627a05f2731fea7010e3c1faddf0906` |
+`e4ad9f922d202ee4249b6b1dd02a02d724f6775c616ad1c46dde48bf7ee2271c`.
+
+De vijf kernbronnen voor compositor, sessiebediening, klokfont en calculator,
+plus fixture/atlas/authcontract, zijn afzonderlijk gebonden:
 
 | Bronbestand | SHA-256 |
 |---|---|
-| `ui/native/tests/session_board.rs` | `28dec36d58c525988e1f8b314d298782e49ab8c5d2691e5e035d50e365963a71` |
+| `sdk/examples/window-session/src/scene.rs` | `ead69d27c7e8f08cbfaec3ba78654ef82b120758cfb5936b98d01c8ded1c58b2` |
+| `sdk/examples/window-session/src/main.rs` | `7ce27ec096ad7bedf2e3d11a000ef70415476bb2b35a430f802d8384e3a05b22` |
+| `sdk/examples/window-session/src/shell.rs` | `8f1b6905ad98f12e006896b0c0e453c225ab7285e3030a5098325c4da349ba6f` |
 | `ui/graphics/src/text.rs` | `a06ba18c2459211d63293e644a37516676db1e711fb093950205af91161bb6e9` |
-| `sdk/examples/window-session/src/shell.rs` | `6dff0dd3c85bf44ad8bc61fd09432d701da0e9de6b2bbe0f923314580e702a1e` |
 | `sdk/examples/calculator/src/render.rs` | `31ccfc62c37cf3587040fcde9633a43591cc86037b4ccc75bb09539dceabccfd` |
+| `ui/native/tests/session_board.rs` | `28dec36d58c525988e1f8b314d298782e49ab8c5d2691e5e035d50e365963a71` |
 | `ui/graphics/assets/open-sans-atlas.rle` | `a4e3efa8027d5eba26bea742f7350bda34380cab9d77030d21481cb06c5f2e07` |
+| `ui/native/src/session.rs` | `0388858099523e1b538ea5fca846b6003cd0256d31d62070d27072238071cc13` |
+
+Het bronlabel is een host-artifactlabel. Dit document geeft geen QEMU-,
+FIDO2-, biometrie-, hardware- of nieuwe scoreclaim.
