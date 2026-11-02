@@ -25,6 +25,13 @@ Controleerbaar bewijs, beperkingen en exacte gebruikte Windows-harness:
 De bekende rode b1basis blijft historisch bewaard en is geen A/B-baseline.
 De eerste pilot is uitgesloten; de formele helper73tests heeft72passes/1skip.
 
+Aanvullende normale337-CI-bundel: alle payload/embeddedELFs gecontroleerd,
+echte WindowsPowerShell5.1-starter kiestWHPX en bereikt INITMASK31 met SDLvenster.
+Visuele/inputacceptatie blijft onbevestigd: vensteropnametool weigert tweemaal
+met certificaatvertrouwen0x800b0101. EigenVM netjes gesloten, starterexit0,
+geen achterblijvende QEMU. Dit is geen zevende nativepass of B-pakket.
+Zie `verification/gui-idle-20261102/normal-bundle-337/README.md`.
+
 Deze performanceopdracht kent geen extra punten toe: lokale checkpointmeter
 37 ->37. De centrale integrator behandelt afzonderlijk U01/41 en de merges;
 laat zijn actuele geaccepteerde scoreblad niet terugvallen bij integratie.

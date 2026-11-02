@@ -35,7 +35,7 @@ alleen een nette desktop haalt die eindgrens niet.
 **Bron:** [`1f2ac0ae`](https://github.com/simonvanieperen/nieuw-os/commit/1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b) ·
 **Ontwikkelbranch:** `codex/window-idle-wait-20261102`.
 Deze opdracht: **37% → 37% (+0 procentpunt)**. **Opdracht:** GUI IPC_WAIT: zes volledige Windows-native A/B-proeven.
-37/100 blijft op deze lokale checkpointbasis gelijk; geen punten voor een performanceoptimalisatie. Op exactgeteste1f2-bron slagen6/6 volledige Windows/WHPX-gates met dezelfde beelden en crash/herstel/opslag/cleanup. ProcesCPU daalt mediaan88,26% (99,37 naar11,67% van één logischeCPU). Gerichte host/native-componentcontroles slagen. Centrale integrator behandelt U01/41 en CI/TCG-opname afzonderlijk; geen hoofdbranchmerge, fysieke of echteauthclaim.
+37/100 blijft op deze lokale checkpointbasis gelijk; geen punten voor een performanceoptimalisatie. Op exactgeteste1f2-bron slagen6/6 volledige Windows/WHPX-gates met dezelfde beelden en crash/herstel/opslag/cleanup. ProcesCPU daalt mediaan88,26% (99,37 naar11,67% van één logischeCPU). Gerichte host/native-componentcontroles slagen. Centrale integrator behandelt U01/41 en CI/TCG-opname afzonderlijk; geen hoofdbranchmerge, fysieke of echteauthclaim. De afzonderlijke normale337-starter kiestWHPX en bereikt alle gereedmeldingen; visuele/inputcontrole van die bundel is niet afgetekend wegens vensteropnamefout0x800b0101. TestVM is gesloten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
