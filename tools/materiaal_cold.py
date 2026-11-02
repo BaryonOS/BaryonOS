@@ -16,30 +16,43 @@ def cold_list_frame(frames: dict[str, bytes]) -> bytes:
     rw, rh, ready = preview.ppm(frames["ready"])
     if (width, height, rw, rh) != (800, 600, 800, 600):
         raise ValueError("Cold reference requires the fixed scale1 native geometry")
-    # Layout::status: PAD=24, height-48, width-48, 48 at scale1, translated
-    # through ASSIGNED=(16,48,768,536). A fresh controller retains Ready after
-    # refresh. Every expected status pixel is borrowed from native Ready;
+    # At scale 1 and width 768, native Layout::status has a 168px sidebar
+    # and content_left=192. Translate (192,488,552,48) by ASSIGNED=(16,48,768,536).
+    # A fresh controller retains Ready after refresh. Each status pixel is
+    # borrowed from native Ready;
     # every other pixel remains the populated native list. Nothing is masked.
     result = bytearray(pixels)
     for y in range(536, 584):
-        start, end = (y * width + 40) * 3, (y * width + 760) * 3
+        start, end = (y * width + 208) * 3, (y * width + 760) * 3
         result[start:end] = ready[start:end]
     return listed[:-len(pixels)] + result
 
 
 def cold_groups(directory: Path) -> list:
     normal = preview.interactive_groups(directory)
-    moves = normal[1][1][:2]
+    moves = normal[1][1][:3]
+    # The scale1 New rect is local (192,80,164,44). The reviewed click
+    # (258,102), translated by ASSIGNED, is global (274,150). Retain every
+    # bounded no-button step so the cold list cursor matches the native list.
     expected_moves = [
         {"execute": "input-send-event", "arguments": {"events": [
-            {"type": "rel", "data": {"axis": "x", "value": 56}},
+            {"type": "rel", "data": {"axis": "x", "value": 96}},
             {"type": "rel", "data": {"axis": "y", "value": 96}},
         ]}},
         {"execute": "input-send-event", "arguments": {"events": [
+            {"type": "rel", "data": {"axis": "x", "value": 96}},
             {"type": "rel", "data": {"axis": "y", "value": 54}},
         ]}},
+        {"execute": "input-send-event", "arguments": {"events": [
+            {"type": "rel", "data": {"axis": "x", "value": 82}},
+        ]}},
     ]
-    if moves != expected_moves:
+    expected_tail = [
+        {"execute": "input-send-event", "arguments": {"events": [
+            {"type": "btn", "data": {"down": down, "button": "left"}},
+        ]}} for down in (True, False)
+    ] + [{"execute": "screendump", "arguments": {"filename": str(directory / "editor.ppm")}}]
+    if moves != expected_moves or normal[1][1][3:] != expected_tail:
         raise ValueError("Review changed native cold cursor placement contract")
     return [
         ("list", [*moves, {"execute": "screendump", "arguments": {

@@ -54,6 +54,10 @@ jobs:
             experiments/quantum/target/debug
             experiments/quantum/job-protocol/target/debug
           key: host-rust-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml', '**/Cargo.lock', '**/Cargo.toml', '**/.cargo/config.toml', '**/build.rs') }}
+      - name: Fetch locked workspace dependencies before offline Python harnesses
+        # The snapshot-wipe harness builds capability-core offline. Cargo still
+        # resolves the workspace closure, including update-core's dependencies.
+        run: cargo +1.90.0 fetch --locked --manifest-path Cargo.toml
       - name: Python syntax and DocumentSession host tests
         run: |
           python3 -m compileall -q tools tests userspace/tests experiments/quantum/native experiments/quantum/native/job .agents/skills/os-dev

@@ -1,0 +1,205 @@
+{
+  "trigger_commit": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+  "source_sha256": "038615b1b425d3f24ea2d9c52b36184ea666f81237c813303dc0fac93fb756ca",
+  "evidence": "Per-run actual GitHub Actions GET metadata, fetched separately from normalized commit-filtered snapshot.",
+  "workflow_runs": [
+    {
+      "id": 41503461034,
+      "name": "Windows QEMU native Materiaal test bundle",
+      "head_sha": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+      "head_branch": "codex/native-clipboard-20261102",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41503461034",
+      "run_attempt": 1
+    },
+    {
+      "id": 41503461277,
+      "name": "Native CMOS RTC acceptance",
+      "head_sha": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+      "head_branch": "codex/native-clipboard-20261102",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41503461277",
+      "run_attempt": 1
+    },
+    {
+      "id": 41503461158,
+      "name": "App package and artifact quality",
+      "head_sha": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+      "head_branch": "codex/native-clipboard-20261102",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41503461158",
+      "run_attempt": 1
+    },
+    {
+      "id": 41503461184,
+      "name": "Network broker quality",
+      "head_sha": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+      "head_branch": "codex/native-clipboard-20261102",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41503461184",
+      "run_attempt": 1
+    },
+    {
+      "id": 41503461166,
+      "name": "Network TLS adapter quality",
+      "head_sha": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+      "head_branch": "codex/native-clipboard-20261102",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41503461166",
+      "run_attempt": 1
+    },
+    {
+      "id": 41503461311,
+      "name": "K05 process management acceptance",
+      "head_sha": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+      "head_branch": "codex/native-clipboard-20261102",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41503461311",
+      "run_attempt": 1
+    },
+    {
+      "id": 41503461059,
+      "name": "B01 entropy and key management acceptance",
+      "head_sha": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+      "head_branch": "codex/native-clipboard-20261102",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41503461059",
+      "run_attempt": 1
+    },
+    {
+      "id": 41503461194,
+      "name": "Native display and input acceptance",
+      "head_sha": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+      "head_branch": "codex/native-clipboard-20261102",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41503461194",
+      "run_attempt": 1
+    },
+    {
+      "id": 41503461125,
+      "name": "Native RANDOM and image foundation acceptance",
+      "head_sha": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+      "head_branch": "codex/native-clipboard-20261102",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41503461125",
+      "run_attempt": 1
+    },
+    {
+      "id": 41503461312,
+      "name": "NAS host, target and native normal/cold checks",
+      "head_sha": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+      "head_branch": "codex/native-clipboard-20261102",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41503461312",
+      "run_attempt": 1
+    },
+    {
+      "id": 41503460945,
+      "name": "Storage resilience acceptance",
+      "head_sha": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+      "head_branch": "codex/native-clipboard-20261102",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41503460945",
+      "run_attempt": 1
+    },
+    {
+      "id": 41503461088,
+      "name": "M6e scalable volume acceptance",
+      "head_sha": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+      "head_branch": "codex/native-clipboard-20261102",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41503461088",
+      "run_attempt": 1
+    },
+    {
+      "id": 41503461392,
+      "name": "Component leaf quality",
+      "head_sha": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+      "head_branch": "codex/native-clipboard-20261102",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41503461392",
+      "run_attempt": 1
+    },
+    {
+      "id": 41503461142,
+      "name": "Resource pressure acceptance",
+      "head_sha": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+      "head_branch": "codex/native-clipboard-20261102",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41503461142",
+      "run_attempt": 1
+    },
+    {
+      "id": 41503461036,
+      "name": "B03 signed updates acceptance",
+      "head_sha": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+      "head_branch": "codex/native-clipboard-20261102",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41503461036",
+      "run_attempt": 1
+    },
+    {
+      "id": 41503461168,
+      "name": "FR-I01 joint native system acceptance",
+      "head_sha": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+      "head_branch": "codex/native-clipboard-20261102",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41503461168",
+      "run_attempt": 1
+    },
+    {
+      "id": 41503460997,
+      "name": "CI",
+      "head_sha": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+      "head_branch": "codex/native-clipboard-20261102",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41503460997",
+      "run_attempt": 1
+    },
+    {
+      "id": 41503460976,
+      "name": "Native window session and Windows QEMU bundle",
+      "head_sha": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+      "head_branch": "codex/native-clipboard-20261102",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41503460976",
+      "run_attempt": 1
+    }
+  ]
+}

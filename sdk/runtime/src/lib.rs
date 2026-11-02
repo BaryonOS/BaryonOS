@@ -24,7 +24,14 @@ pub use network::{NetworkSource, NET_FRAME_MAX};
 pub mod native;
 
 pub const ABI_MAJOR: u64 = 1;
-pub const ABI_MAX_MINOR: u64 = 10;
+pub const ABI_MAX_MINOR: u64 = 11;
+
+/// Known profiles that implement syscall 0x22. Compatibility with the common
+/// ABI alone does not imply this optional feature; unknown revisions remain
+/// unsupported until reviewed. This pure query grants no endpoint authority.
+pub const fn supports_ipc_wait(version: u64) -> bool {
+    matches!(version, 0x1_0000_000a | 0x1_0000_000b)
+}
 
 /// ABI 1.10 bounded IPC queue wait. Representations do not grant authority.
 pub const IPC_WAIT_MAX: usize = 16;
@@ -71,10 +78,10 @@ fn decode_wait_mask(value: u64, count: usize) -> Result<u16, Error> {
     Ok(value as u16)
 }
 
-/// The common syscall contract is unchanged across the existing 1.0–1.10
+/// The common syscall contract is unchanged across the existing 1.0–1.11
 /// profiles (1.3 adds process management, 1.4 entropy, 1.5 raw NIC,
 /// 1.6 monotonic ticks, 1.7 private heap growth, 1.8 display/input,
-/// 1.9 opt-in unauthenticated RTC UTC, and 1.10 opt-in IPC wait).
+/// 1.9 opt-in unauthenticated RTC UTC, 1.10 opt-in IPC wait, and 1.11 fixed service-group replacement).
 /// Unknown revisions require a separate compatibility check.
 pub fn validate_abi(version: u64) -> Result<(), Error> {
     if version >> 32 == ABI_MAJOR && version as u32 as u64 <= ABI_MAX_MINOR {
@@ -220,6 +227,29 @@ pub(crate) fn zero_return(result: Result<u64, Error>) -> Result<(), Error> {
 #[cfg(test)]
 mod wait_tests {
     use super::*;
+    #[test]
+    fn wait_support_includes_known_minor_eleven_and_rejects_other_profiles() {
+        const KNOWN: [bool; 2] = [
+            supports_ipc_wait(0x1_0000_000a),
+            supports_ipc_wait(0x1_0000_000b),
+        ];
+        assert_eq!(KNOWN, [true, true]);
+        for minor in 0..10 {
+            assert!(!supports_ipc_wait((1 << 32) | minor));
+        }
+        for minor in [12, 255, u64::from(u32::MAX)] {
+            assert!(!supports_ipc_wait((1 << 32) | minor));
+        }
+        for major in [0, 2, u64::from(u32::MAX)] {
+            for minor in [10, 11] {
+                assert!(!supports_ipc_wait((major << 32) | minor));
+            }
+        }
+        // RTC/common ABI compatibility must never accidentally select wait.
+        assert_eq!(validate_abi(0x1_0000_0009), Ok(()));
+        assert!(!supports_ipc_wait(0x1_0000_0009));
+    }
+
     fn send(raw: u64) -> WaitCondition {
         WaitCondition::send(SendEndpoint::from_handle(Handle::from_raw(raw).unwrap()))
     }
@@ -254,11 +284,11 @@ mod wait_tests {
         assert_eq!(decode_wait_mask(u64::MAX, 16), Err(Error::InvalidReturn));
     }
     #[test]
-    fn minor_ten_preserves_old_abi_and_return_rules() {
-        for minor in 0..=10 {
+    fn minor_eleven_preserves_old_abi_and_return_rules() {
+        for minor in 0..=11 {
             assert_eq!(validate_abi((1 << 32) | minor), Ok(()));
         }
-        assert_eq!(validate_abi((1 << 32) | 11), Err(Error::UnsupportedAbi));
+        assert_eq!(validate_abi((1 << 32) | 12), Err(Error::UnsupportedAbi));
         assert_eq!(decode_return(0, 0xffff), Ok(0xffff));
         assert_eq!(decode_return(-10, 0), Err(Error::Kernel(-10)));
         assert_eq!(decode_return(-10, 1), Err(Error::InvalidReturn));

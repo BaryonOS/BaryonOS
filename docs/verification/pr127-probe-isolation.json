@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-02",
+  "task": "PR127-PROBE: QEMU-gebruikersconfiguratie uitschakelen tijdens de vaste WHPX-initialisatieproef",
+  "source_base": "798706c2a53d0062ce0474e5f84f294b2c37b825",
+  "source_diff_sha256": "227da2014ee2a2cc6b487dc908a5ec1c36e4714c5cead1c0d681105549244326",
+  "source_diff_paths": [
+    "tools/windows-qemu/Acceleration.ps1",
+    "tools/windows-qemu/README.md",
+    "tools/tests/test_package_windows_qemu.py"
+  ],
+  "primary_source": {
+    "organization": "QEMU",
+    "title": "QEMU User Documentation: -no-user-config",
+    "url": "https://www.qemu.org/docs/master/system/qemu-manpage.html",
+    "verified": "De optie voorkomt het laden van door de gebruiker aangeleverde configuratiebestanden; -nodefaults alleen doet dat niet."
+  },
+  "checks": [
+    {
+      "command": "python3 -B -m unittest tools.tests.test_package_windows_qemu.WindowsQemuPackageTests.test_whpx_probe_disables_user_configuration",
+      "phase": "before_fix",
+      "exit_code": 1,
+      "result": "Nieuwe test faalt exact omdat -no-user-config ontbreekt in de vaste probeargumenten.",
+      "log": "/tmp/nieuw-os-pr127-probe-red.log",
+      "log_sha256": "078c1d87fd3fb38ef1455d734f974dc0dac696e42c9013cdc4e73912d47ce879"
+    },
+    {
+      "command": "python3 -B -m unittest tools.tests.test_package_windows_qemu -v",
+      "phase": "after_fix",
+      "exit_code": 0,
+      "tests": 21,
+      "log": "/tmp/nieuw-os-pr127-probe-green.log",
+      "log_sha256": "d9eddcfb0f108c398e9728471bdc84f2d5cb2d02ad7207bbc69ae2796146f46a"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "evidence_boundary": "De hosttest inspecteert de werkelijk verscheepte vaste argumenten. Geen PowerShell-, QEMU-, WHPX- of Windows-runtime uitgevoerd: die tools zijn lokaal niet beschikbaar. Exacte-head CI en de overige PR127-reviewfixes blijven vereist. Geen nieuwe productpunten.",
+  "rollback": "Draai uitsluitend deze leafcommit terug; geen bestaande PR-inhoud of gebruikerswerk verwijderen."
+}

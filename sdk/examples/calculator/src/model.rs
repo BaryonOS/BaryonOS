@@ -1,6 +1,7 @@
 //! Local calculator state. Only authenticated INP1 events reach this model in
 //! the native adapter. No input envelope, PID or grant can be forged here.
 use crate::decimal::{self, Evaluation, MAX_INPUT};
+use crate::render::{Layout, Rect, Viewport};
 use ui_core::{KeyAction, KeyboardEvent, PhysicalKey};
 
 pub const LABELS: [&str; 20] = [
@@ -29,6 +30,19 @@ pub enum Notice {
     Arithmetic(decimal::Error),
     TooLong,
     InputLost,
+    ClipboardCopied,
+    ClipboardEmpty,
+    ClipboardSelection,
+    ClipboardTooLong,
+    ClipboardUnavailable,
+    ClipboardUnsupported,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PasteError {
+    Empty,
+    TooLong,
+    Unsupported,
+    Inactive,
 }
 impl Notice {
     pub const fn label(self) -> &'static str {
@@ -37,6 +51,12 @@ impl Notice {
             Self::None => "",
             Self::TooLong => "Maximaal 256 tekens.",
             Self::InputLost => "Invoerverbinding verbroken.",
+            Self::ClipboardCopied => "Tekst gekopieerd.",
+            Self::ClipboardEmpty => "Het klembord is leeg.",
+            Self::ClipboardSelection => "Selecteer eerst tekst.",
+            Self::ClipboardTooLong => "Deze selectie past nog niet op het klembord.",
+            Self::ClipboardUnavailable => "Kopiëren of plakken onderbroken. Probeer opnieuw.",
+            Self::ClipboardUnsupported => "Plak cijfers, + - * / ( ) en een komma of punt.",
             Self::Arithmetic(error) => match error.kind {
                 Kind::Range => "Maximaal 10 gehele cijfers.",
                 Kind::Nesting => "Maximaal 32 geneste tekens.",
@@ -65,6 +85,87 @@ pub struct Model {
     failures: u64,
     exhausted: bool,
     selecting: bool,
+    paint: PaintState,
+    damage: Damage,
+}
+
+#[derive(Clone, Debug)]
+struct PaintState {
+    bytes: [u8; MAX_INPUT],
+    length: usize,
+    caret: usize,
+    anchor: usize,
+    answer: Option<Evaluation>,
+    current: bool,
+    notice: Notice,
+    focus: usize,
+    active: bool,
+    hover: Option<usize>,
+    pressed: Option<usize>,
+}
+
+#[derive(Clone, Debug)]
+struct Damage {
+    full: bool,
+    expression_full: bool,
+    span: core::ops::Range<usize>,
+    caret_min: usize,
+    caret_max: usize,
+    result: bool,
+    status: bool,
+    buttons: u32,
+}
+impl Damage {
+    const fn new(full: bool, caret: usize) -> Self {
+        Self {
+            full,
+            expression_full: false,
+            span: 0..0,
+            caret_min: caret,
+            caret_max: caret,
+            result: false,
+            status: false,
+            buttons: 0,
+        }
+    }
+    fn include(&mut self, start: usize, end: usize) {
+        if self.span.is_empty() {
+            self.span = start..end;
+        } else {
+            self.span.start = self.span.start.min(start);
+            self.span.end = self.span.end.max(end);
+        }
+    }
+}
+
+/// Physical-pixel bounds; querying damage never acknowledges presentation.
+#[derive(Clone, Debug)]
+pub struct PaintDamage {
+    rects: [Rect; 24],
+    length: usize,
+}
+impl PaintDamage {
+    pub fn intersects(&self, x: u32, y: u32, width: u32, height: u32) -> bool {
+        width != 0
+            && height != 0
+            && self.rects[..self.length].iter().any(|r| {
+                u64::from(x) < u64::from(r.x) + u64::from(r.width)
+                    && u64::from(r.x) < u64::from(x) + u64::from(width)
+                    && u64::from(y) < u64::from(r.y) + u64::from(r.height)
+                    && u64::from(r.y) < u64::from(y) + u64::from(height)
+            })
+    }
+    fn push(&mut self, rect: Rect, scale: u32) {
+        if rect.width != 0 && rect.height != 0 {
+            self.rects[self.length] = Rect {
+                x: rect.x * scale,
+                y: rect.y * scale,
+                width: rect.width * scale,
+                height: rect.height * scale,
+            };
+            self.length += 1;
+        }
+    }
 }
 impl Default for Model {
     fn default() -> Self {
@@ -90,6 +191,20 @@ impl Model {
             failures: 0,
             exhausted: false,
             selecting: false,
+            paint: PaintState {
+                bytes: [0; MAX_INPUT],
+                length: 0,
+                caret: 0,
+                anchor: 0,
+                answer: None,
+                current: false,
+                notice: Notice::None,
+                focus: 0,
+                active: true,
+                hover: None,
+                pressed: None,
+            },
+            damage: Damage::new(true, 0),
         }
     }
     pub fn expression(&self) -> &str {
@@ -100,6 +215,57 @@ impl Model {
     }
     pub fn selection(&self) -> core::ops::Range<usize> {
         self.anchor.min(self.caret)..self.anchor.max(self.caret)
+    }
+    /// App-local selection only; input authority is checked by the broker.
+    /// An old answer or the whole expression is never a selection fallback.
+    pub fn clipboard_selection(&self) -> &str {
+        if self.active && self.focus == 0 {
+            &self.expression()[self.selection()]
+        } else {
+            ""
+        }
+    }
+    pub fn clipboard_notice(&mut self, notice: Notice) {
+        if !self.exhausted {
+            self.notice = notice;
+            self.changed();
+        }
+    }
+    /// Validate every byte and the final size before erasing a selection.
+    /// This edits text only; pasted operators never trigger evaluation.
+    pub fn paste_clipboard(&mut self, value: &str) -> Result<(), PasteError> {
+        let error = if self.exhausted || !self.active || self.focus != 0 {
+            Some((PasteError::Inactive, Notice::ClipboardUnavailable))
+        } else if value.is_empty() {
+            Some((PasteError::Empty, Notice::ClipboardEmpty))
+        } else if value.len() > MAX_INPUT
+            || self.length - self.selection().len() > MAX_INPUT - value.len()
+        {
+            Some((PasteError::TooLong, Notice::TooLong))
+        } else if !value.bytes().all(|byte| {
+            matches!(
+                byte,
+                b'0'..=b'9' | b'+' | b'-' | b'*' | b'/' | b'(' | b')' | b'.' | b',' | b' '
+            )
+        }) {
+            Some((PasteError::Unsupported, Notice::ClipboardUnsupported))
+        } else {
+            None
+        };
+        if let Some((error, notice)) = error {
+            self.clipboard_notice(notice);
+            return Err(error);
+        }
+        self.erase(self.selection());
+        self.bytes
+            .copy_within(self.caret..self.length, self.caret + value.len());
+        self.bytes[self.caret..self.caret + value.len()].copy_from_slice(value.as_bytes());
+        self.length += value.len();
+        self.caret += value.len();
+        self.anchor = self.caret;
+        self.selecting = false;
+        self.edited();
+        Ok(())
     }
     pub const fn answer(&self) -> Option<Evaluation> {
         self.answer
@@ -134,7 +300,114 @@ impl Model {
     pub const fn exhausted(&self) -> bool {
         self.exhausted
     }
+    pub fn paint_damage(&self, viewport: Viewport) -> PaintDamage {
+        let mut out = PaintDamage {
+            rects: [Rect {
+                x: 0,
+                y: 0,
+                width: 0,
+                height: 0,
+            }; 24],
+            length: 0,
+        };
+        if self.damage.full {
+            out.push(
+                Rect {
+                    x: 0,
+                    y: 0,
+                    width: viewport.width(),
+                    height: viewport.height(),
+                },
+                1,
+            );
+            return out;
+        }
+        let layout = Layout::new(viewport);
+        let scale = viewport.scale();
+        // Proportional glyphs and intermediate scrolls share the whole field.
+        if self.damage.expression_full
+            || self.damage.caret_min != self.damage.caret_max
+            || self.damage.span.start < self.damage.span.end
+        {
+            out.push(layout.expression, scale);
+        }
+        for (dirty, bounds) in [
+            (self.damage.result, layout.result_bounds(scale)),
+            (self.damage.status, layout.status_bounds(scale)),
+        ] {
+            if dirty {
+                out.push(bounds, scale);
+            }
+        }
+        for index in 0..20 {
+            if self.damage.buttons & (1 << index) != 0 {
+                out.push(layout.button(index), scale);
+            }
+        }
+        out
+    }
+    /// Only the adapter's complete, acknowledged current frame can clear damage.
+    pub fn presented(&mut self, generation: u64) -> bool {
+        if self.exhausted || generation != self.generation {
+            return false;
+        }
+        self.damage = Damage::new(false, self.caret);
+        true
+    }
+    pub fn force_full_repaint(&mut self) {
+        self.damage.full = true;
+        self.changed();
+    }
     fn changed(&mut self) {
+        let old = &self.paint;
+        let length = old.length.max(self.length);
+        let first = (0..length).find(|&i| old.bytes[i] != self.bytes[i]);
+        if let Some(first) = first {
+            let last = (first..length)
+                .rfind(|&i| old.bytes[i] != self.bytes[i])
+                .unwrap();
+            self.damage.include(first, last + 1);
+        }
+        if old.caret != self.caret || old.anchor != self.anchor {
+            self.damage.include(old.caret, old.caret + 1);
+            self.damage.include(self.caret, self.caret + 1);
+            if old.anchor != old.caret || self.anchor != self.caret {
+                self.damage.include(
+                    old.anchor.min(old.caret).min(self.anchor.min(self.caret)),
+                    old.anchor.max(old.caret).max(self.anchor.max(self.caret)),
+                );
+            }
+        }
+        self.damage.caret_min = self.damage.caret_min.min(self.caret);
+        self.damage.caret_max = self.damage.caret_max.max(self.caret);
+        if (old.focus == 0 && old.active) != (self.focus == 0 && self.active) {
+            self.damage.expression_full = true;
+        }
+        self.damage.result |= old.answer != self.answer || old.current != self.current;
+        self.damage.status |= old.notice != self.notice
+            || (old.answer.is_some_and(|a| a.rounded) && old.current)
+                != (self.answer.is_some_and(|a| a.rounded) && self.current);
+        for index in 0..20 {
+            if (old.focus == index + 1 && old.active) != (self.focus == index + 1 && self.active)
+                || (old.hover == Some(index)) != (self.hover == Some(index))
+                || (old.pressed == Some(index)) != (self.pressed == Some(index))
+            {
+                self.damage.buttons |= 1 << index;
+            }
+        }
+        self.paint = PaintState {
+            bytes: self.bytes,
+            length: self.length,
+            caret: self.caret,
+            anchor: self.anchor,
+            answer: self.answer,
+            current: self.current,
+            notice: self.notice,
+            focus: self.focus,
+            active: self.active,
+            hover: self.hover,
+            pressed: self.pressed,
+        };
         if let Some(next) = self.generation.checked_add(1) {
             self.generation = next;
         } else {
@@ -165,7 +438,7 @@ impl Model {
         if self.exhausted {
             return;
         }
-        self.active = true;
+        self.focus_gained();
         self.selecting = false;
         match command {
             Command::Insert(byte) => {
@@ -306,13 +579,16 @@ impl Model {
         };
         let focus = self.focus;
         self.command(command);
-        self.focus = focus;
+        if self.focus != focus {
+            self.focus = focus;
+            self.changed();
+        }
     }
     pub fn pointer(&mut self, button: Option<usize>, down: bool, up: bool) {
         if self.exhausted {
             return;
         }
-        self.active = true;
+        self.focus_gained();
         self.selecting = false;
         let before = (self.hover, self.pressed, self.focus);
         let button = button.filter(|index| *index < 20);
@@ -334,8 +610,11 @@ impl Model {
         }
     }
     pub fn caret_at(&mut self, position: usize, down: bool, held: bool) {
+        if self.exhausted {
+            return;
+        }
         if down || self.selecting {
-            self.active = true;
+            self.focus_gained();
         }
         if down {
             self.move_to(position, false);

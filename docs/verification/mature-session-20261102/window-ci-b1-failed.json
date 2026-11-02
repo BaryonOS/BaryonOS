@@ -1,0 +1,41 @@
+{
+  "schema": "nieuw-os-window-ci-triage-v1",
+  "trigger_commit": "b1b292aadf244dacf029b7307aebdc6103756e0d",
+  "ci_merge_commit": "59a72a1f10612dd7953886e659abb681de556890",
+  "source_sha256": "f483ad51a7b0702c44baee136fd37bbbe993e2f03dd596d309a90bb6f14182e4",
+  "run_id": 41485023540,
+  "job_id": 125412966658,
+  "artifact_id": 13160609146,
+  "artifact_zip_sha256": "e26bf389b960a8ab57b2eb0cf3f3781d206c70b6aeacb1659ddb4650300b224d",
+  "raw_qemu_exit": 35,
+  "duration_s": 150.41226748100001,
+  "error": "ValueError: Native guest failed",
+  "completed_phases": [
+    "boot",
+    "initial",
+    "editor",
+    "dirty",
+    "calculated",
+    "moved"
+  ],
+  "serial_sha256": "196f73c57a68505f61e88990483b9fcea64760abf5ca0a92db17a214bc35a34d",
+  "failure_tail": [
+    "WINDOW:FAULT_SLOT:00000000000000000004",
+    "WINDOW:FAULT_PID:00000000000000000005",
+    "WINDOW:FAULT_VECTOR:00000000000000000006",
+    "WINDOW:FAULT_RIP:00000000001090530507",
+    "WINDOW:PRESENTATION_RETIRED:00000000000000000001",
+    "WINDOW:EXIT_SLOT:00000000000000000003",
+    "WINDOW:EXIT_PID:00000000000000000004",
+    "WINDOW:EXIT_CODE:00000000000000000001",
+    "WINDOW:EXIT_STEP:00000000000000000018",
+    "WINDOW:CALCULATOR:KEYS:00000000000000000010",
+    "WINDOW:CALCULATOR:INPUT_ACKS:00000000000000000011",
+    "WINDOW:FAIL:APP_EXIT"
+  ],
+  "concrete_code_location": "sdk/examples/materiaal/src/main.rs:252-262, Rebind bootstrap identity guard",
+  "cause_boundary": "At least one document/control/process identity changed unexpectedly, or compositor PID did not change; no per-field diagnostics, exact offending field unconfirmed. No timeout; native APP_EXIT follows actual presentation retirement.",
+  "source_mutations": false,
+  "new_vm_or_ci_rerun": false,
+  "windows_runtime_claim": false
+}

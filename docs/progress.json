@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "c66b593dda8d651e3cc73f0fe65bbe72ff7c7de7",
-    "branch": "simonvanieperen-studious-waddle",
-    "task": "Issues oplossen: ontbrekende PR #120-followups inhoudsbehoudend in #125 opnemen",
-    "previous_score": 34,
-    "summary": "34/100 blijft 34/100; geen nieuw rubriccriterium geaccepteerd. De inhoudscontrole vond dat #125 wel #120 tot 562be4d bevatte, maar nog niet de latere followups tot fb1e1a5. De samenvoeging behoudt de volledige app-handletabelcontrole, de 16-bytevensterlekcontrole inclusief misvormde captures, de handmatige Materiaal-meetworkflow en de #125-allowlist voor serialdiagnostiek. Alle 39 gerichte NAS-hosttests (35 runner), 3 volume-, 17 replay/oracle- en 23 Materiaal-harnastests slagen; Rustfmt en capability-Clippy slagen. Capability-testuitvoering is geblokkeerd door ontbrekende cc; nieuwe exacte-head CI en review blijven vereist. De eerdere NAS normal/cold-gate op c66b593 bewijst deze delta niet. De twee #126-reviewfixes zijn als 5dead467 gepusht voor CI, niet gemerged of als productacceptatie beoordeeld. #109/#110 blijven open tot main-integratie; #39–#43 behouden hun volledige native, fysieke en andere acceptatiegrenzen. Hosttests en integratiewerk leveren geen productpunten."
+    "source_commit": "c6ce3906f395f9babad9444efea6cde64bc2a0c4",
+    "branch": "codex/native-workspace-v2-20261102",
+    "task": "Alle zeven PR127-reviewpunten en volledige PR126/main-inhoud combineren",
+    "previous_score": 41,
+    "summary": "Geerfde branchscore41 blijft41; main34 blijft34, geen nieuwe criteria. De gecombineerde kandidaat bewaart alle PR126/main-inhoud en herstelt zeven reviewpunten: native palet, proportionele klikposities, twee TCP-status/deadlinefouten, probeconfigisolatie, dockdamage en semantisch write-only wachtwoord. Integratietests vonden daarnaast echte oude damagegeometrie onder de nieuwe fonts; renderer en model delen nu werkelijke resultaat/statusbounds, met behouden pixel- en ten minste90%-sendbudgettests. 189 Rust-app/UI-,9 netwerk- en31 Python-hosttests slagen; beide TCP-fouten zijn echt rood/groen gereproduceerd met gepinde Rust1.91.1. Clippy en echte native-targetchecks/build slagen. PR126-parent8f08 is afzonderlijk native groen met22fasen/raw33/clipboard/herstel/schijf; dat is geen bewijs voor deze nieuwe bron. Verse gecombineerde CI, review en native runtime blijven nodig. Geen nieuwe fysieke, Windows-, volledige release- of U02-acceptatie."
   },
   "tracks": [
     {
@@ -259,9 +259,13 @@
           "id": "U01",
           "title": "Native compositor en sessie",
           "points": 4,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "De eigen kernel draait een interactieve grafische sessie met render- en inputketen, venster/surface-isolatie en gecontroleerd compositorherstel.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/mature-session-20261102/U01-ACCEPTANCE.md",
+            "docs/verification/mature-session-20261102/U01-ACCEPTANCE.json",
+            "docs/verification/mature-session-20261102/window-337-ci-verification.json"
+          ]
         },
         {
           "id": "U02",
@@ -269,7 +273,14 @@
           "points": 2,
           "status": "open",
           "acceptance": "Toetsenbord, aanwijzer, focus, klembord en appwisseling zijn native bruikbaar en voldoen aan gemeten interactiebudgetten.",
-          "evidence": []
+          "evidence": [
+            "docs/implementation/GUI-IDLE-WAIT.md",
+            "docs/verification/gui-idle-20261102/windows-ab/README.md",
+            "docs/verification/gui-idle-20261102/central-review.json",
+            "docs/verification/gui-idle-20261102/INTEGRATION.md",
+            "docs/implementation/NATIVE-CLIPBOARD.md",
+            "docs/verification/native-clipboard-20261102/README.md"
+          ]
         },
         {
           "id": "U03",
@@ -314,9 +325,13 @@
           "id": "N01",
           "title": "Native pakket- en transportstack",
           "points": 3,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "De eigen OS-netwerkdienst verwerkt echte packets en begrensde IP/TCP/UDP-verbindingen; malformed input, backpressure en afsluiten zijn getest.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/mature-session-20261102/README.md",
+            "docs/verification/mature-session-20261102/n01-integrated.json",
+            "docs/verification/n01-native-service-20261102/host-verification.json"
+          ]
         },
         {
           "id": "N02",

@@ -1,0 +1,2 @@
+    Checking nieuw-os-window-session v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/examples/window-session)
+    Finished `release` profile [optimized] target(s) in 0.27s

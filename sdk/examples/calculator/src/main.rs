@@ -5,7 +5,9 @@
 //! raw-input/display grant, host backend, heap allocator or prepared results.
 #[path = "../../system/src/support.rs"]
 mod support;
-use nieuw_os_calculator::{app::App, bootstrap::Bootstrap};
+#[path = "../../window-session/src/probe.rs"]
+mod window_probe;
+use nieuw_os_calculator::{app::App, bootstrap::Bootstrap, idle};
 use nieuw_os_input_client::{Binding, NativeTransport, Session as Input};
 use nieuw_os_sdk_runtime::{native, Outgoing, Received, SendEndpoint};
 use nieuw_os_surface_protocol::client::Session as Surface;
@@ -74,8 +76,11 @@ fn done(config: &Bootstrap) -> ! {
 }
 #[no_mangle]
 pub extern "C" fn calculator_main() -> ! {
-    native::check_abi().unwrap_or_else(|_| fail(1));
-    let config = Bootstrap::read(support::word).unwrap_or_else(|| fail(2));
+    let idle_mode = native::abi_info()
+        .ok()
+        .and_then(idle::Mode::from_abi)
+        .unwrap_or_else(|| fail(1));
+    let mut config = Bootstrap::read(support::word).unwrap_or_else(|| fail(2));
     send(config.registry, 1);
     let mut go = false;
     for _ in 0..POLLS {
@@ -107,6 +112,18 @@ pub extern "C" fn calculator_main() -> ! {
     )
     .unwrap_or_else(|_| fail(5));
     let geometry = surface.geometry().unwrap_or_else(|_| fail(6));
+    if support::word(664) == 1 {
+        let count = window_probe::run(
+            &mut surface,
+            config.input_send,
+            config.input_receive,
+            config.compositor_pid,
+            config.input_epoch,
+            config.input_client,
+        )
+        .unwrap_or_else(|e| fail(80 + e.code()));
+        support::put(672, count);
+    }
     let input = Input::new(
         NativeTransport,
         Binding {
@@ -122,17 +139,33 @@ pub extern "C" fn calculator_main() -> ! {
     )
     .unwrap_or_else(|_| fail(7));
     let mut app = App::new(input, surface, geometry, config.scale).unwrap_or_else(|_| fail(8));
+    app.enable_clipboard();
+    let window_session = support::word(656) == 1;
+    if window_session {
+        app.enable_retained().unwrap_or_else(|_| fail(8));
+    }
+    let mut paused = false;
     loop {
-        if matches!(
-            app.step(),
-            Err(nieuw_os_calculator::app::Error::Counter
-                | nieuw_os_calculator::app::Error::Binding
-                | nieuw_os_calculator::app::Error::Surface(_))
-        ) {
-            fail(12)
+        if !paused {
+            match app.step() {
+                Err(
+                    nieuw_os_calculator::app::Error::Counter
+                    | nieuw_os_calculator::app::Error::Binding,
+                ) => fail(12),
+                Err(nieuw_os_calculator::app::Error::Surface(_)) if !window_session => fail(12),
+                _ => {}
+            }
         }
         let e = app.evidence();
         let model = app.model();
+        // Diagnostic only, never a security/integrity primitive. The probe
+        // observer binds this to the real retained expression, beyond length.
+        let expression_sum = model
+            .expression()
+            .bytes()
+            .fold(0xcbf29ce484222325u64, |sum, byte| {
+                (sum ^ u64::from(byte)).wrapping_mul(0x100000001b3)
+            });
         support::put(400, 0);
         for (at, value) in [
             (408, e.frames),
@@ -150,6 +183,7 @@ pub extern "C" fn calculator_main() -> ! {
             (504, model.caret() as u64),
             (512, u64::from(model.active())),
             (632, u64::from(config.scale)),
+            (680, expression_sum),
         ] {
             support::put(at, value);
         }
@@ -161,14 +195,91 @@ pub extern "C" fn calculator_main() -> ! {
         support::put(528, u64::from_le_bytes(raw[8..].try_into().unwrap()));
         support::put(536, u64::from(model.answer().is_some()));
         support::put(400, u64::from(e.ready));
-        if let Some(message) = control(&config) {
+        let message = control(&config);
+        let control_empty = message.is_none();
+        if let Some(message) = message {
+            if window_session && message.payload() == [7] && !paused {
+                app.detach_presentation().unwrap_or_else(|_| fail(13));
+                paused = true;
+                send(config.registry, 7);
+                continue;
+            }
+            if window_session && message.payload() == [8] && paused {
+                let next = Bootstrap::read(support::word).unwrap_or_else(|| fail(14));
+                if next.registry != config.registry
+                    || next.control != config.control
+                    || next.self_pid != config.self_pid
+                    || next.init_pid != config.init_pid
+                    || next.compositor_pid == config.compositor_pid
+                {
+                    fail(15);
+                }
+                let mut surface = Surface::new(
+                    NativeTransport,
+                    next.compositor_pid,
+                    next.surface_epoch,
+                    next.surface_send,
+                    next.surface_receive,
+                    POLLS,
+                )
+                .unwrap_or_else(|_| fail(16));
+                let geometry = surface.geometry().unwrap_or_else(|_| fail(17));
+                if support::word(664) == 1 {
+                    let stale = window_probe::stale(&[
+                        config.input_send.handle(),
+                        config.input_receive.handle(),
+                        config.surface_send.handle(),
+                        config.surface_receive.handle(),
+                    ])
+                    .unwrap_or_else(|e| fail(80 + e.code()));
+                    let refused = window_probe::run(
+                        &mut surface,
+                        next.input_send,
+                        next.input_receive,
+                        next.compositor_pid,
+                        next.input_epoch,
+                        next.input_client,
+                    )
+                    .unwrap_or_else(|e| fail(80 + e.code()));
+                    let count = support::word(672)
+                        .checked_add(stale + refused)
+                        .unwrap_or_else(|| fail(98));
+                    support::put(672, count);
+                }
+                let input = Input::new(
+                    NativeTransport,
+                    Binding {
+                        epoch: next.input_epoch,
+                        service_pid: next.policy_pid,
+                        client_id: next.input_client,
+                        width: geometry.width,
+                        height: geometry.height,
+                        send: next.input_send,
+                        receive: next.input_receive,
+                    },
+                    POLLS,
+                )
+                .unwrap_or_else(|_| fail(18));
+                app.rebind_presentation(input, surface, geometry)
+                    .unwrap_or_else(|_| fail(19));
+                config = next;
+                paused = false;
+                send(config.registry, 8);
+                continue;
+            }
             if message.payload() != [5] {
                 fail(9)
             }
             app.stop_clean().unwrap_or_else(|_| fail(10));
             done(&config);
         }
-        let _ = native::yield_now();
+        if idle_mode == idle::Mode::Wait && !paused && control_empty && app.can_idle() {
+            let now = native::monotonic_ticks().unwrap_or_else(|_| fail(96));
+            let poll = idle::Poll::new(now, config.control).unwrap_or_else(|| fail(96));
+            poll.park(native::ipc_wait).unwrap_or_else(|_| fail(97));
+        } else {
+            native::yield_now().unwrap_or_else(|_| fail(97));
+        }
     }
 }
 #[panic_handler]
