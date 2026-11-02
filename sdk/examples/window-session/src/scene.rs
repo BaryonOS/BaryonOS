@@ -102,7 +102,7 @@ impl Scene {
             300 * self.scale as i32,
             0,
             self.width.saturating_sub(540 * self.scale),
-            40 * self.scale,
+            44 * self.scale,
         )
     }
     pub fn set_clipboard_notice(&mut self, notice: ClipboardNotice) -> bool {
@@ -120,6 +120,60 @@ impl Scene {
             f.width + 4 * self.scale,
             f.height + 8 * self.scale,
         )
+    }
+    /// A shell page change can retain the already opaque surround. App/window
+    /// visibility changes and entering/leaving the cover need a full repaint.
+    /// Header, footer and pointer damage are tracked separately by the caller.
+    pub fn shell_damage(
+        &self,
+        was_blocked: bool,
+        was_hidden: [bool; WINDOWS],
+        previous_panel: Rect,
+    ) -> Rect {
+        if was_blocked && self.shell.blocks_apps() && was_hidden == self.shell.hidden {
+            let panel = self.shell.panel(self.width, self.height, self.scale);
+            // Retain old bounds as well when a page shrinks. All rectangles
+            // come from this compositor, and the union is clipped to viewport.
+            let left = previous_panel.x.min(panel.x).clamp(0, self.width as i32);
+            let top = previous_panel.y.min(panel.y).clamp(0, self.height as i32);
+            let right = (i64::from(previous_panel.x) + i64::from(previous_panel.width))
+                .max(i64::from(panel.x) + i64::from(panel.width))
+                .clamp(0, i64::from(self.width));
+            let bottom = (i64::from(previous_panel.y) + i64::from(previous_panel.height))
+                .max(i64::from(panel.y) + i64::from(panel.height))
+                .clamp(0, i64::from(self.height));
+            Rect::new(
+                left,
+                top,
+                (right - i64::from(left)) as u32,
+                (bottom - i64::from(top)) as u32,
+            )
+        } else {
+            Rect::new(0, 0, self.width, self.height)
+        }
+    }
+    /// UTC is also visible in the lock panel, independently of page changes.
+    pub fn mark_clock_damage(&self, damage: &mut Damage) {
+        damage.mark(Rect::new(0, 0, self.width, 44 * self.scale));
+        if self.shell.page() == crate::shell::Page::Lock {
+            damage.mark(self.shell.panel(self.width, self.height, self.scale));
+        }
+    }
+    /// Reveal only complete app views. This is presentation readiness, never
+    /// account authentication or a grant of storage/keyring/kernel authority.
+    pub fn finish_unlock(
+        &mut self,
+        damage_pending: bool,
+        completed_frames: [Option<u64>; WINDOWS],
+    ) -> bool {
+        if damage_pending
+            || completed_frames
+                .iter()
+                .any(|frame| frame.is_none_or(|n| n == 0))
+        {
+            return false;
+        }
+        self.shell.finish_unlock()
     }
     pub fn select(&mut self, index: usize) -> Result<(), Invalid> {
         if index >= WINDOWS {
@@ -162,6 +216,10 @@ impl Scene {
             return Err(Invalid);
         }
         self.pointer = (x, y);
+        if self.shell.blocks_apps() {
+            self.drag = None;
+            return Ok(None);
+        }
         if let Some((index, dx, dy)) = self.drag {
             if !held {
                 self.drag = None;
@@ -283,6 +341,22 @@ impl Scene {
             {
                 return Err(Invalid);
             }
+        }
+        // Every non-desktop shell page covers the entire viewport opaquely.
+        // Keep the destination/backing validation above and the original
+        // composite oracle below. Outside-viewport requests retain that oracle
+        // because moved window shadows can extend beyond the visible screen.
+        if self.shell.blocks_apps()
+            && rect.x >= 0
+            && rect.y >= 0
+            && i64::from(rect.x) + i64::from(rect.width) <= i64::from(self.width)
+            && i64::from(rect.y) + i64::from(rect.height) <= i64::from(self.height)
+        {
+            let mut c = Canvas::new(rect, pixels).map_err(|_| Invalid)?;
+            self.shell
+                .render(&mut c, self.width, self.height, self.scale, self.focused);
+            self.system_foreground(&mut c);
+            return Ok(());
         }
         let window = self.windows[self.focused];
         let body = window.body;
@@ -429,11 +503,23 @@ impl Scene {
         }
         self.shell
             .render(&mut c, self.width, self.height, self.scale, self.focused);
+        self.system_foreground(&mut c);
+        Ok(())
+    }
+    fn system_foreground(&self, c: &mut Canvas<'_>) {
+        let s = self.scale;
+        if !self.shell.blocks_apps() {
+            let font = Font::new(Size::Small, Weight::Regular, s == 2);
+            let label = self.clipboard_notice.label();
+            // A status label cannot overwrite Offline, time or system identity.
+            if font.measure(label).saturating_add(8 * s) <= self.clipboard_notice_bounds().width {
+                c.text(300 * s as i32, 12 * s as i32, label, font, 0xc5ccc9);
+            }
+        }
         let (x, y) = (self.pointer.0 as i32, self.pointer.1 as i32);
         c.line(x, y, x, y + 18 * s as i32, 3 * s, 0xffffff);
         c.line(x, y, x + 12 * s as i32, y + 12 * s as i32, 3 * s, 0xffffff);
         c.line(x, y, x + 3 * s as i32, y + 15 * s as i32, s, 0x172a3a);
-        Ok(())
     }
 }
 

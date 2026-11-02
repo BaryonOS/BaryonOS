@@ -24,7 +24,7 @@ use nieuw_os_window_session::{
     idle::{CompositorState, Idle, NativeIdle},
     input::Queue,
     scene::{Damage, Scene, MAX_PIXELS},
-    shell::{Command as ShellCommand, Page as ShellPage},
+    shell::Command as ShellCommand,
     surface::TrackedReceiver as Receiver,
 };
 use ui_core::{KeyAction, PhysicalKey};
@@ -231,7 +231,7 @@ fn run() -> ! {
     let backing = unsafe { &mut *BACKING.0.get() };
     backing.fill(0xf2f1ec);
     #[cfg(feature = "session-preview")]
-    scene.shell.open(ShellPage::Lock);
+    scene.shell.open(nieuw_os_window_session::shell::Page::Lock);
     scene
         .shell
         .set_clock(native::wall_clock_utc().ok().map(|r| r.unix_seconds));
@@ -289,11 +289,13 @@ fn run() -> ! {
                 .shell
                 .set_clock(native::wall_clock_utc().ok().map(|r| r.unix_seconds))
             {
-                damage.mark(Rect::new(0, 0, geometry.width, 44 * scene.scale));
+                scene.mark_clock_damage(&mut damage);
             }
         }
-        if scene.shell.page() == ShellPage::Unlocking && !damage.has_pending() {
-            scene.shell.finish_unlock();
+        if scene.finish_unlock(
+            damage.has_pending(),
+            surfaces.each_ref().map(Receiver::completed_frame),
+        ) {
             damage.mark(Rect::new(0, 0, geometry.width, geometry.height));
         }
         let mut ingress_empty = false;
@@ -331,6 +333,9 @@ fn run() -> ! {
                 let event = offer.event();
                 let was_blocked = scene.shell.blocks_apps();
                 let was_hidden = scene.shell.hidden;
+                let was_panel = scene
+                    .shell
+                    .panel(geometry.width, geometry.height, scene.scale);
                 if let Event::Mouse { input: mouse, x, y } = event {
                     damage.mark(scene.pointer_bounds());
                     scene.pointer = (x, y);
@@ -362,7 +367,7 @@ fn run() -> ! {
                 };
                 if effect.changed {
                     scene.cancel_pointer();
-                    damage.mark(Rect::new(0, 0, geometry.width, geometry.height));
+                    damage.mark(scene.shell_damage(was_blocked, was_hidden, was_panel));
                 }
                 match effect.command {
                     ShellCommand::Activate(index) => {
@@ -472,6 +477,11 @@ fn run() -> ! {
                     }
                 }
                 if was_blocked != scene.shell.blocks_apps() || was_hidden != scene.shell.hidden {
+                    // Hiding an inactive window can restore the original
+                    // focused index, so focus-damage alone cannot erase it.
+                    if was_hidden != scene.shell.hidden {
+                        damage.mark(scene.shell_damage(was_blocked, was_hidden, was_panel));
+                    }
                     app_pointer_capture = None;
                     scene.cancel_pointer();
                     for q in &mut queues {
