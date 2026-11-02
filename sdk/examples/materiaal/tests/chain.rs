@@ -1387,3 +1387,399 @@ scenario!(
     interactive_input_failure_keeps_draft_and_bounded_paint,
     interactive_input_failure_preserves_draft_and_renders_bounded_feedback
 );
+
+// Replacement services use genuinely fresh registered principals and endpoint
+// objects. No old session is cloned or granted aliases to its active channels.
+#[derive(Clone, Copy)]
+struct Replacement {
+    pids: [u64; 3], // compositor, source, policy
+    input_epoch: u64,
+    geometry: Geometry,
+}
+fn replacement_actor(h: &mut Host, r: Replacement, source: bool, op: Operation, a: u64) {
+    let (index, pid, channel, id) = if source {
+        h.source_id += 1;
+        (0, r.pids[1], h.source_send, h.source_id)
+    } else {
+        h.control_id += 1;
+        (1, r.pids[0], h.control_send, h.control_id)
+    };
+    let mut m = Message::new();
+    m.tag = iw::TAG;
+    m.len = iw::SIZE as u32;
+    m.data[..iw::SIZE].copy_from_slice(
+        &Request {
+            operation: op,
+            id,
+            epoch: r.input_epoch,
+            arg0: a,
+            arg1: 0,
+        }
+        .encode(),
+    );
+    h.engine.send(pid, channel, &m).unwrap();
+    let actual = h.engine.receive(r.pids[2], h.roots[index]).unwrap();
+    let actual = Received::from_bytes(actual.encode(), actual.len as u64).unwrap();
+    h.input.handle(recv(h.roots[index]), &actual).unwrap();
+}
+fn replace_services(
+    h: &Rc<RefCell<Host>>,
+    old: [u64; 3],
+    next: u64,
+    input_epoch: u64,
+    mut g: Geometry,
+) -> Replacement {
+    let mut h = h.borrow_mut();
+    for pid in old {
+        h.engine.exit(pid).unwrap();
+    }
+    let pids = [next, next + 1, next + 2];
+    for pid in pids {
+        h.engine.register(pid).unwrap();
+    }
+    let roots = core::array::from_fn(|_| h.engine.create_endpoint(pids[2]).unwrap());
+    h.source_send = h
+        .engine
+        .bootstrap_delegate(pids[2], roots[0], pids[1], SEND)
+        .unwrap();
+    h.control_send = h
+        .engine
+        .bootstrap_delegate(pids[2], roots[1], pids[0], SEND)
+        .unwrap();
+    let input_pair = pair(&mut h.engine, pids[2], Some(roots[3]));
+    let surface_pair = pair(&mut h.engine, pids[0], None);
+    h.pairs[1] = input_pair;
+    h.pairs[2] = surface_pair;
+    h.roots = roots;
+    h.source_id = 0;
+    h.control_id = 0;
+    h.input = input::Service::new(
+        input::Configuration {
+            epoch: input_epoch,
+            source: input::Actor {
+                endpoint: recv(roots[0]),
+                pid: pids[1],
+            },
+            compositor: input::Actor {
+                endpoint: recv(roots[1]),
+                pid: pids[0],
+            },
+            supervisor: input::Actor {
+                endpoint: recv(roots[2]),
+                pid: INIT,
+            },
+            applications: recv(roots[3]),
+            width: 800,
+            height: 600,
+        },
+        &[input::ClientBinding { id: 101, pid: APP }],
+    )
+    .unwrap();
+    g.epoch = SURFACE_EPOCH + next;
+    h.surface = surface::Receiver::new(APP, g, 100).unwrap();
+    let r = Replacement {
+        pids,
+        input_epoch,
+        geometry: g,
+    };
+    replacement_actor(&mut h, r, true, Operation::Sync, 1);
+    replacement_actor(&mut h, r, false, Operation::Focus, 101);
+    assert!(h.engine.check_invariants());
+    r
+}
+fn replacement_channels(
+    h: &Rc<RefCell<Host>>,
+    r: Replacement,
+    epoch: u64,
+) -> (Input<Port>, Surface<Port>, Geometry) {
+    let pairs = h.borrow().pairs;
+    let input = Input::new(
+        Port(h.clone(), 1),
+        Binding {
+            epoch,
+            service_pid: r.pids[2],
+            client_id: 101,
+            width: 800,
+            height: 600,
+            send: send(pairs[1].app_send),
+            receive: recv(pairs[1].app_receive),
+        },
+        4,
+    )
+    .unwrap();
+    let mut surface = Surface::new(
+        Port(h.clone(), 2),
+        r.pids[0],
+        r.geometry.epoch,
+        send(pairs[2].app_send),
+        recv(pairs[2].app_receive),
+        4,
+    )
+    .unwrap();
+    let geometry = surface.geometry().unwrap();
+    (input, surface, geometry)
+}
+fn assert_graphics_closed(h: &Host, pairs: [Pair; 3]) {
+    for p in &pairs[1..] {
+        assert!(h.engine.check_endpoint(APP, p.app_send, SEND).is_err());
+        assert!(h
+            .engine
+            .check_endpoint(APP, p.app_receive, capability_core::RECV)
+            .is_err());
+    }
+}
+fn stale_wire_epochs_fail_on_new_channels(h: &Rc<RefCell<Host>>, r: Replacement) {
+    let mut h = h.borrow_mut();
+    let mut m = Message::new();
+    m.tag = iw::TAG;
+    m.len = iw::SIZE as u32;
+    m.data[..iw::SIZE].copy_from_slice(
+        &Request {
+            operation: Operation::Peek,
+            id: 1,
+            epoch: INPUT_EPOCH,
+            arg0: 0,
+            arg1: 0,
+        }
+        .encode(),
+    );
+    let p = h.pairs[1];
+    h.engine.send(APP, p.app_send, &m).unwrap();
+    let actual = h.engine.receive(r.pids[2], p.ingress).unwrap();
+    let actual = Received::from_bytes(actual.encode(), actual.len as u64).unwrap();
+    assert!(matches!(
+        h.input.handle(recv(p.ingress), &actual),
+        Err(input::Error::WrongEpoch)
+    ));
+    let mut m = Message::new();
+    m.tag = surface::TAG;
+    m.len = surface::HEADER as u32;
+    m.data[..surface::HEADER].copy_from_slice(
+        &surface::Header {
+            operation: surface::Operation::Info,
+            request: 1,
+            epoch: SURFACE_EPOCH,
+            frame: 0,
+            tile: 0,
+            arg0: 0,
+            arg1: 0,
+        }
+        .encode(),
+    );
+    let p = h.pairs[2];
+    h.engine.send(APP, p.app_send, &m).unwrap();
+    let actual = h.engine.receive(r.pids[0], p.ingress).unwrap();
+    let now = h.now;
+    assert!(matches!(
+        h.surface
+            .accept(actual.sender_pid, now, &actual.data[..actual.len as usize]),
+        Err(surface::Error::Epoch)
+    ));
+}
+fn finish_rebound(a: &mut App<'_, Port, Port, Port>) {
+    // A live upload can produce APPEND and COMMIT UI invalidations in the first
+    // two steps. Budget those transitions in addition to one entire new frame.
+    for _ in 0..geometry().tiles() + 16 {
+        a.step().unwrap();
+        if a.evidence().ready {
+            return;
+        }
+    }
+    panic!("replacement never acknowledged the complete current frame");
+}
+fn rebind_preserves_document_and_pending_upload() {
+    for saving in [false, true] {
+        let h = Host::new();
+        let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut a = app(
+            &h,
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+        );
+        new_text(&h, &mut a);
+        keys(&h, &mut a, &[0x4b, 0xcb]); // nontrivial caret retained across replacement
+        finish_rebound(&mut a);
+        assert!(a.evidence().ready);
+        if saving {
+            let generation = a.controller().view().generation;
+            a.activate_semantic(nieuw_os_materiaal::render::SemanticId::Save, generation)
+                .unwrap();
+        }
+        assert_eq!(a.controller().document().is_saving(), saving);
+        let before = a.controller().view();
+        let caret = before.caret;
+        let anchor = before.anchor;
+        let draft = a.controller().document().draft().unwrap();
+        let object = draft.object;
+        let revision = draft.loaded_revision;
+        let name = draft.name.to_vec();
+        let old = h.borrow().pairs;
+        let requests = h.borrow().requests.len();
+        a.detach_presentation().unwrap();
+        assert!(!a.evidence().ready);
+        assert_graphics_closed(&h.borrow(), old);
+        let r = replace_services(&h, [COMP, SOURCE, POLICY], 7, INPUT_EPOCH + 1, geometry());
+        stale_wire_epochs_fail_on_new_channels(&h, r);
+        let (input, surface, g) = replacement_channels(&h, r, r.input_epoch);
+        a.rebind_presentation(input, surface, g).unwrap();
+        let view = a.controller().view();
+        let draft = a.controller().document().draft().unwrap();
+        assert_eq!(view.contents, Some("hi"));
+        assert_eq!((view.caret, view.anchor), (caret, anchor));
+        assert_eq!(
+            (draft.object, draft.loaded_revision, draft.name),
+            (object, revision, name.as_slice())
+        );
+        assert!(a.controller().document().is_dirty());
+        assert_eq!(a.controller().document().is_saving(), saving);
+        assert!(!a.controller().document().is_closed());
+        assert!(!a.evidence().ready);
+        assert_eq!(a.evidence().presented_generation, 0);
+        assert_eq!(h.borrow().requests.len(), requests);
+        assert_eq!(h.borrow().pairs[0].app_send, old[0].app_send);
+        assert_eq!(h.borrow().pairs[0].app_receive, old[0].app_receive);
+        a.step().unwrap();
+        assert!(!a.evidence().ready);
+        if !saving {
+            let generation = a.controller().view().generation;
+            a.activate_semantic(nieuw_os_materiaal::render::SemanticId::Save, generation)
+                .unwrap();
+        }
+        finish_rebound(&mut a);
+        assert!(a.evidence().ready);
+        assert_eq!(
+            h.borrow().surface.completed_frame(),
+            Some(a.controller().view().generation)
+        );
+        assert_eq!(a.evidence().save_acks, 1);
+        assert_eq!(h.borrow_mut().contents(), b"hi");
+        let h = h.borrow();
+        assert_eq!(
+            h.requests
+                .iter()
+                .filter(|r| r.operation == volume::wire::BEGIN)
+                .count(),
+            1
+        );
+        assert_eq!(
+            h.requests
+                .iter()
+                .filter(|r| r.operation == volume::wire::COMMIT)
+                .count(),
+            1
+        );
+        assert!(h.engine.check_invariants());
+    }
+}
+scenario!(
+    fresh_presentation_preserves_draft_caret_and_active_document_upload,
+    rebind_preserves_document_and_pending_upload
+);
+
+fn rejected_rebind_closes_only_new_channels_and_preserves_draft() {
+    for failure in 0..3 {
+        let h = Host::new();
+        let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut a = configured_app(
+            &h,
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+            Scale::Percent200,
+            EditMode::ReadWrite,
+        );
+        new_text(&h, &mut a);
+        let caret = a.controller().view().caret;
+        a.detach_presentation().unwrap();
+        let mut g = geometry();
+        if failure == 2 {
+            g.assigned.width = 320;
+            g.assigned.height = 240;
+        }
+        let r = replace_services(&h, [COMP, SOURCE, POLICY], 7, INPUT_EPOCH + 1, g);
+        let new = h.borrow().pairs;
+        let (input, surface, mut actual) = replacement_channels(
+            &h,
+            r,
+            if failure == 0 {
+                INPUT_EPOCH
+            } else {
+                r.input_epoch
+            },
+        );
+        if failure == 1 {
+            actual.epoch = SURFACE_EPOCH;
+        }
+        assert!(matches!(
+            a.rebind_presentation(input, surface, actual),
+            Err(Error::Binding)
+        ));
+        assert_graphics_closed(&h.borrow(), new);
+        assert_eq!(a.controller().view().contents, Some("hi"));
+        assert_eq!(a.controller().view().caret, caret);
+        assert!(a.controller().document().is_dirty());
+        assert!(!a.evidence().ready);
+        assert!(!a.controller().document().is_closed());
+        let r = replace_services(&h, r.pids, 10, INPUT_EPOCH + 2, geometry());
+        let (input, surface, g) = replacement_channels(&h, r, r.input_epoch);
+        a.rebind_presentation(input, surface, g).unwrap();
+        finish_rebound(&mut a);
+        assert!(a.evidence().ready);
+        assert_eq!(a.controller().view().contents, Some("hi"));
+    }
+}
+scenario!(
+    stale_or_small_rebind_closes_new_grants_without_losing_document,
+    rejected_rebind_closes_only_new_channels_and_preserves_draft
+);
+
+fn lost_final_replacement_ack_never_certifies_preserved_document() {
+    let h = Host::new();
+    let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut a = app(
+        &h,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    new_text(&h, &mut a);
+    finish_paint(&mut a);
+    let frames = a.evidence().frames;
+    let tiles = a.evidence().tiles;
+    a.detach_presentation().unwrap();
+    let r = replace_services(&h, [COMP, SOURCE, POLICY], 7, INPUT_EPOCH + 1, geometry());
+    let (input, surface, g) = replacement_channels(&h, r, r.input_epoch);
+    a.rebind_presentation(input, surface, g).unwrap();
+    for _ in 0..geometry().tiles() - 1 {
+        a.step().unwrap();
+        assert!(!a.evidence().ready);
+    }
+    assert_eq!(a.evidence().tiles - tiles, geometry().tiles() - 1);
+    assert_eq!(h.borrow().surface.completed_frame(), None);
+    h.borrow_mut().drop_blit = true;
+    assert!(matches!(a.step(), Err(Error::Surface(_))));
+    // The new Receiver committed every pixel, but the app did not receive the
+    // last acknowledgement. A complete framebuffer is not a confirmed frame.
+    assert_eq!(
+        h.borrow().surface.completed_frame(),
+        Some(a.controller().view().generation)
+    );
+    assert!(!a.evidence().ready);
+    assert_eq!(a.evidence().presented_generation, 0);
+    assert_eq!(a.evidence().frames, frames);
+    assert_eq!(a.evidence().tiles - tiles, geometry().tiles() - 1);
+    assert_eq!(a.controller().view().contents, Some("hi"));
+    assert!(a.controller().document().is_dirty());
+    assert_eq!(a.evidence().save_acks, 0);
+}
+scenario!(
+    lost_final_replacement_frame_ack_preserves_draft_without_ready,
+    lost_final_replacement_ack_never_certifies_preserved_document
+);
