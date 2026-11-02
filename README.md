@@ -3,9 +3,9 @@
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 37% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 41% van de vaste productroadmap](docs/assets/progress.svg)
 
-**37% — 37 van 100 gewogen acceptatiepunten.** Dit is een
+**41% — 41 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -22,20 +22,20 @@ alleen een nette desktop haalt die eindgrens niet.
 | Eigen kern en procesisolatie | 15 | 13 |
 | Opslag en gegevensherstel | 15 | 13 |
 | Hardware, drivers en energie | 12 | 1 |
-| Native Materiaal en toegankelijkheid | 15 | 0 |
+| Native Materiaal en toegankelijkheid | 15 | 4 |
 | Internet en netwerkdiensten | 10 | 3 |
 | Beveiliging, privacy en updates | 12 | 4 |
 | Apps, SDK en installatie | 8 | 2 |
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **37** |
+| **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`fdc2861d`](https://github.com/simonvanieperen/nieuw-os/commit/fdc2861dee3ad2ccd8505fe4467f1f9c39392e3c) ·
+**Bron:** [`337f2f29`](https://github.com/simonvanieperen/nieuw-os/commit/337f2f29f1833ef4a8d2cd640b09419f85dbb83b) ·
 **Ontwikkelbranch:** `codex/mature-native-session-20261102`.
-Deze opdracht: **37% → 37% (+0 procentpunt)**. **Opdracht:** Werkelijk native herstel testen na expliciete generatie- en fasegating.
-37/100 blijft gelijk. B1 faalde werkelijk in cloud en CI: retirement werkte, maar oude readiness veroorzaakte te vroeg Rebind. De nieuwe Recovery helper bindt Pause/Ready/RebindAck aan expliciete fases en gevalideerde nieuwe groepsidentiteit; zes regressies en gerichte reviews slagen. Korte echte herstelhandshake volgt vóór de volledige pixel/werk/save/disk/cleanup-gate; die diagnose geeft nooit U01-punten. Launcher controleert alle19 payloads inclNoto-notices; root22PS/20packagertests groen. N01 en huidige native fundamenten blijven afzonderlijk geaccepteerd. RANDOMCI48267b6 slaagt, fixturetiming blijft afgebakend open. Lokale Windowsadapter en aparte idlebranch zijn afgestemd, geen nieuwebronruntimeclaim.
+Deze opdracht: **37% → 41% (+4 procentpunt)**. **Opdracht:** Native compositor/venstersessie U01 volledig geaccepteerd.
+41/100: U01 krijgt4vastepunten naast eerder geaccepteerdeN01. Op exact337/source39194035 slagen alle13nativefasen in eigen cloud-VM, in CI en gerapporteerd op Windows/WHPX: focus/drag, echte compositorfault, retirement/freshgroep, behoud van draft/berekening, complete pixels zonder maskers, save/list/reopen, onafhankelijke diskoracle en nul resources. Alle18CI-workflows op337 zijn groen. Bron/beelden/bytes/serial/pakket zijn herleidbaar vastgelegd. Eerdere rode uitvoeringen blijven rood bewaard. U02 blijft open; PR123-idlecode/pilot/formeleCPUproeven worden apart gereviewd en nog niet als algemene latency-/release-/auth-/hardwareacceptatie geteld.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

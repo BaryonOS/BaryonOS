@@ -206,11 +206,11 @@ Het script voert geen OS-tests uit en beoordeelt de bewijsinhoud niet.
 | **H05 — Energiebeheer en slaap/wek** | 2 | Open | ACPI/energiebeheer, slaap/wek, shutdown en thermische/batterijfuncties zijn op ondersteunde apparatuur gemeten en herstelbaar. |
 | **H06 — Fysieke ondersteuningsmatrix** | 1 | Open | Meerdere vooraf benoemde representatieve pc-configuraties doorstaan de gedocumenteerde hardwarematrix; DMA/IOMMU-grenzen en beperkingen staan expliciet vast. |
 
-### U — Native Materiaal en toegankelijkheid (0/15)
+### U — Native Materiaal en toegankelijkheid (4/15)
 
 | Criterium | Punten | Status | Acceptatie en bewijs |
 |---|---:|---|---|
-| **U01 — Native compositor en sessie** | 4 | Open | De eigen kernel draait een interactieve grafische sessie met render- en inputketen, venster/surface-isolatie en gecontroleerd compositorherstel. |
+| **U01 — Native compositor en sessie** | 4 | Behaald | De eigen kernel draait een interactieve grafische sessie met render- en inputketen, venster/surface-isolatie en gecontroleerd compositorherstel. [bewijs 1](../docs/verification/mature-session-20261102/U01-ACCEPTANCE.md) · [bewijs 2](../docs/verification/mature-session-20261102/U01-ACCEPTANCE.json) · [bewijs 3](../docs/verification/mature-session-20261102/window-337-ci-verification.json) |
 | **U02 — Vloeiende dagelijkse bediening** | 2 | Open | Toetsenbord, aanwijzer, focus, klembord en appwisseling zijn native bruikbaar en voldoen aan gemeten interactiebudgetten. |
 | **U03 — Materiaal van openen tot bewaren** | 3 | Open | Gebruikers openen, bewerken, hernoemen en organiseren echte native documenten; rechten, historie en locatie blijven begrijpelijk en correct. |
 | **U04 — Native toegankelijkheid** | 3 | Open | Toetsenbord-only, schermlezer, schaal/zoom, contrast en verminderde beweging werken in de native keten; taakproeven met gebruikers zijn vastgelegd. |

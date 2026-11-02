@@ -1,56 +1,42 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — expliciete herstelstaten; korte native handshake eerst — 2 november 2026
+## NEXT AGENT HANDOFF — U01 geaccepteerd; idle-PR123 wordt beoordeeld — 2 november 2026
 
-Branch `codex/mature-native-session-20261102`, concept-PR #122 op #121.
-Laatste functionele commit `fdc2861`, source-v3 `3919403542c923bc86467db3184345159a5ce6881567a0e11baa85f2d39f1995`.
-Score **37/100**: N01 geaccepteerd; U01/U02 blijven open. Bron na checkpoint
-bevriezen. De nieuwe generatie-/stagefix is host/review/crossbuild-groen,
-maar moet nog werkelijk native slagen.
+Branch `codex/mature-native-session-20261102`, concept-PR122 op121. Functionele
+freeze337f2f29f1833ef4a8d2cd640b09419f85dbb83b/source-v3
+3919403542c923bc86467db3184345159a5ce6881567a0e11baa85f2d39f1995.
+**41/100**: N01+3 en nu U01+4 t.o.v. oude34. U02/auth/volledige release blijven open.
 
-Vorige b1 is afgekeurd, niet meer als eindfreeze gebruiken. M4/IPCwait/N01
-slagen, vensterboot110,24/editor185,47/dirty266,52/calculated308,78/moved314,23s
-exact; compud2 en PRESENTATION_RETIRED1 daarna Matstep18, naturalraw35 na314,717s.
-CI reproduceert hetzelfde in150,412s. Oorzaak: oude mask31/pause0 veroorzaakte
-Rebind8 vóór PauseACK/restart. Resultaat/rawgzip/CI-hashes zijn bewaard onder
-verification/mature-session-20261102/window-b1-* en window-ci-b1-failed.json.
+Volle13fasen slagen op exact337 in rootTCG(753,648s), echteCI(853,340s) en
+lokaleWindows/WHPX(gerapporteerd36,946s; eerstevolledigebeeld6,971s). Raw33,
+compositorud2→retire→beidePauseACK→nieuwePID/gen/epochs→Ready/Rebind, beideappPIDs,
+draft/berekening en completepixels behouden; save/list/reopen,14bytes/rev1 en
+canaries onafhankelijk gecontroleerd; nulprocessen/handles/queues/frametekort.
+Alle18CI-workflows groen. Zie verification/mature-session-20261102/U01-ACCEPTANCE.md
+met volledige bron/artifact/QMP/frame/serial/diskbinding. Rode2bb/b1resultaten blijven rood.
+GeenQEMU meer actief bijroot. UI-host/Clippy/scalar11archieven+179Python+8runner
+op337 groen. NormaleWindowsZIP337 inclusief19payloads/allefontnotices en22PS-
+launcher/33helperchecks gevalideerd; geen productie-release of nieuweSDLclaim.
+Screenshot: build/window-final/run/window-b42797a76f084c62a04223c8dbd9de1b/reopened.png.
 
-Nu geïntegreerd: echte Recovery helper met AwaitPause→AwaitFreshReady→
-AwaitRebindAck; mask3 bij begin/install. ACK7 alleen in Pause, ACK8 alleen in
-RebindAck, READY uitsluitend in FreshReady met huidige PID/gen/epochs. Alleen
-na echte beidepauseACKs, geslaagde0x53 en gevalideerde verseBoot gaat de helper
-naar FreshReady. Alle drieREADY en exacteinstalledGroup zijn nodig voor8;
-stage verandert vóór beide sends en voorkomt dubbele8. Zes daadwerkelijke
-helperregressies plus twee gerichte read-only agentreviews vinden geen blocker.
-Bestaande typed retirement, beideownerpreflight, per-handleBadHandlecleanup,
-alle model-/identity-/epoch-/pixelguards blijven. Geen timeout/POLLverruiming.
+Geautoriseerde lokalechat heeft apart idle-vervolg gebouwd. ConceptPR123:
+https://github.com/simonvanieperen/nieuw-os/pull/123, head
+1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b/source8faf3f7f47e3f26409e446b2311673416ddd70d5735ef106d94c9f30d2c6847a
+(merge337 bovenop559c690). Alle4GUIloops gebruiken IPC_WAIT uitsluitend quiescent;
+geen kernel/ABI/rechten/deadlinewijziging. Lokale volledigeWHPXgate opidlepassed,
+pilotzelfdeheleframe100%→13,75%éénlogischeCPU; dit is nog geen formeleCPUacceptatie.
+De lokalechat draait3x2brongebonden15smetingen en levert aggregaat. Root en
+2read-onlyagents hebben actueleApp/Comp/init-diff gereviewd: geen blocker,
+maar geen harde20ms-intervalbelofte. Alle rustvoorwaarden en herstelstaten behouden.
+Nog GEEN code vanPR123 inroot geïntegreerd; gitfetchobjecten wel beschikbaar.
 
-Root voegde --recovery-handshake-only toe aan run_window_session: wacht op
-werkelijk eerstecommit, echteF12, kernelretirement/gen2 en Rec1/nieuweCompPID;
-QMPquit0. Deze diagnose is altijd smoke_only=true/native_gate=false en bewijst
-geen frames, werkbehoud, opslag of cleanup. Eerst die goedkope native route,
-daarnade volledige1800s-route op exactdezelfdebron met18hostoracles/13nativebeelden.
-
-Verder geïntegreerd: launcher hashcheckt nu ook alle3 Noto-notices; root22
-synthetischePowerShell en20packagertests slagen. Accelerationhelperfc506... is
-onveranderd. ABI1.11-parkingkeyring/volume en complete volatile snapshotwipe blijven.
-RANDOM foundation slaagt in echte48267b6CI; vroegere fout is niet gereproduceerd,
-hostcounterexample64RPC/100tick blijft bekend en diagnose beschikbaar.
-
-Geautoriseerde lokalechat01a19c13-c83d-7781-8f61-de0541ac6d95 bereidt Windows-
-QMPadapter buiten bron/OneDrive voor (originele runner, geen guards versoepeld).
-B1 geen meetreeks meer. Die chat bezit uitsluitend een afzonderlijke idlebranch
-vanaf b1: compositor/window-init en Materiaal/Calc quiescent IPC_WAIT-onderzoek,
-geen kernel/ABI/rechten/timeoutwijzigingen. Cloudroot neemt dat niet stil over;
-nieuwefreeze eerst doorgeven, diff en apartebrongebondenA/B-evidence vragen.
-Oud344-PCidlebewijs blijft apart gerapporteerd (geen nieuwebronclaim).
-
-Eerstvolgend: activate omgeving, build native-window-session-probe in
-build/window-final/target/window-final; kortehandshake --timeout120, daarna
-volledige --timeout1800 met explicieteSeaBIOS/VGA-ROMs. Geen andereVM tegelijk.
-Na echtepass U01 pas+4; normale Windowsbundle exactfreeze opnieuw bouwen,
-19payloads/8ELFs/fontlicenses/PSchecks bevestigen, lokaleWHPX/TCGoverdracht.
-Geen hostinstellingen/fysieke schijven/passthrough. Andere integrator houdtmerges.
+Eerstvolgend: formeel lokaalCPUrapport ontvangen; gedeeldeREADME/progress/
+PROJECT-STATE-edits vanPR123 mogen rootscore41 niet overschrijven. Alleenna
+review/testbewijscode/bewijs bewust integreren, relevantehost/nativechecks+CI,
+nieuweWindowsbundle/sourcehash en voortgangsassessment bijwerken. Nog geen
+U02punten: klembord en volledigeinteractiebudgetten ontbreken. Pullrequest123 is
+al aan dezechat gekoppeld. Root eigenaarschap integratie; hoofdbranchmerges
+blijven bij bestaandeintegrator. Geen hostinstellingen/fysieke schijven/passthrough.
 
 ## Vorige afgeronde checkpoint — native sessiepreview
 
