@@ -598,3 +598,231 @@ fn terminal_channel_failure_retires_one_slot_without_releasing_live_transmission
         );
     });
 }
+
+/// One controlled smoltcp peer listening on `PEER:8080` for slot 0.
+macro_rules! peer {
+    ($dev:ident, $peer:ident, $sockets:ident, $handle:ident, $body:block) => {{
+        let (mut prx, mut ptx) = ([0; 1514], [0; 1514]);
+        let mut $dev = PacketDevice::new(&mut prx, &mut ptx);
+        let mut config = IfaceConfig::new(HardwareAddress::Ethernet(EthernetAddress([
+            2, 0, 0, 0, 0, 1,
+        ])));
+        config.random_seed = 3;
+        let mut $peer = Interface::new(config, &mut $dev, Instant::ZERO);
+        $peer.update_ip_addrs(|ips| {
+            ips.push(IpCidr::new(Ipv4Address::new(192, 0, 2, 1).into(), 24))
+                .unwrap()
+        });
+        let mut pstorage = [SocketStorage::EMPTY];
+        let mut $sockets = SocketSet::new(&mut pstorage[..]);
+        let (mut pr, mut pt) = ([0; 4096], [0; 4096]);
+        let mut socket = Socket::new(
+            SocketBuffer::new(&mut pr[..]),
+            SocketBuffer::new(&mut pt[..]),
+        );
+        socket.set_ack_delay(None);
+        socket.listen(8080).unwrap();
+        let $handle = $sockets.add(socket);
+        $body
+    }};
+}
+/// Exchange at most one frame per direction between the service and the peer.
+fn step(
+    service: &mut Service<'_>,
+    dev: &mut PacketDevice<'_>,
+    peer: &mut Interface,
+    sockets: &mut SocketSet<'_>,
+    tick: u64,
+    echo: Option<smoltcp::iface::SocketHandle>,
+) {
+    service.poll(tick).unwrap();
+    if let Some(frame) = service.transmission() {
+        let id = frame.id;
+        dev.push(frame.bytes).unwrap();
+        service.complete_transmission(id).unwrap();
+    }
+    let now = Instant::from_micros(tick as i64 * 10_000);
+    peer.poll_maintenance(now);
+    peer.poll_ingress_single(now, dev, sockets);
+    if let Some(handle) = echo {
+        let socket = sockets.get_mut::<Socket>(handle);
+        if socket.can_recv() && socket.can_send() {
+            let mut buf = [0; 64];
+            let n = socket.recv_slice(&mut buf).unwrap();
+            assert_eq!(socket.send_slice(&buf[..n]).unwrap(), n);
+        }
+    }
+    peer.poll_egress(now, dev, sockets);
+    if let Some(frame) = dev.transmission() {
+        let id = frame.id;
+        service.ingress(frame.bytes, tick).unwrap();
+        dev.complete(id).unwrap();
+    }
+}
+fn tcp_state(s: &mut Service<'_>, id: &mut u64, token: u64, tick: u64) -> u32 {
+    *id += 1;
+    rpc(
+        s,
+        0,
+        &request(Operation::State, *id, token, 0, [0; 4], 0, &[]),
+        tick,
+    )
+    .header()
+    .argument
+}
+fn tcp_rpc(
+    s: &mut Service<'_>,
+    id: &mut u64,
+    op: Operation,
+    token: u64,
+    data: &[u8],
+    tick: u64,
+) -> Packet {
+    *id += 1;
+    rpc(
+        s,
+        0,
+        &request(op, *id, token, data.len() as u32, [0; 4], 0, data),
+        tick,
+    )
+}
+/// PR #127 regression: the OpenTcp deadline bounds only connection setup. An
+/// established connection with ongoing traffic must survive well past it, and
+/// an idle one is still ended by the stack's own inactivity timeout.
+#[test]
+fn established_connection_with_traffic_outlives_connect_deadline() {
+    const DEADLINE: u32 = 30;
+    service!(s, configuration(), {
+        peer!(dev, peer, sockets, handle, {
+            let mut id = 1;
+            let token = rpc(
+                &mut s,
+                0,
+                &request(Operation::OpenTcp, id, 0, DEADLINE, PEER, 8080, &[]),
+                0,
+            )
+            .header()
+            .connection;
+            let (mut established_at, mut echoed, mut last_echo) = (None, 0, 0);
+            for tick in 0..=200 {
+                step(
+                    &mut s,
+                    &mut dev,
+                    &mut peer,
+                    &mut sockets,
+                    tick,
+                    Some(handle),
+                );
+                let state = tcp_state(&mut s, &mut id, token, tick);
+                assert_ne!(state, ConnectionState::TimedOut as u32, "tick {tick}");
+                if state != ConnectionState::Established as u32 {
+                    assert!(established_at.is_none(), "dropped at tick {tick}: {state}");
+                    continue;
+                }
+                if established_at.is_none() {
+                    established_at = Some(tick);
+                }
+                if tick % 5 == 0 {
+                    let sent = tcp_rpc(&mut s, &mut id, Operation::SendTcp, token, b"p", tick);
+                    assert_eq!(sent.status(), Status::Ok, "tick {tick}");
+                }
+                let got = tcp_rpc(&mut s, &mut id, Operation::ReceiveTcp, token, &[], tick);
+                if got.status() == Status::Ok {
+                    assert!(got.data().iter().all(|b| *b == b'p'));
+                    echoed += got.data().len();
+                    last_echo = tick;
+                }
+            }
+            assert!(established_at.unwrap() < u64::from(DEADLINE));
+            assert!(last_echo > 3 * u64::from(DEADLINE));
+            assert!(echoed > 30);
+            assert_eq!(
+                tcp_state(&mut s, &mut id, token, 200),
+                ConnectionState::Established as u32
+            );
+            // Without traffic the stack inactivity timeout still applies: it is
+            // reported as Closed (not a service TimedOut) and sending is terminal.
+            let mut closed_at = None;
+            for tick in 201..=400 {
+                step(
+                    &mut s,
+                    &mut dev,
+                    &mut peer,
+                    &mut sockets,
+                    tick,
+                    Some(handle),
+                );
+                let state = tcp_state(&mut s, &mut id, token, tick);
+                assert_ne!(state, ConnectionState::TimedOut as u32, "tick {tick}");
+                if state == ConnectionState::Closed as u32 {
+                    closed_at = Some(tick);
+                    break;
+                }
+            }
+            let closed_at = closed_at.expect("idle connection must hit stack inactivity timeout");
+            assert_eq!(
+                tcp_rpc(
+                    &mut s,
+                    &mut id,
+                    Operation::SendTcp,
+                    token,
+                    b"late",
+                    closed_at
+                )
+                .status(),
+                Status::Closed
+            );
+        });
+    });
+}
+/// PR #127 regression: a reset connection is terminal for SendTcp, analogous
+/// to ReceiveTcp, while a still-connecting socket only asks to retry.
+#[test]
+fn send_after_peer_reset_reports_terminal_closed() {
+    service!(s, configuration(), {
+        peer!(dev, peer, sockets, handle, {
+            let mut id = 1;
+            let token = rpc(
+                &mut s,
+                0,
+                &request(Operation::OpenTcp, id, 0, 3000, PEER, 8080, &[]),
+                0,
+            )
+            .header()
+            .connection;
+            assert_eq!(
+                tcp_rpc(&mut s, &mut id, Operation::SendTcp, token, b"early", 0).status(),
+                Status::Again
+            );
+            let mut tick = 0;
+            while tcp_state(&mut s, &mut id, token, tick) != ConnectionState::Established as u32 {
+                step(&mut s, &mut dev, &mut peer, &mut sockets, tick, None);
+                tick += 1;
+                assert!(tick < 100, "handshake did not complete");
+            }
+            sockets.get_mut::<Socket>(handle).abort();
+            while tcp_state(&mut s, &mut id, token, tick) != ConnectionState::Closed as u32 {
+                step(&mut s, &mut dev, &mut peer, &mut sockets, tick, None);
+                tick += 1;
+                assert!(tick < 200, "reset was not observed");
+            }
+            let counters = s.counters();
+            for (op, data) in [
+                (Operation::SendTcp, &b"x"[..]),
+                (Operation::ReceiveTcp, &[][..]),
+            ] {
+                assert_eq!(
+                    tcp_rpc(&mut s, &mut id, op, token, data, tick).status(),
+                    Status::Closed
+                );
+            }
+            assert_eq!(s.counters().rejected, counters.rejected);
+            assert_eq!(s.counters().sent, counters.sent);
+            // Terminal status grants nothing: a foreign token stays stale.
+            assert_eq!(
+                tcp_rpc(&mut s, &mut id, Operation::SendTcp, token ^ 1, b"x", tick).status(),
+                Status::Stale
+            );
+        });
+    });
+}
