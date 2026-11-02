@@ -6,7 +6,7 @@ Leidend gebruikersprincipe: **“Familiar where familiarity reduces friction, in
 
 ## Bewijs en begrenzing
 
-[BRON] Nielsen beschrijft onder meer herkenning, consistentie, gebruikerscontrole en foutpreventie als heuristieken. W3C's aanvullende cognitieve richtlijn adviseert vertrouwde, consistente bediening en duidelijke relaties tussen controles en inhoud. Dit zijn ontwerp-/toegankelijkheidsrichtlijnen, geen effectproef voor een nieuwe desktop. [J01][J03][J04]
+[BRON] Nielsen beschrijft onder meer herkenning, consistentie, gebruikerscontrole en foutpreventie als heuristieken. W3C's aanvullende cognitieve richtlijn adviseert vertrouwde, consistente bediening en duidelijke relaties tussen controles en inhoud. Dit zijn ontwerp-/toegankelijkheidsrichtlijnen, geen effectproef voor een nieuwe desktop. [J01] [J03] [J04]
 
 [BRON] Mentale modellen verschillen per persoon en veranderen door ervaring. De bestaande vergelijkende OS-studie in het [Windows/macOS-dossier](2026-11-02/windows-macos-needs.md) gebruikte OS-afbeeldingen en een beperkte studentensteekproef; daarmee is geen kennis van een volledige installatie- of werkdag aangetoond. [J02]
 
@@ -90,8 +90,8 @@ Alle bronnen geraadpleegd op 2026-11-02. De platformhandleidingen en versies sta
 | J02 | Megan Chan, *Mental Models*, 2024-01-26; herzien 2026-09-01, herwerking Nielsen 2010 | Individuele verwachtingen en onjuiste modellen; voorbeelden/richtlijn, geen migratie-RCT |
 | J03 | W3C COGA, *Use a Familiar Hierarchy and Design*, bronnotitie 2021-04-29; webpresentatie 2022-01 | Cognitieve toegankelijkheid en herkenning; aanvullende guidance, geen WCAG-conformiteitscriterium |
 | J04 | W3C COGA, *Help Users Understand What Things are and How to Use Them*, zelfde notitie/webperiode | Duidelijke controles, relatie en consistentie; webcontext moet voor native getoetst worden |
-| J05 | Microsoft Support, *Change or reset your PIN in Windows*, datum niet vermeld | PIN is niet hetzelfde als Microsoft-accountwachtwoord; geen implementatievoorbeeld voor nieuw-os |
-| J06 | Nieuw-os privacycontract revisie 4, 2026-10-28, en bronbasis main e08fb0e/ontwikkelbron1f0dd9c | Lokale werking, geen leveranciersaccountdwang, echte rechten en open native grenzen; projectvoorwaarden, geen externe gebruikersdata |
+| [J05] | Microsoft Support, *Change or reset your PIN in Windows*, datum niet vermeld | PIN is niet hetzelfde als Microsoft-accountwachtwoord; geen implementatievoorbeeld voor nieuw-os |
+| [J06] | Nieuw-os privacycontract revisie 4, 2026-10-28, en bronbasis main e08fb0e/ontwikkelbron1f0dd9c | Lokale werking, geen leveranciersaccountdwang, echte rechten en open native grenzen; projectvoorwaarden, geen externe gebruikersdata |
 
 [J01]: https://www.nngroup.com/articles/ten-usability-heuristics/
 [J02]: https://www.nngroup.com/articles/mental-models/
