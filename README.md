@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`703cc070`](https://github.com/simonvanieperen/nieuw-os/commit/703cc0705471062ffb1483a16f42a2e580a6fdf7) ·
-**Ontwikkelbranch:** `codex/session-quality-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Eerste native sessieslice, visuele review en snelheidswinst brongebonden getest.
-41/100 blijft 41. De openbare VM-route doorloopt 18 toestanden en sluit met gecontroleerde cleanup; op dezelfde codebron slaagt de volledige native regressie met 22 fasen, klembord, echte compositorherstart, appbehoud en onafhankelijke schijfcontrole. Veertig hostbeelden en de native captures zijn visueel beoordeeld. De aparte sparsevergelijking meet 1542,275 naar 697,463 seconden; koude appframes en gast-naar-desktop blijven te traag. Echte accountauthenticatie, veilige keyring/capability-intrekking, volledige dagelijkse bediening en hardwareacceptatie ontbreken. VMware is onderzocht maar niet uitgevoerd; dit verdient geen nieuwe punten.
+**Bron:** [`159ad799`](https://github.com/simonvanieperen/nieuw-os/commit/159ad799d2a94fb6542d60e26ed8bbd22bdbd752) ·
+**Ontwikkelbranch:** `codex/materiaal-library-20261102`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Native Materiaalbibliotheek en proportionele documentwerkruimte in uitvoering.
+41/100 blijft 41. De volgende U03-slice ontsluit bestaande volume-v7-collecties, naamzoeking en historie en verbetert de documenttypografie. SDK/UI bouwen in aparte worktrees; twee nieuwe hostcontroles voor stopped-disk/cold-parentgrenzen slagen. Nieuwe native bibliotheekacceptatie en regressie zijn nog niet uitgevoerd; geen punten vooraf. Eerder bewijs blijft aan zijn oorspronkelijke bron gebonden.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

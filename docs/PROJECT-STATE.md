@@ -1,6 +1,28 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — eerste native sessieslice getest; hoofdopdracht blijft open — 2 november 2026
+## NEXT AGENT HANDOFF — Materiaalbibliotheek in uitvoering — 2 november 2026
+
+Branch `codex/materiaal-library-20261102`, basis `159ad799d2a94fb6542d60e26ed8bbd22bdbd752`.
+De volledige gebruikersopdracht blijft actief. **41/100 blijft 41** tot U03 volledig
+is geaccepteerd; criterium, gewicht en scope zijn ongewijzigd. PR129 en de
+brongebonden eerdere sessie-/prestatiebewijzen blijven behouden.
+
+Taakcontract: `docs/implementation/NATIVE-MATERIAL-LIBRARY.md`. Twee afzonderlijke
+builders werken op dezelfde basis: SDK in `nieuw-os-library-sdk` ontsluit bestaande
+volume-v7-collecties/history met CAS en foutgrenzen; UI in `nieuw-os-library-ui`
+bouwt proportionele documentlayout en echte benoembare/zoekbare bibliotheek.
+Root bezit integratie, native runner/oracles en voortgangsmeter. Geen gedeelde
+schrijvers. PR126/127/128 zijn geïnspecteerd en blijven apart bewaard; hun WIP
+is niet stil geïntegreerd of als nieuwe acceptatie geteld.
+
+Root heeft een onafhankelijke stopped-diskoracle en begrensde cold-parent-
+validatie gebouwd. Twee gerichte hosttests slagen, inclusief gewijzigde/stale
+bron, foutflags, onzekere stop en gewijzigde disk/transcript. Dit is nog geen
+native bewijs. Volgende stap: SDK/UI integreren, echte native bibliotheekroute
+plus koude heropening, volledige compositor/clipboardregressie, screenshots en
+visuele review. Geen Windows-, VMware-, biometrie-, FIDO2- of hardwareclaim.
+
+## Vorig checkpoint — eerste native sessieslice getest; hoofdopdracht blijft open — 2 november 2026
 
 Branch `codex/session-quality-20261102`, concept-PR 129 bovenop PR 122.
 Functionele codebron `703cc0705471062ffb1483a16f42a2e580a6fdf7`, source-v3
