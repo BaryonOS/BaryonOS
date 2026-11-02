@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`8289d60c`](https://github.com/simonvanieperen/nieuw-os/commit/8289d60cd5caa8a26b7823a694858a15371dc2af) ·
-**Ontwikkelbranch:** `codex/mature-native-session-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Native desktop en GUI-idle geïntegreerd na centrale CI- en bewijscontrole.
-De score blijft 41/100 na de eerdere stijging van 34 door N01 (+3) en U01 (+4). De idlewijziging is na 18 groene CI-workflows opgenomen in de desktopbranch. Zes volledige Windows/WHPX-routes behouden beeld, invoer, herstel en opslag. In drie metingen per variant daalt de mediane procesCPU van 99,37% naar 11,67% van één logische processor; de ruwe tellers zijn opnieuw berekend. Dit levert geen extra punten op: U02, klembord, volledige interactiebudgetten en echte authenticatie blijven open.
+**Bron:** [`41d02693`](https://github.com/simonvanieperen/nieuw-os/commit/41d02693083aa5262eee435c583680b566808489) ·
+**Ontwikkelbranch:** `codex/native-clipboard-20261102`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** U02 geselecteerde tekst delen en interactiebudgetten implementeren.
+De score blijft41/100. Een klein contract voor native CtrlC/CtrlV met eenmalige focus-/inputgebonden machtiging en atomische paste is vastgelegd. Broker en beide apps worden afzonderlijk gebouwd; latencyonderzoek behoudt echte beeld-/ACK-/herstelgrenzen. Nieuwe native acceptatie en volledige U02-interactiebudgetten zijn nog niet aangetoond; U02 blijft open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

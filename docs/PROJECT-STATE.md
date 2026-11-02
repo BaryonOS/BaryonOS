@@ -1,6 +1,19 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — native desktop en GUI-idle geïntegreerd — 2 november 2026
+## NEXT AGENT HANDOFF — U02 klembord in uitvoering — 2 november 2026
+
+Branch `codex/native-clipboard-20261102`, basis41d0269. Doel: geselecteerde
+tekst via echte CtrlC/CtrlV tussen geïsoleerde apps, eenmalige inputgebonden
+machtiging en atomische paste. Contract: implementation/NATIVE-CLIPBOARD.md.
+Inputclient/window-compositorbuilder werkt in aparte clipboard-broker-worktree;
+root bezit beide appadapters/controllermodel/fixtures/runner/docs. Latencyspoor
+onderzoekt invoer→beeld en focusbudgetten, eerst read-only. Geen kernel-ABI of
+nieuwe apparaatrechten. Implementatie/native acceptatie nog niet uitgevoerd;
+41/100 blijft41, U02/auth/volledige release blijven open. Eerstvolgend:
+klembordbroker en appmodellen implementeren, gericht hosttesten, integreren,
+no_std/ELF en de volledige brongebonden native route uitvoeren.
+
+## Vorig geïntegreerd checkpoint — desktop en GUI-idle
 
 Branch `codex/mature-native-session-20261102`, concept-PR122 op PR121. PR123 is
 na centrale review en **18/18 groene CI-workflows** geïntegreerd als
