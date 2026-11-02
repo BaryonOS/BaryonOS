@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **37** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`03e81d4d`](https://github.com/simonvanieperen/nieuw-os/commit/03e81d4d9ac8d4e83e3a321ba8ba949d8562658f) ·
+**Bron:** [`5dd5f8c7`](https://github.com/simonvanieperen/nieuw-os/commit/5dd5f8c7ad043ebb8c80553b2700680d64043f77) ·
 **Ontwikkelbranch:** `codex/mature-native-session-20261102`.
-Deze opdracht: **37% → 37% (+0 procentpunt)**. **Opdracht:** Native venstersessie, exacte syscall-invarianten en brongebonden Windows-kandidaat.
-37/100 blijft gelijk. N01 is geaccepteerd en slaagt opnieuw op de actuele kernel. Native M4 (12 groepen), geheugen-guardpages en gerichte runnerchecks slagen. De eigen twee-appvenstersessie heeft een exact initieelbeeld; de volledige herstel/save/disk/cleanup-gate loopt nog. Het eerste beeld duurt onder TCG 312,24 seconden; U02 blijft open en er wordt geen prestatiewinst geclaimd. Een hashgebonden normale Windows-kandidaat is gebouwd en synthetisch gecontroleerd; echte Windowsruntimeacceptatie is nog open. U01 krijgt geen punten vóór de volledige native pass.
+Deze opdracht: **37% → 37% (+0 procentpunt)**. **Opdracht:** Definitieve native vensterfreeze na directe snapshotwipe en CI-herstel.
+37/100 blijft gelijk. De geïsoleerde N01-netwerkdienst is geaccepteerd. De eerste vensterbaseline leverde exacte initial/editor/dirty-beelden maar werd wegens aantoonbare snapshotwiskosten gestopt; geen U01-pass. De directe volledige woordwipe is geïntegreerd met behoud van alle authority-/fout-/waitinvarianten en onafhankelijke code/IR-review. 177 Python-toolchecks, acht runnerchecks, relevante formatters en UI-host/scalar/objectchecks slagen. Twee concrete CI-regressies zijn hersteld. De volledige native kernel/wait/netwerk/vensterherhaling volgt op deze freeze. U01 en U02 krijgen geen punten vooruit; echte Windowsruntime blijft een aparte controle.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

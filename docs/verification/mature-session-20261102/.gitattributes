@@ -1,1 +1,2 @@
 *.txt -text
+*.log -text whitespace=cr-at-eol

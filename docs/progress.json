@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "03e81d4d9ac8d4e83e3a321ba8ba949d8562658f",
+    "source_commit": "5dd5f8c7ad043ebb8c80553b2700680d64043f77",
     "branch": "codex/mature-native-session-20261102",
-    "task": "Native venstersessie, exacte syscall-invarianten en brongebonden Windows-kandidaat",
+    "task": "Definitieve native vensterfreeze na directe snapshotwipe en CI-herstel",
     "previous_score": 37,
-    "summary": "37/100 blijft gelijk. N01 is geaccepteerd en slaagt opnieuw op de actuele kernel. Native M4 (12 groepen), geheugen-guardpages en gerichte runnerchecks slagen. De eigen twee-appvenstersessie heeft een exact initieelbeeld; de volledige herstel/save/disk/cleanup-gate loopt nog. Het eerste beeld duurt onder TCG 312,24 seconden; U02 blijft open en er wordt geen prestatiewinst geclaimd. Een hashgebonden normale Windows-kandidaat is gebouwd en synthetisch gecontroleerd; echte Windowsruntimeacceptatie is nog open. U01 krijgt geen punten vóór de volledige native pass."
+    "summary": "37/100 blijft gelijk. De geïsoleerde N01-netwerkdienst is geaccepteerd. De eerste vensterbaseline leverde exacte initial/editor/dirty-beelden maar werd wegens aantoonbare snapshotwiskosten gestopt; geen U01-pass. De directe volledige woordwipe is geïntegreerd met behoud van alle authority-/fout-/waitinvarianten en onafhankelijke code/IR-review. 177 Python-toolchecks, acht runnerchecks, relevante formatters en UI-host/scalar/objectchecks slagen. Twee concrete CI-regressies zijn hersteld. De volledige native kernel/wait/netwerk/vensterherhaling volgt op deze freeze. U01 en U02 krijgen geen punten vooruit; echte Windowsruntime blijft een aparte controle."
   },
   "tracks": [
     {

@@ -1,53 +1,51 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — eigen venstersessie; volledige gate loopt — 2 november 2026
+## NEXT AGENT HANDOFF — native venstersessie; nieuwe freeze — 2 november 2026
 
 Branch `codex/mature-native-session-20261102`, concept-PR #122 op #121.
-Functionele freeze `03e81d4d9ac8d4e83e3a321ba8ba949d8562658f`, source-v3
-`8893b9623035561cc181b235e602485a811ed3db49d08dac67a07031a4edae76`.
-Score **37/100**; N01 geaccepteerd, U01/U02 blijven open tot hun eigen bewijs.
+Laatste functionele commit `5dd5f8c7ad043ebb8c80553b2700680d64043f77`, source-v3
+`1fbbeb9fe6592759b637dbd0c235825f9a2a9df27212404ffa4f6a3e9cd1d974`.
+Score **37/100**, N01 geaccepteerd; U01/U02 blijven open tot hun eigen bewijs.
+Deze docscheckpoint wordt vóór de lange native herhaling gepusht.
 
-Geleverd: eigen Open Sans-rasterisatie/vectorpictogrammen, 1280×720-werkruimte,
-twee afzonderlijke native apps, compositorfocus/titelbalkslepen, eigen SUR1/INP1-
-kanalen en supervisorherstel met nieuwe PIDs/epochs en behoud van appwerk.
-Alleen compositor krijgt Display, alleen inputbron InputSource. De probevariant
-voert echte afwijzingen en een compositor-ud2 uit; normale Windowsbundel bevat
-geen crashinjectie. Geen echte authenticatie, clipboard of fysieke GPU-claim.
+Geleverd: proportionele typografie/eigen pictogrammen, 1280×720-werkruimte,
+twee native appprocessen, compositorfocus/titelbalkslepen en afzonderlijke
+SUR1-/INP1-kanalen. Alleen compositor krijgt Display, alleen inputbron
+InputSource. Supervisorherstel behoudt draft/berekening met verse diensten,
+PIDs/capabilities/epochs. Probevariant test echte negatieve RPCs en een ud2;
+normale Windowsbundel bevat geen crashinjectie. Geen echte auth/clipboard/GPUclaim.
 
-De hervatte runner wacht op echte key-ACKs, cursorpositie en knopstatus in plaats
-van vaste inputbursts. Hele appbeelden blijven exact, ook na verplaatsing en
-herstel. Oude kanalen moeten werkelijk BadHandle geven. Herstel vereist beide
-nieuwe complete frames, draftchecksum en echte calculator-expressie/antwoord.
+De runner wacht op echte key-ACKs/cursor/knoppen. Hele appbeelden blijven exact,
+ook na beweging/herstel. Het oude 03e-experiment haalde exact initial/editor/
+dirty (312,24/580,81/878,78 s), maar is daarna bewust gestopt: geen native pass.
+Bron/rawhashes/stopreden zijn bewaard onder
+`verification/mature-session-20261102/window-03e81d4-stopped.json`.
+De oorzaak bleek 1024 tijdelijke Message-buffers bij iedere snapshotwipe.
 
-De exacte autoriteitssnapshot bewaart alle fout-/waitinvarianten en wist zijn
-berichtkopieën vóór vrijgeven. Native M4 slaagt op deze bron in 12 groepen;
-N01 normal/client-exit slagen opnieuw (8,500/7,818 s). De begrensde woordkopie/
-vergelijkroutine slaagt voor vijf guardpageproeven; runner acht hostnegatieven
-en root-fmt zijn groen. Zie `verification/mature-session-20261102/word-integration-checkpoint.json`.
+Nu geïntegreerd: rechtstreekse 40 volatile 64bit-stores per Message, alle
+320 bytes en alle 1024 berichten vóór leasevrijgave. Complete snapshot/Eq,
+IF0, alle rechten-/fout-/waitinvarianten blijven. Exacte primitiveschema's,
+uitlijning/omvang, protected-page/canaryproeven en typegroei-negatieven borgen
+het kleine unsafegebied. IR/assembly onafhankelijk gereviewd; geen tijdwinst
+vooruit geclaimd. 177 Python-toolchecks plus acht runnerchecks en root/SDK/
+inputcore-fmt slagen op de geïntegreerde bron. De eigen UI-hosttests/Clippy/
+scalarbuild en elf objectarchieven, graphics en window10/816pixels slagen.
+Eerdere native M4 en N01 zijn op 03e groen; na deze kernelwijziging opnieuw doen.
 
-De QMP-venstergate is bewust gestopt na de volledige dirty-fase in
-`build/window-final/run/window-c3209b41e4024e9ba57b62ad2b80ba6a`, log
-`/tmp/window-word-native.log`; geen QEMU meer actief. Eerste beide appframes:
-312,24 s; exact initieelbeeld na cursorparkeren: 322,90 s. Dit is duidelijk traag
-onder TCG; geen latentiewinst of U02-acceptatie. Geen sourcewijzigingen tijdens
-de brongebonden run. De volledige editor (580,81 s) en alle veertien drafttekens
-(878,78 s) klopten exact; daarna is alleen de eigen VM gestopt om de aantoonbare
-wiskosten te repareren. Origineel resultaat blijft false; stopreden apart bewaard.
-De directe woordwipe is onafhankelijk gereviewd en wordt nu geïntegreerd.
-Bij falen bewijs behouden, concrete fout repareren en opnieuw bronvast testen.
+Twee werkelijke PR-regressies uit CI hersteld: coldcursor gebruikt de drie
+gecontroleerde stappen naar de nieuwe knop en kopieert alleen de echte status-
+rechthoek; inputcore response krijgt canonical rustfmt. Alle 17 koude hosttests
+slagen; geen pixelmasker of bron-/padguard opgeheven. Remote CI moet opnieuw.
 
-Windows-kandidaat:
-`/workspace/nieuw-os-windows-package/build/window-package-03e81d4/NieuwOS-venstersessie-03e81d4-Windows-QEMU.zip`,
-SHA256 `50e9538f8cc023379ccd62d53466dd58eb5c99fea9f965d56a18d0842c63e229`.
-Acht ELF's/fontlicenties/firmware/ZIP-payloads en synthetische Linux-PS7-CheckOnly
-slagen; geen echte Windowsruntime uitgevoerd. Eerdere pakketten behouden.
-De oude helper blijft bytegelijk aan lokaal zesmaal geteste fc506... .
-
-Eerstvolgend: directe Message-wipe en twee concrete CI-fixture/fmtfixes integreren,
-dan nieuwe bronfreeze en volledige native gate opnieuw uitvoeren. U01 alleen +4 bij complete herstel/pixel/save/disk/cleanup-pass.
-Daarna definitieve bundel/hashoverdracht, score, bewijs en PR actualiseren.
-De andere integrator behoudt merge-eigenaarschap. Geen fysieke schijven,
-netwerkpassthrough of hostinstellingen wijzigen.
+Volgende commando: activeer `/workspace/.nieuw-os-env/activate.sh`; herhaal
+native M4, IPCwait, N01 normal/client-exit en build/run_window_session met
+1800s-deadline, geïsoleerde build/window-final en target/window-final. Geen
+bronwijzigingen tijdens die brongebonden run. U01 alleen +4 bij volledige
+focus/drag/fault/rebind/behoud/pixel/save/disk/cleanup-pass; U02 blijft apart open.
+Daarna finale normale Windowsbundel op exact dezelfde freeze maken en hashes
+met de geautoriseerde lokale Windowschat delen. Oude kandidaten behouden.
+Geen hostinstellingen, fysieke schijven of passthrough. Andere integrator houdt
+merge-eigenaarschap. Werk niet terug naar de oude 03e-kandidaat als eindbewijs.
 
 ## Vorige afgeronde checkpoint — native sessiepreview
 
