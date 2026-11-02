@@ -11,8 +11,8 @@ compile_error!("volume-service is only for the Nieuw OS x86_64-unknown-none targ
 mod support;
 
 use nieuw_os_sdk_runtime::{
-    block::READ_MAX, native, BlockDevice, Error, Handle, Outgoing, ReceiveEndpoint, SendEndpoint,
-    WaitCondition, IPC_WAIT_HORIZON_TICKS,
+    block::READ_MAX, native, supports_ipc_wait, BlockDevice, Error, Handle, Outgoing,
+    ReceiveEndpoint, SendEndpoint, WaitCondition, IPC_WAIT_HORIZON_TICKS,
 };
 use volume_core::{service::Service, upload, wire, Disk, Status, SECTOR};
 
@@ -124,7 +124,7 @@ pub extern "C" fn _start() -> ! {
         startup_error(Status::NoSys);
     }
     let idle_wait =
-        native::abi_info().unwrap_or_else(|_| startup_error(Status::NoSys)) == (1 << 32) | 10;
+        supports_ipc_wait(native::abi_info().unwrap_or_else(|_| startup_error(Status::NoSys)));
     let epoch = support::word(32);
     // Explicit mount mode from the bootstrap; the block capability separately
     // enforces the same boundary (READ only) for read-only mounts.
