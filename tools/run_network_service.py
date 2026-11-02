@@ -176,8 +176,8 @@ def sequence(stdout, case="normal"):
     if (any(service[k] != v for k, v in fixed.items()) or service[408] < 1
             or service[432] < (40 if normal else 20) or service[440] < (22 if normal else 13)):
         raise ValueError("Native service reuse/cleanup/authority evidence differs")
-    if service[512] < 2 * owners or service[520] < owners:
-        raise ValueError("Native malformed UDP/backpressure proof missing")
+    if service[512] < 4 * owners or service[520] < owners:
+        raise ValueError("Native fragment/malformed UDP/backpressure proof missing")
     for role in ROLES[1:]:
         app = found[role]
         if not normal and role == "APP_A":
