@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "c6ce3906f395f9babad9444efea6cde64bc2a0c4",
-    "branch": "codex/native-workspace-v2-20261102",
-    "task": "Alle zeven PR127-reviewpunten en volledige PR126/main-inhoud combineren",
+    "source_commit": "72b6ac4193986daba266176ad7177de00a326d6c",
+    "branch": "integrate/stack130-local",
+    "task": "Desktopstapel behouden en exacte postmerge-acceptatie van U01/N01 vastleggen",
     "previous_score": 41,
-    "summary": "Geerfde branchscore41 blijft41; main34 blijft34, geen nieuwe criteria. De gecombineerde kandidaat bewaart alle PR126/main-inhoud en herstelt zeven reviewpunten: native palet, proportionele klikposities, twee TCP-status/deadlinefouten, probeconfigisolatie, dockdamage en semantisch write-only wachtwoord. Integratietests vonden daarnaast echte oude damagegeometrie onder de nieuwe fonts; renderer en model delen nu werkelijke resultaat/statusbounds, met behouden pixel- en ten minste90%-sendbudgettests. 189 Rust-app/UI-,9 netwerk- en31 Python-hosttests slagen; beide TCP-fouten zijn echt rood/groen gereproduceerd met gepinde Rust1.91.1. Clippy en echte native-targetchecks/build slagen. PR126-parent8f08 is afzonderlijk native groen met22fasen/raw33/clipboard/herstel/schijf; dat is geen bewijs voor deze nieuwe bron. Verse gecombineerde CI, review en native runtime blijven nodig. Geen nieuwe fysieke, Windows-, volledige release- of U02-acceptatie."
+    "summary": "41 blijft41, geen nieuw criterium. Main380111b6 heeft28 geslaagde postmergechecks:22 native window/clipboard/herstelfasen met alle screenshot- en serialhashes herberekend, intacte schijfcanaries en beide N01-cases raw33 op source-v3b7ccd11f. De latere gecombineerde130/129/128/127-stapel72b6ac41 heeft63 geslaagde host/lint/target/buildcontroles en source7ad8b7df, maar nog geen eigen native runtimeacceptatie. De eerdere44/U03-claim wordt niet overgenomen. PR114-documentatie-integratie en de volumeformaatfix133 blijven afzonderlijk in uitvoering. Geen algemene Internet/TLS-, echte auth-, Windows-, fysieke, menselijke of volledige releaseacceptatie."
   },
   "tracks": [
     {

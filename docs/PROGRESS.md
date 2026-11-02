@@ -85,6 +85,14 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Desktopstapelcheckpoint (2 november 2026), bron `72b6ac41`: **41 -> 41**.
+Main `380111b6` heeft nu28 groene postmergechecks,22 native windowfasen
+en beide N01-cases; ruwe serial-, screenshot- en peerbinding is opnieuw
+gelezen. Zie `verification/pr127-postmerge-acceptance.json`.
+De latere130/129/128/127-combinatie heeft63 geslaagde host-/buildcontroles;
+haar source `7ad8b7df` vereist nieuwe native gates. Geen overname van44/U03,
+geen nieuwe punten en geen fysieke of volledige releaseacceptatie.
+
 PR127-reviewintegratie (2 november 2026), basis `798706c` met `8f08db4`:
 branch **41 → 41**, main **34 → 34**. Zeven reviewpunten en gekoppelde
 font/damage-integratie hersteld; 189 Rust-app/UI-,9 netwerk- en31 Python-tests

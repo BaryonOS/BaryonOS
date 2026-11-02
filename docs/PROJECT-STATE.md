@@ -1,6 +1,34 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
+## NEXT AGENT HANDOFF — desktopstapel en volumeformaattoelating — 2 november 2026
+
+Bron `72b6ac4193986daba266176ad7177de00a326d6c`, eigen integratiebranch
+`integrate/stack130-local`; exclusieve integrator blijft `f090b913`.
+Alle bevroren130/129/128/127-heads zijn behouden.63 host/lint/target/build-
+controles slagen; volledige achtproces-ELF is echt gebouwd en ingelezen.
+Rapport: `verification/stack130-validation.json`, source-v3 `7ad8b7df`.
+Geen native runtime op deze nieuwe combinatie uitgevoerd; score **41 -> 41**,
+geen overname van de eerdere44/U03-claim.
+
+Main `380111b6` heeft afzonderlijk28 geslaagde postmergechecks.
+Verse QEMU-windowrun41535553113:22 fasen/raw33/clipboard/herstel/schijf;
+alle22 fasebeelden en serialbytes opnieuw gehasht. Netwerkrun41535553158:
+normal/client-exit beide raw33, ruwe serial/stderr/peerbinding gecontroleerd.
+Beide binden exact aan main en source `b7ccd11f`, niet aan de latere stapel.
+Zie `verification/pr127-postmerge-acceptance.json`.
+
+Open: PR114-head30bb6ea8 door actuele CI/review laten afronden, daarna
+ontwerp-/onderzoeksdocumentatie inhoudsbehoudend overnemen. Agent
+`63714e28-7a35-4f50-8703-cff6c2186ca7` integreert alleen lokaal PR133
+`2f60e8ff` op de bevroren72b6-stapel in eigen worktree. Parent publiceert
+en voert daarna de gecombineerde native gates uit. Nieuwe PR119-head
+`052812b4` bevat uitsluitend extra main-/checkpointmerging; behoud ook die
+metadata vóór afsluiten. #41 productiesleutels, #42 fysieke inputmatrix en
+#43 echte50%-route blijven open; geen administratieve nul-issuesclaim.
+Eerstvolgend: actuele PR114-checks controleren en resultaat van de genoemde
+volume-integratie verwerken. Geen fysieke writes of nieuwe secrets.
+
+## Vorig checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 
 **Basis:** PR127 `798706c2a53d0062ce0474e5f84f294b2c37b825`, drie lokale
 fixleaves en PR126 `8f08db4c12573f91b57e55c30fa417e7abd358e6`, met main
