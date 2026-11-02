@@ -669,6 +669,10 @@ fn run() -> ! {
         if scene.set_clipboard_notice(clipboard.notice()) {
             damage.mark(scene.clipboard_notice_bounds());
         }
+        // Timer observers may preempt between volatile stores. Retire the
+        // previous ready flag before publishing a new page/input counter, then
+        // release readiness last, as the two app publishers already do.
+        support::put(528, 0);
         for (at, v) in [
             (400, 1),
             (408, received),
@@ -684,10 +688,10 @@ fn run() -> ! {
             (504, u64::from(scene.pointer.1)),
             (512, last_buttons),
             (520, scene.shell.page() as u64),
-            (528, u64::from(!damage.has_pending())),
         ] {
             support::put(at, v);
         }
+        support::put(528, u64::from(!damage.has_pending()));
         let quiescent = CompositorState {
             ingress_empty,
             received: received_this_pass,
