@@ -30,6 +30,7 @@ fn view<'a>(viewport: Viewport, objects: &'a [ListEntry]) -> View<'a> {
         scroll: 0,
         editable: true,
         can_save: false,
+        can_inspect: false,
         saving: false,
         document_dirty: false,
         cursor: None,
@@ -47,15 +48,15 @@ fn semantics_budget_includes_paging_and_preserves_short_output() {
     let viewport = Viewport::new(800, 720, Scale::Percent100, 1).unwrap();
     let frame = Frame::new(view(viewport, &objects));
 
-    let mut nodes = [SemanticNode::EMPTY; 15];
+    let mut nodes = [SemanticNode::EMPTY; 16];
     let count = frame.semantics(&mut nodes).unwrap();
-    assert_eq!(count, 15);
+    assert_eq!(count, 16);
     assert_eq!(
         nodes[..count]
             .iter()
             .filter(|node| node.role == Role::ListItem)
             .count(),
-        7
+        6
     );
     assert!(nodes[..count]
         .iter()
@@ -65,7 +66,7 @@ fn semantics_budget_includes_paging_and_preserves_short_output() {
         .any(|node| node.id == SemanticId::NextPage));
     assert_eq!(nodes[count - 1].id, SemanticId::Status);
 
-    let mut short = [SemanticNode::EMPTY; 14];
+    let mut short = [SemanticNode::EMPTY; 15];
     assert!(frame.semantics(&mut short).is_err());
     assert!(short.iter().all(|node| node.id == SemanticId::Empty));
 }

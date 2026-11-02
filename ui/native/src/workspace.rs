@@ -18,7 +18,9 @@ pub struct Workspace {
     pub(crate) selected_history: usize,
     pub(crate) preview: [u8; PREVIEW],
     pub(crate) preview_len: usize,
+    pub(crate) preview_scroll: usize,
     pub(crate) preview_complete: bool,
+    pub(crate) preview_total: usize,
 }
 impl Default for Workspace {
     fn default() -> Self {
@@ -46,7 +48,9 @@ impl Workspace {
             selected_history: 1,
             preview: [0; PREVIEW],
             preview_len: 0,
+            preview_scroll: 0,
             preview_complete: false,
+            preview_total: 0,
         }
     }
     pub fn query(&self) -> &str {
@@ -73,6 +77,15 @@ impl Workspace {
     pub fn selected_history(&self) -> usize {
         self.selected_history
     }
+    pub fn preview_total(&self) -> usize {
+        self.preview_total
+    }
+    pub fn preview_truncated(&self) -> bool {
+        self.preview_len < self.preview_total
+    }
+    pub fn preview_scroll(&self) -> usize {
+        self.preview_scroll
+    }
     pub fn preview(&self) -> Option<&str> {
         self.preview_complete
             .then(|| core::str::from_utf8(&self.preview[..self.preview_len]).ok())
@@ -81,7 +94,9 @@ impl Workspace {
     pub(crate) fn clear_preview(&mut self) {
         self.preview.fill(0);
         self.preview_len = 0;
+        self.preview_scroll = 0;
         self.preview_complete = false;
+        self.preview_total = 0;
     }
     pub(crate) fn set_form(&mut self, value: &str) -> bool {
         if value.len() > NAME || value.chars().any(char::is_control) {

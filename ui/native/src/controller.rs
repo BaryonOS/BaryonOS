@@ -75,6 +75,7 @@ pub enum Status {
     RestoreRefreshFailed { revision: u64 },
     NeedsSave,
     PreviewUnavailable,
+    CollectionSavedAssignmentFailed,
     InputLost,
     ClipboardCopied,
     ClipboardEmpty,
@@ -125,6 +126,7 @@ pub struct View<'a> {
     pub scroll: usize,
     pub editable: bool,
     pub can_save: bool,
+    pub can_inspect: bool,
     pub saving: bool,
     pub document_dirty: bool,
     pub cursor: Option<(u32, u32)>,
@@ -288,6 +290,10 @@ impl<'a, T: Transport> Controller<'a, T> {
                     .and_then(|d| core::str::from_utf8(d.contents).ok())
                     .is_some()
                 && draft.is_some()
+                && !self.document.is_closed()
+                && !self.document.is_uncertain()
+                && !self.document.is_conflicted(),
+            can_inspect: draft.is_some()
                 && !self.document.is_closed()
                 && !self.document.is_uncertain()
                 && !self.document.is_conflicted(),
@@ -528,8 +534,12 @@ impl<'a, T: Transport> Controller<'a, T> {
         self.focus = Focus::FormInput;
         self.invalidate()
     }
-    fn clean_operation(&mut self) -> Result<bool, Error> {
-        if self.screen != Screen::Editor || !self.view().can_save || self.document.is_saving() {
+    fn clean_operation(&mut self, write: bool) -> Result<bool, Error> {
+        if self.screen != Screen::Editor
+            || !self.view().can_inspect
+            || (write && !self.editable)
+            || self.document.is_saving()
+        {
             return Err(Error::InvalidInput);
         }
         if self.document.is_dirty() {
@@ -547,7 +557,7 @@ impl<'a, T: Transport> Controller<'a, T> {
     pub fn begin_organize(&mut self) -> Result<(), Error> {
         self.pressed = None;
         self.dragging = false;
-        if !self.clean_operation()? {
+        if !self.clean_operation(true)? {
             return Ok(());
         }
         self.load_collections()?;
@@ -589,6 +599,7 @@ impl<'a, T: Transport> Controller<'a, T> {
                 let collection = self.workspace.collections[index];
                 let form = self.workspace.form;
                 let name = &form[..self.workspace.form_len];
+                let mut collection_changed = false;
                 if name.is_empty() {
                     return Err(Error::InvalidInput);
                 }
@@ -602,11 +613,23 @@ impl<'a, T: Transport> Controller<'a, T> {
                     self.workspace.collections[index].name.fill(0);
                     self.workspace.collections[index].name[..name.len()].copy_from_slice(name);
                     self.workspace.collections[index].name_length = name.len();
+                    collection_changed = true;
                 }
-                let revision = self
-                    .document
-                    .set_metadata(stat.revision, stat.tags, stat.kind, (index + 1) as u8)
-                    .map_err(|e| self.failed(Error::Storage(e)))?;
+                let revision = match self.document.set_metadata(
+                    stat.revision,
+                    stat.tags,
+                    stat.kind,
+                    (index + 1) as u8,
+                ) {
+                    Ok(revision) => revision,
+                    Err(e) => {
+                        let error = self.failed(Error::Storage(e));
+                        if collection_changed {
+                            self.status = Status::CollectionSavedAssignmentFailed;
+                        }
+                        return Err(error);
+                    }
+                };
                 let mut current = stat;
                 current.revision = revision;
                 current.collection = (index + 1) as u8;
@@ -626,7 +649,7 @@ impl<'a, T: Transport> Controller<'a, T> {
     pub fn begin_history(&mut self) -> Result<(), Error> {
         self.pressed = None;
         self.dragging = false;
-        if !self.clean_operation()? {
+        if !self.clean_operation(false)? {
             return Ok(());
         }
         self.screen = Screen::History;
@@ -644,20 +667,16 @@ impl<'a, T: Transport> Controller<'a, T> {
         self.focus = Focus::HistoryVersion(selector);
         if selector > stat.history_count {
             self.status = Status::PreviewUnavailable;
-            return self.invalidate();
-        }
-        let length = stat.history[selector - 1].length;
-        if length > crate::workspace::PREVIEW {
-            self.status = Status::PreviewUnavailable;
+            self.focus = Focus::FormCancel;
             return self.invalidate();
         }
         let result =
             self.document
-                .read_history(stat.revision, selector, &mut self.workspace.preview);
-        let length = result.map_err(|e| self.failed(Error::Storage(e)))?;
-        self.workspace.preview_len = length;
-        self.workspace.preview_complete =
-            core::str::from_utf8(&self.workspace.preview[..length]).is_ok();
+                .read_history_prefix(stat.revision, selector, &mut self.workspace.preview);
+        let prefix = result.map_err(|e| self.failed(Error::Storage(e)))?;
+        self.workspace.preview_len = prefix.copied;
+        self.workspace.preview_total = prefix.total;
+        self.workspace.preview_complete = true; // verified prefix, explicitly labelled when shortened
         if !self.workspace.preview_complete {
             self.status = Status::PreviewUnavailable;
         }
@@ -1230,22 +1249,29 @@ impl<'a, T: Transport> Controller<'a, T> {
                     } else {
                         3
                     }
+                } else if self.viewport.logical_width() >= 700 && self.view().can_inspect {
+                    choices[2] = Focus::History;
+                    3
                 } else {
                     2
                 }
             }
             Screen::Rename | Screen::Organize => {
                 choices[0] = Focus::FormInput;
-                choices[1] = Focus::FormConfirm;
-                choices[2] = Focus::FormCancel;
+                let mut count = 1;
+                if !self.workspace.form().is_empty() && self.view().can_save {
+                    choices[count] = Focus::FormConfirm;
+                    count += 1;
+                }
+                choices[count] = Focus::FormCancel;
+                count += 1;
                 if self.screen == Screen::Organize {
                     for i in 0..volume_core::COLLECTIONS {
-                        choices[3 + i] = Focus::CollectionSlot(i);
+                        choices[count] = Focus::CollectionSlot(i);
+                        count += 1;
                     }
-                    3 + volume_core::COLLECTIONS
-                } else {
-                    3
                 }
+                count
             }
             Screen::Filter => {
                 let mut count = 0;
@@ -1261,7 +1287,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             Screen::History => {
                 choices[0] = Focus::HistoryVersion(self.workspace.selected_history);
                 let mut count = 1;
-                if self.workspace.preview_complete {
+                if self.workspace.preview_complete && self.view().can_save {
                     choices[count] = Focus::RestoreHistory;
                     count += 1;
                 }
@@ -1403,6 +1429,35 @@ impl<'a, T: Transport> Controller<'a, T> {
             )
         {
             return self.cancel_workspace();
+        }
+        if self.screen == Screen::History
+            && matches!(event.key, PhysicalKey::PageUp | PhysicalKey::PageDown)
+        {
+            if let Some(value) = self.workspace.preview() {
+                let l = Layout::for_screen(self.viewport, self.screen);
+                let scale = self.viewport.scale();
+                let font = nieuw_os_graphics::Font::new(
+                    nieuw_os_graphics::Size::Body,
+                    nieuw_os_graphics::Weight::Regular,
+                    scale == crate::Scale::Percent200,
+                );
+                let metrics =
+                    text::Proportional::new(font, (l.preview.width - 24) * scale.factor());
+                let total = metrics.position(value, value.len()).row + 1;
+                let rows =
+                    (l.preview.height.saturating_sub(8) / design::LINE_HEIGHT).max(1) as usize;
+                self.workspace.preview_scroll = if event.key == PhysicalKey::PageUp {
+                    self.workspace.preview_scroll.saturating_sub(rows)
+                } else {
+                    self.workspace
+                        .preview_scroll
+                        .saturating_add(rows)
+                        .min(total.saturating_sub(rows))
+                };
+                self.pressed = None;
+                self.dragging = false;
+                return self.invalidate();
+            }
         }
         if event.key == PhysicalKey::Tab && press {
             return self.tab(event.modifiers.shift());

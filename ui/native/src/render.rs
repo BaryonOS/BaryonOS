@@ -37,6 +37,7 @@ pub struct Layout {
     pub modal_cancel: Rect,
     pub modal_discard: Rect,
     width: u32,
+    height: u32,
     content_left: u32,
     sidebar_width: u32,
     scale: Scale,
@@ -92,17 +93,17 @@ impl Layout {
             rename: Rect {
                 x: 136,
                 y: d::PAD,
-                width: 104,
+                width: 120,
                 height: 44,
             },
             organize: Rect {
-                x: 248,
+                x: 264,
                 y: d::PAD,
                 width: 104,
                 height: 44,
             },
             history: Rect {
-                x: 360,
+                x: 376,
                 y: d::PAD,
                 width: 132,
                 height: 44,
@@ -208,6 +209,7 @@ impl Layout {
                 height: d::CONTROL_HEIGHT,
             },
             width,
+            height,
             content_left,
             sidebar_width,
             scale: viewport.scale(),
@@ -215,6 +217,16 @@ impl Layout {
     }
     pub fn for_screen(viewport: Viewport, screen: Screen) -> Self {
         let mut layout = Self::new(viewport);
+        if viewport.logical_width() >= 700 && viewport.logical_width() < 784 {
+            layout.rename.x = d::PAD;
+            layout.organize.x = d::PAD + 128;
+            layout.history.x = d::PAD + 240;
+            layout.rename.y = 80;
+            layout.organize.y = 80;
+            layout.history.y = 80;
+            layout.editor.y += 56;
+            layout.editor.height = layout.editor.height.saturating_sub(56);
+        }
         let (width, height) = (viewport.logical_width(), viewport.logical_height());
         let compact = height < 360;
         let max = match screen {
@@ -251,9 +263,9 @@ impl Layout {
         };
         layout.preview = Rect {
             x: panel.x + 16,
-            y: panel.y + 164,
+            y: panel.y + if compact { 92 } else { 164 },
             width: panel.width - 32,
-            height: panel.height.saturating_sub(232),
+            height: panel.height.saturating_sub(if compact { 164 } else { 232 }),
         };
         layout
     }
@@ -262,22 +274,13 @@ impl Layout {
         let width = (self.workspace_panel.width - 32 - 3 * gap) / 4;
         Rect {
             x: self.workspace_panel.x + 16 + index as u32 * (width + gap),
-            y: self.form_input.y
-                + if self.workspace_panel.height < 240 {
-                    48
-                } else {
-                    52
-                },
+            y: self.form_input.y + if self.height < 360 { 48 } else { 52 },
             width,
             height: 44,
         }
     }
     pub fn filter_slot(self, index: usize) -> Rect {
-        let columns = if self.workspace_panel.height < 280 {
-            3
-        } else {
-            2
-        };
+        let columns = if self.height < 360 { 3 } else { 2 };
         let width = (self.workspace_panel.width - 32 - (columns - 1) * 8) / columns;
         Rect {
             x: self.workspace_panel.x + 16 + (index as u32 % columns) * (width + 8),
@@ -290,12 +293,7 @@ impl Layout {
         let width = (self.workspace_panel.width - 40) / 2;
         Rect {
             x: self.workspace_panel.x + 16 + (selector.saturating_sub(1) as u32) * (width + 8),
-            y: self.workspace_panel.y
-                + if self.workspace_panel.height < 280 {
-                    48
-                } else {
-                    100
-                },
+            y: self.workspace_panel.y + if self.height < 360 { 40 } else { 100 },
             width,
             height: 44,
         }
@@ -504,7 +502,11 @@ impl<'a> Frame<'a> {
                     paint.wrapped(
                         layout.content_left,
                         layout.list_top,
-                        "Je materiaal wordt geladen.",
+                        if matches!(self.view.status, Status::Failed(_)) {
+                            "Je materiaal kon niet worden geladen."
+                        } else {
+                            "Je materiaal wordt geladen."
+                        },
                         viewport.logical_width() - layout.content_left - d::PAD,
                         d::MUTED,
                     );
@@ -684,7 +686,7 @@ impl<'a> Frame<'a> {
                         layout.history,
                         "Geschiedenis",
                         self.view.focus == Focus::History,
-                        self.view.can_save && !self.view.saving,
+                        self.view.can_inspect && !self.view.saving,
                         ButtonStyle::Secondary,
                     );
                 }
@@ -693,13 +695,21 @@ impl<'a> Frame<'a> {
                     d::PAD,
                     if viewport.logical_height() < 360 {
                         76
+                    } else if viewport.logical_width() >= 700 && viewport.logical_width() < 784 {
+                        140
                     } else {
                         84
                     },
                     title,
                     layout.editor.width,
-                    Size::Title,
-                    Weight::Semibold,
+                    (
+                        if viewport.logical_height() < 360 {
+                            Size::Body
+                        } else {
+                            Size::Title
+                        },
+                        Weight::Semibold,
+                    ),
                     d::TEXT,
                 );
                 if viewport.logical_height() >= 360 {
@@ -715,7 +725,16 @@ impl<'a> Frame<'a> {
                         },
                         self.view.revision
                     );
-                    paint.small(d::PAD, 128, metadata.as_str(), d::MUTED);
+                    paint.small(
+                        d::PAD,
+                        if viewport.logical_width() >= 700 && viewport.logical_width() < 784 {
+                            184
+                        } else {
+                            128
+                        },
+                        metadata.as_str(),
+                        d::MUTED,
+                    );
                 }
                 paint.outlined(layout.editor, d::SURFACE, d::BORDER, d::CONTROL_RADIUS);
                 if self.view.focus == Focus::Document && self.view.screen == Screen::Editor {
@@ -1151,7 +1170,11 @@ impl<'a> Frame<'a> {
                             None,
                             bounds,
                             Some(focus),
-                            self.view.can_save && !self.view.saving,
+                            (if focus == Focus::History {
+                                self.view.can_inspect
+                            } else {
+                                self.view.can_save
+                            }) && !self.view.saving,
                         );
                     }
                 }
@@ -1224,7 +1247,7 @@ impl<'a> Frame<'a> {
                         None,
                         l.form_confirm,
                         Some(Focus::FormConfirm),
-                        self.view.can_save,
+                        self.view.can_save && !workspace.form().is_empty(),
                     );
                 }
                 if self.view.screen == Screen::Organize {
@@ -1511,6 +1534,7 @@ pub fn status_label(status: Status) -> &'static str {
             "Herstel bewaard; opnieuw lezen mislukt. Bewerk deze oude weergave niet."
         }
         Status::NeedsSave => "Bewaar eerst je wijzigingen of ga verder met bewerken.",
+        Status::CollectionSavedAssignmentFailed => "Collectie bewaard; document niet verplaatst. Heropen het document voordat je opnieuw ordent.",
         Status::PreviewUnavailable => {
             "Geen volledige tekstpreview beschikbaar; er is niets hersteld."
         }
@@ -1591,10 +1615,10 @@ impl Paint<'_> {
         y: u32,
         value: &str,
         width: u32,
-        size: Size,
-        weight: Weight,
+        style: (Size, Weight),
         color: u32,
     ) {
+        let (size, weight) = style;
         let font = self.font(size, weight);
         let limit = width * self.scale.factor();
         if font.measure(value) <= limit {
@@ -1638,8 +1662,7 @@ impl Paint<'_> {
             r.y + 10,
             shown,
             r.width - 24,
-            Size::Body,
-            Weight::Regular,
+            (Size::Body, Weight::Regular),
             if value.is_empty() { d::MUTED } else { d::TEXT },
         );
         if focused && !selected {
@@ -1691,14 +1714,16 @@ impl Paint<'_> {
             ),
             _ => return,
         };
-        let compact = p.height < 280;
+        let compact = view.viewport.logical_height() < 360;
         self.elided(
             p.x + 16,
             p.y + if compact { 8 } else { 12 },
             heading,
             p.width - 32,
-            if compact { Size::Body } else { Size::Title },
-            Weight::Semibold,
+            (
+                if compact { Size::Body } else { Size::Title },
+                Weight::Semibold,
+            ),
             d::TEXT,
         );
         if !compact {
@@ -1707,8 +1732,7 @@ impl Paint<'_> {
                 p.y + 60,
                 explanation,
                 p.width - 32,
-                Size::Small,
-                Weight::Regular,
+                (Size::Small, Weight::Regular),
                 d::MUTED,
             );
         }
@@ -1803,22 +1827,54 @@ impl Paint<'_> {
                             self.font(Size::Body, Weight::Regular),
                             (l.preview.width - 24) * self.scale.factor(),
                         );
-                        let rows = l.preview.height.saturating_sub(16) / d::LINE_HEIGHT;
+                        let rows = (l.preview.height.saturating_sub(8) / d::LINE_HEIGHT).max(1);
+                        let scroll = workspace.preview_scroll();
                         for cell in metrics.cells(text) {
-                            if cell.position.row >= rows as usize {
+                            if cell.position.row < scroll {
+                                continue;
+                            }
+                            if cell.position.row - scroll >= rows as usize {
                                 break;
                             }
                             if !matches!(cell.character, '\r' | '\n' | '\t') {
                                 self.proportional_character(
                                     (l.preview.x + 12) * self.scale.factor()
                                         + (cell.position.x_64 / 64) as u32,
-                                    (l.preview.y + 8 + cell.position.row as u32 * d::LINE_HEIGHT)
+                                    (l.preview.y
+                                        + 4
+                                        + (cell.position.row - scroll) as u32 * d::LINE_HEIGHT)
                                         * self.scale.factor(),
                                     cell.character,
                                     d::TEXT,
                                 );
                             }
                         }
+                        let total_rows = metrics.position(text, text.len()).row + 1;
+                        let mut range = Label::new();
+                        let _ = write!(
+                            &mut range,
+                            "Regels {}–{} van {} · PgUp/PgDn",
+                            scroll + 1,
+                            (scroll + rows as usize).min(total_rows),
+                            total_rows
+                        );
+                        if workspace.preview_truncated() {
+                            range = Label::new();
+                            let _ = write!(
+                                &mut range,
+                                "Verkorte preview · {} van {} bytes · PgUp/PgDn",
+                                text.len(),
+                                workspace.preview_total()
+                            );
+                        }
+                        self.elided(
+                            l.preview.x,
+                            l.preview.y + l.preview.height + 2,
+                            range.as_str(),
+                            l.preview.width,
+                            (Size::Small, Weight::Regular),
+                            d::MUTED,
+                        );
                     } else {
                         self.wrapped(
                             l.preview.x + 12,
@@ -1851,8 +1907,7 @@ impl Paint<'_> {
             view.viewport.logical_height() - 40,
             status_label(view.status),
             view.viewport.logical_width() - 48,
-            Size::Small,
-            Weight::Regular,
+            (Size::Small, Weight::Regular),
             status_color(view.status),
         );
     }
@@ -2513,8 +2568,7 @@ impl Paint<'_> {
             r.y + r.height.saturating_sub(line) / 2,
             label,
             r.width.saturating_sub(16),
-            Size::Body,
-            Weight::Semibold,
+            (Size::Body, Weight::Semibold),
             foreground,
         );
     }
