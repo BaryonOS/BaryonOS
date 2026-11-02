@@ -108,6 +108,28 @@ impl Desktop {
         self.query_len = value.len();
         true
     }
+    pub fn set_password(&mut self, value: &str) -> bool {
+        if self.page != Page::Login
+            || self.is_guest()
+            || self.flow.phase() != crate::session::Phase::CredentialEntry
+            || self.flow.method() != crate::session::AuthMethod::Password
+            || value.len() > crate::session::MAX_PASSWORD_BYTES
+            || value
+                .bytes()
+                .any(|byte| byte == 0 || byte.is_ascii_control())
+        {
+            return false;
+        }
+        self.flow.clear_password();
+        for byte in value.bytes() {
+            if self.flow.push_password_byte(byte).is_err() {
+                self.flow.clear_password();
+                return false;
+            }
+        }
+        self.focus = Target::Password;
+        true
+    }
     pub fn cancel_pointer(&mut self) {
         self.pressed = None;
     }

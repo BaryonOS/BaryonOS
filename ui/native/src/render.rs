@@ -742,7 +742,10 @@ impl<'a> Frame<'a> {
                             target,
                             crate::desktop::Target::Password | crate::desktop::Target::SearchField
                         ),
-                        set_value: target == crate::desktop::Target::SearchField,
+                        set_value: matches!(
+                            target,
+                            crate::desktop::Target::Password | crate::desktop::Target::SearchField
+                        ),
                     },
                     ..SemanticNode::EMPTY
                 });

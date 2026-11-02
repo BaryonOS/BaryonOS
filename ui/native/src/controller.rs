@@ -508,15 +508,17 @@ impl<'a, T: Transport> Controller<'a, T> {
         value: &str,
     ) -> Result<(), Error> {
         let (enabled, actions) = self.semantic_actions(id, expected_generation)?;
-        if enabled
-            && actions.set_value
-            && id == SemanticId::Desktop(crate::desktop::Target::SearchField)
-        {
-            if !self
-                .desktop
-                .as_mut()
-                .is_some_and(|desktop| desktop.set_query(value))
-            {
+        if let SemanticId::Desktop(target) = id {
+            if !enabled || !actions.set_value {
+                return Err(Error::InvalidInput);
+            }
+            let desktop = self.desktop.as_mut().ok_or(Error::InvalidInput)?;
+            let accepted = match target {
+                crate::desktop::Target::SearchField => desktop.set_query(value),
+                crate::desktop::Target::Password => desktop.set_password(value),
+                _ => false,
+            };
+            if !accepted {
                 return Err(Error::InvalidInput);
             }
             return self.invalidate();

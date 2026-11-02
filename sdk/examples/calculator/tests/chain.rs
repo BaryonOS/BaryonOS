@@ -517,6 +517,54 @@ fn keys(h: &Rc<RefCell<Host>>, a: &mut App<Port, Port>, bytes: &[u8]) {
         a.step().unwrap();
     }
 }
+#[test]
+fn proportional_expression_click_and_drag_use_actual_input_pipeline() {
+    use nieuw_os_calculator::render::{Layout, Viewport};
+    use nieuw_os_graphics::{Font, Size, Weight};
+    for scale in [1, 2] {
+        let h = Host::new();
+        let mut a = app(&h, scale);
+        finish(&mut a);
+        keys(
+            &h,
+            &mut a,
+            &[
+                0x02, 0x82, 0x34, 0xb4, 0x02, 0x82, 0x2a, 0x0d, 0x8d, 0x0a, 0x8a, 0xaa, 0x09, 0x89,
+                0x35, 0xb5, 0x03, 0x83, 0x2a, 0x0b, 0x8b, 0xaa,
+            ],
+        );
+        assert_eq!(a.model().expression(), "1.1+(8/2)");
+        let g = geometry();
+        let layout = Layout::new(
+            Viewport::new(
+                u32::from(g.assigned.width),
+                u32::from(g.assigned.height),
+                scale,
+            )
+            .unwrap(),
+        );
+        let font = Font::new(Size::Body, Weight::Regular, scale == 2);
+        let x =
+            g.assigned.x + (layout.expression.x + 8) * scale + font.measure(a.model().expression());
+        let y = g.assigned.y + (layout.expression.y + 4) * scale;
+        for buttons in [0, 1, 0] {
+            h.borrow_mut().mouse(x, y, buttons);
+            finish(&mut a);
+        }
+        assert_eq!(a.model().caret(), 9);
+        keys(&h, &mut a, &[0x04, 0x84]);
+        assert_eq!(a.model().expression(), "1.1+(8/2)3");
+        h.borrow_mut().mouse(x, y, 1);
+        finish(&mut a);
+        let start = g.assigned.x + (layout.expression.x + 8) * scale;
+        h.borrow_mut().mouse(start, y, 1);
+        finish(&mut a);
+        h.borrow_mut().mouse(start, y, 0);
+        finish(&mut a);
+        assert_eq!(a.model().selection(), 0..9);
+        assert!(h.borrow().engine.check_invariants());
+    }
+}
 fn clipboard_ready(h: &Rc<RefCell<Host>>, enabled: bool) -> App<Port, Port> {
     let mut a = app(h, 1);
     if enabled {

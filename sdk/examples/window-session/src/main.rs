@@ -296,11 +296,27 @@ fn run() -> ! {
                 let previous = scene.focused;
                 let queue_generations = queues.each_ref().map(Queue::generation);
                 let event = offer.event();
+                let palette_was_open = scene.palette_is_open();
+                let palette_key = match event {
+                    Event::Key(key) => scene
+                        .palette_key(key, &mut damage)
+                        .unwrap_or_else(|_| fail(17)),
+                    _ => false,
+                };
+                if !palette_was_open && scene.palette_is_open() {
+                    app_pointer_capture = None;
+                    for queue in &mut queues {
+                        queue
+                            .cancel(CancelReason::Resync)
+                            .unwrap_or_else(|_| fail(20));
+                    }
+                }
                 let clear = match event {
                     Event::Key(key) => clear_chord.key(key),
                     _ => ClearAction::Pass,
                 };
                 match event {
+                    Event::Key(_) if palette_key => {}
                     Event::Key(_) if clear != ClearAction::Pass => {
                         if clear == ClearAction::Clear {
                             clipboard.clear(&queues).unwrap_or_else(|_| fail(39));
@@ -340,6 +356,7 @@ fn run() -> ! {
                     Event::Cancel(reason) => {
                         last_buttons = 0;
                         app_pointer_capture = None;
+                        scene.cancel_palette_input(&mut damage);
                         scene.cancel_pointer();
                         for q in &mut queues {
                             q.cancel(reason).unwrap_or_else(|_| fail(20));
@@ -347,23 +364,15 @@ fn run() -> ! {
                     }
                     Event::Mouse { input: mouse, x, y } => {
                         last_buttons = u64::from(mouse.buttons.bits());
-                        damage.mark(scene.pointer_bounds());
-                        let old_frames = [scene.paint_bounds(0), scene.paint_bounds(1)];
                         let recipient = scene
-                            .mouse(
+                            .mouse_with_damage(
                                 x,
                                 y,
                                 mouse.changed.left() && mouse.buttons.left(),
                                 mouse.buttons.left(),
+                                &mut damage,
                             )
                             .unwrap_or_else(|_| fail(21));
-                        damage.mark(scene.pointer_bounds());
-                        for (index, old_frame) in old_frames.iter().enumerate() {
-                            if *old_frame != scene.paint_bounds(index) {
-                                damage.mark(*old_frame);
-                                damage.mark(scene.paint_bounds(index));
-                            }
-                        }
                         if let Some(index) = recipient {
                             if mouse.changed.left() && mouse.buttons.left() {
                                 app_pointer_capture = Some(index);
@@ -402,6 +411,7 @@ fn run() -> ! {
                 }
                 if input.ack(&offer).unwrap_or_else(|_| fail(24)) == AckOutcome::Superseded {
                     app_pointer_capture = None;
+                    scene.cancel_palette_input(&mut damage);
                     scene.cancel_pointer();
                     for q in &mut queues {
                         q.cancel(CancelReason::Resync).unwrap_or_else(|_| fail(20));

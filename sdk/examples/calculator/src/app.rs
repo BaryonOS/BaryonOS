@@ -232,15 +232,12 @@ impl<I: Transport, S: Transport> App<I, S> {
                             input.changed.left() && !input.buttons.left(),
                         );
                         if layout.expression.contains(x, y) {
-                            let start = render::expression_start(
+                            let position = render::expression_caret_at(
                                 &self.model,
                                 layout,
                                 self.viewport.scale(),
+                                x,
                             );
-                            let position = start
-                                + (x.saturating_sub(layout.expression.x + 8)
-                                    / render::character_width(self.viewport.scale()))
-                                    as usize;
                             self.model.caret_at(position, down, input.buttons.left());
                         } else {
                             self.model.pointer(layout.hit(x, y), down, up);

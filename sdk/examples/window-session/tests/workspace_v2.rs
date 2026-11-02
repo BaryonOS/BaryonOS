@@ -1,7 +1,145 @@
 //! Native renderer contracts and opt-in host previews. No VM is executed here.
 use nieuw_os_graphics::Rect;
 use nieuw_os_surface_protocol::Rectangle;
-use nieuw_os_window_session::scene::{Scene, MAX_PIXELS};
+use nieuw_os_window_session::scene::{Damage, Scene, MAX_PIXELS};
+use ui_core::{KeyAction, KeyboardEvent, KeyboardModifiers, PhysicalKey, Set1Keyboard};
+
+fn damage_covers(damage: &mut Damage, bounds: Rect) {
+    let tiles: Vec<_> = core::iter::from_fn(|| damage.next_tile()).collect();
+    for y in bounds.y..bounds.y + bounds.height as i32 {
+        for x in bounds.x..bounds.x + bounds.width as i32 {
+            assert!(
+                tiles.iter().any(|tile| tile.contains(x, y)),
+                "missing ({x},{y})"
+            );
+        }
+    }
+}
+
+#[test]
+fn native_palette_key_route_opens_filters_selects_and_consumes_releases() {
+    for (width, height, scale) in [(1280, 720, 1), (1920, 1080, 2)] {
+        let mut scene = Scene::new(width, height, scale, [1, 2]).unwrap();
+        let mut damage = Damage::new(width, height).unwrap();
+        let mut keyboard = Set1Keyboard::new();
+        for byte in [0x1d, 0x25, 0xa5, 0x9d, 0x13, 0x93, 0x12, 0x92, 0x25, 0xa5] {
+            let key = keyboard.feed(byte).unwrap().unwrap();
+            let consumed = scene.palette_key(key, &mut damage).unwrap();
+            assert_eq!(consumed, byte != 0x1d);
+        }
+        assert!(scene.palette_is_open());
+        assert_eq!(scene.palette_query(), "rek");
+        assert_eq!(scene.palette_selected(), Some(1));
+        assert_eq!(scene.focused, 0);
+        damage_covers(&mut damage, scene.palette_bounds());
+        let enter = keyboard.feed(0x1c).unwrap().unwrap();
+        assert!(scene.palette_key(enter, &mut damage).unwrap());
+        assert!(!scene.palette_is_open());
+        assert_eq!(scene.focused, 1);
+        assert!(scene
+            .palette_key(keyboard.feed(0x9c).unwrap().unwrap(), &mut damage)
+            .unwrap());
+        assert!(!scene
+            .palette_key(keyboard.feed(0x1e).unwrap().unwrap(), &mut damage)
+            .unwrap());
+        damage_covers(&mut damage, scene.palette_bounds());
+    }
+}
+
+#[test]
+fn palette_navigation_empty_results_escape_and_mouse_do_not_reach_apps() {
+    let mut scene = Scene::new(1280, 720, 1, [1, 2]).unwrap();
+    let mut damage = Damage::new(1280, 720).unwrap();
+    let key = |key| KeyboardEvent {
+        key,
+        action: KeyAction::Press,
+        modifiers: KeyboardModifiers::default(),
+    };
+    scene.palette_open();
+    assert!(scene
+        .palette_key(key(PhysicalKey::Tab), &mut damage)
+        .unwrap());
+    assert_eq!(scene.palette_selected(), Some(1));
+    assert!(scene
+        .palette_key(key(PhysicalKey::Up), &mut damage)
+        .unwrap());
+    assert_eq!(scene.palette_selected(), Some(0));
+    assert!(scene.palette_key(key(PhysicalKey::Z), &mut damage).unwrap());
+    assert_eq!(scene.palette_selected(), None);
+    assert!(scene
+        .palette_key(key(PhysicalKey::Enter), &mut damage)
+        .unwrap());
+    assert!(scene.palette_is_open());
+    assert_eq!(scene.focused, 0);
+    assert!(scene
+        .palette_key(key(PhysicalKey::Backspace), &mut damage)
+        .unwrap());
+    assert_eq!(scene.palette_query(), "");
+    let bounds = scene.palette_bounds();
+    assert_eq!(
+        scene.mouse_with_damage(
+            (bounds.x + 30) as u32,
+            (bounds.y + 160) as u32,
+            true,
+            true,
+            &mut damage
+        ),
+        Ok(None)
+    );
+    assert_eq!(scene.focused, 1);
+    assert!(!scene.palette_is_open());
+    damage_covers(&mut damage, bounds);
+    scene.palette_open();
+    assert!(scene
+        .palette_key(key(PhysicalKey::Escape), &mut damage)
+        .unwrap());
+    assert!(!scene.palette_is_open());
+    assert_eq!(scene.focused, 1);
+    scene.cancel_palette_input(&mut damage);
+    assert!(!scene
+        .palette_key(key(PhysicalKey::Enter), &mut damage)
+        .unwrap());
+}
+
+#[test]
+fn native_mouse_damage_covers_entire_old_and_new_hovered_dock_buttons() {
+    for (width, height, scale) in [(1280, 720, 1), (1920, 1080, 2)] {
+        let mut scene = Scene::new(width, height, scale, [1, 2]).unwrap();
+        let mut damage = Damage::new(width, height).unwrap();
+        for index in [1, 0] {
+            let old = scene.hovered_task();
+            let bounds = scene.task_button(index);
+            assert_eq!(
+                scene.mouse_with_damage(
+                    (bounds.x + 2) as u32,
+                    (bounds.y + 2) as u32,
+                    false,
+                    false,
+                    &mut damage
+                ),
+                Ok(None)
+            );
+            assert_eq!(scene.focused, 0, "hover must not select an app");
+            let tiles: Vec<_> = core::iter::from_fn(|| damage.next_tile()).collect();
+            for rect in [old.map(|i| scene.task_button(i)), Some(bounds)]
+                .into_iter()
+                .flatten()
+            {
+                for y in rect.y..rect.y + rect.height as i32 {
+                    for x in rect.x..rect.x + rect.width as i32 {
+                        assert!(tiles.iter().any(|tile| tile.contains(x, y)));
+                    }
+                }
+            }
+        }
+        let old = scene.task_button(0);
+        scene
+            .mouse_with_damage(0, 0, false, false, &mut damage)
+            .unwrap();
+        assert_eq!(scene.hovered_task(), None);
+        damage_covers(&mut damage, old);
+    }
+}
 
 #[test]
 fn palette_filters_only_real_apps_and_cannot_create_or_select_a_placeholder() {

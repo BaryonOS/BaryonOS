@@ -1787,6 +1787,103 @@ scenario!(
     pointer_only_cancel_requires_fresh_down_after_outside_release_and_reentry_impl
 );
 
+fn vm_desktop_semantic_password_is_write_only_bounded_and_generation_bound_impl() {
+    use nieuw_os_materiaal::{
+        desktop::{Page, Target},
+        session::MAX_PASSWORD_BYTES,
+    };
+    for scale in [Scale::Percent100, Scale::Percent200] {
+        let host = Host::new();
+        let (mut a, mut b, mut c) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut ui = controller(
+            &host,
+            EditMode::ReadWrite,
+            Buffers {
+                draft: &mut a,
+                original: &mut b,
+                staging: &mut c,
+            },
+        );
+        let factor = scale.factor();
+        ui.resize(Viewport::new(800 * factor, 600 * factor, scale, 2).unwrap())
+            .unwrap();
+        ui.enable_vm_desktop().unwrap();
+        let password = SemanticId::Desktop(Target::Password);
+        assert_eq!(
+            ui.set_semantic_value(password, ui.view().generation, "secret"),
+            Err(Error::InvalidInput)
+        );
+        ui.activate_semantic(SemanticId::Desktop(Target::Personal), ui.view().generation)
+            .unwrap();
+        let old_generation = ui.view().generation;
+        ui.set_semantic_value(password, old_generation, "synthetic-password")
+            .unwrap();
+        assert_eq!(ui.view().desktop.unwrap().password_len(), 18);
+        assert_eq!(
+            ui.set_semantic_value(password, old_generation, "stale"),
+            Err(Error::StaleInput)
+        );
+        for value in [
+            "bad\nvalue",
+            "bad\0value",
+            &"x".repeat(MAX_PASSWORD_BYTES + 1),
+        ] {
+            let generation = ui.view().generation;
+            assert_eq!(
+                ui.set_semantic_value(password, generation, value),
+                Err(Error::InvalidInput)
+            );
+            assert_eq!(ui.view().generation, generation);
+            assert_eq!(ui.view().desktop.unwrap().password_len(), 18);
+        }
+        let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let count = Frame::new(ui.view()).semantics(&mut nodes).unwrap();
+        let node = nodes[..count]
+            .iter()
+            .find(|node| node.id == password)
+            .unwrap();
+        assert_eq!(node.role, Role::TextEditor);
+        assert!(node.enabled && node.actions.set_value && node.focused);
+        assert_eq!(node.value, None);
+        assert_eq!(node.selection, None);
+        assert!(!node.actions.activate);
+        assert!(nodes[..count].iter().all(|node| node.value.is_none()));
+        ui.set_semantic_value(
+            password,
+            ui.view().generation,
+            &"x".repeat(MAX_PASSWORD_BYTES),
+        )
+        .unwrap();
+        assert_eq!(
+            ui.view().desktop.unwrap().password_len(),
+            MAX_PASSWORD_BYTES
+        );
+        ui.set_semantic_value(password, ui.view().generation, "")
+            .unwrap();
+        assert_eq!(ui.view().desktop.unwrap().password_len(), 0);
+        ui.set_semantic_value(password, ui.view().generation, "niet-authentiek")
+            .unwrap();
+        ui.activate_semantic(SemanticId::Desktop(Target::Submit), ui.view().generation)
+            .unwrap();
+        let desktop = ui.view().desktop.unwrap();
+        assert_eq!(desktop.page(), Page::Login);
+        assert!(desktop.unavailable());
+        assert_eq!(desktop.password_len(), 0);
+        assert!(host.borrow().requests.is_empty());
+        ui.activate_semantic(SemanticId::Desktop(Target::Back), ui.view().generation)
+            .unwrap();
+        ui.activate_semantic(SemanticId::Desktop(Target::Guest), ui.view().generation)
+            .unwrap();
+        assert_eq!(
+            ui.set_semantic_value(password, ui.view().generation, "guest"),
+            Err(Error::InvalidInput)
+        );
+    }
+}
+scenario!(
+    vm_desktop_semantic_password_is_write_only_bounded_and_generation_bound,
+    vm_desktop_semantic_password_is_write_only_bounded_and_generation_bound_impl
+);
 fn vm_desktop_guest_navigation_semantics_and_storage_impl() {
     use nieuw_os_materiaal::desktop::{Page, Target};
     let host = Host::new();

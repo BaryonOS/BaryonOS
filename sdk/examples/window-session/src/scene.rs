@@ -1,5 +1,6 @@
 use nieuw_os_graphics::{theme, Canvas, Font, Icon, Rect, Size, Weight};
 use nieuw_os_surface_protocol::{Geometry, Rectangle};
+use ui_core::{KeyAction, KeyboardEvent, PhysicalKey};
 
 use crate::clipboard::Notice as ClipboardNotice;
 
@@ -54,6 +55,7 @@ pub struct Scene {
     pub switches: u64,
     clipboard_notice: ClipboardNotice,
     palette: ProgramPalette,
+    palette_keys: [bool; PhysicalKey::Menu as usize + 1],
 }
 impl Scene {
     pub fn new(width: u32, height: u32, scale: u32, epochs: [u64; 2]) -> Result<Self, Invalid> {
@@ -114,6 +116,7 @@ impl Scene {
             switches: 0,
             clipboard_notice: ClipboardNotice::None,
             palette: ProgramPalette::new(),
+            palette_keys: [false; PhysicalKey::Menu as usize + 1],
         })
     }
     pub fn frame(&self, index: usize) -> Rect {
@@ -227,6 +230,126 @@ impl Scene {
                 .is_some_and(|row| row.contains(x as i32, y as i32))
         })
     }
+    /// Returns true only for keys owned by the compositor's app palette.
+    pub fn palette_key(
+        &mut self,
+        key: KeyboardEvent,
+        damage: &mut Damage,
+    ) -> Result<bool, Invalid> {
+        let index = key.key as usize;
+        if key.action == KeyAction::Release && self.palette_keys[index] {
+            self.palette_keys[index] = false;
+            return Ok(true);
+        }
+        if !self.palette_is_open() {
+            if self.palette_keys[index] {
+                return Ok(true);
+            }
+            if key.key != PhysicalKey::K
+                || !key.modifiers.control()
+                || key.modifiers.alt()
+                || key.modifiers.super_key()
+                || key.action != KeyAction::Press
+            {
+                return Ok(false);
+            }
+            self.palette_keys[index] = true;
+            self.cancel_pointer();
+            self.palette_open();
+        } else if matches!(key.action, KeyAction::Press | KeyAction::Repeat) {
+            self.palette_keys[index] = true;
+            match key.key {
+                PhysicalKey::Escape => {
+                    self.palette_close();
+                }
+                PhysicalKey::Enter | PhysicalKey::KeypadEnter if key.action == KeyAction::Press => {
+                    if let Some(index) = self.palette_selected() {
+                        self.select(index)?;
+                        self.palette_close();
+                    }
+                }
+                PhysicalKey::Tab if key.action == KeyAction::Press => {
+                    self.palette_next(key.modifiers.shift());
+                }
+                PhysicalKey::Up | PhysicalKey::Down => {
+                    self.palette_next(key.key == PhysicalKey::Up);
+                }
+                PhysicalKey::Backspace => {
+                    self.palette_backspace();
+                }
+                _ if !key.modifiers.control()
+                    && !key.modifiers.alt()
+                    && !key.modifiers.super_key() =>
+                {
+                    use PhysicalKey::*;
+                    let keys = [
+                        A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y,
+                        Z, Digit0, Digit1, Digit2, Digit3, Digit4, Digit5, Digit6, Digit7, Digit8,
+                        Digit9, Space,
+                    ];
+                    if let Some(index) = keys.iter().position(|candidate| *candidate == key.key) {
+                        let mut byte = b"abcdefghijklmnopqrstuvwxyz0123456789 "[index];
+                        if key.modifiers.shift() ^ key.modifiers.caps_lock {
+                            byte = byte.to_ascii_uppercase();
+                        }
+                        self.palette_insert(byte);
+                    }
+                }
+                _ => {}
+            }
+        }
+        damage.mark(self.palette_bounds());
+        damage.mark(self.dock());
+        Ok(true)
+    }
+    pub fn hovered_task(&self) -> Option<usize> {
+        (!self.palette_is_open())
+            .then(|| {
+                (0..WINDOWS).find(|index| {
+                    self.task_button(*index)
+                        .contains(self.pointer.0 as i32, self.pointer.1 as i32)
+                })
+            })
+            .flatten()
+    }
+    pub fn cancel_palette_input(&mut self, damage: &mut Damage) {
+        self.palette_keys.fill(false);
+        if self.palette_close() {
+            damage.mark(self.palette_bounds());
+            damage.mark(self.dock());
+        }
+    }
+    pub fn mouse_with_damage(
+        &mut self,
+        x: u32,
+        y: u32,
+        down: bool,
+        held: bool,
+        damage: &mut Damage,
+    ) -> Result<Option<usize>, Invalid> {
+        let hover = self.hovered_task();
+        let palette_open = self.palette_is_open();
+        let frames = [self.paint_bounds(0), self.paint_bounds(1)];
+        damage.mark(self.pointer_bounds());
+        let recipient = self.mouse(x, y, down, held)?;
+        damage.mark(self.pointer_bounds());
+        if hover != self.hovered_task() {
+            for index in [hover, self.hovered_task()].into_iter().flatten() {
+                damage.mark(self.task_button(index));
+            }
+        }
+        if palette_open {
+            damage.mark(self.palette_bounds());
+            damage.mark(self.dock());
+        }
+        for (index, frame) in frames.into_iter().enumerate() {
+            if frame != self.paint_bounds(index) {
+                damage.mark(frame);
+                damage.mark(self.paint_bounds(index));
+            }
+        }
+        Ok(recipient)
+    }
     pub fn clipboard_notice_bounds(&self) -> Rect {
         Rect::new(
             300 * self.scale as i32,
@@ -291,6 +414,17 @@ impl Scene {
             return Err(Invalid);
         }
         self.pointer = (x, y);
+        if self.palette_is_open() {
+            if down {
+                if let Some(index) = self.palette_hit(x, y) {
+                    self.select(index)?;
+                    self.palette_close();
+                } else if !self.palette_bounds().contains(x as i32, y as i32) {
+                    self.palette_close();
+                }
+            }
+            return Ok(None);
+        }
         if let Some((index, dx, dy)) = self.drag {
             if !held {
                 self.drag = None;
