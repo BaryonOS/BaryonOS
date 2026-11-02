@@ -229,7 +229,7 @@ def qmp_groups(directory: Path, case: str) -> list[tuple[str, list[dict]]]:
         # The source-checked ui-core Cursor::new starts at global (0,0). Move
         # without buttons, in bounded relative steps, before a fresh click.
         x, y = 0, 0
-        target_x, target_y = ASSIGNED[0] + 40, ASSIGNED[1] + 102
+        target_x, target_y = ASSIGNED[0] + 258, ASSIGNED[1] + 102
         moves = []
         while (x, y) != (target_x, target_y):
             dx, dy = max(-96, min(96, target_x-x)), max(-96, min(96, target_y-y))

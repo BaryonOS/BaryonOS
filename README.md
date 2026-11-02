@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`cfed2db9`](https://github.com/simonvanieperen/nieuw-os/commit/cfed2db9a39396e48a7bc758eb2c533f3af3f22c) ·
-**Ontwikkelbranch:** `codex/session-desktop-vm-20261102`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Herkenbare native aanmeldroute, bureaublad en veilige QEMU-versnelling.
-34/100 blijft gelijk. De eigen native VM-preview heeft gebruikerskeuze, een herkenbaar wachtwoordformulier met weigering bij ontbrekende authenticatiedienst, expliciete openbare gast, bureaublad, taakbalk en lokale programmasearch naar echte Materiaal. De brongebonden achtstappen-QEMU-proef op `344dc0a` slaagt inclusief geweigerde persoonlijke testinvoer en exact alle app-pixels. Frontend-/SDK-/compositortests, lint, scalar-none-build en objectscan slagen. Begrensde compositorbatches en vier-tegel-interactie beperken scheduling/PEEK-kosten zonder nieuwe capabilities. De Windows-QMPhelper is zesmaal op de pc gevalideerd; de lokale `344dc0a`-eindmeting slaagt 6/6 met 48 exacte beelden en echte Auto/WHPX/SDL-start. Opmaakcommit `cfed2db` heeft geen semantische wijziging en ook een eigen geslaagde achtstappen-QEMU-herhaling; rootfmt/diff zijn groen. Echte profielpersistentie, auth-/sleutel-/lockgrenzen, biometrie/FIDO2 en productlatentie blijven open. FR-S01/S02/U01-U05 zijn niet volledig geaccepteerd; criteria en gewichten ongewijzigd.
+**Bron:** [`865a2ae3`](https://github.com/simonvanieperen/nieuw-os/commit/865a2ae3cbfc1811b429635471efe11ddf8ac176) ·
+**Ontwikkelbranch:** `codex/mature-native-session-20261102`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Volwassen native venstersessie en herbruikbare netwerkdienst.
+34/100 tijdens integratie. De gedeelde proportionele grafische basis en vernieuwde Materiaal-weergaven zijn gebouwd en gericht host/getest. De nieuwe twee-venstersessie en presentatieherstel worden nu gekoppeld aan de eigen kernel; native U01-acceptatie is nog open. N01 heeft een afzonderlijke native twee-app TCP/UDP-proef doorstaan; geïntegreerde herhaling en onafhankelijke controle zijn nog open. Geen punten voor plannen, extra testaantallen of alleen compilatie; criteria en gewichten blijven gelijk.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

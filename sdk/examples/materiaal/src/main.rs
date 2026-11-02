@@ -119,7 +119,7 @@ fn publish(e: Evidence, observation: Observation) {
 #[no_mangle]
 pub extern "C" fn materiaal_main() -> ! {
     native::check_abi().unwrap_or_else(|_| fail(1));
-    let config = Bootstrap::read(support::word).unwrap_or_else(|| fail(2));
+    let mut config = Bootstrap::read(support::word).unwrap_or_else(|| fail(2));
     // READY here is bootstrap/ELF readiness, not rendered UI or a saved file.
     send(config.registry_send, 1);
     let mut go = false;
@@ -199,6 +199,12 @@ pub extern "C" fn materiaal_main() -> ! {
         config.input_epoch,
     )
     .unwrap_or_else(|_| fail(10));
+    let window_session = support::word(656) == 1;
+    if window_session {
+        controller
+            .set_compositor_cursor(true)
+            .unwrap_or_else(|_| fail(15));
+    }
     let session_preview = support::word(648) == 1;
     if session_preview {
         controller.enable_vm_desktop().unwrap_or_else(|_| fail(14));
@@ -207,18 +213,71 @@ pub extern "C" fn materiaal_main() -> ! {
     // substituted for unavailable storage. Keep the application alive.
     let _ = controller.refresh();
     let mut app = App::new(controller, input, surface, geometry).unwrap_or_else(|_| fail(11));
+    let mut paused = false;
     loop {
         tick();
-        let _ = if session_preview {
-            app.step_interactive()
-        } else {
-            app.step()
-        };
+        if !paused {
+            let _ = if session_preview || window_session {
+                app.step_interactive()
+            } else {
+                app.step()
+            };
+        }
         publish(app.evidence(), app.observation());
         if let Some(message) = control(&config) {
             // STOP is an explicit supervisor request, never an implicit save or
             // discard. A dirty/busy document refuses; all three owners close
             // before DONE. Full OS session/shutdown policy is a separate task.
+            if window_session && message.payload() == [7] && !paused {
+                app.detach_presentation().unwrap_or_else(|_| fail(16));
+                paused = true;
+                send(config.registry_send, 7);
+                continue;
+            }
+            if window_session && message.payload() == [8] && paused {
+                let next = Bootstrap::read(support::word).unwrap_or_else(|| fail(17));
+                if next.document_send != config.document_send
+                    || next.document_receive != config.document_receive
+                    || next.registry_send != config.registry_send
+                    || next.control_receive != config.control_receive
+                    || next.self_pid != config.self_pid
+                    || next.init_pid != config.init_pid
+                    || next.volume_pid != config.volume_pid
+                    || next.compositor_pid == config.compositor_pid
+                {
+                    fail(18);
+                }
+                let mut surface = Surface::new(
+                    NativeTransport,
+                    next.compositor_pid,
+                    next.surface_epoch,
+                    next.surface_send,
+                    next.surface_receive,
+                    POLL,
+                )
+                .unwrap_or_else(|_| fail(19));
+                let geometry = surface.geometry().unwrap_or_else(|_| fail(20));
+                let input = Input::new(
+                    NativeTransport,
+                    Binding {
+                        epoch: next.input_epoch,
+                        service_pid: next.policy_pid,
+                        client_id: next.input_client,
+                        width: geometry.width,
+                        height: geometry.height,
+                        send: next.input_send,
+                        receive: next.input_receive,
+                    },
+                    POLL,
+                )
+                .unwrap_or_else(|_| fail(21));
+                app.rebind_presentation(input, surface, geometry)
+                    .unwrap_or_else(|_| fail(22));
+                config = next;
+                paused = false;
+                send(config.registry_send, 8);
+                continue;
+            }
             if message.payload() != [5] {
                 fail(12);
             }

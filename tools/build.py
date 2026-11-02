@@ -32,7 +32,8 @@ UPDATE_FEATURES = ("native-update", "test-update-cut")
 NETWORK_SYSTEM_FEATURES = ("native-system-net", "test-system-net-recover")
 TCP_SYSTEM_FEATURES = ("native-system-tcp", "test-system-tcp-recover")
 MEMORY_FEATURES = ("native-memory", "native-memory-nx", "native-memory-guard", "native-memory-peer", "native-memory-oom")
-MATERIAAL_FEATURES = ("native-system-materiaal", "native-system-session-preview", "native-system-materiaal-probe", "test-system-materiaal-recover", "test-system-materiaal-scale200")
+WINDOW_FEATURES = ("native-window-session", "native-window-session-probe", "native-window-session-hidpi")
+MATERIAAL_FEATURES = (*WINDOW_FEATURES, "native-system-materiaal", "native-system-session-preview", "native-system-materiaal-probe", "test-system-materiaal-recover", "test-system-materiaal-scale200")
 NAS_FEATURES = ("native-system-nas-probe", "test-system-nas-recover")
 RANDOM_FEATURES = ("native-system-random", "test-system-random-sdk", "test-system-random-unknown", "test-system-random-wrong-caller")
 IMAGE_FEATURES = ("native-system-images",)
@@ -112,7 +113,12 @@ def inspect_pe(path):
 
 
 def build(loader_feature=None, kernel_feature=None, label="normal", image_version=None):
-    if kernel_feature == "graphics-g0":
+    if kernel_feature in WINDOW_FEATURES:
+        wanted="desktop-hidpi" if kernel_feature=="native-window-session-hidpi" else "desktop-mode"
+        if loader_feature not in (None,wanted):
+            raise ValueError("Window session requires its matching desktop loader")
+        loader_feature=wanted
+    elif kernel_feature == "graphics-g0":
         if loader_feature not in (None, "graphics-g0"):
             raise ValueError("G0 requires its paired graphics loader")
         loader_feature = "graphics-g0"
@@ -120,7 +126,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         if loader_feature not in (None, "framebuffer"):
             raise ValueError("Framebuffer transport requires its paired loader")
         loader_feature = "framebuffer"
-    elif loader_feature in ("graphics-g0", "framebuffer"):
+    elif loader_feature in ("graphics-g0", "framebuffer", "desktop-mode", "desktop-hidpi"):
         raise ValueError("Graphics loader requires a matching framebuffer kernel")
     if kernel_feature in UPDATE_FEATURES:
         # B03: the update kernels only boot from a verified slot store.
@@ -149,7 +155,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         extra_env, qsim_report = build_nas_users()
     elif kernel_feature in MATERIAAL_FEATURES:
         from build_materiaal import build_users as build_materiaal_users
-        extra_env, qsim_report = build_materiaal_users(probe=kernel_feature not in ("native-system-materiaal", "native-system-session-preview"))
+        extra_env, qsim_report = build_materiaal_users(probe=kernel_feature not in ("native-system-materiaal", "native-system-session-preview", *WINDOW_FEATURES), window_session=kernel_feature in WINDOW_FEATURES, fault_injection=kernel_feature=="native-window-session-probe")
     elif kernel_feature == "native-display-probe":
         from run_display_probe import build_users as build_display_users
         extra_env, qsim_report = build_display_users()

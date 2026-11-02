@@ -24,7 +24,7 @@ pub use network::{NetworkSource, NET_FRAME_MAX};
 pub mod native;
 
 pub const ABI_MAJOR: u64 = 1;
-pub const ABI_MAX_MINOR: u64 = 10;
+pub const ABI_MAX_MINOR: u64 = 11;
 
 /// ABI 1.10 bounded IPC queue wait. Representations do not grant authority.
 pub const IPC_WAIT_MAX: usize = 16;
@@ -254,11 +254,11 @@ mod wait_tests {
         assert_eq!(decode_wait_mask(u64::MAX, 16), Err(Error::InvalidReturn));
     }
     #[test]
-    fn minor_ten_preserves_old_abi_and_return_rules() {
-        for minor in 0..=10 {
+    fn minor_eleven_preserves_old_abi_and_return_rules() {
+        for minor in 0..=11 {
             assert_eq!(validate_abi((1 << 32) | minor), Ok(()));
         }
-        assert_eq!(validate_abi((1 << 32) | 11), Err(Error::UnsupportedAbi));
+        assert_eq!(validate_abi((1 << 32) | 12), Err(Error::UnsupportedAbi));
         assert_eq!(decode_return(0, 0xffff), Ok(0xffff));
         assert_eq!(decode_return(-10, 0), Err(Error::Kernel(-10)));
         assert_eq!(decode_return(-10, 1), Err(Error::InvalidReturn));

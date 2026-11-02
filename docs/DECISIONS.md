@@ -1370,3 +1370,30 @@ OSDev: *Memory mapped registers in C/C++*, W003198, revisie30402
 (24 maart2026), is alleen aanvullende uitleg; geen normatieve TCG-controle.
 Herzien vóór een productbroker, andere hardware of NV-commits. Rollback:
 opt-in features/fixture verwijderen; legacy profielen blijven ongewijzigd.
+
+## ADR-053 — Native vensterbeleid en vervangbare presentatiediensten
+
+**Datum:** 2 november 2026. De nieuwe opt-in venstersessie gebruikt dezelfde
+eigen kernel, capability-engine, INP1 en SUR1. Twee geïsoleerde applicaties
+krijgen ieder een eigen surface en invoerkanaal; de gebruikersruimtecompositor
+bezit de enige DisplaySource. Alleen de bestaande inputbron bezit InputSource.
+De compositor ontvangt gedecodeerde input via de inputdienst en beheert globale
+focus, vensterpositie en vertrouwde titelbalken. Caller-PID komt uit kernel-IPC,
+nooit uit een berichtveld. Geen gedeelde framebuffer of gedeeld appgeheugen.
+
+Een nieuwe no_std grafische bibliotheek gebruikt vooraf gerasterde proportionele
+Open Sans-glyphs met vastgelegde Apache-licentie en eigen vectorpictogrammen.
+Er komt geen onbetrouwbare fontparser in de kernel. Backing stores zijn privé,
+begrensd tot twee vensters en 1.400.000 pixels binnen de bestaande procesquota.
+De oude 800×600-diagnostische profielen blijven bestaan; de venstersessie vraagt
+expliciet een passende UEFI GOP-modus van 1280×720 of 1920×1080.
+
+ABI 1.11 reserveert syscall 0x53 voor uitsluitend de manifest-supervisor met de
+bijbehorende Launch- en overleden Process-capability. De supervisor bepaalt
+het herstelbeleid en laat apps eerst hun oude presentatiekanalen sluiten.
+De kernel speelt alleen de vaste compositor/inputdienstmanifestgroep opnieuw
+af, na een volledige capaciteitscontrole, met verse PIDs/caps/epochs. App-,
+document-, volume- en sleuteldienststaat blijven bestaan. Dit is geen algemene
+apparaatdelegatie en geen kernel-GUI-beleid. Zie het exacte bouw-/testcontract
+in `docs/implementation/NATIVE-WINDOW-SESSION.md`; native acceptatie is bij dit
+ontwerpcheckpoint nog open. Geen U01-punten voor alleen deze bouwstap.

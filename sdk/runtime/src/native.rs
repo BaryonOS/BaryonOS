@@ -271,6 +271,15 @@ pub fn status(child: ChildProcess) -> Result<ProcessStatus, Error> {
     ProcessStatus::decode(call(0x52, [child.handle().raw(), 0, 0, 0, 0, 0])?)
 }
 
+/// ABI 1.11: replay one fixed UI service-group manifest after its compositor
+/// has died. Only the manifest supervisor owns the matching Launch/Process
+/// grants. Apps must first close presentation channels and acknowledge pause;
+/// fresh bindings are read from private startup metadata after success.
+pub fn restart_service_group(image: LaunchImage, old: ChildProcess) -> Result<ChildProcess, Error> {
+    Handle::from_raw(call(0x53, [image.handle().raw(), old.handle().raw(), 0, 0, 0, 0])?)
+        .map(ChildProcess::from_handle)
+}
+
 /// B01 (ABI 1.4): ask the kernel entropy broker for `length` (1..=256) raw
 /// device bytes. Returns the broker ticket; the bytes arrive through
 /// `entropy_wait`. The kernel serializes requests: a second outstanding

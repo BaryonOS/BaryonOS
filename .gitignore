@@ -3,6 +3,7 @@
 /sdk/keyring-client/target/
 /sdk/heap-allocator/target/
 /sdk/examples/memory/target/
+/sdk/examples/window-session/target/
 /services/input-core/target/
 /drivers/rtc/target/
 /services/net-protocol/target/

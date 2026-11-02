@@ -75,7 +75,7 @@ fn done(config: &Bootstrap) -> ! {
 #[no_mangle]
 pub extern "C" fn calculator_main() -> ! {
     native::check_abi().unwrap_or_else(|_| fail(1));
-    let config = Bootstrap::read(support::word).unwrap_or_else(|| fail(2));
+    let mut config = Bootstrap::read(support::word).unwrap_or_else(|| fail(2));
     send(config.registry, 1);
     let mut go = false;
     for _ in 0..POLLS {
@@ -122,14 +122,20 @@ pub extern "C" fn calculator_main() -> ! {
     )
     .unwrap_or_else(|_| fail(7));
     let mut app = App::new(input, surface, geometry, config.scale).unwrap_or_else(|_| fail(8));
+    let window_session = support::word(656) == 1;
+    let mut paused = false;
     loop {
-        if matches!(
-            app.step(),
-            Err(nieuw_os_calculator::app::Error::Counter
-                | nieuw_os_calculator::app::Error::Binding
-                | nieuw_os_calculator::app::Error::Surface(_))
-        ) {
+        if !paused
+            && matches!(
+                app.step(),
+                Err(nieuw_os_calculator::app::Error::Counter
+                    | nieuw_os_calculator::app::Error::Binding)
+            )
+        {
             fail(12)
+        }
+        if !window_session && app.evidence().errors != 0 {
+            fail(12);
         }
         let e = app.evidence();
         let model = app.model();
@@ -162,6 +168,53 @@ pub extern "C" fn calculator_main() -> ! {
         support::put(536, u64::from(model.answer().is_some()));
         support::put(400, u64::from(e.ready));
         if let Some(message) = control(&config) {
+            if window_session && message.payload() == [7] && !paused {
+                app.detach_presentation().unwrap_or_else(|_| fail(13));
+                paused = true;
+                send(config.registry, 7);
+                continue;
+            }
+            if window_session && message.payload() == [8] && paused {
+                let next = Bootstrap::read(support::word).unwrap_or_else(|| fail(14));
+                if next.registry != config.registry
+                    || next.control != config.control
+                    || next.self_pid != config.self_pid
+                    || next.init_pid != config.init_pid
+                    || next.compositor_pid == config.compositor_pid
+                {
+                    fail(15);
+                }
+                let mut surface = Surface::new(
+                    NativeTransport,
+                    next.compositor_pid,
+                    next.surface_epoch,
+                    next.surface_send,
+                    next.surface_receive,
+                    POLLS,
+                )
+                .unwrap_or_else(|_| fail(16));
+                let geometry = surface.geometry().unwrap_or_else(|_| fail(17));
+                let input = Input::new(
+                    NativeTransport,
+                    Binding {
+                        epoch: next.input_epoch,
+                        service_pid: next.policy_pid,
+                        client_id: next.input_client,
+                        width: geometry.width,
+                        height: geometry.height,
+                        send: next.input_send,
+                        receive: next.input_receive,
+                    },
+                    POLLS,
+                )
+                .unwrap_or_else(|_| fail(18));
+                app.rebind_presentation(input, surface, geometry)
+                    .unwrap_or_else(|_| fail(19));
+                config = next;
+                paused = false;
+                send(config.registry, 8);
+                continue;
+            }
             if message.payload() != [5] {
                 fail(9)
             }

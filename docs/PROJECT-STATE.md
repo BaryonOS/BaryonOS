@@ -1,6 +1,35 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — native sessiepreview en QEMU — 2 november 2026
+## NEXT AGENT HANDOFF — volwassen native sessie / N01 — 2 november 2026
+
+**Werkbranch:** `codex/mature-native-session-20261102`, basis `0fe648b`.
+Checkpoint bevat nieuwe `ui/graphics` met proportionele Open Sans en eigen
+vectoricons, vernieuwde Materiaal/accounts/login/desktop-weergaven, nieuwe
+no_std vensterpolicy/compositor/init en expliciete app-presentatieherbinding.
+De twee-venstersessie gebruikt echte Materiaal/Rekenmachine-processen en
+behoudt document/model bij vervanging van presentatie. Kernelkoppeling/recovery
+is nog in integratie; **geen native U01-acceptatie** bij dit checkpoint.
+
+**Gericht uitgevoerd:** grafische/UI-hosttests en oorspronkelijke Material
+ELF-budgetcontrole in `docs/verification/native-visual-foundation/host-and-elf.json`.
+Nieuwe vensterpolicy: zeven hosttests en beide echte none-ELFs gebouwd; latere
+reviewfixes worden opnieuw getest. Material rebindadapter is freestanding
+gebouwd. De calculator kreeg de gedeelde graphicsdependency en wordt herbouwd.
+
+**N01 geïntegreerd:** broncommits c749492/8128232/4c6bf60/3a5e1e3 (lokale
+cherry-picks eindigen op `865a2ae`). Een echte afzonderlijke QEMU-run op de
+servicewerkbranch slaagt inclusief tien TCP-cases, UDP-fouten en cleanup.
+Onafhankelijke review controleert de defecte-clientgrens; geïntegreerde nieuwe
+source/hash-herhaling moet nog. N01 blijft open totdat dat is afgemaakt.
+
+**Score:** 34/100, ongewijzigde vaste gates. Volgende stap: kernelvenstersessie
+integreren, alle gewijzigde native apps bouwen, echte twee-app focus/drag/crash/
+herbind/save/reopen-acceptatie uitvoeren en N01-herhaling op dezelfde bron.
+Oude Windows-pakketbron344dc0a blijft apart geldig; dit is nog geen nieuw lokaal
+Windows-acceptatiebewijs. Geen fysieke hardware- of echte authenticatieclaim.
+
+## Vorige afgeronde checkpoint — native sessiepreview
+
 
 **Functionele implementatie / Windows-pakket:** `344dc0afde893784503217ac676e154b13662507`,
 branch `codex/session-desktop-vm-20261102`, concept-PR #121. Bronbasis

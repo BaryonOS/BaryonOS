@@ -27,6 +27,7 @@ pub fn prepare(fw: &Firmware) -> Result<FramebufferInfo> {
     if count == 0 || count > 128 {
         return Err(b"GOP_MODE_COUNT");
     }
+    let (requested_width,requested_height)=if cfg!(feature="desktop-hidpi"){(1920,1080)}else if cfg!(feature="desktop-mode"){(1280,720)}else{(800,600)};
     let mut selected = None;
     for number in 0..count {
         let mut size = 0;
@@ -50,15 +51,15 @@ pub fn prepare(fw: &Firmware) -> Result<FramebufferInfo> {
             b"GOP_FREE",
         )?;
         if copy.version == 0
-            && copy.horizontal_resolution == 800
-            && copy.vertical_resolution == 600
+            && copy.horizontal_resolution == requested_width
+            && copy.vertical_resolution == requested_height
             && copy.pixel_format <= 1
         {
             selected = Some(number);
             break;
         }
     }
-    let selected = selected.ok_or(b"GOP_800_600" as Failure)?;
+    let selected = selected.ok_or(b"GOP_REQUESTED_MODE" as Failure)?;
     // SAFETY: Mode came from bounded QueryMode, still before final map capture.
     check(
         unsafe { ((*protocol).set_mode)(protocol, selected) },

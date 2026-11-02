@@ -252,4 +252,50 @@ impl<I: Transport, S: Transport> App<I, S> {
         self.evidence.ready = false;
         input.and(surface)
     }
+    pub fn detach_presentation(&mut self) -> Result<(), Error> {
+        self.input_failed = true;
+        self.surface_failed = true;
+        self.evidence.ready = false;
+        let input = self.input.close().map_err(Error::Cleanup);
+        let surface = self.surface.close().map_err(Error::Cleanup);
+        input.and(surface)
+    }
+    pub fn rebind_presentation(
+        &mut self,
+        mut input: Input<I>,
+        mut surface: Surface<S>,
+        geometry: Geometry,
+    ) -> Result<(), Error> {
+        let binding = input.binding();
+        if !self.surface_failed
+            || !self.input_failed
+            || geometry.validate().is_err()
+            || geometry.epoch == self.geometry.epoch
+            || binding.epoch == self.input.binding().epoch
+            || binding.width != geometry.width
+            || binding.height != geometry.height
+        {
+            let _ = input.close();
+            let _ = surface.close();
+            return Err(Error::Binding);
+        }
+        let viewport = Viewport::new(
+            u32::from(geometry.assigned.width),
+            u32::from(geometry.assigned.height),
+            self.viewport.scale(),
+        )
+        .ok_or(Error::Binding)?;
+        self.input = input;
+        self.surface = surface;
+        self.geometry = geometry;
+        self.viewport = viewport;
+        self.input_failed = false;
+        self.surface_failed = false;
+        self.input_responded = false;
+        self.frame = 0;
+        self.next_tile = 0;
+        self.evidence.presented_generation = 0;
+        self.evidence.ready = false;
+        Ok(())
+    }
 }
