@@ -11,6 +11,7 @@ members = ["."]
 [features]
 native = []
 fault-injection = []
+session-preview = []
 
 [dependencies]
 nieuw-os-graphics = { path = "../../../ui/graphics" }
@@ -21,6 +22,7 @@ nieuw-os-input-core = { path = "../../../services/input-core" }
 nieuw-os-native-input-service = { path = "../input-service" }
 nieuw-os-surface-protocol = { path = "../../../ui/surface-protocol", features = ["client"] }
 ui-core = { path = "../../../crates/ui-core" }
+zeroize = { version = "=1.9.1", default-features = false }
 
 [[bin]]
 name = "window-compositor"

@@ -2,6 +2,7 @@ use nieuw_os_graphics::{theme, Canvas, Font, Icon, Rect, Size, Weight};
 use nieuw_os_surface_protocol::{Geometry, Rectangle};
 
 use crate::clipboard::Notice as ClipboardNotice;
+use crate::shell::Shell;
 
 pub const MAX_PIXELS: usize = 1_400_000;
 pub const WINDOWS: usize = 2;
@@ -14,6 +15,7 @@ pub struct Window {
     pub offset: usize,
 }
 pub struct Scene {
+    pub shell: Shell,
     pub width: u32,
     pub height: u32,
     pub scale: u32,
@@ -73,6 +75,7 @@ impl Scene {
             window.geometry.validate().map_err(|_| Invalid)?;
         }
         Ok(Self {
+            shell: Shell::new(false),
             width,
             height,
             scale,
@@ -98,7 +101,7 @@ impl Scene {
         Rect::new(
             300 * self.scale as i32,
             0,
-            self.width - 300 * self.scale,
+            self.width.saturating_sub(540 * self.scale),
             40 * self.scale,
         )
     }
@@ -130,6 +133,7 @@ impl Scene {
         Ok(())
     }
     pub fn cycle(&mut self) -> Result<(), Invalid> {
+        self.shell.hidden[1 - self.focused] = false;
         self.select(1 - self.focused)
     }
     pub fn cancel_pointer(&mut self) {
@@ -177,24 +181,20 @@ impl Scene {
         }
         if down {
             let s = self.scale;
-            let dock = self.dock();
-            for index in 0..WINDOWS {
-                let button = Rect::new(
-                    dock.x + (12 + index as i32 * 56) * s as i32,
-                    dock.y + 8 * s as i32,
-                    48 * s,
-                    48 * s,
-                );
-                if button.contains(x as i32, y as i32) {
-                    self.select(index)?;
-                    return Ok(None);
-                }
-            }
             for index in [self.focused, 1 - self.focused] {
+                if self.shell.hidden[index] {
+                    continue;
+                }
                 let frame = self.frame(index);
                 if frame.contains(x as i32, y as i32) {
                     self.select(index)?;
                     if y < self.windows[index].body.y as u32 {
+                        if x >= (frame.x + frame.width as i32 - 84 * s as i32) as u32 {
+                            self.shell.hidden[index] = true;
+                            self.drag = None;
+                            self.select(1 - index)?;
+                            return Ok(None);
+                        }
                         let b = self.windows[index].body;
                         self.drag = Some((index, x as i32 - b.x, y as i32 - b.y));
                         return Ok(None);
@@ -205,13 +205,16 @@ impl Scene {
             return Ok(None);
         }
         let b = self.windows[self.focused].body;
-        Ok(b.contains(x as i32, y as i32).then_some(self.focused))
+        Ok(
+            (!self.shell.hidden[self.focused] && b.contains(x as i32, y as i32))
+                .then_some(self.focused),
+        )
     }
     pub fn dock(&self) -> Rect {
         Rect::new(
-            self.width as i32 / 2 - 68 * self.scale as i32,
-            self.height as i32 - 76 * self.scale as i32,
-            136 * self.scale,
+            0,
+            self.height as i32 - 64 * self.scale as i32,
+            self.width,
             64 * self.scale,
         )
     }
@@ -289,7 +292,12 @@ impl Scene {
                 <= i64::from(body.x) + i64::from(body.width)
             && i64::from(rect.y) + i64::from(rect.height)
                 <= i64::from(body.y) + i64::from(body.height);
-        if inside && !rect.intersects(self.dock()) && !rect.intersects(self.pointer_bounds()) {
+        if inside
+            && !self.shell.blocks_apps()
+            && !self.shell.hidden[self.focused]
+            && !rect.intersects(self.dock())
+            && !rect.intersects(self.pointer_bounds())
+        {
             let left = (rect.x - body.x) as usize;
             let top = (rect.y - body.y) as usize;
             let width = rect.width as usize;
@@ -320,29 +328,10 @@ impl Scene {
         theme::wallpaper(&mut c, Rect::new(0, 0, self.width, self.height), palette);
         let s = self.scale;
         let font = Font::new(Size::Body, Weight::Semibold, s == 2);
-        c.fill_rect(Rect::new(0, 0, self.width, 40 * s), 0x122437);
-        c.icon(
-            Rect::new(22 * s as i32, 10 * s as i32, 20 * s, 20 * s),
-            Icon::Material,
-            0x8ed3c7,
-            s,
-        );
-        c.text(54 * s as i32, 9 * s as i32, "Nieuw OS", font, 0xf3f8fa);
-        c.text(
-            172 * s as i32,
-            10 * s as i32,
-            "Werkruimte",
-            Font::new(Size::Small, Weight::Regular, s == 2),
-            0xb5cbd2,
-        );
-        c.text(
-            320 * s as i32,
-            10 * s as i32,
-            self.clipboard_notice.label(),
-            Font::new(Size::Small, Weight::Regular, s == 2),
-            0xb5e1d7,
-        );
         for index in [1 - self.focused, self.focused] {
+            if self.shell.hidden[index] {
+                continue;
+            }
             let body = self.windows[index].body;
             let frame = self.frame(index);
             if !self.paint_bounds(index).intersects(rect) {
@@ -394,6 +383,19 @@ impl Scene {
                 font,
                 0x172a3a,
             );
+            for (offset, icon) in [(76, Icon::Minimize), (38, Icon::Close)] {
+                c.icon(
+                    Rect::new(
+                        frame.x + frame.width as i32 - offset * s as i32,
+                        frame.y + 12 * s as i32,
+                        20 * s,
+                        20 * s,
+                    ),
+                    icon,
+                    0x5c6570,
+                    s,
+                );
+            }
             // Trusted app identity and focus marker live outside app bounds.
             if index == self.focused {
                 c.fill_rect(
@@ -425,35 +427,8 @@ impl Scene {
                 }
             }
         }
-        let dock = self.dock();
-        c.rounded_rect(dock, 18 * s, 0xe9f0f2);
-        for index in 0..WINDOWS {
-            let r = Rect::new(
-                dock.x + (12 + index as i32 * 56) * s as i32,
-                dock.y + 8 * s as i32,
-                48 * s,
-                48 * s,
-            );
-            c.rounded_rect(
-                r,
-                12 * s,
-                if index == self.focused {
-                    0xd0e9e3
-                } else {
-                    0xf7f9fa
-                },
-            );
-            c.icon(
-                Rect::new(r.x + 12 * s as i32, r.y + 12 * s as i32, 24 * s, 24 * s),
-                if index == 0 {
-                    Icon::Material
-                } else {
-                    Icon::Apps
-                },
-                0x167a70,
-                2 * s,
-            );
-        }
+        self.shell
+            .render(&mut c, self.width, self.height, self.scale, self.focused);
         let (x, y) = (self.pointer.0 as i32, self.pointer.1 as i32);
         c.line(x, y, x, y + 18 * s as i32, 3 * s, 0xffffff);
         c.line(x, y, x + 12 * s as i32, y + 12 * s as i32, 3 * s, 0xffffff);

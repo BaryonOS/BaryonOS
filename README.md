@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`9863a526`](https://github.com/simonvanieperen/nieuw-os/commit/9863a52651504c4838d6826b3e1b2240ae0ed6b2) ·
-**Ontwikkelbranch:** `codex/mature-native-session-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Native klembord met eenmalige invoerrechten geïntegreerd en brongebonden getest.
-De score blijft 41/100. Native kopiëren, plakken en wissen tussen twee geïsoleerde apps werkt nu met focus- en invoergebonden rechten. Twee volledige TCG-routes doorlopen alle 22 fasen, inclusief crashherstel, leeg klembord na herstel, opslaan en onafhankelijke schijfcontrole. Alle 18 CI-workflows slagen; bronrapporten en Windows-testpakket zijn gecontroleerd. Dit geeft geen extra punten: U02 vereist ook volledige interactiebudgetten en dagelijkse dekking. De eerste tekstcapaciteit is 192 UTF-8-bytes; ruimere capaciteit, vloeiende bediening en echte authenticatie blijven open.
+**Bron:** [`ec45e174`](https://github.com/simonvanieperen/nieuw-os/commit/ec45e174a51cbe67e508ac87ddbee9dbc4c9589f) ·
+**Ontwikkelbranch:** `codex/session-quality-20261102`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Gerichte sessieroute, compositorbediening en sparse redraw in uitvoering.
+41/100 blijft behouden. Sessieservicecontracten zijn hostgetest; de nieuwe compositorpreview en visuele systeemlaag zijn in uitvoering. Sparse tegeloverdracht heeft hostbewijs; native voor/na en gecombineerde sessieroute worden nog uitgevoerd. Geen nieuwe volledige productpoort, fysieke hardware of echte accountauthenticatie geclaimd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "9863a52651504c4838d6826b3e1b2240ae0ed6b2",
-    "branch": "codex/mature-native-session-20261102",
-    "task": "Native klembord met eenmalige invoerrechten geïntegreerd en brongebonden getest",
+    "source_commit": "ec45e174a51cbe67e508ac87ddbee9dbc4c9589f",
+    "branch": "codex/session-quality-20261102",
+    "task": "Gerichte sessieroute, compositorbediening en sparse redraw in uitvoering",
     "previous_score": 41,
-    "summary": "De score blijft 41/100. Native kopiëren, plakken en wissen tussen twee geïsoleerde apps werkt nu met focus- en invoergebonden rechten. Twee volledige TCG-routes doorlopen alle 22 fasen, inclusief crashherstel, leeg klembord na herstel, opslaan en onafhankelijke schijfcontrole. Alle 18 CI-workflows slagen; bronrapporten en Windows-testpakket zijn gecontroleerd. Dit geeft geen extra punten: U02 vereist ook volledige interactiebudgetten en dagelijkse dekking. De eerste tekstcapaciteit is 192 UTF-8-bytes; ruimere capaciteit, vloeiende bediening en echte authenticatie blijven open."
+    "summary": "41/100 blijft behouden. Sessieservicecontracten zijn hostgetest; de nieuwe compositorpreview en visuele systeemlaag zijn in uitvoering. Sparse tegeloverdracht heeft hostbewijs; native voor/na en gecombineerde sessieroute worden nog uitgevoerd. Geen nieuwe volledige productpoort, fysieke hardware of echte accountauthenticatie geclaimd."
   },
   "tracks": [
     {

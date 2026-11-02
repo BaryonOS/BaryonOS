@@ -24,6 +24,7 @@ use nieuw_os_window_session::{
     idle::{CompositorState, Idle, NativeIdle},
     input::Queue,
     scene::{Damage, Scene, MAX_PIXELS},
+    shell::{Command as ShellCommand, Page as ShellPage},
     surface::TrackedReceiver as Receiver,
 };
 use ui_core::{KeyAction, PhysicalKey};
@@ -228,7 +229,12 @@ fn run() -> ! {
     // SAFETY: Sole access for this process lifetime; no other reference to the
     // static exists. Apps cannot map this userspace process's backing store.
     let backing = unsafe { &mut *BACKING.0.get() };
-    backing.fill(0xf4f6f8);
+    backing.fill(0xf2f1ec);
+    #[cfg(feature = "session-preview")]
+    scene.shell.open(ShellPage::Lock);
+    scene
+        .shell
+        .set_clock(native::wall_clock_utc().ok().map(|r| r.unix_seconds));
     let mut surfaces = boot.apps.map(|app| {
         let index = usize::from(app.pid == boot.apps[1].pid);
         Receiver::new(app.pid, scene.windows[index].geometry, 200).unwrap_or_else(|_| fail(10))
@@ -275,7 +281,21 @@ fn run() -> ! {
     let mut next_input_tick = tick();
     let mut app_pointer_capture = None;
     let mut input_backlog = false;
+    let mut clock_tick = tick();
     loop {
+        if tick().saturating_sub(clock_tick) >= 6000 {
+            clock_tick = tick();
+            if scene
+                .shell
+                .set_clock(native::wall_clock_utc().ok().map(|r| r.unix_seconds))
+            {
+                damage.mark(Rect::new(0, 0, geometry.width, 44 * scene.scale));
+            }
+        }
+        if scene.shell.page() == ShellPage::Unlocking && !damage.has_pending() {
+            scene.shell.finish_unlock();
+            damage.mark(Rect::new(0, 0, geometry.width, geometry.height));
+        }
         let mut ingress_empty = false;
         let mut received_this_pass = false;
         if tick() >= next_input_tick {
@@ -293,101 +313,172 @@ fn run() -> ! {
                     Err(_) => fail(15),
                 };
                 input_events = input_events.checked_add(1).unwrap_or_else(|| fail(16));
+                // Commit shell/window policy only after the input service
+                // confirms that this offer was not superseded in the meantime.
+                if input.ack(&offer).unwrap_or_else(|_| fail(24)) == AckOutcome::Superseded {
+                    app_pointer_capture = None;
+                    scene.cancel_pointer();
+                    scene.shell.cancel_pointer();
+                    clear_chord = ClearChord::default();
+                    for q in &mut queues {
+                        q.cancel(CancelReason::Resync).unwrap_or_else(|_| fail(20));
+                    }
+                    clipboard.revoke(&queues).unwrap_or_else(|_| fail(39));
+                    continue;
+                }
                 let previous = scene.focused;
                 let queue_generations = queues.each_ref().map(Queue::generation);
                 let event = offer.event();
+                let was_blocked = scene.shell.blocks_apps();
+                let was_hidden = scene.shell.hidden;
+                if let Event::Mouse { input: mouse, x, y } = event {
+                    damage.mark(scene.pointer_bounds());
+                    scene.pointer = (x, y);
+                    damage.mark(scene.pointer_bounds());
+                    last_buttons = u64::from(mouse.buttons.bits());
+                }
+                let effect = match event {
+                    Event::Key(key) => {
+                        scene
+                            .shell
+                            .key(key, geometry.width, geometry.height, scene.scale)
+                    }
+                    Event::Mouse { input: mouse, x, y } => scene.shell.mouse(
+                        (x, y),
+                        mouse.changed.left() && mouse.buttons.left(),
+                        mouse.buttons.left(),
+                        geometry.width,
+                        geometry.height,
+                        scene.scale,
+                    ),
+                    Event::Cancel(_) => {
+                        scene.shell.cancel_pointer();
+                        nieuw_os_window_session::shell::Effect {
+                            consumed: false,
+                            changed: false,
+                            command: ShellCommand::None,
+                        }
+                    }
+                };
+                if effect.changed {
+                    scene.cancel_pointer();
+                    damage.mark(Rect::new(0, 0, geometry.width, geometry.height));
+                }
+                match effect.command {
+                    ShellCommand::Activate(index) => {
+                        scene.select(index).unwrap_or_else(|_| fail(17));
+                    }
+                    ShellCommand::Shutdown => send(
+                        boot.registry,
+                        &Outgoing::new(CONTROL, &[9]).unwrap_or_else(|_| fail(18)),
+                    ),
+                    _ => {}
+                }
                 let clear = match event {
                     Event::Key(key) => clear_chord.key(key),
                     _ => ClearAction::Pass,
                 };
-                match event {
-                    Event::Key(_) if clear != ClearAction::Pass => {
-                        if clear == ClearAction::Clear {
-                            clipboard.clear(&queues).unwrap_or_else(|_| fail(39));
+                if !effect.consumed {
+                    match event {
+                        Event::Key(_) if clear != ClearAction::Pass => {
+                            if clear == ClearAction::Clear {
+                                clipboard.clear(&queues).unwrap_or_else(|_| fail(39));
+                            }
                         }
-                    }
-                    Event::Key(key) if key.key == PhysicalKey::F6 => {
-                        if key.action == KeyAction::Press {
-                            scene.cycle().unwrap_or_else(|_| fail(17));
+                        Event::Key(key) if key.key == PhysicalKey::F6 => {
+                            if key.action == KeyAction::Press {
+                                scene.cycle().unwrap_or_else(|_| fail(17));
+                            }
                         }
-                    }
-                    #[cfg(feature = "fault-injection")]
-                    Event::Key(key) if key.key == PhysicalKey::F12 => {
-                        if key.action == KeyAction::Press {
-                            // SAFETY: Deliberate CPL3 fault only in the explicitly
-                            // selected acceptance executable; no host instruction.
-                            unsafe {
-                                core::arch::asm!("ud2", options(noreturn));
+                        #[cfg(feature = "fault-injection")]
+                        Event::Key(key) if key.key == PhysicalKey::F12 => {
+                            if key.action == KeyAction::Press {
+                                // SAFETY: Deliberate CPL3 fault only in the explicitly
+                                // selected acceptance executable; no host instruction.
+                                unsafe {
+                                    core::arch::asm!("ud2", options(noreturn));
+                                }
+                            }
+                        }
+                        Event::Key(key) if key.key == PhysicalKey::F10 => {
+                            if key.action == KeyAction::Press {
+                                send(
+                                    boot.registry,
+                                    &Outgoing::new(CONTROL, &[9]).unwrap_or_else(|_| fail(18)),
+                                );
+                            }
+                        }
+                        Event::Key(key) => {
+                            if copy_gesture(key) {
+                                clipboard.clear(&queues).unwrap_or_else(|_| fail(39));
+                            }
+                            if !scene.shell.hidden[scene.focused] {
+                                queues[scene.focused]
+                                    .push(event)
+                                    .unwrap_or_else(|_| fail(19));
+                            }
+                        }
+                        Event::Cancel(reason) => {
+                            last_buttons = 0;
+                            app_pointer_capture = None;
+                            scene.cancel_pointer();
+                            for q in &mut queues {
+                                q.cancel(reason).unwrap_or_else(|_| fail(20));
+                            }
+                        }
+                        Event::Mouse { input: mouse, x, y } => {
+                            last_buttons = u64::from(mouse.buttons.bits());
+                            damage.mark(scene.pointer_bounds());
+                            let old_frames = [scene.paint_bounds(0), scene.paint_bounds(1)];
+                            let recipient = scene
+                                .mouse(
+                                    x,
+                                    y,
+                                    mouse.changed.left() && mouse.buttons.left(),
+                                    mouse.buttons.left(),
+                                )
+                                .unwrap_or_else(|_| fail(21));
+                            damage.mark(scene.pointer_bounds());
+                            for (index, old_frame) in old_frames.iter().enumerate() {
+                                if *old_frame != scene.paint_bounds(index) {
+                                    damage.mark(*old_frame);
+                                    damage.mark(scene.paint_bounds(index));
+                                }
+                            }
+                            if let Some(index) = recipient {
+                                if mouse.changed.left() && mouse.buttons.left() {
+                                    app_pointer_capture = Some(index);
+                                } else if mouse.changed.left() && !mouse.buttons.left() {
+                                    app_pointer_capture = None;
+                                }
+                                let b = scene.windows[index].body;
+                                // Translate only into the immutable assigned app-local
+                                // rectangle. Window movement never widens its bounds.
+                                queues[index]
+                                    .push(Event::Mouse {
+                                        input: mouse,
+                                        x: x - b.x as u32,
+                                        y: y - b.y as u32,
+                                    })
+                                    .unwrap_or_else(|_| fail(22));
+                            } else if let Some(captured) = app_pointer_capture.take() {
+                                // Leaving an app body must cancel an app-local press
+                                // or selection drag; do not retain an invisible grab.
+                                queues[captured]
+                                    .cancel(CancelReason::Resync)
+                                    .unwrap_or_else(|_| fail(22));
                             }
                         }
                     }
-                    Event::Key(key) if key.key == PhysicalKey::F10 => {
-                        if key.action == KeyAction::Press {
-                            send(
-                                boot.registry,
-                                &Outgoing::new(CONTROL, &[9]).unwrap_or_else(|_| fail(18)),
-                            );
-                        }
+                }
+                if was_blocked != scene.shell.blocks_apps() || was_hidden != scene.shell.hidden {
+                    app_pointer_capture = None;
+                    scene.cancel_pointer();
+                    for q in &mut queues {
+                        q.cancel(CancelReason::FocusLost)
+                            .unwrap_or_else(|_| fail(23));
                     }
-                    Event::Key(key) => {
-                        if copy_gesture(key) {
-                            clipboard.clear(&queues).unwrap_or_else(|_| fail(39));
-                        }
-                        queues[scene.focused]
-                            .push(event)
-                            .unwrap_or_else(|_| fail(19));
-                    }
-                    Event::Cancel(reason) => {
-                        last_buttons = 0;
-                        app_pointer_capture = None;
-                        scene.cancel_pointer();
-                        for q in &mut queues {
-                            q.cancel(reason).unwrap_or_else(|_| fail(20));
-                        }
-                    }
-                    Event::Mouse { input: mouse, x, y } => {
-                        last_buttons = u64::from(mouse.buttons.bits());
-                        damage.mark(scene.pointer_bounds());
-                        let old_frames = [scene.paint_bounds(0), scene.paint_bounds(1)];
-                        let recipient = scene
-                            .mouse(
-                                x,
-                                y,
-                                mouse.changed.left() && mouse.buttons.left(),
-                                mouse.buttons.left(),
-                            )
-                            .unwrap_or_else(|_| fail(21));
-                        damage.mark(scene.pointer_bounds());
-                        for (index, old_frame) in old_frames.iter().enumerate() {
-                            if *old_frame != scene.paint_bounds(index) {
-                                damage.mark(*old_frame);
-                                damage.mark(scene.paint_bounds(index));
-                            }
-                        }
-                        if let Some(index) = recipient {
-                            if mouse.changed.left() && mouse.buttons.left() {
-                                app_pointer_capture = Some(index);
-                            } else if mouse.changed.left() && !mouse.buttons.left() {
-                                app_pointer_capture = None;
-                            }
-                            let b = scene.windows[index].body;
-                            // Translate only into the immutable assigned app-local
-                            // rectangle. Window movement never widens its bounds.
-                            queues[index]
-                                .push(Event::Mouse {
-                                    input: mouse,
-                                    x: x - b.x as u32,
-                                    y: y - b.y as u32,
-                                })
-                                .unwrap_or_else(|_| fail(22));
-                        } else if let Some(captured) = app_pointer_capture.take() {
-                            // Leaving an app body must cancel an app-local press
-                            // or selection drag; do not retain an invisible grab.
-                            queues[captured]
-                                .cancel(CancelReason::Resync)
-                                .unwrap_or_else(|_| fail(22));
-                        }
-                    }
+                    clipboard.clear(&queues).unwrap_or_else(|_| fail(39));
                 }
                 if scene.focused != previous {
                     // A real click into the new body may already own a new grab;
@@ -399,13 +490,6 @@ fn run() -> ! {
                         .cancel(CancelReason::FocusLost)
                         .unwrap_or_else(|_| fail(23));
                     mark_focus(&scene, &mut damage);
-                }
-                if input.ack(&offer).unwrap_or_else(|_| fail(24)) == AckOutcome::Superseded {
-                    app_pointer_capture = None;
-                    scene.cancel_pointer();
-                    for q in &mut queues {
-                        q.cancel(CancelReason::Resync).unwrap_or_else(|_| fail(20));
-                    }
                 }
                 if queue_generations != queues.each_ref().map(Queue::generation) {
                     clipboard.revoke(&queues).unwrap_or_else(|_| fail(39));
@@ -589,6 +673,7 @@ fn run() -> ! {
             (496, u64::from(scene.pointer.0)),
             (504, u64::from(scene.pointer.1)),
             (512, last_buttons),
+            (520, scene.shell.page() as u64),
         ] {
             support::put(at, v);
         }

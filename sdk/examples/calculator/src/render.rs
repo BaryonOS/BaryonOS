@@ -423,53 +423,62 @@ impl Paint<'_> {
         }
     }
     fn title(&mut self, x: u32, y: u32, text: &str) {
-        let step = get_raster_width(FontWeight::Regular, RasterHeight::Size32) as u32;
-        for (index, ch) in text.chars().enumerate() {
-            let Some(glyph) = get_raster(ch, FontWeight::Regular, RasterHeight::Size32) else {
-                continue;
-            };
-            let gx = (x + index as u32 * step) * self.scale;
-            let gy = y * self.scale;
-            if gx >= self.tile.x + self.tile.width
-                || gy >= self.tile.y + self.tile.height
-                || gx + glyph.width() as u32 * self.scale <= self.tile.x
-                || gy + glyph.height() as u32 * self.scale <= self.tile.y
-            {
-                continue;
-            }
-            for (dy, row) in glyph.raster().iter().enumerate() {
-                for (dx, alpha) in row.iter().copied().enumerate() {
-                    if alpha == 0 {
-                        continue;
-                    }
-                    for sy in 0..self.scale {
-                        for sx in 0..self.scale {
-                            let px = (x + index as u32 * step + dx as u32) * self.scale + sx;
-                            let py = (y + dy as u32) * self.scale + sy;
-                            if self.tile.contains(px, py) {
-                                let at = ((py - self.tile.y) * self.tile.width + px - self.tile.x)
-                                    as usize;
-                                let old = self.pixels[at];
-                                let mut color = 0;
-                                for shift in [0, 8, 16] {
-                                    color |= ((((d::TEXT >> shift) & 255) * u32::from(alpha)
-                                        + ((old >> shift) & 255) * (255 - u32::from(alpha))
-                                        + 127)
-                                        / 255)
-                                        << shift;
-                                }
-                                self.pixels[at] = color;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        self.ui_text(
+            x,
+            y,
+            text,
+            nieuw_os_graphics::Size::Body,
+            nieuw_os_graphics::Weight::Semibold,
+            d::TEXT,
+        );
     }
+    fn ui_text(
+        &mut self,
+        x: u32,
+        y: u32,
+        text: &str,
+        size: nieuw_os_graphics::Size,
+        weight: nieuw_os_graphics::Weight,
+        color: u32,
+    ) {
+        let bounds = nieuw_os_graphics::Rect::new(
+            self.tile.x as i32,
+            self.tile.y as i32,
+            self.tile.width,
+            self.tile.height,
+        );
+        let mut canvas =
+            nieuw_os_graphics::Canvas::new(bounds, self.pixels).expect("validated tile");
+        canvas.text(
+            (x * self.scale) as i32,
+            (y * self.scale) as i32,
+            text,
+            nieuw_os_graphics::Font::new(size, weight, self.scale == 2),
+            color,
+        );
+    }
+
     fn label(&mut self, x: u32, y: u32, label: &str, color: u32, width: u32) {
-        let step = character_width(self.scale);
-        for (index, ch) in label.chars().take((width / step) as usize).enumerate() {
-            self.glyph(x + index as u32 * step, y, ch, color);
+        let font = nieuw_os_graphics::Font::new(
+            nieuw_os_graphics::Size::Body,
+            nieuw_os_graphics::Weight::Regular,
+            self.scale == 2,
+        );
+        let mut end = 0;
+        for (at, ch) in label.char_indices() {
+            let next = at + ch.len_utf8();
+            if font.measure(&label[..next]) > width * self.scale {
+                break;
+            }
+            end = next;
         }
+        self.ui_text(
+            x,
+            y,
+            &label[..end],
+            nieuw_os_graphics::Size::Body,
+            nieuw_os_graphics::Weight::Regular,
+            color,
+        );
     }
 }

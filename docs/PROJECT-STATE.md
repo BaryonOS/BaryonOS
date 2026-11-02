@@ -1,5 +1,13 @@
 # Actuele projectstatus
 
+## NEXT AGENT HANDOFF — sessiekwaliteit in uitvoering — 2 november 2026
+
+Nieuwe branch `codex/session-quality-20261102` vanaf PR122 `1f0dd9c`; oorspronkelijke schone checkout `work/e08fb0e`. Onderzoek zeven OS-routes en lokale FIDO2 opgeslagen; bestaand U01/N01/klembord behouden. Nieuw sessiecontract bindt boot/sessie/doel/deadline en expliciete uitkomsten (hostgetest, geen authdienst). Sparse SUR1 uit #117 hergebruikt met volledige eerste frame en vervangingsinvalidation. Nieuwe compositorpreview/zoek/status/sessiemenu en proportionele calculator zijn tussenstand; native route en visuele review nog open. Persoonlijke credentials worden in de shell niet verzameld; alleen openbare VM-gast. Afgeschermd beeld is geen keyring-/capability-revocationclaim.
+
+**Uitgevoerd:** gerichte shelltests7, bestaande compositorhosttests, calculatorhosttests en Clippy; beide deeltaakcontracten afzonderlijk host/no_std getest. Eerste native routebuild faalde op de bestaande calculatorreadonly256KiB-grens door het hergebruikte fontatlas; de nieuwe expliciet begrensde512KiB readonly-layout is nog te herbouwen. Geen rechten of mutable limieten verruimd. Baseline1f-native22fasen loopt in afzonderlijke worktree; performancearm2ff eveneens. Logs in build/session-route en /tmp/session-*.txt; brongebonden eindbewijs volgt. Score41 blijft41.
+
+**Volgende stap:** bouw native-session-route opnieuw, genereer renderboard en native input-/pixelproef, herstel bevindingen; daarna exacte gecombineerde regressies. Geen merge van bestaande concept-PRs.
+
 ## NEXT AGENT HANDOFF — native klembord geïntegreerd; U02 blijft open — 2 november 2026
 
 Branch `codex/mature-native-session-20261102`, concept-PR122 op PR121.
