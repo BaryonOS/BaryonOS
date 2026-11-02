@@ -4,7 +4,8 @@
   "worktree": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr130-stack",
   "branch": "integrate/stack130-local",
   "frozen_heads": {
-    "130": "024cede12dbe16697ef6a5221d95297be0f6c56d",
+    "130_initial": "024cede12dbe16697ef6a5221d95297be0f6c56d",
+    "130": "13782f92f74725920a125a2b7a5e0ec8bc8231be",
     "127": "5343b0a681ebc4cb9b6461bbe8d4447722eec91c",
     "128": "b42b551cb80aedac2e88147a4ef5047db741e81b",
     "129": "159ad799d2a94fb6542d60e26ed8bbd22bdbd752"
@@ -32,7 +33,8 @@
   "validation": "Gerichte retentie-, proportionele damage- en shelltests geslaagd. Volledige gecombineerde host/lint/native/build-controles volgen in het brongebonden eindrapport.",
   "limits": [
     "QEMU/OVMF lokaal niet beschikbaar: geen boot-, runtime-, koude VM-, native pixel-, clipboardherstel- of Windows/WHPX-claim.",
-    "Live PR130-head 13782f92f74725920a125a2b7a5e0ec8bc8231be wijkt af van frozen 024cede1; ongelezen drift niet geïntegreerd.",
+    "PR130-uitbreiding 024cede1..13782f92 is daarna expliciet geautoriseerd, concreet gelezen en geïntegreerd. Het zijn uitsluitend 18 document-/bewijsbestanden; geen bronconflict en source-v3 onveranderd. Verdere ongelezen live drift wordt niet opgenomen.",
+    "Historische native claims in de nieuwe bewijsbestanden blijven gebonden aan 64044318/source069666e5, niet aan deze integratie. De gearchiveerde readbackcode is niet uitgevoerd zonder bijbehorende CI-artifactdataset.",
     "Alleen parent f090b913 is GitHub-integrator; centrale assessment en finale CI op publicatiehead blijven bij parent."
   ]
 }

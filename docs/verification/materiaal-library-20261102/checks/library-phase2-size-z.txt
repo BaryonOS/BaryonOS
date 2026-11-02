@@ -1,0 +1,24 @@
+{"command": ["cargo", "+1.90.0", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/examples/materiaal/Cargo.toml", "--features", "native", "--bin", "materiaal-app", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/library-root-native-z"}
+   Compiling zeroize v1.9.1
+   Compiling catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+   Compiling ui-core v0.1.0 (/workspace/nieuw-os/crates/ui-core)
+   Compiling nieuw-os-graphics v0.1.0 (/workspace/nieuw-os/ui/graphics)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+   Compiling nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os/sdk/catalog-client)
+   Compiling nieuw-os-input-core v0.1.0 (/workspace/nieuw-os/services/input-core)
+   Compiling volume-core v0.1.0 (/workspace/nieuw-os/services/volume)
+   Compiling noto-sans-mono-bitmap v0.3.2
+   Compiling nieuw-os-surface-protocol v0.1.0 (/workspace/nieuw-os/ui/surface-protocol)
+   Compiling nieuw-os-input-client v0.1.0 (/workspace/nieuw-os/sdk/input-client)
+   Compiling nieuw-os-document-session v0.1.0 (/workspace/nieuw-os/sdk/document-session)
+   Compiling nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os/ui/native)
+   Compiling nieuw-os-materiaal-app v0.1.0 (/workspace/nieuw-os/sdk/examples/materiaal)
+error: linking with `rust-lld` failed: exit status: 1
+  |
+  = note:  "rust-lld" "-flavor" "gnu" "/tmp/rustcUaji5H/symbols.o" "<1 object files omitted>" "--as-needed" "-Bstatic" "/workspace/nieuw-os/target/library-root-native-z/x86_64-unknown-none/release/deps/{libnieuw_os_materiaal_app-f088dc21014765d8,libnieuw_os_materiaal-9a3f7462e8e38974,libnieuw_os_graphics-9b81d83ca914d2c8,libnieuw_os_document_session-04d515193b3ad21c,libvolume_core-a8b5df96246cf8c4,libnieuw_os_surface_protocol-c25c7fa63d28f22f,libnieuw_os_input_client-a6cb16988e468990,libnieuw_os_catalog_client-9a7fefe4966163c9,libcatalog_core-67b8c0a83ec882d3,libnieuw_os_input_core-145c04657ae35232,libui_core-0eb7bfc159092d6e,libnieuw_os_sdk_runtime-51359b82fcb6313c,libzeroize-a56357ca87b4a0d1}.rlib" "<sysroot>/lib/rustlib/x86_64-unknown-none/lib/{libcore-*,libcompiler_builtins-*}.rlib" "-L" "/tmp/rustcUaji5H/raw-dylibs" "-Bdynamic" "--eh-frame-hdr" "-z" "noexecstack" "-o" "/workspace/nieuw-os/target/library-root-native-z/x86_64-unknown-none/release/deps/materiaal_app-4d54d628f9b5a783" "--gc-sections" "-z" "relro" "-z" "now" "--strip-debug" "-T/workspace/nieuw-os/sdk/examples/materiaal/linker.ld" "--no-pie" "--build-id=none" "-zmax-page-size=0x1000"
+  = note: some arguments are omitted. use `--verbose` to show all linker arguments
+  = note: rust-lld: error: code exceeds 128 KiB
+          rust-lld: error: code exceeds 128 KiB
+          
+
+error: could not compile `nieuw-os-materiaal-app` (bin "materiaal-app") due to 1 previous error
