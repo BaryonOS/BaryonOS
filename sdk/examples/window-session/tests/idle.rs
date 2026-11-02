@@ -614,7 +614,8 @@ fn malformed_wrong_sender_and_ignored_reject_cannot_clear_partial_surface() {
         .reject(7, &begin(1, 0), sur::Error::Malformed)
         .unwrap();
     assert_eq!(reply.status(), Err(sur::Error::Malformed));
-    assert!(receiver.has_pending());
+    assert_eq!(receiver.completed_frame(), None);
+    assert!(!receiver.has_pending());
     receiver.retire();
     assert!(!receiver.has_pending());
     assert!(matches!(
@@ -647,8 +648,106 @@ fn idle_queries_and_fragments_never_extend_the_original_two_hundred_tick_deadlin
                 Err(sur::Error::Timeout)
             }
         );
-        assert!(receiver.has_pending());
+        assert_eq!(receiver.has_pending(), commit_at == 209);
     }
+}
+
+#[test]
+fn abandoned_stages_expire_without_new_messages_or_a_completed_frame() {
+    for completed_base in [false, true] {
+        for fragment in 0..3 {
+            let mut receiver = TrackedReceiver::new(7, geometry(), 200).unwrap();
+            if completed_base {
+                for tile in 0..geometry().tiles() {
+                    let token = staged_frame_tile(&mut receiver, 1, tile + 1, tile, 1, 2);
+                    receiver
+                        .commit_with(token, 2, |_, _| Ok::<(), ()>(()))
+                        .unwrap();
+                }
+                assert_eq!(receiver.completed_frame(), Some(1));
+            }
+            let frame = if completed_base { 2 } else { 1 };
+            let request = geometry().tiles() + 1;
+            let token = if fragment == 2 {
+                Some(staged_frame_tile(&mut receiver, frame, request, 0, 10, 11))
+            } else {
+                assert!(matches!(
+                    receiver.accept(7, 10, &begin_frame(frame, request, 0)),
+                    Ok(Action::Staged)
+                ));
+                if fragment == 1 {
+                    let mut chunk = Header {
+                        frame,
+                        arg1: 1,
+                        ..header(Operation::Chunk, request, 0)
+                    }
+                    .encode()
+                    .to_vec();
+                    chunk.push(0);
+                    assert!(matches!(receiver.accept(7, 11, &chunk), Ok(Action::Staged)));
+                }
+                None
+            };
+            assert!(receiver.expire(209).unwrap().is_none());
+            assert!(receiver.has_pending());
+            let reply = receiver.expire(210).unwrap().unwrap();
+            let expected = Header {
+                frame,
+                ..header(Operation::Commit, request, 0)
+            };
+            let reply = sur::Reply::decode(reply.bytes(), expected).unwrap();
+            assert_eq!(reply.status(), Err(sur::Error::Timeout));
+            assert_eq!(reply.pixels(), 0);
+            assert_eq!(receiver.completed_frame(), None);
+            assert_eq!(receiver.retained_base(), None);
+            assert!(!receiver.has_pending());
+            let mut state = CompositorState {
+                ingress_empty: true,
+                surface_pending: receiver.has_pending(),
+                reply_pending: true,
+                ..CompositorState::default()
+            };
+            assert!(!state.quiescent());
+            state.reply_pending = false;
+            assert!(state.quiescent());
+            assert!(receiver.expire(211).unwrap().is_none());
+            if let Some(token) = token {
+                assert_eq!(
+                    receiver
+                        .commit_with(token, 211, |_, _| -> Result<(), ()> {
+                            panic!("expired token must never blit")
+                        })
+                        .err(),
+                    Some(sur::Error::Token)
+                );
+            }
+            for tile in 0..geometry().tiles() {
+                let token =
+                    staged_frame_tile(&mut receiver, frame + 1, request + tile + 1, tile, 212, 213);
+                let reply = receiver
+                    .commit_with(token, 213, |_, _| Ok::<(), ()>(()))
+                    .unwrap();
+                assert_eq!(reply.status(), Ok(()));
+            }
+            assert_eq!(receiver.completed_frame(), Some(frame + 1));
+            assert!(!receiver.has_pending());
+        }
+    }
+}
+
+#[test]
+fn surface_expiry_propagates_clock_rollback_without_success() {
+    let mut receiver = TrackedReceiver::new(7, geometry(), 200).unwrap();
+    assert!(matches!(
+        receiver.accept(7, 10, &begin(1, 0)),
+        Ok(Action::Staged)
+    ));
+    assert_eq!(receiver.expire(9).err(), Some(sur::Error::Clock));
+    assert_eq!(receiver.completed_frame(), None);
+    assert!(matches!(
+        receiver.accept(7, 11, &begin(2, 0)),
+        Err(sur::Error::Closed)
+    ));
 }
 
 #[test]
@@ -669,5 +768,5 @@ fn failed_real_blit_and_info_response_do_not_claim_a_completed_frame() {
     .encode();
     assert!(matches!(receiver.accept(7, 13, &info), Ok(Action::Info(_))));
     assert_eq!(receiver.completed_frame(), None);
-    assert!(receiver.has_pending());
+    assert!(!receiver.has_pending());
 }

@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-02",
+  "task": "PR126: verlaten SUR1-transacties laten verlopen en retained rendering native inschakelen",
+  "status": "Implementatie en statische controles gereed; Rust-testuitvoering en native runtimeacceptatie geblokkeerd",
+  "source_base_commit": "e3b01ef43e9d4de7bb1f56ecad6bda0ee41b87e7",
+  "source_branch": "simonvanieperen-animated-spoon",
+  "source_fingerprint_version": 3,
+  "source_sha256": "55c9acfa50cfd8bf8a5366dc920892f7fb96a57e4bd7ec88930f4f4dd4a11f97",
+  "write_scope": [
+    "sdk/examples/window-session/src/surface.rs",
+    "sdk/examples/window-session/src/main.rs",
+    "sdk/examples/window-session/tests/idle.rs",
+    "sdk/examples/calculator/src/main.rs",
+    "sdk/examples/materiaal/src/main.rs",
+    "docs/verification/pr126-review-fixes-20261102.json"
+  ],
+  "changes": [
+    "TrackedReceiver delegeert expire(now) naar de bestaande SUR1-state-machine. Verlopen staging en expliciete negatieve replies worden niet langer als uitvoerbaar framewerk geteld; completed_frame blijft ongewijzigd en wordt nooit door een fout bevestigd.",
+    "De compositor controleert expiry ook zonder inkomende appberichten. Een timeoutantwoord gebruikt dezelfde begrensde pending-reply/IPC-EAGAIN-route als andere antwoorden. Een tweede expirycontrole op de accept-tick voorkomt dat tijdens ingressafhandeling verstreken staging ongemerkt wordt gewist.",
+    "Materiaal en de calculator schakelen retained rendering in wanneer de bestaande native window-session-bootstrapmarkering actief is. De legacy presentatiepaden blijven ongewijzigd.",
+    "Nieuwe regressies beschrijven verlaten Begin, gedeeltelijke Chunk en niet-gebruikte CommitReady, zowel zonder als met een oud volledig frame. Zij controleren de exacte 200-tickgrens, negatieve replybinding, nul bevestigde pixels, eenmalige expiry, onbruikbare oude tokens, herstel met een nieuw volledig frame, wachten op de timeoutreply en klokterugloop.",
+    "Bestaande tests behouden het verbod op idle tijdens een geldig gedeeltelijk frame. Na een definitieve negatieve reply hoeft de compositor geen niet-bestaand werk meer uit te voeren; dit is geen succesvolle frameacceptatie."
+  ],
+  "environment": {
+    "rustc": "1.90.0 (1159e78c4 2025-09-14)",
+    "path_prefix": "/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin",
+    "cargo_target_dir": "target/pr126-review",
+    "log_directory": "/home/simon/.copilot/session-state/1dac4c3701424da981afb7df1c2d64a8/files/pr126",
+    "dependency_preparation": "De eerste offline testpoging stopte op ontbrekende zeroize. cargo fetch --locked --manifest-path is daarna voor de drie betrokken bestaande manifests uitgevoerd (alle exit 0); geen manifest of lockfile gewijzigd en geen systeempackages geinstalleerd.",
+    "host_linker": "cc ontbreekt",
+    "qemu": "Niet beschikbaar op PATH"
+  },
+  "checks": [
+    {
+      "command": "cargo clippy --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --all-targets -- -D warnings",
+      "exit_code": 0,
+      "log": "window-session-clippy.log",
+      "log_sha256": "b86dbc5b58af10a59f78c58a7599262d260f59d2b71fff963c1e6ea0a6cc6226"
+    },
+    {
+      "command": "cargo clippy --offline --locked --manifest-path sdk/examples/calculator/Cargo.toml --all-targets -- -D warnings",
+      "exit_code": 0,
+      "log": "calculator-clippy.log",
+      "log_sha256": "7f4ba6c51c9f34f245bc1ae02b5d1eee700fa5602ccf99632a1b1687106a8f80"
+    },
+    {
+      "command": "cargo clippy --offline --locked --manifest-path sdk/examples/materiaal/Cargo.toml --all-targets -- -D warnings",
+      "exit_code": 0,
+      "log": "materiaal-clippy.log",
+      "log_sha256": "a5b9f7326a7901ff6d848b7d05014bfaebdb6f087040037ab31c984c29672e49"
+    },
+    {
+      "command": "cargo check --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --features native --bins --target x86_64-unknown-none",
+      "exit_code": 0,
+      "log": "window-session-native-check.log",
+      "log_sha256": "cc277e25df0c1c6ab5452d6d451de22639478f34dcf2392cf5400e363943d677"
+    },
+    {
+      "command": "cargo check --offline --locked --manifest-path sdk/examples/calculator/Cargo.toml --features native --bins --target x86_64-unknown-none",
+      "exit_code": 0,
+      "log": "calculator-native-check.log",
+      "log_sha256": "c444a08f41a1ba5eb9773282bbff6046f477e3e3733a256805a88b3d945a10a6"
+    },
+    {
+      "command": "cargo check --offline --locked --manifest-path sdk/examples/materiaal/Cargo.toml --features native --bins --target x86_64-unknown-none",
+      "exit_code": 0,
+      "log": "materiaal-native-check.log",
+      "log_sha256": "f6862e260c500afda2d3a7b349b76d5ad1345cee3e8b9a309d73907a7ab8290b"
+    },
+    {
+      "command": "cargo check --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --features native,fault-injection --bins --target x86_64-unknown-none",
+      "exit_code": 0,
+      "log": "window-session-probe-check.log",
+      "log_sha256": "af5f7cb22aaa6112d12b7d18c22f69aa12c9ae51da44f73e784366f036ae3166"
+    },
+    {
+      "command": "cargo fmt --manifest-path sdk/examples/window-session/Cargo.toml -- --check",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo fmt --manifest-path sdk/examples/calculator/Cargo.toml -- --check",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo fmt --manifest-path sdk/examples/materiaal/Cargo.toml -- --check",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo test --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml",
+      "exit_code": 101,
+      "result": "Geblokkeerd: linker cc ontbreekt. Geen Rust-tests uitgevoerd.",
+      "log": "window-session-host-tests.log",
+      "log_sha256": "191d81f579649b410ab3be9983bd84703aabc0a6003c46a3b6640f852838bfde"
+    },
+    {
+      "command": "cargo test --offline --locked --manifest-path sdk/examples/calculator/Cargo.toml",
+      "exit_code": 101,
+      "result": "Geblokkeerd: linker cc ontbreekt. Geen Rust-tests uitgevoerd.",
+      "log": "calculator-host-tests.log",
+      "log_sha256": "ad0c313beda2340ff2ae391e7bdd0c60965365800c9103b0aeec67c37b82558f"
+    },
+    {
+      "command": "cargo test --offline --locked --manifest-path sdk/examples/materiaal/Cargo.toml",
+      "exit_code": 101,
+      "result": "Geblokkeerd: linker cc ontbreekt. Geen Rust-tests uitgevoerd.",
+      "log": "materiaal-host-tests.log",
+      "log_sha256": "700824e90340a067a6d35014a92dab40dc211e04c4a9ec297085e66e9d649ca7"
+    },
+    {
+      "command": "python3 -B tools/test_window_session.py",
+      "exit_code": 0,
+      "tests": 10,
+      "log": "window-runner-tests.log",
+      "log_sha256": "a350e9f897688140366f5f21456c728387e13fa74fa673a445a759bfb6a16747"
+    },
+    {
+      "command": "python3 -B tools/progress.py --check",
+      "exit_code": 0,
+      "result": "Geerfd branchregister: 41/100, rubric v1 consistent; geen nieuwe criteriumacceptatie."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "not_performed": [
+    "Rust-hosttests: geblokkeerd door ontbrekende hostlinker, niet groen",
+    "Volledige native builds/ELF-inspectie via de voorgeschreven buildentrypoints",
+    "QEMU/native-window-session-gate en runtimeprestatiemeting",
+    "Windows-runtime en pakketacceptatie",
+    "Hosted CI op deze herstelbron"
+  ],
+  "progress_proposal": {
+    "affected_criteria": ["U01", "U02"],
+    "new_points": 0,
+    "inherited_branch_score_before": 41,
+    "inherited_branch_score_after": 41,
+    "central_assessment_owner": "Exclusieve integrator f090b913-e9de-4265-a66b-41d8e0472b1e",
+    "instruction": "PROJECT-STATE en de gezamenlijke voortgangsbestanden niet parallel gewijzigd. De integrator verwerkt deze bron, bewijsgrens en nul nieuwe punten in zijn actuele integratiecheckpoint; branchscore 41 is niet automatisch main-acceptatie."
+  },
+  "integration": {
+    "no_remote_mutations": true,
+    "merge_ready": false,
+    "next": "Integreer de lokale fixcommit inhoudsbehoudend met PR126, voer de drie Rust-hostsuites en de native-window-session-workflow uit op de echte integratiehead, en handel daarna de twee reviewthreads af.",
+    "rollback": "Draai uitsluitend deze fixcommit terug; geen bestaande PR-inhoud of gebruikerswerk verwijderen."
+  }
+}

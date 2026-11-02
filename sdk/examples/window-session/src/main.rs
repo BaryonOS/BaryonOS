@@ -414,6 +414,17 @@ fn run() -> ! {
         }
         repaint(&scene, backing, &mut display, &mut damage, 32).unwrap_or_else(|_| fail(25));
         for index in 0..2 {
+            if pending[index].is_none() {
+                let now = tick();
+                if let Some(reply) = surfaces[index].expire(now).unwrap_or_else(|_| fail(30)) {
+                    rejected += 1;
+                    pending[index] = Some(ReplyWork::Message(
+                        boot.apps[index].surface_reply,
+                        Outgoing::new(sur::TAG, reply.bytes()).unwrap_or_else(|_| fail(31)),
+                        now,
+                    ));
+                }
+            }
             if flush_reply(
                 index,
                 &mut pending[index],
@@ -501,33 +512,40 @@ fn run() -> ! {
             }
             let (tag, payload, to) = if message.tag() == sur::TAG {
                 let now = tick();
-                let reply = match surfaces[index].accept(message.sender(), now, message.payload()) {
-                    Ok(Action::Staged) => continue,
-                    Ok(Action::Info(reply) | Action::Retain(reply)) => reply,
-                    Ok(Action::Commit(token)) => {
-                        let result = surfaces[index]
-                            .commit_with(token, tick(), |rect, pixels| {
-                                let damaged = scene
-                                    .copy_tile(index, rect, pixels, backing)
-                                    .map_err(|_| ())?;
-                                present(&scene, backing, &mut display, damaged)
-                            })
-                            .unwrap_or_else(|_| fail(30));
-                        if result.status().is_ok() {
-                            commits += 1;
-                        } else {
-                            rejected += 1;
+                let reply = if let Some(reply) =
+                    surfaces[index].expire(now).unwrap_or_else(|_| fail(30))
+                {
+                    rejected += 1;
+                    reply
+                } else {
+                    match surfaces[index].accept(message.sender(), now, message.payload()) {
+                        Ok(Action::Staged) => continue,
+                        Ok(Action::Info(reply) | Action::Retain(reply)) => reply,
+                        Ok(Action::Commit(token)) => {
+                            let result = surfaces[index]
+                                .commit_with(token, tick(), |rect, pixels| {
+                                    let damaged = scene
+                                        .copy_tile(index, rect, pixels, backing)
+                                        .map_err(|_| ())?;
+                                    present(&scene, backing, &mut display, damaged)
+                                })
+                                .unwrap_or_else(|_| fail(30));
+                            if result.status().is_ok() {
+                                commits += 1;
+                            } else {
+                                rejected += 1;
+                            }
+                            result
                         }
-                        result
-                    }
-                    Err(error) => {
-                        rejected += 1;
-                        let Some(reply) =
-                            surfaces[index].reject(message.sender(), message.payload(), error)
-                        else {
-                            continue;
-                        };
-                        reply
+                        Err(error) => {
+                            rejected += 1;
+                            let Some(reply) =
+                                surfaces[index].reject(message.sender(), message.payload(), error)
+                            else {
+                                continue;
+                            };
+                            reply
+                        }
                     }
                 };
                 (
