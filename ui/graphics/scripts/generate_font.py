@@ -11,7 +11,7 @@ SOURCES = {
     'semibold': ('OpenSans-Semibold.ttf', 'aa3b0ef53db12e3d45094030cac0e69d384e44cc5978643dd4390041cad546e2'),
 }
 CHARS = [chr(n) for n in range(32, 127)] + [chr(n) for n in range(160, 256)] + ['\u2026', '\u20ac', '\ufffd']
-SPECS = [('regular',12),('regular',16),('regular',24),('regular',32),('regular',64),('semibold',16),('semibold',32),('semibold',64)]
+SPECS = [('regular',12),('regular',16),('regular',24),('regular',32),('semibold',16),('semibold',32),('semibold',64)]
 
 def main():
     data=bytearray(); rows=[]; glyphs=[]; fonts=[]; source_meta={}

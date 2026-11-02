@@ -34,10 +34,6 @@
       32
     ],
     [
-      "regular",
-      64
-    ],
-    [
       "semibold",
       16
     ],
@@ -51,10 +47,10 @@
     ]
   ],
   "characters": 194,
-  "glyphs": 1552,
-  "row_offsets": 38245,
-  "data_bytes": 263917,
-  "data_sha256": "37185a004996d54c8fffd6190a69b6a91061feca5498b52c51787e3cb2d6db25",
+  "glyphs": 1358,
+  "row_offsets": 29055,
+  "data_bytes": 193017,
+  "data_sha256": "a4e3efa8027d5eba26bea742f7350bda34380cab9d77030d21481cb06c5f2e07",
   "encoding": "Rows of (run length minus1) in high nibble and 4bit coverage in low nibble; 16 levels",
   "native_parser": "None; fixed checked metadata and bounded row decoder",
   "build_time_only": "Pillow/FreeType; not native dependencies"

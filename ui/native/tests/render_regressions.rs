@@ -8,6 +8,7 @@ use nieuw_os_materiaal::{
 
 fn view<'a>(viewport: Viewport, objects: &'a [ListEntry]) -> View<'a> {
     View {
+        draw_pointer: true,
         desktop: None,
         viewport,
         generation: 1,

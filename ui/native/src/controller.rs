@@ -76,6 +76,7 @@ pub struct InputEnvelope {
 
 #[derive(Clone, Copy)]
 pub struct View<'a> {
+    pub draw_pointer: bool,
     pub desktop: Option<&'a crate::desktop::Desktop>,
     pub viewport: Viewport,
     pub generation: u64,
@@ -99,6 +100,7 @@ pub struct View<'a> {
 }
 
 pub struct Controller<'a, T> {
+    draw_pointer: bool,
     desktop: Option<crate::desktop::Desktop>,
     document: DocumentSession<'a, T>,
     editable: bool,
@@ -142,6 +144,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             return Err(Error::InputEpoch);
         }
         Ok(Self {
+            draw_pointer: true,
             desktop: None,
             document,
             editable: mode == EditMode::ReadWrite,
@@ -224,6 +227,7 @@ impl<'a, T: Transport> Controller<'a, T> {
     pub fn view(&self) -> View<'_> {
         let draft = self.document.draft();
         View {
+            draw_pointer: self.draw_pointer,
             desktop: self.desktop.as_ref(),
             viewport: self.viewport,
             generation: self.generation,
@@ -252,6 +256,16 @@ impl<'a, T: Transport> Controller<'a, T> {
             document_dirty: self.document.is_dirty(),
             cursor: self.cursor,
         }
+    }
+    /// The validated native adapter enables this only when a separate compositor
+    /// draws the system cursor. Local hover/input state is preserved.
+    pub fn set_compositor_cursor(&mut self, enabled: bool) -> Result<(), Error> {
+        let draw_pointer = !enabled;
+        if self.draw_pointer != draw_pointer {
+            self.draw_pointer = draw_pointer;
+            self.invalidate()?;
+        }
+        Ok(())
     }
     pub fn presented(&mut self, generation: u64, display_epoch: u64) -> bool {
         if !self.render_exhausted

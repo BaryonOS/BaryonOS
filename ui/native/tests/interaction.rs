@@ -842,7 +842,11 @@ fn mouse_click_uses_real_ps2_buttons_and_release_must_match_impl() {
     ui.refresh().unwrap();
     let mut mouse = Ps2Mouse::new();
     let mut sequence = 0;
-    for (flags, x, y) in [(0x09, 40, 90), (0x08, 40, 90)] {
+    let new_button = Frame::new(ui.view()).layout().new;
+    for (flags, x, y) in [
+        (0x09, new_button.x + 16, new_button.y + 10),
+        (0x08, new_button.x + 16, new_button.y + 10),
+    ] {
         let mut event = None;
         for byte in [flags, 0, 0] {
             event = mouse.feed(byte).unwrap();

@@ -24,7 +24,8 @@ pub enum Icon {
     Shield,
 }
 pub(crate) fn draw(c: &mut Canvas<'_>, r: Rect, icon: Icon, color: u32, stroke: u32) {
-    if r.width == 0 || r.height == 0 || r.width > 256 || r.height > 256 {
+    if r.width == 0 || r.height == 0 || r.width > 256 || r.height > 256 || !r.intersects(c.bounds())
+    {
         return;
     }
     let p = |x: i32, y: i32| {

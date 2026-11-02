@@ -29,6 +29,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "nieuw-os-graphics"
+version = "0.1.0"
+
+[[package]]
 name = "nieuw-os-input-core"
 version = "0.1.0"
 dependencies = [
@@ -43,6 +47,7 @@ dependencies = [
  "capability-core",
  "nieuw-os-catalog-client",
  "nieuw-os-document-session",
+ "nieuw-os-graphics",
  "nieuw-os-input-core",
  "nieuw-os-sdk-runtime",
  "noto-sans-mono-bitmap",

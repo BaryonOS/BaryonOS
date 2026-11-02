@@ -31,12 +31,11 @@ impl Font {
             (Size::Small, _, true) => 2,
             (Size::Body, Weight::Regular, false) => 1,
             (Size::Body, Weight::Regular, true) => 3,
-            (Size::Body, Weight::Semibold, false) => 5,
-            (Size::Body, Weight::Semibold, true) => 6,
-            (Size::Title, Weight::Regular, false) => 3,
-            (Size::Title, Weight::Regular, true) => 4,
-            (Size::Title, Weight::Semibold, false) => 6,
-            (Size::Title, Weight::Semibold, true) => 7,
+            (Size::Body, Weight::Semibold, false) => 4,
+            (Size::Body, Weight::Semibold, true) => 5,
+            // Titles have one deliberate semibold design weight at both scales.
+            (Size::Title, _, false) => 5,
+            (Size::Title, _, true) => 6,
         }
     }
     pub fn height(self) -> u32 {
