@@ -3,7 +3,10 @@
 use capability_core::{Cap, Engine, Message, SEND};
 use nieuw_os_catalog_client::{Delivery, Transport};
 use nieuw_os_document_session::{
-    volume::{Buffers, DocumentSession, Error, ListEntry, ListFilter, SaveProgress, VolumeSession},
+    volume::{
+        Buffers, DocumentSession, Error, HistoryPrefix, ListEntry, ListFilter, SaveProgress,
+        VolumeSession,
+    },
     EditMode, SaveOutcome,
 };
 use nieuw_os_sdk_runtime::{
@@ -73,6 +76,8 @@ enum Fault {
     BeforeEnqueue,
     CrashOnReceive,
     ChangedListClock,
+    CorruptLateRead,
+    DropRead,
 }
 
 struct Host {
@@ -132,6 +137,9 @@ impl Host {
         if matches!(self.fault, Fault::DropCommit) && header.operation == wire::COMMIT {
             return;
         }
+        if matches!(self.fault, Fault::DropRead) && header.operation == wire::READ {
+            return;
+        }
         if matches!(self.fault, Fault::DropMutation)
             && matches!(
                 header.operation,
@@ -165,6 +173,12 @@ impl Host {
             && header.aux != 0
         {
             response = upload::wrap(wire::error_reply(&header, EPOCH, Status::Access, 0), 0);
+        }
+        if matches!(self.fault, Fault::CorruptLateRead)
+            && header.operation == wire::READ
+            && header.aux != 0
+        {
+            response[64] ^= 1;
         }
         let mut message = Message::new();
         message.tag = if matches!(self.fault, Fault::WrongTag) {
@@ -1388,6 +1402,171 @@ fn collection_table_io_failure_is_unknown_without_retry() {
             let sent = host.borrow().requests.len();
             assert_eq!(e.update_collection(1, 0, b"Home"), Err(Error::Uncertain));
             assert_eq!(host.borrow().requests.len(), sent);
+        })
+    });
+}
+
+#[test]
+fn verified_history_prefix_uses_existing_staging_and_labels_truncation() {
+    run(|| {
+        let host = Host::new();
+        let historic = "een rustige reis langs de kust. ".repeat(100) + "één";
+        host.borrow_mut().seed(0, historic.as_bytes());
+        host.borrow_mut().seed(0, b"current");
+        let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut e = editor(
+            &host,
+            EditMode::ReadWrite,
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+        );
+        e.open(0).unwrap();
+        e.replace_contents(b"keep this draft").unwrap();
+        let writes = host.borrow().disk.writes;
+        let sent = host.borrow().requests.len();
+        let mut preview = [0x55; 2048];
+        assert_eq!(
+            e.read_history_prefix(2, 1, &mut preview),
+            Ok(HistoryPrefix {
+                copied: 2048,
+                total: historic.len(),
+                truncated: true
+            })
+        );
+        assert_eq!(&preview, &historic.as_bytes()[..2048]);
+        let h = host.borrow();
+        assert_eq!(h.disk.writes, writes);
+        let reads: Vec<_> = h.requests[sent..]
+            .iter()
+            .filter(|h| h.operation == wire::READ)
+            .collect();
+        assert_eq!(reads.len(), historic.len().div_ceil(wire::DATA));
+        assert!(reads.iter().all(|h| h.revision == 2 && h.name_length == 1));
+        assert!(reads.last().unwrap().aux >= 2048); // Tail verified beyond visible prefix.
+        drop(h);
+        assert_eq!(e.draft().unwrap().contents, b"keep this draft");
+        assert!(e.is_dirty());
+    });
+}
+
+#[test]
+fn history_prefix_never_cuts_a_utf8_character_and_readonly_can_preview() {
+    run(|| {
+        library_case(EditMode::ReadOnly, |host, e| {
+            host.borrow_mut().seed(0, "abc€".as_bytes());
+            host.borrow_mut().seed(0, b"current");
+            e.open(0).unwrap();
+            let mut out = [0x55; 8];
+            assert_eq!(
+                e.read_history_prefix(3, 1, &mut out[..5]),
+                Ok(HistoryPrefix {
+                    copied: 3,
+                    total: 6,
+                    truncated: true
+                })
+            );
+            assert_eq!(&out[..3], b"abc");
+            assert_eq!(&out[3..], &[0x55; 5]);
+            assert_eq!(
+                e.read_history_prefix(3, 1, &mut out),
+                Ok(HistoryPrefix {
+                    copied: 6,
+                    total: 6,
+                    truncated: false
+                })
+            );
+            assert_eq!(&out[..6], "abc€".as_bytes());
+            assert_eq!(
+                e.read_history_prefix(3, 1, &mut []),
+                Ok(HistoryPrefix {
+                    copied: 0,
+                    total: 6,
+                    truncated: true
+                })
+            );
+            assert_eq!(e.restore_history(3, 1), Err(Error::ReadOnly));
+        })
+    });
+}
+
+#[test]
+fn history_prefix_rejects_invalid_utf8_even_after_the_visible_prefix() {
+    run(|| {
+        library_case(EditMode::ReadWrite, |host, e| {
+            let mut binary = [b'a'; 500];
+            binary[499] = 0xff;
+            host.borrow_mut().seed(0, &binary);
+            e.open(0).unwrap();
+            e.replace_contents(b"current").unwrap();
+            e.save().unwrap();
+            let mut out = [0x55; 8];
+            assert_eq!(
+                e.read_history_prefix(3, 1, &mut out),
+                Err(Error::InvalidUtf8)
+            );
+            assert_eq!(out, [0x55; 8]);
+            assert!(!e.is_closed()); // Binary content is not a protocol violation.
+            let mut raw = [0; 500];
+            assert_eq!(e.read_history(3, 1, &mut raw), Ok(500));
+            assert_eq!(raw, binary); // Existing opaque-byte API is unchanged.
+            assert_eq!(e.draft().unwrap().contents, b"current");
+        })
+    });
+}
+
+#[test]
+fn history_prefix_tail_errors_and_timeouts_never_publish_partial_output() {
+    run(|| {
+        for fault in [Fault::ShortRead, Fault::CorruptLateRead, Fault::DropRead] {
+            library_case(EditMode::ReadWrite, |host, e| {
+                host.borrow_mut().seed(0, &[b'a'; 500]);
+                e.open(0).unwrap();
+                e.replace_contents(b"current").unwrap();
+                e.save().unwrap();
+                host.borrow_mut().fault = fault;
+                let mut out = [0x55; 8];
+                let error = e.read_history_prefix(3, 1, &mut out).unwrap_err();
+                match fault {
+                    Fault::ShortRead => assert_eq!(error, Error::Service(Status::Access)),
+                    Fault::CorruptLateRead => assert!(matches!(error, Error::Protocol { .. })),
+                    Fault::DropRead => assert!(matches!(
+                        error,
+                        Error::Interrupted {
+                            delivery: Delivery::Enqueued,
+                            ..
+                        }
+                    )),
+                    _ => unreachable!(),
+                }
+                assert_eq!(out, [0x55; 8]);
+                assert_eq!(e.draft().unwrap().contents, b"current");
+                assert_eq!(e.draft().unwrap().loaded_revision, 3);
+                assert!(!e.is_uncertain());
+                assert_eq!(host.borrow().service.table().entries[0].revision, 3);
+            });
+        }
+    });
+}
+
+#[test]
+fn history_prefix_stale_revision_or_busy_upload_preserves_output() {
+    run(|| {
+        library_case(EditMode::ReadWrite, |host, e| {
+            e.replace_contents(b"second").unwrap();
+            e.save().unwrap();
+            let mut out = [0x55; 8];
+            e.replace_contents(b"draft").unwrap();
+            e.begin_save().unwrap();
+            assert_eq!(e.read_history_prefix(2, 1, &mut out), Err(Error::Busy));
+            e.cancel_save().unwrap();
+            host.borrow_mut().seed(0, b"third");
+            assert_eq!(e.read_history_prefix(2, 1, &mut out), Err(Error::Conflict));
+            assert_eq!(out, [0x55; 8]);
+            assert_eq!(e.draft().unwrap().contents, b"draft");
+            assert!(e.is_conflicted());
         })
     });
 }

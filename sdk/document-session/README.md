@@ -20,6 +20,7 @@ zonder extra endpoint, wireoperatie, opslagformaat of bevoegdheid:
 | `update_collection(index, expected, name)` | Maakt/hernoemt met revisie-CAS; een lege naam verwijdert alleen een lege collectie. |
 | `set_metadata(expected_revision, tags, kind, collection)` | Wijzigt metadata van het geladen document; `0` betekent geen collectie. Een geldige ACK werkt de geladen revisie bij en behoudt naam en inhoud. |
 | `read_history(expected_revision, selector, out)` | Leest historie `1..=2` gebonden aan de huidige objectrevisie. Verifieert alle delen en de checksum vóór wijziging van `out`; behoudt ook een vuil concept. |
+| `read_history_prefix(expected_revision, selector, out)` | Verifieert de **hele** historische tekst in de bestaande stagingbuffer en kopieert daarna een UTF-8-veilige prefix. `HistoryPrefix { copied, total, truncated }` maakt de presentatiegrens expliciet. Geen extra documentbuffer. |
 | `restore_history(expected_revision, selector)` | Herstelt als **nieuwe** revisie, behoudt de vervangen versie in de historie en laadt exact de bevestigde nieuwe revisie. |
 | `rename_draft(name)` + expliciet `save()` | Past de lokale titel aan; alleen bewaren publiceert de nieuwe naam samen met de inhoud. |
 
@@ -28,6 +29,11 @@ conflict of onzekere uitkomst. Lezen blijft mogelijk met `ReadOnly`; die lokale
 modus verleent geen capability. Selectie, lijstfilters en historiepreview
 schrijven niets. De bestaande dienst bewaakt onder meer CAS, domeinen, quota,
 collectielidmaatschap en verwijdering van uitsluitend lege collecties.
+Een verkorte tekstpreview is dus geen gedeeltelijk geverifieerde versie. De UI
+moet `truncated` zichtbaar uitleggen; de afzonderlijke herstelactie gebruikt
+nog steeds de volledige versie en de actuele revisievoorwaarde. Niet-UTF-8-
+historie geeft bij de tekstpreview `InvalidUtf8`, ook bij ongeldige bytes na de
+getoonde prefix. De bestaande `read_history` blijft een opaque-byte-API.
 
 Een verloren, misvormd of niet vertrouwd mutatieantwoord sluit de verbinding
 en kan `is_uncertain()` zetten; de client probeert nooit automatisch opnieuw.

@@ -49,6 +49,7 @@ pub enum Error {
     ReadOnly,
     ContentTooLarge,
     InvalidRange,
+    InvalidUtf8,
     Busy,
     Conflict,
     Uncertain,
@@ -408,6 +409,15 @@ pub struct Draft<'a> {
     pub loaded_revision: u64,
     pub name: &'a [u8],
     pub contents: &'a [u8],
+}
+
+/// A text preview verified against the entire retained version. `copied`
+/// always ends on a UTF-8 character boundary; truncation is never implicit.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct HistoryPrefix {
+    pub copied: usize,
+    pub total: usize,
+    pub truncated: bool,
 }
 
 #[derive(Clone, Copy)]
@@ -840,11 +850,47 @@ impl<'a, T: Transport> DocumentSession<'a, T> {
         selector: usize,
         out: &mut [u8],
     ) -> Result<usize, Error> {
+        let info = self.load_history(expected_revision, selector, out.len())?;
+        out[..info.length].copy_from_slice(&self.buffers.staging[..info.length]);
+        Ok(info.length)
+    }
+
+    /// Verify the entire historical version using the existing staging
+    /// buffer, then copy a UTF-8-safe prefix. No output byte changes on any
+    /// failure, including malformed UTF-8 beyond the displayed prefix. This
+    /// does not write, select a new current version or discard a dirty draft.
+    pub fn read_history_prefix(
+        &mut self,
+        expected_revision: u64,
+        selector: usize,
+        out: &mut [u8],
+    ) -> Result<HistoryPrefix, Error> {
+        let info = self.load_history(expected_revision, selector, usize::MAX)?;
+        let text = core::str::from_utf8(&self.buffers.staging[..info.length])
+            .map_err(|_| Error::InvalidUtf8)?;
+        let mut copied = out.len().min(info.length);
+        while !text.is_char_boundary(copied) {
+            copied -= 1;
+        }
+        out[..copied].copy_from_slice(&self.buffers.staging[..copied]);
+        Ok(HistoryPrefix {
+            copied,
+            total: info.length,
+            truncated: copied < info.length,
+        })
+    }
+
+    fn load_history(
+        &mut self,
+        expected_revision: u64,
+        selector: usize,
+        output_limit: usize,
+    ) -> Result<HistoryInfo, Error> {
         self.available()?;
         self.idle()?;
         let stat = self.history_stat(expected_revision, selector)?;
         let info = stat.history[selector - 1];
-        if info.length > self.buffers.staging.len() || info.length > out.len() {
+        if info.length > self.buffers.staging.len() || info.length > output_limit {
             return Err(Error::ContentTooLarge);
         }
         let object = self.loaded.unwrap().object;
@@ -863,8 +909,7 @@ impl<'a, T: Transport> DocumentSession<'a, T> {
         {
             return Err(self.session.protocol());
         }
-        out[..info.length].copy_from_slice(&self.buffers.staging[..info.length]);
-        Ok(info.length)
+        Ok(info)
     }
 
     /// Restore history as a new durable revision, then load that exact
