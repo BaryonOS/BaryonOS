@@ -1,0 +1,166 @@
+name: Native Materiaal probe acceptance
+
+# Separate workflow instead of a second job in native-display-input.yml:
+# - its concurrency group (cancel-in-progress), check name and evidence
+#   artifact stay independent of the existing display/input gate;
+# - it builds a different paired image (native-system-materiaal-probe, eight
+#   CPL3 programs) from a different locked-manifest set and needs its own
+#   clean NOS_BUILD_DIR/NOS_TARGET_DIR;
+# - the existing acceptance workflow and its recorded job/artifact names stay
+#   byte-for-byte unchanged.
+# Scope: the "normal" case of tools/run_materiaal_probe.py only (real QMP
+# keys/mouse, exact pixel checks, plaintext fixture volume). No keyboard or
+# recover case, no FR, physical-hardware or human acceptance.
+
+# Measurement mode (manual) for now. A second local run on the integration
+# branch (2 November 2026, 4 vCPU Xeon @ 2.80 GHz, QEMU 8.2.2) hit the guest
+# watchdog after 208 s in phase 5 of 6, with the same tile counts as the
+# passing 178.8 s run: the ~200 s guest limit leaves no reliable margin on
+# slower CPUs. Promote to pull_request/push only after several measured
+# GitHub runs pass with margin, or after an explicit decision on the probe's
+# watchdog. No automatic retry or continue-on-error: that would hide timing.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: materiaal-probe-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  materiaal-probe:
+    runs-on: ubuntu-24.04
+    # Bounded but generous. Two VM limits apply, and the guest one fires
+    # first: the probe kernel's watchdog fails after 20,000 PIT ticks at
+    # ~100 Hz, about 200 s of guest time (kernel/src/m2/m3/desktop.rs, prints
+    # MATERIAAL:TIMEOUT_SLOT / MATERIAAL:FAIL:TIMEOUT); run_materiaal_probe.py
+    # also caps the host wait at 240 s. Local evidence: 178.8 s with sparse
+    # frames, so the margin is only ~15 % (one run). The remainder of this
+    # budget is apt/rustup setup and one cold release build.
+    timeout-minutes: 40
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/materiaal-probe-ci
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/materiaal-probe-ci
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/materiaal-probe-ci-host
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+      VGA_ROM: /usr/share/seabios/vgabios-stdvga.bin
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Rust, lint tools and real targets
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal
+          rustup component add --toolchain 1.90.0 rustfmt clippy
+          rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+      - name: Cache Cargo downloads only
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+          key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Disposable QEMU and explicit OVMF/VGA firmware
+        # The VGA ROM hash is logged, not pinned: the runner's seabios package
+        # may legitimately differ from the Ubuntu package used for the local
+        # evidence (docs/verification/sparse-frames-117), and a pinned hash
+        # would then fail before boot without saying anything about the OS.
+        # dpkg-query records the package version, this log records the hash,
+        # and the probe binds the exact ROM it copied in result.json
+        # (frozen_artifacts["VGA.rom"]), so the input stays verifiable.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf seabios
+          test -f "$OS_OVMF_CODE"
+          test -f "$OS_OVMF_VARS"
+          test -f "$VGA_ROM"
+          mkdir -p "$NOS_BUILD_DIR/logs"
+          dpkg-query -W qemu-system-x86 ovmf seabios > "$NOS_BUILD_DIR/logs/ci-packages.txt"
+          sha256sum "$VGA_ROM" "$OS_OVMF_CODE" "$OS_OVMF_VARS" | tee "$NOS_BUILD_DIR/logs/firmware-sha256.txt"
+          qemu-system-x86_64 --version | tee "$NOS_BUILD_DIR/logs/qemu-version.txt"
+          # TCG with thread=single: per-core speed decides the timing margin.
+          { nproc; lscpu; } | tee "$NOS_BUILD_DIR/logs/runner-cpu.txt"
+      - name: Strict preflight
+        run: python3 -B tools/preflight.py --strict | tee "$NOS_BUILD_DIR/logs/preflight.json"
+      - name: Fetch locked dependencies before offline component and native builds
+        # Exactly the manifests the Materiaal chain builds: the root kernel/
+        # loader workspace, the SDK workspace (keyring-service, volume-service)
+        # and the four standalone desktop examples.
+        run: |
+          cargo +1.90.0 fetch --locked
+          for manifest in \
+            sdk/Cargo.toml \
+            sdk/examples/desktop-init/Cargo.toml \
+            sdk/examples/materiaal/Cargo.toml \
+            sdk/examples/compositor/Cargo.toml \
+            sdk/examples/input-service/Cargo.toml
+          do
+            cargo +1.90.0 fetch --locked --manifest-path "$manifest"
+          done
+      - name: Materiaal evidence-gate counterexamples
+        # Host-only, mocked QEMU: proves the runner rejects forged evidence,
+        # not that the guest works.
+        run: python3 -B tools/tests/test_materiaal_probe.py 2>&1 | tee "$NOS_BUILD_DIR/logs/materiaal-gate-host.txt"
+      - name: Build the paired native Materiaal probe image once
+        # No native image/report cache: kernel, loader and all eight embedded
+        # CPL3 programs come from this one existing builder. The component
+        # builds already pass --offline; CARGO_NET_OFFLINE also keeps the
+        # kernel/loader build on the fetched, locked set.
+        env:
+          CARGO_NET_OFFLINE: "true"
+        run: python3 -B -u tools/build.py --kernel-feature native-system-materiaal-probe 2>&1 | tee "$NOS_BUILD_DIR/logs/materiaal-build.txt"
+      - name: Actual QMP keys, mouse and exact pixels for the Materiaal chain
+        # Outer bound for a hung host harness; inside, the guest watchdog
+        # (~200 s) and the host cap (240 s) bound the VM.
+        timeout-minutes: 10
+        run: |
+          python3 -B -u tools/run_materiaal_probe.py \
+            --case normal \
+            --build-dir "$NOS_BUILD_DIR" \
+            --machine "$NOS_QEMU_MACHINE" \
+            --qmp-transport pipe \
+            --vga-rom "$VGA_ROM" \
+            --timeout 240 \
+            2>&1 | tee "$NOS_BUILD_DIR/logs/materiaal-probe-native.txt"
+      - name: Preserve clean tracked sources and standalone output paths
+        run: |
+          git diff --exit-code
+          git status --porcelain
+          test -z "$(git status --porcelain)"
+      - name: Probe timing summary (diagnostics, not evidence)
+        # Makes a timing failure distinguishable from a functional one without
+        # downloading the artifact. Never changes the job result.
+        if: ${{ always() }}
+        run: |
+          python3 -B - <<'PY' >> "$GITHUB_STEP_SUMMARY" || true
+          import json, os, pathlib
+          path = pathlib.Path(os.environ["NOS_BUILD_DIR"]) / "materiaal-probe-report.json"
+          print("### Materiaal probe (diagnostics, not evidence)")
+          print("Limits: guest watchdog ~200 s (20,000 PIT ticks), host cap 240 s.")
+          try:
+              report = json.loads(path.read_text())
+          except (OSError, ValueError) as error:
+              print(f"No readable report: {type(error).__name__}")
+          else:
+              for key in ("passed", "stage", "raw_qemu_exit", "duration_s", "timeout_s",
+                          "timed_out", "guest_timeout", "error"):
+                  if key in report:
+                      print(f"- {key}: {report[key]}")
+          PY
+      - name: Preserve bound inputs, raw frames and failure reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: materiaal-probe-evidence
+          path: build/materiaal-probe-ci/
+          if-no-files-found: error
+          retention-days: 14

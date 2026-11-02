@@ -4,8 +4,9 @@
 Nieuw OS; bestaande NOSVOL02-controles slagen, hostherstel levert afzonderlijke
 positieve resultaten én concrete beperkingen.**
 
-Datum: 2 november 2026, Europe/Amsterdam. Geteste broncommit:
-`e08fb0e48c1bb0781e98357f588c2f73b6ae8500`. De kernel en drivers zijn niet
+Datum: 2 november 2026, Europe/Amsterdam. Eerste broncommit:
+`e08fb0e48c1bb0781e98357f588c2f73b6ae8500`; bevestigende herproef op actuele
+main `74a34d05ef5591b782a0da9da34e4669910d0722`. De kernel en drivers zijn niet
 gewijzigd. Dit bewijs betreft uitsluitend synthetische regular-file-images,
 opnieuw gebouwde eigen-kernelbinaries, koude QEMU-boots en bestaande offline
 hostengines. Geen fysieke schijven, kernelmodules of systeemwijde installaties.
@@ -66,6 +67,27 @@ De OpenZFS-proef bood één lid van een twee-bestandsmirror aan de bestaande
 single-devicebroker aan. Die proef bewijst omgang met vreemde bytes, geen
 native multi-vdevimport. De hostpool bevat DMU-testobjectsets, geen normale
 ZPL-bestandsboom. Native map-/bestandsherstel is voor deze input niet getest.
+
+## Herproef na nieuwe main-integratie
+
+Tijdens afronding bevatte remote main integratie #125. De bewijsbranch heeft
+alle upstreaminhoud behouden en uitsluitend documentatieconflicten opgelost.
+De vier native proeven zijn opnieuw uitgevoerd op een aparte schone source-
+worktree van `74a34d05ef5591b782a0da9da34e4669910d0722`, met opnieuw gebouwde
+binaries en fingerprint
+`8fd739dd015b9d01908ccc0e385f5b584985cade44702f6e6662483f4be0b6d3`.
+
+Normal en cold recover slagen opnieuw (exit 33, 62,72 s en 32,52 s).
+Btrfs herhaalt de nul-header/appstap-20-uitkomst; het OpenZFS-mirrorlid wordt
+weer met Corrupt (-18) geweigerd (beide exit 35). Geen timeout; bronworktree
+voor/na schoon; bron- en proefimagehashes onveranderd. De eigen eindimage en
+koude kopie zijn exact gelijk, generatie 84 en beide domeindigests matchen.
+
+Dit zijn **acht echte VM-runs over twee bronversies**. De oorspronkelijke
+bewijzen zijn niet herlabeld of vervangen. [Actuele native samenvatting](native-current/N1-result.json)
+en [uitvoering](native-current/README.md) bewaren de tweede bewijsset. Hosttools,
+hostimages en de begrensde hostconclusies zijn ongewijzigd. De PR-diff ten
+opzichte van de nieuwe main bevat geen runtimebron- of driverwijziging.
 
 ## Btrfs: offline herstel en corruptie
 

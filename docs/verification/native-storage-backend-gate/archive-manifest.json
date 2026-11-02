@@ -1,23 +1,30 @@
 [
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\task-contract.json",
-    "source_sha256": "d03c0d313f8937e21f08687dbd453eba2f1b9f9f9d4ee19575c1ff1db753cc90",
+    "source_sha256": "d98c099935fe9a16ad0a2691ac6f9890f8aba62d2a8f7051c0124c54eb0340bd",
     "archive": "task-contract.json",
-    "archive_sha256": "d03c0d313f8937e21f08687dbd453eba2f1b9f9f9d4ee19575c1ff1db753cc90",
+    "archive_sha256": "d98c099935fe9a16ad0a2691ac6f9890f8aba62d2a8f7051c0124c54eb0340bd",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\verification.json",
-    "source_sha256": "b46682f3393045e09028181623e978eda1791b291c18124c073fe3d29272b3cd",
+    "source_sha256": "3192407802d80ac940fe15694c53363e8cd0393b3990a9e060522ce98ac40189",
     "archive": "verification.json",
-    "archive_sha256": "b46682f3393045e09028181623e978eda1791b291c18124c073fe3d29272b3cd",
+    "archive_sha256": "3192407802d80ac940fe15694c53363e8cd0393b3990a9e060522ce98ac40189",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\verify_evidence.py",
-    "source_sha256": "eb25fc4690ad281809a2b391458c1868e48f3ecad2d8b7b1c7b170e386d4911f",
+    "source_sha256": "bdd5d84fce52d9d38fd1bd2a7e5ed248cd38842581151ec14b539202d2ca1acc",
     "archive": "verify_evidence.py",
-    "archive_sha256": "eb25fc4690ad281809a2b391458c1868e48f3ecad2d8b7b1c7b170e386d4911f",
+    "archive_sha256": "bdd5d84fce52d9d38fd1bd2a7e5ed248cd38842581151ec14b539202d2ca1acc",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current-source-scan.json",
+    "source_sha256": "d5c628b0c3d49280efd88a0f4f056f791e6d52853c36abeab1187822a3b11257",
+    "archive": "native-current-source-scan.json",
+    "archive_sha256": "d5c628b0c3d49280efd88a0f4f056f791e6d52853c36abeab1187822a3b11257",
     "reduction": "none"
   },
   {
@@ -290,6 +297,167 @@
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\builds\\test-volume-recover\\build.stderr.txt",
     "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "archive": "native/builds/test-volume-recover/build.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\N1-result.json",
+    "source_sha256": "29536dc933d47d7f13237a5f084bd023a12831578fa10f40f4330d8ddfde8163",
+    "archive": "native-current/N1-result.json",
+    "archive_sha256": "29536dc933d47d7f13237a5f084bd023a12831578fa10f40f4330d8ddfde8163",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\README.md",
+    "source_sha256": "960f4276a9f3d6d0903d16c2f96e596fccd7fe7df17b914d7371ac50f88caa6e",
+    "archive": "native-current/README.md",
+    "archive_sha256": "960f4276a9f3d6d0903d16c2f96e596fccd7fe7df17b914d7371ac50f88caa6e",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\native_probe.py",
+    "source_sha256": "288787eb58bc38642f35358987ed35e572619905590f102ca4fb677e0ff9e652",
+    "archive": "native-current/native_probe.py",
+    "archive_sha256": "288787eb58bc38642f35358987ed35e572619905590f102ca4fb677e0ff9e652",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\runs\\control-normal\\result.json",
+    "source_sha256": "33bee4c676041269b1661fefc98cd3eda608b3fb2b0ac6627941f151b54b4727",
+    "archive": "native-current/runs/control-normal/result.json",
+    "archive_sha256": "33bee4c676041269b1661fefc98cd3eda608b3fb2b0ac6627941f151b54b4727",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\runs\\control-normal\\serial.txt",
+    "source_sha256": "11f51ecd05ca3fcd063d97fc4683a1e4cf1b61c6ea3d87a98101e4db0a5c9319",
+    "archive": "native-current/runs/control-normal/serial.txt",
+    "archive_sha256": "11f51ecd05ca3fcd063d97fc4683a1e4cf1b61c6ea3d87a98101e4db0a5c9319",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\runs\\control-normal\\stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "native-current/runs/control-normal/stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\runs\\control-recover\\result.json",
+    "source_sha256": "e96b07d30a65e05bf79f5b0a65cad2dd9088a69ddcdf71f72149e10ea5cdf47f",
+    "archive": "native-current/runs/control-recover/result.json",
+    "archive_sha256": "e96b07d30a65e05bf79f5b0a65cad2dd9088a69ddcdf71f72149e10ea5cdf47f",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\runs\\control-recover\\serial.txt",
+    "source_sha256": "459b32eb34f4f3f7dd6225c6a346e05c00b412adf312cfa8f42b62b3673dabb7",
+    "archive": "native-current/runs/control-recover/serial.txt",
+    "archive_sha256": "459b32eb34f4f3f7dd6225c6a346e05c00b412adf312cfa8f42b62b3673dabb7",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\runs\\control-recover\\stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "native-current/runs/control-recover/stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\runs\\btrfs-readonly\\result.json",
+    "source_sha256": "cb928a2a7eb3dbbbb4b9b333a6eadd45bef4c9a1390565853080c25e03f5a0fd",
+    "archive": "native-current/runs/btrfs-readonly/result.json",
+    "archive_sha256": "cb928a2a7eb3dbbbb4b9b333a6eadd45bef4c9a1390565853080c25e03f5a0fd",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\runs\\btrfs-readonly\\serial.txt",
+    "source_sha256": "30d86ff924c775d458229bd8b6e0122f7247b0771879b6bd86459345b58e5e04",
+    "archive": "native-current/runs/btrfs-readonly/serial.txt",
+    "archive_sha256": "30d86ff924c775d458229bd8b6e0122f7247b0771879b6bd86459345b58e5e04",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\runs\\btrfs-readonly\\stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "native-current/runs/btrfs-readonly/stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\runs\\openzfs-leaf-readonly\\result.json",
+    "source_sha256": "88920ce3977fa2b835673b719315e829df458282d7d54ed1231d228ec96daa63",
+    "archive": "native-current/runs/openzfs-leaf-readonly/result.json",
+    "archive_sha256": "88920ce3977fa2b835673b719315e829df458282d7d54ed1231d228ec96daa63",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\runs\\openzfs-leaf-readonly\\serial.txt",
+    "source_sha256": "8a42c0029ae46f277bd03e75ddb09f2cfedca878d25feef19bf19be6a2dec8ef",
+    "archive": "native-current/runs/openzfs-leaf-readonly/serial.txt",
+    "archive_sha256": "8a42c0029ae46f277bd03e75ddb09f2cfedca878d25feef19bf19be6a2dec8ef",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\runs\\openzfs-leaf-readonly\\stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "native-current/runs/openzfs-leaf-readonly/stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\builds\\native-volume\\build-invocation.json",
+    "source_sha256": "aefefcacd50c8ae34e13230b46d1c4a69afe817dfab6c0790bba06c5499e7cec",
+    "archive": "native-current/builds/native-volume/build-invocation.json",
+    "archive_sha256": "aefefcacd50c8ae34e13230b46d1c4a69afe817dfab6c0790bba06c5499e7cec",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\builds\\native-volume\\manifest.json",
+    "source_sha256": "7ff689c1c11ee655b19ba90dc7eef02d645e4c32b4ad32c03f9babd6dac4fa45",
+    "archive": "native-current/builds/native-volume/manifest.json",
+    "archive_sha256": "7ff689c1c11ee655b19ba90dc7eef02d645e4c32b4ad32c03f9babd6dac4fa45",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\builds\\native-volume\\build.stdout.txt",
+    "source_sha256": "b0c3270df53b9771168720c96e4b6b088236268c26cc6d2c7d1c8879409ffddd",
+    "archive": "native-current/builds/native-volume/build.stdout.txt",
+    "archive_sha256": "b0c3270df53b9771168720c96e4b6b088236268c26cc6d2c7d1c8879409ffddd",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\builds\\native-volume\\build.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "native-current/builds/native-volume/build.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\builds\\test-volume-recover\\build-invocation.json",
+    "source_sha256": "c998375bf858b3b5d6d70d9dde1bca72648a0292858a279158f65466fd6ed8ef",
+    "archive": "native-current/builds/test-volume-recover/build-invocation.json",
+    "archive_sha256": "c998375bf858b3b5d6d70d9dde1bca72648a0292858a279158f65466fd6ed8ef",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\builds\\test-volume-recover\\manifest.json",
+    "source_sha256": "6ee1791c7818cbbe8b185fc1ce3fa37fc3027a6703a3086e143c9617c919685a",
+    "archive": "native-current/builds/test-volume-recover/manifest.json",
+    "archive_sha256": "6ee1791c7818cbbe8b185fc1ce3fa37fc3027a6703a3086e143c9617c919685a",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\builds\\test-volume-recover\\build.stdout.txt",
+    "source_sha256": "eedf5c81bcbd54141a8db266543093d7d18baab4ca9651adf81b4643ed5703d9",
+    "archive": "native-current/builds/test-volume-recover/build.stdout.txt",
+    "archive_sha256": "eedf5c81bcbd54141a8db266543093d7d18baab4ca9651adf81b4643ed5703d9",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\builds\\test-volume-recover\\build.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "native-current/builds/test-volume-recover/build.stderr.txt",
     "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "reduction": "none"
   },

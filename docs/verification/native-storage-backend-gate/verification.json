@@ -42,6 +42,26 @@
       "check": "OpenZFS artifact hashes and negative oracle",
       "matching_hashes": 84,
       "native_and_file_recovery_accepted": false
+    },
+    {
+      "check": "current-main/control-normal",
+      "raw_qemu_exit": 33,
+      "hash_and_scope_verified": true
+    },
+    {
+      "check": "current-main/control-recover",
+      "raw_qemu_exit": 33,
+      "hash_and_scope_verified": true
+    },
+    {
+      "check": "current-main/btrfs-readonly",
+      "raw_qemu_exit": 35,
+      "hash_and_scope_verified": true
+    },
+    {
+      "check": "current-main/openzfs-leaf-readonly",
+      "raw_qemu_exit": 35,
+      "hash_and_scope_verified": true
     }
   ],
   "all_checks_passed": true

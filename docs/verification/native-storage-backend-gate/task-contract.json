@@ -31,5 +31,7 @@
     "evidence": "Exact argv, tool/package versions, exit codes, stdout/stderr, mutation details, source and artifact hashes",
     "failure_reporting": "Expected negative test success is distinct from filesystem adoption; blocked or unrun cases remain explicit"
   },
-  "runtime_exception": "OpenZFS ztest may create its standard /tmp/ztest.data.XXXXXX mkstemp and immediately unlink it; pools remain in its assigned disposable directory."
+  "runtime_exception": "OpenZFS ztest may create its standard /tmp/ztest.data.XXXXXX mkstemp and immediately unlink it; pools remain in its assigned disposable directory.",
+  "confirmation_source_commit": "74a34d05ef5591b782a0da9da34e4669910d0722",
+  "confirmation_scope": "Four additional native runs after new upstream integration; original evidence retained unchanged."
 }

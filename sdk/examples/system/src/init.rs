@@ -10,6 +10,7 @@ mod protocol;
 mod support;
 use keyring_core::{
     persistent::{SnapshotInfo, PERSISTENT_BLOB},
+    random::clear_bytes,
     wire as kw, Status as KeyStatus, SECRET_BYTES,
 };
 use nieuw_os_sdk_runtime::{
@@ -41,9 +42,12 @@ struct KeyAdmin {
 }
 
 impl KeyAdmin {
-    fn call(&mut self, request: &[u8; kw::SIZE], expected: KeyStatus) -> [u8; kw::SIZE] {
+    /// One administrative exchange. This caller-owned request copy holding the
+    /// secret is wiped afterwards; the SDK wipes its own envelopes on drop.
+    fn call(&mut self, request: &mut [u8; kw::SIZE], expected: KeyStatus) -> [u8; kw::SIZE] {
         let sent = kw::Header::decode(request).unwrap_or_else(|| fail(30));
         let reply = exchange(self.send, self.receive, self.peer, kw::TAG, request);
+        clear_bytes(request);
         let header = kw::Header::decode(&reply).unwrap_or_else(|| fail(31));
         check(
             header.op == (sent.op | kw::REPLY)
@@ -63,9 +67,9 @@ impl KeyAdmin {
 
     fn export(&mut self) -> ([u8; PERSISTENT_BLOB], SnapshotInfo) {
         let id = self.id();
-        let request = kw::export_persistent_request(id, &VOLUME_ID, &RECOVERY_SECRET)
+        let mut request = kw::export_persistent_request(id, &VOLUME_ID, &RECOVERY_SECRET)
             .unwrap_or_else(|| fail(34));
-        let reply = self.call(&request, KeyStatus::Ok);
+        let reply = self.call(&mut request, KeyStatus::Ok);
         let header = kw::Header::decode(&reply).unwrap_or_else(|| fail(34));
         check(
             usize::from(header.length) == kw::EXPORT_PERSISTENT_REPLY,
@@ -89,10 +93,10 @@ impl KeyAdmin {
         expected: KeyStatus,
     ) -> Option<SnapshotInfo> {
         let id = self.id();
-        let request =
+        let mut request =
             kw::restore_persistent_request(id, &VOLUME_ID, secret, minimum_generation, blob)
                 .unwrap_or_else(|| fail(36));
-        let reply = self.call(&request, expected);
+        let reply = self.call(&mut request, expected);
         if expected != KeyStatus::Ok {
             return None;
         }
@@ -108,8 +112,8 @@ impl KeyAdmin {
     /// sent there is refused before any state changes.
     fn legacy_denied(&mut self) {
         let id = self.id();
-        let request = kw::request(kw::GENERATE, 0, id, &[]).unwrap_or_else(|| fail(38));
-        self.call(&request, KeyStatus::Invalid);
+        let mut request = kw::request(kw::GENERATE, 0, id, &[]).unwrap_or_else(|| fail(38));
+        self.call(&mut request, KeyStatus::Invalid);
         bump(EV_ADMIN_OP_DENIED);
     }
 
@@ -117,6 +121,7 @@ impl KeyAdmin {
         let mut wrong = RECOVERY_SECRET;
         wrong[0] ^= 1;
         self.restore(&wrong, 0, blob, KeyStatus::Auth);
+        clear_bytes(&mut wrong);
         bump(EV_WRONG_SECRET_DENIED);
         // An independently trusted generation floor above the snapshot refuses
         // an authentic but stale snapshot. This profile has no such anchor on

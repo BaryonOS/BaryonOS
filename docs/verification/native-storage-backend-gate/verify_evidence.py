@@ -62,6 +62,11 @@ def main():
             assert result["raw_qemu_exit"] == 33
             assert result["control_passed"] is True
         assert digest(ROOT / f"native/runs/{label}/data.img") == result["probe_image_sha256_after"]
+        build = read(f"native/builds/{result['profile']}/manifest.json")
+        assert result["kernel_sha256"] == build["kernel"]["sha256"]
+        assert result["loader_sha256"] == build["loader"]["sha256"]
+        assert digest(ROOT / f"native/runs/{label}/esp/kernel.elf") == result["kernel_sha256"]
+        assert digest(ROOT / f"native/runs/{label}/esp/EFI/BOOT/BOOTX64.EFI") == result["loader_sha256"]
         checks.append({"check": label, "raw_qemu_exit": result["raw_qemu_exit"], "hash_and_scope_verified": True})
     assert results["control-normal"]["probe_image_sha256_after"] == results["control-recover"]["probe_image_sha256_before"]
     n1 = read("native/N1-result.json")
@@ -89,6 +94,34 @@ def main():
         zcount += 1
     checks.append({"check": "OpenZFS artifact hashes and negative oracle", "matching_hashes": zcount,
                    "native_and_file_recovery_accepted": False})
+    current_results = {}
+    for label in ("control-normal", "control-recover", "btrfs-readonly", "openzfs-leaf-readonly"):
+        result = read(f"native-current/runs/{label}/result.json")
+        current_results[label] = result
+        assert result["source"]["head"] == "74a34d05ef5591b782a0da9da34e4669910d0722"
+        assert result["source_unchanged"] is True
+        assert result["timed_out"] is False
+        assert result["command"][result["command"].index("-nic") + 1] == "none"
+        if "readonly" in label:
+            assert result["raw_qemu_exit"] == 35
+            assert result["data_disk_read_only"] is True
+            assert result["source_image_unchanged"] is True
+            assert result["probe_image_unchanged"] is True
+            assert digest(Path(result["source_image"])) == result["source_image_sha256_after"]
+        else:
+            assert result["raw_qemu_exit"] == 33 and result["control_passed"] is True
+        assert digest(ROOT / f"native-current/runs/{label}/data.img") == result["probe_image_sha256_after"]
+        build = read(f"native-current/builds/{result['profile']}/manifest.json")
+        assert result["kernel_sha256"] == build["kernel"]["sha256"]
+        assert result["loader_sha256"] == build["loader"]["sha256"]
+        assert digest(ROOT / f"native-current/runs/{label}/esp/kernel.elf") == result["kernel_sha256"]
+        assert digest(ROOT / f"native-current/runs/{label}/esp/EFI/BOOT/BOOTX64.EFI") == result["loader_sha256"]
+        checks.append({"check": "current-main/" + label, "raw_qemu_exit": result["raw_qemu_exit"],
+                       "hash_and_scope_verified": True})
+    assert current_results["control-normal"]["probe_image_sha256_after"] == current_results["control-recover"]["probe_image_sha256_before"]
+    current_summary = read("native-current/N1-result.json")
+    assert current_summary["native_existing_volume_controls_passed"] is True
+    assert current_summary["native_backend_adoption_gate_passed"] is False
     report = {"kind": "evidence-integrity-check", "filesystem_acceptance": False,
               "checks": checks, "all_checks_passed": True}
     (ROOT / "verification.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`e08fb0e4`](https://github.com/simonvanieperen/nieuw-os/commit/e08fb0e48c1bb0781e98357f588c2f73b6ae8500) ·
+**Bron:** [`74a34d05`](https://github.com/simonvanieperen/nieuw-os/commit/74a34d05ef5591b782a0da9da34e4669910d0722) ·
 **Ontwikkelbranch:** `codex/native-storage-backend-gate-20261102`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Native backend- en herstelbaarheidstoets Btrfs/OpenZFS met eigen kernel en wegwerpimages.
-34/100 blijft gelijk. Op ongewijzigde eigen-kernelbron slagen NOSVOL02 normal en cold recover; Btrfs en een OpenZFS-mirrorlid tonen geen native backend of bestandsherstel. Vreemde images zijn read-only en bytegelijk gebleven. Btrfs-nulheaders worden in de synthetische proef als leeg toegelaten; hostsalvage toont dat exit 0 geen juiste inhoud of volledige metadata garandeert. OpenZFS-hostpoolimport is beperkt positief; discovery-, crash-orakel- en exportgrenzen blijven expliciet open. Geen engineport, driver-, kernel- of criteriumwijziging; S09 blijft open. Bewijs: docs/verification/native-storage-backend-gate/README.md.
+34/100 blijft gelijk. In acht VM-runs op bron e08fb0e en opnieuw op actuele main 74a34d0 slagen NOSVOL02 normal en cold recover; Btrfs en een OpenZFS-mirrorlid tonen geen native backend of bestandsherstel. Vreemde images zijn read-only en bytegelijk gebleven. Btrfs-nulheaders worden in de synthetische proef als leeg toegelaten; hostsalvage toont dat exit 0 geen juiste inhoud of volledige metadata garandeert. OpenZFS-hostpoolimport is beperkt positief; discovery-, crash-orakel- en exportgrenzen blijven expliciet open. Geen engineport, driver-, kernel- of criteriumwijziging; S09 blijft open. Bewijs: docs/verification/native-storage-backend-gate/README.md.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
