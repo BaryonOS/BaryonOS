@@ -15,14 +15,18 @@ algemene dynamische policy-issuer of netwerkintrekking(N04), fysieke wifi of
 nieuwe syscalls. Een IP/MAC-adres is geen cryptografische peeridentiteit. De
 normale proof gebruikt uitsluitend synthetische packets via de QEMU-testpeer.
 
-De service/SDK/wire hebben respectievelijk5/6/4 gerichte hosttests, inclusief
-twee echte smoltcp-TCP-verbindingen met volle4096B-buffers, herstel en sluiten.
-Strict clippy slaagt voor die drie packages. De volledige kernel1.90-build met
-native Rust1.91.1-service/client-ELFs slaagt. De eerste VM voerde al alle tien
-TCP-scenario's en beide UDP-foutbursts uit; een onjuiste obserververwachting
-over bootstrap-processen blokkeerde daarna de exitgate. Die observer is
-gecorrigeerd; de brongebonden volledige native eindgate staat bij dit
-checkpoint nog open. Dit document kent geen punten toe.
+De service/SDK/wire hebben respectievelijk 7/6/4 gerichte hosttests, inclusief
+twee echte smoltcp-TCP-verbindingen met volle 4096B-buffers, herstel en sluiten.
+Strict clippy slaagt voor die drie packages. De volledige kernel 1.90-build met
+native Rust 1.91.1-service/client-ELFs slaagt. De brongebonden native gate is
+geslaagd op `f152aec0615285065689f0a7e2855e5858fdb350`: drie echte processen,
+tien TCP-scenario's en beide UDP-foutbursts, exit 33 na 8,413 seconden. De tweede
+native gate sluit A's replykanaal tijdens een request; B voltooit daarna zijn
+hele route (A exit tick 32, B tick 470), exit 33 na 7,538 seconden.
+Bronhash `56ed10aade50703e08c8422251e323b4400bf37196320d24befe0b46883bbce8`.
+Het opgeslagen bewijs staat in
+`docs/verification/n01-native-service-20261102/`. Dit document kent geen punten
+toe; de hoofdagent moet de samengevoegde bron opnieuw door de gate halen.
 
 ## Vertrouwensgrens en interfaces
 
@@ -30,14 +34,20 @@ checkpoint nog open. Dit document kent geen punten toe.
   vast SEND-replyendpoint. Onbetrouwbare requests leveren geen PID/replycap.
 - Iedere app mag uitsluitend zijn door bootstrap gekozen IPv4 en vijf TCP-poorten,
   plus één UDP-poort gebruiken. Apps krijgen geen NetworkSource/Entropy.
-- Eén TCP-socket per app,4096B RX/TX, maximaal208B data per IPC. UDP heeft één
- 208B ontvangstslot per app; bij backpressure wordt de oude datagram niet overschreven.
+- Eén TCP-socket per app, 4096B RX/TX, maximaal 208B data per IPC. UDP heeft één
+  208B ontvangstslot per app; bij backpressure wordt de oude datagram niet overschreven.
 - Alle datagrammen zijn onbeschermde transportbytes. Standaard geen listen/server,
   IPv6, IP-fragmentatie, hostsocket of stille fallback.
 - TCP-verbindingtokens zijn generatie+slot en worden altijd tegen de werkelijke
   afzender én service-epoch gecontroleerd. Ze zijn geen zelfstandige capabilities.
 - SDK en service herhalen geen eenmaal gequeue-de IPC-mutatie na een verloren
   antwoord. Een netwerk-TX-slot wordt pas vrijgegeven na de echte NIC-completion.
+- Elke app heeft 12.768 disjuncte, niet hergebruikte lokale TCP-poorten per boot;
+  uitputting geeft alleen die app Status::Exhausted. Geen globale dienstfault.
+- Een permanent verloren appkanaal retireert alleen dat slot. Een reeds
+  gepubliceerde NIC-transmissie blijft leven tot de echte completion; de
+  andere app gaat door. Onherstelbare fouten van het gedeelde device blijven
+  een fout van de netwerkdienst.
 - Serviceverwerking is begrensd: één packetstap en maximaal één request/antwoord
   per app per beurt; een volle antwoordqueue van A blokkeert B niet.
 
@@ -80,7 +90,9 @@ De service verkrijgt8bytes via de echte EntropySource voor de smoltcp-seed;
 geen vaste proefseed als productie-ISN-claim. MAC/ARP geven geen authenticatie.
 
 Appoffset32=NETAPP01,40epoch,48SEND,56RECV,64servicePID,72slot0/1,
-80werkelijke eigenPID,88eigen TCP-startpoort,96eigen UDP-poort. Beide apps
+80werkelijke eigenPID,88eigen TCP-startpoort,96eigen UDP-poort.
+Offset104=1 selecteert uitsluitend de aparte client-uitvalproef voor app A;
+het normale manifest schrijft0. Beide apps
 gebruiken hetzelfde ELF; het echte bootstrap-slot kiest hun eigen testdata.
 
 Optionele controller-tagNETCTL01, payload16B: `NETSTOP1`@0,epochu64@8.
@@ -115,13 +127,14 @@ rawNIC-aanroep met een IPC-handle. Deze laatste weigering verleent geen hardware
 Servicewoorden400ready,408loop,416werkelijkeTXcompletions,424RXframes,
 432requests,440rejected,448UDPgequeued,456UDPontvangen,464TCPopens,
 472TCPsendbytes,480TCPrecvbytes,488closecalls,496retiredmask,504fatal,
-512malformedframes,520UDPdrops,528cleanexit. De native adapter publiceert alle
+512malformedframes,520UDPdrops,528cleanexit,536verloren-appkanaalmasker. De native adapter publiceert alle
 waarden uit werkelijke service-/devicehandelingen. Geen plaintextpayloadlogs.
 
 Appwoorden400ready,408HTTPcomplete(2),416UDPcomplete(1),424scopeDenied(1),
 432staleDenied(≥5),440malformedDenied(1),448sendchunks,456laatsteHTTPresponsebytes,
 464gracefulclose(2),472reopens(4),480rawNICDenied(1),488reset(1),496timeout(1),
-504retransmit(1),512refused(1),528done. Fatalcode staat op240. Root moet deze
+504retransmit(1),512refused(1),528done,536gesloten-replyproef. De kernel schrijft
+ook de daadwerkelijke A/B-exitticks uit. Fatalcode staat op240. Root moet deze
 woorden vóór procescleanup vastleggen, zoals bestaande probes; een dode
 adresruimte mag niet later voor bewijs worden teruggelezen.
 
@@ -142,7 +155,8 @@ cargo +1.90.0 test --offline --locked --manifest-path services/network-service/p
 cargo +1.90.0 test --offline --locked --manifest-path sdk/net-client/Cargo.toml
 cargo +1.91.1 test --offline --locked --manifest-path services/network-service/Cargo.toml
 python3 -B -m unittest discover -s tools -p test_network_service_peer.py
-python3 tools/run_network_service.py
+python3 tools/run_network_service.py --case normal
+python3 tools/run_network_service.py --case client-exit
 ```
 
 `native-net-service` erft alleen bestaande kernelmechanismen; een afzonderlijk
@@ -154,7 +168,8 @@ wegwerp-ESP, virtio-rng en virtio-net met uitsluitend de lokale synthetische
 socketpeer. Geen TAP, brug, hostshare, gewone Internetverbinding of echte disk.
 De kernel bewaart observatiewoorden vóór het generieke procesopruimen en
 controleert capability-/frameopruiming en echte NIC-resetacknowledgement.
-De Python-gate vergelijkt serial, drie procesobservaties, NIC-completions en
+De Python-gate bewaart de oorspronkelijke begrensde stdout/stderr-bytes,
+herleest ze bytegetrouw en decodeert uitsluitend geldige UTF-8. Hij vergelijkt serial, drie procesobservaties, NIC-completions en
 causaal opnieuw afgespeelde echte pakketten. Hij controleert bron-, build-,
 ELF-, firmware-, QEMU- en opgeslagen uitvoerbinding vóór/na uitvoering.
 
