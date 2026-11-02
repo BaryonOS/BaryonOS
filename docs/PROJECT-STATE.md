@@ -2,37 +2,58 @@
 
 ## NEXT AGENT HANDOFF — native sessiepreview en QEMU — 2 november 2026
 
-Bronbasis `e08fb0e48c1bb0781e98357f588c2f73b6ae8500`, branch `codex/session-desktop-vm-20261102`.
-De actuele gebruikersopdracht is een herkenbare gebruikerskeuze → aanmelden →
-bureaublad/taakbalk/zoeken, met behoud van de eigen microkernel en echte
-beveiligingsgrenzen; tevens veilige hardwareversnelling onderzoeken.
+**Implementatie bevroren:** `344dc0afde893784503217ac676e154b13662507`,
+branch `codex/session-desktop-vm-20261102`, concept-PR #121. Bronbasis
+`e08fb0e48c1bb0781e98357f588c2f73b6ae8500`. Latere commits bevatten uitsluitend
+bewijs/documentatie; source-v3 blijft
+`05b047819f1c1cddce6868034ab2208d8a35a95d9f974860afb8bbc53eeb8658`.
+De bestaande andere integrator blijft eigenaar van merges; deze PR is niet gemerged.
 
-Geïmplementeerd: opt-in `native-system-session-preview` met openbare VM-gast,
-eigen no_std-sessiemodel en native taakbalk/zoekroute naar echte Materiaal;
-Windows Auto/Whpx/Tcg-selectie met begrensde probe zonder disks/netwerk/devices.
-De aanmeldinterface is geen nieuwe authenticatie-/sleutel-/revokegrens.
-Wachtwoord/biometrie/FIDO2 blijven gesloten via UnavailableBroker.
-[Onderzoek/contract](implementation/SESSION-AND-DESKTOP.md) en
-[hardware/prestaties](implementation/VM-HARDWARE-AND-PERFORMANCE.md).
+**Geleverd:** opt-in `native-system-session-preview` met gebruikerskeuze,
+herkenbaar aanmeldformulier, expliciete openbare VM-gast, bureaublad/taakbalk/
+programmasearch en echte Materiaal. Eigen no_std-toestanden binden authantwoorden
+maar verlenen zelf geen rechten. `UnavailableBroker` weigert alle persoonlijke
+credentials; geen gedeeld demowachtwoord of nepbiometrie. Owned secrets worden
+met de reeds gepinde zeroize gewist. Geen nieuwe externe crate of capability.
 
-Checkpoint: 45 frontendhosttests slagen (31 interactie, 4 raster, 10 sessie),
-37 Python-launcher/previewtests en 18 synthetische PowerShellchecks door deelagent.
-Native vijfstappenproef op7648a8f en achtstappenproef op51d883e slagen.
-Windows bevestigt de51d-QMPhelper zesmaal opPS5.1/PS7.6. De uiteindelijke
-vier-tegel appbatch/zeroize-bron wordt nu opnieuw native gecontroleerd;
-uitvoering op die eindbron is op dit checkpoint **nog niet uitgevoerd**. Brongebonden eindbewijs volgt onder
-`docs/verification/session-desktop-20261102/`. Score **34 → 34**; geen
-nieuwe FR-, fysieke of menselijke acceptatie. De bestaande integratorafspraak
-voor merges blijft behouden; deze branch wordt niet zelfstandig gemerged.
+Windows Auto/Whpx/Tcg gebruikt een echte sequentiële QMP-initprobe met één
+10 s-deadline en binaire LF-invoer. De lokale chat reproduceerde en valideerde
+de Windows-HMP-racefix. Source-v3 sorteert expliciet case-sensitive padcomponenten,
+waardoor gelijke Windows/Linuxbronnen dezelfde hash leveren; controles blijven intact.
+De compositor verwerkt max8 berichten per beurt; de interactieve app max4
+tegeltransacties per input/savepass. Geen raw framebuffer of gedeelde userpointer.
 
-Lokale chat `01a19c13-c83d-7781-8f61-de0541ac6d95` verzorgt pc-inventaris en
-geïsoleerde Windowsmetingen. Ryzen 9 9950X3D, 64 GiB, Windows11 25H2;
-WHPX-init op QEMU11.1 is apart geslaagd met oude bundel. Dat is geen bewijs
-voor dit nieuwe profiel. Geen hostconfiguratie wijzigen of hardware doorgeven.
+**Eindbewijs cloud:** alle 8 native stappen op `344dc0a` slagen: accounts →
+persoonlijke synthetische testinvoer → geweigerd/gewist → accountkeuze →
+gastlogin → desktop → zoek 'mat' → Materiaal. Iedere app-pixel wordt vergeleken,
+zonder interne masks; QEMU raw exit0. TCG/QEMU 10.0.13/q35-10.0/1CPU/256 MiB:
+118,79s totaal; Materiaal16,08s versus21,63s op `51d883e` en33,94s op `7648a8f`.
+Dit zijn losse metingen in deze cloudomgeving, geen productlatentiegarantie.
+46 frontendhosttests,27 SDK-apphosttests,15 compositorhosttests,72 Pythonchecks,
+39 synthetische PowerShellchecks, Clippy/fmt en scalar-none/objectscan slagen.
+De oude verifier telde9 archives terwijl de bestaande SDKzeroize10 oplevert;
+hersteld naar de exacte tien namen, met behoud van alle objects-/broncontroles.
 
-Eerstvolgend: bronfreeze, schone native build, `tools/run_session_preview.py`
-met exacte hostrastervergelijking en daarop gebaseerde Windowspakketoverdracht.
+**Lokale hardware:** geautoriseerde chat `01a19c13-c83d-7781-8f61-de0541ac6d95`
+rapporteert Windows 11 25H2, Ryzen 9 9950X3D,64 GiB. De bytegelijke QMPhelper
+slaagt 6/6 op PS 5.1/PS 7.6. De 51d-nativebaseline slaagt 6/6 (3WHPX/3TCG).
+De eindmeting op `344dc0a` en SDL-start worden apart aan het bewijs toegevoegd;
+die zijn op dit checkpoint nog niet gerapporteerd. Geen hostinstellingen gewijzigd.
+Geen netwerk, gedeelde hostmappen, fysieke disks of USB/PCI/GPU-doorvoer.
 
+**Grenzen en hervatten:** de gast gebruikt hetzelfde synthetische appdomein met
+vooraf verleende VM-rechten. Het accountformulier is geen beveiligde sessiegrens.
+Echte profiel-/verifierpersistentie, auth-/sessiebroker, keyring-unlock, limitering,
+compositor/input-lock en revocation blijven nodig; FIDO2/vingerafdruk zijn niet
+gekoppeld. Ook dirty-regiontransport, vensterbeheer, algemene appstart en
+OS-brede toegankelijkheid blijven open. Score **34 → 34**, geen FR-/fysieke/
+menselijke aftekening. [Contract](implementation/SESSION-AND-DESKTOP.md),
+[hardware](implementation/VM-HARDWARE-AND-PERFORMANCE.md),
+[eindbewijs/reproductie](verification/session-desktop-20261102/README.md).
+
+Eerstvolgend: neem lokale344dc0a-resultaten brongebonden over, controleer PR-CI,
+en bouw daarna een echte aparte auth-/sessiedienst vóór beveiligd aanmelden.
+Gebruik bestaande tools en behoud andere dirty checkouts/branches.
 
 ## NEXT AGENT HANDOFF — PR- en issueafhandeling na integratie 1 en 2 — 30 oktober 2026
 

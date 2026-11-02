@@ -1,4 +1,4 @@
-# Nieuw OS — eigen kernel en native documentcatalogus
+# Nieuw OS — eigen kernel, sessieroute en bureaublad
 
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`e08fb0e4`](https://github.com/simonvanieperen/nieuw-os/commit/e08fb0e48c1bb0781e98357f588c2f73b6ae8500) ·
+**Bron:** [`344dc0af`](https://github.com/simonvanieperen/nieuw-os/commit/344dc0afde893784503217ac676e154b13662507) ·
 **Ontwikkelbranch:** `codex/session-desktop-vm-20261102`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Herkenbare native aanmeldroute, bureaublad en veilige QEMU-versnelling.
-34/100 blijft gelijk. Opt-in native sessiepreview met expliciete openbare VM-gast, gebruikerskeuze, wachtwoordformulier zonder werkende authenticatieprovider, taakbalk en lokale programmasearch. Begrensde sessietoestanden weigeren onbevestigde authenticatie en stale antwoorden. Windowsstarter onderzoekt WHPX met veilige probe en zichtbare TCG-terugval. Gerichte hosttests slagen; gezamenlijke native schermproef, Windows-runtime en fysieke authenticatie zijn bij dit checkpoint nog niet uitgevoerd. FR-S01/S02/U01-U05 en productrelease blijven open; criteria en gewichten ongewijzigd.
+34/100 blijft gelijk. De eigen native VM-preview heeft gebruikerskeuze, een herkenbaar wachtwoordformulier met weigering bij ontbrekende authenticatiedienst, expliciete openbare gast, bureaublad, taakbalk en lokale programmasearch naar echte Materiaal. De brongebonden achtstappen-QEMU-proef op `344dc0a` slaagt inclusief geweigerde persoonlijke testinvoer en exact alle app-pixels. Frontend-/SDK-/compositortests, lint, scalar-none-build en objectscan slagen. Begrensde compositorbatches en vier-tegel-interactie beperken scheduling/PEEK-kosten zonder nieuwe capabilities. De Windows-QMPhelper is zesmaal op de pc gevalideerd; de lokale native Windows-eindmeting wordt afzonderlijk vastgelegd. Echte profielpersistentie, auth-/sleutel-/lockgrenzen, biometrie/FIDO2 en productlatentie blijven open. FR-S01/S02/U01-U05 zijn niet volledig geaccepteerd; criteria en gewichten ongewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -49,6 +49,26 @@ productpunten. Elk criterium telt volledig of niet; onbewezen werk blijft open.
 Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).
 <!-- OS-PROGRESS:END -->
+
+## Native sessiepreview — 2 november 2026
+
+[Concept-PR #121](https://github.com/simonvanieperen/nieuw-os/pull/121) voegt
+gebruikerskeuze, een herkenbaar aanmeldformulier, een expliciete openbare
+VM-gast, taakbalk en lokale programmasearch naar de echte Materiaal-app toe.
+De achtstappen-QEMU-proef op `344dc0a` slaagt, inclusief het weigeren en wissen
+van persoonlijke testinvoer. Echte authenticatie, sleutelvrijgave en veilige
+vergrendeling blijven open; de gast is geen beveiligd gebruikersprofiel.
+
+```sh
+python3 -B tools/build.py --kernel-feature native-system-session-preview
+```
+
+De Windowsstarter kiest WHPX na een echte QMP-initprobe, met zichtbare
+TCG-terugval. Begrensde compositor-/tegelbatches verminderen protocolwerk;
+volledige schermopbouw blijft een ontwikkelbeperking. De score blijft 34/100.
+[Onderzoek/ontwerp](docs/implementation/SESSION-AND-DESKTOP.md) ·
+[hardware en snelheid](docs/implementation/VM-HARDWARE-AND-PERFORMANCE.md) ·
+[proeven en reproductie](docs/verification/session-desktop-20261102/README.md).
 
 ## Schaalbare documentopslag M6e — 26% (28 oktober 2026)
 

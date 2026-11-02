@@ -66,7 +66,9 @@ git diff --check -- sdk/examples/materiaal/src/lib.rs sdk/examples/materiaal/tes
 - Clippy met `-D warnings`, formattering en diffcontrole: exit 0.
 - Native `x86_64-unknown-none` releasebuild en afzonderlijke ELF-inspectie:
   exit 0, entry `0x40000000`, vijf geldige segmenten. App-ELF SHA-256:
-  `c0d3e99dbf1899a890f74b115c7265939e62ea02fde8fbdfb54b5ab5071a7777`.
+  `2861a6d99fead0de5b49ce2e0f0cb0d973aa667a3e207bb75ea226c4e3195c29`.
+  Hosttests, Clippy en native build zijn herhaald na de integratorwijziging
+  voor de directe bestaande Zeroize-afhankelijkheid van de sessiemodule.
 - Native geïntegreerde VM, Windows/WHPX, fysieke hardware en werkelijke
   nieuwe schermtijden: **niet door deze deelagent uitgevoerd**.
 
