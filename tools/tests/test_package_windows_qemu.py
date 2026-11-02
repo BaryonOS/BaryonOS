@@ -86,6 +86,11 @@ class WindowsQemuPackageTests(unittest.TestCase):
         }))
         for name in ("THIRD-PARTY.md", "README.md", "licenses/Apache-2.0.txt"):
             (graphics / name).write_text("synthetic license fixture")
+        native = repo / "ui/native"
+        (native / "licenses").mkdir(parents=True)
+        for name in ("THIRD-PARTY.md", "licenses/NotoSansMono-OFL.txt",
+                     "licenses/noto-sans-mono-bitmap-MIT.txt"):
+            (native / name).write_text("synthetic native notice: " + name)
 
     def test_window_profile_requires_eight_ordered_real_embedded_elves(self):
         self.window_profile()
@@ -149,6 +154,52 @@ class WindowsQemuPackageTests(unittest.TestCase):
                 self.assertEqual(hashlib.sha256(data).hexdigest(), manifest["files"][name]["sha256"])
             font = json.loads(archive.read("licenses/OpenSans-font-provenance.json"))
             self.assertEqual(font["data_sha256"], manifest["graphics"]["atlas_sha256"])
+
+    def test_both_desktop_bundles_include_the_original_noto_notices_and_hashes(self):
+        # Keep this required set independent of GRAPHICS_FILES: removing an
+        # entry from the packager must not silently change the test's contract.
+        notices = (
+            ("ui/native/THIRD-PARTY.md", "licenses/NotoSansMono-NOTICE.md"),
+            ("ui/native/licenses/NotoSansMono-OFL.txt", "licenses/NotoSansMono-OFL.txt"),
+            ("ui/native/licenses/noto-sans-mono-bitmap-MIT.txt", "licenses/noto-sans-mono-bitmap-MIT.txt"),
+        )
+        for profile in (package.PROFILE, package.WINDOW_PROFILE):
+            with self.subTest(profile=profile):
+                if profile == package.WINDOW_PROFILE:
+                    self.window_profile()
+                output = self.root / (profile + ".zip")
+                self.package_to(output)
+                with zipfile.ZipFile(output) as archive:
+                    manifest = json.loads(archive.read("manifest.json"))
+                    for source, name in notices:
+                        expected = (package.ROOT / source).read_bytes()
+                        self.assertEqual(archive.read(name), expected)
+                        self.assertEqual(manifest["files"][name], {
+                            "sha256": hashlib.sha256(expected).hexdigest(),
+                            "size_bytes": len(expected),
+                        })
+
+    def test_noto_notice_links_or_missing_files_refuse_the_entire_bundle(self):
+        repo = self.root / "notice-fixture"
+        self.graphics_fixture(repo)
+        for source, _ in package.PACKAGE_FILES:
+            target = repo / source
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes((package.ROOT / source).read_bytes())
+        notice = repo / "ui/native/licenses/NotoSansMono-OFL.txt"
+        original = self.root / "outside-notice"
+        notice.rename(original)
+        notice.symlink_to(original)
+        with patch.object(package, "ROOT", repo):
+            linked_output = self.root / "linked-notice.zip"
+            with self.assertRaisesRegex(ValueError, "regular, single-link"):
+                self.package_to(linked_output)
+            self.assertFalse(linked_output.exists())
+            notice.unlink()
+            missing_output = self.root / "missing-notice.zip"
+            with self.assertRaises(FileNotFoundError):
+                self.package_to(missing_output)
+            self.assertFalse(missing_output.exists())
 
     def test_rejects_changed_or_linked_font_atlas_before_creating_package(self):
         repo = self.root / "font-fixture"

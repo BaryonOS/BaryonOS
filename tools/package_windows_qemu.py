@@ -47,6 +47,11 @@ GRAPHICS_FILES = (
     ("ui/graphics/licenses/Apache-2.0.txt", "licenses/OpenSans-Apache-2.0.txt"),
     ("ui/graphics/README.md", "licenses/Native-graphics-README.md"),
     ("ui/graphics/assets/font-provenance.json", "licenses/OpenSans-font-provenance.json"),
+    # Both native apps also retain the fixed Noto Mono document/calculator
+    # raster. Ship its original font and crate notices alongside Open Sans.
+    ("ui/native/THIRD-PARTY.md", "licenses/NotoSansMono-NOTICE.md"),
+    ("ui/native/licenses/NotoSansMono-OFL.txt", "licenses/NotoSansMono-OFL.txt"),
+    ("ui/native/licenses/noto-sans-mono-bitmap-MIT.txt", "licenses/noto-sans-mono-bitmap-MIT.txt"),
 )
 
 
