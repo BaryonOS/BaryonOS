@@ -1,0 +1,238 @@
+#!/usr/bin/env python3
+"""N01 gate: three real ring-3 processes and a causal localhost Ethernet peer.
+
+This profile tests a reusable TCP/UDP service, not TLS, real hardware or a
+full Internet policy issuer. Images, user ELFs, firmware and actual serial
+bytes are bound to one unchanged source and independently rechecked at exit.
+"""
+from __future__ import annotations
+import argparse
+from datetime import datetime, timezone
+import math
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+import time
+import uuid
+from common import ROOT, BUILD, environment, firmware, qemu_machine, sha256, source_hash
+from build_users import inspect_user
+from run_fpu import private_path, publish, publish_json, load_json
+from run_system import check_esp, network_arguments
+from run_volume import execute
+from network_service_peer import Peer, validate_transcript, REQUESTS, RESPONSES, MAX_FRAMES
+
+FEATURE = "native-net-service"
+BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "M2:PASS")
+OFFSETS = (240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528)
+ROLES = ("SERVICE", "APP_A", "APP_B")
+REQUIRED = BOOT + ("NETSVC:MANIFEST:PASS", "NETSVC:CLEANUP:PASS", "NETSVC:PASS", "M1:PASS")
+FORBIDDEN = ("FAIL", "PANIC")
+
+
+def integer(value, low=0, high=(1 << 64) - 1):
+    if type(value) is not int or not low <= value <= high:
+        raise ValueError("Missing/out-of-bound native integer")
+    return value
+
+
+def sequence(stdout):
+    if not isinstance(stdout, str) or len(stdout) > 128 * 1024 or any(s in stdout for s in FORBIDDEN):
+        raise ValueError("Failed/oversized actual native serial")
+    lines = stdout.splitlines()
+    if any(lines.count(marker) != 1 for marker in REQUIRED):
+        raise ValueError("Missing/duplicate required native marker")
+    start = lines.index(BOOT[0])
+    if any(re.search(r"(?:BOOT:|BOOTINFO:|KERNEL:|KS-|M[0-9]+:|NETSVC:)", line) for line in lines[:start]):
+        raise ValueError("Native marker before actual EBS")
+    if tuple(lines[start:start + len(BOOT)]) != BOOT:
+        raise ValueError("Native boot order differs")
+    if lines.index("NETSVC:MANIFEST:PASS") != start + len(BOOT):
+        raise ValueError("Native manifest order differs")
+    if lines[-3:] != ["NETSVC:CLEANUP:PASS", "NETSVC:PASS", "M1:PASS"]:
+        raise ValueError("Native clean ending missing")
+    found, network = {r: {} for r in ROLES}, {}
+    numeric = re.compile(r"NETSVC:(SERVICE|APP_A|APP_B):([0-9]+):([0-9]{20})")
+    net_numeric = re.compile(r"SYSTEM:(NET_[A-Z_]+):([0-9]{20})")
+    entropy = None
+    for line in lines[start + len(BOOT) + 1:-3]:
+        entropy_match = re.fullmatch(r"NETSVC:ENTROPY_BYTES:([0-9]{20})", line)
+        if entropy_match:
+            if entropy is not None:
+                raise ValueError("Duplicate entropy observation")
+            entropy = integer(int(entropy_match.group(1)))
+            continue
+        match = numeric.fullmatch(line)
+        if match:
+            role, offset, value = match.groups()
+            offset, value = int(offset), integer(int(value))
+            if offset not in OFFSETS or offset in found[role]:
+                raise ValueError("Unknown/duplicate native process observation")
+            found[role][offset] = value
+            continue
+        match = net_numeric.fullmatch(line)
+        if match:
+            name, value = match.groups()
+            if name in network:
+                raise ValueError("Duplicate broker observation")
+            network[name] = integer(int(value))
+            continue
+        raise ValueError("Unknown/reordered native evidence: " + line)
+    if entropy != 8:
+        raise ValueError("Actual service entropy acquisition missing")
+    if any(set(values) != set(OFFSETS) for values in found.values()):
+        raise ValueError("Incomplete native process snapshot")
+    for role, values in found.items():
+        if values[240] != 0 or values[400] != 1 or values[528] != 1:
+            raise ValueError("Process failed or did not initialize/cleanly finish: " + role)
+    service = found["SERVICE"]
+    fixed = {448: 2, 456: 2, 464: 10, 472: 3 * sum(map(len, REQUESTS)),
+             480: 2 * sum(map(len, RESPONSES)), 488: 4, 496: 3, 504: 0}
+    if any(service[k] != v for k, v in fixed.items()) or service[408] < 1 or service[432] < 40 or service[440] < 22:
+        raise ValueError("Native service reuse/cleanup/authority evidence differs")
+    if service[512] < 4 or service[520] < 2:
+        raise ValueError("Native malformed UDP/backpressure proof missing")
+    for role in ROLES[1:]:
+        app = found[role]
+        exact = {408: 2, 416: 1, 424: 1, 432: 9, 440: 1, 456: len(RESPONSES[0]),
+                 464: 2, 472: 4, 480: 1, 488: 1, 496: 1, 504: 1, 512: 1, 520: 0}
+        if any(app[k] != v for k, v in exact.items()) or app[448] < 3:
+            raise ValueError("Native app success/refusal/reopen evidence differs: " + role)
+    expected_net = {"NET_TX_SUBMITTED", "NET_TX_COMPLETED", "NET_RX_COMPLETED", "NET_RX_DELIVERED",
+                    "NET_DENIED", "NET_TX_TIMEOUTS", "NET_RESETS", "NET_RESET_ACKS"}
+    if set(network) != expected_net:
+        raise ValueError("Unknown/missing native broker counters")
+    if (network["NET_TX_SUBMITTED"] != network["NET_TX_COMPLETED"]
+            or service[416] != network["NET_TX_COMPLETED"]
+            or service[424] != network["NET_RX_DELIVERED"]
+            or network["NET_RX_COMPLETED"] != network["NET_RX_DELIVERED"]
+            or network["NET_DENIED"] != 2 or network["NET_TX_TIMEOUTS"] != 0
+            or network["NET_RESETS"] != 1 or network["NET_RESET_ACKS"] != 1):
+        raise ValueError("Native NIC completion/denial/reset evidence differs")
+    integer(service[416], 1, MAX_FRAMES)
+    integer(service[424], 1, MAX_FRAMES)
+    return {"processes": {r: {str(k): v for k, v in values.items()} for r, values in found.items()}, "network": network, "entropy_bytes": entropy}
+
+
+def validate_build(frozen):
+    manifest = load_json(private_path(BUILD / "manifest.json", regular=True))
+    if (manifest.get("kernel_feature") != FEATURE or manifest.get("loader_feature") is not None
+            or manifest.get("source_sha256") != frozen or manifest.get("source_fingerprint_version") != 3
+            or manifest.get("sdk_runtime") is not False or manifest.get("document_session") is not False):
+        raise ValueError("Build native-net-service on the unchanged current source")
+    check_esp(private_path(BUILD / "esp"), manifest)
+    users = manifest.get("network_service")
+    if not isinstance(users, dict) or set(users) != {"service", "client"}:
+        raise ValueError("Missing exact inspected network-service ELF manifest")
+    kernel = private_path(BUILD / "esp/kernel.elf", regular=True).read_bytes()
+    for role, name in (("service", "network-service"), ("client", "network-client")):
+        path = private_path(BUILD / f"users/network-service/{name}.elf", regular=True)
+        if users[role] != {"sha256": sha256(path), "elf": inspect_user(path)} or path.read_bytes() not in kernel:
+            raise ValueError("User ELF hash/inspection/embedding differs: " + role)
+    return manifest
+
+
+def evaluate(report, peer):
+    if (type(report.get("raw_qemu_exit")) is not int or report["raw_qemu_exit"] != 33
+            or report.get("timed_out") is not False or report.get("kernel_feature") != FEATURE
+            or not isinstance(report.get("qemu_version"), str) or not report["qemu_version"].startswith("QEMU emulator version ")
+            or type(report.get("duration_s")) not in (int, float) or not math.isfinite(report["duration_s"])
+            or not 0 <= report["duration_s"] <= report["timeout_s"] + 5):
+        raise ValueError("Native QEMU exit/lifetime/profile evidence failed")
+    observed = sequence(report["stdout"])
+    if (peer.get("passed") is not True or peer.get("connected") is not True
+            or peer.get("error") is not None or peer.get("rejected_frame") is not None):
+        raise ValueError("Actual synthetic packet peer failed: " + str(peer.get("error")))
+    replay = validate_transcript(peer)
+    net = observed["network"]
+    counts = replay["counts"]
+    if (net["NET_TX_COMPLETED"] != counts["client_frames"]
+            or net["NET_RX_DELIVERED"] != counts["server_frames"]
+            or counts["udp_requests"] != 2
+            or any(counts[name] != 2 for name in ("udp_corrupt_sent", "udp_wrong_scope_sent", "udp_echo_sent", "udp_overflow_sent"))):
+        raise ValueError("Actual wire/service/broker counts do not agree")
+    return observed
+
+
+def run_network_service(*, timeout=90):
+    if type(timeout) is not int or not 1 <= timeout <= 180:
+        raise ValueError("Native timeout must be bounded 1..180 seconds")
+    private_path(BUILD)
+    frozen = source_hash()
+    manifest = validate_build(frozen)
+    env = environment()
+    qemu = shutil.which("qemu-system-x86_64", path=env["PATH"])
+    if qemu is None:
+        raise RuntimeError("Missing QEMU")
+    qemu_hash = sha256(Path(qemu))
+    code, variables = firmware()
+    original_firmware = {"code": sha256(code), "vars_template": sha256(variables)}
+    directory = private_path(BUILD / "run" / ("network-service-" + uuid.uuid4().hex))
+    directory.mkdir(parents=True, exist_ok=False)
+    shutil.copytree(BUILD / "esp", directory / "esp")
+    check_esp(directory / "esp", manifest)
+    for path, name in ((code, "OVMF_CODE.fd"), (variables, "OVMF_VARS.template.fd"), (variables, "OVMF_VARS.fd")):
+        shutil.copy2(path, private_path(directory / name))
+    snapshots = {p.relative_to(directory).as_posix(): sha256(p) for p in
+                 (directory / "OVMF_CODE.fd", directory / "OVMF_VARS.template.fd", directory / "esp/kernel.elf", directory / "esp/EFI/BOOT/BOOTX64.EFI")}
+    rel = directory.relative_to(ROOT).as_posix()
+    command = [qemu, "-machine", qemu_machine(), "-accel", "tcg,thread=single", "-cpu", "qemu64", "-smp", "1", "-m", "256M",
+               "-nodefaults", "-display", "none", "-monitor", "none", "-serial", "stdio", "-nic", "none", "-no-reboot",
+               "-drive", f"if=pflash,unit=0,format=raw,readonly=on,file={rel}/OVMF_CODE.fd",
+               "-drive", f"if=pflash,unit=1,format=raw,file={rel}/OVMF_VARS.fd",
+               "-drive", f"if=virtio,index=0,format=raw,readonly=on,file=fat:{rel}/esp",
+               "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
+               "-object", "rng-random,id=rng0,filename=/dev/urandom",
+               "-device", "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000"]
+    if (Path(qemu).parent / "share").is_dir():
+        command += ["-L", str(Path(qemu).parent / "share")]
+    report = dict(schema_version=1, passed=False, kernel_feature=FEATURE,
+                  scope="three actual isolated ring-3 processes; bounded IPC TCP/UDP; synthetic localhost Ethernet; no TLS or physical hardware claim",
+                  source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
+                  source_fingerprint_version=3, source_sha256=frozen, manifest=manifest,
+                  run_directory=str(directory), timeout_s=timeout, started_utc=datetime.now(timezone.utc).isoformat(),
+                  qemu_sha256=qemu_hash, firmware_sha256=original_firmware, snapshot_sha256=snapshots,
+                  qemu_version=subprocess.check_output([qemu, "--version"], env=env, text=True, timeout=10).strip())
+    with Peer(timeout=timeout) as peer:
+        command += network_arguments(peer.port)
+        begin = time.monotonic()
+        rc, stdout, stderr, timed_out, _, _ = execute(command, env, timeout=timeout)
+        report.update(command=command, duration_s=time.monotonic() - begin, raw_qemu_exit=rc,
+                      timed_out=timed_out, stdout=stdout, stderr=stderr)
+    evidence = peer.finish()
+    publish(directory / "serial.txt", stdout.encode())
+    publish(directory / "stderr.txt", stderr.encode())
+    publish_json(directory / "network-peer.json", evidence)
+    report["peer"] = evidence
+    try:
+        report["observed"] = evaluate(report, evidence)
+        if private_path(directory / "serial.txt", regular=True).read_bytes() != stdout.encode():
+            raise ValueError("Stored serial differs from actual bytes")
+        check_esp(directory / "esp", manifest)
+        if {name: sha256(private_path(directory / name, regular=True)) for name in snapshots} != snapshots:
+            raise ValueError("Immutable firmware/ESP snapshot changed during run")
+        if {"code": sha256(code), "vars_template": sha256(variables)} != original_firmware or sha256(Path(qemu)) != qemu_hash:
+            raise ValueError("QEMU or original firmware changed during run")
+        if validate_build(frozen) != manifest or source_hash() != frozen:
+            raise ValueError("Source/build/user artifacts changed during run")
+        report.update(passed=True, network_service_gate=True)
+    except (ValueError, KeyError, TypeError, OSError) as error:
+        report.update(error=f"{type(error).__name__}: {error}", network_service_gate=False)
+    publish_json(directory / "result.json", report)
+    publish_json(BUILD / "network-service-report.json", report)
+    print(f"N01 native service passed={report['passed']} raw={rc} duration={report['duration_s']:.3f}s {directory}")
+    if "error" in report:
+        print(report["error"])
+    return report
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--timeout", type=int, default=90)
+    parser.add_argument("--no-build", action="store_true", help="require an existing source-matching build")
+    args = parser.parse_args()
+    if not args.no_build:
+        from build import build
+        build(None, FEATURE, FEATURE)
+    raise SystemExit(0 if run_network_service(timeout=args.timeout)["passed"] else 1)
