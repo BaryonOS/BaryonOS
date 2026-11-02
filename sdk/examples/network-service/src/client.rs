@@ -174,6 +174,10 @@ fn exercise(
             bump(464);
         }
         if matches!(state, ConnectionState::Closed | ConnectionState::TimedOut) {
+            // The RPC can cross a clock tick/deadline after the loop's first
+            // observation. Measure the completed state exchange, not its start.
+            let observed = tick();
+            check(observed >= now && observed - start < timeout + 300, 24);
             match case {
                 Case::Http | Case::Retransmit => {
                     check(
@@ -184,14 +188,14 @@ fn exercise(
                         32,
                     );
                     if case == Case::Retransmit {
-                        check(now - start >= 100, 33);
+                        check(observed - start >= 100, 33);
                         bump(504)
                     }
                     bump(408)
                 }
                 Case::Refused => {
                     check(
-                        !established && sent == 0 && received == 0 && now - start < timeout,
+                        !established && sent == 0 && received == 0 && observed - start < timeout,
                         34,
                     );
                     bump(512)
@@ -201,14 +205,14 @@ fn exercise(
                         established
                             && sent == request.len()
                             && received == 0
-                            && now - start < timeout,
+                            && observed - start < timeout,
                         35,
                     );
                     bump(488)
                 }
                 Case::Timeout => {
                     check(
-                        !established && sent == 0 && received == 0 && now - start >= timeout,
+                        !established && sent == 0 && received == 0 && observed - start >= timeout,
                         36,
                     );
                     bump(496)
