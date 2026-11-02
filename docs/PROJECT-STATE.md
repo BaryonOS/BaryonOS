@@ -2,7 +2,7 @@
 
 ## NEXT AGENT HANDOFF — herstel NAS-tokenarchivering — 2 november 2026
 
-**Bron:** branch-head `8736e06c5298ce9581531fb02a3b88deb5c82d3e` van de
+**Bron:** branch-head `f7371755d90ccc71469577519de0af831f10edc4` van de
 concept-PR #125; implementatie-/reviewfixcommit `05f97cc92c638f2d94ddc4d4a00e73683ac3dfbc`.
 De fixcommit voegt PR #120-head `562be4d13b9d039d7e8fece2f0fc26e767dccb15`
 toe aan basis `e08fb0e48c1bb0781e98357f588c2f73b6ae8500`. PR #120 bevat de
@@ -32,10 +32,12 @@ de detailregistratie met exacte commando's, exits en logpaden staat in
 PR #125 exacte-head CI moet de Rust- en native gates uitvoeren.
 
 **Remote status:** alle geconfigureerde checks op exacte PR #125-head
-`8736e06` zijn groen, inclusief `nas-native-normal-cold`, `native-system`,
+`f737175` zijn groen, inclusief `nas-native-normal-cold`, `native-system`,
 host quality, formattering/linting en pakketverificatie. NAS-run
-[41514371211](https://github.com/simonvanieperen/nieuw-os/actions/runs/41514371211)
-is uitgevoerd op deze head. CodeRabbit is overgeslagen zolang de PR concept
+[41515833404](https://github.com/simonvanieperen/nieuw-os/actions/runs/41515833404)
+en native-system-run
+[41515833572](https://github.com/simonvanieperen/nieuw-os/actions/runs/41515833572)
+zijn uitgevoerd op deze head. CodeRabbit is overgeslagen zolang de PR concept
 blijft; er is nog geen review van PR #125.
 
 **Issues:** #109 en #110 blijven open totdat PR #120 aantoonbaar met behoud
