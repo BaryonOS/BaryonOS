@@ -31,11 +31,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **34** |
 
-**Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`ed63ed25`](https://github.com/simonvanieperen/nieuw-os/commit/ed63ed2597460a0265ee094ebea366cda9ef2a7d) ·
-**Ontwikkelbranch:** `claude/integration-2-20261030`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Afhandeling van alle open pull requests en issues: integratie 1 (#96) en integratie 2 (#113).
-De productscore blijft 34/100. #96 is gesquash-merged na 30 groene checks, inclusief de native NAS normal/cold-gate. #113 neemt de resterende component-delta's op: Materiaal-semantiek en SR05–SR08-regressies, primary hover, app-source-snapshotkern en -contracten, DHCP-retries met expliciete entropiepoort, en documentatie- en bewijsbestanden. Alle opgenomen PR's zijn per commit na hun vastgelegde bron gecontroleerd. Reviewfixes: een net-stack-discardroute voor een ingehouden TX-frame met regressietest, en de Materiaal-chaintest volgt het nieuwe semantische buffercontract. Lokaal zijn host-tests, Clippy en fmt groen; de freestanding-build van app-package-core is lokaal niet uitgevoerd. Dit is host- en componentbewijs, geen native-, FR-, fysieke of menselijke acceptatie; vaste criteria en gewichten zijn ongewijzigd. Open: #109, #110 en de productmilestones #39–#43.
+**Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
+**Bron:** [`fa97c692`](https://github.com/simonvanieperen/nieuw-os/commit/fa97c69221fd9b5635684c48b60e72bf67b2541a) ·
+**Ontwikkelbranch:** `claude/issue-110-nas-replay`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** PR #119: conflicten met main 74a34d05 inhoudsbehoudend oplossen.
+34/100 blijft 34/100; geen nieuw criterium geaccepteerd. Main bevat de NAS-replay-implementatie en het bewijs van PR #119 al via #125. De vijf conflicten behouden mains latere lekcontrole, negatieve tests, contractcorrecties en bewijsattributen. Vóór het status-/metercheckpoint was de volledige opgeloste boom bytegelijk aan main 74a34d05. Alle 39 NAS-hosttests, 17 replay/oracle-tests, 3 volume-runnertests en de NAS-archiefhashcontrole slagen. Strikte preflight geeft exit 2: Rust 1.90.0, native targets, QEMU en OVMF ontbreken; native build/QEMU en Rust-format/lint zijn niet uitgevoerd. Nieuwe-head CI blijft na publicatie vereist. Geen nieuwe native, fysieke of menselijke acceptatie; de volledige productomvang en bestaande bewijsgrenzen blijven behouden.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

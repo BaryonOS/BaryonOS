@@ -305,14 +305,17 @@ pub(super) fn manifest(s: &mut State) {
     ] {
         put(s, APP, offset, value);
     }
-    for handle in [
+    // The app's complete handle table at manifest time. Every app check below
+    // iterates this one list; APP_HANDLE_COUNT proves that nothing is outside it.
+    let app_handles = [
         key_reply,
         app_key,
         volume_reply,
         app_volume,
         app_registry,
         app_control,
-    ] {
+    ];
+    for handle in app_handles {
         require(
             e.check_entropy(app, handle).is_err()
                 && e.check_block(app, handle, BLOCK_READ).is_err()
@@ -337,10 +340,45 @@ pub(super) fn manifest(s: &mut State) {
             b"INIT_AUTHORITY",
         );
     }
-    // The app cannot reach the administrative ingress by any handle it owns.
+    // The app cannot reach the administrative ingress or its reply channel by
+    // any handle it owns: handle numbers are per process, so compare the
+    // endpoint objects behind every app handle with init's admin endpoints.
+    let admin_ingress_object = e.endpoint_object(init, init_key_admin).unwrap();
+    let admin_reply_object = e.endpoint_object(init, init_key_reply).unwrap();
+    for handle in app_handles {
+        let object = e.endpoint_object(app, handle).unwrap();
+        require(
+            object != admin_ingress_object && object != admin_reply_object,
+            b"APP_ADMIN_HANDLE",
+        );
+    }
+    // Exhaustiveness: the loops above only see listed handles, so prove that
+    // the app holds no other handle (for example a seventh one to the admin
+    // ingress). `Engine::available_slots` counts the free slots in
+    // 1..MAX_SLOTS. The terms of the expected value:
+    // - NULL_SLOT: slot 0 is the reserved null handle, never counted and
+    //   never holding a capability;
+    // - app_handles.len(): each listed handle resolved above (unwrap); a
+    //   handle names one slot by its index bits and only the slot's current
+    //   generation resolves, so pairwise distinct live handles occupy
+    //   pairwise distinct slots.
+    // Equality therefore means every occupied app slot is a listed, checked
+    // handle. A retired or stale-occupied slot only lowers the count and fails
+    // closed. The same N holds in every profile that runs this manifest
+    // (native-system, test-system-recover, -clock, -net, -tcp, -random*,
+    // -images, -display-input, native-cap-digest-bench): their optional
+    // fixtures grant handles to their probe in slot 4 or to the Key Service,
+    // never to the app. A profile that grants the app more must extend
+    // `app_handles`, or this check fails.
+    const NULL_SLOT: usize = 1;
+    let distinct = app_handles
+        .iter()
+        .enumerate()
+        .all(|(i, handle)| !app_handles[..i].contains(handle));
     require(
-        e.check_endpoint(app, init_key_admin, SEND).is_err(),
-        b"APP_ADMIN_HANDLE",
+        distinct
+            && e.available_slots(app) == capability_core::MAX_SLOTS - NULL_SLOT - app_handles.len(),
+        b"APP_HANDLE_COUNT",
     );
     require(e.check_invariants(), b"MANIFEST_ENGINE");
     let releasable: usize = s.processes[..initial]

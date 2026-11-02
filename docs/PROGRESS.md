@@ -85,6 +85,15 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR #119-conflictoplossing (2 november 2026), bron `fa97c692` met main
+`74a34d05`: **34% → 34%**. Main bevat de replay-implementatie en het bewijs
+al; de vijf conflicten behouden de latere lekcontrole en regressietests.
+Vóór het status-/metercheckpoint was de opgeloste boom bytegelijk aan main.
+39 NAS-, 17 replay/oracle- en 3 volume-hosttests en de NAS-archiefhashcontrole
+slagen. Strikte preflight faalt wegens ontbrekende Rust-/native-/QEMU-/OVMF-tools;
+native uitvoering en Rust-format/lint zijn niet uitgevoerd. Nieuwe-head CI
+blijft vereist. Geen nieuw geaccepteerd criterium of productpunt.
+
 WINDOWS-QEMU-TEST-VERSION (30 oktober 2026), implementatiebron `f777f7a`:
 **34% → 34%**. De branch voegt een hashvaliderende Windows-QEMU-bundel,
 launcher, native QMP-previewrunner en CI-artifactjob toe. Hosttests,

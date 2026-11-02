@@ -70,6 +70,17 @@ fn reply_with_times(
     gateway: [u8; 4],
     timers: Option<(u32, u32)>,
 ) -> Vec<u8> {
+    reply_with_lease(kind, xid, dns_last, gateway, 80, timers)
+}
+
+fn reply_with_lease(
+    kind: u8,
+    xid: u32,
+    dns_last: u8,
+    gateway: [u8; 4],
+    lease: u32,
+    timers: Option<(u32, u32)>,
+) -> Vec<u8> {
     let mut message = vec![0; 240];
     message[..3].copy_from_slice(&[2, 1, 6]);
     message[4..8].copy_from_slice(&xid.to_be_bytes());
@@ -79,7 +90,9 @@ fn reply_with_times(
     message.extend_from_slice(&[53, 1, kind, 54, 4]);
     message.extend_from_slice(&SERVER);
     if kind != 6 {
-        message.extend_from_slice(&[51, 4, 0, 0, 0, 80, 1, 4, 255, 255, 255, 0]);
+        message.extend_from_slice(&[51, 4]);
+        message.extend_from_slice(&lease.to_be_bytes());
+        message.extend_from_slice(&[1, 4, 255, 255, 255, 0]);
         message.extend_from_slice(&[3, 4]);
         message.extend_from_slice(&gateway);
         message.extend_from_slice(&[6, 4, 192, 0, 2, dns_last]);
@@ -866,6 +879,92 @@ fn automatic_loop_drives_probes_t1_t2_and_reacquires_after_expiry_without_stale_
         );
         assert!(service.configuration(8100).unwrap().is_none());
         assert!(service.transmission(8100).unwrap().is_none());
+    });
+}
+
+fn auto_bound(service: &mut Service<'_>) {
+    auto_candidate(service);
+    let mut random = Numbers::new(&[]);
+    for ticks in [100, 200, 300, 500, 700] {
+        service.drive(ticks, &mut random).unwrap();
+        complete(service, ticks);
+    }
+    assert_eq!(service.phase(700), Ok(Phase::Bound));
+}
+
+#[test]
+fn renewal_retry_schedule_is_bound_to_the_new_transaction_not_the_old_lease() {
+    // Rebinding -> Rebinding: the ACK for XID+1 (lease 39 s, T1 1 s, T2 30 s
+    // from request_at 41 s) is already past its new T2 when it arrives, so
+    // drive starts XID+2 in the same phase. Its first REQUEST must go out now
+    // and its retry deadline must be bounded by the NEW expiry (80 s), not the
+    // old transaction's deadline at 81 s, which lies beyond the new lease.
+    with_service(|service| {
+        auto_bound(service);
+        let mut random = Numbers::new(&[XID + 1, 20100, 20100, XID + 2, 20100]);
+        assert!(matches!(
+            service.drive(4100, &mut random),
+            Ok(DriveOutcome::Published(_))
+        ));
+        complete(service, 4100);
+        assert!(matches!(
+            service.drive(7100, &mut random),
+            Ok(DriveOutcome::Published(_))
+        ));
+        complete(service, 7100);
+        let ack = reply_with_lease(5, XID + 1, 53, SERVER, 39, Some((1, 30)));
+        service.receive_frame(&ack, 7300).unwrap();
+        assert_eq!(service.phase(7300), Ok(Phase::RenewalDue));
+        assert!(service.configuration(7300).unwrap().is_some());
+        let outcome = service.drive(7300, &mut random);
+        assert!(
+            matches!(outcome, Ok(DriveOutcome::Published(_))),
+            "new transaction inherited an old deadline: {outcome:?}"
+        );
+        let request = complete(service, 7300);
+        assert_eq!(parse(&request).unwrap().destination_address(), [255; 4]);
+        assert_eq!(
+            &parse(&request).unwrap().payload()[4..8],
+            &(XID + 2).to_be_bytes()
+        );
+        assert_eq!(service.phase(7300), Ok(Phase::Rebinding));
+        assert_eq!(
+            service.drive(7301, &mut random),
+            Ok(DriveOutcome::WaitingUntil(8000))
+        );
+        assert_eq!(random.calls, 5);
+    });
+    // Renewing -> Renewing: the ACK for XID+1 (lease 80 s, T1 1 s, T2 60 s)
+    // is due immediately; XID+2 must not inherit the old 71 s rebinding
+    // deadline and its retry is bounded by the new T2 at 101 s.
+    with_service(|service| {
+        auto_bound(service);
+        let mut random = Numbers::new(&[XID + 1, 20100, XID + 2, 20100]);
+        assert!(matches!(
+            service.drive(4100, &mut random),
+            Ok(DriveOutcome::Published(_))
+        ));
+        complete(service, 4100);
+        let ack = reply_with_lease(5, XID + 1, 53, SERVER, 80, Some((1, 60)));
+        service.receive_frame(&ack, 4200).unwrap();
+        assert_eq!(service.phase(4200), Ok(Phase::RenewalDue));
+        let outcome = service.drive(4200, &mut random);
+        assert!(
+            matches!(outcome, Ok(DriveOutcome::Published(_))),
+            "new transaction inherited an old deadline: {outcome:?}"
+        );
+        let request = complete(service, 4200);
+        assert_eq!(parse(&request).unwrap().destination_address(), SERVER);
+        assert_eq!(
+            &parse(&request).unwrap().payload()[4..8],
+            &(XID + 2).to_be_bytes()
+        );
+        assert_eq!(service.phase(4200), Ok(Phase::Renewing));
+        assert_eq!(
+            service.drive(4201, &mut random),
+            Ok(DriveOutcome::WaitingUntil(10100))
+        );
+        assert_eq!(random.calls, 4);
     });
 }
 

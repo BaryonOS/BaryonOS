@@ -344,4 +344,28 @@ class ArtifactTests(unittest.TestCase):
         self.assertIs(d.load_json(self.build/"materiaal-probe-report.json")["passed"],False)
 
 
+
+class SparseFrameCounters(unittest.TestCase):
+    """SUR1 sparse frames: full first frame, then at least the final tile."""
+
+    def test_sparse_counts_accepted_and_incomplete_first_frame_rejected(self):
+        values=snapshots()
+        for i,value in enumerate(values):
+            value["TILES"]=d.TILES+i
+        previous=None
+        for value in values:
+            d.snapshot_checks(value,previous,"normal")
+            previous=value
+        first=dict(values[0],TILES=d.TILES-1)
+        with self.assertRaisesRegex(ValueError,"Invalid actual frame/counter snapshot"):
+            d.snapshot_checks(first,None,"normal")
+        # Passes the cumulative bound on its own, so only the inter-snapshot
+        # rule (at least one tile per newly presented frame) can reject it.
+        before=dict(values[0],TILES=d.TILES+100)
+        stale=dict(values[1],TILES=d.TILES+100)
+        d.snapshot_checks(stale,None,"normal")
+        with self.assertRaisesRegex(ValueError,"Repeated/stale/incomplete presented frame"):
+            d.snapshot_checks(stale,before,"normal")
+
+
 if __name__ == "__main__":unittest.main()
