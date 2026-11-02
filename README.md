@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`ec45e174`](https://github.com/simonvanieperen/nieuw-os/commit/ec45e174a51cbe67e508ac87ddbee9dbc4c9589f) ·
+**Bron:** [`0a4e8e91`](https://github.com/simonvanieperen/nieuw-os/commit/0a4e8e91dc36d86712919a20030a5163e9f22293) ·
 **Ontwikkelbranch:** `codex/session-quality-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Gerichte sessieroute, compositorbediening en sparse redraw in uitvoering.
-41/100 blijft behouden. Sessieservicecontracten zijn hostgetest; de nieuwe compositorpreview en visuele systeemlaag zijn in uitvoering. Sparse tegeloverdracht heeft hostbewijs; native voor/na en gecombineerde sessieroute worden nog uitgevoerd. Geen nieuwe volledige productpoort, fysieke hardware of echte accountauthenticatie geclaimd.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Sessieroute en visuele systeemlaag geïntegreerd; native eindcontrole loopt.
+41/100 blijft41. Het authenticatiecontract, compositorcover, lokale zoekbediening, status/sessiemenu en visuele schaal zijn geïmplementeerd en hostgetest. De afzonderlijke sparsevariant doorloopt dezelfde22nativefasen als de nulmeting:1542,275→697,463seconden op dezeTCGhost, met onveranderde input-/pixel-/herstel-/diskcontroles en gelijktijdigehostlast als beperking. De gecombineerde nieuwe UI wordt nog native herhaald; geen echte accountauthenticatie, FIDO2/biometrie, U02- of volledige releaseacceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "ec45e174a51cbe67e508ac87ddbee9dbc4c9589f",
+    "source_commit": "0a4e8e91dc36d86712919a20030a5163e9f22293",
     "branch": "codex/session-quality-20261102",
-    "task": "Gerichte sessieroute, compositorbediening en sparse redraw in uitvoering",
+    "task": "Sessieroute en visuele systeemlaag geïntegreerd; native eindcontrole loopt",
     "previous_score": 41,
-    "summary": "41/100 blijft behouden. Sessieservicecontracten zijn hostgetest; de nieuwe compositorpreview en visuele systeemlaag zijn in uitvoering. Sparse tegeloverdracht heeft hostbewijs; native voor/na en gecombineerde sessieroute worden nog uitgevoerd. Geen nieuwe volledige productpoort, fysieke hardware of echte accountauthenticatie geclaimd."
+    "summary": "41/100 blijft41. Het authenticatiecontract, compositorcover, lokale zoekbediening, status/sessiemenu en visuele schaal zijn geïmplementeerd en hostgetest. De afzonderlijke sparsevariant doorloopt dezelfde22nativefasen als de nulmeting:1542,275→697,463seconden op dezeTCGhost, met onveranderde input-/pixel-/herstel-/diskcontroles en gelijktijdigehostlast als beperking. De gecombineerde nieuwe UI wordt nog native herhaald; geen echte accountauthenticatie, FIDO2/biometrie, U02- of volledige releaseacceptatie."
   },
   "tracks": [
     {

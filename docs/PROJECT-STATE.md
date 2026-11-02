@@ -1,14 +1,20 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — sessiekwaliteit in uitvoering — 2 november 2026
+## NEXT AGENT HANDOFF — geïntegreerde sessieslice; finale native controles — 2 november 2026
 
-Nieuwe branch `codex/session-quality-20261102` vanaf PR122 `1f0dd9c`; oorspronkelijke schone checkout `work/e08fb0e`. Onderzoek zeven OS-routes en lokale FIDO2 opgeslagen; bestaand U01/N01/klembord behouden. Nieuw sessiecontract bindt boot/sessie/doel/deadline en expliciete uitkomsten (hostgetest, geen authdienst). Sparse SUR1 uit #117 hergebruikt met volledige eerste frame en vervangingsinvalidation. Nieuwe compositorpreview/zoek/status/sessiemenu en proportionele calculator zijn tussenstand; native route en visuele review nog open. Persoonlijke credentials worden in de shell niet verzameld; alleen openbare VM-gast. Afgeschermd beeld is geen keyring-/capability-revocationclaim.
+Branch `codex/session-quality-20261102`, codebron `0a4e8e91dc36d86712919a20030a5163e9f22293`, concept-PR129 op PR122 (`1f0dd9c`). Originele checkout `work/e08fb0e` was schoon.41/100 blijft41; bestaandeU01/N01 behouden, volledigeFR-S02/U02/release blijven open.
 
-**Uitgevoerd:** gerichte shelltests7, bestaande compositorhosttests, calculatorhosttests en Clippy; beide deeltaakcontracten afzonderlijk host/no_std getest. Eerste native routebuild faalde op de bestaande calculatorreadonly256KiB-grens door het hergebruikte fontatlas; de nieuwe expliciet begrensde512KiB readonly-layout is nog te herbouwen. Geen rechten of mutable limieten verruimd. Baseline1f-native22fasen loopt in afzonderlijke worktree; performancearm2ff eveneens. Logs in build/session-route en /tmp/session-*.txt; brongebonden eindbewijs volgt. Score41 blijft41.
+**Geïntegreerd:** zevenOS-routes/lokaleFIDO2 onderzocht; vijfmethode-authcontract met boot/sessie/doel/deadline/retry/foutbinding; compositor-beheerde openbareVM-route; status/UTC-klok, lokale zoek-/actielaag, gebruikers/auth/sessie/instellingenschermen, gelabeldevensters; echteRust-board40toestanden op5profielen. Zoeken, datum/200%-klok, calculatorlabels en overmatige paneelruimte na beeldreview hersteld. Opaque-renderpad is pixelgelijk aan referentie; paneelwissels tekenen oude+nieuwegrenzen. Desktop wacht opbeidewerkelijkeSUR-completeframes. Lock blokkeertappinput en ruimt openstaandklembordrecht op, maar is géén account-/keyringrevoke. Persoonlijkecredentials worden niet verzameld; standaardauthbroker blijft weigeren.
 
-**Volgende stap:** bouw native-session-route opnieuw, genereer renderboard en native input-/pixelproef, herstel bevindingen; daarna exacte gecombineerde regressies. Geen merge van bestaande concept-PRs.
+**Gemeten:** bronA1f/source0386 en B2ff/sourcec04b doorlopen iederalle22nativeclipboard/herstel/opslagfasen, raw33,14bytes/rev1/diskcanaries/cleanup.1542,275→697,463s; laatsteletter→exactvolledigappbeeld62,962→1,165s. Beide appframesna boot98,082→109,222s: geen bootwinst. Eénrunperarm, deelsconcurrenteVMs/hostchecks; geenp95/physical/algemenegarantie. Lossehostletter1608→3SURtiles, exactzelfdepixels. Nulmeting: /workspace/nieuw-os-session-baseline/build/session-baseline;B: /workspace/nieuw-os-session-perf/build/session-perf.
 
-## NEXT AGENT HANDOFF — native klembord geïntegreerd; U02 blijft open — 2 november 2026
+**Tests:** gerichtehostreeksen/Clippy/fmt opnativeUI, SUR, Material, graphics, calculator enwindowgroen; nieuwe58windowtests inclusief9volledigepixel-/damagetests opnieuwinreleasegroen. De combinatie vondéénoude vastepaneelverwachting1080tegels; nieuwe compacteuserpanelspant792, gecorrigeerd metexacteassertion. Geenpixeloracleverzwakt. FinalegecombineerdeUI-/graphics-/calculatorchecks ennativecroute+volledige22fasen worden nog uitgevoerd.
+
+**Rodevoorproeven behouden:** eerste native-routebouw overschreedcalc256KiBreadonlydoorbestaandeproportionelefontatlas; nieuwbegrensd512KiBreadonly metgescheidenRW-layout bouwt. EersteVM21hadgeen snapshots omdatdiagnostiekalleenonderprobegecompileerdwas;08routekwamlock→desktop→calculatormaarQEMUmenuwasverkeerdXF86MenuKB. InstalledkeymaptoontPCMenu=compose0xdd; runnergecorrigeerd.08desktopbeeldwasnogpartieel; nieuweSUR-readinessgateisgebouwd. Geenrodetoestandalsgroengeteld.
+
+**Volgende:** bouw/run `native-session-route` met `tools/run_window_session.py --session-route`; daarnaast native-window-session-probe `--clipboard` opdezelfdebron, visuelecontroleactualcaptures en compactbron/hash-/commandobewijs. Alleenwegwerpimages, TCG,displaynone,VGA,geenKVMdevice/hostschijf/passthrough/netwerk. Geenmainmerge.
+
+## Vorig checkpoint — native klembord geïntegreerd; U02 blijft open — 2 november 2026
 
 Branch `codex/mature-native-session-20261102`, concept-PR122 op PR121.
 PR124 is na18 groene CI-workflows en code-/artifactreview opgenomen als
