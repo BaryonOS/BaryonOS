@@ -52,5 +52,14 @@
     }
   },
   "acceptance": "U01 remains41 based on baseline337 plus candidate full Windows and CI native checks. U02 remains open; clipboard and complete latency budgets missing.",
-  "CI_fix": "Pinned workspace fetch before deliberately offline wipe harness on empty Cargo cache. Product source fingerprint unchanged."
+  "CI_fix": "Pinned workspace fetch before deliberately offline wipe harness on empty Cargo cache. Product source fingerprint unchanged.",
+  "test_only_fix": {
+    "file": "tools/tests/test_materiaal_preview.py",
+    "cause": "A UUID screenshot path containing f12 caused the JSON-substring assertion to fail despite no key injection.",
+    "change": "Inspect only structured send-key qcodes; unrelated f12 path and real f12 key each have a regression.",
+    "tested_OS_source_commit": "1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b",
+    "tested_OS_source_v3": "8faf3f7f47e3f26409e446b2311673416ddd70d5735ef106d94c9f30d2c6847a",
+    "current_full_source_v3": "084478cf4d2e137a3ba37bc6029716be3e38fecfdf76ca82fe55cd409b8536d0",
+    "compiled_OS_source_files": "Unchanged. Final normal loader/kernel/eight ELF byte identity will be checked; do not relabel old measurements as execution of this test-only commit."
+  }
 }

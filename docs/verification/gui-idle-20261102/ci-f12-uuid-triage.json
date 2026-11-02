@@ -1,0 +1,36 @@
+{
+  "schema": "nieuw-os-ci-aba-triage-v1",
+  "requested_head": "aba339a217e3f9c62a90dfa5e29b6d4f359d8ebf",
+  "run_id": 41494391189,
+  "job_id": 125445395374,
+  "job_name": "host-quality",
+  "fetch_step": {
+    "number": 7,
+    "name": "Fetch locked workspace dependencies before offline Python harnesses",
+    "conclusion": "success"
+  },
+  "failed_step": {
+    "number": 8,
+    "name": "Python syntax and DocumentSession host tests"
+  },
+  "failed_test": "test_materiaal_preview.PreviewLifecycleTests.test_interactive_disk_decoder_runs_after_qmp_quit_and_raw_zero",
+  "location": "tools/tests/test_materiaal_preview.py:478",
+  "actual_assertion": "self.assertNotIn(\"f12\", json.dumps(self.control.trace))",
+  "actual_false_positive": "Generated screenshot directory materiaal-18f5542f12 contains f12; trace has no send-key qcode f12.",
+  "smallest_fix": "Check only structured send-key arguments.keys entries with type qcode and data f12; keep actual interactive quit/raw0/disk checks unchanged.",
+  "recommended_regressions": [
+    "A screenshot filename containing f12 must not be treated as a key injection.",
+    "An actual send-key argument qcode f12 must be rejected."
+  ],
+  "history": "Assertion unchanged since pre337 and idlePR123; old test originated in earlier native interactive preview tooling, not an idle product defect.",
+  "decoded_log_sha256": "a98ce55d99dfa9439002f04ff5b06d9d9d3be1f357eb5895e001f87627ac4576",
+  "log_representation": "UTF-8 encoding of connector-decoded log, not original HTTP byte stream",
+  "source_mutations": false,
+  "vm_started_or_ci_rerun": false,
+  "overall_ci_success": false,
+  "actual_ci_merge_commit": "7d7550899cb9bcddcfcbe01f7eefb4f3f34d856b",
+  "download_cache": "hit",
+  "host_build_cache": "miss",
+  "cold_empty_download_cache_proven_on_this_run": false,
+  "assertion_introduced": "94c8908e"
+}
