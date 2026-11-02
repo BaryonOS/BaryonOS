@@ -116,6 +116,15 @@ impl Scene {
     pub fn cancel_pointer(&mut self) {
         self.drag = None;
     }
+    pub fn pointer_bounds(&self) -> Rect {
+        let pad = 4 * self.scale as i32;
+        Rect::new(
+            self.pointer.0 as i32 - pad,
+            self.pointer.1 as i32 - pad,
+            24 * self.scale,
+            28 * self.scale,
+        )
+    }
     /// Mouse policy receives the already decoded global position. Only a
     /// trusted title bar starts movement; application pixels cannot start it.
     /// Returns a body recipient, never a caller-chosen process identifier.

@@ -1,5 +1,5 @@
 use nieuw_os_display_client::DisplaySource;
-use nieuw_os_sdk_runtime::{Handle, ReceiveEndpoint, SendEndpoint};
+use nieuw_os_sdk_runtime::{Handle, Outgoing, ReceiveEndpoint, SendEndpoint};
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Invalid;
 #[derive(Clone, Copy)]
@@ -34,6 +34,19 @@ fn handle(n: u64) -> Result<Handle, Invalid> {
     Handle::from_raw(n).map_err(|_| Invalid)
 }
 impl Bootstrap {
+    pub fn ready(&self, native_epoch: u64) -> Result<Outgoing, Invalid> {
+        if native_epoch == 0 {
+            return Err(Invalid);
+        }
+        let mut b = [0u8; 32];
+        b[..4].copy_from_slice(b"IPD1");
+        b[4..6].copy_from_slice(&1u16.to_le_bytes());
+        b[6..8].copy_from_slice(&3u16.to_le_bytes());
+        b[8..16].copy_from_slice(&self.apps[0].surface_epoch.to_le_bytes());
+        b[16..24].copy_from_slice(&self.generation.to_le_bytes());
+        b[24..].copy_from_slice(&native_epoch.to_le_bytes());
+        Outgoing::new(READY, &b).map_err(|_| Invalid)
+    }
     pub fn decode(words: &[u64; 128]) -> Result<Self, Invalid> {
         let w = |at: usize| words[at / 8];
         if w(32) != u64::from_le_bytes(*b"WINCOMP1")

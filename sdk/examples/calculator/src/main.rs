@@ -125,17 +125,15 @@ pub extern "C" fn calculator_main() -> ! {
     let window_session = support::word(656) == 1;
     let mut paused = false;
     loop {
-        if !paused
-            && matches!(
-                app.step(),
-                Err(nieuw_os_calculator::app::Error::Counter
-                    | nieuw_os_calculator::app::Error::Binding)
-            )
-        {
-            fail(12)
-        }
-        if !window_session && app.evidence().errors != 0 {
-            fail(12);
+        if !paused {
+            match app.step() {
+                Err(
+                    nieuw_os_calculator::app::Error::Counter
+                    | nieuw_os_calculator::app::Error::Binding,
+                ) => fail(12),
+                Err(nieuw_os_calculator::app::Error::Surface(_)) if !window_session => fail(12),
+                _ => {}
+            }
         }
         let e = app.evidence();
         let model = app.model();

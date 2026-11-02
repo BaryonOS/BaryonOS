@@ -176,17 +176,11 @@ fn run() -> ! {
         }
     }
     focus(&boot);
-    let ready = nieuw_os_native_input_service::boot::ready(
-        3,
-        boot.apps[0].surface_epoch,
-        boot.generation,
-        geometry.epoch,
-    )
-    .unwrap_or_else(|_| fail(14));
+    let ready = boot.ready(geometry.epoch).unwrap_or_else(|_| fail(14));
     send(boot.registry, &ready);
     support::put(472, 1);
     let mut io = NativeIpc;
-    let mut pending: Option<(usize, SendEndpoint, Outgoing, u64)> = None;
+    let mut pending: [Option<(SendEndpoint, Outgoing, u64)>; 2] = core::array::from_fn(|_| None);
     let mut received = 0u64;
     let mut commits = 0u64;
     let mut rejected = 0u64;
@@ -235,13 +229,7 @@ fn run() -> ! {
                     }
                 }
                 Event::Mouse { input: mouse, x, y } => {
-                    let old = scene.pointer;
-                    damage.mark(Rect::new(
-                        old.0 as i32 - 2,
-                        old.1 as i32 - 2,
-                        22 * boot.scale,
-                        26 * boot.scale,
-                    ));
+                    damage.mark(scene.pointer_bounds());
                     let old_frames = [scene.paint_bounds(0), scene.paint_bounds(1)];
                     let recipient = scene
                         .mouse(
@@ -251,12 +239,7 @@ fn run() -> ! {
                             mouse.buttons.left(),
                         )
                         .unwrap_or_else(|_| fail(21));
-                    damage.mark(Rect::new(
-                        x as i32 - 2,
-                        y as i32 - 2,
-                        22 * boot.scale,
-                        26 * boot.scale,
-                    ));
+                    damage.mark(scene.pointer_bounds());
                     for index in 0..2 {
                         if old_frames[index] != scene.paint_bounds(index) {
                             damage.mark(old_frames[index]);
@@ -292,26 +275,44 @@ fn run() -> ! {
             input.ack(&offer).unwrap_or_else(|_| fail(24));
         }
         repaint(&scene, backing, &mut display, &mut damage, 32).unwrap_or_else(|_| fail(25));
-        for _ in 0..16 {
-            if let Some((index, to, message, start)) = &mut pending {
-                if tick().saturating_sub(*start) > 200 {
-                    let _ = index;
-                    fail(26);
-                }
-                if u64::from_le_bytes(message.as_bytes()[8..16].try_into().unwrap()) == wire::TAG {
+        for index in 0..2 {
+            if let Some((to, mut message, start)) = pending[index].take() {
+                let expired = tick().saturating_sub(start) > 200;
+                if !expired
+                    && u64::from_le_bytes(message.as_bytes()[8..16].try_into().unwrap())
+                        == wire::TAG
+                {
                     let mut prepared = [0u8; wire::SIZE];
                     prepared.copy_from_slice(&message.as_bytes()[64..64 + wire::SIZE]);
-                    let reply = queues[*index]
+                    let reply = queues[index]
                         .refresh(&prepared)
                         .unwrap_or_else(|_| fail(34));
-                    *message = Outgoing::new(wire::TAG, &reply).unwrap_or_else(|_| fail(35));
+                    message = Outgoing::new(wire::TAG, &reply).unwrap_or_else(|_| fail(35));
                 }
-                match io.send(*to, message) {
-                    Ok(()) => pending = None,
-                    Err(e) if e.is_again() => break,
-                    Err(_) => fail(27),
+                let failed = if expired {
+                    true
+                } else {
+                    match io.send(to, &message) {
+                        Ok(()) => false,
+                        Err(e) if e.is_again() => {
+                            pending[index] = Some((to, message, start));
+                            continue;
+                        }
+                        Err(_) => true,
+                    }
+                };
+                if failed {
+                    // One unread reply cannot block the other app's staged
+                    // tile or input ACK. Only this window loses its channels.
+                    surfaces[index].retire();
+                    queues[index].retire();
+                    let _ = native::close(boot.apps[index].surface_reply.handle());
+                    let _ = native::close(boot.apps[index].input_reply.handle());
+                    rejected += 1;
                 }
             }
+        }
+        for _ in 0..16 {
             let message = match io.receive(boot.ingress) {
                 Ok(m) => m,
                 Err(e) if e.is_again() => break,
@@ -333,6 +334,10 @@ fn run() -> ! {
                 rejected += 1;
                 continue;
             };
+            if pending[index].is_some() {
+                rejected += 1;
+                continue;
+            }
             let (tag, payload, to) = if message.tag() == sur::TAG {
                 let now = tick();
                 let reply = match surfaces[index].accept(message.sender(), now, message.payload()) {
@@ -387,7 +392,7 @@ fn run() -> ! {
                 continue;
             };
             let _ = tag;
-            pending = Some((index, to, payload, tick()));
+            pending[index] = Some((to, payload, tick()));
         }
         for (at, v) in [
             (400, 1),

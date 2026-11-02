@@ -142,7 +142,6 @@ fn run() -> ! {
                 || &b[..4] != b"IPD1"
                 || b[4..6] != 1u16.to_le_bytes()
                 || word(b, 16) != boot.generation
-                || word(b, 24) == 0
             {
                 rejected += 1;
                 continue;
@@ -157,6 +156,10 @@ fn run() -> ! {
                     continue;
                 }
             };
+            if (role == 2 && word(b, 24) != 0) || (role != 2 && word(b, 24) == 0) {
+                rejected += 1;
+                continue;
+            }
             if index != Some(expected) || word(b, 8) != epoch {
                 rejected += 1;
                 continue;
@@ -186,7 +189,6 @@ fn run() -> ! {
             }
         }
         if recovering && pause == 3 {
-            let old = boot;
             let process = native::restart_service_group(boot.launch, boot.process)
                 .unwrap_or_else(|_| fail(11));
             let updated = read();
@@ -199,7 +201,6 @@ fn run() -> ! {
             {
                 fail(12);
             }
-            native::close(old.process.handle()).unwrap_or_else(|_| fail(13));
             boot = updated;
             mask = 3;
             pause = 0;

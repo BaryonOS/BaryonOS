@@ -13,6 +13,7 @@ struct Item {
     event: Event,
 }
 pub struct Queue {
+    retired: bool,
     pid: u64,
     id: u64,
     epoch: u64,
@@ -30,6 +31,7 @@ impl Queue {
             return Err(Error::Configuration);
         }
         Ok(Self {
+            retired: false,
             pid,
             id,
             epoch,
@@ -43,6 +45,9 @@ impl Queue {
         })
     }
     pub fn cancel(&mut self, reason: CancelReason) -> Result<(), Error> {
+        if self.retired {
+            return Ok(());
+        }
         let next_generation = self
             .generation
             .checked_add(1)
@@ -57,6 +62,9 @@ impl Queue {
         Ok(())
     }
     pub fn push(&mut self, event: Event) -> Result<(), Error> {
+        if self.retired {
+            return Ok(());
+        }
         if self.length == CAPACITY {
             return self.cancel(CancelReason::QueueFull);
         }
@@ -74,6 +82,9 @@ impl Queue {
     pub fn handle(&mut self, sender: u64, bytes: &[u8]) -> Result<[u8; wire::SIZE], Error> {
         if sender != self.pid {
             return Err(Error::Access);
+        }
+        if self.retired {
+            return Err(Error::ActorDead);
         }
         let request = Request::decode(bytes, self.epoch)?;
         if !matches!(request.operation, Operation::Peek | Operation::Ack) {
@@ -105,13 +116,22 @@ impl Queue {
         };
         Ok(wire::response(request, self.id, event))
     }
+    pub fn retire(&mut self) {
+        self.retired = true;
+        self.items = [None; CAPACITY];
+        self.head = 0;
+        self.length = 0;
+        self.offered = None;
+    }
     /// Rebuild a prepared PEEK immediately before a delayed send. Focus loss
     /// or overflow may have superseded an offer while the reply queue was full.
     /// This does not consume another request ID or acknowledge any event.
     pub fn refresh(&mut self, prepared: &[u8; wire::SIZE]) -> Result<[u8; wire::SIZE], Error> {
-        let operation=u16::from_le_bytes([prepared[6],prepared[7]]) & !wire::REPLY;
-        let status=u64::from_le_bytes(prepared[24..32].try_into().unwrap());
-        if operation!=Operation::Peek as u16 || status>1 {return Ok(*prepared);}
+        let operation = u16::from_le_bytes([prepared[6], prepared[7]]) & !wire::REPLY;
+        let status = u64::from_le_bytes(prepared[24..32].try_into().unwrap());
+        if operation != Operation::Peek as u16 || status > 1 {
+            return Ok(*prepared);
+        }
         let mut bytes = *prepared;
         bytes[6..8].copy_from_slice(&operation.to_le_bytes());
         bytes[24..].fill(0);
@@ -205,17 +225,26 @@ mod tests {
     }
     #[test]
     fn delayed_reply_refresh_never_delivers_superseded_offer() {
-        let mut q=Queue::new(42,1,7).unwrap();
+        let mut q = Queue::new(42, 1, 7).unwrap();
         q.push(Event::Cancel(CancelReason::Resync)).unwrap();
-        let old=q.handle(42,&req(Operation::Peek,1,0)).unwrap();
+        let old = q.handle(42, &req(Operation::Peek, 1, 0)).unwrap();
         q.cancel(CancelReason::FocusLost).unwrap();
-        let fresh=q.refresh(&old).unwrap();
-        assert!(word(&fresh,48)>word(&old,48));assert_eq!(fresh[41],1);
-        let ack=q.handle(42,&req(Operation::Ack,2,word(&fresh,48))).unwrap();
-        assert_eq!(q.refresh(&ack).unwrap(),ack);
-        let empty=q.handle(42,&req(Operation::Peek,3,0)).unwrap();
-        q.push(Event::Key(ui_core::KeyboardEvent{key:ui_core::PhysicalKey::A,action:ui_core::KeyAction::Press,modifiers:ui_core::KeyboardModifiers::default()})).unwrap();
-        let key=q.refresh(&empty).unwrap();
-        assert_eq!(key[40],1);assert!(word(&key,56)>word(&fresh,56));
+        let fresh = q.refresh(&old).unwrap();
+        assert!(word(&fresh, 48) > word(&old, 48));
+        assert_eq!(fresh[41], 1);
+        let ack = q
+            .handle(42, &req(Operation::Ack, 2, word(&fresh, 48)))
+            .unwrap();
+        assert_eq!(q.refresh(&ack).unwrap(), ack);
+        let empty = q.handle(42, &req(Operation::Peek, 3, 0)).unwrap();
+        q.push(Event::Key(ui_core::KeyboardEvent {
+            key: ui_core::PhysicalKey::A,
+            action: ui_core::KeyAction::Press,
+            modifiers: ui_core::KeyboardModifiers::default(),
+        }))
+        .unwrap();
+        let key = q.refresh(&empty).unwrap();
+        assert_eq!(key[40], 1);
+        assert!(word(&key, 56) > word(&fresh, 56));
     }
 }
