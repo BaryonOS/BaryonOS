@@ -8,6 +8,43 @@ met door de app beheerde buffers, stapsgewijs bewaren en annuleren. Zie
 De onderstaande catalogusroute blijft beschikbaar voor bestaande M6c-clients;
 haar 128-bytegrens is geen nieuwe productkeuze voor Materiaal.
 
+## Native bibliotheek over volume v7
+
+De volume-`DocumentSession` biedt ook onderstaande begrensde bewerkingen,
+zonder extra endpoint, wireoperatie, opslagformaat of bevoegdheid:
+
+| Aanroep | Gedrag |
+|---|---|
+| `list_filtered(ListFilter, out)` | Leest alle pagina's binnen één domeinklok. `All`, `Uncollected` en `Collection(1..=4)` selecteren alleen de lijst. Fouten behouden de oude uitvoerlijst. |
+| `collection_stat(index)` | Leest naam, aanwezigheid, revisie en request-ID van één collectie in het toegekende domein. |
+| `update_collection(index, expected, name)` | Maakt/hernoemt met revisie-CAS; een lege naam verwijdert alleen een lege collectie. |
+| `set_metadata(expected_revision, tags, kind, collection)` | Wijzigt metadata van het geladen document; `0` betekent geen collectie. Een geldige ACK werkt de geladen revisie bij en behoudt naam en inhoud. |
+| `read_history(expected_revision, selector, out)` | Leest historie `1..=2` gebonden aan de huidige objectrevisie. Verifieert alle delen en de checksum vóór wijziging van `out`; behoudt ook een vuil concept. |
+| `restore_history(expected_revision, selector)` | Herstelt als **nieuwe** revisie, behoudt de vervangen versie in de historie en laadt exact de bevestigde nieuwe revisie. |
+| `rename_draft(name)` + expliciet `save()` | Past de lokale titel aan; alleen bewaren publiceert de nieuwe naam samen met de inhoud. |
+
+Mutaties vereisen `ReadWrite`, een schoon concept, geen actieve upload en geen
+conflict of onzekere uitkomst. Lezen blijft mogelijk met `ReadOnly`; die lokale
+modus verleent geen capability. Selectie, lijstfilters en historiepreview
+schrijven niets. De bestaande dienst bewaakt onder meer CAS, domeinen, quota,
+collectielidmaatschap en verwijdering van uitsluitend lege collecties.
+
+Een verloren, misvormd of niet vertrouwd mutatieantwoord sluit de verbinding
+en kan `is_uncertain()` zetten; de client probeert nooit automatisch opnieuw.
+Bij `CommittedRefreshFailed { revision }` is het herstel juist **wel** bevestigd,
+maar het daarna lezen mislukt. De oude conceptbytes blijven beschikbaar;
+save en opnieuw herstellen zijn geblokkeerd tot een expliciete succesvolle
+`open`. De UI moet de bekende commit en de leesfout apart uitleggen en mag
+de herstelmutatie niet herhalen. Een latere nieuwe verbinding vereist de
+bestaande onafhankelijke service-/grant-herstelroute.
+
+De integratietests gebruiken de echte volume-Service en capability-engine met
+een synthetische hostschijf. Zij controleren onder andere filters, metadata,
+nieuwe herstelrevisies, dirty/async-save-blokkering, read-only, stale CAS,
+verkeerd domein/antwoord, timeouts, servicecrash, onzekere publicatie en behoud
+van concept en uitvoer bij een gedeeltelijk mislukte read. Dit is hostbewijs;
+native UI-bediening en diskoracles vereisen een afzonderlijke QEMU-poort.
+
 `nieuw-os-document-session` is een allocatorvrije `no_std`-library met
 `forbid(unsafe_code)` boven de bestaande `nieuw_os_catalog_client::Session<T>`.
 Zij beheert één reeds bestaand document en een lokale conceptbuffer van
