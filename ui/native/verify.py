@@ -22,8 +22,8 @@ def fingerprint():
         if p.is_file() and not {"verification", "target", "build", "__pycache__"}.intersection(p.relative_to(PACKAGE).parts)
     ) + [ROOT / "ui/prototype/tokens.css"]
     hashes = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
-    # Common source v3 does not yet cover ui/. Bind both explicitly, including
-    # the one CSS token input. Root must extend native image capture separately.
+    # Bind the frontend files and CSS token input explicitly alongside common
+    # source v3, which also covers the native UI and surface transport.
     inputs = {"common_source_v3": source_hash(), "frontend_files": hashes}
     digest = hashlib.sha256(json.dumps(inputs, sort_keys=True).encode()).hexdigest()
     return digest, inputs
@@ -71,8 +71,16 @@ def main():
             if symbol.split()[-1:] and symbol.split()[-1] in {"malloc", "calloc", "realloc", "free", "mmap", "sbrk", "VirtualAlloc"}:
                 raise RuntimeError("unexpected host memory backend")
         artifacts.append({"name": event["target"]["name"], "path": str(path.relative_to(ROOT)), "sha256": hashlib.sha256(path.read_bytes()).hexdigest(), "bytes": path.stat().st_size, "instructions_checked": count, "forbidden_scalar_matches": [], "features": event["features"]})
-    if len(artifacts) != 9 or fingerprint()[0] != before:
-        raise RuntimeError("incomplete graph or source changed during checks")
+    expected = {"zeroize", "ui_core", "catalog_core", "nieuw_os_sdk_runtime",
+                "nieuw_os_catalog_client", "nieuw_os_input_core",
+                "nieuw_os_document_session", "volume_core", "noto_sans_mono_bitmap",
+                "nieuw_os_materiaal"}
+    # The SDK already depends on zeroize. Check the exact locked graph rather
+    # than the obsolete pre-zeroize count; every archive above is still scanned.
+    if len(artifacts) != len(expected) or {item["name"] for item in artifacts} != expected:
+        raise RuntimeError("unexpected locked dependency graph: " + repr([item["name"] for item in artifacts]))
+    if fingerprint()[0] != before:
+        raise RuntimeError("source changed during checks")
     output = PACKAGE / "verification"
     output.mkdir(exist_ok=True)
     logs = BUILD / "logs/native-materiaal"

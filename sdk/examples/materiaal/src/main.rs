@@ -199,7 +199,8 @@ pub extern "C" fn materiaal_main() -> ! {
         config.input_epoch,
     )
     .unwrap_or_else(|_| fail(10));
-    if support::word(648) == 1 {
+    let session_preview = support::word(648) == 1;
+    if session_preview {
         controller.enable_vm_desktop().unwrap_or_else(|_| fail(14));
     }
     // A list failure is a genuine controller error screen, never an empty list
@@ -208,7 +209,11 @@ pub extern "C" fn materiaal_main() -> ! {
     let mut app = App::new(controller, input, surface, geometry).unwrap_or_else(|_| fail(11));
     loop {
         tick();
-        let _ = app.step();
+        let _ = if session_preview {
+            app.step_interactive()
+        } else {
+            app.step()
+        };
         publish(app.evidence(), app.observation());
         if let Some(message) = control(&config) {
             // STOP is an explicit supervisor request, never an implicit save or

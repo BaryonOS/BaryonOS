@@ -169,3 +169,27 @@ in de minimaal toegelaten QEMU 10.2.1-build.
 - QEMU Project. *QEMU TPM Device*. TPM-passthrough deelt de fysieke TPM niet
   vrij met host/gasten; software-TPM is een afzonderlijke route.
   https://www.qemu.org/docs/master/specs/tpm.html
+
+## Lokale Windowsbevindingen van 2 november 2026
+
+De geautoriseerde lokale Codex-chat rapporteert een Ryzen9 9950X3D met64GiB
+en Windows11 25H2. WHPX initialiseert zonder hostinstellingen te wijzigen.
+Op de oude bundel leverde één koude proef10,453s met WHPX tegenover19,952s
+met TCG tot exact hetzelfde volledige frame. Op bron7648a8f slaagde de
+vijfstappenroute met WHPX in43,824s; schermovergangen waren6,856–9,107s.
+Dat is uitvoeringsbewijs voor die specifieke bron, geen productlatentieclaim.
+Ruwe lokale artifacts blijven bij die chat; de gerapporteerde bron-/firmware-/
+meetgrens is vastgelegd in [local-pc-reported.json](../verification/session-desktop-20261102/local-pc-reported.json).
+
+De eerste HMP-helper gaf op Windows ten onrechte een time-out: invoer kon
+vóór monitorreadiness aankomen; LF alleen verhielp dit niet. De huidige helper
+wacht op de QMP-greeting en ieder gecorreleerd antwoord. De versie51d883e
+heeft ook de platformsorteerfout in source-v3 hersteld; bytegelijke Windows-
+en Linuxcheckouts leveren sindsdien rechtstreeks dezelfde sourcehash.
+Geen inputbron of integriteitscontrole is verwijderd.
+
+Testmappen horen buiten synchronisatie: OneDrive maakte bij de lokale proef
+extra hardlinks, die het harnas terecht weigerde. De vervolgproef gebruikt
+LocalAppData; hardlinkcontroles blijven actief. Windowsruntime voor de
+definitieve bron staat afzonderlijk in het eindbewijs, niet impliciet groen
+op grond van deze oudere resultaten.

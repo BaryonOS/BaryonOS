@@ -11,7 +11,9 @@ reeds gebruikte RustCrypto-dependency uit `services/keyring`; de vastgepinde
 crate is `no_std`, heeft voor deze configuratie geen transitieve dependency of
 buildscript en is Apache-2.0 OR MIT. Herkomst: crates.io-locksum en
 <https://github.com/RustCrypto/utils/tree/master/zeroize>. Dit wist alleen
-expliciet beheerde buffers; het bewijst geen opruiming van registers, compiler-
+expliciet beheerde buffers. De native sessie-UI gebruikt sinds2november2026
+dezelfde exacte pin rechtstreeks voor owned wachtwoord-/ticketbuffers; geen
+nieuwe externe crate, feature of buildscript. Het bewijst geen opruiming van registers, compiler-
 kopieën, crashgeheugen of kopieën buiten de SDK-eigen envelopes.
 
 ### Netwerkdiensten: smoltcp, rustls en spin (30 oktober 2026)

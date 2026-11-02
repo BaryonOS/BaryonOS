@@ -124,6 +124,7 @@ struct Host {
     source_id: u64,
     control_id: u64,
     requests: Vec<volume::wire::Header>,
+    input_requests: usize,
     blits: usize,
     framebuffer: Vec<u32>,
     now: u64,
@@ -187,6 +188,7 @@ impl Host {
             source_id: 0,
             control_id: 0,
             requests: vec![],
+            input_requests: 0,
             blits: 0,
             framebuffer: vec![0; 800 * 600],
             now: 0,
@@ -277,6 +279,7 @@ impl Host {
             }
             1 => {
                 assert_eq!(m.tag, iw::TAG);
+                self.input_requests += 1;
                 let received = Received::from_bytes(m.encode(), m.len as u64).unwrap();
                 let prepared = match self.input.handle(recv(p.ingress), &received) {
                     Ok(r) => r,
@@ -1201,4 +1204,186 @@ fn diagnostic_f12_only_actual_press() {
 scenario!(
     diagnostic_f12_counts_press_without_repeat_release_or_action,
     diagnostic_f12_only_actual_press
+);
+
+fn interactive_batch_reduces_idle_input_requests() {
+    let h = Host::new();
+    let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut a = app(
+        &h,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    a.step().unwrap(); // Acknowledge the real initial focus/cancel offer.
+    let requests = h.borrow().input_requests;
+    let tiles = a.evidence().tiles;
+    a.step().unwrap();
+    assert_eq!(h.borrow().input_requests - requests, 1);
+    assert_eq!(a.evidence().tiles - tiles, 1, "old step contract changed");
+
+    let requests = h.borrow().input_requests;
+    let tiles = a.evidence().tiles;
+    a.step_interactive().unwrap();
+    assert_eq!(h.borrow().input_requests - requests, 1);
+    assert_eq!(a.evidence().tiles - tiles, 4);
+    assert_eq!(a.evidence().frames, 0);
+    assert!(!a.evidence().ready);
+}
+
+fn finish_interactive_paint(a: &mut App<'_, Port, Port, Port>) {
+    for _ in 0..geometry().tiles() {
+        if !a.controller().view().dirty {
+            return;
+        }
+        a.step_interactive().unwrap();
+    }
+    panic!("interactive frame never completed");
+}
+
+fn interactive_ready_requires_complete_current_generation() {
+    let h = Host::new();
+    let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut a = app(
+        &h,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    finish_interactive_paint(&mut a);
+    assert!(a.evidence().ready);
+    assert_eq!(a.evidence().frames, 1);
+    assert_eq!(a.evidence().tiles, geometry().tiles());
+    assert_eq!(h.borrow().blits as u64, geometry().tiles());
+    let old = a.evidence().presented_generation;
+    let blits = h.borrow().blits;
+    a.step_interactive().unwrap();
+    assert_eq!(h.borrow().blits, blits, "clean frames must not repaint");
+
+    h.borrow_mut().key(0x1c);
+    let tiles = a.evidence().tiles;
+    a.step_interactive().unwrap();
+    assert!(a.controller().view().generation > old);
+    assert_eq!(a.evidence().tiles - tiles, 4);
+    assert!(!a.evidence().ready);
+    assert_eq!(a.evidence().frames, 1);
+    assert_eq!(a.evidence().presented_generation, old);
+    finish_interactive_paint(&mut a);
+    assert!(a.evidence().ready);
+    assert_eq!(a.evidence().frames, 2);
+    assert_eq!(
+        a.evidence().presented_generation,
+        a.controller().view().generation
+    );
+    assert_eq!(
+        h.borrow().surface.completed_frame(),
+        Some(a.evidence().presented_generation)
+    );
+}
+
+fn interactive_missing_ack_stops_the_batch() {
+    let h = Host::new();
+    let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut a = app(
+        &h,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    new_text(&h, &mut a);
+    let tiles = a.evidence().tiles;
+    let blits = h.borrow().blits;
+    h.borrow_mut().drop_blit = true;
+    assert!(matches!(a.step_interactive(), Err(Error::Surface(_))));
+    assert_eq!(
+        h.borrow().blits - blits,
+        1,
+        "batch continued after lost ACK"
+    );
+    assert_eq!(a.evidence().tiles, tiles);
+    assert_eq!(a.evidence().frames, 0);
+    assert!(!a.evidence().ready);
+    assert!(a.controller().view().dirty);
+    assert_eq!(a.controller().view().contents, Some("hi"));
+    let blits = h.borrow().blits;
+    a.step_interactive().unwrap();
+    assert_eq!(h.borrow().blits, blits);
+}
+
+fn interactive_input_batch_remains_four_offers() {
+    let h = Host::new();
+    let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut a = app(
+        &h,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    a.step().unwrap();
+    for scan in [0x1e, 0x9e, 0x30, 0xb0, 0x2e, 0xae] {
+        h.borrow_mut().key(scan);
+    }
+    let before = a.evidence();
+    let requests = h.borrow().input_requests;
+    a.step_interactive().unwrap();
+    assert_eq!(a.evidence().keys - before.keys, 4);
+    assert_eq!(a.evidence().input_acks - before.input_acks, 4);
+    assert_eq!(h.borrow().input_requests - requests, 8);
+    assert_eq!(a.evidence().tiles - before.tiles, 4);
+    let before = a.evidence();
+    a.step_interactive().unwrap();
+    assert_eq!(a.evidence().keys - before.keys, 2);
+    assert_eq!(a.evidence().input_acks - before.input_acks, 2);
+}
+
+fn interactive_input_failure_preserves_draft_and_renders_bounded_feedback() {
+    let h = Host::new();
+    let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut a = app(
+        &h,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    new_text(&h, &mut a);
+    h.borrow_mut().drop_input = true;
+    let before = a.evidence();
+    assert!(matches!(a.step_interactive(), Err(Error::Input(_))));
+    assert!(a.input_failed());
+    assert!(!a.evidence().ready);
+    assert_eq!(a.evidence().tiles - before.tiles, 4);
+    assert_eq!(a.evidence().save_acks, before.save_acks);
+    assert_eq!(a.controller().view().contents, Some("hi"));
+    assert!(a.controller().document().is_dirty());
+}
+
+scenario!(
+    interactive_four_tiles_use_one_idle_peek,
+    interactive_batch_reduces_idle_input_requests
+);
+scenario!(
+    interactive_batch_never_certifies_partial_generation,
+    interactive_ready_requires_complete_current_generation
+);
+scenario!(
+    interactive_lost_tile_ack_ends_batch_and_preserves_draft,
+    interactive_missing_ack_stops_the_batch
+);
+scenario!(
+    interactive_input_still_processes_at_most_four_offers,
+    interactive_input_batch_remains_four_offers
+);
+scenario!(
+    interactive_input_failure_keeps_draft_and_bounded_paint,
+    interactive_input_failure_preserves_draft_and_renders_bounded_feedback
 );

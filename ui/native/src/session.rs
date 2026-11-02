@@ -4,6 +4,7 @@
 //! That adapter must authenticate its IPC peer and enforce service/capability
 //! binding. These Rust types do not authenticate an issuer or grant kernel rights.
 //! The separate VM guest path never reports authenticated user identity.
+use zeroize::Zeroize;
 
 pub const MAX_PASSWORD_BYTES: usize = 128;
 pub const TICKET_BYTES: usize = 32;
@@ -116,7 +117,7 @@ impl BrokerTicket {
 }
 impl Drop for BrokerTicket {
     fn drop(&mut self) {
-        self.0.fill(0);
+        self.0.zeroize();
     }
 }
 
@@ -187,7 +188,7 @@ impl Password {
     }
 
     fn clear(&mut self) {
-        self.bytes.fill(0);
+        self.bytes.zeroize();
         self.len = 0;
     }
 }
@@ -197,9 +198,9 @@ impl Drop for Password {
     }
 }
 
-/// Allocator-free interaction state. Password and ticket clearing uses safe
-/// `fill(0)` as best effort; Rust does not promise compiler-resistant erasure or
-/// absence of temporary copies. A future secret service needs audited erasure.
+/// Allocator-free interaction state. The already pinned zeroize implementation
+/// clears owned password/ticket buffers; this does not erase temporary copies,
+/// registers, crash images or another process's storage.
 pub struct SessionFlow {
     phase: Phase,
     account: Option<Account>,
@@ -295,7 +296,7 @@ impl SessionFlow {
             while start > 0 && self.password.bytes[start] & 0xc0 == 0x80 {
                 start -= 1;
             }
-            self.password.bytes[start..self.password.len].fill(0);
+            self.password.bytes[start..self.password.len].zeroize();
             self.password.len = start;
         }
         Ok(())

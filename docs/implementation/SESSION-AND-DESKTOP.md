@@ -112,10 +112,12 @@ ongeldig. Een oude reply mag de nieuwe aanvraag niet vervullen.
 
 Wachtwoorden gebruiken maximaal 128 bytes; overloop geeft een fout. De UI kan
 alleen de lengte opvragen. Invoer en ticketbytes worden bij verlaten van hun
-levensduur met veilige `fill(0)` overschreven. Dit is **best effort**: de compiler
-kan writes weglaten en tijdelijke kopieën zijn niet uitgesloten. Dit is geen
-bewijs van compilerbestendige secret-erasure. De latere secretdienst vereist
-een daarvoor gecontroleerde implementatie.
+levensduur met de bestaande gepinde `zeroize 1.9.1`-implementatie gewist.
+De native UI gebruikt dezelfde no_std-configuratie zonder extra crate of
+buildscript als de SDK. Dit beschermt de expliciete owned buffers tegen
+wegoptimaliseren van het wissen; tijdelijke kopieën, registers, crashgeheugen
+en data buiten de eigen buffers vallen daarbuiten. De latere secretdienst
+vereist nog een gecontroleerde volledige levenscyclus.
 
 De standaard `SessionFlow::new()` gebruikt lokale counters, geen willekeurige
 sessie-identiteit. De echte broker moet daarom daarnaast de authentieke

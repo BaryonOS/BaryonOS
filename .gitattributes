@@ -89,3 +89,6 @@ docs/verification/rtc-native/**/*.txt -text whitespace=blank-at-eol,blank-at-eof
 docs/verification/rtc-native/**/*.json -text
 docs/verification/rtc-native/*.json -text
 docs/verification/rtc-native/SHA256SUMS -text
+
+# Session preview: retain the exact firmware CRLF bytes used by the hashes.
+docs/verification/session-desktop-20261102/*.txt -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

@@ -48,6 +48,7 @@ dependencies = [
  "noto-sans-mono-bitmap",
  "ui-core",
  "volume-core",
+ "zeroize",
 ]
 
 [[package]]

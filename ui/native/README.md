@@ -49,9 +49,8 @@ python3 -B ui/native/verify.py
 
 Dat voert de echte hostscenario's, Clippy, fmt, scalar-none-build en objectscan
 uit. `verification/checks.json` bindt bestanden, de gedeelde CSS-tokenbron en
-alle overige bestaande source-v3-inputs aan de gebouwde archieven. Het root-
-imageharnas moet ui/native en tokens.css apart gaan meenemen vóór native UI-
-acceptatie; de huidige algemene source_hash volgt ui/ nog niet.
+alle overige bestaande source-v3-inputs aan de gebouwde archieven. Het root-imageharnas neemt ui/native, ui/surface-protocol en tokens.css mee
+in source-v3. Dit bronverband vervangt geen native uitvoeringsacceptatie.
 
 De hostharness gebruikt de werkelijke capability-engine en volume Service op
 geordende RAM-sectoren. 18 scenario's behandelen onder meer echte PS2-bytes,

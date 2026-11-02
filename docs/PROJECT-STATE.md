@@ -17,8 +17,10 @@ Wachtwoord/biometrie/FIDO2 blijven gesloten via UnavailableBroker.
 
 Checkpoint: 45 frontendhosttests slagen (31 interactie, 4 raster, 10 sessie),
 37 Python-launcher/previewtests en 18 synthetische PowerShellchecks door deelagent.
-Native build loopt; gezamenlijke native schermproef en Windows-runtime voor
-deze bron **nog niet uitgevoerd**. Brongebonden eindbewijs volgt onder
+Native vijfstappenproef op7648a8f en achtstappenproef op51d883e slagen.
+Windows bevestigt de51d-QMPhelper zesmaal opPS5.1/PS7.6. De uiteindelijke
+vier-tegel appbatch/zeroize-bron wordt nu opnieuw native gecontroleerd;
+uitvoering op die eindbron is op dit checkpoint **nog niet uitgevoerd**. Brongebonden eindbewijs volgt onder
 `docs/verification/session-desktop-20261102/`. Score **34 → 34**; geen
 nieuwe FR-, fysieke of menselijke acceptatie. De bestaande integratorafspraak
 voor merges blijft behouden; deze branch wordt niet zelfstandig gemerged.

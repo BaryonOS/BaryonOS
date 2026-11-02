@@ -51,5 +51,38 @@
     "component": "Windows HMP acceleration helper",
     "result": "Timed out after10seconds despite successful binary-LF QMP initialization; false TCG fallback. Replacement QMP helper requires a new Windows runtime test.",
     "scope": "Real Windows finding; Linux/fake-executable policy tests had passed."
+  },
+  "fixed_helper_windows": {
+    "source_commit": "51d883e76c226b1ddd201f0e77cb126e4e5f745e",
+    "helper_sha256": "fc506bb5ed327491a48316c9e9195418e3b08d090ceacdd4119a65c910c2defc",
+    "successful_probes": 6,
+    "powershell_5_1_seconds": [
+      0.322,
+      0.32,
+      0.292
+    ],
+    "powershell_7_6_seconds": [
+      0.323,
+      0.29,
+      0.274
+    ],
+    "qmp": "Greeting, correlated capabilities/status/quit; prelaunch, running=false; exit0",
+    "selection": [
+      "Auto -> whpx Checked=true",
+      "Whpx -> whpx Checked=true",
+      "Auto -> whpx Checked=true"
+    ],
+    "check_only": "Both PowerShell versions pass; no mutable state",
+    "host_settings_changed": false,
+    "raw_report_local": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\session-preview-51d883e\\launcher-verification\\verification.json"
+  },
+  "session_51d_windows_first_run": {
+    "scope": "Reported first8-stage native WHPX walkthrough; full3x2series not complete at report time",
+    "first_accounts_from_popen_seconds": 7.992,
+    "transitions_min_seconds": 2.75,
+    "transitions_max_seconds": 5.903,
+    "total_seconds": 42.485,
+    "passed": true,
+    "authentication": "Personal login rejects synthetic password; only explicit guest starts desktop"
   }
 }
