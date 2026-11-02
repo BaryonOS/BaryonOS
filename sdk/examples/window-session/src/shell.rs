@@ -686,13 +686,7 @@ impl Shell {
                 }
                 Page::Auth => "Nog geen accountdienst. Voer geen wachtwoord in.",
                 Page::Unlocking => "De lokale testwerkruimte wordt zichtbaar.",
-                Page::Search => {
-                    if self.query_len == 0 {
-                        "Apps, materiaal, instellingen en acties"
-                    } else {
-                        self.query()
-                    }
-                }
+                Page::Search => "Apps, materiaal, instellingen en acties",
                 Page::Settings => "Lokale bediening, zonder leveranciersaccount.",
                 Page::Notifications => "Geen nieuwe meldingen.",
                 Page::Session => "Openbare VM-testsessie",

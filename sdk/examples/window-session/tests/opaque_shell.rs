@@ -232,7 +232,8 @@ fn blocked_page_changes_reduce_tiles_but_desktop_and_visibility_changes_are_full
     while damage.next_tile().is_some() {
         tiles += 1;
     }
-    assert_eq!(tiles, 1080);
+    // The compact344px user panel spans18columns and44 tile rows.
+    assert_eq!(tiles, 792);
     assert_eq!(
         scene.shell_damage(
             false,

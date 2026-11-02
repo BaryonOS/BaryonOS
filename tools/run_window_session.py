@@ -243,6 +243,24 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                   source_fingerprint_version=3, kernel_feature=feature, session_route_requested=session_route, session_route_gate=False, manifest=manifest, command=command,
                   run_directory=str(directory), qemu_sha256=qemu_hash, immutable=immutable, phases={})
     publish_json(directory / "result.json", report)
+    report["boot_milestone_observations"] = {}
+    def observed_serial():
+        raw = serial(directory / "serial.txt")
+        # First-observed host bounds, never invented guest phase durations.
+        for label, marker in (
+            ("firmware_exit", b"BOOT:EBS_OK\n"),
+            ("kernel_entry", b"KERNEL:ENTRY\n"),
+            ("kernel_memory_ready", b"KS-03:PASS\n"),
+            ("process_manifest_ready", b"WINDOW:MANIFEST:PASS\n"),
+            ("required_services_ready", b"WINDOW:INITMASK:00000000000000000031\n"),
+            ("material_complete_frame", b"WINDOW:MATERIAL:READY:00000000000000000001\n"),
+            ("calculator_complete_frame", b"WINDOW:CALCULATOR:READY:00000000000000000001\n"),
+        ):
+            if marker in raw and label not in report["boot_milestone_observations"]:
+                report["boot_milestone_observations"][label] = {
+                    "first_observed_seconds": time.monotonic() - start,
+                    "scope": "host monotonic polling bound; not exact guest duration"}
+        return raw
     process = control = None
     try:
         with (directory / "stderr.txt").open("xb") as stderr:
@@ -261,7 +279,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
 
             def observe(label, predicate):
                 while True:
-                    raw = serial(directory / "serial.txt")
+                    raw = observed_serial()
                     if predicate(raw):
                         return raw
                     if process.poll() is not None or time.monotonic() >= deadline:
@@ -271,7 +289,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
             action_started = [None]
             def wait(name, predicate, oracle=None, image_check=None):
                 while True:
-                    raw = serial(directory / "serial.txt")
+                    raw = observed_serial()
                     state = {role: snapshots(raw, role) for role in ("MATERIAL", "CALCULATOR")}
                     if predicate(raw, state):
                         path = private_path(directory / "candidate.ppm", regular=(directory / "candidate.ppm").exists())
@@ -298,7 +316,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                     time.sleep(0.05)
 
             def key(*keys):
-                raw = serial(directory / "serial.txt")
+                raw = observed_serial()
                 current = comp(raw)
                 if current.get("GENERATION") != group_generation[0]:
                     raise ValueError("Keyboard injection lacks a current compositor observation")
@@ -342,20 +360,20 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                                 and comp(raw).get("SHELL_READY") == 1)
 
                 def shell_key(*codes):
-                    before = comp(serial(directory / "serial.txt"))["INPUT"]
+                    before = comp(observed_serial())["INPUT"]
                     control.command("send-key", {"keys": [{"type": "qcode", "data": k} for k in codes], "hold-time": 1})
                     observe("shell input ACK", lambda raw: comp(raw).get("INPUT", 0) > before)
 
                 shell_page("lock", 0)
                 observe("bounded app input counters", lambda raw: all(numbers(raw, f"WINDOW:{r}:KEYS") for r in ("MATERIAL", "CALCULATOR")))
-                before = {r: numbers(serial(directory / "serial.txt"), f"WINDOW:{r}:KEYS")[-1]
+                before = {r: numbers(observed_serial(), f"WINDOW:{r}:KEYS")[-1]
                           for r in ("MATERIAL", "CALCULATOR")}
                 shell_key("ret"); shell_page("users", 1)
                 shell_key("tab"); shell_key("ret"); shell_page("personal-auth", 2)
                 shell_key("ret"); shell_key("tab"); shell_key("ret")
                 shell_key("tab"); shell_key("ret")
                 shell_page("hardware-unavailable", 2)
-                raw = serial(directory / "serial.txt")
+                raw = observed_serial()
                 after = {r: numbers(raw, f"WINDOW:{r}:KEYS")[-1] for r in before}
                 if before != after:
                     raise ValueError("Trusted shell leaked authentication input into an app")
@@ -368,16 +386,16 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 shell_key("f3"); shell_page("search", 5)
                 for code in ("r", "e", "k"): shell_key(code)
                 shell_key("ret"); shell_page("calculator", 4)
-                if comp(serial(directory / "serial.txt")).get("FOCUSED") != 1:
+                if comp(observed_serial()).get("FOCUSED") != 1:
                     raise ValueError("Search did not activate the correct native app")
-                shell_key("menu"); shell_page("session-menu", 8)
+                shell_key("compose"); shell_page("session-menu", 8)
                 shell_key("tab"); shell_key("tab"); shell_key("ret"); shell_page("settings", 6)
                 shell_key("esc"); shell_page("desktop-again", 4)
                 shell_key("meta_l", "l"); shell_page("covered", 0)
                 shell_key("ret"); shell_page("users-return", 1)
                 shell_key("ret"); shell_page("guest-return", 2)
                 shell_key("ret"); shell_page("desktop-return", 4)
-                shell_key("menu"); shell_page("shutdown-menu", 8)
+                shell_key("compose"); shell_page("shutdown-menu", 8)
                 for _ in range(3): shell_key("tab")
                 control.command("send-key", {"keys": [{"type": "qcode", "data": "ret"}], "hold-time": 1})
                 report["blocked_app_keys_before"] = before
@@ -407,7 +425,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
             else:
                 move(1260, 50)
                 initial = wait("initial", lambda raw, s: all(s.values()), "initial")
-                initial_comp = comp(serial(directory / "serial.txt"))
+                initial_comp = comp(observed_serial())
                 if any(initial[r][-1]["PROBES"] != 3 for r in initial):
                     raise ValueError("Missing initial real CPL3 isolation refusals")
                 key("ret")
@@ -455,7 +473,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 key("f6")
                 key("f12")
                 recovered = wait("recovered", lambda raw, s: 1 in numbers(raw, "WINDOW:RECOVERIES") and all(s.values()) and all(s[r][-1]["SERVICE_GENERATION"] == 2 and s[r][-1]["PROBES"] == 10 for r in s) and comp(raw).get("GENERATION") == 2 and comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"] and comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
-                recovered_comp = comp(serial(directory / "serial.txt"))
+                recovered_comp = comp(observed_serial())
                 if recovered_comp["PID"] == initial_comp["PID"]:
                     raise ValueError("Recovery reused the compositor process")
                 for field in ("PID", "DRAFT_BYTES", "DRAFT_SUM", "DIRTY", "SAVE_ACKS", "OBJECT"):
@@ -494,7 +512,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 wait("reopened", lambda raw, s: s["MATERIAL"] and s["MATERIAL"][-1]["SCREEN"] == 2 and s["MATERIAL"][-1]["DIRTY"] == 0 and s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM, "reopened")
                 key("f10")
             process.wait(timeout=max(0.1, deadline - time.monotonic()))
-            raw = serial(directory / "serial.txt")
+            raw = observed_serial()
             report["raw_qemu_exit"] = process.returncode
             if session_route:
                 if process.returncode != 33 or not raw.endswith(b"WINDOW:CLEANUP:PASS\nWINDOW:CASE:PASS\nM1:PASS\n"):
