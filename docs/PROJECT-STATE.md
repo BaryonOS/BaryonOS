@@ -1,6 +1,37 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR126 CI-interfaceherstel — 2 november 2026
+## NEXT AGENT HANDOFF — PR126 review en rode klokfixture — 2 november 2026
+
+Basis `5dead467d491107f7244e00450435c41072d6dc7`, branch
+`codex/native-retained-frames-20261102`; main-integratie blijft uitsluitend
+bij integrator `f090b913`. Die fixcommit activeert retained rendering alleen
+voor de venstersessie en verwerkt verlaten SUR1-transacties via de bestaande
+timeoutreply/backpressureroute. Geen ruimere capabilities of dependencies.
+
+De eerste echte CI op die head faalt in
+`abandoned_stages_expire_without_new_messages_or_a_completed_frame`:
+run `41525824050`, job `125553170776`, exit 101. De nieuwe fixture gebruikte
+voor iedere tegel opnieuw klokwaarden 1/2 en 212/213; de tweede tegel
+draaide daardoor de monotone klok terug. De vervolgdelta maakt de tijden
+per tegel oplopend. Exacte 209/210-deadlineasserties, oude-tokenweigering,
+frameherstel en alle protocolcontroles blijven ongewijzigd.
+
+`cargo fmt --manifest-path sdk/examples/window-session/Cargo.toml -- --check`
+en `cargo clippy --offline --locked --manifest-path
+sdk/examples/window-session/Cargo.toml --all-targets --target-dir
+target/pr126-clock -- -D warnings`: beide exit 0 met bestaande Rust 1.90.0.
+Log `/tmp/nieuw-os-pr126-clock-clippy.log`. Lokale Rust-testuitvoering blijft
+geblokkeerd door ontbrekende `cc`; geen QEMU/Windows uitgevoerd. Nieuwe
+exacte-head CI moet het fixtureherstel en de native route nog bevestigen.
+Rapport: `docs/verification/pr126-review-fixes-20261102.json`.
+
+Geerfde ontwikkelbranchscore **41/100 → 41/100**; nul nieuwe punten voor
+deze fixes. Dit is geen automatische overname van 41 punten op main
+(integratieassessment #125 blijft afzonderlijk 34/100).
+Eerstvolgend: na push `native-window-session` en alle relevante nieuwe
+checks op de exacte head controleren; niet mergen zolang een gate rood is.
+
+## Vorig checkpoint — PR126 CI-interfaceherstel — 2 november 2026
 
 Basis `fb5810e45bd8d2ab4a73d886d6c23cf526b10cec`, branch
 `codex/native-retained-frames-20261102`. Alleen de drie aangewezen falende

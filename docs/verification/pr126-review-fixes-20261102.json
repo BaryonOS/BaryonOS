@@ -139,6 +139,26 @@
     "central_assessment_owner": "Exclusieve integrator f090b913-e9de-4265-a66b-41d8e0472b1e",
     "instruction": "PROJECT-STATE en de gezamenlijke voortgangsbestanden niet parallel gewijzigd. De integrator verwerkt deze bron, bewijsgrens en nul nieuwe punten in zijn actuele integratiecheckpoint; branchscore 41 is niet automatisch main-acceptatie."
   },
+  "ci_fixture_followup": {
+    "base_commit": "5dead467d491107f7244e00450435c41072d6dc7",
+    "red_ci_run": 41525824050,
+    "red_ci_job": 125553170776,
+    "red_exit_code": 101,
+    "failure": "New abandoned-stages test reused 1/2 and 212/213 on every tile, violating the monotone clock at tile 1. The test stopped before testing the intended recovery.",
+    "fix": "Increment start/commit ticks per tile in both loops. Keep exact 209/210 expiry assertions and every negative token, pixel and recovery assertion unchanged.",
+    "checks": [
+      {
+        "command": "cargo fmt --manifest-path sdk/examples/window-session/Cargo.toml -- --check",
+        "exit_code": 0
+      },
+      {
+        "command": "cargo clippy --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --all-targets --target-dir target/pr126-clock -- -D warnings",
+        "exit_code": 0,
+        "log": "/tmp/nieuw-os-pr126-clock-clippy.log"
+      }
+    ],
+    "not_run": "Host test execution still lacks cc; fresh exact-head CI and native runtime remain required."
+  },
   "integration": {
     "no_remote_mutations": true,
     "merge_ready": false,

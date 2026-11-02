@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`fb5810e4`](https://github.com/simonvanieperen/nieuw-os/commit/fb5810e45bd8d2ab4a73d886d6c23cf526b10cec) ·
+**Bron:** [`5dead467`](https://github.com/simonvanieperen/nieuw-os/commit/5dead467d491107f7244e00450435c41072d6dc7) ·
 **Ontwikkelbranch:** `codex/native-retained-frames-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR126 CI-herstel van retained-frame-interfaces en native berichtafhandeling.
-De score blijft 41/100. Op de genoemde basis zijn ontbrekende damage-/presentatie-interfaces, scrolbewuste cursorplaatsing en native Retain-afhandeling hersteld; patchhashes en commandostatussen staan in agent-merge-ci-repair.json. 169 gerichte hosttests en de acht native app-builds slagen, inclusief pixel- en gedeeltelijk-framecontroles. De volledige builder stopt op ontbrekende offline hex-literal; QEMU/OVMF ontbreken. Native runtimeacceptatie, Windows-pakket en hosted CI op de herstelcommit zijn niet uitgevoerd. Dit herstel geeft geen nieuwe geaccepteerde criteria; U02 en de volledige release blijven open.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR126-reviewfixes en herstel van de monotone klok in de expiry-regressie.
+De geerfde ontwikkelbranchscore blijft 41/100; nul nieuwe criteriumacceptaties. De twee reviewfixes laten verlaten SUR1-transacties verlopen en schakelen retained rendering alleen voor de native venstersessie in. De eerste echte CI op 5dead467 faalt in een nieuwe testfixture: multi-tile-loops draaien de monotone klok terug. De vervolgdelta gebruikt oplopende ticks, zonder deadline-, token-, pixel- of protocolasserties te versoepelen. Rustfmt en Clippy slagen lokaal; Rust-tests blijven door ontbrekende cc geblokkeerd en de nieuwe exacte-head native CI moet nog slagen. Geen nieuwe runtime-, fysieke, Windows- of volledige releaseacceptatie. De branchscore is niet automatisch main-acceptatie; het afzonderlijke #125-integratieassessment blijft 34/100.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

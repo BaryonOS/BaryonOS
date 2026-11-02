@@ -659,9 +659,11 @@ fn abandoned_stages_expire_without_new_messages_or_a_completed_frame() {
             let mut receiver = TrackedReceiver::new(7, geometry(), 200).unwrap();
             if completed_base {
                 for tile in 0..geometry().tiles() {
-                    let token = staged_frame_tile(&mut receiver, 1, tile + 1, tile, 1, 2);
+                    let start = 1 + 2 * tile;
+                    let token =
+                        staged_frame_tile(&mut receiver, 1, tile + 1, tile, start, start + 1);
                     receiver
-                        .commit_with(token, 2, |_, _| Ok::<(), ()>(()))
+                        .commit_with(token, start + 1, |_, _| Ok::<(), ()>(()))
                         .unwrap();
                 }
                 assert_eq!(receiver.completed_frame(), Some(1));
@@ -722,10 +724,17 @@ fn abandoned_stages_expire_without_new_messages_or_a_completed_frame() {
                 );
             }
             for tile in 0..geometry().tiles() {
-                let token =
-                    staged_frame_tile(&mut receiver, frame + 1, request + tile + 1, tile, 212, 213);
+                let start = 212 + 2 * tile;
+                let token = staged_frame_tile(
+                    &mut receiver,
+                    frame + 1,
+                    request + tile + 1,
+                    tile,
+                    start,
+                    start + 1,
+                );
                 let reply = receiver
-                    .commit_with(token, 213, |_, _| Ok::<(), ()>(()))
+                    .commit_with(token, start + 1, |_, _| Ok::<(), ()>(()))
                     .unwrap();
                 assert_eq!(reply.status(), Ok(()));
             }
