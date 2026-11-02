@@ -1,18 +1,64 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — geïntegreerde sessieslice; finale native controles — 2 november 2026
+## NEXT AGENT HANDOFF — eerste native sessieslice getest; hoofdopdracht blijft open — 2 november 2026
 
-Branch `codex/session-quality-20261102`, codebron `0a4e8e91dc36d86712919a20030a5163e9f22293`, concept-PR129 op PR122 (`1f0dd9c`). Originele checkout `work/e08fb0e` was schoon.41/100 blijft41; bestaandeU01/N01 behouden, volledigeFR-S02/U02/release blijven open.
+Branch `codex/session-quality-20261102`, concept-PR 129 bovenop PR 122.
+Functionele codebron `703cc0705471062ffb1483a16f42a2e580a6fdf7`, source-v3
+`e4ad9f922d202ee4249b6b1dd02a02d724f6775c616ad1c46dde48bf7ee2271c`.
+De oorspronkelijke totaalprompt blijft leidend. VMware is aanvullend; geen
+main-merge en geen volledige release-/persoonlijke-authenticatieclaim.
+**41/100 blijft 41**; U01/N01 zijn geërfd van PR 122, U02/FR-S02 blijven open.
 
-**Geïntegreerd:** zevenOS-routes/lokaleFIDO2 onderzocht; vijfmethode-authcontract met boot/sessie/doel/deadline/retry/foutbinding; compositor-beheerde openbareVM-route; status/UTC-klok, lokale zoek-/actielaag, gebruikers/auth/sessie/instellingenschermen, gelabeldevensters; echteRust-board40toestanden op5profielen. Zoeken, datum/200%-klok, calculatorlabels en overmatige paneelruimte na beeldreview hersteld. Opaque-renderpad is pixelgelijk aan referentie; paneelwissels tekenen oude+nieuwegrenzen. Desktop wacht opbeidewerkelijkeSUR-completeframes. Lock blokkeertappinput en ruimt openstaandklembordrecht op, maar is géén account-/keyringrevoke. Persoonlijkecredentials worden niet verzameld; standaardauthbroker blijft weigeren.
+**Gebouwd:** herkenbare openbare VM-sessieroute met lock, gebruikerskeuze,
+gesloten persoonlijke authenticatiemethoden, expliciete gast, complete desktop,
+zoek-/actielaag, systeemstatus/UTC-klok, sessie-/instellingen-/meldingenschermen.
+Het vijfmethoden-authcontract bindt boot/sessie/doel/deadline/retry en fouten;
+de UI verleent geen rechten. Compositorcover blokkeert appinput en oude
+clipboardoffers. Oude/nieuwe paneelgrenzen, verborgen vensters en klok krijgen
+juiste damage; desktop wordt pas na beide echte complete SUR-frames zichtbaar.
+Sparse SUR1 bewaart eerste volledige frame, actor/epoch/bounds/COMMIT/deadlines;
+rebind maakt de cache ongeldig. Proportionele systeem-/calculatorlabels,
+herkenbaar zoekveld en betere datum/200%-klok zijn na beeldreview verfijnd.
 
-**Gemeten:** bronA1f/source0386 en B2ff/sourcec04b doorlopen iederalle22nativeclipboard/herstel/opslagfasen, raw33,14bytes/rev1/diskcanaries/cleanup.1542,275→697,463s; laatsteletter→exactvolledigappbeeld62,962→1,165s. Beide appframesna boot98,082→109,222s: geen bootwinst. Eénrunperarm, deelsconcurrenteVMs/hostchecks; geenp95/physical/algemenegarantie. Lossehostletter1608→3SURtiles, exactzelfdepixels. Nulmeting: /workspace/nieuw-os-session-baseline/build/session-baseline;B: /workspace/nieuw-os-session-perf/build/session-perf.
+**Bewezen op 703:** openbare route 18 toestanden/raw33/cleanup; afzonderlijke
+volledige regressie 22 fasen/raw33/native_gate/clipboard_gate in508,802s.
+Echte compositorfault/herstart (PID 5→9), apps 4/8 en werk behouden, nieuwe
+surface/inputepochs, 34 hostoracles, 17 exacte appbodyvergelijkingen,
+14-byte/revisie1-diskoracle, canaries en cleanup/framebaseline gecontroleerd.
+Code-, artifact-, rawserial- en readbackbinding staat in
+`docs/verification/session-quality-20261102/README.md`. Alle gebruikte VM's zijn
+wegwerpimages en inmiddels netjes beëindigd; diagnostisch afgebroken runs blijven rood.
 
-**Tests:** gerichtehostreeksen/Clippy/fmt opnativeUI, SUR, Material, graphics, calculator enwindowgroen; nieuwe58windowtests inclusief9volledigepixel-/damagetests opnieuwinreleasegroen. De combinatie vondéénoude vastepaneelverwachting1080tegels; nieuwe compacteuserpanelspant792, gecorrigeerd metexacteassertion. Geenpixeloracleverzwakt. FinalegecombineerdeUI-/graphics-/calculatorchecks ennativecroute+volledige22fasen worden nog uitgevoerd.
+**Metingen:** aparte bron A1f/dense en B2ff/sparse slagen beide 22 fasen:
+1542,275→697,463s; laatste letter→exact appbeeld62,962→1,165s. Eén run per arm
+met deels gelijktijdige hostlast; geen p95/algemene veiligheids- of latencyclaim.
+Boot tot beide appframes98,082→109,222s: geen bootwinst. Op703 lockinteractie
+8,269s, volledige desktop111,142s, gastactie→desktop82,049s. Die koude start
+blijft te traag. Hostletter1608→3 SUR-tegels met gelijke pixels; opaque/paneel-
+renderwinst apart in drie hostrepetities gemeten.
 
-**Rodevoorproeven behouden:** eerste native-routebouw overschreedcalc256KiBreadonlydoorbestaandeproportionelefontatlas; nieuwbegrensd512KiBreadonly metgescheidenRW-layout bouwt. EersteVM21hadgeen snapshots omdatdiagnostiekalleenonderprobegecompileerdwas;08routekwamlock→desktop→calculatormaarQEMUmenuwasverkeerdXF86MenuKB. InstalledkeymaptoontPCMenu=compose0xdd; runnergecorrigeerd.08desktopbeeldwasnogpartieel; nieuweSUR-readinessgateisgebouwd. Geenrodetoestandalsgroengeteld.
+**Controle:**63 UI-,58 window-,41 Materiaal-,23 SUR-client/protocol-,30 calculator-
+en 9 graphicstests; Clippy/fmt en echte native builds,187 Python-tooltests,
+10 runnerchecks en 39 prototype-state-tests groen.40 Rust-hostbeelden op vijf
+resolutie/schaalprofielen en actuele native screenshots beoordeeld. Geen fysieke,
+VMware-, nieuwe Windows-runtime-, schermlezer-, echte biometrie/FIDO2- of
+menselijke acceptatie. Rode voorproeven en correcties zijn opgeslagen; geen
+oracle, timeout of beveiligingsgrens verlaagd. GitHub-CI niet als groen afgetekend.
 
-**Volgende:** bouw/run `native-session-route` met `tools/run_window_session.py --session-route`; daarnaast native-window-session-probe `--clipboard` opdezelfdebron, visuelecontroleactualcaptures en compactbron/hash-/commandobewijs. Alleenwegwerpimages, TCG,displaynone,VGA,geenKVMdevice/hostschijf/passthrough/netwerk. Geenmainmerge.
+**VMware-overdracht:** Simon vroeg de chat `Ontwerp veilige OS-desktop`
+(`durable/01a19c0e-6a17-70e4-8da0-263949812063`) aan te sturen. De hoofdchat
+heeft hem gelezen; hij stond stil op de eerdere afstemming. In deze sessie is
+wel `read_thread` beschikbaar maar geen chat-stuur-/handofffunctie. Er is dus
+geen bericht verzonden en geen VMware-agent in die chat geactiveerd. Concrete
+opdracht en driver-/toolgrenzen: `docs/implementation/VMWARE-WORKSTATION-TRIAL.md`.
+Workstation is geen directe vervanging voor de verplichte virtio-blk/rng;
+eerst een afzonderlijke UEFI/GOP/PS2-proef, zonder host- of beveiligingswijziging.
+
+**Eerstvolgend kritisch werk:** echte profiel-/auth-/sessieauthority en
+keyring/capability-revoke voor persoonlijke lock/logout; tegelijk de lange eerste
+appframes/IPC verder profileren. Resize, echte materiaalindex, persistente
+instellingen/notificaties, draftbewuste restart, IME/screenreader en dagelijkse
+budgetten blijven volgens de bestaande acceptatiematrix open. Geen derde roadmap.
 
 ## Vorig checkpoint — native klembord geïntegreerd; U02 blijft open — 2 november 2026
 

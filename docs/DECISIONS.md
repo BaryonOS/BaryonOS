@@ -1,5 +1,36 @@
 # Ontwerpbesluiten
 
+## ADR-SESSION-20261102 — herkenbare bediening en expliciete VM-sessiegrens
+
+De huidige gebruikersopdracht kiest herkenbare sessie-, zoek-, status- en
+vensterbediening rond Materiaal. Een eigen productidentiteit verbiedt geen
+bekende conventies. De nieuwe `native-session-route` blijft een openbare,
+geïsoleerde VM-proef: persoonlijke credentials worden niet verzameld zolang
+een echte auth-/sessie-/keyringdienst ontbreekt. Lock bedekt beeld en blokkeert
+appinput, maar mag niet als sleutel- of opslagcapability-intrekking worden
+gepresenteerd. FR-S02 en U02 blijven open; de bestaande meter blijft 41.
+
+Shellbeleid blijft in de userspace-compositor. Een inputoffer wordt bevestigd
+vóór een systeemactie. Appqueues en clipboardoffers worden bij afschermen
+geannuleerd; apps kunnen de vertrouwde voorgrond niet tekenen. Desktop wordt
+pas zichtbaar na beide complete SUR-frames. Diagnostische gereedheid wordt
+als laatste gepubliceerd, na een voorafgaande 0, zodat timerpreëmptie geen
+nieuwe pagina met oude gereedheid kan laten observeren.
+
+SUR1 behoudt een volledig eerste frame en actor/epoch/bounds/COMMIT/deadline-
+controles; latere sparse frames gebruiken strikt oplopende tegels en een
+verplichte eindtegel. Rebind maakt de cache ongeldig. Een opaque renderpad en
+oude/nieuwe paneelunion beperken werk, met exacte rastervergelijking tegen het
+behouden referentiepad. Geen nieuwe kernel-ABI, crypto of apparaatrechten.
+
+De geteste codebron is 703cc07; afzonderlijke route- en regressieprofielen
+slagen. Onderzoek, bronhashes, screenshots, meetgrenzen en open werk staan in
+[het uitvoeringsrapport](verification/session-quality-20261102/README.md).
+VMware blijft een aparte platformproef volgens
+[de concrete overdracht](implementation/VMWARE-WORKSTATION-TRIAL.md).
+Herzien bij echte account-/sessierechten, resize/rebind, GPU-transport of
+een gewijzigde trusted-inputgrens; een hostbeeld vervangt geen native bewijs.
+
 ## ADR-056 — herkenbare sessieroute met expliciete VM-bewijsgrens
 
 2 november 2026. De gebruikersopdracht vraagt bekende stappen uit macOS,

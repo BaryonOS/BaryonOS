@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`0a4e8e91`](https://github.com/simonvanieperen/nieuw-os/commit/0a4e8e91dc36d86712919a20030a5163e9f22293) ·
+**Bron:** [`703cc070`](https://github.com/simonvanieperen/nieuw-os/commit/703cc0705471062ffb1483a16f42a2e580a6fdf7) ·
 **Ontwikkelbranch:** `codex/session-quality-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Sessieroute en visuele systeemlaag geïntegreerd; native eindcontrole loopt.
-41/100 blijft41. Het authenticatiecontract, compositorcover, lokale zoekbediening, status/sessiemenu en visuele schaal zijn geïmplementeerd en hostgetest. De afzonderlijke sparsevariant doorloopt dezelfde22nativefasen als de nulmeting:1542,275→697,463seconden op dezeTCGhost, met onveranderde input-/pixel-/herstel-/diskcontroles en gelijktijdigehostlast als beperking. De gecombineerde nieuwe UI wordt nog native herhaald; geen echte accountauthenticatie, FIDO2/biometrie, U02- of volledige releaseacceptatie.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Eerste native sessieslice, visuele review en snelheidswinst brongebonden getest.
+41/100 blijft 41. De openbare VM-route doorloopt 18 toestanden en sluit met gecontroleerde cleanup; op dezelfde codebron slaagt de volledige native regressie met 22 fasen, klembord, echte compositorherstart, appbehoud en onafhankelijke schijfcontrole. Veertig hostbeelden en de native captures zijn visueel beoordeeld. De aparte sparsevergelijking meet 1542,275 naar 697,463 seconden; koude appframes en gast-naar-desktop blijven te traag. Echte accountauthenticatie, veilige keyring/capability-intrekking, volledige dagelijkse bediening en hardwareacceptatie ontbreken. VMware is onderzocht maar niet uitgevoerd; dit verdient geen nieuwe punten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -49,6 +49,25 @@ productpunten. Elk criterium telt volledig of niet; onbewezen werk blijft open.
 Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).
 <!-- OS-PROGRESS:END -->
+
+## Nieuwe sessieroute — openbare VM-proef
+
+[Concept-PR 129](https://github.com/simonvanieperen/nieuw-os/pull/129) bouwt voort
+op de bestaande geïsoleerde vensters. Lockscreen, gebruikerskeuze, expliciete
+VM-gast, systeemstatus/UTC-klok, zoeken, appactivatie en sessiemenu werken nu
+native. Persoonlijke authenticatie blijft gesloten totdat de echte dienst
+bestaat; afschermen is nog geen keyring- of opslagrechtenintrekking.
+
+```sh
+python3 -B tools/build.py --kernel-feature native-session-route
+```
+
+De brongebonden route met 18 toestanden en de volledige 22-fasenregressie met
+echt compositorherstel, clipboard en schijfcontrole slagen op 703cc07. De
+sparsevergelijking meet1542,275→697,463s, maar koude appframes blijven te traag.
+De score blijft 41/100. [Rapport, commando's en echte screenshots](docs/verification/session-quality-20261102/README.md) ·
+[Visueel board](docs/verification/session-quality-20261102/screenshots/session-board-host.png) ·
+[VMware-proefopdracht en huidige drivergrens](docs/implementation/VMWARE-WORKSTATION-TRIAL.md).
 
 ## Native venstersessie — 2 november 2026
 
