@@ -2,6 +2,10 @@
 
 ## NEXT AGENT HANDOFF — ontwerp, onderzoek en opslagbewijs combineren — 2 november 2026
 
+Actuele metadatareviewbron: `52e1909cb2667a5862732c9d2dc74a6f81b4e016`.
+De verwijzing naar het gebruikerswisselcontract noemt nu de echte
+fixcommit68d427b in plaats van diens basis c1d62d83; score41 blijft41.
+
 Basis `517117fbd8359084eca10e2e2d5f4cdf1015b52c` (PR114 en main74a34d05)
 met PR131 `a03f7f0c355cedca72611893f07c4a766a7b7d4f`. Integrator `f090b913`.
 Geen runtimecode uit onderzoek; ADR-058 blijft leidend voor de shell,
@@ -77,7 +81,7 @@ integrator- en mergeafspraken blijven behouden; concept-PR wordt niet gemerged.
 
 ## Ontwerpcheckpoint PR114 — gebruikerswisselcontract — 2 november 2026
 
-Bron `c1d62d83acc8357c698c0ef576367834e81d4a21`, alleen documentatie.
+Fixbron `68d427b76fd4c5fc0a071433d567097038e71a65`, alleen documentatie.
 De exclusieve integrator is `f090b913`; hieronder staat historisch mandaat,
 geen nieuwe toewijzing. Main is inmiddels `74a34d05` via PR125; #109/#110
 zijn aantoonbaar gesloten. Deze ontwerpbranch is nu inhoudsbehoudend met

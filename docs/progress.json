@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "380111b68688c981eec6abb8fab29174a29f5601",
+    "source_commit": "52e1909cb2667a5862732c9d2dc74a6f81b4e016",
     "branch": "simon/profiles-users-plan",
-    "task": "Actuele native desktopmain met behouden ontwerp- en onderzoeksdocumentatie combineren",
-    "previous_score": 34,
-    "summary": "Main34 gaat naar41 via PR127: U01 plus4 en N01 plus3, met exact treegelijke geteste head5343b0a,31 geslaagde checks en actuele review zonder bevindingen. Source-v3b7ccd11f:22 native window/clipboard/herstelfasen/raw33,14-byte/rev1-schijf/canaries groen; native netwerk normal/client-exit beide raw33. Postmerge-CI loopt afzonderlijk. De behouden PR114/119/121/131/132-documentatie voegt0punten toe: eigen herkenbare bediening, A/B-sleutelovergang als ontwerp, gelabeld journeyonderzoek en207 gehashte opslagarchiefblobs. Botsende nieuwe UI-ADR-nummers zijn uniek gemaakt met oude titelankers behouden. Geen U02/U03, echte auth/installer, Btrfs/OpenZFS-adoptie, fysieke hardware, menselijke audit of volledige release geclaimd."
+    "task": "PR114-review: metadata naar de echte contractfix en gecombineerde bron verwijzen",
+    "previous_score": 41,
+    "summary": "41 blijft41. De PR114-contractverwijzing noemt nu daadwerkelijke fix68d427b, niet basis c1d62d83; het assessment verwijst naar gecombineerde bron52e1909c die contract, onderzoek en actuele native runtime bevat. Main ging eerder34 naar41 via PR127/U01/N01:31 checks, actuele review zonder bevindingen,22 native window/clipboard/herstelfasen en beide N01-cases raw33 op source-v3b7ccd11f. Deze metadata-/documentatiedelta voegt0punten toe; postmerge-CI loopt afzonderlijk. Alle207 archiefblobs en37 unieke ADR-identiteiten zijn gecontroleerd, oude titelankers behouden. Geen U02/U03, echte auth/installer, Btrfs/OpenZFS-adoptie, Windows/fysieke/menselijke of volledige releaseacceptatie geclaimd."
   },
   "tracks": [
     {

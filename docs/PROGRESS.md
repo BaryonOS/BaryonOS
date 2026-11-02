@@ -85,6 +85,11 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR114-metadataverwijzing (2 november 2026), bron `52e1909c`: **41 -> 41**.
+De contractverwijzing noemt nu de echte fixbron `68d427b`, niet haar ouder
+`c1d62d83`; het actuele assessment verwijst naar de volledige gecombineerde
+bron. Geen runtimewijziging of nieuw acceptatiepunt.
+
 Main-desktopintegratie (2 november 2026), `380111b6` / geteste head `5343b0a`:
 **34 -> 41** door overname van U01 (+4) en N01 (+3), geen nieuwe gewichten.
 31 actuele checks en brongebonden review zonder bevindingen;22 native
@@ -94,7 +99,7 @@ De samengevoegde documentatie voegt zelf0punten toe; fysieke, menselijke,
 productiesleutel- en volledige releasegrenzen blijven open.
 Postmerge-CI loopt apart, geen hergebruik van oude bronclaims.
 
-PR114-review (2 november 2026), bron `c1d62d83`: **34 -> 34**.
+PR114-review (2 november 2026), fixbron `68d427b`: **34 -> 34**.
 Het gebruikerswisselcontract beschrijft sleutelisolatie en handlelevensloop
 in beide richtingen; native negatieve acceptatie is nog niet uitgevoerd.
 Alleen ontwerp, geen profielenimplementatie of nieuwe productpunten.
