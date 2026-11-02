@@ -1337,7 +1337,12 @@ fn display_epoch_stale_frame_and_failed_present_keep_repaint_pending_impl() {
 }
 
 fn editor_damage_covers_wrapping_selection_and_superseded_rows_impl() {
-    for scale in [Scale::Percent100, Scale::Percent200] {
+    for (width, height, scale) in [
+        (800, 600, Scale::Percent100),
+        (800, 600, Scale::Percent200),
+        (768, 536, Scale::Percent100),
+        (768, 536, Scale::Percent200),
+    ] {
         let host = Host::new();
         let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
         let mut ui = controller(
@@ -1349,17 +1354,21 @@ fn editor_damage_covers_wrapping_selection_and_superseded_rows_impl() {
                 staging: &mut s,
             },
         );
-        ui.resize(Viewport::new(800, 600, scale, 2).unwrap())
+        ui.resize(Viewport::new(width, height, scale, 2).unwrap())
             .unwrap();
         ui.create().unwrap();
-        let columns = Frame::new(ui.view()).layout().columns();
-        ui.insert(&"a".repeat(columns + 1)).unwrap();
+        let metrics = Frame::new(ui.view()).layout().text_metrics();
+        let mut wrapped = String::new();
+        while metrics.position(&wrapped, wrapped.len()).row == 0 {
+            wrapped.push('a');
+        }
+        ui.insert(&wrapped).unwrap();
         ui.presented(ui.view().generation, 2);
         fn snapshot(view: nieuw_os_materiaal::controller::View<'_>) -> Vec<[u32; TILE_PIXELS]> {
             let frame = Frame::new(view);
             let mut pixels = Vec::new();
-            for y in (0..600).step_by(8) {
-                for x in (0..800).step_by(32) {
+            for y in (0..view.viewport.height()).step_by(8) {
+                for x in (0..view.viewport.width()).step_by(32) {
                     let mut tile = [0; TILE_PIXELS];
                     frame.render_tile(x, y, &mut tile).unwrap();
                     pixels.push(tile);
@@ -1376,7 +1385,9 @@ fn editor_damage_covers_wrapping_selection_and_superseded_rows_impl() {
                 ui.deliver(envelope(1, 1, key(PhysicalKey::Backspace)))
                     .unwrap();
                 assert_eq!(
-                    text::position(ui.view().contents.unwrap(), ui.view().caret, columns).row,
+                    metrics
+                        .position(ui.view().contents.unwrap(), ui.view().caret)
+                        .row,
                     0
                 );
             }
@@ -1385,8 +1396,8 @@ fn editor_damage_covers_wrapping_selection_and_superseded_rows_impl() {
             for (index, (a, b)) in before.iter().zip(&after).enumerate() {
                 if a != b {
                     assert!(ui.paint_damage().intersects(
-                        (index % 25) as u32 * 32,
-                        (index / 25) as u32 * 8,
+                        (index % width.div_ceil(32) as usize) as u32 * 32,
+                        (index / width.div_ceil(32) as usize) as u32 * 8,
                         32,
                         8,
                     ));
@@ -1404,8 +1415,8 @@ fn editor_damage_covers_wrapping_selection_and_superseded_rows_impl() {
         for (index, (a, b)) in before.iter().zip(&after).enumerate() {
             if a != b {
                 assert!(ui.paint_damage().intersects(
-                    (index % 25) as u32 * 32,
-                    (index / 25) as u32 * 8,
+                    (index % width.div_ceil(32) as usize) as u32 * 32,
+                    (index / width.div_ceil(32) as usize) as u32 * 8,
                     32,
                     8,
                 ));

@@ -1,6 +1,6 @@
 //! Shared warm paper, ink and iris colors. The native desktop is flat graphite.
 //! Consumers may pass different palettes; these do not confer trusted UI rights.
-use crate::{Canvas, Rect};
+use crate::{blend, Canvas, Rect};
 #[derive(Clone, Copy, Debug)]
 pub struct Palette {
     pub desktop_start: u32,

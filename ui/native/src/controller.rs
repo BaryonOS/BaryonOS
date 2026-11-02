@@ -1172,7 +1172,7 @@ impl<'a, T: Transport> Controller<'a, T> {
         };
         self.caret = text::boundary(text, self.caret);
         self.anchor = text::boundary(text, self.anchor);
-        let layout = Layout::new(self.viewport);
+        let layout = Layout::for_screen(self.viewport, self.screen);
         let row = layout
             .text_metrics()
             .position_with_affinity(text, self.caret, self.caret_trailing)
@@ -1190,7 +1190,7 @@ impl<'a, T: Transport> Controller<'a, T> {
         }
         let range = text::selection(self.anchor, self.caret);
         let start = range.start;
-        let layout = Layout::new(self.viewport);
+        let layout = Layout::for_screen(self.viewport, self.screen);
         let metrics = layout.text_metrics();
         let old = self.view();
         let contents = old.contents.ok_or(Error::InvalidUtf8)?;
@@ -1633,7 +1633,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             return Err(self.failed(Error::InvalidUtf8));
         };
         let selected = text::selection(self.anchor, self.caret);
-        let metrics = Layout::new(self.viewport).text_metrics();
+        let metrics = Layout::for_screen(self.viewport, self.screen).text_metrics();
         let current = metrics.position_with_affinity(contents, self.caret, self.caret_trailing);
         let mut target_row = current.row;
         let next = match event.key {
@@ -1803,7 +1803,7 @@ impl<'a, T: Transport> Controller<'a, T> {
     }
     fn point_caret(&mut self, x: u32, y: u32, extend: bool) {
         if let Some(contents) = self.view().contents {
-            let layout = Layout::new(self.viewport);
+            let layout = Layout::for_screen(self.viewport, self.screen);
             let x_64 = u64::from(x.saturating_sub(layout.text_left()))
                 * u64::from(self.viewport.scale().factor())
                 * 64;

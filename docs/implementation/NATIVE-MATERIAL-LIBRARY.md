@@ -4,6 +4,18 @@ Basis `159ad799d2a94fb6542d60e26ed8bbd22bdbd752`, 2 november 2026.
 Uitvoering voor U03; het criterium blijft open tot native acceptatie.
 Het bestaande sessie-/privacy-/opslagcontract blijft leidend.
 
+### Integratie STACK130
+
+De latere bibliotheek en PR127-retention delen `Layout::for_screen` voor
+rendering, pointer, navigatie, caret-scroll en damage. Bij smalle vensters
+verplaatst de bibliotheektoolbar het editorveld; damage mag niet de eerdere
+positie uit `Layout::new` gebruiken. Dezelfde proportionele tekstmetrics
+bepalen de oude én nieuwe getroffen rijen, inclusief soft-wrap-affinity.
+De journal blijft staan tot het volledige huidige frame is bevestigd.
+Exacte pixelvergelijking, partial-supersede-negatieven en het bestaande
+minimum van 90% minder SUR-berichten blijven ongewijzigd verplicht.
+Dit is een bronintegratie; native runtimeacceptatie blijft afzonderlijk.
+
 ## Gebruikersroute en visuele regels
 
 Materiaal blijft een object met eigen inhoud, naam en revisies. De bibliotheek
