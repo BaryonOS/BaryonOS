@@ -375,6 +375,12 @@ impl Host {
                 {
                     surface::Action::Staged => None,
                     surface::Action::Info(reply) => Some(reply.bytes().to_vec()),
+                    surface::Action::Retain(reply) => {
+                        if self.drop_blit {
+                            return;
+                        }
+                        Some(reply.bytes().to_vec())
+                    }
                     surface::Action::Commit(token) => {
                         let fail = self.fail_blit;
                         let framebuffer = &mut self.framebuffer;
@@ -848,6 +854,155 @@ macro_rules! scenario {
         }
     };
 }
+
+fn assert_retained_material_pixels(a: &App<'_, Port, Port, Port>, h: &Host) {
+    let frame = Frame::new(a.controller().view());
+    let geometry = geometry();
+    let mut pixels = [0; 256];
+    for tile in 0..geometry.tiles() {
+        let r = geometry.rectangle(tile).unwrap();
+        let drawn = frame.render_tile(r.x, r.y, &mut pixels).unwrap();
+        for row in 0..drawn.height {
+            for col in 0..drawn.width {
+                let actual =
+                    ((geometry.assigned.y + r.y + row) * 800 + geometry.assigned.x + r.x + col)
+                        as usize;
+                assert_eq!(
+                    h.framebuffer[actual],
+                    pixels[(row * drawn.width + col) as usize],
+                    "retained Material differs at tile {tile}, ({col},{row})"
+                );
+            }
+        }
+    }
+    for (at, pixel) in h.framebuffer.iter().enumerate() {
+        let (x, y) = (at as u32 % 800, at as u32 / 800);
+        let r = geometry.assigned;
+        if x < r.x || y < r.y || x >= r.x + u32::from(r.width) || y >= r.y + u32::from(r.height) {
+            assert_eq!(
+                *pixel, 0,
+                "Material changed a pixel outside its assigned surface"
+            );
+        }
+    }
+}
+
+fn retained_material_edit_and_superseded_partial_are_exact() {
+    for scale in [Scale::Percent100, Scale::Percent200] {
+        let h = Host::new();
+        h.borrow_mut().surface = surface::Receiver::new_retained(APP, geometry(), 100).unwrap();
+        let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut a = configured_app(
+            &h,
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+            scale,
+            EditMode::ReadWrite,
+        );
+        a.enable_retained().unwrap();
+        finish_paint(&mut a);
+        assert_eq!(a.surface_counts().committed_tiles, geometry().tiles());
+        assert_eq!(a.surface_counts().retained_tiles, 0);
+        new_text(&h, &mut a);
+        finish_paint(&mut a);
+        assert_retained_material_pixels(&a, &h.borrow());
+
+        let before = a.surface_counts();
+        keys(&h, &mut a, &[0x1e, 0x9e]); // Append "a" to already-dirty text.
+        finish_paint(&mut a);
+        assert_eq!(a.controller().view().contents, Some("hia"));
+        let after = a.surface_counts();
+        assert!(after.retained_tiles > before.retained_tiles);
+        // Count actual successful sends. The reference is the old mandatory
+        // full-grid Begin/Chunk/Commit workload, not a VM speed measurement.
+        let old_full_sends: u64 = (0..geometry().tiles())
+            .map(|tile| {
+                geometry()
+                    .rectangle(tile)
+                    .unwrap()
+                    .bytes()
+                    .div_ceil(surface::CHUNK) as u64
+                    + 2
+            })
+            .sum();
+        assert!(
+            (after.sent_messages - before.sent_messages) * 10 < old_full_sends,
+            "typing must remove at least 90% of the old full-frame SUR sends"
+        );
+        assert_retained_material_pixels(&a, &h.borrow());
+
+        let frames = a.evidence().frames;
+        let committed = a.surface_counts().committed_tiles;
+        h.borrow_mut().key(0x30); // "b", then paint only until its first real tile.
+        for _ in 0..geometry().tiles() {
+            a.step().unwrap();
+            if a.surface_counts().committed_tiles > committed {
+                break;
+            }
+        }
+        assert!(a.surface_counts().committed_tiles > committed);
+        assert_eq!(
+            a.evidence().frames,
+            frames,
+            "test must interrupt a partial frame"
+        );
+        keys(&h, &mut a, &[0xb0, 0x2e, 0xae]); // Supersede with "c".
+        finish_paint(&mut a);
+        assert_eq!(a.controller().view().contents, Some("hiabc"));
+        assert_eq!(
+            h.borrow().surface.completed_frame(),
+            Some(a.controller().view().generation)
+        );
+        assert_retained_material_pixels(&a, &h.borrow());
+        assert!(h.borrow().engine.check_invariants());
+    }
+}
+
+fn lost_retained_reply_never_presents_or_drops_material_draft() {
+    let h = Host::new();
+    h.borrow_mut().surface = surface::Receiver::new_retained(APP, geometry(), 100).unwrap();
+    let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut a = app(
+        &h,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    a.enable_retained().unwrap();
+    finish_paint(&mut a);
+    new_text(&h, &mut a);
+    finish_paint(&mut a);
+    let frames = a.evidence().frames;
+    let blits = h.borrow().blits;
+    h.borrow_mut().drop_blit = true;
+    h.borrow_mut().key(0x1e);
+    assert!(matches!(a.step(), Err(Error::Surface(_))));
+    assert_eq!(
+        h.borrow().blits,
+        blits,
+        "the lost reply must be Retain, not a blit"
+    );
+    assert_eq!(a.controller().view().contents, Some("hia"));
+    assert_eq!(a.evidence().frames, frames);
+    assert!(!a.evidence().ready);
+    assert!(!a.can_idle());
+    assert!(h.borrow().engine.check_invariants());
+}
+
+scenario!(
+    retained_material_exact_pixels_work_reduction_and_partial_supersede,
+    retained_material_edit_and_superseded_partial_are_exact
+);
+scenario!(
+    retained_material_lost_reply_preserves_draft_and_blocks_ready,
+    lost_retained_reply_never_presents_or_drops_material_draft
+);
+
 scenario!(
     real_protocol_chain_edit_save_reopen_and_separate_surface,
     complete_chain

@@ -1,4 +1,4 @@
-//! Read-only idle accounting around the unchanged SUR1 receiver.
+//! Idle accounting for SUR1 with the window compositor's private backing.
 use nieuw_os_surface_protocol::{Action, CommitReady, Error, Geometry, Receiver, Rectangle, Reply};
 
 pub struct TrackedReceiver {
@@ -9,7 +9,7 @@ pub struct TrackedReceiver {
 impl TrackedReceiver {
     pub fn new(peer: u64, geometry: Geometry, timeout: u64) -> Result<Self, Error> {
         Ok(Self {
-            inner: Receiver::new(peer, geometry, timeout)?,
+            inner: Receiver::new_retained(peer, geometry, timeout)?,
             staged: false,
             frame_started: false,
         })
@@ -20,10 +20,18 @@ impl TrackedReceiver {
     pub fn completed_frame(&self) -> Option<u64> {
         self.inner.completed_frame()
     }
+    pub fn retained_base(&self) -> Option<u64> {
+        self.inner.retained_base()
+    }
     pub fn accept(&mut self, sender: u64, now: u64, bytes: &[u8]) -> Result<Action, Error> {
         let result = self.inner.accept(sender, now, bytes);
         if matches!(result, Ok(Action::Staged)) {
             self.staged = true;
+            self.frame_started = true;
+        }
+        if matches!(result, Ok(Action::Retain(_))) {
+            // Retain starts/advances a frame without creating pixel staging.
+            // Partial coverage must still keep the compositor runnable.
             self.frame_started = true;
         }
         // Neither a malformed fragment nor an uncommitted token is evidence

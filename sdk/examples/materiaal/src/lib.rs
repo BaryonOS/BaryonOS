@@ -77,6 +77,7 @@ pub struct App<'a, V: Transport, I: Transport, S: Transport> {
     frame: u64,
     next_tile: u64,
     clipboard_enabled: bool,
+    retained_enabled: bool,
 }
 impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     /// `geometry` must be the actual authenticated INFO response from this
@@ -112,6 +113,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             frame: 0,
             next_tile: 0,
             clipboard_enabled: false,
+            retained_enabled: false,
         })
     }
     pub fn controller(&self) -> &Controller<'a, V> {
@@ -120,6 +122,16 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     /// Protocol opt-in for the window compositor, never an input authority.
     pub fn enable_clipboard(&mut self) {
         self.clipboard_enabled = true;
+    }
+    /// Only the jointly built window compositor promises private retained
+    /// backing. Legacy display adapters keep the original full-frame path.
+    pub fn enable_retained(&mut self) -> Result<(), Error> {
+        self.surface.enable_retained().map_err(Error::Surface)?;
+        self.retained_enabled = true;
+        Ok(())
+    }
+    pub fn surface_counts(&self) -> nieuw_os_surface_protocol::client::SurfaceCounts {
+        self.surface.counts()
     }
     /// Only a completed, successful turn ending in PEEK Empty may park.
     /// Unsaved document contents alone are not pending work. The current
@@ -426,33 +438,60 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             view.status = Status::InputLost;
             view.can_save = false;
         }
-        let frame = Frame::new(view);
-        let rectangle = self
-            .geometry
-            .rectangle(self.next_tile)
-            .map_err(|_| Error::Binding)?;
-        let mut pixels = [0; TILE_PIXELS];
-        let rendered = frame
-            .render_tile(rectangle.x, rectangle.y, &mut pixels)
-            .map_err(|_| Error::Binding)?;
-        if rendered.width != u32::from(rectangle.width)
-            || rendered.height != u32::from(rectangle.height)
-        {
-            return Err(Error::Binding);
+        let damage = self.controller.paint_damage();
+        let mut retained = 0;
+        if self.retained_enabled && self.surface.retained_base().is_some() && !self.input_failed {
+            while retained < nieuw_os_surface_protocol::MAX_RETAIN_TILES {
+                let index = self
+                    .next_tile
+                    .checked_add(u64::from(retained))
+                    .ok_or(Error::Binding)?;
+                if index >= self.geometry.tiles() {
+                    break;
+                }
+                let rectangle = self.geometry.rectangle(index).map_err(|_| Error::Binding)?;
+                if damage.intersects(
+                    rectangle.x,
+                    rectangle.y,
+                    u32::from(rectangle.width),
+                    u32::from(rectangle.height),
+                ) {
+                    break;
+                }
+                retained += 1;
+            }
         }
-        let mut bytes = [0; 1024];
-        for (p, chunk) in pixels
-            .iter()
-            .zip(bytes[..rectangle.bytes()].chunks_exact_mut(4))
-        {
-            chunk.copy_from_slice(&p.to_le_bytes());
-        }
-        let result = self.surface.blit(
-            self.frame,
-            self.next_tile,
-            rectangle,
-            &bytes[..rectangle.bytes()],
-        );
+        let result = if retained != 0 {
+            self.surface.retain(self.frame, self.next_tile, retained)
+        } else {
+            let frame = Frame::new(view);
+            let rectangle = self
+                .geometry
+                .rectangle(self.next_tile)
+                .map_err(|_| Error::Binding)?;
+            let mut pixels = [0; TILE_PIXELS];
+            let rendered = frame
+                .render_tile(rectangle.x, rectangle.y, &mut pixels)
+                .map_err(|_| Error::Binding)?;
+            if rendered.width != u32::from(rectangle.width)
+                || rendered.height != u32::from(rectangle.height)
+            {
+                return Err(Error::Binding);
+            }
+            let mut bytes = [0; 1024];
+            for (p, chunk) in pixels
+                .iter()
+                .zip(bytes[..rectangle.bytes()].chunks_exact_mut(4))
+            {
+                chunk.copy_from_slice(&p.to_le_bytes());
+            }
+            self.surface.blit(
+                self.frame,
+                self.next_tile,
+                rectangle,
+                &bytes[..rectangle.bytes()],
+            )
+        };
         if let Err(error) = result {
             self.surface_failed = true;
             self.evidence.ready = false;
@@ -461,8 +500,13 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             increment(&mut self.evidence.errors)?;
             return Err(Error::Surface(error));
         }
-        increment(&mut self.evidence.tiles)?;
-        self.next_tile += 1;
+        if retained == 0 {
+            increment(&mut self.evidence.tiles)?;
+        }
+        self.next_tile = self
+            .next_tile
+            .checked_add(u64::from(retained.max(1)))
+            .ok_or(Error::Binding)?;
         if self.next_tile == self.geometry.tiles() {
             if !self.controller.presented(self.frame, self.geometry.epoch) {
                 return Err(Error::Binding);
@@ -559,6 +603,13 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             let _ = input.close();
             let _ = surface.close();
             return Err(Error::Controller(error));
+        }
+        if self.retained_enabled {
+            if let Err(error) = surface.enable_retained() {
+                let _ = input.close();
+                let _ = surface.close();
+                return Err(Error::Surface(error));
+            }
         }
         self.input = input;
         self.surface = surface;

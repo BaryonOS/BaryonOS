@@ -47,6 +47,7 @@ pub struct App<I: Transport, S: Transport> {
     frame: u64,
     next_tile: u64,
     clipboard_enabled: bool,
+    retained_enabled: bool,
 }
 impl<I: Transport, S: Transport> App<I, S> {
     pub fn new(
@@ -88,6 +89,7 @@ impl<I: Transport, S: Transport> App<I, S> {
             frame: 0,
             next_tile: 0,
             clipboard_enabled: false,
+            retained_enabled: false,
         })
     }
     pub fn model(&self) -> &Model {
@@ -96,6 +98,15 @@ impl<I: Transport, S: Transport> App<I, S> {
     /// Selects the window compositor extension; broker checks remain required.
     pub fn enable_clipboard(&mut self) {
         self.clipboard_enabled = true;
+    }
+    /// Requires the jointly built compositor's private retained backing.
+    pub fn enable_retained(&mut self) -> Result<(), Error> {
+        self.surface.enable_retained().map_err(Error::Surface)?;
+        self.retained_enabled = true;
+        Ok(())
+    }
+    pub fn surface_counts(&self) -> nieuw_os_surface_protocol::client::SurfaceCounts {
+        self.surface.counts()
     }
     /// An acknowledged complete frame and a successful PEEK Empty turn are
     /// required. Exhausted input batches, failed transports and presentation
@@ -232,15 +243,12 @@ impl<I: Transport, S: Transport> App<I, S> {
                             input.changed.left() && !input.buttons.left(),
                         );
                         if layout.expression.contains(x, y) {
-                            let start = render::expression_start(
+                            let position = render::expression_caret_at(
                                 &self.model,
                                 layout,
                                 self.viewport.scale(),
+                                x,
                             );
-                            let position = start
-                                + (x.saturating_sub(layout.expression.x + 8)
-                                    / render::character_width(self.viewport.scale()))
-                                    as usize;
                             self.model.caret_at(position, down, input.buttons.left());
                         } else {
                             self.model.pointer(layout.hit(x, y), down, up);
@@ -284,31 +292,52 @@ impl<I: Transport, S: Transport> App<I, S> {
             self.frame = self.model.generation();
             self.next_tile = 0;
         }
-        let r = self
-            .geometry
-            .rectangle(self.next_tile)
-            .map_err(|_| Error::Binding)?;
-        let mut pixels = [0u32; 256];
-        render::render_tile(
-            &self.model,
-            self.viewport,
-            Rect {
-                x: r.x,
-                y: r.y,
-                width: u32::from(r.width),
-                height: u32::from(r.height),
-            },
-            &mut pixels,
-        )
-        .map_err(|_| Error::Binding)?;
-        let mut bytes = [0u8; 1024];
-        for (pixel, chunk) in pixels.iter().zip(bytes[..r.bytes()].chunks_exact_mut(4)) {
-            chunk.copy_from_slice(&pixel.to_le_bytes());
+        let damage = self.model.paint_damage(self.viewport);
+        let mut retained = 0;
+        if self.retained_enabled && self.surface.retained_base().is_some() && !self.input_failed {
+            while retained < nieuw_os_surface_protocol::MAX_RETAIN_TILES {
+                let index = self
+                    .next_tile
+                    .checked_add(u64::from(retained))
+                    .ok_or(Error::Binding)?;
+                if index >= self.geometry.tiles() {
+                    break;
+                }
+                let r = self.geometry.rectangle(index).map_err(|_| Error::Binding)?;
+                if damage.intersects(r.x, r.y, u32::from(r.width), u32::from(r.height)) {
+                    break;
+                }
+                retained += 1;
+            }
         }
-        if let Err(error) = self
-            .surface
-            .blit(self.frame, self.next_tile, r, &bytes[..r.bytes()])
-        {
+        let result = if retained != 0 {
+            self.surface.retain(self.frame, self.next_tile, retained)
+        } else {
+            let r = self
+                .geometry
+                .rectangle(self.next_tile)
+                .map_err(|_| Error::Binding)?;
+            let mut pixels = [0u32; 256];
+            render::render_tile(
+                &self.model,
+                self.viewport,
+                Rect {
+                    x: r.x,
+                    y: r.y,
+                    width: u32::from(r.width),
+                    height: u32::from(r.height),
+                },
+                &mut pixels,
+            )
+            .map_err(|_| Error::Binding)?;
+            let mut bytes = [0u8; 1024];
+            for (pixel, chunk) in pixels.iter().zip(bytes[..r.bytes()].chunks_exact_mut(4)) {
+                chunk.copy_from_slice(&pixel.to_le_bytes());
+            }
+            self.surface
+                .blit(self.frame, self.next_tile, r, &bytes[..r.bytes()])
+        };
+        if let Err(error) = result {
             self.surface_failed = true;
             self.evidence.ready = false;
             let _ = self.input.close();
@@ -316,9 +345,17 @@ impl<I: Transport, S: Transport> App<I, S> {
             increment(&mut self.evidence.errors)?;
             return Err(Error::Surface(error));
         }
-        increment(&mut self.evidence.tiles)?;
-        self.next_tile += 1;
+        if retained == 0 {
+            increment(&mut self.evidence.tiles)?;
+        }
+        self.next_tile = self
+            .next_tile
+            .checked_add(u64::from(retained.max(1)))
+            .ok_or(Error::Binding)?;
         if self.next_tile == self.geometry.tiles() {
+            if !self.model.presented(self.frame) {
+                return Err(Error::Binding);
+            }
             increment(&mut self.evidence.frames)?;
             self.evidence.presented_generation = self.frame;
             self.evidence.ready = self.input_responded && !self.input_failed;
@@ -390,6 +427,14 @@ impl<I: Transport, S: Transport> App<I, S> {
             let _ = surface.close();
             return Err(Error::Binding);
         };
+        if self.retained_enabled {
+            if let Err(error) = surface.enable_retained() {
+                let _ = input.close();
+                let _ = surface.close();
+                return Err(Error::Surface(error));
+            }
+        }
+        self.model.force_full_repaint();
         self.input = input;
         self.surface = surface;
         self.geometry = geometry;

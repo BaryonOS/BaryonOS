@@ -501,6 +501,43 @@ fn partial_tile_unblitted_token_and_partial_frame_all_prevent_parking() {
 }
 
 #[test]
+fn retained_coverage_stays_pending_until_the_whole_new_frame_is_accounted_for() {
+    let mut receiver = TrackedReceiver::new(7, geometry(), 200).unwrap();
+    for tile in 0..2 {
+        let token = staged_tile(&mut receiver, tile + 1, tile, 10 + tile, 10 + tile);
+        let reply = receiver
+            .commit_with(token, 10 + tile, |_, _| Ok::<(), ()>(()))
+            .unwrap();
+        assert_eq!(reply.status(), Ok(()));
+    }
+    assert_eq!(receiver.retained_base(), Some(1));
+    assert!(!receiver.has_pending());
+    for tile in 0..2 {
+        let mut request = Header {
+            operation: Operation::Retain,
+            request: tile + 3,
+            frame: 2,
+            arg0: 1,
+            ..header(Operation::Retain, tile + 3, tile)
+        }
+        .encode()
+        .to_vec();
+        request.extend_from_slice(&1u64.to_le_bytes());
+        let reply = match receiver.accept(7, 20 + tile, &request).unwrap() {
+            Action::Retain(reply) => reply,
+            _ => panic!("retained coverage must have its own reply, not a blit token"),
+        };
+        assert_eq!(reply.pixels(), 0);
+        assert_eq!(reply.retained_tiles(), 1);
+        assert_eq!(receiver.has_pending(), tile == 0);
+        assert_eq!(
+            receiver.completed_frame(),
+            if tile == 0 { None } else { Some(2) }
+        );
+    }
+}
+
+#[test]
 fn completed_old_frame_cannot_make_a_partial_new_frame_idle() {
     let mut receiver = TrackedReceiver::new(7, geometry(), 200).unwrap();
     let may_idle = |surface_pending| {

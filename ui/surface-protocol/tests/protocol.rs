@@ -375,3 +375,337 @@ fn fresh_commit_admission_clock_rejects_expired_token_without_other_messages() {
     assert_eq!(calls, 0);
     assert_eq!(receiver.completed_frame(), None);
 }
+
+fn small_geometry() -> Geometry {
+    Geometry {
+        assigned: Rectangle {
+            width: 64,
+            height: 8,
+            ..geometry().assigned
+        },
+        ..geometry()
+    }
+}
+fn retain(request: u64, frame: u64, tile: u64, count: u32, base: u64) -> Vec<u8> {
+    let mut bytes = Header {
+        arg0: count,
+        ..h(Operation::Retain, request, frame, tile)
+    }
+    .encode()
+    .to_vec();
+    bytes.extend_from_slice(&base.to_le_bytes());
+    bytes
+}
+fn write_tile(receiver: &mut Receiver, g: Geometry, request: u64, frame: u64, tile: u64) {
+    let token = ready(
+        receiver,
+        g,
+        request,
+        frame,
+        tile,
+        &vec![0; g.rectangle(tile).unwrap().bytes()],
+    );
+    assert_eq!(
+        receiver
+            .commit_with(token, 1, |_, _| Ok::<(), ()>(()))
+            .unwrap()
+            .status(),
+        Ok(())
+    );
+}
+fn initial_frame(receiver: &mut Receiver, g: Geometry) {
+    for tile in 0..g.tiles() {
+        write_tile(receiver, g, tile + 1, 1, tile);
+    }
+    assert_eq!(receiver.retained_base(), Some(1));
+}
+
+#[test]
+fn retained_mode_is_explicit_and_requires_an_initial_complete_frame() {
+    let g = small_geometry();
+    for enabled in [false, true] {
+        let mut receiver = if enabled {
+            Receiver::new_retained(7, g, 10).unwrap()
+        } else {
+            Receiver::new(7, g, 10).unwrap()
+        };
+        let bytes = retain(1, 1, 0, 2, 1);
+        assert!(matches!(receiver.accept(7, 1, &bytes), Err(Error::Access)));
+        assert_eq!(receiver.retained_base(), None);
+        assert_eq!(receiver.completed_frame(), None);
+    }
+}
+
+#[test]
+fn retained_ranges_have_exact_coverage_and_separate_ack_counts() {
+    let g = small_geometry();
+    let mut receiver = Receiver::new_retained(7, g, 10).unwrap();
+    initial_frame(&mut receiver, g);
+    let bytes = retain(3, 2, 0, 1, 1);
+    let expected = Header::decode(&bytes).unwrap();
+    let reply = match receiver.accept(7, 1, &bytes).unwrap() {
+        Action::Retain(reply) => reply,
+        _ => panic!("retain is not a new commit"),
+    };
+    let reply = Reply::decode(reply.bytes(), expected).unwrap();
+    assert_eq!(reply.status(), Ok(()));
+    assert_eq!(reply.retained_tiles(), 1);
+    assert_eq!(reply.pixels(), 0);
+    assert_eq!(receiver.completed_frame(), None);
+    assert_eq!(receiver.retained_base(), Some(1));
+    let mut wrong_count = reply.bytes().to_vec();
+    wrong_count[44..48].copy_from_slice(&2u32.to_le_bytes());
+    assert!(Reply::decode(&wrong_count, expected).is_err());
+    assert!(matches!(
+        receiver.accept(7, 1, &retain(4, 2, 1, 1, 1)),
+        Ok(Action::Retain(_))
+    ));
+    assert_eq!(receiver.completed_frame(), Some(2));
+    assert_eq!(receiver.retained_base(), Some(2));
+}
+
+#[test]
+fn changed_tiles_survive_partial_supersedes_until_a_complete_new_baseline() {
+    let g = small_geometry();
+    let mut receiver = Receiver::new_retained(7, g, 10).unwrap();
+    initial_frame(&mut receiver, g);
+    write_tile(&mut receiver, g, 3, 2, 0);
+    assert_eq!(receiver.retained_base(), Some(1));
+    // Superseding D must rewrite C's modified tile even if D's model happens
+    // to want the original B pixels. The untouched other tile may be retained.
+    write_tile(&mut receiver, g, 4, 3, 0);
+    assert!(matches!(
+        receiver.accept(7, 1, &retain(5, 3, 1, 1, 1)),
+        Ok(Action::Retain(_))
+    ));
+    assert_eq!(receiver.retained_base(), Some(3));
+    assert!(matches!(
+        receiver.accept(7, 1, &retain(6, 4, 0, 2, 3)),
+        Ok(Action::Retain(_))
+    ));
+    assert_eq!(receiver.completed_frame(), Some(4));
+}
+
+#[test]
+fn retaining_a_tainted_tile_is_negative_and_requires_new_full_resynchronization() {
+    let g = small_geometry();
+    let mut receiver = Receiver::new_retained(7, g, 10).unwrap();
+    initial_frame(&mut receiver, g);
+    write_tile(&mut receiver, g, 3, 2, 0);
+    let bytes = retain(4, 3, 0, 2, 1);
+    assert!(matches!(receiver.accept(7, 1, &bytes), Err(Error::Grid)));
+    let reply = receiver.reject(7, &bytes, Error::Grid).unwrap();
+    let reply = Reply::decode(reply.bytes(), Header::decode(&bytes).unwrap()).unwrap();
+    assert_eq!(reply.status(), Err(Error::Grid));
+    assert_eq!(reply.retained_tiles(), 0);
+    assert_eq!(receiver.retained_base(), None);
+    assert_eq!(receiver.completed_frame(), None);
+    // Finishing the abandoned frame does not reestablish a baseline.
+    assert!(matches!(
+        receiver.accept(7, 1, &begin(g, 5, 2, 1)),
+        Err(Error::Grid)
+    ));
+    write_tile(&mut receiver, g, 5, 3, 0);
+    write_tile(&mut receiver, g, 6, 3, 1);
+    assert_eq!(receiver.retained_base(), Some(3));
+}
+
+#[test]
+fn failed_callback_after_retained_coverage_cannot_complete_or_restore_the_base() {
+    let g = small_geometry();
+    let mut receiver = Receiver::new_retained(7, g, 10).unwrap();
+    initial_frame(&mut receiver, g);
+    receiver.accept(7, 1, &retain(3, 2, 0, 1, 1)).unwrap();
+    let token = ready(&mut receiver, g, 4, 2, 1, &[0; 1024]);
+    let mut changed_backing = false;
+    let reply = receiver
+        .commit_with(token, 1, |_, _| {
+            changed_backing = true;
+            Err::<(), ()>(())
+        })
+        .unwrap();
+    assert!(changed_backing);
+    assert_eq!(reply.status(), Err(Error::Blit));
+    assert_eq!(receiver.retained_base(), None);
+    assert_eq!(receiver.completed_frame(), None);
+    assert!(receiver.accept(7, 1, &begin(g, 5, 2, 1)).is_err());
+    write_tile(&mut receiver, g, 5, 3, 0);
+    write_tile(&mut receiver, g, 6, 3, 1);
+    assert_eq!(receiver.retained_base(), Some(3));
+}
+
+#[test]
+fn retain_canonical_ranges_identity_and_base_are_enforced() {
+    let g = small_geometry();
+    for (count, base, tile, frame, error) in [
+        (0, 1, 0, 2, Error::Malformed),
+        (257, 1, 0, 2, Error::Malformed),
+        (1, 0, 0, 2, Error::Malformed),
+        (3, 1, 0, 2, Error::Grid),
+        (1, 1, u64::MAX, 2, Error::Grid),
+        (1, 1, 1, 2, Error::Grid),
+        (1, 2, 0, 2, Error::Replay),
+        (1, 1, 0, 1, Error::Grid),
+    ] {
+        let mut receiver = Receiver::new_retained(7, g, 10).unwrap();
+        initial_frame(&mut receiver, g);
+        assert!(
+            matches!(receiver.accept(7, 1, &retain(3, frame, tile, count, base)), Err(e) if e == error)
+        );
+    }
+    let mut receiver = Receiver::new_retained(7, g, 10).unwrap();
+    initial_frame(&mut receiver, g);
+    let good = retain(3, 2, 0, 2, 1);
+    assert!(matches!(receiver.accept(8, 1, &good), Err(Error::Access)));
+    let mut wrong_epoch = good.clone();
+    wrong_epoch[16..24].copy_from_slice(&12u64.to_le_bytes());
+    assert!(matches!(
+        receiver.accept(7, 1, &wrong_epoch),
+        Err(Error::Epoch)
+    ));
+    assert_eq!(receiver.retained_base(), Some(1));
+    let mut bad = good.clone();
+    bad[44] = 0xff;
+    assert!(Header::decode(&bad).is_err());
+    assert!(Header::decode(&good[..55]).is_err());
+    assert!(matches!(
+        receiver.accept(7, 1, &good),
+        Ok(Action::Retain(_))
+    ));
+    assert!(matches!(receiver.accept(7, 1, &good), Err(Error::Replay)));
+}
+
+#[test]
+fn retained_timeout_and_retirement_remove_the_baseline() {
+    let g = small_geometry();
+    let mut receiver = Receiver::new_retained(7, g, 10).unwrap();
+    initial_frame(&mut receiver, g);
+    let token = ready(&mut receiver, g, 3, 2, 0, &[0; 1024]);
+    assert_eq!(
+        receiver.expire(11).unwrap().unwrap().status(),
+        Err(Error::Timeout)
+    );
+    assert_eq!(receiver.retained_base(), None);
+    assert_eq!(receiver.completed_frame(), None);
+    assert!(receiver
+        .commit_with(token, 11, |_, _| Ok::<(), ()>(()))
+        .is_err());
+    receiver.retire();
+    assert_eq!(receiver.retained_base(), None);
+    assert!(matches!(
+        receiver.accept(7, 12, &retain(4, 3, 0, 2, 1)),
+        Err(Error::Closed)
+    ));
+    assert_eq!(
+        Receiver::new_retained(7, g, 10).unwrap().retained_base(),
+        None
+    );
+}
+
+fn solid(g: Geometry, request: u64, frame: u64, tile: u64, color: u32) -> Vec<u8> {
+    let mut bytes = begin(g, request, frame, tile);
+    bytes[6..8].copy_from_slice(&(Operation::SolidBegin as u16).to_le_bytes());
+    bytes.extend_from_slice(&color.to_le_bytes());
+    bytes
+}
+
+#[test]
+fn solid_stages_exact_short_edge_pixels_and_still_requires_commit_callback() {
+    let g = Geometry {
+        assigned: Rectangle {
+            width: 3,
+            height: 1,
+            ..geometry().assigned
+        },
+        ..geometry()
+    };
+    let bytes = solid(g, 1, 1, 0, 0x0055_aa33);
+    let mut denied = Receiver::new(7, g, 10).unwrap();
+    assert!(matches!(denied.accept(7, 1, &bytes), Err(Error::Access)));
+    let mut receiver = Receiver::new_retained(7, g, 10).unwrap();
+    assert!(matches!(receiver.accept(7, 1, &bytes), Ok(Action::Staged)));
+    assert_eq!(receiver.completed_frame(), None);
+    let token = match receiver
+        .accept(7, 1, &h(Operation::Commit, 1, 1, 0).encode())
+        .unwrap()
+    {
+        Action::Commit(token) => token,
+        _ => panic!(),
+    };
+    let reply = receiver
+        .commit_with(token, 1, |rect, pixels| {
+            assert_eq!(rect.width, 3);
+            assert_eq!(pixels, [0x33, 0xaa, 0x55, 0].repeat(3));
+            Ok::<(), ()>(())
+        })
+        .unwrap();
+    assert_eq!(reply.status(), Ok(()));
+    assert_eq!(reply.pixels(), 3);
+    assert_eq!(receiver.completed_frame(), Some(1));
+    assert_eq!(receiver.retained_base(), Some(1));
+
+    let mut receiver = Receiver::new_retained(7, g, 10).unwrap();
+    assert!(matches!(
+        receiver.accept(7, 1, &solid(g, 1, 1, 0, 0xff55_aa33)),
+        Err(Error::Pixels)
+    ));
+    assert!(Header::decode(&bytes[..59]).is_err());
+}
+
+#[test]
+fn solid_commit_expiry_cannot_invoke_callback_or_establish_a_baseline() {
+    let g = small_geometry();
+    let mut receiver = Receiver::new_retained(7, g, 10).unwrap();
+    receiver
+        .accept(7, 1, &solid(g, 1, 1, 0, 0x0012_3456))
+        .unwrap();
+    let token = match receiver
+        .accept(7, 1, &h(Operation::Commit, 1, 1, 0).encode())
+        .unwrap()
+    {
+        Action::Commit(token) => token,
+        _ => panic!(),
+    };
+    let mut calls = 0;
+    let reply = receiver
+        .commit_with(token, 11, |_, _| {
+            calls += 1;
+            Ok::<(), ()>(())
+        })
+        .unwrap();
+    assert_eq!(reply.status(), Err(Error::Timeout));
+    assert_eq!(calls, 0);
+    assert_eq!(receiver.retained_base(), None);
+    assert_eq!(receiver.completed_frame(), None);
+}
+
+#[test]
+fn maximum_geometry_and_run_cover_last_bitmap_word_without_unbounded_ranges() {
+    let g = Geometry {
+        width: 1920,
+        height: 1080,
+        assigned: Rectangle {
+            x: 0,
+            y: 0,
+            width: 1920,
+            height: 1080,
+        },
+        epoch: 11,
+    };
+    assert_eq!(g.tiles() as usize, MAX_TILES);
+    let mut receiver = Receiver::new_retained(7, g, 10).unwrap();
+    initial_frame(&mut receiver, g);
+    let mut tile = 0;
+    let mut request = g.tiles() + 1;
+    while tile < g.tiles() {
+        let count = (g.tiles() - tile).min(u64::from(MAX_RETAIN_TILES)) as u32;
+        assert!(matches!(
+            receiver.accept(7, 1, &retain(request, 2, tile, count, 1)),
+            Ok(Action::Retain(_))
+        ));
+        tile += u64::from(count);
+        request += 1;
+    }
+    assert_eq!(receiver.completed_frame(), Some(2));
+    assert_eq!(receiver.retained_base(), Some(2));
+}
