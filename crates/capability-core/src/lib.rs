@@ -599,12 +599,114 @@ pub struct Engine {
     input: [EntropyObject; MAX_INPUT_OBJECTS],
     last_pid: u64,
 }
+/// Caller-owned comparison storage. Never used as an authority engine or
+/// restored into one. Initialize statically in a small-stack kernel.
+pub struct AuthoritySnapshot {
+    state: Engine,
+}
+impl AuthoritySnapshot {
+    pub const fn new() -> Self {
+        Self {
+            state: Engine::new(),
+        }
+    }
+    /// Exact typed comparison, including inactive slots and queue cells.
+    pub fn matches(&self, engine: &Engine) -> bool {
+        self.state == *engine
+    }
+    /// Only snapshot messages are exposed, for caller-supplied observable
+    /// erasure before releasing its exclusive storage lease. No live Engine
+    /// or authority metadata can be obtained through this interface.
+    pub fn messages_mut(&mut self) -> impl Iterator<Item = &mut Message> {
+        self.state
+            .endpoints
+            .iter_mut()
+            .flat_map(|endpoint| endpoint.queue.iter_mut().map(|queued| &mut queued.message))
+    }
+}
+impl Default for AuthoritySnapshot {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+/// Nonblocking exclusive lease for caller-owned snapshot storage. It never
+/// provides storage access itself; the kernel must check IF=0 before borrowing
+/// its private static buffer and end that borrow before releasing the lease.
+pub struct SnapshotLock {
+    held: core::sync::atomic::AtomicBool,
+}
+impl SnapshotLock {
+    pub const fn new() -> Self {
+        Self {
+            held: core::sync::atomic::AtomicBool::new(false),
+        }
+    }
+    pub fn try_claim(&self) -> Option<SnapshotLease<'_>> {
+        self.held
+            .compare_exchange(
+                false,
+                true,
+                core::sync::atomic::Ordering::Acquire,
+                core::sync::atomic::Ordering::Relaxed,
+            )
+            .ok()?;
+        Some(SnapshotLease { lock: self })
+    }
+}
+impl Default for SnapshotLock {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+pub struct SnapshotLease<'a> {
+    lock: &'a SnapshotLock,
+}
+impl Drop for SnapshotLease<'_> {
+    fn drop(&mut self) {
+        self.lock
+            .held
+            .store(false, core::sync::atomic::Ordering::Release);
+    }
+}
 impl Default for Engine {
     fn default() -> Self {
         Self::new()
     }
 }
 impl Engine {
+    /// Copy each complete typed authority array directly into reserved storage.
+    /// No Engine-sized return value, clone, allocator or padding comparison.
+    /// Exhaustive binding plus deny(unused_variables) makes field growth a
+    /// compile error until this coverage is deliberately extended.
+    #[deny(unused_variables)]
+    #[inline(never)]
+    pub fn snapshot_into(&self, destination: &mut AuthoritySnapshot) {
+        let Self {
+            processes,
+            nodes,
+            endpoints,
+            blocks,
+            launches,
+            children,
+            entropy,
+            network,
+            display,
+            input,
+            last_pid,
+        } = self;
+        let out = &mut destination.state;
+        out.processes.copy_from_slice(processes);
+        out.nodes.copy_from_slice(nodes);
+        out.endpoints.copy_from_slice(endpoints);
+        out.blocks.copy_from_slice(blocks);
+        out.launches.copy_from_slice(launches);
+        out.children.copy_from_slice(children);
+        out.entropy.copy_from_slice(entropy);
+        out.network.copy_from_slice(network);
+        out.display.copy_from_slice(display);
+        out.input.copy_from_slice(input);
+        out.last_pid = *last_pid;
+    }
     /// Use directly in a static initializer in the kernel, not as a stack local.
     pub const fn new() -> Self {
         Self {
@@ -2606,6 +2708,9 @@ impl Engine {
         })
     }
 }
+
+#[cfg(test)]
+mod snapshot_tests;
 fn advance(g: u32) -> (u32, bool) {
     match g.checked_add(1) {
         Some(n) => (n, false),

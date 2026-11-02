@@ -1,6 +1,9 @@
 //! M4 syscall boundary and synthetic ring-3 evidence. The authority engine never
 //! receives user pointers. All copies use prevalidated fixed-size byte plans.
 use super::*;
+use capability_core::{
+    AuthoritySnapshot, Engine, Error, Message, SnapshotLease, SnapshotLock, RECV, SEND,
+};
 #[cfg(all(
     not(feature = "milestone-m5"),
     not(feature = "native-qsim-job"),
@@ -11,7 +14,6 @@ use super::*;
     not(feature = "native-fpu")
 ))]
 use capability_core::{Cap, ALL_RIGHTS};
-use capability_core::{Engine, Error, Message, RECV, SEND};
 use kernel_core::user::{CopyPlan, PageAccess};
 #[cfg(all(
     not(feature = "milestone-m5"),
@@ -117,6 +119,59 @@ static mut LIFECYCLE_ROUNDS: u8 = 0;
 pub(super) fn engine() -> &'static mut Engine {
     // SAFETY: One CPU, IF=0, no nested engine calls or retained engine borrows.
     unsafe { &mut *ptr::addr_of_mut!(ENGINE) }
+}
+static SNAPSHOT_LOCK: SnapshotLock = SnapshotLock::new();
+static mut AUTHORITY_SNAPSHOT: AuthoritySnapshot = AuthoritySnapshot::new();
+
+pub(super) struct AuthorityObservation {
+    snapshot: &'static mut AuthoritySnapshot,
+    // Declared after storage so release happens only after Drop's message wipe.
+    _lease: SnapshotLease<'static>,
+}
+fn require_snapshot_if0() {
+    let flags: u64;
+    // SAFETY: CPL0 read-only flags observation, stack restored before returning.
+    // No user pointer or memory reference crosses this check.
+    unsafe {
+        asm!("pushfq", "pop {}", out(reg) flags, options(preserves_flags));
+    }
+    assert_eq!(flags & (1 << 9), 0, "authority observation requires IF=0");
+}
+pub(super) fn observe_authority() -> AuthorityObservation {
+    require_snapshot_if0();
+    let lease = SNAPSHOT_LOCK
+        .try_claim()
+        .expect("nested authority observation");
+    // SAFETY: Claim precedes constructing the unique static-buffer reference.
+    // One CPU, IF=0; all access uses this nonblocking lease, which is retained
+    // until the complete message wipe. The live Engine is distinct storage;
+    // its short borrow ends here, before dispatch or any scheduling.
+    let snapshot = unsafe { &mut *ptr::addr_of_mut!(AUTHORITY_SNAPSHOT) };
+    engine().snapshot_into(snapshot);
+    AuthorityObservation {
+        snapshot,
+        _lease: lease,
+    }
+}
+impl AuthorityObservation {
+    pub(super) fn matches_current(&self) -> bool {
+        require_snapshot_if0();
+        self.snapshot.matches(engine())
+    }
+}
+impl Drop for AuthorityObservation {
+    fn drop(&mut self) {
+        require_snapshot_if0();
+        for message in self.snapshot.messages_mut() {
+            // SAFETY: Exclusive leased snapshot storage; Message is initialized
+            // and Copy. A valid typed empty value replaces every header field,
+            // descriptor and payload byte, without inspecting struct padding,
+            // with an observable volatile store before the lock can release.
+            unsafe {
+                ptr::write_volatile(message, Message::new());
+            }
+        }
+    }
 }
 #[cfg(all(
     not(feature = "milestone-m5"),
@@ -264,11 +319,16 @@ fn dispatch(
     }
 }
 pub fn syscall(state: &mut State, slot: usize, number: u64, args: [u64; 6]) -> (i64, u64) {
-    let before = engine().stats();
+    let before = observe_authority();
     // On cross-page failure retain evidence for every readable output-prefix
     // byte, including a read-only second page. Nothing is copied to output yet.
     let mut output_before = None;
     let result = dispatch(state, slot, number, args, &mut output_before);
+    let unchanged = result.is_ok() || before.matches_current();
+    // Do not retain snapshot contents/lease through evidence observers or the
+    // scheduler. Drop observably wipes every Message before releasing storage.
+    drop(before);
+    assert!(unchanged, "failed syscall changed authority/queue state");
     #[cfg(all(
         not(feature = "milestone-m5"),
         not(feature = "native-qsim-job"),
@@ -318,11 +378,6 @@ pub fn syscall(state: &mut State, slot: usize, number: u64, args: [u64; 6]) -> (
             (0, value)
         }
         Err(error) => {
-            assert_eq!(
-                engine().stats(),
-                before,
-                "failed syscall changed authority/queue state"
-            );
             if let Some((p, bytes)) = output_before {
                 assert_eq!(
                     read_plan(&p),
