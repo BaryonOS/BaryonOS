@@ -770,9 +770,98 @@ impl Engine {
     pub fn can_register(&self) -> bool {
         self.processes.iter().any(|p| !p.live)
     }
+    /// Process table capacity only; does not reserve entries or validate PIDs.
+    pub fn available_processes(&self) -> usize {
+        self.processes.iter().filter(|p| !p.live).count()
+    }
     /// Free node count, so a caller can check all resources before committing.
     pub fn available_nodes(&self) -> usize {
         self.nodes.iter().filter(|n| !n.live && !n.retired).count()
+    }
+    /// Free endpoint objects. Closed tombstones and retired objects do not
+    /// count: their stale references must never alias a replacement endpoint.
+    pub fn available_endpoints(&self) -> usize {
+        self.endpoints
+            .iter()
+            .filter(|e| !e.live && !e.retired)
+            .count()
+    }
+    /// Conservative owner-quota preflight for a bounded manifest transaction.
+    /// Only exact current handles of `owner` are considered closed. Handles of
+    /// the listed exiting principals are also disregarded. Stale handles never
+    /// exempt an unrelated endpoint that reused the same local slot.
+    ///
+    /// Queued capability references are retained conservatively, even if later
+    /// teardown would cancel their messages. A false result may refuse a safe
+    /// transaction; a true result only predicts the per-owner endpoint quota.
+    /// Global objects/nodes, local slots, authority and lifecycle checks remain
+    /// the caller's responsibility. This query reserves and changes nothing.
+    pub fn can_create_owned_endpoints_after_closing(
+        &self,
+        owner: u64,
+        handles: &[u64],
+        additional: usize,
+        exiting_pids: &[u64],
+    ) -> bool {
+        if self.process(owner).is_err()
+            || exiting_pids.contains(&owner)
+            || handles.len() > MAX_SLOTS
+            || exiting_pids.len() > MAX_PROCESSES
+            || additional > MAX_OWNED_ENDPOINTS
+        {
+            return false;
+        }
+        let mut retained = 0usize;
+        for (index, endpoint) in self.endpoints.iter().enumerate() {
+            if !endpoint.live || endpoint.owner != owner {
+                continue;
+            }
+            let object = Id {
+                index: index as u16,
+                generation: endpoint.generation,
+            };
+            let held = self.processes.iter().any(|process| {
+                process.live
+                    && !exiting_pids.contains(&process.pid)
+                    && process.slots[1..].iter().enumerate().any(|(i, slot)| {
+                        let handle = (u64::from(slot.generation) << 32) | (i as u64 + 1);
+                        self.node_live(slot.node)
+                            && self.nodes[slot.node.index as usize].object == object
+                            && !(process.pid == owner && handles.contains(&handle))
+                    })
+            });
+            // An endpoint object can also be kept alive by a capability in a
+            // queued message. Keep those references rather than duplicating
+            // maintain()/exit() cancellation and revocation policy here.
+            let queued = self.endpoints.iter().any(|queue| {
+                (0..usize::from(queue.len)).any(|position| {
+                    let entry = &queue.queue[(usize::from(queue.head) + position) % QUEUE_CAPACITY];
+                    entry.caps[..entry.message.cap_count as usize]
+                        .iter()
+                        .any(|node| {
+                            self.node_live(*node)
+                                && self.nodes[node.index as usize].object == object
+                        })
+                })
+            });
+            retained += usize::from(held || queued);
+        }
+        retained + additional <= MAX_OWNED_ENDPOINTS
+    }
+    /// Manifest-only nondelegable source-object capacity after this principal
+    /// exits. Slot/node availability is separate. Terminal generations retire
+    /// on reclamation and cannot be used by the replacement service.
+    pub fn can_create_display_after_exit(&self, exiting_pid: u64) -> bool {
+        Self::console_source_available_after_exit(&self.display, exiting_pid)
+    }
+    pub fn can_create_input_after_exit(&self, exiting_pid: u64) -> bool {
+        Self::console_source_available_after_exit(&self.input, exiting_pid)
+    }
+    fn console_source_available_after_exit(objects: &[EntropyObject], exiting_pid: u64) -> bool {
+        objects.iter().any(|object| {
+            !object.retired
+                && (!object.live || object.owner == exiting_pid && object.generation != u32::MAX)
+        })
     }
     /// Free local slots of a live process (0 for an unknown pid).
     pub fn available_slots(&self, pid: u64) -> usize {
@@ -843,6 +932,13 @@ impl Engine {
     /// True when one more `Process` object can be created.
     pub fn can_create_process(&self) -> bool {
         self.children.iter().any(|c| !c.live && !c.retired)
+    }
+    /// Free typed process objects only; does not reserve an owner handle.
+    pub fn available_process_objects(&self) -> usize {
+        self.children
+            .iter()
+            .filter(|c| !c.live && !c.retired)
+            .count()
     }
     /// Kernel-only, after the child is registered: the spawner receives the
     /// only handle to a fresh `Process` object; the child itself holds none.
