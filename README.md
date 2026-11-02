@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`517117fb`](https://github.com/simonvanieperen/nieuw-os/commit/517117fbd8359084eca10e2e2d5f4cdf1015b52c) ·
+**Bron:** [`fdbac2bb`](https://github.com/simonvanieperen/nieuw-os/commit/fdbac2bbcdc5a4ad97f81a581dcdc750769d8577) ·
 **Ontwikkelbranch:** `simon/profiles-users-plan`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** PR114 en PR131: gebruikersontwerp en gelabeld journeyonderzoek inhoudsbehoudend combineren.
-34/100 blijft34; geen nieuw criterium of gewicht. Het PR114-ontwerp bewaart de herkenbare eigen shell en is aangevuld met expliciete A/B-sleutel- en handlelevensloop. PR131 levert gelabeld onderzoek:31 installatieaspecten,28 dagelijkse taken, herkomstprofielen en voorgestelde installer-/onboardingcontracten. P2-bevriezing betreft het historische prototype, geen intrekking van ADR058. De kernclaim58% EU-dienstoverstap is onafhankelijk tegen de originele data-annex/PDF-hash gecontroleerd; geen OS-migratiepercentage. Geen productcode, gebouwde profielen/installer of nieuwe native/fysieke/menselijke acceptatie. Main74a34d05 bevat PR125 en oplossingen109/110. PR127 en diens ontwikkelscore41 blijven afzonderlijk; huidige native gates lopen.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** PR114/131/132: gebruikersontwerp, journeyonderzoek en opslagbewijs inhoudsbehoudend combineren.
+34/100 blijft34; geen nieuw criterium of gewicht. PR114 bewaart herkenbare eigen bediening met expliciete A/B-sleutel- en handlelevensloop. PR131 levert gelabeld journeyonderzoek en installer-/onboardingvoorstellen;58% EU-dienstoverstap is tegen originele PDF-data gecontroleerd, geen OS-migratiepercentage. PR132 bewaart acht brongebonden NOSVOL02/Btrfs/OpenZFS-boots en begrensd hostbewijs.207 archief-Git-blobs zijn onafhankelijk gehasht; dat is geen nieuwe native replay of menselijke audit. Btrfs/OpenZFS-native-adoptie en S09 blijven open. Geen runtimecode, profielen/installer of nieuwe productacceptatie. Main74a34d05 bevat PR125 en oplossingen109/110; PR127 en diens ontwikkelscore41 blijven afzonderlijk, met verse native gates.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

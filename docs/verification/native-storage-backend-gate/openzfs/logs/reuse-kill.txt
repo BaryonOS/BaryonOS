@@ -1,0 +1,30 @@
+1 vdevs, 2 datasets, 2 threads, 1 raidz disks, parity 0, 15 seconds...
+
+Importing pool nieuwos_n3
+failed to find config for pool 'nieuwos_n3': no pools found
+ASSERT at cmd/ztest.c:8037:ztest_import_impl()
+VERIFY0(zpool_find_config(&lpch, ztest_opts.zo_pool, &cfg, &args)) failed (2)
+  PID: 183939    COMM: ztest
+  TID: 183939    NAME: ztest
+Call trace:
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/lib/x86_64-linux-gnu/libzpool.so.7(libspl_backtrace+0x35) [0x72bbb60c1555]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/lib/x86_64-linux-gnu/libzpool.so.7(libspl_assertf+0x14e) [0x72bbb60c16ee]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/sbin/ztest(+0x1eeb2) [0x626e7fc75eb2]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/sbin/ztest(+0xcbc0) [0x626e7fc63bc0]
+/usr/lib/x86_64-linux-gnu/libc.so.6(+0x2a601) [0x72bbb5a2a601]
+/usr/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0x88) [0x72bbb5a2a718]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/sbin/ztest(+0xda85) [0x626e7fc64a85]
+Call trace:
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/lib/x86_64-linux-gnu/libzpool.so.7(libspl_backtrace+0x35) [0x72bbb60c1555]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/sbin/ztest(+0xdc2b) [0x626e7fc64c2b]
+/usr/lib/x86_64-linux-gnu/libc.so.6(+0x45cb0) [0x72bbb5a45cb0]
+/usr/lib/x86_64-linux-gnu/libc.so.6(pthread_kill+0x11c) [0x72bbb5aa61ac]
+/usr/lib/x86_64-linux-gnu/libc.so.6(gsignal+0x1e) [0x72bbb5a45b7e]
+/usr/lib/x86_64-linux-gnu/libc.so.6(abort+0x27) [0x72bbb5a288ec]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/lib/x86_64-linux-gnu/libzpool.so.7(+0x4ab78) [0x72bbb5e11b78]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/sbin/ztest(+0x1eeb2) [0x626e7fc75eb2]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/sbin/ztest(+0xcbc0) [0x626e7fc63bc0]
+/usr/lib/x86_64-linux-gnu/libc.so.6(+0x2a601) [0x72bbb5a2a601]
+/usr/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0x88) [0x72bbb5a2a718]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/sbin/ztest(+0xda85) [0x626e7fc64a85]
+child died with signal 6
