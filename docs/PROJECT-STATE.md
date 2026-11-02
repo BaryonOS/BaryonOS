@@ -5,7 +5,7 @@
 **Bevroren implementatie:** `4f146a6c2e5e1b07f79c4287147299157ca0447d`,
 branch `codex/mature-native-session-20261102`, concept-PR #122 op #121.
 **N01 is geaccepteerd (+3): 34 → 37/100. U01/U02 blijven open.**
-Alle functionele broncode is gecommit/gepusht. De laatste twee checkpointcommits
+Alle functionele broncode is gecommit/gepusht. De latere checkpointcommits
 via de GitHub-connector veranderen uitsluitend documentatie; de lokale checkout
 moet na herstel eerst veilig worden bijgewerkt, met behoud van gegenereerd bewijs.
 
@@ -25,7 +25,7 @@ VM is gestopt. Zie
   objectarchives, zonder native claim. De laatste gegenereerde bestanden onder
   `ui/native/verification/` zijn door de omgevinguitval nog niet gecommit.
 - Materiaal28 en Calculator8 echte hostketentests slagen, inclusief verse
-  kanalen/PIDs/epochs, ongeslagen document/upload en verlies van de laatste ACK.
+  kanalen/PIDs/epochs, behoud van document/upload en verlies van de laatste ACK.
 - Windowpolicy/render10 tests met816 exacte rastervergelijkingen, strikte
   Clippy; Pythonrunner7 en Windowsbundelaar18 tests slagen.
 - De grafische VM bereikte boot113,55s, exact volledig appbeeld initial114,13s
