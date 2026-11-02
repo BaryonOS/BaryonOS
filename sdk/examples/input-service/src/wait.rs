@@ -15,7 +15,7 @@ pub enum Mode {
     Wait,
 }
 impl Mode {
-    /// Only the two explicitly implemented ABI versions are accepted.
+    /// Only explicitly implemented ABI versions are accepted.
     pub const fn from_abi(info: u64) -> Option<Self> {
         match info {
             0x1_0000_0008 => Some(Self::Legacy),

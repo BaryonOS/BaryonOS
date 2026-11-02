@@ -16,7 +16,7 @@ use crate::{
 fn call(number: u64, args: [u64; 6]) -> Result<u64, Error> {
     let mut primary = number;
     let mut secondary = args[2];
-    // SAFETY: Nieuw OS ABI 1.0–1.10 preserves every GPR except RAX/RDX; int80 enters
+    // SAFETY: Nieuw OS ABI 1.0–1.11 preserves every GPR except RAX/RDX; int80 enters
     // a checked kernel gate. No Rust references cross this boundary. Callers
     // below keep local message buffers live for the complete synchronous copy.
     // No nomem/readonly flag: IPC can read or write the supplied memory.
@@ -274,10 +274,14 @@ pub fn status(child: ChildProcess) -> Result<ProcessStatus, Error> {
 /// ABI 1.11: replay one fixed UI service-group manifest after its compositor
 /// has died. Only the manifest supervisor owns the matching Launch/Process
 /// grants. Apps must first close presentation channels and acknowledge pause;
-/// fresh bindings are read from private startup metadata after success.
+/// fresh bindings are read from private startup metadata after success. The
+/// kernel consumes the old Process handle; callers must not close it again.
 pub fn restart_service_group(image: LaunchImage, old: ChildProcess) -> Result<ChildProcess, Error> {
-    Handle::from_raw(call(0x53, [image.handle().raw(), old.handle().raw(), 0, 0, 0, 0])?)
-        .map(ChildProcess::from_handle)
+    Handle::from_raw(call(
+        0x53,
+        [image.handle().raw(), old.handle().raw(), 0, 0, 0, 0],
+    )?)
+    .map(ChildProcess::from_handle)
 }
 
 /// B01 (ABI 1.4): ask the kernel entropy broker for `length` (1..=256) raw

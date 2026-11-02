@@ -71,10 +71,10 @@ fn decode_wait_mask(value: u64, count: usize) -> Result<u16, Error> {
     Ok(value as u16)
 }
 
-/// The common syscall contract is unchanged across the existing 1.0–1.10
+/// The common syscall contract is unchanged across the existing 1.0–1.11
 /// profiles (1.3 adds process management, 1.4 entropy, 1.5 raw NIC,
 /// 1.6 monotonic ticks, 1.7 private heap growth, 1.8 display/input,
-/// 1.9 opt-in unauthenticated RTC UTC, and 1.10 opt-in IPC wait).
+/// 1.9 opt-in unauthenticated RTC UTC, 1.10 opt-in IPC wait, and 1.11 fixed service-group replacement).
 /// Unknown revisions require a separate compatibility check.
 pub fn validate_abi(version: u64) -> Result<(), Error> {
     if version >> 32 == ABI_MAJOR && version as u32 as u64 <= ABI_MAX_MINOR {

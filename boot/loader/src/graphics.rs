@@ -27,7 +27,13 @@ pub fn prepare(fw: &Firmware) -> Result<FramebufferInfo> {
     if count == 0 || count > 128 {
         return Err(b"GOP_MODE_COUNT");
     }
-    let (requested_width,requested_height)=if cfg!(feature="desktop-hidpi"){(1920,1080)}else if cfg!(feature="desktop-mode"){(1280,720)}else{(800,600)};
+    let (requested_width, requested_height) = if cfg!(feature = "desktop-hidpi") {
+        (1920, 1080)
+    } else if cfg!(feature = "desktop-mode") {
+        (1280, 720)
+    } else {
+        (800, 600)
+    };
     let mut selected = None;
     for number in 0..count {
         let mut size = 0;

@@ -685,7 +685,10 @@ impl State {
         };
         let initial = if cfg!(feature = "native-net-service") {
             3
-        } else if cfg!(any(feature="native-system-materiaal-probe",feature="native-window-session")) {
+        } else if cfg!(any(
+            feature = "native-system-materiaal-probe",
+            feature = "native-window-session"
+        )) {
             8
         } else if cfg!(feature = "native-system-materiaal") {
             7
