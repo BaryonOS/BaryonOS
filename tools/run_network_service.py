@@ -12,6 +12,7 @@ import math
 from pathlib import Path
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import time
@@ -167,6 +168,10 @@ def run_network_service(*, timeout=90):
         raise RuntimeError("Missing QEMU")
     qemu_hash = sha256(Path(qemu))
     code, variables = firmware()
+    for image in (code, variables):
+        details = image.lstat()
+        if not stat.S_ISREG(details.st_mode) or not 1 <= details.st_size <= 16 * 1024 * 1024:
+            raise ValueError("Firmware must be a bounded regular file")
     original_firmware = {"code": sha256(code), "vars_template": sha256(variables)}
     directory = private_path(BUILD / "run" / ("network-service-" + uuid.uuid4().hex))
     directory.mkdir(parents=True, exist_ok=False)
@@ -209,6 +214,10 @@ def run_network_service(*, timeout=90):
         report["observed"] = evaluate(report, evidence)
         if private_path(directory / "serial.txt", regular=True).read_bytes() != stdout.encode():
             raise ValueError("Stored serial differs from actual bytes")
+        if load_json(private_path(directory / "network-peer.json", regular=True)) != evidence:
+            raise ValueError("Stored peer transcript differs from actual server bytes")
+        if private_path(directory / "stderr.txt", regular=True).read_bytes() != stderr.encode():
+            raise ValueError("Stored QEMU diagnostics differ from actual bytes")
         check_esp(directory / "esp", manifest)
         if {name: sha256(private_path(directory / name, regular=True)) for name in snapshots} != snapshots:
             raise ValueError("Immutable firmware/ESP snapshot changed during run")

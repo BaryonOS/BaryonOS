@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Host adversarial checks of N01 peer/harness; no native success claim."""
 from __future__ import annotations
-import copy
-import hashlib
 import struct
 import unittest
 from network_service_peer import (ACK, FIN, PSH, RST, SYN, CLIENT_IP, CLIENT_MAC,
