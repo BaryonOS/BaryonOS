@@ -7,7 +7,7 @@
 mod support;
 #[path = "../../window-session/src/probe.rs"]
 mod window_probe;
-use nieuw_os_calculator::{app::App, bootstrap::Bootstrap};
+use nieuw_os_calculator::{app::App, bootstrap::Bootstrap, idle};
 use nieuw_os_input_client::{Binding, NativeTransport, Session as Input};
 use nieuw_os_sdk_runtime::{native, Outgoing, Received, SendEndpoint};
 use nieuw_os_surface_protocol::client::Session as Surface;
@@ -76,7 +76,10 @@ fn done(config: &Bootstrap) -> ! {
 }
 #[no_mangle]
 pub extern "C" fn calculator_main() -> ! {
-    native::check_abi().unwrap_or_else(|_| fail(1));
+    let idle_mode = native::abi_info()
+        .ok()
+        .and_then(idle::Mode::from_abi)
+        .unwrap_or_else(|| fail(1));
     let mut config = Bootstrap::read(support::word).unwrap_or_else(|| fail(2));
     send(config.registry, 1);
     let mut go = false;
@@ -188,7 +191,9 @@ pub extern "C" fn calculator_main() -> ! {
         support::put(528, u64::from_le_bytes(raw[8..].try_into().unwrap()));
         support::put(536, u64::from(model.answer().is_some()));
         support::put(400, u64::from(e.ready));
-        if let Some(message) = control(&config) {
+        let message = control(&config);
+        let control_empty = message.is_none();
+        if let Some(message) = message {
             if window_session && message.payload() == [7] && !paused {
                 app.detach_presentation().unwrap_or_else(|_| fail(13));
                 paused = true;
@@ -264,7 +269,13 @@ pub extern "C" fn calculator_main() -> ! {
             app.stop_clean().unwrap_or_else(|_| fail(10));
             done(&config);
         }
-        let _ = native::yield_now();
+        if idle_mode == idle::Mode::Wait && !paused && control_empty && app.can_idle() {
+            let now = native::monotonic_ticks().unwrap_or_else(|_| fail(96));
+            let poll = idle::Poll::new(now, config.control).unwrap_or_else(|| fail(96));
+            poll.park(native::ipc_wait).unwrap_or_else(|_| fail(97));
+        } else {
+            native::yield_now().unwrap_or_else(|_| fail(97));
+        }
     }
 }
 #[panic_handler]

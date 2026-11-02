@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`337f2f29`](https://github.com/simonvanieperen/nieuw-os/commit/337f2f29f1833ef4a8d2cd640b09419f85dbb83b) ·
-**Ontwikkelbranch:** `codex/mature-native-session-20261102`.
-Deze opdracht: **37% → 41% (+4 procentpunt)**. **Opdracht:** Native compositor/venstersessie U01 volledig geaccepteerd.
-41/100: U01 krijgt4vastepunten naast eerder geaccepteerdeN01. Op exact337/source39194035 slagen alle13nativefasen in eigen cloud-VM, in CI en gerapporteerd op Windows/WHPX: focus/drag, echte compositorfault, retirement/freshgroep, behoud van draft/berekening, complete pixels zonder maskers, save/list/reopen, onafhankelijke diskoracle en nul resources. Alle18CI-workflows op337 zijn groen. Bron/beelden/bytes/serial/pakket zijn herleidbaar vastgelegd. Eerdere rode uitvoeringen blijven rood bewaard. U02 blijft open; PR123-idlecode/pilot/formeleCPUproeven worden apart gereviewd en nog niet als algemene latency-/release-/auth-/hardwareacceptatie geteld.
+**Bron:** [`1f2ac0ae`](https://github.com/simonvanieperen/nieuw-os/commit/1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b) ·
+**Ontwikkelbranch:** `codex/window-idle-wait-20261102`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Gereviewde GUI-idle-integratie met formele lokale CPU-proeven.
+41/100 blijft gelijk. U01/N01 behouden hun native acceptatie. Vier GUI-loops parkeren nu uitsluitend quiescent via bestaande IPC_WAIT; source8faf is volledig native op Windows/WHPX en in de nieuwe TCG-CI-venstergate geslaagd. Zes formele Windowsroutes, exactzelfde beelden, werk/fault/save/disk/cleanup en drie15smetingen per arm geven mediaan99,3724→11,6663% van éénlogischeCPU (88,2600%lager). Root en twee scoped reviewers vinden geen codeblocker; complete latency/clipboard/U02 en energie/auth/hardware-superioriteit worden niet geclaimd. CI-hostquality ontbrak op koude cache een gelockte workspacefetch vóór de strikte offline wipeharness; volgorde hersteld, geen testversoepeling. Centrale opname volgt pas na groene CI.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

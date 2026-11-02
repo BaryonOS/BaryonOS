@@ -1,0 +1,60 @@
+--- 337f2f29f1833ef4a8d2cd640b09419f85dbb83b/init.rs
++++ integrated/init.rs
+@@ -10,6 +10,7 @@
+ };
+ use nieuw_os_window_session::{
+     boot::CONTROL,
++    idle::{Idle, InitState, NativeIdle},
+     recovery::{ready_bit, Group, Recovery},
+ };
+ #[derive(Clone, Copy)]
+@@ -95,7 +96,8 @@
+ }
+ #[inline(never)]
+ fn run() -> ! {
+-    native::check_abi().unwrap_or_else(|_| fail(7));
++    let mut idle =
++        Idle::new(native::abi_info().unwrap_or_else(|_| fail(7))).unwrap_or_else(|_| fail(7));
+     let mut boot = read();
+     let mut mask = 0u8;
+     let mut running = false;
+@@ -109,12 +111,18 @@
+     let mut restarts = 0u64;
+     let mut rejected = 0u64;
+     loop {
++        let mut registry_empty = false;
++        let mut received_this_pass = false;
+         for _ in 0..16 {
+             let m = match native::receive(boot.registry) {
+                 Ok(m) => m,
+-                Err(e) if e.is_again() => break,
++                Err(e) if e.is_again() => {
++                    registry_empty = true;
++                    break;
++                }
+                 Err(_) => fail(8),
+             };
++            received_this_pass = true;
+             if m.cap_count() != 0 {
+                 let _ = native::close_received_caps(&m);
+                 rejected += 1;
+@@ -262,7 +270,18 @@
+         ] {
+             support::put(at, v);
+         }
+-        native::yield_now().unwrap_or_else(|_| fail(16));
++        let quiescent = InitState {
++            registry_empty,
++            received: received_this_pass,
++            running,
++            ready_mask: mask,
++            recovering,
++            recovery_pending: recovery.is_some(),
++            stopping,
++        }
++        .quiescent();
++        idle.pause(quiescent, boot.registry, &mut NativeIdle)
++            .unwrap_or_else(|_| fail(16));
+     }
+ }
+ #[panic_handler]

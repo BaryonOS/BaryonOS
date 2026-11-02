@@ -1,0 +1,76 @@
+{
+  "aggregate_sha256": "26fc841be9ff0d1414db0eb23c245cb0a812504993cbd44ff432d213930f3637",
+  "native_reports": {
+    "1-A-native.json.gz": "87e3fa845a284f73c9b4f5d535536c05ff2b6d36fb02c9ad3fc5df95b284476b",
+    "2-B-native.json.gz": "848cb2bcc5853c6bf4405bce608ee99d92e8c9b77418aed4795532d0dddca60c",
+    "3-B-native.json.gz": "beabc639bd150a4fecfbe34e610fb813fa4bc44f1dc438ec59e2a73123aa734b",
+    "4-A-native.json.gz": "65427a661dec3315b66d1d76c44232b56712432e3d3b52d294fa61683848bd11",
+    "5-A-native.json.gz": "58676a237cf8a45e6099c11f64fb4e5ffba985e65b83120cdc03cc35acf3c37a",
+    "6-B-native.json.gz": "32b1f1d21abf7940b710486742d4eac8772ba51a4a19b09229e8467afc9a9162"
+  },
+  "serial": {
+    "1-A-serial.txt.gz": "eb85f7d7099bc176026c62fa24809773d48d02a052e7a6769803513e207ff25d",
+    "2-B-serial.txt.gz": "6f2e9f9e29b89096e902eada99a6a94de293aa45e9bb499a058ea6278e409500",
+    "3-B-serial.txt.gz": "0bea6eef37b9c0d697bc9d18ac98e1f9581daca8784b6b471f197fe09b33d5fc",
+    "4-A-serial.txt.gz": "25364c98c8bcd08a5043ee09bc3ddf7a22510fb2576c28bb3d0262fd7ac71333",
+    "5-A-serial.txt.gz": "db6d5c1653b37f5f8ae3c05106e8d18bc409a1d92223c2889cb1dc75fbab3c04",
+    "6-B-serial.txt.gz": "9802b09ccf7d83e8a84c463773c448cad6f2a3aee6abec46d71dce7dc169d0de"
+  },
+  "artifacts": {
+    "1-A-console.txt": {
+      "raw_sha256": "fe28059b15a77771e05a693ed4ec9d9ee876fa6f587b9927dad5004d7163d17a",
+      "included_sha256": "99de9e0107b1e690e525fad497a625afd0232e97e1f9a60ffd6dafc621f72e0e",
+      "normalization": "CRLF to LF; trailing blank lines removed. Original raw hash retained."
+    },
+    "2-B-console.txt": {
+      "raw_sha256": "d965f018d4926ac176e6e0fc0bb0301f83f5eccce80eef15df45cb86c674ae6b",
+      "included_sha256": "250c16f214c8c6f516587fd2ce82315560d893ae1bebf4cac285d40cc68c48cd",
+      "normalization": "CRLF to LF; trailing blank lines removed. Original raw hash retained."
+    },
+    "3-B-console.txt": {
+      "raw_sha256": "7b6780836b6b9b218b262f67f2e76b54b6cde840aead8294decae0821e6c32a0",
+      "included_sha256": "8b3fb9fdf53c4479511f42fa58bb82502cc8d729dbb5f586eaa46b1901866c72",
+      "normalization": "CRLF to LF; trailing blank lines removed. Original raw hash retained."
+    },
+    "4-A-console.txt": {
+      "raw_sha256": "fd917c1dcd617b27d74f0c2224a0ca2ea73c204bab54eb315c093cba98006e8c",
+      "included_sha256": "c07a9d14b03a9f4566d10b5e0ecb9bafcfd3e697413a4bc2e72a07fb9c84e061",
+      "normalization": "CRLF to LF; trailing blank lines removed. Original raw hash retained."
+    },
+    "5-A-console.txt": {
+      "raw_sha256": "38bd611b190d8d59af8308cfcfe08a778c45ccbede749c1b57c74675c063834b",
+      "included_sha256": "e1c60d6fccb3cd3279911a2c93d35bae03b70ea34e6c2b2bd1bddd0ec52f98f2",
+      "normalization": "CRLF to LF; trailing blank lines removed. Original raw hash retained."
+    },
+    "6-B-console.txt": {
+      "raw_sha256": "48a31debc3202b68ad26e51792f1afa604081d60c19eb13dafb1c475624e9097",
+      "included_sha256": "04a53284bb562c5204801003f6bdc88103cf73271b9dc87e87bd496e5340df0e",
+      "normalization": "CRLF to LF; trailing blank lines removed. Original raw hash retained."
+    }
+  },
+  "standalone_baseline": {
+    "file": "baseline-without-measurement.json.gz",
+    "uncompressed_sha256": "34388fb69e69e05ac60bb4086b237ebd2ef732ee01971fe64fdf916b539ab976",
+    "note": "Full native baseline, no 15s CPU diagnostic; not part of formal CPU statistics."
+  },
+  "unit_checks": {
+    "command": "python -X utf8 -B -m unittest discover -s tests",
+    "total": 73,
+    "passed": 72,
+    "skipped": 1,
+    "exit_code": 0,
+    "note": "One opt-in paused-QEMU smoke test skipped; formal A/B uses no pause. Exact scripts/tests included in windows-harness."
+  },
+  "aggregate_original_file": "aggregate-original.json.gz",
+  "aggregate_included_readable_sha256": "a65e925353bfdcc3ca81661821aeb16c694eb77f287cb9006a796cdceb7ae540",
+  "aggregate_note": "aggregate_sha256 applies to raw original/gzip-decompressed bytes. Readable result.json changes only CRLF to LF; all JSON values unchanged.",
+  "independent_ai_review": {
+    "passed": true,
+    "method": "Raw100ns counters independently recomputed with Decimal; helper formulas not reused. Actual source/native/adapter/ELF/immutable/frame/oracle files checked. This is AI verification, not a human audit.",
+    "full_ppms_equal": 24,
+    "phase_frame_hashes_checked": 78,
+    "native_runs_passed": 6,
+    "disk_oracle_volumes_checked": 6,
+    "limitations": "Headless WHPX/one vCPU; conditional serial counters; QMP trace has order but no timestamps; no energy/physical/TCG/auth claim."
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "source_commit": "1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b",
+  "source_sha256": "8faf3f7f47e3f26409e446b2311673416ddd70d5735ef106d94c9f30d2c6847a",
+  "root_review": "Primary reviewed app/native-loop and compositor code; two scoped read-only reviewers found no blocker. No 20ms guarantee or human-audit claim.",
+  "formal_data": "Original aggregate SHA verified; six native_gate/raw33 outcomes and per-arm medians recalculated by root from archived reports. Raw counter/time recomputation was separately performed by the local reviewer.",
+  "statistics": {
+    "process_percent_one_logical_cpu": {
+      "A": {
+        "values": [
+          99.268908178306,
+          99.37236696351644,
+          99.37357763285871
+        ],
+        "median": 99.37236696351644,
+        "min": 99.268908178306,
+        "max": 99.37357763285871
+      },
+      "B": {
+        "values": [
+          11.66628786229982,
+          12.395408129516518,
+          11.666233849390753
+        ],
+        "median": 11.66628786229982,
+        "min": 11.666233849390753,
+        "max": 12.395408129516518
+      },
+      "median_reduction_percent": 88.26002819618559
+    },
+    "vcpu_percent_one_logical_cpu": {
+      "A": {
+        "values": [
+          99.06067629295102,
+          98.95575619559182,
+          98.85282292729309
+        ],
+        "median": 98.95575619559182,
+        "min": 98.85282292729309,
+        "max": 99.06067629295102
+      },
+      "B": {
+        "values": [
+          11.041310842022844,
+          11.874598124017554,
+          11.353755660711668
+        ],
+        "median": 11.353755660711668,
+        "min": 11.041310842022844,
+        "max": 11.874598124017554
+      },
+      "median_reduction_percent": 88.52643231964161
+    }
+  },
+  "acceptance": "U01 remains41 based on baseline337 plus candidate full Windows and CI native checks. U02 remains open; clipboard and complete latency budgets missing.",
+  "CI_fix": "Pinned workspace fetch before deliberately offline wipe harness on empty Cargo cache. Product source fingerprint unchanged.",
+  "test_only_fix": {
+    "file": "tools/tests/test_materiaal_preview.py",
+    "cause": "A UUID screenshot path containing f12 caused the JSON-substring assertion to fail despite no key injection.",
+    "change": "Inspect only structured send-key qcodes; unrelated f12 path and real f12 key each have a regression.",
+    "tested_OS_source_commit": "1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b",
+    "tested_OS_source_v3": "8faf3f7f47e3f26409e446b2311673416ddd70d5735ef106d94c9f30d2c6847a",
+    "current_full_source_v3": "084478cf4d2e137a3ba37bc6029716be3e38fecfdf76ca82fe55cd409b8536d0",
+    "compiled_OS_source_files": "Unchanged. Final normal loader/kernel/eight ELF byte identity will be checked; do not relabel old measurements as execution of this test-only commit."
+  }
+}

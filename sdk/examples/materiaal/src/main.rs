@@ -15,7 +15,7 @@ use nieuw_os_document_session::{
 };
 use nieuw_os_input_client::{Binding, Session as Input};
 use nieuw_os_materiaal::{controller::Controller, Viewport};
-use nieuw_os_materiaal_app::{bootstrap::Bootstrap, App, Evidence, Observation};
+use nieuw_os_materiaal_app::{bootstrap::Bootstrap, idle, App, Evidence, Observation};
 use nieuw_os_sdk_runtime::{native, Outgoing, Received, SendEndpoint};
 use nieuw_os_surface_protocol::client::Session as Surface;
 
@@ -120,7 +120,10 @@ fn publish(e: Evidence, observation: Observation) {
 
 #[no_mangle]
 pub extern "C" fn materiaal_main() -> ! {
-    native::check_abi().unwrap_or_else(|_| fail(1));
+    let idle_mode = native::abi_info()
+        .ok()
+        .and_then(idle::Mode::from_abi)
+        .unwrap_or_else(|| fail(1));
     let mut config = Bootstrap::read(support::word).unwrap_or_else(|| fail(2));
     // READY here is bootstrap/ELF readiness, not rendered UI or a saved file.
     send(config.registry_send, 1);
@@ -238,7 +241,9 @@ pub extern "C" fn materiaal_main() -> ! {
             };
         }
         publish(app.evidence(), app.observation());
-        if let Some(message) = control(&config) {
+        let message = control(&config);
+        let control_empty = message.is_none();
+        if let Some(message) = message {
             // STOP is an explicit supervisor request, never an implicit save or
             // discard. A dirty/busy document refuses; all three owners close
             // before DONE. Full OS session/shutdown policy is a separate task.
@@ -329,7 +334,13 @@ pub extern "C" fn materiaal_main() -> ! {
                 Err(_) => fail(13),
             }
         }
-        let _ = native::yield_now();
+        if idle_mode == idle::Mode::Wait && !paused && control_empty && app.can_idle() {
+            let now = native::monotonic_ticks().unwrap_or_else(|_| fail(96));
+            let poll = idle::Poll::new(now, config.control_receive).unwrap_or_else(|| fail(96));
+            poll.park(native::ipc_wait).unwrap_or_else(|_| fail(97));
+        } else {
+            native::yield_now().unwrap_or_else(|_| fail(97));
+        }
     }
 }
 #[panic_handler]

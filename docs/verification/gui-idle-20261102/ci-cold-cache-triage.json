@@ -1,0 +1,98 @@
+{
+  "schema": "nieuw-os-ci-pr123-triage-v1",
+  "requested_head_commit": "1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b",
+  "run_id": 41490336786,
+  "job_id": 125431369592,
+  "job_name": "host-quality",
+  "failed_step": {
+    "number": 7,
+    "name": "Python syntax and DocumentSession host tests"
+  },
+  "failed_test": "test_snapshot_wipe.SnapshotWipeTests.test_actual_word_wipe_optimized_and_guarded",
+  "source_location": "tools/tests/test_snapshot_wipe.py:71-74",
+  "actual_cargo_exit": 101,
+  "actual_error": "no matching package named ed25519-dalek found; required by update-core workspace member during offline capability-core package build",
+  "both_download_and_host_build_caches_missed": true,
+  "tool_tests_run": 179,
+  "tool_tests_failed": 1,
+  "test_body_did_not_run_because_compile_failed": true,
+  "qemu_smoke_skipped": true,
+  "smallest_fix": {
+    "file": ".github/workflows/ci.yml",
+    "placement": "After Cargo cache restoration, before first Python tests invoking offline Cargo",
+    "command": "cargo +1.90.0 fetch --locked --manifest-path Cargo.toml",
+    "preserve": [
+      "offline and locked flags in actual snapshot compilation",
+      "optimized real capability-core types and real wipe harness",
+      "all negative schema and guard-page checks",
+      "all native gates"
+    ]
+  },
+  "history": {
+    "test_introduced": "bace77471858841970d77246fb120778b8f73bff",
+    "unchanged_between": "337f2f29f1833ef4a8d2cd640b09419f85dbb83b..1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b",
+    "unchanged_paths": [
+      "tools/tests/test_snapshot_wipe.py",
+      ".github/workflows/ci.yml",
+      "crates/update-core/Cargo.toml"
+    ],
+    "classification": "Inherited cache-miss-sensitive CI setup ordering from the previous snapshot wipe test; not a newly introduced idle implementation defect."
+  },
+  "selected_log_lines": [
+    {
+      "line": 199,
+      "text": "2026-11-02T17:21:29.2410875Z Cache not found for input keys: cargo-downloads-v1-Linux-X64-0e5798f5489c0d43684c5501162ecdfde7351e83d7d017a06b7d5230a5a92da3"
+    },
+    {
+      "line": 214,
+      "text": "2026-11-02T17:21:29.9145661Z Cache not found for input keys: host-rust-v1-Linux-X64-9d06f54957556eea5338d8c948c16f2af7a4ae4ae83ecd7d4f3f626efa5b96d5"
+    },
+    {
+      "line": 242,
+      "text": "2026-11-02T17:21:48.3570511Z FAIL: test_actual_word_wipe_optimized_and_guarded (test_snapshot_wipe.SnapshotWipeTests.test_actual_word_wipe_optimized_and_guarded)"
+    },
+    {
+      "line": 245,
+      "text": "2026-11-02T17:21:48.3572280Z   File \"/home/runner/work/nieuw-os/nieuw-os/tools/tests/test_snapshot_wipe.py\", line 74, in test_actual_word_wipe_optimized_and_guarded"
+    },
+    {
+      "line": 246,
+      "text": "2026-11-02T17:21:48.3573223Z     self.assertEqual(built.returncode, 0, built.stdout+built.stderr)"
+    },
+    {
+      "line": 247,
+      "text": "2026-11-02T17:21:48.3573890Z AssertionError: 101 != 0 : error: no matching package named `ed25519-dalek` found"
+    },
+    {
+      "line": 248,
+      "text": "2026-11-02T17:21:48.3594368Z location searched: crates.io index"
+    },
+    {
+      "line": 250,
+      "text": "2026-11-02T17:21:48.3596693Z required by package `update-core v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/crates/update-core)`"
+    },
+    {
+      "line": 251,
+      "text": "2026-11-02T17:21:48.3606411Z As a reminder, you're using offline mode (--offline) which can sometimes cause surprising resolution failures, if this error is too confusing you may wish to retry without `--offline`."
+    },
+    {
+      "line": 256,
+      "text": "2026-11-02T17:21:48.3608234Z Ran 179 tests in 14.697s"
+    },
+    {
+      "line": 258,
+      "text": "2026-11-02T17:21:48.3608591Z FAILED (failures=1)"
+    }
+  ],
+  "log_representation": "UTF-8 encoding of connector-decoded log string, not original HTTP log bytes",
+  "decoded_log_sha256": "b94d264b137b344c877e8d44c5dd112fce70c3a23b95ec8740a77234fdf6b856",
+  "source_mutations": false,
+  "local_tests_or_vm_run": false,
+  "ci_rerun_requested": false,
+  "progress_register_modified": false,
+  "limitations": [
+    "No CI-green claim or test-fix validation until the proposed setup change is implemented and tested.",
+    "Native window success and root local A/B results are separate evidence supplied by root, not rerun in this triage."
+  ],
+  "actual_ci_merge_commit": "2b3e1b8a334db4b35201f0a935e0b80f095b6dd6"
+}

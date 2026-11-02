@@ -1,6 +1,6 @@
 //! Host contract chain over real capability/input/volume engines. RAM sectors
 //! and the recording display counterpart are explicitly NOT native evidence.
-use capability_core::{Engine, Message, SEND};
+use capability_core::{Engine, Message, RECV, SEND};
 use nieuw_os_catalog_client::Transport;
 use nieuw_os_document_session::{
     volume::{Buffers, VolumeSession},
@@ -636,6 +636,7 @@ fn lost_commit_reply() {
     keys(&h, &mut a, &[0x1d, 0x1f, 0x9f, 0x9d]);
     assert_eq!(a.evidence().save_acks, 0);
     assert!(a.controller().document().is_uncertain());
+    assert!(!a.can_idle());
     assert_eq!(a.controller().view().contents, Some("hi"));
     assert_eq!(a.evidence().saved_revision, 0);
     assert_eq!(h.borrow_mut().contents(), b"hi");
@@ -976,6 +977,7 @@ fn cancel_after_append() {
     }
     a.step().unwrap();
     assert!(a.controller().document().is_saving());
+    assert!(!a.can_idle());
     h.borrow_mut().key(0x1c);
     a.step().unwrap();
     assert!(!a.controller().document().is_saving());
@@ -1609,6 +1611,9 @@ fn rebind_preserves_document_and_pending_upload() {
                 .unwrap();
         }
         assert_eq!(a.controller().document().is_saving(), saving);
+        if saving {
+            assert!(!a.can_idle());
+        }
         let before = a.controller().view();
         let caret = before.caret;
         let anchor = before.anchor;
@@ -1619,12 +1624,14 @@ fn rebind_preserves_document_and_pending_upload() {
         let old = h.borrow().pairs;
         let requests = h.borrow().requests.len();
         a.detach_presentation().unwrap();
+        assert!(!a.can_idle());
         assert!(!a.evidence().ready);
         assert_graphics_closed(&h.borrow(), old);
         let r = replace_services(&h, [COMP, SOURCE, POLICY], 7, INPUT_EPOCH + 1, geometry());
         stale_wire_epochs_fail_on_new_channels(&h, r);
         let (input, surface, g) = replacement_channels(&h, r, r.input_epoch);
         a.rebind_presentation(input, surface, g).unwrap();
+        assert!(!a.can_idle());
         let view = a.controller().view();
         let draft = a.controller().document().draft().unwrap();
         assert_eq!(view.contents, Some("hi"));
@@ -1760,6 +1767,7 @@ fn lost_final_replacement_ack_never_certifies_preserved_document() {
     for _ in 0..geometry().tiles() - 1 {
         a.step().unwrap();
         assert!(!a.evidence().ready);
+        assert!(!a.can_idle());
     }
     assert_eq!(a.evidence().tiles - tiles, geometry().tiles() - 1);
     assert_eq!(h.borrow().surface.completed_frame(), None);
@@ -1772,6 +1780,7 @@ fn lost_final_replacement_ack_never_certifies_preserved_document() {
         Some(a.controller().view().generation)
     );
     assert!(!a.evidence().ready);
+    assert!(!a.can_idle());
     assert_eq!(a.evidence().presented_generation, 0);
     assert_eq!(a.evidence().frames, frames);
     assert_eq!(a.evidence().tiles - tiles, geometry().tiles() - 1);
@@ -1840,4 +1849,113 @@ fn externally_retired_presentation_detaches_without_changing_document_ownership(
 scenario!(
     retired_reply_leaves_preserve_document_and_allow_both_owner_pause,
     externally_retired_presentation_detaches_without_changing_document_ownership
+);
+
+fn idle_requires_current_frame_and_empty_input_without_saving_the_draft() {
+    let h = Host::new();
+    let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut a = app(
+        &h,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    assert!(!a.can_idle());
+    a.step().unwrap();
+    assert!(a.controller().view().dirty);
+    assert!(!a.can_idle());
+    finish_paint(&mut a);
+    assert!(a.can_idle());
+
+    // A bounded batch does not prove Empty, even if every offered event was
+    // acknowledged. The next regular step must inspect input again.
+    let before = a.evidence().input_acks;
+    for byte in [0x2a, 0xaa, 0x36, 0xb6] {
+        h.borrow_mut().key(byte);
+    }
+    a.step().unwrap();
+    assert_eq!(a.evidence().input_acks - before, 4);
+    assert!(!a.can_idle());
+    a.step().unwrap();
+    finish_paint(&mut a);
+    assert!(a.can_idle());
+
+    // Editing changes the view. Once fully presented, unsaved work remains
+    // owned and unchanged during an idle turn; no hidden SAVE is introduced.
+    new_text(&h, &mut a);
+    assert!(!a.can_idle());
+    finish_paint(&mut a);
+    assert!(a.controller().document().is_dirty());
+    assert!(a.can_idle());
+    let saves = a.evidence().save_acks;
+    let keys = a.evidence().keys;
+    let requests = h.borrow().requests.len();
+    let (endpoint, control_send) = {
+        let mut host = h.borrow_mut();
+        let root = host.engine.create_endpoint(APP).unwrap();
+        let endpoint = host.engine.derive(APP, root, RECV).unwrap();
+        let sender = host
+            .engine
+            .bootstrap_delegate(APP, root, INIT, SEND)
+            .unwrap();
+        host.engine.close(APP, root).unwrap();
+        (recv(endpoint), sender)
+    };
+    let poll = nieuw_os_materiaal_app::idle::Poll::new(40, endpoint).unwrap();
+    // Control arriving after the adapter's empty receive is level-ready on
+    // the same authorized grant. Planning/parking must not consume it.
+    {
+        let mut host = h.borrow_mut();
+        assert!(!host
+            .engine
+            .endpoint_queue_ready(APP, endpoint.handle().raw(), RECV)
+            .unwrap());
+        host.engine
+            .send(INIT, control_send, &Message::new())
+            .unwrap();
+        let before = host.engine.stats();
+        poll.park(|conditions, deadline| {
+            assert_eq!(
+                conditions,
+                &[nieuw_os_sdk_runtime::WaitCondition::receive(endpoint)]
+            );
+            assert_eq!(deadline, 41);
+            assert!(host
+                .engine
+                .endpoint_queue_ready(APP, endpoint.handle().raw(), RECV)
+                .unwrap());
+            Ok(1)
+        })
+        .unwrap();
+        assert_eq!(host.engine.stats(), before);
+        assert_eq!(
+            host.engine
+                .receive(APP, endpoint.handle().raw())
+                .unwrap()
+                .sender_pid,
+            INIT
+        );
+        host.engine.close(APP, endpoint.handle().raw()).unwrap();
+        host.engine.close(INIT, control_send).unwrap();
+    }
+    // Input arrives after the last successful Empty. PEEK is not a push
+    // channel: the fixed next-tick deadline still schedules another step.
+    h.borrow_mut().key(0x12);
+    assert_eq!(poll.deadline(), 41);
+    a.step().unwrap();
+    assert_eq!(a.evidence().keys, keys + 1);
+    assert_eq!(a.controller().view().contents, Some("hie"));
+    assert_eq!(a.evidence().save_acks, saves);
+    assert_eq!(h.borrow().requests.len(), requests);
+    assert!(!a.can_idle());
+    finish_paint(&mut a);
+    assert!(a.can_idle());
+    assert_eq!(a.stop_clean(), Err(Error::Unsaved));
+    assert!(!a.can_idle());
+}
+scenario!(
+    idle_only_after_complete_ack_and_empty_input_preserves_new_input_and_unsaved_work,
+    idle_requires_current_frame_and_empty_input_without_saving_the_draft
 );
