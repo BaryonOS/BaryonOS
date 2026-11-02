@@ -332,7 +332,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 move(x, y); button(True); button(False)
                 observe("mouse focus", lambda raw: comp(raw).get("GENERATION") == group_generation[0] and comp(raw).get("FOCUSED") == index)
 
-            initial = None if recovery_handshake else wait("boot", lambda raw, s: all(s.values()) and 31 in numbers(raw, "WINDOW:INITMASK"))
+            initial = None if recovery_handshake or session_route else wait("boot", lambda raw, s: all(s.values()) and 31 in numbers(raw, "WINDOW:INITMASK"))
             if session_route:
                 # These are real compositor/input states plus unmasked captured
                 # frames. They do not certify a credential/keyring boundary or
@@ -347,6 +347,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                     observe("shell input ACK", lambda raw: comp(raw).get("INPUT", 0) > before)
 
                 shell_page("lock", 0)
+                observe("bounded app input counters", lambda raw: all(numbers(raw, f"WINDOW:{r}:KEYS") for r in ("MATERIAL", "CALCULATOR")))
                 before = {r: numbers(serial(directory / "serial.txt"), f"WINDOW:{r}:KEYS")[-1]
                           for r in ("MATERIAL", "CALCULATOR")}
                 shell_key("ret"); shell_page("users", 1)
