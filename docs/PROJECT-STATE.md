@@ -1,6 +1,31 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — native klembord geïntegreerd; U02 blijft open — 2 november 2026
+## NEXT AGENT HANDOFF — PR126 CI-interfaceherstel — 2 november 2026
+
+Basis `fb5810e45bd8d2ab4a73d886d6c23cf526b10cec`, branch
+`codex/native-retained-frames-20261102`. Alleen de drie aangewezen falende
+CI-controles onderzocht; geen merge of wijziging van capabilities/dependencies.
+Ontbrekende damage-/presentatie-interfaces en scrolbewuste cursorplaatsing
+hersteld; de native window-compositor behandelt nu ook gevalideerde Retain-replies.
+Damage blijft staan over gedeeltelijk vervangen frames en wordt alleen na
+actuele volledige presentatie gewist. Backspace op een automatische
+regelovergang is afzonderlijk rood/groen gereproduceerd en afgedekt.
+
+**Bewijs:** 169 gerichte hosttests groen (rekenmachine36, Materiaal40,
+native UI52, window-session41), Clippy/fmt voor deze vier crates groen.
+Alle acht native app-ELFs gebouwd/geïnspecteerd; ook de normale compositor
+zonder fault-injection gebouwd. Dit is geen native runtimeacceptatie.
+De integrale builder stopt daarna op ontbrekende offline dependency
+`hex-literal`; één gerichte SDK dependency-fetch slaagde eerder.
+Strict preflight meldt ontbrekende QEMU/OVMF. Volledige QEMU-route,
+Windows-pakket en hosted CI op de herstelcommit zijn **niet uitgevoerd**.
+Commandostatussen, bron-/ELF-hashes en lokale logpaden staan in
+`verification/gui-idle-20261102/agent-merge-ci-repair.json`.
+**41/100 → 41/100:** U02 en de volledige releaseacceptatie blijven open.
+Eerstvolgende controle: de nieuwe CI-resultaten laten beoordelen; lokale
+runtimeacceptatie pas met volledige dependencies, QEMU en expliciete firmware.
+
+## Vorig checkpoint — native klembord geïntegreerd; U02 blijft open — 2 november 2026
 
 Branch `codex/mature-native-session-20261102`, concept-PR122 op PR121.
 PR124 is na18 groene CI-workflows en code-/artifactreview opgenomen als

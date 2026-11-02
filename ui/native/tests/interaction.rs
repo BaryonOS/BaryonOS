@@ -1320,16 +1320,98 @@ fn display_epoch_stale_frame_and_failed_present_keep_repaint_pending_impl() {
     );
     let generation = ui.view().generation;
     assert!(!ui.presented(generation, 2));
+    assert!(ui.paint_damage().intersects(0, 0, 32, 8));
     assert!(ui.view().dirty);
     ui.resize(Viewport::new(640, 480, Scale::Percent200, 2).unwrap())
         .unwrap();
     assert!(!ui.presented(generation, 1));
     assert!(!ui.presented(generation, 2));
+    assert!(ui.paint_damage().intersects(0, 0, 32, 8));
     let generation = ui.view().generation;
     assert!(ui.presented(generation, 2));
+    assert!(!ui.paint_damage().intersects(0, 0, 640, 480));
     assert!(Frame::new(ui.view()).tiles().next().is_none());
     ui.refresh().unwrap();
     assert!(ui.view().dirty);
+    assert!(ui.paint_damage().intersects(0, 0, 640, 480));
+}
+
+fn editor_damage_covers_wrapping_selection_and_superseded_rows_impl() {
+    for scale in [Scale::Percent100, Scale::Percent200] {
+        let host = Host::new();
+        let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut ui = controller(
+            &host,
+            EditMode::ReadWrite,
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+        );
+        ui.resize(Viewport::new(800, 600, scale, 2).unwrap())
+            .unwrap();
+        ui.create().unwrap();
+        let columns = Frame::new(ui.view()).layout().columns();
+        ui.insert(&"a".repeat(columns + 1)).unwrap();
+        ui.presented(ui.view().generation, 2);
+        fn snapshot(view: nieuw_os_materiaal::controller::View<'_>) -> Vec<[u32; TILE_PIXELS]> {
+            let frame = Frame::new(view);
+            let mut pixels = Vec::new();
+            for y in (0..600).step_by(8) {
+                for x in (0..800).step_by(32) {
+                    let mut tile = [0; TILE_PIXELS];
+                    frame.render_tile(x, y, &mut tile).unwrap();
+                    pixels.push(tile);
+                }
+            }
+            pixels
+        }
+        let before = snapshot(ui.view());
+        for value in [None, Some("\nCafé\t"), Some("tail\n"), Some("last")] {
+            let old = ui.view().generation;
+            if let Some(value) = value {
+                ui.insert(value).unwrap();
+            } else {
+                ui.deliver(envelope(1, 1, key(PhysicalKey::Backspace)))
+                    .unwrap();
+                assert_eq!(
+                    text::position(ui.view().contents.unwrap(), ui.view().caret, columns).row,
+                    0
+                );
+            }
+            assert!(!ui.presented(old, 2));
+            let after = snapshot(ui.view());
+            for (index, (a, b)) in before.iter().zip(&after).enumerate() {
+                if a != b {
+                    assert!(ui.paint_damage().intersects(
+                        (index % 25) as u32 * 32,
+                        (index / 25) as u32 * 8,
+                        32,
+                        8,
+                    ));
+                }
+            }
+            // Do not complete these frames: damage must cover every mutation
+            // since the last complete frame, not just the latest insertion.
+        }
+        assert!(ui.presented(ui.view().generation, 2));
+        ui.deliver(envelope(2, 1, control(PhysicalKey::A))).unwrap();
+        assert!(ui.presented(ui.view().generation, 2));
+        let before = snapshot(ui.view());
+        ui.insert("short").unwrap();
+        let after = snapshot(ui.view());
+        for (index, (a, b)) in before.iter().zip(&after).enumerate() {
+            if a != b {
+                assert!(ui.paint_damage().intersects(
+                    (index % 25) as u32 * 32,
+                    (index / 25) as u32 * 8,
+                    32,
+                    8,
+                ));
+            }
+        }
+    }
 }
 
 // The existing capability/volume host model is large by value. Match the
@@ -1347,6 +1429,10 @@ macro_rules! scenario {
         }
     };
 }
+scenario!(
+    editor_damage_covers_wrapping_selection_and_superseded_rows,
+    editor_damage_covers_wrapping_selection_and_superseded_rows_impl
+);
 scenario!(
     sr06_failed_save_blocks_editor_save_actions,
     sr06_failed_save_blocks_editor_save_actions_impl

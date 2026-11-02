@@ -130,6 +130,17 @@ pub fn expression_start(model: &Model, layout: Layout, scale: u32) -> usize {
         (layout.expression.width.saturating_sub(16) / character_width(scale)).max(1) as usize;
     model.caret().saturating_sub(columns.saturating_sub(1))
 }
+/// `x` is a logical coordinate, like Layout's rectangles, not a physical pixel.
+pub fn expression_caret_at(model: &Model, layout: Layout, scale: u32, x: u32) -> usize {
+    let step = character_width(scale);
+    let column = x
+        .saturating_sub(layout.expression.x + 8)
+        .saturating_add(step / 2)
+        / step;
+    let columns = (layout.expression.width.saturating_sub(16) / step).max(1);
+    (expression_start(model, layout, scale) + column.min(columns) as usize)
+        .min(model.expression().len())
+}
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Error {
     Tile,

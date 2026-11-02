@@ -1,0 +1,119 @@
+{
+  "date": "2026-11-02",
+  "base_commit": "fb5810e45bd8d2ab4a73d886d6c23cf526b10cec",
+  "branch": "codex/native-retained-frames-20261102",
+  "scope": ["host-quality", "native-window-session", "package-and-verify"],
+  "source_binding": "base_commit plus the exact changed-file SHA256 values below, not a claim that the base already contains the repair",
+  "changed_source_sha256": {
+    "sdk/examples/calculator/src/model.rs": "cc3cca66f5bb67046a823ced2412cd6d79f69dfa2b6248398675471c3e0d13de",
+    "sdk/examples/calculator/src/render.rs": "f4e5652a9d31818b7e3016899690f538fdc498264990b72d7d86c1c8e8400939",
+    "sdk/examples/calculator/tests/model_render.rs": "3435793c16e91f7df6e6fce78eeedf776d1c0743301f4fb871732828a9afd8b3",
+    "sdk/examples/window-session/src/main.rs": "8cabe0be94e11b4db44b27ff90627fdee078755b3c93a6f06650837f8d9b41a8",
+    "ui/native/src/controller.rs": "b50605cae35b51d3458f5a79ce0e8820c75ddb3902610631681efa31e08fd425",
+    "ui/native/tests/interaction.rs": "75a72f159936e73e863f07971204d10d283449ca94a309801e394d86c021f0b5"
+  },
+  "cwd": "/home/runner/work/nieuw-os/nieuw-os",
+  "commands": [
+    {
+      "command": "cargo +1.90.0 test --locked --manifest-path sdk/examples/calculator/Cargo.toml --target-dir build/agent-merge-calculator-target",
+      "exit_code": 0, "tests_passed": 36,
+      "local_log": "/tmp/agent-merge-calculator-tests.log"
+    },
+    {
+      "command": "cargo +1.90.0 test --locked --manifest-path sdk/examples/materiaal/Cargo.toml --target-dir /tmp/agent-merge-materiaal-target",
+      "exit_code": 0, "tests_passed": 40,
+      "local_log": "/tmp/agent-merge-materiaal-tests.log"
+    },
+    {
+      "command": "cargo +1.90.0 test --locked --manifest-path ui/native/Cargo.toml --target-dir /tmp/agent-merge-ui-target",
+      "exit_code": 0, "tests_passed": 52,
+      "local_log": "/tmp/agent-merge-ui-tests.log"
+    },
+    {
+      "command": "cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --target-dir /tmp/agent-merge-window-host",
+      "exit_code": 0, "tests_passed": 41,
+      "local_log": "/tmp/agent-merge-window-tests.log"
+    },
+    {
+      "command": "cargo +1.90.0 test --locked --manifest-path ui/native/Cargo.toml --target-dir /tmp/agent-merge-ui-target --test interaction editor_damage_covers_wrapping_selection_and_superseded_rows",
+      "exit_code": 101, "purpose": "red regression before including the post-edit start row; final full UI suite above includes the passing regression",
+      "local_log": "/tmp/agent-merge-wrap-repro.log"
+    },
+    {
+      "command": "cargo +1.90.0 clippy --locked --manifest-path sdk/examples/calculator/Cargo.toml --target-dir build/agent-merge-calculator-target --all-targets -- -D warnings",
+      "exit_code": 0, "local_log": "/tmp/agent-merge-calculator-clippy.log"
+    },
+    {
+      "command": "cargo +1.90.0 clippy --locked --manifest-path sdk/examples/materiaal/Cargo.toml --target-dir /tmp/agent-merge-materiaal-target --all-targets -- -D warnings",
+      "exit_code": 0, "local_log": "/tmp/agent-merge-materiaal-clippy.log"
+    },
+    {
+      "command": "cargo +1.90.0 clippy --locked --manifest-path ui/native/Cargo.toml --target-dir /tmp/agent-merge-ui-clippy-target --all-targets -- -D warnings",
+      "exit_code": 0, "local_log": "/tmp/agent-merge-ui-clippy.log"
+    },
+    {
+      "command": "cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --target-dir /tmp/agent-merge-window-host --all-targets -- -D warnings",
+      "exit_code": 0, "local_log": "/tmp/agent-merge-window-clippy.log"
+    },
+    {
+      "command": "cargo +1.90.0 fmt --manifest-path sdk/examples/calculator/Cargo.toml -- --check",
+      "exit_code": 0, "local_log": "/tmp/agent-merge-calculator-fmt.log"
+    },
+    {
+      "command": "cargo +1.90.0 fmt --manifest-path sdk/examples/materiaal/Cargo.toml -- --check",
+      "exit_code": 0, "local_log": "/tmp/agent-merge-materiaal-fmt.log"
+    },
+    {
+      "command": "cargo +1.90.0 fmt --manifest-path ui/native/Cargo.toml -- --check",
+      "exit_code": 0, "local_log": "/tmp/agent-merge-ui-fmt.log"
+    },
+    {
+      "command": "cargo +1.90.0 fmt --manifest-path sdk/examples/window-session/Cargo.toml -- --check",
+      "exit_code": 0, "local_log": "/tmp/agent-merge-window-fmt.log"
+    },
+    {
+      "command": "CARGO_TARGET_DIR=/tmp/agent-merge-calculator-native python3 -B sdk/examples/calculator/build.py",
+      "exit_code": 0, "local_log": "/tmp/agent-merge-calculator-native.log"
+    },
+    {
+      "command": "CARGO_TARGET_DIR=/tmp/agent-merge-materiaal-native python3 -B sdk/examples/materiaal/build.py",
+      "exit_code": 0, "local_log": "/tmp/agent-merge-materiaal-native.log",
+      "note": "The later eight-app builder rebuilds Materiaal after the wrapped-backspace repair."
+    },
+    {
+      "command": "cargo +1.90.0 fetch --locked --manifest-path sdk/Cargo.toml",
+      "exit_code": 0, "local_log": "/tmp/agent-merge-native-fetch.log",
+      "purpose": "single narrow restoration of missing locked SDK dependencies"
+    },
+    {
+      "command": "NOS_BUILD_DIR=/home/runner/work/nieuw-os/nieuw-os/build/agent-merge-native NOS_TARGET_DIR=/home/runner/work/nieuw-os/nieuw-os/target/agent-merge-native CARGO_NET_OFFLINE=true python3 -B -u tools/build.py --kernel-feature native-window-session-probe",
+      "exit_code": 1, "local_log": "/tmp/agent-merge-window-build.log",
+      "note": "All eight app ELFs build and pass inspect_user, including the fault-injection compositor. The subsequent loader build cannot resolve offline hex-literal; no full image or runtime pass claimed."
+    },
+    {
+      "command": "CARGO_TARGET_DIR=/home/runner/work/nieuw-os/nieuw-os/target/agent-merge-native/materiaal-window-session python3 -B sdk/examples/window-session/build.py",
+      "exit_code": 0, "local_log": "/tmp/agent-merge-window-native-normal.log"
+    },
+    {
+      "command": "python3 -B tools/preflight.py --strict",
+      "exit_code": 2, "local_log": "/tmp/agent-merge-preflight.log",
+      "missing": ["qemu-system-x86_64", "OVMF code firmware"]
+    }
+  ],
+  "probe_app_sha256": {
+    "keyring-service": "06642d5f5b7ffa6dd681677862255fef8ed6b2a66cb6bfaa807b0be549cfb8e1",
+    "volume-service": "0eb883ecc649bf0deb63f8945701c5da80591b8467a4970c8c708f5c854dfec0",
+    "materiaal-app": "d7bb698ff06ff59bf0b9553f7d3b3e8dc9a248afabfcec17d35fbe70fed6ddba",
+    "input-source": "0b6569b100c28135ebd1cf31d07b1fb5ec4e9616bf4aeb82dd408a65a683e20d",
+    "input-policy": "a7fb09a48ae959c3583c01f8dc85e1abb6bdc0c60a4cb3d4825ae9f28b1e9e89",
+    "window-init": "4fc91b276407c234f401b7a69d6d8e1700cecb657f20b0b6fa87e333472ded7d",
+    "window-compositor": "c6415602ba91fd7a79cd983e1a85b40703eddd4f68aaa52c963d96ed1054c6cc",
+    "calculator-app": "def8f2587628fa4725660bce61cc497f552c350d7391487e0724fc0dc9905503"
+  },
+  "native_runtime_performed": false,
+  "windows_package_performed": false,
+  "hosted_ci_on_repair_observed": false,
+  "command_wall_times_recorded": false,
+  "limitations": "Logs are local session paths, not a permanent raw-log archive. Host exact-pixel and successful-send counts do not measure native latency or prove system safety.",
+  "score": {"previous": 41, "current": 41, "newly_accepted_criteria": []}
+}

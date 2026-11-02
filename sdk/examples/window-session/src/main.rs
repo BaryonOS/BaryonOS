@@ -503,7 +503,7 @@ fn run() -> ! {
                 let now = tick();
                 let reply = match surfaces[index].accept(message.sender(), now, message.payload()) {
                     Ok(Action::Staged) => continue,
-                    Ok(Action::Info(reply)) => reply,
+                    Ok(Action::Info(reply) | Action::Retain(reply)) => reply,
                     Ok(Action::Commit(token)) => {
                         let result = surfaces[index]
                             .commit_with(token, tick(), |rect, pixels| {

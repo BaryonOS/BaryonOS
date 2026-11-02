@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`9863a526`](https://github.com/simonvanieperen/nieuw-os/commit/9863a52651504c4838d6826b3e1b2240ae0ed6b2) ·
-**Ontwikkelbranch:** `codex/mature-native-session-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Native klembord met eenmalige invoerrechten geïntegreerd en brongebonden getest.
-De score blijft 41/100. Native kopiëren, plakken en wissen tussen twee geïsoleerde apps werkt nu met focus- en invoergebonden rechten. Twee volledige TCG-routes doorlopen alle 22 fasen, inclusief crashherstel, leeg klembord na herstel, opslaan en onafhankelijke schijfcontrole. Alle 18 CI-workflows slagen; bronrapporten en Windows-testpakket zijn gecontroleerd. Dit geeft geen extra punten: U02 vereist ook volledige interactiebudgetten en dagelijkse dekking. De eerste tekstcapaciteit is 192 UTF-8-bytes; ruimere capaciteit, vloeiende bediening en echte authenticatie blijven open.
+**Bron:** [`fb5810e4`](https://github.com/simonvanieperen/nieuw-os/commit/fb5810e45bd8d2ab4a73d886d6c23cf526b10cec) ·
+**Ontwikkelbranch:** `codex/native-retained-frames-20261102`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR126 CI-herstel van retained-frame-interfaces en native berichtafhandeling.
+De score blijft 41/100. Op de genoemde basis zijn ontbrekende damage-/presentatie-interfaces, scrolbewuste cursorplaatsing en native Retain-afhandeling hersteld; patchhashes en commandostatussen staan in agent-merge-ci-repair.json. 169 gerichte hosttests en de acht native app-builds slagen, inclusief pixel- en gedeeltelijk-framecontroles. De volledige builder stopt op ontbrekende offline hex-literal; QEMU/OVMF ontbreken. Native runtimeacceptatie, Windows-pakket en hosted CI op de herstelcommit zijn niet uitgevoerd. Dit herstel geeft geen nieuwe geaccepteerde criteria; U02 en de volledige release blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

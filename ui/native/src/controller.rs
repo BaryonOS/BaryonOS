@@ -8,7 +8,7 @@ use crate::{
         MAX_SEMANTIC_NODES,
     },
     text::{self, Position},
-    Viewport,
+    Rect, Viewport,
 };
 use nieuw_os_catalog_client::Transport;
 use nieuw_os_document_session::{
@@ -104,6 +104,36 @@ pub struct View<'a> {
     pub cursor: Option<(u32, u32)>,
 }
 
+#[derive(Clone, Copy, Debug, Default)]
+pub struct PaintDamage(Option<Rect>);
+impl PaintDamage {
+    pub fn intersects(self, x: u32, y: u32, width: u32, height: u32) -> bool {
+        self.0.is_some_and(|rect| {
+            rect.intersects(Rect {
+                x,
+                y,
+                width,
+                height,
+            })
+        })
+    }
+    fn include(&mut self, rect: Rect) {
+        self.0 = Some(match self.0 {
+            None => rect,
+            Some(old) => {
+                let x = old.x.min(rect.x);
+                let y = old.y.min(rect.y);
+                Rect {
+                    x,
+                    y,
+                    width: (old.x + old.width).max(rect.x + rect.width) - x,
+                    height: (old.y + old.height).max(rect.y + rect.height) - y,
+                }
+            }
+        });
+    }
+}
+
 pub struct Controller<'a, T> {
     draw_pointer: bool,
     desktop: Option<crate::desktop::Desktop>,
@@ -122,6 +152,7 @@ pub struct Controller<'a, T> {
     scroll: usize,
     generation: u64,
     dirty: bool,
+    paint_damage: PaintDamage,
     render_exhausted: bool,
     input_epoch: u64,
     awaiting_input: bool,
@@ -174,6 +205,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             scroll: 0,
             generation: 1,
             dirty: true,
+            paint_damage: PaintDamage(Some(viewport.bounds())),
             render_exhausted: false,
             input_epoch,
             awaiting_input: false,
@@ -188,6 +220,10 @@ impl<'a, T: Transport> Controller<'a, T> {
     }
 
     fn invalidate(&mut self) -> Result<(), Error> {
+        self.paint_damage = PaintDamage(Some(self.viewport.bounds()));
+        self.invalidate_generation()
+    }
+    fn invalidate_generation(&mut self) -> Result<(), Error> {
         self.dirty = true;
         let Some(next) = self.generation.checked_add(1) else {
             self.render_exhausted = true;
@@ -278,10 +314,14 @@ impl<'a, T: Transport> Controller<'a, T> {
             && display_epoch == self.viewport.epoch()
         {
             self.dirty = false;
+            self.paint_damage = PaintDamage::default();
             true
         } else {
             false
         }
+    }
+    pub fn paint_damage(&self) -> PaintDamage {
+        self.paint_damage
     }
     /// Explicit public VM profile only. This does not revoke document caps or
     /// protect data; secure login requires an independent native session broker.
@@ -690,6 +730,12 @@ impl<'a, T: Transport> Controller<'a, T> {
         }
         let range = text::selection(self.anchor, self.caret);
         let start = range.start;
+        let layout = Layout::new(self.viewport);
+        let old = self.view();
+        let contents = old.contents.ok_or(Error::InvalidUtf8)?;
+        let first_row = text::position(contents, start, layout.columns()).row;
+        let last_row = text::position(contents, contents.len(), layout.columns()).row;
+        let previous = (old.status, old.can_save, old.document_dirty, old.scroll);
         self.document
             .replace_range(range, replacement.as_bytes())
             .map_err(|e| self.failed(Error::Storage(e)))?;
@@ -697,7 +743,37 @@ impl<'a, T: Transport> Controller<'a, T> {
         self.anchor = self.caret;
         self.update_edit_status();
         self.ensure_caret();
-        self.invalidate()
+        let view = self.view();
+        if previous != (view.status, view.can_save, view.document_dirty, view.scroll)
+            || self
+                .desktop
+                .as_ref()
+                .is_some_and(|desktop| desktop.overlay())
+        {
+            return self.invalidate();
+        }
+        let contents = view.contents.ok_or(Error::InvalidUtf8)?;
+        let first_row = first_row.min(text::position(contents, start, layout.columns()).row);
+        let last_row = last_row.max(text::position(contents, contents.len(), layout.columns()).row);
+        let top = first_row.saturating_sub(self.scroll).min(layout.rows());
+        let bottom = last_row
+            .saturating_add(1)
+            .saturating_sub(self.scroll)
+            .min(layout.rows());
+        // Keep the union until the whole current frame has been acknowledged.
+        // Superseding a partially painted frame must not retain its stale rows.
+        if bottom > top {
+            self.paint_damage.include(
+                Rect {
+                    x: layout.editor.x,
+                    y: layout.editor.y + 8 + top as u32 * design::LINE_HEIGHT,
+                    width: layout.editor.width,
+                    height: (bottom - top) as u32 * design::LINE_HEIGHT,
+                }
+                .physical(self.viewport.scale()),
+            );
+        }
+        self.invalidate_generation()
     }
     fn clipboard_edit_context(&self) -> bool {
         self.screen == Screen::Editor
