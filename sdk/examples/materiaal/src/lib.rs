@@ -417,19 +417,28 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             let _ = surface.close();
             return Err(Error::Binding);
         }
-        let viewport = nieuw_os_materiaal::Viewport::new(
+        let viewport = match nieuw_os_materiaal::Viewport::new(
             u32::from(geometry.assigned.width),
             u32::from(geometry.assigned.height),
             self.controller.view().viewport.scale(),
             geometry.epoch,
-        )
-        .map_err(|_| Error::Binding)?;
-        self.controller
+        ) {
+            Ok(viewport) => viewport,
+            Err(_) => {
+                let _ = input.close();
+                let _ = surface.close();
+                return Err(Error::Binding);
+            }
+        };
+        if let Err(error) = self
+            .controller
             .resize(viewport)
-            .map_err(Error::Controller)?;
-        self.controller
-            .rebind_input(binding.epoch)
-            .map_err(Error::Controller)?;
+            .and_then(|()| self.controller.rebind_input(binding.epoch))
+        {
+            let _ = input.close();
+            let _ = surface.close();
+            return Err(Error::Controller(error));
+        }
         self.input = input;
         self.surface = surface;
         self.geometry = geometry;

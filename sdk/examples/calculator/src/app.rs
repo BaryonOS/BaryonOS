@@ -279,12 +279,15 @@ impl<I: Transport, S: Transport> App<I, S> {
             let _ = surface.close();
             return Err(Error::Binding);
         }
-        let viewport = Viewport::new(
+        let Some(viewport) = Viewport::new(
             u32::from(geometry.assigned.width),
             u32::from(geometry.assigned.height),
             self.viewport.scale(),
-        )
-        .ok_or(Error::Binding)?;
+        ) else {
+            let _ = input.close();
+            let _ = surface.close();
+            return Err(Error::Binding);
+        };
         self.input = input;
         self.surface = surface;
         self.geometry = geometry;
