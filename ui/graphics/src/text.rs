@@ -64,6 +64,13 @@ impl Font {
     pub fn em(self) -> u32 {
         u32::from(atlas::FONTS[self.index()].size) * self.factor()
     }
+    /// Exact 26.6-pixel advance used by `Canvas::text`, including fallback.
+    /// Consumers must accumulate before rounding; summing rounded character
+    /// widths would make selection and caret drift from rendered text.
+    pub fn advance_64(self, character: char) -> u32 {
+        let first = usize::from(atlas::FONTS[self.index()].first);
+        u32::from(atlas::GLYPHS[first + index(character)].advance) * self.factor()
+    }
     pub fn measure(self, value: &str) -> u32 {
         let first = usize::from(atlas::FONTS[self.index()].first);
         let advance = value.chars().fold(0u64, |n, ch| {

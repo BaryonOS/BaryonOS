@@ -7,7 +7,7 @@ use crate::{
         Error as RenderError, Frame, Layout, SemanticActions, SemanticId, SemanticNode,
         MAX_SEMANTIC_NODES,
     },
-    text::{self, Position},
+    text::{self, VisualPosition},
     Viewport,
 };
 use nieuw_os_catalog_client::Transport;
@@ -676,7 +676,7 @@ impl<'a, T: Transport> Controller<'a, T> {
         self.caret = text::boundary(text, self.caret);
         self.anchor = text::boundary(text, self.anchor);
         let layout = Layout::new(self.viewport);
-        let row = text::position(text, self.caret, layout.columns()).row;
+        let row = layout.text_metrics().position(text, self.caret).row;
         if row < self.scroll {
             self.scroll = row;
         }
@@ -911,21 +911,25 @@ impl<'a, T: Transport> Controller<'a, T> {
             } else {
                 text::next(contents, self.caret)
             }),
-            PhysicalKey::Home => Some(contents[..self.caret].rfind('\n').map_or(0, |n| n + 1)),
+            PhysicalKey::Home => Some(
+                Layout::new(self.viewport)
+                    .text_metrics()
+                    .line_boundary(contents, self.caret, false),
+            ),
             PhysicalKey::End => Some(
-                contents[self.caret..]
-                    .find('\n')
-                    .map_or(contents.len(), |n| self.caret + n),
+                Layout::new(self.viewport)
+                    .text_metrics()
+                    .line_boundary(contents, self.caret, true),
             ),
             PhysicalKey::Up | PhysicalKey::Down => {
-                let columns = Layout::new(self.viewport).columns();
-                let mut at = text::position(contents, self.caret, columns);
+                let metrics = Layout::new(self.viewport).text_metrics();
+                let mut at = metrics.position(contents, self.caret);
                 at.row = if event.key == PhysicalKey::Up {
                     at.row.saturating_sub(1)
                 } else {
                     at.row + 1
                 };
-                Some(text::byte_at(contents, at, columns))
+                Some(metrics.byte_at(contents, at))
             }
             _ => None,
         };
@@ -1021,17 +1025,14 @@ impl<'a, T: Transport> Controller<'a, T> {
     fn point_caret(&mut self, x: u32, y: u32, extend: bool) {
         if let Some(contents) = self.view().contents {
             let layout = Layout::new(self.viewport);
-            let column = x.saturating_sub(layout.editor.x + 8) as usize / layout.character_width();
-            let row = y.saturating_sub(layout.editor.y + 8) as usize / design::LINE_HEIGHT as usize
+            let x_64 = u64::from(x.saturating_sub(layout.text_left()))
+                * u64::from(self.viewport.scale().factor())
+                * 64;
+            let row = y.saturating_sub(layout.text_top()) as usize / design::LINE_HEIGHT as usize
                 + self.scroll;
-            self.caret = text::byte_at(
-                contents,
-                Position {
-                    row,
-                    column: column.min(layout.columns()),
-                },
-                layout.columns(),
-            );
+            self.caret = layout
+                .text_metrics()
+                .byte_at(contents, VisualPosition { row, x_64 });
             if !extend {
                 self.anchor = self.caret;
             }

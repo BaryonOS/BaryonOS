@@ -4,18 +4,11 @@ use crate::{
     design as d, text, Rect, Scale, Viewport, TILE_HEIGHT, TILE_WIDTH,
 };
 use nieuw_os_graphics::{Canvas, Font, Icon, Rect as GraphicRect, Size, Weight};
-use noto_sans_mono_bitmap::{get_raster, get_raster_width, FontWeight, RasterHeight};
 
 pub const MAX_TEXT_ROWS: usize = 48;
 /// Fixed material nodes, pagination controls and one entry per domain object.
 pub const MAX_SEMANTIC_NODES: usize = 8 + volume_core::PER_DOMAIN;
 
-fn raster_height(scale: Scale) -> RasterHeight {
-    match scale {
-        Scale::Percent100 => RasterHeight::Size16,
-        Scale::Percent200 => RasterHeight::Size32,
-    }
-}
 #[derive(Clone, Copy, Debug)]
 pub struct Layout {
     pub new: Rect,
@@ -36,7 +29,7 @@ pub struct Layout {
     width: u32,
     content_left: u32,
     sidebar_width: u32,
-    character_width: usize,
+    scale: Scale,
 }
 impl Layout {
     pub fn new(viewport: Viewport) -> Self {
@@ -143,18 +136,26 @@ impl Layout {
             width,
             content_left,
             sidebar_width,
-            character_width: get_raster_width(FontWeight::Regular, raster_height(viewport.scale()))
-                .div_ceil(viewport.scale().factor() as usize),
+            scale: viewport.scale(),
         }
     }
-    pub fn character_width(self) -> usize {
-        self.character_width
+    pub fn text_font(self) -> Font {
+        Font::new(Size::Body, Weight::Regular, self.scale == Scale::Percent200)
     }
-    pub fn columns(self) -> usize {
-        ((self.editor.width - 18) as usize / self.character_width).max(4)
+    pub fn text_metrics(self) -> text::Proportional {
+        text::Proportional::new(
+            self.text_font(),
+            self.editor.width.saturating_sub(40) * self.scale.factor(),
+        )
+    }
+    pub fn text_left(self) -> u32 {
+        self.editor.x + 20
+    }
+    pub fn text_top(self) -> u32 {
+        self.editor.y + 16
     }
     pub fn rows(self) -> usize {
-        ((self.editor.height.saturating_sub(16)) / d::LINE_HEIGHT).max(1) as usize
+        ((self.editor.height.saturating_sub(32)) / d::LINE_HEIGHT).max(1) as usize
     }
     pub fn list_rows(self) -> usize {
         ((self.list_bottom.saturating_sub(self.list_top) + 8) / 72).max(1) as usize
@@ -186,7 +187,7 @@ pub struct Frame<'a> {
     view: View<'a>,
     layout: Layout,
     rows: [Option<(usize, usize)>; MAX_TEXT_ROWS],
-    caret: text::Position,
+    caret: text::VisualPosition,
 }
 impl<'a> Frame<'a> {
     pub fn new(view: View<'a>) -> Self {
@@ -195,14 +196,14 @@ impl<'a> Frame<'a> {
             view,
             layout,
             rows: [None; MAX_TEXT_ROWS],
-            caret: text::Position::default(),
+            caret: text::VisualPosition::default(),
         };
         if let Some(contents) = view.contents {
-            frame.caret = text::position(contents, view.caret, layout.columns());
+            frame.caret = layout.text_metrics().position(contents, view.caret);
             if view.scroll == 0 {
                 frame.rows[0] = Some((0, 0));
             }
-            let mut cells = text::Cells::new(contents, layout.columns());
+            let mut cells = layout.text_metrics().cells(contents);
             for cell in cells.by_ref() {
                 if cell.position.row < view.scroll {
                     continue;
@@ -214,7 +215,7 @@ impl<'a> Frame<'a> {
                 let start = frame.rows[row].map_or(cell.start, |range| range.0);
                 frame.rows[row] = Some((start, cell.end));
             }
-            let end = text::position(contents, contents.len(), layout.columns());
+            let end = layout.text_metrics().position(contents, contents.len());
             if end.row >= view.scroll && end.row - view.scroll < layout.rows().min(MAX_TEXT_ROWS) {
                 frame.rows[end.row - view.scroll].get_or_insert((contents.len(), contents.len()));
             }
@@ -489,6 +490,7 @@ impl<'a> Frame<'a> {
                 }
                 if let Some(contents) = self.view.contents {
                     let selected = text::selection(self.view.anchor, self.view.caret);
+                    let scale = self.view.viewport.scale().factor();
                     for (row, range) in self
                         .rows
                         .iter()
@@ -498,35 +500,28 @@ impl<'a> Frame<'a> {
                         let Some((start, end)) = *range else {
                             continue;
                         };
-                        let mut column = 0usize;
-                        for (offset, ch) in contents[start..end].char_indices() {
-                            let width = if ch == '\t' {
-                                4 - column % 4
-                            } else if ch == '\r' {
-                                0
-                            } else {
-                                1
-                            };
-                            let x =
-                                layout.editor.x + 8 + (column * layout.character_width()) as u32;
-                            let y = layout.editor.y + 8 + row as u32 * d::LINE_HEIGHT;
-                            let bytes = start + offset..start + offset + ch.len_utf8();
+                        let y = (layout.text_top() + row as u32 * d::LINE_HEIGHT) * scale;
+                        if y + d::LINE_HEIGHT * scale <= rect.y || y >= rect.y + rect.height {
+                            continue;
+                        }
+                        for cell in layout.text_metrics().cells(&contents[start..end]) {
+                            let x = layout.text_left() * scale + (cell.position.x_64 / 64) as u32;
+                            let right = layout.text_left() * scale
+                                + ((cell.position.x_64 + cell.advance_64).div_ceil(64)) as u32;
+                            let bytes = start + cell.start..start + cell.end;
                             if selected.start < bytes.end && selected.end > bytes.start {
-                                paint.fill(
+                                paint.fill_physical(
                                     Rect {
                                         x,
                                         y,
-                                        width: (width.max(1) * layout.character_width()) as u32,
-                                        height: 16,
+                                        width: right.saturating_sub(x).max(scale),
+                                        height: d::LINE_HEIGHT * scale,
                                     },
                                     d::ACCENT_SOFT,
                                 );
                             }
-                            if !matches!(ch, '\n' | '\r' | '\t') {
-                                paint.character(x, y, ch, d::TEXT);
-                            }
-                            if ch != '\n' {
-                                column += width;
+                            if !matches!(cell.character, '\n' | '\r' | '\t') {
+                                paint.proportional_character(x, y, cell.character, d::TEXT);
                             }
                         }
                     }
@@ -535,16 +530,14 @@ impl<'a> Frame<'a> {
                         && self.caret.row >= self.view.scroll
                         && self.caret.row - self.view.scroll < layout.rows()
                     {
-                        paint.fill(
+                        paint.fill_physical(
                             Rect {
-                                x: layout.editor.x
-                                    + 8
-                                    + (self.caret.column * layout.character_width()) as u32,
-                                y: layout.editor.y
-                                    + 8
-                                    + (self.caret.row - self.view.scroll) as u32 * d::LINE_HEIGHT,
-                                width: 2,
-                                height: 16,
+                                x: layout.text_left() * scale + (self.caret.x_64 / 64) as u32,
+                                y: (layout.text_top()
+                                    + (self.caret.row - self.view.scroll) as u32 * d::LINE_HEIGHT)
+                                    * scale,
+                                width: 2 * scale,
+                                height: 22 * scale,
                             },
                             d::ACCENT,
                         );
@@ -1676,7 +1669,9 @@ impl Paint<'_> {
             - self.rect.x as usize] = color & 0xffffff;
     }
     fn fill(&mut self, rect: Rect, color: u32) {
-        let r = rect.physical(self.scale);
+        self.fill_physical(rect.physical(self.scale), color);
+    }
+    fn fill_physical(&mut self, r: Rect, color: u32) {
         let left = r.x.max(self.rect.x);
         let top = r.y.max(self.rect.y);
         let right =
@@ -1793,36 +1788,16 @@ impl Paint<'_> {
             );
         }
     }
-    fn character(&mut self, x: u32, y: u32, character: char, color: u32) {
-        let height = raster_height(self.scale);
-        let Some(glyph) = get_raster(character, FontWeight::Regular, height)
-            .or_else(|| get_raster('\u{fffd}', FontWeight::Regular, height))
-        else {
-            return;
-        };
-        let x = x * self.scale.factor();
-        let y = y * self.scale.factor();
-        if !(Rect {
-            x,
-            y,
-            width: glyph.width() as u32,
-            height: glyph.height() as u32,
-        })
-        .intersects(self.rect)
-        {
-            return;
-        }
-        for (dy, row) in glyph.raster().iter().enumerate() {
-            for (dx, alpha) in row.iter().copied().enumerate() {
-                let px = x + dx as u32;
-                let py = y + dy as u32;
-                if alpha != 0 && self.rect.contains(px, py) {
-                    let index = ((py - self.rect.y) * self.rect.width + px - self.rect.x) as usize;
-                    let old = self.pixels[index];
-                    self.pixels[index] = blend(color, old, alpha);
-                }
-            }
-        }
+    fn proportional_character(&mut self, x: u32, y: u32, character: char, color: u32) {
+        let font = self.font(Size::Body, Weight::Regular);
+        let mut encoded = [0; 4];
+        self.canvas().text(
+            x as i32,
+            y as i32,
+            character.encode_utf8(&mut encoded),
+            font,
+            color,
+        );
     }
     fn canvas(&mut self) -> Canvas<'_> {
         Canvas::new(
