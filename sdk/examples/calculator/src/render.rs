@@ -115,6 +115,27 @@ impl Layout {
     pub fn hit(self, x: u32, y: u32) -> Option<usize> {
         (0..20).find(|i| self.button(*i).contains(x, y))
     }
+    pub fn result_bounds(self, scale: u32) -> Rect {
+        Rect {
+            x: self.x,
+            y: self.result_y.saturating_sub(18),
+            width: self.width,
+            height: Font::new(Size::Title, Weight::Semibold, scale == 2)
+                .height()
+                .div_ceil(scale.max(1))
+                + 18,
+        }
+    }
+    pub fn status_bounds(self, scale: u32) -> Rect {
+        Rect {
+            x: self.x,
+            y: self.status_y,
+            width: self.width,
+            height: Font::new(Size::Small, Weight::Regular, scale == 2)
+                .height()
+                .div_ceil(scale.max(1)),
+        }
+    }
 }
 /// Compatibility metric for legacy callers; editable formula hit testing must
 /// use expression_caret_at, whose positions follow the actual glyph advances.
@@ -218,12 +239,7 @@ pub fn render_tile(
         paint.formula(model, layout);
     }
     let title = Font::new(Size::Title, Weight::Semibold, view.scale == 2);
-    let result_area = GraphicRect::new(
-        (layout.x * view.scale) as i32,
-        ((layout.result_y - 18) * view.scale) as i32,
-        layout.width * view.scale,
-        title.height() + 18 * view.scale,
-    );
+    let result_area = paint.physical(layout.result_bounds(view.scale));
     if result_area.intersects(paint.canvas.bounds()) {
         let formatted = model
             .answer()
@@ -429,12 +445,7 @@ impl Paint<'_> {
     }
     fn notice(&mut self, layout: Layout, value: &str, color: u32) {
         let font = Font::new(Size::Small, Weight::Regular, self.scale == 2);
-        let area = GraphicRect::new(
-            (layout.x * self.scale) as i32,
-            (layout.status_y * self.scale) as i32,
-            layout.width * self.scale,
-            font.height(),
-        );
+        let area = self.physical(layout.status_bounds(self.scale));
         if value.is_empty() || !area.intersects(self.canvas.bounds()) {
             return;
         }

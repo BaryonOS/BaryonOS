@@ -463,3 +463,193 @@ fn paper_calculator_host_fixtures_use_the_real_bounded_renderer() {
         file.sync_all().unwrap();
     }
 }
+
+fn assert_damage_covers_changes(before: &Model, after: &Model, view: Viewport) {
+    let damage = after.paint_damage(view);
+    for y in (0..view.height()).step_by(8) {
+        for x in (0..view.width()).step_by(32) {
+            let tile = Rect {
+                x,
+                y,
+                width: 32.min(view.width() - x),
+                height: 8.min(view.height() - y),
+            };
+            if !damage.intersects(x, y, tile.width, tile.height) {
+                let mut old = [0; 256];
+                let mut new = [0; 256];
+                render::render_tile(before, view, tile, &mut old).unwrap();
+                render::render_tile(after, view, tile, &mut new).unwrap();
+                assert!(old == new, "changed pixels outside damage at {tile:?}");
+            }
+        }
+    }
+}
+
+#[test]
+fn damage_covers_selection_scroll_results_notices_and_each_button_transition() {
+    for (width, height, scale) in [(320, 240, 1), (640, 480, 2), (768, 536, 1)] {
+        let view = Viewport::new(width, height, scale).unwrap();
+        let mut model = Model::new();
+        assert!(model.presented(model.generation()));
+        for command in [
+            Command::Insert(b'2'),
+            Command::Evaluate,
+            Command::Insert(b'3'),
+            Command::Home(false),
+            Command::Right(true),
+            Command::End(true),
+            Command::Delete,
+            Command::Evaluate,
+            Command::Reset,
+            Command::Tab(false),
+            Command::Activate,
+            Command::Tab(false),
+            Command::Tab(true),
+            Command::Tab(true),
+        ] {
+            let before = model.clone();
+            model.command(command);
+            assert_damage_covers_changes(&before, &model, view);
+            assert!(model.presented(model.generation()));
+        }
+        for index in 0..20 {
+            for (down, up) in [(false, false), (true, false), (false, true)] {
+                let before = model.clone();
+                model.pointer(Some(index), down, up);
+                assert_damage_covers_changes(&before, &model, view);
+                assert!(model.presented(model.generation()));
+            }
+        }
+        for transition in 0..8 {
+            let before = model.clone();
+            match transition {
+                0 => type_text(&mut model, &"1+".repeat(70)),
+                1 => model.command(Command::Home(false)),
+                2 => model.command(Command::End(true)),
+                3 => model.cancel_focus(),
+                4 => model.focus_gained(),
+                5 => model.clipboard_notice(Notice::ClipboardUnavailable),
+                6 => model.input_lost(),
+                _ => model.command(Command::Delete),
+            }
+            assert_damage_covers_changes(&before, &model, view);
+            assert!(model.presented(model.generation()));
+        }
+    }
+}
+
+#[test]
+fn superseded_frames_and_rebind_cannot_acknowledge_away_pending_damage() {
+    for scale in [1, 2] {
+        let view = Viewport::new(320 * scale, 240 * scale, scale).unwrap();
+        let mut model = Model::new();
+        assert!(model.presented(model.generation()));
+        let base = model.clone();
+        model.pointer(Some(0), false, false);
+        let partial = model.clone();
+        let old_generation = model.generation();
+        let button = Layout::new(view).button(0);
+        assert!(model.paint_damage(view).intersects(
+            button.x * scale,
+            button.y * scale,
+            button.width * scale,
+            button.height * scale
+        ));
+        model.pointer(None, false, false);
+        model.command(Command::Insert(b'8'));
+        assert!(!model.presented(old_generation));
+        assert!(!model.presented(model.generation() + 1));
+        assert_damage_covers_changes(&base, &model, view);
+        assert_damage_covers_changes(&partial, &model, view);
+        assert!(model.paint_damage(view).intersects(
+            button.x * scale,
+            button.y * scale,
+            button.width * scale,
+            button.height * scale
+        ));
+        assert!(!model.paint_damage(view).intersects(0, 0, 1, 1));
+        assert!(model.presented(model.generation()));
+        assert!(!model
+            .paint_damage(view)
+            .intersects(0, 0, view.width(), view.height()));
+        let previous = model.generation();
+        model.force_full_repaint();
+        assert!(!model.presented(previous));
+        let full = model.paint_damage(view);
+        assert!(full.intersects(0, 0, 1, 1));
+        assert!(full.intersects(view.width() - 1, view.height() - 1, 1, 1));
+        assert!(!full.intersects(view.width(), 0, 1, 1));
+        assert!(!full.intersects(u32::MAX, u32::MAX, u32::MAX, u32::MAX));
+        assert!(!full.intersects(0, 0, 0, 1));
+        assert!(model.presented(model.generation()));
+    }
+}
+
+#[test]
+fn expression_hit_testing_uses_the_rendered_scroll_origin_at_both_scales() {
+    for scale in [1, 2] {
+        let view = Viewport::new(320 * scale, 240 * scale, scale).unwrap();
+        let layout = Layout::new(view);
+        let mut model = Model::new();
+        type_text(&mut model, &"1234567890".repeat(12));
+        let step = render::character_width(scale);
+        let left = layout.expression.x + 8;
+        let start = render::expression_start(&model, layout, scale);
+        assert!(start > 0);
+        for column in 0..5 {
+            assert_eq!(
+                render::expression_caret_at(&model, layout, scale, left + column * step),
+                start + column as usize
+            );
+        }
+
+        assert_eq!(render::expression_caret_at(&model, layout, scale, 0), start);
+        assert_eq!(
+            render::expression_caret_at(&model, layout, scale, left + step - 1),
+            start + 1
+        );
+        assert_eq!(
+            render::expression_caret_at(&model, layout, scale, u32::MAX),
+            model.expression().len()
+        );
+        model.command(Command::Home(false));
+        assert_eq!(render::expression_start(&model, layout, scale), 0);
+        assert_eq!(render::expression_caret_at(&model, layout, scale, left), 0);
+        model.command(Command::Reset);
+        assert_eq!(
+            render::expression_caret_at(&model, layout, scale, u32::MAX),
+            0
+        );
+    }
+}
+
+#[test]
+fn reverted_partial_scroll_and_noop_focus_regain_still_repaint_changed_pixels() {
+    for scale in [1, 2] {
+        let view = Viewport::new(320 * scale, 240 * scale, scale).unwrap();
+        let mut model = Model::new();
+        type_text(&mut model, &"1234567890".repeat(12));
+        assert!(model.presented(model.generation()));
+        model.command(Command::Home(false));
+        let partial = model.clone();
+        let superseded = model.generation();
+        model.command(Command::End(false));
+        assert!(!model.presented(superseded));
+        assert_damage_covers_changes(&partial, &model, view);
+        assert!(model.presented(model.generation()));
+        for pointer in [true, false] {
+            model.cancel_focus();
+            assert!(model.presented(model.generation()));
+            let inactive = model.clone();
+            if pointer {
+                model.pointer(None, false, false);
+            } else {
+                model.command(Command::Delete);
+            }
+            assert!(model.active());
+            assert!(model.generation() > inactive.generation());
+            assert_damage_covers_changes(&inactive, &model, view);
+            assert!(model.presented(model.generation()));
+        }
+    }
+}

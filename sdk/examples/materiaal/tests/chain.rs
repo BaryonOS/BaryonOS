@@ -375,6 +375,12 @@ impl Host {
                 {
                     surface::Action::Staged => None,
                     surface::Action::Info(reply) => Some(reply.bytes().to_vec()),
+                    surface::Action::Retain(reply) => {
+                        if self.drop_blit {
+                            return;
+                        }
+                        Some(reply.bytes().to_vec())
+                    }
                     surface::Action::Commit(token) => {
                         let fail = self.fail_blit;
                         let framebuffer = &mut self.framebuffer;
@@ -499,6 +505,15 @@ fn configured_app<'a>(
     scale: Scale,
     mode: EditMode,
 ) -> App<'a, Port, Port, Port> {
+    configured_app_with(h, buffers, scale, mode, None)
+}
+fn configured_app_with<'a>(
+    h: &Rc<RefCell<Host>>,
+    buffers: Buffers<'a>,
+    scale: Scale,
+    mode: EditMode,
+    cache: Option<&'a mut [u64]>,
+) -> App<'a, Port, Port, Port> {
     let pairs = h.borrow().pairs;
     let p = pairs[0];
     let volume = VolumeSession::new(
@@ -546,7 +561,10 @@ fn configured_app<'a>(
     )
     .unwrap();
     let g = surface.geometry().unwrap();
-    App::new(controller, input, surface, g).unwrap()
+    match cache {
+        Some(cache) => App::with_damage_cache(controller, input, surface, g, cache).unwrap(),
+        None => App::new(controller, input, surface, g).unwrap(),
+    }
 }
 fn app<'a>(h: &Rc<RefCell<Host>>, buffers: Buffers<'a>) -> App<'a, Port, Port, Port> {
     configured_app(h, buffers, Scale::Percent100, EditMode::ReadWrite)
@@ -848,6 +866,199 @@ macro_rules! scenario {
         }
     };
 }
+
+fn assert_retained_material_pixels(a: &App<'_, Port, Port, Port>, h: &Host) {
+    let frame = Frame::new(a.controller().view());
+    let geometry = geometry();
+    let mut pixels = [0; 256];
+    for tile in 0..geometry.tiles() {
+        let r = geometry.rectangle(tile).unwrap();
+        let drawn = frame.render_tile(r.x, r.y, &mut pixels).unwrap();
+        for row in 0..drawn.height {
+            for col in 0..drawn.width {
+                let actual =
+                    ((geometry.assigned.y + r.y + row) * 800 + geometry.assigned.x + r.x + col)
+                        as usize;
+                assert_eq!(
+                    h.framebuffer[actual],
+                    pixels[(row * drawn.width + col) as usize],
+                    "retained Material differs at tile {tile}, ({col},{row})"
+                );
+            }
+        }
+    }
+    for (at, pixel) in h.framebuffer.iter().enumerate() {
+        let (x, y) = (at as u32 % 800, at as u32 / 800);
+        let r = geometry.assigned;
+        if x < r.x || y < r.y || x >= r.x + u32::from(r.width) || y >= r.y + u32::from(r.height) {
+            assert_eq!(
+                *pixel, 0,
+                "Material changed a pixel outside its assigned surface"
+            );
+        }
+    }
+}
+
+fn retained_material_edit_and_superseded_partial_are_exact() {
+    for scale in [Scale::Percent100, Scale::Percent200] {
+        let h = Host::new();
+        h.borrow_mut().surface = surface::Receiver::new_retained(APP, geometry(), 100).unwrap();
+        let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut a = configured_app(
+            &h,
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+            scale,
+            EditMode::ReadWrite,
+        );
+        a.enable_retained().unwrap();
+        finish_paint(&mut a);
+        assert_eq!(a.surface_counts().committed_tiles, geometry().tiles());
+        assert_eq!(a.surface_counts().retained_tiles, 0);
+        new_text(&h, &mut a);
+        finish_paint(&mut a);
+        assert_retained_material_pixels(&a, &h.borrow());
+
+        let before = a.surface_counts();
+        keys(&h, &mut a, &[0x1e, 0x9e]); // Append "a" to already-dirty text.
+        finish_paint(&mut a);
+        assert_eq!(a.controller().view().contents, Some("hia"));
+        let after = a.surface_counts();
+        assert!(after.retained_tiles > before.retained_tiles);
+        // Count actual successful sends. The reference is the old mandatory
+        // full-grid Begin/Chunk/Commit workload, not a VM speed measurement.
+        let old_full_sends: u64 = (0..geometry().tiles())
+            .map(|tile| {
+                geometry()
+                    .rectangle(tile)
+                    .unwrap()
+                    .bytes()
+                    .div_ceil(surface::CHUNK) as u64
+                    + 2
+            })
+            .sum();
+        assert!(
+            (after.sent_messages - before.sent_messages) * 10 < old_full_sends,
+            "typing must remove at least 90% of the old full-frame SUR sends"
+        );
+        assert_retained_material_pixels(&a, &h.borrow());
+
+        let frames = a.evidence().frames;
+        let committed = a.surface_counts().committed_tiles;
+        h.borrow_mut().key(0x30); // "b", then paint only until its first real tile.
+        for _ in 0..geometry().tiles() {
+            a.step().unwrap();
+            if a.surface_counts().committed_tiles > committed {
+                break;
+            }
+        }
+        assert!(a.surface_counts().committed_tiles > committed);
+        assert_eq!(
+            a.evidence().frames,
+            frames,
+            "test must interrupt a partial frame"
+        );
+        keys(&h, &mut a, &[0xb0, 0x2e, 0xae]); // Supersede with "c".
+        finish_paint(&mut a);
+        assert_eq!(a.controller().view().contents, Some("hiabc"));
+        assert_eq!(
+            h.borrow().surface.completed_frame(),
+            Some(a.controller().view().generation)
+        );
+        assert_retained_material_pixels(&a, &h.borrow());
+        assert!(h.borrow().engine.check_invariants());
+    }
+}
+
+fn lost_retained_reply_never_presents_or_drops_material_draft() {
+    let h = Host::new();
+    h.borrow_mut().surface = surface::Receiver::new_retained(APP, geometry(), 100).unwrap();
+    let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut a = app(
+        &h,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    a.enable_retained().unwrap();
+    finish_paint(&mut a);
+    new_text(&h, &mut a);
+    finish_paint(&mut a);
+    let frames = a.evidence().frames;
+    let blits = h.borrow().blits;
+    h.borrow_mut().drop_blit = true;
+    h.borrow_mut().key(0x1e);
+    assert!(matches!(a.step(), Err(Error::Surface(_))));
+    assert_eq!(
+        h.borrow().blits,
+        blits,
+        "the lost reply must be Retain, not a blit"
+    );
+    assert_eq!(a.controller().view().contents, Some("hia"));
+    assert_eq!(a.evidence().frames, frames);
+    assert!(!a.evidence().ready);
+    assert!(!a.can_idle());
+    assert!(h.borrow().engine.check_invariants());
+}
+
+fn retained_with_digest_cache_accounts_for_every_tile() {
+    let h = Host::new();
+    h.borrow_mut().surface = surface::Receiver::new_retained(APP, geometry(), 100).unwrap();
+    let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut cache = [0; nieuw_os_materiaal_app::DAMAGE_TILES];
+    let mut a = configured_app_with(
+        &h,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+        Scale::Percent100,
+        EditMode::ReadWrite,
+        Some(&mut cache),
+    );
+    a.enable_retained().unwrap();
+    finish_paint(&mut a);
+    assert_eq!(a.surface_counts().committed_tiles, geometry().tiles());
+    new_text(&h, &mut a);
+    finish_paint(&mut a);
+    let before = a.surface_counts();
+    keys(&h, &mut a, &[0x1e, 0x9e]);
+    finish_paint(&mut a);
+    let after = a.surface_counts();
+    assert!(after.retained_tiles > before.retained_tiles);
+    assert_eq!(
+        after.committed_tiles - before.committed_tiles + after.retained_tiles
+            - before.retained_tiles,
+        geometry().tiles(),
+        "explicit retained frames must not also omit tiles via sparse digests"
+    );
+    assert_eq!(
+        h.borrow().surface.completed_frame(),
+        Some(a.controller().view().generation)
+    );
+    assert_retained_material_pixels(&a, &h.borrow());
+    assert!(h.borrow().engine.check_invariants());
+}
+
+scenario!(
+    retained_material_exact_pixels_work_reduction_and_partial_supersede,
+    retained_material_edit_and_superseded_partial_are_exact
+);
+scenario!(
+    retained_material_lost_reply_preserves_draft_and_blocks_ready,
+    lost_retained_reply_never_presents_or_drops_material_draft
+);
+scenario!(
+    retained_material_with_digest_cache_has_complete_coverage,
+    retained_with_digest_cache_accounts_for_every_tile
+);
+
 scenario!(
     real_protocol_chain_edit_save_reopen_and_separate_surface,
     complete_chain
@@ -914,6 +1125,92 @@ fn change_midframe() {
         Some(a.controller().view().generation)
     );
     assert!(a.evidence().tiles > geometry().tiles());
+}
+fn damage_cache_sends_only_changed_tiles() {
+    // Same input on a full-repaint app and a damage-cache app: the shown
+    // framebuffers must be identical while the cache sends far fewer tiles.
+    let mut screens = Vec::new();
+    let mut later_tiles = Vec::new();
+    for cached in [false, true] {
+        let h = Host::new();
+        let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut cache = [0; nieuw_os_materiaal_app::DAMAGE_TILES];
+        let buffers = Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        };
+        let mut a = configured_app_with(
+            &h,
+            buffers,
+            Scale::Percent100,
+            EditMode::ReadWrite,
+            cached.then_some(&mut cache[..]),
+        );
+        let paint = |a: &mut App<'_, Port, Port, Port>| {
+            // The cache may need several bounded scan steps per sent tile.
+            for _ in 0..geometry().tiles() * 2 {
+                if !a.controller().view().dirty {
+                    return;
+                }
+                a.step().unwrap();
+            }
+            panic!("never completed current frame")
+        };
+        paint(&mut a);
+        assert_eq!(a.evidence().tiles, geometry().tiles());
+        new_text(&h, &mut a);
+        paint(&mut a);
+        let editor = a.evidence().tiles;
+        // One more typed character on the painted editor screen.
+        keys(&h, &mut a, &[0x17, 0x97]);
+        assert_eq!(a.controller().view().contents, Some("hii"));
+        paint(&mut a);
+        assert!(a.evidence().ready);
+        assert_eq!(
+            h.borrow().surface.completed_frame(),
+            Some(a.controller().view().generation)
+        );
+        later_tiles.push(a.evidence().tiles - editor);
+        screens.push(h.borrow().framebuffer.clone());
+    }
+    assert_eq!(screens[0], screens[1]);
+    assert!(later_tiles[1] > 0);
+    assert!(later_tiles[1] * 10 < later_tiles[0], "{later_tiles:?}");
+}
+fn undersized_damage_cache_keeps_full_repaints() {
+    // The same input sequence with no cache at all is the dense reference: an
+    // undersized cache must send exactly the same tiles and pixels, so no
+    // extra tile from an abandoned partial frame can mask a skipped tile.
+    let mut runs = Vec::new();
+    for undersized in [false, true] {
+        let h = Host::new();
+        let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut cache = [0; 3];
+        let mut a = configured_app_with(
+            &h,
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+            Scale::Percent100,
+            EditMode::ReadWrite,
+            undersized.then_some(&mut cache[..]),
+        );
+        finish_paint(&mut a);
+        let first = a.evidence().tiles;
+        assert_eq!(first, geometry().tiles());
+        new_text(&h, &mut a);
+        finish_paint(&mut a);
+        assert_eq!(a.evidence().frames, 2);
+        assert!(a.evidence().tiles - first >= geometry().tiles());
+        let tiles = a.evidence().tiles;
+        drop(a);
+        assert_eq!(cache, [0; 3]);
+        runs.push((tiles, h.borrow().framebuffer.clone()));
+    }
+    assert_eq!(runs[0], runs[1]);
 }
 fn input_loss_after_ready() {
     let h = Host::new();
@@ -1139,6 +1436,14 @@ fn stop_after_no_work() {
 }
 scenario!(negative_display_completion_never_presents, negative_blit);
 scenario!(generation_change_abandons_partial_frame, change_midframe);
+scenario!(
+    damage_cache_repaints_identical_pixels_with_fewer_tiles,
+    damage_cache_sends_only_changed_tiles
+);
+scenario!(
+    undersized_damage_cache_falls_back_to_full_repaints,
+    undersized_damage_cache_keeps_full_repaints
+);
 scenario!(
     input_failure_revokes_current_ready_flag,
     input_loss_after_ready

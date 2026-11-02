@@ -1,0 +1,111 @@
+{
+  "task": "PR126-PROTOCOL-MERGE",
+  "date": "2026-11-02 (Europe/Amsterdam)",
+  "ours_pr126_head": "51580271eada508d9a1edcac5a1e3599f6d726f5",
+  "theirs_main": "74a34d05ef5591b782a0da9da34e4669910d0722",
+  "merge_base": "e08fb0e48c1bb0781e98357f588c2f73b6ae8500",
+  "method": "git merge-file --diff3 per file (base/ours/theirs blobs), manual semantic resolution; only these four files",
+  "toolchain": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+  "result_sha256": {
+    "ui/surface-protocol/src/lib.rs": "e36964b7c8b4781e08809da3b700a88600cfad97813cc68ca6011d26b721df35",
+    "ui/surface-protocol/src/client.rs": "949f9cc7610419700b7a6dee007bfef6c1929c6af62215381e6f51624d26ffe3",
+    "ui/surface-protocol/tests/protocol.rs": "a3c036b522cad80e3b835cf0f0150722d51df93993c91b2edcaf86864a81667a",
+    "ui/surface-protocol/tests/client.rs": "1af88e2784abfde3e2bc331ee9d508fec04be3ea57dde4e15c249b82b3c7fd3b"
+  },
+  "conflict_resolutions": [
+    {
+      "file": "src/lib.rs",
+      "hunk": "Receiver::accept Begin/SolidBegin/Retain ordering",
+      "choice": "ours structure (position()+Retain branch) with main's sparse rule moved into position(): sparse = complete && op != Retain && !(retained && full_sync_required); main comments kept"
+    },
+    {
+      "file": "src/lib.rs",
+      "hunk": "commit_inner success branch",
+      "choice": "ours finish_frame()/invalidate_retained(); main's complete |= next_tile == tiles moved to top of finish_frame (also covers Retain completion)"
+    },
+    {
+      "file": "src/client.rs",
+      "hunk": "blit tail + counter_tests",
+      "choice": "ours (counts + advance + unit tests); main's complete update moved into Session::advance when next_tile == tiles; blit keeps main's sparse predicate (clean merge); retain keeps PR126 dense predicate"
+    },
+    {
+      "file": "tests/client.rs",
+      "hunk": "impl functions / scenario list",
+      "choice": "both (PR126 retained tests + main sparse_impl), plus new retained sparse/sequential-retain scenario"
+    },
+    {
+      "file": "tests/protocol.rs",
+      "hunk": "appended tests",
+      "choice": "both, plus new retained_full_resynchronization_stays_dense_despite_sparse_history"
+    }
+  ],
+  "content_preservation": {
+    "main_sparse_frames": "kept for Begin (all receivers) and SolidBegin; client blit mirror kept",
+    "main_grid_test_completed_frames_are_final": "kept (clean merge)",
+    "pr126_retain_solid_begin_retained_base_expiry_invalidation": "kept unchanged",
+    "added_lines_not_verbatim": "main lines re-indented into position(); main complete updates relocated to finish_frame/advance; PR126's two dense ordering lines replaced by the sparse-aware predicate"
+  },
+  "stricter_not_looser": [
+    "Retain coverage remains sequential (no sparse Retain)",
+    "retained receiver awaiting full sync rejects sparse skips"
+  ],
+  "checks": {
+    "fmt": {
+      "command": "cargo fmt --manifest-path ui/surface-protocol/Cargo.toml --all -- --check",
+      "exit": 0,
+      "log": "session-state/.../files/pr126-protocol-merge/logs/fmt.txt",
+      "log_sha256": "d4e4bec0d6c1c7764e0305a942df0b26b4c8bfbbdac233aa811c0af85159075b"
+    },
+    "check-client": {
+      "command": "cargo check --offline --locked --manifest-path ui/surface-protocol/Cargo.toml --features client --all-targets",
+      "exit": 0,
+      "log": "session-state/.../files/pr126-protocol-merge/logs/check-client.txt",
+      "log_sha256": "9f788af4ae408c95124f74bfcb69b0bea1095d33bd892d92243c9691cb29c873"
+    },
+    "check-default": {
+      "command": "cargo check --offline --locked --manifest-path ui/surface-protocol/Cargo.toml --all-targets",
+      "exit": 0,
+      "log": "session-state/.../files/pr126-protocol-merge/logs/check-default.txt",
+      "log_sha256": "3c45c61387d4f26630a6e238b2fba95dca3b12a5a309a2f5d7365cb9cdaa9c92"
+    },
+    "clippy-client": {
+      "command": "cargo clippy --offline --locked --manifest-path ui/surface-protocol/Cargo.toml --features client --all-targets -- -D warnings",
+      "exit": 0,
+      "log": "session-state/.../files/pr126-protocol-merge/logs/clippy-client.txt",
+      "log_sha256": "251bc95abade25461bdc24b4579aedd8ec8c25ce80af09f5de2d75ca0593a388"
+    },
+    "clippy-default": {
+      "command": "cargo clippy --offline --locked --manifest-path ui/surface-protocol/Cargo.toml --all-targets -- -D warnings",
+      "exit": 0,
+      "log": "session-state/.../files/pr126-protocol-merge/logs/clippy-default.txt",
+      "log_sha256": "2b6dde7a57ba50cef998e60d5480b3dad2a85cd5ad1015ca32e617ef50720e5f"
+    },
+    "build-none": {
+      "command": "cargo build --offline --locked --release --lib --target x86_64-unknown-none --manifest-path ui/surface-protocol/Cargo.toml",
+      "exit": 0,
+      "log": "session-state/.../files/pr126-protocol-merge/logs/build-none.txt",
+      "log_sha256": "e7a1bfc8d94a8b4f25dd6459a1e94a97a0259bb457a4b9dff2e7e95d01f49c4b",
+      "env": "RUSTFLAGS=-C no-redzone=yes -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2"
+    },
+    "build-none-client": {
+      "command": "cargo build --offline --locked --release --lib --features client --target x86_64-unknown-none --manifest-path ui/surface-protocol/Cargo.toml",
+      "exit": 0,
+      "log": "session-state/.../files/pr126-protocol-merge/logs/build-none-client.txt",
+      "log_sha256": "9845e94a00517687a1df7ba180c1487e93a82823d23f2d19c19236eb6a9e513e",
+      "env": "RUSTFLAGS=-C no-redzone=yes -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2"
+    },
+    "test-client": {
+      "command": "cargo test --offline --locked --manifest-path ui/surface-protocol/Cargo.toml --features client",
+      "exit": 101,
+      "log": "session-state/.../files/pr126-protocol-merge/logs/test-client.txt",
+      "log_sha256": "fa4f6a86855c6e54ec4c16d41fed356abd7c83d6f5137a48cd141ecb3c3ab9c7",
+      "result": "NOT RUN: link failed (linker cc not found); no host test success claimed"
+    }
+  },
+  "not_run": [
+    "cargo test (host link: cc missing)",
+    "QEMU/native gates",
+    "CI on joint head (integrator)"
+  ],
+  "evidence_boundary": "type-check, clippy -D warnings, fmt and x86_64-unknown-none release lib builds only; test semantics reviewed manually, not executed"
+}

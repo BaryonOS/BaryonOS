@@ -229,9 +229,13 @@ pub extern "C" fn materiaal_main() -> ! {
     // A list failure is a genuine controller error screen, never an empty list
     // substituted for unavailable storage. Keep the application alive.
     let _ = controller.refresh();
-    let mut app = App::new(controller, input, surface, geometry).unwrap_or_else(|_| fail(11));
+    // Lives for the nonreturning entry; one digest per tile of the surface.
+    let mut damage = [0; nieuw_os_materiaal_app::DAMAGE_TILES];
+    let mut app = App::with_damage_cache(controller, input, surface, geometry, &mut damage)
+        .unwrap_or_else(|_| fail(11));
     if window_session {
         app.enable_clipboard();
+        app.enable_retained().unwrap_or_else(|_| fail(11));
     }
     let mut paused = false;
     loop {

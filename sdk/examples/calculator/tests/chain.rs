@@ -294,6 +294,14 @@ impl Host {
             {
                 surface::Action::Staged => None,
                 surface::Action::Info(reply) => Some(reply.bytes().to_vec()),
+                surface::Action::Retain(reply) => {
+                    if self.drop_blit
+                        || self.drop_final_blit && self.surface.completed_frame().is_some()
+                    {
+                        return;
+                    }
+                    Some(reply.bytes().to_vec())
+                }
                 surface::Action::Commit(token) => {
                     let fail = self.fail_blit;
                     let framebuffer = &mut self.framebuffer;
@@ -581,6 +589,131 @@ fn clipboard_ready(h: &Rc<RefCell<Host>>, enabled: bool) -> App<Port, Port> {
     assert!(a.model().answer().is_none());
     assert!(a.evidence().ready);
     a
+}
+
+fn assert_retained_calculator_pixels(a: &App<Port, Port>, h: &Host, scale: u32) {
+    use nieuw_os_calculator::render::{render_tile, Rect, Viewport};
+    let g = geometry();
+    let viewport = Viewport::new(
+        u32::from(g.assigned.width),
+        u32::from(g.assigned.height),
+        scale,
+    )
+    .unwrap();
+    let mut pixels = [0; 256];
+    for tile in 0..g.tiles() {
+        let r = g.rectangle(tile).unwrap();
+        render_tile(
+            a.model(),
+            viewport,
+            Rect {
+                x: r.x,
+                y: r.y,
+                width: u32::from(r.width),
+                height: u32::from(r.height),
+            },
+            &mut pixels,
+        )
+        .unwrap();
+        for row in 0..u32::from(r.height) {
+            for col in 0..u32::from(r.width) {
+                let at = ((g.assigned.y + r.y + row) * 800 + g.assigned.x + r.x + col) as usize;
+                assert_eq!(
+                    h.framebuffer[at],
+                    pixels[(row * u32::from(r.width) + col) as usize],
+                    "retained calculator differs at tile {tile}, ({col},{row})"
+                );
+            }
+        }
+    }
+    for (at, pixel) in h.framebuffer.iter().enumerate() {
+        let (x, y) = (at as u32 % 800, at as u32 / 800);
+        let r = g.assigned;
+        if x < r.x || y < r.y || x >= r.x + u32::from(r.width) || y >= r.y + u32::from(r.height) {
+            assert_eq!(*pixel, 0, "calculator paint escaped its assigned surface");
+        }
+    }
+}
+
+#[test]
+fn retained_calculator_exact_pixels_work_reduction_and_partial_supersede() {
+    for scale in [1, 2] {
+        let h = Host::new();
+        h.borrow_mut().surface = surface::Receiver::new_retained(APP, geometry(), 100).unwrap();
+        let mut a = app(&h, scale);
+        a.enable_retained().unwrap();
+        finish(&mut a);
+        assert_eq!(a.surface_counts().committed_tiles, geometry().tiles());
+        assert_eq!(a.surface_counts().retained_tiles, 0);
+        let before = a.surface_counts();
+        keys(&h, &mut a, &[0x03, 0x83]);
+        finish(&mut a);
+        assert_eq!(a.model().expression(), "2");
+        assert_eq!(a.model().evaluations(), 0);
+        let after = a.surface_counts();
+        assert!(after.retained_tiles > before.retained_tiles);
+        let old_full_sends: u64 = (0..geometry().tiles())
+            .map(|tile| {
+                geometry()
+                    .rectangle(tile)
+                    .unwrap()
+                    .bytes()
+                    .div_ceil(surface::CHUNK) as u64
+                    + 2
+            })
+            .sum();
+        assert!(
+            (after.sent_messages - before.sent_messages) * 10 < old_full_sends,
+            "calculator edit must remove at least 90% of old full-grid SUR sends"
+        );
+        assert_retained_calculator_pixels(&a, &h.borrow(), scale);
+
+        let frames = a.evidence().frames;
+        let committed = a.surface_counts().committed_tiles;
+        h.borrow_mut().key(0x04); // Append "3", stop after the first changed tile.
+        for _ in 0..geometry().tiles() {
+            a.step().unwrap();
+            if a.surface_counts().committed_tiles > committed {
+                break;
+            }
+        }
+        assert!(a.surface_counts().committed_tiles > committed);
+        assert_eq!(a.evidence().frames, frames);
+        keys(&h, &mut a, &[0x84, 0x05, 0x85]); // Supersede with "4".
+        finish(&mut a);
+        assert_eq!(a.model().expression(), "234");
+        assert_eq!(
+            h.borrow().surface.completed_frame(),
+            Some(a.model().generation())
+        );
+        assert_retained_calculator_pixels(&a, &h.borrow(), scale);
+        assert!(h.borrow().engine.check_invariants());
+    }
+}
+
+#[test]
+fn lost_retained_reply_never_presents_or_drops_calculator_work() {
+    let h = Host::new();
+    h.borrow_mut().surface = surface::Receiver::new_retained(APP, geometry(), 100).unwrap();
+    let mut a = app(&h, 1);
+    a.enable_retained().unwrap();
+    finish(&mut a);
+    let frames = a.evidence().frames;
+    let blits = h.borrow().blits;
+    h.borrow_mut().drop_blit = true;
+    h.borrow_mut().key(0x03);
+    assert!(matches!(a.step(), Err(Error::Surface(_))));
+    assert_eq!(
+        h.borrow().blits,
+        blits,
+        "the lost reply must be Retain, not a blit"
+    );
+    assert_eq!(a.model().expression(), "2");
+    assert_eq!(a.model().evaluations(), 0);
+    assert_eq!(a.evidence().frames, frames);
+    assert!(!a.evidence().ready);
+    assert!(!a.can_idle());
+    assert!(h.borrow().engine.check_invariants());
 }
 
 #[test]

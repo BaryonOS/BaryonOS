@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-02",
+  "task": "Alle zeven PR127-reviewpunten en volledige PR126/main-inhoud combineren",
+  "remote_base_commit": "798706c2a53d0062ce0474e5f84f294b2c37b825",
+  "local_leaf_head": "2e87f5ce1cd0b4d5212dccfae184be6cb229059a",
+  "merged_pr126": "8f08db4c12573f91b57e55c30fa417e7abd358e6",
+  "main": "74a34d05ef5591b782a0da9da34e4669910d0722",
+  "source_fingerprint_version": 3,
+  "source_sha256": "b7ccd11fa114f3d4506f9b85560b7bcd51289b88cfb8054cd9e0b6537ea7122b",
+  "leaves": [
+    "c72e9759bc714dfd0bb9e1b61c515dddfe5807a7",
+    "b8e0ce0e81f9d657dfea5a683a76dc8e7a9708f5",
+    "1ac3718363c6706867fa1aac2248bc31e5e304a2"
+  ],
+  "fixes": [
+    "Native Ctrl+K palette dispatch, redraw, pointer and key-release ownership/cancel.",
+    "Actual calculator pointer path uses proportional rendered glyph advances.",
+    "Connect deadline applies only during TCP handshake, not healthy established sessions.",
+    "WHPX probe argument literal includes -no-user-config as well as -nodefaults, -S and -nic none.",
+    "Dock hover invalidates complete old and new button bounds.",
+    "SendTcp returns terminal Closed for a genuinely closed underlying socket.",
+    "Write-only semantic password setter prevalidates complete input; no plaintext readback or policy/authority widening."
+  ],
+  "integration_findings": [
+    {
+      "symptom": "Automatic three-way merge retained two definitions of expression_caret_at; actual compiler exit101.",
+      "fix": "Keep the proportional implementation and its rendered-scroll semantics. Preserve both sides' full test additions.",
+      "red_log": "/tmp/nieuw-os-pr127-merged-calculator.log",
+      "red_log_sha256": "af450c53a403aa28688e482dbe19cc98b0bfa134f778ce92e4ad53d65ef32cc4"
+    },
+    {
+      "symptom": "Old damage geometry missed real new-font pixels: changed pixels outside damage at x256,y64; model_render15 pass/1 fail.",
+      "fix": "Share result/status bounds between renderer and damage model, including stale-result label and real font heights. Invalidate the complete bounded expression field rather than incorrect monospace spans. Existing pixel and >=90% retained-send-reduction assertions remain intact and pass.",
+      "red_log": "/tmp/nieuw-os-pr127-merged-render.log",
+      "red_log_sha256": "396820d8ccbd43b70322b79139bdaa60f045a93bb495be1c275d2fd154f35e6d"
+    },
+    {
+      "symptom": "New password test requested unsupported1600x1200 viewport at200% and failed before exercising the setter.",
+      "fix": "Exercise both100% and200% on supported800x600 physical pixels. Preserve all generation, invalid-input atomicity, guest, write-only and submission assertions."
+    }
+  ],
+  "host_validation": {
+    "rust": "1.90.0; isolated host-linker from pr126-main-integration.json",
+    "commands": [
+      "cargo test --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --target-dir target/pr127-review-combined",
+      "cargo test --offline --locked --manifest-path sdk/examples/calculator/Cargo.toml --target-dir target/pr127-review-combined",
+      "cargo test --offline --locked --manifest-path ui/native/Cargo.toml --target-dir target/pr127-review-combined",
+      "cargo test --offline --locked --manifest-path sdk/examples/materiaal/Cargo.toml --target-dir target/pr127-review-combined",
+      "python3 -B tools/test_window_session.py",
+      "python3 -B -m unittest tools.tests.test_package_windows_qemu -v"
+    ],
+    "all_exit_code": 0,
+    "rust_passed_by_manifest": [49, 41, 56, 43],
+    "rust_ignored": 0,
+    "python_passed_by_command": [10, 21],
+    "wall_seconds": 22,
+    "log": "/tmp/nieuw-os-pr127-final-host.log",
+    "log_sha256": "0142bed4e54db68e8b7adb5173aab80689fe62d17b3be85e5d450299cc7d1ced"
+  },
+  "network_validation": {
+    "rust": "1.91.1, exactly as existing network CI; no --ignore-rust-version",
+    "tool_restoration": "Ubuntu rustup1.27.1-8 package SHA25670f27f9d4f2fa640f21eb1a9d921a0747234efd575b56c3f58e708ed7ed4c830 verified and extracted only in session files/rust191. Official rustup installed pinned1.91.1/clippy/rustfmt/unknown-none only under that private RUSTUP_HOME. No system install or dependency change.",
+    "red_base": "798706c2a53d0062ce0474e5f84f294b2c37b825 plus only new service tests",
+    "red_command": "cargo test --offline --locked --manifest-path services/network-service/Cargo.toml --test service --target-dir /home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr127-network-red-target",
+    "red_exit_code": 101,
+    "red_result": "7pass/2fail: established connection expires at tick30; peer-reset send returns Again instead of Closed.",
+    "red_log_sha256": "f15fbf48b7abf2902293e327e0271f3d919e6b90beb7468c399a317f173dbe24",
+    "green_commands": [
+      "cargo test --offline --locked --manifest-path services/network-service/Cargo.toml --target-dir target/pr127-network-review",
+      "cargo clippy --offline --locked --manifest-path services/network-service/Cargo.toml --all-targets --target-dir target/pr127-network-review -- -D warnings",
+      "cargo fmt --manifest-path services/network-service/Cargo.toml -- --check",
+      "cargo build --offline --locked --manifest-path services/network-service/Cargo.toml --release --target x86_64-unknown-none --target-dir target/pr127-network-native"
+    ],
+    "green_all_exit_code": 0,
+    "green_tests": 9,
+    "green_log": "/tmp/nieuw-os-pr127-network-final.log",
+    "green_log_sha256": "45aa997f8466fdc1bd1b7ee58d5ec6d323ceb1cf297bbf47b2caa411cf1dd6c2",
+    "temporary_red_worktree": "Removed only after restoring own injected tests and verifying clean status; logs/target cache preserved."
+  },
+  "static_validation": {
+    "commands": [
+      "for manifest in sdk/examples/window-session/Cargo.toml sdk/examples/calculator/Cargo.toml ui/native/Cargo.toml; do cargo clippy --offline --locked --manifest-path \"$manifest\" --all-targets --target-dir target/pr127-review-combined -- -D warnings; done",
+      "for manifest in sdk/examples/window-session/Cargo.toml sdk/examples/calculator/Cargo.toml sdk/examples/materiaal/Cargo.toml; do cargo check --offline --locked --manifest-path \"$manifest\" --features native --bins --target x86_64-unknown-none --target-dir target/pr127-review-native; done"
+    ],
+    "all_exit_code": 0,
+    "log": "/tmp/nieuw-os-pr127-integrated-ui.log",
+    "log_sha256": "2f1ccd5bf9d03ebf284a87399acf1a6795c3bbbf8a5b2607d46eb11bcbb0ea1f"
+  },
+  "ci_wiring": "Existing Rust1.91.1 net-broker-quality workflow now also tests/lints/formats and builds network-service. Inherited PR126 native workflow executes full Material/calculator host suites.",
+  "parent_native_evidence_not_this_source": {
+    "pr126_ci_run": 41530207152,
+    "artifact": 13182057101,
+    "tested_head": "8f08db4c12573f91b57e55c30fa417e7abd358e6",
+    "checkout": "a1cb32b7672e9c6d21bdd1b8cf3059dd3e5f134d",
+    "checkout_parents": ["74a34d05ef5591b782a0da9da34e4669910d0722", "8f08db4c12573f91b57e55c30fa417e7abd358e6"],
+    "checkout_and_head_tree": "92c3200035ad54ea7166228a63f00ecfe5582f71",
+    "source_sha256": "8b2238b2d9cad397924f3da9ff447735bb7ecf6ab56298e6425f64a8fa5e96e0",
+    "passed": true,
+    "native_gate": true,
+    "clipboard_gate": true,
+    "raw_qemu_exit": 33,
+    "phases": 22,
+    "duration_s": 328.968645487,
+    "serial_sha256": "a996138e2f6374a03f21c3c6fe13db06b44dc1bee654e9d33d60384cd8b3bb82",
+    "disk": "14bytes, revision1, canaries intact",
+    "local_full_build": "tools/build.py --kernel-feature native-window-session-probe exit0 in8s after private cargo/rustc shims reused existing Rust1.90; no compiler reinstall. Log /tmp/nieuw-os-pr126-main-build-tools.log SHA256c8343bc5a1a124f590e8e52e6846e395614af004de5c48d6671bc2b1ea915f04.",
+    "boundary": "Strong parent-source evidence only. New combined PR127 native runtime and package must be repeated."
+  },
+  "open_boundaries": [
+    "Fresh exact-head hosted CI, review and native/window/clipboard/recovery/pixel/disk evidence",
+    "Actual Windows/PowerShell/WHPX execution of changed probe",
+    "Physical hardware, human audit, full release and interaction budgets"
+  ],
+  "review": "Local CodeRabbit CLI not found on PATH/default path; availability/auth unknown, no CLI review started or silently treated as clean. GitHub current-head reviews remain required.",
+  "progress": {"branch_previous": 41, "branch_current": 41, "main_previous": 34, "main_current": 34, "new_criteria": []},
+  "integration_policy": "PR127 is the combined candidate, preserving all PR126 changes and fixing its new duplicate TCP Closed finding. Do not separately merge an unfixed PR126 or close source PRs before main-content proof.",
+  "rollback": "Reject or normally revert the combined integration commit, preserving all original leaves and source histories."
+}

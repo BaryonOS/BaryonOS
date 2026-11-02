@@ -85,6 +85,23 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR127-reviewintegratie (2 november 2026), basis `798706c` met `8f08db4`:
+branch **41 → 41**, main **34 → 34**. Zeven reviewpunten en gekoppelde
+font/damage-integratie hersteld; 189 Rust-app/UI-,9 netwerk- en31 Python-tests
+slagen, inclusief echte TCP-rood/groenreproductie. De native22fasenacceptatie
+van PR126 is aan die parentbron gebonden; deze nieuwe kandidaat vereist
+eigen CI/runtime/review. Geen nieuwe punten, U02 of volledige releaseclaim.
+Zie `verification/pr127-review-integration.json`.
+
+PR126/main-integratie (2 november 2026), basis `5158027` en main `74a34d05`:
+geerfde branchscore **41 → 41**, main-assessment **34 → 34**. Geen nieuwe
+criteria of gewichten. Alle 260 gecombineerde Rust-hosttests slagen; een
+bestaande expliciete ignore blijft vermeld. Sparse/retained-coverage en
+beide testcaseverzamelingen zijn behouden. Nieuwe gezamenlijke native
+QEMU-/herstel-/pixel-/klembord-/schijfgates blijven nodig; dit checkpoint
+promoveert de geerfde U01/N01-bewijzen niet automatisch naar main.
+Zie `verification/pr126-main-integration.json`.
+
 WINDOWS-QEMU-TEST-VERSION (30 oktober 2026), implementatiebron `f777f7a`:
 **34% → 34%**. De branch voegt een hashvaliderende Windows-QEMU-bundel,
 launcher, native QMP-previewrunner en CI-artifactjob toe. Hosttests,

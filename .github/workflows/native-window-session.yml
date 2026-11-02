@@ -104,6 +104,11 @@ jobs:
           cargo +1.90.0 fmt --manifest-path sdk/examples/window-session/Cargo.toml -- --check
           cargo +1.90.0 test --offline --locked --manifest-path ui/surface-protocol/Cargo.toml --features client 2>&1 | tee "$CI_EVIDENCE_DIR/surface-host.txt"
           cargo +1.90.0 test --offline --locked --manifest-path ui/graphics/Cargo.toml 2>&1 | tee "$CI_EVIDENCE_DIR/graphics-host.txt"
+          for crate in materiaal calculator; do
+            cargo +1.90.0 test --offline --locked --manifest-path "sdk/examples/$crate/Cargo.toml" 2>&1 | tee "$CI_EVIDENCE_DIR/$crate-host.txt"
+            cargo +1.90.0 clippy --offline --locked --manifest-path "sdk/examples/$crate/Cargo.toml" --all-targets -- -D warnings 2>&1 | tee "$CI_EVIDENCE_DIR/$crate-clippy.txt"
+            cargo +1.90.0 fmt --manifest-path "sdk/examples/$crate/Cargo.toml" -- --check
+          done
       - name: Build the eight-process native window probe
         # No image/target cache: the existing builder inspects and embeds all
         # eight fresh CPL3 ELFs plus the current own kernel and UEFI loader.
