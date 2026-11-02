@@ -1,35 +1,38 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — expliciete volume-admissie — 2 november 2026
+## NEXT AGENT HANDOFF — volume-admissie native gerepareerd — 2026-11-02
 
-**Basis:** `74a34d05ef5591b782a0da9da34e4669910d0722`; werkbranch
-`codex/volume-format-admission-20261102`. Eigen kernel behouden; uitsluitend
-wegwerpimages; geen nieuwe bestandssysteemdriver.
+**Bron:** `94f12da0b9740a1a0ced1f08b4a30787f82ae79f`, basis `74a34d05ef5591b782a0da9da34e4669910d0722`;
+branch `codex/volume-format-admission-20261102`, [concept-PR #133](https://github.com/simonvanieperen/nieuw-os/pull/133).
+Fingerprint v3 `2cffba892608c907b717158a83b8a1c66c7d79dc5843d2d03eabc4ff1831c028`.
 
-**Hostcheckpoint:** recovery vereist minstens één volledig geldige eigen
-metadata-kopie. Canonieke sealed generatie 0 in slot 0 wordt expliciet door de
-offline fixturemaker geschreven; nul-/vreemde/onvolledige metadata wordt niet
-meer als lege opslag toegelaten. Bestaande complete generaties en herstel na
-een onderbroken eerste commit blijven ondersteund. Generatie-adjacentie is
-overflowveilig. Geen kernel-, capability-, IPC- of runtimeformatverruiming.
+**Resultaat:** recovery vereist een volledig geldige eigen tabelkopie;
+expliciet vooraf geformatteerde canonieke generatie 0 werkt. Onbekende en
+nulgevulde volumes worden tijdens servicestart geweigerd vóór beschikbaar-
+stelling van opslag. Bestaande complete generaties en eerste-commit-crash-
+recovery blijven ondersteund. Eigen kernel behouden; geen nieuw driver-,
+runtimeformat-, IPC- of capabilitypad.
 
-**Bewijs tot dit checkpoint:** nieuwe rawzero-regressie eerst rood; 45 Rust
-volume-coretests en Clippy groen, 28 document-session- en 24 Materiaal-apptests
-groen. Het onafhankelijke Python-orakel en afhankelijke harnassen: 141 tests
-groen. Windows-platformfouten zijn behouden en betreffende suites ongewijzigd
-onder WSL groen herhaald. Alleen bestaande locked afhankelijkheden naar de
-lokale cache opgehaald; lockfiles ongewijzigd. Native proeven zijn hier nog
-**niet uitgevoerd** en worden op de hierna bevroren broncommit geregistreerd.
+**Bewijs:** 10 native matrixruns slagen: eigen normal/cold en Btrfs,
+OpenZFS-mirrorlid, rawzero, nulheaders+payload elk read-only én schrijfbaar.
+Alle acht negatieven: startup-Corrupt/-18, raw35, nul WRITE-traces, volledige
+bron/kopiehashgelijkheid. Normal registreert 4963 echte writes; cold behoudt
+exacte bytes/generatie84/digests. De bestaande 9-VM-volume/crashgate slaagt
+met drie werkelijke kills en gekoppelde koude herstelruns. Geen timeouts.
+Host: 45 volume-core + Clippy, 28 document-session, 24 Materiaal, 141 Python-
+harnastests slagen; rode regressie en omgevingsfouten zijn behouden.
 
-**Contract:** ADR-053 en `docs/verification/volume-format-admission/TASK.md`.
-Native plan: eigen normal/cold, vier onbekende beelden elk read-only én
-schrijfbaar, trace reads >0/writes=0 en volledige imagehashgelijkheid; daarna
-de bestaande negen-VM-volume/crashregressie. Geen nieuw rubricpunt; **34/100
-blijft 34/100**. Oudere code weigert nieuwe sealed-gen0-lege beelden: rollback
-neemt code en fixturetooling samen terug, formatteert geen bestaande data.
+**Bewijsgrens/herstel:** uitsluitend wegwerpbestanden/QEMU; geen fysieke
+powercut of native Btrfs/ZFS-engine. AI-teamreview is geen menselijke audit.
+Oudere code weigert sealed-gen0-lege images: rollback neemt code/tooling
+samen terug en formatteert geen data. FNV is geen authenticatie.
+ADR-053 en [bewijsbundel](verification/volume-format-admission/README.md).
+Geen nieuw criterium; **34/100 blijft 34/100**.
 
-**Volgende stap:** native uitvoering op exact checkpoint volgens de externe
-runner `C:/Users/simon/Documents/Codex/2026-11-02/volume-format-admission/native/native_admission.py`.
+**Volgende stap:** review/integratie van PR #133 via het actuele exclusieve
+integratormandaat; deze sessie merge niet naar main. Native backendport en
+S09-herstel/export blijven afzonderlijk open. Het eerdere native gatebewijs
+op e08/74a blijft historisch geldig voor die bronversies.
 
 ## NEXT AGENT HANDOFF — PR #125-inhoudsbehoud — 2 november 2026
 

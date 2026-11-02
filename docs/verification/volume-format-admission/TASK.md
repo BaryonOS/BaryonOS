@@ -27,6 +27,13 @@ geen appprogress, geen timeout, trace reads >0 en writes=0, source/proef-SHA256
 gelijk. Daarnaast de volledige bestaande negen-VM-volume/crashgate.
 
 Bevries broncommit, bronfingerprint, Python-testinputs en runner vóór de
-native uitvoering. Native bewijs blijft open totdat de echte runs slagen.
+native uitvoering. Dit was de vooraf vastgelegde acceptatievoorwaarde; zie de afgeronde uitvoering hieronder.
 Lokale logs/artifacten: `C:/Users/simon/Documents/Codex/2026-11-02/volume-format-admission/`.
 Voortgang: 34/100 blijft gelijk; deze reparatie creëert geen nieuw criterium.
+
+## Afgeronde native uitvoering — 2026-11-02
+
+Geteste bron `94f12da0b9740a1a0ced1f08b4a30787f82ae79f`: 10/10 toelatingsruns en de bestaande 9/9
+volume-/crashgate geslaagd. De fix, hostcheckpointgeschiedenis, exacte
+bronbinding, traces, hashes, herstelgrens en compatibiliteit staan in
+[README.md](README.md). Productscore blijft 34/100.

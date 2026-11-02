@@ -1,0 +1,36 @@
+test_collections_membership_and_digest (test_volume_disk.VolumeOracleTests.test_collections_membership_and_digest) ... ok
+test_commit_may_be_reflected_by_a_collection_only (test_volume_disk.VolumeOracleTests.test_commit_may_be_reflected_by_a_collection_only) ... ok
+test_committed_generation_one_with_legacy_zero_companion_is_accepted (test_volume_disk.VolumeOracleTests.test_committed_generation_one_with_legacy_zero_companion_is_accepted) ... ok
+test_companion_generation_boundaries_do_not_wrap (test_volume_disk.VolumeOracleTests.test_companion_generation_boundaries_do_not_wrap) ... ok
+test_corrupt_fixture_is_refused (test_volume_disk.VolumeOracleTests.test_corrupt_fixture_is_refused) ... ok
+test_deleted_object_keeps_history_but_no_metadata (test_volume_disk.VolumeOracleTests.test_deleted_object_keeps_history_but_no_metadata) ... ok
+test_document_content_and_revision_are_verified (test_volume_disk.VolumeOracleTests.test_document_content_and_revision_are_verified) ... ok
+test_domain_clocks_add_up_and_bound_every_stamp (test_volume_disk.VolumeOracleTests.test_domain_clocks_add_up_and_bound_every_stamp) ... ok
+test_explicit_canonical_format_is_accepted (test_volume_disk.VolumeOracleTests.test_explicit_canonical_format_is_accepted) ... ok
+test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) ... ok
+test_format_with_any_bad_sector_checksum_is_refused (test_volume_disk.VolumeOracleTests.test_format_with_any_bad_sector_checksum_is_refused) ... ok
+test_fresh_image_is_empty_generation_zero (test_volume_disk.VolumeOracleTests.test_fresh_image_is_empty_generation_zero) ... ok
+test_generation_zero_is_only_the_canonical_empty_table (test_volume_disk.VolumeOracleTests.test_generation_zero_is_only_the_canonical_empty_table) ... ok
+test_history_must_be_strictly_older_and_share_chunks_consistently (test_volume_disk.VolumeOracleTests.test_history_must_be_strictly_older_and_share_chunks_consistently) ... ok
+test_history_versions_are_verified_and_counted_once (test_volume_disk.VolumeOracleTests.test_history_versions_are_verified_and_counted_once) ... ok
+test_names_follow_the_rust_rules (test_volume_disk.VolumeOracleTests.test_names_follow_the_rust_rules) ... ok
+test_partial_first_commit_without_format_is_refused (test_volume_disk.VolumeOracleTests.test_partial_first_commit_without_format_is_refused) ... ok
+test_raw_zero_volume_is_not_formatted_storage (test_volume_disk.VolumeOracleTests.test_raw_zero_volume_is_not_formatted_storage) ... ok
+test_sealed_but_noncanonical_newest_copy_is_refused (test_volume_disk.VolumeOracleTests.test_sealed_but_noncanonical_newest_copy_is_refused) ... ok
+test_sectors_of_two_attempts_never_form_one_copy (test_volume_disk.VolumeOracleTests.test_sectors_of_two_attempts_never_form_one_copy) ... ok
+test_torn_next_table_falls_back_to_previous_generation (test_volume_disk.VolumeOracleTests.test_torn_next_table_falls_back_to_previous_generation) ... ok
+test_unrelated_generations_are_refused (test_volume_disk.VolumeOracleTests.test_unrelated_generations_are_refused) ... ok
+test_write_outside_scope_is_detected (test_volume_disk.VolumeOracleTests.test_write_outside_scope_is_detected) ... ok
+test_zero_table_sectors_do_not_admit_unrelated_tail_data (test_volume_disk.VolumeOracleTests.test_zero_table_sectors_do_not_admit_unrelated_tail_data) ... ok
+test_broker_latency_is_recorded_as_evidence_only (test_volume_harness.VolumeEvidenceParsing.test_broker_latency_is_recorded_as_evidence_only) ... ok
+test_failure_markers_do_not_match_the_diagnostic (test_volume_harness.VolumeEvidenceParsing.test_failure_markers_do_not_match_the_diagnostic) ... ok
+test_numbers_requires_twenty_digits_and_rejects_duplicates (test_volume_harness.VolumeEvidenceParsing.test_numbers_requires_twenty_digits_and_rejects_duplicates) ... ok
+test_content_cut_leaves_the_other_copy_untouched (test_volume_runner.TornTableWriteTests.test_content_cut_leaves_the_other_copy_untouched) ... ok
+test_formatted_generation_zero_remains_valid_cut_evidence (test_volume_runner.TornTableWriteTests.test_formatted_generation_zero_remains_valid_cut_evidence) ... ok
+test_torn_prefix_after_the_previous_copy_is_accepted (test_volume_runner.TornTableWriteTests.test_torn_prefix_after_the_previous_copy_is_accepted) ... ok
+test_untouched_or_unexplained_copies_are_refused_for_a_table_cut (test_volume_runner.TornTableWriteTests.test_untouched_or_unexplained_copies_are_refused_for_a_table_cut) ... ok
+
+----------------------------------------------------------------------
+Ran 31 tests in 1.609s
+
+OK

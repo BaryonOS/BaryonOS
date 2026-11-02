@@ -1,0 +1,19 @@
+{
+  "command": [
+    "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+    "+1.90.0",
+    "build",
+    "--locked",
+    "--release",
+    "--target-dir",
+    "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\target",
+    "-p",
+    "os-loader",
+    "--target",
+    "x86_64-unknown-uefi"
+  ],
+  "cwd": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\source",
+  "started_unix": 1793657484.0213315,
+  "duration_s": 0.2446591854095459,
+  "returncode": 0
+}

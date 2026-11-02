@@ -1,0 +1,81 @@
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\source\\sdk\\Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\target\\volume-docs"}
+   Compiling zeroize v1.9.1
+   Compiling catalog-core v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\services\catalog)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\sdk\runtime)
+   Compiling volume-core v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\services\volume)
+   Compiling nieuw-os-volume-docs-example v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\sdk\examples\volume-docs)
+    Finished `release` profile [optimized] target(s) in 1.28s
+   Compiling boot-protocol v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\crates\boot-protocol)
+   Compiling r-efi v7.1.0
+   Compiling elf-loader-core v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\crates\elf-loader-core)
+   Compiling os-loader v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\boot\loader)
+    Finished `release` profile [optimized] target(s) in 0.82s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\kernel)
+   Compiling virtio-core v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\crates\virtio-core)
+   Compiling kernel-core v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\crates\kernel-core)
+   Compiling capability-core v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\crates\capability-core)
+   Compiling boot-protocol v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\crates\boot-protocol)
+   Compiling block-protocol v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\services\block)
+   Compiling virtio-blk-driver v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\drivers\virtio-blk)
+    Finished `release` profile [optimized] target(s) in 1.90s
+Built and inspected native-volume: 3 ELF load segments
+M6e normal: passed=True raw=33 duration=48.2s C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\native\regression\build\run\volume-normal-8b5ec82ce4
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\source\\sdk\\Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\target\\volume-docs"}
+    Finished `release` profile [optimized] target(s) in 0.06s
+    Finished `release` profile [optimized] target(s) in 0.06s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\kernel)
+    Finished `release` profile [optimized] target(s) in 1.41s
+Built and inspected test-volume-recover: 3 ELF load segments
+M6e recover: passed=True raw=33 duration=23.2s C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\native\regression\build\run\volume-recover-f4a8237e97
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\source\\sdk\\Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\target\\volume-docs"}
+    Finished `release` profile [optimized] target(s) in 0.07s
+    Finished `release` profile [optimized] target(s) in 0.07s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\kernel)
+    Finished `release` profile [optimized] target(s) in 1.51s
+Built and inspected test-volume-cut-data: 3 ELF load segments
+M6e cut-data: passed=True raw=1 duration=2.5s C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\native\regression\build\run\volume-cut-data-6c62eab97e
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\source\\sdk\\Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\target\\volume-docs"}
+    Finished `release` profile [optimized] target(s) in 0.05s
+    Finished `release` profile [optimized] target(s) in 0.07s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\kernel)
+    Finished `release` profile [optimized] target(s) in 1.41s
+Built and inspected test-volume-recover-cut: 3 ELF load segments
+M6e recover-cut: passed=True raw=33 duration=2.9s C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\native\regression\build\run\volume-recover-cut-d14bd6009e
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\source\\sdk\\Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\target\\volume-docs"}
+    Finished `release` profile [optimized] target(s) in 0.05s
+    Finished `release` profile [optimized] target(s) in 0.07s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\kernel)
+    Finished `release` profile [optimized] target(s) in 1.39s
+Built and inspected test-volume-cut-table: 3 ELF load segments
+M6e cut-table: passed=True raw=1 duration=2.9s C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\native\regression\build\run\volume-cut-table-2174b40022
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\source\\sdk\\Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\target\\volume-docs"}
+    Finished `release` profile [optimized] target(s) in 0.05s
+    Finished `release` profile [optimized] target(s) in 0.06s
+    Finished `release` profile [optimized] target(s) in 0.07s
+Built and inspected test-volume-recover-cut: 3 ELF load segments
+M6e recover-cut: passed=True raw=33 duration=2.8s C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\native\regression\build\run\volume-recover-cut-531d3632db
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\source\\sdk\\Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\target\\volume-docs"}
+    Finished `release` profile [optimized] target(s) in 0.05s
+    Finished `release` profile [optimized] target(s) in 0.06s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\kernel)
+    Finished `release` profile [optimized] target(s) in 1.39s
+Built and inspected test-volume-cut-txn: 3 ELF load segments
+M6e cut-txn: passed=True raw=1 duration=3.4s C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\native\regression\build\run\volume-cut-txn-9fad24c7df
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\source\\sdk\\Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\target\\volume-docs"}
+    Finished `release` profile [optimized] target(s) in 0.13s
+    Finished `release` profile [optimized] target(s) in 0.16s
+    Finished `release` profile [optimized] target(s) in 0.14s
+Built and inspected test-volume-recover-cut: 3 ELF load segments
+M6e recover-cut: passed=True raw=33 duration=5.6s C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\native\regression\build\run\volume-recover-cut-69ad49ea00
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\source\\sdk\\Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\target\\volume-docs"}
+    Finished `release` profile [optimized] target(s) in 0.08s
+    Finished `release` profile [optimized] target(s) in 0.10s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\kernel)
+    Finished `release` profile [optimized] target(s) in 1.72s
+Built and inspected test-volume-corrupt: 3 ELF load segments
+M6e corrupt: passed=True raw=33 duration=3.7s C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\native\regression\build\run\volume-corrupt-0dc2eb0650
+    Finished `release` profile [optimized] target(s) in 0.06s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\kernel)
+    Finished `release` profile [optimized] target(s) in 0.44s
+Built and inspected normal: 3 ELF load segments
+M6e gate passed=True stages=9

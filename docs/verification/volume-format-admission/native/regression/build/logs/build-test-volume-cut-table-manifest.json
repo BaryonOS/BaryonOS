@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "profile": "test-volume-cut-table",
+  "kernel_feature": "test-volume-cut-table",
+  "loader_feature": null,
+  "source_fingerprint_version": 3,
+  "source_sha256": "2cffba892608c907b717158a83b8a1c66c7d79dc5843d2d03eabc4ff1831c028",
+  "loader": {
+    "sha256": "af70d133c771a84be24e76e3db09eda6b6a1a442f962dc0a0eb6c57bc86d4d2a",
+    "format": "AMD64 PE32+",
+    "subsystem": "EFI_APPLICATION",
+    "imports": 0
+  },
+  "kernel": {
+    "sha256": "52f6d92e485d7782e1c44ed112ddea7c291b80e1aa087aa600594301fc79bfe6",
+    "entry": 33554432,
+    "segments": [
+      {
+        "flags": 5,
+        "offset": 4096,
+        "address": 33554432,
+        "filesz": 122871,
+        "memsz": 122871,
+        "page_start": 33554432,
+        "page_end": 33677312
+      },
+      {
+        "flags": 4,
+        "offset": 126976,
+        "address": 33677312,
+        "filesz": 191256,
+        "memsz": 191256,
+        "page_start": 33677312,
+        "page_end": 33869824
+      },
+      {
+        "flags": 6,
+        "offset": 319488,
+        "address": 33869824,
+        "filesz": 1258144,
+        "memsz": 4344912,
+        "page_start": 33869824,
+        "page_end": 38215680
+      }
+    ],
+    "sections": [
+      {
+        "name": "",
+        "type": 0,
+        "flags": 0,
+        "size": 0
+      },
+      {
+        "name": ".text",
+        "type": 1,
+        "flags": 6,
+        "size": 122871
+      },
+      {
+        "name": ".rodata",
+        "type": 1,
+        "flags": 50,
+        "size": 191256
+      },
+      {
+        "name": ".data",
+        "type": 1,
+        "flags": 3,
+        "size": 1258144
+      },
+      {
+        "name": ".bss",
+        "type": 8,
+        "flags": 3,
+        "size": 3083344
+      },
+      {
+        "name": ".symtab",
+        "type": 2,
+        "flags": 0,
+        "size": 7296
+      },
+      {
+        "name": ".shstrtab",
+        "type": 3,
+        "flags": 0,
+        "size": 52
+      },
+      {
+        "name": ".strtab",
+        "type": 3,
+        "flags": 0,
+        "size": 15943
+      }
+    ]
+  },
+  "sdk_runtime": false,
+  "document_session": false,
+  "volume_docs": {
+    "app_sha256": "7e8b83e45514b4204ed603380595b42a636247668fe60da54e6904424ad3a514",
+    "app_elf": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 37714,
+          "memsz": 37714,
+          "page_start": 1073741824,
+          "page_end": 1073782784
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 45056,
+          "filesz": 1248,
+          "memsz": 1248,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 49152,
+          "filesz": 3416,
+          "memsz": 3416,
+          "page_start": 1073823744,
+          "page_end": 1073827840
+        }
+      ]
+    },
+    "service_sha256": "0fbbe0af1be46e3172fb232cc798fb24fac4a3b58c8676415557f022a8729c6a",
+    "service_elf": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 58002,
+          "memsz": 58002,
+          "page_start": 1073741824,
+          "page_end": 1073803264
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 65536,
+          "filesz": 1304,
+          "memsz": 1304,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 69632,
+          "filesz": 30682,
+          "memsz": 30682,
+          "page_start": 1073823744,
+          "page_end": 1073856512
+        }
+      ]
+    }
+  }
+}

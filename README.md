@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`74a34d05`](https://github.com/simonvanieperen/nieuw-os/commit/74a34d05ef5591b782a0da9da34e4669910d0722) ·
+**Bron:** [`94f12da0`](https://github.com/simonvanieperen/nieuw-os/commit/94f12da0b9740a1a0ced1f08b4a30787f82ae79f) ·
 **Ontwikkelbranch:** `codex/volume-format-admission-20261102`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Hostcheckpoint: expliciete volume-identiteit vóór toelating; native poort nog open.
-34/100 blijft gelijk. De bestaande volume-core weigert nul-/vreemde metadata zonder volledig geldige eigen kopie; lege fixtures worden vooraf canoniek sealed als generatie 0. Rust-, SDK- en onafhankelijke Python-hosttests slagen, inclusief rode regressie op oude code. Geen kernel-, IPC-, capability- of filesystemdriveruitbreiding. Native normal/cold, onbekende images in beide modi en bestaande crashregressie zijn op dit checkpoint nog niet uitgevoerd. ADR-053 en docs/verification/volume-format-admission/TASK.md beschrijven contract en bewijsgrens.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Volume-admissie gerepareerd en native geverifieerd; bestaande crashrecovery behouden.
+34/100 blijft gelijk. Recovery vereist een volledig geldige eigen tabelkopie; lege fixtures worden vooraf canoniek sealed als generatie 0. Hosttests slagen, inclusief rode regressie op oude code. Op bron94f12da slagen 10 native toelatingsruns en de bestaande negen-VM-crashgate: alle acht vreemde/ongeformatteerde RO/RW-cases worden tijdens servicestart geweigerd met nul WRITE-traces en ongewijzigde imagehashes. Eigen kernel behouden; geen driver-, IPC-, capability- of runtimeformatuitbreiding. ADR-053 en docs/verification/volume-format-admission/README.md bewaren bewijs en compatibiliteitsgrens. Native Btrfs/OpenZFS-engine, hardwareduurzaamheid en S09 blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

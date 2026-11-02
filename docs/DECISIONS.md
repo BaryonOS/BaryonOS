@@ -1408,3 +1408,9 @@ vóór de eerste volledige commit. Code en fixturetooling horen bij rollback
 bij elkaar; bestaande gecommitte data wordt niet opnieuw geformatteerd.
 Herzie dit contract vóór een echte formatter/installer of vrije-mediatoegang.
 Uitvoering en bewijs: `docs/verification/volume-format-admission/`.
+
+Native uitvoering op `94f12da0b9740a1a0ced1f08b4a30787f82ae79f`: 10/10 toelatingsproeven en
+de bestaande 9/9 volume-/crashgate slagen. Alle acht negatieve RO/RW-proeven
+weigeren opslag tijdens startup met Corrupt/-18, nul WRITE-traces en
+ongewijzigde bron-/proefhashes. Dit accepteert de toelatingsfix; de native
+Btrfs/OpenZFS-backendpoort blijft open. Zie de genoemde bewijsbundel.

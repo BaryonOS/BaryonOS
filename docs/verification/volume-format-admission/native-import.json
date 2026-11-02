@@ -1,0 +1,1655 @@
+{
+  "schema_version": 1,
+  "tested_source_commit": "94f12da0b9740a1a0ced1f08b4a30787f82ae79f",
+  "matrix_runs": 10,
+  "regression_stages": 9,
+  "files": [
+    {
+      "path": "native/builds/native-volume/build-invocation.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\native-volume\\build-invocation.json",
+      "source_bytes": 1059,
+      "source_sha256": "764e1a923e71e4e66cbf2557c6ea544724f6a664c6d1354ed692c81fe6e5a97d",
+      "stored_bytes": 1059,
+      "stored_sha256": "764e1a923e71e4e66cbf2557c6ea544724f6a664c6d1354ed692c81fe6e5a97d",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/native-volume/build.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\native-volume\\build.stderr.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/native-volume/build.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\native-volume\\build.stdout.txt",
+      "source_bytes": 2521,
+      "source_sha256": "67cee4b9ca137f8e3dbc7dfeacc0b8e8698e040bec5c5e8e067a85085616a47e",
+      "stored_bytes": 2521,
+      "stored_sha256": "67cee4b9ca137f8e3dbc7dfeacc0b8e8698e040bec5c5e8e067a85085616a47e",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/native-volume/logs/build-native-volume-manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\native-volume\\logs\\build-native-volume-manifest.json",
+      "source_bytes": 3955,
+      "source_sha256": "a11076b1ac1645f1f843b8a0ecf9575f25ffa401ca4c2c757b5f0998a3f34e25",
+      "stored_bytes": 3955,
+      "stored_sha256": "a11076b1ac1645f1f843b8a0ecf9575f25ffa401ca4c2c757b5f0998a3f34e25",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/native-volume/logs/build-native-volume-os-kernel.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\native-volume\\logs\\build-native-volume-os-kernel.json",
+      "source_bytes": 586,
+      "source_sha256": "0cf00f059b5db2953947970c8736836adc398b9411a68b9b76b84479089889fd",
+      "stored_bytes": 586,
+      "stored_sha256": "0cf00f059b5db2953947970c8736836adc398b9411a68b9b76b84479089889fd",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/native-volume/logs/build-native-volume-os-kernel.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\native-volume\\logs\\build-native-volume-os-kernel.stderr.txt",
+      "source_bytes": 955,
+      "source_sha256": "a6977645b0812d5a7a7c23c9224b4d256b2fc7a6ed7eaea35cb9f9c3d52bffea",
+      "stored_bytes": 955,
+      "stored_sha256": "a6977645b0812d5a7a7c23c9224b4d256b2fc7a6ed7eaea35cb9f9c3d52bffea",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/native-volume/logs/build-native-volume-os-kernel.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\native-volume\\logs\\build-native-volume-os-kernel.stdout.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/native-volume/logs/build-native-volume-os-loader.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\native-volume\\logs\\build-native-volume-os-loader.json",
+      "source_bytes": 544,
+      "source_sha256": "10e74869eb539ce54a5e0552f43c9051f0b4b7e6e7bd26a50df8a288efd13339",
+      "stored_bytes": 544,
+      "stored_sha256": "10e74869eb539ce54a5e0552f43c9051f0b4b7e6e7bd26a50df8a288efd13339",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/native-volume/logs/build-native-volume-os-loader.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\native-volume\\logs\\build-native-volume-os-loader.stderr.txt",
+      "source_bytes": 474,
+      "source_sha256": "9f652c7bd07ed1b765edd3e685c8190c034d9c2dac3662ac3cd3348c76331aca",
+      "stored_bytes": 474,
+      "stored_sha256": "9f652c7bd07ed1b765edd3e685c8190c034d9c2dac3662ac3cd3348c76331aca",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/native-volume/logs/build-native-volume-os-loader.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\native-volume\\logs\\build-native-volume-os-loader.stdout.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/native-volume/logs/build-volume-docs.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\native-volume\\logs\\build-volume-docs.json",
+      "source_bytes": 433,
+      "source_sha256": "4fdf10a6fd568a92df035a05e342b5a4892e8044d30ff7ac7c833fdc3709dfa1",
+      "stored_bytes": 433,
+      "stored_sha256": "4fdf10a6fd568a92df035a05e342b5a4892e8044d30ff7ac7c833fdc3709dfa1",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/native-volume/logs/build-volume-docs.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\native-volume\\logs\\build-volume-docs.stderr.txt",
+      "source_bytes": 621,
+      "source_sha256": "a651b1890f35cd0b8a7a15207ae028f8ca1c569f50ac0cef3d462421c18c6866",
+      "stored_bytes": 621,
+      "stored_sha256": "a651b1890f35cd0b8a7a15207ae028f8ca1c569f50ac0cef3d462421c18c6866",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/native-volume/logs/build-volume-docs.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\native-volume\\logs\\build-volume-docs.stdout.txt",
+      "source_bytes": 415,
+      "source_sha256": "61ebaf50786519f077df5394bd06fc846e9455ac3e258f4fcfe30cdb5a8fbc2e",
+      "stored_bytes": 415,
+      "stored_sha256": "61ebaf50786519f077df5394bd06fc846e9455ac3e258f4fcfe30cdb5a8fbc2e",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/native-volume/manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\native-volume\\manifest.json",
+      "source_bytes": 3955,
+      "source_sha256": "a11076b1ac1645f1f843b8a0ecf9575f25ffa401ca4c2c757b5f0998a3f34e25",
+      "stored_bytes": 3955,
+      "stored_sha256": "a11076b1ac1645f1f843b8a0ecf9575f25ffa401ca4c2c757b5f0998a3f34e25",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/test-volume-recover/build-invocation.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\test-volume-recover\\build-invocation.json",
+      "source_bytes": 1065,
+      "source_sha256": "1f4d7a28de682713be8f27fb9c3e78b297f1d794035254abb5e791eb760d4b87",
+      "stored_bytes": 1065,
+      "stored_sha256": "1f4d7a28de682713be8f27fb9c3e78b297f1d794035254abb5e791eb760d4b87",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/test-volume-recover/build.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\test-volume-recover\\build.stderr.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/test-volume-recover/build.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\test-volume-recover\\build.stdout.txt",
+      "source_bytes": 779,
+      "source_sha256": "b2449c452633cdf578346a78136ca2790b7c5e083980616ee4f1b816977df4e9",
+      "stored_bytes": 779,
+      "stored_sha256": "b2449c452633cdf578346a78136ca2790b7c5e083980616ee4f1b816977df4e9",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/test-volume-recover/logs/build-test-volume-recover-manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\test-volume-recover\\logs\\build-test-volume-recover-manifest.json",
+      "source_bytes": 3967,
+      "source_sha256": "2aa2194a61874c76e53440e76f2c0a5a1a59738726006d665beee9ba3754ced8",
+      "stored_bytes": 3967,
+      "stored_sha256": "2aa2194a61874c76e53440e76f2c0a5a1a59738726006d665beee9ba3754ced8",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/test-volume-recover/logs/build-test-volume-recover-os-kernel.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\test-volume-recover\\logs\\build-test-volume-recover-os-kernel.json",
+      "source_bytes": 592,
+      "source_sha256": "de61c5fb9f745f1b734983ab1699ee0d7ae4ba7a4d79c70663efb5d6ee49c7e7",
+      "stored_bytes": 592,
+      "stored_sha256": "de61c5fb9f745f1b734983ab1699ee0d7ae4ba7a4d79c70663efb5d6ee49c7e7",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/test-volume-recover/logs/build-test-volume-recover-os-kernel.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\test-volume-recover\\logs\\build-test-volume-recover-os-kernel.stderr.txt",
+      "source_bytes": 176,
+      "source_sha256": "d29827a0061c310280697f9250ea6bdac202b7b43166fe46515276c8eccf0652",
+      "stored_bytes": 176,
+      "stored_sha256": "d29827a0061c310280697f9250ea6bdac202b7b43166fe46515276c8eccf0652",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/test-volume-recover/logs/build-test-volume-recover-os-kernel.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\test-volume-recover\\logs\\build-test-volume-recover-os-kernel.stdout.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/test-volume-recover/logs/build-test-volume-recover-os-loader.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\test-volume-recover\\logs\\build-test-volume-recover-os-loader.json",
+      "source_bytes": 546,
+      "source_sha256": "b3f6316b5c86a9fffedd66f38af140fbd454c19a3a6664400f4182e9bfe95e28",
+      "stored_bytes": 546,
+      "stored_sha256": "b3f6316b5c86a9fffedd66f38af140fbd454c19a3a6664400f4182e9bfe95e28",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/test-volume-recover/logs/build-test-volume-recover-os-loader.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\test-volume-recover\\logs\\build-test-volume-recover-os-loader.stderr.txt",
+      "source_bytes": 63,
+      "source_sha256": "7d2d41eab3b7e1d2afa89590ad1612d699a081622e30c182ef2d5a978811c8d0",
+      "stored_bytes": 63,
+      "stored_sha256": "7d2d41eab3b7e1d2afa89590ad1612d699a081622e30c182ef2d5a978811c8d0",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/test-volume-recover/logs/build-test-volume-recover-os-loader.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\test-volume-recover\\logs\\build-test-volume-recover-os-loader.stdout.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/test-volume-recover/logs/build-volume-docs.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\test-volume-recover\\logs\\build-volume-docs.json",
+      "source_bytes": 434,
+      "source_sha256": "e4256ccf839de10bd376288c58102e1442c3dbdb721bd4763d6949de4ab5379b",
+      "stored_bytes": 434,
+      "stored_sha256": "e4256ccf839de10bd376288c58102e1442c3dbdb721bd4763d6949de4ab5379b",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/test-volume-recover/logs/build-volume-docs.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\test-volume-recover\\logs\\build-volume-docs.stderr.txt",
+      "source_bytes": 63,
+      "source_sha256": "79e296fce4d35f79ac182a5e1106bf770f89d308ec49d8901b09be6e6beb9bf0",
+      "stored_bytes": 63,
+      "stored_sha256": "79e296fce4d35f79ac182a5e1106bf770f89d308ec49d8901b09be6e6beb9bf0",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/test-volume-recover/logs/build-volume-docs.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\test-volume-recover\\logs\\build-volume-docs.stdout.txt",
+      "source_bytes": 415,
+      "source_sha256": "61ebaf50786519f077df5394bd06fc846e9455ac3e258f4fcfe30cdb5a8fbc2e",
+      "stored_bytes": 415,
+      "stored_sha256": "61ebaf50786519f077df5394bd06fc846e9455ac3e258f4fcfe30cdb5a8fbc2e",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/builds/test-volume-recover/manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\builds\\test-volume-recover\\manifest.json",
+      "source_bytes": 3967,
+      "source_sha256": "2aa2194a61874c76e53440e76f2c0a5a1a59738726006d665beee9ba3754ced8",
+      "stored_bytes": 3967,
+      "stored_sha256": "2aa2194a61874c76e53440e76f2c0a5a1a59738726006d665beee9ba3754ced8",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/environment.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\environment.json",
+      "source_bytes": 1167,
+      "source_sha256": "7a838338484f5e176e3c84329cca71ff8b40b4941d74341ffcae5664cf4264f0",
+      "stored_bytes": 1167,
+      "stored_sha256": "7a838338484f5e176e3c84329cca71ff8b40b4941d74341ffcae5664cf4264f0",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/freeze.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\freeze.json",
+      "source_bytes": 579,
+      "source_sha256": "3cf0b660473b080bc06376f8e8ac5b13b2685560153785415c0537369ea0845b",
+      "stored_bytes": 579,
+      "stored_sha256": "3cf0b660473b080bc06376f8e8ac5b13b2685560153785415c0537369ea0845b",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/matrix.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\matrix.json",
+      "source_bytes": 45927,
+      "source_sha256": "27671e15d2ea338794d75754c11ab4b35abd47a2cdf73f237f62c1a5903f1101",
+      "stored_bytes": 45927,
+      "stored_sha256": "27671e15d2ea338794d75754c11ab4b35abd47a2cdf73f237f62c1a5903f1101",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/native_admission.py",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\native_admission.py",
+      "source_bytes": 19075,
+      "source_sha256": "dc5707cc6972b6b666d2e9d6925a275850d5afa9b48fa9bd68ce69d2c26175a0",
+      "stored_bytes": 19075,
+      "stored_sha256": "dc5707cc6972b6b666d2e9d6925a275850d5afa9b48fa9bd68ce69d2c26175a0",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/preflight-failure-01/failure.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\preflight-failure-01\\failure.txt",
+      "source_bytes": 708,
+      "source_sha256": "c36f8d54a5a848b146f454fe431576d2fe504fd8f1489191ec88ae1c17321923",
+      "stored_bytes": 708,
+      "stored_sha256": "c36f8d54a5a848b146f454fe431576d2fe504fd8f1489191ec88ae1c17321923",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/preflight-failure-01/freeze.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\preflight-failure-01\\freeze.json",
+      "source_bytes": 579,
+      "source_sha256": "5e08cea953ac17349edaeec80f3af05ac64b7619ebc579713fb3115f194aa3f1",
+      "stored_bytes": 579,
+      "stored_sha256": "5e08cea953ac17349edaeec80f3af05ac64b7619ebc579713fb3115f194aa3f1",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/preflight-failure-01/native_admission.py",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\preflight-failure-01\\native_admission.py",
+      "source_bytes": 19043,
+      "source_sha256": "aa81ddbdd635d3639af9d4a8e57d7e1eebae1db81b6a198075f4b8569a2e6937",
+      "stored_bytes": 19043,
+      "stored_sha256": "aa81ddbdd635d3639af9d4a8e57d7e1eebae1db81b6a198075f4b8569a2e6937",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/README.md",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\README.md",
+      "source_bytes": 6013,
+      "source_sha256": "d045c4f8f98eb0496640cc15542858a5fd6d4231ded8e35f663b8d33a6d5564b",
+      "stored_bytes": 6013,
+      "stored_sha256": "d045c4f8f98eb0496640cc15542858a5fd6d4231ded8e35f663b8d33a6d5564b",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-native-volume-manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-native-volume-manifest.json",
+      "source_bytes": 3955,
+      "source_sha256": "df4559b482350233e7f2ef1f4ba059b0d9b5a90b969d2f9a97b75816dcf35f44",
+      "stored_bytes": 3955,
+      "stored_sha256": "df4559b482350233e7f2ef1f4ba059b0d9b5a90b969d2f9a97b75816dcf35f44",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-native-volume-os-kernel.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-native-volume-os-kernel.json",
+      "source_bytes": 597,
+      "source_sha256": "49c6b27d6514d89891f38395e55a83a1e31e7c1fb4f30c8868ccf64937f5ce93",
+      "stored_bytes": 597,
+      "stored_sha256": "49c6b27d6514d89891f38395e55a83a1e31e7c1fb4f30c8868ccf64937f5ce93",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-native-volume-os-kernel.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-native-volume-os-kernel.stderr.txt",
+      "source_bytes": 955,
+      "source_sha256": "bbc4bfee9d3d662b81b3bee70fed5e1d6755ad5ff6974b55be327a5c55399ab0",
+      "stored_bytes": 955,
+      "stored_sha256": "bbc4bfee9d3d662b81b3bee70fed5e1d6755ad5ff6974b55be327a5c55399ab0",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-native-volume-os-kernel.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-native-volume-os-kernel.stdout.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-native-volume-os-loader.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-native-volume-os-loader.json",
+      "source_bytes": 557,
+      "source_sha256": "896085a9f7746a5a8dbbd7e289ad5704df44853ce63f9cb606f6083d8d634ed9",
+      "stored_bytes": 557,
+      "stored_sha256": "896085a9f7746a5a8dbbd7e289ad5704df44853ce63f9cb606f6083d8d634ed9",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-native-volume-os-loader.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-native-volume-os-loader.stderr.txt",
+      "source_bytes": 474,
+      "source_sha256": "10d7b42c4a3dcc8ba92aba6d2fd70967b8dbcf1d7aa0aada636a268eacfa24d8",
+      "stored_bytes": 474,
+      "stored_sha256": "10d7b42c4a3dcc8ba92aba6d2fd70967b8dbcf1d7aa0aada636a268eacfa24d8",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-native-volume-os-loader.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-native-volume-os-loader.stdout.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-normal-manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-normal-manifest.json",
+      "source_bytes": 2131,
+      "source_sha256": "6163ddc7725b29b8d15020877e7fe34ccfdd08119474705c859741d5c2120bd9",
+      "stored_bytes": 2131,
+      "stored_sha256": "6163ddc7725b29b8d15020877e7fe34ccfdd08119474705c859741d5c2120bd9",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-normal-os-kernel.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-normal-os-kernel.json",
+      "source_bytes": 557,
+      "source_sha256": "4831a8650f79086a391446e34a55b432e2aed36cb5d691bcb3f821a3f76f8a52",
+      "stored_bytes": 557,
+      "stored_sha256": "4831a8650f79086a391446e34a55b432e2aed36cb5d691bcb3f821a3f76f8a52",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-normal-os-kernel.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-normal-os-kernel.stderr.txt",
+      "source_bytes": 176,
+      "source_sha256": "40f9a270ed936dc5050a2315f7e92e3b3805674f55872e8c4bf58373426b6ff0",
+      "stored_bytes": 176,
+      "stored_sha256": "40f9a270ed936dc5050a2315f7e92e3b3805674f55872e8c4bf58373426b6ff0",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-normal-os-kernel.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-normal-os-kernel.stdout.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-normal-os-loader.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-normal-os-loader.json",
+      "source_bytes": 558,
+      "source_sha256": "9128a9039f08325cb4cf77f8d2c8a97966ea12818bdf55f0b806244a7426d0d4",
+      "stored_bytes": 558,
+      "stored_sha256": "9128a9039f08325cb4cf77f8d2c8a97966ea12818bdf55f0b806244a7426d0d4",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-normal-os-loader.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-normal-os-loader.stderr.txt",
+      "source_bytes": 63,
+      "source_sha256": "79e296fce4d35f79ac182a5e1106bf770f89d308ec49d8901b09be6e6beb9bf0",
+      "stored_bytes": 63,
+      "stored_sha256": "79e296fce4d35f79ac182a5e1106bf770f89d308ec49d8901b09be6e6beb9bf0",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-normal-os-loader.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-normal-os-loader.stdout.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-corrupt-manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-corrupt-manifest.json",
+      "source_bytes": 3967,
+      "source_sha256": "0359d7f9adf95b7154879b2dc795ffff2f03a8188103b6711ee10411413af094",
+      "stored_bytes": 3967,
+      "stored_sha256": "0359d7f9adf95b7154879b2dc795ffff2f03a8188103b6711ee10411413af094",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-corrupt-os-kernel.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-corrupt-os-kernel.json",
+      "source_bytes": 603,
+      "source_sha256": "eb04e21151d0dfaf5ca6a355e51802e8306360614fe1de9b388936da57f2e951",
+      "stored_bytes": 603,
+      "stored_sha256": "eb04e21151d0dfaf5ca6a355e51802e8306360614fe1de9b388936da57f2e951",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-corrupt-os-kernel.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-corrupt-os-kernel.stderr.txt",
+      "source_bytes": 176,
+      "source_sha256": "99bf357a6037c2e9cfcf0a49a49fe6717fabf6a396cfb7e88b8adf2f4d750700",
+      "stored_bytes": 176,
+      "stored_sha256": "99bf357a6037c2e9cfcf0a49a49fe6717fabf6a396cfb7e88b8adf2f4d750700",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-corrupt-os-kernel.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-corrupt-os-kernel.stdout.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-corrupt-os-loader.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-corrupt-os-loader.json",
+      "source_bytes": 557,
+      "source_sha256": "69dda4a729580146337886ba0c2bf1edcecc8e94fec6d6de979974dc51f7507b",
+      "stored_bytes": 557,
+      "stored_sha256": "69dda4a729580146337886ba0c2bf1edcecc8e94fec6d6de979974dc51f7507b",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-corrupt-os-loader.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-corrupt-os-loader.stderr.txt",
+      "source_bytes": 63,
+      "source_sha256": "66794669008acf238999a7a663830d7a435b47d7197a5ec07b30a081f13cb703",
+      "stored_bytes": 63,
+      "stored_sha256": "66794669008acf238999a7a663830d7a435b47d7197a5ec07b30a081f13cb703",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-corrupt-os-loader.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-corrupt-os-loader.stdout.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-cut-data-manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-cut-data-manifest.json",
+      "source_bytes": 3969,
+      "source_sha256": "ef11cce0bdcc21ba870cd8b65fb7d7816f2fe2f2b3fe13439bf8b9e403310fec",
+      "stored_bytes": 3969,
+      "stored_sha256": "ef11cce0bdcc21ba870cd8b65fb7d7816f2fe2f2b3fe13439bf8b9e403310fec",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-cut-data-os-kernel.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-cut-data-os-kernel.json",
+      "source_bytes": 605,
+      "source_sha256": "1e5903d8022aded5e872ced09f29323502d161a13d404e78b07e36d98a3a53a5",
+      "stored_bytes": 605,
+      "stored_sha256": "1e5903d8022aded5e872ced09f29323502d161a13d404e78b07e36d98a3a53a5",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-cut-data-os-kernel.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-cut-data-os-kernel.stderr.txt",
+      "source_bytes": 176,
+      "source_sha256": "7858ba770032f3efdefa7a65977da25d90523930d725ab62b8a767c6a53cae8d",
+      "stored_bytes": 176,
+      "stored_sha256": "7858ba770032f3efdefa7a65977da25d90523930d725ab62b8a767c6a53cae8d",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-cut-data-os-kernel.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-cut-data-os-kernel.stdout.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-cut-data-os-loader.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-cut-data-os-loader.json",
+      "source_bytes": 557,
+      "source_sha256": "7f32769b0c93fd0fd8550cdb562e189d5ec4342ff5c8aca1dcf162d5355ebc81",
+      "stored_bytes": 557,
+      "stored_sha256": "7f32769b0c93fd0fd8550cdb562e189d5ec4342ff5c8aca1dcf162d5355ebc81",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-cut-data-os-loader.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-cut-data-os-loader.stderr.txt",
+      "source_bytes": 63,
+      "source_sha256": "7d2d41eab3b7e1d2afa89590ad1612d699a081622e30c182ef2d5a978811c8d0",
+      "stored_bytes": 63,
+      "stored_sha256": "7d2d41eab3b7e1d2afa89590ad1612d699a081622e30c182ef2d5a978811c8d0",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-cut-data-os-loader.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-cut-data-os-loader.stdout.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-cut-table-manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-cut-table-manifest.json",
+      "source_bytes": 3971,
+      "source_sha256": "4c5441304b11c7454c78d8c7b57d10e9bf1e2bf22e403c30fc850668f0316d61",
+      "stored_bytes": 3971,
+      "stored_sha256": "4c5441304b11c7454c78d8c7b57d10e9bf1e2bf22e403c30fc850668f0316d61",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-cut-table-os-kernel.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-cut-table-os-kernel.json",
+      "source_bytes": 606,
+      "source_sha256": "563a1d904445ed405863b77e01a86427a751d594c8832fb0a96c478e98745f87",
+      "stored_bytes": 606,
+      "stored_sha256": "563a1d904445ed405863b77e01a86427a751d594c8832fb0a96c478e98745f87",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-cut-table-os-kernel.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-cut-table-os-kernel.stderr.txt",
+      "source_bytes": 176,
+      "source_sha256": "10faa7504051492dc5c63478cd8d42e502f8b04ee57ba3bb669c4572b83698f3",
+      "stored_bytes": 176,
+      "stored_sha256": "10faa7504051492dc5c63478cd8d42e502f8b04ee57ba3bb669c4572b83698f3",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-cut-table-os-kernel.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-cut-table-os-kernel.stdout.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-cut-table-os-loader.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-cut-table-os-loader.json",
+      "source_bytes": 556,
+      "source_sha256": "9418e4a8787384015273c42ddec03b9e88ddfa880dca72ab1ae5b7147ea4f952",
+      "stored_bytes": 556,
+      "stored_sha256": "9418e4a8787384015273c42ddec03b9e88ddfa880dca72ab1ae5b7147ea4f952",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-cut-table-os-loader.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-cut-table-os-loader.stderr.txt",
+      "source_bytes": 63,
+      "source_sha256": "7d2d41eab3b7e1d2afa89590ad1612d699a081622e30c182ef2d5a978811c8d0",
+      "stored_bytes": 63,
+      "stored_sha256": "7d2d41eab3b7e1d2afa89590ad1612d699a081622e30c182ef2d5a978811c8d0",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-cut-table-os-loader.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-cut-table-os-loader.stdout.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-cut-txn-manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-cut-txn-manifest.json",
+      "source_bytes": 3967,
+      "source_sha256": "4b52f6e2fbedc3e3f7b813eaa39556b765f9635ffe2d812e521b9a93df8c76f4",
+      "stored_bytes": 3967,
+      "stored_sha256": "4b52f6e2fbedc3e3f7b813eaa39556b765f9635ffe2d812e521b9a93df8c76f4",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-cut-txn-os-kernel.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-cut-txn-os-kernel.json",
+      "source_bytes": 604,
+      "source_sha256": "f5a2cb92d4408517d77f8b714f95994ac3c2a11b75a4cd6397a5741aaef69d6d",
+      "stored_bytes": 604,
+      "stored_sha256": "f5a2cb92d4408517d77f8b714f95994ac3c2a11b75a4cd6397a5741aaef69d6d",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-cut-txn-os-kernel.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-cut-txn-os-kernel.stderr.txt",
+      "source_bytes": 176,
+      "source_sha256": "10faa7504051492dc5c63478cd8d42e502f8b04ee57ba3bb669c4572b83698f3",
+      "stored_bytes": 176,
+      "stored_sha256": "10faa7504051492dc5c63478cd8d42e502f8b04ee57ba3bb669c4572b83698f3",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-cut-txn-os-kernel.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-cut-txn-os-kernel.stdout.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-cut-txn-os-loader.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-cut-txn-os-loader.json",
+      "source_bytes": 557,
+      "source_sha256": "7d2a97cbab713061efc91224c2d6890ca237f636026d03ea13105034c8935fd9",
+      "stored_bytes": 557,
+      "stored_sha256": "7d2a97cbab713061efc91224c2d6890ca237f636026d03ea13105034c8935fd9",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-cut-txn-os-loader.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-cut-txn-os-loader.stderr.txt",
+      "source_bytes": 63,
+      "source_sha256": "79e296fce4d35f79ac182a5e1106bf770f89d308ec49d8901b09be6e6beb9bf0",
+      "stored_bytes": 63,
+      "stored_sha256": "79e296fce4d35f79ac182a5e1106bf770f89d308ec49d8901b09be6e6beb9bf0",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-cut-txn-os-loader.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-cut-txn-os-loader.stdout.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-recover-cut-manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-recover-cut-manifest.json",
+      "source_bytes": 3975,
+      "source_sha256": "af27876632485cc9c05d1aef964b2bb8c0838895b8df2726996073c2d143b998",
+      "stored_bytes": 3975,
+      "stored_sha256": "af27876632485cc9c05d1aef964b2bb8c0838895b8df2726996073c2d143b998",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-recover-cut-os-kernel.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-recover-cut-os-kernel.json",
+      "source_bytes": 608,
+      "source_sha256": "6d2a9733a74549720647b41a02ccea94527bdbc618169f895439d5638cb472f3",
+      "stored_bytes": 608,
+      "stored_sha256": "6d2a9733a74549720647b41a02ccea94527bdbc618169f895439d5638cb472f3",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-recover-cut-os-kernel.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-recover-cut-os-kernel.stderr.txt",
+      "source_bytes": 63,
+      "source_sha256": "f51c58630b0e03ffda8c69929d0eaa6148ea9e47b60c670f61e9ae7b0b434d9d",
+      "stored_bytes": 63,
+      "stored_sha256": "f51c58630b0e03ffda8c69929d0eaa6148ea9e47b60c670f61e9ae7b0b434d9d",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-recover-cut-os-kernel.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-recover-cut-os-kernel.stdout.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-recover-cut-os-loader.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-recover-cut-os-loader.json",
+      "source_bytes": 556,
+      "source_sha256": "bcffd7fc6b3ef62fb7d4fc2a2e440062b54211767800cd587d13e0e008d55ece",
+      "stored_bytes": 556,
+      "stored_sha256": "bcffd7fc6b3ef62fb7d4fc2a2e440062b54211767800cd587d13e0e008d55ece",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-recover-cut-os-loader.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-recover-cut-os-loader.stderr.txt",
+      "source_bytes": 63,
+      "source_sha256": "1b3dd14d4a5825826909999bf75bf78989b2d7d07543280dfd925a83bfc6619f",
+      "stored_bytes": 63,
+      "stored_sha256": "1b3dd14d4a5825826909999bf75bf78989b2d7d07543280dfd925a83bfc6619f",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-recover-cut-os-loader.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-recover-cut-os-loader.stdout.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-recover-manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-recover-manifest.json",
+      "source_bytes": 3967,
+      "source_sha256": "ff32430367c74ff694f0eeb491c9fa9958437aeb5cddba80059cb0da3c252c9a",
+      "stored_bytes": 3967,
+      "stored_sha256": "ff32430367c74ff694f0eeb491c9fa9958437aeb5cddba80059cb0da3c252c9a",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-recover-os-kernel.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-recover-os-kernel.json",
+      "source_bytes": 604,
+      "source_sha256": "0f6717fcd6623a292ee0b078141d78d7b4607bbc988659bd23445376630c643f",
+      "stored_bytes": 604,
+      "stored_sha256": "0f6717fcd6623a292ee0b078141d78d7b4607bbc988659bd23445376630c643f",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-recover-os-kernel.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-recover-os-kernel.stderr.txt",
+      "source_bytes": 176,
+      "source_sha256": "930257546f4bfa29ac0c4290f095ccc34abf76f0df582b83807d69378d8736f7",
+      "stored_bytes": 176,
+      "stored_sha256": "930257546f4bfa29ac0c4290f095ccc34abf76f0df582b83807d69378d8736f7",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-recover-os-kernel.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-recover-os-kernel.stdout.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-recover-os-loader.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-recover-os-loader.json",
+      "source_bytes": 558,
+      "source_sha256": "7891a81e731121a2d44da245fbe16a37ea9b3a48ee4a219563ddb736cc7c50f5",
+      "stored_bytes": 558,
+      "stored_sha256": "7891a81e731121a2d44da245fbe16a37ea9b3a48ee4a219563ddb736cc7c50f5",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-recover-os-loader.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-recover-os-loader.stderr.txt",
+      "source_bytes": 63,
+      "source_sha256": "79e296fce4d35f79ac182a5e1106bf770f89d308ec49d8901b09be6e6beb9bf0",
+      "stored_bytes": 63,
+      "stored_sha256": "79e296fce4d35f79ac182a5e1106bf770f89d308ec49d8901b09be6e6beb9bf0",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-test-volume-recover-os-loader.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-test-volume-recover-os-loader.stdout.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-volume-docs.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-volume-docs.json",
+      "source_bytes": 434,
+      "source_sha256": "3a2d0aa4b3b17a632ec79672c9fe8c19a8df531e2af021c29bb3b7556b5b040d",
+      "stored_bytes": 434,
+      "stored_sha256": "3a2d0aa4b3b17a632ec79672c9fe8c19a8df531e2af021c29bb3b7556b5b040d",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-volume-docs.stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-volume-docs.stderr.txt",
+      "source_bytes": 63,
+      "source_sha256": "dbc2c037c3ab59d8b8aa7c39426e1a2bc5a3640f1666ff60efa0c197a5c60686",
+      "stored_bytes": 63,
+      "stored_sha256": "dbc2c037c3ab59d8b8aa7c39426e1a2bc5a3640f1666ff60efa0c197a5c60686",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/logs/build-volume-docs.stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\logs\\build-volume-docs.stdout.txt",
+      "source_bytes": 427,
+      "source_sha256": "1cff77b6de22605ba99b3a57102fe49cd72458cde2e6b9dc7bfbd15b53bda96a",
+      "stored_bytes": 427,
+      "stored_sha256": "1cff77b6de22605ba99b3a57102fe49cd72458cde2e6b9dc7bfbd15b53bda96a",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\manifest.json",
+      "source_bytes": 2131,
+      "source_sha256": "6163ddc7725b29b8d15020877e7fe34ccfdd08119474705c859741d5c2120bd9",
+      "stored_bytes": 2131,
+      "stored_sha256": "6163ddc7725b29b8d15020877e7fe34ccfdd08119474705c859741d5c2120bd9",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-corrupt-0dc2eb0650/result.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-corrupt-0dc2eb0650\\result.json",
+      "source_bytes": 7481,
+      "source_sha256": "5d574624b060dd4f80992bc0b45066b77691a1aae70966b6356ea2e7e27ab099",
+      "stored_bytes": 7481,
+      "stored_sha256": "5d574624b060dd4f80992bc0b45066b77691a1aae70966b6356ea2e7e27ab099",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-corrupt-0dc2eb0650/serial.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-corrupt-0dc2eb0650\\serial.txt",
+      "source_bytes": 1950,
+      "source_sha256": "ff42b27654049b73ada702df64cd5c7b38f2cb5226b3b205dbf1d499c4bc114b",
+      "stored_bytes": 1950,
+      "stored_sha256": "ff42b27654049b73ada702df64cd5c7b38f2cb5226b3b205dbf1d499c4bc114b",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-corrupt-0dc2eb0650/stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-corrupt-0dc2eb0650\\stderr.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-cut-data-6c62eab97e/result.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-cut-data-6c62eab97e\\result.json",
+      "source_bytes": 10401,
+      "source_sha256": "ebaabaa64e51c2460711939453f16d048c17e505fd622e82ac87593ce573fc8d",
+      "stored_bytes": 10401,
+      "stored_sha256": "ebaabaa64e51c2460711939453f16d048c17e505fd622e82ac87593ce573fc8d",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-cut-data-6c62eab97e/serial.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-cut-data-6c62eab97e\\serial.txt",
+      "source_bytes": 337,
+      "source_sha256": "143dc3cc133f1539c8f0f0e9c8508f99f4f9c5dd657bbc176640449034711eb5",
+      "stored_bytes": 337,
+      "stored_sha256": "143dc3cc133f1539c8f0f0e9c8508f99f4f9c5dd657bbc176640449034711eb5",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-cut-data-6c62eab97e/stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-cut-data-6c62eab97e\\stderr.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-cut-table-2174b40022/result.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-cut-table-2174b40022\\result.json",
+      "source_bytes": 10410,
+      "source_sha256": "de8b75a2f18f9a260551545ecc69a19e6c8896dd018cd4a402219a8cff63cc0f",
+      "stored_bytes": 10410,
+      "stored_sha256": "de8b75a2f18f9a260551545ecc69a19e6c8896dd018cd4a402219a8cff63cc0f",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-cut-table-2174b40022/serial.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-cut-table-2174b40022\\serial.txt",
+      "source_bytes": 338,
+      "source_sha256": "a93c4c2b70b9afd21448a1255629165b3e7e22226d24013bf375ed283fd1602d",
+      "stored_bytes": 338,
+      "stored_sha256": "a93c4c2b70b9afd21448a1255629165b3e7e22226d24013bf375ed283fd1602d",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-cut-table-2174b40022/stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-cut-table-2174b40022\\stderr.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-cut-txn-9fad24c7df/result.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-cut-txn-9fad24c7df\\result.json",
+      "source_bytes": 10619,
+      "source_sha256": "78bf69b2a488723dfa33f7f2ee022e74885f48aec8e9ad605989852f57927d83",
+      "stored_bytes": 10619,
+      "stored_sha256": "78bf69b2a488723dfa33f7f2ee022e74885f48aec8e9ad605989852f57927d83",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-cut-txn-9fad24c7df/serial.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-cut-txn-9fad24c7df\\serial.txt",
+      "source_bytes": 336,
+      "source_sha256": "8b35df60ac54b8e020fe487612696b2790545a57838f5d2aea6630b94d143959",
+      "stored_bytes": 336,
+      "stored_sha256": "8b35df60ac54b8e020fe487612696b2790545a57838f5d2aea6630b94d143959",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-cut-txn-9fad24c7df/stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-cut-txn-9fad24c7df\\stderr.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-image-1634dc6dfd/last-stage.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-image-1634dc6dfd\\last-stage.json",
+      "source_bytes": 383,
+      "source_sha256": "47b8de7eaf2c97ca23612c569e7785ab256ff51379b33113fa4ecbd165020cb9",
+      "stored_bytes": 383,
+      "stored_sha256": "47b8de7eaf2c97ca23612c569e7785ab256ff51379b33113fa4ecbd165020cb9",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-image-1634dc6dfd/volume.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-image-1634dc6dfd\\volume.json",
+      "source_bytes": 160,
+      "source_sha256": "719a4da610f9849d83e9deebbe7d8639f4dcae889b99093a1f4044cffd6c6ed6",
+      "stored_bytes": 160,
+      "stored_sha256": "719a4da610f9849d83e9deebbe7d8639f4dcae889b99093a1f4044cffd6c6ed6",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-image-1b924ee99c/last-stage.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-image-1b924ee99c\\last-stage.json",
+      "source_bytes": 375,
+      "source_sha256": "bb14362f0ed6da835f48b10e23bba3bd4c6ce993b34a471e052bd8d499cff4d8",
+      "stored_bytes": 375,
+      "stored_sha256": "bb14362f0ed6da835f48b10e23bba3bd4c6ce993b34a471e052bd8d499cff4d8",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-image-1b924ee99c/volume.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-image-1b924ee99c\\volume.json",
+      "source_bytes": 160,
+      "source_sha256": "1ebda1ebe41bc3c6d045d8fcb9ffe14c04442aec01391e0833512917adb687c1",
+      "stored_bytes": 160,
+      "stored_sha256": "1ebda1ebe41bc3c6d045d8fcb9ffe14c04442aec01391e0833512917adb687c1",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-image-77009d06ca/last-stage.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-image-77009d06ca\\last-stage.json",
+      "source_bytes": 375,
+      "source_sha256": "24d11b4edda6234bf02cefe27cd22d5ff17e1c68f4bb6ef4f109a35cd127f237",
+      "stored_bytes": 375,
+      "stored_sha256": "24d11b4edda6234bf02cefe27cd22d5ff17e1c68f4bb6ef4f109a35cd127f237",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-image-77009d06ca/volume.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-image-77009d06ca\\volume.json",
+      "source_bytes": 162,
+      "source_sha256": "cf291551086b44c51ec4033094838f2db15a7e07931cfcb2e7e08daef30e6fe8",
+      "stored_bytes": 162,
+      "stored_sha256": "cf291551086b44c51ec4033094838f2db15a7e07931cfcb2e7e08daef30e6fe8",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-image-867dcd8da9/last-stage.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-image-867dcd8da9\\last-stage.json",
+      "source_bytes": 383,
+      "source_sha256": "1e2e5965a3d43debab035246a847d3554321cb2903f6501695e494baa8dbbcff",
+      "stored_bytes": 383,
+      "stored_sha256": "1e2e5965a3d43debab035246a847d3554321cb2903f6501695e494baa8dbbcff",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-image-867dcd8da9/volume.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-image-867dcd8da9\\volume.json",
+      "source_bytes": 160,
+      "source_sha256": "71e019a61600c632cc346f02cec9af0b359667e6578d89cbbf97eaeb78b3d241",
+      "stored_bytes": 160,
+      "stored_sha256": "71e019a61600c632cc346f02cec9af0b359667e6578d89cbbf97eaeb78b3d241",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-image-d6d87cdc6d/last-stage.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-image-d6d87cdc6d\\last-stage.json",
+      "source_bytes": 383,
+      "source_sha256": "925c3f7d62b91858c1c47879f5cea2e388fee88a8a0e56be147cbc52d992f968",
+      "stored_bytes": 383,
+      "stored_sha256": "925c3f7d62b91858c1c47879f5cea2e388fee88a8a0e56be147cbc52d992f968",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-image-d6d87cdc6d/volume.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-image-d6d87cdc6d\\volume.json",
+      "source_bytes": 160,
+      "source_sha256": "e6a145a8ecaf9e81b7428ab9c1a0ef4870736dae90a9da1967a75829f249c52d",
+      "stored_bytes": 160,
+      "stored_sha256": "e6a145a8ecaf9e81b7428ab9c1a0ef4870736dae90a9da1967a75829f249c52d",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-normal-8b5ec82ce4/result.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-normal-8b5ec82ce4\\result.json",
+      "source_bytes": 16311,
+      "source_sha256": "69a4a3217d666e09228eb06c126f19ca299e194028449cc6d006d837e426365b",
+      "stored_bytes": 16311,
+      "stored_sha256": "69a4a3217d666e09228eb06c126f19ca299e194028449cc6d006d837e426365b",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-normal-8b5ec82ce4/serial.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-normal-8b5ec82ce4\\serial.txt",
+      "source_bytes": 1949,
+      "source_sha256": "7b0514b5f352bec7d68195d52ad6a5ab5cbab5ef5959e62e63f35f8ce71cfa09",
+      "stored_bytes": 1949,
+      "stored_sha256": "7b0514b5f352bec7d68195d52ad6a5ab5cbab5ef5959e62e63f35f8ce71cfa09",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-normal-8b5ec82ce4/stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-normal-8b5ec82ce4\\stderr.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-recover-cut-531d3632db/result.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-recover-cut-531d3632db\\result.json",
+      "source_bytes": 13301,
+      "source_sha256": "8ba0d2a0a316903402e86b40ce2be1080b9b4ec668b0897a6980ad3764d8b63d",
+      "stored_bytes": 13301,
+      "stored_sha256": "8ba0d2a0a316903402e86b40ce2be1080b9b4ec668b0897a6980ad3764d8b63d",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-recover-cut-531d3632db/serial.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-recover-cut-531d3632db\\serial.txt",
+      "source_bytes": 1954,
+      "source_sha256": "b5d8dbf19aa9efdf67bec1cd2d82e65196bf053b2151e25632687c8c8b4cbfe6",
+      "stored_bytes": 1954,
+      "stored_sha256": "b5d8dbf19aa9efdf67bec1cd2d82e65196bf053b2151e25632687c8c8b4cbfe6",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-recover-cut-531d3632db/stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-recover-cut-531d3632db\\stderr.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-recover-cut-69ad49ea00/result.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-recover-cut-69ad49ea00\\result.json",
+      "source_bytes": 13523,
+      "source_sha256": "f3733f010d391656a1780f8aa1b7724b1e819e0b98e230f66b4844ebc4f44497",
+      "stored_bytes": 13523,
+      "stored_sha256": "f3733f010d391656a1780f8aa1b7724b1e819e0b98e230f66b4844ebc4f44497",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-recover-cut-69ad49ea00/serial.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-recover-cut-69ad49ea00\\serial.txt",
+      "source_bytes": 1954,
+      "source_sha256": "bed509af43cebbf1d7faa0b82d769a3d609693a79e8107ae046cfa95bb8c41ff",
+      "stored_bytes": 1954,
+      "stored_sha256": "bed509af43cebbf1d7faa0b82d769a3d609693a79e8107ae046cfa95bb8c41ff",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-recover-cut-69ad49ea00/stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-recover-cut-69ad49ea00\\stderr.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-recover-cut-d14bd6009e/result.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-recover-cut-d14bd6009e\\result.json",
+      "source_bytes": 13300,
+      "source_sha256": "175037f7c43b5549e1da94080796d5d1cdf7f6cfbd1e0e09ac0e93de82fce3fb",
+      "stored_bytes": 13300,
+      "stored_sha256": "175037f7c43b5549e1da94080796d5d1cdf7f6cfbd1e0e09ac0e93de82fce3fb",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-recover-cut-d14bd6009e/serial.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-recover-cut-d14bd6009e\\serial.txt",
+      "source_bytes": 1954,
+      "source_sha256": "0e9b47aa133d614ef8affc70691ea385dfa4083372a67bbaf825787939cc8c8e",
+      "stored_bytes": 1954,
+      "stored_sha256": "0e9b47aa133d614ef8affc70691ea385dfa4083372a67bbaf825787939cc8c8e",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-recover-cut-d14bd6009e/stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-recover-cut-d14bd6009e\\stderr.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-recover-f4a8237e97/result.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-recover-f4a8237e97\\result.json",
+      "source_bytes": 16296,
+      "source_sha256": "6a331874dfd2acd711cc00382504c9672c53c408a70ac8470683042505150441",
+      "stored_bytes": 16296,
+      "stored_sha256": "6a331874dfd2acd711cc00382504c9672c53c408a70ac8470683042505150441",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-recover-f4a8237e97/serial.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-recover-f4a8237e97\\serial.txt",
+      "source_bytes": 1950,
+      "source_sha256": "1a89bf6160614576b0788be4e6a65ea5b24a0af3c4c49388425127e8e9bf420f",
+      "stored_bytes": 1950,
+      "stored_sha256": "1a89bf6160614576b0788be4e6a65ea5b24a0af3c4c49388425127e8e9bf420f",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/run/volume-recover-f4a8237e97/stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-recover-f4a8237e97\\stderr.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/build/volume-gate.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\volume-gate.json",
+      "source_bytes": 17365,
+      "source_sha256": "0ce9cfdc10141823c9ce354bc9dfe0417aae21602be7b44fcde7967e54f18eb0",
+      "stored_bytes": 17365,
+      "stored_sha256": "0ce9cfdc10141823c9ce354bc9dfe0417aae21602be7b44fcde7967e54f18eb0",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/invocation.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\invocation.json",
+      "source_bytes": 1314,
+      "source_sha256": "b7ca68aebcbd6ad8ef1d585f118a840567a85c17d2dab9cce75550e3147f216c",
+      "stored_bytes": 1314,
+      "stored_sha256": "b7ca68aebcbd6ad8ef1d585f118a840567a85c17d2dab9cce75550e3147f216c",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/stderr.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\stderr.txt",
+      "source_bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 0,
+      "stored_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/regression/stdout.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\stdout.txt",
+      "source_bytes": 10499,
+      "source_sha256": "06915e45129d69f492c0b0b15e831177f93060ad37fbd96450602ab46105c252",
+      "stored_bytes": 10499,
+      "stored_sha256": "06915e45129d69f492c0b0b15e831177f93060ad37fbd96450602ab46105c252",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/btrfs-readonly/build-manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\btrfs-readonly\\build-manifest.json",
+      "source_bytes": 3967,
+      "source_sha256": "2aa2194a61874c76e53440e76f2c0a5a1a59738726006d665beee9ba3754ced8",
+      "stored_bytes": 3967,
+      "stored_sha256": "2aa2194a61874c76e53440e76f2c0a5a1a59738726006d665beee9ba3754ced8",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/btrfs-readonly/result.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\btrfs-readonly\\result.json",
+      "source_bytes": 3544,
+      "source_sha256": "52b341ef5187b8d41e6c5db471e9141edb01ce6b4d16d4af27baeb00b41251a6",
+      "stored_bytes": 3544,
+      "stored_sha256": "52b341ef5187b8d41e6c5db471e9141edb01ce6b4d16d4af27baeb00b41251a6",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/btrfs-readonly/serial.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\btrfs-readonly\\serial.txt",
+      "source_bytes": 480,
+      "source_sha256": "8a42c0029ae46f277bd03e75ddb09f2cfedca878d25feef19bf19be6a2dec8ef",
+      "stored_bytes": 480,
+      "stored_sha256": "8a42c0029ae46f277bd03e75ddb09f2cfedca878d25feef19bf19be6a2dec8ef",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/btrfs-readonly/stderr-trace.txt.gz",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\btrfs-readonly\\stderr-trace.txt",
+      "source_bytes": 28930,
+      "source_sha256": "a00b4e0ff0fe9001a431bf2052eb1c74fe25e19ff8f0d42c247103ab80bbab05",
+      "stored_bytes": 1165,
+      "stored_sha256": "599053ac4a0f3fc2d431fcfd1158d4682745c3af1ead2e6b2c36ef80661fda71",
+      "gzip_lossless": true
+    },
+    {
+      "path": "native/runs/btrfs-writable/build-manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\btrfs-writable\\build-manifest.json",
+      "source_bytes": 3955,
+      "source_sha256": "a11076b1ac1645f1f843b8a0ecf9575f25ffa401ca4c2c757b5f0998a3f34e25",
+      "stored_bytes": 3955,
+      "stored_sha256": "a11076b1ac1645f1f843b8a0ecf9575f25ffa401ca4c2c757b5f0998a3f34e25",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/btrfs-writable/result.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\btrfs-writable\\result.json",
+      "source_bytes": 3553,
+      "source_sha256": "6efa9f92d8843ea362803fe76714e3591ceb25e7dbef40cb34e174af477a76e0",
+      "stored_bytes": 3553,
+      "stored_sha256": "6efa9f92d8843ea362803fe76714e3591ceb25e7dbef40cb34e174af477a76e0",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/btrfs-writable/serial.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\btrfs-writable\\serial.txt",
+      "source_bytes": 480,
+      "source_sha256": "5ce13e3d1efe478bda5c4ae88baa47dd8073ff1bda293ad28dda41b57891cfcc",
+      "stored_bytes": 480,
+      "stored_sha256": "5ce13e3d1efe478bda5c4ae88baa47dd8073ff1bda293ad28dda41b57891cfcc",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/btrfs-writable/stderr-trace.txt.gz",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\btrfs-writable\\stderr-trace.txt",
+      "source_bytes": 28930,
+      "source_sha256": "9a3ea4d7d5fc6128bf9c97a21bcaad031568285e1f5d45a4e671b57bea650638",
+      "stored_bytes": 1116,
+      "stored_sha256": "df26da587ca6784214090f01fcbbfe3796cd9b8af192e62eaee395e2a3e2c568",
+      "gzip_lossless": true
+    },
+    {
+      "path": "native/runs/openzfs-leaf-readonly/build-manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\openzfs-leaf-readonly\\build-manifest.json",
+      "source_bytes": 3967,
+      "source_sha256": "2aa2194a61874c76e53440e76f2c0a5a1a59738726006d665beee9ba3754ced8",
+      "stored_bytes": 3967,
+      "stored_sha256": "2aa2194a61874c76e53440e76f2c0a5a1a59738726006d665beee9ba3754ced8",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/openzfs-leaf-readonly/result.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\openzfs-leaf-readonly\\result.json",
+      "source_bytes": 3569,
+      "source_sha256": "5d169b92d591a8de298676603f612ad67421aa4edf94330f6423087870307e29",
+      "stored_bytes": 3569,
+      "stored_sha256": "5d169b92d591a8de298676603f612ad67421aa4edf94330f6423087870307e29",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/openzfs-leaf-readonly/serial.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\openzfs-leaf-readonly\\serial.txt",
+      "source_bytes": 480,
+      "source_sha256": "5ce13e3d1efe478bda5c4ae88baa47dd8073ff1bda293ad28dda41b57891cfcc",
+      "stored_bytes": 480,
+      "stored_sha256": "5ce13e3d1efe478bda5c4ae88baa47dd8073ff1bda293ad28dda41b57891cfcc",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/openzfs-leaf-readonly/stderr-trace.txt.gz",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\openzfs-leaf-readonly\\stderr-trace.txt",
+      "source_bytes": 28930,
+      "source_sha256": "1a56aca460188dd511ac6a1e35f61db0658cc82315183bb273a8a839efbec58a",
+      "stored_bytes": 1175,
+      "stored_sha256": "4c2277bd083dafe068b728e65df79d50694b03c7ef66fcdc9a542c20348017a7",
+      "gzip_lossless": true
+    },
+    {
+      "path": "native/runs/openzfs-leaf-writable/build-manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\openzfs-leaf-writable\\build-manifest.json",
+      "source_bytes": 3955,
+      "source_sha256": "a11076b1ac1645f1f843b8a0ecf9575f25ffa401ca4c2c757b5f0998a3f34e25",
+      "stored_bytes": 3955,
+      "stored_sha256": "a11076b1ac1645f1f843b8a0ecf9575f25ffa401ca4c2c757b5f0998a3f34e25",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/openzfs-leaf-writable/result.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\openzfs-leaf-writable\\result.json",
+      "source_bytes": 3578,
+      "source_sha256": "e80eedf658b5c8f901658246cabc2c8382d9de7ab3f412c8e4e7deeb9ecff08a",
+      "stored_bytes": 3578,
+      "stored_sha256": "e80eedf658b5c8f901658246cabc2c8382d9de7ab3f412c8e4e7deeb9ecff08a",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/openzfs-leaf-writable/serial.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\openzfs-leaf-writable\\serial.txt",
+      "source_bytes": 480,
+      "source_sha256": "8a42c0029ae46f277bd03e75ddb09f2cfedca878d25feef19bf19be6a2dec8ef",
+      "stored_bytes": 480,
+      "stored_sha256": "8a42c0029ae46f277bd03e75ddb09f2cfedca878d25feef19bf19be6a2dec8ef",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/openzfs-leaf-writable/stderr-trace.txt.gz",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\openzfs-leaf-writable\\stderr-trace.txt",
+      "source_bytes": 28930,
+      "source_sha256": "5525e75eda87986093a333937f5548ceab20591287db2868dc03c4cf16a2d784",
+      "stored_bytes": 1165,
+      "stored_sha256": "a2d50c987b2b44c80b394d561e6bf7d6e2158f56614c92d09908ce4a837fe8fe",
+      "gzip_lossless": true
+    },
+    {
+      "path": "native/runs/own-cold-recover/build-manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\own-cold-recover\\build-manifest.json",
+      "source_bytes": 3967,
+      "source_sha256": "2aa2194a61874c76e53440e76f2c0a5a1a59738726006d665beee9ba3754ced8",
+      "stored_bytes": 3967,
+      "stored_sha256": "2aa2194a61874c76e53440e76f2c0a5a1a59738726006d665beee9ba3754ced8",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/own-cold-recover/result.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\own-cold-recover\\result.json",
+      "source_bytes": 3684,
+      "source_sha256": "bf61709db7df0bb15b512b29ae7e2cb78d2f24304e1920595143cd1b606dd5dd",
+      "stored_bytes": 3684,
+      "stored_sha256": "bf61709db7df0bb15b512b29ae7e2cb78d2f24304e1920595143cd1b606dd5dd",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/own-cold-recover/serial.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\own-cold-recover\\serial.txt",
+      "source_bytes": 1901,
+      "source_sha256": "459b32eb34f4f3f7dd6225c6a346e05c00b412adf312cfa8f42b62b3673dabb7",
+      "stored_bytes": 1901,
+      "stored_sha256": "459b32eb34f4f3f7dd6225c6a346e05c00b412adf312cfa8f42b62b3673dabb7",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/own-cold-recover/stderr-trace.txt.gz",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\own-cold-recover\\stderr-trace.txt",
+      "source_bytes": 3358526,
+      "source_sha256": "4dd98d79b4d7a48cc0edc92ac9b85b72255ed2b8c923f547b43ffe369d46cbb2",
+      "stored_bytes": 43482,
+      "stored_sha256": "bf8c22cdde29448978d04f6e3e15e8124c58976db49d4c31d4f867823bdf2129",
+      "gzip_lossless": true
+    },
+    {
+      "path": "native/runs/own-normal/build-manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\own-normal\\build-manifest.json",
+      "source_bytes": 3955,
+      "source_sha256": "a11076b1ac1645f1f843b8a0ecf9575f25ffa401ca4c2c757b5f0998a3f34e25",
+      "stored_bytes": 3955,
+      "stored_sha256": "a11076b1ac1645f1f843b8a0ecf9575f25ffa401ca4c2c757b5f0998a3f34e25",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/own-normal/result.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\own-normal\\result.json",
+      "source_bytes": 3674,
+      "source_sha256": "7dd9bb8489d020a2dbff30191f87c0daca36a1ce44db69e6999499854add97b0",
+      "stored_bytes": 3674,
+      "stored_sha256": "7dd9bb8489d020a2dbff30191f87c0daca36a1ce44db69e6999499854add97b0",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/own-normal/serial.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\own-normal\\serial.txt",
+      "source_bytes": 1900,
+      "source_sha256": "ef72f180608ea88e6e0808bb2c562345dcf7b678fe09812e7a2a2a16f3278894",
+      "stored_bytes": 1900,
+      "stored_sha256": "ef72f180608ea88e6e0808bb2c562345dcf7b678fe09812e7a2a2a16f3278894",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/own-normal/stderr-trace.txt.gz",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\own-normal\\stderr-trace.txt",
+      "source_bytes": 4710172,
+      "source_sha256": "6fd2ffdb639d0fa52db03e2a65a3c010e78050a83d3f558090ea0335dcf279d4",
+      "stored_bytes": 126344,
+      "stored_sha256": "7e018587ca56da244424e979c2e0401475166dac75a1a9008550ebcbc8a140d9",
+      "gzip_lossless": true
+    },
+    {
+      "path": "native/runs/zero-prefix-payload-tail-readonly/build-manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\zero-prefix-payload-tail-readonly\\build-manifest.json",
+      "source_bytes": 3967,
+      "source_sha256": "2aa2194a61874c76e53440e76f2c0a5a1a59738726006d665beee9ba3754ced8",
+      "stored_bytes": 3967,
+      "stored_sha256": "2aa2194a61874c76e53440e76f2c0a5a1a59738726006d665beee9ba3754ced8",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/zero-prefix-payload-tail-readonly/result.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\zero-prefix-payload-tail-readonly\\result.json",
+      "source_bytes": 3609,
+      "source_sha256": "f7c5cf5bb9ff22417c08a6866951469f1ec7fb7849cebc24d16b5a77f57201c7",
+      "stored_bytes": 3609,
+      "stored_sha256": "f7c5cf5bb9ff22417c08a6866951469f1ec7fb7849cebc24d16b5a77f57201c7",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/zero-prefix-payload-tail-readonly/serial.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\zero-prefix-payload-tail-readonly\\serial.txt",
+      "source_bytes": 480,
+      "source_sha256": "8a42c0029ae46f277bd03e75ddb09f2cfedca878d25feef19bf19be6a2dec8ef",
+      "stored_bytes": 480,
+      "stored_sha256": "8a42c0029ae46f277bd03e75ddb09f2cfedca878d25feef19bf19be6a2dec8ef",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/zero-prefix-payload-tail-readonly/stderr-trace.txt.gz",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\zero-prefix-payload-tail-readonly\\stderr-trace.txt",
+      "source_bytes": 28930,
+      "source_sha256": "5edb1ca69ab1520684023b7512ffcf9d6ffd0447776ce664fa3fe8ec619e6007",
+      "stored_bytes": 1149,
+      "stored_sha256": "97af42efe0ae05de5f7f4c980781cf2500f9b9df0ca75283cdaadbb8bd74b81a",
+      "gzip_lossless": true
+    },
+    {
+      "path": "native/runs/zero-prefix-payload-tail-writable/build-manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\zero-prefix-payload-tail-writable\\build-manifest.json",
+      "source_bytes": 3955,
+      "source_sha256": "a11076b1ac1645f1f843b8a0ecf9575f25ffa401ca4c2c757b5f0998a3f34e25",
+      "stored_bytes": 3955,
+      "stored_sha256": "a11076b1ac1645f1f843b8a0ecf9575f25ffa401ca4c2c757b5f0998a3f34e25",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/zero-prefix-payload-tail-writable/result.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\zero-prefix-payload-tail-writable\\result.json",
+      "source_bytes": 3617,
+      "source_sha256": "ff87d8589c675038307da1ec82e94bee6afa5ab575799f7c8ff7698257836679",
+      "stored_bytes": 3617,
+      "stored_sha256": "ff87d8589c675038307da1ec82e94bee6afa5ab575799f7c8ff7698257836679",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/zero-prefix-payload-tail-writable/serial.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\zero-prefix-payload-tail-writable\\serial.txt",
+      "source_bytes": 480,
+      "source_sha256": "8a42c0029ae46f277bd03e75ddb09f2cfedca878d25feef19bf19be6a2dec8ef",
+      "stored_bytes": 480,
+      "stored_sha256": "8a42c0029ae46f277bd03e75ddb09f2cfedca878d25feef19bf19be6a2dec8ef",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/zero-prefix-payload-tail-writable/stderr-trace.txt.gz",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\zero-prefix-payload-tail-writable\\stderr-trace.txt",
+      "source_bytes": 28930,
+      "source_sha256": "0f827d18ab4f8d3595a7386f7e1d67f02dd4452d77618332827816b25a45092d",
+      "stored_bytes": 1209,
+      "stored_sha256": "b902ec2d7112fcf38291503c6f9abce4cc7bbc9e29237ed47ebb50a50a6f2235",
+      "gzip_lossless": true
+    },
+    {
+      "path": "native/runs/zero-readonly/build-manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\zero-readonly\\build-manifest.json",
+      "source_bytes": 3967,
+      "source_sha256": "2aa2194a61874c76e53440e76f2c0a5a1a59738726006d665beee9ba3754ced8",
+      "stored_bytes": 3967,
+      "stored_sha256": "2aa2194a61874c76e53440e76f2c0a5a1a59738726006d665beee9ba3754ced8",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/zero-readonly/result.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\zero-readonly\\result.json",
+      "source_bytes": 3549,
+      "source_sha256": "401cfd0ed4f26d6bb60aeb3603de2b469f8a0825c46788083a47b6ef28059ad1",
+      "stored_bytes": 3549,
+      "stored_sha256": "401cfd0ed4f26d6bb60aeb3603de2b469f8a0825c46788083a47b6ef28059ad1",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/zero-readonly/serial.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\zero-readonly\\serial.txt",
+      "source_bytes": 480,
+      "source_sha256": "5ce13e3d1efe478bda5c4ae88baa47dd8073ff1bda293ad28dda41b57891cfcc",
+      "stored_bytes": 480,
+      "stored_sha256": "5ce13e3d1efe478bda5c4ae88baa47dd8073ff1bda293ad28dda41b57891cfcc",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/zero-readonly/stderr-trace.txt.gz",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\zero-readonly\\stderr-trace.txt",
+      "source_bytes": 28930,
+      "source_sha256": "df1b354e319aa1d99add6bb7412b2953e99b4795d342ab193381ede4b511bad9",
+      "stored_bytes": 1109,
+      "stored_sha256": "609577b20f1c9f4ec932da90a2c71971811483230e3dc6d75e635f1ff27f587a",
+      "gzip_lossless": true
+    },
+    {
+      "path": "native/runs/zero-writable/build-manifest.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\zero-writable\\build-manifest.json",
+      "source_bytes": 3955,
+      "source_sha256": "a11076b1ac1645f1f843b8a0ecf9575f25ffa401ca4c2c757b5f0998a3f34e25",
+      "stored_bytes": 3955,
+      "stored_sha256": "a11076b1ac1645f1f843b8a0ecf9575f25ffa401ca4c2c757b5f0998a3f34e25",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/zero-writable/result.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\zero-writable\\result.json",
+      "source_bytes": 3556,
+      "source_sha256": "c6fb226d4889cfb2db04d262499b08325c7ce4a2d509f5098778a1cebd2fe539",
+      "stored_bytes": 3556,
+      "stored_sha256": "c6fb226d4889cfb2db04d262499b08325c7ce4a2d509f5098778a1cebd2fe539",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/zero-writable/serial.txt",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\zero-writable\\serial.txt",
+      "source_bytes": 480,
+      "source_sha256": "5ce13e3d1efe478bda5c4ae88baa47dd8073ff1bda293ad28dda41b57891cfcc",
+      "stored_bytes": 480,
+      "stored_sha256": "5ce13e3d1efe478bda5c4ae88baa47dd8073ff1bda293ad28dda41b57891cfcc",
+      "gzip_lossless": false
+    },
+    {
+      "path": "native/runs/zero-writable/stderr-trace.txt.gz",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\runs\\zero-writable\\stderr-trace.txt",
+      "source_bytes": 28930,
+      "source_sha256": "71c7ddee1b91a7757cb18225a6cb41468eec6cf4cff3fe49d14f1ab509337f94",
+      "stored_bytes": 1160,
+      "stored_sha256": "34c6efb6167de7d8fb062540feda14fa3530b05e3c6623e0ed82cef25d98a7f5",
+      "gzip_lossless": true
+    },
+    {
+      "path": "native/seeds/own-empty.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\seeds\\own-empty.json",
+      "source_bytes": 160,
+      "source_sha256": "c453f6104e2af34a42efd553e9a60ffd353744cc2b2ec5b3d125dcceca1a1a3f",
+      "stored_bytes": 160,
+      "stored_sha256": "c453f6104e2af34a42efd553e9a60ffd353744cc2b2ec5b3d125dcceca1a1a3f",
+      "gzip_lossless": false
+    },
+    {
+      "path": "independent-native-review/matrix-review.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\independent-native-review\\matrix-review.json",
+      "source_bytes": 7067,
+      "source_sha256": "b32e9287b99c6a453e0714ede09492e138eb8fe37783a36ebe2aabcecbccbef8",
+      "stored_bytes": 7067,
+      "stored_sha256": "b32e9287b99c6a453e0714ede09492e138eb8fe37783a36ebe2aabcecbccbef8",
+      "gzip_lossless": false
+    },
+    {
+      "path": "independent-native-review/README.md",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\independent-native-review\\README.md",
+      "source_bytes": 2544,
+      "source_sha256": "c938f8416854bcd0c2667c28c81ff26cd7c789fa320086aa34c0b6f65e7cc952",
+      "stored_bytes": 2544,
+      "stored_sha256": "c938f8416854bcd0c2667c28c81ff26cd7c789fa320086aa34c0b6f65e7cc952",
+      "gzip_lossless": false
+    },
+    {
+      "path": "independent-native-review/regression-review.json",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\independent-native-review\\regression-review.json",
+      "source_bytes": 9584,
+      "source_sha256": "f6ce39fb80c69ddd02dd04b485f94c5e595792977d35cea75605d66b41cb89c1",
+      "stored_bytes": 9584,
+      "stored_sha256": "f6ce39fb80c69ddd02dd04b485f94c5e595792977d35cea75605d66b41cb89c1",
+      "gzip_lossless": false
+    },
+    {
+      "path": "independent-native-review/verify_receipts.py",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\independent-native-review\\verify_receipts.py",
+      "source_bytes": 11357,
+      "source_sha256": "fbdac1d7524f870df1bf68971ee1ba00195a85ab6e0512c793d9cb7f855816a2",
+      "stored_bytes": 11357,
+      "stored_sha256": "fbdac1d7524f870df1bf68971ee1ba00195a85ab6e0512c793d9cb7f855816a2",
+      "gzip_lossless": false
+    },
+    {
+      "path": "independent-native-review/verify_regression.py",
+      "source_path": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\independent-native-review\\verify_regression.py",
+      "source_bytes": 8745,
+      "source_sha256": "51fd6750561876c85416fb6c2ddc37bbe883841c16c8884e6a59bdfc6c998cff",
+      "stored_bytes": 8745,
+      "stored_sha256": "51fd6750561876c85416fb6c2ddc37bbe883841c16c8884e6a59bdfc6c998cff",
+      "gzip_lossless": false
+    }
+  ]
+}

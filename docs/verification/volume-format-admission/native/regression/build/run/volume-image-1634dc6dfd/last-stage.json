@@ -1,0 +1,7 @@
+{
+  "case": "recover-cut",
+  "passed": true,
+  "run_directory": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-recover-cut-531d3632db",
+  "after_sha256": "53616c6d0816f9b78ffbd14c5098340ad0d1edd3c5407b966d4295155f6e97f9",
+  "source_sha256": "2cffba892608c907b717158a83b8a1c66c7d79dc5843d2d03eabc4ff1831c028"
+}

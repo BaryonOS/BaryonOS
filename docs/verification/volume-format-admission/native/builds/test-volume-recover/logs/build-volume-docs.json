@@ -1,0 +1,11 @@
+{
+  "command": [
+    "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+    "-B",
+    "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\source\\sdk\\examples\\volume-docs\\build.py"
+  ],
+  "cwd": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\source",
+  "started_unix": 1793657203.7694578,
+  "duration_s": 0.31267404556274414,
+  "returncode": 0
+}

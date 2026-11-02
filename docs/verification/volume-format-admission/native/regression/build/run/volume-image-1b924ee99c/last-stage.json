@@ -1,0 +1,7 @@
+{
+  "case": "recover",
+  "passed": true,
+  "run_directory": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-recover-f4a8237e97",
+  "after_sha256": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
+  "source_sha256": "2cffba892608c907b717158a83b8a1c66c7d79dc5843d2d03eabc4ff1831c028"
+}
