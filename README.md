@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`c77831a3`](https://github.com/simonvanieperen/nieuw-os/commit/c77831a3fbce41a8c6da96d67daf4a602726f6ee) ·
+**Bron:** [`ebdcebf6`](https://github.com/simonvanieperen/nieuw-os/commit/ebdcebf6cd1f29fefe08b6abab65d0cfcceb71ca) ·
 **Ontwikkelbranch:** `codex/materiaal-library-20261102`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Native Materiaalbibliotheek en proportionele documentwerkruimte in uitvoering.
-41/100 blijft 41. Proportionele documentlayout en begrensde SDK-wrappers voor bestaande collecties/history zijn geïntegreerd. Gerichte UI/apphosttests, de native appbuild en SDK-workspace/Clippy/fmt/native-librarybuild slagen; bibliotheekbediening, nieuwe QEMU-route, koude heropening en volledige regressie volgen. U03 blijft open tot volledige native acceptatie; geen gewichten of eindscope gewijzigd.
+41/100 blijft 41. Naamzoeking, collecties, geschiedenis/restore en proportionele native documentbediening zijn geïntegreerd, met read-only/stale/pointer/conflict-negatieven en beperkte geverifieerde historiepreview. De eerste14 hostoracles en native app/ELF-build zijn geslaagd; finale bronherhaling en nieuwe QEMU-write/cold/regressiegates volgen. Een afgebroken volledige hostcontrole zonder exitstatus wordt niet geteld. U03 en alle bestaande gewichten blijven ongewijzigd open tot volledig bewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

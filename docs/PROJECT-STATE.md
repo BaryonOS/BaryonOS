@@ -21,9 +21,21 @@ Geïntegreerd: proportionele tekstlayout `2fe2604` en SDK-collecties/history
 workspacetests en 63 compatibiliteitstests, Clippy/fmt en native SDK-librarybuild
 groen. SDK-commando-/loghashes staan in de eigen worktree onder
 `build/library-sdk/logs/handoff.json`. Dit is nog geen nieuwe native uitvoering.
-Root bouwt daarnaast de volledige bibliotheekrunner en 14 exacte hostoracles;
-deze WIP wordt pas na UI-integratie gegate. Nieuwe cold-parentnegatieven slagen,
-inclusief stale bron, foutflags, onzekere stop en gewijzigde disk/transcript. Volgende stap: SDK/UI integreren, echte native bibliotheekroute
+De volledige UI-bibliotheek is geïntegreerd (`afdb142`, `4e66ff6`, `ebdcebf`),
+plus volledig geverifieerde historieprefix (`c98fcad`). Root14fase-hostfixture
+slaagde op het eerste librarycheckpoint met werkelijk typen, naam, collectie,
+query en restore; geen gesimuleerde lijst. Finale herhaling na de focus-,
+200%- en caret-affinityfixes en nieuwe native gates volgt. Drie onafhankelijke
+library-negatieven en elf runnerchecks slagen; reviewer heeft gevonden index-,
+stale-pointer-, compactfocus-, cold-input- en extra-mutatiegaten laten herstellen.
+Het RX-codebudget is na gemeten131177bytes vast144KiB; echte ELF-parsergate
+vindt156pagina's, vijf W^X-segmenten, ongewijzigde192KiB-documentbuffers/RWquota.
+Zie NATIVE-MATERIAL-LIBRARY voor diagnostische128KiB/LTO/z-mislukkingen.
+
+Een voorlopige volledige UI-controle is door verlies van de toolsessie
+onderbroken zonder exitstatus of eindrapport. Die telt niet als groen. Er wordt
+op de finale bron opnieuw getest met een blijvende uitvoercel. Native
+bibliotheek/cold/volledige regressie zijn nog niet uitgevoerd op deze bron. Volgende stap: SDK/UI integreren, echte native bibliotheekroute
 plus koude heropening, volledige compositor/clipboardregressie, screenshots en
 visuele review. Geen Windows-, VMware-, biometrie-, FIDO2- of hardwareclaim.
 

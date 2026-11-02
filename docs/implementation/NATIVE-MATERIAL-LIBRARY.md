@@ -52,3 +52,19 @@ De bestaande volledige clipboard-/compositorherstelgate blijft apart verplicht.
 Nieuwe hostbeelden vervangen geen native uitvoering, menselijke taakproef,
 accountauthenticatie of hardwarebewijs. Score en bewijs worden pas na die
 controles herbeoordeeld.
+
+## Gemeten native codebudget
+
+De eerste gekoppelde bibliotheekversie meet in de echte scalar-linkermap
+131.177 bytes RX-code: 105 bytes boven het eerdere 128-KiB-demobudget.
+Een afzonderlijke `opt-level=z`-proef overschrijdt dat budget eveneens;
+thin LTO is met de gepinde prebuilt-core/code-modelcombinatie niet bruikbaar.
+Beide mislukte proeven blijven diagnostiek, geen geaccepteerde binaries.
+
+Het appspecifieke linkerscript reserveert daarom vast **144 KiB RX** vanaf
+hetzelfde adres `0x400f0000`. Read-only blijft 512 KiB; data/BSS blijft 256 KiB;
+de drie 64-KiB-documentbuffers, entry/startup-ABI, stack/guards en kernelquota
+blijven gelijk. Geen W+X, capability-, apparaat- of kernel-ABI-uitbreiding.
+De echte ELF wordt opnieuw met dezelfde kernelparser op alle vijf segmenten,
+non-overlap, rechten en totale framequota gecontroleerd. Het is geen reden om
+een onverwachte verdere groei of mislukte native acceptatie te negeren.
