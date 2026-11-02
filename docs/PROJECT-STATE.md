@@ -1,32 +1,34 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — volwassen native sessie / N01 — 2 november 2026
+## NEXT AGENT HANDOFF — N01 geaccepteerd, U01 native integratie — 2 november 2026
 
-**Werkbranch:** `codex/mature-native-session-20261102`, basis `0fe648b`.
-Checkpoint bevat nieuwe `ui/graphics` met proportionele Open Sans en eigen
-vectoricons, vernieuwde Materiaal/accounts/login/desktop-weergaven, nieuwe
-no_std vensterpolicy/compositor/init en expliciete app-presentatieherbinding.
-De twee-venstersessie gebruikt echte Materiaal/Rekenmachine-processen en
-behoudt document/model bij vervanging van presentatie. Kernelkoppeling/recovery
-is nog in integratie; **geen native U01-acceptatie** bij dit checkpoint.
+Branch `codex/mature-native-session-20261102`, concept-PR #122 (bouwt op #121).
+**37/100** na volledige N01-acceptatie (+3). Twee geïntegreerde native QEMU-cases
+slagen, inclusief echte TCP/UDP-pakketten, beide IPC-apps, malformed/backpressure/
+close en verlies van A's replykanaal terwijl B verder werkt. Zie
+`docs/verification/mature-session-20261102/` voor bronversies en bytebewijzen;
+`docs/verification/n01-native-service-20261102/` voor volledige bibliotheek-/SDK-
+negatieven en gerichte tweede-agentfixreview. Geen internet-/TLS-/hardwareclaim.
 
-**Gericht uitgevoerd:** grafische/UI-hosttests en oorspronkelijke Material
-ELF-budgetcontrole in `docs/verification/native-visual-foundation/host-and-elf.json`.
-Nieuwe vensterpolicy: zeven hosttests en beide echte none-ELFs gebouwd; latere
-reviewfixes worden opnieuw getest. Material rebindadapter is freestanding
-gebouwd. De calculator kreeg de gedeelde graphicsdependency en wordt herbouwd.
+**U01 blijft open:** echte1280×720-twee-app-smoke slaagt met native frame na
+142,08s in TCG. De nieuwe compositor/init/kernelgroep bouwt, maar volledige
+focus/drag/crash/herbind/save/reopen en exact ongesneden appbeeldorakel moeten
+nog slagen. Performanceagent beperkt IPC-wachtrondes en hergebruikt opaque
+backingpixels; dat is nog geen native snelheidsmeting. Bronbevriezing volgt
+na zijn commit. Nieuwe8-app Windowsbundelaar met fontnotices is geïntegreerd;
+helper ongewijzigd, alleen synthetisch PowerShellbewijs, geen nieuwe Windowstest.
 
-**N01 geïntegreerd:** broncommits c749492/8128232/4c6bf60/3a5e1e3 (lokale
-cherry-picks eindigen op `865a2ae`). Een echte afzonderlijke QEMU-run op de
-servicewerkbranch slaagt inclusief tien TCP-cases, UDP-fouten en cleanup.
-Onafhankelijke review controleert de defecte-clientgrens; geïntegreerde nieuwe
-source/hash-herhaling moet nog. N01 blijft open totdat dat is afgemaakt.
+**Gericht groen:** proportionele UI47+graphics7+fixture2 hosttests en scalar
+ELF-budgetcontrole; windowpolicy8, Materiaal hersteltests28, Calc hersteltests8,
+runnernegatieven7. Specifieke afwijzingen sluiten ook nieuwe SUR-grants; pending
+reply blijft per app; inputcancelgeneraties sluiten aan op de controller.
 
-**Score:** 34/100, ongewijzigde vaste gates. Volgende stap: kernelvenstersessie
-integreren, alle gewijzigde native apps bouwen, echte twee-app focus/drag/crash/
-herbind/save/reopen-acceptatie uitvoeren en N01-herhaling op dezelfde bron.
-Oude Windows-pakketbron344dc0a blijft apart geldig; dit is nog geen nieuw lokaal
-Windows-acceptatiebewijs. Geen fysieke hardware- of echte authenticatieclaim.
+**Eerstvolgend:** performancecommit integreren, volledige nieuwe bron bouwen en
+`tools/run_window_session.py` met sourcegebonden hostorakel uitvoeren. Vervolgens
+N01 kort op definitieve bron herhalen, definitief bewijs/score bewaren, normale
+Windowsbundle bouwen en exacte implementatiehash aan lokale testchat doorgeven.
+Geen kernelwissel, fysieke disk-/USB-/GPU-passthrough, echte login- of algemene
+veiligheidssuperioriteitsclaim.
 
 ## Vorige afgeronde checkpoint — native sessiepreview
 

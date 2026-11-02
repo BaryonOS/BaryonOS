@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 226" role="img" aria-labelledby="title description">
-  <title id="title">Nieuw OS: 34% van de vaste productroadmap</title>
-  <desc id="description">34 van 100 gewogen acceptatiepunten. Nul is niet begonnen; honderd is een volwaardig zelfstandig OS op ondersteunde hardware. Beoordeeld op 2026-11-02. Geen tijds- of veiligheidsscore.</desc>
+  <title id="title">Nieuw OS: 37% van de vaste productroadmap</title>
+  <desc id="description">37 van 100 gewogen acceptatiepunten. Nul is niet begonnen; honderd is een volwaardig zelfstandig OS op ondersteunde hardware. Beoordeeld op 2026-11-02. Geen tijds- of veiligheidsscore.</desc>
   <rect width="960" height="226" rx="16" fill="#f4f1eb"/>
   <text x="48" y="40" fill="#45504c" font-family="system-ui,sans-serif" font-size="14" font-weight="600" letter-spacing="2">NIEUW OS · EIGEN KERNEL · EIGEN PRODUCT</text>
-  <text x="48" y="104" fill="#173e34" font-family="system-ui,sans-serif" font-size="56" font-weight="700">34%</text>
+  <text x="48" y="104" fill="#173e34" font-family="system-ui,sans-serif" font-size="56" font-weight="700">37%</text>
   <text x="238" y="78" fill="#173e34" font-family="system-ui,sans-serif" font-size="21" font-weight="600">Van eigen kern naar dagelijks bruikbaar OS</text>
-  <text x="238" y="105" fill="#45504c" font-family="system-ui,sans-serif" font-size="15">34 / 100 acceptatiepunten · herbeoordeeld 2026-11-02</text>
+  <text x="238" y="105" fill="#45504c" font-family="system-ui,sans-serif" font-size="15">37 / 100 acceptatiepunten · herbeoordeeld 2026-11-02</text>
   <rect x="66" y="136" width="828" height="19" rx="9.5" fill="#d5ddd5"/>
-  <rect x="66" y="136" width="281.52" height="19" rx="9.5" fill="#207459"/>
+  <rect x="66" y="136" width="306.36" height="19" rx="9.5" fill="#207459"/>
   <g fill="#45504c" font-family="system-ui,sans-serif" font-size="13" text-anchor="middle">
     <text x="66" y="177">0%</text><text x="273" y="177">25%</text><text x="480" y="177">50%</text><text x="687" y="177">75%</text><text x="894" y="177">100%</text>
   </g>

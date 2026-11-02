@@ -217,11 +217,11 @@ Het script voert geen OS-tests uit en beoordeelt de bewijsinhoud niet.
 | **U05 — Instellingen, zoeken en herstel** | 2 | Open | Native systeeminstellingen, lokale zoekfunctie, account/sessiebeheer en begrijpelijke fout-/herstelroutes werken consistent. |
 | **U06 — Afwerking getoetst met gebruikers** | 1 | Open | Representatieve gebruikers voltooien afgesproken kerntaken; frictie, fouten en visuele inconsistenties zijn gemeten en opgelost binnen productbudgetten. |
 
-### N — Internet en netwerkdiensten (0/10)
+### N — Internet en netwerkdiensten (3/10)
 
 | Criterium | Punten | Status | Acceptatie en bewijs |
 |---|---:|---|---|
-| **N01 — Native pakket- en transportstack** | 3 | Open | De eigen OS-netwerkdienst verwerkt echte packets en begrensde IP/TCP/UDP-verbindingen; malformed input, backpressure en afsluiten zijn getest. |
+| **N01 — Native pakket- en transportstack** | 3 | Behaald | De eigen OS-netwerkdienst verwerkt echte packets en begrensde IP/TCP/UDP-verbindingen; malformed input, backpressure en afsluiten zijn getest. [bewijs 1](../docs/verification/mature-session-20261102/README.md) · [bewijs 2](../docs/verification/mature-session-20261102/n01-integrated.json) · [bewijs 3](../docs/verification/n01-native-service-20261102/host-verification.json) |
 | **N02 — Configuratie en dagelijks internet** | 3 | Open | Adresconfiguratie, naamresolutie, routes, netwerkovergangen en benodigde internetprotocollen werken op echte toegestane verbindingen. |
 | **N03 — Native geauthenticeerd transport** | 2 | Open | Onderhouden cryptografie/TLS met de vastgelegde hybride PQC-keuze werkt native, met peercontrole, negatieve handshakes en geen stille onveilige fallback. |
 | **N04 — Afdwingbare netwerkrechten** | 2 | Open | Proces-/bestemmingsrechten, intrekking en helperroutes worden native afgedwongen en via verkeer waargenomen; geen onbedoelde luisterpoorten. |

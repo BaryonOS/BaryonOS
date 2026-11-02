@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "865a2ae3cbfc1811b429635471efe11ddf8ac176",
+    "source_commit": "6464daec35882ef605a42d64ad1181cbdaebc70c",
     "branch": "codex/mature-native-session-20261102",
-    "task": "Volwassen native venstersessie en herbruikbare netwerkdienst",
+    "task": "Native venstersessie en herbruikbare geïsoleerde netwerkdienst",
     "previous_score": 34,
-    "summary": "34/100 tijdens integratie. De gedeelde proportionele grafische basis en vernieuwde Materiaal-weergaven zijn gebouwd en gericht host/getest. De nieuwe twee-venstersessie en presentatieherstel worden nu gekoppeld aan de eigen kernel; native U01-acceptatie is nog open. N01 heeft een afzonderlijke native twee-app TCP/UDP-proef doorstaan; geïntegreerde herhaling en onafhankelijke controle zijn nog open. Geen punten voor plannen, extra testaantallen of alleen compilatie; criteria en gewichten blijven gelijk."
+    "summary": "37/100: N01 (+3) is volledig geaccepteerd na twee geïntegreerde native QEMU-cases met echte TCP/UDP-pakketten, twee IPC-apps, malformed input, backpressure, sluiten, appuitval en resourcecleanup. Kanaaluitval en poortuitputting zijn per app begrensd; ruwe bewijsbytes blijven intact. De proportionele grafische basis en twee-app venstersessie bouwen en tonen een echt native beeld, maar U01-herstel-/focus-/pixelacceptatie loopt nog. De eerste TCG-smoke duurde142,08s; dit is geen U02-latentieacceptatie. Andere criteria en vaste gewichten blijven gelijk."
   },
   "tracks": [
     {
@@ -314,9 +314,13 @@
           "id": "N01",
           "title": "Native pakket- en transportstack",
           "points": 3,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "De eigen OS-netwerkdienst verwerkt echte packets en begrensde IP/TCP/UDP-verbindingen; malformed input, backpressure en afsluiten zijn getest.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/mature-session-20261102/README.md",
+            "docs/verification/mature-session-20261102/n01-integrated.json",
+            "docs/verification/n01-native-service-20261102/host-verification.json"
+          ]
         },
         {
           "id": "N02",

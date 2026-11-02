@@ -3,9 +3,9 @@
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 34% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 37% van de vaste productroadmap](docs/assets/progress.svg)
 
-**34% — 34 van 100 gewogen acceptatiepunten.** Dit is een
+**37% — 37 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -23,19 +23,19 @@ alleen een nette desktop haalt die eindgrens niet.
 | Opslag en gegevensherstel | 15 | 13 |
 | Hardware, drivers en energie | 12 | 1 |
 | Native Materiaal en toegankelijkheid | 15 | 0 |
-| Internet en netwerkdiensten | 10 | 0 |
+| Internet en netwerkdiensten | 10 | 3 |
 | Beveiliging, privacy en updates | 12 | 4 |
 | Apps, SDK en installatie | 8 | 2 |
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **34** |
+| **Totaal** | **100** | **37** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`865a2ae3`](https://github.com/simonvanieperen/nieuw-os/commit/865a2ae3cbfc1811b429635471efe11ddf8ac176) ·
+**Bron:** [`6464daec`](https://github.com/simonvanieperen/nieuw-os/commit/6464daec35882ef605a42d64ad1181cbdaebc70c) ·
 **Ontwikkelbranch:** `codex/mature-native-session-20261102`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Volwassen native venstersessie en herbruikbare netwerkdienst.
-34/100 tijdens integratie. De gedeelde proportionele grafische basis en vernieuwde Materiaal-weergaven zijn gebouwd en gericht host/getest. De nieuwe twee-venstersessie en presentatieherstel worden nu gekoppeld aan de eigen kernel; native U01-acceptatie is nog open. N01 heeft een afzonderlijke native twee-app TCP/UDP-proef doorstaan; geïntegreerde herhaling en onafhankelijke controle zijn nog open. Geen punten voor plannen, extra testaantallen of alleen compilatie; criteria en gewichten blijven gelijk.
+Deze opdracht: **34% → 37% (+3 procentpunt)**. **Opdracht:** Native venstersessie en herbruikbare geïsoleerde netwerkdienst.
+37/100: N01 (+3) is volledig geaccepteerd na twee geïntegreerde native QEMU-cases met echte TCP/UDP-pakketten, twee IPC-apps, malformed input, backpressure, sluiten, appuitval en resourcecleanup. Kanaaluitval en poortuitputting zijn per app begrensd; ruwe bewijsbytes blijven intact. De proportionele grafische basis en twee-app venstersessie bouwen en tonen een echt native beeld, maar U01-herstel-/focus-/pixelacceptatie loopt nog. De eerste TCG-smoke duurde142,08s; dit is geen U02-latentieacceptatie. Andere criteria en vaste gewichten blijven gelijk.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
