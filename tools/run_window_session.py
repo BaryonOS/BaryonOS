@@ -32,6 +32,10 @@ SERIAL_LIMIT = 4 * 1024 * 1024
 BODY = (28, 114, 880, 510)
 FIXTURE_PHASES = ("initial", "editor", "dirty", "saved", "list", "reopened",
                   "dirty-focus-lost", "dirty-rebound", "dirty-recovered")
+CLIPBOARD_PHASES = ("clipboard-copied", "clipboard-numeric", "clipboard-back",
+                    "clipboard-empty", "clipboard-recovered-empty")
+CALCULATOR_CLIPBOARD_PHASES = ("clipboard-unsupported", "clipboard-pasted", "clipboard-calculator-copied")
+CALCULATOR_BODY = (932, 140, 320, 484)
 SNAPSHOT_FIELDS = {
     "MATERIAL": {"PID", "SERVICE_GENERATION", "SURFACE_EPOCH", "INPUT_EPOCH", "READY", "GEN", "FRAMES",
                  "SAVE_ACKS", "REVISION", "SAVED_BYTES", "SAVED_SUM", "SCREEN", "DIRTY", "DRAFT_BYTES", "DRAFT_SUM", "OBJECT", "SCALE", "ERRORS", "PROBES"},
@@ -41,7 +45,7 @@ SNAPSHOT_FIELDS = {
 }
 
 
-def generate_fixture() -> dict:
+def generate_fixture(*, clipboard: bool = False) -> dict:
     directory = private_path(BUILD / ("window-fixture-" + uuid.uuid4().hex))
     directory.mkdir(parents=True)
     frozen = source_hash()
@@ -50,13 +54,21 @@ def generate_fixture() -> dict:
     env["OS_WINDOW_FIXTURE_DIRECTORY"] = str(directory)
     command = ["cargo", "+1.90.0", "test", "--offline", "--locked", "--manifest-path",
                str(ROOT / "ui/native/Cargo.toml"), "--test", "window_native_fixture", "--", "--nocapture"]
+    commands = [command]
+    if clipboard:
+        commands.append(["cargo", "+1.90.0", "test", "--offline", "--locked", "--manifest-path",
+                         str(ROOT / "sdk/examples/calculator/Cargo.toml"), "--test",
+                         "clipboard_native_fixture", "--", "--nocapture"])
     with (directory / "generator.log").open("xb") as log:
-        result = subprocess.run(command, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT, timeout=180, check=False)
+        for generated in commands:
+            result = subprocess.run(generated, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT, timeout=180, check=False)
+            if result.returncode:
+                break
     if result.returncode or source_hash() != frozen:
         raise ValueError("Host fixture failed or source changed: " + str(directory))
     hashes, frames = {}, {}
     for size in ("880x510", "1120x660"):
-        for phase in FIXTURE_PHASES:
+        for phase in FIXTURE_PHASES + (CLIPBOARD_PHASES if clipboard else ()):
             path = private_path(directory / f"{size}-{phase}.ppm", regular=True)
             if path.stat().st_size > 3 * 1120 * 660 + 128:
                 raise ValueError("Oversized oracle")
@@ -66,8 +78,21 @@ def generate_fixture() -> dict:
             hashes[path.name] = sha256(path)
             if size == "880x510":
                 frames[phase] = raw
+    if clipboard:
+        for size in ("320x484", "640x608"):
+            for phase in CALCULATOR_CLIPBOARD_PHASES:
+                path = private_path(directory / f"calculator-{size}-{phase}.ppm", regular=True)
+                if path.stat().st_size > 3 * 640 * 608 + 128:
+                    raise ValueError("Oversized calculator oracle")
+                raw = path.read_bytes()
+                if ppm(raw)[:2] != tuple(map(int, size.split("x"))):
+                    raise ValueError("Wrong calculator oracle dimensions")
+                hashes[path.name] = sha256(path)
+                if size == "320x484":
+                    frames[phase] = raw
     metadata = dict(kind="host-rendered real Controller/Frame oracle; not native execution",
                     source_sha256=frozen, source_fingerprint_version=3, generator_command=command,
+                    generator_commands=commands, clipboard_oracles=clipboard,
                     generator_exit=result.returncode, files_sha256=hashes)
     publish_json(directory / "fixture.json", metadata)
     return dict(directory=directory, metadata=metadata, frames=frames)
@@ -83,6 +108,16 @@ def crop(raw: bytes, rectangle: tuple) -> bytes:
 
 def material_matches(raw: bytes, expected: bytes) -> bool:
     return ppm(expected)[:2] == BODY[2:] and crop(raw, BODY) == ppm(expected)[2]
+
+
+def calculator_matches(raw: bytes, expected: bytes) -> bool:
+    return ppm(expected)[:2] == CALCULATOR_BODY[2:] and crop(raw, CALCULATOR_BODY) == ppm(expected)[2]
+
+
+def oracle_matches(raw: bytes, expected: bytes, name: str) -> bool:
+    if name in CALCULATOR_CLIPBOARD_PHASES:
+        return calculator_matches(raw, expected)
+    return material_matches(raw, expected)
 
 
 def changed_outside(before: bytes, after: bytes, rectangle: tuple) -> bool:
@@ -158,16 +193,16 @@ def validate_build(frozen: str) -> dict:
 
 
 def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
-        recovery_handshake: bool = False) -> dict:
+        recovery_handshake: bool = False, clipboard: bool = False) -> dict:
     if not 30 <= timeout <= 1800:
         raise ValueError("Timeout must be bounded 30..1800 seconds")
-    if smoke and recovery_handshake:
-        raise ValueError("Choose one diagnostic mode")
+    if smoke and recovery_handshake or clipboard and (smoke or recovery_handshake):
+        raise ValueError("Clipboard requires the full native gate; choose one diagnostic mode")
     diagnostic = smoke or recovery_handshake
     private_path(BUILD)
     frozen = source_hash()
     manifest = validate_build(frozen)
-    fixture = None if diagnostic else generate_fixture()
+    fixture = None if diagnostic else (generate_fixture(clipboard=True) if clipboard else generate_fixture())
     env = environment()
     qemu = Path(shutil.which("qemu-system-x86_64", path=env["PATH"]) or "missing")
     qemu_hash = sha256(qemu)
@@ -200,7 +235,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
     start = time.monotonic()
     deadline = start + timeout
     report = dict(schema_version=1, passed=False, native_gate=False, smoke_only=diagnostic,
-                  recovery_handshake_only=recovery_handshake, source_sha256=frozen,
+                  recovery_handshake_only=recovery_handshake, clipboard_requested=clipboard, clipboard_gate=False, source_sha256=frozen,
                   source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                   source_fingerprint_version=3, kernel_feature=FEATURE, manifest=manifest, command=command,
                   run_directory=str(directory), qemu_sha256=qemu_hash, immutable=immutable, phases={})
@@ -230,6 +265,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                         raise TimeoutError("Native input acknowledgement missing: " + label)
                     time.sleep(0.02)
 
+            action_started = [None]
             def wait(name, predicate, oracle=None, image_check=None):
                 while True:
                     raw = serial(directory / "serial.txt")
@@ -240,7 +276,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                         image = private_path(path, regular=True).read_bytes()
                         if ppm(image)[:2] != (1280, 720):
                             raise ValueError("Wrong actual GOP size")
-                        if (oracle is not None and not material_matches(image, fixture["frames"][oracle])) or (image_check is not None and not image_check(image)):
+                        if (oracle is not None and not oracle_matches(image, fixture["frames"][oracle], oracle)) or (image_check is not None and not image_check(image)):
                             if time.monotonic() >= deadline:
                                 raise TimeoutError("Native pixels differ from complete host oracle: " + name)
                             time.sleep(0.2)
@@ -249,6 +285,9 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                         publish(final_path, image)
                         captured[name] = image
                         report["phases"][name] = {"seconds": time.monotonic() - start, "state": {r: s[-1] for r, s in state.items() if s}, "frame_sha256": sha256(final_path), "oracle": oracle}
+                        if oracle is not None and action_started[0] is not None:
+                            report["phases"][name]["last_input_to_verified_app_image_s"] = time.monotonic() - action_started[0]
+                            report["phases"][name]["latency_scope"] = "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
                         print("WINDOW phase " + name + " " + str(round(time.monotonic() - start, 2)), flush=True)
                         return state
                     if process.poll() is not None or time.monotonic() >= deadline:
@@ -263,11 +302,14 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 role = "CALCULATOR" if current["FOCUSED"] == 1 else "MATERIAL"
                 old_keys = numbers(raw, f"WINDOW:{role}:KEYS")[-1]
                 old_acks = numbers(raw, f"WINDOW:{role}:INPUT_ACKS")[-1]
+                action_started[0] = time.monotonic()
                 control.command("send-key", {"keys": [{"type": "qcode", "data": k} for k in keys], "hold-time": 1})
                 if keys == ("f6",):
                     observe("F6 focus", lambda raw: comp(raw).get("GENERATION") == group_generation[0] and comp(raw).get("FOCUSED") == 1-current["FOCUSED"])
                 elif keys not in (("f10",), ("f12",)):
-                    count = 2*len(keys)
+                    # The compositor consumes Delete itself; the four genuine
+                    # modifier edges still reach the focused application.
+                    count = 4 if keys == ("ctrl", "shift", "delete") else 2*len(keys)
                     observe("/".join(keys), lambda raw: numbers(raw, f"WINDOW:{role}:KEYS")[-1] >= old_keys+count and numbers(raw, f"WINDOW:{role}:INPUT_ACKS")[-1] >= old_acks+count)
 
             pointer = [0, 0]
@@ -326,6 +368,28 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 for phase in ("editor", "dirty"):
                     if changed_outside(captured["initial"], captured[phase], BODY):
                         raise ValueError("App paint escaped its assigned body")
+                if clipboard:
+                    key("ctrl", "a"); key("ctrl", "c")
+                    wait("clipboard-copied", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM, "clipboard-copied")
+                    key("f6"); key("ctrl", "v")
+                    wait("clipboard-rejected", lambda raw, s: s["CALCULATOR"][-1]["EXPRESSION_BYTES"] == 0 and s["CALCULATOR"][-1]["EVALUATIONS"] == 0, "clipboard-unsupported")
+                    key("f6"); key("3"); key("ctrl", "a"); key("ctrl", "c")
+                    wait("clipboard-numeric", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == volume_disk.fnv(b"3"), "clipboard-numeric")
+                    key("f6"); key("ctrl", "v")
+                    wait("clipboard-pasted", lambda raw, s: s["CALCULATOR"][-1]["EXPRESSION_BYTES"] == 1 and s["CALCULATOR"][-1]["EXPRESSION_SUM"] == volume_disk.fnv(b"3") and s["CALCULATOR"][-1]["EVALUATIONS"] == 0, "clipboard-pasted")
+                    key("shift", "equal"); key("4"); key("ctrl", "a"); key("ctrl", "c")
+                    wait("clipboard-calculator-copied", lambda raw, s: s["CALCULATOR"][-1]["EXPRESSION_SUM"] == volume_disk.fnv(b"3+4"), "clipboard-calculator-copied")
+                    key("ctrl", "a"); key("backspace")
+                    key("f6"); key("ctrl", "v")
+                    wait("clipboard-back", lambda raw, s: s["MATERIAL"][-1]["DRAFT_BYTES"] == 3 and s["MATERIAL"][-1]["DRAFT_SUM"] == volume_disk.fnv(b"3+4"), "clipboard-back")
+                    key("ctrl", "shift", "delete"); key("ctrl", "v")
+                    wait("clipboard-empty", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == volume_disk.fnv(b"3+4"), "clipboard-empty")
+                    # Populate again before the genuine fault, then restore the
+                    # original workload; recovery must clear even this text.
+                    key("ctrl", "a"); key("ctrl", "c"); key("ctrl", "a")
+                    for char in TEXT.decode():
+                        key("spc" if char == " " else char)
+                    wait("clipboard-reset", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM, "dirty")
                 key("f6")
                 for keys in (("2",), ("shift", "equal"), ("3",), ("ret",)):
                     key(*keys)
@@ -367,6 +431,9 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 move(1260, 50)
                 key("right")
                 wait("restored-editor", lambda raw, s: s["MATERIAL"][-1]["SERVICE_GENERATION"] == 2, "dirty-recovered")
+                if clipboard:
+                    key("ctrl", "v")
+                    wait("clipboard-recovered-empty", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM, "clipboard-recovered-empty")
                 key("ctrl", "s")
                 wait("saved", lambda raw, s: s["MATERIAL"] and s["MATERIAL"][-1]["SAVE_ACKS"] == 1 and s["MATERIAL"][-1]["DIRTY"] == 0, "saved")
                 key("esc")
@@ -400,7 +467,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                     if sha256(private_path(fixture["directory"] / name, regular=True)) != digest:
                         raise ValueError("Host oracle changed")
                 report["oracle"] = fixture["metadata"]
-            report.update(passed=True, native_gate=not diagnostic, duration_s=time.monotonic() - start, serial_sha256=sha256(directory / "serial.txt"), qmp_trace=control.trace)
+            report.update(passed=True, native_gate=not diagnostic, clipboard_gate=clipboard and not diagnostic, duration_s=time.monotonic() - start, serial_sha256=sha256(directory / "serial.txt"), qmp_trace=control.trace)
     except Exception as error:
         report["error"] = f"{type(error).__name__}: {error}"
     finally:
@@ -436,6 +503,7 @@ if __name__ == "__main__":
     parser.add_argument("--vga-rom", type=Path, required=True)
     parser.add_argument("--smoke-only", action="store_true")
     parser.add_argument("--recovery-handshake-only", action="store_true")
+    parser.add_argument("--clipboard", action="store_true", help="Include genuine bounded clipboard exchange, clear and post-fault empty checks")
     args = parser.parse_args()
     raise SystemExit(0 if run(timeout=args.timeout, bios_rom=args.bios_rom, vga_rom=args.vga_rom,
-                            smoke=args.smoke_only, recovery_handshake=args.recovery_handshake_only)["passed"] else 1)
+                            smoke=args.smoke_only, recovery_handshake=args.recovery_handshake_only, clipboard=args.clipboard)["passed"] else 1)

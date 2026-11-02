@@ -1,6 +1,8 @@
 use nieuw_os_graphics::{theme, Canvas, Font, Icon, Rect, Size, Weight};
 use nieuw_os_surface_protocol::{Geometry, Rectangle};
 
+use crate::clipboard::Notice as ClipboardNotice;
+
 pub const MAX_PIXELS: usize = 1_400_000;
 pub const WINDOWS: usize = 2;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -21,6 +23,7 @@ pub struct Scene {
     drag: Option<(usize, i32, i32)>,
     pub moves: u64,
     pub switches: u64,
+    clipboard_notice: ClipboardNotice,
 }
 impl Scene {
     pub fn new(width: u32, height: u32, scale: u32, epochs: [u64; 2]) -> Result<Self, Invalid> {
@@ -79,6 +82,7 @@ impl Scene {
             drag: None,
             moves: 0,
             switches: 0,
+            clipboard_notice: ClipboardNotice::None,
         })
     }
     pub fn frame(&self, index: usize) -> Rect {
@@ -89,6 +93,21 @@ impl Scene {
             b.width,
             b.height + 42 * self.scale,
         )
+    }
+    pub fn clipboard_notice_bounds(&self) -> Rect {
+        Rect::new(
+            300 * self.scale as i32,
+            0,
+            self.width - 300 * self.scale,
+            40 * self.scale,
+        )
+    }
+    pub fn set_clipboard_notice(&mut self, notice: ClipboardNotice) -> bool {
+        if self.clipboard_notice == notice {
+            return false;
+        }
+        self.clipboard_notice = notice;
+        true
     }
     pub fn paint_bounds(&self, index: usize) -> Rect {
         let f = self.frame(index);
@@ -315,6 +334,13 @@ impl Scene {
             "Werkruimte",
             Font::new(Size::Small, Weight::Regular, s == 2),
             0xb5cbd2,
+        );
+        c.text(
+            320 * s as i32,
+            10 * s as i32,
+            self.clipboard_notice.label(),
+            Font::new(Size::Small, Weight::Regular, s == 2),
+            0xb5e1d7,
         );
         for index in [1 - self.focused, self.focused] {
             let body = self.windows[index].body;

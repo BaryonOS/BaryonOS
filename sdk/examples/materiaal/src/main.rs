@@ -230,6 +230,9 @@ pub extern "C" fn materiaal_main() -> ! {
     // substituted for unavailable storage. Keep the application alive.
     let _ = controller.refresh();
     let mut app = App::new(controller, input, surface, geometry).unwrap_or_else(|_| fail(11));
+    if window_session {
+        app.enable_clipboard();
+    }
     let mut paused = false;
     loop {
         tick();

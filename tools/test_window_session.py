@@ -17,6 +17,21 @@ def image(width,height,color):
 
 
 class WindowRunnerTests(unittest.TestCase):
+    def test_clipboard_oracle_checks_calculator_body_without_internal_masks(self):
+        raw = image(1280, 720, (1, 2, 3))
+        expected = image(320, 484, (1, 2, 3))
+        self.assertTrue(window.oracle_matches(raw, expected, "clipboard-pasted"))
+        for x, y in ((932, 140), (1251, 623), (950, 300)):
+            changed = bytearray(raw)
+            offset = len(raw) - 1280 * 720 * 3 + (y * 1280 + x) * 3
+            changed[offset] ^= 1
+            self.assertFalse(window.oracle_matches(bytes(changed), expected, "clipboard-pasted"))
+
+    def test_clipboard_cannot_be_combined_with_diagnostic_only_success(self):
+        for flags in ({"smoke": True}, {"recovery_handshake": True}):
+            with self.assertRaises(ValueError):
+                window.run(timeout=30, bios_rom=None, vga_rom=None, clipboard=True, **flags)
+
     def test_exact_snapshot_rejects_missing_duplicate_or_oversized_fields(self):
         raw=block()
         self.assertEqual(window.snapshots(raw,"MATERIAL")[0]["PID"],4)

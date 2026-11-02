@@ -5,7 +5,7 @@
 pub mod bootstrap;
 pub mod idle;
 use nieuw_os_catalog_client::Transport;
-use nieuw_os_input_client::{AckOutcome, Peek, Session as Input};
+use nieuw_os_input_client::{clipboard, AckOutcome, Offer, Peek, Session as Input};
 use nieuw_os_input_core::Event;
 use nieuw_os_materiaal::{
     controller::{Controller, Error as ControllerError, InputEnvelope, Screen, Status},
@@ -76,6 +76,7 @@ pub struct App<'a, V: Transport, I: Transport, S: Transport> {
     surface_failed: bool,
     frame: u64,
     next_tile: u64,
+    clipboard_enabled: bool,
 }
 impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     /// `geometry` must be the actual authenticated INFO response from this
@@ -110,10 +111,15 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             surface_failed: false,
             frame: 0,
             next_tile: 0,
+            clipboard_enabled: false,
         })
     }
     pub fn controller(&self) -> &Controller<'a, V> {
         &self.controller
+    }
+    /// Protocol opt-in for the window compositor, never an input authority.
+    pub fn enable_clipboard(&mut self) {
+        self.clipboard_enabled = true;
     }
     /// Only a completed, successful turn ending in PEEK Empty may park.
     /// Unsaved document contents alone are not pending work. The current
@@ -228,6 +234,64 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         }
     }
 
+    fn clipboard_offer(
+        &mut self,
+        offer: &Offer,
+    ) -> Result<(Option<clipboard::Text>, Option<Status>), Error> {
+        use ui_core::{KeyAction, PhysicalKey};
+        let Event::Key(key) = offer.event() else {
+            return Ok((None, None));
+        };
+        let m = key.modifiers;
+        if !self.clipboard_enabled
+            || key.action != KeyAction::Press
+            || !m.control()
+            || m.shift()
+            || m.alt()
+            || m.super_key()
+        {
+            return Ok((None, None));
+        }
+        let (result, feedback) = match key.key {
+            PhysicalKey::C => {
+                let selected = self.controller.clipboard_selection().unwrap_or("");
+                let empty = selected.is_empty();
+                (
+                    self.input.clipboard_copy(offer, selected).map(|()| None),
+                    Some(if empty {
+                        Status::ClipboardSelection
+                    } else {
+                        Status::ClipboardCopied
+                    }),
+                )
+            }
+            PhysicalKey::V => (self.input.clipboard_paste(offer).map(Some), None),
+            _ => return Ok((None, None)),
+        };
+        match result {
+            Ok(text) => Ok((text, feedback)),
+            Err(clipboard::Error::Input(error)) => {
+                self.input_failed = true;
+                self.evidence.ready = false;
+                self.controller
+                    .cancel_pointer()
+                    .map_err(Error::Controller)?;
+                increment(&mut self.evidence.errors)?;
+                Err(Error::Input(error))
+            }
+            Err(error) => Ok((
+                None,
+                Some(match error {
+                    clipboard::Error::Empty if feedback == Some(Status::ClipboardSelection) => {
+                        Status::ClipboardSelection
+                    }
+                    clipboard::Error::Empty => Status::ClipboardEmpty,
+                    clipboard::Error::TooLong => Status::ClipboardTooLong,
+                    _ => Status::ClipboardUnavailable,
+                }),
+            )),
+        }
+    }
     fn input_step(&mut self) -> Result<(), Error> {
         self.input_empty = false;
         if self.input_failed || self.surface_failed {
@@ -293,9 +357,27 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
                 }
                 Event::Cancel(_) => self.controller.deliver(envelope),
             };
+            let accepted = result.is_ok();
             self.operation(result)?;
+            let (paste, feedback) = if accepted {
+                self.clipboard_offer(&offer)?
+            } else {
+                (None, None)
+            };
             match self.input.ack(&offer) {
-                Ok(AckOutcome::Acknowledged) => increment(&mut self.evidence.input_acks)?,
+                Ok(AckOutcome::Acknowledged) => {
+                    increment(&mut self.evidence.input_acks)?;
+                    // A stale/focus-cancelled ACK must never apply received text.
+                    if let Some(text) = paste {
+                        let result = self.controller.paste_clipboard(text.as_str());
+                        self.operation(result)?;
+                    }
+                    if let Some(status) = feedback {
+                        self.controller
+                            .clipboard_feedback(status)
+                            .map_err(Error::Controller)?;
+                    }
+                }
                 Ok(AckOutcome::Superseded) => increment(&mut self.evidence.superseded)?,
                 Err(error) => {
                     self.input_failed = true;

@@ -2,6 +2,7 @@
 #![forbid(unsafe_code)]
 //! Typed INP1 application channel. Hardware bytes, focus policy and grants
 //! remain with the isolated source, input service and bootstrap authority.
+pub mod clipboard;
 mod reply;
 #[cfg(all(target_arch = "x86_64", target_os = "none"))]
 pub use nieuw_os_catalog_client::NativeTransport;
@@ -109,6 +110,7 @@ pub struct Session<T: Transport> {
     last_sequence: u64,
     last_generation: u64,
     outstanding: Option<Offer>,
+    clipboard_used: bool,
     closed: bool,
 }
 impl<T: Transport> Drop for Session<T> {
@@ -142,6 +144,7 @@ impl<T: Transport> Session<T> {
             last_sequence: 0,
             last_generation: 0,
             outstanding: None,
+            clipboard_used: false,
             closed: false,
         })
     }
@@ -331,6 +334,7 @@ impl<T: Transport> Session<T> {
                 }
                 self.last_sequence = offer.sequence;
                 self.outstanding = Some(offer);
+                self.clipboard_used = false;
                 Ok(Peek::Offer(offer))
             }
             Reply::Failure(status) => Err(Error::Service {

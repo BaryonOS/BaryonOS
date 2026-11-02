@@ -1953,3 +1953,54 @@ fn vm_desktop_controls_remain_inside_supported_viewports() {
         }
     }
 }
+
+fn clipboard_selection_and_paste_keep_utf8_and_storage_state_atomic_impl() {
+    let host = Host::new();
+    let (mut draft, mut original, mut scratch) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut draft,
+            original: &mut original,
+            staging: &mut scratch,
+        },
+    );
+    ui.create().unwrap();
+    ui.insert("Café").unwrap();
+    assert_eq!(
+        ui.clipboard_selection(),
+        None,
+        "no entire-document fallback"
+    );
+    ui.deliver(envelope(1, 1, control(PhysicalKey::A))).unwrap();
+    assert_eq!(ui.clipboard_selection(), Some("Café"));
+    ui.paste_clipboard("2+3").unwrap();
+    assert_eq!(ui.view().contents, Some("2+3"));
+    assert_eq!(ui.view().caret, 3);
+    ui.deliver(envelope(2, 1, control(PhysicalKey::A))).unwrap();
+    let before = (ui.view().caret, ui.view().anchor);
+    assert!(ui.paste_clipboard(&"a".repeat(4097)).is_err());
+    assert_eq!(ui.view().contents, Some("2+3"));
+    assert_eq!((ui.view().caret, ui.view().anchor), before);
+    ui.clipboard_feedback(Status::ClipboardCopied).unwrap();
+    assert_eq!(ui.view().status, Status::ClipboardCopied);
+    assert!(
+        ui.document().is_dirty(),
+        "copy feedback cannot mark a document saved"
+    );
+    ui.save().unwrap();
+    let saving = ui.view().status;
+    ui.paste_clipboard("99").unwrap();
+    ui.clipboard_feedback(Status::ClipboardEmpty).unwrap();
+    assert_eq!(ui.view().contents, Some("2+3"));
+    assert_eq!(
+        ui.view().status,
+        saving,
+        "clipboard feedback cannot hide saving"
+    );
+}
+scenario!(
+    clipboard_selection_and_paste_keep_utf8_and_storage_state_atomic,
+    clipboard_selection_and_paste_keep_utf8_and_storage_state_atomic_impl
+);

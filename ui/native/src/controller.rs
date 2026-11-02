@@ -52,6 +52,11 @@ pub enum Status {
     Saved { revision: u64 },
     Cancelled,
     InputLost,
+    ClipboardCopied,
+    ClipboardEmpty,
+    ClipboardSelection,
+    ClipboardTooLong,
+    ClipboardUnavailable,
     Failed(Error),
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -692,6 +697,56 @@ impl<'a, T: Transport> Controller<'a, T> {
         self.anchor = self.caret;
         self.update_edit_status();
         self.ensure_caret();
+        self.invalidate()
+    }
+    fn clipboard_edit_context(&self) -> bool {
+        self.screen == Screen::Editor
+            && self.focus == Focus::Document
+            && !self
+                .desktop
+                .as_ref()
+                .is_some_and(|desktop| desktop.overlay())
+            && !self.document.is_saving()
+            && !self.document.is_closed()
+            && !self.document.is_uncertain()
+            && !self.document.is_conflicted()
+    }
+    /// Returns only the current explicit selection. The native input broker
+    /// separately authenticates the actual copy gesture and active window.
+    pub fn clipboard_selection(&self) -> Option<&str> {
+        if !self.clipboard_edit_context() {
+            return None;
+        }
+        let range = text::selection(self.anchor, self.caret);
+        if range.is_empty() {
+            return None;
+        }
+        self.view().contents?.get(range)
+    }
+    /// Called only after clipboard delivery and the original input ACK.
+    /// DocumentSession performs its existing atomic size/rights validation.
+    pub fn paste_clipboard(&mut self, value: &str) -> Result<(), Error> {
+        if !self.clipboard_edit_context() || !self.editable || value.is_empty() {
+            return Ok(());
+        }
+        self.insert(value)
+    }
+    pub fn clipboard_feedback(&mut self, status: Status) -> Result<(), Error> {
+        if !matches!(
+            status,
+            Status::ClipboardCopied
+                | Status::ClipboardEmpty
+                | Status::ClipboardSelection
+                | Status::ClipboardTooLong
+                | Status::ClipboardUnavailable
+        ) || self.document.is_saving()
+            || self.document.is_closed()
+            || self.document.is_uncertain()
+            || self.document.is_conflicted()
+        {
+            return Ok(());
+        }
+        self.status = status;
         self.invalidate()
     }
     fn update_edit_status(&mut self) {

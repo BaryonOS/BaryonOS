@@ -1,10 +1,12 @@
 //! Generic orchestration over the real typed INP1/SUR1 sessions. A host
 //! Transport can test this contract, but it is never part of the native ELF.
 use crate::{
-    model::Model,
+    model::{Model, Notice},
     render::{self, Layout, Rect, Viewport},
 };
-use nieuw_os_input_client::{AckOutcome, Event, Peek, Session as Input, Transport};
+use nieuw_os_input_client::{
+    clipboard, AckOutcome, Event, Offer, Peek, Session as Input, Transport,
+};
 use nieuw_os_surface_protocol::{client::Session as Surface, Geometry};
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Evidence {
@@ -44,6 +46,7 @@ pub struct App<I: Transport, S: Transport> {
     surface_failed: bool,
     frame: u64,
     next_tile: u64,
+    clipboard_enabled: bool,
 }
 impl<I: Transport, S: Transport> App<I, S> {
     pub fn new(
@@ -84,10 +87,15 @@ impl<I: Transport, S: Transport> App<I, S> {
             surface_failed: false,
             frame: 0,
             next_tile: 0,
+            clipboard_enabled: false,
         })
     }
     pub fn model(&self) -> &Model {
         &self.model
+    }
+    /// Selects the window compositor extension; broker checks remain required.
+    pub fn enable_clipboard(&mut self) {
+        self.clipboard_enabled = true;
     }
     /// An acknowledged complete frame and a successful PEEK Empty turn are
     /// required. Exhausted input batches, failed transports and presentation
@@ -113,6 +121,62 @@ impl<I: Transport, S: Transport> App<I, S> {
         let mut e = self.evidence;
         e.ready &= self.model.generation() == e.presented_generation && !self.model.exhausted();
         e
+    }
+    fn clipboard_offer(
+        &mut self,
+        offer: &Offer,
+    ) -> Result<(Option<clipboard::Text>, Option<Notice>), Error> {
+        use ui_core::{KeyAction, PhysicalKey};
+        let Event::Key(key) = offer.event() else {
+            return Ok((None, None));
+        };
+        let m = key.modifiers;
+        if !self.clipboard_enabled
+            || key.action != KeyAction::Press
+            || !m.control()
+            || m.shift()
+            || m.alt()
+            || m.super_key()
+        {
+            return Ok((None, None));
+        }
+        let (result, feedback) = match key.key {
+            PhysicalKey::C => {
+                let selected = self.model.clipboard_selection();
+                let empty = selected.is_empty();
+                (
+                    self.input.clipboard_copy(offer, selected).map(|()| None),
+                    Some(if empty {
+                        Notice::ClipboardSelection
+                    } else {
+                        Notice::ClipboardCopied
+                    }),
+                )
+            }
+            PhysicalKey::V => (self.input.clipboard_paste(offer).map(Some), None),
+            _ => return Ok((None, None)),
+        };
+        match result {
+            Ok(text) => Ok((text, feedback)),
+            Err(clipboard::Error::Input(error)) => {
+                self.input_failed = true;
+                self.evidence.ready = false;
+                self.model.input_lost();
+                increment(&mut self.evidence.errors)?;
+                Err(Error::Input(error))
+            }
+            Err(error) => Ok((
+                None,
+                Some(match error {
+                    clipboard::Error::Empty if feedback == Some(Notice::ClipboardSelection) => {
+                        Notice::ClipboardSelection
+                    }
+                    clipboard::Error::Empty => Notice::ClipboardEmpty,
+                    clipboard::Error::TooLong => Notice::ClipboardTooLong,
+                    _ => Notice::ClipboardUnavailable,
+                }),
+            )),
+        }
     }
     fn input_step(&mut self) -> Result<(), Error> {
         self.input_empty = false;
@@ -184,8 +248,18 @@ impl<I: Transport, S: Transport> App<I, S> {
                     }
                 }
             }
+            let (paste, feedback) = self.clipboard_offer(&offer)?;
             match self.input.ack(&offer) {
-                Ok(AckOutcome::Acknowledged) => increment(&mut self.evidence.input_acks)?,
+                Ok(AckOutcome::Acknowledged) => {
+                    increment(&mut self.evidence.input_acks)?;
+                    if let Some(text) = paste {
+                        // Model validates the complete replacement before mutation.
+                        let _ = self.model.paste_clipboard(text.as_str());
+                    }
+                    if let Some(notice) = feedback {
+                        self.model.clipboard_notice(notice);
+                    }
+                }
                 Ok(AckOutcome::Superseded) => {
                     increment(&mut self.evidence.superseded)?;
                     self.model.cancel_focus();

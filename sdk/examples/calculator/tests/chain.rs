@@ -6,7 +6,7 @@ use nieuw_os_calculator::{
     bootstrap::Bootstrap,
     decimal::SCALE,
 };
-use nieuw_os_input_client::{Binding, Session as Input, Transport};
+use nieuw_os_input_client::{clipboard as clip, Binding, Session as Input, Transport};
 use nieuw_os_input_core::{
     self as input,
     wire::{self as iw, Operation, Request},
@@ -53,6 +53,24 @@ struct Pair {
     reply: u64,
     server: u64,
 }
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+enum ClipboardFault {
+    #[default]
+    None,
+    FocusBeforeAck,
+    ReceiveClosed,
+    AckSendClosed,
+    AckReplyClosed,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ClipboardTrace {
+    Requested(u64),
+    ReplyQueued,
+    Received,
+    AckAttempted,
+    FocusCanceled,
+    AckStatus(u64),
+}
 fn pair(e: &mut Engine, server: u64, ingress: Option<u64>) -> Pair {
     let ingress = ingress.unwrap_or_else(|| e.create_endpoint(server).unwrap());
     let tx = e.bootstrap_delegate(server, ingress, APP, SEND).unwrap();
@@ -90,6 +108,11 @@ struct Host {
     drop_final_blit: bool,
     fail_blit: bool,
     fail_close: bool,
+    clipboard_fault: ClipboardFault,
+    clipboard_trace: Vec<ClipboardTrace>,
+    clipboard_sequence: Option<u64>,
+    clipboard_reply_queued: bool,
+    clipboard_ack_reply_queued: bool,
 }
 impl Host {
     fn new() -> Rc<RefCell<Self>> {
@@ -150,6 +173,11 @@ impl Host {
             drop_final_blit: false,
             fail_blit: false,
             fail_close: false,
+            clipboard_fault: ClipboardFault::None,
+            clipboard_trace: vec![],
+            clipboard_sequence: None,
+            clipboard_reply_queued: false,
+            clipboard_ack_reply_queued: false,
         }));
         {
             let mut host = h.borrow_mut();
@@ -214,11 +242,44 @@ impl Host {
             Err(e) => panic!("{e:?}"),
         };
         assert_eq!(m.cap_count, 0);
-        let response = if index == 0 {
+        let response = if index == 0 && m.tag == clip::TAG {
+            // A tiny host-only clipboard counterpart, not the native broker.
+            // The actual input Service still supplies/ACKs the real shortcut;
+            // CLP shares its exact app pair and Engine-authenticated peer.
+            assert_eq!(m.sender_pid, APP);
+            let request = clip::Request::decode(&m.data[..m.len as usize]).unwrap();
+            assert_eq!(request.header.operation, clip::Operation::Paste);
+            assert_eq!(request.header.epoch, self.input_epoch);
+            self.clipboard_sequence = Some(request.header.sequence);
+            self.clipboard_trace
+                .push(ClipboardTrace::Requested(request.header.sequence));
+            let reply = clip::Reply {
+                header: request.header,
+                status: clip::Status::Ok,
+                text: "6/2",
+            }
+            .outgoing()
+            .unwrap();
+            let response = Message::decode(reply.as_bytes()).unwrap();
+            Some(response.data[..response.len as usize].to_vec())
+        } else if index == 0 {
             assert_eq!(m.tag, iw::TAG);
+            let request = Request::decode(&m.data[..m.len as usize], self.input_epoch).unwrap();
             let received = Received::from_bytes(m.encode(), m.len as u64).unwrap();
-            let reply = self.input.handle(recv(p.ingress), &received).unwrap();
+            let reply = match self.input.handle(recv(p.ingress), &received) {
+                Ok(reply) => reply,
+                Err(error) => self
+                    .input
+                    .error_reply(recv(p.ingress), &received, error)
+                    .unwrap(),
+            };
             assert!(self.input.reply_is_current(&reply));
+            if request.operation == Operation::Ack && self.clipboard_sequence == Some(request.arg0)
+            {
+                let status = u64::from_le_bytes(reply.payload()[24..32].try_into().unwrap());
+                self.clipboard_trace.push(ClipboardTrace::AckStatus(status));
+                self.clipboard_ack_reply_queued = true;
+            }
             if self.drop_input {
                 return;
             }
@@ -268,6 +329,10 @@ impl Host {
             reply.len = response.len() as u32;
             reply.data[..response.len()].copy_from_slice(&response);
             self.engine.send(p.server, p.reply, &reply).unwrap();
+            if m.tag == clip::TAG {
+                self.clipboard_reply_queued = true;
+                self.clipboard_trace.push(ClipboardTrace::ReplyQueued);
+            }
         }
     }
     /// Host lifecycle plumbing only: real Engine exits invalidate every old
@@ -342,23 +407,55 @@ struct Port(Rc<RefCell<Host>>, usize);
 impl Transport for Port {
     fn send(&mut self, to: SendEndpoint, message: &Outgoing) -> Result<(), RuntimeError> {
         let mut h = self.0.borrow_mut();
+        let message = Message::decode(message.as_bytes()).unwrap();
+        if self.1 == 0 && message.tag == iw::TAG {
+            let request =
+                Request::decode(&message.data[..message.len as usize], h.input_epoch).unwrap();
+            if request.operation == Operation::Ack && h.clipboard_sequence == Some(request.arg0) {
+                h.clipboard_trace.push(ClipboardTrace::AckAttempted);
+                match h.clipboard_fault {
+                    ClipboardFault::FocusBeforeAck => {
+                        // Runs after clipboard_paste returned its valid Text,
+                        // before publishing ACK: real compositor-authorized
+                        // Service focus cancellation supersedes that offer.
+                        h.actor(false, Operation::Focus, 0, 0);
+                        h.clipboard_trace.push(ClipboardTrace::FocusCanceled);
+                    }
+                    ClipboardFault::AckSendClosed => {
+                        h.engine.close(APP, to.handle().raw()).unwrap();
+                    }
+                    _ => {}
+                }
+            }
+        }
         h.engine
-            .send(
-                APP,
-                to.handle().raw(),
-                &Message::decode(message.as_bytes()).unwrap(),
-            )
+            .send(APP, to.handle().raw(), &message)
             .map_err(|e| RuntimeError::Kernel(e.code()))?;
         h.pump(self.1);
         Ok(())
     }
     fn receive(&mut self, from: ReceiveEndpoint) -> Result<Received, RuntimeError> {
         let mut h = self.0.borrow_mut();
+        if self.1 == 0
+            && ((h.clipboard_fault == ClipboardFault::ReceiveClosed && h.clipboard_reply_queued)
+                || (h.clipboard_fault == ClipboardFault::AckReplyClosed
+                    && h.clipboard_ack_reply_queued))
+        {
+            // Actual capability closure supplies BadHandle; no fabricated
+            // successful reply or protocol ACK reaches the app.
+            h.engine.close(APP, from.handle().raw()).unwrap();
+        }
         let m = h
             .engine
             .receive(APP, from.handle().raw())
             .map_err(|e| RuntimeError::Kernel(e.code()))?;
-        Received::from_bytes(m.encode(), m.len as u64)
+        let received = Received::from_bytes(m.encode(), m.len as u64)?;
+        if m.tag == clip::TAG {
+            assert_eq!(m.sender_pid, h.actors[2]);
+            h.clipboard_reply_queued = false;
+            h.clipboard_trace.push(ClipboardTrace::Received);
+        }
+        Ok(received)
     }
     fn close(&mut self, handle: Handle) -> Result<(), RuntimeError> {
         let mut h = self.0.borrow_mut();
@@ -418,6 +515,152 @@ fn keys(h: &Rc<RefCell<Host>>, a: &mut App<Port, Port>, bytes: &[u8]) {
     for byte in bytes {
         h.borrow_mut().key(*byte);
         a.step().unwrap();
+    }
+}
+fn clipboard_ready(h: &Rc<RefCell<Host>>, enabled: bool) -> App<Port, Port> {
+    let mut a = app(h, 1);
+    if enabled {
+        a.enable_clipboard();
+    }
+    finish(&mut a);
+    keys(h, &mut a, &[0x03, 0x83]); // existing synthetic expression "2"
+    keys(h, &mut a, &[0x1d, 0x1e, 0x9e]); // held Ctrl, then Ctrl+A selects it
+    finish(&mut a);
+    assert_eq!(a.model().expression(), "2");
+    assert_eq!(a.model().selection(), 0..1);
+    assert_eq!(a.model().evaluations(), 0);
+    assert_eq!(a.model().failures(), 0);
+    assert!(a.model().answer().is_none());
+    assert!(a.evidence().ready);
+    a
+}
+
+#[test]
+fn enabled_clipboard_pastes_only_after_real_input_ack_and_never_evaluates_text() {
+    for enabled in [false, true] {
+        let h = Host::new();
+        let mut a = clipboard_ready(&h, enabled);
+        let acks = a.evidence().input_acks;
+        h.borrow_mut().key(0x2f); // real Ctrl+V Press
+        a.step().unwrap();
+        assert_eq!(a.evidence().input_acks, acks + 1);
+        if enabled {
+            assert_eq!(a.model().expression(), "6/2");
+            let sequence = h.borrow().clipboard_sequence.unwrap();
+            assert_eq!(
+                h.borrow().clipboard_trace,
+                [
+                    ClipboardTrace::Requested(sequence),
+                    ClipboardTrace::ReplyQueued,
+                    ClipboardTrace::Received,
+                    ClipboardTrace::AckAttempted,
+                    ClipboardTrace::AckStatus(0),
+                ]
+            );
+            assert!(!a.evidence().ready);
+            finish(&mut a);
+            assert!(a.evidence().ready);
+            assert_eq!(
+                h.borrow().surface.completed_frame(),
+                Some(a.model().generation())
+            );
+        } else {
+            assert_eq!(a.model().expression(), "2");
+            assert!(h.borrow().clipboard_trace.is_empty());
+        }
+        assert_eq!(a.model().evaluations(), 0);
+        assert_eq!(a.model().failures(), 0);
+        assert!(a.model().answer().is_none());
+        a.stop_clean().unwrap();
+        assert!(h.borrow().engine.check_invariants());
+    }
+}
+
+#[test]
+fn received_paste_is_discarded_when_real_focus_cancellation_supersedes_its_ack() {
+    let h = Host::new();
+    let mut a = clipboard_ready(&h, true);
+    let superseded = a.evidence().superseded;
+    h.borrow_mut().clipboard_fault = ClipboardFault::FocusBeforeAck;
+    h.borrow_mut().key(0x2f);
+    a.step().unwrap();
+    assert_eq!(a.model().expression(), "2");
+    assert_eq!(a.model().selection(), 0..1);
+    assert_eq!(a.model().evaluations(), 0);
+    assert_eq!(a.model().failures(), 0);
+    assert!(a.model().answer().is_none());
+    assert!(!a.model().active());
+    assert_eq!(a.evidence().superseded, superseded + 1);
+    let sequence = h.borrow().clipboard_sequence.unwrap();
+    assert_eq!(
+        h.borrow().clipboard_trace,
+        [
+            ClipboardTrace::Requested(sequence),
+            ClipboardTrace::ReplyQueued,
+            ClipboardTrace::Received,
+            ClipboardTrace::AckAttempted,
+            ClipboardTrace::FocusCanceled,
+            ClipboardTrace::AckStatus(input::Error::StaleAck as u64),
+        ]
+    );
+    assert!(h.borrow().engine.check_invariants());
+    a.stop_clean().unwrap();
+}
+
+#[test]
+fn clipboard_or_later_ack_transport_failure_keeps_selection_and_cannot_fake_ready_or_ack() {
+    for fault in [
+        ClipboardFault::ReceiveClosed,
+        ClipboardFault::AckSendClosed,
+        ClipboardFault::AckReplyClosed,
+    ] {
+        let h = Host::new();
+        let mut a = clipboard_ready(&h, true);
+        let acks = a.evidence().input_acks;
+        let errors = a.evidence().errors;
+        h.borrow_mut().clipboard_fault = fault;
+        h.borrow_mut().key(0x2f);
+        assert!(matches!(a.step(), Err(Error::Input(_))));
+        assert_eq!(a.model().expression(), "2");
+        assert_eq!(a.model().selection(), 0..1);
+        assert_eq!(a.model().evaluations(), 0);
+        assert_eq!(a.model().failures(), 0);
+        assert!(a.model().answer().is_none());
+        assert_eq!(a.evidence().input_acks, acks);
+        assert_eq!(a.evidence().errors, errors + 1);
+        assert_eq!(
+            a.model().notice(),
+            nieuw_os_calculator::model::Notice::InputLost
+        );
+        let trace = h.borrow().clipboard_trace.clone();
+        assert!(trace.contains(&ClipboardTrace::ReplyQueued));
+        if fault == ClipboardFault::ReceiveClosed {
+            assert!(!trace.contains(&ClipboardTrace::Received));
+            assert!(!trace.contains(&ClipboardTrace::AckAttempted));
+        } else {
+            assert!(trace.contains(&ClipboardTrace::Received));
+            assert!(trace.contains(&ClipboardTrace::AckAttempted));
+        }
+        assert_eq!(
+            trace.contains(&ClipboardTrace::AckStatus(0)),
+            fault == ClipboardFault::AckReplyClosed
+        );
+        // Even after every tile of the error state has genuinely committed,
+        // failed input cannot become Ready or silently retry the old gesture.
+        for _ in 0..geometry().tiles().div_ceil(8) + 1 {
+            a.step().unwrap();
+            assert!(!a.evidence().ready);
+            assert!(!a.can_idle());
+        }
+        assert_eq!(
+            h.borrow().surface.completed_frame(),
+            Some(a.model().generation())
+        );
+        assert_eq!(h.borrow().clipboard_trace, trace);
+        assert_eq!(a.evidence().input_acks, acks);
+        assert_eq!(a.model().expression(), "2");
+        assert!(h.borrow().engine.check_invariants());
+        a.stop_clean().unwrap();
     }
 }
 fn replacement_sessions(

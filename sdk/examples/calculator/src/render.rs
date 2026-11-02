@@ -261,7 +261,9 @@ pub fn render_tile(
         layout.x,
         layout.status_y,
         status,
-        if model.notice() != Notice::None {
+        if model.notice() == Notice::ClipboardCopied {
+            d::ACCENT
+        } else if model.notice() != Notice::None {
             d::DANGER
         } else {
             d::MUTED
