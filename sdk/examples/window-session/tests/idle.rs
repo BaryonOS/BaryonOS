@@ -678,14 +678,15 @@ fn abandoned_stages_expire_without_new_messages_or_a_completed_frame() {
                     Ok(Action::Staged)
                 ));
                 if fragment == 1 {
+                    assert!(sur::CHUNK < geometry().rectangle(0).unwrap().bytes());
                     let mut chunk = Header {
                         frame,
-                        arg1: 1,
+                        arg1: sur::CHUNK as u32,
                         ..header(Operation::Chunk, request, 0)
                     }
                     .encode()
                     .to_vec();
-                    chunk.push(0);
+                    chunk.resize(sur::HEADER + sur::CHUNK, 0);
                     assert!(matches!(receiver.accept(7, 11, &chunk), Ok(Action::Staged)));
                 }
                 None

@@ -1,26 +1,28 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR126 review en rode klokfixture — 2 november 2026
+## NEXT AGENT HANDOFF — PR126: tweede fixturefout hersteld — 2 november 2026
 
-Basis `5dead467d491107f7244e00450435c41072d6dc7`, branch
+Basis `bd981f79a234dc45fbf38ea1cae25c08ecd1e9c1`, branch
 `codex/native-retained-frames-20261102`; main-integratie blijft uitsluitend
 bij integrator `f090b913`. Die fixcommit activeert retained rendering alleen
 voor de venstersessie en verwerkt verlaten SUR1-transacties via de bestaande
 timeoutreply/backpressureroute. Geen ruimere capabilities of dependencies.
 
-De eerste echte CI op die head faalt in
-`abandoned_stages_expire_without_new_messages_or_a_completed_frame`:
-run `41525824050`, job `125553170776`, exit 101. De nieuwe fixture gebruikte
-voor iedere tegel opnieuw klokwaarden 1/2 en 212/213; de tweede tegel
-draaide daardoor de monotone klok terug. De vervolgdelta maakt de tijden
-per tegel oplopend. Exacte 209/210-deadlineasserties, oude-tokenweigering,
-frameherstel en alle protocolcontroles blijven ongewijzigd.
+De klokcorrectie is uitgevoerd in CI-run `41526505812`, job `125555496660`.
+Die run toont een tweede fixturefout op tests/idle.rs:689: de gedeeltelijke
+Chunk gebruikte 1 byte, terwijl SUR1 voor iedere chunk exact
+`min(resterend, CHUNK)` bytes vereist. De fixture stuurt nu de eerste geldige
+volledige chunk van een nog onvolledige tegel. Een assert controleert dat
+deze chunk kleiner is dan de tegel. Geen productie- of protocolwijziging;
+de exacte 209/210-grens, nul bevestigde pixels, eenmaal timeout, tokenweigering,
+monotone ticks en herstelasserties blijven behouden. De CI-hostsuite was
+dus nog rood (exit 101), niet groen; de native fase werd niet bereikt.
 
 `cargo fmt --manifest-path sdk/examples/window-session/Cargo.toml -- --check`
 en `cargo clippy --offline --locked --manifest-path
 sdk/examples/window-session/Cargo.toml --all-targets --target-dir
 target/pr126-clock -- -D warnings`: beide exit 0 met bestaande Rust 1.90.0.
-Log `/tmp/nieuw-os-pr126-clock-clippy.log`. Lokale Rust-testuitvoering blijft
+Log `/tmp/nieuw-os-pr126-chunk-clippy.log`. Lokale Rust-testuitvoering blijft
 geblokkeerd door ontbrekende `cc`; geen QEMU/Windows uitgevoerd. Nieuwe
 exacte-head CI moet het fixtureherstel en de native route nog bevestigen.
 Rapport: `docs/verification/pr126-review-fixes-20261102.json`.

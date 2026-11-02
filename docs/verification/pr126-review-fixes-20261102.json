@@ -159,8 +159,32 @@
     ],
     "not_run": "Host test execution still lacks cc; fresh exact-head CI and native runtime remain required."
   },
+  "ci_partial_chunk_followup": {
+    "base_commit": "bd981f79a234dc45fbf38ea1cae25c08ecd1e9c1",
+    "source_sha256": "ffda69470a58f9257336ddece2903c7470d4b6550359165a945d86d2c34e64b6",
+    "red_ci_run": 41526505812,
+    "red_ci_job": 125555496660,
+    "red_exit_code": 101,
+    "red_log": "/tmp/nieuw-os-pr126-clock-ci-failed.log",
+    "red_log_sha256": "454416aec82a115ad6815d9f7406a3cdf1ce23779de53d2a8a7a473fb9551b42",
+    "failure": "The partial-tile fixture sent a one-byte Chunk. Receiver requires count == min(stage.length - stage.received, CHUNK); the test failed at idle.rs:689 before expiry assertions.",
+    "fix": "Send the first full protocol-required CHUNK and assert it remains smaller than the tile. Preserve production code and every timeout, token, pixel, rollback and recovery assertion.",
+    "checks": [
+      {
+        "command": "cargo fmt --manifest-path sdk/examples/window-session/Cargo.toml -- --check",
+        "exit_code": 0
+      },
+      {
+        "command": "cargo clippy --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --all-targets --target-dir target/pr126-clock -- -D warnings",
+        "exit_code": 0,
+        "log": "/tmp/nieuw-os-pr126-chunk-clippy.log",
+        "log_sha256": "907ff59d5f81877fb86e844724cf05665a04e265eb20b5aa719fb0b33ea430e6"
+      }
+    ],
+    "not_run": "Local Rust execution still lacks cc; the failed CI never reached native execution. Fresh exact-head CI remains required."
+  },
   "integration": {
-    "no_remote_mutations": true,
+    "no_remote_mutations_by_original_builder": true,
     "merge_ready": false,
     "next": "Integreer de lokale fixcommit inhoudsbehoudend met PR126, voer de drie Rust-hostsuites en de native-window-session-workflow uit op de echte integratiehead, en handel daarna de twee reviewthreads af.",
     "rollback": "Draai uitsluitend deze fixcommit terug; geen bestaande PR-inhoud of gebruikerswerk verwijderen."

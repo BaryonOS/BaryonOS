@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`5dead467`](https://github.com/simonvanieperen/nieuw-os/commit/5dead467d491107f7244e00450435c41072d6dc7) ·
+**Bron:** [`bd981f79`](https://github.com/simonvanieperen/nieuw-os/commit/bd981f79a234dc45fbf38ea1cae25c08ecd1e9c1) ·
 **Ontwikkelbranch:** `codex/native-retained-frames-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR126-reviewfixes en herstel van de monotone klok in de expiry-regressie.
-De geerfde ontwikkelbranchscore blijft 41/100; nul nieuwe criteriumacceptaties. De twee reviewfixes laten verlaten SUR1-transacties verlopen en schakelen retained rendering alleen voor de native venstersessie in. De eerste echte CI op 5dead467 faalt in een nieuwe testfixture: multi-tile-loops draaien de monotone klok terug. De vervolgdelta gebruikt oplopende ticks, zonder deadline-, token-, pixel- of protocolasserties te versoepelen. Rustfmt en Clippy slagen lokaal; Rust-tests blijven door ontbrekende cc geblokkeerd en de nieuwe exacte-head native CI moet nog slagen. Geen nieuwe runtime-, fysieke, Windows- of volledige releaseacceptatie. De branchscore is niet automatisch main-acceptatie; het afzonderlijke #125-integratieassessment blijft 34/100.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR126: protocolcorrecte gedeeltelijke chunk in de expiry-regressie.
+De geerfde ontwikkelbranchscore blijft 41/100; nul nieuwe criteriumacceptaties. CI-run 41526505812 op bd981f7 faalt na de klokfix in een tweede nieuwe fixture: een gedeeltelijke tegel werd met een protocolongeldige chunk van 1 byte aangeboden. De fixture gebruikt nu precies de vereiste eerste CHUNK, met expliciete controle dat de tegel nog niet volledig is. Productiecode, protocol, exacte deadline, pixel-, token- en herstelasserties zijn niet versoepeld. Rustfmt en Clippy slagen; lokale Rust-uitvoering blijft geblokkeerd door ontbrekende cc. Verse exacte-head CI en native runtime blijven nodig. Geen nieuwe runtime-, fysieke, Windows- of releaseacceptatie. De branchscore is niet automatisch main-acceptatie; het afzonderlijke #125-integratieassessment blijft 34/100.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
