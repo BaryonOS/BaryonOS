@@ -1,43 +1,37 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — GUI IPC_WAIT-checkpoint, native bewijs nog open — 2 november 2026
+## NEXT AGENT HANDOFF — GUI IPC_WAIT, zes Windows-native A/B-passes — 2 november 2026
 
-Branch `codex/window-idle-wait-20261102`, geïsoleerd vanaf
-`b1b292aadf244dacf029b7307aebdc6103756e0d`. De andere integrator houdt merges;
-geen wijziging van main. Score **37 -> 37/100**; U01/U02 blijven open.
+Concept-PR123, branch `codex/window-idle-wait-20261102`, gestapeld op de centrale
+herstelbranch. Geteste functionele freeze `1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b`,
+source-v3 `8faf3f7f47e3f26409e446b2311673416ddd70d5735ef106d94c9f30d2c6847a`.
+Na deze freeze verandert alleen documentatie/bewijskopie. Vier GUI-processen
+gebruiken bestaande IPC_WAIT bij aantoonbare rust; geen nieuwe rechten, ABI,
+kernel, afhankelijkheid of vernieuwde transactiedeadline. Init weigert ook rust
+zolang recovery.is_some(). Materiaal35/Calculator24/window-session31 hosttests,
+host/native/faultClippy en component-ELF/fmt/diff zijn geslaagd.
 
-Materiaal, Rekenmachine, compositor en window-init parkeren alleen bij bewezen
-rust op bestaande receive-capabilities, via checked now+1 en de bestaande
-IPC_WAIT. Pending input/reply/damage, onvolledig huidig frame en herstel/stop
-blokkeren. App-PEEK hercontroleert uiterlijk volgende tick; de compositor
-behoudt bestaande tweepits-inputcadans. ABI 1.8/1.9 legacy, 1.10/1.11 wacht;
-1.0-1.7 niet als werkende display/input-appconfiguratie geaccepteerd.
-Geen kernel-, ABI-, capability-, opslag-, timeout- of dependencywijziging.
+Volledige lokale Windows/WHPX A/B:6/6 native gates,3 per arm,15s elk, A,B,B,A,A,B.
+A is centrale337/source39194035...1995; B is1f2/source8faf3f7f...847a.
+QEMU-procesCPUmediaan99,372367% ->11,666288% van één logischeCPU (88,260028% lager).
+Gemapte vCPU98,955756% ->11,353756% (88,526432% lager). Alle volledige
+1280x720-beelden vóór/na exact gelijk. Iedere run behoudt alle13 beeld-/input-/
+crash-/rebind-/save-/reopenfasen, diskoracle/canaries, cleanup en rawexit33.
+Geen geforceerde terminatie/QMP-cleanupfout/achterblijvende QEMU.
 
-Gerichte hosttests: Materiaal35, Rekenmachine24, window-session31, inclusief
-voltooid oud frame gevolgd door gedeeltelijk nieuw frame en echte herstelstadia.
-Init blokkeert rust ook bij recovery.is_some(), naast recovering. Component-ELF-builds,
-host/native-Clippy en formatterchecks zijn uitgevoerd; compacte bron-/loghashes
-en exacte controlegrenzen: `verification/gui-idle-20261102/checkpoint.json`.
-Twee read-only kruisreviews vonden geen concrete nieuwe false-idle/deadlinefout;
-dit is geen onafhankelijke menselijke securityaudit.
+Controleerbaar bewijs, beperkingen en exacte gebruikte Windows-harness:
+`verification/gui-idle-20261102/windows-ab/README.md`. Ruwe aggregatorSHA
+`26fc841be9ff0d1414db0eb23c245cb0a812504993cbd44ff432d213930f3637`.
+De bekende rode b1basis blijft historisch bewaard en is geen A/B-baseline.
+De eerste pilot is uitgesloten; de formele helper73tests heeft72passes/1skip.
 
-Bekende blocker: b1b292a faalt werkelijk in de volledige native crash/herstelroute.
-De lokale Windows/WHPX-probe toont initial/editor/dirty/calculated/moved exact,
-vervolgens slot4/vector6, PRESENTATION_RETIRED1 en slot3/pid4/code1/step18,
-raw exit35 APP_EXIT. Geen adapter-, cleanup- of geforceerde-terminatiefout.
-De centrale chat heeft deze freeze afgekeurd en werkt aan expliciete herstelfasen.
-Daarom geen CPU-A/B of acceptatie op deze bekende rode basis.
-
-De centrale opvolger is nu `337f2f29f1833ef4a8d2cd640b09419f85dbb83b`,
-source-v3 `3919403542c923bc86467db3184345159a5ce6881567a0e11baa85f2d39f1995`.
-Die gebruikt expliciete herstelstadia; de korte cloud-handshake slaagde,
-volledige native acceptatie volgt. Deze merge behoudt de afzonderlijke rustlogica.
-Eerstvolgend: controleer recovery/idle samen en bouw baseline/idle in gescheiden mappen.
-Voer daarna de ongewijzigde volledige native probe met echte Windows/WHPX uit,
-vervolgens exact-beeld-gebonden CPU-A/B. Documentatie/contract:
-`implementation/GUI-IDLE-WAIT.md`. Bron-/native-/CPU-bewijs blijven gescheiden.
-Geen hostinstellingen, passthrough of fysieke schijven; gebruik disposable images.
+Deze performanceopdracht kent geen extra punten toe: lokale checkpointmeter
+37 ->37. De centrale integrator behandelt afzonderlijk U01/41 en de merges;
+laat zijn actuele geaccepteerde scoreblad niet terugvallen bij integratie.
+Eerstvolgend: centrale review/opname van de afgebakende idlecode en verplichte
+CI/TCG-gate op deze B-bron. Windowsbewijs is geen TCG/fysieke/authacceptatie.
+Geen nieuwe accountauthenticatie, OS-brede veiligheidsclaim of energiemeting.
+Gebruik alleen disposable media; geen hostsettings of fysieke apparaten.
 
 ## Centrale herstelcheckpoint — expliciete herstelstaten; korte native handshake eerst — 2 november 2026
 

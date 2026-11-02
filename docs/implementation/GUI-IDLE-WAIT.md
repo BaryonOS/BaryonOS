@@ -48,3 +48,7 @@ De verandering staat in een afzonderlijke branch en kan als afgebakende commit w
 ## Geïntegreerde herstelbron337f2f2
 
 De centrale opvolger `337f2f29f1833ef4a8d2cd640b09419f85dbb83b` is afzonderlijk opgenomen. Zijn Recovery-fases en ready_bit-validatie zijn intact; recovery.rs en tests/recovery.rs zijn byte-identiek. Init weigert bovendien rust bij recovery.is_some(), ook als een recovering-vlag inconsistent zou zijn. De nieuwe echte-fasentest doorloopt pause, ready, rebind-ACK en complete. Na integratie slagen31 window-session-hosttests plus host/native/fault-Clippy, beide native componentbuilds/ELF, fmt en diff. Exacte commando's/loghashes staan in `../verification/gui-idle-20261102/recovery-integration/commands.json`. Volledige native acceptatie en CPU-winst moeten apart worden gemeten.
+
+## Volledig native Windows-vervolg
+
+Op dezelfde functionele freeze1f2 slagen inmiddels alle zes formele Windows/WHPX-runs (3basis/3idle), inclusief de oorspronkelijke13fasen, echte crash/herstel, save/reopen, schijforacle en cleanup/rawexit33. QEMU-procesCPU daalt mediaan88,26% bij exact dezelfde volledige schermbeelden. Dit vervangt geen lokaleTCG-, fysieke-, energie- of authenticatieacceptatie. Ruwe tellers, gecomprimeerde native/seriële originelen, hashes, meethelper en beperkingen: [Windows A/B](../verification/gui-idle-20261102/windows-ab/README.md).

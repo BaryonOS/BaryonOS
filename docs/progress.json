@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "337f2f29f1833ef4a8d2cd640b09419f85dbb83b",
+    "source_commit": "1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b",
     "branch": "codex/window-idle-wait-20261102",
-    "task": "Expliciete herstelfasen integreren met afzonderlijke GUI IPC_WAIT",
+    "task": "GUI IPC_WAIT: zes volledige Windows-native A/B-proeven",
     "previous_score": 37,
-    "summary": "37/100 blijft gelijk. Vier GUI-processen gebruiken bestaande IPC_WAIT alleen bij gecontroleerde rust; hosttests en componentbuilds zijn groen. De bekende b1-hersteluitval blijft bewaard. Nieuwe centrale337f2f2 introduceert expliciete herstelstadia en heeft alleen de korte cloud-handshake al doorlopen. Volledige Windows-native acceptatie en exacte-beeld-gebonden CPU-A/B volgen op de geïntegreerde bron; U01/U02 blijven open. Kernel, ABI, rechten en transactietime-outs zijn in de idle-delta ongewijzigd."
+    "summary": "37/100 blijft op deze lokale checkpointbasis gelijk; geen punten voor een performanceoptimalisatie. Op exactgeteste1f2-bron slagen6/6 volledige Windows/WHPX-gates met dezelfde beelden en crash/herstel/opslag/cleanup. ProcesCPU daalt mediaan88,26% (99,37 naar11,67% van één logischeCPU). Gerichte host/native-componentcontroles slagen. Centrale integrator behandelt U01/41 en CI/TCG-opname afzonderlijk; geen hoofdbranchmerge, fysieke of echteauthclaim."
   },
   "tracks": [
     {
@@ -38,7 +38,7 @@
         },
         {
           "id": "K03",
-          "title": "GeÃ¯soleerde, gepreÃ«mpteerde processen",
+          "title": "Geïsoleerde, gepreëmpteerde processen",
           "points": 2,
           "status": "accepted",
           "acceptance": "Ring-3-processen hebben afzonderlijke adresruimten; een appfault stopt de andere testprocessen niet.",
@@ -63,7 +63,7 @@
           "title": "Algemeen proces- en dienstbeheer",
           "points": 2,
           "status": "accepted",
-          "acceptance": "Niet-fixture-apps kunnen via begrensde APIâ€™s starten, afsluiten en diensten herstarten; afhankelijkheden en resources worden correct vrijgegeven.",
+          "acceptance": "Niet-fixture-apps kunnen via begrensde API’s starten, afsluiten en diensten herstarten; afhankelijkheden en resources worden correct vrijgegeven.",
           "evidence": [
             "docs/verification/K05-ACCEPTANCE.md",
             "docs/verification/k05-startup-slots/gate/supervisor-gate.json",
@@ -187,7 +187,7 @@
           "title": "Back-up, herstel en data-export",
           "points": 2,
           "status": "open",
-          "acceptance": "Een gebruiker kan onafhankelijke herstelkopieÃ«n maken, controleren, terugzetten en data in gedocumenteerde formaten exporteren; verlies-/conflictscenarioâ€™s zijn getest.",
+          "acceptance": "Een gebruiker kan onafhankelijke herstelkopieën maken, controleren, terugzetten en data in gedocumenteerde formaten exporteren; verlies-/conflictscenario’s zijn getest.",
           "evidence": []
         }
       ]
@@ -405,7 +405,7 @@
           "title": "Native privacycontract",
           "points": 2,
           "status": "open",
-          "acceptance": "De toepasselijke LP-tests slagen op het eigen OS, inclusief geen telemetrie/cloudfallback, lokale AI en gescheiden app-/downloadrechten; resterende risicoâ€™s zijn gepubliceerd.",
+          "acceptance": "De toepasselijke LP-tests slagen op het eigen OS, inclusief geen telemetrie/cloudfallback, lokale AI en gescheiden app-/downloadrechten; resterende risico’s zijn gepubliceerd.",
           "evidence": []
         }
       ]
@@ -431,7 +431,7 @@
           "title": "Apps installeren en bijwerken",
           "points": 2,
           "status": "open",
-          "acceptance": "Pakketten uit meerdere bronnen kunnen met herkomstcontrole worden geÃ¯nstalleerd, verwijderd en bijgewerkt; installatie verleent geen algemene capabilities.",
+          "acceptance": "Pakketten uit meerdere bronnen kunnen met herkomstcontrole worden geïnstalleerd, verwijderd en bijgewerkt; installatie verleent geen algemene capabilities.",
           "evidence": []
         },
         {
@@ -486,7 +486,7 @@
           "title": "Ruimte aanbieden, intrekken en verwijderen",
           "points": 1,
           "status": "open",
-          "acceptance": "De native NAS-beheerder beheert quota en trekt gastautoriteit in/verwijdert eigen kopieÃ«n zonder gastconsent of decryptiesleutel; oude sessies herleven niet.",
+          "acceptance": "De native NAS-beheerder beheert quota en trekt gastautoriteit in/verwijdert eigen kopieën zonder gastconsent of decryptiesleutel; oude sessies herleven niet.",
           "evidence": []
         }
       ]

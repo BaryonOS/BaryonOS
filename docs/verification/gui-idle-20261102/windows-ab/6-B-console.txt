@@ -1,0 +1,15 @@
+WINDOW phase boot 5.7
+WINDOW phase initial 6.82
+WINDOW phase editor 23.97
+WINDOW phase dirty 25.91
+WINDOW phase calculated 27.62
+WINDOW phase moved 28.4
+WINDOW phase recovered 32.13
+WINDOW phase rebound-editor 33.31
+WINDOW phase calculator-restored 36.04
+WINDOW phase restored-editor 39.21
+WINDOW phase saved 40.59
+WINDOW phase list 41.84
+WINDOW phase reopened 43.3
+{"passed": true, "native_gate": true, "error": null, "run_directory": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\window-session-20261102\\source\\build\\windows-idle-1f2ac0a\\run\\window-375e47b74ee44c38959a960c8837e813", "duration_s": 44.082088699999986}
+{"passed": true, "native_gate": true, "raw_qemu_exit": 33, "windows_validation_error": null, "report": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\window-session-20261102\\source\\build\\windows-idle-1f2ac0a\\window-session-report.json"}
