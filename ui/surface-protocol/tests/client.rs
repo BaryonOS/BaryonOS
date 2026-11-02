@@ -34,6 +34,7 @@ enum Fault {
     OtherService,
     ServiceGrid,
     DropGrid,
+    ExitPeer,
 }
 struct Host {
     engine: Engine,
@@ -50,6 +51,11 @@ struct Host {
     closed: Vec<u64>,
     blits: usize,
     bytes: Vec<u8>,
+    yields: usize,
+    retire_on_yield: bool,
+    retired: bool,
+    empty_after_peer_exit: usize,
+    close_failure: Option<u64>,
 }
 impl Host {
     fn new() -> Rc<RefCell<Self>> {
@@ -91,6 +97,11 @@ impl Host {
             closed: Vec::new(),
             blits: 0,
             bytes: Vec::new(),
+            yields: 0,
+            retire_on_yield: false,
+            retired: false,
+            empty_after_peer_exit: 0,
+            close_failure: None,
         }))
     }
     fn pump(&mut self) {
@@ -119,7 +130,10 @@ impl Host {
                             }
                         })
                         .unwrap();
-                    if matches!(self.fault, Fault::Drop) {
+                    if matches!(self.fault, Fault::ExitPeer) {
+                        self.engine.exit(2).unwrap();
+                        None
+                    } else if matches!(self.fault, Fault::Drop) {
                         None
                     } else {
                         Some(reply)
@@ -218,13 +232,26 @@ impl Transport for Port {
     fn receive(&mut self, endpoint: ReceiveEndpoint) -> Result<Received, RuntimeError> {
         let mut h = self.0.borrow_mut();
         h.pump();
-        let message = h
-            .engine
-            .receive(1, endpoint.handle().raw())
-            .map_err(|e| RuntimeError::Kernel(e.code()))?;
+        let message = match h.engine.receive(1, endpoint.handle().raw()) {
+            Err(capability_core::Error::Again) if matches!(h.fault, Fault::ExitPeer) => {
+                h.empty_after_peer_exit += 1;
+                return Err(RuntimeError::Kernel(capability_core::Error::Again.code()));
+            }
+            result => result.map_err(|e| RuntimeError::Kernel(e.code()))?,
+        };
         Received::from_bytes(message.encode(), message.len as u64)
     }
     fn yield_now(&mut self) -> Result<(), RuntimeError> {
+        let mut h = self.0.borrow_mut();
+        h.yields += 1;
+        if h.retire_on_yield && !h.retired {
+            assert_eq!(h.empty_after_peer_exit, 1);
+            let handles = [h.send, h.receive];
+            for handle in handles {
+                h.engine.close(1, handle).unwrap();
+            }
+            h.retired = true;
+        }
         Ok(())
     }
     fn close(&mut self, handle: Handle) -> Result<(), RuntimeError> {
@@ -232,7 +259,12 @@ impl Transport for Port {
         h.closed.push(handle.raw());
         h.engine
             .close(1, handle.raw())
-            .map_err(|e| RuntimeError::Kernel(e.code()))
+            .map_err(|e| RuntimeError::Kernel(e.code()))?;
+        if h.close_failure == Some(handle.raw()) {
+            Err(RuntimeError::InvalidReturn)
+        } else {
+            Ok(())
+        }
     }
 }
 fn session(host: &Rc<RefCell<Host>>) -> Session<Port> {
@@ -327,6 +359,103 @@ fn lost_reply_impl() {
         Err(ClientError::Closed)
     );
     assert_eq!(host.borrow().published.len(), published);
+}
+fn peer_exit_retirement_impl() {
+    let host = Host::new();
+    {
+        let mut h = host.borrow_mut();
+        // Match the native reply graph without an app SEND root or an extra
+        // live sender keeping the reply object referenced.
+        let root = h.receive;
+        let receiver = h.engine.derive(1, root, capability_core::RECV).unwrap();
+        h.engine.close(1, root).unwrap();
+        let wrong_reply = h.wrong_reply;
+        h.engine.close(3, wrong_reply).unwrap();
+        h.receive = receiver;
+    }
+    let h = host.borrow();
+    let mut client = Session::new(
+        Port(host.clone()),
+        2,
+        11,
+        SendEndpoint::from_handle(Handle::from_raw(h.send).unwrap()),
+        ReceiveEndpoint::from_handle(Handle::from_raw(h.receive).unwrap()),
+        100_000,
+    )
+    .unwrap();
+    drop(h);
+    let geometry = client.geometry().unwrap();
+    {
+        let mut h = host.borrow_mut();
+        h.fault = Fault::ExitPeer;
+        h.retire_on_yield = true;
+    }
+    assert!(matches!(
+        client.blit(1, 0, geometry.rectangle(0).unwrap(), &[0; 1024]),
+        Err(ClientError::Interrupted {
+            delivery: Delivery::Enqueued,
+            runtime: Some(RuntimeError::Kernel(-4)),
+            ..
+        })
+    ));
+    assert!(client.is_closed());
+    let h = host.borrow();
+    assert!(h.retired);
+    assert_eq!(h.empty_after_peer_exit, 1);
+    assert_eq!(h.yields, 1, "must not exhaust the 100,000-poll budget");
+    assert_eq!(h.blits, 1, "the actual tile copy preceded the lost reply");
+    assert_eq!(h.receiver.completed_frame(), None);
+    assert_eq!(
+        h.published
+            .iter()
+            .filter(|op| **op == Operation::Commit)
+            .count(),
+        1
+    );
+    let publications = h.published.len();
+    assert_eq!(h.closed, [h.send, h.receive]);
+    assert!(h.engine.check_invariants());
+    drop(h);
+    assert_eq!(
+        client.blit(1, 0, geometry.rectangle(0).unwrap(), &[0; 1024]),
+        Err(ClientError::Closed)
+    );
+    assert_eq!(host.borrow().published.len(), publications);
+}
+fn retirement_cleanup_impl() {
+    for explicit in [false, true] {
+        let host = Host::new();
+        let mut client = session(&host);
+        let send = host.borrow().send;
+        host.borrow_mut().engine.close(1, send).unwrap();
+        let result = if explicit {
+            client.retire()
+        } else {
+            client.close()
+        };
+        assert_eq!(
+            result,
+            if explicit {
+                Ok(())
+            } else {
+                Err(RuntimeError::Kernel(-4))
+            }
+        );
+        assert_eq!(host.borrow().closed.len(), 2);
+        assert!(client.is_closed());
+    }
+    let host = Host::new();
+    let mut client = session(&host);
+    {
+        let mut h = host.borrow_mut();
+        let send = h.send;
+        h.engine.close(1, send).unwrap();
+        h.close_failure = Some(h.receive);
+    }
+    assert_eq!(client.retire(), Err(RuntimeError::InvalidReturn));
+    assert_eq!(host.borrow().closed.len(), 2);
+    assert!(client.is_closed());
+    assert!(host.borrow().engine.check_invariants());
 }
 fn failures_impl() {
     for fault in [Fault::AgainAlways, Fault::UnknownSend, Fault::Blit] {
@@ -545,6 +674,14 @@ scenario!(
 scenario!(
     lost_reply_is_not_ack_and_never_replays_a_published_tile,
     lost_reply_impl
+);
+scenario!(
+    explicit_retirement_unblocks_lost_reply_after_real_peer_exit_without_replaying_tile,
+    peer_exit_retirement_impl
+);
+scenario!(
+    only_explicit_retirement_tolerates_bad_handle_and_preserves_other_cleanup_errors,
+    retirement_cleanup_impl
 );
 scenario!(
     bounded_unsent_unknown_send_and_backend_failure_are_distinct,
