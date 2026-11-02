@@ -1,9 +1,11 @@
 //! Per-window input forwarding. The caller supplies authenticated kernel PIDs
 //! and events decoded by the existing input service, never app-authored events.
+use nieuw_os_input_client::clipboard::{Header, Operation as ClipboardOperation};
 use nieuw_os_input_core::{
     wire::{self, Operation, Request},
     CancelReason, Error, Event,
 };
+use ui_core::{KeyAction, PhysicalKey};
 
 const CAPACITY: usize = 16;
 #[derive(Clone, Copy)]
@@ -26,6 +28,43 @@ pub struct Queue {
     length: usize,
 }
 impl Queue {
+    /// Last issued event sequence, including queued events not offered yet.
+    /// Revocation uses this watermark so a delayed old request cannot become
+    /// a fresh clipboard gesture after clear or focus cancellation.
+    pub fn sequence_watermark(&self) -> u64 {
+        self.next - 1
+    }
+    pub fn generation(&self) -> u64 {
+        self.generation
+    }
+    /// Authorization comes from this queue's real, currently offered event.
+    /// An app-authored action name or claimed focus never grants clipboard use.
+    pub fn authorizes_clipboard(&self, sender: u64, header: Header) -> bool {
+        if self.retired || sender != self.pid || header.epoch != self.epoch || header.request == 0 {
+            return false;
+        }
+        let Some(item) = self.items[self.head] else {
+            return false;
+        };
+        if self.offered != Some(item.sequence)
+            || header.sequence != item.sequence
+            || header.generation != item.generation
+        {
+            return false;
+        }
+        let Event::Key(key) = item.event else {
+            return false;
+        };
+        key.action == KeyAction::Press
+            && key.modifiers.control()
+            && !key.modifiers.alt()
+            && !key.modifiers.super_key()
+            && !key.modifiers.shift()
+            && match header.operation {
+                ClipboardOperation::Copy => key.key == PhysicalKey::C,
+                ClipboardOperation::Paste => key.key == PhysicalKey::V,
+            }
+    }
     /// An offered event or focus cancellation must reach its real app ACK.
     pub fn has_pending(&self) -> bool {
         self.length != 0 || self.offered.is_some()

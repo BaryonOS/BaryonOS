@@ -6,7 +6,9 @@ mod support;
 use core::cell::UnsafeCell;
 use nieuw_os_display_client::{wire::Rectangle as NativeRect, DisplayClient, NativeTransport};
 use nieuw_os_graphics::Rect;
-use nieuw_os_input_client::{Binding, Event, Peek, Session as Input};
+use nieuw_os_input_client::{
+    clipboard as clip, AckOutcome, Binding, Event, Peek, Session as Input,
+};
 use nieuw_os_input_core::{
     wire::{self, Operation, Request},
     CancelReason,
@@ -16,6 +18,9 @@ use nieuw_os_sdk_runtime::{native, Outgoing, SendEndpoint};
 use nieuw_os_surface_protocol::{self as sur, Action};
 use nieuw_os_window_session::{
     boot::{Bootstrap, CONTROL},
+    clipboard::{
+        copy_gesture, Broker as Clipboard, ClearAction, ClearChord, Pending as ClipboardPending,
+    },
     idle::{CompositorState, Idle, NativeIdle},
     input::Queue,
     scene::{Damage, Scene, MAX_PIXELS},
@@ -28,7 +33,19 @@ struct Backing(UnsafeCell<[u32; MAX_PIXELS]>);
 // entry. There is no shared mapping or callback that can reenter this code.
 unsafe impl Sync for Backing {}
 static BACKING: Backing = Backing(UnsafeCell::new([0; MAX_PIXELS]));
-type PendingReply = Option<(SendEndpoint, Outgoing, u64)>;
+// Exactly two inline slots, no allocator. The enum keeps plaintext Outgoing
+// messages structurally separate from the ticket-only clipboard retry state.
+#[allow(clippy::large_enum_variant)]
+enum ReplyWork {
+    Message(SendEndpoint, Outgoing, u64),
+    Clipboard(SendEndpoint, ClipboardPending, u64),
+}
+type PendingReply = Option<ReplyWork>;
+struct ReplyContext<'a> {
+    boot: &'a Bootstrap,
+    clipboard: &'a mut Clipboard,
+    focused: usize,
+}
 const INPUT_POLL_TICKS: u64 = 2;
 fn fail(code: u64) -> ! {
     support::put(488, code);
@@ -133,26 +150,48 @@ fn flush_reply(
     pending: &mut PendingReply,
     queue: &mut Queue,
     surface: &mut Receiver,
-    boot: &Bootstrap,
     io: &mut impl Ipc,
+    context: &mut ReplyContext<'_>,
 ) -> bool {
-    let Some((to, mut message, start)) = pending.take() else {
+    let Some(mut work) = pending.take() else {
         return false;
     };
+    let start = match &work {
+        ReplyWork::Message(_, _, start) | ReplyWork::Clipboard(_, _, start) => *start,
+    };
     let expired = tick().saturating_sub(start) > 200;
-    if !expired && u64::from_le_bytes(message.as_bytes()[8..16].try_into().unwrap()) == wire::TAG {
-        let mut prepared = [0u8; wire::SIZE];
-        prepared.copy_from_slice(&message.as_bytes()[64..64 + wire::SIZE]);
-        let reply = queue.refresh(&prepared).unwrap_or_else(|_| fail(34));
-        message = Outgoing::new(wire::TAG, &reply).unwrap_or_else(|_| fail(35));
-    }
     let failed = if expired {
         true
     } else {
-        match io.send(to, &message) {
+        let result = match &mut work {
+            ReplyWork::Message(to, message, _) => {
+                if u64::from_le_bytes(message.as_bytes()[8..16].try_into().unwrap()) == wire::TAG {
+                    let mut prepared = [0u8; wire::SIZE];
+                    prepared.copy_from_slice(&message.as_bytes()[64..64 + wire::SIZE]);
+                    let reply = queue.refresh(&prepared).unwrap_or_else(|_| fail(34));
+                    *message = Outgoing::new(wire::TAG, &reply).unwrap_or_else(|_| fail(35));
+                }
+                io.send(*to, message)
+            }
+            ReplyWork::Clipboard(to, request, _) => {
+                // Retain no plaintext while a reply queue is full. Every retry
+                // obtains a fresh bodyless denial if focus/offer was revoked.
+                let reply = context.clipboard.reply(request, context.focused, queue);
+                let status = reply.status;
+                let message = reply.outgoing().unwrap_or_else(|_| fail(38));
+                let result = io.send(*to, &message);
+                if result.is_ok() {
+                    context
+                        .clipboard
+                        .delivered(request.header.operation, status);
+                }
+                result
+            }
+        };
+        match result {
             Ok(()) => false,
             Err(e) if e.is_again() => {
-                *pending = Some((to, message, start));
+                *pending = Some(work);
                 return false;
             }
             Err(_) => true,
@@ -161,8 +200,8 @@ fn flush_reply(
     if failed {
         surface.retire();
         queue.retire();
-        let _ = native::close(boot.apps[index].surface_reply.handle());
-        let _ = native::close(boot.apps[index].input_reply.handle());
+        let _ = native::close(context.boot.apps[index].surface_reply.handle());
+        let _ = native::close(context.boot.apps[index].input_reply.handle());
     }
     failed
 }
@@ -226,6 +265,8 @@ fn run() -> ! {
     support::put(472, 1);
     let mut io = NativeIpc;
     let mut pending: [PendingReply; 2] = core::array::from_fn(|_| None);
+    let mut clipboard = Clipboard::new();
+    let mut clear_chord = ClearChord::default();
     let mut received = 0u64;
     let mut commits = 0u64;
     let mut rejected = 0u64;
@@ -253,8 +294,18 @@ fn run() -> ! {
                 };
                 input_events = input_events.checked_add(1).unwrap_or_else(|| fail(16));
                 let previous = scene.focused;
+                let queue_generations = queues.each_ref().map(Queue::generation);
                 let event = offer.event();
+                let clear = match event {
+                    Event::Key(key) => clear_chord.key(key),
+                    _ => ClearAction::Pass,
+                };
                 match event {
+                    Event::Key(_) if clear != ClearAction::Pass => {
+                        if clear == ClearAction::Clear {
+                            clipboard.clear(&queues).unwrap_or_else(|_| fail(39));
+                        }
+                    }
                     Event::Key(key) if key.key == PhysicalKey::F6 => {
                         if key.action == KeyAction::Press {
                             scene.cycle().unwrap_or_else(|_| fail(17));
@@ -278,9 +329,14 @@ fn run() -> ! {
                             );
                         }
                     }
-                    Event::Key(_) => queues[scene.focused]
-                        .push(event)
-                        .unwrap_or_else(|_| fail(19)),
+                    Event::Key(key) => {
+                        if copy_gesture(key) {
+                            clipboard.clear(&queues).unwrap_or_else(|_| fail(39));
+                        }
+                        queues[scene.focused]
+                            .push(event)
+                            .unwrap_or_else(|_| fail(19));
+                    }
                     Event::Cancel(reason) => {
                         last_buttons = 0;
                         app_pointer_capture = None;
@@ -344,7 +400,16 @@ fn run() -> ! {
                         .unwrap_or_else(|_| fail(23));
                     mark_focus(&scene, &mut damage);
                 }
-                input.ack(&offer).unwrap_or_else(|_| fail(24));
+                if input.ack(&offer).unwrap_or_else(|_| fail(24)) == AckOutcome::Superseded {
+                    app_pointer_capture = None;
+                    scene.cancel_pointer();
+                    for q in &mut queues {
+                        q.cancel(CancelReason::Resync).unwrap_or_else(|_| fail(20));
+                    }
+                }
+                if queue_generations != queues.each_ref().map(Queue::generation) {
+                    clipboard.revoke(&queues).unwrap_or_else(|_| fail(39));
+                }
             }
         }
         repaint(&scene, backing, &mut display, &mut damage, 32).unwrap_or_else(|_| fail(25));
@@ -354,8 +419,12 @@ fn run() -> ! {
                 &mut pending[index],
                 &mut queues[index],
                 &mut surfaces[index],
-                &boot,
                 &mut io,
+                &mut ReplyContext {
+                    boot: &boot,
+                    clipboard: &mut clipboard,
+                    focused: scene.focused,
+                },
             ) {
                 rejected += 1;
             }
@@ -380,6 +449,10 @@ fn run() -> ! {
                 && message.tag() == CONTROL
                 && message.payload() == [5]
             {
+                clipboard.clear(&queues).unwrap_or_else(|_| fail(39));
+                for reply in &mut pending {
+                    *reply = None;
+                }
                 native::exit(0);
             }
             let Some(index) = boot.apps.iter().position(|a| a.pid == message.sender()) else {
@@ -388,6 +461,42 @@ fn run() -> ! {
             };
             if pending[index].is_some() {
                 rejected += 1;
+                continue;
+            }
+            if message.tag() == clip::TAG {
+                let request = match clip::Request::decode(message.payload()) {
+                    Ok(request) => request,
+                    Err(_) => {
+                        rejected += 1;
+                        continue;
+                    }
+                };
+                let reply = clipboard.accept(
+                    index,
+                    scene.focused,
+                    message.sender(),
+                    &queues[index],
+                    request,
+                );
+                pending[index] = Some(ReplyWork::Clipboard(
+                    boot.apps[index].input_reply,
+                    reply,
+                    tick(),
+                ));
+                if flush_reply(
+                    index,
+                    &mut pending[index],
+                    &mut queues[index],
+                    &mut surfaces[index],
+                    &mut io,
+                    &mut ReplyContext {
+                        boot: &boot,
+                        clipboard: &mut clipboard,
+                        focused: scene.focused,
+                    },
+                ) {
+                    rejected += 1;
+                }
                 continue;
             }
             let (tag, payload, to) = if message.tag() == sur::TAG {
@@ -444,7 +553,7 @@ fn run() -> ! {
                 continue;
             };
             let _ = tag;
-            pending[index] = Some((to, payload, tick()));
+            pending[index] = Some(ReplyWork::Message(to, payload, tick()));
             // A COMMIT response exists only after the validated backing copy
             // and real DisplayClient write above. Do not defer that ACK behind
             // the next input RPC/main-loop yield when its queue is writable.
@@ -453,11 +562,18 @@ fn run() -> ! {
                 &mut pending[index],
                 &mut queues[index],
                 &mut surfaces[index],
-                &boot,
                 &mut io,
+                &mut ReplyContext {
+                    boot: &boot,
+                    clipboard: &mut clipboard,
+                    focused: scene.focused,
+                },
             ) {
                 rejected += 1;
             }
+        }
+        if scene.set_clipboard_notice(clipboard.notice()) {
+            damage.mark(scene.clipboard_notice_bounds());
         }
         for (at, v) in [
             (400, 1),
