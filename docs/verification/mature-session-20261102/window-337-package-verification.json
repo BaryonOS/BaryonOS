@@ -1,0 +1,630 @@
+{
+  "schema_version": 1,
+  "candidate_status": "awaiting-root-full-native-gates",
+  "source_commit": "337f2f29f1833ef4a8d2cd640b09419f85dbb83b",
+  "source_sha256": "3919403542c923bc86467db3184345159a5ce6881567a0e11baa85f2d39f1995",
+  "kernel_feature": "native-window-session",
+  "loader_feature": "desktop-mode",
+  "zip": {
+    "path": "/workspace/nieuw-os-windows-package/build/window-package-337f2f2/NieuwOS-venstersessie-337f2f2-Windows-QEMU.zip",
+    "sha256": "bac273f2771180573de93790891941ad07bfdce1ed4399d9773fd4b9ba87fb89",
+    "size_bytes": 2459187
+  },
+  "manifest_sha256": "dc886bf244fffc259aa9a0c50b6923f2f4a0e22d876498103f69e73054bfe2dc",
+  "build_manifest_sha256": "832165b469ae6edcd90df5d0c00108813fe444ba8eb2088f748f34c614e2820c",
+  "kernel_sha256": "274dffca8070554928df56f858adf656e00dc0357e25891942be9918898e3588",
+  "loader_sha256": "5b90c8647cfae47f456f483e7800663f71a165c9912384c5d29ea35a50cd9314",
+  "native_apps": [
+    {
+      "name": "keyring-service",
+      "sha256": "07657bfde7013dcf052aab581bee37af535a5b7055b273ee8df38632fce0c518",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1344,
+            "memsz": 1344,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073823744,
+            "offset": 12288,
+            "filesz": 3457,
+            "memsz": 3457,
+            "page_start": 1073823744,
+            "page_end": 1073827840
+          },
+          {
+            "flags": 5,
+            "address": 1073872896,
+            "offset": 16384,
+            "filesz": 78407,
+            "memsz": 78407,
+            "page_start": 1073872896,
+            "page_end": 1073954816
+          }
+        ]
+      }
+    },
+    {
+      "name": "volume-service",
+      "sha256": "cae62e54c7d5bb0bd28586dfceeaaac9efba6eb0887f9f3ae314f3a77edb8c8b",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 57570,
+            "memsz": 57570,
+            "page_start": 1073741824,
+            "page_end": 1073803264
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 65536,
+            "filesz": 1304,
+            "memsz": 1304,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073823744,
+            "offset": 69632,
+            "filesz": 18082,
+            "memsz": 18082,
+            "page_start": 1073823744,
+            "page_end": 1073844224
+          }
+        ]
+      }
+    },
+    {
+      "name": "materiaal-app",
+      "sha256": "693d22eaddb48b749dea1c3b7fd1b35eaac4e1adb38c235e94d3f1fedf0ab050",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 19,
+            "memsz": 19,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1024,
+            "memsz": 1024,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 470560,
+            "memsz": 470560,
+            "page_start": 1073872896,
+            "page_end": 1074343936
+          },
+          {
+            "flags": 6,
+            "address": 1074462720,
+            "offset": 483328,
+            "filesz": 184,
+            "memsz": 200704,
+            "page_start": 1074462720,
+            "page_end": 1074663424
+          },
+          {
+            "flags": 5,
+            "address": 1074724864,
+            "offset": 487424,
+            "filesz": 97257,
+            "memsz": 97257,
+            "page_start": 1074724864,
+            "page_end": 1074823168
+          }
+        ]
+      }
+    },
+    {
+      "name": "input-source",
+      "sha256": "a5c2c84fa6eebda448dba2009c876abc4275fcab95a00a8b808a080d9d17d1d7",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1200,
+            "memsz": 1200,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 754,
+            "memsz": 754,
+            "page_start": 1073872896,
+            "page_end": 1073876992
+          },
+          {
+            "flags": 5,
+            "address": 1074003968,
+            "offset": 16384,
+            "filesz": 12263,
+            "memsz": 12263,
+            "page_start": 1074003968,
+            "page_end": 1074016256
+          }
+        ]
+      }
+    },
+    {
+      "name": "input-policy",
+      "sha256": "5bbe44edc98b251e03ba98081286dd1441334f8de87e14e550f26d1b3efcb445",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1200,
+            "memsz": 1200,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 2522,
+            "memsz": 2522,
+            "page_start": 1073872896,
+            "page_end": 1073876992
+          },
+          {
+            "flags": 5,
+            "address": 1074003968,
+            "offset": 16384,
+            "filesz": 21575,
+            "memsz": 21575,
+            "page_start": 1074003968,
+            "page_end": 1074028544
+          }
+        ]
+      }
+    },
+    {
+      "name": "window-init",
+      "sha256": "b824ebe9366f622933947fec77805cf1ed0ba9d93ed4a3e2a05a14a918e6c36b",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1024,
+            "memsz": 1024,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 799,
+            "memsz": 799,
+            "page_start": 1073872896,
+            "page_end": 1073876992
+          },
+          {
+            "flags": 6,
+            "address": 1074790400,
+            "offset": 16384,
+            "filesz": 72,
+            "memsz": 72,
+            "page_start": 1074790400,
+            "page_end": 1074794496
+          },
+          {
+            "flags": 5,
+            "address": 1090519040,
+            "offset": 20480,
+            "filesz": 8903,
+            "memsz": 8903,
+            "page_start": 1090519040,
+            "page_end": 1090531328
+          }
+        ]
+      }
+    },
+    {
+      "name": "window-compositor",
+      "sha256": "9cbc4ff2406134d302f752d8b608c30db634efba28cbb8e0c910daeea41c8a0c",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1024,
+            "memsz": 1024,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 279317,
+            "memsz": 279317,
+            "page_start": 1073872896,
+            "page_end": 1074155520
+          },
+          {
+            "flags": 6,
+            "address": 1074790400,
+            "offset": 294912,
+            "filesz": 88,
+            "memsz": 5600088,
+            "page_start": 1074790400,
+            "page_end": 1080393728
+          },
+          {
+            "flags": 5,
+            "address": 1090519040,
+            "offset": 299008,
+            "filesz": 37975,
+            "memsz": 37975,
+            "page_start": 1090519040,
+            "page_end": 1090560000
+          }
+        ]
+      }
+    },
+    {
+      "name": "calculator-app",
+      "sha256": "2cf832e06dd078d6f5cb74cde2a3b853469c8d8a42862bd76e345c9ecfc51793",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 19,
+            "memsz": 19,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1024,
+            "memsz": 1024,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 189209,
+            "memsz": 189209,
+            "page_start": 1073872896,
+            "page_end": 1074065408
+          },
+          {
+            "flags": 6,
+            "address": 1074200576,
+            "offset": 204800,
+            "filesz": 144,
+            "memsz": 144,
+            "page_start": 1074200576,
+            "page_end": 1074204672
+          },
+          {
+            "flags": 5,
+            "address": 1074462720,
+            "offset": 208896,
+            "filesz": 55766,
+            "memsz": 55766,
+            "page_start": 1074462720,
+            "page_end": 1074520064
+          }
+        ]
+      }
+    }
+  ],
+  "all_nineteen_payload_sizes_and_hashes_matched": true,
+  "zip_crc_and_unique_exact_file_list_passed": true,
+  "graphics_seven_inputs_byte_equal_to_frozen_source": true,
+  "atlas_provenance_match": "a4e3efa8027d5eba26bea742f7350bda34380cab9d77030d21481cb06c5f2e07",
+  "firmware_package_checks": [
+    {
+      "archive": "ovmf_2025.02-8+deb13u1_all.deb",
+      "sha256": "78e0d54df11fc77406cb7a0bc9a39e5bca6d1cbe06556b91d9a73491c52decdf",
+      "matched_inputs": [
+        {
+          "source": "usr/share/OVMF/OVMF_CODE_4M.fd",
+          "bundle": "OVMF_CODE.fd",
+          "sha256": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0"
+        },
+        {
+          "source": "usr/share/OVMF/OVMF_VARS_4M.fd",
+          "bundle": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "source": "usr/share/doc/ovmf/copyright",
+          "bundle": "licenses/OVMF-COPYRIGHT",
+          "sha256": "a7540ec9d19d4160e863b0582161572853d5732610b8b16166f4913e9fda7d33"
+        }
+      ]
+    },
+    {
+      "archive": "seabios_1.16.3-2_all.deb",
+      "sha256": "2b590534250b940f43222eeab9a8f57f337a9d9a73fc412a43ab8cd07a7e56f6",
+      "matched_inputs": [
+        {
+          "source": "usr/share/seabios/bios-256k.bin",
+          "bundle": "bios-256k.bin",
+          "sha256": "fc6d2ea888862e6b26d53fb877ab712324726eb8f44eb6baf076c64a31f1c3fb"
+        },
+        {
+          "source": "usr/share/seabios/vgabios-stdvga.bin",
+          "bundle": "VGA.rom",
+          "sha256": "88277c3ebff60fe83696d99d44b7eee4426112ee1763c87347c30a5b75781932"
+        },
+        {
+          "source": "usr/share/doc/seabios/copyright",
+          "bundle": "licenses/SeaBIOS-COPYRIGHT",
+          "sha256": "58b417317de591441140835ec61a35518441e465e2149aa8580a46e2ac6c18a7"
+        }
+      ]
+    }
+  ],
+  "tests": {
+    "package_host": 20,
+    "synthetic_launcher": 22,
+    "synthetic_acceleration_qmp": 33,
+    "all_exit_codes": 0
+  },
+  "old_candidates_preserved": {
+    "4f146a6": {
+      "path": "/workspace/nieuw-os-windows-package/build/window-package-4f146a6/NieuwOS-venstersessie-4f146a6-Windows-QEMU.zip",
+      "sha256": "92b366a8e0da66b49ebfec1cf6a0cf435294b8c344e3f7770ee61639d250ced4"
+    },
+    "ecb9964": {
+      "path": "/workspace/nieuw-os-windows-package/build/window-package-ecb9964/NieuwOS-venstersessie-ecb9964-Windows-QEMU.zip",
+      "sha256": "e496b918db6170d768ecce22e34120c83e0fb1c5d9666fb46d37535e24211548"
+    },
+    "03e81d4": {
+      "path": "/workspace/nieuw-os-windows-package/build/window-package-03e81d4/NieuwOS-venstersessie-03e81d4-Windows-QEMU.zip",
+      "sha256": "50e9538f8cc023379ccd62d53466dd58eb5c99fea9f965d56a18d0842c63e229"
+    },
+    "2bb84c2": {
+      "path": "/workspace/nieuw-os-windows-package/build/window-package-2bb84c2/NieuwOS-venstersessie-2bb84c2-Windows-QEMU.zip",
+      "sha256": "b5e2cc39cb9d54ec343d435e4c24b899a023f2cb688abb0b30f7783ac5f529af"
+    },
+    "b1b292a": {
+      "path": "/workspace/nieuw-os-windows-package/build/window-package-b1b292a/NieuwOS-venstersessie-b1b292a-Windows-QEMU.zip",
+      "sha256": "3f216fac116e1c058d7659adc891f660f63bf8b8b6f356fb8f1e25e4d0313b8c"
+    }
+  },
+  "files": {
+    "Acceleration.ps1": {
+      "sha256": "fc506bb5ed327491a48316c9e9195418e3b08d090ceacdd4119a65c910c2defc",
+      "size_bytes": 7989
+    },
+    "OVMF_CODE.fd": {
+      "sha256": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "size_bytes": 3653632
+    },
+    "OVMF_VARS.template.fd": {
+      "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "size_bytes": 540672
+    },
+    "README.md": {
+      "sha256": "f090afb2e4c7c9ff7e4870fa3f5ec5adb7e5d5a06701d3efd54c8733e5eb533a",
+      "size_bytes": 6801
+    },
+    "Start-NieuwOS.ps1": {
+      "sha256": "f3db381890c58d3ec959aaf3815bede6daa3324c122ba6ad141322ecd3caa631",
+      "size_bytes": 7329
+    },
+    "VGA.rom": {
+      "sha256": "88277c3ebff60fe83696d99d44b7eee4426112ee1763c87347c30a5b75781932",
+      "size_bytes": 39424
+    },
+    "bios-256k.bin": {
+      "sha256": "fc6d2ea888862e6b26d53fb877ab712324726eb8f44eb6baf076c64a31f1c3fb",
+      "size_bytes": 262144
+    },
+    "esp/EFI/BOOT/BOOTX64.EFI": {
+      "sha256": "5b90c8647cfae47f456f483e7800663f71a165c9912384c5d29ea35a50cd9314",
+      "size_bytes": 31744
+    },
+    "esp/kernel.elf": {
+      "sha256": "274dffca8070554928df56f858adf656e00dc0357e25891942be9918898e3588",
+      "size_bytes": 3526832
+    },
+    "licenses/Native-graphics-README.md": {
+      "sha256": "3983fb246b308986033280525699182ee1e322b5fdca91485a6597732d9b80c2",
+      "size_bytes": 2553
+    },
+    "licenses/NotoSansMono-NOTICE.md": {
+      "sha256": "2e60f45a7d4e8387c5746e552cd11566a7b9d46a4b5c712be3ddac7d7af24f5a",
+      "size_bytes": 2860
+    },
+    "licenses/NotoSansMono-OFL.txt": {
+      "sha256": "e2e177a32561584d4fc13aaa3cd8e53758a12910f013fe9ca125419111722029",
+      "size_bytes": 4395
+    },
+    "licenses/OVMF-COPYRIGHT": {
+      "sha256": "a7540ec9d19d4160e863b0582161572853d5732610b8b16166f4913e9fda7d33",
+      "size_bytes": 18202
+    },
+    "licenses/OpenSans-Apache-2.0.txt": {
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "size_bytes": 11358
+    },
+    "licenses/OpenSans-NOTICE.md": {
+      "sha256": "12edb62082689ef35c8d665259318609b5c359560c9895b5f74ae0b833bb9d28",
+      "size_bytes": 1149
+    },
+    "licenses/OpenSans-font-provenance.json": {
+      "sha256": "924a7f85977bf54270f45107bf7d18220eb4e7b1e4b240af78d3ec0eb803e704",
+      "size_bytes": 1393
+    },
+    "licenses/SeaBIOS-COPYRIGHT": {
+      "sha256": "58b417317de591441140835ec61a35518441e465e2149aa8580a46e2ac6c18a7",
+      "size_bytes": 3349
+    },
+    "licenses/noto-sans-mono-bitmap-MIT.txt": {
+      "sha256": "d084589aca58e74853c2d03f8a1f7b6f3a13f1fcc4b0c451f30455da09c624b7",
+      "size_bytes": 1073
+    },
+    "volume.empty.img": {
+      "sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "size_bytes": 1048576
+    }
+  },
+  "limits": [
+    "No VM was started for this candidate build/check; root native acceptance is a separate gate.",
+    "Linux PowerShell synthetic prerequisites cannot prove Windows or WHPX runtime acceptance.",
+    "Public research workspace; no authentication integrated.",
+    "Launcher now requires and hashchecks all nineteen payloads, including all three Noto notices."
+  ],
+  "checkonly": {
+    "platform": "Linux",
+    "powershell_version": "7.5.4",
+    "qemu": "synthetic help/version executable, no VM support",
+    "exit_code": 0,
+    "hypervisor_probe_performed": false,
+    "qemu_vm_started": false,
+    "windows_runtime_performed": false,
+    "all_nineteen_extracted_files_unchanged": true,
+    "state_absent": true,
+    "log_sha256": "3ae67f7997bd553d4dff184e1e1c90e1d901136d419169de8b3a511be0fc6150",
+    "command": "PATH=/tmp/nieuw-os-qemu-launcher-test-bin:$PATH /tmp/nieuw-os-powershell-7.5.4/pwsh -NoProfile -File build/window-package-337f2f2/checkonly-unpacked/Start-NieuwOS.ps1 -QemuPath /tmp/nieuw-os-qemu-launcher-test-bin/qemu-system-x86_64.exe -CheckOnly"
+  },
+  "ci_window_snapshot": {
+    "run_id": 41487814892,
+    "job_id": 125422649431,
+    "status": "in_progress",
+    "active_step": "Actual input, unmasked pixels, isolation, crash recovery and disk",
+    "native_pass_claim": false,
+    "sha256": "6cb34eb20d04d5942f8413c3201a4fdc2d6fc2c0d6a09287899a6f261c422872"
+  },
+  "logs": {
+    "build-materiaal-window-session.json": "b054e9d803b711d0351c76d8405fa9ecd30c6a305010d8d831221832521d514a",
+    "build-materiaal-input-service.stdout.txt": "71447e449d74b71aee45d8b0bc81f1eca18bb4bc078532357ac1c05bff21a621",
+    "build-materiaal-input-service.stderr.txt": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+    "build-materiaal-window-session.stdout.txt": "89c6bb668f0b67b923afde5357de7a167a0f17b104bc2f2f5d149066975ac941",
+    "build-materiaal-volume-docs.stdout.txt": "f5cebfbb811ea846081dec362e7dd49c4ef59792fed284ae0e73cba179e0539d",
+    "build-native-window-session-os-loader.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build-materiaal-input-service.json": "a260a3af2e60cbd1757ce59c2de2b797263ab8db9f9cb749c4209a99c6fb51a7",
+    "build-materiaal-materiaal.stdout.txt": "3641f2bcb71fa8531474efff9c6249fc802af7cae2549d14ebc3e2182426ccae",
+    "build-materiaal-volume-docs.json": "a93619e5a3c80459eb28b351980ab9cc14e7e3a32b55934992e2ef597838b597",
+    "build-materiaal-keyring.json": "d30fb2a41c4acb4a295ed23bbe2a698d744b2972f7e15b0868660c9a2a9dac5a",
+    "build.log": "25f40352df60cb5ee715e9ec4ed0d025be0ef3f70df8beec5972c301f05de680",
+    "build-native-window-session-os-loader.stderr.txt": "9576f1f7e73fc2bb1ec2336aae60cb485c591eadc60a1b998573411c34057e08",
+    "build-native-window-session-os-kernel.json": "0890d7437b35dce8ab9793cf2ac23057a0b4b454b69a5f290f134d39cb86d5f1",
+    "build-materiaal-keyring.stdout.txt": "c2f1da0febd5c8bafde654570820cc12994d532e623324656537eae46cfac554",
+    "build-materiaal-window-session.stderr.txt": "d778af4339b717e21141db5e841083dfdb473ca5137242483b96d32147b5faea",
+    "build-materiaal-calculator.stderr.txt": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+    "package.json": "0fb9f61ec8dae627847cc3e8738d16231a75b06b1d1073386c59a1adc678f2dd",
+    "package-host-tests.log": "365a86572e8062cae77d48e3e9e605fffe1fb05e29c144d0d9b38c1b7c1e4781",
+    "build-materiaal-volume-docs.stderr.txt": "222a02ed477d249a21359df8cae975864a62d848f4739cadc5b00b6190a963c6",
+    "acceleration-tests.log": "c0f6a58ed7e7b4900d41534cb6c7150bd783290c7676e94754e4224d804c6260",
+    "checkonly.log": "3ae67f7997bd553d4dff184e1e1c90e1d901136d419169de8b3a511be0fc6150",
+    "build-native-window-session-os-loader.json": "9b8946273c1220bebc2d8c17b0791c02b7e5bce4909bdf8e07d54f3bfa8dd879",
+    "build-materiaal-materiaal.stderr.txt": "222a02ed477d249a21359df8cae975864a62d848f4739cadc5b00b6190a963c6",
+    "build-materiaal-calculator.stdout.txt": "124e2045d209c28dfcf9d967c2643cfe830438a7579d639364ec1553dec8733a",
+    "launcher-tests.log": "1ba4b3598b1e92f6ac0d458da2ec10d4dadf141a92425dfd3dcda3778b9153f1",
+    "build-native-window-session-manifest.json": "832165b469ae6edcd90df5d0c00108813fe444ba8eb2088f748f34c614e2820c",
+    "build-native-window-session-os-kernel.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build-native-window-session-os-kernel.stderr.txt": "c1280ed7459a8d55f0e0dd507c700c2586ff3afcf016de5e4d064fd78d5b1e2c",
+    "build-materiaal-materiaal.json": "acc84c18f1430be1a23c8afb3ceabd33c20d798407338105dbe2d6ed28bad365",
+    "build-materiaal-keyring.stderr.txt": "9576f1f7e73fc2bb1ec2336aae60cb485c591eadc60a1b998573411c34057e08",
+    "build-materiaal-calculator.json": "b0ca78d79df893fb84082b1d2e4c5e1d9f3e60cee98ee93c6458de98b5eec318"
+  },
+  "independent_readonly_review": {
+    "agent": "bundle_license_review",
+    "exact_eight_app_inspection": true,
+    "all_nineteen_payload_hashes": true,
+    "seven_graphics_source_inputs": true,
+    "launcher_all_notices_required": true,
+    "all_five_older_zips_preserved": true,
+    "no_blocker_in_as_built_zip": true,
+    "vm_or_windows_runtime_performed": false
+  }
+}

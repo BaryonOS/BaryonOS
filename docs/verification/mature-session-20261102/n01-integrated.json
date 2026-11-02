@@ -1,0 +1,321 @@
+{
+  "criterion": "N01",
+  "accepted": true,
+  "kind": "actual integrated QEMU two-app TCP/UDP service plus client-loss regression",
+  "cases": [
+    {
+      "case": "normal",
+      "kernel_feature": "native-net-service",
+      "scope": "three actual isolated ring-3 processes; bounded IPC TCP/UDP; synthetic localhost Ethernet; no TLS or physical hardware claim",
+      "source_commit": "ba117d25bf4880ea5ffd302808282d6f1b4dd032",
+      "source_sha256": "bfbb9ff0c2202403e3d4c9979dd5838099697692109f3502e95f2930de5d98a9",
+      "source_fingerprint_version": 3,
+      "started_utc": "2026-11-02T13:36:43.605856+00:00",
+      "qemu_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+      "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+      "firmware_sha256": {
+        "code": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+        "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+      },
+      "snapshot_sha256": {
+        "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+        "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+        "esp/kernel.elf": "dbd6c6613ad0a9a6869002ec0e4fbe2e7e7e8cda84dc45a59f77565b94c70727",
+        "esp/EFI/BOOT/BOOTX64.EFI": "aac71f266f75d785bdfb8f9574a05f700cb609341c9065281c7c8f49a2082bb2"
+      },
+      "duration_s": 8.901629138000317,
+      "raw_qemu_exit": 33,
+      "stdout_sha256": "65be902fffb808afb8d2c9d103ff9da5a60209b7487afaaef1242ed4d8b22a3c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 4000,
+      "stderr_bytes": 0,
+      "observed": {
+        "processes": {
+          "SERVICE": {
+            "240": 0,
+            "400": 1,
+            "408": 1349,
+            "416": 45,
+            "424": 35,
+            "432": 1175,
+            "440": 22,
+            "448": 2,
+            "456": 2,
+            "464": 10,
+            "472": 390,
+            "480": 308,
+            "488": 4,
+            "496": 3,
+            "504": 0,
+            "512": 4,
+            "520": 2,
+            "528": 1,
+            "536": 0
+          },
+          "APP_A": {
+            "240": 0,
+            "400": 1,
+            "408": 2,
+            "416": 1,
+            "424": 1,
+            "432": 9,
+            "440": 1,
+            "448": 3,
+            "456": 77,
+            "464": 2,
+            "472": 4,
+            "480": 1,
+            "488": 1,
+            "496": 1,
+            "504": 1,
+            "512": 1,
+            "520": 0,
+            "528": 1,
+            "536": 0
+          },
+          "APP_B": {
+            "240": 0,
+            "400": 1,
+            "408": 2,
+            "416": 1,
+            "424": 1,
+            "432": 9,
+            "440": 1,
+            "448": 3,
+            "456": 77,
+            "464": 2,
+            "472": 4,
+            "480": 1,
+            "488": 1,
+            "496": 1,
+            "504": 1,
+            "512": 1,
+            "520": 0,
+            "528": 1,
+            "536": 0
+          }
+        },
+        "network": {
+          "NET_TX_SUBMITTED": 45,
+          "NET_TX_COMPLETED": 45,
+          "NET_RX_COMPLETED": 35,
+          "NET_RX_DELIVERED": 35,
+          "NET_DENIED": 2,
+          "NET_TX_TIMEOUTS": 0,
+          "NET_RESETS": 1,
+          "NET_RESET_ACKS": 1
+        },
+        "entropy_bytes": 8,
+        "exit_ticks": {
+          "APP_A": 489,
+          "APP_B": 492
+        }
+      },
+      "passed": true,
+      "report_sha256": "783ca9a4aedb1f3abdf25a5857520648d3ddecd8680df9a6d57fd7904ea107a1",
+      "full_report_path": "build/n01-integrated/network-service-normal-report.json",
+      "peer_summary": {
+        "complete": true,
+        "counts": {
+          "client_frames": 45,
+          "server_frames": 35,
+          "arp_requests": 3,
+          "arp_replies": 3,
+          "syns": 14,
+          "syn_acks": 6,
+          "refusals": 2,
+          "resets_after_get": 2,
+          "first_syn_dropped": 2,
+          "retry_syns": 2,
+          "blackhole_syns": 4,
+          "blackhole_rsts": 2,
+          "corrupt_data_sent": 2,
+          "valid_data_sent": 4,
+          "http_requests": 6,
+          "valid_data_acks": 4,
+          "fins_sent": 4,
+          "client_fins_acked": 4,
+          "udp_requests": 2,
+          "udp_corrupt_sent": 2,
+          "udp_wrong_scope_sent": 2,
+          "udp_echo_sent": 2,
+          "udp_overflow_sent": 2
+        },
+        "request_sha256": [
+          "281c316cb88b92a9f39d4f83c0745cb41e6b6c8b62e49ee3dfb44408094d123b",
+          "013ed8666fcda1f31a2532e244519f40d3175ba07d1656165fbe46fbced10c69"
+        ],
+        "response_sha256": [
+          "90643d9b628582103a563e34b6d48daa4657cd4aff0c332ab2d793dbe1a72a37",
+          "60c750867ee1fe6cd54733f59f782e1eba1203efda168921e8b64534e159f4d9"
+        ],
+        "udp_sha256": [
+          "dd51fff31b841db107bc9733edcdb8aef31beff1971a3095ee2e335875a895f4",
+          "05555e5e86d541400b07d7395d6fbeaa6a18a5ca6c0623abc495e359a235d4a7"
+        ],
+        "passed": true
+      }
+    },
+    {
+      "case": "client-exit",
+      "kernel_feature": "test-net-service-client-exit",
+      "scope": "three actual isolated ring-3 processes; bounded IPC TCP/UDP; synthetic localhost Ethernet; no TLS or physical hardware claim",
+      "source_commit": "e6ccff32fb9c4816cc3ab480c6fca17a4d992c3f",
+      "source_sha256": "bfbb9ff0c2202403e3d4c9979dd5838099697692109f3502e95f2930de5d98a9",
+      "source_fingerprint_version": 3,
+      "started_utc": "2026-11-02T13:37:23.570556+00:00",
+      "qemu_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+      "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+      "firmware_sha256": {
+        "code": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+        "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+      },
+      "snapshot_sha256": {
+        "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+        "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+        "esp/kernel.elf": "d97b84c05feede76f5b0f3bc3894a833e56208b08b71ac4a24301dab30ecaacb",
+        "esp/EFI/BOOT/BOOTX64.EFI": "aac71f266f75d785bdfb8f9574a05f700cb609341c9065281c7c8f49a2082bb2"
+      },
+      "duration_s": 7.98808984399966,
+      "raw_qemu_exit": 33,
+      "stdout_sha256": "97b59fd060270d0cfbeffc292af0f396cc0f214c0ff936aec33938d7e9f4b8c6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 4000,
+      "stderr_bytes": 0,
+      "observed": {
+        "processes": {
+          "SERVICE": {
+            "240": 0,
+            "400": 1,
+            "408": 2932,
+            "416": 25,
+            "424": 18,
+            "432": 1294,
+            "440": 13,
+            "448": 1,
+            "456": 1,
+            "464": 6,
+            "472": 195,
+            "480": 154,
+            "488": 2,
+            "496": 3,
+            "504": 0,
+            "512": 2,
+            "520": 1,
+            "528": 1,
+            "536": 1
+          },
+          "APP_A": {
+            "240": 0,
+            "400": 1,
+            "408": 0,
+            "416": 0,
+            "424": 1,
+            "432": 0,
+            "440": 1,
+            "448": 0,
+            "456": 0,
+            "464": 0,
+            "472": 0,
+            "480": 1,
+            "488": 0,
+            "496": 0,
+            "504": 0,
+            "512": 0,
+            "520": 0,
+            "528": 1,
+            "536": 1
+          },
+          "APP_B": {
+            "240": 0,
+            "400": 1,
+            "408": 2,
+            "416": 1,
+            "424": 1,
+            "432": 9,
+            "440": 1,
+            "448": 3,
+            "456": 77,
+            "464": 2,
+            "472": 4,
+            "480": 1,
+            "488": 1,
+            "496": 1,
+            "504": 1,
+            "512": 1,
+            "520": 0,
+            "528": 1,
+            "536": 0
+          }
+        },
+        "network": {
+          "NET_TX_SUBMITTED": 25,
+          "NET_TX_COMPLETED": 25,
+          "NET_RX_COMPLETED": 18,
+          "NET_RX_DELIVERED": 18,
+          "NET_DENIED": 2,
+          "NET_TX_TIMEOUTS": 0,
+          "NET_RESETS": 1,
+          "NET_RESET_ACKS": 1
+        },
+        "entropy_bytes": 8,
+        "exit_ticks": {
+          "APP_A": 33,
+          "APP_B": 473
+        }
+      },
+      "passed": true,
+      "report_sha256": "0f7d1971a81dddd8230dee1d0bb0da1600d9b0fa9072c6e8cd94f8a18dae1d53",
+      "full_report_path": "build/n01-integrated/network-service-client-exit-report.json",
+      "peer_summary": {
+        "complete": true,
+        "counts": {
+          "client_frames": 25,
+          "server_frames": 18,
+          "arp_requests": 2,
+          "arp_replies": 2,
+          "syns": 8,
+          "syn_acks": 3,
+          "refusals": 1,
+          "resets_after_get": 1,
+          "first_syn_dropped": 1,
+          "retry_syns": 1,
+          "blackhole_syns": 3,
+          "blackhole_rsts": 2,
+          "corrupt_data_sent": 1,
+          "valid_data_sent": 2,
+          "http_requests": 3,
+          "valid_data_acks": 2,
+          "fins_sent": 2,
+          "client_fins_acked": 2,
+          "udp_requests": 1,
+          "udp_corrupt_sent": 1,
+          "udp_wrong_scope_sent": 1,
+          "udp_echo_sent": 1,
+          "udp_overflow_sent": 1
+        },
+        "request_sha256": [
+          "281c316cb88b92a9f39d4f83c0745cb41e6b6c8b62e49ee3dfb44408094d123b",
+          "013ed8666fcda1f31a2532e244519f40d3175ba07d1656165fbe46fbced10c69"
+        ],
+        "response_sha256": [
+          "90643d9b628582103a563e34b6d48daa4657cd4aff0c332ab2d793dbe1a72a37",
+          "60c750867ee1fe6cd54733f59f782e1eba1203efda168921e8b64534e159f4d9"
+        ],
+        "udp_sha256": [
+          "dd51fff31b841db107bc9733edcdb8aef31beff1971a3095ee2e335875a895f4",
+          "05555e5e86d541400b07d7395d6fbeaa6a18a5ca6c0623abc495e359a235d4a7"
+        ],
+        "passed": true
+      }
+    }
+  ],
+  "metadata_only_commit_equivalence": {
+    "original": "ba117d25bf4880ea5ffd302808282d6f1b4dd032",
+    "reauthored": "e6ccff32fb9c4816cc3ab480c6fca17a4d992c3f",
+    "tree_sha256_equivalent": true
+  },
+  "review": "Targeted second-agent review found and verified per-slot channel-loss handling, per-owner port exhaustion and strict raw-byte preservation. Not a human security audit.",
+  "host_evidence": "docs/verification/n01-native-service-20261102/host-verification.json",
+  "boundary": "No DHCP/TLS/physical NIC or daily internet acceptance; N02/N03/N04 stay open."
+}

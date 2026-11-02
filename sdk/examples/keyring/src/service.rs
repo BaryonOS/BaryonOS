@@ -22,8 +22,8 @@ use keyring_core::{
     EntropySource, Service, State, Status, MAX_PLAINTEXT, MAX_SEALED, RECOVERY_BLOB, SECRET_BYTES,
 };
 use nieuw_os_sdk_runtime::{
-    native, EntropySource as EntropyHandle, Error, Handle, Outgoing, ReceiveEndpoint, SendEndpoint,
-    WaitCondition, IPC_WAIT_HORIZON_TICKS,
+    native, supports_ipc_wait, EntropySource as EntropyHandle, Error, Handle, Outgoing,
+    ReceiveEndpoint, SendEndpoint, WaitCondition, IPC_WAIT_HORIZON_TICKS,
 };
 
 const POLL_LIMIT: usize = 200_000;
@@ -585,7 +585,7 @@ fn main() -> ! {
         }
     }
     // RANDOM and administrative ingress retain their existing polling paths.
-    let idle_wait = native::abi_info().unwrap_or_else(|_| startup_error(3)) == (1 << 32) | 10
+    let idle_wait = supports_ipc_wait(native::abi_info().unwrap_or_else(|_| startup_error(3)))
         && random.is_none()
         && admin.is_none();
     let conditions = ingress.map(WaitCondition::receive);

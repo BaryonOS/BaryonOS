@@ -1,0 +1,57 @@
+{
+  "font": "Open Sans",
+  "sources": {
+    "regular": {
+      "source": "/usr/share/fonts/truetype/open-sans/OpenSans-Regular.ttf",
+      "sha256": "e64e508b2aa2880f907e470c4550980ec4c0694d103a43f36150ac3f93189bee",
+      "version": "1.10",
+      "copyright": "Digitized data copyright (c) 2010-2011 Google Corporation",
+      "license": "Apache-2.0"
+    },
+    "semibold": {
+      "source": "/usr/share/fonts/truetype/open-sans/OpenSans-Semibold.ttf",
+      "sha256": "aa3b0ef53db12e3d45094030cac0e69d384e44cc5978643dd4390041cad546e2",
+      "version": "1.10",
+      "copyright": "Digitized data copyright (c) 2010-2011 Google Corporation",
+      "license": "Apache-2.0"
+    }
+  },
+  "specs": [
+    [
+      "regular",
+      12
+    ],
+    [
+      "regular",
+      16
+    ],
+    [
+      "regular",
+      24
+    ],
+    [
+      "regular",
+      32
+    ],
+    [
+      "semibold",
+      16
+    ],
+    [
+      "semibold",
+      32
+    ],
+    [
+      "semibold",
+      64
+    ]
+  ],
+  "characters": 194,
+  "glyphs": 1358,
+  "row_offsets": 29055,
+  "data_bytes": 193017,
+  "data_sha256": "a4e3efa8027d5eba26bea742f7350bda34380cab9d77030d21481cb06c5f2e07",
+  "encoding": "Rows of (run length minus1) in high nibble and 4bit coverage in low nibble; 16 levels",
+  "native_parser": "None; fixed checked metadata and bounded row decoder",
+  "build_time_only": "Pillow/FreeType; not native dependencies"
+}

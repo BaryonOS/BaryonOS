@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "source_commit": "03e81d4d9ac8d4e83e3a321ba8ba949d8562658f",
+  "source_sha256": "8893b9623035561cc181b235e602485a811ed3db49d08dac67a07031a4edae76",
+  "status": "native-window-session-in-progress",
+  "score": 37,
+  "checks": {
+    "m4": {
+      "log_path": "/tmp/window-word-m4.log",
+      "sha256": "33782469483a22278f94c74b18498a97bb7aa0e4604db8ff8f1b23fb48555b38",
+      "passed": true,
+      "groups_or_tests": 12
+    },
+    "memory": {
+      "log_path": "/tmp/window-word-memory-host.log",
+      "sha256": "1a8b7d02a09c6cbf6c1a52eb5aac549b0babb03ed8b37c455bb05f6dcf3f080b",
+      "passed": true,
+      "groups_or_tests": 5
+    },
+    "window-runner": {
+      "log_path": "/tmp/window-word-runner-host.log",
+      "sha256": "90f3a22dfff29921510e2812514c1882d6ef915d4e25dde97793f2acdca94d45",
+      "passed": true,
+      "groups_or_tests": 8
+    },
+    "fmt": {
+      "log_path": "/tmp/window-word-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "passed": true,
+      "groups_or_tests": null
+    },
+    "n01-normal": {
+      "passed": true,
+      "result": "docs/verification/mature-session-20261102/word-n01-normal.json",
+      "sha256": "505abacc550746c8e1813470f362c5de6ec400636e23a4b97089565e01fa7496"
+    },
+    "n01-client-exit": {
+      "passed": true,
+      "result": "docs/verification/mature-session-20261102/word-n01-client-exit.json",
+      "sha256": "d89be9f96c4310a27a47780c16472eaba92bf45b2a9fa6fa53876eaa2ee147c2"
+    },
+    "windows-package": {
+      "result": "docs/verification/mature-session-20261102/window-package-03e81d4.json",
+      "sha256": "c23281aba287564a158cfa274392f3650db319a0ea71ca386b19c874b265b3e4",
+      "scope": "Linux static/synthetic verification only; normal profile candidate; no actual Windows execution."
+    }
+  },
+  "native_window": {
+    "run_directory": "build/window-final/run/window-c3209b41e4024e9ba57b62ad2b80ba6a",
+    "passed": false,
+    "completed_phases": [
+      "boot",
+      "initial"
+    ],
+    "boot_seconds": 312.24,
+    "initial_seconds": 322.9,
+    "scope": "Only completed phases recorded; no U01 acceptance or latency gain."
+  }
+}

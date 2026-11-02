@@ -2,6 +2,7 @@
 #![forbid(unsafe_code)]
 //! Typed INP1 application channel. Hardware bytes, focus policy and grants
 //! remain with the isolated source, input service and bootstrap authority.
+pub mod clipboard;
 mod reply;
 #[cfg(all(target_arch = "x86_64", target_os = "none"))]
 pub use nieuw_os_catalog_client::NativeTransport;
@@ -109,6 +110,7 @@ pub struct Session<T: Transport> {
     last_sequence: u64,
     last_generation: u64,
     outstanding: Option<Offer>,
+    clipboard_used: bool,
     closed: bool,
 }
 impl<T: Transport> Drop for Session<T> {
@@ -142,6 +144,7 @@ impl<T: Transport> Session<T> {
             last_sequence: 0,
             last_generation: 0,
             outstanding: None,
+            clipboard_used: false,
             closed: false,
         })
     }
@@ -158,6 +161,15 @@ impl<T: Transport> Session<T> {
         &self.transport
     }
     pub fn close(&mut self) -> Result<(), RuntimeError> {
+        self.close_owner(false)
+    }
+    /// Explicit supervisor retirement may already have closed either recorded
+    /// leaf. Ignore only that individual handle's BadHandle; attempt both and
+    /// preserve every other cleanup error. This never acknowledges an offer.
+    pub fn retire(&mut self) -> Result<(), RuntimeError> {
+        self.close_owner(true)
+    }
+    fn close_owner(&mut self, externally_retired: bool) -> Result<(), RuntimeError> {
         if self.closed {
             return Ok(());
         }
@@ -165,8 +177,12 @@ impl<T: Transport> Session<T> {
         self.outstanding = None;
         // Both are attempted once, even after the first close fails. Handles
         // are never retried after a possibly changed generation.
-        let send = self.transport.close(self.binding.send.handle());
-        let receive = self.transport.close(self.binding.receive.handle());
+        let normalize = |result| match result {
+            Err(RuntimeError::Kernel(-4)) if externally_retired => Ok(()),
+            other => other,
+        };
+        let send = normalize(self.transport.close(self.binding.send.handle()));
+        let receive = normalize(self.transport.close(self.binding.receive.handle()));
         send.and(receive)
     }
     /// Cancel this local session; no global-input/focus or implicit ACK opcode.
@@ -318,6 +334,7 @@ impl<T: Transport> Session<T> {
                 }
                 self.last_sequence = offer.sequence;
                 self.outstanding = Some(offer);
+                self.clipboard_used = false;
                 Ok(Peek::Offer(offer))
             }
             Reply::Failure(status) => Err(Error::Service {

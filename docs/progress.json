@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "94f12da0b9740a1a0ced1f08b4a30787f82ae79f",
+    "source_commit": "380111b68688c981eec6abb8fab29174a29f5601",
     "branch": "codex/volume-format-admission-20261102",
-    "task": "Volume-admissie gerepareerd en native geverifieerd; bestaande crashrecovery behouden",
-    "previous_score": 34,
-    "summary": "34/100 blijft gelijk. Recovery vereist een volledig geldige eigen tabelkopie; lege fixtures worden vooraf canoniek sealed als generatie 0. Hosttests slagen, inclusief rode regressie op oude code. Op bron94f12da slagen 10 native toelatingsruns en de bestaande negen-VM-crashgate: alle acht vreemde/ongeformatteerde RO/RW-cases worden tijdens servicestart geweigerd met nul WRITE-traces en ongewijzigde imagehashes. Eigen kernel behouden; geen driver-, IPC-, capability- of runtimeformatuitbreiding. ADR-053 en docs/verification/volume-format-admission/README.md bewaren bewijs en compatibiliteitsgrens. Native Btrfs/OpenZFS-engine, hardwareduurzaamheid en S09 blijven open."
+    "task": "Integratiecheckpoint: volume-admissiefix op actuele main; native hertest open",
+    "previous_score": 41,
+    "summary": "Geerfde maincriteria behouden: 41/100 blijft 41/100; geen nieuw criterium voor de toelatingsfix. Het oorspronkelijke 10+9-nativebewijs blijft aan bron94f12da gebonden. Main380111b is inhoudelijk behouden; twee fixture-overlaps zijn automatisch gecombineerd en documentatieconflicten opgelost. Bronfingerprint/SDK/kernelafhankelijkheden zijn veranderd, dus de volledige 10+9-nativevolumegates worden op een nieuw bevroren broncheckpoint herhaald. Die gecombineerde acceptatie is hier nog open. ADR-058 en de bewijsbundel beschrijven de compatibiliteitsgrens. Geen nieuwe FS-driver of wijziging van main."
   },
   "tracks": [
     {
@@ -259,9 +259,13 @@
           "id": "U01",
           "title": "Native compositor en sessie",
           "points": 4,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "De eigen kernel draait een interactieve grafische sessie met render- en inputketen, venster/surface-isolatie en gecontroleerd compositorherstel.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/mature-session-20261102/U01-ACCEPTANCE.md",
+            "docs/verification/mature-session-20261102/U01-ACCEPTANCE.json",
+            "docs/verification/mature-session-20261102/window-337-ci-verification.json"
+          ]
         },
         {
           "id": "U02",
@@ -269,7 +273,14 @@
           "points": 2,
           "status": "open",
           "acceptance": "Toetsenbord, aanwijzer, focus, klembord en appwisseling zijn native bruikbaar en voldoen aan gemeten interactiebudgetten.",
-          "evidence": []
+          "evidence": [
+            "docs/implementation/GUI-IDLE-WAIT.md",
+            "docs/verification/gui-idle-20261102/windows-ab/README.md",
+            "docs/verification/gui-idle-20261102/central-review.json",
+            "docs/verification/gui-idle-20261102/INTEGRATION.md",
+            "docs/implementation/NATIVE-CLIPBOARD.md",
+            "docs/verification/native-clipboard-20261102/README.md"
+          ]
         },
         {
           "id": "U03",
@@ -314,9 +325,13 @@
           "id": "N01",
           "title": "Native pakket- en transportstack",
           "points": 3,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "De eigen OS-netwerkdienst verwerkt echte packets en begrensde IP/TCP/UDP-verbindingen; malformed input, backpressure en afsluiten zijn getest.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/mature-session-20261102/README.md",
+            "docs/verification/mature-session-20261102/n01-integrated.json",
+            "docs/verification/n01-native-service-20261102/host-verification.json"
+          ]
         },
         {
           "id": "N02",

@@ -1,0 +1,184 @@
+{
+  "date": "2026-11-02",
+  "provenance": "Reported by the user-authorized local Codex chat 01a19c13-c83d-7781-8f61-de0541ac6d95. Raw Windows artifacts are local; cloud did not independently reproduce them.",
+  "hardware": {
+    "os": "Windows 11 Pro Insider Preview 25H2 build26220.9757 x64",
+    "cpu": "AMD Ryzen 9 9950X3D,16cores/32logical",
+    "installed_ram_gib": 64,
+    "windows_usable_ram_gib": 61.41,
+    "gpu": [
+      "AMD Radeon RX5700XT",
+      "AMD Radeon Graphics"
+    ],
+    "gpu_driver": "32.0.21045.20006",
+    "hypervisor_present": true,
+    "firmware_virtualization_enabled": true
+  },
+  "qemu": "11.1.0(v11.1.0-12130-ge470268ff4)",
+  "init_only": {
+    "whpx_exit": 0,
+    "whpx_seconds": 0.17,
+    "tcg_exit": 0,
+    "tcg_seconds": 0.117,
+    "status": "prelaunch",
+    "warning": "Ignoring request for interrupt vector0",
+    "no_host_configuration_changed": true
+  },
+  "old_bundle_baseline": {
+    "source_commit": "c532ba88fbf0f53b960e9dbf77421cee29d97096",
+    "source_sha256": "a1998a126a3a1ccc18523925a422912d934c14bab865b3d7df346862a2c251a6",
+    "kernel_sha256": "f2e9cc4aad87ad2b9fbc8b498ab146db2ab0df4a77b904eecf81c3a9beb198b3",
+    "loader_sha256": "7e55ab0fe6c232380f52dc5be1334b41388b70d80e0ebe2b0072de7e12373a09",
+    "machine": "pc-q35-8.2",
+    "cpu": "qemu64",
+    "vcpus": 1,
+    "ram_mib": 256,
+    "samples_each": 1,
+    "first_complete_frame_whpx_seconds": 10.453,
+    "first_complete_frame_tcg_seconds": 19.952,
+    "full800x600_ppm_sha256": "89988554c6e93449245ccac8462e1a43af336e0af990affcf59004bb2eaed50f",
+    "qmp_poll_interval_seconds": 0.25,
+    "qemu_exits": [
+      0,
+      0
+    ],
+    "volume_hash_unchanged": true,
+    "network": false,
+    "passthrough": false,
+    "raw_report_local": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Nieuw OS\\local-pc-tests\\20261102T115023Z-native\\comparison.json"
+  },
+  "found_regression_on_7648a8f": {
+    "component": "Windows HMP acceleration helper",
+    "result": "Timed out after10seconds despite successful binary-LF QMP initialization; false TCG fallback. Replacement QMP helper requires a new Windows runtime test.",
+    "scope": "Real Windows finding; Linux/fake-executable policy tests had passed."
+  },
+  "fixed_helper_windows": {
+    "source_commit": "51d883e76c226b1ddd201f0e77cb126e4e5f745e",
+    "helper_sha256": "fc506bb5ed327491a48316c9e9195418e3b08d090ceacdd4119a65c910c2defc",
+    "successful_probes": 6,
+    "powershell_5_1_seconds": [
+      0.322,
+      0.32,
+      0.292
+    ],
+    "powershell_7_6_seconds": [
+      0.323,
+      0.29,
+      0.274
+    ],
+    "qmp": "Greeting, correlated capabilities/status/quit; prelaunch, running=false; exit0",
+    "selection": [
+      "Auto -> whpx Checked=true",
+      "Whpx -> whpx Checked=true",
+      "Auto -> whpx Checked=true"
+    ],
+    "check_only": "Both PowerShell versions pass; no mutable state",
+    "host_settings_changed": false,
+    "raw_report_local": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\session-preview-51d883e\\launcher-verification\\verification.json"
+  },
+  "session_51d_windows_first_run": {
+    "scope": "Reported first8-stage native WHPX walkthrough; full3x2series not complete at report time",
+    "first_accounts_from_popen_seconds": 7.992,
+    "transitions_min_seconds": 2.75,
+    "transitions_max_seconds": 5.903,
+    "total_seconds": 42.485,
+    "passed": true,
+    "authentication": "Personal login rejects synthetic password; only explicit guest starts desktop"
+  },
+  "final_344dc0a_windows": {
+    "source_commit": "344dc0afde893784503217ac676e154b13662507",
+    "source_sha256": "05b047819f1c1cddce6868034ab2208d8a35a95d9f974860afb8bbc53eeb8658",
+    "kernel_sha256": "1a925a954207a34d7a964ee0d56c24c39cf339d12bc06fca85bbfb06bdda11d8",
+    "loader_sha256": "1785cc00ec9b0267b58e309c7cd922f69816e8cf79f1f08fae4ae73c1516587a",
+    "zip_sha256": "63c57b3e592a17e514c52b14a94deb870b7d1fccac8f6afe6ebb5de24f8ad504",
+    "runs_passed": 6,
+    "whpx_runs": 3,
+    "tcg_runs": 3,
+    "exact_app_frames": 48,
+    "compared_app_rect": [
+      16,
+      48,
+      768,
+      536
+    ],
+    "pixel_masks": [],
+    "qemu_exits": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "verified": [
+      "final serial",
+      "immutable input copies",
+      "stored frames",
+      "source/fixture/QEMU/adapter bindings",
+      "clean Windows checkout",
+      "no QEMU remaining"
+    ],
+    "seconds": {
+      "accounts": {
+        "whpx_mean": 6.625,
+        "whpx_range": [
+          6.481,
+          6.823
+        ],
+        "tcg_mean": 13.356,
+        "tcg_range": [
+          12.201,
+          14.819
+        ]
+      },
+      "desktop_from_guest": {
+        "whpx_mean": 4.07,
+        "whpx_range": [
+          3.932,
+          4.231
+        ],
+        "tcg_mean": 10.023,
+        "tcg_range": [
+          8.689,
+          11.847
+        ]
+      },
+      "search_route": {
+        "whpx_mean": 3.295,
+        "tcg_mean": 7.008
+      },
+      "material_from_search": {
+        "whpx_mean": 3.98,
+        "tcg_mean": 9.728
+      },
+      "full_eight_phase_route": {
+        "whpx_mean": 31.481,
+        "whpx_range": [
+          31.27,
+          31.838
+        ],
+        "tcg_mean": 71.982,
+        "tcg_range": [
+          66.461,
+          78.366
+        ]
+      }
+    },
+    "measurement_limits": "Three alternating starts per backend on one PC; background load uncontrolled; not a universal benchmark. Chrome outside compared app area.",
+    "real_windows_launcher": {
+      "powershell": "5.1",
+      "acceleration_requested": "Auto",
+      "selected": "whpx",
+      "probe_passed": true,
+      "sdl_window_visible": true,
+      "guest_ready": true,
+      "window_closed_normally": true,
+      "launcher_exit": 0,
+      "host_settings_changed": false
+    },
+    "directory_local": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\session-preview-344dc0a",
+    "comparison_sha256": "cf7ea21e524f6bc9b8775208e3e08627b54bf8f74a4086858d48f6b6a014586d",
+    "local_verification_sha256": "477f70e800b94f5ab5cf5df5e35405a0046488123d2e29653edd5fdd82cd5ffe",
+    "remaining_idle_cpu_observation": "After12s idle, a2.013s sample counted2.047CPU seconds for QEMU (about one logical CPU). Process accounting only; not total system energy or complete guest CPU measurement."
+  }
+}

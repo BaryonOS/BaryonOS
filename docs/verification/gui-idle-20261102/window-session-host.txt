@@ -1,0 +1,51 @@
+   Compiling nieuw-os-display-client v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/display-client)
+   Compiling nieuw-os-native-input-service v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/examples/input-service)
+   Compiling nieuw-os-window-session v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/examples/window-session)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.67s
+     Running unittests src/lib.rs (target/root-idle-checks/x86_64-unknown-linux-gnu/debug/deps/nieuw_os_window_session-38381fd8c601da8d)
+
+running 8 tests
+test input::tests::actual_sender_scope_and_epoch_precede_state_changes ... ok
+test input::tests::cancellation_supersedes_old_offer_without_consuming_new_event ... ok
+test input::tests::delayed_reply_refresh_never_delivers_superseded_offer ... ok
+test input::tests::overflow_cancels_instead_of_delivering_partial_input ... ok
+test scene::tests::body_input_cannot_start_title_drag_and_focus_tracks_z_order ... ok
+test scene::tests::damage_clips_coordinates_and_visits_each_tile_once ... ok
+test scene::tests::bounded_backing_at_both_actual_scales ... ok
+test scene::tests::tile_rejection_is_atomic_and_scoped_to_own_backing ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/idle.rs (target/root-idle-checks/x86_64-unknown-linux-gnu/debug/deps/idle-ae06cd8a1b2015a2)
+
+running 14 tests
+test bad_masks_and_failed_authority_checks_fail_closed_without_yield_fallback ... ok
+test boot_missing_ready_recovery_stop_and_control_messages_prevent_init_parking ... ok
+test busy_path_does_not_touch_clock_or_wait_and_yield_errors_are_preserved ... ok
+test damage_query_cannot_consume_budgeted_tiles_or_lose_redirty ... ok
+test completed_old_frame_cannot_make_a_partial_new_frame_idle ... ok
+test every_compositor_backlog_and_unproven_empty_pass_prevents_parking ... ok
+test failed_overflowing_and_rewound_clocks_never_wait ... ok
+test malformed_wrong_sender_and_ignored_reject_cannot_clear_partial_surface ... ok
+test idle_queries_and_fragments_never_extend_the_original_two_hundred_tick_deadline ... ok
+test failed_real_blit_and_info_response_do_not_claim_a_completed_frame ... ok
+test only_reviewed_abis_wait_and_each_known_legacy_abi_keeps_yield ... ok
+test partial_tile_unblitted_token_and_partial_frame_all_prevent_parking ... ok
+test queued_and_offered_input_remains_pending_until_actual_matching_ack ... ok
+test readiness_is_only_a_hint_and_every_wait_gets_a_fresh_one_tick_bound ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/render_performance.rs (target/root-idle-checks/x86_64-unknown-linux-gnu/debug/deps/render_performance-eb346fbfcf23ce8f)
+
+running 2 tests
+test optimized_path_preserves_short_backing_buffer_and_geometry_errors ... ok
+test opaque_tiles_match_composite_at_both_scales_focuses_and_overlaps ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+
+   Doc-tests nieuw_os_window_session
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

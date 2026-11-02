@@ -1,5 +1,32 @@
 # Ontwerpbesluiten
 
+## ADR-056 — herkenbare sessieroute met expliciete VM-bewijsgrens
+
+2 november 2026. De gebruikersopdracht vraagt bekende stappen uit macOS,
+Windows en Linux binnen de eigen architectuur. Accountkeuze, credentialinvoer,
+verificatie, sessieactivatie en desktop worden afzonderlijke toestanden.
+Een app-lokale UI of een wachtwoordvergelijking in de renderer verleent geen
+kernelrechten. Alleen een toekomstige geauthenticeerde auth-/sessiebroker mag
+keys/grants vrijgeven en lock/revoke afdwingen. Annuleren, wisselen en lock
+maken oude brokerantwoorden ongeldig; authenticatie én activatie moeten slagen.
+
+Het nieuwe opt-in profiel `native-system-session-preview` gebruikt daarom
+expliciet een openbare VM-gast met uitsluitend synthetische testopslag. Het
+formulier voor een eigen gebruiker is een interactieproef; de standaardbroker
+weigert ieder wachtwoord en iedere nog niet geïmplementeerde hardwaremethode.
+Er komt geen gedeeld demowachtwoord en geen heimelijke auto-login voor echte
+accounts. Bestaande native Materiaal-probes blijven hun eigen profiel behouden.
+Taakbalk en programmasearch verlenen geen aanvullende opslag-/netwerkrechten.
+
+Windows mag via een gepauzeerde probe zonder schijven/devices/netwerk WHPX
+onderzoeken. Auto meldt TCG-terugval; strikt Whpx faalt bij ontbrekende backend.
+Dit verandert geen hostinstellingen of beveiligingsmitigaties. CPU-versnelling
+is geen GPU-passthrough of fysieke driveracceptatie. Herzien bij echte
+accountpersistentie, auth-IPC, compositor-lock, USB/CTAP of gewijzigd rendertransport.
+Bronnen, contract en open gates: [sessieonderzoek](implementation/SESSION-AND-DESKTOP.md)
+en [hardwareonderzoek](implementation/VM-HARDWARE-AND-PERFORMANCE.md).
+
+
 ## OP-001 — Schrijvers, integratoroverdracht en Windows-afleverroute
 
 30 oktober 2026; vastlegging van de operationele besluiten uit PR #75.
@@ -1375,7 +1402,110 @@ OSDev: *Memory mapped registers in C/C++*, W003198, revisie30402
 Herzien vóór een productbroker, andere hardware of NV-commits. Rollback:
 opt-in features/fixture verwijderen; legacy profielen blijven ongewijzigd.
 
-## ADR-053 — Positieve volume-identiteit vóór toelating als lege opslag
+## ADR-053 — Native vensterbeleid en vervangbare presentatiediensten
+
+**Datum:** 2 november 2026. De nieuwe opt-in venstersessie gebruikt dezelfde
+eigen kernel, capability-engine, INP1 en SUR1. Twee geïsoleerde applicaties
+krijgen ieder een eigen surface en invoerkanaal; de gebruikersruimtecompositor
+bezit de enige DisplaySource. Alleen de bestaande inputbron bezit InputSource.
+De compositor ontvangt gedecodeerde input via de inputdienst en beheert globale
+focus, vensterpositie en vertrouwde titelbalken. Caller-PID komt uit kernel-IPC,
+nooit uit een berichtveld. Geen gedeelde framebuffer of gedeeld appgeheugen.
+
+Een nieuwe no_std grafische bibliotheek gebruikt vooraf gerasterde proportionele
+Open Sans-glyphs met vastgelegde Apache-licentie en eigen vectorpictogrammen.
+Er komt geen onbetrouwbare fontparser in de kernel. Backing stores zijn privé,
+begrensd tot twee vensters en 1.400.000 pixels binnen de bestaande procesquota.
+De oude 800×600-diagnostische profielen blijven bestaan; de venstersessie vraagt
+expliciet een passende UEFI GOP-modus van 1280×720 of 1920×1080.
+
+ABI 1.11 reserveert syscall 0x53 voor uitsluitend de manifest-supervisor met de
+bijbehorende Launch- en overleden Process-capability. De supervisor bepaalt
+het herstelbeleid en laat apps eerst hun oude presentatiekanalen sluiten.
+De kernel speelt alleen de vaste compositor/inputdienstmanifestgroep opnieuw
+af, na een volledige capaciteitscontrole, met verse PIDs/caps/epochs. App-,
+document-, volume- en sleuteldienststaat blijven bestaan. Dit is geen algemene
+apparaatdelegatie en geen kernel-GUI-beleid. Zie het exacte bouw-/testcontract
+in `docs/implementation/NATIVE-WINDOW-SESSION.md`; native acceptatie is bij dit
+ontwerpcheckpoint nog open. Geen U01-punten voor alleen deze bouwstap.
+
+## ADR-054 — Exacte, tijdelijke autoriteitsvergelijking op de syscallgrens
+
+**Datum:** 2 november 2026. De volledige verse `Stats`- en digestfuncties
+blijven de bestaande diagnostische orakels. Op de M4-foutgrens vervangen we
+hun herhaalde hashscan door een volledige getypeerde kopie van alle elf
+autoriteitsvelden en bestaande exacte `Engine::eq`. IPC-wait vergelijkt dit
+op ieder resultaat. De afzonderlijke useroutput-, capability-, pointer-,
+return-, paginaownership- en W^X-controles blijven intact. De snapshot wordt
+nooit teruggezet in de actieve engine en verleent geen rechten.
+
+Eén vooraf gereserveerde private kernelbuffer van461.816bytes voorkomt een
+grote stacktemporary of allocator. Het single-CPU/IF0-contract wordt expliciet
+gecontroleerd; een niet-blokkerende lease weigert herintreding. Exhaustieve
+velddekking laat een toekomstige Engine-uitbreiding compilatie falen totdat de
+kopie bewust is bijgewerkt. Vergelijking gebeurt op Rust-velden, niet padding.
+Alle1024 extra berichtkopieën worden met getypeerde volatile writes gewist vóór
+vrijgave en vóór een eventuele foutassertie; er blijft geen extra IPC-inhoud in
+de vrijgegeven buffer staan. Metadata blijft alleen private kerneldata.
+
+Dit is geen mutatiecache en geen uitschakeling van een audit. Native IPC-wait
+en gerichte host-/negatieve tests zijn uitgevoerd op de deelbranch; de volledige
+samengevoegde M4-, venster- en netwerkgates volgen. Hostmicrobenchmarks geven
+geen native latentiewaarborg of U02-punten. SMP of herintredende kernelcallbacks
+vragen een nieuw ontwerp. Details en bewijsgrenzen:
+`docs/implementation/EXACT-AUTHORITY-SNAPSHOTS.md`.
+
+## ADR-055 — Begrensde rust in GUI-processen via bestaande IPC_WAIT
+
+**Datum:** 2 november 2026. Materiaal, Rekenmachine, compositor en window-init
+parkeren uitsluitend na een echte lege ontvang-/invoercontrole en volledig
+afgehandeld eigen werk. De wachtroute gebruikt een bestaand ontvangstrecht en
+een checked deadline van één volgende PIT-tick. Wake-bits zijn hints: de
+oorspronkelijke receive/PEEK/antwoordvalidatie blijft verplicht. Control blijft
+bereikbaar; opslaan, onvolledige frames, backpressure, fouten, herstel en STOP
+blokkeren rust. Geen nieuw recht, kernel-ABI of gewijzigde transactiedeadline.
+
+Een leeg pull-inputantwoord is geen toekomstige pushbelofte; daarom is alleen
+op inputantwoord wachten onvoldoende. De korte deadline voorkomt dat nieuwe
+invoer onbeperkt blijft liggen. De compositor behoudt zijn tweepits-poldrempel;
+een harde20ms-/p95-garantie volgt daar niet uit. Zes volledige Windows/WHPX-gates
+en TCG-CI slagen; drie15smetingen per arm geven88,26%lagere mediane procesCPU
+bij hetzelfde volledige beeld op één pc. Dit is geen energie- of algemene
+prestatieclaim. Herzien bij een event-driven inputprotocol, SMP of gewijzigde
+herstelstaten; U02 vereist nog klembord en volledige interactiebudgetten.
+Contract en brongebonden bewijs: implementation/GUI-IDLE-WAIT.md en
+verification/gui-idle-20261102/INTEGRATION.md.
+
+## ADR-056 — Klembord als eenmalige, focusgebonden tekstoverdracht
+
+**Datum:** 2 november2026. Het bestaande vertrouwde venstercompositorproces
+bemiddelt een vluchtig CLP1-klembord voor expliciet geselecteerde tekst. De
+bestaande app-inputendpoints en hun enige InputSession-eigenaar worden
+hergebruikt; geen nieuwe kernel-ABI, proces of apparaat-/opslag-/netwerkcap.
+Werkelijke PID, inputepoch, aangeboden CtrlC/CtrlV-Presssequence/generation,
+actuele focus en eenmalige brokerclaim zijn gezamenlijk vereist. Een
+appgeschreven intentlabel verleent niets. Pendingbackpressure bewaart alleen
+het ticket; iedere flush toetst opnieuw voordat plaintext wordt opgebouwd.
+
+Na een geldige leveringsresponse past de app tekst pas toe bij de echte
+inputACKAcknowledged. Superseded/transportfalen wist de tijdelijke kopie zonder
+edit. Reeds geënqueuede tekst kan de broker niet terughalen; intrekken stopt
+toekomstige grenspassages en is geen informatieflowgarantie. Copy wist oude
+clipboardinhoud al bij de vertrouwde toets, zodat lokale oversize/lege selectie
+geen stille oude-tekstfallback geeft. CtrlShiftDelete wist en trekt tickets in;
+compositorherstart begint leeg. Tekst staat nooit in logs/Debug of op schijf en
+eigen buffers worden met de bestaande gepinde zeroize gewist.
+
+De eerste versie heeft192 UTF-8-bytes zonder afkappen, geen historie, hele-doc-/
+antwoordfallback of automatisch uitvoeren. Dit blijft een afgebakende stap:
+U02 en bredere capaciteit/formaten/interactiebudgetten blijven open. Een
+verloren DeleteRelease kan na een clear conservatief één Delete-cyclus inslikken;
+de latch voorkomt dat een oude clear-repeat documenttekst wist. Herzien bij
+streaming, meer apps, veilige accountvelden of een echte sessiegrens.
+Contract, bron en nog lopende native gate: implementation/NATIVE-CLIPBOARD.md
+en verification/native-clipboard-20261102/.
+
+## ADR-058 — Positieve volume-identiteit vóór toelating als lege opslag
 
 **Datum:** 2 november 2026. Uitvoeringsbasis: `74a34d0`.
 
@@ -1414,3 +1544,8 @@ de bestaande 9/9 volume-/crashgate slagen. Alle acht negatieve RO/RW-proeven
 weigeren opslag tijdens startup met Corrupt/-18, nul WRITE-traces en
 ongewijzigde bron-/proefhashes. Dit accepteert de toelatingsfix; de native
 Btrfs/OpenZFS-backendpoort blijft open. Zie de genoemde bewijsbundel.
+
+Integratieopmerking: dit besluit heette ADR-053 op bron94f12da. Main bevat
+inmiddels ook ADR-057; daarom is alleen het actuele toelatingsbesluit
+hernummerd. Het oude native bewijs blijft onveranderd aan bron94f12da gebonden.
+Gecombineerde native acceptatie op main380111b wordt afzonderlijk vastgelegd.

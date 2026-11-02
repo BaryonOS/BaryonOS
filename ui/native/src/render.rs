@@ -3,6 +3,7 @@ use crate::{
     controller::{Error as UiError, Focus, Screen, Status, View},
     design as d, text, Rect, Scale, Viewport, TILE_HEIGHT, TILE_WIDTH,
 };
+use nieuw_os_graphics::{Canvas, Font, Icon, Rect as GraphicRect, Size, Weight};
 use noto_sans_mono_bitmap::{get_raster, get_raster_width, FontWeight, RasterHeight};
 
 pub const MAX_TEXT_ROWS: usize = 48;
@@ -33,6 +34,8 @@ pub struct Layout {
     pub modal_cancel: Rect,
     pub modal_discard: Rect,
     width: u32,
+    content_left: u32,
+    sidebar_width: u32,
     character_width: usize,
 }
 impl Layout {
@@ -40,7 +43,20 @@ impl Layout {
         let width = viewport.logical_width();
         let height = viewport.logical_height();
         let compact = height < 360;
-        let controls_y = if compact { 64 } else { 80 };
+        let editor_top = if compact { 120 } else { 144 };
+        let controls_y = if compact { 64 } else { 104 };
+        let sidebar_width = if width >= 960 {
+            208
+        } else if width >= 720 {
+            168
+        } else {
+            0
+        };
+        let content_left = if sidebar_width > 0 {
+            sidebar_width + 24
+        } else {
+            d::PAD
+        };
         let button_width = (width - 2 * d::PAD - 2 * d::SPACE) / 2;
         let modal = Rect {
             x: d::PAD,
@@ -51,15 +67,20 @@ impl Layout {
         let modal_button = (modal.width - 40) / 2;
         Self {
             new: Rect {
-                x: d::PAD,
+                x: content_left,
                 y: controls_y,
-                width: button_width,
+                width: if width >= 560 { 164 } else { button_width },
                 height: d::CONTROL_HEIGHT,
             },
             refresh: Rect {
-                x: d::PAD + button_width + 2 * d::SPACE,
+                x: content_left
+                    + if width >= 560 {
+                        176
+                    } else {
+                        button_width + 2 * d::SPACE
+                    },
                 y: controls_y,
-                width: button_width,
+                width: if width >= 560 { 44 } else { button_width },
                 height: d::CONTROL_HEIGHT,
             },
             back: Rect {
@@ -76,18 +97,18 @@ impl Layout {
             },
             editor: Rect {
                 x: d::PAD,
-                y: 144,
+                y: editor_top,
                 width: width - 2 * d::PAD,
-                height: height - 208,
+                height: height - editor_top - 64,
             },
             status: Rect {
-                x: d::PAD,
+                x: content_left,
                 y: height - 48,
-                width: width - 2 * d::PAD,
+                width: width - content_left - d::PAD,
                 height: 48,
             },
             list_bottom: height - 56,
-            list_top: if compact { 120 } else { 144 },
+            list_top: if compact { 120 } else { 168 },
             title_y: if compact { 16 } else { 20 },
             list_previous: Rect {
                 x: width - d::PAD - 96,
@@ -121,6 +142,8 @@ impl Layout {
                 height: d::CONTROL_HEIGHT,
             },
             width,
+            content_left,
+            sidebar_width,
             character_width: get_raster_width(FontWeight::Regular, raster_height(viewport.scale()))
                 .div_ceil(viewport.scale().factor() as usize),
         }
@@ -137,13 +160,16 @@ impl Layout {
     pub fn list_rows(self) -> usize {
         ((self.list_bottom.saturating_sub(self.list_top) + 8) / 72).max(1) as usize
     }
+    pub const fn content_left(self) -> u32 {
+        self.content_left
+    }
     pub fn object(self, row: usize) -> Rect {
         Rect {
-            x: d::PAD,
+            x: self.content_left,
             y: self
                 .list_top
                 .saturating_add((row as u32).saturating_mul(72)),
-            width: self.width - 2 * d::PAD,
+            width: self.width - self.content_left - d::PAD,
             height: 64,
         }
     }
@@ -244,10 +270,19 @@ impl<'a> Frame<'a> {
                 .map(|(x, y)| (x / viewport.scale().factor(), y / viewport.scale().factor())),
         };
         paint.pixels.fill(d::BACKGROUND);
+        if let Some(desktop) = self.view.desktop.filter(|desktop| desktop.overlay()) {
+            paint.desktop(desktop, viewport);
+            paint.pointer(self.view.cursor.filter(|_| self.view.draw_pointer));
+            return Ok(rect);
+        }
         let layout = self.layout;
         match self.view.screen {
             Screen::Material => {
-                paint.title(d::PAD, layout.title_y, "Materiaal");
+                paint.material_chrome(layout, viewport);
+                paint.title(layout.content_left, layout.title_y, "Documenten");
+                if viewport.logical_height() >= 360 {
+                    paint.small(layout.content_left, 62, "Op dit apparaat", d::MUTED);
+                }
                 if self.view.list_scroll > 0 || self.view.objects.len() > layout.list_rows() {
                     paint.arrow(
                         layout.list_previous,
@@ -264,32 +299,71 @@ impl<'a> Frame<'a> {
                 }
                 paint.button(
                     layout.new,
-                    "Nieuw",
+                    if viewport.logical_width() < 560 {
+                        "Nieuw"
+                    } else {
+                        "Nieuw document"
+                    },
                     self.view.focus == Focus::New,
                     self.view.editable,
                     ButtonStyle::Primary,
                 );
-                paint.button(
-                    layout.refresh,
-                    "Vernieuwen",
-                    self.view.focus == Focus::Refresh,
-                    true,
-                    ButtonStyle::Secondary,
-                );
+                if viewport.logical_width() >= 560 {
+                    paint.icon_button(
+                        layout.refresh,
+                        Icon::Refresh,
+                        self.view.focus == Focus::Refresh,
+                        true,
+                    );
+                } else {
+                    paint.button(
+                        layout.refresh,
+                        "Vernieuwen",
+                        self.view.focus == Focus::Refresh,
+                        true,
+                        ButtonStyle::Secondary,
+                    );
+                }
                 if !self.view.list_loaded {
                     paint.wrapped(
-                        d::PAD,
+                        layout.content_left,
                         layout.list_top,
-                        "Open je materiaal met Vernieuwen.",
-                        layout.editor.width,
+                        "Je materiaal wordt geladen.",
+                        viewport.logical_width() - layout.content_left - d::PAD,
                         d::MUTED,
                     );
                 } else if self.view.objects.is_empty() {
+                    let available = viewport.logical_width() - layout.content_left - d::PAD;
+                    let icon_x = layout.content_left;
+                    let top = layout.list_top
+                        + if viewport.logical_height() > 480 {
+                            40
+                        } else {
+                            8
+                        };
+                    paint.icon(
+                        Rect {
+                            x: icon_x,
+                            y: top,
+                            width: 32,
+                            height: 32,
+                        },
+                        Icon::Folder,
+                        d::ACCENT,
+                        1,
+                    );
+                    let title = "Nog geen documenten";
+                    paint.medium(layout.content_left + 52, top, title, d::TEXT);
+                    let body = if available >= 360 {
+                        "Maak een document om aan de slag te gaan."
+                    } else {
+                        "Maak je eerste document."
+                    };
                     paint.wrapped(
-                        d::PAD,
-                        layout.list_top,
-                        "Hier begint je materiaal. Maak een nieuw document.",
-                        layout.editor.width,
+                        layout.content_left + 52,
+                        top + 32,
+                        body,
+                        available.saturating_sub(52),
                         d::MUTED,
                     );
                 } else {
@@ -305,35 +379,88 @@ impl<'a> Frame<'a> {
                         if row.y + row.height > layout.list_bottom {
                             break;
                         }
-                        paint.rounded(row, d::SURFACE, d::SURFACE_RADIUS);
-                        if self.view.focus == Focus::Object(index) {
-                            paint.focus(row);
+                        let focused = self.view.focus == Focus::Object(index);
+                        let hovered = paint.cursor.is_some_and(|(x, y)| row.contains(x, y));
+                        paint.fill(
+                            row,
+                            if focused || hovered {
+                                d::ACCENT_SOFT
+                            } else {
+                                d::SURFACE
+                            },
+                        );
+                        paint.fill(
+                            Rect {
+                                x: row.x,
+                                y: row.y + row.height,
+                                width: row.width,
+                                height: 1,
+                            },
+                            d::LINE,
+                        );
+                        if focused {
+                            paint.fill(
+                                Rect {
+                                    x: row.x,
+                                    y: row.y + 12,
+                                    width: 3,
+                                    height: row.height - 24,
+                                },
+                                d::ACCENT,
+                            );
                         }
+                        paint.icon(
+                            Rect {
+                                x: row.x + 14,
+                                y: row.y + 20,
+                                width: 20,
+                                height: 24,
+                            },
+                            Icon::Material,
+                            d::ACCENT,
+                            1,
+                        );
                         let name = object
                             .name
                             .get(..object.name_length)
                             .and_then(|b| core::str::from_utf8(b).ok())
                             .unwrap_or("Naam niet leesbaar");
-                        paint.wrapped(row.x + 12, row.y + 8, name, row.width - 24, d::TEXT);
-                        // Preserve the full bounded title on narrow layouts.
-                        // Location is already stated by the page status; do
-                        // not paint metadata through a wrapped second line.
-                        if name.chars().count() * layout.character_width()
-                            <= (row.width - 24) as usize
+                        paint.wrapped(
+                            row.x + 56,
+                            row.y + 6,
+                            name,
+                            row.width.saturating_sub(96),
+                            d::TEXT,
+                        );
+                        if paint.measure(name, Size::Body, Weight::Regular)
+                            <= row.width.saturating_sub(96)
                         {
-                            paint.label(row.x + 12, row.y + 36, "Op dit apparaat", d::MUTED);
+                            paint.small(
+                                row.x + 56,
+                                row.y + 36,
+                                "Document · Op dit apparaat",
+                                d::MUTED,
+                            );
+                        }
+                        paint.icon(
+                            Rect {
+                                x: row.x + row.width - 32,
+                                y: row.y + 24,
+                                width: 16,
+                                height: 16,
+                            },
+                            Icon::ChevronRight,
+                            d::MUTED,
+                            1,
+                        );
+                        if focused {
+                            paint.focus(row);
                         }
                     }
                 }
             }
             Screen::Editor | Screen::ConfirmClose => {
-                paint.button(
-                    layout.back,
-                    "Terug",
-                    self.view.focus == Focus::Back,
-                    true,
-                    ButtonStyle::Secondary,
-                );
+                paint.back_button(layout.back, self.view.focus == Focus::Back);
                 let label = if self.view.saving {
                     "Annuleren"
                 } else {
@@ -356,10 +483,30 @@ impl<'a> Frame<'a> {
                     },
                 );
                 let title = core::str::from_utf8(self.view.title).unwrap_or("Naam niet leesbaar");
-                paint.wrapped(d::PAD, 80, title, layout.editor.width, d::TEXT);
-                paint.outlined(layout.editor, d::SURFACE, d::BORDER, d::CONTROL_RADIUS);
+                paint.medium(d::PAD, 84, title, d::TEXT);
+                if viewport.logical_height() >= 360 {
+                    paint.small(d::PAD, 116, "Op dit apparaat", d::MUTED);
+                }
+                paint.fill(layout.editor, d::SURFACE);
+                paint.fill(
+                    Rect {
+                        x: layout.editor.x,
+                        y: layout.editor.y,
+                        width: layout.editor.width,
+                        height: 1,
+                    },
+                    d::LINE,
+                );
                 if self.view.focus == Focus::Document && self.view.screen == Screen::Editor {
-                    paint.focus(layout.editor);
+                    paint.fill(
+                        Rect {
+                            x: layout.editor.x.saturating_sub(8),
+                            y: layout.editor.y + 8,
+                            width: 3,
+                            height: 24,
+                        },
+                        d::ACCENT,
+                    );
                 }
                 if let Some(contents) = self.view.contents {
                     let selected = text::selection(self.view.anchor, self.view.caret);
@@ -426,11 +573,26 @@ impl<'a> Frame<'a> {
                 }
             }
         }
+        let status_x = if self.view.screen == Screen::Material {
+            layout.status.x
+        } else {
+            d::PAD
+        };
+        let status_width = viewport.logical_width() - status_x - d::PAD;
+        paint.fill(
+            Rect {
+                x: status_x,
+                y: layout.status.y.saturating_sub(8),
+                width: status_width,
+                height: 1,
+            },
+            d::LINE,
+        );
         paint.wrapped(
-            layout.status.x,
+            status_x,
             layout.status.y,
             status_label(self.view.status),
-            layout.status.width,
+            status_width,
             status_color(self.view.status),
         );
         if let Status::Saving { completed, total } = self.view.status {
@@ -499,11 +661,9 @@ impl<'a> Frame<'a> {
                 ButtonStyle::Danger,
             );
         }
-        if let Some((x, y)) = self
-            .view
-            .cursor
-            .filter(|(x, y)| *x < viewport.width() && *y < viewport.height())
-        {
+        if let Some((x, y)) = self.view.cursor.filter(|(x, y)| {
+            self.view.draw_pointer && *x < viewport.width() && *y < viewport.height()
+        }) {
             // Pointer uses physical pixels and contrasting outline, independent
             // of control color. A native compositor can own this in its layer.
             for dy in 0..14 {
@@ -539,6 +699,59 @@ impl<'a> Frame<'a> {
     }
 
     fn visit_semantics(&self, mut visit: impl FnMut(SemanticNode<'a>)) {
+        if let Some(desktop) = self.view.desktop.filter(|desktop| desktop.overlay()) {
+            visit(SemanticNode {
+                id: SemanticId::Window,
+                parent: None,
+                role: Role::Window,
+                label: "Nieuw OS",
+                bounds: self.view.viewport.bounds(),
+                enabled: true,
+                ..SemanticNode::EMPTY
+            });
+            for (target, bounds, label) in
+                desktop.controls(self.view.viewport).into_iter().flatten()
+            {
+                if target == crate::desktop::Target::Password && desktop.is_guest() {
+                    continue;
+                }
+                // Password bytes never enter the semantic tree. The native
+                // profile cannot grant authenticated access to a real account.
+                visit(SemanticNode {
+                    id: SemanticId::Desktop(target),
+                    parent: Some(SemanticId::Window),
+                    role: if matches!(
+                        target,
+                        crate::desktop::Target::Password | crate::desktop::Target::SearchField
+                    ) {
+                        Role::TextEditor
+                    } else {
+                        Role::Button
+                    },
+                    label,
+                    value: if target == crate::desktop::Target::SearchField {
+                        Some(desktop.query())
+                    } else {
+                        None
+                    },
+                    bounds: bounds.physical(self.view.viewport.scale()),
+                    enabled: true,
+                    focused: desktop.focus() == target,
+                    actions: SemanticActions {
+                        activate: !matches!(
+                            target,
+                            crate::desktop::Target::Password | crate::desktop::Target::SearchField
+                        ),
+                        set_value: matches!(
+                            target,
+                            crate::desktop::Target::Password | crate::desktop::Target::SearchField
+                        ),
+                    },
+                    ..SemanticNode::EMPTY
+                });
+            }
+            return;
+        }
         let mut push =
             |id, parent, role, label, value, bounds: Rect, focus: Option<Focus>, enabled| {
                 visit(SemanticNode {
@@ -597,7 +810,7 @@ impl<'a> Frame<'a> {
                     "Materiaal",
                     None,
                     Rect {
-                        x: d::PAD,
+                        x: l.content_left,
                         y: l.title_y,
                         width: 200,
                         height: 40,
@@ -826,6 +1039,7 @@ pub enum Role {
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SemanticId {
+    Desktop(crate::desktop::Target),
     Empty,
     Window,
     Heading,
@@ -900,6 +1114,11 @@ pub fn status_label(status: Status) -> &'static str {
         Status::Saved { .. } => "Op dit apparaat opgeslagen.",
         Status::Cancelled => "Opslaan geannuleerd. Je tekst blijft open.",
         Status::InputLost => "Invoer onderbroken. Je tekst blijft open.",
+        Status::ClipboardCopied => "Tekst gekopieerd.",
+        Status::ClipboardEmpty => "Het klembord is leeg.",
+        Status::ClipboardSelection => "Selecteer eerst tekst.",
+        Status::ClipboardTooLong => "Deze selectie past nog niet op het klembord.",
+        Status::ClipboardUnavailable => "Kopiëren of plakken onderbroken. Probeer opnieuw.",
         Status::Failed(UiError::InvalidUtf8) => "Dit bestand is geen geldige UTF-8-tekst.",
         Status::Failed(UiError::NoFreeObject) => "Er is geen ruimte voor een nieuw document.",
         Status::Failed(UiError::Storage(S::ReadOnly)) => {
@@ -939,6 +1158,545 @@ struct Paint<'a> {
     cursor: Option<(u32, u32)>,
 }
 impl Paint<'_> {
+    fn material_chrome(&mut self, layout: Layout, viewport: Viewport) {
+        let h = viewport.logical_height();
+        if layout.sidebar_width > 0 {
+            self.fill(
+                Rect {
+                    x: 0,
+                    y: 0,
+                    width: layout.sidebar_width,
+                    height: h,
+                },
+                0xf0efe9,
+            );
+            self.fill(
+                Rect {
+                    x: layout.sidebar_width - 1,
+                    y: 0,
+                    width: 1,
+                    height: h,
+                },
+                d::LINE,
+            );
+            self.small(24, 28, "MIJN WERK", d::MUTED);
+            self.fill(
+                Rect {
+                    x: 0,
+                    y: 80,
+                    width: layout.sidebar_width,
+                    height: 44,
+                },
+                d::ACCENT_SOFT,
+            );
+            self.fill(
+                Rect {
+                    x: 0,
+                    y: 80,
+                    width: 3,
+                    height: 44,
+                },
+                d::ACCENT,
+            );
+            self.icon(
+                Rect {
+                    x: 24,
+                    y: 92,
+                    width: 20,
+                    height: 20,
+                },
+                Icon::Folder,
+                d::ACCENT,
+                1,
+            );
+            self.medium(56, 90, "Documenten", d::TEXT);
+            self.small(24, h.saturating_sub(34), "Dit apparaat", d::MUTED);
+        }
+    }
+    fn icon_button(&mut self, r: Rect, icon: Icon, focused: bool, enabled: bool) {
+        self.button(r, "", focused, enabled, ButtonStyle::Secondary);
+        self.icon(
+            Rect {
+                x: r.x + (r.width - 20) / 2,
+                y: r.y + (r.height - 20) / 2,
+                width: 20,
+                height: 20,
+            },
+            icon,
+            if enabled { d::TEXT } else { d::MUTED },
+            1,
+        );
+    }
+    fn pointer(&mut self, cursor: Option<(u32, u32)>) {
+        if let Some((x, y)) = cursor {
+            for dy in 0..14 {
+                for dx in 0..=dy / 2 {
+                    self.pixel(
+                        i64::from(x + dx),
+                        i64::from(y + dy),
+                        if dx == 0 || dx == dy / 2 || dy == 13 {
+                            d::SURFACE
+                        } else {
+                            d::TEXT
+                        },
+                    );
+                }
+            }
+        }
+    }
+    fn desktop(&mut self, desktop: &crate::desktop::Desktop, viewport: Viewport) {
+        use crate::desktop::{Page, Target};
+        let w = viewport.logical_width();
+        let h = viewport.logical_height();
+        let compact = h < 420;
+        let factor = self.scale.factor();
+        nieuw_os_graphics::theme::wallpaper(
+            &mut self.canvas(),
+            GraphicRect::new(0, 0, viewport.width(), viewport.height()),
+            nieuw_os_graphics::theme::MATERIAAL,
+        );
+        let width = w.saturating_sub(48).min(440);
+        let x = (w - width) / 2;
+        let y = if compact {
+            0
+        } else {
+            h.saturating_sub(440) / 2
+        };
+        let controls = desktop.controls(viewport);
+        match desktop.page() {
+            Page::Accounts | Page::Login => {
+                let panel = Rect {
+                    x: x.saturating_sub(24),
+                    y: y.saturating_sub(16),
+                    width: width + 48,
+                    height: if compact { h } else { 424 },
+                };
+                self.rounded(
+                    Rect {
+                        x: panel.x + 2,
+                        y: panel.y + 9,
+                        ..panel
+                    },
+                    0x122636,
+                    24,
+                );
+                self.rounded(panel, d::SURFACE, 24);
+                if desktop.page() == Page::Accounts {
+                    self.title(x, y + if compact { 12 } else { 24 }, "Welkom terug");
+                    self.label(
+                        x,
+                        y + if compact { 54 } else { 78 },
+                        "Kies je werkruimte om verder te gaan.",
+                        d::MUTED,
+                    );
+                } else {
+                    self.medium(
+                        x + 60,
+                        y + if compact { 12 } else { 26 },
+                        if desktop.is_guest() {
+                            "Gast"
+                        } else {
+                            "Eigen gebruiker"
+                        },
+                        d::TEXT,
+                    );
+                    if !compact {
+                        self.title(
+                            x,
+                            y + 72,
+                            if desktop.is_guest() {
+                                "Even aan de slag"
+                            } else {
+                                "Inloggen"
+                            },
+                        );
+                    }
+                    self.small(
+                        x,
+                        y + if compact { 54 } else { 126 },
+                        if desktop.is_guest() {
+                            "Een openbare werkruimte voor deze test."
+                        } else {
+                            "Voorbeeldaccount · gebruik alleen testinvoer"
+                        },
+                        d::MUTED,
+                    );
+                }
+                for (target, r, label) in controls.into_iter().flatten() {
+                    match target {
+                        Target::Guest | Target::Personal => {
+                            let selected = desktop.focus() == target;
+                            self.outlined(
+                                r,
+                                if selected {
+                                    d::ACCENT_SOFT
+                                } else {
+                                    d::BACKGROUND
+                                },
+                                if selected { d::ACCENT } else { d::LINE },
+                                14,
+                            );
+                            self.rounded(
+                                Rect {
+                                    x: r.x + 12,
+                                    y: r.y + (r.height - 44) / 2,
+                                    width: 44,
+                                    height: 44,
+                                },
+                                if selected { d::ACCENT } else { 0xe2e8ec },
+                                14,
+                            );
+                            self.icon(
+                                Rect {
+                                    x: r.x + 22,
+                                    y: r.y + (r.height - 24) / 2,
+                                    width: 24,
+                                    height: 24,
+                                },
+                                Icon::User,
+                                if selected { d::SURFACE } else { d::MUTED },
+                                1,
+                            );
+                            self.medium(
+                                r.x + 72,
+                                r.y + if compact { 7 } else { 14 },
+                                if target == Target::Guest {
+                                    "Gast"
+                                } else {
+                                    label
+                                },
+                                d::TEXT,
+                            );
+                            self.small(
+                                r.x + 72,
+                                r.y + if compact { 30 } else { 43 },
+                                if target == Target::Guest {
+                                    "Tijdelijke VM-werkruimte"
+                                } else {
+                                    "Aanmelden nog niet ingesteld"
+                                },
+                                d::MUTED,
+                            );
+                            self.icon(
+                                Rect {
+                                    x: r.x + r.width - 32,
+                                    y: r.y + (r.height - 16) / 2,
+                                    width: 16,
+                                    height: 16,
+                                },
+                                Icon::ChevronRight,
+                                d::MUTED,
+                                1,
+                            );
+                        }
+                        Target::Back => {
+                            self.icon_button(r, Icon::ChevronLeft, desktop.focus() == target, true)
+                        }
+                        Target::Password => {
+                            if desktop.is_guest() {
+                                self.label(
+                                    r.x,
+                                    r.y + 8,
+                                    "Geen wachtwoord nodig voor de gast.",
+                                    d::MUTED,
+                                );
+                            } else {
+                                self.outlined(r, d::BACKGROUND, d::BORDER, 10);
+                                self.icon(
+                                    Rect {
+                                        x: r.x + 12,
+                                        y: r.y + 12,
+                                        width: 20,
+                                        height: 20,
+                                    },
+                                    Icon::Lock,
+                                    d::MUTED,
+                                    1,
+                                );
+                                if desktop.password_len() == 0 {
+                                    self.label(
+                                        r.x + 44,
+                                        r.y + 10,
+                                        if desktop.unavailable() {
+                                            "Aanmelden niet beschikbaar"
+                                        } else {
+                                            "Wachtwoord"
+                                        },
+                                        if desktop.unavailable() {
+                                            d::DANGER
+                                        } else {
+                                            d::MUTED
+                                        },
+                                    );
+                                } else {
+                                    for index in 0..desktop
+                                        .password_len()
+                                        .min(((r.width - 60) / 10) as usize)
+                                    {
+                                        self.canvas().ellipse(
+                                            GraphicRect::new(
+                                                ((r.x + 48 + index as u32 * 10) * factor) as i32,
+                                                ((r.y + 20) * factor) as i32,
+                                                5 * factor,
+                                                5 * factor,
+                                            ),
+                                            d::TEXT,
+                                        );
+                                    }
+                                }
+                                if desktop.focus() == target {
+                                    self.focus(r);
+                                }
+                            }
+                        }
+                        Target::Submit => self.button(
+                            r,
+                            label,
+                            desktop.focus() == target,
+                            true,
+                            ButtonStyle::Primary,
+                        ),
+                        Target::Fingerprint | Target::Fido2 => {
+                            self.button(
+                                r,
+                                "",
+                                desktop.focus() == target,
+                                true,
+                                ButtonStyle::Secondary,
+                            );
+                            self.icon(
+                                Rect {
+                                    x: r.x + 12,
+                                    y: r.y + 12,
+                                    width: 20,
+                                    height: 20,
+                                },
+                                if target == Target::Fingerprint {
+                                    Icon::Fingerprint
+                                } else {
+                                    Icon::Key
+                                },
+                                d::MUTED,
+                                1,
+                            );
+                            self.small(
+                                r.x + 40,
+                                r.y + 14,
+                                if target == Target::Fingerprint {
+                                    "Vingerafdruk"
+                                } else {
+                                    "FIDO2-sleutel"
+                                },
+                                d::MUTED,
+                            );
+                        }
+                        _ => {}
+                    }
+                }
+                if !compact {
+                    self.small(
+                        x,
+                        y + 370,
+                        if desktop.page() == Page::Accounts {
+                            "Nieuw OS · lokale werkruimte"
+                        } else if desktop.is_guest() {
+                            "Gast (VM-test) · uitsluitend testgegevens"
+                        } else {
+                            "Authenticatie is in deze testversie niet beschikbaar."
+                        },
+                        d::MUTED,
+                    );
+                }
+            }
+            Page::Home | Page::Search | Page::Material => {
+                if desktop.page() == Page::Home {
+                    self.title_color(32, if compact { 6 } else { 48 }, "Je werkruimte", 0xf6fbff);
+                    if !compact {
+                        self.label(
+                            32,
+                            106,
+                            "Open je documenten of zoek een programma.",
+                            0xb8cbd6,
+                        );
+                    }
+                    self.small(w.saturating_sub(140), 16, "Gast · VM-test", 0xd7e5ec);
+                } else {
+                    let panel_width = w.saturating_sub(48).min(620);
+                    let top = if compact { 40 } else { 132 };
+                    self.rounded(
+                        Rect {
+                            x: (w - panel_width) / 2,
+                            y: top,
+                            width: panel_width,
+                            height: if compact { 140 } else { 176 },
+                        },
+                        d::SURFACE,
+                        20,
+                    );
+                }
+                for (target, r, _) in controls.into_iter().flatten() {
+                    if target == Target::Material {
+                        if desktop.page() == Page::Search {
+                            self.rounded(r, d::ACCENT_SOFT, 12);
+                            self.icon(
+                                Rect {
+                                    x: r.x + 16,
+                                    y: r.y + (r.height - 32) / 2,
+                                    width: 28,
+                                    height: 32,
+                                },
+                                Icon::Material,
+                                d::ACCENT,
+                                1,
+                            );
+                            self.medium(r.x + 60, r.y + 8, "Materiaal", d::TEXT);
+                            if !compact {
+                                self.small(
+                                    r.x + 60,
+                                    r.y + 40,
+                                    "Documenten op dit apparaat",
+                                    d::MUTED,
+                                );
+                            }
+                            self.icon(
+                                Rect {
+                                    x: r.x + r.width - 32,
+                                    y: r.y + (r.height - 16) / 2,
+                                    width: 16,
+                                    height: 16,
+                                },
+                                Icon::ChevronRight,
+                                d::MUTED,
+                                1,
+                            );
+                        } else {
+                            self.rounded(r, 0xeff7f7, 20);
+                            self.rounded(
+                                Rect {
+                                    x: r.x + 16,
+                                    y: r.y + 16,
+                                    width: if compact { 48 } else { 64 },
+                                    height: if compact { 48 } else { 64 },
+                                },
+                                0xd2eae3,
+                                16,
+                            );
+                            self.icon(
+                                Rect {
+                                    x: r.x + 28,
+                                    y: r.y + 25,
+                                    width: if compact { 24 } else { 40 },
+                                    height: if compact { 32 } else { 46 },
+                                },
+                                Icon::Material,
+                                d::ACCENT,
+                                2,
+                            );
+                            self.medium(
+                                r.x + if compact { 80 } else { 18 },
+                                r.y + if compact { 17 } else { 96 },
+                                "Materiaal",
+                                d::TEXT,
+                            );
+                            self.small(
+                                r.x + if compact { 80 } else { 18 },
+                                r.y + if compact { 44 } else { 124 },
+                                "Documenten",
+                                d::MUTED,
+                            );
+                        }
+                        if desktop.focus() == target {
+                            self.focus(r);
+                        }
+                    } else if target == Target::SearchField {
+                        self.outlined(r, d::BACKGROUND, d::BORDER, 12);
+                        self.icon(
+                            Rect {
+                                x: r.x + 12,
+                                y: r.y + 12,
+                                width: 20,
+                                height: 20,
+                            },
+                            Icon::Search,
+                            d::MUTED,
+                            1,
+                        );
+                        self.label(
+                            r.x + 44,
+                            r.y + 10,
+                            if desktop.query().is_empty() {
+                                "Zoek een programma…"
+                            } else {
+                                desktop.query()
+                            },
+                            d::TEXT,
+                        );
+                        if desktop.focus() == target {
+                            self.focus(r);
+                        }
+                    }
+                }
+                if desktop.page() == Page::Search && !desktop.matches_material() {
+                    let panel_width = w.saturating_sub(48).min(620);
+                    self.label(
+                        (w - panel_width) / 2 + 24,
+                        if compact { 120 } else { 228 },
+                        "Geen programma gevonden",
+                        d::MUTED,
+                    );
+                }
+                let bar_width = w.saturating_sub(24).min(680);
+                let bar = Rect {
+                    x: (w - bar_width) / 2,
+                    y: h.saturating_sub(68),
+                    width: bar_width,
+                    height: 60,
+                };
+                self.rounded(
+                    Rect {
+                        x: bar.x,
+                        y: bar.y + 4,
+                        ..bar
+                    },
+                    0x122c39,
+                    18,
+                );
+                self.rounded(bar, 0xf5fafb, 18);
+                for (target, r, label) in desktop.controls(viewport).into_iter().flatten().take(3) {
+                    if target == Target::Start {
+                        self.icon_button(r, Icon::Apps, desktop.focus() == target, true);
+                    } else if target == Target::Search {
+                        self.rounded(r, 0xe7eff2, 10);
+                        self.icon(
+                            Rect {
+                                x: r.x + 12,
+                                y: r.y + 12,
+                                width: 20,
+                                height: 20,
+                            },
+                            Icon::Search,
+                            d::MUTED,
+                            1,
+                        );
+                        if r.width > 96 {
+                            self.label(r.x + 44, r.y + 10, "Zoeken", d::MUTED);
+                        }
+                        if desktop.focus() == target {
+                            self.focus(r);
+                        }
+                    } else {
+                        self.button(
+                            r,
+                            label,
+                            desktop.focus() == target,
+                            true,
+                            ButtonStyle::Secondary,
+                        );
+                    }
+                }
+            }
+        }
+    }
     fn pixel(&mut self, x: i64, y: i64, color: u32) {
         if x < i64::from(self.rect.x)
             || y < i64::from(self.rect.y)
@@ -966,85 +1724,29 @@ impl Paint<'_> {
     }
     fn rounded(&mut self, rect: Rect, color: u32, radius: u32) {
         let r = rect.physical(self.scale);
-        if !r.intersects(self.rect) {
-            return;
-        }
-        let radius = (radius * self.scale.factor())
-            .min(r.width / 2)
-            .min(r.height / 2);
-        let left = r.x.max(self.rect.x);
-        let top = r.y.max(self.rect.y);
-        let right = (r.x + r.width).min(self.rect.x + self.rect.width);
-        let bottom = (r.y + r.height).min(self.rect.y + self.rect.height);
-        for y in top..bottom {
-            for x in left..right {
-                let dx = if x < r.x + radius {
-                    r.x + radius - x
-                } else {
-                    x.saturating_sub(r.x + r.width - radius - 1)
-                };
-                let dy = if y < r.y + radius {
-                    r.y + radius - y
-                } else {
-                    y.saturating_sub(r.y + r.height - radius - 1)
-                };
-                if dx * dx + dy * dy <= radius * radius {
-                    self.pixel(i64::from(x), i64::from(y), color);
-                }
-            }
-        }
-    }
-    fn border(&mut self, r: Rect, color: u32) {
-        self.fill(
-            Rect {
-                x: r.x,
-                y: r.y,
-                width: r.width,
-                height: 1,
-            },
-            color,
-        );
-        self.fill(
-            Rect {
-                x: r.x,
-                y: r.y + r.height - 1,
-                width: r.width,
-                height: 1,
-            },
-            color,
-        );
-        self.fill(
-            Rect {
-                x: r.x,
-                y: r.y,
-                width: 1,
-                height: r.height,
-            },
-            color,
-        );
-        self.fill(
-            Rect {
-                x: r.x + r.width - 1,
-                y: r.y,
-                width: 1,
-                height: r.height,
-            },
+        let f = self.scale.factor();
+        self.canvas().rounded_rect(
+            GraphicRect::new(r.x as i32, r.y as i32, r.width, r.height),
+            radius * f,
             color,
         );
     }
     fn focus(&mut self, r: Rect) {
-        let gap = d::FOCUS_WIDTH + d::FOCUS_OFFSET;
-        for offset in d::FOCUS_OFFSET..gap {
-            self.border(
-                Rect {
-                    x: r.x.saturating_sub(offset),
-                    y: r.y.saturating_sub(offset),
-                    width: r.width + 2 * offset,
-                    height: r.height + 2 * offset,
-                },
-                d::ACCENT,
-            );
+        let gap = d::FOCUS_OFFSET;
+        let r = Rect {
+            x: r.x.saturating_sub(gap),
+            y: r.y.saturating_sub(gap),
+            width: r.width + 2 * gap,
+            height: r.height + 2 * gap,
         }
+        .physical(self.scale);
+        let factor = self.scale.factor();
+        self.canvas().stroke_rounded_rect(
+            GraphicRect::new(r.x as i32, r.y as i32, r.width, r.height),
+            (d::CONTROL_RADIUS + gap) * factor,
+            2 * factor,
+            d::ACCENT,
+        );
     }
     fn outlined(&mut self, r: Rect, fill: u32, border: u32, radius: u32) {
         self.rounded(r, border, radius);
@@ -1062,6 +1764,16 @@ impl Paint<'_> {
         }
     }
     fn button(&mut self, r: Rect, label: &str, focused: bool, enabled: bool, style: ButtonStyle) {
+        let margin = if focused { d::FOCUS_OFFSET + 2 } else { 0 };
+        let paint_bounds = Rect {
+            x: r.x.saturating_sub(margin),
+            y: r.y.saturating_sub(margin),
+            width: r.width + 2 * margin,
+            height: r.height + 2 * margin,
+        };
+        if !paint_bounds.physical(self.scale).intersects(self.rect) {
+            return;
+        }
         let hovered = enabled && self.cursor.is_some_and(|(x, y)| r.contains(x, y));
         let (background, border, foreground) = if !enabled {
             (d::LINE, d::LINE, d::MUTED)
@@ -1084,10 +1796,35 @@ impl Paint<'_> {
         if focused {
             self.focus(r);
         }
-        let width = get_raster_width(FontWeight::Regular, raster_height(self.scale))
-            .div_ceil(self.scale.factor() as usize) as u32;
-        let x = r.x + r.width.saturating_sub(label.chars().count() as u32 * width) / 2;
-        self.label(x, r.y + 14, label, foreground);
+        let width = self.measure(label, Size::Body, Weight::Semibold);
+        let x = r.x + r.width.saturating_sub(width) / 2;
+        let line = self.font(Size::Body, Weight::Semibold).height() / self.scale.factor();
+        self.medium(
+            x,
+            r.y + r.height.saturating_sub(line) / 2,
+            label,
+            foreground,
+        );
+    }
+    fn back_button(&mut self, r: Rect, focused: bool) {
+        if self.cursor.is_some_and(|(x, y)| r.contains(x, y)) {
+            self.rounded(r, d::ACCENT_SOFT, 6);
+        }
+        self.icon(
+            Rect {
+                x: r.x + 4,
+                y: r.y + 12,
+                width: 20,
+                height: 20,
+            },
+            Icon::ChevronLeft,
+            d::TEXT,
+            1,
+        );
+        self.medium(r.x + 30, r.y + 10, "Terug", d::TEXT);
+        if focused {
+            self.focus(r);
+        }
     }
     fn arrow(&mut self, r: Rect, previous: bool, focused: bool, enabled: bool) {
         self.button(r, "", focused, enabled, ButtonStyle::Secondary);
@@ -1140,54 +1877,86 @@ impl Paint<'_> {
             }
         }
     }
-    fn label(&mut self, x: u32, y: u32, label: &str, color: u32) {
-        let width = get_raster_width(FontWeight::Regular, raster_height(self.scale))
-            .div_ceil(self.scale.factor() as usize) as u32;
-        for (index, ch) in label.chars().enumerate() {
-            self.character(x + (index as u32) * width, y, ch, color);
-        }
+    fn canvas(&mut self) -> Canvas<'_> {
+        Canvas::new(
+            GraphicRect::new(
+                self.rect.x as i32,
+                self.rect.y as i32,
+                self.rect.width,
+                self.rect.height,
+            ),
+            self.pixels,
+        )
+        .expect("validated private tile")
     }
-    fn wrapped(&mut self, x: u32, y: u32, label: &str, width: u32, color: u32) {
-        let step = get_raster_width(FontWeight::Regular, raster_height(self.scale))
-            .div_ceil(self.scale.factor() as usize) as u32;
-        let columns = (width / step).max(1) as usize;
-        for (index, ch) in label.chars().enumerate() {
-            self.character(
-                x + (index % columns) as u32 * step,
-                y + (index / columns) as u32 * d::LINE_HEIGHT,
-                ch,
-                color,
-            );
+    fn font(&self, size: Size, weight: Weight) -> Font {
+        Font::new(size, weight, self.scale == Scale::Percent200)
+    }
+    fn measure(&self, label: &str, size: Size, weight: Weight) -> u32 {
+        self.font(size, weight)
+            .measure(label)
+            .div_ceil(self.scale.factor())
+    }
+    fn ui_text(&mut self, x: u32, y: u32, label: &str, size: Size, weight: Weight, color: u32) {
+        let font = self.font(size, weight);
+        let f = self.scale.factor();
+        self.canvas()
+            .text((x * f) as i32, (y * f) as i32, label, font, color);
+    }
+    fn label(&mut self, x: u32, y: u32, label: &str, color: u32) {
+        self.ui_text(x, y, label, Size::Body, Weight::Regular, color);
+    }
+    fn small(&mut self, x: u32, y: u32, label: &str, color: u32) {
+        self.ui_text(x, y, label, Size::Small, Weight::Regular, color);
+    }
+    fn medium(&mut self, x: u32, y: u32, label: &str, color: u32) {
+        self.ui_text(x, y, label, Size::Body, Weight::Semibold, color);
+    }
+    fn icon(&mut self, r: Rect, icon: Icon, color: u32, stroke: u32) {
+        let r = r.physical(self.scale);
+        if !r.intersects(self.rect) {
+            return;
+        }
+        let f = self.scale.factor();
+        self.canvas().icon(
+            GraphicRect::new(r.x as i32, r.y as i32, r.width, r.height),
+            icon,
+            color,
+            stroke * f,
+        );
+    }
+    fn wrapped(&mut self, x: u32, mut y: u32, label: &str, width: u32, color: u32) {
+        let mut rest = label;
+        while !rest.is_empty() {
+            if y * self.scale.factor() >= self.rect.y + self.rect.height {
+                return;
+            }
+            let mut take = rest.len();
+            let mut space = None;
+            for (index, ch) in rest.char_indices() {
+                if ch == '\n' {
+                    take = index;
+                    break;
+                }
+                if ch.is_whitespace() {
+                    space = Some(index);
+                }
+                if self.measure(&rest[..index + ch.len_utf8()], Size::Body, Weight::Regular) > width
+                {
+                    take = space.filter(|i| *i > 0).unwrap_or(index.max(ch.len_utf8()));
+                    break;
+                }
+            }
+            self.label(x, y, rest[..take].trim_end(), color);
+            rest = rest[take..].trim_start_matches(char::is_whitespace);
+            y = y.saturating_add(d::LINE_HEIGHT);
         }
     }
     fn title(&mut self, x: u32, y: u32, title: &str) {
-        // 32px title at100%, doubled retained raster at200%. Body uses a real
-        // 32px raster at200%; this is not a general scalable shaping engine.
-        let scale = self.scale.factor();
-        let step = get_raster_width(FontWeight::Regular, RasterHeight::Size32) as u32;
-        for (index, ch) in title.chars().enumerate() {
-            if let Some(glyph) = get_raster(ch, FontWeight::Regular, RasterHeight::Size32) {
-                for (dy, row) in glyph.raster().iter().enumerate() {
-                    for (dx, alpha) in row.iter().copied().enumerate() {
-                        if alpha == 0 {
-                            continue;
-                        }
-                        for sy in 0..scale {
-                            for sx in 0..scale {
-                                let px = (x + index as u32 * step + dx as u32) * scale + sx;
-                                let py = (y + dy as u32) * scale + sy;
-                                if self.rect.contains(px, py) {
-                                    let at = ((py - self.rect.y) * self.rect.width + px
-                                        - self.rect.x)
-                                        as usize;
-                                    self.pixels[at] = blend(d::TEXT, self.pixels[at], alpha);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        self.title_color(x, y, title, d::TEXT);
+    }
+    fn title_color(&mut self, x: u32, y: u32, title: &str, color: u32) {
+        self.ui_text(x, y, title, Size::Title, Weight::Semibold, color);
     }
 }
 fn blend(front: u32, back: u32, alpha: u8) -> u32 {

@@ -1,0 +1,211 @@
+   Compiling zeroize v1.9.1
+   Compiling catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+   Compiling ui-core v0.1.0 (/workspace/nieuw-os/crates/ui-core)
+   Compiling capability-core v0.1.0 (/workspace/nieuw-os/crates/capability-core)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+   Compiling nieuw-os-input-core v0.1.0 (/workspace/nieuw-os/services/input-core)
+   Compiling nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os/sdk/catalog-client)
+   Compiling nieuw-os-input-client v0.1.0 (/workspace/nieuw-os/sdk/input-client)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.07s
+     Running unittests src/lib.rs (target/window-recovery-host/debug/deps/nieuw_os_input_client-ead9864315518485)
+
+running 1 test
+test tests::request_exhaustion_closes_without_wrap_enqueue_or_replay ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/service.rs (target/window-recovery-host/debug/deps/service-28319a6bc37b1515)
+
+running 14 tests
+test actual_mouse_global_coordinates_checked_buttons_and_cancel_watermark ... ok
+test canonical_service_denial_is_not_empty_and_closes_the_uncertain_binding ... ok
+test explicit_retirement_unblocks_a_reply_wait_after_real_peer_exit_without_ack_or_retry ... ok
+test focus_cancel_supersedes_old_ack_without_consuming_the_new_cancel ... ok
+test lost_peek_or_ack_reply_closes_without_republishing_or_false_ack ... ok
+test actual_key_offer_once_then_exact_ack_and_empty ... ok
+test only_explicit_retirement_tolerates_bad_handle_and_still_reports_other_cleanup_errors ... ok
+test owned_pair_drops_once_while_invalid_construction_never_takes_ownership ... ok
+test only_real_send_eagain_retries_before_enqueue_and_receive_eagain_never_resends ... ok
+test malformed_ack_is_not_acknowledged_and_reserved_mouse_bits_or_outside_gop_are_rejected ... ok
+test unexpected_actual_transferred_cap_is_closed_once_with_owned_channels_even_when_close_fails ... ok
+test replayed_event_sequence_or_older_key_generation_cannot_be_offered_again ... ok
+test unknown_send_or_failed_receive_cannot_be_retried_as_no_publication ... ok
+test hostile_envelopes_and_noncanonical_key_or_header_fields_never_offer_input ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests nieuw_os_input_client
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Compiling nieuw-os-surface-protocol v0.1.0 (/workspace/nieuw-os/ui/surface-protocol)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.76s
+     Running unittests src/lib.rs (target/window-recovery-host/debug/deps/nieuw_os_surface_protocol-ad3375024c9c7148)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/client.rs (target/window-recovery-host/debug/deps/client-1a990d8a58a3f596)
+
+running 10 tests
+test actual_capability_envelopes_roundtrip_without_republishing_after_eagain ... ok
+test explicit_retirement_unblocks_lost_reply_after_real_peer_exit_without_replaying_tile ... ok
+test invalid_grid_and_noncanonical_pixels_fail_before_any_send ... ok
+test lost_reply_is_not_ack_and_never_replays_a_published_tile ... ok
+test bounded_unsent_unknown_send_and_backend_failure_are_distinct ... ok
+test only_explicit_retirement_tolerates_bad_handle_and_preserves_other_cleanup_errors ... ok
+test only_explicit_probe_tolerates_grid_and_lost_reply_is_not_success ... ok
+test real_grid_probe_consumes_only_request_and_next_real_blit_works ... ok
+test probe_requires_exact_grid_peer_tag_correlation_and_no_caps ... ok
+test wrong_peer_tag_caps_request_and_pixel_count_fail_closed ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/protocol.rs (target/window-recovery-host/debug/deps/protocol-c642e8f22dbc52ef)
+
+running 10 tests
+test fragment_offset_length_duplicates_and_incomplete_commit_are_not_success ... ok
+test fresh_commit_admission_clock_rejects_expired_token_without_other_messages ... ok
+test failed_blit_cannot_create_positive_ack ... ok
+test grid_has_exact_short_edges_no_overlap_and_new_frame_starts_at_zero ... ok
+test hostile_header_and_reply_bindings_are_rejected ... ok
+test info_and_complete_tile_bind_assigned_bounds_and_only_callback_can_ack ... ok
+test known_expiry_after_malformed_input_never_completes_a_ready_tile ... ok
+test noncanonical_pixels_and_geometry_cannot_reach_blit_callback ... ok
+test timeout_retirement_and_clock_rollback_invalidate_pending_completion ... ok
+test wrong_actor_epoch_and_replayed_request_do_not_grant_a_surface ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nieuw_os_surface_protocol
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Compiling volume-core v0.1.0 (/workspace/nieuw-os/services/volume)
+   Compiling noto-sans-mono-bitmap v0.3.2
+   Compiling nieuw-os-graphics v0.1.0 (/workspace/nieuw-os/ui/graphics)
+   Compiling nieuw-os-input-client v0.1.0 (/workspace/nieuw-os/sdk/input-client)
+   Compiling nieuw-os-surface-protocol v0.1.0 (/workspace/nieuw-os/ui/surface-protocol)
+   Compiling kernel-core v0.1.0 (/workspace/nieuw-os/crates/kernel-core)
+   Compiling nieuw-os-document-session v0.1.0 (/workspace/nieuw-os/sdk/document-session)
+   Compiling nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os/ui/native)
+   Compiling nieuw-os-materiaal-app v0.1.0 (/workspace/nieuw-os/sdk/examples/materiaal)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.95s
+     Running unittests src/lib.rs (target/window-recovery-host/debug/deps/nieuw_os_materiaal_app-cdb197603184c9d1)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/chain.rs (target/window-recovery-host/debug/deps/chain-7e81a528fb0c35f0)
+
+running 29 tests
+test bootstrap_rejects_aliases_invalid_handles_actors_epochs_and_scale ... ok
+test clean_stop_closes_each_owner_once_without_commit ... ok
+test bounded_draft_rejects_large_edit_without_destroying_old_bytes ... ok
+test cancel_between_real_append_and_commit_preserves_draft ... ok
+test cancel_uses_real_abort_and_never_commits ... ok
+test diagnostic_f12_counts_press_without_repeat_release_or_action ... ok
+test focus_regrant_does_not_reuse_held_control ... ok
+test global_outside_release_and_held_reentry_never_click ... ok
+test input_channel_failure_retains_unsaved_draft ... ok
+test generation_change_abandons_partial_frame ... ok
+test input_failure_revokes_current_ready_flag ... ok
+test interactive_four_tiles_use_one_idle_peek ... ok
+test interactive_input_failure_keeps_draft_and_bounded_paint ... ok
+test interactive_input_still_processes_at_most_four_offers ... ok
+test interactive_lost_tile_ack_ends_batch_and_preserves_draft ... ok
+test lost_document_commit_never_claims_saved ... ok
+test independent_current_ready_is_not_stale_after_edit ... ok
+test lost_surface_ack_does_not_present_or_drop_draft ... ok
+test negative_display_completion_never_presents ... ok
+test readonly_ui_never_publishes_create_or_save ... ok
+test interactive_batch_never_certifies_partial_generation ... ok
+test real_protocol_chain_edit_save_reopen_and_separate_surface ... ok
+test scale200_uses_actual_assigned_global_pointer_coordinates ... ok
+test lost_final_replacement_frame_ack_preserves_draft_without_ready ... ok
+test storage_io_failure_never_claims_saved ... ok
+test retired_reply_leaves_preserve_document_and_allow_both_owner_pause ... ok
+test fresh_presentation_preserves_draft_caret_and_active_document_upload ... ok
+test surface_failure_revokes_current_ready_flag ... ok
+test stale_or_small_rebind_closes_new_grants_without_losing_document ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.70s
+
+     Running tests/elf.rs (target/window-recovery-host/debug/deps/elf-acdc9bed060107a8)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/semantic_actions.rs (target/window-recovery-host/debug/deps/semantic_actions-80cda1f376e281b0)
+
+running 2 tests
+test semantic_wrappers_reject_read_only_and_nonexistent_actions ... ok
+test semantic_wrappers_bind_actions_to_snapshot_and_keep_edits_unsaved ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nieuw_os_materiaal_app
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Compiling nieuw-os-calculator v0.1.0 (/workspace/nieuw-os/sdk/examples/calculator)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.98s
+     Running unittests src/lib.rs (target/window-recovery-host/debug/deps/nieuw_os_calculator-27078f7212d24438)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/chain.rs (target/window-recovery-host/debug/deps/chain-a119b3f61c766684)
+
+running 9 tests
+test bootstrap_rejects_aliases_hidden_document_metadata_and_unbound_principals ... ok
+test input_failure_is_visible_but_cannot_be_a_fake_ready_and_stop_attempts_every_owner ... ok
+test lost_or_failed_real_surface_reply_never_certifies_rendered_state ... ok
+test actual_outside_mouse_cancel_and_focus_generation_cannot_activate_a_captured_button ... ok
+test startup_stop_closes_only_the_four_untransferred_service_leaves_even_on_failure ... ok
+test actual_typed_service_chain_computes_from_real_scan_bytes_and_commits_only_current_frames ... ok
+test supervisor_retirement_detaches_both_owners_when_one_session_already_failed ... ok
+test real_service_replacement_preserves_work_and_requires_new_complete_frame_acknowledgements ... ok
+test rejected_rebind_epochs_and_small_scaled_geometry_close_fresh_channels_and_allow_retry ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.43s
+
+     Running tests/decimal.rs (target/window-recovery-host/debug/deps/decimal-532aaaf444eb9b04)
+
+running 5 tests
+test decimal_formatter_is_exact_localized_and_canonical_at_every_bound ... ok
+test precedence_parentheses_unary_comma_and_exact_integer_math ... ok
+test full_raw_products_fit_i128_and_do_not_reject_small_valid_results ... ok
+test signed_halftoeven_applies_to_literals_products_and_divisions ... ok
+test input_nesting_syntax_and_zero_division_are_bounded_without_panics ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/model_render.rs (target/window-recovery-host/debug/deps/model_render-c174704e10502641)
+
+running 6 tests
+test error_keeps_expression_caret_and_previous_result_until_explicit_reset ... ok
+test pointer_capture_does_not_activate_after_outside_cancel_or_focus_loss ... ok
+test every_control_is_inside_both_scales_and_hit_testing_never_clamps ... ok
+test real_keyboard_semantics_include_modifiers_keypad_focus_and_press_only_actions ... ok
+test long_input_selection_and_editing_are_atomic_and_recoverable ... ok
+test renderer_is_bounded_tracks_real_state_and_scrolls_long_input_at_both_scales ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+   Doc-tests nieuw_os_calculator
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

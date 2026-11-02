@@ -1,0 +1,8 @@
+host: exit 0
+clippy: exit 0
+fmt-check: exit 0
+features: exit 0
+compiler: exit 0
+scalar-build: exit 0
+source_sha256=4ebb91f60e76775e5817a99e90b7ea7eba8edb07748058c4e7490a0cfbe37bb9
+artifacts=11; native_execution=false

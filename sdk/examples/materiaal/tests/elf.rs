@@ -13,8 +13,8 @@ fn actual_native_elf_has_five_bounded_segments_and_private_bss_buffers() {
         (0x40000000, false, true),
         (0x40010000, true, false),
         (0x40020000, false, false),
-        (0x40070000, true, false),
-        (0x400b0000, false, true),
+        (0x400b0000, true, false),
+        (0x400f0000, false, true),
     ];
     for (segment, (va, writable, executable)) in image.segments[..5].iter().zip(expected) {
         assert_eq!(
@@ -45,7 +45,7 @@ fn actual_native_elf_has_five_bounded_segments_and_private_bss_buffers() {
         "entry must tail-jump without extra return address"
     );
     assert_eq!(image.segments[1].memory_size, 1024);
-    assert!(image.segments[2].memory_size <= 256 * 1024);
+    assert!(image.segments[2].memory_size <= 512 * 1024);
     let data = image.segments[3];
     assert!(data.memory_size >= 3 * 65536 && data.memory_size <= 256 * 1024);
     assert!(data.memory_size - data.file_size >= 3 * 65536);

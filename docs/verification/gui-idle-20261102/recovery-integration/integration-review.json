@@ -1,0 +1,10 @@
+{
+  "sdk/examples/window-session/src/recovery.rs": {
+    "equal_to_freeze": true,
+    "sha256": "6a9ed215cfc81c78a10fdb00fd6945b2a8164cd70faf981df1159e27fd55ea11"
+  },
+  "sdk/examples/window-session/tests/recovery.rs": {
+    "equal_to_freeze": true,
+    "sha256": "9ec505f7a223e491798c727b5f25511886d8c8d1dd82bd18133c45aff484e615"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "source_commit": "2bb84c204677c790d871639cbd2484a782c799be",
+  "source_sha256": "1fbbeb9fe6592759b637dbd0c235825f9a2a9df27212404ffa4f6a3e9cd1d974",
+  "passed": false,
+  "native_gate": false,
+  "cause": "Actual compositor ud2 delivered: slot4/PID5/vector6. Init exited15 after waiting for pause ACKs. Old reply RX endpoints remain open, so outstanding presentation RPCs block the app control loop. No restart or acceptance.",
+  "run_directory": "/workspace/nieuw-os/build/window-final/run/window-53797cdbbebd4212adb2ea6d7f827495",
+  "serial_sha256": "72c954748f54faadbdba40741298087f258782920bf13bad60fb0953c03691a2",
+  "compressed_serial_sha256": "0c8d941e1cacf65b89f78c8fea9af5e738655cd7fb080166ab92e71d3766b0d8",
+  "original_result_sha256": "dafc03f25d18339d52d1f23e109ee56dcd5c8eaec042e7385a6e87d40a3cfe4c",
+  "completed_phases": {
+    "boot": 152.40997717600112,
+    "initial": 158.18143702900124,
+    "editor": 282.6858407229993,
+    "dirty": 415.14814179899986,
+    "calculated": 485.66985580099936,
+    "moved": 493.8066812440011
+  },
+  "scope": "One TCG execution; initial/editor/dirty/calculated/moved passed, recovery/save/disk/cleanup did not. No U01 points."
+}

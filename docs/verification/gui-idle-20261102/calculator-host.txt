@@ -1,0 +1,55 @@
+   Compiling nieuw-os-calculator v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/examples/calculator)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.71s
+     Running unittests src/lib.rs (target/root-idle-checks/x86_64-unknown-linux-gnu/debug/deps/nieuw_os_calculator-a740ac9da32e8322)
+
+running 3 tests
+test idle::tests::exact_supported_profiles_only ... ok
+test idle::tests::next_tick_preserves_control_condition_and_rejects_overflow ... ok
+test idle::tests::wait_failure_and_unexpected_mask_never_become_success ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/chain.rs (target/root-idle-checks/x86_64-unknown-linux-gnu/debug/deps/chain-633000f7d9f04552)
+
+running 10 tests
+test bootstrap_rejects_aliases_hidden_document_metadata_and_unbound_principals ... ok
+test lost_or_failed_real_surface_reply_never_certifies_rendered_state ... ok
+test startup_stop_closes_only_the_four_untransferred_service_leaves_even_on_failure ... ok
+test input_failure_is_visible_but_cannot_be_a_fake_ready_and_stop_attempts_every_owner ... ok
+test actual_outside_mouse_cancel_and_focus_generation_cannot_activate_a_captured_button ... ok
+test idle_requires_current_frame_and_empty_batch_and_rechecks_late_input ... ok
+test actual_typed_service_chain_computes_from_real_scan_bytes_and_commits_only_current_frames ... ok
+test supervisor_retirement_detaches_both_owners_when_one_session_already_failed ... ok
+test real_service_replacement_preserves_work_and_requires_new_complete_frame_acknowledgements ... ok
+test rejected_rebind_epochs_and_small_scaled_geometry_close_fresh_channels_and_allow_retry ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.84s
+
+     Running tests/decimal.rs (target/root-idle-checks/x86_64-unknown-linux-gnu/debug/deps/decimal-c5f4c6dc2c037a9f)
+
+running 5 tests
+test decimal_formatter_is_exact_localized_and_canonical_at_every_bound ... ok
+test full_raw_products_fit_i128_and_do_not_reject_small_valid_results ... ok
+test signed_halftoeven_applies_to_literals_products_and_divisions ... ok
+test precedence_parentheses_unary_comma_and_exact_integer_math ... ok
+test input_nesting_syntax_and_zero_division_are_bounded_without_panics ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/model_render.rs (target/root-idle-checks/x86_64-unknown-linux-gnu/debug/deps/model_render-e17774888fdba082)
+
+running 6 tests
+test error_keeps_expression_caret_and_previous_result_until_explicit_reset ... ok
+test every_control_is_inside_both_scales_and_hit_testing_never_clamps ... ok
+test pointer_capture_does_not_activate_after_outside_cancel_or_focus_loss ... ok
+test long_input_selection_and_editing_are_atomic_and_recoverable ... ok
+test real_keyboard_semantics_include_modifiers_keypad_focus_and_press_only_actions ... ok
+test renderer_is_bounded_tracks_real_state_and_scrolls_long_input_at_both_scales ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+   Doc-tests nieuw_os_calculator
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

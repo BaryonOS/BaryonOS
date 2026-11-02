@@ -1,0 +1,128 @@
+{
+  "schema": "nieuw-os-ci-window-readback-v1",
+  "trigger_commit": "2a7b74426027093a4793d78d5ddca94e15ae018a",
+  "tested_ci_merge_commit": "a50216efcc5017443a4d5520998b95ac8047e1ae",
+  "source_sha256": "084478cf4d2e137a3ba37bc6029716be3e38fecfdf76ca82fe55cd409b8536d0",
+  "run_id": 41495583952,
+  "job_id": 125450255710,
+  "artifact_id": 13166497345,
+  "artifact": {
+    "path": "/workspace/attachments/5657e96a-db2b-4d03-9c72-a1e409a6cdb1/native-window-session-2a7b744-41495583952.zip",
+    "sha256": "6aac03425048efd00993541bfc91ee52a975dd6e58d9f496adc093baa2dfeab4",
+    "size_bytes": 4056515
+  },
+  "passed": true,
+  "native_gate": true,
+  "smoke_only": false,
+  "raw_qemu_exit": 33,
+  "duration_s": 323.90067511399997,
+  "phases": {
+    "boot": {
+      "seconds": 41.820830982000004,
+      "frame_sha256": "f1aa7a45a5f4a2edb0fff7ee10bb4ee1e80273ea267f90931d8d655dd5fd587e",
+      "oracle": null
+    },
+    "initial": {
+      "seconds": 43.383862562999994,
+      "frame_sha256": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+      "oracle": "initial"
+    },
+    "editor": {
+      "seconds": 72.82572357400001,
+      "frame_sha256": "84576317ae5a71b50b6f5fcdd2a476656be22884629a2e5db9f94276502110dc",
+      "oracle": "editor"
+    },
+    "dirty": {
+      "seconds": 104.72892218,
+      "frame_sha256": "78136db9ea20fcc1eccda7e70b58d6342aadfa4bb4d46907a43c6c5a01fef25d",
+      "oracle": "dirty"
+    },
+    "calculated": {
+      "seconds": 124.61553322799999,
+      "frame_sha256": "222294328f8bdcdca1c5e4abd620e7e898869c9c1d6922ddde4f64a1fb719c3b",
+      "oracle": null
+    },
+    "moved": {
+      "seconds": 127.10161204500001,
+      "frame_sha256": "dc69ffcd903df80ac4a4e7087dfb6e6a0215716b0f0e06238fe317f6e329d86a",
+      "oracle": null
+    },
+    "recovered": {
+      "seconds": 169.473724037,
+      "frame_sha256": "790f6a6f2e8d820053569c789611e25f784adef1a0fe3c356ece4eb978c53705",
+      "oracle": null
+    },
+    "rebound-editor": {
+      "seconds": 171.82870454800002,
+      "frame_sha256": "df6370d59762854e32396aab4b6c1b3073a70b586121269dca09cdab96f71f03",
+      "oracle": "dirty-rebound"
+    },
+    "calculator-restored": {
+      "seconds": 192.37884397199997,
+      "frame_sha256": "3b36ec1d70a08df07136b4b0b92eda688ca9101e0b1ccd3edde5893ec913e7bf",
+      "oracle": null
+    },
+    "restored-editor": {
+      "seconds": 235.816873978,
+      "frame_sha256": "2fd8472c6d0d4b5779136bb26407742205e075e2ce6ef2db99f570e78a89fc4a",
+      "oracle": "dirty-recovered"
+    },
+    "saved": {
+      "seconds": 265.596353255,
+      "frame_sha256": "c3037fa6ed2014246d3127f3221588f2d151c29db7b8d25d8de088876748b34d",
+      "oracle": "saved"
+    },
+    "list": {
+      "seconds": 294.02933492899996,
+      "frame_sha256": "672ce75cbcd550d4d5a4093b63625ede4a4805a5b0c8867ed8535df076c03bef",
+      "oracle": "list"
+    },
+    "reopened": {
+      "seconds": 323.34661434599997,
+      "frame_sha256": "d0bc756fefec701220f66941e5defc44ef25b05e4910077f317e8704e1354be4",
+      "oracle": "reopened"
+    }
+  },
+  "all_thirteen_native_frame_hashes_match": true,
+  "all_eighteen_host_oracle_hashes_match": true,
+  "actual_unmasked_body_oracle_recheck": true,
+  "protected_chrome_drag_and_calculator_restore_rechecked": true,
+  "app_pid_work_and_calculation_preserved": true,
+  "service_generation_epochs_and_probe_counts_rechecked": true,
+  "compositor_pid_before": 5,
+  "compositor_pid_after": 9,
+  "raw_serial_sha256": "d9717aef37eda8cf3eafe9e94037fc6faddd93401199e999e8e53de6fd79d77d",
+  "report_sha256": "8244db3d03aa415bcff6831614e1a8fc77c89ab2eb92056f2cd160e48ef3ff1a",
+  "disk_oracle": {
+    "object": 0,
+    "revision": 1,
+    "name": "Nieuw document",
+    "length": 14,
+    "sha256": "9a45a00fa9ff69c17e124f54c14bb14cf2c7650e8cf1c272f6631f618a19a5a5",
+    "fnv": 2786778974461010050,
+    "generation": 1,
+    "clocks": [
+      1,
+      0
+    ],
+    "canaries_intact": true
+  },
+  "disk_sha256": "246c8f9773533796718a729389c26d6103f45f04e7a83b4d06503e17c6d4e07e",
+  "cleanup_live_processes": 0,
+  "cleanup_live_handles": 0,
+  "native_qemu": "8.2.2 Ubuntu 24.04; TCG thread=single, pc-q35-8.2, 1 CPU, 256 MiB",
+  "ci_normal_windows_bundle": {
+    "path": "/workspace/nieuw-os-windows-package/build/ci-window-2a7b744/ci-windows-bundle.zip",
+    "sha256": "81ccd2836fb659e607897d79b8cedf6f175479ee4009e273667edcb2bc97bc75",
+    "size_bytes": 2385815,
+    "manifest_sha256": "c30394a65173a880e0e79f9e04fc6135f8e0aeec00d70eeb23eb275419d7f260",
+    "kernel_sha256": "e8b1ecd4482b943db45478e429a9ffe41b92ef45a6c80b52c878dcda1e54a5b6",
+    "loader_sha256": "e40efef314684cbb3e5181a7f4a369aab57e277160a5a13e0a5c5c74d90a89f3",
+    "all_nineteen_payloads_verified": true
+  },
+  "limits": [
+    "CI ran Linux/QEMU TCG; no Windows/WHPX or physical hardware acceptance.",
+    "CI Ubuntu firmware/toolchain outputs differ from separately built Debian-based cloud candidate; no binary identity claim across packages.",
+    "This independently checks stored actual CI evidence and does not start another VM."
+  ]
+}

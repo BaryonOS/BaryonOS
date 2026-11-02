@@ -9,12 +9,14 @@ publish = false
 resolver = "2"
 
 [dependencies]
+nieuw-os-graphics = { path = "../graphics" }
 ui-core = { path = "../../crates/ui-core" }
 nieuw-os-input-core = { path = "../../services/input-core" }
 nieuw-os-document-session = { path = "../../sdk/document-session" }
 nieuw-os-catalog-client = { path = "../../sdk/catalog-client" }
 nieuw-os-sdk-runtime = { path = "../../sdk/runtime" }
 volume-core = { path = "../../services/volume" }
+zeroize = { version = "=1.9.1", default-features = false }
 noto-sans-mono-bitmap = { version = "=0.3.2", default-features = false, features = ["regular", "size_16", "size_32", "unicode-basic-latin", "unicode-latin-1-supplement", "unicode-specials"] }
 
 [dev-dependencies]

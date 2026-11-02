@@ -10,6 +10,10 @@
   --border: #768783;
   --line: #DCE2DA;
   --accent-soft: #E7EEE7;
+  --desktop-start: #091D2C;
+  --desktop-end: #145564;
+  --desktop-glow: #617EAC;
+  --desktop-text: #F1F7F8;
   --radius-control: 8px;
   --radius-surface: 14px;
   --radius-dialog: 18px;

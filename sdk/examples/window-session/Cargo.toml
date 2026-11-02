@@ -1,0 +1,46 @@
+[package]
+name = "nieuw-os-window-session"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+
+[workspace]
+members = ["."]
+
+[features]
+native = []
+fault-injection = []
+
+[dependencies]
+nieuw-os-graphics = { path = "../../../ui/graphics" }
+nieuw-os-sdk-runtime = { path = "../../runtime" }
+nieuw-os-display-client = { path = "../../display-client" }
+nieuw-os-input-client = { path = "../../input-client" }
+nieuw-os-input-core = { path = "../../../services/input-core" }
+nieuw-os-native-input-service = { path = "../input-service" }
+nieuw-os-surface-protocol = { path = "../../../ui/surface-protocol", features = ["client"] }
+ui-core = { path = "../../../crates/ui-core" }
+
+[[bin]]
+name = "window-compositor"
+path = "src/main.rs"
+required-features = ["native"]
+test = false
+bench = false
+
+[[bin]]
+name = "window-init"
+path = "src/init.rs"
+required-features = ["native"]
+test = false
+bench = false
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+opt-level = "s"
+codegen-units = 1
+lto = false

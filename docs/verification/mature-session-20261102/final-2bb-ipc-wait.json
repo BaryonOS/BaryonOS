@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "feature": "native-ipc-wait",
+  "source_sha256": "1fbbeb9fe6592759b637dbd0c235825f9a2a9df27212404ffa4f6a3e9cd1d974",
+  "scope": "two CPL3 processes, bounded queue waits and PIT idle; not GUI or release acceptance",
+  "guest": {
+    "label": "native-ipc-wait",
+    "started_utc": "2026-11-02T16:17:52.242101+00:00",
+    "duration_s": 4.593105578001996,
+    "timeout_s": 60,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+      "M2:PASS",
+      "IPCWAIT:MANIFEST:PASS",
+      "IPCWAIT:REVOKED_FULL_QUEUE:PASS",
+      "IPCWAIT:NATIVE:PASS",
+      "IPCWAIT:CLEANUP:PASS",
+      "IPCWAIT:PASS",
+      "M1:PASS"
+    ],
+    "forbidden_markers": [
+      "IPCWAIT:FAIL:",
+      "PANIC",
+      "M3:FAIL:"
+    ],
+    "passed": true,
+    "command": [
+      "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+      "-machine",
+      "pc-q35-10.0",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "stdio",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=build/ipc-wait-final/run/native-ipc-wait-f3f09ec1c5/OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=build/ipc-wait-final/run/native-ipc-wait-f3f09ec1c5/OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:build/ipc-wait-final/run/native-ipc-wait-f3f09ec1c5/esp",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04"
+    ],
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "profile": "development-package; pc-q35-10.0/qemu64/TCG/1CPU/256MiB",
+    "base_commit": "2bb84c204677c790d871639cbd2484a782c799be",
+    "source_fingerprint_version": 3,
+    "source_sha256": "1fbbeb9fe6592759b637dbd0c235825f9a2a9df27212404ffa4f6a3e9cd1d974",
+    "artifact_sha256": {
+      "esp/kernel.elf": "a952367b30b8d156de4522ba224f288c492030dbcee91836b9994df489d6c697",
+      "esp/EFI/BOOT/BOOTX64.EFI": "e6d7867ee55823345ea3de70b66bcbbdd51ba2483f4737988f7f99773c7582c6",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+    },
+    "firmware_source": [
+      "/workspace/.nieuw-os-env/sysroot/usr/share/OVMF/OVMF_CODE_4M.fd",
+      "/workspace/.nieuw-os-env/sysroot/usr/share/OVMF/OVMF_VARS_4M.fd"
+    ],
+    "run_directory": "/workspace/nieuw-os/build/ipc-wait-final/run/native-ipc-wait-f3f09ec1c5",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nIPCWAIT:MANIFEST:PASS\nIPCWAIT:REVOKED_FULL_QUEUE:PASS\nIPCWAIT:ASSERTIONS:00000000000000000111\nIPCWAIT:TICKS:00000000000000000162\nIPCWAIT:PHASE_MASK:00000000000000000063\nIPCWAIT:ASSERTIONS:00000000000000000083\nIPCWAIT:TICKS:00000000000000000202\nIPCWAIT:PHASE_MASK:00000000000000000060\nIPCWAIT:BLOCKED:00000000000000000015\nIPCWAIT:WAKE_READY:00000000000000000008\nIPCWAIT:WAKE_TIMEOUT:00000000000000000006\nIPCWAIT:WAKE_ERROR:00000000000000000001\nIPCWAIT:IDLE_IRQS:00000000000000000198\nIPCWAIT:NATIVE:PASS\nIPCWAIT:CLEANUP:PASS\nIPCWAIT:PASS\nM1:PASS\n",
+    "stderr": "",
+    "expected_artifact_sha256": {
+      "esp/kernel.elf": "a952367b30b8d156de4522ba224f288c492030dbcee91836b9994df489d6c697",
+      "esp/EFI/BOOT/BOOTX64.EFI": "e6d7867ee55823345ea3de70b66bcbbdd51ba2483f4737988f7f99773c7582c6"
+    },
+    "artifact_binding_passed": true
+  },
+  "observed": {
+    "BLOCKED": 15,
+    "WAKE_READY": 8,
+    "WAKE_TIMEOUT": 6,
+    "WAKE_ERROR": 1,
+    "IDLE_IRQS": 198
+  }
+}
