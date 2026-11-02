@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **37** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`ad8fbed2`](https://github.com/simonvanieperen/nieuw-os/commit/ad8fbed2f411a09fab6717c0863f0e067450f4a3) ·
-**Ontwikkelbranch:** `codex/mature-native-session-20261102`.
-Deze opdracht: **37% → 37% (+0 procentpunt)**. **Opdracht:** Volledige native herhaling na typed presentatie-retirement.
-37/100 blijft gelijk. De werkelijke compositorherstelblokkade is gerepareerd met init-only retirement van oude presentatiekanalen vóór pauseACKs; echte-Engine en appcleanup/bindingnegatieven slagen. Read-only ownerpreflight voorkomt gedeeltelijke mutatie bij ongeldige appowner. Gerichte host/Clippy/formatters en179 Pythonchecks slagen; de volledige nieuwe native gate volgt. ABI1.11-wachten, snapshotwipe, Actionsvenstergate en fontnotices zijn geïntegreerd. RANDOMraw slaagt lokaal en in echteCI48267b6; de eerdere foutoorzaak en fragiele fixturetiming blijven afgebakend gedocumenteerd. LokaleCPUproef op oude344 bevestigt vCPU-busy zonderSDL, geen nieuwebronclaim. U01/U02 krijgen geen punten vooruit.
+**Bron:** [`b1b292aa`](https://github.com/simonvanieperen/nieuw-os/commit/b1b292aadf244dacf029b7307aebdc6103756e0d) ·
+**Ontwikkelbranch:** `codex/window-idle-wait-20261102`.
+Deze opdracht: **37% → 37% (+0 procentpunt)**. **Opdracht:** Afzonderlijk GUI IPC_WAIT-checkpoint vóór herstelintegratie.
+37/100 blijft gelijk. Vier GUI-processen gebruiken bestaande IPC_WAIT alleen bij gecontroleerde rust; hosttests en componentbuilds zijn groen. Geen native CPU-winst of U01/U02-acceptatie geclaimd: de b1-basis faalt werkelijk na compositorcrash met rawexit35 APP_EXIT. Eerst de afzonderlijke centrale herstelfix integreren en volledig native testen, daarna exacte-beeld-gebonden CPU-A/B. Kernel, ABI, rechten en transactietime-outs zijn ongewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

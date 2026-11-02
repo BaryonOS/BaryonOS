@@ -1,6 +1,42 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — retirementfix geïntegreerd; volledige herhaling — 2 november 2026
+## NEXT AGENT HANDOFF — GUI IPC_WAIT-checkpoint, native bewijs nog open — 2 november 2026
+
+Branch `codex/window-idle-wait-20261102`, geïsoleerd vanaf
+`b1b292aadf244dacf029b7307aebdc6103756e0d`. De andere integrator houdt merges;
+geen wijziging van main. Score **37 -> 37/100**; U01/U02 blijven open.
+
+Materiaal, Rekenmachine, compositor en window-init parkeren alleen bij bewezen
+rust op bestaande receive-capabilities, via checked now+1 en de bestaande
+IPC_WAIT. Pending input/reply/damage, onvolledig huidig frame en herstel/stop
+blokkeren. App-PEEK hercontroleert uiterlijk volgende tick; de compositor
+behoudt bestaande tweepits-inputcadans. ABI 1.8/1.9 legacy, 1.10/1.11 wacht;
+1.0-1.7 niet als werkende display/input-appconfiguratie geaccepteerd.
+Geen kernel-, ABI-, capability-, opslag-, timeout- of dependencywijziging.
+
+Gerichte hosttests: Materiaal35, Rekenmachine24, window-session24, inclusief
+voltooid oud frame gevolgd door gedeeltelijk nieuw frame. Component-ELF-builds,
+host/native-Clippy en formatterchecks zijn uitgevoerd; compacte bron-/loghashes
+en exacte controlegrenzen: `verification/gui-idle-20261102/checkpoint.json`.
+Twee read-only kruisreviews vonden geen concrete nieuwe false-idle/deadlinefout;
+dit is geen onafhankelijke menselijke securityaudit.
+
+Bekende blocker: b1b292a faalt werkelijk in de volledige native crash/herstelroute.
+De lokale Windows/WHPX-probe toont initial/editor/dirty/calculated/moved exact,
+vervolgens slot4/vector6, PRESENTATION_RETIRED1 en slot3/pid4/code1/step18,
+raw exit35 APP_EXIT. Geen adapter-, cleanup- of geforceerde-terminatiefout.
+De centrale chat heeft deze freeze afgekeurd en werkt aan expliciete herstelfasen.
+Daarom geen CPU-A/B of acceptatie op deze bekende rode basis.
+
+Eerstvolgend: vraag de centrale chat om volledige nieuwe freeze+source-v3,
+controleer de recoverydelta, integreer die zonder andermans werk te verliezen,
+en beoordeel de nieuwe rustvoorwaarden. Bouw baseline/idle in gescheiden mappen.
+Voer daarna de ongewijzigde volledige native probe met echte Windows/WHPX uit,
+vervolgens exact-beeld-gebonden CPU-A/B. Documentatie/contract:
+`implementation/GUI-IDLE-WAIT.md`. Bron-/native-/CPU-bewijs blijven gescheiden.
+Geen hostinstellingen, passthrough of fysieke schijven; gebruik disposable images.
+
+## NEXT AGENT HANDOFF â€” retirementfix geÃ¯ntegreerd; volledige herhaling â€” 2 november 2026
 
 Branch `codex/mature-native-session-20261102`, concept-PR #122 op #121.
 Laatste functionele commit `ad8fbed2f411a09fab6717c0863f0e067450f4a3`, source-v3
@@ -12,12 +48,12 @@ echte compositorud2(slot4/vector6), daarna init15; geen U01/save/disk/cleanup-pa
 Ontbrekende pauseACKs ontstonden door app-owned replyRX die na compdeath openbleef.
 SUR/INP-RPC wachtte EAGAIN en blokkeerde de appcontrol-loop.
 
-Nu geïntegreerd: onuitgebrachte window-only0x53/a2=1 retireert uitsluitend de
+Nu geÃ¯ntegreerd: onuitgebrachte window-only0x53/a2=1 retireert uitsluitend de
 vier kernel-recorded presentationleaves per app, onder dezelfde init/Launch/dead
 CompProcessrechten. Geen PID/epoch/allocation/storage/controlwijziging; oude
 Processcap blijft. Beide appowners worden read-only gepreflight; Dead/Dying/
-ontbrekende owner en onjuiste callers/args falen vóór mutatie. Onmogelijke
-commitfouten stoppen de kernel. Init retireert vóór Pause7; pas na echteACK3
+ontbrekende owner en onjuiste callers/args falen vÃ³Ã³r mutatie. Onmogelijke
+commitfouten stoppen de kernel. Init retireert vÃ³Ã³r Pause7; pas na echteACK3
 volgt bestaande volledige restartpreflight en Ready/Rebind. Geen deadline/POLL-
 of pixelversoepeling. Session.retire normaliseert exactBadHandle per afzonderlijke
 handle, behoudt alle andere fouten en sluit beide owners ook bij deels lokaal
@@ -25,22 +61,22 @@ closed toestand. Draft/berekening blijven behouden. Zie
 `verification/window-presentation-retirement-20261102.md`.
 
 Host actual-Engine regressies reproduceren pending PEEK/ACK/SUR na peerexit en
-bewijzen einde binnen éényield na retirement. Appmixed-owner-/bindingnegatieven
+bewijzen einde binnen Ã©Ã©nyield na retirement. Appmixed-owner-/bindingnegatieven
 slagen; gerichte root-SUR/input/Mat/Calc-tests, strictClippy en formatters groen.
 Alle179 Python-toolchecks slagen; packager20 en SDK30+3doctests/Clippy groen.
 Agent bouwde alle8ELFs+kernel/loader; de volledige nieuwe native gate volgt nu.
 
-Ook geïntegreerd: ABI1.11 gebruikt bestaande keyring/volume-wachtpaden met
+Ook geÃ¯ntegreerd: ABI1.11 gebruikt bestaande keyring/volume-wachtpaden met
 RANDOM/adminuitzonderingen; volledige volatile snapshotwipe zonder temps;
 falende runner bewaart exit/duur/QMPtrace; nieuwe Actionsgate produceert normale
 WindowsZIP pas na echte native pass; alle bekende OpenSans/Noto-fontnotices in ZIP.
 Compositor/Mat/Calc/init bevatten nog Ready-idleloops; U02 blijft open.
-De lokale chat bevestigde op oude344-bundel headless vrijwel100% éénvCPU actief
+De lokale chat bevestigde op oude344-bundel headless vrijwel100% Ã©Ã©nvCPU actief
 tegen0,1042% gepauzeerd, met exacteframes. Dit is gerapporteerd oud-bronbewijs,
 geen nieuweprofielmeting of gastprocesattributie; zie local-idle-344-reported.json.
 
-RANDOMraw-diagnostiek is geïntegreerd zonderrandombytes/policy/quotawijziging.
-Eén44346ad-localrun slaagt8,755s; echteCI48267b6 foundation slaagtinclraw9,3s.
+RANDOMraw-diagnostiek is geÃ¯ntegreerd zonderrandombytes/policy/quotawijziging.
+EÃ©n44346ad-localrun slaagt8,755s; echteCI48267b6 foundation slaagtinclraw9,3s.
 De oude2bb-CIerror15 is niet exact gereproduceerd. Hostcounterexample toont nog
 een fragiele64RPC/100tick-aanname; geen blinde retries/skip/quotaverhoging. Alleen
 bij een echte volgendefout de niet-geheimeDIAGvelden gebruiken; dit bewijst geen
@@ -54,13 +90,13 @@ normale Windowsbundel op exactdiebron/hash en lokaleWHPX/TCGoverdracht. Laat
 oude2bb/03e-kandidaten intact; geen oudeZIP als eindpakket labelen.
 Geen fysieke schijven/hostinstellingen/passthrough; andere integrator houdtmerges.
 
-## Vorige afgeronde checkpoint — native sessiepreview
+## Vorige afgeronde checkpoint â€” native sessiepreview
 
 
 **Functionele implementatie / Windows-pakket:** `344dc0afde893784503217ac676e154b13662507`,
 branch `codex/session-desktop-vm-20261102`, concept-PR #121. Bronbasis
 `e08fb0e48c1bb0781e98357f588c2f73b6ae8500`. De latere opmaakcommit `cfed2db9a39396e48a7bc758eb2c533f3af3f22c`
-wikkelt uitsluitend één kernelarray-element om volgens rustfmt. De volledig
+wikkelt uitsluitend Ã©Ã©n kernelarray-element om volgens rustfmt. De volledig
 lokaal geteste344-bron heeft source-v3
 `05b047819f1c1cddce6868034ab2208d8a35a95d9f974860afb8bbc53eeb8658`;
 de opgemaakte bron heeft
@@ -76,16 +112,16 @@ maar verlenen zelf geen rechten. `UnavailableBroker` weigert alle persoonlijke
 credentials; geen gedeeld demowachtwoord of nepbiometrie. Owned secrets worden
 met de reeds gepinde zeroize gewist. Geen nieuwe externe crate of capability.
 
-Windows Auto/Whpx/Tcg gebruikt een echte sequentiële QMP-initprobe met één
+Windows Auto/Whpx/Tcg gebruikt een echte sequentiÃ«le QMP-initprobe met Ã©Ã©n
 10 s-deadline en binaire LF-invoer. De lokale chat reproduceerde en valideerde
 de Windows-HMP-racefix. Source-v3 sorteert expliciet case-sensitive padcomponenten,
 waardoor gelijke Windows/Linuxbronnen dezelfde hash leveren; controles blijven intact.
 De compositor verwerkt max8 berichten per beurt; de interactieve app max4
 tegeltransacties per input/savepass. Geen raw framebuffer of gedeelde userpointer.
 
-**Eindbewijs cloud:** alle 8 native stappen op `344dc0a` slagen: accounts →
-persoonlijke synthetische testinvoer → geweigerd/gewist → accountkeuze →
-gastlogin → desktop → zoek 'mat' → Materiaal. Iedere app-pixel wordt vergeleken,
+**Eindbewijs cloud:** alle 8 native stappen op `344dc0a` slagen: accounts â†’
+persoonlijke synthetische testinvoer â†’ geweigerd/gewist â†’ accountkeuze â†’
+gastlogin â†’ desktop â†’ zoek 'mat' â†’ Materiaal. Iedere app-pixel wordt vergeleken,
 zonder interne masks; QEMU raw exit0. TCG/QEMU 10.0.13/q35-10.0/1CPU/256 MiB:
 118,79s totaal; Materiaal16,08s versus21,63s op `51d883e` en33,94s op `7648a8f`.
 Dit zijn losse metingen in deze cloudomgeving, geen productlatentiegarantie.
@@ -100,8 +136,8 @@ hersteld naar de exacte tien namen, met behoud van alle objects-/broncontroles.
 rapporteert Windows 11 25H2, Ryzen 9 9950X3D,64 GiB. De bytegelijke QMPhelper
 slaagt 6/6 op PS 5.1/PS 7.6. De 51d-nativebaseline slaagt 6/6 (3WHPX/3TCG).
 De eindmeting op `344dc0a` slaagt 6/6 (3 WHPX/3 TCG), 48 appbeelden exact.
-WHPX gebruikerskeuze 6,625 s gemiddeld (6,481–6,823), gast→desktop 4,070 s
-(3,932–4,231). De echte PS 5.1-starter kiest Auto→WHPX, toont SDL en sluit
+WHPX gebruikerskeuze 6,625 s gemiddeld (6,481â€“6,823), gastâ†’desktop 4,070 s
+(3,932â€“4,231). De echte PS 5.1-starter kiest Autoâ†’WHPX, toont SDL en sluit
 met launcherexit 0. Er blijft geen QEMU-proces achter. Ruwe Windowsrapporten
 staan in de lokale testmap; aangeleverde hashes en grenzen zijn vastgelegd
 in local-pc-reported.json. Geen hostinstellingen gewijzigd.
@@ -112,7 +148,7 @@ vooraf verleende VM-rechten. Het accountformulier is geen beveiligde sessiegrens
 Echte profiel-/verifierpersistentie, auth-/sessiebroker, keyring-unlock, limitering,
 compositor/input-lock en revocation blijven nodig; FIDO2/vingerafdruk zijn niet
 gekoppeld. Ook dirty-regiontransport, vensterbeheer, algemene appstart en
-OS-brede toegankelijkheid blijven open. Score **34 → 34**, geen FR-/fysieke/
+OS-brede toegankelijkheid blijven open. Score **34 â†’ 34**, geen FR-/fysieke/
 menselijke aftekening. [Contract](implementation/SESSION-AND-DESKTOP.md),
 [hardware](implementation/VM-HARDWARE-AND-PERFORMANCE.md),
 [eindbewijs/reproductie](verification/session-desktop-20261102/README.md).
@@ -121,10 +157,10 @@ GitHub Actions op cfed2db meldt startup_failure zonder gestarte jobs; de
 oorzaak is niet vastgesteld. Dit is geen groene remote-CI en de PR blijft concept.
 
 Eerstvolgend: onderzoek de CI-startfout en bouw daarna een echte aparte
-auth-/sessiedienst vóór beveiligd aanmelden.
+auth-/sessiedienst vÃ³Ã³r beveiligd aanmelden.
 Gebruik bestaande tools en behoud andere dirty checkouts/branches.
 
-## NEXT AGENT HANDOFF — PR- en issueafhandeling na integratie 1 en 2 — 30 oktober 2026
+## NEXT AGENT HANDOFF â€” PR- en issueafhandeling na integratie 1 en 2 â€” 30 oktober 2026
 
 **Mandaat:** Simon heeft de Claude Code-sessie in de desktopapp op 30 oktober
 (~21:10 CET) aangewezen als enige operationele integrator voor alle open PR's
@@ -138,7 +174,7 @@ oplossingen staan in [pr-integration-20261030.json](verification/pr-integration-
 en [pr-integration-2-20261030.json](verification/pr-integration-2-20261030.json).
 
 **Afgehandeld:**
-- #68, #72–#81, #83, #86, #88, #89, #92, #94 en #97–#107 zijn als overgenomen
+- #68, #72â€“#81, #83, #86, #88, #89, #92, #94 en #97â€“#107 zijn als overgenomen
   gesloten. Per PR is gecontroleerd dat elke commit na de vastgelegde bron,
   exclusief main, aantoonbaar in main zit.
 - #111 is gesloten. Het was een parallelle, oudere subset van #96 en #113; het
@@ -156,9 +192,9 @@ en [pr-integration-2-20261030.json](verification/pr-integration-2-20261030.json)
 - #109: app-management-reader naar `artifact-store-core`.
 - #110: exacte boot-1 NAS-replay native activeren. De replay-gastcode uit #93
   is bewust niet actief, omdat de native normal/cold-gate anders vast faalt.
-- #39–#43: productmilestones; hun criteria zijn niet aangetoond.
+- #39â€“#43: productmilestones; hun criteria zijn niet aangetoond.
 
-**Bewijs en score:** 34/100 → 34/100. Er zijn geen nieuwe native-, FR-,
+**Bewijs en score:** 34/100 â†’ 34/100. Er zijn geen nieuwe native-, FR-,
 fysieke of menselijke acceptaties. Hosttests, freestanding-builds en AI-review
 zijn geen productpunten. Niet lokaal uitgevoerd: de freestanding-build van
 `app-package-core` (lokale rustc gaf SIGILL); CI is de gate.
@@ -168,7 +204,7 @@ tegen main met `docs/verification/pr-integration-2-20261030.json` als
 bronbasis. Een volgende integratie start bij #109 of #110, of bij een
 DEV1-herproef op vastgelegde bron en slot.
 
-## Vorige handoff — centrale documentatie en bronbehoud (#96) — 30 oktober 2026
+## Vorige handoff â€” centrale documentatie en bronbehoud (#96) â€” 30 oktober 2026
 
 **Integratieopdracht:** Simon heeft in deze sessie het oplossen, squashen en mergen
 van issues en pull requests opgedragen. Dit actuele mandaat geldt voor deze
@@ -181,7 +217,7 @@ management en laatste overgenomen queue: PR #75 op
 scheiden deze basis van oudere branchhandoffs. De gecombineerde implementatiebron is
 [`3fedd03e`](https://github.com/simonvanieperen/nieuw-os/commit/3fedd03eecff62d6bffae038ec959c56734e2137).
 Gerichte SDK- en netwerkregressies zijn groen; volledige kandidaat-CI
-en de native NAS normal/cold-gate blijven vereist vóór merge.
+en de native NAS normal/cold-gate blijven vereist vÃ³Ã³r merge.
 
 **Eigenaars en claims:** de nieuwste vastgelegde [werkqueue](WORK-QUEUE.md)
 blijft de primaire bron voor taken, fileclaims en acceptatie.
@@ -199,7 +235,7 @@ en geaccepteerde evidence blijven gelijk aan de main-bron.
 Alle 62 FR-gates, 100 cold-starts, 24 uur, fysieke hardware en menselijke
 acceptatie blijven open. Het [DEV1-resultaat](https://github.com/simonvanieperen/nieuw-os/blob/557b85e26372cf3809c0760d40b430ec5ef7cc6b/docs/verification/ordinary-dev1/reference-ac4f038e86/result.json)
 op bron `ca45a7dabe6a040921de03bdc2fad3e5045a75ba` is mislukt
-(`passed=false`, raw exit 0), vóór het Materiaalmanifest.
+(`passed=false`, raw exit 0), vÃ³Ã³r het Materiaalmanifest.
 De [gecorrigeerde buildfreeze](https://github.com/simonvanieperen/nieuw-os/blob/557b85e26372cf3809c0760d40b430ec5ef7cc6b/docs/verification/ordinary-dev1/isolated-build-1/build-freeze.json)
 heeft `vm_gates_started=false`: geen nieuwe guestherproef uitgevoerd.
 Bron: Nieuw OS / S.W.J.B.M. van Ieperen, 30 oktober 2026;

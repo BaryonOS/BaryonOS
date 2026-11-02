@@ -8,7 +8,10 @@ use nieuw_os_sdk_runtime::{
     process::{ChildProcess, LaunchImage, ProcessStatus},
     Handle, Outgoing, ReceiveEndpoint, SendEndpoint,
 };
-use nieuw_os_window_session::boot::{CONTROL, READY};
+use nieuw_os_window_session::{
+    boot::{CONTROL, READY},
+    idle::{Idle, InitState, NativeIdle},
+};
 #[derive(Clone, Copy)]
 struct Boot {
     generation: u64,
@@ -86,7 +89,8 @@ pub extern "C" fn _start() -> ! {
 }
 #[inline(never)]
 fn run() -> ! {
-    native::check_abi().unwrap_or_else(|_| fail(7));
+    let mut idle =
+        Idle::new(native::abi_info().unwrap_or_else(|_| fail(7))).unwrap_or_else(|_| fail(7));
     let mut boot = read();
     let mut mask = 0u8;
     let mut running = false;
@@ -99,12 +103,18 @@ fn run() -> ! {
     let mut restarts = 0u64;
     let mut rejected = 0u64;
     loop {
+        let mut registry_empty = false;
+        let mut received_this_pass = false;
         for _ in 0..16 {
             let m = match native::receive(boot.registry) {
                 Ok(m) => m,
-                Err(e) if e.is_again() => break,
+                Err(e) if e.is_again() => {
+                    registry_empty = true;
+                    break;
+                }
                 Err(_) => fail(8),
             };
+            received_this_pass = true;
             if m.cap_count() != 0 {
                 let _ = native::close_received_caps(&m);
                 rejected += 1;
@@ -239,7 +249,17 @@ fn run() -> ! {
         ] {
             support::put(at, v);
         }
-        native::yield_now().unwrap_or_else(|_| fail(16));
+        let quiescent = InitState {
+            registry_empty,
+            received: received_this_pass,
+            running,
+            ready_mask: mask,
+            recovering,
+            stopping,
+        }
+        .quiescent();
+        idle.pause(quiescent, boot.registry, &mut NativeIdle)
+            .unwrap_or_else(|_| fail(16));
     }
 }
 #[panic_handler]

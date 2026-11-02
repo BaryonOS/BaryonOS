@@ -13,11 +13,13 @@ use nieuw_os_input_core::{
 };
 use nieuw_os_native_input_service::{protocol::command_reply, Ipc, NativeIpc};
 use nieuw_os_sdk_runtime::{native, Outgoing, SendEndpoint};
-use nieuw_os_surface_protocol::{self as sur, Action, Receiver};
+use nieuw_os_surface_protocol::{self as sur, Action};
 use nieuw_os_window_session::{
     boot::{Bootstrap, CONTROL},
+    idle::{CompositorState, Idle, NativeIdle},
     input::Queue,
     scene::{Damage, Scene, MAX_PIXELS},
+    surface::TrackedReceiver as Receiver,
 };
 use ui_core::{KeyAction, PhysicalKey};
 
@@ -171,7 +173,8 @@ pub extern "C" fn _start() -> ! {
 }
 #[inline(never)]
 fn run() -> ! {
-    native::check_abi().unwrap_or_else(|_| fail(1));
+    let mut idle =
+        Idle::new(native::abi_info().unwrap_or_else(|_| fail(1))).unwrap_or_else(|_| fail(1));
     let words = core::array::from_fn(|i| support::word(i as u64 * 8));
     let boot = Bootstrap::decode(&words).unwrap_or_else(|_| fail(7));
     let mut display = DisplayClient::new(NativeTransport, boot.display);
@@ -230,14 +233,21 @@ fn run() -> ! {
     let mut last_buttons = 0u64;
     let mut next_input_tick = tick();
     let mut app_pointer_capture = None;
+    let mut input_backlog = false;
     loop {
+        let mut ingress_empty = false;
+        let mut received_this_pass = false;
         if tick() >= next_input_tick {
             next_input_tick = tick()
                 .checked_add(INPUT_POLL_TICKS)
                 .unwrap_or_else(|| fail(37));
+            input_backlog = true;
             for _ in 0..4 {
                 let offer = match input.peek() {
-                    Ok(Peek::Empty) => break,
+                    Ok(Peek::Empty) => {
+                        input_backlog = false;
+                        break;
+                    }
                     Ok(Peek::Offer(o)) => o,
                     Err(_) => fail(15),
                 };
@@ -292,9 +302,9 @@ fn run() -> ! {
                             )
                             .unwrap_or_else(|_| fail(21));
                         damage.mark(scene.pointer_bounds());
-                        for index in 0..2 {
-                            if old_frames[index] != scene.paint_bounds(index) {
-                                damage.mark(old_frames[index]);
+                        for (index, old_frame) in old_frames.iter().enumerate() {
+                            if *old_frame != scene.paint_bounds(index) {
+                                damage.mark(*old_frame);
                                 damage.mark(scene.paint_bounds(index));
                             }
                         }
@@ -353,10 +363,14 @@ fn run() -> ! {
         for _ in 0..16 {
             let message = match io.receive(boot.ingress) {
                 Ok(m) => m,
-                Err(e) if e.is_again() => break,
+                Err(e) if e.is_again() => {
+                    ingress_empty = true;
+                    break;
+                }
                 Err(_) => fail(28),
             };
             received = received.checked_add(1).unwrap_or_else(|| fail(29));
+            received_this_pass = true;
             if message.cap_count() != 0 {
                 let _ = native::close_received_caps(&message);
                 rejected += 1;
@@ -462,7 +476,18 @@ fn run() -> ! {
         ] {
             support::put(at, v);
         }
-        native::yield_now().unwrap_or_else(|_| fail(33));
+        let quiescent = CompositorState {
+            ingress_empty,
+            received: received_this_pass,
+            reply_pending: pending.iter().any(Option::is_some),
+            input_pending: queues.iter().any(Queue::has_pending),
+            input_backlog,
+            surface_pending: surfaces.iter().any(Receiver::has_pending),
+            damage_pending: damage.has_pending(),
+        }
+        .quiescent();
+        idle.pause(quiescent, boot.ingress, &mut NativeIdle)
+            .unwrap_or_else(|_| fail(33));
     }
 }
 #[panic_handler]

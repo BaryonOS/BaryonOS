@@ -175,9 +175,9 @@ Het script voert geen OS-tests uit en beoordeelt de bewijsinhoud niet.
 |---|---:|---|---|
 | **K01 — Zelfstandige UEFI-boot** | 2 | Behaald | Eigen loader draagt over aan eigen kernel; normale, ontbrekende/corrupte kernel- en timeoutgevallen zijn native gecontroleerd. [bewijs 1](../docs/verification/regression-m6b/FINAL-ACCEPTANCE.md) |
 | **K02 — Eigen geheugenbeheer en foutgrenzen** | 2 | Behaald | Eigen pagetables/framebeheer, W^X, guardstacks en ongeldige mappings zijn in het vaste QEMU-profiel gecontroleerd. [bewijs 1](../docs/verification/m2-m4/ACCEPTANCE.md) · [bewijs 2](../docs/verification/regression-m6b/FINAL-ACCEPTANCE.md) |
-| **K03 — Geïsoleerde, gepreëmpteerde processen** | 2 | Behaald | Ring-3-processen hebben afzonderlijke adresruimten; een appfault stopt de andere testprocessen niet. [bewijs 1](../docs/verification/m2-m4/ACCEPTANCE.md) · [bewijs 2](../docs/verification/regression-m6b/FINAL-ACCEPTANCE.md) |
+| **K03 — GeÃ¯soleerde, gepreÃ«mpteerde processen** | 2 | Behaald | Ring-3-processen hebben afzonderlijke adresruimten; een appfault stopt de andere testprocessen niet. [bewijs 1](../docs/verification/m2-m4/ACCEPTANCE.md) · [bewijs 2](../docs/verification/regression-m6b/FINAL-ACCEPTANCE.md) |
 | **K04 — Capabilities en begrensde IPC** | 3 | Behaald | Rechtenvermindering, generaties, intrekking, usercopy en begrensde Message320-IPC hebben native negatieve/lifecycleproeven. [bewijs 1](../docs/verification/m2-m4/ACCEPTANCE.md) · [bewijs 2](../docs/verification/regression-m6b/FINAL-ACCEPTANCE.md) |
-| **K05 — Algemeen proces- en dienstbeheer** | 2 | Behaald | Niet-fixture-apps kunnen via begrensde API’s starten, afsluiten en diensten herstarten; afhankelijkheden en resources worden correct vrijgegeven. [bewijs 1](../docs/verification/K05-ACCEPTANCE.md) · [bewijs 2](../docs/verification/k05-startup-slots/gate/supervisor-gate.json) · [bewijs 3](../docs/verification/k05-startup-slots/integration.json) |
+| **K05 — Algemeen proces- en dienstbeheer** | 2 | Behaald | Niet-fixture-apps kunnen via begrensde APIâ€™s starten, afsluiten en diensten herstarten; afhankelijkheden en resources worden correct vrijgegeven. [bewijs 1](../docs/verification/K05-ACCEPTANCE.md) · [bewijs 2](../docs/verification/k05-startup-slots/gate/supervisor-gate.json) · [bewijs 3](../docs/verification/k05-startup-slots/integration.json) |
 | **K06 — Meerdere processorkernen** | 2 | Open | SMP-scheduling, synchronisatie, interrupts en adresruimtewisseling werken onder concurrente belasting op het ondersteunde profiel. |
 | **K07 — Resourcebeheer onder druk** | 2 | Behaald | Geheugen-, CPU-, IPC- en handle-uitputting blijven per app begrensd; het bruikbare systeem herstelt zonder kerneluitval. [bewijs 1](../docs/verification/K07-ACCEPTANCE.md) |
 
@@ -193,7 +193,7 @@ Het script voert geen OS-tests uit en beoordeelt de bewijsinhoud niet.
 | **S06 — Collecties, metadata en bewerkingsgeschiedenis** | 2 | Behaald | Native objectcollecties, persistente metadata en herstelbare revisies ondersteunen dagelijkse Materiaal-taken met consistente transacties. [bewijs 1](../docs/verification/S06-ACCEPTANCE.md) · [bewijs 2](../docs/verification/s06/volume-gate.json) |
 | **S07 — Onzekere I/O zonder kernelpanic** | 1 | Behaald | De actuele M6c-catalogusdienst levert bij native WRITE/FLUSH-fouten gecontroleerd Unknown, sluit verdere toegang en herhaalt geen write; geen foutieve ACK of kernelpanic, overige processen blijven leven. Foutinjectie, koude recovery, schijforakel en normale M6c-/M6b-regressie zijn opgeslagen. De historische M6b-observer krijgt hiermee geen nieuwe foutafhandelingsclaim. [bewijs 1](../docs/verification/M6D-ACCEPTANCE.md) · [bewijs 2](../docs/verification/m6d/capture.json) · [bewijs 3](../docs/verification/m6d-m6b-regression/capture.json) · [bewijs 4](../docs/verification/m6d-review/m6d-final-native-audit.json) |
 | **S08 — Algemeen opslagherstel bij fouten** | 1 | Behaald | Een bruikbaar systeem blijft reageren bij diskuitval, timeouts, corruptie en resource-uitputting; expliciete herstelkeuze voorkomt stille gegevensoverschrijving. [bewijs 1](../docs/verification/S08-ACCEPTANCE.md) |
-| **S09 — Back-up, herstel en data-export** | 2 | Open | Een gebruiker kan onafhankelijke herstelkopieën maken, controleren, terugzetten en data in gedocumenteerde formaten exporteren; verlies-/conflictscenario’s zijn getest. |
+| **S09 — Back-up, herstel en data-export** | 2 | Open | Een gebruiker kan onafhankelijke herstelkopieÃ«n maken, controleren, terugzetten en data in gedocumenteerde formaten exporteren; verlies-/conflictscenarioâ€™s zijn getest. |
 
 ### H — Hardware, drivers en energie (1/12)
 
@@ -235,14 +235,14 @@ Het script voert geen OS-tests uit en beoordeelt de bewijsinhoud niet.
 | **B03 — Ondertekende updates en rollback** | 2 | Behaald | Authentieke updates, onderbreking, downgrade-aanvallen en herstel naar een geldige vorige versie zijn end-to-end getest. [bewijs 1](../docs/verification/B03-ACCEPTANCE.md) · [bewijs 2](../docs/verification/b03/update-gate.json) |
 | **B04 — Vertrouwde boot- en distributieketen** | 2 | Open | Image-/bootverificatie, sleutelrotatie en dependency-/buildherkomst zijn voor het releaseprofiel afgebakend en onafhankelijk gecontroleerd. |
 | **B05 — Gerichte onafhankelijke beveiligingscontrole** | 2 | Open | Externe deskundigen onderzoeken kernel-, dienst-, DMA-, parser- en capabilitygrenzen; blokkerende bevindingen zijn opgelost en relevante invarianten machinegecontroleerd waar gekozen. |
-| **B06 — Native privacycontract** | 2 | Open | De toepasselijke LP-tests slagen op het eigen OS, inclusief geen telemetrie/cloudfallback, lokale AI en gescheiden app-/downloadrechten; resterende risico’s zijn gepubliceerd. |
+| **B06 — Native privacycontract** | 2 | Open | De toepasselijke LP-tests slagen op het eigen OS, inclusief geen telemetrie/cloudfallback, lokale AI en gescheiden app-/downloadrechten; resterende risicoâ€™s zijn gepubliceerd. |
 
 ### A — Apps, SDK en installatie (2/8)
 
 | Criterium | Punten | Status | Acceptatie en bewijs |
 |---|---:|---|---|
 | **A01 — Publiek gedocumenteerde app-API en SDK** | 2 | Behaald | Een reproduceerbare SDK bouwt gewone apps voor het eigen OS; API/ABI-versies, sandbox en foutgedrag zijn gedocumenteerd en getest. [bewijs 1](../docs/verification/A01-ACCEPTANCE.md) · [bewijs 2](../sdk/README.md) |
-| **A02 — Apps installeren en bijwerken** | 2 | Open | Pakketten uit meerdere bronnen kunnen met herkomstcontrole worden geïnstalleerd, verwijderd en bijgewerkt; installatie verleent geen algemene capabilities. |
+| **A02 — Apps installeren en bijwerken** | 2 | Open | Pakketten uit meerdere bronnen kunnen met herkomstcontrole worden geÃ¯nstalleerd, verwijderd en bijgewerkt; installatie verleent geen algemene capabilities. |
 | **A03 — Apprechten en gereedschapintegratie** | 2 | Open | Native apps gebruiken Materiaal-objecten via zichtbare, intrekbare taakrechten; extensies en hulpprocessen kunnen die grenzen niet omzeilen. |
 | **A04 — Nuttige dagelijkse applicaties** | 2 | Open | Ten minste internetgebruik, documentbewerking, media en bestandsuitwisseling werken met geschikte native apps of gecontroleerde ports; realistische gebruikstaken zijn getest. |
 
@@ -253,7 +253,7 @@ Het script voert geen OS-tests uit en beoordeelt de bewijsinhoud niet.
 | **P01 — Native end-to-end versleutelde NAS-opslag** | 2 | Open | Client en NAS-rol op het eigen OS koppelen met geverifieerde identiteit; namen/inhoud zijn voor de NAS-beheerder niet leesbaar, ook bij fout-/aanvalspaden. |
 | **P02 — Automatisch synchroniseren en conflicten** | 1 | Open | Eerder toegestane peers hervatten automatisch; offline edits, conflicten en LAN/internetwisseling behouden rechten en geven geen stille dataverliezen. |
 | **P03 — Meerdere apparaten en key lifecycle** | 1 | Open | Apparaten kunnen veilig worden toegevoegd/ingetrokken; sleutelrotatie, gelijktijdige schrijvers en herstel werken zonder leverancierssleutelbewaring. |
-| **P04 — Ruimte aanbieden, intrekken en verwijderen** | 1 | Open | De native NAS-beheerder beheert quota en trekt gastautoriteit in/verwijdert eigen kopieën zonder gastconsent of decryptiesleutel; oude sessies herleven niet. |
+| **P04 — Ruimte aanbieden, intrekken en verwijderen** | 1 | Open | De native NAS-beheerder beheert quota en trekt gastautoriteit in/verwijdert eigen kopieÃ«n zonder gastconsent of decryptiesleutel; oude sessies herleven niet. |
 
 ### L — Lokale AI en quantum-runtime (1/3)
 

@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-02",
+  "kind": "host-component-checkpoint-not-native-acceptance",
+  "base_commit": "b1b292aadf244dacf029b7307aebdc6103756e0d",
+  "branch": "codex/window-idle-wait-20261102",
+  "roadmap_before": 37,
+  "roadmap_after": 37,
+  "native_gate": false,
+  "cpu_gain_measured": false,
+  "known_blocker": "Base fails full native compositor recovery with actual rawexit35 APP_EXIT; wait for next recovery freeze before native A/B.",
+  "checks": [
+    {
+      "command": "cargo test --manifest-path sdk/examples/materiaal/Cargo.toml --offline --locked --target x86_64-unknown-linux-gnu",
+      "exit_code": 0,
+      "log": "docs/verification/gui-idle-20261102/materiaal-host.log",
+      "sha256": "5911b162a9134d087c4392b20e56695d2e1db7fca1c100821bfd6ec940ad9bf0",
+      "tests_passed": 35
+    },
+    {
+      "command": "cargo clippy --manifest-path sdk/examples/materiaal/Cargo.toml --offline --locked --target x86_64-unknown-linux-gnu --all-targets -- -D warnings",
+      "exit_code": 0,
+      "log": "docs/verification/gui-idle-20261102/materiaal-clippy.log",
+      "sha256": "9b3f48711971951e7eb9fe3d398489dfc034738d0a60f0d2eabf26b7bca59b17"
+    },
+    {
+      "command": "cargo fmt --manifest-path sdk/examples/materiaal/Cargo.toml -- --check",
+      "exit_code": 0,
+      "log": "docs/verification/gui-idle-20261102/materiaal-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "cargo test --manifest-path sdk/examples/calculator/Cargo.toml --offline --locked --target x86_64-unknown-linux-gnu",
+      "exit_code": 0,
+      "log": "docs/verification/gui-idle-20261102/calculator-host.log",
+      "sha256": "aa40709ec7c15eae1400b052315280d5c93edb1e8d2bc58e7f65aad81d62019c",
+      "tests_passed": 24
+    },
+    {
+      "command": "cargo clippy --manifest-path sdk/examples/calculator/Cargo.toml --offline --locked --target x86_64-unknown-linux-gnu --all-targets -- -D warnings",
+      "exit_code": 0,
+      "log": "docs/verification/gui-idle-20261102/calculator-clippy.log",
+      "sha256": "19ab5c5d3b87ad572ea9959ef5c072990dffb03f2c5c400a1985e37b587ee831"
+    },
+    {
+      "command": "cargo fmt --manifest-path sdk/examples/calculator/Cargo.toml -- --check",
+      "exit_code": 0,
+      "log": "docs/verification/gui-idle-20261102/calculator-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "cargo test --manifest-path sdk/examples/window-session/Cargo.toml --offline --locked --target x86_64-unknown-linux-gnu",
+      "exit_code": 0,
+      "log": "docs/verification/gui-idle-20261102/window-session-host.log",
+      "sha256": "a3762684b994b1a778a85fee62c7fc53c2a69a78864d26304f60d518aa2d0b76",
+      "tests_passed": 24
+    },
+    {
+      "command": "cargo clippy --manifest-path sdk/examples/window-session/Cargo.toml --offline --locked --target x86_64-unknown-linux-gnu --all-targets -- -D warnings",
+      "exit_code": 0,
+      "log": "docs/verification/gui-idle-20261102/window-session-clippy.log",
+      "sha256": "c2163d260d8a19c17863b3e03ec35dc83a3c3a4e8d70e0317f3cc8b69b0c9f6c"
+    },
+    {
+      "command": "cargo fmt --manifest-path sdk/examples/window-session/Cargo.toml -- --check",
+      "exit_code": 0,
+      "log": "docs/verification/gui-idle-20261102/window-session-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "source_files_sha256": {
+    "sdk/examples/materiaal/src/bootstrap.rs": "13f1cfb15d668abb6ba03e2951f5f9ba6b52276d4e941b21d46023573b3c78ed",
+    "sdk/examples/materiaal/src/idle.rs": "965eb3880f8c805e2b283feb2f3407273037561ba8200bbbf61b57b8edbb0980",
+    "sdk/examples/materiaal/src/lib.rs": "4b66ca5eb83b96cf20533e3790bee6dc3b32c7ecf5dd6555875e4809289bc8ed",
+    "sdk/examples/materiaal/src/main.rs": "476d36d44f62f5020bf0b3dbb0161b8525b64501d50b8d7bf35d7ff2704a91ff",
+    "sdk/examples/materiaal/tests/chain.rs": "1247beeaa05fbd2f68345bd18b396557d454ce491d3e885bb150fd2055601416",
+    "sdk/examples/materiaal/tests/elf.rs": "f443498771f7b495c940c26b648732284787b76580b0a3ce0c0d578858fbffcd",
+    "sdk/examples/materiaal/tests/semantic_actions.rs": "295ac5cb907345bd9b01090feca61ccd19e7eea3a31df0866649a204f43f6bed",
+    "sdk/examples/calculator/src/app.rs": "3df37551bfa2b3590f18a1aedb5eb6905eeeba6f85c8fd90c5cdf5bbc98c7343",
+    "sdk/examples/calculator/src/bootstrap.rs": "4cb7ec30c83093f9e688d43a53e1470a997ccc3e0c88fde76170b34075967360",
+    "sdk/examples/calculator/src/decimal.rs": "acafe4526892bb25de3d60400093bf776874103dea559460b0ea17210833adb2",
+    "sdk/examples/calculator/src/idle.rs": "965eb3880f8c805e2b283feb2f3407273037561ba8200bbbf61b57b8edbb0980",
+    "sdk/examples/calculator/src/lib.rs": "dd817d184e47197fe9ddc21a12be2fb7c8466a5477ed900b6d9c3a3ab2179ac5",
+    "sdk/examples/calculator/src/main.rs": "2bf4eb6dfff2b885f274a7a31958683dabb32ccad5c14f725795d0297b09ecb3",
+    "sdk/examples/calculator/src/model.rs": "037d7a8a5464b1ecaa511c779f3d0431a8aab00346744bf3409a47bbd3b24de2",
+    "sdk/examples/calculator/src/render.rs": "27df19ea0314e82325c240a3d6f2e71e6df4ea3b99d37fa2a0821dd84f6ab727",
+    "sdk/examples/calculator/tests/chain.rs": "6f74ee0149ee8f368ddd42ff4a25380b7c8df20757951a95129cbeaebeb38c72",
+    "sdk/examples/calculator/tests/decimal.rs": "c3ece2ec64e1d9eb049a250863f4bc48a31e05039021c15ebfc9da88d89ae06b",
+    "sdk/examples/calculator/tests/model_render.rs": "d73ebbeab8f1eb501fb8c6d09790e9a7abdbbc89ae6db0d26438616046671d7a",
+    "sdk/examples/window-session/src/boot.rs": "99ae56ab43bc0b18727bf3d84e08243d43e4021af16acb902fabbb4e3311f373",
+    "sdk/examples/window-session/src/idle.rs": "bd9b905b2181c897ede36c15c1e1a20fa653db407913998c9d21f5e4e05766dd",
+    "sdk/examples/window-session/src/init.rs": "cc6be7a8fb63becb3b12d2b468e7cb21a79db43d4a393f8b5d14501807ec4fd6",
+    "sdk/examples/window-session/src/input.rs": "2b75b694a6b112a55499d0530a1f7f4d0f8012c6c7bfb7ba0c1b4817ba0761e0",
+    "sdk/examples/window-session/src/lib.rs": "2e1c6e603bf989acb18d3e8332e05db46f4b348c65a7bd9617b8e3aac33a2611",
+    "sdk/examples/window-session/src/main.rs": "acbe9f2862be75075bcb7f19e7be7abaaf0945ce69b3f34c17804d3abc2c5b9b",
+    "sdk/examples/window-session/src/probe.rs": "06be922b3d3223735b10f30224b3c8c9e5055423d55e811d4ce7f16016236a6a",
+    "sdk/examples/window-session/src/scene.rs": "59aea393b971e933f7104be6f356a62b7967b5de5913b99a9bac905a3c75524c",
+    "sdk/examples/window-session/src/surface.rs": "a963d233fc6fe19080a5bc13dbedb89a3bc1db3c5eee910f32c9af3652fdd953",
+    "sdk/examples/window-session/tests/idle.rs": "d9a4189f6fe4e25fc56cff0f4b43bc0fc820015a46da7db81d0037bd33773589",
+    "sdk/examples/window-session/tests/render_performance.rs": "e89579204a769369ebe20a64441fa4a8031aebc2a9a753c76a6dbfb053db743b"
+  },
+  "agent_component_checks": {
+    "apps_manifest": {
+      "path": "docs/verification/gui-idle-20261102/app-component-manifest.json",
+      "sha256": "3536871d9af8f89561dfee0127f763666a67ed94fc8dea822da8201da04c24f0",
+      "note": "Native component build/Clippy/ELF details reported by builder; no VM runtime acceptance."
+    }
+  },
+  "reviews": [
+    "Read-only app review: no concrete new false-idle/resource/deadline issue; ABI1.0-1.7 explicitly unsupported for these display/input apps.",
+    "Read-only compositor/init review: no concrete false-idle or deadline renewal; existing INPUT_POLL_TICKS=2 preserved. Regression added for completed old frame then partial new frame."
+  ],
+  "local_failure": {
+    "report_sha256": "d4ebb0c30a6528b1dd625f8885b4a4e4135ce39c29a01fd13170c119d5ca1b7d",
+    "raw_qemu_exit": 35,
+    "exact_phases": [
+      "initial",
+      "editor",
+      "dirty",
+      "calculated",
+      "moved"
+    ],
+    "watchdog_terminated": false,
+    "qmp_cleanup_errors": false,
+    "native_gate": false
+  }
+}

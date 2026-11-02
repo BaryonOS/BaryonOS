@@ -26,6 +26,10 @@ pub struct Queue {
     length: usize,
 }
 impl Queue {
+    /// An offered event or focus cancellation must reach its real app ACK.
+    pub fn has_pending(&self) -> bool {
+        self.length != 0 || self.offered.is_some()
+    }
     pub fn new(pid: u64, id: u64, epoch: u64) -> Result<Self, Error> {
         if pid == 0 || id == 0 || epoch == 0 {
             return Err(Error::Configuration);

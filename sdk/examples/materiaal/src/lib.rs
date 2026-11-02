@@ -3,6 +3,7 @@
 #![no_std]
 #![forbid(unsafe_code)]
 pub mod bootstrap;
+pub mod idle;
 use nieuw_os_catalog_client::Transport;
 use nieuw_os_input_client::{AckOutcome, Peek, Session as Input};
 use nieuw_os_input_core::Event;
@@ -69,6 +70,8 @@ pub struct App<'a, V: Transport, I: Transport, S: Transport> {
     geometry: Geometry,
     evidence: Evidence,
     input_responded: bool,
+    input_empty: bool,
+    step_succeeded: bool,
     input_failed: bool,
     surface_failed: bool,
     frame: u64,
@@ -101,6 +104,8 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             geometry,
             evidence: Evidence::default(),
             input_responded: false,
+            input_empty: false,
+            step_succeeded: false,
             input_failed: false,
             surface_failed: false,
             frame: 0,
@@ -109,6 +114,30 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     }
     pub fn controller(&self) -> &Controller<'a, V> {
         &self.controller
+    }
+    /// Only a completed, successful turn ending in PEEK Empty may park.
+    /// Unsaved document contents alone are not pending work. The current
+    /// render must be fully acknowledged; saving/uncertain/recovery states
+    /// and closed or outstanding transports must keep the adapter runnable.
+    pub fn can_idle(&self) -> bool {
+        let view = self.controller.view();
+        let document = self.controller.document();
+        self.step_succeeded
+            && self.input_empty
+            && !self.input_failed
+            && !self.surface_failed
+            && !self.input.is_closed()
+            && self.input.outstanding().is_none()
+            && !self.surface.is_closed()
+            && !document.is_closed()
+            && !document.is_saving()
+            && !document.is_uncertain()
+            && !document.is_conflicted()
+            && !view.dirty
+            && self.evidence.ready
+            && self.evidence.presented_generation == view.generation
+            && self.frame == view.generation
+            && self.next_tile == self.geometry.tiles()
     }
     /// Read the current UI semantics from this app's own document state.
     /// This does not publish the tree to another process or authorize access.
@@ -200,6 +229,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     }
 
     fn input_step(&mut self) -> Result<(), Error> {
+        self.input_empty = false;
         if self.input_failed || self.surface_failed {
             return Ok(());
         }
@@ -208,6 +238,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             let offer = match self.input.peek() {
                 Ok(Peek::Empty) => {
                     self.input_responded = true;
+                    self.input_empty = true;
                     break;
                 }
                 Ok(Peek::Offer(offer)) => {
@@ -364,16 +395,20 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     /// one bounded tile transaction. Individual IPC polling is also bounded.
     /// Input/surface failure leaves document memory alive for explicit recovery.
     pub fn step(&mut self) -> Result<(), Error> {
+        self.step_succeeded = false;
         let input = self.input_step();
         self.save_step()?;
         let paint = self.paint_step();
-        input.and(paint)
+        let result = input.and(paint);
+        self.step_succeeded = result.is_ok();
+        result
     }
     /// Interactive VM profile: one bounded input/save pass, then at most four
     /// existing tile transactions. No input, stop or save progress is serviced
     /// between those transactions; this is a work bound, not a latency promise.
     /// The diagnostic one-tile `step` contract remains unchanged.
     pub fn step_interactive(&mut self) -> Result<(), Error> {
+        self.step_succeeded = false;
         let input = self.input_step();
         self.save_step()?;
         let mut paint = Ok(());
@@ -386,11 +421,15 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
                 break;
             }
         }
-        input.and(paint)
+        let result = input.and(paint);
+        self.step_succeeded = result.is_ok();
+        result
     }
     /// Close presentation only. Document ownership, draft and save state stay
     /// live while the supervisor replaces the failed display/input services.
     pub fn detach_presentation(&mut self) -> Result<(), Error> {
+        self.step_succeeded = false;
+        self.input_empty = false;
         self.surface_failed = true;
         self.input_failed = true;
         self.evidence.ready = false;
@@ -445,6 +484,8 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         self.input_failed = false;
         self.surface_failed = false;
         self.input_responded = false;
+        self.input_empty = false;
+        self.step_succeeded = false;
         self.frame = 0;
         self.next_tile = 0;
         self.evidence.presented_generation = 0;
@@ -452,6 +493,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         Ok(())
     }
     pub fn stop_clean(&mut self) -> Result<(), Error> {
+        self.step_succeeded = false;
         if self.controller.document().is_dirty() || self.controller.document().is_saving() {
             return Err(Error::Unsaved);
         }

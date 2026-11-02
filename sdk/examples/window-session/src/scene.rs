@@ -443,6 +443,10 @@ pub struct Damage {
     cursor: usize,
 }
 impl Damage {
+    /// Inspect outstanding chrome/cursor tiles without consuming one.
+    pub fn has_pending(&self) -> bool {
+        self.bits.iter().any(|word| *word != 0)
+    }
     pub fn new(width: u32, height: u32) -> Result<Self, Invalid> {
         if width == 0 || height == 0 || width > 1920 || height > 1080 {
             return Err(Invalid);

@@ -4,5 +4,7 @@
 #[cfg(test)]
 extern crate std;
 pub mod boot;
+pub mod idle;
 pub mod input;
 pub mod scene;
+pub mod surface;

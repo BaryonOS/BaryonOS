@@ -38,6 +38,8 @@ pub struct App<I: Transport, S: Transport> {
     viewport: Viewport,
     evidence: Evidence,
     input_responded: bool,
+    input_empty: bool,
+    step_succeeded: bool,
     input_failed: bool,
     surface_failed: bool,
     frame: u64,
@@ -76,6 +78,8 @@ impl<I: Transport, S: Transport> App<I, S> {
             viewport,
             evidence: Evidence::default(),
             input_responded: false,
+            input_empty: false,
+            step_succeeded: false,
             input_failed: false,
             surface_failed: false,
             frame: 0,
@@ -84,6 +88,23 @@ impl<I: Transport, S: Transport> App<I, S> {
     }
     pub fn model(&self) -> &Model {
         &self.model
+    }
+    /// An acknowledged complete frame and a successful PEEK Empty turn are
+    /// required. Exhausted input batches, failed transports and presentation
+    /// recovery cannot be mistaken for quiescence.
+    pub fn can_idle(&self) -> bool {
+        self.step_succeeded
+            && self.input_empty
+            && !self.input_failed
+            && !self.surface_failed
+            && !self.input.is_closed()
+            && self.input.outstanding().is_none()
+            && !self.surface.is_closed()
+            && !self.model.exhausted()
+            && self.evidence.ready
+            && self.evidence.presented_generation == self.model.generation()
+            && self.frame == self.model.generation()
+            && self.next_tile == self.geometry.tiles()
     }
     pub const fn viewport(&self) -> Viewport {
         self.viewport
@@ -94,6 +115,7 @@ impl<I: Transport, S: Transport> App<I, S> {
         e
     }
     fn input_step(&mut self) -> Result<(), Error> {
+        self.input_empty = false;
         if self.input_failed || self.surface_failed {
             return Ok(());
         }
@@ -101,6 +123,7 @@ impl<I: Transport, S: Transport> App<I, S> {
             let offer = match self.input.peek() {
                 Ok(Peek::Empty) => {
                     self.input_responded = true;
+                    self.input_empty = true;
                     break;
                 }
                 Ok(Peek::Offer(offer)) => {
@@ -232,6 +255,7 @@ impl<I: Transport, S: Transport> App<I, S> {
     /// frame never certifies a new current generation. No clipboard/files/IPC
     /// arithmetic backend or automatic replay is hidden in this iteration.
     pub fn step(&mut self) -> Result<(), Error> {
+        self.step_succeeded = false;
         if self.model.exhausted() {
             return Err(Error::Counter);
         }
@@ -242,17 +266,21 @@ impl<I: Transport, S: Transport> App<I, S> {
         for _ in 0..8 {
             self.paint_tile()?;
         }
+        self.step_succeeded = input.is_ok();
         input
     }
     /// Calculator work is volatile. STOP closes both owners even if the first
     /// close fails; it does not save, discard a document or touch storage.
     pub fn stop_clean(&mut self) -> Result<(), Error> {
+        self.step_succeeded = false;
         let input = self.input.close().map_err(Error::Cleanup);
         let surface = self.surface.close().map_err(Error::Cleanup);
         self.evidence.ready = false;
         input.and(surface)
     }
     pub fn detach_presentation(&mut self) -> Result<(), Error> {
+        self.step_succeeded = false;
+        self.input_empty = false;
         self.input_failed = true;
         self.surface_failed = true;
         self.evidence.ready = false;
@@ -295,6 +323,8 @@ impl<I: Transport, S: Transport> App<I, S> {
         self.input_failed = false;
         self.surface_failed = false;
         self.input_responded = false;
+        self.input_empty = false;
+        self.step_succeeded = false;
         self.frame = 0;
         self.next_tile = 0;
         self.evidence.presented_generation = 0;

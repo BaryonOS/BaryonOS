@@ -502,6 +502,7 @@ fn real_service_replacement_preserves_work_and_requires_new_complete_frame_ackno
         let evidence = a.evidence();
         let old_pairs = h.borrow().pairs;
         a.detach_presentation().unwrap();
+        assert!(!a.can_idle());
         assert!(!a.evidence().ready);
         assert_computed_work(&a);
         {
@@ -569,6 +570,7 @@ fn real_service_replacement_preserves_work_and_requires_new_complete_frame_ackno
         let epoch = h.borrow().input_epoch;
         let (input, surface, geometry) = replacement_sessions(&h, epoch);
         a.rebind_presentation(input, surface, geometry).unwrap();
+        assert!(!a.can_idle());
         assert_computed_work(&a);
         assert!(!a.evidence().ready);
         assert_eq!(a.evidence().presented_generation, 0);
@@ -794,6 +796,7 @@ fn lost_or_failed_real_surface_reply_never_certifies_rendered_state() {
             h.borrow_mut().drop_blit = true;
         }
         assert!(matches!(a.step(), Err(Error::Surface(_))));
+        assert!(!a.can_idle());
         assert!(!a.evidence().ready);
         assert_eq!(a.evidence().frames, 0);
         assert_eq!(a.evidence().tiles, 0);
@@ -807,6 +810,7 @@ fn input_failure_is_visible_but_cannot_be_a_fake_ready_and_stop_attempts_every_o
     let mut a = app(&h, 1);
     h.borrow_mut().drop_input = true;
     assert!(matches!(a.step(), Err(Error::Input(_))));
+    assert!(!a.can_idle());
     assert_eq!(
         a.model().notice(),
         nieuw_os_calculator::model::Notice::InputLost
@@ -899,4 +903,50 @@ fn startup_stop_closes_only_the_four_untransferred_service_leaves_even_on_failur
     assert!(h.engine.check_endpoint(APP, registry, SEND).is_ok());
     assert!(h.engine.check_endpoint(APP, control, RECV).is_ok());
     assert!(h.engine.check_invariants());
+}
+
+#[test]
+fn idle_requires_current_frame_and_empty_batch_and_rechecks_late_input() {
+    let h = Host::new();
+    let mut a = app(&h, 1);
+    assert!(!a.can_idle());
+    a.step().unwrap();
+    assert!(!a.evidence().ready);
+    assert!(!a.can_idle());
+    finish(&mut a);
+    assert!(a.can_idle());
+
+    let acks = a.evidence().input_acks;
+    for byte in [0x2a, 0xaa, 0x36, 0xb6] {
+        h.borrow_mut().key(byte);
+    }
+    a.step().unwrap();
+    assert_eq!(a.evidence().input_acks - acks, 4);
+    assert!(!a.can_idle());
+    finish(&mut a);
+    assert!(a.can_idle());
+
+    let endpoint = {
+        let mut host = h.borrow_mut();
+        let root = host.engine.create_endpoint(APP).unwrap();
+        let control = host.engine.derive(APP, root, RECV).unwrap();
+        host.engine.close(APP, root).unwrap();
+        recv(control)
+    };
+    let poll = nieuw_os_calculator::idle::Poll::new(40, endpoint).unwrap();
+    let keys = a.evidence().keys;
+    h.borrow_mut().key(0x03);
+    assert_eq!(poll.deadline(), 41);
+    a.step().unwrap();
+    assert_eq!(a.evidence().keys, keys + 1);
+    assert_eq!(a.model().expression(), "2");
+    assert!(!a.can_idle());
+    finish(&mut a);
+    assert!(a.can_idle());
+    a.stop_clean().unwrap();
+    assert!(!a.can_idle());
+    h.borrow_mut()
+        .engine
+        .close(APP, endpoint.handle().raw())
+        .unwrap();
 }
