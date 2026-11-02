@@ -54,8 +54,12 @@ latin-1 in serialtekst die al lossy als UTF-8 was gedecodeerd, en schreef
   (`paar[40:]`) apart, als elk aaneengesloten 16-bytevenster (25 per token),
   zowel ruw als hex ongeacht hoofdletters, in stdout én stderr. Een volledig
   token bevat altijd zijn vensters.
-- Waarom 16 bytes: dat is 128 bits. Bij willekeurige tokens is de kans op een
-  toevallige treffer in n uitvoerbytes van orde n·100/2^128. Een schone run
+- Waarom 16 bytes: echte tokens zijn `boot(32 random bytes, gedeeld door
+  sessie en upload) || le64(teller)` (`encode_token` in
+  `services/nas/native-core`). Elk venster bevat dus minstens 64 random bits.
+  De kans op een toevallige treffer in n uitvoerbytes is daarom van orde
+  n·100/2^64. Door de gedeelde prefix kan een lek van alleen de sessie ook een
+  upload-label opleveren, en omgekeerd. Een schone run
   faalt dus niet bij toeval, terwijl elke kopie van 16 of meer aaneengesloten
   tokenbytes (een half token, een afgekapte print) wel gevonden wordt.
   **Niet herkend:** kortere fragmenten, meerdere losse korte stukken en
@@ -67,10 +71,17 @@ latin-1 in serialtekst die al lossy als UTF-8 was gedecodeerd, en schreef
   run. `serial.txt` en `stderr.txt` krijgen dan alleen een placeholder:
   `REDACTED`, labels zoals `session:serial:hex` (geen bytes), en de lengte en
   SHA-256 van de originele bytes. Ook `result.json` bevat alleen die labels.
-  Een lege of misvormde capture zonder treffer bewaart de serial wel, zodat
-  vroege gastfouten te debuggen blijven; de run faalt dan op de framing.
+  Een capture die niet exact één `NOSRPL01`-frame van 80 bytes is (dubbele
+  export, junkprefix, verkeerde magic, te kort), wordt in zijn geheel als
+  geheim behandeld: de runner doorzoekt elk 16-bytevenster van alle
+  gecapturede bytes (label `capture:…`). Een lege capture heeft niets
+  geëxporteerd en bewaart de serial, zodat vroege gastfouten te debuggen
+  blijven; de run faalt dan op de framing. (Integratie 3, na review: eerder
+  werd bij een misvormde capture alleen `capture[8:88]` doorzocht.)
 - De private handoffmap: `main()` verwijdert die in `finally` bij elke
-  uitgang, ook bij onverwachte excepties. `private_handoff_dir()` verwijdert
+  normale of foutuitgang, ook bij onverwachte excepties. Bij SIGKILL of
+  SIGTERM van de runner draait `finally` niet; de 0700-map in `/tmp` blijft
+  dan achter. `private_handoff_dir()` verwijdert
   nu ook zelf een map die het weigert (binnen de checkout); voorheen bleef
   die lege map achter.
 
@@ -90,8 +101,20 @@ serial; een fragment van 15 bytes wordt bewust niet herkend (drempel vastgelegd)
 | Na de fix | zelfde commando | exit 0, 28 tests OK |
 | NAS-hosttests | `python3 -B -m unittest discover -s tests -p "test_nas_*.py"` | exit 0, 32 tests |
 | Native-probe-hosttests | `python3 -B -m unittest discover -s services/nas/native-probe/tests -p "test_*.py"` | exit 0, 17 tests |
+| Integratie 3: misvormde-capturetests tegen de runner van `int3-fu-119` | `python3 -B -m unittest tests.test_nas_runner` | exit 1: 3 failures (dubbel frame, junkprefix, verkeerde magic) en 2 errors (nieuwe `pair_references` ontbreekt) |
+| Integratie 3: na de fix | `python3 -B -m unittest discover -s tests -p "test_nas_*.py"` | exit 0, 37 tests |
+| Integratie 3: native, buiten de checkout | `python3 -B -u tools/test_nas.py` (QEMU 8.2.2, `pc-q35-8.2`) | exit 0; normaal en koud `passed=True raw=33`, geen redactie |
 
-**Native run: niet groen (blocker in deze omgeving).** Lokaal, QEMU 8.2.2
+**Native run, update integratie 3 (2 november 2026): groen.** De mislukking
+hieronder kwam door de omgeving, niet door QEMU of firmware. De builder draaide
+in een geneste worktree onder de checkout; Cargo voegde dan twee
+`.cargo/config.toml`-bestanden samen en gaf `-Tkernel/linker.ld` twee keer
+mee, wat een kapotte kernel opleverde. Dezelfde gate in een worktree buiten
+de checkout, met de lekcontrole inclusief de misvormde-capturefix: normaal en
+koude herstart beide `passed=True raw=33`, geen redactie (geen vals-positief
+op echte serial), op QEMU 8.2.2, `pc-q35-8.2`.
+
+**Oorspronkelijke native run (historisch, omgevingsfout):** Lokaal, QEMU 8.2.2
 (`Debian 1:8.2.2+ds-0ubuntu1.18`), `pc-q35-8.2`,
 `/usr/share/OVMF/OVMF_CODE_4M.fd` en `OVMF_VARS_4M.fd`, op schone commit
 `bdcf461`: `python3 -B -u tools/test_nas.py` gaf exit 1. De normale stage gaf

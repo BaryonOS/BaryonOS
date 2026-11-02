@@ -39,12 +39,18 @@ CAPTURE_LIMIT = 4096
 # pair[:40], pending upload = pair[40:]) are searched separately as every
 # contiguous 16-byte window, raw and as case-insensitive hex, in the exact
 # QEMU stdout (COM1 serial) and stderr bytes before any decoding or write to
-# the run directory. A full token always contains its windows. 16 bytes =
-# 128 bits: for random tokens an accidental match in n output bytes has
-# probability of order n * 100 / 2**128, so clean runs do not fail by
-# chance, while any copy of 16 or more contiguous token bytes (half a token,
-# a truncated print) is caught. Not detected: shorter fragments and other
-# encodings (base64, decimal, separated hex, UTF-16).
+# the run directory. A full token always contains its windows. Real tokens
+# are boot(32 random bytes, shared by session and upload) || le64(serial)
+# (services/nas/native-core encode_token), so every window carries at least
+# 64 random bits: an accidental match in n output bytes has probability of
+# order n * 100 / 2**64, so clean runs do not fail by chance, while any copy
+# of 16 or more contiguous token bytes (half a token, a truncated print) is
+# caught. Because of the shared prefix, a session-only leak can also report
+# an upload label and vice versa. A capture that is not exactly one
+# MAGIC + 80-byte frame is treated as wholly secret: every 16-byte window of
+# all captured bytes is searched (fail closed on misframing; an empty capture
+# exported nothing and stays debuggable). Not detected: shorter fragments and
+# other encodings (base64, decimal, separated hex, UTF-16).
 TOKEN_BYTES = 40
 LEAK_WINDOW = 16
 
@@ -94,12 +100,28 @@ def read_capture(capture: Path) -> bytes | None:
         return None
 
 
-def token_leaks(streams: dict[str, bytes], pair: bytes) -> list[str]:
-    """Labels token:stream:form (never bytes) for every leaked 16-byte token window."""
+def leak_references(captured: bytes) -> list[tuple[str, bytes]]:
+    """Secret byte strings to search for, from the normal guest's capture.
+
+    Exactly one MAGIC + 80-byte frame yields the two labelled tokens. Any
+    other non-empty capture (double export, junk prefix, wrong magic, short)
+    is searched as a whole, so no exported byte escapes the check."""
+    body = captured[len(REPLAY_MAGIC):]
+    if captured.startswith(REPLAY_MAGIC) and len(body) == 2 * TOKEN_BYTES:
+        return pair_references(body)
+    return [("capture", captured)] if captured else []
+
+
+def pair_references(pair: bytes) -> list[tuple[str, bytes]]:
+    return [("session", pair[:TOKEN_BYTES]), ("upload", pair[TOKEN_BYTES:2 * TOKEN_BYTES])]
+
+
+def token_leaks(streams: dict[str, bytes], references: list[tuple[str, bytes]]) -> list[str]:
+    """Labels token:stream:form (never bytes) for every leaked 16-byte window."""
     found = set()
     for stream, data in streams.items():
         lowered = data.lower()  # ASCII-only, so hex matching is case-insensitive
-        for label, token in (("session", pair[:TOKEN_BYTES]), ("upload", pair[TOKEN_BYTES:2 * TOKEN_BYTES])):
+        for label, token in references:
             for start in range(len(token) - LEAK_WINDOW + 1):
                 window = token[start:start + LEAK_WINDOW]
                 if window in data:
@@ -109,13 +131,14 @@ def token_leaks(streams: dict[str, bytes], pair: bytes) -> list[str]:
     return sorted(found)
 
 
-def archive_output(run: Path, stdout: bytes, stderr: bytes, pair: bytes | None) -> str:
+def archive_output(run: Path, stdout: bytes, stderr: bytes,
+                   references: list[tuple[str, bytes]] | None) -> str:
     """Token-check the exact QEMU output, then write serial.txt/stderr.txt.
 
     On a leak, or without a token reference, both files only get a placeholder
     with the SHA-256 of the original bytes and the run fails."""
     streams = {"serial": stdout, "stderr": stderr}
-    findings = ["reference-unavailable"] if pair is None else token_leaks(streams, pair)
+    findings = ["reference-unavailable"] if references is None else token_leaks(streams, references)
     if findings:
         for name, data in streams.items():
             (run / f"{name}.txt").write_text(
@@ -328,9 +351,9 @@ def run_case(case, parent=None, handoff=None):
         # this check; the cold reference is the pair bound before launch.
         if case == "normal":
             captured = read_capture(capture)
-            reference = None if captured is None else captured.removeprefix(REPLAY_MAGIC)
+            reference = None if captured is None else leak_references(captured)
         else:
-            captured, reference = None, payload
+            captured, reference = None, pair_references(payload)
         serial = archive_output(run, stdout, stderr, reference)
         check_immutable(run, manifest, platform, code, variables)
         evidence = evaluate(case, serial, raw, timed_out)

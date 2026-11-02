@@ -232,8 +232,11 @@ de normale run de debugcon-capture, in de koude run het vóór de start
 gebonden paar. Bij een treffer of een onleesbare capture faalt de run en
 krijgen `serial.txt` en `stderr.txt` alleen een placeholder met de
 bevindingen (labels, geen bytes), lengte en SHA-256 van de originele bytes.
-Fragmenten korter dan 16 bytes en andere coderingen (base64, decimaal, hex
-met scheidingstekens, UTF-16) worden niet herkend. Voor de koude run valideert de runner opnieuw, maakt een read-only
+Een capture die niet exact één frame van 88 bytes is, wordt in zijn geheel
+doorzocht; een lege capture exporteerde niets en blijft leesbaar. Fragmenten
+korter dan 16 bytes en andere coderingen (base64, decimaal, hex met
+scheidingstekens, UTF-16) worden niet herkend. Voor de koude run valideert de
+runner opnieuw, maakt een read-only
 0400-kopie en geeft die als `-fw_cfg name=opt/nieuw-os/nas-replay` mee. De
 kernel leest het `fw_cfg`-bestand (signatuur `QEMU`, unieke naam, exact 80
 bytes), weigert ontbrekende/afwijkende invoer in de koude run

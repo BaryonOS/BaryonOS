@@ -127,6 +127,7 @@ class NasLifecycleTests(unittest.TestCase):
         self.qemu.write_bytes(b"\x7fELF synthetic test implementation")
         self.mutation = None
         self.capture = runner.REPLAY_MAGIC + PAYLOAD
+        self.capture_mode = None
         self.serial_extra, self.stderr_extra, self.outputs = {}, {}, {}
         self.executions = 0
         self.handoff = runner.private_handoff_dir()
@@ -169,7 +170,10 @@ class NasLifecycleTests(unittest.TestCase):
         case = "recover" if "nas-recover-" in str(run) else "normal"
         if case == "normal":
             chardev = command[command.index("-chardev") + 1]
-            Path(chardev.split("path=", 1)[1]).write_bytes(self.capture)
+            capture_path = Path(chardev.split("path=", 1)[1])
+            capture_path.write_bytes(self.capture)
+            if self.capture_mode is not None:
+                capture_path.chmod(self.capture_mode)
         else:
             fw_cfg = command[command.index("-fw_cfg") + 1]
             self.cold_input_seen = Path(fw_cfg.split("file=", 1)[1]).read_bytes()
@@ -234,6 +238,60 @@ class NasLifecycleTests(unittest.TestCase):
                 self.capture = capture
                 self.assertIs(self.run_silently()["passed"], False)
 
+    def test_misframed_capture_is_searched_whole_and_redacted(self):
+        # A second exported pair and a junk-prefixed frame both fail framing;
+        # the leak check must still see every captured byte (fail closed).
+        second = bytes(range(160, 240))
+        cases = (
+            ("double-frame", runner.REPLAY_MAGIC + PAYLOAD + runner.REPLAY_MAGIC + second, second[:40]),
+            ("junk-prefix", bytes(64) + runner.REPLAY_MAGIC + PAYLOAD, SESSION),
+            ("wrong-magic", b"NOSRPL02" + PAYLOAD, SESSION[8:32]),
+        )
+        for name, capture, leaked in cases:
+            with self.subTest(case=name):
+                for path in list(self.handoff.iterdir()):
+                    path.unlink()
+                self.capture = capture
+                self.serial_extra["normal"] = leaked.hex().encode() + b"\n"
+                self.assert_leak_fails("normal", None, "capture:serial:hex")
+                for run in (self.base / "build").rglob("nas-normal-*"):
+                    if run.is_dir() and (run / "serial.txt").exists():
+                        self.assertNotIn(leaked.hex(), (run / "serial.txt").read_text().lower())
+
+    def test_unreadable_or_oversize_capture_redacts_output_without_a_reference(self):
+        for name, capture, mode in (("oversize", runner.REPLAY_MAGIC + PAYLOAD + bytes(runner.CAPTURE_LIMIT), None),
+                                    ("group-readable", runner.REPLAY_MAGIC + PAYLOAD, 0o644)):
+            with self.subTest(case=name):
+                for path in list(self.handoff.iterdir()):
+                    path.unlink()
+                self.capture, self.capture_mode = capture, mode
+                self.assert_leak_fails("normal", None, "reference-unavailable")
+        self.capture_mode = None
+
+    def test_realistic_shared_prefix_tokens_are_detected_without_false_positives(self):
+        # services/nas/native-core encode_token: boot(32 random, shared) || le64(serial).
+        boot = bytes(range(200, 232))
+        session, upload = boot + (1).to_bytes(8, "little"), boot + (2).to_bytes(8, "little")
+        references = runner.pair_references(session + upload)
+        self.assertEqual(runner.token_leaks({"serial": transcript("normal").encode()}, references), [])
+        found = runner.token_leaks({"serial": b"x " + upload.hex().encode()}, references)
+        self.assertIn("upload:serial:hex", found)
+
+    def test_token_leaks_checks_every_window_of_both_tokens(self):
+        references = runner.pair_references(PAYLOAD)
+        for window in WINDOWS:
+            for form, data in (("raw", window), ("hex", window.hex().encode())):
+                with self.subTest(window=window[:2].hex(), form=form):
+                    self.assertTrue(runner.token_leaks({"serial": b"<" + data + b">"}, references))
+        self.assertEqual(runner.token_leaks({"serial": SESSION[:15].hex().encode()}, references), [])
+
+    def test_empty_capture_is_not_redacted_and_fails_on_framing(self):
+        self.capture = b""
+        report = self.run_silently()
+        self.assertIs(report["passed"], False)
+        archived = (Path(report["run_directory"]) / "serial.txt").read_text()
+        self.assertFalse(archived.startswith("REDACTED"))
+
     def test_token_bytes_in_archived_serial_fail_the_run(self):
         self.serial_extra["normal"] = PAYLOAD.hex().encode() + b"\n"
         self.assertIs(self.run_silently()["passed"], False)
@@ -245,6 +303,8 @@ class NasLifecycleTests(unittest.TestCase):
     def test_upload_token_alone_fails_the_run(self):
         self.serial_extra["normal"] = UPLOAD.hex().encode() + b"\n"
         report = self.assert_leak_fails("normal", None, "upload:serial:hex")
+        # Holds only for this synthetic disjoint fixture; real tokens share a
+        # 32-byte prefix (see test_realistic_shared_prefix_tokens_...).
         self.assertNotIn("session:", report["error"])
 
     def test_uppercase_hex_token_fails_the_run(self):
