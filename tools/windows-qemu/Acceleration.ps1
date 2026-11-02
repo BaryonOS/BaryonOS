@@ -61,7 +61,7 @@ function Test-NieuwOSWhpx {
     $start.FileName = $QemuPath
     # All arguments are fixed literals. -S prevents guest execution; this probe
     # has no disks, shared folders, network, USB or graphical window.
-    $start.Arguments = "-machine pc-q35-8.2 -accel whpx -cpu qemu64 -smp 1 -m 256M -nodefaults -display none -monitor none -qmp stdio -serial none -nic none -S"
+    $start.Arguments = "-no-user-config -machine pc-q35-8.2 -accel whpx -cpu qemu64 -smp 1 -m 256M -nodefaults -display none -monitor none -qmp stdio -serial none -nic none -S"
     $start.UseShellExecute = $false
     $start.CreateNoWindow = $true
     $start.RedirectStandardInput = $true

@@ -41,7 +41,8 @@ manifest.json bindt kernel, loader en firmware aan de bronversie.
 
    De standaard `-Acceleration Auto` controleert of QEMU WHPX aanbiedt en
    initialiseert vóór de echte start een gepauzeerde testmachine zonder
-   schijven, netwerk of gastuitvoering (maximaal 10 seconden). Bij succes
+   schijven, netwerk of gastuitvoering (maximaal 10 seconden). Deze probe
+   laadt geen QEMU-gebruikersconfiguratie (`-no-user-config`). Bij succes
    gebruikt de echte VM WHPX; bij ontbreken/mislukken verschijnt een melding
    en volgt TCG-software-emulatie. `-CheckOnly` vraagt alleen de aangeboden
    backends op en test de initialisatie niet; er wordt dan geen VM gestart.
