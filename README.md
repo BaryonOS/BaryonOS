@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`72b6ac41`](https://github.com/simonvanieperen/nieuw-os/commit/72b6ac4193986daba266176ad7177de00a326d6c) ·
+**Bron:** [`93f6e25c`](https://github.com/simonvanieperen/nieuw-os/commit/93f6e25c5295f9e16cc008170f4298b4117e7d9c) ·
 **Ontwikkelbranch:** `integrate/stack130-local`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Desktopstapel behouden en exacte postmerge-acceptatie van U01/N01 vastleggen.
-41 blijft41, geen nieuw criterium. Main380111b6 heeft28 geslaagde postmergechecks:22 native window/clipboard/herstelfasen met alle screenshot- en serialhashes herberekend, intacte schijfcanaries en beide N01-cases raw33 op source-v3b7ccd11f. De latere gecombineerde130/129/128/127-stapel72b6ac41 heeft63 geslaagde host/lint/target/buildcontroles en source7ad8b7df, maar nog geen eigen native runtimeacceptatie. De eerdere44/U03-claim wordt niet overgenomen. PR114-documentatie-integratie en de volumeformaatfix133 blijven afzonderlijk in uitvoering. Geen algemene Internet/TLS-, echte auth-, Windows-, fysieke, menselijke of volledige releaseacceptatie.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Desktop, fail-closed volumeformaattoelating en echte netwerkfragmentfixtures combineren.
+41 blijft41, geen nieuw criterium. Main380111b6 heeft28 groene postmergechecks,22 native windowfasen en beide N01-cases op sourceb7ccd11f; U01-issue40 is daarmee gesloten. Latere desktop72b6 heeft63 host/buildcontroles; de afzonderlijke133-integratie7c389956 heeft44 controles maar preflight2 wegens ontbrekende QEMU/OVMF. Nieuwe echte IPv4-fragmentfixtures zijn rood/groen aangetoond met13 hosttests en ongewijzigde respons-/backpressurebudgetten. De nieuwe gecombineerde bron3abcacd2 vereist eigen native acceptatie;39 blijft daarom open. De nieuwe10run-volumematrix faalt expliciet zolang de exact gepinde foreign-imagefixtures ontbreken. Geen overname van44/U03 of claims voor algemene Internet/TLS, echte auth, Windows, hardware, menselijke audit of volledige release.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

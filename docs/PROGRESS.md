@@ -85,6 +85,14 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Gecombineerde volume-/fragmentstap (2 november 2026), bron `93f6e25c`:
+**41 -> 41**.133 is volledig behouden;44 afzonderlijke controles slagen.
+Echte IPv4-fragmentfixtures hebben13 groene hosttests, maar de nieuwe
+source `3abcacd2` vereist verse native uitvoering. De tienrun-volumematrix
+is bedraad en weigert expliciet ontbrekende gepinde foreign-imagefixtures.
+U01-issue40 is na28 groene main-postmergechecks gesloten.39 blijft open
+voor de nieuwe fragmentnegatieven; geen extra punten of44/U03-claim.
+
 Desktopstapelcheckpoint (2 november 2026), bron `72b6ac41`: **41 -> 41**.
 Main `380111b6` heeft nu28 groene postmergechecks,22 native windowfasen
 en beide N01-cases; ruwe serial-, screenshot- en peerbinding is opnieuw

@@ -2,6 +2,20 @@
 
 ## NEXT AGENT HANDOFF — desktopstapel en volumeformaattoelating — 2 november 2026
 
+Actuele combinatie `93f6e25c`: volume133 via echte mergeparents behouden,
+plus parentfix `4591c555` voor ontbrekende echte IPv4-fragmentnegatieven.
+Source-v3 `3abcacd2add2395bb2e5d20c887c8df08b0368d68ceacac0177ba984927f8b6d`.
+De fragmentfixtures hebben13 groene hosttests na echte rode ontbrekend-bewijs-
+tests; de bestaande vierresponslimiet en UDP/backpressureburst zijn behouden.
+Zie `verification/n01-fragment-fixtures.json`. De afzonderlijke133-combinatie
+heeft44 groene controles en een volledige native build; geen QEMU-runtime.
+Zie `verification/stack133-integration.json`. De tienrun-toelatingsmatrix en
+negen-VM-crashgate zijn in CI bedraad. Exacte foreign-imagefixtures en hun
+Actions-run-ID zijn nog niet beschikbaar: de matrix faalt dan expliciet.
+De genoemde agent onderzoekt alleen nog read-only de concrete fixturebron.
+Score41 blijft41; geen44/U03 overgenomen. Issue40 is met het actuele
+postmergebewijs gesloten;39 wacht ook op de nieuwe fragmentmatrix.
+
 Bron `72b6ac4193986daba266176ad7177de00a326d6c`, eigen integratiebranch
 `integrate/stack130-local`; exclusieve integrator blijft `f090b913`.
 Alle bevroren130/129/128/127-heads zijn behouden.63 host/lint/target/build-
@@ -17,10 +31,10 @@ normal/client-exit beide raw33, ruwe serial/stderr/peerbinding gecontroleerd.
 Beide binden exact aan main en source `b7ccd11f`, niet aan de latere stapel.
 Zie `verification/pr127-postmerge-acceptance.json`.
 
-Open: PR114-head30bb6ea8 door actuele CI/review laten afronden, daarna
+Open: PR114-head30bb6ea8 heeft29 groene checks, CodeRabbit nog pending; daarna
 ontwerp-/onderzoeksdocumentatie inhoudsbehoudend overnemen. Agent
-`63714e28-7a35-4f50-8703-cff6c2186ca7` integreert alleen lokaal PR133
-`2f60e8ff` op de bevroren72b6-stapel in eigen worktree. Parent publiceert
+`63714e28-7a35-4f50-8703-cff6c2186ca7` heeft PR133
+`2f60e8ff` op de bevroren72b6-stapel opgeleverd. Parent publiceert
 en voert daarna de gecombineerde native gates uit. Nieuwe PR119-head
 `052812b4` bevat uitsluitend extra main-/checkpointmerging; behoud ook die
 metadata vóór afsluiten. #41 productiesleutels, #42 fysieke inputmatrix en
