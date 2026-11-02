@@ -394,8 +394,8 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         self.surface_failed = true;
         self.input_failed = true;
         self.evidence.ready = false;
-        let input = self.input.close().map_err(Error::Cleanup);
-        let surface = self.surface.close().map_err(Error::Cleanup);
+        let input = self.input.retire().map_err(Error::Cleanup);
+        let surface = self.surface.retire().map_err(Error::Cleanup);
         input.and(surface)
     }
     pub fn rebind_presentation(

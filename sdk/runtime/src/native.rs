@@ -273,7 +273,8 @@ pub fn status(child: ChildProcess) -> Result<ProcessStatus, Error> {
 
 /// ABI 1.11: replay one fixed UI service-group manifest after its compositor
 /// has died. Only the manifest supervisor owns the matching Launch/Process
-/// grants. Apps must first close presentation channels and acknowledge pause;
+/// grants. Retire old presentation leaves first, then obtain both apps' pause
+/// acknowledgements before requesting this allocation/installation phase;
 /// fresh bindings are read from private startup metadata after success. The
 /// kernel consumes the old Process handle; callers must not close it again.
 pub fn restart_service_group(image: LaunchImage, old: ChildProcess) -> Result<ChildProcess, Error> {
@@ -282,6 +283,21 @@ pub fn restart_service_group(image: LaunchImage, old: ChildProcess) -> Result<Ch
         [image.handle().raw(), old.handle().raw(), 0, 0, 0, 0],
     )?)
     .map(ChildProcess::from_handle)
+}
+
+/// ABI 1.11 unreleased window profile: retire only the recorded old app
+/// presentation leaves after the exact current compositor has died. No process
+/// is started and no PID, epoch, storage/control grant or Process cap changes.
+/// This wakes blocked old RPCs before init requests/awaits app pause. The old
+/// Process handle remains owned for restart_service_group after real pause ACKs.
+pub fn retire_service_group_presentation(
+    image: LaunchImage,
+    old: ChildProcess,
+) -> Result<(), Error> {
+    zero_return(call(
+        0x53,
+        [image.handle().raw(), old.handle().raw(), 1, 0, 0, 0],
+    ))
 }
 
 /// B01 (ABI 1.4): ask the kernel entropy broker for `length` (1..=256) raw

@@ -671,6 +671,36 @@ fn rejected_rebind_epochs_and_small_scaled_geometry_close_fresh_channels_and_all
         assert!(h.borrow().engine.check_invariants());
     }
 }
+
+#[test]
+fn supervisor_retirement_detaches_both_owners_when_one_session_already_failed() {
+    for input_already_closed in [false, true] {
+        let h = Host::new();
+        let mut a = app(&h, 1);
+        computed_work(&h, &mut a);
+        if input_already_closed {
+            h.borrow_mut().drop_input = true;
+            assert!(matches!(a.step(), Err(Error::Input(_))));
+        }
+        let pairs = h.borrow().pairs;
+        {
+            let mut host = h.borrow_mut();
+            for pair in pairs {
+                for handle in [pair.send, pair.receive] {
+                    match host.engine.close(APP, handle) {
+                        Ok(()) | Err(capability_core::Error::BadHandle) => {}
+                        other => panic!("unexpected manifest retirement: {other:?}"),
+                    }
+                }
+            }
+        }
+        a.detach_presentation().unwrap();
+        assert!(!a.evidence().ready);
+        assert_computed_work(&a);
+        assert_closed_pairs(&h.borrow(), pairs);
+        assert!(h.borrow().engine.check_invariants());
+    }
+}
 #[test]
 fn actual_typed_service_chain_computes_from_real_scan_bytes_and_commits_only_current_frames() {
     for scale in [1, 2] {

@@ -177,6 +177,11 @@ fn run() -> ! {
             match native::status(boot.process).unwrap_or_else(|_| fail(9)) {
                 ProcessStatus::Running => {}
                 ProcessStatus::Faulted(_) | ProcessStatus::Exited(_) => {
+                    // App-owned reply endpoints survive peer death. Retire
+                    // their exact old presentation leaves before waiting for
+                    // app control: an in-flight RPC must return to its owner.
+                    native::retire_service_group_presentation(boot.launch, boot.process)
+                        .unwrap_or_else(|_| fail(17));
                     recovering = true;
                     pause = 0;
                     rebound = 0;

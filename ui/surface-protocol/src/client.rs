@@ -79,12 +79,25 @@ impl<T: Transport> Session<T> {
         self.closed
     }
     pub fn close(&mut self) -> Result<(), RuntimeError> {
+        self.close_owner(false)
+    }
+    /// Only explicit manifest retirement tolerates an already-closed recorded
+    /// leaf. Normalize BadHandle separately for each close, retaining any other
+    /// failure from either owner operation; no positive tile ACK is invented.
+    pub fn retire(&mut self) -> Result<(), RuntimeError> {
+        self.close_owner(true)
+    }
+    fn close_owner(&mut self, externally_retired: bool) -> Result<(), RuntimeError> {
         if self.closed {
             return Ok(());
         }
         self.closed = true;
-        let send = self.transport.close(self.send.handle());
-        let receive = self.transport.close(self.receive.handle());
+        let normalize = |result| match result {
+            Err(RuntimeError::Kernel(-4)) if externally_retired => Ok(()),
+            other => other,
+        };
+        let send = normalize(self.transport.close(self.send.handle()));
+        let receive = normalize(self.transport.close(self.receive.handle()));
         send.and(receive)
     }
     fn fresh(&mut self) -> Result<u64, Error> {

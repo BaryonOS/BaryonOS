@@ -1783,3 +1783,61 @@ scenario!(
     lost_final_replacement_frame_ack_preserves_draft_without_ready,
     lost_final_replacement_ack_never_certifies_preserved_document
 );
+
+fn externally_retired_presentation_detaches_without_changing_document_ownership() {
+    for input_already_closed in [false, true] {
+        let h = Host::new();
+        let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut a = app(
+            &h,
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+        );
+        new_text(&h, &mut a);
+        finish_paint(&mut a);
+        if input_already_closed {
+            h.borrow_mut().drop_input = true;
+            assert!(matches!(a.step(), Err(Error::Input(_))));
+        }
+        let old = h.borrow().pairs;
+        let requests = h.borrow().requests.len();
+        let caret = a.controller().view().caret;
+        {
+            let mut host = h.borrow_mut();
+            for pair in &old[1..] {
+                for handle in [pair.app_send, pair.app_receive] {
+                    match host.engine.close(APP, handle) {
+                        Ok(()) | Err(capability_core::Error::BadHandle) => {}
+                        other => panic!("unexpected manifest retirement: {other:?}"),
+                    }
+                }
+            }
+        }
+        a.detach_presentation().unwrap();
+        assert!(!a.evidence().ready);
+        assert_eq!(a.controller().view().contents, Some("hi"));
+        assert_eq!(a.controller().view().caret, caret);
+        assert!(a.controller().document().is_dirty());
+        assert!(!a.controller().document().is_closed());
+        assert_eq!(a.evidence().save_acks, 0);
+        let host = h.borrow();
+        assert_eq!(host.requests.len(), requests);
+        assert!(host
+            .engine
+            .check_endpoint(APP, old[0].app_send, SEND)
+            .is_ok());
+        assert!(host
+            .engine
+            .check_endpoint(APP, old[0].app_receive, capability_core::RECV)
+            .is_ok());
+        assert_graphics_closed(&host, old);
+        assert!(host.engine.check_invariants());
+    }
+}
+scenario!(
+    retired_reply_leaves_preserve_document_and_allow_both_owner_pause,
+    externally_retired_presentation_detaches_without_changing_document_ownership
+);

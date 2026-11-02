@@ -22,12 +22,24 @@ SUR1-ontvanger en een begrensde INP1-aanbod/ACK-wachtrij. Totaal maximaal
 ## Herstel
 
 De gebruikersruimtesupervisor beslist over herstel. Een compositorfout mag een
-documentdraft of berekening niet vernietigen. De apps pauzeren presentatie en
-sluiten de oude presentatiekanalen, waarna de supervisor de vooraf vastgelegde
-compositor/inputdienstgroep kan herstarten met verse procesidentiteiten,
+documentdraft of berekening niet vernietigen. De supervisor retireert eerst
+uitsluitend de vier vastgelegde oude presentatiehandles per app (`0x53`, fase
+`a2=1` van dit onuitgebrachte ABI1.11-profiel). Een app-eigen reply-ontvanger
+blijft na peer-exit anders open en een lopende RPC kan zijn pauzeverzoek niet
+lezen. Retireren sluit die oude handles zonder allocaties, nieuwe processen,
+epochs of wijzigingen aan opslag, control of de oude procescapability. De apps
+keren daardoor uit hun oude RPC terug, pauzeren presentatie en bevestigen dat
+via hun bestaande controlroute. Alleen na beide echte pauzebevestigingen vraagt
+init de constructiefase (`a2=0`) aan; die vereist voorafgaande retirement. De
+supervisor kan dan de vastgelegde compositor/inputdienstgroep herstarten met verse procesidentiteiten,
 capabilities en epochs. Apps binden die nieuwe kanalen expliciet en tekenen
 opnieuw. Opslag- en documentkanalen worden daarbij niet vervangen. De oude
 kanalen leveren geen succes meer. Herstel verruimt geen apparaatrechten.
+
+De expliciete app-cleanup na retirement behandelt alleen `BadHandle` per
+afzonderlijke oude handle als al gesloten. Andere sluitfouten blijven fouten,
+beide eigenaars worden geprobeerd en er ontstaat geen invoer- of frame-ACK.
+Normale `close()`-semantiek en de bestaande RPC-budgetten blijven ongewijzigd.
 
 De kernel bevat alleen de begrensde proces-/manifestmechaniek, geen rendering,
 invoerfocuspolicy of fontparser. Partial initialization, onjuiste aanroeper,

@@ -158,6 +158,15 @@ impl<T: Transport> Session<T> {
         &self.transport
     }
     pub fn close(&mut self) -> Result<(), RuntimeError> {
+        self.close_owner(false)
+    }
+    /// Explicit supervisor retirement may already have closed either recorded
+    /// leaf. Ignore only that individual handle's BadHandle; attempt both and
+    /// preserve every other cleanup error. This never acknowledges an offer.
+    pub fn retire(&mut self) -> Result<(), RuntimeError> {
+        self.close_owner(true)
+    }
+    fn close_owner(&mut self, externally_retired: bool) -> Result<(), RuntimeError> {
         if self.closed {
             return Ok(());
         }
@@ -165,8 +174,12 @@ impl<T: Transport> Session<T> {
         self.outstanding = None;
         // Both are attempted once, even after the first close fails. Handles
         // are never retried after a possibly changed generation.
-        let send = self.transport.close(self.binding.send.handle());
-        let receive = self.transport.close(self.binding.receive.handle());
+        let normalize = |result| match result {
+            Err(RuntimeError::Kernel(-4)) if externally_retired => Ok(()),
+            other => other,
+        };
+        let send = normalize(self.transport.close(self.binding.send.handle()));
+        let receive = normalize(self.transport.close(self.binding.receive.handle()));
         send.and(receive)
     }
     /// Cancel this local session; no global-input/focus or implicit ACK opcode.

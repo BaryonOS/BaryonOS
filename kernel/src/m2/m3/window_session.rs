@@ -4,9 +4,11 @@
 //! an observer. All callbacks run on one CPU with IF=0.
 use super::*;
 use capability_core::{
-    BlockScope, Engine, Error, BLOCK_FLUSH, BLOCK_READ, BLOCK_WRITE, OBSERVE, PROCESS_EXITED,
-    PROCESS_FAULTED, PROCESS_KILLED, PROCESS_RUNNING, RECV, SEND,
+    BlockScope, Engine, Error, BLOCK_FLUSH, BLOCK_READ, BLOCK_WRITE, PROCESS_EXITED,
+    PROCESS_FAULTED, PROCESS_KILLED, RECV, SEND,
 };
+#[path = "window_retirement.rs"]
+mod retirement;
 
 const INIT: usize = 0;
 const KEY: usize = 1;
@@ -36,6 +38,7 @@ struct Runtime {
     group_launch: u64,
     compositor_process: u64,
     compositor_control: u64,
+    presentation_retired: bool,
     // Actual kernel-issued identities. Startup pages are writable user data
     // and cannot choose what the kernel closes or whom it terminates.
     pids: [u64; 3],
@@ -67,6 +70,7 @@ static mut RUNTIME: Runtime = Runtime {
     group_launch: 0,
     compositor_process: 0,
     compositor_control: 0,
+    presentation_retired: false,
     pids: [0; 3],
     app_graphics: [[0; 4]; 2],
     baseline: 0,
@@ -462,20 +466,17 @@ fn restart_checked(s: &mut State, slot: usize, a: [u64; 6]) -> Result<u64, i64> 
     if slot != INIT || s.processes[INIT].status == Status::Dead || r.init_done {
         return Err(-5);
     }
-    if a[2..].iter().any(|v| *v != 0) {
-        return Err(-1);
-    }
+    let authority = retirement::Authority {
+        init,
+        launch: r.group_launch,
+        image: GROUP_IMAGE,
+        process: r.compositor_process,
+        compositor: r.pids[0],
+        apps: core::array::from_fn(|i| (s.processes[APPS[i]].pid, r.app_graphics[i])),
+    };
     let e = m4::engine();
-    if a[0] != r.group_launch || e.check_launch(init, a[0]).map_err(|v| v.code())? != GROUP_IMAGE {
-        return Err(-5);
-    }
-    e.check_delegation(init, r.registry_root, SEND)
-        .map_err(|v| v.code())?;
-    let view = e.check_process(init, a[1], OBSERVE).map_err(|v| v.code())?;
-    if a[1] != r.compositor_process || view.child != r.pids[0] {
-        return Err(-5);
-    }
-    if view.state == PROCESS_RUNNING || s.processes[COMP].status != Status::Dead {
+    let phase = retirement::authorize(e, init, &authority, a)?;
+    if s.processes[COMP].status != Status::Dead {
         return Err(-9);
     }
     if APPS.iter().any(|i| s.processes[*i].status == Status::Dead)
@@ -485,6 +486,20 @@ fn restart_checked(s: &mut State, slot: usize, a: [u64; 6]) -> Result<u64, i64> 
     {
         return Err(-9);
     }
+    if phase == retirement::Phase::Retire {
+        retirement::retire(e, &authority)?;
+        runtime().presentation_retired = true;
+        print_number(b"WINDOW:PRESENTATION_RETIRED:", r.generation);
+        return Ok(0);
+    }
+    // Init issues this phase only after both real pause acknowledgements.
+    // Requiring the prior retirement prevents a blocked old RPC from keeping
+    // its caller from ever reaching the control handler.
+    if !r.presentation_retired {
+        return Err(-9);
+    }
+    e.check_delegation(init, r.registry_root, SEND)
+        .map_err(|v| v.code())?;
     let generation = r.generation.checked_add(1).ok_or(-7)?;
     let surface_epoch = r.surface_epoch.checked_add(1).ok_or(-7)?;
     let input_epoch = r.input_epoch.checked_add(1).ok_or(-7)?;
@@ -541,6 +556,7 @@ fn restart_checked(s: &mut State, slot: usize, a: [u64; 6]) -> Result<u64, i64> 
     runtime().surface_epoch = surface_epoch;
     runtime().input_epoch = input_epoch;
     runtime().compositor_process = process;
+    runtime().presentation_retired = false;
     #[cfg(feature = "native-window-session-probe")]
     {
         runtime().app_generations = [u64::MAX; 2];
