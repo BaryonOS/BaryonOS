@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`9863a526`](https://github.com/simonvanieperen/nieuw-os/commit/9863a52651504c4838d6826b3e1b2240ae0ed6b2) ·
-**Ontwikkelbranch:** `codex/mature-native-session-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Native klembord met eenmalige invoerrechten geïntegreerd en brongebonden getest.
-De score blijft 41/100. Native kopiëren, plakken en wissen tussen twee geïsoleerde apps werkt nu met focus- en invoergebonden rechten. Twee volledige TCG-routes doorlopen alle 22 fasen, inclusief crashherstel, leeg klembord na herstel, opslaan en onafhankelijke schijfcontrole. Alle 18 CI-workflows slagen; bronrapporten en Windows-testpakket zijn gecontroleerd. Dit geeft geen extra punten: U02 vereist ook volledige interactiebudgetten en dagelijkse dekking. De eerste tekstcapaciteit is 192 UTF-8-bytes; ruimere capaciteit, vloeiende bediening en echte authenticatie blijven open.
+**Bron:** [`1f0dd9c9`](https://github.com/simonvanieperen/nieuw-os/commit/1f0dd9c93959e3b1335656da1e548525a288133e) ·
+**Ontwikkelbranch:** `codex/native-workspace-performance-20261102`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Overdracht en pauze onder leiding van de aangewezen desktopchat.
+De score blijft 41/100. Simon heeft de chat Verbeter de Nieuw OS-desktop leidend gemaakt. Visuele wijzigingen, retained surfaces en de gedeelde damage-scaffold zijn als onvoltooide, afzonderlijke checkpoints bewaard; geen daarvan is geïntegreerd of native geaccepteerd. Alle eigen builders zijn gepauzeerd in afwachting van een concrete taaktoewijzing. De geaccepteerde klembord- en desktopbasis blijft ongewijzigd. U02, echte authenticatie en volledige releaseacceptatie blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

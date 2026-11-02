@@ -17,6 +17,7 @@ use nieuw_os_document_session::{
     },
     EditMode, SaveOutcome,
 };
+use nieuw_os_graphics::damage::Damage;
 use nieuw_os_input_core::Event;
 use ui_core::{KeyAction, KeyboardEvent, PhysicalKey};
 use volume_core::PER_DOMAIN;
@@ -122,6 +123,7 @@ pub struct Controller<'a, T> {
     scroll: usize,
     generation: u64,
     dirty: bool,
+    paint_damage: Damage,
     render_exhausted: bool,
     input_epoch: u64,
     awaiting_input: bool,
@@ -174,6 +176,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             scroll: 0,
             generation: 1,
             dirty: true,
+            paint_damage: Damage::FULL,
             render_exhausted: false,
             input_epoch,
             awaiting_input: false,
@@ -188,6 +191,10 @@ impl<'a, T: Transport> Controller<'a, T> {
     }
 
     fn invalidate(&mut self) -> Result<(), Error> {
+        self.invalidate_damage(Damage::FULL)
+    }
+    fn invalidate_damage(&mut self, damage: Damage) -> Result<(), Error> {
+        self.paint_damage.include(damage);
         self.dirty = true;
         let Some(next) = self.generation.checked_add(1) else {
             self.render_exhausted = true;
@@ -195,6 +202,11 @@ impl<'a, T: Transport> Controller<'a, T> {
         };
         self.generation = next;
         Ok(())
+    }
+    /// Physical app-local pixels, retained across every unpresented generation.
+    /// This never grants access; the surface server verifies retention itself.
+    pub fn paint_damage(&self) -> Damage {
+        self.paint_damage
     }
     fn failed(&mut self, error: Error) -> Error {
         if !self.document.is_saving()
@@ -278,6 +290,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             && display_epoch == self.viewport.epoch()
         {
             self.dirty = false;
+            self.paint_damage = Damage::EMPTY;
             true
         } else {
             false
