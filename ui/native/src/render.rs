@@ -358,7 +358,11 @@ impl<'a> Frame<'a> {
             caret: text::VisualPosition::default(),
         };
         if let Some(contents) = view.contents {
-            frame.caret = layout.text_metrics().position(contents, view.caret);
+            frame.caret = layout.text_metrics().position_with_affinity(
+                contents,
+                view.caret,
+                view.caret_trailing,
+            );
             if view.scroll == 0 {
                 frame.rows[0] = Some((0, 0));
             }

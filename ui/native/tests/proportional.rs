@@ -87,3 +87,21 @@ fn crlf_is_one_break_and_tabs_use_four_space_stops() {
     );
     assert_eq!(metrics.position("", usize::MAX), VisualPosition::default());
 }
+
+#[test]
+fn soft_wrap_end_and_pointer_affinity_keep_the_previous_visual_row() {
+    let font = Font::new(Size::Body, Weight::Regular, false);
+    let metrics = Proportional::new(font, font.measure("WW"));
+    let value = "WWWW";
+    let next = metrics.position(value, 2);
+    assert_eq!(next.row, 1);
+    let end = metrics.position_with_affinity(value, 2, true);
+    assert_eq!(end.row, 0);
+    assert_eq!(end.x_64, u64::from(font.advance_64('W')) * 2);
+    assert_eq!(metrics.byte_at(value, end), 2);
+    assert_eq!(metrics.position_with_affinity("a\nb", 2, true).row, 1);
+    assert_eq!(
+        metrics.position_with_affinity(value, 0, true),
+        VisualPosition::default()
+    );
+}

@@ -54,6 +54,32 @@ impl Proportional {
         }
         cells.position
     }
+    /// A soft wrap has two visual sides of the same UTF-8 boundary. Keep
+    /// End/pointer affinity without adding or changing a document character.
+    pub fn position_with_affinity(self, text: &str, byte: usize, trailing: bool) -> VisualPosition {
+        if trailing {
+            let byte = boundary(text, byte);
+            let mut previous: Option<GlyphCell> = None;
+            for cell in self.cells(text) {
+                if cell.start >= byte {
+                    if let Some(before) = previous {
+                        if before.end == byte
+                            && before.position.row < cell.position.row
+                            && !matches!(before.character, '\n' | '\r')
+                        {
+                            return VisualPosition {
+                                row: before.position.row,
+                                x_64: before.position.x_64 + before.advance_64,
+                            };
+                        }
+                    }
+                    return cell.position;
+                }
+                previous = Some(cell);
+            }
+        }
+        self.position(text, byte)
+    }
     /// Nearest insertion boundary on a visual row, clamped before a hard
     /// newline or to that row's end. Every result is an original UTF-8 boundary.
     pub fn byte_at(self, text: &str, target: VisualPosition) -> usize {

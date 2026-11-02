@@ -122,6 +122,7 @@ pub struct View<'a> {
     pub title: &'a [u8],
     pub revision: u64,
     pub caret: usize,
+    pub caret_trailing: bool,
     pub anchor: usize,
     pub scroll: usize,
     pub editable: bool,
@@ -149,6 +150,7 @@ pub struct Controller<'a, T> {
     list_loaded: bool,
     list_scroll: usize,
     caret: usize,
+    caret_trailing: bool,
     anchor: usize,
     scroll: usize,
     generation: u64,
@@ -204,6 +206,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             list_loaded: false,
             list_scroll: 0,
             caret: 0,
+            caret_trailing: false,
             anchor: 0,
             scroll: 0,
             generation: 1,
@@ -282,6 +285,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             title: draft.map_or(&[], |d| d.name),
             revision: draft.map_or(0, |d| d.loaded_revision),
             caret: self.caret,
+            caret_trailing: self.caret_trailing,
             anchor: self.anchor,
             scroll: self.scroll,
             editable: self.editable,
@@ -435,6 +439,7 @@ impl<'a, T: Transport> Controller<'a, T> {
         self.screen = Screen::Editor;
         self.focus = Focus::Document;
         self.caret = 0;
+        self.caret_trailing = false;
         self.anchor = 0;
         self.scroll = 0;
         self.back_after_save = false;
@@ -464,6 +469,7 @@ impl<'a, T: Transport> Controller<'a, T> {
         self.screen = Screen::Editor;
         self.focus = Focus::Document;
         self.caret = 0;
+        self.caret_trailing = false;
         self.anchor = 0;
         self.scroll = 0;
         self.back_after_save = false;
@@ -715,6 +721,7 @@ impl<'a, T: Transport> Controller<'a, T> {
         }
         self.workspace.clear_preview();
         self.caret = 0;
+        self.caret_trailing = false;
         self.anchor = 0;
         self.scroll = 0;
         self.screen = Screen::Editor;
@@ -937,6 +944,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             .map_err(|error| self.failed(Error::Storage(error)))?;
         self.focus = Focus::Document;
         self.caret = value.len();
+        self.caret_trailing = false;
         self.anchor = self.caret;
         self.update_edit_status();
         self.ensure_caret();
@@ -1106,7 +1114,10 @@ impl<'a, T: Transport> Controller<'a, T> {
         self.caret = text::boundary(text, self.caret);
         self.anchor = text::boundary(text, self.anchor);
         let layout = Layout::new(self.viewport);
-        let row = layout.text_metrics().position(text, self.caret).row;
+        let row = layout
+            .text_metrics()
+            .position_with_affinity(text, self.caret, self.caret_trailing)
+            .row;
         if row < self.scroll {
             self.scroll = row;
         }
@@ -1124,6 +1135,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             .replace_range(range, replacement.as_bytes())
             .map_err(|e| self.failed(Error::Storage(e)))?;
         self.caret = start + replacement.len();
+        self.caret_trailing = false;
         self.anchor = self.caret;
         self.update_edit_status();
         self.ensure_caret();
@@ -1525,6 +1537,9 @@ impl<'a, T: Transport> Controller<'a, T> {
             return Err(self.failed(Error::InvalidUtf8));
         };
         let selected = text::selection(self.anchor, self.caret);
+        let metrics = Layout::new(self.viewport).text_metrics();
+        let current = metrics.position_with_affinity(contents, self.caret, self.caret_trailing);
+        let mut target_row = current.row;
         let next = match event.key {
             PhysicalKey::Left => Some(if !event.modifiers.shift() && !selected.is_empty() {
                 selected.start
@@ -1536,29 +1551,40 @@ impl<'a, T: Transport> Controller<'a, T> {
             } else {
                 text::next(contents, self.caret)
             }),
-            PhysicalKey::Home => Some(
-                Layout::new(self.viewport)
-                    .text_metrics()
-                    .line_boundary(contents, self.caret, false),
-            ),
-            PhysicalKey::End => Some(
-                Layout::new(self.viewport)
-                    .text_metrics()
-                    .line_boundary(contents, self.caret, true),
-            ),
+            PhysicalKey::Home => Some(metrics.byte_at(
+                contents,
+                VisualPosition {
+                    row: current.row,
+                    x_64: 0,
+                },
+            )),
+            PhysicalKey::End => Some(metrics.byte_at(
+                contents,
+                VisualPosition {
+                    row: current.row,
+                    x_64: u64::MAX,
+                },
+            )),
             PhysicalKey::Up | PhysicalKey::Down => {
-                let metrics = Layout::new(self.viewport).text_metrics();
-                let mut at = metrics.position(contents, self.caret);
-                at.row = if event.key == PhysicalKey::Up {
-                    at.row.saturating_sub(1)
+                target_row = if event.key == PhysicalKey::Up {
+                    current.row.saturating_sub(1)
                 } else {
-                    at.row + 1
+                    current.row + 1
                 };
-                Some(metrics.byte_at(contents, at))
+                Some(metrics.byte_at(
+                    contents,
+                    VisualPosition {
+                        row: target_row,
+                        x_64: current.x_64,
+                    },
+                ))
             }
             _ => None,
         };
         if let Some(next) = next {
+            self.caret_trailing = event.key == PhysicalKey::End
+                || (matches!(event.key, PhysicalKey::Up | PhysicalKey::Down)
+                    && metrics.position(contents, next).row > target_row);
             return self.move_caret(next, event.modifiers.shift());
         }
         if event.modifiers.control() || event.modifiers.alt() || event.modifiers.super_key() {
@@ -1687,9 +1713,12 @@ impl<'a, T: Transport> Controller<'a, T> {
                 * 64;
             let row = y.saturating_sub(layout.text_top()) as usize / design::LINE_HEIGHT as usize
                 + self.scroll;
-            self.caret = layout
+            let next = layout
                 .text_metrics()
                 .byte_at(contents, VisualPosition { row, x_64 });
+            let trailing = layout.text_metrics().position(contents, next).row > row;
+            self.caret = next;
+            self.caret_trailing = trailing;
             if !extend {
                 self.anchor = self.caret;
             }

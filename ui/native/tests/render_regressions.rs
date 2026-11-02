@@ -26,6 +26,7 @@ fn view<'a>(viewport: Viewport, objects: &'a [ListEntry]) -> View<'a> {
         title: b"Materiaal",
         revision: 0,
         caret: 0,
+        caret_trailing: false,
         anchor: 0,
         scroll: 0,
         editable: true,
