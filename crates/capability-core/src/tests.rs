@@ -1480,3 +1480,34 @@ fn source_recreation_preflight_checks_owner_and_terminal_generation() {
         assert_atomic(e, Error::Quota, |e| e.create_display(2));
     });
 }
+
+#[test]
+fn endpoint_object_identifies_shared_endpoints_without_granting_anything() {
+    run(|e| {
+        setup(e, 3);
+        let root = e.create_endpoint(1).unwrap();
+        let receive = e.derive(1, root, RECV).unwrap();
+        let send = e.bootstrap_delegate(1, root, 2, SEND).unwrap();
+        let other_root = e.create_endpoint(1).unwrap();
+        let other_send = e.bootstrap_delegate(1, other_root, 3, SEND).unwrap();
+        let object = e.endpoint_object(1, root).unwrap();
+        assert_eq!(e.endpoint_object(1, receive).unwrap(), object);
+        assert_eq!(e.endpoint_object(2, send).unwrap(), object);
+        assert_ne!(e.endpoint_object(3, other_send).unwrap(), object);
+        // A handle number is meaningful only inside its own process table: the
+        // same number in another process is absent or names another object.
+        // This is why a manifest check must compare objects, not numbers.
+        match e.endpoint_object(3, send) {
+            Ok(found) => assert_ne!(found, object),
+            Err(error) => assert_eq!(error, Error::BadHandle),
+        }
+        let entropy = e.create_entropy(2).unwrap();
+        assert_atomic(e, Error::Type, |e| e.endpoint_object(2, entropy));
+        assert_atomic(e, Error::BadHandle, |e| e.endpoint_object(2, u64::MAX));
+        e.close(1, root).unwrap();
+        // Read-only: the lookup changes no engine state.
+        let before = e.clone();
+        assert_eq!(e.endpoint_object(2, send).unwrap(), object);
+        assert!(*e == before);
+    });
+}

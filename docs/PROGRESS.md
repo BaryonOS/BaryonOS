@@ -85,6 +85,23 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR127-reviewintegratie (2 november 2026), basis `798706c` met `8f08db4`:
+branch **41 → 41**, main **34 → 34**. Zeven reviewpunten en gekoppelde
+font/damage-integratie hersteld; 189 Rust-app/UI-,9 netwerk- en31 Python-tests
+slagen, inclusief echte TCP-rood/groenreproductie. De native22fasenacceptatie
+van PR126 is aan die parentbron gebonden; deze nieuwe kandidaat vereist
+eigen CI/runtime/review. Geen nieuwe punten, U02 of volledige releaseclaim.
+Zie `verification/pr127-review-integration.json`.
+
+PR126/main-integratie (2 november 2026), basis `5158027` en main `74a34d05`:
+geerfde branchscore **41 → 41**, main-assessment **34 → 34**. Geen nieuwe
+criteria of gewichten. Alle 260 gecombineerde Rust-hosttests slagen; een
+bestaande expliciete ignore blijft vermeld. Sparse/retained-coverage en
+beide testcaseverzamelingen zijn behouden. Nieuwe gezamenlijke native
+QEMU-/herstel-/pixel-/klembord-/schijfgates blijven nodig; dit checkpoint
+promoveert de geerfde U01/N01-bewijzen niet automatisch naar main.
+Zie `verification/pr126-main-integration.json`.
+
 WINDOWS-QEMU-TEST-VERSION (30 oktober 2026), implementatiebron `f777f7a`:
 **34% → 34%**. De branch voegt een hashvaliderende Windows-QEMU-bundel,
 launcher, native QMP-previewrunner en CI-artifactjob toe. Hosttests,
@@ -206,13 +223,13 @@ Het script voert geen OS-tests uit en beoordeelt de bewijsinhoud niet.
 | **H05 — Energiebeheer en slaap/wek** | 2 | Open | ACPI/energiebeheer, slaap/wek, shutdown en thermische/batterijfuncties zijn op ondersteunde apparatuur gemeten en herstelbaar. |
 | **H06 — Fysieke ondersteuningsmatrix** | 1 | Open | Meerdere vooraf benoemde representatieve pc-configuraties doorstaan de gedocumenteerde hardwarematrix; DMA/IOMMU-grenzen en beperkingen staan expliciet vast. |
 
-### U — Native Materiaal en toegankelijkheid (7/15)
+### U — Native Materiaal en toegankelijkheid (4/15)
 
 | Criterium | Punten | Status | Acceptatie en bewijs |
 |---|---:|---|---|
 | **U01 — Native compositor en sessie** | 4 | Behaald | De eigen kernel draait een interactieve grafische sessie met render- en inputketen, venster/surface-isolatie en gecontroleerd compositorherstel. [bewijs 1](../docs/verification/mature-session-20261102/U01-ACCEPTANCE.md) · [bewijs 2](../docs/verification/mature-session-20261102/U01-ACCEPTANCE.json) · [bewijs 3](../docs/verification/mature-session-20261102/window-337-ci-verification.json) |
 | **U02 — Vloeiende dagelijkse bediening** | 2 | Open | Toetsenbord, aanwijzer, focus, klembord en appwisseling zijn native bruikbaar en voldoen aan gemeten interactiebudgetten. [bewijs 1](../docs/implementation/GUI-IDLE-WAIT.md) · [bewijs 2](../docs/verification/gui-idle-20261102/windows-ab/README.md) · [bewijs 3](../docs/verification/gui-idle-20261102/central-review.json) · [bewijs 4](../docs/verification/gui-idle-20261102/INTEGRATION.md) · [bewijs 5](../docs/implementation/NATIVE-CLIPBOARD.md) · [bewijs 6](../docs/verification/native-clipboard-20261102/README.md) |
-| **U03 — Materiaal van openen tot bewaren** | 3 | Behaald | Gebruikers openen, bewerken, hernoemen en organiseren echte native documenten; rechten, historie en locatie blijven begrijpelijk en correct. [bewijs 1](../docs/verification/materiaal-library-20261102/README.md) · [bewijs 2](../docs/verification/materiaal-library-20261102/native-write.json) · [bewijs 3](../docs/verification/materiaal-library-20261102/native-cold.json) · [bewijs 4](../docs/verification/materiaal-library-20261102/native-regression-readback.json) |
+| **U03 — Materiaal van openen tot bewaren** | 3 | Open | Gebruikers openen, bewerken, hernoemen en organiseren echte native documenten; rechten, historie en locatie blijven begrijpelijk en correct. |
 | **U04 — Native toegankelijkheid** | 3 | Open | Toetsenbord-only, schermlezer, schaal/zoom, contrast en verminderde beweging werken in de native keten; taakproeven met gebruikers zijn vastgelegd. |
 | **U05 — Instellingen, zoeken en herstel** | 2 | Open | Native systeeminstellingen, lokale zoekfunctie, account/sessiebeheer en begrijpelijke fout-/herstelroutes werken consistent. |
 | **U06 — Afwerking getoetst met gebruikers** | 1 | Open | Representatieve gebruikers voltooien afgesproken kerntaken; frictie, fouten en visuele inconsistenties zijn gemeten en opgelost binnen productbudgetten. |

@@ -5,7 +5,12 @@
 //! kernel-bound ingress endpoints; the endpoint a request arrives on is its
 //! only domain authority. All key material and all policy live in
 //! `keyring-core`; this file only moves bytes between the kernel broker, the
-//! IPC envelopes and the core. Key bytes never leave this process.
+//! IPC envelopes and the core. Key bytes never leave this process through the
+//! domain or RANDOM endpoints. The optional administrative ingress is the one
+//! exception by design: EXPORT_PERSISTENT hands the holder the master key
+//! wrapped under a secret that holder chooses, so a SEND to that ingress is
+//! equivalent to the whole key namespace and may only belong to the
+//! supervisor/recovery principal named by the kernel manifest.
 
 #[cfg(not(all(target_arch = "x86_64", target_os = "none")))]
 compile_error!("keyring-service is only for the Nieuw OS x86_64-unknown-none target");
@@ -233,7 +238,13 @@ fn admin_ingress(legacy: &[ReceiveEndpoint; 2], reply: SendEndpoint) -> Option<A
         }
         return None;
     }
-    if words[1] == 0 || words[2] == 0 {
+    // Defense in depth against a manifest mistake: the persistence caller can
+    // never be the ordinary key client or this service itself.
+    if words[1] == 0
+        || words[2] == 0
+        || words[2] == support::word(160)
+        || words[2] == support::word(176)
+    {
         startup_error(10);
     }
     let receive = handle(words[0]);
@@ -564,6 +575,15 @@ fn main() -> ! {
     let reply_to = SendEndpoint::from_handle(handle(support::word(88)));
     let mut random = random_ingress(&ingress, reply_to);
     let mut admin = admin_ingress(&ingress, reply_to);
+    // The administrative and RANDOM ingresses never share an endpoint handle.
+    if let (Some(admin), Some(random)) = (&admin, &random) {
+        let admin_handles = [admin.receive.handle(), admin.reply.handle()];
+        if admin_handles.contains(&random.receive.handle())
+            || admin_handles.contains(&random.reply.handle())
+        {
+            startup_error(10);
+        }
+    }
     // RANDOM and administrative ingress retain their existing polling paths.
     let idle_wait = supports_ipc_wait(native::abi_info().unwrap_or_else(|_| startup_error(3)))
         && random.is_none()

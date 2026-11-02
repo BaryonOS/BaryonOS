@@ -277,13 +277,30 @@ native receivebuffer bij geldige envelope-overdracht en wist `Outgoing`- en
 Dit laat caller-owned arrays, mogelijke compiler-/registerkopieën en
 crashgeheugen buiten de garantie. De onderliggende ontvangen IPC-kopie is
 geheugenhygiëne, geen sleutelopslag- of volledige sleutelisolatiegarantie.
+De dienst weigert bij de start een admin-afzender die gelijk is aan de gewone
+sleutelclient of aan zichzelf, en admin- en RANDOM-ingress mogen geen handle
+delen. Init wist zijn eigen aanvraagkopieën na iedere uitwisseling. Een SEND
+naar dit ingress is gelijkwaardig aan de volledige sleutelnamespace (EXPORT
+onder een zelfgekozen geheim) en voor een koude instantie authenticeert het
+externe geheim de lineage; zie ADR-051.
 
 ### Geïntegreerd profiel (FR-I01, `native-system`/`test-system-recover`)
 
 - Manifest: admin-kanaal Key Service ← init, antwoordkanaal init ← Key
-  Service, volumedomein 1 voor init; de app bezit geen SEND naar het
-  admin-ingress (`APP_ADMIN_HANDLE`) en init's nieuwe handles dragen geen
-  entropy-/blok-/launch-/netwerkrecht (`INIT_AUTHORITY`).
+  Service, volumedomein 1 voor init; geen van de zes app-handles verwijst naar
+  het admin-ingress of zijn antwoordkanaal (`APP_ADMIN_HANDLE`, via de nieuwe
+  read-only `Engine::endpoint_object`) en init's nieuwe handles dragen geen
+  entropy-/blok-/launch-/netwerkrecht (`INIT_AUTHORITY`). Sinds INT3-FU-116
+  dekt die vergelijking de volledige app-handletabel: `APP_HANDLE_COUNT` eist
+  dat de zes handles onderling verschillen en dat
+  `Engine::available_slots(app)` precies `MAX_SLOTS` − 1 (gereserveerd
+  nulslot) − 6 is, zodat een zevende handle (bijvoorbeeld naar het
+  admin-ingress) het manifest laat falen. Dit geldt op het manifestmoment, in
+  ieder profiel dat het manifest uit `kernel/src/m2/m3/system.rs` uitvoert;
+  de NAS-profielen laden `system` uit `m3/nas.rs` en hebben deze controle
+  niet. Latere overdracht via IPC is
+  uitgesloten doordat geen admin-handle `TRANSFER` draagt (codelezing, geen
+  aparte native proef).
 - Normale run: app genereert sleutel 0, verzegelt/ontzegelt, voert de tien
   contextweigeringen uit, trekt sleutel 0 in, genereert sleutel 1 en verzegelt
   een 128-byterecord in RAM (context: volume `NOS-SYSTEM-VOL01`, object 1,
@@ -303,7 +320,11 @@ geheugenhygiëne, geen sleutelopslag- of volledige sleutelisolatiegarantie.
   niet, het blob draagt alleen `NOSKEY01`/versie/suite/volume-ID buiten de
   AEAD-body; generatie 3, drie chunks, domeinklokken [2, 1].
 
-Exacte uitvoering, hashes en grenzen: PROJECT-STATE.md en
-`docs/verification/full-release-b02-keystate-*`. Niet bewezen: vertrouwde
-generatievloer, write-ahead per GENERATE/REVOKE binnen de dienst, verlies van
-het externe geheim, meerdere schrijvers, fysieke hardware.
+Exacte uitvoering, hashes en grenzen: PROJECT-STATE.md,
+`docs/verification/full-release-b02-keystate-*` en, voor het reviewherstel
+van de admin-ingresscontrole (#116), `docs/verification/full-release-b02-review-followup/`.
+Niet bewezen: vertrouwde
+generatievloer, write-ahead per GENERATE/REVOKE binnen de dienst, verlies of
+compromittering van het externe geheim (= attacker-gekozen master bij koude
+start), meerdere schrijvers, een native tegenvoorbeeld voor de
+admin-afzendercontrole, fysieke hardware.

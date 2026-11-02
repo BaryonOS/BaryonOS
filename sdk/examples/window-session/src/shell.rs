@@ -571,6 +571,17 @@ impl Shell {
         self.pressed = None;
     }
     pub fn render(&self, c: &mut Canvas<'_>, width: u32, height: u32, scale: u32, focused: usize) {
+        self.render_with_hover(c, width, height, scale, focused, None);
+    }
+    pub fn render_with_hover(
+        &self,
+        c: &mut Canvas<'_>,
+        width: u32,
+        height: u32,
+        scale: u32,
+        focused: usize,
+        hovered: Option<usize>,
+    ) {
         let s = scale as i32;
         let body = Font::new(Size::Body, Weight::Regular, scale == 2);
         let bold = Font::new(Size::Body, Weight::Semibold, scale == 2);
@@ -608,6 +619,9 @@ impl Shell {
                 (188, 152, "Materiaal", Icon::Folder, 0),
                 (360, 172, "Rekenmachine", Icon::Apps, 1),
             ] {
+                if hovered == Some(index) && focused != index {
+                    c.rounded_rect(r(x, y + 8, w, 48), 8 * scale, 0xe3ede8);
+                }
                 if focused == index && !self.hidden[index] {
                     c.rounded_rect(r(x, y + 8, w, 48), 8 * scale, 0xffffff);
                     c.fill_rect(r(x + 16, y + 56, w - 32, 3), 0x14655e);

@@ -183,15 +183,19 @@ impl<'a> Service<'a> {
         self.stack.poll(now).map_err(|_| Fault::Clock)?;
         self.needs_poll = false;
         self.last_tick = now;
+        // The OpenTcp deadline bounds connection establishment only. After the
+        // handshake the stack's inactivity timeout (reset by peer traffic)
+        // governs the session, so an active connection is never timed out.
         for owner in &mut self.owners {
             if owner.active
                 && !owner.closing
                 && now >= owner.deadline
-                && self
-                    .stack
-                    .state(owner.client)
-                    .map_err(|_| Fault::Transport)?
-                    != State::Closed
+                && matches!(
+                    self.stack
+                        .state(owner.client)
+                        .map_err(|_| Fault::Transport)?,
+                    State::SynSent | State::SynReceived
+                )
             {
                 self.stack
                     .cancel(owner.client)
@@ -442,7 +446,14 @@ impl<'a> Service<'a> {
                             self.counters.sent = self.counters.sent.saturating_add(n as u64);
                             (if n == 0 { Status::Again } else { Status::Ok }, n as u32)
                         }
-                        Err(StackError::InvalidState) => (Status::Again, 0),
+                        Err(StackError::InvalidState) => (
+                            if self.state(slot)? == ConnectionState::Closed {
+                                Status::Closed
+                            } else {
+                                Status::Again
+                            },
+                            0,
+                        ),
                         Err(_) => (Status::Closed, 0),
                     }
                 }

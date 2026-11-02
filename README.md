@@ -3,9 +3,9 @@
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 44% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 41% van de vaste productroadmap](docs/assets/progress.svg)
 
-**44% — 44 van 100 gewogen acceptatiepunten.** Dit is een
+**41% — 41 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -22,20 +22,20 @@ alleen een nette desktop haalt die eindgrens niet.
 | Eigen kern en procesisolatie | 15 | 13 |
 | Opslag en gegevensherstel | 15 | 13 |
 | Hardware, drivers en energie | 12 | 1 |
-| Native Materiaal en toegankelijkheid | 15 | 7 |
+| Native Materiaal en toegankelijkheid | 15 | 4 |
 | Internet en netwerkdiensten | 10 | 3 |
 | Beveiliging, privacy en updates | 12 | 4 |
 | Apps, SDK en installatie | 8 | 2 |
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **44** |
+| **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`64044318`](https://github.com/simonvanieperen/nieuw-os/commit/64044318c622eaacab25272611acf856a5fca5d5) ·
-**Ontwikkelbranch:** `codex/materiaal-library-20261102`.
-Deze opdracht: **41% → 44% (+3 procentpunt)**. **Opdracht:** U03 native openen, bewerken, benoemen, organiseren en versieherstel geaccepteerd.
-41→44/100 door uitsluitend U03 (+3). Echte native documenten worden via volume-v7 benoemd, lokaal gezocht, geordend en als nieuwe revisie hersteld. Write10/cold4/full-regressie22 slagen op bron6404431/source069666e5, met complete appbeelden, onafhankelijke schijf-/hashreadback, echte compositorfault/herstart, clipboard en cleanup.76 UI-,109 SDK-,41 app-,190 Python-tests en11 runnerchecks slagen; nieuwe negatieve cases behouden rechten/CAS/drafts. Materiaal LOADgeheugen195→156pagina’s gemeten. Grote TCG-paginaovergangen blijven45–53seconden; U02/U04/U05, echte authenticatie en hardware blijven open. Alle18 CI-workflows op640 zijn groen; de openbare native sessieroute slaagt opnieuw18toestanden met echteklok. Geen nieuweWindows-runtime-/VMware-/hardware-/releaseclaim.
+**Bron:** [`c6ce3906`](https://github.com/simonvanieperen/nieuw-os/commit/c6ce3906f395f9babad9444efea6cde64bc2a0c4) ·
+**Ontwikkelbranch:** `codex/native-workspace-v2-20261102`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Alle zeven PR127-reviewpunten en volledige PR126/main-inhoud combineren.
+Geerfde branchscore41 blijft41; main34 blijft34, geen nieuwe criteria. De gecombineerde kandidaat bewaart alle PR126/main-inhoud en herstelt zeven reviewpunten: native palet, proportionele klikposities, twee TCP-status/deadlinefouten, probeconfigisolatie, dockdamage en semantisch write-only wachtwoord. Integratietests vonden daarnaast echte oude damagegeometrie onder de nieuwe fonts; renderer en model delen nu werkelijke resultaat/statusbounds, met behouden pixel- en ten minste90%-sendbudgettests. 189 Rust-app/UI-,9 netwerk- en31 Python-hosttests slagen; beide TCP-fouten zijn echt rood/groen gereproduceerd met gepinde Rust1.91.1. Clippy en echte native-targetchecks/build slagen. PR126-parent8f08 is afzonderlijk native groen met22fasen/raw33/clipboard/herstel/schijf; dat is geen bewijs voor deze nieuwe bron. Verse gecombineerde CI, review en native runtime blijven nodig. Geen nieuwe fysieke, Windows-, volledige release- of U02-acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -49,25 +49,6 @@ productpunten. Elk criterium telt volledig of niet; onbewezen werk blijft open.
 Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).
 <!-- OS-PROGRESS:END -->
-
-## Nieuwe sessieroute — openbare VM-proef
-
-[Concept-PR 129](https://github.com/simonvanieperen/nieuw-os/pull/129) bouwt voort
-op de bestaande geïsoleerde vensters. Lockscreen, gebruikerskeuze, expliciete
-VM-gast, systeemstatus/UTC-klok, zoeken, appactivatie en sessiemenu werken nu
-native. Persoonlijke authenticatie blijft gesloten totdat de echte dienst
-bestaat; afschermen is nog geen keyring- of opslagrechtenintrekking.
-
-```sh
-python3 -B tools/build.py --kernel-feature native-session-route
-```
-
-De brongebonden route met 18 toestanden en de volledige 22-fasenregressie met
-echt compositorherstel, clipboard en schijfcontrole slagen op 703cc07. De
-sparsevergelijking meet1542,275→697,463s, maar koude appframes blijven te traag.
-De score blijft 41/100. [Rapport, commando's en echte screenshots](docs/verification/session-quality-20261102/README.md) ·
-[Visueel board](docs/verification/session-quality-20261102/screenshots/session-board-host.png) ·
-[VMware-proefopdracht en huidige drivergrens](docs/implementation/VMWARE-WORKSTATION-TRIAL.md).
 
 ## Native venstersessie — 2 november 2026
 

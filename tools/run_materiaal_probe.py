@@ -63,7 +63,9 @@ def numeric(line: str, name: str) -> int:
 
 def snapshot_checks(current: dict, previous: dict | None, case: str) -> None:
     require(current["READY"] == 1 and current["PRESENTED_GEN"] > 0 and current["FRAMES"] > 0
-            and current["TILES"] >= current["FRAMES"] * TILES and current["SCALE"] == 1
+            # SUR1 sparse frames: the first frame sends every tile, every later
+            # frame at least its final tile. Pixels are checked exactly elsewhere.
+            and current["TILES"] >= TILES + current["FRAMES"] - 1 and current["SCALE"] == 1
             and current["SCREEN"] in (1, 2, 3) and current["DRAFT_DIRTY"] in (0, 1)
             and current["INPUT_ACKS"] >= current["KEYS"] + current["MOUSE"]
             and current["SAVE_ACKS"] in (0, 1), "Invalid actual frame/counter snapshot")
@@ -79,7 +81,7 @@ def snapshot_checks(current: dict, previous: dict | None, case: str) -> None:
         require(current["SAVE_ACKS"] == 0 and current["DRAFT_DIRTY"] == 0, "Readonly app changed draft or committed")
     if previous is not None:
         require(current["PRESENTED_GEN"] > previous["PRESENTED_GEN"] and current["FRAMES"] > previous["FRAMES"]
-                and current["TILES"] >= previous["TILES"] + (current["FRAMES"]-previous["FRAMES"])*TILES, "Repeated/stale/incomplete presented frame")
+                and current["TILES"] >= previous["TILES"] + current["FRAMES"] - previous["FRAMES"], "Repeated/stale/incomplete presented frame")
         require(all(current[key] >= previous[key] for key in ("KEYS", "MOUSE", "INPUT_ACKS", "SAVE_ACKS", "ERRORS")),
                 "Regressing actual counters")
 

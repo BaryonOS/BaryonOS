@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "64044318c622eaacab25272611acf856a5fca5d5",
-    "branch": "codex/materiaal-library-20261102",
-    "task": "U03 native openen, bewerken, benoemen, organiseren en versieherstel geaccepteerd",
+    "source_commit": "c6ce3906f395f9babad9444efea6cde64bc2a0c4",
+    "branch": "codex/native-workspace-v2-20261102",
+    "task": "Alle zeven PR127-reviewpunten en volledige PR126/main-inhoud combineren",
     "previous_score": 41,
-    "summary": "41→44/100 door uitsluitend U03 (+3). Echte native documenten worden via volume-v7 benoemd, lokaal gezocht, geordend en als nieuwe revisie hersteld. Write10/cold4/full-regressie22 slagen op bron6404431/source069666e5, met complete appbeelden, onafhankelijke schijf-/hashreadback, echte compositorfault/herstart, clipboard en cleanup.76 UI-,109 SDK-,41 app-,190 Python-tests en11 runnerchecks slagen; nieuwe negatieve cases behouden rechten/CAS/drafts. Materiaal LOADgeheugen195→156pagina’s gemeten. Grote TCG-paginaovergangen blijven45–53seconden; U02/U04/U05, echte authenticatie en hardware blijven open. Alle18 CI-workflows op640 zijn groen; de openbare native sessieroute slaagt opnieuw18toestanden met echteklok. Geen nieuweWindows-runtime-/VMware-/hardware-/releaseclaim."
+    "summary": "Geerfde branchscore41 blijft41; main34 blijft34, geen nieuwe criteria. De gecombineerde kandidaat bewaart alle PR126/main-inhoud en herstelt zeven reviewpunten: native palet, proportionele klikposities, twee TCP-status/deadlinefouten, probeconfigisolatie, dockdamage en semantisch write-only wachtwoord. Integratietests vonden daarnaast echte oude damagegeometrie onder de nieuwe fonts; renderer en model delen nu werkelijke resultaat/statusbounds, met behouden pixel- en ten minste90%-sendbudgettests. 189 Rust-app/UI-,9 netwerk- en31 Python-hosttests slagen; beide TCP-fouten zijn echt rood/groen gereproduceerd met gepinde Rust1.91.1. Clippy en echte native-targetchecks/build slagen. PR126-parent8f08 is afzonderlijk native groen met22fasen/raw33/clipboard/herstel/schijf; dat is geen bewijs voor deze nieuwe bron. Verse gecombineerde CI, review en native runtime blijven nodig. Geen nieuwe fysieke, Windows-, volledige release- of U02-acceptatie."
   },
   "tracks": [
     {
@@ -286,14 +286,9 @@
           "id": "U03",
           "title": "Materiaal van openen tot bewaren",
           "points": 3,
-          "status": "accepted",
+          "status": "open",
           "acceptance": "Gebruikers openen, bewerken, hernoemen en organiseren echte native documenten; rechten, historie en locatie blijven begrijpelijk en correct.",
-          "evidence": [
-            "docs/verification/materiaal-library-20261102/README.md",
-            "docs/verification/materiaal-library-20261102/native-write.json",
-            "docs/verification/materiaal-library-20261102/native-cold.json",
-            "docs/verification/materiaal-library-20261102/native-regression-readback.json"
-          ]
+          "evidence": []
         },
         {
           "id": "U04",

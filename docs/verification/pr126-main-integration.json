@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-02",
+  "task": "PR126 inhoudsbehoudend combineren met actuele main na PR125",
+  "base_commit": "51580271eada508d9a1edcac5a1e3599f6d726f5",
+  "merged_main": "74a34d05ef5591b782a0da9da34e4669910d0722",
+  "source_fingerprint_version": 3,
+  "source_sha256": "8b2238b2d9cad397924f3da9ff447735bb7ecf6ab56298e6425f64a8fa5e96e0",
+  "preservation": {
+    "main": "PR125 merged only after all 29 current-head jobs succeeded, all review threads resolved and exact base/head/tree verified. Main tree equals b2761f1.",
+    "protocol_leaf": "7c27de714293afa31bffb39e6341031c800397d5",
+    "protocol": "Retained position/finish/invalidation and client accounting retained; main sparse checks composed without permitting gaps during full resynchronization. Both test sets plus two combination regressions preserved.",
+    "material": "Both APIs preserved. Explicit retained coverage takes precedence over sparse digest omission. Hash-based sparse rendering remains on non-retained paths. Digests become valid only after complete acknowledged frames and are invalidated on rebind.",
+    "tests": "Incoming capability-core and UI test changes were proven to be pure EOF appends against mergebase bytes, then appended without losing any ours or theirs bytes.",
+    "raw_evidence": "Exact source bytes retained. CRLF NAS and B02 stdout blank-EOF attributes are narrowly scoped to archived raw evidence; no log bytes reformatted.",
+    "rights_dependencies": "No capability, authority, dependency version or kernel ABI widened."
+  },
+  "host_linker_restoration": {
+    "scope": "Only session files/host-linker; no system package installation, maintainer scripts, repository dependency or native linkage change.",
+    "reason": "Actual earlier cargo test failures reported missing cc.",
+    "source": "Existing authenticated Ubuntu resolute apt metadata; downloaded package SHA256 verified before extraction.",
+    "packages": [
+      {
+        "name": "gcc-15-x86-64-linux-gnu",
+        "version": "15.2.0-16ubuntu1",
+        "sha256": "df0e5375c9e981b18e396c2e9ec1e359f226576a9b94a311bf07603f3ca6023a"
+      },
+      {
+        "name": "libgcc-15-dev",
+        "version": "15.2.0-16ubuntu1",
+        "sha256": "32fa5bde1891f46fd4f422e466c863fb78e834b634e1aa08211c8eea68870af5"
+      },
+      {
+        "name": "libc6-dev",
+        "version": "2.43-2ubuntu2.4",
+        "sha256": "17bb816a65a25c3416854eef7e9cc6d9a3761f45bad0d44e49bc676b7bab1769"
+      },
+      {
+        "name": "gcc-15-base",
+        "version": "15.2.0-16ubuntu1",
+        "sha256": "5a302d705d562fb7e150415b00651c00fed58b633faadff0b332eac1b73fadb3"
+      }
+    ],
+    "license": "GCC GPL with runtime exception and glibc LGPL notices retained in private extracted packages; no packages distributed or added to own-OS images.",
+    "relocation": "Private cc wrapper uses private -B/-L paths. Only private libc linker script points libc_nonshared.a at its extracted location. Already installed host libc matches exact package version.",
+    "path_prefix": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/host-linker:/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin"
+  },
+  "host_checks": [
+    {
+      "command": "cargo test --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --target-dir target/pr126-main-host",
+      "exit_code": 0,
+      "passed": 43,
+      "ignored": 0,
+      "harness_seconds": 0.21
+    },
+    {
+      "command": "cargo test --offline --locked --manifest-path sdk/examples/materiaal/Cargo.toml --target-dir target/pr126-main-host",
+      "exit_code": 0,
+      "passed": 43,
+      "ignored": 0,
+      "harness_seconds": 1.63
+    },
+    {
+      "command": "cargo test --offline --locked --manifest-path ui/surface-protocol/Cargo.toml --features client --target-dir target/pr126-main-host",
+      "exit_code": 0,
+      "passed": 40,
+      "ignored": 0,
+      "harness_seconds": 0.14
+    },
+    {
+      "command": "cargo test --offline --locked --manifest-path ui/native/Cargo.toml --target-dir target/pr126-main-host",
+      "exit_code": 0,
+      "passed": 55,
+      "ignored": 0,
+      "harness_seconds": 15.10
+    },
+    {
+      "command": "cargo test --offline --locked -p capability-core --target-dir target/pr126-main-host",
+      "exit_code": 0,
+      "passed": 79,
+      "ignored": 1,
+      "harness_seconds": 1.04
+    }
+  ],
+  "host_log": "/tmp/nieuw-os-pr126-main-host-tests.log",
+  "host_log_sha256": "7dc254f981407ad39fff01641dd30be41cc714077585dfd99a4b45b0786c5a0d",
+  "timing_boundary": "Harness durations exclude compilation/startup; total shell wall time was not recorded. No product latency or performance claim.",
+  "static_checks": {
+    "toolchain": "Rust 1.90.0",
+    "commands": [
+      "cargo fmt --all -- --check",
+      "cargo fmt --manifest-path sdk/examples/materiaal/Cargo.toml -- --check",
+      "cargo fmt --manifest-path ui/native/Cargo.toml -- --check",
+      "cargo fmt --manifest-path sdk/examples/window-session/Cargo.toml -- --check",
+      "cargo clippy --offline --locked -p capability-core --all-targets --target-dir target/pr126-main-host -- -D warnings",
+      "for manifest in sdk/examples/window-session/Cargo.toml sdk/examples/materiaal/Cargo.toml ui/native/Cargo.toml; do cargo clippy --offline --locked --manifest-path \"$manifest\" --all-targets --target-dir target/pr126-main-host -- -D warnings; done",
+      "for manifest in sdk/examples/window-session/Cargo.toml sdk/examples/materiaal/Cargo.toml sdk/examples/calculator/Cargo.toml; do cargo check --offline --locked --manifest-path \"$manifest\" --features native --bins --target x86_64-unknown-none --target-dir target/pr126-main-native; done"
+    ],
+    "all_exit_code": 0,
+    "log": "/tmp/nieuw-os-pr126-main-rust.log",
+    "log_sha256": "18b811c368bae2555e05f1bd70db109dd5d217209ce4fda3c0c37b168f45af9b"
+  },
+  "ci_change": "Existing native-window-session workflow now executes complete Material and calculator host suites plus strict Clippy/fmt before native execution.",
+  "github_milestone": {
+    "issues_closed_after_verified_main_inclusion": [109, 110],
+    "unchanged_source_prs_closed_after_ancestor_and_tree_proof": [115, 116, 117, 118, 120],
+    "pr119_held": "Concurrent cloud head ee5003e adds only four status/meter files after main integration; not falsely treated as old preserved ancestor."
+  },
+  "not_run_on_this_combined_source": [
+    "Fresh hosted CI",
+    "Full native QEMU window/clipboard/recovery/pixel/disk acceptance",
+    "Windows/WHPX runtime",
+    "Physical hardware or human audit"
+  ],
+  "progress": {
+    "branch_previous": 41,
+    "branch_current": 41,
+    "main_previous": 34,
+    "main_current": 34,
+    "newly_accepted_criteria": [],
+    "boundary": "Inherited branch U01/N01 evidence is not silently promoted to main by a hosttest checkpoint; U02 and complete release remain open."
+  },
+  "rollback": "Reject or normally revert the integration commit; preserve both source histories and do not reset user work."
+}

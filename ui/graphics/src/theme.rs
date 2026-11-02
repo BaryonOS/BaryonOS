@@ -1,6 +1,6 @@
-//! Shared calm, high-contrast system colors and an original procedural backdrop.
+//! Shared warm paper, ink and iris colors. The native desktop is flat graphite.
 //! Consumers may pass different palettes; these do not confer trusted UI rights.
-use crate::{blend, Canvas, Rect};
+use crate::{Canvas, Rect};
 #[derive(Clone, Copy, Debug)]
 pub struct Palette {
     pub desktop_start: u32,
@@ -26,6 +26,9 @@ pub const MATERIAAL: Palette = Palette {
     accent_soft: 0xe3ede8,
     border: 0xd9ddda,
 };
+pub const DIVIDER: u32 = 0xdeddd6;
+pub const SHELL_TEXT: u32 = 0xf0eee8;
+pub const SHELL_MUTED: u32 = 0xaaa9b2;
 pub fn wallpaper(canvas: &mut Canvas<'_>, screen: Rect, p: Palette) {
     if screen.width == 0 || screen.height == 0 {
         return;

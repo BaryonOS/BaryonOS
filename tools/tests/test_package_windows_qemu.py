@@ -57,6 +57,20 @@ class WindowsQemuPackageTests(unittest.TestCase):
     def tearDown(self):
         self.temporary.cleanup()
 
+    def test_whpx_probe_disables_user_configuration(self):
+        helper = package.ROOT / "tools/windows-qemu/Acceleration.ps1"
+        assignments = [
+            line.strip().split(" = ", 1)[1]
+            for line in helper.read_text().splitlines()
+            if line.strip().startswith("$start.Arguments = ")
+        ]
+        self.assertEqual(len(assignments), 1)
+        arguments = assignments[0].strip('"').split()
+        self.assertIn("-no-user-config", arguments)
+        self.assertIn("-nodefaults", arguments)
+        self.assertIn("-S", arguments)
+        self.assertEqual(arguments[arguments.index("-nic") + 1], "none")
+
     def window_profile(self):
         kernel = bytearray(b"window-kernel")
         apps = []

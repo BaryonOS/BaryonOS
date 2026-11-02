@@ -319,6 +319,7 @@ fn run() -> ! {
                 // confirms that this offer was not superseded in the meantime.
                 if input.ack(&offer).unwrap_or_else(|_| fail(24)) == AckOutcome::Superseded {
                     app_pointer_capture = None;
+                    scene.cancel_palette_input(&mut damage);
                     scene.cancel_pointer();
                     scene.shell.cancel_pointer();
                     clear_chord = ClearChord::default();
@@ -333,20 +334,43 @@ fn run() -> ! {
                 let event = offer.event();
                 let was_blocked = scene.shell.blocks_apps();
                 let was_hidden = scene.shell.hidden;
+                let palette_was_open = scene.palette_is_open();
+                let palette_key = match event {
+                    Event::Key(key) => scene
+                        .palette_key(key, &mut damage)
+                        .unwrap_or_else(|_| fail(17)),
+                    _ => false,
+                };
+                if !palette_was_open && scene.palette_is_open() {
+                    app_pointer_capture = None;
+                    scene.shell.cancel_pointer();
+                    clear_chord = ClearChord::default();
+                    for queue in &mut queues {
+                        queue
+                            .cancel(CancelReason::Resync)
+                            .unwrap_or_else(|_| fail(20));
+                    }
+                }
                 let was_panel = scene
                     .shell
                     .panel(geometry.width, geometry.height, scene.scale);
-                if let Event::Mouse { input: mouse, x, y } = event {
-                    damage.mark(scene.pointer_bounds());
-                    scene.pointer = (x, y);
-                    damage.mark(scene.pointer_bounds());
-                    last_buttons = u64::from(mouse.buttons.bits());
-                }
                 let effect = match event {
+                    Event::Key(_) if palette_key => nieuw_os_window_session::shell::Effect {
+                        consumed: true,
+                        changed: false,
+                        command: ShellCommand::None,
+                    },
                     Event::Key(key) => {
                         scene
                             .shell
                             .key(key, geometry.width, geometry.height, scene.scale)
+                    }
+                    Event::Mouse { .. } if scene.palette_is_open() => {
+                        nieuw_os_window_session::shell::Effect {
+                            consumed: false,
+                            changed: false,
+                            command: ShellCommand::None,
+                        }
                     }
                     Event::Mouse { input: mouse, x, y } => scene.shell.mouse(
                         (x, y),
@@ -368,6 +392,12 @@ fn run() -> ! {
                 if effect.changed {
                     scene.cancel_pointer();
                     damage.mark(scene.shell_damage(was_blocked, was_hidden, was_panel));
+                }
+                if effect.consumed {
+                    if let Event::Mouse { input: mouse, x, y } = event {
+                        scene.update_pointer(x, y, &mut damage);
+                        last_buttons = u64::from(mouse.buttons.bits());
+                    }
                 }
                 match effect.command {
                     ShellCommand::Activate(index) => {
@@ -426,6 +456,7 @@ fn run() -> ! {
                         Event::Cancel(reason) => {
                             last_buttons = 0;
                             app_pointer_capture = None;
+                            scene.cancel_palette_input(&mut damage);
                             scene.cancel_pointer();
                             for q in &mut queues {
                                 q.cancel(reason).unwrap_or_else(|_| fail(20));
@@ -433,23 +464,15 @@ fn run() -> ! {
                         }
                         Event::Mouse { input: mouse, x, y } => {
                             last_buttons = u64::from(mouse.buttons.bits());
-                            damage.mark(scene.pointer_bounds());
-                            let old_frames = [scene.paint_bounds(0), scene.paint_bounds(1)];
                             let recipient = scene
-                                .mouse(
+                                .mouse_with_damage(
                                     x,
                                     y,
                                     mouse.changed.left() && mouse.buttons.left(),
                                     mouse.buttons.left(),
+                                    &mut damage,
                                 )
                                 .unwrap_or_else(|_| fail(21));
-                            damage.mark(scene.pointer_bounds());
-                            for (index, old_frame) in old_frames.iter().enumerate() {
-                                if *old_frame != scene.paint_bounds(index) {
-                                    damage.mark(*old_frame);
-                                    damage.mark(scene.paint_bounds(index));
-                                }
-                            }
                             if let Some(index) = recipient {
                                 if mouse.changed.left() && mouse.buttons.left() {
                                     app_pointer_capture = Some(index);
@@ -477,6 +500,9 @@ fn run() -> ! {
                     }
                 }
                 if was_blocked != scene.shell.blocks_apps() || was_hidden != scene.shell.hidden {
+                    if scene.shell.blocks_apps() {
+                        scene.cancel_palette_input(&mut damage);
+                    }
                     // Hiding an inactive window can restore the original
                     // focused index, so focus-damage alone cannot erase it.
                     if was_hidden != scene.shell.hidden {
@@ -508,6 +534,17 @@ fn run() -> ! {
         }
         repaint(&scene, backing, &mut display, &mut damage, 32).unwrap_or_else(|_| fail(25));
         for index in 0..2 {
+            if pending[index].is_none() {
+                let now = tick();
+                if let Some(reply) = surfaces[index].expire(now).unwrap_or_else(|_| fail(30)) {
+                    rejected += 1;
+                    pending[index] = Some(ReplyWork::Message(
+                        boot.apps[index].surface_reply,
+                        Outgoing::new(sur::TAG, reply.bytes()).unwrap_or_else(|_| fail(31)),
+                        now,
+                    ));
+                }
+            }
             if flush_reply(
                 index,
                 &mut pending[index],
@@ -595,33 +632,40 @@ fn run() -> ! {
             }
             let (tag, payload, to) = if message.tag() == sur::TAG {
                 let now = tick();
-                let reply = match surfaces[index].accept(message.sender(), now, message.payload()) {
-                    Ok(Action::Staged) => continue,
-                    Ok(Action::Info(reply)) => reply,
-                    Ok(Action::Commit(token)) => {
-                        let result = surfaces[index]
-                            .commit_with(token, tick(), |rect, pixels| {
-                                let damaged = scene
-                                    .copy_tile(index, rect, pixels, backing)
-                                    .map_err(|_| ())?;
-                                present(&scene, backing, &mut display, damaged)
-                            })
-                            .unwrap_or_else(|_| fail(30));
-                        if result.status().is_ok() {
-                            commits += 1;
-                        } else {
-                            rejected += 1;
+                let reply = if let Some(reply) =
+                    surfaces[index].expire(now).unwrap_or_else(|_| fail(30))
+                {
+                    rejected += 1;
+                    reply
+                } else {
+                    match surfaces[index].accept(message.sender(), now, message.payload()) {
+                        Ok(Action::Staged) => continue,
+                        Ok(Action::Info(reply) | Action::Retain(reply)) => reply,
+                        Ok(Action::Commit(token)) => {
+                            let result = surfaces[index]
+                                .commit_with(token, tick(), |rect, pixels| {
+                                    let damaged = scene
+                                        .copy_tile(index, rect, pixels, backing)
+                                        .map_err(|_| ())?;
+                                    present(&scene, backing, &mut display, damaged)
+                                })
+                                .unwrap_or_else(|_| fail(30));
+                            if result.status().is_ok() {
+                                commits += 1;
+                            } else {
+                                rejected += 1;
+                            }
+                            result
                         }
-                        result
-                    }
-                    Err(error) => {
-                        rejected += 1;
-                        let Some(reply) =
-                            surfaces[index].reject(message.sender(), message.payload(), error)
-                        else {
-                            continue;
-                        };
-                        reply
+                        Err(error) => {
+                            rejected += 1;
+                            let Some(reply) =
+                                surfaces[index].reject(message.sender(), message.payload(), error)
+                            else {
+                                continue;
+                            };
+                            reply
+                        }
                     }
                 };
                 (

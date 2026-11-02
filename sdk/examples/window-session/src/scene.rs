@@ -1,5 +1,6 @@
 use nieuw_os_graphics::{theme, Canvas, Font, Icon, Rect, Size, Weight};
 use nieuw_os_surface_protocol::{Geometry, Rectangle};
+use ui_core::{KeyAction, KeyboardEvent, PhysicalKey};
 
 use crate::clipboard::Notice as ClipboardNotice;
 use crate::shell::Shell;
@@ -14,6 +15,35 @@ pub struct Window {
     pub geometry: Geometry,
     pub offset: usize,
 }
+const APP_NAMES: [&str; WINDOWS] = ["Materiaal", "Rekenmachine"];
+const QUERY_BYTES: usize = 32;
+struct ProgramPalette {
+    open: bool,
+    query: [u8; QUERY_BYTES],
+    length: usize,
+    selected: Option<usize>,
+}
+impl ProgramPalette {
+    const fn new() -> Self {
+        Self {
+            open: false,
+            query: [0; QUERY_BYTES],
+            length: 0,
+            selected: None,
+        }
+    }
+    fn matches(&self, index: usize) -> bool {
+        let query = &self.query[..self.length];
+        query.is_empty()
+            || APP_NAMES[index]
+                .as_bytes()
+                .windows(query.len())
+                .any(|part| part.eq_ignore_ascii_case(query))
+    }
+    fn first_match(&self) -> Option<usize> {
+        (0..WINDOWS).find(|index| self.matches(*index))
+    }
+}
 pub struct Scene {
     pub shell: Shell,
     pub width: u32,
@@ -26,6 +56,8 @@ pub struct Scene {
     pub moves: u64,
     pub switches: u64,
     clipboard_notice: ClipboardNotice,
+    palette: ProgramPalette,
+    palette_keys: [bool; PhysicalKey::Menu as usize + 1],
 }
 impl Scene {
     pub fn new(width: u32, height: u32, scale: u32, epochs: [u64; 2]) -> Result<Self, Invalid> {
@@ -86,6 +118,8 @@ impl Scene {
             moves: 0,
             switches: 0,
             clipboard_notice: ClipboardNotice::None,
+            palette: ProgramPalette::new(),
+            palette_keys: [false; PhysicalKey::Menu as usize + 1],
         })
     }
     pub fn frame(&self, index: usize) -> Rect {
@@ -96,6 +130,241 @@ impl Scene {
             b.width,
             b.height + 42 * self.scale,
         )
+    }
+    pub fn palette_open(&mut self) -> bool {
+        if self.palette.open {
+            return false;
+        }
+        self.palette.open = true;
+        self.palette.query.fill(0);
+        self.palette.length = 0;
+        self.palette.selected = Some(self.focused);
+        self.drag = None;
+        true
+    }
+    pub fn palette_is_open(&self) -> bool {
+        self.palette.open
+    }
+    pub fn palette_query(&self) -> &str {
+        core::str::from_utf8(&self.palette.query[..self.palette.length]).expect("ASCII app query")
+    }
+    pub fn palette_insert(&mut self, byte: u8) -> bool {
+        if !self.palette.open
+            || self.palette.length == QUERY_BYTES
+            || !(byte.is_ascii_alphanumeric() || byte == b' ')
+        {
+            return false;
+        }
+        self.palette.query[self.palette.length] = byte;
+        self.palette.length += 1;
+        self.palette.selected = self.palette.first_match();
+        true
+    }
+    pub fn palette_backspace(&mut self) -> bool {
+        if !self.palette.open || self.palette.length == 0 {
+            return false;
+        }
+        self.palette.length -= 1;
+        self.palette.query[self.palette.length] = 0;
+        self.palette.selected = self.palette.first_match();
+        true
+    }
+    pub fn palette_next(&mut self, reverse: bool) -> bool {
+        if !self.palette.open {
+            return false;
+        }
+        let before = self.palette.selected;
+        let start = before.unwrap_or(if reverse { 0 } else { WINDOWS - 1 });
+        self.palette.selected = (1..=WINDOWS)
+            .map(|step| {
+                if reverse {
+                    (start + WINDOWS - step) % WINDOWS
+                } else {
+                    (start + step) % WINDOWS
+                }
+            })
+            .find(|index| self.palette.matches(*index));
+        self.palette.selected != before
+    }
+    pub fn palette_selected(&self) -> Option<usize> {
+        self.palette
+            .selected
+            .filter(|index| self.palette.open && self.palette.matches(*index))
+    }
+    pub fn palette_close(&mut self) -> bool {
+        if !self.palette.open {
+            return false;
+        }
+        self.palette.open = false;
+        self.palette.query.fill(0);
+        self.palette.length = 0;
+        self.palette.selected = None;
+        true
+    }
+    /// Physical pixels, stable while open and after close for damage repair.
+    pub fn palette_bounds(&self) -> Rect {
+        let width = 540 * self.scale;
+        Rect::new(
+            (self.width - width) as i32 / 2,
+            84 * self.scale as i32,
+            width,
+            256 * self.scale,
+        )
+    }
+    fn palette_row(&self, index: usize) -> Option<Rect> {
+        if !self.palette.open || index >= WINDOWS || !self.palette.matches(index) {
+            return None;
+        }
+        let row = (0..index)
+            .filter(|other| self.palette.matches(*other))
+            .count();
+        let bounds = self.palette_bounds();
+        let s = self.scale;
+        Some(Rect::new(
+            bounds.x + 16 * s as i32,
+            bounds.y + (96 + row as i32 * 56) * s as i32,
+            bounds.width - 32 * s,
+            48 * s,
+        ))
+    }
+    pub fn palette_hit(&self, x: u32, y: u32) -> Option<usize> {
+        (0..WINDOWS).find(|index| {
+            self.palette_row(*index)
+                .is_some_and(|row| row.contains(x as i32, y as i32))
+        })
+    }
+    /// Returns true only for keys owned by the compositor's app palette.
+    pub fn palette_key(
+        &mut self,
+        key: KeyboardEvent,
+        damage: &mut Damage,
+    ) -> Result<bool, Invalid> {
+        let index = key.key as usize;
+        if key.action == KeyAction::Release && self.palette_keys[index] {
+            self.palette_keys[index] = false;
+            return Ok(true);
+        }
+        if !self.palette_is_open() {
+            if self.palette_keys[index] {
+                return Ok(true);
+            }
+            if self.shell.blocks_apps()
+                || key.key != PhysicalKey::K
+                || !key.modifiers.control()
+                || key.modifiers.alt()
+                || key.modifiers.super_key()
+                || key.action != KeyAction::Press
+            {
+                return Ok(false);
+            }
+            self.palette_keys[index] = true;
+            self.cancel_pointer();
+            self.palette_open();
+        } else if matches!(key.action, KeyAction::Press | KeyAction::Repeat) {
+            self.palette_keys[index] = true;
+            match key.key {
+                PhysicalKey::Escape => {
+                    self.palette_close();
+                }
+                PhysicalKey::Enter | PhysicalKey::KeypadEnter if key.action == KeyAction::Press => {
+                    if let Some(index) = self.palette_selected() {
+                        self.shell.hidden[index] = false;
+                        self.select(index)?;
+                        self.palette_close();
+                    }
+                }
+                PhysicalKey::Tab if key.action == KeyAction::Press => {
+                    self.palette_next(key.modifiers.shift());
+                }
+                PhysicalKey::Up | PhysicalKey::Down => {
+                    self.palette_next(key.key == PhysicalKey::Up);
+                }
+                PhysicalKey::Backspace => {
+                    self.palette_backspace();
+                }
+                _ if !key.modifiers.control()
+                    && !key.modifiers.alt()
+                    && !key.modifiers.super_key() =>
+                {
+                    use PhysicalKey::*;
+                    let keys = [
+                        A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y,
+                        Z, Digit0, Digit1, Digit2, Digit3, Digit4, Digit5, Digit6, Digit7, Digit8,
+                        Digit9, Space,
+                    ];
+                    if let Some(index) = keys.iter().position(|candidate| *candidate == key.key) {
+                        let mut byte = b"abcdefghijklmnopqrstuvwxyz0123456789 "[index];
+                        if key.modifiers.shift() ^ key.modifiers.caps_lock {
+                            byte = byte.to_ascii_uppercase();
+                        }
+                        self.palette_insert(byte);
+                    }
+                }
+                _ => {}
+            }
+        }
+        damage.mark(self.palette_bounds());
+        damage.mark(self.dock());
+        Ok(true)
+    }
+    pub fn hovered_task(&self) -> Option<usize> {
+        (!self.palette_is_open() && !self.shell.blocks_apps())
+            .then(|| {
+                (0..WINDOWS).find(|index| {
+                    self.task_button(*index)
+                        .contains(self.pointer.0 as i32, self.pointer.1 as i32)
+                })
+            })
+            .flatten()
+    }
+    pub fn cancel_palette_input(&mut self, damage: &mut Damage) {
+        self.palette_keys.fill(false);
+        if self.palette_close() {
+            damage.mark(self.palette_bounds());
+            damage.mark(self.dock());
+        }
+    }
+    pub fn mouse_with_damage(
+        &mut self,
+        x: u32,
+        y: u32,
+        down: bool,
+        held: bool,
+        damage: &mut Damage,
+    ) -> Result<Option<usize>, Invalid> {
+        let hover = self.hovered_task();
+        let palette_open = self.palette_is_open();
+        let frames = [self.paint_bounds(0), self.paint_bounds(1)];
+        damage.mark(self.pointer_bounds());
+        let recipient = self.mouse(x, y, down, held)?;
+        damage.mark(self.pointer_bounds());
+        if hover != self.hovered_task() {
+            for index in [hover, self.hovered_task()].into_iter().flatten() {
+                damage.mark(self.task_button(index));
+            }
+        }
+        if palette_open {
+            damage.mark(self.palette_bounds());
+            damage.mark(self.dock());
+        }
+        for (index, frame) in frames.into_iter().enumerate() {
+            if frame != self.paint_bounds(index) {
+                damage.mark(frame);
+                damage.mark(self.paint_bounds(index));
+            }
+        }
+        Ok(recipient)
+    }
+    pub fn update_pointer(&mut self, x: u32, y: u32, damage: &mut Damage) {
+        let hover = self.hovered_task();
+        damage.mark(self.pointer_bounds());
+        self.pointer = (x, y);
+        damage.mark(self.pointer_bounds());
+        if hover != self.hovered_task() {
+            for index in [hover, self.hovered_task()].into_iter().flatten() {
+                damage.mark(self.task_button(index));
+            }
+        }
     }
     pub fn clipboard_notice_bounds(&self) -> Rect {
         Rect::new(
@@ -115,10 +384,10 @@ impl Scene {
     pub fn paint_bounds(&self, index: usize) -> Rect {
         let f = self.frame(index);
         Rect::new(
-            f.x,
-            f.y,
-            f.width + 4 * self.scale,
-            f.height + 8 * self.scale,
+            f.x - self.scale as i32,
+            f.y - self.scale as i32,
+            f.width + 2 * self.scale,
+            f.height + 2 * self.scale,
         )
     }
     /// A shell page change can retain the already opaque surround. App/window
@@ -220,6 +489,18 @@ impl Scene {
             self.drag = None;
             return Ok(None);
         }
+        if self.palette_is_open() {
+            if down {
+                if let Some(index) = self.palette_hit(x, y) {
+                    self.shell.hidden[index] = false;
+                    self.select(index)?;
+                    self.palette_close();
+                } else if !self.palette_bounds().contains(x as i32, y as i32) {
+                    self.palette_close();
+                }
+            }
+            return Ok(None);
+        }
         if let Some((index, dx, dy)) = self.drag {
             if !held {
                 self.drag = None;
@@ -239,6 +520,14 @@ impl Scene {
         }
         if down {
             let s = self.scale;
+            for index in 0..WINDOWS {
+                let button = self.task_button(index);
+                if button.contains(x as i32, y as i32) {
+                    self.shell.hidden[index] = false;
+                    self.select(index)?;
+                    return Ok(None);
+                }
+            }
             for index in [self.focused, 1 - self.focused] {
                 if self.shell.hidden[index] {
                     continue;
@@ -274,6 +563,19 @@ impl Scene {
             self.height as i32 - 64 * self.scale as i32,
             self.width,
             64 * self.scale,
+        )
+    }
+    pub fn task_button(&self, index: usize) -> Rect {
+        if index >= WINDOWS {
+            return Rect::default();
+        }
+        let s = self.scale;
+        let (x, width) = if index == 0 { (188, 152) } else { (360, 172) };
+        Rect::new(
+            x * s as i32,
+            self.dock().y + 8 * s as i32,
+            width * s,
+            48 * s,
         )
     }
     pub fn copy_tile(
@@ -366,28 +668,29 @@ impl Scene {
                 <= i64::from(body.x) + i64::from(body.width)
             && i64::from(rect.y) + i64::from(rect.height)
                 <= i64::from(body.y) + i64::from(body.height);
-        if inside
-            && !self.shell.blocks_apps()
-            && !self.shell.hidden[self.focused]
-            && !rect.intersects(self.dock())
-            && !rect.intersects(self.pointer_bounds())
+        if !inside
+            || self.shell.blocks_apps()
+            || self.shell.hidden[self.focused]
+            || rect.intersects(self.dock())
+            || rect.intersects(self.pointer_bounds())
+            || (self.palette_is_open() && rect.intersects(self.palette_bounds()))
         {
-            let left = (rect.x - body.x) as usize;
-            let top = (rect.y - body.y) as usize;
-            let width = rect.width as usize;
-            for row in 0..rect.height as usize {
-                let source = window.offset + (top + row) * body.width as usize + left;
-                for (out, color) in pixels[row * width..(row + 1) * width]
-                    .iter_mut()
-                    .zip(&backing[source..source + width])
-                {
-                    // Canvas::pixel also ignores the unused high color byte.
-                    *out = color & 0x00ff_ffff;
-                }
-            }
-            return Ok(());
+            return self.render_reference(rect, pixels, backing);
         }
-        self.render_reference(rect, pixels, backing)
+        let left = (rect.x - body.x) as usize;
+        let top = (rect.y - body.y) as usize;
+        let width = rect.width as usize;
+        for row in 0..rect.height as usize {
+            let source = window.offset + (top + row) * body.width as usize + left;
+            for (out, color) in pixels[row * width..(row + 1) * width]
+                .iter_mut()
+                .zip(&backing[source..source + width])
+            {
+                // Canvas::pixel also ignores the unused high color byte.
+                *out = color & 0x00ff_ffff;
+            }
+        }
+        Ok(())
     }
     /// Full composite path, retained as the original raster oracle for the
     /// opaque-body optimization. It performs the same normal bounds checks.
@@ -411,30 +714,25 @@ impl Scene {
             if !self.paint_bounds(index).intersects(rect) {
                 continue;
             }
-            c.rounded_rect(
-                Rect::new(
-                    frame.x + 4 * s as i32,
-                    frame.y + 8 * s as i32,
-                    frame.width,
-                    frame.height,
-                ),
-                12 * s,
-                0x132a38,
-            );
-            c.rounded_rect(
-                frame,
-                10 * s,
+            // A one-pixel structural contour outside the assigned app body.
+            // There is no offset shadow or fake elevation behind the window.
+            c.fill_rect(
+                self.paint_bounds(index),
                 if index == self.focused {
-                    0xffffff
+                    palette.border
                 } else {
-                    0xe9eff3
+                    0x565861
                 },
             );
-            let title = if index == 0 {
-                "Materiaal"
-            } else {
-                "Rekenmachine"
-            };
+            c.fill_rect(
+                frame,
+                if index == self.focused {
+                    palette.surface
+                } else {
+                    palette.background
+                },
+            );
+            let title = APP_NAMES[index];
             c.icon(
                 Rect::new(
                     frame.x + 15 * s as i32,
@@ -447,7 +745,11 @@ impl Scene {
                 } else {
                     Icon::Apps
                 },
-                0x167a70,
+                if index == self.focused {
+                    palette.accent
+                } else {
+                    palette.muted
+                },
                 s,
             );
             c.text(
@@ -455,7 +757,11 @@ impl Scene {
                 frame.y + 10 * s as i32,
                 title,
                 font,
-                0x172a3a,
+                if index == self.focused {
+                    palette.text
+                } else {
+                    palette.muted
+                },
             );
             for (offset, icon) in [(76, Icon::Minimize), (38, Icon::Close)] {
                 c.icon(
@@ -479,7 +785,7 @@ impl Scene {
                         40 * s,
                         2 * s,
                     ),
-                    0x167a70,
+                    palette.accent,
                 );
             }
             c.fill_rect(body, palette.background);
@@ -501,8 +807,14 @@ impl Scene {
                 }
             }
         }
-        self.shell
-            .render(&mut c, self.width, self.height, self.scale, self.focused);
+        self.shell.render_with_hover(
+            &mut c,
+            self.width,
+            self.height,
+            self.scale,
+            self.focused,
+            self.hovered_task(),
+        );
         self.system_foreground(&mut c);
         Ok(())
     }
@@ -516,10 +828,127 @@ impl Scene {
                 c.text(300 * s as i32, 12 * s as i32, label, font, 0xc5ccc9);
             }
         }
+        if !self.shell.blocks_apps() {
+            self.render_palette(c);
+        }
         let (x, y) = (self.pointer.0 as i32, self.pointer.1 as i32);
         c.line(x, y, x, y + 18 * s as i32, 3 * s, 0xffffff);
         c.line(x, y, x + 12 * s as i32, y + 12 * s as i32, 3 * s, 0xffffff);
         c.line(x, y, x + 3 * s as i32, y + 15 * s as i32, s, 0x172a3a);
+    }
+    fn render_palette(&self, c: &mut Canvas<'_>) {
+        if !self.palette_is_open() || !self.palette_bounds().intersects(c.bounds()) {
+            return;
+        }
+        let p = theme::MATERIAAL;
+        let r = self.palette_bounds();
+        let s = self.scale;
+        let small = Font::new(Size::Small, Weight::Regular, s == 2);
+        let body = Font::new(Size::Body, Weight::Regular, s == 2);
+        let strong = Font::new(Size::Body, Weight::Semibold, s == 2);
+        c.fill_rect(r, p.border);
+        c.fill_rect(
+            Rect::new(
+                r.x + s as i32,
+                r.y + s as i32,
+                r.width - 2 * s,
+                r.height - 2 * s,
+            ),
+            p.surface,
+        );
+        c.text(
+            r.x + 24 * s as i32,
+            r.y + 16 * s as i32,
+            "OPEN APPS",
+            small,
+            p.muted,
+        );
+        c.text(
+            r.x + r.width as i32 - 74 * s as i32,
+            r.y + 16 * s as i32,
+            "Esc terug",
+            small,
+            p.muted,
+        );
+        c.icon(
+            Rect::new(r.x + 24 * s as i32, r.y + 50 * s as i32, 20 * s, 20 * s),
+            Icon::Search,
+            p.accent,
+            s,
+        );
+        c.text(
+            r.x + 56 * s as i32,
+            r.y + 48 * s as i32,
+            if self.palette_query().is_empty() {
+                "Zoek een app"
+            } else {
+                self.palette_query()
+            },
+            body,
+            if self.palette_query().is_empty() {
+                p.muted
+            } else {
+                p.text
+            },
+        );
+        c.fill_rect(
+            Rect::new(
+                r.x + 24 * s as i32,
+                r.y + 80 * s as i32,
+                r.width - 48 * s,
+                s,
+            ),
+            p.accent,
+        );
+        if self.palette.first_match().is_none() {
+            c.text(
+                r.x + 24 * s as i32,
+                r.y + 112 * s as i32,
+                "Geen app met deze naam",
+                body,
+                p.text,
+            );
+        }
+        for (index, name) in APP_NAMES.iter().enumerate() {
+            let Some(row) = self.palette_row(index) else {
+                continue;
+            };
+            if self.palette_selected() == Some(index) {
+                c.fill_rect(row, p.accent_soft);
+                c.fill_rect(Rect::new(row.x, row.y, 3 * s, row.height), p.accent);
+            }
+            c.icon(
+                Rect::new(row.x + 14 * s as i32, row.y + 14 * s as i32, 20 * s, 20 * s),
+                if index == 0 {
+                    Icon::Material
+                } else {
+                    Icon::Apps
+                },
+                p.accent,
+                s,
+            );
+            c.text(
+                row.x + 46 * s as i32,
+                row.y + 12 * s as i32,
+                name,
+                strong,
+                p.text,
+            );
+            c.text(
+                row.x + row.width as i32 - 86 * s as i32,
+                row.y + 16 * s as i32,
+                "Activeren",
+                small,
+                p.muted,
+            );
+        }
+        c.text(
+            r.x + 24 * s as i32,
+            r.y + 226 * s as i32,
+            "Pijltjes kiezen · Enter activeren",
+            small,
+            p.muted,
+        );
     }
 }
 
