@@ -139,6 +139,7 @@ pub extern "C" fn calculator_main() -> ! {
     )
     .unwrap_or_else(|_| fail(7));
     let mut app = App::new(input, surface, geometry, config.scale).unwrap_or_else(|_| fail(8));
+    app.enable_clipboard();
     let window_session = support::word(656) == 1;
     let mut paused = false;
     loop {

@@ -1075,6 +1075,11 @@ pub fn status_label(status: Status) -> &'static str {
         Status::Saved { .. } => "Op dit apparaat opgeslagen.",
         Status::Cancelled => "Opslaan geannuleerd. Je tekst blijft open.",
         Status::InputLost => "Invoer onderbroken. Je tekst blijft open.",
+        Status::ClipboardCopied => "Tekst gekopieerd.",
+        Status::ClipboardEmpty => "Het klembord is leeg.",
+        Status::ClipboardSelection => "Selecteer eerst tekst.",
+        Status::ClipboardTooLong => "Deze selectie past nog niet op het klembord.",
+        Status::ClipboardUnavailable => "Kopiëren of plakken onderbroken. Probeer opnieuw.",
         Status::Failed(UiError::InvalidUtf8) => "Dit bestand is geen geldige UTF-8-tekst.",
         Status::Failed(UiError::NoFreeObject) => "Er is geen ruimte voor een nieuw document.",
         Status::Failed(UiError::Storage(S::ReadOnly)) => {

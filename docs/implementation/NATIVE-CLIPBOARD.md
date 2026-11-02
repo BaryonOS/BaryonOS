@@ -40,7 +40,9 @@ bestaande gepinde zeroize1.9.1 gewist. Geen plaintextDebug/Clone.
 
 Een uitgestelde plakresponse bewaart alleen een ticket; de compositor
 controleert dat ticket en focus opnieuw bij iedere daadwerkelijke flush.
-Geen plaintext in pendingreplies nadat toestemming is vervallen. De app past
+Geen plaintext in pendingreplies nadat toestemming is vervallen. Al vóór intrekking
+succesvol naar de app geënqueuede tekst kan niet worden teruggehaald; de app
+past die tekst bij een Superseded-ACK niet toe en wist zijn tijdelijke kopie. De app past
 ontvangen tekst pas toe na de oorspronkelijke inputACKAcknowledged;
 Superseded wist de tijdelijke tekst en verandert het document niet.
 Rekenmachine valideert de complete tekst en resterende capaciteit vóór enige
@@ -71,3 +73,24 @@ metingen vastgelegd; invoerACK is geen voltooid beeld.
 
 Bewijs blijft per bronhash/build/profiel. Geen U02-punten voor alleen hosttests,
 een extra UI of nieuwe counters. Bestaande41/100 blijft tijdens implementatie.
+
+## Vooraf vastgelegde interactiemeting
+
+De eerste echte clipboardroute gebruikt de bestaande Linux/TCG-configuratie,
+één vCPU/256 MiB,1280×720 en een begrensde timeout van1800 s (gelijk aan de
+bestaande CI-gate). Zij behoudt alle oorspronkelijke dertien fasen en voegt
+clipboardstappen toe. De extra appbeeldintervallen worden vanaf de laatste
+QMP-toetsactie tot exact bevestigd volledig appbeeld geregistreerd. Ze omvatten
+QMP, hostobservatie en captures; geen gasttimestamp of echte schermlatency.
+Dit kleine aantal metingen sluit geen p50/p95-budget af.
+
+De aparte recorder tools/window_latency.py vereist een vooraf opgeslagen plan
+met bron-, profiel-, workload-, volledige beeldhash- en contextbinding. Voor de
+latere WHPX-referentie geldt als productdoel: p95 input/focus/appwissel maximaal
+100 ms, compleet beeld/plakken maximaal250 ms. Dat is voor deze recorder een
+conservatieve volledige-resultaatbovengrens, geen eerste-pixelmeting. Iedere
+richting is een apart stratum met minstens20 samples, drie koude starts, geen
+inputbursts en geen volgende invoer vóór exact stabiel doelbeeld. Workloads:
+A/Backspace in Materiaal, Tab/Shift-Tab, F6 en dockklik naar beide apps met een
+gerichte toets ter controle van routing. TCG-resultaten zijn geen WHPX-acceptatie.
+Geen nieuwe meetcounter vervangt de native beeld-/opslag-/herstelgate.

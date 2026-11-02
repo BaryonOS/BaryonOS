@@ -8,10 +8,15 @@ machtiging en atomische paste. Contract: implementation/NATIVE-CLIPBOARD.md.
 Inputclient/window-compositorbuilder werkt in aparte clipboard-broker-worktree;
 root bezit beide appadapters/controllermodel/fixtures/runner/docs. Latencyspoor
 onderzoekt invoer→beeld en focusbudgetten, eerst read-only. Geen kernel-ABI of
-nieuwe apparaatrechten. Implementatie/native acceptatie nog niet uitgevoerd;
-41/100 blijft41, U02/auth/volledige release blijven open. Eerstvolgend:
-klembordbroker en appmodellen implementeren, gericht hosttesten, integreren,
-no_std/ELF en de volledige brongebonden native route uitvoeren.
+nieuwe apparaatrechten. SDK en broker zijn geïntegreerd;68 componenthosttests en scalar builds slagen.
+UI-, Materiaal- en Rekenmachine-hosttests/Clippy/fmt slagen; atomische paste en
+selectie/context/feedback zijn toegevoegd. De nieuwe --clipboard-runner behoudt
+alle dertien bestaande native fasen en voegt volledige appbeeldorakels voor
+kopieer/plak, ongeschikte tekst, wissen en post-fault leegte toe. Zestien gerichte
+runner/latencyhelpertests slagen. LateACK-apptransportregressie en native
+acceptatie zijn nog open. 41/100 blijft41; U02/auth/volledige release blijven open.
+Eerstvolgend: apptransportnegatieven, gecombineerde no_std/ELF-build, freeze en
+werkelijke uitgebreide native gate met bron-/fixture-/pixel-/disk-/exitbinding.
 
 ## Vorig geïntegreerd checkpoint — desktop en GUI-idle
 

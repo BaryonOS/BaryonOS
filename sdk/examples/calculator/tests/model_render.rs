@@ -9,6 +9,76 @@ fn type_text(model: &mut Model, text: &str) {
         model.command(Command::Insert(byte));
     }
 }
+#[test]
+fn clipboard_paste_rejects_whole_invalid_values_without_partial_edit_or_evaluation() {
+    use nieuw_os_calculator::model::PasteError;
+    let mut model = Model::new();
+    type_text(&mut model, "2+3");
+    model.command(Command::Evaluate);
+    model.command(Command::SelectAll);
+    let before = (
+        model.expression().to_owned(),
+        model.caret(),
+        model.selection(),
+        model.answer(),
+        model.current(),
+        model.evaluations(),
+    );
+    for (value, error) in [
+        ("123x456", PasteError::Unsupported),
+        ("12\n3", PasteError::Unsupported),
+        ("é", PasteError::Unsupported),
+        ("", PasteError::Empty),
+    ] {
+        assert_eq!(model.paste_clipboard(value), Err(error));
+        assert_eq!(
+            (
+                model.expression().to_owned(),
+                model.caret(),
+                model.selection(),
+                model.answer(),
+                model.current(),
+                model.evaluations()
+            ),
+            before
+        );
+    }
+    assert_eq!(model.clipboard_selection(), "2+3");
+    model.paste_clipboard("6/2").unwrap();
+    assert_eq!(model.expression(), "6/2");
+    assert_eq!(model.caret(), 3);
+    assert!(model.selection().is_empty());
+    assert!(!model.current());
+    assert_eq!(model.evaluations(), 1, "pasting never evaluates");
+    assert_eq!(
+        model.answer(),
+        before.3,
+        "old answer retained, marked stale"
+    );
+    assert_eq!(
+        model.clipboard_selection(),
+        "",
+        "no whole-expression or answer fallback"
+    );
+}
+#[test]
+fn clipboard_paste_capacity_is_checked_before_replacing_selection_and_requires_field_focus() {
+    use nieuw_os_calculator::model::PasteError;
+    let mut model = Model::new();
+    type_text(&mut model, &"1".repeat(256));
+    model.command(Command::Left(true));
+    let selection = model.selection();
+    assert_eq!(model.paste_clipboard("22"), Err(PasteError::TooLong));
+    assert_eq!(model.expression(), "1".repeat(256));
+    assert_eq!(model.selection(), selection);
+    model.paste_clipboard("2").unwrap();
+    assert_eq!(model.expression(), format!("{}2", "1".repeat(255)));
+    model.command(Command::SelectAll);
+    model.command(Command::Tab(false));
+    assert_eq!(model.clipboard_selection(), "");
+    assert_eq!(model.paste_clipboard("3"), Err(PasteError::Inactive));
+    assert_eq!(model.expression().len(), 256);
+}
 fn key(model: &mut Model, key: PhysicalKey, shift: bool) {
     model.keyboard(KeyboardEvent {
         key,

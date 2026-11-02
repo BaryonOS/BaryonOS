@@ -255,3 +255,56 @@ fn render_window_draft_focus_loss_and_input_rebind_oracle() {
         }
     });
 }
+
+#[test]
+fn render_window_clipboard_oracles() {
+    run(|| {
+        let directory =
+            std::env::var_os("OS_WINDOW_FIXTURE_DIRECTORY").map(std::path::PathBuf::from);
+        for (width, height, scale) in PROFILES {
+            let host = Host::new();
+            let (mut draft, mut original, mut staging) = ([0; 4096], [0; 4096], [0; 4096]);
+            let mut ui = controller(
+                &host,
+                EditMode::ReadWrite,
+                Buffers {
+                    draft: &mut draft,
+                    original: &mut original,
+                    staging: &mut staging,
+                },
+            );
+            ui.resize(Viewport::new(width, height, scale, 1).unwrap())
+                .unwrap();
+            ui.set_compositor_cursor(true).unwrap();
+            ui.refresh().unwrap();
+            ui.create().unwrap();
+            let mut sequence = 0;
+            text(&mut ui, &mut sequence);
+            key(&mut ui, INPUT_EPOCH, &mut sequence, 1, PhysicalKey::A, true);
+            assert_eq!(ui.clipboard_selection(), Some(TEXT));
+            ui.clipboard_feedback(Status::ClipboardCopied).unwrap();
+            snapshot(&ui, "clipboard-copied", directory.as_deref());
+            key(
+                &mut ui,
+                INPUT_EPOCH,
+                &mut sequence,
+                1,
+                PhysicalKey::Digit3,
+                false,
+            );
+            key(&mut ui, INPUT_EPOCH, &mut sequence, 1, PhysicalKey::A, true);
+            ui.clipboard_feedback(Status::ClipboardCopied).unwrap();
+            snapshot(&ui, "clipboard-numeric", directory.as_deref());
+            key(&mut ui, INPUT_EPOCH, &mut sequence, 1, PhysicalKey::V, true);
+            ui.paste_clipboard("3+4").unwrap();
+            assert_eq!(ui.view().contents, Some("3+4"));
+            snapshot(&ui, "clipboard-back", directory.as_deref());
+            ui.clipboard_feedback(Status::ClipboardEmpty).unwrap();
+            snapshot(&ui, "clipboard-empty", directory.as_deref());
+            key(&mut ui, INPUT_EPOCH, &mut sequence, 1, PhysicalKey::A, true);
+            text(&mut ui, &mut sequence);
+            ui.clipboard_feedback(Status::ClipboardEmpty).unwrap();
+            snapshot(&ui, "clipboard-recovered-empty", directory.as_deref());
+        }
+    });
+}

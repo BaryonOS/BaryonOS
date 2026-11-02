@@ -29,6 +29,19 @@ pub enum Notice {
     Arithmetic(decimal::Error),
     TooLong,
     InputLost,
+    ClipboardCopied,
+    ClipboardEmpty,
+    ClipboardSelection,
+    ClipboardTooLong,
+    ClipboardUnavailable,
+    ClipboardUnsupported,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PasteError {
+    Empty,
+    TooLong,
+    Unsupported,
+    Inactive,
 }
 impl Notice {
     pub const fn label(self) -> &'static str {
@@ -37,6 +50,12 @@ impl Notice {
             Self::None => "",
             Self::TooLong => "Maximaal 256 tekens.",
             Self::InputLost => "Invoerverbinding verbroken.",
+            Self::ClipboardCopied => "Tekst gekopieerd.",
+            Self::ClipboardEmpty => "Het klembord is leeg.",
+            Self::ClipboardSelection => "Selecteer eerst tekst.",
+            Self::ClipboardTooLong => "Deze selectie past nog niet op het klembord.",
+            Self::ClipboardUnavailable => "Kopiëren of plakken onderbroken. Probeer opnieuw.",
+            Self::ClipboardUnsupported => "Plak cijfers, + - * / ( ) en een komma of punt.",
             Self::Arithmetic(error) => match error.kind {
                 Kind::Range => "Maximaal 10 gehele cijfers.",
                 Kind::Nesting => "Maximaal 32 geneste tekens.",
@@ -100,6 +119,57 @@ impl Model {
     }
     pub fn selection(&self) -> core::ops::Range<usize> {
         self.anchor.min(self.caret)..self.anchor.max(self.caret)
+    }
+    /// App-local selection only; input authority is checked by the broker.
+    /// An old answer or the whole expression is never a selection fallback.
+    pub fn clipboard_selection(&self) -> &str {
+        if self.active && self.focus == 0 {
+            &self.expression()[self.selection()]
+        } else {
+            ""
+        }
+    }
+    pub fn clipboard_notice(&mut self, notice: Notice) {
+        if !self.exhausted {
+            self.notice = notice;
+            self.changed();
+        }
+    }
+    /// Validate every byte and the final size before erasing a selection.
+    /// This edits text only; pasted operators never trigger evaluation.
+    pub fn paste_clipboard(&mut self, value: &str) -> Result<(), PasteError> {
+        let error = if self.exhausted || !self.active || self.focus != 0 {
+            Some((PasteError::Inactive, Notice::ClipboardUnavailable))
+        } else if value.is_empty() {
+            Some((PasteError::Empty, Notice::ClipboardEmpty))
+        } else if value.len() > MAX_INPUT
+            || self.length - self.selection().len() > MAX_INPUT - value.len()
+        {
+            Some((PasteError::TooLong, Notice::TooLong))
+        } else if !value.bytes().all(|byte| {
+            matches!(
+                byte,
+                b'0'..=b'9' | b'+' | b'-' | b'*' | b'/' | b'(' | b')' | b'.' | b',' | b' '
+            )
+        }) {
+            Some((PasteError::Unsupported, Notice::ClipboardUnsupported))
+        } else {
+            None
+        };
+        if let Some((error, notice)) = error {
+            self.clipboard_notice(notice);
+            return Err(error);
+        }
+        self.erase(self.selection());
+        self.bytes
+            .copy_within(self.caret..self.length, self.caret + value.len());
+        self.bytes[self.caret..self.caret + value.len()].copy_from_slice(value.as_bytes());
+        self.length += value.len();
+        self.caret += value.len();
+        self.anchor = self.caret;
+        self.selecting = false;
+        self.edited();
+        Ok(())
     }
     pub const fn answer(&self) -> Option<Evaluation> {
         self.answer
