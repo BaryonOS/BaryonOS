@@ -3,9 +3,9 @@
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 37% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 41% van de vaste productroadmap](docs/assets/progress.svg)
 
-**37% — 37 van 100 gewogen acceptatiepunten.** Dit is een
+**41% — 41 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -22,20 +22,20 @@ alleen een nette desktop haalt die eindgrens niet.
 | Eigen kern en procesisolatie | 15 | 13 |
 | Opslag en gegevensherstel | 15 | 13 |
 | Hardware, drivers en energie | 12 | 1 |
-| Native Materiaal en toegankelijkheid | 15 | 0 |
+| Native Materiaal en toegankelijkheid | 15 | 4 |
 | Internet en netwerkdiensten | 10 | 3 |
 | Beveiliging, privacy en updates | 12 | 4 |
 | Apps, SDK en installatie | 8 | 2 |
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **37** |
+| **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`1f2ac0ae`](https://github.com/simonvanieperen/nieuw-os/commit/1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b) ·
-**Ontwikkelbranch:** `codex/window-idle-wait-20261102`.
-Deze opdracht: **37% → 37% (+0 procentpunt)**. **Opdracht:** GUI IPC_WAIT: zes volledige Windows-native A/B-proeven.
-37/100 blijft op deze lokale checkpointbasis gelijk; geen punten voor een performanceoptimalisatie. Op exactgeteste1f2-bron slagen6/6 volledige Windows/WHPX-gates met dezelfde beelden en crash/herstel/opslag/cleanup. ProcesCPU daalt mediaan88,26% (99,37 naar11,67% van één logischeCPU). Gerichte host/native-componentcontroles slagen. Centrale integrator behandelt U01/41 en CI/TCG-opname afzonderlijk; geen hoofdbranchmerge, fysieke of echteauthclaim.
+**Bron:** [`337f2f29`](https://github.com/simonvanieperen/nieuw-os/commit/337f2f29f1833ef4a8d2cd640b09419f85dbb83b) ·
+**Ontwikkelbranch:** `codex/mature-native-session-20261102`.
+Deze opdracht: **37% → 41% (+4 procentpunt)**. **Opdracht:** Native compositor/venstersessie U01 volledig geaccepteerd.
+41/100: U01 krijgt4vastepunten naast eerder geaccepteerdeN01. Op exact337/source39194035 slagen alle13nativefasen in eigen cloud-VM, in CI en gerapporteerd op Windows/WHPX: focus/drag, echte compositorfault, retirement/freshgroep, behoud van draft/berekening, complete pixels zonder maskers, save/list/reopen, onafhankelijke diskoracle en nul resources. Alle18CI-workflows op337 zijn groen. Bron/beelden/bytes/serial/pakket zijn herleidbaar vastgelegd. Eerdere rode uitvoeringen blijven rood bewaard. U02 blijft open; PR123-idlecode/pilot/formeleCPUproeven worden apart gereviewd en nog niet als algemene latency-/release-/auth-/hardwareacceptatie geteld.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

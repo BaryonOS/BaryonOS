@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b",
-    "branch": "codex/window-idle-wait-20261102",
-    "task": "GUI IPC_WAIT: zes volledige Windows-native A/B-proeven",
+    "source_commit": "337f2f29f1833ef4a8d2cd640b09419f85dbb83b",
+    "branch": "codex/mature-native-session-20261102",
+    "task": "Native compositor/venstersessie U01 volledig geaccepteerd",
     "previous_score": 37,
-    "summary": "37/100 blijft op deze lokale checkpointbasis gelijk; geen punten voor een performanceoptimalisatie. Op exactgeteste1f2-bron slagen6/6 volledige Windows/WHPX-gates met dezelfde beelden en crash/herstel/opslag/cleanup. ProcesCPU daalt mediaan88,26% (99,37 naar11,67% van één logischeCPU). Gerichte host/native-componentcontroles slagen. Centrale integrator behandelt U01/41 en CI/TCG-opname afzonderlijk; geen hoofdbranchmerge, fysieke of echteauthclaim."
+    "summary": "41/100: U01 krijgt4vastepunten naast eerder geaccepteerdeN01. Op exact337/source39194035 slagen alle13nativefasen in eigen cloud-VM, in CI en gerapporteerd op Windows/WHPX: focus/drag, echte compositorfault, retirement/freshgroep, behoud van draft/berekening, complete pixels zonder maskers, save/list/reopen, onafhankelijke diskoracle en nul resources. Alle18CI-workflows op337 zijn groen. Bron/beelden/bytes/serial/pakket zijn herleidbaar vastgelegd. Eerdere rode uitvoeringen blijven rood bewaard. U02 blijft open; PR123-idlecode/pilot/formeleCPUproeven worden apart gereviewd en nog niet als algemene latency-/release-/auth-/hardwareacceptatie geteld."
   },
   "tracks": [
     {
@@ -259,9 +259,13 @@
           "id": "U01",
           "title": "Native compositor en sessie",
           "points": 4,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "De eigen kernel draait een interactieve grafische sessie met render- en inputketen, venster/surface-isolatie en gecontroleerd compositorherstel.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/mature-session-20261102/U01-ACCEPTANCE.md",
+            "docs/verification/mature-session-20261102/U01-ACCEPTANCE.json",
+            "docs/verification/mature-session-20261102/window-337-ci-verification.json"
+          ]
         },
         {
           "id": "U02",
