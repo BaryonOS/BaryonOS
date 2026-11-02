@@ -253,6 +253,10 @@ profiel geen ciphertext op schijf onder een niet-duurzaam vastgelegde
 sleutelallocatie. Die volgorde wordt door het init/app-protocol geborgd, niet
 door de volume- of Key Service: een niet-coöperatieve app kan nog steeds eerder
 committen. Afdwinging hoort bij de nog open write-ahead in de Key Service.
+Specificatie: [B02-SECURE-RECORDS.md](implementation/B02-SECURE-RECORDS.md);
+native deelbewijs (QEMU, gedefinieerde profielen, geen fysieke hardware):
+`docs/verification/full-release-b02-keystate-*` en
+[full-release-b02-review-followup](verification/full-release-b02-review-followup/).
 Bij koude herstart op de ongewijzigde read-only image herstelt init de exacte
 toestand vóór enig sleutelwerk; een verkeerd geheim, een hogere generatievloer
 en een sleutelopcode op het admin-ingress worden geweigerd en geteld.
@@ -278,10 +282,13 @@ in de dienst zelf en een echte volume-identiteit (nu de profielconstante
 `NOS-SYSTEM-VOL01`) blijven open. De SDK-eigen Message320-envelope-/stagingbytes
 worden sinds de B02-IPC-hygiënecheck wel gewist; caller-owned request-arrays en
 compiler-/registerkopieën vallen daar niet onder.
-De afzendercontrole van het admin-ingress heeft in dit profiel geen
-uitgevoerd native tegenvoorbeeld (geen ander proces bezit een SEND); dat is een
-open bewijs, geen impliciete goedkeuring.
-B02 blijft daarom open; de score verandert niet. Rollback: verwijder de twee
+Dat de app geen SEND naar het admin-ingress bezit, controleert het manifest
+sinds INT3-FU-116 op het manifestmoment over de volledige app-handletabel:
+objectvergelijking per handle (`APP_ADMIN_HANDLE`) plus een exacte telling van
+de bezette app-slots (`APP_HANDLE_COUNT`). De afzendercontrole van het
+admin-ingress in de Key Service heeft in dit profiel nog geen uitgevoerd native
+tegenvoorbeeld (geen ander proces bezit een SEND); dat is een open bewijs, geen
+impliciete goedkeuring. B02 blijft daarom open; de score verandert niet. Rollback: verwijder de twee
 opcodes, het admin-ingress en de init-/appstappen; bestaande KEY1-codes,
 formaten en het B01-profiel zijn ongewijzigd.
 

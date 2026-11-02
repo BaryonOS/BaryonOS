@@ -43,6 +43,67 @@
         "exit_code": 0
       }
     ],
+    "integration_preservation": {
+      "date": "2026-11-02",
+      "base_commit": "c66b593dda8d651e3cc73f0fe65bbe72ff7c7de7",
+      "incoming_commit": "fb1e1a5c25429a0495e861f01602d4c0691f4f03",
+      "reason": "The previous integration contained PR120 only through 562be4d, not its later review followups. Merge those followups while retaining PR125's serial allowlist and explicit mandate correction.",
+      "checks": [
+        {
+          "command": "python3 -B -m unittest discover -s tests -p 'test_nas_*.py' -v",
+          "exit_code": 0,
+          "tests": 39,
+          "log": "/tmp/nieuw-os-pr125-preservation-nas-all.log"
+        },
+        {
+          "command": "python3 -B -m unittest discover -s tests -p 'test_volume_runner.py' -v",
+          "exit_code": 0,
+          "tests": 3,
+          "log": "/tmp/nieuw-os-pr125-preservation-volume.log"
+        },
+        {
+          "command": "python3 -B -m unittest discover -s services/nas/native-probe/tests -p 'test_*.py' -v",
+          "exit_code": 0,
+          "tests": 17,
+          "log": "/tmp/nieuw-os-pr125-preservation-replay.log"
+        },
+        {
+          "command": "python3 -B tools/tests/test_materiaal_probe.py",
+          "exit_code": 0,
+          "tests": 23,
+          "log": "/tmp/nieuw-os-pr125-preservation-materiaal.log"
+        },
+        {
+          "command": "cargo fmt --all -- --check && cargo fmt --manifest-path sdk/examples/materiaal/Cargo.toml --all -- --check",
+          "exit_code": 0,
+          "log": "/tmp/nieuw-os-pr125-preservation-fmt.log"
+        },
+        {
+          "command": "cargo clippy --offline --locked -p capability-core --all-targets --target-dir target/pr125-preservation -- -D warnings",
+          "exit_code": 0,
+          "log": "/tmp/nieuw-os-pr125-preservation-clippy.log"
+        },
+        {
+          "command": "cargo test --offline --locked -p capability-core --target-dir target/pr125-preservation manifest_handle_count_tests",
+          "exit_code": 101,
+          "result": "Tests not executed: host linker cc is unavailable. Initial offline dependency miss was resolved by cargo fetch --locked; no manifests or lockfiles changed.",
+          "log": "/tmp/nieuw-os-pr125-preservation-capability.log"
+        }
+      ],
+      "toolchain_path_prefix": "/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin",
+      "historical_ci_binding": {
+        "head": "c66b593dda8d651e3cc73f0fe65bbe72ff7c7de7",
+        "base": "e08fb0e48c1bb0781e98357f588c2f73b6ae8500",
+        "checkout_merge": "ef0796b5263958107d17e1a52b9fea83768e1797",
+        "tree_shared_by_merge_and_head": "1174b01d9fbc0c245f751c5507acd7502696f25d",
+        "nas_run": 41524587617,
+        "nas_artifact": 13178348721,
+        "nas_result": "success; API parents and tree match verified. Predates this integration delta."
+      },
+      "not_run": [
+        "Native runtime and full CI on the newly combined source; fresh exact-head gates remain required."
+      ]
+    },
     "not_run": [
       "Exact-head CI for the review follow-up delta; the earlier 2b479c1 remote results predate this delta."
     ]

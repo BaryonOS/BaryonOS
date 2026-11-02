@@ -12,6 +12,31 @@ import test_nas as runner
 
 
 PAYLOAD = bytes(range(1, 41)) + bytes(range(101, 141))
+SESSION, UPLOAD = PAYLOAD[:40], PAYLOAD[40:]
+# Independent of the runner: every 16-byte window of each 40-byte token.
+WINDOWS = [token[start:start + 16] for token in (SESSION, UPLOAD) for start in range(25)]
+
+
+class FakeQemu:
+    """Stand-in at the subprocess.Popen boundary: exact stdout/stderr bytes, exit 33.
+
+    It mocks only the QEMU process; it proves how the runner handles raw
+    output, not that a guest ran."""
+
+    def __init__(self, stdout, stderr):
+        self.stdout, self.stderr, self.returncode = io.BytesIO(stdout), io.BytesIO(stderr), 33
+
+    def communicate(self, timeout=None):
+        return self.stdout.read(), self.stderr.read()
+
+    def poll(self):
+        return self.returncode
+
+    def wait(self, timeout=None):
+        return self.returncode
+
+    def kill(self):
+        pass
 
 
 def transcript(case):
@@ -125,9 +150,8 @@ class NasLifecycleTests(unittest.TestCase):
         self.qemu.write_bytes(b"\x7fELF synthetic test implementation")
         self.mutation = None
         self.capture = runner.REPLAY_MAGIC + PAYLOAD
-        self.serial_extra = ""
-        self.raw_serial_extra = b""
-        self.raw_stderr_extra = b""
+        self.capture_mode = None
+        self.serial_extra, self.stderr_extra, self.outputs = {}, {}, {}
         self.executions = 0
         self.handoff = runner.private_handoff_dir()
         self.addCleanup(runner.shutil.rmtree, self.handoff, True)
@@ -137,7 +161,7 @@ class NasLifecycleTests(unittest.TestCase):
             (runner, "environment", lambda: {"PATH": ""}),
             (runner, "build", self.fake_build),
             (runner, "firmware", lambda: (self.code, self.variables)),
-            (runner, "execute", self.fake_execute),
+            (runner.subprocess, "Popen", self.fake_popen),
             (runner, "check_nas_disk", lambda *args: {"synthetic": True}),
             (runner.shutil, "which", lambda *args, **kwargs: str(self.qemu)),
             (runner.subprocess, "check_output",
@@ -160,7 +184,7 @@ class NasLifecycleTests(unittest.TestCase):
             "loader": {"sha256": runner.sha256(esp / "EFI/BOOT/BOOTX64.EFI")},
         }
 
-    def fake_execute(self, command, _env, **kwargs):
+    def fake_popen(self, command, **_kwargs):
         self.executions += 1
         first_drive = command[command.index("-drive") + 1]
         run = (runner.ROOT / first_drive.split("file=", 1)[1]).parent
@@ -169,18 +193,44 @@ class NasLifecycleTests(unittest.TestCase):
         case = "recover" if "nas-recover-" in str(run) else "normal"
         if case == "normal":
             chardev = command[command.index("-chardev") + 1]
-            Path(chardev.split("path=", 1)[1]).write_bytes(self.capture)
+            capture_path = Path(chardev.split("path=", 1)[1])
+            capture_path.write_bytes(self.capture)
+            if self.capture_mode is not None:
+                capture_path.chmod(self.capture_mode)
         else:
             fw_cfg = command[command.index("-fw_cfg") + 1]
             self.cold_input_seen = Path(fw_cfg.split("file=", 1)[1]).read_bytes()
-        serial = transcript(case) + self.serial_extra
-        raw_serial = serial.encode("utf-8") + self.raw_serial_extra
-        return (33, raw_serial.decode("utf-8", "replace"), "", False, False, False,
-                raw_serial, self.raw_stderr_extra)
+        stdout = transcript(case).encode() + self.serial_extra.get(case, b"")
+        stderr = self.stderr_extra.get(case, b"")
+        self.outputs[case] = (stdout, stderr)
+        return FakeQemu(stdout, stderr)
 
     def run_silently(self, case="normal", parent=None):
         with contextlib.redirect_stdout(io.StringIO()):
             return runner.run_case(case, parent, self.handoff)
+
+    def assert_leak_fails(self, case="normal", parent=None, *labels):
+        report = self.run_silently(case, parent)
+        self.assertIs(report["passed"], False)
+        for label in labels:
+            self.assertIn(label, report.get("error", ""))
+        run = Path(report["run_directory"])
+        for name, original in zip(("serial", "stderr"), self.outputs[case]):
+            archived = (run / f"{name}.txt").read_text()
+            self.assertTrue(archived.startswith("REDACTED"), name)
+            self.assertIn(runner.hashlib.sha256(original).hexdigest(), archived)
+            self.assertNotIn("NAS:CASE:", archived)
+        return report
+
+    def assert_no_token_material(self, *folders):
+        for folder in (self.base, *folders):
+            for path in folder.rglob("*"):
+                if not path.is_file():
+                    continue
+                data = path.read_bytes()
+                for window in WINDOWS:
+                    self.assertNotIn(window, data, path)
+                    self.assertNotIn(window.hex().encode(), data.lower(), path)
 
     def test_exact_pair_reaches_the_cold_vm_only_through_the_private_handoff(self):
         parent = self.run_silently()
@@ -192,6 +242,10 @@ class NasLifecycleTests(unittest.TestCase):
         cold = self.run_silently("recover", parent)
         self.assertIs(cold["passed"], True, cold.get("error"))
         self.assertEqual(self.cold_input_seen, PAYLOAD)
+        for report in (parent, cold):
+            run = Path(report["run_directory"])
+            self.assertEqual((run / "serial.txt").read_text(), transcript(report["case"]))
+            self.assertEqual((run / "stderr.txt").read_text(), "")
         self.assertEqual(cold["replay_input"]["payload_sha256"], binding["payload_sha256"])
         self.assertNotIn(PAYLOAD.hex(), runner.json.dumps(cold))
         for path in self.handoff.iterdir():
@@ -207,36 +261,127 @@ class NasLifecycleTests(unittest.TestCase):
                 self.capture = capture
                 self.assertIs(self.run_silently()["passed"], False)
 
-    def test_token_bytes_in_archived_serial_fail_the_run(self):
-        leaks = (PAYLOAD.hex().encode(), PAYLOAD[:40].hex().encode(),
-                 PAYLOAD[40:].hex().encode(), PAYLOAD)
-        for leak in leaks:
-            with self.subTest(leak=leak[:12]):
-                self.serial_extra = ""
-                self.raw_serial_extra = b""
-                self.raw_stderr_extra = b""
-                if leak == PAYLOAD:
-                    self.raw_serial_extra = leak
-                else:
-                    self.serial_extra = leak.decode("ascii") + "\n"
-                result = self.run_silently()
-                self.assertIs(result["passed"], False)
-                run = Path(result["run_directory"])
-                artifacts = b"".join(path.read_bytes() for path in run.iterdir() if path.is_file())
-                self.assertNotIn(leak, artifacts)
-                self.assertNotIn(PAYLOAD.hex().encode(), artifacts)
-                self.assertNotIn(PAYLOAD[:40].hex().encode(), artifacts)
-                self.assertNotIn(PAYLOAD[40:].hex().encode(), artifacts)
-                self.assertIn(b"NAS:OUTPUT:REDACTED", (run / "serial.txt").read_bytes())
+    def test_archive_filters_unlisted_lines_after_raw_validation(self):
+        self.serial_extra["normal"] = b"unlisted debug output\n"
+        report = self.run_silently()
+        self.assertIs(report["passed"], True, report.get("error"))
+        archived = (Path(report["run_directory"]) / "serial.txt").read_text()
+        self.assertNotIn("unlisted debug output", archived)
+        self.assertEqual(archived, transcript("normal") + "NAS:OUTPUT:REDACTED\n")
 
-    def test_token_bytes_on_stderr_are_not_archived(self):
-        self.raw_stderr_extra = PAYLOAD
-        result = self.run_silently()
-        self.assertIs(result["passed"], False)
-        run = Path(result["run_directory"])
-        artifacts = b"".join(path.read_bytes() for path in run.iterdir() if path.is_file())
-        self.assertNotIn(PAYLOAD, artifacts)
-        self.assertIn(b"withheld", (run / "stderr.txt").read_bytes())
+    def test_misframed_capture_is_searched_whole_and_redacted(self):
+        # A second exported pair and a junk-prefixed frame both fail framing;
+        # the leak check must still see every captured byte (fail closed).
+        second = bytes(range(160, 240))
+        cases = (
+            ("double-frame", runner.REPLAY_MAGIC + PAYLOAD + runner.REPLAY_MAGIC + second, second[:40]),
+            ("junk-prefix", bytes(64) + runner.REPLAY_MAGIC + PAYLOAD, SESSION),
+            ("wrong-magic", b"NOSRPL02" + PAYLOAD, SESSION[8:32]),
+        )
+        for name, capture, leaked in cases:
+            with self.subTest(case=name):
+                for path in list(self.handoff.iterdir()):
+                    path.unlink()
+                self.capture = capture
+                self.serial_extra["normal"] = leaked.hex().encode() + b"\n"
+                self.assert_leak_fails("normal", None, "capture:serial:hex")
+                for run in (self.base / "build").rglob("nas-normal-*"):
+                    if run.is_dir() and (run / "serial.txt").exists():
+                        self.assertNotIn(leaked.hex(), (run / "serial.txt").read_text().lower())
+
+    def test_unreadable_or_oversize_capture_redacts_output_without_a_reference(self):
+        for name, capture, mode in (("oversize", runner.REPLAY_MAGIC + PAYLOAD + bytes(runner.CAPTURE_LIMIT), None),
+                                    ("group-readable", runner.REPLAY_MAGIC + PAYLOAD, 0o644)):
+            with self.subTest(case=name):
+                for path in list(self.handoff.iterdir()):
+                    path.unlink()
+                self.capture, self.capture_mode = capture, mode
+                self.assert_leak_fails("normal", None, "reference-unavailable")
+        self.capture_mode = None
+
+    def test_realistic_shared_prefix_tokens_are_detected_without_false_positives(self):
+        # services/nas/native-core encode_token: boot(32 random, shared) || le64(serial).
+        boot = bytes(range(200, 232))
+        session, upload = boot + (1).to_bytes(8, "little"), boot + (2).to_bytes(8, "little")
+        references = runner.pair_references(session + upload)
+        self.assertEqual(runner.token_leaks({"serial": transcript("normal").encode()}, references), [])
+        found = runner.token_leaks({"serial": b"x " + upload.hex().encode()}, references)
+        self.assertIn("upload:serial:hex", found)
+
+    def test_token_leaks_checks_every_window_of_both_tokens(self):
+        references = runner.pair_references(PAYLOAD)
+        for window in WINDOWS:
+            for form, data in (("raw", window), ("hex", window.hex().encode())):
+                with self.subTest(window=window[:2].hex(), form=form):
+                    self.assertTrue(runner.token_leaks({"serial": b"<" + data + b">"}, references))
+        self.assertEqual(runner.token_leaks({"serial": SESSION[:15].hex().encode()}, references), [])
+
+    def test_empty_capture_is_not_redacted_and_fails_on_framing(self):
+        self.capture = b""
+        report = self.run_silently()
+        self.assertIs(report["passed"], False)
+        archived = (Path(report["run_directory"]) / "serial.txt").read_text()
+        self.assertFalse(archived.startswith("REDACTED"))
+
+    def test_token_bytes_in_archived_serial_fail_the_run(self):
+        self.serial_extra["normal"] = PAYLOAD.hex().encode() + b"\n"
+        self.assertIs(self.run_silently()["passed"], False)
+
+    def test_session_token_alone_as_hex_fails_the_run(self):
+        self.serial_extra["normal"] = b"debug " + SESSION.hex().encode() + b"\n"
+        self.assert_leak_fails("normal", None, "session:serial:hex")
+
+    def test_upload_token_alone_fails_the_run(self):
+        self.serial_extra["normal"] = UPLOAD.hex().encode() + b"\n"
+        report = self.assert_leak_fails("normal", None, "upload:serial:hex")
+        # Holds only for this synthetic disjoint fixture; real tokens share a
+        # 32-byte prefix (see test_realistic_shared_prefix_tokens_...).
+        self.assertNotIn("session:", report["error"])
+
+    def test_uppercase_hex_token_fails_the_run(self):
+        self.serial_extra["normal"] = UPLOAD.hex().upper().encode() + b"\n"
+        self.assert_leak_fails("normal", None, "upload:serial:hex")
+
+    def test_raw_token_bytes_fail_the_run_before_text_decoding(self):
+        # UPLOAD contains 0x80..0x8c: not valid UTF-8, so a decoded-text
+        # search can never see these bytes.
+        for token, label in ((UPLOAD, "upload:serial:raw"), (SESSION, "session:serial:raw")):
+            with self.subTest(label=label):
+                self.serial_extra["normal"] = b"\x00" + token + b"\n"
+                self.assert_leak_fails("normal", None, label)
+
+    def test_every_16_byte_token_window_fails_the_run(self):
+        for token, start, form, label in ((SESSION, 0, "hex", "session:serial:hex"),
+                                          (SESSION, 12, "hex", "session:serial:hex"),
+                                          (SESSION, 24, "raw", "session:serial:raw"),
+                                          (UPLOAD, 7, "raw", "upload:serial:raw"),
+                                          (UPLOAD, 24, "hex", "upload:serial:hex")):
+            with self.subTest(label=label, start=start):
+                window = token[start:start + 16]
+                self.serial_extra["normal"] = (window.hex().encode() if form == "hex" else window) + b"\n"
+                self.assert_leak_fails("normal", None, label)
+        # Documented threshold (LEAK_WINDOW): shorter fragments are not matched.
+        self.serial_extra["normal"] = SESSION[:15].hex().encode() + b"\n"
+        self.assertIs(self.run_silently()["passed"], True)
+
+    def test_token_leak_in_qemu_stderr_fails_the_run(self):
+        self.stderr_extra["normal"] = b"qemu: " + SESSION.hex().encode() + b"\n"
+        self.assert_leak_fails("normal", None, "session:stderr:hex")
+
+    def test_cold_run_token_leak_is_detected_before_archiving(self):
+        parent = self.run_silently()
+        self.assertIs(parent["passed"], True, parent.get("error"))
+        self.serial_extra["recover"] = SESSION.hex().encode() + b"\n"
+        self.assert_leak_fails("recover", parent, "session:serial:hex")
+        self.assert_no_token_material()
+
+    def test_leaking_run_leaves_no_original_output_on_disk(self):
+        self.serial_extra["normal"] = b"debug " + PAYLOAD.hex().encode() + b"\n"
+        self.stderr_extra["normal"] = b"qemu: " + UPLOAD + b"\n"
+        report = self.assert_leak_fails("normal", None, "session:serial:hex", "upload:stderr:raw")
+        self.assertEqual(sorted(path.name for path in self.handoff.iterdir()), [])
+        self.assert_no_token_material(self.handoff)
+        self.assertNotIn(PAYLOAD.hex(), runner.json.dumps(report))
 
     def test_cold_run_refuses_a_changed_or_unbound_handoff(self):
         parent = self.run_silently()
@@ -266,6 +411,33 @@ class NasLifecycleTests(unittest.TestCase):
 
         self.mutation = mutate
         self.assertIs(self.run_silently("recover", parent)["passed"], False)
+
+    def test_refused_handoff_directory_inside_the_checkout_is_removed(self):
+        inside = self.base / "handoff-inside-checkout"
+        inside.mkdir()
+        with patch.object(runner.tempfile, "mkdtemp", lambda **_kwargs: str(inside)):
+            with self.assertRaisesRegex(ValueError, "outside the checkout"):
+                runner.private_handoff_dir()
+        self.assertFalse(inside.exists())
+
+    def test_gate_removes_the_handoff_directory_on_leak_and_unexpected_error(self):
+        made, original = [], runner.private_handoff_dir
+
+        def handoff_dir():
+            made.append(original())
+            return made[-1]
+
+        self.serial_extra["normal"] = SESSION.hex().encode() + b"\n"
+        with patch.object(runner, "private_handoff_dir", handoff_dir):
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(runner.main(), 1)
+            with patch.object(runner, "run_case", side_effect=TypeError("unexpected")):
+                with self.assertRaises(TypeError), contextlib.redirect_stdout(io.StringIO()):
+                    runner.main()
+        self.assertEqual(len(made), 2)
+        for directory in made:
+            self.assertFalse(directory.exists(), directory)
+        self.assert_no_token_material()
 
     def test_runs_without_a_private_handoff_directory_are_refused(self):
         with self.assertRaisesRegex(ValueError, "handoff"):

@@ -18,7 +18,6 @@ from build import build
 from common import ROOT, BUILD, environment, firmware, qemu_machine, save_json, sha256, source_hash
 from run_fpu import BOOT, private_path
 from run_system import check_esp, check_image
-from run_volume import execute
 import volume_disk
 
 sys.path.insert(0, str(ROOT / "services/nas/native-probe"))
@@ -34,14 +33,38 @@ REPLAY_MAGIC = b"NOSRPL01"
 REPLAY_PORT = "0x4f8"
 REPLAY_FW_CFG = "opt/nieuw-os/nas-replay"
 CAPTURE_STAGE = "normal-after-stage"
+# Upper bound for reading a possibly malformed normal-guest capture.
+CAPTURE_LIMIT = 4096
+# Token leak check (#119). Both 40-byte tokens of the pair (session =
+# pair[:40], pending upload = pair[40:]) are searched separately as every
+# contiguous 16-byte window, raw and as case-insensitive hex, in the exact
+# QEMU stdout (COM1 serial) and stderr bytes before any decoding or write to
+# the run directory. A full token always contains its windows. Real tokens
+# are boot(32 random bytes, shared by session and upload) || le64(serial)
+# (services/nas/native-core encode_token), so every window carries at least
+# 64 random bits: an accidental match in n output bytes has probability of
+# order n * 100 / 2**64, so clean runs do not fail by chance, while any copy
+# of 16 or more contiguous token bytes (half a token, a truncated print) is
+# caught. Because of the shared prefix, a session-only leak can also report
+# an upload label and vice versa. A capture that is not exactly one
+# MAGIC + 80-byte frame is treated as wholly secret: every 16-byte window of
+# all captured bytes is searched (fail closed on misframing; an empty capture
+# exported nothing and stays debuggable). Not detected: shorter fragments and
+# other encodings (base64, decimal, separated hex, UTF-16).
+TOKEN_BYTES = 40
+LEAK_WINDOW = 16
 
 
 def private_handoff_dir() -> Path:
     directory = Path(tempfile.mkdtemp(prefix="nos-nas-replay-"))
-    directory.chmod(0o700)
-    resolved, root = directory.resolve(strict=True), ROOT.resolve(strict=True)
-    if resolved == root or root in resolved.parents:
-        raise ValueError("NAS replay handoff directory must be outside the checkout")
+    try:
+        directory.chmod(0o700)
+        resolved, root = directory.resolve(strict=True), ROOT.resolve(strict=True)
+        if resolved == root or root in resolved.parents:
+            raise ValueError("NAS replay handoff directory must be outside the checkout")
+    except BaseException:
+        shutil.rmtree(directory, ignore_errors=True)
+        raise
     return resolved
 
 
@@ -50,25 +73,86 @@ def new_private_file(path: Path) -> None:
     os.close(descriptor)
 
 
-def leaks_payload(output: str | bytes, payload: bytes) -> bool:
-    raw = output if isinstance(output, bytes) else output.encode("utf-8", "replace")
-    text = output.decode("latin-1") if isinstance(output, bytes) else output
-    raw_lower = raw.lower()
-    for token in (payload[:40], payload[40:], payload):
-        if (token in raw or token.hex().encode("ascii") in raw_lower
-                or token.decode("latin-1") in text):
-            return True
-    return False
+def execute_raw(command, env, *, timeout):
+    """Run QEMU once; return (exit, stdout bytes, stderr bytes, timed_out).
+
+    run_volume.execute decodes output as UTF-8 with replacement, which loses
+    raw token bytes; the leak check needs the exact bytes."""
+    process = subprocess.Popen(command, cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    try:
+        stdout, stderr = process.communicate(timeout=timeout)
+        return process.returncode, stdout, stderr, False
+    except subprocess.TimeoutExpired:
+        process.kill()
+        stdout, stderr = process.communicate()
+        return process.returncode, stdout, stderr, True
+    finally:
+        if process.poll() is None:
+            process.kill()
+            process.wait()
 
 
-def captured_payload(capture: Path) -> bytes:
-    raw = replay_handoff._private_file(capture, ROOT, len(REPLAY_MAGIC) + replay_handoff.TOKEN_PAIR_BYTES)
-    if len(raw) != len(REPLAY_MAGIC) + replay_handoff.TOKEN_PAIR_BYTES or not raw.startswith(REPLAY_MAGIC):
-        raise ValueError("NAS replay capture is not exactly one framed 80-byte pair")
-    payload = raw[len(REPLAY_MAGIC):]
-    if not any(payload[:40]) or not any(payload[40:]):
-        raise ValueError("NAS replay capture lacks a session or upload")
-    return payload
+def read_capture(capture: Path) -> bytes | None:
+    """The normal guest's private debugcon bytes; None if unreadable (fail closed)."""
+    try:
+        return replay_handoff._private_file(capture, ROOT, CAPTURE_LIMIT)
+    except replay_handoff.HandoffError:
+        return None
+
+
+def leak_references(captured: bytes) -> list[tuple[str, bytes]]:
+    """Secret byte strings to search for, from the normal guest's capture.
+
+    Exactly one MAGIC + 80-byte frame yields the two labelled tokens. Any
+    other non-empty capture (double export, junk prefix, wrong magic, short)
+    is searched as a whole, so no exported byte escapes the check."""
+    body = captured[len(REPLAY_MAGIC):]
+    if captured.startswith(REPLAY_MAGIC) and len(body) == 2 * TOKEN_BYTES:
+        return pair_references(body)
+    return [("capture", captured)] if captured else []
+
+
+def pair_references(pair: bytes) -> list[tuple[str, bytes]]:
+    return [("session", pair[:TOKEN_BYTES]), ("upload", pair[TOKEN_BYTES:2 * TOKEN_BYTES])]
+
+
+def token_leaks(streams: dict[str, bytes], references: list[tuple[str, bytes]]) -> list[str]:
+    """Labels token:stream:form (never bytes) for every leaked 16-byte window."""
+    found = set()
+    for stream, data in streams.items():
+        lowered = data.lower()  # ASCII-only, so hex matching is case-insensitive
+        for label, token in references:
+            for start in range(len(token) - LEAK_WINDOW + 1):
+                window = token[start:start + LEAK_WINDOW]
+                if window in data:
+                    found.add(f"{label}:{stream}:raw")
+                if window.hex().encode("ascii") in lowered:
+                    found.add(f"{label}:{stream}:hex")
+    return sorted(found)
+
+
+def archive_output(run: Path, stdout: bytes, stderr: bytes,
+                   references: list[tuple[str, bytes]] | None) -> str:
+    """Token-check the exact QEMU output, then write serial.txt/stderr.txt.
+
+    On a leak, or without a token reference, both files only get a placeholder
+    with the SHA-256 of the original bytes and the run fails."""
+    streams = {"serial": stdout, "stderr": stderr}
+    findings = ["reference-unavailable"] if references is None else token_leaks(streams, references)
+    if findings:
+        for name, data in streams.items():
+            (run / f"{name}.txt").write_text(
+                "REDACTED: NAS replay token check failed for this run's QEMU output; "
+                "the original bytes were not written.\n"
+                f"stream: {name}\nfindings: {', '.join(findings)}\n"
+                f"original_length: {len(data)}\n"
+                f"original_sha256: {hashlib.sha256(data).hexdigest()}\n")
+        raise ValueError(f"NAS replay token check failed ({', '.join(findings)}); "
+                         "serial/stderr redacted")
+    serial = stdout.decode("utf-8", "replace")
+    (run / "serial.txt").write_text(safe_serial_evidence(serial))
+    (run / "stderr.txt").write_text(stderr.decode("utf-8", "replace"))
+    return serial
 
 
 def safe_serial_evidence(serial: str) -> str:
@@ -97,11 +181,14 @@ def safe_serial_evidence(serial: str) -> str:
     return "\n".join(safe) + ("\n" if safe else "")
 
 
-def export_handoff(handoff: Path, capture: Path, report: dict, serial: str) -> dict:
+def export_handoff(handoff: Path, capture: Path, raw: bytes | None, report: dict) -> dict:
     """Turn the normal VM's private debugcon capture into a bound handoff."""
-    payload = captured_payload(capture)
-    if leaks_payload(serial, payload):
-        raise ValueError("NAS replay token bytes reached the archived serial log")
+    if (raw is None or len(raw) != len(REPLAY_MAGIC) + replay_handoff.TOKEN_PAIR_BYTES
+            or not raw.startswith(REPLAY_MAGIC)):
+        raise ValueError("NAS replay capture is not exactly one framed 80-byte pair")
+    payload = raw[len(REPLAY_MAGIC):]
+    if not any(payload[:40]) or not any(payload[40:]):
+        raise ValueError("NAS replay capture lacks a session or upload")
     payload_path, manifest_path = handoff / "payload.bin", handoff / "manifest.json"
     for path in (payload_path, manifest_path):
         new_private_file(path)
@@ -249,7 +336,7 @@ def run_case(case, parent=None, handoff=None):
         "-object", "rng-random,id=rng0,filename=/dev/urandom",
         "-device", "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
     ]
-    capture = cold_input = cold_digest = None
+    capture = cold_input = cold_digest = payload = None
     if case == "normal":
         # A new normal run starts a new handoff; nothing from an earlier
         # attempt may be bound to this run's cold child.
@@ -282,17 +369,18 @@ def run_case(case, parent=None, handoff=None):
                                    "vars_template": sha256(run / "OVMF_VARS.fd")},
                   before_sha256=before, run_directory=str(run))
     start = time.monotonic()
-    raw, serial, stderr, timed_out, _, _, raw_serial, raw_stderr = execute(
-        command, env, timeout=240, capture_raw_output=True)
+    raw, stdout, stderr, timed_out = execute_raw(command, env, timeout=240)
     report.update(raw_qemu_exit=raw, timed_out=timed_out,
                   duration_s=time.monotonic() - start, after_sha256=sha256(image))
-    stderr_safe = False
     try:
+        # Nothing derived from QEMU output reaches the run directory before
+        # this check; the cold reference is the pair bound before launch.
         if case == "normal":
-            payload = captured_payload(capture)
-        if leaks_payload(raw_serial, payload) or leaks_payload(raw_stderr, payload):
-            raise ValueError("NAS replay token bytes reached process output; logs redacted")
-        stderr_safe = True
+            captured = read_capture(capture)
+            reference = None if captured is None else leak_references(captured)
+        else:
+            captured, reference = None, pair_references(payload)
+        serial = archive_output(run, stdout, stderr, reference)
         check_immutable(run, manifest, platform, code, variables)
         evidence = evaluate(case, serial, raw, timed_out)
         if parent and (evidence["admin_pid"], evidence["guest_pid"]) != (
@@ -303,11 +391,9 @@ def run_case(case, parent=None, handoff=None):
             parent["after_sha256"] if parent else None)
         report["evidence"] = evidence
         if case == "normal":
-            report["replay_handoff"] = export_handoff(handoff, capture, report, serial)
+            report["replay_handoff"] = export_handoff(handoff, capture, captured, report)
         else:
-            payload = replay_handoff.verify_cold_input(cold_input, cold_digest, ROOT)
-            if leaks_payload(serial, payload):
-                raise ValueError("NAS replay token bytes reached the serial transcript")
+            replay_handoff.verify_cold_input(cold_input, cold_digest, ROOT)
             report["replay_input"] = {"payload_sha256": cold_digest,
                                       "origin_run_id": parent["replay_handoff"]["origin_run_id"]}
         if source_hash() != frozen:
@@ -318,9 +404,6 @@ def run_case(case, parent=None, handoff=None):
         # Never keep token bytes from a failed run.
         if capture is not None and capture.exists():
             capture.unlink()
-    (run / "serial.txt").write_text(safe_serial_evidence(serial))
-    (run / "stderr.txt").write_text(
-        stderr if stderr_safe else "QEMU stderr withheld: replay output was not verified safe.\n")
     save_json(run / "result.json", report)
     print(f"NAS {case}: passed={report['passed']} raw={raw} {run}")
     return report
