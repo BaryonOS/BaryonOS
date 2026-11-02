@@ -1,0 +1,31 @@
+{
+  "task": "STACK133-INTEGRATE",
+  "status": "Lokaal integratiecheckpoint; vervolgvalidatie loopt. Geen native runtime of GitHub-publicatie.",
+  "base": "72b6ac4193986daba266176ad7177de00a326d6c",
+  "frozen_pr133_head": "2f60e8ffb2a92e54405ea31609d6f22733928937",
+  "branch": "integrate/stack133-local",
+  "integration": [
+    "Echte merge met volledige frozen PR133 als tweede parent, geen cherry-pick of ongelezen livehead.",
+    "Conflicterende desktop-, rendering-, library-, retained-, clipboard-, lock-/palette-, netwerk- en workflowinhoud blijft uit de gecombineerde 72b6-basis behouden.",
+    "Alle opslagtoelating uit PR133 behouden; gen0-initialisatie geport naar de gecombineerde Materiaal-chainfixture.",
+    "Aanvullende gekoppelde regressie gevonden: ui/native/tests/common/mod.rs maakte nog een rawzero-disk. Ook deze hostfixture gebruikt nu expliciet verzegelde canonieke gen0; productievalidatie is niet versoepeld.",
+    "ADR-058 en alle overige niet-centrale PR133-documentatie en historische bewijsmaterialen blijven behouden.",
+    "De vijf centrale bestanden blijven bytegelijk72b6; parent integreert actuele documentatie114 en kiest finale status/assessment."
+  ],
+  "ci": {
+    "previous": "9VM op PR en handmatig, geen push-main; 10run-toelatingsmatrix niet bedraad.",
+    "current": "Bestaande9VM plus gepromoveerde bestaande10run-runner op relevante PR en push-main; eigen jobs/targets/images, onveranderde verdictfuncties en oracle.",
+    "fixture_delivery_blocker": "Geen foreign-imagebinaries in de repo. Parent moet een same-repository artifact volume-admission-fixtures beschikbaar maken met btrfs/baseline.img en openzfs/images/nieuwos_n3.0a en repositoryvariabele VOLUME_ADMISSION_FIXTURE_RUN_ID instellen op die run. Beide oorspronkelijke volledige SHA256-hashes zijn onveranderd vastgepind in de runner. Zonder die voorziening faalt de matrixjob expliciet; geen skip of groene claim.",
+    "executed": false
+  },
+  "evidence_boundary": {
+    "historical_native_commit": "94f12da0b9740a1a0ced1f08b4a30787f82ae79f",
+    "historical_native_source_v3": "2cffba892608c907b717158a83b8a1c66c7d79dc5843d2d03eabc4ff1831c028",
+    "historical_matrix": "10runs en negen-VM-gate uitsluitend op94f12da; geen overdracht van groen naar2f60 of deze integratie.",
+    "native_runtime_executed": false,
+    "unavailable": ["QEMU", "OVMF", "fysieke-hardwareacceptatie", "onafhankelijke menselijke audit"],
+    "github_mutations": false,
+    "system_installs": false,
+    "progress": "Geen scorekeuze; centrale score41 ongewijzigd behouden. Parent is exclusieve eigenaar."
+  }
+}

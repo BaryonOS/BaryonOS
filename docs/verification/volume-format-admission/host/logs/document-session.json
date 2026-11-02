@@ -1,0 +1,17 @@
+{
+  "command": [
+    "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+    "+1.90.0",
+    "test",
+    "--locked",
+    "--manifest-path",
+    "sdk/Cargo.toml",
+    "-p",
+    "nieuw-os-document-session",
+    "--target-dir",
+    "C:/Users/simon/Documents/Codex/2026-11-02/volume-format-admission/host/sdk-target"
+  ],
+  "cwd": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\source",
+  "exit_code": 0,
+  "duration_s": 2.2370483999993667
+}

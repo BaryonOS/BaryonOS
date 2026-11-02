@@ -1,0 +1,3 @@
+    Checking catalog-core v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\services\catalog)
+    Checking volume-core v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\services\volume)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.32s

@@ -1,0 +1,561 @@
+test_collections_membership_and_digest (test_volume_disk.VolumeOracleTests.test_collections_membership_and_digest) ... ok
+test_commit_may_be_reflected_by_a_collection_only (test_volume_disk.VolumeOracleTests.test_commit_may_be_reflected_by_a_collection_only) ... ok
+test_committed_generation_one_with_legacy_zero_companion_is_accepted (test_volume_disk.VolumeOracleTests.test_committed_generation_one_with_legacy_zero_companion_is_accepted) ... ok
+test_companion_generation_boundaries_do_not_wrap (test_volume_disk.VolumeOracleTests.test_companion_generation_boundaries_do_not_wrap) ... FAIL
+test_corrupt_fixture_is_refused (test_volume_disk.VolumeOracleTests.test_corrupt_fixture_is_refused) ... ok
+test_deleted_object_keeps_history_but_no_metadata (test_volume_disk.VolumeOracleTests.test_deleted_object_keeps_history_but_no_metadata) ... ok
+test_document_content_and_revision_are_verified (test_volume_disk.VolumeOracleTests.test_document_content_and_revision_are_verified) ... ok
+test_domain_clocks_add_up_and_bound_every_stamp (test_volume_disk.VolumeOracleTests.test_domain_clocks_add_up_and_bound_every_stamp) ... ok
+test_explicit_canonical_format_is_accepted (test_volume_disk.VolumeOracleTests.test_explicit_canonical_format_is_accepted) ... ERROR
+test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) ... 
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=0) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=1) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=2) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=3) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=4) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=5) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=6) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=7) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=8) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=9) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=10) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=11) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=12) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=13) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=14) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=15) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=16) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=17) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=18) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=19) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=20) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=21) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=22) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=23) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=24) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=25) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=26) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=27) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=28) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=29) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=30) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=31) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=32) ... ERROR
+  test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=33) ... ERROR
+test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) ... ERROR
+test_format_with_any_bad_sector_checksum_is_refused (test_volume_disk.VolumeOracleTests.test_format_with_any_bad_sector_checksum_is_refused) ... ok
+test_fresh_image_is_empty_generation_zero (test_volume_disk.VolumeOracleTests.test_fresh_image_is_empty_generation_zero) ... FAIL
+test_generation_zero_is_only_the_canonical_empty_table (test_volume_disk.VolumeOracleTests.test_generation_zero_is_only_the_canonical_empty_table) ... ok
+test_history_must_be_strictly_older_and_share_chunks_consistently (test_volume_disk.VolumeOracleTests.test_history_must_be_strictly_older_and_share_chunks_consistently) ... ok
+test_history_versions_are_verified_and_counted_once (test_volume_disk.VolumeOracleTests.test_history_versions_are_verified_and_counted_once) ... ok
+test_names_follow_the_rust_rules (test_volume_disk.VolumeOracleTests.test_names_follow_the_rust_rules) ... ok
+test_partial_first_commit_without_format_is_refused (test_volume_disk.VolumeOracleTests.test_partial_first_commit_without_format_is_refused) ... 
+  test_partial_first_commit_without_format_is_refused (test_volume_disk.VolumeOracleTests.test_partial_first_commit_without_format_is_refused) (prefix=1) ... FAIL
+  test_partial_first_commit_without_format_is_refused (test_volume_disk.VolumeOracleTests.test_partial_first_commit_without_format_is_refused) (prefix=4) ... FAIL
+  test_partial_first_commit_without_format_is_refused (test_volume_disk.VolumeOracleTests.test_partial_first_commit_without_format_is_refused) (prefix=33) ... FAIL
+test_raw_zero_volume_is_not_formatted_storage (test_volume_disk.VolumeOracleTests.test_raw_zero_volume_is_not_formatted_storage) ... FAIL
+test_sealed_but_noncanonical_newest_copy_is_refused (test_volume_disk.VolumeOracleTests.test_sealed_but_noncanonical_newest_copy_is_refused) ... ok
+test_sectors_of_two_attempts_never_form_one_copy (test_volume_disk.VolumeOracleTests.test_sectors_of_two_attempts_never_form_one_copy) ... ok
+test_torn_next_table_falls_back_to_previous_generation (test_volume_disk.VolumeOracleTests.test_torn_next_table_falls_back_to_previous_generation) ... ok
+test_unrelated_generations_are_refused (test_volume_disk.VolumeOracleTests.test_unrelated_generations_are_refused) ... ok
+test_write_outside_scope_is_detected (test_volume_disk.VolumeOracleTests.test_write_outside_scope_is_detected) ... ok
+test_zero_table_sectors_do_not_admit_unrelated_tail_data (test_volume_disk.VolumeOracleTests.test_zero_table_sectors_do_not_admit_unrelated_tail_data) ... FAIL
+
+======================================================================
+ERROR: test_explicit_canonical_format_is_accepted (test_volume_disk.VolumeOracleTests.test_explicit_canonical_format_is_accepted)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 97, in test_explicit_canonical_format_is_accepted
+    self.assertEqual(vd.decode_table(0, formatted), vd.empty_table())
+                     ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 202, in decode_table
+    raise ValueError("table sectors not uniform")
+ValueError: table sectors not uniform
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=3)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=4)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=5)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=6)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=7)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=8)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=9)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=10)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=11)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=12)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=13)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=14)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=15)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=16)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=17)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=18)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=19)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=20)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=22)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=23)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=24)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=25)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=26)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=27)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=28)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=29)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=30)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=31)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=32)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero) (prefix=33)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 107, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+ERROR: test_first_commit_cuts_recover_the_formatted_generation_zero (test_volume_disk.VolumeOracleTests.test_first_commit_cuts_recover_the_formatted_generation_zero)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 111, in test_first_commit_cuts_recover_the_formatted_generation_zero
+    result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:3] + [bytes(torn)] + zero[4:]}, payload)))
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 343, in analyse
+    table = choose(volume)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\volume_disk.py", line 294, in choose
+    raise ValueError("no recoverable table")
+ValueError: no recoverable table
+
+======================================================================
+FAIL: test_companion_generation_boundaries_do_not_wrap (test_volume_disk.VolumeOracleTests.test_companion_generation_boundaries_do_not_wrap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 143, in test_companion_generation_boundaries_do_not_wrap
+    self.assertTrue(vd.compatible([("zero", 0, 0), ("valid", 1, 1)], 0, False))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_fresh_image_is_empty_generation_zero (test_volume_disk.VolumeOracleTests.test_fresh_image_is_empty_generation_zero)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 70, in test_fresh_image_is_empty_generation_zero
+    self.assertTrue(all(kind == "valid" and generation == 0 for kind, generation, _ in states))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_partial_first_commit_without_format_is_refused (test_volume_disk.VolumeOracleTests.test_partial_first_commit_without_format_is_refused) (prefix=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 92, in test_partial_first_commit_without_format_is_refused
+    with self.subTest(prefix=prefix), self.assertRaisesRegex(ValueError, "no recoverable table"):
+                                      ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_partial_first_commit_without_format_is_refused (test_volume_disk.VolumeOracleTests.test_partial_first_commit_without_format_is_refused) (prefix=4)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 92, in test_partial_first_commit_without_format_is_refused
+    with self.subTest(prefix=prefix), self.assertRaisesRegex(ValueError, "no recoverable table"):
+                                      ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_partial_first_commit_without_format_is_refused (test_volume_disk.VolumeOracleTests.test_partial_first_commit_without_format_is_refused) (prefix=33)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 92, in test_partial_first_commit_without_format_is_refused
+    with self.subTest(prefix=prefix), self.assertRaisesRegex(ValueError, "no recoverable table"):
+                                      ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_raw_zero_volume_is_not_formatted_storage (test_volume_disk.VolumeOracleTests.test_raw_zero_volume_is_not_formatted_storage)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 76, in test_raw_zero_volume_is_not_formatted_storage
+    with self.assertRaisesRegex(ValueError, "no recoverable table"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_zero_table_sectors_do_not_admit_unrelated_tail_data (test_volume_disk.VolumeOracleTests.test_zero_table_sectors_do_not_admit_unrelated_tail_data)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tests\test_volume_disk.py", line 83, in test_zero_table_sectors_do_not_admit_unrelated_tail_data
+    with self.assertRaisesRegex(ValueError, "no recoverable table"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 24 tests in 1.014s
+
+FAILED (failures=7, errors=36)

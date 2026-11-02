@@ -1,0 +1,6 @@
+   Compiling catalog-core v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\services\catalog)
+   Compiling zeroize v1.9.1
+   Compiling nieuw-os-sdk-runtime v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\sdk\runtime)
+   Compiling volume-core v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\services\volume)
+   Compiling nieuw-os-volume-docs-example v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\sdk\examples\volume-docs)
+    Finished `release` profile [optimized] target(s) in 1.24s

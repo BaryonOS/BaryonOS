@@ -32,7 +32,13 @@ pub struct SimDisk {
 
 impl SimDisk {
     pub fn new() -> Self {
-        Self::from_image(vec![[0; SECTOR]; VOLUME_SECTORS as usize])
+        // Fixture creation explicitly formats slot 0 before the service starts.
+        // Runtime recovery must not initialize an unrecognized/zero volume.
+        let mut image = vec![[0; SECTOR]; VOLUME_SECTORS as usize];
+        for sector in 0..volume_core::TABLE_SECTORS {
+            image[sector as usize] = table::Table::EMPTY.encode_sector(sector);
+        }
+        Self::from_image(image)
     }
     pub fn from_image(durable: Vec<[u8; SECTOR]>) -> Self {
         assert_eq!(durable.len(), VOLUME_SECTORS as usize);

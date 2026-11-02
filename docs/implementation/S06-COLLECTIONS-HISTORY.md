@@ -54,6 +54,22 @@ Gescopete sectoren `[4, 584)`. Iedere tabelkopie telt 34 sectoren
 
 ## Invarianten (aanvulling op M6e)
 
+**Toelating vóór herstel (ADR-058, 2 november 2026).** Minstens één volledige
+kopie moet als eigen `NOSVOL02`-metadata zijn gedecodeerd. Voor een nieuw leeg
+wegwerpvolume zet de offline fixturebuilder de canonieke, volledig verzegelde
+generatie 0 in slot 0; request-ID, klokken, objecten en collecties zijn exact
+leeg. Slot 1 is dan nul. Recovery formatteert niets: twee nul-/ongeldige
+kopieën, een onvolledige initialisatie of een gedeeltelijke eerste commit
+zonder geldige basiskopie geven `Corrupt`. Geldige generatie 0 met een
+onderbroken generatie 1 herstelt naar 0. Bestaande complete generaties,
+inclusief legacy-generatie 1 met nulcompanion, blijven ondersteund.
+
+Dit verandert geen geometrie, magic, IPC of capabilities. Oudere code weigert
+het expliciet geformatteerde lege beeld vóór de eerste complete commit;
+behandel code en fixturetooling bij rollback als één versie. Het hervatten van
+oude nulvolume-admissie is geen herstel- of migratieroute. Seals zijn
+foutdetectie/formaatcontrole, geen cryptografische authenticatie.
+
 1. **Historie is strikt ouder.** Versierevisies dalen: actueel > historie[0] >
    historie[1]. Een verwijderd object heeft geen actuele versie, collectie,
    `tags` of `kind`, maar mag historie houden.

@@ -1,0 +1,72 @@
+{
+  "base_commit": "74a34d05ef5591b782a0da9da34e4669910d0722",
+  "evidence": "host-only; no native or physical-media claim",
+  "files_sha256": {
+    "tools/run_images.py": "cd218ab59bb8bef69aafd98587a7a1de28b27cb534f73f22a3d4635b86a16432",
+    "tools/volume_disk.py": "a6e53691376476cdc656b1fa07bac2a6b3c6ce35f4d924795f8c559e6f13d8c2",
+    "tools/run_random.py": "4f71d66afde3743e767676f3fb0ebcb9c6907a3e94753c1c6b335392fbc186d9",
+    "tests/test_volume_disk.py": "91b18a01a89179286982c0c79e634392d92b13a0b95381c17b7072aad64ac3dd",
+    "tests/test_volume_runner.py": "9809851096a4d52554a342bf1ef9deb6d06ea58faf6193f5ca3bf2c424c12d81",
+    "tools/run_materiaal_probe.py": "522b643a3b087ff2112428fdd9987f2c099bb495ed8ea5f7b5d61b4f4d56fd60"
+  },
+  "passing_tests": 141,
+  "runs": [
+    {
+      "outcome": "expected red before oracle implementation; failures=7 errors=36",
+      "command": "python -m unittest discover -s tests -p test_volume_disk.py -v",
+      "exit": 1,
+      "log": "volume-disk-red.log",
+      "tests": 24
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_volume_disk.py -v",
+      "exit": 0,
+      "log": "volume-disk-green.log",
+      "tests": 24
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_volume*.py -v",
+      "exit": 0,
+      "log": "volume-suite.log",
+      "tests": 31
+    },
+    {
+      "outcome": "Windows lacks os.mkfifo; repeated under WSL unchanged",
+      "command": "python -m unittest discover -s tests -p test_system*.py -v",
+      "exit": 1,
+      "log": "system-suite.log",
+      "tests": 46
+    },
+    {
+      "command": "wsl.exe -d Ubuntu --cd /mnt/c/Users/simon/Documents/Codex/2026-11-02/volume-format-admission/source --exec python3 -m unittest discover -s tests -p test_system*.py -v",
+      "exit": 0,
+      "log": "system-wsl.log",
+      "tests": 46
+    },
+    {
+      "command": "python -m unittest discover -s tools/tests -p test_images.py -v",
+      "exit": 0,
+      "log": "images-suite.log",
+      "tests": 20
+    },
+    {
+      "command": "python -m unittest discover -s tools/tests -p test_random.py -v",
+      "exit": 0,
+      "log": "random-suite.log",
+      "tests": 21
+    },
+    {
+      "outcome": "Linux platform prerequisites; repeated under WSL unchanged",
+      "command": "python -m unittest discover -s tools/tests -p test_materiaal_probe.py -v",
+      "exit": 1,
+      "log": "materiaal-probe-suite.log",
+      "tests": 23
+    },
+    {
+      "command": "wsl.exe -d Ubuntu --cd /mnt/c/Users/simon/Documents/Codex/2026-11-02/volume-format-admission/source --exec python3 -m unittest discover -s tools/tests -p test_materiaal_probe.py -v",
+      "exit": 0,
+      "log": "materiaal-probe-wsl.log",
+      "tests": 23
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "case": "corrupt",
+  "passed": true,
+  "run_directory": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\native\\regression\\build\\run\\volume-corrupt-0dc2eb0650",
+  "after_sha256": "2e43b6875326217c8506b15c87cd26a2b48e3b61685772f7fb712b1b777dbf82",
+  "source_sha256": "2cffba892608c907b717158a83b8a1c66c7d79dc5843d2d03eabc4ff1831c028"
+}

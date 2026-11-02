@@ -1,0 +1,79 @@
+test_active_qemu_disk_cannot_differ_from_checked_after_image (test_materiaal_probe.ArtifactTests.test_active_qemu_disk_cannot_differ_from_checked_after_image) ... ok
+test_capture_cannot_use_validly_hashed_final_serial_as_old_phase (test_materiaal_probe.ArtifactTests.test_capture_cannot_use_validly_hashed_final_serial_as_old_phase) ... ok
+test_cold_offline_replay_requires_recomputed_normal_byte_chain (test_materiaal_probe.ArtifactTests.test_cold_offline_replay_requires_recomputed_normal_byte_chain) ... ok
+test_cold_parent_is_recomputed_and_cannot_be_user_image (test_materiaal_probe.ArtifactTests.test_cold_parent_is_recomputed_and_cannot_be_user_image) ... ok
+test_exact_build_and_all_frozen_run_proof_replays (test_materiaal_probe.ArtifactTests.test_exact_build_and_all_frozen_run_proof_replays) ... ok
+test_failed_preflight_retires_old_pass_without_launch (test_materiaal_probe.ArtifactTests.test_failed_preflight_retires_old_pass_without_launch) ... FAIL
+test_fatal_diagnostics_get_only_one_second_grace_and_no_success (test_materiaal_probe.ArtifactTests.test_fatal_diagnostics_get_only_one_second_grace_and_no_success) ... ok
+test_final_image_errors_publish_failed_reports (test_materiaal_probe.ArtifactTests.test_final_image_errors_publish_failed_reports) ... 
+  test_final_image_errors_publish_failed_reports (test_materiaal_probe.ArtifactTests.test_final_image_errors_publish_failed_reports) (failure='geometry') ... ERROR
+  test_final_image_errors_publish_failed_reports (test_materiaal_probe.ArtifactTests.test_final_image_errors_publish_failed_reports) (failure='hardlink') ... ERROR
+  test_final_image_errors_publish_failed_reports (test_materiaal_probe.ArtifactTests.test_final_image_errors_publish_failed_reports) (failure='oserror') ... ERROR
+test_guest_timeout_diagnostics_are_structured_but_never_success (test_materiaal_probe.ArtifactTests.test_guest_timeout_diagnostics_are_structured_but_never_success) ... ok
+test_report_cannot_replace_serial_exit_qmp_prefix_or_capture_hash (test_materiaal_probe.ArtifactTests.test_report_cannot_replace_serial_exit_qmp_prefix_or_capture_hash) ... ok
+test_stale_source_changed_elf_and_nonembedded_binary_fail (test_materiaal_probe.ArtifactTests.test_stale_source_changed_elf_and_nonembedded_binary_fail) ... ok
+test_symlink_hardlink_and_outside_build_paths_fail (test_materiaal_probe.ArtifactTests.test_symlink_hardlink_and_outside_build_paths_fail) ... ok
+test_actual_frame_checks_reject_identical_wrong_geometry_and_chrome (test_materiaal_probe.GrammarTests.test_actual_frame_checks_reject_identical_wrong_geometry_and_chrome) ... ok
+test_barrier_cannot_replace_list_then_real_reopen (test_materiaal_probe.GrammarTests.test_barrier_cannot_replace_list_then_real_reopen) ... ok
+test_complete_normal_and_readonly_transcripts (test_materiaal_probe.GrammarTests.test_complete_normal_and_readonly_transcripts) ... ok
+test_independent_disk_checks_actual_text_and_scope (test_materiaal_probe.GrammarTests.test_independent_disk_checks_actual_text_and_scope) ... ok
+test_keyboard_case_reaches_the_same_document_stages_without_pointer_events (test_materiaal_probe.GrammarTests.test_keyboard_case_reaches_the_same_document_stages_without_pointer_events) ... ok
+test_missing_duplicate_reordered_unknown_and_oversized_fail (test_materiaal_probe.GrammarTests.test_missing_duplicate_reordered_unknown_and_oversized_fail) ... ok
+test_partial_snapshot_is_never_ready (test_materiaal_probe.GrammarTests.test_partial_snapshot_is_never_ready) ... ok
+test_qmp_script_is_only_correlated_hardware_actions_and_frames (test_materiaal_probe.GrammarTests.test_qmp_script_is_only_correlated_hardware_actions_and_frames) ... ok
+test_readonly_rejects_any_write_or_commit (test_materiaal_probe.GrammarTests.test_readonly_rejects_any_write_or_commit) ... ok
+test_source_and_focus_gates_precede_actual_snapshots (test_materiaal_probe.GrammarTests.test_source_and_focus_gates_precede_actual_snapshots) ... ok
+test_sparse_counts_accepted_and_incomplete_first_frame_rejected (test_materiaal_probe.SparseFrameCounters.test_sparse_counts_accepted_and_incomplete_first_frame_rejected) ... ok
+
+======================================================================
+ERROR: test_final_image_errors_publish_failed_reports (test_materiaal_probe.ArtifactTests.test_final_image_errors_publish_failed_reports) (failure='geometry')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\tests\test_materiaal_probe.py", line 330, in test_final_image_errors_publish_failed_reports
+    report=d.run_materiaal_probe(build_directory=self.build,vga_rom=firmware)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\run_materiaal_probe.py", line 576, in run_materiaal_probe
+    require(sys.platform == "linux" and case in FEATURES,"Linux/private-QMP diagnostic case required")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\run_display_probe.py", line 44, in require
+    raise ValueError(message)
+ValueError: Linux/private-QMP diagnostic case required
+
+======================================================================
+ERROR: test_final_image_errors_publish_failed_reports (test_materiaal_probe.ArtifactTests.test_final_image_errors_publish_failed_reports) (failure='hardlink')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\tests\test_materiaal_probe.py", line 330, in test_final_image_errors_publish_failed_reports
+    report=d.run_materiaal_probe(build_directory=self.build,vga_rom=firmware)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\run_materiaal_probe.py", line 576, in run_materiaal_probe
+    require(sys.platform == "linux" and case in FEATURES,"Linux/private-QMP diagnostic case required")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\run_display_probe.py", line 44, in require
+    raise ValueError(message)
+ValueError: Linux/private-QMP diagnostic case required
+
+======================================================================
+ERROR: test_final_image_errors_publish_failed_reports (test_materiaal_probe.ArtifactTests.test_final_image_errors_publish_failed_reports) (failure='oserror')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\tests\test_materiaal_probe.py", line 330, in test_final_image_errors_publish_failed_reports
+    report=d.run_materiaal_probe(build_directory=self.build,vga_rom=firmware)
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\run_materiaal_probe.py", line 576, in run_materiaal_probe
+    require(sys.platform == "linux" and case in FEATURES,"Linux/private-QMP diagnostic case required")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\run_display_probe.py", line 44, in require
+    raise ValueError(message)
+ValueError: Linux/private-QMP diagnostic case required
+
+======================================================================
+FAIL: test_failed_preflight_retires_old_pass_without_launch (test_materiaal_probe.ArtifactTests.test_failed_preflight_retires_old_pass_without_launch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\tools\tests\test_materiaal_probe.py", line 344, in test_failed_preflight_retires_old_pass_without_launch
+    self.assertIs(d.load_json(self.build/"materiaal-probe-report.json")["passed"],False)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not False
+
+----------------------------------------------------------------------
+Ran 23 tests in 5.794s
+
+FAILED (failures=1, errors=3)

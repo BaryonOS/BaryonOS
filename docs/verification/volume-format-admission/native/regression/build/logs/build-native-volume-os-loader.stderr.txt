@@ -1,0 +1,5 @@
+   Compiling boot-protocol v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\crates\boot-protocol)
+   Compiling r-efi v7.1.0
+   Compiling elf-loader-core v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\crates\elf-loader-core)
+   Compiling os-loader v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\boot\loader)
+    Finished `release` profile [optimized] target(s) in 0.82s
