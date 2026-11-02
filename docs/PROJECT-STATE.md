@@ -15,10 +15,15 @@ Root bezit integratie, native runner/oracles en voortgangsmeter. Geen gedeelde
 schrijvers. PR126/127/128 zijn geïnspecteerd en blijven apart bewaard; hun WIP
 is niet stil geïntegreerd of als nieuwe acceptatie geteld.
 
-Root heeft een onafhankelijke stopped-diskoracle en begrensde cold-parent-
-validatie gebouwd. Twee gerichte hosttests slagen, inclusief gewijzigde/stale
-bron, foutflags, onzekere stop en gewijzigde disk/transcript. Dit is nog geen
-native bewijs. Volgende stap: SDK/UI integreren, echte native bibliotheekroute
+Geïntegreerd: proportionele tekstlayout `2fe2604` en SDK-collecties/history
+`c77831a`. De eerste editorstap slaagt in 35 gerichte UI-interactie/layouttests,
+41 apphosttests en een echte native appbuild. SDK-builder rapporteert 104
+workspacetests en 63 compatibiliteitstests, Clippy/fmt en native SDK-librarybuild
+groen. SDK-commando-/loghashes staan in de eigen worktree onder
+`build/library-sdk/logs/handoff.json`. Dit is nog geen nieuwe native uitvoering.
+Root bouwt daarnaast de volledige bibliotheekrunner en 14 exacte hostoracles;
+deze WIP wordt pas na UI-integratie gegate. Nieuwe cold-parentnegatieven slagen,
+inclusief stale bron, foutflags, onzekere stop en gewijzigde disk/transcript. Volgende stap: SDK/UI integreren, echte native bibliotheekroute
 plus koude heropening, volledige compositor/clipboardregressie, screenshots en
 visuele review. Geen Windows-, VMware-, biometrie-, FIDO2- of hardwareclaim.
 

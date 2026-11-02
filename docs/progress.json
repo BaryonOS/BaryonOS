@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "159ad799d2a94fb6542d60e26ed8bbd22bdbd752",
+    "source_commit": "c77831a3fbce41a8c6da96d67daf4a602726f6ee",
     "branch": "codex/materiaal-library-20261102",
     "task": "Native Materiaalbibliotheek en proportionele documentwerkruimte in uitvoering",
     "previous_score": 41,
-    "summary": "41/100 blijft 41. De volgende U03-slice ontsluit bestaande volume-v7-collecties, naamzoeking en historie en verbetert de documenttypografie. SDK/UI bouwen in aparte worktrees; twee nieuwe hostcontroles voor stopped-disk/cold-parentgrenzen slagen. Nieuwe native bibliotheekacceptatie en regressie zijn nog niet uitgevoerd; geen punten vooraf. Eerder bewijs blijft aan zijn oorspronkelijke bron gebonden."
+    "summary": "41/100 blijft 41. Proportionele documentlayout en begrensde SDK-wrappers voor bestaande collecties/history zijn geïntegreerd. Gerichte UI/apphosttests, de native appbuild en SDK-workspace/Clippy/fmt/native-librarybuild slagen; bibliotheekbediening, nieuwe QEMU-route, koude heropening en volledige regressie volgen. U03 blijft open tot volledige native acceptatie; geen gewichten of eindscope gewijzigd."
   },
   "tracks": [
     {
