@@ -199,7 +199,17 @@ impl Shell {
     }
     pub fn panel(&self, width: u32, height: u32, scale: u32) -> Rect {
         let w = (width / scale).saturating_sub(48).min(568);
-        let h = (height / scale).saturating_sub(112).min(476);
+        let preferred_height = match self.page {
+            Page::Users => 344,
+            Page::Auth if self.flow.selected_account() == Some(Account::VmGuest) => 320,
+            Page::Auth | Page::Settings => 368,
+            Page::Notifications | Page::Unlocking => 320,
+            Page::Session => 400,
+            Page::Capability => 432,
+            Page::Search => 448,
+            _ => 476,
+        };
+        let h = (height / scale).saturating_sub(112).min(preferred_height);
         Rect::new(
             ((width / scale - w) / 2 * scale) as i32,
             ((height / scale - h) / 2 * scale) as i32,
@@ -256,8 +266,11 @@ impl Shell {
                 }
             }
             Page::Search => {
+                add(0, 104, "Zoek apps, materiaal of acties", Icon::Search, 14);
+                let compact = p.height / scale < 416;
+                let (first, gap) = if compact { (156, 44) } else { (164, 48) };
                 for (i, (label, icon, action)) in self.results().into_iter().flatten().enumerate() {
-                    add(i, 132 + i as i32 * 54, label, icon, action);
+                    add(i + 1, first + i as i32 * gap, label, icon, action);
                 }
             }
             Page::Settings => {
@@ -466,7 +479,14 @@ impl Shell {
                 .into_iter()
                 .flatten()
                 .nth(self.focus);
-            let command = control.map_or(Command::None, |c| self.activate(c.action));
+            let action = control.and_then(|c| {
+                if c.action == 14 {
+                    self.results()[0].map(|(_, _, action)| action)
+                } else {
+                    Some(c.action)
+                }
+            });
+            let command = action.map_or(Command::None, |action| self.activate(action));
             return Effect::take(true, command);
         }
         if self.page == Page::Search {
@@ -615,16 +635,18 @@ impl Shell {
         c.fill_rect(Rect::new(0, 44 * s, width, height - 44 * scale), 0x18242f);
         let p = self.panel(width, height, scale);
         if self.page == Page::Lock {
-            let clock = Font::new(Size::Title, Weight::Semibold, true);
+            let clock = Font::display(scale == 2);
             let text = if self.clock_valid {
                 self.clock()
             } else {
                 "Welkom"
             };
-            c.text(p.x + 28 * s, p.y + 64 * s, text, clock, 0xf2f1ec);
+            let clock_y = p.y + 40 * s;
+            let date_y = clock_y + clock.height() as i32 + 16 * s;
+            c.text(p.x + 28 * s, clock_y, text, clock, 0xf2f1ec);
             c.text(
                 p.x + 28 * s,
-                p.y + 164 * s,
+                date_y + 30 * s,
                 if self.clock_valid {
                     "Systeemtijd · UTC"
                 } else {
@@ -634,11 +656,11 @@ impl Shell {
                 0xc5ccc9,
             );
             if self.clock_valid {
-                c.text(p.x + 28 * s, p.y + 130 * s, self.date(), body, 0xc5ccc9);
+                c.text(p.x + 28 * s, date_y, self.date(), body, 0xc5ccc9);
             }
             c.text(
                 p.x + 28 * s,
-                p.y + 210 * s,
+                date_y + 74 * s,
                 "Je werk heeft een eigen plek.",
                 title,
                 0xf2f1ec,
@@ -719,7 +741,39 @@ impl Shell {
                 0x30434b,
                 scale,
             );
-            c.text(b.x + 44 * s, b.y + 12 * s, control.label, body, 0x20262d);
+            let mut label = if control.action == 14 && !self.query().is_empty() {
+                self.query()
+            } else {
+                control.label
+            };
+            let available = b.width.saturating_sub(72 * scale);
+            // Search is bounded ASCII input; keep the caret and newest query
+            // visible instead of spilling text beyond the trusted input box.
+            if control.action == 14 {
+                while !label.is_empty() && body.measure(label) > available {
+                    // Current queries are ASCII; preserve the boundary even
+                    // if a future placeholder is localized.
+                    let first = label.chars().next().unwrap().len_utf8();
+                    label = &label[first..];
+                }
+            }
+            c.text(
+                b.x + 44 * s,
+                b.y + 12 * s,
+                label,
+                body,
+                if control.action == 14 && self.query().is_empty() {
+                    0x5c6570
+                } else {
+                    0x20262d
+                },
+            );
+            if control.action == 14 && i == self.focus {
+                let caret = b.x + 46 * s + body.measure(label) as i32;
+                if !self.query().is_empty() {
+                    c.line(caret, b.y + 12 * s, caret, b.y + 32 * s, scale, 0x20262d);
+                }
+            }
         }
         if !self.notice.is_empty() {
             c.text(
@@ -780,4 +834,67 @@ fn character(key: PhysicalKey) -> Option<u8> {
         Space => b' ',
         _ => return None,
     })
+}
+
+#[cfg(test)]
+mod visual_interaction_tests {
+    use super::*;
+    fn press(s: &mut Shell, key: PhysicalKey) -> Command {
+        s.key(
+            KeyboardEvent {
+                key,
+                action: KeyAction::Press,
+                modifiers: Default::default(),
+            },
+            1280,
+            720,
+            1,
+        )
+        .command
+    }
+    #[test]
+    fn search_field_click_edits_and_enter_launches_current_result() {
+        let mut shell = Shell::new(false);
+        shell.open(Page::Search);
+        let field = shell.controls(1280, 720, 1)[0].unwrap();
+        let point = ((field.bounds.x + 8) as u32, (field.bounds.y + 8) as u32);
+        assert_eq!(
+            shell.mouse(point, true, true, 1280, 720, 1).command,
+            Command::None
+        );
+        assert_eq!(
+            shell.mouse(point, false, false, 1280, 720, 1).command,
+            Command::None
+        );
+        assert_eq!(shell.page(), Page::Search);
+        for key in [PhysicalKey::R, PhysicalKey::E, PhysicalKey::K] {
+            press(&mut shell, key);
+        }
+        assert_eq!(shell.query(), "rek");
+        assert_eq!(press(&mut shell, PhysicalKey::Enter), Command::Activate(1));
+        assert_eq!(shell.page(), Page::Desktop);
+    }
+    #[test]
+    fn search_tab_reaches_results_and_reverse_tab_returns_to_field() {
+        let mut shell = Shell::new(false);
+        shell.open(Page::Search);
+        assert_eq!(shell.focus, 0);
+        press(&mut shell, PhysicalKey::Tab);
+        assert_eq!(shell.focus, 1);
+        shell.key(
+            KeyboardEvent {
+                key: PhysicalKey::Tab,
+                action: KeyAction::Press,
+                modifiers: ui_core::KeyboardModifiers {
+                    left_shift: true,
+                    ..Default::default()
+                },
+            },
+            1280,
+            720,
+            1,
+        );
+        assert_eq!(shell.focus, 0);
+        assert_eq!(press(&mut shell, PhysicalKey::Enter), Command::Activate(0));
+    }
 }

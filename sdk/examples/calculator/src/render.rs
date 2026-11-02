@@ -172,15 +172,20 @@ pub fn render_tile(
     } else {
         paint.title(layout.x, layout.title_y, "Rekenmachine");
     }
+    let metadata = "9 decimalen";
+    let metadata_width = nieuw_os_graphics::Font::new(
+        nieuw_os_graphics::Size::Body,
+        nieuw_os_graphics::Weight::Regular,
+        view.scale == 2,
+    )
+    .measure(metadata)
+    .div_ceil(view.scale);
     paint.label(
-        layout.x
-            + layout
-                .width
-                .saturating_sub(11 * character_width(view.scale)),
+        layout.x + layout.width.saturating_sub(metadata_width),
         layout.title_y + if layout.compact { 0 } else { 8 },
-        "9 decimalen",
+        metadata,
         d::MUTED,
-        layout.width,
+        metadata_width,
     );
     paint.boxed(
         layout.expression,
