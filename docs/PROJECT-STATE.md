@@ -1,51 +1,54 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — native venstersessie; nieuwe freeze — 2 november 2026
+## NEXT AGENT HANDOFF — crashherstel vastloper; geen U01-acceptatie — 2 november 2026
 
 Branch `codex/mature-native-session-20261102`, concept-PR #122 op #121.
-Laatste functionele commit `5dd5f8c7ad043ebb8c80553b2700680d64043f77`, source-v3
-`1fbbeb9fe6592759b637dbd0c235825f9a2a9df27212404ffa4f6a3e9cd1d974`.
-Score **37/100**, N01 geaccepteerd; U01/U02 blijven open tot hun eigen bewijs.
-Deze docscheckpoint wordt vóór de lange native herhaling gepusht.
+Actuele implementatie `9f5379b1ad43583a1e8e45cb8b1d6fcebe25efd9`, source-v3 `7c301812bbdafcfb7a09785d21971b0f8fc490becc1ed8cd0fc03fd3eaef68d8`.
+Score **37/100**: N01 geaccepteerd; U01/U02 open. Wijzigingen hieronder zijn
+kandidaten; oude pakketten zijn behouden en worden niet als definitief herlabeld.
 
-Geleverd: proportionele typografie/eigen pictogrammen, 1280×720-werkruimte,
-twee native appprocessen, compositorfocus/titelbalkslepen en afzonderlijke
-SUR1-/INP1-kanalen. Alleen compositor krijgt Display, alleen inputbron
-InputSource. Supervisorherstel behoudt draft/berekening met verse diensten,
-PIDs/capabilities/epochs. Probevariant test echte negatieve RPCs en een ud2;
-normale Windowsbundel bevat geen crashinjectie. Geen echte auth/clipboard/GPUclaim.
+De volledige 2bb84c2-native herhaling is echt mislukt bij compositorherstel.
+M4 12 groepen, IPCwait (4,59 s), N01 normal/exit (7,64/7,45 s) slagen. Vensters:
+boot152,41 / initial158,18 / editor282,69 / dirty415,15 / calculated485,67 /
+moved493,81 s slagen. De echte slot4/PID5/ud2-vector6 volgt; init eindigt15.
+Geen herstel, bewaren, disk- of cleanup-pass. Exact resultaat en gecomprimeerde
+rawserial staan in `verification/mature-session-20261102/window-2bb84c2-*`.
+Alle veertien drafttekens, de berekening en het verplaatste volledige appbeeld
+klopten; dit is geen volledige U01-pass en geen vlotte bediening.
 
-De runner wacht op echte key-ACKs/cursor/knoppen. Hele appbeelden blijven exact,
-ook na beweging/herstel. Het oude 03e-experiment haalde exact initial/editor/
-dirty (312,24/580,81/878,78 s), maar is daarna bewust gestopt: geen native pass.
-Bron/rawhashes/stopreden zijn bewaard onder
-`verification/mature-session-20261102/window-03e81d4-stopped.json`.
-De oorzaak bleek 1024 tijdelijke Message-buffers bij iedere snapshotwipe.
+Bevestigde oorzaak: app-owned replyRX blijft open nadat compositorSEND verdwijnt.
+Een bestaande SUR/INP-RPC blijft daardoor EAGAIN/yield wachten; de app komt niet
+bij control7, terwijl init op pauseACK wacht. Herstelagent onderzoekt/bouwt een
+kleine init-only retirementfase voor de onuitgebrachte0x53: exact4 oude
+presentationleaves/app sluiten vóór pause, verder niets; echteACKs vóór nieuw
+start/rebind. De oudeProcesscap blijft tot bestaande restartpreflight bewaard.
+Extern-retired ownercleanup moet alleen per-handle BadHandle idempotent maken,
+zonder andere fouten te verbergen. Eigen worktree `/workspace/nieuw-os-window-recovery`.
+Geen deadline/POLL-/pixelversoepeling. Root start geen nieuwe VM tot RNG-agent klaar is.
 
-Nu geïntegreerd: rechtstreekse 40 volatile 64bit-stores per Message, alle
-320 bytes en alle 1024 berichten vóór leasevrijgave. Complete snapshot/Eq,
-IF0, alle rechten-/fout-/waitinvarianten blijven. Exacte primitiveschema's,
-uitlijning/omvang, protected-page/canaryproeven en typegroei-negatieven borgen
-het kleine unsafegebied. IR/assembly onafhankelijk gereviewd; geen tijdwinst
-vooruit geclaimd. 177 Python-toolchecks plus acht runnerchecks en root/SDK/
-inputcore-fmt slagen op de geïntegreerde bron. De eigen UI-hosttests/Clippy/
-scalarbuild en elf objectarchieven, graphics en window10/816pixels slagen.
-Eerdere native M4 en N01 zijn op 03e groen; na deze kernelwijziging opnieuw doen.
+Reeds geïntegreerd na deze rode run: bekende ABI1.11 activeert bestaande idlewait
+in keyring/volume (RANDOM/adminuitzonderingen behouden); nativeharnas bewaart ook
+bij falen exit/duur/QMP-trace; nieuwe Actionsvenstergate levert normale WindowsZIP
+alleen na echte native pass; Noto-fontnotices zijn nu byte/hashgebonden toegevoegd.
+SDK30host+3doctests/Clippy/services-none-builds zijn door agent uitgevoerd; root
+runner8 is groen; de agent controleerde packager20. Geen wholeVMidle/Windowsruntimeclaim.
+UI-host/Clippy/scalar-elf11archieven slagen op vorige2bb-bron; relevante UIcode
+ongewijzigd, volgende complete freeze weer expliciet binden.
 
-Twee werkelijke PR-regressies uit CI hersteld: coldcursor gebruikt de drie
-gecontroleerde stappen naar de nieuwe knop en kopieert alleen de echte status-
-rechthoek; inputcore response krijgt canonical rustfmt. Alle 17 koude hosttests
-slagen; geen pixelmasker of bron-/padguard opgeheven. Remote CI moet opnieuw.
+CI op2bb heeft een echte RANDOMraw-fout: codecNone/step15. Gecontroleerde echte
+service/codec-hostproef toont dat een64RPCburst over de100tickquotagrens mag
+rollen; dan is verwachtQuota een geldigOk en geeft de te smalle fixturedecoder
+None. Exacte CIrequest is nog onbekend. Agent maakt uitsluitend niet-geheime
+foutdiagnostiek en één gecontroleerde rawVM op eigen checkpoint44346ad in
+`/workspace/nieuw-os-windows-package/build/random-diagnostic-44346ad`. Geen
+policy-/quotagrenswijziging. Geen randombytes of sleutels loggen.
 
-Volgende commando: activeer `/workspace/.nieuw-os-env/activate.sh`; herhaal
-native M4, IPCwait, N01 normal/client-exit en build/run_window_session met
-1800s-deadline, geïsoleerde build/window-final en target/window-final. Geen
-bronwijzigingen tijdens die brongebonden run. U01 alleen +4 bij volledige
-focus/drag/fault/rebind/behoud/pixel/save/disk/cleanup-pass; U02 blijft apart open.
-Daarna finale normale Windowsbundel op exact dezelfde freeze maken en hashes
-met de geautoriseerde lokale Windowschat delen. Oude kandidaten behouden.
-Geen hostinstellingen, fysieke schijven of passthrough. Andere integrator houdt
-merge-eigenaarschap. Werk niet terug naar de oude 03e-kandidaat als eindbewijs.
+Eerstvolgend: sluitende RNGdiagnose en herstelpatch beoordelen, integreren,
+sourcefreeze/push; dan M4/IPCwait/N01 en volledige venstergate opnieuw. U01 alleen
++4 bij totale focus/drag/fault/retire/rebind/behoud/pixel/save/disk/cleanup-pass.
+Daarna Windowsbundle opnieuw bouwen/hashoverdracht en PR/score bijwerken.
+Geen fysieke schijven, hostconfiguratie of passthrough. Andere integrator houdt
+merge-eigenaarschap. De laatste2bbZIP is slechts kandidaat (oudebron zonder nieuwe fixes).
 
 ## Vorige afgeronde checkpoint — native sessiepreview
 

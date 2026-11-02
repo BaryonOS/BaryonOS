@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **37** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`5dd5f8c7`](https://github.com/simonvanieperen/nieuw-os/commit/5dd5f8c7ad043ebb8c80553b2700680d64043f77) ·
+**Bron:** [`9f5379b1`](https://github.com/simonvanieperen/nieuw-os/commit/9f5379b1ad43583a1e8e45cb8b1d6fcebe25efd9) ·
 **Ontwikkelbranch:** `codex/mature-native-session-20261102`.
-Deze opdracht: **37% → 37% (+0 procentpunt)**. **Opdracht:** Definitieve native vensterfreeze na directe snapshotwipe en CI-herstel.
-37/100 blijft gelijk. De geïsoleerde N01-netwerkdienst is geaccepteerd. De eerste vensterbaseline leverde exacte initial/editor/dirty-beelden maar werd wegens aantoonbare snapshotwiskosten gestopt; geen U01-pass. De directe volledige woordwipe is geïntegreerd met behoud van alle authority-/fout-/waitinvarianten en onafhankelijke code/IR-review. 177 Python-toolchecks, acht runnerchecks, relevante formatters en UI-host/scalar/objectchecks slagen. Twee concrete CI-regressies zijn hersteld. De volledige native kernel/wait/netwerk/vensterherhaling volgt op deze freeze. U01 en U02 krijgen geen punten vooruit; echte Windowsruntime blijft een aparte controle.
+Deze opdracht: **37% → 37% (+0 procentpunt)**. **Opdracht:** Echte compositorherstelblokkade repareren en RANDOM-fixture diagnosticeren.
+37/100 blijft gelijk. Op2bb slagen M4, IPCwait, N01 en exacte grafische initial/editor/dirty/calculated/moved-fasen. De echte compositorcrash eindigt in init15 door geblokkeerde oude replykanalen; geen U01-acceptatie. Gerichte retirement- en cleanupfix wordt gebouwd. ABI1.11-wachtcompatibiliteit, foutbewijsbewaring, native Actions-gate en fontnotices zijn geïntegreerd. Een RANDOMraw-CI-fout wordt met niet-geheime diagnostiek en één aparte native run onderzocht; de quota-/ACK-controles blijven. Oude kandidaten behouden, geen extra punten of algemene veiligheids-/auth-/hardwareclaim.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

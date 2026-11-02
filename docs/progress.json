@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "5dd5f8c7ad043ebb8c80553b2700680d64043f77",
+    "source_commit": "9f5379b1ad43583a1e8e45cb8b1d6fcebe25efd9",
     "branch": "codex/mature-native-session-20261102",
-    "task": "Definitieve native vensterfreeze na directe snapshotwipe en CI-herstel",
+    "task": "Echte compositorherstelblokkade repareren en RANDOM-fixture diagnosticeren",
     "previous_score": 37,
-    "summary": "37/100 blijft gelijk. De geïsoleerde N01-netwerkdienst is geaccepteerd. De eerste vensterbaseline leverde exacte initial/editor/dirty-beelden maar werd wegens aantoonbare snapshotwiskosten gestopt; geen U01-pass. De directe volledige woordwipe is geïntegreerd met behoud van alle authority-/fout-/waitinvarianten en onafhankelijke code/IR-review. 177 Python-toolchecks, acht runnerchecks, relevante formatters en UI-host/scalar/objectchecks slagen. Twee concrete CI-regressies zijn hersteld. De volledige native kernel/wait/netwerk/vensterherhaling volgt op deze freeze. U01 en U02 krijgen geen punten vooruit; echte Windowsruntime blijft een aparte controle."
+    "summary": "37/100 blijft gelijk. Op2bb slagen M4, IPCwait, N01 en exacte grafische initial/editor/dirty/calculated/moved-fasen. De echte compositorcrash eindigt in init15 door geblokkeerde oude replykanalen; geen U01-acceptatie. Gerichte retirement- en cleanupfix wordt gebouwd. ABI1.11-wachtcompatibiliteit, foutbewijsbewaring, native Actions-gate en fontnotices zijn geïntegreerd. Een RANDOMraw-CI-fout wordt met niet-geheime diagnostiek en één aparte native run onderzocht; de quota-/ACK-controles blijven. Oude kandidaten behouden, geen extra punten of algemene veiligheids-/auth-/hardwareclaim."
   },
   "tracks": [
     {
