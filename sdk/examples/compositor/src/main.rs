@@ -187,14 +187,27 @@ fn run() -> ! {
                 fail(19, Some(&boot));
             }
         }
-        if surface
-            .step(now, &mut io, || {
-                native::monotonic_ticks().map_err(|_| Fatal::Clock)
-            })
-            .is_err()
-        {
-            surface.retire(&mut io);
-            fail(20, Some(&boot));
+        // A full SUR1 tile is seven queued messages (BEGIN, five CHUNKs,
+        // COMMIT). Drain a bounded batch before yielding, while preserving the
+        // per-message checks and pending-reply barrier inside Surface::step.
+        // Control processing above and the main-loop yield below remain in
+        // every turn; empty queues and reply backpressure end this batch early.
+        for _ in 0..8 {
+            let before = surface.counts();
+            let now = tick(&boot);
+            if surface
+                .step(now, &mut io, || {
+                    native::monotonic_ticks().map_err(|_| Fatal::Clock)
+                })
+                .is_err()
+            {
+                surface.retire(&mut io);
+                fail(20, Some(&boot));
+            }
+            let after = surface.counts();
+            if after.received == before.received || after.reply_again != before.reply_again {
+                break;
+            }
         }
         if let Some(tile) = tiles.next() {
             if surface

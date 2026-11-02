@@ -1,0 +1,1786 @@
+{
+  "passed": true,
+  "kind": "windows-whpx-frozen-full-native-idle-ab",
+  "sequence": [
+    "A",
+    "B",
+    "B",
+    "A",
+    "A",
+    "B"
+  ],
+  "reference_frame_sha256": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+  "adapter_files_sha256": {
+    "run_windows_window.py": "9610f3e0995101b17a28afd7a2efbf3aa72b0ee85d013c2c9c3b1d5165df87cd",
+    "windows_qmp.py": "a8bc6da0002910f65966a1d38dd995d9c682b6bda581141cb9f8c5ad49814d0d",
+    "windows_inputs.py": "90a69663adb6ee517a2b8f2584fca2250010a179bb4216ed3de53d3aaab572f5",
+    "windows_idle_measure.py": "3833f4e7aa467e043316b6d9eb6926ce4b7b56cf2e1a7f108f87c5a68e96f9e8"
+  },
+  "runs": [
+    {
+      "index": 1,
+      "arm": "A",
+      "source_commit": "337f2f29f1833ef4a8d2cd640b09419f85dbb83b",
+      "source_sha256": "3919403542c923bc86467db3184345159a5ce6881567a0e11baa85f2d39f1995",
+      "native_report": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\window-session-20261102\\source\\build\\windows-probe-337f2f2\\run\\window-2931b68488cf4f2fbf51413eb53b395e\\result.json",
+      "native_report_sha256": "87e3fa845a284f73c9b4f5d535536c05ff2b6d36fb02c9ad3fc5df95b284476b",
+      "log": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\window-session-20261102\\measurements\\20261102T172603Z-formal-ab\\1-A.txt",
+      "log_sha256": "fe28059b15a77771e05a693ed4ec9d9ee876fa6f587b9927dad5004d7163d17a",
+      "native_gate": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 56.633204000000205,
+      "process_percent_one_logical_cpu": 99.268908178306,
+      "vcpu_percent_one_logical_cpu": 99.06067629295102,
+      "process_wall_s": 15.00029090000021,
+      "initial_s": 7.9685365000000274,
+      "measurement": {
+        "measurement_passed": true,
+        "native_gate": false,
+        "scope": "One 15s headless CPU interval, no guest input or stop/cont. Equal endpoint images do not prove no redraw or ACK activity.",
+        "counter_scope": "Existing probe snapshots only. App snapshots emit on generation changes; compositor snapshots are conditional/rate-limited. Retained values are not fresh synchronous counter reads.",
+        "source_sha256": "3919403542c923bc86467db3184345159a5ce6881567a0e11baa85f2d39f1995",
+        "source_initial_sha256": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+        "expected_initial_sha256": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+        "unchanged_deadline": 4144.5877099,
+        "process_id": 90636,
+        "vcpu_mapping_before": [
+          {
+            "thread-id": 93532,
+            "qom-type": "qemu64-x86_64-cpu",
+            "props": {
+              "core-id": 0,
+              "thread-id": 0,
+              "socket-id": 0
+            },
+            "qom-path": "/machine/unattached/device[0]",
+            "cpu-index": 0,
+            "target": "x86_64"
+          }
+        ],
+        "before": {
+          "snapshots": {
+            "MATERIAL": {
+              "PID": 4,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 3,
+              "FRAMES": 1,
+              "SAVE_ACKS": 0,
+              "REVISION": 0,
+              "SAVED_BYTES": 0,
+              "SAVED_SUM": 0,
+              "SCREEN": 1,
+              "DIRTY": 0,
+              "DRAFT_BYTES": 0,
+              "DRAFT_SUM": 0,
+              "OBJECT": 18446744073709551615,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "CALCULATOR": {
+              "PID": 8,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 1,
+              "FRAMES": 1,
+              "EVALUATIONS": 0,
+              "FAILURES": 0,
+              "EXPRESSION_BYTES": 0,
+              "EXPRESSION_SUM": 14695981039346656037,
+              "CURRENT": 0,
+              "CARET": 0,
+              "ACTIVE": 1,
+              "ANSWER_LOW": 0,
+              "ANSWER_HIGH": 0,
+              "HAS_ANSWER": 0,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "COMPOSITOR": {
+              "GENERATION": 1,
+              "PID": 5,
+              "COMMITS": 2402,
+              "INPUT": 14,
+              "REJECTED": 2,
+              "FOCUSED": 0,
+              "MOVES": 0,
+              "SWITCHES": 0,
+              "MATERIAL": 3,
+              "CALCULATOR": 1,
+              "FATAL": 0,
+              "POINTER_X": 1260,
+              "POINTER_Y": 50,
+              "BUTTONS": 0
+            }
+          },
+          "input_progress": {
+            "MATERIAL": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            },
+            "CALCULATOR": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            }
+          },
+          "serial_sha256": "ac1d57101f6e475c13f6e584e755c1fb398ebdf8f413304a1ad9c05fa1521a34",
+          "serial_bytes": 16545
+        },
+        "cpu": {
+          "before": {
+            "process": {
+              "creation_100ns": 134381139656855966,
+              "kernel_100ns": 23750000,
+              "user_100ns": 79843750,
+              "total_100ns": 103593750,
+              "read_started": 3973.1232803,
+              "read_completed": 3973.1232926
+            },
+            "vcpu": {
+              "creation_100ns": 134381139659513047,
+              "kernel_100ns": 6406250,
+              "user_100ns": 72343750,
+              "total_100ns": 78750000,
+              "read_started": 3973.1233114,
+              "read_completed": 3973.1233164
+            }
+          },
+          "after": {
+            "process": {
+              "creation_100ns": 134381139656855966,
+              "kernel_100ns": 24843750,
+              "user_100ns": 227656250,
+              "total_100ns": 252500000,
+              "read_started": 3988.1235749,
+              "read_completed": 3988.1235798
+            },
+            "vcpu": {
+              "creation_100ns": 134381139659513047,
+              "kernel_100ns": 7187500,
+              "user_100ns": 220156250,
+              "total_100ns": 227343750,
+              "read_started": 3988.123589,
+              "read_completed": 3988.1235911
+            }
+          },
+          "quiet_seconds": 15.000198900000214,
+          "process": {
+            "kernel_seconds": 0.109375,
+            "user_seconds": 14.78125,
+            "total_seconds": 14.890625,
+            "wall_seconds_midpoint": 15.00029090000021,
+            "wall_seconds_lower": 15.000282300000435,
+            "wall_seconds_upper": 15.000299499999983,
+            "percent_one_logical_cpu": 99.268908178306
+          },
+          "vcpu": {
+            "kernel_seconds": 0.078125,
+            "user_seconds": 14.78125,
+            "total_seconds": 14.859375,
+            "wall_seconds_midpoint": 15.000276149999763,
+            "wall_seconds_lower": 15.00027259999979,
+            "wall_seconds_upper": 15.000279699999737,
+            "percent_one_logical_cpu": 99.06067629295102
+          }
+        },
+        "after": {
+          "snapshots": {
+            "MATERIAL": {
+              "PID": 4,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 3,
+              "FRAMES": 1,
+              "SAVE_ACKS": 0,
+              "REVISION": 0,
+              "SAVED_BYTES": 0,
+              "SAVED_SUM": 0,
+              "SCREEN": 1,
+              "DIRTY": 0,
+              "DRAFT_BYTES": 0,
+              "DRAFT_SUM": 0,
+              "OBJECT": 18446744073709551615,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "CALCULATOR": {
+              "PID": 8,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 1,
+              "FRAMES": 1,
+              "EVALUATIONS": 0,
+              "FAILURES": 0,
+              "EXPRESSION_BYTES": 0,
+              "EXPRESSION_SUM": 14695981039346656037,
+              "CURRENT": 0,
+              "CARET": 0,
+              "ACTIVE": 1,
+              "ANSWER_LOW": 0,
+              "ANSWER_HIGH": 0,
+              "HAS_ANSWER": 0,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "COMPOSITOR": {
+              "GENERATION": 1,
+              "PID": 5,
+              "COMMITS": 2402,
+              "INPUT": 14,
+              "REJECTED": 2,
+              "FOCUSED": 0,
+              "MOVES": 0,
+              "SWITCHES": 0,
+              "MATERIAL": 3,
+              "CALCULATOR": 1,
+              "FATAL": 0,
+              "POINTER_X": 1260,
+              "POINTER_Y": 50,
+              "BUTTONS": 0
+            }
+          },
+          "input_progress": {
+            "MATERIAL": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            },
+            "CALCULATOR": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            }
+          },
+          "serial_sha256": "ac1d57101f6e475c13f6e584e755c1fb398ebdf8f413304a1ad9c05fa1521a34",
+          "serial_bytes": 16545
+        },
+        "vcpu_mapping_after": [
+          {
+            "thread-id": 93532,
+            "qom-type": "qemu64-x86_64-cpu",
+            "props": {
+              "core-id": 0,
+              "thread-id": 0,
+              "socket-id": 0
+            },
+            "qom-path": "/machine/unattached/device[0]",
+            "cpu-index": 0,
+            "target": "x86_64"
+          }
+        ],
+        "files_sha256": {
+          "initial-reference.ppm": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+          "serial-before.txt": "ac1d57101f6e475c13f6e584e755c1fb398ebdf8f413304a1ad9c05fa1521a34",
+          "before.ppm": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+          "after.ppm": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+          "serial-after.txt": "ac1d57101f6e475c13f6e584e755c1fb398ebdf8f413304a1ad9c05fa1521a34"
+        }
+      }
+    },
+    {
+      "index": 2,
+      "arm": "B",
+      "source_commit": "1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b",
+      "source_sha256": "8faf3f7f47e3f26409e446b2311673416ddd70d5735ef106d94c9f30d2c6847a",
+      "native_report": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\window-session-20261102\\source\\build\\windows-idle-1f2ac0a\\run\\window-906a166c19c2488aabc74868cc6c6c0d\\result.json",
+      "native_report_sha256": "848cb2bcc5853c6bf4405bce608ee99d92e8c9b77418aed4795532d0dddca60c",
+      "log": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\window-session-20261102\\measurements\\20261102T172603Z-formal-ab\\2-B.txt",
+      "log_sha256": "d965f018d4926ac176e6e0fc0bb0301f83f5eccce80eef15df45cb86c674ae6b",
+      "native_gate": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 39.08109519999971,
+      "process_percent_one_logical_cpu": 11.66628786229982,
+      "vcpu_percent_one_logical_cpu": 11.041310842022844,
+      "process_wall_s": 15.000487049999947,
+      "initial_s": 5.3796640999999,
+      "measurement": {
+        "measurement_passed": true,
+        "native_gate": false,
+        "scope": "One 15s headless CPU interval, no guest input or stop/cont. Equal endpoint images do not prove no redraw or ACK activity.",
+        "counter_scope": "Existing probe snapshots only. App snapshots emit on generation changes; compositor snapshots are conditional/rate-limited. Retained values are not fresh synchronous counter reads.",
+        "source_sha256": "8faf3f7f47e3f26409e446b2311673416ddd70d5735ef106d94c9f30d2c6847a",
+        "source_initial_sha256": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+        "expected_initial_sha256": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+        "unchanged_deadline": 4204.6300086,
+        "process_id": 75204,
+        "vcpu_mapping_before": [
+          {
+            "thread-id": 59120,
+            "qom-type": "qemu64-x86_64-cpu",
+            "props": {
+              "core-id": 0,
+              "thread-id": 0,
+              "socket-id": 0
+            },
+            "qom-path": "/machine/unattached/device[0]",
+            "cpu-index": 0,
+            "target": "x86_64"
+          }
+        ],
+        "before": {
+          "snapshots": {
+            "MATERIAL": {
+              "PID": 4,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 3,
+              "FRAMES": 1,
+              "SAVE_ACKS": 0,
+              "REVISION": 0,
+              "SAVED_BYTES": 0,
+              "SAVED_SUM": 0,
+              "SCREEN": 1,
+              "DIRTY": 0,
+              "DRAFT_BYTES": 0,
+              "DRAFT_SUM": 0,
+              "OBJECT": 18446744073709551615,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "CALCULATOR": {
+              "PID": 8,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 1,
+              "FRAMES": 1,
+              "EVALUATIONS": 0,
+              "FAILURES": 0,
+              "EXPRESSION_BYTES": 0,
+              "EXPRESSION_SUM": 14695981039346656037,
+              "CURRENT": 0,
+              "CARET": 0,
+              "ACTIVE": 1,
+              "ANSWER_LOW": 0,
+              "ANSWER_HIGH": 0,
+              "HAS_ANSWER": 0,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "COMPOSITOR": {
+              "GENERATION": 1,
+              "PID": 5,
+              "COMMITS": 2402,
+              "INPUT": 14,
+              "REJECTED": 2,
+              "FOCUSED": 0,
+              "MOVES": 0,
+              "SWITCHES": 0,
+              "MATERIAL": 3,
+              "CALCULATOR": 1,
+              "FATAL": 0,
+              "POINTER_X": 1260,
+              "POINTER_Y": 50,
+              "BUTTONS": 0
+            }
+          },
+          "input_progress": {
+            "MATERIAL": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            },
+            "CALCULATOR": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            }
+          },
+          "serial_sha256": "60db5ceb30fe4216e408a8b713fd06971ff074529274c9c650d341d028bce588",
+          "serial_bytes": 14851
+        },
+        "cpu": {
+          "before": {
+            "process": {
+              "creation_100ns": 134381140258878858,
+              "kernel_100ns": 20156250,
+              "user_100ns": 37656250,
+              "total_100ns": 57812500,
+              "read_started": 4030.3849327,
+              "read_completed": 4030.3849427
+            },
+            "vcpu": {
+              "creation_100ns": 134381140263215435,
+              "kernel_100ns": 6718750,
+              "user_100ns": 33906250,
+              "total_100ns": 40625000,
+              "read_started": 4030.3849573,
+              "read_completed": 4030.3849601
+            }
+          },
+          "after": {
+            "process": {
+              "creation_100ns": 134381140258878858,
+              "kernel_100ns": 21562500,
+              "user_100ns": 53750000,
+              "total_100ns": 75312500,
+              "read_started": 4045.3854214,
+              "read_completed": 4045.3854281
+            },
+            "vcpu": {
+              "creation_100ns": 134381140263215435,
+              "kernel_100ns": 7343750,
+              "user_100ns": 49843750,
+              "total_100ns": 57187500,
+              "read_started": 4045.3854407,
+              "read_completed": 4045.3854435
+            }
+          },
+          "quiet_seconds": 15.000404200000048,
+          "process": {
+            "kernel_seconds": 0.140625,
+            "user_seconds": 1.609375,
+            "total_seconds": 1.75,
+            "wall_seconds_midpoint": 15.000487049999947,
+            "wall_seconds_lower": 15.000478699999803,
+            "wall_seconds_upper": 15.00049540000009,
+            "percent_one_logical_cpu": 11.66628786229982
+          },
+          "vcpu": {
+            "kernel_seconds": 0.0625,
+            "user_seconds": 1.59375,
+            "total_seconds": 1.65625,
+            "wall_seconds_midpoint": 15.000483399999666,
+            "wall_seconds_lower": 15.000480599999719,
+            "wall_seconds_upper": 15.000486199999614,
+            "percent_one_logical_cpu": 11.041310842022844
+          }
+        },
+        "after": {
+          "snapshots": {
+            "MATERIAL": {
+              "PID": 4,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 3,
+              "FRAMES": 1,
+              "SAVE_ACKS": 0,
+              "REVISION": 0,
+              "SAVED_BYTES": 0,
+              "SAVED_SUM": 0,
+              "SCREEN": 1,
+              "DIRTY": 0,
+              "DRAFT_BYTES": 0,
+              "DRAFT_SUM": 0,
+              "OBJECT": 18446744073709551615,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "CALCULATOR": {
+              "PID": 8,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 1,
+              "FRAMES": 1,
+              "EVALUATIONS": 0,
+              "FAILURES": 0,
+              "EXPRESSION_BYTES": 0,
+              "EXPRESSION_SUM": 14695981039346656037,
+              "CURRENT": 0,
+              "CARET": 0,
+              "ACTIVE": 1,
+              "ANSWER_LOW": 0,
+              "ANSWER_HIGH": 0,
+              "HAS_ANSWER": 0,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "COMPOSITOR": {
+              "GENERATION": 1,
+              "PID": 5,
+              "COMMITS": 2402,
+              "INPUT": 14,
+              "REJECTED": 2,
+              "FOCUSED": 0,
+              "MOVES": 0,
+              "SWITCHES": 0,
+              "MATERIAL": 3,
+              "CALCULATOR": 1,
+              "FATAL": 0,
+              "POINTER_X": 1260,
+              "POINTER_Y": 50,
+              "BUTTONS": 0
+            }
+          },
+          "input_progress": {
+            "MATERIAL": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            },
+            "CALCULATOR": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            }
+          },
+          "serial_sha256": "60db5ceb30fe4216e408a8b713fd06971ff074529274c9c650d341d028bce588",
+          "serial_bytes": 14851
+        },
+        "vcpu_mapping_after": [
+          {
+            "thread-id": 59120,
+            "qom-type": "qemu64-x86_64-cpu",
+            "props": {
+              "core-id": 0,
+              "thread-id": 0,
+              "socket-id": 0
+            },
+            "qom-path": "/machine/unattached/device[0]",
+            "cpu-index": 0,
+            "target": "x86_64"
+          }
+        ],
+        "files_sha256": {
+          "initial-reference.ppm": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+          "serial-before.txt": "60db5ceb30fe4216e408a8b713fd06971ff074529274c9c650d341d028bce588",
+          "before.ppm": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+          "after.ppm": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+          "serial-after.txt": "60db5ceb30fe4216e408a8b713fd06971ff074529274c9c650d341d028bce588"
+        }
+      }
+    },
+    {
+      "index": 3,
+      "arm": "B",
+      "source_commit": "1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b",
+      "source_sha256": "8faf3f7f47e3f26409e446b2311673416ddd70d5735ef106d94c9f30d2c6847a",
+      "native_report": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\window-session-20261102\\source\\build\\windows-idle-1f2ac0a\\run\\window-a79f4ebcd23b436ea28235f144897d2b\\result.json",
+      "native_report_sha256": "beabc639bd150a4fecfbe34e610fb813fa4bc44f1dc438ec59e2a73123aa734b",
+      "log": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\window-session-20261102\\measurements\\20261102T172603Z-formal-ab\\3-B.txt",
+      "log_sha256": "7b6780836b6b9b218b262f67f2e76b54b6cde840aead8294decae0821e6c32a0",
+      "native_gate": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 43.473061600000165,
+      "process_percent_one_logical_cpu": 12.395408129516518,
+      "vcpu_percent_one_logical_cpu": 11.874598124017554,
+      "process_wall_s": 15.000514549999934,
+      "initial_s": 5.2581428999997115,
+      "measurement": {
+        "measurement_passed": true,
+        "native_gate": false,
+        "scope": "One 15s headless CPU interval, no guest input or stop/cont. Equal endpoint images do not prove no redraw or ACK activity.",
+        "counter_scope": "Existing probe snapshots only. App snapshots emit on generation changes; compositor snapshots are conditional/rate-limited. Retained values are not fresh synchronous counter reads.",
+        "source_sha256": "8faf3f7f47e3f26409e446b2311673416ddd70d5735ef106d94c9f30d2c6847a",
+        "source_initial_sha256": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+        "expected_initial_sha256": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+        "unchanged_deadline": 4248.022742900001,
+        "process_id": 46564,
+        "vcpu_mapping_before": [
+          {
+            "thread-id": 45760,
+            "qom-type": "qemu64-x86_64-cpu",
+            "props": {
+              "core-id": 0,
+              "thread-id": 0,
+              "socket-id": 0
+            },
+            "qom-path": "/machine/unattached/device[0]",
+            "cpu-index": 0,
+            "target": "x86_64"
+          }
+        ],
+        "before": {
+          "snapshots": {
+            "MATERIAL": {
+              "PID": 4,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 3,
+              "FRAMES": 1,
+              "SAVE_ACKS": 0,
+              "REVISION": 0,
+              "SAVED_BYTES": 0,
+              "SAVED_SUM": 0,
+              "SCREEN": 1,
+              "DIRTY": 0,
+              "DRAFT_BYTES": 0,
+              "DRAFT_SUM": 0,
+              "OBJECT": 18446744073709551615,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "CALCULATOR": {
+              "PID": 8,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 1,
+              "FRAMES": 1,
+              "EVALUATIONS": 0,
+              "FAILURES": 0,
+              "EXPRESSION_BYTES": 0,
+              "EXPRESSION_SUM": 14695981039346656037,
+              "CURRENT": 0,
+              "CARET": 0,
+              "ACTIVE": 1,
+              "ANSWER_LOW": 0,
+              "ANSWER_HIGH": 0,
+              "HAS_ANSWER": 0,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "COMPOSITOR": {
+              "GENERATION": 1,
+              "PID": 5,
+              "COMMITS": 2402,
+              "INPUT": 14,
+              "REJECTED": 2,
+              "FOCUSED": 0,
+              "MOVES": 0,
+              "SWITCHES": 0,
+              "MATERIAL": 3,
+              "CALCULATOR": 1,
+              "FATAL": 0,
+              "POINTER_X": 1260,
+              "POINTER_Y": 50,
+              "BUTTONS": 0
+            }
+          },
+          "input_progress": {
+            "MATERIAL": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            },
+            "CALCULATOR": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            }
+          },
+          "serial_sha256": "c5ae1e2da66dc042e6d15776515d6ee208573271c9639eb1ab0f035e605716a7",
+          "serial_bytes": 14851
+        },
+        "cpu": {
+          "before": {
+            "process": {
+              "creation_100ns": 134381140692784675,
+              "kernel_100ns": 19843750,
+              "user_100ns": 39062500,
+              "total_100ns": 58906250,
+              "read_started": 4073.6230535,
+              "read_completed": 4073.6230636
+            },
+            "vcpu": {
+              "creation_100ns": 134381140695934175,
+              "kernel_100ns": 6562500,
+              "user_100ns": 35625000,
+              "total_100ns": 42187500,
+              "read_started": 4073.6230778,
+              "read_completed": 4073.6230807
+            }
+          },
+          "after": {
+            "process": {
+              "creation_100ns": 134381140692784675,
+              "kernel_100ns": 20937500,
+              "user_100ns": 56562500,
+              "total_100ns": 77500000,
+              "read_started": 4088.6235712,
+              "read_completed": 4088.623575
+            },
+            "vcpu": {
+              "creation_100ns": 134381140695934175,
+              "kernel_100ns": 6875000,
+              "user_100ns": 53125000,
+              "total_100ns": 60000000,
+              "read_started": 4088.6235856,
+              "read_completed": 4088.6235882
+            }
+          },
+          "quiet_seconds": 15.000431800000115,
+          "process": {
+            "kernel_seconds": 0.109375,
+            "user_seconds": 1.75,
+            "total_seconds": 1.859375,
+            "wall_seconds_midpoint": 15.000514549999934,
+            "wall_seconds_lower": 15.000507599999764,
+            "wall_seconds_upper": 15.000521500000104,
+            "percent_one_logical_cpu": 12.395408129516518
+          },
+          "vcpu": {
+            "kernel_seconds": 0.03125,
+            "user_seconds": 1.75,
+            "total_seconds": 1.78125,
+            "wall_seconds_midpoint": 15.000507649999918,
+            "wall_seconds_lower": 15.000504899999669,
+            "wall_seconds_upper": 15.000510400000167,
+            "percent_one_logical_cpu": 11.874598124017554
+          }
+        },
+        "after": {
+          "snapshots": {
+            "MATERIAL": {
+              "PID": 4,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 3,
+              "FRAMES": 1,
+              "SAVE_ACKS": 0,
+              "REVISION": 0,
+              "SAVED_BYTES": 0,
+              "SAVED_SUM": 0,
+              "SCREEN": 1,
+              "DIRTY": 0,
+              "DRAFT_BYTES": 0,
+              "DRAFT_SUM": 0,
+              "OBJECT": 18446744073709551615,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "CALCULATOR": {
+              "PID": 8,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 1,
+              "FRAMES": 1,
+              "EVALUATIONS": 0,
+              "FAILURES": 0,
+              "EXPRESSION_BYTES": 0,
+              "EXPRESSION_SUM": 14695981039346656037,
+              "CURRENT": 0,
+              "CARET": 0,
+              "ACTIVE": 1,
+              "ANSWER_LOW": 0,
+              "ANSWER_HIGH": 0,
+              "HAS_ANSWER": 0,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "COMPOSITOR": {
+              "GENERATION": 1,
+              "PID": 5,
+              "COMMITS": 2402,
+              "INPUT": 14,
+              "REJECTED": 2,
+              "FOCUSED": 0,
+              "MOVES": 0,
+              "SWITCHES": 0,
+              "MATERIAL": 3,
+              "CALCULATOR": 1,
+              "FATAL": 0,
+              "POINTER_X": 1260,
+              "POINTER_Y": 50,
+              "BUTTONS": 0
+            }
+          },
+          "input_progress": {
+            "MATERIAL": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            },
+            "CALCULATOR": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            }
+          },
+          "serial_sha256": "c5ae1e2da66dc042e6d15776515d6ee208573271c9639eb1ab0f035e605716a7",
+          "serial_bytes": 14851
+        },
+        "vcpu_mapping_after": [
+          {
+            "thread-id": 45760,
+            "qom-type": "qemu64-x86_64-cpu",
+            "props": {
+              "core-id": 0,
+              "thread-id": 0,
+              "socket-id": 0
+            },
+            "qom-path": "/machine/unattached/device[0]",
+            "cpu-index": 0,
+            "target": "x86_64"
+          }
+        ],
+        "files_sha256": {
+          "initial-reference.ppm": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+          "serial-before.txt": "c5ae1e2da66dc042e6d15776515d6ee208573271c9639eb1ab0f035e605716a7",
+          "before.ppm": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+          "after.ppm": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+          "serial-after.txt": "c5ae1e2da66dc042e6d15776515d6ee208573271c9639eb1ab0f035e605716a7"
+        }
+      }
+    },
+    {
+      "index": 4,
+      "arm": "A",
+      "source_commit": "337f2f29f1833ef4a8d2cd640b09419f85dbb83b",
+      "source_sha256": "3919403542c923bc86467db3184345159a5ce6881567a0e11baa85f2d39f1995",
+      "native_report": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\window-session-20261102\\source\\build\\windows-probe-337f2f2\\run\\window-1521fca8ca3648b6b4dde37ee0124418\\result.json",
+      "native_report_sha256": "65427a661dec3315b66d1d76c44232b56712432e3d3b52d294fa61683848bd11",
+      "log": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\window-session-20261102\\measurements\\20261102T172603Z-formal-ab\\4-A.txt",
+      "log_sha256": "fd917c1dcd617b27d74f0c2224a0ca2ea73c204bab54eb315c093cba98006e8c",
+      "native_gate": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 58.986843200000294,
+      "process_percent_one_logical_cpu": 99.37236696351644,
+      "vcpu_percent_one_logical_cpu": 98.95575619559182,
+      "process_wall_s": 15.000397450000037,
+      "initial_s": 6.556666299999961,
+      "measurement": {
+        "measurement_passed": true,
+        "native_gate": false,
+        "scope": "One 15s headless CPU interval, no guest input or stop/cont. Equal endpoint images do not prove no redraw or ACK activity.",
+        "counter_scope": "Existing probe snapshots only. App snapshots emit on generation changes; compositor snapshots are conditional/rate-limited. Retained values are not fresh synchronous counter reads.",
+        "source_sha256": "3919403542c923bc86467db3184345159a5ce6881567a0e11baa85f2d39f1995",
+        "source_initial_sha256": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+        "expected_initial_sha256": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+        "unchanged_deadline": 4295.1899398,
+        "process_id": 33660,
+        "vcpu_mapping_before": [
+          {
+            "thread-id": 8504,
+            "qom-type": "qemu64-x86_64-cpu",
+            "props": {
+              "core-id": 0,
+              "thread-id": 0,
+              "socket-id": 0
+            },
+            "qom-path": "/machine/unattached/device[0]",
+            "cpu-index": 0,
+            "target": "x86_64"
+          }
+        ],
+        "before": {
+          "snapshots": {
+            "MATERIAL": {
+              "PID": 4,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 3,
+              "FRAMES": 1,
+              "SAVE_ACKS": 0,
+              "REVISION": 0,
+              "SAVED_BYTES": 0,
+              "SAVED_SUM": 0,
+              "SCREEN": 1,
+              "DIRTY": 0,
+              "DRAFT_BYTES": 0,
+              "DRAFT_SUM": 0,
+              "OBJECT": 18446744073709551615,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "CALCULATOR": {
+              "PID": 8,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 1,
+              "FRAMES": 1,
+              "EVALUATIONS": 0,
+              "FAILURES": 0,
+              "EXPRESSION_BYTES": 0,
+              "EXPRESSION_SUM": 14695981039346656037,
+              "CURRENT": 0,
+              "CARET": 0,
+              "ACTIVE": 1,
+              "ANSWER_LOW": 0,
+              "ANSWER_HIGH": 0,
+              "HAS_ANSWER": 0,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "COMPOSITOR": {
+              "GENERATION": 1,
+              "PID": 5,
+              "COMMITS": 2402,
+              "INPUT": 14,
+              "REJECTED": 2,
+              "FOCUSED": 0,
+              "MOVES": 0,
+              "SWITCHES": 0,
+              "MATERIAL": 3,
+              "CALCULATOR": 1,
+              "FATAL": 0,
+              "POINTER_X": 1260,
+              "POINTER_Y": 50,
+              "BUTTONS": 0
+            }
+          },
+          "input_progress": {
+            "MATERIAL": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            },
+            "CALCULATOR": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            }
+          },
+          "serial_sha256": "345c1c30f3e056cb5bdee68a3d048fcfe6f349cdda66a92750a8d1f492d987e0",
+          "serial_bytes": 16301
+        },
+        "cpu": {
+          "before": {
+            "process": {
+              "creation_100ns": 134381141164705890,
+              "kernel_100ns": 17812500,
+              "user_100ns": 62812500,
+              "total_100ns": 80625000,
+              "read_started": 4122.1538217,
+              "read_completed": 4122.1538329
+            },
+            "vcpu": {
+              "creation_100ns": 134381141167966405,
+              "kernel_100ns": 4687500,
+              "user_100ns": 57500000,
+              "total_100ns": 62187500,
+              "read_started": 4122.1538465,
+              "read_completed": 4122.1538491
+            }
+          },
+          "after": {
+            "process": {
+              "creation_100ns": 134381141164705890,
+              "kernel_100ns": 19218750,
+              "user_100ns": 210468750,
+              "total_100ns": 229687500,
+              "read_started": 4137.1542221,
+              "read_completed": 4137.1542274
+            },
+            "vcpu": {
+              "creation_100ns": 134381141167966405,
+              "kernel_100ns": 5625000,
+              "user_100ns": 205000000,
+              "total_100ns": 210625000,
+              "read_started": 4137.1542374,
+              "read_completed": 4137.1542395
+            }
+          },
+          "quiet_seconds": 15.000315999999657,
+          "process": {
+            "kernel_seconds": 0.140625,
+            "user_seconds": 14.765625,
+            "total_seconds": 14.90625,
+            "wall_seconds_midpoint": 15.000397450000037,
+            "wall_seconds_lower": 15.000389199999518,
+            "wall_seconds_upper": 15.000405700000556,
+            "percent_one_logical_cpu": 99.37236696351644
+          },
+          "vcpu": {
+            "kernel_seconds": 0.09375,
+            "user_seconds": 14.75,
+            "total_seconds": 14.84375,
+            "wall_seconds_midpoint": 15.000390649999645,
+            "wall_seconds_lower": 15.00038829999994,
+            "wall_seconds_upper": 15.000392999999349,
+            "percent_one_logical_cpu": 98.95575619559182
+          }
+        },
+        "after": {
+          "snapshots": {
+            "MATERIAL": {
+              "PID": 4,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 3,
+              "FRAMES": 1,
+              "SAVE_ACKS": 0,
+              "REVISION": 0,
+              "SAVED_BYTES": 0,
+              "SAVED_SUM": 0,
+              "SCREEN": 1,
+              "DIRTY": 0,
+              "DRAFT_BYTES": 0,
+              "DRAFT_SUM": 0,
+              "OBJECT": 18446744073709551615,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "CALCULATOR": {
+              "PID": 8,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 1,
+              "FRAMES": 1,
+              "EVALUATIONS": 0,
+              "FAILURES": 0,
+              "EXPRESSION_BYTES": 0,
+              "EXPRESSION_SUM": 14695981039346656037,
+              "CURRENT": 0,
+              "CARET": 0,
+              "ACTIVE": 1,
+              "ANSWER_LOW": 0,
+              "ANSWER_HIGH": 0,
+              "HAS_ANSWER": 0,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "COMPOSITOR": {
+              "GENERATION": 1,
+              "PID": 5,
+              "COMMITS": 2402,
+              "INPUT": 14,
+              "REJECTED": 2,
+              "FOCUSED": 0,
+              "MOVES": 0,
+              "SWITCHES": 0,
+              "MATERIAL": 3,
+              "CALCULATOR": 1,
+              "FATAL": 0,
+              "POINTER_X": 1260,
+              "POINTER_Y": 50,
+              "BUTTONS": 0
+            }
+          },
+          "input_progress": {
+            "MATERIAL": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            },
+            "CALCULATOR": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            }
+          },
+          "serial_sha256": "345c1c30f3e056cb5bdee68a3d048fcfe6f349cdda66a92750a8d1f492d987e0",
+          "serial_bytes": 16301
+        },
+        "vcpu_mapping_after": [
+          {
+            "thread-id": 8504,
+            "qom-type": "qemu64-x86_64-cpu",
+            "props": {
+              "core-id": 0,
+              "thread-id": 0,
+              "socket-id": 0
+            },
+            "qom-path": "/machine/unattached/device[0]",
+            "cpu-index": 0,
+            "target": "x86_64"
+          }
+        ],
+        "files_sha256": {
+          "initial-reference.ppm": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+          "serial-before.txt": "345c1c30f3e056cb5bdee68a3d048fcfe6f349cdda66a92750a8d1f492d987e0",
+          "before.ppm": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+          "after.ppm": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+          "serial-after.txt": "345c1c30f3e056cb5bdee68a3d048fcfe6f349cdda66a92750a8d1f492d987e0"
+        }
+      }
+    },
+    {
+      "index": 5,
+      "arm": "A",
+      "source_commit": "337f2f29f1833ef4a8d2cd640b09419f85dbb83b",
+      "source_sha256": "3919403542c923bc86467db3184345159a5ce6881567a0e11baa85f2d39f1995",
+      "native_report": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\window-session-20261102\\source\\build\\windows-probe-337f2f2\\run\\window-9921882a6874458196762855c801d428\\result.json",
+      "native_report_sha256": "58676a237cf8a45e6099c11f64fb4e5ffba985e65b83120cdc03cc35acf3c37a",
+      "log": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\window-session-20261102\\measurements\\20261102T172603Z-formal-ab\\5-A.txt",
+      "log_sha256": "38bd611b190d8d59af8308cfcfe08a778c45ccbede749c1b57c74675c063834b",
+      "native_gate": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 60.003434400000515,
+      "process_percent_one_logical_cpu": 99.37357763285871,
+      "vcpu_percent_one_logical_cpu": 98.85282292729309,
+      "process_wall_s": 15.000214700000015,
+      "initial_s": 8.12424160000046,
+      "measurement": {
+        "measurement_passed": true,
+        "native_gate": false,
+        "scope": "One 15s headless CPU interval, no guest input or stop/cont. Equal endpoint images do not prove no redraw or ACK activity.",
+        "counter_scope": "Existing probe snapshots only. App snapshots emit on generation changes; compositor snapshots are conditional/rate-limited. Retained values are not fresh synchronous counter reads.",
+        "source_sha256": "3919403542c923bc86467db3184345159a5ce6881567a0e11baa85f2d39f1995",
+        "source_initial_sha256": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+        "expected_initial_sha256": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+        "unchanged_deadline": 4358.7866384,
+        "process_id": 28308,
+        "vcpu_mapping_before": [
+          {
+            "thread-id": 88596,
+            "qom-type": "qemu64-x86_64-cpu",
+            "props": {
+              "core-id": 0,
+              "thread-id": 0,
+              "socket-id": 0
+            },
+            "qom-path": "/machine/unattached/device[0]",
+            "cpu-index": 0,
+            "target": "x86_64"
+          }
+        ],
+        "before": {
+          "snapshots": {
+            "MATERIAL": {
+              "PID": 4,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 3,
+              "FRAMES": 1,
+              "SAVE_ACKS": 0,
+              "REVISION": 0,
+              "SAVED_BYTES": 0,
+              "SAVED_SUM": 0,
+              "SCREEN": 1,
+              "DIRTY": 0,
+              "DRAFT_BYTES": 0,
+              "DRAFT_SUM": 0,
+              "OBJECT": 18446744073709551615,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "CALCULATOR": {
+              "PID": 8,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 1,
+              "FRAMES": 1,
+              "EVALUATIONS": 0,
+              "FAILURES": 0,
+              "EXPRESSION_BYTES": 0,
+              "EXPRESSION_SUM": 14695981039346656037,
+              "CURRENT": 0,
+              "CARET": 0,
+              "ACTIVE": 1,
+              "ANSWER_LOW": 0,
+              "ANSWER_HIGH": 0,
+              "HAS_ANSWER": 0,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "COMPOSITOR": {
+              "GENERATION": 1,
+              "PID": 5,
+              "COMMITS": 2402,
+              "INPUT": 14,
+              "REJECTED": 2,
+              "FOCUSED": 0,
+              "MOVES": 0,
+              "SWITCHES": 0,
+              "MATERIAL": 3,
+              "CALCULATOR": 1,
+              "FATAL": 0,
+              "POINTER_X": 1260,
+              "POINTER_Y": 50,
+              "BUTTONS": 0
+            }
+          },
+          "input_progress": {
+            "MATERIAL": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            },
+            "CALCULATOR": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            }
+          },
+          "serial_sha256": "43d3b864414b4d9b741768019486339c27c95ce821018584423ffc0a743a024e",
+          "serial_bytes": 16545
+        },
+        "cpu": {
+          "before": {
+            "process": {
+              "creation_100ns": 134381141800693929,
+              "kernel_100ns": 30468750,
+              "user_100ns": 75625000,
+              "total_100ns": 106093750,
+              "read_started": 4187.4504312,
+              "read_completed": 4187.4504461
+            },
+            "vcpu": {
+              "creation_100ns": 134381141804148811,
+              "kernel_100ns": 8281250,
+              "user_100ns": 69375000,
+              "total_100ns": 77656250,
+              "read_started": 4187.4504654,
+              "read_completed": 4187.4504695
+            }
+          },
+          "after": {
+            "process": {
+              "creation_100ns": 134381141800693929,
+              "kernel_100ns": 33281250,
+              "user_100ns": 221875000,
+              "total_100ns": 255156250,
+              "read_started": 4202.4506499,
+              "read_completed": 4202.4506568
+            },
+            "vcpu": {
+              "creation_100ns": 134381141804148811,
+              "kernel_100ns": 10468750,
+              "user_100ns": 215468750,
+              "total_100ns": 225937500,
+              "read_started": 4202.4506697,
+              "read_completed": 4202.450673
+            }
+          },
+          "quiet_seconds": 15.000111300000754,
+          "process": {
+            "kernel_seconds": 0.28125,
+            "user_seconds": 14.625,
+            "total_seconds": 14.90625,
+            "wall_seconds_midpoint": 15.000214700000015,
+            "wall_seconds_lower": 15.000203800000236,
+            "wall_seconds_upper": 15.000225599999794,
+            "percent_one_logical_cpu": 99.37357763285871
+          },
+          "vcpu": {
+            "kernel_seconds": 0.21875,
+            "user_seconds": 14.609375,
+            "total_seconds": 14.828125,
+            "wall_seconds_midpoint": 15.000203900000088,
+            "wall_seconds_lower": 15.000200200000108,
+            "wall_seconds_upper": 15.000207600000067,
+            "percent_one_logical_cpu": 98.85282292729309
+          }
+        },
+        "after": {
+          "snapshots": {
+            "MATERIAL": {
+              "PID": 4,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 3,
+              "FRAMES": 1,
+              "SAVE_ACKS": 0,
+              "REVISION": 0,
+              "SAVED_BYTES": 0,
+              "SAVED_SUM": 0,
+              "SCREEN": 1,
+              "DIRTY": 0,
+              "DRAFT_BYTES": 0,
+              "DRAFT_SUM": 0,
+              "OBJECT": 18446744073709551615,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "CALCULATOR": {
+              "PID": 8,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 1,
+              "FRAMES": 1,
+              "EVALUATIONS": 0,
+              "FAILURES": 0,
+              "EXPRESSION_BYTES": 0,
+              "EXPRESSION_SUM": 14695981039346656037,
+              "CURRENT": 0,
+              "CARET": 0,
+              "ACTIVE": 1,
+              "ANSWER_LOW": 0,
+              "ANSWER_HIGH": 0,
+              "HAS_ANSWER": 0,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "COMPOSITOR": {
+              "GENERATION": 1,
+              "PID": 5,
+              "COMMITS": 2402,
+              "INPUT": 14,
+              "REJECTED": 2,
+              "FOCUSED": 0,
+              "MOVES": 0,
+              "SWITCHES": 0,
+              "MATERIAL": 3,
+              "CALCULATOR": 1,
+              "FATAL": 0,
+              "POINTER_X": 1260,
+              "POINTER_Y": 50,
+              "BUTTONS": 0
+            }
+          },
+          "input_progress": {
+            "MATERIAL": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            },
+            "CALCULATOR": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            }
+          },
+          "serial_sha256": "43d3b864414b4d9b741768019486339c27c95ce821018584423ffc0a743a024e",
+          "serial_bytes": 16545
+        },
+        "vcpu_mapping_after": [
+          {
+            "thread-id": 88596,
+            "qom-type": "qemu64-x86_64-cpu",
+            "props": {
+              "core-id": 0,
+              "thread-id": 0,
+              "socket-id": 0
+            },
+            "qom-path": "/machine/unattached/device[0]",
+            "cpu-index": 0,
+            "target": "x86_64"
+          }
+        ],
+        "files_sha256": {
+          "initial-reference.ppm": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+          "serial-before.txt": "43d3b864414b4d9b741768019486339c27c95ce821018584423ffc0a743a024e",
+          "before.ppm": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+          "after.ppm": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+          "serial-after.txt": "43d3b864414b4d9b741768019486339c27c95ce821018584423ffc0a743a024e"
+        }
+      }
+    },
+    {
+      "index": 6,
+      "arm": "B",
+      "source_commit": "1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b",
+      "source_sha256": "8faf3f7f47e3f26409e446b2311673416ddd70d5735ef106d94c9f30d2c6847a",
+      "native_report": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\window-session-20261102\\source\\build\\windows-idle-1f2ac0a\\run\\window-375e47b74ee44c38959a960c8837e813\\result.json",
+      "native_report_sha256": "32b1f1d21abf7940b710486742d4eac8772ba51a4a19b09229e8467afc9a9162",
+      "log": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\window-session-20261102\\measurements\\20261102T172603Z-formal-ab\\6-B.txt",
+      "log_sha256": "48a31debc3202b68ad26e51792f1afa604081d60c19eb13dafb1c475624e9097",
+      "native_gate": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 44.082088699999986,
+      "process_percent_one_logical_cpu": 11.666233849390753,
+      "vcpu_percent_one_logical_cpu": 11.353755660711668,
+      "process_wall_s": 15.00055650000013,
+      "initial_s": 6.816060899999684,
+      "measurement": {
+        "measurement_passed": true,
+        "native_gate": false,
+        "scope": "One 15s headless CPU interval, no guest input or stop/cont. Equal endpoint images do not prove no redraw or ACK activity.",
+        "counter_scope": "Existing probe snapshots only. App snapshots emit on generation changes; compositor snapshots are conditional/rate-limited. Retained values are not fresh synchronous counter reads.",
+        "source_sha256": "8faf3f7f47e3f26409e446b2311673416ddd70d5735ef106d94c9f30d2c6847a",
+        "source_initial_sha256": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+        "expected_initial_sha256": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+        "unchanged_deadline": 4423.1061799,
+        "process_id": 87132,
+        "vcpu_mapping_before": [
+          {
+            "thread-id": 88984,
+            "qom-type": "qemu64-x86_64-cpu",
+            "props": {
+              "core-id": 0,
+              "thread-id": 0,
+              "socket-id": 0
+            },
+            "qom-path": "/machine/unattached/device[0]",
+            "cpu-index": 0,
+            "target": "x86_64"
+          }
+        ],
+        "before": {
+          "snapshots": {
+            "MATERIAL": {
+              "PID": 4,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 3,
+              "FRAMES": 1,
+              "SAVE_ACKS": 0,
+              "REVISION": 0,
+              "SAVED_BYTES": 0,
+              "SAVED_SUM": 0,
+              "SCREEN": 1,
+              "DIRTY": 0,
+              "DRAFT_BYTES": 0,
+              "DRAFT_SUM": 0,
+              "OBJECT": 18446744073709551615,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "CALCULATOR": {
+              "PID": 8,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 1,
+              "FRAMES": 1,
+              "EVALUATIONS": 0,
+              "FAILURES": 0,
+              "EXPRESSION_BYTES": 0,
+              "EXPRESSION_SUM": 14695981039346656037,
+              "CURRENT": 0,
+              "CARET": 0,
+              "ACTIVE": 1,
+              "ANSWER_LOW": 0,
+              "ANSWER_HIGH": 0,
+              "HAS_ANSWER": 0,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "COMPOSITOR": {
+              "GENERATION": 1,
+              "PID": 5,
+              "COMMITS": 2402,
+              "INPUT": 14,
+              "REJECTED": 2,
+              "FOCUSED": 0,
+              "MOVES": 0,
+              "SWITCHES": 0,
+              "MATERIAL": 3,
+              "CALCULATOR": 1,
+              "FATAL": 0,
+              "POINTER_X": 1260,
+              "POINTER_Y": 50,
+              "BUTTONS": 0
+            }
+          },
+          "input_progress": {
+            "MATERIAL": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            },
+            "CALCULATOR": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            }
+          },
+          "serial_sha256": "98770cc0b49c83afa8e4a6f9fc25d3731760d877aa880756c9da1c9e40114da3",
+          "serial_bytes": 15820
+        },
+        "cpu": {
+          "before": {
+            "process": {
+              "creation_100ns": 134381142443990298,
+              "kernel_100ns": 27031250,
+              "user_100ns": 55468750,
+              "total_100ns": 82500000,
+              "read_started": 4250.3909231,
+              "read_completed": 4250.3909367
+            },
+            "vcpu": {
+              "creation_100ns": 134381142447434718,
+              "kernel_100ns": 6406250,
+              "user_100ns": 48125000,
+              "total_100ns": 54531250,
+              "read_started": 4250.3909556,
+              "read_completed": 4250.3909587
+            }
+          },
+          "after": {
+            "process": {
+              "creation_100ns": 134381142443990298,
+              "kernel_100ns": 27812500,
+              "user_100ns": 72187500,
+              "total_100ns": 100000000,
+              "read_started": 4265.3914841,
+              "read_completed": 4265.3914887
+            },
+            "vcpu": {
+              "creation_100ns": 134381142447434718,
+              "kernel_100ns": 6718750,
+              "user_100ns": 64843750,
+              "total_100ns": 71562500,
+              "read_started": 4265.3914987,
+              "read_completed": 4265.3915016
+            }
+          },
+          "quiet_seconds": 15.000464400000055,
+          "process": {
+            "kernel_seconds": 0.078125,
+            "user_seconds": 1.671875,
+            "total_seconds": 1.75,
+            "wall_seconds_midpoint": 15.00055650000013,
+            "wall_seconds_lower": 15.00054739999996,
+            "wall_seconds_upper": 15.0005656000003,
+            "percent_one_logical_cpu": 11.666233849390753
+          },
+          "vcpu": {
+            "kernel_seconds": 0.03125,
+            "user_seconds": 1.671875,
+            "total_seconds": 1.703125,
+            "wall_seconds_midpoint": 15.000543000000107,
+            "wall_seconds_lower": 15.00054,
+            "wall_seconds_upper": 15.000546000000213,
+            "percent_one_logical_cpu": 11.353755660711668
+          }
+        },
+        "after": {
+          "snapshots": {
+            "MATERIAL": {
+              "PID": 4,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 3,
+              "FRAMES": 1,
+              "SAVE_ACKS": 0,
+              "REVISION": 0,
+              "SAVED_BYTES": 0,
+              "SAVED_SUM": 0,
+              "SCREEN": 1,
+              "DIRTY": 0,
+              "DRAFT_BYTES": 0,
+              "DRAFT_SUM": 0,
+              "OBJECT": 18446744073709551615,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "CALCULATOR": {
+              "PID": 8,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 1,
+              "FRAMES": 1,
+              "EVALUATIONS": 0,
+              "FAILURES": 0,
+              "EXPRESSION_BYTES": 0,
+              "EXPRESSION_SUM": 14695981039346656037,
+              "CURRENT": 0,
+              "CARET": 0,
+              "ACTIVE": 1,
+              "ANSWER_LOW": 0,
+              "ANSWER_HIGH": 0,
+              "HAS_ANSWER": 0,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 3
+            },
+            "COMPOSITOR": {
+              "GENERATION": 1,
+              "PID": 5,
+              "COMMITS": 2402,
+              "INPUT": 14,
+              "REJECTED": 2,
+              "FOCUSED": 0,
+              "MOVES": 0,
+              "SWITCHES": 0,
+              "MATERIAL": 3,
+              "CALCULATOR": 1,
+              "FATAL": 0,
+              "POINTER_X": 1260,
+              "POINTER_Y": 50,
+              "BUTTONS": 0
+            }
+          },
+          "input_progress": {
+            "MATERIAL": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            },
+            "CALCULATOR": {
+              "KEYS": [
+                0
+              ],
+              "INPUT_ACKS": [
+                0
+              ]
+            }
+          },
+          "serial_sha256": "98770cc0b49c83afa8e4a6f9fc25d3731760d877aa880756c9da1c9e40114da3",
+          "serial_bytes": 15820
+        },
+        "vcpu_mapping_after": [
+          {
+            "thread-id": 88984,
+            "qom-type": "qemu64-x86_64-cpu",
+            "props": {
+              "core-id": 0,
+              "thread-id": 0,
+              "socket-id": 0
+            },
+            "qom-path": "/machine/unattached/device[0]",
+            "cpu-index": 0,
+            "target": "x86_64"
+          }
+        ],
+        "files_sha256": {
+          "initial-reference.ppm": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+          "serial-before.txt": "98770cc0b49c83afa8e4a6f9fc25d3731760d877aa880756c9da1c9e40114da3",
+          "before.ppm": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+          "after.ppm": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+          "serial-after.txt": "98770cc0b49c83afa8e4a6f9fc25d3731760d877aa880756c9da1c9e40114da3"
+        }
+      }
+    }
+  ],
+  "scope": "Three 15s intervals per arm on one vCPU; headless WHPX only. Same full endpoint frame; no input or pause during interval. Every arm continues through actual full native recovery/save/oracle/cleanup. No proof of no intermediate redraw, energy consumption or physical-hardware acceptance.",
+  "statistics": {
+    "process_percent_one_logical_cpu": {
+      "A": {
+        "values": [
+          99.268908178306,
+          99.37236696351644,
+          99.37357763285871
+        ],
+        "median": 99.37236696351644,
+        "min": 99.268908178306,
+        "max": 99.37357763285871
+      },
+      "B": {
+        "values": [
+          11.66628786229982,
+          12.395408129516518,
+          11.666233849390753
+        ],
+        "median": 11.66628786229982,
+        "min": 11.666233849390753,
+        "max": 12.395408129516518
+      },
+      "median_reduction_percent": 88.26002819618559
+    },
+    "vcpu_percent_one_logical_cpu": {
+      "A": {
+        "values": [
+          99.06067629295102,
+          98.95575619559182,
+          98.85282292729309
+        ],
+        "median": 98.95575619559182,
+        "min": 98.85282292729309,
+        "max": 99.06067629295102
+      },
+      "B": {
+        "values": [
+          11.041310842022844,
+          11.874598124017554,
+          11.353755660711668
+        ],
+        "median": 11.353755660711668,
+        "min": 11.041310842022844,
+        "max": 11.874598124017554
+      },
+      "median_reduction_percent": 88.52643231964161
+    }
+  }
+}

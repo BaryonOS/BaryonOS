@@ -57,8 +57,200 @@ class WindowsQemuPackageTests(unittest.TestCase):
     def tearDown(self):
         self.temporary.cleanup()
 
+    def test_whpx_probe_disables_user_configuration(self):
+        helper = package.ROOT / "tools/windows-qemu/Acceleration.ps1"
+        assignments = [
+            line.strip().split(" = ", 1)[1]
+            for line in helper.read_text().splitlines()
+            if line.strip().startswith("$start.Arguments = ")
+        ]
+        self.assertEqual(len(assignments), 1)
+        arguments = assignments[0].strip('"').split()
+        self.assertIn("-no-user-config", arguments)
+        self.assertIn("-nodefaults", arguments)
+        self.assertIn("-S", arguments)
+        self.assertEqual(arguments[arguments.index("-nic") + 1], "none")
+
+    def window_profile(self):
+        kernel = bytearray(b"window-kernel")
+        apps = []
+        for name in package.WINDOW_APP_NAMES:
+            data = ("app:" + name).encode()
+            kernel.extend(data)
+            (self.apps_dir / (name + ".elf")).write_bytes(data)
+            apps.append({"name": name, "sha256": hashlib.sha256(data).hexdigest(), "elf": {"name": name}})
+        (self.esp / "kernel.elf").write_bytes(kernel)
+        self.manifest.update(kernel_feature=package.WINDOW_PROFILE, loader_feature="desktop-mode")
+        self.manifest["kernel"] = {"sha256": hashlib.sha256(kernel).hexdigest()}
+        self.manifest["materiaal"]["apps"] = apps
+        self.save_manifest()
+
+    def save_manifest(self):
+        (self.build / "manifest.json").write_text(json.dumps(self.manifest))
+
+    @staticmethod
+    def graphics_fixture(repo):
+        graphics = repo / "ui/graphics"
+        (graphics / "assets").mkdir(parents=True)
+        (graphics / "licenses").mkdir()
+        atlas = b"synthetic atlas, not a native font"
+        (graphics / "assets/open-sans-atlas.rle").write_bytes(atlas)
+        (graphics / "assets/font-provenance.json").write_text(json.dumps({
+            "font": "Open Sans", "data_bytes": len(atlas), "data_sha256": hashlib.sha256(atlas).hexdigest(),
+        }))
+        for name in ("THIRD-PARTY.md", "README.md", "licenses/Apache-2.0.txt"):
+            (graphics / name).write_text("synthetic license fixture")
+        native = repo / "ui/native"
+        (native / "licenses").mkdir(parents=True)
+        for name in ("THIRD-PARTY.md", "licenses/NotoSansMono-OFL.txt",
+                     "licenses/noto-sans-mono-bitmap-MIT.txt"):
+            (native / name).write_text("synthetic native notice: " + name)
+
+    def test_window_profile_requires_eight_ordered_real_embedded_elves(self):
+        self.window_profile()
+        with patch.object(package, "inspect_user", side_effect=lambda path: {"name": path.stem}):
+            _, result = package.validate_build(self.build, verify_source=False)
+        self.assertEqual(result["kernel_feature"], package.WINDOW_PROFILE)
+        self.assertEqual(result["loader_feature"], "desktop-mode")
+        self.assertEqual([app["name"] for app in result["materiaal"]["apps"]], list(package.WINDOW_APP_NAMES))
+
+    def test_window_profile_rejects_old_loader_missing_app_and_wrong_order(self):
+        for mutation in ("loader", "missing", "order"):
+            with self.subTest(mutation=mutation):
+                self.window_profile()
+                if mutation == "loader":
+                    self.manifest["loader_feature"] = "framebuffer"
+                elif mutation == "missing":
+                    self.manifest["materiaal"]["apps"].pop()
+                else:
+                    self.manifest["materiaal"]["apps"].reverse()
+                self.save_manifest()
+                with patch.object(package, "inspect_user", side_effect=lambda path: {"name": path.stem}):
+                    with self.assertRaises(ValueError):
+                        package.validate_build(self.build, verify_source=False)
+
+    def test_window_probe_and_hidpi_are_not_interactive_packages(self):
+        for feature in ("native-window-session-probe", "native-window-session-hidpi"):
+            self.window_profile()
+            self.manifest["kernel_feature"] = feature
+            self.save_manifest()
+            with self.assertRaisesRegex(ValueError, "supported interactive"):
+                package.validate_build(self.build, verify_source=False)
+
+    def test_window_probe_controller_or_changed_calculator_is_rejected(self):
+        self.window_profile()
+        self.manifest["materiaal"]["probe_controller"] = True
+        self.save_manifest()
+        with self.assertRaisesRegex(ValueError, "non-probe"):
+            package.validate_build(self.build, verify_source=False)
+        self.manifest["materiaal"]["probe_controller"] = False
+        self.save_manifest()
+        (self.apps_dir / "calculator-app.elf").write_bytes(b"different calculator")
+        with patch.object(package, "inspect_user", side_effect=lambda path: {"name": path.stem}):
+            with self.assertRaisesRegex(ValueError, "not bound"):
+                package.validate_build(self.build, verify_source=False)
+
+    def test_window_bundle_labels_public_research_and_carries_font_provenance(self):
+        self.window_profile()
+        output = self.root / "window.zip"
+        self.package_to(output)
+        with zipfile.ZipFile(output) as archive:
+            manifest = json.loads(archive.read("manifest.json"))
+            self.assertEqual(manifest["kernel_feature"], package.WINDOW_PROFILE)
+            self.assertEqual(manifest["loader_feature"], "desktop-mode")
+            self.assertEqual(manifest["session"], {
+                "classification": "public-workspace-research", "authentication_integrated": False,
+                "initial_processes": 8, "width": 1280, "height": 720,
+            })
+            for source, name in package.GRAPHICS_FILES:
+                data = archive.read(name)
+                self.assertEqual(data, (package.ROOT / source).read_bytes())
+                self.assertEqual(hashlib.sha256(data).hexdigest(), manifest["files"][name]["sha256"])
+            font = json.loads(archive.read("licenses/OpenSans-font-provenance.json"))
+            self.assertEqual(font["data_sha256"], manifest["graphics"]["atlas_sha256"])
+
+    def test_both_desktop_bundles_include_the_original_noto_notices_and_hashes(self):
+        # Keep this required set independent of GRAPHICS_FILES: removing an
+        # entry from the packager must not silently change the test's contract.
+        notices = (
+            ("ui/native/THIRD-PARTY.md", "licenses/NotoSansMono-NOTICE.md"),
+            ("ui/native/licenses/NotoSansMono-OFL.txt", "licenses/NotoSansMono-OFL.txt"),
+            ("ui/native/licenses/noto-sans-mono-bitmap-MIT.txt", "licenses/noto-sans-mono-bitmap-MIT.txt"),
+        )
+        for profile in (package.PROFILE, package.WINDOW_PROFILE):
+            with self.subTest(profile=profile):
+                if profile == package.WINDOW_PROFILE:
+                    self.window_profile()
+                output = self.root / (profile + ".zip")
+                self.package_to(output)
+                with zipfile.ZipFile(output) as archive:
+                    manifest = json.loads(archive.read("manifest.json"))
+                    for source, name in notices:
+                        expected = (package.ROOT / source).read_bytes()
+                        self.assertEqual(archive.read(name), expected)
+                        self.assertEqual(manifest["files"][name], {
+                            "sha256": hashlib.sha256(expected).hexdigest(),
+                            "size_bytes": len(expected),
+                        })
+
+    def test_noto_notice_links_or_missing_files_refuse_the_entire_bundle(self):
+        repo = self.root / "notice-fixture"
+        self.graphics_fixture(repo)
+        for source, _ in package.PACKAGE_FILES:
+            target = repo / source
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes((package.ROOT / source).read_bytes())
+        notice = repo / "ui/native/licenses/NotoSansMono-OFL.txt"
+        original = self.root / "outside-notice"
+        notice.rename(original)
+        notice.symlink_to(original)
+        with patch.object(package, "ROOT", repo):
+            linked_output = self.root / "linked-notice.zip"
+            with self.assertRaisesRegex(ValueError, "regular, single-link"):
+                self.package_to(linked_output)
+            self.assertFalse(linked_output.exists())
+            notice.unlink()
+            missing_output = self.root / "missing-notice.zip"
+            with self.assertRaises(FileNotFoundError):
+                self.package_to(missing_output)
+            self.assertFalse(missing_output.exists())
+
+    def test_rejects_changed_or_linked_font_atlas_before_creating_package(self):
+        repo = self.root / "font-fixture"
+        self.graphics_fixture(repo)
+        atlas = repo / "ui/graphics/assets/open-sans-atlas.rle"
+        with patch.object(package, "ROOT", repo):
+            package.validate_font_provenance()
+            original = atlas.read_bytes()
+            atlas.write_bytes(b"changed")
+            with self.assertRaisesRegex(ValueError, "provenance"):
+                package.validate_font_provenance()
+            atlas.write_bytes(original)
+            linked = self.root / "atlas-source"
+            atlas.rename(linked)
+            atlas.symlink_to(linked)
+            with self.assertRaisesRegex(ValueError, "regular, single-link"):
+                package.validate_font_provenance()
+
     def test_validates_exact_seven_app_esp_and_embedded_images(self):
         self.assertEqual(self.validated[1]["kernel_feature"], package.PROFILE)
+
+    def test_accepts_session_preview_only_with_the_same_exact_app_and_esp_binding(self):
+        self.manifest["kernel_feature"] = package.SESSION_PROFILE
+        (self.build / "manifest.json").write_text(json.dumps(self.manifest))
+        with patch.object(package, "inspect_user", side_effect=lambda path: {"name": path.stem}):
+            _, result = package.validate_build(self.build, verify_source=False)
+        self.assertEqual(result["kernel_feature"], package.SESSION_PROFILE)
+
+    def test_package_preserves_the_exact_session_preview_profile(self):
+        self.manifest["kernel_feature"] = package.SESSION_PROFILE
+        (self.build / "manifest.json").write_text(json.dumps(self.manifest))
+        output = self.root / "session-preview.zip"
+        self.package_to(output)
+        with zipfile.ZipFile(output) as archive:
+            manifest = json.loads(archive.read("manifest.json"))
+        self.assertEqual(manifest["kernel_feature"], package.SESSION_PROFILE)
+        self.assertIn(package.SESSION_PROFILE, manifest["scope"])
 
     def test_rejects_extra_esp_payload(self):
         (self.esp / "unexpected.txt").write_text("extra")
@@ -162,7 +354,9 @@ class WindowsQemuPackageTests(unittest.TestCase):
         repo = self.root / "repo"
         (repo / "tools/windows-qemu").mkdir(parents=True)
         (repo / "tools/windows-qemu/Start-NieuwOS.ps1").write_text("launcher")
+        (repo / "tools/windows-qemu/Acceleration.ps1").write_text("acceleration helper")
         (repo / "tools/windows-qemu/README.md").write_text("instructions")
+        self.graphics_fixture(repo)
         output = self.root / "bundle.zip"
         with (
             patch.object(package, "ROOT", repo),
@@ -184,6 +378,9 @@ class WindowsQemuPackageTests(unittest.TestCase):
             )
             with zipfile.ZipFile(output) as archive:
                 manifest = json.loads(archive.read("manifest.json"))
+                self.assertEqual(manifest["qemu"]["interactive_acceleration"], "auto-whpx-then-tcg")
+                self.assertEqual(manifest["qemu"]["acceptance_acceleration"], "tcg,thread=single")
+                self.assertIn("Acceleration.ps1", manifest["files"])
                 for name, record in manifest["files"].items():
                     payload = archive.read(name)
                     self.assertEqual(len(payload), record["size_bytes"])

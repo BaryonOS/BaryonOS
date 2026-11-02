@@ -1,0 +1,76 @@
+{
+  "passed": true,
+  "vm_started": false,
+  "artifact_id": 13164815420,
+  "artifact_sha256": "abe3805e8a477824c39c8da560580b150fc460dffedb48f9cae211879372e313",
+  "bundle_directory": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\native-window-337f2f2-ci\\normal-bundle",
+  "bundle_zip_sha256": "b1e635758187567765e5fda5529cdfe4e081915e55d4d2467f92a259489bb059",
+  "source_sha256": "3919403542c923bc86467db3184345159a5ce6881567a0e11baa85f2d39f1995",
+  "source_commit": "663bb8ca30d1742d8210fee3eb827f8daba106ce",
+  "head_commit": "337f2f29f1833ef4a8d2cd640b09419f85dbb83b",
+  "commit_note": "GitHub PR merge commit; exact same verified functional source-v3 as head337.",
+  "kernel_feature": "native-window-session",
+  "payloads_verified": 19,
+  "embedded_normal_apps": [
+    {
+      "name": "window-init",
+      "offset": 181536,
+      "bytes": 36880,
+      "sha256": "ca7d0355420678d5eabf2f2c3272d4179ba9a77eeb214bf6d580b76d352ace9e"
+    },
+    {
+      "name": "keyring-service",
+      "offset": 218416,
+      "bytes": 107624,
+      "sha256": "06642d5f5b7ffa6dd681677862255fef8ed6b2a66cb6bfaa807b0be549cfb8e1"
+    },
+    {
+      "name": "volume-service",
+      "offset": 326040,
+      "bytes": 97632,
+      "sha256": "0eb883ecc649bf0deb63f8945701c5da80591b8467a4970c8c708f5c854dfec0"
+    },
+    {
+      "name": "materiaal-app",
+      "offset": 423672,
+      "bytes": 611416,
+      "sha256": "e199449753bb1de5303208a608e1c57af61aab83220559ea1b87917446232523"
+    },
+    {
+      "name": "window-compositor",
+      "offset": 1035088,
+      "bytes": 353432,
+      "sha256": "577ec3db32c2d73b28c5abfa02f4e443edf585d08fff7716e00d8bcb657eeb09"
+    },
+    {
+      "name": "input-source",
+      "offset": 1388520,
+      "bytes": 37424,
+      "sha256": "0b6569b100c28135ebd1cf31d07b1fb5ec4e9616bf4aeb82dd408a65a683e20d"
+    },
+    {
+      "name": "input-policy",
+      "offset": 1425944,
+      "bytes": 48608,
+      "sha256": "a7fb09a48ae959c3583c01f8dc85e1abb6bdc0c60a4cb3d4825ae9f28b1e9e89"
+    },
+    {
+      "name": "calculator-app",
+      "offset": 1474552,
+      "bytes": 279552,
+      "sha256": "ccf4d70c404974fe080b6c7c62820600ecbb03f99b77bfd049492a8fb81cd5b9"
+    }
+  ],
+  "probe_controller": false,
+  "ci_probe_evidence": {
+    "native_gate": true,
+    "raw_qemu_exit": 33,
+    "phase_images_verified": 13,
+    "serial_sha256": "a23422b88cfec1ccc085f0f7fa676e81c64b08fd9f0e6cee55aa0104c5654267",
+    "disk_image_sha256": "246c8f9773533796718a729389c26d6103f45f04e7a83b4d06503e17c6d4e07e"
+  },
+  "local_windows_runtime_accepted": false,
+  "manifest_deviations": [],
+  "launch_command": "& \"C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\native-window-337f2f2-ci\\normal-bundle\\Start-NieuwOS.ps1\" -QemuPath \"C:\\Program Files\\qemu\\qemu-system-x86_64.exe\" -Acceleration Whpx",
+  "launch_not_executed": true
+}

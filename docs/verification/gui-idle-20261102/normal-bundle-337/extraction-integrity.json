@@ -1,0 +1,568 @@
+{
+  "outer": {
+    "archive": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\native-window-337f2f2-ci\\artifact-13164815420.zip",
+    "archive_sha256": "abe3805e8a477824c39c8da560580b150fc460dffedb48f9cae211879372e313",
+    "destination": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\native-window-337f2f2-ci\\artifact",
+    "files": {
+      "evidence/NieuwOS-Venstersessie-Windows-QEMU.zip": {
+        "bytes": 2381650,
+        "sha256": "b1e635758187567765e5fda5529cdfe4e081915e55d4d2467f92a259489bb059"
+      },
+      "evidence/cargo.txt": {
+        "bytes": 36,
+        "sha256": "5f9bdc5e0a6960db4a3cc66e9b3ae15bad5b9b506e8b7c49739c88dc5355c3f1"
+      },
+      "evidence/graphics-host.txt": {
+        "bytes": 1195,
+        "sha256": "20374a40fc429f6b3bdbf684c20bdc58112aa660e402dc752b460c2a232c33fe"
+      },
+      "evidence/job-status.txt": {
+        "bytes": 8,
+        "sha256": "81b2bd4ea98c8db66554fbc8d7637a1a69a130f331feb732b75caab4c4868fd5"
+      },
+      "evidence/native-gate.txt": {
+        "bytes": 600,
+        "sha256": "460491d63e42c45e1bd8ae079738a5981f0b1e08be3f434b6c4e43ee9360ddaa"
+      },
+      "evidence/native-volume.sha256": {
+        "bytes": 151,
+        "sha256": "e7367764967cd32ed6eb0baf1b872076d65897c75d849f4ed39f713b83054d0e"
+      },
+      "evidence/normal-build.txt": {
+        "bytes": 7999,
+        "sha256": "89f2c158897c81e9210f7f801942c19e0ecc355f193147eaf70f989e0f23fa72"
+      },
+      "evidence/package-host.txt": {
+        "bytes": 119,
+        "sha256": "d9854ea99ad07a5ad327f5b776761d9f4edde12e189276b4a87606d3d0a67882"
+      },
+      "evidence/package.json": {
+        "bytes": 3211,
+        "sha256": "f49cd71f315ba00e8bb7dfabefbc3b138f00f2f2a7342eba94321c1923cf00fb"
+      },
+      "evidence/packages.txt": {
+        "bytes": 81,
+        "sha256": "30b707d9c025eb64a5e1e44e4911aca3854f787fc30eb721cdaee54a508d745f"
+      },
+      "evidence/package.sha256": {
+        "bytes": 174,
+        "sha256": "b6cb2487955b31e02c0a2f5be3edb7c2a81ed784a9e2349cd4b4ec743b7c0155"
+      },
+      "evidence/preflight.json": {
+        "bytes": 11817,
+        "sha256": "ac582d849164579f4e08ca6331b37bf785bb429ea12017db91bf4723d6093ae3"
+      },
+      "evidence/probe-build.txt": {
+        "bytes": 14452,
+        "sha256": "5f0b9b4a8da42ddd9855f8ad3003f727f6a2393868e66dabeaa2342f9d889b36"
+      },
+      "evidence/qemu.txt": {
+        "bytes": 132,
+        "sha256": "8f79ffd97970d85d6833a0ccc87f5d6e7182f8f52101c741dfa2fb6374670b18"
+      },
+      "evidence/runner-host.txt": {
+        "bytes": 106,
+        "sha256": "475058256eed37bf27b4a9dd424115119a8f53a51769b0b0f4f3d4a88260a301"
+      },
+      "evidence/rustc.txt": {
+        "bytes": 196,
+        "sha256": "938db28b83089ab88301ca425f99fa1d8b61ee66e0371babe1db6373ae9810a3"
+      },
+      "evidence/scene-clippy.txt": {
+        "bytes": 1174,
+        "sha256": "59d0932cad276ff28a56d32b5a2bc29c602733f393192fdd5f91002d67325ced"
+      },
+      "evidence/scene-host.txt": {
+        "bytes": 3307,
+        "sha256": "b0113bdfc2e00063b0eff724708dcd981eba294666909c4c676ee3fbde434a91"
+      },
+      "evidence/source.json": {
+        "bytes": 188,
+        "sha256": "94070f2d3464cda375d56f3af97a9f64c16baa622d5f3192131da6506fdc4650"
+      },
+      "evidence/surface-host.txt": {
+        "bytes": 2604,
+        "sha256": "e7e74d52dcddb862ef903fad528b5ead3450b103c6fccc975dabe1cb1e292fb7"
+      },
+      "probe/esp/EFI/BOOT/BOOTX64.EFI": {
+        "bytes": 31744,
+        "sha256": "e5a8150738f6271b2fe3f1c95aa62fb308154497c45bcc617fd9a14b54816620"
+      },
+      "probe/esp/kernel.elf": {
+        "bytes": 3535112,
+        "sha256": "ea3f9380281d5c7f2b904cb7da47717abcf4b185915efc12bae7d931b9574951"
+      },
+      "probe/logs/build-materiaal-calculator.json": {
+        "bytes": 272,
+        "sha256": "bf17d22ae8d9c03f05c00a011b27233cb79efc6a5964435e910d186e2f4372a9"
+      },
+      "probe/logs/build-materiaal-calculator.stderr.txt": {
+        "bytes": 982,
+        "sha256": "f1c880e7906066a15207490e78ee8f603ecd3bee3536e73144dca029baef1a8d"
+      },
+      "probe/logs/build-materiaal-calculator.stdout.txt": {
+        "bytes": 1391,
+        "sha256": "8ccb212a882dce4778dd6b91a5cdbd374fc673288baf7a7f9a14e22978ac28bc"
+      },
+      "probe/logs/build-materiaal-input-service.json": {
+        "bytes": 275,
+        "sha256": "26ccc973c4266355efb7a921c7646817df71538768c51646a2a962a6126f7109"
+      },
+      "probe/logs/build-materiaal-input-service.stderr.txt": {
+        "bytes": 576,
+        "sha256": "37564fe26d9c00f9e01b1430e52357dc3ddc558e91acbd57738fe6b9625c74a3"
+      },
+      "probe/logs/build-materiaal-input-service.stdout.txt": {
+        "bytes": 2240,
+        "sha256": "e4ba89ccb13a67b2c6e8f323881d3358cd6435d1f0296e47ee8c41f39c7b01d5"
+      },
+      "probe/logs/build-materiaal-keyring.json": {
+        "bytes": 269,
+        "sha256": "3bb49242409a9725f473c6f291e30f669ca5409f9672fa7325a8782ab36ead32"
+      },
+      "probe/logs/build-materiaal-keyring.stderr.txt": {
+        "bytes": 1336,
+        "sha256": "8c0f20c77e6975dfe128921a12109a984f64b0028bafc19302f6f9fad20c6746"
+      },
+      "probe/logs/build-materiaal-materiaal.json": {
+        "bytes": 270,
+        "sha256": "fccedee86a6d6740a35a62398655c1767d7ccf5d75e7b58b02517e37bd66acc0"
+      },
+      "probe/logs/build-materiaal-materiaal.stderr.txt": {
+        "bytes": 1262,
+        "sha256": "d81e257cb5f6a03696471a82e4c40c323ff1d0f08ef36e846368ddbd0f486ef2"
+      },
+      "probe/logs/build-materiaal-keyring.stdout.txt": {
+        "bytes": 349,
+        "sha256": "5b162b45f6d5eaa4f83d5491b313db59fdf23f50d1c858fb021278db7ed95683"
+      },
+      "probe/logs/build-materiaal-materiaal.stdout.txt": {
+        "bytes": 363,
+        "sha256": "0f98c78292fe6fc91785f165084fc2419ea0c52730abd6040fe82efe3218abb2"
+      },
+      "probe/logs/build-materiaal-volume-docs.json": {
+        "bytes": 274,
+        "sha256": "0cf066e0be412defc3cc79eb37a3894f8ac8a2633e78c674a7be659f4e9b5c3f"
+      },
+      "probe/logs/build-materiaal-volume-docs.stderr.txt": {
+        "bytes": 467,
+        "sha256": "18c1443a4ed958f96380f13b2979256f3619e0c8d6fcdafce1894a65b039187e"
+      },
+      "probe/logs/build-materiaal-volume-docs.stdout.txt": {
+        "bytes": 357,
+        "sha256": "955ddd5cdbdc85c23672b44ec9bddf84eab46f3eb3112c4616643465bcd42a33"
+      },
+      "probe/logs/build-materiaal-window-session.json": {
+        "bytes": 302,
+        "sha256": "b02a0ecef0afbe613a8efa66a73d071fb48306aa1b9308f756d0843955e20c2e"
+      },
+      "probe/logs/build-materiaal-window-session.stdout.txt": {
+        "bytes": 2571,
+        "sha256": "f47bd7f44395a2b24db4e85b9d09268f0b0f2be901134ff041fc7f1ceb58d8bd"
+      },
+      "probe/logs/build-native-window-session-probe-manifest.json": {
+        "bytes": 13134,
+        "sha256": "baa62c8469c8b6fc492bbebeee835528a0089fa721674d792a729a58c0ca7735"
+      },
+      "probe/logs/build-materiaal-window-session.stderr.txt": {
+        "bytes": 1164,
+        "sha256": "bf23a44632e43fa45deb61310ca6e2b7d38e3c63600f51409b82d05792b421e8"
+      },
+      "probe/logs/build-native-window-session-probe-os-loader.json": {
+        "bytes": 464,
+        "sha256": "db97c5b02cb80c57eab1dfe32a0a2ff149cb4e48ac9c57d7503c1f17bcb1ae4c"
+      },
+      "probe/logs/build-native-window-session-probe-os-kernel.json": {
+        "bytes": 479,
+        "sha256": "03814e905b9eeb501598004b8fb0a6ceecd24bec8f7aaf226634073975800216"
+      },
+      "probe/logs/build-native-window-session-probe-os-kernel.stderr.txt": {
+        "bytes": 967,
+        "sha256": "92c202c46fffcb30f112f03657039f39c8a2b8ac6ea798ffcd4ac587260b0738"
+      },
+      "probe/logs/build-native-window-session-probe-os-kernel.stdout.txt": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "probe/logs/build-native-window-session-probe-os-loader.stderr.txt": {
+        "bytes": 358,
+        "sha256": "ffcbb61852cef74589ce1aa07289f26629eca182a23ab54ea3981e85979fe501"
+      },
+      "probe/logs/build-native-window-session-probe-os-loader.stdout.txt": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "probe/manifest.json": {
+        "bytes": 13134,
+        "sha256": "baa62c8469c8b6fc492bbebeee835528a0089fa721674d792a729a58c0ca7735"
+      },
+      "probe/run/window-43756e45974342678caeeca190d8c31d/boot.ppm": {
+        "bytes": 2764816,
+        "sha256": "f1aa7a45a5f4a2edb0fff7ee10bb4ee1e80273ea267f90931d8d655dd5fd587e"
+      },
+      "probe/run/window-43756e45974342678caeeca190d8c31d/calculated.ppm": {
+        "bytes": 2764816,
+        "sha256": "222294328f8bdcdca1c5e4abd620e7e898869c9c1d6922ddde4f64a1fb719c3b"
+      },
+      "probe/run/window-43756e45974342678caeeca190d8c31d/candidate.ppm": {
+        "bytes": 2764816,
+        "sha256": "d0bc756fefec701220f66941e5defc44ef25b05e4910077f317e8704e1354be4"
+      },
+      "probe/run/window-43756e45974342678caeeca190d8c31d/dirty.ppm": {
+        "bytes": 2764816,
+        "sha256": "78136db9ea20fcc1eccda7e70b58d6342aadfa4bb4d46907a43c6c5a01fef25d"
+      },
+      "probe/run/window-43756e45974342678caeeca190d8c31d/calculator-restored.ppm": {
+        "bytes": 2764816,
+        "sha256": "3b36ec1d70a08df07136b4b0b92eda688ca9101e0b1ccd3edde5893ec913e7bf"
+      },
+      "probe/run/window-43756e45974342678caeeca190d8c31d/moved.ppm": {
+        "bytes": 2764816,
+        "sha256": "f7e6f04e4c1ff83332716c3b3194ea326b8771a580f381af2a275a74f4ebe3b4"
+      },
+      "probe/run/window-43756e45974342678caeeca190d8c31d/editor.ppm": {
+        "bytes": 2764816,
+        "sha256": "84576317ae5a71b50b6f5fcdd2a476656be22884629a2e5db9f94276502110dc"
+      },
+      "probe/run/window-43756e45974342678caeeca190d8c31d/initial.ppm": {
+        "bytes": 2764816,
+        "sha256": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7"
+      },
+      "probe/run/window-43756e45974342678caeeca190d8c31d/list.ppm": {
+        "bytes": 2764816,
+        "sha256": "672ce75cbcd550d4d5a4093b63625ede4a4805a5b0c8867ed8535df076c03bef"
+      },
+      "probe/run/window-43756e45974342678caeeca190d8c31d/rebound-editor.ppm": {
+        "bytes": 2764816,
+        "sha256": "df6370d59762854e32396aab4b6c1b3073a70b586121269dca09cdab96f71f03"
+      },
+      "probe/run/window-43756e45974342678caeeca190d8c31d/recovered.ppm": {
+        "bytes": 2764816,
+        "sha256": "790f6a6f2e8d820053569c789611e25f784adef1a0fe3c356ece4eb978c53705"
+      },
+      "probe/run/window-43756e45974342678caeeca190d8c31d/reopened.ppm": {
+        "bytes": 2764816,
+        "sha256": "d0bc756fefec701220f66941e5defc44ef25b05e4910077f317e8704e1354be4"
+      },
+      "probe/run/window-43756e45974342678caeeca190d8c31d/restored-editor.ppm": {
+        "bytes": 2764816,
+        "sha256": "2fd8472c6d0d4b5779136bb26407742205e075e2ce6ef2db99f570e78a89fc4a"
+      },
+      "probe/run/window-43756e45974342678caeeca190d8c31d/result.json": {
+        "bytes": 233442,
+        "sha256": "4924c99810c771b140232e25a9c80406007a02be95d5f3462caaff5840267a37"
+      },
+      "probe/run/window-43756e45974342678caeeca190d8c31d/saved.ppm": {
+        "bytes": 2764816,
+        "sha256": "c3037fa6ed2014246d3127f3221588f2d151c29db7b8d25d8de088876748b34d"
+      },
+      "probe/run/window-43756e45974342678caeeca190d8c31d/stderr.txt": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "probe/run/window-43756e45974342678caeeca190d8c31d/serial.txt": {
+        "bytes": 653214,
+        "sha256": "a23422b88cfec1ccc085f0f7fa676e81c64b08fd9f0e6cee55aa0104c5654267"
+      },
+      "probe/run/window-43756e45974342678caeeca190d8c31d/volume.img": {
+        "bytes": 1048576,
+        "sha256": "246c8f9773533796718a729389c26d6103f45f04e7a83b4d06503e17c6d4e07e"
+      },
+      "probe/users/materiaal/build-report.json": {
+        "bytes": 10203,
+        "sha256": "04e84aeb0918785656b3c52c68aebf47df104bdbd0b543152b854a76a15a2d5c"
+      },
+      "probe/window-fixture-8940478149be42c39db856c4087d8c63/1120x660-dirty-focus-lost.ppm": {
+        "bytes": 2217616,
+        "sha256": "28c0a8bab48c218336a0c534e34518c5ccdc32337f9fb2140b9b39adc2ed8c13"
+      },
+      "probe/window-fixture-8940478149be42c39db856c4087d8c63/1120x660-dirty-rebound.ppm": {
+        "bytes": 2217616,
+        "sha256": "28c0a8bab48c218336a0c534e34518c5ccdc32337f9fb2140b9b39adc2ed8c13"
+      },
+      "probe/window-fixture-8940478149be42c39db856c4087d8c63/1120x660-dirty-recovered.ppm": {
+        "bytes": 2217616,
+        "sha256": "8aacd96193c84d4d269c616e65f2982d8ad75b4c4a0bf0824f2aa7ee245f5e95"
+      },
+      "probe/window-fixture-8940478149be42c39db856c4087d8c63/1120x660-initial.ppm": {
+        "bytes": 2217616,
+        "sha256": "673fbb6f9ad64fe6db6065d469e0f5b79ab93d4a7858b022b0c78e3b8eade84e"
+      },
+      "probe/window-fixture-8940478149be42c39db856c4087d8c63/1120x660-list.ppm": {
+        "bytes": 2217616,
+        "sha256": "4293c18ad55ddf049c9680d7d8e5bdb6800b141cac5e8136405bedbbe31f3eb3"
+      },
+      "probe/window-fixture-8940478149be42c39db856c4087d8c63/1120x660-dirty.ppm": {
+        "bytes": 2217616,
+        "sha256": "8aacd96193c84d4d269c616e65f2982d8ad75b4c4a0bf0824f2aa7ee245f5e95"
+      },
+      "probe/window-fixture-8940478149be42c39db856c4087d8c63/1120x660-editor.ppm": {
+        "bytes": 2217616,
+        "sha256": "1f66989b0f1ec07f75aaaa9fd44f3cee5cf0e603f64616f64e607605735a2b34"
+      },
+      "probe/window-fixture-8940478149be42c39db856c4087d8c63/1120x660-reopened.ppm": {
+        "bytes": 2217616,
+        "sha256": "bd6e54d122a2e4ad7d4c9c1edb6fbf0dcc4a49a990cf935d96e0148123c73b84"
+      },
+      "probe/window-fixture-8940478149be42c39db856c4087d8c63/880x510-dirty-focus-lost.ppm": {
+        "bytes": 1346415,
+        "sha256": "c32ade8a74d2cb2e7f34760664acf0cb058c6b4c7717558a2b9ec6c57140b3d2"
+      },
+      "probe/window-fixture-8940478149be42c39db856c4087d8c63/880x510-dirty-rebound.ppm": {
+        "bytes": 1346415,
+        "sha256": "c32ade8a74d2cb2e7f34760664acf0cb058c6b4c7717558a2b9ec6c57140b3d2"
+      },
+      "probe/window-fixture-8940478149be42c39db856c4087d8c63/880x510-dirty-recovered.ppm": {
+        "bytes": 1346415,
+        "sha256": "671691f2dea0e6954436123a92aa71809a5da095e821f7e58ff2b0dbb5c6a588"
+      },
+      "probe/window-fixture-8940478149be42c39db856c4087d8c63/1120x660-saved.ppm": {
+        "bytes": 2217616,
+        "sha256": "7263c5ab6e667f3bf999170412c8970cacea30472dabb440738548af127bebb7"
+      },
+      "probe/window-fixture-8940478149be42c39db856c4087d8c63/880x510-initial.ppm": {
+        "bytes": 1346415,
+        "sha256": "07eb581d79a9c68672a71e189d42684bd0989f7231a3db4a1bb476305b31c7df"
+      },
+      "probe/window-fixture-8940478149be42c39db856c4087d8c63/880x510-list.ppm": {
+        "bytes": 1346415,
+        "sha256": "c0c715448f812c63b124198e7ad9240bf3cdebd7bb0e2bb92b08766a7e9ed213"
+      },
+      "probe/window-fixture-8940478149be42c39db856c4087d8c63/880x510-editor.ppm": {
+        "bytes": 1346415,
+        "sha256": "4240ab1814ca2ce2fcb08855f0adfc5243423ccef64c59e9c99e094b69e25046"
+      },
+      "probe/window-fixture-8940478149be42c39db856c4087d8c63/880x510-dirty.ppm": {
+        "bytes": 1346415,
+        "sha256": "671691f2dea0e6954436123a92aa71809a5da095e821f7e58ff2b0dbb5c6a588"
+      },
+      "probe/window-fixture-8940478149be42c39db856c4087d8c63/generator.log": {
+        "bytes": 1449,
+        "sha256": "dde03f2439de8fd2d75b8d5b94030b793fe3e63ec96c7a5eea945d99913b56ea"
+      },
+      "probe/window-fixture-8940478149be42c39db856c4087d8c63/880x510-reopened.ppm": {
+        "bytes": 1346415,
+        "sha256": "c21c20b8400384e60e3ace7c2e6cca2fbbaa0539d32d56c7363f9126d9f793c4"
+      },
+      "probe/window-fixture-8940478149be42c39db856c4087d8c63/880x510-saved.ppm": {
+        "bytes": 1346415,
+        "sha256": "d46701665641e021cfa00b804dcd7a57957ce619acf8b0cda9140e973b3e35e8"
+      },
+      "probe/window-fixture-8940478149be42c39db856c4087d8c63/fixture.json": {
+        "bytes": 2262,
+        "sha256": "6c80ac635b17d84e09ba0a4f61d1064daee70aaa0298895c359239b4515a2f44"
+      },
+      "probe/window-session-report.json": {
+        "bytes": 233442,
+        "sha256": "4924c99810c771b140232e25a9c80406007a02be95d5f3462caaff5840267a37"
+      },
+      "normal/manifest.json": {
+        "bytes": 13122,
+        "sha256": "840753720ed3dd05a3416c78d8ee1db4503b560c9d1cc1f188feb4e6472196fb"
+      },
+      "normal/users/materiaal/build-report.json": {
+        "bytes": 10203,
+        "sha256": "0fb1f9a80d72ccefdf81944118d995584974ca067cbb21663ada3bfb86391db5"
+      },
+      "normal/logs/build-materiaal-calculator.json": {
+        "bytes": 274,
+        "sha256": "a29ed86f0c000c1474bc5ef5f91434b05d25d20171647ced4fb27e0e802f5a67"
+      },
+      "normal/logs/build-materiaal-calculator.stderr.txt": {
+        "bytes": 62,
+        "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f"
+      },
+      "normal/logs/build-materiaal-calculator.stdout.txt": {
+        "bytes": 1391,
+        "sha256": "8ccb212a882dce4778dd6b91a5cdbd374fc673288baf7a7f9a14e22978ac28bc"
+      },
+      "normal/logs/build-materiaal-input-service.json": {
+        "bytes": 276,
+        "sha256": "40a3b2f05be7ca66b7100423005c5f43c8771518a22a825cbfa061d624277d43"
+      },
+      "normal/logs/build-materiaal-input-service.stderr.txt": {
+        "bytes": 62,
+        "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f"
+      },
+      "normal/logs/build-materiaal-input-service.stdout.txt": {
+        "bytes": 2240,
+        "sha256": "e4ba89ccb13a67b2c6e8f323881d3358cd6435d1f0296e47ee8c41f39c7b01d5"
+      },
+      "normal/logs/build-materiaal-keyring.json": {
+        "bytes": 271,
+        "sha256": "2073d5fb2bfabb348bdc068dec918c3bd27042e8a209eed491b8ad2c40d274e7"
+      },
+      "normal/logs/build-materiaal-keyring.stderr.txt": {
+        "bytes": 62,
+        "sha256": "9576f1f7e73fc2bb1ec2336aae60cb485c591eadc60a1b998573411c34057e08"
+      },
+      "normal/logs/build-materiaal-keyring.stdout.txt": {
+        "bytes": 349,
+        "sha256": "5b162b45f6d5eaa4f83d5491b313db59fdf23f50d1c858fb021278db7ed95683"
+      },
+      "normal/logs/build-materiaal-materiaal.stderr.txt": {
+        "bytes": 62,
+        "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f"
+      },
+      "normal/logs/build-materiaal-materiaal.stdout.txt": {
+        "bytes": 363,
+        "sha256": "0f98c78292fe6fc91785f165084fc2419ea0c52730abd6040fe82efe3218abb2"
+      },
+      "normal/logs/build-materiaal-materiaal.json": {
+        "bytes": 273,
+        "sha256": "c3db5427a34d05ce4e055138c5765f1d842294e1b2b47c582855d991d8c46525"
+      },
+      "normal/logs/build-materiaal-volume-docs.json": {
+        "bytes": 274,
+        "sha256": "f04feb95bb1ab44fd267be2a5a193307698c91b00df2e0bd228f281338de27d3"
+      },
+      "normal/logs/build-materiaal-volume-docs.stderr.txt": {
+        "bytes": 62,
+        "sha256": "9576f1f7e73fc2bb1ec2336aae60cb485c591eadc60a1b998573411c34057e08"
+      },
+      "normal/logs/build-materiaal-volume-docs.stdout.txt": {
+        "bytes": 357,
+        "sha256": "955ddd5cdbdc85c23672b44ec9bddf84eab46f3eb3112c4616643465bcd42a33"
+      },
+      "normal/logs/build-materiaal-window-session.json": {
+        "bytes": 276,
+        "sha256": "183d8dd6ab483347144fc160f397bd363da363cd88029c005a007a7fc18cf29f"
+      },
+      "normal/logs/build-materiaal-window-session.stderr.txt": {
+        "bytes": 172,
+        "sha256": "9dc6606e1f503dff0a7015106598add56ea44ba68983a3ff82fdb39d317265e6"
+      },
+      "normal/logs/build-materiaal-window-session.stdout.txt": {
+        "bytes": 2555,
+        "sha256": "a08c91b9af81453d94828dbe1ebb6c0322e0a76a9c0f709249bf9a66564cb752"
+      },
+      "normal/logs/build-native-window-session-manifest.json": {
+        "bytes": 13122,
+        "sha256": "840753720ed3dd05a3416c78d8ee1db4503b560c9d1cc1f188feb4e6472196fb"
+      },
+      "normal/logs/build-native-window-session-os-kernel.json": {
+        "bytes": 471,
+        "sha256": "fd54749f44bb6aae34d6fbe313eaa6d6e63345a8f9c24b183d369c48de8dbeba"
+      },
+      "normal/logs/build-native-window-session-os-kernel.stdout.txt": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "normal/logs/build-native-window-session-os-kernel.stderr.txt": {
+        "bytes": 137,
+        "sha256": "52ea6b6ef61e0f1c459c507d3da106db0ae51ba07337bcf10be524751219b24c"
+      },
+      "normal/logs/build-native-window-session-os-loader.json": {
+        "bytes": 464,
+        "sha256": "63322ce71a74152da3e5c115359f859387369069a20018903bd03f1af5385f17"
+      },
+      "normal/logs/build-native-window-session-os-loader.stderr.txt": {
+        "bytes": 62,
+        "sha256": "222a02ed477d249a21359df8cae975864a62d848f4739cadc5b00b6190a963c6"
+      },
+      "normal/logs/build-native-window-session-os-loader.stdout.txt": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  },
+  "normal_bundle": {
+    "archive": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\native-window-337f2f2-ci\\artifact\\evidence\\NieuwOS-Venstersessie-Windows-QEMU.zip",
+    "archive_sha256": "b1e635758187567765e5fda5529cdfe4e081915e55d4d2467f92a259489bb059",
+    "destination": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\native-window-337f2f2-ci\\normal-bundle",
+    "files": {
+      "Acceleration.ps1": {
+        "bytes": 7989,
+        "sha256": "fc506bb5ed327491a48316c9e9195418e3b08d090ceacdd4119a65c910c2defc"
+      },
+      "OVMF_CODE.fd": {
+        "bytes": 3653632,
+        "sha256": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083"
+      },
+      "OVMF_VARS.template.fd": {
+        "bytes": 540672,
+        "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+      },
+      "README.md": {
+        "bytes": 6801,
+        "sha256": "f090afb2e4c7c9ff7e4870fa3f5ec5adb7e5d5a06701d3efd54c8733e5eb533a"
+      },
+      "Start-NieuwOS.ps1": {
+        "bytes": 7329,
+        "sha256": "f3db381890c58d3ec959aaf3815bede6daa3324c122ba6ad141322ecd3caa631"
+      },
+      "VGA.rom": {
+        "bytes": 39424,
+        "sha256": "4eecd8e752efc02c6c0fe87eb92bf66934cb9ea67b0e1bc41e86f8430c8bf8a0"
+      },
+      "bios-256k.bin": {
+        "bytes": 262144,
+        "sha256": "1a9ea4f17bcfb27bda5728e2c21d9fa074cf7947b9b4910bb28213a735c96735"
+      },
+      "esp/EFI/BOOT/BOOTX64.EFI": {
+        "bytes": 31744,
+        "sha256": "e5a8150738f6271b2fe3f1c95aa62fb308154497c45bcc617fd9a14b54816620"
+      },
+      "esp/kernel.elf": {
+        "bytes": 3526832,
+        "sha256": "c8362aba3a9e2595ead40de9eedb29d5c86f4c8997c314577da66c1a4bc03f0c"
+      },
+      "licenses/Native-graphics-README.md": {
+        "bytes": 2553,
+        "sha256": "3983fb246b308986033280525699182ee1e322b5fdca91485a6597732d9b80c2"
+      },
+      "licenses/NotoSansMono-NOTICE.md": {
+        "bytes": 2860,
+        "sha256": "2e60f45a7d4e8387c5746e552cd11566a7b9d46a4b5c712be3ddac7d7af24f5a"
+      },
+      "licenses/NotoSansMono-OFL.txt": {
+        "bytes": 4395,
+        "sha256": "e2e177a32561584d4fc13aaa3cd8e53758a12910f013fe9ca125419111722029"
+      },
+      "licenses/OVMF-COPYRIGHT": {
+        "bytes": 18287,
+        "sha256": "0169b5aef666c83efdb7cedab33425a9c17b4937d2cdbd053e87eedd9aa4b645"
+      },
+      "licenses/OpenSans-Apache-2.0.txt": {
+        "bytes": 11358,
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+      },
+      "licenses/OpenSans-NOTICE.md": {
+        "bytes": 1149,
+        "sha256": "12edb62082689ef35c8d665259318609b5c359560c9895b5f74ae0b833bb9d28"
+      },
+      "licenses/OpenSans-font-provenance.json": {
+        "bytes": 1393,
+        "sha256": "924a7f85977bf54270f45107bf7d18220eb4e7b1e4b240af78d3ec0eb803e704"
+      },
+      "licenses/SeaBIOS-COPYRIGHT": {
+        "bytes": 3349,
+        "sha256": "58b417317de591441140835ec61a35518441e465e2149aa8580a46e2ac6c18a7"
+      },
+      "licenses/noto-sans-mono-bitmap-MIT.txt": {
+        "bytes": 1073,
+        "sha256": "d084589aca58e74853c2d03f8a1f7b6f3a13f1fcc4b0c451f30455da09c624b7"
+      },
+      "manifest.json": {
+        "bytes": 4696,
+        "sha256": "a5e6200be2d179b2edd99a32acadc451e65dccd440bd8aa6f2d7491872f50406"
+      },
+      "volume.empty.img": {
+        "bytes": 1048576,
+        "sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266"
+      }
+    }
+  },
+  "guards": [
+    "sha256",
+    "exclusive destinations",
+    "plain ancestors",
+    "no traversal/ADS/UNC",
+    "no symlinks/reparse/special entries",
+    "no duplicate/case collisions",
+    "bounded size/count",
+    "ZIP CRC on streamed extraction",
+    "single-link regular files"
+  ],
+  "vm_started": false
+}

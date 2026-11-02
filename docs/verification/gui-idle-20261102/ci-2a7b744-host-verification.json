@@ -1,0 +1,23 @@
+{
+  "schema": "nieuw-os-ci-host-verification-v1",
+  "requested_head": "2a7b74426027093a4793d78d5ddca94e15ae018a",
+  "actual_ci_merge": "a50216efcc5017443a4d5520998b95ac8047e1ae",
+  "run_id": 41495583836,
+  "host_job_id": 125449545779,
+  "host_conclusion": "success",
+  "python_tool_tests_passed": 181,
+  "locked_dependency_fetch": "success",
+  "download_cache": "hit",
+  "host_build_cache": "miss",
+  "cold_empty_download_cache_claim": false,
+  "root_sdk_rust_clippy_format_progress_clean_tree": "success",
+  "decoded_log_sha256": "70c9def9c6e799bbef7b3bd4f8e026202e3a7f47331ed36cac5b329800728820",
+  "log_representation": "UTF-8 encoding of connector-decoded string, not original HTTP log bytes",
+  "qemu_smoke_job_id": 125451669918,
+  "overall_ci_green_claim": false,
+  "extra_vm_or_rerun_started": false,
+  "source_changes": false,
+  "qemu_smoke_conclusion": "success",
+  "general_workflow_conclusion": "success",
+  "overall_repository_ci_claim": "still awaiting remaining independent workflows at this checkpoint"
+}

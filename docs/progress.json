@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "fa97c69221fd9b5635684c48b60e72bf67b2541a",
+    "source_commit": "380111b68688c981eec6abb8fab29174a29f5601",
     "branch": "claude/issue-110-nas-replay",
-    "task": "PR #119: conflicten met main 74a34d05 inhoudsbehoudend oplossen",
-    "previous_score": 34,
-    "summary": "34/100 blijft 34/100; geen nieuw criterium geaccepteerd. Main bevat de NAS-replay-implementatie en het bewijs van PR #119 al via #125. De vijf conflicten behouden mains latere lekcontrole, negatieve tests, contractcorrecties en bewijsattributen. Vóór het status-/metercheckpoint was de volledige opgeloste boom bytegelijk aan main 74a34d05. Alle 39 NAS-hosttests, 17 replay/oracle-tests, 3 volume-runnertests en de NAS-archiefhashcontrole slagen. Strikte preflight geeft exit 2: Rust 1.90.0, native targets, QEMU en OVMF ontbreken; native build/QEMU en Rust-format/lint zijn niet uitgevoerd. Nieuwe-head CI blijft na publicatie vereist. Geen nieuwe native, fysieke of menselijke acceptatie; de volledige productomvang en bestaande bewijsgrenzen blijven behouden."
+    "task": "PR #119: documentatieconflicten met main 380111b6 oplossen",
+    "previous_score": 41,
+    "summary": "De branch neemt de bestaande main-score van 41/100 over (was 34/100 op ee5003e6). Deze conflictoplossing kent geen punten toe en wijzigt geen criteria, gewichten, statussen of bewijsverwijzingen. Beide checkpointgeschiedenissen blijven behouden. Implementatie en bestaande acceptatiegrenzen blijven gelijk aan main; historische tests zijn geen nieuwe uitvoering. Nieuwe-head CI en GitHubs mergeabilityberekening blijven afzonderlijke vervolgstappen."
   },
   "tracks": [
     {
@@ -259,9 +259,13 @@
           "id": "U01",
           "title": "Native compositor en sessie",
           "points": 4,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "De eigen kernel draait een interactieve grafische sessie met render- en inputketen, venster/surface-isolatie en gecontroleerd compositorherstel.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/mature-session-20261102/U01-ACCEPTANCE.md",
+            "docs/verification/mature-session-20261102/U01-ACCEPTANCE.json",
+            "docs/verification/mature-session-20261102/window-337-ci-verification.json"
+          ]
         },
         {
           "id": "U02",
@@ -269,7 +273,14 @@
           "points": 2,
           "status": "open",
           "acceptance": "Toetsenbord, aanwijzer, focus, klembord en appwisseling zijn native bruikbaar en voldoen aan gemeten interactiebudgetten.",
-          "evidence": []
+          "evidence": [
+            "docs/implementation/GUI-IDLE-WAIT.md",
+            "docs/verification/gui-idle-20261102/windows-ab/README.md",
+            "docs/verification/gui-idle-20261102/central-review.json",
+            "docs/verification/gui-idle-20261102/INTEGRATION.md",
+            "docs/implementation/NATIVE-CLIPBOARD.md",
+            "docs/verification/native-clipboard-20261102/README.md"
+          ]
         },
         {
           "id": "U03",
@@ -314,9 +325,13 @@
           "id": "N01",
           "title": "Native pakket- en transportstack",
           "points": 3,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "De eigen OS-netwerkdienst verwerkt echte packets en begrensde IP/TCP/UDP-verbindingen; malformed input, backpressure en afsluiten zijn getest.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/mature-session-20261102/README.md",
+            "docs/verification/mature-session-20261102/n01-integrated.json",
+            "docs/verification/n01-native-service-20261102/host-verification.json"
+          ]
         },
         {
           "id": "N02",

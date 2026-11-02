@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "checkpoint_date": "2026-11-02",
+  "implementation_commit": "4f146a6c2e5e1b07f79c4287147299157ca0447d",
+  "branch": "codex/mature-native-session-20261102",
+  "pull_request": "https://github.com/simonvanieperen/nieuw-os/pull/122",
+  "score": 37,
+  "previous_score": 34,
+  "accepted": [
+    "N01"
+  ],
+  "not_accepted": [
+    "U01",
+    "U02"
+  ],
+  "execution_blocker": "The selected execution environment became unavailable while the source-bound graphical walkthrough was running. exec_command and write_stdin both returned 'No usable execution environment is available'. Final VM result and process state could not be retrieved. No native recovery/cleanup acceptance is claimed.",
+  "checks": [
+    {
+      "kind": "native QEMU",
+      "command": "NOS_BUILD_DIR=/workspace/nieuw-os/build/n01-final NOS_TARGET_DIR=/workspace/nieuw-os/target/n01-final python3 tools/run_network_service.py --case normal",
+      "exit_code": 0,
+      "raw_qemu_exit": 33,
+      "duration_s": 8.059,
+      "passed": true,
+      "run_directory": "/workspace/nieuw-os/build/n01-final/run/network-service-normal-8c65af2025744dfd80686d0add0afbdb"
+    },
+    {
+      "kind": "native QEMU",
+      "command": "NOS_BUILD_DIR=/workspace/nieuw-os/build/n01-final NOS_TARGET_DIR=/workspace/nieuw-os/target/n01-final python3 tools/run_network_service.py --case client-exit",
+      "exit_code": 0,
+      "raw_qemu_exit": 33,
+      "duration_s": 7.432,
+      "passed": true,
+      "run_directory": "/workspace/nieuw-os/build/n01-final/run/network-service-client-exit-18a42ca8c22d46efbdb84a48b6d65281"
+    },
+    {
+      "kind": "crossbuild and ELF inspection",
+      "command": "NOS_BUILD_DIR=/workspace/nieuw-os/build/window-final NOS_TARGET_DIR=/workspace/nieuw-os/target/window-final python3 tools/build.py --kernel-feature native-window-session-probe",
+      "exit_code": 0,
+      "native_execution": false
+    },
+    {
+      "kind": "host, lint and scalar object validation",
+      "command": "NOS_BUILD_DIR=/workspace/nieuw-os/build/ui-final NOS_TARGET_DIR=/workspace/nieuw-os/target/ui-final python3 ui/native/verify.py",
+      "exit_code": 0,
+      "checks": [
+        "host",
+        "clippy",
+        "fmt-check",
+        "features",
+        "compiler",
+        "scalar-build"
+      ],
+      "artifacts": 11,
+      "native_execution": false,
+      "frontend_fingerprint": "34997a876842b76d043025457afb79ec8ee4b578cddffa24ba8e681b2c2b292e",
+      "logs_local": "/tmp/ui-final-verify.log; ui/native/verification/* (last generated updates could not be committed after environment loss)"
+    },
+    {
+      "kind": "host",
+      "command": "cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/materiaal/Cargo.toml --test chain",
+      "exit_code": 0,
+      "tests": 28
+    },
+    {
+      "kind": "host",
+      "command": "cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/calculator/Cargo.toml --test chain",
+      "exit_code": 0,
+      "tests": 8
+    },
+    {
+      "kind": "host and lint",
+      "command": "cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml; cargo +1.90.0 clippy --offline --locked --all-targets --manifest-path sdk/examples/window-session/Cargo.toml -- -D warnings",
+      "exit_code": 0,
+      "tests": 10,
+      "pixel_comparisons": 816,
+      "native_execution": false
+    },
+    {
+      "kind": "host",
+      "command": "python3 -m unittest discover -s tools -p test_window_session.py",
+      "exit_code": 0,
+      "tests": 7
+    },
+    {
+      "kind": "host",
+      "command": "python3 -m unittest discover -s tools/tests -p test_package_windows_qemu.py",
+      "exit_code": 0,
+      "tests": 18
+    },
+    {
+      "kind": "synthetic PowerShell on Linux, root rerun",
+      "command": "/tmp/nieuw-os-powershell-7.5.4/pwsh -NoProfile -File tools/windows-qemu/Test-Launcher.ps1 -QemuPath /tmp/nieuw-os-qemu-launcher-test-bin/qemu-system-x86_64.exe",
+      "exit_code": 1,
+      "error": "Cannot bind argument to parameter Path because it is null; LOCALAPPDATA was unset on the Linux caller. This rerun is not green.",
+      "windows_runtime_performed": false
+    }
+  ],
+  "graphical_walkthrough": {
+    "passed": null,
+    "native_gate": false,
+    "run_directory": "/workspace/nieuw-os/build/window-final/run/window-3440458f8e194093b7af89e0ccafc4eb",
+    "last_reported_phases": [
+      {
+        "phase": "boot",
+        "seconds": 113.55
+      },
+      {
+        "phase": "initial",
+        "seconds": 114.13,
+        "material_pixels": "exact full 880x510 host Controller/Frame oracle, no masks"
+      },
+      {
+        "phase": "editor",
+        "seconds": 204.68,
+        "material_pixels": "exact full 880x510 host Controller/Frame oracle, no masks"
+      }
+    ],
+    "remaining_unconfirmed": [
+      "dirty document",
+      "calculator computation and move",
+      "real compositor fault and service-group recovery",
+      "post-recovery full frames",
+      "save/list/reopen",
+      "independent final disk oracle",
+      "final resource cleanup"
+    ]
+  },
+  "windows_package": {
+    "source_support_implemented": true,
+    "new_zip_built": false,
+    "new_windows_runtime_performed": false,
+    "acceleration_helper_sha256": "fc506bb5ed327491a48316c9e9195418e3b08d090ceacdd4119a65c910c2defc"
+  },
+  "limits": [
+    "No safety superiority claim",
+    "No physical hardware access/passthrough",
+    "No real account, password, FIDO2 or biometric authentication",
+    "No smooth daily use or latency acceptance",
+    "No merge"
+  ]
+}

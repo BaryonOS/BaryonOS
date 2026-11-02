@@ -1,0 +1,136 @@
+{
+  "task": "window-service-kernel-composition",
+  "base_commit": "f4f3218a131ec798985447b78ad527bfcd673c0a",
+  "scope": "Crosscompile and source review only. Not booted; several include_bytes bindings intentionally use existing or stand-in ELF files. Root must build all role-specific SDK binaries and perform native acceptance.",
+  "native_execution": false,
+  "role_complete_images": false,
+  "checks": [
+    {
+      "feature": "native-window-session",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "build",
+        "--release",
+        "--offline",
+        "--locked",
+        "-p",
+        "os-kernel",
+        "--target",
+        "x86_64-unknown-none",
+        "--features",
+        "native-window-session"
+      ],
+      "exit": 0,
+      "log": "/workspace/scratch/window-kernel-build-native-window-session.txt"
+    },
+    {
+      "feature": "native-window-session-probe",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "build",
+        "--release",
+        "--offline",
+        "--locked",
+        "-p",
+        "os-kernel",
+        "--target",
+        "x86_64-unknown-none",
+        "--features",
+        "native-window-session-probe"
+      ],
+      "exit": 0,
+      "log": "/workspace/scratch/window-kernel-build-native-window-session-probe.txt"
+    },
+    {
+      "feature": "native-window-session-hidpi",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "build",
+        "--release",
+        "--offline",
+        "--locked",
+        "-p",
+        "os-kernel",
+        "--target",
+        "x86_64-unknown-none",
+        "--features",
+        "native-window-session-hidpi"
+      ],
+      "exit": 0,
+      "log": "/workspace/scratch/window-kernel-build-native-window-session-hidpi.txt"
+    },
+    {
+      "feature": "native-system-materiaal",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "build",
+        "--release",
+        "--offline",
+        "--locked",
+        "-p",
+        "os-kernel",
+        "--target",
+        "x86_64-unknown-none",
+        "--features",
+        "native-system-materiaal"
+      ],
+      "exit": 0,
+      "log": "/workspace/scratch/window-kernel-build-native-system-materiaal.txt"
+    }
+  ],
+  "strict_clippy": "blocked by existing kernel warnings; see /workspace/scratch/window-kernel-native-window-session.txt; not reported passed",
+  "included_images": {
+    "NOS_WINDOW_INIT_ELF": {
+      "path": "/workspace/nieuw-os/build/sdk-window-session-rust190/x86_64-unknown-none/release/window-init",
+      "sha256": "1d14518160e40495088b9f8e7edad3e1bc0a2aff236268e807b93315864deaaf"
+    },
+    "NOS_WINDOW_COMPOSITOR_ELF": {
+      "path": "/workspace/nieuw-os/build/sdk-window-session-rust190/x86_64-unknown-none/release/window-compositor",
+      "sha256": "be977a7c4d7b82ce446b6a9091c6d3ba5008750eecb915eec7ff0b9a1144368f"
+    },
+    "NOS_MATERIAAL_ELF": {
+      "path": "/workspace/nieuw-os-visual/build/material-native/x86_64-unknown-none/release/materiaal-app",
+      "sha256": "0f8f8644e89469036b2c0e8f98e05e8af18423bc9fdf8db3b56abdb6d5a56592"
+    },
+    "NOS_KEYRING_SERVICE_ELF": {
+      "path": "/workspace/nieuw-os/build/session-formatted/users/materiaal/keyring-service.elf",
+      "sha256": "a5da4a25b9f5cd6d7ef37ba3c2d01f7f1ffae1bba5f1d8f49673c25bbc10bb43"
+    },
+    "NOS_VOLUME_SERVICE_ELF": {
+      "path": "/workspace/nieuw-os/build/session-formatted/users/materiaal/volume-service.elf",
+      "sha256": "33adbc6592fa28e9b46cdaff32cb6f11481596863864f9de17ab161cbc809be5"
+    },
+    "NOS_INPUT_SOURCE_ELF": {
+      "path": "/workspace/nieuw-os/build/session-formatted/users/materiaal/input-source.elf",
+      "sha256": "802d3a80988effc175dac2ad1eb29ac7a95a66504926b4ea6df3491f0865bd3b"
+    },
+    "NOS_INPUT_POLICY_ELF": {
+      "path": "/workspace/nieuw-os/build/session-formatted/users/materiaal/input-policy.elf",
+      "sha256": "98c9a4d56a1b7ae8a391a4c63715c1e8d4f681a3f46076ab94742f269349d451"
+    },
+    "NOS_CALCULATOR_ELF": {
+      "path": "/workspace/nieuw-os-visual/build/material-native/x86_64-unknown-none/release/materiaal-app",
+      "sha256": "0f8f8644e89469036b2c0e8f98e05e8af18423bc9fdf8db3b56abdb6d5a56592"
+    },
+    "NOS_DESKTOP_INIT_ELF": {
+      "path": "/workspace/nieuw-os-visual/build/material-native/x86_64-unknown-none/release/materiaal-app",
+      "sha256": "0f8f8644e89469036b2c0e8f98e05e8af18423bc9fdf8db3b56abdb6d5a56592"
+    },
+    "NOS_COMPOSITOR_ELF": {
+      "path": "/workspace/nieuw-os-visual/build/material-native/x86_64-unknown-none/release/materiaal-app",
+      "sha256": "0f8f8644e89469036b2c0e8f98e05e8af18423bc9fdf8db3b56abdb6d5a56592"
+    }
+  },
+  "source_review": "Read-only second-agent review identified and corrected node ancestor budget, lifecycle SEND leak and registry-root preflight; not a human audit",
+  "open": [
+    "Real two-app input/render/focus walkthrough",
+    "Wrongcaller/bad/stale/running process cap rejection without mutation",
+    "Native crash, fresh service identities/epochs, rebind and preserved document/calculator state",
+    "Repeated restart, stop refusal, clean final zero-resource cleanup",
+    "Integrated N01/legacy-profile regression gates"
+  ]
+}

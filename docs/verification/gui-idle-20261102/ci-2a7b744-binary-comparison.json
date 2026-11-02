@@ -1,0 +1,30 @@
+{
+  "ci_old_trigger": "1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b",
+  "ci_new_trigger": "2a7b74426027093a4793d78d5ddca94e15ae018a",
+  "normal_ci_kernel_byte_identical": true,
+  "normal_ci_eight_app_manifest_entries_equal": true,
+  "individual_ci_app_elf_files_in_artifact": false,
+  "ci_loader_byte_identical": false,
+  "only_ci_loader_differences": [
+    "PE/COFF TimeDateStamp",
+    "IMAGE_DEBUG_DIRECTORY TimeDateStamp",
+    "CodeView RSDS debug GUID"
+  ],
+  "no_other_bytes_differ": true,
+  "changed_offsets": [
+    128,
+    129,
+    30448,
+    30449,
+    30476,
+    30477,
+    30478,
+    30479,
+    30480,
+    30481,
+    30482,
+    30483
+  ],
+  "native_reports_relabelled": false,
+  "local_aba_to_2a_loader_and_eight_apps_byte_identical": true
+}

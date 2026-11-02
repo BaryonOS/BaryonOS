@@ -1,0 +1,17 @@
+   Compiling nieuw-os-calculator v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/examples/calculator)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.39s
+     Running tests/chain.rs (target/agent-apps/calculator/debug/deps/chain-cf62ce90b3bee188)
+
+running 10 tests
+test bootstrap_rejects_aliases_hidden_document_metadata_and_unbound_principals ... ok
+test startup_stop_closes_only_the_four_untransferred_service_leaves_even_on_failure ... ok
+test lost_or_failed_real_surface_reply_never_certifies_rendered_state ... ok
+test input_failure_is_visible_but_cannot_be_a_fake_ready_and_stop_attempts_every_owner ... ok
+test actual_outside_mouse_cancel_and_focus_generation_cannot_activate_a_captured_button ... ok
+test idle_requires_current_frame_and_empty_batch_and_rechecks_late_input ... ok
+test supervisor_retirement_detaches_both_owners_when_one_session_already_failed ... ok
+test actual_typed_service_chain_computes_from_real_scan_bytes_and_commits_only_current_frames ... ok
+test real_service_replacement_preserves_work_and_requires_new_complete_frame_acknowledgements ... ok
+test rejected_rebind_epochs_and_small_scaled_geometry_close_fresh_channels_and_allow_retry ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.04s

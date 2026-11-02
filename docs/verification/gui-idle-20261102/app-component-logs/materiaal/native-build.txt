@@ -1,0 +1,16 @@
+{"command": ["cargo", "+1.90.0", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/examples/materiaal/Cargo.toml", "--features", "native", "--bin", "materiaal-app", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.codex-local-os-tests/window-idle-b1b292a/target/agent-apps/materiaal"}
+   Compiling zeroize v1.9.1
+   Compiling catalog-core v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/services/catalog)
+   Compiling ui-core v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/crates/ui-core)
+   Compiling noto-sans-mono-bitmap v0.3.2
+   Compiling nieuw-os-graphics v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/ui/graphics)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/runtime)
+   Compiling volume-core v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/services/volume)
+   Compiling nieuw-os-catalog-client v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/catalog-client)
+   Compiling nieuw-os-input-core v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/services/input-core)
+   Compiling nieuw-os-surface-protocol v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/ui/surface-protocol)
+   Compiling nieuw-os-input-client v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/input-client)
+   Compiling nieuw-os-document-session v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/document-session)
+   Compiling nieuw-os-materiaal v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/ui/native)
+   Compiling nieuw-os-materiaal-app v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/examples/materiaal)
+    Finished `release` profile [optimized] target(s) in 2.25s

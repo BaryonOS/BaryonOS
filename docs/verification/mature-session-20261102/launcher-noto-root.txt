@@ -1,0 +1,8 @@
+Acceleration: whpx. WHPX is listed; initialization has not been tested by CheckOnly.
+Bundle integrity and QEMU 10.2.1 prerequisites passed; no VM or mutable state created.
+Acceleration: whpx. WHPX is listed; initialization has not been tested by CheckOnly.
+Bundle integrity and QEMU 10.2.1 prerequisites passed; no VM or mutable state created.
+Native onderzoeksversie met Materiaal en Rekenmachine: openbare werkruimte zonder gekoppelde authenticatie.
+Acceleration: whpx. WHPX is listed; initialization has not been tested by CheckOnly.
+Bundle integrity and QEMU 10.2.1 prerequisites passed; no VM or mutable state created.
+PASS: 22 Windows launcher tests; synthetic files only; no VM started.

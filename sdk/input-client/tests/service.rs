@@ -37,6 +37,7 @@ enum Fault {
     UnknownSend,
     Receive,
     Yield,
+    ExitPeer,
 }
 struct Model {
     engine: Box<Engine>,
@@ -64,6 +65,9 @@ struct Model {
     received_cap: Option<u64>,
     request_ids: Vec<u64>,
     close_failure: Option<u64>,
+    retire_on_yield: bool,
+    retired: bool,
+    empty_after_peer_exit: usize,
 }
 impl Model {
     fn new() -> Rc<RefCell<Self>> {
@@ -143,6 +147,9 @@ impl Model {
             received_cap: None,
             request_ids: Vec::new(),
             close_failure: None,
+            retire_on_yield: false,
+            retired: false,
+            empty_after_peer_exit: 0,
         }))
     }
     fn binding(&self) -> Binding {
@@ -236,6 +243,10 @@ impl Model {
         if matches!(self.fault, Fault::DropReply) {
             return;
         }
+        if matches!(self.fault, Fault::ExitPeer) {
+            self.engine.exit(SERVER).unwrap();
+            return;
+        }
         let mut response = Message::new();
         response.tag = wire::TAG;
         response.len = wire::SIZE as u32;
@@ -294,10 +305,13 @@ impl Transport for Port {
         if matches!(m.fault, Fault::Receive) {
             return Err(RuntimeError::InvalidReturn);
         }
-        let actual = m
-            .engine
-            .receive(CLIENT, endpoint.handle().raw())
-            .map_err(|e| RuntimeError::Kernel(e.code()))?;
+        let actual = match m.engine.receive(CLIENT, endpoint.handle().raw()) {
+            Err(capability_core::Error::Again) if matches!(m.fault, Fault::ExitPeer) => {
+                m.empty_after_peer_exit += 1;
+                return Err(RuntimeError::Kernel(capability_core::Error::Again.code()));
+            }
+            result => result.map_err(|e| RuntimeError::Kernel(e.code()))?,
+        };
         let result = Received::from_bytes(actual.encode(), actual.len as u64)?;
         m.received_cap = result.cap(0).map(|cap| cap.handle.raw());
         Ok(result)
@@ -307,6 +321,16 @@ impl Transport for Port {
         m.yields += 1;
         if matches!(m.fault, Fault::Yield) {
             return Err(RuntimeError::InvalidReturn);
+        }
+        if m.retire_on_yield && !m.retired {
+            // The native supervisor performs this explicit, authenticated
+            // retirement. Peer death alone does not close the app-owned RX.
+            assert_eq!(m.empty_after_peer_exit, 1);
+            let handles = [m.app_send, m.reply_root];
+            for handle in handles {
+                m.engine.close(CLIENT, handle).unwrap();
+            }
+            m.retired = true;
         }
         if m.queue_full {
             let root = m.roots[3];
@@ -435,6 +459,103 @@ fn lost_peek_or_ack_reply_closes_without_republishing_or_false_ack() {
         assert_eq!(model.borrow().closed.len(), 2);
         assert_eq!(model.borrow().service.queued(), usize::from(!ack));
     }
+}
+
+#[test]
+fn explicit_retirement_unblocks_a_reply_wait_after_real_peer_exit_without_ack_or_retry() {
+    for ack in [false, true] {
+        let model = Model::new();
+        model.borrow_mut().key();
+        {
+            let mut m = model.borrow_mut();
+            // Match the native reply graph: app holds only a RECV leaf and
+            // the dying service holds its sole SEND leaf.
+            let root = m.reply_root;
+            let receiver = m
+                .engine
+                .derive(CLIENT, root, capability_core::RECV)
+                .unwrap();
+            m.engine.close(CLIENT, root).unwrap();
+            let hostile = m.hostile_send;
+            m.engine.close(9, hostile).unwrap();
+            m.reply_root = receiver;
+        }
+        let binding = model.borrow().binding();
+        let mut session = Session::new(Port(model.clone()), binding, 100_000).unwrap();
+        let first = if ack { Some(offer(&mut session)) } else { None };
+        let before = model.borrow().publications;
+        {
+            let mut m = model.borrow_mut();
+            m.fault = Fault::ExitPeer;
+            m.retire_on_yield = true;
+        }
+        let result = if let Some(first) = first {
+            session.ack(&first).map(|_| ())
+        } else {
+            session.peek().map(|_| ())
+        };
+        assert!(matches!(
+            result,
+            Err(Error::Interrupted {
+                delivery: Delivery::Enqueued,
+                transport: Some(RuntimeError::Kernel(-4)),
+                ..
+            })
+        ));
+        assert!(session.is_closed());
+        assert_eq!(session.peek(), Err(Error::Closed));
+        let m = model.borrow();
+        assert!(m.retired);
+        assert_eq!(m.empty_after_peer_exit, 1);
+        assert_eq!(m.yields, 1, "must not exhaust the 100,000-poll budget");
+        assert_eq!(m.publications, before + 1);
+        assert_eq!(
+            m.closed,
+            [binding.send.handle().raw(), binding.receive.handle().raw()]
+        );
+        assert!(m.engine.check_invariants());
+    }
+}
+
+#[test]
+fn only_explicit_retirement_tolerates_bad_handle_and_still_reports_other_cleanup_errors() {
+    for explicit in [false, true] {
+        let model = Model::new();
+        let mut session = open_session(&model);
+        let binding = model.borrow().binding();
+        model
+            .borrow_mut()
+            .engine
+            .close(CLIENT, binding.send.handle().raw())
+            .unwrap();
+        let result = if explicit {
+            session.retire()
+        } else {
+            session.close()
+        };
+        assert_eq!(
+            result,
+            if explicit {
+                Ok(())
+            } else {
+                Err(RuntimeError::Kernel(-4))
+            }
+        );
+        assert_eq!(model.borrow().closed.len(), 2);
+        assert!(session.is_closed());
+    }
+    let model = Model::new();
+    let mut session = open_session(&model);
+    let binding = model.borrow().binding();
+    {
+        let mut m = model.borrow_mut();
+        m.engine.close(CLIENT, binding.send.handle().raw()).unwrap();
+        m.close_failure = Some(binding.receive.handle().raw());
+    }
+    assert_eq!(session.retire(), Err(RuntimeError::InvalidReturn));
+    assert_eq!(model.borrow().closed.len(), 2);
+    assert!(session.is_closed());
+    assert!(model.borrow().engine.check_invariants());
 }
 
 #[test]

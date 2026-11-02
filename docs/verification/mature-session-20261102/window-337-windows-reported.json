@@ -1,0 +1,19 @@
+{
+  "kind": "reported by authorized local Codex chat; raw Windows files not reread in cloud",
+  "criterion": "U01",
+  "source_commit": "337f2f29f1833ef4a8d2cd640b09419f85dbb83b",
+  "source_sha256": "3919403542c923bc86467db3184345159a5ce6881567a0e11baa85f2d39f1995",
+  "backend": "Windows/WHPX",
+  "passed": true,
+  "native_gate": true,
+  "raw_qemu_exit": 33,
+  "duration_s": 36.94636,
+  "report_sha256": "34388fb69e69e05ac60bb4086b237ebd2ef732ee01971fe64fdf916b539ab976",
+  "phases_seconds": {
+    "initial": 6.971,
+    "recovered": 19.6,
+    "saved": 30.63,
+    "reopened": 36.2
+  },
+  "validation": "Original unchanged source runner with module-local Windows QMP/process/RNG backend adaptation; all13 phases, source/ELF/input/pixel/ACK/recovery/disk/cleanup/raw33 guards retained. No validation error. Idle branch remains separate."
+}

@@ -1,0 +1,1038 @@
+{
+  "schema_version": 1,
+  "candidate_status": "reviewed-local-test-bundle-clipboard-CI-source-accepted-no-Windows-runtime",
+  "source_commit": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+  "source_sha256": "038615b1b425d3f24ea2d9c52b36184ea666f81237c813303dc0fac93fb756ca",
+  "kernel_feature": "native-window-session",
+  "loader_feature": "desktop-mode",
+  "zip": {
+    "path": "/workspace/nieuw-os-windows-package/build/clipboard-e318/local-candidate/NieuwOS-klembord-e318-local-Windows-QEMU.zip",
+    "sha256": "673c13b2999933aa06567b76a942f26d7d48823e3c4b2c026b3b1d72c1b15859",
+    "size_bytes": 2486182
+  },
+  "manifest_sha256": "3f785306798729934aff5fd862d237cd2788d5d67d67e8690ddffd7c1ea21ef0",
+  "build_manifest_sha256": "850c46777ff072cc7dd9d72988f69869085725147c0eb366869ae57720a97aed",
+  "kernel_sha256": "b415e171fa14f695b3e47f1cc43cd951d4e5295ee273b79dc8db3a9ff80b86d0",
+  "loader_sha256": "5b90c8647cfae47f456f483e7800663f71a165c9912384c5d29ea35a50cd9314",
+  "native_apps": [
+    {
+      "name": "keyring-service",
+      "sha256": "07657bfde7013dcf052aab581bee37af535a5b7055b273ee8df38632fce0c518",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1344,
+            "memsz": 1344,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073823744,
+            "offset": 12288,
+            "filesz": 3457,
+            "memsz": 3457,
+            "page_start": 1073823744,
+            "page_end": 1073827840
+          },
+          {
+            "flags": 5,
+            "address": 1073872896,
+            "offset": 16384,
+            "filesz": 78407,
+            "memsz": 78407,
+            "page_start": 1073872896,
+            "page_end": 1073954816
+          }
+        ]
+      }
+    },
+    {
+      "name": "volume-service",
+      "sha256": "cae62e54c7d5bb0bd28586dfceeaaac9efba6eb0887f9f3ae314f3a77edb8c8b",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 57570,
+            "memsz": 57570,
+            "page_start": 1073741824,
+            "page_end": 1073803264
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 65536,
+            "filesz": 1304,
+            "memsz": 1304,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073823744,
+            "offset": 69632,
+            "filesz": 18082,
+            "memsz": 18082,
+            "page_start": 1073823744,
+            "page_end": 1073844224
+          }
+        ]
+      }
+    },
+    {
+      "name": "materiaal-app",
+      "sha256": "272f4f8ba5246ec763b4d6aa8729aa64115babf6dcd2c2de672e5f6e8c1b75ce",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 19,
+            "memsz": 19,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1024,
+            "memsz": 1024,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 471264,
+            "memsz": 471264,
+            "page_start": 1073872896,
+            "page_end": 1074348032
+          },
+          {
+            "flags": 6,
+            "address": 1074462720,
+            "offset": 487424,
+            "filesz": 208,
+            "memsz": 200704,
+            "page_start": 1074462720,
+            "page_end": 1074663424
+          },
+          {
+            "flags": 5,
+            "address": 1074724864,
+            "offset": 491520,
+            "filesz": 107625,
+            "memsz": 107625,
+            "page_start": 1074724864,
+            "page_end": 1074835456
+          }
+        ]
+      }
+    },
+    {
+      "name": "input-source",
+      "sha256": "a5c2c84fa6eebda448dba2009c876abc4275fcab95a00a8b808a080d9d17d1d7",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1200,
+            "memsz": 1200,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 754,
+            "memsz": 754,
+            "page_start": 1073872896,
+            "page_end": 1073876992
+          },
+          {
+            "flags": 5,
+            "address": 1074003968,
+            "offset": 16384,
+            "filesz": 12263,
+            "memsz": 12263,
+            "page_start": 1074003968,
+            "page_end": 1074016256
+          }
+        ]
+      }
+    },
+    {
+      "name": "input-policy",
+      "sha256": "5bbe44edc98b251e03ba98081286dd1441334f8de87e14e550f26d1b3efcb445",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1200,
+            "memsz": 1200,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 2522,
+            "memsz": 2522,
+            "page_start": 1073872896,
+            "page_end": 1073876992
+          },
+          {
+            "flags": 5,
+            "address": 1074003968,
+            "offset": 16384,
+            "filesz": 21575,
+            "memsz": 21575,
+            "page_start": 1074003968,
+            "page_end": 1074028544
+          }
+        ]
+      }
+    },
+    {
+      "name": "window-init",
+      "sha256": "72f6354c7c80d3fd942ce077509cbc8b1354fcc724397092d118fc53ca6ff559",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1024,
+            "memsz": 1024,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 799,
+            "memsz": 799,
+            "page_start": 1073872896,
+            "page_end": 1073876992
+          },
+          {
+            "flags": 6,
+            "address": 1074790400,
+            "offset": 16384,
+            "filesz": 72,
+            "memsz": 72,
+            "page_start": 1074790400,
+            "page_end": 1074794496
+          },
+          {
+            "flags": 5,
+            "address": 1090519040,
+            "offset": 20480,
+            "filesz": 9799,
+            "memsz": 9799,
+            "page_start": 1090519040,
+            "page_end": 1090531328
+          }
+        ]
+      }
+    },
+    {
+      "name": "window-compositor",
+      "sha256": "712c072d8fda4fee22e5d951091ba986f7f840f138e46e442c427710365d3c92",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1024,
+            "memsz": 1024,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 280250,
+            "memsz": 280250,
+            "page_start": 1073872896,
+            "page_end": 1074155520
+          },
+          {
+            "flags": 6,
+            "address": 1074790400,
+            "offset": 294912,
+            "filesz": 120,
+            "memsz": 5600120,
+            "page_start": 1074790400,
+            "page_end": 1080393728
+          },
+          {
+            "flags": 5,
+            "address": 1090519040,
+            "offset": 299008,
+            "filesz": 49079,
+            "memsz": 49079,
+            "page_start": 1090519040,
+            "page_end": 1090568192
+          }
+        ]
+      }
+    },
+    {
+      "name": "calculator-app",
+      "sha256": "a911464412c6ad09704df8bf459af2348e2f431b7becf085542226fed18bff69",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 19,
+            "memsz": 19,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1024,
+            "memsz": 1024,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 192936,
+            "memsz": 192936,
+            "page_start": 1073872896,
+            "page_end": 1074069504
+          },
+          {
+            "flags": 6,
+            "address": 1074200576,
+            "offset": 208896,
+            "filesz": 208,
+            "memsz": 208,
+            "page_start": 1074200576,
+            "page_end": 1074204672
+          },
+          {
+            "flags": 5,
+            "address": 1074462720,
+            "offset": 212992,
+            "filesz": 67142,
+            "memsz": 67142,
+            "page_start": 1074462720,
+            "page_end": 1074532352
+          }
+        ]
+      }
+    }
+  ],
+  "all_nineteen_payload_sizes_and_hashes_matched": true,
+  "zip_crc_and_unique_exact_file_list_passed": true,
+  "graphics_seven_inputs_byte_equal_to_frozen_source": true,
+  "atlas_provenance_match": "a4e3efa8027d5eba26bea742f7350bda34380cab9d77030d21481cb06c5f2e07",
+  "firmware_package_checks": [
+    {
+      "archive": "ovmf_2025.02-8+deb13u1_all.deb",
+      "sha256": "78e0d54df11fc77406cb7a0bc9a39e5bca6d1cbe06556b91d9a73491c52decdf",
+      "matched_inputs": [
+        {
+          "source": "usr/share/OVMF/OVMF_CODE_4M.fd",
+          "bundle": "OVMF_CODE.fd",
+          "sha256": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0"
+        },
+        {
+          "source": "usr/share/OVMF/OVMF_VARS_4M.fd",
+          "bundle": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "source": "usr/share/doc/ovmf/copyright",
+          "bundle": "licenses/OVMF-COPYRIGHT",
+          "sha256": "a7540ec9d19d4160e863b0582161572853d5732610b8b16166f4913e9fda7d33"
+        }
+      ]
+    },
+    {
+      "archive": "seabios_1.16.3-2_all.deb",
+      "sha256": "2b590534250b940f43222eeab9a8f57f337a9d9a73fc412a43ab8cd07a7e56f6",
+      "matched_inputs": [
+        {
+          "source": "usr/share/seabios/bios-256k.bin",
+          "bundle": "bios-256k.bin",
+          "sha256": "fc6d2ea888862e6b26d53fb877ab712324726eb8f44eb6baf076c64a31f1c3fb"
+        },
+        {
+          "source": "usr/share/seabios/vgabios-stdvga.bin",
+          "bundle": "VGA.rom",
+          "sha256": "88277c3ebff60fe83696d99d44b7eee4426112ee1763c87347c30a5b75781932"
+        },
+        {
+          "source": "usr/share/doc/seabios/copyright",
+          "bundle": "licenses/SeaBIOS-COPYRIGHT",
+          "sha256": "58b417317de591441140835ec61a35518441e465e2149aa8580a46e2ac6c18a7"
+        }
+      ]
+    }
+  ],
+  "tests": {
+    "package_host": 20,
+    "synthetic_launcher": 22,
+    "synthetic_acceleration_qmp": 33,
+    "all_exit_codes": 0
+  },
+  "old_candidates_preserved": {
+    "4f146a6": {
+      "path": "/workspace/nieuw-os-windows-package/build/window-package-4f146a6/NieuwOS-venstersessie-4f146a6-Windows-QEMU.zip",
+      "sha256": "92b366a8e0da66b49ebfec1cf6a0cf435294b8c344e3f7770ee61639d250ced4"
+    },
+    "ecb9964": {
+      "path": "/workspace/nieuw-os-windows-package/build/window-package-ecb9964/NieuwOS-venstersessie-ecb9964-Windows-QEMU.zip",
+      "sha256": "e496b918db6170d768ecce22e34120c83e0fb1c5d9666fb46d37535e24211548"
+    },
+    "03e81d4": {
+      "path": "/workspace/nieuw-os-windows-package/build/window-package-03e81d4/NieuwOS-venstersessie-03e81d4-Windows-QEMU.zip",
+      "sha256": "50e9538f8cc023379ccd62d53466dd58eb5c99fea9f965d56a18d0842c63e229"
+    },
+    "2bb84c2": {
+      "path": "/workspace/nieuw-os-windows-package/build/window-package-2bb84c2/NieuwOS-venstersessie-2bb84c2-Windows-QEMU.zip",
+      "sha256": "b5e2cc39cb9d54ec343d435e4c24b899a023f2cb688abb0b30f7783ac5f529af"
+    },
+    "b1b292a": {
+      "path": "/workspace/nieuw-os-windows-package/build/window-package-b1b292a/NieuwOS-venstersessie-b1b292a-Windows-QEMU.zip",
+      "sha256": "3f216fac116e1c058d7659adc891f660f63bf8b8b6f356fb8f1e25e4d0313b8c"
+    },
+    "337f2f2": {
+      "path": "/workspace/nieuw-os-windows-package/build/window-package-337f2f2/NieuwOS-venstersessie-337f2f2-Windows-QEMU.zip",
+      "sha256": "bac273f2771180573de93790891941ad07bfdce1ed4399d9773fd4b9ba87fb89"
+    },
+    "aba339a": {
+      "path": "/workspace/nieuw-os-windows-package/build/window-package-aba339a/NieuwOS-venstersessie-aba339a-Windows-QEMU.zip",
+      "sha256": "bc90ef59f271fba89f6b36d5dc13a7e1379e68d6cb10ff3a7039445fc642d43d"
+    },
+    "2a7b744": {
+      "path": "/workspace/nieuw-os-windows-package/build/window-package-2a7b744/NieuwOS-venstersessie-2a7b744-Windows-QEMU.zip",
+      "sha256": "b685eb421e279da680da2c84bd280cc1edbc8684471f2019b2879c129c3ba1e0"
+    }
+  },
+  "files": {
+    "Acceleration.ps1": {
+      "sha256": "fc506bb5ed327491a48316c9e9195418e3b08d090ceacdd4119a65c910c2defc",
+      "size_bytes": 7989
+    },
+    "OVMF_CODE.fd": {
+      "sha256": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "size_bytes": 3653632
+    },
+    "OVMF_VARS.template.fd": {
+      "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "size_bytes": 540672
+    },
+    "README.md": {
+      "sha256": "f090afb2e4c7c9ff7e4870fa3f5ec5adb7e5d5a06701d3efd54c8733e5eb533a",
+      "size_bytes": 6801
+    },
+    "Start-NieuwOS.ps1": {
+      "sha256": "f3db381890c58d3ec959aaf3815bede6daa3324c122ba6ad141322ecd3caa631",
+      "size_bytes": 7329
+    },
+    "VGA.rom": {
+      "sha256": "88277c3ebff60fe83696d99d44b7eee4426112ee1763c87347c30a5b75781932",
+      "size_bytes": 39424
+    },
+    "bios-256k.bin": {
+      "sha256": "fc6d2ea888862e6b26d53fb877ab712324726eb8f44eb6baf076c64a31f1c3fb",
+      "size_bytes": 262144
+    },
+    "esp/EFI/BOOT/BOOTX64.EFI": {
+      "sha256": "5b90c8647cfae47f456f483e7800663f71a165c9912384c5d29ea35a50cd9314",
+      "size_bytes": 31744
+    },
+    "esp/kernel.elf": {
+      "sha256": "b415e171fa14f695b3e47f1cc43cd951d4e5295ee273b79dc8db3a9ff80b86d0",
+      "size_bytes": 3584176
+    },
+    "licenses/Native-graphics-README.md": {
+      "sha256": "3983fb246b308986033280525699182ee1e322b5fdca91485a6597732d9b80c2",
+      "size_bytes": 2553
+    },
+    "licenses/NotoSansMono-NOTICE.md": {
+      "sha256": "2e60f45a7d4e8387c5746e552cd11566a7b9d46a4b5c712be3ddac7d7af24f5a",
+      "size_bytes": 2860
+    },
+    "licenses/NotoSansMono-OFL.txt": {
+      "sha256": "e2e177a32561584d4fc13aaa3cd8e53758a12910f013fe9ca125419111722029",
+      "size_bytes": 4395
+    },
+    "licenses/OVMF-COPYRIGHT": {
+      "sha256": "a7540ec9d19d4160e863b0582161572853d5732610b8b16166f4913e9fda7d33",
+      "size_bytes": 18202
+    },
+    "licenses/OpenSans-Apache-2.0.txt": {
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "size_bytes": 11358
+    },
+    "licenses/OpenSans-NOTICE.md": {
+      "sha256": "12edb62082689ef35c8d665259318609b5c359560c9895b5f74ae0b833bb9d28",
+      "size_bytes": 1149
+    },
+    "licenses/OpenSans-font-provenance.json": {
+      "sha256": "924a7f85977bf54270f45107bf7d18220eb4e7b1e4b240af78d3ec0eb803e704",
+      "size_bytes": 1393
+    },
+    "licenses/SeaBIOS-COPYRIGHT": {
+      "sha256": "58b417317de591441140835ec61a35518441e465e2149aa8580a46e2ac6c18a7",
+      "size_bytes": 3349
+    },
+    "licenses/noto-sans-mono-bitmap-MIT.txt": {
+      "sha256": "d084589aca58e74853c2d03f8a1f7b6f3a13f1fcc4b0c451f30455da09c624b7",
+      "size_bytes": 1073
+    },
+    "volume.empty.img": {
+      "sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "size_bytes": 1048576
+    }
+  },
+  "limits": [
+    "No VM was started for this candidate build/check; root native acceptance is a separate gate.",
+    "Linux PowerShell synthetic prerequisites cannot prove Windows or WHPX runtime acceptance.",
+    "Public research workspace; no authentication integrated.",
+    "Launcher now requires and hashchecks all nineteen payloads, including all three Noto notices."
+  ],
+  "actual_embedded_elf_readback": {
+    "kernel_contains_exact_eight_hashed_and_inspected_app_files": true,
+    "entries": [
+      {
+        "name": "keyring-service",
+        "sha256": "07657bfde7013dcf052aab581bee37af535a5b7055b273ee8df38632fce0c518",
+        "offset": 220240,
+        "length": 107624,
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1344,
+              "memsz": 1344,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 3457,
+              "memsz": 3457,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 78407,
+              "memsz": 78407,
+              "page_start": 1073872896,
+              "page_end": 1073954816
+            }
+          ]
+        }
+      },
+      {
+        "name": "volume-service",
+        "sha256": "cae62e54c7d5bb0bd28586dfceeaaac9efba6eb0887f9f3ae314f3a77edb8c8b",
+        "offset": 327864,
+        "length": 97632,
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 57570,
+              "memsz": 57570,
+              "page_start": 1073741824,
+              "page_end": 1073803264
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 65536,
+              "filesz": 1304,
+              "memsz": 1304,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 69632,
+              "filesz": 18082,
+              "memsz": 18082,
+              "page_start": 1073823744,
+              "page_end": 1073844224
+            }
+          ]
+        }
+      },
+      {
+        "name": "materiaal-app",
+        "sha256": "272f4f8ba5246ec763b4d6aa8729aa64115babf6dcd2c2de672e5f6e8c1b75ce",
+        "offset": 425496,
+        "length": 630352,
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 19,
+              "memsz": 19,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1024,
+              "memsz": 1024,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 471264,
+              "memsz": 471264,
+              "page_start": 1073872896,
+              "page_end": 1074348032
+            },
+            {
+              "flags": 6,
+              "address": 1074462720,
+              "offset": 487424,
+              "filesz": 208,
+              "memsz": 200704,
+              "page_start": 1074462720,
+              "page_end": 1074663424
+            },
+            {
+              "flags": 5,
+              "address": 1074724864,
+              "offset": 491520,
+              "filesz": 107625,
+              "memsz": 107625,
+              "page_start": 1074724864,
+              "page_end": 1074835456
+            }
+          ]
+        }
+      },
+      {
+        "name": "input-source",
+        "sha256": "a5c2c84fa6eebda448dba2009c876abc4275fcab95a00a8b808a080d9d17d1d7",
+        "offset": 1427320,
+        "length": 37424,
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1200,
+              "memsz": 1200,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 754,
+              "memsz": 754,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            },
+            {
+              "flags": 5,
+              "address": 1074003968,
+              "offset": 16384,
+              "filesz": 12263,
+              "memsz": 12263,
+              "page_start": 1074003968,
+              "page_end": 1074016256
+            }
+          ]
+        }
+      },
+      {
+        "name": "input-policy",
+        "sha256": "5bbe44edc98b251e03ba98081286dd1441334f8de87e14e550f26d1b3efcb445",
+        "offset": 1464744,
+        "length": 48608,
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1200,
+              "memsz": 1200,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 2522,
+              "memsz": 2522,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            },
+            {
+              "flags": 5,
+              "address": 1074003968,
+              "offset": 16384,
+              "filesz": 21575,
+              "memsz": 21575,
+              "page_start": 1074003968,
+              "page_end": 1074028544
+            }
+          ]
+        }
+      },
+      {
+        "name": "window-init",
+        "sha256": "72f6354c7c80d3fd942ce077509cbc8b1354fcc724397092d118fc53ca6ff559",
+        "offset": 181536,
+        "length": 38704,
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1024,
+              "memsz": 1024,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 799,
+              "memsz": 799,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            },
+            {
+              "flags": 6,
+              "address": 1074790400,
+              "offset": 16384,
+              "filesz": 72,
+              "memsz": 72,
+              "page_start": 1074790400,
+              "page_end": 1074794496
+            },
+            {
+              "flags": 5,
+              "address": 1090519040,
+              "offset": 20480,
+              "filesz": 9799,
+              "memsz": 9799,
+              "page_start": 1090519040,
+              "page_end": 1090531328
+            }
+          ]
+        }
+      },
+      {
+        "name": "window-compositor",
+        "sha256": "712c072d8fda4fee22e5d951091ba986f7f840f138e46e442c427710365d3c92",
+        "offset": 1055848,
+        "length": 371472,
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1024,
+              "memsz": 1024,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 280250,
+              "memsz": 280250,
+              "page_start": 1073872896,
+              "page_end": 1074155520
+            },
+            {
+              "flags": 6,
+              "address": 1074790400,
+              "offset": 294912,
+              "filesz": 120,
+              "memsz": 5600120,
+              "page_start": 1074790400,
+              "page_end": 1080393728
+            },
+            {
+              "flags": 5,
+              "address": 1090519040,
+              "offset": 299008,
+              "filesz": 49079,
+              "memsz": 49079,
+              "page_start": 1090519040,
+              "page_end": 1090568192
+            }
+          ]
+        }
+      },
+      {
+        "name": "calculator-app",
+        "sha256": "a911464412c6ad09704df8bf459af2348e2f431b7becf085542226fed18bff69",
+        "offset": 1513352,
+        "length": 298480,
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 19,
+              "memsz": 19,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1024,
+              "memsz": 1024,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 192936,
+              "memsz": 192936,
+              "page_start": 1073872896,
+              "page_end": 1074069504
+            },
+            {
+              "flags": 6,
+              "address": 1074200576,
+              "offset": 208896,
+              "filesz": 208,
+              "memsz": 208,
+              "page_start": 1074200576,
+              "page_end": 1074204672
+            },
+            {
+              "flags": 5,
+              "address": 1074462720,
+              "offset": 212992,
+              "filesz": 67142,
+              "memsz": 67142,
+              "page_start": 1074462720,
+              "page_end": 1074532352
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "tests_already_performed_once_on_this_frozen_source": {
+    "directory": "/workspace/nieuw-os-windows-package/build/clipboard-e318/logs",
+    "package_python": 20,
+    "synthetic_ps_launcher": 22,
+    "synthetic_ps_acceleration_qmp": 33,
+    "all_exit_codes": 0,
+    "repeated_after_candidate_build": false
+  },
+  "checkonly": {
+    "platform": "Linux PowerShell7.5.4",
+    "qemu": "synthetic help/version executable, no VM support",
+    "exit_code": 0,
+    "qemu_vm_started": false,
+    "hypervisor_probe_performed": false,
+    "windows_runtime_performed": false,
+    "state_absent": true,
+    "all_nineteen_extracted_files_unchanged": true,
+    "log_sha256": "3ae67f7997bd553d4dff184e1e1c90e1d901136d419169de8b3a511be0fc6150"
+  },
+  "reported_root_native_proof": {
+    "basis": "reported by parent/root, not relabelled as this package runtime",
+    "actual_source_commit": "d0ae570bd4666626096f92e57acef981c0f0d7b6",
+    "actual_source_sha256": "05307fef9684d97480a77ea39050d80f6affcf522a6c09c7eb53340c789b35aa",
+    "duration_s": 1196.886762929,
+    "native_gate": true,
+    "clipboard_gate": true,
+    "raw_exit": 33,
+    "root_reports_ten_probe_binaries_identical_after_test_only_e318_update": true,
+    "current_full_source_sha256": "038615b1b425d3f24ea2d9c52b36184ea666f81237c813303dc0fac93fb756ca"
+  },
+  "ci_status_at_creation": {
+    "native_window_run": 41503460976,
+    "native_window_job": 125476892068,
+    "completed_success": 17,
+    "still_running": 1,
+    "failure": 0,
+    "clipboard_ci_pass_claim": false
+  },
+  "ci_status_at_finalization": {
+    "native_window_run": 41503460976,
+    "native_window_job": 125476892068,
+    "completed_success": 18,
+    "still_running": 0,
+    "failure": 0,
+    "clipboard_ci_pass_claim": true,
+    "ci_tested_merge_commit": "5754763ffb257d6420f74126cae7252e36afab1e",
+    "actual_ci_source_sha256": "038615b1b425d3f24ea2d9c52b36184ea666f81237c813303dc0fac93fb756ca",
+    "native_gate": true,
+    "clipboard_gate": true,
+    "native_artifact_verification_sha256": "eaff8b7a93e701848098748abfdbaed2ae7e57c975151c4439e9a31ef26dd6b6",
+    "zip_runtime_acceptance_performed": false
+  }
+}

@@ -1,0 +1,70 @@
+# Native venstersessie — U01 bouwcontract
+
+Bronbasis: `0fe648b`, werkbranch `codex/mature-native-session-20261102`.
+Dit contract beschrijft lopend werk; het sluit U01 niet en wijzigt geen punten.
+
+## Resultaat en grenzen
+
+Een native compositor toont Materiaal en Rekenmachine als twee afzonderlijke
+CPL3-processen. Alleen de compositor bezit DisplaySource; alleen de inputbron
+bezit InputSource. Applicaties krijgen uitsluitend hun eigen SUR1-/INP1-kanalen.
+De bestaande document-, sleutel- en volumerechten blijven ongewijzigd. De nieuwe
+grafische bibliotheek gebruikt begrensde vooraf gegenereerde letterbeelden en
+eigen vectorpictogrammen, zonder runtime-fontparser of nieuwe privileged code.
+
+De compositor beheert vensterposities, stapelvolgorde en invoerfocus. Een app kan
+geen systeemrand overschrijven of invoer uit een ander venster opeisen. De
+kernel levert de echte afzender van ieder bericht; een client-ID of coördinaat
+verleent nooit rechten. Per venster bestaan een begrensde backing store, één
+SUR1-ontvanger en een begrensde INP1-aanbod/ACK-wachtrij. Totaal maximaal
+1.400.000 pixels backing store, twee vensters, geen heap of gedeeld appgeheugen.
+
+## Herstel
+
+De gebruikersruimtesupervisor beslist over herstel. Een compositorfout mag een
+documentdraft of berekening niet vernietigen. De supervisor retireert eerst
+uitsluitend de vier vastgelegde oude presentatiehandles per app (`0x53`, fase
+`a2=1` van dit onuitgebrachte ABI1.11-profiel). Een app-eigen reply-ontvanger
+blijft na peer-exit anders open en een lopende RPC kan zijn pauzeverzoek niet
+lezen. Retireren sluit die oude handles zonder allocaties, nieuwe processen,
+epochs of wijzigingen aan opslag, control of de oude procescapability. De apps
+keren daardoor uit hun oude RPC terug, pauzeren presentatie en bevestigen dat
+via hun bestaande controlroute. Alleen na beide echte pauzebevestigingen vraagt
+init de constructiefase (`a2=0`) aan; die vereist voorafgaande retirement. De
+supervisor kan dan de vastgelegde compositor/inputdienstgroep herstarten met verse procesidentiteiten,
+capabilities en epochs. Apps binden die nieuwe kanalen expliciet en tekenen
+opnieuw. Opslag- en documentkanalen worden daarbij niet vervangen. De oude
+kanalen leveren geen succes meer. Herstel verruimt geen apparaatrechten.
+
+De expliciete app-cleanup na retirement behandelt alleen `BadHandle` per
+afzonderlijke oude handle als al gesloten. Andere sluitfouten blijven fouten,
+beide eigenaars worden geprobeerd en er ontstaat geen invoer- of frame-ACK.
+Normale `close()`-semantiek en de bestaande RPC-budgetten blijven ongewijzigd.
+
+De init-policy bewaakt daarna afzonderlijk Wacht-op-Pause, Wacht-op-verse-READY
+en Wacht-op-Rebind-ACK. Het oude gereedheidsmasker wordt bij herstelbegin gewist
+tot de twee blijvende appbits. Alleen een geslaagde constructiesyscall plus
+gevalideerde verse bootidentiteiten/generatie/epochs opent de READY-fase; die
+begint opnieuw met uitsluitend appbits. Rebind vereist alle drie actuele
+dienstmeldingen in die fase. ACK7 en ACK8 gelden uitsluitend in hun eigen fase;
+oude READY-meldingen kunnen de herbindpoort niet openen.
+
+De kernel bevat alleen de begrensde proces-/manifestmechaniek, geen rendering,
+invoerfocuspolicy of fontparser. Partial initialization, onjuiste aanroeper,
+levende oude dienst, stale procescapability, endpoint-/frametekort en foute
+generaties moeten gesloten falen. Bestaande diagnostische profielen blijven
+apart bruikbaar.
+
+## Acceptatie
+
+Eerst hosttests voor geometrie, bounds, focus, aanbod/ACK, malformed berichten
+en herstelbindingscontrole; daarna no_std-build/ELF-inspectie. Native acceptatie
+vereist werkelijk twee apps, toetsenbord/muisfocus, vensterbeweging, negatieve
+surface-/callerproeven en een echte compositorfout met behoud van draft en
+berekening. Vervolgens echt bewaren/lijsten/heropenen, onafhankelijke diskcontrole
+en resourcecleanup. De fysieke GPU, echte accountauthenticatie, schermlezer,
+volledige tekstshaping en menselijke gebruikerstests vallen buiten deze gate.
+
+N01 wordt daarnaast in een afzonderlijk native profiel geïntegreerd; een
+netwerkdienstcompile is geen native netwerkacceptatie. U01/N01 krijgen alleen
+hun vaste punten als de volledige bestaande criteriumgrens aantoonbaar slaagt.

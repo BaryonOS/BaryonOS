@@ -1,0 +1,22 @@
+{
+  "volatile_i64_zero_stores_per_message": 40,
+  "other_volatile_store_widths": [],
+  "IR_wipe_loop_memory_intrinsics": [],
+  "IR_cold_IF0_panic_format_memset_bytes": [
+    16
+  ],
+  "stack_subtractions_bytes": [
+    56
+  ],
+  "IR_sha256": "bf0731b54c478a06c95e80829fa947f451e61e3ab53607c6c0d565404b71b74c",
+  "kernel_sha256": "86279bc94f08d5898a1b8db887df3b277d85e937c3385b85b22a24b31343a283",
+  "native_runtime": false,
+  "basis": "03e81d4d9ac8d4e83e3a321ba8ba949d8562658f",
+  "source_v3": "622d1f5a0e329c701656eb8b478d98e79fd2804bae6993c1ec21780b32f86818",
+  "file_sha256": {
+    "kernel/src/m2/m3/snapshot_wipe.rs": "4202f5644d61fa9118cd924e96b301986a54ff68f69a46583a3ef12120d39987",
+    "kernel/src/m2/m3/m4.rs": "8680502f9deae2f71a4c363ff7f4eed3f87f324ed2b1941c231e6e7a34b8b183"
+  },
+  "final_build_source_v3": "622d1f5a0e329c701656eb8b478d98e79fd2804bae6993c1ec21780b32f86818",
+  "final_kernel_sha256": "86279bc94f08d5898a1b8db887df3b277d85e937c3385b85b22a24b31343a283"
+}

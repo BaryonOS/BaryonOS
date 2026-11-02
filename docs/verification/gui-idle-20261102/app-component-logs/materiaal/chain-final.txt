@@ -1,0 +1,37 @@
+   Compiling nieuw-os-materiaal-app v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/examples/materiaal)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.53s
+     Running tests/chain.rs (target/agent-apps/materiaal/debug/deps/chain-ad38c2efa3a2e161)
+
+running 30 tests
+test bootstrap_rejects_aliases_invalid_handles_actors_epochs_and_scale ... ok
+test clean_stop_closes_each_owner_once_without_commit ... ok
+test bounded_draft_rejects_large_edit_without_destroying_old_bytes ... ok
+test cancel_between_real_append_and_commit_preserves_draft ... ok
+test global_outside_release_and_held_reentry_never_click ... ok
+test focus_regrant_does_not_reuse_held_control ... ok
+test cancel_uses_real_abort_and_never_commits ... ok
+test diagnostic_f12_counts_press_without_repeat_release_or_action ... ok
+test interactive_four_tiles_use_one_idle_peek ... ok
+test negative_display_completion_never_presents ... ok
+test interactive_lost_tile_ack_ends_batch_and_preserves_draft ... ok
+test interactive_input_still_processes_at_most_four_offers ... ok
+test interactive_input_failure_keeps_draft_and_bounded_paint ... ok
+test lost_document_commit_never_claims_saved ... ok
+test lost_surface_ack_does_not_present_or_drop_draft ... ok
+test readonly_ui_never_publishes_create_or_save ... ok
+test storage_io_failure_never_claims_saved ... ok
+test surface_failure_revokes_current_ready_flag ... ok
+test input_failure_revokes_current_ready_flag ... ok
+test scale200_uses_actual_assigned_global_pointer_coordinates ... ok
+test input_channel_failure_retains_unsaved_draft ... ok
+test generation_change_abandons_partial_frame ... ok
+test independent_current_ready_is_not_stale_after_edit ... ok
+test real_protocol_chain_edit_save_reopen_and_separate_surface ... ok
+test interactive_batch_never_certifies_partial_generation ... ok
+test stale_or_small_rebind_closes_new_grants_without_losing_document ... ok
+test idle_only_after_complete_ack_and_empty_input_preserves_new_input_and_unsaved_work ... ok
+test lost_final_replacement_frame_ack_preserves_draft_without_ready ... ok
+test retired_reply_leaves_preserve_document_and_allow_both_owner_pause ... ok
+test fresh_presentation_preserves_draft_caret_and_active_document_upload ... ok
+
+test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.04s

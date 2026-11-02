@@ -123,12 +123,15 @@ impl Metrics {
 // The native adapter is compiled against the real m3 State and copy boundary.
 #[cfg(not(test))]
 pub(super) fn syscall(state: &mut super::State, slot: usize, args: [u64; 6]) -> (i64, u64) {
-    let before = super::m4::engine().stats();
+    let before = super::m4::observe_authority();
     state.wait_metrics.calls = state.wait_metrics.calls.saturating_add(1);
     let result = register(state, slot, args);
-    assert_eq!(
-        super::m4::engine().stats(),
-        before,
+    let unchanged = before.matches_current();
+    // All results, including a successful/pending wait, preserve authority.
+    // Erase and release before the scheduler can park or resume this process.
+    drop(before);
+    assert!(
+        unchanged,
         "IPC wait registration changed authority/queue state"
     );
     match result {

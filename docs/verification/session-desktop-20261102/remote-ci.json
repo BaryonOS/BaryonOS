@@ -1,0 +1,9 @@
+{
+  "commit": "cfed2db9a39396e48a7bc758eb2c533f3af3f22c",
+  "workflow_run_id": 41443885960,
+  "status": "completed",
+  "conclusion": "startup_failure",
+  "jobs": [],
+  "cause": "Not established from available GitHub connector results",
+  "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41443885960"
+}

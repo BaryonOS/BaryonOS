@@ -15,11 +15,11 @@ pub enum Mode {
     Wait,
 }
 impl Mode {
-    /// Only the two explicitly implemented ABI versions are accepted.
+    /// Only explicitly implemented ABI versions are accepted.
     pub const fn from_abi(info: u64) -> Option<Self> {
         match info {
             0x1_0000_0008 => Some(Self::Legacy),
-            0x1_0000_000a => Some(Self::Wait),
+            0x1_0000_000a | 0x1_0000_000b => Some(Self::Wait),
             _ => None,
         }
     }
@@ -159,7 +159,7 @@ mod tests {
             0,
             0x1_0000_0007,
             0x1_0000_0009,
-            0x1_0000_000b,
+            0x1_0000_000c,
             0x2_0000_000a,
             u64::MAX,
         ] {

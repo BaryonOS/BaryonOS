@@ -1,0 +1,10 @@
+{
+  "original_agent_final_checks": "ci-e318-final-checks.json",
+  "snapshot_sha256_field_resolves_to": "ci-e318-agent-workflows-original.json",
+  "snapshot_sha256": "be9e7334f233df1d6ed6a57bb01dd22705c28f559cf1e506a151ab7e976e380f",
+  "root_separate_normalized_snapshot": "ci-e318-workflows.json",
+  "root_separate_snapshot_sha256": "1bffc55bf825c121ea3f66b25d7d1eb80aeff764db33928ebdb596ad0455accb",
+  "per_run_actual_head_metadata": "ci-e318-workflow-heads.json",
+  "all_18_actual_head_sha": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+  "note": "Two separate successful commit-filtered API reads have different wrappers/timestamps. Original agent JSON retained byte-exact; no original digest replaced. Independent per-run GET metadata confirms every head and success status."
+}
