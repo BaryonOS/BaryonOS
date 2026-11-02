@@ -1,0 +1,305 @@
+{
+  "implementation_commit": "ecb9964de727561a900ed93bc86ad3d5847dfe6b",
+  "native_m4": {
+    "phase": "M4",
+    "status": "completed",
+    "passed": true,
+    "started_utc": "2026-11-02T15:36:58.447300+00:00",
+    "results": [
+      {
+        "name": "capability-transaction-wire-generation-host-tests",
+        "passed": true,
+        "requirements": [
+          "KS-09",
+          "KS-10",
+          "KS-11",
+          "KS-12",
+          "KS-13",
+          "KS-14",
+          "KS-15",
+          "KS-16"
+        ],
+        "evidence": "build/logs/m4-host-tests.stdout.txt"
+      },
+      {
+        "name": "ipc-user-artifact-negative-tests",
+        "passed": true,
+        "requirements": [
+          "USER_IPC_ELF"
+        ],
+        "evidence": "build/logs/m4-user-artifact-tests.stdout.txt"
+      },
+      {
+        "name": "real-ring3-message-exchange",
+        "passed": true,
+        "requirements": [
+          "IPC_POSITIVE"
+        ],
+        "evidence": "/workspace/nieuw-os/build/run/m4-exchange-a514f66985"
+      },
+      {
+        "name": "test-m4-copy",
+        "passed": true,
+        "requirements": [
+          "KS-09"
+        ],
+        "evidence": "/workspace/nieuw-os/build/run/test-m4-copy-271748312d"
+      },
+      {
+        "name": "test-m4-wire",
+        "passed": true,
+        "requirements": [
+          "KS-10"
+        ],
+        "evidence": "/workspace/nieuw-os/build/run/test-m4-wire-8a4a4748c6"
+      },
+      {
+        "name": "test-m4-snapshot",
+        "passed": true,
+        "requirements": [
+          "KS-11"
+        ],
+        "evidence": "/workspace/nieuw-os/build/run/test-m4-snapshot-a765e5cdef"
+      },
+      {
+        "name": "test-m4-handles",
+        "passed": true,
+        "requirements": [
+          "KS-12"
+        ],
+        "evidence": "/workspace/nieuw-os/build/run/test-m4-handles-fc4906a28e"
+      },
+      {
+        "name": "test-m4-rights",
+        "passed": true,
+        "requirements": [
+          "KS-13"
+        ],
+        "evidence": "/workspace/nieuw-os/build/run/test-m4-rights-13ac4cd8ab"
+      },
+      {
+        "name": "test-m4-revoke",
+        "passed": true,
+        "requirements": [
+          "KS-14"
+        ],
+        "evidence": "/workspace/nieuw-os/build/run/test-m4-revoke-716f00b1fc"
+      },
+      {
+        "name": "test-m4-quotas",
+        "passed": true,
+        "requirements": [
+          "KS-15"
+        ],
+        "evidence": "/workspace/nieuw-os/build/run/test-m4-quotas-2ad8510662"
+      },
+      {
+        "name": "test-m4-lifecycle",
+        "passed": true,
+        "requirements": [
+          "KS-16"
+        ],
+        "evidence": "/workspace/nieuw-os/build/run/test-m4-lifecycle-d0f1584b98"
+      },
+      {
+        "name": "m1-regression-after-m4",
+        "passed": true,
+        "requirements": [
+          "M1"
+        ],
+        "evidence": "/workspace/nieuw-os/build/run/m1-after-m4-54f35a0e4b"
+      }
+    ],
+    "finished_utc": "2026-11-02T15:38:06.281958+00:00"
+  },
+  "network_cases": [
+    {
+      "source_commit": "ecb9964de727561a900ed93bc86ad3d5847dfe6b",
+      "source_sha256": "a7e99c4a7287fc7114482b6bd931bc5c00c2f6f9fcedc0f7dc4d97d2252e0f6c",
+      "case": "normal",
+      "passed": true,
+      "duration_s": 12.856073209999522,
+      "raw_qemu_exit": 33,
+      "stdout_sha256": "73548c9e97e37abf90a587314fba2cb8d2bf1b2b693c77c5967e033e5401222e",
+      "observed": {
+        "processes": {
+          "SERVICE": {
+            "240": 0,
+            "400": 1,
+            "408": 223,
+            "416": 44,
+            "424": 35,
+            "432": 186,
+            "440": 22,
+            "448": 2,
+            "456": 2,
+            "464": 10,
+            "472": 390,
+            "480": 308,
+            "488": 4,
+            "496": 3,
+            "504": 0,
+            "512": 4,
+            "520": 2,
+            "528": 1,
+            "536": 0
+          },
+          "APP_A": {
+            "240": 0,
+            "400": 1,
+            "408": 2,
+            "416": 1,
+            "424": 1,
+            "432": 9,
+            "440": 1,
+            "448": 3,
+            "456": 77,
+            "464": 2,
+            "472": 4,
+            "480": 1,
+            "488": 1,
+            "496": 1,
+            "504": 1,
+            "512": 1,
+            "520": 0,
+            "528": 1,
+            "536": 0
+          },
+          "APP_B": {
+            "240": 0,
+            "400": 1,
+            "408": 2,
+            "416": 1,
+            "424": 1,
+            "432": 9,
+            "440": 1,
+            "448": 3,
+            "456": 77,
+            "464": 2,
+            "472": 4,
+            "480": 1,
+            "488": 1,
+            "496": 1,
+            "504": 1,
+            "512": 1,
+            "520": 0,
+            "528": 1,
+            "536": 0
+          }
+        },
+        "network": {
+          "NET_TX_SUBMITTED": 44,
+          "NET_TX_COMPLETED": 44,
+          "NET_RX_COMPLETED": 35,
+          "NET_RX_DELIVERED": 35,
+          "NET_DENIED": 2,
+          "NET_TX_TIMEOUTS": 0,
+          "NET_RESETS": 1,
+          "NET_RESET_ACKS": 1
+        },
+        "entropy_bytes": 8,
+        "exit_ticks": {
+          "APP_A": 857,
+          "APP_B": 908
+        }
+      }
+    },
+    {
+      "source_commit": "ecb9964de727561a900ed93bc86ad3d5847dfe6b",
+      "source_sha256": "a7e99c4a7287fc7114482b6bd931bc5c00c2f6f9fcedc0f7dc4d97d2252e0f6c",
+      "case": "client-exit",
+      "passed": true,
+      "duration_s": 9.504417140000442,
+      "raw_qemu_exit": 33,
+      "stdout_sha256": "31cb2e777dfc1c691179b2e6e6712ada748efeca58e37a2757bc8d28a1eccca8",
+      "observed": {
+        "processes": {
+          "SERVICE": {
+            "240": 0,
+            "400": 1,
+            "408": 404,
+            "416": 25,
+            "424": 18,
+            "432": 159,
+            "440": 13,
+            "448": 1,
+            "456": 1,
+            "464": 6,
+            "472": 195,
+            "480": 154,
+            "488": 2,
+            "496": 3,
+            "504": 0,
+            "512": 2,
+            "520": 1,
+            "528": 1,
+            "536": 1
+          },
+          "APP_A": {
+            "240": 0,
+            "400": 1,
+            "408": 0,
+            "416": 0,
+            "424": 1,
+            "432": 0,
+            "440": 1,
+            "448": 0,
+            "456": 0,
+            "464": 0,
+            "472": 0,
+            "480": 1,
+            "488": 0,
+            "496": 0,
+            "504": 0,
+            "512": 0,
+            "520": 0,
+            "528": 1,
+            "536": 1
+          },
+          "APP_B": {
+            "240": 0,
+            "400": 1,
+            "408": 2,
+            "416": 1,
+            "424": 1,
+            "432": 9,
+            "440": 1,
+            "448": 3,
+            "456": 77,
+            "464": 2,
+            "472": 4,
+            "480": 1,
+            "488": 1,
+            "496": 1,
+            "504": 1,
+            "512": 1,
+            "520": 0,
+            "528": 1,
+            "536": 0
+          }
+        },
+        "network": {
+          "NET_TX_SUBMITTED": 25,
+          "NET_TX_COMPLETED": 25,
+          "NET_RX_COMPLETED": 18,
+          "NET_RX_DELIVERED": 18,
+          "NET_DENIED": 2,
+          "NET_TX_TIMEOUTS": 0,
+          "NET_RESETS": 1,
+          "NET_RESET_ACKS": 1
+        },
+        "entropy_bytes": 8,
+        "exit_ticks": {
+          "APP_A": 54,
+          "APP_B": 632
+        }
+      }
+    }
+  ],
+  "window_candidate": {
+    "passed": false,
+    "intentionally_stopped": true,
+    "run_directory": "/workspace/nieuw-os/build/window-final/run/window-bf0201e28eed432c8d7ef9af4baa1c43",
+    "reason": "Unexpected severe TCG rendering slowdown after exact snapshot integration; investigate bytewise kernel memory intrinsics before full rerun. Other test VMs overlapped part of the run; no controlled speed ratio is claimed."
+  }
+}

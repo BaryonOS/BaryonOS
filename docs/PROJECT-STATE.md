@@ -36,12 +36,17 @@ AchtELFs, firmware/pakketlicenties, fontprovenance en ZIPpayloadhashes zijn
 nagelezen. Dit is een kandidaat, geen Windows-runtime- of U01-eindacceptatie.
 Na definitieve functionele freeze opnieuw bouwen/verpakken.
 
-Parallel ontwikkelt de performanceagent in eigen worktree een exacte,
+De exacte snapshot is geïntegreerd op `ecb9964`: native-M4 slaagt12/12 groepen
+en beideN01-cases slagen. De eerste gecombineerde venstertest is bewust
+gestopt wegens duidelijke TCG-vertraging; dit levert geen U01-punten op.
+Een nieuwe afgebakende intrinsicsverbetering wordt nu afzonderlijk getest.
+De performanceagent ontwikkelde een exacte,
 vooraf gereserveerde autoriteitssnapshot i.p.v. de dure diagnostische hashscan
 vóór elke IPC. Alle foutasserties en rechten-/pointerchecks blijven; volledige
 Eq vergelijkt alle velden en extra berichtkopieën worden vóór vrijgeven gewist.
-Nog niet geïntegreerd of als latentiewinst geaccepteerd. Nativebenchmark en
-onafhankelijke diffreview gaan vóór overname.
+De snapshot op zichzelf heeft nog geen aangetoonde native latentiewinst.
+Onderzoek naar complete64bit-kopie-/vergelijkstappen met exacte tails en
+guard-pagetests gaat vóór nieuwe overname. Alle input-/pixelgates blijven.
 
 Eerstvolgend: coherent snapshotresultaat beoordelen/integreren, uiteindelijke
 bronfreeze committen/pushen, volledige sourcegebonden1800s-QMPgate starten.
