@@ -109,3 +109,60 @@ IF0-controle of hardware-/kernelcrash kan de VM stoppen; zij verleent geen
 nieuwe autoriteit. De opslag is nooit een userspace-mapping of DMA-buffer.
 Terugname herstelt uitsluitend de M4/wait-Stats-vergelijkingen; de oude verse
 orakels blijven beschikbaar. Er is geen persistente formaatmigratie.
+
+## SW-1 — directe volatile woordwipe
+
+Aanvulling op bron `03e81d4`, 2 november 2026. De bovenstaande native proof en
+stackcijfers behoren bij de eerste snapshotimplementatie. Haar echte
+venstersessie werd trager. Inspectie van exact de live release-ELF wees uit dat
+`write_volatile(Message::new())` per bericht eerst288 stackbytes via de nog
+bytegewijze `memset` initialiseert, die288 bytes kopieert en vervolgens headers
+schrijft. De woordgewijze memcpy lost die tijdelijke initialisaties niet op.
+
+Alleen het wissen verandert nu: `snapshot_wipe::wipe_message` schrijft40
+uitgelijnde, afzonderlijke volatile `u64`-nullen direct naar het exclusief
+geleende Message-object. Dezelfde320 bytes per bericht en1024 berichten worden
+volledig gewist vóór de bestaande lease-release en vóór een mogelijke
+foutatomiciteitsassertie. Er is geen nieuwe autoriteit, cache of gewijzigde
+vergelijking, en geen Message-tijdelijk, callback of paddingread. De
+ongewijzigde cap-/pointer-/return-/outputchecks blijven van kracht.
+
+Constante grootte320, Cap-grootte16, uitlijning en som van de veldgroottes
+worden gecontroleerd. Exhaustieve Message- en Cap-patronen zonder `..` pinnen
+alle primitieve **waarden** en arraylengtes. Hiermee kunnen derefcoercions geen
+nieuwe wrappertypen stil aanvaarden. Omdat uitsluitend integer-/bytevelden
+worden geschreven, blijft ook iedere gedeeltelijke nulschrijfstap een geldige
+Rust-representatie; de snapshot is gedurende de volledige wipe exclusief.
+
+Gericht bewijs: twee Pythonchecks slagen. De werkelijke helper doorloopt vier
+Rust/O3-tests voor volledige headers/descriptors/payloads, toegangsgrenzen met
+onbeschikbare guard pages, canaries en naburige berichten, plus alle1024
+snapshotberichten met behouden lease. Vijf afzonderlijke compilatienegatieven
+weigeren Message-/Cap-groei, NonZero-velden en een coercerende wrapper; een
+ongewijzigde schemacontrole compileert. Canarytests controleren hun eigen
+uitlijningsvoorwaarde vóór ieder mogelijk ongeldig castgebruik.
+
+De eigen scalar native-ipc-wait-releasebuild en ELF-inspectie slagen; geen VM
+is voor deze kandidaat gestart. De werkelijke release-IR bevat40
+`store volatile i64 0, align 8` per bericht, zonder memcpy/memset in het normale
+wis-/releasepad. Alleen de bestaande, onbereikbare-na-panic IF0-foutformatter
+heeft een16-byte LLVM-memset. Releaseassembly heeft geen kopieer-/wishelpercall
+in het wispad, geen vectorregisters en56B stackruimte voor Drop. De lease wordt
+na de volledige lus vrijgegeven. Dit vervangt de oude344B plus48B registersave.
+
+Logs en IR/assembly: `build/snapshot-word-wipe/logs/`; gecontroleerde kernel:
+`86279bc94f08d5898a1b8db887df3b277d85e937c3385b85b22a24b31343a283`.
+De onafhankelijke code-/IR-review en de uiteindelijke geïntegreerde native
+venstertest bepalen acceptatie. Compilatie en minder instructies bewijzen geen
+werkelijke latencywinst; er worden geen U01/U02-punten toegekend.
+
+De onafhankelijke laatste review las de daadwerkelijke IR en releaseassembly
+en vond na aanscherping van by-value typechecks en de testuitlijning geen
+resterende blocker binnen deze diff. Definitieve bron-v3:
+`622d1f5a0e329c701656eb8b478d98e79fd2804bae6993c1ec21780b32f86818`.
+Helper-SHA256:
+`4202f5644d61fa9118cd924e96b301986a54ff68f69a46583a3ef12120d39987`;
+M4-SHA256:
+`8680502f9deae2f71a4c363ff7f4eed3f87f324ed2b1941c231e6e7a34b8b183`.
+Het opnieuw brongebonden buildmanifest verwijst naar exact dezelfde kernelbytes
+als de geïnspecteerde IR/assembly. Geen kandidaat-VM of latencyclaim.

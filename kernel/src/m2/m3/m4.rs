@@ -15,6 +15,8 @@ use capability_core::{
 ))]
 use capability_core::{Cap, ALL_RIGHTS};
 use kernel_core::user::{CopyPlan, PageAccess};
+#[path = "snapshot_wipe.rs"]
+mod snapshot_wipe;
 #[cfg(all(
     not(feature = "milestone-m5"),
     not(feature = "native-qsim-job"),
@@ -163,13 +165,7 @@ impl Drop for AuthorityObservation {
     fn drop(&mut self) {
         require_snapshot_if0();
         for message in self.snapshot.messages_mut() {
-            // SAFETY: Exclusive leased snapshot storage; Message is initialized
-            // and Copy. A valid typed empty value replaces every header field,
-            // descriptor and payload byte, without inspecting struct padding,
-            // with an observable volatile store before the lock can release.
-            unsafe {
-                ptr::write_volatile(message, Message::new());
-            }
+            snapshot_wipe::wipe_message(message);
         }
     }
 }
