@@ -25,12 +25,15 @@ N01 normal/client-exit slagen opnieuw (8,500/7,818 s). De begrensde woordkopie/
 vergelijkroutine slaagt voor vijf guardpageproeven; runner acht hostnegatieven
 en root-fmt zijn groen. Zie `verification/mature-session-20261102/word-integration-checkpoint.json`.
 
-Volledige QMP-venstergate loopt in
+De QMP-venstergate is bewust gestopt na de volledige dirty-fase in
 `build/window-final/run/window-c3209b41e4024e9ba57b62ad2b80ba6a`, log
-`/tmp/window-word-native.log`; root execsession 3941. Eerste beide appframes:
+`/tmp/window-word-native.log`; geen QEMU meer actief. Eerste beide appframes:
 312,24 s; exact initieelbeeld na cursorparkeren: 322,90 s. Dit is duidelijk traag
 onder TCG; geen latentiewinst of U02-acceptatie. Geen sourcewijzigingen tijdens
-de brongebonden run. Performanceagent onderzoekt de snapshotkosten alleenlezend.
+de brongebonden run. De volledige editor (580,81 s) en alle veertien drafttekens
+(878,78 s) klopten exact; daarna is alleen de eigen VM gestopt om de aantoonbare
+wiskosten te repareren. Origineel resultaat blijft false; stopreden apart bewaard.
+De directe woordwipe is onafhankelijk gereviewd en wordt nu geïntegreerd.
 Bij falen bewijs behouden, concrete fout repareren en opnieuw bronvast testen.
 
 Windows-kandidaat:
@@ -40,8 +43,8 @@ Acht ELF's/fontlicenties/firmware/ZIP-payloads en synthetische Linux-PS7-CheckOn
 slagen; geen echte Windowsruntime uitgevoerd. Eerdere pakketten behouden.
 De oude helper blijft bytegelijk aan lokaal zesmaal geteste fc506... .
 
-Eerstvolgend: volledige native gate afronden; eventuele aantoonbare vertraging
-veilig repareren. U01 alleen +4 bij complete herstel/pixel/save/disk/cleanup-pass.
+Eerstvolgend: directe Message-wipe en twee concrete CI-fixture/fmtfixes integreren,
+dan nieuwe bronfreeze en volledige native gate opnieuw uitvoeren. U01 alleen +4 bij complete herstel/pixel/save/disk/cleanup-pass.
 Daarna definitieve bundel/hashoverdracht, score, bewijs en PR actualiseren.
 De andere integrator behoudt merge-eigenaarschap. Geen fysieke schijven,
 netwerkpassthrough of hostinstellingen wijzigen.
