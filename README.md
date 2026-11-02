@@ -31,11 +31,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **34** |
 
-**Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`ed63ed25`](https://github.com/simonvanieperen/nieuw-os/commit/ed63ed2597460a0265ee094ebea366cda9ef2a7d) ·
-**Ontwikkelbranch:** `claude/integration-2-20261030`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Afhandeling van alle open pull requests en issues: integratie 1 (#96) en integratie 2 (#113).
-De productscore blijft 34/100. #96 is gesquash-merged na 30 groene checks, inclusief de native NAS normal/cold-gate. #113 neemt de resterende component-delta's op: Materiaal-semantiek en SR05–SR08-regressies, primary hover, app-source-snapshotkern en -contracten, DHCP-retries met expliciete entropiepoort, en documentatie- en bewijsbestanden. Alle opgenomen PR's zijn per commit na hun vastgelegde bron gecontroleerd. Reviewfixes: een net-stack-discardroute voor een ingehouden TX-frame met regressietest, en de Materiaal-chaintest volgt het nieuwe semantische buffercontract. Lokaal zijn host-tests, Clippy en fmt groen; de freestanding-build van app-package-core is lokaal niet uitgevoerd. Dit is host- en componentbewijs, geen native-, FR-, fysieke of menselijke acceptatie; vaste criteria en gewichten zijn ongewijzigd. Open: #109, #110 en de productmilestones #39–#43.
+**Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
+**Bron:** [`e08fb0e4`](https://github.com/simonvanieperen/nieuw-os/commit/e08fb0e48c1bb0781e98357f588c2f73b6ae8500) ·
+**Ontwikkelbranch:** `simonvanieperen-studious-waddle`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Open issues beoordelen en integratiekandidaat #120 voor #109/#110 controleren.
+34/100 blijft 34/100; geen nieuw rubriccriterium is geaccepteerd. #109 en #110 zijn opgenomen in integratie-PR #120 (head 562be4d), die na read-only review zonder concrete blocker gereed voor review is gemaakt; de exacte-head CI-controles lopen nog, dus beide issues zijn nog niet als opgelost te melden. PR #120 omvat ook de expliciete reviewcorrectie dat de testadapter geen geauthenticeerde clientcontext modelleert. #39–#43 blijven open: N01 en U01 hebben nog geen volledige native acceptatie, B03 vereist een nog niet geautoriseerde productie-sleutelceremonie, H02 vereist fysieke hardwareacceptatie en de route naar 50/100 is niet bereikt. Geen punten op basis van plannen, hostbewijs of deelproeven.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

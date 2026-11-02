@@ -1,48 +1,40 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR- en issueafhandeling na integratie 1 en 2 — 30 oktober 2026
+## NEXT AGENT HANDOFF — open issues en integratie-PR 120 — 2 november 2026
 
-**Mandaat:** Simon heeft de Claude Code-sessie in de desktopapp op 30 oktober
-(~21:10 CET) aangewezen als enige operationele integrator voor alle open PR's
-en issues, inclusief mergen en sluiten. Merges naar main lopen via die
-integrator; tussentijdse losse merges (#71 en #74 door Simon zelf) dwingen een
-nieuwe up-to-date-CI-run. Vastgelegd in [WORK-QUEUE.md](WORK-QUEUE.md).
+**Bron:** branch `simonvanieperen-studious-waddle`, HEAD
+`e08fb0e48c1bb0781e98357f588c2f73b6ae8500`; schone werkboom vóór deze
+statusupdate. De vaste rubric blijft **34/100 → 34/100**.
 
-**Broncommits:** #96 (integratie 1) gesquash-merged als `c0b7147`.
-Integratie 2 (#113) heeft implementatiebron `ed63ed259746`. De bronnen en
-oplossingen staan in [pr-integration-20261030.json](verification/pr-integration-20261030.json)
-en [pr-integration-2-20261030.json](verification/pr-integration-2-20261030.json).
+**#109 en #110:** hun code is opgenomen in PR #120
+(`562be4d13b9d039d7e8fece2f0fc26e767dccb15`), die de exacte PR-heads #115 en
+#119 als ancestors bevat. Review van de volledige integratiekandidaat vond
+geen concrete blocker; testuitvoering van die reviewagent was nul. PR #120 is
+op 2 november gereed voor review gemaakt; exacte-head CI en CodeRabbit liepen
+bij dit checkpoint nog. De twee issues zijn dus **niet gesloten of als
+opgelost gemeld**. Merge alleen na groene vereiste checks en afhandeling van
+concrete reviewpunten. #109 blijft host-/targetcontractbewijs, geen native
+persistente adapter. #110 blijft uitsluitend native acceptatieharnasbewijs.
 
-**Afgehandeld:**
-- #68, #72–#81, #83, #86, #88, #89, #92, #94 en #97–#107 zijn als overgenomen
-  gesloten. Per PR is gecontroleerd dat elke commit na de vastgelegde bron,
-  exclusief main, aantoonbaar in main zit.
-- #111 is gesloten. Het was een parallelle, oudere subset van #96 en #113; het
-  bewijs en archief ervan zijn behouden. #112 is gesloten als automatisch
-  duplicaat van #113.
-- Reviewfixes in #96:
-  - net-stack heeft een expliciete discard-route voor een nooit aangeboden,
-    ingehouden TX-frame, met regressie (rood en daarna groen);
-  - het dependencyregister is aangevuld;
-  - in het werkregister zijn de spaties hersteld.
-- Integratiefix in #113: de Materiaal-chaintest volgt het nieuwe
-  semantische buffercontract. Dat was de oorzaak van de rode CI op #107.
+**Nog open:** #39 N01 mist de volledige native netwerk-/negatievenmatrix;
+#40 U01 mist volledige geïsoleerde sessie-/compositorherstelacceptatie; #41
+B03 mist productie-sleutelrotatie/-ankers en vraagt een afzonderlijke
+ondertekenopdracht; #42 H02 vereist USB/HID/hotplug plus fysieke hardwaretests;
+#43 is de uitvoeringsroute naar 50/100 en is niet bereikt. Geen hiervan mag
+worden gesloten met plannen, hosttests, componentproeven of AI-review.
 
-**Open punten:**
-- #109: app-management-reader naar `artifact-store-core`.
-- #110: exacte boot-1 NAS-replay native activeren. De replay-gastcode uit #93
-  is bewust niet actief, omdat de native normal/cold-gate anders vast faalt.
-- #39–#43: productmilestones; hun criteria zijn niet aangetoond.
+**Eerstvolgend:** controleer de actuele head en
+`gh pr checks 120 --repo simonvanieperen/nieuw-os`; los concrete reviewpunten
+op, merge alleen met passende groene gates en herbevestig daarna de exacte
+main-commit. Sluit onderliggende PR's/issues pas nadat inhoudsbehoud is
+geverifieerd. Werk vervolgens score en checkpoint opnieuw bij.
 
-**Bewijs en score:** 34/100 → 34/100. Er zijn geen nieuwe native-, FR-,
-fysieke of menselijke acceptaties. Hosttests, freestanding-builds en AI-review
-zijn geen productpunten. Niet lokaal uitgevoerd: de freestanding-build van
-`app-package-core` (lokale rustc gaf SIGILL); CI is de gate.
+## Vorige handoff — integraties 1 en 2 — 30 oktober 2026
 
-**Eerstvolgend commando:** `gh pr list --state open`. Beoordeel nieuwe PR's
-tegen main met `docs/verification/pr-integration-2-20261030.json` als
-bronbasis. Een volgende integratie start bij #109 of #110, of bij een
-DEV1-herproef op vastgelegde bron en slot.
+Integratie 1 (#96) is gesquash-merged als `c0b7147`; integratie 2 (#113) heeft
+implementatiebron `ed63ed259746`. De bron- en reviewarchieven staan in
+[pr-integration-20261030.json](verification/pr-integration-20261030.json) en
+[pr-integration-2-20261030.json](verification/pr-integration-2-20261030.json).
 
 ## Vorige handoff — centrale documentatie en bronbehoud (#96) — 30 oktober 2026
 
