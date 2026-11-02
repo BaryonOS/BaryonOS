@@ -2,12 +2,12 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-10-31",
-    "source_commit": "67bd84ec5f816c40f88d750fee83451e4a301067",
+    "date": "2026-11-02",
+    "source_commit": "7d43acb6abc2bea4f637301f66700f375e890c7b",
     "branch": "ccr-4bb5b18c-t9u3cv",
-    "task": "Integratie 3: open PR's na #113 (#115–#119) afhandelen; #114 aangehouden",
+    "task": "Integratie 3: open PR's na #113 (#115–#119), reviewvervolgpunten en reviewthreads #120; #114 aangehouden",
     "previous_score": 34,
-    "summary": "De productscore blijft 34/100. Integratie 3 neemt #118 (herstel post-merge review #113), #115 (app-management-leeszijde via artifact-store-core, sluit #109), #116 (B02: echte objectvergelijking in de admin-ingresscontrole), #119 (exacte boot-1 NAS-tokenreplay native, sluit #110) en #117 (SUR1 sparse frames) op, met reviewfixes en sterkere tests. Lokaal zijn host-tests, Clippy en fmt groen; native in QEMU 8.2 slagen NAS normal/cold, FR-I01 en de Materiaal-probe met #117 (frame na typen 9 in plaats van 1619 tegels), terwijl main die probe hier niet haalt. Dat is host-, component- en lokaal native deelbewijs, één run per bron, geen CI-gate voor de probe en geen FR-, fysieke of menselijke acceptatie; vaste criteria en gewichten zijn ongewijzigd. #114 (ADR-058) wacht op bevestiging door Simon."
+    "summary": "De productscore blijft 34/100. Integratie 3 neemt #115–#119 op, plus drie reviewvervolgpunten: de manifestcontrole dekt de volledige app-handletabel (native, met negatieve proef), de NAS-lekcontrole draait op ruwe bytes vóór archivering en faalt dicht bij een misvormde capture (native normaal/koud groen), en een handmatige CI-meetjob voor de Materiaal-probe. Na het herstel van GitHub Actions waren alle 28 checks op 562be4d groen; de nieuwe head wordt opnieuw getest. De Materiaal-probe faalde lokaal één keer op de gastwatchdog bij gelijke tegeltellingen, dus de timingmarge is onvoldoende en het besluit ligt bij Simon. Dit is host-, component-, CI- en lokaal native deelbewijs, geen FR-, fysieke of menselijke acceptatie; criteria en gewichten zijn ongewijzigd."
   },
   "tracks": [
     {

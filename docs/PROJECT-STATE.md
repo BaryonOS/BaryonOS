@@ -1,6 +1,6 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — integratie 3 (open PR's na #113) — 31 oktober 2026
+## NEXT AGENT HANDOFF — integratie 3 (open PR's na #113) — 31 oktober–2 november 2026
 
 **Mandaat:** Simon vroeg op 31 oktober in een Claude Code-cloudsessie om
 verder te gaan waar de vorige sessies stopten. Deze sessie zette daarom het
@@ -40,31 +40,41 @@ CodeRabbit-threads, waarvan 5 major (secure-attention-oppervlak,
 sleutelovergang bij gebruikerswissel, te ruime app-claim, reproduceerbare
 prestatie-acceptatie, positieve hersteltest). Wacht op Simons bevestiging.
 
-**Open vervolgpunten:**
-- #116: de manifestcontrole dekt alleen de zes bekende app-handles. Voeg
-  een `available_slots`-telling toe (patroon `random_fixture.rs`); daarna
-  is nieuw native bewijs nodig.
-- #119: de lekcontrole in `tools/test_nas.py` zoekt alleen het volledige
-  80-bytepaar en schrijft `serial.txt` vóór de controle.
-- `native-foundation` faalde op #117 in de RANDOM-rawgate (raw 35 na
-  `SYSTEM:MANIFEST:PASS`); die image bevat geen #117-code. Als dit opnieuw
-  optreedt, onderzoek dan of het flaky is.
-- De native Materiaal-probe draait in geen enkele CI-workflow.
+**Vervolgpunten uit de reviews, opgenomen in #120 (2 november):**
+- #116: `APP_HANDLE_COUNT` dekt nu de volledige app-handletabel op het
+  manifestmoment. Native groen op alle profielen met dit manifest; een
+  zevende app-handle faalt aantoonbaar, op de oude basis niet.
+- #119: de lekcontrole draait op de ruwe QEMU-bytes vóórdat er iets wordt
+  weggeschreven: elk 16-bytevenster per token, ruw en als hex. Een misvormde
+  capture wordt in zijn geheel doorzocht; bij een lek komen er alleen
+  placeholders. Lost ook de Codex-P1 en de CodeRabbit-securitybevinding op
+  #120 op. Native: normaal en koud `passed=True raw=33`.
+- `.github/workflows/materiaal-probe.yml`: voorlopig alleen
+  `workflow_dispatch`. Een tweede lokale run met de CI-commandoreeks liep na
+  208 s vast op de gastwatchdog (~200 s), met dezelfde tegeltellingen als de
+  geslaagde run. **Open besluit voor Simon:** de watchdog en de 240 s-grens
+  van de probe verruimen, of eerst meten op GitHub-runners.
+
+**Open:**
 - #39–#43: productmilestones; hun criteria zijn niet aangetoond.
+- Kernelbuilds in een geneste worktree onder de checkout zijn kapot (twee
+  `.cargo/config.toml` samengevoegd). Gebruik voor native werk een worktree
+  buiten de checkout.
 
 **Score:** 34/100 → 34/100. Geen criterium is volledig geaccepteerd:
 host-, component- en lokaal native deelbewijs vervangen geen FR-gate,
 honderd koude starts, fysieke of menselijke acceptatie.
 
-**Blocker (31 oktober, 14:22 UTC):** GitHub Actions start op #120 geen enkele
-workflow. Push en pull_request eindigen allebei in `startup_failure` onder een
-placeholder `BuildFailed`, met 0 jobs. Er zijn geen workflowwijzigingen
-t.o.v. main. De laatste normale runs waren op 30 oktober rond 21:30 UTC. De
-oorzaak ligt waarschijnlijk op account- of repo-niveau (Actions-tegoed of
--limiet, of een gewijzigde instelling); dit is niet geverifieerd. Simon moet
-dit in de GitHub-instellingen controleren.
+**CI:** de blocker van 31 oktober (Actions `startup_failure`) is opgelost.
+Na `ready_for_review` op 2 november, 19:35 UTC, waren alle 28 checks op
+`562be4d` groen. Daaronder `native-foundation`, die op #117 eerder rood was.
+`storage-resilience` en `volume-acceptance` starten niet op
+`ready_for_review`; die zijn via `workflow_dispatch` gestart. De push met de
+vervolgpunten start alles opnieuw op de nieuwe head.
 
-**Eerstvolgend:** controleer de CI van de integratie-PR (#120). Bij groen:
+**Eerstvolgend:** controleer de CI van #120 op de nieuwe head. Mergen
+gebeurt alleen na een expliciet akkoord van Simon in de sessie. Bij groen en
+na akkoord:
 squash-merge, de vijf component-PR's sluiten als overgenomen, en #109 en
 #110 sluiten. Daarna #114 na Simons antwoord.
 
