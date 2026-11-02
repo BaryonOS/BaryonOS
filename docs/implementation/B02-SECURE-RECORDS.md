@@ -296,7 +296,9 @@ externe geheim de lineage; zie ADR-051.
   `Engine::available_slots(app)` precies `MAX_SLOTS` − 1 (gereserveerd
   nulslot) − 6 is, zodat een zevende handle (bijvoorbeeld naar het
   admin-ingress) het manifest laat falen. Dit geldt op het manifestmoment, in
-  ieder profiel dat `system::manifest` uitvoert; latere overdracht via IPC is
+  ieder profiel dat het manifest uit `kernel/src/m2/m3/system.rs` uitvoert;
+  de NAS-profielen laden `system` uit `m3/nas.rs` en hebben deze controle
+  niet. Latere overdracht via IPC is
   uitgesloten doordat geen admin-handle `TRANSFER` draagt (codelezing, geen
   aparte native proef).
 - Normale run: app genereert sleutel 0, verzegelt/ontzegelt, voert de tien

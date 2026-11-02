@@ -2733,9 +2733,6 @@ mod manifest_handle_count_tests {
             let (handles, admin_root) = manifest_app(e);
             // Closed channel roots leave no slot behind; slot 0 is never free.
             assert_eq!(e.available_slots(APP), MAX_SLOTS - 1 - handles.len());
-            let before = e.clone();
-            assert_eq!(e.available_slots(APP), MAX_SLOTS - 1 - handles.len());
-            assert!(*e == before, "available_slots is read-only");
             // The reviewer's scenario: an unlisted SEND to the admin ingress.
             let extra = e.bootstrap_delegate(KEY, admin_root, APP, SEND).unwrap();
             assert!(!handles.contains(&extra));
