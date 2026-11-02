@@ -87,7 +87,22 @@
     "log": "/tmp/nieuw-os-pr127-integrated-ui.log",
     "log_sha256": "2f1ccd5bf9d03ebf284a87399acf1a6795c3bbbf8a5b2607d46eb11bcbb0ea1f"
   },
-  "ci_wiring": "Existing Rust1.91.1 net-broker-quality workflow now also tests/lints/formats and builds network-service. Inherited PR126 native workflow executes full Material/calculator host suites.",
+  "ci_wiring": "Existing Rust1.91.1 net-broker-quality workflow now also tests/lints/formats and builds network-service. A dependent clean native-network-service job runs the existing bounded normal/client-exit QEMU runners on fresh own-kernel images and archives source-bound raw peer/serial/reports. Pinned kernel1.90/service1.91.1, explicit pc-q35-8.2/OVMF, localhost synthetic peer only, no TAP/Internet/real disk. This new gate is pending, not historical N01 acceptance. Inherited PR126 native workflow executes full Material/calculator host suites.",
+  "native_ci_preparation_validation": {
+    "base": "c6ce3906f395f9babad9444efea6cde64bc2a0c4",
+    "commands": [
+      "cargo test --offline --locked --manifest-path services/network-service/protocol/Cargo.toml --target-dir target/pr127-review-combined",
+      "cargo test --offline --locked --manifest-path sdk/net-client/Cargo.toml --target-dir target/pr127-review-combined",
+      "python3 -B -m unittest discover -s tools -p test_network_service_peer.py",
+      "python3 -c 'import yaml; from pathlib import Path; data=yaml.safe_load(Path(\".github/workflows/net-broker-quality.yml\").read_text()); assert data[\"jobs\"][\"native-network-service\"][\"needs\"]==\"net-broker-quality\"; print(\"workflow YAML parsed\")'"
+    ],
+    "all_exit_code": 0,
+    "additional_rust_tests": [4, 6],
+    "additional_python_tests": 11,
+    "log": "/tmp/nieuw-os-pr127-n01-host.log",
+    "log_sha256": "11b7dc7363f8b0a65df92c3454d31ab1d210f92be486d9f133f5ef6c15f9cdb4",
+    "boundary": "YAML parsing and host tests do not establish native CI success. No runtime source input changed by this workflow-only followup."
+  },
   "parent_native_evidence_not_this_source": {
     "pr126_ci_run": 41530207152,
     "artifact": 13182057101,

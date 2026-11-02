@@ -36,6 +36,9 @@ shims. Dit bewijst NIET de nieuwe PR127-bron.
 **Open:** verse gecombineerde CI/review en volledige native-/herstel-/
 pixel-/klembord-/schijfgates. PR126 heeft een nieuwe TCP-Closed-review
 die juist in deze kandidaat is hersteld: dus niet los ongefixte PR126 mergen.
+De netwerk-CI herhaalt nu ook de bestaande normal/client-exit-QEMU-gates
+op schone eigen-kernelimages: na TCP-productiewijzigingen is ouder N01-bewijs
+alleen onvoldoende. Deze nieuwe job is nog niet als geslaagd aangemerkt.
 Pas na main-inhoudsbehoud ingehaalde bron-PRs sluiten. #109/#110 zijn al
 aantoonbaar via #125/main opgelost; #39-#43 blijven inhoudelijk open.
 Branchscore **41 → 41**, main **34 → 34**; nul nieuwe punten.

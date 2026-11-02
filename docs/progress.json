@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "798706c2a53d0062ce0474e5f84f294b2c37b825",
+    "source_commit": "c6ce3906f395f9babad9444efea6cde64bc2a0c4",
     "branch": "codex/native-workspace-v2-20261102",
     "task": "Alle zeven PR127-reviewpunten en volledige PR126/main-inhoud combineren",
     "previous_score": 41,

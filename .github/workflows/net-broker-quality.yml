@@ -40,3 +40,77 @@ jobs:
           cargo +1.91.1 build --locked --manifest-path services/network-service/Cargo.toml --release --target x86_64-unknown-none
       - name: No generated source changes
         run: git diff --exit-code
+
+  native-network-service:
+    needs: net-broker-quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/n01-ci-native
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/n01-ci-host
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned kernel and service compilers
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal
+          rustup toolchain install 1.91.1 --profile minimal
+          rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+          rustup target add --toolchain 1.91.1 x86_64-unknown-none
+      - name: Disposable QEMU and explicit firmware
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+          test -f "$OS_OVMF_CODE"
+          test -f "$OS_OVMF_VARS"
+      - name: Fetch locked inputs before offline native builders
+        run: |
+          cargo +1.90.0 fetch --locked
+          for manifest in \
+            sdk/Cargo.toml \
+            sdk/examples/system/Cargo.toml \
+            sdk/examples/keyring/Cargo.toml \
+            sdk/examples/volume-docs/Cargo.toml \
+            services/network-service/protocol/Cargo.toml \
+            sdk/net-client/Cargo.toml
+          do
+            cargo +1.90.0 fetch --locked --manifest-path "$manifest"
+          done
+          cargo +1.91.1 fetch --locked --manifest-path sdk/examples/network-service/Cargo.toml
+      - name: Wire protocol, client and controlled peer counterexamples
+        run: |
+          cargo +1.90.0 test --offline --locked --manifest-path services/network-service/protocol/Cargo.toml
+          cargo +1.90.0 test --offline --locked --manifest-path sdk/net-client/Cargo.toml
+          python3 -B -m unittest discover -s tools -p test_network_service_peer.py
+      - name: Actual packets and independent client lifetimes
+        env:
+          CARGO_NET_OFFLINE: 'true'
+        run: |
+          NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/n01-ci-normal" \
+            python3 -B -u tools/run_network_service.py --case normal
+          NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/n01-ci-client-exit" \
+            python3 -B -u tools/run_network_service.py --case client-exit
+      - name: Preserve tracked source integrity
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain)"
+      - name: Preserve source-bound reports and actual peer transcripts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: native-network-service-evidence
+          path: |
+            build/n01-ci-*/manifest.json
+            build/n01-ci-*/network-service-*-report.json
+            build/n01-ci-*/logs/
+            build/n01-ci-*/run/network-service-*/result.json
+            build/n01-ci-*/run/network-service-*/serial.txt
+            build/n01-ci-*/run/network-service-*/stderr.txt
+            build/n01-ci-*/run/network-service-*/network-peer.json
+          if-no-files-found: error
+          retention-days: 14
