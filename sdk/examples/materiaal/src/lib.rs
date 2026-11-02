@@ -377,7 +377,12 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             {
                 chunk.copy_from_slice(&p.to_le_bytes());
             }
-            let hash = digest(&bytes[..rectangle.bytes()]);
+            // The digest is only read or stored through the damage cache.
+            let hash = if self.damage.is_some() {
+                digest(&bytes[..rectangle.bytes()])
+            } else {
+                0
+            };
             let unchanged = self.damage_valid
                 && self.next_tile != last
                 && self

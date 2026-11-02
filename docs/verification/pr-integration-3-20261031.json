@@ -157,5 +157,173 @@
     "before": 34,
     "after": 34,
     "rubric_changed": false
-  }
+  },
+  "commands": {
+    "note": "Exact commands as run by the integrator; CARGO_TARGET_DIR pointed to a private scratch directory; logs were kept in the session scratchpad (not in Git). Native runs used the environment line below, from a checkout or worktree OUTSIDE nested .claude/worktrees (nested worktrees merge two .cargo/config.toml files and break the kernel link).",
+    "native_env": "export OS_OVMF_CODE=/usr/share/OVMF/OVMF_CODE_4M.fd OS_OVMF_VARS=/usr/share/OVMF/OVMF_VARS_4M.fd NOS_QEMU_MACHINE=pc-q35-8.2 NOS_BUILD_DIR=$PWD/build/<n> NOS_TARGET_DIR=$PWD/target/<n>",
+    "host": [
+      {
+        "cmd": "cargo +1.90.0 test --locked --manifest-path sdk/app-management/Cargo.toml",
+        "exit": 0
+      },
+      {
+        "cmd": "cargo +1.90.0 clippy --locked --manifest-path sdk/app-management/Cargo.toml --all-targets -- -D warnings",
+        "exit": 0
+      },
+      {
+        "cmd": "cargo +1.90.0 fmt --manifest-path sdk/app-management/Cargo.toml --all -- --check",
+        "exit": 0
+      },
+      {
+        "cmd": "cargo +1.90.0 test --locked --manifest-path ui/native/Cargo.toml",
+        "exit": 0
+      },
+      {
+        "cmd": "cargo +1.90.0 clippy --locked --manifest-path ui/native/Cargo.toml --all-targets -- -D warnings",
+        "exit": 0
+      },
+      {
+        "cmd": "cargo +1.90.0 fmt --manifest-path ui/native/Cargo.toml -- --check",
+        "exit": 0
+      },
+      {
+        "cmd": "cargo +1.90.0 test --locked --manifest-path sdk/examples/materiaal/Cargo.toml",
+        "exit": 0
+      },
+      {
+        "cmd": "cargo +1.90.0 clippy --locked --manifest-path sdk/examples/materiaal/Cargo.toml --all-targets -- -D warnings",
+        "exit": 0
+      },
+      {
+        "cmd": "cargo +1.90.0 test --locked --manifest-path ui/surface-protocol/Cargo.toml",
+        "exit": 0
+      },
+      {
+        "cmd": "cargo +1.91.1 test --locked --manifest-path services/net-config/Cargo.toml",
+        "exit": 0
+      },
+      {
+        "cmd": "cargo +1.91.1 clippy --locked --manifest-path services/net-config/Cargo.toml --all-targets -- -D warnings",
+        "exit": 0
+      },
+      {
+        "cmd": "cargo +1.90.0 fmt --all -- --check",
+        "exit": 0
+      },
+      {
+        "cmd": "cargo +1.90.0 test --locked -p capability-core -p keyring-core",
+        "exit": 0
+      },
+      {
+        "cmd": "cargo +1.90.0 clippy --locked -p capability-core -p keyring-core --all-targets -- -D warnings",
+        "exit": 0
+      },
+      {
+        "cmd": "cargo +1.90.0 test --locked --manifest-path services/nas/native-probe/Cargo.toml",
+        "exit": 0
+      },
+      {
+        "cmd": "python3 -B -m unittest discover -s tests -p 'test_nas_*.py'",
+        "exit": 0,
+        "tests_after_followups": 37
+      },
+      {
+        "cmd": "python3 -B -m unittest discover -s services/nas/native-probe/tests -p 'test_*.py'",
+        "exit": 0,
+        "tests": 17
+      },
+      {
+        "cmd": "python3 -B -m unittest discover -s tests -p 'test_system_*.py'",
+        "exit": 0,
+        "tests": 46
+      },
+      {
+        "cmd": "python3 -B -m unittest tools.tests.test_materiaal_probe",
+        "exit": 0,
+        "tests": 23
+      },
+      {
+        "cmd": "RUSTFLAGS='-C no-redzone=yes -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2' cargo +1.90.0 build --locked --release --manifest-path sdk/examples/materiaal/Cargo.toml --features native --bin materiaal-app --target x86_64-unknown-none",
+        "exit": 0
+      },
+      {
+        "cmd": "actionlint .github/workflows/materiaal-probe.yml (v1.7.7)",
+        "exit": 0
+      }
+    ],
+    "native": [
+      {
+        "cmd": "python3 -B -u tools/test_nas.py",
+        "exit": 0,
+        "source": "integration head before follow-ups and again on int3-followups (a9a80ee)",
+        "result": "normal and cold passed=True raw=33"
+      },
+      {
+        "cmd": "python3 -B -u tools/test_system.py",
+        "exit": 0,
+        "source": "integration head and int3-followups (383e635 tree)",
+        "result": "FR-I01 normal and recover passed=True raw=33"
+      },
+      {
+        "cmd": "python3 -B -u tools/build.py --kernel-feature native-system-random && python3 -B -u tools/run_random.py --case raw",
+        "exit": 0,
+        "source": "int3-followups",
+        "result": "passed=True gate=True"
+      },
+      {
+        "cmd": "python3 -B -u tools/build.py --kernel-feature native-system-materiaal-probe && python3 -B -u tools/run_materiaal_probe.py --build-dir \"$NOS_BUILD_DIR\" --machine pc-q35-8.2 --vga-rom /usr/share/seabios/vgabios-stdvga.bin --vga-rom-sha256 4eecd8e7... --timeout 240",
+        "exit": "0 (#117 head) / 1 (main e08fb0e)",
+        "result": "see docs/verification/sparse-frames-117/"
+      },
+      {
+        "cmd": "CI sequence of .github/workflows/materiaal-probe.yml (run_materiaal_probe.py --case normal --qmp-transport pipe, no ROM pin)",
+        "exit": 1,
+        "source": "int3-followups, new container",
+        "result": "guest watchdog after 208 s in phase 5 of 6; workflow kept on workflow_dispatch"
+      }
+    ]
+  },
+  "ci": {
+    "head": "562be4d13b9d039d7e8fece2f0fc26e767dccb15",
+    "date": "2026-11-02",
+    "result": "28/28 check runs success after Actions recovered (ready_for_review at 19:35 UTC), including native-foundation, native-system, nas-native-normal-cold, b03, k05, k07, b01, native-display-input, native-rtc and component quality. storage-resilience (s08) and volume-acceptance (m6e) do not trigger on ready_for_review; started via workflow_dispatch on the branch.",
+    "earlier": "31 October: all runs startup_failure (placeholder BuildFailed, 0 jobs)"
+  },
+  "followups": [
+    {
+      "key": "116",
+      "branch": "int3-fu-116",
+      "commits": [
+        "7358c4c6cb",
+        "383e635"
+      ],
+      "change": "APP_HANDLE_COUNT: manifest checks the full app handle table (available_slots == MAX_SLOTS - 1 - 6) at manifest time; NAS profiles excluded (own system module)",
+      "reviews": "2x AI MERGE",
+      "native": "all system.rs manifest profiles green in a clone outside the checkout; negative: a 7th app handle fails with SYSTEM:FAIL:APP_HANDLE_COUNT; base 562be4d with the same mutant passes (gap confirmed)"
+    },
+    {
+      "key": "119",
+      "branch": "int3-fu-119",
+      "commits": [
+        "bdcf461",
+        "cb682bd",
+        "a9a80ee"
+      ],
+      "change": "leak check on raw QEMU bytes before anything is written; every 16-byte window of each token, raw and hex; misframed capture searched whole; redacted placeholders on leak",
+      "reviews": "2x AI FIX (native run missing due to nested worktree; misframed capture fail-open; missing test) -> fixed in a9a80ee",
+      "native": "normal and cold passed=True raw=33, no redaction on clean run"
+    },
+    {
+      "key": "probe-ci",
+      "branch": "int3-fu-probe-ci",
+      "commits": [
+        "c5a3ad9",
+        "1dedb1f"
+      ],
+      "change": ".github/workflows/materiaal-probe.yml, workflow_dispatch only for now; CPU log and diagnostics summary",
+      "reviews": "1x MERGE, 1x FIX (wrong binding deadline) -> fixed",
+      "native": "CI command sequence locally: guest watchdog after 208 s (phase 5/6); see sparse-frames-117 README"
+    }
+  ],
+  "review_threads_pr120": "Codex P1 and CodeRabbit security finding (token bytes reaching serial.txt) are fixed by the 119 follow-up; CodeRabbit README/JSON/doc findings and the digest nit are addressed in the same push."
 }

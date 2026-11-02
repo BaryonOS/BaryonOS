@@ -21,9 +21,11 @@ python3 -B -u tools/test_nas.py
 De extra foutreply bij NAS en gast in de koude run is de `COMMIT` met de
 exacte oude sessie en upload, die `Stale` geeft; `READ` met de oude sessie
 geeft eveneens `Stale`. De koude run deed 0 writes en 0 flushes. De private
-handoffmap (`/tmp/nos-nas-replay-*`) is na de gate verwijderd. Deze map bevat
-geen tokenbytes: alleen de SHA-256 van het paar, de commando's met het
-private pad, de COM1-serial en de rapporten; `SHA256SUMS` bindt de bestanden.
+handoffmap (`/tmp/nos-nas-replay-*`, 0700) bevat tijdens de gate
+`payload.bin` en `cold-input.bin` met het ruwe tokenpaar en is na de gate
+verwijderd. Déze bewijsmap bevat geen tokenbytes: alleen de SHA-256 van het
+paar, de commando's met het private pad, de COM1-serial en de rapporten;
+`SHA256SUMS` bindt de bestanden.
 
 Niet als native run uitgevoerd: koude run zonder of met afwijkende invoer
 (alleen kernelcode `REPLAY_INPUT` en runner-hosttests). Geen claim over
@@ -36,8 +38,11 @@ herberekend: PR-head `fa97c692` geeft `5263a105…`; dezelfde head met
 `services/nas/native-probe/CONTRACT.md` van main geeft exact `7255534f…`.
 Kernel-, gast- en runnercode zijn dus precies zoals getest; alleen
 CONTRACT.md is na deze run bijgewerkt. De brongebonden native proef is de
-groene CI-gate `nas-native-normal-cold` op `fa97c692` en daarna op de
-integratiehead. De run hierboven en die CI-gates gebruikten nog de eerste
+groene CI-gate `nas-native-normal-cold` op `fa97c692`, en op de
+integratiehead `562be4d` van #120 (2 november 2026, nadat Actions weer
+startte; [job 125503606480](https://github.com/simonvanieperen/nieuw-os/actions/runs/41511329639/job/125503606480)).
+De eerdere runs op #120 eindigden in `startup_failure` met 0 jobs en
+bewijzen niets. De run hierboven en die CI-gates gebruikten nog de eerste
 lekcontrole: die zocht alleen het volledige 80-bytepaar, als hex en via
 latin-1 in serialtekst die al lossy als UTF-8 was gedecodeerd, en schreef
 `serial.txt` vóór de controle. INT3-FU-119 (hieronder) vervangt die controle.

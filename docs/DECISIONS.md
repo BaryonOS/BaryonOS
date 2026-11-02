@@ -246,6 +246,10 @@ profiel geen ciphertext op schijf onder een niet-duurzaam vastgelegde
 sleutelallocatie. Die volgorde wordt door het init/app-protocol geborgd, niet
 door de volume- of Key Service: een niet-coöperatieve app kan nog steeds eerder
 committen. Afdwinging hoort bij de nog open write-ahead in de Key Service.
+Specificatie: [B02-SECURE-RECORDS.md](implementation/B02-SECURE-RECORDS.md);
+native deelbewijs (QEMU, gedefinieerde profielen, geen fysieke hardware):
+`docs/verification/full-release-b02-keystate-*` en
+[full-release-b02-review-followup](verification/full-release-b02-review-followup/).
 Bij koude herstart op de ongewijzigde read-only image herstelt init de exacte
 toestand vóór enig sleutelwerk; een verkeerd geheim, een hogere generatievloer
 en een sleutelopcode op het admin-ingress worden geweigerd en geteld.

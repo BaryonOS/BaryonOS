@@ -72,8 +72,9 @@ moment accountbreed met `startup_failure`; er is dus geen CI-run, geen
 CI-artefact en geen groene CI-gate voor deze probe.
 
 Nieuwe workflow `.github/workflows/materiaal-probe.yml`, job
-`materiaal-probe`, gemodelleerd op `native-display-input.yml`: dezelfde
-triggers (pull request en push naar `main`), `permissions: contents: read`,
+`materiaal-probe`, gemodelleerd op `native-display-input.yml`, maar
+voorlopig alleen met trigger `workflow_dispatch` (zie hieronder);
+`permissions: contents: read`,
 eigen `concurrency`-groep met `cancel-in-progress`, `ubuntu-24.04`, dezelfde
 vastgepinde action-SHA's, `timeout-minutes: 40`. Een aparte workflow in
 plaats van een tweede job in `native-display-input.yml`, zodat
