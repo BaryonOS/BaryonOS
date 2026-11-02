@@ -1,6 +1,33 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — native sessiepreview en QEMU — 2 november 2026
+## NEXT AGENT HANDOFF — conflictoplossing PR #121 — 2 november 2026
+
+**Bron:** mergecommit `8686f977a7f1fbfba1eb1214d301935c1859e8ed`, met ouders
+PR-head `0fe648b87d1f4959087d3f80a251a7d6fb64dd66` en actuele `main`
+`74a34d05ef5591b782a0da9da34e4669910d0722`. De conflictintegratie behoudt de
+native sessiepreview én de wijzigingen en bewijsbestanden van `main`. In
+`ui/native/tests/interaction.rs` staan nu zowel de PR-desktopproeven als de
+drie main-regressies voor focus en verouderde pointergebaren.
+
+**Validatie:** `cargo test --manifest-path ui/native/Cargo.toml --test interaction`
+— 34 tests geslaagd; `cargo clippy --manifest-path ui/native/Cargo.toml --test
+interaction -- -D warnings` en `rustfmt --edition 2021 --check
+ui/native/tests/interaction.rs` slagen. De PR-delta `git diff --check origin/main`
+is schoon. De full-release-, NAS-replay- en sparse-frame-`SHA256SUMS`-controles
+slagen. Een volledige diff-check waarschuwt voor CRLF-/blank-at-EOF-bytes in
+hashgebonden bewijs uit main; de bewijsbytes zijn niet aangepast.
+
+**Securityscan:** CodeQL vond geen Python-alerts maar liep vast voordat alle
+talen klaar waren. Dit is geen volledige CodeQL-scan. De app meldde vóór deze
+integratie geen vereiste checks; de nieuwe merge-head moet na publicatie opnieuw
+worden beoordeeld. De voortgang blijft **34/100**. Er is geen
+productacceptatiebesluit genomen.
+
+**Eerstvolgend:** publiceer de gevalideerde merge via `report_progress` en laat
+de app de actuele PR-head opnieuw beoordelen. Geen extra base-update of merge
+uitvoeren zonder nieuwe autorisatie.
+
+## Vorig checkpoint — native sessiepreview en QEMU — 2 november 2026
 
 **Functionele implementatie / Windows-pakket:** `344dc0afde893784503217ac676e154b13662507`,
 branch `codex/session-desktop-vm-20261102`, concept-PR #121. Bronbasis

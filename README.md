@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`cfed2db9`](https://github.com/simonvanieperen/nieuw-os/commit/cfed2db9a39396e48a7bc758eb2c533f3af3f22c) ·
+**Bron:** [`8686f977`](https://github.com/simonvanieperen/nieuw-os/commit/8686f977a7f1fbfba1eb1214d301935c1859e8ed) ·
 **Ontwikkelbranch:** `codex/session-desktop-vm-20261102`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Herkenbare native aanmeldroute, bureaublad en veilige QEMU-versnelling.
-34/100 blijft gelijk. De eigen native VM-preview heeft gebruikerskeuze, een herkenbaar wachtwoordformulier met weigering bij ontbrekende authenticatiedienst, expliciete openbare gast, bureaublad, taakbalk en lokale programmasearch naar echte Materiaal. De brongebonden achtstappen-QEMU-proef op `344dc0a` slaagt inclusief geweigerde persoonlijke testinvoer en exact alle app-pixels. Frontend-/SDK-/compositortests, lint, scalar-none-build en objectscan slagen. Begrensde compositorbatches en vier-tegel-interactie beperken scheduling/PEEK-kosten zonder nieuwe capabilities. De Windows-QMPhelper is zesmaal op de pc gevalideerd; de lokale `344dc0a`-eindmeting slaagt 6/6 met 48 exacte beelden en echte Auto/WHPX/SDL-start. Opmaakcommit `cfed2db` heeft geen semantische wijziging en ook een eigen geslaagde achtstappen-QEMU-herhaling; rootfmt/diff zijn groen. Echte profielpersistentie, auth-/sleutel-/lockgrenzen, biometrie/FIDO2 en productlatentie blijven open. FR-S01/S02/U01-U05 zijn niet volledig geaccepteerd; criteria en gewichten ongewijzigd.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Conflicten met main oplossen voor PR #121.
+34/100 blijft gelijk; geen rubriccriterium is nieuw geaccepteerd. Main `74a34d0` is inhoudsbehoudend geïntegreerd in PR #121 als mergecommit `8686f97`; beide sets UI-interactietests zijn behouden. De gerichte suite slaagt met 34 tests, Clippy en rustfmt slagen. Hashes van de overgenomen full-release-, NAS-replay- en sparse-framebewijzen zijn gecontroleerd. De volledige diff-check meldt alleen ruwe, hashgebonden logbytes uit main; de PR-delta-check is schoon. CodeQL rapporteerde nul Python-alerts maar time-outte vóór overige talen, dus geen volledige scanclaim. Productcriteria en gewichten blijven ongewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
