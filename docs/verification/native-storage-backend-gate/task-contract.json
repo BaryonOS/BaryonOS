@@ -1,0 +1,35 @@
+{
+  "task": "Native backend- en herstelbaarheidstoets Btrfs/OpenZFS",
+  "date": "2026-11-02",
+  "source_commit": "e08fb0e48c1bb0781e98357f588c2f73b6ae8500",
+  "source_repository": "C:/Users/simon/OneDrive/Documenten/GitHub/nieuw-os",
+  "review_branch": "codex/native-storage-backend-gate-20261102",
+  "scope": [
+    "Existing maintained filesystem engines operating on disposable regular-file images",
+    "Cold QEMU execution of the existing independent Nieuw OS kernel",
+    "Read-only foreign filesystem data images with before/after SHA256",
+    "Observed backend admission, data readability, corruption detection and recovery",
+    "Source-bound portability, licence and resource limitations"
+  ],
+  "non_goals": [
+    "No independent filesystem driver or new disk format",
+    "No replacement of the Nieuw OS kernel",
+    "No physical devices, raw host disks, production data or production keys",
+    "No global package installation, kernel modules or loop mounts",
+    "No claim of physical power-loss safety or product acceptance from host tests"
+  ],
+  "owners": {
+    "root": "Integration, review-source documentation and progress assessment, final gate report",
+    "project_architecture": "native/ runner, isolated build and read-only native probes",
+    "linux_filesystems": "btrfs/ extracted tools, disposable images, corruption and salvage checks",
+    "platforms": "openzfs/ extracted tools, file-vdev engine and fresh-process recovery checks"
+  },
+  "acceptance": {
+    "native_adoption": "Existing engine executes through the independent kernel and reads/verifies the known corpus; missing implementation remains NOT_ACCEPTED",
+    "host_recovery": "Fresh process recovers known durable content with independent SHA256/metadata comparison; tool exit alone is insufficient",
+    "mutation_boundary": "Foreign native images attached read-only and full-image SHA256 unchanged",
+    "evidence": "Exact argv, tool/package versions, exit codes, stdout/stderr, mutation details, source and artifact hashes",
+    "failure_reporting": "Expected negative test success is distinct from filesystem adoption; blocked or unrun cases remain explicit"
+  },
+  "runtime_exception": "OpenZFS ztest may create its standard /tmp/ztest.data.XXXXXX mkstemp and immediately unlink it; pools remain in its assigned disposable directory."
+}

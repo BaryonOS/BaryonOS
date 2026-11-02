@@ -1,0 +1,1283 @@
+[
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\task-contract.json",
+    "source_sha256": "d03c0d313f8937e21f08687dbd453eba2f1b9f9f9d4ee19575c1ff1db753cc90",
+    "archive": "task-contract.json",
+    "archive_sha256": "d03c0d313f8937e21f08687dbd453eba2f1b9f9f9d4ee19575c1ff1db753cc90",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\verification.json",
+    "source_sha256": "b46682f3393045e09028181623e978eda1791b291c18124c073fe3d29272b3cd",
+    "archive": "verification.json",
+    "archive_sha256": "b46682f3393045e09028181623e978eda1791b291c18124c073fe3d29272b3cd",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\verify_evidence.py",
+    "source_sha256": "eb25fc4690ad281809a2b391458c1868e48f3ecad2d8b7b1c7b170e386d4911f",
+    "archive": "verify_evidence.py",
+    "archive_sha256": "eb25fc4690ad281809a2b391458c1868e48f3ecad2d8b7b1c7b170e386d4911f",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\evidence.json",
+    "source_sha256": "cd7d2772bb7b4f86dc677bd74e14ce511032f876f328e5885603f416016abda9",
+    "archive": "btrfs/evidence.json",
+    "archive_sha256": "2f55f8d84c9cc10a622f6999fe5793f7056a8fc9b29bd01769c07e8ce590dcb2",
+    "reduction": "removed repeated per-file manifest fields"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\commands.json",
+    "source_sha256": "559c60eb9f24b84f1674108e2a622fe83caa23e6772ea46d88f25ea3c3fd58e2",
+    "archive": "btrfs/commands.json",
+    "archive_sha256": "559c60eb9f24b84f1674108e2a622fe83caa23e6772ea46d88f25ea3c3fd58e2",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\toolchain.json",
+    "source_sha256": "5ac5cbea8207e713652a5918945fe5a02a6736ce2d03a314a77729a44824256e",
+    "archive": "btrfs/toolchain.json",
+    "archive_sha256": "5ac5cbea8207e713652a5918945fe5a02a6736ce2d03a314a77729a44824256e",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\expected-corpus.json",
+    "source_sha256": "cb708cf895e1e6020e2768a8489c2643d951f9d04933dbef79162ffb0474df63",
+    "archive": "btrfs/expected-corpus.json",
+    "archive_sha256": "cb708cf895e1e6020e2768a8489c2643d951f9d04933dbef79162ffb0474df63",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\README.md",
+    "source_sha256": "cfe4381c2183b8f612a2dace85ee5aea258db20e1376e8db11651fd3b933e1b8",
+    "archive": "btrfs/README.md",
+    "archive_sha256": "cfe4381c2183b8f612a2dace85ee5aea258db20e1376e8db11651fd3b933e1b8",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\metadata\\metadata-evidence.json",
+    "source_sha256": "fd8bcf700b329e2ed073d65cb0d32617ab0f4e5bd20f1b069f7398cbede5b189",
+    "archive": "btrfs/metadata/metadata-evidence.json",
+    "archive_sha256": "fd8bcf700b329e2ed073d65cb0d32617ab0f4e5bd20f1b069f7398cbede5b189",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\metadata\\commands.json",
+    "source_sha256": "8d9da7f91e76c3a6827d13b069a6f461d1a8bb4932389c69c2c0d122681d9c4a",
+    "archive": "btrfs/metadata/commands.json",
+    "archive_sha256": "8d9da7f91e76c3a6827d13b069a6f461d1a8bb4932389c69c2c0d122681d9c4a",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\metadata\\seed-metadata.json",
+    "source_sha256": "07bb42b5f82f21c90072114e6bebd76566814f7059b4c3471db8e8b7008ca1a4",
+    "archive": "btrfs/metadata/seed-metadata.json",
+    "archive_sha256": "07bb42b5f82f21c90072114e6bebd76566814f7059b4c3471db8e8b7008ca1a4",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\metadata\\restored-metadata.json",
+    "source_sha256": "917c2261b87c4306ec22b763493101197d6b854715dcaccd5791d1473e4a3768",
+    "archive": "btrfs/metadata/restored-metadata.json",
+    "archive_sha256": "917c2261b87c4306ec22b763493101197d6b854715dcaccd5791d1473e4a3768",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\metadata\\README.md",
+    "source_sha256": "377264dabbc6a4d229f4b0cb96bcc5b97e608decfb02499debe83be909cdf71f",
+    "archive": "btrfs/metadata/README.md",
+    "archive_sha256": "377264dabbc6a4d229f4b0cb96bcc5b97e608decfb02499debe83be909cdf71f",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\N1-result.json",
+    "source_sha256": "95d4c9840bd5f40d095dfca661b4f41900f7dda4979e7a94bf6b2e6cf2f79a1c",
+    "archive": "native/N1-result.json",
+    "archive_sha256": "95d4c9840bd5f40d095dfca661b4f41900f7dda4979e7a94bf6b2e6cf2f79a1c",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\README.md",
+    "source_sha256": "fa811d1fcb578d148b1743b065c11a3b89fac5a27bebfc26b0efc924c1d884fe",
+    "archive": "native/README.md",
+    "archive_sha256": "fa811d1fcb578d148b1743b065c11a3b89fac5a27bebfc26b0efc924c1d884fe",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\native_probe.py",
+    "source_sha256": "cfc9bc9b34821350dec0f89456311f3982df20d38e2d84d0a2cbf0d418870aec",
+    "archive": "native/native_probe.py",
+    "archive_sha256": "cfc9bc9b34821350dec0f89456311f3982df20d38e2d84d0a2cbf0d418870aec",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\runs\\control-normal\\result.json",
+    "source_sha256": "ffe9fa76b4e41772e375a87be168876ac293ae55e6e9eda3631f5219444c85ee",
+    "archive": "native/runs/control-normal/result.json",
+    "archive_sha256": "ffe9fa76b4e41772e375a87be168876ac293ae55e6e9eda3631f5219444c85ee",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\runs\\control-normal\\serial.txt",
+    "source_sha256": "1eaca6f7266774785148708e9f40841d7a40c1960785a872c0c4c63dadc69383",
+    "archive": "native/runs/control-normal/serial.txt",
+    "archive_sha256": "1eaca6f7266774785148708e9f40841d7a40c1960785a872c0c4c63dadc69383",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\runs\\control-normal\\stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "native/runs/control-normal/stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\runs\\control-recover\\result.json",
+    "source_sha256": "1e77ca2254fbd689e838216a191cf460b8a5adb10ab90738614e747ff082c471",
+    "archive": "native/runs/control-recover/result.json",
+    "archive_sha256": "1e77ca2254fbd689e838216a191cf460b8a5adb10ab90738614e747ff082c471",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\runs\\control-recover\\serial.txt",
+    "source_sha256": "0b593c48406949e2b364d44416f3821e3e5b9efde97b8546f202388d5a6aa17d",
+    "archive": "native/runs/control-recover/serial.txt",
+    "archive_sha256": "0b593c48406949e2b364d44416f3821e3e5b9efde97b8546f202388d5a6aa17d",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\runs\\control-recover\\stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "native/runs/control-recover/stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\runs\\btrfs-readonly\\result.json",
+    "source_sha256": "9201f08b5b1c72a9a63f37db21947d19b3e00b95d48af1b2dc0be65a9e35c322",
+    "archive": "native/runs/btrfs-readonly/result.json",
+    "archive_sha256": "9201f08b5b1c72a9a63f37db21947d19b3e00b95d48af1b2dc0be65a9e35c322",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\runs\\btrfs-readonly\\serial.txt",
+    "source_sha256": "30d86ff924c775d458229bd8b6e0122f7247b0771879b6bd86459345b58e5e04",
+    "archive": "native/runs/btrfs-readonly/serial.txt",
+    "archive_sha256": "30d86ff924c775d458229bd8b6e0122f7247b0771879b6bd86459345b58e5e04",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\runs\\btrfs-readonly\\stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "native/runs/btrfs-readonly/stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\runs\\openzfs-leaf-readonly\\result.json",
+    "source_sha256": "17939d475e93b9bbd2945a5629d959b7ac3a3ab4db7635a19ef2c98089f1ba75",
+    "archive": "native/runs/openzfs-leaf-readonly/result.json",
+    "archive_sha256": "17939d475e93b9bbd2945a5629d959b7ac3a3ab4db7635a19ef2c98089f1ba75",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\runs\\openzfs-leaf-readonly\\serial.txt",
+    "source_sha256": "8a42c0029ae46f277bd03e75ddb09f2cfedca878d25feef19bf19be6a2dec8ef",
+    "archive": "native/runs/openzfs-leaf-readonly/serial.txt",
+    "archive_sha256": "8a42c0029ae46f277bd03e75ddb09f2cfedca878d25feef19bf19be6a2dec8ef",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\runs\\openzfs-leaf-readonly\\stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "native/runs/openzfs-leaf-readonly/stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\probe.py",
+    "source_sha256": "f689648d7b279b3325fcd7f62af4bafd6dbb3d47ad770224a11666fa7216a2ae",
+    "archive": "btrfs/probe.py",
+    "archive_sha256": "f689648d7b279b3325fcd7f62af4bafd6dbb3d47ad770224a11666fa7216a2ae",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\experiment.py",
+    "source_sha256": "9c418780b33d9345d58dd97675641d2d47448a2a02f9932cc735509bd12b5b33",
+    "archive": "btrfs/experiment.py",
+    "archive_sha256": "9c418780b33d9345d58dd97675641d2d47448a2a02f9932cc735509bd12b5b33",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\faults.py",
+    "source_sha256": "5364d8fab091da5f8b699f8337d26c2307afc2838373475bc852093f45e9b63a",
+    "archive": "btrfs/faults.py",
+    "archive_sha256": "5364d8fab091da5f8b699f8337d26c2307afc2838373475bc852093f45e9b63a",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\finalize.py",
+    "source_sha256": "8bae86a1ed3d2a4b192185da7974672f4616dad6bbba49ea8ad01b29ee3ef3e5",
+    "archive": "btrfs/finalize.py",
+    "archive_sha256": "8bae86a1ed3d2a4b192185da7974672f4616dad6bbba49ea8ad01b29ee3ef3e5",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\metadata_probe.py",
+    "source_sha256": "68a0d98a6d0d00609f3188e0c294b8aa35a40c2b0acffb99cd2dda3fa8769f1f",
+    "archive": "btrfs/metadata_probe.py",
+    "archive_sha256": "68a0d98a6d0d00609f3188e0c294b8aa35a40c2b0acffb99cd2dda3fa8769f1f",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\metadata_review.py",
+    "source_sha256": "77c8984f58994b5653564f03278eef648587806c6170e03b52456774801d8265",
+    "archive": "btrfs/metadata_review.py",
+    "archive_sha256": "77c8984f58994b5653564f03278eef648587806c6170e03b52456774801d8265",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\builds\\native-volume\\build-invocation.json",
+    "source_sha256": "374b67ff73f5182a6fa8a31948a82015adce6b4497b478ef2f91004990ee641f",
+    "archive": "native/builds/native-volume/build-invocation.json",
+    "archive_sha256": "374b67ff73f5182a6fa8a31948a82015adce6b4497b478ef2f91004990ee641f",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\builds\\native-volume\\manifest.json",
+    "source_sha256": "e6e3ae97be4832104f8af4663bfcdbc06d4999ded613ca8f1444f149998b60d6",
+    "archive": "native/builds/native-volume/manifest.json",
+    "archive_sha256": "e6e3ae97be4832104f8af4663bfcdbc06d4999ded613ca8f1444f149998b60d6",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\builds\\native-volume\\build.stdout.txt",
+    "source_sha256": "27e49f2ced38178261173c902a9728ba8a21db72cc7e343309e50e6c67f6c3b0",
+    "archive": "native/builds/native-volume/build.stdout.txt",
+    "archive_sha256": "27e49f2ced38178261173c902a9728ba8a21db72cc7e343309e50e6c67f6c3b0",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\builds\\native-volume\\build.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "native/builds/native-volume/build.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\builds\\test-volume-recover\\build-invocation.json",
+    "source_sha256": "7eb3a25858279b4411e052f0a859f954ff6d2a65d6de49c3718b3a58cf5c17d5",
+    "archive": "native/builds/test-volume-recover/build-invocation.json",
+    "archive_sha256": "7eb3a25858279b4411e052f0a859f954ff6d2a65d6de49c3718b3a58cf5c17d5",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\builds\\test-volume-recover\\manifest.json",
+    "source_sha256": "1336ad428d2be81f5dddac800f7bba651980c4927e34e4c099bdcc667f94199b",
+    "archive": "native/builds/test-volume-recover/manifest.json",
+    "archive_sha256": "1336ad428d2be81f5dddac800f7bba651980c4927e34e4c099bdcc667f94199b",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\builds\\test-volume-recover\\build.stdout.txt",
+    "source_sha256": "0aa091cb0e68d18ee8b493eb19f0a7d96ef766047b9b793a86f8ff21b1d52efb",
+    "archive": "native/builds/test-volume-recover/build.stdout.txt",
+    "archive_sha256": "0aa091cb0e68d18ee8b493eb19f0a7d96ef766047b9b793a86f8ff21b1d52efb",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\builds\\test-volume-recover\\build.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "native/builds/test-volume-recover/build.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\01-acquire.sh",
+    "source_sha256": "3f320091402fd7478aecb84f5cd238b81c8fa2598440374aa1fdac042c275ae0",
+    "archive": "openzfs/01-acquire.sh",
+    "archive_sha256": "3f320091402fd7478aecb84f5cd238b81c8fa2598440374aa1fdac042c275ae0",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\02-preflight.sh",
+    "source_sha256": "c9e3babae990af4f37b02707f90851606ed663fef805f6876666a71e80220859",
+    "archive": "openzfs/02-preflight.sh",
+    "archive_sha256": "c9e3babae990af4f37b02707f90851606ed663fef805f6876666a71e80220859",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\03-create-initial-help-mismatch.sh",
+    "source_sha256": "25102cb932bdfb79dcf6502df299863bad3104ebd961c9965f68c57f577c1ff8",
+    "archive": "openzfs/03-create-initial-help-mismatch.sh",
+    "archive_sha256": "25102cb932bdfb79dcf6502df299863bad3104ebd961c9965f68c57f577c1ff8",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\03-create-invalid-dedup.sh",
+    "source_sha256": "2e5ef10e4f00a986a7bc73182286b0a23d6779b8186b529f1aa881d3803a2fa3",
+    "archive": "openzfs/03-create-invalid-dedup.sh",
+    "archive_sha256": "2e5ef10e4f00a986a7bc73182286b0a23d6779b8186b529f1aa881d3803a2fa3",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\03-create-low-as.sh",
+    "source_sha256": "032dc28e9164a5add425609dcfbe83eadbb60e2ca185ac0785743aaea3b579cb",
+    "archive": "openzfs/03-create-low-as.sh",
+    "archive_sha256": "032dc28e9164a5add425609dcfbe83eadbb60e2ca185ac0785743aaea3b579cb",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\03-create-unsupported-tunable.sh",
+    "source_sha256": "5932711a644643dfe04d252644311758eceaf08cfc9fc65675884cbe5eb060ab",
+    "archive": "openzfs/03-create-unsupported-tunable.sh",
+    "archive_sha256": "5932711a644643dfe04d252644311758eceaf08cfc9fc65675884cbe5eb060ab",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\03-create.sh",
+    "source_sha256": "499c8567472e0865d0d8aeffaac2b6fa86ddf3c2e52219112c69b11b453ba2ef",
+    "archive": "openzfs/03-create.sh",
+    "archive_sha256": "499c8567472e0865d0d8aeffaac2b6fa86ddf3c2e52219112c69b11b453ba2ef",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\04-baseline-freshcheck.sh",
+    "source_sha256": "3028313c3a8c4488171d69a2bab0c7cccb29e02d5e8ef01d3f9e129959a24c0a",
+    "archive": "openzfs/04-baseline-freshcheck.sh",
+    "archive_sha256": "3028313c3a8c4488171d69a2bab0c7cccb29e02d5e8ef01d3f9e129959a24c0a",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\05-reuse-kill.sh",
+    "source_sha256": "b22ccfc8a71a892b89971431a27a2ec96aa301a5814f07997dcf8c270cc4ebad",
+    "archive": "openzfs/05-reuse-kill.sh",
+    "archive_sha256": "b22ccfc8a71a892b89971431a27a2ec96aa301a5814f07997dcf8c270cc4ebad",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\06-labels.sh",
+    "source_sha256": "48e007da181aeca2f93d31330053594711cc6d44c55f58c7b78ca28c312e10f7",
+    "archive": "openzfs/06-labels.sh",
+    "archive_sha256": "48e007da181aeca2f93d31330053594711cc6d44c55f58c7b78ca28c312e10f7",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\07-crash-create.sh",
+    "source_sha256": "f6004f404faa3b78d7bba9d1b0cd4e90ead5b5a41fa015a728f68e7e0d615295",
+    "archive": "openzfs/07-crash-create.sh",
+    "archive_sha256": "f6004f404faa3b78d7bba9d1b0cd4e90ead5b5a41fa015a728f68e7e0d615295",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\08-backup-stream.sh",
+    "source_sha256": "63e05564d6f9e378b3f1aa2773a2a778f739c24bec5de3173a0e9554df499347",
+    "archive": "openzfs/08-backup-stream.sh",
+    "archive_sha256": "63e05564d6f9e378b3f1aa2773a2a778f739c24bec5de3173a0e9554df499347",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\09-crash-freshcheck-blocks.sh",
+    "source_sha256": "a8eb7f323215cfac6d5ca3ccdcf95c09007c07d8fc771fac3ab78c169f9fe0c8",
+    "archive": "openzfs/09-crash-freshcheck-blocks.sh",
+    "archive_sha256": "a8eb7f323215cfac6d5ca3ccdcf95c09007c07d8fc771fac3ab78c169f9fe0c8",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\10-blockpointers.sh",
+    "source_sha256": "fbcbf00adfe5ab8521e95416737c7829bf9b866905dd09e1c1de6228c0725967",
+    "archive": "openzfs/10-blockpointers.sh",
+    "archive_sha256": "fbcbf00adfe5ab8521e95416737c7829bf9b866905dd09e1c1de6228c0725967",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\11-package-evidence.sh",
+    "source_sha256": "31e839d6fcd309709f595136f2da1d4ee283bb2983a693e32bda93cd5acabd61",
+    "archive": "openzfs/11-package-evidence.sh",
+    "archive_sha256": "31e839d6fcd309709f595136f2da1d4ee283bb2983a693e32bda93cd5acabd61",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\12-write-evidence.py",
+    "source_sha256": "6633b7093979bc2f9c2ff0872698c580e26b99deba91147e58116c5268f386a7",
+    "archive": "openzfs/12-write-evidence.py",
+    "archive_sha256": "6633b7093979bc2f9c2ff0872698c580e26b99deba91147e58116c5268f386a7",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\13-hash-artifacts.py",
+    "source_sha256": "7b76e01e5fe154c0b55586e35ac7529fd91865d22355372cf81b02356adbb065",
+    "archive": "openzfs/13-hash-artifacts.py",
+    "archive_sha256": "7b76e01e5fe154c0b55586e35ac7529fd91865d22355372cf81b02356adbb065",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\artifact-sha256.json",
+    "source_sha256": "e74f3246508f236e758dcea504fb3ba6e249e7576da2f710072f9fde8431ce0c",
+    "archive": "openzfs/artifact-sha256.json",
+    "archive_sha256": "e74f3246508f236e758dcea504fb3ba6e249e7576da2f710072f9fde8431ce0c",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\COMMANDS.md",
+    "source_sha256": "f0c2ac598a254951ac20ff2f64b867c086ac961490d7a2a0ab60b870c9b1282d",
+    "archive": "openzfs/COMMANDS.md",
+    "archive_sha256": "f0c2ac598a254951ac20ff2f64b867c086ac961490d7a2a0ab60b870c9b1282d",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\evidence.json",
+    "source_sha256": "ee8861a8c25470448ca4fe60598586a02ce884831a4564a2efedff2a3d64698e",
+    "archive": "openzfs/evidence.json",
+    "archive_sha256": "ee8861a8c25470448ca4fe60598586a02ce884831a4564a2efedff2a3d64698e",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\README.md",
+    "source_sha256": "a1a40fa5c66da97818868431be03a932f6222e9ffe485edb82422185bee7ba29",
+    "archive": "openzfs/README.md",
+    "archive_sha256": "a1a40fa5c66da97818868431be03a932f6222e9ffe485edb82422185bee7ba29",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\baseline-check.stderr.txt",
+    "source_sha256": "9fff66e529e81f60e9636d36d40e168436ccb5641069a3198593f9f723412d95",
+    "archive": "btrfs/logs/baseline-check.stderr.txt",
+    "archive_sha256": "9fff66e529e81f60e9636d36d40e168436ccb5641069a3198593f9f723412d95",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\baseline-check.stdout.txt",
+    "source_sha256": "baccfd5693a6c4012eff333d4ace57d0ef1a9e9b964fff41a5fb7b22c2244031",
+    "archive": "btrfs/logs/baseline-check.stdout.txt",
+    "archive_sha256": "baccfd5693a6c4012eff333d4ace57d0ef1a9e9b964fff41a5fb7b22c2244031",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\baseline-dump-chunk.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/baseline-dump-chunk.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\baseline-dump-chunk.stdout.txt",
+    "source_sha256": "732644b636553d185fdb819f7f7e50694c4335b1f8bf160ed35c7917c73dbcff",
+    "archive": "btrfs/logs/baseline-dump-chunk.stdout.txt",
+    "archive_sha256": "732644b636553d185fdb819f7f7e50694c4335b1f8bf160ed35c7917c73dbcff",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\baseline-dump-fs.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/baseline-dump-fs.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\baseline-dump-fs.stdout.txt",
+    "source_sha256": "ae69e31312e59e5108c0c659f8389de7934fd4b675cc524f9d5038d39ad5b197",
+    "archive": "btrfs/logs/baseline-dump-fs.stdout.txt",
+    "archive_sha256": "ae69e31312e59e5108c0c659f8389de7934fd4b675cc524f9d5038d39ad5b197",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\baseline-dump-super.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/baseline-dump-super.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\baseline-dump-super.stdout.txt",
+    "source_sha256": "3888ca4d99f4ded78b4256a2078813b1af1f2bf8428d3563466506aaf9c4b66d",
+    "archive": "btrfs/logs/baseline-dump-super.stdout.txt",
+    "archive_sha256": "3888ca4d99f4ded78b4256a2078813b1af1f2bf8428d3563466506aaf9c4b66d",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\baseline-precreated-restore.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/baseline-precreated-restore.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\baseline-precreated-restore.stdout.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/baseline-precreated-restore.stdout.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\baseline-restore.stderr.txt",
+    "source_sha256": "d638b3ab3f84f9268c680b320ab3d65bb291e91ba62b6c68c26bdaacfae7e27c",
+    "archive": "btrfs/logs/baseline-restore.stderr.txt",
+    "archive_sha256": "d638b3ab3f84f9268c680b320ab3d65bb291e91ba62b6c68c26bdaacfae7e27c",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\baseline-restore.stdout.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/baseline-restore.stdout.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\btrfs-version.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/btrfs-version.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\btrfs-version.stdout.txt",
+    "source_sha256": "5873a411fcaf731264c4e38553d76ec4cd45f7dc436bfbcf194dda93b991aab7",
+    "archive": "btrfs/logs/btrfs-version.stdout.txt",
+    "archive_sha256": "5873a411fcaf731264c4e38553d76ec4cd45f7dc436bfbcf194dda93b991aab7",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\check-help.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/check-help.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\check-help.stdout.txt",
+    "source_sha256": "a5973f1cc190a6552b34b97b40059e34da167a6570a6946419dc2cbc50970a2c",
+    "archive": "btrfs/logs/check-help.stdout.txt",
+    "archive_sha256": "a5973f1cc190a6552b34b97b40059e34da167a6570a6946419dc2cbc50970a2c",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\dependency-installed-versions.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/dependency-installed-versions.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\dependency-installed-versions.stdout.txt",
+    "source_sha256": "8ecd09f98e489e3e4966e0f6bc0a3956813bad4c6f28b664e87ce2ec0ac6b35a",
+    "archive": "btrfs/logs/dependency-installed-versions.stdout.txt",
+    "archive_sha256": "8ecd09f98e489e3e4966e0f6bc0a3956813bad4c6f28b664e87ce2ec0ac6b35a",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\download.stderr.txt",
+    "source_sha256": "edda30e643eece0bdc48cca82d34b5b19ea9ae4f7bd97a7c76626ba7ba4b9045",
+    "archive": "btrfs/logs/download.stderr.txt",
+    "archive_sha256": "edda30e643eece0bdc48cca82d34b5b19ea9ae4f7bd97a7c76626ba7ba4b9045",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\download.stdout.txt",
+    "source_sha256": "e5081051a76f9f93c40067632cbb70abef3faef0d587f8f82e52542dac9b8209",
+    "archive": "btrfs/logs/download.stdout.txt",
+    "archive_sha256": "e5081051a76f9f93c40067632cbb70abef3faef0d587f8f82e52542dac9b8209",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\dump-tree-help.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/dump-tree-help.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\dump-tree-help.stdout.txt",
+    "source_sha256": "5fc79bd8a4e520f26f422aa06bf487d1dd2a25ae221d94e03fc29708b43d7e44",
+    "archive": "btrfs/logs/dump-tree-help.stdout.txt",
+    "archive_sha256": "5fc79bd8a4e520f26f422aa06bf487d1dd2a25ae221d94e03fc29708b43d7e44",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\extract.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/extract.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\extract.stdout.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/extract.stdout.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\ldd-btrfs.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/ldd-btrfs.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\ldd-btrfs.stdout.txt",
+    "source_sha256": "4f75c25f5a852aa739e87bde771deab7b2c2279f65e80c0c78db3497556775e9",
+    "archive": "btrfs/logs/ldd-btrfs.stdout.txt",
+    "archive_sha256": "4f75c25f5a852aa739e87bde771deab7b2c2279f65e80c0c78db3497556775e9",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\ldd-mkfs.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/ldd-mkfs.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\ldd-mkfs.stdout.txt",
+    "source_sha256": "8ec500d7d475484a480aacbea3ffd86d1294180f95f333ba7f7a4e867258d4bc",
+    "archive": "btrfs/logs/ldd-mkfs.stdout.txt",
+    "archive_sha256": "8ec500d7d475484a480aacbea3ffd86d1294180f95f333ba7f7a4e867258d4bc",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\mkfs-baseline.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/mkfs-baseline.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\mkfs-baseline.stdout.txt",
+    "source_sha256": "aeb5416ae80d28e990169da3e295f7e5125b17da84d6b066d7adc872c74d6396",
+    "archive": "btrfs/logs/mkfs-baseline.stdout.txt",
+    "archive_sha256": "aeb5416ae80d28e990169da3e295f7e5125b17da84d6b066d7adc872c74d6396",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\mkfs-help.stderr.txt",
+    "source_sha256": "5214c0f6c6a8a35440c1feb024f7c873ad951f0462c2bcc78a824764c83958d2",
+    "archive": "btrfs/logs/mkfs-help.stderr.txt",
+    "archive_sha256": "5214c0f6c6a8a35440c1feb024f7c873ad951f0462c2bcc78a824764c83958d2",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\mkfs-help.stdout.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/mkfs-help.stdout.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\mkfs-version.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/mkfs-version.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\mkfs-version.stdout.txt",
+    "source_sha256": "3ad84396d445abafc61c6b4d1037f7e7986e1fc1234a7e990a7e54967ad11c2f",
+    "archive": "btrfs/logs/mkfs-version.stdout.txt",
+    "archive_sha256": "3ad84396d445abafc61c6b4d1037f7e7986e1fc1234a7e990a7e54967ad11c2f",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\os-release.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/os-release.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\os-release.stdout.txt",
+    "source_sha256": "cf72627ff81aef345d0a9f3807eb80f1035e0f80fe2932d12d94efc02fd68104",
+    "archive": "btrfs/logs/os-release.stdout.txt",
+    "archive_sha256": "cf72627ff81aef345d0a9f3807eb80f1035e0f80fe2932d12d94efc02fd68104",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\package-dependencies.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/package-dependencies.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\package-dependencies.stdout.txt",
+    "source_sha256": "b378e7c98c0db248082f224d3d6f67f06075a8216d3fe4e4cbf63fbb96616963",
+    "archive": "btrfs/logs/package-dependencies.stdout.txt",
+    "archive_sha256": "b378e7c98c0db248082f224d3d6f67f06075a8216d3fe4e4cbf63fbb96616963",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\package-fields.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/package-fields.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\package-fields.stdout.txt",
+    "source_sha256": "0029f6b5bc29dc3f780d093e92f8f16416687c5c9e7cd5f9bcce6def33a9a688",
+    "archive": "btrfs/logs/package-fields.stdout.txt",
+    "archive_sha256": "0029f6b5bc29dc3f780d093e92f8f16416687c5c9e7cd5f9bcce6def33a9a688",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\package-metadata.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/package-metadata.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\package-metadata.stdout.txt",
+    "source_sha256": "39b345f7127637e82e3b2be39d2c1b23303f0d1f6339b0c0c854b38b80d1212c",
+    "archive": "btrfs/logs/package-metadata.stdout.txt",
+    "archive_sha256": "39b345f7127637e82e3b2be39d2c1b23303f0d1f6339b0c0c854b38b80d1212c",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\package-policy.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/package-policy.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\package-policy.stdout.txt",
+    "source_sha256": "9a3a88699673aec00a7bb343f81248408215a86046f3ece7fa8ed8666d4eef26",
+    "archive": "btrfs/logs/package-policy.stdout.txt",
+    "archive_sha256": "9a3a88699673aec00a7bb343f81248408215a86046f3ece7fa8ed8666d4eef26",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\payload-bitflip-check.stderr.txt",
+    "source_sha256": "6fda540df262d5196891733ce62a1035bfc5b085c6ac32cbaac96edee0069896",
+    "archive": "btrfs/logs/payload-bitflip-check.stderr.txt",
+    "archive_sha256": "6fda540df262d5196891733ce62a1035bfc5b085c6ac32cbaac96edee0069896",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\payload-bitflip-check.stdout.txt",
+    "source_sha256": "38f79b1e84c3b5818a11729185d5af7f3cef8ea61ebbfb5d096e933a076b3b5f",
+    "archive": "btrfs/logs/payload-bitflip-check.stdout.txt",
+    "archive_sha256": "38f79b1e84c3b5818a11729185d5af7f3cef8ea61ebbfb5d096e933a076b3b5f",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\payload-bitflip-restore.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/payload-bitflip-restore.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\payload-bitflip-restore.stdout.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/payload-bitflip-restore.stdout.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\primary-superblock-check-super1.stderr.txt",
+    "source_sha256": "9fff66e529e81f60e9636d36d40e168436ccb5641069a3198593f9f723412d95",
+    "archive": "btrfs/logs/primary-superblock-check-super1.stderr.txt",
+    "archive_sha256": "9fff66e529e81f60e9636d36d40e168436ccb5641069a3198593f9f723412d95",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\primary-superblock-check-super1.stdout.txt",
+    "source_sha256": "b9aedcb72d7db886c31cb55ee6dd744e2b2b11fd8fb789772c8263e7b012bce4",
+    "archive": "btrfs/logs/primary-superblock-check-super1.stdout.txt",
+    "archive_sha256": "b9aedcb72d7db886c31cb55ee6dd744e2b2b11fd8fb789772c8263e7b012bce4",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\primary-superblock-check.stderr.txt",
+    "source_sha256": "e12866430f5c759568365bf74150b81ed0812de8040db1aef54939b376cfb32f",
+    "archive": "btrfs/logs/primary-superblock-check.stderr.txt",
+    "archive_sha256": "e12866430f5c759568365bf74150b81ed0812de8040db1aef54939b376cfb32f",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\primary-superblock-check.stdout.txt",
+    "source_sha256": "437607fdeffde126e8d700a2f93b3b1df72102aaf21b0d10986e0c1b31eb84ee",
+    "archive": "btrfs/logs/primary-superblock-check.stdout.txt",
+    "archive_sha256": "437607fdeffde126e8d700a2f93b3b1df72102aaf21b0d10986e0c1b31eb84ee",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\primary-superblock-restore.stderr.txt",
+    "source_sha256": "f25bdc605bc337fe7eeca3daff920503a5e8b01b897a24ef89a1835f246e50b8",
+    "archive": "btrfs/logs/primary-superblock-restore.stderr.txt",
+    "archive_sha256": "f25bdc605bc337fe7eeca3daff920503a5e8b01b897a24ef89a1835f246e50b8",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\primary-superblock-restore.stdout.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/primary-superblock-restore.stdout.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\primary-superblock-super1-restore.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/primary-superblock-super1-restore.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\primary-superblock-super1-restore.stdout.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/primary-superblock-super1-restore.stdout.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\restore-help.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/restore-help.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\restore-help.stdout.txt",
+    "source_sha256": "77a4dbc7b22a7f505a464b6cce6884e676fc4ea8aa5380ce757ce2c3adb01868",
+    "archive": "btrfs/logs/restore-help.stdout.txt",
+    "archive_sha256": "77a4dbc7b22a7f505a464b6cce6884e676fc4ea8aa5380ce757ce2c3adb01868",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\truncated-check.stderr.txt",
+    "source_sha256": "13affc85beb54e4075026e42558c7037dfe97dc911fd2ccc3376d8688bc159d7",
+    "archive": "btrfs/logs/truncated-check.stderr.txt",
+    "archive_sha256": "13affc85beb54e4075026e42558c7037dfe97dc911fd2ccc3376d8688bc159d7",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\truncated-check.stdout.txt",
+    "source_sha256": "437607fdeffde126e8d700a2f93b3b1df72102aaf21b0d10986e0c1b31eb84ee",
+    "archive": "btrfs/logs/truncated-check.stdout.txt",
+    "archive_sha256": "437607fdeffde126e8d700a2f93b3b1df72102aaf21b0d10986e0c1b31eb84ee",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\truncated-restore.stderr.txt",
+    "source_sha256": "9279ebb8ab9c0d0ed73a0ba283fd55f1827d13c44236b4fc3eb058c5cd33945f",
+    "archive": "btrfs/logs/truncated-restore.stderr.txt",
+    "archive_sha256": "9279ebb8ab9c0d0ed73a0ba283fd55f1827d13c44236b4fc3eb058c5cd33945f",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\truncated-restore.stdout.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/truncated-restore.stdout.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\uname.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/logs/uname.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\logs\\uname.stdout.txt",
+    "source_sha256": "32cc0fc5d6765c3c37f2db291bf5f9e808cc017e37c896487b66cb9ff9e077a8",
+    "archive": "btrfs/logs/uname.stdout.txt",
+    "archive_sha256": "32cc0fc5d6765c3c37f2db291bf5f9e808cc017e37c896487b66cb9ff9e077a8",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\metadata\\logs\\check.stderr.txt",
+    "source_sha256": "9fff66e529e81f60e9636d36d40e168436ccb5641069a3198593f9f723412d95",
+    "archive": "btrfs/metadata/logs/check.stderr.txt",
+    "archive_sha256": "9fff66e529e81f60e9636d36d40e168436ccb5641069a3198593f9f723412d95",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\metadata\\logs\\check.stdout.txt",
+    "source_sha256": "7ab3177d9f1269f8cf074feb1248a8d6cc96a1a881a1627594e363bec3aa9dcf",
+    "archive": "btrfs/metadata/logs/check.stdout.txt",
+    "archive_sha256": "7ab3177d9f1269f8cf074feb1248a8d6cc96a1a881a1627594e363bec3aa9dcf",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\metadata\\logs\\dump-fs.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/metadata/logs/dump-fs.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\metadata\\logs\\dump-fs.stdout.txt",
+    "source_sha256": "29ddf53dae2d37b5a0eee34c4a9d342ec3d9635c536bc690d232c5eb910e3857",
+    "archive": "btrfs/metadata/logs/dump-fs.stdout.txt",
+    "archive_sha256": "29ddf53dae2d37b5a0eee34c4a9d342ec3d9635c536bc690d232c5eb910e3857",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\metadata\\logs\\mkfs.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/metadata/logs/mkfs.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\metadata\\logs\\mkfs.stdout.txt",
+    "source_sha256": "15df8eb6d33b54f4de032cace52257df1f93aaaa930b548e280f0680f9fb8f62",
+    "archive": "btrfs/metadata/logs/mkfs.stdout.txt",
+    "archive_sha256": "15df8eb6d33b54f4de032cace52257df1f93aaaa930b548e280f0680f9fb8f62",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\metadata\\logs\\restore.stderr.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/metadata/logs/restore.stderr.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\metadata\\logs\\restore.stdout.txt",
+    "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive": "btrfs/metadata/logs/restore.stdout.txt",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\metadata\\logs\\review-initial-failure.txt",
+    "source_sha256": "25c8463e838d197ad50fb3987a6de020cab1ff317216ea9bc49f017dcd077c5b",
+    "archive": "btrfs/metadata/logs/review-initial-failure.txt",
+    "archive_sha256": "25c8463e838d197ad50fb3987a6de020cab1ff317216ea9bc49f017dcd077c5b",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\backup-stream-exit.txt",
+    "source_sha256": "e726b440cc164001999e718b51780d80314709efe06e7857282377be9111127b",
+    "archive": "openzfs/logs/backup-stream-exit.txt",
+    "archive_sha256": "e726b440cc164001999e718b51780d80314709efe06e7857282377be9111127b",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\backup-stream.txt",
+    "source_sha256": "41549d6296c367bcfaf306783b76a183b972582d8c0b552b9bbe565e3203ef78",
+    "archive": "openzfs/logs/backup-stream.txt",
+    "archive_sha256": "41549d6296c367bcfaf306783b76a183b972582d8c0b552b9bbe565e3203ef78",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\baseline-allblocks-exit.txt",
+    "source_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "archive": "openzfs/logs/baseline-allblocks-exit.txt",
+    "archive_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\baseline-allblocks.txt",
+    "source_sha256": "ab50e937bf07eedb3dbd70bffe43a4300d4b07ff25fa4abc5aeb520cf174bad4",
+    "archive": "openzfs/logs/baseline-allblocks.txt",
+    "archive_sha256": "ab50e937bf07eedb3dbd70bffe43a4300d4b07ff25fa4abc5aeb520cf174bad4",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\baseline-blockpointers-exit.txt",
+    "source_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "archive": "openzfs/logs/baseline-blockpointers-exit.txt",
+    "archive_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\baseline-blockpointers.txt",
+    "source_sha256": "8d1bf4cc4fb63fc196a6bb552df2461fce48b9090b0cdfe71483a6aa88629e0f",
+    "archive": "openzfs/logs/baseline-blockpointers.txt",
+    "archive_sha256": "8d1bf4cc4fb63fc196a6bb552df2461fce48b9090b0cdfe71483a6aa88629e0f",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\baseline-labels.txt",
+    "source_sha256": "d4ee4ca5e64ed5aa00221b158952d2211ee2bc55d179810d6b571a2cf42c2f43",
+    "archive": "openzfs/logs/baseline-labels.txt",
+    "archive_sha256": "d4ee4ca5e64ed5aa00221b158952d2211ee2bc55d179810d6b571a2cf42c2f43",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\baseline-sha256.txt",
+    "source_sha256": "64aa00256b340a23a62bcc632e4dad5a86f6b1848e0e1af207c382c70005a1d1",
+    "archive": "openzfs/logs/baseline-sha256.txt",
+    "archive_sha256": "64aa00256b340a23a62bcc632e4dad5a86f6b1848e0e1af207c382c70005a1d1",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\crash-create-exit.txt",
+    "source_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "archive": "openzfs/logs/crash-create-exit.txt",
+    "archive_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\crash-create-time.txt",
+    "source_sha256": "d422e4e2f3b326603a127ccd20694e3b044ea0dd2970f1229ff9ac6d1fd50e6d",
+    "archive": "openzfs/logs/crash-create-time.txt",
+    "archive_sha256": "d422e4e2f3b326603a127ccd20694e3b044ea0dd2970f1229ff9ac6d1fd50e6d",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\crash-create.txt",
+    "source_sha256": "c3580c89cf943d54859407f02422ef47ce64c2852764112099fa95c5727f24a6",
+    "archive": "openzfs/logs/crash-create.txt",
+    "archive_sha256": "c3580c89cf943d54859407f02422ef47ce64c2852764112099fa95c5727f24a6",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\crash-fresh-zdb-exit.txt",
+    "source_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "archive": "openzfs/logs/crash-fresh-zdb-exit.txt",
+    "archive_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\crash-fresh-zdb-time.txt",
+    "source_sha256": "d262be5bc85ee26ce6a9dfc1c7a11668ee8648fe4adeded354eaf0ee3a546ad5",
+    "archive": "openzfs/logs/crash-fresh-zdb-time.txt",
+    "archive_sha256": "d262be5bc85ee26ce6a9dfc1c7a11668ee8648fe4adeded354eaf0ee3a546ad5",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\crash-fresh-zdb.txt",
+    "source_sha256": "2ecfe2ac690c24d1275fd1a5b484053e47100597fc3820702e12fa603091f93d",
+    "archive": "openzfs/logs/crash-fresh-zdb.txt",
+    "archive_sha256": "2ecfe2ac690c24d1275fd1a5b484053e47100597fc3820702e12fa603091f93d",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\create-bounded-exit.txt",
+    "source_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "archive": "openzfs/logs/create-bounded-exit.txt",
+    "archive_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\create-bounded-time.txt",
+    "source_sha256": "481a82cf2d62b3c889c317c20a8c8246727dee1349e5834b940e7c7388eda46e",
+    "archive": "openzfs/logs/create-bounded-time.txt",
+    "archive_sha256": "481a82cf2d62b3c889c317c20a8c8246727dee1349e5834b940e7c7388eda46e",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\create-bounded.txt",
+    "source_sha256": "1f687d999ad3b168d092708cab386fa65b71373c69fca45901f7b915681a665f",
+    "archive": "openzfs/logs/create-bounded.txt",
+    "archive_sha256": "1f687d999ad3b168d092708cab386fa65b71373c69fca45901f7b915681a665f",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\create-exit.txt",
+    "source_sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+    "archive": "openzfs/logs/create-exit.txt",
+    "archive_sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\create-final-exit.txt",
+    "source_sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+    "archive": "openzfs/logs/create-final-exit.txt",
+    "archive_sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\create-final-time.txt",
+    "source_sha256": "a358d3b4932b218d701054f44df9caea341fa2fcb1df1a5e0867593082689039",
+    "archive": "openzfs/logs/create-final-time.txt",
+    "archive_sha256": "a358d3b4932b218d701054f44df9caea341fa2fcb1df1a5e0867593082689039",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\create-final.txt",
+    "source_sha256": "8e66539d1cad11df1d3ed106942ac3ae3bf4074933a946fc4e5bdf5d6ca9fb09",
+    "archive": "openzfs/logs/create-final.txt",
+    "archive_sha256": "8e66539d1cad11df1d3ed106942ac3ae3bf4074933a946fc4e5bdf5d6ca9fb09",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\create-retry-exit.txt",
+    "source_sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+    "archive": "openzfs/logs/create-retry-exit.txt",
+    "archive_sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\create-retry-time.txt",
+    "source_sha256": "d13bc30ff7c88c077b516e5a05100197fd9b4d0a3a4d3d5d79d13d9e5a156278",
+    "archive": "openzfs/logs/create-retry-time.txt",
+    "archive_sha256": "d13bc30ff7c88c077b516e5a05100197fd9b4d0a3a4d3d5d79d13d9e5a156278",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\create-retry.txt",
+    "source_sha256": "ebbbbbcac72476a4cd6b7e1615237b7371257b6aba4e2aaeb669fb6477561665",
+    "archive": "openzfs/logs/create-retry.txt",
+    "archive_sha256": "ebbbbbcac72476a4cd6b7e1615237b7371257b6aba4e2aaeb669fb6477561665",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\create-run-exit.txt",
+    "source_sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+    "archive": "openzfs/logs/create-run-exit.txt",
+    "archive_sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\create-run-time.txt",
+    "source_sha256": "97a5fb9d22c9505dcfec51820544beddc71f921dfaddd3d6fa0f6c7123eb61d1",
+    "archive": "openzfs/logs/create-run-time.txt",
+    "archive_sha256": "97a5fb9d22c9505dcfec51820544beddc71f921dfaddd3d6fa0f6c7123eb61d1",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\create-run.txt",
+    "source_sha256": "d60a5025846e4d3e4a95f8987c26ef67865f86ae30ab7b95065057ce707aa7f4",
+    "archive": "openzfs/logs/create-run.txt",
+    "archive_sha256": "d60a5025846e4d3e4a95f8987c26ef67865f86ae30ab7b95065057ce707aa7f4",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\create-time.txt",
+    "source_sha256": "60998e96ddf5dc439fb06aae5138d9a7860836ceb6b5afa5c936682c72f128ee",
+    "archive": "openzfs/logs/create-time.txt",
+    "archive_sha256": "60998e96ddf5dc439fb06aae5138d9a7860836ceb6b5afa5c936682c72f128ee",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\create.txt",
+    "source_sha256": "0b59b1a5be982da6ccfc7bdb872bc7315954d3f627f1200b4b6b35ba3054c7c1",
+    "archive": "openzfs/logs/create.txt",
+    "archive_sha256": "0b59b1a5be982da6ccfc7bdb872bc7315954d3f627f1200b4b6b35ba3054c7c1",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\download.txt",
+    "source_sha256": "4f5bb58527f025265d0a779f926f56cbb6fd402ab66d833b30e88d363ffa0f8f",
+    "archive": "openzfs/logs/download.txt",
+    "archive_sha256": "4f5bb58527f025265d0a779f926f56cbb6fd402ab66d833b30e88d363ffa0f8f",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\ds0-objects-exit.txt",
+    "source_sha256": "e726b440cc164001999e718b51780d80314709efe06e7857282377be9111127b",
+    "archive": "openzfs/logs/ds0-objects-exit.txt",
+    "archive_sha256": "e726b440cc164001999e718b51780d80314709efe06e7857282377be9111127b",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\ds0-objects.txt",
+    "source_sha256": "7ee4d8e80a13d863023f8530443c4cd4b09c71abbd5cc5846d8b9020f61c78c5",
+    "archive": "openzfs/logs/ds0-objects.txt",
+    "archive_sha256": "7ee4d8e80a13d863023f8530443c4cd4b09c71abbd5cc5846d8b9020f61c78c5",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\executed-binary-sha256.txt",
+    "source_sha256": "1233b1bccc221a1f00ab58da0e0967b171f45596059ce808fc1abb87cb7ca081",
+    "archive": "openzfs/logs/executed-binary-sha256.txt",
+    "archive_sha256": "1233b1bccc221a1f00ab58da0e0967b171f45596059ce808fc1abb87cb7ca081",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\final-images-sha256.txt",
+    "source_sha256": "94eded02ff28f1d32299d4f894ff1fe75fd627159f77eba30705b77585cf2b80",
+    "archive": "openzfs/logs/final-images-sha256.txt",
+    "archive_sha256": "94eded02ff28f1d32299d4f894ff1fe75fd627159f77eba30705b77585cf2b80",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\fresh-zdb-exit.txt",
+    "source_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "archive": "openzfs/logs/fresh-zdb-exit.txt",
+    "archive_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\fresh-zdb-time.txt",
+    "source_sha256": "f68092c4592780e8de86891a5c3e58b90f790646f22d44fb7649a3d486f27a0a",
+    "archive": "openzfs/logs/fresh-zdb-time.txt",
+    "archive_sha256": "f68092c4592780e8de86891a5c3e58b90f790646f22d44fb7649a3d486f27a0a",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\fresh-zdb.txt",
+    "source_sha256": "f2427a3748d0140efe5cde9b055fd40cf6ea5017b9826574e2cfd61a8abfbef8",
+    "archive": "openzfs/logs/fresh-zdb.txt",
+    "archive_sha256": "f2427a3748d0140efe5cde9b055fd40cf6ea5017b9826574e2cfd61a8abfbef8",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\package-metadata.txt",
+    "source_sha256": "e5c6472155eb7e1b842bb501baa9fa8878bc689a76e1a84e7069955ca801f2f0",
+    "archive": "openzfs/logs/package-metadata.txt",
+    "archive_sha256": "e5c6472155eb7e1b842bb501baa9fa8878bc689a76e1a84e7069955ca801f2f0",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\package-sha256.txt",
+    "source_sha256": "0db32132d35bc289085f4ea8ddd09089b21d69035777ee81e1632fedee170c68",
+    "archive": "openzfs/logs/package-sha256.txt",
+    "archive_sha256": "0db32132d35bc289085f4ea8ddd09089b21d69035777ee81e1632fedee170c68",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\reuse-kill-exit.txt",
+    "source_sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+    "archive": "openzfs/logs/reuse-kill-exit.txt",
+    "archive_sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\reuse-kill-time.txt",
+    "source_sha256": "968d1970edbf9d8d82e918254fc1c03b91c4bad1af26cb4a61f56f17bd499289",
+    "archive": "openzfs/logs/reuse-kill-time.txt",
+    "archive_sha256": "968d1970edbf9d8d82e918254fc1c03b91c4bad1af26cb4a61f56f17bd499289",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\reuse-kill.txt",
+    "source_sha256": "039fb931b5c75e4f11a776337620ae6543792b8cdbd2aa92cbbf86f18248de34",
+    "archive": "openzfs/logs/reuse-kill.txt",
+    "archive_sha256": "039fb931b5c75e4f11a776337620ae6543792b8cdbd2aa92cbbf86f18248de34",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\windows-copy-sha256.txt",
+    "source_sha256": "e8dfc1004a42ae712951ef498fa64d56a2f10abdd0d85c0d7a783f7144538026",
+    "archive": "openzfs/logs/windows-copy-sha256.txt",
+    "archive_sha256": "e8dfc1004a42ae712951ef498fa64d56a2f10abdd0d85c0d7a783f7144538026",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\zdb-help.txt",
+    "source_sha256": "220f60b10587ed8f404884ba4be8d59944ec043c15ea3d43bd47f1d879e43793",
+    "archive": "openzfs/logs/zdb-help.txt",
+    "archive_sha256": "220f60b10587ed8f404884ba4be8d59944ec043c15ea3d43bd47f1d879e43793",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\zdb-ldd.txt",
+    "source_sha256": "656570b0f621341d27cf26c8db3c3df553984efb8d5393320991610fb0836fdb",
+    "archive": "openzfs/logs/zdb-ldd.txt",
+    "archive_sha256": "656570b0f621341d27cf26c8db3c3df553984efb8d5393320991610fb0836fdb",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\ztest-help.txt",
+    "source_sha256": "a8ea2fa005c06853cb325d954f7fd4a3599ba573e9667d12d1a7ac15c3d76a55",
+    "archive": "openzfs/logs/ztest-help.txt",
+    "archive_sha256": "a8ea2fa005c06853cb325d954f7fd4a3599ba573e9667d12d1a7ac15c3d76a55",
+    "reduction": "none"
+  },
+  {
+    "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\logs\\ztest-ldd.txt",
+    "source_sha256": "46c1f3d2d1e7647086b5e78577388843e05c560a8bbaa94cb9360d9e3a9949e7",
+    "archive": "openzfs/logs/ztest-ldd.txt",
+    "archive_sha256": "46c1f3d2d1e7647086b5e78577388843e05c560a8bbaa94cb9360d9e3a9949e7",
+    "reduction": "none"
+  }
+]

@@ -1,0 +1,6 @@
+{
+  "btrfs": "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+  "mkfs": "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/sbin/mkfs.btrfs",
+  "deb": "/tmp/nieuw-os-storage-btrfs-20261102/btrfs-progs_6.17.1-1build1_amd64.deb",
+  "deb_sha256": "89fb4fe8fce0d2ca42d2f26d626c7f46181ef6c7c8e2656ea1462579ec9b67e8"
+}

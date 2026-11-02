@@ -1,0 +1,448 @@
+{
+  "schema_version": 1,
+  "task": "N3 OpenZFS proven-engine host userspace recovery gate",
+  "generated_at_utc": "2026-11-02T21:41:05.515271+00:00",
+  "overall_decision": "NOT_ACCEPTED_FOR_NIEUW_OS_NATIVE_BACKEND_OR_FILE_RECOVERY",
+  "summary_nl": "Echte OpenZFS poolaanmaak en checksumcontrole in verse userspaceprocessen zijn aangetoond; gewone bestandsrecovery en eigen-kernelintegratie niet. Crashrun heeft een onopgelost allocatieverschil en voldoet niet aan de strenge no-leak oracle.",
+  "scope": {
+    "execution": "WSL Ubuntu 26.04.1, existing Linux host userspace, amd64",
+    "engine": "Ubuntu OpenZFS 2.4.1-1ubuntu5.1 libzpool + ztest + zdb",
+    "installation": "apt download and dpkg-deb -x only; no package install, kernel module, mount, loop device, physical drive, repository edit or filesystem driver",
+    "allowed_writes": [
+      "/tmp/nieuw-os-storage-zfs-20261102",
+      "C:/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/openzfs"
+    ],
+    "runtime_exception": "ztest creates hardcoded /tmp/ztest.data.XXXXXX with mkstemp and immediately unlinks it; parent explicitly authorized this ephemeral test-harness file. No engine modification."
+  },
+  "preflight_observations": {
+    "source": "Initial tool preflight observed in conversation; raw preflight transcript was not separately retained. Executed binary dependency output retained in logs/*-ldd.txt.",
+    "compiler_available": false,
+    "make_available": false,
+    "initial_zfs_tools_available": false,
+    "host_ram_approx_gib": 30,
+    "logical_cpu_count": 32,
+    "swap_gib": 8
+  },
+  "resource_bounds": {
+    "virtual_memory_per_process_kib": 8388608,
+    "aggregate_rss_hard_limit": null,
+    "ulimit_c": 0,
+    "ulimit_f": 4194304,
+    "MALLOC_ARENA_MAX": "2",
+    "ZFS_STACK_SIZE": "131072",
+    "test_worker_threads": 2,
+    "ztest_run_seconds_argument": 15,
+    "ztest_pass_seconds_argument": 5,
+    "timeouts_seconds": {
+      "create": 90,
+      "create_crash": 120,
+      "fresh_checks": 60,
+      "export_and_object_dump": 30,
+      "blockpointer_listing": 40
+    },
+    "timeout_kill_grace_seconds": 5,
+    "note": "All long probes wrapped in timeout; maxima are observed time(1) process-tree RSS, not hardware performance/RAM sizing recommendations."
+  },
+  "packages": [
+    {
+      "package": "zfs-test",
+      "version": "2.4.1-1ubuntu5.1",
+      "architecture": "amd64",
+      "origin": "Ubuntu",
+      "upstream_filename": "pool/universe/z/zfs-linux/zfs-test_2.4.1-1ubuntu5.1_amd64.deb",
+      "local_path": "packages/zfs-test_2.4.1-1ubuntu5.1_amd64.deb",
+      "sha256": "0e6f7b8c20b219d2b306f3e1b88495061e5866cade9cab30d57438086e508aeb",
+      "apt_metadata_sha256": "0e6f7b8c20b219d2b306f3e1b88495061e5866cade9cab30d57438086e508aeb",
+      "matches_apt_metadata": true
+    },
+    {
+      "package": "zfsutils-linux",
+      "version": "2.4.1-1ubuntu5.1",
+      "architecture": "amd64",
+      "origin": "Ubuntu",
+      "upstream_filename": "pool/main/z/zfs-linux/zfsutils-linux_2.4.1-1ubuntu5.1_amd64.deb",
+      "local_path": "packages/zfsutils-linux_2.4.1-1ubuntu5.1_amd64.deb",
+      "sha256": "a3c347cf864319693dbab830a7759de03ddf394c84935c2c9496105ca2ac030f",
+      "apt_metadata_sha256": "a3c347cf864319693dbab830a7759de03ddf394c84935c2c9496105ca2ac030f",
+      "matches_apt_metadata": true
+    },
+    {
+      "package": "libzpool7linux",
+      "version": "2.4.1-1ubuntu5.1",
+      "architecture": "amd64",
+      "origin": "Ubuntu",
+      "upstream_filename": "pool/main/z/zfs-linux/libzpool7linux_2.4.1-1ubuntu5.1_amd64.deb",
+      "local_path": "packages/libzpool7linux_2.4.1-1ubuntu5.1_amd64.deb",
+      "sha256": "eb548340dd223f7430838108aec905278cbcaf5a744cbc890c5d6b513411a50f",
+      "apt_metadata_sha256": "eb548340dd223f7430838108aec905278cbcaf5a744cbc890c5d6b513411a50f",
+      "matches_apt_metadata": true
+    },
+    {
+      "package": "libzfs7linux",
+      "version": "2.4.1-1ubuntu5.1",
+      "architecture": "amd64",
+      "origin": "Ubuntu",
+      "upstream_filename": "pool/main/z/zfs-linux/libzfs7linux_2.4.1-1ubuntu5.1_amd64.deb",
+      "local_path": "packages/libzfs7linux_2.4.1-1ubuntu5.1_amd64.deb",
+      "sha256": "6af5d55513678cd18d4b082638a72eee407dfa9a661cb492979c26d3a9e5a82c",
+      "apt_metadata_sha256": "6af5d55513678cd18d4b082638a72eee407dfa9a661cb492979c26d3a9e5a82c",
+      "matches_apt_metadata": true
+    },
+    {
+      "package": "libnvpair3linux",
+      "version": "2.4.1-1ubuntu5.1",
+      "architecture": "amd64",
+      "origin": "Ubuntu",
+      "upstream_filename": "pool/main/z/zfs-linux/libnvpair3linux_2.4.1-1ubuntu5.1_amd64.deb",
+      "local_path": "packages/libnvpair3linux_2.4.1-1ubuntu5.1_amd64.deb",
+      "sha256": "6fd0fc246b0822e56deeabbb27c0cc2256c89ae5ba476b4462e77c97290af125",
+      "apt_metadata_sha256": "6fd0fc246b0822e56deeabbb27c0cc2256c89ae5ba476b4462e77c97290af125",
+      "matches_apt_metadata": true
+    },
+    {
+      "package": "libuutil3linux",
+      "version": "2.4.1-1ubuntu5.1",
+      "architecture": "amd64",
+      "origin": "Ubuntu",
+      "upstream_filename": "pool/main/z/zfs-linux/libuutil3linux_2.4.1-1ubuntu5.1_amd64.deb",
+      "local_path": "packages/libuutil3linux_2.4.1-1ubuntu5.1_amd64.deb",
+      "sha256": "cfe5b4903ac4651c419a06a099f50a28b5011e65a752b2aaa50b93ce8bf438ad",
+      "apt_metadata_sha256": "cfe5b4903ac4651c419a06a099f50a28b5011e65a752b2aaa50b93ce8bf438ad",
+      "matches_apt_metadata": true
+    }
+  ],
+  "source_interpretation": [
+    {
+      "local_path": "sources/ztest-2.4.1.c",
+      "url": "https://raw.githubusercontent.com/openzfs/zfs/zfs-2.4.1/cmd/ztest.c",
+      "sha256": "4667a86276069dd75147b003bba47def50ab2675703792876a2cf0213166435d",
+      "limit": "Pinned upstream tag used for interpretation; Ubuntu package may contain distro patches."
+    },
+    {
+      "local_path": "sources/zdb-2.4.1.c",
+      "url": "https://raw.githubusercontent.com/openzfs/zfs/zfs-2.4.1/cmd/zdb/zdb.c",
+      "sha256": "aef215232f4efb2731ed5c117d658fd3c03a648f1be0841b436e245dd2b64180",
+      "limit": "Pinned upstream tag used for interpretation; Ubuntu package may contain distro patches."
+    },
+    {
+      "local_path": "sources/libzpool-kernel.c",
+      "url": "https://raw.githubusercontent.com/openzfs/zfs/zfs-2.4.1/lib/libzpool/kernel.c",
+      "sha256": "b10daf69eea12296143ef83d39a648215b348d5bdc078610450fe1cb67fe76e9",
+      "limit": "Pinned upstream tag used for interpretation; Ubuntu package may contain distro patches."
+    },
+    {
+      "local_path": "sources/libzpool-util.c",
+      "url": "https://raw.githubusercontent.com/openzfs/zfs/zfs-2.4.1/lib/libzpool/util.c",
+      "sha256": "ba90ed953f27ee3d996783334c4ce9c802b3c6ee03056e312267942060fa88d2",
+      "limit": "Pinned upstream tag used for interpretation; Ubuntu package may contain distro patches."
+    },
+    {
+      "local_path": "sources/zutil-import.c",
+      "url": "https://raw.githubusercontent.com/openzfs/zfs/zfs-2.4.1/lib/libzutil/zutil_import.c",
+      "sha256": "0215a118d9ee4f00e0d5e7f4fb1a48fe28720752154645439e0665d84f5de515",
+      "limit": "Pinned upstream tag used for interpretation; Ubuntu package may contain distro patches."
+    }
+  ],
+  "license": {
+    "engine": "CDDL-1.0 with component-specific notices; see complete distro copyright file",
+    "artifact": "licenses/ubuntu-zfs-copyright",
+    "note": "No license compatibility or kernelport conclusion inferred solely from package execution."
+  },
+  "baseline": {
+    "pool": "nieuwos_n3",
+    "pool_guid": "9169139500157372876",
+    "label_version": 5000,
+    "topology": "one top-level mirror with two regular file leaves, 256 MiB each",
+    "ashift": 9,
+    "best_uberblock_txg": 526,
+    "immutable_windows_copies": [
+      {
+        "path": "images/nieuwos_n3.0a",
+        "bytes": 268435456,
+        "sha256": "23a409ac5e9a844056d9096ead0453112f1d1e6e45d4b7d5db084a397baea4ea",
+        "type": "file-vdev mirror member; independent degraded import not tested"
+      },
+      {
+        "path": "images/nieuwos_n3.1a",
+        "bytes": 268435456,
+        "sha256": "20d5d2eb0733df442b8a577693cda629d5e2a5078459a170e74048be1773c647",
+        "type": "file-vdev mirror member; independent degraded import not tested"
+      }
+    ],
+    "on_disk_read_features_from_label": [
+      "com.delphix:hole_birth",
+      "com.delphix:embedded_data",
+      "com.klarasystems:vdev_zaps_v2"
+    ],
+    "feature_refcounts_observed": [
+      {
+        "feature": "large_blocks",
+        "refcount": 6
+      },
+      {
+        "feature": "large_dnode",
+        "refcount": 6
+      },
+      {
+        "feature": "sha512",
+        "refcount": 1
+      },
+      {
+        "feature": "skein",
+        "refcount": 1
+      },
+      {
+        "feature": "edonr",
+        "refcount": 2
+      },
+      {
+        "feature": "userobj_accounting",
+        "refcount": 0
+      },
+      {
+        "feature": "encryption",
+        "refcount": 5
+      },
+      {
+        "feature": "project_quota",
+        "refcount": 0
+      },
+      {
+        "feature": "redaction_bookmarks",
+        "refcount": 0
+      },
+      {
+        "feature": "redacted_datasets",
+        "refcount": 0
+      },
+      {
+        "feature": "bookmark_written",
+        "refcount": 0
+      },
+      {
+        "feature": "livelist",
+        "refcount": 0
+      },
+      {
+        "feature": "zstd_compress",
+        "refcount": 4
+      },
+      {
+        "feature": "zilsaxattr",
+        "refcount": 2
+      },
+      {
+        "feature": "blake3",
+        "refcount": 0
+      },
+      {
+        "feature": "redaction_list_spill",
+        "refcount": 0
+      },
+      {
+        "feature": "longname",
+        "refcount": 0
+      },
+      {
+        "feature": "large_microzap",
+        "refcount": 0
+      },
+      {
+        "feature": "physical_rewrite",
+        "refcount": 0
+      },
+      {
+        "feature": "device_removal",
+        "refcount": 0
+      },
+      {
+        "feature": "indirect_refcount",
+        "refcount": 0
+      }
+    ],
+    "dataset_manifest": [
+      "mos [META], ID 0, cr_txg 4, 922K, 94 objects",
+      "9169139500157372876/ds_1 [OTHER], ID 17, cr_txg 29, 2.49M, 15 objects",
+      "9169139500157372876/temp_0@0 [OTHER], ID 126, cr_txg 461, 61.5K, 5 objects",
+      "9169139500157372876/temp_0 [OTHER], ID 122, cr_txg 459, 61.5K, 5 objects",
+      "9169139500157372876/ds_0 [OTHER], ID 5, cr_txg 6, 790K, 15 objects",
+      "9169139500157372876/temp_1@1 [OTHER], ID 128, cr_txg 479, 336K, 5 objects",
+      "9169139500157372876/temp_1 [OTHER], ID 112, cr_txg 454, 336K, 5 objects",
+      "9169139500157372876 [ZPL], ID 54, cr_txg 1, 1K, 0 objects"
+    ],
+    "content_limit": "ztest OTHER/DMU objectsets; empty ZPL root. No named user-file payload oracle or filesystem tree.",
+    "all_source_and_copy_image_hashes": "logs/final-images-sha256.txt"
+  },
+  "gates": [
+    {
+      "id": "create",
+      "status": "PASS_HOST_POOL_OBJECT_TEST_ONLY",
+      "exit_code": 0,
+      "metrics": {
+        "elapsed": "0:42.94",
+        "max_rss_kib": 243240,
+        "raw_time_log": "logs/create-bounded-time.txt"
+      },
+      "completed_passes": 2,
+      "killed_passes": 0,
+      "fault_inject_calls": 0,
+      "log": "logs/create-bounded.txt",
+      "script": "03-create.sh"
+    },
+    {
+      "id": "fresh_import_check",
+      "status": "PASS_HOST_POOL_OBJECT_CONSISTENCY_ONLY",
+      "exit_code": 0,
+      "metrics": {
+        "elapsed": "0:06.41",
+        "max_rss_kib": 37252,
+        "raw_time_log": "logs/fresh-zdb-time.txt"
+      },
+      "block_count": 1141,
+      "no_leaks_message": true,
+      "checksums": "all metadata and data, -bcc",
+      "import_evidence": "spa_import and LOADED debug messages; separate process after ztest ended",
+      "all_reconstruction_Y": true,
+      "log": "logs/fresh-zdb.txt",
+      "script": "04-baseline-freshcheck.sh"
+    },
+    {
+      "id": "fresh_check_without_Y",
+      "status": "PASS_HOST_POOL_OBJECT_CONSISTENCY_ONLY",
+      "exit_code": 0,
+      "block_count": 1141,
+      "no_leaks_message": true,
+      "all_reconstruction_Y": false,
+      "log": "logs/baseline-allblocks.txt",
+      "script": "09-crash-freshcheck-blocks.sh"
+    },
+    {
+      "id": "ztest_E_reimport",
+      "status": "FAIL_HARNESS_HOST_DEPENDENCY",
+      "exit_code": 3,
+      "metrics": {
+        "elapsed": "0:00.10",
+        "max_rss_kib": 9984,
+        "raw_time_log": "logs/reuse-kill-time.txt"
+      },
+      "log": "logs/reuse-kill.txt",
+      "script": "05-reuse-kill.sh",
+      "finding": "No pools found then assertion. Upstream libzpool/util.c pool_active opens ZFS_DEV and calls ioctl; missing /dev/zfs causes error. zdb can_be_active=true bypasses this host-active check. No module installed and no shim/patch used.",
+      "certainty": "Source-based explanation consistent with observed module-free host; no syscall trace was recorded."
+    },
+    {
+      "id": "process_crash",
+      "status": "NOT_ACCEPTED_STRICT_NO_LEAK_ORACLE",
+      "exit_code": 0,
+      "metrics": {
+        "elapsed": "0:34.53",
+        "max_rss_kib": 135328,
+        "raw_time_log": "logs/crash-create-time.txt"
+      },
+      "actual_SIGKILL_count": 3,
+      "completed_passes": 0,
+      "fault_inject_calls": 0,
+      "physical_power_loss_test": false,
+      "log": "logs/crash-create.txt",
+      "script": "07-crash-create.sh"
+    },
+    {
+      "id": "post_crash_fresh_check",
+      "status": "NOT_ACCEPTED_UNRESOLVED_ALLOCATION_DIFFERENCE",
+      "exit_code": 0,
+      "metrics": {
+        "elapsed": "0:06.20",
+        "max_rss_kib": 32384,
+        "raw_time_log": "logs/crash-fresh-zdb-time.txt"
+      },
+      "block_count": 519,
+      "reported_checksum_errors": 0,
+      "reported_leaked_bytes": 9216,
+      "traversal_allocated_bytes": 1346560,
+      "space_map_allocated_bytes": 1355776,
+      "all_reconstruction_Y": false,
+      "log": "logs/crash-fresh-zdb.txt",
+      "script": "09-crash-freshcheck-blocks.sh",
+      "interpretation": "Exit 0 does not satisfy our stricter no-leak output oracle. Cause remains unresolved; not a production OpenZFS defect claim.",
+      "preserved_pool_archive": "images/crash-pool.tar.gz"
+    },
+    {
+      "id": "raw_DMU_backup_stream",
+      "status": "FAIL_ABORT_EMPTY_OUTPUT",
+      "exit_code": 134,
+      "output_bytes": 0,
+      "log": "logs/backup-stream.txt",
+      "script": "08-backup-stream.sh",
+      "finding": "dsl_crypto_populate_key_nvlist assertion; no usable backup stream and no successful receive/restore."
+    },
+    {
+      "id": "verbose_DMU_object_dump",
+      "status": "FAIL_ASSERTION",
+      "exit_code": 134,
+      "log": "logs/ds0-objects.txt",
+      "script": "08-backup-stream.sh",
+      "finding": "arc_buf_try_copy_decompressed_data assertion; no payload extraction claim."
+    },
+    {
+      "id": "corrupt_block_mirror_recovery",
+      "status": "NOT_TESTED",
+      "reason": "No external corruption injected; ztest_fault_inject actual count zero."
+    },
+    {
+      "id": "persistent_self_healing",
+      "status": "NOT_TESTED",
+      "reason": "No corrupted-copy pre/post proof and no repair claim."
+    },
+    {
+      "id": "named_file_export_restore",
+      "status": "NOT_TESTED",
+      "reason": "No normal ZPL file tree; DMU/pool verification does not establish file recovery."
+    },
+    {
+      "id": "own_kernel_integration",
+      "status": "NOT_TESTED_BY_N3",
+      "reason": "Linux dynamic ELF binaries require glibc, ELF interpreter, threads and host syscalls; dependency evidence in ldd logs. No native source build/port attempted; separate native agent tests only format recognition."
+    }
+  ],
+  "failed_setup_attempts": [
+    {
+      "script": "03-create-initial-help-mismatch.sh",
+      "log": "logs/create.txt",
+      "exit_code": 1,
+      "finding": "-C off rejected; help syntax differs from actual required property=value."
+    },
+    {
+      "script": "03-create-invalid-dedup.sh",
+      "log": "logs/create-retry.txt",
+      "exit_code": 1,
+      "finding": "dedup=off not accepted for vdev class state."
+    },
+    {
+      "script": "03-create-unsupported-tunable.sh",
+      "log": "logs/create-run.txt",
+      "exit_code": 3,
+      "finding": "zfs_arc_max/min unavailable as tunables in this package."
+    },
+    {
+      "script": "03-create-low-as.sh",
+      "log": "logs/create-final.txt",
+      "exit_code": 1,
+      "finding": "4 GiB virtual-address cap caused pthread_create EAGAIN; subsequent bounded 8 GiB run succeeded."
+    }
+  ],
+  "not_established": [
+    "Physical device power-loss safety",
+    "Persisted user-file ACK/durability contract",
+    "Full-disk and SSD-wear behavior",
+    "Lost-key recovery",
+    "Recovery on a second physical device",
+    "Reliable ordinary file export or import",
+    "Stable production RAM/performance figures",
+    "Native compatibility with nieuw-os kernel"
+  ],
+  "official_documentation": [
+    "https://openzfs.github.io/openzfs-docs/man/v2.4/1/ztest.1.html",
+    "https://openzfs.github.io/openzfs-docs/man/v2.4/8/zdb.8.html"
+  ],
+  "raw_log_hash_manifest": "artifact-sha256.json"
+}

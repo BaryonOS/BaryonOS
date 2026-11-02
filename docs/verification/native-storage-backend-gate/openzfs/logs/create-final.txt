@@ -1,0 +1,2 @@
+setting global var zfs_arc_max=268435456 ... failed
+failed to set global var 'zfs_arc_max=268435456'

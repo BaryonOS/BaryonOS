@@ -1,5 +1,41 @@
 # Actuele projectstatus
 
+## NEXT AGENT HANDOFF — native opslagbackendtoets — 2 november 2026
+
+**Bron:** `e08fb0e48c1bb0781e98357f588c2f73b6ae8500`, bewijsbranch
+`codex/native-storage-backend-gate-20261102`. Eigen kernel en drivers ongewijzigd.
+Alleen wegwerpbestanden; vreemde datadisks uitsluitend read-only.
+
+**Uitgevoerd:** opnieuw gebouwde native NOSVOL02-normal en cold-recover slagen
+(QEMU raw exit 33). Btrfs en één OpenZFS-mirrorlid leveren geen native import
+of bestandsherstel (exit 35). Btrfs-nulheaders worden als lege proefstaat
+toegelaten, waarna de documentcontrole faalt; dit is geen veilige generieke
+formaatafwijzing. OpenZFS wordt als Corrupt geweigerd. Alle vreemde bron- en
+proefimagehashes zijn gelijk voor/na de boots.
+
+**Hostbewijs:** Btrfs-reservesuperblockherstel slaagt; databitcorruptie wordt
+gedetecteerd maar `restore` geeft corrupte inhoud met exit 0 terug. Aparte
+metadata-import/salvage verliest onder meer hardlinktopologie en lege-mapdata.
+OpenZFS-libzpool/zdb kan de hostpool controleren/importeren; `ztest -E` heeft
+een `/dev/zfs`-discoverygrens, de crashproef meldt een onopgelost allocatieverschil
+en gewone bestands-/backuprestore is niet aangetoond. Dit is geen native port.
+
+**Besluit en score:** native adoptie van beide backends blijft niet geaccepteerd;
+geen eigen driver of nieuw diskformaat gestart. **34/100 → 34/100**; S09 blijft
+open. Bestaand positief NOSVOL02-bewijs wordt niet uitgebreid tot vreemde FS'en.
+Zie [toets en reproduceerroute](verification/native-storage-backend-gate/README.md).
+De oorspronkelijke hoofdcheckout en ongerelateerde `.github/github-app.yml`
+zijn behouden; deze branch wijzigt uitsluitend bewijs/documentatie/assessment.
+
+**Open:** positieve formaatidentiteit vóór writable toelating; gecontroleerde
+bestaande-engineport naar de eigen ABI; onafhankelijk inhouds- én metadata-orakel;
+verklaring van de OpenZFS-harnasbevindingen. Geen fysieke powercut-, volledige
+snapshot-/encryptie-/backup- of prestatietoelating.
+
+**Eerstvolgende controle:**
+`python3 tools/progress.py --check`, daarna de beschreven native-enginepoort
+beoordelen zonder een Linux-kernel of nieuw bestandssysteem als omweg in te voeren.
+
 ## NEXT AGENT HANDOFF — PR- en issueafhandeling na integratie 1 en 2 — 30 oktober 2026
 
 **Mandaat:** Simon heeft de Claude Code-sessie in de desktopapp op 30 oktober

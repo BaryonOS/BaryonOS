@@ -1,0 +1,477 @@
+[
+  {
+    "name": "uname",
+    "argv": [
+      "uname",
+      "-a"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.013,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/uname.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/uname.stderr.txt"
+  },
+  {
+    "name": "os-release",
+    "argv": [
+      "cat",
+      "/etc/os-release"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.014,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/os-release.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/os-release.stderr.txt"
+  },
+  {
+    "name": "package-policy",
+    "argv": [
+      "apt-cache",
+      "policy",
+      "btrfs-progs"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.028,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/package-policy.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/package-policy.stderr.txt"
+  },
+  {
+    "name": "package-metadata",
+    "argv": [
+      "apt-cache",
+      "show",
+      "btrfs-progs"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.027,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/package-metadata.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/package-metadata.stderr.txt"
+  },
+  {
+    "name": "package-dependencies",
+    "argv": [
+      "apt-cache",
+      "depends",
+      "btrfs-progs"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.159,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/package-dependencies.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/package-dependencies.stderr.txt"
+  },
+  {
+    "name": "download",
+    "argv": [
+      "apt",
+      "download",
+      "btrfs-progs"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.428,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/download.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/download.stderr.txt"
+  },
+  {
+    "name": "package-fields",
+    "argv": [
+      "dpkg-deb",
+      "--field",
+      "/tmp/nieuw-os-storage-btrfs-20261102/btrfs-progs_6.17.1-1build1_amd64.deb"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.015,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/package-fields.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/package-fields.stderr.txt"
+  },
+  {
+    "name": "extract",
+    "argv": [
+      "dpkg-deb",
+      "--extract",
+      "/tmp/nieuw-os-storage-btrfs-20261102/btrfs-progs_6.17.1-1build1_amd64.deb",
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.028,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/extract.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/extract.stderr.txt"
+  },
+  {
+    "name": "ldd-btrfs",
+    "argv": [
+      "ldd",
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.017,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/ldd-btrfs.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/ldd-btrfs.stderr.txt"
+  },
+  {
+    "name": "ldd-mkfs",
+    "argv": [
+      "ldd",
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/sbin/mkfs.btrfs"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.015,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/ldd-mkfs.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/ldd-mkfs.stderr.txt"
+  },
+  {
+    "name": "btrfs-version",
+    "argv": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+      "version"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.011,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/btrfs-version.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/btrfs-version.stderr.txt"
+  },
+  {
+    "name": "mkfs-version",
+    "argv": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/sbin/mkfs.btrfs",
+      "--version"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.011,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/mkfs-version.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/mkfs-version.stderr.txt"
+  },
+  {
+    "name": "mkfs-help",
+    "argv": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/sbin/mkfs.btrfs",
+      "--help"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.012,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/mkfs-help.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/mkfs-help.stderr.txt"
+  },
+  {
+    "name": "check-help",
+    "argv": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+      "check",
+      "--help"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.011,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/check-help.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/check-help.stderr.txt"
+  },
+  {
+    "name": "restore-help",
+    "argv": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+      "restore",
+      "--help"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.011,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/restore-help.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/restore-help.stderr.txt"
+  },
+  {
+    "name": "dump-tree-help",
+    "argv": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+      "inspect-internal",
+      "dump-tree",
+      "--help"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.011,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/dump-tree-help.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/dump-tree-help.stderr.txt"
+  },
+  {
+    "name": "mkfs-baseline",
+    "argv": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/sbin/mkfs.btrfs",
+      "--rootdir",
+      "/tmp/nieuw-os-storage-btrfs-20261102/seed",
+      "--label",
+      "nieuw-os-probe",
+      "-d",
+      "single",
+      "-m",
+      "dup",
+      "/tmp/nieuw-os-storage-btrfs-20261102/baseline.img"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.025,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/mkfs-baseline.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/mkfs-baseline.stderr.txt"
+  },
+  {
+    "name": "baseline-check",
+    "argv": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+      "check",
+      "--readonly",
+      "--check-data-csum",
+      "/tmp/nieuw-os-storage-btrfs-20261102/baseline.img"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.011,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/baseline-check.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/baseline-check.stderr.txt"
+  },
+  {
+    "name": "baseline-restore",
+    "argv": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+      "restore",
+      "-S",
+      "-x",
+      "-m",
+      "/tmp/nieuw-os-storage-btrfs-20261102/baseline.img",
+      "/tmp/nieuw-os-storage-btrfs-20261102/restore-baseline"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 1,
+    "elapsed_seconds": 0.008,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/baseline-restore.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/baseline-restore.stderr.txt"
+  },
+  {
+    "name": "baseline-dump-fs",
+    "argv": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+      "inspect-internal",
+      "dump-tree",
+      "--noscan",
+      "-t",
+      "fs",
+      "/tmp/nieuw-os-storage-btrfs-20261102/baseline.img"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.01,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/baseline-dump-fs.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/baseline-dump-fs.stderr.txt"
+  },
+  {
+    "name": "baseline-dump-chunk",
+    "argv": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+      "inspect-internal",
+      "dump-tree",
+      "--noscan",
+      "-t",
+      "chunk",
+      "/tmp/nieuw-os-storage-btrfs-20261102/baseline.img"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.008,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/baseline-dump-chunk.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/baseline-dump-chunk.stderr.txt"
+  },
+  {
+    "name": "baseline-dump-super",
+    "argv": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+      "inspect-internal",
+      "dump-super",
+      "-a",
+      "/tmp/nieuw-os-storage-btrfs-20261102/baseline.img"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.008,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/baseline-dump-super.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/baseline-dump-super.stderr.txt"
+  },
+  {
+    "name": "baseline-precreated-restore",
+    "argv": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+      "restore",
+      "-S",
+      "-x",
+      "-m",
+      "/tmp/nieuw-os-storage-btrfs-20261102/baseline.img",
+      "/tmp/nieuw-os-storage-btrfs-20261102/restore-baseline-precreated"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.041,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/baseline-precreated-restore.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/baseline-precreated-restore.stderr.txt"
+  },
+  {
+    "name": "dependency-installed-versions",
+    "argv": [
+      "dpkg-query",
+      "-W",
+      "-f=${Package}\t${Version}\n",
+      "libblkid1",
+      "libc6",
+      "libcom-err2",
+      "libext2fs2t64",
+      "liblzo2-2",
+      "libudev1",
+      "libuuid1",
+      "libzstd1",
+      "zlib1g"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.019,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/dependency-installed-versions.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/dependency-installed-versions.stderr.txt"
+  },
+  {
+    "name": "primary-superblock-check",
+    "argv": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+      "check",
+      "--readonly",
+      "--check-data-csum",
+      "/tmp/nieuw-os-storage-btrfs-20261102/primary-superblock.img"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 1,
+    "elapsed_seconds": 0.014,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/primary-superblock-check.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/primary-superblock-check.stderr.txt"
+  },
+  {
+    "name": "primary-superblock-restore",
+    "argv": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+      "restore",
+      "-S",
+      "-x",
+      "-m",
+      "/tmp/nieuw-os-storage-btrfs-20261102/primary-superblock.img",
+      "/tmp/nieuw-os-storage-btrfs-20261102/restore-primary-superblock"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.017,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/primary-superblock-restore.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/primary-superblock-restore.stderr.txt"
+  },
+  {
+    "name": "primary-superblock-check-super1",
+    "argv": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+      "check",
+      "--readonly",
+      "--check-data-csum",
+      "--super",
+      "1",
+      "/tmp/nieuw-os-storage-btrfs-20261102/primary-superblock.img"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.016,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/primary-superblock-check-super1.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/primary-superblock-check-super1.stderr.txt"
+  },
+  {
+    "name": "primary-superblock-super1-restore",
+    "argv": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+      "restore",
+      "-S",
+      "-x",
+      "-m",
+      "--super",
+      "1",
+      "/tmp/nieuw-os-storage-btrfs-20261102/primary-superblock.img",
+      "/tmp/nieuw-os-storage-btrfs-20261102/restore-primary-superblock-super1"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.017,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/primary-superblock-super1-restore.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/primary-superblock-super1-restore.stderr.txt"
+  },
+  {
+    "name": "payload-bitflip-check",
+    "argv": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+      "check",
+      "--readonly",
+      "--check-data-csum",
+      "/tmp/nieuw-os-storage-btrfs-20261102/payload-bitflip.img"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 1,
+    "elapsed_seconds": 0.015,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/payload-bitflip-check.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/payload-bitflip-check.stderr.txt"
+  },
+  {
+    "name": "payload-bitflip-restore",
+    "argv": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+      "restore",
+      "-S",
+      "-x",
+      "-m",
+      "/tmp/nieuw-os-storage-btrfs-20261102/payload-bitflip.img",
+      "/tmp/nieuw-os-storage-btrfs-20261102/restore-payload-bitflip"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 0,
+    "elapsed_seconds": 0.016,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/payload-bitflip-restore.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/payload-bitflip-restore.stderr.txt"
+  },
+  {
+    "name": "truncated-check",
+    "argv": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+      "check",
+      "--readonly",
+      "--check-data-csum",
+      "/tmp/nieuw-os-storage-btrfs-20261102/truncated.img"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 1,
+    "elapsed_seconds": 0.014,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/truncated-check.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/truncated-check.stderr.txt"
+  },
+  {
+    "name": "truncated-restore",
+    "argv": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+      "restore",
+      "-S",
+      "-x",
+      "-m",
+      "/tmp/nieuw-os-storage-btrfs-20261102/truncated.img",
+      "/tmp/nieuw-os-storage-btrfs-20261102/restore-truncated"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102",
+    "exit_code": 1,
+    "elapsed_seconds": 0.012,
+    "stdout": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/truncated-restore.stdout.txt",
+    "stderr": "/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs/logs/truncated-restore.stderr.txt"
+  }
+]

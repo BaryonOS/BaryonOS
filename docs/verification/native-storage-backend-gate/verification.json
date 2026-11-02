@@ -1,0 +1,48 @@
+{
+  "kind": "evidence-integrity-check",
+  "filesystem_acceptance": false,
+  "checks": [
+    {
+      "check": "btrfs/sha256-manifest.json",
+      "matching_hashes": 82
+    },
+    {
+      "check": "btrfs/metadata/sha256-manifest.json",
+      "matching_hashes": 17
+    },
+    {
+      "check": "Btrfs corruption outcomes",
+      "passed": true
+    },
+    {
+      "check": "Metadata limitations preserved",
+      "passed": true
+    },
+    {
+      "check": "control-normal",
+      "raw_qemu_exit": 33,
+      "hash_and_scope_verified": true
+    },
+    {
+      "check": "control-recover",
+      "raw_qemu_exit": 33,
+      "hash_and_scope_verified": true
+    },
+    {
+      "check": "btrfs-readonly",
+      "raw_qemu_exit": 35,
+      "hash_and_scope_verified": true
+    },
+    {
+      "check": "openzfs-leaf-readonly",
+      "raw_qemu_exit": 35,
+      "hash_and_scope_verified": true
+    },
+    {
+      "check": "OpenZFS artifact hashes and negative oracle",
+      "matching_hashes": 84,
+      "native_and_file_recovery_accepted": false
+    }
+  ],
+  "all_checks_passed": true
+}

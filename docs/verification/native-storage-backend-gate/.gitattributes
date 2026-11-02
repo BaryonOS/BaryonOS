@@ -1,0 +1,4 @@
+# Preserve captured bytes and their SHA256 across Git checkouts.
+* -text whitespace=cr-at-eol
+# Captured stdout/stderr may intentionally contain blank lines and trailing spaces.
+*.txt whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol
