@@ -2,6 +2,15 @@
 
 Status: **onderzoek en strategische onderbouwing, geen native implementatiebewijs**.
 
+## Actuele aanvulling — fase 2–4, 2 november 2026
+
+[De nieuwe onderzoeksindex](2026-11-02/README.md) bevat platformdossiers,
+een vergelijkende behoeftematrix, overstapbarrières en OS-ontwerptrends.
+De oorspronkelijke Eurobarometer-vraag QB6.4, tabel, methode en bewijsgrenzen
+zijn gecontroleerd; 58% betreft digitale dienstverleners, geen OS-migratie.
+De hieronder beschreven verkenningen van 28 oktober blijven als gedateerde
+achtergrond behouden; actuele broncontroles en beperkingen staan in de aanvulling.
+
 Deze map bewaart de repositoryvertaling van twee onderzoeken van 28 oktober 2026:
 
 - het marktonderzoek naar gaten in de desktop-OS-markt, Europese alternatieven, ontwerp-/prestatietrends, positionering en blijvende overstap;

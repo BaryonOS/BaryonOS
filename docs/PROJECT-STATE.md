@@ -1,6 +1,37 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR- en issueafhandeling na integratie 1 en 2 — 30 oktober 2026
+## NEXT AGENT HANDOFF — onderzoeksfase 2–4 vastgelegd — 2 november 2026
+
+**Scope:** uitsluitend onderzoek en documentatiestatus, geen productcode.
+Bronbasis main `e08fb0e48c1bb0781e98357f588c2f73b6ae8500`; branch
+`codex/os-research-phases-2-4-20261102`. De apart gelezen ontwikkelbranch
+`codex/mature-native-session-20261102` is vastgepind op `1f0dd9c93959e3b1335656da1e548525a288133e`
+en niet in deze documentatiebranch geïntegreerd.
+
+**Geleverd:** [onderzoeksindex](research/2026-11-02/README.md), vastgelegde
+repositorybasis, Windows/macOS- en Linux/Android-dossiers, vergelijkende
+behoeftematrix, Europese adoptie/barrières, ontwerptijdlijn en toekomsthypothesen.
+Bronnen, raadpleegdatums en beperkingen staan per claim/register.
+Eurobarometer 572/QB6.4 is gecontroleerd in originele vragenlijst, rapport en
+data-annex: 21+37=58% instemming met dienstoverstap, geen OS-migratie.
+Bronafwijkingen bij technische rapportkop en Cyprus-landlabel zijn zichtbaar bewaard.
+
+**Bewijs en score:** mainbasis 34/100 → 34/100; geen nieuwe native, fysieke,
+menselijke of releaseacceptatie. Ontwikkelbron `1f0dd9c` rapporteert afzonderlijk
+41/100; deze onderzoekstaak kopieert die score niet naar main.
+Document-/bronverwijzingen, Eurobarometergegevens, scope en progressgeneratie
+worden vóór commit gecontroleerd; geen kernelbuild of QEMU-herhaling nodig voor
+uitsluitend documentatie. Definitieve controle-uitkomsten:
+[verification.json](research/2026-11-02/verification.json).
+
+**Open:** geen eigen representatieve EU-gebruikersstudie, praktijkmigratie,
+betalings- of retentiemeting. Fase 5–8 kan nu concepten, prioriteiten en een
+implementatieplan uitwerken; productcode blijft uitdrukkelijk buiten deze stap.
+De bestaande integrator- en mergeafspraken blijven behouden. Eerstvolgend:
+lees onderzoeksindex en bronbeperkingen naast het actuele productcheckpoint;
+controleer bronstand opnieuw vóór een implementatievoorstel.
+
+## Vorige handoff — PR- en issueafhandeling na integratie 1 en 2 — 30 oktober 2026
 
 **Mandaat:** Simon heeft de Claude Code-sessie in de desktopapp op 30 oktober
 (~21:10 CET) aangewezen als enige operationele integrator voor alle open PR's
