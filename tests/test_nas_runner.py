@@ -33,6 +33,29 @@ def transcript(case):
 
 
 class NasRunnerTests(unittest.TestCase):
+    def test_safe_serial_keeps_only_allowlisted_failure_diagnostics(self):
+        serial = "\n".join([
+            "NAS:FAIL:ROLE_RESULT",
+            "NAS:ERROR:SLOT:00000000000000000003",
+            "NAS:ERROR:STEP:00000000000000000017",
+            "NAS:TIMEOUT:SLOT:00000000000000000002",
+            "NAS:TIMEOUT:STEP:00000000000000000123",
+            "NAS:FAIL:" + PAYLOAD.hex().upper(),
+            "NAS:ERROR:STEP:000000000000000000017",
+            "NAS:FAIL:UNEXPECTED SECRET",
+        ]) + "\n"
+
+        archived = runner.safe_serial_evidence(serial)
+
+        self.assertIn("NAS:FAIL:ROLE_RESULT\n", archived)
+        self.assertIn("NAS:ERROR:SLOT:00000000000000000003\n", archived)
+        self.assertIn("NAS:ERROR:STEP:00000000000000000017\n", archived)
+        self.assertIn("NAS:TIMEOUT:SLOT:00000000000000000002\n", archived)
+        self.assertIn("NAS:TIMEOUT:STEP:00000000000000000123\n", archived)
+        self.assertNotIn(PAYLOAD.hex().upper(), archived)
+        self.assertNotIn("UNEXPECTED SECRET", archived)
+        self.assertIn("NAS:OUTPUT:REDACTED\n", archived)
+
     def test_exact_normal_and_cold_evidence(self):
         for case in runner.FEATURES:
             result = runner.evaluate(case, transcript(case), 33, False)

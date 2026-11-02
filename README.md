@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`f7371755`](https://github.com/simonvanieperen/nieuw-os/commit/f7371755d90ccc71469577519de0af831f10edc4) ·
+**Bron:** [`2b479c1f`](https://github.com/simonvanieperen/nieuw-os/commit/2b479c1f5667976f98d3c22bcd1d81e21c6cd923) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-waddle`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Issue-afhandeling: integratie #120, herstel NAS-tokenarchivering en gerelateerde reviewbevindingen.
-34/100 blijft 34/100; geen nieuw rubriccriterium is geaccepteerd. PR #120 is op 05f97cc opgenomen in de concept-integratiebranch PR #125 voor #109/#110 en de componentdelta's. De NAS-runner controleert nu ruwe stdout/stderr op het volledige tokenpaar en beide tokenhelften vóór archivering, bewaart alleen allowlist-serialmarkers en houdt stderr achter als uitvoer niet veilig is geverifieerd. 19 NAS-runner- en 3 volume-runner-hosttests slagen; lokale cargo ontbreekt. Alle geconfigureerde checks inclusief native NAS normal/cold zijn groen op PR #125-head f737175; CodeRabbit is nog overgeslagen omdat de PR concept is. #39–#43 blijven open: netwerk- en sessieacceptatie missen volledige native bewijs, #41 vereist een nog niet geautoriseerde productie-sleutelhandeling, #42 fysieke hardwaretests en #43 een uitgevoerde bewijsroute naar 50%. Geen punten op basis van plannen, hostbewijs of deelproeven.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Issues oplossen: PR #125-review, overdrachtsregistratie en NAS-tokenredactie.
+34/100 blijft 34/100; geen rubriccriterium is nieuw geaccepteerd. PR #120 en #115/#119-gerelateerde wijzigingen voor #109/#110 zijn opgenomen in PR #125, nog niet in main. De eerdere tokenarchiveringsfix blijft gecontroleerd vóór archivering; de reviewdelta voegt een strikte allowlist voor NAS-foutdiagnostiek toe en verduidelijkt de replayvalidatiegrens. De gerichte NAS-runner-suite slaagt met 20 hosttests; git diff --check slaagt. Alle relevante checks en CodeRabbit waren groen op exacte PR-head 2b479c1 vóór deze lokale delta; nieuwe delta-CI is nog niet uitgevoerd. Simon heeft op 2 november het exclusieve integratormandaat overgedragen en de #85/#76-pauze expliciet opgeheven, met behoud van alle gates. #109/#110 blijven open tot aantoonbare main-integratie; #39–#43 blijven open wegens ontbrekende volledige native, fysieke of routeacceptatie. Hostbewijs, planning en deelproeven leveren geen punten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

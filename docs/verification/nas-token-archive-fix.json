@@ -22,9 +22,34 @@
       "log": "/tmp/nieuw-os-materiaal-cargo-test.log"
     }
   ],
+  "review_followup": {
+    "base_commit": "2b479c1f5667976f98d3c22bcd1d81e21c6cd923",
+    "changed_source_diff_sha256": "8216a2f5e16ff0a1a6bdfc095e88776c67b97f8e7d18f3a2dd5f5a64970d84ff",
+    "checks": [
+      {
+        "command": "python3 -B -m unittest discover -s tests -p 'test_nas_runner.py' -v",
+        "exit_code": 0,
+        "tests": 20,
+        "log": "/tmp/nieuw-os-nas-runner-review-fixes-final.log"
+      },
+      {
+        "command": "python3 -B -m unittest discover -s tests -p 'test_volume_runner.py' -v",
+        "exit_code": 0,
+        "tests": 3,
+        "log": "/tmp/nieuw-os-volume-runner-final.log"
+      },
+      {
+        "command": "git diff --check",
+        "exit_code": 0
+      }
+    ],
+    "not_run": [
+      "Exact-head CI for the review follow-up delta; the earlier 2b479c1 remote results predate this delta."
+    ]
+  },
   "not_run": [
     "cargo fmt for sdk/examples/materiaal: cargo is unavailable.",
     "Native NAS normal/cold on this source commit: must be run by exact-head CI."
   ],
-  "evidence_boundary": "Host tests prove the runner's redaction and rejection paths only. The green NAS CI run on 562be4d predates this fix and is not evidence for the changed source."
+  "evidence_boundary": "Host tests prove runner redaction and rejection paths only. Exact-head CI on 2b479c1 passed after the original token-archive fix; that result does not cover the review_followup delta, which still requires exact-head CI."
 }

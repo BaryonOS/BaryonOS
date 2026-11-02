@@ -77,11 +77,21 @@ def safe_serial_evidence(serial: str) -> str:
         "NAS:REPLAY_INPUT:PASS", "NAS:BROKERS:PASS", "NAS:CLEANUP:PASS",
         "NAS:CASE:NORMAL:PASS", "NAS:CASE:RECOVER:PASS",
     }
+    failures = {
+        "REPLAY_INPUT_ZERO", "REPLAY_INPUT", "REPLAY_INPUT_IN_NORMAL",
+        "MANIFEST_ENGINE", "UNEXPECTED_EXIT", "ROLE_RESULT", "DUPLICATE_EXIT",
+        "PROCESS_FAULT", "UNEXPECTED_EVENT", "TIMEOUT", "NAS_READY",
+    }
     number = re.compile(
         r"NAS:(?:ADMIN_PID|GUEST_PID|ROLE_SLOT|RPC_OK|RPC_ERRORS|RIGHTS_DENIED|"
-        r"STACK_TOUCHED|ENTROPY_BYTES|DISK_READS|DISK_WRITES|DISK_FLUSHES):[0-9]{20}\Z")
+        r"STACK_TOUCHED|ENTROPY_BYTES|DISK_READS|DISK_WRITES|DISK_FLUSHES|"
+        r"ERROR:SLOT|ERROR:STEP|TIMEOUT:SLOT|TIMEOUT:STEP):[0-9]{20}\Z")
     lines = serial.splitlines()
-    safe = [line for line in lines if line in markers or number.fullmatch(line)]
+    safe = [
+        line for line in lines
+        if line in markers or number.fullmatch(line)
+        or (line.startswith("NAS:FAIL:") and line[9:] in failures)
+    ]
     if len(safe) != len(lines):
         safe.append("NAS:OUTPUT:REDACTED")
     return "\n".join(safe) + ("\n" if safe else "")

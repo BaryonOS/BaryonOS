@@ -228,11 +228,14 @@ en manifest via `tests/replay_handoff.py` met volledige bron-/run-/rol-/stage-
 binding. Voor de koude run valideert de runner opnieuw, maakt een read-only
 0400-kopie en geeft die als `-fw_cfg name=opt/nieuw-os/nas-replay` mee. De
 kernel leest het `fw_cfg`-bestand (signatuur `QEMU`, unieke naam, exact 80
-bytes), weigert ontbrekende/afwijkende invoer in de koude run
-(`REPLAY_INPUT`) en elke invoer in de normale run (`REPLAY_INPUT_IN_NORMAL`),
-en zet de bytes in startupbytes 256..336 vóór de gast start. Na de run
-vergelijkt de runner de SHA-256 van de invoerkopie en verwijdert de privémap.
-Rapporten, serial en CI-artifacts bevatten alleen de SHA-256 van het paar.
+bytes). In de koude run weigert hij ontbrekende of verkeerd geframede invoer
+(`REPLAY_INPUT`) en een volledig nul-paar (`REPLAY_INPUT_ZERO`); hij vergelijkt
+de tokens niet zelf met de normale run. In de normale run weigert hij iedere
+aanwezige of onleesbare replay-invoer (`REPLAY_INPUT_IN_NORMAL`). De runner
+controleert dat de payload overeenkomt met de SHA-256 in het gebonden manifest,
+maakt een read-only invoerkopie en vergelijkt die hash opnieuw na de run. Daarna
+verwijdert hij de privémap. Rapporten, serial en CI-artifacts bevatten alleen
+de SHA-256 van het paar.
 Firmware heeft geen apparaat of driver op poort 0x4f8 en leest geen
 `opt/nieuw-os/*`-bestanden; geen proces krijgt port-I/O of een nieuwe
 capability. Recoverytellers zijn nu `[(4,0),(4,5),(0,5)]` voor

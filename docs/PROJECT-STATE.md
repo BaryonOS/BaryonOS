@@ -1,60 +1,58 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — herstel NAS-tokenarchivering — 2 november 2026
+## NEXT AGENT HANDOFF — PR #125-review en issue-integratie — 2 november 2026
 
-**Bron:** branch-head `f7371755d90ccc71469577519de0af831f10edc4` van de
-concept-PR #125; implementatie-/reviewfixcommit `05f97cc92c638f2d94ddc4d4a00e73683ac3dfbc`.
-De fixcommit voegt PR #120-head `562be4d13b9d039d7e8fece2f0fc26e767dccb15`
-toe aan basis `e08fb0e48c1bb0781e98357f588c2f73b6ae8500`. PR #120 bevat de
-implementaties voor #109 en #110 plus de overige componentdelta's; de volledige
-broninventaris staat in
+**Integratormandaat:** Simon heeft op 2 november expliciet het exclusieve
+integratormandaat van sessie `7f895683` aan deze sessie (`f090b913`)
+overgedragen en de #85/#76-mergepauze opgeheven, met behoud van review-, test-
+en branchregels. De oude integrator bevestigde geen lopende/verzonden
+transacties, actief WIP of conflictclaim en stopt met operationele integratie.
+De wijziging staat ook in [WORK-QUEUE.md](WORK-QUEUE.md). Dit is de actuele
+autorisatie; het bewijst niet achteraf dat de desktop→cloud-overdracht vóór
+integratie 3 expliciet was.
+
+**Bron:** PR #125, branch `simonvanieperen-studious-waddle`, exacte remote-head
+`2b479c1f5667976f98d3c22bcd1d81e21c6cd923`; basis `main` is
+`e08fb0e48c1bb0781e98357f588c2f73b6ae8500`. PR #120-head
+`fb1e1a5c25429a0495e861f01602d4c0691f4f03` bevat de bron voor #109/#110 en
+componentdelta's; opname en bestanden staan in
 [pr-integration-3-20261031.json](verification/pr-integration-3-20261031.json).
 
-**Reviewherstel geïmplementeerd:** controleer de ruwe stdout en stderr vóór
-archivering op het volledige paar en elk van beide 40-bytetokens, inclusief
-hexweergave. `serial.txt` bewaart alleen allowlist-markers; stderr wordt
-achtergehouden als de tokencontrole niet slaagt. Regressies testen beide
-tokenhelften, het paar en stderr. De oude PR #120-head-checks zijn groen
-(waaronder native NAS, run 41511329639), maar gaan vooraf aan deze fix en
-bewijzen haar niet.
+**Lokale reviewfixes, nog niet gecommit op dit checkpoint:**
+- `tools/test_nas.py` bewaart alleen vaste NAS-foutlabels en exact 20-cijferige
+  diagnostics, naast bestaande allowlist-markers.
+- `tests/test_nas_runner.py` test veilige foutdiagnostiek, te lange waarden en
+  tokenbytes; `services/nas/native-probe/CONTRACT.md` beschrijft de precieze
+  kernel- en runnercontroles.
+- `docs/WORK-QUEUE.md` maakt expliciet dat historische afwezigheid van
+  desktopactiviteit geen overdrachtsbewijs is en noteert alleen de nieuwe,
+  rechtstreeks door Simon bevestigde overdracht van 2 november.
 
-**Lokale verificatie:**
-- `python3 -B -m unittest discover -s tests -p 'test_nas_runner.py' -v` —
-  exit 0, 19 tests; log `/tmp/nieuw-os-nas-runner-tests.log`.
-- `python3 -B -m unittest discover -s tests -p 'test_volume_runner.py' -v` —
-  exit 0, 3 tests; log `/tmp/nieuw-os-volume-runner-tests.log`.
-- `cargo +1.90.0 test --manifest-path sdk/examples/materiaal/Cargo.toml --locked --target-dir "$PWD/target"` —
-  exit 127, niet gestart omdat `cargo` ontbreekt.
+**Lokale verificatie:** `python3 -B -m unittest discover -s tests -p
+'test_nas_runner.py' -v` — exit 0, 20 tests; log
+`/tmp/nieuw-os-nas-runner-review-fixes.log`. `git diff --check` — exit 0.
+Dit is hosttestbewijs, geen nieuwe native productacceptatie.
 
-`cargo fmt` en de native NAS-gate zijn op deze nieuwe code niet uitgevoerd;
-de detailregistratie met exacte commando's, exits en logpaden staat in
-[nas-token-archive-fix.json](verification/nas-token-archive-fix.json).
-PR #125 exacte-head CI moet de Rust- en native gates uitvoeren.
+**Exacte-head CI vóór deze lokale delta:** op `2b479c1` slaagden alle relevante
+checks, waaronder `host-quality`, `qemu-smoke`, `native-system`,
+`nas-native-normal-cold`, `b03-native-update`, de componentchecks en CodeRabbit.
+De laatste review meldde drie opmerkingen; twee code/documentatiepunten zijn
+lokaal hersteld en de overdrachtshistorie is transparant bijgewerkt. De nieuwe
+delta moet nog naar de branch en alle relevante gates opnieuw doorlopen.
 
-**Remote status:** alle geconfigureerde checks op exacte PR #125-head
-`f737175` zijn groen, inclusief `nas-native-normal-cold`, `native-system`,
-host quality, formattering/linting en pakketverificatie. NAS-run
-[41515833404](https://github.com/simonvanieperen/nieuw-os/actions/runs/41515833404)
-en native-system-run
-[41515833572](https://github.com/simonvanieperen/nieuw-os/actions/runs/41515833572)
-zijn uitgevoerd op deze head. CodeRabbit is overgeslagen zolang de PR concept
-blijft; er is nog geen review van PR #125.
+**Open issues:** #109/#110 blijven open totdat de vervangende code aantoonbaar
+in `main` is opgenomen. #39 vereist nog de volledige N01-pakket-/transport- en
+negatievenmatrix; #40 volledige native compositor/sessieacceptatie; #41
+productiesleutelrotatie/-ankers en bevoegde ondertekening; #42 USB/HID/hotplug
+en fysieke acceptatie; #43 de daadwerkelijk uitgevoerde route naar 50/100.
+Geen van die open bewijsvereisten wordt gesloten met alleen deze tests.
 
-**Issues:** #109 en #110 blijven open totdat PR #120 aantoonbaar met behoud
-van inhoud is geïntegreerd. #39 mist de volledige native netwerk- en
-negatievenmatrix; #40 de volledige geïsoleerde sessie-/compositoracceptatie;
-#41 productie-sleutelrotatie/-ankers en een afzonderlijk geautoriseerde
-ondertekenhandeling; #42 USB/HID/hotplug plus fysieke acceptatie; #43 de
-uitgevoerde bewijsroute naar 50/100. Plannen, hosttests, componentproeven en
-AI-review sluiten die acceptatiegaten niet.
+**Voortgang:** 34/100 → 34/100; geen rubriccriterium is nieuw geaccepteerd.
 
-**Voortgang:** 34/100 → 34/100. Geen rubriccriterium is nieuw geaccepteerd.
-
-**Eerstvolgend:** commit en push deze assessmentupdate, markeer daarna PR #125
-klaar voor review om CodeRabbit te starten en handel eventuele bevindingen af.
-Merge de vervangende integratie pas na
-groene checks en inhoudsvergelijking; sluit PR #120 en #109/#110 alleen
-nadat dezelfde wijzigingen aantoonbaar in `main` staan.
+**Eerstvolgend:** controleer de diff en issue/PR-bases, commit en push deze
+reviewstap, voer exacte-head CI en de bijgewerkte review uit. Integreer pas
+wanneer alle vereiste gates groen zijn en de delta/overlap met actuele `main`
+is gecontroleerd; sluit vervangen PR's/issues pas na aantoonbaar inhoudsbehoud.
 
 ## Vorige integratiehandoffs
 
