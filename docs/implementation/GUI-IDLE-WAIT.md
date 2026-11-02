@@ -52,3 +52,14 @@ De centrale opvolger `337f2f29f1833ef4a8d2cd640b09419f85dbb83b` is afzonderlijk 
 ## Volledig native Windows-vervolg
 
 Op dezelfde functionele freeze1f2 slagen inmiddels alle zes formele Windows/WHPX-runs (3basis/3idle), inclusief de oorspronkelijke13fasen, echte crash/herstel, save/reopen, schijforacle en cleanup/rawexit33. QEMU-procesCPU daalt mediaan88,26% bij exact dezelfde volledige schermbeelden. Dit vervangt geen lokaleTCG-, fysieke-, energie- of authenticatieacceptatie. Ruwe tellers, gecomprimeerde native/seriële originelen, hashes, meethelper en beperkingen: [Windows A/B](../verification/gui-idle-20261102/windows-ab/README.md).
+
+## Centrale review en meetgrens
+
+Op dezelfde fysieke pc, headlessWHPX/1vCPU/256MiB, slaagden zes volledige
+native routes met ongewijzigde bronrunner/pixels/ACKs/deadline/disk/cleanup.
+ProcesCPU-mediaan99,3724%→11,6663% van éénlogischeCPU in drie15s-intervallen
+per arm; gemeten medianedaling88,2600%. Dit is geen energie-, geen-redraw-
+of algemene prestatiegarantie. De compositor behoudt zijn2tick-polldrempel;
+een reeds verschuldigde poll kan door een1tick-wacht éénrustticklater volgen.
+Een harde20ms/p95-interactiegarantie en U02-acceptatie volgen hier niet uit.
+Zie windows-ab/README.md en central-review.json onder het verificatiearchief.

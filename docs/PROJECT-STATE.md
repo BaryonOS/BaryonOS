@@ -25,12 +25,18 @@ https://github.com/simonvanieperen/nieuw-os/pull/123, head
 (merge337 bovenop559c690). Alle4GUIloops gebruiken IPC_WAIT uitsluitend quiescent;
 geen kernel/ABI/rechten/deadlinewijziging. Lokale volledigeWHPXgate opidlepassed,
 pilotzelfdeheleframe100%→13,75%éénlogischeCPU; dit is nog geen formeleCPUacceptatie.
-De lokalechat draait3x2brongebonden15smetingen en levert aggregaat. Root en
+De formele3x2metingen zijn gereed:6/6volledigeWHPXgates; CPUmediaan
+99,3724→11,6663% van éénlogischeCPU,88,2600%lager. Ruwe gziprapporten,
+exacteharness, sha-index en onafhankelijke lokale herberekening zijn opgenomen.
+Root heeft aggregateSHA en medianen opnieuw uit de gearchiveerde data berekend. Root en
 2read-onlyagents hebben actueleApp/Comp/init-diff gereviewd: geen blocker,
 maar geen harde20ms-intervalbelofte. Alle rustvoorwaarden en herstelstaten behouden.
-Nog GEEN code vanPR123 inroot geïntegreerd; gitfetchobjecten wel beschikbaar.
+PR123 is in een aparte centrale integratieworktree samengevoegd met rootscore41;
+PR122 blijft tot groene CI op de geaccepteerde337-bron. Productsourcetree8faf
+blijft exactgelijk aan geteste1f2; alleen docs/bewijs en CI-fetchvolgorde wijzigen.
 
-Eerstvolgend: formeel lokaalCPUrapport ontvangen; gedeeldeREADME/progress/
+Eerstvolgend: gereviewdePR123-head met CI-fetchfix pushen, groene CI afwachten;
+gedeeldeREADME/progress/
 PROJECT-STATE-edits vanPR123 mogen rootscore41 niet overschrijven. Alleenna
 review/testbewijscode/bewijs bewust integreren, relevantehost/nativechecks+CI,
 nieuweWindowsbundle/sourcehash en voortgangsassessment bijwerken. Nog geen
