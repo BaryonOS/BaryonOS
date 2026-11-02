@@ -1,0 +1,39 @@
+{
+  "schema": "nieuw-os-clipboard-final-checks-v1",
+  "source_commit": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+  "source_sha256": "038615b1b425d3f24ea2d9c52b36184ea666f81237c813303dc0fac93fb756ca",
+  "all_head_workflows": {
+    "success": 18,
+    "pending": 0,
+    "failed": 0,
+    "snapshot_sha256": "be9e7334f233df1d6ed6a57bb01dd22705c28f559cf1e506a151ab7e976e380f"
+  },
+  "independent_ai_readonly_review": {
+    "completed": true,
+    "native_frames": 22,
+    "host_oracles": 34,
+    "full_app_body_comparisons": 17,
+    "actual_embedded_app_elfs": 8,
+    "normal_payloads": 19,
+    "actual_qmp_refill_fault_then_paste_order_confirmed": true,
+    "zero_vm_or_source_writes": true
+  },
+  "ci_normal_bundle_checkonly": {
+    "platform": "Linux PowerShell7.5.4",
+    "qemu": "synthetic version/help executable only",
+    "exit_code": 0,
+    "mutable_state_created": false,
+    "all_nineteen_extracted_file_hashes_unchanged": true,
+    "hypervisor_probe_performed": false,
+    "vm_started": false,
+    "windows_runtime_performed": false,
+    "log_sha256": "3ae67f7997bd553d4dff184e1e1c90e1d901136d419169de8b3a511be0fc6150"
+  },
+  "decoded_ci_log": {
+    "sha256": "0545e37955972b84f1d13b0b882cb8c4d5aa01376a7ab741172fcfc58a2e5073",
+    "representation": "UTF-8 encoding of connector-decoded string, not original HTTP bytes"
+  },
+  "p95_latency_or_unique_snapshot_causality_accepted": false,
+  "u02_fully_accepted": false,
+  "old_root_d0ae_source0530_proof_relabelled": false
+}

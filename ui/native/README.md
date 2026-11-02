@@ -2,7 +2,7 @@
 
 `no_std`, allocatorvrij en safe Rust. Eén echte volume-DocumentSession voor
 lijst/open/create/UTF-8-edits en streaming-save; geen browserbroker of nagemaakte
-opslagstatus. Renderer met private 32×8-tegels, echte lowercase bitmapglyphs,
+opslagstatus. Renderer met private 32×8-tegels, proportionele antialiased systeemtekst,
 100/200%-layout, keyboard/muisfocus en een begrensde app-lokale semantiekboom
 met stabiele node-ID's, ouderrelaties en expliciete actie-beschrijvingen.
 
@@ -49,9 +49,8 @@ python3 -B ui/native/verify.py
 
 Dat voert de echte hostscenario's, Clippy, fmt, scalar-none-build en objectscan
 uit. `verification/checks.json` bindt bestanden, de gedeelde CSS-tokenbron en
-alle overige bestaande source-v3-inputs aan de gebouwde archieven. Het root-
-imageharnas moet ui/native en tokens.css apart gaan meenemen vóór native UI-
-acceptatie; de huidige algemene source_hash volgt ui/ nog niet.
+alle overige bestaande source-v3-inputs aan de gebouwde archieven. Het root-imageharnas neemt ui/native, ui/surface-protocol en tokens.css mee
+in source-v3. Dit bronverband vervangt geen native uitvoeringsacceptatie.
 
 De hostharness gebruikt de werkelijke capability-engine en volume Service op
 geordende RAM-sectoren. 18 scenario's behandelen onder meer echte PS2-bytes,
@@ -68,6 +67,43 @@ Native stack/arena-
 budgetten, UI-bediening en koude versleutelde opslag zijn nog niet aangetoond.
 
 Fontbron, gekozen features en notices staan in [THIRD-PARTY.md](THIRD-PARTY.md).
-Eigen native kleur-/radius-/spacingwaarden lezen compile-time uitsluitend de
-bestaande [tokens.css](../prototype/tokens.css). Het prototype zelf wordt niet
-als runtime gebruikt en doet geen werk namens het OS.
+Native kleuren, vectorpictogrammen en systeemtitels delen de zelfstandige
+[graphics-laag](../graphics/README.md) met de compositor. Bestaande compacte
+spacing-/radiustokens blijven uit [tokens.css](../prototype/tokens.css) komen.
+Het prototype wordt niet als runtime gebruikt en doet geen werk namens het OS.
+Documenttekst behoudt bewust zijn bestaande monospaced raster en caretmetrics;
+proportionele labels wijzigen nooit de documentbytes of selectieposities.
+
+Het gedeelde font is een begrensde, offline gegenereerde Open Sans-atlas met
+echte 100/200%-rasters. De native app laadt geen TTF-bestanden of hostfonts.
+De RO-segmentgrens is expliciet 512 KiB; startup-, RW- en codesegmenten blijven
+afzonderlijk begrensd en W^X. `set_compositor_cursor(true)` onderdrukt uitsluitend
+de lokale pointertekening; hover/focus en appinvoer behouden hun werkelijke
+posities. De compositor blijft eigenaar van de vertrouwde vensterrand.
+
+De aanvullende test `render_desktop_foundation_at_reference_scales` tekent
+1280×720 op 100% en 1920×1080 op 200% via dezelfde tile-renderer. Met
+`OS_FOUNDATION_FIXTURE_DIRECTORY` schrijft die test inspecteerbare PPM-beelden
+naar een bestaande lege directory. Dit zijn hostfixtures, geen native bewijs.
+
+## Sessieroute en bureaublad (2 november 2026)
+
+Het opt-in kernelprofiel `native-system-session-preview` geeft de native app
+startupwoord648=1. `Controller::enable_vm_desktop` toont gebruikerskeuze,
+een herkenbaar aanmeldformulier en een expliciete openbare VM-gastsessie,
+gevolgd door taakbalk, lokale programmasearch en echte Materiaalnavigatie.
+Esc in de Materiaallijst keert terug naar het bureaublad; editor/dirty-dialog
+behouden hun bestaande bescherming van onopgeslagen werk. Bestaande native
+Materiaalgates gebruiken dit profiel niet.
+
+`session.rs` bindt antwoorden aan request/epoch/account/methode en scheidt
+authenticatie van activatie. De native standaard `UnavailableBroker` weigert
+ieder echt wachtwoord; vingerafdruk/FIDO2 zijn niet gekoppeld. Dit is geen
+beveiligd accountbeheer of compositor-lock: de openbare gast blijft hetzelfde
+synthetische appdomein met vooraf verleende VM-rechten. Geen echte gegevens
+of productiecredentials in deze preview gebruiken. Zie het
+[sessiecontract](../../docs/implementation/SESSION-AND-DESKTOP.md).
+
+Aanvullende leerbron: OSDev, *Drawing In a Linear Framebuffer*, W004597,
+revisie30599 (21 mei 2026). De bestaande UEFI/GOP- en capabilitytransporten
+blijven leidend; geen tutorialcode is overgenomen.

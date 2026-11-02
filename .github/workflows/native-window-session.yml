@@ -1,0 +1,203 @@
+name: Native window session and Windows QEMU bundle
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-window-session-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  native-window-session:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/window-session-ci/probe
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/window-session-ci-native
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/window-session-ci-host
+      CI_EVIDENCE_DIR: ${{ github.workspace }}/build/window-session-ci/evidence
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Prepare source-bound evidence
+        run: |
+          mkdir -p "$CI_EVIDENCE_DIR" "$NOS_BUILD_DIR/logs"
+          python3 -B - <<'PY' > "$CI_EVIDENCE_DIR/source.json"
+          import json, subprocess, sys
+          sys.path.insert(0, "tools")
+          from common import source_hash
+          print(json.dumps({
+              "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+              "source_sha256": source_hash(),
+              "source_fingerprint_version": 3,
+          }, indent=2))
+          PY
+      - name: Pinned Rust, lint tools and real targets
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal
+          rustup component add --toolchain 1.90.0 rustfmt clippy
+          rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+          rustc +1.90.0 -vV > "$CI_EVIDENCE_DIR/rustc.txt"
+          cargo +1.90.0 --version > "$CI_EVIDENCE_DIR/cargo.txt"
+      - name: Cache Cargo downloads only
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+          key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Disposable QEMU and explicit firmware and notices
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf seabios
+          for path in \
+            "$OS_OVMF_CODE" "$OS_OVMF_VARS" \
+            /usr/share/seabios/bios-256k.bin \
+            /usr/share/seabios/vgabios-stdvga.bin \
+            /usr/share/doc/ovmf/copyright \
+            /usr/share/doc/seabios/copyright
+          do
+            test -f "$path"
+          done
+          dpkg-query -W qemu-system-x86 ovmf seabios > "$CI_EVIDENCE_DIR/packages.txt"
+          qemu-system-x86_64 --version > "$CI_EVIDENCE_DIR/qemu.txt"
+      - name: Strict preflight
+        run: python3 -B tools/preflight.py --strict | tee "$CI_EVIDENCE_DIR/preflight.json"
+      - name: Fetch every locked app dependency before offline builders
+        run: |
+          cargo +1.90.0 fetch --locked
+          for manifest in \
+            sdk/Cargo.toml \
+            sdk/examples/materiaal/Cargo.toml \
+            sdk/examples/input-service/Cargo.toml \
+            sdk/examples/window-session/Cargo.toml \
+            sdk/examples/calculator/Cargo.toml \
+            ui/graphics/Cargo.toml \
+            ui/native/Cargo.toml \
+            ui/surface-protocol/Cargo.toml
+          do
+            cargo +1.90.0 fetch --locked --manifest-path "$manifest"
+          done
+      - name: Runner and Windows packager counterexamples
+        run: |
+          python3 -B tools/test_window_session.py 2>&1 | tee "$CI_EVIDENCE_DIR/runner-host.txt"
+          python3 -B -m unittest tools.tests.test_package_windows_qemu 2>&1 | tee "$CI_EVIDENCE_DIR/package-host.txt"
+      - name: Real scene and protocol host checks
+        run: |
+          cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml 2>&1 | tee "$CI_EVIDENCE_DIR/scene-host.txt"
+          cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --all-targets -- -D warnings 2>&1 | tee "$CI_EVIDENCE_DIR/scene-clippy.txt"
+          cargo +1.90.0 fmt --manifest-path sdk/examples/window-session/Cargo.toml -- --check
+          cargo +1.90.0 test --offline --locked --manifest-path ui/surface-protocol/Cargo.toml --features client 2>&1 | tee "$CI_EVIDENCE_DIR/surface-host.txt"
+          cargo +1.90.0 test --offline --locked --manifest-path ui/graphics/Cargo.toml 2>&1 | tee "$CI_EVIDENCE_DIR/graphics-host.txt"
+          for crate in materiaal calculator; do
+            cargo +1.90.0 test --offline --locked --manifest-path "sdk/examples/$crate/Cargo.toml" 2>&1 | tee "$CI_EVIDENCE_DIR/$crate-host.txt"
+            cargo +1.90.0 clippy --offline --locked --manifest-path "sdk/examples/$crate/Cargo.toml" --all-targets -- -D warnings 2>&1 | tee "$CI_EVIDENCE_DIR/$crate-clippy.txt"
+            cargo +1.90.0 fmt --manifest-path "sdk/examples/$crate/Cargo.toml" -- --check
+          done
+      - name: Build the eight-process native window probe
+        # No image/target cache: the existing builder inspects and embeds all
+        # eight fresh CPL3 ELFs plus the current own kernel and UEFI loader.
+        env:
+          CARGO_NET_OFFLINE: 'true'
+        run: python3 -B -u tools/build.py --kernel-feature native-window-session-probe 2>&1 | tee "$CI_EVIDENCE_DIR/probe-build.txt"
+      - name: Actual input, unmasked pixels, isolation, crash recovery and disk
+        id: native-gate
+        run: |
+          python3 -B -u tools/run_window_session.py \
+            --clipboard \
+            --timeout 1800 \
+            --bios-rom /usr/share/seabios/bios-256k.bin \
+            --vga-rom /usr/share/seabios/vgabios-stdvga.bin \
+            2>&1 | tee "$CI_EVIDENCE_DIR/native-gate.txt"
+          python3 -B - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          report = json.loads((Path(os.environ["NOS_BUILD_DIR"]) / "window-session-report.json").read_text())
+          assert report["passed"] is True and report["native_gate"] is True
+          assert report["clipboard_requested"] is True and report["clipboard_gate"] is True
+          assert report["smoke_only"] is False and report["raw_qemu_exit"] == 33
+          assert report["kernel_feature"] == "native-window-session-probe"
+          volume = Path(report["run_directory"]) / "volume.img"
+          with volume.open("rb") as image:
+              digest = hashlib.file_digest(image, "sha256").hexdigest()
+          (Path(os.environ["CI_EVIDENCE_DIR"]) / "native-volume.sha256").write_text(
+              digest + "  " + volume.relative_to(Path.cwd()).as_posix() + "\n")
+          PY
+      - name: Build the normal window session only after native acceptance
+        if: ${{ success() && steps.native-gate.outcome == 'success' }}
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/window-session-ci/normal
+          CARGO_NET_OFFLINE: 'true'
+        # Separate build directories retain the probe manifest and every tested
+        # input. Packaging never substitutes the fault-injection probe image.
+        run: python3 -B -u tools/build.py --kernel-feature native-window-session 2>&1 | tee "$CI_EVIDENCE_DIR/normal-build.txt"
+      - name: Package the reviewable Windows QEMU bundle
+        if: ${{ success() && steps.native-gate.outcome == 'success' }}
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/window-session-ci/normal
+        # Ubuntu packaging and Linux native execution do not claim Windows
+        # runtime acceptance. The package manifest keeps that boundary explicit.
+        run: |
+          python3 -B -u tools/package_windows_qemu.py \
+            --output "$CI_EVIDENCE_DIR/NieuwOS-Venstersessie-Windows-QEMU.zip" \
+            --ovmf-code "$OS_OVMF_CODE" \
+            --ovmf-vars "$OS_OVMF_VARS" \
+            --seabios-bios /usr/share/seabios/bios-256k.bin \
+            --vga-rom /usr/share/seabios/vgabios-stdvga.bin \
+            --ovmf-license /usr/share/doc/ovmf/copyright \
+            --seabios-license /usr/share/doc/seabios/copyright \
+            --ovmf-version "$(dpkg-query -W -f='${Version}' ovmf)" \
+            --seabios-version "$(dpkg-query -W -f='${Version}' seabios)" \
+            2>&1 | tee "$CI_EVIDENCE_DIR/package.json"
+          sha256sum "$CI_EVIDENCE_DIR/NieuwOS-Venstersessie-Windows-QEMU.zip" > "$CI_EVIDENCE_DIR/package.sha256"
+      - name: Preserve tracked source integrity
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain)"
+      - name: Record the job outcome even on failure
+        if: ${{ always() }}
+        env:
+          CI_JOB_STATUS: ${{ job.status }}
+        run: |
+          mkdir -p "$CI_EVIDENCE_DIR"
+          printf '%s\n' "$CI_JOB_STATUS" > "$CI_EVIDENCE_DIR/job-status.txt"
+      - name: Preserve native evidence and the optional Windows bundle
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: native-window-session-evidence-and-windows-bundle
+          path: |
+            build/window-session-ci/evidence/
+            build/window-session-ci/probe/manifest.json
+            build/window-session-ci/probe/users/materiaal/build-report.json
+            build/window-session-ci/probe/logs/
+            build/window-session-ci/probe/esp/
+            build/window-session-ci/probe/window-session-report.json
+            build/window-session-ci/probe/run/window-*/result.json
+            build/window-session-ci/probe/run/window-*/serial.txt
+            build/window-session-ci/probe/run/window-*/stderr.txt
+            build/window-session-ci/probe/run/window-*/volume.img
+            build/window-session-ci/probe/run/window-*/*.ppm
+            build/window-session-ci/probe/window-fixture-*/fixture.json
+            build/window-session-ci/probe/window-fixture-*/generator.log
+            build/window-session-ci/probe/window-fixture-*/*.ppm
+            build/window-session-ci/normal/manifest.json
+            build/window-session-ci/normal/users/materiaal/build-report.json
+            build/window-session-ci/normal/logs/
+          if-no-files-found: error
+          retention-days: 14

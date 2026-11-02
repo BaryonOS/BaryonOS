@@ -332,6 +332,15 @@ pub(super) fn observe_exit(s: &State, slot: usize) -> bool {
             b"SYSTEM:RANDOM_ERROR_PHASE:",
             read(s, slot, c::REQUEST_PHASE),
         );
+        if evidence()
+            .binding
+            .as_ref()
+            .is_some_and(|b| b.case == c::RAW)
+        {
+            for (label, at) in c::RAW_DIAGNOSTICS {
+                print_number(label, read(s, slot, at));
+            }
+        }
         require(false, b"PROBE_RESULT");
     }
     let mut words = [0; 24];

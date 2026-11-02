@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "scope": "Opt-in native guest accounts/login/desktop/search/Materiaal route through QMP; all app-owned pixels match a same-source host-rendered Controller/Frame oracle. No real account authentication, secure lock/key release, manual UX, release, or physical/Windows-host acceptance.",
+  "source_commit": "7648a8ffc121c0939325cb0b3628256e28c11fec",
+  "source_sha256": "42ad667fb558b0da051dadb7d12d398f90b553461dac793eff16f7ba884aa77f",
+  "source_fingerprint_version": 3,
+  "kernel_sha256": "c6fc28d2669163e6e315bd874bf792961ba4256fff2a7761faba0e50c803ffe5",
+  "loader_sha256": "3ab253a8a029ae6569ea8a7fc525c86b6f3172a048bdb4428846624e9a343b27",
+  "kernel_feature": "native-system-session-preview",
+  "machine": "pc-q35-10.0",
+  "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "qemu_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+  "firmware": {
+    "ovmf_code_sha256": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+    "ovmf_vars_template_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "seabios_bios_sha256": "fc6d2ea888862e6b26d53fb877ab712324726eb8f44eb6baf076c64a31f1c3fb",
+    "seabios_vga_sha256": "88277c3ebff60fe83696d99d44b7eee4426112ee1763c87347c30a5b75781932"
+  },
+  "command": [
+    "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+    "-L",
+    ".",
+    "-machine",
+    "pc-q35-10.0",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "file:serial.txt",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-device",
+    "VGA,vgamem_mb=16,romfile=VGA.rom",
+    "-qmp",
+    "stdio",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST"
+  ],
+  "run_directory": "/workspace/nieuw-os/build/session-preview/preview-run/materiaal-4633589cf0",
+  "started_utc": "2026-11-02T11:51:55.691950+00:00",
+  "session_oracle": {
+    "directory": "/workspace/nieuw-os/build/session-preview/session-fixture-7b46e2aaab",
+    "metadata_sha256": "a89741b0af9cafa2d99ea79cd303a823d84a8a1a4d635f58594a19cbc7455c8b",
+    "schema_version": 1,
+    "kind": "host-rendered Controller/Frame oracle; not native execution",
+    "source_fingerprint_version": 3,
+    "source_sha256": "42ad667fb558b0da051dadb7d12d398f90b553461dac793eff16f7ba884aa77f",
+    "kernel_feature": "native-system-session-preview",
+    "app_rectangle": [
+      16,
+      48,
+      768,
+      536
+    ],
+    "phases": [
+      "accounts",
+      "login",
+      "desktop",
+      "search",
+      "material"
+    ],
+    "frames_sha256": {
+      "accounts": "6728f799588f59acb91c9c83e3d6dba1e9b73c4d17e0d09fb2de9217ad88c341",
+      "login": "0fe183be7bc649ce878bb9119daf0bc3b9b8f48ffb2f46e4c45a861d94522c6f",
+      "desktop": "a8b7eafcc2b2daa1d481eae0e58b7bc6ed32a2cdb975be3b4230bc9155a2eb9d",
+      "search": "3f0077dafcd7525384bff282f0267bcf45f918095dfc439cfca3d7f8c8989f7b",
+      "material": "2ae33e6c98aedb601ca6326739622fe10c140106f958a5f6f80ff21d4e307a47"
+    },
+    "generator_command": [
+      "cargo",
+      "+1.90.0",
+      "test",
+      "--offline",
+      "--locked",
+      "--manifest-path",
+      "/workspace/nieuw-os/ui/native/Cargo.toml",
+      "--test",
+      "desktop_native_fixture",
+      "--",
+      "--nocapture"
+    ],
+    "generator_exit": 0
+  },
+  "qemu_implementation_sha256": "d3c1a558ad220e77a4412048c8d96b44f8c2b41c7ad2a4ecfe522a4b122fe067",
+  "session_walkthrough": {
+    "stages": [
+      {
+        "phase": "accounts",
+        "duration_s": 34.46077465299993,
+        "screenshot_sha256": "a2ee8d7b6b2f12a1d16695ba2c403bede33151c4fcf3f5677d3fcfbb208287d0",
+        "app_pixels_sha256": "4a8b9491c6258279f83e233d7c36a482a93387918e89b94798a243cd1e91a46b",
+        "oracle_sha256": "6728f799588f59acb91c9c83e3d6dba1e9b73c4d17e0d09fb2de9217ad88c341",
+        "qmp_index": 410,
+        "attempts": 409
+      },
+      {
+        "phase": "login",
+        "duration_s": 26.946767446999957,
+        "screenshot_sha256": "4be010f4ca718f697cc4e61eb85c57274dc54a558d3572f378e007121443aef0",
+        "app_pixels_sha256": "c8709cbac76af0b76359d40003cc66fcb92e2417853d807f4b629261c7453939",
+        "oracle_sha256": "0fe183be7bc649ce878bb9119daf0bc3b9b8f48ffb2f46e4c45a861d94522c6f",
+        "qmp_index": 729,
+        "attempts": 318
+      },
+      {
+        "phase": "desktop",
+        "duration_s": 36.185970391999945,
+        "screenshot_sha256": "e818761a4e308a17ea1fdd4d25800aedd010c2f42eefb9e2de7f96eaf3f6caab",
+        "app_pixels_sha256": "ce4320afdddd29a0f96cf88316ec69a439afe72c2471cd08e028d43ba18ac94a",
+        "oracle_sha256": "a8b7eafcc2b2daa1d481eae0e58b7bc6ed32a2cdb975be3b4230bc9155a2eb9d",
+        "qmp_index": 1156,
+        "attempts": 426
+      },
+      {
+        "phase": "search",
+        "duration_s": 26.688858418999985,
+        "screenshot_sha256": "0d107d85791ef3338d892ed685e8d4b2e11a8c121125dcd907aed9b9e51633a6",
+        "app_pixels_sha256": "1bbdbb7b017b350b7ce5a8c9f47b024b268501157386c566ca665a3c48f3f736",
+        "oracle_sha256": "3f0077dafcd7525384bff282f0267bcf45f918095dfc439cfca3d7f8c8989f7b",
+        "qmp_index": 1470,
+        "attempts": 308
+      },
+      {
+        "phase": "material",
+        "duration_s": 33.94222805000004,
+        "screenshot_sha256": "89988554c6e93449245ccac8462e1a43af336e0af990affcf59004bb2eaed50f",
+        "app_pixels_sha256": "384eb6adcbba034887eb85aa21acd22f873a27e82001955619a634aef34bd025",
+        "oracle_sha256": "2ae33e6c98aedb601ca6326739622fe10c140106f958a5f6f80ff21d4e307a47",
+        "qmp_index": 1872,
+        "attempts": 401
+      }
+    ],
+    "compared_rectangle": [
+      16,
+      48,
+      768,
+      536
+    ],
+    "uncompared_regions": "Only framebuffer pixels outside the app-owned rectangle",
+    "pixel_masks_inside_app": [],
+    "input_route": "accounts -> guest login -> desktop -> search mat -> Materiaal",
+    "authentication": "Explicit disposable VM guest; no authenticated user or key unlock",
+    "host_oracle_is_native_evidence": false
+  },
+  "raw_qemu_exit": 0,
+  "duration_s": 162.47036865799998,
+  "readiness_markers": [
+    "BOOT:EBS_OK",
+    "KERNEL:ENTRY",
+    "BOOTINFO:OK",
+    "MATERIAAL:MANIFEST:PASS",
+    "MATERIAAL:POLICY:READY",
+    "MATERIAAL:SOURCE:READY",
+    "MATERIAAL:COMPOSITOR:READY",
+    "MATERIAAL:FOCUS:READY"
+  ],
+  "serial_sha256": "d6920b98ae7113c152a9948be3e8b08df8993f114bff010a1b86e60c35f24c88",
+  "screenshot_sha256": "89988554c6e93449245ccac8462e1a43af336e0af990affcf59004bb2eaed50f",
+  "screenshot_size": {
+    "width": 800,
+    "height": 600,
+    "distinct_colors": 774
+  },
+  "volume_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+  "raw_result_sha256": "5fd7979d291e629f2a1f439bc72cdf799ff84b52765888abf1060eb7ca8c1fcd",
+  "raw_qmp_trace_entries": 1873,
+  "evidence_scope": "Pre-batching five-stage native VM proof; one TCG sample per frame; source7648a8f only. No password authentication or hardware evidence."
+}

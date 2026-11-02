@@ -35,6 +35,8 @@ test = false
 bench = false
 
 [profile.release]
+# Bound the scalar renderer executable without expanding the 128-KiB code budget.
+opt-level = "s"
 panic = "abort"
 codegen-units = 1
 lto = false

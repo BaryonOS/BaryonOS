@@ -37,6 +37,36 @@ def parent_trace(directory):
 
 
 class ColdTraceTests(unittest.TestCase):
+    def test_cold_cursor_preserves_all_reviewed_steps_and_rejects_changed_geometry(self):
+        directory = Path("/owned/cold")
+        groups = cold.cold_groups(directory)
+        moves = groups[0][1][:-1]
+        self.assertEqual(len(moves), 3)
+        cursor = {"x": 0, "y": 0}
+        for move in moves:
+            self.assertEqual(move["execute"], "input-send-event")
+            for event in move["arguments"]["events"]:
+                self.assertEqual(event["type"], "rel")
+                value = event["data"]["value"]
+                self.assertLessEqual(abs(value), 96)
+                cursor[event["data"]["axis"]] += value
+        self.assertEqual(cursor, {"x": 274, "y": 150})
+        self.assertEqual(groups[0][1][-1], {
+            "execute": "screendump", "arguments": {"filename": str(directory / "list.ppm")},
+        })
+        altered = copy.deepcopy(preview.interactive_groups(directory))
+        altered[1][1][2]["arguments"]["events"][0]["data"]["value"] -= 1
+        extra_move = copy.deepcopy(preview.interactive_groups(directory))
+        extra_move[1][1].insert(3, {
+            "execute": "input-send-event", "arguments": {"events": [
+                {"type": "rel", "data": {"axis": "x", "value": 1}},
+            ]},
+        })
+        for changed in (altered, extra_move):
+            with patch.object(preview, "interactive_groups", return_value=changed):
+                with self.assertRaisesRegex(ValueError, "cursor placement contract"):
+                    cold.cold_groups(directory)
+
     def test_exact_input_with_repeated_observations_is_accepted(self):
         directory = Path("/owned/parent")
         trace, stages = parent_trace(directory)
@@ -70,16 +100,20 @@ class ColdTraceTests(unittest.TestCase):
         header = len(b"P6\n800 600\n255\n")
         ready = bytearray(frames["ready"])
         listed = bytearray(frames["list"])
-        status_at = header + (540 * 800 + 42) * 3
+        status_at = header + (540 * 800 + 210) * 3
+        sidebar_at = header + (540 * 800 + 42) * 3
         outside = header + (100 * 800 + 42) * 3
         ready[status_at] = 123
         listed[status_at] = 124
         listed[outside] = 125
+        ready[sidebar_at] = 126
+        listed[sidebar_at] = 127
         frames.update(ready=bytes(ready), list=bytes(listed))
         composed = cold.cold_list_frame(frames)
         self.assertEqual(composed[status_at], 123)
         self.assertEqual(composed[outside], 125)
-        for offset in (0 + header, status_at, outside, len(composed) - 1):
+        self.assertEqual(composed[sidebar_at], 127)
+        for offset in (0 + header, status_at, sidebar_at, outside, len(composed) - 1):
             changed = bytearray(composed)
             changed[offset] ^= 1
             self.assertFalse(preview.matching_reference_frame(changed, composed))

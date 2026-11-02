@@ -1,0 +1,4 @@
+    Checking zeroize v1.9.1
+    Checking capability-core v0.1.0 (/workspace/nieuw-os/crates/capability-core)
+    Checking nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.55s

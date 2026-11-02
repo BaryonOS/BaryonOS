@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "69d3574780bf4f2d6a437d381b68d40e390aafb6",
+    "source_commit": "380111b68688c981eec6abb8fab29174a29f5601",
     "branch": "simon/profiles-users-plan",
-    "task": "PR114/119/121/131/132: gebruikersontwerp en onderzoeks-/bewijsdocumentatie behouden",
+    "task": "Actuele native desktopmain met behouden ontwerp- en onderzoeksdocumentatie combineren",
     "previous_score": 34,
-    "summary": "34/100 blijft34; geen nieuw criterium of gewicht. PR114 bewaart herkenbare eigen bediening met expliciete A/B-sleutel- en handlelevensloop. PR131 levert gelabeld journeyonderzoek en installer-/onboardingvoorstellen;58% EU-dienstoverstap is tegen originele PDF-data gecontroleerd, geen OS-migratiepercentage. PR132 bewaart acht brongebonden NOSVOL02/Btrfs/OpenZFS-boots en begrensd hostbewijs.207 archief-Git-blobs zijn onafhankelijk gehasht; dat is geen nieuwe native replay of menselijke audit. Btrfs/OpenZFS-native-adoptie en S09 blijven open. Geen runtimecode, profielen/installer of nieuwe productacceptatie. Main74a34d05 bevat PR125 en oplossingen109/110; PR127 en diens ontwikkelscore41 blijven afzonderlijk, met verse native gates."
+    "summary": "Main34 gaat naar41 via PR127: U01 plus4 en N01 plus3, met exact treegelijke geteste head5343b0a,31 geslaagde checks en actuele review zonder bevindingen. Source-v3b7ccd11f:22 native window/clipboard/herstelfasen/raw33,14-byte/rev1-schijf/canaries groen; native netwerk normal/client-exit beide raw33. Postmerge-CI loopt afzonderlijk. De behouden PR114/119/121/131/132-documentatie voegt0punten toe: eigen herkenbare bediening, A/B-sleutelovergang als ontwerp, gelabeld journeyonderzoek en207 gehashte opslagarchiefblobs. Botsende nieuwe UI-ADR-nummers zijn uniek gemaakt met oude titelankers behouden. Geen U02/U03, echte auth/installer, Btrfs/OpenZFS-adoptie, fysieke hardware, menselijke audit of volledige release geclaimd."
   },
   "tracks": [
     {
@@ -259,9 +259,13 @@
           "id": "U01",
           "title": "Native compositor en sessie",
           "points": 4,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "De eigen kernel draait een interactieve grafische sessie met render- en inputketen, venster/surface-isolatie en gecontroleerd compositorherstel.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/mature-session-20261102/U01-ACCEPTANCE.md",
+            "docs/verification/mature-session-20261102/U01-ACCEPTANCE.json",
+            "docs/verification/mature-session-20261102/window-337-ci-verification.json"
+          ]
         },
         {
           "id": "U02",
@@ -269,7 +273,14 @@
           "points": 2,
           "status": "open",
           "acceptance": "Toetsenbord, aanwijzer, focus, klembord en appwisseling zijn native bruikbaar en voldoen aan gemeten interactiebudgetten.",
-          "evidence": []
+          "evidence": [
+            "docs/implementation/GUI-IDLE-WAIT.md",
+            "docs/verification/gui-idle-20261102/windows-ab/README.md",
+            "docs/verification/gui-idle-20261102/central-review.json",
+            "docs/verification/gui-idle-20261102/INTEGRATION.md",
+            "docs/implementation/NATIVE-CLIPBOARD.md",
+            "docs/verification/native-clipboard-20261102/README.md"
+          ]
         },
         {
           "id": "U03",
@@ -314,9 +325,13 @@
           "id": "N01",
           "title": "Native pakket- en transportstack",
           "points": 3,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "De eigen OS-netwerkdienst verwerkt echte packets en begrensde IP/TCP/UDP-verbindingen; malformed input, backpressure en afsluiten zijn getest.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/mature-session-20261102/README.md",
+            "docs/verification/mature-session-20261102/n01-integrated.json",
+            "docs/verification/n01-native-service-20261102/host-verification.json"
+          ]
         },
         {
           "id": "N02",

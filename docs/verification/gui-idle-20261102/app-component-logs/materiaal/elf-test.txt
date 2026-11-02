@@ -1,0 +1,9 @@
+   Compiling nieuw-os-materiaal-app v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/examples/materiaal)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.52s
+     Running tests/elf.rs (target/agent-apps/materiaal/debug/deps/elf-c14f8a1a11694e5b)
+
+running 1 test
+actual ELF: 191 pages, buffers 0x400b1000+0x30000, five W^X LOAD segments
+test actual_native_elf_has_five_bounded_segments_and_private_bss_buffers ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s

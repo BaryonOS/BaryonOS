@@ -1,0 +1,14 @@
+{
+  "scope": "Exact local Windows harness used for final A/B, copied as reproducibility evidence, not a product/OS source change. Requires plain disposable source and build copies outside sync folders.",
+  "files_sha256": {
+    "run_windows_window.py": "9610f3e0995101b17a28afd7a2efbf3aa72b0ee85d013c2c9c3b1d5165df87cd",
+    "run_idle_ab.py": "f49356b98c6e70cdead73091d8618516f603e3caa86aa1e5e5bb8a262378729c",
+    "windows_inputs.py": "90a69663adb6ee517a2b8f2584fca2250010a179bb4216ed3de53d3aaab572f5",
+    "windows_qmp.py": "a8bc6da0002910f65966a1d38dd995d9c682b6bda581141cb9f8c5ad49814d0d",
+    "windows_idle_measure.py": "3833f4e7aa467e043316b6d9eb6926ce4b7b56cf2e1a7f108f87c5a68e96f9e8",
+    "tests/test_windows_driver.py": "fc4c70063d4545a794ae9f3743cbdf68daddbc7afba894d14786b00373841132",
+    "tests/test_windows_idle_measure.py": "8a46489689a7c1bf05d55fa694b50da75b9567102a142e24581ba78a63bb4071",
+    "tests/test_windows_inputs.py": "ccf909eb3ade030f4e21d5863c853b9cfb2b0c81068219ed81e8be19f6b9dbd6",
+    "tests/test_windows_qmp.py": "862f18a23fa05f50c0710275e4499ae5bb33c3a71dde6444f43f4f14e131a67d"
+  }
+}

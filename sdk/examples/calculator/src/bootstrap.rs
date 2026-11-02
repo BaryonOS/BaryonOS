@@ -56,7 +56,9 @@ impl Bootstrap {
         }
         let pids = [word(176), word(184), word(560), word(592)];
         for (i, pid) in pids.iter().enumerate() {
-            if *pid == 0 || pids[..i].contains(pid) {
+            if *pid == 0
+                || (pids[..i].contains(pid) && !(word(656) == 1 && i == 3 && *pid == pids[2]))
+            {
                 return None;
             }
         }
@@ -65,6 +67,7 @@ impl Bootstrap {
         if [word(48), word(56), word(64), word(72), word(80), word(168)]
             .iter()
             .any(|n| *n != 0)
+            || word(656) > 1
             || word(568) == 0
             || word(600) == 0
             || word(608) == 0

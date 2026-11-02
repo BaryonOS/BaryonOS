@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "tested_ci_head": "7e8fc37438292f6af6d45f4ca19a9fca205d846a",
+  "ci_merge_commit_prefix": "535b782",
+  "merge_base": "0fe648b87d1f4959087d3f80a251a7d6fb64dd66",
+  "representation": "Logs are UTF-8 of decoded strings returned by GitHub connector, not original HTTP log bytes",
+  "findings": [
+    {
+      "run_id": 41477739836,
+      "job_id": 125387659061,
+      "job": "host-quality",
+      "step": "Python syntax and DocumentSession host tests",
+      "status": "failure",
+      "error": "Review changed native cold cursor placement contract",
+      "location": "tools/materiaal_cold.py:43 at CI head",
+      "introduced_by": "53be17e7a8de92a59e9d0506c75bea177d15bf66",
+      "pre_existing": false,
+      "cause": "New document target changed from global56,150 to274,150 while cold cursor replay retained only the old first two movements",
+      "fix": "Retain all three exact no-button moves (96,96),(96,54),(82,0), keep strict equality guard; align native status rectangle x208..760,y536..584",
+      "native_proof_performed": false
+    },
+    {
+      "run_id": 41477739843,
+      "job_id": 125387658676,
+      "job": "native-display-input",
+      "step": "Standalone host tests, lint and formatting",
+      "status": "failure",
+      "error": "rustfmt Diff in services/input-core/src/wire.rs:98, public response signature must be one line",
+      "location": "services/input-core/src/wire.rs:101 at CI head",
+      "introduced_by": "53be17e7a8de92a59e9d0506c75bea177d15bf66",
+      "pre_existing": false,
+      "cause": "pub(crate) changed to shorter pub but the old multiline signature was retained",
+      "fix": "Apply pinned Rust1.90 rustfmt; no behavior change"
+    }
+  ],
+  "local_checks": [
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p test_materiaal_cold.py",
+      "exit_code": 0,
+      "tests_passed": 17,
+      "includes_all_eight_previous_ci_failures": true,
+      "qemu_vm_started": false
+    },
+    {
+      "command": "cargo +1.90.0 fmt --manifest-path services/input-core/Cargo.toml --all -- --check",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo +1.90.0 fmt --manifest-path sdk/examples/input-service/Cargo.toml --all -- --check",
+      "exit_code": 0
+    }
+  ],
+  "logs": {
+    "host-job-decoded.log": {
+      "sha256": "92f7d29af3e2843e59bb12e347b5b18c46f7d34ec53227b11fe7c63591af57f1",
+      "size_bytes": 39622
+    },
+    "display-job-decoded.log": {
+      "sha256": "fe23380ddd2c8a3f85f88d384b65a7e12c3cf118e276befd1194ed91c7895c5f",
+      "size_bytes": 81245
+    },
+    "cold-tests-fixed.log": {
+      "sha256": "9edb26905a1cedf4cb492a32f2a5b3cb6f598a10b1c825b06c4c00eebbf6de25",
+      "size_bytes": 116
+    },
+    "input-core-fmt.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    "input-service-dependency-fmt.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    }
+  },
+  "limits": [
+    "No GitHub job rerun requested or started.",
+    "No large host suite or native VM run performed.",
+    "Later skipped CI steps remain unverified; this is not a green CI claim."
+  ],
+  "fix_commit": "47a72ff9baadfda6979c3a9fe4be2f04f473007a",
+  "fix_author": "Codex <codex@users.noreply.github.com>",
+  "geometry_source": {
+    "viewport": "ASSIGNED=(16,48,768,536), scale1; framebuffer800x600",
+    "layout_source": "ui/native/src/render.rs:42",
+    "hit_test": "ui/native/src/controller.rs:915",
+    "new_document_rect_local": [
+      192,
+      80,
+      164,
+      44
+    ],
+    "reviewed_click_local": [
+      258,
+      102
+    ],
+    "reviewed_click_global": [
+      274,
+      150
+    ],
+    "exact_moves": [
+      [
+        96,
+        96
+      ],
+      [
+        96,
+        54
+      ],
+      [
+        82,
+        0
+      ]
+    ],
+    "native_status_rect_global": [
+      208,
+      536,
+      552,
+      48
+    ],
+    "full_frame_matching_preserved": true,
+    "additional_motion_and_changed_third_motion_rejected": true,
+    "sidebar_pixels_preserved": true
+  },
+  "format_baseline_comparison": {
+    "toolchain": "Rust1.90.0 rustfmt, edition2021, emit stdout only",
+    "base_0fe648b_canonical_equals_source": true,
+    "ci_head_7e8fc37_canonical_equals_source": false,
+    "tracked_source_mutated_by_comparison": false
+  }
+}

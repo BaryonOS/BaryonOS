@@ -1,0 +1,69 @@
+{
+  "source_commit": "f152aec0615285065689f0a7e2855e5858fdb350",
+  "source_sha256": "56ed10aade50703e08c8422251e323b4400bf37196320d24befe0b46883bbce8",
+  "scope": "Host algorithm/transport models; real native proof separately in two reports",
+  "checks": [
+    {
+      "package": "protocol",
+      "test_command": "cargo +1.90.0 test --offline --locked --manifest-path services/network-service/protocol/Cargo.toml",
+      "test_exit": 0,
+      "tests_passed": 4,
+      "test_log_sha256": "eedb426c1bc8d155d2299764e8dba3da370293515295959aa00374ae298b4550",
+      "clippy_command": "cargo +1.90.0 clippy --offline --locked --manifest-path services/network-service/protocol/Cargo.toml --all-targets -- -D warnings",
+      "clippy_exit": 0,
+      "clippy_log_sha256": "99f71393b9903dca098310bb446022a4bdee195ea9996f351a787195555210a6"
+    },
+    {
+      "package": "client",
+      "test_command": "cargo +1.90.0 test --offline --locked --manifest-path sdk/net-client/Cargo.toml",
+      "test_exit": 0,
+      "tests_passed": 6,
+      "test_log_sha256": "b5b1df636401dd63102e6d9d42703a46b8e32af23e480f2bf44f3ef6202d4323",
+      "clippy_command": "cargo +1.90.0 clippy --offline --locked --manifest-path sdk/net-client/Cargo.toml --all-targets -- -D warnings",
+      "clippy_exit": 0,
+      "clippy_log_sha256": "6b582dd2add6c91cab48898a3c03c96fbd863b4d383b7dc1894f09850c940186"
+    },
+    {
+      "package": "service",
+      "test_command": "cargo +1.91.1 test --offline --locked --manifest-path services/network-service/Cargo.toml",
+      "test_exit": 0,
+      "tests_passed": 7,
+      "test_log_sha256": "534cff11baf5ad36efc70298adfe6cef98b0c2e52764c896eaede6161d8a6174",
+      "clippy_command": "cargo +1.91.1 clippy --offline --locked --manifest-path services/network-service/Cargo.toml --all-targets -- -D warnings",
+      "clippy_exit": 0,
+      "clippy_log_sha256": "02db5a66fa0c60ca8618bd08aac556eac4f3ec863e8630a0d353dba6a0f6e126"
+    }
+  ],
+  "python_checks": [
+    {
+      "command": "python3 -B -m unittest discover -s tools -p test_network_service_peer.py",
+      "exit": 0,
+      "tests_passed": 11,
+      "log_sha256": "163ab9999d51af1e59032a4e387bae3965e9557496b5bb1de9128de88d3950d6"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s sdk/examples/tcp-probe -p test_peer.py",
+      "exit": 0,
+      "tests_passed": 16,
+      "log_sha256": "bc54fc712ccc753a7e63601e82db714fb263eeeba76a006daaef9567c7228065"
+    }
+  ],
+  "native_reports": {
+    "normal": {
+      "file": "native-report.json",
+      "sha256": "689edbbb1cefe310b9250e35f20b83f31749ce60960c05d72ebdeec7411209cd",
+      "serial_sha256": "6d46c94debdb20a6f0a09c2f734500b47f461a7813d6c1aa5cb59b46579613f8"
+    },
+    "client-exit": {
+      "file": "client-exit-report.json",
+      "sha256": "e7fad081a1a0c5c307852e6ef1dd111ff6a0c3c2bf3432c198ff3860eb569ec7",
+      "serial_sha256": "726639253d47eb5b69823412607f2d58bb8ee81ff69ac1db82a62bfdfbcf68eb"
+    }
+  },
+  "independent_ai_review": {
+    "reviewer": "qemu_performance",
+    "scope": "Per-slot channel failure, reserved port exhaustion, exact raw native streams",
+    "result": "No remaining blocker after targeted re-review; service7 and harness11 rerun independently",
+    "human_audit": false
+  }
+}

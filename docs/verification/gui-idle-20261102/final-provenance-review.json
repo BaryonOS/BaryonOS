@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-02",
+  "reviewer": "Separate read-only AI subagent /root/qemu_performance",
+  "scope": "Final integration documentation and source/CPU/CI/package provenance. No write, new VM or Windows runtime; no new raw-frame/volume audit or human-audit claim.",
+  "finding_corrected": "GUI-IDLE-WAIT.md now attributes three A runs to337/source3919 and three B runs to1f2/source8faf instead of ambiguously attributing all six to1f2.",
+  "verdict": "No remaining concrete blocker.",
+  "checks": [
+    "18 completed/success workflows associated with2a7b744; finalTCG fullsource0844/native_gate/raw33/323.900675s kept separate from formalWHPX measurements.",
+    "Ten normal binaries and eight app manifest hashes match the package byte-identity comparison; no new Windows runtime claim on new normal ZIP.",
+    "Manual roadmap sum41, previous41, U02/auth/clipboard/full interaction budgets open; feature-branch merge8289, not main.",
+    "Archived original CPU counters independently rehashed/recomputed with Decimal;88.260028196% process and88.526432319% mappedvCPU median reductions round correctly."
+  ]
+}

@@ -6,7 +6,7 @@ from build_users import inspect_user
 from run_fpu import private_path, publish, publish_json
 
 
-def build_users(*, probe=False):
+def build_users(*, probe=False, window_session=False, fault_injection=False):
     private_path(BUILD)
     private_path(TARGET)
     output = private_path(BUILD / "users/materiaal")
@@ -19,6 +19,11 @@ def build_users(*, probe=False):
         ("input-service", "input-source", "NOS_INPUT_SOURCE_ELF"),
         ("input-service", "input-policy", "NOS_INPUT_POLICY_ELF"),
     ]
+    if window_session:
+        specifications=[item for item in specifications if item[0] not in ("desktop-init","compositor")]
+        specifications += [("window-session","window-init","NOS_WINDOW_INIT_ELF"),
+                           ("window-session","window-compositor","NOS_WINDOW_COMPOSITOR_ELF"),
+                           ("calculator","calculator-app","NOS_CALCULATOR_ELF")]
     if probe:
         specifications.append(("desktop-init", "desktop-controller", "NOS_DESKTOP_CONTROLLER_ELF"))
     # Check all destinations before the first external command. In particular,
@@ -37,7 +42,9 @@ def build_users(*, probe=False):
     for package, name, variable in specifications:
         target = private_path(TARGET / ("materiaal-" + package))
         if package not in built:
-            run_logged([sys.executable, "-B", str(ROOT / "sdk/examples" / package / "build.py")],
+            command=[sys.executable, "-B", str(ROOT / "sdk/examples" / package / "build.py")]
+            if package=="window-session" and fault_injection: command.append("--fault-injection")
+            run_logged(command,
                        "build-materiaal-" + package,
                        extra_env={"CARGO_TARGET_DIR": str(target)})
             built.add(package)

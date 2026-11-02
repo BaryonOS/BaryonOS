@@ -1,0 +1,678 @@
+{
+  "schema": "nieuw-os-ci-window-readback-v1",
+  "trigger_commit": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+  "tested_ci_merge_commit": "5754763ffb257d6420f74126cae7252e36afab1e",
+  "source_sha256": "038615b1b425d3f24ea2d9c52b36184ea666f81237c813303dc0fac93fb756ca",
+  "run_id": 41503460976,
+  "job_id": 125476892068,
+  "artifact_id": 13172335809,
+  "artifact": {
+    "path": "/workspace/attachments/b8a785d0-eb0f-4bc9-90c8-92480a4832f4/native-clipboard-e3182f0-41503460976.zip",
+    "sha256": "8a7a11213060cf7889ad47640d50fe00394e1fe0036d0533401fa6d7f3d98ba3",
+    "size_bytes": 4759449
+  },
+  "passed": true,
+  "native_gate": true,
+  "clipboard_requested": true,
+  "clipboard_gate": true,
+  "smoke_only": false,
+  "raw_qemu_exit": 33,
+  "duration_s": 1407.011260869,
+  "phases": {
+    "boot": {
+      "seconds": 96.276524452,
+      "frame_sha256": "f1aa7a45a5f4a2edb0fff7ee10bb4ee1e80273ea267f90931d8d655dd5fd587e",
+      "oracle": null
+    },
+    "initial": {
+      "seconds": 100.131820491,
+      "frame_sha256": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+      "oracle": "initial"
+    },
+    "editor": {
+      "seconds": 173.41875353199998,
+      "frame_sha256": "84576317ae5a71b50b6f5fcdd2a476656be22884629a2e5db9f94276502110dc",
+      "oracle": "editor"
+    },
+    "dirty": {
+      "seconds": 254.650571941,
+      "frame_sha256": "78136db9ea20fcc1eccda7e70b58d6342aadfa4bb4d46907a43c6c5a01fef25d",
+      "oracle": "dirty"
+    },
+    "clipboard-copied": {
+      "seconds": 327.324852742,
+      "frame_sha256": "96100f9dcb65657ed593512366ed13f9b92ca7033a1b438558cd45dc936106a9",
+      "oracle": "clipboard-copied"
+    },
+    "clipboard-rejected": {
+      "seconds": 344.12884071400003,
+      "frame_sha256": "72b335f45b0ba9de9f95c962d0182b0f39c2533d25e43c35178077025f6ac608",
+      "oracle": "clipboard-unsupported"
+    },
+    "clipboard-numeric": {
+      "seconds": 437.74657172200006,
+      "frame_sha256": "15ed2785058a6b431f73adf77a9adf77394ae4d42a04973aaf701173250403d7",
+      "oracle": "clipboard-numeric"
+    },
+    "clipboard-pasted": {
+      "seconds": 479.10628544499997,
+      "frame_sha256": "b81ebf5c8a68223375edbac4ffeae2514c5274d7f36ff36629a269d63ae90854",
+      "oracle": "clipboard-pasted"
+    },
+    "clipboard-calculator-copied": {
+      "seconds": 520.952313122,
+      "frame_sha256": "a610bb23a042e2112e3b2b37103d8fded6d9f088fb43d089caef5ac727919175",
+      "oracle": "clipboard-calculator-copied"
+    },
+    "clipboard-back": {
+      "seconds": 616.3502507879999,
+      "frame_sha256": "9d7a78b7120814479008e14215bd01a18689cebb441f97536e2df26e164de11d",
+      "oracle": "clipboard-back"
+    },
+    "clipboard-empty": {
+      "seconds": 689.5882882359999,
+      "frame_sha256": "4181378ade6cbb9f2627a2a0677c77b7e2871a96566a5e2c23abc9959652a27c",
+      "oracle": "clipboard-empty"
+    },
+    "clipboard-reset": {
+      "seconds": 775.891195595,
+      "frame_sha256": "ca4333dd55c6a81a68a3f834094e049c32fc95d85cb1af7eed02144962fd5bfe",
+      "oracle": "dirty"
+    },
+    "calculated": {
+      "seconds": 822.437595688,
+      "frame_sha256": "5ba46c1d0c5523e2500c4034fabc6331c8fe13dd1af037e55bce6ab07928d2b7",
+      "oracle": null
+    },
+    "moved": {
+      "seconds": 830.44024299,
+      "frame_sha256": "9577b2a52df0476168205a31b01072a9ab80f1edf37d2d2ccceb4d0475c04867",
+      "oracle": null
+    },
+    "recovered": {
+      "seconds": 937.1912896679999,
+      "frame_sha256": "790f6a6f2e8d820053569c789611e25f784adef1a0fe3c356ece4eb978c53705",
+      "oracle": null
+    },
+    "rebound-editor": {
+      "seconds": 947.282705498,
+      "frame_sha256": "df6370d59762854e32396aab4b6c1b3073a70b586121269dca09cdab96f71f03",
+      "oracle": "dirty-rebound"
+    },
+    "calculator-restored": {
+      "seconds": 995.2141282289999,
+      "frame_sha256": "3b36ec1d70a08df07136b4b0b92eda688ca9101e0b1ccd3edde5893ec913e7bf",
+      "oracle": null
+    },
+    "restored-editor": {
+      "seconds": 1100.157303622,
+      "frame_sha256": "2fd8472c6d0d4b5779136bb26407742205e075e2ce6ef2db99f570e78a89fc4a",
+      "oracle": "dirty-recovered"
+    },
+    "clipboard-recovered-empty": {
+      "seconds": 1173.480806397,
+      "frame_sha256": "41295ae28be2c1c4bf2a738cc72af837b73d7a1fe1a76824fadc1a79b370de66",
+      "oracle": "clipboard-recovered-empty"
+    },
+    "saved": {
+      "seconds": 1250.443272715,
+      "frame_sha256": "1f6b15392c8c457829f1a4e2540622ee648953ec6a0b42ac0693bb90590e8a8a",
+      "oracle": "saved"
+    },
+    "list": {
+      "seconds": 1327.0831549519999,
+      "frame_sha256": "97e76ac0ca661b2f4832b1b18d5269a882e67f038298e63279d0a84470bb8e7d",
+      "oracle": "list"
+    },
+    "reopened": {
+      "seconds": 1405.880330595,
+      "frame_sha256": "b0fd4ebc2a7c6f6b7f552982da0ca1e753d061359e22bf2856cfe716c31a9d22",
+      "oracle": "reopened"
+    }
+  },
+  "all_twenty_two_native_frame_hashes_match": true,
+  "all_thirty_four_host_oracle_hashes_match": true,
+  "full_body_comparisons": [
+    {
+      "phase": "initial",
+      "oracle": "initial",
+      "app": "MATERIAL"
+    },
+    {
+      "phase": "editor",
+      "oracle": "editor",
+      "app": "MATERIAL"
+    },
+    {
+      "phase": "dirty",
+      "oracle": "dirty",
+      "app": "MATERIAL"
+    },
+    {
+      "phase": "clipboard-copied",
+      "oracle": "clipboard-copied",
+      "app": "MATERIAL"
+    },
+    {
+      "phase": "clipboard-rejected",
+      "oracle": "clipboard-unsupported",
+      "app": "CALCULATOR"
+    },
+    {
+      "phase": "clipboard-numeric",
+      "oracle": "clipboard-numeric",
+      "app": "MATERIAL"
+    },
+    {
+      "phase": "clipboard-pasted",
+      "oracle": "clipboard-pasted",
+      "app": "CALCULATOR"
+    },
+    {
+      "phase": "clipboard-calculator-copied",
+      "oracle": "clipboard-calculator-copied",
+      "app": "CALCULATOR"
+    },
+    {
+      "phase": "clipboard-back",
+      "oracle": "clipboard-back",
+      "app": "MATERIAL"
+    },
+    {
+      "phase": "clipboard-empty",
+      "oracle": "clipboard-empty",
+      "app": "MATERIAL"
+    },
+    {
+      "phase": "clipboard-reset",
+      "oracle": "dirty",
+      "app": "MATERIAL"
+    },
+    {
+      "phase": "rebound-editor",
+      "oracle": "dirty-rebound",
+      "app": "MATERIAL"
+    },
+    {
+      "phase": "restored-editor",
+      "oracle": "dirty-recovered",
+      "app": "MATERIAL"
+    },
+    {
+      "phase": "clipboard-recovered-empty",
+      "oracle": "clipboard-recovered-empty",
+      "app": "MATERIAL"
+    },
+    {
+      "phase": "saved",
+      "oracle": "saved",
+      "app": "MATERIAL"
+    },
+    {
+      "phase": "list",
+      "oracle": "list",
+      "app": "MATERIAL"
+    },
+    {
+      "phase": "reopened",
+      "oracle": "reopened",
+      "app": "MATERIAL"
+    }
+  ],
+  "actual_unmasked_body_oracle_recheck": true,
+  "protected_chrome_drag_and_calculator_restore_rechecked": true,
+  "app_pid_work_and_calculation_preserved": true,
+  "clipboard_roundtrip_rejection_clear_and_post_fault_empty_rechecked": true,
+  "qmp_clipboard_key_requests": {
+    "copies": 4,
+    "pastes": 5,
+    "clear": 1,
+    "compositor_fault": 1,
+    "clipboard_repopulated_after_clear_before_fault": true,
+    "only_paste_after_fault_without_another_clear": true,
+    "scope": "Successful QMP key injection records; not p95 latency or unique native snapshot causality proof."
+  },
+  "eight_actual_embedded_app_elfs_recovered_and_inspected": [
+    {
+      "name": "keyring-service",
+      "sha256": "06642d5f5b7ffa6dd681677862255fef8ed6b2a66cb6bfaa807b0be549cfb8e1",
+      "offset": 220240,
+      "length": 107624,
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1344,
+            "memsz": 1344,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073823744,
+            "offset": 12288,
+            "filesz": 3321,
+            "memsz": 3321,
+            "page_start": 1073823744,
+            "page_end": 1073827840
+          },
+          {
+            "flags": 5,
+            "address": 1073872896,
+            "offset": 16384,
+            "filesz": 78407,
+            "memsz": 78407,
+            "page_start": 1073872896,
+            "page_end": 1073954816
+          }
+        ]
+      }
+    },
+    {
+      "name": "volume-service",
+      "sha256": "0eb883ecc649bf0deb63f8945701c5da80591b8467a4970c8c708f5c854dfec0",
+      "offset": 327864,
+      "length": 97632,
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 57570,
+            "memsz": 57570,
+            "page_start": 1073741824,
+            "page_end": 1073803264
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 65536,
+            "filesz": 1304,
+            "memsz": 1304,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073823744,
+            "offset": 69632,
+            "filesz": 18082,
+            "memsz": 18082,
+            "page_start": 1073823744,
+            "page_end": 1073844224
+          }
+        ]
+      }
+    },
+    {
+      "name": "materiaal-app",
+      "sha256": "8aad2b1b617b4881ba25e3e54c64fd939a3790b9dd00584139c5992123f9a284",
+      "offset": 425496,
+      "length": 630600,
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 19,
+            "memsz": 19,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1024,
+            "memsz": 1024,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 471240,
+            "memsz": 471240,
+            "page_start": 1073872896,
+            "page_end": 1074348032
+          },
+          {
+            "flags": 6,
+            "address": 1074462720,
+            "offset": 487424,
+            "filesz": 208,
+            "memsz": 200704,
+            "page_start": 1074462720,
+            "page_end": 1074663424
+          },
+          {
+            "flags": 5,
+            "address": 1074724864,
+            "offset": 491520,
+            "filesz": 107641,
+            "memsz": 107641,
+            "page_start": 1074724864,
+            "page_end": 1074835456
+          }
+        ]
+      }
+    },
+    {
+      "name": "input-source",
+      "sha256": "0b6569b100c28135ebd1cf31d07b1fb5ec4e9616bf4aeb82dd408a65a683e20d",
+      "offset": 1427560,
+      "length": 37424,
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1200,
+            "memsz": 1200,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 754,
+            "memsz": 754,
+            "page_start": 1073872896,
+            "page_end": 1073876992
+          },
+          {
+            "flags": 5,
+            "address": 1074003968,
+            "offset": 16384,
+            "filesz": 12263,
+            "memsz": 12263,
+            "page_start": 1074003968,
+            "page_end": 1074016256
+          }
+        ]
+      }
+    },
+    {
+      "name": "input-policy",
+      "sha256": "a7fb09a48ae959c3583c01f8dc85e1abb6bdc0c60a4cb3d4825ae9f28b1e9e89",
+      "offset": 1464984,
+      "length": 48608,
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1200,
+            "memsz": 1200,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 2522,
+            "memsz": 2522,
+            "page_start": 1073872896,
+            "page_end": 1073876992
+          },
+          {
+            "flags": 5,
+            "address": 1074003968,
+            "offset": 16384,
+            "filesz": 21575,
+            "memsz": 21575,
+            "page_start": 1074003968,
+            "page_end": 1074028544
+          }
+        ]
+      }
+    },
+    {
+      "name": "window-init",
+      "sha256": "ccd7950aa46ad89b29c59cf70742e0e383dca4e7f87ced9ab9281b1e49ffbd3a",
+      "offset": 181536,
+      "length": 38704,
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1024,
+            "memsz": 1024,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 799,
+            "memsz": 799,
+            "page_start": 1073872896,
+            "page_end": 1073876992
+          },
+          {
+            "flags": 6,
+            "address": 1074790400,
+            "offset": 16384,
+            "filesz": 72,
+            "memsz": 72,
+            "page_start": 1074790400,
+            "page_end": 1074794496
+          },
+          {
+            "flags": 5,
+            "address": 1090519040,
+            "offset": 20480,
+            "filesz": 9799,
+            "memsz": 9799,
+            "page_start": 1090519040,
+            "page_end": 1090531328
+          }
+        ]
+      }
+    },
+    {
+      "name": "window-compositor",
+      "sha256": "ca3228484b4b9cbc8b910e23ba64bede31ca7c70176263fe6ef0c332a8a68a08",
+      "offset": 1056096,
+      "length": 371464,
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1024,
+            "memsz": 1024,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 280250,
+            "memsz": 280250,
+            "page_start": 1073872896,
+            "page_end": 1074155520
+          },
+          {
+            "flags": 6,
+            "address": 1074790400,
+            "offset": 294912,
+            "filesz": 120,
+            "memsz": 5600120,
+            "page_start": 1074790400,
+            "page_end": 1080393728
+          },
+          {
+            "flags": 5,
+            "address": 1090519040,
+            "offset": 299008,
+            "filesz": 49079,
+            "memsz": 49079,
+            "page_start": 1090519040,
+            "page_end": 1090568192
+          }
+        ]
+      }
+    },
+    {
+      "name": "calculator-app",
+      "sha256": "fa8cfbc695ef9dd9e003baf28e12a0ac8e47a91b80466011792d7266d4e49118",
+      "offset": 1513592,
+      "length": 298480,
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 19,
+            "memsz": 19,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1024,
+            "memsz": 1024,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 192936,
+            "memsz": 192936,
+            "page_start": 1073872896,
+            "page_end": 1074069504
+          },
+          {
+            "flags": 6,
+            "address": 1074200576,
+            "offset": 208896,
+            "filesz": 208,
+            "memsz": 208,
+            "page_start": 1074200576,
+            "page_end": 1074204672
+          },
+          {
+            "flags": 5,
+            "address": 1074462720,
+            "offset": 212992,
+            "filesz": 67142,
+            "memsz": 67142,
+            "page_start": 1074462720,
+            "page_end": 1074532352
+          }
+        ]
+      }
+    }
+  ],
+  "service_generation_epochs_and_probe_counts_rechecked": true,
+  "compositor_pid_before": 5,
+  "compositor_pid_after": 9,
+  "raw_serial_sha256": "b458cd749774a44bf9f54e3b741bfd2e0d0b306c92960b221f41411aca617204",
+  "report_sha256": "4d546eb5b259d2ed8b169dda3e7597501fc87af737f0bd2e274c001edce128c7",
+  "disk_oracle": {
+    "object": 0,
+    "revision": 1,
+    "name": "Nieuw document",
+    "length": 14,
+    "sha256": "9a45a00fa9ff69c17e124f54c14bb14cf2c7650e8cf1c272f6631f618a19a5a5",
+    "fnv": 2786778974461010050,
+    "generation": 1,
+    "clocks": [
+      1,
+      0
+    ],
+    "canaries_intact": true
+  },
+  "disk_sha256": "246c8f9773533796718a729389c26d6103f45f04e7a83b4d06503e17c6d4e07e",
+  "cleanup_live_processes": 0,
+  "cleanup_live_handles": 0,
+  "native_qemu": "8.2.2 Ubuntu 24.04; TCG thread=single, pc-q35-8.2, 1 CPU, 256 MiB",
+  "ci_normal_windows_bundle": {
+    "path": "/workspace/nieuw-os-windows-package/build/clipboard-e318/NieuwOS-klembord-e318-Windows-QEMU.zip",
+    "sha256": "e29a6ca5933a0958b10238ae2f660237bbf5295c170d5c92146eb9d4ddf2fc3d",
+    "size_bytes": 2408622,
+    "manifest_sha256": "1a067624322d9ecffb7d53740e69766b0140400e79fff04c7f0f4e3c42a1bb19",
+    "kernel_sha256": "5442d9fcff2bccfbe47a41632bad6efc966dd62035baa503a46f765a08ffa68a",
+    "loader_sha256": "48d661e0681f3f0be90bedcb4996a9f5c29f0a0d7ddeec3829c0b8b0a72eef7a",
+    "all_nineteen_payloads_verified": true
+  },
+  "limits": [
+    "CI ran Linux/QEMU TCG; no Windows/WHPX or physical hardware acceptance.",
+    "This checks the functional bounded clipboard route, not complete U02 interaction budgets or product security superiority.",
+    "Root d0ae/source0530 measurements retain their original labels; this artifact is independently bound to e318/source0386.",
+    "This independently checks stored actual CI evidence and does not start another VM."
+  ]
+}

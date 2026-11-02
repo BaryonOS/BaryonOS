@@ -1,10 +1,10 @@
-//! Scalar assigned-surface tiles. One existing token source and the approved
-//! Noto font; no document model, display mapping, allocator or host rendering.
+//! Bounded paper calculator surface. The immutable proportional UI atlas is
+//! shared with the compositor; no parser, device, allocator or model mutation.
 use crate::{
     decimal::Value,
     model::{Model, Notice, LABELS},
 };
-use noto_sans_mono_bitmap::{get_raster, get_raster_width, FontWeight, RasterHeight};
+use nieuw_os_graphics::{Canvas, Font, Rect as GraphicRect, Size, Weight};
 #[path = "../../../../ui/native/src/design.rs"]
 pub mod design;
 use design as d;
@@ -75,20 +75,21 @@ impl Layout {
     pub fn new(view: Viewport) -> Self {
         let (w, h) = (view.width / view.scale, view.height / view.scale);
         let compact = h < 360;
-        let pad = if compact { d::PAD / 2 } else { d::PAD };
+        let pad = if compact { 16 } else { 24 };
         let width = (w - 2 * pad).min(520);
         let x = (w - width) / 2;
         let expression = Rect {
             x,
-            y: pad + if compact { 22 } else { 40 },
+            y: if compact { 8 } else { 24 },
             width,
-            height: if compact { 24 } else { 36 },
+            height: if compact { 26 } else { 32 },
         };
-        let result_y = expression.y + expression.height + if compact { 4 } else { 12 };
-        let status_y = result_y + if compact { 20 } else { 24 };
-        let grid_y = status_y + if compact { 22 } else { 32 };
-        let gap = if compact { d::SPACE / 4 * 3 } else { d::SPACE };
-        let button_height = d::CONTROL_HEIGHT.min((h - pad - grid_y - 3 * gap) / 4);
+        let result_y = if compact { 42 } else { 80 };
+        let status_y = if compact { 90 } else { 136 };
+        let grid_y = if compact { 116 } else { 184 };
+        let gap = 1;
+        let bottom = if compact { 12 } else { 24 };
+        let button_height = ((h - bottom - grid_y - 3 * gap) / 4).min(72);
         Self {
             expression,
             title_y: pad,
@@ -114,27 +115,95 @@ impl Layout {
     pub fn hit(self, x: u32, y: u32) -> Option<usize> {
         (0..20).find(|i| self.button(*i).contains(x, y))
     }
-}
-pub fn character_width(scale: u32) -> u32 {
-    get_raster_width(FontWeight::Regular, height(scale)).div_ceil(scale as usize) as u32
-}
-fn height(scale: u32) -> RasterHeight {
-    if scale == 1 {
-        RasterHeight::Size16
-    } else {
-        RasterHeight::Size32
+    pub fn result_bounds(self, scale: u32) -> Rect {
+        Rect {
+            x: self.x,
+            y: self.result_y.saturating_sub(18),
+            width: self.width,
+            height: Font::new(Size::Title, Weight::Semibold, scale == 2)
+                .height()
+                .div_ceil(scale.max(1))
+                + 18,
+        }
+    }
+    pub fn status_bounds(self, scale: u32) -> Rect {
+        Rect {
+            x: self.x,
+            y: self.status_y,
+            width: self.width,
+            height: Font::new(Size::Small, Weight::Regular, scale == 2)
+                .height()
+                .div_ceil(scale.max(1)),
+        }
     }
 }
+/// Compatibility metric for legacy callers; editable formula hit testing must
+/// use expression_caret_at, whose positions follow the actual glyph advances.
+pub fn character_width(scale: u32) -> u32 {
+    formula_font(scale).measure("0").div_ceil(scale.max(1))
+}
+fn formula_font(scale: u32) -> Font {
+    Font::new(Size::Body, Weight::Regular, scale == 2)
+}
+fn available_formula_width(layout: Layout, scale: u32) -> u64 {
+    u64::from(layout.expression.width.saturating_sub(16) * scale).saturating_sub(u64::from(scale))
+}
+/// The expression is bounded ASCII. Keep the caret inside the same viewport
+/// used for rendering, selection and pointer hit testing, without mono cells.
 pub fn expression_start(model: &Model, layout: Layout, scale: u32) -> usize {
-    let columns =
-        (layout.expression.width.saturating_sub(16) / character_width(scale)).max(1) as usize;
-    model.caret().saturating_sub(columns.saturating_sub(1))
+    let font = formula_font(scale);
+    let bytes = model.expression().as_bytes();
+    let mut start = model.caret();
+    let mut advance = 0u64;
+    while start != 0 {
+        let next = advance + u64::from(font.advance(char::from(bytes[start - 1])));
+        if next / 64 > available_formula_width(layout, scale) {
+            break;
+        }
+        advance = next;
+        start -= 1;
+    }
+    start
+}
+fn expression_end(model: &Model, layout: Layout, scale: u32, start: usize) -> usize {
+    let font = formula_font(scale);
+    let mut advance = 0u64;
+    let mut end = start;
+    for byte in &model.expression().as_bytes()[start..] {
+        let next = advance + u64::from(font.advance(char::from(*byte)));
+        if next / 64 > available_formula_width(layout, scale) {
+            break;
+        }
+        advance = next;
+        end += 1;
+    }
+    end
+}
+/// `logical_x` is the app-local pointer coordinate after scale conversion.
+/// Choose the nearest insertion boundary using the exact same 26.6 advances
+/// and cropped viewport as the painted formula. No model state is changed.
+pub fn expression_caret_at(model: &Model, layout: Layout, scale: u32, logical_x: u32) -> usize {
+    let start = expression_start(model, layout, scale);
+    let end = expression_end(model, layout, scale, start);
+    let pointer = u64::from(logical_x.saturating_sub(layout.expression.x + 8)) * u64::from(scale);
+    let font = formula_font(scale);
+    let mut advance = 0u64;
+    for index in start..end {
+        let next =
+            advance + u64::from(font.advance(char::from(model.expression().as_bytes()[index])));
+        if pointer * 2 < advance / 64 + next / 64 {
+            return index;
+        }
+        advance = next;
+    }
+    end
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Error {
     Tile,
     Capacity,
 }
+
 pub fn render_tile(
     model: &Model,
     view: Viewport,
@@ -154,320 +223,245 @@ pub fn render_tile(
     if out.len() < count {
         return Err(Error::Capacity);
     }
+    let mut canvas = Canvas::new(
+        GraphicRect::new(tile.x as i32, tile.y as i32, tile.width, tile.height),
+        &mut out[..count],
+    )
+    .map_err(|_| Error::Tile)?;
+    canvas.clear(d::BACKGROUND);
     let mut paint = Paint {
-        tile,
-        pixels: &mut out[..count],
+        canvas,
         scale: view.scale,
     };
-    paint.pixels.fill(d::BACKGROUND);
     let layout = Layout::new(view);
-    if layout.compact {
-        paint.label(
-            layout.x,
-            layout.title_y,
-            "Rekenmachine",
-            d::TEXT,
-            layout.width,
-        );
-    } else {
-        paint.title(layout.x, layout.title_y, "Rekenmachine");
+    let field = paint.physical(layout.expression);
+    if field.intersects(paint.canvas.bounds()) {
+        paint.formula(model, layout);
     }
-    paint.label(
-        layout.x
-            + layout
-                .width
-                .saturating_sub(11 * character_width(view.scale)),
-        layout.title_y + if layout.compact { 0 } else { 8 },
-        "9 decimalen",
-        d::MUTED,
-        layout.width,
-    );
-    paint.boxed(
-        layout.expression,
-        d::SURFACE,
-        if model.focus() == 0 && model.active() {
-            d::ACCENT
+    let title = Font::new(Size::Title, Weight::Semibold, view.scale == 2);
+    let result_area = paint.physical(layout.result_bounds(view.scale));
+    if result_area.intersects(paint.canvas.bounds()) {
+        let formatted = model
+            .answer()
+            .map_or(Value::default(), |answer| answer.value)
+            .format();
+        let result = formatted.as_str();
+        let body = Font::new(Size::Body, Weight::Semibold, view.scale == 2);
+        let font = if title.measure(result) <= layout.width * view.scale {
+            title
         } else {
-            d::BORDER
-        },
-    );
-    let start = expression_start(model, layout, view.scale);
-    let step = character_width(view.scale);
-    let columns = ((layout.expression.width - 16) / step) as usize;
-    let selection = model.selection();
-    for (column, byte) in model
-        .expression()
-        .as_bytes()
-        .iter()
-        .enumerate()
-        .skip(start)
-        .take(columns)
-    {
-        let x = layout.expression.x + 8 + (column - start) as u32 * step;
-        if selection.contains(&column) {
-            paint.fill(
-                Rect {
-                    x,
-                    y: layout.expression.y + 3,
-                    width: step,
-                    height: 18,
-                },
-                d::ACCENT_SOFT,
+            body
+        };
+        let stale = model.answer().is_some() && !model.current();
+        let value_x = (layout.x + layout.width) * view.scale - font.measure(result);
+        paint.canvas.text(
+            value_x as i32,
+            (layout.result_y * view.scale) as i32,
+            result,
+            font,
+            if stale || model.answer().is_none() {
+                d::MUTED
+            } else {
+                d::TEXT
+            },
+        );
+        if stale && !layout.compact {
+            paint.text(
+                layout.x,
+                layout.result_y - 18,
+                "Vorig resultaat",
+                Size::Small,
+                Weight::Regular,
+                d::MUTED,
             );
         }
-        paint.glyph(
-            x,
-            layout.expression.y + (layout.expression.height - 16) / 2,
-            *byte as char,
-            d::TEXT,
-        );
     }
-    if model.focus() == 0 && model.active() {
-        paint.fill(
-            Rect {
-                x: layout.expression.x + 8 + (model.caret() - start) as u32 * step,
-                y: layout.expression.y + 4,
-                width: 1,
-                height: layout.expression.height - 8,
-            },
-            d::TEXT,
-        );
-    }
-    let formatted = model
-        .answer()
-        .map_or(Value::default(), |a| a.value)
-        .format();
-    let prefix = if model.answer().is_some() && !model.current() {
-        "Vorig: "
-    } else {
-        "= "
-    };
-    paint.label(layout.x, layout.result_y, prefix, d::MUTED, layout.width);
-    paint.label(
-        layout.x + prefix.len() as u32 * step,
-        layout.result_y,
-        formatted.as_str(),
-        d::TEXT,
-        layout.width - prefix.len() as u32 * step,
-    );
     let status = if model.notice() != Notice::None {
         model.notice().label()
-    } else if model.answer().is_some_and(|a| a.rounded) && model.current() {
+    } else if model.answer().is_some_and(|answer| answer.rounded) && model.current() {
         "Afgerond op 9 decimalen."
     } else {
-        "Punt of komma is decimaal."
+        ""
     };
-    paint.label(
-        layout.x,
-        layout.status_y,
-        status,
-        if model.notice() != Notice::None {
-            d::DANGER
-        } else {
-            d::MUTED
+    let color = match model.notice() {
+        Notice::ClipboardCopied => d::ACCENT,
+        Notice::None => d::MUTED,
+        _ => d::DANGER,
+    };
+    paint.notice(layout, status, color);
+    paint.fill(
+        Rect {
+            x: layout.x,
+            y: layout.grid_y - 12,
+            width: layout.width,
+            height: 1,
         },
-        layout.width,
+        d::LINE,
     );
-    for (index, label) in LABELS.iter().enumerate() {
-        let button = layout.button(index);
+    for (index, original_label) in LABELS.iter().enumerate() {
+        let rect = layout.button(index);
+        if !paint.physical(rect).intersects(paint.canvas.bounds()) {
+            continue;
+        }
         let primary = index == 17;
-        let hovered = model.hover() == Some(index);
+        let operator = matches!(index, 3 | 8 | 13 | 18);
+        let hover = model.hover() == Some(index);
         let pressed = model.pressed() == Some(index);
-        paint.boxed(
-            button,
-            if pressed || hovered {
+        let background = if primary {
+            if hover || pressed {
                 d::ACCENT_SOFT
-            } else if primary {
-                d::ACCENT
             } else {
-                d::SURFACE
-            },
-            if model.focus() == index + 1 && model.active() {
+                d::ACCENT
+            }
+        } else if hover || pressed || operator {
+            d::ACCENT_SOFT
+        } else {
+            d::SURFACE
+        };
+        paint.fill(rect, background);
+        if model.focus() == index + 1 && model.active() {
+            let physical = paint.physical(rect);
+            paint
+                .canvas
+                .stroke_rounded_rect(physical, 0, 2 * view.scale, d::ACCENT);
+        }
+        let label = match index {
+            3 => "÷",
+            8 => "×",
+            _ => original_label,
+        };
+        let large = Font::new(Size::Title, Weight::Semibold, view.scale == 2);
+        let font = if large.height() + 8 * view.scale <= rect.height * view.scale
+            && large.measure(label) + 12 * view.scale <= rect.width * view.scale
+        {
+            large
+        } else {
+            Font::new(Size::Body, Weight::Regular, view.scale == 2)
+        };
+        let x =
+            rect.x * view.scale + (rect.width * view.scale).saturating_sub(font.measure(label)) / 2;
+        let y = rect.y * view.scale + (rect.height * view.scale).saturating_sub(font.height()) / 2;
+        let color = if primary && !hover && !pressed {
+            d::SURFACE
+        } else if primary || operator {
+            d::ACCENT
+        } else {
+            d::TEXT
+        };
+        paint.canvas.text(x as i32, y as i32, label, font, color);
+    }
+    Ok(())
+}
+struct Paint<'a> {
+    canvas: Canvas<'a>,
+    scale: u32,
+}
+impl Paint<'_> {
+    fn physical(&self, rect: Rect) -> GraphicRect {
+        GraphicRect::new(
+            (rect.x * self.scale) as i32,
+            (rect.y * self.scale) as i32,
+            rect.width * self.scale,
+            rect.height * self.scale,
+        )
+    }
+    fn fill(&mut self, rect: Rect, color: u32) {
+        self.canvas.fill_rect(self.physical(rect), color);
+    }
+    fn text(&mut self, x: u32, y: u32, text: &str, size: Size, weight: Weight, color: u32) {
+        self.canvas.text(
+            (x * self.scale) as i32,
+            (y * self.scale) as i32,
+            text,
+            Font::new(size, weight, self.scale == 2),
+            color,
+        );
+    }
+    fn formula(&mut self, model: &Model, layout: Layout) {
+        let font = formula_font(self.scale);
+        let start = expression_start(model, layout, self.scale);
+        let end = expression_end(model, layout, self.scale, start);
+        let origin = (layout.expression.x + 8) * self.scale;
+        let top = layout.expression.y * self.scale;
+        let height = layout.expression.height * self.scale;
+        let selection = model.selection();
+        let mut advance = 0u64;
+        let mut caret = 0u32;
+        for index in start..end {
+            let next =
+                advance + u64::from(font.advance(char::from(model.expression().as_bytes()[index])));
+            if index == model.caret() {
+                caret = (advance / 64) as u32;
+            }
+            if selection.contains(&index) {
+                self.canvas.fill_rect(
+                    GraphicRect::new(
+                        (origin + (advance / 64) as u32) as i32,
+                        (top + 4 * self.scale) as i32,
+                        ((next / 64) - (advance / 64)) as u32,
+                        height - 8 * self.scale,
+                    ),
+                    d::ACCENT_SOFT,
+                );
+            }
+            advance = next;
+        }
+        if model.caret() == end {
+            caret = (advance / 64) as u32;
+        }
+        let value = &model.expression()[start..end];
+        let y = top + height.saturating_sub(font.height()) / 2;
+        if value.is_empty() {
+            self.canvas
+                .text(origin as i32, y as i32, "0", font, d::MUTED);
+        } else {
+            self.canvas
+                .text(origin as i32, y as i32, value, font, d::TEXT);
+        }
+        if model.focus() == 0 && model.active() {
+            self.canvas.fill_rect(
+                GraphicRect::new(
+                    (origin + caret) as i32,
+                    (top + 4 * self.scale) as i32,
+                    self.scale,
+                    height - 8 * self.scale,
+                ),
+                d::TEXT,
+            );
+        }
+        self.canvas.fill_rect(
+            GraphicRect::new(
+                (layout.expression.x * self.scale) as i32,
+                (top + height - self.scale) as i32,
+                layout.expression.width * self.scale,
+                self.scale,
+            ),
+            if model.active() && model.focus() == 0 {
                 d::ACCENT
             } else {
                 d::BORDER
             },
         );
-        if model.focus() == index + 1 && model.active() {
-            paint.rounded(
-                Rect {
-                    x: button.x + 2,
-                    y: button.y + 2,
-                    width: button.width - 4,
-                    height: button.height - 4,
-                },
-                d::ACCENT,
-                d::CONTROL_RADIUS.saturating_sub(2),
-            );
-            paint.rounded(
-                Rect {
-                    x: button.x + 4,
-                    y: button.y + 4,
-                    width: button.width - 8,
-                    height: button.height - 8,
-                },
-                if pressed || hovered {
-                    d::ACCENT_SOFT
-                } else if primary {
-                    d::ACCENT
-                } else {
-                    d::SURFACE
-                },
-                d::CONTROL_RADIUS.saturating_sub(4),
-            );
+    }
+    fn notice(&mut self, layout: Layout, value: &str, color: u32) {
+        let font = Font::new(Size::Small, Weight::Regular, self.scale == 2);
+        let area = self.physical(layout.status_bounds(self.scale));
+        if value.is_empty() || !area.intersects(self.canvas.bounds()) {
+            return;
         }
-        let text_width = label.len() as u32 * step;
-        paint.label(
-            button.x + (button.width - text_width) / 2,
-            button.y + (button.height - 16) / 2,
-            label,
-            if primary && !hovered && !pressed {
-                d::SURFACE
-            } else {
-                d::TEXT
-            },
-            button.width,
+        let mut end = 0;
+        for (index, ch) in value.char_indices() {
+            if font.measure(&value[..index + ch.len_utf8()]) > layout.width * self.scale {
+                break;
+            }
+            end = index + ch.len_utf8();
+        }
+        self.canvas.text(
+            (layout.x * self.scale) as i32,
+            (layout.status_y * self.scale) as i32,
+            &value[..end],
+            font,
+            color,
         );
-    }
-    Ok(())
-}
-struct Paint<'a> {
-    tile: Rect,
-    pixels: &'a mut [u32],
-    scale: u32,
-}
-impl Paint<'_> {
-    fn pixel(&mut self, x: u32, y: u32, color: u32) {
-        if self.tile.contains(x, y) {
-            let at = ((y - self.tile.y) * self.tile.width + x - self.tile.x) as usize;
-            self.pixels[at] = color & 0xffffff;
-        }
-    }
-    fn fill(&mut self, r: Rect, color: u32) {
-        let (left, top) = (r.x * self.scale, r.y * self.scale);
-        let (right, bottom) = ((r.x + r.width) * self.scale, (r.y + r.height) * self.scale);
-        for y in top.max(self.tile.y)..bottom.min(self.tile.y + self.tile.height) {
-            for x in left.max(self.tile.x)..right.min(self.tile.x + self.tile.width) {
-                self.pixel(x, y, color);
-            }
-        }
-    }
-    fn rounded(&mut self, r: Rect, color: u32, radius: u32) {
-        let (left, top) = (r.x * self.scale, r.y * self.scale);
-        let (width, height) = (r.width * self.scale, r.height * self.scale);
-        let radius = (radius * self.scale).min(width / 2).min(height / 2);
-        for y in top.max(self.tile.y)..(top + height).min(self.tile.y + self.tile.height) {
-            for x in left.max(self.tile.x)..(left + width).min(self.tile.x + self.tile.width) {
-                let dx = if x < left + radius {
-                    left + radius - x
-                } else {
-                    x.saturating_sub(left + width - radius - 1)
-                };
-                let dy = if y < top + radius {
-                    top + radius - y
-                } else {
-                    y.saturating_sub(top + height - radius - 1)
-                };
-                if dx * dx + dy * dy <= radius * radius {
-                    self.pixel(x, y, color);
-                }
-            }
-        }
-    }
-    fn boxed(&mut self, r: Rect, fill: u32, border: u32) {
-        self.rounded(r, border, d::CONTROL_RADIUS);
-        if r.width > 2 && r.height > 2 {
-            self.rounded(
-                Rect {
-                    x: r.x + 1,
-                    y: r.y + 1,
-                    width: r.width - 2,
-                    height: r.height - 2,
-                },
-                fill,
-                d::CONTROL_RADIUS.saturating_sub(1),
-            );
-        }
-    }
-    fn glyph(&mut self, x: u32, y: u32, ch: char, color: u32) {
-        let Some(glyph) = get_raster(ch, FontWeight::Regular, height(self.scale)) else {
-            return;
-        };
-        let (x, y) = (x * self.scale, y * self.scale);
-        if x >= self.tile.x + self.tile.width
-            || y >= self.tile.y + self.tile.height
-            || x + glyph.width() as u32 <= self.tile.x
-            || y + glyph.height() as u32 <= self.tile.y
-        {
-            return;
-        }
-        for (dy, row) in glyph.raster().iter().enumerate() {
-            for (dx, alpha) in row.iter().copied().enumerate() {
-                let (px, py) = (x + dx as u32, y + dy as u32);
-                if alpha != 0 && self.tile.contains(px, py) {
-                    let index = ((py - self.tile.y) * self.tile.width + px - self.tile.x) as usize;
-                    let old = self.pixels[index];
-                    let mut new = 0;
-                    for shift in [0, 8, 16] {
-                        new |= ((((color >> shift) & 255) * u32::from(alpha)
-                            + ((old >> shift) & 255) * (255 - u32::from(alpha))
-                            + 127)
-                            / 255)
-                            << shift;
-                    }
-                    self.pixels[index] = new;
-                }
-            }
-        }
-    }
-    fn title(&mut self, x: u32, y: u32, text: &str) {
-        let step = get_raster_width(FontWeight::Regular, RasterHeight::Size32) as u32;
-        for (index, ch) in text.chars().enumerate() {
-            let Some(glyph) = get_raster(ch, FontWeight::Regular, RasterHeight::Size32) else {
-                continue;
-            };
-            let gx = (x + index as u32 * step) * self.scale;
-            let gy = y * self.scale;
-            if gx >= self.tile.x + self.tile.width
-                || gy >= self.tile.y + self.tile.height
-                || gx + glyph.width() as u32 * self.scale <= self.tile.x
-                || gy + glyph.height() as u32 * self.scale <= self.tile.y
-            {
-                continue;
-            }
-            for (dy, row) in glyph.raster().iter().enumerate() {
-                for (dx, alpha) in row.iter().copied().enumerate() {
-                    if alpha == 0 {
-                        continue;
-                    }
-                    for sy in 0..self.scale {
-                        for sx in 0..self.scale {
-                            let px = (x + index as u32 * step + dx as u32) * self.scale + sx;
-                            let py = (y + dy as u32) * self.scale + sy;
-                            if self.tile.contains(px, py) {
-                                let at = ((py - self.tile.y) * self.tile.width + px - self.tile.x)
-                                    as usize;
-                                let old = self.pixels[at];
-                                let mut color = 0;
-                                for shift in [0, 8, 16] {
-                                    color |= ((((d::TEXT >> shift) & 255) * u32::from(alpha)
-                                        + ((old >> shift) & 255) * (255 - u32::from(alpha))
-                                        + 127)
-                                        / 255)
-                                        << shift;
-                                }
-                                self.pixels[at] = color;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    fn label(&mut self, x: u32, y: u32, label: &str, color: u32, width: u32) {
-        let step = character_width(self.scale);
-        for (index, ch) in label.chars().take((width / step) as usize).enumerate() {
-            self.glyph(x + index as u32 * step, y, ch, color);
-        }
     }
 }

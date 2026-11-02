@@ -116,8 +116,8 @@ impl Chrome {
         }
         let text = match state {
             State::Inactive => "Invoer nog niet actief",
-            State::Focused => "Materiaal actief",
-            State::Retired => "Materiaal gesloten",
+            State::Focused => "Invoer actief",
+            State::Retired => "Werkruimte gesloten",
         };
         for y in 0..u32::from(tile.height) {
             for x in 0..u32::from(tile.width) {
@@ -131,7 +131,7 @@ impl Chrome {
                     color = d::BORDER;
                 }
                 if gy < 48 {
-                    color = glyph("Nieuw OS · Materiaal", 24, 6, gx, gy, color, d::TEXT);
+                    color = glyph("Nieuw OS", 24, 6, gx, gy, color, d::TEXT);
                     color = glyph(
                         text,
                         24,

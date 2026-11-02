@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "reported local execution; raw Windows files not independently reread in cloud",
+  "source_thread_id": "01a19c13-c83d-7781-8f61-de0541ac6d95",
+  "source_commit": "344dc0afde893784503217ac676e154b13662507",
+  "reported_result_path": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\idle-input-20261102\\result.json",
+  "reported_result_sha256": "e7c1199d247b3a21b4acb534d4fba4a23e1a3e36ec7735fb772f92249cbfd2fe",
+  "active": {
+    "process_cpu_seconds": 15.0,
+    "wall_seconds": 15.000228,
+    "one_logical_cpu_percent": 99.9985,
+    "vcpu_thread_cpu_seconds": 14.890625,
+    "vcpu_thread_percent": 99.2693
+  },
+  "qmp_paused": {
+    "process_cpu_seconds": 0.015625,
+    "wall_seconds": 15.000523,
+    "one_logical_cpu_percent": 0.1042,
+    "vcpu_thread_cpu_seconds": 0
+  },
+  "validation": "Source-oracle exact stable accounts frames before/after both samples and resume; actual guest login/desktop route exact; source/bundle/fixtures/adapter/inputs rechecked; disk unchanged; exit0; no QEMU retained; no host settings changed.",
+  "scope": "Old bundle only. Headless reproduction and vCPU attribution do not prove guest-process attribution or stopped rendering counters. No new-source performance or physical-device security claim."
+}

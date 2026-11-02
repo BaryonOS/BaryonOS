@@ -1,0 +1,25 @@
+{
+  "executed_commit": "d0ae570bd4666626096f92e57acef981c0f0d7b6",
+  "executed_source_sha256": "05307fef9684d97480a77ea39050d80f6affcf522a6c09c7eb53340c789b35aa",
+  "candidate_commit": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+  "candidate_source_sha256": "038615b1b425d3f24ea2d9c52b36184ea666f81237c813303dc0fac93fb756ca",
+  "only_diff_since_executed": [
+    "sdk/examples/materiaal/tests/chain.rs",
+    "sdk/examples/calculator/tests/chain.rs"
+  ],
+  "profile": "native-window-session-probe; same compiler/target/env",
+  "all_ten_binary_sha256_identical": true,
+  "binary_sha256": {
+    "loader": "0511e8654c61c1188bab696688becd73df05503db44b34ba283ce0a3e7728418",
+    "kernel": "6db8d86d4f76220dcacff1ba23299785a44184b8b86cae2164d13b0f0af0a796",
+    "keyring-service": "b8e12f74dbdc0016cded50f913d8e0d7a420fa3f4960e2d699e32b4bb5b30fe4",
+    "volume-service": "aa6ab477ec3eca0021aed1083aa7e3028608dc87ec1233ad3d5f2a89d2af4e83",
+    "materiaal-app": "a5eef70556181530b81d9bc644eb4688977506b6d9b62ff86ffc3cc1546a5e9a",
+    "input-source": "3c8852188ddb7f5b3ded12d9caef17e63d0164c679dffee0a3183433f33111b9",
+    "input-policy": "fc7782e67787b61f8990851881b46b71f8400b1a3d781bdd18cf71d850b4f085",
+    "window-init": "91ec9d4cf7db3a273fabf3ad484363488ae7104f10965c0116f2cf3e2a2707b0",
+    "window-compositor": "15f0dde531a82c76ef532303a23ee50b1aa3bfa76fe39c25c5c082a019705f4d",
+    "calculator-app": "52490733a05f05e5ec93fdf8618cbf84b849221925361b17255b786bed55f968"
+  },
+  "prior_native_reports_relabelled": false
+}

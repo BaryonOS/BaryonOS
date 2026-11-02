@@ -1,0 +1,43 @@
+{
+  "implementation_commit": "d0ae570bd4666626096f92e57acef981c0f0d7b6",
+  "source_sha256": "05307fef9684d97480a77ea39050d80f6affcf522a6c09c7eb53340c789b35aa",
+  "scope": "Actual component host tests/clippy and inspected preflight build. Broader source includes subsequently completed runner/fixture tooling. Native gate is running separately, not yet accepted.",
+  "logs": {
+    "clipboard-native-host.log": {
+      "original_sha256": "fc2f38c21e0e6ad0f473b3aead89e768b4af3e90a0496ee8e4aa9b0c04966ec3",
+      "bytes": 5274
+    },
+    "clipboard-native-clippy.log": {
+      "original_sha256": "82f54f95f1aa4a87be406402255ad9fa283b1c033bdb575651c41ee8bc3c6030",
+      "bytes": 904
+    },
+    "clipboard-materiaal-host.log": {
+      "original_sha256": "4562b3dd674fb1e9cb24a898030f2ce6c60783916b00e52a9f1c7c1513d6e966",
+      "bytes": 4563
+    },
+    "clipboard-materiaal-clippy.log": {
+      "original_sha256": "f89d567f6bc1af0997f223ecea68899c30b48aa301b020720a255176e7fe881b",
+      "bytes": 314
+    },
+    "clipboard-calculator-host.log": {
+      "original_sha256": "c192e0505068c708cccd77fe88d6026c499575015f48d8a9f2cf3d08b0e8c9ad",
+      "bytes": 3749
+    },
+    "clipboard-calculator-clippy.log": {
+      "original_sha256": "f7c8ccfca0d8324d06784653c21d9946e32712c62d7a677a8b3f5bc9b029d5cd",
+      "bytes": 239
+    },
+    "clipboard-runner-tests.log": {
+      "original_sha256": "5ec16df401f49c1b89b4b6297d63df3de4ef0e0a993f67470770194b459f34db",
+      "bytes": 115
+    },
+    "clipboard-all-tools.log": {
+      "original_sha256": "5a4c8d85b5dad2a2bd4495f70b6dfac0237fdb2074328de5e6752c8a8ec2c6ee",
+      "bytes": 5022
+    },
+    "clipboard-native-build.log": {
+      "original_sha256": "99e221ec1223f57d31fa979a7ece76e71f7477c8fdda5b4144fac1db6c706d2b",
+      "bytes": 8118
+    }
+  }
+}
