@@ -32,6 +32,14 @@ Het RX-codebudget is na gemeten131177bytes vast144KiB; echte ELF-parsergate
 vindt156pagina's, vijf W^X-segmenten, ongewijzigde192KiB-documentbuffers/RWquota.
 Zie NATIVE-MATERIAL-LIBRARY voor diagnostische128KiB/LTO/z-mislukkingen.
 
+Finale hostcontrole op `ca503c8` is wél volledig afgesloten:76 UI-,41 app-,
+109 SDK-tests,190 Python-tooltests,11 runnerchecks en Clippy/fmt exit0;
+`build/library-final-checks/logs/` bevat de exacte opdrachten en resultaten.
+De echte8ELF/kernel/UEFI-build slaagde op source174e80. Vóór acceptatie vond de
+beeldreview een ongedekte en-dash in de historieregel; die wordt ASCII `-`.
+De vroege native writeproef is daarom expliciet SIGTERM-diagnostiek, geen groen
+resultaat; bron-/binaire herbouw en alle native gates volgen op de correctie.
+
 Een voorlopige volledige UI-controle is door verlies van de toolsessie
 onderbroken zonder exitstatus of eindrapport. Die telt niet als groen. Er wordt
 op de finale bron opnieuw getest met een blijvende uitvoercel. Native

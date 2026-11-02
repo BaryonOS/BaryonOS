@@ -1857,7 +1857,7 @@ impl Paint<'_> {
                         let mut range = Label::new();
                         let _ = write!(
                             &mut range,
-                            "Regels {}–{} van {} · PgUp/PgDn",
+                            "Regels {}-{} van {} · PgUp/PgDn",
                             scroll + 1,
                             (scroll + rows as usize).min(total_rows),
                             total_rows
