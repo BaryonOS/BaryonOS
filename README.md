@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **37** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`6117b7c5`](https://github.com/simonvanieperen/nieuw-os/commit/6117b7c5b524586856919afbe276461bbea451ea) ·
+**Bron:** [`03e81d4d`](https://github.com/simonvanieperen/nieuw-os/commit/03e81d4d9ac8d4e83e3a321ba8ba949d8562658f) ·
 **Ontwikkelbranch:** `codex/mature-native-session-20261102`.
-Deze opdracht: **37% → 37% (+0 procentpunt)**. **Opdracht:** Hervatte native U01-herstelacceptatie en concrete Windows-kandidaat.
-37/100 blijft gelijk. N01 is geaccepteerd. De omgeving is hersteld; oude QEMU-processen draaiden niet meer. Het bewaarde materiaal toonde dat vaste 40ms-keybursts de trage VM-invoer overstroomden. Het nieuwe harnas wacht op werkelijk verwerkte key-ACKs, cursor en knopstatus, vergelijkt hele verplaatste appbeelden en bindt herstel aan nieuwe bevestigde compositorframes. Echte CPL3-probes voor SUR-grenzen, INP-rollen en oude kanaalhandles zijn toegevoegd; crossbuild en gerichte hostchecks slagen. De volledige nieuwe native gate is nog open. Een gecontroleerde Windows-kandidaat op bron4f146a6 is beschikbaar; definitieve nieuwe bron en Windows-runtimeacceptatie volgen. Exacte autoriteitssnapshots worden afzonderlijk onderzocht als prestatieverbetering met behoud van alle checks; geen U01/U02-punten vooruit toegekend.
+Deze opdracht: **37% → 37% (+0 procentpunt)**. **Opdracht:** Native venstersessie, exacte syscall-invarianten en brongebonden Windows-kandidaat.
+37/100 blijft gelijk. N01 is geaccepteerd en slaagt opnieuw op de actuele kernel. Native M4 (12 groepen), geheugen-guardpages en gerichte runnerchecks slagen. De eigen twee-appvenstersessie heeft een exact initieelbeeld; de volledige herstel/save/disk/cleanup-gate loopt nog. Het eerste beeld duurt onder TCG 312,24 seconden; U02 blijft open en er wordt geen prestatiewinst geclaimd. Een hashgebonden normale Windows-kandidaat is gebouwd en synthetisch gecontroleerd; echte Windowsruntimeacceptatie is nog open. U01 krijgt geen punten vóór de volledige native pass.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

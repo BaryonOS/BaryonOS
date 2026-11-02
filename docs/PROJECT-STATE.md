@@ -1,57 +1,50 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — hervat; native invoer en isolatie — 2 november 2026
+## NEXT AGENT HANDOFF — eigen venstersessie; volledige gate loopt — 2 november 2026
 
-Branch `codex/mature-native-session-20261102`, concept-PR#122 op#121. Score
-**37/100**, N01 geaccepteerd, U01/U02 blijven open. De uitvoeromgeving is
-hersteld. Remote doccheckpointcommits zijn veilig fast-forward binnengehaald;
-de gegenereerde UI-verifieroutputs van4f146a6 zijn apart bewaard/gecommit.
+Branch `codex/mature-native-session-20261102`, concept-PR #122 op #121.
+Functionele freeze `03e81d4d9ac8d4e83e3a321ba8ba949d8562658f`, source-v3
+`8893b9623035561cc181b235e602485a811ed3db49d08dac67a07031a4edae76`.
+Score **37/100**; N01 geaccepteerd, U01/U02 blijven open tot hun eigen bewijs.
 
-De oude grafische eindrun was niet voltooid en er draaide geen QEMU meer.
-Het bewaarde snapshot bevatte slechts `nieut` (5bytes, gemetenFNV), terwijl het
-harnas14tekens op vaste40ms stuurde. Daarom vervangen we de vaste burst door
-waarneming van echte appKEYS/INPUT_ACKS; muisbewegingen en knopstatus krijgen
-hun eigen daadwerkelijke bevestiging. Native beelden/orakels worden niet
-versoepeld. De nieuwe aanvankelijke herstart is bewust gestopt vóór acceptatie.
+Geleverd: eigen Open Sans-rasterisatie/vectorpictogrammen, 1280×720-werkruimte,
+twee afzonderlijke native apps, compositorfocus/titelbalkslepen, eigen SUR1/INP1-
+kanalen en supervisorherstel met nieuwe PIDs/epochs en behoud van appwerk.
+Alleen compositor krijgt Display, alleen inputbron InputSource. De probevariant
+voert echte afwijzingen en een compositor-ud2 uit; normale Windowsbundel bevat
+geen crashinjectie. Geen echte authenticatie, clipboard of fysieke GPU-claim.
 
-Nieuwe bron: probe-only inputprogress en compositor-PID/generatie/cursor/knop/
-completed_frame-observaties; volledige verplaatste Calculatorbody moet exact
-kloppen vóór capture. Herstel eist verse compositor, beide nieuwe completeframes,
-behoud van draft en echte expressiechecksum/caret/current/evaluaties. Na herstel
-wordt Calculator via muisfocus opnieuw berekend en volledig vergeleken.
-CPL3-probes testen echte Grid/WrongRole/Access-afwijzingen en na herstelvier
-oude handles per app. Probe-aantallen3→10 zijn pas na echte RPC-uitkomsten gezet.
+De hervatte runner wacht op echte key-ACKs, cursorpositie en knopstatus in plaats
+van vaste inputbursts. Hele appbeelden blijven exact, ook na verplaatsing en
+herstel. Oude kanalen moeten werkelijk BadHandle geven. Herstel vereist beide
+nieuwe complete frames, draftchecksum en echte calculator-expressie/antwoord.
 
-Gericht groen: probe/achtELF/kerneltargetbuild; SUR1-probe18hosttests; eerdere
-window10/816pixelvergelijkingen; runner8hostnegatieven. De nieuwe native gate
-moet nog volledig slagen. De hervatte synthetische PS-launchertest slaagt10/10
-met de fakeQEMU-directory op PATH. De eerdere diagnose LOCALAPPDATA was te
-specifiek: ontbrekende fixturePATH liet LinuxGet-Command in een legeWindows-
-ProgramFilesfallback komen; er was geen launcherbronfix nodig.
+De exacte autoriteitssnapshot bewaart alle fout-/waitinvarianten en wist zijn
+berichtkopieën vóór vrijgeven. Native M4 slaagt op deze bron in 12 groepen;
+N01 normal/client-exit slagen opnieuw (8,500/7,818 s). De begrensde woordkopie/
+vergelijkroutine slaagt voor vijf guardpageproeven; runner acht hostnegatieven
+en root-fmt zijn groen. Zie `verification/mature-session-20261102/word-integration-checkpoint.json`.
 
-Concrete Windows-kandidaat op onveranderdebron4f146a6:
-`/workspace/nieuw-os-windows-package/build/window-package-4f146a6/NieuwOS-venstersessie-4f146a6-Windows-QEMU.zip`,
-SHA256`92b366a8e0da66b49ebfec1cf6a0cf435294b8c344e3f7770ee61639d250ced4`.
-AchtELFs, firmware/pakketlicenties, fontprovenance en ZIPpayloadhashes zijn
-nagelezen. Dit is een kandidaat, geen Windows-runtime- of U01-eindacceptatie.
-Na definitieve functionele freeze opnieuw bouwen/verpakken.
+Volledige QMP-venstergate loopt in
+`build/window-final/run/window-c3209b41e4024e9ba57b62ad2b80ba6a`, log
+`/tmp/window-word-native.log`; root execsession 3941. Eerste beide appframes:
+312,24 s; exact initieelbeeld na cursorparkeren: 322,90 s. Dit is duidelijk traag
+onder TCG; geen latentiewinst of U02-acceptatie. Geen sourcewijzigingen tijdens
+de brongebonden run. Performanceagent onderzoekt de snapshotkosten alleenlezend.
+Bij falen bewijs behouden, concrete fout repareren en opnieuw bronvast testen.
 
-De exacte snapshot is geïntegreerd op `ecb9964`: native-M4 slaagt12/12 groepen
-en beideN01-cases slagen. De eerste gecombineerde venstertest is bewust
-gestopt wegens duidelijke TCG-vertraging; dit levert geen U01-punten op.
-Een nieuwe afgebakende intrinsicsverbetering wordt nu afzonderlijk getest.
-De performanceagent ontwikkelde een exacte,
-vooraf gereserveerde autoriteitssnapshot i.p.v. de dure diagnostische hashscan
-vóór elke IPC. Alle foutasserties en rechten-/pointerchecks blijven; volledige
-Eq vergelijkt alle velden en extra berichtkopieën worden vóór vrijgeven gewist.
-De snapshot op zichzelf heeft nog geen aangetoonde native latentiewinst.
-Onderzoek naar complete64bit-kopie-/vergelijkstappen met exacte tails en
-guard-pagetests gaat vóór nieuwe overname. Alle input-/pixelgates blijven.
+Windows-kandidaat:
+`/workspace/nieuw-os-windows-package/build/window-package-03e81d4/NieuwOS-venstersessie-03e81d4-Windows-QEMU.zip`,
+SHA256 `50e9538f8cc023379ccd62d53466dd58eb5c99fea9f965d56a18d0842c63e229`.
+Acht ELF's/fontlicenties/firmware/ZIP-payloads en synthetische Linux-PS7-CheckOnly
+slagen; geen echte Windowsruntime uitgevoerd. Eerdere pakketten behouden.
+De oude helper blijft bytegelijk aan lokaal zesmaal geteste fc506... .
 
-Eerstvolgend: coherent snapshotresultaat beoordelen/integreren, uiteindelijke
-bronfreeze committen/pushen, volledige sourcegebonden1800s-QMPgate starten.
-N01 op de laatste gedeelde kern herhalen, bewijs/score actualiseren en normale
-Windowsbundel afleveren. Geen fysieke hardware-/echte authenticatieclaim.
+Eerstvolgend: volledige native gate afronden; eventuele aantoonbare vertraging
+veilig repareren. U01 alleen +4 bij complete herstel/pixel/save/disk/cleanup-pass.
+Daarna definitieve bundel/hashoverdracht, score, bewijs en PR actualiseren.
+De andere integrator behoudt merge-eigenaarschap. Geen fysieke schijven,
+netwerkpassthrough of hostinstellingen wijzigen.
 
 ## Vorige afgeronde checkpoint — native sessiepreview
 
