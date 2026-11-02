@@ -40,6 +40,9 @@ fn main() {
         }
     }
     for name in [
+        "NOS_WINDOW_INIT_ELF",
+        "NOS_WINDOW_COMPOSITOR_ELF",
+        "NOS_CALCULATOR_ELF",
         "NOS_DESKTOP_INIT_ELF",
         "NOS_DESKTOP_CONTROLLER_ELF",
         "NOS_MATERIAAL_ELF",
