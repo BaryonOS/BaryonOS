@@ -372,7 +372,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 shell_key("menu"); shell_page("session-menu", 8)
                 shell_key("tab"); shell_key("tab"); shell_key("ret"); shell_page("settings", 6)
                 shell_key("esc"); shell_page("desktop-again", 4)
-                shell_key("super", "l"); shell_page("covered", 0)
+                shell_key("meta_l", "l"); shell_page("covered", 0)
                 shell_key("ret"); shell_page("users-return", 1)
                 shell_key("ret"); shell_page("guest-return", 2)
                 shell_key("ret"); shell_page("desktop-return", 4)
