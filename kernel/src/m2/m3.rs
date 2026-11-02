@@ -1541,6 +1541,7 @@ impl State {
             self.observer_survivor(slot);
         }
     }
+    #[cfg(not(feature = "native-window-session"))]
     fn observer_survivor(&mut self, departing: usize) {
         self.survivor_slot = (0..self.amount)
             .find(|i| {
