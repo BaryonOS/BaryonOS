@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "c1d62d83acc8357c698c0ef576367834e81d4a21",
+    "source_commit": "68d427b76fd4c5fc0a071433d567097038e71a65",
     "branch": "simon/profiles-users-plan",
     "task": "PR114: sleutel- en capabilityovergang bij gebruikerswissel expliciet ontwerpen",
     "previous_score": 34,

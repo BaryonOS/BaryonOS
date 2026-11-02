@@ -32,7 +32,7 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`c1d62d83`](https://github.com/simonvanieperen/nieuw-os/commit/c1d62d83acc8357c698c0ef576367834e81d4a21) ·
+**Bron:** [`68d427b7`](https://github.com/simonvanieperen/nieuw-os/commit/68d427b76fd4c5fc0a071433d567097038e71a65) ·
 **Ontwikkelbranch:** `simon/profiles-users-plan`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** PR114: sleutel- en capabilityovergang bij gebruikerswissel expliciet ontwerpen.
 34/100 blijft34; geen nieuw criterium of gewicht. Het PR114-ontwerp beschrijft nu expliciet de sleutel- en handlelevensloop A naar B en terug, fail-closed overgang, domeinisolatie, stale-generatieafwijzing en afzonderlijk begrensde achtergronddelegatie. Nieuwe negatieve native acceptatie is vastgelegd maar niet uitgevoerd; er is geen sessiedienst gebouwd. Main74a34d05 bevat inmiddels PR125 en de aantoonbare oplossingen voor109/110. PR127 is een afzonderlijke ontwikkelkandidaat met score41, niet door deze documentbranch geaccepteerd. Hardware, menselijke audit, volledige release en profielen blijven open.
