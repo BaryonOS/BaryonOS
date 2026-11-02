@@ -1397,3 +1397,29 @@ document-, volume- en sleuteldienststaat blijven bestaan. Dit is geen algemene
 apparaatdelegatie en geen kernel-GUI-beleid. Zie het exacte bouw-/testcontract
 in `docs/implementation/NATIVE-WINDOW-SESSION.md`; native acceptatie is bij dit
 ontwerpcheckpoint nog open. Geen U01-punten voor alleen deze bouwstap.
+
+## ADR-054 — Exacte, tijdelijke autoriteitsvergelijking op de syscallgrens
+
+**Datum:** 2 november 2026. De volledige verse `Stats`- en digestfuncties
+blijven de bestaande diagnostische orakels. Op de M4-foutgrens vervangen we
+hun herhaalde hashscan door een volledige getypeerde kopie van alle elf
+autoriteitsvelden en bestaande exacte `Engine::eq`. IPC-wait vergelijkt dit
+op ieder resultaat. De afzonderlijke useroutput-, capability-, pointer-,
+return-, paginaownership- en W^X-controles blijven intact. De snapshot wordt
+nooit teruggezet in de actieve engine en verleent geen rechten.
+
+Eén vooraf gereserveerde private kernelbuffer van461.816bytes voorkomt een
+grote stacktemporary of allocator. Het single-CPU/IF0-contract wordt expliciet
+gecontroleerd; een niet-blokkerende lease weigert herintreding. Exhaustieve
+velddekking laat een toekomstige Engine-uitbreiding compilatie falen totdat de
+kopie bewust is bijgewerkt. Vergelijking gebeurt op Rust-velden, niet padding.
+Alle1024 extra berichtkopieën worden met getypeerde volatile writes gewist vóór
+vrijgave en vóór een eventuele foutassertie; er blijft geen extra IPC-inhoud in
+de vrijgegeven buffer staan. Metadata blijft alleen private kerneldata.
+
+Dit is geen mutatiecache en geen uitschakeling van een audit. Native IPC-wait
+en gerichte host-/negatieve tests zijn uitgevoerd op de deelbranch; de volledige
+samengevoegde M4-, venster- en netwerkgates volgen. Hostmicrobenchmarks geven
+geen native latentiewaarborg of U02-punten. SMP of herintredende kernelcallbacks
+vragen een nieuw ontwerp. Details en bewijsgrenzen:
+`docs/implementation/EXACT-AUTHORITY-SNAPSHOTS.md`.
