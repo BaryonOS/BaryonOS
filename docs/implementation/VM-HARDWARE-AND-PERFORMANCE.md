@@ -82,7 +82,7 @@ bron-, hash- en ESP-controles.
 
 | Onderdeel | Eerstvolgende verantwoorde route | Bewijsgrens |
 |---|---|---|
-| CPU op Windows x86-64 | WHPX via Windows Hypervisor Platform en firmwarevirtualisatie | Initieel ondersteund door deze launcher; nog geen Windows-runtimebewijs voor deze wijziging |
+| CPU op Windows x86-64 | WHPX via Windows Hypervisor Platform en firmwarevirtualisatie | 6/6 echte helperproeven en 6/6 native Windowsruns plus Auto/WHPX/SDL-start; zie brongebonden eindrapport |
 | CPU op Linux x86-64 | KVM als QEMU-backend met bestaande toegang tot `/dev/kvm` | Onderzocht; huidige native runners blijven expliciet TCG |
 | CPU op Intel-Mac | HVF, mits QEMU/host dit aanbieden | Onderzocht, niet geïmplementeerd of getest |
 | Apple Silicon of Windows ARM | x86-64 gast vraagt architectuuremulatie; ARM-virtualisatie versnelt deze x86-64 kernel niet rechtstreeks | Andere gastarchitectuur is afzonderlijk portwerk |
@@ -172,10 +172,10 @@ in de minimaal toegelaten QEMU 10.2.1-build.
 
 ## Lokale Windowsbevindingen van 2 november 2026
 
-De geautoriseerde lokale Codex-chat rapporteert een Ryzen9 9950X3D met64GiB
-en Windows11 25H2. WHPX initialiseert zonder hostinstellingen te wijzigen.
+De geautoriseerde lokale Codex-chat rapporteert een Ryzen 9 9950X3D met64 GiB
+en Windows 11 25H2. WHPX initialiseert zonder hostinstellingen te wijzigen.
 Op de oude bundel leverde één koude proef10,453s met WHPX tegenover19,952s
-met TCG tot exact hetzelfde volledige frame. Op bron7648a8f slaagde de
+met TCG tot exact hetzelfde volledige frame. Op bron `7648a8f` slaagde de
 vijfstappenroute met WHPX in43,824s; schermovergangen waren6,856–9,107s.
 Dat is uitvoeringsbewijs voor die specifieke bron, geen productlatentieclaim.
 Ruwe lokale artifacts blijven bij die chat; de gerapporteerde bron-/firmware-/
@@ -190,6 +190,13 @@ Geen inputbron of integriteitscontrole is verwijderd.
 
 Testmappen horen buiten synchronisatie: OneDrive maakte bij de lokale proef
 extra hardlinks, die het harnas terecht weigerde. De vervolgproef gebruikt
-LocalAppData; hardlinkcontroles blijven actief. Windowsruntime voor de
-definitieve bron staat afzonderlijk in het eindbewijs, niet impliciet groen
-op grond van deze oudere resultaten.
+LocalAppData; hardlinkcontroles blijven actief. De uiteindelijke Windowsruntime op344dc0a staat afzonderlijk in het eindbewijs;
+de oudere resultaten worden niet als uitvoering op de nieuwe bron gepresenteerd.
+
+De definitieve lokale344dc0a-reeks is afgerond:3WHPX+3TCG, alle8fasen en
+48appbeelden exact, exits0, daarna echte WindowsAuto/WHPX/SDL-start met
+launcherexit0. WHPX eerste account6,625s gemiddeld (6,481–6,823),
+gast→desktop4,070s (3,932–4,231); TCG respectievelijk13,356s en10,023s.
+Volledige route31,481s tegenover71,982s. Drie starts per backend op één pc,
+niet beheerst voor achtergrondlast. Verdere bron-/pakkethashes en de
+afzonderlijke idle-CPU-observatie staan in het lokale eindrapport hierboven.

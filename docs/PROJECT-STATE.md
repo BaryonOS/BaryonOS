@@ -2,11 +2,16 @@
 
 ## NEXT AGENT HANDOFF — native sessiepreview en QEMU — 2 november 2026
 
-**Implementatie bevroren:** `344dc0afde893784503217ac676e154b13662507`,
+**Functionele implementatie / Windows-pakket:** `344dc0afde893784503217ac676e154b13662507`,
 branch `codex/session-desktop-vm-20261102`, concept-PR #121. Bronbasis
-`e08fb0e48c1bb0781e98357f588c2f73b6ae8500`. Latere commits bevatten uitsluitend
-bewijs/documentatie; source-v3 blijft
-`05b047819f1c1cddce6868034ab2208d8a35a95d9f974860afb8bbc53eeb8658`.
+`e08fb0e48c1bb0781e98357f588c2f73b6ae8500`. De latere opmaakcommit `cfed2db9a39396e48a7bc758eb2c533f3af3f22c`
+wikkelt uitsluitend één kernelarray-element om volgens rustfmt. De volledig
+lokaal geteste344-bron heeft source-v3
+`05b047819f1c1cddce6868034ab2208d8a35a95d9f974860afb8bbc53eeb8658`;
+de opgemaakte bron heeft
+`0bfd8385bbe08d3ace384977848fb42f6a65f6261b28be19805eccd90fce14f0`
+en een eigen geslaagde achtstappen-cloud-QEMU-herhaling. Geen verdere
+functionele wijzigingen. Beide rootfmt- en diffchecks slagen.
 De bestaande andere integrator blijft eigenaar van merges; deze PR is niet gemerged.
 
 **Geleverd:** opt-in `native-system-session-preview` met gebruikerskeuze,
@@ -29,6 +34,8 @@ gastlogin → desktop → zoek 'mat' → Materiaal. Iedere app-pixel wordt verge
 zonder interne masks; QEMU raw exit0. TCG/QEMU 10.0.13/q35-10.0/1CPU/256 MiB:
 118,79s totaal; Materiaal16,08s versus21,63s op `51d883e` en33,94s op `7648a8f`.
 Dit zijn losse metingen in deze cloudomgeving, geen productlatentiegarantie.
+Ook de bestaande native Materiaal normal/save/list/reopen-regressie slaagt
+met onafhankelijke diskoracle en cleanup (rawexit33, runnerexit0;163,82s).
 46 frontendhosttests,27 SDK-apphosttests,15 compositorhosttests,72 Pythonchecks,
 39 synthetische PowerShellchecks, Clippy/fmt en scalar-none/objectscan slagen.
 De oude verifier telde9 archives terwijl de bestaande SDKzeroize10 oplevert;
@@ -37,8 +44,12 @@ hersteld naar de exacte tien namen, met behoud van alle objects-/broncontroles.
 **Lokale hardware:** geautoriseerde chat `01a19c13-c83d-7781-8f61-de0541ac6d95`
 rapporteert Windows 11 25H2, Ryzen 9 9950X3D,64 GiB. De bytegelijke QMPhelper
 slaagt 6/6 op PS 5.1/PS 7.6. De 51d-nativebaseline slaagt 6/6 (3WHPX/3TCG).
-De eindmeting op `344dc0a` en SDL-start worden apart aan het bewijs toegevoegd;
-die zijn op dit checkpoint nog niet gerapporteerd. Geen hostinstellingen gewijzigd.
+De eindmeting op `344dc0a` slaagt 6/6 (3 WHPX/3 TCG), 48 appbeelden exact.
+WHPX gebruikerskeuze 6,625 s gemiddeld (6,481–6,823), gast→desktop 4,070 s
+(3,932–4,231). De echte PS 5.1-starter kiest Auto→WHPX, toont SDL en sluit
+met launcherexit 0. Er blijft geen QEMU-proces achter. Ruwe Windowsrapporten
+staan in de lokale testmap; aangeleverde hashes en grenzen zijn vastgelegd
+in local-pc-reported.json. Geen hostinstellingen gewijzigd.
 Geen netwerk, gedeelde hostmappen, fysieke disks of USB/PCI/GPU-doorvoer.
 
 **Grenzen en hervatten:** de gast gebruikt hetzelfde synthetische appdomein met
@@ -51,8 +62,11 @@ menselijke aftekening. [Contract](implementation/SESSION-AND-DESKTOP.md),
 [hardware](implementation/VM-HARDWARE-AND-PERFORMANCE.md),
 [eindbewijs/reproductie](verification/session-desktop-20261102/README.md).
 
-Eerstvolgend: neem lokale344dc0a-resultaten brongebonden over, controleer PR-CI,
-en bouw daarna een echte aparte auth-/sessiedienst vóór beveiligd aanmelden.
+GitHub Actions op cfed2db meldt startup_failure zonder gestarte jobs; de
+oorzaak is niet vastgesteld. Dit is geen groene remote-CI en de PR blijft concept.
+
+Eerstvolgend: onderzoek de CI-startfout en bouw daarna een echte aparte
+auth-/sessiedienst vóór beveiligd aanmelden.
 Gebruik bestaande tools en behoud andere dirty checkouts/branches.
 
 ## NEXT AGENT HANDOFF — PR- en issueafhandeling na integratie 1 en 2 — 30 oktober 2026
