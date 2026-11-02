@@ -1,0 +1,5 @@
+   Compiling catalog-core v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\services\catalog)
+   Compiling volume-core v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\source\services\volume)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.30s
+     Running tests\service.rs (C:\Users\simon\Documents\Codex\2026-11-02\volume-format-admission\host\target\debug\deps\service-ef833de91eb94d8b.exe)
+error: test failed, to rerun pass `-p volume-core --test service`

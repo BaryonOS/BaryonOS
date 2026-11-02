@@ -430,7 +430,8 @@ pub const fn object_sectors(object: usize) -> (u64, u64) {
 }
 
 impl Table {
-    /// An all-zero volume is the empty generation-0 state; nothing is formatted.
+    /// Canonical empty state. On disk it must be explicitly encoded and sealed
+    /// in slot 0; zero-filled or unrecognized media are never formatted by recovery.
     pub const EMPTY: Self = Self {
         generation: 0,
         request_id: 0,
@@ -593,7 +594,7 @@ impl Table {
                     || get16(bytes, 12) != CHUNKS as u16
                     || get16(bytes, 14) != crate::CHUNK_SECTORS as u16
                     || get64(bytes, 16) != generation
-                    || get64(bytes, 24) == 0
+                    || (get64(bytes, 24) == 0) != (generation == 0)
                     || get16(bytes, 32) != MAX_CHUNKS as u16
                     || get16(bytes, 34) != QUOTA as u16
                     || usize::from(bytes[36]) != HISTORY
@@ -636,6 +637,15 @@ impl Table {
     }
 
     fn validate(&self) -> Result<(), Status> {
+        // Only the exact empty state may identify an explicitly initialized
+        // generation-0 volume. Its complete sector seals were checked first.
+        if self.generation == 0 {
+            return if *self == Self::EMPTY {
+                Ok(())
+            } else {
+                Err(Status::Corrupt)
+            };
+        }
         // Every commit advances exactly one domain clock. Each commit bumps a
         // given object or collection at most once, so no revision or stamp
         // can exceed its own domain's clock.
@@ -687,7 +697,7 @@ impl Table {
             || self.collections.iter().any(|collection| {
                 collection.revision != 0 && collection.request_id == self.request_id
             });
-        if self.generation == 0 || !reflected {
+        if !reflected {
             return Err(Status::Corrupt);
         }
         Ok(())
@@ -722,7 +732,7 @@ pub fn classify(slot: u64, index: u64, sector: &[u8; SECTOR]) -> SectorState {
         return SectorState::Zero;
     }
     let generation = get64(sector, TRAILER);
-    if generation == 0 || get64(sector, 504) != sector_sum(slot, index, sector) {
+    if get64(sector, 504) != sector_sum(slot, index, sector) {
         SectorState::Invalid
     } else {
         SectorState::Valid(generation, get64(sector, TRAILER + 8))
@@ -773,10 +783,6 @@ impl SlotScan {
         Ok(scan)
     }
 
-    fn all_zero(&self) -> bool {
-        self.states.iter().all(|state| *state == SectorState::Zero)
-    }
-
     /// Every sector carries the same valid generation. Such a copy looks
     /// complete; if it nevertheless failed to decode it is corruption, not a
     /// torn write, and recovery must stop rather than silently skip it.
@@ -788,49 +794,36 @@ impl SlotScan {
     }
 
     /// Acceptable companion of a durable generation `g`: each sector is the
-    /// previous copy `g-1` (zero when `g == 1`), a written sector of the
+    /// previous copy `g-1` (zero when `g <= 1`), a written sector of the
     /// interrupted next attempt `g+1`, or a torn sector.
     fn compatible_with(&self, g: u64) -> bool {
         if self.uniform() && self.valid.is_none() {
             return false;
         }
         self.states.iter().all(|state| match *state {
-            SectorState::Zero => g == 1,
-            SectorState::Valid(found, _) => found + 1 == g || found == g + 1,
+            SectorState::Zero => g <= 1,
+            SectorState::Valid(found, _) => {
+                found.checked_add(1) == Some(g) || g.checked_add(1) == Some(found)
+            }
             SectorState::Invalid => true,
         })
     }
 }
 
-/// Decide which copy (if any) holds the durable table. `None` = empty volume.
-pub fn choose(slots: [SlotScan; 2]) -> Result<Option<u64>, Status> {
+/// Select a fully validated durable copy, including a canonical formatted
+/// generation 0. Recovery never infers a new volume from missing metadata.
+pub fn choose(slots: [SlotScan; 2]) -> Result<u64, Status> {
     let [zero, one] = slots;
     match (zero.valid, one.valid) {
         (Some(a), Some(b)) => {
-            if a.max(b) == a.min(b) + 1 {
-                Ok(Some(Table::slot(a.max(b))))
+            if a.min(b).checked_add(1) == Some(a.max(b)) {
+                Ok(Table::slot(a.max(b)))
             } else {
                 Err(Status::Corrupt)
             }
         }
-        (Some(g), None) if one.compatible_with(g) => Ok(Some(0)),
-        (None, Some(g)) if zero.compatible_with(g) => Ok(Some(1)),
-        (None, None) => {
-            // Only "never committed" is acceptable: slot 0 untouched and slot 1
-            // either untouched or a torn attempt at generation 1.
-            let first_attempt = !one.uniform()
-                && one.states.iter().all(|state| {
-                    matches!(
-                        state,
-                        SectorState::Zero | SectorState::Valid(1, _) | SectorState::Invalid
-                    )
-                });
-            if zero.all_zero() && (one.all_zero() || first_attempt) {
-                Ok(None)
-            } else {
-                Err(Status::Corrupt)
-            }
-        }
+        (Some(g), None) if one.compatible_with(g) => Ok(0),
+        (None, Some(g)) if zero.compatible_with(g) => Ok(1),
         _ => Err(Status::Corrupt),
     }
 }
@@ -840,17 +833,12 @@ pub fn choose(slots: [SlotScan; 2]) -> Result<Option<u64>, Status> {
 pub fn recover(disk: &mut impl Disk, out: &mut Table) -> Result<(), Status> {
     let zero = SlotScan::scan(0, |index| read_sector(disk, index), out)?;
     let one = SlotScan::scan(1, |index| read_sector(disk, TABLE_SECTORS + index), out)?;
-    match choose([zero, one])? {
-        None => {
-            *out = Table::EMPTY;
-            Ok(())
-        }
-        Some(slot) => Table::decode_from(
-            slot,
-            |index| read_sector(disk, slot * TABLE_SECTORS + index),
-            out,
-        ),
-    }
+    let slot = choose([zero, one])?;
+    Table::decode_from(
+        slot,
+        |index| read_sector(disk, slot * TABLE_SECTORS + index),
+        out,
+    )
 }
 
 fn read_sector(disk: &mut impl Disk, sector: u64) -> Result<[u8; SECTOR], Status> {

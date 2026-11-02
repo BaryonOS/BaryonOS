@@ -1,0 +1,15 @@
+{
+  "command": [
+    "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+    "+1.90.0",
+    "--config",
+    "net.offline=false",
+    "fetch",
+    "--locked",
+    "--manifest-path",
+    "sdk/examples/materiaal/Cargo.toml"
+  ],
+  "cwd": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\volume-format-admission\\source",
+  "exit_code": 0,
+  "duration_s": 3.5656069999995452
+}

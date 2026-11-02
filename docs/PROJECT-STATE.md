@@ -1,5 +1,36 @@
 # Actuele projectstatus
 
+## NEXT AGENT HANDOFF — expliciete volume-admissie — 2 november 2026
+
+**Basis:** `74a34d05ef5591b782a0da9da34e4669910d0722`; werkbranch
+`codex/volume-format-admission-20261102`. Eigen kernel behouden; uitsluitend
+wegwerpimages; geen nieuwe bestandssysteemdriver.
+
+**Hostcheckpoint:** recovery vereist minstens één volledig geldige eigen
+metadata-kopie. Canonieke sealed generatie 0 in slot 0 wordt expliciet door de
+offline fixturemaker geschreven; nul-/vreemde/onvolledige metadata wordt niet
+meer als lege opslag toegelaten. Bestaande complete generaties en herstel na
+een onderbroken eerste commit blijven ondersteund. Generatie-adjacentie is
+overflowveilig. Geen kernel-, capability-, IPC- of runtimeformatverruiming.
+
+**Bewijs tot dit checkpoint:** nieuwe rawzero-regressie eerst rood; 45 Rust
+volume-coretests en Clippy groen, 28 document-session- en 24 Materiaal-apptests
+groen. Het onafhankelijke Python-orakel en afhankelijke harnassen: 141 tests
+groen. Windows-platformfouten zijn behouden en betreffende suites ongewijzigd
+onder WSL groen herhaald. Alleen bestaande locked afhankelijkheden naar de
+lokale cache opgehaald; lockfiles ongewijzigd. Native proeven zijn hier nog
+**niet uitgevoerd** en worden op de hierna bevroren broncommit geregistreerd.
+
+**Contract:** ADR-053 en `docs/verification/volume-format-admission/TASK.md`.
+Native plan: eigen normal/cold, vier onbekende beelden elk read-only én
+schrijfbaar, trace reads >0/writes=0 en volledige imagehashgelijkheid; daarna
+de bestaande negen-VM-volume/crashregressie. Geen nieuw rubricpunt; **34/100
+blijft 34/100**. Oudere code weigert nieuwe sealed-gen0-lege beelden: rollback
+neemt code en fixturetooling samen terug, formatteert geen bestaande data.
+
+**Volgende stap:** native uitvoering op exact checkpoint volgens de externe
+runner `C:/Users/simon/Documents/Codex/2026-11-02/volume-format-admission/native/native_admission.py`.
+
 ## NEXT AGENT HANDOFF — PR #125-inhoudsbehoud — 2 november 2026
 
 **Integratormandaat:** Simon heeft op 2 november expliciet het exclusieve

@@ -39,12 +39,113 @@ fn expected(object: u64, revision: u64, length: usize) -> Vec<u8> {
 }
 
 #[test]
-fn empty_volume_recovers_as_generation_zero() {
+fn raw_zero_volume_is_not_implicitly_formatted() {
+    let mut disk = SimDisk::from_image(vec![[0; SECTOR]; volume_core::VOLUME_SECTORS as usize]);
+    let mut table = Table::EMPTY;
+    assert_eq!(table::recover(&mut disk, &mut table), Err(Status::Corrupt));
+    assert!(disk.log.iter().all(|(op, _)| *op == common::Op::Read));
+}
+
+#[test]
+fn explicitly_formatted_empty_volume_recovers_as_generation_zero() {
     let mut disk = SimDisk::new();
     let mut table = Table::EMPTY;
     table::recover(&mut disk, &mut table).unwrap();
     assert_eq!(table, Table::EMPTY);
-    assert_eq!(disk.log.len(), 2 * TABLE_SECTORS as usize);
+    assert_eq!(disk.log.len(), 4 * TABLE_SECTORS as usize);
+    assert!(disk.log.iter().all(|(op, _)| *op == common::Op::Read));
+}
+
+#[test]
+fn zero_headers_do_not_admit_unrelated_data_or_incomplete_metadata() {
+    let mut image = vec![[0; SECTOR]; volume_core::VOLUME_SECTORS as usize];
+    image[DATA_START as usize][17] = 0xa5;
+    assert_eq!(recover(image.clone()), Err(Status::Corrupt));
+    // An interrupted formatter is not a usable new volume: every sector of
+    // the canonical generation-0 copy must have reached durable storage.
+    for prefix in 0..TABLE_SECTORS {
+        let mut partial = image.clone();
+        for index in 0..prefix {
+            partial[index as usize] = Table::EMPTY.encode_sector(index);
+        }
+        assert_eq!(recover(partial), Err(Status::Corrupt), "prefix {prefix}");
+    }
+    // A full copy in the wrong slot is not a valid format identity.
+    for index in 0..TABLE_SECTORS {
+        image[(TABLE_SECTORS + index) as usize] = Table::EMPTY.encode_sector(index);
+    }
+    assert_eq!(recover(image), Err(Status::Corrupt));
+}
+
+#[test]
+fn formatted_empty_copy_requires_canonical_state_and_valid_seals() {
+    let formatted = SimDisk::new().settled();
+    for index in 0..TABLE_SECTORS {
+        let mut bad = formatted.clone();
+        bad[index as usize][17] ^= 1;
+        assert_eq!(recover(bad), Err(Status::Corrupt));
+    }
+    for field in 0..3 {
+        let mut nonempty = Table::EMPTY;
+        match field {
+            0 => nonempty.request_id = 7,
+            1 => nonempty.clocks[0] = 1,
+            _ => nonempty.entries[0].tags = 1,
+        }
+        let mut bad = formatted.clone();
+        for index in 0..TABLE_SECTORS {
+            bad[index as usize] = nonempty.encode_sector(index);
+        }
+        assert_eq!(recover(bad), Err(Status::Corrupt));
+    }
+}
+
+#[test]
+fn first_commit_needs_a_valid_copy_and_legacy_generation_one_is_preserved() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    client(&mut service, &mut disk, 0)
+        .write(0, 0, b"First", 1, fill(0, 1))
+        .unwrap();
+    let committed = disk.settled();
+    for prefix in 0..TABLE_SECTORS {
+        let mut with_format = SimDisk::new().settled();
+        let mut without_format = vec![[0; SECTOR]; volume_core::VOLUME_SECTORS as usize];
+        for index in 0..prefix {
+            let sector = (TABLE_SECTORS + index) as usize;
+            with_format[sector] = committed[sector];
+            without_format[sector] = committed[sector];
+        }
+        assert_eq!(recover(with_format), Ok(Table::EMPTY));
+        assert_eq!(recover(without_format), Err(Status::Corrupt));
+    }
+    // Previously written NOSVOL02 generation 1 already has its own complete
+    // positive identity; zero in its old slot 0 remains a supported companion.
+    let mut legacy = committed;
+    legacy[..TABLE_SECTORS as usize].fill([0; SECTOR]);
+    assert_eq!(recover(legacy), Ok(*service.table()));
+}
+
+#[test]
+fn adjacent_generation_checks_do_not_wrap_or_panic() {
+    let valid_zero = table::SlotScan {
+        states: [SectorState::Valid(0, 7); table::TABLE_SECTORS_USIZE],
+        valid: Some(0),
+    };
+    let mut mixed = table::SlotScan {
+        states: [SectorState::Zero; table::TABLE_SECTORS_USIZE],
+        valid: None,
+    };
+    mixed.states[0] = SectorState::Valid(u64::MAX, 8);
+    assert_eq!(table::choose([valid_zero, mixed]), Err(Status::Corrupt));
+    let maximum = table::SlotScan {
+        states: [SectorState::Valid(u64::MAX, 8); table::TABLE_SECTORS_USIZE],
+        valid: Some(u64::MAX),
+    };
+    assert_eq!(table::choose([maximum, maximum]), Err(Status::Corrupt));
+    mixed.states.fill(SectorState::Invalid);
+    mixed.states[0] = SectorState::Valid(0, 7);
+    assert_eq!(table::choose([mixed, maximum]), Err(Status::Corrupt));
 }
 
 #[test]

@@ -1,0 +1,20 @@
+
+running 1 test
+test raw_zero_volume_is_not_implicitly_formatted ... FAILED
+
+failures:
+
+---- raw_zero_volume_is_not_implicitly_formatted stdout ----
+
+thread 'raw_zero_volume_is_not_implicitly_formatted' panicked at services\volume\tests\service.rs:45:5:
+assertion `left == right` failed
+  left: Ok(())
+ right: Err(Corrupt)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    raw_zero_volume_is_not_implicitly_formatted
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 16 filtered out; finished in 0.00s
+

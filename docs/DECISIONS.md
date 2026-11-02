@@ -1374,3 +1374,37 @@ OSDev: *Memory mapped registers in C/C++*, W003198, revisie30402
 (24 maart2026), is alleen aanvullende uitleg; geen normatieve TCG-controle.
 Herzien vóór een productbroker, andere hardware of NV-commits. Rollback:
 opt-in features/fixture verwijderen; legacy profielen blijven ongewijzigd.
+
+## ADR-053 — Positieve volume-identiteit vóór toelating als lege opslag
+
+**Datum:** 2 november 2026. Uitvoeringsbasis: `74a34d0`.
+
+De native backendtoets liet zien dat een echte Btrfs-image in het onderzochte
+tabelbereik nulbytes heeft. De oude `choose`-fallback vertaalde ontbrekende
+geldige metadata daardoor naar `Table::EMPTY`; de app faalde pas later.
+
+Recovery vereist voortaan minstens één compleet gedecodeerde en verzegelde
+eigen `NOSVOL02`-kopie. De bestaande layout kan de expliciete lege toestand
+weergeven: generatie 0 in slot 0, request-ID en klokken 0 en exact canonieke
+lege objecten/collecties. De offline fixturebuilder maakt die toestand op
+een nieuw wegwerpbestand; de dienst krijgt geen formatteeractie of nieuwe
+bevoegdheid. Twee nul-/ongeldige kopieën en een gedeeltelijke eerste poging
+zonder geldige basis worden geweigerd. Vergelijkingen van aangrenzende
+generaties gebruiken gecontroleerde optelling, ook rond `u64::MAX`.
+
+Een geldige lege kopie blijft herstelbaar na een onderbroken eerste commit.
+Een complete bestaande generatie 1 met nulgevulde vorige kopie blijft geldig,
+evenals het bestaande herstel van latere commits. Uniform verzegelde maar
+semantisch corrupte metadata blijft een harde fout; geen stille terugval.
+
+Dit is een toelatingsfix in de bestaande gebruikersdienst, geen nieuwe
+bestandssysteemdriver, magic, geometrie, IPC of kernel. FNV-identificatie is
+geen authenticatie tegen bewust vervalste eigen metadata. De native poort
+vereist positieve normal/cold-recovery, onbekende images in read-only én
+schrijfbaar profiel zonder datawrites, en de bestaande crashregressie.
+
+Compatibiliteit: oudere kernel/orakelcode weigert het nieuwe sealed-gen0-beeld
+vóór de eerste volledige commit. Code en fixturetooling horen bij rollback
+bij elkaar; bestaande gecommitte data wordt niet opnieuw geformatteerd.
+Herzie dit contract vóór een echte formatter/installer of vrije-mediatoegang.
+Uitvoering en bewijs: `docs/verification/volume-format-admission/`.

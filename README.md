@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`c66b593d`](https://github.com/simonvanieperen/nieuw-os/commit/c66b593dda8d651e3cc73f0fe65bbe72ff7c7de7) ·
-**Ontwikkelbranch:** `simonvanieperen-studious-waddle`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Issues oplossen: ontbrekende PR #120-followups inhoudsbehoudend in #125 opnemen.
-34/100 blijft 34/100; geen nieuw rubriccriterium geaccepteerd. De inhoudscontrole vond dat #125 wel #120 tot 562be4d bevatte, maar nog niet de latere followups tot fb1e1a5. De samenvoeging behoudt de volledige app-handletabelcontrole, de 16-bytevensterlekcontrole inclusief misvormde captures, de handmatige Materiaal-meetworkflow en de #125-allowlist voor serialdiagnostiek. Alle 39 gerichte NAS-hosttests (35 runner), 3 volume-, 17 replay/oracle- en 23 Materiaal-harnastests slagen; Rustfmt en capability-Clippy slagen. Capability-testuitvoering is geblokkeerd door ontbrekende cc; nieuwe exacte-head CI en review blijven vereist. De eerdere NAS normal/cold-gate op c66b593 bewijst deze delta niet. De twee #126-reviewfixes zijn als 5dead467 gepusht voor CI, niet gemerged of als productacceptatie beoordeeld. #109/#110 blijven open tot main-integratie; #39–#43 behouden hun volledige native, fysieke en andere acceptatiegrenzen. Hosttests en integratiewerk leveren geen productpunten.
+**Bron:** [`74a34d05`](https://github.com/simonvanieperen/nieuw-os/commit/74a34d05ef5591b782a0da9da34e4669910d0722) ·
+**Ontwikkelbranch:** `codex/volume-format-admission-20261102`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Hostcheckpoint: expliciete volume-identiteit vóór toelating; native poort nog open.
+34/100 blijft gelijk. De bestaande volume-core weigert nul-/vreemde metadata zonder volledig geldige eigen kopie; lege fixtures worden vooraf canoniek sealed als generatie 0. Rust-, SDK- en onafhankelijke Python-hosttests slagen, inclusief rode regressie op oude code. Geen kernel-, IPC-, capability- of filesystemdriveruitbreiding. Native normal/cold, onbekende images in beide modi en bestaande crashregressie zijn op dit checkpoint nog niet uitgevoerd. ADR-053 en docs/verification/volume-format-admission/TASK.md beschrijven contract en bewijsgrens.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -171,6 +171,10 @@ impl Host {
             &[input::ClientBinding { id: 101, pid: APP }],
         )
         .unwrap();
+        let mut volume_sectors = vec![[0; SECTOR]; volume::VOLUME_SECTORS as usize];
+        for index in 0..volume::TABLE_SECTORS {
+            volume_sectors[index as usize] = Table::EMPTY.encode_sector(index);
+        }
         let host = Rc::new(RefCell::new(Self {
             engine: e,
             pairs,
@@ -178,7 +182,7 @@ impl Host {
             surface: surface::Receiver::new(APP, geometry(), 100).unwrap(),
             volume: Service::new(DOC_EPOCH, Table::EMPTY, false),
             disk: Ram {
-                sectors: vec![[0; SECTOR]; volume::VOLUME_SECTORS as usize],
+                sectors: volume_sectors,
                 fail: false,
             },
             roots,

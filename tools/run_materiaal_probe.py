@@ -553,7 +553,7 @@ def replay(report: dict, directory: Path, frozen: str) -> dict:
     else:
         require(report.get("parent_run") is None,"Normal replay cannot reference another run")
         data=before.read_bytes()
-        require(all(data[i*volume.SECTOR:(i+1)*volume.SECTOR] == (bytes(volume.SECTOR) if volume.FIRST <= i < volume.FIRST+volume.VOLUME_SECTORS else volume.canary(i)) for i in range(volume.IMAGE_SECTORS)),"Normal run was not the canonical empty generated image")
+        require(data == volume.empty_image_bytes(),"Normal run was not the canonical empty generated image")
     return {"native":parsed,"phases":{stage["phase"]:stage["snapshot"] for stage in stages},"frames":pixels,"disk":oracle}
 
 
