@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **37** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`9f5379b1`](https://github.com/simonvanieperen/nieuw-os/commit/9f5379b1ad43583a1e8e45cb8b1d6fcebe25efd9) ·
+**Bron:** [`ad8fbed2`](https://github.com/simonvanieperen/nieuw-os/commit/ad8fbed2f411a09fab6717c0863f0e067450f4a3) ·
 **Ontwikkelbranch:** `codex/mature-native-session-20261102`.
-Deze opdracht: **37% → 37% (+0 procentpunt)**. **Opdracht:** Echte compositorherstelblokkade repareren en RANDOM-fixture diagnosticeren.
-37/100 blijft gelijk. Op2bb slagen M4, IPCwait, N01 en exacte grafische initial/editor/dirty/calculated/moved-fasen. De echte compositorcrash eindigt in init15 door geblokkeerde oude replykanalen; geen U01-acceptatie. Gerichte retirement- en cleanupfix wordt gebouwd. ABI1.11-wachtcompatibiliteit, foutbewijsbewaring, native Actions-gate en fontnotices zijn geïntegreerd. Een RANDOMraw-CI-fout wordt met niet-geheime diagnostiek en één aparte native run onderzocht; de quota-/ACK-controles blijven. Oude kandidaten behouden, geen extra punten of algemene veiligheids-/auth-/hardwareclaim.
+Deze opdracht: **37% → 37% (+0 procentpunt)**. **Opdracht:** Volledige native herhaling na typed presentatie-retirement.
+37/100 blijft gelijk. De werkelijke compositorherstelblokkade is gerepareerd met init-only retirement van oude presentatiekanalen vóór pauseACKs; echte-Engine en appcleanup/bindingnegatieven slagen. Read-only ownerpreflight voorkomt gedeeltelijke mutatie bij ongeldige appowner. Gerichte host/Clippy/formatters en179 Pythonchecks slagen; de volledige nieuwe native gate volgt. ABI1.11-wachten, snapshotwipe, Actionsvenstergate en fontnotices zijn geïntegreerd. RANDOMraw slaagt lokaal en in echteCI48267b6; de eerdere foutoorzaak en fragiele fixturetiming blijven afgebakend gedocumenteerd. LokaleCPUproef op oude344 bevestigt vCPU-busy zonderSDL, geen nieuwebronclaim. U01/U02 krijgen geen punten vooruit.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

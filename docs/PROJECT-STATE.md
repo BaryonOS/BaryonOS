@@ -1,56 +1,58 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — crashherstel vastloper; geen U01-acceptatie — 2 november 2026
+## NEXT AGENT HANDOFF — retirementfix geïntegreerd; volledige herhaling — 2 november 2026
 
 Branch `codex/mature-native-session-20261102`, concept-PR #122 op #121.
-Actuele implementatie `9f5379b1ad43583a1e8e45cb8b1d6fcebe25efd9`, source-v3 `7c301812bbdafcfb7a09785d21971b0f8fc490becc1ed8cd0fc03fd3eaef68d8`.
-Score **37/100**: N01 geaccepteerd; U01/U02 open. Wijzigingen hieronder zijn
-kandidaten; oude pakketten zijn behouden en worden niet als definitief herlabeld.
+Laatste functionele commit `ad8fbed2f411a09fab6717c0863f0e067450f4a3`, source-v3
+`f483ad51a7b0702c44baee136fd37bbbe993e2f03dd596d309a90bb6f14182e4`. Score **37/100**; N01 geaccepteerd, U01/U02 open.
+Na deze docscheckpoint/push blijft alle bron bevroren tijdens native acceptatie.
 
-De volledige 2bb84c2-native herhaling is echt mislukt bij compositorherstel.
-M4 12 groepen, IPCwait (4,59 s), N01 normal/exit (7,64/7,45 s) slagen. Vensters:
-boot152,41 / initial158,18 / editor282,69 / dirty415,15 / calculated485,67 /
-moved493,81 s slagen. De echte slot4/PID5/ud2-vector6 volgt; init eindigt15.
-Geen herstel, bewaren, disk- of cleanup-pass. Exact resultaat en gecomprimeerde
-rawserial staan in `verification/mature-session-20261102/window-2bb84c2-*`.
-Alle veertien drafttekens, de berekening en het verplaatste volledige appbeeld
-klopten; dit is geen volledige U01-pass en geen vlotte bediening.
+De rode2bb-run is volledig behouden: initial/editor/dirty/calculated/moved exact,
+echte compositorud2(slot4/vector6), daarna init15; geen U01/save/disk/cleanup-pass.
+Ontbrekende pauseACKs ontstonden door app-owned replyRX die na compdeath openbleef.
+SUR/INP-RPC wachtte EAGAIN en blokkeerde de appcontrol-loop.
 
-Bevestigde oorzaak: app-owned replyRX blijft open nadat compositorSEND verdwijnt.
-Een bestaande SUR/INP-RPC blijft daardoor EAGAIN/yield wachten; de app komt niet
-bij control7, terwijl init op pauseACK wacht. Herstelagent onderzoekt/bouwt een
-kleine init-only retirementfase voor de onuitgebrachte0x53: exact4 oude
-presentationleaves/app sluiten vóór pause, verder niets; echteACKs vóór nieuw
-start/rebind. De oudeProcesscap blijft tot bestaande restartpreflight bewaard.
-Extern-retired ownercleanup moet alleen per-handle BadHandle idempotent maken,
-zonder andere fouten te verbergen. Eigen worktree `/workspace/nieuw-os-window-recovery`.
-Geen deadline/POLL-/pixelversoepeling. Root start geen nieuwe VM tot RNG-agent klaar is.
+Nu geïntegreerd: onuitgebrachte window-only0x53/a2=1 retireert uitsluitend de
+vier kernel-recorded presentationleaves per app, onder dezelfde init/Launch/dead
+CompProcessrechten. Geen PID/epoch/allocation/storage/controlwijziging; oude
+Processcap blijft. Beide appowners worden read-only gepreflight; Dead/Dying/
+ontbrekende owner en onjuiste callers/args falen vóór mutatie. Onmogelijke
+commitfouten stoppen de kernel. Init retireert vóór Pause7; pas na echteACK3
+volgt bestaande volledige restartpreflight en Ready/Rebind. Geen deadline/POLL-
+of pixelversoepeling. Session.retire normaliseert exactBadHandle per afzonderlijke
+handle, behoudt alle andere fouten en sluit beide owners ook bij deels lokaal
+closed toestand. Draft/berekening blijven behouden. Zie
+`verification/window-presentation-retirement-20261102.md`.
 
-Reeds geïntegreerd na deze rode run: bekende ABI1.11 activeert bestaande idlewait
-in keyring/volume (RANDOM/adminuitzonderingen behouden); nativeharnas bewaart ook
-bij falen exit/duur/QMP-trace; nieuwe Actionsvenstergate levert normale WindowsZIP
-alleen na echte native pass; Noto-fontnotices zijn nu byte/hashgebonden toegevoegd.
-SDK30host+3doctests/Clippy/services-none-builds zijn door agent uitgevoerd; root
-runner8 is groen; de agent controleerde packager20. Geen wholeVMidle/Windowsruntimeclaim.
-UI-host/Clippy/scalar-elf11archieven slagen op vorige2bb-bron; relevante UIcode
-ongewijzigd, volgende complete freeze weer expliciet binden.
+Host actual-Engine regressies reproduceren pending PEEK/ACK/SUR na peerexit en
+bewijzen einde binnen éényield na retirement. Appmixed-owner-/bindingnegatieven
+slagen; gerichte root-SUR/input/Mat/Calc-tests, strictClippy en formatters groen.
+Alle179 Python-toolchecks slagen; packager20 en SDK30+3doctests/Clippy groen.
+Agent bouwde alle8ELFs+kernel/loader; de volledige nieuwe native gate volgt nu.
 
-CI op2bb heeft een echte RANDOMraw-fout: codecNone/step15. Gecontroleerde echte
-service/codec-hostproef toont dat een64RPCburst over de100tickquotagrens mag
-rollen; dan is verwachtQuota een geldigOk en geeft de te smalle fixturedecoder
-None. Exacte CIrequest is nog onbekend. De niet-geheime foutdiagnostiek44346ad is als2efdc3e geïntegreerd. Eén
-gecontroleerde rawVM op44346ad slaagt lokaal (raw33,8,755 s); CIrequest is
-nog onbekend en wordt met deze diagnostiek opnieuw onderzocht. Bewijs staat
-in verification/mature-session-20261102/random-diagnostic-44346ad.json. De run in
-`/workspace/nieuw-os-windows-package/build/random-diagnostic-44346ad` is klaar; geenVM meer. Geen
-policy-/quotagrenswijziging. Geen randombytes of sleutels loggen.
+Ook geïntegreerd: ABI1.11 gebruikt bestaande keyring/volume-wachtpaden met
+RANDOM/adminuitzonderingen; volledige volatile snapshotwipe zonder temps;
+falende runner bewaart exit/duur/QMPtrace; nieuwe Actionsgate produceert normale
+WindowsZIP pas na echte native pass; alle bekende OpenSans/Noto-fontnotices in ZIP.
+Compositor/Mat/Calc/init bevatten nog Ready-idleloops; U02 blijft open.
+De lokale chat bevestigde op oude344-bundel headless vrijwel100% éénvCPU actief
+tegen0,1042% gepauzeerd, met exacteframes. Dit is gerapporteerd oud-bronbewijs,
+geen nieuweprofielmeting of gastprocesattributie; zie local-idle-344-reported.json.
 
-Eerstvolgend: sluitende RNGdiagnose en herstelpatch beoordelen, integreren,
-sourcefreeze/push; dan M4/IPCwait/N01 en volledige venstergate opnieuw. U01 alleen
-+4 bij totale focus/drag/fault/retire/rebind/behoud/pixel/save/disk/cleanup-pass.
-Daarna Windowsbundle opnieuw bouwen/hashoverdracht en PR/score bijwerken.
-Geen fysieke schijven, hostconfiguratie of passthrough. Andere integrator houdt
-merge-eigenaarschap. De laatste2bbZIP is slechts kandidaat (oudebron zonder nieuwe fixes).
+RANDOMraw-diagnostiek is geïntegreerd zonderrandombytes/policy/quotawijziging.
+Eén44346ad-localrun slaagt8,755s; echteCI48267b6 foundation slaagtinclraw9,3s.
+De oude2bb-CIerror15 is niet exact gereproduceerd. Hostcounterexample toont nog
+een fragiele64RPC/100tick-aanname; geen blinde retries/skip/quotaverhoging. Alleen
+bij een echte volgendefout de niet-geheimeDIAGvelden gebruiken; dit bewijst geen
+product-randomfout of structurele oplossing voor de fixturetiming.
+
+Eerstvolgend: geactiveerde omgeving; native M4/IPCwait/N01normal+exit en volledige
+1800s-windowprobe op bronfreeze. Root gebruikt build/window-final +
+target/window-final en /tmp/window-retired-native.log. U01 alleen +4 bij alle
+focus/drag/fault/retire/rebind/behoud/pixel/save/disk/cleanup-asserties. Daarna
+normale Windowsbundel op exactdiebron/hash en lokaleWHPX/TCGoverdracht. Laat
+oude2bb/03e-kandidaten intact; geen oudeZIP als eindpakket labelen.
+Geen fysieke schijven/hostinstellingen/passthrough; andere integrator houdtmerges.
 
 ## Vorige afgeronde checkpoint — native sessiepreview
 
