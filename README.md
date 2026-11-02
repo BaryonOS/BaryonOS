@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`05f97cc9`](https://github.com/simonvanieperen/nieuw-os/commit/05f97cc92c638f2d94ddc4d4a00e73683ac3dfbc) ·
+**Bron:** [`8736e06c`](https://github.com/simonvanieperen/nieuw-os/commit/8736e06c5298ce9581531fb02a3b88deb5c82d3e) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-waddle`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Issue-afhandeling: integratie #120, herstel NAS-tokenarchivering en gerelateerde reviewbevindingen.
-34/100 blijft 34/100; geen nieuw rubriccriterium is geaccepteerd. PR #120 is op 05f97cc opgenomen in de concept-integratiebranch PR #125 voor #109/#110 en de componentdelta's. De NAS-runner controleert nu ruwe stdout/stderr op het volledige tokenpaar en beide tokenhelften vóór archivering, bewaart alleen allowlist-serialmarkers en houdt stderr achter als uitvoer niet veilig is geverifieerd. 19 NAS-runner- en 3 volume-runner-hosttests slagen; de Rust-toolchain ontbreekt lokaal, en de nieuwe exacte-head CI en native NAS-herproef zijn nog vereist. #39–#43 blijven open: netwerk- en sessieacceptatie missen volledige native bewijs, #41 vereist een nog niet geautoriseerde productie-sleutelhandeling, #42 fysieke hardwaretests en #43 een uitgevoerde bewijsroute naar 50%. Geen punten op basis van plannen, hostbewijs of deelproeven.
+34/100 blijft 34/100; geen nieuw rubriccriterium is geaccepteerd. PR #120 is op 05f97cc opgenomen in de concept-integratiebranch PR #125 voor #109/#110 en de componentdelta's. De NAS-runner controleert nu ruwe stdout/stderr op het volledige tokenpaar en beide tokenhelften vóór archivering, bewaart alleen allowlist-serialmarkers en houdt stderr achter als uitvoer niet veilig is geverifieerd. 19 NAS-runner- en 3 volume-runner-hosttests slagen; lokale cargo ontbreekt. Alle geconfigureerde checks inclusief native NAS normal/cold zijn groen op PR #125-head 8736e06; CodeRabbit is nog overgeslagen omdat de PR concept is. #39–#43 blijven open: netwerk- en sessieacceptatie missen volledige native bewijs, #41 vereist een nog niet geautoriseerde productie-sleutelhandeling, #42 fysieke hardwaretests en #43 een uitgevoerde bewijsroute naar 50%. Geen punten op basis van plannen, hostbewijs of deelproeven.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -2,9 +2,9 @@
 
 ## NEXT AGENT HANDOFF — herstel NAS-tokenarchivering — 2 november 2026
 
-**Bron:** integratie-/reviewfixcommit `05f97cc92c638f2d94ddc4d4a00e73683ac3dfbc`,
-gepusht naar `origin/simonvanieperen-studious-waddle` voor concept-PR #125.
-Deze commit voegt de PR #120-head `562be4d13b9d039d7e8fece2f0fc26e767dccb15`
+**Bron:** branch-head `8736e06c5298ce9581531fb02a3b88deb5c82d3e` van de
+concept-PR #125; implementatie-/reviewfixcommit `05f97cc92c638f2d94ddc4d4a00e73683ac3dfbc`.
+De fixcommit voegt PR #120-head `562be4d13b9d039d7e8fece2f0fc26e767dccb15`
 toe aan basis `e08fb0e48c1bb0781e98357f588c2f73b6ae8500`. PR #120 bevat de
 implementaties voor #109 en #110 plus de overige componentdelta's; de volledige
 broninventaris staat in
@@ -31,10 +31,12 @@ de detailregistratie met exacte commando's, exits en logpaden staat in
 [nas-token-archive-fix.json](verification/nas-token-archive-fix.json).
 PR #125 exacte-head CI moet de Rust- en native gates uitvoeren.
 
-**Remote status:** de eerste checks op PR #125-head `05f97cc` startten
-normaal; meerdere component- en NAS-hostchecks zijn groen, terwijl
-`nas-native-normal-cold` en andere native/host-gates nog liepen. CodeRabbit
-wordt op de concept-PR overgeslagen. Dit is geen definitieve gate-uitkomst.
+**Remote status:** alle geconfigureerde checks op exacte PR #125-head
+`8736e06` zijn groen, inclusief `nas-native-normal-cold`, `native-system`,
+host quality, formattering/linting en pakketverificatie. NAS-run
+[41514371211](https://github.com/simonvanieperen/nieuw-os/actions/runs/41514371211)
+is uitgevoerd op deze head. CodeRabbit is overgeslagen zolang de PR concept
+blijft; er is nog geen review van PR #125.
 
 **Issues:** #109 en #110 blijven open totdat PR #120 aantoonbaar met behoud
 van inhoud is geïntegreerd. #39 mist de volledige native netwerk- en
@@ -46,9 +48,9 @@ AI-review sluiten die acceptatiegaten niet.
 
 **Voortgang:** 34/100 → 34/100. Geen rubriccriterium is nieuw geaccepteerd.
 
-**Eerstvolgend:** commit en push assessment plus verificatierecord; werk
-PR #125 bij en houd deze concept totdat alle vereiste exacte-head checks en
-reviewthreads zijn afgehandeld. Merge de vervangende integratie pas na
+**Eerstvolgend:** commit en push deze assessmentupdate, markeer daarna PR #125
+klaar voor review om CodeRabbit te starten en handel eventuele bevindingen af.
+Merge de vervangende integratie pas na
 groene checks en inhoudsvergelijking; sluit PR #120 en #109/#110 alleen
 nadat dezelfde wijzigingen aantoonbaar in `main` staan.
 
