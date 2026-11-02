@@ -4,5 +4,16 @@ exit: 0
 stdout:
 
 stderr:
+    Checking zeroize v1.9.1
+    Checking catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+    Checking ui-core v0.1.0 (/workspace/nieuw-os/crates/ui-core)
+    Checking noto-sans-mono-bitmap v0.3.2
+    Checking nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+    Checking volume-core v0.1.0 (/workspace/nieuw-os/services/volume)
+    Checking nieuw-os-graphics v0.1.0 (/workspace/nieuw-os/ui/graphics)
+    Checking nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os/sdk/catalog-client)
+    Checking nieuw-os-input-core v0.1.0 (/workspace/nieuw-os/services/input-core)
+    Checking capability-core v0.1.0 (/workspace/nieuw-os/crates/capability-core)
+    Checking nieuw-os-document-session v0.1.0 (/workspace/nieuw-os/sdk/document-session)
     Checking nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os/ui/native)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.00s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.56s
