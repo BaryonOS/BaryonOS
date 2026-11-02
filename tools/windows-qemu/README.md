@@ -1,10 +1,19 @@
-# Nieuw OS — native Materiaal-testversie voor Windows/QEMU
+# Nieuw OS — native desktoponderzoek voor Windows/QEMU
 
 Dit is een experimentele VM-testversie van de eigen x86_64-kernel met het
-native `native-system-materiaal`- of `native-system-session-preview`-profiel
-(zie `manifest.json`). De sessiepreview voegt herkenbare gebruikerskeuze en
-een bureaublad toe; wachtwoord-/biometrische/FIDO2-authenticatie is daarin nog
-niet gekoppeld. Alleen de expliciete VM-gasttest opent het bureaublad.
+native desktopprofiel (zie `manifest.json`). `native-window-session` opent
+een openbare onderzoekswerkruimte op 1280×720 met Materiaal en Rekenmachine,
+eigen vensters en proportionele tekst. Het profiel start acht geïsoleerde
+processen voor de twee apps en hun systeemdiensten. Er is geen
+account-/wachtwoord-/biometrische/FIDO2-authenticatie gekoppeld: de werkruimte
+opent direct en vormt geen beveiligde persoonlijke gebruikerssessie.
+
+Oudere ondersteunde profielen zijn `native-system-materiaal` en
+`native-system-session-preview`. De sessiepreview voegt gebruikerskeuze en
+een bureaublad toe; alleen de expliciete VM-gasttest opent die preview.
+Ook daar is echte authenticatie nog niet gekoppeld. De automatische
+fault-/probeprofielen en het afzonderlijke HiDPI-testprofiel zijn geen
+interactieve Windowsbundels en worden door deze launcher geweigerd.
 Het is geen installer, dagelijkse
 release of bewijs dat Nieuw OS op een fysieke Windows-pc werkt. De meegeleverde
 manifest.json bindt kernel, loader en firmware aan de bronversie.
@@ -71,27 +80,38 @@ QEMU-kanalen; het is geen garantie tegen kwetsbaarheden in QEMU.
 
 ## Grenzen en bewijsstatus
 
-Dit image is bedoeld om de huidige native Materiaal-sessie te verkennen.
+Dit image is bedoeld om de huidige native onderzoekswerkruimte te verkennen.
 De profieldimensie is beperkt en de volledige product-/releaseacceptatie is
 niet afgerond. Netwerk, audio, fysieke hardware, volledige desktopbediening,
 toegankelijkheid en de complete opslag-/herstelmatrix zijn niet door deze
-bundle bewezen. `Start-NieuwOS.ps1 -CheckOnly` en de vijf synthetische tests
-van de eerdere `Test-Launcher.ps1` zijn op echte Windows PowerShell uitgevoerd; daarbij
-start geen VM. VM-bedieningsbewijs op Windows of Linux is afzonderlijk en
+bundle bewezen. Eerdere `Start-NieuwOS.ps1 -CheckOnly`- en synthetische
+launchertests zijn op echte Windows PowerShell uitgevoerd; daarbij startte
+geen VM. De nieuwe profiel-/licentiecontroles en de achtprocessensessie moeten
+voor deze exacte bron en ZIP opnieuw lokaal worden gecontroleerd.
+VM-bedieningsbewijs op Windows of Linux is afzonderlijk en
 geldt alleen voor de daarin vastgelegde bron, bundel en configuratie, niet
 automatisch voor iedere nieuw verpakte ZIP.
 
 De nieuwe versnellingsselectie is afzonderlijk met synthetische tests te
 controleren: `./Test-Acceleration.ps1` vanuit de repositorymap
 `tools/windows-qemu/`. Die test initialiseert geen hypervisor en meet geen
-snelheid. Windows/WHPX-runtimebewijs voor deze wijziging staat nog open;
-historische TCG-proeven gelden daarvoor niet. QEMU beschrijft beperkingen
+snelheid. De WHPX-helper is ongewijzigd ten opzichte van de eerder lokaal op
+Windows PowerShell 5.1 en PowerShell 7 gecontroleerde versie. Dat bewijs geldt
+voor de helper en geeft deze nieuwe venstersessie geen Windows-runtimeacceptatie.
+QEMU beschrijft beperkingen
 voor legacy-VGA en SIMD-toegang tot MMIO; de launcher schakelt daarvoor geen
 beveiligingsmaatregelen uit. Een modernere GPU-driver en minder
 rendertransacties zijn afzonderlijke verbeteringen.
 
 De firmwarebestanden worden met hun bijbehorende `licenses\`-copyrightnotices
-meegeleverd. QEMU zelf wordt niet in deze ZIP opgenomen.
+meegeleverd. De Open Sans Regular/Semibold 1.10-atlas zit in de native code;
+`licenses\OpenSans-NOTICE.md`, `OpenSans-Apache-2.0.txt`,
+`Native-graphics-README.md` en `OpenSans-font-provenance.json` bevatten de
+copyright-/licentietekst, atlasgrenzen en de hashes van de oorspronkelijke
+lettertypen en afgeleide atlas. De packager controleert de atlas tegen die
+herkomstgegevens. De launcher controleert alle meegeleverde notices met
+dezelfde bundelhashes. Er worden geen TTF-bestanden, hostfonts of dynamische
+fontparser ingeladen. QEMU zelf wordt niet in deze ZIP opgenomen.
 
 Bron voor Windows-binaries: QEMU Project, “Download QEMU”, geraadpleegd
 30 oktober 2026, https://www.qemu.org/download/. De Windows-sectie verwijst

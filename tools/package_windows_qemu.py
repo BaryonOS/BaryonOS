@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Package the real native Materiaal profile for QEMU on Windows."""
+"""Package the inspected native desktop profiles for QEMU on Windows."""
 from __future__ import annotations
 
 import argparse
@@ -19,6 +19,7 @@ from common import BUILD, ROOT, sha256, source_hash
 
 PROFILE = "native-system-materiaal"
 SESSION_PROFILE = "native-system-session-preview"
+WINDOW_PROFILE = "native-window-session"
 APP_NAMES = (
     "desktop-init",
     "keyring-service",
@@ -28,6 +29,10 @@ APP_NAMES = (
     "input-source",
     "input-policy",
 )
+WINDOW_APP_NAMES = (
+    "keyring-service", "volume-service", "materiaal-app", "input-source",
+    "input-policy", "window-init", "window-compositor", "calculator-app",
+)
 HEX = re.compile(r"[0-9a-f]{64}")
 MAX_FIRMWARE_BYTES = 32 * 1024 * 1024
 MAX_ROM_BYTES = 1024 * 1024
@@ -36,6 +41,12 @@ PACKAGE_FILES = (
     ("tools/windows-qemu/Start-NieuwOS.ps1", "Start-NieuwOS.ps1"),
     ("tools/windows-qemu/Acceleration.ps1", "Acceleration.ps1"),
     ("tools/windows-qemu/README.md", "README.md"),
+)
+GRAPHICS_FILES = (
+    ("ui/graphics/THIRD-PARTY.md", "licenses/OpenSans-NOTICE.md"),
+    ("ui/graphics/licenses/Apache-2.0.txt", "licenses/OpenSans-Apache-2.0.txt"),
+    ("ui/graphics/README.md", "licenses/Native-graphics-README.md"),
+    ("ui/graphics/assets/font-provenance.json", "licenses/OpenSans-font-provenance.json"),
 )
 
 
@@ -97,13 +108,16 @@ def validate_build(build_directory: Path, *, verify_source: bool = True) -> tupl
     if not stat.S_ISDIR(build.lstat().st_mode):
         raise ValueError("Build path must be a real directory")
     manifest = load_json(build / "manifest.json", "build manifest")
-    if (manifest.get("kernel_feature") not in (PROFILE, SESSION_PROFILE)
-            or manifest.get("loader_feature") != "framebuffer"
+    window_session = manifest.get("kernel_feature") == WINDOW_PROFILE
+    expected_loader = "desktop-mode" if window_session else "framebuffer"
+    names = WINDOW_APP_NAMES if window_session else APP_NAMES
+    if (manifest.get("kernel_feature") not in (PROFILE, SESSION_PROFILE, WINDOW_PROFILE)
+            or manifest.get("loader_feature") != expected_loader
             or manifest.get("source_fingerprint_version") != 3
             or type(manifest.get("source_fingerprint_version")) is not int
             or not isinstance(manifest.get("source_sha256"), str)
             or not HEX.fullmatch(manifest["source_sha256"])):
-        raise ValueError("Build manifest is not the expected native Materiaal profile")
+        raise ValueError("Build manifest is not a supported interactive native desktop profile")
     if verify_source and manifest["source_sha256"] != source_hash():
         raise ValueError("Build source fingerprint differs from the current checkout")
 
@@ -114,12 +128,12 @@ def validate_build(build_directory: Path, *, verify_source: bool = True) -> tupl
             or materiaal.get("native_runtime_performed") is not False
             or materiaal.get("probe_controller") is not False
             or not isinstance(materiaal.get("apps"), list)
-            or len(materiaal["apps"]) != len(APP_NAMES)):
-        raise ValueError("Build must contain the seven-app non-probe Materiaal profile")
+            or len(materiaal["apps"]) != len(names)):
+        raise ValueError("Build must contain the exact non-probe native desktop process manifest")
 
     kernel_path = regular_file(build / "esp/kernel.elf", "kernel", MAX_FIRMWARE_BYTES)
     kernel = kernel_path.read_bytes()
-    for expected_name, item in zip(APP_NAMES, materiaal["apps"], strict=True):
+    for expected_name, item in zip(names, materiaal["apps"], strict=True):
         if (not isinstance(item, dict) or set(item) != {"name", "sha256", "elf"}
                 or item.get("name") != expected_name
                 or not isinstance(item.get("sha256"), str)
@@ -132,6 +146,19 @@ def validate_build(build_directory: Path, *, verify_source: bool = True) -> tupl
             raise ValueError(f"Userspace ELF is not bound into the kernel: {expected_name}")
     check_esp(build, manifest)
     return build, manifest
+
+
+def validate_font_provenance() -> dict:
+    provenance = load_json(ROOT / "ui/graphics/assets/font-provenance.json", "font provenance")
+    atlas = regular_file(ROOT / "ui/graphics/assets/open-sans-atlas.rle", "font atlas", 4 * 1024 * 1024)
+    if (provenance.get("font") != "Open Sans"
+            or type(provenance.get("data_bytes")) is not int
+            or provenance["data_bytes"] != atlas.stat().st_size
+            or not isinstance(provenance.get("data_sha256"), str)
+            or not HEX.fullmatch(provenance["data_sha256"])
+            or sha256(atlas) != provenance["data_sha256"]):
+        raise ValueError("Font atlas differs from its recorded provenance")
+    return provenance
 
 
 def file_record(path: Path, label: str, limit: int) -> tuple[bytes, dict]:
@@ -168,6 +195,7 @@ def package_bundle(
     verify_source: bool = True,
 ) -> dict:
     build, manifest = validate_build(build_directory, verify_source=verify_source)
+    font = validate_font_provenance()
     if output.exists():
         raise FileExistsError(f"Refusing to overwrite existing package: {output}")
     parent = Path(os.path.abspath(output.parent))
@@ -192,7 +220,7 @@ def package_bundle(
         payload[name] = data
         hashes[name] = record
 
-    for source_name, package_name in PACKAGE_FILES:
+    for source_name, package_name in PACKAGE_FILES + GRAPHICS_FILES:
         path = ROOT / source_name
         data, record = file_record(path, source_name, MAX_LICENSE_BYTES)
         payload[package_name] = data
@@ -219,7 +247,7 @@ def package_bundle(
 
     package_manifest = {
         "schema_version": 1,
-        "kind": "Nieuw OS native Materiaal QEMU test version",
+        "kind": "Nieuw OS native desktop research QEMU test version",
         "scope": (
             f"Own x86_64 UEFI kernel; {manifest['kernel_feature']}; one q35-8.2 CPU, "
             "automatic WHPX initialization probe with explicit TCG fallback, 256 MiB RAM; "
@@ -230,7 +258,14 @@ def package_bundle(
         "source_fingerprint_version": manifest["source_fingerprint_version"],
         "source_sha256": manifest["source_sha256"],
         "kernel_feature": manifest["kernel_feature"],
-        "loader_feature": "framebuffer",
+        "loader_feature": manifest["loader_feature"],
+        "graphics": {
+            "font": font["font"],
+            "atlas_sha256": font["data_sha256"],
+            "provenance": "licenses/OpenSans-font-provenance.json",
+            "license": "licenses/OpenSans-Apache-2.0.txt",
+            "notice": "licenses/OpenSans-NOTICE.md",
+        },
         "qemu": {
             "minimum_version": "10.2.1",
             "required_rng_backend": "rng-builtin",
@@ -249,6 +284,17 @@ def package_bundle(
             "The 256 MiB VM profile is a development test profile, not a supported-hardware claim.",
         ],
     }
+    if manifest["kernel_feature"] == WINDOW_PROFILE:
+        package_manifest["session"] = {
+            "classification": "public-workspace-research",
+            "authentication_integrated": False,
+            "initial_processes": len(WINDOW_APP_NAMES),
+            "width": 1280,
+            "height": 720,
+        }
+        package_manifest["limitations"].append(
+            "Public research workspace with Materiaal and Calculator; no account/password/biometric/FIDO2 authentication is integrated."
+        )
     payload["manifest.json"] = (json.dumps(package_manifest, indent=2, sort_keys=True) + "\n").encode()
 
     temporary_output = None

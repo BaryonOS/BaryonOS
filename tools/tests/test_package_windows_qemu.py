@@ -57,6 +57,116 @@ class WindowsQemuPackageTests(unittest.TestCase):
     def tearDown(self):
         self.temporary.cleanup()
 
+    def window_profile(self):
+        kernel = bytearray(b"window-kernel")
+        apps = []
+        for name in package.WINDOW_APP_NAMES:
+            data = ("app:" + name).encode()
+            kernel.extend(data)
+            (self.apps_dir / (name + ".elf")).write_bytes(data)
+            apps.append({"name": name, "sha256": hashlib.sha256(data).hexdigest(), "elf": {"name": name}})
+        (self.esp / "kernel.elf").write_bytes(kernel)
+        self.manifest.update(kernel_feature=package.WINDOW_PROFILE, loader_feature="desktop-mode")
+        self.manifest["kernel"] = {"sha256": hashlib.sha256(kernel).hexdigest()}
+        self.manifest["materiaal"]["apps"] = apps
+        self.save_manifest()
+
+    def save_manifest(self):
+        (self.build / "manifest.json").write_text(json.dumps(self.manifest))
+
+    @staticmethod
+    def graphics_fixture(repo):
+        graphics = repo / "ui/graphics"
+        (graphics / "assets").mkdir(parents=True)
+        (graphics / "licenses").mkdir()
+        atlas = b"synthetic atlas, not a native font"
+        (graphics / "assets/open-sans-atlas.rle").write_bytes(atlas)
+        (graphics / "assets/font-provenance.json").write_text(json.dumps({
+            "font": "Open Sans", "data_bytes": len(atlas), "data_sha256": hashlib.sha256(atlas).hexdigest(),
+        }))
+        for name in ("THIRD-PARTY.md", "README.md", "licenses/Apache-2.0.txt"):
+            (graphics / name).write_text("synthetic license fixture")
+
+    def test_window_profile_requires_eight_ordered_real_embedded_elves(self):
+        self.window_profile()
+        with patch.object(package, "inspect_user", side_effect=lambda path: {"name": path.stem}):
+            _, result = package.validate_build(self.build, verify_source=False)
+        self.assertEqual(result["kernel_feature"], package.WINDOW_PROFILE)
+        self.assertEqual(result["loader_feature"], "desktop-mode")
+        self.assertEqual([app["name"] for app in result["materiaal"]["apps"]], list(package.WINDOW_APP_NAMES))
+
+    def test_window_profile_rejects_old_loader_missing_app_and_wrong_order(self):
+        for mutation in ("loader", "missing", "order"):
+            with self.subTest(mutation=mutation):
+                self.window_profile()
+                if mutation == "loader":
+                    self.manifest["loader_feature"] = "framebuffer"
+                elif mutation == "missing":
+                    self.manifest["materiaal"]["apps"].pop()
+                else:
+                    self.manifest["materiaal"]["apps"].reverse()
+                self.save_manifest()
+                with patch.object(package, "inspect_user", side_effect=lambda path: {"name": path.stem}):
+                    with self.assertRaises(ValueError):
+                        package.validate_build(self.build, verify_source=False)
+
+    def test_window_probe_and_hidpi_are_not_interactive_packages(self):
+        for feature in ("native-window-session-probe", "native-window-session-hidpi"):
+            self.window_profile()
+            self.manifest["kernel_feature"] = feature
+            self.save_manifest()
+            with self.assertRaisesRegex(ValueError, "supported interactive"):
+                package.validate_build(self.build, verify_source=False)
+
+    def test_window_probe_controller_or_changed_calculator_is_rejected(self):
+        self.window_profile()
+        self.manifest["materiaal"]["probe_controller"] = True
+        self.save_manifest()
+        with self.assertRaisesRegex(ValueError, "non-probe"):
+            package.validate_build(self.build, verify_source=False)
+        self.manifest["materiaal"]["probe_controller"] = False
+        self.save_manifest()
+        (self.apps_dir / "calculator-app.elf").write_bytes(b"different calculator")
+        with patch.object(package, "inspect_user", side_effect=lambda path: {"name": path.stem}):
+            with self.assertRaisesRegex(ValueError, "not bound"):
+                package.validate_build(self.build, verify_source=False)
+
+    def test_window_bundle_labels_public_research_and_carries_font_provenance(self):
+        self.window_profile()
+        output = self.root / "window.zip"
+        self.package_to(output)
+        with zipfile.ZipFile(output) as archive:
+            manifest = json.loads(archive.read("manifest.json"))
+            self.assertEqual(manifest["kernel_feature"], package.WINDOW_PROFILE)
+            self.assertEqual(manifest["loader_feature"], "desktop-mode")
+            self.assertEqual(manifest["session"], {
+                "classification": "public-workspace-research", "authentication_integrated": False,
+                "initial_processes": 8, "width": 1280, "height": 720,
+            })
+            for source, name in package.GRAPHICS_FILES:
+                data = archive.read(name)
+                self.assertEqual(data, (package.ROOT / source).read_bytes())
+                self.assertEqual(hashlib.sha256(data).hexdigest(), manifest["files"][name]["sha256"])
+            font = json.loads(archive.read("licenses/OpenSans-font-provenance.json"))
+            self.assertEqual(font["data_sha256"], manifest["graphics"]["atlas_sha256"])
+
+    def test_rejects_changed_or_linked_font_atlas_before_creating_package(self):
+        repo = self.root / "font-fixture"
+        self.graphics_fixture(repo)
+        atlas = repo / "ui/graphics/assets/open-sans-atlas.rle"
+        with patch.object(package, "ROOT", repo):
+            package.validate_font_provenance()
+            original = atlas.read_bytes()
+            atlas.write_bytes(b"changed")
+            with self.assertRaisesRegex(ValueError, "provenance"):
+                package.validate_font_provenance()
+            atlas.write_bytes(original)
+            linked = self.root / "atlas-source"
+            atlas.rename(linked)
+            atlas.symlink_to(linked)
+            with self.assertRaisesRegex(ValueError, "regular, single-link"):
+                package.validate_font_provenance()
+
     def test_validates_exact_seven_app_esp_and_embedded_images(self):
         self.assertEqual(self.validated[1]["kernel_feature"], package.PROFILE)
 
@@ -181,6 +291,7 @@ class WindowsQemuPackageTests(unittest.TestCase):
         (repo / "tools/windows-qemu/Start-NieuwOS.ps1").write_text("launcher")
         (repo / "tools/windows-qemu/Acceleration.ps1").write_text("acceleration helper")
         (repo / "tools/windows-qemu/README.md").write_text("instructions")
+        self.graphics_fixture(repo)
         output = self.root / "bundle.zip"
         with (
             patch.object(package, "ROOT", repo),
