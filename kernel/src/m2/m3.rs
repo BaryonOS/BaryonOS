@@ -971,6 +971,10 @@ impl State {
                 assert!(other.mappings().iter().all(|x| x.pa != m.pa));
             }
         }
+        // Legacy fixtures use a user-visible canary. The window-session
+        // profile also audits preserved apps after arbitrary user execution:
+        // their writable startup words are data, never a kernel invariant.
+        #[cfg(not(feature = "native-window-session"))]
         assert_eq!(read_word(p.physical(DATA + 16)), p.pattern);
     }
     fn audit(&self) {
