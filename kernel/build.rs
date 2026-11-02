@@ -61,6 +61,8 @@ fn main() {
         "NOS_FPU_A_ELF",
         "NOS_FPU_B_ELF",
         "NOS_NET_PROBE_ELF",
+        "NOS_NETWORK_SERVICE_ELF",
+        "NOS_NETWORK_CLIENT_ELF",
         "NOS_SYSTEM_INIT_ELF",
         "NOS_SYSTEM_APP_ELF",
         "NOS_SYSTEM_WORKER_ELF",

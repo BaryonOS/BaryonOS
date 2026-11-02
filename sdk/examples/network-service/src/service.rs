@@ -240,6 +240,11 @@ fn run() -> ! {
                         if message.cap_count() != 0 {
                             native::close_received_caps(&message).unwrap_or_else(|_| fail(23));
                         }
+                        // The syscall envelope is kernel-authenticated; neither
+                        // an unrelated tag nor transferred caps invoke NET1.
+                        if message.tag() != wire::TAG {
+                            continue;
+                        }
                         pending[slot] = service
                             .handle(
                                 slot,

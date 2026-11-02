@@ -16,3 +16,10 @@ panic = "abort"
 opt-level = "s"
 codegen-units = 1
 lto = false
+
+[dev-dependencies]
+smoltcp = { version = "=0.14.0", default-features = false, features = [
+    "medium-ethernet", "proto-ipv4", "socket-tcp", "socket-tcp-reno",
+    "iface-max-addr-count-1", "iface-neighbor-cache-count-4",
+    "iface-max-route-count-1", "assembler-max-segment-count-4",
+] }

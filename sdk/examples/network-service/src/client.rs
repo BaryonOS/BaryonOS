@@ -291,6 +291,12 @@ fn run() -> ! {
             Err(_) => fail(42),
         }
     }
+    // The peer's bounded four-frame burst exercises malformed/checksum/scope
+    // refusal and full-slot preservation while this app does not consume UDP.
+    let queued = tick();
+    while tick() - queued < 25 {
+        yield_now();
+    }
     let mut out = [0; DATA];
     loop {
         check(tick() - start < 500, 43);

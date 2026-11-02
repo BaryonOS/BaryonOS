@@ -96,6 +96,8 @@ impl<'a> Service<'a> {
                 || d.ipv4[0] == 127
                 || d.ipv4[0] >= 224
                 || d.ipv4 == config.link.ipv4
+                || (config.link.prefix_len < 31 && u32::from_be_bytes(d.ipv4) & !mask == 0)
+                || (config.link.prefix_len < 31 && u32::from_be_bytes(d.ipv4) & !mask == !mask)
                 || u32::from_be_bytes(d.ipv4) & mask != u32::from_be_bytes(config.link.ipv4) & mask
                 || d.tcp_first == 0
                 || d.tcp_count == 0
@@ -223,23 +225,29 @@ impl<'a> Service<'a> {
                                 owner.udp[..packet.payload().len()]
                                     .copy_from_slice(packet.payload());
                                 owner.udp_len = Some(packet.payload().len());
-                                self.counters.udp_received += 1;
+                                self.counters.udp_received =
+                                    self.counters.udp_received.saturating_add(1);
                             } else {
-                                self.counters.dropped_datagrams += 1;
+                                self.counters.dropped_datagrams =
+                                    self.counters.dropped_datagrams.saturating_add(1);
                             }
                             break;
                         }
                     }
                     if !accepted {
-                        self.counters.malformed_frames += 1;
+                        self.counters.malformed_frames =
+                            self.counters.malformed_frames.saturating_add(1);
                     }
                 }
-                Err(_) => self.counters.malformed_frames += 1,
+                Err(_) => {
+                    self.counters.malformed_frames =
+                        self.counters.malformed_frames.saturating_add(1)
+                }
             };
             return Ok(());
         }
         if !(14..=FRAME_BYTES).contains(&frame.len()) {
-            self.counters.malformed_frames += 1;
+            self.counters.malformed_frames = self.counters.malformed_frames.saturating_add(1);
             return Ok(());
         }
         self.stack.push_frame(frame).map_err(|_| Fault::Transport)
@@ -301,31 +309,31 @@ impl<'a> Service<'a> {
             return Err(Fault::Configuration);
         }
         if sender != self.config.pids[slot] || cap_count != 0 {
-            self.counters.rejected += 1;
+            self.counters.rejected = self.counters.rejected.saturating_add(1);
             return Ok(None);
         }
         let request = match Packet::decode_request(bytes) {
             Ok(p) => p,
             Err(_) => {
-                self.counters.rejected += 1;
+                self.counters.rejected = self.counters.rejected.saturating_add(1);
                 return Ok(Packet::refusal_header(bytes, self.config.epoch)
                     .map(|h| Packet::response(h, Status::Malformed, 0, &[])));
             }
         };
         let mut h = request.header();
-        self.counters.requests += 1;
+        self.counters.requests = self.counters.requests.saturating_add(1);
         let refusal = |h, status| Some(Packet::response(h, status, 0, &[]));
         if h.epoch != self.config.epoch {
-            self.counters.rejected += 1;
+            self.counters.rejected = self.counters.rejected.saturating_add(1);
             return Ok(refusal(h, Status::Stale));
         }
         if h.request <= self.owners[slot].request {
-            self.counters.rejected += 1;
+            self.counters.rejected = self.counters.rejected.saturating_add(1);
             return Ok(refusal(h, Status::Replay));
         }
         self.owners[slot].request = h.request;
         if self.owners[slot].retired {
-            self.counters.rejected += 1;
+            self.counters.rejected = self.counters.rejected.saturating_add(1);
             return Ok(refusal(h, Status::Closed));
         }
         let d = self.config.destinations[slot];
@@ -338,7 +346,7 @@ impl<'a> Service<'a> {
                     h.port != d.udp_port
                 })
         {
-            self.counters.rejected += 1;
+            self.counters.rejected = self.counters.rejected.saturating_add(1);
             return Ok(refusal(h, Status::Access));
         }
         if matches!(
@@ -346,7 +354,7 @@ impl<'a> Service<'a> {
             Operation::SendTcp | Operation::ReceiveTcp | Operation::CloseTcp | Operation::State
         ) && (!self.owners[slot].active || h.connection != self.owners[slot].token)
         {
-            self.counters.rejected += 1;
+            self.counters.rejected = self.counters.rejected.saturating_add(1);
             return Ok(refusal(h, Status::Stale));
         }
         let mut data = [0; DATA];
@@ -384,7 +392,7 @@ impl<'a> Service<'a> {
                         owner.deadline = deadline;
                         owner.timed_out = false;
                         h.connection = owner.token;
-                        self.counters.opened += 1;
+                        self.counters.opened = self.counters.opened.saturating_add(1);
                         (Status::Ok, ConnectionState::Connecting as u32)
                     }
                     Err(_) => (Status::Busy, 0),
@@ -396,7 +404,7 @@ impl<'a> Service<'a> {
                 } else {
                     match self.stack.send(self.owners[slot].client, request.data()) {
                         Ok(n) => {
-                            self.counters.sent += n as u64;
+                            self.counters.sent = self.counters.sent.saturating_add(n as u64);
                             (if n == 0 { Status::Again } else { Status::Ok }, n as u32)
                         }
                         Err(StackError::InvalidState) => (Status::Again, 0),
@@ -407,7 +415,7 @@ impl<'a> Service<'a> {
             Operation::ReceiveTcp => {
                 match self.stack.receive(self.owners[slot].client, &mut data) {
                     Ok(n) => {
-                        self.counters.received += n as u64;
+                        self.counters.received = self.counters.received.saturating_add(n as u64);
                         (if n == 0 { Status::Again } else { Status::Ok }, n as u32)
                     }
                     Err(StackError::Finished) => (Status::Closed, 0),
@@ -427,7 +435,7 @@ impl<'a> Service<'a> {
                     .close(self.owners[slot].client)
                     .map_err(|_| Fault::Transport)?;
                 self.owners[slot].closing = true;
-                self.counters.closed += 1;
+                self.counters.closed = self.counters.closed.saturating_add(1);
                 (Status::Ok, 0)
             }
             Operation::State => (Status::Ok, self.state(slot)? as u32),
@@ -454,7 +462,7 @@ impl<'a> Service<'a> {
                     match self.stack.queue_control_frame(&frame[..n], now) {
                         Ok(_) => {
                             self.identification = self.identification.wrapping_add(1);
-                            self.counters.udp_sent += 1;
+                            self.counters.udp_sent = self.counters.udp_sent.saturating_add(1);
                             (Status::Ok, h.argument)
                         }
                         Err(StackError::Busy) => (Status::Again, 0),
@@ -472,8 +480,10 @@ impl<'a> Service<'a> {
                     )
                     .map_err(|_| Fault::Configuration)?;
                     if self.owners[slot].neighbor.begin(d.ipv4, now, 100).is_ok() {
-                        if self.stack.queue_control_frame(&frame[..n], now).is_err() {
-                            self.owners[slot].neighbor.cancel();
+                        match self.stack.queue_control_frame(&frame[..n], now) {
+                            Ok(_) => {}
+                            Err(StackError::Busy) => self.owners[slot].neighbor.cancel(),
+                            Err(_) => return Err(Fault::Transport),
                         }
                     }
                     (Status::Again, 0)
@@ -503,10 +513,10 @@ impl<'a> Service<'a> {
             }
         };
         if status != Status::Ok {
-            self.counters.rejected += u64::from(!matches!(
+            self.counters.rejected = self.counters.rejected.saturating_add(u64::from(!matches!(
                 status,
                 Status::Again | Status::Busy | Status::Closed
-            ));
+            )));
         }
         let length = if status == Status::Ok
             && matches!(h.operation, Operation::ReceiveTcp | Operation::ReceiveUdp)

@@ -67,6 +67,7 @@ dependencies = [
  "nieuw-os-net-protocol",
  "nieuw-os-net-stack",
  "nieuw-os-network-protocol",
+ "smoltcp",
 ]
 
 [[package]]

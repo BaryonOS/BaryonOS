@@ -15,10 +15,14 @@ algemene dynamische policy-issuer of netwerkintrekking(N04), fysieke wifi of
 nieuwe syscalls. Een IP/MAC-adres is geen cryptografische peeridentiteit. De
 normale proof gebruikt uitsluitend synthetische packets via de QEMU-testpeer.
 
-Bij deze eerste codecheckpoint: service en SDK compileren op de host, native
-bins controleren op x86_64-unknown-none. De volledige hostnegatieven, gelinkte
-ELF-build en geïntegreerde native gate zijn nog in uitvoering, niet geslaagd
-verklaard. Root integreert de kernel/build/runners; dit document kent geen punten toe.
+De service/SDK/wire hebben respectievelijk5/6/4 gerichte hosttests, inclusief
+twee echte smoltcp-TCP-verbindingen met volle4096B-buffers, herstel en sluiten.
+Strict clippy slaagt voor die drie packages. De volledige kernel1.90-build met
+native Rust1.91.1-service/client-ELFs slaagt. De eerste VM voerde al alle tien
+TCP-scenario's en beide UDP-foutbursts uit; een onjuiste obserververwachting
+over bootstrap-processen blokkeerde daarna de exitgate. Die observer is
+gecorrigeerd; de brongebonden volledige native eindgate staat bij dit
+checkpoint nog open. Dit document kent geen punten toe.
 
 ## Vertrouwensgrens en interfaces
 
@@ -96,6 +100,11 @@ HTTP-requests zijn exact `GET /app-a HTTP/1.1\r\nHost: fixture.invalid\r\nConnec
 of `/app-b`. Antwoord exact `HTTP/1.1 200 OK\r\nContent-Length: 19\r\nConnection: close\r\n\r\nNieuw OS service A\n`
 of B. UDP9000/9001 echoot exact `Nieuw OS UDP app A` of B naar45000/45001.
 ARP moet werkelijk de peer-MAC oplossen; geen vaste MAC in de service.
+Na ieder werkelijk ontvangen guest-UDP-pakket stuurt de peer vier begrensde
+frames: foutieve checksum, verkeerde bronpoort, geldige echo en een tweede
+geldige datagram met andere inhoud. Iedere app wacht25 echte monotone ticks
+vóór ontvangen. Beide eerste echoes moeten behouden blijven; de dienst telt
+minimaal vier malformed/scopeweigeringen en twee drops door volle UDP-slots.
 
 Apps controleren ook verkeerde TCP-poort, verbindingstoken van andere slot,
 oude tokens na reopen, malformed reservedbytes vóór de SDK-start, en geweigerde
@@ -120,6 +129,34 @@ adresruimte mag niet later voor bewijs worden teruggelezen.
 Rust1.91.1/matching rust-lld/locked-offline/W^X-linkerscript. Uitvoer:
 NOS_NETWORK_SERVICE_ELF en NOS_NETWORK_CLIENT_ELF. Targets zijn uitsluitend
 x86_64-unknown-none; compilation/ELFinspectie is geen native uitvoering.
+
+## Herhaalbare gates
+
+Activeer de bestaande ontwikkelomgeving. De drie packages hebben afzonderlijke
+workspaces/lockfiles; de kernel blijft opRust1.90, smoltcp opRust1.91.1. De
+test-only smoltcp-dependency gebruikt exact dezelfde vastgepinde0.14.0-versie
+en features als de bestaande net-stack, zonder nieuwe registryafhankelijkheid.
+
+```
+cargo +1.90.0 test --offline --locked --manifest-path services/network-service/protocol/Cargo.toml
+cargo +1.90.0 test --offline --locked --manifest-path sdk/net-client/Cargo.toml
+cargo +1.91.1 test --offline --locked --manifest-path services/network-service/Cargo.toml
+python3 -B -m unittest discover -s tools -p test_network_service_peer.py
+python3 tools/run_network_service.py
+```
+
+`native-net-service` erft alleen bestaande kernelmechanismen; een afzonderlijk
+manifest boot precies drie echte processen. Er wordt geen opslagdienst gestart
+en geen blokapparaat ontdekt of gemapt. Het buildpad maakt voor de bestaande
+compile-time fixtureverwijzingen ook de onveranderde systeem-ELFs, maar die
+worden niet in deze manifest gestart. De enige apparaten zijn de read-only
+wegwerp-ESP, virtio-rng en virtio-net met uitsluitend de lokale synthetische
+socketpeer. Geen TAP, brug, hostshare, gewone Internetverbinding of echte disk.
+De kernel bewaart observatiewoorden vóór het generieke procesopruimen en
+controleert capability-/frameopruiming en echte NIC-resetacknowledgement.
+De Python-gate vergelijkt serial, drie procesobservaties, NIC-completions en
+causaal opnieuw afgespeelde echte pakketten. Hij controleert bron-, build-,
+ELF-, firmware-, QEMU- en opgeslagen uitvoerbinding vóór/na uitvoering.
 
 Bronoriëntatie: OSDev Network Stack,W002538,revisie23577(16april2019).
 De bestaande projectdrivers/ABI en de gecontroleerde smoltcp/net-protocol-code
