@@ -380,9 +380,24 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False) -> 
         report["error"] = f"{type(error).__name__}: {error}"
     finally:
         if process is not None and process.poll() is None:
-            process.kill(); process.wait(timeout=5)
+            # A guest FAIL marker can reach the serial file just before QEMU
+            # completes its debug exit. Preserve that exit when available.
+            try:
+                process.wait(timeout=0.25)
+            except subprocess.TimeoutExpired:
+                report["harness_terminated_process"] = True
+                process.kill(); process.wait(timeout=5)
+        if process is not None:
+            report["raw_qemu_exit"] = process.returncode
+        report["duration_s"] = time.monotonic() - start
         if control is not None:
+            report["qmp_trace"] = control.trace
             control.close()
+        serial_path = directory / "serial.txt"
+        if serial_path.exists() and serial_path.stat().st_size <= SERIAL_LIMIT:
+            report["serial_sha256"] = sha256(private_path(serial_path, regular=True))
+        if fixture is not None:
+            report["oracle"] = fixture["metadata"]
         publish_json(directory / "result.json", report)
         publish_json(BUILD / "window-session-report.json", report)
     print(json.dumps({k: report.get(k) for k in ("passed", "native_gate", "error", "run_directory", "duration_s")}), flush=True)
