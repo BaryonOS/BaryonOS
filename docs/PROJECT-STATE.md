@@ -1,44 +1,54 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — U03 native geaccepteerd,41→44/100 — 2 november 2026
+## NEXT AGENT HANDOFF — U03 geaccepteerd, 44/100 — 2 november 2026
 
-Branch `codex/materiaal-library-20261102`, concept-PR130 op PR129; begin159ad79.
-Functionele bron64044318c622eaacab25272611acf856a5fca5d5, source-v3
-069666e5406a893f64aa5d8e00298863f33f8be9cef57b6e0522b8bdf9648670.
-De volledige totaalprompt blijft actief. **U03+3 sluit; score41→44/100.**
-Geen criteria/gewichten verlaagd, geen mainmerge, geen volledigeOS-/authclaim.
+Branch `codex/materiaal-library-20261102`, concept-PR 130 op PR 129; begin 159ad79.
+Native geteste code: `64044318c622eaacab25272611acf856a5fca5d5`, source-v3
+`069666e5406a893f64aa5d8e00298863f33f8be9cef57b6e0522b8bdf9648670`.
+**41 → 44/100 door uitsluitend U03 (+3)**; criteria/gewichten zijn gelijk.
+De volledige totaalprompt blijft actief. Geen merge naar main of volledige OS-claim.
 
-Gebouwd: gedeelde proportionele documentlayout inclcaret/selectie/wrap/pointer/
-navigatie/soft-wrap-affinity; prominente titel; echte lokale locatie/rechten/
-revisie; hernoemen+bewaren, lokale naamzoeking, vier echte collecties,
-geschiedenis met scroll/geverifieerdeprefix en herstel als nieuwe revisie.
-SDK bewaart CAS/domain/read-only/dirty/busy/uncertain en herhaalt geen mutaties.
-Negatieven voor stale acties, dialoog-overschrijdende muisklik, META-conflict na
-collectiecreate, onzekere commit/refresh en previewfouten slagen.
+Gebouwd: proportionele editor met gedeelde caret/selectie/wrap/pointer/navigatie,
+prominente titel, lokale locatie/rechten/revisie, naamzoeking, hernoemen en
+bewaren, vier echte collecties, historiepreview/scroll en herstel als nieuwe
+revisie. SDK behoudt domein, read-only, CAS, draft en onzekerheidsgrenzen;
+mutaties worden niet blind herhaald. Nieuwe negatieve tests sluiten onder meer
+stale acties, dialoog-overschrijdende muisklik en META-conflict na collectiecreate.
 
-Native640: write10fasen382,604s; cold4fasen191,301s; full22fasen487,007s,
-alle raw33/pass. Onafhankelijke readback controleert daadwerkelijke complete
-appbeelden, diskbytes/revisies/collecties/canaries, bytegelijke koude kopie,
-UD2slot4/vector6/PID5→9/apps4/8, verseepochs, clipboard en cleanup/framebaseline.
-Alle28host- en14nieuwe native librarybeelden zijn visueel beoordeeld.
-Bewijs/commando’s: `docs/verification/materiaal-library-20261102/README.md`.
-76UI/109SDK/41app/190Python+11runnerchecks, Clippy/fmt/build/echteELFparser groen.
-Gemeten Materiaal:195→156LOADpagina’s; R/RW/W^X/guards/caps blijven geldig.
+Op 640: write 10 fasen/382,604 s; cold 4/191,301 s; full 22/487,007 s;
+alle raw 33/pass. Onafhankelijke readback herhaalt hele appbeelden, diskbytes,
+revisies/collecties/canaries, bytegelijke koude kopie, echte UD2/PID-herstart,
+werkbehoud, clipboard en cleanup. Openbare native sessieroute slaagt opnieuw
+18 toestanden met echte klok: lock 7,769 s, desktop 91,174 s. Geen persoonlijke
+authenticatieclaim. Alle 28 host- en 14 native librarybeelden zijn beoordeeld.
 
-Grenzen: grote TCG-paginaovergangen duren nog45–53s; geen U02/dagelijksnelheidsclaim.
-Host200%-compacteditor verbergt toolbar/metadata maar behoudt toetsenroutes;
-shaping/IME/screenreader/menselijke acceptatie blijven open. Echte profiel-/auth-
-/sessieauthority en keyring/capability-revoke blijvenP0. VMware/Windows/hardware
-zijn niet nieuw uitgevoerd. Alle18 GitHub-workflows op640 zijn groen, inclusiefCI-full/write/cold en
-normalepakketbouw. Native openbare sessieroute640 slaagt opnieuw18toestanden
-met echteklok (lock7,769s/desktop91,174s); geen echteauthclaim.
+Alle 18 GitHub-workflows op 640 zijn werkelijk groen. CI-merge f6bada heeft
+exact dezelfde source-v3; artifact 13183010575 is gedownload en onafhankelijk
+teruggelezen (full/write/cold, 31 exacte appbeelden, acht embedded ELF's,
+disk/serial en 19 pakketpayloads). Geen nieuwe Windows- of VMware-runtimeclaim.
+Bewijs, exacte commando's en grenzen:
+`docs/verification/materiaal-library-20261102/README.md`.
 
-Volgende concrete stap: oude nativeMateriaal-oracle op actueleeditorbounds
-brengen (repro51legitieme metadatawijzigingen,0echteeditorwijzigingen). De
-UI-deelagent raakte quota; zijn WIP is behouden in aparteworktree
-`/workspace/nieuw-os-legacy-oracle`, rootneemtde2toolbestandenover. Alleen
-ondersteunde acties/negatieventesten, geenhost-/beeldgrensverzwakking. Daarna
-nieuwebron-/binairebinding vastleggen en nativepreview met klok opnieuw toetsen.
+Controles: 76 UI-, 109 SDK-, 41 app-, 190 oorspronkelijke Python-tests plus
+11 runnerchecks, Clippy/fmt/build/ELF-parser slagen. De laatste toolingcorrectie
+2f41107 heeft 195 tooltests groen. Zij volgt actuele editorbounds en behoudt
+alle tekst-/caret-/randpixels plus zichtbare bewaarfeedback. De zesfasen-legacy-
+QEMU-probe is daarna niet opnieuw uitgevoerd. Herbouw: kernel en acht apps
+bytegelijk aan 640; UEFI verschilt alleen in linktimestamps/debugidentiteit.
+Nieuwe native uitvoering van die rebuild wordt niet geclaimd.
+
+Gemeten Materiaal-LOADgeheugen: 195 → 156 pagina's; R/RW/W^X/guards/caps blijven
+geldig. Grote TCG-paginaovergangen duren nog 45–53 s: U02 blijft open. Op het
+880×510-profiel vereist een volle raw SUR1-frame 1792 tiles/12388 uitgaande
+berichten plus ACK's. SolidBegin uit bewaarde PR126 is nog niet geïntegreerd;
+eerst apart meten en protocol-/negatievenreview, geen onbewezen snelheidclaim.
+
+Volgende kritieke stap: echte profiel/auth/sessieauthority en keyring/capability-
+revoke voor persoonlijke lock/logout; daarnaast grote redraws versnellen.
+Compact 200% verbergt toolbar/metadata en gebruikt toetsenroutes; shaping, IME,
+screenreader en menselijke acceptatie blijven open. VMware/hardwaregrenzen uit
+het eerdere overdrachtscontract blijven gelden. De UI-deelagent bereikte quota;
+zijn werk is behouden, root heeft de beperkte toolingcorrectie afgerond.
 
 ## Vorig checkpoint — Materiaalbibliotheek in uitvoering — 2 november 2026
 

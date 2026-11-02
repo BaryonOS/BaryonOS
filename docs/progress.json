@@ -7,7 +7,7 @@
     "branch": "codex/materiaal-library-20261102",
     "task": "U03 native openen, bewerken, benoemen, organiseren en versieherstel geaccepteerd",
     "previous_score": 41,
-    "summary": "41→44/100 door uitsluitend U03 (+3). Echte native documenten worden via volume-v7 benoemd, lokaal gezocht, geordend en als nieuwe revisie hersteld. Write10/cold4/full-regressie22 slagen op bron6404431/source069666e5, met complete appbeelden, onafhankelijke schijf-/hashreadback, echte compositorfault/herstart, clipboard en cleanup.76 UI-,109 SDK-,41 app-,190 Python-tests en11 runnerchecks slagen; nieuwe negatieve cases behouden rechten/CAS/drafts. Materiaal LOADgeheugen195→156pagina’s gemeten. Grote TCG-paginaovergangen blijven45–53seconden; U02/U04/U05, echte authenticatie en hardware blijven open. Alle18 CI-workflows op640 zijn groen; de openbare native sessieroute slaagt opnieuw18toestanden met echteklok. Geen nieuweWindows-runtime-/VMware-/hardware-/releaseclaim."
+    "summary": "41 → 44/100 door uitsluitend U03 (+3). Native documenten worden benoemd, gezocht, geordend en als nieuwe revisie hersteld. Write10/cold4/full22 en openbare sessieroute18 slagen op640/source069666e5, met complete appbeelden, onafhankelijke disk/hashreadback, echte compositorfault, clipboard en cleanup. Alle18 CI-workflows op640 zijn groen en de drie CI-runs zijn uit het artifact opnieuw gecontroleerd. Materiaal LOADgeheugen195→156pagina’s gemeten. Afzonderlijke toolingcorrectie:195tests groen; kernel+8apps bytegelijk, UEFI alleen andere linkmetadata, geen nieuwe native claim voor die rebuild. Grote TCG-overgangen blijven45–53s; U02/U04/U05, echte authenticatie en hardware blijven open."
   },
   "tracks": [
     {

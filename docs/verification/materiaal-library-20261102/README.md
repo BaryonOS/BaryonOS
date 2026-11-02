@@ -9,6 +9,8 @@ staat boven PR 129; er is geen merge naar main of volledige releaseclaim.
 - Native geteste code: `64044318c622eaacab25272611acf856a5fca5d5`.
 - Source-v3: `069666e5406a893f64aa5d8e00298863f33f8be9cef57b6e0522b8bdf9648670`.
 
+[Gewijzigde codebestanden](changed-code-files.txt).
+
 ## Wat werkelijk is gebouwd
 
 De eigen Rust-kernel en UEFI-loader draaien Materiaal en Rekenmachine als
@@ -103,6 +105,9 @@ QEMU 10.0.13, q35-10.0, TCG/thread=single, qemu64, 1 CPU, 256 MiB,
 GOP 1280×720, VGA, display none en QMP screendump. Geen NIC, hostschijf of
 passthrough; alleen wegwerpdisk en eigen OVMF-vars. KVM is hier niet beschikbaar.
 Geen nieuwe Windows/WHPX-, VMware- of hardwaremeting.
+Root startte vijf VM's: één expliciet afgebroken diagnostische proef en vier
+geaccepteerde runs. CI 640 gebruikte drie afzonderlijke VM's. Screenshots per
+interactiestaat gebruiken dezelfde VM; er is geen reboot per beeld.
 
 | Gemeten write-route | Tijd |
 |---|---:|
@@ -161,7 +166,11 @@ de hier gebruikte volledige appbeelden blijven ongefilterd.
 doorliep full, write en cold en maakte de gewone Windows-QEMU-bundel. De
 CI-merge `f6bada8333c63e0a949d8a441b8494cac56b3503` heeft exact dezelfde
 source-v3. Artifact 13183010575 is opgehaald en de ZIP-hash bevestigd;
-de aanvullende inhoudreadback wordt apart vastgelegd. Dit is geen nieuwe
+de [aanvullende inhoudreadback](ci-readback.json) slaagt ook: alle drie runs,
+31 exacte native appbeelden, disk/cold-keten, serial, acht werkelijk uit de
+kernel geëxtraheerde ELF-images en alle 19 pakketpayloads zijn opnieuw gehasht.
+CI full/write/cold duren 580,541/472,000/223,410 s. De gebruikte
+[readbackcode](verify-ci-artifact.py) voert geen artifactcode uit. Dit is geen nieuwe
 Windows-runtime-, VMware-, hardware- of volledige releaseclaim.
 
 Ook de [openbare native sessieroute](native-public-route.json) slaagt opnieuw:
@@ -173,3 +182,34 @@ Dit is geen echte persoonlijke authenticatie. [Lockscreen](native/public-lock.pn
 Echte profiel-/auth-/sessieauthority en capability-intrekking bij persoonlijke
 lock/logout blijven P0; dagelijks vloeiende graphics en volledige input/
 toegankelijkheid blijven apart open.
+
+
+## Afzonderlijke toolingcorrectie na native bron 640
+
+Commit `2f411072852f050166338ebead6ec9074a31b196` verandert uitsluitend drie
+Pythonbestanden. De oude 768×536-editorvergelijking controleert nu de werkelijke
+rechthoek (24,216,720,256). Alle RGB-bytes en randen blijven beschermd;
+legitieme revisiemetadata mag wijzigen, en zichtbaar save-feedback moet wijzigen.
+195 tooltests slagen, inclusief beschadigde randen, lege/truncated/ontsnapte
+vergelijkingen en metadata die geen bewaarstatus mag vervangen. De rode
+voorloop en de daarna gecorrigeerde synthetische previewfixtures blijven bewaard.
+De oude zesfasen-QEMU-probe is na deze toolingcorrectie niet opnieuw uitgevoerd.
+
+[Herbouwbinding](tooling-binary-binding.json): kernel en alle acht apps zijn
+bytegelijk aan de geteste 640-binaries. De UEFI-loader verschilt op 14 bytes,
+alleen COFF/debug-timestamps en CodeView-debugidentiteit. De echte bestanden
+zijn niet aangepast; deze metadata-analyse is geen nieuwe bootacceptatie.
+De native runs en timings blijven expliciet aan 640/source069666e5 gebonden.
+
+## Vervolg volgens de bestaande acceptatiematrix
+
+| Prioriteit | Open werk |
+|---|---|
+| P0 | Echte profiel-/auth-/sessieauthority en capability-intrekking bij persoonlijke lock/logout |
+| P1 | Grote native paginaovergangen profileren en versnellen; resize/input/schaal en accessibility-keten voltooien |
+| P2 | Persistente instellingen, dagelijkse apps/netwerkbediening, ruimere bibliotheek en draftbewuste afsluiting |
+| P3 | VMware-apparaatproef en afzonderlijk geautoriseerd hardware-/productonderzoek |
+
+Het [gerichte OS-routeonderzoek](../../research/SESSION-ROUTES-2026-11-02.md)
+en de [visuele systeemregels](../../implementation/QUIET-SESSION-SPEC.md) blijven
+het uitgangspunt; deze slice vervangt geen volledige productacceptatie.
