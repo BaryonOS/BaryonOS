@@ -87,8 +87,32 @@ fn render_native_session_walkthrough_oracle() {
             ui.refresh().unwrap();
             let mut sequence = 0;
             snapshot(&ui, "accounts", Page::Accounts, directory.as_deref());
+            key(&mut ui, &mut sequence, PhysicalKey::Tab);
             key(&mut ui, &mut sequence, PhysicalKey::Enter);
-            snapshot(&ui, "login", Page::Login, directory.as_deref());
+            for physical in [
+                PhysicalKey::T,
+                PhysicalKey::E,
+                PhysicalKey::S,
+                PhysicalKey::T,
+            ] {
+                key(&mut ui, &mut sequence, physical);
+            }
+            let desktop = ui.view().desktop.unwrap();
+            assert!(!desktop.is_guest());
+            assert_eq!(desktop.password_len(), 4);
+            assert!(!desktop.unavailable());
+            snapshot(&ui, "personal-login", Page::Login, directory.as_deref());
+            key(&mut ui, &mut sequence, PhysicalKey::Enter);
+            let desktop = ui.view().desktop.unwrap();
+            assert!(!desktop.is_guest());
+            assert_eq!(desktop.password_len(), 0);
+            assert!(desktop.unavailable());
+            snapshot(&ui, "denied", Page::Login, directory.as_deref());
+            key(&mut ui, &mut sequence, PhysicalKey::Escape);
+            snapshot(&ui, "accounts-return", Page::Accounts, directory.as_deref());
+            key(&mut ui, &mut sequence, PhysicalKey::Enter);
+            assert!(ui.view().desktop.unwrap().is_guest());
+            snapshot(&ui, "guest-login", Page::Login, directory.as_deref());
             key(&mut ui, &mut sequence, PhysicalKey::Enter);
             snapshot(&ui, "desktop", Page::Home, directory.as_deref());
             key(&mut ui, &mut sequence, PhysicalKey::Tab);

@@ -1,0 +1,55 @@
+{
+  "date": "2026-11-02",
+  "provenance": "Reported by the user-authorized local Codex chat 01a19c13-c83d-7781-8f61-de0541ac6d95. Raw Windows artifacts are local; cloud did not independently reproduce them.",
+  "hardware": {
+    "os": "Windows 11 Pro Insider Preview 25H2 build26220.9757 x64",
+    "cpu": "AMD Ryzen 9 9950X3D,16cores/32logical",
+    "installed_ram_gib": 64,
+    "windows_usable_ram_gib": 61.41,
+    "gpu": [
+      "AMD Radeon RX5700XT",
+      "AMD Radeon Graphics"
+    ],
+    "gpu_driver": "32.0.21045.20006",
+    "hypervisor_present": true,
+    "firmware_virtualization_enabled": true
+  },
+  "qemu": "11.1.0(v11.1.0-12130-ge470268ff4)",
+  "init_only": {
+    "whpx_exit": 0,
+    "whpx_seconds": 0.17,
+    "tcg_exit": 0,
+    "tcg_seconds": 0.117,
+    "status": "prelaunch",
+    "warning": "Ignoring request for interrupt vector0",
+    "no_host_configuration_changed": true
+  },
+  "old_bundle_baseline": {
+    "source_commit": "c532ba88fbf0f53b960e9dbf77421cee29d97096",
+    "source_sha256": "a1998a126a3a1ccc18523925a422912d934c14bab865b3d7df346862a2c251a6",
+    "kernel_sha256": "f2e9cc4aad87ad2b9fbc8b498ab146db2ab0df4a77b904eecf81c3a9beb198b3",
+    "loader_sha256": "7e55ab0fe6c232380f52dc5be1334b41388b70d80e0ebe2b0072de7e12373a09",
+    "machine": "pc-q35-8.2",
+    "cpu": "qemu64",
+    "vcpus": 1,
+    "ram_mib": 256,
+    "samples_each": 1,
+    "first_complete_frame_whpx_seconds": 10.453,
+    "first_complete_frame_tcg_seconds": 19.952,
+    "full800x600_ppm_sha256": "89988554c6e93449245ccac8462e1a43af336e0af990affcf59004bb2eaed50f",
+    "qmp_poll_interval_seconds": 0.25,
+    "qemu_exits": [
+      0,
+      0
+    ],
+    "volume_hash_unchanged": true,
+    "network": false,
+    "passthrough": false,
+    "raw_report_local": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Nieuw OS\\local-pc-tests\\20261102T115023Z-native\\comparison.json"
+  },
+  "found_regression_on_7648a8f": {
+    "component": "Windows HMP acceleration helper",
+    "result": "Timed out after10seconds despite successful binary-LF QMP initialization; false TCG fallback. Replacement QMP helper requires a new Windows runtime test.",
+    "scope": "Real Windows finding; Linux/fake-executable policy tests had passed."
+  }
+}

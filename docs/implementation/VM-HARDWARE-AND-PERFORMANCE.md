@@ -51,7 +51,13 @@ de kernel is bovendien nog single-core.
    ermee is gebouwd.
 3. Test WHPX met hetzelfde q35/CPU/geheugenprofiel, gepauzeerd via `-S`.
    Deze proef heeft geen disks, netwerk, USB, hostmappen of scherm. Een
-   monitorantwoord en exit 0 moeten bevestigen dat initialisatie slaagde;
+   QMP-antwoord op `query-status` met de verwachte request-ID en status
+   `paused`/`prelaunch`, capability-/quitbevestigingen en exit 0 moeten
+   bevestigen dat initialisatie slaagde. De opdrachten gaan als exacte
+   UTF-8-bytes met alleen LF naar QMP, zonder Windows-tekstnewlinevertaling.
+   De launcher wacht eerst op de echte QMP-greeting en vervolgens op iedere
+   commandobevestiging vóór hij de volgende opdracht verstuurt; handshake en
+   procesexit delen één deadline van tien seconden;
    na maximaal tien seconden wordt de proef gestopt. Er draait geen gastcode.
 4. Start daarna de eigen OS-VM met WHPX. Bij ontbrekende/mislukte initialisatie
    meldt Auto de oorzaak en kiest TCG. `-Acceleration Whpx` weigert fallback;
@@ -119,9 +125,11 @@ lengte en intrekking. Geef apps geen raw framebuffer of DMA-recht voor snelheid.
 
 ## Uitgevoerde controles
 
-- PowerShell 7.5.4 op de Linux-cloudexecutor: twaalf synthetische
-  versnellingsbeleidtests (succes, ontbrekende backend, initfout, timeout,
-  expliciete keuze, geen fallback en geen probe bij CheckOnly) geslaagd.
+- PowerShell 7.5.4 op de Linux-cloudexecutor: 33 synthetische
+  versnellingsbeleid-/QMP-antwoordtests (succes, ontbrekende backend,
+  initfout, timeout, expliciete keuze, geen fallback, geen probe bij
+  CheckOnly, ongeldige/ontbrekende/dubbele QMP-bevestiging en sequentiële
+  handshake met begrensde eventverwerking) geslaagd.
 - De zes launchercontroles met synthetische bundel en een fake QEMU-binary
   zijn op diezelfde Linux-PowerShell uitgevoerd; gewijzigde helperhash wordt
   vóór uitvoering geweigerd. Geen echte VM gestart door die tests.
@@ -130,6 +138,10 @@ lengte en intrekking. Geef apps geen raw framebuffer of DMA-recht voor snelheid.
   proces-/foutafhandeling, geen Windows-hypervisor.
 - Package-hosttests omvatten hashbinding van de helper en behoud van het
   sessiepreviewprofiel. De integrator bewaart het finale commando/resultaat.
+- Drie synthetische subprocessproeven controleren de exacte LF-only
+  QMP-requestbytes en accepteren alleen bevestigde gepauzeerde initialisatie;
+  `running` en een ontbrekende quitbevestiging worden geweigerd. Dit is
+  Linux-procesbewijs zonder hypervisorinitialisatie, geen Windowsbewijs.
 - Windows PowerShell 5.1, echte WHPX-sessie, KVM/HVF, fysieke pc/periferie en
   snelheidsvergelijking: **niet uitgevoerd**. De cloudexecutor beschrijft
   Simons pc niet.

@@ -157,7 +157,7 @@ Commando voor de gerichte suite vanuit de repository:
 
 ```sh
 source /workspace/.nieuw-os-env/activate.sh
-CARGO_TARGET_DIR=/workspace/nieuw-os/target-session-flow cargo test --manifest-path ui/native/Cargo.toml --test session --offline
+CARGO_TARGET_DIR=/workspace/nieuw-os/build/session-flow cargo test --manifest-path ui/native/Cargo.toml --test session --offline
 ```
 
 Uitgevoerd op de werkboom boven bron `e08fb0e48c1bb0781e98357f588c2f73b6ae8500`:
@@ -175,3 +175,20 @@ hostbewijs en blijven open.
 Rollback: verwijder de nieuwe sessiemodule/tests en de integratorverwijzing;
 dit document bewaart het onderzoekscontract. Geen bestaande gebruikersdata
 wordt gemigreerd of gewijzigd.
+
+## Native koppeling door de integrator
+
+`native-system-session-preview` is een expliciet opt-in VM-profiel. De kernel
+zet uitsluitend startupwoord648=1; geen nieuwe capability of cryptografie.
+De native app activeert de shell boven zijn bestaande synthetische appdomein.
+De eerste vijfstappenproef op7648a8f slaagde: alle pixels in het appgebied
+(16,48,768,536) gelijk aan de gebonden hostrenderer. De uitgebreidere eindproef
+controleert ook persoonlijke testinvoer, weigering en wissen vóór expliciete
+gastaanmelding. Bewijs en definitieve bron staan onder
+[session-desktop-20261102](../verification/session-desktop-20261102/).
+
+De brongebonden hostoracle is een vergelijking, geen zelfstandig native bewijs.
+Alleen de echte QMP-invoer en QEMU-screendumps leveren uitvoering aan. De
+zichtbare accountkaart 'Eigen gebruiker' is nog geen geregistreerd profiel;
+een echte auth-/sessiedienst moet later enrollment, persistente verifier,
+herstel, ratelimiting, capability-intrekking en compositor-/input-lock toevoegen.

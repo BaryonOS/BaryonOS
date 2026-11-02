@@ -319,7 +319,7 @@ def run_preview(
         )
     if session_fixture_directory is not None:
         report["scope"] = (
-            "Opt-in native guest accounts/login/desktop/search/Materiaal route through QMP; "
+            "Opt-in native personal-password rejection and guest desktop/search/Materiaal through QMP; "
             "all app-owned pixels match a same-source host-rendered Controller/Frame oracle. "
             "No real account authentication, secure lock/key release, manual UX, release, "
             "or physical/Windows-host acceptance."

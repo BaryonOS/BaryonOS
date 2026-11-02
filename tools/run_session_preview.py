@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the opt-in guest session UI through real QEMU input and app pixels.
+"""Verify rejected personal login and the guest UI through QEMU input and pixels.
 
 The oracle is host-rendered Controller/Frame output, not native execution.
 Only successful QMP interaction plus matching guest screendumps is native proof.
@@ -22,7 +22,10 @@ import run_materiaal_preview as preview
 
 FEATURE = "native-system-session-preview"
 ORACLE_KIND = "host-rendered Controller/Frame oracle; not native execution"
-PHASES = ("accounts", "login", "desktop", "search", "material")
+PHASES = (
+    "accounts", "personal-login", "denied", "accounts-return",
+    "guest-login", "desktop", "search", "material",
+)
 APP_RECT = (16, 48, 768, 536)
 MAX_FRAME_BYTES = APP_RECT[2] * APP_RECT[3] * 3 + 128
 
@@ -48,6 +51,7 @@ def generate_fixture(build: Path) -> Path:
     if source_hash() != frozen:
         raise ValueError("Source changed while generating the host session oracle")
     frames = {}
+    raw_frames = {}
     for name in PHASES:
         path = private_path(directory / f"{name}.ppm", regular=True)
         if path.stat().st_size > MAX_FRAME_BYTES:
@@ -55,6 +59,8 @@ def generate_fixture(build: Path) -> Path:
         if ppm(path.read_bytes())[:2] != APP_RECT[2:]:
             raise ValueError("Host session frame has wrong app geometry")
         frames[name] = sha256(path)
+        raw_frames[name] = path.read_bytes()
+    validate_discriminating_frames(raw_frames)
     publish_json(directory / "fixture.json", {
         "schema_version": 1,
         "kind": ORACLE_KIND,
@@ -68,6 +74,15 @@ def generate_fixture(build: Path) -> Path:
         "generator_exit": result.returncode,
     })
     return directory
+
+
+def validate_discriminating_frames(frames: dict) -> None:
+    """A password rejection must be observable, not an unchanged-screen pass."""
+    pixels = {name: ppm(raw)[2] for name, raw in frames.items()}
+    if (pixels["personal-login"] == pixels["denied"]
+            or pixels["denied"] == pixels["desktop"]
+            or pixels["accounts"] != pixels["accounts-return"]):
+        raise ValueError("Session oracle does not distinguish rejection and account return")
 
 
 def load_fixture(directory: Path, manifest: dict, frozen: str) -> dict:
@@ -100,6 +115,7 @@ def load_fixture(directory: Path, manifest: dict, frozen: str) -> dict:
                 or hashlib.sha256(raw).hexdigest() != metadata["frames_sha256"][name]):
             raise ValueError(f"Host session oracle was changed: {name}")
         frames[name] = raw
+    validate_discriminating_frames(frames)
     return {"directory": directory, "metadata": metadata,
             "metadata_sha256": sha256(metadata_path), "frames": frames}
 
@@ -128,7 +144,10 @@ def input_groups() -> tuple:
                 "arguments": {"keys": [{"type": "qcode", "data": name}], "hold-time": 30}}
     return (
         ("accounts", []),
-        ("login", [key("ret")]),
+        ("personal-login", [key(name) for name in ("tab", "ret", "t", "e", "s", "t")]),
+        ("denied", [key("ret")]),
+        ("accounts-return", [key("esc")]),
+        ("guest-login", [key("ret")]),
         ("desktop", [key("ret")]),
         ("search", [key(name) for name in ("tab", "tab", "ret", "m", "a", "t")]),
         ("material", [key("ret")]),
@@ -141,6 +160,7 @@ def run_walkthrough(control, process, directory: Path, fixture: dict, deadline: 
     for raw in fixture["frames"].values():
         if ppm(raw)[:2] != APP_RECT[2:]:
             raise ValueError("Wrong host session oracle geometry")
+    validate_discriminating_frames(fixture["frames"])
     stages = []
     for name, requests in input_groups():
         stage_start = time.monotonic()
@@ -177,8 +197,14 @@ def run_walkthrough(control, process, directory: Path, fixture: dict, deadline: 
         "compared_rectangle": list(APP_RECT),
         "uncompared_regions": "Only framebuffer pixels outside the app-owned rectangle",
         "pixel_masks_inside_app": [],
-        "input_route": "accounts -> guest login -> desktop -> search mat -> Materiaal",
-        "authentication": "Explicit disposable VM guest; no authenticated user or key unlock",
+        "input_route": (
+            "accounts -> personal login with synthetic test input -> rejected/cleared "
+            "-> accounts -> guest login -> desktop -> search mat -> Materiaal"
+        ),
+        "authentication": (
+            "Personal password rejected; explicit disposable VM guest only; "
+            "no authenticated user or key unlock"
+        ),
         "host_oracle_is_native_evidence": False,
     }
 

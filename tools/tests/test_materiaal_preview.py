@@ -537,14 +537,17 @@ class PreviewLifecycleTests(unittest.TestCase):
 
 def session_frames():
     """Synthetic host-test pixels only; no native-execution claim."""
-    full = reference_frames()
-    cropped = {
-        name: b"P6\n768 536\n255\n" + session_preview.app_pixels(raw)
-        for name, raw in zip(session_preview.PHASES, full.values())
-    }
-    return cropped, {
-        name: raw for name, raw in zip(session_preview.PHASES, full.values())
-    }
+    base = reference_frames()["ready"]
+    header = len(b"P6\n800 600\n255\n")
+    full, cropped = {}, {}
+    for index, name in enumerate(session_preview.PHASES):
+        raw = bytearray(base)
+        raw[header + ((48 + 10) * 800 + 16 + 10) * 3] = (
+            0 if name == "accounts-return" else index
+        )
+        full[name] = bytes(raw)
+        cropped[name] = b"P6\n768 536\n255\n" + session_preview.app_pixels(raw)
+    return cropped, full
 
 
 class SessionWalkthroughTests(unittest.TestCase):
@@ -570,7 +573,10 @@ class SessionWalkthroughTests(unittest.TestCase):
         self.assertEqual(tuple(name for name, _ in groups), session_preview.PHASES)
         keys = [key["data"] for _, requests in groups for request in requests
                 for key in request["arguments"]["keys"]]
-        self.assertEqual(keys, ["ret", "ret", "tab", "tab", "ret", "m", "a", "t", "ret"])
+        self.assertEqual(keys, [
+            "tab", "ret", "t", "e", "s", "t", "ret", "esc", "ret", "ret",
+            "tab", "tab", "ret", "m", "a", "t", "ret",
+        ])
         self.assertNotIn("f12", keys)
         self.assertEqual(groups[0][1], [])
 
@@ -584,7 +590,7 @@ class SessionWalkthroughTests(unittest.TestCase):
                 )
             control.command.assert_not_called()
 
-    def test_all_five_frames_must_match_before_advancing(self):
+    def test_all_eight_frames_must_match_before_advancing(self):
         cropped, full = session_frames()
         with tempfile.TemporaryDirectory() as name:
             directory = Path(name)
@@ -623,7 +629,7 @@ class SessionWalkthroughTests(unittest.TestCase):
 
             def command(execute, arguments):
                 self.assertEqual(execute, "screendump")
-                Path(arguments["filename"]).write_bytes(full["login"])
+                Path(arguments["filename"]).write_bytes(full["personal-login"])
 
             control.command.side_effect = command
             with (
@@ -654,7 +660,7 @@ class SessionWalkthroughTests(unittest.TestCase):
             path = directory / "fixture.json"
             path.write_text(json.dumps(metadata))
             with patch.object(session_preview, "private_path", side_effect=lambda path, **kwargs: path):
-                self.assertEqual(len(session_preview.load_fixture(directory, manifest, frozen)["frames"]), 5)
+                self.assertEqual(len(session_preview.load_fixture(directory, manifest, frozen)["frames"]), 8)
                 for changed in (
                     {"source_sha256": "b" * 64}, {"schema_version": True},
                     {"generator_exit": False}, {"kind": "native proof"},
@@ -664,9 +670,20 @@ class SessionWalkthroughTests(unittest.TestCase):
                     with self.subTest(changed=changed), self.assertRaises(ValueError):
                         session_preview.load_fixture(directory, manifest, frozen)
                 path.write_text(json.dumps(metadata))
-                (directory / "accounts.ppm").write_bytes(cropped["login"])
+                (directory / "accounts.ppm").write_bytes(cropped["personal-login"])
                 with self.assertRaisesRegex(ValueError, "changed"):
                     session_preview.load_fixture(directory, manifest, frozen)
+
+    def test_nondiscriminating_rejection_or_account_return_is_rejected(self):
+        frames, _ = session_frames()
+        session_preview.validate_discriminating_frames(frames)
+        for changed in (
+            {"denied": frames["personal-login"]},
+            {"denied": frames["desktop"]},
+            {"accounts-return": frames["personal-login"]},
+        ):
+            with self.subTest(changed=tuple(changed)), self.assertRaises(ValueError):
+                session_preview.validate_discriminating_frames({**frames, **changed})
 
 
 if __name__ == "__main__":

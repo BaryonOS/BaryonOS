@@ -71,7 +71,9 @@ def source_hash() -> str:
     digest.update(b"nieuw-os source inputs v3\n")
     for folder in (ROOT / "boot", ROOT / "kernel", ROOT / "crates", ROOT / "drivers", ROOT / "services", ROOT / "userspace", ROOT / "sdk", ROOT / "ui/native", ROOT / "ui/surface-protocol", ROOT / "experiments/quantum/qsim-core", ROOT / "experiments/quantum/native", ROOT / "experiments/quantum/job-protocol", ROOT / "tools", ROOT / ".cargo"):
         if folder.exists():
-            for path in sorted(folder.rglob("*")):
+            # Path ordering is case-insensitive on Windows. Explicit string
+            # components preserve the v3 POSIX order on every build host.
+            for path in sorted(folder.rglob("*"), key=lambda item: item.relative_to(folder).parts):
                 if path.is_file() and not {"__pycache__", "verification", "target", "build", ".git"}.intersection(path.relative_to(folder).parts):
                     digest.update(path.relative_to(ROOT).as_posix().encode())
                     digest.update(path.read_bytes())

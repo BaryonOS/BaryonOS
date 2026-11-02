@@ -1021,11 +1021,14 @@ impl Paint<'_> {
             for dx in 0..self.rect.width {
                 let x = self.rect.x + dx;
                 let y = self.rect.y + dy;
-                let diagonal = ((u64::from(x) * 110 / u64::from(viewport.width()))
-                    + (u64::from(y) * 55 / u64::from(viewport.height())))
-                .min(165) as u8;
+                let nx = u64::from(x) * 1024 / u64::from(viewport.width());
+                let ny = u64::from(y) * 1024 / u64::from(viewport.height());
+                let diagonal = ((nx * 100 + ny * 90) / 1024) as u8;
+                let base = blend(d::DESKTOP_END, d::DESKTOP_START, diagonal);
+                let distance = nx.abs_diff(780).pow(2) + ny.abs_diff(120).pow(2);
+                let glow = (600_000u64.saturating_sub(distance) * 72 / 600_000) as u8;
                 self.pixels[(dy * self.rect.width + dx) as usize] =
-                    blend(d::ACCENT_SOFT, d::BACKGROUND, diagonal);
+                    blend(d::DESKTOP_GLOW, base, glow);
             }
         }
         let compact = h < 420;
@@ -1132,14 +1135,14 @@ impl Paint<'_> {
                     self.wrapped(
                         x + 8,
                         h.saturating_sub(32),
-                        "Aanmelden nog niet beschikbaar.",
+                        "Aanmelden niet beschikbaar",
                         width - 16,
                         d::DANGER,
                     );
                 }
             }
             Page::Home | Page::Search | Page::Material => {
-                self.title(
+                self.title_color(
                     24,
                     if compact { 8 } else { 24 },
                     if desktop.page() == Page::Search {
@@ -1147,9 +1150,10 @@ impl Paint<'_> {
                     } else {
                         "Je bureaublad"
                     },
+                    d::DESKTOP_TEXT,
                 );
                 if !compact {
-                    self.label(24, 68, "Gast (VM-test)  /  Dit apparaat", d::MUTED);
+                    self.label(24, 68, "Gast (VM-test)  /  Dit apparaat", d::DESKTOP_TEXT);
                 }
                 if desktop.page() == Page::Home && h > 420 {
                     let card = Rect {
@@ -1159,7 +1163,7 @@ impl Paint<'_> {
                         height: 96,
                     };
                     self.rounded(card, d::SURFACE, d::SURFACE_RADIUS);
-                    self.label(40, 296, "Een eigen systeem. Jouw werk centraal.", d::TEXT);
+                    self.label(40, 296, "Mijn werkruimte", d::TEXT);
                     self.label(40, 328, "Open Materiaal om documenten te maken.", d::MUTED);
                 }
                 for (target, rect, _label) in controls.into_iter().flatten() {
@@ -1222,7 +1226,7 @@ impl Paint<'_> {
                         24,
                         if compact { 112 } else { 164 },
                         "Geen programma gevonden",
-                        d::MUTED,
+                        d::DESKTOP_TEXT,
                     );
                 }
                 let bar = Rect {
@@ -1475,6 +1479,9 @@ impl Paint<'_> {
         }
     }
     fn title(&mut self, x: u32, y: u32, title: &str) {
+        self.title_color(x, y, title, d::TEXT);
+    }
+    fn title_color(&mut self, x: u32, y: u32, title: &str, color: u32) {
         // 32px title at100%, doubled retained raster at200%. Body uses a real
         // 32px raster at200%; this is not a general scalable shaping engine.
         let scale = self.scale.factor();
@@ -1494,7 +1501,7 @@ impl Paint<'_> {
                                     let at = ((py - self.rect.y) * self.rect.width + px
                                         - self.rect.x)
                                         as usize;
-                                    self.pixels[at] = blend(d::TEXT, self.pixels[at], alpha);
+                                    self.pixels[at] = blend(color, self.pixels[at], alpha);
                                 }
                             }
                         }

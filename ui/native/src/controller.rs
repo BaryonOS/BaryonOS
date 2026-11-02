@@ -1010,7 +1010,7 @@ impl<'a, T: Transport> Controller<'a, T> {
         }
         if envelope.generation != self.focus_generation {
             if let Some(desktop) = &mut self.desktop {
-                desktop.cancel_pointer();
+                desktop.cancel_input();
             }
             self.dragging = false;
             self.pressed = None;
