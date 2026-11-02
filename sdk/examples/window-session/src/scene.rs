@@ -427,27 +427,27 @@ impl Scene {
                 <= i64::from(body.x) + i64::from(body.width)
             && i64::from(rect.y) + i64::from(rect.height)
                 <= i64::from(body.y) + i64::from(body.height);
-        if inside
-            && !rect.intersects(self.dock())
-            && !rect.intersects(self.pointer_bounds())
-            && !(self.palette_is_open() && rect.intersects(self.palette_bounds()))
+        if !inside
+            || rect.intersects(self.dock())
+            || rect.intersects(self.pointer_bounds())
+            || (self.palette_is_open() && rect.intersects(self.palette_bounds()))
         {
-            let left = (rect.x - body.x) as usize;
-            let top = (rect.y - body.y) as usize;
-            let width = rect.width as usize;
-            for row in 0..rect.height as usize {
-                let source = window.offset + (top + row) * body.width as usize + left;
-                for (out, color) in pixels[row * width..(row + 1) * width]
-                    .iter_mut()
-                    .zip(&backing[source..source + width])
-                {
-                    // Canvas::pixel also ignores the unused high color byte.
-                    *out = color & 0x00ff_ffff;
-                }
-            }
-            return Ok(());
+            return self.render_reference(rect, pixels, backing);
         }
-        self.render_reference(rect, pixels, backing)
+        let left = (rect.x - body.x) as usize;
+        let top = (rect.y - body.y) as usize;
+        let width = rect.width as usize;
+        for row in 0..rect.height as usize {
+            let source = window.offset + (top + row) * body.width as usize + left;
+            for (out, color) in pixels[row * width..(row + 1) * width]
+                .iter_mut()
+                .zip(&backing[source..source + width])
+            {
+                // Canvas::pixel also ignores the unused high color byte.
+                *out = color & 0x00ff_ffff;
+            }
+        }
+        Ok(())
     }
     /// Full composite path, retained as the original raster oracle for the
     /// opaque-body optimization. It performs the same normal bounds checks.
@@ -580,7 +580,7 @@ impl Scene {
         let dock = self.dock();
         c.fill_rect(dock, palette.desktop_start);
         c.fill_rect(Rect::new(0, dock.y, dock.width, s), 0x33353d);
-        for index in 0..WINDOWS {
+        for (index, name) in APP_NAMES.iter().enumerate() {
             let r = self.task_button(index);
             let hovered =
                 !self.palette_is_open() && r.contains(self.pointer.0 as i32, self.pointer.1 as i32);
@@ -604,7 +604,7 @@ impl Scene {
             c.text(
                 r.x + 38 * s as i32,
                 r.y + 7 * s as i32,
-                APP_NAMES[index],
+                name,
                 Font::new(Size::Body, Weight::Regular, s == 2),
                 theme::SHELL_TEXT,
             );
