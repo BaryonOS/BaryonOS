@@ -41,7 +41,7 @@ SNAPSHOT_FIELDS = {
                  "SAVE_ACKS", "REVISION", "SAVED_BYTES", "SAVED_SUM", "SCREEN", "DIRTY", "DRAFT_BYTES", "DRAFT_SUM", "OBJECT", "SCALE", "ERRORS", "PROBES"},
     "CALCULATOR": {"PID", "SERVICE_GENERATION", "SURFACE_EPOCH", "INPUT_EPOCH", "READY", "GEN", "FRAMES",
                    "EVALUATIONS", "FAILURES", "EXPRESSION_BYTES", "EXPRESSION_SUM", "CURRENT", "CARET", "ACTIVE", "SCALE", "ERRORS", "ANSWER_LOW", "ANSWER_HIGH", "HAS_ANSWER", "PROBES"},
-    "COMPOSITOR": {"GENERATION", "PID", "COMMITS", "INPUT", "REJECTED", "FOCUSED", "MOVES", "SWITCHES", "MATERIAL", "CALCULATOR", "FATAL", "POINTER_X", "POINTER_Y", "BUTTONS"},
+    "COMPOSITOR": {"GENERATION", "PID", "COMMITS", "INPUT", "REJECTED", "FOCUSED", "MOVES", "SWITCHES", "MATERIAL", "CALCULATOR", "FATAL", "POINTER_X", "POINTER_Y", "BUTTONS", "SHELL", "SHELL_READY"},
 }
 
 
@@ -175,9 +175,9 @@ def numbers(raw: bytes, name: str) -> list[int]:
     return [int(m[1]) for m in re.finditer(rb"(?:^|\n)" + re.escape(name.encode()) + rb":([0-9]{20})\n", raw)]
 
 
-def validate_build(frozen: str) -> dict:
+def validate_build(frozen: str, feature: str = FEATURE) -> dict:
     manifest = load_json(private_path(BUILD / "manifest.json", regular=True))
-    if (manifest.get("kernel_feature") != FEATURE or manifest.get("loader_feature") != "desktop-mode"
+    if (feature not in (FEATURE, "native-session-route") or manifest.get("kernel_feature") != feature or manifest.get("loader_feature") != "desktop-mode"
             or manifest.get("source_sha256") != frozen or manifest.get("source_fingerprint_version") != 3):
         raise ValueError("Build the unchanged native window probe first")
     check_esp(BUILD / "esp", manifest)
@@ -193,15 +193,18 @@ def validate_build(frozen: str) -> dict:
 
 
 def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
-        recovery_handshake: bool = False, clipboard: bool = False) -> dict:
+        recovery_handshake: bool = False, clipboard: bool = False, session_route: bool = False) -> dict:
     if not 30 <= timeout <= 1800:
         raise ValueError("Timeout must be bounded 30..1800 seconds")
     if smoke and recovery_handshake or clipboard and (smoke or recovery_handshake):
         raise ValueError("Clipboard requires the full native gate; choose one diagnostic mode")
-    diagnostic = smoke or recovery_handshake
+    if session_route and (smoke or recovery_handshake or clipboard):
+        raise ValueError("The public session route is separate from the fault/clipboard gate")
+    feature = "native-session-route" if session_route else FEATURE
+    diagnostic = smoke or recovery_handshake or session_route
     private_path(BUILD)
     frozen = source_hash()
-    manifest = validate_build(frozen)
+    manifest = validate_build(frozen, feature) if session_route else validate_build(frozen)
     fixture = None if diagnostic else (generate_fixture(clipboard=True) if clipboard else generate_fixture())
     env = environment()
     qemu = Path(shutil.which("qemu-system-x86_64", path=env["PATH"]) or "missing")
@@ -237,7 +240,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
     report = dict(schema_version=1, passed=False, native_gate=False, smoke_only=diagnostic,
                   recovery_handshake_only=recovery_handshake, clipboard_requested=clipboard, clipboard_gate=False, source_sha256=frozen,
                   source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
-                  source_fingerprint_version=3, kernel_feature=FEATURE, manifest=manifest, command=command,
+                  source_fingerprint_version=3, kernel_feature=feature, session_route_requested=session_route, session_route_gate=False, manifest=manifest, command=command,
                   run_directory=str(directory), qemu_sha256=qemu_hash, immutable=immutable, phases={})
     publish_json(directory / "result.json", report)
     process = control = None
@@ -330,7 +333,55 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 observe("mouse focus", lambda raw: comp(raw).get("GENERATION") == group_generation[0] and comp(raw).get("FOCUSED") == index)
 
             initial = None if recovery_handshake else wait("boot", lambda raw, s: all(s.values()) and 31 in numbers(raw, "WINDOW:INITMASK"))
-            if recovery_handshake:
+            if session_route:
+                # These are real compositor/input states plus unmasked captured
+                # frames. They do not certify a credential/keyring boundary or
+                # the existing crash/storage/clipboard gate.
+                def shell_page(name, page):
+                    return wait(name, lambda raw, state: comp(raw).get("SHELL") == page
+                                and comp(raw).get("SHELL_READY") == 1)
+
+                def shell_key(*codes):
+                    before = comp(serial(directory / "serial.txt"))["INPUT"]
+                    control.command("send-key", {"keys": [{"type": "qcode", "data": k} for k in codes], "hold-time": 1})
+                    observe("shell input ACK", lambda raw: comp(raw).get("INPUT", 0) > before)
+
+                shell_page("lock", 0)
+                before = {r: numbers(serial(directory / "serial.txt"), f"WINDOW:{r}:KEYS")[-1]
+                          for r in ("MATERIAL", "CALCULATOR")}
+                shell_key("ret"); shell_page("users", 1)
+                shell_key("tab"); shell_key("ret"); shell_page("personal-auth", 2)
+                shell_key("ret"); shell_key("tab"); shell_key("ret")
+                shell_key("tab"); shell_key("ret")
+                shell_page("hardware-unavailable", 2)
+                raw = serial(directory / "serial.txt")
+                after = {r: numbers(raw, f"WINDOW:{r}:KEYS")[-1] for r in before}
+                if before != after:
+                    raise ValueError("Trusted shell leaked authentication input into an app")
+                shell_key("esc"); shell_page("lock-again", 0)
+                shell_key("ret"); shell_page("users-again", 1)
+                shell_key("ret"); shell_page("guest-auth", 2)
+                unlock_started = time.monotonic()
+                shell_key("ret"); shell_page("desktop", 4)
+                report["guest_to_desktop_observed_s"] = time.monotonic() - unlock_started
+                shell_key("f3"); shell_page("search", 5)
+                for code in ("r", "e", "k"): shell_key(code)
+                shell_key("ret"); shell_page("calculator", 4)
+                if comp(serial(directory / "serial.txt")).get("FOCUSED") != 1:
+                    raise ValueError("Search did not activate the correct native app")
+                shell_key("menu"); shell_page("session-menu", 8)
+                shell_key("tab"); shell_key("tab"); shell_key("ret"); shell_page("settings", 6)
+                shell_key("esc"); shell_page("desktop-again", 4)
+                shell_key("super", "l"); shell_page("covered", 0)
+                shell_key("ret"); shell_page("users-return", 1)
+                shell_key("ret"); shell_page("guest-return", 2)
+                shell_key("ret"); shell_page("desktop-return", 4)
+                shell_key("menu"); shell_page("shutdown-menu", 8)
+                for _ in range(3): shell_key("tab")
+                control.command("send-key", {"keys": [{"type": "qcode", "data": "ret"}], "hold-time": 1})
+                report["blocked_app_keys_before"] = before
+                report["blocked_app_keys_after"] = after
+            elif recovery_handshake:
                 # Exercise the actual busy-RPC cancellation/retire/rebind path
                 # before waiting for full app paints. This never certifies
                 # pixels, preserved work, persistence or the complete U01 gate.
@@ -444,7 +495,11 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
             process.wait(timeout=max(0.1, deadline - time.monotonic()))
             raw = serial(directory / "serial.txt")
             report["raw_qemu_exit"] = process.returncode
-            if diagnostic:
+            if session_route:
+                if process.returncode != 33 or not raw.endswith(b"WINDOW:CLEANUP:PASS\nWINDOW:CASE:PASS\nM1:PASS\n"):
+                    raise ValueError("Public session route did not shut down with verified cleanup")
+                report["session_route_gate"] = True
+            elif diagnostic:
                 if process.returncode != 0:
                     raise ValueError("Smoke QEMU quit failed")
             else:
@@ -453,7 +508,8 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 if numbers(raw, "WINDOW:FAULT_SLOT") != [4] or numbers(raw, "WINDOW:FAULT_VECTOR") != [6] or numbers(raw, "WINDOW:RESTARTS") != [1]:
                     raise ValueError("Wrong actual fault/restart")
                 report["disk_oracle"] = disk_oracle(private_path(directory / "volume.img", regular=True).read_bytes())
-            if source_hash() != frozen or validate_build(frozen) != manifest or sha256(qemu) != qemu_hash:
+            current_manifest = validate_build(frozen, feature) if session_route else validate_build(frozen)
+            if source_hash() != frozen or current_manifest != manifest or sha256(qemu) != qemu_hash:
                 raise ValueError("Source/build/QEMU changed during run")
             if {name: sha256(private_path(directory / name, regular=True)) for name in immutable} != immutable or {name: sha256(Path(name)) for name in originals} != originals:
                 raise ValueError("Immutable inputs changed during run")
@@ -504,6 +560,7 @@ if __name__ == "__main__":
     parser.add_argument("--smoke-only", action="store_true")
     parser.add_argument("--recovery-handshake-only", action="store_true")
     parser.add_argument("--clipboard", action="store_true", help="Include genuine bounded clipboard exchange, clear and post-fault empty checks")
+    parser.add_argument("--session-route", action="store_true", help="Check the separate public VM compositor session route; no authentication/security-gate claim")
     args = parser.parse_args()
     raise SystemExit(0 if run(timeout=args.timeout, bios_rom=args.bios_rom, vga_rom=args.vga_rom,
-                            smoke=args.smoke_only, recovery_handshake=args.recovery_handshake_only, clipboard=args.clipboard)["passed"] else 1)
+                            smoke=args.smoke_only, recovery_handshake=args.recovery_handshake_only, clipboard=args.clipboard, session_route=args.session_route)["passed"] else 1)

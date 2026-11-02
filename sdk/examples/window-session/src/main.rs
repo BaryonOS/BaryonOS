@@ -674,6 +674,7 @@ fn run() -> ! {
             (504, u64::from(scene.pointer.1)),
             (512, last_buttons),
             (520, scene.shell.page() as u64),
+            (528, u64::from(!damage.has_pending())),
         ] {
             support::put(at, v);
         }

@@ -58,7 +58,7 @@ struct Runtime {
     #[cfg(feature = "native-window-session-probe")]
     compositor_sample_tick: u64,
     #[cfg(feature = "native-window-session-probe")]
-    compositor_activity: [u64; 7],
+    compositor_activity: [u64; 9],
     #[cfg(feature = "native-window-session-probe")]
     input_progress: [[u64; 2]; 2],
 }
@@ -88,7 +88,7 @@ static mut RUNTIME: Runtime = Runtime {
     #[cfg(feature = "native-window-session-probe")]
     compositor_sample_tick: u64::MAX,
     #[cfg(feature = "native-window-session-probe")]
-    compositor_activity: [u64::MAX; 7],
+    compositor_activity: [u64::MAX; 9],
     #[cfg(feature = "native-window-session-probe")]
     input_progress: [[u64::MAX; 2]; 2],
 };
@@ -564,7 +564,7 @@ fn restart_checked(s: &mut State, slot: usize, a: [u64; 6]) -> Result<u64, i64> 
         runtime().app_generations = [u64::MAX; 2];
         runtime().compositor_commits = u64::MAX;
         runtime().compositor_sample_tick = u64::MAX;
-        runtime().compositor_activity = [u64::MAX; 7];
+        runtime().compositor_activity = [u64::MAX; 9];
     }
     runtime().restarts = r
         .restarts
@@ -737,6 +737,8 @@ fn snapshots(s: &State) {
             word(s, COMP, 504),
             word(s, COMP, 512),
             word(s, COMP, 520),
+            word(s, COMP, 528),
+            word(s, COMP, 424),
         ];
         let previous = *runtime();
         if previous.compositor_sample_tick == u64::MAX
@@ -764,6 +766,7 @@ fn snapshots(s: &State) {
                 (504, b"WINDOW:COMPOSITOR:POINTER_Y:"),
                 (512, b"WINDOW:COMPOSITOR:BUTTONS:"),
                 (520, b"WINDOW:COMPOSITOR:SHELL:"),
+                (528, b"WINDOW:COMPOSITOR:SHELL_READY:"),
             ] {
                 print_number(label, word(s, COMP, at));
             }
