@@ -15,8 +15,10 @@ de read-only AI-controle bevestigt207 echte Git-blobs en acht gekoppelde
 bootmanifesten. Dit is archiefintegriteit, geen onafhankelijke native replay
 of menselijke audit. Btrfs/OpenZFS-adoptie en S09 blijven open.
 Score34 blijft34; PR127 is nog een afzonderlijke native ontwikkelkandidaat.
-Vervolg: overige unieke documentatie behouden, gegenereerde
-voortgang controleren en verse exacte-head CI/review afwachten.
+De laatste PR119-head `ee5003e6` is eveneens volledig behouden; unieke
+PR121-statusinformatie `b83e4e05` is onderaan als historisch checkpoint
+opgenomen. Controles/bewijsgrenzen: verification/pr114-doc-integration.json.
+Vervolg: verse exacte-head CI/review en afstemming met de desktopintegratie.
 
 ## Onderzoekscheckpoint PR131 — volledige OS-journey — 2 november 2026
 
@@ -125,6 +127,71 @@ snapshot-/encryptie-/backup- of prestatietoelating.
 **Eerstvolgende controle:**
 `python3 tools/progress.py --check`, daarna de beschreven native-enginepoort
 beoordelen zonder een Linux-kernel of nieuw bestandssysteem als omweg in te voeren.
+
+## NAS-checkpoint PR119 — conflictoplossing — 2 november 2026
+
+**Bron:** PR-head `fa97c69221fd9b5635684c48b60e72bf67b2541a`, branch
+`claude/issue-110-nas-replay`; geïntegreerde main:
+`74a34d05ef5591b782a0da9da34e4669910d0722`. Alleen conflictoplossing is
+geautoriseerd; de PR wordt niet gemerged en oude CI wordt niet herstart.
+
+**Inhoudsbehoud:** main bevat de replay-implementatie en het bewijs uit deze
+PR al via #125. De vijf conflicten zijn opgelost met behoud van mains latere
+lekcontrole, negatieve tests, contractcorrecties en ruwe-bewijsattributen:
+`.gitattributes`, `docs/verification/nas-replay-110/README.md`,
+`services/nas/native-probe/CONTRACT.md`, `tests/test_nas_runner.py` en
+`tools/test_nas.py`. Vóór dit status-/metercheckpoint was de volledige
+opgeloste werkboom bytegelijk aan main (`git diff --exit-code origin/main -- .`,
+exit 0). Er is geen nieuwe kernel-, interface- of rechtenwijziging ontworpen.
+
+**Lokale verificatie op de opgeloste boom:**
+- `python3 -B -m unittest discover -s tests -p 'test_nas_*.py' -v`:
+  exit 0, 39 tests; `/tmp/nieuw-os-pr119-nas-host.log`.
+- `python3 -B -m unittest discover -s services/nas/native-probe/tests -p 'test_*.py' -v`:
+  exit 0, 17 tests; `/tmp/nieuw-os-pr119-replay-oracle.log`.
+- `python3 -B -m unittest discover -s tests -p 'test_volume_runner.py' -v`:
+  exit 0, 3 tests; `/tmp/nieuw-os-pr119-volume-host.log`.
+- `sha256sum --check SHA256SUMS` vanuit `docs/verification/nas-replay-110`:
+  exit 0; `/tmp/nieuw-os-pr119-evidence.log`.
+- `python3 -B tools/preflight.py --strict`: exit 2;
+  `/tmp/nieuw-os-pr119-preflight.json`. Rust 1.90.0, beide native targets,
+  QEMU en OVMF ontbreken. Native build/QEMU en Rust-format/lint zijn daarom
+  niet uitgevoerd; dit is geen nieuwe native acceptatie. De gerichte
+  hosttests en exacte vergelijking met main verifiëren de conflictoplossing.
+
+**Score en vervolg:** 34/100 → 34/100; geen criterium of bewijsniveau wijzigt.
+Na publicatie moeten de checks op de nieuwe PR-head worden beoordeeld.
+Historische bewijsbundels blijven aan hun eigen bron gebonden; alle open
+product-, fysieke en menselijke acceptatiegrenzen blijven bestaan.
+Eerstvolgende lokale controle bij hervatten: `git status --short`.
+
+## Historisch checkpoint PR121 — conflictoplossing — 2 november 2026
+
+Overgenomen van `b83e4e05b923dc2c0d8b4339fc9509b5752cb384`;
+onderstaande resultaten zijn die historische uitvoering, niet hier herhaald.
+De runtime-inhoud van ouder `0fe648b87d1f4959087d3f80a251a7d6fb64dd66`
+zit in de PR127-ancestry; de nieuwe statuscommit zelf nog niet in main.
+
+**Bron:** mergecommit `8686f977a7f1fbfba1eb1214d301935c1859e8ed`, met ouders
+PR-head `0fe648b87d1f4959087d3f80a251a7d6fb64dd66` en actuele `main`
+`74a34d05ef5591b782a0da9da34e4669910d0722`. De conflictintegratie behoudt de
+native sessiepreview en de wijzigingen en bewijsbestanden van `main`. In
+`ui/native/tests/interaction.rs` staan zowel de PR-desktopproeven als de
+drie main-regressies voor focus en verouderde pointergebaren.
+
+**Historische validatie:** `cargo test --manifest-path ui/native/Cargo.toml
+--test interaction`: 34 tests geslaagd; `cargo clippy --manifest-path
+ui/native/Cargo.toml --test interaction -- -D warnings` en
+`rustfmt --edition 2021 --check ui/native/tests/interaction.rs` slagen.
+De PR-delta `git diff --check origin/main` is schoon. Full-release-,
+NAS-replay- en sparse-frame-`SHA256SUMS`-controles slagen. Een volledige
+diff-check waarschuwde voor hashgebonden CRLF-/blank-at-EOF-bewijsbytes;
+die bytes zijn niet aangepast.
+
+**Historische scan/bewijsgrens:** CodeQL vond geen Python-alerts maar liep vast
+voordat alle talen klaar waren; geen volledige CodeQL-scan. Nieuwe-headchecks
+bleven vereist. Score34, geen productacceptatiebesluit. De toenmalige vraag
+om publicatie via `report_progress` is historisch, geen nieuw mandaat.
 
 ## Historisch checkpoint — PR125-inhoudsbehoud — 2 november 2026
 

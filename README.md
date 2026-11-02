@@ -32,9 +32,9 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`fdbac2bb`](https://github.com/simonvanieperen/nieuw-os/commit/fdbac2bbcdc5a4ad97f81a581dcdc750769d8577) ·
+**Bron:** [`69d35747`](https://github.com/simonvanieperen/nieuw-os/commit/69d3574780bf4f2d6a437d381b68d40e390aafb6) ·
 **Ontwikkelbranch:** `simon/profiles-users-plan`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** PR114/131/132: gebruikersontwerp, journeyonderzoek en opslagbewijs inhoudsbehoudend combineren.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** PR114/119/121/131/132: gebruikersontwerp en onderzoeks-/bewijsdocumentatie behouden.
 34/100 blijft34; geen nieuw criterium of gewicht. PR114 bewaart herkenbare eigen bediening met expliciete A/B-sleutel- en handlelevensloop. PR131 levert gelabeld journeyonderzoek en installer-/onboardingvoorstellen;58% EU-dienstoverstap is tegen originele PDF-data gecontroleerd, geen OS-migratiepercentage. PR132 bewaart acht brongebonden NOSVOL02/Btrfs/OpenZFS-boots en begrensd hostbewijs.207 archief-Git-blobs zijn onafhankelijk gehasht; dat is geen nieuwe native replay of menselijke audit. Btrfs/OpenZFS-native-adoptie en S09 blijven open. Geen runtimecode, profielen/installer of nieuwe productacceptatie. Main74a34d05 bevat PR125 en oplossingen109/110; PR127 en diens ontwikkelscore41 blijven afzonderlijk, met verse native gates.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
