@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "d577f1853323b2fd1d569057f1e15688dcd10574",
+    "source_commit": "8e2b1afc5983c9aa63d909cf17954995ee5f9e42",
     "branch": "simonvanieperen-friendly-system",
-    "task": "Conflictvrije integratie van main (#134 TCP-time-out) met gedeelde host-toolingbranch",
+    "task": "Integreer actuele main 69809c2 met behoud van gedeelde host-tooling en checkpointbewijs",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100; de integratie behoudt de gedeelde host-artefacthelpers en neemt de terminale ReceiveTcp-statusfix plus regressietest uit main cbbc9c9 over. Op de opgeloste merge-werkboom slagen alle 10 network-service-tests, rustfmt, Clippy, de x86_64-unknown-none releasebuild en de voortgangs-/JSON-controles. De native normal-gate startte niet omdat Rust 1.90.0 ontbreekt; bestaande native resultaten zijn uitsluitend aan bron 5925c915 gebonden. Geen nieuw native scenario of rubriccriterium geaccepteerd."
+    "summary": "41/100 blijft 41/100; main 69809c2 is geïntegreerd met behoud van de gedeelde host-artefacthelpers en historische bewijsstatussen. Op de opgeloste mergeboom slagen de 16 storage-backend-replaytests (met umask 077), alle 10 network-service-tests, Python-syntaxiscontrole, rustfmt, Clippy, de x86_64-unknown-none releasebuild en voortgangs-/JSON-/whitespacecontroles. De standaardumask 0002 veroorzaakte eerst 3 fixturefouten; met private bestandscreatie slagen die tests. Geen nieuw native bewijs of criterium toegekend."
   },
   "tracks": [
     {

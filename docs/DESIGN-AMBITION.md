@@ -37,7 +37,7 @@ Dit is onderzoeksrichting, geen bewijs dat consumenten al voor Nieuw OS kiezen. 
 Revisie 3, 26 oktober 2026. Dit is een bindende productopdracht op basis van Simons aanvullende instructie. Het versmallen van de eerste technische proef mag de oorspronkelijke ambitie niet vervangen.
 
 ## Richting
-Ontwerp een zelfstandig OS dat een eigen, samenhangende manier van werken biedt, visueel en in bediening het niveau van volwassen platforms nastreeft en gebruikers daadwerkelijk zeggenschap geeft. Een bekende desktop met een ander thema, launcher of logo is onvoldoende als eindresultaat.
+Ontwerp een zelfstandig OS dat een eigen, samenhangende manier van werken biedt, visueel en in bediening het niveau van volwassen platforms nastreeft en gebruikers daadwerkelijk zeggenschap geeft. Een bekende desktop met een ander thema, launcher of logo is onvoldoende als eindresultaat. *Aanvulling 30 oktober 2026 (ADR-058):* de bediening zelf (inloggen, bureaublad, taakbalk, startmenu/zoeken, vensters, sneltoetsen) volgt bewust herkenbare conventies, zodat consumenten niets opnieuw hoeven te leren; de eigen code, huisstijl en vernieuwingen komen daarbovenop.
 
 Europa is hier de gekozen productoriëntatie: privacy, zeggenschap over gegevens, toegankelijkheid, interoperabiliteit, herstelbaarheid en vrijheid van leverancier. Dit is geen bewering dat er één formele 'Europese OS-norm' bestaat of dat een nog ongebouwd systeem al wettelijk voldoet. Koppel concrete producteisen aan bewijs en beoordeel formele toepasselijkheid bij een concrete release/doelgroep.
 

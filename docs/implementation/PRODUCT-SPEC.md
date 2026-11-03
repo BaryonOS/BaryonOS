@@ -1,5 +1,47 @@
 # Productbesluit en bouwspecificatie P2 — Materiaal
 
+## Aanvulling ADR-058 — 30 oktober 2026
+
+Gebruikersbesluit, leidend boven de regels hieronder dat het hoofdscherm geen bestaande desktop nabootst (§1) en dat er geen dock of taakbalk komt (§5), en boven de zin in *Aanvulling P3/P4* dat de ervaring Windows of macOS niet interactioneel mag nabouwen, voor zover het de gangbare indeling, bediening en sneltoetsen betreft. Visueel nabouwen (huisstijl, iconen, trade dress) blijft uitgesloten; de overige P3/P4-eisen aan afwerking en snelheid blijven gelden. De eindervaring krijgt een herkenbaar bureaublad, taakbalk, startmenu met zoeken, vensterbediening, inrichting en inlogscherm volgens [DESKTOP-SHELL.md](DESKTOP-SHELL.md) en [PROFILES-AND-USERS.md](PROFILES-AND-USERS.md). Materiaal blijft het gegevens-, geschiedenis- en rechtenmodel en verschijnt in de Bestanden-app, recente items en toestemmingsdialogen. P2 hieronder blijft historisch productbewijs. Eigen visuele identiteit blijft verplicht; herkenbaar is de bediening, niet de huisstijl.
+
+## Onderzoeksaanvulling volledige OS-journey — 2 november 2026
+
+De [31-aspectinstallatievergelijking](../research/os-installation-comparison.md),
+[28 dagelijkse taken](../research/os-interaction-patterns.md) en
+[mentale modellen](../research/transferable-mental-models.md) zijn eerst
+vastgelegd. Daaruit volgen de [installerspecificatie](../product/new-os-installer-spec.md),
+[onboarding](../product/new-os-onboarding-spec.md) en
+[meetbare interactieprincipes](../product/interaction-principles.md).
+**Dit zijn voorstellen voor vervolgwerk, geen implementatieopdracht of
+gebruikersvalidatie. P2 blijft bevroren op de bestaande zeven routes.**
+Materiaal en de eigen kernel blijven de productbasis; bekende basisacties
+moeten zonder verplichte nieuwe metafoor voorspelbaar blijven.
+
+### Begrensd vervolgplan na actuele broncontrole
+
+| Onderdeel / probleem | Oplossing en betrokken bestanden | State en navigatie | Verificatie en regressierisico |
+|---|---|---|---|
+| J-P1: bekende term vindt onbekende eigen naam niet | Lokale synoniemenregistratie en eerlijke beschikbaarheidsstatus volgens ON-03. Bestaande referenties: `ui/prototype/state.js`, `app.js`, `broker.js` en ontwikkelbron `sdk/examples/window-session/src/scene.rs`; geen van deze productbestanden is nu gewijzigd. Een eigen registercomponent/-test wordt pas bij uitvoering afgebakend | Gedeelde intentie-ID's/labels; query inert; geen rechtenwijziging; herkomst bepaalt geen aparte shell | Aliassen per taal, ambiguïteit/ontbrekende service, focus en performancebaseline. Risico: vals beschikbare functie of actie tijdens typen |
+| J-P2: verkeerde verwachting en leerlast bij overstappen | Optionele lokale, overslaanbare hulp volgens ON-01/02/04–06. Nieuwe begeleidings-/voorkeurcomponent; eventuele prototypetaak blijft apart van P2 en duidelijk simulatie | Uitgesteld/overgeslagen/afgerond, hervatten via Help; geen tweede account-/privacywizard of extra primaire navigatie | Herkomstvarianten houden dezelfde rechten/routes; keyboard/screenreader/schaal/reduced motion; taakproef met/zonder hints. Risico: profilering of extra blokkades |
+| J-P3: gegevensverlies door onduidelijke installergrens | Eerst read-only inventaris-/planmodel; later installerbroker, account-/sleutel-/recoverydiensten volgens IN-01–07. Exacte native schrijfbestanden en IPC eerst opnieuw inspecteren; bestaande boot-/opslagcode niet breed herschrijven | Doel/plan wijzigen invalideert autorisatie; één complete grens vóór iedere mutatie; eerste boot controleert werkelijke toestand | Disposable diskbeelden, stale/hotplug/unknown/encrypted, onderbreking/boot/herstel en begrijpelijkheid. Risico: onomkeerbaar verlies; echte writes pas na aparte native gates |
+
+J-P1/P2 zijn kandidaten voor een eerstvolgende begrensde onderzoeksproef,
+geen reeds ingeplande releasefuncties. J-P3 begint uitsluitend als
+niet-schrijvende planproef; persoonlijke authenticatie, crypto, sleutelherstel,
+hardware-/bootcompatibiliteit en toegankelijkheid vanaf boot zijn nog
+afzonderlijke voorwaarden. Een renderer verleent geen rechten. De normale
+route bevat geen verplichte provideraccount, OS-telemetrie of AI.
+
+Per uitvoering eerst concrete schrijfbestanden, actuele broncommit,
+capabilitygrens, performancebaseline en toepasselijke build-/lint-/testcommando's
+vastleggen. Brononderzoek bewijst geen huidige native implementatie. De
+nieuwe criteria zijn toetsdoelen en leveren geen voortgangspunten op; de
+bestaande releasecriteria en opslag-/privacycontracten blijven leidend.
+
+De P2-bevriezing betreft het historische prototype; zij trekt de herkenbare
+desktoprichting uit ADR-058 hierboven niet in. De nieuwe journeyvoorstellen
+zijn geen stilzwijgende wijziging van dat gebruikersbesluit.
+
 ## Aanvulling N01 — 27 oktober 2026
 
 De gebruikerswijziging is leidend boven onderstaande oorspronkelijke scope van één eigen NAS. Apparaten heeft nu drie flows: **Mijn NAS**, **Ruimte ontvangen** en **Ruimte aanbieden**. Internet is afzonderlijk toegestaan voor een bevestigde NAS-identiteit. Ontvangen ruimte kan bij vrienden/familie staan; de ontvanger bevestigt dat de host zijn NAS-kopie kan verwijderen en krijgt het advies een onafhankelijke kopie te bewaren. De beheerder ziet alleen capaciteit/gebruik/status en mag intrekken+wissen zonder gasttoestemming of inhoudssleutel.
@@ -325,4 +367,3 @@ Microsoft. (z.d.). *Snap your windows*. Geraadpleegd op 26 oktober 2026, van htt
 World Wide Web Consortium. (2024, 12 december). *Web Content Accessibility Guidelines (WCAG) 2.2*. https://www.w3.org/TR/WCAG22/
 
 Tokenwaarden, conceptkeuze, taakscenario's, interfaces, schermen en acceptatietests zijn eigen projectbesluiten. De bronnen worden alleen gebruikt voor de genoemde bestaande patronen en toegankelijkheidscriteria.
-

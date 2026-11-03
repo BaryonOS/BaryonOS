@@ -85,6 +85,81 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR119-inhoudsbehoud (3 november 2026), head `5a8317f1`: **41 -> 41**.
+Volledige nieuwste NAS-history opgenomen; alleen centrale statusconflicten,
+rubric buiten assessment identiek. Tweede/derde119-resolutie blijven
+historische uitvoeringen; hun exacte bronstatus en vier cloudmain-mergeheads
+zijn afzonderlijk gehasht bewaard, niet nieuwe native acceptatie.
+
+Main-reconciliatie (3 november 2026), bron `cbe28f39`: **41 -> 41**.
+Simons main134-squashcbbc9c99 behoudend opgenomen;10 netwerkservice- en16
+opslaghosttests groen,207 archiefhashes/99manifestentries geldig.
+Rubric buiten assessment identiek; historische134-nativegrenzen niet als
+verse uitvoering gepresenteerd. Volledige nieuwe CI/review blijft vereist.
+
+Documentstapelintegratie (3 november 2026), bron `1552e5ae`: **41 -> 41**.
+Volledige136/143/144/145-heads zijn boven de PR114-fixes behouden; geen
+runtime-, tool- of testcode gewijzigd door die vier merges. Alle rubricvelden
+buiten assessment waren identiek. Unieke intro/changelog/AI-rapport/audit
+blijven behouden, zonder AI-review als menselijke audit te presenteren.
+Gecombineerde huidige-head CI/review blijft vereist.
+
+PR136-documentintegratie (3 november 2026), bron `f6921e49`: **41 -> 41**.
+De L02-nativebron en A01accepted/R03open zijn correct geclassificeerd,
+zonder nieuwe productpunten. Alle zeven geleverde bestandshashes en het
+schema met39 groepen/62open releasekoppelingen zijn door parent gecontroleerd;
+de d777-CI-entry blijft behouden. Geen verse native of menselijke
+acceptatie afgeleid uit deze documentatiecorrectie.
+
+PR145-rapportintegratie (3 november 2026), rapportbasis `380111b6`:
+**41 -> 41**. Statische AI-review zonder opgeleverde bestands-/regeldekking;
+geen onafhankelijke menselijke of volledige codebase-audit. Toenmalige
+Dependabot-alertstatus was leeg, geen volledige advisoryscan. Secret
+Scanning stond uit en lokale scanners ontbraken; geen complete secretscan,
+codefix of producttest uitgevoerd. Zie
+`verification/security-audit-20261103.md`; geen nieuw acceptatiepunt.
+
+PR114-vervolgreview (3 november 2026), basis `783a48aa`: **41 -> 41**.
+Primaire bronmetadata verduidelijkt historische proofscope. Twee originele
+Btrfs-receipts binden82+17 entries onafhankelijk; onvolledige lijsten kunnen
+geen lokale succesrapportage meer krijgen. Regressies eerst rood,16
+hosttests daarna groen;207 oude archivehashes behouden. Geen nieuwe native
+criteria voor een documentatie-/harnascorrectie.
+
+PR114-research-/replayreview (3 november 2026), bron `d7d1fdc0`:
+**41 -> 41**. Bronlinks/Ubuntu-volgorde hersteld;207 historische hashes
+behouden, onveilige historische entrypoints afgeschermd en7 negatieve
+hosttests groen. Volledige engine-/native replay blijft open; geen
+backendadoptie, nieuw productcriterium of veiligheidspercentage.
+
+PR114-metadataverwijzing (2 november 2026), bron `52e1909c`: **41 -> 41**.
+De contractverwijzing noemt nu de echte fixbron `68d427b`, niet haar ouder
+`c1d62d83`; het actuele assessment verwijst naar de volledige gecombineerde
+bron. Geen runtimewijziging of nieuw acceptatiepunt.
+
+Main-desktopintegratie (2 november 2026), `380111b6` / geteste head `5343b0a`:
+**34 -> 41** door overname van U01 (+4) en N01 (+3), geen nieuwe gewichten.
+31 actuele checks en brongebonden review zonder bevindingen;22 native
+window/clipboard/herstelfasen en beide native netwerkcases slagen.
+De schijfcontrole bevestigt14bytes/rev1/canaries; source-v3b7ccd11f.
+De samengevoegde documentatie voegt zelf0punten toe; fysieke, menselijke,
+productiesleutel- en volledige releasegrenzen blijven open.
+Postmerge-CI loopt apart, geen hergebruik van oude bronclaims.
+
+PR114-review (2 november 2026), fixbron `68d427b`: **34 -> 34**.
+Het gebruikerswisselcontract beschrijft sleutelisolatie en handlelevensloop
+in beide richtingen; native negatieve acceptatie is nog niet uitgevoerd.
+Alleen ontwerp, geen profielenimplementatie of nieuwe productpunten.
+
+PR #119-conflictoplossing (2 november 2026), bron `fa97c692` met main
+`74a34d05`: **34% → 34%**. Main bevat de replay-implementatie en het bewijs
+al; de vijf conflicten behouden de latere lekcontrole en regressietests.
+Vóór het status-/metercheckpoint was de opgeloste boom bytegelijk aan main.
+39 NAS-, 17 replay/oracle- en 3 volume-hosttests en de NAS-archiefhashcontrole
+slagen. Strikte preflight faalt wegens ontbrekende Rust-/native-/QEMU-/OVMF-tools;
+native uitvoering en Rust-format/lint zijn niet uitgevoerd. Nieuwe-head CI
+blijft vereist. Geen nieuw geaccepteerd criterium of productpunt.
+
 PR127-reviewintegratie (2 november 2026), basis `798706c` met `8f08db4`:
 branch **41 → 41**, main **34 → 34**. Zeven reviewpunten en gekoppelde
 font/damage-integratie hersteld; 189 Rust-app/UI-,9 netwerk- en31 Python-tests
