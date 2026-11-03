@@ -66,7 +66,7 @@ function flushPersist() {
 }
 
 function schedulePersist() {
-  clearTimeout(persistTimer);
+  if (persistTimer !== undefined) return;
   persistTimer = setTimeout(() => {
     persistTimer = undefined;
     persist();
