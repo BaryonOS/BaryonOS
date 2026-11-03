@@ -1,36 +1,32 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Generieke PCI-discovery en VirtIO — 3 november 2026
+## NEXT AGENT HANDOFF — PCI-configuratie aan match binden — 3 november 2026
 
 Werkbranch `copilot/universal-driver-framework`, broncommit
-`9984b1806a99e9bf0b2df0de7935d4a0d72a5219`; deze SHA is ook op de remote
-branch gecontroleerd. De nieuwe `pci-core` crate scant conventionele
-segment-0 PCI-functies, houdt rekening met multifunction-apparaten, levert
-type-0-descriptors aan de bestaande registry en slaat onbekende/niet-
-ondersteunde apparaten over. VirtIO block en net selecteren nu op PCI-match
-in plaats van vaste BDF's. Geselecteerde adressen blijven gekoppeld aan
-configuratie- en busmastertoegang; kernelcode blijft eigenaar van DMA-pagina's
-en BAR/MMIO-mappings. Meerdere matches per bestaande single-devicebroker
-worden fail-closed geweigerd. Geen generieke physical-memory-capability.
+`d9b97c4ad701b5c4410909000269e3114d2cfb80` (implementatiecommit; dit
+checkpoint legt de status ervan vast). Segment-0-enumeratie en VirtIO-selectie
+zonder vaste BDF staan op `9984b180`; `MatchedPciFunction` herleest en
+valideert nu het type-0-descriptor en registryresultaat, en weigert
+PCI-configuratie-I/O naar
+een ander BDF. VirtIO block/net gebruiken die adapter bij BAR-probing en
+busmasterbeheer. De kernel behoudt DMA-pagina's en BAR/MMIO-mappings; er is
+geen universele physical-memory-capability toegevoegd.
 
-**Uitgevoerd:** `cargo +1.90.0 fmt --all -- --check`, driver-crate
-`cargo check --tests --offline`, Clippy `--all-targets -- -D warnings` en
-freestanding releasebuild voor `pci-core`, `virtio-blk-driver` en
-`virtio-net-driver`: exit 0. `git diff --check`: exit 0.
-`cargo +1.90.0 test -p pci-core -p virtio-blk-driver -p virtio-net-driver
---offline`: exit 101, hostlinker `cc` ontbreekt. Kernel `--all-features`
-cross-check: exit 101 om dezelfde reden tijdens compilatie van de buildscript.
-QEMU/OVMF ontbreken; geen native runtime- of hardwareproef. PR #153 staat
-open; `gh pr checks 153` meldt geen checks op de huidige branch.
-Exacte commando's, exits, omgevingsblokkades en hashes staan in
-[de PCI-runtime-receipt](verification/pci-runtime-2026-11-03/README.md).
+**Bewijs:** formatter, testtarget-typecheck, Clippy, freestanding releasebuild
+en `git diff --check` exit 0. Hosttests en de volledige kernelcheck zijn
+geprobeerd maar geblokkeerd vóór uitvoering door ontbrekende hostlinker `cc`.
+Geen QEMU/runtime- of fysieke hardwareproef. Details en bron-/loghashes:
+[PCI-configbinding-receipt](verification/pci-config-binding-2026-11-03/README.md).
+Score **41/100 → 41/100**; compilatie en typecheck sluiten geen native
+acceptatiecriterium.
 
-**Open/eerstvolgend:** hosttests en volledige kernel/typecheck via CI of een
-ontwikkelhost met C-linker; daarna de devicegebonden resource-adapter/factory
-verder uitwerken zonder DMA/IOMMU-semantiek van een maturitybranch te
-dupliceren. Root-resourcebroker, meerdere actieve devices, ACPI-roottopologie,
-ECAM, bridge-validatie, interrupts, USB, NVMe, GOP en unsupported-hardware-
-rapportage zijn nog niet gerealiseerd. Voortgang blijft 41/100.
+**Open/eerstvolgend:** remote push en PR/CI-uitkomst controleren; daarna
+kernel-owned BAR/MMIO-resourcegrant en concrete factoryactivatie ontwerpen
+zonder DMA/IOMMU-semantiek van de maturitybranch te dupliceren. De huidige
+adapter is geen algemene resourcebroker of driver-isolatie. Meerdere actieve
+devices, ACPI-roottopologie, ECAM, bridge-validatie, interrupt lifecycle,
+USB-klassen, NVMe, GOP en unsupported-hardwarerapportage zijn niet
+gerealiseerd. Voortgang blijft 41/100.
 
 ### Implementatiestap — segment-0 enumeratie en VirtIO BDF-migratie
 

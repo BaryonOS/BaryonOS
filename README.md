@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`9984b180`](https://github.com/simonvanieperen/nieuw-os/commit/9984b1806a99e9bf0b2df0de7935d4a0d72a5219) ·
+**Bron:** [`d9b97c4a`](https://github.com/simonvanieperen/nieuw-os/commit/d9b97c4ad701b5c4410909000269e3114d2cfb80) ·
 **Ontwikkelbranch:** `copilot/universal-driver-framework`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Generieke PCI-enumeratie en VirtIO BDF-migratie.
-41/100 blijft 41/100. De nieuwe no_std pci-core scant conventionele segment-0 bus/device/function-adressen, scant extra functies alleen bij het multifunction-bit en levert type-0-descriptors af aan de DriverRegistry. VirtIO block en net selecteren nu op registratie in plaats van vaste BDF's en dragen het geselecteerde adres door naar config-/busmastertoegang en initialisatie; onbekende apparaten en niet-type-0-functies worden overgeslagen, meerdere matches per single-devicebroker geweigerd. Kernelcode blijft eigenaar van DMA-pagina's en BAR/MMIO-mappings; er is geen universele physical-memory-capability. De gerichte check --tests, Clippy en x86_64-unknown-none releasebuild zijn geslaagd. Hosttests en de kernelbuildscript-check konden niet linken doordat cc ontbreekt; geen native/QEMU- of hardwareproef. Resourcebroker, factoryregistratie, meerdere instanties, ACPI/ECAM/bridges en verdere apparaatfamilies blijven open. Geen nieuw acceptatiebewijs of hardwarepunten.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PCI-configuratie aan registrymatch binden.
+41/100 blijft 41/100. MatchedPciFunction herleest en valideert het type-0-descriptor en de registrymatch voordat PCI-configuratie-I/O aan één BDF wordt gebonden; toegang naar een ander BDF wordt geweigerd. VirtIO block/net gebruiken de adapter voor BAR-probing en busmasterbeheer na registryselectie. Kernelcode blijft eigenaar van DMA-pagina's en BAR/MMIO-mappings; er is geen universele physical-memory-capability. Formatter, testtarget-typecheck, Clippy en x86_64-unknown-none releasebuild zijn exit 0. Hosttests en kernelcheck konden niet linken doordat cc ontbreekt; geen native/QEMU- of hardwareproef. Een algemene BAR/MMIO/IRQ/DMA-broker, factoryactivatie, meerdere instanties, ACPI/ECAM/bridges en extra apparaatfamilies blijven open; geen nieuw acceptatiebewijs of hardwarepunten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

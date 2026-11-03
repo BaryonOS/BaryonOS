@@ -98,6 +98,18 @@ Daarom geen nieuwe hardwarepunten of acceptatie. Exacte commands, resultaten,
 loghashes en bronvingerafdrukken staan in de
 [PCI-runtime-receipt](verification/pci-runtime-2026-11-03/README.md).
 
+Devicegebonden PCI-configuratieadapter (3 november 2026), bron
+`d9b97c4ad701b5c4410909000269e3114d2cfb80`, branch
+`copilot/universal-driver-framework`: **41 -> 41**. `MatchedPciFunction`
+herleest descriptor en registrymatch bij binding en weigert config-space-
+toegang naar een ander BDF; VirtIO block/net gebruiken hem voor BAR-probing en
+busmasterbeheer. Formatter, testtarget-typecheck, Clippy en freestanding
+releasebuild slagen. Hosttests en kernelcheck zijn geprobeerd maar niet
+uitgevoerd doordat `cc` ontbreekt. Geen runtime- of hardwareproef; geen nieuw
+acceptatiebewijs. De adapter is nog geen BAR/MMIO/IRQ/DMA-broker of
+security-isolatie. Zie de
+[PCI-configbinding-receipt](verification/pci-config-binding-2026-11-03/README.md).
+
 Driver-/repositoryonderzoek (3 november 2026), basis `99d13276`:
 **41 -> 41**. Ginux `c86945b`, VibeOS `866bfb9` en vib-OS `73b6429`
 vergeleken met de bestaande Nieuw OS-drivercontracten en primaire Linux-,
