@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`af00927d`](https://github.com/simonvanieperen/nieuw-os/commit/af00927da73dcdc26007802e612e7ecc2a1c5f40) ·
+**Bron:** [`67335598`](https://github.com/simonvanieperen/nieuw-os/commit/6733559898e1c95536666472422c000e02f75599) ·
 **Ontwikkelbranch:** `copilot/universal-driver-framework`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** VirtIO RNG generieke PCI-discovery en activatie.
-41/100 blijft 41/100. VirtIO RNG gebruikt nu segment-0-PCI-discovery, registratie-match, gebonden config-space, kernel-owned BAR-grants en factorygestuurde initialisatie; keyring reserveert de DMA-pool pas na discovery. RNG/PCI typechecks, strict Clippy en formattercheck slagen. Hosttests en de volledige native-keyring-profielbuild stopten vóór kernelcompilatie door ontbrekende libc_nonshared.a bij host-linking; installatie kon niet-interactief niet worden uitgevoerd. QEMU en fysieke hardware zijn niet getest. Geen nieuw geaccepteerd criterium.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** NVMe PCI-discovery en CAP/VS-probe.
+41/100 blijft 41/100. De zelfstandige no_std NVMe-crate matcht PCI class 01:08:02, valideert de unieke BAR0-grant en biedt alleen read-only CAP/VS-inspectie. Freestanding check, strict Clippy en formattercheck slagen. Hosttests stopten vóór uitvoering bij het linken door ontbrekende libc_nonshared.a; de eenmalige tijdelijke userspace-sysrootpoging loste dat niet op. Geen controller-/block-I/O-, QEMU- of fysiek bewijs en geen nieuw geaccepteerd criterium.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
