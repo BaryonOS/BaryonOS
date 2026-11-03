@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "416886354dbb0c6135a0740c429a3fbd4530a16d",
+    "source_commit": "bb8877e3e1aaec304d7478510b65c8116aeb634e",
     "branch": "simonvanieperen-reimagined-train",
-    "task": "PR149 derde main-integratie met behoud van compacte UI en primaire receipts",
+    "task": "PR149: nieuwe primaire59-hosttestreceipt op schone Watch-main99-merge bewaren",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Assessmentbasis 41688635 wordt gecombineerd met main 99d13276. Vier centrale documentatieconflicten behouden de compacte UI-fixes, PR149-reviewbewijs en de primaire PR139-receipts. Runtimecode en historische bewijsbronnen blijven ongewijzigd; de assessmentbasis is niet de uitvoerbron van alle historische tests. Nieuwe-head-controles en native acceptatie blijven afzonderlijk; geen nieuw criterium of menselijke audit."
+    "summary": "41 blijft 41. Op schone Watch-merge bb8877e3 met main99 zijn59 hosttests echt opnieuw groen; cwd/HEAD/status/lock- en Rust-hashes vóór/na en volledige logs vastgelegd. Geen retrospectieve bronbinding van eerdere Watch-tijden. De UI-Rust-code blijft exact53256f82; historische scalar/Clippy/fmt behouden die bron. Assessmentbasis is niet de uiteindelijke PR-head of automatisch elke testbron. Geen nieuwe code, native/QEMU/fysieke/menselijke acceptatie of punten."
   },
   "tracks": [
     {

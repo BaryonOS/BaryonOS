@@ -91,6 +91,14 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR149 bronbewijsvervolg (3 november 2026), schone bron `bb8877e3`:
+59 hosttests echt opnieuw exit0 met cwd/HEAD/status/lock-/Rust-hashes vóór/na
+en volledig gehasht log in
+[de nieuwe receipt](verification/pr149-bb8877-host-receipt.json).
+De eerdere Watch-tijden zijn geen primaire receipt. Scalar/Clippy/fmt blijven
+hun oorspronkelijke bron532 houden; geen nieuw native/fysiek/menselijk bewijs.
+**41 →41**, geen code- of criteriumwijziging.
+
 PR149 derde main-integratie (3 november 2026), basis `41688635` met main
 `99d13276`: **41 → 41**. Vier documentatieconflicten verzoend met behoud
 van de compacte UI-fixes, hun brongebonden bewijs en de PR139-receipts.

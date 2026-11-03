@@ -2,7 +2,8 @@
 
 ## NEXT AGENT HANDOFF — PR149 derde main-integratie — 3 november 2026
 
-**Basis:** PR-head `416886354dbb0c6135a0740c429a3fbd4530a16d` en main
+**Basis:** Watch-merge `bb8877e3e1aaec304d7478510b65c8116aeb634e`, met
+ouders `416886354dbb0c6135a0740c429a3fbd4530a16d` en main
 `99d132768fd72276caa4a3b3e9a09f8f1909f0ed`, branch
 `simonvanieperen-reimagined-train`. Vier centrale documentatieconflicten;
 de compacte UI-fixes en hun bewijs blijven uit de PR behouden, de
@@ -10,21 +11,21 @@ PR139-receipts komen ongewijzigd uit main. Beide historische statuslijnen
 blijven behouden en krijgen geen nieuwe bewijsbron toegewezen.
 Rubric en score blijven **41 → 41/100**.
 
-**Uitgevoerd op de opgeloste boom:** `python3 tools/progress.py --write`,
-`python3 tools/progress.py --check`, `git diff --check` en
-`cargo +1.90.0 test --manifest-path ui/native/Cargo.toml --locked`: exit 0.
-De 59 UI-hosttests omvatten de compacte kaart- en pixelregressies.
-Tooluitvoer: `progress-write`, `progress-check`, `diff-check` en
-`compact-ui-tests` (compilatie 8,56 s, gerapporteerde testfasen samen 28,98 s).
-Een tweede AI vergeleek alleen-lezen de parents: rubric buiten assessment,
-UI-code en bewijsrapporten behouden; één actieve overdracht, geen markers.
+**Werkelijk opnieuw uitgevoerd op schone `bb8877e3`:**
+`cargo +1.90.0 test --offline --locked --manifest-path ui/native/Cargo.toml`,
+59 hosttests, exit0, 10,816s. Cwd, HEAD, schone status en Cargo.lock-/Rust-
+bronhashes vóór én na, exact commando en volledig gehasht log:
+[primaire receipt](verification/pr149-bb8877-host-receipt.json).
+Dit is een nieuwe run, geen retrospectieve bronbinding van de door Watch
+gemelde tooluitvoer/tijden. De integrator controleerde apart rubricbehoud,
+ongewijzigde Rust-code ten opzichte van532, één handoff en geen markers.
 Een historische PR140-verwijzing naar PR139-bewijs is bij deze integratie
 hersteld naar haar eigen oorspronkelijke commando's en bron.
 Dit is geen menselijke audit. Geen nieuwe formatter-/Clippy-run,
 cross-build, volledige CI of native/QEMU-uitvoering voor deze
 uitsluitend documentatie betreffende integratie.
 **Open/eerstvolgend:** na publicatie nieuwe-head-controles laten evalueren.
-Deze tick behandelt uitsluitend conflicten; geen PR-merge of oude CI-retry.
+Alleen bewijs-/statuscorrecties; geen oude CI-retry of nieuwe runtimecode.
 Native/QEMU-, fysieke en menselijke acceptatie blijven afzonderlijk open.
 
 ## Historisch checkpoint — PR149 compacte kaartregressies hersteld — 3 november2026
