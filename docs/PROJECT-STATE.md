@@ -4,7 +4,9 @@
 
 **Uitgangs-HEAD:** `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`, branch
 `simonvanieperen-studious-spoon`. M1-stappen time en capabilities:
-**Implementatiebron:** `7fd2e748b36cefce235a72841d4473b739929649`.
+**Implementatiebronnen:** `7fd2e748b36cefce235a72841d4473b739929649`
+(capability-accounting) en `3f2dd4f19e1daa31476e0d70f968bb691c6bc7c3`
+(supervisorintegratie).
 Toegevoegd in `sdk/runtime/src/clock.rs` en direct gebruikt in
 `sdk/examples/supervisor/src/worker.rs`.
 Nieuwe runtimelaag:
@@ -15,9 +17,11 @@ worker gebruikt nu dezelfde centrale wait/deadline-semantiek in plaats van
 een lokale `monotonic_ticks + ipc_wait`-combinatie. `capability-core` biedt
 nu read-only `ProcessUsage` per geregistreerde PID voor handles, door die
 principal uitgegeven/revoked nodes, endpoints/IPC-queue en getypeerde
-capabilityobjecten, plus resterende handle-/endpointquota. Dit is alleen
-capability-engine-accounting; het is geen generiek OS-resourcebudget en is
-nog niet aan een syscall of gebruikersrapportage gekoppeld.
+capabilityobjecten, plus resterende handle-/endpointquota. De K05-supervisor
+controleert deze snapshot bij manifeststart en gebruikt `available_handle_slots`
+als spawn-preflight vóór frame-/procesallocatie. Dit is geen generiek
+OS-resourcebudget; de snapshot is niet als syscall of gebruikersrapportage
+beschikbaar.
 
 **Validatie:**
 
@@ -30,19 +34,23 @@ nog niet aan een syscall of gebruikersrapportage gekoppeld.
 - `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 clippy --manifest-path crates/capability-core/Cargo.toml --all-targets --locked -- -D warnings` (exit 0)
 - `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 fmt --manifest-path crates/capability-core/Cargo.toml -- --check` (exit 0)
 - `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 check --manifest-path crates/capability-core/Cargo.toml --target x86_64-unknown-none --locked` (exit 0)
+- `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 fmt --manifest-path kernel/Cargo.toml --` (exit 0)
+- `git diff --check` (exit 0)
 
 De eerste testpoging miste `cc`; daarna is de al aanwezige tijdelijke
 toolchain onder `/tmp/nieuw-os-c-toolchain` gebruikt, zonder systeeminstallatie.
 Een tussenliggende testuitvoering vond twee onjuiste verwachte chunkwaarden;
 de assertions zijn gecorrigeerd en de volledige suite is daarna groen. De
 capability-usage-tests toetsen read-only gedrag, principal-isolatie,
-quotaweergave en queue-toerekening aan de endpointowner. Geen native/QEMU-,
+quotaweergave en queue-toerekening aan de endpointowner. De nieuwe
+supervisorintegratie is nog niet door de native QEMU-gate gedraaid. Geen
 fysieke of menselijke acceptatie uitgevoerd. Score blijft **41 → 41**.
 
-**Open/eerstvolgend:** integreer per-process capability-usage in het kernel-
-supervisorresourcebeleid zonder de bestaande vaste quota te vervangen voordat
-grenzen en failure semantics zijn getest. Geheugen-/CPU-/storage-/DMA-
-accounting ontbreekt nog. De klok blijft 100-Hz PIT op bestaande profielen,
+**Open/eerstvolgend:** voer `python3 -B -u tools/test_supervisor.py` uit
+(zes disposable-QEMU-cases volgens `.github/workflows/process-management.yml`)
+en herstel eventuele regressies. De integratie toetst alleen capability-handle-
+beschikbaarheid; geheugen-/CPU-/storage-/DMA-accounting en gebruikersrapportage
+ontbreken nog. De klok blijft 100-Hz PIT op bestaande profielen,
 RTC blijft unauthenticated en slaap-/suspendcorrectie, hoge-resolutietimers en
 fysieke klokacceptatie zijn niet geïmplementeerd.
 

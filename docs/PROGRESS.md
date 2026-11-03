@@ -10,6 +10,13 @@ onjuiste opslagoorzaak.59 volledige hosttests, Clippy, formattering en
 scalarno_std-librarybuild slagen. Geen nieuwe native gast-/screenshot- of
 menselijke acceptatie. [Volledig bewijs](verification/pr149-compact-review.json).
 
+M1-resource-integratie, bron `3f2dd4f1` op 3 november 2026:
+**41 → 41/100**. De K05-supervisor valideert `ProcessUsage` bij manifeststart
+en gebruikt de vrije capability-handle-slots als spawn-preflight vóór
+allocatie. De nieuwe kernelwijziging is alleen geformatteerd en diff-gecheckt;
+de zes-case QEMU-gate is nog niet uitgevoerd. Dit dekt geen geheugen-, CPU-,
+opslag- of DMA-budget en sluit geen rubriekcriterium.
+
 ## Betekenis van het percentage
 
 De README toont **behaalde acceptatiepunten / 100**. De gewichten zijn een
