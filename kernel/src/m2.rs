@@ -1,5 +1,6 @@
 //! M2 bootstrap owns all state; single CPU, IF clear, no allocator/scheduler locks.
 //! Copies boot input before any frame reuse. The old loader allocations are retained.
+mod acpi;
 mod arch;
 #[cfg(feature = "milestone-m3")]
 mod m3;
@@ -127,9 +128,11 @@ extern "C" fn run() -> ! {
     paging.map(frames, paging::SCRATCH, nx_probe(), true, false);
     #[cfg(feature = "framebuffer")]
     crate::framebuffer::map(&mut paging, frames, &map);
+    paging.prepare_firmware_scratch(frames);
     paging.map_tables(frames);
     arch::protection();
     arch::activate(paging.root);
+    acpi::discover(info, map_bytes, &mut paging);
     paging.audit(frames);
     assert_eq!(paging.leaf(text_start()) & (2 | (1 << 63)), 0);
     assert_eq!(paging.leaf(nx_probe()) & (2 | (1 << 63)), 2 | (1 << 63));

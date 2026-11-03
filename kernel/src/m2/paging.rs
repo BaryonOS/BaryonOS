@@ -10,6 +10,7 @@ const NX: u64 = 1 << 63;
 const ADDRESS: u64 = 0x000f_ffff_ffff_f000;
 const MAX_TABLES: usize = 256;
 pub const SCRATCH: u64 = 0x3fffe000;
+const FIRMWARE_SCRATCH: u64 = 0x3fffd000;
 static mut SCRATCH_ENTRY: u64 = 0;
 static mut EXECUTABLE: [bool; FRAME_COUNT] = [false; FRAME_COUNT];
 static mut OBSERVED: [Alias; FRAME_COUNT] = [Alias {
@@ -219,6 +220,8 @@ impl Paging {
         // SAFETY: CPUID queries integer CPU capabilities only. Do not install a
         // PTE whose physical bits exceed this CPU's MAXPHYADDR, even if PCI
         // metadata itself permits a wider BAR; missing/unknown widths fail closed.
+        // SAFETY: CPUID is available in long mode and the leaf is checked before
+        // querying the physical-address-width field.
         let width = unsafe {
             if core::arch::x86_64::__cpuid(0x80000000).eax < 0x80000008 {
                 return Err(kernel_core::Error::Range);
@@ -292,6 +295,91 @@ impl Paging {
         executable: bool,
     ) {
         self.map_kind(frames, va, pa, writable, executable, false);
+    }
+
+    /// Reserve the temporary firmware mapping's page-table path before installing
+    /// the new root, while newly allocated tables are still identity-accessible.
+    pub(super) fn prepare_firmware_scratch(&mut self, frames: &mut Frames<FRAME_COUNT>) {
+        let mut table = self.root;
+        for shift in [39, 30, 21] {
+            let index = ((FIRMWARE_SCRATCH >> shift) & 511) as usize;
+            let mut entry = read(table, index);
+            if entry & PRESENT == 0 {
+                assert_eq!(entry, 0);
+                entry = self.table(frames) | PRESENT | WRITE;
+                write(table, index, entry);
+            }
+            assert_eq!(entry & (USER | 128 | NX), 0);
+            assert_ne!(entry & WRITE, 0);
+            table = entry & ADDRESS;
+        }
+        assert_eq!(read(table, ((FIRMWARE_SCRATCH >> 12) & 511) as usize), 0);
+    }
+
+    /// Read firmware-owned ACPI bytes through one temporary supervisor RO/NX
+    /// mapping. The caller must first validate the whole span against the UEFI
+    /// ACPI reclaim/NVS descriptors; no allocator ownership or alias is created.
+    pub fn read_firmware(
+        &mut self,
+        address: u64,
+        output: &mut [u8],
+    ) -> Result<(), kernel_core::Error> {
+        let end = address
+            .checked_add(output.len() as u64)
+            .filter(|end| *end <= (1 << 52))
+            .ok_or(kernel_core::Error::Range)?;
+        if output.is_empty() {
+            return Ok(());
+        }
+        let width = unsafe {
+            if core::arch::x86_64::__cpuid(0x80000000).eax < 0x80000008 {
+                return Err(kernel_core::Error::Range);
+            }
+            core::arch::x86_64::__cpuid(0x80000008).eax as u8
+        };
+        let mut current = address;
+        let mut copied = 0usize;
+        while current < end {
+            let page = current & !(PAGE - 1);
+            if !kernel_core::physical_page_fits(page, width) {
+                return Err(kernel_core::Error::Range);
+            }
+            let offset = (current - page) as usize;
+            let length = core::cmp::min(PAGE as usize - offset, output.len() - copied);
+            let mut table = self.root;
+            for shift in [39, 30, 21] {
+                let index = ((FIRMWARE_SCRATCH >> shift) & 511) as usize;
+                let entry = read(table, index);
+                if entry & PRESENT == 0 || entry & (USER | 128 | NX) != 0 {
+                    return Err(kernel_core::Error::Permission);
+                }
+                if entry & WRITE == 0 {
+                    return Err(kernel_core::Error::Permission);
+                }
+                table = entry & ADDRESS;
+            }
+            let index = ((FIRMWARE_SCRATCH >> 12) & 511) as usize;
+            if read(table, index) != 0 {
+                return Err(kernel_core::Error::Overlap);
+            }
+            write(table, index, page | PRESENT | NX);
+            invalidate(FIRMWARE_SCRATCH);
+            // SAFETY: The caller validated this ACPI memory span against the UEFI
+            // map. The temporary leaf is supervisor, read-only, NX, and removed
+            // before returning; output is a valid exclusive kernel slice.
+            unsafe {
+                ptr::copy_nonoverlapping(
+                    (FIRMWARE_SCRATCH + offset as u64) as *const u8,
+                    output.as_mut_ptr().add(copied),
+                    length,
+                );
+            }
+            write(table, index, 0);
+            invalidate(FIRMWARE_SCRATCH);
+            copied += length;
+            current += length as u64;
+        }
+        Ok(())
     }
     #[cfg(feature = "milestone-m3")]
     pub fn map_user(
