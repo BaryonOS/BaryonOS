@@ -60,16 +60,19 @@ gekoppeld aan config reads/writes en busmasterbeheer; de kernel behoudt de
 toewijzing van DMA-pagina's en de supervisor-MMIO-mappings. Meer dan één
 matchende functie per driver wordt voorlopig geweigerd, omdat de bestaande
 brokers één transportinstantie beheren. De netwerkbroker vertrouwt niet langer
-op het QEMU-fixture-MAC-adres.
+op het QEMU-fixture-MAC-adres. `MatchedPciFunction` herleest de descriptor bij
+binding, controleert dat de registry-match nog klopt en weigert config-space-
+toegang tot een ander BDF. De VirtIO-paden gebruiken deze adapter ook voor
+busmaster- en BAR-probing na de match.
 
 **Beperkingen:** de scanner gebruikt alle 256 conventionele busnummers in
 segment 0 omdat de bootinformatie nog geen ACPI MCFG/rootbridge-topologie
 aanlevert. Andere segmenten, ECAM, bridge-validatie, hotplug, generieke
-resourcegrants, IRQ-lifecycle, DMA/IOMMU-authority, dynamische factory-
-registratie en meerdere actieve apparaten blijven open. Geen universele
-physical-memory-capability toegevoegd. De mechanism-1-adapter vereist
-geserialiseerde kerneltoegang; dit ontwerp is alleen voor de huidige single-
-CPU-initialisatie-/transportpaden.
+BAR/MMIO/IRQ/DMA resourcegrants, interrupt lifecycle, DMA/IOMMU-authority,
+dynamische factoryregistratie en meerdere actieve apparaten blijven open.
+Geen universele physical-memory-capability toegevoegd. De mechanism-1-adapter
+vereist geserialiseerde kerneltoegang; dit ontwerp is alleen voor de huidige
+single-CPU-initialisatie-/transportpaden.
 
 **Herzien:** zodra firmware-rootinformatie, een kernel-owned
 resourcebroker/factory-interface of meerdere device-instanties worden

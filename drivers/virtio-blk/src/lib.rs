@@ -8,7 +8,7 @@ use core::{
     sync::atomic::{fence, Ordering},
 };
 use driver_core::PciAddress;
-use pci_core::{Mechanism1, PciConfigAccess};
+use pci_core::{MatchedPciFunction, Mechanism1, PciConfigAccess};
 use virtio_core::{descriptor_plan, parse_capabilities, validate_descriptors, QUEUE_SIZE};
 pub use virtio_core::{Bar, Completion, DmaPool, Error, Regions};
 pub const DRIVER_REGISTRATION: driver_core::DriverRegistration = driver_core::DriverRegistration {
@@ -60,7 +60,10 @@ fn select_device() -> Result<PciAddress, Error> {
     selected.ok_or(Error::Offline)
 }
 
-fn validate_registration(address: PciAddress, config: &[u8; 256]) -> Result<(), Error> {
+fn validate_registration(
+    address: PciAddress,
+    config: &[u8; 256],
+) -> Result<driver_core::DriverMatch, Error> {
     let descriptor =
         driver_core::PciDeviceDescriptor::from_type0_config(address, config).map_err(|error| {
             match error {
@@ -74,9 +77,17 @@ fn validate_registration(address: PciAddress, config: &[u8; 256]) -> Result<(), 
         .register(DRIVER_REGISTRATION)
         .map_err(|_| Error::Protocol)?;
     match registry.best_match(&descriptor) {
-        Ok(Some(_)) => Ok(()),
+        Ok(Some(matched)) => Ok(matched),
         Ok(None) => Err(Error::Offline),
         Err(_) => Err(Error::Protocol),
+    }
+}
+fn bind_error(error: pci_core::BindError) -> Error {
+    match error {
+        pci_core::BindError::Config(error) => config_error(error),
+        pci_core::BindError::Header(_)
+        | pci_core::BindError::DescriptorChanged
+        | pci_core::BindError::DriverMismatch => Error::Protocol,
     }
 }
 #[derive(Clone, Copy)]
@@ -107,7 +118,10 @@ pub fn discover_at(address: PciAddress) -> Result<Discovery, Error> {
                 .to_le_bytes(),
         );
     }
-    validate_registration(address, &config)?;
+    let descriptor = driver_core::PciDeviceDescriptor::from_type0_config(address, &config)
+        .map_err(|_| Error::Protocol)?;
+    let matched = validate_registration(address, &config)?;
+    let mut pci = MatchedPciFunction::bind(pci, descriptor, matched).map_err(bind_error)?;
     let original = pci.read_u32(address, 4).map_err(config_error)? as u16;
     pci.write_u16(address, 4, (original & !7) | (1 << 10))
         .map_err(config_error)?; // Disable DMA and decode while probing this function's BARs.
@@ -170,7 +184,10 @@ pub fn discover_at(address: PciAddress) -> Result<Discovery, Error> {
                 .to_le_bytes(),
         );
     }
-    validate_registration(address, &config)?;
+    let matched_after_probe = validate_registration(address, &config)?;
+    if matched_after_probe.registration.id != matched.registration.id {
+        return Err(Error::Protocol);
+    }
     let regions = parse_capabilities(&config, &bars)?;
     // Disable MSI/MSI-X as well as INTx; first driver polls without IRQ routing.
     let mut at = config[0x34] as usize;
@@ -203,7 +220,7 @@ pub fn discover_at(address: PciAddress) -> Result<Discovery, Error> {
 }
 pub struct Device {
     address: PciAddress,
-    pci: Mechanism1,
+    pci: MatchedPciFunction<Mechanism1>,
     common: u64,
     notify: u64,
     pub pool: DmaPool,
@@ -224,7 +241,9 @@ impl Device {
     /// BAR regions validated in `info`. Every page in `pool` must be an exclusive,
     /// pinned normal-RAM DMA page owned by this device for the full device lifetime.
     /// `info.address` must be the exact function selected by trusted PCI matching,
-    /// and `mapped`/`pool` must belong only to that function.
+    /// and `mapped`/`pool` must belong only to that function. Initialization
+    /// requires single-core execution with interrupts disabled and exclusive
+    /// serialized access to PCI configuration ports.
     pub unsafe fn initialize(
         info: Discovery,
         mapped: [u64; 6],
@@ -250,7 +269,12 @@ impl Device {
         pool.validate(RAM_END)?;
         // SAFETY: Initialization happens synchronously before interrupts or a
         // second caller can access the serialized PCI config mechanism.
-        let pci = unsafe { Mechanism1::new() };
+        let access = unsafe { Mechanism1::new() };
+        let descriptor =
+            driver_core::PciDeviceDescriptor::from_type0_config(info.address, &info.config)
+                .map_err(|_| Error::Protocol)?;
+        let matched = validate_registration(info.address, &info.config)?;
+        let pci = MatchedPciFunction::bind(access, descriptor, matched).map_err(bind_error)?;
         let address = |region: virtio_core::Region| -> Result<u64, Error> {
             let base = mapped[region.bar as usize];
             if base == 0 {
@@ -662,7 +686,13 @@ mod registry_tests {
             device: 5,
             function: 0,
         };
-        assert_eq!(validate_registration(address, &config), Ok(()));
+        assert_eq!(
+            validate_registration(address, &config)
+                .unwrap()
+                .registration
+                .id,
+            DRIVER_REGISTRATION.id
+        );
 
         config[0x02..0x04].copy_from_slice(&[0x43, 0x10]);
         assert_eq!(validate_registration(address, &config), Err(Error::Offline));

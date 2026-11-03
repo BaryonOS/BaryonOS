@@ -1,9 +1,11 @@
 # Driver Core en selectie
 
-Status: eerste broncodeversie op `copilot/universal-driver-framework`.
-De registry valideert type-0 PCI-descriptors tijdens de bestaande vaste-BDF
-VirtIO-probes. Algemene PCI-enumeratie, toekenning van devicebronnen en
-generieke driverstart zijn nog niet geïmplementeerd.
+Status: eerste generieke PCI-discovery en VirtIO-selectie zijn geïmplementeerd
+op `copilot/universal-driver-framework`. De actuele code enumereert
+segment 0, matcht PCI-descriptors en laat VirtIO block/net hun apparaat op
+basis van de registry selecteren. Een devicegebonden PCI-configadapter is
+toegevoegd; de bredere resourcebroker en factorygestuurde activatie ontbreken
+nog.
 
 ## Huidige implementatie
 
@@ -12,58 +14,68 @@ Hij definieert:
 
 - gemeenschappelijke `DeviceId`, `DeviceClass`, `DriverId`, `DriverVersion`,
   `DriverState` en `DeviceMetadata`;
-- eenvoudige traits voor block-, netwerk-, display- en inputdevices;
-- toekomstige categorie-identifiers voor USB-hostcontrollers, audio,
-  storagecontrollers en seriële devices;
+- categorie-identifiers en subsystemtraits voor block-, netwerk-, display- en
+  inputdevices, plus identifiers voor USB-hostcontrollers, audio, storage- en
+  seriële devices;
 - PCI-identiteit inclusief BDF, vendor/device, class/subclass/programming
   interface/revision en optionele subsystem-ID's;
 - een bounds-safe decoder voor vaste 256-byte type-0 PCI-configuratiesnapshots;
 - een vaste-capaciteit `DriverRegistry` die een uniek meest specifiek
   registratie-resultaat kiest en gelijke topmatches weigert.
 
-De huidige `virtio-blk-driver` en `virtio-net-driver` publiceren een
-`DRIVER_REGISTRATION` voor respectievelijk `1af4:1042` en `1af4:1041`.
-Hun bestaande probes decoderen nu een type-0 header en bevestigen de identiteit
-via de registry, zowel voor als na BAR-probing. Dit voorkomt dat hun fixed-BDF
-transport een niet-geregistreerde of niet-type-0-functie verder initialiseert.
-De probe blijft per driver op het bestaande BDF begrensd; de registry kiest
-geen driver voor een algemene inventaris. Kernelpaden blijven eigenaar van
-discovery, MMIO, bus mastering en DMA.
+`crates/pci-core` enumereert conventionele PCI-bussen op segment 0 met
+configuratiemechanisme 1. Hij bezoekt functies 1-7 alleen wanneer functie 0
+het multifunction-bit aangeeft, negeert niet-aanwezige functies en rapporteert
+alleen type-0-endpoints aan de caller. De scanner leest configuratieruimte
+voordat de descriptor aan de registry wordt aangeboden. De huidige scan
+ondersteunt geen ECAM, segmenten buiten 0, bridge-topologie of hotplug.
+
+De VirtIO block- en netwerkdrivers registreren hun PCI-ID's en selecteren hun
+apparaat met `DriverRegistry::best_match`, in plaats van een vooraf vastgelegde
+BDF. BAR-probing en verdere toegang blijven beperkt tot de geselecteerde
+functie. Als meer dan één passend device voorkomt terwijl het kernelpad nog
+maar één instantie ondersteunt, wordt dat als fout geweigerd.
+
+`MatchedPciFunction` bindt config-space-toegang aan een opnieuw gevalideerde
+descriptor en `DriverMatch`. Reads en writes naar een ander BDF worden
+geweigerd; stale descriptors en registraties die niet bij het device passen,
+worden niet gebonden. Dit is een concrete devicegrens voor PCI-configuratie,
+geen volledige resourcegrant of capability. De kernel blijft eigenaar van
+BAR/MMIO-mappings en DMA-pagina's.
 
 ```text
-PCI-probe op vaste BDF (bestaand, per driver)
-    -> PciDeviceDescriptor
+PCI segment-0 scan
+    -> type-0 DeviceDescriptor
     -> DriverRegistry::best_match
-    -> registratievalidatie of geen driver / ambiguïteit
-    -> resourcegrant en driverstart (nog niet beschikbaar)
-    -> subsysteminterface
+    -> apparaatgebonden configadapter
+    -> bestaande VirtIO-probe en initialisatie
+    -> bestaande block-/netwerk-I/O
 ```
 
 ArceOS' categoriegerichte traits en `DriverProbe`/`init_drivers`-structuur
-dienden als architectuurreferentie; er is geen ArceOS-code overgenomen.
-De Nieuw OS-kern houdt matching, resourceautorisatie en starten gescheiden:
-een PCI-match verleent geen toegang tot BAR's, interrupts of DMA.
+dienden als architectuurreferentie; er is geen ArceOS-code overgenomen. De
+Nieuw OS-kern houdt matching, resourceautorisatie en starten gescheiden: een
+PCI-match verleent op zichzelf geen toegang tot BAR's, interrupts of DMA.
 
 ## Nog benodigde architectuur
 
-1. Breid type-0 descriptordecodering gecontroleerd uit naar de benodigde
-   header-/bussoorten en voeg daarna pas een begrensde PCI-enumerator toe.
-   Houd configuratieruimte op uitsluitend gevalideerde functies en veilige
-   registers.
-2. Ontwerp kernel-owned resource grants voor exact één PCI-function en
-   expliciete BAR-subregio's, interruptbronnen, DMA-pools en resetrechten.
-   Een portable driver ontvangt geen fysieke adressen, vrije config-space
-   writes, kernelpointers, filesystem- of netwerkpolicytoegang.
-3. Koppel registratie aan een driverfactory die uitsluitend reeds verleende
-   resources kan gebruiken. Startfouten leveren geen `Ready`-metadata op;
+1. Maak kernel-owned resource grants voor exact één PCI-function en expliciete
+   BAR-subregio's. Integreer interrupt lifecycle en DMA met de bestaande
+   maturitybranch-semantiek; maak geen concurrerende capability- of
+   IOMMU-modellen.
+2. Koppel registryresultaten aan concrete driverfactories die alleen verleende
+   resources ontvangen. Startfouten leveren geen `Ready`-metadata op;
    onbekende of ambigue devices worden niet gestart.
-4. Pas daarna bestaande VirtIO-implementaties aan de subsystemtraits aan.
-   Behoud hun huidige policy-, DMA-, timeout-, reset- en quarantainepaden.
-5. Voeg USB-, MMIO- en niet-PCI-discovery toe met eigen descriptor- en
-   resourcecontracten; de huidige PCI-registry beweert die bussen niet te
-   ondersteunen.
+3. Behoud de bestaande VirtIO-policy-, DMA-, timeout-, reset- en
+   quarantainelogica bij het verplaatsen naar die resourcegrens.
+4. Voeg alleen de subsysteminterfaces toe die concrete drivers nodig hebben.
+   USB vraagt een afzonderlijke enumeratie-, class-matching- en
+   resourcegrens; de huidige PCI-registry beweert USB niet te ondersteunen.
+5. Breid discovery gecontroleerd uit naar bridge-topologie, ACPI/ECAM,
+   aanvullende segmenten en later hotplug, met tests voor iedere nieuwe
+   toegangspad.
 
-Er is nog geen generieke resource/HAL-adapter of IOMMU-domein. De bestaande
-virtio-blk/net-proeven blijven aan hun eigen QEMU-profiel gebonden. Dit
-checkpoint claimt geen plug-and-play-boot, fysieke hardware, DMA-isolatie,
-hotplug of herstel van een gecrashte driver.
+Er is nog geen generieke BAR/MMIO-, interrupt- of DMA-resourcebroker en geen
+factorygestuurde driverregistratie. De huidige PCI-code is nog geen volledige
+plug-and-play-keten. Deze status claimt geen fysieke hardware, DMA-isolatie,
+hotplug, USB, GPU-acceleratie of herstel van een gecrashte driver.

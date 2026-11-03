@@ -1,14 +1,14 @@
-//! Fixed-BDF PCI discovery and the sole volatile/port-I/O boundary.
+//! Registry-selected PCI discovery and the sole volatile/port-I/O boundary.
 use super::{Discovery, Io, DEVICE_ID_NET, DRIVER_REGISTRATION};
-use driver_core::{PciAddress, PciDeviceDescriptor, PciHeaderError};
-use pci_core::{Mechanism1, PciConfigAccess};
+use driver_core::{DriverMatch, PciAddress, PciDeviceDescriptor, PciHeaderError};
+use pci_core::{MatchedPciFunction, Mechanism1, PciConfigAccess};
 use virtio_core::{parse_capabilities_for, Bar, Error};
 
 fn config_error(_: pci_core::ConfigError) -> Error {
     Error::Protocol
 }
 
-fn validate_registration(address: PciAddress, config: &[u8; 256]) -> Result<(), Error> {
+fn validate_registration(address: PciAddress, config: &[u8; 256]) -> Result<DriverMatch, Error> {
     let descriptor =
         PciDeviceDescriptor::from_type0_config(address, config).map_err(|error| match error {
             PciHeaderError::NotPresent => Error::Offline,
@@ -21,9 +21,18 @@ fn validate_registration(address: PciAddress, config: &[u8; 256]) -> Result<(), 
         .register(DRIVER_REGISTRATION)
         .map_err(|_| Error::Protocol)?;
     match registry.best_match(&descriptor) {
-        Ok(Some(_)) => Ok(()),
+        Ok(Some(matched)) => Ok(matched),
         Ok(None) => Err(Error::Offline),
         Err(_) => Err(Error::Protocol),
+    }
+}
+
+fn bind_error(error: pci_core::BindError) -> Error {
+    match error {
+        pci_core::BindError::Config(error) => config_error(error),
+        pci_core::BindError::Header(_)
+        | pci_core::BindError::DescriptorChanged
+        | pci_core::BindError::DriverMismatch => Error::Protocol,
     }
 }
 
@@ -76,7 +85,10 @@ pub fn discover_at(address: PciAddress) -> Result<Discovery, Error> {
                 .to_le_bytes(),
         );
     }
-    validate_registration(address, &config)?;
+    let descriptor =
+        PciDeviceDescriptor::from_type0_config(address, &config).map_err(|_| Error::Protocol)?;
+    let matched = validate_registration(address, &config)?;
+    let mut pci = MatchedPciFunction::bind(pci, descriptor, matched).map_err(bind_error)?;
     let original = pci.read_u32(address, 4).map_err(config_error)? as u16;
     pci.write_u16(address, 4, (original & !7) | (1 << 10))
         .map_err(config_error)?;
@@ -139,7 +151,10 @@ pub fn discover_at(address: PciAddress) -> Result<Discovery, Error> {
                 .to_le_bytes(),
         );
     }
-    validate_registration(address, &config)?;
+    let matched_after_probe = validate_registration(address, &config)?;
+    if matched_after_probe.registration.id != matched.registration.id {
+        return Err(Error::Protocol);
+    }
     let regions = parse_capabilities_for(&config, &bars, DEVICE_ID_NET)?;
     let mut at = config[0x34] as usize;
     // parse_capabilities_for has already validated the complete capability walk.
@@ -165,16 +180,18 @@ pub fn discover_at(address: PciAddress) -> Result<Discovery, Error> {
 
 pub(super) struct Hardware {
     address: PciAddress,
-    pci: Mechanism1,
+    pci: MatchedPciFunction<Mechanism1>,
 }
 
-pub(super) unsafe fn hardware(address: PciAddress) -> Hardware {
+pub(super) unsafe fn hardware(address: PciAddress, config: &[u8; 256]) -> Result<Hardware, Error> {
+    let descriptor =
+        PciDeviceDescriptor::from_type0_config(address, config).map_err(|_| Error::Protocol)?;
+    let matched = validate_registration(address, config)?;
     // SAFETY: The caller is the synchronous, single-CPU kernel initialization
     // path; it serializes PCI config access and keeps interrupts disabled.
-    Hardware {
-        address,
-        pci: unsafe { Mechanism1::new() },
-    }
+    let access = unsafe { Mechanism1::new() };
+    let pci = MatchedPciFunction::bind(access, descriptor, matched).map_err(bind_error)?;
+    Ok(Hardware { address, pci })
 }
 
 impl Io for Hardware {

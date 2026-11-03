@@ -510,15 +510,16 @@ impl Device {
     /// Pages remain pinned until reboot even on failure, and can be reused for
     /// reinitialization only after an observed reset ACK. `info.address` must
     /// be the matched function owning the supplied mappings and pages. One
-    /// CPU/serialized I/O.
+    /// CPU/serialized I/O; initialization requires interrupts disabled and
+    /// exclusive access to PCI configuration ports.
     pub unsafe fn initialize(
         info: Discovery,
         mapped: [u64; 6],
         pool: NetPool,
     ) -> Result<Self, Error> {
-        // SAFETY: Initialization occurs in the single-CPU setup path; only
-        // this device instance accesses CF8/CFC until driver activation ends.
-        let hardware = unsafe { pci::hardware(info.address) };
+        // SAFETY: Caller guarantees single-CPU setup with interrupts disabled;
+        // only this device instance accesses CF8/CFC until activation ends.
+        let hardware = unsafe { pci::hardware(info.address, &info.config) }?;
         let mut engine = Engine::new(info, mapped, pool, hardware)?;
         if let Err(error) = engine.initialize() {
             engine.begin_reset()?;

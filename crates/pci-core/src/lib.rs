@@ -3,7 +3,7 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 //! Bounded PCI configuration access and conventional segment-zero enumeration.
 
-use driver_core::{PciAddress, PciDeviceDescriptor, PciHeaderError};
+use driver_core::{DriverMatch, PciAddress, PciDeviceDescriptor, PciHeaderError};
 
 /// Maximum conventional PCI buses scanned on segment zero.
 pub const BUS_COUNT: u16 = 256;
@@ -31,6 +31,8 @@ pub enum ConfigError {
     InvalidOffset,
     /// The segment is not supported by this configuration mechanism.
     UnsupportedSegment,
+    /// The caller attempted to access a different PCI function than the one matched.
+    WrongFunction,
 }
 
 /// PCI enumeration failures.
@@ -248,9 +250,106 @@ impl PciConfigAccess for Mechanism1 {
     }
 }
 
+/// PCI configuration access permanently bound to one matched function.
+pub struct MatchedPciFunction<A> {
+    access: A,
+    descriptor: PciDeviceDescriptor,
+    driver: DriverMatch,
+}
+
+impl<A: PciConfigAccess> MatchedPciFunction<A> {
+    /// Binds configuration access after validating the current descriptor and
+    /// the selected driver's match rule against that descriptor.
+    pub fn bind(
+        mut access: A,
+        descriptor: PciDeviceDescriptor,
+        driver: DriverMatch,
+    ) -> Result<Self, BindError> {
+        let mut config = [0; 256];
+        for offset in (0..256).step_by(4) {
+            let word = access
+                .read_u32(descriptor.address, offset as u8)
+                .map_err(BindError::Config)?;
+            config[offset..offset + 4].copy_from_slice(&word.to_le_bytes());
+        }
+        let current = PciDeviceDescriptor::from_type0_config(descriptor.address, &config)
+            .map_err(BindError::Header)?;
+        if current != descriptor {
+            return Err(BindError::DescriptorChanged);
+        }
+        if !driver.registration.pci.matches(&current) {
+            return Err(BindError::DriverMismatch);
+        }
+        Ok(Self {
+            access,
+            descriptor,
+            driver,
+        })
+    }
+
+    /// Returns the matched device identity.
+    pub const fn descriptor(&self) -> PciDeviceDescriptor {
+        self.descriptor
+    }
+
+    /// Returns the registry result bound to this function.
+    pub const fn driver_match(&self) -> DriverMatch {
+        self.driver
+    }
+}
+
+impl<A: PciConfigAccess> PciConfigAccess for MatchedPciFunction<A> {
+    fn read_u32(&mut self, address: PciAddress, offset: u8) -> Result<u32, ConfigError> {
+        if address != self.descriptor.address {
+            return Err(ConfigError::WrongFunction);
+        }
+        self.access.read_u32(address, offset)
+    }
+
+    fn write_u32(
+        &mut self,
+        address: PciAddress,
+        offset: u8,
+        value: u32,
+    ) -> Result<(), ConfigError> {
+        if address != self.descriptor.address {
+            return Err(ConfigError::WrongFunction);
+        }
+        self.access.write_u32(address, offset, value)
+    }
+
+    fn write_u16(
+        &mut self,
+        address: PciAddress,
+        offset: u8,
+        value: u16,
+    ) -> Result<(), ConfigError> {
+        if address != self.descriptor.address {
+            return Err(ConfigError::WrongFunction);
+        }
+        self.access.write_u16(address, offset, value)
+    }
+}
+
+/// Failure to bind access to a registry-matched PCI function.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum BindError {
+    /// Configuration access failed while validating the device.
+    Config(ConfigError),
+    /// The current header could not be decoded as a type-0 endpoint.
+    Header(PciHeaderError),
+    /// The device changed between enumeration and resource binding.
+    DescriptorChanged,
+    /// The selected registration does not match the current descriptor.
+    DriverMismatch,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use driver_core::{
+        DeviceClass, DriverId, DriverRegistration, DriverRegistry, DriverVersion, PciMatch,
+    };
 
     #[derive(Clone, Copy)]
     struct MockFunction {
@@ -258,6 +357,7 @@ mod tests {
         config: [u8; 256],
     }
 
+    #[derive(Clone)]
     struct MockConfig {
         functions: [Option<MockFunction>; 3],
         reads: u32,
@@ -391,5 +491,119 @@ mod tests {
         let summary = enumerate(&mut mock, |_| seen += 1).unwrap();
         assert_eq!(seen, 0);
         assert_eq!(summary.unsupported_headers, 1);
+    }
+
+    #[test]
+    fn matched_configuration_access_is_bound_to_the_selected_function() {
+        let device_address = address(3, 0);
+        let mut mock = MockConfig::new();
+        let config = mock.add(device_address, 0x1af4, 0x1042);
+        config[0x0b] = 1;
+        let mut snapshot = [0; 256];
+        for offset in (0..256).step_by(4) {
+            snapshot[offset..offset + 4]
+                .copy_from_slice(&mock.word(device_address, offset as u8).to_le_bytes());
+        }
+        let descriptor = PciDeviceDescriptor::from_type0_config(device_address, &snapshot).unwrap();
+        let registration = DriverRegistration {
+            id: DriverId::new(1),
+            name: "test-block",
+            version: DriverVersion::new(1, 0, 0),
+            class: DeviceClass::BlockDevice,
+            pci: PciMatch {
+                vendor_id: Some(0x1af4),
+                device_id: Some(0x1042),
+                class: None,
+                subclass: None,
+                programming_interface: None,
+                revision: None,
+                subsystem_vendor_id: None,
+                subsystem_device_id: None,
+            },
+        };
+        let mut registry = DriverRegistry::<1>::new();
+        registry.register(registration).unwrap();
+        let matched = registry.best_match(&descriptor).unwrap().unwrap();
+        let mut bound = MatchedPciFunction::bind(mock, descriptor, matched).unwrap();
+
+        assert_eq!(bound.descriptor(), descriptor);
+        assert_eq!(bound.driver_match(), matched);
+        assert_eq!(bound.read_u32(device_address, 0), Ok(0x1042_1af4));
+        assert_eq!(
+            bound.read_u32(address(4, 0), 0),
+            Err(ConfigError::WrongFunction)
+        );
+        assert_eq!(
+            bound.write_u32(address(4, 0), 4, u32::MAX),
+            Err(ConfigError::WrongFunction)
+        );
+        assert_eq!(
+            bound.write_u16(address(4, 0), 4, u16::MAX),
+            Err(ConfigError::WrongFunction)
+        );
+    }
+
+    #[test]
+    fn matched_configuration_binding_rejects_stale_or_unmatched_identity() {
+        let device_address = address(3, 0);
+        let mut mock = MockConfig::new();
+        let config = mock.add(device_address, 0x1af4, 0x1042);
+        config[0x0b] = 1;
+        let mut snapshot = [0; 256];
+        for offset in (0..256).step_by(4) {
+            snapshot[offset..offset + 4]
+                .copy_from_slice(&mock.word(device_address, offset as u8).to_le_bytes());
+        }
+        let descriptor = PciDeviceDescriptor::from_type0_config(device_address, &snapshot).unwrap();
+        let registration = DriverRegistration {
+            id: DriverId::new(1),
+            name: "test-block",
+            version: DriverVersion::new(1, 0, 0),
+            class: DeviceClass::BlockDevice,
+            pci: PciMatch {
+                vendor_id: Some(0x1af4),
+                device_id: Some(0x1043),
+                class: None,
+                subclass: None,
+                programming_interface: None,
+                revision: None,
+                subsystem_vendor_id: None,
+                subsystem_device_id: None,
+            },
+        };
+        let matched = DriverMatch {
+            registration,
+            specificity: driver_core::PciSpecificity {
+                subsystem: 0,
+                identity: 2,
+                class: 0,
+                revision: false,
+            },
+        };
+        assert_eq!(
+            MatchedPciFunction::bind(mock.clone(), descriptor, matched).err(),
+            Some(BindError::DriverMismatch)
+        );
+        assert_eq!(
+            MatchedPciFunction::bind(
+                mock,
+                PciDeviceDescriptor {
+                    device_id: 0x1043,
+                    ..descriptor
+                },
+                DriverMatch {
+                    registration: DriverRegistration {
+                        pci: PciMatch {
+                            device_id: Some(0x1043),
+                            ..registration.pci
+                        },
+                        ..registration
+                    },
+                    ..matched
+                },
+            )
+            .err(),
+            Some(BindError::DescriptorChanged)
+        );
     }
 }
