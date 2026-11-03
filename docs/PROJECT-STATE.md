@@ -39,6 +39,14 @@ Watch blijft aan volgens Simon. Score41 ->41, geen nieuwe criteria.
 Eerstvolgend: host/replaychecks van de opgeloste boom en verse CI/review
 op de bijgewerkte135-head beoordelen; geen oude VM-proeven herlabelen.
 
+Opgeloste combinatie`cb69eada` heeft source-v3
+`2a8bf7d3e085dcb8cab2f82b14129509ca5bc09c3f5b9eaaf68058ba62b74524`.
+16opslaghosttests en207archiefhashes/99receiptentries slagen, exit0;
+geen productiecodepad verschilt van2825. Exacte opdrachten/loghashes:
+`verification/pr135-main698-reconciliation.json`. Het actuele handoff is
+uniek en alle genummerde ADRs zijn uniek; eerste duplicaatassertion echt
+mislukt en pas na de064-correctie geslaagd. Nieuwe native poorten blijven open.
+
 ## Vorig checkpoint — gedeelde runnerhelpers op native stack
 
 Basis `eea1cdcc66e21e60ccc4327bcb8e3561752c2f61`, volledige142-head

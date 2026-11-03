@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "kind": "downloaded actual native artifact independently rehashed and disk oracle rerun",
+  "kind": "Werkelijk native artifact gedownload, onafhankelijk opnieuw gehasht en diskoracle opnieuw uitgevoerd",
   "run_id": 41620192281,
   "artifact_id": 13224240181,
   "artifact_name": "native-window-session-evidence-and-windows-bundle",
@@ -32,5 +32,5 @@
     "canaries_intact": true
   },
   "passed": true,
-  "scope": "QEMU/TCG x86_64 own-kernel actual22phase window/input/isolation/recovery/clipboard/disk gate. Host generated pixel oracles are not native execution on their own. Not later135head, Windows runtime, physical hardware, human audit, fullrelease or new points."
+  "scope": "Echte22fase venster/invoer/isolatie/herstel/klembord/schijfpoort op QEMU/TCG-x86_64 met eigen kernel. Hostgegenereerde pixeloracles zijn op zichzelf geen native uitvoering. Geen bewijs voor latere135-head, Windows-runtime, fysieke hardware, menselijke audit, volledige release of extra punten."
 }
