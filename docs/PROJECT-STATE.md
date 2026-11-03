@@ -731,8 +731,9 @@ diff-check waarschuwde voor hashgebonden CRLF-/blank-at-EOF-bewijsbytes;
 die bytes zijn niet aangepast.
 
 **Historische scan/bewijsgrens:** CodeQL vond geen Python-alerts maar liep vast
-voordat alle talen klaar waren; geen volledige CodeQL-scan. Nieuwe-headchecks
-bleven vereist. Score34, geen productacceptatiebesluit. De toenmalige vraag
+voordat alle talen klaar waren; geen volledige CodeQL-scan. De app meldde vóór
+deze integratie geen vereiste checks; nieuwe-headchecks bleven vereist.
+Score34, geen productacceptatiebesluit. De toenmalige vraag
 om publicatie via `report_progress` is historisch, geen nieuw mandaat.
 
 ## Native checkpoint PR127 — zeven reviewfixes — 2 november 2026
