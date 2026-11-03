@@ -31,12 +31,22 @@ Fingerprint `af315f77251383dfcafca5f25f2d4fd4087371f675ef3ab1112659032b3ad234`.
 Eerste nativebuild op `3f72f2f3` stopte voor VM-start met E0282:
 door de eerdere nieuwe matcharm kon Rust het queue-index-type niet afleiden.
 Capture en hover zijn nu expliciet `Option<usize>`; geen cast of grenswijziging.
-**Volgende werkstap:** agent `fcb96a26` bouwt een hoogcontrastprimitive in eigen
-worktree vanaf3799ec63, alleen controller/render en gerichte hosttest.
+**Hoogcontrastleaf geintegreerd:** agent `fcb96a26` leverde `189edbd7` op
+vanaf3799ec63, opgenomen als `d5cd460a`, alleen controller/render en gerichte hosttest.
 API `View.high_contrast` en `Controller::set_high_contrast(bool)`;
-hoofdagent integreert daarna gezamenlijke instellingen, shell/rekenmachine
-en native pixel-/interactiegates. Agentresultaat nog niet ontvangen of
-geintegreerd; geen native hoogcontrastclaim. Nieuwe CI niet uitgevoerd.
+defaultfalse, dezelfde waarde no-op; geen opslagactie of verlies van document,
+selectie, focus, menu/dialog, desktop of status. Wit/zwart21:1,
+disabled10,59:1, fout12,44:1, zwart/geel19,56:1 en zwart/cyaan16,75:1.
+Zes nieuwe tests toetsen echte pixels op zes viewports en72 volledige
+defaultframes. Agent meldde terecht een ontbrekend veld in de bestaande
+renderfixture; hoofdagent voegde `high_contrast: false` toe.
+Daarna volledige UI-/app-hosttests, beide Clippy all-targets en fmtchecks exit0,
+zonder skip. Log `files/veld-env/logs/veld-hc-integration-host.log`.
+Dit is een hostprimitive: geen globale instelling, native HC-bediening of
+nieuwe CI. Hoofdagent geeft controller/render na dit checkpoint expliciet
+vrij voor de seriele documentnaam/zoek-integratie van de hoofdontwikkelaar;
+diens bestaande WIP blijft behouden. Volgende vrije Veld-scope:
+gedeelde palette-/calculator-/shellinstellingen en native acceptatie.
 Score **41 -> 41**;
 complete Veld-omgeving, drag/drop, resize en overige functies blijven open.
 

@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "3799ec63b9be6a2a5dbe67bd2cb38af703f101a0",
+    "source_commit": "d5cd460a6bf8b7e9fe133e347d5439257ac9b442",
     "branch": "simonvanieperen-fictional-disco",
-    "task": "Veld-04: echte pointer-leave zonder focusverlies of buitenbodydata",
+    "task": "Veld-05: app-lokale hoogcontrastprimitive en seriele integratie",
     "previous_score": 41,
-    "summary": "41% blijft 41%: bron3799ec63 heeft44 volledige nativefasen per schaal,100/200%, exit0/ruwe33. Pointer-leave wist werkelijk andere hoverpixels zonder buitenbodydata, focusverlies of menuafsluiting; onverkorte oude gates slagen. Acht hosttest-/Clippysuites,16 runnertegenproeven en beide normale builds slagen. Eerste targetcompilefout bewaard en na typeherstel volledig herhaald. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Oudere derdenapps vereisen protocolonderhandeling. Hoogcontrast, complete Veld-omgeving, U02-U06, fysieke/menselijke acceptatie en release blijven open."
+    "summary": "41% blijft 41%: native3799ec63 heeft44 volledige fasen per schaal100/200%. Hoogcontrastleaf189edbd7 opgenomen alsd5cd460a; zes nieuwe echte pixeltests,72 defaultframes en zes viewports. Na fixture-integratie slagen volledige UI/app-hosttests, beide all-target Clippy en fmtchecks. Dit is uitsluitend app-lokale hostimplementatie; globale instellingen, shell/rekenmachine en native HC-bediening nog open. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Complete Veld-omgeving, U02-U06, fysieke/menselijke acceptatie en release blijven open."
   },
   "tracks": [
     {
