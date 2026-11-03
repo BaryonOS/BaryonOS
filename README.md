@@ -31,11 +31,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`93f6e25c`](https://github.com/simonvanieperen/nieuw-os/commit/93f6e25c5295f9e16cc008170f4298b4117e7d9c) ·
+**Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
+**Bron:** [`ce02f093`](https://github.com/simonvanieperen/nieuw-os/commit/ce02f093627a2c0b9808461ac821d4ebcd8dbb5f) ·
 **Ontwikkelbranch:** `integrate/stack130-local`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Desktop, fail-closed volumeformaattoelating en echte netwerkfragmentfixtures combineren.
-41 blijft41, geen nieuw criterium. Main380111b6 heeft28 groene postmergechecks,22 native windowfasen en beide N01-cases op sourceb7ccd11f; U01-issue40 is daarmee gesloten. Latere desktop72b6 heeft63 host/buildcontroles; de afzonderlijke133-integratie7c389956 heeft44 controles maar preflight2 wegens ontbrekende QEMU/OVMF. Nieuwe echte IPv4-fragmentfixtures zijn rood/groen aangetoond met13 hosttests en ongewijzigde respons-/backpressurebudgetten. De nieuwe gecombineerde bron3abcacd2 vereist eigen native acceptatie;39 blijft daarom open. De nieuwe10run-volumematrix faalt expliciet zolang de exact gepinde foreign-imagefixtures ontbreken. Geen overname van44/U03 of claims voor algemene Internet/TLS, echte auth, Windows, hardware, menselijke audit of volledige release.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR134 terminale TCP-ontvangststatus inhoudsbehoudend op de desktop-/volumestapel integreren.
+41 blijft41. Volledige PR134 is als mergeparent behouden: ReceiveTcp eindigt met Closed na een verbindingstime-out terwijl de diagnostiek TimedOut blijft.10 netwerkservicetests slagen op de echte gecombineerdebron ce02f093/source2c410004. Eerdere desktop-/volume-/fragmentinhoud blijft behouden. B03 gaf op135efaf eerst flushcompletion Unknown/-16; exact-head herproef slaagt, geen onbewezen rootfix of groen door gewijzigde asserts. Exacte foreignfixtures en Windows-QEMU-procesbeheersing zijn gevonden/gecontroleerd; gecombineerde10+9VM-acceptatie en hosted fixturelevering blijven apart open. Geen extra punten,44/U03, fysieke hardware, productiekeys, menselijke audit of volledige release.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

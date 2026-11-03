@@ -1,6 +1,30 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — desktopstapel en volumeformaattoelating — 2 november 2026
+## NEXT AGENT HANDOFF — desktop, volume en terminale netwerkstatus — 3 november 2026
+
+Bron `ce02f093627a2c0b9808461ac821d4ebcd8dbb5f` behoudt volledige
+PR134-head27cb3948 naast130/129/128/127/133. Source-v3
+`2c410004daceb557f5501e58270d5b315744f1a6eb22d44499d45bc31bef41b7`.
+De terminale ontvangstfout na TCP-connect-timeout is hersteld;10 echte
+servicehosttests slagen. Log `/tmp/nieuw-os-pr134-combined-host.log`,
+SHA256 `1aec756d388f43f8291ddf2138162d85216b92bb8d1061cc9e27161813ff8ad9`.
+PR134-nativebewijs blijft aan5925c915 gebonden, niet aan deze combinatie.
+Score **41 -> 41**;39/41/42/43 blijven open.
+
+B03-run41539913013 op135efaf faalde eerst bij flushcompletion Unknown/-16;
+de exacte-head herproef is geslaagd. Geen productiecode/acceptatieassert
+veranderd en geen verklaring van de oorzaak verzonnen; dit blijft een
+observatie met mogelijke timing-/devicecompletiongrens.
+Exacte synthetische foreignfixtures bestaan lokaal en zijn opnieuw gehasht.
+Windows-Python/Git/Rust1.90/QEMU/OVMF en eigen-Popen-kill/wait zijn gecontroleerd.
+Agent07bee9cb-fb9b-493f-ae14-2ec74495c7ed voert de concrete10+9VM-
+volumeacceptatie op deze bevrorenbron uit in eigen wegwerpclone; resultaat
+nog niet ontvangen. Hosted fixtureartifact/run-ID ontbreekt afzonderlijk.
+114-reviewfixes staan op3225a359; geen ontwerp-PR gemerged.
+Eerstvolgend: native volumeresultaat lezen en actuele gecombineerde CI/review
+afhandelen, zonder legacy bewijs tot deze nieuwe bron te promoveren.
+
+## Historisch checkpoint — desktopstapel en volumeformaattoelating
 
 Actuele combinatie `93f6e25c`: volume133 via echte mergeparents behouden,
 plus parentfix `4591c555` voor ontbrekende echte IPv4-fragmentnegatieven.

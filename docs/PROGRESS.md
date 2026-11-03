@@ -85,6 +85,12 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR134-integratie (3 november 2026), bron `ce02f093`: **41 -> 41**.
+Volledige timeoutfix en historische metadata behouden;10 servicehosttests
+groen op gecombineerde source2c410004. Geen nieuwe native punten.
+B03zelfde-head-herproef slaagt na een eerdere expliciete flushfout;
+gecombineerde volumeacceptatie en hosted fixturelevering blijven open.
+
 Gecombineerde volume-/fragmentstap (2 november 2026), bron `93f6e25c`:
 **41 -> 41**.133 is volledig behouden;44 afzonderlijke controles slagen.
 Echte IPv4-fragmentfixtures hebben13 groene hosttests, maar de nieuwe
