@@ -48,6 +48,10 @@ PY
 
 ## Onbekend
 
+De tabelhashes hierboven horen bij contractfix `cccb29e8`, niet bij de latere
+reviewcorrectie voor referentiebaselines en verplichte oordeellabels.
+Die correctie wijzigt alleen profielinstructies, geen toolsets of runtime.
+
 De eerdere profielhashes in `pr150-profile-review.json` blijven historische
 bronbindingen, niet hashes van deze twee gewijzigde bestanden. Dit is geen
 volledige YAML/cloudschemavalidatie, werkelijke agentselectie, sandbox,
