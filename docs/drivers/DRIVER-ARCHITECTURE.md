@@ -1,12 +1,12 @@
 # Driver Core en selectie
 
-Status: eerste generieke PCI-discovery en VirtIO-selectie zijn geïmplementeerd
-op `copilot/universal-driver-framework`. De actuele code enumereert
-segment 0, matcht PCI-descriptors en laat VirtIO block/net hun apparaat op
-basis van de registry selecteren. Een devicegebonden PCI-configadapter,
-kernel-owned BAR/MMIO-grants voor block/net en per-match geregistreerde
-initializer-functies zijn toegevoegd. Een gedeelde heterogene registry en de
-bredere resourcebroker ontbreken nog.
+Status: generieke segment-0-PCI-discovery, registratie en factorygekoppelde
+initialisatie zijn geïmplementeerd voor VirtIO block, netwerk en RNG. Alle drie
+selecteren een functie via `pci-core` en hun eigen registry, met config-space
+gebonden aan de match. Block, netwerk en RNG krijgen kernel-owned BAR-grants
+vóór mapping; de bestaande transports behouden hun eigen I/O- en DMA-logica.
+Een gedeelde heterogene registry, interruptbroker en generieke DMA/IOMMU-
+resourcebroker ontbreken nog.
 
 ## Huidige implementatie
 
@@ -39,23 +39,24 @@ beschikbaar. Niet-type-0-functies worden alleen als aantal gemeld; een
 onvolledige configuratiescan wordt expliciet gemeld en levert geen
 unsupported-records op. Dit is een diagnostische matchinventaris, geen bewijs
 dat een gematchte driver succesvol is geïnitialiseerd of dat alle PCI-driver-
-families in iedere profielregistry zijn opgenomen. VirtIO RNG heeft hiervoor
-identiteitsmetadata, maar de bestaande RNG-initialisatie gebruikt nog zijn
-vaste BDF.
+families in iedere profielregistry zijn opgenomen. De RNG-driver wordt nu ook
+via segment-0-enumeratie en een geregistreerde factory gestart; de huidige
+QEMU-fixture gebruikt BDF `00:06.0`, maar de driver vereist die locatie niet.
 
-De VirtIO block- en netwerkdrivers registreren hun PCI-ID's en selecteren hun
-apparaat met `DriverRegistry::best_match_with_factory`, in plaats van een vooraf vastgelegde
-BDF. BAR-probing en verdere toegang blijven beperkt tot de geselecteerde
-functie. Als meer dan één passend device voorkomt terwijl het kernelpad nog
-maar één instantie ondersteunt, wordt dat als fout geweigerd.
+De VirtIO block-, netwerk- en RNG-drivers registreren hun PCI-ID's en
+selecteren hun apparaat met `DriverRegistry::best_match_with_factory`, in
+plaats van een vooraf vastgelegde BDF. BAR-probing en verdere toegang blijven
+beperkt tot de geselecteerde functie. Als meer dan één passend device voorkomt
+terwijl het kernelpad nog maar één instantie ondersteunt, wordt dat als fout
+geweigerd.
 De activatiepaden registreren daarnaast per match een statische
 initializer-functie. `best_match_with_factory` retourneert metadata plus die
 initializer; de door discovery gemaakte waarde bewaart hem privé. Na kernel-
 toekenning van bestaande BAR-mappings en DMA-pagina's roept
-`Device::initialize` de geselecteerde factory aan. Blockprofielopties en de
-bestaande reset-/quarantainelogica blijven bij de concrete initializer.
+`Device::initialize` de geselecteerde factory aan. Familiespecifieke opties
+en de bestaande reset-/quarantainelogica blijven bij de concrete initializer.
 Er wordt geen drivercode geladen, heapobject gemaakt of nieuwe resource-
-authority geïntroduceerd.
+extra resource-authority gecreëerd; resources blijven kernel-toekenningen.
 
 `MatchedPciFunction` bindt config-space-toegang aan een opnieuw gevalideerde
 descriptor en `DriverMatch`. Reads en writes naar een ander BDF worden
@@ -64,15 +65,15 @@ worden niet gebonden. Dit is een concrete devicegrens voor PCI-configuratie.
 `MatchedPciFunction` kan na matching de memory-BARs peilen. Daarbij blijven
 I/O-decode, memory-decode en bus mastering uitgeschakeld; de probe herstelt
 BAR-registers ook bij fouten. Een `PciBarGrant` bindt het geselecteerde BDF,
-de driver-ID, BAR-index en gevalideerde base/lengte. Block en netwerk krijgen
-zo'n grant vóór mapping. `Paging::map_pci_bar` weigert een ander device, een
+de driver-ID, BAR-index en gevalideerde base/lengte. Block, netwerk en RNG
+krijgen zo'n grant vóór mapping. `Paging::map_pci_bar` weigert een ander device, een
 andere driver of BAR-index en laat uitsluitend volledige 4-KiB-pagina's
 binnen die BAR mappen. De bestaande PAT-UC-, CPU-MAXPHYADDR- en
 supervisor-NX-controles blijven actief. Dit is een begrensde kernelinterne
 grant, geen userspace capability of driverisolatie. IRQ-toewijzing,
-busmaster-toestemming na initialisatie en DMA-buffers blijven buiten deze
-broker. Alle bestaande block-kernelprofielen alloceren hun DMA-pool pas na
-een succesvolle discovery- en registrymatch; de netwerkroute volgde deze
+busmaster-toestemming als afzonderlijke grant en DMA-bufferbeheer blijven
+buiten deze broker. Block- en RNG-kernelprofielen alloceren hun DMA-pool pas
+na een succesvolle discovery- en registrymatch; de netwerkroute volgde deze
 volgorde al.
 
 ```text
@@ -81,8 +82,9 @@ PCI segment-0 scan
     -> DriverRegistry::best_match_with_factory
     -> apparaatgebonden configadapter en BAR-grants
     -> kernel valideert grant en maakt beperkte UC/NX-mapping
-    -> geselecteerde VirtIO-initializer
-    -> bestaande block-/netwerk-I/O
+    -> geselecteerde VirtIO-factory
+    -> kernel valideert devicegebonden BAR-grants en DMA-eigendom
+    -> bestaande block-, netwerk- of RNG-I/O
 ```
 
 ArceOS' categoriegerichte traits en `DriverProbe`/`init_drivers`-structuur
@@ -101,7 +103,7 @@ PCI-match verleent op zichzelf geen toegang tot BAR's, interrupts of DMA.
 2. Breng de per-familie factories samen in een gedeelde registry met een
    getypeerde resourcecontext, en koppel activatiestatus/cleanup aan de
    lifecycle. De huidige statische factoryfuncties activeren alleen de
-   bestaande block-/netinitializers; zij vormen nog geen algemene,
+   bestaande block-, netwerk- en RNG-initializers; zij vormen nog geen algemene,
    heterogene plug-and-playregistry.
 3. Behoud de bestaande VirtIO-policy-, DMA-, timeout-, reset- en
    quarantainelogica bij het verplaatsen naar die resourcegrens.
@@ -112,8 +114,8 @@ PCI-match verleent op zichzelf geen toegang tot BAR's, interrupts of DMA.
    aanvullende segmenten en later hotplug, met tests voor iedere nieuwe
    toegangspad.
 
-PCI BAR-grants en statisch gekoppelde initializers voor de bestaande block-/
-netwerkpaden zijn geïntegreerd; er is nog geen algemene BAR/MMIO-, interrupt-
+PCI BAR-grants en statisch gekoppelde initializers voor block-, netwerk- en
+RNG-paden zijn geïntegreerd; er is nog geen algemene BAR/MMIO-, interrupt-
 of DMA-resourcebroker. De huidige PCI-code is nog geen volledige
 plug-and-play-keten. Deze status claimt geen fysieke hardware, DMA-isolatie,
 hotplug, USB, GPU-acceleratie of herstel van een gecrashte driver.

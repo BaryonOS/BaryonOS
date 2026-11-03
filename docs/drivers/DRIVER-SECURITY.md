@@ -17,17 +17,19 @@ selectors leveren expliciete fouten.
 
 `PciDeviceDescriptor::from_type0_config` leest alleen een vaste snapshot van
 256 bytes, controleert BDF-grenzen, afwezigheid en header type, en decodeert
-geen BAR- of resourcebevoegdheid. De huidige VirtIO-probes gebruiken de parser
-en registry voor hun vaste endpoints en valideren opnieuw na BAR-probing. Dit
-is geen busenumerator en geeft de driver geen extra rechten.
+geen BAR- of resourcebevoegdheid. VirtIO block, netwerk en RNG gebruiken de
+segment-0-enumerator en hun registratie om één endpoint te selecteren; hun
+descriptor en match worden opnieuw gevalideerd na BAR-probing.
 
 ## Resourcegrens
 
-Geen generieke resource/HAL-adapter is geïmplementeerd. Het kernelcontract
-heeft geen algemene capability voor willekeurige PCI-functions, BAR's,
-interrupts of DMA; de bestaande virtio-drivers gebruiken exact begrensde
-profielpaden en gepinde buffers. Die paden worden niet vervangen door ruwe
-`phys_to_virt`, raw pointers of een permissive `unsafe Hal`-bridge.
+Een volledige generieke resource/HAL-adapter is nog niet geïmplementeerd. De
+block-, netwerk- en RNG-paden gebruiken wel begrensde `PciBarGrant`-waarden
+voor hun eigen registrymatch. Het kernelcontract heeft geen algemene
+capability voor willekeurige PCI-functions, BAR's, interrupts of DMA; de
+bestaande virtio-drivers behouden hun concrete profielpaden en gepinde
+buffers. Die paden worden niet vervangen door ruwe `phys_to_virt`, raw
+pointers of een permissive `unsafe Hal`-bridge.
 
 Een volgende resource-interface moet uitsluitend kernel-uitgegeven opaque
 grants accepteren. Vereist zijn:
@@ -42,11 +44,14 @@ grants accepteren. Vereist zijn:
 - geen algemene fysieke/geheugentoegang, filesystem, credentials of
   netwerkpolicy.
 
-De huidige QEMU-drivercode en hostmodellen beschermen niet tegen een kwaadaardig
-device en bewijzen geen fysieke IOMMU-afdwinging. Alle devicevelden blijven
-onbetrouwbaar; grootte, overflow, alignment, ringindices, status, timeouts en
-failure cleanup moeten vóór gebruik worden gecontroleerd. Een driverfout mag
-geen `Ready`-toestand of valse completion opleveren.
+Bus mastering voor RNG wordt via zijn aan de gematchte functie gebonden
+configadapter ingeschakeld na mapping en wordt bij reset uitgeschakeld; dit is
+nog geen afzonderlijke kernel-uitgegeven busmastergrant of algemene
+resourcebroker. De huidige QEMU-drivercode en hostmodellen beschermen niet
+tegen een kwaadaardig device en bewijzen geen fysieke IOMMU-afdwinging. Alle
+devicevelden blijven onbetrouwbaar; grootte, overflow, alignment, ringindices,
+status, timeouts en failure cleanup moeten vóór gebruik worden gecontroleerd.
+Een driverfout mag geen `Ready`-toestand of valse completion opleveren.
 
 ## Integratiegrenzen
 

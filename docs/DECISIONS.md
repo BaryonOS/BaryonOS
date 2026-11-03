@@ -171,6 +171,46 @@ hardwareclaims gedaan.
 netwerkdriver wordt gekoppeld; die integratie mag de capabilitybinding niet
 verruimen.
 
+## ADR-069 — generieke PCI-start van VirtIO RNG
+
+**Datum:** 3 november 2026. De RNG-start gebruikt nu dezelfde segment-0-
+enumeratie, PCI-registry-match en `MatchedPciFunction`-grens als block en
+netwerk. De registry levert een statische initializerfactory; `Discovery`
+bewaart het geselecteerde BDF, BAR-descriptors en uitsluitend de grants die
+bij die driverregistratie horen. Een ontbrekend apparaat levert `Offline`;
+onbekende functies worden door de scanner overgeslagen en meerdere passende
+RNG-functies worden fail-closed geweigerd zolang de broker één instantie
+beheert.
+
+De kernel mapte vóór deze wijziging de door de RNG-driver rechtstreeks
+gepeilde BAR-adressen. Nu wordt elke gebruikte pagina via
+`Paging::map_pci_bar` uit de bijbehorende `PciBarGrant` gemapt. De drie
+gepinde DMA-pagina's worden pas na succesvolle discovery toegewezen. De
+factory start de bestaande queue pas na MMIO-mapping en poolvalidatie; de
+aan de match gebonden configadapter schakelt bus mastering dan in en bij reset
+weer uit. Bij afwezig apparaat worden geen ongebruikte DMA-pagina's
+gereserveerd. De VirtIO-queue, entropy-broker, polling, timeout en
+resetquarantaine blijven dezelfde concrete RNG-route.
+
+**Beveiligingsgrens:** dit introduceert geen algemene physical-memory-
+capability of generieke DMA-/IOMMU-broker. De kernel houdt bestaande
+gepinde buffers; de driver blijft in kernelcontext en een protocolconform
+device wordt vertrouwd. Bus mastering is nog geen afzonderlijk uitgegeven
+resourcegrant. Interrupts, DMA-isolatie, geverifieerde quiescence en
+drivercrash-herstel blijven open.
+
+**Validatiegrens:** registratie-/matchtestcode compileert samen met de
+PCI-tests; daadwerkelijke hosttestuitvoering is in deze omgeving door de
+ontbrekende `libc_nonshared.a` geblokkeerd. Driver-typecheck, Clippy en de
+`x86_64-unknown-none`-check slagen. De kernelprofielcheck stopte vóór
+kernelcompilatie omdat het host-buildscript niet kon linken zonder
+`libc_nonshared.a`; `tools/build.py` moet nog worden geprobeerd. QEMU ontbreekt,
+dus runtime, fysieke hardware en RNG-kwaliteit zijn niet getest. Dit sluit geen
+productcriterium of voortgangspunt.
+
+**Herzien:** bij de gedeelde PCI-resourcebroker, IOMMU/DMA-semantiek van
+Maturity, meerdere RNG-instanties of een getest ander PCI-configuratiemechanisme.
+
 ## Onderzoeksbesluit J-20261102 — herkenbare basis, expliciete installatiegrens
 
 **Datum:** 2 november 2026. **Status:** ontwerp-/onderzoekskeuze, geen
