@@ -3,7 +3,7 @@
 ## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
 
 **Gepubliceerde basis:** branch `simonvanieperen-studious-spoon`, commit
-`707f6d6d2c00d9b466366f4b0e6b2b91e08197ae`, gepusht naar
+`aa5aa64cd311f1e1416f7aaa489f7fde2a6508d1`, gepusht naar
 `origin/simonvanieperen-studious-spoon`. Actieve toewijzing:
 `SYSTEM-MATURITY-SMP`, queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`.
 OOM/K05 zijn afgesloten en blijven ongewijzigd;
@@ -59,15 +59,16 @@ De receipt bevat broncommit, bronfingerprint, toolpaden, relevante runtime-
 omgevingsvariabelen en stage-evidence:
 [`smp-rendezvous-20261103T180507Z.json`](verification/sm-smp/smp-rendezvous-20261103T180507Z.json).
 
-**Proces-exit/cleanup op een AP — gerichte proef geslaagd, matrix nog open:**
-een opt-in `native-smp-m3-exit`-profiel combineert de bestaande exitfixture
-met M3-SMP. Op worktree-fingerprint
-`8cd0deaeefbda54958c2f76f2da16923fe410920529714b1b2081cec10b31ed0`
-liep de 2-CPU-QEMU-proef met verwachte raw exit 33; processlot 0 werd na de
-exittrap op CPU 1 opgeschoond. Per-CPU-selecties waren `[7, 4]`.
-Log: `build/run/smp-2-d34017d2d4/`. Hostharnas had 9 tests, exit 0.
-Een daarna aangepaste receipt-omschrijving veranderde de bronfingerprint;
-de definitieve matrix moet deze route daarom opnieuw testen en vastleggen.
+**SMP-matrix PASS op commit `aa5aa64c` (exit 0):** dezelfde exacte PATH-,
+QEMU- en OVMF-opdracht als hierboven. Alle acht stages slaagden: M2 met 1/2/4
+CPU; M3 met 2 CPU, de AP-process-exitproef, de 1-CPU-regressie en M3 met
+4 CPU; M4 ring-3-IPC met 2 CPU. De exitproef ruimde processlot 0 op CPU 1 op
+(per-CPU-selecties `[7, 4]`). De IPC-evaluator vond twee cross-CPU-
+berichtparen. Hostharnas: 9 tests, exit 0. Iedere QEMU-stage had verwachte
+raw exit 33; de QEMU-waarschuwing over ontbrekend `kvmvapic.bin` blijft
+ononderzocht. Receipt:
+[`smp-rendezvous-20261103T181747Z.json`](verification/sm-smp/smp-rendezvous-20261103T181747Z.json),
+bronfingerprint `6621d7dcfa4927e0e547e8696395fdf3aaedf79e6b9ef0fb446714924474a137`.
 
 **Niet-geaccepteerde SMP-lifecycleverkenning:** het combineren van de bestaande
 M4 multi-round lifecyclefixture met SMP eindigde op raw QEMU exit 35 bij
@@ -78,19 +79,17 @@ geen root-cause-fix of acceptatieclaim. Dit experimentele profiel is niet in
 de SMP-runner opgenomen.
 
 **Bewijsgrens:** dit checkpoint toont AP-bring-up, opt-in per-CPU M3-
-processselectie en een werkelijke succesvolle M4 ring-3-berichtuitwisseling
-over CPU-grenzen, plus een gerichte process-exit/cleanup op de AP. Het bewijst
-geen cross-CPU capability-revoke,
+processselectie, process-exit/cleanup van processlot 0 op CPU 1 en succesvolle
+M4 ring-3-berichtuitwisseling over CPU-grenzen. Het bewijst geen cross-CPU
+capability-revoke,
 TLB-shootdown/hergebruik of bredere races/failureacceptatie. Dit is geen
 volledige K06-acceptatie. `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
 
-**Eerstvolgende actie:** draai `python3 -B tools/test_smp.py` op deze gepushte
-bron. De matrix bevat M2 1/2/4 CPU, M3 2 CPU, M3 process-exit op een AP, de
-M3 1-CPU-regressie, M3 4 CPU en cross-CPU M4 IPC met 2 CPU. Gebruik de
-hieronder vastgelegde PATH, QEMU/OVMF en `LD_LIBRARY_PATH`. Hervat daarna K06
-met capability-revoke en TLB-/hergebruikgrenzen; wijzig geen
-capabilitysemantiek of ABI en claim geen remote shootdownprotocol zonder
-implementatie en bewijs.
+**Eerstvolgende actie:** voeg een opt-in 2-CPU-profiel toe voor de bestaande
+M4 capability-revoke-fixture; bewijs operatievolgorde en CPU/procesidentiteit
+zonder authoritysemantiek te wijzigen. Daarna herhaal de SMP-matrix. TLB-
+shootdown/hergebruik en bredere races blijven apart open; claim geen remote
+shootdownprotocol zonder implementatie en bewijs.
 
 **Cross-CPU capability-IPC — eerdere lokale proef vóór matrix:**
 `native-smp-m4` combineert het bestaande SMP-M3-profiel met de bestaande M4
@@ -129,8 +128,8 @@ Een eerdere aanroep met `--help` is geen helpmodus, voerde de runner uit en
 stopte door ontbrekende `cargo` op de standaard-PATH; die poging staat apart in
 [`smp-rendezvous-20261103T173931Z.json`](verification/sm-smp/smp-rendezvous-20261103T173931Z.json).
 
-**Eerstvolgende actie:** valideer de gepushte AP-exit/cleanup-slice met de
-volledige matrix; daarna de resterende cross-CPU-revoke- en TLB-acceptatie.
+**Eerstvolgende actie:** cross-CPU capability-revoke op 2 CPU, daarna de
+volledige matrix en de resterende TLB-/hergebruikacceptatie.
 Matrixomgeving en commando staan hierboven.
 De bestaande dirty wijzigingen in README en voortgangsbestanden zijn behouden
 en niet door deze SMP-taak aangepast.
