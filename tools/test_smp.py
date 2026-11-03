@@ -32,6 +32,18 @@ def main() -> int:
         "branch": subprocess.check_output(
             ["git", "branch", "--show-current"], cwd=ROOT, text=True
         ).strip(),
+        "invocation": {
+            "command": [sys.executable, "-B", "tools/test_smp.py"],
+            "environment": {
+                name: os.environ.get(name)
+                for name in (
+                    "PATH",
+                    "LD_LIBRARY_PATH",
+                    "OS_OVMF_CODE",
+                    "OS_OVMF_VARS",
+                )
+            },
+        },
         "date_europe_amsterdam": local_date,
         "status": "running",
         "passed": False,
@@ -109,6 +121,8 @@ def main() -> int:
                 return 1
         except Exception as error:
             summary["status"] = "failed"
+            summary["passed"] = False
+            summary["failed_stage"] = label
             summary["error"] = f"{type(error).__name__}: {error}"
             save_json(receipt, summary)
             raise

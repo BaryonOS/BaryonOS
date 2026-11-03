@@ -25,6 +25,7 @@ const ICR_DELIVERY_PENDING: u32 = 1 << 12;
 const IPI_INIT_ASSERT: u32 = 0x0000_c500;
 const IPI_INIT_DEASSERT: u32 = 0x0000_8500;
 const IPI_STARTUP: u32 = 0x0000_0600;
+#[cfg(feature = "native-smp-m3")]
 const IPI_SCHEDULE: u32 = 0x0000_00f1;
 const MAX_IPI_POLLS: usize = 1_000_000;
 const MAX_AP_POLLS: usize = 100_000_000;
@@ -36,6 +37,7 @@ const AP_ONLINE: u8 = 1;
 const AP_FAILED: u8 = 2;
 const AP_STOPPED: u8 = 3;
 const AP_ENTERED: u8 = 4;
+#[cfg(feature = "native-smp-m3")]
 const AP_M3_READY: u8 = 5;
 
 #[repr(C)]
@@ -61,6 +63,7 @@ static AP_STATES: [AtomicU8; MAX_CPUS] = [const { AtomicU8::new(AP_DISCOVERED) }
 static REQUESTS: [AtomicU32; MAX_CPUS] = [const { AtomicU32::new(0) }; MAX_CPUS];
 static ACKS: [AtomicU32; MAX_CPUS] = [const { AtomicU32::new(0) }; MAX_CPUS];
 static STOP: AtomicBool = AtomicBool::new(false);
+#[cfg(feature = "native-smp-m3")]
 static M3_READY: AtomicBool = AtomicBool::new(false);
 static WORK_RENDEZVOUS: Rendezvous = Rendezvous::new();
 
@@ -281,6 +284,7 @@ extern "C" fn ap_entry(apic_id: u32, index: u32) -> ! {
             AP_STATES[index].store(AP_STOPPED, Ordering::Release);
             terminal_halt();
         }
+        #[cfg(feature = "native-smp-m3")]
         if M3_READY.load(Ordering::Acquire) {
             super::m3::start_ap(index);
         }
@@ -385,6 +389,7 @@ fn send_ipi(window: u64, destination: u32, command: u32) {
     }
 }
 
+#[cfg(feature = "native-smp-m3")]
 pub fn current_cpu_index() -> usize {
     let window = APIC_WINDOW.load(Ordering::Acquire);
     if window == 0 {
@@ -399,6 +404,7 @@ pub fn current_cpu_index() -> usize {
     serial::fail(b"SMP:CPU_ID_UNKNOWN")
 }
 
+#[cfg(feature = "native-smp-m3")]
 pub fn bootstrap_index() -> usize {
     let index = BOOTSTRAP_INDEX.load(Ordering::Acquire);
     if index >= MAX_CPUS {
@@ -407,15 +413,18 @@ pub fn bootstrap_index() -> usize {
     index
 }
 
+#[cfg(feature = "native-smp-m3")]
 pub fn release_to_m3() {
     M3_READY.store(true, Ordering::Release);
 }
 
+#[cfg(feature = "native-smp-m3")]
 pub fn mark_m3_ready(index: usize) {
     assert!(index < ap::cpu_count() && index != bootstrap_index());
     AP_STATES[index].store(AP_M3_READY, Ordering::Release);
 }
 
+#[cfg(feature = "native-smp-m3")]
 pub fn wait_for_m3_ready() {
     for index in 0..ap::cpu_count() {
         if index != bootstrap_index() {
@@ -424,6 +433,7 @@ pub fn wait_for_m3_ready() {
     }
 }
 
+#[cfg(feature = "native-smp-m3")]
 pub fn schedule_aps() {
     assert_eq!(current_cpu_index(), bootstrap_index());
     let window = APIC_WINDOW.load(Ordering::Acquire);
@@ -436,6 +446,7 @@ pub fn schedule_aps() {
     }
 }
 
+#[cfg(feature = "native-smp-m3")]
 pub fn acknowledge_schedule_ipi() {
     let window = APIC_WINDOW.load(Ordering::Acquire);
     if window == 0 {
