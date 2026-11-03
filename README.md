@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`99d13276`](https://github.com/simonvanieperen/nieuw-os/commit/99d132768fd72276caa4a3b3e9a09f8f1909f0ed) ·
+**Bron:** [`0e3b9e7f`](https://github.com/simonvanieperen/nieuw-os/commit/0e3b9e7f02ee7556e4b713fa58c9cd9e6b26a740) ·
 **Ontwikkelbranch:** `codex/os-research-phases-2-4-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR131: vierde conflictoplossing met behoud van beide statushistories en PR139-receipts.
-41/100 blijft 41/100. Head59989b49 gecombineerd met main99d13276; vier centrale statusconflicten opgelost met behoud van beide geschiedenissen en de nieuwe PR139-receipts. Alle bestanden buiten README, PROJECT-STATE, PROGRESS en progress.json zijn exact main; criteria/evidence blijven gelijk. Geen nieuwe Rust-, native-, fysieke-, menselijke of releaseacceptatie. Historische PR139- en PR140-testclaims blijven aan hun oorspronkelijke bronnen gebonden. Reviewverzoeken blijven buiten deze conflictoplossingsautorisatie open; nieuwe-head controles en mergeability worden afzonderlijk beoordeeld.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR131: vijfde conflictoplossing met behoud van actuele desktopcode en PR149-bewijs.
+41/100 blijft 41/100. Head9979b4f2 gecombineerd met main0e3b9e7f; vier centrale statusconflicten opgelost met behoud van beide geschiedenissen, desktopcode, regressietests en PR149-bewijzen. Buiten README, PROJECT-STATE, PROGRESS en progress.json is de boom exact main; criteria/evidence blijven gelijk. Geen nieuwe Rust-, host-UI-, native-, fysieke-, menselijke of releaseacceptatie. Historische testclaims blijven aan hun oorspronkelijke bronnen gebonden. Reviewverzoeken blijven buiten deze conflictoplossingsautorisatie open; nieuwe-head controles en mergeability worden afzonderlijk beoordeeld.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
