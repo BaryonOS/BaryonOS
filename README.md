@@ -64,7 +64,7 @@ alleen een nette desktop haalt die eindgrens niet.
 **Bron:** [`e8da9bfe`](https://github.com/simonvanieperen/nieuw-os/commit/e8da9bfe009844f931bd343ae383f30e758212fb) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-spoon`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** M1: centrale sleep-API ook in supervisordeadline gebruiken.
-41 blijft 41. SDK-runtime biedt absolute monotone timer-/wait-semantiek met atomische annulering; worker en supervisor gebruiken nu de cancellation-aware API. capability-core ProcessUsage per PID wordt door K05 gecontroleerd en voor spawn-preflight gebruikt. De zes K05-cases en 130 hosttests (1 bestaande benchmark ignored) slagen voor basisbron 3249c93e onder QEMU 10.2.1 met pc-q35-8.2; dit is niet dezelfde QEMU-build als CI. Nieuwere sleep_until-wiring in e8da9bfe is alleen gefmt/diff-gecheckt; de gate wordt opnieuw uitgevoerd. Geen generiek OS-resourcebudget, syscall of gebruikersrapportage; geen fysieke/menselijke acceptatie of rubricsluiting.
+41 blijft 41. SDK-runtime biedt absolute monotone timer-/wait-semantiek met atomische annulering; worker en supervisor gebruiken nu de cancellation-aware API. capability-core ProcessUsage per PID wordt door K05 gecontroleerd en voor spawn-preflight gebruikt. Op bron e8da9bfe slagen alle zes K05-cases onder QEMU 10.2.1 met pc-q35-8.2 en 130 hosttests (1 bestaande benchmark ignored); dit is niet dezelfde QEMU-build als CI. Geen generiek OS-resourcebudget, syscall of gebruikersrapportage; geen fysieke/menselijke acceptatie of rubricsluiting.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

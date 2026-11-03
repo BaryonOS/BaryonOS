@@ -14,13 +14,13 @@ M1 (3 november 2026), actuele bron `e8da9bfe`:
 **41 → 41/100**. K05 valideert `ProcessUsage` bij manifeststart en gebruikt
 vrije capability-handle-slots voor spawn-preflight. Worker en supervisor
 gebruiken de centrale timer-/wait-API; `wait_ticks` is recent aangesloten op
-`sleep_until`. De zes K05-cases en 130 hosttests (één bestaande benchmark
-ignored) slagen op de voorafgaande bron `3249c93e` onder QEMU 10.2.1 met
-machineprofiel `pc-q35-8.2`, niet de CI-QEMU-build. De recente wijziging op
-`e8da9bfe` heeft alleen formatterings- en diff-checks; QEMU-gate volgt nog.
+`sleep_until`. Op deze bron slagen alle zes K05-cases en 130 hosttests (één
+bestaande benchmark ignored) onder QEMU 10.2.1 met machineprofiel
+`pc-q35-8.2`, niet de CI-QEMU-build.
 Geen geheugen-, CPU-, opslag- of DMA-budget, geen fysieke/menselijke
 acceptatie en geen gesloten rubriekcriterium.
-[Receipt van de voorafgaande bron](verification/m1-resource-accounting-20261103.json).
+[Receipts](verification/m1-resource-accounting-20261103.json) en
+[centrale sleep-API](verification/m1-central-sleep-20261103.json).
 
 ## Betekenis van het percentage
 

@@ -40,7 +40,8 @@ beschikbaar.
 - `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check` (exit 0)
 - `git diff --check` (exit 0)
 - Voor bron `3249c93e`: zes K05-QEMU-cases geslaagd; exacte opdracht, host-suite-uitkomsten, serialhashes en tijdelijke QEMU/OVMF-build staan in `docs/verification/m1-resource-accounting-20261103.json`.
-- Voor bron `e8da9bfe`: formatterings- en diff-check exit 0; K05-gate nog niet opnieuw uitgevoerd.
+- Voor bron `e8da9bfe`: `PATH="/tmp/nieuw-os-qemu/root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH" LD_LIBRARY_PATH="/tmp/nieuw-os-qemu/root/usr/lib/x86_64-linux-gnu" OS_OVMF_CODE=/tmp/nieuw-os-qemu/root/usr/share/OVMF/OVMF_CODE_4M.fd OS_OVMF_VARS=/tmp/nieuw-os-qemu/root/usr/share/OVMF/OVMF_VARS_4M.fd NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B -u tools/test_supervisor.py` (exit 0; zes K05-cases en host suites geslaagd)
+- `python3 -m json.tool docs/verification/m1-central-sleep-20261103.json` (exit 0)
 - `python3 -B -u tools/test_supervisor.py` (exit 1; `cargo` niet in `PATH`)
 - `PATH="$HOME/.cargo/bin:$PATH" python3 -B -u tools/test_supervisor.py` (exit 1; wrapper meldde host-check mislukt, onderliggende detail niet getoond)
 - `PATH="/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH" python3 -B -u tools/test_supervisor.py` (exit 1; native worker gebruikte verouderde `TimerRegistration::at`-signatuur; gerepareerd in `3249c93e`)
@@ -59,14 +60,16 @@ ontdekten een ontbrekende `PATH`-toolchain en een verouderde
 `TimerRegistration::at`-aanroep; die laatste is in `3249c93e` hersteld.
 QEMU 10.2.1 en OVMF zijn daarna uit officiële Ubuntu-pakketten onder `/tmp`
 uitgepakt, zonder systeeminstallatie. Met machineprofiel `pc-q35-8.2` zijn
-alle zes K05-cases geslaagd; dit is geen run met de QEMU-build uit de CI-image.
-Geen fysieke of menselijke acceptatie uitgevoerd. Volledig compact bewijs:
-`docs/verification/m1-resource-accounting-20261103.json`. Score blijft
-**41 → 41**.
+alle zes K05-cases opnieuw geslaagd op bron `e8da9bfe`; dit is geen run met de
+QEMU-build uit de CI-image. De hostpoort rapporteerde 81 capability-tests, 40
+runtime-tests, 1 protocoltest en 8 harnastests geslaagd, plus 1 bestaande
+ignored benchmark. Geen fysieke of menselijke acceptatie uitgevoerd. Compact
+bewijs voor de accounting- en sleep-API-checkpoints:
+`docs/verification/m1-resource-accounting-20261103.json` en
+`docs/verification/m1-central-sleep-20261103.json`. Score blijft **41 → 41**.
 
-**Open/eerstvolgend:** herhaal de zes K05-cases op bron `e8da9bfe`; de vorige
-groene receipt hoort bij `3249c93e`. Daarna kan de centrale sleep-API naar een
-volgende service worden overgezet. Capability-accounting blijft beperkt tot handles,
+**Open/eerstvolgend:** de centrale sleep-API kan naar een volgende service-
+eventlus worden overgezet. Capability-accounting blijft beperkt tot handles,
 capability-objecten en IPC-queues; geheugen-/CPU-/storage-/DMA-budgettering en
 gebruikersrapportage ontbreken. De score sluit geen rubriekcriterium. De klok
 blijft 100-Hz PIT op bestaande profielen, RTC blijft unauthenticated en
