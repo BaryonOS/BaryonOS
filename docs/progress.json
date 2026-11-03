@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "093d26eb614411ec6adf713a9d6c647b10a47d73",
+    "source_commit": "3de934dd91a6e2b078f4435ca4724e211406a7c0",
     "branch": "simonvanieperen-fictional-disco",
     "task": "Eerste native Veld-stap: gedeelde visuele rollen, werkfocus, ordening en lokale zoekaliassen",
     "previous_score": 41,
-    "summary": "41% blijft 41%: eerste native Veld-code en hostchecks zijn bewaard. Eigen-OS-build op 093d26eb slaagt; de echte uitgebreide QEMU-gate bereikt werkfocus, Finderselectie en documentinvoer, maar faalt op een niet-stabiele beginbeeldbasis na de nieuwe shellacties. De runner wacht nu op exacte stabiele chrome en het volledige Materiaalbeeld voordat dezelfde volledige buiten-appisolatiecontrole begint. Gerichte hosthercontrole slaagt; volledige native herkansing blijft open. Geen dependencies, kernelrechten, criteriumstatussen of historische bewijzen veranderd. Het volledige Veld-ontwerp, U02-U06, fysieke/menselijke beoordeling en release blijven open."
+    "summary": "41% blijft 41%: native Veld-builds en gerichte hostchecks slagen. De tweede echte QEMU-poging passeert werkfocus, Finderselectie, appisolatie en de klembordketen, maar de onverzwakte verplaatsingsoracle vindt een echte regressie: onnodige annulering van alle appwachtrijen verandert calculatorcaretpixels. De inputroute annuleert nu alleen een werkelijk aanwezige appmuiscapture; volledige native herbouw/herhaling blijft open. Geen dependencies, kernelrechten, criteriumstatussen of historische bewijzen veranderd. Het volledige Veld-ontwerp, U02-U06, fysieke/menselijke beoordeling en release blijven open."
   },
   "tracks": [
     {

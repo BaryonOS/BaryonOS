@@ -29,6 +29,11 @@ op een niet-stabiele beginbeeldbasis na de nieuwe focusacties. De runner wacht
 nu exact op volledige chrome plus Materiaal en bewaart daarna dezelfde
 volledige buiten-appisolatievergelijking. Hosthercontrole exit 0;
 de gehele native herkansing is nog verplicht en niet als geslaagd geteld.
+De tweede VM-poging op `3de934dd` passeerde appisolatie en de klembordketen,
+maar de onverzwakte verplaatsingsoracle vond een echte invoerregressie:
+onnodige Resync van alle apps veranderde de calculatorcaret. De test is
+gericht gestopt; layout/mode annuleert nu alleen een aanwezige appmuiscapture.
+De volledige nieuwe herkansing blijft open.
 Gebruik lokale genegeerde build-/targetmappen; een externe artifactmap wordt
 terecht door de bestaande guard geweigerd. De volledige gate blijft
 verplicht naast bestaande volledige appbeeld-, isolatie-, echte crash/herstel-,

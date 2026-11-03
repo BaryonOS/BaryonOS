@@ -28,7 +28,9 @@ onbedoeld heen en weer en keyreleases gaan niet naar apps.
 
 **Invarianten/fouten:** buffers, appafmetingen, offsets en presentatie-epochs
 veranderen niet door deze acties. Verborgen vensters krijgen geen muishit.
-Beweging en modewisseling annuleren oude appinvoerwachtrijen/capture. Volledige
+Beweging en modewisseling annuleren uitsluitend een aanwezige appmuiscapture
+via de bestaande invoerwachtrij. Zonder grab blijft gewone appinvoer intact.
+Volledige
 oude/nieuwe schaduwgrenzen, focus en paletopen/sluiten doen mee aan damage.
 Onjuiste schaduwspreiding/lege geometrie faalt vóór schrijven. De achtergrond
 is een statisch RGB-verloop; schaduwen hebben begrensde afstandsafname,

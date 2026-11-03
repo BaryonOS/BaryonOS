@@ -62,6 +62,16 @@ uitzonderingspixels of maskers toegevoegd. Bestaande volledige apporakels,
 crash-, schijf- en cleanupgates blijven verplicht. Gerichte scene-/runnertests
 en Clippy slagen opnieuw; de volledige native herkansing volgt nog.
 
+De herkansing op `3de934dd` passeerde daarna ook de volledige appisolatie-
+en klembordketen tot berekening `2+3`. De bestaande ongewijzigde
+verplaatsingsoracle vond een echte regressie: iedere titelbeweging annuleerde
+onterecht **alle** appwachtrijen en wijzigde 296 caret-/selectiepixels van de
+Rekenmachine (lokaal gebied x24–295/y28–55). De uitvoering is gericht gestopt
+in plaats van de gate of oracle te verzwakken. De inputroute annuleert nu
+uitsluitend een werkelijk aanwezige appmuiscapture bij layout-/modewisseling.
+Titelbeweging zonder grab laat gewone invoer en caret ongemoeid.
+Nog geen geslaagde volledige native acceptatie; herbouw/herhaling volgen.
+
 De eerste buildpoging naar de artifactmap buiten de checkout is terecht
 geweigerd (exit 1, `FPU artifact escaped checkout`). Geen guard aangepast;
 de build gebruikt daarna de genegeerde lokale mappen

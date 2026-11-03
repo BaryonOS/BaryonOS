@@ -403,9 +403,8 @@ fn run() -> ! {
                 if scene.workspace_mode() != previous_mode
                     || scene.windows.map(|window| window.body) != previous_bodies
                 {
-                    app_pointer_capture = None;
-                    for queue in &mut queues {
-                        queue
+                    if let Some(captured) = app_pointer_capture.take() {
+                        queues[captured]
                             .cancel(CancelReason::Resync)
                             .unwrap_or_else(|_| fail(20));
                     }
