@@ -2,6 +2,20 @@
 
 ## NEXT AGENT HANDOFF — desktop, volume en terminale netwerkstatus — 3 november 2026
 
+Nieuwste bron `b44c46e9add9d586fe0dfe857954a74163e1d225`, source-v3
+`1ca8615711e88eefa058c206e91cf9b52d00a4640760a7b4d9d4216cd3928408`.
+De echte timeoutgast voert nu twee ReceiveTcp-RPCs uit na terminale state:
+beide EOF, actieve-appcounter520 exact2.14 harnastests en echte native-
+target-Clippy groen; QEMU-normal/client-exit op deze bron nog niet uitgevoerd.
+Bewijs: `verification/native-timeout-receive-proof.json`.
+Volumeverifier-agent blijft bevroren opce02/source2c410004; eerste build
+faalde door ontbrekende offlinechacha20. Alleen bestaande locked dependencies
+worden na die echte miss opgehaald; geen manifests/lockfiles gewijzigd.
+Zijn resultaat geldt niet automatisch voor deze nieuwste sourcefingerprint.
+B03-herproefartifact13220271802:18 fasen passed op oudeefaf/source3abcacd2,
+ZIP-SHA256 `2dc90145cd43e87e2c53a931a4f78f662052b382578aea437b4398d38697aaaf`.
+Geen verhulde eerste flushfout of onbewezen rootfix. Score **41 -> 41**.
+
 Bron `ce02f093627a2c0b9808461ac821d4ebcd8dbb5f` behoudt volledige
 PR134-head27cb3948 naast130/129/128/127/133. Source-v3
 `2c410004daceb557f5501e58270d5b315744f1a6eb22d44499d45bc31bef41b7`.

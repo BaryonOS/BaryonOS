@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`ce02f093`](https://github.com/simonvanieperen/nieuw-os/commit/ce02f093627a2c0b9808461ac821d4ebcd8dbb5f) ·
+**Bron:** [`b44c46e9`](https://github.com/simonvanieperen/nieuw-os/commit/b44c46e9add9d586fe0dfe857954a74163e1d225) ·
 **Ontwikkelbranch:** `integrate/stack130-local`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR134 terminale TCP-ontvangststatus inhoudsbehoudend op de desktop-/volumestapel integreren.
-41 blijft41. Volledige PR134 is als mergeparent behouden: ReceiveTcp eindigt met Closed na een verbindingstime-out terwijl de diagnostiek TimedOut blijft.10 netwerkservicetests slagen op de echte gecombineerdebron ce02f093/source2c410004. Eerdere desktop-/volume-/fragmentinhoud blijft behouden. B03 gaf op135efaf eerst flushcompletion Unknown/-16; exact-head herproef slaagt, geen onbewezen rootfix of groen door gewijzigde asserts. Exacte foreignfixtures en Windows-QEMU-procesbeheersing zijn gevonden/gecontroleerd; gecombineerde10+9VM-acceptatie en hosted fixturelevering blijven apart open. Geen extra punten,44/U03, fysieke hardware, productiekeys, menselijke audit of volledige release.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Terminale TCP-ontvangststatus ook door echte native guest-RPCs laten bewijzen.
+41 blijft41. Na inhoudsbehoudende PR134-integratie vereist de bestaande echte ring3-timeoutgast nu tweemaal EOF bij ReceiveTcp; actieve-appcounter520 moet exact2 zijn.14 peerhosttests en native-target-Clippy zijn groen, maar nieuwe normal/client-exit-QEMU-uitvoering blijft verplicht op source1ca86157.10 serviceregressies op voorafgaandece02 zijn groen; volume10+9VM-proef op die bevrorenbron liep tegen ontbrekende lockedchacha20dependency en herstelt alleen die bestaande cache. B03exacte-head-herproef heeft18 geslaagde fasen op oude135efaf, niet op deze nieuwebron. Hosted foreignfixturelevering blijft open. Geen nieuwepunten,44/U03, fysieke, productiesleutel-, menselijke of volledige releaseacceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

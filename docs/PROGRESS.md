@@ -85,6 +85,11 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Native timeoutontvangst (3 november 2026), bron `b44c46e9`: **41 -> 41**.
+De echte guest-RPCs en seriële counterbinding zijn geïmplementeerd;14
+hostharnastests/native-target-Clippy groen. Verse QEMU-uitvoering blijft
+nodig; geen nieuwe native punten voor alleen een assertie of build.
+
 PR134-integratie (3 november 2026), bron `ce02f093`: **41 -> 41**.
 Volledige timeoutfix en historische metadata behouden;10 servicehosttests
 groen op gecombineerde source2c410004. Geen nieuwe native punten.
