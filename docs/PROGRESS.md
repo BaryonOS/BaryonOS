@@ -85,6 +85,12 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR #119, derde conflictoplossing (3 november 2026), head `052812b4` met
+main `cbbc9c99`: **41 → 41/100**. Drie statusconflicten inhoudsbehoudend
+opgelost; beide checkpointgeschiedenissen en de nieuwe main-netwerkfix
+blijven behouden. Geen wijziging van criteria, statussen of bewijsverwijzingen,
+geen nieuwe productpunten en geen herlabeling van historisch native bewijs.
+
 PR #119, tweede conflictoplossing (2 november 2026), head `ee5003e6` met
 main `380111b6`: overgenomen main-assessment **41 → 41**, branchweergave
 **34 → 41** uitsluitend door overname van mains bestaande U01/N01-statussen

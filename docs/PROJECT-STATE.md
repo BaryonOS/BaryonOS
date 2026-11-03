@@ -1,6 +1,34 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR #119, tweede conflictoplossing — 2 november 2026
+## NEXT AGENT HANDOFF — PR #119, derde conflictoplossing — 3 november 2026
+
+**Bron:** head `052812b4e8c0e4ad6edcb1a15770a62dac860f8c`,
+branch `claude/issue-110-nas-replay`; actuele main
+`cbbc9c9941b08ea5edfbd3637d494635b4fb1df0`. Alleen conflictoplossing;
+geen PR-merge, CI-retry of zelfstandige netwerkreparatie.
+
+**Resolutie:** drie conflicten in README, PROJECT-STATE en progress.json
+betreffen gelijktijdige statusupdates. Beide checkpointgeschiedenissen en
+de automatisch geïntegreerde ReceiveTcp-timeoutfix uit main blijven behouden.
+De historische bewijzen hieronder blijven aan hun oorspronkelijke bron gebonden.
+Score **41 → 41/100**; criteria, gewichten, statussen en bewijsverwijzingen
+blijven gelijk aan main. Er is geen nieuwe productacceptatie.
+
+**Uitgevoerd op de opgeloste boom:** `python3 tools/progress.py --write`
+en `python3 tools/progress.py --check`, beide exit 0, 41/100.
+`git diff origin/main --check`: exit 0.
+`git diff --exit-code origin/main -- . ':(exclude)README.md' ':(exclude)docs/PROJECT-STATE.md' ':(exclude)docs/PROGRESS.md' ':(exclude)docs/progress.json' ':(exclude)docs/assets/progress.svg'`:
+exit 0. Alle implementatie- en bewijsbestanden zijn exact gelijk aan main.
+De eerdere vergelijking zonder SVG-uitzondering gaf exit 1 uitsluitend door
+de gegenereerde datumwijziging 2 → 3 november; geen implementatieverschil.
+Rust-/native-/QEMU-tests niet uitgevoerd voor deze documentaire resolutie.
+
+**Vervolg/bewijsgrens:** de documentaire resolutie vereist de voortgangscheck
+en exacte inhoudsvergelijking; geen nieuwe Rust-/QEMU-uitvoering geclaimd.
+Na publicatie nieuwe-head CI en mergeability beoordelen, zonder polling.
+Eerstvolgende lokale controle bij hervatten: `git status --short`.
+
+## Vorig checkpoint — PR #119, tweede conflictoplossing — 2 november 2026
 
 **Bron:** head `ee5003e6e654a63d050acb3513c7ed6ae3f5b266` op
 `claude/issue-110-nas-replay`, actuele main
@@ -66,6 +94,34 @@ Na publicatie moeten de checks op de nieuwe PR-head worden beoordeeld.
 Historische bewijsbundels blijven aan hun eigen bron gebonden; alle open
 product-, fysieke en menselijke acceptatiegrenzen blijven bestaan.
 Eerstvolgende lokale controle bij hervatten: `git status --short`.
+
+## Vorig checkpoint — issue #43: ReceiveTcp na verbindingstime-out
+
+**Basis:** `380111b68688c981eec6abb8fab29174a29f5601` (main), branch
+`coderabbit/issue-43-receive-timeout`. Eén gerichte N01-reparatie: een al
+geannuleerde socket geeft bij ontvangst `Closed`, ook als de diagnostische
+status `TimedOut` is. De bestaande bufferafhandeling en tokencontroles blijven
+intact; opnieuw openen zet de time-outstatus terug en vernieuwt het token.
+
+**Bewijs:** regressietest op de oude code echt rood (exit 101: `Again` versus
+`Closed`); daarna alle 10 service-hosttests, rustfmt, Clippy en de
+`x86_64-unknown-none`-librarybuild groen (exit 0), Rust 1.91.1.
+Zie `docs/verification/issue-43-receive-timeout.md` voor commando's en grenzen.
+Een tweede agent bevestigde het codepad alleen-lezen; dit is geen menselijke audit.
+
+**Aanvullend bewijs:** 35 broker- (incl. 4 doctests), 26 stack-, 4 protocol-,
+6 client- en 11 peerharnastests groen. Native `normal` en `client-exit` op
+`5925c915f6b8d02842fffd89a94f21c0e018689a` slagen met raw QEMU-exit 33,
+bronhash `9a8b521f4b2e5a24b279142d8554538c5cf618e3e55a9cac3e7070e12ad4fc39`,
+peer compleet en volledige opruiming (8,27/7,79 s). Nieuwe ontvangstreproductie
+is hostbewijs; native gates herhalen de bestaande netwerkregressiedekking.
+Compacte hashes: `docs/verification/issue-43-receive-timeout.json`.
+
+**Open/eerstvolgend:** hosted CI en inhoudelijke review op de head van
+concept-PR https://github.com/simonvanieperen/nieuw-os/pull/134 controleren.
+De laatste commit wijzigt alleen documentatie/bewijs. #43 blijft open; geen issuewijziging,
+merge, nieuwe bevoegdheid of afhankelijkheid. **41 → 41/100**; geen nieuwe
+native productcriteria, hardware- of volledige releaseclaim.
 
 ## Vorig checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 

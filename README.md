@@ -31,11 +31,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`380111b6`](https://github.com/simonvanieperen/nieuw-os/commit/380111b68688c981eec6abb8fab29174a29f5601) ·
+**Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
+**Bron:** [`cbbc9c99`](https://github.com/simonvanieperen/nieuw-os/commit/cbbc9c9941b08ea5edfbd3637d494635b4fb1df0) ·
 **Ontwikkelbranch:** `claude/issue-110-nas-replay`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR #119: documentatieconflicten met main 380111b6 oplossen.
-De branch neemt de bestaande main-score van 41/100 over (was 34/100 op ee5003e6). Deze conflictoplossing kent geen punten toe en wijzigt geen criteria, gewichten, statussen of bewijsverwijzingen. Beide checkpointgeschiedenissen blijven behouden. Implementatie en bestaande acceptatiegrenzen blijven gelijk aan main; historische tests zijn geen nieuwe uitvoering. Nieuwe-head CI en GitHubs mergeabilityberekening blijven afzonderlijke vervolgstappen.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR #119: documentatieconflicten met main cbbc9c99 oplossen.
+41/100 blijft 41/100. De drie documentatieconflicten behouden beide checkpointgeschiedenissen en mains ReceiveTcp-timeoutfix. Buiten status-/meterdocumenten blijft de implementatie exact gelijk aan main. Criteria, gewichten, statussen en bewijsverwijzingen veranderen niet. Historisch netwerkbewijs blijft brongebonden; deze integratie is geen nieuwe native, fysieke of menselijke acceptatie. Nieuwe-head CI en mergeability blijven afzonderlijke vervolgstappen.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
