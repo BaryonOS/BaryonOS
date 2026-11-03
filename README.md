@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`b38f17ea`](https://github.com/simonvanieperen/nieuw-os/commit/b38f17ea3407b510b30b60b45125267596c60f8f) ·
+**Bron:** [`0c66173b`](https://github.com/simonvanieperen/nieuw-os/commit/0c66173bed205b2d2b04368e39d4a59b9f5a2b9c) ·
 **Ontwikkelbranch:** `simonvanieperen-fictional-disco`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Veld-02: objectgebonden Schrijven/Lezen en native venstertoestanden.
-41% blijft 41%: Schrijven/Lezen op dezelfde echte documenteigenaar is native geverifieerd op 3e79b6a8 met31 fasen en onverkorte isolatie-, klembord-, compositorherstel-, schijf- en cleanupcontroles. Normal/Minimized en een echt keyboard-/muismenu zijn vanaf b38f17ea geintegreerd; 61 compositorhosttests, UI-tests, strikte Clippy en runnertegenvoorbeelden slagen. De verse gecombineerde native gate is nog niet uitgevoerd. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open.
+41% blijft 41%: gecombineerde bron0c66173b slaagt native met36 fasen: echte Schrijven/Lezen-toolwisseling, Normal/Minimized, muis- en keyboardvenstermenu, geen toetsen aan verborgen apps en herstel van echte documentpixels. De volledige isolatie-, klembord-, compositorherstel-, schijf- en cleanupcontroles blijven groen. 61 compositorhosttests, UI-tests, Clippy en runnertegenvoorbeelden slagen. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Native200%, complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

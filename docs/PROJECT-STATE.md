@@ -31,7 +31,11 @@ geminimaliseerde vensters gaan geen toetsen naar een app.
 61 compositorhosttests, strikte Clippy en nieuwe samengevoegde UI-tests slagen.
 Log `files/veld-env/logs/veld-window-integration-host.log`. De eerste fmt
 vond een verkeerd ingevoegde matchpositie; hersteld vóór compilatie.
-Nieuwe native windowstate-fasen zijn nog **niet uitgevoerd**.
+Nieuwe native windowstate-fasen slagen op
+`0c66173bed205b2d2b04368e39d4a59b9f5a2b9c`:
+36 fasen, 277,54 s, ruwe QEMU-exit33, alle gateflags true.
+Fingerprint `78d83b650f7796832e313aed23ccdd748b8b569e47c5099f1bba0b94322422bc`.
+[Bewijs](verification/veld-window-20261103/README.md).
 
 **Native resultaat:** bron `3e79b6a8a6bba75c42efe5e307813eefc066fa71`,
 fingerprint `7da356474e591a062456f395e70ac6bba053acc29a080d077df86ec488557e71`:
@@ -39,8 +43,10 @@ eigen-kernelbuild exit 0; volledige `run_window_session.py --clipboard --workspa
 exit 0, 31 fasen, 254,22 s, ruwe QEMU-exit 33. Lezen, geweigerde bewerking,
 hersteld Schrijven en de oorspronkelijke volledige herstel-/schijfketen slagen.
 [Brongebonden bewijs](verification/veld-tools-20261103/README.md).
-Volgende stap: nieuwe gecombineerde bron native
-toetsen, vervolgens verder met resterende gebruikersomgeving. Score **41 -> 41**;
+Volgende stap: native200%-runner aansluiten en documentcontextmenu integreren.
+Agent `e9f601e4` bouwt dat menu in aparte worktree, uitsluitend native
+controller/render en bijbehorende hosttests; hoofdagent beheert runner en
+fixtures. De complete omgeving blijft actief. Score **41 -> 41**;
 geen U02–U06-, fysieke, menselijke of releaseacceptatie.
 
 ## Vorig checkpoint — eerste native Veld-stap geverifieerd — 3 november 2026
