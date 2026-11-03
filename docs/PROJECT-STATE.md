@@ -1,6 +1,34 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR131: tweede main-conflictoplossing — 3 november 2026
+## NEXT AGENT HANDOFF — PR131: derde main-conflictoplossing — 3 november 2026
+
+**Bronnen en scope:** head `2c17b9330643b9ee2439542bd4b9c23ea84c832f`
+op `codex/os-research-phases-2-4-20261102` gecombineerd met main
+`d115cc96c19ac4371baed77409a23d1adddffaf0`. Vier centrale
+status-/assessmentconflicten; beide geschiedenissen, de nieuwe
+artifact-store-contracttests en de PR140-bewijsbestanden blijven behouden.
+Alleen conflictoplossing is geautoriseerd; geen reviewafhandeling of PR-merge.
+Productcode, tools, tests, criteria en bewijsbestanden blijven exact main.
+**Score: 41/100 → 41/100**, geen nieuwe acceptatie of bevoegdheden.
+
+**Validatie/bewijsgrens:** vóór de mergecommit uitgevoerd, alle exit 0:
+- `python3 tools/progress.py --write`.
+- `python3 tools/progress.py --check`; `/tmp/pr131-r3-progress.log`.
+- `git diff --exit-code origin/main -- . ':!README.md' ':!docs/PROJECT-STATE.md' ':!docs/PROGRESS.md' ':!docs/progress.json'`:
+  alle overige bestanden exact main.
+- `git diff --check origin/main`; `/tmp/pr131-r3-diff.log`.
+- `git diff --cached --check`; `/tmp/pr131-r3-staged.log`.
+
+Geen Rust-build, QEMU, fysieke proef of nieuwe native acceptatie voor deze
+documentatieresolutie. De PR140-testresultaten hieronder blijven uitsluitend
+bewijs voor hun oorspronkelijke bron, niet voor een nieuwe uitvoering hier.
+Tijdelijke logs blijven buiten Git.
+
+**Open/eerstvolgend:** reviewverzoeken blijven buiten deze autorisatie open;
+nieuwe-head controles en mergeability moeten afzonderlijk worden beoordeeld.
+Eerstvolgende lokale controle: `python3 tools/progress.py --check`.
+
+## Historisch checkpoint PR131 — tweede main-conflictoplossing — 3 november 2026
 
 **Bronnen en scope:** PR-head `6bd107fd417a82fbb5e9bd1a547293ff40658998`
 op `codex/os-research-phases-2-4-20261102` gecombineerd met actuele main
@@ -80,6 +108,45 @@ nieuwe runtime-uitvoering. Tijdelijke logs worden niet meegecommit.
 beoordelen; oude testresultaten gelden niet als nieuwe uitvoering. Eerste
 lokale controle: `python3 tools/progress.py --check`. De bestaande release-,
 installer-, authenticatie- en toegankelijkheidsgates blijven open.
+
+## Historisch checkpoint — PR140 bewijs en descriptorclaims — 3 november 2026
+
+**Geteste bron:** `2bf9578290bef88d53c17f9913434da6f27441f2`, inclusief
+main `69809c2cb53dfb3bd77abe5352892810fba6e82d`.
+Op deze exacte bron zijn met Rust 1.90.0 de 9 artifact-store-contracttests,
+`cargo check --tests`, Clippy en formattering opnieuw uitgevoerd: elk exit 0.
+Exacte commando's, omgeving, source-tree, codehashes en volledige logs met
+SHA-256 staan duurzaam in
+[pr140-review-evidence.json](verification/pr140-review-evidence.json).
+De tijdelijke logpaden zijn alleen oorspronkelijke uitvoerpaden.
+
+De tests bewijzen descriptorvalidatie, binding en foutdoorgifte, niet
+identiteit, herkomst of cryptografische authenticatie. Het historische
+rapport behoudt bron `08710d55`, commando's, exits en hashes; alleen de
+scopeclaim is gecorrigeerd en het verse bewijs toegevoegd.
+Score **41 → 41**, geen nieuwe productacceptatie of productiecodewijziging.
+
+**Open:** verse volledige CI en definitieve review vóór merge. Native/QEMU,
+fysieke en menselijke acceptatie zijn niet opnieuw uitgevoerd. PR135's
+volume-fixture- en RANDOM-gates blijven afzonderlijk open; bron-PRs niet
+blind sluiten. **Eerstvolgend:** `GH_PAGER="" gh pr checks 140`; bij
+Watch-headwijziging opnieuw head/base en inhoud controleren.
+
+## Historisch checkpoint — PR #140 main-integratie — 3 november 2026
+
+PR-head `75cda7f4d49c5afe895277ada1102d630fdb75ad` is inhoudsbehoudend
+geïntegreerd met main `69809c2cb53dfb3bd77abe5352892810fba6e82d`.
+De Nederlandse beschrijvingen in het PR140-hostrapport blijven behouden;
+main's documentstapel, opslagherstelmateriaal, audit en replaytests zijn
+eveneens behouden. De rubric is ongewijzigd: **41 → 41/100**.
+
+**Gecontroleerd:** `umask 077 && python3 -B -m unittest discover -s tests -p
+'test_storage_backend_replay.py'` slaagt (16 tests). De eerste poging met de
+omgeving-umask `0002` faalde op drie permission-gebonden fixtures; geen
+productiecode gewijzigd. `python3 tools/progress.py --write` en `--check`,
+JSON-syntaxiscontrole en `git diff --check` slagen.
+**Open:** de nieuwe integratiehead moet opnieuw door hosted controles worden
+beoordeeld. Er is geen nieuwe native/QEMU-acceptatie uitgevoerd.
 
 ## Historisch checkpoint — documentstapel inhoudsbehoudend combineren — 3 november 2026
 

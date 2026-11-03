@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`69809c2c`](https://github.com/simonvanieperen/nieuw-os/commit/69809c2cb53dfb3bd77abe5352892810fba6e82d) ·
+**Bron:** [`d115cc96`](https://github.com/simonvanieperen/nieuw-os/commit/d115cc96c19ac4371baed77409a23d1adddffaf0) ·
 **Ontwikkelbranch:** `codex/os-research-phases-2-4-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR131: tweede conflictoplossing met actuele main en behoud van onderzoeks- en desktopcorrecties.
-41/100 blijft 41/100. Head6bd107fd is inhoudsbehoudend gecombineerd met main69809c2c. Main bevat de onderzoeksdossiers al; bronlinkcorrecties, Ubuntu-volgorde, actuele desktopbesluiten, unieke ADR-nummers en bewijsarchieven blijven behouden. De eerste PR131-integratie blijft historisch beschreven. Alle criteria/evidence, productcode, tools en tests blijven gelijk aan main. Geen nieuwe native, fysieke, menselijke of releaseacceptatie. Reviewverzoeken zijn buiten het mandaat van deze conflictoplossingsronde en blijven open; nieuwe-head CI en mergeability worden afzonderlijk beoordeeld.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR131: derde conflictoplossing met behoud van actuele main-tests en PR140-bewijs.
+41/100 blijft 41/100. Head2c17b933 gecombineerd met maind115cc96; vier centrale metadata-conflicten opgelost met behoud van beide geschiedenissen. Nieuwe artifact-store-contracttests, descriptorvalidatieclaims en duurzame PR140-testreceipts blijven ongewijzigd uit main behouden. Productcode, tools, tests, criteria en evidence zijn exact main. Geen nieuwe Rust-, native-, fysieke-, menselijke of releaseacceptatie; oudere testclaims blijven aan hun eigen bron gebonden. Reviewverzoeken blijven buiten deze conflictoplossingsautorisatie open. Nieuwe-head controles en mergeability worden afzonderlijk beoordeeld.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

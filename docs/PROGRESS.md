@@ -85,6 +85,12 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR131-derde-conflictoplossing (3 november 2026), head `2c17b933` met
+main `d115cc96`: **41 → 41/100**. Beide statusgeschiedenissen, nieuwe
+artifact-store-contracttests en PR140-bewijs behouden; geen nieuwe punten.
+Productcode, tools, tests en criteria/evidence zijn exact main. Geen nieuwe
+Rust-/native-uitvoering; reviewverzoeken blijven buiten deze autorisatie.
+
 PR131-tweede-conflictoplossing (3 november 2026), head `6bd107fd` met
 main `69809c2c`: **41 → 41/100**. De al geïntegreerde onderzoeksdossiers,
 bronlink-/Ubuntu-correcties en actuele desktopbesluiten blijven behouden.
@@ -100,6 +106,18 @@ Beide documentatiegeschiedenissen en de main-bewijsverwijzingen blijven
 behouden. Alleen documentatieresolutie en metergeneratie; geen nieuw native,
 fysiek, menselijk of releasebewijs. Zie het historische PR131-checkpoint
 in PROJECT-STATE.md.
+
+PR140-reviewvervolg (3 november 2026), geteste bron `2bf95782`: **41 → 41**.
+De 9 contracttests, typecontrole, Clippy en formattering zijn opnieuw groen.
+Volledige primaire logs met SHA-256 staan duurzaam in
+[het reviewbewijs](verification/pr140-review-evidence.json).
+Descriptorvalidatie/binding is geen bewijs van identiteit of authenticatie.
+Geen nieuwe native of productacceptatie.
+
+Historische PR140-reviewcorrectie (3 november 2026), basis `c07d15b8`: **41 → 41**.
+Alleen Nederlandse beschrijvingen in het historische hostrapport; commands,
+exitstatussen, bron-/loghashes en criteria blijven gelijk. Geen nieuwe tests
+of native productacceptatie door deze tekstcorrectie.
 
 PR119-inhoudsbehoud (3 november 2026), head `5a8317f1`: **41 -> 41**.
 Volledige nieuwste NAS-history opgenomen; alleen centrale statusconflicten,
