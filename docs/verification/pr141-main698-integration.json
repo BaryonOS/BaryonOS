@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-03",
+  "tested_source_commit": "fdc4754e57f0a42493cb5717964a0aa41370d9e9",
+  "tested_source_tree": "973809ffbcda515f24a01fc13fcdeba8a1cc5dea",
+  "parents": [
+    "1c4b2a4b89d47588a3393ab25472c4354ffceed9",
+    "69809c2cb53dfb3bd77abe5352892810fba6e82d"
+  ],
+  "tested_ui_subtree": "b16b286cd0de948313b11d52bebba994d753cf24",
+  "windows_snapshot": "/mnt/c/Users/simon/AppData/Local/nieuw-os/copilot-tests/pr141-main698-fdc4754e57f0",
+  "snapshot_validation": "Alle bestanden uit git archive HEAD ui/prototype zijn bytegelijk aan de echte werkboom gecontroleerd. Reguliere Node-tests op echte bestandspaden; geen geheugenloader.",
+  "scope": "Main698 en PR141 volledig behouden; vier conflicten alleen centrale metadata. Volledige prototypeboom gelijk aan c94a40e9; oude Chromeproef blijft aan die eigen bron en acht hashes gebonden.",
+  "checks": [
+    {
+      "argv": [
+        "/mnt/c/Program Files/nodejs/node.exe",
+        "--test",
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\copilot-tests\\pr141-main698-fdc4754e57f0\\ui\\prototype\\tests\\nas-sharing.test.mjs",
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\copilot-tests\\pr141-main698-fdc4754e57f0\\ui\\prototype\\tests\\render-performance.test.mjs",
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\copilot-tests\\pr141-main698-fdc4754e57f0\\ui\\prototype\\tests\\state.test.mjs"
+      ],
+      "exit_status": 0,
+      "seconds": 0.186446,
+      "log": "/tmp/nieuw-os-pr141-main698-0.log",
+      "sha256": "cfc5dd1b549d199e9ef6e6e60a7e0abbcbd7be17a781ac441f791df028433e10",
+      "raw_log_utf8": "✔ NAS-UI-01: discovery alone grants no connection; confirmation and identity are required (1.235ms)\n✔ NAS-UI-02: invitations expire and cannot be replayed after acceptance (0.1696ms)\n✔ NAS-UI-03: remote opt-in is specific to the confirmed peer; identity failure revokes it (0.7919ms)\n✔ NAS-UI-04: owner NAS can reconnect remotely only after explicit bound permission (0.5284ms)\n✔ NAS-UI-04b: remote permission can be revoked while the known NAS is offline (1.4475ms)\n✔ NAS-UI-04c: verified route observations switch seamlessly using existing consent and retire local admin (0.7885ms)\n✔ NAS-UI-04d: route observations cannot invent consent, trust or reachability; failures preserve local editing (1.5076ms)\n✔ NAS-UI-05: offering space requires own NAS, explicit setup, and available quota (0.5912ms)\n✔ NAS-UI-05b: data pairing grants no admin role and internet routes cannot enable, invite or remove (1.2501ms)\n✔ NAS-UI-06: admin removal needs admin confirmation, never guest consent or a decryption key (0.5777ms)\n✔ NAS-UI-07: stale upload completions cannot reopen evicted space; new invite gets a different id (0.4587ms)\n✔ NAS-UI-08: admin sees only allocation metadata, never guest document fields (0.3328ms)\n✔ NAS-UI-09: receiving revocation blocks stale requests and preserves local documents and AI boundary (0.2701ms)\n✔ NAS-UI-10: refresh expires internet and admin permissions, preserving bounded deletion history (0.9644ms)\n✔ NAS-UI-11: UI mock stays network-free and retains explicit simulation labels (7.0104ms)\n✔ search preserves its shell and input persistence is bounded and flushed (13.7786ms)\n✔ P2-01: onboarding steps and local profile complete without account (1.2435ms)\n✔ P2-01: search, collection and empty fixture results (0.6058ms)\n✔ P2-01: search also finds the visible document type within its collection (0.1306ms)\n✔ P2-02: requesting and denying access never modifies content or grants (1.1802ms)\n✔ P2-02: explicit grant stays scoped to one document, session and operations (0.2709ms)\n✔ P2-02: forged broad and unknown requests fail closed (0.3155ms)\n✔ P2-02: revocation blocks subsequent saves and preserves local draft (0.3034ms)\n✔ P2-02: closing and reopening expires the old grant, resumes draft only (0.5191ms)\n✔ P2-02: refresh resumes fixtures but never an active lease (1.0421ms)\n✔ stored display values cannot inject version markup or alter tool permissions (0.618ms)\n✔ P2-02: fixture installation grants zero rights and invalid signature blocks it (0.3961ms)\n✔ P2-02: Webvenster requests explicit destination but receives no write grant (0.2193ms)\n✔ P2-02: granting Webvenster preserves a valid editor grant (0.352ms)\n✔ P2-03: all NAS failure states keep local save working without a sync claim (0.7213ms)\n✔ P2-03: NAS identity cannot be trusted by a network-state toggle (0.3895ms)\n✔ P2-04: missing local model or memory never produces a summary (0.3005ms)\n✔ P2-04: summary uses selected material only (0.1947ms)\n✔ P2-04: cancellation and changed context reject stale asynchronous completion (0.2673ms)\n✔ P2-05: restore first previews, then appends without erasing history (0.2748ms)\n✔ stale revision and oversized content cannot overwrite saved material (0.1492ms)\n✔ unknown object route never keeps a previous object or lease open (0.289ms)\n✔ reducer does not mutate its caller state (0.3026ms)\n✔ draft keystrokes preserve saved history without deep-cloning it (0.1849ms)\n✔ P2-08: CSP blocks outbound connections and app code has no networking APIs (10.2229ms)\n✔ P2-06: specified text and control color pairs meet their contrast thresholds (0.9193ms)\nℹ tests 41\nℹ suites 0\nℹ pass 41\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 108.3091\n"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_storage_backend_replay.py",
+        "-v"
+      ],
+      "exit_status": 0,
+      "seconds": 0.314321,
+      "log": "/tmp/nieuw-os-pr141-main698-1.log",
+      "sha256": "718b3ed8995539b40efb980712fb9055447c7651b6f662e1979cf00884e6f7b0",
+      "raw_log_utf8": "test_added_valid_file_cannot_change_required_manifest (test_storage_backend_replay.StorageEvidenceChecks.test_added_valid_file_cannot_change_required_manifest) ... ok\ntest_complete_local_payload_set_is_checked (test_storage_backend_replay.StorageEvidenceChecks.test_complete_local_payload_set_is_checked) ... ok\ntest_full_manifest_does_not_allow_missing_payload (test_storage_backend_replay.StorageEvidenceChecks.test_full_manifest_does_not_allow_missing_payload) ... ok\ntest_pinned_metadata_parent_alias_stays_inside_evidence_root (test_storage_backend_replay.StorageEvidenceChecks.test_pinned_metadata_parent_alias_stays_inside_evidence_root) ... ok\ntest_second_manifest_is_checked_before_any_payload_hash (test_storage_backend_replay.StorageEvidenceChecks.test_second_manifest_is_checked_before_any_payload_hash) ... ok\ntest_single_valid_file_cannot_replace_full_manifest (test_storage_backend_replay.StorageEvidenceChecks.test_single_valid_file_cannot_replace_full_manifest) ... ok\ntest_allowlist_rejects_extra_package_before_parsing (test_storage_backend_replay.StorageReplayChecks.test_allowlist_rejects_extra_package_before_parsing) ... ok\ntest_archive_paths_and_special_files_are_rejected (test_storage_backend_replay.StorageReplayChecks.test_archive_paths_and_special_files_are_rejected) ... ok\ntest_copy_requires_hash_and_independent_input (test_storage_backend_replay.StorageReplayChecks.test_copy_requires_hash_and_independent_input) ... ok\ntest_fresh_workspace_rejects_reuse_and_links (test_storage_backend_replay.StorageReplayChecks.test_fresh_workspace_rejects_reuse_and_links) ... ok\ntest_future_packaging_creates_images_directory_itself (test_storage_backend_replay.StorageReplayChecks.test_future_packaging_creates_images_directory_itself) ... ok\ntest_future_zdb_argv_uses_only_project_copy_and_pool_name (test_storage_backend_replay.StorageReplayChecks.test_future_zdb_argv_uses_only_project_copy_and_pool_name) ... ok\ntest_image_copy_is_bound_to_previously_recorded_baseline (test_storage_backend_replay.StorageReplayChecks.test_image_copy_is_bound_to_previously_recorded_baseline) ... ok\ntest_openzfs_execution_is_explicitly_blocked (test_storage_backend_replay.StorageReplayChecks.test_openzfs_execution_is_explicitly_blocked) ... ok\ntest_preflight_failure_cannot_be_hidden_by_later_output (test_storage_backend_replay.StorageReplayChecks.test_preflight_failure_cannot_be_hidden_by_later_output) ... ok\ntest_timeout_reaps_only_owned_process (test_storage_backend_replay.StorageReplayChecks.test_timeout_reaps_only_owned_process) ... ok\n\n----------------------------------------------------------------------\nRan 16 tests in 0.255s\n\nOK\n"
+    }
+  ],
+  "tests": {
+    "regular_node": 41,
+    "storage_replay": 16
+  },
+  "not_run": "Verse native/QEMU/fullCI- en performanceacceptatie; blijft vereist vóór merge. PR135-volume-fixtures en herhaalde RANDOM-fout blijven aparte blokkades.",
+  "progress_previous": 41,
+  "progress_current": 41
+}
