@@ -4,9 +4,11 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import time
+from collections.abc import Callable
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = Path(os.environ.get("NOS_BUILD_DIR", str(ROOT / "build"))).resolve()
@@ -58,6 +60,26 @@ def environment() -> dict[str, str]:
 def sha256(path: Path) -> str:
     with path.open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
+def sha256_bytes(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def require_sha256(value: object) -> str:
+    if not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{64}", value) is None:
+        raise ValueError("missing or malformed SHA256")
+    return value
+
+
+def regular_files_below(root: Path, *, validate_path: Callable[[Path], Path]) -> set[Path]:
+    """List regular descendants, validating each path before checking its type."""
+    files: set[Path] = set()
+    for path in root.rglob("*"):
+        validate_path(path)
+        if path.is_file():
+            files.add(path)
+    return files
 
 
 def save_json(path: Path, value: object) -> None:

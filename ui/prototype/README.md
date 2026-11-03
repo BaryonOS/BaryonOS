@@ -17,6 +17,7 @@ De eerste start bestaat uit drie stappen. Daarna zijn de routes `#/materiaal`, `
 ## Wat werkt in de simulatie
 
 - Zoeken, collecties, lege resultaten, een nieuw document en bestaand materiaal openen.
+- Zoeken werkt de resultaten bij zonder de rest van het scherm opnieuw op te bouwen. Draft- en profielinvoer wordt maximaal 180 ms vanaf de eerste nog niet opgeslagen invoer gebundeld naar `sessionStorage`, ook tijdens aanhoudend typen; latere invoer schuift die timer niet op. Focusverlies, een volgende toestandsovergang en het verlaten van de pagina schrijven de nieuwste staat direct weg. Dit is geen duurzame OS-opslag; een geblokkeerde browser kan timers later uitvoeren.
 - Tijdelijke toegang aanvragen, weigeren, toestaan en intrekken. Het sluiten of verlaten van het document beëindigt de actieve rechten. Vernieuwen van de pagina bewaart fictieve inhoud, maar hervat geen actieve rechten.
 - Tuinplan bewerken en als nieuwe versie opslaan. Versieherstel toont eerst een vergelijking en voegt vervolgens een nieuwe versie toe. Bestaande versies blijven behouden.
 - Een lokale bewerkingsdraft en cursorpositie bij het sluiten/hervatten van hetzelfde document. Het prototype bewaart één onafgemaakte bewerkingsdraft tegelijk.
@@ -105,4 +106,3 @@ Resultaat: **39 tests geslaagd, 0 mislukt**, exit 0: de 24 bestaande tests plus 
 Een poging om de nieuwe schermen via de Browser-plugin te controleren werd geblokkeerd doordat de vereiste oorspronkelijke browsercontext ontbreekt. Rendercontrole, modalinteractie en kleine viewports van deze wijziging zijn daarom nog open; eerdere screenshots zijn geen nieuw bewijs.
 
 De beoogde gebruikersroute: Apparaten → Mijn NAS → identiteit bevestigen → eventueel **Gebruik mijn NAS ook buitenshuis**. Daarna demonstreert het prototypepaneel met **Verbindingswissel** de automatische overgang thuis/onderweg, zonder nieuwe toestemming. Voor ontvangen ruimte: Apparaten → Ruimte ontvangen → voorbeelduitnodiging → identiteit en verwijderrisico bevestigen → eventueel internet toestaan. Voor aanbieden: eerst eigen NAS koppelen → Ruimte aanbieden → aanbod activeren → quota/naam → uitnodiging. **Intrekken en wissen** opent een beheerdersdialoog met Annuleer als eerste focus. Het prototypepaneel kan daarna oude verbindingen, intrekking en fictief ruimtegebruik demonstreren.
-

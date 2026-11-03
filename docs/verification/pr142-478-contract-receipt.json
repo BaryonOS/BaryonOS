@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-03",
+  "tested_source_commit": "47814f19cb2e6891b238fc0df81a11b1912109e7",
+  "tested_source_tree": "80d26bc172e57a2bcb10e9cd3d9bf3c42d376a14",
+  "CARGO_TARGET_DIR": "target/pr142-current-contract",
+  "environment": "Existing Rust1.90 rustup proxies then existing session-private C linker then /usr/bin:/bin. No installation or network dependency fetch.",
+  "source_file_sha256": {
+    "Cargo.toml": "d03f618aaca3ce07df6cf9c06a9d18edaa3c4dd5d184e47ab7caa15a9ef4d55d",
+    "Cargo.lock": "4b693f59150318b13e898e60ef848253aa5b46853f0392cbb7ed4f5ef82fcc36",
+    "crates/artifact-store-core/src/lib.rs": "44ea06cde777346fa153243a90ff2b093793348688fa1ec5c9d99b18f772e8db",
+    "crates/artifact-store-core/tests/contract.rs": "794353f28b2353cfe5efb57a78e0fcb6cd8d759483a9ae6823aabb0bd128bbe8"
+  },
+  "checks": [
+    {
+      "command": "cargo +1.90.0 test --offline --locked --manifest-path crates/artifact-store-core/Cargo.toml",
+      "cwd": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr142-claims",
+      "source_head_before": "47814f19cb2e6891b238fc0df81a11b1912109e7",
+      "source_head_after": "47814f19cb2e6891b238fc0df81a11b1912109e7",
+      "status_porcelain_before": "",
+      "status_porcelain_after": "",
+      "cargo_lock_sha256_before": "4b693f59150318b13e898e60ef848253aa5b46853f0392cbb7ed4f5ef82fcc36",
+      "cargo_lock_sha256_after": "4b693f59150318b13e898e60ef848253aa5b46853f0392cbb7ed4f5ef82fcc36",
+      "exit": 0,
+      "seconds": 0.566,
+      "raw_log_sha256": "d39289ee410b1181524070982a7d3227407e9a0185d52ff0cf21aec4b3c5704f",
+      "raw_log_utf8": "   Compiling artifact-store-core v0.1.0 (/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr142-claims/crates/artifact-store-core)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.47s\n     Running unittests src/lib.rs (target/pr142-current-contract/debug/deps/artifact_store_core-55114e96a10c57b4)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/contract.rs (target/pr142-current-contract/debug/deps/contract-fc4af10993e7c71a)\n\nrunning 9 tests\ntest bounded_read_accepts_positive_short_reads_and_clamps_at_eof ... ok\ntest descriptor_requires_nonzero_id_generation_and_length ... ok\ntest capacity_uses_checked_u64_arithmetic_and_provider_quota ... ok\ntest open_preserves_backend_authorization_and_storage_failures ... ok\ntest invalid_buffers_eof_and_out_of_range_never_reach_store ... ok\ntest open_rejects_noncanonical_or_different_store_descriptor ... ok\ntest open_rejects_malformed_or_differently_bound_store_descriptors ... ok\ntest store_stale_revocation_and_io_errors_remain_explicit ... ok\ntest zero_short_and_impossible_backend_reads_fail_closed ... ok\n\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Doc-tests artifact_store_core\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "cargo +1.90.0 check --offline --locked --manifest-path crates/artifact-store-core/Cargo.toml --tests",
+      "cwd": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr142-claims",
+      "source_head_before": "47814f19cb2e6891b238fc0df81a11b1912109e7",
+      "source_head_after": "47814f19cb2e6891b238fc0df81a11b1912109e7",
+      "status_porcelain_before": "",
+      "status_porcelain_after": "",
+      "cargo_lock_sha256_before": "4b693f59150318b13e898e60ef848253aa5b46853f0392cbb7ed4f5ef82fcc36",
+      "cargo_lock_sha256_after": "4b693f59150318b13e898e60ef848253aa5b46853f0392cbb7ed4f5ef82fcc36",
+      "exit": 0,
+      "seconds": 0.121,
+      "raw_log_sha256": "e74efff24d64a07581fee3300c02cfdd7668c2300c16da334a381b2f489a229c",
+      "raw_log_utf8": "    Checking artifact-store-core v0.1.0 (/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr142-claims/crates/artifact-store-core)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.09s\n"
+    },
+    {
+      "command": "cargo +1.90.0 clippy --offline --locked --manifest-path crates/artifact-store-core/Cargo.toml --all-targets -- -D warnings",
+      "cwd": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr142-claims",
+      "source_head_before": "47814f19cb2e6891b238fc0df81a11b1912109e7",
+      "source_head_after": "47814f19cb2e6891b238fc0df81a11b1912109e7",
+      "status_porcelain_before": "",
+      "status_porcelain_after": "",
+      "cargo_lock_sha256_before": "4b693f59150318b13e898e60ef848253aa5b46853f0392cbb7ed4f5ef82fcc36",
+      "cargo_lock_sha256_after": "4b693f59150318b13e898e60ef848253aa5b46853f0392cbb7ed4f5ef82fcc36",
+      "exit": 0,
+      "seconds": 0.198,
+      "raw_log_sha256": "fe7ed4efc5934c47ff4104ca8f4afb8a59b29e89a9eda128551ed5590696d318",
+      "raw_log_utf8": "    Checking artifact-store-core v0.1.0 (/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr142-claims/crates/artifact-store-core)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.15s\n"
+    },
+    {
+      "command": "cargo +1.90.0 fmt --manifest-path crates/artifact-store-core/Cargo.toml -- --check",
+      "cwd": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr142-claims",
+      "source_head_before": "47814f19cb2e6891b238fc0df81a11b1912109e7",
+      "source_head_after": "47814f19cb2e6891b238fc0df81a11b1912109e7",
+      "status_porcelain_before": "",
+      "status_porcelain_after": "",
+      "cargo_lock_sha256_before": "4b693f59150318b13e898e60ef848253aa5b46853f0392cbb7ed4f5ef82fcc36",
+      "cargo_lock_sha256_after": "4b693f59150318b13e898e60ef848253aa5b46853f0392cbb7ed4f5ef82fcc36",
+      "exit": 0,
+      "seconds": 0.067,
+      "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_log_utf8": ""
+    }
+  ],
+  "boundary": "Fresh exact478 clean-source nine-contract-test/check/Clippy/fmt execution, not retrospective validation of any original Watch result. Historical87tests remainb1; no native/fullrelease acceptance.",
+  "progress_previous": 41,
+  "progress_current": 41
+}
