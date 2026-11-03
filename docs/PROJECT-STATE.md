@@ -1,38 +1,31 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — M1/M2 platformfundamenten — 3 november 2026
+## NEXT AGENT HANDOFF — M4 Terminal-kern — 3 november 2026
 
-**Bron:** `7e9bddcfc92b6d5f788d7b2ccafb98205af7e0ce` op branch
-`simonvanieperen-vigilant-robot`; M1-profielkern `c4b3e57e` en M2-policykern
-`d66b2e00` zijn afzonderlijke commits. De werkboom was schoon vóór deze
-opdracht.
+**Bronbasis:** `c1cea978c135b6210a25bc4b41401db304b6c15a`, branch
+`simonvanieperen-vigilant-robot`. De werkboom was schoon bij aanvang. Er is
+geen Terminal-/shell-/proces-I/O-eigenaarsclaim in de actuele queue gevonden;
+deze stap wijzigde geen M3-bestanden.
 
-**Resultaat:** `platform-profile-core` modelleert acht hardwaredomeinen en
-vult alleen gevalideerd UEFI-ConventionalMemory en GOP-modus in.
-`permission-policy-core` bevat een begrensde policy met exacte
-app/resource/purpose/context/activity-scope, canonieke encode/decode en
-actieve-context-/foregroundvoorwaarden. Policyresultaat is niet converteerbaar
-naar een kernelcapability; `capability-core::Engine` blijft runtimeautoriteit.
-ADR-064 en de centrale status staan in
-[UNIVERSAL-PROFESSIONAL-PLATFORM.md](implementation/UNIVERSAL-PROFESSIONAL-PLATFORM.md).
+**Resultaat:** nieuwe SDK-crate `nieuw-os-terminal-core` met een vaste
+UTF-8-regelbewerker en begrensde argv-parser. De parser ondersteunt quotes en
+escaping, begrenst commandoregel/argumenten en weigert onondersteunde
+operator-/expansiesyntax. Ze geeft geen proces- of andere capabilities.
 
-**Bewijs:** gecombineerde gerichte hosttests: 9 geslaagd; `cargo check`,
-Clippy, rustfmt en `git diff --check` exit 0.
-[M2-testbewijs](verification/permission-policy-core-20261103/README.md) en
-[M1-testbewijs](verification/platform-profile-core-20261103/README.md).
+**Bewijs:** formattering, hostcheck, Clippy, zes hosttests, `x86_64-unknown-none`
+check en diffcontrole exit 0. Commando's, toolchainbeperking, hashes en
+bewijsgrens: [terminal-core-checkpoint](verification/terminal-core-20261103/README.md).
+Roadmap **41 → 41/100**; geen rubriccriterium gesloten.
 
-**Open/beperking:** geen profilerintegratie in kernel/driver/service en geen
-opgeslagen beleidsrecords. Het M2-codec authenticeert bytes niet; er is nog
-geen vertrouwde settings-store, geverifieerde appidentiteit of
-task/session-broker die policy veilig evalueert, tijdelijke capabilities
-uitgeeft en ze bij taakafloop intrekt. Geen native/VM-/fysiek bewijs.
+**Open/beperking:** dit is geen native Terminal-app, geen input-/renderroute,
+geen gezamenlijk proces-I/O-protocol en geen process launch. Bestaande SDK
+IPC/launch-API's maken dit mogelijk als volgende veilige integratiestap, maar
+vereisen eerst een expliciet begrensd stdin/stdout-contract en bindings aan
+geautoriseerde images. Geen VM-, fysiek, gebruikerstest- of releasebewijs.
 
-**Voortgang:** 41 → 41/100; geen rubriccriterium gesloten.
-
-**Eerstvolgend:** controleer de actuele eigenaar/fileclaims rond het bestaande
-app-package-/app-managementspoor en kies daarna één native integratiestap.
-De verificatiekern en transactiemodellen bestaan al; een installer,
-duurzame bronregistratie en native launchroute ontbreken.
+**Eerstvolgend:** ontwerp en hosttest een Message320-terminal-I/O-protocol met
+peer-/jobbinding, sequentie- en bufferlimieten en expliciete EOF/exitstatus;
+controleer vóór die integratie opnieuw actuele SDK-/kernel-eigenaarsclaims.
 
 ## Historisch checkpoint — M1 hardwareprofielkern — 3 november 2026
 

@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "7e9bddcfc92b6d5f788d7b2ccafb98205af7e0ce",
+    "source_commit": "c1cea978c135b6210a25bc4b41401db304b6c15a",
     "branch": "simonvanieperen-vigilant-robot",
-    "task": "M1/M2: platform capability profile and scoped user-policy cores",
+    "task": "M4: bounded terminal input and shell argv core",
     "previous_score": 41,
-    "summary": "41 blijft 41. Twee no_std-cores voegen profielmodellering en exact scoped policy toe; 9 gerichte hosttests plus check/Clippy/fmt slagen. Hardwarevelden buiten gevalideerd bootgeheugen/GOP blijven Unknown. Policybytes zijn niet geauthenticeerd of duurzaam opgeslagen en policy is niet aan native runtimecapability-uitgifte gekoppeld. Geen native acceptatie of rubricpunten."
+    "summary": "41 blijft 41. De SDK-terminalkern levert begrensde UTF-8-regelbewerking en argv-parsing met 6 hosttests; fmt/check/Clippy en x86_64-unknown-none-check slagen. Er is geen native Terminal-app, proces-I/O-protocol of process launch; geen vast rubriccriterium gesloten."
   },
   "tracks": [
     {

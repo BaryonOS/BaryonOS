@@ -1,7 +1,7 @@
 # Terminal core — host- and target-checkpoint
 
 Datum: 3 november 2026. Branch: `simonvanieperen-vigilant-robot`.
-Geteste basiscommit: `9f4b763511b88a33ea25da0a585f279fd5ab8711`.
+Geteste broncommit: `c1cea978c135b6210a25bc4b41401db304b6c15a`.
 
 ## Resultaat en bewijsgrens
 
