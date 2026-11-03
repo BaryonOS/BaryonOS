@@ -22,7 +22,7 @@ Nieuwheid hoeft geen nieuwe programmeertaal, cryptografie of incompatibel bestan
 | Lokaal als normale werkwijze | Zoeken, instellingen en lokale documenten werken zonder account of netwerk. | Taaktest na installatie met netwerk uit. |
 | Begrijpelijke foutmeldingen | De melding noemt probleem, gevolgen en één uitvoerbare herstelactie. | Gebruiker herstelt de fout zonder terminalkennis. |
 
-Het OS krijgt een eigen visuele identiteit én een eigen interactiemodel. Originaliteit is een acceptatiecriterium vanaf M0. Een klassieke desktop met andere kleuren is onvoldoende als eindconcept. Een prototype mag nieuwe ideeën onderzoeken voordat de kernel ze uitvoert; registreer productbewijs en systeembewijs afzonderlijk.
+Het OS krijgt een eigen visuele identiteit én een eigen interactiemodel. Originaliteit is een acceptatiecriterium vanaf M0. Een klassieke desktop met andere kleuren is onvoldoende als eindconcept. *Aanvulling 30 oktober 2026 (ADR-058):* herkenbare bediening (bureaublad, taakbalk, startmenu, inloggen) is nu een eis; originaliteit zit in eigen code, huisstijl, rechtenmodel en aanvullende functies, niet in een afwijkende basisbediening. Een prototype mag nieuwe ideeën onderzoeken voordat de kernel ze uitvoert; registreer productbewijs en systeembewijs afzonderlijk.
 
 ### Drie te onderzoeken conceptrichtingen
 Deze richtingen zijn hypotheses, geen reeds gekozen product of bewezen wereldprimeur. Werk ze uit als werkelijk verschillende manieren van werken, niet als drie thema's op dezelfde schermindeling.

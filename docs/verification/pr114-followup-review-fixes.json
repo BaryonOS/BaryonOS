@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-03",
+  "base": "783a48aac610b42e4e1715ed9551f5012376d12b",
+  "changes": [
+    "Three source-metadata findings addressed in shared PRIMARY-SOURCES.md and four nonhistorical README links; historical snapshots unchanged. Latest/master upstream semantics are separated from measured historical metadata losses.",
+    "Full local Btrfs manifests bound to two independent complete historical receipts,82+17 entries. Both names/hash maps checked before any payload hash; partial/extra entries reject without success report. Pinned parent aliases normalize lexically inside explicit root."
+  ],
+  "threads": [
+    {
+      "id": "PRRT_kwDOVZC91s6zELch",
+      "root": 4453208471
+    },
+    {
+      "id": "PRRT_kwDOVZC91s6zELcn",
+      "root": 4453208478
+    },
+    {
+      "id": "PRRT_kwDOVZC91s6zELcx",
+      "root": 4453208490
+    },
+    {
+      "id": "PRRT_kwDOVZC91s6zELc8",
+      "root": 4453208503
+    }
+  ],
+  "checks": [
+    {
+      "command": "python3 -B -m unittest discover -s tests -p test_storage_backend_replay.py",
+      "exit": 1,
+      "log": "/tmp/nieuw-os-pr114-manifest-red.log",
+      "sha256": "6264de90d0387fb10868f783c817e634cee1478f43b167b5b947bcd354d03cf3"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tests -p test_storage_backend_replay.py",
+      "exit": 0,
+      "log": "/tmp/nieuw-os-pr114-manifest-green.log",
+      "sha256": "cd4b21aa8a47015f34017377ae825a5dd0a69b1410ae0f0fd1dc87b9670acee5"
+    },
+    {
+      "command": "python3 -B docs/verification/native-storage-backend-gate/verify_evidence.py",
+      "exit": 0,
+      "log": "/tmp/nieuw-os-pr114-manifest-committed.log",
+      "sha256": "8ff699d75686b38fbadd0ff64faa4c76e47e1b58c54a9f7d52c3359a3c425212"
+    }
+  ],
+  "red": "16 tests,2 failures/2 errors before production fix; partial and extra valid manifests actually returned success.",
+  "green": "16 host tests pass, including6 local integrity unit fixtures. Mocked historical record checks isolate manifest completeness; these fixtures are not real native or full local-payload acceptance.207 original archive hashes and2 new complete receipt bindings pass.",
+  "source_bindings": {
+    "tools/storage_backend_replay.py": "3cb82a4ac393c6c53b30a1e285ac2a5bb8ef662465c64082b1f1aaf875cd01f1",
+    "tests/test_storage_backend_replay.py": "c3cb6892f13ed11b683cd5e0a88645160f1f5730260859ffec796051c2e11fe3",
+    "docs/verification/native-storage-backend-gate/README.md": "d08628fc33b8e0c95685679d574a291fda42c9da5e41aa38f20a244940c042ad",
+    "docs/verification/native-storage-backend-gate/COMMANDS.md": "e016e2025a72a4db0483823d737501890e044abc83ac366cedf66683fce4730a",
+    "docs/verification/native-storage-backend-gate/verify_evidence.py": "79827d6e3cd0fe9c62ade15475ac7b7025301c5ecc59be0e5239a234ea9487a2",
+    "docs/verification/native-storage-backend-gate/verification.json": "8ff699d75686b38fbadd0ff64faa4c76e47e1b58c54a9f7d52c3359a3c425212",
+    "docs/verification/native-storage-backend-gate/btrfs/README.md": "6b90803c79c293be1804b8e99ec57ce5456904e967b14ddd8c5fb9c4ec7e6f82",
+    "docs/verification/native-storage-backend-gate/btrfs/metadata/README.md": "aa5bf7229236c8ef44008f90bb3eb4d46c50f572ca7560b4c0289522dc7847d7",
+    "docs/verification/native-storage-backend-gate/native/README.md": "84a79b954049785e1370b75e4dc23e807261fc1a63038ab52f4fa643c57221fc",
+    "docs/verification/native-storage-backend-gate/native-current/README.md": "25da93cb2f2ba2194f20012215ffacb66fd8ed803d234e84540d10df58933222",
+    "docs/verification/native-storage-backend-gate/openzfs/README.md": "9a3d62067af5a16b557351091842fe570445813f85225ef985fdfa50d06e1804",
+    "docs/verification/native-storage-backend-gate/openzfs/COMMANDS.md": "3bdc87c31eac8b44904fc8ccb1a2b316afe224fce9826ed635dc2fdf4192a49d",
+    "docs/verification/native-storage-backend-gate/PRIMARY-SOURCES.md": "dae3a388c82995542e6d6487e39a8d6041bb503dc6d670f515daee7777aa6578",
+    "docs/verification/native-storage-backend-gate/btrfs/sha256-manifest.json.historical.txt": "35407bd008b56041afaa98015134fdba8fe2d945a41422a202b072e4f8b08c34",
+    "docs/verification/native-storage-backend-gate/btrfs/metadata/sha256-manifest.json.historical.txt": "be3c1ebee6ee1c03274175de17018eb4cdb57d14ebbaa56e6ce37f0f9aad24e5"
+  },
+  "not_run": [
+    "Complete local-payload verification against all historical images/binaries/source-image aliases.",
+    "New Btrfs/OpenZFS engine replay or native QEMU execution on this followup.",
+    "Full current-head CI and reviewer acceptance; required before guarded integration."
+  ],
+  "progress": {
+    "previous": 41,
+    "current": 41,
+    "new_points": 0
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "task": "PR114-DOC4",
+  "date_europe_amsterdam": "2026-11-02",
+  "parent": "30bb6ea84123ef0d275ed99e96dc5a7b0a966ff9",
+  "scope": "Four assigned documentation findings only; no central status/score files, storage scripts, archive bytes, dependencies or executable product changes.",
+  "threads": [
+    {"id": "PRRT_kwDOVZC91s6y5eNz", "fix": "Ubuntu login, desktop, then additional Initial Setup; corrected journey and comparison sequence without changing the common aspect numbering."},
+    {"id": "PRRT_kwDOVZC91s6y5eN3", "fix": "Separate adjacent source references in the user-needs synthesis and the three named companion dossiers."},
+    {"id": "PRRT_kwDOVZC91s6y5eN7", "fix": "Separate adjacent source references in the installation comparison and both installation dossiers."},
+    {"id": "PRRT_kwDOVZC91s6y5eOD", "fix": "Separate mental-model source references and make existing J05/J06 register entries clickable."}
+  ],
+  "primary_sources_checked": [
+    {
+      "organization": "Canonical",
+      "title": "Install Ubuntu Desktop",
+      "version": "26.04",
+      "url": "https://ubuntu.com/desktop/docs/en/26.04/tutorial/install-ubuntu-desktop/",
+      "section": "Your new system is starting",
+      "observation": "The tutorial presents disk unlock, login, welcome to the desktop and then the additional Initial Setup app.",
+      "retrieved": "2026-11-02"
+    },
+    {
+      "organization": "CommonMark",
+      "title": "CommonMark Spec",
+      "version": "0.31.2 (2024-01-28)",
+      "url": "https://spec.commonmark.org/0.31.2/#shortcut-reference-link",
+      "observation": "Adjacent reference labels are ambiguous with full reference links; actual MarkdownIt rendering verifies independently linked IDs after spacing.",
+      "retrieved": "2026-11-02"
+    }
+  ],
+  "files_sha256": {
+    "docs/research/2026-11-02/os-user-needs.md": "96f5e5c33a88631e30c485c91fbc05ead4d1b1baa758a04491b8887d4d482b38",
+    "docs/research/2026-11-02/european-adoption-barriers.md": "c6bc2ebe2d5800bc4f165f7ca1087f9d6ea615369d519f1d295d2d832ee1f5e1",
+    "docs/research/2026-11-02/future-os-design.md": "7a736f0c23e583532a6f35e209d4e4ab554f18ed77f595f7e0151145188dcbb2",
+    "docs/research/2026-11-02/windows-macos-needs.md": "7ebd6fe47ac712f3ffd800c4cc5e9632e1a7bb2e66d075e8ed9ec7e5dbc117a7",
+    "docs/research/2026-11-02/journey/linux-installation.md": "83a8823f59a1ccaf60847a2342948642bc8d976fcad96aeae3c8cbca3c67d5fd",
+    "docs/research/2026-11-02/journey/windows-macos-installation.md": "ab99f591d334e05521a9485f77aac0a1ae8f18a1d72b50c6e7dff623f2ff3779",
+    "docs/research/os-installation-comparison.md": "cdf81de265a0107426fb9c783d3ee9ee4dc44c71ae3ab01df715bfe1f851f2df",
+    "docs/research/transferable-mental-models.md": "d68096f8ee01c034df3516bb7779283877d4cc026165d775abc0726f65e2294d"
+  },
+  "checks": [
+    {
+      "command": "python3 -B /home/simon/.copilot/session-state/1dac4c3701424da981afb7df1c2d64a8/files/check_pr114_doc4.py",
+      "exit": 0,
+      "validator_sha256": "5a64cef853b2b9fb18dbf78a5811db00e6db7d1264ac8d0c881ef56dc7541aef",
+      "log": "/home/simon/.copilot/session-state/1dac4c3701424da981afb7df1c2d64a8/files/pr114-doc4-check.log",
+      "log_sha256": "2a8fb959b932a43d0a09a4d9262fa38cb64b48355e5c2ee5ef4aee35f3dcfec1",
+      "result": "242 adjacent citation boundaries repaired. CommonMark-mode MarkdownIt with tables verifies independent rendered link destinations, all previous normalized links retained, unchanged headings/definitions, clickable J05/J06 and corrected Ubuntu ordering.",
+      "replay": "For each listed Markdown file, parse with MarkdownIt('commonmark').enable('table'); every rendered simple source-ID link must target its unchanged [ID]: definition. Reject adjacent [ID][ID] tokens; compare headings and definitions to parent. Check J05/J06 each render once and journey contains 29 -> 31 -> 30 (Unicode arrows in source)."
+    },
+    {"command": "git diff --check", "exit": 0},
+    {"command": "python3 -B tools/progress.py --check", "exit": 0, "result": "41/100 consistent; no new native acceptance or score change."}
+  ],
+  "evidence_boundary": "Documentation/parser validation only. No OS, installation, host Rust, native QEMU or hardware tests executed or needed for this documentation-only delta. Historical research limits and source definitions remain intact. No new product, compatibility, security or user-study claim.",
+  "progress": {"old": 41, "new": 41, "reason": "Research reference corrections do not accept new OS criteria; central assessment remains exclusive-integrator-owned."},
+  "delivery": "One local commit on exact parent, for exclusive integrator Issues oplossen. No push, PR mutation, thread resolve, merge or closure.",
+  "remaining": "Integrator handles the other PR114 findings, combined-head gates, review resolutions and branch-policy-compliant integration."
+}

@@ -1,5 +1,34 @@
 # Nieuw OS — eigen kernel, sessieroute en bureaublad
 
+## Project in het kort
+
+Nieuw OS is een onderzoeksproject voor een zelfstandig besturingssysteem met
+een eigen x86_64-kernel en een eigen productervaring rond documenten en
+collecties: **Materiaal**. Het is geen Linux-distributie en gebruikt geen
+bestaande OS-kernel als basis. Veiligheid en privacy steunen onder meer op
+geïsoleerde processen, expliciete capabilities (kernel-afgedwongen rechten)
+en begrensde IPC (interprocescommunicatie).
+
+De boot- en runtimeketen is **UEFI/OVMF → eigen Rust-loader → bootprotocol →
+`no_std`-Rust-kernel → geïsoleerde processen en diensten → SDK en apps**.
+De workspace bevat daarnaast aparte crates voor kernel-/capabilitylogica,
+drivers en diensten voor opslag, invoer en netwerk, plus de SDK en native
+apps. Rust/Cargo is de hoofdstack (toolchain 1.90.0); Python verzorgt veel
+build- en testharnassen. QEMU/OVMF wordt gebruikt voor geïsoleerde VM-proeven.
+NAS- en quantumsimulatorprototypes zijn afzonderlijke sporen, geen bewijs van
+volledig geïntegreerde native functies.
+
+**Codeleesroute:** begin bij `boot/loader/src/main.rs`, volg naar
+`kernel/src/main.rs` en daarna `kernel/src/m2.rs` en `kernel/src/m2/m3.rs`.
+Lees voor procesrechten `crates/capability-core/`, voor apps
+`sdk/runtime/README.md` en `sdk/examples/materiaal/README.md`. De actuele
+status en open gates staan in [PROJECT-STATE.md](docs/PROJECT-STATE.md);
+architectuurkeuzes en contracten staan in
+[KERNEL-AND-SECURITY-CONTRACT.md](docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md)
+en de volledige acceptatieopdracht in
+[FULL-TEST-RELEASE.md](docs/FULL-TEST-RELEASE.md). Proeven en builds zijn
+geen bewijs van een complete release of ondersteuning van fysieke hardware.
+
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
@@ -32,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`c94a40e9`](https://github.com/simonvanieperen/nieuw-os/commit/c94a40e97622ecd854865e4171ba9004011ebd87) ·
+**Bron:** [`1c4b2a4b`](https://github.com/simonvanieperen/nieuw-os/commit/1c4b2a4b89d47588a3393ab25472c4354ffceed9) ·
 **Ontwikkelbranch:** `simonvanieperen-sturdy-guide`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR141-review: begrensde invoeropslag, editorflush en echte browserfocus.
-41 blijft41. Echte oude141-debouncefout rood: aanhoudende60ms-invoer stelt alle writes uit voorbij180ms(3!==4).1regel timerfix houdt de eerste deadline vast; volledige41 reguliere Node-hosttests groen, inclusief editorroute/selectionStart/focusout/pagehide. Mockresultatencontainer hangt nu van werkelijke appmarkup af. Daarnaast echte Chrome156-DOM/focusproef op exact de8 frontendbestandshashes van c94a40e9 groen: Input.insertText filtert, zoekveld/focus/results/appshellnode blijven behouden; bestaande Node24/browser zonder nieuwe deps. De eerder ontbrekende render_performance-hostoracle nu2tests groen met bestaande Rust1.90/linker. Geen native runtime/latency-, duurzameOS-opslag- of productclaim; geblokkeerde browser kan timers later uitvoeren. Actuelemain698 bevat114 en vijf bewezen vervangen leafs; deze141-branch moet nog actuelemain en verse CI/netwerk/native/review afronden. Geen nieuwe punten.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Integreer main 69809c2 in PR141 met behoud van persistentiefix en brongebonden browserbewijs.
+41 blijft 41. Main 69809c2 en PR141-head 1c4b2a4b zijn inhoudsbehoudend gecombineerd; vier conflicten betreffen alleen centrale metadata. De volledige prototypecode blijft bytegelijk aan de rood/groen geteste en met Chrome gecontroleerde bron c94a40e9; oude resultaten behouden hun eigen bron. Beide statusgeschiedenissen en de 41-puntenrubric zijn behouden. Verse prototypehosttests volgen op de gecombineerde commit; volledige CI/native/netwerk/review en PR135-fixtures/RANDOM blijven afzonderlijk open. Geen nieuwe productpunten of duurzame OS-opslagclaim.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -49,6 +78,8 @@ productpunten. Elk criterium telt volledig of niet; onbewezen werk blijft open.
 Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).
 <!-- OS-PROGRESS:END -->
+
+Volledige repository-inventaris: [OS-completeness-audit](docs/audit/os-completeness/README.md).
 
 ## Native venstersessie — 2 november 2026
 
@@ -272,6 +303,8 @@ De actuele native implementatiegrenzen staan per spoor hierboven.
 
 - [Architectuur en kernelcontract](docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md).
 - [Materiaal en productambitie](docs/implementation/PRODUCT-SPEC.md).
+- [Gebruikersbehoeften, overstapbarrières en OS-ontwerptrends — onderzoek 2 november 2026](docs/research/2026-11-02/README.md).
+- [Volledige OS-journey: installatie, eerste gebruik, mentale modellen en installer-/onboardingvoorstellen](docs/research/2026-11-02/journey/README.md) — documentonderzoek; geen installer geïmplementeerd.
 - [Privacycontract](docs/LOCAL-PRIVACY-CONTRACT.md).
 - [Quantumspoor](docs/QUANTUM-RESEARCH.md).
 - [Beveiliging en postkwantumroute](docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md).

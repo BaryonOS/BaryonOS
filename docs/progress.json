@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "c94a40e97622ecd854865e4171ba9004011ebd87",
+    "source_commit": "1c4b2a4b89d47588a3393ab25472c4354ffceed9",
     "branch": "simonvanieperen-sturdy-guide",
-    "task": "PR141-review: begrensde invoeropslag, editorflush en echte browserfocus",
+    "task": "Integreer main 69809c2 in PR141 met behoud van persistentiefix en brongebonden browserbewijs",
     "previous_score": 41,
-    "summary": "41 blijft41. Echte oude141-debouncefout rood: aanhoudende60ms-invoer stelt alle writes uit voorbij180ms(3!==4).1regel timerfix houdt de eerste deadline vast; volledige41 reguliere Node-hosttests groen, inclusief editorroute/selectionStart/focusout/pagehide. Mockresultatencontainer hangt nu van werkelijke appmarkup af. Daarnaast echte Chrome156-DOM/focusproef op exact de8 frontendbestandshashes van c94a40e9 groen: Input.insertText filtert, zoekveld/focus/results/appshellnode blijven behouden; bestaande Node24/browser zonder nieuwe deps. De eerder ontbrekende render_performance-hostoracle nu2tests groen met bestaande Rust1.90/linker. Geen native runtime/latency-, duurzameOS-opslag- of productclaim; geblokkeerde browser kan timers later uitvoeren. Actuelemain698 bevat114 en vijf bewezen vervangen leafs; deze141-branch moet nog actuelemain en verse CI/netwerk/native/review afronden. Geen nieuwe punten."
+    "summary": "41 blijft 41. Main 69809c2 en PR141-head 1c4b2a4b zijn inhoudsbehoudend gecombineerd; vier conflicten betreffen alleen centrale metadata. De volledige prototypecode blijft bytegelijk aan de rood/groen geteste en met Chrome gecontroleerde bron c94a40e9; oude resultaten behouden hun eigen bron. Beide statusgeschiedenissen en de 41-puntenrubric zijn behouden. Verse prototypehosttests volgen op de gecombineerde commit; volledige CI/native/netwerk/review en PR135-fixtures/RANDOM blijven afzonderlijk open. Geen nieuwe productpunten of duurzame OS-opslagclaim."
   },
   "tracks": [
     {

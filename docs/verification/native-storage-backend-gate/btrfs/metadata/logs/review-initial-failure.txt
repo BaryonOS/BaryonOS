@@ -1,0 +1,4 @@
+Initial metadata_review.py parser invocation exited 1 before writing reviewed results.
+TypeError: 'NoneType' object is not subscriptable at mode=int(m[1],8).
+Cause: an unanchored key regex also matched a DIR_ITEM location key, which has no mode line.
+Correction: constrain regex to the actual item header. No mkfs/check/restore rerun.

@@ -1,0 +1,52 @@
+{
+  "checked_on": "2026-11-02",
+  "errors": [],
+  "checks": {
+    "markdown_files": 8,
+    "source_records": {
+      "WM-": 20,
+      "LM-": 20,
+      "DT": 21,
+      "EA-": 14
+    },
+    "local_links_checked": 35,
+    "reference_links_checked": 445,
+    "source_records_total": 75,
+    "unique_source_urls_in_registers": 74
+  },
+  "eurobarometer_arithmetic_and_original_hashes": "pass",
+  "rubric_criteria_unchanged": true,
+  "product_tree_unchanged": true,
+  "validator_encoding": "UTF-8 explicitly used for Git source text",
+  "scope": "Local documentation/JSON/source-reference checks; no live URL census or OS runtime tests",
+  "final_commands": [
+    {
+      "command": [
+        "python",
+        "-B",
+        "tools/progress.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "stdout": "Nieuw OS: 34/100 punten (34%); rubric v1; consistent.\nDit controleert berekening, verwijzingen en weergave; geen nieuwe native tests of beoordeling van bewijsinhoud.",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "independent_ai_review": {
+    "adoption_sources": "Question, figures, PDF hashes and source locations checked; weighted Windows denominator and source-label limitations corrected",
+    "synthesis": "Evidence for cross-platform file understanding downgraded after review; no remaining reported material issue",
+    "not_a_human_audit": true
+  },
+  "product_build_qemu_and_user_tests": "Not run: documentation-only task; no fresh native or user-acceptance claim"
+}

@@ -1,0 +1,22 @@
+{
+  "kind": "evidence-integrity-check",
+  "mode": "committed",
+  "filesystem_acceptance": false,
+  "new_native_execution": false,
+  "local_payloads_checked": false,
+  "checks": [
+    {
+      "check": "207 original archive bindings",
+      "matching_hashes": 207
+    },
+    {
+      "check": "historical JSON invariants (not rerun)",
+      "passed": true
+    },
+    {
+      "check": "two independently pinned complete Btrfs manifests",
+      "manifest_entries": 99
+    }
+  ],
+  "all_checks_passed": true
+}
