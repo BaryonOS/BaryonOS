@@ -129,12 +129,14 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
     elif loader_feature in ("graphics-g0", "framebuffer", "desktop-mode", "desktop-hidpi"):
         raise ValueError("Graphics loader requires a matching framebuffer kernel")
     if kernel_feature in UPDATE_FEATURES:
-        # B03: the update kernels only boot from a verified slot store.
-        if loader_feature not in (None, "signed-boot"):
-            raise ValueError("update kernels require the signed-boot loader")
-        loader_feature = "signed-boot"
+        # B03: these update kernels are test profiles with explicit TEST anchors.
+        if loader_feature not in (None, "signed-boot-test"):
+            raise ValueError("update test kernels require the signed-boot-test loader")
+        loader_feature = "signed-boot-test"
         if image_version is None or not 1 <= image_version <= 2**32:
             raise ValueError("update kernels need an explicit --image-version")
+    elif loader_feature == "signed-boot":
+        raise ValueError("signed-boot has no configured policy; TEST fixtures require signed-boot-test")
     elif image_version is not None:
         raise ValueError("--image-version applies to update kernels only")
     extra_env = None
@@ -370,7 +372,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
     esp = BUILD / "esp"
     (esp / "EFI/BOOT").mkdir(parents=True, exist_ok=True)
     shutil.copy2(loader, esp / "EFI/BOOT/BOOTX64.EFI")
-    if loader_feature == "signed-boot":
+    if loader_feature == "signed-boot-test":
         # B03: the signed loader only boots from the slot store; leave no
         # unsigned fallback target on the ESP at all.
         (esp / "kernel.elf").unlink(missing_ok=True)
@@ -384,7 +386,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "framebuffer", "signed-boot"])
+    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "framebuffer", "signed-boot-test"])
     parser.add_argument("--image-version", type=int, help="B03: NOS_IMAGE_VERSION of an update kernel")
     parser.add_argument("--kernel-feature", choices=KERNEL_FEATURES)
     args = parser.parse_args()

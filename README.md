@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`fc3b5e25`](https://github.com/simonvanieperen/nieuw-os/commit/fc3b5e2522e04f636bdb443299da6e8f99161afe) ·
-**Ontwikkelbranch:** `simonvanieperen-laughing-fortnight`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR138: statusconflict met main d686bd54 inhoudsbehoudend integreren.
-41/100 blijft 41/100. Eén statusconflict met main d686bd54 is inhoudsbehoudend opgelost; beide checkpointgeschiedenissen en hun brongebonden bewijs blijven behouden. Code is automatisch samengevoegd zonder handmatige runtimewijziging. De integration_review-velden beschrijven uitsluitend de historische PR148-integratie, niet deze PR138-boom. Geen nieuw criterium of native acceptatie. Gerichte integratievalidatie en nieuwe-head CI worden afzonderlijk gerapporteerd.
+**Bron:** [`04d727c3`](https://github.com/simonvanieperen/nieuw-os/commit/04d727c306d13e03a192d9d002a7d44348841c9f) ·
+**Ontwikkelbranch:** `fix/b03-test-anchors-guard`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR158: documentconflicten met main 95d79451 inhoudsbehoudend integreren.
+41/100 blijft 41/100. De drie documentconflicten behouden de B03- en PR138-checkpointgeschiedenissen en hun brongebonden bewijs. Rust-wijzigingen uit main zijn uitsluitend commentaar; de B03-ondertekenpolicy blijft ongewijzigd. De integration_review-velden blijven historisch PR148-bewijs, niet voor deze integratie. Productiesleutelbeleid en issue #41 blijven open. Geen nieuw criterium of native acceptatie; nieuwe-head CI wordt afzonderlijk beoordeeld.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
