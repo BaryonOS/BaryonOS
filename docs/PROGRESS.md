@@ -91,6 +91,12 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR131-zesde-conflictoplossing (3 november 2026), head `c39f8abd` met
+main `8e0c15d8`: **41 → 41/100**. Drie centrale metadata-conflicten opgelost;
+beide statusgeschiedenissen, nieuwe prototype-/runnertests en alle receipts
+behouden. Buiten vier statusbestanden is de boom exact main; geen nieuwe
+criteria of runtime-uitvoering. Reviewverzoeken vallen buiten de autorisatie.
+
 PR131-vijfde-conflictoplossing (3 november 2026), head `9979b4f2` met
 main `0e3b9e7f`: **41 → 41/100**. Beide statusgeschiedenissen, desktopcode,
 regressietests en PR149-bewijzen behouden. Buiten vier statusbestanden is

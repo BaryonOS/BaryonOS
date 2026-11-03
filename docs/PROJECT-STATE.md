@@ -1,6 +1,33 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR131: vijfde main-conflictoplossing — 3 november 2026
+## NEXT AGENT HANDOFF — PR131: zesde main-conflictoplossing — 3 november 2026
+
+**Bronnen en scope:** head `c39f8abd9664b317f1989fc326c0b1608b9644ec`
+op `codex/os-research-phases-2-4-20261102` gecombineerd met main
+`8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2`. Drie conflicten in
+README, PROJECT-STATE en progress.json; beide statusgeschiedenissen,
+nieuwe prototype-/runnertests en alle receipts blijven behouden.
+Buiten vier centrale statusbestanden is de boom exact main; criteria/evidence
+blijven gelijk. **41/100 → 41/100**, geen nieuwe acceptatie.
+
+**Mandaat en bewijsgrens:** alleen conflictoplossing; geen PR-merge of
+reviewafhandeling. Vóór de mergecommit uitgevoerd, alle exit 0:
+- `python3 tools/progress.py --write`.
+- `python3 tools/progress.py --check`; `/tmp/pr131-r6-progress.log`.
+- `git diff --exit-code origin/main -- . ':!README.md' ':!docs/PROJECT-STATE.md' ':!docs/PROGRESS.md' ':!docs/progress.json'`:
+  alle overige bestanden exact main.
+- `git diff --check origin/main`; `/tmp/pr131-r6-diff.log`.
+- `git diff --cached --check`; `/tmp/pr131-r6-staged.log`.
+
+Geen nieuwe Rust-, Node-
+of QEMU-tests voor deze documentatieresolutie. Historische uitvoeringen
+blijven uitsluitend aan hun oorspronkelijke bronnen gebonden.
+
+**Open/eerstvolgend:** reviewverzoeken blijven buiten deze autorisatie open;
+nieuwe-head controles en mergeability afzonderlijk laten beoordelen.
+Eerstvolgende lokale controle: `python3 tools/progress.py --check`.
+
+## Historisch checkpoint PR131 — vijfde main-conflictoplossing — 3 november 2026
 
 **Bronnen en scope:** head `9979b4f2dbefa14902850ef24fa18ed7f62dc80e`
 op `codex/os-research-phases-2-4-20261102` gecombineerd met main
@@ -165,6 +192,26 @@ nieuwe runtime-uitvoering. Tijdelijke logs worden niet meegecommit.
 beoordelen; oude testresultaten gelden niet als nieuwe uitvoering. Eerste
 lokale controle: `python3 tools/progress.py --check`. De bestaande release-,
 installer-, authenticatie- en toegankelijkheidsgates blijven open.
+
+## Historisch checkpoint — PR142 main-integratie — 3 november 2026
+
+**Basis vóór integratie:** PR-head `37ad1e98328e59b752c230310a4abeaca749b669`;
+main `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`. De enige conflicthunk was
+`docs/verification/retained-document-heads-20261103.json`. De opgeloste
+snapshotlijst behoudt alle unieke PR131/132-, PR141- en PR142-ingangen;
+PR149's code/tests en receipts zijn eveneens behouden uit main. Geen receipt
+wordt als bewijs voor deze nieuwe mergeboom aangeduid.
+
+**Uitgevoerd op de opgeloste boom:** `node --test ui/prototype/tests/*.test.mjs`
+— 41 geslaagd, 0 mislukt; `node --check ui/prototype/app.js` en
+`node --check ui/prototype/state.js` — exit 0. De README-voorgestelde
+`--test-isolation=none`-optie wordt niet herkend door Node v22.23.4; de suite
+is daarna met de ondersteunde standaardopties geslaagd. Progressmeter is
+bijgewerkt: **41 → 41/100**, zonder nieuw criteriumbewijs. Native/QEMU,
+fysieke en menselijke acceptatie zijn niet uitgevoerd.
+**Open:** finaliseer de merge na JSON/progress- en diffcontroles en secret scan;
+na publicatie moeten de nieuwe-head-checks worden geëvalueerd.
+
 ## Historisch checkpoint — PR149 derde main-integratie — 3 november 2026
 
 **Basis:** Watch-merge `bb8877e3e1aaec304d7478510b65c8116aeb634e`, met
