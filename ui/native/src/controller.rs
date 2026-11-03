@@ -48,6 +48,7 @@ pub enum Focus {
     SaveAndBack,
     Discard,
     Tool,
+    ContextMenu,
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Status {
@@ -110,6 +111,24 @@ pub struct View<'a> {
     pub saving: bool,
     pub document_dirty: bool,
     pub cursor: Option<(u32, u32)>,
+    pub document_menu: Option<DocumentMenu>,
+}
+
+/// App-local logical geometry; no input or storage authority.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct DocumentMenu {
+    pub bounds: Rect,
+    pub selected: usize,
+}
+impl DocumentMenu {
+    pub fn item(self, index: usize) -> Rect {
+        Rect {
+            x: self.bounds.x + 10,
+            y: self.bounds.y + 10 + index.min(3) as u32 * 48,
+            width: self.bounds.width - 20,
+            height: 44,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -172,6 +191,8 @@ pub struct Controller<'a, T> {
     dragging: bool,
     pressed: Option<Focus>,
     back_after_save: bool,
+    document_menu: Option<DocumentMenu>,
+    menu_pressed: Option<usize>,
 }
 
 impl<'a, T: Transport> Controller<'a, T> {
@@ -226,6 +247,8 @@ impl<'a, T: Transport> Controller<'a, T> {
             dragging: false,
             pressed: None,
             back_after_save: false,
+            document_menu: None,
+            menu_pressed: None,
         })
     }
 
@@ -270,6 +293,9 @@ impl<'a, T: Transport> Controller<'a, T> {
     /// Explicit endpoint cleanup only after the caller has dealt with dirty
     /// work. No hidden commit, abort or discard occurs in this function/drop.
     pub fn close_clean(&mut self) -> Result<(), Error> {
+        if self.dismiss_document_menu() {
+            self.invalidate()?;
+        }
         if self.document.is_saving() {
             return Err(self.failed(Error::Storage(StorageError::Busy)));
         }
@@ -313,6 +339,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             saving: self.document.is_saving(),
             document_dirty: self.document.is_dirty(),
             cursor: self.cursor,
+            document_menu: self.document_menu,
         }
     }
     /// The validated native adapter enables this only when a separate compositor
@@ -347,6 +374,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             return Err(Error::InvalidInput);
         }
         self.desktop = Some(crate::desktop::Desktop::new());
+        self.dismiss_document_menu();
         self.invalidate()
     }
     fn desktop_action(&mut self, action: crate::desktop::Action) -> Result<(), Error> {
@@ -362,6 +390,7 @@ impl<'a, T: Transport> Controller<'a, T> {
         self.invalidate()
     }
     pub fn resize(&mut self, viewport: Viewport) -> Result<(), Error> {
+        self.dismiss_document_menu();
         self.viewport = viewport;
         if let Some(desktop) = &mut self.desktop {
             desktop.cancel_pointer();
@@ -384,6 +413,7 @@ impl<'a, T: Transport> Controller<'a, T> {
         if new_epoch == 0 || new_epoch == self.input_epoch {
             return Err(Error::InputEpoch);
         }
+        self.dismiss_document_menu();
         if let Some(desktop) = &mut self.desktop {
             desktop.cancel_input();
         }
@@ -412,9 +442,14 @@ impl<'a, T: Transport> Controller<'a, T> {
         if let Some(desktop) = &mut self.desktop {
             desktop.cancel_pointer();
         }
-        if !self.dragging && self.pressed.is_none() && self.cursor.is_none() {
+        if !self.dragging
+            && self.pressed.is_none()
+            && self.cursor.is_none()
+            && self.menu_pressed.is_none()
+        {
             return Ok(());
         }
+        self.menu_pressed = None;
         self.dragging = false;
         self.pressed = None;
         self.cursor = None;
@@ -437,6 +472,7 @@ impl<'a, T: Transport> Controller<'a, T> {
         }
     }
     pub fn open(&mut self, object: u64) -> Result<(), Error> {
+        self.dismiss_document_menu();
         if let Err(error) = self.document.open(object) {
             return Err(self.failed(Error::Storage(error)));
         }
@@ -454,6 +490,7 @@ impl<'a, T: Transport> Controller<'a, T> {
         self.invalidate()
     }
     pub fn create(&mut self) -> Result<(), Error> {
+        self.dismiss_document_menu();
         if !self.list_loaded {
             self.refresh()?;
         }
@@ -507,6 +544,16 @@ impl<'a, T: Transport> Controller<'a, T> {
         if !enabled || !actions.activate {
             return Err(Error::InvalidInput);
         }
+        if self.document_menu.is_some() {
+            let index = match id {
+                SemanticId::SelectAll => 0,
+                SemanticId::DocumentTool => 1,
+                SemanticId::Save => 2,
+                SemanticId::CancelDocumentMenu => 3,
+                _ => return Err(Error::InvalidInput),
+            };
+            return self.activate_menu_item(index);
+        }
         if let SemanticId::Desktop(target) = id {
             let desktop = self.desktop.as_mut().ok_or(Error::InvalidInput)?;
             let action = desktop.activate(target);
@@ -530,6 +577,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             SemanticId::KeepEditing => Focus::KeepEditing,
             SemanticId::Discard => Focus::Discard,
             SemanticId::DocumentTool => Focus::Tool,
+            SemanticId::DocumentMenu => Focus::ContextMenu,
             _ => return Err(Error::InvalidInput),
         };
         // An accepted semantic action may replace the screen or object list;
@@ -559,6 +607,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             Focus::SaveAndBack => SemanticId::SaveAndBack,
             Focus::Discard => SemanticId::Discard,
             Focus::Tool => SemanticId::DocumentTool,
+            Focus::ContextMenu => SemanticId::DocumentMenu,
             Focus::Document => return Err(Error::InvalidInput),
         };
         self.activate_semantic(id, self.generation)
@@ -612,6 +661,7 @@ impl<'a, T: Transport> Controller<'a, T> {
         if self.screen != Screen::Editor || self.document.is_saving() {
             return Err(Error::InvalidInput);
         }
+        self.dismiss_document_menu();
         self.tool = match self.tool {
             DocumentTool::Write => DocumentTool::Read,
             DocumentTool::Read => DocumentTool::Write,
@@ -623,6 +673,9 @@ impl<'a, T: Transport> Controller<'a, T> {
     }
 
     pub fn save(&mut self) -> Result<(), Error> {
+        if self.dismiss_document_menu() {
+            self.invalidate()?;
+        }
         if !self.document.is_dirty() {
             // Keep the SDK's available/read-only/uncertainty checks even for
             // unchanged bytes; an old loaded revision is not a new success.
@@ -683,6 +736,7 @@ impl<'a, T: Transport> Controller<'a, T> {
         self.invalidate()
     }
     pub fn request_back(&mut self) -> Result<(), Error> {
+        self.dismiss_document_menu();
         if self.document.is_saving() {
             return Err(self.failed(Error::Storage(StorageError::Busy)));
         }
@@ -755,6 +809,104 @@ impl<'a, T: Transport> Controller<'a, T> {
                 self.refresh()
             }
             Focus::Tool => self.switch_tool(),
+            Focus::ContextMenu => {
+                let button = Layout::new(self.viewport).context_menu;
+                self.open_document_menu(Some((button.x, button.y + button.height)))
+            }
+        }
+    }
+    fn dismiss_document_menu(&mut self) -> bool {
+        self.menu_pressed = None;
+        self.document_menu.take().is_some()
+    }
+    fn open_document_menu(&mut self, pointer: Option<(u32, u32)>) -> Result<(), Error> {
+        if self.screen != Screen::Editor
+            || self.document.is_saving()
+            || self.document.is_closed()
+            || self.view().contents.is_none()
+            || self.desktop.as_ref().is_some_and(|d| d.overlay())
+        {
+            return Ok(());
+        }
+        let layout = Layout::new(self.viewport);
+        let (x, y) = pointer.unwrap_or_else(|| {
+            let position = text::position(
+                self.view().contents.unwrap_or(""),
+                self.caret,
+                layout.columns(),
+            );
+            (
+                layout.editor.x + 8 + position.column as u32 * layout.character_width() as u32,
+                layout.editor.y
+                    + 8
+                    + position.row.saturating_sub(self.scroll).min(layout.rows()) as u32
+                        * design::LINE_HEIGHT
+                    + design::LINE_HEIGHT,
+            )
+        });
+        self.document_menu = Some(DocumentMenu {
+            bounds: Rect {
+                x: x.clamp(8, self.viewport.logical_width() - 256),
+                y: y.clamp(8, self.viewport.logical_height() - 216),
+                width: 248,
+                height: 208,
+            },
+            selected: 0,
+        });
+        self.dragging = false;
+        self.pressed = None;
+        self.menu_pressed = None;
+        self.invalidate()
+    }
+    fn activate_menu_item(&mut self, index: usize) -> Result<(), Error> {
+        if self.document_menu.is_none() || index > 3 || (index == 2 && !self.view().can_save) {
+            return Err(Error::InvalidInput);
+        }
+        self.dismiss_document_menu();
+        self.dragging = false;
+        self.pressed = None;
+        self.invalidate()?;
+        match index {
+            0 => {
+                self.anchor = 0;
+                self.caret = self.view().contents.map_or(0, str::len);
+                self.focus = Focus::Document;
+                self.ensure_caret();
+                Ok(())
+            }
+            1 => self.switch_tool(),
+            2 => self.save(),
+            _ => Ok(()),
+        }
+    }
+    fn menu_key(&mut self, event: KeyboardEvent) -> Result<(), Error> {
+        self.menu_pressed = None;
+        match event.key {
+            PhysicalKey::Escape if event.action == KeyAction::Press => {
+                self.dismiss_document_menu();
+                self.invalidate()
+            }
+            PhysicalKey::Enter | PhysicalKey::KeypadEnter if event.action == KeyAction::Press => {
+                self.activate_menu_item(self.document_menu.unwrap().selected)
+            }
+            PhysicalKey::Up
+            | PhysicalKey::Down
+            | PhysicalKey::Left
+            | PhysicalKey::Right
+            | PhysicalKey::Tab => {
+                let reverse = matches!(event.key, PhysicalKey::Up | PhysicalKey::Left)
+                    || (event.key == PhysicalKey::Tab && event.modifiers.shift());
+                let can_save = self.view().can_save;
+                let menu = self.document_menu.as_mut().unwrap();
+                loop {
+                    menu.selected = (menu.selected + if reverse { 3 } else { 1 }) % 4;
+                    if menu.selected != 2 || can_save {
+                        break;
+                    }
+                }
+                self.invalidate()
+            }
+            _ => Ok(()),
         }
     }
     fn ensure_caret(&mut self) {
@@ -777,7 +929,7 @@ impl<'a, T: Transport> Controller<'a, T> {
         }
     }
     pub fn insert(&mut self, replacement: &str) -> Result<(), Error> {
-        if self.tool == DocumentTool::Read {
+        if self.tool == DocumentTool::Read || self.document_menu.is_some() {
             return Err(Error::InvalidInput);
         }
         if self.screen != Screen::Editor || self.view().contents.is_none() {
@@ -832,6 +984,7 @@ impl<'a, T: Transport> Controller<'a, T> {
     }
     fn clipboard_edit_context(&self) -> bool {
         self.screen == Screen::Editor
+            && self.document_menu.is_none()
             && self.focus == Focus::Document
             && !self
                 .desktop
@@ -870,7 +1023,8 @@ impl<'a, T: Transport> Controller<'a, T> {
                 | Status::ClipboardSelection
                 | Status::ClipboardTooLong
                 | Status::ClipboardUnavailable
-        ) || self.document.is_saving()
+        ) || self.document_menu.is_some()
+            || self.document.is_saving()
             || self.document.is_closed()
             || self.document.is_uncertain()
             || self.document.is_conflicted()
@@ -947,7 +1101,8 @@ impl<'a, T: Transport> Controller<'a, T> {
                     count
                 } else {
                     choices[count] = Focus::Tool;
-                    count + 1
+                    choices[count + 1] = Focus::ContextMenu;
+                    count + 2
                 }
             }
             Screen::ConfirmClose => {
@@ -988,6 +1143,18 @@ impl<'a, T: Transport> Controller<'a, T> {
             return Ok(());
         }
         let press = event.action == KeyAction::Press;
+        if self.document_menu.is_some() {
+            return self.menu_key(event);
+        }
+        if event.key == PhysicalKey::Menu
+            || (event.key == PhysicalKey::F10 && event.modifiers.shift())
+        {
+            return if press {
+                self.open_document_menu(None)
+            } else {
+                Ok(())
+            };
+        }
         if event.key == PhysicalKey::F4 && self.screen == Screen::Editor {
             return if press && !self.document.is_saving() {
                 self.activate_focus_semantically(Focus::Tool)
@@ -1141,6 +1308,8 @@ impl<'a, T: Transport> Controller<'a, T> {
                     Some(Focus::Back)
                 } else if layout.tool.contains(x, y) && !self.document.is_saving() {
                     Some(Focus::Tool)
+                } else if layout.context_menu.contains(x, y) && !self.document.is_saving() {
+                    Some(Focus::ContextMenu)
                 } else if layout.save.contains(x, y)
                     && (self.view().can_save || self.document.is_saving())
                 {
@@ -1211,6 +1380,7 @@ impl<'a, T: Transport> Controller<'a, T> {
                 }
                 self.dragging = false;
                 self.pressed = None;
+                self.dismiss_document_menu();
                 if !self.document.is_uncertain()
                     && !self.document.is_conflicted()
                     && !self.document.is_closed()
@@ -1232,6 +1402,9 @@ impl<'a, T: Transport> Controller<'a, T> {
             }
             self.dragging = false;
             self.pressed = None;
+            if self.dismiss_document_menu() {
+                self.invalidate()?;
+            }
             self.focus_generation = envelope.generation;
         }
         if self.awaiting_input {
@@ -1254,6 +1427,7 @@ impl<'a, T: Transport> Controller<'a, T> {
         }
         match envelope.event {
             event if self.desktop.as_ref().is_some_and(|d| d.overlay()) => {
+                self.dismiss_document_menu();
                 if let Event::Mouse { x, y, .. } = event {
                     self.cursor = Some((x, y));
                 }
@@ -1274,6 +1448,35 @@ impl<'a, T: Transport> Controller<'a, T> {
                 self.cursor = Some((x, y));
                 let x = x / self.viewport.scale().factor();
                 let y = y / self.viewport.scale().factor();
+                if let Some(menu) = self.document_menu {
+                    let hit = (0..4).find(|i| menu.item(*i).contains(x, y));
+                    if input.changed.left() && input.buttons.left() {
+                        self.menu_pressed = hit.filter(|i| *i != 2 || self.view().can_save);
+                        if let Some(index) = self.menu_pressed {
+                            self.document_menu.as_mut().unwrap().selected = index;
+                        }
+                        if !menu.bounds.contains(x, y) {
+                            self.dismiss_document_menu();
+                        }
+                    } else if input.changed.right() && input.buttons.right() {
+                        self.menu_pressed = None;
+                        if !menu.bounds.contains(x, y) {
+                            self.dismiss_document_menu();
+                        }
+                    }
+                    if input.changed.left() && !input.buttons.left() {
+                        if let Some(index) = self.menu_pressed.take().filter(|i| Some(*i) == hit) {
+                            self.activate_menu_item(index)?;
+                        }
+                    }
+                    return self.invalidate();
+                }
+                if input.changed.right()
+                    && input.buttons.right()
+                    && Layout::new(self.viewport).editor.contains(x, y)
+                {
+                    return self.open_document_menu(Some((x, y)));
+                }
                 if input.changed.left() && input.buttons.left() {
                     self.pressed = self.hit(x, y);
                     if let Some(focus) = self.pressed {

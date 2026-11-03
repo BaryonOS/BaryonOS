@@ -30,6 +30,7 @@ fn view<'a>(viewport: Viewport, objects: &'a [ListEntry]) -> View<'a> {
         saving: false,
         document_dirty: false,
         cursor: None,
+        document_menu: None,
     }
 }
 

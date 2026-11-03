@@ -23,6 +23,7 @@ pub struct Layout {
     pub back: Rect,
     pub save: Rect,
     pub tool: Rect,
+    pub context_menu: Rect,
     pub editor: Rect,
     pub status: Rect,
     pub list_bottom: u32,
@@ -101,6 +102,12 @@ impl Layout {
                 y: d::PAD,
                 width: if width < 480 { 108 } else { 156 },
                 height: d::CONTROL_HEIGHT,
+            },
+            context_menu: Rect {
+                x: width - d::PAD - 44,
+                y: 68,
+                width: 44,
+                height: 44,
             },
             editor: Rect {
                 x: d::PAD,
@@ -504,7 +511,23 @@ impl<'a> Frame<'a> {
                     },
                 );
                 let title = core::str::from_utf8(self.view.title).unwrap_or("Naam niet leesbaar");
-                paint.medium(d::PAD, 84, title, d::TEXT);
+                paint.clipped_medium(
+                    Rect {
+                        x: d::PAD,
+                        y: 84,
+                        width: layout.context_menu.x - d::PAD - 12,
+                        height: 24,
+                    },
+                    title,
+                    d::TEXT,
+                );
+                paint.button(
+                    layout.context_menu,
+                    "···",
+                    self.view.focus == Focus::ContextMenu && self.view.document_menu.is_none(),
+                    !self.view.saving && self.view.screen == Screen::Editor,
+                    ButtonStyle::Secondary,
+                );
                 if viewport.logical_height() >= 360 {
                     paint.small(
                         d::PAD,
@@ -690,6 +713,33 @@ impl<'a> Frame<'a> {
                 ButtonStyle::Danger,
             );
         }
+        if let Some(menu) = self
+            .view
+            .document_menu
+            .filter(|_| self.view.screen == Screen::Editor && !self.view.saving)
+        {
+            let r = menu.bounds.physical(viewport.scale());
+            // Distance falloff over this private tile only, not backdrop blur.
+            paint
+                .canvas()
+                .soft_shadow(
+                    GraphicRect::new(r.x as i32, r.y as i32, r.width, r.height),
+                    8 * viewport.scale().factor(),
+                    d::TEXT,
+                    52,
+                )
+                .map_err(|_| Error::Tile)?;
+            paint.outlined(menu.bounds, d::SURFACE, d::BORDER, d::SURFACE_RADIUS);
+            for index in 0..4 {
+                paint.button(
+                    menu.item(index),
+                    menu_label(index, self.view.tool),
+                    menu.selected == index,
+                    index != 2 || self.view.can_save,
+                    ButtonStyle::Secondary,
+                );
+            }
+        }
         if let Some((x, y)) = self.view.cursor.filter(|(x, y)| {
             self.view.draw_pointer && *x < viewport.width() && *y < viewport.height()
         }) {
@@ -779,6 +829,64 @@ impl<'a> Frame<'a> {
                     ..SemanticNode::EMPTY
                 });
             }
+            return;
+        }
+        if let Some(menu) = self
+            .view
+            .document_menu
+            .filter(|_| self.view.screen == Screen::Editor && !self.view.saving)
+        {
+            visit(SemanticNode {
+                id: SemanticId::Window,
+                role: Role::Window,
+                label: "Materiaal",
+                bounds: self.view.viewport.bounds(),
+                enabled: true,
+                ..SemanticNode::EMPTY
+            });
+            visit(SemanticNode {
+                id: SemanticId::DocumentMenuDialog,
+                parent: Some(SemanticId::Window),
+                role: Role::Dialog,
+                label: "Documentacties",
+                bounds: menu.bounds.physical(self.view.viewport.scale()),
+                enabled: true,
+                ..SemanticNode::EMPTY
+            });
+            for (index, id) in [
+                SemanticId::SelectAll,
+                SemanticId::DocumentTool,
+                SemanticId::Save,
+                SemanticId::CancelDocumentMenu,
+            ]
+            .into_iter()
+            .enumerate()
+            {
+                let enabled = index != 2 || self.view.can_save;
+                visit(SemanticNode {
+                    id,
+                    parent: Some(SemanticId::DocumentMenuDialog),
+                    role: Role::Button,
+                    label: menu_label(index, self.view.tool),
+                    bounds: menu.item(index).physical(self.view.viewport.scale()),
+                    enabled,
+                    focused: menu.selected == index,
+                    actions: SemanticActions {
+                        activate: enabled,
+                        set_value: false,
+                    },
+                    ..SemanticNode::EMPTY
+                });
+            }
+            visit(SemanticNode {
+                id: SemanticId::Status,
+                parent: Some(SemanticId::Window),
+                role: Role::Status,
+                label: status_label(self.view.status),
+                bounds: self.layout.status.physical(self.view.viewport.scale()),
+                enabled: true,
+                ..SemanticNode::EMPTY
+            });
             return;
         }
         let mut push =
@@ -973,6 +1081,16 @@ impl<'a> Frame<'a> {
                     !self.view.saving,
                 );
                 push(
+                    SemanticId::DocumentMenu,
+                    Some(SemanticId::Window),
+                    Role::Button,
+                    "Documentacties openen",
+                    None,
+                    l.context_menu,
+                    Some(Focus::ContextMenu),
+                    !self.view.saving,
+                );
+                push(
                     SemanticId::Document,
                     Some(SemanticId::Window),
                     Role::TextEditor,
@@ -1092,6 +1210,10 @@ pub enum SemanticId {
     Save,
     Document,
     DocumentTool,
+    DocumentMenu,
+    DocumentMenuDialog,
+    SelectAll,
+    CancelDocumentMenu,
     CloseDialog,
     SaveAndBack,
     KeepEditing,
@@ -1147,6 +1269,18 @@ fn tool_action(tool: DocumentTool) -> &'static str {
     match tool {
         DocumentTool::Write => "Lezen · F4",
         DocumentTool::Read => "Schrijven · F4",
+    }
+}
+
+fn menu_label(index: usize, tool: DocumentTool) -> &'static str {
+    match index {
+        0 => "Alles selecteren",
+        1 => match tool {
+            DocumentTool::Write => "Lezen",
+            DocumentTool::Read => "Schrijven",
+        },
+        2 => "Opslaan",
+        _ => "Annuleren",
     }
 }
 
@@ -1965,6 +2099,19 @@ impl Paint<'_> {
     }
     fn medium(&mut self, x: u32, y: u32, label: &str, color: u32) {
         self.ui_text(x, y, label, Size::Body, Weight::Semibold, color);
+    }
+    fn clipped_medium(&mut self, bounds: Rect, label: &str, color: u32) {
+        let mut end = 0;
+        for (start, ch) in label.char_indices() {
+            let next = start + ch.len_utf8();
+            if ch.is_control()
+                || self.measure(&label[..next], Size::Body, Weight::Semibold) > bounds.width
+            {
+                break;
+            }
+            end = next;
+        }
+        self.medium(bounds.x, bounds.y, &label[..end], color);
     }
     fn icon(&mut self, r: Rect, icon: Icon, color: u32, stroke: u32) {
         let r = r.physical(self.scale);
