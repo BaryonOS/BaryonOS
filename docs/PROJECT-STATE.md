@@ -126,6 +126,29 @@ Geen nieuwe runtime-uitvoering door General. Gezamenlijke main-integratie,
 nieuwe-head CI/review en niet-herhaalde volledige scene-/normale buildgates
 blijven open; historische 60-fasenruns niet als sterker paneelbewijs gebruiken.
 
+**RANDOM-blocker daadwerkelijk hersteld en op PR146 getest:** Platform
+leverde standalone `94bd96d0` (fixturecode `a3004631`), uitsluitend vier
+bestanden op maina32. Dezelfde 64 requests in vier batches van 16;
+request65 moet echte Quota geven en volledige burst inclusief denial moet
+onder de ongewijzigde 100 ticks blijven. Geen productpolicy-/kernel-/
+runnerwijziging, skip of retry. Owner levert zes brongebonden native gates.
+General herhaalde zes hosttests, 21 harnastests en native raw op standalone
+bron: groen, fingerprint exact `cf9b1d30`.
+
+Daarna uitsluitend deze vier-file-slice op #146 geintegreerd:
+geteste gezamenlijke bron `7b135c8589c6282b6d03a9bd620ffe56ba250372`,
+gepubliceerde bewijshead `cee7a89c2126ff9063aa877356e43953610c9575`.
+Op die gezamenlijke bron opnieuw zes hosttests, 21 harnastests,
+`python3 -B tools/build.py --kernel-feature native-system-random` en
+`python3 -B tools/run_random.py --case raw`: exit0, gate true, QEMU33,
+gast6,70s; commandoreeks17,17s. Bronhash
+`1b2d62e07d34b6f2a27f3f15ff1483f3726034ccd0189ef97fc65e6df41a5ea1`.
+[Exacte integratiereceipt](https://github.com/simonvanieperen/nieuw-os/blob/cee7a89c2126ff9063aa877356e43953610c9575/docs/verification/random-raw-window-20261103.md).
+Geen volledige nieuwe-head CI-/foundation-, Veld- of mainmergeclaim.
+De twee eerder wachtende owneropleveringen zijn hiermee ontvangen;
+resterende grenzen zijn passende volledige CI/review en bevoegd
+integratiebesluit, niet ontbrekend achtergrondwerk.
+
 ## Historisch checkpoint — PR148 met main 8e0c15d — 3 november 2026
 
 **Basis:** PR148 `47ec535f15bb10912dbc6cbf1af3de9df0c6c226` met main
