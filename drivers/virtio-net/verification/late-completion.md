@@ -3,6 +3,24 @@
 Basis: `d10b5cdaf56774a39e3ef10463f674c6188a463a`, branch
 `copilot/driver-next-net-reset`, uitgevoerd 3 november 2026.
 
+## Brongebonden herhaling door integrator
+
+De hieronder genoemde oorspronkelijke logs zijn historisch. De integrator
+heeft alle vijf onderstaande commando's opnieuw uitgevoerd op exacte testbron
+`ddf5207098d5088f28b52310220a80efe4569b7c`, vóór deze documentaanvulling,
+met dezelfde PATH/CC en een eigen
+`CARGO_TARGET_DIR="$PWD/build/pr-agent-a-host"`. Alle commando's exit 0;
+17 hosttests geslaagd, 0 doctests. Geen nieuwe native uitvoering.
+
+| Nieuw log | SHA-256 |
+|---|---|
+| `/tmp/pr-agent-a-170-test.log` | `aade44ce1d632eb8c73e7d23c35a2f94aed6673b49545881430cab9ef603f758` |
+| `/tmp/pr-agent-a-170-fmt.log` | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
+| `/tmp/pr-agent-a-170-clippy.log` | `17bc9a45344f69453acf4b773574fa3d10360eb51f9303b23c128540cd8aec33` |
+| `/tmp/pr-agent-a-170-none.log` | `779d7a91e1a6938df1f3bac58900e78947d06951b1b1456f2944fc5052509674` |
+
+## Oorspronkelijk verslag
+
 Alleen `src/tests.rs` en dit bewijsbestand wijzigen. Geen productiecode,
 kernel-/SDK-adapter, dependency of DMA-/resetcontract gewijzigd.
 
