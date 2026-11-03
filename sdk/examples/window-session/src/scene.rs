@@ -1,3 +1,8 @@
+//! Bounded compositor scene policy and damage tracking for the window probe.
+//!
+//! Coordinates and rectangles use physical pixels; app surfaces are copied
+//! into compositor-owned backing before rendering.
+
 use nieuw_os_graphics::{theme, Canvas, Font, Icon, Rect, Size, Weight};
 use nieuw_os_surface_protocol::{Geometry, Rectangle};
 use ui_core::{KeyAction, KeyboardEvent, PhysicalKey};
@@ -58,6 +63,11 @@ pub struct Scene {
     palette_keys: [bool; PhysicalKey::Menu as usize + 1],
 }
 impl Scene {
+    /// Construct the two-window scene for a supported physical-pixel viewport.
+    ///
+    /// `scale` must be 1 or 2, the logical viewport at least 800×500, the
+    /// physical viewport no larger than 1920×1080, and both surface epochs
+    /// nonzero. The backing store must fit within [`MAX_PIXELS`].
     pub fn new(width: u32, height: u32, scale: u32, epochs: [u64; 2]) -> Result<Self, Invalid> {
         if !matches!(scale, 1 | 2)
             || width > 1920
@@ -119,6 +129,8 @@ impl Scene {
             palette_keys: [false; PhysicalKey::Menu as usize + 1],
         })
     }
+
+    /// Return the title-bar frame for a valid window index.
     pub fn frame(&self, index: usize) -> Rect {
         let b = self.windows[index].body;
         Rect::new(
@@ -128,6 +140,10 @@ impl Scene {
             b.height + 42 * self.scale,
         )
     }
+
+    /// Open the app palette and reset its query and selection.
+    ///
+    /// Returns `false` when the palette is already open.
     pub fn palette_open(&mut self) -> bool {
         if self.palette.open {
             return false;
@@ -139,12 +155,21 @@ impl Scene {
         self.drag = None;
         true
     }
+
+    /// Report whether the app palette is open.
     pub fn palette_is_open(&self) -> bool {
         self.palette.open
     }
+
+    /// Return the current ASCII app-name query.
     pub fn palette_query(&self) -> &str {
         core::str::from_utf8(&self.palette.query[..self.palette.length]).expect("ASCII app query")
     }
+
+    /// Append one permitted ASCII letter, digit, or space to the open query.
+    ///
+    /// Returns `false` if the palette is closed, the query is full, or the
+    /// byte is not accepted.
     pub fn palette_insert(&mut self, byte: u8) -> bool {
         if !self.palette.open
             || self.palette.length == QUERY_BYTES
@@ -157,6 +182,8 @@ impl Scene {
         self.palette.selected = self.palette.first_match();
         true
     }
+
+    /// Remove the last query byte and refresh the selected match.
     pub fn palette_backspace(&mut self) -> bool {
         if !self.palette.open || self.palette.length == 0 {
             return false;
@@ -166,6 +193,9 @@ impl Scene {
         self.palette.selected = self.palette.first_match();
         true
     }
+
+    /// Move selection to the next matching app, wrapping in the requested
+    /// direction; return whether the selection changed.
     pub fn palette_next(&mut self, reverse: bool) -> bool {
         if !self.palette.open {
             return false;
@@ -183,11 +213,15 @@ impl Scene {
             .find(|index| self.palette.matches(*index));
         self.palette.selected != before
     }
+
+    /// Return the selected app only while it still matches the open query.
     pub fn palette_selected(&self) -> Option<usize> {
         self.palette
             .selected
             .filter(|index| self.palette.open && self.palette.matches(*index))
     }
+
+    /// Close the palette and clear its query and selection.
     pub fn palette_close(&mut self) -> bool {
         if !self.palette.open {
             return false;
@@ -224,6 +258,8 @@ impl Scene {
             48 * s,
         ))
     }
+
+    /// Return the matching app row under a physical-pixel position.
     pub fn palette_hit(&self, x: u32, y: u32) -> Option<usize> {
         (0..WINDOWS).find(|index| {
             self.palette_row(*index)
@@ -231,12 +267,17 @@ impl Scene {
         })
     }
     /// Returns true only for keys owned by the compositor's app palette.
+    /// Route a keyboard event to the palette when it owns the event.
+    ///
+    /// Handled keys mark the palette and dock in `damage`. Returns `Ok(true)`
+    /// when consumed and `Ok(false)` for unrelated keys.
     pub fn palette_key(
         &mut self,
         key: KeyboardEvent,
         damage: &mut Damage,
     ) -> Result<bool, Invalid> {
         let index = key.key as usize;
+        // Keep ownership through key-up, even if closing the palette happens first.
         if key.action == KeyAction::Release && self.palette_keys[index] {
             self.palette_keys[index] = false;
             return Ok(true);
@@ -302,6 +343,9 @@ impl Scene {
         damage.mark(self.dock());
         Ok(true)
     }
+
+    /// Return the dock task button currently under the pointer, unless the
+    /// palette is open.
     pub fn hovered_task(&self) -> Option<usize> {
         (!self.palette_is_open())
             .then(|| {
@@ -312,6 +356,8 @@ impl Scene {
             })
             .flatten()
     }
+
+    /// Forget palette key ownership and close it, marking affected regions.
     pub fn cancel_palette_input(&mut self, damage: &mut Damage) {
         self.palette_keys.fill(false);
         if self.palette_close() {
@@ -319,6 +365,8 @@ impl Scene {
             damage.mark(self.dock());
         }
     }
+
+    /// Apply pointer input and mark every old and new region that needs repaint.
     pub fn mouse_with_damage(
         &mut self,
         x: u32,
@@ -333,6 +381,7 @@ impl Scene {
         damage.mark(self.pointer_bounds());
         let recipient = self.mouse(x, y, down, held)?;
         damage.mark(self.pointer_bounds());
+        // Both task buttons can change appearance when hover moves or vanishes.
         if hover != self.hovered_task() {
             for index in [hover, self.hovered_task()].into_iter().flatten() {
                 damage.mark(self.task_button(index));
@@ -350,6 +399,8 @@ impl Scene {
         }
         Ok(recipient)
     }
+
+    /// Return the physical-pixel bounds reserved for clipboard status text.
     pub fn clipboard_notice_bounds(&self) -> Rect {
         Rect::new(
             300 * self.scale as i32,
@@ -358,6 +409,8 @@ impl Scene {
             40 * self.scale,
         )
     }
+
+    /// Set the clipboard notice and report whether its visible state changed.
     pub fn set_clipboard_notice(&mut self, notice: ClipboardNotice) -> bool {
         if self.clipboard_notice == notice {
             return false;
@@ -365,6 +418,8 @@ impl Scene {
         self.clipboard_notice = notice;
         true
     }
+
+    /// Return a window's repaint bounds, including its one-pixel contour.
     pub fn paint_bounds(&self, index: usize) -> Rect {
         let f = self.frame(index);
         Rect::new(
@@ -374,6 +429,8 @@ impl Scene {
             f.height + 2 * self.scale,
         )
     }
+
+    /// Focus a valid window and cancel any drag; reject invalid indices.
     pub fn select(&mut self, index: usize) -> Result<(), Invalid> {
         if index >= WINDOWS {
             return Err(Invalid);
@@ -385,12 +442,18 @@ impl Scene {
         }
         Ok(())
     }
+
+    /// Switch focus to the other window.
     pub fn cycle(&mut self) -> Result<(), Invalid> {
         self.select(1 - self.focused)
     }
+
+    /// Cancel an active window drag.
     pub fn cancel_pointer(&mut self) {
         self.drag = None;
     }
+
+    /// Return the physical-pixel bounds that the pointer renderer can affect.
     pub fn pointer_bounds(&self) -> Rect {
         let pad = 4 * self.scale as i32;
         Rect::new(
@@ -467,6 +530,8 @@ impl Scene {
         let b = self.windows[self.focused].body;
         Ok(b.contains(x as i32, y as i32).then_some(self.focused))
     }
+
+    /// Return the physical-pixel rectangle occupied by the dock.
     pub fn dock(&self) -> Rect {
         Rect::new(
             0,
@@ -475,6 +540,8 @@ impl Scene {
             48 * self.scale,
         )
     }
+
+    /// Return a task-button rectangle, or an empty rectangle for an invalid index.
     pub fn task_button(&self, index: usize) -> Rect {
         if index >= WINDOWS {
             return Rect::default();
@@ -487,6 +554,11 @@ impl Scene {
             36 * s,
         )
     }
+
+    /// Validate and copy one tile of 32-bit pixels into compositor backing.
+    ///
+    /// The pixel buffer must exactly match the tile dimensions and its high
+    /// byte must be zero. Returns the tile's destination rectangle.
     pub fn copy_tile(
         &self,
         index: usize,
@@ -536,6 +608,9 @@ impl Scene {
             u32::from(rect.height),
         ))
     }
+
+    /// Render a viewport, using the opaque-body fast path when overlays do not
+    /// intersect it and the reference compositor otherwise.
     pub fn render(&self, rect: Rect, pixels: &mut [u32], backing: &[u32]) -> Result<(), Invalid> {
         // Validate the same destination and backing extents as the composite
         // path before taking the opaque-body shortcut. No pixels are borrowed
@@ -895,6 +970,7 @@ impl Scene {
     }
 }
 
+/// Fixed-capacity set of 32-by-8 physical-pixel regions awaiting repaint.
 pub struct Damage {
     bits: [u64; 128],
     width: u32,
@@ -906,6 +982,8 @@ impl Damage {
     pub fn has_pending(&self) -> bool {
         self.bits.iter().any(|word| *word != 0)
     }
+
+    /// Create an empty damage set for a nonzero viewport no larger than 1920×1080.
     pub fn new(width: u32, height: u32) -> Result<Self, Invalid> {
         if width == 0 || height == 0 || width > 1920 || height > 1080 {
             return Err(Invalid);
@@ -917,6 +995,8 @@ impl Damage {
             cursor: 0,
         })
     }
+
+    /// Mark every damage tile intersecting `r`; clip the rectangle to the viewport.
     pub fn mark(&mut self, r: Rect) {
         let columns = self.width.div_ceil(32);
         let left = r.x.clamp(0, self.width as i32) as u32 / 32;
@@ -931,8 +1011,11 @@ impl Damage {
                 }
             }
         }
+        // New damage may precede the scan cursor, so restart enumeration.
         self.cursor = 0;
     }
+
+    /// Consume and return the next marked tile in scan order, if any.
     pub fn next_tile(&mut self) -> Option<Rect> {
         let columns = self.width.div_ceil(32) as usize;
         let count = columns * self.height.div_ceil(8) as usize;
