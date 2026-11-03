@@ -85,6 +85,14 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR139-mainintegratie (3 november 2026), basis `341d1b42` met main
+`d115cc96`: **41 → 41**. De negen `artifact-store-core`-contracttests,
+formatcontrole en Clippy slagen met Rust 1.90.0 op de geïntegreerde boom.
+Dit toetst descriptorvalidatie en bounded-readgedrag, niet identiteit of
+authenticatie; geen native/productacceptatie of nieuwe punten. De op oude
+head `341d1b42` gerapporteerde `b03-native-update`-failure is door de
+gepubliceerde merge superseded en wordt niet als actuele testuitslag hergebruikt.
+
 PR139-reviewvervolg (3 november 2026), geteste bron `732fa9cc`: **41 → 41**.
 De 16 replay-hosttests met `umask 0077` zijn opnieuw groen; met `umask 0002`
 blijft exit 1 (1 failure, 2 errors) zichtbaar, geen groen resultaat.
@@ -114,6 +122,17 @@ uitsluitende historische OS-bewijsbron`380111b`. Bestaand verplicht veld
 `assessment.source_commit` en generator blijven intact; afzonderlijke
 bewijsbron staat in het checkpoint. Geen nieuwe native uitvoering of punten.
 
+PR140-reviewvervolg (3 november 2026), geteste bron `2bf95782`: **41 → 41**.
+De 9 contracttests, typecontrole, Clippy en formattering zijn opnieuw groen.
+Volledige primaire logs met SHA-256 staan duurzaam in
+[het reviewbewijs](verification/pr140-review-evidence.json).
+Descriptorvalidatie/binding is geen bewijs van identiteit of authenticatie.
+Geen nieuwe native of productacceptatie.
+
+Historische PR140-reviewcorrectie (3 november 2026), basis `c07d15b8`: **41 → 41**.
+Alleen Nederlandse beschrijvingen in het historische hostrapport; commands,
+exitstatussen, bron-/loghashes en criteria blijven gelijk. Geen nieuwe tests
+of native productacceptatie door deze tekstcorrectie.
 PR119-inhoudsbehoud (3 november 2026), head `5a8317f1`: **41 -> 41**.
 Volledige nieuwste NAS-history opgenomen; alleen centrale statusconflicten,
 rubric buiten assessment identiek. Tweede/derde119-resolutie blijven

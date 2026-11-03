@@ -1,48 +1,42 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR139 primaire receipts en bronrollen — 3 november 2026
+## NEXT AGENT HANDOFF — PR139 actuele main geïntegreerd — 3 november 2026
+
+Basis vóór integratie: PR-head `341d1b428d436ac0e33c5bf3d7eb684f8543109c`
+en actuele `main` `d115cc96c19ac4371baed77409a23d1adddffaf0`.
+Conflicten in README, progress.json, PROGRESS.md en PROJECT-STATE.md zijn
+opgelost met behoud van PR139-bronrollen en PR140-statushistorie. Main voegt
+de `artifact-store-core`-contracttests toe. `cargo test --locked
+--manifest-path crates/artifact-store-core/Cargo.toml` slaagt (9 tests);
+`cargo +1.90.0 fmt --manifest-path crates/artifact-store-core/Cargo.toml
+-- --check` en `cargo +1.90.0 clippy --locked --manifest-path
+crates/artifact-store-core/Cargo.toml --all-targets -- -D warnings` slagen.
+Dit is contracttestbewijs, geen native acceptatie. Voortgang blijft **41/100**.
+Er waren geen reviewtargets meegeleverd, dus geen reviewverzoek is afgehandeld.
+
+De gerapporteerde `b03-native-update`-failure hoort bij oude head `341d1b42`.
+Na publicatie van deze conflictintegratie is dat bewijs achterhaald; de nieuwe
+head moet haar eigen checks krijgen. Reviews zijn volgens de app nog open.
+Eerstvolgend: publiceer de gevalideerde merge en laat nieuwe checks evalueren.
+
+## Historisch checkpoint — PR139 primaire receipts en bronrollen — 3 november 2026
 
 **Geteste bron:** `732fa9cca04ced66b06bee4f0e4f57249c09e96a`, inclusief
 main `69809c2cb53dfb3bd77abe5352892810fba6e82d`.
-De 16 replay-hosttests zijn opnieuw uitgevoerd met `umask 0077`: exit 0.
-Dezelfde suite met `umask 0002` eindigde echt met exit 1:
-1 failure en 2 errors door groepsschrijfbare fixtures. Dat is geen groen
-testresultaat; de private-inputcontrole is niet versoepeld.
-Exacte commando's, tree/codehashes en volledige primaire logs met SHA-256:
-[PR139-receipts](verification/pr139-review-receipts.json).
+De 16 replay-hosttests slaagden met `umask 0077`; dezelfde suite met `umask
+0002` faalde echt (1 failure, 2 errors) door groepsschrijfbare fixtures.
+Exacte commando's, tree/codehashes en logs: `verification/pr139-review-receipts.json`.
+Het historische prioriteitencheckpoint koppelt zijn 15 workflowruns uitsluitend
+aan `380111b`; dat bewijs is niet opnieuw uitgevoerd.
 
-Het [oudere prioriteitencheckpoint](verification/priority-plan-checkpoint-20261103.json)
-blijft historisch: assessmentbasis `716f3ec1`, oorspronkelijke basis
-`d3e5602c`, 15 OS-workflowruns uitsluitend op `380111b`. Dat bestand wordt
-niet als bewijs voor de nieuwe replay-/umaskruns gebruikt.
-Score **41 → 41**, geen nieuwe native of productacceptatie.
+## Historisch checkpoint — PR140 main-integratie — 3 november 2026
 
-**Open:** verse hosted CI en definitieve review vóór merge, geen blinde
-sluiting van bron-PRs. PR135's volume-fixtures en RANDOM-gate, #41/#42 en
-fysieke/menselijke releaseacceptatie blijven afzonderlijk open.
-**Eerstvolgend:** `GH_PAGER="" gh pr checks 139`; bij Watch-headwijziging
-eerst head/base en inhoud opnieuw beoordelen.
-
-## Historisch checkpoint — PR139 en main inhoudsbehoudend geïntegreerd — 3 november 2026
-
-Basis vóór integratie: PR-head `76743f5d60ec517ec38edd48aa256f942e47a69f`
-en actuele `main` `69809c2cb53dfb3bd77abe5352892810fba6e82d`.
-De conflicten in README, progress.json, PROGRESS.md en PROJECT-STATE.md zijn
-opgelost met behoud van PR139s onderscheid tussen assessmentbasis en historische
-OS-bewijsbron: `76743f5d` is de assessmentbasis en `380111b` blijft uitsluitend
-de historische OS-bewijsbron; die 15 workflowruns zijn niet opnieuw uitgevoerd.
-Ook de nieuwe main-documentatie en -statusgeschiedenis zijn behouden.
-Main voegt tevens `tools/storage_backend_replay.py` en
-`tests/test_storage_backend_replay.py` toe. Alle16 tests slagen met
-`umask 0077`. De ongewijzigde testaanroep faalde eerst met sandbox-umask
-`0002`: drie private-fixturechecks weigerden de groepsschrijfbare bestanden;
-de repo-code is niet aangepast. `python3 tools/progress.py --check` en
-`git diff --check` slagen.
-De score blijft 41/100; geen criterium is door deze integratie geaccepteerd.
-De app meldt reviews nog als open; deze tick is uitsluitend voor conflict-
-integratie geautoriseerd, dus reviewverzoeken zijn niet afgehandeld.
-Eerstvolgend: publiceer de gevalideerde merge en laat checks opnieuw evalueren;
-behandel reviewverzoeken alleen in een afzonderlijk geautoriseerde tick.
+PR-head `75cda7f4d49c5afe895277ada1102d630fdb75ad` is geïntegreerd met main
+`69809c2cb53dfb3bd77abe5352892810fba6e82d`. De Nederlandse beschrijvingen
+in PR140's hostrapport en main-documentatie/replaytests zijn behouden.
+De toenmalige umask-beperking en 16 replaytests zijn hierboven geregistreerd;
+dat resultaat is historisch en geen huidige test van deze nieuwe merge.
+De rubric bleef **41 → 41/100**. Geen nieuwe native/QEMU-acceptatie.
 
 ## Historische context — eerdere main/statusintegratie op cbbc9c99
 

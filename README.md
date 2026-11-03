@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`732fa9cc`](https://github.com/simonvanieperen/nieuw-os/commit/732fa9cca04ced66b06bee4f0e4f57249c09e96a) ·
+**Bron:** [`341d1b42`](https://github.com/simonvanieperen/nieuw-os/commit/341d1b428d436ac0e33c5bf3d7eb684f8543109c) ·
 **Ontwikkelbranch:** `simonvanieperen-supreme-spork`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR139: primaire replay-/umaskreceipts scheiden van historisch OS-bewijs.
-41/100 blijft 41/100. Op exacte bron 732fa9cc slagen opnieuw 16 replay-hosttests met umask 0077; met umask 0002 blijft de echte mislukking exit 1 (1 failure, 2 errors) bewaard. Primaire volledige logs en tree/codehashes: docs/verification/pr139-review-receipts.json. Het afzonderlijke historische docs/verification/priority-plan-checkpoint-20261103.json hoort bij assessmentbasis 716f3ec1 en OS-bewijs 380111b, niet bij deze replay-/umaskruns. Geen nieuwe native uitvoering of criteriumacceptatie.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR139: actuele main integreren met behoud van bron-/bewijsgrenzen.
+41/100 blijft 41/100. De assessmentbasis is de PR-head 341d1b42; eerder replay-/umaskbewijs blijft exact gebonden aan 732fa9cc en historische OS-workflowruns uitsluitend aan 380111b. De negen artifact-store-contracttests, pinned Rust 1.90.0 formatting en Clippy slagen op de geïntegreerde boom. Dit bewijst geen identiteit/authenticatie, native uitvoering of nieuw productcriterium.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

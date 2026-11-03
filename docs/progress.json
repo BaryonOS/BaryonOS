@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "732fa9cca04ced66b06bee4f0e4f57249c09e96a",
+    "source_commit": "341d1b428d436ac0e33c5bf3d7eb684f8543109c",
     "branch": "simonvanieperen-supreme-spork",
-    "task": "PR139: primaire replay-/umaskreceipts scheiden van historisch OS-bewijs",
+    "task": "PR139: actuele main integreren met behoud van bron-/bewijsgrenzen",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Op exacte bron 732fa9cc slagen opnieuw 16 replay-hosttests met umask 0077; met umask 0002 blijft de echte mislukking exit 1 (1 failure, 2 errors) bewaard. Primaire volledige logs en tree/codehashes: docs/verification/pr139-review-receipts.json. Het afzonderlijke historische docs/verification/priority-plan-checkpoint-20261103.json hoort bij assessmentbasis 716f3ec1 en OS-bewijs 380111b, niet bij deze replay-/umaskruns. Geen nieuwe native uitvoering of criteriumacceptatie."
+    "summary": "41/100 blijft 41/100. De assessmentbasis is de PR-head 341d1b42; eerder replay-/umaskbewijs blijft exact gebonden aan 732fa9cc en historische OS-workflowruns uitsluitend aan 380111b. De negen artifact-store-contracttests, pinned Rust 1.90.0 formatting en Clippy slagen op de geïntegreerde boom. Dit bewijst geen identiteit/authenticatie, native uitvoering of nieuw productcriterium."
   },
   "tracks": [
     {
