@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "929ebfb84b885c26c3cfd6ef0cb0d77e436ee8f5",
+    "source_commit": "23f7a428cbb826ff298dd8554f8351b378d9e5b7",
     "branch": "simonvanieperen-upgraded-disco",
-    "task": "PR148-conflicten met main 69809c2 inhoudsbehoudend integreren",
+    "task": "PR148-conflicten met main d115cc9 inhoudsbehoudend integreren",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. De vier documentconflicten behouden de volume-admissie en de onderzoeks-/bewijsdocumentatie uit main. Beide historische checkpoints blijven bewaard; het volume-ADR krijgt een uniek nummer met oud titelanker. Geen runtimewijziging door de conflictoplossing, geen nieuwe native acceptatie. Gerichte integratievalidatie en nieuwe-head CI worden afzonderlijk gerapporteerd."
+    "summary": "41/100 blijft 41/100. Vier documentconflicten combineren beide checkpointreeksen. Artifact-store-contracttests en brongebonden bewijs uit main blijven behouden, evenals PR148's volume-admissie en ADR-064. Geen productiecode, criterium of gewicht gewijzigd door deze integratie. Historische testclaims zijn geen nieuwe native acceptatie; gecombineerde validatie en nieuwe-head CI worden afzonderlijk gerapporteerd."
   },
   "tracks": [
     {

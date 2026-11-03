@@ -85,11 +85,29 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR148-vervolgintegratie (3 november 2026), bron `23f7a428` met main
+`d115cc96`: **41 → 41**. Vier documentconflicten combineren beide
+checkpointreeksen; artifact-store-tests/bewijs uit main en volume-admissie
+uit PR148 blijven behouden. Geen productcriterium of productiecode gewijzigd.
+Gecombineerde validatie en nieuwe-head CI blijven afzonderlijk vereist.
+
 PR148-conflictintegratie (3 november 2026), bron `929ebfb8` met main
 `69809c2c`: **41 → 41**. Vier documentconflicten inhoudsbehoudend opgelost;
 volume-admissie, onderzoeksdocumentatie en historische bewijsgrenzen blijven
 behouden. Geen criterium, gewicht of runtimegedrag gewijzigd door de
 conflictoplossing. Nieuwe-head CI en review blijven afzonderlijk vereist.
+
+PR140-reviewvervolg (3 november 2026), geteste bron `2bf95782`: **41 → 41**.
+De 9 contracttests, typecontrole, Clippy en formattering zijn opnieuw groen.
+Volledige primaire logs met SHA-256 staan duurzaam in
+[het reviewbewijs](verification/pr140-review-evidence.json).
+Descriptorvalidatie/binding is geen bewijs van identiteit of authenticatie.
+Geen nieuwe native of productacceptatie.
+
+Historische PR140-reviewcorrectie (3 november 2026), basis `c07d15b8`: **41 → 41**.
+Alleen Nederlandse beschrijvingen in het historische hostrapport; commands,
+exitstatussen, bron-/loghashes en criteria blijven gelijk. Geen nieuwe tests
+of native productacceptatie door deze tekstcorrectie.
 
 PR119-inhoudsbehoud (3 november 2026), head `5a8317f1`: **41 -> 41**.
 Volledige nieuwste NAS-history opgenomen; alleen centrale statusconflicten,
