@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "dcb9717553fdde095dfca66b800bdddbb73b122d",
+    "source_commit": "266b41f13cce49f3c13d80e5171d0433a72f20f4",
     "branch": "simonvanieperen-fictional-disco",
     "task": "PR #146-conflicten inhoudsbehoudend integreren met main d686bd54",
     "previous_score": 41,

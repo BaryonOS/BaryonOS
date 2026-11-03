@@ -61,7 +61,7 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`dcb97175`](https://github.com/simonvanieperen/nieuw-os/commit/dcb9717553fdde095dfca66b800bdddbb73b122d) ·
+**Bron:** [`266b41f1`](https://github.com/simonvanieperen/nieuw-os/commit/266b41f13cce49f3c13d80e5171d0433a72f20f4) ·
 **Ontwikkelbranch:** `simonvanieperen-fictional-disco`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR #146-conflicten inhoudsbehoudend integreren met main d686bd54.
 41/100 blijft 41/100. PR #146 is met main d686bd54 inhoudsbehoudend geïntegreerd: Veld-04-code en brongebonden bewijs blijven behouden, evenals main's implementatie en receipts voor vreemde-volume-admissie. Alle 26 volume-Python-tests, 47 volume-core-Rusttests, Clippy, rustfmt en de roadmapcontrole slagen. De native gate bouwde service, loader en kernel maar kon niet aan QEMU beginnen omdat qemu-system-x86_64 ontbreekt; negen VM-proeven en native volume-acceptatie blijven open.

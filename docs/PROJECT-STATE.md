@@ -8,6 +8,10 @@ is inhoudsbehoudend samengevoegd met de toen actuele `main`
 brongebonden bewijs blijven behouden; ook de main-wijziging voor vreemde
 volume-admissie en bijbehorende bewijsbestanden zijn opgenomen. De voortgang
 blijft **41/100**; er zijn geen criteria of gewichten gewijzigd.
+De assessment verwijst naar de daadwerkelijke reviewed integratiebron
+`266b41f13cce49f3c13d80e5171d0433a72f20f4`, met beide genoemde commits
+als ouders, niet alleen naar de eerste ouder `dcb97175`. Dit is een
+bronverwijzingscorrectie, geen nieuwe testuitvoering of CI-acceptatie.
 
 **Integratievalidatie op de opgeloste boom:** `python3 -B -m unittest discover
 -s tests -p 'test_volume_*.py'` — 26 tests geslaagd; `cargo +1.90.0 test
