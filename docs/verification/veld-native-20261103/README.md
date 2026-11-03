@@ -46,8 +46,28 @@ omgevingsvariabele zijn geen visuele of native acceptatie.
 
 ## Native en overige grenzen
 
-Native build en QEMU met `--clipboard --workspace`: **nog niet uitgevoerd
-op dit checkpoint**. CI is aangepast, niet als geslaagd geteld.
+Eerste native uitvoering op `093d26eb`: build exit 0 (11,34 s), echte
+QEMU-workspaceproeven tot en met Finder-selectie en documentinvoer uitgevoerd.
+De totale gate gaf **exit 1** na 61,20 s: de oude beginbeeldvergelijking werd
+ten onrechte over de nieuwe, bewust focuswijzigende shelltaken heen gebruikt.
+Een verse pixelanalyse vond 296 gewijzigde calculator-caretpixels; de
+workspace-selectiecapture kon bovendien vóór volledige chrome-repaint vallen.
+Dit is geen geaccepteerd native resultaat.
+
+De runner wacht nu na de shelltaken op de volledige exact gedefinieerde
+chrome-complementgebieden én het oorspronkelijke volledige Materiaalbeeld.
+Dat vastgelegde stabiele beeld is daarna de basis voor dezelfde ongewijzigde
+vergelijking van **alle** pixels buiten de appbody; er zijn geen extra
+uitzonderingspixels of maskers toegevoegd. Bestaande volledige apporakels,
+crash-, schijf- en cleanupgates blijven verplicht. Gerichte scene-/runnertests
+en Clippy slagen opnieuw; de volledige native herkansing volgt nog.
+
+De eerste buildpoging naar de artifactmap buiten de checkout is terecht
+geweigerd (exit 1, `FPU artifact escaped checkout`). Geen guard aangepast;
+de build gebruikt daarna de genegeerde lokale mappen
+`NOS_BUILD_DIR="$PWD/build/veld-native-20261103/probe"` en
+`NOS_TARGET_DIR="$PWD/target/veld-native-20261103"`.
+CI is aangepast, niet als geslaagd geteld.
 Een host-renderoracle is geen VM-test. QEMU is geen fysiek GPU-, driver-,
 energie- of timingbewijs. Geen nieuwe gebruikerstest, schermlezerproef,
 onafhankelijke menselijke review of volledige releasecontrole uitgevoerd.

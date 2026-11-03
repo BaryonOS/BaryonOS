@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`d6f8e981`](https://github.com/simonvanieperen/nieuw-os/commit/d6f8e98178d73d6aeda0abe84ca404dfde03123c) ·
+**Bron:** [`093d26eb`](https://github.com/simonvanieperen/nieuw-os/commit/093d26eb614411ec6adf713a9d6c647b10a47d73) ·
 **Ontwikkelbranch:** `simonvanieperen-fictional-disco`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Eerste native Veld-stap: gedeelde visuele rollen, werkfocus, ordening en lokale zoekaliassen.
-41% blijft 41%: Veld wordt na expliciete vervolgopdracht als eerste native richting uitgevoerd. Gedeelde compile-time tokens, statisch verloop, begrensde afstandsschaduwen, werk/gereedschaplabels, F7-werkfocus, F8-ordening en lokale aliassen voor de twee echte apps zijn geïmplementeerd. Gerichte hosttests en lintchecks slagen; native build en de uitgebreide QEMU-gate volgen nog. Geen nieuwe dependencies, kernelrechten of criteriumstatussen. De aanvullende onderzoeks-PR131 is op eigen bronversie gelezen, niet gemerged of als productbewijs overgenomen. Vier werkzaamheden, objectgebonden toolwisseling, U02-U06, fysieke/menselijke beoordeling en volledige release blijven open.
+41% blijft 41%: eerste native Veld-code en hostchecks zijn bewaard. Eigen-OS-build op 093d26eb slaagt; de echte uitgebreide QEMU-gate bereikt werkfocus, Finderselectie en documentinvoer, maar faalt op een niet-stabiele beginbeeldbasis na de nieuwe shellacties. De runner wacht nu op exacte stabiele chrome en het volledige Materiaalbeeld voordat dezelfde volledige buiten-appisolatiecontrole begint. Gerichte hosthercontrole slaagt; volledige native herkansing blijft open. Geen dependencies, kernelrechten, criteriumstatussen of historische bewijzen veranderd. Het volledige Veld-ontwerp, U02-U06, fysieke/menselijke beoordeling en release blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

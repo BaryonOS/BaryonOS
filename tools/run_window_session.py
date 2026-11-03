@@ -42,6 +42,8 @@ WORKSPACE_REGIONS = {
     "focus-calculator": ((0, 0, 1280, 40), (16, 64, 904, 576), (0, 650, 1280, 70)),
     "work": ((0, 0, 1280, 40), (0, 650, 1280, 70)),
     "search": ((382, 96, 516, 232),),
+    "selected": ((0, 0, 1280, 114), (0, 114, 28, 510), (908, 114, 372, 26),
+                 (908, 140, 24, 484), (1252, 140, 28, 484), (0, 624, 1280, 96)),
 }
 SNAPSHOT_FIELDS = {
     "MATERIAL": {"PID", "SERVICE_GENERATION", "SURFACE_EPOCH", "INPUT_EPOCH", "READY", "GEN", "FRAMES",
@@ -413,7 +415,14 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                         shell_key(char)
                     workspace_wait("search")
                     shell_key("ret")
-                    wait("workspace-selected", lambda raw, s: comp(raw).get("FOCUSED") == 0, "initial")
+                    wait("workspace-selected", lambda raw, s: comp(raw).get("FOCUSED") == 0,
+                         image_check=lambda image: material_matches(image, fixture["frames"]["initial"])
+                         and workspace_matches(image, fixture["frames"]["workspace-selected"], "selected"))
+                # Extra shell tasks deliberately change calculator focus/caret.
+                # Start the unmodified whole-exterior app-isolation comparison
+                # only after those tasks and their complete chrome repaint.
+                paint_baseline = "workspace-selected" if workspace else "initial"
+                report["paint_isolation_baseline"] = paint_baseline
                 key("ret")
                 wait("editor", lambda raw, s: s["MATERIAL"] and s["MATERIAL"][-1]["SCREEN"] == 2, "editor")
                 for char in TEXT.decode():
@@ -422,7 +431,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 # Exact app bounds, without pixel masks: typing may only change
                 # Material's assigned body, never the other app or system chrome.
                 for phase in ("editor", "dirty"):
-                    if changed_outside(captured["initial"], captured[phase], BODY):
+                    if changed_outside(captured[paint_baseline], captured[phase], BODY):
                         raise ValueError("App paint escaped its assigned body")
                 if clipboard:
                     key("ctrl", "a"); key("ctrl", "c")

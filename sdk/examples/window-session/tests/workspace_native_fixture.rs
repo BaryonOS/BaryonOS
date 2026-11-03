@@ -13,7 +13,13 @@ fn render_workspace_shell_oracles() {
     let mut scene = Scene::new(1280, 720, 1, [1, 2]).unwrap();
     scene.pointer = (1260, 50);
     let mut damage = Damage::new(1280, 720).unwrap();
-    for phase in ["focus-material", "focus-calculator", "work", "search"] {
+    for phase in [
+        "focus-material",
+        "focus-calculator",
+        "work",
+        "search",
+        "selected",
+    ] {
         match phase {
             "focus-material" => scene.toggle_focus(&mut damage),
             "focus-calculator" => scene.select(1).unwrap(),
@@ -23,6 +29,10 @@ fn render_workspace_shell_oracles() {
                 for byte in b"finder" {
                     scene.palette_insert(*byte);
                 }
+            }
+            "selected" => {
+                scene.select(0).unwrap();
+                scene.palette_close();
             }
             _ => unreachable!(),
         }

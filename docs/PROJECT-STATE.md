@@ -23,11 +23,19 @@ Exacte commando's, fouten en grenzen:
 herkenbare acties en lokale zoekaliassen zijn relevant. Geen merge,
 overgenomen testresultaten of vermenging met die onderzoeksbranch.
 
-**Open/eerstvolgend:** native build/uitgebreide QEMU-gate nog niet uitgevoerd;
+**Open/eerstvolgend:** native build op `093d26eb` exit 0. De echte uitgebreide
+QEMU-gate liep door werkfocus/Finderselectie en documentinvoer, maar faalde
+op een niet-stabiele beginbeeldbasis na de nieuwe focusacties. De runner wacht
+nu exact op volledige chrome plus Materiaal en bewaart daarna dezelfde
+volledige buiten-appisolatievergelijking. Hosthercontrole exit 0;
+de gehele native herkansing is nog verplicht en niet als geslaagd geteld.
+Gebruik lokale genegeerde build-/targetmappen; een externe artifactmap wordt
+terecht door de bestaande guard geweigerd. De volledige gate blijft
 verplicht naast bestaande volledige appbeeld-, isolatie-, echte crash/herstel-,
 schijf- en cleanupgates. Omgeving hersteld zonder hostinstallatie:
 `source /home/simon/.copilot/session-state/7f2fb1d137004b68b9bef4b8ca72f938/files/veld-env/env.sh`,
-daarna `python3 -B -u tools/build.py --kernel-feature native-window-session-probe`.
+daarna `export NOS_BUILD_DIR="$PWD/build/veld-native-20261103/probe" NOS_TARGET_DIR="$PWD/target/veld-native-20261103"`
+en `python3 -B -u tools/build.py --kernel-feature native-window-session-probe`.
 Vier werkzaamheden, toolwisseling op hetzelfde object, resizen, blur/GPU,
 dark/hoogcontrast/motion, schermlezer, menselijke en fysieke beoordeling blijven
 open. Voortgang **41 -> 41**. Geen merge, release of PR-sluiting.
