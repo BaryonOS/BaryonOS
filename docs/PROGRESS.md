@@ -10,7 +10,7 @@ onjuiste opslagoorzaak.59 volledige hosttests, Clippy, formattering en
 scalarno_std-librarybuild slagen. Geen nieuwe native gast-/screenshot- of
 menselijke acceptatie. [Volledig bewijs](verification/pr149-compact-review.json).
 
-Keyring P0-herbeoordeling op 3 november: de actuele bron `5c66ec57` liet
+Keyring P0-herbeoordeling op 3 november: de toenmalige bron `5c66ec57` liet
 `EXPORT_RECOVERY` en `RESTORE` via gewone app-ingress uitvoeren. De eerder
 geaccepteerde B01-proef bewijst daarom niet de vereiste autoriteitsgrens;
 B01 gaat terug naar open en de score van **41% naar 39%**. Commit `75495efc`
@@ -18,6 +18,14 @@ verplaatst beide operaties naar de manifest-gebonden beheer-ingress. De
 70 keyring-hosttests, formattering en Clippy slagen. Verse QEMU-proeven van de
 appweigering en het positieve beheerpad zijn niet uitgevoerd; de score kent
 daarom geen nieuwe punten toe. [Hostbewijs en hashreceipt](verification/keyring-recovery-authority-20261103/host-report.json).
+
+Vervolg op dezelfde codecommit `75495efc`: de `native-keyring`-profielbuild
+en 13 `update-core`-hosttests slagen. De B03-broncontrole vindt geen nieuwe
+afwijking van het gedocumenteerde model: de UEFI-vloer wordt pas na geldige
+imagecontrole verhoogd, maar firmwarevariabelen-reset en loaderauthenticatie
+blijven expliciete grenzen. QEMU/OVMF ontbreken; native recovery- en
+rollbackgedrag is niet opnieuw uitgevoerd. **39% blijft 39%**. [Build- en
+rollbackreceipt](verification/keyring-recovery-authority-20261103/native-build-and-rollback-check.json).
 
 ## Betekenis van het percentage
 

@@ -1,45 +1,50 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — keyring-herstelautoriteit — 3 november 2026
+## NEXT AGENT HANDOFF — keyring-build en rollbackcontrole — 3 november 2026
 
 **Basis/implementatie:** branch `simonvanieperen-animated-garbanzo`,
-broncommit `75495efc37f1753d652f52e55f4670ebdb564c22`; oorspronkelijke
-werkboom was schoon op `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`.
+codecommit `75495efc37f1753d652f52e55f4670ebdb564c22`, documentcheckpoint
+`cb1246fec13b086667c005d1e3f4417c50b9138d`; de codefingerprint is
+`d3db62406a60ab897dc92ab658111e4558e71b47d621ed824a8eabc616bb4c31`.
 De legacy `EXPORT_RECOVERY`/`RESTORE`-route via gewone app-ingress is gesloten.
-De gedeelde domeindispatcher weigert beide; de bestaande afzonderlijke
-beheer-ingress controleert de manifest-genoemde caller en dispatcht herstel
-naast persistentie. Tijdelijke secret-, blob- en antwoordbuffers worden
-gewist. De appfixture toetst beide weigeringen; de management-wiretest toetst
-een geldige export/herstelronde en weigert een gewone STATUS-opcode.
-De parallelle branch `copilot/universal-driver-framework` bestaat; deze stap
-raakt geen drivercode.
+De gedeelde domeindispatcher weigert beide; de afzonderlijke beheer-ingress
+controleert de manifest-genoemde caller en dispatcht herstel naast
+persistentie. De parallelle branch `copilot/universal-driver-framework`
+bestaat; deze stap raakt geen drivercode.
 
-**Uitgevoerd op exact de broninhoud van `75495efc`:** root- en SDK-
-`cargo +1.90.0 fmt --all -- --check`, `cargo +1.90.0 test --offline --locked
--p keyring-core` (70 hosttests), en
-`cargo +1.90.0 clippy --offline --locked -p keyring-core --all-targets -- -D
-warnings`: exit0. De volledige hosttestuitvoer staat tijdelijk in
-`/tmp/nieuw-os-keyring-recovery-host.log`; Clippy in
-`/tmp/nieuw-os-keyring-recovery-clippy.log`. De gehashte bron-/commando-
-receipt staat in
+**Uitgevoerd op exact de codevingerafdruk hierboven:** root- en SDK-
+formatteringscontroles, `cargo +1.90.0 test --offline --locked -p keyring-core`
+(70 hosttests) en Clippy met `-D warnings` slaagden. Daarna slaagde
+`PATH=/home/simon/.cargo/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH
+CC=/tmp/nieuw-os-c-toolchain/bin/cc python3 -B tools/build.py --kernel-feature
+native-keyring`; loader, service, app en kernel zijn gebouwd en de artifact-
+inspectie is geslaagd. `cargo +1.90.0 test --offline --locked -p update-core`
+slaagde met 13 hosttests voor selectie, terugval, versie-vloer en sleutelbeleid.
+De exacte commando's, hashes en artifactdigests staan in
+[native-build-and-rollback-check.json](verification/keyring-recovery-authority-20261103/native-build-and-rollback-check.json);
+de keyring-hostreceipt staat in
 [host-report.json](verification/keyring-recovery-authority-20261103/host-report.json).
-De standaard testgate liep
-eerst vast op ontbrekend `cargo` in PATH en daarna op ontbrekend `cc`; de
-geslaagde herhaling gebruikte de reeds uitgepakte tijdelijke toolchain uit
-`/tmp/nieuw-os-c-toolchain`, zonder systeeminstallatie.
+De tijdelijke C-toolchain staat onder `/tmp/nieuw-os-c-toolchain`; er is niets
+globaal geïnstalleerd.
 
 **Score:** B01 is heropend omdat het oude native bewijs de recovery-operaties
-juist via gewone app-ingress uitvoerde. **41 → 39/100**; de hosttest kan geen
-punten sluiten. Verse native/QEMU-proeven van de appweigering én positief
-beheerherstel zijn niet uitgevoerd. `qemu-system-x86_64` ontbreekt in deze
-omgeving; ook volledige B01-gate, hardware- en menselijke acceptatie ontbreken.
+juist via gewone app-ingress uitvoerde. **41 → 39/100**. Deze opdracht houdt de
+score op **39/100**: cross-build en hosttests sluiten geen native acceptatie.
+`qemu-system-x86_64` is niet beschikbaar en OVMF is niet gevonden op de
+gecontroleerde standaardpaden; de B01-QEMU-gate en
+B03-runtime-/firmwarevariabeletests zijn dus niet uitgevoerd. De rollbackcode
+verhoogt de UEFI-`NieuwOsMinVersion`-vloer pas na geldige manifest-, digest- en
+ELF-controle en weigert lagere slotversies. Verwijdering/reset van die
+firmwarevariabele en authenticatie van de loader zijn expliciete open grenzen
+(B03-threat-model/B04), geen aangetoonde codefix in deze stap.
 
-**Eerstvolgend:** voer na de checkpoint-/metercommit de native
-`native-keyring`-profielbuild uit met het bestaande tijdelijke
-C-toolchainpad; inventariseer daarna QEMU/OVMF opnieuw. B01 blijft open totdat
-dezelfde bron de native beheer- en negatieve appgrens aantoont. Daarna volgt
-een afzonderlijke controle van de actuele bootvloer-/rollbackcode; volledige
-releaseacceptatie blijft open.
+**Eerstvolgend:** B01 blijft open totdat QEMU/OVMF beschikbaar zijn en dezelfde
+bron de native beheer- en negatieve appgrens aantoont. De volgende
+architectuurblokkade is B02: de koude rollbackvloer voor persistente
+sleutelstatus vereist een onafhankelijk vertrouwd, duurzaam anker; een door de
+aanvrager aangeleverde `minimum_generation` is daarvoor geen bewijs. Hergebruik
+geen onbeschermde UEFI-variabele of callerwaarde als beveiligingsanker zonder
+vastgelegd ontwerp en acceptatie. Volledige releaseacceptatie blijft open.
 
 ## Historisch checkpoint — PR149 compacte kaartregressies hersteld — 3 november2026
 

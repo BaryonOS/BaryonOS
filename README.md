@@ -63,8 +63,8 @@ alleen een nette desktop haalt die eindgrens niet.
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
 **Bron:** [`75495efc`](https://github.com/simonvanieperen/nieuw-os/commit/75495efc37f1753d652f52e55f4670ebdb564c22) ·
 **Ontwikkelbranch:** `simonvanieperen-animated-garbanzo`.
-Deze opdracht: **41% → 39% (-2 procentpunt)**. **Opdracht:** P0 keyring: herstel-export alleen via manifest-gebonden beheer-ingress.
-41% → 39%: op bron 5c66ec57 bleek EXPORT_RECOVERY/RESTORE via gewone app-ingress bereikbaar; B01 is daarom heropend tot verse native acceptatie. Fix 75495ef verplaatst recovery naar de manifest-gebonden beheer-ingress. 70 keyring-hosttests, formattering en Clippy slagen; QEMU/native beheer- en weigeringstests zijn niet uitgevoerd, dus geen nieuw B01-bewijs of punten.
+Deze opdracht: **39% → 39% (+0 procentpunt)**. **Opdracht:** P0 keyring-herstelgrens, native-keyring-profielbuild en B03-rollbackcontrole.
+39% → 39%: de native-keyring-loader, kernel en keyringbinaries bouwen op codecommit 75495ef (fingerprint d3db6240…). De update-core-suite slaagt met 13 hosttests voor vloer/selectie/terugval. De loader verhoogt de firmwarevloer pas na imagevalidatie; de service kent alleen de versie van de draaiende kernel. QEMU/OVMF ontbreken, dus native recovery, UEFI-persistentie en B03-runtime zijn niet getest; B01 blijft open en er worden geen punten toegekend.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
