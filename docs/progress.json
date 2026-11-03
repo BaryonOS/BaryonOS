@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "08543df6525f92ba696ed8cf6d065b7c61472824",
+    "source_commit": "008bc4e7ef14593ce60febf7d0dc38c8ac7e9e6f",
     "branch": "simonvanieperen-studious-spoon",
-    "task": "SYSTEM-MATURITY-SMP: TLB-reuse en volledige SMP-matrix",
+    "task": "SYSTEM-MATURITY-SMP: lock contention en TLB-reuse",
     "previous_score": 41,
-    "summary": "41 blijft 41. De volledige tien-stagematrix slaagde, inclusief 1/2/4 CPU, M3 AP-exit, dezelfde-AP proces-/TLB-hergebruik, cross-CPU IPC/revoke en 1-CPU-regressie; 13 hosttests en drie gerichte TLB-runs slagen. Geen rubriccriterium sluit. SMP-race-/failureacceptatie blijft open; er is geen algemeen remote-shootdownprotocol bewezen."
+    "summary": "41 blijft 41. De volledige tien-stagematrix en drie TLB-reuse-runs slaagden. Een nieuwe 2-CPU-proef dwong M3Guard-contention af; drie native runs zagen niet-nul AP-acquireconflicten, 15 hosttests slagen. Geen rubriccriterium sluit. SMP-race-/failureacceptatie blijft open; geen fairnessgrens of algemeen remote-shootdownprotocol bewezen."
   },
   "tracks": [
     {

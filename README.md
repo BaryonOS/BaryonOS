@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`08543df6`](https://github.com/simonvanieperen/nieuw-os/commit/08543df6525f92ba696ed8cf6d065b7c61472824) ·
+**Bron:** [`008bc4e7`](https://github.com/simonvanieperen/nieuw-os/commit/008bc4e7ef14593ce60febf7d0dc38c8ac7e9e6f) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-spoon`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** SYSTEM-MATURITY-SMP: TLB-reuse en volledige SMP-matrix.
-41 blijft 41. De volledige tien-stagematrix slaagde, inclusief 1/2/4 CPU, M3 AP-exit, dezelfde-AP proces-/TLB-hergebruik, cross-CPU IPC/revoke en 1-CPU-regressie; 13 hosttests en drie gerichte TLB-runs slagen. Geen rubriccriterium sluit. SMP-race-/failureacceptatie blijft open; er is geen algemeen remote-shootdownprotocol bewezen.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** SYSTEM-MATURITY-SMP: lock contention en TLB-reuse.
+41 blijft 41. De volledige tien-stagematrix en drie TLB-reuse-runs slaagden. Een nieuwe 2-CPU-proef dwong M3Guard-contention af; drie native runs zagen niet-nul AP-acquireconflicten, 15 hosttests slagen. Geen rubriccriterium sluit. SMP-race-/failureacceptatie blijft open; geen fairnessgrens of algemeen remote-shootdownprotocol bewezen.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

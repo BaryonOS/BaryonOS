@@ -1,11 +1,11 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
-SYSTEM-MATURITY-SMP (3 november 2026), bron `08543df6`:
-**41 → 41/100**. De volledige tien-stagematrix slaagde, inclusief 1/2/4
-CPU, M3 AP-exit, dezelfde-AP proces-/TLB-hergebruik, cross-CPU IPC/revoke en
-de 1-CPU-regressie. De TLB-proef is daarnaast driemaal afzonderlijk native
-geslaagd; 13 hosttests slagen. Geen rubriccriterium sluit. SMP-race-/
-failureacceptatie blijft open; dit bewijst geen algemeen remote-
+SYSTEM-MATURITY-SMP (3 november 2026), bron `008bc4e7`:
+**41 → 41/100**. De volledige tien-stagematrix en drie TLB-reuse-runs
+slaagden. Een nieuwe 2-CPU-proef dwong M3Guard-contention af; drie native
+runs registreerden niet-nul AP-acquireconflicten en 15 hosttests slagen. Geen
+rubriccriterium sluit. Resterende race-/failureacceptatie omvat de herhaalde
+matrix en lifecycleproef; dit bewijst geen fairnessgrens of algemeen remote-
 shootdownprotocol. Zie [PROJECT-STATE.md](PROJECT-STATE.md).
 
 De actieve volledige releaseopdracht en productacceptatie staan in
