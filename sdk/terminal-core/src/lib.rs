@@ -4,12 +4,18 @@
 //! Bounded, allocation-free primitives for a future native terminal app.
 //!
 //! This crate edits one UTF-8 command line and tokenizes a deliberately small
-//! shell grammar. It does not launch processes, expand variables or globs,
-//! interpret pipelines/redirections, or grant capabilities.
+//! shell grammar and validates a Message320 stdin/stdout protocol. It does not
+//! launch processes, expand variables or globs, interpret pipelines/
+//! redirections, or grant capabilities.
 
 pub const MAX_COMMAND_BYTES: usize = 1024;
 pub const MAX_ARGUMENTS: usize = 16;
 pub const MAX_ARGUMENT_BYTES: usize = 256;
+pub const IPC_TAG: u64 = 0x5445_524d_494f_3031;
+pub const FRAME_PAYLOAD_BYTES: usize = 256;
+pub const FRAME_HEADER_BYTES: usize = 28;
+pub const MAX_FRAME_DATA: usize = FRAME_PAYLOAD_BYTES - FRAME_HEADER_BYTES;
+const FRAME_MAGIC: [u8; 4] = *b"NOST";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Error {
@@ -21,6 +27,15 @@ pub enum Error {
     UnterminatedQuote,
     TrailingEscape,
     UnsupportedSyntax,
+    InvalidPeer,
+    InvalidJobId,
+    InvalidFrame,
+    WrongPeer,
+    WrongJob,
+    UnexpectedMessage,
+    SequenceMismatch,
+    SequenceExhausted,
+    StreamClosed,
 }
 
 /// A fixed-capacity UTF-8 input line with a cursor positioned on a character
@@ -262,6 +277,231 @@ pub fn parse_command(line: &str) -> Result<ShellCommand, Error> {
     parse(line)
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Direction {
+    Input,
+    Output,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Channel {
+    Stdin,
+    Stdout,
+    Stderr,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Kind {
+    Stdin = 1,
+    StdinEof = 2,
+    Stdout = 3,
+    Stderr = 4,
+    OutputEof = 5,
+}
+
+/// One canonical terminal-I/O payload. Job IDs scope messages within the
+/// broker protocol; they are labels, not capabilities or process identities.
+pub struct Frame {
+    bytes: [u8; FRAME_PAYLOAD_BYTES],
+    length: usize,
+}
+
+impl Frame {
+    pub fn data(job_id: u64, sequence: u64, channel: Channel, data: &[u8]) -> Result<Self, Error> {
+        let kind = match channel {
+            Channel::Stdin => Kind::Stdin,
+            Channel::Stdout => Kind::Stdout,
+            Channel::Stderr => Kind::Stderr,
+        };
+        if data.is_empty() || data.len() > MAX_FRAME_DATA {
+            return Err(Error::InvalidFrame);
+        }
+        Self::new(job_id, sequence, kind, data)
+    }
+
+    pub fn end_input(job_id: u64, sequence: u64) -> Result<Self, Error> {
+        Self::new(job_id, sequence, Kind::StdinEof, &[])
+    }
+
+    pub fn end_output(job_id: u64, sequence: u64) -> Result<Self, Error> {
+        Self::new(job_id, sequence, Kind::OutputEof, &[])
+    }
+
+    pub fn payload(&self) -> &[u8] {
+        &self.bytes[..self.length]
+    }
+
+    fn new(job_id: u64, sequence: u64, kind: Kind, data: &[u8]) -> Result<Self, Error> {
+        if job_id == 0 {
+            return Err(Error::InvalidJobId);
+        }
+        let length = FRAME_HEADER_BYTES + data.len();
+        let mut bytes = [0; FRAME_PAYLOAD_BYTES];
+        bytes[..4].copy_from_slice(&FRAME_MAGIC);
+        bytes[4] = 1;
+        bytes[5] = kind as u8;
+        bytes[8..16].copy_from_slice(&job_id.to_le_bytes());
+        bytes[16..24].copy_from_slice(&sequence.to_le_bytes());
+        bytes[24..26].copy_from_slice(&(data.len() as u16).to_le_bytes());
+        bytes[FRAME_HEADER_BYTES..length].copy_from_slice(data);
+        Ok(Self { bytes, length })
+    }
+}
+
+/// A checked view into a received Message320 payload. The payload remains
+/// borrowed from the caller's validated receive buffer.
+pub struct DecodedFrame<'a> {
+    pub job_id: u64,
+    pub sequence: u64,
+    kind: Kind,
+    data: &'a [u8],
+}
+
+impl<'a> DecodedFrame<'a> {
+    pub fn channel(&self) -> Option<Channel> {
+        match self.kind {
+            Kind::Stdin | Kind::Stdout => Some(if self.kind == Kind::Stdin {
+                Channel::Stdin
+            } else {
+                Channel::Stdout
+            }),
+            Kind::Stderr => Some(Channel::Stderr),
+            Kind::StdinEof | Kind::OutputEof => None,
+        }
+    }
+
+    pub const fn data(&self) -> &'a [u8] {
+        self.data
+    }
+
+    pub const fn is_end_of_input(&self) -> bool {
+        matches!(self.kind, Kind::StdinEof)
+    }
+
+    pub const fn is_end_of_output(&self) -> bool {
+        matches!(self.kind, Kind::OutputEof)
+    }
+}
+
+/// Accepts frames from one kernel-identified peer for one job and one stream
+/// direction. Call `accept` with the sender PID and payload from native IPC,
+/// not values copied from the payload itself. If a rejected received message
+/// carries capabilities, the caller must close them before discarding it.
+pub struct Receiver {
+    peer: u64,
+    job_id: u64,
+    direction: Direction,
+    next_sequence: u64,
+    closed: bool,
+}
+
+impl Receiver {
+    pub fn new(peer: u64, job_id: u64, direction: Direction) -> Result<Self, Error> {
+        if peer == 0 {
+            return Err(Error::InvalidPeer);
+        }
+        if job_id == 0 {
+            return Err(Error::InvalidJobId);
+        }
+        Ok(Self {
+            peer,
+            job_id,
+            direction,
+            next_sequence: 0,
+            closed: false,
+        })
+    }
+
+    pub fn accept<'a>(
+        &mut self,
+        sender: u64,
+        tag: u64,
+        cap_count: usize,
+        payload: &'a [u8],
+    ) -> Result<DecodedFrame<'a>, Error> {
+        if self.closed {
+            return Err(Error::StreamClosed);
+        }
+        if sender != self.peer {
+            return Err(Error::WrongPeer);
+        }
+        if tag != IPC_TAG || cap_count != 0 {
+            return Err(Error::UnexpectedMessage);
+        }
+        let frame = decode(payload)?;
+        if frame.job_id != self.job_id {
+            return Err(Error::WrongJob);
+        }
+        if frame.sequence != self.next_sequence {
+            return Err(Error::SequenceMismatch);
+        }
+        if frame.sequence == u64::MAX {
+            return Err(Error::SequenceExhausted);
+        }
+        match (self.direction, frame.kind) {
+            (Direction::Input, Kind::Stdin | Kind::StdinEof)
+            | (Direction::Output, Kind::Stdout | Kind::Stderr | Kind::OutputEof) => {}
+            _ => return Err(Error::UnexpectedMessage),
+        }
+        self.next_sequence = frame.sequence + 1;
+        if matches!(frame.kind, Kind::StdinEof | Kind::OutputEof) {
+            self.closed = true;
+        }
+        Ok(frame)
+    }
+}
+
+fn decode(payload: &[u8]) -> Result<DecodedFrame<'_>, Error> {
+    if payload.len() < FRAME_HEADER_BYTES
+        || payload[..4] != FRAME_MAGIC
+        || payload[4] != 1
+        || payload[6..8].iter().any(|byte| *byte != 0)
+        || payload[26..28].iter().any(|byte| *byte != 0)
+    {
+        return Err(Error::InvalidFrame);
+    }
+    let kind = match payload[5] {
+        1 => Kind::Stdin,
+        2 => Kind::StdinEof,
+        3 => Kind::Stdout,
+        4 => Kind::Stderr,
+        5 => Kind::OutputEof,
+        _ => return Err(Error::InvalidFrame),
+    };
+    let job_id = read_u64(payload, 8);
+    let sequence = read_u64(payload, 16);
+    let data_length = u16::from_le_bytes([payload[24], payload[25]]) as usize;
+    if job_id == 0
+        || data_length > MAX_FRAME_DATA
+        || payload.len() != FRAME_HEADER_BYTES + data_length
+    {
+        return Err(Error::InvalidFrame);
+    }
+    match kind {
+        Kind::Stdin | Kind::Stdout | Kind::Stderr if data_length == 0 => {
+            return Err(Error::InvalidFrame);
+        }
+        Kind::StdinEof | Kind::OutputEof if data_length != 0 => {
+            return Err(Error::InvalidFrame);
+        }
+        _ => {}
+    }
+    Ok(DecodedFrame {
+        job_id,
+        sequence,
+        kind,
+        data: &payload[FRAME_HEADER_BYTES..],
+    })
+}
+
+fn read_u64(bytes: &[u8], offset: usize) -> u64 {
+    u64::from_le_bytes(
+        bytes[offset..offset + 8]
+            .try_into()
+            .expect("validated terminal frame header"),
+    )
+}
+
 fn finish_argument<const ARGS: usize, const BYTES: usize>(
     parsed: &mut ParsedCommand<ARGS, BYTES>,
 ) -> Result<(), Error> {
@@ -389,5 +629,101 @@ mod tests {
         let parsed: Args = parse(r#"echo "a|b" 'c>d'"#).unwrap();
         assert_eq!(parsed.get(1), Some("a|b"));
         assert_eq!(parsed.get(2), Some("c>d"));
+    }
+
+    #[test]
+    fn io_frame_round_trips_data_and_enforces_exact_lengths() {
+        let frame = Frame::data(7, 0, Channel::Stdout, b"ready\n").unwrap();
+        let decoded = decode(frame.payload()).unwrap();
+        assert_eq!(decoded.job_id, 7);
+        assert_eq!(decoded.sequence, 0);
+        assert_eq!(decoded.channel(), Some(Channel::Stdout));
+        assert_eq!(decoded.data(), b"ready\n");
+        assert!(Frame::data(7, 0, Channel::Stdin, &[]).is_err());
+        assert!(Frame::data(7, 0, Channel::Stdin, &[1; MAX_FRAME_DATA + 1]).is_err());
+        assert!(matches!(
+            Frame::data(0, 0, Channel::Stdin, b"x"),
+            Err(Error::InvalidJobId)
+        ));
+
+        let mut malformed = frame.payload().to_vec();
+        malformed.push(0);
+        assert_eq!(decode(&malformed).err(), Some(Error::InvalidFrame));
+    }
+
+    #[test]
+    fn io_receiver_binds_peer_job_tag_direction_and_sequence() {
+        let frame = Frame::data(11, 0, Channel::Stdin, b"help\n").unwrap();
+        let mut receiver = Receiver::new(22, 11, Direction::Input).unwrap();
+        assert_eq!(
+            receiver.accept(21, IPC_TAG, 0, frame.payload()).err(),
+            Some(Error::WrongPeer)
+        );
+        assert_eq!(
+            receiver.accept(22, IPC_TAG + 1, 0, frame.payload()).err(),
+            Some(Error::UnexpectedMessage)
+        );
+        assert_eq!(
+            receiver.accept(22, IPC_TAG, 1, frame.payload()).err(),
+            Some(Error::UnexpectedMessage)
+        );
+        let accepted = receiver.accept(22, IPC_TAG, 0, frame.payload()).unwrap();
+        assert_eq!(accepted.data(), b"help\n");
+        assert_eq!(
+            receiver.accept(22, IPC_TAG, 0, frame.payload()).err(),
+            Some(Error::SequenceMismatch)
+        );
+        let wrong_job = Frame::data(12, 1, Channel::Stdin, b"help\n").unwrap();
+        assert_eq!(
+            receiver.accept(22, IPC_TAG, 0, wrong_job.payload()).err(),
+            Some(Error::WrongJob)
+        );
+    }
+
+    #[test]
+    fn io_end_markers_close_only_the_bound_stream() {
+        let wrong_direction = Frame::data(3, 0, Channel::Stdout, b"x").unwrap();
+        let mut input = Receiver::new(4, 3, Direction::Input).unwrap();
+        assert_eq!(
+            input.accept(4, IPC_TAG, 0, wrong_direction.payload()).err(),
+            Some(Error::UnexpectedMessage)
+        );
+        let eof = Frame::end_input(3, 0).unwrap();
+        let accepted = input.accept(4, IPC_TAG, 0, eof.payload()).unwrap();
+        assert!(accepted.is_end_of_input());
+        assert_eq!(
+            input.accept(4, IPC_TAG, 0, eof.payload()).err(),
+            Some(Error::StreamClosed)
+        );
+
+        let output_eof = Frame::end_output(3, 0).unwrap();
+        let mut output = Receiver::new(4, 3, Direction::Output).unwrap();
+        let accepted = output.accept(4, IPC_TAG, 0, output_eof.payload()).unwrap();
+        assert!(accepted.is_end_of_output());
+    }
+
+    #[test]
+    fn io_receiver_rejects_sequence_wraparound() {
+        let frame = Frame::data(3, u64::MAX, Channel::Stdin, b"x").unwrap();
+        let mut receiver = Receiver::new(4, 3, Direction::Input).unwrap();
+        receiver.next_sequence = u64::MAX;
+        assert_eq!(
+            receiver.accept(4, IPC_TAG, 0, frame.payload()).err(),
+            Some(Error::SequenceExhausted)
+        );
+    }
+
+    #[test]
+    fn io_decoder_rejects_noncanonical_header_and_empty_data_frame() {
+        let frame = Frame::data(5, 0, Channel::Stdout, b"x").unwrap();
+        let mut malformed = frame.payload().to_vec();
+        malformed[6] = 1;
+        assert_eq!(decode(&malformed).err(), Some(Error::InvalidFrame));
+        let mut malformed = frame.payload().to_vec();
+        malformed[4] = 2;
+        assert_eq!(decode(&malformed).err(), Some(Error::InvalidFrame));
+        let mut malformed = frame.payload().to_vec();
+        malformed[24] = 0;
+        assert_eq!(decode(&malformed).err(), Some(Error::InvalidFrame));
     }
 }
