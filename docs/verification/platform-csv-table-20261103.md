@@ -2,6 +2,8 @@
 
 Basis `d10b5cdaf56774a39e3ef10463f674c6188a463a` (actuele main bij start),
 branch `platform/csv-table-20261103`. Onafhankelijk van EXIF-viewer #165.
+Code-/testcommit `9a27482672562f1d406fbc422781fb55bac24005`;
+de vervolgcommit past uitsluitend deze bewijsnotitie aan.
 Schrijfclaim uitsluitend `sdk/examples/table-editor/**` en dit ontvangstbewijs;
 geen gedeelde SDK-workspace, General-editor, Work Suite-, package-, kernel-,
 driver-, centrale status-/score- of rechtenwijziging.
@@ -52,6 +54,8 @@ Geen installatie, dependencydownload of wijziging aan bestaande lockfiles.
 | `cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/table-editor/Cargo.toml --features host-cli --all-targets -- -D warnings` | exit 0 |
 | `cargo +1.90.0 fmt --manifest-path sdk/examples/table-editor/Cargo.toml -- --check` | exit 0 |
 | `cargo +1.90.0 build --offline --locked --release --lib --manifest-path sdk/examples/table-editor/Cargo.toml --target x86_64-unknown-none` | exit 0, targetbibliotheek, geen native uitvoering |
+| `python3 -B sdk/examples/table-editor/tests/interop.py target/platform-csv-host/debug/table-csv` | exit 0; 64 werkelijke CLI-outputs onafhankelijk geimporteerd met Python csv |
+| `git diff --check` | exit 0 |
 
 De eerste tien tests waren direct groen; dit is nieuwe functionaliteit,
 geen geclaimde rood-naar-groenproductregressie. Bij toevoeging van twee tests
@@ -75,6 +79,13 @@ Bronhashes:
 24832f18a19c177aea8681ef55cde92f5d7a77d2d4d22628137c9ec8738ee2b6 src/main.rs
 9aa71454ed4db8bc0a4cab0cd15904991fa54b3dec2227a790be9acbbdf53fdd tests/cli.rs
 1d64896385bee5c63dde71144527937ad0731a83f0e6745da685a2ed526a7b92 tests/table.rs
+```
+
+SHA-256 van de werkelijk gebruikte artifacts:
+
+```text
+e6e7879f88277d06ba9eef4aa17bc1b7f37d7fdb6c6653a8d8be6c68c3b3d1f8 target/platform-csv-host/debug/table-csv
+6535102595f17ac737da7bcf833613d755b7840db944547a6c9206803bd497cb target/platform-csv-host/x86_64-unknown-none/release/libnieuw_os_table_editor.rlib
 ```
 
 ## Overdracht en open grenzen
