@@ -148,6 +148,31 @@ fn render_native_window_material_walkthrough_oracle() {
             text(&mut ui, &mut sequence);
             assert!(ui.document().is_dirty());
             snapshot(&ui, "dirty", directory.as_deref());
+            key(
+                &mut ui,
+                INPUT_EPOCH,
+                &mut sequence,
+                1,
+                PhysicalKey::F4,
+                false,
+            );
+            assert!(!ui.view().editable);
+            snapshot(&ui, "read-tool", directory.as_deref());
+            for physical in [PhysicalKey::X, PhysicalKey::Delete, PhysicalKey::Backspace] {
+                key(&mut ui, INPUT_EPOCH, &mut sequence, 1, physical, false);
+            }
+            assert_eq!(ui.view().contents, Some(TEXT));
+            snapshot(&ui, "read-tool-blocked", directory.as_deref());
+            key(
+                &mut ui,
+                INPUT_EPOCH,
+                &mut sequence,
+                1,
+                PhysicalKey::F4,
+                false,
+            );
+            assert!(ui.view().editable);
+            snapshot(&ui, "write-tool-restored", directory.as_deref());
             key(&mut ui, INPUT_EPOCH, &mut sequence, 1, PhysicalKey::S, true);
             assert!(ui.document().is_saving());
             let mut completed = false;

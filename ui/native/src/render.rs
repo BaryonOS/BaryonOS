@@ -1,6 +1,6 @@
 //! Scalar private-RAM tiles. No framebuffer mapping, device I/O or syscall.
 use crate::{
-    controller::{Error as UiError, Focus, Screen, Status, View},
+    controller::{DocumentTool, Error as UiError, Focus, Screen, Status, View},
     design as d, text, Rect, Scale, Viewport, TILE_HEIGHT, TILE_WIDTH,
 };
 use nieuw_os_graphics::{Canvas, Font, Icon, Rect as GraphicRect, Size, Weight};
@@ -22,6 +22,7 @@ pub struct Layout {
     pub refresh: Rect,
     pub back: Rect,
     pub save: Rect,
+    pub tool: Rect,
     pub editor: Rect,
     pub status: Rect,
     pub list_bottom: u32,
@@ -86,13 +87,19 @@ impl Layout {
             back: Rect {
                 x: d::PAD,
                 y: d::PAD,
-                width: 100,
+                width: if width < 480 { 44 } else { 100 },
                 height: d::CONTROL_HEIGHT,
             },
             save: Rect {
-                x: width - d::PAD - 112,
+                x: width - d::PAD - if width < 480 { 100 } else { 112 },
                 y: d::PAD,
-                width: 112,
+                width: if width < 480 { 100 } else { 112 },
+                height: d::CONTROL_HEIGHT,
+            },
+            tool: Rect {
+                x: d::PAD + if width < 480 { 52 } else { 112 },
+                y: d::PAD,
+                width: if width < 480 { 108 } else { 156 },
                 height: d::CONTROL_HEIGHT,
             },
             editor: Rect {
@@ -461,6 +468,20 @@ impl<'a> Frame<'a> {
             }
             Screen::Editor | Screen::ConfirmClose => {
                 paint.back_button(layout.back, self.view.focus == Focus::Back);
+                paint.button(
+                    layout.tool,
+                    if layout.tool.width < 156 {
+                        match self.view.tool {
+                            DocumentTool::Write => "Lezen",
+                            DocumentTool::Read => "Schrijven",
+                        }
+                    } else {
+                        tool_action(self.view.tool)
+                    },
+                    self.view.focus == Focus::Tool,
+                    !self.view.saving && self.view.screen == Screen::Editor,
+                    ButtonStyle::Secondary,
+                );
                 let label = if self.view.saving {
                     "Annuleren"
                 } else {
@@ -485,7 +506,15 @@ impl<'a> Frame<'a> {
                 let title = core::str::from_utf8(self.view.title).unwrap_or("Naam niet leesbaar");
                 paint.medium(d::PAD, 84, title, d::TEXT);
                 if viewport.logical_height() >= 360 {
-                    paint.small(d::PAD, 116, "Op dit apparaat", d::MUTED);
+                    paint.small(
+                        d::PAD,
+                        116,
+                        match self.view.tool {
+                            DocumentTool::Write => "Schrijven · Op dit apparaat",
+                            DocumentTool::Read => "Lezen · Dezelfde tekst, zonder bewerken",
+                        },
+                        d::MUTED,
+                    );
                 }
                 paint.fill(layout.editor, d::SURFACE);
                 paint.fill(
@@ -934,6 +963,16 @@ impl<'a> Frame<'a> {
                     self.view.can_save || self.view.saving,
                 );
                 push(
+                    SemanticId::DocumentTool,
+                    Some(SemanticId::Window),
+                    Role::Button,
+                    tool_action(self.view.tool),
+                    None,
+                    l.tool,
+                    Some(Focus::Tool),
+                    !self.view.saving,
+                );
+                push(
                     SemanticId::Document,
                     Some(SemanticId::Window),
                     Role::TextEditor,
@@ -1052,6 +1091,7 @@ pub enum SemanticId {
     Back,
     Save,
     Document,
+    DocumentTool,
     CloseDialog,
     SaveAndBack,
     KeepEditing,
@@ -1101,6 +1141,13 @@ impl SemanticNode<'_> {
         selection: None,
         progress: None,
     };
+}
+
+fn tool_action(tool: DocumentTool) -> &'static str {
+    match tool {
+        DocumentTool::Write => "Lezen · F4",
+        DocumentTool::Read => "Schrijven · F4",
+    }
 }
 
 pub fn status_label(status: Status) -> &'static str {
@@ -1826,7 +1873,9 @@ impl Paint<'_> {
             d::TEXT,
             1,
         );
-        self.medium(r.x + 30, r.y + 10, "Terug", d::TEXT);
+        if r.width >= 100 {
+            self.medium(r.x + 30, r.y + 10, "Terug", d::TEXT);
+        }
         if focused {
             self.focus(r);
         }

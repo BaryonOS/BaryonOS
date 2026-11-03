@@ -27,6 +27,12 @@ pub enum Screen {
     Editor,
     ConfirmClose,
 }
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub enum DocumentTool {
+    #[default]
+    Write,
+    Read,
+}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Focus {
     New,
@@ -41,6 +47,7 @@ pub enum Focus {
     KeepEditing,
     SaveAndBack,
     Discard,
+    Tool,
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Status {
@@ -87,6 +94,7 @@ pub struct View<'a> {
     pub generation: u64,
     pub dirty: bool,
     pub screen: Screen,
+    pub tool: DocumentTool,
     pub focus: Focus,
     pub status: Status,
     pub objects: &'a [ListEntry],
@@ -141,6 +149,7 @@ pub struct Controller<'a, T> {
     editable: bool,
     viewport: Viewport,
     screen: Screen,
+    tool: DocumentTool,
     focus: Focus,
     status: Status,
     objects: [ListEntry; PER_DOMAIN],
@@ -186,6 +195,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             editable: mode == EditMode::ReadWrite,
             viewport,
             screen: Screen::Material,
+            tool: DocumentTool::Write,
             focus: if mode == EditMode::ReadWrite {
                 Focus::New
             } else {
@@ -279,6 +289,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             generation: self.generation,
             dirty: self.dirty,
             screen: self.screen,
+            tool: self.tool,
             focus: self.focus,
             status: self.status,
             objects: &self.objects[..self.object_count],
@@ -289,7 +300,8 @@ impl<'a, T: Transport> Controller<'a, T> {
             caret: self.caret,
             anchor: self.anchor,
             scroll: self.scroll,
-            editable: self.editable,
+            editable: self.editable
+                && (self.screen == Screen::Material || self.tool == DocumentTool::Write),
             can_save: self.editable
                 && draft
                     .and_then(|d| core::str::from_utf8(d.contents).ok())
@@ -429,6 +441,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             return Err(self.failed(Error::Storage(error)));
         }
         self.screen = Screen::Editor;
+        self.tool = DocumentTool::Write;
         self.focus = Focus::Document;
         self.caret = 0;
         self.anchor = 0;
@@ -455,6 +468,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             return Err(self.failed(Error::Storage(error)));
         }
         self.screen = Screen::Editor;
+        self.tool = DocumentTool::Write;
         self.focus = Focus::Document;
         self.caret = 0;
         self.anchor = 0;
@@ -515,6 +529,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             SemanticId::SaveAndBack => Focus::SaveAndBack,
             SemanticId::KeepEditing => Focus::KeepEditing,
             SemanticId::Discard => Focus::Discard,
+            SemanticId::DocumentTool => Focus::Tool,
             _ => return Err(Error::InvalidInput),
         };
         // An accepted semantic action may replace the screen or object list;
@@ -543,6 +558,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             Focus::KeepEditing => SemanticId::KeepEditing,
             Focus::SaveAndBack => SemanticId::SaveAndBack,
             Focus::Discard => SemanticId::Discard,
+            Focus::Tool => SemanticId::DocumentTool,
             Focus::Document => return Err(Error::InvalidInput),
         };
         self.activate_semantic(id, self.generation)
@@ -587,6 +603,22 @@ impl<'a, T: Transport> Controller<'a, T> {
         self.anchor = self.caret;
         self.update_edit_status();
         self.ensure_caret();
+        self.invalidate()
+    }
+
+    /// Both tools borrow the same document owner; switching never saves,
+    /// reopens, copies, or changes the document's storage authority.
+    pub fn switch_tool(&mut self) -> Result<(), Error> {
+        if self.screen != Screen::Editor || self.document.is_saving() {
+            return Err(Error::InvalidInput);
+        }
+        self.tool = match self.tool {
+            DocumentTool::Write => DocumentTool::Read,
+            DocumentTool::Read => DocumentTool::Write,
+        };
+        self.dragging = false;
+        self.pressed = None;
+        self.focus = Focus::Document;
         self.invalidate()
     }
 
@@ -722,6 +754,7 @@ impl<'a, T: Transport> Controller<'a, T> {
                 self.status = Status::Ready;
                 self.refresh()
             }
+            Focus::Tool => self.switch_tool(),
         }
     }
     fn ensure_caret(&mut self) {
@@ -744,6 +777,9 @@ impl<'a, T: Transport> Controller<'a, T> {
         }
     }
     pub fn insert(&mut self, replacement: &str) -> Result<(), Error> {
+        if self.tool == DocumentTool::Read {
+            return Err(Error::InvalidInput);
+        }
         if self.screen != Screen::Editor || self.view().contents.is_none() {
             return Err(self.failed(Error::InvalidUtf8));
         }
@@ -821,7 +857,7 @@ impl<'a, T: Transport> Controller<'a, T> {
     /// Called only after clipboard delivery and the original input ACK.
     /// DocumentSession performs its existing atomic size/rights validation.
     pub fn paste_clipboard(&mut self, value: &str) -> Result<(), Error> {
-        if !self.clipboard_edit_context() || !self.editable || value.is_empty() {
+        if !self.clipboard_edit_context() || !self.view().editable || value.is_empty() {
             return Ok(());
         }
         self.insert(value)
@@ -902,10 +938,16 @@ impl<'a, T: Transport> Controller<'a, T> {
                 } else {
                     Focus::Save
                 };
-                if self.view().can_save || self.document.is_saving() {
+                let count = if self.view().can_save || self.document.is_saving() {
                     3
                 } else {
                     2
+                };
+                if self.document.is_saving() {
+                    count
+                } else {
+                    choices[count] = Focus::Tool;
+                    count + 1
                 }
             }
             Screen::ConfirmClose => {
@@ -946,6 +988,13 @@ impl<'a, T: Transport> Controller<'a, T> {
             return Ok(());
         }
         let press = event.action == KeyAction::Press;
+        if event.key == PhysicalKey::F4 && self.screen == Screen::Editor {
+            return if press && !self.document.is_saving() {
+                self.activate_focus_semantically(Focus::Tool)
+            } else {
+                Ok(())
+            };
+        }
         if self.screen == Screen::Material {
             if event.key == PhysicalKey::PageDown
                 && self.list_scroll + Layout::new(self.viewport).list_rows() < self.object_count
@@ -1030,6 +1079,9 @@ impl<'a, T: Transport> Controller<'a, T> {
         if event.modifiers.control() || event.modifiers.alt() || event.modifiers.super_key() {
             return Ok(());
         }
+        if self.tool == DocumentTool::Read {
+            return Ok(());
+        }
         match event.key {
             PhysicalKey::Backspace => {
                 if selected.is_empty() {
@@ -1087,6 +1139,8 @@ impl<'a, T: Transport> Controller<'a, T> {
             Screen::Editor => {
                 if layout.back.contains(x, y) {
                     Some(Focus::Back)
+                } else if layout.tool.contains(x, y) && !self.document.is_saving() {
+                    Some(Focus::Tool)
                 } else if layout.save.contains(x, y)
                     && (self.view().can_save || self.document.is_saving())
                 {

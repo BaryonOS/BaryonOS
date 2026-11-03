@@ -17,6 +17,18 @@ def image(width,height,color):
 
 
 class WindowRunnerTests(unittest.TestCase):
+    def test_document_tool_oracles_require_whole_body_without_masks(self):
+        raw = image(1280, 720, (1, 2, 3))
+        expected = image(880, 510, (1, 2, 3))
+        header = len(raw) - 1280 * 720 * 3
+        for phase in ("read-tool", "read-tool-blocked", "write-tool-restored"):
+            self.assertIn(phase, window.FIXTURE_PHASES)
+            self.assertTrue(window.oracle_matches(raw, expected, phase))
+            for x, y in ((28, 114), (907, 623), (180, 160)):
+                changed = bytearray(raw)
+                changed[header + (y * 1280 + x) * 3] ^= 1
+                self.assertFalse(window.oracle_matches(bytes(changed), expected, phase))
+
     def test_workspace_checks_every_pixel_in_declared_shell_regions(self):
         raw = image(1280, 720, (1, 2, 3))
         header = len(raw) - 1280 * 720 * 3

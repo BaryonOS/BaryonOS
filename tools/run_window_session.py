@@ -31,6 +31,7 @@ NAMES = {"window-init", "window-compositor", "materiaal-app", "calculator-app",
 SERIAL_LIMIT = 4 * 1024 * 1024
 BODY = (28, 114, 880, 510)
 FIXTURE_PHASES = ("initial", "editor", "dirty", "saved", "list", "reopened",
+                  "read-tool", "read-tool-blocked", "write-tool-restored",
                   "dirty-focus-lost", "dirty-rebound", "dirty-recovered")
 CLIPBOARD_PHASES = ("clipboard-copied", "clipboard-numeric", "clipboard-back",
                     "clipboard-empty", "clipboard-recovered-empty")
@@ -265,6 +266,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
     report = dict(schema_version=1, passed=False, native_gate=False, smoke_only=diagnostic,
                   recovery_handshake_only=recovery_handshake, clipboard_requested=clipboard, clipboard_gate=False, source_sha256=frozen,
                   workspace_requested=workspace, workspace_gate=False,
+                  document_tools_gate=False,
                   source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                   source_fingerprint_version=3, kernel_feature=FEATURE, manifest=manifest, command=command,
                   run_directory=str(directory), qemu_sha256=qemu_hash, immutable=immutable, phases={})
@@ -443,6 +445,20 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 for phase in ("editor", "dirty"):
                     if changed_outside(captured[paint_baseline], captured[phase], BODY):
                         raise ValueError("App paint escaped its assigned body")
+                key("f4")
+                wait("read-tool", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM
+                     and s["MATERIAL"][-1]["DIRTY"] == 1, "read-tool")
+                for physical in ("x", "delete", "backspace"):
+                    key(physical)
+                wait("read-tool-blocked", lambda raw, s: s["MATERIAL"][-1]["DRAFT_BYTES"] == len(TEXT)
+                     and s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM
+                     and s["MATERIAL"][-1]["SAVE_ACKS"] == dirty["MATERIAL"][-1]["SAVE_ACKS"], "read-tool-blocked")
+                key("f4")
+                wait("write-tool-restored", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM,
+                     "write-tool-restored")
+                for phase in ("read-tool", "read-tool-blocked", "write-tool-restored"):
+                    if changed_outside(captured["dirty"], captured[phase], BODY):
+                        raise ValueError("Document tool changed pixels outside its assigned body")
                 if clipboard:
                     key("ctrl", "a"); key("ctrl", "c")
                     wait("clipboard-copied", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM, "clipboard-copied")
@@ -548,6 +564,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 report["oracle"] = fixture["metadata"]
             report.update(passed=True, native_gate=not diagnostic, clipboard_gate=clipboard and not diagnostic,
                           workspace_gate=workspace and not diagnostic,
+                          document_tools_gate=not diagnostic,
                           duration_s=time.monotonic() - start, serial_sha256=sha256(directory / "serial.txt"), qmp_trace=control.trace)
     except Exception as error:
         report["error"] = f"{type(error).__name__}: {error}"

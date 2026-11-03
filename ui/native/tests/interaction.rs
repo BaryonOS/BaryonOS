@@ -1681,12 +1681,15 @@ fn fresh_input_epoch_preserves_draft_and_cannot_inherit_a_pressed_button_impl() 
     fresh.event = key(PhysicalKey::A);
     // The old button focus remains a control focus, not text focus. Tab to
     // Document, then a new key from the verified fresh epoch edits normally.
-    fresh.event = key(PhysicalKey::Tab);
-    ui.deliver(fresh).unwrap();
-    if ui.view().focus != Focus::Document {
+    for _ in 0..4 {
+        if ui.view().focus == Focus::Document {
+            break;
+        }
+        fresh.event = key(PhysicalKey::Tab);
         fresh.sequence += 1;
         ui.deliver(fresh).unwrap();
     }
+    assert_eq!(ui.view().focus, Focus::Document);
     fresh.sequence += 1;
     fresh.event = key(PhysicalKey::A);
     ui.deliver(fresh).unwrap();

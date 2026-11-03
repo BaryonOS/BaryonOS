@@ -1,5 +1,35 @@
 # Native venstersessie — U01 bouwcontract
 
+## Veld-02: objectgebonden gereedschappen en venstertoestanden
+
+3 november 2026, expliciete vervolgopdracht; baseline `264ad5b0`.
+Werkende native UI-code is leidend; aanvullend visueel onderzoek volgt alleen
+een concrete ontbrekende implementatiebeslissing. De volledige gevraagde
+omgeving blijft actief, niet afgedaan met deze deelstap.
+
+**Eerste contract:** Schrijven en Lezen gebruiken dezelfde `DocumentSession`
+in Materiaal. F4, een echte knop en een semantische actie wisselen zonder
+opslag-RPC, kopie, heropenen of rechtenwijziging. Titel, object, tekst,
+selectie/caret, scroll, dirty-state en opslagstatus blijven behouden.
+Lezen staat navigeren/selecteren/kopiëren toe maar geen typen, verwijderen,
+plakken of semantisch vervangen. Terug naar Schrijven verleent geen
+schrijfrecht aan een read-only sessie. Wisselen tijdens opslaan of vanuit
+een modal is geweigerd. Expliciet opslaan blijft de enige bewaarrichting;
+dit is geen gereedschapswisseling tussen afzonderlijke processen.
+
+**Schrijfbestanden:** `ui/native/src/{controller,render}.rs`, gerelateerde
+host-/nativefixtures, `tools/{run_window_session,test_window_session}.py`,
+de bestaande CI-gate en deze contract-/status-/bewijsbestanden. Vensterstates
+worden onafhankelijk gebouwd in `window-session/src/scene.rs` en één
+testbestand; de hoofdagent integreert input en native acceptatie.
+
+**Acceptatie:** native UI- en beide app-hosttests, Clippy/fmt; hele
+ongemaskerde documentbeelden voor Lezen, geweigerde bewerking en hersteld
+Schrijven; originele volledige klembord-, isolatie-, verplaatsings-,
+compositorherstel-, schijf- en cleanupgates blijven verplicht. Schaal 200%
+blijft onderdeel van hostpixels en een afzonderlijk te draaien VM-profiel.
+Een hosttest sluit die native schaalgate niet.
+
 ## Veld: eerste native uitvoering
 
 **Opdracht/basis:** uitvoering na het visuele onderzoeksplan,

@@ -1,5 +1,22 @@
 # Ontwerpbesluiten
 
+## ADR-VELD-002 — gereedschappen lenen dezelfde documenteigenaar
+
+3 november 2026, baseline `264ad5b0`. De eerste objectgebonden gereedschappen
+zijn Schrijven en Lezen binnen de bestaande geïsoleerde Materiaal-app.
+Ze delen dezelfde echte documenteigenaar, niet twee gekopieerde tekstmodellen.
+Wisselen veroorzaakt geen opslagactie en verandert geen capability.
+Lezen voorkomt mutaties langs toetsen, plakken en semantische waardeacties;
+selectie/navigatie/kopiëren en expliciet bewaren blijven mogelijk.
+Schrijven krijgt alleen het al bestaande recht terug. Tijdens opslaan en
+in de onopgeslagen-werkdialoog bestaat geen wisselactie.
+
+Dit is een eerste werkende interne toolwissel, niet DV-01 met twee afzonderlijke
+procesidentiteiten. Algemene objectmetadata in de shell, overdraagbare
+objectgrants en onafhankelijk appbeheer blijven noodzakelijke vervolgstappen.
+Het [native contract](implementation/NATIVE-WINDOW-SESSION.md) behoudt de
+volledige product-/bewijsgrenzen.
+
 ## ADR-VELD-001 — Veld uitvoeren binnen de bestaande native veiligheidsgrens
 
 3 november 2026. Simons vervolgopdracht "Voer het uit" autoriseert uitvoering

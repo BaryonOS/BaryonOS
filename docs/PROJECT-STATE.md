@@ -1,6 +1,38 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — eerste native Veld-stap geverifieerd — 3 november 2026
+## NEXT AGENT HANDOFF — Veld-02 in uitvoering — 3 november 2026
+
+**Basis:** `264ad5b0b1bfeaf0e36c4d52021b11d347db2227`, branch
+`simonvanieperen-fictional-disco`, PR #146. De vervolgopdracht vraagt een
+complete native gebruikersomgeving; deze implementatiestap voltooit dat niet.
+Geen nieuw visueel onderzoek gestart.
+
+**Code:** Schrijven/Lezen op dezelfde echte `DocumentSession`, F4, knop,
+semantiek en read-only mutatiebeperking. Geen impliciete opslag, kopie,
+heropenen of rechtenwijziging. Titel, tekst, selectie, scroll en status blijven
+bestaan. Native runner vereist drie extra volledige appbeeld-/invoerfasen;
+oorspronkelijke isolatie-, klembord-, herstel- en schijfgates behouden.
+
+**Hostbewijs:** `cargo +1.90.0 test --offline --locked --manifest-path
+ui/native/Cargo.toml` en dezelfde opdracht voor `sdk/examples/materiaal`
+exit 0; Clippy `--all-targets -- -D warnings` voor beide exit 0, UI fmt exit 0.
+`python3 -B tools/test_window_session.py`: 13 tests, exit 0.
+Logs: sessie-artifact `files/veld-env/logs/veld-tools-{host,clippy,app-host}.log`.
+Eerste hostrun vond een test die slechts twee Tab-stappen toestond; de test
+doorloopt nu begrensd de werkelijke focuscyclus inclusief nieuwe toolknop en
+blijft vereisen dat nieuwe invoer pas na verse inputbinding tekst wijzigt.
+
+**Parallel:** agent `98fcb496-0147-4a3e-a62a-e9064580b0af` bouwt uitsluitend
+`scene.rs` en `tests/window_states.rs` in een aparte worktree op baseline264ad5b0.
+Nog niet geïntegreerd of als native geaccepteerd. Geen gedeelde schrijvers.
+
+**Volgende gate:** eigen-kernelbuild en volledige
+`run_window_session.py --clipboard --workspace`; nog **niet uitgevoerd**
+voor deze nieuwe bron. Daarna vensterstates integreren en opnieuw native
+toetsen, vervolgens verder met resterende gebruikersomgeving. Score **41 -> 41**;
+geen U02–U06-, fysieke, menselijke of releaseacceptatie.
+
+## Vorig checkpoint — eerste native Veld-stap geverifieerd — 3 november 2026
 
 **Basis:** `d6f8e98178d73d6aeda0abe84ca404dfde03123c`,
 branch `simonvanieperen-fictional-disco`. De expliciete vervolgopdracht

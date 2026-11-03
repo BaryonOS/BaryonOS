@@ -14,6 +14,7 @@ fn view<'a>(viewport: Viewport, objects: &'a [ListEntry]) -> View<'a> {
         generation: 1,
         dirty: true,
         screen: Screen::Material,
+        tool: Default::default(),
         focus: Focus::New,
         status: Status::Ready,
         objects,

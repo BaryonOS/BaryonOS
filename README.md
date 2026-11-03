@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`7eb50b64`](https://github.com/simonvanieperen/nieuw-os/commit/7eb50b64a7dd140a69f6c3d509faebc24553d3ab) ·
+**Bron:** [`264ad5b0`](https://github.com/simonvanieperen/nieuw-os/commit/264ad5b0b1bfeaf0e36c4d52021b11d347db2227) ·
 **Ontwikkelbranch:** `simonvanieperen-fictional-disco`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Eerste native Veld-stap: gedeelde visuele rollen, werkfocus, ordening en lokale zoekaliassen.
-41% blijft 41%: de eerste twee-app native Veld-stap op 7eb50b64 is brongebonden geverifieerd. De onverkorte QEMU-venster-/klembord-/workspacegate slaagt met 28 fasen, echte crash/herstelketen, ongewijzigde appisolatie-/verplaatsingsorakels, bewaren/heropenen, schijfcontrole en cleanup. Ook de afzonderlijke gast/sessiepreview, het normale vensterprofiel en 22 gemeten host-/lint-/bouwcommando's slagen. Gedeelde tekstrollen voldoen over alle 256 verloopstappen aan 4,5:1. De lokale proeven zijn QEMU 10.2.1/pc-q35-10.0, geen nieuwe GitHub-CI-, menselijke of fysieke acceptatie. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Volledig Veld, vier werkzaamheden, objectgebonden toolwisseling, U02-U06 en release blijven open.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Veld-02: objectgebonden Schrijven/Lezen en native venstertoestanden.
+41% blijft 41%: vanaf native baseline264ad5b0 zijn Schrijven/Lezen op dezelfde echte documenteigenaar gebouwd, met F4, knop, semantiek en read-only bewerkingsbeperking. Gerichte native-UI- en app-hosttests, Clippy/fmt en 13 runnertegenvoorbeelden slagen. De verse eigen-kernel-/pixel-/interactiegate is bij dit tussencheckpoint nog niet uitgevoerd; vensterstates worden afzonderlijk gebouwd. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
