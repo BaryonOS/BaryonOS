@@ -10,6 +10,7 @@
     "crates/capability-core/README.md": "dce8886e73de6ff4322865214f0890aed40ce8d7bfdbdb76f0eef868ff8c2279"
   },
   "toolchain": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+  "environment": "Before the four Cargo checks, the shell ran: export PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\"",
   "checks": [
     {
       "command": "python3 -B tools/dev.py \"$HOME/.cargo/bin/cargo\" +1.90.0 test --manifest-path crates/capability-core/Cargo.toml --locked --offline",
