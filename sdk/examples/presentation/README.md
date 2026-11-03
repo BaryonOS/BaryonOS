@@ -12,6 +12,10 @@ cargo +1.90.0 run --offline --locked --manifest-path sdk/examples/presentation/C
 
 `--slide` is een 1-gebaseerd dianummer; optionele `--scale` is 1 of 2.
 Frame 640x360 of 1280x720, 24-bit RGB Netpbm P6, geen alpha.
+Dit is de P6-variant met ongewijzigde UI-RGB-samplewaarden, **zonder**
+omzetting naar de BT.709-transferfunctie van strikt kleurgetrouw PPM.
+Primaire formaatbron: Netpbm, *PPM Format Specification*, 7 november 2025,
+<https://netpbm.sourceforge.net/doc/ppm.html>, geraadpleegd 3 november 2026.
 De gedeelde MATERIAAL-kleuren en bestaande Font-presets worden hergebruikt.
 Schaal 2 gebruikt de bestaande grotere fontpresets, geen claim van exacte
 tweemaal alle glyphafmetingen of gevalideerde high-DPI-/accessibility-UX.
