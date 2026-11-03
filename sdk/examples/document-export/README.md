@@ -69,9 +69,14 @@ De ECMA-376-landingspagina kon niet worden opgehaald (HTTP 403);
 geen volledige norm-/schemavalidatie geclaimd.
 
 ```sh
+# Uitvoeren vanaf de repositoryroot op een voorbereide Rust-toolchain.
+set -e
+export CARGO_TARGET_DIR="$PWD/target/platform-docx-host"
+mkdir -p build/platform-docx-evidence
 cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/document-export/Cargo.toml --features host-cli
 cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/document-export/Cargo.toml --features host-cli --all-targets -- -D warnings
 cargo +1.90.0 fmt --manifest-path sdk/examples/document-export/Cargo.toml -- --check
+cargo +1.90.0 build --offline --locked --manifest-path sdk/examples/document-export/Cargo.toml --features host-cli --bin text-docx
 cargo +1.90.0 build --offline --locked --release --lib --manifest-path sdk/examples/document-export/Cargo.toml --target x86_64-unknown-none
 python3 -B sdk/examples/document-export/tests/interop.py target/platform-docx-host/debug/text-docx build/platform-docx-evidence/example.docx
 file build/platform-docx-evidence/example.docx
