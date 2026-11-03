@@ -43,26 +43,29 @@ beschikbaar.
 - `PATH="/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH" python3 -B -u tools/test_supervisor.py` (exit 1; native worker gebruikte verouderde `TimerRegistration::at`-signatuur; gerepareerd in `3249c93e`)
 - `PATH="/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH" python3 -B -u tools/test_supervisor.py` (exit 1 na succesvolle native supervisor/loader/kernel-builds; `qemu-system-x86_64` niet beschikbaar, geen case geboot)
 - `python3 -B tools/preflight.py --strict` (exit 2; inventaris meldt QEMU/OVMF en directe Rust-/C-toolchainpaden ontbrekend; dit is geen build- of boottest)
+- `PATH="/tmp/nieuw-os-qemu/root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH" LD_LIBRARY_PATH="/tmp/nieuw-os-qemu/root/usr/lib/x86_64-linux-gnu" OS_OVMF_CODE=/tmp/nieuw-os-qemu/root/usr/share/OVMF/OVMF_CODE_4M.fd OS_OVMF_VARS=/tmp/nieuw-os-qemu/root/usr/share/OVMF/OVMF_VARS_4M.fd NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B -u tools/test_supervisor.py` (exit 0; zes disposable-QEMU-cases geslaagd; 81 capability-, 40 runtime-, 1 protocol- en 8 harness-tests geslaagd, 1 bestaande benchmark ignored)
+- `python3 tools/progress.py --write` en `python3 tools/progress.py --check` (beide exit 0; 41/100 consistent)
 
 De eerste testpoging miste `cc`; daarna is de al aanwezige tijdelijke
 toolchain onder `/tmp/nieuw-os-c-toolchain` gebruikt, zonder systeeminstallatie.
 Een tussenliggende testuitvoering vond twee onjuiste verwachte chunkwaarden;
 de assertions zijn gecorrigeerd en de volledige suite is daarna groen. De
 capability-usage-tests toetsen read-only gedrag, principal-isolatie,
-quotaweergave en queue-toerekening aan de endpointowner. De supervisor-QEMU-
-gate is geprobeerd, maar de eerste run miste `cargo` in `PATH`; de retry met
-alleen Cargo op `PATH` stopte bij de host-check. Met de tijdelijke C-toolchain
-werd vervolgens een verouderde `TimerRegistration::at`-aanroep in de native
-worker gevonden. Commit `3249c93e` herstelt die call; de native supervisor,
-loader en kernel bouwen daarna succesvol. De gate stopt vervolgens vóór de
-eerste VM-run omdat `qemu-system-x86_64` ontbreekt. Geen QEMU-case, fysieke
-of menselijke acceptatie uitgevoerd. Score blijft **41 → 41**.
+quotaweergave en queue-toerekening aan de endpointowner. De eerste runs
+ontdekten een ontbrekende `PATH`-toolchain en een verouderde
+`TimerRegistration::at`-aanroep; die laatste is in `3249c93e` hersteld.
+QEMU 10.2.1 en OVMF zijn daarna uit officiële Ubuntu-pakketten onder `/tmp`
+uitgepakt, zonder systeeminstallatie. Met machineprofiel `pc-q35-8.2` zijn
+alle zes K05-cases geslaagd; dit is geen run met de QEMU-build uit de CI-image.
+Geen fysieke of menselijke acceptatie uitgevoerd. Volledig compact bewijs:
+`docs/verification/m1-resource-accounting-20261103.json`. Score blijft
+**41 → 41**.
 
-**Open/eerstvolgend:** maak QEMU en OVMF beschikbaar in de ontwikkelomgeving
-en voer daarna
-`PATH="/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH" python3 -B -u tools/test_supervisor.py`
-uit (zes disposable-QEMU-cases volgens `.github/workflows/process-management.yml`).
-Herstel eventuele regressies.
+**Open/eerstvolgend:** capability-accounting blijft beperkt tot handles,
+capability-objecten en IPC-queues; geheugen-/CPU-/storage-/DMA-budgettering en
+gebruikersrapportage ontbreken. De score sluit geen rubriekcriterium. De klok
+blijft 100-Hz PIT op bestaande profielen, RTC blijft unauthenticated en
+suspend-/high-resolution-/fysieke klokacceptatie ontbreekt.
 De integratie toetst alleen capability-handle-beschikbaarheid; geheugen-/CPU-/
 storage-/DMA-accounting en gebruikersrapportage ontbreken nog. De klok blijft
 100-Hz PIT op bestaande profielen,
