@@ -119,7 +119,8 @@ pub extern "C" fn _start() -> ! {
         let horizon = if mode == WORKER_WAIT_SHORT { 40 } else { 500 };
         let now = clock::now_monotonic().unwrap_or_else(|_| fail(20));
         let deadline = now.checked_add(horizon).unwrap_or_else(|| fail(21));
-        let timer = TimerRegistration::at(deadline).unwrap_or_else(|| fail(21));
+        let cancellation = clock::TimerCancellation::new();
+        let timer = TimerRegistration::at(deadline, &cancellation);
         match clock::wait_until(&[WaitCondition::receive(ingress)], &timer) {
             Ok(WaitOutcome::TimedOut) => {}
             Ok(WaitOutcome::Ready(_)) => fail(23),
