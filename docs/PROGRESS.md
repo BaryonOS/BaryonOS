@@ -1,12 +1,12 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
-SYSTEM-MATURITY-SMP (3 november 2026), bron `bf1f3c68`:
-**41 → 41/100**. De volledige elf-stagematrix slaagde met 1/2/4 CPU,
-AP-exit, M3Guard-contention, lokale TLB-reuse, cross-CPU IPC/revoke en de
-1-CPU-regressie; 15 hosttests slagen. De contentionproef slaagde bovendien
-driemaal afzonderlijk native. Geen rubriccriterium sluit. De M4 multi-round
-lifecycle-race/failureproef blijft open; dit bewijst geen fair-lockgrens of
-algemeen remote-shootdownprotocol. Zie [PROJECT-STATE.md](PROJECT-STATE.md).
+SYSTEM-MATURITY-SMP (3 november 2026), bron `875c31fa`:
+**41 → 41/100**. De elf-stagematrix en drie M3Guard-contentionruns slaagden op
+de eerdere codecommit `bf1f3c68`. Op `875c31fa` slaagt AP-procescleanup; de
+bestaande SMP M4 multi-round reset wordt nu fail-closed geweigerd vóór
+remote-actieve frames worden vrijgegeven. 15 hosttests en formattering
+slagen. De volledige matrix na deze guard is niet uitgevoerd; geen
+rubriccriterium sluit. Zie [PROJECT-STATE.md](PROJECT-STATE.md).
 
 De actieve volledige releaseopdracht en productacceptatie staan in
 [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft

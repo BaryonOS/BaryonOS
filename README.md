@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`bf1f3c68`](https://github.com/simonvanieperen/nieuw-os/commit/bf1f3c6839e003b3bd3918249930b7b0a54e387a) ·
+**Bron:** [`875c31fa`](https://github.com/simonvanieperen/nieuw-os/commit/875c31fa7d8e1465892f9ddb25c8792c10c38269) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-spoon`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** SYSTEM-MATURITY-SMP: lock contention en 11-stage matrix.
-41 blijft 41. De volledige elf-stagematrix slaagde op 1/2/4 CPU, inclusief AP-exit, M3Guard-contention, lokale TLB-reuse, cross-CPU IPC/revoke en 1-CPU-regressie; 15 hosttests slagen. De contentionproef zelf slaagde driemaal native. Geen rubriccriterium sluit; M4 multi-round lifecycle-race/failureacceptatie blijft open, net als een algemeen remote-shootdownprotocol.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** SYSTEM-MATURITY-SMP: remote cleanup fail-closed.
+41 blijft 41. De elf-stagematrix en drie M3Guard-contentionruns slaagden op eerdere codecommit bf1f3c68. Op 875c31fa AP-procescleanup slaagt; de bestaande SMP M4 multi-round reset wordt nu veilig fail-closed geweigerd vóór remote-actieve frames worden vrijgegeven. 15 hosttests en formattering slagen. De volledige matrix na de guard is nog niet uitgevoerd; geen rubriccriterium sluit.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

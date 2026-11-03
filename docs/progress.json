@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "bf1f3c6839e003b3bd3918249930b7b0a54e387a",
+    "source_commit": "875c31fa7d8e1465892f9ddb25c8792c10c38269",
     "branch": "simonvanieperen-studious-spoon",
-    "task": "SYSTEM-MATURITY-SMP: lock contention en 11-stage matrix",
+    "task": "SYSTEM-MATURITY-SMP: remote cleanup fail-closed",
     "previous_score": 41,
-    "summary": "41 blijft 41. De volledige elf-stagematrix slaagde op 1/2/4 CPU, inclusief AP-exit, M3Guard-contention, lokale TLB-reuse, cross-CPU IPC/revoke en 1-CPU-regressie; 15 hosttests slagen. De contentionproef zelf slaagde driemaal native. Geen rubriccriterium sluit; M4 multi-round lifecycle-race/failureacceptatie blijft open, net als een algemeen remote-shootdownprotocol."
+    "summary": "41 blijft 41. De elf-stagematrix en drie M3Guard-contentionruns slaagden op eerdere codecommit bf1f3c68. Op 875c31fa AP-procescleanup slaagt; de bestaande SMP M4 multi-round reset wordt nu veilig fail-closed geweigerd vóór remote-actieve frames worden vrijgegeven. 15 hosttests en formattering slagen. De volledige matrix na de guard is nog niet uitgevoerd; geen rubriccriterium sluit."
   },
   "tracks": [
     {
