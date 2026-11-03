@@ -70,6 +70,7 @@ pub const SETTLE: u64 = 4;
 pub const WRONG_PID_CONSUMED: u64 = 5;
 pub const REQUEST_TICKS: u64 = 1000;
 pub const WINDOW_TICKS: u64 = 100;
+pub const QUOTA_BATCH: usize = 16;
 pub const NO_REPLY_TICKS: u64 = 10;
 // Private RAW-failure metadata only. Never publish entropy or random bytes.
 pub const DIAG_REQUEST: u64 = 664;
