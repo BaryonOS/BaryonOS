@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-03",
+  "branch": "simonvanieperen-studious-spoon",
+  "source_commit": "390019c49ee1a570f71358b6bf43454cc97b80c1",
+  "scope": "Host validation of capability-core global resource-headroom snapshots; not whole-OS release acceptance.",
+  "source_files_sha256": {
+    "crates/capability-core/src/lib.rs": "0b485268474f288d4dea341123dc538ed3e217ecd5b969e01f2c24bf65f91d36",
+    "crates/capability-core/src/tests.rs": "d5f3956e9d83b0affe4321be91366e9d2a6a3b60a889e750b18fcce450b0ede1",
+    "crates/capability-core/README.md": "dce8886e73de6ff4322865214f0890aed40ce8d7bfdbdb76f0eef868ff8c2279"
+  },
+  "toolchain": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+  "checks": [
+    {
+      "command": "python3 -B tools/dev.py \"$HOME/.cargo/bin/cargo\" +1.90.0 test --manifest-path crates/capability-core/Cargo.toml --locked --offline",
+      "exit_code": 0,
+      "results": "72 passed, 0 failed, 1 ignored; additional suites: 7 passed and 3 passed",
+      "log": "/tmp/nieuw-os-m1-resource-accounting-headroom-host.log"
+    },
+    {
+      "command": "python3 -B tools/dev.py \"$HOME/.cargo/bin/cargo\" +1.90.0 clippy --manifest-path crates/capability-core/Cargo.toml --all-targets --locked --offline -- -D warnings",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-m1-resource-accounting-headroom-clippy.log"
+    },
+    {
+      "command": "python3 -B tools/dev.py \"$HOME/.cargo/bin/cargo\" +1.90.0 fmt --manifest-path crates/capability-core/Cargo.toml -- --check",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-m1-resource-accounting-headroom-fmt.log"
+    },
+    {
+      "command": "python3 -B tools/dev.py \"$HOME/.cargo/bin/cargo\" +1.90.0 check --manifest-path crates/capability-core/Cargo.toml --target x86_64-unknown-none --locked --offline",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-m1-resource-accounting-headroom-none.log"
+    },
+    {
+      "command": "python3 tools/progress.py --check",
+      "exit_code": 0,
+      "results": "Rubric v1 consistent; score remains 41/100."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "limitations": [
+    "No kernel build or QEMU run was performed for this capability-core host change.",
+    "The snapshot is observational, not a reservation or enforceable quota; it excludes memory, CPU time, storage, and DMA.",
+    "No rubric criterion was closed; the score remains 41/100."
+  ]
+}
