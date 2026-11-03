@@ -3,7 +3,7 @@
 ## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
 
 **Gepubliceerde basis:** branch `simonvanieperen-studious-spoon`, commit
-`869457478bfcb946ad8f3b75c11922979b4ca61e`, gepusht naar
+`cf3e6866dd828b3927090d933c366663628c7488`, gepusht naar
 `origin/simonvanieperen-studious-spoon`. Actieve toewijzing:
 `SYSTEM-MATURITY-SMP`, queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`.
 OOM/K05 zijn afgesloten en blijven ongewijzigd;
@@ -47,12 +47,34 @@ ruwe logs: `build/run/smp-single-83a3ef4fa6/`,
 `build/run/smp-2-2dc9c334f7/`, `build/run/m3-single-smp-regression-5fee902eea/`,
 `build/run/smp-4-7e411654a4/`.
 
-**Bewijsgrens:** dit checkpoint toont AP-bring-up en opt-in per-CPU M3
-processselectie; het toont nog geen cross-CPU IPC, process-exit/revoke,
+**Cross-CPU capability-IPC PASS op commit `cf3e6866` (exit 0):** exacte
+matrixopdracht:
+`PATH="$HOME/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH" LD_LIBRARY_PATH=/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu:/tmp/sm-oom-qemu-root/lib/x86_64-linux-gnu OS_OVMF_CODE=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd OS_OVMF_VARS=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd python3 -B tools/test_smp.py`.
+Alle zeven stages slaagden: M2 met 1/2/4 CPU, M3 met 2 CPU, de M3 1-CPU-
+regressie en M3 met 4 CPU, plus M4 ring-3-IPC met 2 CPU. De M4-evaluator
+bevestigde één succesvol berichtpaar tussen CPU 0 en CPU 1
+(slot 1→2); alle QEMU-runs hadden verwachte raw exit 33. Hostharnas:
+7 tests, exit 0. QEMU meldde `kvmvapic.bin` ontbrekend; dit is niet onderzocht.
+De receipt bevat broncommit, bronfingerprint, toolpaden, relevante runtime-
+omgevingsvariabelen en stage-evidence:
+[`smp-rendezvous-20261103T180507Z.json`](verification/sm-smp/smp-rendezvous-20261103T180507Z.json).
+
+**Bewijsgrens:** dit checkpoint toont AP-bring-up, opt-in per-CPU M3-
+processselectie en een werkelijke succesvolle M4 ring-3-berichtuitwisseling
+over CPU-grenzen. Het bewijst geen cross-CPU process-exit/revoke,
 TLB-shootdown/hergebruik of bredere races/failureacceptatie. Dit is geen
 volledige K06-acceptatie. `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
 
-**Volgende SMP-slice — cross-CPU capability-IPC, lokaal gericht getest:**
+**Volgende SMP-slice — cross-CPU exit/revoke en cleanup:** onderzoek de
+bestaande M4 process lifecycle en M3 cleanup op eigenaarschap/lifetime, maak
+een begrensde opt-in native SMP acceptance die bewijst dat exit/revoke en
+resourcehergebruik pas na correcte CPU-lokale CR3/trap-overdracht plaatsvinden.
+Voeg negatieve/race-evidence toe zonder capabilitysemantiek of ABI te wijzigen;
+houd TLB-grenzen expliciet en gebruik geen niet-geïmplementeerde remote
+shootdownclaim. Eerst invariant en gerichte 2-CPU-proef, daarna volledige
+regressiematrix. De volledige K06-acceptatie blijft open.
+
+**Cross-CPU capability-IPC — eerdere lokale proef vóór matrix:**
 `native-smp-m4` combineert het bestaande SMP-M3-profiel met de bestaande M4
 ring-3-uitwisseling; syscall-/capabilitysemantiek blijft ongewijzigd. De BSP
 stuurt de AP's eenmaal onder `M3Guard` aan vóór de eerste user-return, zodat
@@ -89,19 +111,10 @@ Een eerdere aanroep met `--help` is geen helpmodus, voerde de runner uit en
 stopte door ontbrekende `cargo` op de standaard-PATH; die poging staat apart in
 [`smp-rendezvous-20261103T173931Z.json`](verification/sm-smp/smp-rendezvous-20261103T173931Z.json).
 
-**Eerstvolgende actie:** draai de volledige `python3 -B tools/test_smp.py`-
-matrix op de gepushte bron `86945747`; die herhaalt de M3 1/2/4-regressies
-en voegt de M4-2CPU cross-CPU-gate toe, met
-`PATH="$HOME/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH"`,
-`LD_LIBRARY_PATH=/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu:/tmp/sm-oom-qemu-root/lib/x86_64-linux-gnu`,
-`OS_OVMF_CODE=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd` en
-`OS_OVMF_VARS=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd`.
-QEMU 10.2.1 en OVMF 4M zijn aanwezig. De gerichte probe liet één berichtpaar
-over CPU-grenzen slagen, maar de volledige matrix moet deze en alle regressies
-nog aan exact deze gepushte bron binden. Cross-CPU exit/revoke, TLB-hergebruik
-en races/failurecases blijven open. Dit is geen volledige K06-acceptatie. De
-bestaande dirty wijzigingen in README en voortgangsbestanden zijn behouden en
-niet door deze SMP-taak aangepast.
+**Eerstvolgende actie:** werk verder aan cross-CPU exit/revoke en cleanup
+volgens de bestaande K06-acceptatie. Matrixomgeving en commando staan hierboven.
+De bestaande dirty wijzigingen in README en voortgangsbestanden zijn behouden
+en niet door deze SMP-taak aangepast.
 
 ## Historisch SMP-checkpoint — 3 november 2026
 
