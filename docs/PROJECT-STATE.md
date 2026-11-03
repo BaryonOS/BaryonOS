@@ -1,16 +1,16 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — NVMe PCI-probe — 3 november 2026
+## NEXT AGENT HANDOFF — USB interface-class matching — 3 november 2026
 
-Branch `copilot/universal-driver-framework`; basis `af7a4f7b1291bea30d91b59a32deb8921aac77cd`; NVMe-implementatie `6733559898e1c95536666472422c000e02f75599`, gepusht en remote SHA gecontroleerd. De eerdere VirtIO RNG-stap staat op `af00927da73dcdc26007802e612e7ecc2a1c5f40`; die route is niet verder gepolijst.
+Branch `copilot/universal-driver-framework`; USB interface-matching implementatie `e6e38d1e524776241b4485bef278e16b5a2865ad`, gepusht en remote SHA gecontroleerd. De vorige NVMe-probe staat op `6733559898e1c95536666472422c000e02f75599`.
 
-De nieuwe losse `drivers/nvme`-crate matcht PCI class `01:08:02`, weigert meerdere controllers, valideert de 64-bit non-prefetchable BAR0-grant en leest na een door de kernel gemaakte uncached mapping alleen CAP/VS. Geen kernel-/volume-/Maturity-bestanden gewijzigd; geen rootmanifest/lockfile aangepast. Geen busmaster-enable, DMA, controllerregisterwrites, queue of block-I/O.
+`drivers/usb` decodeert nu het standaard USB-interface-descriptor en kan class/subclass/protocol selecteren, waarbij niet-opgegeven velden wildcards zijn. Drie nieuwe hosttestgevallen dekken de veldmapping, selectors en ongeldige types/lengtes. De crate doet nog geen configuratie-enumeratie, classdriverregistratie, HID/mass-storage-I/O, xHCI of resourcegrant. Geen kernel-/volume-/Maturity-bestanden gewijzigd en geen dependency toegevoegd.
 
-**Bewijs op `6733559`:** Rust 1.90.0 formattercheck, strict Clippy (`--all-targets`, inclusief typecheck testcode) en `x86_64-unknown-none`-check exit 0. De hosttestlinkpoging eindigde met exit 101 door de ontbrekende `/usr/lib/x86_64-linux-gnu/libc_nonshared.a`; de éénmalige tijdelijke userspace-sysrootpoging is niet geslaagd en er zijn geen systeemwijzigingen gedaan. Exacte commando's, logs en SHA-256 staan in [de NVMe-probe-receipt](verification/nvme-pci-probe-2026-11-03/README.md). De hosttests zijn niet uitgevoerd. QEMU ontbreekt; runtime en fysieke hardware zijn niet getest.
+**Bewijs op `e6e38d1`:** Rust 1.90.0 `fmt --check` exit 0. De hosttestopdracht eindigde met exit 101 vóór uitvoering van testgevallen omdat `cc` ontbreekt. Dit is niet met een nieuwe workaround verholpen. Strict Clippy en de `x86_64-unknown-none`-check volgen; exacte uitslagen en loghashes worden in [de USB-interface-match-receipt](verification/usb-interface-match-2026-11-03/README.md) vastgelegd. Er is geen USB-apparaat, QEMU-USB of fysieke hardware getest.
 
-Score blijft **41/100 → 41/100**. Een PCI-probe en compilechecks sluiten geen hardwarecriterium. De echte NVMe-controller-/block-I/O-route is open: kernel-owned devicegebonden DMA-toekenning, busmaster- en interruptlifecycle, queues, Identify/namespace, timeout/reset en integratie met de bestaande blockconsumer. Geen concurrerend DMA-model toegevoegd.
+Score blijft **41/100 → 41/100**. Descriptorparsing en klassematching zijn geen native USB- of HID-functionaliteit. NVMe-queue/I/O blijft afhankelijk van kernel-owned devicegebonden DMA en busmaster-/interruptlifecycle; xHCI-registratie, MMIO-probe, transfer-rings, USB-enumeratie en USB classdrivers zijn eveneens open. Geen concurrerend DMA-model toegevoegd.
 
-**Eerstvolgend:** na expliciete kernelresourceadapter-/lifecycle-interface, implementeer NVMe admin-queue/Identify en één begrensde block-read; daarna I/O-/QEMU-testen en afzonderlijke USB/xHCI-verticale stap. Als de adapter nog niet beschikbaar is, voer geen DMA-queue of busmastering uit. Hosttestcommando na herstel van de buildomgeving: `cargo +1.90.0 test --manifest-path drivers/nvme/Cargo.toml --offline --locked`.
+**Eerstvolgend:** voeg een afzonderlijke `no_std` xHCI capability-probe toe als read-only USB-controllerstap, zonder DMA, bus mastering of registerwrites; bouw daarna pas transfer-rings wanneer de kernelresourceadapter expliciet is vrijgegeven. Hervat NVMe-adminqueue/Identify na dezelfde DMA-/lifecycle-interface.
 
 ### Historische driverstappen
 

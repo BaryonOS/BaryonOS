@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`67335598`](https://github.com/simonvanieperen/nieuw-os/commit/6733559898e1c95536666472422c000e02f75599) ·
+**Bron:** [`e6e38d1e`](https://github.com/simonvanieperen/nieuw-os/commit/e6e38d1e524776241b4485bef278e16b5a2865ad) ·
 **Ontwikkelbranch:** `copilot/universal-driver-framework`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** NVMe PCI-discovery en CAP/VS-probe.
-41/100 blijft 41/100. De zelfstandige no_std NVMe-crate matcht PCI class 01:08:02, valideert de unieke BAR0-grant en biedt alleen read-only CAP/VS-inspectie. Freestanding check, strict Clippy en formattercheck slagen. Hosttests stopten vóór uitvoering bij het linken door ontbrekende libc_nonshared.a; de eenmalige tijdelijke userspace-sysrootpoging loste dat niet op. Geen controller-/block-I/O-, QEMU- of fysiek bewijs en geen nieuw geaccepteerd criterium.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** USB-interface-descriptor decoding and class matching.
+41/100 blijft 41/100. De USB-core decodeert het standaard interface-descriptor en matcht class/subclass/protocol met optionele wildcards; geen enumeratie of driverstart. Formattercheck slaagt. Hosttests stopten vóór uitvoering omdat cc ontbreekt; geen systeemwijziging of workaround. Strict Clippy en freestanding check volgen. Geen USB-, QEMU- of fysiek bewijs en geen nieuw geaccepteerd criterium.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
