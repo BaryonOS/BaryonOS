@@ -108,7 +108,9 @@ grenzen en negatieve native QEMU-tests zijn gecontroleerd.
 5. **Port gericht, kopieer niet blind.** Hergebruik eerst standaardspecificaties en kleine, portable algoritmen. Voor drivercode: bepaal licentie en herkomst, vervang Linux-specifieke koppelingen door een smalle Nieuw OS-interface en test de resulterende implementatie tegen echte VM-I/O. Een drivernaam of geslaagde build is geen hardwareacceptatie.
 
 Deze route verandert de eigen kernel, de Security Floor, de privacy-eisen of de
-vaste acceptatiematrix niet. In de actuele voortgangsmeter is H01 geaccepteerd,
+vaste acceptatiematrix niet. In de momentopname
+[voortgangsmeter op main78ff7c03, 3 november 2026](https://github.com/simonvanieperen/nieuw-os/blob/78ff7c03b015ad16fe665ae7df9fe239d078e08d/docs/progress.json)
+is H01 geaccepteerd,
 maar de volledige releasecriteria FR-H01 tot en met FR-H03 blijven zelfstandige
 acceptatiegates; gedeeltelijk driverwerk kent geen nieuwe punten toe.
 
@@ -125,10 +127,14 @@ acceptatiegates; gedeeltelijk driverwerk kent geen nieuwe punten toe.
 
 ### Technische specificaties en documentatie
 
-- Linux Kernel Documentation, [The Linux Kernel Driver Interface](https://www.kernel.org/doc/html/latest/process/stable-api-nonsense.html) en [Driver implementer's API guide](https://docs.kernel.org/driver-api/index.html). Interne kernel-/driver-API en syscall-ABI zijn verschillende interfaces.
+- Linux Kernel Documentation, versie 6.12, [The Linux Kernel Driver Interface](https://www.kernel.org/doc/html/v6.12/process/stable-api-nonsense.html) en [Driver implementer's API guide](https://www.kernel.org/doc/html/v6.12/driver-api/index.html). Interne kernel-/driver-API en syscall-ABI zijn verschillende interfaces.
 - OASIS, *Virtual I/O Device (VIRTIO) Version 1.2*, [specificatie](https://docs.oasis-open.org/virtio/virtio/v1.2/virtio-v1.2.html).
 - UEFI Forum, *UEFI Specification 2.11*, [hoofdstuk 12: Console Support, inclusief Graphics Output Protocol](https://uefi.org/specs/UEFI/2.11/12_Protocols_Console_Support.html).
 - Nieuw OS, [G0 native grafische basis](../../implementation/GRAPHICS-G0.md), [VirtIO-net-taakcontract](../../implementation/VIRTIO-NET.md), [volledige release en driveracceptatie](../../FULL-TEST-RELEASE.md), [virtio-blk](../../../drivers/virtio-blk/README.md) en [virtio-snd](../../../drivers/virtio-snd/README.md).
+- Nieuw OS-project, versie main `78ff7c03`, 3 november 2026:
+  [VirtIO-RNG-implementatie](https://github.com/simonvanieperen/nieuw-os/blob/78ff7c03b015ad16fe665ae7df9fe239d078e08d/drivers/virtio-rng/src/lib.rs)
+  en [B01 RNG-/keyringcontract](https://github.com/simonvanieperen/nieuw-os/blob/78ff7c03b015ad16fe665ae7df9fe239d078e08d/docs/implementation/KEYRING-RANDOM.md).
+  Dit onderbouwt bestaande bouwstenen, niet fysieke RNG-ondersteuning.
 
 De externe repositoryclaims zijn gelezen op 3 november 2026; bij aanvullende
 broncode zijn bovenstaande commit-ID's vastgezet. De Linux-, OASIS- en UEFI-
