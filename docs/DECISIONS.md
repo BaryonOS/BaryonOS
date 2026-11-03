@@ -211,6 +211,34 @@ productcriterium of voortgangspunt.
 **Herzien:** bij de gedeelde PCI-resourcebroker, IOMMU/DMA-semantiek van
 Maturity, meerdere RNG-instanties of een getest ander PCI-configuratiemechanisme.
 
+## ADR-070 — eerste NVMe-stap blijft bij begrensde PCI-probe
+
+**Datum:** 3 november 2026. De volgende ontbrekende storageklasse is NVMe:
+VirtIO block bestaat al, maar er is geen NVMe- of AHCI-driver. De nieuwe
+losse `drivers/nvme`-crate matcht PCI class `01:08:02`, weigert meerdere
+controllers, valideert de 64-bit non-prefetchable BAR0-grant en kan na een
+kernelgemapte uncached mapping alleen `CAP` en `VS` lezen.
+
+De probe schakelt geen bus mastering in, alloceert geen DMA en schrijft niet
+naar controllerregisters. Hij levert daarom nog geen controllerinitialisatie,
+admin-/I/O-queue, namespace of block-I/O op. De crate staat bewust niet in de
+rootworkspace en verandert geen kernel-, volume- of Maturity-owned bestanden;
+de huidige queue laat rootmanifest-/centrale integratiegrenzen bij REL.
+
+De onderzochte `rcore-os/tgoskits`-driver is MIT/no_std en functioneel veel
+completer, maar vereist een IRQ-gedreven `rdif-block`-eigenaar en aparte
+DMA/MMIO/barrier-API's. Hij is daarom geen directe adapter voor de huidige
+kernelcontracten; er is geen dependency of code overgenomen.
+
+**Volgende grens:** queue-/Identify-/block-I/O-integratie wacht op een
+kernel-owned devicegebonden DMA-toekenning en passende busmaster-/interrupt-
+lifecycle. Geen generieke physical-memory-capability, eigen parallelle
+DMA-policy of onbevestigde reset/quiescence toegevoegd. Deze stap levert geen
+hardwarevoortgangspunt en geen QEMU-/fysieke compatibiliteitsclaim.
+
+**Herzien:** zodra de kernel resourceadapter expliciet is vrijgegeven, of
+wanneer een getest platform een nauwere NVMe-profielkeuze vereist.
+
 ## Onderzoeksbesluit J-20261102 — herkenbare basis, expliciete installatiegrens
 
 **Datum:** 2 november 2026. **Status:** ontwerp-/onderzoekskeuze, geen
