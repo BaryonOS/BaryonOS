@@ -1,4 +1,5 @@
 """Tests for host command logging failure paths."""
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -96,6 +97,57 @@ class RunLoggedTimeout(unittest.TestCase):
             self.assertIsNone(metadata["returncode"])
             self.assertTrue(metadata["timed_out"])
             self.assertEqual(metadata["timeout_seconds"], 3)
+
+
+class SharedArtifactHelpers(unittest.TestCase):
+    def test_hash_helpers_preserve_sha256_format_and_validation(self):
+        data = b"bounded synthetic artifact"
+        digest = hashlib.sha256(data).hexdigest()
+        self.assertEqual(common.sha256_bytes(data), digest)
+        self.assertEqual(common.require_sha256(digest), digest)
+        for value in (None, 1, "A" * 64, "a" * 63, "g" * 64):
+            with self.subTest(value=value), self.assertRaisesRegex(ValueError, "malformed SHA256"):
+                common.require_sha256(value)
+
+    def test_tree_listing_guards_each_path_before_returning_regular_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "nested").mkdir()
+            first = root / "first.bin"
+            second = root / "nested/second.bin"
+            first.write_bytes(b"first")
+            second.write_bytes(b"second")
+            checked = []
+
+            def validate(path):
+                checked.append(path)
+                return path
+
+            self.assertEqual(
+                common.regular_files_below(root, validate_path=validate),
+                {first, second},
+            )
+            self.assertIn(first, checked)
+            self.assertIn(second, checked)
+            self.assertIn(root / "nested", checked)
+
+    def test_tree_listing_refuses_a_link_before_including_its_target(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            outside = root.parent / f"{root.name}-outside"
+            outside.write_bytes(b"preserve")
+            self.addCleanup(outside.unlink, missing_ok=True)
+            link = root / "linked"
+            link.symlink_to(outside)
+
+            def validate(path):
+                if path.is_symlink():
+                    raise ValueError("linked artifact path")
+                return path
+
+            with self.assertRaisesRegex(ValueError, "linked artifact"):
+                common.regular_files_below(root, validate_path=validate)
+            self.assertEqual(outside.read_bytes(), b"preserve")
 
 
 if __name__ == "__main__":
