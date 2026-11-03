@@ -13,3 +13,6 @@ Geen bestand bijmaken op basis van de beschrijving.
 
 [Actuele integriteitscontrole en lokale artifacts](../COMMANDS.md).
 Er is in de reviewfix geen VM gebouwd of gestart.
+
+[Gedeelde primaire bronnen voor eigen kernel, QEMU, Btrfs en OpenZFS](../PRIMARY-SOURCES.md),
+met titel, auteur/project, versie of raadpleegdatum en bewijsgrens.

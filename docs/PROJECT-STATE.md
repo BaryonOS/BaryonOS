@@ -2,6 +2,25 @@
 
 ## NEXT AGENT HANDOFF — PR114-reviewfixes combineren — 3 november 2026
 
+Nieuwe reviewbasis `783a48aac610b42e4e1715ed9551f5012376d12b`:
+vier vervolgpunten hersteld. Primaire bronmetadata staat gedeeld in
+`verification/native-storage-backend-gate/PRIMARY-SOURCES.md`, met expliciet
+verschil tussen handleidingsemantiek en lokaal gemeten metadataverlies.
+Alle historische README-/archiefbytes blijven intact.
+Lokale Btrfs-manifesten zijn nu aan twee onafhankelijk gepinde oorspronkelijke
+receipts gebonden (82+17 entries). Beide volledige lijsten worden vóór enige
+payloadhash gecontroleerd; gedeeltelijk/uitgebreid manifest faalt expliciet.
+Een gepinde `../metadata_probe.py`-alias blijft na lexicale normalisatie binnen
+de expliciete bewijsroot; geen absolute historische bronpaden gevolgd.
+De echte nieuwe regressies waren rood (2 failures/2 errors); daarna16
+hosttests groen en207 oorspronkelijke archiefhashes plus beide receipts
+gecontroleerd. Geen full-local-payloads-, engine- of native replay op114.
+Score **41 -> 41**. Eerst publiceren/reply+resolve, daarna verse CI/review;
+technisch groene checks op783 vervangen geen review van deze followup.
+Integrator blijft deze sessie;136-reconcile41034178 wacht lokale opname.
+
+## Historisch checkpoint — eerste PR114-reviewfixintegratie
+
 Bron `d7d1fdc0356be47c225d7bd216075c4a62030ad4`: researchfix
 `fcbf64e3`, veilige bewijsroute `305f1133` en historische metadatafix
 `6d0852fa` zijn inhoudsbehoudend opgenomen. Vier researchbevindingen

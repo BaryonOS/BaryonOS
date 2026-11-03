@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`d7d1fdc0`](https://github.com/simonvanieperen/nieuw-os/commit/d7d1fdc0356be47c225d7bd216075c4a62030ad4) ·
+**Bron:** [`783a48aa`](https://github.com/simonvanieperen/nieuw-os/commit/783a48aac610b42e4e1715ed9551f5012376d12b) ·
 **Ontwikkelbranch:** `simon/profiles-users-plan`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR114-review: bronlinks herstellen en onveilige historische replay afschermen.
-41 blijft41. Vier researchfixes behouden alle brondefinities en corrigeren242 Markdownlinkgrenzen en de Ubuntu-volgorde. Historische34-puntenmetadata is expliciet historisch.207 oorspronkelijke opslagbewijsblobs blijven exact gehasht; onveilige vaste-host/shared-temp-replayentrypoints zijn alleen niet-uitvoerbare tekstsnapshots. De nieuwe expliciete private offlinevoorbereiding en bewijscontrole hebben7 groene negatieve hosttests; volledige foreign-engine/native replay blijft open, OpenZFS-uitvoering wordt expliciet geweigerd. Geen nieuwe native criteria, backendadoptie, fysieke/menselijke audit of volledige release; actuele gecombineerde CI/review blijft verplicht.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Vier PR114-vervolgpunten: primaire bronmetadata en volledige lokale manifestbinding.
+41 blijft41. Drie bronmetadatapunten krijgen gedeelde primaire titels/project/datum-versie/URLs buiten ongewijzigde historische snapshots, zonder handleidingen als bewijs voor gemeten metadataverlies te gebruiken. De lokale Btrfs-controle bindt82+17 manifestentries aan onafhankelijke originele receipthashes en verwerpt onvolledige/uitgebreide lijsten vóór payloadchecks. Nieuwe regressies eerst werkelijk rood, daarna16 hosttests groen;207 oude archiefhashes plus2 nieuwe manifestreceipts geldig. Geen volledige lokale payload-, engine- of native uitvoering op deze followup; nieuwe huidige-head CI/review blijft vereist. Geen nieuwepunten of native backend-, fysieke-, menselijke-/releaseacceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

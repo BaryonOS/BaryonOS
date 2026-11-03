@@ -85,6 +85,13 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR114-vervolgreview (3 november 2026), basis `783a48aa`: **41 -> 41**.
+Primaire bronmetadata verduidelijkt historische proofscope. Twee originele
+Btrfs-receipts binden82+17 entries onafhankelijk; onvolledige lijsten kunnen
+geen lokale succesrapportage meer krijgen. Regressies eerst rood,16
+hosttests daarna groen;207 oude archivehashes behouden. Geen nieuwe native
+criteria voor een documentatie-/harnascorrectie.
+
 PR114-research-/replayreview (3 november 2026), bron `d7d1fdc0`:
 **41 -> 41**. Bronlinks/Ubuntu-volgorde hersteld;207 historische hashes
 behouden, onveilige historische entrypoints afgeschermd en7 negatieve

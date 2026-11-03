@@ -1,17 +1,25 @@
 import importlib.util
 import io
+import hashlib
+import json
 from pathlib import Path
 import subprocess
 import sys
 import tarfile
 import tempfile
 import unittest
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("storage_replay", ROOT / "tools/storage_backend_replay.py")
 replay = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(replay)
+spec = importlib.util.spec_from_file_location(
+    "storage_evidence", ROOT / "docs/verification/native-storage-backend-gate/verify_evidence.py"
+)
+evidence = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(evidence)
 
 
 class StorageReplayChecks(unittest.TestCase):
@@ -112,6 +120,94 @@ class StorageReplayChecks(unittest.TestCase):
         result = replay.package_evidence(work)
         with tarfile.open(result / "images/crash-pool.tar.gz") as archive:
             self.assertEqual(archive.extractfile("crash/synthetic.img").read(), b"synthetic")
+
+
+class StorageEvidenceChecks(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(dir=ROOT)
+        self.addCleanup(self.temp.cleanup)
+        self.base = Path(self.temp.name)
+        self.records = self.base / "records"
+        self.payloads = self.base / "payloads"
+        self.hash = hashlib.sha256(b"synthetic").hexdigest()
+        self.bindings = []
+        for relative, names in (
+            ("btrfs/sha256-manifest.json", ("baseline.img", "payload.bin")),
+            ("btrfs/metadata/sha256-manifest.json", ("metadata.bin",)),
+        ):
+            manifest = {name: self.hash for name in names}
+            path = self.payloads / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(manifest))
+            self.put(self.records / (relative + ".historical.txt"), manifest)
+            self.bindings.append((relative, len(names), hashlib.sha256(path.read_bytes()).hexdigest()))
+            for name in names:
+                (path.parent / name).write_bytes(b"synthetic")
+        self.put(self.records / "openzfs/artifact-sha256.json", {"files": []})
+        for prefix in ("native", "native-current"):
+            for label in ("control-normal", "control-recover", "btrfs-readonly", "openzfs-leaf-readonly"):
+                self.put(self.records / f"{prefix}/runs/{label}/result.json", {
+                    "probe_image_sha256_after": self.hash,
+                    "kernel_sha256": self.hash,
+                    "loader_sha256": self.hash,
+                    "source_image_sha256_after": self.hash,
+                })
+                for name in ("data.img", "esp/kernel.elf", "esp/EFI/BOOT/BOOTX64.EFI"):
+                    path = self.payloads / f"{prefix}/runs/{label}/{name}"
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_bytes(b"synthetic")
+                if "readonly" in label:
+                    path = self.payloads / f"source-images/{prefix}/{label}.img"
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_bytes(b"synthetic")
+
+    def put(self, path, value):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(value))
+
+    def verify(self):
+        with patch.object(evidence, "BTRFS_MANIFESTS", self.bindings, create=True), \
+                patch.object(evidence, "archive_checks", return_value={"check": "unit fixture"}), \
+                patch.object(evidence, "json_checks", return_value={"check": "unit fixture"}):
+            return evidence.verify(self.records, self.payloads)
+
+    def test_complete_local_payload_set_is_checked(self):
+        result = self.verify()
+        self.assertTrue(result["local_payloads_checked"])
+        self.assertTrue(result["all_checks_passed"])
+        self.assertEqual(result["checks"][-1]["matching_hashes"], 31)
+
+    def test_single_valid_file_cannot_replace_full_manifest(self):
+        self.put(self.payloads / "btrfs/sha256-manifest.json", {"baseline.img": self.hash})
+        with self.assertRaisesRegex(ValueError, "manifest binding"):
+            self.verify()
+
+    def test_added_valid_file_cannot_change_required_manifest(self):
+        path = self.payloads / "btrfs/extra.bin"
+        path.write_bytes(b"synthetic")
+        self.put(self.payloads / "btrfs/sha256-manifest.json", {
+            "baseline.img": self.hash, "payload.bin": self.hash, "extra.bin": self.hash,
+        })
+        with self.assertRaisesRegex(ValueError, "manifest binding"):
+            self.verify()
+
+    def test_second_manifest_is_checked_before_any_payload_hash(self):
+        self.put(self.payloads / "btrfs/metadata/sha256-manifest.json", {})
+        (self.payloads / "btrfs/baseline.img").unlink()
+        with self.assertRaisesRegex(ValueError, "manifest binding"):
+            self.verify()
+
+    def test_full_manifest_does_not_allow_missing_payload(self):
+        (self.payloads / "btrfs/payload.bin").unlink()
+        with self.assertRaises(FileNotFoundError):
+            self.verify()
+
+    def test_pinned_metadata_parent_alias_stays_inside_evidence_root(self):
+        path = self.payloads / "btrfs/metadata/sha256-manifest.json"
+        self.put(path, {"../payload.bin": self.hash})
+        self.put(self.records / "btrfs/metadata/sha256-manifest.json.historical.txt", {"../payload.bin": self.hash})
+        self.bindings[1] = (self.bindings[1][0], 1, hashlib.sha256(path.read_bytes()).hexdigest())
+        self.assertTrue(self.verify()["all_checks_passed"])
 
 
 if __name__ == "__main__":

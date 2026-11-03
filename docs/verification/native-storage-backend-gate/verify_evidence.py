@@ -6,10 +6,15 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import posixpath
 import stat
 
 
 ROOT = Path(__file__).resolve().parent
+BTRFS_MANIFESTS = (
+    ("btrfs/sha256-manifest.json", 82, "35407bd008b56041afaa98015134fdba8fe2d945a41422a202b072e4f8b08c34"),
+    ("btrfs/metadata/sha256-manifest.json", 17, "be3c1ebee6ee1c03274175de17018eb4cdb57d14ebbaa56e6ce37f0f9aad24e5"),
+)
 
 
 def require(condition, message):
@@ -121,15 +126,29 @@ def json_checks(root):
     return {"check": "historical JSON invariants (not rerun)", "passed": True}
 
 
+def btrfs_bindings(root):
+    bindings = {}
+    for relative, count, expected in BTRFS_MANIFESTS:
+        snapshot = relative + ".historical.txt"
+        require(digest(target(root, snapshot)) == expected, f"reference manifest binding: {relative}")
+        manifest = read(root, snapshot)
+        require(isinstance(manifest, dict) and len(manifest) == count,
+                f"reference manifest entry count: {relative}")
+        bindings[relative] = manifest
+    return bindings
+
+
 def local_checks(root, evidence_root):
     """Local root uses the original layout; source images have portable aliases."""
     require(evidence_root.is_dir() and not evidence_root.is_symlink(), "invalid evidence root")
     count = 0
-    for relative in ("btrfs/sha256-manifest.json", "btrfs/metadata/sha256-manifest.json"):
+    bindings = btrfs_bindings(root)
+    for relative, expected in bindings.items():
         manifest = read(evidence_root, relative)
-        require(bool(manifest), "empty local manifest")
+        require(manifest == expected, f"local manifest binding: {relative}")
+    for relative, manifest in bindings.items():
         for name, expected in manifest.items():
-            path = Path(relative).parent / name
+            path = Path(posixpath.normpath((Path(relative).parent / name).as_posix()))
             require(digest(target(evidence_root, path)) == expected, f"local hash: {path}")
             count += 1
     for item in read(root, "openzfs/artifact-sha256.json")["files"]:
@@ -155,6 +174,9 @@ def local_checks(root, evidence_root):
 
 def verify(root=ROOT, evidence_root=None):
     checks = [archive_checks(root), json_checks(root)]
+    bindings = btrfs_bindings(root)
+    checks.append({"check": "two independently pinned complete Btrfs manifests",
+                   "manifest_entries": sum(len(manifest) for manifest in bindings.values())})
     if evidence_root is not None:
         checks.append(local_checks(root, evidence_root))
     return {"kind": "evidence-integrity-check",

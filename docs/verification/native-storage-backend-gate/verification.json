@@ -12,6 +12,10 @@
     {
       "check": "historical JSON invariants (not rerun)",
       "passed": true
+    },
+    {
+      "check": "two independently pinned complete Btrfs manifests",
+      "manifest_entries": 99
     }
   ],
   "all_checks_passed": true

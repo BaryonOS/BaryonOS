@@ -11,8 +11,9 @@ python3 -B docs/verification/native-storage-backend-gate/verify_evidence.py
 python3 -B -m unittest discover -s tests -p test_storage_backend_replay.py -v
 ```
 
-De eerste opdracht controleert alle 207 oorspronkelijke archive-hashes en
-JSON-invarianten; geen lokale images/binaries zijn nodig.
+De eerste opdracht controleert alle 207 oorspronkelijke archive-hashes,
+JSON-invarianten en twee apart gepinde originele Btrfs-manifestreceipts
+(82+17 entries); geen lokale images/binaries zijn nodig.
 `verification.json` vermeldt modus `committed`, `local_payloads_checked: false`
 en `new_native_execution: false`. De originele, modusloze uitslag blijft
 bytegelijk als `verification.json.historical.txt`. De verifier overschrijft
@@ -25,7 +26,7 @@ python3 -B docs/verification/native-storage-backend-gate/verify_evidence.py \
   --evidence-root /EXPLICIET/GEKOZEN/LOKALE/BEWIJSMAP
 ```
 
-De map bevat de oorspronkelijke relatieve layout, inclusief beide ontbrekende
+De map bevat de oorspronkelijke relatieve layout, inclusief beide lokale
 `btrfs/sha256-manifest.json` en `btrfs/metadata/sha256-manifest.json`, de
 OpenZFS-artifacts uit `openzfs/artifact-sha256.json`, en per native run
 `data.img`, `esp/kernel.elf`, `esp/EFI/BOOT/BOOTX64.EFI`.
@@ -33,7 +34,15 @@ Voor readonly-bronimages gebruikt de verifier uitsluitend de expliciete
 portable aliassen `source-images/{native,native-current}/{btrfs-readonly,openzfs-leaf-readonly}.img`.
 Hij volgt nooit de historische absolute Windows-`source_image`.
 Ontbrekende of afwijkende payloads falen, links en padontsnappingen ook.
-Lokale manifests/payloads zijn niet uit historische samenvattingen te
+De twee volledige originele manifesten zijn nu bytegelijk bewaard als
+`btrfs/sha256-manifest.json.historical.txt` en
+`btrfs/metadata/sha256-manifest.json.historical.txt`, met onafhankelijk
+vastgelegde SHA-256 en entryaantallen. De lokale manifesten moeten precies
+dezelfde bestandsnamen en hashes bevatten; beide worden vóór payloadchecks
+vergeleken. Ook een niet-leeg manifest met één geldig bestand faalt.
+De gepinde metadata-alias `../metadata_probe.py` blijft na lexicale
+normalisatie binnen de bewijsroot; ongebonden paden worden niet vertrouwd.
+Ontbrekende payloadbytes zijn niet uit receipts of samenvattingen te
 reconstrueren. De modus heet `local-payloads`; ook dit is geen nieuwe VM-run.
 
 ## Offline voorbereiding (geen foreign binary uitvoeren)

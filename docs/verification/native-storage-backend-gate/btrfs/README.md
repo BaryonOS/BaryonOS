@@ -13,3 +13,8 @@ De optionele nieuwe Btrfs-hostproef controleert uitsluitend een kleine,
 synthetische baseline en restore; corruptie- en metadataproeven zijn niet
 opnieuw geïmplementeerd of uitgevoerd. Zij blijven historische resultaten,
 geen claims over de nieuwe runner.
+
+[Primaire bronnen, titels, project/versie en bewijsgrenzen](../PRIMARY-SOURCES.md).
+De gebruikte binaryversie is niet automatisch de versie van de `latest`-
+handleidingen; gemeten metadatabeperkingen blijven aan de oorspronkelijke
+proefrecords gekoppeld.
