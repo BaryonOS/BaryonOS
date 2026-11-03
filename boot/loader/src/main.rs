@@ -2,11 +2,16 @@
 #![no_main]
 #![deny(unsafe_op_in_unsafe_fn)]
 
+#[cfg(all(feature = "signed-boot", not(feature = "signed-boot-test")))]
+compile_error!(
+    "signed-boot requires an explicit signing policy; TEST anchors require signed-boot-test"
+);
+
 #[cfg(feature = "framebuffer")]
 mod graphics;
 mod memory;
 mod serial;
-#[cfg(feature = "signed-boot")]
+#[cfg(feature = "signed-boot-test")]
 mod signed;
 
 use boot_protocol::{
@@ -515,14 +520,14 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
     )?;
     let file_pages = elf_loader_core::MAX_FILE_SIZE / PAGE_SIZE as usize;
     let file_address = fw.pages(file_pages, efi::LOADER_DATA, None)?;
-    // B03: with `signed-boot` only a slot store with a verified, loadable,
+    // B03: with `signed-boot-test` only a slot store with a verified, loadable,
     // floor-respecting image supplies the kernel; the ESP file is never read.
-    #[cfg(feature = "signed-boot")]
+    #[cfg(feature = "signed-boot-test")]
     let file_length = {
         let _ = device;
         signed::load(&fw, file_address)?
     };
-    #[cfg(not(feature = "signed-boot"))]
+    #[cfg(not(feature = "signed-boot-test"))]
     let file_length = {
         let (root, kernel) = fw.open_kernel(device)?;
         let length = fw.read_kernel(kernel, file_address)?;
