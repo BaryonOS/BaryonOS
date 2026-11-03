@@ -1,7 +1,7 @@
 # Driverbronnen en herkomst
 
 Geen upstream-driverbron is in deze stap vendored, als dependency toegevoegd
-of naar Nieuw OS gekopieerd. De twee huidige VirtIO-registraties verwijzen
+of naar Nieuw OS gekopieerd. De bestaande VirtIO-registraties verwijzen
 naar bestaande Nieuw OS-drivercode. De volgende upstreambronnen zijn alleen
 beoordeeld als ontwerpreferentie of adoptiekandidaat.
 

@@ -5,8 +5,10 @@ initialisatie zijn geïmplementeerd voor VirtIO block, netwerk en RNG. Alle drie
 selecteren een functie via `pci-core` en hun eigen registry, met config-space
 gebonden aan de match. Block, netwerk en RNG krijgen kernel-owned BAR-grants
 vóór mapping; de bestaande transports behouden hun eigen I/O- en DMA-logica.
-Een gedeelde heterogene registry, interruptbroker en generieke DMA/IOMMU-
-resourcebroker ontbreken nog.
+Daarnaast bestaan losse, niet-geïntegreerde NVMe- en xHCI-probecrates die PCI
+matchen en alleen controllerregisters read-only inspecteren. Een gedeelde
+heterogene registry, interruptbroker en generieke DMA/IOMMU-resourcebroker
+ontbreken nog.
 
 ## Huidige implementatie
 
@@ -57,6 +59,14 @@ toekenning van bestaande BAR-mappings en DMA-pagina's roept
 en de bestaande reset-/quarantainelogica blijven bij de concrete initializer.
 Er wordt geen drivercode dynamisch geladen, heapobject gemaakt of extra
 resource-authority gecreëerd; resources blijven kernel-toekenningen.
+
+`drivers/nvme` en `drivers/xhci` gebruiken ieder een lokale een-entry PCI-
+registry en een devicegebonden BAR-grant voor een beperkte read-only probe.
+De NVMe-crate leest `CAP`/`VS`; de xHCI-crate controleert revision en
+registeroffsets binnen BAR0. Geen van beide maakt deel uit van de kernel-
+activatieketen: ze schakelen bus mastering niet in en allociëren geen DMA.
+Alleen de USB descriptor-core matcht interface class/subclass/protocol; ook
+die selectie start nog geen classdriver.
 
 `MatchedPciFunction` bindt config-space-toegang aan een opnieuw gevalideerde
 descriptor en `DriverMatch`. Reads en writes naar een ander BDF worden

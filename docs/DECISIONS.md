@@ -239,6 +239,31 @@ hardwarevoortgangspunt en geen QEMU-/fysieke compatibiliteitsclaim.
 **Herzien:** zodra de kernel resourceadapter expliciet is vrijgegeven, of
 wanneer een getest platform een nauwere NVMe-profielkeuze vereist.
 
+## ADR-071 — xHCI begint als read-only PCI-capabilityprobe
+
+**Datum:** 3 november 2026. De volgende USB-stap is een standalone
+`no_std`-crate die PCI class `0c:03:30` matcht, de unieke non-prefetchable
+BAR0-grant controleert en de xHCI-capabilityregisters leest. De probe valideert
+de revision en de geadverteerde operationele, doorbel- en runtime-offsets
+tegen de apparaatgebonden BAR; een optionele extended-capabilitypointer wordt
+alleen op bounds gecontroleerd.
+
+De crate neemt het device niet over van firmware, schrijft geen controller-
+registers, schakelt geen bus mastering in en reserveert of deelt geen DMA uit.
+De kernel map blijft supervisor-only, uncached en page-granulair. Daarom worden
+BARs kleiner dan één pagina geweigerd. De probe is niet opgenomen in de
+kernelworkspace en levert geen USB-enumeratie, transfer-rings, HID-input of
+classdriveractivatie op.
+
+**Reden:** hiermee kan de hardwareidentiteit en registerlayout veilig worden
+vastgesteld zonder een concurrerend DMA-/interruptmodel of een ongecontroleerde
+controllerstart. De interface-descriptorparser blijft een aparte USB-corelaag;
+een match verleent geen resource of authority.
+
+**Herzien:** wanneer de kernel-owned devicegebonden DMA-, interrupt- en
+failure-cleanup-interface beschikbaar is; bouw daarna xHCI-ring lifecycle,
+USB-enumeratie en klasseprotocollen binnen die contracten.
+
 ## Onderzoeksbesluit J-20261102 — herkenbare basis, expliciete installatiegrens
 
 **Datum:** 2 november 2026. **Status:** ontwerp-/onderzoekskeuze, geen
