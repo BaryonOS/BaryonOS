@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "75495efc37f1753d652f52e55f4670ebdb564c22",
+    "source_commit": "ed592537751f5d50710fc61744331d1a6334a10f",
     "branch": "simonvanieperen-animated-garbanzo",
-    "task": "Sessiewachtwoord: ongeldige UTF-8 blokkeren voor de auth-broker",
+    "task": "PR155: integreer main 8e0c15d8 en behoud de nieuwe keyring-herstelgrens",
     "previous_score": 39,
-    "summary": "39% → 39%: de sessieflow valideert wachtwoord-UTF-8 vóór AuthBroker::begin en wist ongeldige buffers. De gerichte suite (11 tests) en volledige ui/native-poort (60 hosttests, Clippy, fmt, scalar no_std-build en scan van 11 archives) slagen. Native uitvoering, echte authenticator, persistent account en key unlock ontbreken; FR-S01/S02 blijven open en er worden geen punten toegekend."
+    "summary": "39% blijft 39%. PR155 beperkt key recovery tot manifest-gebonden beheer-ingress en heeft B01 opnieuw op open gezet tot verse native positieve beheer- en negatieve app-ingressproeven slagen. De eerdere main-acceptatie betreft de oude herstelgrens en vervangt dat bewijs niet. Deze integratie kent geen nieuwe criteriumpunten toe."
   },
   "tracks": [
     {

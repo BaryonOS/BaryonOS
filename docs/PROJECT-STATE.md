@@ -1,6 +1,55 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — wachtwoordinvoergrens — 3 november 2026
+## NEXT AGENT HANDOFF — PR155 main-integratie — 3 november 2026
+
+**Basis vóór merge:** PR-head `ed592537751f5d50710fc61744331d1a6334a10f`;
+main `8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2`. Conflicten in `README.md`,
+`docs/PROJECT-STATE.md` en `docs/progress.json` zijn inhoudsbehoudend opgelost.
+De main-wijzigingen aan gedeelde hosttooling en tests blijven behouden; de PR-
+wijziging aan `tools/run_keyring.py` blijft behouden.
+
+**Voortgang:** **39 → 39/100**. Main kende B01 opnieuw twee punten toe op basis
+van de eerdere herstelproef. Die proef gebruikt de oude herstelgrens; de PR
+beperkt herstel tot manifest-gebonden beheer-ingress en vereist verse native
+proeven voor zowel beheer als app-weigering. B01 blijft daarom open en de score
+blijft 39. Er is geen nieuwe native/QEMU-acceptatie of andere criteriumwinst.
+
+**Validatie op de opgeloste boom (exit 0):**
+`python3 -B -m unittest discover -s tests -p test_common.py -v` (8 tests),
+`python3 -B -m unittest discover -s tools/tests -p test_random.py -v`
+(21 tests), `python3 -B -m unittest discover -s tools/tests -p test_images.py
+-v` (20 tests), `python3 -B -m unittest discover -s tests -p
+'test_keyring_*.py' -v` (11 tests), `python3 tools/progress.py --write`,
+`python3 tools/progress.py --check`, `python3 -m json.tool docs/progress.json`
+en `git diff --check`. Dit zijn host-/documentcontroles; native QEMU/OVMF,
+volledige CI, fysieke en menselijke acceptatie zijn niet uitgevoerd.
+
+**Open/eerstvolgend:** publiceer uitsluitend de gevalideerde merge-integratie;
+laat daarna checks op de nieuwe head evalueren. B01 blijft open tot verse native
+beheer- en app-ingressproeven slagen. B02-rollback, echte accountauthenticatie
+en persistente sleutelvrijgave blijven eveneens open.
+
+## Historisch checkpoint — PR142 main-integratie — 3 november 2026
+
+De eerdere integratie gebruikte PR-head `37ad1e98328e59b752c230310a4abeaca749b669`
+en main `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`. De snapshotlijst behield
+toen PR131/132-, PR141- en PR142-ingangen en de PR149-code/tests en receipts.
+`node --test ui/prototype/tests/*.test.mjs` rapporteerde 41 geslaagde tests;
+de twee `node --check`-controles slaagden. Score 41 bleef 41; er werd geen
+native/QEMU-, fysieke of menselijke acceptatie geclaimd. Dit is historisch
+bewijs voor die integratie, niet voor PR155.
+
+## Historisch checkpoint — PR149 derde main-integratie — 3 november 2026
+
+De eerdere integratie gebruikte Watch-merge `bb8877e3e1aaec304d7478510b65c8116aeb634e`,
+met ouders `416886354dbb0c6135a0740c429a3fbd4530a16d` en main
+`99d132768fd72276caa4a3b3e9a09f8f1909f0ed`. De compacte UI-fixes en hun bewijs
+bleven uit de PR behouden; de PR139-receipts kwamen uit main. De gehaste
+`ui/native`-hosttests rapporteerden 59 geslaagde tests op die historische
+mergeboom. Score 41 bleef 41; geen nieuwe formatter-/Clippy-run, cross-build,
+volledige CI of native/QEMU-run werd geclaimd.
+
+## Historisch checkpoint — wachtwoordinvoergrens — 3 november 2026
 
 **Basis/resultaat:** branch `simonvanieperen-animated-garbanzo`, basis
 `72dfdca5de7750d0c3559ae1193c3554dd0fa65e`; wachtwoordindiening in
@@ -15,8 +64,7 @@ blijft fail-closed; dit voegt geen accountauthenticatie toe.
 `cargo +1.90.0 test --manifest-path ui/native/Cargo.toml --test session
 --offline` (11 tests), `cargo +1.90.0 clippy --manifest-path
 ui/native/Cargo.toml --test session --offline -- -D warnings` en
-`git diff --check`: exit 0. Logs en hashes staan in
-[session-password-utf8-20261103.json](verification/session-password-utf8-20261103.json).
+`git diff --check`: exit 0.
 Daarna slaagde `PATH=/home/simon/.cargo/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH
 CC=/tmp/nieuw-os-c-toolchain/bin/cc python3 -B ui/native/verify.py` op exacte
 codecommit `59b67cb8`: 60 hosttests, Clippy, fmt, locked feature graph,

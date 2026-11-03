@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **39** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`75495efc`](https://github.com/simonvanieperen/nieuw-os/commit/75495efc37f1753d652f52e55f4670ebdb564c22) ·
+**Bron:** [`ed592537`](https://github.com/simonvanieperen/nieuw-os/commit/ed592537751f5d50710fc61744331d1a6334a10f) ·
 **Ontwikkelbranch:** `simonvanieperen-animated-garbanzo`.
-Deze opdracht: **39% → 39% (+0 procentpunt)**. **Opdracht:** Sessiewachtwoord: ongeldige UTF-8 blokkeren voor de auth-broker.
-39% → 39%: de sessieflow valideert wachtwoord-UTF-8 vóór AuthBroker::begin en wist ongeldige buffers. De gerichte suite (11 tests) en volledige ui/native-poort (60 hosttests, Clippy, fmt, scalar no_std-build en scan van 11 archives) slagen. Native uitvoering, echte authenticator, persistent account en key unlock ontbreken; FR-S01/S02 blijven open en er worden geen punten toegekend.
+Deze opdracht: **39% → 39% (+0 procentpunt)**. **Opdracht:** PR155: integreer main 8e0c15d8 en behoud de nieuwe keyring-herstelgrens.
+39% blijft 39%. PR155 beperkt key recovery tot manifest-gebonden beheer-ingress en heeft B01 opnieuw op open gezet tot verse native positieve beheer- en negatieve app-ingressproeven slagen. De eerdere main-acceptatie betreft de oude herstelgrens en vervangt dat bewijs niet. Deze integratie kent geen nieuwe criteriumpunten toe.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
