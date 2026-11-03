@@ -6,6 +6,13 @@ branch `simonvanieperen-fictional-disco`.
 **Status:** onderzoeksvoorstel, geen gekozen definitief designsysteem,
 productimplementatie, renderbenchmark of menselijke beoordeling.
 
+**Vervolg 3 november:** Simon heeft daarna "Voer het uit" opgedragen.
+Veld wordt daarom als eerste native richting uitgevoerd, zonder het volledige
+ontwerp of de alternatieven al gevalideerd te noemen. De oorspronkelijke
+onderzoeksafbakening hieronder beschrijft de eerdere opdracht, niet een verbod
+op deze expliciet gevraagde vervolgstap. Huidige implementatie en open grenzen:
+[native venstersessie](../implementation/NATIVE-WINDOW-SESSION.md#veld-eerste-native-uitvoering).
+
 ## 1. Uitkomst en afbakening
 
 Onderzoek twee richtingen verder: **Veld**, waarin materiaal een blijvende

@@ -1,6 +1,38 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — visueel ontwerpplan, geen redesign — 3 november 2026
+## NEXT AGENT HANDOFF — Veld-code en hostcheckpoint, native controle volgt — 3 november 2026
+
+**Basis:** `d6f8e98178d73d6aeda0abe84ca404dfde03123c`,
+branch `simonvanieperen-fictional-disco`. De expliciete vervolgopdracht
+"Voer het uit" wordt uitgevoerd als eerste native Veld-stap; het gehele
+designplan of releasecontract is hiermee niet voltooid.
+
+**Code/bewijs:** één compile-time tokenbron voor apps en shell; statisch
+achtergrondverloop en begrensde afstandsschaduwen; werk/gereedschaplabels;
+F7 en muis voor alleen actief werk, F8 en muis voor bekende ordening;
+klikbare zoekroute en lokale aliassen uitsluitend naar bestaande doelen.
+Buffergeometrie, epochs en kernel-/opslagrechten blijven behouden.
+Volledige repaintvergelijking bij drie resolutie/schaalprofielen, graphics-,
+native-, compositor-, beide app-, protocol- en runnerhosttests plus
+Clippy en prototypekleur-/toestandstests slagen. Geen scorepunten toegevoegd.
+Exacte commando's, fouten en grenzen:
+[Veld-bewijsverslag](verification/veld-native-20261103/README.md).
+
+**Nieuwe context:** PR #131 is read-only gecontroleerd op
+`a03f7f0c355cedca72611893f07c4a766a7b7d4f`; de daarin beschreven
+herkenbare acties en lokale zoekaliassen zijn relevant. Geen merge,
+overgenomen testresultaten of vermenging met die onderzoeksbranch.
+
+**Open/eerstvolgend:** native build/uitgebreide QEMU-gate nog niet uitgevoerd;
+verplicht naast bestaande volledige appbeeld-, isolatie-, echte crash/herstel-,
+schijf- en cleanupgates. Omgeving hersteld zonder hostinstallatie:
+`source /home/simon/.copilot/session-state/7f2fb1d137004b68b9bef4b8ca72f938/files/veld-env/env.sh`,
+daarna `python3 -B -u tools/build.py --kernel-feature native-window-session-probe`.
+Vier werkzaamheden, toolwisseling op hetzelfde object, resizen, blur/GPU,
+dark/hoogcontrast/motion, schermlezer, menselijke en fysieke beoordeling blijven
+open. Voortgang **41 -> 41**. Geen merge, release of PR-sluiting.
+
+## Vorig checkpoint — visueel ontwerpplan, geen redesign — 3 november 2026
 
 **Basis:** `380111b68688c981eec6abb8fab29174a29f5601`, branch
 `simonvanieperen-fictional-disco`; werkboom was schoon bij aanvang, geen PR

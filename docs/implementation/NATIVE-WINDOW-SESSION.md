@@ -1,5 +1,59 @@
 # Native venstersessie — U01 bouwcontract
 
+## Veld: eerste native uitvoering
+
+**Opdracht/basis:** uitvoering na het visuele onderzoeksplan,
+`d6f8e98178d73d6aeda0abe84ca404dfde03123c`, branch
+`simonvanieperen-fictional-disco`. Dit is de twee-appstap van Veld,
+niet het volledige ontwerp, dagelijks gebruik of nieuwe U02–U06-acceptatie.
+Het oorspronkelijke U01-contract hieronder blijft gelden.
+
+**Doel en schrijfgrens:** gedeelde visuele rollen in `ui/prototype/tokens.css`,
+`ui/graphics` en de native designbridge; werkgerichte shellcompositie,
+zoektermen, focus-/ordeningacties in `sdk/examples/window-session`; bijbehorende
+tests en uitbreiding van de bestaande runner/CI. Geen wijziging van kernel,
+capabilities, authenticatie, cryptografie of opslagprotocollen.
+
+**Bediening:** de werkbalk toont de bestaande collectie en berekening, telkens
+met het echte gereedschap. Ctrl+K en de zoekknop vinden deze twee bestaande
+doelen; ook document-/gereedschapstermen en begrensde lokale Finder-, Files-,
+Verkenner-, Explorer-, Nautilus-, Dolphin- en Calculator-aliassen werken.
+Typen voert niets uit en verleent geen recht. Dit is geen algemene
+bestandzoekdienst of systeembrede synoniemenregistratie.
+F7 / "Dit werk" toont alleen het actieve venster; het andere proces en zijn
+werk blijven bestaan. Wisselen blijft via de werkbalk, zoeken en F6 mogelijk.
+F8 / "Ordenen" herstelt de oorspronkelijke bekende posities. Beide acties
+zijn ook met de muis bereikbaar; herhaalde keypresses schakelen niet
+onbedoeld heen en weer en keyreleases gaan niet naar apps.
+
+**Invarianten/fouten:** buffers, appafmetingen, offsets en presentatie-epochs
+veranderen niet door deze acties. Verborgen vensters krijgen geen muishit.
+Beweging en modewisseling annuleren oude appinvoerwachtrijen/capture. Volledige
+oude/nieuwe schaduwgrenzen, focus en paletopen/sluiten doen mee aan damage.
+Onjuiste schaduwspreiding/lege geometrie faalt vóór schrijven. De achtergrond
+is een statisch RGB-verloop; schaduwen hebben begrensde afstandsafname,
+geen backdrop blur. Geen zelfbedachte authenticatie of nieuwe apprechten.
+
+**Acceptatiecommando's:** de bestaande hosttests, Clippy en fmt voor graphics,
+native UI, compositor en beide apps; protocolclient- en runnertegenvoorbeelden;
+de bestaande prototypekleur-/toestandstests. Daarna:
+`python3 -B -u tools/build.py --kernel-feature native-window-session-probe`
+en `python3 -B -u tools/run_window_session.py --clipboard --workspace --timeout 1800 --bios-rom "$NOS_BIOS_ROM" --vga-rom "$NOS_VGA_ROM"`.
+De extra workspaceproef controleert exact benoemde shellgebieden, waaronder
+het volledige verborgen venstergebied en het opaque zoekpaneelinterieur.
+Haar nul-appbuffers leveren uitdrukkelijk geen appbeeldbewijs. Alle bestaande
+ongemaskeerde volledige appbeeld-, isolation-, herstel-, schijf- en
+cleanupcontroles blijven daarnaast verplicht. De verplichte CI draait beide.
+
+**Niet geleverd:** objectgebonden gereedschapswisseling, vier vrije
+werkzaamheden, resize/snapping, algemene documentmetadata in de shell,
+GPU/blur, dark-/hoogcontrastmodus, motioninstellingen, OS-brede schermlezer,
+installer en fysieke/menselijke acceptatie. Deze stap is geen conventionele
+desktop als eindproduct: de materiële continuïteitsketen blijft noodzakelijk.
+Actuele uitvoering: [bewijsverslag](../verification/veld-native-20261103/README.md).
+
+## Oorspronkelijk U01-contract
+
 Bronbasis: `0fe648b`, werkbranch `codex/mature-native-session-20261102`.
 Dit contract beschrijft lopend werk; het sluit U01 niet en wijzigt geen punten.
 

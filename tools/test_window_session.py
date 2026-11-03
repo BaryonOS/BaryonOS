@@ -17,6 +17,24 @@ def image(width,height,color):
 
 
 class WindowRunnerTests(unittest.TestCase):
+    def test_workspace_checks_every_pixel_in_declared_shell_regions(self):
+        raw = image(1280, 720, (1, 2, 3))
+        header = len(raw) - 1280 * 720 * 3
+        for phase, regions in window.WORKSPACE_REGIONS.items():
+            self.assertTrue(window.workspace_matches(raw, raw, phase))
+            for x, y, width, height in regions:
+                for px, py in ((x, y), (x + width - 1, y + height - 1), (x + width // 2, y + height // 2)):
+                    changed = bytearray(raw)
+                    changed[header + (py * 1280 + px) * 3] ^= 1
+                    self.assertFalse(window.workspace_matches(bytes(changed), raw, phase))
+        with self.assertRaises(KeyError):
+            window.workspace_matches(raw, raw, "unknown")
+
+    def test_workspace_cannot_claim_diagnostic_only_success(self):
+        for flags in ({"smoke": True}, {"recovery_handshake": True}):
+            with self.assertRaises(ValueError):
+                window.run(timeout=30, bios_rom=None, vga_rom=None, workspace=True, **flags)
+
     def test_clipboard_oracle_checks_calculator_body_without_internal_masks(self):
         raw = image(1280, 720, (1, 2, 3))
         expected = image(320, 484, (1, 2, 3))

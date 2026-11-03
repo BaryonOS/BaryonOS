@@ -294,6 +294,8 @@ fn run() -> ! {
                 };
                 input_events = input_events.checked_add(1).unwrap_or_else(|| fail(16));
                 let previous = scene.focused;
+                let previous_mode = scene.workspace_mode();
+                let previous_bodies = scene.windows.map(|window| window.body);
                 let queue_generations = queues.each_ref().map(Queue::generation);
                 let event = offer.event();
                 let palette_was_open = scene.palette_is_open();
@@ -396,6 +398,16 @@ fn run() -> ! {
                                 .cancel(CancelReason::Resync)
                                 .unwrap_or_else(|_| fail(22));
                         }
+                    }
+                }
+                if scene.workspace_mode() != previous_mode
+                    || scene.windows.map(|window| window.body) != previous_bodies
+                {
+                    app_pointer_capture = None;
+                    for queue in &mut queues {
+                        queue
+                            .cancel(CancelReason::Resync)
+                            .unwrap_or_else(|_| fail(20));
                     }
                 }
                 if scene.focused != previous {

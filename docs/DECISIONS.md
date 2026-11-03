@@ -1,5 +1,44 @@
 # Ontwerpbesluiten
 
+## ADR-VELD-001 — Veld uitvoeren binnen de bestaande native veiligheidsgrens
+
+3 november 2026. Simons vervolgopdracht "Voer het uit" autoriseert uitvoering
+van de eerste aanbeveling uit het
+[visuele ontwerpplan](design/VISUAL-ARCHITECTURE-PLAN.md): Veld. Dit is een
+eerste native implementatie, geen definitief door gebruikers gekozen eindontwerp.
+Materiaal blijft de productlogica; geen bestaande OS-kernel, desktoptoolkit
+of aanvullende bevoegdheden worden ingevoerd.
+
+De shell onderscheidt werk en gereedschap: "Mijn materiaal / Materiaal" en
+"Berekening / Rekenmachine". Een collectienaam is geen verzonnen geopende
+documenttitel. Zonder geauthenticeerd objectmetadataprotocol mag de compositor
+geen opslagstatus of documentidentiteit afleiden uit apppixels. "Dit werk"
+verbergt tijdelijk het andere venster; het stopt geen proces en dempt geen
+systeem- of privacymelding. "Ordenen" herstelt bekende posities met behoud van
+dezelfde appbuffers, SUR1-geometrie en epochs. Op de kleinste ondersteunde
+afmeting kunnen de vaste vensters overlappen; dit is geen resize-/tilingbewijs.
+
+CSS-tokens zijn de gedeelde compile-time bron voor native apps en compositor.
+Een statisch kleurverloop onderscheidt achtergrond van werk; begrensde
+afstandsschaduwen duiden overlap en focus aan. Dit zijn scalar RGB-effecten,
+geen Gaussian blur, GPU-versnelling, dynamische HCT-kleur of gemeten vloeiende
+animatie. De volledige oude/nieuwe verfgrens wordt opnieuw getekend; iedere
+verplaatste werkruimte annuleert oude appinvoercapture via de bestaande route.
+
+De aanvullende chat is historische context, geen automatisch uitvoerbare
+opdracht. Het oorspronkelijke onderzoek is afzonderlijk gecontroleerd op
+PR #131, commit `a03f7f0c355cedca72611893f07c4a766a7b7d4f`.
+De interactieprincipes en onboardingspecificatie adviseren herkenbare acties,
+lokale zoekaliassen en eerlijke beschikbaarheid. Deze stap neemt alleen die
+begrensde ontwerpkeuzes over: Finder/Verkenner/Files verwijzen naar de werkelijk
+bestaande Materiaal-collectie; ontbrekende instellingen of systeemmonitor
+verschijnen niet als werkend resultaat. De onderzoeksbranch is niet gemerged,
+haar productscore en historische tests zijn niet overgenomen. Installer,
+authenticatie, vier dagelijkse werkzaamheden, toolwisseling op hetzelfde
+object, native toegankelijkheidsdienst en gebruikersonderzoek blijven apart
+werk. Acceptatie en bewijsgrenzen staan in het
+[native bouwcontract](implementation/NATIVE-WINDOW-SESSION.md).
+
 ## ADR-056 — herkenbare sessieroute met expliciete VM-bewijsgrens
 
 2 november 2026. De gebruikersopdracht vraagt bekende stappen uit macOS,

@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`380111b6`](https://github.com/simonvanieperen/nieuw-os/commit/380111b68688c981eec6abb8fab29174a29f5601) ·
+**Bron:** [`d6f8e981`](https://github.com/simonvanieperen/nieuw-os/commit/d6f8e98178d73d6aeda0abe84ca404dfde03123c) ·
 **Ontwikkelbranch:** `simonvanieperen-fictional-disco`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Brononderbouwd visueel OS-ontwerpplan zonder afbeeldingen of productcode.
-41% blijft 41%: vijf presentatiearchitecturen, twintig tekstuele OS-toestanden per richting en concrete visuele studiewaarden zijn gedocumenteerd. KWin, Mutter, GNOME Shell, Material Color Utilities en Impeller leveren publieke mechanismebronnen; Microsoft en Apple leveren apart gelabelde richtlijnen. Veld en Werkstuk zijn aanbevolen voor beoordeling, niet definitief gekozen. Geen afbeeldingen, productcode, dependencies, capabilities of criteriumstatussen gewijzigd. Ontwerpwerk realiseert geen nieuwe native acceptatie; U02-U06, fysieke en menselijke beoordeling en volledige release blijven open. Historische bewijzen blijven aan hun eigen bron gebonden.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Eerste native Veld-stap: gedeelde visuele rollen, werkfocus, ordening en lokale zoekaliassen.
+41% blijft 41%: Veld wordt na expliciete vervolgopdracht als eerste native richting uitgevoerd. Gedeelde compile-time tokens, statisch verloop, begrensde afstandsschaduwen, werk/gereedschaplabels, F7-werkfocus, F8-ordening en lokale aliassen voor de twee echte apps zijn geïmplementeerd. Gerichte hosttests en lintchecks slagen; native build en de uitgebreide QEMU-gate volgen nog. Geen nieuwe dependencies, kernelrechten of criteriumstatussen. De aanvullende onderzoeks-PR131 is op eigen bronversie gelezen, niet gemerged of als productbewijs overgenomen. Vier werkzaamheden, objectgebonden toolwisseling, U02-U06, fysieke/menselijke beoordeling en volledige release blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

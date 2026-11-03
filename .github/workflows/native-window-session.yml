@@ -120,6 +120,7 @@ jobs:
         run: |
           python3 -B -u tools/run_window_session.py \
             --clipboard \
+            --workspace \
             --timeout 1800 \
             --bios-rom /usr/share/seabios/bios-256k.bin \
             --vga-rom /usr/share/seabios/vgabios-stdvga.bin \
@@ -130,6 +131,7 @@ jobs:
           report = json.loads((Path(os.environ["NOS_BUILD_DIR"]) / "window-session-report.json").read_text())
           assert report["passed"] is True and report["native_gate"] is True
           assert report["clipboard_requested"] is True and report["clipboard_gate"] is True
+          assert report["workspace_requested"] is True and report["workspace_gate"] is True
           assert report["smoke_only"] is False and report["raw_qemu_exit"] == 33
           assert report["kernel_feature"] == "native-window-session-probe"
           volume = Path(report["run_directory"]) / "volume.img"
