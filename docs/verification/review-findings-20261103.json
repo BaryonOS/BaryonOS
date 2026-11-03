@@ -1,0 +1,100 @@
+{
+  "_provenance": {
+    "generator": "CodeRabbit Coding Agent",
+    "task_id": "3f34d86e-1735-44ac-aa01-7c5289e083ea",
+    "date": "2026-11-03"
+  },
+  "baseline": "cafbac55b49d5aee4c4fea4133048ec7e232e44e",
+  "working_directory": "/home/vercel-sandbox/workspace/repos/github.com/simonvanieperen/nieuw-os",
+  "code_sha256": {
+    "docs/verification/materiaal-library-20261102/verify-ci-artifact.py": "3a6c1b72072e548dd3777fb1888e94333224eeb049f1f4135b6b56ff9c99f909",
+    "sdk/examples/window-session/src/main.rs": "1588761bfc0894394c3b42f1d76f9d59df4effe19a2e435e48f37582409db7c8",
+    "sdk/examples/window-session/src/shell.rs": "0efe00bbbf5c44f15d1ad49af440acb3f8ab037eca5db1e8f776a53880c642d1",
+    "sdk/examples/window-session/tests/session_shell.rs": "7fc2dacd301def70fe82d17269c77494735936a470b44bf68371f1a2476cb49f",
+    "ui/native/src/controller.rs": "448c29116c3c4453d44b7e2614cea05f65944424b7c621e80ef08b642037019b",
+    "ui/native/tests/library_contract.rs": "280453e0b8d5e15034a0fd6e30cfbe12d7141d7e0937e5923c2c673e383d58bf"
+  },
+  "checks": [
+    {
+      "command": "cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml",
+      "exit_code": 0,
+      "outcome": "59 tests passed"
+    },
+    {
+      "command": "cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --all-targets -- -D warnings",
+      "exit_code": 0,
+      "outcome": "passed"
+    },
+    {
+      "command": "cargo +1.90.0 fmt --manifest-path sdk/examples/window-session/Cargo.toml -- --check",
+      "exit_code": 0,
+      "outcome": "passed"
+    },
+    {
+      "command": "python3 -B ui/native/verify.py",
+      "exit_code": 0,
+      "outcome": "78 tests, Clippy, fmt, scalar build and 11 archive scans passed; preserved reports in workspace-context/ui-review-verification"
+    },
+    {
+      "command": "python3 -B tools/test_window_session.py",
+      "exit_code": 0,
+      "outcome": "11 tests passed"
+    },
+    {
+      "command": "python3 -B -m unittest tools.tests.test_package_windows_qemu",
+      "exit_code": 0,
+      "outcome": "20 tests passed"
+    },
+    {
+      "command": "python3 -B -u tools/build.py --kernel-feature native-window-session-probe",
+      "exit_code": 0,
+      "outcome": "passed after explicit capture index type fixed E0282"
+    },
+    {
+      "command": "python3 -B -u tools/run_window_session.py --clipboard --timeout 1800 --bios-rom /usr/share/seabios/bios-256k.bin --vga-rom /usr/share/seabios/vgabios-stdvga.bin",
+      "exit_code": 0,
+      "outcome": "22 phases, full clipboard/recovery/images/disk/cleanup passed; raw QEMU exit 33"
+    },
+    {
+      "command": "python3 workspace-context/check-review-artifact.py",
+      "exit_code": 0,
+      "outcome": "synthetic hash-before-extraction and explicit ZIP selection checks passed; cwd is workspace root"
+    },
+    {
+      "command": "python3 tools/progress.py --write",
+      "exit_code": 0,
+      "outcome": "passed; 44 to 44"
+    },
+    {
+      "command": "python3 tools/progress.py --check",
+      "exit_code": 0,
+      "outcome": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "outcome": "passed"
+    },
+    {
+      "command": "coderabbit review --agent -t uncommitted",
+      "exit_code": 0,
+      "outcome": "two completed review passes, 0 findings each"
+    }
+  ],
+  "native": {
+    "source_sha256": "3d09c1410819b4aa76e24c640722bd84f759970f8561366a9d48b52f9d0e954b",
+    "kernel_feature": "native-window-session-probe",
+    "duration_s": 473.54294249400004,
+    "raw_qemu_exit": 33,
+    "native_gate": true,
+    "clipboard_gate": true
+  },
+  "native_report_sha256": "81b335ddebe8e874c728f167d14c03c2f53c1049810694af93c4241fd7233234",
+  "native_report_path": "build/window-session-report.json",
+  "artifact_harness_sha256": "cdfa054982f72721ac47bc53d5be226aa6bbe2d7c1a7716cbe53dda423b8e5e4",
+  "limits": [
+    "Original historical CI download absent: full artifact readback not rerun; synthetic checks cover the changed verification boundary only.",
+    "No new library/cold/public-route acceptance or physical hardware test claimed.",
+    "Earlier native compile attempt failed E0282; final build and native run passed."
+  ]
+}

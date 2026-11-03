@@ -279,7 +279,7 @@ fn run() -> ! {
     let mut input_events = 0u64;
     let mut last_buttons = 0u64;
     let mut next_input_tick = tick();
-    let mut app_pointer_capture = None;
+    let mut app_pointer_capture: Option<usize> = None;
     let mut input_backlog = false;
     let mut clock_tick = tick();
     loop {
@@ -368,6 +368,14 @@ fn run() -> ! {
                 if effect.changed {
                     scene.cancel_pointer();
                     damage.mark(scene.shell_damage(was_blocked, was_hidden, was_panel));
+                }
+                if effect.consumed && matches!(event, Event::Mouse { .. }) {
+                    scene.cancel_pointer();
+                    if let Some(captured) = app_pointer_capture.take() {
+                        queues[captured]
+                            .cancel(CancelReason::Resync)
+                            .unwrap_or_else(|_| fail(22));
+                    }
                 }
                 match effect.command {
                     ShellCommand::Activate(index) => {

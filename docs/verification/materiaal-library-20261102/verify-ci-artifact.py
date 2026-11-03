@@ -1,18 +1,31 @@
 from pathlib import Path
-import hashlib, json, struct, sys, zipfile
-sys.path.insert(0, '/workspace/nieuw-os/tools')
+import argparse, hashlib, io, json, struct, sys, tempfile, zipfile
+ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / 'tools'))
 import run_window_session as window
 import window_library as library
 from build_users import inspect_user
 from run_materiaal_probe import disk_oracle
 
-ROOT = Path('/workspace/nieuw-os')
-DATA = ROOT / 'build/library-ci-640/data'
+ARTIFACT_ID = 13183010575
+ARTIFACT_SHA256 = '3c7ca75a8304efb0922b6d6fc3a3beda750a71d294988a663a0711df9af7aede'
+parser = argparse.ArgumentParser(description='Verify the original CI artifact ZIP and its contents')
+parser.add_argument('download', type=Path, help='original downloaded ZIP for artifact 13183010575')
+args = parser.parse_args()
 EXPECTED = '069666e5406a893f64aa5d8e00298863f33f8be9cef57b6e0522b8bdf9648670'
 def digest(data): return hashlib.sha256(data).hexdigest()
+# Verify the exact bytes that will be unpacked, before reading any ZIP entries.
+download = args.download.read_bytes()
+artifact_sha256 = digest(download)
+if artifact_sha256 != ARTIFACT_SHA256:
+    raise ValueError('CI artifact SHA-256 mismatch')
+artifact_data = tempfile.TemporaryDirectory(prefix='nieuw-os-ci-readback-')
+DATA = Path(artifact_data.name)
+with zipfile.ZipFile(io.BytesIO(download)) as artifact:
+    artifact.extractall(DATA)
 source = json.loads((DATA/'evidence/source.json').read_text())
 assert source['source_sha256'] == EXPECTED and source['source_fingerprint_version'] == 3
-archive = next((DATA/'evidence').glob('*.zip'))
+archive = DATA/'evidence/NieuwOS-Venstersessie-Windows-QEMU.zip'
 with zipfile.ZipFile(archive) as package:
     payloads = {name: package.read(name) for name in package.namelist()}
     pm = json.loads(payloads['manifest.json'])
@@ -30,7 +43,7 @@ assert digest((DATA/'probe/esp/EFI/BOOT/BOOTX64.EFI').read_bytes()) == manifest[
 by_hash = {a['sha256']: a for a in manifest['materiaal']['apps']}
 extracted, offset = {}, 0
 directory = ROOT/'build/library-ci-640/extracted-users'
-directory.mkdir(exist_ok=True)
+directory.mkdir(parents=True, exist_ok=True)
 while True:
     offset = kernel.find(b'\x7fELF\x02\x01\x01', offset + 1)
     if offset < 0: break
@@ -127,8 +140,8 @@ assert cold['report']['command'] == write['report']['command']
 assert cold['report']['qemu_sha256'] == write['report']['qemu_sha256']
 assert cold['report']['qemu_implementation']['sha256'] == write['report']['qemu_implementation']['sha256']
 result = {'passed': True, 'github_head': '64044318c622eaacab25272611acf856a5fca5d5',
-          'ci_merge_source': source, 'artifact_id': 13183010575,
-          'artifact_sha256': '3c7ca75a8304efb0922b6d6fc3a3beda750a71d294988a663a0711df9af7aede',
+          'ci_merge_source': source, 'artifact_id': ARTIFACT_ID,
+          'artifact_sha256': artifact_sha256,
           'runs': {kind: record['summary'] for kind, record in records.items()},
           'embedded_users': extracted, 'normal_package_payloads': len(pm['files']),
           'normal_package_sha256': digest(archive.read_bytes()),

@@ -392,3 +392,84 @@ fn verified_shortened_history_preview_can_restore_the_complete_large_document() 
         assert_eq!(host.borrow_mut().bytes(0), previous.as_bytes());
     });
 }
+
+#[test]
+fn escape_leaves_library_search_without_changing_query_draft_or_disk() {
+    run(|| {
+        for (mode, expected) in [
+            (EditMode::ReadWrite, Focus::New),
+            (EditMode::ReadOnly, Focus::Refresh),
+        ] {
+            let host = Host::new();
+            let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+            let mut ui = controller(
+                &host,
+                mode,
+                Buffers {
+                    draft: &mut d,
+                    original: &mut o,
+                    staging: &mut s,
+                },
+            );
+            if mode == EditMode::ReadWrite {
+                saved(&mut ui, "Draft blijft behouden.");
+                ui.request_back().unwrap();
+            }
+            ui.set_search_query("Nieuw").unwrap();
+            let contents = ui.view().contents.map(str::to_owned);
+            let before = mutations(&host.borrow());
+            let mut seq = 0;
+            key(&mut ui, &mut seq, PhysicalKey::Escape);
+            assert_eq!(ui.view().screen, Screen::Material);
+            assert_eq!(ui.view().focus, expected);
+            assert_eq!(ui.view().workspace.query(), "Nieuw");
+            assert_eq!(ui.view().contents, contents.as_deref());
+            assert_eq!(mutations(&host.borrow()), before);
+        }
+    });
+}
+
+#[test]
+fn escape_respects_desktop_overlay_then_library_search_focus() {
+    run(|| {
+        use nieuw_os_materiaal::desktop::{Page, Target};
+        let host = Host::new();
+        let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut ui = controller(
+            &host,
+            EditMode::ReadWrite,
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+        );
+        saved(&mut ui, "Draft blijft behouden.");
+        ui.request_back().unwrap();
+        ui.set_search_query("Nieuw").unwrap();
+        ui.enable_vm_desktop().unwrap();
+        let activate = |ui: &mut Controller<'_, Port>, target| {
+            ui.activate_semantic(SemanticId::Desktop(target), ui.view().generation)
+                .unwrap();
+        };
+        activate(&mut ui, Target::Guest);
+        activate(&mut ui, Target::Submit);
+        activate(&mut ui, Target::Search);
+        let before = mutations(&host.borrow());
+        let mut seq = 0;
+        key(&mut ui, &mut seq, PhysicalKey::Escape);
+        assert_eq!(ui.view().desktop.unwrap().page(), Page::Home);
+        assert_eq!(ui.view().focus, Focus::Search);
+        assert_eq!(ui.view().workspace.query(), "Nieuw");
+        activate(&mut ui, Target::Material);
+        ui.set_search_query("Nieuw").unwrap();
+        key(&mut ui, &mut seq, PhysicalKey::Escape);
+        assert_eq!(ui.view().desktop.unwrap().page(), Page::Material);
+        assert_eq!(ui.view().focus, Focus::New);
+        assert_eq!(ui.view().workspace.query(), "Nieuw");
+        assert_eq!(ui.view().contents, Some("Draft blijft behouden."));
+        key(&mut ui, &mut seq, PhysicalKey::Escape);
+        assert_eq!(ui.view().desktop.unwrap().page(), Page::Home);
+        assert_eq!(mutations(&host.borrow()), before);
+    });
+}

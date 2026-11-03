@@ -1,6 +1,54 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — U03 geaccepteerd, 44/100 — 2 november 2026
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:9ba2cf457563e38c9ee69b4133f837cb8822ce212d36fdb789a645fcefae0a30 -->
+
+## NEXT AGENT HANDOFF — reviewherstel, 44/100 — 3 november 2026
+
+Basis `cafbac55b49d5aee4c4fea4133048ec7e232e44e`, werkbranch
+`coderabbit/address-verified-review-findings/3f34d86e`. Alle zes gevraagde
+bevindingen zijn actueel bevonden en hersteld. De pointer-dispatch staat in
+`main.rs`: geconsumeerde muisinvoer annuleert scene/capture via Resync; alleen
+focuswijziging of activatie meldt shellschade. Escape verlaat Materiaalzoeken
+naar Nieuw/Vernieuwen met behoud van query/draft; de bovenste desktoplaag houdt
+voorrang. De spec legt deze regel vast. ADRs onderscheiden voorstel,
+implementatie, testbewijs en onbekend, met alternatieven, eigenaar en rollback;
+het 128/144-KiB-besluit heeft een meetbare weerleggingspoort. README behoudt de
+historische 41/100 met expliciete datum en vóór-U03-grens.
+
+Artifactverificatie vraagt nu de oorspronkelijke download-ZIP, controleert de
+vaste SHA-256 vóór extractie en kiest het normale pakket op exacte naam. Pas
+na de inhoudreadback verschijnt het artifact-ID/hashresultaat. Synthetische
+negatieven slagen; de oorspronkelijke CI-download ontbreekt in deze sandbox,
+dus de volledige historische readback is hier niet opnieuw uitgevoerd.
+
+Nieuw uitgevoerd: 59 shell-/scene-/queuetests, 78 UI-tests (inclusief zoekfocus,
+read-only en overlay), Clippy/fmt, elf scalar-archiefscans, native acht-appbuild,
+11 runner- en 20 pakketchecks: groen. Eén tussentijdse native compilefout
+(E0282) is hersteld met een expliciet capture-indextype; de herbouw slaagt.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:08c4a8e95765104a1c84f87a76276812a6c4cbaab6f58b00cf4d4e9410a272b7 -->
+
+Beide CodeRabbit-passes eindigen met nul bevindingen. De volledige native
+clipboard-/herstelgate slaagt: 22 fasen, raw QEMU-exit 33, 473.543 s;
+hele appbeelden, onafhankelijk diskorakel, echte compositorfault en cleanup.
+Exacte commando's, bron-/rapporthashes en grenzen:
+[reviewbewijs](verification/review-findings-20261103.json). Geen nieuwe
+productpunten: **44 → 44/100**; criteria, oorspronkelijke U03-bewijsgrens,
+persoonlijke authenticatie en hardwarestatus blijven behouden.
+
+Volgende controle zodra de oorspronkelijke download beschikbaar is:
+`python3 docs/verification/materiaal-library-20261102/verify-ci-artifact.py /pad/naar/oorspronkelijke-download.zip`.
+De volledige validatiecontext staat in het werkspacerapport
+`workspace-context/validation-record.md`.
+
+<!-- /coderabbit-ai-generated:v1 -->
+
+## Eerder U03-checkpoint — 44/100 — 2 november 2026
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 Branch `codex/materiaal-library-20261102`, concept-PR 130 op PR 129; begin 159ad79.
 Native geteste code: `64044318c622eaacab25272611acf856a5fca5d5`, source-v3

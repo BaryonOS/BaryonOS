@@ -1,16 +1,20 @@
 # Ontwerpbesluiten
 
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:235f98a029ebe1f91960f8fa9e5cb57f203a1384735dd22c29e1fe7fe6364bc0 -->
+
 ## ADR-SESSION-20261102 — herkenbare bediening en expliciete VM-sessiegrens
 
-De huidige gebruikersopdracht kiest herkenbare sessie-, zoek-, status- en
+**Voorstel/besluit.** De huidige gebruikersopdracht kiest herkenbare sessie-, zoek-, status- en
 vensterbediening rond Materiaal. Een eigen productidentiteit verbiedt geen
 bekende conventies. De nieuwe `native-session-route` blijft een openbare,
 geïsoleerde VM-proef: persoonlijke credentials worden niet verzameld zolang
 een echte auth-/sessie-/keyringdienst ontbreekt. Lock bedekt beeld en blokkeert
 appinput, maar mag niet als sleutel- of opslagcapability-intrekking worden
-gepresenteerd. FR-S02 en U02 blijven open; de bestaande meter blijft 41.
+gepresenteerd. FR-S02 en U02 blijven open; de meter bij dit sessiecheckpoint vóór U03 blijft 41.
 
-Shellbeleid blijft in de userspace-compositor. Een inputoffer wordt bevestigd
+**Implementatie.** Shellbeleid blijft in de userspace-compositor. Een inputoffer wordt bevestigd
 vóór een systeemactie. Appqueues en clipboardoffers worden bij afschermen
 geannuleerd; apps kunnen de vertrouwde voorgrond niet tekenen. Desktop wordt
 pas zichtbaar na beide complete SUR-frames. Diagnostische gereedheid wordt
@@ -23,13 +27,35 @@ verplichte eindtegel. Rebind maakt de cache ongeldig. Een opaque renderpad en
 oude/nieuwe paneelunion beperken werk, met exacte rastervergelijking tegen het
 behouden referentiepad. Geen nieuwe kernel-ABI, crypto of apparaatrechten.
 
-De geteste codebron is 703cc07; afzonderlijke route- en regressieprofielen
+**Testbewijs.** De geteste codebron is 703cc07; afzonderlijke route- en regressieprofielen
 slagen. Onderzoek, bronhashes, screenshots, meetgrenzen en open werk staan in
 [het uitvoeringsrapport](verification/session-quality-20261102/README.md).
+**Onbekend.** Echte accountauthenticatie en intrekking zijn niet bewezen.
 VMware blijft een aparte platformproef volgens
 [de concrete overdracht](implementation/VMWARE-WORKSTATION-TRIAL.md).
 Herzien bij echte account-/sessierechten, resize/rebind, GPU-transport of
 een gewijzigde trusted-inputgrens; een hostbeeld vervangt geen native bewijs.
+
+**Alternatieven.** De bestaande venstersessie zonder sessielaag blijft een
+regressiereferentie, maar realiseert de gevraagde sessieroute niet. Een
+app-lokaal aanmeldscherm kan geen sessierechten verlenen. Echte persoonlijke
+login wordt uitgesteld tot een afzonderlijke auth-/sessie-/keyringdienst bestaat;
+een gedeeld testwachtwoord is geen aanvaardbaar alternatief.
+
+**Migratie en rollback.** De route is opt-in via `native-session-route`; ABI en
+opslag veranderen niet. Bouw voor terugkeer het bestaande
+`native-window-session`-profiel en gebruik alleen een gecontroleerde kopie van
+de wegwerpdisk. Bij falende frame-, input-, herstel- of rastergates wordt de
+nieuwe route niet geaccepteerd; keer als geheel terug naar de vooraf geteste
+compositor-/app-/SUR1-bundel en herhaal de volledige venstersessiegate. Meng geen
+oude sparse-cache met nieuwe frames; herstart met volledig eerste frame.
+Dit rollbackpad kent geen persoonlijke sessierechten toe.
+
+**Eigenaar.** Simon is besliseigenaar; de hoofdagent beheert implementatie,
+brongebonden verificatie en overdracht. Nieuwe vertrouwensgrenzen vragen een
+nieuw besluit onder het bestaande privacycontract.
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 ## ADR-056 — herkenbare sessieroute met expliciete VM-bewijsgrens
 
@@ -1506,9 +1532,13 @@ Contract, bron en nog lopende native gate: implementation/NATIVE-CLIPBOARD.md
 en verification/native-clipboard-20261102/.
 
 
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:19873e567ab851897e1d065923a6df6bb51d10a3815789c1e9a54f77932e1cd6 -->
+
 ## ADR-MATERIAL-LIBRARY-20261102 — bestaande volumeobjecten native bedienen
 
-De native werkruimte ontsluit bestaande volume-v7-namen, collecties, metadata
+**Voorstel/besluit.** De native werkruimte ontsluit bestaande volume-v7-namen, collecties, metadata
 en twee historieplaatsen; geen nieuw wireformaat, opslagformaat of kernelrecht.
 Hernoemen blijft draft tot expliciet bewaren. Ordenen gebruikt CAS, historie
 herstelt als nieuwe revisie. Onzekere publicatie wordt niet herhaald; een
@@ -1517,10 +1547,54 @@ Een begrensde tekstpreview valideert eerst de volledige historische versie en
 UTF-8 in de bestaande stagingbuffer. Labels maken verkorting en locatie duidelijk.
 Proportionele tekst deelt metrics/caret/selection/wrap/hittest en bewaart bytes.
 
-Het eigen scalar appspecifieke RX-budget wordt na echte131177-byte-linkermeting
+**Implementatie.** Het eigen scalar appspecifieke RX-budget wordt na echte131177-byte-linkermeting
 128→144KiB; vaste adressen, vijf segmenten, W^X, R/RW/stack/guard/kernelquota en
 capabilities blijven gelijk. Zie `implementation/NATIVE-MATERIAL-LIBRARY.md`.
-De native gate gebruikt volledige toegewezen appbeelden en een onafhankelijke
+**Testbewijs (oorspronkelijk acceptatieplan).** De native gate gebruikt volledige toegewezen appbeelden en een onafhankelijke
 schijfdecoder; koude heropening kopieert uitsluitend een opnieuw gevalideerde
 bron-/profielgebonden wegwerprun. U03 blijft open totdat de volledige route en
 regressie werkelijk slagen. Geen authenticatie-, encryptie- of hardwareclaim.
+
+De later uitgevoerde write/cold/full-gates op `64044318` en de CI-readback
+staan in [het U03-rapport](verification/materiaal-library-20261102/README.md).
+Daar is U03 geaccepteerd; bovenstaande open-status beschrijft het besluit vóór
+die acceptatie, geen nieuwe uitvoering van deze proeven.
+
+**Onbekend.** Volledige shaping/IME, schermlezer, fysieke hardware en dagelijks
+vloeiende interactie zijn hiermee niet bewezen. Verdere codegroei is geen
+stilzwijgende toestemming voor een volgend budget.
+
+**Alternatieven.** Behoud van 128 KiB met kleiner gekoppelde code is wenselijk
+als dezelfde functies en gates passen. `opt-level=z` overschreed eveneens de
+limiet; thin LTO werkte niet met de gepinde prebuilt-core/code-modelcombinatie
+(zie het oorspronkelijke rapport). Een nieuw opslagformaat, ruimere kernelquota
+of schrappen van validatie is niet nodig voor deze UI en wordt niet gekozen.
+
+**Weerleggingscriterium RX-verhoging (voorstel voor herbeoordeling).** De
+noodzaak van 144 KiB is weerlegd zodra een herhaalbare scalar-releasebuild met
+Rust 1.90.0 van dezelfde U03-functionaliteit maximaal **131.072 RX-bytes** meet
+in de echte linkermap, de bestaande ELF-parser alle vijf segmenten/rechten en
+quota accepteert, én de write-10-, cold-4-, full-22- en openbare route-18-gates
+slagen met volledige appbeeld- en onafhankelijke diskreadback. Leg bronhash,
+linkermap en gate-uitkomsten vast; een kleinere build zonder die functies of
+zonder deze gates weerlegt de verhoging niet. Dit criterium is nog niet nieuw
+uitgevoerd. Bij enige W^X-, non-overlap-, guard- of quotaregressie wordt de
+144-KiB-build ongeacht de gemeten grootte afgewezen.
+
+**Migratie en rollback.** Volume v7 en wire-ABI blijven gelijk; er is geen
+dataconversie. Verifieer eerst op een nieuwe wegwerpdisk en daarna via de
+bestaande gevalideerde cold-kopie. Bij bovenstaande weerlegging zet de eigenaar
+het appspecifieke RX-linkerbudget terug op **128 KiB**, herbouwt de hele bundel
+en herhaalt ELF- en native gates op die exacte bron. Bij falende acceptatie of
+een veiligheidsregressie publiceer de nieuwe bundel niet; herstel de vooraf
+geteste complete bundel met het bijbehorende linkerbudget. Verklein nooit
+alleen de limiet rond de huidige 131.177-byte-image en meng geen oude kernel
+met nieuwe appbeelden. Rollback bewaart volumeobjecten en historische revisies;
+onzekere mutaties worden ook daarbij niet opnieuw afgespeeld.
+
+**Eigenaar.** Simon is besliseigenaar van het budget en de rollback;
+de hoofdagent levert linkermeting, ELF-/native-bewijs en brongebonden overdracht.
+De bestaande privacygrens en alle hierboven genoemde randvoorwaarden blijven
+acceptatievoorwaarden.
+
+<!-- /coderabbit-ai-generated:v1 -->

@@ -31,11 +31,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **44** |
 
-**Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`64044318`](https://github.com/simonvanieperen/nieuw-os/commit/64044318c622eaacab25272611acf856a5fca5d5) ·
-**Ontwikkelbranch:** `codex/materiaal-library-20261102`.
-Deze opdracht: **41% → 44% (+3 procentpunt)**. **Opdracht:** U03 native openen, bewerken, benoemen, organiseren en versieherstel geaccepteerd.
-41 → 44/100 door uitsluitend U03 (+3). Native documenten worden benoemd, gezocht, geordend en als nieuwe revisie hersteld. Write10/cold4/full22 en openbare sessieroute18 slagen op640/source069666e5, met complete appbeelden, onafhankelijke disk/hashreadback, echte compositorfault, clipboard en cleanup. Alle18 CI-workflows op640 zijn groen en de drie CI-runs zijn uit het artifact opnieuw gecontroleerd. Materiaal LOADgeheugen195→156pagina’s gemeten. Afzonderlijke toolingcorrectie:195tests groen; kernel+8apps bytegelijk, UEFI alleen andere linkmetadata, geen nieuwe native claim voor die rebuild. Grote TCG-overgangen blijven45–53s; U02/U04/U05, echte authenticatie en hardware blijven open.
+**Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
+**Bron:** [`cafbac55`](https://github.com/simonvanieperen/nieuw-os/commit/cafbac55b49d5aee4c4fea4133048ec7e232e44e) ·
+**Ontwikkelbranch:** `coderabbit/address-verified-review-findings/3f34d86e`.
+Deze opdracht: **44% → 44% (+0 procentpunt)**. **Opdracht:** Geverifieerde reviewbevindingen: ADR, artifactbinding en pointer-/zoekfocusherstel.
+44 → 44/100. Reviewherstel behoudt bestaande criteria en historische U03-acceptatie. ADRs verduidelijken bewijs, alternatieven en rollback; inputherstel en artifactbinding krijgen gerichte controles. Geen nieuwe productacceptatiepunten; persoonlijke authenticatie, U02 en hardware blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -65,9 +65,15 @@ python3 -B tools/build.py --kernel-feature native-session-route
 De brongebonden route met 18 toestanden en de volledige 22-fasenregressie met
 echt compositorherstel, clipboard en schijfcontrole slagen op 703cc07. De
 sparsevergelijking meet1542,275→697,463s, maar koude appframes blijven te traag.
-De score blijft 41/100. [Rapport, commando's en echte screenshots](docs/verification/session-quality-20261102/README.md) ·
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:e2797394e083c2864c916302ae43931c667e88058ec872d74961345c0ea406e8 -->
+
+Voor het sessiecheckpoint van 2 november 2026, vóór U03, bleef de score 41/100. [Rapport, commando's en echte screenshots](docs/verification/session-quality-20261102/README.md) ·
 [Visueel board](docs/verification/session-quality-20261102/screenshots/session-board-host.png) ·
 [VMware-proefopdracht en huidige drivergrens](docs/implementation/VMWARE-WORKSTATION-TRIAL.md).
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 ## Native venstersessie — 2 november 2026
 

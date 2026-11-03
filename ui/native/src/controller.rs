@@ -1489,6 +1489,16 @@ impl<'a, T: Transport> Controller<'a, T> {
         }
         if event.key == PhysicalKey::Escape && press {
             return match self.screen {
+                Screen::Material if self.focus == Focus::Search => {
+                    self.focus = if self.editable {
+                        Focus::New
+                    } else {
+                        Focus::Refresh
+                    };
+                    self.pressed = None;
+                    self.dragging = false;
+                    self.invalidate()
+                }
                 Screen::ConfirmClose => self.activate_focus_semantically(Focus::KeepEditing),
                 Screen::Editor => self.activate_focus_semantically(Focus::Back),
                 _ => Ok(()),
@@ -1815,6 +1825,7 @@ impl<'a, T: Transport> Controller<'a, T> {
                 if key.key == PhysicalKey::Escape
                     && key.action == KeyAction::Press
                     && self.screen == Screen::Material
+                    && self.focus != Focus::Search
                     && self.desktop.is_some() =>
             {
                 self.desktop.as_mut().unwrap().home();

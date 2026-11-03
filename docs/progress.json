@@ -2,12 +2,12 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-02",
-    "source_commit": "64044318c622eaacab25272611acf856a5fca5d5",
-    "branch": "codex/materiaal-library-20261102",
-    "task": "U03 native openen, bewerken, benoemen, organiseren en versieherstel geaccepteerd",
-    "previous_score": 41,
-    "summary": "41 → 44/100 door uitsluitend U03 (+3). Native documenten worden benoemd, gezocht, geordend en als nieuwe revisie hersteld. Write10/cold4/full22 en openbare sessieroute18 slagen op640/source069666e5, met complete appbeelden, onafhankelijke disk/hashreadback, echte compositorfault, clipboard en cleanup. Alle18 CI-workflows op640 zijn groen en de drie CI-runs zijn uit het artifact opnieuw gecontroleerd. Materiaal LOADgeheugen195→156pagina’s gemeten. Afzonderlijke toolingcorrectie:195tests groen; kernel+8apps bytegelijk, UEFI alleen andere linkmetadata, geen nieuwe native claim voor die rebuild. Grote TCG-overgangen blijven45–53s; U02/U04/U05, echte authenticatie en hardware blijven open."
+    "date": "2026-11-03",
+    "source_commit": "cafbac55b49d5aee4c4fea4133048ec7e232e44e",
+    "branch": "coderabbit/address-verified-review-findings/3f34d86e",
+    "task": "Geverifieerde reviewbevindingen: ADR, artifactbinding en pointer-/zoekfocusherstel",
+    "previous_score": 44,
+    "summary": "44 → 44/100. Reviewherstel behoudt bestaande criteria en historische U03-acceptatie. ADRs verduidelijken bewijs, alternatieven en rollback; inputherstel en artifactbinding krijgen gerichte controles. Geen nieuwe productacceptatiepunten; persoonlijke authenticatie, U02 en hardware blijven open."
   },
   "tracks": [
     {

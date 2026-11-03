@@ -554,6 +554,7 @@ impl Shell {
         let action = hit
             .and_then(|i| controls.into_iter().flatten().nth(i))
             .map(|c| c.action);
+        let previous_focus = self.focus;
         if down {
             self.pressed = action;
             if let Some(i) = hit {
@@ -565,7 +566,7 @@ impl Shell {
                 return Effect::take(true, self.activate(action.unwrap()));
             }
         }
-        Effect::take(down || !held, Command::None)
+        Effect::take(self.focus != previous_focus, Command::None)
     }
     pub fn cancel_pointer(&mut self) {
         self.pressed = None;

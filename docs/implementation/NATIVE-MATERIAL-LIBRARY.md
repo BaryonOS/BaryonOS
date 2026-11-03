@@ -20,7 +20,20 @@ UTF-8-bytes veranderen nooit om de weergave passend te maken. Volledige shaping,
 IME en een native schermlezer blijven afzonderlijk onbewezen.
 
 - F2 bewerkt de naam; Enter wijzigt de draft, Ctrl+S bewaart expliciet.
-- Ctrl+F zoekt lokaal op naam; Escape verlaat het veld zonder draftverlies.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:bbb8b426631fa3dfe987170eddeae6336671d39a35b8fd35e03569711e3931bc -->
+
+- Ctrl+F zoekt lokaal op naam. Zonder bovenliggende bureaubladlaag verlaat
+  Escape-Press het zoekveld naar `Focus::New` bij bewerkrechten, anders naar
+  `Focus::Refresh`. Zoektekst, collectie/filter en documentdraft blijven behouden;
+  Escape schrijft niets naar opslag. Een actieve bureaubladlaag verwerkt Escape
+  eerst volgens haar eigen navigatie (Search → Home, Login → Accounts) en geeft
+  dezelfde toets niet door aan Materiaal. Home en Accounts blijven staan.
+  Zodra Materiaal weer zichtbaar is, geldt de zoekfocusregel; een volgende
+  Escape buiten het zoekveld behoudt de bestaande desktopnavigatie.
+
+<!-- /coderabbit-ai-generated:v1 -->
 - Ctrl+G opent ordenen en collectiebeheer; pas een bevestigde dienstbewerking
   mag een blijvende wijziging als geslaagd tonen.
 - Alt+H opent geschiedenis. Herstellen leest een bestaande versie en maakt

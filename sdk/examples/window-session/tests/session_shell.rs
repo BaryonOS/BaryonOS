@@ -195,3 +195,23 @@ fn rtc_is_display_only_bounded_and_handles_leap_dates() {
     }
     assert!(s.blocks_apps());
 }
+
+#[test]
+fn panel_pointer_damage_tracks_focus_and_activation_only() {
+    let mut shell = Shell::new(true);
+    key(&mut shell, PhysicalKey::Enter);
+    let controls: Vec<_> = shell.controls(1280, 720, 1).into_iter().flatten().collect();
+    let point = |i: usize| {
+        (
+            controls[i].bounds.x as u32 + 2,
+            controls[i].bounds.y as u32 + 2,
+        )
+    };
+    assert!(!shell.mouse(point(0), false, false, 1280, 720, 1).changed);
+    assert!(!shell.mouse(point(0), true, true, 1280, 720, 1).changed);
+    assert!(!shell.mouse(point(1), false, true, 1280, 720, 1).changed);
+    assert!(!shell.mouse(point(1), false, false, 1280, 720, 1).changed);
+    assert!(shell.mouse(point(1), true, true, 1280, 720, 1).changed);
+    assert!(!shell.mouse(point(1), false, true, 1280, 720, 1).changed);
+    assert!(shell.mouse(point(1), false, false, 1280, 720, 1).changed);
+}
