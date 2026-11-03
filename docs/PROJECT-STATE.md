@@ -1,6 +1,46 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — issue #43: ReceiveTcp na verbindingstime-out
+## NEXT AGENT HANDOFF — native startoppervlak verfijnen
+
+**Bron:** `bd4134c1d565f58736a2c829587f337a415dd47b`, bovenop
+`cbbc9c9941b08ea5edfbd3637d494635b4fb1df0` (op dat moment `origin/main`),
+branch `simonvanieperen-reimagined-train`.
+Het opt-in VM-startscherm heeft nu een duidelijke hiërarchie, een zichtbare
+Start-actie en een Materiaalkaart die de echte bibliotheekstatus weergeeft.
+De kaart onderscheidt niet-geladen, leeg, fout en bestaand document; de
+compacte indeling voorkomt overlap met de navigatiebalk. Er zijn geen
+capabilities, authenticatie, opslagrechten of sessieovergangen toegevoegd.
+
+**Gewijzigd:** `ui/native/src/desktop.rs`, `ui/native/src/render.rs`,
+`ui/native/tests/render_regressions.rs`, `ui/native/README.md` en
+`docs/implementation/SESSION-AND-DESKTOP.md`.
+
+**Uitgevoerd:** Rust 1.90.0 `fmt --check`, `cargo check --tests`,
+Clippy (`--all-targets -- -D warnings`) en `git diff --check`: exit 0.
+De bestaande scalar `x86_64-unknown-none`-releasebuild van de native UI slaagt
+ook (exit 0); het `.rlib` heeft SHA-256
+`42eda9397dc739d098b666d9f5a013911fc0b3d867469fde8a558b34b3888b5d`.
+Dit is compilebewijs, geen OS-runtimebewijs.
+De nieuwe pixelregressietest startte niet (exit 101), omdat de hostlinker
+`cc` ontbreekt; testassertions zijn dus niet uitgevoerd. De gecorrigeerde
+preflight met Rust in `PATH` eindigde met exit 2: `cc`, QEMU en OVMF ontbreken.
+Er is geen QEMU-runtime of native screenshot gemaakt. Commando's, logs en
+bewijsgrenzen: `docs/verification/native-start-surface-20261103/README.md`.
+
+**Voortgang:** 41 → 41/100. Geen rubriccriterium gesloten; UI-compilatie en
+een toegevoegde test zijn geen native visuele acceptatie. U03/U04 en de
+volledige release blijven open.
+
+De vaste meter is opnieuw gegenereerd en gecontroleerd:
+`python3 tools/progress.py --write` en `python3 tools/progress.py --check`,
+beide exit 0. De assessmentbron is de codecommit hierboven; de huidige
+status-/meterupdate is een documentatiecheckpoint daarop.
+
+**Eerstvolgend:** zodra een host-C-linker beschikbaar is, voer uit:
+`PATH="$HOME/.cargo/bin:$PATH" cargo +1.90.0 test --offline --locked --manifest-path ui/native/Cargo.toml --test render_regressions desktop_home_card_follows_the_real_library_state_and_stays_above_the_bar -- --nocapture`.
+De afzonderlijke native QEMU-/screenshotgate vereist ook QEMU en OVMF.
+
+## Historisch checkpoint — issue #43: ReceiveTcp na verbindingstime-out
 
 **Basis:** `380111b68688c981eec6abb8fab29174a29f5601` (main), branch
 `coderabbit/issue-43-receive-timeout`. Eén gerichte N01-reparatie: een al

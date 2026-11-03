@@ -85,6 +85,15 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Native startoppervlak (3 november 2026), implementatiebron `bd4134c`:
+**41% → 41%**. De opt-in VM-preview toont niet-geladen, lege, fout- en
+gevulde Materiaaltoestanden; renderer- en layoutregressiecode compileert en
+lint. Ook de scalar `x86_64-unknown-none`-releasebuild slaagt
+(artifacthash `42eda9397dc739d098b666d9f5a013911fc0b3d867469fde8a558b34b3888b5d`).
+De pixeltest kon niet starten door ontbrekende hostlinker `cc`; QEMU/OVMF en
+native screenshot ontbreken. Geen nieuw criterium of runtimebewijs.
+Zie `verification/native-start-surface-20261103/README.md`.
+
 PR127-reviewintegratie (2 november 2026), basis `798706c` met `8f08db4`:
 branch **41 → 41**, main **34 → 34**. Zeven reviewpunten en gekoppelde
 font/damage-integratie hersteld; 189 Rust-app/UI-,9 netwerk- en31 Python-tests
