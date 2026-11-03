@@ -2,26 +2,31 @@
 
 ## NEXT AGENT HANDOFF — gedeelde host-artefacthelpers — 3 november 2026
 
-**Basis:** `4945aef2f245bcca749d7a70b71ba3137073dfc6` op
+**Basis:** `4ca9262d776a8cb978e49ec209e67398b11fc9ad` op
 `simonvanieperen-friendly-system`. De beeld-, RANDOM- en FPU-hostgates delen
 nu byte-SHA256/hexvalidatie en gecontroleerde inventarisatie van gewone
 bestanden. Iedere ESP-kandidaat blijft vóór gebruik door dezelfde
 `private_path`-guard lopen; hash-, grootte-, hardlink- en symlinkcontroles zijn
-behouden. Dit wijzigt geen OS-runtime of capability.
+behouden. De helper bewaart het oorspronkelijke relatieve/absolute pad, zoals
+de FPU-validator verwacht. Dit wijzigt geen OS-runtime of capability.
 
-**Uitgevoerd:** `python3 -B -m unittest discover -s tools/tests -p
-'test_images.py' -v` (20 tests), dezelfde opdracht met `test_random.py` (21)
-en `python3 -B -m unittest discover -s tests -p 'test_common.py' -v` (7):
-alle exit 0. `git diff --check && python3 -m py_compile tools/common.py
+**Uitgevoerd op deze bron:** `python3 -B -m unittest discover -s tools/tests
+-p 'test_images.py' -v` (20 tests), dezelfde opdracht met `test_random.py`
+(21), en `python3 -B -m unittest discover -s tests -p 'test_common.py' -v`
+(8): alle exit 0. `git diff --check && python3 -m py_compile tools/common.py
 tools/run_images.py tools/run_random.py tools/run_fpu.py tests/test_common.py`:
-exit 0. Dit zijn hosttests met synthetische fixtures, geen bewijs van
-QEMU-/native OS-gedrag. Compacte hashes: `verification/shared-tooling-refactor-20261103/host-tests.json`.
+exit 0. Volledige root-/tools-/OSDev-Python-hosttests waren eerder groen op de
+voorloper `4945aef`, maar worden opnieuw uitgevoerd na deze padcompatibiliteitsfix.
+Dit zijn hosttests met synthetische fixtures, geen bewijs van QEMU-/native
+OS-gedrag. Compacte hashes:
+`verification/shared-tooling-refactor-20261103/host-tests.json`.
 
 **Voortgang:** 41 → 41; geen criteriumbewijs toegevoegd. Eerstvolgend:
 voer de bestaande volledige Python-hosttests uit voor `tests/`,
-`tools/tests/` en de OSDev-skillsuite; controleer daarna diff, rapport en
-branchpush. Native productgates, volledige release, fysieke hardware en
-menselijke review zijn niet uitgevoerd.
+`tools/tests/` en de OSDev-skillsuite op exacte bron `4ca9262`; werk daarna
+het bewijsrapport bij, controleer de voortgangsmeter en push. Native
+productgates, volledige release, fysieke hardware en menselijke review zijn
+niet uitgevoerd.
 
 ## Vorig checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 

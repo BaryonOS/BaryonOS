@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`4945aef2`](https://github.com/simonvanieperen/nieuw-os/commit/4945aef2f245bcca749d7a70b71ba3137073dfc6) ·
+**Bron:** [`4ca9262d`](https://github.com/simonvanieperen/nieuw-os/commit/4ca9262d776a8cb978e49ec209e67398b11fc9ad) ·
 **Ontwikkelbranch:** `simonvanieperen-friendly-system`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Gedeelde host-artefacthelpers refactoren zonder gedrag te wijzigen.
-41/100 blijft 41/100; deze refactor wijzigt geen productcriterium en levert geen native OS-bewijs op. Gedeelde SHA-256-bytehelpers en gecontroleerde bestandsinventarisatie zijn ingevoerd in tools/common.py en hergebruikt door de image-, RANDOM- en FPU-hostgates. De gerichte bestaande hosttests slagen (20 image, 21 RANDOM, 7 common) en Python-syntaxiscontrole slaagt. De bredere hosttestsets moeten nog draaien; geen native, fysieke, menselijke of releasevalidatie.
+41/100 blijft 41/100; deze refactor wijzigt geen productcriterium en levert geen native OS-bewijs op. Gedeelde SHA-256-bytehelpers en gecontroleerde bestandsinventarisatie zijn ingevoerd in tools/common.py en hergebruikt door de image-, RANDOM- en FPU-hostgates. De inventarisatie bewaart ook relatieve paden. Gerichte tests op deze bron slagen (20 image, 21 RANDOM, 8 common) en Python-syntaxiscontrole slaagt; de volledige Python-hosttests zijn op deze laatste bron nog niet herhaald. Geen native, fysieke, menselijke of releasevalidatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

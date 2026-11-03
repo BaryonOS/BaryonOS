@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "4945aef2f245bcca749d7a70b71ba3137073dfc6",
+    "source_commit": "4ca9262d776a8cb978e49ec209e67398b11fc9ad",
     "branch": "simonvanieperen-friendly-system",
     "task": "Gedeelde host-artefacthelpers refactoren zonder gedrag te wijzigen",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100; deze refactor wijzigt geen productcriterium en levert geen native OS-bewijs op. Gedeelde SHA-256-bytehelpers en gecontroleerde bestandsinventarisatie zijn ingevoerd in tools/common.py en hergebruikt door de image-, RANDOM- en FPU-hostgates. De gerichte bestaande hosttests slagen (20 image, 21 RANDOM, 7 common) en Python-syntaxiscontrole slaagt. De bredere hosttestsets moeten nog draaien; geen native, fysieke, menselijke of releasevalidatie."
+    "summary": "41/100 blijft 41/100; deze refactor wijzigt geen productcriterium en levert geen native OS-bewijs op. Gedeelde SHA-256-bytehelpers en gecontroleerde bestandsinventarisatie zijn ingevoerd in tools/common.py en hergebruikt door de image-, RANDOM- en FPU-hostgates. De inventarisatie bewaart ook relatieve paden. Gerichte tests op deze bron slagen (20 image, 21 RANDOM, 8 common) en Python-syntaxiscontrole slaagt; de volledige Python-hosttests zijn op deze laatste bron nog niet herhaald. Geen native, fysieke, menselijke of releasevalidatie."
   },
   "tracks": [
     {

@@ -1,33 +1,34 @@
 {
   "schema_version": 1,
-  "source_commit": "4945aef2f245bcca749d7a70b71ba3137073dfc6",
+  "source_commit": "4ca9262d776a8cb978e49ec209e67398b11fc9ad",
   "scope": "Host-only refactor of shared artifact and hash helpers; no OS runtime evidence.",
   "tests": [
     {
       "command": "python3 -B -m unittest discover -s tools/tests -p 'test_images.py' -v",
       "exit_status": 0,
       "tests_run": 20,
-      "log": "/tmp/nieuw-os-refactor-images.log",
-      "log_sha256": "c16aab339f7e8863968b2d6d69456f9c223a00e01841e787a570a2b0725e1dc3"
+      "log": "/tmp/nieuw-os-refactor-images-final.log",
+      "log_sha256": "d1744a059f77f456af9508b904525d3a31c2f414a37b2788b99e03e9489d649a"
     },
     {
       "command": "python3 -B -m unittest discover -s tools/tests -p 'test_random.py' -v",
       "exit_status": 0,
       "tests_run": 21,
-      "log": "/tmp/nieuw-os-refactor-random.log",
-      "log_sha256": "95ec720554c03401bf4f39f1961a9d2b91550409643d66aa0bd3867babeed8b3"
+      "log": "/tmp/nieuw-os-refactor-random-final.log",
+      "log_sha256": "aca2cc4e1f458309d6d0d06b3039ac4bd80ab67e821ff722d5a154b58094b470"
     },
     {
       "command": "python3 -B -m unittest discover -s tests -p 'test_common.py' -v",
       "exit_status": 0,
-      "tests_run": 7,
-      "log": "/tmp/nieuw-os-refactor-common.log",
-      "log_sha256": "37c43c72d82706d5c31d6ce8714fc8e7f16f180262449dde1f9801a703fe7abf"
+      "tests_run": 8,
+      "log": "/tmp/nieuw-os-refactor-common-final.log",
+      "log_sha256": "b2018da3c2a62e83ab9574e93dce05bc82f0a1464293d4057d5be55c924235ab"
     },
     {
       "command": "git diff --check && python3 -m py_compile tools/common.py tools/run_images.py tools/run_random.py tools/run_fpu.py tests/test_common.py",
       "exit_status": 0
     }
   ],
+  "full_host_suites_on_this_source": "pending",
   "native_vm_physical_human_release_tests": "not_run"
 }
