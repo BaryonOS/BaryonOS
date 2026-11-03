@@ -236,6 +236,7 @@ impl Table {
 
 fn needs_quotes(field: &str) -> bool {
     field.is_empty()
+        || field.starts_with('\u{feff}')
         || field
             .bytes()
             .any(|byte| matches!(byte, b',' | b'"' | b'\r' | b'\n'))

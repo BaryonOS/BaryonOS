@@ -7,7 +7,7 @@ import subprocess
 import sys
 
 binary = Path(sys.argv[1]).resolve(strict=True)
-alphabet = ["", "abc", "Zoë", "a,b", 'a"b', "a\r\nb", "李", " =literal"]
+alphabet = ["", "abc", "Zoë", "a,b", 'a"b', "a\r\nb", "李", " =literal", "\ufeffx"]
 count = 0
 for first, second in itertools.product(alphabet, repeat=2):
     rows = [["Naam", "Notitie"], [first, second]]
@@ -25,3 +25,20 @@ for first, second in itertools.product(alphabet, repeat=2):
     assert actual == [rows[0], [first + "!", second]], (rows, actual)
     count += 1
 print(f"Python standard-library csv independently reopened {count} real host CLI edit/export outputs; all exact cell values match.")
+
+result = subprocess.run(
+    [str(binary), "--set", "1", "1", "\ufeffx"],
+    input=b"x",
+    capture_output=True,
+    check=True,
+    timeout=10,
+)
+assert not result.stderr
+assert result.stdout == '"\ufeffx"\r\n'.encode()
+reopened = subprocess.run(
+    [str(binary)], input=result.stdout, capture_output=True, check=True, timeout=10
+)
+assert not reopened.stderr
+assert reopened.stdout == result.stdout
+assert list(csv.reader(io.StringIO(reopened.stdout.decode(), newline=""))) == [["\ufeffx"]]
+print("Leading U+FEFF in the first edited cell survives CLI export/reopen and independent csv parsing.")

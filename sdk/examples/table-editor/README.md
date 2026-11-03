@@ -29,6 +29,8 @@ Geen schema-/type-/headerdetectie, delimitergok, platformencoding of trim.
 UTF-8, optionele UTF-8-BOM en LF-records zijn expliciete uitbreidingen.
 Een lege laatste cel na een komma blijft behouden; export quote lege cellen.
 Export is UTF-8 zonder BOM met CRLF-records en minimaal benodigde quotes.
+Een cel met leidende U+FEFF wordt gequote, zodat dit tekstteken bij
+heropenen niet als bestands-BOM verdwijnt.
 Een leeg bestand is een nulrijentabel; een lege record is een lege cel.
 Ongeldige UTF-8, NUL, losse CR buiten quotes, ragged rows, onverwachte of
 niet afgesloten quotes en tekst na een afsluitquote worden expliciet geweigerd.

@@ -254,7 +254,7 @@ fn formula_like_cells_are_never_evaluated_or_silently_modified() {
 
 #[test]
 fn exhaustive_small_text_roundtrips_preserve_all_cell_boundaries() {
-    let alphabet = ["", "a", ",", "\"", "\n", "\r", "é", " "];
+    let alphabet = ["", "a", ",", "\"", "\n", "\r", "é", " ", "\u{feff}"];
     for first in alphabet {
         for second in alphabet {
             let mut document = table(b"x,y\nz,w");
@@ -271,6 +271,22 @@ fn exhaustive_small_text_roundtrips_preserve_all_cell_boundaries() {
             assert_eq!(reopened.export().unwrap(), exported);
         }
     }
+}
+
+#[test]
+fn leading_bom_cell_text_survives_edit_export_and_reopen() {
+    for input in ["x", "\u{feff}\u{feff}x", "\"\u{feff}x\""] {
+        let mut document = table(input.as_bytes());
+        document.set_cell(0, 0, "\u{feff}x").unwrap();
+        let exported = document.export().unwrap();
+        assert_eq!(exported, "\"\u{feff}x\"\r\n".as_bytes());
+        let reopened = table(&exported);
+        assert_eq!(reopened.cell(0, 0), Some("\u{feff}x"));
+        assert_eq!(reopened.export().unwrap(), exported);
+    }
+    let document = table("\u{feff}\u{feff}x".as_bytes());
+    let reopened = table(&document.export().unwrap());
+    assert_eq!(reopened.cell(0, 0), Some("\u{feff}x"));
 }
 
 #[test]

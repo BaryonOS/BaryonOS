@@ -25,7 +25,7 @@ wel een gedeeltelijke write geven; dit is geen atomair bestandssavepad.
 
 Gekozen CSV-profiel en uitbreidingen zijn per feature beschreven in
 `sdk/examples/table-editor/README.md`, gebaseerd op Y. Shafranovich,
-RFC 4180, oktober 2005, paragraaf 2,
+*RFC 4180, Common Format and MIME Type for CSV Files*, oktober 2005, paragraaf 2,
 <https://www.rfc-editor.org/rfc/rfc4180.html> (primaire bron geraadpleegd).
 Geen claim van alle CSV-dialecten of Office/XLSX-roundtrippariteit.
 
@@ -102,3 +102,51 @@ de kleine slice parallel. Vervolgwerk begint op opnieuw opgehaalde main en
 neemt deze nog niet geintegreerde table-editor niet als dependency.
 Rollback: deze nieuwe subtree verwijderen; geen bestaande ABI of opslagformaat
 wijzigt. De volwaardige native spreadsheet- en testreleaseopdracht blijft open.
+
+## Integratiereview PR169, 3 november 2026
+
+Reviewbasis `f783dffa981d5c3b70ad19a57171a40208d16bb8`, main
+`d10b5cdaf56774a39e3ef10463f674c6188a463a`. De begrensde review van
+import/export, budgetten, transactionele edits en CLI-fouten bevestigde
+gegevensverlies bij een eerste cel met leidende U+FEFF: ongequote export
+werd bij heropenen als bestands-BOM gestript. De nieuwe regressie
+`leading_bom_cell_text_survives_edit_export_and_reopen` faalde op de oude
+productcode (Cargo exit 101). Export quote nu leidende U+FEFF; edits,
+dubbele invoer-BOM en reeds gequote tekst blijven behouden.
+
+De CLI-testhelper accepteert BrokenPipe alleen als het kindproces ook
+daadwerkelijk faalt; overige schrijffouten blijven testfouten. Een nieuwe
+128-KiB-invoerproef toetst vroeg afgewezen argumenten zonder schedulerafhankelijke
+kleine pipewrite. De RFC-bronvermelding hierboven is volledig gemaakt.
+
+Uitgevoerd met Rust 1.90.0, eigen targets `target/pr-agent-c-host` en
+`target/pr-agent-c-none`, alle onderstaande commando's exit 0:
+
+```text
+cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/table-editor/Cargo.toml --features host-cli
+# 10 modeltests en 4 werkelijke CLI-procestests
+cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/table-editor/Cargo.toml --features host-cli --all-targets -- -D warnings
+cargo +1.90.0 fmt --manifest-path sdk/examples/table-editor/Cargo.toml -- --check
+python3 -B sdk/examples/table-editor/tests/interop.py target/pr-agent-c-host/debug/table-csv
+# 81 onafhankelijke csv-orakels plus eerste-cel-U+FEFF export/heropenen
+cargo +1.90.0 build --offline --locked --release --lib --manifest-path sdk/examples/table-editor/Cargo.toml --target x86_64-unknown-none
+git diff --check
+```
+
+Lokale logs onder `build/pr-agent-c-169/`, SHA-256:
+
+```text
+0226c934c620621c63c29f2c1ebede323030f9d67d3cdfc3c4eb4bc07b7600f0 bom-red.log
+32c89ab84d3cb920fe6f0340d88e090ff441c39e60f073d08d8419c8e908bec3 green.log
+87a827890583431ab31f1e90cac6f6323301a7d2c2c8fb59eadbd9555cab257b src/lib.rs
+8b320fe90ee61b4927fed3ff0d9e86d9221be7cd5cb5cd1a5099fae649c848da tests/table.rs
+375f6f67066621cb847ad0dee852771954b4e8afea4fd9b42542b89606ece82f tests/cli.rs
+35fb789cb076d033c05a9e1418a614188d6ade4319b4937538a902a80ab24efe tests/interop.py
+```
+
+Oude hashes en aantallen hierboven beschrijven uitsluitend de oorspronkelijke
+bron, niet deze correctie. Geen native runtimeconsumer gewijzigd of toegevoegd;
+geen QEMU-/hardware-/menselijke-/releaseproef uitgevoerd. Vereiste verse CI op
+het definitieve PR-head blijft een afzonderlijke integratievoorwaarde.
+Scorevoorstel ongewijzigd **41 -> 41/100**, centrale beoordeling bij de
+hoofdcoordinator.

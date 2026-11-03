@@ -13,8 +13,13 @@ fn run(input: &[u8], args: &[&str]) -> std::process::Output {
         .stderr(Stdio::piped())
         .spawn()
         .unwrap();
-    child.stdin.take().unwrap().write_all(input).unwrap();
-    child.wait_with_output().unwrap()
+    let write = child.stdin.take().unwrap().write_all(input);
+    let output = child.wait_with_output().unwrap();
+    if let Err(error) = write {
+        assert_eq!(error.kind(), std::io::ErrorKind::BrokenPipe);
+        assert!(!output.status.success(), "stdin was not fully consumed");
+    }
+    output
 }
 
 #[test]
@@ -50,6 +55,14 @@ fn malformed_csv_arguments_and_late_failed_edits_produce_no_success_output() {
         assert!(result.stdout.is_empty(), "{args:?}");
         assert!(!result.stderr.is_empty(), "{args:?}");
     }
+}
+
+#[test]
+fn rejected_arguments_close_stdin_without_consuming_a_large_input() {
+    let result = run(&vec![b'a'; 128 * 1024], &["--unknown"]);
+    assert_eq!(result.status.code(), Some(1));
+    assert!(result.stdout.is_empty());
+    assert!(!result.stderr.is_empty());
 }
 
 #[cfg(unix)]
