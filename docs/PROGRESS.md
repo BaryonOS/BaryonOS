@@ -147,8 +147,8 @@ Factorygekoppelde PCI-matches (3 november 2026), bron
 naast de fail-closed match de concrete statisch geregistreerde initializer
 terug. De bestaande block-/netwerkinitializers worden via die factory
 aangeroepen na de bestaande kernelresource-toekenning. 28 gerichte hosttests,
-Clippy, fmt en diff-check slagen. Kernelprofielbuilds en runtime/hardware zijn
-niet uitgevoerd; geen nieuw criterium geaccepteerd. Zie de
+Clippy, fmt, diff-check en zeven profielbuilds slagen. QEMU-runtime en fysiek
+hardware zijn niet getest; geen nieuw criterium geaccepteerd. Zie de
 [factoryreceipt](verification/driver-factory-2026-11-03/README.md).
 
 Driver-/repositoryonderzoek (3 november 2026), basis `99d13276`:

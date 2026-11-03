@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`43da7594`](https://github.com/simonvanieperen/nieuw-os/commit/43da75947cb5b147c1435a81547a22b3cebfb04a) ·
+**Bron:** [`9b2d6fb6`](https://github.com/simonvanieperen/nieuw-os/commit/9b2d6fb6b71eade4ffb2386480645564229c958e) ·
 **Ontwikkelbranch:** `copilot/universal-driver-framework`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Factorygekoppelde PCI-matches voor VirtIO block en netwerk.
-41/100 blijft 41/100. DriverRegistry koppelt de unieke PCI-match aan een statische initializer voor VirtIO block/net; 28 gerichte hosttests, Clippy, fmt en diff-check slagen met exit 0. Exacte commando's, logs, duur en SHA-256 staan in docs/verification/driver-factory-2026-11-03/README.md. Kernelprofielbuilds, QEMU/runtime en fysiek hardwarebewijs zijn nog niet uitgevoerd; geen nieuw acceptatiepunt.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Factorygekoppelde PCI-matches en zeven kernelprofielbuilds.
+41/100 blijft 41/100. DriverRegistry koppelt de unieke PCI-match aan een statische initializer voor VirtIO block/net; 28 gerichte hosttests, Clippy, fmt, diff-check en zeven profielbuilds slagen met exit 0. Commando's, logs, duur en SHA-256 staan in docs/verification/driver-factory-2026-11-03/README.md. QEMU ontbreekt lokaal; runtime en fysieke hardware zijn niet getest. Geen nieuw acceptatiepunt.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

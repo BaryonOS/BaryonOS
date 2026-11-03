@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "43da75947cb5b147c1435a81547a22b3cebfb04a",
+    "source_commit": "9b2d6fb6b71eade4ffb2386480645564229c958e",
     "branch": "copilot/universal-driver-framework",
-    "task": "Factorygekoppelde PCI-matches voor VirtIO block en netwerk",
+    "task": "Factorygekoppelde PCI-matches en zeven kernelprofielbuilds",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. DriverRegistry koppelt de unieke PCI-match aan een statische initializer voor VirtIO block/net; 28 gerichte hosttests, Clippy, fmt en diff-check slagen met exit 0. Exacte commando's, logs, duur en SHA-256 staan in docs/verification/driver-factory-2026-11-03/README.md. Kernelprofielbuilds, QEMU/runtime en fysiek hardwarebewijs zijn nog niet uitgevoerd; geen nieuw acceptatiepunt."
+    "summary": "41/100 blijft 41/100. DriverRegistry koppelt de unieke PCI-match aan een statische initializer voor VirtIO block/net; 28 gerichte hosttests, Clippy, fmt, diff-check en zeven profielbuilds slagen met exit 0. Commando's, logs, duur en SHA-256 staan in docs/verification/driver-factory-2026-11-03/README.md. QEMU ontbreekt lokaal; runtime en fysieke hardware zijn niet getest. Geen nieuw acceptatiepunt."
   },
   "tracks": [
     {
