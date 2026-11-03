@@ -1,6 +1,6 @@
 # VELD-09: herstelbare rekenmachinecorrecties
 
-Status: **ACTIVE**, native deelacceptatie nog niet uitgevoerd.
+Status: **QUEUED-FOR-INTEGRATION**, geen OPEN-PR-LEASE en dus geen nieuwe PR.
 Basis: actuele main `6d523964ab85638d4dd981bcdb19580d18646fab`.
 Eigen branch: `veld/calculator-undo-20261103`. Geen VELD-08-import;
 `scene.rs`/`init.rs` blijven ongewijzigd en tijdelijk bij General.
@@ -65,7 +65,7 @@ Suitewandtijd 5,33 s; Clippy exit 0. Log `veld09-undo-host.log`.
 Freestanding crossbuild, ELF-inspectie en target-Clippy exit 0:
 `veld09-undo-target.log`. Dit bewijst compilatie, geen OS-uitvoering.
 
-## Volgende gerichte native acceptatie
+## Uitgevoerd: gerichte native acceptatie
 
 ```sh
 export NOS_BUILD_DIR="$PWD/build/veld09-undo-20261103"
@@ -73,6 +73,19 @@ export NOS_TARGET_DIR="$PWD/target/veld-native-20261103-context"
 python3 -B -u tools/build.py --kernel-feature native-window-session-probe
 python3 -B -u tools/run_window_session.py --calculator-undo --timeout 600 --bios-rom "$NOS_BIOS_ROM" --vga-rom "$NOS_VGA_ROM"
 ```
+
+Op bron `f8c08ffe33a411253c97e118758828c52c423472`:
+build exit 0, 3,66 s; runner exit 0, 46,14 s, tien fasen;
+ruwe QEMU-exit 33 en normale cleanupmarkers.
+`passed=true`, `calculator_undo_gate=true`, bewust `native_gate=false`.
+Bronfingerprint:
+`04dfc32c7585c6e9469f159ad19414466c483082ee1db993b8aa7402c8205fe8`.
+Log `$VELD_ENV/logs/veld09-undo-native-attempt1.log`.
+Het compacte `native.json` behoudt manifest, images, firmware, serial,
+frames, raw-reportpad/hash en een canonieke QMP-tracesamenvatting.
+De ruwe artifacts staan in de daarin genoemde lokale buildrun.
+`logs.sha256` bindt alle zes ontwikkellogs, inclusief de rode compileertest.
+De hashcontrole en `git diff --check` zijn exit 0.
 
 De nieuwe route typt werkelijk 2+3, rekent, corrigeert en herstelt met alle
 drie sneltoetsen. Zij vergelijkt volledige appbeelden bij roundtrips,
@@ -82,6 +95,11 @@ Dit is geen volledige herstel-/opslagacceptatie of herhaling van VELD-08.
 Geen nieuwe volledige schaalmatrix: deze appdelta heeft hostpixeldekking op
 beide schalen; de gerichte VM-route gebruikt het bestaande 100%-profiel.
 
-Nog niet uitgevoerd: deze VM-deelgate, gewijzigde-mainintegratie, CI,
+`python3 -B tools/test_window_session.py`: exit 0, twaalf runnertegenproeven
+waarvan twee nieuwe tegen onjuiste combinaties en gewijzigde model-/bindingsvelden.
+
+Nog niet uitgevoerd: gewijzigde-mainintegratie, CI,
 fysieke hardware-, menselijke gebruiks-, onafhankelijke audit- en releasegates.
 Geen scoreverhoging voorgesteld. Rollback: uitsluitend deze scopedelta reverten.
+De milestone is bevroren; nieuwe code volgt uitsluitend op een aparte
+actuele-mainbranch, niet als tweede featurebatch hier.
