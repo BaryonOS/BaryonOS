@@ -63,8 +63,9 @@ resource-authority gecreëerd; resources blijven kernel-toekenningen.
 `drivers/nvme` en `drivers/xhci` gebruiken ieder een lokale een-entry PCI-
 registry en een devicegebonden BAR-grant voor een beperkte probe met read-only
 controller-MMIO. PCI BAR-sizing schrijft tijdelijk de configuratie-BARs en
-herstelt hun oorspronkelijke waarden; PCI-decode en bus mastering blijven
-uitgeschakeld.
+probeert hun oorspronkelijke waarden te herstellen. Een mislukte herstelwrite
+laat de probe falen met `PciBarError::Restore`; PCI-decode en bus mastering
+blijven uitgeschakeld.
 De NVMe-crate leest `CAP`/`VS` volgens NVM Express Base Specification 2.4,
 §§3.1.1–3.1.2. De xHCI-crate matcht de USB-hostcontrollerclass volgens PCI-SIG
 PCI Code and ID Assignment Specification 1.10, §1.2, en controleert revision
