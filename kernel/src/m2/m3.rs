@@ -12,6 +12,8 @@ use core::{
     mem::{replace, MaybeUninit},
     ptr,
 };
+#[cfg(feature = "native-memory")]
+use kernel_core::pressure::{Level as MemoryPressure, ReclaimBudget};
 use kernel_core::{user, Frames, Kind, Owner, PAGE};
 #[cfg(feature = "display-input")]
 mod display;
@@ -1269,6 +1271,8 @@ impl State {
         }
         address.destroy(self.frames);
         assert_eq!(self.free_count(), free_before + released);
+        #[cfg(feature = "native-memory")]
+        memory_fixture::observe_cleanup(self, slot, released, free_before, self.free_count());
         for index in 0..FRAME_COUNT {
             let owner = self.frames.owner(index as u64 * PAGE).unwrap();
             assert!(!matches!(owner,Owner::User(pid,_) if pid==p.pid));
@@ -1324,9 +1328,7 @@ impl State {
         serial::exit(0x10)
     }
     fn free_count(&self) -> usize {
-        (0..FRAME_COUNT)
-            .filter(|i| self.frames.owner(*i as u64 * PAGE) == Ok(Owner::Free))
-            .count()
+        self.frames.availability().free
     }
     fn observer_exit(&mut self, slot: usize, counter: u64) {
         #[cfg(feature = "native-display-probe")]

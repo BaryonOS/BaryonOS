@@ -20,6 +20,9 @@ BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS"
 FIELDS = ("CLEAN_STARTS", "GROWN_PAGES", "ZERO_BYTES", "ARG_DENIED", "QUOTA_DENIED",
           "PRIVATE_CHECKS", "COLLECTION_RUNS", "ALLOC_OOM_DENIED", "FAULTS", "EXITS",
           "SLOT_REUSES", "OOM_FAILURES", "OOM_RECOVERIES", "RETRY_ZERO_BYTES",
+          "PRESSURE_NORMAL", "PRESSURE_ELEVATED", "PRESSURE_CRITICAL",
+          "RECLAIM_OPPORTUNITIES", "RECLAIMED_PROCESSES", "RECLAIMED_FRAMES",
+          "PRESSURE_RECOVERED",
           "TIMER_IRQS", "LIVE_PROCESSES", "FRAMES_RECOVERED", "KERNEL_TABLES_RETAINED",
           "CLEANUP_ZERO_BYTES")
 FORBIDDEN = (":FAIL", "PANIC")
@@ -28,7 +31,8 @@ FORBIDDEN = (":FAIL", "PANIC")
 def endings(case: str) -> tuple[str, ...]:
     if case not in CASES:
         raise ValueError("Unknown native memory case")
-    return (("MEMORY:GROWTH:PASS", "MEMORY:ISOLATION:PASS")
+    return (("MEMORY:GROWTH:PASS", "MEMORY:ISOLATION:PASS", "MEMORY:PRESSURE:PASS")
+            + (("MEMORY:RECLAIM:PASS",) if case == "oom" else ())
             + (("MEMORY:OOM:PASS",) if case == "oom" else ())
             + ("MEMORY:CLEANUP:PASS", f"MEMORY:CASE:{case.upper()}:PASS", "M1:PASS"))
 
@@ -86,9 +90,27 @@ def validate_sequence(stdout: str, case: str, image_pages: int) -> dict:
              "FAULTS": int(case in ("nx", "guard", "peer")),
              "EXITS": lives - int(case in ("nx", "guard", "peer")),
              "SLOT_REUSES": int(case != "oom"), "LIVE_PROCESSES": 0, "FRAMES_RECOVERED": 1,
+             "PRESSURE_NORMAL": 1, "PRESSURE_ELEVATED": int(case == "oom"),
+             "PRESSURE_CRITICAL": int(case == "oom"),
+             "RECLAIM_OPPORTUNITIES": int(case == "oom"),
+             "RECLAIMED_PROCESSES": 15 if case == "oom" else 0,
+             "RECLAIMED_FRAMES": int(case == "oom"),
+             "PRESSURE_RECOVERED": int(case == "oom"),
              "OOM_RECOVERIES": int(case == "oom"), "RETRY_ZERO_BYTES": 4096 * int(case == "oom")}
     if any(numbers[name] != value for name, value in fixed.items()):
         raise ValueError("Wrong memory lifecycle/refusal/cleanup counters")
+    if case == "oom":
+        if (numbers["PRESSURE_ELEVATED"] != 1
+                or numbers["PRESSURE_CRITICAL"] != 1
+                or numbers["RECLAIM_OPPORTUNITIES"] != 1
+                or numbers["RECLAIMED_PROCESSES"] != 15
+                or numbers["RECLAIMED_FRAMES"] == 0
+                or numbers["PRESSURE_RECOVERED"] != 1):
+            raise ValueError("Physical pressure was not recovered by bounded cleanup")
+    elif any(numbers[name] != 0 for name in (
+            "PRESSURE_ELEVATED", "PRESSURE_CRITICAL", "RECLAIM_OPPORTUNITIES",
+            "RECLAIMED_PROCESSES", "RECLAIMED_FRAMES", "PRESSURE_RECOVERED")):
+        raise ValueError("Unexpected pressure/reclaim evidence in non-OOM profile")
     if (numbers["TIMER_IRQS"] < 2 or numbers["ZERO_BYTES"] != numbers["GROWN_PAGES"] * 4096
             or numbers["KERNEL_TABLES_RETAINED"] > 256
             or numbers["CLEANUP_ZERO_BYTES"] != numbers["ZERO_BYTES"] + lives * 65536):

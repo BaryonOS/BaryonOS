@@ -20,6 +20,12 @@ def evidence(case="normal", image_pages=6):
                   EXITS=lives - int(case in ("nx", "guard", "peer")),
                   SLOT_REUSES=int(case != "oom"), OOM_FAILURES=8 if case == "oom" else 0,
                   OOM_RECOVERIES=int(case == "oom"), RETRY_ZERO_BYTES=4096 * int(case == "oom"),
+                  PRESSURE_NORMAL=1, PRESSURE_ELEVATED=int(case == "oom"),
+                  PRESSURE_CRITICAL=int(case == "oom"),
+                  RECLAIM_OPPORTUNITIES=int(case == "oom"),
+                  RECLAIMED_PROCESSES=15 if case == "oom" else 0,
+                  RECLAIMED_FRAMES=int(case == "oom"),
+                  PRESSURE_RECOVERED=int(case == "oom"),
                   TIMER_IRQS=19, LIVE_PROCESSES=0, FRAMES_RECOVERED=1, KERNEL_TABLES_RETAINED=10,
                   CLEANUP_ZERO_BYTES=pages * 4096 + lives * 65536)
     return "\n".join(m.BOOT + ("MEMORY:MANIFEST:PASS",)
@@ -70,6 +76,9 @@ class EvidenceTests(unittest.TestCase):
         text = evidence("oom")
         for name, value in (("OOM_FAILURES", 0), ("OOM_FAILURES", 17),
                             ("OOM_RECOVERIES", 0), ("RETRY_ZERO_BYTES", 0),
+                            ("PRESSURE_ELEVATED", 0), ("PRESSURE_CRITICAL", 0),
+                            ("RECLAIM_OPPORTUNITIES", 0), ("RECLAIMED_PROCESSES", 14),
+                            ("RECLAIMED_FRAMES", 0), ("PRESSURE_RECOVERED", 0),
                             ("QUOTA_DENIED", 7), ("GROWN_PAGES", 100)):
             old = next(line for line in text.splitlines() if line.startswith(f"MEMORY:{name}:"))
             with self.subTest(name=name), self.assertRaises(ValueError):
