@@ -53,9 +53,12 @@ opnieuw opgehaald tijdens de oorspronkelijke audit. In deze PR-review is
 alleen de publicatiemetadata van de officiële WCAG 2.2-pagina nagekeken om een
 citatie te corrigeren; inhoudelijke EU-toepasselijkheid en andere externe
 claims zijn niet gecontroleerd. Lokale OSDev-passages zijn aanvullende leerbronnen, geen
-normatieve hardware- of beveiligingscertificering. Rapporten zijn hashgelijk
-overgenomen; noodzakelijke citaat-/scopepreciseringen zijn door hun auteurs
-gedaan. Mechanische citatencontrole bevestigt vindbaarheid en regelbereik,
+normatieve hardware- of beveiligingscertificering. Bij de oorspronkelijke
+rapportintegratie op `6929b986440fe659fa1d45167f476313abb6c6d3` zijn de
+rapporten hashgelijk overgenomen; noodzakelijke citaat-/scopepreciseringen
+waren door hun auteurs gedaan. Deze gelijkheidsclaim is historisch en geldt
+niet voor de na PR-review gewijzigde rapporten op de huidige head (zie §9).
+Mechanische citatencontrole bevestigt vindbaarheid en regelbereik,
 niet automatisch de inhoudelijke juistheid.
 
 Alle technische bevindingen over Nieuw OS zijn repository-observaties tegen de
@@ -278,9 +281,14 @@ door de integrator opgehaald zoals in §1.
 
 ## 9. Rapportherkomst en integratiegrens
 
-Definitieve auteurhashes van de overgenomen bestanden:
+Historische auteurhashes van de zestien oorspronkelijk overgenomen bestanden
+in rapportcommit `6929b986440fe659fa1d45167f476313abb6c6d3`.
+De tabel legt die oorspronkelijke bytes vast, **niet de huidige head**:
+latere PR-reviewcorrecties wijzigen rapportbytes. Hashgelijkheid en de
+historische integratievalidator uit §8 gelden uitsluitend voor die
+oorspronkelijke integratie; zij valideren de latere wijzigingen niet.
 
-| # | SHA-256 |
+| # | Historische SHA-256 op rapportcommit 6929b986 |
 |---|---|
 | 01 | `2d25a28fff2873e001799043d70b14f2d603d9c86d01d022927d0b6de3e473d5` |
 | 02 | `d12e820e66c06073cf4050af81a757aa1e6c59c6e55f2f63f70235a55bf5562c` |
@@ -299,10 +307,11 @@ Definitieve auteurhashes van de overgenomen bestanden:
 | 15 | `b3119595fff31862afb5f5556a2eb25f61735e6016834fb752a3b0c7ffa67abb` |
 | 16 | `3fa0fa9f0bc1774a459675513aec1b4fe23e2de406c94584f2e0c970b1a365fb` |
 
-De gezamenlijke commit wordt uitsluitend na alle rapporten en integratiechecks
-gemaakt, direct boven de auditbron. Zijn ID is niet in zijn eigen bytes
-opgenomen; `git log -- docs/audits/OS-MULTI-AGENT-AUDIT.md` identificeert de
-rapportcommit. Bestaande `AGENTS.md`, `.codex/agents`, profielbestanden,
-productcode, roadmap, voortgang en projectstatus blijven in deze auditdiff
-ongewijzigd. Geen reparatie, releasegoedkeuring of publicatietoestemming uit
-de auditbevindingen afleiden.
+De oorspronkelijke gezamenlijke rapportcommit `6929b986440fe659fa1d45167f476313abb6c6d3`
+is na alle rapporten en integratiechecks gemaakt, direct boven de auditbron
+beafdedf. `git log -- docs/audits/OS-MULTI-AGENT-AUDIT.md` toont daarnaast
+latere rapportcorrecties, geen nieuwe audit van de actuele productbron.
+Bestaande `AGENTS.md`, `.codex/agents`, profielbestanden, productcode, roadmap,
+voortgang en projectstatus bleven in de oorspronkelijke auditdiff ongewijzigd.
+Geen reparatie, releasegoedkeuring of publicatietoestemming uit de
+auditbevindingen afleiden.
