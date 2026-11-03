@@ -1,35 +1,31 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — P02 zoek- en invoerpad minder blokkerend — 3 november 2026
+## NEXT AGENT HANDOFF — Performancevervolg: native rendergrens — 3 november 2026
 
-**Bron:** branch `simonvanieperen-sturdy-guide`, commit
-`f2c3354d159ae91699e0926fd6f39a769705aa14`; remote branch wijst naar dezelfde
-commit. Werkboom is schoon na de implementatiecommit.
+**Bron:** branch `simonvanieperen-sturdy-guide`, broncommit
+`40f83e3f059102fe30c8818991ba0b4c47b488d0`. Deze vervolginspectie heeft geen
+native broncode gewijzigd.
 
-**Resultaat:** zoeken in het P02-browserprototype vervangt niet langer de
-volledige app-DOM per teken; alleen de resultatenlijst wordt bijgewerkt en
-focus blijft in het bestaande veld. Profiel-/draftinvoer coalesseert
-synchrone `sessionStorage`-writes gedurende 180 ms en schrijft direct weg
-bij focusverlies, een volgende toestandsovergang of `pagehide`. Draftupdates
-kopiëren niet meer de onveranderde object-/versiegeschiedenis. Geen
-dependency, querybackend, capability of native interface gewijzigd.
+**Resultaat:** de native compositor verwerkt maximaal 32 bestaande
+damage-tiles per beurt, ondersteunt retained frames en heeft al een
+opaque-body raster-fast-path naast de referentierenderer. De gedocumenteerde
+1.248×656 app-oppervlakte kent nog 22.386 SUR1-verzoeken en 3.198 replies per
+volledige frame; aanpassen daarvan vereist een gedeeld, versieerbaar
+protocolcontract. Geen extra interfacewijziging gedaan zonder meetbewijs.
 
-**Uitgevoerd:** `"/mnt/c/Program Files/nodejs/node.exe" --test
---test-isolation=none ui/prototype/tests/*.test.mjs` — exit 0, 41 geslaagd;
-de nieuwe fake-DOM-test meet nul app-rootvervangingen/focuswissels bij zoeken
-en één opslagwrite voor drie snelle profielinvoer-events. De drie
-`node --check`-controles en `git diff --cached --check` slagen (exit 0).
-Exacte bronhashes en uitkomst:
-[`ui-performance-20261103.json`](verification/ui-performance-20261103.json).
-Dit is hosttestbewijs, geen browserbenchmark of native OS-meting.
+**Controle:** geprobeerd `cargo +1.90.0 test --locked --manifest-path
+sdk/examples/window-session/Cargo.toml --test render_performance`; exit 127,
+`cargo` ontbreekt. Native test, QEMU en workloadmeting zijn dus niet
+uitgevoerd. Statische waarnemingen en bewijsgrens:
+[`performance-followup-20261103.json`](verification/performance-followup-20261103.json).
 
-**Voortgang:** branch **41% → 41%**, nul nieuwe native criteria of punten.
-Geen echte databasequeries of productie-bundler aangetroffen in deze UI-route;
-de fixturesearch blijft een lineaire in-memory-filter. Native render-/IPC-
-latency en echte-browsermetingen zijn niet uitgevoerd.
+**P02-wijziging blijft:** commit `f2c3354d` optimaliseert zoekrender, draftkopie
+en gebundelde opslagwrites; 41 prototype-hosttests slaagden. Geen echte
+databasequery of production-bundler aangetroffen. Browserbenchmark ontbreekt.
+Voortgang blijft **41% → 41%**; geen nieuw native criterium.
 
-**Eerstvolgend commando:** herhaal de genoemde Node-suite op deze branch bij
-een volgende UI-wijziging. Geen blocker voor deze beperkte stap.
+**Eerstvolgend commando zodra Rust 1.90 beschikbaar is:** herhaal de hierboven
+genoemde `render_performance`-test. Geen claim over native latency of energie.
 
 ## Vorig checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 

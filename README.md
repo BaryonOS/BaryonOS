@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`f2c3354d`](https://github.com/simonvanieperen/nieuw-os/commit/f2c3354d159ae91699e0926fd6f39a769705aa14) ·
+**Bron:** [`40f83e3f`](https://github.com/simonvanieperen/nieuw-os/commit/40f83e3f059102fe30c8818991ba0b4c47b488d0) ·
 **Ontwikkelbranch:** `simonvanieperen-sturdy-guide`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** P02-invoer en zoekscherm versnellen.
-Zoeken in het P02-prototype werkt alleen de resultatenlijst bij; focus en app-shell blijven staan. Profiel- en draftinvoer bundelt synchrone sessionStorage-schrijfacties maximaal 180 ms met direct wegschrijven bij focusverlies, de volgende toestandsovergang en pagehide. Draftupdates maken geen diepe kopie van de onveranderde documentgeschiedenis. De volledige hosttestsuite slaagt met 41 tests; een fake-DOM-test bevestigt nul app-rootvervangingen bij zoeken en één write voor drie snelle invoer-events. Branchscore blijft 41/100; geen nieuw native criterium. Geen browserbenchmark, native rendermeting of volledige releaseacceptatie uitgevoerd.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Native rendervervolg en P02-invoerperformance.
+P02-zoek- en invoerverbeteringen staan in commit f2c3354d; 41 prototype-hosttests slaagden, zonder browserbenchmark. In de native compositor zijn reeds begrensde batches van 32 damage-tiles, retained frames en een raster-fast-path met pixel-orakel aanwezig. Per volledige 1.248x656 app-frame blijven volgens het bestaande contract 22.386 SUR1-verzoeken en 3.198 replies. De gerichte native test is niet uitgevoerd: cargo ontbreekt (exit 127). Geen native latency gemeten of criterium gesloten. Score 41/100 blijft gelijk.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
