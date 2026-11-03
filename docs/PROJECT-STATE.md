@@ -2,7 +2,52 @@
 
 ## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
 
-**NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026**
+**Bron:** branch `simonvanieperen-studious-spoon`, commit
+`55f78fa04a14dccf72c00dd9d0f8955da03fee41`, gepusht naar
+`origin/simonvanieperen-studious-spoon`. Actieve toewijzing:
+`SYSTEM-MATURITY-SMP`, queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`.
+OOM/K05 zijn afgesloten en blijven ongewijzigd;
+`DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
+
+**AP-bring-up/rendezvous is eerder bewezen**, op commits `cec73173` en
+`5da76325`: de AP-stackpagina's waren identity-mapped RW/NX in de gedeelde
+`Paging`-root; de root cause was dat de trampoline EFER.NXE niet activeerde.
+De fix en 1/2/4-CPU-rendezvous blijven aan die eerdere bron gebonden en zijn
+geen runtimebewijs voor het nieuwe M3-profiel.
+
+**Opt-in M3-SMP-scheduler:** commit `55f78fa` voegt per-CPU processselectie,
+begrensde serialisatie van M3-mutaties, BSP schedule-IPI's en per-CPU
+kernel-entrystacks toe; ADR-064 legt de invariant en profielgrens vast.
+Een eerste 2-CPU-run vóór deze commit slaagde op bronvingerafdruk `cdb79...`
+(raw QEMU exit 33; CPU 0/1 selecteerden respectievelijk 88/87 keer).
+De eerdere poging eindigde met raw exit 35 en `M2:FAIL:KERNEL_EXCEPTION`;
+de dispatch onderscheidt nu user-origin en kernel-origin schedule-IPI's.
+Logs: `build/run/smp-2-5d1e382375/` (mislukt) en
+`build/run/smp-2-b54ae3d31e/` (geslaagd). De exacte committed bron is nog niet
+opnieuw door de runtime-matrix gehaald.
+
+**Uitgevoerde controles:** `PYTHONPATH=tools python3 -B -m unittest
+tools/tests/test_smp.py` (5 tests, exit 0);
+`~/.cargo/bin/cargo +1.90.0 fmt --manifest-path kernel/Cargo.toml -- --check`
+en `git diff --check` (exit 0); opt-in `native-smp-m3`-kernelbuild (exit 0).
+De matrixrunner vereist een expliciete toolchain-PATH omdat `cargo` niet in de
+standaard-PATH staat.
+
+**Eerstvolgende actie:** draai `python3 -B tools/test_smp.py` met
+`PATH="$HOME/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH"`,
+`LD_LIBRARY_PATH=/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu:/tmp/sm-oom-qemu-root/lib/x86_64-linux-gnu`,
+`OS_OVMF_CODE=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd` en
+`OS_OVMF_VARS=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd`.
+Dit controleert het nieuwe profiel met 1, 2 en 4 CPU's. QEMU 10.2.1 en OVMF
+4M zijn aanwezig. Pas daarna zijn M3 1/2/4-bring-up en single-CPU-regressie
+afgetekend. Daarna blijven cross-CPU-IPC, exit/revoke, TLB-hergebruik en
+races/failurecases open; dit is geen volledige K06-acceptatie. De bestaande
+dirty wijzigingen in README en voortgangsbestanden zijn behouden en niet door
+deze SMP-taak aangepast.
+
+## Historisch SMP-checkpoint — 3 november 2026
+
+**Historische bronstatus en rendezvousbewijzen:**
 
 **Bronbasis:** branch `simonvanieperen-studious-spoon`, pushed HEAD
 `cec73173b8a07f3f59cae71ca33021ce3f5e6549`. Dat checkpoint bevat de
