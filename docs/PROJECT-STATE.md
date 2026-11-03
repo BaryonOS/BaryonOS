@@ -2,46 +2,53 @@
 
 ## NEXT AGENT HANDOFF — SM-OOM-1 P0 geheugenpressure — 3 november 2026
 
-**Basis:** `39de952813fbc61e5aa5879b0f1deaea3aa15c64`, branch
-`simonvanieperen-studious-spoon`. **Implementatiecommit:**
-`66fdeefde823a37a0318f3d9447cd5cfc4200477`. De actuele toewijzing is gelezen
-uit `docs/WORK-QUEUE.md` op queuebron
-`21d14592a54a80da2debf7cfad139d37264078c7`; geen andere branchcode of bewijs
-is geïntegreerd.
+**Bron:** branch `simonvanieperen-studious-spoon`, gepushte HEAD
+`2df24968e450c52d456e89233e961b74ed40b3dd`. P0 is toegewezen in
+`docs/WORK-QUEUE.md` op queuebron
+`21d14592a54a80da2debf7cfad139d37264078c7`. OOM-implementatie staat in
+`66fdeef`; een niet-overlappende remote commit is in mergecommit `f3c3711`
+behouden. De daaropvolgende harnessfix is `2df2496`.
 
-**Gerealiseerd in broncode:** `kernel-core` rapporteert de werkelijk
-toegelaten/free frameaantallen en classificeert Normal/Elevated/Critical met
-watermarks op 1/8 en 1/32 van beheerde frames. De bounded `ReclaimBudget`
-geeft één kans op Critical, zonder slachtofferselectie. De bestaande
-ring-3-memoryproef wacht bij fysieke OOM tot alle andere fixtures `DONE` zijn,
-laat die normaal afsluiten, controleert de exacte vrijgegeven frames en
-probeert daarna één nieuwe nulde pagina. Dit is fixturegestuurde gecontroleerde
-cleanup, geen product-OOM-killer. De bestaande eigenaar-/aliasregels,
-quota, zeroing, W^X, syscallnummers en capabilitysemantiek zijn niet gewijzigd.
-De userspace-allocator biedt één caller-owned cleanupcallback en één retry;
-hosttests controleren behoud van live bytes en weigering wanneer cleanup niets
-vrijmaakt.
+**Gerealiseerd:** `kernel-core` rapporteert toegelaten/vrije frames en
+classificeert Normal/Elevated/Critical met 1/8- en 1/32-watermarks. Het
+begrensde `ReclaimBudget` biedt uitsluitend bij Critical één kans, zonder
+slachtofferselectie. In de bestaande ring-3-memoryfixture sluiten alleen
+reeds afgeronde peers normaal af; vrijgekomen frames worden gecontroleerd en
+de survivor vraagt opnieuw één nulde pagina aan. Dit is fixturegestuurde
+cleanup, geen product-OOM-killer. Owner-/aliasregels, quota, zeroing, W^X,
+syscallnummers en capabilitysemantiek bleven ongewijzigd. De SDK-allocator
+biedt één caller-owned cleanupcallback en maximaal één retry.
 
-**Hostbewijs op commit `66fdeef`:** kernel-core 24 tests; heap-allocator 2
-unit-, 13 arena- en 3 bounded-reclaimtests plus bestaande `Vec/Box/String`-
-collectieproef; memory-evidenceharnas 9 tests; kernel memory-boundarytest 1
-pass. Volledige logs zijn tijdelijk onder `/tmp/sm-oom-*-66fdeefd*.log`;
-hashes en exacte commando's staan in
+**Hostbewijs:** kernel-core 24 tests; heap-allocator 2 unit-, 13 arena- en 3
+bounded-reclaimtests plus de bestaande collectieproef; memory-evidenceharnas
+9 tests; kernel memory-boundarytest 1 pass. De harnesswijziging op `2df2496`
+is gericht getest: 9 tests geslaagd, inclusief een OOM-voorbeeld met 15.205
+vrijgekomen frames. Exacte eerdere commando's en hashes staan in
 [`sm-oom/host-20261103.json`](verification/sm-oom/host-20261103.json).
-De eerste boundarypoging miste `cc` op standaard-PATH; herhaling met
-`/tmp/nieuw-os-c-toolchain/bin` slaagde. De eerste kernel-coretest vond een
-niet-const `From<bool>`-aanroep; na herstel slaagde de suite.
 
-**Nog niet uitgevoerd:** kernel-/appcrossbuild en scalar `x86_64-unknown-none`,
-de volledige vijf-case `tools/test_memory_system.py`-matrix met 128-MiB OOM,
-en de K05-supervisor-cleanupregressie. Dit hostcheckpoint is geen native
-acceptatie. Na het pushen van dit checkpoint: start de bestaande
-`tools/test_memory_system.py`-gate met de beschikbare Rust/C/QEMU/OVMF-paden;
-herstel gevonden regressies en voer daarna `tools/test_supervisor.py` uit.
+**Native gedeeltelijk bewijs op `f3c3711`:** alle vijf profielen zijn
+gecrossbuild; normal, NX, guard en peer QEMU-gasten slagen. De 128-MiB
+OOM-gast bootte, rapporteerde de verwachte markers en exitcode, sloot 15
+peers af, herstelde 15.205 frames en liet de survivor 4 KiB nulde geheugen
+opnieuw alloceren. De gate eindigde toch met exit 1: haar parser eiste
+foutief exact één reclaimed frame. `tools/run_memory.py` accepteert nu elk
+positief reclaimed-frameaantal voor OOM en blijft nul eisen in de andere
+profielen; dit is een testharnasfix, geen productcodewijziging.
+[`sm-oom/native-20261103.json`](verification/sm-oom/native-20261103.json)
+legt de gedeeltelijke run vast. QEMU 10.2.1 en OVMF zijn voor deze run uit
+officiële Ubuntu-pakketten onder `/tmp` geëxtraheerd, zonder systeembrede
+installatie; dit is niet de CI-QEMU-build.
 
-**Voortgang:** 41/100 → 41/100. Geen rubriccriterium gesloten; native
-uitputting, andere processen onder druk en de gecombineerde OS-release blijven
-open. De score is opnieuw beoordeeld in `docs/progress.json`.
+**Eerstvolgend:** herhaal op de gepushte bron `2df2496` de bestaande
+`python3 -B -u tools/test_memory_system.py`-gate met dezelfde disposable
+QEMU/OVMF-omgeving; vereis alle vijf profielen inclusief 128-MiB OOM. Daarna
+voer `python3 -B -u tools/test_supervisor.py` uit als K05-cleanupregressie.
+Rapporteer host-, crossbuild- en QEMU-bewijs afzonderlijk. Geen fysieke of
+menselijke acceptatie geclaimd.
+
+**Voortgang:** 41/100 → 41/100. Geen rubriccriterium gesloten; volledige
+QEMU-gate en K05-regressie zijn nog open. De score en dit checkpoint zijn
+opnieuw beoordeeld in `docs/progress.json`.
 
 ## Historisch checkpoint — M1 tijd en procesresource-accounting — 3 november 2026
 

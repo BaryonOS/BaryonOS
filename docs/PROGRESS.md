@@ -17,9 +17,14 @@ one-shot reclaimbudget wordt alleen bij Critical aangeboden. De bestaande
 native fixture laat uitsluitend al afgeronde peers normaal afsluiten, meet
 hun framevrijgave en controleert één retry met zeroing. De userspace-allocator
 test één eigen-resources-cleanup en één fallible retry. Kernel-core,
-allocator-, memoryharnas- en boundaryhosttests slagen. De volledige native
-QEMU-matrix, crossbuild en K05-regressie zijn nog open; geen productcriterium
-gesloten. [Hostreceipt](verification/sm-oom/host-20261103.json).
+allocator-, memoryharnas- en boundaryhosttests slagen. De vijf profielbuilds
+slagen op `f3c3711`; vier QEMU-cases slagen. De 128-MiB OOM-guest geeft de
+verwachte druk-/reclaimmarkers, sluit 15 peers af en herstelt 15.205 frames,
+maar de gate eist door een parserfout exact één frame. Die testharnasfout is
+op `2df2496` hersteld met een meerframe-regressiecase; de volledige rerun en
+K05-cleanupregressie zijn nog open. Geen productcriterium gesloten.
+[Hostreceipt](verification/sm-oom/host-20261103.json) en
+[gedeeltelijke native receipt](verification/sm-oom/native-20261103.json).
 
 M1 (3 november 2026), actuele bron `22b7bbab`:
 **41 → 41/100**. K05 valideert `ProcessUsage` bij manifeststart en gebruikt

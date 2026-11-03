@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`66fdeefd`](https://github.com/simonvanieperen/nieuw-os/commit/66fdeefde823a37a0318f3d9447cd5cfc4200477) ·
+**Bron:** [`2df24968`](https://github.com/simonvanieperen/nieuw-os/commit/2df24968e450c52d456e89233e961b74ed40b3dd) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-spoon`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** SM-OOM-1 P0: integreer fysieke geheugenpressure, begrensde reclaim opportunity en gecontroleerde cleanup.
-41 blijft 41. SM-OOM-1 voegt echte framebeschikbaarheid en Normal/Elevated/Critical-classificatie toe, plus één reclaimkans bij Critical. De native memoryfixture mag uitsluitend reeds afgeronde peerprocessen normaal laten afsluiten; zij controleert exact vrijgegeven frames, cleanup en een succesvolle nulde-pagina-retry. De userspace-allocator heeft één eigen-resources-cleanupcallback en één retry. Kernel-core, allocator, memory-evidenceharnas en boundarytests zijn hostgetest. De vijf-case QEMU-matrix, crossbuild en K05-cleanupregressie zijn nog niet uitgevoerd; geen rubriccriterium gesloten.
+41 blijft 41. De native vijf-case-run op voorganger f3c3711 liet vier profielen slagen. De 128-MiB OOM-gast gaf de verwachte exit en markers, sloot 15 peers af, herstelde 15.205 frames en liet de survivor 4 KiB nulde geheugen opnieuw alloceren; de gate wees dit af door een foutieve verwachting van exact één reclaimed frame. Die parserfout is op 2df2496 hersteld met een meerframe-regressiecase; de volledige rerun en K05-cleanupregressie staan nog open. Geen rubriccriterium gesloten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
