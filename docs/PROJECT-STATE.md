@@ -26,9 +26,13 @@ blijft vereisen dat nieuwe invoer pas na verse inputbinding tekst wijzigt.
 `scene.rs` en `tests/window_states.rs` in een aparte worktree op baseline264ad5b0.
 Nog niet geïntegreerd of als native geaccepteerd. Geen gedeelde schrijvers.
 
-**Volgende gate:** eigen-kernelbuild en volledige
-`run_window_session.py --clipboard --workspace`; nog **niet uitgevoerd**
-voor deze nieuwe bron. Daarna vensterstates integreren en opnieuw native
+**Native resultaat:** bron `3e79b6a8a6bba75c42efe5e307813eefc066fa71`,
+fingerprint `7da356474e591a062456f395e70ac6bba053acc29a080d077df86ec488557e71`:
+eigen-kernelbuild exit 0; volledige `run_window_session.py --clipboard --workspace`
+exit 0, 31 fasen, 254,22 s, ruwe QEMU-exit 33. Lezen, geweigerde bewerking,
+hersteld Schrijven en de oorspronkelijke volledige herstel-/schijfketen slagen.
+[Brongebonden bewijs](verification/veld-tools-20261103/README.md).
+Daarna vensterstates integreren en opnieuw native
 toetsen, vervolgens verder met resterende gebruikersomgeving. Score **41 -> 41**;
 geen U02–U06-, fysieke, menselijke of releaseacceptatie.
 

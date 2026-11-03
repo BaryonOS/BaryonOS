@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`264ad5b0`](https://github.com/simonvanieperen/nieuw-os/commit/264ad5b0b1bfeaf0e36c4d52021b11d347db2227) ·
+**Bron:** [`3e79b6a8`](https://github.com/simonvanieperen/nieuw-os/commit/3e79b6a8a6bba75c42efe5e307813eefc066fa71) ·
 **Ontwikkelbranch:** `simonvanieperen-fictional-disco`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Veld-02: objectgebonden Schrijven/Lezen en native venstertoestanden.
-41% blijft 41%: vanaf native baseline264ad5b0 zijn Schrijven/Lezen op dezelfde echte documenteigenaar gebouwd, met F4, knop, semantiek en read-only bewerkingsbeperking. Gerichte native-UI- en app-hosttests, Clippy/fmt en 13 runnertegenvoorbeelden slagen. De verse eigen-kernel-/pixel-/interactiegate is bij dit tussencheckpoint nog niet uitgevoerd; vensterstates worden afzonderlijk gebouwd. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open.
+41% blijft 41%: Schrijven/Lezen op dezelfde echte documenteigenaar is native geverifieerd op 3e79b6a8. De volledige eigen-kernelgate slaagt met 31 fasen, echte F4-toolwisseling, geweigerde bewerking, exacte apppixels en onverkorte isolatie-, klembord-, compositorherstel-, schijf- en cleanupcontroles. Gerichte native-UI- en app-hosttests, Clippy/fmt en 13 runnertegenvoorbeelden slagen. Vensterstates worden afzonderlijk gebouwd. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -50,15 +50,25 @@ Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).
 <!-- OS-PROGRESS:END -->
 
-## Visueel ontwerpplan — 3 november 2026
+## Native Veld in uitvoering — 3 november 2026
+
+Baseline `264ad5b0` wordt iteratief uitgebreid tot een volledige native
+gebruikersomgeving. Schrijven en Lezen gebruiken inmiddels hetzelfde echte
+document met behoud van draft en selectie; de volledige eigen-kernelgate met
+31 pixel-/interactiefasen slaagt op `3e79b6a8`.
+[Uitvoering en grenzen](docs/verification/veld-tools-20261103/README.md).
+Vensterstates en de overige UI-functies blijven in uitvoering; geen claim van
+volledige productacceptatie.
+
+## Visueel ontwerpplan — onderzoeksbasis
 
 [Het ontwerpplan](docs/design/VISUAL-ARCHITECTURE-PLAN.md) onderzoekt vijf
 verschillende interfacearchitecturen en adviseert **Veld** en **Werkstuk**
 voor verdere beoordeling. Het bevat concrete composities, kleur-/typewaarden,
 vensterbediening, diepte en motion, onderbouwd met
 [publieke rendercode en officiële OS-richtlijnen](docs/research/VISUAL-RENDERING-RESEARCH.md).
-Geen afbeeldingen, definitieve designkeuze of productcodewijziging;
-de ontwikkelmeter blijft **41/100**.
+Het oorspronkelijke onderzoek leverde geen afbeeldingen of productcode;
+de native uitvoering staat hierboven. De ontwikkelmeter blijft **41/100**.
 
 ## Native venstersessie — 2 november 2026
 
