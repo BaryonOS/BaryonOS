@@ -22,11 +22,14 @@ alle vijf profielbuilds en disposable-QEMU-cases, inclusief fysieke OOM bij
 128 MiB. De OOM-guest registreert één reclaim opportunity, sluit 15 peers
 normaal af, herstelt 15.204 frames en laat de survivor 4 KiB nulde geheugen
 opnieuw alloceren. Een eerdere parserfout is op `2df2496` hersteld en heeft
-een meerframe-regressiecase. K05-cleanupregressie en volledige release-
-acceptatie blijven open; geen productcriterium gesloten.
+een meerframe-regressiecase. De zes bestaande K05 QEMU-regressiecases plus
+capability-, runtime-, supervisor-protocol- en harnashosttests slagen op
+`ce1c5e7`. Volledige release- en hardwareacceptatie blijven open; geen
+productcriterium gesloten.
 [Hostreceipt](verification/sm-oom/host-20261103.json) en
 [native receipts](verification/sm-oom/native-20261103.json),
-[volledige vijf-casegate](verification/sm-oom/native-gate-20261103.json).
+[volledige vijf-casegate](verification/sm-oom/native-gate-20261103.json),
+[K05-regressie](verification/sm-oom/k05-cleanup-20261103.json).
 
 M1 (3 november 2026), actuele bron `22b7bbab`:
 **41 → 41/100**. K05 valideert `ProcessUsage` bij manifeststart en gebruikt

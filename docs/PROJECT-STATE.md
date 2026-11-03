@@ -1,54 +1,60 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — SM-OOM-1 P0 geheugenpressure — 3 november 2026
+## NEXT AGENT HANDOFF — SM-SMP-K06-1 P1 — 3 november 2026
 
-**Gatebron:** `d5d5776e00f16229e2d1f7ff40e8badf1d30f614`, branch
-`simonvanieperen-studious-spoon`. P0 is toegewezen in `docs/WORK-QUEUE.md`
-op queuebron `21d14592a54a80da2debf7cfad139d37264078c7`. OOM-implementatie
-staat in `66fdeef`; een niet-overlappende remote commit is in mergecommit
-`f3c3711` behouden; de testharnasfix is `2df2496`.
+**Bron:** branch `simonvanieperen-studious-spoon`, K05-regressiebron
+`ce1c5e7f7fae67b4f07b3eed65f04c21b90a21bd`; remote was gelijk aan lokaal
+na de vorige push. P0 OOM en de verplichte K05-regressie zijn afgerond.
+Eigenaarschap voor P1 staat in `docs/WORK-QUEUE.md` op queuebron
+`21d14592a54a80da2debf7cfad139d37264078c7`.
 
-**Gerealiseerd:** `kernel-core` rapporteert toegelaten/vrije frames en
-classificeert Normal/Elevated/Critical met 1/8- en 1/32-watermarks. Het
-begrensde `ReclaimBudget` biedt uitsluitend bij Critical één kans, zonder
-slachtofferselectie. In de bestaande ring-3-memoryfixture sluiten alleen
-reeds afgeronde peers normaal af; vrijgekomen frames worden gecontroleerd en
-de survivor vraagt opnieuw één nulde pagina aan. Dit is fixturegestuurde
-cleanup, geen product-OOM-killer. Owner-/aliasregels, quota, zeroing, W^X,
-syscallnummers en capabilitysemantiek bleven ongewijzigd. De SDK-allocator
-biedt één caller-owned cleanupcallback en maximaal één retry.
+**SM-OOM-1 gerealiseerd:** implementatiecommit `66fdeef` rapporteert echte
+framebeschikbaarheid en Normal/Elevated/Critical met 1/8- en 1/32-watermarks.
+`ReclaimBudget` biedt uitsluitend bij Critical één bounded opportunity,
+zonder slachtofferselectie. De fixture laat alleen reeds afgeronde peers
+normaal afsluiten, controleert frameherstel en vraagt opnieuw een nulde pagina
+aan. De SDK-allocator kan één caller-owned cleanup doen en maximaal één retry.
+Owner-/aliasregels, quota, zeroing, W^X, syscallnummers en
+capabilitysemantiek bleven ongewijzigd.
 
-**Hostbewijs:** kernel-core 24 tests; heap-allocator 2 unit-, 13 arena- en 3
-bounded-reclaimtests plus de bestaande collectieproef; memory-evidenceharnas
-9 tests; kernel memory-boundarytest 1 pass. De parserfix is gericht getest
-met 9 geslaagde tests. Exacte hostcommando's en hashes staan in
-[`sm-oom/host-20261103.json`](verification/sm-oom/host-20261103.json).
+**Bewijs:** hosttests omvatten kernel-core (24), allocator (2 unit, 13 arena,
+3 pressure), memoryharnas (9) en kernel-memory-boundary (1). De
+vijf-profiel `tools/test_memory_system.py`-gate slaagde op
+`d5d5776e00f16229e2d1f7ff40e8badf1d30f614`: alle kernel-/loader-/app
+`x86_64-unknown-none` releasebuilds en QEMU-profielen normal/NX/guard/peer/oom
+slagen. In de 128-MiB OOM-run werden 16 fysieke allocatiefouten, één
+Critical reclaim opportunity, 15 ordelijk afgesloten peers, 15.204
+vrijgekomen frames, 4 KiB nulde retry en geen levende processen gemeten.
+De K05-regressie op `ce1c5e7` slaagde eveneens: alle zes QEMU-cases (normal,
+crash, denied, parent-exit, quota, wait), de hosttests voor capability-core,
+SDK-runtime en supervisor-protocol, plus 8 harness-tests. Exacte commands,
+exitstatussen, logs en SHA-256's staan in:
+[`host-20261103.json`](verification/sm-oom/host-20261103.json),
+[`native-gate-20261103.json`](verification/sm-oom/native-gate-20261103.json),
+[`k05-cleanup-20261103.json`](verification/sm-oom/k05-cleanup-20261103.json).
+Een eerdere run op `f3c3711` werd door een foutieve exact-één-frameassertie
+afgewezen; `2df2496` herstelde die harnessbug en voegde een meerframe-
+regressiecase toe. Die poging is apart bewaard in
+[`native-20261103.json`](verification/sm-oom/native-20261103.json).
 
-**Native resultaat op `d5d5776`:** de volledige vijf-profielgate is geslaagd:
-normal, NX, guard, peer en fysieke OOM bij 128 MiB. De kernel, UEFI-loader
-en memory-app zijn per profiel voor `x86_64-unknown-none` gebouwd en
-geïnspecteerd. De OOM-guest rapporteerde 16 fysieke allocatiefouten,
-Normal→Elevated→Critical, één reclaim opportunity, normale afsluiting van 15
-reeds afgeronde peers, 15.204 vrijgekomen frames, volledig herstel en één
-geslaagde retry van 4 KiB nulde geheugen. De eerdere gatepoging op `f3c3711`
-wees hetzelfde geldige gedrag af door een foutieve exact-één-frameassertie;
-de fix in `2df2496` is met een meerframe-regressiecase getest. De oude
-gedeeltelijke poging en de volledige gate hebben elk een eigen receipt:
-[`native-20261103.json`](verification/sm-oom/native-20261103.json) en
-[`native-gate-20261103.json`](verification/sm-oom/native-gate-20261103.json).
-QEMU 10.2.1 en OVMF zijn uit officiële Ubuntu-pakketten onder `/tmp`
-geëxtraheerd, niet systeembreed geïnstalleerd; dit is niet de CI-QEMU-build.
-QEMU meldde in stderr een `kvmvapic.bin`-lookupfout, maar alle vijf gasten
-behaalden hun vereiste markers en exitcode; de oorzaak is niet onderzocht.
+**QEMU-grens:** QEMU 10.2.1 en OVMF zijn voor deze runs uit officiële Ubuntu-
+packages onder `/tmp` geëxtraheerd zonder systeembrede installatie. Dit is
+niet de CI-QEMU-build. QEMU gaf een `kvmvapic.bin`-lookupbericht op stderr;
+alle gastmarkers, image-bindingen en verwachte exitcodes slaagden, maar de
+oorzaak is niet onderzocht. Geen fysieke/humane acceptatie of volledige
+releasevalidatie geclaimd.
 
-**Eerstvolgend:** voer `python3 -B -u tools/test_supervisor.py` uit als
-K05-cleanupregressie op de gepushte bron. Daarna status, receipt en
-voortgangsmeter bijwerken en commit/push. Het volledige release-, fysiek-
-hardware- en menselijke bewijs blijft buiten deze OOM-gate.
+**Eerstvolgend — SM-SMP-K06-1:** ontwerp invariant/interface eerst en
+implementeer echte AP/per-CPU-initialisatie en 1→2→4 CPU-uitvoering binnen de
+vrijgegeven bestanden. AP-parking alleen is geen K06-acceptatie. Modelleer
+single-CPU `static mut`/`IF=0`-paden vóór parallel activeren; voeg
+failure-/race-/cleanuptests toe. Geen extern process-ABI of
+capabilitysemantiek wijzigen. De gedeelde Supervisor/UI/native-productpaden
+zijn geen eigenaarschap van deze stap.
 
-**Voortgang:** 41/100 → 41/100. Geen rubriccriterium gesloten; K05-regressie
-is nog open. De score en dit checkpoint zijn opnieuw beoordeeld in
-`docs/progress.json`.
+**Voortgang:** 41/100 → 41/100. Geen criterium gesloten: K06 vereist
+concurrente SMP-scheduling/synchronisatie/interrupts/adresruimtewissel en
+breder bewijs. Score en assessment staan in `docs/progress.json`.
 
 ## Historisch checkpoint — M1 tijd en procesresource-accounting — 3 november 2026
 

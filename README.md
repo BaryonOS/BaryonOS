@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`d5d5776e`](https://github.com/simonvanieperen/nieuw-os/commit/d5d5776e00f16229e2d1f7ff40e8badf1d30f614) ·
+**Bron:** [`ce1c5e7f`](https://github.com/simonvanieperen/nieuw-os/commit/ce1c5e7f7fae67b4f07b3eed65f04c21b90a21bd) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-spoon`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** SM-OOM-1 P0: integreer fysieke geheugenpressure, begrensde reclaim opportunity en gecontroleerde cleanup.
-41 blijft 41. Op bron d5d5776 slagen alle vijf native QEMU-profielen en de vijf kernel-/loader-/appbuilds. De 128-MiB OOM-run registreert 16 fysieke allocatiefouten, één Critical reclaimkans, ordelijke afsluiting van 15 peers, herstel van 15.204 frames en een nulde retry van 4 KiB. Een eerdere gatepoging op f3c3711 vond en reproduceerde een te strikte parserverwachting; die is op 2df2496 hersteld en met negen harnas-tests gevalideerd. De K05-cleanupregressie blijft open; geen rubriccriterium gesloten.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** SM-OOM-1 P0: native OOM-gate en K05-cleanupregressie.
+41 blijft 41. Op bron d5d5776 slagen alle vijf native QEMU-profielen en de vijf kernel-/loader-/appbuilds. De 128-MiB OOM-run registreert 16 fysieke allocatiefouten, één Critical reclaimkans, ordelijke afsluiting van 15 peers, herstel van 15.204 frames en een nulde retry van 4 KiB. De parserfix is gericht gevalideerd. Op bron ce1c5e7 slagen ook alle zes bestaande K05 QEMU-cases plus de capability, SDK-runtime, supervisor-lib en harnesshosttests. Dit sluit geen rubriccriterium; volgende toegewezen stap is SM-SMP-K06-1.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
