@@ -2,7 +2,7 @@
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\task-contract.json",
     "source_sha256": "d98c099935fe9a16ad0a2691ac6f9890f8aba62d2a8f7051c0124c54eb0340bd",
-    "archive": "task-contract.json",
+    "archive": "task-contract.json.historical.txt",
     "archive_sha256": "d98c099935fe9a16ad0a2691ac6f9890f8aba62d2a8f7051c0124c54eb0340bd",
     "reduction": "none"
   },

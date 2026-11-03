@@ -28,44 +28,66 @@ for ino,row in inodes.items():
     if ino==256:continue
     row['xattrs']=xattrs.get(ino,{})
     for path in paths(ino):imported[path]=row
-assert set(seed)==set(imported)==set(restored)
+if set(seed)!=set(imported) or set(seed)!=set(restored):
+    raise RuntimeError('Seed, import and restore paths differ')
 comparisons={}
 for path in seed:
     comparisons[path]={'imported_inode':imported[path]['inode'],'seed_to_import_differences':{k:{'seed':seed[path][k],'image':imported[path][k]} for k in ['type','mode','mtime_ns','uid','gid','xattrs'] if seed[path][k]!=imported[path][k]},'import_to_restore_differences':{k:{'image':imported[path][k],'restored':restored[path][k]} for k in ['type','mode','mtime_ns','uid','gid','xattrs'] if imported[path][k]!=restored[path][k]}}
-assert imported['hard-a.bin']['inode']==imported['hard-b.bin']['inode'] and imported['hard-a.bin']['nlink']==2
-assert imported['sparse.bin']['allocated_nbytes']==8388608
-assert imported['empty-dir']['mode']=='0o700' and imported['empty-dir']['xattrs']==seed['empty-dir']['xattrs']
-assert all(row['mtime_ns']==1577836800000000000 for row in imported.values())
-report['import_stage']={'source':'logs/dump-fs.stdout.txt','method':'Parsed inode items, inode references and xattrs from full host dump-tree; all 8 path mappings found','manifest':imported,'comparisons':comparisons,'claims':{'fractional_mtime_lost_during_import':True,'hardlink_topology_preserved_during_import':True,'sparse_holes_materialized_during_import':True,'empty_directory_mode_and_xattr_preserved_during_import':True}}
-report['restore_stage']={'hardlink_topology_lost':True,'empty_directory_mode_mtime_xattr_lost':True,'regular_file_mode_and_xattr_preserved':True,'all_regular_file_bytes_and_symlink_target_preserved':all(seed[p].get('sha256')==restored[p].get('sha256') and seed[p].get('target')==restored[p].get('target') for p in seed)}
-report['metadata_roundtrip_complete']=False
-report['interpretation']='The selected mkfs --rootdir and btrfs restore tool path is not a metadata-complete backup/restore workflow; this does not demonstrate an inability of the Btrfs disk format or mounted kernel driver to preserve these properties.'
+hardpaths=('hard-a.bin','hard-b.bin')
+def same_hardlinks(rows):
+    return (rows[hardpaths[0]]['inode']==rows[hardpaths[1]]['inode']
+            and all(rows[path]['nlink']==2 for path in hardpaths))
+import_claims={
+    'fractional_mtime_lost_during_import':all(seed[path]['mtime_ns']%1000000000 != 0 and imported[path]['mtime_ns']==seed[path]['mtime_ns']//1000000000*1000000000 for path in seed),
+    'hardlink_topology_preserved_during_import':same_hardlinks(seed) and same_hardlinks(imported),
+    'sparse_holes_materialized_during_import':imported['sparse.bin']['allocated_nbytes'] > seed['sparse.bin']['st_blocks_512']*512,
+    'empty_directory_mode_and_xattr_preserved_during_import':all(imported['empty-dir'][key]==seed['empty-dir'][key] for key in ('mode','xattrs')),
+}
+report['import_stage']={'source':'logs/dump-fs.stdout.txt','method':f"Parsed inode items, inode references and xattrs from full host dump-tree; {len(imported)} path mappings found",'manifest':imported,'comparisons':comparisons,'claims':import_claims}
+regular=[path for path in imported if imported[path]['type']=='file']
+symlinks=[path for path in imported if imported[path]['type']=='symlink']
+claims={
+    'hardlink_topology_lost':same_hardlinks(imported) and not same_hardlinks(restored),
+    'empty_directory_mode_mtime_xattr_lost':all(imported['empty-dir'][key]!=restored['empty-dir'][key] for key in ('mode','mtime_ns','xattrs')),
+    'regular_file_mode_and_xattr_preserved':all(all(imported[path][key]==restored[path][key] for key in ('type','mode','xattrs')) for path in regular),
+    'all_regular_file_bytes_and_symlink_target_preserved':all(seed[path]['sha256']==restored[path].get('sha256') and seed[path]['size']==restored[path].get('size') for path in regular) and all(seed[path]['target']==restored[path].get('target') for path in symlinks),
+}
+report['restore_stage']=claims
+# Compare the whole measured roundtrip to the seed as well as the restore stage.
+metadata_fields=('type','mode','mtime_ns','uid','gid','xattrs')
+report['metadata_roundtrip_complete']=(not claims['hardlink_topology_lost'] and not claims['empty_directory_mode_mtime_xattr_lost']
+    and claims['regular_file_mode_and_xattr_preserved'] and claims['all_regular_file_bytes_and_symlink_target_preserved']
+    and same_hardlinks(seed)==same_hardlinks(restored)
+    and all(seed[path]['nlink']==restored[path]['nlink'] for path in seed if seed[path]['type']=='file')
+    and all(all(seed[path][key]==restored[path][key] for key in metadata_fields) for path in seed)
+    and seed['sparse.bin']['st_blocks_512']==restored['sparse.bin']['st_blocks_512'])
+report['interpretation']=('All measured properties were preserved in this experiment.' if report['metadata_roundtrip_complete'] else 'The selected mkfs --rootdir and btrfs restore tool path is not a metadata-complete backup/restore workflow; this does not demonstrate an inability of the Btrfs disk format or mounted kernel driver to preserve these properties.')
 (OUT/'metadata-evidence.json').write_text(json.dumps(report,indent=2)+'\n')
-(OUT/'README.md').write_text('''# Btrfs metadataherstel — aparte aanvullende hostproef
+(OUT/'README.md').write_text(f'''# Btrfs metadataherstel — aparte aanvullende hostproef
 
-Resultaat: inhoudherstel slaagt; deze mkfs --rootdir + btrfs restore-route bewaart niet alle metadata. Alle vier toolcommando's hebben exitcode 0 en de bronimage blijft bytegelijk. Baseline en N1-fixture zijn niet gewijzigd.
+Gemeten volledige metadata-roundtrip: {report['metadata_roundtrip_complete']}. Zie metadata-evidence.json voor exitcodes en bronhashes.
 
 | Eigenschap | Na mkfs --rootdir, gecontroleerd met dump-tree | Na restore -m -x -S |
 |---|---|---|
-| Bestandsbytes, grootte, symlinktarget | Contentchecksums geverifieerd; volledige bytesvergelijking na restore | Alle inhoud gelijk |
-| Gecontroleerde modes en user.* file-xattr | Behouden | Normale files behouden |
-| mtime inclusief 123456789 nanoseconden | Fractie verloren; alle mtimes hele seconden | Hele seconden behouden behalve lege map |
-| Lege map mode0700, oude mtime, user.* xattr | Alle drie aanwezig, tijd tot hele seconden | Mode0755, actuele mtime, xattr ontbreekt |
-| Hardlinkpaar | Eén inode, linkcount2, twee namen | Twee losse inodes, linkcount1 |
-| Sparse file8MiB, slechts8KiB oorspronkelijk gealloceerd | Alle8MiB gealloceerd in acht extents | Alle8MiB gealloceerd; inhoud gelijk |
-| uid/gid | Gelijk aan huidige WSL-gebruiker1000 | Gelijk; remapping naar andere gebruikers niet getest |
+| Bestandsbytes, grootte, symlinktarget | Contentchecksums geverifieerd | SHA-256, grootte en symlinktarget vergeleken; gelijk: {claims['all_regular_file_bytes_and_symlink_target_preserved']} |
+| Gecontroleerde modes en user.* file-xattr | Zie verschillen per pad | Normale files behouden: {claims['regular_file_mode_and_xattr_preserved']} |
+| mtime | Fractie verloren: {import_claims['fractional_mtime_lost_during_import']} | Zie verschillen per pad in metadata-evidence.json |
+| Lege map mode, mtime, user.* xattr | Mode en xattr behouden: {import_claims['empty_directory_mode_and_xattr_preserved_during_import']} | Alle drie gewijzigd: {claims['empty_directory_mode_mtime_xattr_lost']} |
+| Hardlinkpaar | Topologie behouden: {import_claims['hardlink_topology_preserved_during_import']} | Topologie verloren: {claims['hardlink_topology_lost']} |
+| Sparse file | Meer bytes gealloceerd dan seed: {import_claims['sparse_holes_materialized_during_import']} | Zie restore-allocatie in metadata-evidence.json |
+| uid/gid | Zie verschillen per pad | Zie verschillen per pad; remapping niet getest |
 
-Er zijn8 padvermeldingen (inclusief2 directories en1 symlink). Mode, mtime-nanoseconden, uid/gid, user.xattrs, filetype, reguliere grootte/SHA256 en symlinktarget zijn vergeleken. Hardlinktopologie is apart vergeleken op gelijke inode+linkcount, zonder inodegetallen tussen verschillende filesystems gelijk te eisen. Sparse-allocatie is geobserveerd met st_blocks op dezelfde WSL-/tmp-backingstore en Btrfs nbytes/extents; geen performanceclaim.
+Er zijn {len(seed)} padvermeldingen. Mode, mtime-nanoseconden, uid/gid, user.xattrs, filetype, reguliere grootte/SHA256 en symlinktarget zijn vergeleken. Hardlinktopologie is apart vergeleken op gelijke inode+linkcount, zonder inodegetallen tussen verschillende filesystems gelijk te eisen. Sparse-allocatie is geobserveerd met st_blocks op dezelfde WSL-/tmp-backingstore en Btrfs nbytes/extents; geen performanceclaim.
 
-Deze verliezen zijn aan import of restore toegeschreven door de tussenliggende Btrfs-tree te inspecteren. Dit bewijst beperkingen van deze toolroute, niet dat het Btrfs-diskformaat de eigenschappen niet kan opslaan.
+Verschillen worden aan import of restore toegeschreven door de tussenliggende Btrfs-tree te inspecteren. Dit bewijst beperkingen van deze toolroute, niet dat het Btrfs-diskformaat de eigenschappen niet kan opslaan.
 
 Niet getest: ACLs, security.xattrs, creation/ctime/atime, rootdirectory-metadata, uid/gid-remapping, Windows ADS, resource forks, mounted driver, native Nieuw OS, encryptie, snapshots of fysieke stroomuitval.
 
-metadata-evidence.json bevat de3 stadia en verschillen; logs/ bevat volledige stdout/stderr. De image blijft in /tmp/nieuw-os-storage-btrfs-20261102/metadata/metadata.img. De bovenliggende metadata_probe.py en metadata_review.py beschrijven corpus, commando's en vergelijking. Geen herstel-fallback of herhaalde succesvolle substituutrun gebruikt.
+metadata-evidence.json bevat de 3 stadia en verschillen; logs/ bevat volledige stdout/stderr. De image blijft in /tmp/nieuw-os-storage-btrfs-20261102/metadata/metadata.img. De bovenliggende metadata_probe.py en metadata_review.py beschrijven corpus, commando's en vergelijking. Geen herstel-fallback gebruikt.
 ''',encoding='utf-8')
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 manifest={str(p.relative_to(OUT)):sha(p) for p in OUT.rglob('*') if p.is_file() and p.name!='sha256-manifest.json'}
 manifest['../metadata_probe.py']=sha(OUT.parent/'metadata_probe.py');manifest['../metadata_review.py']=sha(OUT.parent/'metadata_review.py')
 (OUT/'sha256-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
 assert all(sha(OUT/p)==h for p,h in manifest.items())
-print(json.dumps({'files_verified':len(manifest),'metadata_complete':False,'stage_attribution_assertions_passed':True}))
+print(json.dumps({'files_verified':len(manifest),'metadata_complete':report['metadata_roundtrip_complete'],'stage_attribution_measured':True}))

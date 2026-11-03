@@ -1,4 +1,50 @@
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:572971890b28aff4a0ec7a2a84708ba983b1e0733ab362d3cfcd69d342cdcf56 -->
+
 # Ontwerpbesluiten
+
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:b9d55121a2c7db9cdb9d2bd2a67e305bd8eb2bd9f0451ceb8a4f177349ea8fc8 -->
+
+## Opslagbesluit N-20261102 — native backends en formaatidentiteit
+
+**Datum:** 2 november 2026. **Eigenaar:** projectintegratie.
+
+**Status:** native adoptie van Btrfs en OpenZFS is afgewezen op basis van de
+[toets van 2 november 2026](verification/native-storage-backend-gate/README.md).
+Er is geen eigen driver of nieuw diskformaat gestart. De bestaande NOSVOL02-
+controles bewijzen geen ondersteuning voor vreemde bestandssystemen.
+
+**Gevolgen:** S09 en native bestandsherstel blijven open. Herbeoordeling vereist
+bewijs van een gecontroleerde port van een bestaande engine naar de eigen ABI,
+inclusief licentie, resources en onafhankelijk inhouds- en metadata-orakel.
+Ook de OpenZFS-harnasbevindingen en fysieke stroomuitval blijven open.
+
+**Voorstel, niet geïmplementeerd:** positieve formaatidentiteit als voorwaarde
+voor schrijfrechten. De proef liet zien dat een Btrfs-prefix als lege NOSVOL02-
+tabel kon worden toegelaten; dit is geen veilige algemene formaatafwijzing.
+Het voorstel vraagt een afzonderlijk ontwerp en negatieve native tests vóór
+producttoelating. Herziening van dit voorstel vereist bewijs dat een alternatief
+onbekende of ambigue formaten even betrouwbaar uitsluit vóór schrijven.
+
+**Alternatieven:** adoptie van een bestaande engine blijft mogelijk na een
+nieuwe portabiliteits- en acceptatietoets; een eigen driver of nieuw formaat
+is niet gestart. **Security-invariant als voorstel:** schrijfrechten vereisen
+positieve formaatidentiteit; dit is nog niet geïmplementeerd.
+
+**Testbewijs:** de NOSVOL02-normal- en cold-recovercontroles en de
+Btrfs-prefixproef staan in het gekoppelde dossier. De aanname dat de bestaande
+engine nog niet native kan worden toegelaten is weerlegd zodra een gecontroleerde
+port de corpus- en herstelpoort op de eigen kernel haalt.
+
+**Migratie/rollback:** geen diskformaat of kernel is met dit besluit gewijzigd;
+een toekomstige port en toelating vereisen afzonderlijke migratie en review.
+
+<!-- /coderabbit-ai-generated:v1 -->
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 ## Nummerbehoud bij desktopintegratie — 2 november 2026
 

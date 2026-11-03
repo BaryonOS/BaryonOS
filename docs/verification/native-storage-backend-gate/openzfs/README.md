@@ -5,9 +5,31 @@ gebonden aan `archive-manifest.json`. Dit zijn **geen uitvoerbare scripts**;
 voer ze niet via bash/Python uit. De [oude toelichting](README.md.historical.txt)
 blijft historische brondata, inclusief toenmalige `/tmp`-uitzondering.
 
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:56853b20abcce11034c8ccf90ebdf64ac9b7087653645a37ce1f2b76ede41ce8 -->
+
 [COMMANDS.md](COMMANDS.md) corrigeert de verwisselde inventaris zonder
-historische scriptbytes of logs te veranderen. Geen nieuwe no-leak-,
-bestandsherstel-, native- of fysieke acceptatie.
+historische scriptbytes of logs te veranderen. Ook de `failed_setup_attempts`
+in het historische `evidence.json` verwisselen die twee logverwijzingen;
+de actuele tabel is leidend voor die koppeling. De aangepaste scriptkopieën
+zijn geen goedgekeurde replayroute. Geen nieuwe no-leak-, bestandsherstel-,
+native- of fysieke acceptatie.
+
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:06a23f60d67d4d418570b792ff86c22fa6661e3f66e62182a75aae9477bb6018 -->
+
+De oorspronkelijke `logs/package-metadata.txt` bewaart zes onafgesloten
+`Original-Maintainer`-velden. De lokale Ubuntu `apt-cache show` en het op de
+vastgelegde SHA256 gecontroleerde `zfsutils-linux`-pakket van dezelfde versie
+bevatten ook die onvolledige waarde. De originele snapshot is daarom niet
+stilzwijgend aangepast. Deze contactvelden zijn niet volledig uit dit bewijs
+te verifiëren.
+
+<!-- /coderabbit-ai-generated:v1 -->
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 De [actuele route](../COMMANDS.md) kan uitsluitend zes exact gepinde
 offlinepakketten controleren en veilig uitpakken. Een extra `.deb`, verkeerde

@@ -55,9 +55,12 @@ mk=run('mkfs',[mkfs,'--rootdir',str(seed),'-d','single','-m','dup','--label','me
 if mk.returncode:raise RuntimeError('mkfs failed')
 before=sha(image)
 check=run('check',[btrfs,'check','--readonly','--check-data-csum',str(image)])
+if check.returncode:raise RuntimeError('btrfs check failed')
 tree=run('dump-fs',[btrfs,'inspect-internal','dump-tree','--noscan','-t','fs',str(image)])
+if tree.returncode:raise RuntimeError('btrfs dump-tree failed')
 dest=BASE/'restored';dest.mkdir()
 rest=run('restore',[btrfs,'restore','-m','-x','-S',str(image),str(dest)])
+if rest.returncode:raise RuntimeError('btrfs restore failed')
 got=describe(dest);(OUT/'restored-metadata.json').write_text(json.dumps(got,indent=2)+'\n')
 fields=['type','mode','mtime_ns','uid','gid','xattrs','sha256','target']
 diff={}

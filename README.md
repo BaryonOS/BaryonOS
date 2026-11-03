@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`9e9a5016`](https://github.com/simonvanieperen/nieuw-os/commit/9e9a50162bff019a557e6d16caa02e21a59bf3d2) ·
-**Ontwikkelbranch:** `simon/profiles-users-plan`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Nieuwste NAS-statushistory en gelijktijdige cloudcheckpointbronnen exact behouden.
-41 blijft41. Volledige nieuwste119-head5a8317f1 en eerdere136/143/144/145-leafheads zijn naast maincbbc behouden. Vier119-conflicten zijn uitsluitend centrale status; rubric buiten assessment identiek.20 exacte centrale tekstsnapshots van119 en nieuwe cloudmain-mergeheads136/143/144/145 zijn gehasht opgeslagen, zodat unieke status niet verdwijnt en historische proeven niet naar nieuwe bron worden gepromoveerd. Geen runtime/tool/testcodewijziging door de119-merge;10netwerk/16opslaghosttests en207oudehashes+99receiptentries blijven het eerdere brongebonden bewijs. Actuele CI/review/integratie en135hostedfixturelevering blijven open; geen nieuwe punten of productacceptatie.
+**Bron:** [`4cf1bc88`](https://github.com/simonvanieperen/nieuw-os/commit/4cf1bc88681f3b336a44093e39ac97d0d8eb4547) ·
+**Ontwikkelbranch:** `coderabbit/harden-storage-verification-gate/5c05f4df`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Review opslagbewijs en verificatiepoort.
+41 blijft 41. Verificatie en scriptkopieën aangescherpt; historische snapshots en archiefbindingen behouden. Geen nieuwe native of filesystemacceptatie; S09 blijft open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

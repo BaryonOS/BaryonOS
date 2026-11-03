@@ -1,7 +1,7 @@
 set -eu
 out=/tmp/nieuw-os-storage-zfs-20261102
 win=/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/openzfs
-mkdir -p "$win/logs" "$win/packages" "$win/sources" "$win/licenses" "$win/exports"
+mkdir -p "$win/images" "$win/logs" "$win/packages" "$win/sources" "$win/licenses" "$win/exports"
 cp "$out/logs/"* "$win/logs/"
 cp "$out/packages/"*.deb "$win/packages/"
 cp "$out/"*.c "$win/sources/"

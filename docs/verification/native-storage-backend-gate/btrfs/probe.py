@@ -24,13 +24,20 @@ run('os-release',['cat','/etc/os-release'])
 run('package-policy',['apt-cache','policy','btrfs-progs'])
 run('package-metadata',['apt-cache','show','btrfs-progs'])
 run('package-dependencies',['apt-cache','depends','btrfs-progs'])
-if not list(BASE.glob('btrfs-progs*.deb')):
-    cp=run('download',['apt','download','btrfs-progs'])
+# Use the recorded package identity, even when another .deb already exists.
+pin=json.loads(pathlib.Path(__file__).with_name('toolchain.json').read_text())
+package_name=pathlib.Path(pin['deb']).name
+deb=BASE/package_name
+if not deb.exists():
+    version=package_name.removeprefix('btrfs-progs_').removesuffix('_amd64.deb')
+    cp=run('download',['apt','download','btrfs-progs='+version])
     if cp.returncode: sys.exit(cp.returncode)
-deb=next(BASE.glob('btrfs-progs*.deb'))
+if not deb.is_file() or hashlib.sha256(deb.read_bytes()).hexdigest()!=pin['deb_sha256']:
+    raise RuntimeError('Pinned btrfs-progs package missing or SHA256 mismatch')
 run('package-fields',['dpkg-deb','--field',str(deb)])
 root=BASE/'toolroot'
-run('extract',['dpkg-deb','--extract',str(deb),str(root)])
+if run('extract',['dpkg-deb','--extract',str(deb),str(root)]).returncode:
+    raise RuntimeError('Package extraction failed')
 btrfs=next(p for p in root.rglob('btrfs') if p.is_file())
 mkfs=next(p for p in root.rglob('mkfs.btrfs') if p.is_file())
 run('ldd-btrfs',['ldd',str(btrfs)])

@@ -5,18 +5,18 @@
   "source_repository": "C:/Users/simon/OneDrive/Documenten/GitHub/nieuw-os",
   "review_branch": "codex/native-storage-backend-gate-20261102",
   "scope": [
-    "Existing maintained filesystem engines operating on disposable regular-file images",
-    "Cold QEMU execution of the existing independent Nieuw OS kernel",
-    "Read-only foreign filesystem data images with before/after SHA256",
-    "Observed backend admission, data readability, corruption detection and recovery",
-    "Source-bound portability, licence and resource limitations"
+    "Bestaande onderhouden bestandssysteemengines op wegwerpimages als reguliere bestanden",
+    "Koude QEMU-uitvoering van de bestaande zelfstandige Nieuw OS-kernel",
+    "Alleen-lezen dataimages met vreemde bestandssystemen en SHA256 vóór en na de proef",
+    "Waargenomen toelating van de backend, leesbaarheid van data, corruptiedetectie en herstel",
+    "Aan de bron gebonden beperkingen voor portabiliteit, licenties en resources"
   ],
   "non_goals": [
-    "No independent filesystem driver or new disk format",
-    "No replacement of the Nieuw OS kernel",
-    "No physical devices, raw host disks, production data or production keys",
-    "No global package installation, kernel modules or loop mounts",
-    "No claim of physical power-loss safety or product acceptance from host tests"
+    "Geen eigen bestandssysteemdriver of nieuw diskformaat",
+    "Geen vervanging van de Nieuw OS-kernel",
+    "Geen fysieke apparaten, ruwe hostschijven, productiedata of productiesleutels",
+    "Geen systeemwijde pakketinstallatie, kernelmodules of loop-mounts",
+    "Geen claim over veiligheid bij fysieke stroomuitval of productacceptatie op basis van hosttests"
   ],
   "owners": {
     "root": "Integration, review-source documentation and progress assessment, final gate report",
@@ -25,11 +25,11 @@
     "platforms": "openzfs/ extracted tools, file-vdev engine and fresh-process recovery checks"
   },
   "acceptance": {
-    "native_adoption": "Existing engine executes through the independent kernel and reads/verifies the known corpus; missing implementation remains NOT_ACCEPTED",
-    "host_recovery": "Fresh process recovers known durable content with independent SHA256/metadata comparison; tool exit alone is insufficient",
-    "mutation_boundary": "Foreign native images attached read-only and full-image SHA256 unchanged",
-    "evidence": "Exact argv, tool/package versions, exit codes, stdout/stderr, mutation details, source and artifact hashes",
-    "failure_reporting": "Expected negative test success is distinct from filesystem adoption; blocked or unrun cases remain explicit"
+    "native_adoption": "Bestaande engine wordt via de zelfstandige kernel uitgevoerd en leest/verifieert het bekende corpus; ontbrekende implementatie blijft NOT_ACCEPTED",
+    "host_recovery": "Een nieuw proces herstelt bekende duurzaam opgeslagen inhoud met onafhankelijke vergelijking van SHA256 en metadata; alleen een toolexit is onvoldoende",
+    "mutation_boundary": "Vreemde native images zijn alleen-lezen gekoppeld en de SHA256 van het volledige image blijft gelijk",
+    "evidence": "Exacte argv, tool- en pakketversies, exitcodes, stdout/stderr, mutatiedetails en bron- en artefacthashes",
+    "failure_reporting": "Een geslaagde negatieve test is onderscheiden van bestandssysteemadoptie; geblokkeerde of niet uitgevoerde gevallen blijven expliciet"
   },
   "runtime_exception": "OpenZFS ztest may create its standard /tmp/ztest.data.XXXXXX mkstemp and immediately unlink it; pools remain in its assigned disposable directory.",
   "confirmation_source_commit": "74a34d05ef5591b782a0da9da34e4669910d0722",

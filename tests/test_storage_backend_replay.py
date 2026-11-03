@@ -143,7 +143,14 @@ class StorageEvidenceChecks(unittest.TestCase):
             self.bindings.append((relative, len(names), hashlib.sha256(path.read_bytes()).hexdigest()))
             for name in names:
                 (path.parent / name).write_bytes(b"synthetic")
-        self.put(self.records / "openzfs/artifact-sha256.json", {"files": []})
+        zfs_files = []
+        for index in range(84):
+            path = f"fixture-{index}"
+            zfs_files.append({"path": path, "sha256": self.hash})
+            destination = self.payloads / "openzfs" / path
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes(b"synthetic")
+        self.put(self.records / "openzfs/artifact-sha256.json", {"files": zfs_files})
         for prefix in ("native", "native-current"):
             for label in ("control-normal", "control-recover", "btrfs-readonly", "openzfs-leaf-readonly"):
                 self.put(self.records / f"{prefix}/runs/{label}/result.json", {
@@ -175,7 +182,29 @@ class StorageEvidenceChecks(unittest.TestCase):
         result = self.verify()
         self.assertTrue(result["local_payloads_checked"])
         self.assertTrue(result["all_checks_passed"])
-        self.assertEqual(result["checks"][-1]["matching_hashes"], 31)
+        self.assertEqual(result["checks"][-1]["matching_hashes"], 115)
+
+    def test_openzfs_manifest_requires_complete_unique_set(self):
+        for files in ([], [{"path": "same"}] * 84):
+            with self.subTest(count=len(files)):
+                self.put(self.records / "openzfs/artifact-sha256.json", {"files": files})
+                with self.assertRaisesRegex(ValueError, "OpenZFS manifest|duplicate OpenZFS"):
+                    self.verify()
+
+    def test_optimized_cli_rejects_failed_check_without_writing_report(self):
+        report = self.base / "verification.json"
+        script = (
+            "import importlib.util, sys; "
+            "spec=importlib.util.spec_from_file_location('e', sys.argv[1]); "
+            "e=importlib.util.module_from_spec(spec); spec.loader.exec_module(e); "
+            "e.archive_checks=lambda root: e.require(False, 'fixture failure'); "
+            "e.main(['--output', sys.argv[2]])"
+        )
+        result = subprocess.run([sys.executable, "-O", "-c", script, evidence.__file__, str(report)],
+                                capture_output=True, text=True, timeout=10)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("fixture failure", result.stderr)
+        self.assertFalse(report.exists())
 
     def test_single_valid_file_cannot_replace_full_manifest(self):
         self.put(self.payloads / "btrfs/sha256-manifest.json", {"baseline.img": self.hash})

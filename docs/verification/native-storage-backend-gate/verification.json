@@ -16,6 +16,10 @@
     {
       "check": "two independently pinned complete Btrfs manifests",
       "manifest_entries": 99
+    },
+    {
+      "check": "archived OpenZFS manifest entry count",
+      "manifest_entries": 84
     }
   ],
   "all_checks_passed": true

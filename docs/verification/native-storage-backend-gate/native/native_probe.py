@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -21,10 +22,19 @@ SOURCE = Path('C:/Users/simon/OneDrive/Documenten/GitHub/nieuw-os')
 EXPECTED_HEAD = 'e08fb0e48c1bb0781e98357f588c2f73b6ae8500'
 os.environ['PYTHONDONTWRITEBYTECODE'] = '1'
 sys.dont_write_bytecode = True
-sys.path.insert(0, str(SOURCE / 'tools'))
-from common import environment, firmware, source_hash  # noqa: E402
-import volume_disk  # noqa: E402
-from run_volume import expected_markers, controlled, numbers, check_state  # noqa: E402
+METADATA_TIMEOUT = 15
+
+
+def load_source(source):
+    # Resolve configuration before loading helpers from the selected checkout.
+    global SOURCE, environment, firmware, source_hash, volume_disk
+    global expected_markers, controlled, numbers, check_state
+    SOURCE = Path(source).resolve(strict=True)
+    source_git_state()
+    sys.path.insert(0, str(SOURCE / 'tools'))
+    from common import environment, firmware, source_hash
+    import volume_disk
+    from run_volume import expected_markers, controlled, numbers, check_state
 
 
 def sha(path):
@@ -43,12 +53,20 @@ def local(path):
     return path
 
 
-def source_state():
-    head = subprocess.check_output(['git', '-C', str(SOURCE), 'rev-parse', 'HEAD'], text=True).strip()
+def source_git_state():
+    head = subprocess.check_output(['git', '-C', str(SOURCE), 'rev-parse', 'HEAD'], text=True, timeout=METADATA_TIMEOUT).strip()
     if head != EXPECTED_HEAD:
         raise RuntimeError(f'source changed: {head}')
-    return {'head': head, 'source_sha256': source_hash(), 'git_status': subprocess.check_output(
-        ['git', '-C', str(SOURCE), 'status', '--short'], text=True).splitlines()}
+    status = subprocess.check_output(
+        ['git', '-C', str(SOURCE), 'status', '--short'], text=True, timeout=METADATA_TIMEOUT).splitlines()
+    if status:
+        raise RuntimeError(f'source worktree is not clean: {status}')
+    return head, status
+
+
+def source_state():
+    head, status = source_git_state()
+    return {'head': head, 'source_sha256': source_hash(), 'git_status': status}
 
 
 def build_environment():
@@ -100,15 +118,16 @@ def build(profile):
                             text=True, encoding='utf-8', errors='replace', timeout=600)
     (destination / 'build.stdout.txt').write_text(result.stdout, encoding='utf-8')
     (destination / 'build.stderr.txt').write_text(result.stderr, encoding='utf-8')
+    after_state = source_state()
     report = {'command': command, 'cwd': str(SOURCE), 'returncode': result.returncode,
               'duration_s': time.monotonic()-started, 'source_before': before_state,
-              'source': source_state(), 'source_unchanged': before_state == source_state(),
+              'source': after_state, 'source_unchanged': before_state == after_state,
               'isolated_build': str(destination), 'isolated_target': str(ROOT / 'target')}
     save(destination / 'build-invocation.json', report)
     print(json.dumps(report), flush=True)
-    if result.returncode:
+    if result.returncode or not report['source_unchanged']:
         print(result.stderr[-5000:])
-        raise RuntimeError('native build failed; inspect complete saved logs')
+        raise RuntimeError('native build failed or source changed; inspect complete saved logs')
 
 
 def prepare(profile, label):
@@ -134,10 +153,13 @@ def prepare(profile, label):
 
 
 def run(label, image, *, profile='test-volume-recover', readonly=True, control=None, timeout=120):
-    directory, manifest, state = prepare(profile, label)
-    original = Path(image).resolve(strict=True)
-    if not original.is_file() or original.is_symlink() or original.stat().st_nlink != 1:
+    unresolved = Path(image)
+    if unresolved.is_symlink():
         raise ValueError('requires a single-link regular image file')
+    original = unresolved.resolve(strict=True)
+    if not original.is_file() or original.stat().st_nlink != 1:
+        raise ValueError('requires a single-link regular image file')
+    directory, manifest, state = prepare(profile, label)
     original_before = sha(original)
     target = directory / 'data.img'
     shutil.copyfile(original, target)
@@ -148,6 +170,8 @@ def run(label, image, *, profile='test-volume-recover', readonly=True, control=N
         f.seek(4*512)
         first_table = f.read(34*512)
         second_table = f.read(34*512)
+    if len(first_table) != 34*512 or len(second_table) != 34*512:
+        raise ValueError('short read of native table regions')
     env = environment()
     qemu = shutil.which('qemu-system-x86_64', path=env['PATH'])
     if not qemu:
@@ -179,7 +203,7 @@ def run(label, image, *, profile='test-volume-recover', readonly=True, control=N
     report = {'schema_version': 1, 'kind': 'native-control' if control else 'native-foreign-admission-probe',
               'label': label, 'started_utc': started, 'duration_s': time.monotonic()-start,
               'timeout_s': timeout, 'timed_out': timed_out, 'raw_qemu_exit': code,
-              'command': args, 'cwd': str(directory), 'qemu_version': subprocess.check_output([qemu, '--version'], text=True).strip(),
+              'command': args, 'cwd': str(directory), 'qemu_version': subprocess.check_output([qemu, '--version'], text=True, timeout=METADATA_TIMEOUT).strip(),
               'source': state, 'source_unchanged': state == source_state(), 'profile': profile,
               'data_disk_read_only': readonly, 'source_image': str(original),
               'source_image_size': original.stat().st_size, 'source_image_sha256_before': original_before,
@@ -223,14 +247,53 @@ def run(label, image, *, profile='test-volume-recover', readonly=True, control=N
     return report, target
 
 
+def btrfs_admission_finding():
+    directory = ROOT / 'runs/btrfs-readonly'
+    try:
+        report = json.loads((directory / 'result.json').read_text(encoding='utf-8'))
+        serial = (directory / 'serial.txt').read_text(encoding='utf-8')
+    except (OSError, ValueError):
+        return None
+    if not isinstance(report, dict):
+        return None
+    source = report.get('source')
+    if (not isinstance(source, dict) or source.get('head') != EXPECTED_HEAD
+            or source.get('git_status') != [] or report.get('source_unchanged') is not True
+            or report.get('timed_out') is not False or report.get('raw_qemu_exit') != 35
+            or report.get('kind') != 'native-foreign-admission-probe'
+            or report.get('label') != 'btrfs-readonly' or report.get('profile') != 'test-volume-recover'
+            or report.get('data_disk_read_only') is not True
+            or report.get('source_image_unchanged') is not True
+            or report.get('probe_image_unchanged') is not True
+            or report.get('first_table_all_zero') is not True
+            or report.get('second_table_all_zero') is not True):
+        return None
+    hashes = [report.get(key) for key in ('source_image_sha256_before', 'source_image_sha256_after',
+                                          'probe_image_sha256_before', 'probe_image_sha256_after')]
+    if not all(isinstance(value, str) and re.fullmatch(r'[0-9a-f]{64}', value) for value in hashes) or len(set(hashes)) != 1:
+        return None
+    steps = list(re.finditer(r'^VOLUME:APP_STEP:([^\r\n]*)', serial, re.MULTILINE))
+    if not steps or not re.fullmatch(r'0*20[ \t]*', steps[-1].group(1)):
+        return None
+    if not re.search(r'^VOLUME:FAIL:APP_RESULT[ \t]*$', serial[steps[-1].end():], re.MULTILINE):
+        return None
+    step = int(steps[-1].group(1).strip().lstrip('0'))
+    return {'candidate': 'btrfs-readonly', 'observation': f'Two zero-filled table regions were accepted by the existing NOSVOL02 recovery logic as an empty table; application failed at first expected document STAT (step {step}).',
+        'evidence_level': 'Observed native app failure and header bytes, combined with unchanged recovery source; no Btrfs parser or contents were read.',
+        'source_references': ['kernel/src/m2/m3/volume.rs:19-20', 'services/volume/src/table.rs:828-846', 'sdk/examples/volume-docs/src/service.rs:151-157', 'sdk/examples/volume-docs/src/app.rs:153-156', 'sdk/examples/volume-docs/src/app.rs:649-651'],
+        'impact_boundary': 'Trusted synthetic fixture scope; no product autoformatter or physical-disk write was exercised. Must not reuse this blank-volume admission as an external-disk mount policy.'}
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('action', choices=['fetch','build','control','foreign','summarize'])
+    parser.add_argument('--source', type=Path, default=SOURCE, help='checkout containing the source tools')
     parser.add_argument('--profile', choices=['native-volume','test-volume-recover'])
     parser.add_argument('--label')
     parser.add_argument('--image', type=Path)
     parser.add_argument('--timeout', type=int, default=120)
     args = parser.parse_args()
+    load_source(args.source)
     ROOT.mkdir(parents=True, exist_ok=True)
     if args.action == 'fetch':
         fetch()
@@ -257,10 +320,7 @@ def main():
             'native_backend_adoption_gate_passed': False,
             'native_existing_volume_controls_passed': all(r.get('control_passed') is True for r in reports if r['kind'] == 'native-control') and len([r for r in reports if r['kind'] == 'native-control']) == 2,
             'foreign_format_safe_rejection_gate_passed': False,
-            'admission_finding': {'candidate': 'btrfs-readonly', 'observation': 'Two zero-filled table regions were accepted by the existing NOSVOL02 recovery logic as an empty table; application failed at first expected document STAT (step 20).',
-                'evidence_level': 'Observed native app failure and header bytes, combined with unchanged recovery source; no Btrfs parser or contents were read.',
-                'source_references': ['kernel/src/m2/m3/volume.rs:19-20', 'services/volume/src/table.rs:828-846', 'sdk/examples/volume-docs/src/service.rs:151-157', 'sdk/examples/volume-docs/src/app.rs:153-156', 'sdk/examples/volume-docs/src/app.rs:649-651'],
-                'impact_boundary': 'Trusted synthetic fixture scope; no product autoformatter or physical-disk write was exercised. Must not reuse this blank-volume admission as an external-disk mount policy.'},
+            'admission_finding': btrfs_admission_finding(),
             'openzfs_boundary': 'One read-only member of a two-file mirror, created with real OpenZFS ztest/libzpool and checked by zdb by N3. DMU test objectsets, not a ZPL user-file corpus. No native pool import, multiple-vdev operation or ZFS parsing was demonstrated.',
             'runs': reports, 'scope': 'Unchanged own kernel; disposable regular files; foreign disks read-only; no filesystem driver implemented.'})
 

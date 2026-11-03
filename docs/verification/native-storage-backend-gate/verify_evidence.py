@@ -138,6 +138,14 @@ def btrfs_bindings(root):
     return bindings
 
 
+def openzfs_bindings(root):
+    manifest = read(root, "openzfs/artifact-sha256.json")
+    files = manifest["files"]
+    require(isinstance(files, list) and len(files) == 84, "OpenZFS manifest entry count")
+    require(len({item["path"] for item in files}) == 84, "duplicate OpenZFS manifest path")
+    return files
+
+
 def local_checks(root, evidence_root):
     """Local root uses the original layout; source images have portable aliases."""
     require(evidence_root.is_dir() and not evidence_root.is_symlink(), "invalid evidence root")
@@ -151,7 +159,7 @@ def local_checks(root, evidence_root):
             path = Path(posixpath.normpath((Path(relative).parent / name).as_posix()))
             require(digest(target(evidence_root, path)) == expected, f"local hash: {path}")
             count += 1
-    for item in read(root, "openzfs/artifact-sha256.json")["files"]:
+    for item in openzfs_bindings(root):
         path = Path("openzfs") / item["path"]
         require(digest(target(evidence_root, path)) == item["sha256"], f"local hash: {path}")
         count += 1
@@ -177,6 +185,8 @@ def verify(root=ROOT, evidence_root=None):
     bindings = btrfs_bindings(root)
     checks.append({"check": "two independently pinned complete Btrfs manifests",
                    "manifest_entries": sum(len(manifest) for manifest in bindings.values())})
+    checks.append({"check": "archived OpenZFS manifest entry count",
+                   "manifest_entries": len(openzfs_bindings(root))})
     if evidence_root is not None:
         checks.append(local_checks(root, evidence_root))
     return {"kind": "evidence-integrity-check",
@@ -191,7 +201,10 @@ def main(argv=None):
     parser.add_argument("--evidence-root", type=Path)
     parser.add_argument("--output", type=Path, help="new report only; existing files are refused")
     args = parser.parse_args(argv)
-    report = verify(evidence_root=args.evidence_root)
+    try:
+        report = verify(evidence_root=args.evidence_root)
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
     text = json.dumps(report, indent=2) + "\n"
     if args.output:
         with args.output.open("x", encoding="utf-8") as stream:

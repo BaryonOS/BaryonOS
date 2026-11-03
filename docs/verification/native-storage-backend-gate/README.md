@@ -2,13 +2,20 @@
 
 ## Reviewfollow-up: historische data en actuele route gescheiden
 
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:b8f90f8cf8870544dfa38ec319308fea24ed27724307b2289c14f7eae365f8fc -->
+
 De uitslagen hieronder blijven **historische bronclaims**, geen uitvoering
-van de reviewfix. Alle 207 oorspronkelijke hashes blijven behouden;
-33 runnable bronnen/gewijzigde begeleidteksten staan nu bytegelijk als
-`*.historical.txt`, zonder uitvoerbit. Alleen hun `archive`-pad is aangepast
-in `archive-manifest.json`; de oorspronkelijke manifestbytes staan apart
-in `archive-manifest.json.historical.txt`. Nieuwe bronnen/rapporten worden
-uitsluitend door `replay-source-manifest.json` gebonden.
+van de reviewfix. Alle 207 oorspronkelijke hashes blijven behouden; de
+historische bron- en contractbytes staan als `*.historical.txt` waar de
+actuele kopieën zijn gewijzigd. Alleen hun `archive`-pad is aangepast in
+`archive-manifest.json`; de oorspronkelijke manifestbytes staan apart in
+`archive-manifest.json.historical.txt`. De aangepaste oude scripts zijn geen
+goedgekeurde replayroute. Actuele replaybronnen en -rapporten staan in
+`replay-source-manifest.json`.
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 [Actuele COMMANDS](COMMANDS.md) scheidt de schone-checkoutcontrole van
 expliciet gekozen lokale payloads en nieuwe private replaywerkruimten.
@@ -214,15 +221,22 @@ opgeruimd. Er is geen hostdisk-/firmwareconfiguratie terug te draaien.
 
 ## Bronnen en nog open portabiliteit
 
-Geraadpleegd op 2 november 2026. De flags zijn aan de werkelijk uitgevoerde
-toolversies getoetst; latest/master-handleidingen vervangen die pin niet.
+<!-- coderabbit-ai-generated:v1 -->
 
-- [Btrfs mkfs](https://btrfs.readthedocs.io/en/latest/mkfs.btrfs.html)
-- [Btrfs check](https://btrfs.readthedocs.io/en/latest/btrfs-check.html)
-- [Btrfs restore](https://btrfs.readthedocs.io/en/latest/btrfs-restore.html)
-- [OpenZFS ztest](https://openzfs.github.io/openzfs-docs/man/master/1/ztest.1.html)
-- [OpenZFS zdb](https://openzfs.github.io/openzfs-docs/man/master/8/zdb.8.html)
-- [OpenZFS-platformlaag](https://openzfs.github.io/openzfs-docs/Developer%20Resources/Building%20ZFS.html)
+<!-- coderabbit-ai-generated-section:v1:490e3c0436e4bd30726cc742ba79970fd41cd4abfb97751c09d6a4abd56739f2 -->
+
+De oorspronkelijke proef gebruikte btrfs-progs 6.17.1-1build1 en OpenZFS
+2.4.1-1ubuntu5.1. De volgende primaire versiebronnen beschrijven de gebruikte
+opties en interfaces; zie ook [bewijsgrenzen](PRIMARY-SOURCES.md).
+
+- [mkfs.btrfs(8)](https://github.com/kdave/btrfs-progs/blob/v6.17.1/Documentation/mkfs.btrfs.rst), btrfs-progs-project, v6.17.1: `--rootdir`.
+- [btrfs-check(8)](https://github.com/kdave/btrfs-progs/blob/v6.17.1/Documentation/btrfs-check.rst), btrfs-progs-project, v6.17.1: read-only controle.
+- [btrfs-restore(8)](https://github.com/kdave/btrfs-progs/blob/v6.17.1/Documentation/btrfs-restore.rst), btrfs-progs-project, v6.17.1: restore-opties voor metadata en symlinks.
+- [ztest(1)](https://openzfs.github.io/openzfs-docs/man/v2.4/1/ztest.1.html), OpenZFS-project, versie 2.4: de userspace-engineproef.
+- [zdb(8)](https://openzfs.github.io/openzfs-docs/man/v2.4/8/zdb.8.html), OpenZFS-project, versie 2.4: offline poolinspectie.
+- [Building ZFS](https://openzfs.github.io/openzfs-docs/Developer%20Resources/Building%20ZFS.html), OpenZFS-project, geraadpleegd 3 november 2026: platform- en buildafhankelijkheden; deze pagina is niet versiegebonden.
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 De runtimebron en Cargo-lock bevatten geen Btrfs-/OpenZFS-engine. Hun bestaande
 Linux-/libc/SPL-interfaces passen niet rechtstreeks op de huidige bare-metal

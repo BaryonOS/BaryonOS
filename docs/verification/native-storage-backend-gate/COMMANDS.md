@@ -6,14 +6,32 @@ entrypoints. Geen installatie, acquisitie, hostdisks of gebruikerdata.
 
 ## Gecommitte archiefcontrole (standaard)
 
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:3c38791007a8fb358024b02260edb02e020d40c2d762c4fb3c1ade88d9acf402 -->
+
 ```sh
 python3 -B docs/verification/native-storage-backend-gate/verify_evidence.py
 python3 -B -m unittest discover -s tests -p test_storage_backend_replay.py -v
+python3 -B docs/verification/native-storage-backend-gate/native-current/test_native_probe.py
 ```
 
+De native-probetests gebruiken Git, tijdelijke fixtures en de gearchiveerde
+`native{,-current}/runs/btrfs-readonly/{result.json,serial.txt}`. Ze starten
+géén VM en leveren geen nieuw native bewijs.
+
+<!-- /coderabbit-ai-generated:v1 -->
+
 De eerste opdracht controleert alle 207 oorspronkelijke archive-hashes,
-JSON-invarianten en twee apart gepinde originele Btrfs-manifestreceipts
-(82+17 entries); geen lokale images/binaries zijn nodig.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:781d120defd9f1f7a0ff4118344796a1ba300dbd6e326c36c543d7a51715a70b -->
+
+JSON-invarianten, twee apart gepinde originele Btrfs-manifestreceipts
+(82+17 entries) en het aantal van 84 unieke OpenZFS-manifestpaden; geen lokale
+images/binaries zijn nodig.
+
+<!-- /coderabbit-ai-generated:v1 -->
 `verification.json` vermeldt modus `committed`, `local_payloads_checked: false`
 en `new_native_execution: false`. De originele, modusloze uitslag blijft
 bytegelijk als `verification.json.historical.txt`. De verifier overschrijft

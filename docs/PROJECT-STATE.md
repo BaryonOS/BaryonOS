@@ -1,4 +1,25 @@
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:3d207d72844cf7366549d64f577c4f7448ac0edb1428e78b1109524cb32c6bce -->
+
 # Actuele projectstatus
+
+## Review opslagbewijs — 3 november 2026
+
+De storage-verifier controleert ook het OpenZFS-manifestaantal; scriptkopieën
+bevatten gerichte herstelmaatregelen en historische bewijsbytes blijven
+gebonden. De actuele replayroute is ongewijzigd begrensd. Geen nieuwe native,
+Btrfs- of OpenZFS-engineproef; S09 blijft open en de score blijft **41 → 41**.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:03971b9462d62ae9ec519c64fe075acba8dcbc7932f1f7a08abe54b678213f5a -->
+
+Zie [bewijs en route](verification/native-storage-backend-gate/README.md) en
+[opslagbesluit](DECISIONS.md#opslagbesluit-n-20261102--native-backends-en-formaatidentiteit).
+
+<!-- /coderabbit-ai-generated:v1 -->
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 ## NEXT AGENT HANDOFF — documentstapel inhoudsbehoudend combineren — 3 november 2026
 
@@ -301,17 +322,22 @@ OpenZFS-libzpool/zdb kan de hostpool controleren/importeren; `ztest -E` heeft
 een `/dev/zfs`-discoverygrens, de crashproef meldt een onopgelost allocatieverschil
 en gewone bestands-/backuprestore is niet aangetoond. Dit is geen native port.
 
-**Besluit en score:** native adoptie van beide backends blijft niet geaccepteerd;
-geen eigen driver of nieuw diskformaat gestart. **34/100 → 34/100**; S09 blijft
-open. Bestaand positief NOSVOL02-bewijs wordt niet uitgebreid tot vreemde FS'en.
-Zie [toets en reproduceerroute](verification/native-storage-backend-gate/README.md).
-De oorspronkelijke hoofdcheckout en ongerelateerde `.github/github-app.yml`
-zijn behouden; deze branch wijzigt uitsluitend bewijs/documentatie/assessment.
+<!-- coderabbit-ai-generated:v1 -->
 
-**Open:** positieve formaatidentiteit vóór writable toelating; gecontroleerde
-bestaande-engineport naar de eigen ABI; onafhankelijk inhouds- én metadata-orakel;
-verklaring van de OpenZFS-harnasbevindingen. Geen fysieke powercut-, volledige
-snapshot-/encryptie-/backup- of prestatietoelating.
+<!-- coderabbit-ai-generated-section:v1:59a88d190aa88d2def681f7dba4d6da14673eb7668052fc1bdf03a7f5eece298 -->
+
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:24c38ee2137a5b69fba11d42383e316d286ea9c10eb7b8dc3b99773bbff01395 -->
+
+**Status en score:** native adoptie is afgewezen; S09 blijft open en de score
+was **34/100 → 34/100**. Zie het [opslagbesluit](DECISIONS.md#opslagbesluit-n-20261102--native-backends-en-formaatidentiteit)
+en de [toets](verification/native-storage-backend-gate/README.md). Fysieke
+powercut-, snapshot-, encryptie-, backup- en prestatietoelating zijn open.
+
+<!-- /coderabbit-ai-generated:v1 -->
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 **Eerstvolgende controle:**
 `python3 tools/progress.py --check`, daarna de beschreven native-enginepoort

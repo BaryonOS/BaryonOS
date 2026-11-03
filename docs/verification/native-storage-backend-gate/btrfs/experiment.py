@@ -1,7 +1,7 @@
 import hashlib, json, os, pathlib, re, shutil, subprocess, sys, time
 
-BASE=pathlib.Path('/tmp/nieuw-os-storage-btrfs-20261102')
-OUT=pathlib.Path('/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs')
+BASE=pathlib.Path(os.environ.get('BTRFS_BASE', '/tmp/nieuw-os-storage-btrfs-20261102'))
+OUT=pathlib.Path(os.environ.get('BTRFS_OUT', '/mnt/c/Users/simon/Documents/Codex/2026-11-02/native-storage-gate/btrfs'))
 LOGS=OUT/'logs'
 tools=json.loads((OUT/'toolchain.json').read_text())
 records=json.loads((OUT/'commands.json').read_text())
