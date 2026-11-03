@@ -1,10 +1,10 @@
 # Privacybrowser — onderzoeksrichting en open keuzes
 
-**Status:** onderzoeksnotitie, 28 oktober 2026. Dit document legt de productwens,
-relevante opensourcevoorbeelden en acceptatievragen vast. Er is **nog geen
-browserengine gekozen, geforkt of naar Nieuw OS geport**. Chromium/Blink,
-Firefox/Gecko en hun afgeleiden zijn referenties; een keuze wordt pas een
-architectuurbesluit na een gerichte vergelijking en proef.
+**Status:** onderzoeksnotitie, bijgewerkt 3 november 2026. WPE WebKit 2.54 met
+WPEPlatform is gekozen als eerste upstream-portkandidaat, niet als definitieve
+productkeuze. Er is **nog geen browserengine naar Nieuw OS geport**; de keuze
+blijft afhankelijk van een haalbare build-, proces- en surfaceproef. Chromium/
+Blink en Firefox/Gecko zijn kort vergeleken als alternatieven.
 
 ## 1. Productdoel
 
@@ -32,6 +32,11 @@ Het gewenste standaardgedrag is:
 Dit sluit aan op het bestaande privacycontract: internetrecht geeft een browser
 geen algemene document- of NAS-bevoegdheid. De browser blijft een gewone,
 begrensde app boven de capability- en netwerkgrenzen van Nieuw OS.
+Daarbij blijven drie autoriteiten gescheiden: browser-apprechten, rechten van
+een weborigin en door de gebruiker verleende toegang tot een concreet middel.
+Een originverzoek loopt via browserbeleid en een vertrouwde broker; alleen die
+broker kan een scoped runtime-capability aanvragen. Enginepolicy zelf geeft
+geen kernelrecht uit.
 
 ## 2. Twee afzonderlijke privacyproblemen
 
@@ -243,12 +248,34 @@ De upstream `scraper`-release heeft ISC-licentie en recente repositoryactiviteit
 de exacte packageversie/checksum en dependencyboom zijn vastgezet. `scraper`,
 `html5ever` en `tendril` gebruiken `std`; de check voor
 `x86_64-unknown-none` faalde. Daarmee is deze component alleen geschikt voor
-de hostfixtureproef. Chromium blijft een voorkeurskandidaat **als** zijn
-onderhoud, licentie, build en integratie met deze OS-services haalbaar blijken.
-De [officiële Chromium-buildinstructies](https://chromium.googlesource.com/chromium/src/+/main/docs/linux/build_instructions.md)
-beschrijven een omvangrijke Linux-hostbuild, niet een Nieuw-OS-target. Die
-build en de BR0 Chromium/Gecko-
-vergelijking zijn hier niet uitgevoerd; geen enginebesluit is genomen.
+de hostfixtureproef. Er wordt geen CSS-layout, renderer of JavaScript-engine
+op basis van deze proef gebouwd.
+
+### M5 — korte upstream-routevergelijking
+
+| Route | Concrete portinghaak en resterend platformwerk | Eerste keuze |
+|---|---|---|
+| WPE WebKit 2.54 | `WPEPlatform` is de standaardintegratielaag; een port implementeert display, toplevel, view en buffer en voert input aan. Upstream levert Wayland, DRM/KMS en headless; builds en runtimes zijn beschikbaar via `meta-webkit` voor OpenEmbedded/Yocto. De API is GObject-gebaseerd. Zij levert geen Nieuw-OS-procesmodel, sandbox, scheduler, geheugenservice of capabilitybroker. | **Ja, kandidaat.** Meest begrensde expliciete surface/input-adapter voor een eerste echte engineproef. |
+| Chromium/Blink | Ozone biedt concrete platforminterfaces voor vensters, input, display en surfaces; de Chromium-buildinstructies beschrijven een omvangrijke Linux-hostbuild. Ozone lost procesisolatie, sandbox, geheugen-/threadintegratie en netwerkautoriteit niet op. | Niet eerst: bredere build- en OS-integratie voor de eerste slice. |
+| Firefox/Gecko | Een volledige onderhouden engine met OS-widgetabstracties, netwerkstack, IPC en meerdere processen. De korte officiële-docscan vond geen smallere embedded platforminterface vergelijkbaar met WPEPlatform; een port raakt meerdere OS-lagen. | Niet eerst: grotere integratiescope voor het huidige platformcontract. |
+
+WPEPlatform concretiseert graphics/buffers en input, niet alle platformdiensten.
+Processtart en isolatie, threads/tijd/geheugen, fonttoegang, netwerk, downloads,
+clipboard, audio/media en origin-toestemming hebben dus nog een Nieuw-OS-contract
+en upstream-configuratie nodig. Vooral audio/media, fontafhandeling en de
+volledige dependency-/licentie-inventaris zijn niet in een buildproef
+geverifieerd. WPE/WebKit gebruikt een mix van LGPL- en BSD-licenties; de exacte
+component- en codecselectie moet vóór distributie worden vastgelegd.
+
+**Besluit en blocker:** ADR-065 kiest WPE WebKit 2.54/WPEPlatform als eerste
+route, niet als engineportbewijs. De huidige host heeft geen `pkg-config`
+commando; een WPE/WebKit-build en de beschikbaarheid van de benodigde
+GObject-/graphics-/media-dependencies zijn daarom hier niet vastgesteld.
+Nieuw-OS heeft bovendien nog geen algemene engine-launch/sandbox- en
+surface-adapter aangetoond. Er is bewust geen lege adapter of eigen renderer
+toegevoegd. De eerste vervolgpoort is een reproduceerbare upstream-build plus
+een gekoppelde `WPEDisplay`/`WPEView`/`WPEBuffer`-surface en lokale fixture; pas
+daarna kan de echte layout-/renderpipeline worden geëvalueerd.
 
 **Primaire bronnen gecontroleerd op 3 november 2026:**
 
@@ -261,6 +288,18 @@ vergelijking zijn hier niet uitgevoerd; geen enginebesluit is genomen.
 - Chromium Project, *Linux build instructions*, actuele upstream
   buildvereisten:
   [chromium.googlesource.com](https://chromium.googlesource.com/chromium/src/+/main/docs/linux/build_instructions.md).
+- WPE WebKit, *WPE Architecture* en *Builds*: WPEPlatform-objecten, ingebouwde
+  targets en OpenEmbedded/Yocto-routes:
+  [architecture](https://wpewebkit.org/about/architecture.html),
+  [builds](https://wpewebkit.org/about/builds.html).
+- WPE WebKit, *Frequently Asked Questions*: WPE 2.54-route en gemengde
+  LGPLv2/BSD-licenties:
+  [FAQ](https://wpewebkit.org/about/faq.html); WebKit Project,
+  [licenties](https://webkit.org/licensing-webkit/).
+- Chromium Project, *Ozone Overview*: platforminterfaces voor graphics/input:
+  [chromium.googlesource.com](https://chromium.googlesource.com/chromium/src/+/db6267fecee29ec703b51f1e1b854cdf56c53a3c/docs/ozone_overview.md).
+- Mozilla, *Gecko*: engineonderdelen, OS-widgets en procesarchitectuur:
+  [Firefox Source Docs](https://firefox-source-docs.mozilla.org/overview/gecko.html).
 
 ## 10. Bewijsgrens en voortgang
 

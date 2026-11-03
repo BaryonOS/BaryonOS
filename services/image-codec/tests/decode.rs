@@ -1,4 +1,6 @@
-use nieuw_os_image_codec::{decode, pixel_hash, Cancellation, Error, Format, Limits, Pixels};
+use nieuw_os_image_codec::{
+    decode, detect_format, pixel_hash, Cancellation, Error, Format, Limits, Pixels,
+};
 
 fn limits() -> Limits {
     Limits {
@@ -49,6 +51,25 @@ fn jpegs() -> [Fixture; 3] {
         fixture!("gray.jpg", 113, 67),
         fixture!("progressive.jpg", 193, 113),
     ]
+}
+
+#[test]
+fn format_routing_uses_supported_content_signatures() {
+    assert_eq!(
+        detect_format(include_bytes!("../fixtures/rgb.png")),
+        Some(Format::Png)
+    );
+    assert_eq!(
+        detect_format(include_bytes!("../fixtures/baseline.jpg")),
+        Some(Format::Jpeg)
+    );
+    assert_eq!(Format::Png.media_type(), "image/png");
+    assert_eq!(Format::Jpeg.media_type(), "image/jpeg");
+
+    assert_eq!(detect_format(b""), None);
+    assert_eq!(detect_format(b"\x89PNG\r\n\x1a"), None);
+    assert_eq!(detect_format(b"\xff\xd8"), Some(Format::Jpeg));
+    assert_eq!(detect_format(b"not an image"), None);
 }
 
 fn verify(f: &Fixture, tolerance: u8, format: Format) {

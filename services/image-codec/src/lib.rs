@@ -121,6 +121,29 @@ pub enum Format {
     Jpeg,
 }
 
+impl Format {
+    pub const fn media_type(self) -> &'static str {
+        match self {
+            Self::Png => "image/png",
+            Self::Jpeg => "image/jpeg",
+        }
+    }
+}
+
+/// Detects a supported image format from its signature only.
+///
+/// A match is a routing hint, not proof that the remaining bytes form a valid
+/// image. `decode` still validates the complete input before returning pixels.
+pub fn detect_format(input: &[u8]) -> Option<Format> {
+    if input.starts_with(b"\x89PNG\r\n\x1a\n") {
+        Some(Format::Png)
+    } else if input.starts_with(b"\xff\xd8") {
+        Some(Format::Jpeg)
+    } else {
+        None
+    }
+}
+
 #[derive(Debug)]
 pub struct Image<'a> {
     /// The original immutable object bytes, including all metadata. No re-encode.
@@ -316,12 +339,10 @@ pub fn decode<'a>(
     if input.len() > limits.input_bytes {
         return Err(Error::InputLimit);
     }
-    if input.starts_with(b"\x89PNG\r\n\x1a\n") {
-        png(input, limits, cancel)
-    } else if input.starts_with(b"\xff\xd8") {
-        jpeg(input, limits, cancel)
-    } else {
-        Err(Error::UnknownFormat)
+    match detect_format(input) {
+        Some(Format::Png) => png(input, limits, cancel),
+        Some(Format::Jpeg) => jpeg(input, limits, cancel),
+        None => Err(Error::UnknownFormat),
     }
 }
 

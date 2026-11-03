@@ -47,6 +47,38 @@ een tegenvoorbeeld waarbij policydata zelf runtimeautoriteit blijkt te dragen
 of bij een afzonderlijk goedgekeurd brokercontract. Status en bewijsgrens:
 [UNIVERSAL-PROFESSIONAL-PLATFORM.md](implementation/UNIVERSAL-PROFESSIONAL-PLATFORM.md).
 
+## ADR-065 — WPE WebKit is de eerste browser-engine-portkandidaat
+
+3 november 2026. Dit is een voorwaardelijke routekeuze, geen engineport,
+productkeuze of compatibiliteitsclaim. De hostfixture met `scraper` blijft
+afgesloten als parserexperiment; er wordt geen eigen CSS-layout, renderer of
+JavaScript-engine op gebouwd.
+
+**Besluit:** onderzoek en implementeer de eerste upstream-portpoging met WPE
+WebKit 2.54 en WPEPlatform. De expliciete `WPEDisplay`, `WPEToplevel`,
+`WPEView`- en `WPEBuffer`-integratie is een concretere eerste surface-/input-
+grens dan de bredere Chromium/Ozone- of Gecko-platformintegratie. WPE-upstream
+biedt buildrecepten voor OpenEmbedded/Yocto en gebruikt een mix van LGPL- en
+BSD-licenties; distributie vereist nog een exacte componentinventaris.
+
+**Veiligheidsgrens:** WPEPlatform vervangt geen Nieuw-OS-processtart,
+procesisolatie/sandbox, threads, geheugenbeheer, netwerkdienst of
+capabilitybroker. Browser-appnetwerkrechten, weboriginverzoeken en
+gebruikersgrants blijven afzonderlijke autoriteiten. Originverzoeken moeten
+via de bestaande policy naar een vertrouwde broker lopen; policy zelf geeft
+geen runtime-capability uit.
+
+**Blokker en herziening:** de huidige host heeft geen `pkg-config`-commando;
+WPE-dependencybeschikbaarheid en een reproduceerbare upstream-build zijn dus
+niet geverifieerd. Ook bestaat nog geen aangetoonde Nieuw-OS-engine-launch- en
+surface-route. Voeg geen lege adapter toe. De eerstvolgende portpoort is een
+reproduceerbare WPE-build, vervolgens initialisatie en een lokale fixture die
+via de echte layout-/renderpipeline in een gekoppelde WPEPlatform-surface
+verschijnt. Heropen de enginekeuze als upstream-afhankelijkheden,
+proces-/sandboxvereisten of onderhoudsroute niet op de bestaande kernel- en
+servicegrenzen passen. Bronnen en actuele bewijsgrens:
+[PRIVACY-BROWSER-RESEARCH.md](PRIVACY-BROWSER-RESEARCH.md).
+
 ## Onderzoeksbesluit J-20261102 — herkenbare basis, expliciete installatiegrens
 
 **Datum:** 2 november 2026. **Status:** ontwerp-/onderzoekskeuze, geen
