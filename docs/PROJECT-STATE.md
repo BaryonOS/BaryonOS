@@ -103,6 +103,16 @@ CPU-grenzen; raw QEMU-exit 33 was voor alle VM-runs verwacht. QEMU meldde
 opnieuw ontbrekend `kvmvapic.bin`; niet onderzocht. Receipt:
 [`smp-rendezvous-20261103T183655Z.json`](verification/sm-smp/smp-rendezvous-20261103T183655Z.json).
 
+**K06 TLB-slothergebruik — build/host PASS, native nog niet uitgevoerd:**
+het nieuwe opt-in `native-smp-m3-tlb-reuse`-profiel laat slot 0 op AP1 en
+slot 1 op BSP0 draaien. Bij de eerste slot-0-exit wordt het oude, ontmapte
+datablad tijdelijk vastgehouden; de vervanger krijgt hetzelfde virtuele
+adres met gegarandeerd een ander fysiek blad. De vervanger moet vanaf nul
+tellen en op dezelfde AP afsluiten voordat het blad wordt vrijgegeven. Zo
+test de proef de lokale CR3/TLB-overgang en adreshergebruik zonder een algemeen
+remote-shootdownprotocol te claimen. De profielbuild, 13 hosttests,
+rustfmt en diffcontrole slaagden; QEMU-runtimebewijs is nog niet uitgevoerd.
+
 **Niet-geaccepteerde SMP-lifecycleverkenning:** het combineren van de bestaande
 M4 multi-round lifecyclefixture met SMP eindigde op raw QEMU exit 35 bij
 `kernel/src/m2/m3.rs:1849` (`current < state.amount`) na AP-bring-up.
@@ -111,27 +121,26 @@ lijkt samen te hangen met state-/CPU-lifetime tijdens round-reset, maar er is
 geen root-cause-fix of acceptatieclaim. Dit experimentele profiel is niet in
 de SMP-runner opgenomen.
 
-**Cross-CPU capability-revoke — gerichte proef geslaagd, matrix nog open:**
+**Historische gerichte revoke-proef (nu gedekt door de volledige matrix):**
 `native-smp-m4-revoke` combineert de bestaande KS-14-fixture met de
 SMP-scheduler en registreert succesvolle revoke-calls en daaropvolgend
 gebruik van revoked handles per CPU/proces-slot. Op worktree-fingerprint
 `09e6be60a3685356fb2e357306502750a430e840afe1320cff5cfd9889840d59` slaagde
 de 2-CPU-QEMU-proef met raw exit 33: slot 0 revokeerde tweemaal op CPU 1;
 slot 2 werd daarna op CPU 0 geweigerd. M3-selecties waren `[41, 39]`.
-Log: `build/run/smp-2-2ae5598874/`. Het hostharnas telde 11 tests, exit 0.
-Na deze proef veranderde alleen de runnerreceipt-omschrijving; de volledige
-matrix moet de actuele bron opnieuw vastleggen.
+Log: `build/run/smp-2-2ae5598874/`. De actuele matrixreceipt hierboven is het
+leidende bewijs voor de gepushte bron.
 
-**Bewijsgrens:** AP-bring-up, per-CPU M3-scheduling en AP-process-exit/cleanup
-zijn in de matrix herhaald. Cross-CPU IPC/revoke slaagde in een run, maar de
-IPC-stage is flaky door niet-deterministische processmigratie; ze is nog niet
-stabiel geaccepteerd. TLB-shootdown/hergebruik en bredere races/failure-
-acceptatie blijven open. Dit is geen volledige K06-acceptatie.
+**Bewijsgrens:** AP-bring-up, 1/2/4 CPU, per-CPU M3-scheduling, AP-exit,
+cross-CPU IPC en cross-CPU revoke slagen in de actuele matrix. De gerichte
+TLB-slothergebruikproef is gebouwd maar nog niet native uitgevoerd; bredere
+race-/failureacceptatie en een algemeen remote-shootdownprotocol blijven open.
+Dit is geen volledige K06-acceptatie.
 `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
 
-**Eerstvolgende actie:** hervat de bestaande K06-acceptatie voor TLB-
-consistentie/hergebruik en SMP-race-/failuregevallen. De matrixpass bewijst
-geen remote TLB-shootdownprotocol en sluit K06 niet.
+**Eerstvolgende actie:** commit/push de TLB-slothergebruikfixture en voer
+eerst de gerichte 2-CPU-QEMU-proef uit. Bij pass volgt de volledige matrix;
+race-/failureacceptatie en elk algemeen remote-shootdownprotocol blijven open.
 
 **Cross-CPU capability-IPC — eerdere lokale proef vóór matrix:**
 `native-smp-m4` combineert het bestaande SMP-M3-profiel met de bestaande M4
@@ -169,12 +178,6 @@ mislukte receipt is gecorrigeerd:
 Een eerdere aanroep met `--help` is geen helpmodus, voerde de runner uit en
 stopte door ontbrekende `cargo` op de standaard-PATH; die poging staat apart in
 [`smp-rendezvous-20261103T173931Z.json`](verification/sm-smp/smp-rendezvous-20261103T173931Z.json).
-
-**Eerstvolgende actie:** maak M4-SMP-acceptatie deterministisch en herhaal de
-negen-stagematrix; daarna resterende TLB-/hergebruikacceptatie.
-Matrixomgeving en commando staan hierboven.
-De bestaande dirty wijzigingen in README en voortgangsbestanden zijn behouden
-en niet door deze SMP-taak aangepast.
 
 ## Historisch SMP-checkpoint — 3 november 2026
 

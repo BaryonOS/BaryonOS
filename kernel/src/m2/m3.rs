@@ -436,6 +436,14 @@ struct State {
     round_robin_cursor: usize,
     #[cfg(feature = "native-smp-m3")]
     cpu_selections: [u64; SMP_CPUS],
+    #[cfg(feature = "native-smp-m3-tlb-reuse")]
+    tlb_reuse_phase: u8,
+    #[cfg(feature = "native-smp-m3-tlb-reuse")]
+    tlb_reuse_old_pid: u64,
+    #[cfg(feature = "native-smp-m3-tlb-reuse")]
+    tlb_reuse_cpu: usize,
+    #[cfg(feature = "native-smp-m3-tlb-reuse")]
+    tlb_reuse_pa: u64,
     amount: usize,
     next_pid: u64,
     round: u8,
@@ -649,6 +657,13 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
             ptr::addr_of_mut!((*state).round_robin_cursor).write(0);
             ptr::addr_of_mut!((*state).cpu_selections).write([0; SMP_CPUS]);
         }
+        #[cfg(feature = "native-smp-m3-tlb-reuse")]
+        {
+            ptr::addr_of_mut!((*state).tlb_reuse_phase).write(0);
+            ptr::addr_of_mut!((*state).tlb_reuse_old_pid).write(0);
+            ptr::addr_of_mut!((*state).tlb_reuse_cpu).write(MAX);
+            ptr::addr_of_mut!((*state).tlb_reuse_pa).write(0);
+        }
         ptr::addr_of_mut!((*state).amount).write(0);
         ptr::addr_of_mut!((*state).next_pid).write(1);
         ptr::addr_of_mut!((*state).round).write(0);
@@ -694,6 +709,12 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
             arch::set_cpu_local(bootstrap, arch::service_stack(), true);
             super::smp::release_to_m3();
             super::smp::wait_for_m3_ready();
+            #[cfg(feature = "native-smp-m3-tlb-reuse")]
+            assert_eq!(
+                super::ap::cpu_count(),
+                2,
+                "native TLB-reuse acceptance requires exactly two CPUs"
+            );
             #[cfg(feature = "native-smp-m4")]
             assert_eq!(
                 super::ap::cpu_count(),
@@ -733,6 +754,13 @@ impl State {
             self.cpu_current = [MAX; SMP_CPUS];
             self.round_robin_cursor = 0;
             self.cpu_selections = [0; SMP_CPUS];
+        }
+        #[cfg(feature = "native-smp-m3-tlb-reuse")]
+        {
+            self.tlb_reuse_phase = 0;
+            self.tlb_reuse_old_pid = 0;
+            self.tlb_reuse_cpu = MAX;
+            self.tlb_reuse_pa = 0;
         }
         self.ticks = 0;
         self.selections = 0;
@@ -1255,6 +1283,10 @@ impl State {
             if cpu != if slot == 1 { 1 } else { 0 } {
                 continue;
             }
+            #[cfg(feature = "native-smp-m3-tlb-reuse")]
+            if cpu != (if slot == 0 { 1 } else { 0 }) {
+                continue;
+            }
             let valid = {
                 let process = &self.processes[slot];
                 let context = &process.context;
@@ -1446,14 +1478,32 @@ impl State {
         #[cfg(feature = "milestone-m4")]
         m4::process_exit(p.pid);
         let free_before = self.free_count();
-        let released = p.count + p.kernel_frames.len() + address.owned_table_count();
+        let total_released = p.count + p.kernel_frames.len() + address.owned_table_count();
+        #[cfg(feature = "native-smp-m3-tlb-reuse")]
+        let mut held_frames = 0;
         for m in p.mappings() {
             address.unmap(self.frames, m.va);
             self.kernel.unmap(self.frames, m.pa);
+            #[cfg(feature = "native-smp-m3-tlb-reuse")]
+            if slot == 0 && self.tlb_reuse_phase == 0 && m.va == ((DATA + 8) & !(PAGE - 1)) {
+                assert_eq!(self.tlb_reuse_pa, 0);
+                self.tlb_reuse_pa = m.pa;
+                held_frames += 1;
+                continue;
+            }
             self.frames
                 .free(m.pa, Owner::User(p.pid, m.kind), paging::zero_dynamic)
                 .unwrap();
         }
+        #[cfg(feature = "native-smp-m3-tlb-reuse")]
+        assert_eq!(
+            held_frames,
+            if slot == 0 && self.tlb_reuse_phase == 0 {
+                1
+            } else {
+                0
+            }
+        );
         let lower = p.kernel_top - 0x5000;
         for (i, pa) in p.kernel_frames.into_iter().enumerate() {
             self.kernel
@@ -1464,11 +1514,21 @@ impl State {
                 .unwrap();
         }
         address.destroy(self.frames);
+        #[cfg(feature = "native-smp-m3-tlb-reuse")]
+        let released = total_released - held_frames;
+        #[cfg(not(feature = "native-smp-m3-tlb-reuse"))]
+        let released = total_released;
         assert_eq!(self.free_count(), free_before + released);
         #[cfg(feature = "native-memory")]
         memory_fixture::observe_cleanup(self, slot, released, free_before, self.free_count());
         for index in 0..FRAME_COUNT {
             let owner = self.frames.owner(index as u64 * PAGE).unwrap();
+            #[cfg(feature = "native-smp-m3-tlb-reuse")]
+            let held_old_data =
+                index as u64 * PAGE == self.tlb_reuse_pa && self.tlb_reuse_phase == 0;
+            #[cfg(feature = "native-smp-m3-tlb-reuse")]
+            assert!(!matches!(owner, Owner::User(pid, _) if pid == p.pid) || held_old_data);
+            #[cfg(not(feature = "native-smp-m3-tlb-reuse"))]
             assert!(!matches!(owner,Owner::User(pid,_) if pid==p.pid));
             assert_ne!(owner, Owner::PageTable(u16::try_from(slot + 1).unwrap()));
         }
@@ -2115,9 +2175,60 @@ fn m3_event_locked(state: &mut State, source: *const u64) -> *const u64 {
     }
     if terminate {
         state.processes[current].status = Status::Dying;
+        #[cfg(feature = "native-smp-m3-tlb-reuse")]
+        if current == 0 {
+            match state.tlb_reuse_phase {
+                0 => {
+                    assert_eq!(cpu, 1);
+                    state.tlb_reuse_old_pid = state.last_event.pid;
+                    state.tlb_reuse_cpu = cpu;
+                }
+                1 => {
+                    assert_eq!(cpu, state.tlb_reuse_cpu);
+                    assert_ne!(state.last_event.pid, state.tlb_reuse_old_pid);
+                    let new_data = state.processes[current].physical(DATA + 8) & !(PAGE - 1);
+                    assert_ne!(new_data, state.tlb_reuse_pa);
+                    assert!(read_word(state.processes[current].physical(DATA + 8)) >= 8);
+                }
+                _ => serial::fail(b"M3:SMP:TLB_REUSE:PHASE"),
+            }
+        }
         state.cleanup(current);
+        #[cfg(feature = "native-smp-m3-tlb-reuse")]
+        if current == 0 {
+            match state.tlb_reuse_phase {
+                0 => {
+                    state.spawn_process(current);
+                    let replacement = &state.processes[current];
+                    assert_ne!(replacement.pid, state.tlb_reuse_old_pid);
+                    let data = replacement.physical(DATA + 8);
+                    assert_ne!(data & !(PAGE - 1), state.tlb_reuse_pa);
+                    assert_eq!(read_word(data), 0);
+                    assert_eq!(
+                        read_word(replacement.physical(DATA + 16)),
+                        replacement.pattern
+                    );
+                    state.tlb_reuse_phase = 1;
+                }
+                1 => {
+                    let held = state.tlb_reuse_pa;
+                    let old_pid = state.tlb_reuse_old_pid;
+                    state
+                        .frames
+                        .free(held, Owner::User(old_pid, Kind::Data), paging::zero_dynamic)
+                        .unwrap();
+                    state.tlb_reuse_pa = 0;
+                    state.tlb_reuse_phase = 2;
+                }
+                _ => serial::fail(b"M3:SMP:TLB_REUSE:PHASE"),
+            }
+        }
         #[cfg(feature = "native-smp-m3-exit")]
         print_number(b"M3:SMP:EXIT:", ((current as u64) << 8) | cpu as u64);
+        #[cfg(feature = "native-smp-m3-tlb-reuse")]
+        if current == 0 && state.tlb_reuse_phase == 2 {
+            serial::write(b"M3:SMP:TLB_REUSE:PASS\n");
+        }
     } else {
         #[cfg(feature = "ipc-wait")]
         {
@@ -2159,7 +2270,14 @@ fn m3_event_locked(state: &mut State, source: *const u64) -> *const u64 {
         }
         let survivor = &state.processes[state.survivor_slot];
         assert_eq!(read_word(survivor.physical(DATA + 16)), survivor.pattern);
-        if state.ticks >= 4 && read_word(survivor.physical(DATA + 8)) > state.survivor_start + 8 {
+        #[cfg(feature = "native-smp-m3-tlb-reuse")]
+        let reuse_complete = state.tlb_reuse_phase == 2;
+        #[cfg(not(feature = "native-smp-m3-tlb-reuse"))]
+        let reuse_complete = true;
+        if state.ticks >= 4
+            && read_word(survivor.physical(DATA + 8)) > state.survivor_start + 8
+            && reuse_complete
+        {
             if !state.unexpected {
                 serial::write(b"M3:SURVIVOR_PROGRESS:PASS\n");
             }

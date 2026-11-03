@@ -27,12 +27,17 @@ def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
         "native-smp",
         "native-smp-m3",
         "native-smp-m3-exit",
+        "native-smp-m3-tlb-reuse",
         "native-smp-m4",
         "native-smp-m4-revoke",
     ):
         raise ValueError("unknown SMP kernel profile")
-    if profile in ("native-smp-m4", "native-smp-m4-revoke") and cpus != 2:
-        raise ValueError("native M4 SMP acceptance profiles require exactly two CPUs")
+    if profile in (
+        "native-smp-m3-tlb-reuse",
+        "native-smp-m4",
+        "native-smp-m4-revoke",
+    ) and cpus != 2:
+        raise ValueError("native TLB-reuse and M4 SMP profiles require exactly two CPUs")
     markers = BOOT + ("SMP:AP:ENTRY",) * (cpus - 1) + tuple(
         f"SMP:CPU:{index}:APIC:" for index in range(cpus)
     ) + (
@@ -45,6 +50,7 @@ def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
                       if profile in (
                           "native-smp-m3",
                           "native-smp-m3-exit",
+                          "native-smp-m3-tlb-reuse",
                           "native-smp-m4",
                           "native-smp-m4-revoke",
                       ) else ())
@@ -349,6 +355,47 @@ def evaluate_m3_exit_smp(
     }
 
 
+def evaluate_m3_tlb_reuse_smp(
+    cpus: int, stdout: str, returncode: int | None, timed_out: bool
+) -> dict:
+    expected_markers(cpus, "native-smp-m3-tlb-reuse")
+    scheduler = evaluate_m3(cpus, stdout, returncode, timed_out)
+    lines = stdout.splitlines()
+    if lines.count("M3:EXIT:PASS") != 2:
+        raise ValueError("TLB reuse fixture did not complete two process exits")
+    pattern = re.compile(r"M3:SMP:EXIT:([0-9]{20})")
+    exits = []
+    for index, line in enumerate(lines):
+        if not line.startswith("M3:SMP:EXIT:"):
+            continue
+        match = pattern.fullmatch(line)
+        if match is None:
+            raise ValueError("malformed TLB-reuse cleanup marker")
+        identity = int(match.group(1))
+        slot, cpu = identity >> 8, identity & 0xFF
+        if (slot, cpu) != (0, 1):
+            raise ValueError("TLB-reuse process did not exit twice on its AP")
+        exits.append(index)
+    if len(exits) != 2:
+        raise ValueError("TLB-reuse fixture lacks exactly two AP cleanup events")
+    try:
+        reuse_index = lines.index("M3:SMP:TLB_REUSE:PASS")
+    except ValueError as error:
+        raise ValueError("missing stale-TLB process-reuse evidence") from error
+    if reuse_index <= exits[-1]:
+        raise ValueError("TLB-reuse evidence appeared before replacement cleanup")
+    if any(marker in line for marker in FAILURES for line in lines):
+        raise ValueError("TLB-reuse failure marker present")
+    return {
+        "scheduler": scheduler,
+        "process_cleanup_events": [
+            {"slot": 0, "cpu": 1},
+            {"slot": 0, "cpu": 1},
+        ],
+        "stale_mapping_target_retained_until_replacement_exit": True,
+    }
+
+
 def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp") -> dict:
     expected_markers(cpus, profile)
     if type(timeout) is not int or not 0 < timeout <= MAX_TIMEOUT:
@@ -437,6 +484,7 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
                                if profile in (
                                    "native-smp-m3",
                                    "native-smp-m3-exit",
+                                   "native-smp-m3-tlb-reuse",
                                    "native-smp-m4",
                                    "native-smp-m4-revoke",
                                ) else ()),
@@ -447,7 +495,10 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
                                 "M4:CLEANUP:PASS", "KS-14:PASS", "M4:PASS", "M1:PASS")
                                if profile == "native-smp-m4-revoke" else ()),
                              *(("M3:EXIT:PASS", "M3:SURVIVOR_PROGRESS:PASS")
-                               if profile == "native-smp-m3-exit" else ())],
+                               if profile == "native-smp-m3-exit" else ()),
+                             *(("M3:EXIT:PASS", "M3:SURVIVOR_PROGRESS:PASS",
+                                "M3:SMP:TLB_REUSE:PASS")
+                               if profile == "native-smp-m3-tlb-reuse" else ())],
         "command": command,
         "qemu_version": version,
         "profile": f"{machine}/qemu64/TCG-multi/{cpus}CPU/256MiB",
@@ -468,6 +519,9 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
                 cpus, stdout, raw_exit, timed_out
             ),
             "native-smp-m3-exit": lambda: evaluate_m3_exit_smp(
+                cpus, stdout, raw_exit, timed_out
+            ),
+            "native-smp-m3-tlb-reuse": lambda: evaluate_m3_tlb_reuse_smp(
                 cpus, stdout, raw_exit, timed_out
             ),
             "native-smp-m3": lambda: evaluate_m3(cpus, stdout, raw_exit, timed_out),

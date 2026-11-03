@@ -83,6 +83,15 @@ def m3_exit_smp_transcript(cpus=2, exit_cpu=1):
     return "\n".join(lines) + "\n"
 
 
+def m3_tlb_reuse_transcript(exit_cpus=(1, 1)):
+    lines = m3_transcript(2).splitlines()
+    for cpu in exit_cpus:
+        lines.extend(("M3:EXIT:PASS", f"M3:SMP:EXIT:{cpu:020d}"))
+    lines.append("M3:SURVIVOR_PROGRESS:PASS")
+    lines.append("M3:SMP:TLB_REUSE:PASS")
+    return "\n".join(lines) + "\n"
+
+
 class SmpEvidenceTests(unittest.TestCase):
     def test_two_and_four_cpu_transcripts_require_unique_online_apic_ids(self):
         for cpus in (2, 4):
@@ -113,7 +122,11 @@ class SmpEvidenceTests(unittest.TestCase):
         for cpus in (0, 1, 3, 5, True):
             with self.subTest(cpus=cpus), self.assertRaises(ValueError):
                 run_smp.expected_markers(cpus)
-        for profile in ("native-smp-m4", "native-smp-m4-revoke"):
+        for profile in (
+            "native-smp-m3-tlb-reuse",
+            "native-smp-m4",
+            "native-smp-m4-revoke",
+        ):
             with self.subTest(profile=profile), self.assertRaises(ValueError):
                 run_smp.expected_markers(4, profile)
         for exit_code, timeout in ((0, False), (35, False), (None, True), (33, True)):
@@ -233,6 +246,27 @@ class SmpEvidenceTests(unittest.TestCase):
         for bad in cases:
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 run_smp.evaluate_m3_exit_smp(2, bad, 33, False)
+
+    def test_native_m3_tlb_reuse_requires_two_replacements_on_the_same_ap(self):
+        result = run_smp.evaluate_m3_tlb_reuse_smp(
+            2, m3_tlb_reuse_transcript(), 33, False
+        )
+        self.assertEqual(
+            result["process_cleanup_events"],
+            [{"slot": 0, "cpu": 1}, {"slot": 0, "cpu": 1}],
+        )
+        self.assertTrue(result["stale_mapping_target_retained_until_replacement_exit"])
+
+    def test_native_m3_tlb_reuse_rejects_one_exit_bsp_exit_or_missing_evidence(self):
+        cases = (
+            m3_tlb_reuse_transcript(exit_cpus=(1,)),
+            m3_tlb_reuse_transcript(exit_cpus=(1, 0)),
+            m3_tlb_reuse_transcript().replace("M3:SMP:TLB_REUSE:PASS\n", ""),
+            m3_tlb_reuse_transcript().replace("M3:SMP:EXIT:00000000000000000001\n", "", 1),
+        )
+        for bad in cases:
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                run_smp.evaluate_m3_tlb_reuse_smp(2, bad, 33, False)
 
 
 if __name__ == "__main__":
