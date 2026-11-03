@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`55da4734`](https://github.com/simonvanieperen/nieuw-os/commit/55da47347d4180101faac400c8aee4597182877a) ·
+**Bron:** [`953a10a2`](https://github.com/simonvanieperen/nieuw-os/commit/953a10a27d4b55f4c5184139b6c0ebe7edca5fa4) ·
 **Ontwikkelbranch:** `copilot/add-os-specialist-agents`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR150: toekomstige QEMU-testvoorwaarde en onbetrouwbare pointers eenduidig formuleren.
-41 blijft41. PR150-vervolg op basis55da4734 verduidelijkt twee profielzinnen: QEMU-isolatie is een eis voor toekomstige proeven, geen aangetoonde actuele runtime; onbetrouwbare pointers/IPC-lengtes mogen niet worden vertrouwd. Toolsets blijven exact gelijk;16 statische profielcontroles opnieuw groen. Werkelijke cloudagentselectie, toolbeschikbaarheid, technische runtime-isolatie, native acceptatie en menselijke audit blijven ongetest. Geen criteriumwijziging.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR139 werkelijk mergen en PR150 behoudend met nieuwe main99 combineren.
+41 blijft41. PR139 guarded-squash naar main99d13276, exact geteste boom8ef71ad2, alle30 checks voltooid en CodeRabbit echtSUCCESS; gekoppelde Python-preflight.150-parent953a10a2 neemt deze main behoudend op: drie metadataconflicten, OS-code exactmain99 en profielen exact953. Beide centrale bronhistorieën gehasht opgeslagen als appendix zonder oorspronkelijke twintig snapshots te wijzigen.16 statische profielcontroles en progressgates groen; geen cloudruntime/native/humanauditacceptatie of nieuwe punten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
