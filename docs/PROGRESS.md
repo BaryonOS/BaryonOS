@@ -85,6 +85,12 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR119-inhoudsbehoud (3 november 2026), head `5a8317f1`: **41 -> 41**.
+Volledige nieuwste NAS-history opgenomen; alleen centrale statusconflicten,
+rubric buiten assessment identiek. Tweede/derde119-resolutie blijven
+historische uitvoeringen; hun exacte bronstatus en vier cloudmain-mergeheads
+zijn afzonderlijk gehasht bewaard, niet nieuwe native acceptatie.
+
 Main-reconciliatie (3 november 2026), bron `cbe28f39`: **41 -> 41**.
 Simons main134-squashcbbc9c99 behoudend opgenomen;10 netwerkservice- en16
 opslaghosttests groen,207 archiefhashes/99manifestentries geldig.

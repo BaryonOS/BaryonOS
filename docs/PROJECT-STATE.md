@@ -10,6 +10,15 @@ behouden de recentere documentcombinatie; de TCP-productiefix en haar
 volledige regressie-/bewijsbestanden zijn ongewijzigd uit main overgenomen.
 De mainrubric is buiten assessment exact gelijk aan de behouden41-puntenrubric.
 
+Nieuwste119-head `5a8317f130cc388e661b876b5258c9978e391460` is nu
+volledig behouden. Alleen vier centrale statusconflicten, geen nieuwe code.
+Alle rubricvelden buiten assessment zijn identiek; twee latere NAS-
+checkpointuitvoeringen blijven historisch, niet verse tests van deze boom.
+Ook cloudmain-mergeheads136/143/144/145 zijn geconstateerd: hun exacte
+centrale checkpoint-/assessmentbytes zijn met Gitblob en SHA-256 opgeslagen
+in `verification/retained-document-heads-20261103.json`. Dit is archivering,
+geen stil akkoord op nieuwe heads of sluiting van de bijbehorende PRs.
+
 Bron `1552e5ae1a0e053a6df5ef802f6c0e4e78544cf7` bewaart volledige heads
 143/d169796a,144/a974fb9f,145/da5918fb en136/f6921e49 als mergeparents
 boven PR114-fix720cd431. Unieke README-codeleesintro, vaste14-commit-
@@ -25,8 +34,8 @@ originele82+17 Btrfs-manifestbinding en16 hostregressies blijven behouden.
 De audit blijft39 groepen/62open FR-rijen; geen nieuwe productpunten.
 Nieuwe gecombineerde CI/review blijft vereist vóór guarded squashmerge.
 136/143/144/145 nog niet sluiten: controleer opnieuw actuele heads en bewijs
-na daadwerkelijke opname in main. Laatste119-head is inmiddels5a8317f1;
-die extra centrale metadata is nog niet gecombineerd.121-b83 blijft apart
+na daadwerkelijke opname in main. Laatste119-head5a8317f1 is nu behouden.
+121-b83 blijft apart
 met eerder bewaarde historische metadata; geen blinde ancestryclaim.
 
 Andere stack:135/eea1cdcc bevat echteN01-acceptatie op6f15/source1ca en
@@ -35,6 +44,24 @@ Hosted foreignfixtureartifact/run-ID blijft ontbreken; geen gate overgeslagen.
 Main is cbbc9c99;39/41/42/43 blijven open. Integratormandaat is niet
 overgedragen. Score **41 -> 41**. Eerstvolgend: actuele publicatie-CI/review
 afhandelen, bronbehoud controleren en pas daarna geschikte PRs squashen.
+
+## Historisch checkpoint PR119 — tweede en derde statusresolutie
+
+De tweede119-resolutie op052812b4 combineerde ee5003e6 met main380:
+overname van bestaande41 punten, geen nieuwe toekenning (branch34 ->41,
+main41 ->41). Vier statusbestanden conflicteerden; buiten die bestanden
+werd bytegelijkheid met main vastgelegd. De eigen run meldde39 NAS-
+hosttests, exit0,0,806s; `/tmp/nieuw-os-pr119-second-nas.log`.
+Progress write/check en diff-check exit0; geen nieuwe Rust/QEMU-uitvoering.
+
+De derde119-resolutie5a8317f1 combineerde052812b4 met maincbbc:
+drie statusconflicten, behoud van beide geschiedenissen en de TCP-fix.
+Progress write/check en diff-check exit0; bytegelijkheid met main buiten
+README/PROJECT-STATE/PROGRESS/progress/SVG exit0. De eerdere vergelijking
+zonder SVG-uitzondering gaf1 door datum2 ->3nov, geen codeverschil.
+Geen nieuwe Rust/native/QEMU-proef of productpunt. Historische volledige
+opdrachten, bronversies en beperkingen staan exact in
+`verification/retained-document-heads-20261103.json`; score41 ->41.
 
 ## Historisch checkpoint PR134 — terminale TCP-ontvangst
 
