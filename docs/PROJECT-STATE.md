@@ -1,6 +1,75 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR138 met main d686bd54 — 3 november 2026
+## NEXT AGENT HANDOFF — PR158 met main 95d79451 — 3 november 2026
+
+**Bronnen:** PR-head `04d727c306d13e03a192d9d002a7d44348841c9f` en
+main `95d7945110ce853a1b5827ec59f6115475691805`, branch
+`fix/b03-test-anchors-guard`. De drie documentconflicten behouden de
+B03- en PR138-checkpointgeschiedenissen en hun brongebonden bewijs.
+De automatisch geïntegreerde Rust-wijzigingen uit main zijn uitsluitend
+commentaar; de B03-ondertekenpolicy blijft ongewijzigd.
+**41 → 41/100**; geen nieuw criterium, gewicht of native acceptatie.
+De historische PR148-integratiereviewvelden blijven expliciet historisch.
+
+**Validatie op de opgeloste boom:** 78 Rust-hosttests en 14 Python-harnastests
+geslaagd; gerichte Clippy en beide formatcontroles exit 0. De eerste
+parallelle Rust-commando's raakten een toolchain-downloadrace; na voltooide
+installatie en één herstel van ontbrekende rustfmt/Clippy zijn alle controles
+opnieuw geslaagd. Geen dependency of lockfile gewijzigd.
+Vergelijkingen bevestigen exact behoud van de B03-code uit de PR en van de
+drie gedocumenteerde Rust-bestanden uit main. Exacte commando's, logpaden,
+exitstatussen en hashes staan in
+[integratiebewijs](verification/pr158-main-integration-20261103.json).
+`tools/progress.py --write` en `--check` slagen; de SVG blijft bytegelijk.
+Native builds en QEMU niet herhaald voor deze documentintegratie.
+Oud testbewijs geldt niet automatisch voor deze integratie.
+
+**Vervolg:** na publicatie nieuwe-head CI laten beoordelen; geen oude
+CI-run herstarten. Productiesleutelbeleid en issue #41 blijven open.
+Eerstvolgende lokale controle: `python3 tools/progress.py --check`.
+
+## Historisch checkpoint — B03 TEST-ankergrens — 3 november 2026
+
+**Basis:** `main` `a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e`; codecommits
+`07e7f9a0471798c49e1844bf885f94491bb481d8` en
+`ceb957557af821bb95786aa505b5df41077f7403` op
+`fix/b03-test-anchors-guard`. `test_policy` vereist nu de expliciete
+`test-signing-anchors`-feature; UEFI-loader- en update-servicebuilds zonder
+gekozen ondertekenbeleid falen tijdens compilatie. TEST-sleutels blijven
+uitsluitend fixtures. Productieankers, sleutelrotatie/-intrekking en
+releaseceremonie zijn niet ontworpen of bewezen; #41 blijft open.
+
+**Gerichte controles:** update-core met TEST-feature 13 tests, update-tool
+2 tests, update-core zonder TEST-feature 7 tests en B03 Python-harnas 14 tests
+geslaagd. De testloader en update-service zijn crossgebouwd. Negatieve
+compilatiechecks voor de ongemarkeerde loader en service falen verwacht met
+alleen de bedoelde policyfout. Update-core/update-tool- en service-Clippy
+slagen; loader-Clippy slaagt met alleen de bestaande
+`clippy::not_unsafe_ptr_arg_deref`-lint toegestaan; de ongewijzigde pointer
+entrypoint is geen onderdeel van deze wijziging. Zie de exacte commando's en
+bewijshashes in
+[B03-verificatierapport](verification/b03-test-anchor-gating/README.md).
+Een directe release-`cargo build` buiten de projectwrapper raakte daarnaast
+een LLVM SIGILL tijdens codegeneratie voor `curve25519-dalek`; de
+voorgeschreven update-service-buildwrapper slaagde wel en is het gerapporteerde
+buildresultaat.
+
+**Native vervolgbewijs:** op productbron `26108a25` is
+`python3 -B -u tools/test_update.py` uitgevoerd: exit 0, 106,91 s,
+alle 18 QEMU-stappen en de afsluitende normale build geslaagd. Zie
+[native-sprint.json](verification/b03-test-anchor-gating/native-sprint.json)
+voor de exacte omgeving, hashes en bewijsgrens. Evidencehead `568741f3`
+had 31 geslaagde checks en een overgeslagen check. Geen hardwaretest,
+productiesleutelbeleid of nieuwe productcriteria geaccepteerd.
+
+**Voortgang:** branchscore **41 → 41/100**; `tools/progress.py --write`
+en `--check` bevestigen deze berekening. Er zijn geen criteria of gewichten
+gewijzigd en deze wijziging levert geen productacceptatiepunten op.
+
+**Eerstvolgend:** de gerichte sprintcorrectie na actuele-head-CI integreren;
+#41 blijft open voor productiesleutelbeleid en bijbehorende acceptatie.
+
+## Historisch checkpoint — PR138 met main d686bd54 — 3 november 2026
 
 **Bronnen:** PR-head `fc3b5e2522e04f636bdb443299da6e8f99161afe` en
 main `d686bd54e766aed542e9918d1a37dcce434f18e2`, branch

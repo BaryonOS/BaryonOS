@@ -1,4 +1,4 @@
-# B03 — ondertekende updates en rollback (profiel `native-update`, loader `signed-boot`)
+# B03 — ondertekende updates en rollback (testprofiel `native-update`, loader `signed-boot-test`)
 
 Datum: 29 oktober 2026. Status: **ontwerpcontract, daarna geïmplementeerd in
 dezelfde opdracht**; uitgevoerde controles en hun uitkomst staan uitsluitend
@@ -47,10 +47,14 @@ installeert zodat een onderbreking nooit het laatst geldige slot aantast.
    alleen na dezelfde hybride verificatie, digestcontrole en versiecontrole
    (`version > huidige` en `version ≥ vloer`); de kernel kent geen formaten
    en de loader vertrouwt de dienst niet: beide controleren onafhankelijk.
-7. **Geen productiesleutels in de repository.** De ankers in loader en
-   dienst zijn expliciet gelabelde TEST-ankers (`tools/update-keys/TEST-*`),
-   gegenereerd door `update-tool keygen`. Een releaseprofiel vervangt de
-   ankers via een afzonderlijke, buiten CI gehouden ondertekenstap (ADR-049).
+7. **Geen productiesleutels in de repository.** TEST-ankers uit
+   `tools/update-keys/TEST-*` zijn alleen beschikbaar via de expliciete
+   feature `test-signing-anchors`; de fixtureloader gebruikt
+   `signed-boot-test`. De generieke feature `signed-boot` en de native
+   update-dienst zonder expliciete policy falen tijdens compilatie. Er is
+   geen productiepolicy of releaseprofiel ingericht; toekomstige
+   productieankers vereisen een afzonderlijk ontworpen en geautoriseerd
+   releasepad buiten CI (ADR-049).
 8. **Firmwaregrens benoemd.** OVMF start de loader zonder Secure Boot; de
    loader zelf wordt niet door de firmware geverifieerd (B04 open). B03
    beschermt de keten vanaf de loader: slotkeuze, manifest, image, vloer.
@@ -97,13 +101,13 @@ De header draagt geen handtekening; zij is een hint. Vaste posities worden
 door loader en dienst gecontroleerd tegen deze tabel (geen vertrouwen in
 header-offsets buiten het bereik van het apparaat).
 
-## 4. Loader (`boot/loader`, feature `signed-boot`)
+## 4. Loader (`boot/loader`, testfeature `signed-boot-test`)
 
 1. Zoek via `LocateHandleBuffer(BLOCK_IO)` het eerste blokapparaat waarvan
    sector 0 de slotmagic draagt (≤ 32 handles). Geen apparaat → `BOOT:FAIL:NO_STORE`:
-   een `signed-boot`-loader valt nooit terug op een onondertekende
+   een `signed-boot-test`-loader valt nooit terug op een onondertekende
    ESP-kernel. Alleen loaders zonder de feature (alle andere profielen)
-   gebruiken het bestaande M1-pad; de build legt voor `signed-boot` geen
+   gebruiken het bestaande M1-pad; de build legt voor `signed-boot-test` geen
    `kernel.elf` op de ESP.
 2. Lees header, lees de vloer uit `NieuwOsMinVersion` (ontbreekt → 0).
 3. Voor het aangewezen slot en daarna het andere: lees manifest, controleer
@@ -243,7 +247,7 @@ brongebonden bewijsrapport; deze sectie is het contract, niet het verdict.
 - **Loadermarkers.** Naast `BOOT:SLOT:<X>:VERSION:<n>` en
   `BOOT:SLOT:<X>:REJECTED:<reden>` print de loader `BOOT:FLOOR:<n>` (gelezen
   vloer) en meldt een leeg slot als `REJECTED:FORMAT`. Zonder slotopslag
-  stopt de `signed-boot`-loader met `BOOT:FAIL:NO_STORE` (reviewbevinding:
+  stopt de `signed-boot-test`-loader met `BOOT:FAIL:NO_STORE` (reviewbevinding:
   een terugval naar de ESP zou handtekeningen en vloer omzeilen; §4 is
   daarop aangepast).
 - **ELF-validiteit hoort bij slotacceptatie.** Een correct ondertekend
