@@ -4,6 +4,10 @@ version = "0.1.0"
 edition = "2021"
 publish = false
 
+[features]
+default = []
+test-signing-anchors = []
+
 [dependencies]
 ed25519-dalek = { version = "2.2.0", default-features = false }
 ml-dsa = { version = "0.1.1", default-features = false }
@@ -12,3 +16,8 @@ sha2 = { version = "0.10.9", default-features = false, features = ["force-soft"]
 
 [dev-dependencies]
 hex-literal = "0.4.1"
+
+[[test]]
+name = "key_policy"
+path = "tests/key_policy.rs"
+required-features = ["test-signing-anchors"]

@@ -15,6 +15,31 @@ Main na gecontroleerde squashmerge #138:
 `95d7945110ce853a1b5827ec59f6115475691805`. Alle volgende kandidaten worden
 tegen deze echte main herbeoordeeld; geen historische featurebranches ketenen.
 
+Vervolg: #159 is werkelijk gesquashmerged als
+`1c6872063fab055211eff48fce11496db39728be`; #158 daarna als
+`78ff7c03b015ad16fe665ae7df9fe239d078e08d`. Beide mainheads via fetch en
+GitHub-mergecommit bevestigd, telkens overige PR's opnieuw gelezen.
+Actuele waarheid is nu **78ff7c03**, niet de eerdere intakepins.
+Op #158 was de nieuwe B03-native18-gate groen; vereiste host/smokechecks
+groen, overige lopende checks niet als geslaagd geclaimd.
+
+#160 is de nieuwe kleine vier-file RANDOM-extractie op actuele main,
+geen merge van de 71-file #146. Zes hosttests, 21 harnastests en verse native
+raw groen op eigen bron; code bytegelijk aan de eerder geteste standalonefix.
+Een verse primaire-bronnen-docreview is bij de eigenaar voor afhandeling;
+geen productiequota-/kernel-/runnerwijziging.
+
+#152 is beperkt tot exact twee files: onderzoeksdocument en README-link.
+Alle andere bestanden exact main1c; oorspronkelijke metadata volledig op
+`archive/driver-research-pre-sprint-20261103` behouden. Rust1.95-eis en
+ongemeten snelheidsclaim gecorrigeerd, geen driveradoptie of nieuw punt.
+Nieuwe main78/CI/review blijven apart vereist.
+
+De vier issues #39/#41/#42/#43 kregen afzonderlijk DONE/PARTIAL/MISSING/
+BLOCKED-BY-aftekening; geen epic voldoet integraal. N01 heeft wel degelijk
+al native TCP/UDP-deelbewijs op main; niet verwarren met ontbrekende fysieke
+NIC-ondersteuning of de aanvullende reset/revokematrix in het issue.
+
 | PR | Uitvoering / grens |
 |---|---|
 | #138 | MERGED, commit95d79451; uitsluitend API-commentaar/historische docs, 33 checks geslaagd, drie threads opgelost. |

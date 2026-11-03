@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **39** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`2d17e6a5`](https://github.com/simonvanieperen/nieuw-os/commit/2d17e6a50de0d65c8cd3193d0a1149aab88c4e6e) ·
+**Bron:** [`0d04ac58`](https://github.com/simonvanieperen/nieuw-os/commit/0d04ac581903f85021bdafe247481fdb80f9c071) ·
 **Ontwikkelbranch:** `simonvanieperen-animated-garbanzo`.
-Deze opdracht: **41% → 39% (-2 procentpunt)**. **Opdracht:** Geautoriseerde integratiesprint: main95d79451 en keyringherstelgrens samenvoegen.
-Main41/100 wordt39/100: B01 heropend doordat de oude native positieve herstelproef gewone appautoriteit gebruikte en nu terecht wordt geweigerd. Positieve manifest-bevoegde beheerrecovery is alleen hostgetest. Alle overige maincriteria en gewichten behouden. Veld meldt verse100%- en200%-deelacceptatie, geen score-import. PR138 gemerged; vier historische/duplicaat-PRs gesloten met inhoudsbehoud. Keyringintegratie vereist nog actuele-head-CI/review. Geen hardware-, menselijke audit- of releaseclaim.
+Deze opdracht: **41% → 39% (-2 procentpunt)**. **Opdracht:** Geautoriseerde integratiesprint: main78ff7c03 en keyringherstelgrens samenvoegen.
+Main41/100 wordt39/100: B01 heropend doordat de oude native positieve herstelproef gewone appautoriteit gebruikte en nu terecht wordt geweigerd. Positieve manifest-bevoegde beheerrecovery is alleen hostgetest. Alle overige maincriteria en gewichten behouden. PR138,159,158 werkelijk gemerged; vier historische/duplicaat-PRs gesloten met inhoudsbehoud. RANDOM veilig uit grote PR146 geextraheerd in PR160. Keyringintegratie vereist nog actuele-head-CI/review. Geen hardware-, menselijke audit- of releaseclaim.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

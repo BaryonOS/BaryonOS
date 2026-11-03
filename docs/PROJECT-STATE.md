@@ -4,7 +4,8 @@
 
 Simon heeft op 3 november expliciet veilige merges en superseded-sluitingen
 voor deze sprint geautoriseerd. Geen nieuwe features. Actuele main na
-squashmerge #138: `95d7945110ce853a1b5827ec59f6115475691805`, zelf via
+squashmerges #138, #159 en #158:
+`78ff7c03b015ad16fe665ae7df9fe239d078e08d`, zelf via
 fetch en GitHub-mergecommit gecontroleerd. De diff van #138 is uitsluitend
 API-commentaar en historische documentatie; 33 headchecks geslaagd, drie
 reviewthreads opgelost. #156 is treegelijk vervangen door #159; #131/#137
@@ -13,7 +14,7 @@ historie. #132 is reeds op main als historische tekst behouden; de oude
 uitvoerbare scripts worden niet heringevoerd. Deze vier PR's zijn gesloten
 zonder branches te verwijderen. Besluiten staan bij de PR's.
 
-**Keyringintegratie:** main95d79451 is inhoudsbehoudend in deze branch
+**Keyringintegratie:** main78ff7c03 is inhoudsbehoudend in deze branch
 opgenomen; beide checkpointgeschiedenissen blijven hieronder behouden.
 Runtimecode van de keyring blijft de eerder geteste productbron da6e89a0.
 De integratie heropent B01 expliciet: main **41 wordt 39/100**, omdat de oude
@@ -24,8 +25,8 @@ nieuwe scope of gewijzigde weging; de beveiligingsfix wordt niet teruggedraaid
 om punten te behouden. Alle overige maincriteria blijven gelijk.
 
 **Open/eerstvolgend:** gerichte keyringintegratietests, nieuwe-head-CI en
-actuele review afhandelen; pas daarna #155 mergen. #159/#158 en de gerichte
-auditfix zijn afzonderlijke kandidaten met eigen checks, geen impliciete
+actuele review afhandelen; pas daarna #155 mergen. #159/#158 zijn nu werkelijk
+op main; de gerichte auditfix blijft een afzonderlijke kandidaat, geen impliciete
 onderlinge featurebranchintegratie. #154 heeft actieve nieuwe ownerheads;
 SMP-WIP blijft onaangeroerd. Epics #39/#41/#42/#43 blijven gedeeltelijk/open.
 Geen hardware-, menselijke audit- of releaseacceptatie.
@@ -181,6 +182,74 @@ Geen volledige nieuwe-head CI-/foundation-, Veld- of mainmergeclaim.
 De twee eerder wachtende owneropleveringen zijn hiermee ontvangen;
 resterende grenzen zijn passende volledige CI/review en bevoegd
 integratiebesluit, niet ontbrekend achtergrondwerk.
+## Historisch checkpoint — PR158 met main 95d79451 — 3 november 2026
+
+**Bronnen:** PR-head `04d727c306d13e03a192d9d002a7d44348841c9f` en
+main `95d7945110ce853a1b5827ec59f6115475691805`, branch
+`fix/b03-test-anchors-guard`. De drie documentconflicten behouden de
+B03- en PR138-checkpointgeschiedenissen en hun brongebonden bewijs.
+De automatisch geïntegreerde Rust-wijzigingen uit main zijn uitsluitend
+commentaar; de B03-ondertekenpolicy blijft ongewijzigd.
+**41 → 41/100**; geen nieuw criterium, gewicht of native acceptatie.
+De historische PR148-integratiereviewvelden blijven expliciet historisch.
+
+**Validatie op de opgeloste boom:** 78 Rust-hosttests en 14 Python-harnastests
+geslaagd; gerichte Clippy en beide formatcontroles exit 0. De eerste
+parallelle Rust-commando's raakten een toolchain-downloadrace; na voltooide
+installatie en één herstel van ontbrekende rustfmt/Clippy zijn alle controles
+opnieuw geslaagd. Geen dependency of lockfile gewijzigd.
+Vergelijkingen bevestigen exact behoud van de B03-code uit de PR en van de
+drie gedocumenteerde Rust-bestanden uit main. Exacte commando's, logpaden,
+exitstatussen en hashes staan in
+[integratiebewijs](verification/pr158-main-integration-20261103.json).
+`tools/progress.py --write` en `--check` slagen; de SVG blijft bytegelijk.
+Native builds en QEMU niet herhaald voor deze documentintegratie.
+Oud testbewijs geldt niet automatisch voor deze integratie.
+
+**Vervolg:** na publicatie nieuwe-head CI laten beoordelen; geen oude
+CI-run herstarten. Productiesleutelbeleid en issue #41 blijven open.
+Eerstvolgende lokale controle: `python3 tools/progress.py --check`.
+
+## Historisch checkpoint — B03 TEST-ankergrens — 3 november 2026
+
+**Basis:** `main` `a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e`; codecommits
+`07e7f9a0471798c49e1844bf885f94491bb481d8` en
+`ceb957557af821bb95786aa505b5df41077f7403` op
+`fix/b03-test-anchors-guard`. `test_policy` vereist nu de expliciete
+`test-signing-anchors`-feature; UEFI-loader- en update-servicebuilds zonder
+gekozen ondertekenbeleid falen tijdens compilatie. TEST-sleutels blijven
+uitsluitend fixtures. Productieankers, sleutelrotatie/-intrekking en
+releaseceremonie zijn niet ontworpen of bewezen; #41 blijft open.
+
+**Gerichte controles:** update-core met TEST-feature 13 tests, update-tool
+2 tests, update-core zonder TEST-feature 7 tests en B03 Python-harnas 14 tests
+geslaagd. De testloader en update-service zijn crossgebouwd. Negatieve
+compilatiechecks voor de ongemarkeerde loader en service falen verwacht met
+alleen de bedoelde policyfout. Update-core/update-tool- en service-Clippy
+slagen; loader-Clippy slaagt met alleen de bestaande
+`clippy::not_unsafe_ptr_arg_deref`-lint toegestaan; de ongewijzigde pointer
+entrypoint is geen onderdeel van deze wijziging. Zie de exacte commando's en
+bewijshashes in
+[B03-verificatierapport](verification/b03-test-anchor-gating/README.md).
+Een directe release-`cargo build` buiten de projectwrapper raakte daarnaast
+een LLVM SIGILL tijdens codegeneratie voor `curve25519-dalek`; de
+voorgeschreven update-service-buildwrapper slaagde wel en is het gerapporteerde
+buildresultaat.
+
+**Native vervolgbewijs:** op productbron `26108a25` is
+`python3 -B -u tools/test_update.py` uitgevoerd: exit 0, 106,91 s,
+alle 18 QEMU-stappen en de afsluitende normale build geslaagd. Zie
+[native-sprint.json](verification/b03-test-anchor-gating/native-sprint.json)
+voor de exacte omgeving, hashes en bewijsgrens. Evidencehead `568741f3`
+had 31 geslaagde checks en een overgeslagen check. Geen hardwaretest,
+productiesleutelbeleid of nieuwe productcriteria geaccepteerd.
+
+**Voortgang:** branchscore **41 → 41/100**; `tools/progress.py --write`
+en `--check` bevestigen deze berekening. Er zijn geen criteria of gewichten
+gewijzigd en deze wijziging levert geen productacceptatiepunten op.
+
+**Eerstvolgend:** de gerichte sprintcorrectie na actuele-head-CI integreren;
+#41 blijft open voor productiesleutelbeleid en bijbehorende acceptatie.
 
 ## Historisch checkpoint — PR138 met main d686bd54 — 3 november 2026
 
