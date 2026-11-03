@@ -390,10 +390,13 @@ def analyse(image: bytes, opaque=frozenset()):
                    for i, c in enumerate(table["collections"])]
     # Generation per table sector of both copies (0 = zero, -1 = invalid),
     # so a runner can tell a torn table write from an untouched copy.
+    scans = [slot_states(volume, slot) for slot in range(2)]
     slots = [[g if kind == "valid" else (0 if kind == "zero" else -1)
-              for kind, g, _ in slot_states(volume, slot)[1]] for slot in range(2)]
+              for kind, g, _ in states] for _, states in scans]
+    slot_markers = [is_format_marker(sectors[0]) for sectors, _ in scans]
     return {"generation": table["generation"], "clocks": table["clocks"], "objects": objects,
             "collections": collections, "chunks_used": used, "slots": slots,
+            "slot_markers": slot_markers,
             "digests": [domain_digest(table, d) for d in range(DOMAINS)]}
 
 
