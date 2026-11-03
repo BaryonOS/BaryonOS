@@ -1,0 +1,15 @@
+[package]
+name = "nieuw-os-image-crop"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+
+[workspace]
+resolver = "2"
+
+[dependencies]
+nieuw-os-image-codec = { path = "../../../services/image-codec" }
+
+[profile.release]
+panic = "abort"
