@@ -3,7 +3,7 @@
 ## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
 
 **Gepubliceerde basis:** branch `simonvanieperen-studious-spoon`, commit
-`a6da117006e8a7370ba141d0971ca3acf6a87a62`, gepusht naar
+`3cbb79954e73122b5e9f2f7daa2241db82fe1e39`, gepusht naar
 `origin/simonvanieperen-studious-spoon`. Actieve toewijzing:
 `SYSTEM-MATURITY-SMP`, queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`.
 OOM/K05 zijn afgesloten en blijven ongewijzigd;
@@ -60,15 +60,25 @@ omgevingsvariabelen en stage-evidence:
 [`smp-rendezvous-20261103T180507Z.json`](verification/sm-smp/smp-rendezvous-20261103T180507Z.json).
 
 **SMP-matrix PASS op commit `aa5aa64c` (exit 0):** dezelfde exacte PATH-,
-QEMU- en OVMF-opdracht als hierboven. Alle acht stages slaagden: M2 met 1/2/4
+QEMU- en OVMF-opdracht als hierboven. Alle negen stages slaagden: M2 met 1/2/4
 CPU; M3 met 2 CPU, de AP-process-exitproef, de 1-CPU-regressie en M3 met
-4 CPU; M4 ring-3-IPC met 2 CPU. De exitproef ruimde processlot 0 op CPU 1 op
-(per-CPU-selecties `[7, 4]`). De IPC-evaluator vond twee cross-CPU-
-berichtparen. Hostharnas: 9 tests, exit 0. Iedere QEMU-stage had verwachte
+4 CPU; M4 ring-3-IPC en KS-14 revoke met 2 CPU. De exitproef ruimde processlot
+0 op CPU 1 op (per-CPU-selecties `[7, 4]`). De IPC-evaluator vond één
+cross-CPU-berichtpaar; de revoke-evaluator zag revoke op CPU 1 en afwijzing
+op CPU 0. Hostharnas: 11 tests, exit 0. Iedere QEMU-stage had verwachte
 raw exit 33; de QEMU-waarschuwing over ontbrekend `kvmvapic.bin` blijft
 ononderzocht. Receipt:
 [`smp-rendezvous-20261103T181747Z.json`](verification/sm-smp/smp-rendezvous-20261103T181747Z.json),
 bronfingerprint `6621d7dcfa4927e0e547e8696395fdf3aaedf79e6b9ef0fb446714924474a137`.
+
+**Herhaalde matrix FAIL — niet deterministisch:** op commit `3cbb7995` met
+dezelfde bronfingerprint `0ccd920458c3f5a495af4057aa1e51109f5a7839303d2730f11938d340b50042`
+slagen de M2/M3-stages, maar de M4-IPC-guest eindigt met raw exit 33 zonder
+cross-CPU-berichtpaar; evaluator en volledige runner eindigen op exit 1.
+De M4-berichten tonen dat slots 0 en 1 deze keer allebei op CPU 1 draaiden.
+Dit maakt de eerdere matrixpass onvoldoende stabiel voor acceptatie. Receipt:
+[`smp-rendezvous-20261103T182805Z.json`](verification/sm-smp/smp-rendezvous-20261103T182805Z.json);
+seriële log `build/run/smp-2-dea4af795b/serial.txt`.
 
 **Niet-geaccepteerde SMP-lifecycleverkenning:** het combineren van de bestaande
 M4 multi-round lifecyclefixture met SMP eindigde op raw QEMU exit 35 bij
@@ -89,21 +99,18 @@ Log: `build/run/smp-2-2ae5598874/`. Het hostharnas telde 11 tests, exit 0.
 Na deze proef veranderde alleen de runnerreceipt-omschrijving; de volledige
 matrix moet de actuele bron opnieuw vastleggen.
 
-**Bewijsgrens:** dit checkpoint toont AP-bring-up, opt-in per-CPU M3-
-processselectie, process-exit/cleanup van processlot 0 op CPU 1 en succesvolle
-M4 ring-3-berichtuitwisseling over CPU-grenzen. Een gerichte KS-14-proef toont
-ook revoked-handle-afwijzing op CPU 0 na revoke op CPU 1. De nieuwe revoke-
-stage en alle regressies zijn nog niet in één actuele matrixreceipt gebonden.
-TLB-shootdown/hergebruik en bredere races/failureacceptatie blijven open. Dit
-is geen volledige K06-acceptatie. `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft
-QUEUED.
+**Bewijsgrens:** AP-bring-up, per-CPU M3-scheduling en AP-process-exit/cleanup
+zijn in de matrix herhaald. Cross-CPU IPC/revoke slaagde in een run, maar de
+IPC-stage is flaky door niet-deterministische processmigratie; ze is nog niet
+stabiel geaccepteerd. TLB-shootdown/hergebruik en bredere races/failure-
+acceptatie blijven open. Dit is geen volledige K06-acceptatie.
+`DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
 
-**Eerstvolgende actie:** draai de volledige `python3 -B tools/test_smp.py`-
-matrix op deze gepushte bron. De negen stages bevatten M2 1/2/4 CPU, M3 2
-CPU, exit op een AP, M3 1-CPU-regressie, M3 4 CPU, cross-CPU M4 IPC en
-cross-CPU KS-14 revoke. Gebruik de exacte PATH/QEMU/OVMF-omgeving hierboven.
-TLB-shootdown/hergebruik en bredere races blijven daarna open; claim geen
-remote shootdownprotocol zonder implementatie en bewijs.
+**Eerstvolgende actie:** maak de bestaande 2-CPU-M4-consumerfixture
+deterministisch: slot 0 en 2 op CPU 0, slot 1 op CPU 1, uitsluitend in de
+opt-in SMP-acceptatieprofielen. Behoud gewone schedulersemantiek en ABI; eis
+per-profiel de verwachte CPU-identiteiten. Daarna de volledige negen-
+stagematrix herhalen. TLB-/hergebruik- en raceacceptatie blijven open.
 
 **Cross-CPU capability-IPC — eerdere lokale proef vóór matrix:**
 `native-smp-m4` combineert het bestaande SMP-M3-profiel met de bestaande M4
@@ -142,8 +149,8 @@ Een eerdere aanroep met `--help` is geen helpmodus, voerde de runner uit en
 stopte door ontbrekende `cargo` op de standaard-PATH; die poging staat apart in
 [`smp-rendezvous-20261103T173931Z.json`](verification/sm-smp/smp-rendezvous-20261103T173931Z.json).
 
-**Eerstvolgende actie:** volledige negen-stagematrix met AP-exit en
-cross-CPU-revoke, daarna resterende TLB-/hergebruikacceptatie.
+**Eerstvolgende actie:** maak M4-SMP-acceptatie deterministisch en herhaal de
+negen-stagematrix; daarna resterende TLB-/hergebruikacceptatie.
 Matrixomgeving en commando staan hierboven.
 De bestaande dirty wijzigingen in README en voortgangsbestanden zijn behouden
 en niet door deze SMP-taak aangepast.
