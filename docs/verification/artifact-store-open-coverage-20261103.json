@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "source_commit": "380111b68688c981eec6abb8fab29174a29f5601",
+  "branch": "simonvanieperen-animated-umbrella",
+  "scope": "Additional host contract tests for artifact-store descriptor authentication and open errors",
+  "tests_added": [
+    "open_rejects_malformed_or_differently_bound_store_descriptors",
+    "open_preserves_backend_authorization_and_storage_failures"
+  ],
+  "checks": [
+    {
+      "command": "PATH=\"$HOME/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:$PATH\" CARGO_TARGET_DIR=\"$PWD/target/artifact-store-coverage\" cargo test --locked -p artifact-store-core",
+      "exit_status": 101,
+      "result": "Tests did not execute: host linker cc is unavailable.",
+      "log": "/tmp/nieuw-os-artifact-store-test.log",
+      "log_sha256": "511c56acd049f9954c7f8e50b373ef8fbfa31fb9ae3fe6b194f4545b2d525069"
+    },
+    {
+      "command": "PATH=\"$HOME/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:$PATH\" CARGO_TARGET_DIR=\"$PWD/target/artifact-store-coverage\" cargo check --locked -p artifact-store-core --tests",
+      "exit_status": 0,
+      "result": "Production and test code type-checked; this does not execute tests.",
+      "log": "/tmp/nieuw-os-artifact-store-check.log",
+      "log_sha256": "6d77f64dfc8c5325b90fdbe05d8be367bdd578bcccec24f275c5ffee7d03dd6e"
+    },
+    {
+      "command": "PATH=\"$HOME/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:$PATH\" CARGO_TARGET_DIR=\"$PWD/target/artifact-store-coverage\" cargo clippy --locked -p artifact-store-core --all-targets -- -D warnings",
+      "exit_status": 0,
+      "result": "Clippy passed for production and test targets.",
+      "log": "/tmp/nieuw-os-artifact-store-clippy.log",
+      "log_sha256": "736e2582f563605dd272e5fb977840b0c0767377d27b6940c440caf75eec7157"
+    },
+    {
+      "command": "PATH=\"$HOME/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:$PATH\" cargo fmt --manifest-path crates/artifact-store-core/Cargo.toml -- --check",
+      "exit_status": 0,
+      "result": "Formatting check passed.",
+      "log": "/tmp/nieuw-os-artifact-store-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "product_acceptance": "None. Tests, host typechecking, and formatting do not establish native OS behavior."
+}

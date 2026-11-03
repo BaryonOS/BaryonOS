@@ -1,6 +1,35 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
+## NEXT AGENT HANDOFF — artifact-store-openbeleid — 3 november 2026
+
+**Basis:** `380111b68688c981eec6abb8fab29174a29f5601`,
+branch `simonvanieperen-animated-umbrella`. Eén testbestand is uitgebreid:
+`crates/artifact-store-core/tests/contract.rs`. De nieuwe negatieve gevallen
+controleren dat een ongeldige verwachte descriptor de backend niet bereikt,
+dat een backenddescriptor met lege identiteit/generatie/lengte wordt geweigerd,
+dat afwijkende artifact-ID, generatie, digest of lengte `Corrupt` oplevert en
+dat `Unauthorized`, `Stale` en `Io` bij `open` expliciet worden doorgegeven.
+Dit scherpt de testdekking van de verificatiegrens aan; productiecode en
+capabilities zijn niet gewijzigd.
+
+**Gecontroleerd:** gepinde Rust 1.90.0 `cargo check --locked -p
+artifact-store-core --tests`, `cargo clippy --locked -p artifact-store-core
+--all-targets -- -D warnings` en `cargo fmt --manifest-path
+crates/artifact-store-core/Cargo.toml -- --check`: exit 0. De volledige
+`cargo test --locked -p artifact-store-core`-opdracht stopte vóór uitvoering
+van tests (exit 101), omdat deze host geen `cc`-linker heeft. Logs:
+`/tmp/nieuw-os-artifact-store-check.log`,
+`/tmp/nieuw-os-artifact-store-clippy.log`,
+`/tmp/nieuw-os-artifact-store-fmt.log`,
+`/tmp/nieuw-os-artifact-store-test.log`. Dit is geen geslaagde runtime-test.
+
+**Voortgang:** 41% → 41%; geen productacceptatiepunt volgt uit hosttestcode,
+typechecking of formattering. Geen native, hardware-, gebruikerstest- of
+releasebewijs toegevoegd. Eerstvolgend: voer
+`cargo +1.90.0 test --locked -p artifact-store-core` uit op een host met een
+C-linker, daarna de bestaande workflow `artifact-store-quality` volgen.
+
+## Vorig checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 
 **Basis:** PR127 `798706c2a53d0062ce0474e5f84f294b2c37b825`, drie lokale
 fixleaves en PR126 `8f08db4c12573f91b57e55c30fa417e7abd358e6`, met main
