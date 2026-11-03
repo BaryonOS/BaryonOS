@@ -1,0 +1,87 @@
+{
+  "schema": "nieuw-os-clipboard-archive-index-v1",
+  "trigger_head": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+  "source_sha256": "038615b1b425d3f24ea2d9c52b36184ea666f81237c813303dc0fac93fb756ca",
+  "actual_ci_merge": "5754763ffb257d6420f74126cae7252e36afab1e",
+  "workflow_run": 41503460976,
+  "job_id": 125476892068,
+  "artifact_id": 13172335809,
+  "all_eighteen_ci_success": true,
+  "functional_clipboard_native_gate": true,
+  "u02_full_interaction_budget_acceptance": false,
+  "native_duration_s": 1407.011260869,
+  "raw_exit": 33,
+  "ci_normal_bundle": {
+    "path": "/workspace/nieuw-os-windows-package/build/clipboard-e318/NieuwOS-klembord-e318-Windows-QEMU.zip",
+    "sha256": "e29a6ca5933a0958b10238ae2f660237bbf5295c170d5c92146eb9d4ddf2fc3d",
+    "size_bytes": 2408622,
+    "manifest_sha256": "1a067624322d9ecffb7d53740e69766b0140400e79fff04c7f0f4e3c42a1bb19",
+    "kernel_sha256": "5442d9fcff2bccfbe47a41632bad6efc966dd62035baa503a46f765a08ffa68a",
+    "loader_sha256": "48d661e0681f3f0be90bedcb4996a9f5c29f0a0d7ddeec3829c0b8b0a72eef7a",
+    "all_nineteen_payloads_verified": true
+  },
+  "separate_local_candidate_zip": {
+    "path": "/workspace/nieuw-os-windows-package/build/clipboard-e318/local-candidate/NieuwOS-klembord-e318-local-Windows-QEMU.zip",
+    "sha256": "673c13b2999933aa06567b76a942f26d7d48823e3c4b2c026b3b1d72c1b15859",
+    "size_bytes": 2486182
+  },
+  "root_product_runtime_proof_labels_preserved": {
+    "source_commit": "d0ae570bd4666626096f92e57acef981c0f0d7b6",
+    "source_sha256": "05307fef9684d97480a77ea39050d80f6affcf522a6c09c7eb53340c789b35aa"
+  },
+  "files": {
+    "verification.json": {
+      "sha256": "eaff8b7a93e701848098748abfdbaed2ae7e57c975151c4439e9a31ef26dd6b6",
+      "size_bytes": 19691
+    },
+    "window-report.json": {
+      "sha256": "4d546eb5b259d2ed8b169dda3e7597501fc87af737f0bd2e274c001edce128c7",
+      "size_bytes": 624572
+    },
+    "serial.txt": {
+      "sha256": "b458cd749774a44bf9f54e3b741bfd2e0d0b306c92960b221f41411aca617204",
+      "size_bytes": 1058022
+    },
+    "serial.txt.gz": {
+      "sha256": "5ed07279a5815dd1efa4ef61d5d330dd753adcdcb85e01e21a00061fd3ff2c75",
+      "size_bytes": 15500
+    },
+    "final-checks.json": {
+      "sha256": "1df5ff51ea5693f89f513ca5278a461940ee6a7c2cfd5ed11600943519abe56b",
+      "size_bytes": 1480
+    },
+    "ci-bundle-manifest.json": {
+      "sha256": "1a067624322d9ecffb7d53740e69766b0140400e79fff04c7f0f4e3c42a1bb19",
+      "size_bytes": 4696
+    },
+    "runs-final-response.json": {
+      "sha256": "be9e7334f233df1d6ed6a57bb01dd22705c28f559cf1e506a151ab7e976e380f",
+      "size_bytes": 7969
+    },
+    "embedded_elf.py": {
+      "sha256": "5ac0afdcac0a9e43d3b19ea946400cb80c9a3244d550c970885068918b0b78fd",
+      "size_bytes": 3034
+    },
+    "verify-artifact.py": {
+      "sha256": "0f1364c68eb4d84270518e15ebba8673ae47a31545f9ac6dc8e355914c9e72bf",
+      "size_bytes": 15303
+    },
+    "NieuwOS-klembord-e318-Windows-QEMU.zip": {
+      "sha256": "e29a6ca5933a0958b10238ae2f660237bbf5295c170d5c92146eb9d4ddf2fc3d",
+      "size_bytes": 2408622
+    },
+    "local-candidate/package-verification.json": {
+      "sha256": "5ef7f2b0a1119a8e0c725d6f61eddbf3c22bbd7520f1623bd555112c67e22cd1",
+      "size_bytes": 31839
+    },
+    "local-candidate/NieuwOS-klembord-e318-local-Windows-QEMU.zip": {
+      "sha256": "673c13b2999933aa06567b76a942f26d7d48823e3c4b2c026b3b1d72c1b15859",
+      "size_bytes": 2486182
+    }
+  },
+  "limits": [
+    "No VM or actual Windows/WHPX runtime started by this task.",
+    "Only assigned complete app-body pixels are compared to host oracles; no pixel masks; full-screen expected-image equality or latency-budget acceptance is not claimed.",
+    "The separately built Debian-firmware local candidate and Ubuntu-firmware CI ZIP have distinct hashes and preserve actual manifests."
+  ]
+}

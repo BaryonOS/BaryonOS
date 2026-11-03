@@ -1,11 +1,11 @@
-# Nieuw OS — eigen kernel en native documentcatalogus
+# Nieuw OS — eigen kernel, sessieroute en bureaublad
 
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 34% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 41% van de vaste productroadmap](docs/assets/progress.svg)
 
-**34% — 34 van 100 gewogen acceptatiepunten.** Dit is een
+**41% — 41 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -22,20 +22,20 @@ alleen een nette desktop haalt die eindgrens niet.
 | Eigen kern en procesisolatie | 15 | 13 |
 | Opslag en gegevensherstel | 15 | 13 |
 | Hardware, drivers en energie | 12 | 1 |
-| Native Materiaal en toegankelijkheid | 15 | 0 |
-| Internet en netwerkdiensten | 10 | 0 |
+| Native Materiaal en toegankelijkheid | 15 | 4 |
+| Internet en netwerkdiensten | 10 | 3 |
 | Beveiliging, privacy en updates | 12 | 4 |
 | Apps, SDK en installatie | 8 | 2 |
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **34** |
+| **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`74a34d05`](https://github.com/simonvanieperen/nieuw-os/commit/74a34d05ef5591b782a0da9da34e4669910d0722) ·
-**Ontwikkelbranch:** `codex/native-storage-backend-gate-20261102`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Native backend- en herstelbaarheidstoets Btrfs/OpenZFS met eigen kernel en wegwerpimages.
-34/100 blijft gelijk. In acht VM-runs op bron e08fb0e en opnieuw op actuele main 74a34d0 slagen NOSVOL02 normal en cold recover; Btrfs en een OpenZFS-mirrorlid tonen geen native backend of bestandsherstel. Vreemde images zijn read-only en bytegelijk gebleven. Btrfs-nulheaders worden in de synthetische proef als leeg toegelaten; hostsalvage toont dat exit 0 geen juiste inhoud of volledige metadata garandeert. OpenZFS-hostpoolimport is beperkt positief; discovery-, crash-orakel- en exportgrenzen blijven expliciet open. Geen engineport, driver-, kernel- of criteriumwijziging; S09 blijft open. Bewijs: docs/verification/native-storage-backend-gate/README.md.
+**Bron:** [`5925c915`](https://github.com/simonvanieperen/nieuw-os/commit/5925c915f6b8d02842fffd89a94f21c0e018689a) ·
+**Ontwikkelbranch:** `coderabbit/issue-43-receive-timeout`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Issue #43: terminale ReceiveTcp-status na verbindingstime-out.
+41/100 blijft 41/100. Gerichte N01-reparatie: ReceiveTcp meldt Closed na een verbindingstime-out; State behoudt TimedOut. Oude code rood (Again versus Closed); 10 service-, 35 broker- inclusief doctests, 26 stack-, 4 protocol-, 6 client- en 11 peer-hosttests groen. Rustfmt/Clippy en de no_std-librarybuild slagen. Bestaande native QEMU-normal en client-exit slagen op bron5925c915 met dezelfde bronhash: raw exit33, echte pakketten en volledige opruiming. Het specifieke nieuwe timeout-ontvangstscenario is alleen op de host rood/groen bewezen. Concept-PR134; hosted CI/review blijven afzonderlijk. Geen nieuwe criteria, fysieke hardware-, volledige release- of 50%-acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -49,6 +49,65 @@ productpunten. Elk criterium telt volledig of niet; onbewezen werk blijft open.
 Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).
 <!-- OS-PROGRESS:END -->
+
+## Native venstersessie — 2 november 2026
+
+[PR #122](https://github.com/simonvanieperen/nieuw-os/pull/122) bevat een eigen
+1280×720-desktop met proportionele letters, twee geïsoleerde vensters, focus,
+slepen, dock en aanwijzer. Materiaal en Rekenmachine behouden document en
+berekening bij een echte compositorcrash. De volledige native route met
+opslaan, heropenen en onafhankelijke schijfcontrole slaagt; **U01 is geaccepteerd**.
+
+[PR #123](https://github.com/simonvanieperen/nieuw-os/pull/123) is hierin
+geïntegreerd: vier GUI-processen wachten bij afwezig werk. In drie metingen
+per variant op één Windows/WHPX-pc daalt de mediane QEMU-procesCPU van 99,37%
+naar 11,67% van één logische processor (88,26% lager). Alle 18 CI-workflows op de
+geteste integratiehead slagen. Dit is geen algemene latency- of energiegarantie.
+
+```sh
+python3 -B tools/build.py --kernel-feature native-window-session
+```
+
+De roadmap steeg van 34 naar 41 door N01 en U01. U02, bredere klemborddekking, echte
+accountauthenticatie en de volledige testrelease blijven open.
+[U01-acceptatie](docs/verification/mature-session-20261102/U01-ACCEPTANCE.md) ·
+[idle-integratie en pakketbewijs](docs/verification/gui-idle-20261102/INTEGRATION.md).
+
+## Native klembord — 2 november 2026
+
+[PR #124](https://github.com/simonvanieperen/nieuw-os/pull/124) is in de
+desktopbranch opgenomen. Ctrl+C/Ctrl+V deelt geselecteerde tekst tussen Materiaal
+en Rekenmachine; Ctrl+Shift+Delete wist het klembord. Alleen de eigen huidige
+invoergebeurtenis en actieve venster geven één gebruik. Een vervallen actie
+verandert het document niet; compositorherstel begint met een leeg klembord.
+
+Twee volledige Linux/TCG-routes slagen met alle22fasen,34hostreferenties,
+17volledige appbeeldvergelijkingen, echt herstel en onafhankelijke schijfcontrole.
+Alle18CI-workflows zijn groen op de geteste bron. De eerste versie ondersteunt
+192UTF-8-bytes met zichtbare weigering zonder afkappen. Ruimere capaciteit,
+de volledige snelheidscriteria en echte authenticatie blijven open; **41/100**.
+[Contract](docs/implementation/NATIVE-CLIPBOARD.md) ·
+[Bron, native bewijs en Windows-testpakket](docs/verification/native-clipboard-20261102/README.md).
+
+## Eerdere native sessiepreview — 2 november 2026
+
+[Concept-PR #121](https://github.com/simonvanieperen/nieuw-os/pull/121) voegt
+gebruikerskeuze, een herkenbaar aanmeldformulier, een expliciete openbare
+VM-gast, taakbalk en lokale programmasearch naar de echte Materiaal-app toe.
+De achtstappen-QEMU-proef op `344dc0a` slaagt, inclusief het weigeren en wissen
+van persoonlijke testinvoer. Echte authenticatie, sleutelvrijgave en veilige
+vergrendeling blijven open; de gast is geen beveiligd gebruikersprofiel.
+
+```sh
+python3 -B tools/build.py --kernel-feature native-system-session-preview
+```
+
+De Windowsstarter kiest WHPX na een echte QMP-initprobe, met zichtbare
+TCG-terugval. Begrensde compositor-/tegelbatches verminderen protocolwerk;
+volledige schermopbouw blijft een ontwikkelbeperking. De score bleef bij die eerdere preview 34/100; de actuele meter staat bovenaan.
+[Onderzoek/ontwerp](docs/implementation/SESSION-AND-DESKTOP.md) ·
+[hardware en snelheid](docs/implementation/VM-HARDWARE-AND-PERFORMANCE.md) ·
+[proeven en reproductie](docs/verification/session-desktop-20261102/README.md).
 
 ## Schaalbare documentopslag M6e — 26% (28 oktober 2026)
 

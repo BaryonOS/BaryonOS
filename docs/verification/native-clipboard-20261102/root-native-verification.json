@@ -1,0 +1,183 @@
+{
+  "source_commit": "d0ae570bd4666626096f92e57acef981c0f0d7b6",
+  "source_sha256": "05307fef9684d97480a77ea39050d80f6affcf522a6c09c7eb53340c789b35aa",
+  "passed": true,
+  "native_gate": true,
+  "clipboard_gate": true,
+  "raw_qemu_exit": 33,
+  "duration_s": 1196.8867629290035,
+  "disk_oracle": {
+    "object": 0,
+    "revision": 1,
+    "name": "Nieuw document",
+    "length": 14,
+    "sha256": "9a45a00fa9ff69c17e124f54c14bb14cf2c7650e8cf1c272f6631f618a19a5a5",
+    "fnv": 2786778974461010050,
+    "generation": 1,
+    "clocks": [
+      1,
+      0
+    ],
+    "canaries_intact": true
+  },
+  "serial_sha256": "b5bd0b0e671f8b5cc923220cb4d305abe0dbf2143e3d56a115948a5b55472961",
+  "profile": {
+    "backend": "TCG single thread",
+    "machine": "pc-q35-8.2",
+    "cpu": "qemu64",
+    "vcpu": 1,
+    "ram_mib": 256,
+    "gop": "1280x720",
+    "qemu_version": "10.0.13",
+    "network": false,
+    "physical_passthrough": false
+  },
+  "phases": {
+    "boot": {
+      "seconds": 83.62197258400192,
+      "frame_sha256": "f1aa7a45a5f4a2edb0fff7ee10bb4ee1e80273ea267f90931d8d655dd5fd587e",
+      "oracle": null
+    },
+    "initial": {
+      "seconds": 86.42208849900271,
+      "frame_sha256": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+      "oracle": "initial"
+    },
+    "editor": {
+      "seconds": 163.7100712820029,
+      "frame_sha256": "84576317ae5a71b50b6f5fcdd2a476656be22884629a2e5db9f94276502110dc",
+      "oracle": "editor",
+      "last_input_to_verified_app_image_s": 77.27393568800107,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "dirty": {
+      "seconds": 241.75728867000362,
+      "frame_sha256": "78136db9ea20fcc1eccda7e70b58d6342aadfa4bb4d46907a43c6c5a01fef25d",
+      "oracle": "dirty",
+      "last_input_to_verified_app_image_s": 72.86484336300055,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "clipboard-copied": {
+      "seconds": 305.28474318200097,
+      "frame_sha256": "96100f9dcb65657ed593512366ed13f9b92ca7033a1b438558cd45dc936106a9",
+      "oracle": "clipboard-copied",
+      "last_input_to_verified_app_image_s": 63.064116066998395,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "clipboard-rejected": {
+      "seconds": 319.48696556900177,
+      "frame_sha256": "72b335f45b0ba9de9f95c962d0182b0f39c2533d25e43c35178077025f6ac608",
+      "oracle": "clipboard-unsupported",
+      "last_input_to_verified_app_image_s": 13.941302966999501,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "clipboard-numeric": {
+      "seconds": 400.8238913620007,
+      "frame_sha256": "15ed2785058a6b431f73adf77a9adf77394ae4d42a04973aaf701173250403d7",
+      "oracle": "clipboard-numeric",
+      "last_input_to_verified_app_image_s": 79.19345381400126,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "clipboard-pasted": {
+      "seconds": 436.41638250100004,
+      "frame_sha256": "b81ebf5c8a68223375edbac4ffeae2514c5274d7f36ff36629a269d63ae90854",
+      "oracle": "clipboard-pasted",
+      "last_input_to_verified_app_image_s": 35.220731089000765,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "clipboard-calculator-copied": {
+      "seconds": 471.4556248370027,
+      "frame_sha256": "a610bb23a042e2112e3b2b37103d8fded6d9f088fb43d089caef5ac727919175",
+      "oracle": "clipboard-calculator-copied",
+      "last_input_to_verified_app_image_s": 32.06889096300074,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "clipboard-back": {
+      "seconds": 553.0820273910031,
+      "frame_sha256": "9d7a78b7120814479008e14215bd01a18689cebb441f97536e2df26e164de11d",
+      "oracle": "clipboard-back",
+      "last_input_to_verified_app_image_s": 79.50770229799673,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "clipboard-empty": {
+      "seconds": 615.8918480140019,
+      "frame_sha256": "4181378ade6cbb9f2627a2a0677c77b7e2871a96566a5e2c23abc9959652a27c",
+      "oracle": "clipboard-empty",
+      "last_input_to_verified_app_image_s": 62.108346332999645,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "clipboard-reset": {
+      "seconds": 688.4262246320031,
+      "frame_sha256": "ca4333dd55c6a81a68a3f834094e049c32fc95d85cb1af7eed02144962fd5bfe",
+      "oracle": "dirty",
+      "last_input_to_verified_app_image_s": 64.67442952499914,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "calculated": {
+      "seconds": 726.767173141001,
+      "frame_sha256": "5ba46c1d0c5523e2500c4034fabc6331c8fe13dd1af037e55bce6ab07928d2b7",
+      "oracle": null
+    },
+    "moved": {
+      "seconds": 732.0707607400036,
+      "frame_sha256": "87fcd9cba3e3b803c681fd73e2159085f4e09c79892e7548cb285003482545ae",
+      "oracle": null
+    },
+    "recovered": {
+      "seconds": 814.3489234860026,
+      "frame_sha256": "790f6a6f2e8d820053569c789611e25f784adef1a0fe3c356ece4eb978c53705",
+      "oracle": null
+    },
+    "rebound-editor": {
+      "seconds": 819.6624978140026,
+      "frame_sha256": "df6370d59762854e32396aab4b6c1b3073a70b586121269dca09cdab96f71f03",
+      "oracle": "dirty-rebound",
+      "last_input_to_verified_app_image_s": 87.12293057399802,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "calculator-restored": {
+      "seconds": 858.7511383800011,
+      "frame_sha256": "3b36ec1d70a08df07136b4b0b92eda688ca9101e0b1ccd3edde5893ec913e7bf",
+      "oracle": null
+    },
+    "restored-editor": {
+      "seconds": 941.746299765,
+      "frame_sha256": "2fd8472c6d0d4b5779136bb26407742205e075e2ce6ef2db99f570e78a89fc4a",
+      "oracle": "dirty-recovered",
+      "last_input_to_verified_app_image_s": 74.05384703500022,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "clipboard-recovered-empty": {
+      "seconds": 1007.4341317810031,
+      "frame_sha256": "41295ae28be2c1c4bf2a738cc72af837b73d7a1fe1a76824fadc1a79b370de66",
+      "oracle": "clipboard-recovered-empty",
+      "last_input_to_verified_app_image_s": 65.60025146699991,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "saved": {
+      "seconds": 1071.3081780130015,
+      "frame_sha256": "1f6b15392c8c457829f1a4e2540622ee648953ec6a0b42ac0693bb90590e8a8a",
+      "oracle": "saved",
+      "last_input_to_verified_app_image_s": 63.81950060700183,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "list": {
+      "seconds": 1134.687092209002,
+      "frame_sha256": "97e76ac0ca661b2f4832b1b18d5269a882e67f038298e63279d0a84470bb8e7d",
+      "oracle": "list",
+      "last_input_to_verified_app_image_s": 63.28219502999855,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "reopened": {
+      "seconds": 1195.825123519,
+      "frame_sha256": "b0fd4ebc2a7c6f6b7f552982da0ca1e753d061359e22bf2856cfe716c31a9d22",
+      "oracle": "reopened",
+      "last_input_to_verified_app_image_s": 60.22809385099754,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    }
+  },
+  "original_report_sha256": "fd217a191729c5be9a8cb90c943ecc70825ca1d5c92a0c0fc66dfdab07c715e3",
+  "disk_sha256": "246c8f9773533796718a729389c26d6103f45f04e7a83b4d06503e17c6d4e07e",
+  "gate_command": "source /workspace/.nieuw-os-env/activate.sh; NOS_BUILD_DIR=/workspace/nieuw-os/build/clipboard-native NOS_TARGET_DIR=/workspace/nieuw-os/target/window-final NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B -u tools/run_window_session.py --clipboard --timeout 1800 --bios-rom /workspace/.nieuw-os-env/sysroot/usr/share/seabios/bios-256k.bin --vga-rom /workspace/.nieuw-os-env/sysroot/usr/share/seabios/vgabios-stdvga.bin",
+  "interpretation": "Full exact appbody images plus real input ACKs; per-phase ready snapshots can lag image and are not causal all-SUR-ACK evidence. Host/QMP/capture time bounds, not whole-screen/guest/photon/p95 or Windows runtime acceptance."
+}

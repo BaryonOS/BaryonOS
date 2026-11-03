@@ -56,7 +56,10 @@ const _: () = assert!(
 compile_error!("native-fpu is a separate M3 acceptance profile");
 #[cfg(feature = "native-cap-digest-bench")]
 mod cap_bench;
-#[cfg(feature = "native-system-materiaal")]
+#[cfg(all(
+    feature = "native-system-materiaal",
+    not(feature = "native-window-session")
+))]
 mod desktop;
 #[cfg(feature = "native-keyring")]
 #[cfg_attr(feature = "native-system", allow(dead_code))]
@@ -78,7 +81,10 @@ mod supervisor;
 #[cfg(feature = "native-system")]
 #[cfg_attr(feature = "native-system-materiaal", allow(dead_code))]
 #[cfg_attr(feature = "native-system-nas-probe", path = "m3/nas.rs")]
+#[cfg_attr(feature = "native-net-service", path = "m3/network_service.rs")]
 mod system;
+#[cfg(feature = "native-window-session")]
+mod window_session;
 #[cfg(all(
     feature = "native-system-nas-probe",
     any(
@@ -91,6 +97,14 @@ mod system;
     )
 ))]
 compile_error!("the local NAS probe requires its own diagnostic process manifest");
+#[cfg(all(
+    feature = "native-window-session",
+    any(
+        feature = "native-system-materiaal-probe",
+        feature = "native-system-session-preview"
+    )
+))]
+compile_error!("window session and legacy desktop manifests are separate profiles");
 #[cfg(feature = "native-tpm-crb")]
 mod tpm_fixture;
 #[cfg(any(
@@ -232,6 +246,7 @@ const WORKER_ELF: &[u8] = include_bytes!(env!("NOS_WORKER_ELF"));
 #[cfg(all(feature = "native-supervisor", not(feature = "native-system")))]
 const CLIENT_ELF: &[u8] = include_bytes!(env!("NOS_CLIENT_ELF"));
 #[cfg(feature = "native-keyring")]
+#[cfg_attr(feature = "native-net-service", allow(dead_code))]
 const KEYRING_SERVICE_ELF: &[u8] = include_bytes!(env!("NOS_KEYRING_SERVICE_ELF"));
 #[cfg(all(feature = "native-keyring", not(feature = "native-system")))]
 const KEYRING_APP_ELF: &[u8] = include_bytes!(env!("NOS_KEYRING_APP_ELF"));
@@ -258,6 +273,7 @@ const ELF: &[u8] = include_bytes!(env!("NOS_M6_ELF"));
 #[cfg(feature = "native-update")]
 const UPDATE_SERVICE_ELF: &[u8] = include_bytes!(env!("NOS_UPDATE_SERVICE_ELF"));
 #[cfg(feature = "native-volume")]
+#[cfg_attr(feature = "native-net-service", allow(dead_code))]
 const VOLUME_SERVICE_ELF: &[u8] = include_bytes!(env!("NOS_VOLUME_SERVICE_ELF"));
 #[cfg(all(feature = "native-volume", not(feature = "native-system")))]
 const VOLUME_APP_ELF: &[u8] = include_bytes!(env!("NOS_VOLUME_APP_ELF"));
@@ -266,21 +282,28 @@ const ELF: &[u8] = include_bytes!(env!("NOS_M6B_ELF"));
 #[cfg(feature = "milestone-m6c")]
 const ELF: &[u8] = include_bytes!(env!("NOS_M6C_ELF"));
 #[cfg(all(feature = "native-system", not(feature = "native-system-materiaal")))]
+#[cfg_attr(feature = "native-net-service", allow(dead_code))]
 const SYSTEM_INIT_ELF: &[u8] = include_bytes!(env!("NOS_SYSTEM_INIT_ELF"));
 #[cfg(all(feature = "native-system", not(feature = "native-system-materiaal")))]
+#[cfg_attr(feature = "native-net-service", allow(dead_code))]
 const SYSTEM_APP_ELF: &[u8] = include_bytes!(env!("NOS_SYSTEM_APP_ELF"));
 #[cfg(all(
     feature = "native-system",
     not(feature = "native-system-materiaal"),
     not(feature = "native-system-nas-probe")
 ))]
+#[cfg_attr(feature = "native-net-service", allow(dead_code))]
 const SYSTEM_WORKER_ELF: &[u8] = include_bytes!(env!("NOS_SYSTEM_WORKER_ELF"));
 #[cfg(feature = "native-system-random")]
 const RANDOM_PROBE_ELF: &[u8] = include_bytes!(env!("NOS_RANDOM_PROBE_ELF"));
 #[cfg(feature = "native-system-images")]
 const IMAGE_PROBE_ELF: &[u8] = include_bytes!(env!("NOS_IMAGE_PROBE_ELF"));
-#[cfg(feature = "native-system-net")]
+#[cfg(all(feature = "native-system-net", not(feature = "native-net-service")))]
 const NET_PROBE_ELF: &[u8] = include_bytes!(env!("NOS_NET_PROBE_ELF"));
+#[cfg(feature = "native-net-service")]
+const NETWORK_SERVICE_ELF: &[u8] = include_bytes!(env!("NOS_NETWORK_SERVICE_ELF"));
+#[cfg(feature = "native-net-service")]
+const NETWORK_CLIENT_ELF: &[u8] = include_bytes!(env!("NOS_NETWORK_CLIENT_ELF"));
 const DATA: u64 = 0x40010000;
 const HEAP: u64 = 0x60000000;
 // B03: ML-DSA-65 verification in the ring-3 update service needs about
@@ -504,9 +527,16 @@ fn process_elf(slot: usize) -> &'static [u8] {
 }
 #[cfg(feature = "native-system")]
 fn process_elf(slot: usize) -> &'static [u8] {
-    #[cfg(feature = "native-system-materiaal")]
+    #[cfg(feature = "native-window-session")]
+    return window_session::process_elf(slot);
+    #[cfg(all(
+        feature = "native-system-materiaal",
+        not(feature = "native-window-session")
+    ))]
     return desktop::process_elf(slot);
-    #[cfg(not(feature = "native-system-materiaal"))]
+    #[cfg(feature = "native-net-service")]
+    return system::process_elf(slot);
+    #[cfg(not(any(feature = "native-system-materiaal", feature = "native-net-service")))]
     match slot {
         0 => SYSTEM_INIT_ELF,
         1 => KEYRING_SERVICE_ELF,
@@ -546,7 +576,7 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
     kernel.begin_scratch(frames);
     #[cfg(feature = "native-tpm-crb")]
     tpm_fixture::prepare(frames, &mut kernel);
-    #[cfg(feature = "milestone-m5")]
+    #[cfg(all(feature = "milestone-m5", not(feature = "native-net-service")))]
     m5::prepare(frames, &mut kernel);
     #[cfg(feature = "native-keyring")]
     keyring::prepare(frames, &mut kernel);
@@ -653,7 +683,12 @@ impl State {
         } else {
             16
         };
-        let initial = if cfg!(feature = "native-system-materiaal-probe") {
+        let initial = if cfg!(feature = "native-net-service") {
+            3
+        } else if cfg!(any(
+            feature = "native-system-materiaal-probe",
+            feature = "native-window-session"
+        )) {
             8
         } else if cfg!(feature = "native-system-materiaal") {
             7
@@ -718,8 +753,13 @@ impl State {
         m5::manifest(self);
         #[cfg(all(feature = "native-system", not(feature = "native-system-materiaal")))]
         system::manifest(self);
-        #[cfg(feature = "native-system-materiaal")]
+        #[cfg(all(
+            feature = "native-system-materiaal",
+            not(feature = "native-window-session")
+        ))]
         desktop::manifest(self);
+        #[cfg(feature = "native-window-session")]
+        window_session::manifest(self);
         #[cfg(feature = "native-qsim")]
         qsim::manifest(self);
         #[cfg(feature = "native-qsim-job")]
@@ -934,6 +974,10 @@ impl State {
                 assert!(other.mappings().iter().all(|x| x.pa != m.pa));
             }
         }
+        // Legacy fixtures use a user-visible canary. The window-session
+        // profile also audits preserved apps after arbitrary user execution:
+        // their writable startup words are data, never a kernel invariant.
+        #[cfg(not(feature = "native-window-session"))]
         assert_eq!(read_word(p.physical(DATA + 16)), p.pattern);
     }
     fn audit(&self) {
@@ -971,8 +1015,13 @@ impl State {
         if let Some(next) = m5::poll(state) {
             return Some(next);
         }
-        #[cfg(feature = "native-system-materiaal")]
+        #[cfg(all(
+            feature = "native-system-materiaal",
+            not(feature = "native-window-session")
+        ))]
         desktop::poll(state);
+        #[cfg(feature = "native-window-session")]
+        window_session::poll(state);
         #[cfg(all(feature = "native-system", not(feature = "native-system-materiaal")))]
         if let Some(next) = system::poll(state) {
             return Some(next);
@@ -1028,6 +1077,7 @@ impl State {
                     if !valid {
                         // Invalid saved user state is a process failure, never a
                         // kernel assertion or an unchecked iretq to hostile state.
+                        #[cfg(not(feature = "native-window-session"))]
                         let expected = mode() == 16
                             && slot == 0
                             && c[20] == 0
@@ -1046,11 +1096,16 @@ impl State {
                             rip: c[17],
                             cr2: 0,
                         };
-                        self.unexpected |= !expected;
-                        if expected {
-                            serial::write(b"M3:INVALID_RSP:PASS\n");
+                        #[cfg(feature = "native-window-session")]
+                        window_session::observe_invalid_return(self, slot);
+                        #[cfg(not(feature = "native-window-session"))]
+                        {
+                            self.unexpected |= !expected;
+                            if expected {
+                                serial::write(b"M3:INVALID_RSP:PASS\n");
+                            }
+                            self.observer_survivor(slot);
                         }
-                        self.observer_survivor(slot);
                         self.fault = true;
                         self.processes[slot].status = Status::Dying;
                         self.cleanup(slot);
@@ -1289,7 +1344,15 @@ impl State {
             fpu::fixture::observe_exit(self, slot, counter);
             return;
         }
-        #[cfg(feature = "native-system-materiaal")]
+        #[cfg(feature = "native-window-session")]
+        {
+            window_session::observe_exit(self, slot, counter);
+            return;
+        }
+        #[cfg(all(
+            feature = "native-system-materiaal",
+            not(feature = "native-window-session")
+        ))]
         {
             desktop::observe_exit(self, slot, counter);
             return;
@@ -1383,7 +1446,15 @@ impl State {
             fpu::fixture::observe_fault(self, slot, context, counter);
             return;
         }
-        #[cfg(feature = "native-system-materiaal")]
+        #[cfg(feature = "native-window-session")]
+        {
+            window_session::observe_fault(self, slot, context, counter);
+            return;
+        }
+        #[cfg(all(
+            feature = "native-system-materiaal",
+            not(feature = "native-window-session")
+        ))]
         {
             desktop::observe_fault(self, slot, context, counter);
             return;
@@ -1473,6 +1544,7 @@ impl State {
             self.observer_survivor(slot);
         }
     }
+    #[cfg(not(feature = "native-window-session"))]
     fn observer_survivor(&mut self, departing: usize) {
         self.survivor_slot = (0..self.amount)
             .find(|i| {
@@ -1543,7 +1615,8 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
         let supervisor_call = matches!(number, 0x60 | 0x61);
         #[cfg(feature = "native-system")]
         let supervisor_call = matches!(number, 0x30 | 0x50..=0x52 | 0x60 | 0x61)
-            || cfg!(feature = "native-system-net") && matches!(number, 0x70..=0x72);
+            || cfg!(feature = "native-system-net") && matches!(number, 0x70..=0x72)
+            || cfg!(feature = "native-window-session") && number == 0x53;
         #[cfg(feature = "native-system-clock")]
         let supervisor_call = supervisor_call || number == 0x73;
         #[cfg(not(any(feature = "native-supervisor", feature = "native-keyring")))]
@@ -1554,6 +1627,12 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
         #[cfg(feature = "native-supervisor")]
         if matches!(number, 0x30 | 0x50..=0x52) {
             let (rax, rdx) = supervisor::syscall(state, current, number, args);
+            state.processes[current].context[14] = rax as u64;
+            state.processes[current].context[12] = rdx;
+        }
+        #[cfg(feature = "native-window-session")]
+        if number == 0x53 {
+            let (rax, rdx) = window_session::restart(state, current, args);
             state.processes[current].context[14] = rax as u64;
             state.processes[current].context[12] = rdx;
         }
@@ -1647,7 +1726,9 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
                 match number {
                     0 => {
                         p.context[12] = (1 << 32)
-                            | if cfg!(feature = "ipc-wait") {
+                            | if cfg!(feature = "native-window-session") {
+                                11
+                            } else if cfg!(feature = "ipc-wait") {
                                 10
                             } else if cfg!(feature = "native-system-clock") {
                                 9

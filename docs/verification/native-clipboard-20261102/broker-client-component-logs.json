@@ -1,0 +1,69 @@
+{
+  "client_commit": "0159cc0",
+  "broker_commit": "0d57cd94a4187b121ee415880f0dc4acc4f08e6a",
+  "scope": "Host/unit/Clippy/fmt/scalar component evidence; no new VM execution by agents",
+  "client_host_tests": 28,
+  "broker_host_tests": 40,
+  "logs": {
+    "clipboard-client-all-clippy.log": {
+      "uncompressed_sha256": "28b793ff2709e6d8720c0e7c97bd919e84d0c1504f06a688586a51929a9f3167",
+      "bytes": 170
+    },
+    "clipboard-client-all-tests.log": {
+      "uncompressed_sha256": "54445154609bc600ed8d04cf7b791d125be89d1f8cf82f512e664f48f4f6e31f",
+      "bytes": 3340
+    },
+    "clipboard-client-check.log": {
+      "uncompressed_sha256": "576e90ce772d47fbff0e93b696cd0c54ac7f1d7f5a8c9422041c8a519566e92e",
+      "bytes": 662
+    },
+    "clipboard-client-contract-clippy.log": {
+      "uncompressed_sha256": "2620504b41c28f77b5f74833a68554418dfa9fabb5715531e15732897a3f1c3f",
+      "bytes": 2027
+    },
+    "clipboard-client-contract-tests.log": {
+      "uncompressed_sha256": "7052706dac259e1031996694da9314d67ed27f6c6232225ea4aaf360c914cd6d",
+      "bytes": 1230
+    },
+    "clipboard-client-format-before.log": {
+      "uncompressed_sha256": "b3658229cb143463d6352730bab8ca8fead56742b1af841745f2d6c1282d18bf",
+      "bytes": 20717
+    },
+    "clipboard-client-format.log": {
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "clipboard-client-scalar.log": {
+      "uncompressed_sha256": "d8af1b2226f33aeec87369dc9bb2f760c68674a391136697592a4e47b52d74f1",
+      "bytes": 160
+    },
+    "clipboard-client-unit.log": {
+      "uncompressed_sha256": "97d8a14ad68d3261d460a2b931ab94f4e77f073d4885be59b12279d5b9a10452",
+      "bytes": 1324
+    },
+    "clipboard-window-clippy.txt": {
+      "uncompressed_sha256": "6141e52d06aa8844054a8a3748ab6376283a45dd0c97a8c4e9153c2e00b6b018",
+      "bytes": 183
+    },
+    "clipboard-window-fmt.txt": {
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "clipboard-window-host.txt": {
+      "uncompressed_sha256": "475194716da231a374d9e8006aa4244ce0fd2c58c04401452953c4228a9c527b",
+      "bytes": 4691
+    },
+    "clipboard-window-native-build.txt": {
+      "uncompressed_sha256": "d01bd488e665abcb5463e9721c0f53c5cd7af9f931b2c787a85a73c1d0ffb3fd",
+      "bytes": 2711
+    },
+    "clipboard-window-native-clippy.txt": {
+      "uncompressed_sha256": "0bf5eacb016e89c976406c737cca46111649cc75eca5ead21a4b302ea4495181",
+      "bytes": 183
+    },
+    "clipboard-window-normal-build.txt": {
+      "uncompressed_sha256": "a36b674d31ce32fa1d21e956ea133939f5b30a98302e1d4524b5ad7f865b4ea6",
+      "bytes": 2695
+    }
+  }
+}

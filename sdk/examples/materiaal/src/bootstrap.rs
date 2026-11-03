@@ -45,11 +45,19 @@ impl Bootstrap {
         }
         let pids = [word(168), word(176), word(184), word(560), word(592)];
         for (i, &pid) in pids.iter().enumerate() {
-            if pid == 0 || pids[..i].contains(&pid) {
+            if pid == 0
+                || (pids[..i].contains(&pid) && !(word(656) == 1 && i == 4 && pid == pids[3]))
+            {
                 return None;
             }
         }
-        if word(32) == 0 || word(568) == 0 || word(600) == 0 || word(608) == 0 || word(112) > 1 {
+        if word(32) == 0
+            || word(568) == 0
+            || word(600) == 0
+            || word(608) == 0
+            || word(112) > 1
+            || word(656) > 1
+        {
             return None;
         }
         let send = |i| Some(SendEndpoint::from_handle(Handle::from_raw(raw[i]).ok()?));

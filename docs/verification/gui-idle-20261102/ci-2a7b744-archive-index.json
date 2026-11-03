@@ -1,0 +1,55 @@
+{
+  "schema": "nieuw-os-candidate-archive-index-v1",
+  "exact_candidate_commit": "2a7b74426027093a4793d78d5ddca94e15ae018a",
+  "full_source_sha256": "084478cf4d2e137a3ba37bc6029716be3e38fecfdf76ca82fe55cd409b8536d0",
+  "ci_tested_merge_commit": "a50216efcc5017443a4d5520998b95ac8047e1ae",
+  "all_eighteen_head_checks_success": true,
+  "independent_ai_readonly_review_confirmed_native_artifact_and_normal_package": true,
+  "files": {
+    "build/window-package-2a7b744/package-verification.json": {
+      "sha256": "7e1a84e4039afe6b01774fb51b2855e173aa43b75914d85c9291444c8108a5dc",
+      "size_bytes": 24431
+    },
+    "build/window-package-2a7b744/binary-comparison-aba.json": {
+      "sha256": "7d23fea20795957df2c8781527c0bdbf3a03062fb9c25875d2bf6c092323033b",
+      "size_bytes": 2251
+    },
+    "build/ci-window-2a7b744/verification.json": {
+      "sha256": "22b5f495cc852bd48cd382803df92e3f69cc87aefd37996ec6fd77a3e5ea7809",
+      "size_bytes": 5017
+    },
+    "build/ci-window-2a7b744/window-report.json": {
+      "sha256": "8244db3d03aa415bcff6831614e1a8fc77c89ab2eb92056f2cd160e48ef3ff1a",
+      "size_bytes": 143183
+    },
+    "build/ci-window-2a7b744/serial.txt": {
+      "sha256": "d9717aef37eda8cf3eafe9e94037fc6faddd93401199e999e8e53de6fd79d77d",
+      "size_bytes": 289264
+    },
+    "build/ci-window-2a7b744/serial.txt.gz": {
+      "sha256": "99dcc236ab338a0444ea1863303cc77fb96fa6f463e1e402d4b52beaaacb6a3c",
+      "size_bytes": 5577
+    },
+    "build/ci-window-2a7b744/binary-comparison-ci-idle.json": {
+      "sha256": "cbc77673009e9ae41266759a0b1b4803896a27d7ebab478f969ce66b1f70ba49",
+      "size_bytes": 749
+    },
+    "build/ci-2a7b744/host-verification.json": {
+      "sha256": "c8c88cce03a79721933d45557acaa87221e9265f17390dec805e98a9dfc7dde7",
+      "size_bytes": 1020
+    },
+    "build/ci-2a7b744/runs-final-response.json": {
+      "sha256": "d4bde6f564a840a1b11c42c6b70482d4415e8451ca08c9c2cc62042a3413db9c",
+      "size_bytes": 7968
+    },
+    "build/window-package-2a7b744/NieuwOS-venstersessie-2a7b744-Windows-QEMU.zip": {
+      "sha256": "b685eb421e279da680da2c84bd280cc1edbc8684471f2019b2879c129c3ba1e0",
+      "size_bytes": 2463420
+    }
+  },
+  "limits": [
+    "No VM or Windows/WHPX runtime started by this task.",
+    "Old 1f2/source8faf native and Windows idle measurements retain their original labels.",
+    "CI durations are single execution observations, not benchmark guarantees."
+  ]
+}

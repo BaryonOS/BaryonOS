@@ -3,8 +3,9 @@
 #![no_std]
 #![forbid(unsafe_code)]
 pub mod bootstrap;
+pub mod idle;
 use nieuw_os_catalog_client::Transport;
-use nieuw_os_input_client::{AckOutcome, Peek, Session as Input};
+use nieuw_os_input_client::{clipboard, AckOutcome, Offer, Peek, Session as Input};
 use nieuw_os_input_core::Event;
 use nieuw_os_materiaal::{
     controller::{Controller, Error as ControllerError, InputEnvelope, Screen, Status},
@@ -87,10 +88,14 @@ pub struct App<'a, V: Transport, I: Transport, S: Transport> {
     geometry: Geometry,
     evidence: Evidence,
     input_responded: bool,
+    input_empty: bool,
+    step_succeeded: bool,
     input_failed: bool,
     surface_failed: bool,
     frame: u64,
     next_tile: u64,
+    clipboard_enabled: bool,
+    retained_enabled: bool,
     /// Digest per tile of what this surface actually shows, valid only after
     /// a complete frame in this epoch. `None` keeps full repaints.
     damage: Option<&'a mut [u64]>,
@@ -123,10 +128,14 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             geometry,
             evidence: Evidence::default(),
             input_responded: false,
+            input_empty: false,
+            step_succeeded: false,
             input_failed: false,
             surface_failed: false,
             frame: 0,
             next_tile: 0,
+            clipboard_enabled: false,
+            retained_enabled: false,
             damage: None,
             damage_valid: false,
         })
@@ -149,6 +158,44 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     }
     pub fn controller(&self) -> &Controller<'a, V> {
         &self.controller
+    }
+    /// Protocol opt-in for the window compositor, never an input authority.
+    pub fn enable_clipboard(&mut self) {
+        self.clipboard_enabled = true;
+    }
+    /// Only the jointly built window compositor promises private retained
+    /// backing. Legacy display adapters keep the original full-frame path.
+    pub fn enable_retained(&mut self) -> Result<(), Error> {
+        self.surface.enable_retained().map_err(Error::Surface)?;
+        self.retained_enabled = true;
+        Ok(())
+    }
+    pub fn surface_counts(&self) -> nieuw_os_surface_protocol::client::SurfaceCounts {
+        self.surface.counts()
+    }
+    /// Only a completed, successful turn ending in PEEK Empty may park.
+    /// Unsaved document contents alone are not pending work. The current
+    /// render must be fully acknowledged; saving/uncertain/recovery states
+    /// and closed or outstanding transports must keep the adapter runnable.
+    pub fn can_idle(&self) -> bool {
+        let view = self.controller.view();
+        let document = self.controller.document();
+        self.step_succeeded
+            && self.input_empty
+            && !self.input_failed
+            && !self.surface_failed
+            && !self.input.is_closed()
+            && self.input.outstanding().is_none()
+            && !self.surface.is_closed()
+            && !document.is_closed()
+            && !document.is_saving()
+            && !document.is_uncertain()
+            && !document.is_conflicted()
+            && !view.dirty
+            && self.evidence.ready
+            && self.evidence.presented_generation == view.generation
+            && self.frame == view.generation
+            && self.next_tile == self.geometry.tiles()
     }
     /// Read the current UI semantics from this app's own document state.
     /// This does not publish the tree to another process or authorize access.
@@ -239,7 +286,66 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         }
     }
 
+    fn clipboard_offer(
+        &mut self,
+        offer: &Offer,
+    ) -> Result<(Option<clipboard::Text>, Option<Status>), Error> {
+        use ui_core::{KeyAction, PhysicalKey};
+        let Event::Key(key) = offer.event() else {
+            return Ok((None, None));
+        };
+        let m = key.modifiers;
+        if !self.clipboard_enabled
+            || key.action != KeyAction::Press
+            || !m.control()
+            || m.shift()
+            || m.alt()
+            || m.super_key()
+        {
+            return Ok((None, None));
+        }
+        let (result, feedback) = match key.key {
+            PhysicalKey::C => {
+                let selected = self.controller.clipboard_selection().unwrap_or("");
+                let empty = selected.is_empty();
+                (
+                    self.input.clipboard_copy(offer, selected).map(|()| None),
+                    Some(if empty {
+                        Status::ClipboardSelection
+                    } else {
+                        Status::ClipboardCopied
+                    }),
+                )
+            }
+            PhysicalKey::V => (self.input.clipboard_paste(offer).map(Some), None),
+            _ => return Ok((None, None)),
+        };
+        match result {
+            Ok(text) => Ok((text, feedback)),
+            Err(clipboard::Error::Input(error)) => {
+                self.input_failed = true;
+                self.evidence.ready = false;
+                self.controller
+                    .cancel_pointer()
+                    .map_err(Error::Controller)?;
+                increment(&mut self.evidence.errors)?;
+                Err(Error::Input(error))
+            }
+            Err(error) => Ok((
+                None,
+                Some(match error {
+                    clipboard::Error::Empty if feedback == Some(Status::ClipboardSelection) => {
+                        Status::ClipboardSelection
+                    }
+                    clipboard::Error::Empty => Status::ClipboardEmpty,
+                    clipboard::Error::TooLong => Status::ClipboardTooLong,
+                    _ => Status::ClipboardUnavailable,
+                }),
+            )),
+        }
+    }
     fn input_step(&mut self) -> Result<(), Error> {
+        self.input_empty = false;
         if self.input_failed || self.surface_failed {
             return Ok(());
         }
@@ -248,6 +354,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             let offer = match self.input.peek() {
                 Ok(Peek::Empty) => {
                     self.input_responded = true;
+                    self.input_empty = true;
                     break;
                 }
                 Ok(Peek::Offer(offer)) => {
@@ -302,9 +409,27 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
                 }
                 Event::Cancel(_) => self.controller.deliver(envelope),
             };
+            let accepted = result.is_ok();
             self.operation(result)?;
+            let (paste, feedback) = if accepted {
+                self.clipboard_offer(&offer)?
+            } else {
+                (None, None)
+            };
             match self.input.ack(&offer) {
-                Ok(AckOutcome::Acknowledged) => increment(&mut self.evidence.input_acks)?,
+                Ok(AckOutcome::Acknowledged) => {
+                    increment(&mut self.evidence.input_acks)?;
+                    // A stale/focus-cancelled ACK must never apply received text.
+                    if let Some(text) = paste {
+                        let result = self.controller.paste_clipboard(text.as_str());
+                        self.operation(result)?;
+                    }
+                    if let Some(status) = feedback {
+                        self.controller
+                            .clipboard_feedback(status)
+                            .map_err(Error::Controller)?;
+                    }
+                }
                 Ok(AckOutcome::Superseded) => increment(&mut self.evidence.superseded)?,
                 Err(error) => {
                     self.input_failed = true;
@@ -353,56 +478,89 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             view.status = Status::InputLost;
             view.can_save = false;
         }
-        let frame = Frame::new(view);
-        let last = self.geometry.tiles() - 1;
-        let mut scanned = 0;
-        let mut bytes = [0; 1024];
-        let (rectangle, hash) = loop {
-            let rectangle = self
-                .geometry
-                .rectangle(self.next_tile)
-                .map_err(|_| Error::Binding)?;
-            let mut pixels = [0; TILE_PIXELS];
-            let rendered = frame
-                .render_tile(rectangle.x, rectangle.y, &mut pixels)
-                .map_err(|_| Error::Binding)?;
-            if rendered.width != u32::from(rectangle.width)
-                || rendered.height != u32::from(rectangle.height)
-            {
-                return Err(Error::Binding);
+        let damage = self.controller.paint_damage();
+        let mut retained = 0;
+        if self.retained_enabled && self.surface.retained_base().is_some() && !self.input_failed {
+            while retained < nieuw_os_surface_protocol::MAX_RETAIN_TILES {
+                let index = self
+                    .next_tile
+                    .checked_add(u64::from(retained))
+                    .ok_or(Error::Binding)?;
+                if index >= self.geometry.tiles() {
+                    break;
+                }
+                let rectangle = self.geometry.rectangle(index).map_err(|_| Error::Binding)?;
+                if damage.intersects(
+                    rectangle.x,
+                    rectangle.y,
+                    u32::from(rectangle.width),
+                    u32::from(rectangle.height),
+                ) {
+                    break;
+                }
+                retained += 1;
             }
-            for (p, chunk) in pixels
-                .iter()
-                .zip(bytes[..rectangle.bytes()].chunks_exact_mut(4))
-            {
-                chunk.copy_from_slice(&p.to_le_bytes());
-            }
-            let hash = if self.damage.is_some() {
-                digest(&bytes[..rectangle.bytes()])
-            } else {
-                0
+        }
+        let mut accepted_digest = None;
+        let result = if retained != 0 {
+            self.surface.retain(self.frame, self.next_tile, retained)
+        } else {
+            let frame = Frame::new(view);
+            let last = self.geometry.tiles() - 1;
+            let mut scanned = 0;
+            let mut bytes = [0; 1024];
+            let (rectangle, hash) = loop {
+                let rectangle = self
+                    .geometry
+                    .rectangle(self.next_tile)
+                    .map_err(|_| Error::Binding)?;
+                let mut pixels = [0; TILE_PIXELS];
+                let rendered = frame
+                    .render_tile(rectangle.x, rectangle.y, &mut pixels)
+                    .map_err(|_| Error::Binding)?;
+                if rendered.width != u32::from(rectangle.width)
+                    || rendered.height != u32::from(rectangle.height)
+                {
+                    return Err(Error::Binding);
+                }
+                for (p, chunk) in pixels
+                    .iter()
+                    .zip(bytes[..rectangle.bytes()].chunks_exact_mut(4))
+                {
+                    chunk.copy_from_slice(&p.to_le_bytes());
+                }
+                let hash = if !self.retained_enabled && self.damage.is_some() {
+                    digest(&bytes[..rectangle.bytes()])
+                } else {
+                    0
+                };
+                // Explicit retained coverage cannot also omit tiles via sparse digests.
+                let unchanged = !self.retained_enabled
+                    && self.damage_valid
+                    && self.next_tile != last
+                    && self
+                        .damage
+                        .as_deref()
+                        .is_some_and(|cache| cache[self.next_tile as usize] == hash);
+                if !unchanged {
+                    break (rectangle, hash);
+                }
+                self.next_tile += 1;
+                scanned += 1;
+                if scanned == SCAN_LIMIT {
+                    return Ok(());
+                }
             };
-            let unchanged = self.damage_valid
-                && self.next_tile != last
-                && self
-                    .damage
-                    .as_deref()
-                    .is_some_and(|cache| cache[self.next_tile as usize] == hash);
-            if !unchanged {
-                break (rectangle, hash);
+            if !self.retained_enabled {
+                accepted_digest = Some(hash);
             }
-            self.next_tile += 1;
-            scanned += 1;
-            if scanned == SCAN_LIMIT {
-                return Ok(());
-            }
+            self.surface.blit(
+                self.frame,
+                self.next_tile,
+                rectangle,
+                &bytes[..rectangle.bytes()],
+            )
         };
-        let result = self.surface.blit(
-            self.frame,
-            self.next_tile,
-            rectangle,
-            &bytes[..rectangle.bytes()],
-        );
         if let Err(error) = result {
             self.surface_failed = true;
             self.evidence.ready = false;
@@ -411,13 +569,18 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             increment(&mut self.evidence.errors)?;
             return Err(Error::Surface(error));
         }
-        increment(&mut self.evidence.tiles)?;
-        if let Some(cache) = self.damage.as_deref_mut() {
-            cache[self.next_tile as usize] = hash;
+        if retained == 0 {
+            increment(&mut self.evidence.tiles)?;
+            if let (Some(cache), Some(hash)) = (self.damage.as_deref_mut(), accepted_digest) {
+                cache[self.next_tile as usize] = hash;
+            }
         }
-        self.next_tile += 1;
+        self.next_tile = self
+            .next_tile
+            .checked_add(u64::from(retained.max(1)))
+            .ok_or(Error::Binding)?;
         if self.next_tile == self.geometry.tiles() {
-            self.damage_valid = self.damage.is_some();
+            self.damage_valid = self.damage.is_some() && !self.retained_enabled;
             if !self.controller.presented(self.frame, self.geometry.epoch) {
                 return Err(Error::Binding);
             }
@@ -431,12 +594,112 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     /// one bounded tile transaction. Individual IPC polling is also bounded.
     /// Input/surface failure leaves document memory alive for explicit recovery.
     pub fn step(&mut self) -> Result<(), Error> {
+        self.step_succeeded = false;
         let input = self.input_step();
         self.save_step()?;
         let paint = self.paint_step();
-        input.and(paint)
+        let result = input.and(paint);
+        self.step_succeeded = result.is_ok();
+        result
+    }
+    /// Interactive VM profile: one bounded input/save pass, then at most four
+    /// existing tile transactions. No input, stop or save progress is serviced
+    /// between those transactions; this is a work bound, not a latency promise.
+    /// The diagnostic one-tile `step` contract remains unchanged.
+    pub fn step_interactive(&mut self) -> Result<(), Error> {
+        self.step_succeeded = false;
+        let input = self.input_step();
+        self.save_step()?;
+        let mut paint = Ok(());
+        for _ in 0..4 {
+            if self.surface_failed || !self.controller.view().dirty {
+                break;
+            }
+            paint = self.paint_step();
+            if paint.is_err() {
+                break;
+            }
+        }
+        let result = input.and(paint);
+        self.step_succeeded = result.is_ok();
+        result
+    }
+    /// Close presentation only. Document ownership, draft and save state stay
+    /// live while the supervisor replaces the failed display/input services.
+    pub fn detach_presentation(&mut self) -> Result<(), Error> {
+        self.step_succeeded = false;
+        self.input_empty = false;
+        self.surface_failed = true;
+        self.input_failed = true;
+        self.evidence.ready = false;
+        let input = self.input.retire().map_err(Error::Cleanup);
+        let surface = self.surface.retire().map_err(Error::Cleanup);
+        input.and(surface)
+    }
+    pub fn rebind_presentation(
+        &mut self,
+        mut input: Input<I>,
+        mut surface: Surface<S>,
+        geometry: Geometry,
+    ) -> Result<(), Error> {
+        let binding = input.binding();
+        if !self.surface_failed
+            || !self.input_failed
+            || geometry.validate().is_err()
+            || geometry.epoch == self.geometry.epoch
+            || binding.epoch == self.input.binding().epoch
+            || binding.width != geometry.width
+            || binding.height != geometry.height
+        {
+            let _ = input.close();
+            let _ = surface.close();
+            return Err(Error::Binding);
+        }
+        let viewport = match nieuw_os_materiaal::Viewport::new(
+            u32::from(geometry.assigned.width),
+            u32::from(geometry.assigned.height),
+            self.controller.view().viewport.scale(),
+            geometry.epoch,
+        ) {
+            Ok(viewport) => viewport,
+            Err(_) => {
+                let _ = input.close();
+                let _ = surface.close();
+                return Err(Error::Binding);
+            }
+        };
+        if let Err(error) = self
+            .controller
+            .resize(viewport)
+            .and_then(|()| self.controller.rebind_input(binding.epoch))
+        {
+            let _ = input.close();
+            let _ = surface.close();
+            return Err(Error::Controller(error));
+        }
+        if self.retained_enabled {
+            if let Err(error) = surface.enable_retained() {
+                let _ = input.close();
+                let _ = surface.close();
+                return Err(Error::Surface(error));
+            }
+        }
+        self.input = input;
+        self.surface = surface;
+        self.geometry = geometry;
+        self.input_failed = false;
+        self.surface_failed = false;
+        self.input_responded = false;
+        self.input_empty = false;
+        self.step_succeeded = false;
+        self.frame = 0;
+        self.next_tile = 0;
+        self.evidence.presented_generation = 0;
+        self.evidence.ready = false;
+        Ok(())
     }
     pub fn stop_clean(&mut self) -> Result<(), Error> {
+        self.step_succeeded = false;
         if self.controller.document().is_dirty() || self.controller.document().is_saving() {
             return Err(Error::Unsaved);
         }

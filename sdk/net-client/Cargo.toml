@@ -1,0 +1,16 @@
+[package]
+name = "nieuw-os-net-client"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+[workspace]
+resolver = "2"
+[dependencies]
+nieuw-os-network-protocol = { path = "../../services/network-service/protocol" }
+nieuw-os-sdk-runtime = { path = "../runtime" }
+nieuw-os-catalog-client = { path = "../catalog-client" }
+[dev-dependencies]
+capability-core = { path = "../../crates/capability-core" }
+[profile.release]
+panic = "abort"

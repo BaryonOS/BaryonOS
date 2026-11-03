@@ -1,0 +1,171 @@
+{
+  "cwd": "/home/simon/.codex-local-os-tests/window-idle-b1b292a",
+  "cargo_target_dir": "/home/simon/.codex-local-os-tests/window-idle-b1b292a/target/agent-window",
+  "commands": [
+    {
+      "name": "format-owned",
+      "argv": [
+        "rustfmt",
+        "+1.90.0",
+        "--edition",
+        "2021",
+        "sdk/examples/window-session/src/init.rs",
+        "sdk/examples/window-session/src/idle.rs",
+        "sdk/examples/window-session/tests/idle.rs"
+      ],
+      "exit_code": 0,
+      "log": "docs/verification/gui-idle-20261102/recovery-integration/format-owned.txt",
+      "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "host",
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "log": "docs/verification/gui-idle-20261102/recovery-integration/host.txt",
+      "raw_log_sha256": "70a1e00ffb34f7baae63714e9e52632686ca3a6663acd8f7d1b0941e1413df7f",
+      "sha256": "ae0d6325ef92c37d20c8d8802cc795c32bdd2c8c48e80f2936171c54c7a2a153"
+    },
+    {
+      "name": "clippy-host",
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "log": "docs/verification/gui-idle-20261102/recovery-integration/clippy-host.txt",
+      "raw_log_sha256": "40dfb7443732a7ffbaa9ab37f69bdef8bfc29d9cd0d2fd075ae23f0bbce0f9ac",
+      "sha256": "40dfb7443732a7ffbaa9ab37f69bdef8bfc29d9cd0d2fd075ae23f0bbce0f9ac"
+    },
+    {
+      "name": "clippy-native",
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--release",
+        "--target",
+        "x86_64-unknown-none",
+        "--features",
+        "native",
+        "--bins",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "log": "docs/verification/gui-idle-20261102/recovery-integration/clippy-native.txt",
+      "raw_log_sha256": "a083934116647ee800930d81e2fef61c7c25844629a4b0ee2528b7359e5d7507",
+      "sha256": "a083934116647ee800930d81e2fef61c7c25844629a4b0ee2528b7359e5d7507"
+    },
+    {
+      "name": "clippy-fault",
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--release",
+        "--target",
+        "x86_64-unknown-none",
+        "--features",
+        "native,fault-injection",
+        "--bins",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "log": "docs/verification/gui-idle-20261102/recovery-integration/clippy-fault.txt",
+      "raw_log_sha256": "9e5f4a2b88dc0eab9981cd5103eb391515058187135c7ab8eff1ca4baab4b2c1",
+      "sha256": "9e5f4a2b88dc0eab9981cd5103eb391515058187135c7ab8eff1ca4baab4b2c1"
+    },
+    {
+      "name": "build-native",
+      "argv": [
+        "python3",
+        "-B",
+        "sdk/examples/window-session/build.py"
+      ],
+      "exit_code": 0,
+      "log": "docs/verification/gui-idle-20261102/recovery-integration/build-native.txt",
+      "raw_log_sha256": "cf27a4302b05b453ad0cbfe2f8c2e28990dbc4506e3ac8935951764f6e5a275f",
+      "sha256": "cf27a4302b05b453ad0cbfe2f8c2e28990dbc4506e3ac8935951764f6e5a275f"
+    },
+    {
+      "name": "build-fault",
+      "argv": [
+        "python3",
+        "-B",
+        "sdk/examples/window-session/build.py",
+        "--fault-injection"
+      ],
+      "exit_code": 0,
+      "log": "docs/verification/gui-idle-20261102/recovery-integration/build-fault.txt",
+      "raw_log_sha256": "4ca51c8f468d88535fdad2ba68448daeda3ecff11103e942eea960c7005a68f3",
+      "sha256": "4ca51c8f468d88535fdad2ba68448daeda3ecff11103e942eea960c7005a68f3"
+    },
+    {
+      "name": "fmt-check",
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "log": "docs/verification/gui-idle-20261102/recovery-integration/fmt-check.txt",
+      "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "diff-check",
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "sdk/examples/window-session"
+      ],
+      "exit_code": 0,
+      "log": "docs/verification/gui-idle-20261102/recovery-integration/diff-check.txt",
+      "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "reviewed_files_sha256": {
+    "sdk/examples/window-session/src/init.rs": "38fa08adc849786ca5ffe793f642206d7764d6cfbacb4fe2b57609296b6f039b",
+    "sdk/examples/window-session/src/idle.rs": "6abe6bca235010314eb65300d19aecf399d63d389543f0b2faba263ecb839702",
+    "sdk/examples/window-session/tests/idle.rs": "7366f1fe5caef53bfaa1cb21b010f20fd510aff63e95d2b1f66c576706a39f9d",
+    "sdk/examples/window-session/src/recovery.rs": "6a9ed215cfc81c78a10fdb00fd6945b2a8164cd70faf981df1159e27fd55ea11",
+    "sdk/examples/window-session/tests/recovery.rs": "9ec505f7a223e491798c727b5f25511886d8c8d1dd82bd18133c45aff484e615"
+  },
+  "note": "Integrated explicit recovery337 with idle planning. Log copies remove only trailing blank lines. Host/component proof; no native runtime acceptance."
+}

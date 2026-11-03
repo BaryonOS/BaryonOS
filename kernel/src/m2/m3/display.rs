@@ -30,6 +30,13 @@ pub fn prepare() {
     assert!(f.validate().is_ok());
     runtime().prepared = true;
 }
+/// Read-only preflight for the fixed window-group restart. A fresh owner must
+/// negotiate a fresh geometry epoch; reject exhaustion before any teardown.
+#[cfg(feature = "native-window-session")]
+pub(super) fn can_bind_fresh() -> bool {
+    let r = runtime();
+    r.prepared && r.next_epoch < u64::MAX
+}
 /// PID death/full principal retirement only; not a late single-grant close.
 pub fn detach(pid: u64) {
     let r = runtime();

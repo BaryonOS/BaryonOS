@@ -86,18 +86,55 @@ fn exchange(
     frame: &[u8; wire::SIZE],
     count: usize,
 ) -> wire::Reply {
+    support::put(
+        DIAG_REQUEST,
+        u64::from_le_bytes(frame[4..12].try_into().unwrap()),
+    );
+    support::put(DIAG_EXPECTED_COUNT, count as u64);
+    support::put(
+        DIAG_REQUEST_COUNT,
+        u64::from(u16::from_le_bytes([frame[22], frame[23]])),
+    );
+    support::put(DIAG_STATUS_I32_BITS, u64::MAX);
+    support::put(DIAG_REPLY_BODY_LENGTH, u64::MAX);
+    support::put(DIAG_REPLY_PAYLOAD_LENGTH, 0);
     send(endpoint, frame);
     let end = deadline();
     for _ in 0..POLLS {
         check(clock() < end, 13);
         match native::receive(receive) {
             Ok(message) => {
+                let p = message.payload();
+                support::put(DIAG_REPLY_PAYLOAD_LENGTH, p.len() as u64);
+                // Log only bounded public header metadata from the expected
+                // envelope. Unknown/noncanonical fields retain a sentinel;
+                // no random body, key material, tag or sender is emitted.
+                if message.sender() == support::word(KEY_PID)
+                    && message.tag() == wire::TAG
+                    && message.cap_count() == 0
+                    && p.len() == wire::SIZE
+                    && p[0] == frame[0] | 0x80
+                    && p[1] == frame[1]
+                    && p[4..12] == frame[4..12]
+                {
+                    let status = i32::from_le_bytes(p[12..16].try_into().unwrap());
+                    let length = u16::from_le_bytes([p[2], p[3]]);
+                    if (-8..=0).contains(&status) {
+                        support::put(DIAG_STATUS_I32_BITS, u64::from(status as u32));
+                    }
+                    if length <= 240 {
+                        support::put(DIAG_REPLY_BODY_LENGTH, u64::from(length));
+                    }
+                }
                 let parsed = wire::reply(&message, support::word(KEY_PID), frame, count);
                 let caps = native::close_received_caps(&message);
                 drop(message);
                 check(caps.is_ok(), 14);
                 bump(REPLIES);
-                return parsed.unwrap_or_else(|| fail(15));
+                return parsed.unwrap_or_else(|| {
+                    support::put(DIAG_FAILURE_TICK, clock());
+                    fail(15)
+                });
             }
             Err(e) if e.is_again() => yield_now(),
             Err(_) => fail(16),
@@ -196,9 +233,11 @@ fn raw_case(mut send_cap: SendEndpoint, recv: ReceiveEndpoint) {
         bump(INVALID_DENIED);
     }
     wait_ticks(clock(), WINDOW_TICKS);
+    support::put(DIAG_BURST_START, clock());
     for id in 1000..1064 {
         drop(positive(send_cap, recv, id, 1));
     }
+    support::put(DIAG_BURST_END, clock());
     denial(send_cap, recv, &wire::request(wire::RANDOM, 1064, 1), -2);
     bump(QUOTA_DENIED);
     wait_ticks(clock(), WINDOW_TICKS);

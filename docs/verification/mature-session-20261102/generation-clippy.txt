@@ -1,0 +1,13 @@
+    Checking zeroize v1.9.1
+    Checking nieuw-os-display-client v0.1.0 (/workspace/nieuw-os/sdk/display-client)
+    Checking catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+    Checking ui-core v0.1.0 (/workspace/nieuw-os/crates/ui-core)
+    Checking nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+    Checking nieuw-os-native-input-service v0.1.0 (/workspace/nieuw-os/sdk/examples/input-service)
+    Checking nieuw-os-graphics v0.1.0 (/workspace/nieuw-os/ui/graphics)
+    Checking nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os/sdk/catalog-client)
+    Checking nieuw-os-input-core v0.1.0 (/workspace/nieuw-os/services/input-core)
+    Checking nieuw-os-window-session v0.1.0 (/workspace/nieuw-os/sdk/examples/window-session)
+    Checking nieuw-os-input-client v0.1.0 (/workspace/nieuw-os/sdk/input-client)
+    Checking nieuw-os-surface-protocol v0.1.0 (/workspace/nieuw-os/ui/surface-protocol)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.79s

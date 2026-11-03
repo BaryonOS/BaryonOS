@@ -27,6 +27,7 @@ dependencies = [
  "nieuw-os-input-core",
  "nieuw-os-sdk-runtime",
  "ui-core",
+ "zeroize",
 ]
 
 [[package]]
