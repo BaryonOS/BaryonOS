@@ -80,6 +80,7 @@ beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS
 <!-- OS-PROGRESS:END -->
 
 Volledige repository-inventaris: [OS-completeness-audit](docs/audit/os-completeness/README.md).
+Driververgelijking en voorstel: [OS-repositories en hardwaredrivers](docs/research/2026-11-03/os-repos-and-hardware-drivers.md).
 
 ## Historische geïntegreerde bronstand — 3 november 2026
 
