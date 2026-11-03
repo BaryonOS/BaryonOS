@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-03",
+  "branch": "simonvanieperen-studious-spoon",
+  "source_commit": "c2916f1500ca668ea0a2e308239d9d21e56a06a7",
+  "scope": "Standalone no_std generic power-lifecycle state machine; host tests only.",
+  "source_sha256": {
+    "crates/power-lifecycle-core/Cargo.toml": "ac62012d0eefb0e2a4cd16b29cb5bd102d63ff12f66d807bf1e50d63f3e55411",
+    "crates/power-lifecycle-core/Cargo.lock": "d0e5a9d19f50ee4c7404e0ba990f4330c6fe785a4355a983f1c8ee670381e3ae",
+    "crates/power-lifecycle-core/README.md": "74b3308a5e5a37438b36887012897755db4b3e3c3a01503b3bdc8a68d8f97553",
+    "crates/power-lifecycle-core/src/lib.rs": "fb462e6b6635f968ca542593d72c6ff5e2a9f1d87214679bcf2e8fd768be6642"
+  },
+  "environment": "Rust 1.90.0; CARGO_TARGET_DIR=/tmp/nieuw-os-power-lifecycle-target; no dependencies.",
+  "checks": [
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-power-lifecycle-target $HOME/.cargo/bin/cargo +1.90.0 test --manifest-path crates/power-lifecycle-core/Cargo.toml --offline --locked",
+      "exit_code": 0,
+      "results": "6 unit tests passed.",
+      "log": "/tmp/nieuw-os-power-lifecycle-test.log",
+      "log_sha256": "e0e43f7af4175408a18bf38efc2ea4e8ad73e4bbb3aab455762d5f9dd30b8b2c"
+    },
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-power-lifecycle-target $HOME/.cargo/bin/cargo +1.90.0 clippy --manifest-path crates/power-lifecycle-core/Cargo.toml --all-targets --locked -- -D warnings",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-power-lifecycle-clippy.log",
+      "log_sha256": "7ad33717851a3c8c40d5d857fc2bd7522330be789bc58a424ec3c8ef5e62a4ad"
+    },
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-power-lifecycle-target $HOME/.cargo/bin/cargo +1.90.0 check --manifest-path crates/power-lifecycle-core/Cargo.toml --target x86_64-unknown-none --locked",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-power-lifecycle-none.log",
+      "log_sha256": "bd44921e055d6f8280fcc365612352cbf4731b25429adcbae207a9f5b48e7320"
+    },
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-power-lifecycle-target $HOME/.cargo/bin/cargo +1.90.0 fmt --manifest-path crates/power-lifecycle-core/Cargo.toml -- --check",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-power-lifecycle-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "implemented": [
+    "Active/Idle/Suspending/Suspended/Resuming/Resetting/Failed state transitions with explicit cancellation and failure outcomes.",
+    "Suspend cancellation returns to the original Active or Idle state.",
+    "Generation-bound transition requests reject stale applications without changing state.",
+    "Invalid transitions preserve the current state and generation."
+  ],
+  "limitations": [
+    "No ACPI, device callbacks, storage flush, scheduler, session coordinator, or concrete power consumer is integrated.",
+    "Host state-machine tests do not establish suspend/resume reliability, physical hardware support, or power-failure safety.",
+    "This is a PARTIAL contract primitive, not a native power-management feature."
+  ]
+}
