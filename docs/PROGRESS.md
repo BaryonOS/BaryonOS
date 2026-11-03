@@ -10,6 +10,17 @@ onjuiste opslagoorzaak.59 volledige hosttests, Clippy, formattering en
 scalarno_std-librarybuild slagen. Geen nieuwe native gast-/screenshot- of
 menselijke acceptatie. [Volledig bewijs](verification/pr149-compact-review.json).
 
+SM-OOM-1 (3 november 2026), implementatiebron `66fdeefd`:
+**41 → 41/100**. De framepool rapporteert admitted/free frames en gebruikt
+deze echte toestand voor Normal/Elevated/Critical-classificatie. Een
+one-shot reclaimbudget wordt alleen bij Critical aangeboden. De bestaande
+native fixture laat uitsluitend al afgeronde peers normaal afsluiten, meet
+hun framevrijgave en controleert één retry met zeroing. De userspace-allocator
+test één eigen-resources-cleanup en één fallible retry. Kernel-core,
+allocator-, memoryharnas- en boundaryhosttests slagen. De volledige native
+QEMU-matrix, crossbuild en K05-regressie zijn nog open; geen productcriterium
+gesloten. [Hostreceipt](verification/sm-oom/host-20261103.json).
+
 M1 (3 november 2026), actuele bron `22b7bbab`:
 **41 → 41/100**. K05 valideert `ProcessUsage` bij manifeststart en gebruikt
 vrije capability-handle-slots voor spawn-preflight. Supervisor-worker,

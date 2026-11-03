@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`140ad397`](https://github.com/simonvanieperen/nieuw-os/commit/140ad397e95b33f57f5d7c1888b7883c4475047d) ·
+**Bron:** [`66fdeefd`](https://github.com/simonvanieperen/nieuw-os/commit/66fdeefde823a37a0318f3d9447cd5cfc4200477) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-spoon`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** M1-vervolg: onderzoek centrale wait-integratie voor keyring.
-41 blijft 41. De keyring-eventlus gebruikt al een eenmalige IPC-wacht met deadline now + 1000 ticks en wacht alleen zonder RANDOM-/beheer-ingress; clock::wait_until zou door de 100-tick annuleringchunks de idle-wakefrequentie verhogen. Geen conversie uitgevoerd. docs/WORK-QUEUE.md registreert de relevante SDK/keyring/runtimepaden als bevroren en exclusief toegewezen. Tijdelijke experimentele wijzigingen teruggedraaid; bron-HEAD 140ad397 schoon. De B01-gate is niet uitgevoerd; geen nieuw rubricbewijs of acceptatie.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** SM-OOM-1 P0: integreer fysieke geheugenpressure, begrensde reclaim opportunity en gecontroleerde cleanup.
+41 blijft 41. SM-OOM-1 voegt echte framebeschikbaarheid en Normal/Elevated/Critical-classificatie toe, plus één reclaimkans bij Critical. De native memoryfixture mag uitsluitend reeds afgeronde peerprocessen normaal laten afsluiten; zij controleert exact vrijgegeven frames, cleanup en een succesvolle nulde-pagina-retry. De userspace-allocator heeft één eigen-resources-cleanupcallback en één retry. Kernel-core, allocator, memory-evidenceharnas en boundarytests zijn hostgetest. De vijf-case QEMU-matrix, crossbuild en K05-cleanupregressie zijn nog niet uitgevoerd; geen rubriccriterium gesloten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

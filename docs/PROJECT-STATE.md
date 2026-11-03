@@ -1,6 +1,49 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — M1 tijd en procesresource-accounting — 3 november 2026
+## NEXT AGENT HANDOFF — SM-OOM-1 P0 geheugenpressure — 3 november 2026
+
+**Basis:** `39de952813fbc61e5aa5879b0f1deaea3aa15c64`, branch
+`simonvanieperen-studious-spoon`. **Implementatiecommit:**
+`66fdeefde823a37a0318f3d9447cd5cfc4200477`. De actuele toewijzing is gelezen
+uit `docs/WORK-QUEUE.md` op queuebron
+`21d14592a54a80da2debf7cfad139d37264078c7`; geen andere branchcode of bewijs
+is geïntegreerd.
+
+**Gerealiseerd in broncode:** `kernel-core` rapporteert de werkelijk
+toegelaten/free frameaantallen en classificeert Normal/Elevated/Critical met
+watermarks op 1/8 en 1/32 van beheerde frames. De bounded `ReclaimBudget`
+geeft één kans op Critical, zonder slachtofferselectie. De bestaande
+ring-3-memoryproef wacht bij fysieke OOM tot alle andere fixtures `DONE` zijn,
+laat die normaal afsluiten, controleert de exacte vrijgegeven frames en
+probeert daarna één nieuwe nulde pagina. Dit is fixturegestuurde gecontroleerde
+cleanup, geen product-OOM-killer. De bestaande eigenaar-/aliasregels,
+quota, zeroing, W^X, syscallnummers en capabilitysemantiek zijn niet gewijzigd.
+De userspace-allocator biedt één caller-owned cleanupcallback en één retry;
+hosttests controleren behoud van live bytes en weigering wanneer cleanup niets
+vrijmaakt.
+
+**Hostbewijs op commit `66fdeef`:** kernel-core 24 tests; heap-allocator 2
+unit-, 13 arena- en 3 bounded-reclaimtests plus bestaande `Vec/Box/String`-
+collectieproef; memory-evidenceharnas 9 tests; kernel memory-boundarytest 1
+pass. Volledige logs zijn tijdelijk onder `/tmp/sm-oom-*-66fdeefd*.log`;
+hashes en exacte commando's staan in
+[`sm-oom/host-20261103.json`](verification/sm-oom/host-20261103.json).
+De eerste boundarypoging miste `cc` op standaard-PATH; herhaling met
+`/tmp/nieuw-os-c-toolchain/bin` slaagde. De eerste kernel-coretest vond een
+niet-const `From<bool>`-aanroep; na herstel slaagde de suite.
+
+**Nog niet uitgevoerd:** kernel-/appcrossbuild en scalar `x86_64-unknown-none`,
+de volledige vijf-case `tools/test_memory_system.py`-matrix met 128-MiB OOM,
+en de K05-supervisor-cleanupregressie. Dit hostcheckpoint is geen native
+acceptatie. Na het pushen van dit checkpoint: start de bestaande
+`tools/test_memory_system.py`-gate met de beschikbare Rust/C/QEMU/OVMF-paden;
+herstel gevonden regressies en voer daarna `tools/test_supervisor.py` uit.
+
+**Voortgang:** 41/100 → 41/100. Geen rubriccriterium gesloten; native
+uitputting, andere processen onder druk en de gecombineerde OS-release blijven
+open. De score is opnieuw beoordeeld in `docs/progress.json`.
+
+## Historisch checkpoint — M1 tijd en procesresource-accounting — 3 november 2026
 
 **Uitgangs-HEAD:** `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`, branch
 `simonvanieperen-studious-spoon`. M1-stappen time en capabilities:
@@ -98,7 +141,7 @@ zonder RANDOM- of beheer-ingress. De cancelbare `clock::wait_until` hakt
 wachten op in maximaal 100 ticks (nominaal 1 s); die vervanging zou de idle-
 wakefrequentie verhogen en is daarom geen semantisch neutrale kandidaat.
 
-**Blokker:** `docs/WORK-QUEUE.md` registreert SEC72/SEC2 als bevroren, met
+**Historische blokkade op die bron:** `docs/WORK-QUEUE.md` registreerde SEC72/SEC2 als bevroren, met
 SDK/keyring-paden exclusief toegewezen en zonder andere runtime-writer.
 Daarom zijn de tijdelijke experimentele wijzigingen teruggedraaid; HEAD
 `140ad397e95b33f57f5d7c1888b7883c4475047d` is schoon. De canonieke B01-gate
