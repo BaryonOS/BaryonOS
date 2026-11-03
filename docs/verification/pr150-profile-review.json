@@ -48,5 +48,16 @@
     "Independent human audit."
   ],
   "progress_previous": 41,
-  "progress_current": 41
+  "progress_current": 41,
+  "followup": {
+    "basis_commit": "55da47347d4180101faac400c8aee4597182877a",
+    "scope": "Twee tekstcorrecties: toekomstige QEMU-testvoorwaarde, geen bestaande geteste isolatie; onbetrouwbare pointers/IPC-lengtes niet vertrouwen. Geen toolwijziging.",
+    "source_file_sha256": {
+      ".github/agents/os-red-team.agent.md": "8675ede4c2bb1a43f992897d7630295ef832448f4a5fcbfeb8652966ea12c825",
+      ".github/agents/os-security-reviewer.agent.md": "2b39e323a34d4bdb33a37984d9cdaaaf651c4f4837e8a6c0e5b4448f442c7608"
+    },
+    "same_validation_command_reexecuted": true,
+    "exit": 0,
+    "stdout": "PASS:16 profiles structurally valid within documented field subset; actual cloud runtime/tool confinement not tested\n"
+  }
 }

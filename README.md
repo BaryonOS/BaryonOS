@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`5376d8b1`](https://github.com/simonvanieperen/nieuw-os/commit/5376d8b1d6f43b9b1c9480899749216ab6aeaf78) ·
+**Bron:** [`55da4734`](https://github.com/simonvanieperen/nieuw-os/commit/55da47347d4180101faac400c8aee4597182877a) ·
 **Ontwikkelbranch:** `copilot/add-os-specialist-agents`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR150: expliciete toolsets en bewijsgrenzen voor specialistprofielen.
-41 blijft 41. PR150 bevat zestien specialistprofielen; negen profielen verduidelijken tien reviewpunten. Builder heeft alleen read/search/edit/execute, alle andere profielen read/search. Release/recovery/performance inspecteren bewijs of ontwerpen tests en voeren niets uit. Git-/webprovenance, onafhankelijke herhaling en ontbrekend release-/securitybewijs blijven expliciete grenzen. Statische frontmattercontrole slaagt; daadwerkelijke cloudagentselectie, beschikbare tools en technische runtime-isolatie zijn niet getest. Geen kernelwijziging, native acceptatie of menselijke audit; geen nieuwe criteriumpunten.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR150: toekomstige QEMU-testvoorwaarde en onbetrouwbare pointers eenduidig formuleren.
+41 blijft41. PR150-vervolg op basis55da4734 verduidelijkt twee profielzinnen: QEMU-isolatie is een eis voor toekomstige proeven, geen aangetoonde actuele runtime; onbetrouwbare pointers/IPC-lengtes mogen niet worden vertrouwd. Toolsets blijven exact gelijk;16 statische profielcontroles opnieuw groen. Werkelijke cloudagentselectie, toolbeschikbaarheid, technische runtime-isolatie, native acceptatie en menselijke audit blijven ongetest. Geen criteriumwijziging.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -31,7 +31,7 @@ Per bevinding: ID, ernst, locatie, invariant, aanvalsscenario, impact, bewijs, m
 
 Classificeer de uitkomst als blokkerende bevinding, onvoldoende bewijs of
 afgebakend gecontroleerd zonder bevinding. Blokkeer ongeontworpen
-capabilityverruiming, vertrouwde onbetrouwbare pointers/IPC-lengtes,
+capabilityverruiming, het vertrouwen op onbetrouwbare pointers/IPC-lengtes,
 ongecontroleerde DMA, secrets in logs, fail-open authenticatie en vervalst
 testbewijs. Ontbrekend vereist bewijs blijft open en is nooit goedkeuring;
 lees-only inspectie, AI-review en geen gevonden fout vervangen geen native

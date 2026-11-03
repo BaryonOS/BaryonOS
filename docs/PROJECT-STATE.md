@@ -18,6 +18,12 @@ selectie/toolbeschikbaarheid en runtime-isolatie zijn niet uitgevoerd.
 Dit is een AI-tekstreview, geen menselijke audit of OS-acceptatie.
 Score **41 → 41**, rubric ongewijzigd.
 
+Vervolg op55da4734 verduidelijkt uitsluitend twee zinnen: geïsoleerde QEMU
+is een vereiste voor toekomstige proeven, geen bestaande geteste omgeving;
+de pointer-/IPC-regel verbiedt expliciet het vertrouwen op onbetrouwbare
+invoer. Toolsets ongewijzigd; dezelfde16 statische controles opnieuw groen.
+Exacte werkboomhashes en bronbasis zijn toegevoegd aan het reviewrapport.
+
 **Open:** verse headgebonden CI en review vóór merge; geen automatische
 goedkeuring van Watch-heads. PR135's tweemaal rode RAW-proef en ontbrekende
 volume-admissionfixture blijven afzonderlijk blokkerend.
