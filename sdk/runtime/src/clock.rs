@@ -1,5 +1,7 @@
 #![forbid(unsafe_code)]
 //! Explicitly qualified clocks exposed by the native runtime.
+use core::sync::atomic::{AtomicBool, Ordering};
+
 use crate::{Error, WaitCondition, IPC_WAIT_HORIZON_TICKS};
 
 /// Nominal ticks per second in the supported single-CPU QEMU profile.
@@ -26,21 +28,44 @@ impl WallClockReading {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct TimerRegistration {
-    deadline: u64,
-    cancelled: bool,
+/// One-shot cancellation flag that can be shared with a concurrent caller.
+///
+/// Cancellation is observed between monotone waits; the current ABI cannot
+/// interrupt a wait already in the kernel.
+pub struct TimerCancellation(AtomicBool);
+
+impl TimerCancellation {
+    pub const fn new() -> Self {
+        Self(AtomicBool::new(false))
+    }
+
+    pub fn cancel(&self) {
+        self.0.store(true, Ordering::Release);
+    }
+
+    pub fn is_cancelled(&self) -> bool {
+        self.0.load(Ordering::Acquire)
+    }
 }
 
-impl TimerRegistration {
-    pub const fn at(deadline: u64) -> Option<Self> {
-        if deadline == 0 {
-            None
-        } else {
-            Some(Self {
-                deadline,
-                cancelled: false,
-            })
+impl Default for TimerCancellation {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[derive(Clone, Copy)]
+/// Absolute monotonic deadline plus its shared cancellation flag.
+pub struct TimerRegistration<'a> {
+    deadline: u64,
+    cancellation: &'a TimerCancellation,
+}
+
+impl<'a> TimerRegistration<'a> {
+    pub const fn at(deadline: u64, cancellation: &'a TimerCancellation) -> Self {
+        Self {
+            deadline,
+            cancellation,
         }
     }
 
@@ -48,12 +73,8 @@ impl TimerRegistration {
         self.deadline
     }
 
-    pub fn cancel(&mut self) {
-        self.cancelled = true;
-    }
-
-    pub const fn cancelled(self) -> bool {
-        self.cancelled
+    pub fn is_cancelled(self) -> bool {
+        self.cancellation.is_cancelled()
     }
 }
 
@@ -70,15 +91,21 @@ pub trait WaitDriver {
 }
 
 fn chunk_deadline(now: u64, absolute_deadline: u64) -> u64 {
-    absolute_deadline.min(now.saturating_add(IPC_WAIT_HORIZON_TICKS))
+    absolute_deadline.min(now.saturating_add(CANCEL_POLL_TICKS.min(IPC_WAIT_HORIZON_TICKS)))
 }
+
+/// Maximum interval between cancellation checks for long waits.
+///
+/// The current clock is nominally 100 Hz, so this is roughly one second in
+/// the supported profile. It is not a real-time guarantee.
+pub const CANCEL_POLL_TICKS: u64 = MONOTONIC_HZ;
 
 pub fn wait_until_with(
     driver: &mut impl WaitDriver,
     conditions: &[WaitCondition],
-    timer: &TimerRegistration,
+    timer: &TimerRegistration<'_>,
 ) -> Result<WaitOutcome, Error> {
-    if timer.cancelled() {
+    if timer.is_cancelled() {
         return Ok(WaitOutcome::Cancelled);
     }
     loop {
@@ -88,6 +115,9 @@ pub fn wait_until_with(
         }
         let next = chunk_deadline(now, timer.deadline());
         let ready = driver.ipc_wait(conditions, next)?;
+        if timer.is_cancelled() {
+            return Ok(WaitOutcome::Cancelled);
+        }
         if ready != 0 {
             return Ok(WaitOutcome::Ready(ready));
         }
@@ -123,14 +153,14 @@ pub fn now_wall() -> Result<Option<WallClockReading>, Error> {
 }
 
 #[cfg(all(target_arch = "x86_64", target_os = "none"))]
-pub fn sleep_until(timer: &TimerRegistration) -> Result<WaitOutcome, Error> {
+pub fn sleep_until(timer: &TimerRegistration<'_>) -> Result<WaitOutcome, Error> {
     wait_until_with(&mut NativeDriver, &[], timer)
 }
 
 #[cfg(all(target_arch = "x86_64", target_os = "none"))]
 pub fn wait_until(
     conditions: &[WaitCondition],
-    timer: &TimerRegistration,
+    timer: &TimerRegistration<'_>,
 ) -> Result<WaitOutcome, Error> {
     wait_until_with(&mut NativeDriver, conditions, timer)
 }
@@ -155,33 +185,47 @@ mod tests {
     }
 
     #[test]
-    fn timer_registration_requires_nonzero_deadline_and_supports_cancellation() {
-        let mut timer = TimerRegistration::at(10).unwrap();
+    fn timer_registration_accepts_boot_deadline_and_supports_shared_cancellation() {
+        let cancellation = TimerCancellation::new();
+        let timer = TimerRegistration::at(10, &cancellation);
         assert_eq!(timer.deadline(), 10);
-        assert!(!timer.cancelled());
-        timer.cancel();
-        assert!(timer.cancelled());
-        assert_eq!(TimerRegistration::at(0), None);
+        assert!(!timer.is_cancelled());
+        cancellation.cancel();
+        assert!(timer.is_cancelled());
+        assert_eq!(TimerRegistration::at(0, &cancellation).deadline(), 0);
+    }
+
+    #[test]
+    fn deadline_at_boot_is_immediately_expired_without_registering_a_wait() {
+        let cancellation = TimerCancellation::new();
+        let timer = TimerRegistration::at(0, &cancellation);
+        let mut driver = FakeDriver {
+            now: vec![0],
+            ..Default::default()
+        };
+        assert_eq!(
+            wait_until_with(&mut driver, &[], &timer).unwrap(),
+            WaitOutcome::TimedOut
+        );
+        assert!(driver.deadlines.is_empty());
     }
 
     #[test]
     fn chunking_is_bounded_by_wait_horizon() {
         assert_eq!(chunk_deadline(100, 105), 105);
-        assert_eq!(
-            chunk_deadline(100, 100 + IPC_WAIT_HORIZON_TICKS + 50),
-            100 + IPC_WAIT_HORIZON_TICKS
-        );
+        assert_eq!(chunk_deadline(100, 100 + CANCEL_POLL_TICKS + 50), 200);
     }
 
     #[derive(Default)]
-    struct FakeDriver {
+    struct FakeDriver<'a> {
         now: Vec<u64>,
         waits: Vec<u16>,
         deadlines: Vec<u64>,
         calls: usize,
+        cancel_on_wait: Option<&'a TimerCancellation>,
     }
 
-    impl WaitDriver for FakeDriver {
+    impl WaitDriver for FakeDriver<'_> {
         fn monotonic_ticks(&mut self) -> Result<u64, Error> {
             let tick = *self
                 .now
@@ -193,6 +237,9 @@ mod tests {
 
         fn ipc_wait(&mut self, _: &[WaitCondition], deadline: u64) -> Result<u16, Error> {
             self.deadlines.push(deadline);
+            if let Some(cancellation) = self.cancel_on_wait {
+                cancellation.cancel();
+            }
             let value = *self
                 .waits
                 .get(self.calls)
@@ -218,7 +265,8 @@ mod tests {
             waits: vec![0b11],
             ..Default::default()
         };
-        let timer = TimerRegistration::at(500).unwrap();
+        let cancellation = TimerCancellation::new();
+        let timer = TimerRegistration::at(500, &cancellation);
         let conditions = [
             WaitCondition::receive(recv(0x1_0000_0001)),
             WaitCondition::send(send(0x1_0000_0002)),
@@ -227,7 +275,7 @@ mod tests {
             wait_until_with(&mut driver, &conditions, &timer).unwrap(),
             WaitOutcome::Ready(0b11)
         );
-        assert_eq!(driver.deadlines, vec![10 + IPC_WAIT_HORIZON_TICKS]);
+        assert_eq!(driver.deadlines, vec![10 + CANCEL_POLL_TICKS]);
     }
 
     #[test]
@@ -237,18 +285,20 @@ mod tests {
             waits: vec![0, 0, 0],
             ..Default::default()
         };
-        let timer = TimerRegistration::at(2000).unwrap();
+        let cancellation = TimerCancellation::new();
+        let timer = TimerRegistration::at(2000, &cancellation);
         assert_eq!(
             wait_until_with(&mut driver, &[], &timer).unwrap(),
             WaitOutcome::TimedOut
         );
-        assert_eq!(driver.deadlines, vec![1000, 2000, 2000]);
+        assert_eq!(driver.deadlines, vec![100, 1100, 1600]);
     }
 
     #[test]
     fn cancelled_timer_does_not_wait() {
-        let mut timer = TimerRegistration::at(2000).unwrap();
-        timer.cancel();
+        let cancellation = TimerCancellation::new();
+        cancellation.cancel();
+        let timer = TimerRegistration::at(2000, &cancellation);
         let mut driver = FakeDriver {
             now: vec![1],
             waits: vec![1],
@@ -259,5 +309,21 @@ mod tests {
             WaitOutcome::Cancelled
         );
         assert!(driver.deadlines.is_empty());
+    }
+
+    #[test]
+    fn cancellation_during_wait_is_observed_before_returning_ready() {
+        let cancellation = TimerCancellation::new();
+        let mut driver = FakeDriver {
+            now: vec![1],
+            waits: vec![1],
+            cancel_on_wait: Some(&cancellation),
+            ..Default::default()
+        };
+        let timer = TimerRegistration::at(1000, &cancellation);
+        assert_eq!(
+            wait_until_with(&mut driver, &[], &timer).unwrap(),
+            WaitOutcome::Cancelled
+        );
     }
 }
