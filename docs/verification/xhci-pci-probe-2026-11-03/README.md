@@ -1,8 +1,36 @@
 # xHCI PCI-capabilityprobe — 3 november 2026
 
-**Bewijsniveau:** broncode, testcode/typecheck en freestanding compilecheck.
-De hosttests zijn niet uitgevoerd. Er is geen controller gestart, USB-device
-geënumereerd, QEMU-run of fysieke hardwaretest uitgevoerd.
+**Bewijsniveau:** broncode, hosttests en freestanding compilecheck.
+Er is geen controller gestart, USB-device geënumereerd, QEMU-run of fysieke
+hardwaretest uitgevoerd.
+
+## Hostregressie en fixtureherstel
+
+De bestaande userspace-toolchain is hergebruikt zonder installatie. Op
+`5ea1c3494cc94482c993241fbda306becd4b4074` is eerst de gemelde regressie
+gereproduceerd: 13 geslaagd, 2 gefaald (exit 101). De twee positieve fixtures
+plaatsten hun extended-capabilityheader op `0x100`, binnen het gecontroleerde
+operationalgebied `[0x40, 0x480)`. Alleen hun pointer en verwachte uitkomst zijn
+verplaatst naar `0x800` (xECP `0x200` DWORDs), buiten die regio en vóór de
+doorbells op `0x1000`. De productievalidatie is ongewijzigd.
+
+Alle onderstaande commando's zijn uitgevoerd vanuit de geïsoleerde worktree
+met `PATH=/home/simon/.cargo/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH`,
+`CC=/tmp/nieuw-os-c-toolchain/bin/cc` en
+`CARGO_TARGET_DIR="$PWD/build/xhci-reviewfix"`.
+
+| Commando | Exit | Resultaat en log |
+|---|---:|---|
+| `cargo +1.90.0 test --offline --locked --manifest-path drivers/xhci/Cargo.toml` | 0 | Na fixtureherstel werkelijk uitgevoerd: 15/15 hosttests geslaagd, 0 doctests; `/tmp/nieuw-os-xhci-fixture-after.log`, SHA-256 `7bb788a04ef5afbf1b5cb6c07fa43507a0033ab7348ec39d715df02cdeb545cd` |
+| `cargo +1.90.0 fmt --manifest-path drivers/xhci/Cargo.toml -- --check` | 0 | `/tmp/nieuw-os-xhci-fixture-fmt.log`, SHA-256 `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
+| `cargo +1.90.0 clippy --manifest-path drivers/xhci/Cargo.toml --all-targets --offline --locked -- -D warnings` | 0 | `/tmp/nieuw-os-xhci-fixture-clippy.log`, SHA-256 `ed5c9bb286d443957ec8c71237292c9f6bd7529740f24695b9d85cf92b0f02d3` |
+| `git diff --check` | 0 | Geen whitespacefouten |
+
+De eerdere falende uitvoering staat in `/tmp/nieuw-os-xhci-fixture-before.log`,
+SHA-256 `2fc006c1966954ebec1064919ae01db9528aa904e2ef66367865d22ed8c1cf77`.
+Deze hosttests bewijzen parser-/mockgedrag, geen werkende xHCI-controller.
+Onderstaande receipt blijft het historische compilebewijs vóór dit herstel;
+de eerdere linkerblocker is voor de hosttests hierboven opgeheven.
 
 ## Bron en resultaat
 

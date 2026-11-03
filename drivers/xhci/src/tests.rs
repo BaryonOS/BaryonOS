@@ -8,7 +8,7 @@ fn parses_and_bounds_a_supported_capability_layout() {
         ControllerCapabilities::parse(
             0x0100_0040,
             structural,
-            0x0040_0000,
+            0x0200_0000,
             0x1000,
             0x2000,
             0x4000,
@@ -22,7 +22,7 @@ fn parses_and_bounds_a_supported_capability_layout() {
             max_ports: 4,
             doorbell_offset: 0x1000,
             runtime_offset: 0x2000,
-            extended_capability_offset: Some(0x100),
+            extended_capability_offset: Some(0x800),
         }
     );
 }
@@ -193,7 +193,7 @@ fn inspection_reads_only_the_required_capability_registers() {
         values: [
             (CAPABILITY_OFFSET, 0x0100_0040),
             (STRUCTURAL_PARAMS_1_OFFSET, 8 | (2 << 8) | (4 << 24)),
-            (CAPABILITY_PARAMS_1_OFFSET, 0x0040_0000),
+            (CAPABILITY_PARAMS_1_OFFSET, 0x0200_0000),
             (DOORBELL_OFFSET_REGISTER, 0x1000),
             (RUNTIME_OFFSET_REGISTER, 0x2000),
         ],
