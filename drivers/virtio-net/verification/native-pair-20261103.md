@@ -78,6 +78,8 @@ Gegenereerde images/binaries blijven buiten Git.
 
 Dit is het bestaande normale netwerk-/koudeherstelprofiel met echte virtuele
 NIC-I/O, geen extra native injectie van late completions of geweigerde reset.
+Een ontbrekend of niet-reagerend device is in deze native proef niet getest;
+dit verslag levert voor dat scenario geen native bewijs.
 De proef bewijst geen fysieke NIC, IOMMU-isolatie, menselijke bruikbaarheid,
 NVMe-/xHCI-execution of volledige release. Alleen localhost-testpeer en
 wegwerpimage; geen externe dienst of hostdisk. Geen nieuw scorecriterium
