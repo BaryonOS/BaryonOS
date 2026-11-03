@@ -1,0 +1,25 @@
+{
+  "command": [
+    "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+    "-B",
+    "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\current-main-source\\tools\\build.py",
+    "--kernel-feature",
+    "test-volume-recover"
+  ],
+  "cwd": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\current-main-source",
+  "returncode": 0,
+  "duration_s": 7.532710000000407,
+  "source_before": {
+    "head": "74a34d05ef5591b782a0da9da34e4669910d0722",
+    "source_sha256": "8fd739dd015b9d01908ccc0e385f5b584985cade44702f6e6662483f4be0b6d3",
+    "git_status": []
+  },
+  "source": {
+    "head": "74a34d05ef5591b782a0da9da34e4669910d0722",
+    "source_sha256": "8fd739dd015b9d01908ccc0e385f5b584985cade44702f6e6662483f4be0b6d3",
+    "git_status": []
+  },
+  "source_unchanged": true,
+  "isolated_build": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\builds\\test-volume-recover",
+  "isolated_target": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\target"
+}

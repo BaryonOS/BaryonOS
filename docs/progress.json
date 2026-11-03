@@ -2,12 +2,12 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-02",
-    "source_commit": "5925c915f6b8d02842fffd89a94f21c0e018689a",
-    "branch": "coderabbit/issue-43-receive-timeout",
-    "task": "Issue #43: terminale ReceiveTcp-status na verbindingstime-out",
+    "date": "2026-11-03",
+    "source_commit": "9e9a50162bff019a557e6d16caa02e21a59bf3d2",
+    "branch": "simon/profiles-users-plan",
+    "task": "Nieuwste NAS-statushistory en gelijktijdige cloudcheckpointbronnen exact behouden",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Gerichte N01-reparatie: ReceiveTcp meldt Closed na een verbindingstime-out; State behoudt TimedOut. Oude code rood (Again versus Closed); 10 service-, 35 broker- inclusief doctests, 26 stack-, 4 protocol-, 6 client- en 11 peer-hosttests groen. Rustfmt/Clippy en de no_std-librarybuild slagen. Bestaande native QEMU-normal en client-exit slagen op bron5925c915 met dezelfde bronhash: raw exit33, echte pakketten en volledige opruiming. Het specifieke nieuwe timeout-ontvangstscenario is alleen op de host rood/groen bewezen. Concept-PR134; hosted CI/review blijven afzonderlijk. Geen nieuwe criteria, fysieke hardware-, volledige release- of 50%-acceptatie."
+    "summary": "41 blijft41. Volledige nieuwste119-head5a8317f1 en eerdere136/143/144/145-leafheads zijn naast maincbbc behouden. Vier119-conflicten zijn uitsluitend centrale status; rubric buiten assessment identiek.20 exacte centrale tekstsnapshots van119 en nieuwe cloudmain-mergeheads136/143/144/145 zijn gehasht opgeslagen, zodat unieke status niet verdwijnt en historische proeven niet naar nieuwe bron worden gepromoveerd. Geen runtime/tool/testcodewijziging door de119-merge;10netwerk/16opslaghosttests en207oudehashes+99receiptentries blijven het eerdere brongebonden bewijs. Actuele CI/review/integratie en135hostedfixturelevering blijven open; geen nieuwe punten of productacceptatie."
   },
   "tracks": [
     {

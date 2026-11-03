@@ -1,0 +1,29 @@
+ASSERT at module/zfs/dsl_crypt.c:2477:dsl_crypto_populate_key_nvlist()
+VERIFY3U(dp->dp_spa->spa_errata, !=, 0) failed (0 != 0)
+  PID: 190471    COMM: zdb
+  TID: 190471    NAME: zdb
+Call trace:
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/lib/x86_64-linux-gnu/libzpool.so.7(libspl_backtrace+0x35) [0x7812baf26555]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/lib/x86_64-linux-gnu/libzpool.so.7(libspl_assertf+0x14e) [0x7812baf266ee]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/lib/x86_64-linux-gnu/libzpool.so.7(dsl_crypto_populate_key_nvlist+0x6f5) [0x7812bad2e325]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/lib/x86_64-linux-gnu/libzpool.so.7(+0xe561f) [0x7812bad1161f]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/lib/x86_64-linux-gnu/libzpool.so.7(dmu_send_obj+0x267) [0x7812bad13c77]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/sbin/zdb(+0xc9ec) [0x5aaf0879e9ec]
+/usr/lib/x86_64-linux-gnu/libc.so.6(+0x2a601) [0x7812ba02a601]
+/usr/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0x88) [0x7812ba02a718]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/sbin/zdb(+0xe6b5) [0x5aaf087a06b5]
+Call trace:
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/lib/x86_64-linux-gnu/libzpool.so.7(libspl_backtrace+0x35) [0x7812baf26555]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/sbin/zdb(+0xf30b) [0x5aaf087a130b]
+/usr/lib/x86_64-linux-gnu/libc.so.6(+0x45cb0) [0x7812ba045cb0]
+/usr/lib/x86_64-linux-gnu/libc.so.6(pthread_kill+0x11c) [0x7812ba0a61ac]
+/usr/lib/x86_64-linux-gnu/libc.so.6(gsignal+0x1e) [0x7812ba045b7e]
+/usr/lib/x86_64-linux-gnu/libc.so.6(abort+0x27) [0x7812ba0288ec]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/lib/x86_64-linux-gnu/libzpool.so.7(+0x4ab78) [0x7812bac76b78]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/lib/x86_64-linux-gnu/libzpool.so.7(dsl_crypto_populate_key_nvlist+0x6f5) [0x7812bad2e325]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/lib/x86_64-linux-gnu/libzpool.so.7(+0xe561f) [0x7812bad1161f]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/lib/x86_64-linux-gnu/libzpool.so.7(dmu_send_obj+0x267) [0x7812bad13c77]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/sbin/zdb(+0xc9ec) [0x5aaf0879e9ec]
+/usr/lib/x86_64-linux-gnu/libc.so.6(+0x2a601) [0x7812ba02a601]
+/usr/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0x88) [0x7812ba02a718]
+/tmp/nieuw-os-storage-zfs-20261102/root/usr/sbin/zdb(+0xe6b5) [0x5aaf087a06b5]
