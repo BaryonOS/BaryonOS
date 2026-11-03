@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`3f2dd4f1`](https://github.com/simonvanieperen/nieuw-os/commit/3f2dd4f19e1daa31476e0d70f968bb691c6bc7c3) ·
+**Bron:** [`3249c93e`](https://github.com/simonvanieperen/nieuw-os/commit/3249c93ece0285b71648a39709614e9c95e3b6fb) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-spoon`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** M1: tijds-API en capability-resourcegebruik gekoppeld aan supervisorpreflight.
-41 blijft 41. SDK-runtime heeft absolute monotone timer-/wait-semantiek met atomische annulering en supervisor-worker wiring. capability-core ProcessUsage per PID wordt in K05 gecontroleerd bij manifeststart en gebruikt voor spawn-preflight op vrije handle-slots vóór allocatie. Geen generiek OS-resourcebudget, syscall of gebruikersrapportage. Eerdere runtime- en capability-suites: 121 hosttests groen (1 bestaande benchmark ignored); voor commit 3f2dd4f1 zijn formattering en diff-check groen, maar de zes-case native QEMU-supervisorgate is nog niet uitgevoerd. PIT blijft 100 Hz, RTC ongeauthenticeerd; geen fysieke/menselijke acceptatie of rubricsluiting.
+41 blijft 41. SDK-runtime heeft absolute monotone timer-/wait-semantiek met atomische annulering; de native worker-aanroep is bijgewerkt naar de cancellation-aware API. capability-core ProcessUsage per PID wordt in K05 gecontroleerd bij manifeststart en gebruikt voor spawn-preflight op vrije handle-slots vóór allocatie. Geen generiek OS-resourcebudget, syscall of gebruikersrapportage. Eerdere runtime- en capability-suites: 121 hosttests groen (1 bestaande benchmark ignored); formattering en diff-check groen. De supervisor-QEMU-gate faalde eerst op ontbrekende PATH/host-check, en vond daarna de inmiddels gerepareerde oude timer-aanroep; gate na reparatie nog niet uitgevoerd. PIT blijft 100 Hz, RTC ongeauthenticeerd; geen fysieke/menselijke acceptatie of rubricsluiting.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

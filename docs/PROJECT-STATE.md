@@ -6,7 +6,8 @@
 `simonvanieperen-studious-spoon`. M1-stappen time en capabilities:
 **Implementatiebronnen:** `7fd2e748b36cefce235a72841d4473b739929649`
 (capability-accounting) en `3f2dd4f19e1daa31476e0d70f968bb691c6bc7c3`
-(supervisorintegratie).
+(supervisorintegratie); `3249c93ece0285b71648a39709614e9c95e3b6fb`
+(reparatie worker-aanroep cancellation-aware timer-API).
 Toegevoegd in `sdk/runtime/src/clock.rs` en direct gebruikt in
 `sdk/examples/supervisor/src/worker.rs`.
 Nieuwe runtimelaag:
@@ -35,22 +36,32 @@ beschikbaar.
 - `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 fmt --manifest-path crates/capability-core/Cargo.toml -- --check` (exit 0)
 - `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 check --manifest-path crates/capability-core/Cargo.toml --target x86_64-unknown-none --locked` (exit 0)
 - `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 fmt --manifest-path kernel/Cargo.toml --` (exit 0)
+- `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check` (exit 0)
 - `git diff --check` (exit 0)
+- `python3 -B -u tools/test_supervisor.py` (exit 1; `cargo` niet in `PATH`)
+- `PATH="$HOME/.cargo/bin:$PATH" python3 -B -u tools/test_supervisor.py` (exit 1; wrapper meldde host-check mislukt, onderliggende detail niet getoond)
+- `PATH="/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH" python3 -B -u tools/test_supervisor.py` (exit 1; native worker gebruikte verouderde `TimerRegistration::at`-signatuur; gerepareerd in `3249c93e`)
 
 De eerste testpoging miste `cc`; daarna is de al aanwezige tijdelijke
 toolchain onder `/tmp/nieuw-os-c-toolchain` gebruikt, zonder systeeminstallatie.
 Een tussenliggende testuitvoering vond twee onjuiste verwachte chunkwaarden;
 de assertions zijn gecorrigeerd en de volledige suite is daarna groen. De
 capability-usage-tests toetsen read-only gedrag, principal-isolatie,
-quotaweergave en queue-toerekening aan de endpointowner. De nieuwe
-supervisorintegratie is nog niet door de native QEMU-gate gedraaid. Geen
-fysieke of menselijke acceptatie uitgevoerd. Score blijft **41 → 41**.
+quotaweergave en queue-toerekening aan de endpointowner. De supervisor-QEMU-
+gate is geprobeerd, maar de eerste run miste `cargo` in `PATH`; de retry met
+alleen Cargo op `PATH` stopte bij de host-check. Met de tijdelijke C-toolchain
+werd vervolgens een verouderde `TimerRegistration::at`-aanroep in de native
+worker gevonden. Commit `3249c93e` herstelt die call. De gate is na deze fix
+nog niet opnieuw uitgevoerd. Geen fysieke of menselijke acceptatie. Score
+blijft **41 → 41**.
 
-**Open/eerstvolgend:** voer `python3 -B -u tools/test_supervisor.py` uit
-(zes disposable-QEMU-cases volgens `.github/workflows/process-management.yml`)
-en herstel eventuele regressies. De integratie toetst alleen capability-handle-
-beschikbaarheid; geheugen-/CPU-/storage-/DMA-accounting en gebruikersrapportage
-ontbreken nog. De klok blijft 100-Hz PIT op bestaande profielen,
+**Open/eerstvolgend:** voer
+`PATH="/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH" python3 -B -u tools/test_supervisor.py`
+opnieuw uit (zes disposable-QEMU-cases volgens
+`.github/workflows/process-management.yml`) en herstel eventuele regressies.
+De integratie toetst alleen capability-handle-beschikbaarheid; geheugen-/CPU-/
+storage-/DMA-accounting en gebruikersrapportage ontbreken nog. De klok blijft
+100-Hz PIT op bestaande profielen,
 RTC blijft unauthenticated en slaap-/suspendcorrectie, hoge-resolutietimers en
 fysieke klokacceptatie zijn niet geïmplementeerd.
 
