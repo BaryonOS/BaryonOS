@@ -3,7 +3,7 @@
 ## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
 
 **Gepubliceerde basis:** branch `simonvanieperen-studious-spoon`, commit
-`008bc4e7ef14593ce60febf7d0dc38c8ac7e9e6f`, gepusht naar
+`bf1f3c6839e003b3bd3918249930b7b0a54e387a`, gepusht naar
 `origin/simonvanieperen-studious-spoon`. Actieve toewijzing:
 `SYSTEM-MATURITY-SMP`, queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`.
 OOM/K05 zijn afgesloten en blijven ongewijzigd;
@@ -135,6 +135,15 @@ Een eerdere fixturepoging gaf raw exit 35 doordat de BSP-selectie buiten de
 guard viel; de testsequencing is gecorrigeerd. Dit is geen fairness-/
 starvationgrens en geen bewijs van volledige K06.
 
+**Volledige SMP-matrix PASS met contentionstage op broncommit `bf1f3c68`
+(exit 0):** exact dezelfde PATH-, QEMU- en OVMF-opdracht als de tien-
+stagematrix. Alle elf stages en 15 hosttests slaagden: M2 1/2/4 CPU, M3 2
+CPU, AP-exit, lockcontention, TLB-reuse, single-CPU-regressie, M3 4 CPU,
+cross-CPU M4 IPC en revoke. Iedere QEMU-run had verwachte raw exit 33. De
+QEMU-waarschuwing over ontbrekend `kvmvapic.bin` blijft ononderzocht. Receipt:
+[`smp-rendezvous-20261103T190216Z.json`](verification/sm-smp/smp-rendezvous-20261103T190216Z.json);
+bronfingerprint `5d9f0256e588e957826c5a5528913117d3097b9fe8c25180be6ec767aede36aa`.
+
 **Niet-geaccepteerde SMP-lifecycleverkenning:** het combineren van de bestaande
 M4 multi-round lifecyclefixture met SMP eindigde op raw QEMU exit 35 bij
 `kernel/src/m2/m3.rs:1849` (`current < state.amount`) na AP-bring-up.
@@ -153,17 +162,16 @@ slot 2 werd daarna op CPU 0 geweigerd. M3-selecties waren `[41, 39]`.
 Log: `build/run/smp-2-2ae5598874/`. De actuele matrixreceipt hierboven is het
 leidende bewijs voor de gepushte bron.
 
-**Bewijsgrens:** de actuele tien-stagematrix bevestigt 1/2/4 CPU, scheduling,
+**Bewijsgrens:** de actuele elf-stagematrix bevestigt 1/2/4 CPU, scheduling,
 AP-exit, cross-CPU IPC/revoke en lokale adresruimte-/TLB-reuse op dezelfde AP.
 De aparte 2-CPU-proef bevestigt ook lockcontention en voortgang na vrijgave.
 Dit bewijst geen algemeen remote-shootdownprotocol, fair lock of volledige
 race-/failureacceptatie; K06 is niet afgerond.
 `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
 
-**Eerstvolgende actie:** herhaal de volledige SMP-matrix nu met de nieuwe
-contentionstage. Daarna onderzoek de bestaande niet-geaccepteerde M4 multi-
-round lifecycleproef; laat reguliere scheduler- en capabilitysemantiek
-ongewijzigd.
+**Eerstvolgende actie:** onderzoek de bestaande niet-geaccepteerde M4 multi-
+round lifecycleproef en haar raw-35 assertion met een minimale reproduceerbare
+SMP-fixture; laat reguliere scheduler- en capabilitysemantiek ongewijzigd.
 
 **Cross-CPU capability-IPC — eerdere lokale proef vóór matrix:**
 `native-smp-m4` combineert het bestaande SMP-M3-profiel met de bestaande M4
