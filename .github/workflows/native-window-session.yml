@@ -129,7 +129,7 @@ jobs:
             --clipboard \
             --workspace \
             --scale "$NOS_WINDOW_SCALE" \
-            --timeout 2400 \
+            --timeout 1800 \
             --bios-rom /usr/share/seabios/bios-256k.bin \
             --vga-rom /usr/share/seabios/vgabios-stdvga.bin \
             2>&1 | tee "$CI_EVIDENCE_DIR/native-gate.txt"
