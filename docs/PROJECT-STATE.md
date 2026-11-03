@@ -25,9 +25,23 @@ geen tests (elk exit 5); daarna zijn de werkelijke bovenstaande entrypoints
 uitgevoerd. Verwachte foutmeldingen in negatieve harnastests zijn geen
 native uitvoering. Uitvoer staat in het sessietranscript, zonder afzonderlijke
 logbestanden. Rust-builds en QEMU niet herhaald; geen native acceptatie.
-Historische checks hieronder zijn geen actuele beoordeling van deze integratie.
-**Eerstvolgend:** gevalideerde merge publiceren; nieuwe-head CI/review door
-de app laten beoordelen. Native volume-acceptatie blijft afzonderlijk open.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:69f0ce3ef4e7240e6d8b1e44a29d90b2c36c7dcd2008b6a678a3f075e30514e8 -->
+
+**PR148-integratiereview: open.** De assessmentbasis is PR148 `47ec535f`;
+de tweede mergeouder is main `8e0c15d8` en de resulterende merge is `7412d0bb`.
+De hierboven gemelde gerichte controles hebben alleen uitvoer in het
+sessietranscript; een afzonderlijk brongebonden integratiereviewbewijs ontbreekt
+in de checkout. De PR148-hostreceipts hieronder betreffen eerdere werkbomen en
+bewijzen deze integratiereview niet. De `reviewed_commit`-verwijzing naar
+`cc1dea7` in `docs/progress.json` is een historische review van de eerdere
+verduidelijking van documentatiestatus en hostbewijs.
+
+**Eerstvolgend:** nieuwe-head CI en review beoordelen en passend reviewbewijs
+vastleggen. Native volume-acceptatie blijft afzonderlijk open.
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 ## Historisch checkpoint — PR142 main-integratie — 3 november 2026
 
