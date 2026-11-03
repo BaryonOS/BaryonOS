@@ -34,6 +34,10 @@ maar de onverzwakte verplaatsingsoracle vond een echte invoerregressie:
 onnodige Resync van alle apps veranderde de calculatorcaret. De test is
 gericht gestopt; layout/mode annuleert nu alleen een aanwezige appmuiscapture.
 De volledige nieuwe herkansing blijft open.
+Een volgende poging op `1915d510` ontving de geïnjecteerde F7 niet
+(inputteller bleef 14); de geïdentificeerde VM is gestopt, runner exit 1.
+Shellinjectie gebruikt nu QMP's normale 100 ms-keyhold en een expliciete
+30 s-ontvangstgrens, zonder automatische herhaling of zwakkere orakels.
 Gebruik lokale genegeerde build-/targetmappen; een externe artifactmap wordt
 terecht door de bestaande guard geweigerd. De volledige gate blijft
 verplicht naast bestaande volledige appbeeld-, isolatie-, echte crash/herstel-,

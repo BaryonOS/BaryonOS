@@ -7,7 +7,7 @@
     "branch": "simonvanieperen-fictional-disco",
     "task": "Eerste native Veld-stap: gedeelde visuele rollen, werkfocus, ordening en lokale zoekaliassen",
     "previous_score": 41,
-    "summary": "41% blijft 41%: native Veld-builds en gerichte hostchecks slagen. De tweede echte QEMU-poging passeert werkfocus, Finderselectie, appisolatie en de klembordketen, maar de onverzwakte verplaatsingsoracle vindt een echte regressie: onnodige annulering van alle appwachtrijen verandert calculatorcaretpixels. De inputroute annuleert nu alleen een werkelijk aanwezige appmuiscapture; volledige native herbouw/herhaling blijft open. Geen dependencies, kernelrechten, criteriumstatussen of historische bewijzen veranderd. Het volledige Veld-ontwerp, U02-U06, fysieke/menselijke beoordeling en release blijven open."
+    "summary": "41% blijft 41%: native Veld-builds en gerichte hostchecks slagen. De tweede echte QEMU-poging passeert werkfocus, Finderselectie, appisolatie en de klembordketen en vindt daarna een echte caretregressie; de inputroute annuleert nu alleen een werkelijk aanwezige appmuiscapture. Een volgende poging ontvangt de nieuwe 1ms-F7-injectie niet. Shellinjectie gebruikt daarom de normale QMP-keyhold en een expliciete ontvangstgrens, zonder automatische herhaling of zwakkere pixelcontrole. Volledige native acceptatie blijft open. Geen dependencies, kernelrechten, criteriumstatussen of historische bewijzen veranderd. Volledig Veld, U02-U06, fysieke/menselijke beoordeling en release blijven open."
   },
   "tracks": [
     {

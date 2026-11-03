@@ -72,6 +72,15 @@ uitsluitend een werkelijk aanwezige appmuiscapture bij layout-/modewisseling.
 Titelbeweging zonder grab laat gewone invoer en caret ongemoeid.
 Nog geen geslaagde volledige native acceptatie; herbouw/herhaling volgen.
 
+De derde poging op `1915d510` blokkeerde al vóór ontvangst van F7:
+de laatste inputteller bleef 14, zonder enige nieuwe appkey of modewijziging.
+De uitsluitend geïdentificeerde QEMU-PID is beëindigd; de runner sloot eerlijk
+af met exit 1 / ontbrekende input-ACK. Dit bewijst niet dat de vorige
+caretfix faalt. De nieuwe shell-injector gebruikt nu QMP's normale 100 ms
+keyhold in plaats van een 1 ms-puls en begrenst ontvangst tot 30 s. Geen
+automatische herinjectie van toggletoetsen en geen versoepelde pixel- of
+ownershipcontrole. De oorspronkelijke gewone appkeyroute blijft ongewijzigd.
+
 De eerste buildpoging naar de artifactmap buiten de checkout is terecht
 geweigerd (exit 1, `FPU artifact escaped checkout`). Geen guard aangepast;
 de build gebruikt daarna de genegeerde lokale mappen

@@ -285,12 +285,13 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 values = snapshots(raw, "COMPOSITOR")
                 return values[-1] if values else {}
 
-            def observe(label, predicate):
+            def observe(label, predicate, *, timeout_s=None):
+                observation_deadline = deadline if timeout_s is None else min(deadline, time.monotonic() + timeout_s)
                 while True:
                     raw = serial(directory / "serial.txt")
                     if predicate(raw):
                         return raw
-                    if process.poll() is not None or time.monotonic() >= deadline:
+                    if process.poll() is not None or time.monotonic() >= observation_deadline:
                         raise TimeoutError("Native input acknowledgement missing: " + label)
                     time.sleep(0.02)
 
@@ -343,10 +344,11 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
 
             def shell_key(*keys):
                 before = comp(serial(directory / "serial.txt"))
-                control.command("send-key", {"keys": [{"type": "qcode", "data": k} for k in keys], "hold-time": 1})
+                # QMP's normal 100 ms hold, not a one-millisecond pulse under TCG.
+                control.command("send-key", {"keys": [{"type": "qcode", "data": k} for k in keys], "hold-time": 100})
                 observe("shell " + "/".join(keys), lambda raw:
                         comp(raw).get("GENERATION") == group_generation[0] and
-                        comp(raw).get("INPUT", 0) >= before["INPUT"] + 2 * len(keys))
+                        comp(raw).get("INPUT", 0) >= before["INPUT"] + 2 * len(keys), timeout_s=30)
 
             def workspace_wait(phase):
                 return wait("workspace-" + phase, lambda raw, s: all(s.values()),
