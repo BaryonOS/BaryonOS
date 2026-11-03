@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "92fdf2ff941284dfaeacffc9ad49295b2e9da21f",
+    "source_commit": "b75cfc3c7c5cc16efd618b2d6d179938abdabbdf",
     "branch": "simonvanieperen-reimagined-train",
-    "task": "PR149-documentatieconflicten met main inhoudsbehoudend oplossen",
+    "task": "PR149 tweede main-integratie met behoud van UI en bewijs",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. PR149-bron 92fdf2ff wordt gecombineerd met main 69809c2c. Vier centrale documentatieconflicten behouden de UI- en maincheckpointgeschiedenissen; runtimecode blijft ongewijzigd ten opzichte van de betreffende parents. Alleen assessment en gegenereerde weergaven worden opnieuw beoordeeld. Historische tests blijven brongebonden; nieuwe-head-CI en native productacceptatie blijven open. Geen rubriccriterium gesloten."
+    "summary": "41/100 blijft 41/100. PR149-bron b75cfc3c wordt gecombineerd met main d115cc96. Vier centrale documentatieconflicten behouden beide checkpointgeschiedenissen. UI-code blijft uit de PR-parent behouden, artifact-store-tests en primaire rapporten uit main. Historische resultaten blijven brongebonden; open reviewpunten en nieuwe-head-controles blijven apart. Geen nieuw criterium, native runtimebewijs of menselijke audit."
   },
   "tracks": [
     {

@@ -85,6 +85,11 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR149 tweede main-integratie (3 november 2026), basis `b75cfc3c` met main
+`d115cc96`: **41 → 41**. Vier documentatieconflicten inhoudsbehoudend
+verzoend. UI-code en artifact-store-tests blijven uit hun betreffende
+parent behouden; geen nieuwe criteria of native acceptatie.
+
 PR149-conflictoplossing (3 november 2026), PR-bron `92fdf2ff` met main
 `69809c2c`: **41 → 41**. Vier centrale documentatieconflicten verzoend;
 beide checkpointgeschiedenissen en de bestaande rubric blijven behouden.
@@ -99,6 +104,18 @@ de pixelregressie; rustfmt, check, Clippy en de scalar
 Ubuntu-pakketten in `/tmp` opgebouwd, zonder systeeminstallatie. QEMU/OVMF en
 native screenshot ontbreken. Geen nieuw criterium of runtimebewijs.
 Zie `verification/native-start-surface-20261103/README.md`.
+
+PR140-reviewvervolg (3 november 2026), geteste bron `2bf95782`: **41 → 41**.
+De 9 contracttests, typecontrole, Clippy en formattering zijn opnieuw groen.
+Volledige primaire logs met SHA-256 staan duurzaam in
+[het reviewbewijs](verification/pr140-review-evidence.json).
+Descriptorvalidatie/binding is geen bewijs van identiteit of authenticatie.
+Geen nieuwe native of productacceptatie.
+
+Historische PR140-reviewcorrectie (3 november 2026), basis `c07d15b8`: **41 → 41**.
+Alleen Nederlandse beschrijvingen in het historische hostrapport; commands,
+exitstatussen, bron-/loghashes en criteria blijven gelijk. Geen nieuwe tests
+of native productacceptatie door deze tekstcorrectie.
 
 PR119-inhoudsbehoud (3 november 2026), head `5a8317f1`: **41 -> 41**.
 Volledige nieuwste NAS-history opgenomen; alleen centrale statusconflicten,

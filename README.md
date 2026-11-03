@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`92fdf2ff`](https://github.com/simonvanieperen/nieuw-os/commit/92fdf2ff941284dfaeacffc9ad49295b2e9da21f) ·
+**Bron:** [`b75cfc3c`](https://github.com/simonvanieperen/nieuw-os/commit/b75cfc3c7c5cc16efd618b2d6d179938abdabbdf) ·
 **Ontwikkelbranch:** `simonvanieperen-reimagined-train`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR149-documentatieconflicten met main inhoudsbehoudend oplossen.
-41/100 blijft 41/100. PR149-bron 92fdf2ff wordt gecombineerd met main 69809c2c. Vier centrale documentatieconflicten behouden de UI- en maincheckpointgeschiedenissen; runtimecode blijft ongewijzigd ten opzichte van de betreffende parents. Alleen assessment en gegenereerde weergaven worden opnieuw beoordeeld. Historische tests blijven brongebonden; nieuwe-head-CI en native productacceptatie blijven open. Geen rubriccriterium gesloten.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR149 tweede main-integratie met behoud van UI en bewijs.
+41/100 blijft 41/100. PR149-bron b75cfc3c wordt gecombineerd met main d115cc96. Vier centrale documentatieconflicten behouden beide checkpointgeschiedenissen. UI-code blijft uit de PR-parent behouden, artifact-store-tests en primaire rapporten uit main. Historische resultaten blijven brongebonden; open reviewpunten en nieuwe-head-controles blijven apart. Geen nieuw criterium, native runtimebewijs of menselijke audit.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
