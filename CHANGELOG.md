@@ -2,8 +2,9 @@
 
 ## 2026-11-03
 
-Gebaseerd op de 14 commits van `main..380111b` (30 oktober t/m 2 november
-2026).
+Gebaseerd op commitbereik
+`ad2b981fe1f2bcccb03cb776b2281d32529d2f00..380111b68688c981eec6abb8fab29174a29f5601`:
+14 commits, van 30 oktober t/m 2 november 2026. De eindcommit is inbegrepen.
 
 ### Functies
 
@@ -13,6 +14,8 @@ Gebaseerd op de 14 commits van `main..380111b` (30 oktober t/m 2 november
 - Sleutelstatus blijft behouden na een koude herstart; het sleutelbeheer is
   uitgebreid met rotatie en intrekking.
 - Een RTC-klok kan optioneel de UTC-tijd aan een ring-3-dienst leveren.
+- De native route bevat een TPM-proef en een bediende testversie van Materiaal;
+  dit zijn ontwikkelproeven, geen release- of hardwareacceptatie.
 
 ### Bugfixes
 
@@ -30,6 +33,8 @@ Gebaseerd op de 14 commits van `main..380111b` (30 oktober t/m 2 november
 - De preflight meldt nu duidelijk wanneer de hosttest-linker ontbreekt.
 - CI en verificatiearchieven zijn uitgebreid voor componentintegratie en
   native desktop-, netwerk- en opslagcontroles.
+- Het geluidsstuurprogramma kan begrensde PCM-formaatinformatie verwerken;
+  dit is geen bewijs van volledige geluidsuitvoer.
 
 ### Incompatibele wijzigingen
 
