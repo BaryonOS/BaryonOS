@@ -27,7 +27,10 @@ De bestaande statusregel geeft de toetsbediening aan.
 
 Exclusieve huidige writes: calculator `src/model.rs`, `src/render.rs`,
 nieuwe `tests/recall.rs`, een nieuwe test in calculator `tests/chain.rs`
-en dit checkpoint. Geen `scene.rs`/`init.rs`, app-lifecycle, Settings,
+en dit checkpoint. Aanvullende runnerclaim: uitsluitend de opt-in
+`--calculator-recall`-route in `tools/run_window_session.py` en bijbehorende
+tegenproeven in `tools/test_window_session.py`.
+Geen `scene.rs`/`init.rs`/`main.rs`, app-lifecycle, Settings,
 algemene notification-/core-API, kernel, centralestatus of scorewrites.
 Geen nieuwe capability, dependency, allocator, opslagrecht of app-ABI.
 
@@ -62,12 +65,22 @@ en Clippy exit 0: `veld10-recall-targeted-attempt2.log`.
 
 ## Actieve vervolgstap en bewijsgrens
 
-Nog implementeren en uitvoeren: een nieuwe gerichte VM-deelgate voor deze
-recallflow, met echte QMP-pijltoetsen, oorspronkelijke draft terug,
-actuele/stale-resultaattellers en volledige native appbeelden.
+De nieuwe gerichte VM-deelgate is geimplementeerd; uitvoering volgt.
+Zij gebruikt echte QMP-pijltoetsen, herstelt de oorspronkelijke draft,
+controleert actuele/stale-resultaattellers en volledige native appbeelden.
 Dat is geen herhaling van VELD-08 of de al geaccepteerde VELD-09-route.
-De native proef moet eerst zijn eigen opt-in runnerclaim krijgen.
 Daarna pas native acceptatie, queued-handoff en de volgende vrije milestone.
+
+```sh
+python3 -B tools/test_window_session.py
+export NOS_BUILD_DIR="$PWD/build/veld10-recall-20261103"
+export NOS_TARGET_DIR="$PWD/target/veld-native-20261103-context"
+python3 -B -u tools/build.py --kernel-feature native-window-session-probe
+python3 -B -u tools/run_window_session.py --calculator-recall --timeout 600 --bios-rom "$NOS_BIOS_ROM" --vga-rom "$NOS_VGA_ROM"
+```
+
+De opt-in route kan uitsluitend `calculator_recall_gate=true` opleveren,
+niet volledige `native_gate=true`. Default-/herstel-/opslaggate ongewijzigd.
 
 Niet uitgevoerd: recall-VM-proef, gewijzigde-mainintegratie, CI, fysieke
 hardware-, menselijke gebruiks-, onafhankelijke audit- en releasegates.
