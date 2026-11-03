@@ -1,0 +1,57 @@
+{
+  "checked_on": "2026-11-02",
+  "timezone": "Europe/Amsterdam",
+  "survey": "Special Eurobarometer 572, Digital Decade, wave 105.1",
+  "publication_date": "2026-06-17",
+  "fieldwork": {"start": "2026-02-05", "end": "2026-03-01"},
+  "respondents_reported": 26494,
+  "population": "EU nationalities aged 15+ resident in the EU27; not a desktop-user-only sample",
+  "question": "QB6.4 / ST1045 item 4",
+  "statement_location": "Exact English statement quoted once in european-adoption-barriers.md, section Oorspronkelijke Eurobarometer gecontroleerd",
+  "percentages_eu27": {
+    "totally_agree": 21,
+    "tend_to_agree": 37,
+    "tend_to_disagree": 20,
+    "totally_disagree": 14,
+    "dont_know": 8,
+    "total_agree": 58,
+    "total_disagree": 34
+  },
+  "sources": [
+    {
+      "id": "EA-02",
+      "url": "https://data.europa.eu/doi/10.2759/3200731",
+      "download_url": "https://op.europa.eu/o/opportal-service/download-handler?identifier=b4d58e27-6605-11f1-9b18-01aa75ed71a1&format=pdf&language=en&productionSystem=cellar&part=",
+      "bytes": 6836807,
+      "sha256": "40a04ceb6a5ad798b3f4e1d88aaa979df7e8eaf96b915b9dcd52d4372214da3c",
+      "pages": {"methodology": 7, "result": 44, "motives": 48, "technical_start": 73},
+      "visual_check": "Result on printed/PDF page 44 rendered and read",
+      "limitation": "Technical pages have a legacy Special Eurobarometer 569 header while their body identifies wave 105.1 and 2026 fieldwork; reported here without silently correcting source"
+    },
+    {
+      "id": "EA-04",
+      "url": "https://data.europa.eu/doi/10.2759/4731876",
+      "download_url": "https://op.europa.eu/o/opportal-service/download-handler?identifier=abc94566-6605-11f1-9b18-01aa75ed71a1&format=pdf&language=en&productionSystem=cellar&part=",
+      "bytes": 1115563,
+      "sha256": "0c370881ea90a43e219204ef7a9047c8f7849f219f70f41e9f70aa262b7e39fd",
+      "question_printed_page": 21,
+      "question_pdf_page": 23,
+      "visual_check": "QB6.4 header and EU27 row rendered and read",
+      "limitation": "Country row uses CY_TCC while report methodology describes CY as the population included in EU27. Unresolved source-label discrepancy; no Cyprus country inference or independent correction. EU27 58 percent corroborated by report and official summary."
+    },
+    {
+      "id": "EA-03",
+      "url": "https://access.gesis.org/dbk/82384",
+      "location": "Basic bilingual questionnaire, PDF page 20 / printed page 18, ST1045 item 4",
+      "read_method": "Web PDF text with surrounding question and response scale"
+    }
+  ],
+  "verification": {
+    "arithmetic": "21+37=58; 20+14=34; 21+37+20+14+8=100",
+    "not_os_specific": true,
+    "not_observed_switching": true,
+    "no_concrete_price_premium": true,
+    "claim_56_percent_european_os": "No supporting primary OS-specific question found; not used"
+  },
+  "storage": "Full source PDFs and rendered pages kept outside Git in local task temporary storage; repository contains only this compact source check and analysis"
+}

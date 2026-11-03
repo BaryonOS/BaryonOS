@@ -1,5 +1,34 @@
 # Nieuw OS — eigen kernel, sessieroute en bureaublad
 
+## Project in het kort
+
+Nieuw OS is een onderzoeksproject voor een zelfstandig besturingssysteem met
+een eigen x86_64-kernel en een eigen productervaring rond documenten en
+collecties: **Materiaal**. Het is geen Linux-distributie en gebruikt geen
+bestaande OS-kernel als basis. Veiligheid en privacy steunen onder meer op
+geïsoleerde processen, expliciete capabilities (kernel-afgedwongen rechten)
+en begrensde IPC (interprocescommunicatie).
+
+De boot- en runtimeketen is **UEFI/OVMF → eigen Rust-loader → bootprotocol →
+`no_std`-Rust-kernel → geïsoleerde processen en diensten → SDK en apps**.
+De workspace bevat daarnaast aparte crates voor kernel-/capabilitylogica,
+drivers en diensten voor opslag, invoer en netwerk, plus de SDK en native
+apps. Rust/Cargo is de hoofdstack (toolchain 1.90.0); Python verzorgt veel
+build- en testharnassen. QEMU/OVMF wordt gebruikt voor geïsoleerde VM-proeven.
+NAS- en quantumsimulatorprototypes zijn afzonderlijke sporen, geen bewijs van
+volledig geïntegreerde native functies.
+
+**Codeleesroute:** begin bij `boot/loader/src/main.rs`, volg naar
+`kernel/src/main.rs` en daarna `kernel/src/m2.rs` en `kernel/src/m2/m3.rs`.
+Lees voor procesrechten `crates/capability-core/`, voor apps
+`sdk/runtime/README.md` en `sdk/examples/materiaal/README.md`. De actuele
+status en open gates staan in [PROJECT-STATE.md](docs/PROJECT-STATE.md);
+architectuurkeuzes en contracten staan in
+[KERNEL-AND-SECURITY-CONTRACT.md](docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md)
+en de volledige acceptatieopdracht in
+[FULL-TEST-RELEASE.md](docs/FULL-TEST-RELEASE.md). Proeven en builds zijn
+geen bewijs van een complete release of ondersteuning van fysieke hardware.
+
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
@@ -32,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`716f3ec1`](https://github.com/simonvanieperen/nieuw-os/commit/716f3ec11cc8d44bcd66b91e14e7b409a0877cb5) ·
+**Bron:** [`76743f5d`](https://github.com/simonvanieperen/nieuw-os/commit/76743f5d60ec517ec38edd48aa256f942e47a69f) ·
 **Ontwikkelbranch:** `simonvanieperen-supreme-spork`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR139: assessmentbron en historische OS-bewijsbron ondubbelzinnig scheiden.
-De bovenstaande Bron is uitsluitend de assessmentbasis716f3ec1, niet de geteste OS-bewijsbron. De oorspronkelijke assessmentbasis was d3e5602c; uitsluitend380111b is de bewijsbron van de15 historische groene workflowruns (waaronder FR-I01 joint system18stappen, window17stappen en netwerk9stappen). Deze aantallen zijn workflowstappen, niet geaccepteerde productcriteria of nieuwe tests van deze branch. De historische lokale preflight exit2 wegens ontbrekende tools blijft aan die oorspronkelijke uitvoering gebonden; nu zijn geen native proeven opnieuw uitgevoerd. Alle62 volledige releaserijen blijven open, inclusief B02-volume/rollbackanker en native NAS-lifecycle. De twee bronrollen staan apart in verification/priority-plan-checkpoint-20261103.json. Alleen bronvermeldingen verduidelijkt;41/100 blijft gelijk.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR139: actuele main-conflicten inhoudsbehoudend integreren.
+De assessmentbasis van deze meting is PR-head 76743f5d; de 15 historische OS-workflowruns blijven uitsluitend bewijs op 380111b en zijn niet opnieuw uitgevoerd. De actuele main is inhoudsbehoudend geïntegreerd. De 16 storage-backend-replaytests slagen met umask 0077; bij sandbox-umask 0002 faalde de ongewijzigde testaanroep op groepsschrijfbare fixtures, die door de private-inputcontrole terecht worden geweigerd. Progresscontrole slaagt. De unieke main-statushistorie is behouden. Geen nieuwe acceptatiecriteria of punten: 41/100 blijft gelijk. Reviewverzoeken zijn nog open en vielen buiten deze tickautorisatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -49,6 +78,8 @@ productpunten. Elk criterium telt volledig of niet; onbewezen werk blijft open.
 Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).
 <!-- OS-PROGRESS:END -->
+
+Volledige repository-inventaris: [OS-completeness-audit](docs/audit/os-completeness/README.md).
 
 ## Native venstersessie — 2 november 2026
 
@@ -272,6 +303,8 @@ De actuele native implementatiegrenzen staan per spoor hierboven.
 
 - [Architectuur en kernelcontract](docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md).
 - [Materiaal en productambitie](docs/implementation/PRODUCT-SPEC.md).
+- [Gebruikersbehoeften, overstapbarrières en OS-ontwerptrends — onderzoek 2 november 2026](docs/research/2026-11-02/README.md).
+- [Volledige OS-journey: installatie, eerste gebruik, mentale modellen en installer-/onboardingvoorstellen](docs/research/2026-11-02/journey/README.md) — documentonderzoek; geen installer geïmplementeerd.
 - [Privacycontract](docs/LOCAL-PRIVACY-CONTRACT.md).
 - [Quantumspoor](docs/QUANTUM-RESEARCH.md).
 - [Beveiliging en postkwantumroute](docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md).

@@ -1,0 +1,3 @@
+5827640f8bfedf5bae0d996d085f09a87b070214006da6e964f7b57ea496a82f  /tmp/nieuw-os-storage-zfs-20261102/root/usr/sbin/ztest
+649ab4b6b891d042f9648e547af7a01ddeef3e9f913f5679ff90fef15f2a4aa5  /tmp/nieuw-os-storage-zfs-20261102/root/usr/sbin/zdb
+28ad7b01ce3b58809c710f02fdbd973d87f404ba7cd876e322c4a75fecc4b195  /tmp/nieuw-os-storage-zfs-20261102/root/usr/lib/x86_64-linux-gnu/libzpool.so.7
