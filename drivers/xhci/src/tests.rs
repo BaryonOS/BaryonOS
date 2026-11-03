@@ -282,6 +282,11 @@ impl PciConfigAccess for MockPci {
         }
         let offset = usize::from(offset);
         function.config[offset..offset + 4].copy_from_slice(&value.to_le_bytes());
+        if offset == 4 {
+            self.command_writes
+                .borrow_mut()
+                .push((address, value as u16));
+        }
         Ok(())
     }
 
@@ -332,6 +337,13 @@ fn discovers_one_xhci_function_and_keeps_activation_disabled() {
         .borrow()
         .iter()
         .all(|(device, command)| *device == expected && command & 0x7 == 0));
+    assert_eq!(
+        command_writes
+            .borrow()
+            .last()
+            .map(|(_, command)| command & 0x7),
+        Some(0)
+    );
 }
 
 #[test]
