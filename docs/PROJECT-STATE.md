@@ -2,7 +2,8 @@
 
 ## NEXT AGENT HANDOFF — Driver Core: PCI type-0 validatie — 3 november 2026
 
-Werkbranch `copilot/universal-driver-framework`; actuele gepushte bron
+Werkbranch `copilot/universal-driver-framework`, huidige gepushte HEAD
+`d606b874c6aa5af8a870187a38b7c4ad0c51da73`; de code-/testbron is
 `9e1721e49e5898573579ffea8107045ad1fb4f8c`. Eerste implementatiestap staat
 op die branch; deze vervolgdelta voegt een veilige type-0-configsnapshotdecoder
 toe en laat de bestaande fixed-BDF VirtIO-probes hun snapshot vóór en na
