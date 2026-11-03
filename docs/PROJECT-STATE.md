@@ -1,25 +1,32 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — securityreview zonder bevestigde kwetsbaarheid — 3 november 2026
+## NEXT AGENT HANDOFF — main-integratie en actuele bewijsgrenzen — 3 november 2026
 
-**Basis:** branch `simonvanieperen-effective-tribble`, commit
-`380111b68688c981eec6abb8fab29174a29f5601`; werkboom was schoon.
-De onafhankelijke statische securityreview vond geen bevestigde kwetsbaarheid
-in de beoordeelde wijzigingen. De GitHub Dependabot-alert-API gaf geen open
-meldingen. De branch bevat geen dependency-manifestwijzigingen ten opzichte
-van `origin/main`.
+**Bronnen:** PR-head vóór integratie `da5918fbe6d8173c4cf44810d403f965c204d36e`;
+actuele base `cbbc9c9941b08ea5edfbd3637d494635b4fb1df0`. De conflicten in deze
+status-, README- en voortgangsbestanden zijn inhoudelijk verenigd. Main brengt
+de gerichte N01-fix voor issue #43 mee: `ReceiveTcp` rapporteert na een
+verbindingstime-out `Closed`, terwijl `TimedOut` diagnostisch behouden blijft.
 
-**Beperkingen:** GitHub Secret Scanning is uitgeschakeld (API 404); lokale
-`gitleaks`, `trufflehog`, `detect-secrets`, `cargo-audit`, `osv-scanner` en
-`dependabot` zijn niet beschikbaar. Er is dus geen volledige secret- of
-dependency-advisoryscan uitgevoerd. Geen codefix of tests uitgevoerd; er was
-geen concrete kwetsbaarheid om veilig te herstellen. Details:
-`docs/verification/security-audit-20261103.md`.
+**Bestaand bewijs, niet opnieuw uitgevoerd in deze integratie:** issue #43 heeft
+een hostregressietest en eerder geslaagde service-, broker-, stack-, protocol-,
+client-, peer- en native normal/client-exit-gates. De exacte bronbinding en
+bewijsgrenzen staan in `docs/verification/issue-43-receive-timeout.md` en
+`docs/verification/issue-43-receive-timeout.json`; het nieuwe specifieke
+timeout-ontvangstscenario is alleen op de host rood/groen aangetoond.
 
-Voortgang **41 → 41**, zonder nieuwe acceptatiecriteria of bewijs. Eerstvolgend:
-voer een volledige secretscan en advisoryscan uit wanneer de scanner of
-GitHub Secret Scanning beschikbaar is; behandel de huidige uitkomst niet als
-bewijs dat alle bestanden of dependencyversies veilig zijn.
+De laatst uitgevoerde securityreview op basis `380111b68688c981eec6abb8fab29174a29f5601`
+vond geen bevestigde kwetsbaarheid. GitHub Secret Scanning stond uit; lokale
+secret- en advisoryscanners waren niet beschikbaar. Dit is geen volledige
+secret- of dependency-audit. Details: `docs/verification/security-audit-20261103.md`.
+
+Voortgang blijft **41/100**; deze integratie levert geen nieuw acceptatiebewijs.
+De gecombineerde servicehosttests (10), formatting, Clippy en
+`x86_64-unknown-none`-releasebuild slagen; de voortgangscontrole blijft
+consistent. Clippy is met de geïnstalleerde stable-toolchain uitgevoerd omdat
+de pinned 1.91.1-installatie de component niet bevatte. Native gates zijn in
+deze integratie niet opnieuw uitgevoerd; het specifieke timeoutscenario heeft
+alleen hostbewijs. Geen fysieke hardware- of volledige releaseclaim.
 
 ## Vorig checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 
