@@ -41,6 +41,18 @@ verliezen ook bestaande invoer en klembordtickets. Native acceptatie toetst
 menu-pixels, muisminimaliseren, toetsenminimaliseren, weigering van
 invoer bij twee verborgen vensters en herstel van de echte documentbody.
 
+**Native 200%:** `native-window-session-hidpi-probe` combineert uitsluitend
+de bestaande hidpi- en opt-in fault-probe-features; geen nieuw kernelbeleid,
+capability of grenswijziging. De loader kiest 1920x1080 en de bestaande
+schaal2. Dezelfde runner draait met `--scale 2`, volledige afzonderlijke
+1120x660-/640x608-apporakels, geschaalde invoer en expliciete shellgebieden.
+Manifest, echte GOP-afmeting en profiel moeten overeenkomen; een 100%-beeld
+kan geen 200%-gate openen. CI krijgt beide schalen, niet een vervangende
+lichtere hidpi-smokeproef. Verplichte uitvoeringscommando's:
+`python3 -B -u tools/build.py --kernel-feature native-window-session-hidpi-probe`
+en de volledige runneropdracht hierboven aangevuld met `--scale 2`.
+Normale distributieprofielen blijven zonder foutinjectie.
+
 ## Veld: eerste native uitvoering
 
 **Opdracht/basis:** uitvoering na het visuele onderzoeksplan,

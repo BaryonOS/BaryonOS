@@ -52,6 +52,32 @@ WORKSPACE_REGIONS = {
     "window-empty": ((0, 40, 1280, 680),),
     "window-restored": ((0, 650, 1280, 70),),
 }
+HIDPI_WORKSPACE_REGIONS = {
+    "focus-material": ((0, 0, 1920, 80), (1200, 180, 688, 740), (0, 940, 1920, 140)),
+    "focus-calculator": ((0, 0, 1920, 80), (32, 128, 1168, 792), (0, 940, 1920, 140)),
+    "work": ((0, 0, 1920, 80), (0, 940, 1920, 140)),
+    "search": ((444, 192, 1032, 464),),
+    "selected": ((0, 0, 1920, 228), (0, 228, 56, 660), (1176, 228, 744, 52),
+                 (1176, 280, 48, 608), (1864, 280, 56, 608), (0, 888, 1920, 192)),
+    "window-menu": ((1048, 240, 568, 336),),
+    "window-menu-next": ((1048, 240, 568, 336),),
+    "window-minimized": ((32, 128, 1168, 792), (0, 940, 1920, 140)),
+    "window-empty": ((0, 80, 1920, 1000),),
+    "window-restored": ((0, 940, 1920, 140),),
+}
+
+
+def profile_geometry(scale: int) -> tuple:
+    if scale == 1:
+        return (1280, 720, BODY, CALCULATOR_BODY)
+    if scale == 2:
+        return (1920, 1080, (56, 228, 1120, 660), (1224, 280, 640, 608))
+    raise ValueError("Only the native 100% and 200% profiles are supported")
+
+
+def workspace_regions(scale: int) -> dict:
+    profile_geometry(scale)
+    return WORKSPACE_REGIONS if scale == 1 else HIDPI_WORKSPACE_REGIONS
 SNAPSHOT_FIELDS = {
     "MATERIAL": {"PID", "SERVICE_GENERATION", "SURFACE_EPOCH", "INPUT_EPOCH", "READY", "GEN", "FRAMES",
                  "SAVE_ACKS", "REVISION", "SAVED_BYTES", "SAVED_SUM", "SCREEN", "DIRTY", "DRAFT_BYTES", "DRAFT_SUM", "OBJECT", "SCALE", "ERRORS", "PROBES"},
@@ -61,13 +87,15 @@ SNAPSHOT_FIELDS = {
 }
 
 
-def generate_fixture(*, clipboard: bool = False, workspace: bool = False) -> dict:
+def generate_fixture(*, clipboard: bool = False, workspace: bool = False, scale: int = 1) -> dict:
     directory = private_path(BUILD / ("window-fixture-" + uuid.uuid4().hex))
     directory.mkdir(parents=True)
     frozen = source_hash()
     env = environment()
     env["CARGO_TARGET_DIR"] = str(private_path(TARGET / "window-fixture"))
     env["OS_WINDOW_FIXTURE_DIRECTORY"] = str(directory)
+    env["OS_WINDOW_SHELL_SCALE"] = str(scale)
+    width, height, body, calculator_body = profile_geometry(scale)
     command = ["cargo", "+1.90.0", "test", "--offline", "--locked", "--manifest-path",
                str(ROOT / "ui/native/Cargo.toml"), "--test", "window_native_fixture", "--", "--nocapture"]
     commands = [command]
@@ -96,7 +124,7 @@ def generate_fixture(*, clipboard: bool = False, workspace: bool = False) -> dic
             if ppm(raw)[:2] != tuple(map(int, size.split("x"))):
                 raise ValueError("Wrong host oracle dimensions")
             hashes[path.name] = sha256(path)
-            if size == "880x510":
+            if size == f"{body[2]}x{body[3]}":
                 frames[phase] = raw
     if clipboard:
         for size in ("320x484", "640x608"):
@@ -108,20 +136,21 @@ def generate_fixture(*, clipboard: bool = False, workspace: bool = False) -> dic
                 if ppm(raw)[:2] != tuple(map(int, size.split("x"))):
                     raise ValueError("Wrong calculator oracle dimensions")
                 hashes[path.name] = sha256(path)
-                if size == "320x484":
+                if size == f"{calculator_body[2]}x{calculator_body[3]}":
                     frames[phase] = raw
     if workspace:
-        for phase in WORKSPACE_REGIONS:
+        for phase in workspace_regions(scale):
             path = private_path(directory / f"workspace-{phase}.ppm", regular=True)
             raw = path.read_bytes()
-            if ppm(raw)[:2] != (1280, 720):
+            if ppm(raw)[:2] != (width, height):
                 raise ValueError("Wrong shell oracle dimensions")
             hashes[path.name] = sha256(path)
             frames["workspace-" + phase] = raw
     metadata = dict(kind="host-rendered real Controller/Frame oracle; not native execution",
                     source_sha256=frozen, source_fingerprint_version=3, generator_command=command,
                     generator_commands=commands, clipboard_oracles=clipboard,
-                    workspace_regions=WORKSPACE_REGIONS if workspace else {},
+                    workspace_regions=workspace_regions(scale) if workspace else {},
+                    scale=scale, viewport=[width, height],
                     generator_exit=result.returncode, files_sha256=hashes)
     publish_json(directory / "fixture.json", metadata)
     return dict(directory=directory, metadata=metadata, frames=frames)
@@ -135,24 +164,26 @@ def crop(raw: bytes, rectangle: tuple) -> bytes:
     return b"".join(pixels[((y + row) * width + x) * 3:((y + row) * width + x + w) * 3] for row in range(h))
 
 
-def workspace_matches(raw: bytes, expected: bytes, phase: str) -> bool:
-    if ppm(raw)[:2] != (1280, 720) or ppm(expected)[:2] != (1280, 720):
+def workspace_matches(raw: bytes, expected: bytes, phase: str, scale: int = 1) -> bool:
+    size = profile_geometry(scale)[:2]
+    if ppm(raw)[:2] != size or ppm(expected)[:2] != size:
         return False
-    return all(crop(raw, r) == crop(expected, r) for r in WORKSPACE_REGIONS[phase])
+    return all(crop(raw, r) == crop(expected, r) for r in workspace_regions(scale)[phase])
 
 
-def material_matches(raw: bytes, expected: bytes) -> bool:
-    return ppm(expected)[:2] == BODY[2:] and crop(raw, BODY) == ppm(expected)[2]
+def material_matches(raw: bytes, expected: bytes, body: tuple = BODY) -> bool:
+    return ppm(expected)[:2] == body[2:] and crop(raw, body) == ppm(expected)[2]
 
 
-def calculator_matches(raw: bytes, expected: bytes) -> bool:
-    return ppm(expected)[:2] == CALCULATOR_BODY[2:] and crop(raw, CALCULATOR_BODY) == ppm(expected)[2]
+def calculator_matches(raw: bytes, expected: bytes, body: tuple = CALCULATOR_BODY) -> bool:
+    return ppm(expected)[:2] == body[2:] and crop(raw, body) == ppm(expected)[2]
 
 
-def oracle_matches(raw: bytes, expected: bytes, name: str) -> bool:
+def oracle_matches(raw: bytes, expected: bytes, name: str, scale: int = 1) -> bool:
+    _, _, body, calculator_body = profile_geometry(scale)
     if name in CALCULATOR_CLIPBOARD_PHASES:
-        return calculator_matches(raw, expected)
-    return material_matches(raw, expected)
+        return calculator_matches(raw, expected, calculator_body)
+    return material_matches(raw, expected, body)
 
 
 def changed_outside(before: bytes, after: bytes, rectangle: tuple) -> bool:
@@ -210,9 +241,12 @@ def numbers(raw: bytes, name: str) -> list[int]:
     return [int(m[1]) for m in re.finditer(rb"(?:^|\n)" + re.escape(name.encode()) + rb":([0-9]{20})\n", raw)]
 
 
-def validate_build(frozen: str) -> dict:
+def validate_build(frozen: str, scale: int = 1) -> dict:
+    profile_geometry(scale)
     manifest = load_json(private_path(BUILD / "manifest.json", regular=True))
-    if (manifest.get("kernel_feature") != FEATURE or manifest.get("loader_feature") != "desktop-mode"
+    feature = FEATURE if scale == 1 else "native-window-session-hidpi-probe"
+    loader = "desktop-mode" if scale == 1 else "desktop-hidpi"
+    if (manifest.get("kernel_feature") != feature or manifest.get("loader_feature") != loader
             or manifest.get("source_sha256") != frozen or manifest.get("source_fingerprint_version") != 3):
         raise ValueError("Build the unchanged native window probe first")
     check_esp(BUILD / "esp", manifest)
@@ -228,7 +262,9 @@ def validate_build(frozen: str) -> dict:
 
 
 def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
-        recovery_handshake: bool = False, clipboard: bool = False, workspace: bool = False) -> dict:
+        recovery_handshake: bool = False, clipboard: bool = False, workspace: bool = False,
+        scale: int = 1) -> dict:
+    width, height, body, calculator_body = profile_geometry(scale)
     if not 30 <= timeout <= 1800:
         raise ValueError("Timeout must be bounded 30..1800 seconds")
     if smoke and recovery_handshake or (clipboard or workspace) and (smoke or recovery_handshake):
@@ -236,8 +272,8 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
     diagnostic = smoke or recovery_handshake
     private_path(BUILD)
     frozen = source_hash()
-    manifest = validate_build(frozen)
-    fixture = None if diagnostic else generate_fixture(clipboard=clipboard, workspace=workspace)
+    manifest = validate_build(frozen, scale)
+    fixture = None if diagnostic else generate_fixture(clipboard=clipboard, workspace=workspace, scale=scale)
     env = environment()
     qemu = Path(shutil.which("qemu-system-x86_64", path=env["PATH"]) or "missing")
     qemu_hash = sha256(qemu)
@@ -275,7 +311,8 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                   document_tools_gate=False,
                   window_states_gate=False,
                   source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
-                  source_fingerprint_version=3, kernel_feature=FEATURE, manifest=manifest, command=command,
+                  source_fingerprint_version=3, kernel_feature=manifest["kernel_feature"], manifest=manifest, command=command,
+                  scale=scale, viewport=[width, height], native_scale200_gate=False,
                   run_directory=str(directory), qemu_sha256=qemu_hash, immutable=immutable, phases={})
     publish_json(directory / "result.json", report)
     process = control = None
@@ -313,9 +350,9 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                         path = private_path(directory / "candidate.ppm", regular=(directory / "candidate.ppm").exists())
                         control.command("screendump", {"filename": str(path)})
                         image = private_path(path, regular=True).read_bytes()
-                        if ppm(image)[:2] != (1280, 720):
+                        if ppm(image)[:2] != (width, height):
                             raise ValueError("Wrong actual GOP size")
-                        if (oracle is not None and not oracle_matches(image, fixture["frames"][oracle], oracle)) or (image_check is not None and not image_check(image)):
+                        if (oracle is not None and not oracle_matches(image, fixture["frames"][oracle], oracle, scale)) or (image_check is not None and not image_check(image)):
                             if time.monotonic() >= deadline:
                                 raise TimeoutError("Native pixels differ from complete host oracle: " + name)
                             time.sleep(0.2)
@@ -370,7 +407,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
             def workspace_wait(phase):
                 return wait("workspace-" + phase, lambda raw, s: all(s.values()),
                             image_check=lambda image: workspace_matches(
-                                image, fixture["frames"]["workspace-" + phase], phase))
+                                image, fixture["frames"]["workspace-" + phase], phase, scale))
 
             pointer = [0, 0]
             def move(x, y):
@@ -413,7 +450,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
             elif smoke:
                 control.command("quit")
             else:
-                move(1260, 50)
+                move(width - 20, 50 * scale)
                 initial = wait("initial", lambda raw, s: all(s.values()), "initial")
                 initial_comp = comp(serial(directory / "serial.txt"))
                 if any(initial[r][-1]["PROBES"] != 3 for r in initial):
@@ -435,8 +472,8 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                     workspace_wait("search")
                     shell_key("ret")
                     wait("workspace-selected", lambda raw, s: comp(raw).get("FOCUSED") == 0,
-                         image_check=lambda image: material_matches(image, fixture["frames"]["initial"])
-                         and workspace_matches(image, fixture["frames"]["workspace-selected"], "selected"))
+                         image_check=lambda image: material_matches(image, fixture["frames"]["initial"], body)
+                         and workspace_matches(image, fixture["frames"]["workspace-selected"], "selected", scale))
                 # Extra shell tasks deliberately change calculator focus/caret.
                 # Start the unmodified whole-exterior app-isolation comparison
                 # only after those tasks and their complete chrome repaint.
@@ -450,7 +487,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 # Exact app bounds, without pixel masks: typing may only change
                 # Material's assigned body, never the other app or system chrome.
                 for phase in ("editor", "dirty"):
-                    if changed_outside(captured[paint_baseline], captured[phase], BODY):
+                    if changed_outside(captured[paint_baseline], captured[phase], body):
                         raise ValueError("App paint escaped its assigned body")
                 key("f4")
                 wait("read-tool", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM
@@ -464,7 +501,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 wait("write-tool-restored", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM,
                      "write-tool-restored")
                 for phase in ("read-tool", "read-tool-blocked", "write-tool-restored"):
-                    if changed_outside(captured["dirty"], captured[phase], BODY):
+                    if changed_outside(captured["dirty"], captured[phase], body):
                         raise ValueError("Document tool changed pixels outside its assigned body")
                 if clipboard:
                     key("ctrl", "a"); key("ctrl", "c")
@@ -495,13 +532,16 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 calc = calculated["CALCULATOR"][-1]
                 if any(calc[field] != value for field,value in {"EXPRESSION_BYTES":3,"EXPRESSION_SUM":volume_disk.fnv(b"2+3"),"EVALUATIONS":1,"CURRENT":1,"CARET":3,"FAILURES":0}.items()):
                     raise ValueError("Actual calculator model differs from typed 2+3")
-                move(1060, 118); button(True); move(900, 100); button(False)
+                grab = (calculator_body[0] + 128 * scale, calculator_body[1] - 22 * scale)
+                move(*grab); button(True); move(grab[0] - 160 * scale, grab[1] - 18 * scale); button(False)
+                moved_body = (calculator_body[0] - 160 * scale, calculator_body[1] - 18 * scale,
+                              calculator_body[2], calculator_body[3])
                 wait("moved", lambda raw, s: comp(raw).get("MOVES", 0) > 0,
-                     image_check=lambda raw: crop(captured["calculated"], (932, 140, 320, 484)) == crop(raw, (772, 122, 320, 484)))
+                     image_check=lambda raw: crop(captured["calculated"], calculator_body) == crop(raw, moved_body))
                 if workspace:
                     shell_key("f8")
                     wait("workspace-arranged", lambda raw, s: comp(raw).get("FOCUSED") == 1,
-                         image_check=lambda raw: crop(captured["calculated"], CALCULATOR_BODY) == crop(raw, CALCULATOR_BODY))
+                         image_check=lambda raw: crop(captured["calculated"], calculator_body) == crop(raw, calculator_body))
                 key("f6")
                 key("f12")
                 recovered = wait("recovered", lambda raw, s: 1 in numbers(raw, "WINDOW:RECOVERIES") and all(s.values()) and all(s[r][-1]["SERVICE_GENERATION"] == 2 and s[r][-1]["PROBES"] == 10 for r in s) and comp(raw).get("GENERATION") == 2 and comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"] and comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
@@ -522,15 +562,15 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                         raise ValueError("Recovery did not complete a new app frame")
                 group_generation[0] = 2
                 pointer[:] = [0, 0]
-                move(1260, 50)
+                move(width - 20, 50 * scale)
                 wait("rebound-editor", lambda raw, s: s["MATERIAL"][-1]["SERVICE_GENERATION"] == 2, "dirty-rebound")
-                select_title(1060, 118, 1)
-                move(1260, 50)
+                select_title(*grab, 1)
+                move(width - 20, 50 * scale)
                 key("ret")
                 wait("calculator-restored", lambda raw, s: s["CALCULATOR"][-1]["EVALUATIONS"] == calculated["CALCULATOR"][-1]["EVALUATIONS"]+1 and s["CALCULATOR"][-1]["ANSWER_LOW"] == 5_000_000_000 and comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"],
-                     image_check=lambda raw: crop(captured["calculated"], (932, 140, 320, 484)) == crop(raw, (932, 140, 320, 484)))
-                select_title(300, 90, 0)
-                move(1260, 50)
+                     image_check=lambda raw: crop(captured["calculated"], calculator_body) == crop(raw, calculator_body))
+                select_title(body[0] + 272 * scale, body[1] - 24 * scale, 0)
+                move(width - 20, 50 * scale)
                 key("right")
                 wait("restored-editor", lambda raw, s: s["MATERIAL"][-1]["SERVICE_GENERATION"] == 2, "dirty-recovered")
                 if clipboard:
@@ -550,7 +590,8 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                     shell_key("esc")
                     # The trusted title affordance hides the window, not its
                     # process, document owner, surface geometry or revision.
-                    move(886, 93); button(True); button(False); move(1260, 50)
+                    move(body[0] + body[2] - 22 * scale, body[1] - 21 * scale)
+                    button(True); button(False); move(width - 20, 50 * scale)
                     workspace_wait("window-minimized")
                     shell_key("alt", "f9")
                     workspace_wait("window-empty")
@@ -561,14 +602,15 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                     if any(numbers(after, f"WINDOW:{role}:KEYS")[-1] != count
                            for role, count in hidden_keys.items()):
                         raise ValueError("A minimized app received keyboard input")
-                    move(80, 680); button(True); button(False); move(1260, 50)
+                    move(80 * scale, height - 40 * scale)
+                    button(True); button(False); move(width - 20, 50 * scale)
                     wait("window-restored", lambda raw, s: comp(raw).get("FOCUSED") == 0
                          and s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM
                          and s["MATERIAL"][-1]["SAVE_ACKS"] == 1
                          and s["MATERIAL"][-1]["DIRTY"] == 0,
                          "reopened-window-restored",
                          image_check=lambda image: workspace_matches(
-                             image, fixture["frames"]["workspace-window-restored"], "window-restored"))
+                             image, fixture["frames"]["workspace-window-restored"], "window-restored", scale))
                 key("f10")
             process.wait(timeout=max(0.1, deadline - time.monotonic()))
             raw = serial(directory / "serial.txt")
@@ -582,7 +624,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 if numbers(raw, "WINDOW:FAULT_SLOT") != [4] or numbers(raw, "WINDOW:FAULT_VECTOR") != [6] or numbers(raw, "WINDOW:RESTARTS") != [1]:
                     raise ValueError("Wrong actual fault/restart")
                 report["disk_oracle"] = disk_oracle(private_path(directory / "volume.img", regular=True).read_bytes())
-            if source_hash() != frozen or validate_build(frozen) != manifest or sha256(qemu) != qemu_hash:
+            if source_hash() != frozen or validate_build(frozen, scale) != manifest or sha256(qemu) != qemu_hash:
                 raise ValueError("Source/build/QEMU changed during run")
             if {name: sha256(private_path(directory / name, regular=True)) for name in immutable} != immutable or {name: sha256(Path(name)) for name in originals} != originals:
                 raise ValueError("Immutable inputs changed during run")
@@ -600,6 +642,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                           workspace_gate=workspace and not diagnostic,
                           document_tools_gate=not diagnostic,
                           window_states_gate=workspace and not diagnostic,
+                          native_scale200_gate=scale == 2 and not diagnostic,
                           duration_s=time.monotonic() - start, serial_sha256=sha256(directory / "serial.txt"), qmp_trace=control.trace)
     except Exception as error:
         report["error"] = f"{type(error).__name__}: {error}"
@@ -638,7 +681,8 @@ if __name__ == "__main__":
     parser.add_argument("--recovery-handshake-only", action="store_true")
     parser.add_argument("--clipboard", action="store_true", help="Include genuine bounded clipboard exchange, clear and post-fault empty checks")
     parser.add_argument("--workspace", action="store_true", help="Include actual work/focus, Finder search and arrange interactions with exact shell regions")
+    parser.add_argument("--scale", type=int, choices=(1, 2), default=1, help="Native scale profile: 1=1280x720/100%, 2=1920x1080/200%")
     args = parser.parse_args()
     raise SystemExit(0 if run(timeout=args.timeout, bios_rom=args.bios_rom, vga_rom=args.vga_rom,
                             smoke=args.smoke_only, recovery_handshake=args.recovery_handshake_only, clipboard=args.clipboard,
-                            workspace=args.workspace)["passed"] else 1)
+                            workspace=args.workspace, scale=args.scale)["passed"] else 1)

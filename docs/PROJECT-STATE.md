@@ -1,6 +1,6 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Veld-02 in uitvoering — 3 november 2026
+## NEXT AGENT HANDOFF — Veld-03 in uitvoering — 3 november 2026
 
 **Basis:** `264ad5b0b1bfeaf0e36c4d52021b11d347db2227`, branch
 `simonvanieperen-fictional-disco`, PR #146. De vervolgopdracht vraagt een
@@ -43,7 +43,16 @@ eigen-kernelbuild exit 0; volledige `run_window_session.py --clipboard --workspa
 exit 0, 31 fasen, 254,22 s, ruwe QEMU-exit 33. Lezen, geweigerde bewerking,
 hersteld Schrijven en de oorspronkelijke volledige herstel-/schijfketen slagen.
 [Brongebonden bewijs](verification/veld-tools-20261103/README.md).
-Volgende stap: native200%-runner aansluiten en documentcontextmenu integreren.
+**Schaal2-harnas geïmplementeerd, native nog open:** runner, echte app-/shellorakels,
+manifestvalidatie en QMP-coordinaten ondersteunen nu ook1920x1080/200%.
+Nieuwe kernel-feature combineert alleen de twee bestaande hidpi-/probefeatures.
+14 runnertegenvoorbeelden, 21 packagertests en 61 compositorhosttests slagen.
+Log `files/veld-env/logs/veld-hidpi-host.log`. De volledige native200%-gate
+is bij dit checkpoint nog **niet uitgevoerd**. Geen 100%-bewijs omgelabeld.
+CI heeft beide schalen; er is nog geen nieuwe CI-uitvoering geclaimd.
+
+Volgende stap: nieuwe hidpi-probebuild en dezelfde volledige gate met
+`--clipboard --workspace --scale 2`, daarna documentcontextmenu integreren.
 Agent `e9f601e4` bouwt dat menu in aparte worktree, uitsluitend native
 controller/render en bijbehorende hosttests; hoofdagent beheert runner en
 fixtures. De complete omgeving blijft actief. Score **41 -> 41**;

@@ -11,9 +11,18 @@ fn render_workspace_shell_oracles() {
     };
     let directory = std::path::PathBuf::from(directory);
     let backing = vec![0; MAX_PIXELS];
-    let mut scene = Scene::new(1280, 720, 1, [1, 2]).unwrap();
-    scene.pointer = (1260, 50);
-    let mut damage = Damage::new(1280, 720).unwrap();
+    let scale = std::env::var("OS_WINDOW_SHELL_SCALE")
+        .unwrap_or_else(|_| "1".into())
+        .parse::<u32>()
+        .unwrap();
+    let (width, height) = match scale {
+        1 => (1280, 720),
+        2 => (1920, 1080),
+        _ => panic!("unsupported native fixture scale"),
+    };
+    let mut scene = Scene::new(width, height, scale, [1, 2]).unwrap();
+    scene.pointer = (width - 20, 50 * scale);
+    let mut damage = Damage::new(width, height).unwrap();
     for phase in [
         "focus-material",
         "focus-calculator",
@@ -94,13 +103,13 @@ fn render_workspace_shell_oracles() {
             "window-restored" => scene.select(0).unwrap(),
             _ => unreachable!(),
         }
-        let mut pixels = vec![0; 1280 * 720];
+        let mut pixels = vec![0; (width * height) as usize];
         scene
-            .render_reference(Rect::new(0, 0, 1280, 720), &mut pixels, &backing)
+            .render_reference(Rect::new(0, 0, width, height), &mut pixels, &backing)
             .unwrap();
         let mut file =
             std::fs::File::create_new(directory.join(format!("workspace-{phase}.ppm"))).unwrap();
-        file.write_all(b"P6\n1280 720\n255\n").unwrap();
+        write!(file, "P6\n{width} {height}\n255\n").unwrap();
         for pixel in pixels {
             file.write_all(&[(pixel >> 16) as u8, (pixel >> 8) as u8, pixel as u8])
                 .unwrap();

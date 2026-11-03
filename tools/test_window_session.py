@@ -17,6 +17,30 @@ def image(width,height,color):
 
 
 class WindowRunnerTests(unittest.TestCase):
+    def test_scale200_oracles_use_actual_app_and_shell_geometry(self):
+        width, height, body, calc = window.profile_geometry(2)
+        self.assertEqual((width, height, body, calc), (1920, 1080, (56, 228, 1120, 660), (1224, 280, 640, 608)))
+        raw = image(width, height, (1, 2, 3))
+        header = len(raw) - width * height * 3
+        for rectangle, phase in ((body, "read-tool"), (calc, "clipboard-pasted")):
+            expected = image(*rectangle[2:], (1, 2, 3))
+            self.assertTrue(window.oracle_matches(raw, expected, phase, 2))
+            x, y, w, h = rectangle
+            for px, py in ((x, y), (x + w - 1, y + h - 1), (x + w // 2, y + h // 2)):
+                changed = bytearray(raw)
+                changed[header + (py * width + px) * 3] ^= 1
+                self.assertFalse(window.oracle_matches(bytes(changed), expected, phase, 2))
+        for phase, regions in window.workspace_regions(2).items():
+            self.assertTrue(window.workspace_matches(raw, raw, phase, 2))
+            for x, y, w, h in regions:
+                window.crop(raw, (x, y, w, h))
+                changed = bytearray(raw)
+                changed[header + ((y + h // 2) * width + x + w // 2) * 3] ^= 1
+                self.assertFalse(window.workspace_matches(bytes(changed), raw, phase, 2))
+        for scale in (0, 3, -1):
+            with self.assertRaises(ValueError):
+                window.profile_geometry(scale)
+
     def test_document_tool_oracles_require_whole_body_without_masks(self):
         raw = image(1280, 720, (1, 2, 3))
         expected = image(880, 510, (1, 2, 3))
