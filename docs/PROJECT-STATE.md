@@ -1,6 +1,26 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
+## NEXT AGENT HANDOFF — changelog en voortgang bijgewerkt — 3 november 2026
+
+**Basis:** `380111b68688c981eec6abb8fab29174a29f5601`, branch
+`simonvanieperen-shiny-waddle`.
+
+**Gedaan:** `CHANGELOG.md` vat de 14 commits sinds `main` samen in
+gebruikersgerichte categorieën. Dit is documentatiewerk; er zijn geen
+OS-tests of nieuwe productacceptaties uitgevoerd. De voortgang blijft
+**41% → 41%**.
+
+**Open:** de bestaande PR127-integratiestatus en volledige testrelease blijven
+leidend. De HEAD-commit vermeldt dat 30 CI-controles slagen, maar het
+beschikbare `pr127-review-integration.json` markeert exacte-head-CI en
+native bewijs nog als open; zonder bijgewerkt, brongebonden rapport wordt dat
+verschil niet als aanvullende acceptatie behandeld. Fysieke hardware,
+menselijke audit en volledige release blijven open.
+
+**Eerstvolgend:** hervat de exacte-head-controles en leg actuele resultaten
+brongebonden vast; deze changelogtaak heeft die controles niet uitgevoerd.
+
+## Vorig checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 
 **Basis:** PR127 `798706c2a53d0062ce0474e5f84f294b2c37b825`, drie lokale
 fixleaves en PR126 `8f08db4c12573f91b57e55c30fa417e7abd358e6`, met main
