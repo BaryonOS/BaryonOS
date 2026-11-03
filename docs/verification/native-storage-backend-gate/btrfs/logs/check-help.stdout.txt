@@ -1,0 +1,41 @@
+usage: btrfs check [options] <device>
+
+    Check structural integrity of a filesystem (unmounted).
+
+    Check structural integrity of an unmounted filesystem. Verify internal
+    trees' consistency and item connectivity. In the repair mode try to
+    fix the problems found. 
+    WARNING: the repair mode is considered dangerous and should not be used
+             without prior analysis of problems found on the filesystem.
+
+    Starting point selection:
+    -s|--super <superblock>   use this superblock copy 
+    -b|--backup               use the first valid backup root copy 
+    -r|--tree-root <bytenr>   use the given bytenr for the tree root 
+    --chunk-root <bytenr>     use the given bytenr for the chunk tree root 
+    
+    Operation modes:
+    --readonly                run in read-only mode (default) 
+    --repair                  try to repair the filesystem (dangerous, see above warning) 
+    --force                   skip mount checks, recommended only with --readonly; WARNING: it is possible to run
+                              with --repair but on a mounted filesystem that will most likely lead to a corruption
+                              unless the filesystem is quiescent in a quiescent state which may not be possible to
+                              guarantee 
+    --mode <MODE>             allows choice of memory/IO trade-offs where MODE is one of: 
+                              original - read inodes and extents to memory (requires more memory, does less IO) 
+                              lowmem - try to use less memory but read blocks again when needed 
+    
+    Repair options:
+    --init-csum-tree          create a new CRC tree 
+    --init-extent-tree        create a new extent tree 
+    
+    Check and reporting options:
+    --check-data-csum         verify checksums of data blocks 
+    -Q|--qgroup-report        print a report on qgroup consistency 
+    -E|--subvol-extents <subvolid>
+                              print subvolume extents and sharing state 
+    -p|--progress             indicate progress 
+    
+    Deprecated or moved options:
+    --clear-space-cache v1|v2 clear space cache for v1 or v2 (moved to 'rescue' group) 
+

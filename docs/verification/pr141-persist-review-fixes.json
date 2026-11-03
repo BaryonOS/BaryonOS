@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-03",
+  "base_commit": "fbbc94aa562ea0a00e6faaf8a8477f8e2dc5ef59",
+  "scope": "Echte141-regressie en hostfix; browser-timerdeadline vanaf eerste pendinginvoer, niet na laatste toetsaanslag. Geen native/durableOS-opslagclaim.",
+  "old_app_sha256": "28445d36cc2a7f5385010dbd490a2a2969deaf46ac614d6416148d623761d2c2",
+  "tested_source_sha256": {
+    "ui/prototype/app.js": "77f90ee30ea6104e9b3bf51324a7ac8e327c7a3bae875d83636082b246dca179",
+    "ui/prototype/tests/render-performance.test.mjs": "1800a36855683555985eca49ce376e08b2e7fc27219b657fdb049582a856695a",
+    "ui/prototype/state.js": "c5e7a64522a66ac901ec36082b89a811d733f98241d4a44273a7f73dfdf5c0a6"
+  },
+  "checks": [
+    {
+      "command": "'/mnt/c/Program Files/nodejs/node.exe' --test 'C:\\Users\\simon\\AppData\\Local\\nieuw-os\\copilot-tests\\pr141-persist-20261103\\ui\\prototype\\tests\\render-performance.test.mjs'",
+      "exit_status": 1,
+      "tests": 1,
+      "failures": 1,
+      "log": "/tmp/nieuw-os-pr141-persist-red.log",
+      "sha256": "18e7ac60bc4a847fb100f7211f8a2ee1701569c794723304116ae8896668ee02"
+    },
+    {
+      "command": "'/mnt/c/Program Files/nodejs/node.exe' --test 'C:\\Users\\simon\\AppData\\Local\\nieuw-os\\copilot-tests\\pr141-persist-20261103\\ui\\prototype\\tests\\state.test.mjs' 'C:\\Users\\simon\\AppData\\Local\\nieuw-os\\copilot-tests\\pr141-persist-20261103\\ui\\prototype\\tests\\render-performance.test.mjs'",
+      "exit_status": 0,
+      "tests": 26,
+      "failures": 0,
+      "log": "/tmp/nieuw-os-pr141-persist-green.log",
+      "sha256": "0670325c4df88fc2bc8347ac7b558f9dd601bf6933ba3c6e4d7e32bf57d34abf"
+    },
+    {
+      "command": "args=(); for file in /mnt/c/Users/simon/AppData/Local/nieuw-os/copilot-tests/pr141-persist-20261103/ui/prototype/tests/*.test.mjs; do args+=(\"$(wslpath -w \"$file\")\"); done; '/mnt/c/Program Files/nodejs/node.exe' --test \"${args[@]}\"",
+      "exit_status": 0,
+      "tests": 41,
+      "failures": 0,
+      "log": "/tmp/nieuw-os-pr141-all-host-green.log",
+      "sha256": "4831038c3f945c172338438afc2b19788cfe27f9c056ca1b77d21eaef0746467"
+    }
+  ],
+  "assertions": [
+    "Zes invoerevents met60ms-ticks schrijven bij180 en360ms; de laatste invoer wordt eveneens weggeschreven",
+    "focusout en pagehide schrijven huidige editorconcepttekst en selectionStart; geen extra queued write na flush",
+    "Editor bereikt via de echte openObject/requestEdit/grantSession-handlerroute, niet door rechten in state te fabriceren",
+    "Fake resultscontainer alleen vindbaar als werkelijke appmarkup het id bevat; aparte echte-browserfocusproef blijft noodzakelijk"
+  ],
+  "old_code_red": "Werkelijk exit1: continuous typing must persist within each180ms interval,3!==4. Alleen test gewijzigd v\u00f3\u00f3r rode run; daarna1productieregel gewijzigd.",
+  "timer_caveat": "Fake klok controleert geplande deadlines; een geblokkeerde browser kan timers later uitvoeren. sessionStorage is geen duurzame OS-opslag.",
+  "render_host_oracle": {
+    "source_commit": "c94a40e97622ecd854865e4171ba9004011ebd87",
+    "command": "PATH=/home/simon/.cargo/bin:/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/host-linker:$PATH CARGO_TARGET_DIR=target/pr141-render-performance cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --test render_performance",
+    "exit_status": 0,
+    "tests": 2,
+    "elapsed_seconds": 1,
+    "log": "/tmp/nieuw-os-pr141-render-performance.log",
+    "sha256": "887405d3cde668522f128e1caf2fc8237d4ccb422e6e79dfc77b65fb561d5acc",
+    "boundary": "Hostuitvoering van de echte rendererfuncties en pixeloracle, geen gast/QEMU-run of native latency."
+  },
+  "native_browser_and_full_ci": "Reguliere Node-tests volledig groen. Echte Chrome-DOM/focus op de8 frontendhashes van c94a40e9 groen, zie pr141-browser-review.json; native/QEMU/fullCI blijven afzonderlijk.",
+  "progress_previous": 41,
+  "progress_current": 41
+}

@@ -1,0 +1,11 @@
+btrfs-progs
+  Depends: libblkid1
+  Depends: libc6
+  Depends: libcom-err2
+  Depends: libext2fs2t64
+  Depends: liblzo2-2
+  Depends: libudev1
+  Depends: libuuid1
+  Depends: libzstd1
+  Depends: zlib1g
+  Suggests: duperemove

@@ -143,7 +143,7 @@ impl Desktop {
     pub fn controls(&self, viewport: Viewport) -> [Option<(Target, Rect, &'static str)>; 7] {
         let w = viewport.logical_width();
         let h = viewport.logical_height();
-        let compact = h < 420;
+        let compact = h < 420 || w < 640;
         let width = w.saturating_sub(48).min(440);
         let x = (w - width) / 2;
         let y = if compact {
@@ -233,7 +233,12 @@ impl Desktop {
                 let bar_width = w.saturating_sub(24).min(680);
                 let bar_x = (w - bar_width) / 2;
                 let bar_y = h.saturating_sub(68);
-                let search_width = bar_width.saturating_sub(192).min(320);
+                let roomy_bar = bar_width >= 440;
+                let start_width = if roomy_bar { 88 } else { 44 };
+                let search_x = if roomy_bar { 104 } else { 60 };
+                let search_width = bar_width
+                    .saturating_sub(if roomy_bar { 248 } else { 192 })
+                    .min(320);
                 let panel_width = w.saturating_sub(48).min(620);
                 let panel_x = (w - panel_width) / 2;
                 let top = if compact { 40 } else { 132 };
@@ -243,15 +248,15 @@ impl Desktop {
                         Rect {
                             x: bar_x + 8,
                             y: bar_y + 8,
-                            width: 44,
+                            width: start_width,
                             height: 44,
                         },
-                        "Programma's",
+                        "Start",
                     )),
                     Some((
                         Target::Search,
                         Rect {
-                            x: bar_x + 60,
+                            x: bar_x + search_x,
                             y: bar_y + 8,
                             width: search_width,
                             height: 44,
@@ -295,9 +300,13 @@ impl Desktop {
                             } else {
                                 Rect {
                                     x: 32,
-                                    y: if compact { 64 } else { 176 },
-                                    width: if compact { 172 } else { 196 },
-                                    height: if compact { 88 } else { 148 },
+                                    y: if compact { 64 } else { 170 },
+                                    width: w.saturating_sub(64).min(704),
+                                    height: if compact {
+                                        96
+                                    } else {
+                                        h.saturating_sub(238).min(200)
+                                    },
                                 }
                             },
                             "Materiaal",

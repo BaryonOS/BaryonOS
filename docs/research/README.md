@@ -9,8 +9,23 @@ rendercode en officiële richtlijnen met de huidige eigen graphicsstack.
 [Het concrete ontwerpplan](../design/VISUAL-ARCHITECTURE-PLAN.md) bevat vijf
 verschillende presentatiearchitecturen, twintig toestanden per richting en
 studiewaarden voor kleur, tekst, diepte en motion. Veld en Werkstuk zijn
-aanbevolen voor beoordeling, niet definitief gekozen of geïmplementeerd.
-Geen gegenereerde beelden, native acceptatie of nieuwe voortgangspunten.
+oorspronkelijk aanbevolen voor beoordeling, niet definitief gekozen. De eerste
+native Veld-stappen staan in [de projectstatus](../PROJECT-STATE.md).
+Het onderzoek zelf leverde geen beelden, native acceptatie of voortgangspunten.
+
+## Actuele aanvulling — fase 2–4, 2 november 2026
+
+[De nieuwe onderzoeksindex](2026-11-02/README.md) bevat platformdossiers,
+een vergelijkende behoeftematrix, overstapbarrières en OS-ontwerptrends.
+De oorspronkelijke Eurobarometer-vraag QB6.4, tabel, methode en bewijsgrenzen
+zijn gecontroleerd; 58% betreft digitale dienstverleners, geen OS-migratie.
+De hieronder beschreven verkenningen van 28 oktober blijven als gedateerde
+achtergrond behouden; actuele broncontroles en beperkingen staan in de aanvulling.
+
+[De volledige OS-journey](2026-11-02/journey/README.md) breidt fase 4 uit met
+installatie, 28 eerste-dagtaken, overdraagbare kennis en voorgestelde
+installer-/onboardingcontracten. Dit zijn documentanalyses en ontwerpen,
+geen uitgevoerde installaties of nieuw native acceptatiebewijs.
 
 ## Bestaand markt- en consumentenonderzoek
 

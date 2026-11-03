@@ -4,6 +4,12 @@ De actieve volledige releaseopdracht en productacceptatie staan in
 [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft
 de ontwikkelmeter; het vervangt de conjunctieve releaseacceptatie niet.
 
+PR149-review op bron `53256f82`: **41 → 41**. Drie daadwerkelijk rood
+gereproduceerde kaartfouten hersteld: smal/hoog, overlopende tekst en
+onjuiste opslagoorzaak.59 volledige hosttests, Clippy, formattering en
+scalarno_std-librarybuild slagen. Geen nieuwe native gast-/screenshot- of
+menselijke acceptatie. [Volledig bewijs](verification/pr149-compact-review.json).
+
 ## Betekenis van het percentage
 
 De README toont **behaalde acceptatiepunten / 100**. De gewichten zijn een
@@ -96,6 +102,170 @@ acceptatie. U02-U06 en de volledige release blijven open; bestaand bewijs
 blijft brongebonden. Zie [ontwerpplan](design/VISUAL-ARCHITECTURE-PLAN.md)
 en [brononderzoek](research/VISUAL-RENDERING-RESEARCH.md).
 
+PR149 bronbewijsvervolg (3 november 2026), schone bron `bb8877e3`:
+59 hosttests echt opnieuw exit0 met cwd/HEAD/status/lock-/Rust-hashes vóór/na
+en volledig gehasht log in
+[de nieuwe receipt](verification/pr149-bb8877-host-receipt.json).
+De eerdere Watch-tijden zijn geen primaire receipt. Scalar/Clippy/fmt blijven
+hun oorspronkelijke bron532 houden; geen nieuw native/fysiek/menselijk bewijs.
+**41 →41**, geen code- of criteriumwijziging.
+
+PR149 derde main-integratie (3 november 2026), basis `41688635` met main
+`99d13276`: **41 → 41**. Vier documentatieconflicten verzoend met behoud
+van de compacte UI-fixes, hun brongebonden bewijs en de PR139-receipts.
+Geen runtimecode gewijzigd of nieuw acceptatiecriterium gesloten.
+
+PR149 tweede main-integratie (3 november 2026), basis `b75cfc3c` met main
+`d115cc96`: **41 → 41**. Vier documentatieconflicten inhoudsbehoudend
+verzoend. UI-code en artifact-store-tests blijven uit hun betreffende
+parent behouden; geen nieuwe criteria of native acceptatie.
+
+PR149-conflictoplossing (3 november 2026), PR-bron `92fdf2ff` met main
+`69809c2c`: **41 → 41**. Vier centrale documentatieconflicten verzoend;
+beide checkpointgeschiedenissen en de bestaande rubric blijven behouden.
+Geen runtimecode handmatig gewijzigd, geen nieuw acceptatiecriterium.
+Nieuwe-head-CI en native productacceptatie blijven afzonderlijke gates.
+
+Native startoppervlak (3 november 2026), implementatiebron `bd4134c`:
+**41% → 41%**. De opt-in VM-preview toont niet-geladen, lege, fout- en
+gevulde Materiaaltoestanden. Alle 55 `ui/native`-hosttests slagen, inclusief
+de pixelregressie; rustfmt, check, Clippy en de scalar
+`x86_64-unknown-none`-releasebuild slagen. De testlinker is tijdelijk uit
+Ubuntu-pakketten in `/tmp` opgebouwd, zonder systeeminstallatie. QEMU/OVMF en
+native screenshot ontbreken. Geen nieuw criterium of runtimebewijs.
+Zie `verification/native-start-surface-20261103/README.md`.
+
+PR139-review (3 november2026), exact geteste geïntegreerde bron `0a49a382`:
+**41 → 41**. Negen artifact-store-contracttests, Rust1.90.0 fmt en Clippy
+daadwerkelijk opnieuw groen; primaire logs/boom/commando's/codehashes staan
+in [de contracttestreceipt](verification/pr139-artifact-contract-receipt.json).
+Geen retrospectieve validatie van eerdere Watch-claims zonder receipt,
+geen nieuwe native of menselijke acceptatie.
+
+PR139-mainintegratie (3 november 2026), basis `341d1b42` met main
+`d115cc96`: **41 → 41**. De negen `artifact-store-core`-contracttests,
+formatcontrole en Clippy waren destijds als geslaagd gemeld zonder primaire
+PR139-receipt. Niet retrospectief geverifieerd; de nieuwe uitvoering op
+`0a49a382` hierboven heeft wel volledige primaire receipts.
+Dit toetst descriptorvalidatie en bounded-readgedrag, niet identiteit of
+authenticatie; geen native/productacceptatie of nieuwe punten. De op oude
+head `341d1b42` gerapporteerde `b03-native-update`-failure is door de
+gepubliceerde merge superseded en wordt niet als actuele testuitslag hergebruikt.
+
+PR139-reviewvervolg (3 november 2026), geteste bron `732fa9cc`: **41 → 41**.
+De 16 replay-hosttests met `umask 0077` zijn opnieuw groen; met `umask 0002`
+blijft exit 1 (1 failure, 2 errors) zichtbaar, geen groen resultaat.
+[Primaire receipts met volledige logs](verification/pr139-review-receipts.json)
+staan los van het
+[historische prioriteitencheckpoint](verification/priority-plan-checkpoint-20261103.json).
+Alleen dat historische checkpoint bevat de 15 workflowruns op `380111b`.
+De primaire PR139-receipts bevatten uitsluitend de twee replaytestuitvoeringen.
+Geen nieuwe native of productacceptatie.
+
+PR139-mainintegratie (3 november 2026), basis `76743f5d` met main
+`69809c2c`: **41 -> 41**. `76743f5d` is de assessmentbasis; de 15
+historische OS-workflowruns blijven uitsluitend bewijs op `380111b` en zijn
+niet opnieuw uitgevoerd. De unieke main-statushistorie is behouden; de 16
+storage-backend-replaytests slagen met
+umask `0077`. De ongewijzigde aanroep faalde in deze sandbox met umask
+`0002` doordat de private-inputtests groepsschrijfbare fixtures produceerden;
+de private-inputcontrole weigerde die correct. Progresscontrole slaagt; geen
+nieuwe productcriteria of punten. Reviewverzoeken blijven open en zijn niet
+in deze conflictintegratie afgehandeld.
+
+PR139-reviewcorrectie (3 november2026), basis`716f3ec1`: **41 ->41**.
+De gegenereerde `Bron` identificeert de assessmentbasis, niet automatisch
+de commit van ieder onderliggend bewijs. De samenvatting noemt nu expliciet
+de oorspronkelijke assessmentbasis`d3e5602c`, actuele basis`716f3ec1` en
+uitsluitende historische OS-bewijsbron`380111b`. Bestaand verplicht veld
+`assessment.source_commit` en generator blijven intact; afzonderlijke
+bewijsbron staat in het checkpoint. Geen nieuwe native uitvoering of punten.
+
+PR140-reviewvervolg (3 november 2026), geteste bron `2bf95782`: **41 → 41**.
+De 9 contracttests, typecontrole, Clippy en formattering zijn opnieuw groen.
+Volledige primaire logs met SHA-256 staan duurzaam in
+[het reviewbewijs](verification/pr140-review-evidence.json).
+Descriptorvalidatie/binding is geen bewijs van identiteit of authenticatie.
+Geen nieuwe native of productacceptatie.
+
+Historische PR140-reviewcorrectie (3 november 2026), basis `c07d15b8`: **41 → 41**.
+Alleen Nederlandse beschrijvingen in het historische hostrapport; commands,
+exitstatussen, bron-/loghashes en criteria blijven gelijk. Geen nieuwe tests
+of native productacceptatie door deze tekstcorrectie.
+PR119-inhoudsbehoud (3 november 2026), head `5a8317f1`: **41 -> 41**.
+Volledige nieuwste NAS-history opgenomen; alleen centrale statusconflicten,
+rubric buiten assessment identiek. Tweede/derde119-resolutie blijven
+historische uitvoeringen; hun exacte bronstatus en vier cloudmain-mergeheads
+zijn afzonderlijk gehasht bewaard, niet nieuwe native acceptatie.
+
+Main-reconciliatie (3 november 2026), bron `cbe28f39`: **41 -> 41**.
+Simons main134-squashcbbc9c99 behoudend opgenomen;10 netwerkservice- en16
+opslaghosttests groen,207 archiefhashes/99manifestentries geldig.
+Rubric buiten assessment identiek; historische134-nativegrenzen niet als
+verse uitvoering gepresenteerd. Volledige nieuwe CI/review blijft vereist.
+
+Documentstapelintegratie (3 november 2026), bron `1552e5ae`: **41 -> 41**.
+Volledige136/143/144/145-heads zijn boven de PR114-fixes behouden; geen
+runtime-, tool- of testcode gewijzigd door die vier merges. Alle rubricvelden
+buiten assessment waren identiek. Unieke intro/changelog/AI-rapport/audit
+blijven behouden, zonder AI-review als menselijke audit te presenteren.
+Gecombineerde huidige-head CI/review blijft vereist.
+
+PR136-documentintegratie (3 november 2026), bron `f6921e49`: **41 -> 41**.
+De L02-nativebron en A01accepted/R03open zijn correct geclassificeerd,
+zonder nieuwe productpunten. Alle zeven geleverde bestandshashes en het
+schema met39 groepen/62open releasekoppelingen zijn door parent gecontroleerd;
+de d777-CI-entry blijft behouden. Geen verse native of menselijke
+acceptatie afgeleid uit deze documentatiecorrectie.
+
+PR145-rapportintegratie (3 november 2026), rapportbasis `380111b6`:
+**41 -> 41**. Statische AI-review zonder opgeleverde bestands-/regeldekking;
+geen onafhankelijke menselijke of volledige codebase-audit. Toenmalige
+Dependabot-alertstatus was leeg, geen volledige advisoryscan. Secret
+Scanning stond uit en lokale scanners ontbraken; geen complete secretscan,
+codefix of producttest uitgevoerd. Zie
+`verification/security-audit-20261103.md`; geen nieuw acceptatiepunt.
+
+PR114-vervolgreview (3 november 2026), basis `783a48aa`: **41 -> 41**.
+Primaire bronmetadata verduidelijkt historische proofscope. Twee originele
+Btrfs-receipts binden82+17 entries onafhankelijk; onvolledige lijsten kunnen
+geen lokale succesrapportage meer krijgen. Regressies eerst rood,16
+hosttests daarna groen;207 oude archivehashes behouden. Geen nieuwe native
+criteria voor een documentatie-/harnascorrectie.
+
+PR114-research-/replayreview (3 november 2026), bron `d7d1fdc0`:
+**41 -> 41**. Bronlinks/Ubuntu-volgorde hersteld;207 historische hashes
+behouden, onveilige historische entrypoints afgeschermd en7 negatieve
+hosttests groen. Volledige engine-/native replay blijft open; geen
+backendadoptie, nieuw productcriterium of veiligheidspercentage.
+
+PR114-metadataverwijzing (2 november 2026), bron `52e1909c`: **41 -> 41**.
+De contractverwijzing noemt nu de echte fixbron `68d427b`, niet haar ouder
+`c1d62d83`; het actuele assessment verwijst naar de volledige gecombineerde
+bron. Geen runtimewijziging of nieuw acceptatiepunt.
+
+Main-desktopintegratie (2 november 2026), `380111b6` / geteste head `5343b0a`:
+**34 -> 41** door overname van U01 (+4) en N01 (+3), geen nieuwe gewichten.
+31 actuele checks en brongebonden review zonder bevindingen;22 native
+window/clipboard/herstelfasen en beide native netwerkcases slagen.
+De schijfcontrole bevestigt14bytes/rev1/canaries; source-v3b7ccd11f.
+De samengevoegde documentatie voegt zelf0punten toe; fysieke, menselijke,
+productiesleutel- en volledige releasegrenzen blijven open.
+Postmerge-CI loopt apart, geen hergebruik van oude bronclaims.
+
+PR114-review (2 november 2026), fixbron `68d427b`: **34 -> 34**.
+Het gebruikerswisselcontract beschrijft sleutelisolatie en handlelevensloop
+in beide richtingen; native negatieve acceptatie is nog niet uitgevoerd.
+Alleen ontwerp, geen profielenimplementatie of nieuwe productpunten.
+
+PR #119-conflictoplossing (2 november 2026), bron `fa97c692` met main
+`74a34d05`: **34% → 34%**. Main bevat de replay-implementatie en het bewijs
+al; de vijf conflicten behouden de latere lekcontrole en regressietests.
+Vóór het status-/metercheckpoint was de opgeloste boom bytegelijk aan main.
+39 NAS-, 17 replay/oracle- en 3 volume-hosttests en de NAS-archiefhashcontrole
+slagen. Strikte preflight faalt wegens ontbrekende Rust-/native-/QEMU-/OVMF-tools;
+native uitvoering en Rust-format/lint zijn niet uitgevoerd. Nieuwe-head CI
+blijft vereist. Geen nieuw geaccepteerd criterium of productpunt.
 PR127-reviewintegratie (2 november 2026), basis `798706c` met `8f08db4`:
 branch **41 → 41**, main **34 → 34**. Zeven reviewpunten en gekoppelde
 font/damage-integratie hersteld; 189 Rust-app/UI-,9 netwerk- en31 Python-tests
