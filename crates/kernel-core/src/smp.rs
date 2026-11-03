@@ -1,5 +1,10 @@
 //! Bounded processor inventory and monotonic AP bring-up state.
 
+use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
+
+#[cfg(test)]
+extern crate std;
+
 pub const MAX_CPUS: usize = 4;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -19,6 +24,139 @@ pub enum State {
     Starting,
     Online,
     Failed,
+}
+
+const RENDEZVOUS_COUNT_BITS: u32 = 16;
+const RENDEZVOUS_COUNT_MASK: u64 = (1 << RENDEZVOUS_COUNT_BITS) - 1;
+const RENDEZVOUS_FAILED: u64 = 1 << 63;
+const RENDEZVOUS_MAX_GENERATION: u64 = (RENDEZVOUS_FAILED - 1) >> RENDEZVOUS_COUNT_BITS;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum RendezvousError {
+    ParticipantCount,
+    AlreadyConfigured,
+    NotConfigured,
+    Failed,
+    Timeout,
+    TooManyParticipants,
+    GenerationOverflow,
+}
+
+/// Fixed-participant rendezvous. Each participant must arrive exactly once per generation.
+pub struct Rendezvous {
+    state: AtomicU64,
+    participants: AtomicUsize,
+}
+
+impl Rendezvous {
+    pub const fn new() -> Self {
+        Self {
+            state: AtomicU64::new(0),
+            participants: AtomicUsize::new(0),
+        }
+    }
+
+    pub fn configure(&self, participants: usize) -> Result<(), RendezvousError> {
+        if !(2..=MAX_CPUS).contains(&participants) {
+            return Err(RendezvousError::ParticipantCount);
+        }
+        self.participants
+            .compare_exchange(0, participants, Ordering::AcqRel, Ordering::Acquire)
+            .map(|_| ())
+            .map_err(|_| RendezvousError::AlreadyConfigured)
+    }
+
+    /// Wait for all configured participants, failing closed after a bounded spin count.
+    /// Returns the zero-based generation that completed.
+    pub fn wait_bounded(&self, max_spins: usize) -> Result<u64, RendezvousError> {
+        let participants = self.participants.load(Ordering::Acquire);
+        if participants == 0 {
+            return Err(RendezvousError::NotConfigured);
+        }
+
+        let mut state = self.state.load(Ordering::Acquire);
+        if state & RENDEZVOUS_FAILED != 0 {
+            return Err(RendezvousError::Failed);
+        }
+        let generation = state >> RENDEZVOUS_COUNT_BITS;
+
+        loop {
+            if state & RENDEZVOUS_FAILED != 0 {
+                return Err(RendezvousError::Failed);
+            }
+            if state >> RENDEZVOUS_COUNT_BITS != generation {
+                return Ok(generation);
+            }
+
+            let arrived = (state & RENDEZVOUS_COUNT_MASK) as usize;
+            if arrived >= participants {
+                return self.fail_generation(generation, RendezvousError::TooManyParticipants);
+            }
+            if arrived + 1 == participants {
+                if generation == RENDEZVOUS_MAX_GENERATION {
+                    return self.fail_generation(generation, RendezvousError::GenerationOverflow);
+                }
+                let next = (generation + 1) << RENDEZVOUS_COUNT_BITS;
+                match self.state.compare_exchange_weak(
+                    state,
+                    next,
+                    Ordering::AcqRel,
+                    Ordering::Acquire,
+                ) {
+                    Ok(_) => return Ok(generation),
+                    Err(observed) => state = observed,
+                }
+            } else {
+                match self.state.compare_exchange_weak(
+                    state,
+                    state + 1,
+                    Ordering::AcqRel,
+                    Ordering::Acquire,
+                ) {
+                    Ok(_) => break,
+                    Err(observed) => state = observed,
+                }
+            }
+        }
+
+        for _ in 0..max_spins {
+            state = self.state.load(Ordering::Acquire);
+            if state & RENDEZVOUS_FAILED != 0 {
+                return Err(RendezvousError::Failed);
+            }
+            if state >> RENDEZVOUS_COUNT_BITS != generation {
+                return Ok(generation);
+            }
+            core::hint::spin_loop();
+        }
+
+        self.fail_generation(generation, RendezvousError::Timeout)
+    }
+
+    fn fail_generation(
+        &self,
+        generation: u64,
+        error: RendezvousError,
+    ) -> Result<u64, RendezvousError> {
+        let mut state = self.state.load(Ordering::Acquire);
+        loop {
+            if state & RENDEZVOUS_FAILED != 0 {
+                return Err(RendezvousError::Failed);
+            }
+            if state >> RENDEZVOUS_COUNT_BITS != generation {
+                return Ok(generation);
+            }
+            match self.state.compare_exchange_weak(
+                state,
+                state | RENDEZVOUS_FAILED,
+                Ordering::AcqRel,
+                Ordering::Acquire,
+            ) {
+                Ok(_) => return Err(error),
+                Err(observed) => state = observed,
+            }
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -136,6 +274,7 @@ impl CpuSet {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::{sync::Arc, thread};
 
     #[test]
     fn inventory_accepts_sparse_ids_and_marks_only_the_bsp_online() {
@@ -171,5 +310,50 @@ mod tests {
         assert_eq!(cpus.mark_online(99), Err(Error::UnknownCpu));
         assert_eq!(cpus.online_count(), 2);
         assert_eq!(cpus.state(9), Some(State::Failed));
+    }
+
+    #[test]
+    fn rendezvous_rejects_invalid_or_repeated_configuration() {
+        let rendezvous = Rendezvous::new();
+        assert_eq!(
+            rendezvous.wait_bounded(1),
+            Err(RendezvousError::NotConfigured)
+        );
+        for participants in [0, 1, MAX_CPUS + 1] {
+            assert_eq!(
+                rendezvous.configure(participants),
+                Err(RendezvousError::ParticipantCount)
+            );
+        }
+        rendezvous.configure(2).unwrap();
+        assert_eq!(
+            rendezvous.configure(2),
+            Err(RendezvousError::AlreadyConfigured)
+        );
+    }
+
+    #[test]
+    fn rendezvous_releases_all_participants_for_repeated_generations() {
+        let rendezvous = Arc::new(Rendezvous::new());
+        rendezvous.configure(MAX_CPUS).unwrap();
+        let workers: [thread::JoinHandle<()>; MAX_CPUS] = core::array::from_fn(|_| {
+            let rendezvous = Arc::clone(&rendezvous);
+            thread::spawn(move || {
+                for generation in 0..128 {
+                    assert_eq!(rendezvous.wait_bounded(10_000_000), Ok(generation));
+                }
+            })
+        });
+        for worker in workers {
+            worker.join().unwrap();
+        }
+    }
+
+    #[test]
+    fn rendezvous_timeout_poison_prevents_late_reuse() {
+        let rendezvous = Rendezvous::new();
+        rendezvous.configure(2).unwrap();
+        assert_eq!(rendezvous.wait_bounded(8), Err(RendezvousError::Timeout));
+        assert_eq!(rendezvous.wait_bounded(8), Err(RendezvousError::Failed));
     }
 }

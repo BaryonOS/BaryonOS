@@ -5,7 +5,7 @@ use core::{
 };
 
 use boot_protocol::smp::{Info, MAX_CPUS};
-use kernel_core::smp::{CpuSet, State};
+use kernel_core::smp::{CpuSet, Rendezvous, State};
 
 use super::{ap, paging::Paging, FRAME_COUNT};
 use crate::serial;
@@ -55,11 +55,15 @@ static AP_STATES: [AtomicU8; MAX_CPUS] = [const { AtomicU8::new(AP_DISCOVERED) }
 static REQUESTS: [AtomicU32; MAX_CPUS] = [const { AtomicU32::new(0) }; MAX_CPUS];
 static ACKS: [AtomicU32; MAX_CPUS] = [const { AtomicU32::new(0) }; MAX_CPUS];
 static STOP: AtomicBool = AtomicBool::new(false);
+static WORK_RENDEZVOUS: Rendezvous = Rendezvous::new();
 
 pub fn prepare(info: &Info, paging: &mut Paging, frames: &mut kernel_core::Frames<FRAME_COUNT>) {
     info.validate().expect("SMP topology");
     let count = usize::from(info.cpu_count);
     assert!(count >= 2, "SMP acceptance requires at least two CPUs");
+    WORK_RENDEZVOUS
+        .configure(count)
+        .expect("SMP rendezvous participants");
     let mut cpus =
         CpuSet::new(&info.apic_ids[..count], info.bootstrap_apic_id).expect("CPU inventory");
     assert_eq!(cpus.online_count(), 1);
@@ -196,6 +200,17 @@ pub fn start_and_test(info: &Info) {
                 continue;
             }
             REQUESTS[index].store(round, Ordering::Release);
+        }
+        let generation = WORK_RENDEZVOUS
+            .wait_bounded(MAX_AP_POLLS)
+            .unwrap_or_else(|_| serial::fail(b"SMP:RENDEZVOUS_TIMEOUT"));
+        if generation != u64::from(round - 1) {
+            serial::fail(b"SMP:RENDEZVOUS_GENERATION");
+        }
+        for index in 0..usize::from(info.cpu_count) {
+            if index == bootstrap {
+                continue;
+            }
             let mut polls = 0;
             while ACKS[index].load(Ordering::Acquire) != round {
                 if AP_STATES[index].load(Ordering::Acquire) != AP_ONLINE || polls == MAX_AP_POLLS {
@@ -211,6 +226,7 @@ pub fn start_and_test(info: &Info) {
             serial::fail(b"SMP:WORK_COUNT");
         }
     }
+    serial::write(b"SMP:RENDEZVOUS:PASS\n");
     serial::write(b"SMP:WORKERS:PASS\n");
     STOP.store(true, Ordering::Release);
     for index in 0..usize::from(info.cpu_count) {
@@ -245,7 +261,15 @@ extern "C" fn ap_entry(apic_id: u32, index: u32) -> ! {
         }
         let request = REQUESTS[index].load(Ordering::Acquire);
         if request > ACKS[index].load(Ordering::Relaxed) {
-            ACKS[index].store(request, Ordering::Release);
+            match WORK_RENDEZVOUS.wait_bounded(MAX_AP_POLLS) {
+                Ok(generation) if generation == u64::from(request - 1) => {
+                    ACKS[index].store(request, Ordering::Release);
+                }
+                _ => {
+                    AP_STATES[index].store(AP_FAILED, Ordering::Release);
+                    terminal_halt();
+                }
+            }
         }
         spin_loop();
     }

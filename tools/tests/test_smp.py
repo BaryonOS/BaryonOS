@@ -8,7 +8,12 @@ def transcript(cpus=2):
     lines = list(run_smp.BOOT)
     lines.extend("SMP:AP:ENTRY" for _ in range(cpus - 1))
     lines.extend(f"SMP:CPU:{index}:APIC:{index}:ONLINE" for index in range(cpus))
-    lines.extend((f"SMP:CPUS:{cpus}", "SMP:WORKERS:PASS", "SMP:PASS"))
+    lines.extend((
+        f"SMP:CPUS:{cpus}",
+        "SMP:RENDEZVOUS:PASS",
+        "SMP:WORKERS:PASS",
+        "SMP:PASS",
+    ))
     return "\n".join(lines) + "\n"
 
 
@@ -18,12 +23,14 @@ class SmpEvidenceTests(unittest.TestCase):
             with self.subTest(cpus=cpus):
                 result = run_smp.evaluate(cpus, transcript(cpus), 33, False)
                 self.assertEqual(len(result["logical_apic_ids"]), cpus)
+                self.assertEqual(result["rendezvous_generations"], 64)
                 self.assertEqual(result["workers"], 64)
 
     def test_missing_duplicate_reordered_and_failure_evidence_is_rejected(self):
         valid = transcript()
         cases = (
             valid.replace("SMP:WORKERS:PASS\n", ""),
+            valid.replace("SMP:RENDEZVOUS:PASS\n", ""),
             valid + "SMP:PASS\n",
             valid.replace("SMP:AP:ENTRY\n", ""),
             valid.replace("SMP:CPU:1:APIC:1:ONLINE\n", ""),

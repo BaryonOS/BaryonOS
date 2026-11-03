@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run host evidence tests and native 1/2/4-CPU QEMU SMP acceptance probes."""
+"""Run host evidence tests and native 1/2/4-CPU QEMU SMP rendezvous probes."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -20,10 +20,10 @@ def main() -> int:
     now = datetime.now(timezone.utc)
     local_date = now.astimezone(ZoneInfo("Europe/Amsterdam")).date().isoformat()
     stamp = now.strftime("%Y%m%dT%H%M%SZ")
-    receipt = ROOT / "docs/verification/sm-smp" / f"ap-bringup-{stamp}.json"
+    receipt = ROOT / "docs/verification/sm-smp" / f"smp-rendezvous-{stamp}.json"
     summary = {
         "schema_version": 1,
-        "task": "SYSTEM-MATURITY-SMP AP bring-up checkpoint",
+        "task": "SYSTEM-MATURITY-SMP AP bring-up and rendezvous checkpoint",
         "source_fingerprint_version": 3,
         "source_sha256": source,
         "source_commit": subprocess.check_output(
@@ -38,8 +38,8 @@ def main() -> int:
         "host": None,
         "stages": [],
         "acceptance_boundary": (
-            "AP startup and bounded atomic worker smoke only; not full K06 scheduling, "
-            "IPC, revoke, exit, cross-CPU TLB, or concurrency acceptance."
+            "AP startup and bounded all-CPU atomic rendezvous/worker smoke only; not full "
+            "K06 scheduling, IPC, revoke, exit, cross-CPU TLB, or race acceptance."
         ),
     }
     receipt.parent.mkdir(parents=True, exist_ok=True)
@@ -103,7 +103,7 @@ def main() -> int:
     summary["status"] = "completed"
     summary["passed"] = source_hash() == source and len(summary["stages"]) == 3
     save_json(receipt, summary)
-    print(f"SMP AP bring-up passed={summary['passed']} stages={len(summary['stages'])} {receipt}")
+    print(f"SMP rendezvous passed={summary['passed']} stages={len(summary['stages'])} {receipt}")
     return 0 if summary["passed"] else 1
 
 

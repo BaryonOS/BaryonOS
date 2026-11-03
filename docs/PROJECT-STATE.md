@@ -2,40 +2,58 @@
 
 ## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
 
-**Bronbasis:** branch `simonvanieperen-studious-spoon`, HEAD
-`63f1da11c6dd510e6ad692fdd20fb454e8fe156c`; worktree dirty en niet
-gecommit/gepusht. Queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`
-wees `SYSTEM-MATURITY-SMP` actief toe. OOM/K05 zijn afgesloten; hun code
-blijft ongemoeid.
+**NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026**
 
-**AP-bring-upcheckpoint: PASS op de huidige worktree, nog niet gecommit.**
-De AP-stackfout kwam niet door een ontbrekende virtuele mapping: alle AP-
-stackpagina's stonden identity-mapped RW/NX in de gedeelde `Paging`-root.
-De BSP had `EFER.NXE` gezet, maar de AP-trampoline niet; daardoor behandelde
-de AP NX-bits als gereserveerd en kreeg de stackpush een page fault. De AP zet
-nu LME en NXE vóór paging. De trampoline gebruikt daarnaast een 32-bit
-protected-mode-descriptor vóór de 64-bit long-mode-descriptor. Elke AP-stack
-heeft vier RW/NX-pagina's en onbemapte onder-/boven-guardpagina's; voorbereiding
-controleert mapping, rechten, bounds, guards en niet-overlappende stackranges.
+**Bronbasis:** branch `simonvanieperen-studious-spoon`, pushed HEAD
+`cec73173b8a07f3f59cae71ca33021ce3f5e6549`. Dat checkpoint bevat de
+AP-bring-upfix; de volgende rendezvous-slice is nog lokale WIP. Queuebron
+`707a768c1df81e674a15c4aa013f44b85b90c700` wees `SYSTEM-MATURITY-SMP`
+actief toe. OOM/K05 zijn afgesloten; hun code blijft ongemoeid.
 
-**Bewijs:** `python3 -B tools/test_smp.py` slaagde op 3 november 2026: 3
-hosttests, single-CPU M2, 2 CPU en 4 CPU; de native QEMU-runs eindigden alle op
-verwachte raw exit 33. CPU-identiteiten waren in de 4-CPU-run 0, 1, 2 en 3;
-alle AP's rapporteerden online en voltooiden 64 workerrounds. QEMU 10.2.1 /
-OVMF 4M kwam uit `/tmp/sm-oom-qemu-root`; de disposable rundirectories en
-ruwe logs staan onder `build/run/`. Compact bewijs:
-[`ap-bringup-20261103T165905Z.json`](verification/sm-smp/ap-bringup-20261103T165905Z.json).
-QEMU meldde op stderr dat `kvmvapic.bin` niet gevonden werd; de vereiste
-gastmarkers en exits slaagden, maar die waarschuwing is niet onderzocht.
+**AP-bring-up: PASS en vastgelegd op `cec73173`.** De AP-stackfout kwam niet
+door een ontbrekende virtuele mapping: stackpagina's stonden identity-mapped
+RW/NX in de gedeelde `Paging`-root. De AP-trampoline had echter EFER.NXE niet
+gezet en behandelde NX-bits als gereserveerd. De trampoline activeert nu LME
+en NXE en gebruikt een 32-bit protected-mode-descriptor vóór de 64-bit
+long-mode-descriptor. Elke AP-stack heeft vier RW/NX-pagina's en onbemapte
+onder-/boven-guardpagina's; voorbereiding controleert mapping, rechten, bounds,
+guards en niet-overlappende ranges.
 
-Dit is **geen volledige K06-acceptatie**. De workerproef gebruikt atomische
-polling en bewijst nog geen SMP-scheduling van M3-processen, cross-CPU-IPC,
-revoke/exit, TLB-shootdown of race/failure-integratie. De M3-state en huidige
-interruptpaden zijn single-CPU/IF=0; die paden parallel activeren zonder een
-afgebakend serialisatie- en per-CPU-model is niet veilig. Volgende stap binnen
-SYSTEM-MATURITY-SMP: een begrensde, echte AP-barrière/synchronisatieproef en
-daarna alleen de noodzakelijke M3-integratie volgens de bestaande acceptatie.
-`DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
+**Nieuwe SMP-rendezvous-slice: runtime PASS, nog niet gecommit.** `Rendezvous`
+in `crates/kernel-core/src/smp.rs` gebruikt een atomic generatie-/aankomststatus,
+een vaste deelnemerscount en een bounded spin-wachttijd. Timeout maakt de
+rendezvous permanent failed; er is geen hergebruik na een gedeeltelijke
+deelnamemislukking. BSP en iedere AP nemen in de native QEMU-proef deel aan
+64 opeenvolgende generaties; de BSP publiceert eerst de rondeverzoeken en
+controleert daarna iedere AP-acknowledgement.
+
+**Bewijs:** de volledige 1/2/4-matrix slaagde op 3 november 2026 met exit 0:
+`python3 -B tools/test_smp.py`, uitgevoerd met
+`PATH="$HOME/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:$PATH"`,
+`LD_LIBRARY_PATH=/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu:/tmp/sm-oom-qemu-root/lib/x86_64-linux-gnu`,
+`OS_OVMF_CODE=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd` en
+`OS_OVMF_VARS=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd`.
+De 2- en 4-CPU-QEMU-runs eindigden op raw exit 33; alle CPU/APIC-identiteiten
+waren uniek en online, met 64 rendezvous-generaties en worker-acknowledgements.
+Hostharnas: 3 tests, exit 0. QEMU 10.2.1 / OVMF 4M.
+Receipt:
+[`smp-rendezvous-20261103T170716Z.json`](verification/sm-smp/smp-rendezvous-20261103T170716Z.json);
+ruwe logs onder `build/run/smp-{single,two,four}-*`.
+QEMU meldde een ontbrekend `kvmvapic.bin`; gastmarkers en exits slaagden,
+waarschuwing niet onderzocht.
+
+**Niet uitgevoerd:** `cargo test -p kernel-core --offline --locked` kon niet
+linken (exit 101: `cc` ontbreekt); een niet-interactieve installatiepoging
+faalde omdat `sudo` authenticatie vroeg. Rustfmt-controles voor `kernel-core`
+en `kernel` slaagden.
+
+Dit is **geen volledige K06-acceptatie**. De rendezvous bewijst geen
+M3-processcheduling, cross-CPU-IPC, revoke/exit, TLB-shootdown of bredere
+race-/failure-integratie. M3-state en huidige interruptpaden zijn
+single-CPU/IF=0; activeer die niet parallel zonder een expliciet
+per-CPU-/serialisatiemodel. Volgende stap: traceer de bestaande scheduler- en
+IPC-state en bepaal de kleinste veilige SMP-integratie binnen de bestaande
+acceptatie. `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
 
 ## Afgerond checkpoint — SM-OOM-1 P0 en K05-regressie — 3 november 2026
 

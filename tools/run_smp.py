@@ -26,6 +26,7 @@ def expected_markers(cpus: int) -> tuple[str, ...]:
         f"SMP:CPU:{index}:APIC:" for index in range(cpus)
     ) + (
         f"SMP:CPUS:{cpus}",
+        "SMP:RENDEZVOUS:PASS",
         "SMP:WORKERS:PASS",
         "SMP:PASS",
     )
@@ -62,14 +63,19 @@ def evaluate(cpus: int, stdout: str, returncode: int | None, timed_out: bool) ->
         raise ValueError("CPU inventory is incomplete or contains duplicate APIC IDs")
     entries = ("SMP:AP:ENTRY",) * (cpus - 1)
     expected = BOOT + entries + tuple(cpu_lines) + (
-        f"SMP:CPUS:{cpus}", "SMP:WORKERS:PASS", "SMP:PASS",
+        f"SMP:CPUS:{cpus}", "SMP:RENDEZVOUS:PASS", "SMP:WORKERS:PASS", "SMP:PASS",
     )
     observed = tuple(line for line in lines if line in BOOT or line.startswith("SMP:"))
     if observed != expected:
         raise ValueError(f"evidence sequence mismatch: {observed}")
     if returncode != 33 or timed_out:
         raise ValueError(f"raw QEMU exit {returncode}, timeout {timed_out}")
-    return {"cpu_count": cpus, "logical_apic_ids": parsed, "workers": 64}
+    return {
+        "cpu_count": cpus,
+        "logical_apic_ids": parsed,
+        "rendezvous_generations": 64,
+        "workers": 64,
+    }
 
 
 def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT) -> dict:
@@ -154,7 +160,8 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT) -> dict:
         "expected_exit": 33,
         "required_markers": [*BOOT, *(("SMP:AP:ENTRY",) * (cpus - 1)),
                              *(f"SMP:CPU:{i}:APIC:<id>:ONLINE" for i in range(cpus)),
-                             f"SMP:CPUS:{cpus}", "SMP:WORKERS:PASS", "SMP:PASS"],
+                             f"SMP:CPUS:{cpus}", "SMP:RENDEZVOUS:PASS",
+                             "SMP:WORKERS:PASS", "SMP:PASS"],
         "command": command,
         "qemu_version": version,
         "profile": f"{machine}/qemu64/TCG-multi/{cpus}CPU/256MiB",
