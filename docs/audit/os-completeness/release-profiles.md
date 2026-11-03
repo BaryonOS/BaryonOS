@@ -18,8 +18,13 @@ release gereed.
 - Authenticated user data, app store/package lifecycle, netwerk/browser,
   betrouwbare backup, accessibility, power, NAS en lokale AI: minimaal
   `DAILY_DRIVER_BETA`.
-- Installer/migratie, fysieke supportmatrix, incident-/supportproces en
-  onafhankelijke releasevalidatie: `CONSUMER_RELEASE`.
+- Volledige installer en migratie, fysieke supportmatrix, incident-/
+  supportproces en onafhankelijke releasevalidatie: `CONSUMER_RELEASE`.
+
+De matrixgroep `INSTALLER` omvat een volledige bootable installer,
+schijfselectie, installatie en migratie. Herstel na mislukte updates is apart
+opgenomen in `UPDATES-RECOVERY`; die beperktere herstelroute verlaagt de
+poort voor volledige installatie en migratie niet.
 
 `matrix.json` geeft per feature de eerste profielpoort. Voor fysieke
 energie-/driverfuncties blijft werkelijk hardwarebewijs vereist; een VM-profile

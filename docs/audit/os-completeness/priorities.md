@@ -16,17 +16,17 @@ Security Floor en afhankelijke fundering vóór zichtbare polish.
 | 6 | P0 | Update + herstel als één transactie | Accepted B03 componenttest is niet de volledige gebruikersherstelroute. | Signed image, durable data, recovery; onderbreking in elke kritieke fase. |
 | 7 | P0 | Drivers en één fysiek supportprofiel | QEMU is geen fysiek hardwareondersteuningsbewijs. | Exacte hardware, inputs/display/network/storage/power tests. |
 | 8 | P0 | Native accessibility en echte menselijke taakproef | Huidige browser/semantiekchecks sluiten screenreader- of usabilitybehoefte niet. | UI tree/events, tester, keyboard-only/200%/reduced motion. |
-| 9 | P1 | Native Materiaal/editor, settings en dagelijkse utilities | Dit vormt de dagelijkse gebruikswaarde van het product. | Storage/UI/SDK; saved/reopen, real content, error handling. |
+| 9 | P0/P1 | Native Materiaal/editor (P0), settings en dagelijkse utilities (P1) | Dit vormt de dagelijkse gebruikswaarde van het product. | Storage/UI/SDK; saved/reopen, real content, error handling. |
 | 10 | P1 | Browser, formats, app package lifecycle en media | Overstappen vraagt internet, documenten en verwisselbare tools. | Maintained engines, formats/licenses, grants and update ownership. |
 
 ### P2/P3/Research
 
 - **P2 adoption:** betrouwbare NAS automatisch hervatten binnen bestaande
   grants; onboarding begrijpelijk maken; table/presentation/media family;
-  notifications/focus; import/export van prioritaire documentformaten.
-- **P3 differentiator:** Materiaalcontinuïteit tussen tools/apparaten, lokale
-  AI met geselecteerde context en quiet-futurism design, pas na native
-  fundering en menselijke evaluatie.
+  notifications/focus; import/export van prioritaire documentformaten; lokale
+  AI met geselecteerde context.
+- **P3 differentiator:** Materiaalcontinuïteit tussen tools/apparaten en
+  quiet-futurism design, pas na native fundering en menselijke evaluatie.
 - **P4 later:** uitbreidingen die geen dagelijkse beta blocker zijn, na
   resource-/supportonderzoek.
 - **RESEARCH:** Q1 quantum-interface, fysieke QPU, CHERI, extra ISA's en

@@ -40,9 +40,9 @@
     },
     "first_required_release_profile_counts": {
       "TECHNICAL_PREVIEW": 5,
-      "EXPERIMENTAL_DESKTOP": 12,
+      "EXPERIMENTAL_DESKTOP": 11,
       "DAILY_DRIVER_BETA": 19,
-      "CONSUMER_RELEASE": 3
+      "CONSUMER_RELEASE": 4
     },
     "binding_full_release_rows": 62,
     "binding_release_rows_mapped": 62,
@@ -70,6 +70,13 @@
       "result": "passed",
       "command": "python3 - <<'PY' ... compare the 62 FULL-TEST-RELEASE table rows with release-criteria-map.md ... PY",
       "evidence": "All 62 unique binding row IDs are mapped once; titles match the source and every referenced audit group exists. All release gates remain OPEN."
+    },
+    {
+      "id": "PR136-DOCUMENTATION-REVIEW",
+      "result": "passed",
+      "command": "Python 3 assertion check: schema, audit/status/profile counts, priority labels, release-profile scopes, 62-row mapping, links, and stale CI wording",
+      "exit_status": 0,
+      "evidence": "Validated all four documentation corrections against the binding matrix. Profile counts are 5 technical preview, 11 experimental desktop, 19 daily-driver beta, and 4 consumer release; all 62 release rows remain open."
     },
     {
       "id": "INTERNAL-LINKS",

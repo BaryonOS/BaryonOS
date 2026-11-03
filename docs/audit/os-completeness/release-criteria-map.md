@@ -19,7 +19,7 @@ niet.
 | FR-S01 | richt eerste gebruik en lokaal profiel in | `SESSION-AUTH`, `INSTALLER` | OPEN |
 | FR-S02 | vergrendel en ontgrendel de sessie | `SESSION-AUTH` | OPEN |
 | FR-S03 | wijzig instellingen en vind ze na herstart terug | `SETTINGS` | OPEN |
-| FR-S04 | herstart of sluit af met open werk | `SESSION-AUTH`, `BACKUP-RESTORE`, `UPDATES-RECOVERY` | OPEN |
+| FR-S04 | herstart of sluit af met open werk | `SESSION-AUTH`, `BACKUP-RESTORE`, `UPDATES-RECOVERY`, `POWER-ENERGY` | OPEN |
 | FR-S05 | hervat en gebruik energiebeheer volgens profiel | `POWER-ENERGY` | OPEN |
 | FR-U01 | navigeer Materiaal, Bewerken, Gereedschap, Toegang, Apparaten en Assistent | `DESKTOP-COMPOSITOR`, `WINDOW-MANAGEMENT`, `MATERIAL-EDITOR` | OPEN |
 | FR-U02 | selecteer, kopieer/plak, gebruik contextmenu en sleep | `CLIPBOARD-SHARE` | OPEN |
@@ -70,7 +70,7 @@ niet.
 | FR-B05 | laat beveiligingsgrenzen onafhankelijk controleren | `PRIVACY-SECURITY`, `RELEASE-VALIDATION` | OPEN |
 | FR-R01 | doorloop het dagelijkse product als geheel | `RELEASE-VALIDATION` | OPEN |
 | FR-R02 | start herhaald en werk langdurig gecombineerd | `RELEASE-VALIDATION` | OPEN |
-| FR-R03 | installeer/herstel op ondersteunde fysieke configuraties | `RELEASE-VALIDATION`, `K-DRIVERS` | OPEN |
+| FR-R03 | installeer/herstel op ondersteunde fysieke configuraties | `RELEASE-VALIDATION`, `K-DRIVERS`, `INSTALLER` | OPEN |
 | FR-R04 | reproduceer en beoordeel het complete testpakket | `GOVERNANCE`, `RELEASE-VALIDATION` | OPEN |
 
 De introductietekst en historische vermeldingen van `FR-*` elders in de

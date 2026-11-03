@@ -1,12 +1,13 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — OS-completeness-audit in concept-PR #136 — 2 november 2026
+## NEXT AGENT HANDOFF — PR #136 auditreview hersteld — 3 november 2026
 
 **Productbasis:** `main` `380111b68688c981eec6abb8fab29174a29f5601`.
-Documentatiebranch `simonvanieperen-cautious-happiness` staat op
-`ccc852685a65b7dd7b0a31ed7b53ae5309328d06`; concept-PR #136 richt zich op die
-main-HEAD. Audit-only: geen productcode, criteria of gewichten gewijzigd.
-Roadmap **41/100 → 41/100**.
+Documentatiebranch `simonvanieperen-cautious-happiness` stond bij hervatten
+op `047c52e82e58d20026461fe5f533a4efa58b569d`; concept-PR #136 richt zich op
+dezelfde main-HEAD. Vier CodeRabbit-opmerkingen zijn bevestigd en minimaal
+hersteld in auditdocumentatie. Geen productcode, acceptatiecriteria of
+gewichten gewijzigd. Roadmap **41/100 → 41/100**.
 
 **Audituitkomst:** 39 gegroepeerde feature-records staan in
 `docs/audit/os-completeness/`; alle 62 bindende `FR-*`-releasecriteria blijven
@@ -21,12 +22,17 @@ is afgerond met `success`. CI is geen volledige product-/releaseacceptatie.
 Deze audit heeft zelf geen lokale build, QEMU-run, hardwaretest, gebruikerstest,
 externe securityreview of releasevalidatie uitgevoerd.
 
-**GitHub:** concept-PR #136 is open op `ccc8526`, base `380111b`; de branch en
-remotecommit zijn gelijk. Nieuwe productcode is niet gestart: de bestaande
-werkqueue benoemt een exclusieve integrator en deze sessie heeft geen
-bestandsopdracht toegewezen gekregen. Vervolg de geïntegreerde releasequeue
-alleen na actuele eigenaars-/scopecontrole. Auditrapport en bronstand:
-`docs/audit/os-completeness/`.
+**Reviewcorrecties:** stale exacte-head-CI-tekst vervangen; prioriteitenlijst
+in lijn gebracht met de matrix; `POWER-ENERGY` en `INSTALLER` aan FR-S04/FR-R03
+gekoppeld; ACCESSIBILITY/COMPATIBILITY-profielpoorten gecorrigeerd en
+INSTALLER-afbakening verduidelijkt. JSON Schema, 39 groepen, statussen,
+profiel-/prioriteitsaantallen, alle 62 criteria-koppelingen en interne links
+zijn gecontroleerd; voortgangsmeter slaagt op 41/100. PR #136 blijft concept
+tot de review-/gates op de nieuwe head opnieuw zijn beoordeeld. Geen
+productcode of producttests gewijzigd. De bestaande werkqueue benoemt een
+exclusieve integrator; nieuwe productcode is hier niet toegekend.
+
+Auditrapport en bronstand: `docs/audit/os-completeness/`.
 
 ## Eerder checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 

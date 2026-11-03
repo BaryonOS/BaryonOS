@@ -2,12 +2,12 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-02",
-    "source_commit": "ccc852685a65b7dd7b0a31ed7b53ae5309328d06",
+    "date": "2026-11-03",
+    "source_commit": "047c52e82e58d20026461fe5f533a4efa58b569d",
     "branch": "simonvanieperen-cautious-happiness",
-    "task": "OS-completeness-audit als concept-PR overdragen",
+    "task": "Vier gevalideerde documentatiebevindingen in OS-completeness-audit herstellen",
     "previous_score": 41,
-    "summary": "Audit-only: score 41/100 → 41/100, rubric v1; geen productcode, criteria of gewichten gewijzigd. De audit op main 380111b bevat 39 groepen en koppelt alle 62 releasecriteria; alle 62 blijven open. Commit ccc852 is gepusht en staat in concept-PR #136 tegen main 380111b. PR-statuswijziging en overdracht voegen geen productbewijs toe. De audit zag 15/15 succesvolle workflows op de basis, maar voerde zelf geen lokale build/VM-, hardware-, gebruikerstest, onafhankelijke securityreview of releasevalidatie uit."
+    "summary": "Audit-only reviewfixes: score 41/100 → 41/100, rubric v1; geen productcode, criteria of gewichten gewijzigd. Vier documentatiebevindingen zijn gecorrigeerd: exacte-head CI-status, matrix-prioriteiten, FR-koppelingen en eerste releaseprofielen. De audit op main 380111b houdt alle 62 releasecriteria open. Geen nieuwe producttests of releasebewijzen; geen lokale build/QEMU-, hardware-, gebruikerstest of onafhankelijke securityreview uitgevoerd."
   },
   "tracks": [
     {

@@ -31,11 +31,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`ccc85268`](https://github.com/simonvanieperen/nieuw-os/commit/ccc852685a65b7dd7b0a31ed7b53ae5309328d06) ·
+**Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
+**Bron:** [`047c52e8`](https://github.com/simonvanieperen/nieuw-os/commit/047c52e82e58d20026461fe5f533a4efa58b569d) ·
 **Ontwikkelbranch:** `simonvanieperen-cautious-happiness`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** OS-completeness-audit als concept-PR overdragen.
-Audit-only: score 41/100 → 41/100, rubric v1; geen productcode, criteria of gewichten gewijzigd. De audit op main 380111b bevat 39 groepen en koppelt alle 62 releasecriteria; alle 62 blijven open. Commit ccc852 is gepusht en staat in concept-PR #136 tegen main 380111b. PR-statuswijziging en overdracht voegen geen productbewijs toe. De audit zag 15/15 succesvolle workflows op de basis, maar voerde zelf geen lokale build/VM-, hardware-, gebruikerstest, onafhankelijke securityreview of releasevalidatie uit.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Vier gevalideerde documentatiebevindingen in OS-completeness-audit herstellen.
+Audit-only reviewfixes: score 41/100 → 41/100, rubric v1; geen productcode, criteria of gewichten gewijzigd. Vier documentatiebevindingen zijn gecorrigeerd: exacte-head CI-status, matrix-prioriteiten, FR-koppelingen en eerste releaseprofielen. De audit op main 380111b houdt alle 62 releasecriteria open. Geen nieuwe producttests of releasebewijzen; geen lokale build/QEMU-, hardware-, gebruikerstest of onafhankelijke securityreview uitgevoerd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

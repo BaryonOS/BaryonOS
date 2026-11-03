@@ -565,7 +565,7 @@
       ],
       "limitations": [
         "Native renderer/editor en opslagbouwstenen bestaan",
-        "Bindende volledige GUI-keten faalt in opgeslagen bewijs vóór Saved/Reopen; huidige exacte-head sessieworkflow liep nog"
+        "Bindende volledige GUI-keten faalt in opgeslagen bewijs vóór Saved/Reopen; exacte-head sessieworkflow (run 41535553113) is geslaagd, maar is geen Saved/Reopen-acceptatie"
       ],
       "blockers": [
         "End-to-end save/reopen, formaat/capacitymatrix, search/index, crash/data recovery"
@@ -881,7 +881,7 @@
         "SOURCE_ONLY",
         "HOST_TESTED"
       ],
-      "release_profile": "EXPERIMENTAL_DESKTOP",
+      "release_profile": "DAILY_DRIVER_BETA",
       "priority": "P0_RELEASE_BLOCKER",
       "implemented_on": [
         "380111b68688c981eec6abb8fab29174a29f5601"
@@ -1426,7 +1426,7 @@
       "evidence_levels": [
         "SOURCE_ONLY"
       ],
-      "release_profile": "DAILY_DRIVER_BETA",
+      "release_profile": "CONSUMER_RELEASE",
       "priority": "P1_DAILY_USE_CRITICAL",
       "implemented_on": [],
       "evidence": [
@@ -1560,7 +1560,7 @@
       "evidence": [
         "docs/FULL-TEST-RELEASE.md: 62 required rows remain open",
         "docs/PROJECT-STATE.md",
-        "exact-head CI run 41535553113 in progress"
+        "exact-head CI run 41535553113 completed successfully (geen releasevalidatie)"
       ],
       "limitations": [
         "Separate component/VM proofs do not constitute the final image",
