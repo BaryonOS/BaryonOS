@@ -114,6 +114,17 @@ def calculator_matches(raw: bytes, expected: bytes) -> bool:
     return ppm(expected)[:2] == CALCULATOR_BODY[2:] and crop(raw, CALCULATOR_BODY) == ppm(expected)[2]
 
 
+def calculator_result_matches(state: dict, baseline: dict, expression: bytes,
+                               evaluations: int, answer: int) -> bool:
+    expected = {"EXPRESSION_BYTES": len(expression), "EXPRESSION_SUM": volume_disk.fnv(expression),
+                "CARET": len(expression), "CURRENT": 1, "EVALUATIONS": evaluations,
+                "FAILURES": 0, "ERRORS": 0, "HAS_ANSWER": 1, "READY": 1, "ACTIVE": 1,
+                "ANSWER_LOW": answer, "ANSWER_HIGH": 0}
+    expected.update({name: baseline[name] for name in
+                     ("PID", "SERVICE_GENERATION", "SURFACE_EPOCH", "INPUT_EPOCH", "PROBES", "SCALE")})
+    return all(state.get(name) == value for name, value in expected.items())
+
+
 def oracle_matches(raw: bytes, expected: bytes, name: str) -> bool:
     if name in CALCULATOR_CLIPBOARD_PHASES:
         return calculator_matches(raw, expected)
@@ -193,16 +204,19 @@ def validate_build(frozen: str) -> dict:
 
 
 def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
-        recovery_handshake: bool = False, clipboard: bool = False) -> dict:
+        recovery_handshake: bool = False, clipboard: bool = False,
+        calculator_result: bool = False) -> dict:
     if not 30 <= timeout <= 1800:
         raise ValueError("Timeout must be bounded 30..1800 seconds")
     if smoke and recovery_handshake or clipboard and (smoke or recovery_handshake):
         raise ValueError("Clipboard requires the full native gate; choose one diagnostic mode")
+    if calculator_result and (smoke or recovery_handshake or clipboard):
+        raise ValueError("Calculator result transfer is a separate interaction gate")
     diagnostic = smoke or recovery_handshake
     private_path(BUILD)
     frozen = source_hash()
     manifest = validate_build(frozen)
-    fixture = None if diagnostic else (generate_fixture(clipboard=True) if clipboard else generate_fixture())
+    fixture = None if diagnostic or calculator_result else (generate_fixture(clipboard=True) if clipboard else generate_fixture())
     env = environment()
     qemu = Path(shutil.which("qemu-system-x86_64", path=env["PATH"]) or "missing")
     qemu_hash = sha256(qemu)
@@ -239,6 +253,9 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                   source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                   source_fingerprint_version=3, kernel_feature=FEATURE, manifest=manifest, command=command,
                   run_directory=str(directory), qemu_sha256=qemu_hash, immutable=immutable, phases={})
+    if calculator_result:
+        report.update(calculator_result_requested=True, calculator_result_gate=False,
+                      interaction_scope="Native current-result selection by keyboard/mouse and actual clipboard transfer into Material; save ACK and clean exit, not complete recovery/storage/window-session acceptance.")
     publish_json(directory / "result.json", report)
     process = control = None
     try:
@@ -352,6 +369,69 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 control.command("quit")
             elif smoke:
                 control.command("quit")
+            elif calculator_result:
+                move(1260, 50)
+                key("f6")
+                wait("result-focused", lambda raw, s: all(s.values()) and
+                     s["MATERIAL"][-1]["GEN"] > initial["MATERIAL"][-1]["GEN"] and
+                     comp(raw).get("FOCUSED") == 1 and
+                     comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"] and
+                     comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
+                baseline = snapshots(serial(directory / "serial.txt"), "CALCULATOR")[-1]
+
+                def result_wait(name, expression, evaluations, answer, after=None):
+                    return wait(name, lambda raw, s: s["CALCULATOR"] and
+                                calculator_result_matches(s["CALCULATOR"][-1], baseline,
+                                                          expression, evaluations, answer) and
+                                (after is None or s["CALCULATOR"][-1]["GEN"] > after) and
+                                comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
+
+                for chord in (("7",), ("slash",), ("2",), ("ret",)):
+                    key(*chord)
+                calculated = result_wait("result-calculated", b"7/2", 1, 3_500_000_000)
+                key("ctrl", "r")
+                selected = result_wait("result-key-selected", b"7/2", 1, 3_500_000_000,
+                                       calculated["CALCULATOR"][-1]["GEN"])
+                if crop(captured["result-key-selected"], CALCULATOR_BODY) == crop(captured["result-calculated"], CALCULATOR_BODY):
+                    raise ValueError("Result selection has no native visual feedback")
+                key("ctrl", "c")
+                result_wait("result-key-copied", b"7/2", 1, 3_500_000_000,
+                            selected["CALCULATOR"][-1]["GEN"])
+                key("f6"); key("ret")
+                wait("result-editor", lambda raw, s: s["MATERIAL"] and
+                     s["MATERIAL"][-1]["SCREEN"] == 2 and
+                     comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"])
+                key("ctrl", "v")
+                wait("result-pasted", lambda raw, s: s["MATERIAL"] and
+                     s["MATERIAL"][-1]["DRAFT_BYTES"] == 3 and
+                     s["MATERIAL"][-1]["DRAFT_SUM"] == volume_disk.fnv(b"3,5") and
+                     s["MATERIAL"][-1]["DIRTY"] == 1 and
+                     comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"])
+                key("f6"); key("ctrl", "a")
+                for chord in (("1",), ("slash",), ("3",), ("ret",)):
+                    key(*chord)
+                rounded = result_wait("result-rounded", b"1/3", 2, 333_333_333)
+                move(1100, 230); button(True); button(False); move(1260, 50)
+                clicked = result_wait("result-mouse-selected", b"1/3", 2, 333_333_333,
+                                      rounded["CALCULATOR"][-1]["GEN"])
+                if crop(captured["result-mouse-selected"], CALCULATOR_BODY) == crop(captured["result-rounded"], CALCULATOR_BODY):
+                    raise ValueError("Mouse result selection has no native visual feedback")
+                key("ctrl", "c")
+                result_wait("result-mouse-copied", b"1/3", 2, 333_333_333,
+                            clicked["CALCULATOR"][-1]["GEN"])
+                key("f6"); key("ctrl", "a"); key("ctrl", "v")
+                pasted = wait("result-rounded-pasted", lambda raw, s: s["MATERIAL"] and
+                              s["MATERIAL"][-1]["DRAFT_BYTES"] == 11 and
+                              s["MATERIAL"][-1]["DRAFT_SUM"] == volume_disk.fnv(b"0,333333333") and
+                              s["MATERIAL"][-1]["DIRTY"] == 1 and
+                              comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"])
+                key("ctrl", "s")
+                wait("result-saved-for-cleanup", lambda raw, s: s["MATERIAL"] and
+                     s["MATERIAL"][-1]["SAVE_ACKS"] == pasted["MATERIAL"][-1]["SAVE_ACKS"] + 1 and
+                     s["MATERIAL"][-1]["DIRTY"] == 0 and
+                     s["MATERIAL"][-1]["DRAFT_SUM"] == volume_disk.fnv(b"0,333333333") and
+                     comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"])
+                key("f10")
             else:
                 move(1260, 50)
                 initial = wait("initial", lambda raw, s: all(s.values()), "initial")
@@ -450,9 +530,13 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
             else:
                 if process.returncode != 33 or not raw.endswith(b"WINDOW:CLEANUP:PASS\nWINDOW:CASE:PASS\nM1:PASS\n"):
                     raise ValueError("Missing actual cleanup/normal exit")
-                if numbers(raw, "WINDOW:FAULT_SLOT") != [4] or numbers(raw, "WINDOW:FAULT_VECTOR") != [6] or numbers(raw, "WINDOW:RESTARTS") != [1]:
-                    raise ValueError("Wrong actual fault/restart")
-                report["disk_oracle"] = disk_oracle(private_path(directory / "volume.img", regular=True).read_bytes())
+                if calculator_result:
+                    if numbers(raw, "WINDOW:RESTARTS") not in ([], [0]) or numbers(raw, "WINDOW:FAULT_SLOT"):
+                        raise ValueError("Unexpected fault during calculator result transfer")
+                else:
+                    if numbers(raw, "WINDOW:FAULT_SLOT") != [4] or numbers(raw, "WINDOW:FAULT_VECTOR") != [6] or numbers(raw, "WINDOW:RESTARTS") != [1]:
+                        raise ValueError("Wrong actual fault/restart")
+                    report["disk_oracle"] = disk_oracle(private_path(directory / "volume.img", regular=True).read_bytes())
             if source_hash() != frozen or validate_build(frozen) != manifest or sha256(qemu) != qemu_hash:
                 raise ValueError("Source/build/QEMU changed during run")
             if {name: sha256(private_path(directory / name, regular=True)) for name in immutable} != immutable or {name: sha256(Path(name)) for name in originals} != originals:
@@ -467,7 +551,9 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                     if sha256(private_path(fixture["directory"] / name, regular=True)) != digest:
                         raise ValueError("Host oracle changed")
                 report["oracle"] = fixture["metadata"]
-            report.update(passed=True, native_gate=not diagnostic, clipboard_gate=clipboard and not diagnostic, duration_s=time.monotonic() - start, serial_sha256=sha256(directory / "serial.txt"), qmp_trace=control.trace)
+            report.update(passed=True, native_gate=not diagnostic and not calculator_result, clipboard_gate=clipboard and not diagnostic, duration_s=time.monotonic() - start, serial_sha256=sha256(directory / "serial.txt"), qmp_trace=control.trace)
+            if calculator_result:
+                report["calculator_result_gate"] = True
     except Exception as error:
         report["error"] = f"{type(error).__name__}: {error}"
     finally:
@@ -504,6 +590,8 @@ if __name__ == "__main__":
     parser.add_argument("--smoke-only", action="store_true")
     parser.add_argument("--recovery-handshake-only", action="store_true")
     parser.add_argument("--clipboard", action="store_true", help="Include genuine bounded clipboard exchange, clear and post-fault empty checks")
+    parser.add_argument("--calculator-result", action="store_true", help="Only explicit current-result selection and clipboard transfer to Material")
     args = parser.parse_args()
     raise SystemExit(0 if run(timeout=args.timeout, bios_rom=args.bios_rom, vga_rom=args.vga_rom,
-                            smoke=args.smoke_only, recovery_handshake=args.recovery_handshake_only, clipboard=args.clipboard)["passed"] else 1)
+                            smoke=args.smoke_only, recovery_handshake=args.recovery_handshake_only, clipboard=args.clipboard,
+                            calculator_result=args.calculator_result)["passed"] else 1)
