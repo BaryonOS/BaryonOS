@@ -8,7 +8,8 @@
 (capability-accounting) en `3f2dd4f19e1daa31476e0d70f968bb691c6bc7c3`
 (supervisorintegratie); `3249c93ece0285b71648a39709614e9c95e3b6fb`
 (reparatie worker-aanroep cancellation-aware timer-API); `e8da9bfe009844f931bd343ae383f30e758212fb`
-(supervisor `wait_ticks` via centrale `sleep_until`).
+(supervisor `wait_ticks` via centrale `sleep_until`); `22b7bbabb336439dcf478fbd8151b6c10b535bf0`
+(window-session `NativeIdle` via centrale klok- en wait-API).
 Toegevoegd in `sdk/runtime/src/clock.rs` en direct gebruikt in
 `sdk/examples/supervisor/src/worker.rs`.
 Nieuwe runtimelaag:
@@ -42,6 +43,9 @@ beschikbaar.
 - Voor bron `3249c93e`: zes K05-QEMU-cases geslaagd; exacte opdracht, host-suite-uitkomsten, serialhashes en tijdelijke QEMU/OVMF-build staan in `docs/verification/m1-resource-accounting-20261103.json`.
 - Voor bron `e8da9bfe`: `PATH="/tmp/nieuw-os-qemu/root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH" LD_LIBRARY_PATH="/tmp/nieuw-os-qemu/root/usr/lib/x86_64-linux-gnu" OS_OVMF_CODE=/tmp/nieuw-os-qemu/root/usr/share/OVMF/OVMF_CODE_4M.fd OS_OVMF_VARS=/tmp/nieuw-os-qemu/root/usr/share/OVMF/OVMF_VARS_4M.fd NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B -u tools/test_supervisor.py` (exit 0; zes K05-cases en host suites geslaagd)
 - `python3 -m json.tool docs/verification/m1-central-sleep-20261103.json` (exit 0)
+- `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 fmt --manifest-path sdk/examples/window-session/Cargo.toml --` (exit 0)
+- `git diff --check` (exit 0)
+- Window-session native/host-gates op bron `22b7bbab`: nog niet uitgevoerd.
 - `python3 -B -u tools/test_supervisor.py` (exit 1; `cargo` niet in `PATH`)
 - `PATH="$HOME/.cargo/bin:$PATH" python3 -B -u tools/test_supervisor.py` (exit 1; wrapper meldde host-check mislukt, onderliggende detail niet getoond)
 - `PATH="/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH" python3 -B -u tools/test_supervisor.py` (exit 1; native worker gebruikte verouderde `TimerRegistration::at`-signatuur; gerepareerd in `3249c93e`)
@@ -68,8 +72,10 @@ bewijs voor de accounting- en sleep-API-checkpoints:
 `docs/verification/m1-resource-accounting-20261103.json` en
 `docs/verification/m1-central-sleep-20261103.json`. Score blijft **41 → 41**.
 
-**Open/eerstvolgend:** de centrale sleep-API kan naar een volgende service-
-eventlus worden overgezet. Capability-accounting blijft beperkt tot handles,
+**Open/eerstvolgend:** valideer de nieuwe `NativeIdle`-adapter volgens
+`.github/workflows/native-window-session.yml`; de K05-receipt hoort bij de
+voorgaande bron `e8da9bfe`. Daarna kan de centrale sleep-API naar een volgende
+service-eventlus worden overgezet. Capability-accounting blijft beperkt tot handles,
 capability-objecten en IPC-queues; geheugen-/CPU-/storage-/DMA-budgettering en
 gebruikersrapportage ontbreken. De score sluit geen rubriekcriterium. De klok
 blijft 100-Hz PIT op bestaande profielen, RTC blijft unauthenticated en

@@ -10,13 +10,15 @@ onjuiste opslagoorzaak.59 volledige hosttests, Clippy, formattering en
 scalarno_std-librarybuild slagen. Geen nieuwe native gast-/screenshot- of
 menselijke acceptatie. [Volledig bewijs](verification/pr149-compact-review.json).
 
-M1 (3 november 2026), actuele bron `e8da9bfe`:
+M1 (3 november 2026), actuele bron `22b7bbab`:
 **41 → 41/100**. K05 valideert `ProcessUsage` bij manifeststart en gebruikt
-vrije capability-handle-slots voor spawn-preflight. Worker en supervisor
-gebruiken de centrale timer-/wait-API; `wait_ticks` is recent aangesloten op
-`sleep_until`. Op deze bron slagen alle zes K05-cases en 130 hosttests (één
-bestaande benchmark ignored) onder QEMU 10.2.1 met machineprofiel
-`pc-q35-8.2`, niet de CI-QEMU-build.
+vrije capability-handle-slots voor spawn-preflight. Supervisor-worker,
+supervisor-`wait_ticks` en window-session `NativeIdle` gebruiken de centrale
+timer-/wait-API. Op de voorafgaande bron `e8da9bfe` slagen alle zes K05-cases
+en 130 hosttests (één bestaande benchmark ignored) onder QEMU 10.2.1 met
+machineprofiel `pc-q35-8.2`, niet de CI-QEMU-build.
+De `NativeIdle`-wijziging op `22b7bbab` is alleen gefmt en diff-gecheckt; de
+window-session-gates zijn nog niet uitgevoerd.
 Geen geheugen-, CPU-, opslag- of DMA-budget, geen fysieke/menselijke
 acceptatie en geen gesloten rubriekcriterium.
 [Receipts](verification/m1-resource-accounting-20261103.json) en
