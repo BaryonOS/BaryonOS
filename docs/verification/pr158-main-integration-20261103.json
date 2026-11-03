@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-03",
+  "task": "PR158: documentconflicten met main inhoudsbehoudend integreren",
+  "cwd": "/home/runner/work/nieuw-os/nieuw-os",
+  "branch": "fix/b03-test-anchors-guard",
+  "head_before_merge": "04d727c306d13e03a192d9d002a7d44348841c9f",
+  "main_parent": "95d7945110ce853a1b5827ec59f6115475691805",
+  "merge_base": "a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e",
+  "tested_state": "Opgeloste mergewerkboom vóór mergecommit; handmatige wijzigingen uitsluitend documentatie, assessment en dit bewijs. Rust-wijzigingen uit main zijn uitsluitend commentaar.",
+  "manual_conflicts": ["README.md", "docs/PROJECT-STATE.md", "docs/progress.json"],
+  "score": {"before": 41, "after": 41, "rubric_version": 1},
+  "commands": [
+    {
+      "command": "cargo +1.90.0 test --locked -p kernel-core -p artifact-store-core",
+      "exit_code": 0, "tests": 29,
+      "log": "/tmp/pr158-core-tests.log",
+      "sha256": "2cb1c7042f4fa93fef236d1458b17def9c2958e7d31171079be197f793be8e4f"
+    },
+    {
+      "command": "cargo +1.90.0 test --locked --manifest-path sdk/examples/window-session/Cargo.toml",
+      "exit_code": 0, "tests": 49,
+      "log": "/tmp/pr158-window-tests-retry.log",
+      "sha256": "bf2744d302b3991efa1b4e3e21aa690225e4112ee9c2d502d5d144868a2510ce"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_update_harness.py'",
+      "exit_code": 0, "tests": 14,
+      "log": "/tmp/pr158-update-harness.log",
+      "sha256": "4504482f2e880d063ac6d258e34b7854a4f2bd77f2679fb2462a1d995878dd4c"
+    },
+    {
+      "command": "cargo +1.90.0 clippy --locked -p kernel-core -p artifact-store-core --all-targets -- -D warnings",
+      "exit_code": 0,
+      "log": "/tmp/pr158-core-clippy-final.log",
+      "sha256": "3a6bde593093317512f2ae8b9b836b14645d50a937dd73f9366ddcca7a958bb2"
+    },
+    {
+      "command": "cargo +1.90.0 clippy --manifest-path sdk/examples/window-session/Cargo.toml --locked --all-targets -- -D warnings",
+      "exit_code": 0,
+      "log": "/tmp/pr158-window-clippy.log",
+      "sha256": "4be394852474239fde9360f41b0242e8d3551cd6d11ba15eec9b19c6584c5586"
+    },
+    {
+      "command": "cargo +1.90.0 fmt --all -- --check",
+      "exit_code": 0,
+      "log": "/tmp/pr158-format-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "cargo +1.90.0 fmt --manifest-path sdk/examples/window-session/Cargo.toml --all -- --check",
+      "exit_code": 0,
+      "log": "/tmp/pr158-window-format.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "python3 tools/progress.py --write",
+      "exit_code": 0,
+      "output": "41/100; README bijgewerkt, SVG bytegelijk."
+    },
+    {
+      "command": "python3 tools/progress.py --check",
+      "exit_code": 0,
+      "log": "/tmp/pr158-progress-check.log",
+      "sha256": "1963f64b94a52a78464f272cac286fcafea13fea2314c5ea8cddbd65dd78be33"
+    },
+    {
+      "command": "git diff --exit-code HEAD -- boot crates/update-core services/update tools/test_update.py tools/build.py tools/run_update.py tests/test_update_harness.py",
+      "exit_code": 0,
+      "log": "/tmp/pr158-b03-preservation.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "git diff --exit-code origin/main -- crates/artifact-store-core/src/lib.rs crates/kernel-core/src/lib.rs sdk/examples/window-session/src/scene.rs",
+      "exit_code": 0,
+      "log": "/tmp/pr158-main-preservation.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "tooling": {
+    "initial_window_and_format_attempts": "Exit 1 vóór compilatie: parallelle automatische Rust 1.90.0-downloads raakten dezelfde ontbrekende partial-file. De core-test voltooide de installatie.",
+    "initial_lint_and_format_retries": "Exit 1: rustfmt en Clippy ontbraken in de automatisch geïnstalleerde toolchain.",
+    "restoration_command": "rustup component add --toolchain 1.90.0 rustfmt clippy",
+    "restoration_exit_code": 0,
+    "restoration_log": "/tmp/pr158-tooling-restore.log",
+    "dependencies_or_lockfiles_changed": false
+  },
+  "evidence_boundary": "Hosttests en bronvergelijkingen; geen nieuwe native build, QEMU-run, fysieke-hardwaretest, menselijke audit of releaseacceptatie. Historische receipts blijven gebonden aan hun eigen bron. CI op de nieuwe HEAD moet na publicatie afzonderlijk worden beoordeeld."
+}
