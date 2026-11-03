@@ -12,6 +12,8 @@ Geen nieuwe decoder, terminalcore, browserengine, rechtenlaag of kernel-ABI.
 Schrijfbestanden: codecbron en decode-tests, viewerbron/tests/README,
 de direct gerelateerde EXIF-consumentparagraaf in NATIVE-IMAGES en dit bewijs.
 Geen centrale score/statuswrites of wijziging aan andere workstreams.
+Onbekend/open: ICC/gamma-kleurtransformaties en PNG eXIf; deze JPEG-EXIF-
+consument implementeert of valideert die functies niet.
 
 Terminal-dependency op deze basis: `sdk/runtime/src/process.rs::LaunchImage`
 en `native::spawn` starten alleen een vooraf toegekende ingebouwde image.
@@ -159,7 +161,7 @@ b4c02be39c07fe463f101692a3b65e430745957fe5ea145b7d6c85f267262a4c native-run.log
 
 De echte VM toetst de bestaande decoderketen, **niet** de app-local viewer.
 De viewer is hostgetest en voor de eigen-kerneltarget gebouwd; native
-appstart, objectportal, SUR1-presentatie, bediening, OOM/cancel/revoke en
+appstart, objectportal, SUR1-presentatie, bediening, cold save, OOM/cancel/revoke en
 menselijke/hardware-/accessibility-/releasevalidatie blijven open.
 CI op deze nieuwe branch is niet als uitgevoerd geclaimd.
 
