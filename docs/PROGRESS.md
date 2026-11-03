@@ -85,6 +85,13 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR142/135-helperintegratie (3 november2026), basis`eea1cdcc` met volledige
+`8e2b1afc`: **41 ->41**.8 common/20 images/21 random/12 FPU-hosttests
+slagen op de combinatie. Strikte paden/hashchecks en native oracles blijven
+gelijk; oudere echte volume-/netwerkproeven blijven eigen bronbewijs.
+Geen nieuwe native/hardware/menselijke acceptatie; actuele CI/review en
+hostedforeignfixturelevering blijven open.
+
 Volumetoelating/herstel (3 november 2026), bevroren bron `ce02f093`:
 **41 -> 41**. Werkelijke10+9Windows-QEMU-runs geslaagd; parent heeft alle19
 log-/schijfhashes en hersteloracles onafhankelijk gecontroleerd. Acht

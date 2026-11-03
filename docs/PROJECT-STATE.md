@@ -1,6 +1,30 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — desktop, volume en terminale netwerkstatus — 3 november 2026
+## NEXT AGENT HANDOFF — gedeelde runnerhelpers op native stack — 3 november 2026
+
+Basis `eea1cdcc66e21e60ccc4327bcb8e3561752c2f61`, volledige142-head
+`8e2b1afc5983c9aa63d909cf17954995ee5f9e42` (met maincbbc) gecombineerd.
+Alleen drie centrale statusconflicten; huidige stackstatus behouden en de
+volledige unieke142-status exact gehasht opgeslagen in
+`verification/pr142-stack-integration.json`. Geen capability-, wireformaat-,
+dependency- of native-oraclewijziging. Gedeelde SHA256-helpers en inventaris
+behouden de bestaande strikte padcontrole, originele relatieve paden en
+foutuitkomsten. Geen nieuwe architectuurbeslissing.
+
+Uitgevoerd op deze combinatie:8 common-,20 images-,21 random- en12 FPU-
+hosttests, exit0. Exacte commands, looptijden, bron-/loghashes in het rapport.
+De verwachte negatieve oracle-uitvoer is geen echte mislukte VM-run.
+Nieuwe native-/volledige CI/review zijn nog niet uitgevoerd/afgerond op deze
+bron; onderstaande19volume- en netwerk-VM-resultaten blijven brongebonden.
+Hosted foreignfixture-run-ID ontbreekt; admission blijft terecht rood.
+Score41 ->41; geen nieuw geaccepteerd criterium. Watch is door Simon gewenst;
+exacte latere heads opnieuw beoordelen. Integratorf090b913 blijft exclusief.
+
+Eerstvolgend: de gewijzigde142-runnercode op verse CI/native gates beoordelen,
+en114-documentstapel32b6c9e2 apart naar main integreren zodra werkelijk groen.
+Geen PR/issue gesloten of gemerged bij dit checkpoint.
+
+## Vorig checkpoint — desktop, volume en terminale netwerkstatus
 
 Geteste publicatie `6f15ab28a0d8dcf43b84df54fe48bec9f0f622d9`
 (code `b44c46e9add9d586fe0dfe857954a74163e1d225`), source-v3
@@ -12,7 +36,9 @@ raw33, echte eerste/tailfragmenten2/2 en1/1; malformed8/4; actieve EOFcounter2,
 vertrokken APP_A0. Artifact13220607974 daadwerkelijk gedownload; ruwe serial-
 en stderrhashes en volledige peerreplay onafhankelijk gecontroleerd.
 Bewijs: `verification/native-network-combined-acceptance.json`.
-Gecombineerde volledige CI/review/integratie blijft vereist vóór sluiting39/134.
+Gecombineerde volledige CI/review/integratie blijft vereist vóór sluiting39.
+134 is inmiddels door Simon zelf gemerged als maincbbc9c99; inhoud was al
+volledig via ce02 behouden en is ook ancestor via142. Geen rollback gevraagd.
 Volumeverifier heeft de echte **10+9 VM-runs afgerond op bevrorence02/source2c410004**.
 Na de bewaarde offlinechacha20miss waren uitsluitend locked fetches nodig;
 build en10run-matrix slagen: eigen normal/koud raw33/gen84, acht negatieve
