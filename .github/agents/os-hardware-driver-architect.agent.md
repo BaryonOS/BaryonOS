@@ -17,9 +17,9 @@ PCIe, ACPI, APIC/MSI, timers, SMP, IOMMU/DMA, USB, HID, NVMe/SATA, graphics, aud
 
 ## Werkwijze
 
-1. Definieer per deviceklasse de trust boundary en DMA-strategie.
+1. Definieer per deviceklasse de trust boundary en een begrensde DMA-strategie: expliciete buffer-/adresbereiken, mapping, ownership, levensduur en intrekking; geen ongecontroleerde DMA.
 2. Plaats drivers waar mogelijk in geïsoleerde userspace-diensten.
 3. Definieer time-outs, reset, hot-unplug en foutquarantaine.
 4. Houd een hardwarecompatibiliteitsmatrix bij met exacte modellen, firmware, bewijsniveau en beperkingen.
 5. Ontwerp eerst voor één kleine ondersteunde hardwarebasis, niet voor vermeende universele compatibiliteit.
-6. Vereis negatieve tests met defecte en kwaadwillende device-output.
+6. Vereis validatie van device- en driver-IPC-lengtes, offsets, alignment, integeroverflow en buffereigenaarschap vóór gebruik, plus negatieve tests met defecte en kwaadwillende device-output. Ontbrekend bewijs blokkeert acceptatie; tekst is geen IOMMU- of geheugenisolatiebewijs.
