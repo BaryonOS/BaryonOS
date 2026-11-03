@@ -7,7 +7,7 @@
     "branch": "simonvanieperen-refactored-fiesta",
     "task": "Uitvoeren PR127 exact-head native-window-gate",
     "previous_score": 41,
-    "summary": "Score blijft 41/100; deze probe sluit geen vast rubriccriterium af. De 10 runner-tests, 180 relevante Rust-hosttests, Clippy/fmt, strikte preflight en probebuild slagen. De QEMU TCG-venstersessiepoort slaagt op bronvingerafdruk b7ccd11f: 22 fasen, klembord, herstel, opnieuw openen en onafhankelijk schijforakel (14 bytes, revisie 1, canaries intact). Dit is geen fysieke hardware-, volledige dagelijkse desktop-, echte authenticatie- of NAS/netwerkacceptatie. PR #137 staat open; exacte-head hosted CI en review waren bij checkpoint nog niet klaar. Bewijs en hashes: docs/verification/plan-execution-20261103.json."
+    "summary": "Score blijft 41/100; deze probe sluit geen vast rubriccriterium af. De 10 runner-tests, 180 relevante Rust-hosttests, Clippy/fmt, strikte preflight en probebuild slagen. De QEMU TCG-venstersessiepoort slaagt op bronvingerafdruk b7ccd11f: 22 fasen, klembord, herstel, opnieuw openen en onafhankelijk schijforakel (14 bytes, revisie 1, canaries intact). Alle 30 hosted GitHub-checkruns op de geteste codecommit slagen; CodeRabbit markeerde een verouderd handoff-label dat in de statusdocumentatie is gecorrigeerd. Dit is geen fysieke hardware-, volledige dagelijkse desktop-, echte authenticatie- of NAS/netwerkacceptatie. PR #137 blijft open. Bewijs en hashes: docs/verification/plan-execution-20261103.json."
   },
   "tracks": [
     {

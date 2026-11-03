@@ -169,7 +169,9 @@
       "native_system": 41615664986,
       "native_network_service": 41615665316
     },
-    "status": "in progress at checkpoint; do not treat as passed until all required checks and review finish"
+    "tested_source_commit_status": "all 30 GitHub check-runs completed with success",
+    "review_status": "CodeRabbit requested changes for a stale handoff-head label; the documentation now names the tested source commit explicitly. This is automated review, not independent human review.",
+    "status": "CI checks passed on the tested source commit; PR remains open and unmerged"
   },
   "private_package_manifest_sha256": "1be9f63a8c586cc4ff37da00ff6b715703524e091d103ccc60e7dd51b983a98a"
 }

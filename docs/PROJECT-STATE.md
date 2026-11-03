@@ -2,8 +2,8 @@
 
 ## NEXT AGENT HANDOFF — PR127 exacte-head venstersessiepoort — 3 november 2026
 
-**Branch/head:** `simonvanieperen-refactored-fiesta`,
-`8decd2b767952b396797188ebfbc80e1a75533bf`; bronvingerafdruk
+**Geteste codeversie:** branch `simonvanieperen-refactored-fiesta`,
+commit `8decd2b767952b396797188ebfbc80e1a75533bf`; bronvingerafdruk
 `b7ccd11fa114f3d4506f9b85560b7bcd51289b88cfb8054cd9e0b6537ea7122b`.
 Rust 1.90, GCC, QEMU 10.2.1, OVMF en SeaBIOS zijn voor deze sessie uit
 geverifieerde Ubuntu-pakketten onder de privésessie uitgepakt; niets
@@ -25,11 +25,19 @@ native pixelrenderer. Dit bewijst geen echte accountauthenticatie,
 sleutel-/capability-intrekking, native NAS-/netwerkkoppeling,
 gebruikerstest, onafhankelijke audit of release.
 
-**Open:** PR #137 staat open op exact deze head (niet concept). De exacte-head
-hosted CI was deels groen; `native-window-session`, `native-system`,
-`native-network-service` en `qemu-smoke` stonden nog in de wachtrij/in uitvoering
-bij het vastleggen. CodeRabbit/review en alle overige vereiste checks moeten
-eerst actueel worden bevestigd. Geen merge of branchregel omzeild.
+**Hosted checks:** alle 30 GitHub-checkruns op de geteste codecommit zijn
+afgerond met `success`, waaronder CI, `native-window-session`,
+`native-system`, `native-network-service`, `qemu-smoke` en NAS normal/cold.
+CodeRabbit gaf één documentatiebevinding: de handoff noemde een verouderde
+branchhead. De status gebruikt nu expliciet de geteste codecommit in plaats
+van een dynamische HEAD-claim; dit is een geautomatiseerde review, geen
+onafhankelijke menselijke audit.
+
+**Open:** PR #137 blijft open en niet-concept; er is niet gemerged. Alleen de
+bewijs-/statusdocumentatie en gegenereerde voortgangsweergave zijn daarna
+gewijzigd; de bronvingerafdruk bleef gelijk. Controleer na de documentatiepush
+de nieuwe CodeRabbit-status en verwerk de concrete reviewthread. Geen merge of
+branchregel omzeild.
 Aanmeld-/sleuteldienst en end-to-end NAS/internet blijven afzonderlijke
 implementatiestappen; hiervoor is in dit checkpoint geen productcode
 gewijzigd. Score blijft **41/100**: deze poort voegt geen vast rubriccriterium toe.
