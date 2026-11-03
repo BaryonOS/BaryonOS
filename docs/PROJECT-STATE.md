@@ -2,6 +2,14 @@
 
 ## NEXT AGENT HANDOFF — documentstapel inhoudsbehoudend combineren — 3 november 2026
 
+Main is inmiddels `cbbc9c9941b08ea5edfbd3637d494635b4fb1df0`: Simon
+bevestigde zelf dat hij134 handmatig squash-mergede (3nov10:05:36Z).
+Geen concurrerende agent of integratieoverdracht; geen rollback gevraagd.
+Die mainbron is nu behoudend opgenomen. Drie assessment/statusconflicten
+behouden de recentere documentcombinatie; de TCP-productiefix en haar
+volledige regressie-/bewijsbestanden zijn ongewijzigd uit main overgenomen.
+De mainrubric is buiten assessment exact gelijk aan de behouden41-puntenrubric.
+
 Bron `1552e5ae1a0e053a6df5ef802f6c0e4e78544cf7` bewaart volledige heads
 143/d169796a,144/a974fb9f,145/da5918fb en136/f6921e49 als mergeparents
 boven PR114-fix720cd431. Unieke README-codeleesintro, vaste14-commit-
@@ -24,9 +32,25 @@ met eerder bewaarde historische metadata; geen blinde ancestryclaim.
 Andere stack:135/eea1cdcc bevat echteN01-acceptatie op6f15/source1ca en
 onafhankelijk gecontroleerde19VM-volumeproeven opce02/source2c410.
 Hosted foreignfixtureartifact/run-ID blijft ontbreken; geen gate overgeslagen.
-Main blijft380111b6;39/41/42/43 blijven open. Integratormandaat is niet
+Main is cbbc9c99;39/41/42/43 blijven open. Integratormandaat is niet
 overgedragen. Score **41 -> 41**. Eerstvolgend: actuele publicatie-CI/review
 afhandelen, bronbehoud controleren en pas daarna geschikte PRs squashen.
+
+## Historisch checkpoint PR134 — terminale TCP-ontvangst
+
+Maincbbc9c99 behoudt de oorspronkelijke134-head27cb3948 via squash.
+ReceiveTcp geeft na connect-timeout Closed, terwijl State TimedOut behoudt;
+buffer-/tokencontroles blijven intact en opnieuw openen vernieuwt het token.
+De oorspronkelijke test was host-rood (Again versus Closed), daarna10
+servicetests groen plus35 broker-,26 stack-,4 protocol-,6 client- en11
+peerharnastests, format/Clippy/native-librarybuild.
+Historische normal/client-exit op5925c915/source9a8b521f: raw33,
+8,27/7,79s, peer compleet en cleanup. Dat was nog geen native bewijs
+van de nieuwe timeout-ontvangstcase; die beperking blijft expliciet.
+`verification/issue-43-receive-timeout.{json,md}` bewaart exacte opdrachten,
+hashes en oorspronkelijke open hosted-CI/reviewgrenzen. AI-read-onlycheck
+is geen menselijke audit. Geen nieuwe rechten/dependencies of punten.
+De latere135-gastasserties en run41614590388 staan afzonderlijk beschreven.
 
 ## Historisch checkpoint — PR114-vervolgreview — 3 november 2026
 
