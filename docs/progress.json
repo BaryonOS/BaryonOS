@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "380111b68688c981eec6abb8fab29174a29f5601",
+    "source_commit": "a974fb9f731847a8b4dc55f1e080ced945a58e63",
     "branch": "simonvanieperen-shiny-waddle",
-    "task": "Changelog genereren uit recente git-commits",
+    "task": "Conflictintegratie met main; changelog en voortgang behouden",
     "previous_score": 41,
-    "summary": "41% blijft 41%: deze opdracht voegt alleen een changelog toe en levert geen nieuw bewijs voor productcriteria. De bestaande native acceptatie- en releasegrenzen blijven ongewijzigd."
+    "summary": "41% blijft 41%. De main-integratie bevat de issue-43 ReceiveTcp-reparatie met bestaande host- en native bewijsrapportage; conflictresolutie voegt geen nieuw acceptatiebewijs toe. Native QEMU is in deze stap niet herhaald; fysieke hardware, menselijke audit en volledige release blijven open."
   },
   "tracks": [
     {

@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`380111b6`](https://github.com/simonvanieperen/nieuw-os/commit/380111b68688c981eec6abb8fab29174a29f5601) ·
+**Bron:** [`a974fb9f`](https://github.com/simonvanieperen/nieuw-os/commit/a974fb9f731847a8b4dc55f1e080ced945a58e63) ·
 **Ontwikkelbranch:** `simonvanieperen-shiny-waddle`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Changelog genereren uit recente git-commits.
-41% blijft 41%: deze opdracht voegt alleen een changelog toe en levert geen nieuw bewijs voor productcriteria. De bestaande native acceptatie- en releasegrenzen blijven ongewijzigd.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Conflictintegratie met main; changelog en voortgang behouden.
+41% blijft 41%. De main-integratie bevat de issue-43 ReceiveTcp-reparatie met bestaande host- en native bewijsrapportage; conflictresolutie voegt geen nieuw acceptatiebewijs toe. Native QEMU is in deze stap niet herhaald; fysieke hardware, menselijke audit en volledige release blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
