@@ -126,3 +126,47 @@ Na push, bestaande/nieuwe draft-PR en overdracht vervalt deze actieve claim.
 Volgende milestone start onafhankelijk op opnieuw opgehaalde main.
 Rollback: verwijder uitsluitend nieuwe image-export-subtree en receipt;
 geen bestaande ABI, brondecoder of opslagformaat verandert.
+
+## Integratiereview PR173, 3 november 2026
+
+Reviewbasis `2d19690b9fa273be8232701d5ceb379f5d83539c`, main
+`d10b5cdaf56774a39e3ef10463f674c6188a463a`. De begrensde inhoudelijke
+review controleerde BMP-headers, rijuitlijning, bottom-up-BGR, alpha,
+RGBA16/EXIF, afmetings-/uitvoergrenzen en fouten. Geen productcodeblocker
+gevonden. Wel dezelfde echte CLI-testhelperrace als bij CSV: vroeg
+afgewezen argumenten sluiten stdin voordat de helper klaar is met schrijven.
+Een geregistreerde 128-KiB-regressie reproduceerde BrokenPipe op de oude
+helper (Cargo exit 101). Een eerdere poging registreerde deze test niet
+correct en telt niet als bewijs; dit is hersteld voor de rode en groene run.
+
+De helper accepteert nu alleen BrokenPipe bij een daadwerkelijk falend
+kindproces. Andere schrijffouten en een onverwacht succesvolle exit blijven
+testfouten. Geen productcode, dependency, formaat of decoder veranderd.
+
+Met Rust 1.90.0 en eigen targets `target/pr-agent-c-host` en
+`target/pr-agent-c-none` opnieuw uitgevoerd, alle exit 0:
+
+```text
+cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/image-export/Cargo.toml --features host-cli
+# 6 exporttests en 3 werkelijke CLI-procestests
+cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/image-export/Cargo.toml --features host-cli --all-targets -- -D warnings
+cargo +1.90.0 fmt --manifest-path sdk/examples/image-export/Cargo.toml -- --check
+python3 -B sdk/examples/image-export/tests/interop.py target/pr-agent-c-host/debug/image-bmp
+# 30 werkelijke outputs; PNG exact, JPEG bestaande toleranties 3/1
+cargo +1.90.0 build --offline --locked --release --lib --manifest-path sdk/examples/image-export/Cargo.toml --target x86_64-unknown-none
+git diff --check
+```
+
+Lokale logs onder `build/pr-agent-c-173/`, SHA-256:
+
+```text
+9ed38f185e83588211ba70243091bfec1d4f276028a492ca8d6875ba94ae8ede pipe-red.log
+d3056d6fd5179e50206a8920dae5d54003d741fc0410134e4f07c7bc5dbaa18f green.log
+85a729dd5f760ef71d3a38f2aae67cc2fb32da5cbdaa9860c175ad6edd677eef tests/cli.rs
+```
+
+Oude hashes en aantallen hierboven blijven uitsluitend brongebonden aan
+`26e6edeb`. Geen native runtimeconsumer gewijzigd of toegevoegd; QEMU,
+hardware-, menselijke en releasevalidatie niet uitgevoerd. Verse vereiste
+GitHub-checks worden apart op het definitieve PR-head beoordeeld.
+Scorevoorstel blijft **41 -> 41/100**, centrale metadata bij de hoofdcoordinator.

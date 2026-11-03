@@ -14,8 +14,13 @@ fn run(input: &[u8], args: &[&str]) -> std::process::Output {
         .stderr(Stdio::piped())
         .spawn()
         .unwrap();
-    child.stdin.take().unwrap().write_all(input).unwrap();
-    child.wait_with_output().unwrap()
+    let write = child.stdin.take().unwrap().write_all(input);
+    let output = child.wait_with_output().unwrap();
+    if let Err(error) = write {
+        assert_eq!(error.kind(), std::io::ErrorKind::BrokenPipe);
+        assert!(!output.status.success(), "stdin was not fully consumed");
+    }
+    output
 }
 
 #[test]
@@ -45,8 +50,17 @@ fn invalid_input_and_missing_or_invalid_explicit_conversion_choice_never_produce
         assert!(result.stdout.is_empty());
         assert!(!result.stderr.is_empty());
     }
+
     let result = run(b"not an image", &["--background", "000000"]);
     assert!(!result.status.success());
+    assert!(result.stdout.is_empty());
+    assert!(!result.stderr.is_empty());
+}
+
+#[test]
+fn rejected_background_closes_stdin_before_large_input_without_test_panic() {
+    let result = run(&vec![b'a'; 128 * 1024], &["--background", "zzzzzz"]);
+    assert_eq!(result.status.code(), Some(1));
     assert!(result.stdout.is_empty());
     assert!(!result.stderr.is_empty());
 }
