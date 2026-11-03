@@ -21,10 +21,15 @@ en [OS Maturity Auditor](https://github.com/simonvanieperen/nieuw-os/blob/cccb29
 ## Testbewijs
 
 De oorspronkelijke worktreecontrole gaf exit 0. De hieronder aangescherpte
-hercontrole controleert de huidige zestien toolsets en vergelijkt de twee
-historische profielhashes met de bytes op contractfix `cccb29e8`, niet met
-latere profielwijzigingen. Hercontrole op basis `3ee3e73a` met main
-`ab85d633`: exit 0 op 3 november 2026.
+hercontrole controleert alleen dat de huidige zestien toolsets gelijk zijn aan
+de hieronder hardcoded verwachte lijsten, en vergelijkt de twee historische
+profielhashes met de bytes op contractfix `cccb29e8`, niet met latere
+profielwijzigingen. Zij leest geen `tools`-velden uit een baselineversie en
+bewijst dus niet zelfstandig dat geen toolrecht ten opzichte van een eerdere
+versie is uitgebreid. Hercontrole op basis `3ee3e73a` met main `ab85d633`
+([Nieuw OS-project, 3 november 2026, commit `ab85d633`: zestien
+AI-deelanalyses en gezamenlijke audit (#151)](https://github.com/simonvanieperen/nieuw-os/commit/ab85d6339ce5bdddb10a2de171d0c1b04e4b62ff)):
+exit 0 op 3 november 2026; herhaald op de PR-head na mainintegratie `681f1137`.
 
 ```sh
 python3 -B - <<'PY'
@@ -39,7 +44,7 @@ for p in profiles:
  assert fields['disable-model-invocation']=='true'
  tools=json.loads(fields['tools'])
  assert tools==(['read','search','edit','execute'] if p.name=='os-builder.agent.md' else ['read','search']),p
-print('PASS:16 profiles: target, disable-model-invocation, tools; not full schema or runtime confinement')
+print('PASS:16 profiles: target, disable-model-invocation, current tools match expected lists; no baseline diff, not full schema or runtime confinement')
 source='cccb29e8daf311a9db47e3747a6fb9d05329bda3'
 expected={
  'os-verifier.agent.md':'6380991093181852e2044e0b8b0804587d62d8e0c268ac7bcc7152826286ab78',
