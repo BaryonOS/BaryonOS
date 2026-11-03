@@ -91,6 +91,12 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR148-integratie (3 november 2026), basis `47ec535f` met main `8e0c15d8`:
+**41 → 41**. Drie centrale documentconflicten inhoudsbehoudend opgelost.
+Gedeelde harnashulpfuncties en bronreceipts blijven uit main behouden;
+volume-admissie en haar bewijs blijven uit PR148. Geen nieuw criterium,
+handmatige codewijziging of native acceptatie door deze integratie.
+
 PR149 bronbewijsvervolg (3 november 2026), schone bron `bb8877e3`:
 59 hosttests echt opnieuw exit0 met cwd/HEAD/status/lock-/Rust-hashes vóór/na
 en volledig gehasht log in

@@ -1,6 +1,82 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR148 slot1-admissie opvolging — 3 november 2026
+## NEXT AGENT HANDOFF — PR148 met main 8e0c15d — 3 november 2026
+
+**Basis:** PR148 `47ec535f15bb10912dbc6cbf1af3de9df0c6c226` met main
+`8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2`, branch
+`simonvanieperen-upgraded-disco`; schone werkboom bij aanvang.
+Drie centrale documentconflicten behouden beide checkpointreeksen en de
+brongebonden receipts. Gedeelde harnashulpfuncties komen exact uit main;
+volume-admissie blijft uit PR148. Geen handmatige codewijziging.
+**41 → 41/100**, geen criterium of gewicht gewijzigd.
+
+**Uitgevoerd op de opgeloste boom (alle eindcommando's exit 0):**
+- `python3 -B -m unittest discover -s tests -p 'test_common.py'`: 8 tests.
+- `python3 -B -m unittest discover -s tools/tests -p 'test_random.py'`: 21 tests.
+- `python3 -B -m unittest discover -s tools/tests -p 'test_images.py'`: 20 tests.
+- `python3 -B tools/test_fpu.py`: 12 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_volume_*.py'`: 26 tests.
+- `python3 tools/progress.py --write` en `python3 tools/progress.py --check`.
+- `git diff --check`; vergelijking met beide parents bevestigt exact behoud
+  van de gewijzigde harnassen uit main en de volume-implementatie uit PR148.
+
+De eerste discoverypogingen voor random/images/fpu onder `tests` vonden
+geen tests (elk exit 5); daarna zijn de werkelijke bovenstaande entrypoints
+uitgevoerd. Verwachte foutmeldingen in negatieve harnastests zijn geen
+native uitvoering. Uitvoer staat in het sessietranscript, zonder afzonderlijke
+logbestanden. Rust-builds en QEMU niet herhaald; geen native acceptatie.
+Historische checks hieronder zijn geen actuele beoordeling van deze integratie.
+**Eerstvolgend:** gevalideerde merge publiceren; nieuwe-head CI/review door
+de app laten beoordelen. Native volume-acceptatie blijft afzonderlijk open.
+
+## Historisch checkpoint — PR142 main-integratie — 3 november 2026
+
+**Basis vóór integratie:** PR-head `37ad1e98328e59b752c230310a4abeaca749b669`;
+main `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`. De enige conflicthunk was
+`docs/verification/retained-document-heads-20261103.json`. De opgeloste
+snapshotlijst behoudt alle unieke PR131/132-, PR141- en PR142-ingangen;
+PR149's code/tests en receipts zijn eveneens behouden uit main. Geen receipt
+wordt als bewijs voor deze nieuwe mergeboom aangeduid.
+
+**Uitgevoerd op de opgeloste boom:** `node --test ui/prototype/tests/*.test.mjs`
+— 41 geslaagd, 0 mislukt; `node --check ui/prototype/app.js` en
+`node --check ui/prototype/state.js` — exit 0. De README-voorgestelde
+`--test-isolation=none`-optie wordt niet herkend door Node v22.23.4; de suite
+is daarna met de ondersteunde standaardopties geslaagd. Progressmeter is
+bijgewerkt: **41 → 41/100**, zonder nieuw criteriumbewijs. Native/QEMU,
+fysieke en menselijke acceptatie zijn niet uitgevoerd.
+**Open:** finaliseer de merge na JSON/progress- en diffcontroles en secret scan;
+na publicatie moeten de nieuwe-head-checks worden geëvalueerd.
+
+## Historisch checkpoint — PR149 derde main-integratie — 3 november 2026
+
+**Basis:** Watch-merge `bb8877e3e1aaec304d7478510b65c8116aeb634e`, met
+ouders `416886354dbb0c6135a0740c429a3fbd4530a16d` en main
+`99d132768fd72276caa4a3b3e9a09f8f1909f0ed`, branch
+`simonvanieperen-reimagined-train`. Vier centrale documentatieconflicten;
+de compacte UI-fixes en hun bewijs blijven uit de PR behouden, de
+PR139-receipts komen ongewijzigd uit main. Beide historische statuslijnen
+blijven behouden en krijgen geen nieuwe bewijsbron toegewezen.
+Rubric en score blijven **41 → 41/100**.
+
+**Werkelijk opnieuw uitgevoerd op schone `bb8877e3`:**
+`cargo +1.90.0 test --offline --locked --manifest-path ui/native/Cargo.toml`,
+59 hosttests, exit0, 10,816s. Cwd, HEAD, schone status en Cargo.lock-/Rust-
+bronhashes vóór én na, exact commando en volledig gehasht log:
+[primaire receipt](verification/pr149-bb8877-host-receipt.json).
+Dit is een nieuwe run, geen retrospectieve bronbinding van de door Watch
+gemelde tooluitvoer/tijden. De integrator controleerde apart rubricbehoud,
+ongewijzigde Rust-code ten opzichte van532, één handoff en geen markers.
+Een historische PR140-verwijzing naar PR139-bewijs is bij deze integratie
+hersteld naar haar eigen oorspronkelijke commando's en bron.
+Dit is geen menselijke audit. Geen nieuwe formatter-/Clippy-run,
+cross-build, volledige CI of native/QEMU-uitvoering voor deze
+uitsluitend documentatie betreffende integratie.
+**Open/eerstvolgend:** na publicatie nieuwe-head-controles laten evalueren.
+Alleen bewijs-/statuscorrecties; geen oude CI-retry of nieuwe runtimecode.
+Native/QEMU-, fysieke en menselijke acceptatie blijven afzonderlijk open.
+
+## Historisch checkpoint — PR148 slot1-admissie opvolging — 3 november 2026
 
 **Basis:** PR148-head `c6b25873c915a98f8c0b2bb7400395e01ba44741`, branch
 `simonvanieperen-upgraded-disco`, met slot1-admissiefix, marker-crashgrens

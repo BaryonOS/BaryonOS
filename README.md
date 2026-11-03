@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`8f519a11`](https://github.com/simonvanieperen/nieuw-os/commit/8f519a111a4146705835eeaffa1a503670cfe8a1) ·
-**Ontwikkelbranch:** `coderabbit/clarify-verification-status/49e45d00`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR148: verificatiestatus en reikwijdte van hostbewijs verduidelijken.
-41 blijft 41. PR148 houdt de eerder bewezen slot1-admissiefix en marker-crashgrens vast; hostbewijzen staan in de drie pr148-receipts. `host-quality` en `qemu-smoke` zijn groen volgens de handoff. `native-foundation` faalde in run 41640409938; de oorzaak is onbekend en een rerun is gestart. `native-foundation` en de native volume-acceptatie blijven open; de rerunuitkomst ontbreekt. Geen nieuwe acceptatiecriteria gesloten en geen native/QEMU/fysieke/menselijke acceptatie toegevoegd.
+**Bron:** [`47ec535f`](https://github.com/simonvanieperen/nieuw-os/commit/47ec535f15bb10912dbc6cbf1af3de9df0c6c226) ·
+**Ontwikkelbranch:** `simonvanieperen-upgraded-disco`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR148-conflicten met main 8e0c15d inhoudsbehoudend integreren.
+41/100 blijft 41/100. Drie centrale documentconflicten behouden beide checkpointreeksen en hun afzonderlijke bewijsbronnen. Gedeelde harnashulpfuncties komen exact uit main; PR148-volume-admissie blijft behouden. Geen handmatige codewijziging, nieuw criterium of native acceptatie. Gerichte integratievalidatie en nieuwe-head CI worden afzonderlijk gerapporteerd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
