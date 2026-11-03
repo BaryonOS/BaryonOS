@@ -116,6 +116,17 @@ gebouwd of op hardware getest; geen nieuw acceptatiebewijs. Zie het
 `python3 tools/progress.py --write`, `--check` en `git diff --check` zijn de
 uitgevoerde documentcontroles.
 
+Eerste implementatiestap Universal Driver Layer (3 november 2026), basis
+`56a025bb`, branch `copilot/universal-driver-framework`: **41 -> 41**. De
+dependencyvrije `no_std`-crate `driver-core` bevat categorytraits, PCI
+identiteitsmatching en een vaste registry die gelijke topmatches weigert;
+VirtIO block/net publiceren alleen registratie-metadata. De kernel start
+geen matches en er zijn geen generieke resourcegrants of PCI-enumerator.
+Freestanding `cargo check` is geslaagd; hosttests konden niet linken wegens
+ontbrekende `cc`, en native/hardwareproeven zijn niet uitgevoerd. Dit is geen
+nieuw criteriumbewijs. Exacte grenzen staan in
+[`docs/drivers`](drivers/DRIVER-ARCHITECTURE.md).
+
 PR139-review (3 november2026), exact geteste geïntegreerde bron `0a49a382`:
 **41 → 41**. Negen artifact-store-contracttests, Rust1.90.0 fmt en Clippy
 daadwerkelijk opnieuw groen; primaire logs/boom/commando's/codehashes staan

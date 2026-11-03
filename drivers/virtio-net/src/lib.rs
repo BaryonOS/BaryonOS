@@ -18,6 +18,22 @@ pub const QUEUE_SIZE: u16 = 8;
 pub const MAX_FRAME_BYTES: usize = 1514;
 pub const HEADER_BYTES: usize = 12;
 pub const BUFFER_BYTES: usize = HEADER_BYTES + MAX_FRAME_BYTES;
+pub const DRIVER_REGISTRATION: driver_core::DriverRegistration = driver_core::DriverRegistration {
+    id: driver_core::DriverId::new(0x4e4f_0002),
+    name: "nieuw-os-virtio-net-qemu",
+    version: driver_core::DriverVersion::new(0, 1, 0),
+    class: driver_core::DeviceClass::NetworkDevice,
+    pci: driver_core::PciMatch {
+        vendor_id: Some(0x1af4),
+        device_id: Some(DEVICE_ID_NET),
+        class: None,
+        subclass: None,
+        programming_interface: None,
+        revision: None,
+        subsystem_vendor_id: None,
+        subsystem_device_id: None,
+    },
+};
 pub const FEATURE_MAC: u64 = 1 << 5;
 pub const FEATURE_STATUS: u64 = 1 << 16;
 const RAM_END: u64 = 256 * 1024 * 1024;

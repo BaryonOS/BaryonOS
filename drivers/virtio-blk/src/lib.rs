@@ -10,6 +10,22 @@ use core::{
 };
 use virtio_core::{descriptor_plan, parse_capabilities, validate_descriptors, QUEUE_SIZE};
 pub use virtio_core::{Bar, Completion, DmaPool, Error, Regions};
+pub const DRIVER_REGISTRATION: driver_core::DriverRegistration = driver_core::DriverRegistration {
+    id: driver_core::DriverId::new(0x4e4f_0001),
+    name: "nieuw-os-virtio-blk-qemu",
+    version: driver_core::DriverVersion::new(0, 1, 0),
+    class: driver_core::DeviceClass::BlockDevice,
+    pci: driver_core::PciMatch {
+        vendor_id: Some(0x1af4),
+        device_id: Some(0x1042),
+        class: None,
+        subclass: None,
+        programming_interface: None,
+        revision: None,
+        subsystem_vendor_id: None,
+        subsystem_device_id: None,
+    },
+};
 const BDF: u32 = 5 << 11;
 const RAM_END: u64 = 256 * 1024 * 1024;
 #[derive(Clone, Copy)]
@@ -533,5 +549,48 @@ unsafe fn write32(a: u64, v: u32) {
 unsafe fn write64(a: u64, v: u64) {
     unsafe {
         (a as *mut u64).write_volatile(v);
+    }
+}
+
+#[cfg(test)]
+mod registry_tests {
+    use super::*;
+    use driver_core::{DriverRegistry, PciAddress, PciDeviceDescriptor};
+
+    #[test]
+    fn registration_matches_only_supported_virtio_block_identity() {
+        let mut registry = DriverRegistry::<1>::new();
+        registry.register(DRIVER_REGISTRATION).unwrap();
+        let descriptor = PciDeviceDescriptor {
+            address: PciAddress {
+                segment: 0,
+                bus: 0,
+                device: 5,
+                function: 0,
+            },
+            vendor_id: 0x1af4,
+            device_id: 0x1042,
+            class: 0x01,
+            subclass: 0x00,
+            programming_interface: 0x00,
+            revision: 1,
+            subsystem_vendor_id: None,
+            subsystem_device_id: None,
+        };
+        assert_eq!(
+            registry
+                .best_match(&descriptor)
+                .unwrap()
+                .unwrap()
+                .registration,
+            DRIVER_REGISTRATION
+        );
+        assert_eq!(
+            registry.best_match(&PciDeviceDescriptor {
+                device_id: 0x1043,
+                ..descriptor
+            }),
+            Ok(None)
+        );
     }
 }

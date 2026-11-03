@@ -222,6 +222,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "driver-core"
+version = "0.1.0"
+
+[[package]]
 name = "ed25519"
 version = "2.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -651,6 +655,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 name = "virtio-blk-driver"
 version = "0.1.0"
 dependencies = [
+ "driver-core",
  "virtio-core",
 ]
 
@@ -662,6 +667,7 @@ version = "0.1.0"
 name = "virtio-net-driver"
 version = "0.1.0"
 dependencies = [
+ "driver-core",
  "virtio-core",
 ]
 

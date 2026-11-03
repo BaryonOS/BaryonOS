@@ -14,6 +14,43 @@ const POOL: NetPool = NetPool {
 };
 const MAC: [u8; 6] = [2, 0, 0, 0, 0, 7];
 
+#[test]
+fn registry_registration_matches_only_supported_virtio_net_identity() {
+    let mut registry = driver_core::DriverRegistry::<1>::new();
+    registry.register(DRIVER_REGISTRATION).unwrap();
+    let descriptor = driver_core::PciDeviceDescriptor {
+        address: driver_core::PciAddress {
+            segment: 0,
+            bus: 0,
+            device: 7,
+            function: 0,
+        },
+        vendor_id: 0x1af4,
+        device_id: DEVICE_ID_NET,
+        class: 0x02,
+        subclass: 0x00,
+        programming_interface: 0x00,
+        revision: 1,
+        subsystem_vendor_id: None,
+        subsystem_device_id: None,
+    };
+    assert_eq!(
+        registry
+            .best_match(&descriptor)
+            .unwrap()
+            .unwrap()
+            .registration,
+        DRIVER_REGISTRATION
+    );
+    assert_eq!(
+        registry.best_match(&driver_core::PciDeviceDescriptor {
+            device_id: 0x1042,
+            ..descriptor
+        }),
+        Ok(None)
+    );
+}
+
 #[derive(Clone)]
 struct Model(Rc<RefCell<Registers>>);
 

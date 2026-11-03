@@ -1,20 +1,41 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR139 exacte contracttestreceipt — 3 november 2026
+## NEXT AGENT HANDOFF — Driver Core en PCI-matching — 3 november 2026
 
-**Werkelijk opnieuw geteste bron:** `0a49a3822e5d872f75573f12cd072e76e1249e1b`,
-de geïntegreerde PR139-boom met main `d115cc96`.
-Negen artifact-store-contracttests, Rust1.90.0 fmt en Clippy: elk exit0.
-Volledige primaire logs, exacte commando's, tree en codehashes:
+Werkbranch `copilot/universal-driver-framework`, basiscommit
+`56a025bb326f7341ec89f40caf6a18345de9110f`. Er staat een dependencyvrije
+`no_std` Driver Core met categoriecontracten, een vaste-capaciteit
+PCI-registry, fail-closed ambiguïteitsafhandeling en metadataregistraties
+voor bestaande VirtIO block/netdrivers. Geen externe code/dependency
+overgenomen; geen kernel/capability-/DMA-grens gewijzigd.
+
+**Uitgevoerde gates:** exacte commando's, logs, exitstatussen en bronhashes
+staan in [het verificatierapport](verification/universal-driver-core-2026-11-03.md).
+Formatcheck, `cargo check --tests`, Clippy `-D warnings` en releasebuild voor
+`x86_64-unknown-none` slaagden. De initiële Clippy-run vond een niet-minimale
+boolean op; die is aangepast en de volledige gate is opnieuw groen. Hosttests
+konden niet linken omdat `cc` ontbreekt; `cargo check --tests` controleert
+alleen compilatie, niet de uitvoering. Geen VM-/hardwarerun. Score blijft
+41/100.
+
+**Open/eerstvolgend:** voer unit/modeltests uit wanneer een host C-linker
+beschikbaar is. Beoordeel daarna of een beperkte kernel-side enumerator/
+resourcegrant op de huidige architectuur veilig uitvoerbaar is. De matchregistry
+start zelf geen driver en is nog niet aan boot gekoppeld.
+
+### Gepauzeerd werk — PR139 exacte contracttestreceipt
+
+Geteste bron `0a49a3822e5d872f75573f12cd072e76e1249e1b`, geïntegreerde boom
+met main `d115cc96`; negen artifact-store-contracttests, Rust 1.90.0 fmt en
+Clippy exit 0. Primaire logs/boom/hash:
 [contracttestreceipt](verification/pr139-artifact-contract-receipt.json).
-Dit vervangt geen native acceptatie; eerdere Watch-testclaims zonder
-primaire receipt zijn niet retrospectief als geverifieerd bestempeld.
+Dit vervangt geen native acceptatie; eerdere Watch-testclaims zonder primaire
+receipt zijn niet retrospectief als geverifieerd bestempeld.
 Replay-/umaskbewijs blijft exact aan732 gebonden en OS-workflowhistorie
-uitsluitend aan380. **41 → 41**, geen criteriumwijziging.
-
-**Open/eerstvolgend:** `GH_PAGER="" gh pr checks 139`, daarna live
-head/base/threads en inhoudsbehoud hercontroleren vóór guarded squash.
-Geen testbewijs stilzwijgend naar een latere Watch-head promoveren.
+uitsluitend aan380. Volgende oude PR-actie blijft
+`GH_PAGER="" gh pr checks 139` en live head/base/threads hercontroleren vóór
+guarded squash. Deze featurebranch wijzigt die PR niet en promoveert geen ouder
+testbewijs naar een andere head.
 
 ## Onderzoek OS-repositories en hardwaredrivers — 3 november 2026
 

@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`47cc895b`](https://github.com/simonvanieperen/nieuw-os/commit/47cc895b4de6bfde02f294399ebc777c67575d24) ·
-**Ontwikkelbranch:** `simonvanieperen-ideal-lamp`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Beoordeling rust-osdev-bibliotheken voor hardwaredrivers.
-41/100 blijft 41/100. Beoordeeld zijn rust-osdev/acpi, pci_types, xhci, usb, uart_16550 en virtio-spec-rs op vastgezette bronversies. ACPI/PCI/XHCI/USB leveren parser-, type- of registerbouwstenen, geen complete geïsoleerde drivers; virtio-spec-rs zijn definities en geen driver. uart_16550 is wel een echte no_std-driver, maar upstream 0.9.0 vereist Rust 1.91.0 tegenover onze 1.90.0-pin. Geen code/dependency toegevoegd of tests voor deze externe crates uitgevoerd. Volledige vergelijking en grenzen staan in docs/research/2026-11-03/os-repos-and-hardware-drivers.md.
+**Bron:** [`56a025bb`](https://github.com/simonvanieperen/nieuw-os/commit/56a025bb326f7341ec89f40caf6a18345de9110f) ·
+**Ontwikkelbranch:** `copilot/universal-driver-framework`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Implementatie eerste Driver Core en PCI-matchregistry.
+41/100 blijft 41/100. Toegevoegd is een eigen dependencyvrije no_std driver-core met Block/Network/Display/Input traits, toekomstige categorielabels, PCI descriptor/selector en vaste-capaciteit registry met exact-matchcriteria en fail-closed tie handling. Bestaande VirtIO block/netdrivers publiceren alleen PCI matchmetadata; hun fixed-BDF transporten en kernelautoriteit zijn onveranderd, en er is nog geen generieke enumerator, resourcegrant of driverstart. x86_64-unknown-none cargo check slaagde. Hosttests konden niet linken wegens ontbrekende cc; QEMU en fysieke tests niet uitgevoerd. Dit is infrastructuur, geen FR-H01/02/03-acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

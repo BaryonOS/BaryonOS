@@ -15,6 +15,34 @@ Historische bewijsbestanden behouden hun oorspronkelijke nummervermelding.
 | 056, eenmalig klembord | ADR-062 |
 | 056, herkenbare VM-sessieroute | ADR-063 |
 
+## ADR-064 — Safe Driver Core en fail-closed PCI-selectie
+
+**Datum:** 3 november 2026. De eerste gedeelde driverinterface is een interne,
+dependencyvrije `no_std`-crate met in-memory categoriecontracten en een
+vaste-capaciteit PCI-registry. Exacte subsystem-/vendor-/device-/class-match
+specificiteit bepaalt de kandidaat; een gelijke hoogste match is ambigu en
+wordt niet op registratiewillekeur opgelost. De bestaande VirtIO block- en
+netdrivers publiceren alleen PCI-identiteitsmetadata als eerste adapters.
+
+Dit besluit volgt de categorie- en probingvorm van ArceOS, niet diens kernel-,
+driver- of HAL-code. De `rcore-os/virtio-drivers`-crate wordt niet als
+dependency gebruikt: de gecontroleerde upstream gebruikt een andere PCI/HAL-
+route en meldt `VIRTIO_F_VERSION_1` als TODO in de README; de bestaande Nieuw
+OS VirtIO-contracten worden niet omzeild.
+
+**Belangrijke grens:** `DriverRegistry` selecteert metadata, maar start geen
+driver en verleent geen resources. Algemene PCI-enumeratie, capability-
+begrensde BAR/IRQ/DMA-grants, IOMMU-integratie, resetquarantaine en
+unsupported-device logging blijven open. De bestaande fixed-BDF-profielen
+blijven ongewijzigd totdat een generieke enumerator dezelfde grenzen en
+regressies behoudt. Geen scorepunten of fysieke compatibiliteitsclaim volgt
+uit deze core.
+
+**Herziening:** wanneer een kernel-owned resourcegrant en een descriptor-
+enumerator met negatieve tests bestaan, of wanneer echte deviceproeven een
+incompatibele matching-/category-API aantonen. Zie
+[`docs/drivers`](drivers/DRIVER-ARCHITECTURE.md).
+
 ## Onderzoeksbesluit J-20261102 — herkenbare basis, expliciete installatiegrens
 
 **Datum:** 2 november 2026. **Status:** ontwerp-/onderzoekskeuze, geen
