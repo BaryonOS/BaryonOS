@@ -1,0 +1,186 @@
+{
+  "source_commit": "337f2f29f1833ef4a8d2cd640b09419f85dbb83b",
+  "scope": "Observed GitHub Actions results; individual workflow scopes remain distinct.",
+  "workflow_runs": [
+    {
+      "id": 41487814975,
+      "name": "K05 process management acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 347,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814975/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814975/logs",
+      "workflow_id": 401041660
+    },
+    {
+      "id": 41487814964,
+      "name": "Resource pressure acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 372,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814964/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814964/logs",
+      "workflow_id": 399752273
+    },
+    {
+      "id": 41487814896,
+      "name": "NAS host, target and native normal/cold checks",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 87,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814896/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814896/logs",
+      "workflow_id": 402053497
+    },
+    {
+      "id": 41487814883,
+      "name": "Native CMOS RTC acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 273,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814883/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814883/logs",
+      "workflow_id": 401820680
+    },
+    {
+      "id": 41487814889,
+      "name": "Native display and input acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 311,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814889/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814889/logs",
+      "workflow_id": 401371461
+    },
+    {
+      "id": 41487814986,
+      "name": "Component leaf quality",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 48,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814986/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814986/logs",
+      "workflow_id": 402147033
+    },
+    {
+      "id": 41487815147,
+      "name": "Storage resilience acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 269,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487815147/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487815147/logs",
+      "workflow_id": 399756123
+    },
+    {
+      "id": 41487815035,
+      "name": "Network TLS adapter quality",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 52,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487815035/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487815035/logs",
+      "workflow_id": 402106993
+    },
+    {
+      "id": 41487814978,
+      "name": "Network broker quality",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 55,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814978/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814978/logs",
+      "workflow_id": 402091032
+    },
+    {
+      "id": 41487814890,
+      "name": "Windows QEMU native Materiaal test bundle",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 220,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814890/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814890/logs",
+      "workflow_id": 401991847
+    },
+    {
+      "id": 41487815085,
+      "name": "App package and artifact quality",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 56,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487815085/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487815085/logs",
+      "workflow_id": 402073443
+    },
+    {
+      "id": 41487815011,
+      "name": "B01 entropy and key management acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 342,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487815011/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487815011/logs",
+      "workflow_id": 401062482
+    },
+    {
+      "id": 41487815101,
+      "name": "Native RANDOM and image foundation acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 303,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487815101/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487815101/logs",
+      "workflow_id": 401425242
+    },
+    {
+      "id": 41487814914,
+      "name": "B03 signed updates acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 294,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814914/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814914/logs",
+      "workflow_id": 401656690
+    },
+    {
+      "id": 41487815139,
+      "name": "M6e scalable volume acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 267,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487815139/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487815139/logs",
+      "workflow_id": 399997984
+    },
+    {
+      "id": 41487814886,
+      "name": "CI",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 452,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814886/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814886/logs",
+      "workflow_id": 399693409
+    },
+    {
+      "id": 41487814928,
+      "name": "FR-I01 joint native system acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 325,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814928/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814928/logs",
+      "workflow_id": 401194164
+    },
+    {
+      "id": 41487814892,
+      "name": "Native window session and Windows QEMU bundle",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 4,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814892/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/41487814892/logs",
+      "workflow_id": 404744090
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "base": "b1b292aadf244dacf029b7307aebdc6103756e0d",
+  "branch": "codex/window-idle-wait-20261102",
+  "scope": "App idle planning only; host and standalone ELF checks; no native runtime acceptance/source freeze/CPU claim.",
+  "files": {
+    "sdk/examples/materiaal/src/main.rs": "476d36d44f62f5020bf0b3dbb0161b8525b64501d50b8d7bf35d7ff2704a91ff",
+    "sdk/examples/materiaal/src/lib.rs": "4b66ca5eb83b96cf20533e3790bee6dc3b32c7ecf5dd6555875e4809289bc8ed",
+    "sdk/examples/materiaal/src/idle.rs": "965eb3880f8c805e2b283feb2f3407273037561ba8200bbbf61b57b8edbb0980",
+    "sdk/examples/materiaal/tests/chain.rs": "1247beeaa05fbd2f68345bd18b396557d454ce491d3e885bb150fd2055601416",
+    "sdk/examples/calculator/src/main.rs": "2bf4eb6dfff2b885f274a7a31958683dabb32ccad5c14f725795d0297b09ecb3",
+    "sdk/examples/calculator/src/lib.rs": "dd817d184e47197fe9ddc21a12be2fb7c8466a5477ed900b6d9c3a3ab2179ac5",
+    "sdk/examples/calculator/src/app.rs": "3df37551bfa2b3590f18a1aedb5eb6905eeeba6f85c8fd90c5cdf5bbc98c7343",
+    "sdk/examples/calculator/src/idle.rs": "965eb3880f8c805e2b283feb2f3407273037561ba8200bbbf61b57b8edbb0980",
+    "sdk/examples/calculator/tests/chain.rs": "6f74ee0149ee8f368ddd42ff4a25380b7c8df20757951a95129cbeaebeb38c72"
+  },
+  "logs": {
+    "target/agent-apps/materiaal/chain-final.log": "3044c1a586807be60fa8bd96d0adb2144fe33c0e2bb5307b5d4d1703a12ae796",
+    "target/agent-apps/materiaal/clippy-host.log": "72865d6a0ac1ea776ce7c83c7122a8f10ac819e6c93408dc571672af04191321",
+    "target/agent-apps/materiaal/clippy-native.log": "b69375f0eb160341e678ae60abfd2ab87c3c05573b89381396185faf719690a9",
+    "target/agent-apps/materiaal/elf-test.log": "f66abfb7a26077e287b613e126be5aa861fa00df99bad7d0273fff3ea76f68fe",
+    "target/agent-apps/materiaal/host-test.log": "4c1058bbe5b9bb7cb643588ff04534b7c4a2b92b3d189ba3cea60295aad5e501",
+    "target/agent-apps/materiaal/native-build.log": "377d7bc46c73d3bbfa6fabad947ecad4c0cac83db5dc06582d3d9edb1411d5f7",
+    "target/agent-apps/calculator/chain-final.log": "ebad703835a959336ecff6ab8902a16f12fdec62858a1490cfbb50cb6d1cb261",
+    "target/agent-apps/calculator/clippy-host.log": "3ba1e4d31de7f26608ee9e192a9323893d778705d71814a0b85914c6dd167bd2",
+    "target/agent-apps/calculator/clippy-native.log": "5b898d717f580a1110c7e1242656c834a164248d9031e8d1fb6d8160f4135161",
+    "target/agent-apps/calculator/host-test.log": "24c2152f387d0aee3f6f0de368237fb1eb43fd1377ae1b8c5e167cae348635b5",
+    "target/agent-apps/calculator/native-build.log": "dca9c66c4c7944647ba7f12cbe148fe45dddacc4caf8541e07f80e07cabf131c"
+  },
+  "patch_sha256": "6347415efa22944818dd69eb1a3f2208a6ef4e72e6ec1fbe61de929cfc569efb",
+  "elf": {
+    "target/agent-apps/materiaal/x86_64-unknown-none/release/materiaal-app": "7b4d3874a3c2cb5c64b12572320b880bd9089e3fa80fbab579e652fc2d52c68a",
+    "target/agent-apps/calculator/x86_64-unknown-none/release/calculator-app": "ace27a14b915b67df88854e75419ea827abfb507f642f3bb57802e494b3734d0"
+  }
+}

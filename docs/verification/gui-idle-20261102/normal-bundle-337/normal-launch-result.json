@@ -1,0 +1,38 @@
+{
+  "kind": "normal-windows-bundle-launch-partial-not-visual-acceptance",
+  "source_sha256": "3919403542c923bc86467db3184345159a5ce6881567a0e11baa85f2d39f1995",
+  "profile": "native-window-session",
+  "probe_controller": false,
+  "launch": {
+    "requested_acceleration": "Whpx",
+    "selected_acceleration": "whpx",
+    "acceleration_probe_passed": true,
+    "reason": "WHPX initialized with the paused q35 test profile.",
+    "qemu_version": "11.1.0",
+    "machine": "pc-q35-8.2",
+    "cpu": "qemu64",
+    "vcpus": 1,
+    "memory_mib": 256,
+    "kernel_feature": "native-window-session",
+    "source_sha256": "3919403542c923bc86467db3184345159a5ce6881567a0e11baa85f2d39f1995",
+    "started_at_utc": "2026-11-02T17:37:08.0138856Z"
+  },
+  "powershell": "Windows PowerShell5.1",
+  "owned_qemu_pid": 70732,
+  "actual_qemu_image": "C:\\Program Files\\qemu\\qemu-system-x86_64.exe",
+  "returned_window_title": "QEMU",
+  "initmask31_observed": true,
+  "serial_sha256": "75adf5de18d3fc34deea0388581e2a8d4157e5ec8899234e19e128b2bf767a0b",
+  "window_capture_attempts": 2,
+  "window_capture_error": "executable signature is not trusted (0x800b0101)",
+  "visual_input_acceptance": false,
+  "normal_bundle_latency_measured": false,
+  "launcher_exit": 0,
+  "close_method": "Owned PID+image/title verified, CloseMainWindow returnedTrue, launcher completed exit0",
+  "forced_termination": false,
+  "warnings": [
+    "Ignoring request for interrupt vector0",
+    "GLib WaitForMultipleObjectsEx failed: De ingang is ongeldig."
+  ],
+  "scope": "Ordinary starter/backend/VM readiness/host-window enumeration and close only. Does not certify pixels/input, graceful guest shutdown/storage durability, or idle optimization. No host settings changed."
+}

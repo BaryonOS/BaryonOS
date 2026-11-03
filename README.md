@@ -1,11 +1,40 @@
 # Nieuw OS — eigen kernel, sessieroute en bureaublad
 
+## Project in het kort
+
+Nieuw OS is een onderzoeksproject voor een zelfstandig besturingssysteem met
+een eigen x86_64-kernel en een eigen productervaring rond documenten en
+collecties: **Materiaal**. Het is geen Linux-distributie en gebruikt geen
+bestaande OS-kernel als basis. Veiligheid en privacy steunen onder meer op
+geïsoleerde processen, expliciete capabilities (kernel-afgedwongen rechten)
+en begrensde IPC (interprocescommunicatie).
+
+De boot- en runtimeketen is **UEFI/OVMF → eigen Rust-loader → bootprotocol →
+`no_std`-Rust-kernel → geïsoleerde processen en diensten → SDK en apps**.
+De workspace bevat daarnaast aparte crates voor kernel-/capabilitylogica,
+drivers en diensten voor opslag, invoer en netwerk, plus de SDK en native
+apps. Rust/Cargo is de hoofdstack (toolchain 1.90.0); Python verzorgt veel
+build- en testharnassen. QEMU/OVMF wordt gebruikt voor geïsoleerde VM-proeven.
+NAS- en quantumsimulatorprototypes zijn afzonderlijke sporen, geen bewijs van
+volledig geïntegreerde native functies.
+
+**Codeleesroute:** begin bij `boot/loader/src/main.rs`, volg naar
+`kernel/src/main.rs` en daarna `kernel/src/m2.rs` en `kernel/src/m2/m3.rs`.
+Lees voor procesrechten `crates/capability-core/`, voor apps
+`sdk/runtime/README.md` en `sdk/examples/materiaal/README.md`. De actuele
+status en open gates staan in [PROJECT-STATE.md](docs/PROJECT-STATE.md);
+architectuurkeuzes en contracten staan in
+[KERNEL-AND-SECURITY-CONTRACT.md](docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md)
+en de volledige acceptatieopdracht in
+[FULL-TEST-RELEASE.md](docs/FULL-TEST-RELEASE.md). Proeven en builds zijn
+geen bewijs van een complete release of ondersteuning van fysieke hardware.
+
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 34% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 41% van de vaste productroadmap](docs/assets/progress.svg)
 
-**34% — 34 van 100 gewogen acceptatiepunten.** Dit is een
+**41% — 41 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -22,20 +51,20 @@ alleen een nette desktop haalt die eindgrens niet.
 | Eigen kern en procesisolatie | 15 | 13 |
 | Opslag en gegevensherstel | 15 | 13 |
 | Hardware, drivers en energie | 12 | 1 |
-| Native Materiaal en toegankelijkheid | 15 | 0 |
-| Internet en netwerkdiensten | 10 | 0 |
+| Native Materiaal en toegankelijkheid | 15 | 4 |
+| Internet en netwerkdiensten | 10 | 3 |
 | Beveiliging, privacy en updates | 12 | 4 |
 | Apps, SDK en installatie | 8 | 2 |
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **34** |
+| **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`8686f977`](https://github.com/simonvanieperen/nieuw-os/commit/8686f977a7f1fbfba1eb1214d301935c1859e8ed) ·
-**Ontwikkelbranch:** `codex/session-desktop-vm-20261102`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Conflicten met main oplossen voor PR #121.
-34/100 blijft gelijk; geen rubriccriterium is nieuw geaccepteerd. Main `74a34d0` is inhoudsbehoudend geïntegreerd in PR #121 als mergecommit `8686f97`; beide sets UI-interactietests zijn behouden. De gerichte suite slaagt met 34 tests, Clippy en rustfmt slagen. Hashes van de overgenomen full-release-, NAS-replay- en sparse-framebewijzen zijn gecontroleerd. De volledige diff-check meldt alleen ruwe, hashgebonden logbytes uit main; de PR-delta-check is schoon. CodeQL rapporteerde nul Python-alerts maar time-outte vóór overige talen, dus geen volledige scanclaim. Productcriteria en gewichten blijven ongewijzigd.
+**Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
+**Bron:** [`bb8877e3`](https://github.com/simonvanieperen/nieuw-os/commit/bb8877e3e1aaec304d7478510b65c8116aeb634e) ·
+**Ontwikkelbranch:** `simonvanieperen-reimagined-train`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR149: nieuwe primaire59-hosttestreceipt op schone Watch-main99-merge bewaren.
+41 blijft 41. Op schone Watch-merge bb8877e3 met main99 zijn59 hosttests echt opnieuw groen; cwd/HEAD/status/lock- en Rust-hashes vóór/na en volledige logs vastgelegd. Geen retrospectieve bronbinding van eerdere Watch-tijden. De UI-Rust-code blijft exact53256f82; historische scalar/Clippy/fmt behouden die bron. Assessmentbasis is niet de uiteindelijke PR-head of automatisch elke testbron. Geen nieuwe code, native/QEMU/fysieke/menselijke acceptatie of punten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -50,7 +79,48 @@ Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).
 <!-- OS-PROGRESS:END -->
 
-## Native sessiepreview — 2 november 2026
+Volledige repository-inventaris: [OS-completeness-audit](docs/audit/os-completeness/README.md).
+
+## Native venstersessie — 2 november 2026
+
+[PR #122](https://github.com/simonvanieperen/nieuw-os/pull/122) bevat een eigen
+1280×720-desktop met proportionele letters, twee geïsoleerde vensters, focus,
+slepen, dock en aanwijzer. Materiaal en Rekenmachine behouden document en
+berekening bij een echte compositorcrash. De volledige native route met
+opslaan, heropenen en onafhankelijke schijfcontrole slaagt; **U01 is geaccepteerd**.
+
+[PR #123](https://github.com/simonvanieperen/nieuw-os/pull/123) is hierin
+geïntegreerd: vier GUI-processen wachten bij afwezig werk. In drie metingen
+per variant op één Windows/WHPX-pc daalt de mediane QEMU-procesCPU van 99,37%
+naar 11,67% van één logische processor (88,26% lager). Alle 18 CI-workflows op de
+geteste integratiehead slagen. Dit is geen algemene latency- of energiegarantie.
+
+```sh
+python3 -B tools/build.py --kernel-feature native-window-session
+```
+
+De roadmap steeg van 34 naar 41 door N01 en U01. U02, bredere klemborddekking, echte
+accountauthenticatie en de volledige testrelease blijven open.
+[U01-acceptatie](docs/verification/mature-session-20261102/U01-ACCEPTANCE.md) ·
+[idle-integratie en pakketbewijs](docs/verification/gui-idle-20261102/INTEGRATION.md).
+
+## Native klembord — 2 november 2026
+
+[PR #124](https://github.com/simonvanieperen/nieuw-os/pull/124) is in de
+desktopbranch opgenomen. Ctrl+C/Ctrl+V deelt geselecteerde tekst tussen Materiaal
+en Rekenmachine; Ctrl+Shift+Delete wist het klembord. Alleen de eigen huidige
+invoergebeurtenis en actieve venster geven één gebruik. Een vervallen actie
+verandert het document niet; compositorherstel begint met een leeg klembord.
+
+Twee volledige Linux/TCG-routes slagen met alle22fasen,34hostreferenties,
+17volledige appbeeldvergelijkingen, echt herstel en onafhankelijke schijfcontrole.
+Alle18CI-workflows zijn groen op de geteste bron. De eerste versie ondersteunt
+192UTF-8-bytes met zichtbare weigering zonder afkappen. Ruimere capaciteit,
+de volledige snelheidscriteria en echte authenticatie blijven open; **41/100**.
+[Contract](docs/implementation/NATIVE-CLIPBOARD.md) ·
+[Bron, native bewijs en Windows-testpakket](docs/verification/native-clipboard-20261102/README.md).
+
+## Eerdere native sessiepreview — 2 november 2026
 
 [Concept-PR #121](https://github.com/simonvanieperen/nieuw-os/pull/121) voegt
 gebruikerskeuze, een herkenbaar aanmeldformulier, een expliciete openbare
@@ -65,7 +135,7 @@ python3 -B tools/build.py --kernel-feature native-system-session-preview
 
 De Windowsstarter kiest WHPX na een echte QMP-initprobe, met zichtbare
 TCG-terugval. Begrensde compositor-/tegelbatches verminderen protocolwerk;
-volledige schermopbouw blijft een ontwikkelbeperking. De score blijft 34/100.
+volledige schermopbouw blijft een ontwikkelbeperking. De score bleef bij die eerdere preview 34/100; de actuele meter staat bovenaan.
 [Onderzoek/ontwerp](docs/implementation/SESSION-AND-DESKTOP.md) ·
 [hardware en snelheid](docs/implementation/VM-HARDWARE-AND-PERFORMANCE.md) ·
 [proeven en reproductie](docs/verification/session-desktop-20261102/README.md).
@@ -233,6 +303,8 @@ De actuele native implementatiegrenzen staan per spoor hierboven.
 
 - [Architectuur en kernelcontract](docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md).
 - [Materiaal en productambitie](docs/implementation/PRODUCT-SPEC.md).
+- [Gebruikersbehoeften, overstapbarrières en OS-ontwerptrends — onderzoek 2 november 2026](docs/research/2026-11-02/README.md).
+- [Volledige OS-journey: installatie, eerste gebruik, mentale modellen en installer-/onboardingvoorstellen](docs/research/2026-11-02/journey/README.md) — documentonderzoek; geen installer geïmplementeerd.
 - [Privacycontract](docs/LOCAL-PRIVACY-CONTRACT.md).
 - [Quantumspoor](docs/QUANTUM-RESEARCH.md).
 - [Beveiliging en postkwantumroute](docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md).

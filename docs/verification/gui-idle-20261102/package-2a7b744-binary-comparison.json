@@ -1,0 +1,62 @@
+{
+  "schema": "nieuw-os-frozen-binary-comparison-v1",
+  "base_commit": "aba339a217e3f9c62a90dfa5e29b6d4f359d8ebf",
+  "candidate_commit": "2a7b74426027093a4793d78d5ddca94e15ae018a",
+  "base_full_source_sha256": "8faf3f7f47e3f26409e446b2311673416ddd70d5735ef106d94c9f30d2c6847a",
+  "candidate_full_source_sha256": "084478cf4d2e137a3ba37bc6029716be3e38fecfdf76ca82fe55cd409b8536d0",
+  "all_ten_binaries_byte_identical": true,
+  "binaries": [
+    {
+      "path": "esp/kernel.elf",
+      "sha256": "8402566edf8b539a18943ab5041e594535d5aaa142161490ad25503babf7cef1",
+      "byte_identical": true
+    },
+    {
+      "path": "esp/EFI/BOOT/BOOTX64.EFI",
+      "sha256": "5b90c8647cfae47f456f483e7800663f71a165c9912384c5d29ea35a50cd9314",
+      "byte_identical": true
+    },
+    {
+      "path": "users/materiaal/keyring-service.elf",
+      "sha256": "07657bfde7013dcf052aab581bee37af535a5b7055b273ee8df38632fce0c518",
+      "byte_identical": true
+    },
+    {
+      "path": "users/materiaal/volume-service.elf",
+      "sha256": "cae62e54c7d5bb0bd28586dfceeaaac9efba6eb0887f9f3ae314f3a77edb8c8b",
+      "byte_identical": true
+    },
+    {
+      "path": "users/materiaal/materiaal-app.elf",
+      "sha256": "a29e4eb61df16f83542687a6e6cd218364edd1c62defb227cf4c96df8a0290d2",
+      "byte_identical": true
+    },
+    {
+      "path": "users/materiaal/input-source.elf",
+      "sha256": "a5c2c84fa6eebda448dba2009c876abc4275fcab95a00a8b808a080d9d17d1d7",
+      "byte_identical": true
+    },
+    {
+      "path": "users/materiaal/input-policy.elf",
+      "sha256": "5bbe44edc98b251e03ba98081286dd1441334f8de87e14e550f26d1b3efcb445",
+      "byte_identical": true
+    },
+    {
+      "path": "users/materiaal/window-init.elf",
+      "sha256": "811f5ccba8a547d247fb05021758c59aa2c969941ea1ed38cacc10fa96fb1516",
+      "byte_identical": true
+    },
+    {
+      "path": "users/materiaal/window-compositor.elf",
+      "sha256": "efc3e084931c16e4277a3ab80a3a48cd2d02098e0affbc63d2cf428407231cbe",
+      "byte_identical": true
+    },
+    {
+      "path": "users/materiaal/calculator-app.elf",
+      "sha256": "19cb98d2d6574a9951a1209ae342e875ad7557ced211c92953f1010319a1fc14",
+      "byte_identical": true
+    }
+  ],
+  "native_reports_relabelled": false,
+  "vm_started": false
+}

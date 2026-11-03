@@ -8,46 +8,47 @@ running 0 tests
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
 
-running 1 test
+running 2 tests
 test render_native_session_walkthrough_oracle ... ok
+test render_desktop_foundation_at_reference_scales ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.59s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.66s
 
 
 running 31 tests
 test compact_layout_keeps_a_real_object_and_full_control_targets_visible ... ok
 test abort_retains_draft_and_does_not_publish_an_unsaved_revision ... ok
+test conflict_revocation_and_io_error_keep_unconfirmed_work_visible ... ok
 test dirty_close_defaults_to_cancel_and_only_explicit_discard_loses_edits ... ok
 test display_epoch_stale_frame_and_failed_present_keep_repaint_pending ... ok
-test conflict_revocation_and_io_error_keep_unconfirmed_work_visible ... ok
 test explicit_cleanup_refuses_dirty_and_never_reconfirms_closed_work ... ok
 test fresh_input_epoch_preserves_draft_and_cannot_inherit_a_pressed_button ... ok
 test mouse_click_uses_real_ps2_buttons_and_release_must_match ... ok
 test lost_commit_never_becomes_saved_or_automatic_replay ... ok
-test pointer_only_cancel_requires_fresh_down_after_outside_release_and_reentry ... ok
 test narrow_list_pointer_paging_reaches_real_objects_in_both_directions ... ok
+test pointer_only_cancel_requires_fresh_down_after_outside_release_and_reentry ... ok
 test readonly_and_unsupported_utf8_do_not_corrupt_bytes ... ok
 test real_ps2_edit_stream_commit_list_and_reopen ... ok
-test bounded_buffers_full_input_and_64kib_document_are_not_silent_truncation ... ok
 test replay_cancel_and_old_focus_cannot_trigger_a_new_edit ... ok
 test semantic_actions_revalidate_current_controls_and_persist_only_on_save ... ok
+test bounded_buffers_full_input_and_64kib_document_are_not_silent_truncation ... ok
 test sr05_dialog_tab_and_shift_tab_wrap_without_leaving_modal ... ok
 test semantic_tree_bounds_maximum_material_page_and_dirty_dialog ... ok
 test sr06_failed_save_blocks_editor_save_actions ... ok
 test sr05_escape_preserves_dirty_document_from_every_dialog_focus ... ok
 test sr06_failed_save_blocks_modal_save_actions ... ok
 test sr06_fresh_revoke_during_modal_save_restores_document_focus ... ok
-test sr08_uncertain_semantics_never_offer_save_or_replay ... ok
 test sr06_read_only_and_io_failures_keep_truthful_editor_state ... ok
+test sr08_uncertain_semantics_never_offer_save_or_replay ... ok
+test utf8_navigation_wrap_crlf_tabs_and_range_boundaries_are_checked ... ok
 test vm_desktop_cancel_cannot_release_an_old_account_click ... ok
 test vm_desktop_controls_remain_inside_supported_viewports ... ok
-test utf8_navigation_wrap_crlf_tabs_and_range_boundaries_are_checked ... ok
 test wrong_reply_identity_cannot_populate_a_fake_object_list ... ok
 test vm_desktop_guest_navigation_semantics_and_storage ... ok
 test real_raster_tiles_have_guards_clipping_lowercase_and_semantic_focus ... ok
 test actual_raster_scenes_for_manual_host_inspection ... ok
 
-test result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.93s
+test result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.34s
 
 
 running 4 tests
@@ -56,22 +57,29 @@ test window_semantic_bounds_match_physical_viewport_at_100_and_200_percent ... o
 test disabled_primary_and_secondary_hover_keep_their_distinct_styles ... ok
 test primary_buttons_preserve_accent_and_focus_when_hovered_at_both_scales ... ok
 
-test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.26s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 19.31s
 
 
 running 10 tests
-test denial_timeout_and_failed_activation_never_open_a_session ... ok
-test complete_reply_binding_includes_account_and_method ... ok
 test authentication_grant_still_requires_successful_service_activation ... ok
+test complete_reply_binding_includes_account_and_method ... ok
 test cancellation_account_switch_method_switch_and_lock_reject_delayed_replies ... ok
+test denial_timeout_and_failed_activation_never_open_a_session ... ok
 test input_is_bounded_masks_only_length_and_method_switch_discards_password ... ok
-test lock_and_unlock_do_not_restore_guest_or_user_identity ... ok
-test native_default_rejects_every_password_and_clears_it ... ok
-test retry_has_a_new_request_and_old_success_cannot_satisfy_it ... ok
-test submission_error_clears_password_and_never_records_a_pending_request ... ok
 test guest_is_an_explicit_separate_profile_and_never_an_authenticated_identity ... ok
+test lock_and_unlock_do_not_restore_guest_or_user_identity ... ok
+test retry_has_a_new_request_and_old_success_cannot_satisfy_it ... ok
+test native_default_rejects_every_password_and_clears_it ... ok
+test submission_error_clears_password_and_never_records_a_pending_request ... ok
 
 test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+test render_window_draft_focus_loss_and_input_rebind_oracle ... ok
+test render_native_window_material_walkthrough_oracle ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.42s
 
 
 running 0 tests
@@ -80,11 +88,11 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 
 
 stderr:
-   Compiling nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os/ui/native)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.63s
-     Running unittests src/lib.rs (build/native-materiaal-target/debug/deps/nieuw_os_materiaal-1b892b88014397d6)
-     Running tests/desktop_native_fixture.rs (build/native-materiaal-target/debug/deps/desktop_native_fixture-c9479292f175384b)
-     Running tests/interaction.rs (build/native-materiaal-target/debug/deps/interaction-ff1d03c9e469d341)
-     Running tests/render_regressions.rs (build/native-materiaal-target/debug/deps/render_regressions-dc3ad9a90927fcd1)
-     Running tests/session.rs (build/native-materiaal-target/debug/deps/session-8a2504bfc974bcf6)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running unittests src/lib.rs (build/native-materiaal-target/debug/deps/nieuw_os_materiaal-728155910c491f06)
+     Running tests/desktop_native_fixture.rs (build/native-materiaal-target/debug/deps/desktop_native_fixture-861b9e8020fb897a)
+     Running tests/interaction.rs (build/native-materiaal-target/debug/deps/interaction-7ba4db7872b7514e)
+     Running tests/render_regressions.rs (build/native-materiaal-target/debug/deps/render_regressions-743a59e25e18570a)
+     Running tests/session.rs (build/native-materiaal-target/debug/deps/session-b299f1d2638b966e)
+     Running tests/window_native_fixture.rs (build/native-materiaal-target/debug/deps/window_native_fixture-b0b56796ba4d4c33)
    Doc-tests nieuw_os_materiaal

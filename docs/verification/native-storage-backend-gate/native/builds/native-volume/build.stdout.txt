@@ -1,0 +1,21 @@
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os\\sdk\\Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\target\\volume-docs"}
+   Compiling catalog-core v0.1.0 (C:\Users\simon\OneDrive\Documenten\GitHub\nieuw-os\services\catalog)
+   Compiling zeroize v1.9.1
+   Compiling nieuw-os-sdk-runtime v0.1.0 (C:\Users\simon\OneDrive\Documenten\GitHub\nieuw-os\sdk\runtime)
+   Compiling volume-core v0.1.0 (C:\Users\simon\OneDrive\Documenten\GitHub\nieuw-os\services\volume)
+   Compiling nieuw-os-volume-docs-example v0.1.0 (C:\Users\simon\OneDrive\Documenten\GitHub\nieuw-os\sdk\examples\volume-docs)
+    Finished `release` profile [optimized] target(s) in 1.62s
+   Compiling boot-protocol v0.1.0 (C:\Users\simon\OneDrive\Documenten\GitHub\nieuw-os\crates\boot-protocol)
+   Compiling r-efi v7.1.0
+   Compiling elf-loader-core v0.1.0 (C:\Users\simon\OneDrive\Documenten\GitHub\nieuw-os\crates\elf-loader-core)
+   Compiling os-loader v0.1.0 (C:\Users\simon\OneDrive\Documenten\GitHub\nieuw-os\boot\loader)
+    Finished `release` profile [optimized] target(s) in 0.99s
+   Compiling virtio-core v0.1.0 (C:\Users\simon\OneDrive\Documenten\GitHub\nieuw-os\crates\virtio-core)
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\GitHub\nieuw-os\kernel)
+   Compiling kernel-core v0.1.0 (C:\Users\simon\OneDrive\Documenten\GitHub\nieuw-os\crates\kernel-core)
+   Compiling capability-core v0.1.0 (C:\Users\simon\OneDrive\Documenten\GitHub\nieuw-os\crates\capability-core)
+   Compiling block-protocol v0.1.0 (C:\Users\simon\OneDrive\Documenten\GitHub\nieuw-os\services\block)
+   Compiling boot-protocol v0.1.0 (C:\Users\simon\OneDrive\Documenten\GitHub\nieuw-os\crates\boot-protocol)
+   Compiling virtio-blk-driver v0.1.0 (C:\Users\simon\OneDrive\Documenten\GitHub\nieuw-os\drivers\virtio-blk)
+    Finished `release` profile [optimized] target(s) in 2.01s
+Built and inspected native-volume: 3 ELF load segments

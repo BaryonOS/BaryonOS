@@ -69,7 +69,7 @@ def source_hash() -> str:
     """Fingerprint source inputs without traversing generated artifacts or caches."""
     digest = hashlib.sha256()
     digest.update(b"nieuw-os source inputs v3\n")
-    for folder in (ROOT / "boot", ROOT / "kernel", ROOT / "crates", ROOT / "drivers", ROOT / "services", ROOT / "userspace", ROOT / "sdk", ROOT / "ui/native", ROOT / "ui/surface-protocol", ROOT / "experiments/quantum/qsim-core", ROOT / "experiments/quantum/native", ROOT / "experiments/quantum/job-protocol", ROOT / "tools", ROOT / ".cargo"):
+    for folder in (ROOT / "boot", ROOT / "kernel", ROOT / "crates", ROOT / "drivers", ROOT / "services", ROOT / "userspace", ROOT / "sdk", ROOT / "ui/native", ROOT / "ui/graphics", ROOT / "ui/surface-protocol", ROOT / "experiments/quantum/qsim-core", ROOT / "experiments/quantum/native", ROOT / "experiments/quantum/job-protocol", ROOT / "tools", ROOT / ".cargo"):
         if folder.exists():
             # Path ordering is case-insensitive on Windows. Explicit string
             # components preserve the v3 POSIX order on every build host.

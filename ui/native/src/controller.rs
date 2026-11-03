@@ -8,7 +8,7 @@ use crate::{
         MAX_SEMANTIC_NODES,
     },
     text::{self, Position},
-    Viewport,
+    Rect, Viewport,
 };
 use nieuw_os_catalog_client::Transport;
 use nieuw_os_document_session::{
@@ -52,6 +52,11 @@ pub enum Status {
     Saved { revision: u64 },
     Cancelled,
     InputLost,
+    ClipboardCopied,
+    ClipboardEmpty,
+    ClipboardSelection,
+    ClipboardTooLong,
+    ClipboardUnavailable,
     Failed(Error),
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -76,6 +81,7 @@ pub struct InputEnvelope {
 
 #[derive(Clone, Copy)]
 pub struct View<'a> {
+    pub draw_pointer: bool,
     pub desktop: Option<&'a crate::desktop::Desktop>,
     pub viewport: Viewport,
     pub generation: u64,
@@ -98,7 +104,38 @@ pub struct View<'a> {
     pub cursor: Option<(u32, u32)>,
 }
 
+#[derive(Clone, Copy, Debug, Default)]
+pub struct PaintDamage(Option<Rect>);
+impl PaintDamage {
+    pub fn intersects(self, x: u32, y: u32, width: u32, height: u32) -> bool {
+        self.0.is_some_and(|rect| {
+            rect.intersects(Rect {
+                x,
+                y,
+                width,
+                height,
+            })
+        })
+    }
+    fn include(&mut self, rect: Rect) {
+        self.0 = Some(match self.0 {
+            None => rect,
+            Some(old) => {
+                let x = old.x.min(rect.x);
+                let y = old.y.min(rect.y);
+                Rect {
+                    x,
+                    y,
+                    width: (old.x + old.width).max(rect.x + rect.width) - x,
+                    height: (old.y + old.height).max(rect.y + rect.height) - y,
+                }
+            }
+        });
+    }
+}
+
 pub struct Controller<'a, T> {
+    draw_pointer: bool,
     desktop: Option<crate::desktop::Desktop>,
     document: DocumentSession<'a, T>,
     editable: bool,
@@ -115,6 +152,7 @@ pub struct Controller<'a, T> {
     scroll: usize,
     generation: u64,
     dirty: bool,
+    paint_damage: PaintDamage,
     render_exhausted: bool,
     input_epoch: u64,
     awaiting_input: bool,
@@ -142,6 +180,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             return Err(Error::InputEpoch);
         }
         Ok(Self {
+            draw_pointer: true,
             desktop: None,
             document,
             editable: mode == EditMode::ReadWrite,
@@ -166,6 +205,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             scroll: 0,
             generation: 1,
             dirty: true,
+            paint_damage: PaintDamage(Some(viewport.bounds())),
             render_exhausted: false,
             input_epoch,
             awaiting_input: false,
@@ -180,6 +220,10 @@ impl<'a, T: Transport> Controller<'a, T> {
     }
 
     fn invalidate(&mut self) -> Result<(), Error> {
+        self.paint_damage = PaintDamage(Some(self.viewport.bounds()));
+        self.invalidate_generation()
+    }
+    fn invalidate_generation(&mut self) -> Result<(), Error> {
         self.dirty = true;
         let Some(next) = self.generation.checked_add(1) else {
             self.render_exhausted = true;
@@ -229,6 +273,7 @@ impl<'a, T: Transport> Controller<'a, T> {
     pub fn view(&self) -> View<'_> {
         let draft = self.document.draft();
         View {
+            draw_pointer: self.draw_pointer,
             desktop: self.desktop.as_ref(),
             viewport: self.viewport,
             generation: self.generation,
@@ -258,16 +303,30 @@ impl<'a, T: Transport> Controller<'a, T> {
             cursor: self.cursor,
         }
     }
+    /// The validated native adapter enables this only when a separate compositor
+    /// draws the system cursor. Local hover/input state is preserved.
+    pub fn set_compositor_cursor(&mut self, enabled: bool) -> Result<(), Error> {
+        let draw_pointer = !enabled;
+        if self.draw_pointer != draw_pointer {
+            self.draw_pointer = draw_pointer;
+            self.invalidate()?;
+        }
+        Ok(())
+    }
     pub fn presented(&mut self, generation: u64, display_epoch: u64) -> bool {
         if !self.render_exhausted
             && generation == self.generation
             && display_epoch == self.viewport.epoch()
         {
             self.dirty = false;
+            self.paint_damage = PaintDamage::default();
             true
         } else {
             false
         }
+    }
+    pub fn paint_damage(&self) -> PaintDamage {
+        self.paint_damage
     }
     /// Explicit public VM profile only. This does not revoke document caps or
     /// protect data; secure login requires an independent native session broker.
@@ -498,15 +557,17 @@ impl<'a, T: Transport> Controller<'a, T> {
         value: &str,
     ) -> Result<(), Error> {
         let (enabled, actions) = self.semantic_actions(id, expected_generation)?;
-        if enabled
-            && actions.set_value
-            && id == SemanticId::Desktop(crate::desktop::Target::SearchField)
-        {
-            if !self
-                .desktop
-                .as_mut()
-                .is_some_and(|desktop| desktop.set_query(value))
-            {
+        if let SemanticId::Desktop(target) = id {
+            if !enabled || !actions.set_value {
+                return Err(Error::InvalidInput);
+            }
+            let desktop = self.desktop.as_mut().ok_or(Error::InvalidInput)?;
+            let accepted = match target {
+                crate::desktop::Target::SearchField => desktop.set_query(value),
+                crate::desktop::Target::Password => desktop.set_password(value),
+                _ => false,
+            };
+            if !accepted {
                 return Err(Error::InvalidInput);
             }
             return self.invalidate();
@@ -688,6 +749,12 @@ impl<'a, T: Transport> Controller<'a, T> {
         }
         let range = text::selection(self.anchor, self.caret);
         let start = range.start;
+        let layout = Layout::new(self.viewport);
+        let old = self.view();
+        let contents = old.contents.ok_or(Error::InvalidUtf8)?;
+        let first_row = text::position(contents, start, layout.columns()).row;
+        let last_row = text::position(contents, contents.len(), layout.columns()).row;
+        let previous = (old.status, old.can_save, old.document_dirty, old.scroll);
         self.document
             .replace_range(range, replacement.as_bytes())
             .map_err(|e| self.failed(Error::Storage(e)))?;
@@ -695,6 +762,86 @@ impl<'a, T: Transport> Controller<'a, T> {
         self.anchor = self.caret;
         self.update_edit_status();
         self.ensure_caret();
+        let view = self.view();
+        if previous != (view.status, view.can_save, view.document_dirty, view.scroll)
+            || self
+                .desktop
+                .as_ref()
+                .is_some_and(|desktop| desktop.overlay())
+        {
+            return self.invalidate();
+        }
+        let contents = view.contents.ok_or(Error::InvalidUtf8)?;
+        let first_row = first_row.min(text::position(contents, start, layout.columns()).row);
+        let last_row = last_row.max(text::position(contents, contents.len(), layout.columns()).row);
+        let top = first_row.saturating_sub(self.scroll).min(layout.rows());
+        let bottom = last_row
+            .saturating_add(1)
+            .saturating_sub(self.scroll)
+            .min(layout.rows());
+        // Keep the union until the whole current frame has been acknowledged.
+        // Superseding a partially painted frame must not retain its stale rows.
+        if bottom > top {
+            self.paint_damage.include(
+                Rect {
+                    x: layout.editor.x,
+                    y: layout.editor.y + 8 + top as u32 * design::LINE_HEIGHT,
+                    width: layout.editor.width,
+                    height: (bottom - top) as u32 * design::LINE_HEIGHT,
+                }
+                .physical(self.viewport.scale()),
+            );
+        }
+        self.invalidate_generation()
+    }
+    fn clipboard_edit_context(&self) -> bool {
+        self.screen == Screen::Editor
+            && self.focus == Focus::Document
+            && !self
+                .desktop
+                .as_ref()
+                .is_some_and(|desktop| desktop.overlay())
+            && !self.document.is_saving()
+            && !self.document.is_closed()
+            && !self.document.is_uncertain()
+            && !self.document.is_conflicted()
+    }
+    /// Returns only the current explicit selection. The native input broker
+    /// separately authenticates the actual copy gesture and active window.
+    pub fn clipboard_selection(&self) -> Option<&str> {
+        if !self.clipboard_edit_context() {
+            return None;
+        }
+        let range = text::selection(self.anchor, self.caret);
+        if range.is_empty() {
+            return None;
+        }
+        self.view().contents?.get(range)
+    }
+    /// Called only after clipboard delivery and the original input ACK.
+    /// DocumentSession performs its existing atomic size/rights validation.
+    pub fn paste_clipboard(&mut self, value: &str) -> Result<(), Error> {
+        if !self.clipboard_edit_context() || !self.editable || value.is_empty() {
+            return Ok(());
+        }
+        self.insert(value)
+    }
+    pub fn clipboard_feedback(&mut self, status: Status) -> Result<(), Error> {
+        if !matches!(
+            status,
+            Status::ClipboardCopied
+                | Status::ClipboardEmpty
+                | Status::ClipboardSelection
+                | Status::ClipboardTooLong
+                | Status::ClipboardUnavailable
+        ) || self.document.is_saving()
+            || self.document.is_closed()
+            || self.document.is_uncertain()
+            || self.document.is_conflicted()
+        {
+            return Ok(());
+        }
+        self.status = status;
         self.invalidate()
     }
     fn update_edit_status(&mut self) {

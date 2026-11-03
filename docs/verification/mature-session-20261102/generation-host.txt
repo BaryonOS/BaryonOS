@@ -1,0 +1,44 @@
+   Compiling nieuw-os-display-client v0.1.0 (/workspace/nieuw-os/sdk/display-client)
+   Compiling nieuw-os-native-input-service v0.1.0 (/workspace/nieuw-os/sdk/examples/input-service)
+   Compiling nieuw-os-window-session v0.1.0 (/workspace/nieuw-os/sdk/examples/window-session)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.93s
+     Running unittests src/lib.rs (target/window-recovery-host/debug/deps/nieuw_os_window_session-574a16581eb326b1)
+
+running 8 tests
+test input::tests::delayed_reply_refresh_never_delivers_superseded_offer ... ok
+test input::tests::actual_sender_scope_and_epoch_precede_state_changes ... ok
+test input::tests::cancellation_supersedes_old_offer_without_consuming_new_event ... ok
+test input::tests::overflow_cancels_instead_of_delivering_partial_input ... ok
+test scene::tests::body_input_cannot_start_title_drag_and_focus_tracks_z_order ... ok
+test scene::tests::bounded_backing_at_both_actual_scales ... ok
+test scene::tests::damage_clips_coordinates_and_visits_each_tile_once ... ok
+test scene::tests::tile_rejection_is_atomic_and_scoped_to_own_backing ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/recovery.rs (target/window-recovery-host/debug/deps/recovery-8097a267e8c4e1db)
+
+running 6 tests
+test old_or_misbound_ready_messages_cannot_supply_fresh_service_bits ... ok
+test fresh_installation_rejects_invalid_or_reused_group_values_without_advancing_stage ... ok
+test complete_old_ready_mask_never_bypasses_both_pause_acks_or_actual_installation ... ok
+test another_recovery_starts_at_pause_and_rejects_every_previous_ready_generation ... ok
+test ready_validator_rejects_invalid_current_group_even_with_matching_payload ... ok
+test rebind_requires_all_three_current_service_roles_and_then_both_new_app_acks ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/render_performance.rs (target/window-recovery-host/debug/deps/render_performance-c749ec7f4449a760)
+
+running 2 tests
+test optimized_path_preserves_short_backing_buffer_and_geometry_errors ... ok
+test opaque_tiles_match_composite_at_both_scales_focuses_and_overlaps ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.43s
+
+   Doc-tests nieuw_os_window_session
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

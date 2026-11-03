@@ -1,0 +1,14 @@
+{"command": ["cargo", "+1.90.0", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/examples/calculator/Cargo.toml", "--features", "native", "--bin", "calculator-app", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.codex-local-os-tests/window-idle-b1b292a/target/agent-apps/calculator"}
+   Compiling zeroize v1.9.1
+   Compiling catalog-core v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/services/catalog)
+   Compiling ui-core v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/crates/ui-core)
+   Compiling nieuw-os-graphics v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/ui/graphics)
+   Compiling noto-sans-mono-bitmap v0.3.2
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/runtime)
+   Compiling nieuw-os-catalog-client v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/catalog-client)
+   Compiling nieuw-os-input-core v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/services/input-core)
+   Compiling nieuw-os-surface-protocol v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/ui/surface-protocol)
+   Compiling nieuw-os-input-client v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/input-client)
+   Compiling nieuw-os-calculator v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/examples/calculator)
+    Finished `release` profile [optimized] target(s) in 1.84s
+{"native_runtime_performed": false, "extra_env": {"NOS_CALCULATOR_ELF": "/home/simon/.codex-local-os-tests/window-idle-b1b292a/target/agent-apps/calculator/x86_64-unknown-none/release/calculator-app"}, "calculator_app": {"sha256": "ace27a14b915b67df88854e75419ea827abfb507f642f3bb57802e494b3734d0", "elf": {"entry": 1073741824, "segments": [{"flags": 5, "address": 1073741824, "offset": 4096, "filesz": 19, "memsz": 19, "page_start": 1073741824, "page_end": 1073745920}, {"flags": 6, "address": 1073807360, "offset": 8192, "filesz": 1024, "memsz": 1024, "page_start": 1073807360, "page_end": 1073811456}, {"flags": 4, "address": 1073872896, "offset": 12288, "filesz": 189281, "memsz": 189281, "page_start": 1073872896, "page_end": 1074065408}, {"flags": 6, "address": 1074200576, "offset": 204800, "filesz": 144, "memsz": 144, "page_start": 1074200576, "page_end": 1074204672}, {"flags": 5, "address": 1074462720, "offset": 208896, "filesz": 56790, "memsz": 56790, "page_start": 1074462720, "page_end": 1074520064}]}}}

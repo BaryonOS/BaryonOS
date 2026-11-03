@@ -1,0 +1,112 @@
+superblock: bytenr=65536, device=/tmp/nieuw-os-storage-btrfs-20261102/baseline.img
+---------------------------------------------------------
+csum_type		0 (crc32c)
+csum_size		4
+csum			0xbe281221 [match]
+bytenr			65536
+flags			0x1
+			( WRITTEN )
+magic			_BHRfS_M [match]
+fsid			69f54c99-916f-45d5-b23f-9b2051b31b62
+metadata_uuid		00000000-0000-0000-0000-000000000000
+label			nieuw-os-probe
+generation		9
+root			30490624
+sys_array_size		129
+chunk_root_generation	9
+root_level		0
+chunk_root		22036480
+chunk_root_level	0
+log_root		0
+log_root_transid (deprecated)	0
+log_root_level		0
+total_bytes		268435456
+bytes_used		1409024
+sectorsize		4096
+nodesize		16384
+leafsize (deprecated)	16384
+stripesize		4096
+root_dir		6
+num_devices		1
+compat_flags		0x0
+compat_ro_flags		0x3
+			( FREE_SPACE_TREE |
+			  FREE_SPACE_TREE_VALID )
+incompat_flags		0x361
+			( MIXED_BACKREF |
+			  BIG_METADATA |
+			  EXTENDED_IREF |
+			  SKINNY_METADATA |
+			  NO_HOLES )
+cache_generation	0
+uuid_tree_generation	0
+dev_item.uuid		2c6bb32d-8362-4852-bc7b-1e4b85979e14
+dev_item.fsid		69f54c99-916f-45d5-b23f-9b2051b31b62 [match]
+dev_item.type		0
+dev_item.total_bytes	268435456
+dev_item.bytes_used	92274688
+dev_item.io_align	4096
+dev_item.io_width	4096
+dev_item.sector_size	4096
+dev_item.devid		1
+dev_item.dev_group	0
+dev_item.seek_speed	0
+dev_item.bandwidth	0
+dev_item.generation	0
+
+superblock: bytenr=67108864, device=/tmp/nieuw-os-storage-btrfs-20261102/baseline.img
+---------------------------------------------------------
+csum_type		0 (crc32c)
+csum_size		4
+csum			0x1e493aef [match]
+bytenr			67108864
+flags			0x1
+			( WRITTEN )
+magic			_BHRfS_M [match]
+fsid			69f54c99-916f-45d5-b23f-9b2051b31b62
+metadata_uuid		00000000-0000-0000-0000-000000000000
+label			nieuw-os-probe
+generation		9
+root			30490624
+sys_array_size		129
+chunk_root_generation	9
+root_level		0
+chunk_root		22036480
+chunk_root_level	0
+log_root		0
+log_root_transid (deprecated)	0
+log_root_level		0
+total_bytes		268435456
+bytes_used		1409024
+sectorsize		4096
+nodesize		16384
+leafsize (deprecated)	16384
+stripesize		4096
+root_dir		6
+num_devices		1
+compat_flags		0x0
+compat_ro_flags		0x3
+			( FREE_SPACE_TREE |
+			  FREE_SPACE_TREE_VALID )
+incompat_flags		0x361
+			( MIXED_BACKREF |
+			  BIG_METADATA |
+			  EXTENDED_IREF |
+			  SKINNY_METADATA |
+			  NO_HOLES )
+cache_generation	0
+uuid_tree_generation	0
+dev_item.uuid		2c6bb32d-8362-4852-bc7b-1e4b85979e14
+dev_item.fsid		69f54c99-916f-45d5-b23f-9b2051b31b62 [match]
+dev_item.type		0
+dev_item.total_bytes	268435456
+dev_item.bytes_used	92274688
+dev_item.io_align	4096
+dev_item.io_width	4096
+dev_item.sector_size	4096
+dev_item.devid		1
+dev_item.dev_group	0
+dev_item.seek_speed	0
+dev_item.bandwidth	0
+dev_item.generation	0
+

@@ -1,0 +1,35 @@
+[package]
+name = "nieuw-os-native-network-service"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.91"
+publish = false
+[workspace]
+resolver = "3"
+[features]
+native = []
+[dependencies]
+nieuw-os-network-service = { path = "../../../services/network-service" }
+nieuw-os-net-stack = { path = "../../../services/net-stack" }
+nieuw-os-sdk-runtime = { path = "../../runtime" }
+nieuw-os-net-client = { path = "../../net-client" }
+nieuw-os-catalog-client = { path = "../../catalog-client" }
+[[bin]]
+name = "network-service"
+path = "src/service.rs"
+required-features = ["native"]
+test = false
+bench = false
+[[bin]]
+name = "network-client"
+path = "src/client.rs"
+required-features = ["native"]
+test = false
+bench = false
+[profile.dev]
+panic = "abort"
+[profile.release]
+panic = "abort"
+opt-level = "s"
+codegen-units = 1
+lto = false

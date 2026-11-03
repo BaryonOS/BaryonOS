@@ -3,5 +3,6 @@
 pub mod app;
 pub mod bootstrap;
 pub mod decimal;
+pub mod idle;
 pub mod model;
 pub mod render;

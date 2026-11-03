@@ -53,17 +53,17 @@ const fn pixels(name: &[u8]) -> u32 {
     assert!(source[at] == b'p' && source[at + 1] == b'x' && source[at + 2] == b';');
     result
 }
-pub const BACKGROUND: u32 = color(b"--background");
-pub const SURFACE: u32 = color(b"--surface");
-pub const TEXT: u32 = color(b"--text");
-pub const MUTED: u32 = color(b"--muted");
-pub const ACCENT: u32 = color(b"--accent");
+pub const BACKGROUND: u32 = nieuw_os_graphics::theme::MATERIAAL.background;
+pub const SURFACE: u32 = nieuw_os_graphics::theme::MATERIAAL.surface;
+pub const TEXT: u32 = nieuw_os_graphics::theme::MATERIAAL.text;
+pub const MUTED: u32 = nieuw_os_graphics::theme::MATERIAAL.muted;
+pub const ACCENT: u32 = nieuw_os_graphics::theme::MATERIAAL.accent;
 pub const DANGER: u32 = color(b"--danger");
 pub const WARNING: u32 = color(b"--warning");
 pub const WARNING_BACKGROUND: u32 = color(b"--warning-bg");
-pub const BORDER: u32 = color(b"--border");
-pub const LINE: u32 = color(b"--line");
-pub const ACCENT_SOFT: u32 = color(b"--accent-soft");
+pub const BORDER: u32 = nieuw_os_graphics::theme::MATERIAAL.border;
+pub const LINE: u32 = nieuw_os_graphics::theme::DIVIDER;
+pub const ACCENT_SOFT: u32 = nieuw_os_graphics::theme::MATERIAAL.accent_soft;
 pub const DESKTOP_START: u32 = color(b"--desktop-start");
 pub const DESKTOP_END: u32 = color(b"--desktop-end");
 pub const DESKTOP_GLOW: u32 = color(b"--desktop-glow");

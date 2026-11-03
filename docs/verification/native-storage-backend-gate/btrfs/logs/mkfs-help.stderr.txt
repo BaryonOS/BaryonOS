@@ -1,0 +1,57 @@
+usage: mkfs.btrfs [options] <dev> [<dev...>]
+
+    Create a BTRFS filesystem on a device or multiple devices
+
+    Allocation profiles:
+    -d|--data PROFILE         data profile, raid0, raid1, raid1c3, raid1c4, raid5, raid6, raid10, dup or single
+    -m|--metadata PROFILE     metadata profile, values like for data profile 
+    -M|--mixed                mix metadata and data together 
+    
+    Features:
+    --csum TYPE               
+    --checksum TYPE           checksum algorithm to use, crc32c (default), xxhash, sha256, blake2 
+    -n|--nodesize SIZE        size of btree nodes, 16K (default), 4K, 8K, 32K, 64K 
+    -s|--sectorsize SIZE      data block size (default 4K, may not be mountable by current kernel if CPU page size is
+                              different) 
+    -O|--features LIST        comma separated list of filesystem features (use '-O list-all' to list features) 
+    -L|--label LABEL          set the filesystem label (maximum length 255) 
+    -U|--uuid UUID            specify the filesystem UUID (must be unique for a filesystem with multiple devices)
+    --device-uuid UUID        specify the filesystem device UUID (a.k.a sub-uuid) (for single device filesystem
+                              only) 
+    
+    Creation:
+    -b|--byte-count SIZE      set size of each device to SIZE (filesystem size is sum of all device sizes) 
+    -r|--rootdir DIR          copy files from DIR to the image root directory, can be combined with --subvol 
+    --compress ALGO[:LEVEL]   compress files by algorithm and level, ALGO can be 'no' (default), zstd, lzo, zlib 
+                              Built-in: 
+                              - ZSTD: yes (levels 1..15) 
+                              - LZO: yes 
+                              - ZLIB: yes (levels 1..9) 
+    -u|--subvol TYPE:SUBDIR   create SUBDIR as subvolume rather than normal directory, can be specified multiple
+                              times 
+                              TYPE is one of: 
+                              - rw - (default) create a writeable subvolume in SUBDIR 
+                              - ro - create the subvolume as read-only 
+                              - default - the SUBDIR will be a subvolume and also set as default (can be specified only
+                              once) 
+                              - default-ro - like 'default' and is created as read-only subvolume (can be specified
+                              only once) 
+    --inode-flags FLAGS:PATH  specify that path to have inode flags, can be specified multiple times 
+                              FLAGS is one of: 
+                              - nodatacow - disable data CoW, implies nodatasum for regular files 
+                              - nodatasum - disable data checksum only 
+    --reflink                 (with --rootdir) write file data by cloning ranges 
+    --shrink                  (with --rootdir) shrink the filled filesystem to minimal size 
+    -K|--nodiscard            do not perform whole device TRIM 
+    -f|--force                force overwrite of existing filesystem 
+    
+    General:
+    -q|--quiet                no messages except errors 
+    -v|--verbose              increase verbosity level, default is 1 
+    -V|--version              print the mkfs.btrfs version, builtin features and exit 
+    --help                    print this help and exit 
+    
+    Deprecated:
+    -R|--runtime-features LIST
+                              removed in 6.3, use -O|--features 
+

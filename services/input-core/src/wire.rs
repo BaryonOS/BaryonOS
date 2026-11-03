@@ -98,11 +98,7 @@ impl Request {
 
 /// Canonical successful/empty response. A failed `handle` returns an Error;
 /// the adapter must expose it as an error, never substitute a success reply.
-pub(crate) fn response(
-    request: Request,
-    client: u64,
-    event: Option<(u64, u64, Event)>,
-) -> [u8; SIZE] {
+pub fn response(request: Request, client: u64, event: Option<(u64, u64, Event)>) -> [u8; SIZE] {
     let mut bytes = request.encode();
     bytes[6..8].copy_from_slice(&((request.operation as u16) | REPLY).to_le_bytes());
     put64(
@@ -170,7 +166,7 @@ pub(crate) fn response(
     bytes
 }
 
-pub(crate) fn failure(request: Request, client: u64, error: Error) -> [u8; SIZE] {
+pub fn failure(request: Request, client: u64, error: Error) -> [u8; SIZE] {
     let mut bytes = response(request, client, None);
     put64(&mut bytes, 24, u64::from(error as u16));
     bytes

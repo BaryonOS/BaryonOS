@@ -21,6 +21,8 @@ nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os/ui/native)
 │           └── volume-core v0.1.0 (/workspace/nieuw-os/services/volume)
 │               └── catalog-core feature "default" (*)
 ├── volume-core feature "default" (*)
+├── nieuw-os-graphics feature "default"
+│   └── nieuw-os-graphics v0.1.0 (/workspace/nieuw-os/ui/graphics)
 ├── nieuw-os-input-core feature "default"
 │   └── nieuw-os-input-core v0.1.0 (/workspace/nieuw-os/services/input-core)
 │       ├── nieuw-os-sdk-runtime feature "default" (*)

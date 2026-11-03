@@ -17,7 +17,25 @@ import run_fpu
 from run_materiaal_preview import BOOT, READY, verify_frame, verify_ready_transcript
 
 
+def sent_qcodes(trace):
+    """Inspect keyboard operations, never UUIDs or screenshot filenames."""
+    return [key["data"] for item in trace
+            if item["request"]["execute"] == "send-key"
+            for key in item["request"]["arguments"]["keys"]
+            if key["type"] == "qcode"]
+
+
 class MateriaalPreviewTests(unittest.TestCase):
+    def test_f12_in_screenshot_path_is_not_a_shutdown_key(self):
+        trace = [{"request": {"execute": "screendump", "arguments": {
+            "filename": "/owned/materiaal-18f5542f12/ready.ppm"}}}]
+        self.assertNotIn("f12", sent_qcodes(trace))
+
+    def test_actual_f12_qcode_is_still_detected(self):
+        trace = [{"request": {"execute": "send-key", "arguments": {
+            "keys": [{"type": "qcode", "data": "f12"}]}}}]
+        self.assertIn("f12", sent_qcodes(trace))
+
     def test_invalid_build_removes_previous_success_before_validation(self):
         with tempfile.TemporaryDirectory() as name:
             root = Path(name)
@@ -475,7 +493,7 @@ class PreviewLifecycleTests(unittest.TestCase):
         self.assertEqual([stage["phase"] for stage in result["interactive"]["stages"]],
                          list(preview.probe.PHASES["normal"]))
         self.assertEqual(self.control.trace[-1]["request"]["execute"], "quit")
-        self.assertNotIn("f12", json.dumps(self.control.trace))
+        self.assertNotIn("f12", sent_qcodes(self.control.trace))
 
     def test_nonzero_exit_cannot_pass_even_with_matching_frames(self):
         self.exit_code = 33

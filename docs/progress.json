@@ -2,12 +2,12 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-02",
-    "source_commit": "8686f977a7f1fbfba1eb1214d301935c1859e8ed",
-    "branch": "codex/session-desktop-vm-20261102",
-    "task": "Conflicten met main oplossen voor PR #121",
-    "previous_score": 34,
-    "summary": "34/100 blijft gelijk; geen rubriccriterium is nieuw geaccepteerd. Main `74a34d0` is inhoudsbehoudend geïntegreerd in PR #121 als mergecommit `8686f97`; beide sets UI-interactietests zijn behouden. De gerichte suite slaagt met 34 tests, Clippy en rustfmt slagen. Hashes van de overgenomen full-release-, NAS-replay- en sparse-framebewijzen zijn gecontroleerd. De volledige diff-check meldt alleen ruwe, hashgebonden logbytes uit main; de PR-delta-check is schoon. CodeQL rapporteerde nul Python-alerts maar time-outte vóór overige talen, dus geen volledige scanclaim. Productcriteria en gewichten blijven ongewijzigd."
+    "date": "2026-11-03",
+    "source_commit": "bb8877e3e1aaec304d7478510b65c8116aeb634e",
+    "branch": "simonvanieperen-reimagined-train",
+    "task": "PR149: nieuwe primaire59-hosttestreceipt op schone Watch-main99-merge bewaren",
+    "previous_score": 41,
+    "summary": "41 blijft 41. Op schone Watch-merge bb8877e3 met main99 zijn59 hosttests echt opnieuw groen; cwd/HEAD/status/lock- en Rust-hashes vóór/na en volledige logs vastgelegd. Geen retrospectieve bronbinding van eerdere Watch-tijden. De UI-Rust-code blijft exact53256f82; historische scalar/Clippy/fmt behouden die bron. Assessmentbasis is niet de uiteindelijke PR-head of automatisch elke testbron. Geen nieuwe code, native/QEMU/fysieke/menselijke acceptatie of punten."
   },
   "tracks": [
     {
@@ -259,9 +259,13 @@
           "id": "U01",
           "title": "Native compositor en sessie",
           "points": 4,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "De eigen kernel draait een interactieve grafische sessie met render- en inputketen, venster/surface-isolatie en gecontroleerd compositorherstel.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/mature-session-20261102/U01-ACCEPTANCE.md",
+            "docs/verification/mature-session-20261102/U01-ACCEPTANCE.json",
+            "docs/verification/mature-session-20261102/window-337-ci-verification.json"
+          ]
         },
         {
           "id": "U02",
@@ -269,7 +273,14 @@
           "points": 2,
           "status": "open",
           "acceptance": "Toetsenbord, aanwijzer, focus, klembord en appwisseling zijn native bruikbaar en voldoen aan gemeten interactiebudgetten.",
-          "evidence": []
+          "evidence": [
+            "docs/implementation/GUI-IDLE-WAIT.md",
+            "docs/verification/gui-idle-20261102/windows-ab/README.md",
+            "docs/verification/gui-idle-20261102/central-review.json",
+            "docs/verification/gui-idle-20261102/INTEGRATION.md",
+            "docs/implementation/NATIVE-CLIPBOARD.md",
+            "docs/verification/native-clipboard-20261102/README.md"
+          ]
         },
         {
           "id": "U03",
@@ -314,9 +325,13 @@
           "id": "N01",
           "title": "Native pakket- en transportstack",
           "points": 3,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "De eigen OS-netwerkdienst verwerkt echte packets en begrensde IP/TCP/UDP-verbindingen; malformed input, backpressure en afsluiten zijn getest.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/mature-session-20261102/README.md",
+            "docs/verification/mature-session-20261102/n01-integrated.json",
+            "docs/verification/n01-native-service-20261102/host-verification.json"
+          ]
         },
         {
           "id": "N02",

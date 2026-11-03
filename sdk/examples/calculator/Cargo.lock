@@ -15,6 +15,7 @@ name = "nieuw-os-calculator"
 version = "0.1.0"
 dependencies = [
  "capability-core",
+ "nieuw-os-graphics",
  "nieuw-os-input-client",
  "nieuw-os-input-core",
  "nieuw-os-sdk-runtime",
@@ -32,6 +33,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "nieuw-os-graphics"
+version = "0.1.0"
+
+[[package]]
 name = "nieuw-os-input-client"
 version = "0.1.0"
 dependencies = [
@@ -39,6 +44,7 @@ dependencies = [
  "nieuw-os-input-core",
  "nieuw-os-sdk-runtime",
  "ui-core",
+ "zeroize",
 ]
 
 [[package]]

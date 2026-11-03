@@ -74,7 +74,7 @@ def main():
     expected = {"zeroize", "ui_core", "catalog_core", "nieuw_os_sdk_runtime",
                 "nieuw_os_catalog_client", "nieuw_os_input_core",
                 "nieuw_os_document_session", "volume_core", "noto_sans_mono_bitmap",
-                "nieuw_os_materiaal"}
+                "nieuw_os_materiaal", "nieuw_os_graphics"}
     # The SDK already depends on zeroize. Check the exact locked graph rather
     # than the obsolete pre-zeroize count; every archive above is still scanned.
     if len(artifacts) != len(expected) or {item["name"] for item in artifacts} != expected:

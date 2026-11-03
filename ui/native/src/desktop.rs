@@ -108,6 +108,28 @@ impl Desktop {
         self.query_len = value.len();
         true
     }
+    pub fn set_password(&mut self, value: &str) -> bool {
+        if self.page != Page::Login
+            || self.is_guest()
+            || self.flow.phase() != crate::session::Phase::CredentialEntry
+            || self.flow.method() != crate::session::AuthMethod::Password
+            || value.len() > crate::session::MAX_PASSWORD_BYTES
+            || value
+                .bytes()
+                .any(|byte| byte == 0 || byte.is_ascii_control())
+        {
+            return false;
+        }
+        self.flow.clear_password();
+        for byte in value.bytes() {
+            if self.flow.push_password_byte(byte).is_err() {
+                self.flow.clear_password();
+                return false;
+            }
+        }
+        self.focus = Target::Password;
+        true
+    }
     pub fn cancel_pointer(&mut self) {
         self.pressed = None;
     }
@@ -121,10 +143,14 @@ impl Desktop {
     pub fn controls(&self, viewport: Viewport) -> [Option<(Target, Rect, &'static str)>; 7] {
         let w = viewport.logical_width();
         let h = viewport.logical_height();
-        let width = w.saturating_sub(48).min(432);
+        let compact = h < 420 || w < 640;
+        let width = w.saturating_sub(48).min(440);
         let x = (w - width) / 2;
-        let y = h.saturating_sub(360) / 2;
-        let compact = h < 420;
+        let y = if compact {
+            0
+        } else {
+            h.saturating_sub(440) / 2
+        };
         let r = |dy, height| Rect {
             x,
             y: y + dy,
@@ -136,16 +162,16 @@ impl Desktop {
                 Some((
                     Target::Guest,
                     r(
-                        if compact { 92 } else { 112 },
-                        if compact { 56 } else { 68 },
+                        if compact { 84 } else { 140 },
+                        if compact { 56 } else { 76 },
                     ),
                     "Gast (VM-test)",
                 )),
                 Some((
                     Target::Personal,
                     r(
-                        if compact { 164 } else { 196 },
-                        if compact { 56 } else { 68 },
+                        if compact { 152 } else { 232 },
+                        if compact { 56 } else { 76 },
                     ),
                     "Eigen gebruiker",
                 )),
@@ -160,20 +186,20 @@ impl Desktop {
                     Target::Back,
                     Rect {
                         x,
-                        y: y + 12,
-                        width: 80,
+                        y: y + if compact { 4 } else { 12 },
+                        width: 44,
                         height: 44,
                     },
                     "Terug",
                 )),
                 Some((
                     Target::Password,
-                    r(if compact { 84 } else { 140 }, 44),
+                    r(if compact { 76 } else { 158 }, 44),
                     "Wachtwoord",
                 )),
                 Some((
                     Target::Submit,
-                    r(if compact { 140 } else { 204 }, 44),
+                    r(if compact { 132 } else { 224 }, 48),
                     if self.is_guest() {
                         "Testsessie starten"
                     } else {
@@ -184,7 +210,7 @@ impl Desktop {
                     Target::Fingerprint,
                     Rect {
                         x,
-                        y: y + if compact { 196 } else { 272 },
+                        y: y + if compact { 188 } else { 296 },
                         width: width / 2 - 4,
                         height: 44,
                     },
@@ -194,24 +220,35 @@ impl Desktop {
                     Target::Fido2,
                     Rect {
                         x: x + width / 2 + 4,
-                        y: y + if compact { 196 } else { 272 },
+                        y: y + if compact { 188 } else { 296 },
                         width: width / 2 - 4,
                         height: 44,
                     },
-                    "FIDO2-sleutel",
+                    "Beveiligingssleutel",
                 )),
                 None,
                 None,
             ],
             Page::Home | Page::Search | Page::Material => {
-                let bar = h.saturating_sub(64);
+                let bar_width = w.saturating_sub(24).min(680);
+                let bar_x = (w - bar_width) / 2;
+                let bar_y = h.saturating_sub(68);
+                let roomy_bar = bar_width >= 440;
+                let start_width = if roomy_bar { 88 } else { 44 };
+                let search_x = if roomy_bar { 104 } else { 60 };
+                let search_width = bar_width
+                    .saturating_sub(if roomy_bar { 248 } else { 192 })
+                    .min(320);
+                let panel_width = w.saturating_sub(48).min(620);
+                let panel_x = (w - panel_width) / 2;
+                let top = if compact { 40 } else { 132 };
                 [
                     Some((
                         Target::Start,
                         Rect {
-                            x: 16,
-                            y: bar + 10,
-                            width: 72,
+                            x: bar_x + 8,
+                            y: bar_y + 8,
+                            width: start_width,
                             height: 44,
                         },
                         "Start",
@@ -219,9 +256,9 @@ impl Desktop {
                     Some((
                         Target::Search,
                         Rect {
-                            x: 96,
-                            y: bar + 10,
-                            width: if w < 480 { 72 } else { 160 },
+                            x: bar_x + search_x,
+                            y: bar_y + 8,
+                            width: search_width,
                             height: 44,
                         },
                         "Zoeken",
@@ -229,9 +266,9 @@ impl Desktop {
                     Some((
                         Target::SignOut,
                         Rect {
-                            x: w - 112,
-                            y: bar + 10,
-                            width: 96,
+                            x: bar_x + bar_width - 116,
+                            y: bar_y + 8,
+                            width: 108,
                             height: 44,
                         },
                         "Afmelden",
@@ -240,9 +277,9 @@ impl Desktop {
                         Some((
                             Target::SearchField,
                             Rect {
-                                x: 24,
-                                y: if compact { 56 } else { 88 },
-                                width: w - 48,
+                                x: panel_x + 16,
+                                y: top + 16,
+                                width: panel_width - 32,
                                 height: 44,
                             },
                             "Zoek programma's",
@@ -253,19 +290,24 @@ impl Desktop {
                     if self.page != Page::Search || self.matches_material() {
                         Some((
                             Target::Material,
-                            Rect {
-                                x: 24,
-                                y: if compact {
-                                    if self.page == Page::Search {
-                                        112
+                            if self.page == Page::Search {
+                                Rect {
+                                    x: panel_x + 16,
+                                    y: top + 76,
+                                    width: panel_width - 32,
+                                    height: if compact { 52 } else { 72 },
+                                }
+                            } else {
+                                Rect {
+                                    x: 32,
+                                    y: if compact { 64 } else { 170 },
+                                    width: w.saturating_sub(64).min(704),
+                                    height: if compact {
+                                        96
                                     } else {
-                                        88
-                                    }
-                                } else {
-                                    160
-                                },
-                                width: w.saturating_sub(48).min(360),
-                                height: if compact { 56 } else { 80 },
+                                        h.saturating_sub(238).min(200)
+                                    },
+                                }
                             },
                             "Materiaal",
                         ))
@@ -278,6 +320,7 @@ impl Desktop {
             }
         }
     }
+
     pub fn activate(&mut self, target: Target) -> Action {
         self.unavailable = false;
         self.pressed = None;

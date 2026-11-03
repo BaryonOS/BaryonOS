@@ -406,7 +406,14 @@ pub(super) fn print_and_check(tx: u64, rx: u64) {
     // DMA lifetime, finite TX deadlines and reset/quarantine are unchanged.
     if cfg!(feature = "native-system-tcp") {
         assert!(r.tx_completed > 0 && r.rx_delivered > 0 && r.rx_completed >= r.rx_delivered);
-        assert_eq!(r.denied, 1); // Actual receive with the closed NetworkSource.
+        assert_eq!(
+            r.denied,
+            if cfg!(feature = "native-net-service") {
+                2
+            } else {
+                1
+            }
+        );
         assert_eq!(r.timeouts, 0); // Transport blackhole is not a DMA timeout.
         assert_eq!(r.resets, 1);
         assert_eq!(r.reset_acks, 1);

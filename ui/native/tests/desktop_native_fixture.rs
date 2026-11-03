@@ -34,18 +34,19 @@ fn key(ui: &mut Controller<'_, common::Port>, sequence: &mut u64, physical: Phys
 fn snapshot(ui: &Controller<'_, common::Port>, name: &str, page: Page, output: Option<&Path>) {
     let view = ui.view();
     assert_eq!(view.desktop.unwrap().page(), page);
-    assert_eq!((view.viewport.width(), view.viewport.height()), (768, 536));
     assert_eq!(view.cursor, None);
     let frame = Frame::new(view);
-    let mut pixels = vec![0; 768 * 536 * 3];
+    let width = view.viewport.width();
+    let height = view.viewport.height();
+    let mut pixels = vec![0; (width * height * 3) as usize];
     let mut tile = [0; TILE_PIXELS];
-    for y in (0..536).step_by(TILE_HEIGHT as usize) {
-        for x in (0..768).step_by(TILE_WIDTH as usize) {
+    for y in (0..height).step_by(TILE_HEIGHT as usize) {
+        for x in (0..width).step_by(TILE_WIDTH as usize) {
             let rect = frame.render_tile(x, y, &mut tile).unwrap();
             for row in 0..rect.height {
                 for column in 0..rect.width {
                     let pixel = tile[(row * rect.width + column) as usize];
-                    let offset = (((rect.y + row) * 768 + rect.x + column) * 3) as usize;
+                    let offset = (((rect.y + row) * width + rect.x + column) * 3) as usize;
                     pixels[offset..offset + 3].copy_from_slice(&[
                         (pixel >> 16) as u8,
                         (pixel >> 8) as u8,
@@ -57,7 +58,7 @@ fn snapshot(ui: &Controller<'_, common::Port>, name: &str, page: Page, output: O
     }
     if let Some(directory) = output {
         let mut file = std::fs::File::create_new(directory.join(format!("{name}.ppm"))).unwrap();
-        file.write_all(b"P6\n768 536\n255\n").unwrap();
+        write!(file, "P6\n{width} {height}\n255\n").unwrap();
         file.write_all(&pixels).unwrap();
         file.sync_all().unwrap();
     }
@@ -83,6 +84,10 @@ fn render_native_session_walkthrough_oracle() {
             );
             ui.resize(Viewport::new(768, 536, Scale::Percent100, 1).unwrap())
                 .unwrap();
+            assert_eq!(
+                (ui.view().viewport.width(), ui.view().viewport.height()),
+                (768, 536)
+            );
             ui.enable_vm_desktop().unwrap();
             ui.refresh().unwrap();
             let mut sequence = 0;
@@ -126,6 +131,69 @@ fn render_native_session_walkthrough_oracle() {
             key(&mut ui, &mut sequence, PhysicalKey::Enter);
             snapshot(&ui, "material", Page::Material, directory.as_deref());
             assert!(ui.view().objects.is_empty());
+        })
+        .unwrap()
+        .join()
+        .unwrap();
+}
+
+/// Renderer/layout checks at the intended desktop scales. Generated files are
+/// host fixtures; only the root QEMU harness can establish native execution.
+#[test]
+fn render_desktop_foundation_at_reference_scales() {
+    std::thread::Builder::new()
+        .stack_size(16 * 1024 * 1024)
+        .spawn(|| {
+            let directory =
+                std::env::var_os("OS_FOUNDATION_FIXTURE_DIRECTORY").map(std::path::PathBuf::from);
+            for (width, height, scale) in [
+                (1280, 720, Scale::Percent100),
+                (1920, 1080, Scale::Percent200),
+            ] {
+                let host = Host::new();
+                let (mut draft, mut original, mut staging) = ([0; 4096], [0; 4096], [0; 4096]);
+                let mut ui = controller(
+                    &host,
+                    EditMode::ReadWrite,
+                    Buffers {
+                        draft: &mut draft,
+                        original: &mut original,
+                        staging: &mut staging,
+                    },
+                );
+                ui.resize(Viewport::new(width, height, scale, 1).unwrap())
+                    .unwrap();
+                ui.enable_vm_desktop().unwrap();
+                ui.refresh().unwrap();
+                let mut sequence = 0;
+                snapshot(
+                    &ui,
+                    &format!("{width}-accounts"),
+                    Page::Accounts,
+                    directory.as_deref(),
+                );
+                key(&mut ui, &mut sequence, PhysicalKey::Enter);
+                snapshot(
+                    &ui,
+                    &format!("{width}-login"),
+                    Page::Login,
+                    directory.as_deref(),
+                );
+                key(&mut ui, &mut sequence, PhysicalKey::Enter);
+                snapshot(
+                    &ui,
+                    &format!("{width}-desktop"),
+                    Page::Home,
+                    directory.as_deref(),
+                );
+                key(&mut ui, &mut sequence, PhysicalKey::Enter);
+                snapshot(
+                    &ui,
+                    &format!("{width}-material"),
+                    Page::Material,
+                    directory.as_deref(),
+                );
+            }
         })
         .unwrap()
         .join()

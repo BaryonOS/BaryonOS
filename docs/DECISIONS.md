@@ -1,6 +1,42 @@
 # Ontwerpbesluiten
 
-## ADR-056 — herkenbare sessieroute met expliciete VM-bewijsgrens
+## Nummerbehoud bij desktopintegratie — 2 november 2026
+
+De desktopbranches gebruikten al bezette ADR-nummers. Bestaande IPC- en
+appbesluiten behouden hun nummer; de samengevoegde UI-besluiten krijgen
+unieke nummers. Oude volledige titelankers blijven als alias bestaan.
+Historische bewijsbestanden behouden hun oorspronkelijke nummervermelding.
+
+| Oud nummer / onderwerp | Uniek nummer |
+|---|---|
+| 053, native vensterbeleid | ADR-059 |
+| 054, tijdelijke autoriteitsvergelijking | ADR-060 |
+| 055, begrensde GUI-rust | ADR-061 |
+| 056, eenmalig klembord | ADR-062 |
+| 056, herkenbare VM-sessieroute | ADR-063 |
+
+## Onderzoeksbesluit J-20261102 — herkenbare basis, expliciete installatiegrens
+
+**Datum:** 2 november 2026. **Status:** ontwerp-/onderzoekskeuze, geen
+gerealiseerde architectuur of native acceptatie. Na de
+[volledige OS-journeyvergelijking](research/2026-11-02/journey/README.md)
+is de voorkeursrichting één kerninterface met voorspelbare basisacties,
+lokale zoekaliassen en optionele herkomstgerichte hulp. Geen vier shells,
+herkomst als machtiging of vrije AI-uitvoering. De voorgestelde installer
+toont één compleet wijzigingsplan vóór iedere opslagmutatie, ook Advanced;
+onbekende schijf is niet leeg en een gewijzigd doel maakt autorisatie ongeldig.
+
+**Reden:** gedocumenteerde overeenkomsten helpen kennis overdragen, terwijl
+app-/vensterbetekenis, zoekbereik, installerfasen en vroege schrijfgrenzen
+daadwerkelijk verschillen. Een exacte nieuw-os-volgorde of betere bruikbaarheid
+is daarmee niet bewezen. **Gevolg:** afzonderlijke IN-/ON-/UX-criteria en
+service-/veiligheidsgates vóór uitvoering; P2, kernelkeuze, privacycontract en
+vaste scorecriteria blijven behouden. **Herzien:** op taakobservatie,
+actuele bron-/hardwareverschillen of een aantoonbare technische veiligheidsgrens.
+Details en begrensd vervolg: [PRODUCT-SPEC.md](implementation/PRODUCT-SPEC.md).
+
+<a id="adr-056--herkenbare-sessieroute-met-expliciete-vm-bewijsgrens"></a>
+## ADR-063 — herkenbare sessieroute met expliciete VM-bewijsgrens
 
 2 november 2026. De gebruikersopdracht vraagt bekende stappen uit macOS,
 Windows en Linux binnen de eigen architectuur. Accountkeuze, credentialinvoer,
@@ -78,6 +114,52 @@ blijven gelden. Dit besluit kondigt geen nieuwe mergepauze of vrijgave af.
   routebewijs*, oorspronkelijke overdrachtbron
   `0915828fcd40492f873dc9098ee445306f1f0638`:
   [routeverslag](https://github.com/simonvanieperen/nieuw-os/blob/0915828fcd40492f873dc9098ee445306f1f0638/docs/verification/windows-delivery-21/README.md).
+
+## ADR-058 — Herkenbare consumentenbediening op de eigen kernel
+
+**Datum/status:** 30 oktober 2026; gebruikersbesluit van Simon, vastgelegd
+in PR #114. Leidend boven de eerdere eisen dat het hoofdscherm geen
+bestaande desktop mag nabootsen en dat er geen dock of taakbalk komt
+(PRODUCT-SPEC §1 en §5, het verbod op interactioneel nabouwen in
+PRODUCT-SPEC *Aanvulling P3/P4* voor gangbare indeling en bediening,
+DESIGN-AMBITION, PRODUCT-AND-SOVEREIGNTY §2, AGENTS.md *Productambitie*).
+
+**Besluit:** consumenten hoeven Nieuw OS niet opnieuw te leren. Inrichting,
+inloggen, vergrendelen, gebruikersbeheer, bureaublad, taakbalk, startmenu met
+zoeken, vensterbediening, bestandsbeheer, instellingen en gangbare
+sneltoetsen volgen de conventies die Windows, macOS en gangbare
+Linux-desktops gemeen hebben. Waar die verschillen, kiest het ontwerp één
+variant en legt die vast. Vernieuwing ("futuristisch") is een aanvulling op
+het bekende pad, nooit een vervanging ervan.
+
+**Gevolgen:**
+
+- De eigen kernel, microkernel-/capabilityarchitectuur, eigen code en de
+  Security Floor blijven ongewijzigd. Herkenbare bediening verleent geen
+  bredere rechten: een app krijgt nog steeds alleen expliciet verleende
+  capabilities, ook als de interface op bekende platforms lijkt.
+- Herkenbaar inloggen verandert de beveiliging niet: elke gebruiker heeft
+  eigen sleutelmateriaal (geen gedeelde volumesleutel), inloggegevens worden
+  alleen in de sessiedienst ingevoerd via het vergrendelscherm of
+  Ctrl+Alt+Delete, en de pincode beschermt nooit sleutels op schijf
+  (PROFILES-AND-USERS §4).
+- Materiaal blijft het gegevens-, geschiedenis- en rechtenmodel. Het wordt
+  zichtbaar via de Bestanden-app, recente items in het startmenu en
+  toestemmingsdialogen; het is niet langer het verplichte hoofdscherm.
+  P2 blijft historisch productbewijs, geen te bouwen eindlay-out.
+- Eigen visuele identiteit: geen gekopieerde iconen, afbeeldingen, merknamen
+  of trade dress van andere platforms. Herkenbaar is de indeling en
+  bediening, niet de huisstijl.
+- De functies uit FR-U01 blijven verplicht, maar worden bereikt vanuit het
+  bureaublad en startmenu. De tekst van de matrix in FULL-TEST-RELEASE wordt
+  door de integrator in een vervolgwijziging aangepast; dit besluit schrapt
+  geen rij en sluit geen criterium. Score blijft 34%.
+- Uitwerking: [PROFILES-AND-USERS.md](implementation/PROFILES-AND-USERS.md)
+  en [DESKTOP-SHELL.md](implementation/DESKTOP-SHELL.md).
+
+**Herzien** na gebruikersproeven (U06) die aantonen dat een conventie voor de
+doelgroep slechter werkt, of bij een nieuw expliciet besluit van Simon.
+Rollback: dit ADR intrekken en de eerdere teksten weer leidend maken.
 
 # ADR-054 — Gedeeld immutable artifact-storecontract
 
@@ -1401,3 +1483,110 @@ OSDev: *Memory mapped registers in C/C++*, W003198, revisie30402
 (24 maart2026), is alleen aanvullende uitleg; geen normatieve TCG-controle.
 Herzien vóór een productbroker, andere hardware of NV-commits. Rollback:
 opt-in features/fixture verwijderen; legacy profielen blijven ongewijzigd.
+
+<a id="adr-053--native-vensterbeleid-en-vervangbare-presentatiediensten"></a>
+## ADR-059 — Native vensterbeleid en vervangbare presentatiediensten
+
+**Datum:** 2 november 2026. De nieuwe opt-in venstersessie gebruikt dezelfde
+eigen kernel, capability-engine, INP1 en SUR1. Twee geïsoleerde applicaties
+krijgen ieder een eigen surface en invoerkanaal; de gebruikersruimtecompositor
+bezit de enige DisplaySource. Alleen de bestaande inputbron bezit InputSource.
+De compositor ontvangt gedecodeerde input via de inputdienst en beheert globale
+focus, vensterpositie en vertrouwde titelbalken. Caller-PID komt uit kernel-IPC,
+nooit uit een berichtveld. Geen gedeelde framebuffer of gedeeld appgeheugen.
+
+Een nieuwe no_std grafische bibliotheek gebruikt vooraf gerasterde proportionele
+Open Sans-glyphs met vastgelegde Apache-licentie en eigen vectorpictogrammen.
+Er komt geen onbetrouwbare fontparser in de kernel. Backing stores zijn privé,
+begrensd tot twee vensters en 1.400.000 pixels binnen de bestaande procesquota.
+De oude 800×600-diagnostische profielen blijven bestaan; de venstersessie vraagt
+expliciet een passende UEFI GOP-modus van 1280×720 of 1920×1080.
+
+ABI 1.11 reserveert syscall 0x53 voor uitsluitend de manifest-supervisor met de
+bijbehorende Launch- en overleden Process-capability. De supervisor bepaalt
+het herstelbeleid en laat apps eerst hun oude presentatiekanalen sluiten.
+De kernel speelt alleen de vaste compositor/inputdienstmanifestgroep opnieuw
+af, na een volledige capaciteitscontrole, met verse PIDs/caps/epochs. App-,
+document-, volume- en sleuteldienststaat blijven bestaan. Dit is geen algemene
+apparaatdelegatie en geen kernel-GUI-beleid. Zie het exacte bouw-/testcontract
+in `docs/implementation/NATIVE-WINDOW-SESSION.md`; native acceptatie is bij dit
+ontwerpcheckpoint nog open. Geen U01-punten voor alleen deze bouwstap.
+
+<a id="adr-054--exacte-tijdelijke-autoriteitsvergelijking-op-de-syscallgrens"></a>
+## ADR-060 — Exacte, tijdelijke autoriteitsvergelijking op de syscallgrens
+
+**Datum:** 2 november 2026. De volledige verse `Stats`- en digestfuncties
+blijven de bestaande diagnostische orakels. Op de M4-foutgrens vervangen we
+hun herhaalde hashscan door een volledige getypeerde kopie van alle elf
+autoriteitsvelden en bestaande exacte `Engine::eq`. IPC-wait vergelijkt dit
+op ieder resultaat. De afzonderlijke useroutput-, capability-, pointer-,
+return-, paginaownership- en W^X-controles blijven intact. De snapshot wordt
+nooit teruggezet in de actieve engine en verleent geen rechten.
+
+Eén vooraf gereserveerde private kernelbuffer van461.816bytes voorkomt een
+grote stacktemporary of allocator. Het single-CPU/IF0-contract wordt expliciet
+gecontroleerd; een niet-blokkerende lease weigert herintreding. Exhaustieve
+velddekking laat een toekomstige Engine-uitbreiding compilatie falen totdat de
+kopie bewust is bijgewerkt. Vergelijking gebeurt op Rust-velden, niet padding.
+Alle1024 extra berichtkopieën worden met getypeerde volatile writes gewist vóór
+vrijgave en vóór een eventuele foutassertie; er blijft geen extra IPC-inhoud in
+de vrijgegeven buffer staan. Metadata blijft alleen private kerneldata.
+
+Dit is geen mutatiecache en geen uitschakeling van een audit. Native IPC-wait
+en gerichte host-/negatieve tests zijn uitgevoerd op de deelbranch; de volledige
+samengevoegde M4-, venster- en netwerkgates volgen. Hostmicrobenchmarks geven
+geen native latentiewaarborg of U02-punten. SMP of herintredende kernelcallbacks
+vragen een nieuw ontwerp. Details en bewijsgrenzen:
+`docs/implementation/EXACT-AUTHORITY-SNAPSHOTS.md`.
+
+<a id="adr-055--begrensde-rust-in-gui-processen-via-bestaande-ipc_wait"></a>
+## ADR-061 — Begrensde rust in GUI-processen via bestaande IPC_WAIT
+
+**Datum:** 2 november 2026. Materiaal, Rekenmachine, compositor en window-init
+parkeren uitsluitend na een echte lege ontvang-/invoercontrole en volledig
+afgehandeld eigen werk. De wachtroute gebruikt een bestaand ontvangstrecht en
+een checked deadline van één volgende PIT-tick. Wake-bits zijn hints: de
+oorspronkelijke receive/PEEK/antwoordvalidatie blijft verplicht. Control blijft
+bereikbaar; opslaan, onvolledige frames, backpressure, fouten, herstel en STOP
+blokkeren rust. Geen nieuw recht, kernel-ABI of gewijzigde transactiedeadline.
+
+Een leeg pull-inputantwoord is geen toekomstige pushbelofte; daarom is alleen
+op inputantwoord wachten onvoldoende. De korte deadline voorkomt dat nieuwe
+invoer onbeperkt blijft liggen. De compositor behoudt zijn tweepits-poldrempel;
+een harde20ms-/p95-garantie volgt daar niet uit. Zes volledige Windows/WHPX-gates
+en TCG-CI slagen; drie15smetingen per arm geven88,26%lagere mediane procesCPU
+bij hetzelfde volledige beeld op één pc. Dit is geen energie- of algemene
+prestatieclaim. Herzien bij een event-driven inputprotocol, SMP of gewijzigde
+herstelstaten; U02 vereist nog klembord en volledige interactiebudgetten.
+Contract en brongebonden bewijs: implementation/GUI-IDLE-WAIT.md en
+verification/gui-idle-20261102/INTEGRATION.md.
+
+<a id="adr-056--klembord-als-eenmalige-focusgebonden-tekstoverdracht"></a>
+## ADR-062 — Klembord als eenmalige, focusgebonden tekstoverdracht
+
+**Datum:** 2 november2026. Het bestaande vertrouwde venstercompositorproces
+bemiddelt een vluchtig CLP1-klembord voor expliciet geselecteerde tekst. De
+bestaande app-inputendpoints en hun enige InputSession-eigenaar worden
+hergebruikt; geen nieuwe kernel-ABI, proces of apparaat-/opslag-/netwerkcap.
+Werkelijke PID, inputepoch, aangeboden CtrlC/CtrlV-Presssequence/generation,
+actuele focus en eenmalige brokerclaim zijn gezamenlijk vereist. Een
+appgeschreven intentlabel verleent niets. Pendingbackpressure bewaart alleen
+het ticket; iedere flush toetst opnieuw voordat plaintext wordt opgebouwd.
+
+Na een geldige leveringsresponse past de app tekst pas toe bij de echte
+inputACKAcknowledged. Superseded/transportfalen wist de tijdelijke kopie zonder
+edit. Reeds geënqueuede tekst kan de broker niet terughalen; intrekken stopt
+toekomstige grenspassages en is geen informatieflowgarantie. Copy wist oude
+clipboardinhoud al bij de vertrouwde toets, zodat lokale oversize/lege selectie
+geen stille oude-tekstfallback geeft. CtrlShiftDelete wist en trekt tickets in;
+compositorherstart begint leeg. Tekst staat nooit in logs/Debug of op schijf en
+eigen buffers worden met de bestaande gepinde zeroize gewist.
+
+De eerste versie heeft192 UTF-8-bytes zonder afkappen, geen historie, hele-doc-/
+antwoordfallback of automatisch uitvoeren. Dit blijft een afgebakende stap:
+U02 en bredere capaciteit/formaten/interactiebudgetten blijven open. Een
+verloren DeleteRelease kan na een clear conservatief één Delete-cyclus inslikken;
+de latch voorkomt dat een oude clear-repeat documenttekst wist. Herzien bij
+streaming, meer apps, veilige accountvelden of een echte sessiegrens.
+Contract, bron en nog lopende native gate: implementation/NATIVE-CLIPBOARD.md
+en verification/native-clipboard-20261102/.

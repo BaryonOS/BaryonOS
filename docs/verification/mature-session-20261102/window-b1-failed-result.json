@@ -1,0 +1,2064 @@
+{
+  "schema_version": 1,
+  "passed": false,
+  "native_gate": false,
+  "smoke_only": false,
+  "source_sha256": "f483ad51a7b0702c44baee136fd37bbbe993e2f03dd596d309a90bb6f14182e4",
+  "source_commit": "b1b292aadf244dacf029b7307aebdc6103756e0d",
+  "source_fingerprint_version": 3,
+  "kernel_feature": "native-window-session-probe",
+  "manifest": {
+    "schema_version": 1,
+    "profile": "native-window-session-probe",
+    "kernel_feature": "native-window-session-probe",
+    "loader_feature": "desktop-mode",
+    "source_fingerprint_version": 3,
+    "source_sha256": "f483ad51a7b0702c44baee136fd37bbbe993e2f03dd596d309a90bb6f14182e4",
+    "loader": {
+      "sha256": "0511e8654c61c1188bab696688becd73df05503db44b34ba283ce0a3e7728418",
+      "format": "AMD64 PE32+",
+      "subsystem": "EFI_APPLICATION",
+      "imports": 0
+    },
+    "kernel": {
+      "sha256": "dc7578eefdc750f6d2a3f88ef6f34dfa6ea15ffbf9ac9cf97d5b7d2c816f7284",
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "offset": 4096,
+          "address": 33554432,
+          "filesz": 176695,
+          "memsz": 176695,
+          "page_start": 33554432,
+          "page_end": 33734656
+        },
+        {
+          "flags": 4,
+          "offset": 184320,
+          "address": 33734656,
+          "filesz": 1593184,
+          "memsz": 1593184,
+          "page_start": 33734656,
+          "page_end": 35328000
+        },
+        {
+          "flags": 6,
+          "offset": 1777664,
+          "address": 35328000,
+          "filesz": 1720936,
+          "memsz": 4825272,
+          "page_start": 35328000,
+          "page_end": 40157184
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "size": 0
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "size": 176695
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 50,
+          "size": 1593184
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "size": 1720936
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "flags": 3,
+          "size": 3100856
+        },
+        {
+          "name": ".symtab",
+          "type": 2,
+          "flags": 0,
+          "size": 9600
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "size": 52
+        },
+        {
+          "name": ".strtab",
+          "type": 3,
+          "flags": 0,
+          "size": 22248
+        }
+      ]
+    },
+    "sdk_runtime": false,
+    "document_session": false,
+    "materiaal": {
+      "passed": true,
+      "native_runtime_performed": false,
+      "probe_controller": false,
+      "apps": [
+        {
+          "name": "keyring-service",
+          "sha256": "b8e12f74dbdc0016cded50f913d8e0d7a420fa3f4960e2d699e32b4bb5b30fe4",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 6,
+                "memsz": 6,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1344,
+                "memsz": 1344,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073823744,
+                "offset": 12288,
+                "filesz": 3377,
+                "memsz": 3377,
+                "page_start": 1073823744,
+                "page_end": 1073827840
+              },
+              {
+                "flags": 5,
+                "address": 1073872896,
+                "offset": 16384,
+                "filesz": 78407,
+                "memsz": 78407,
+                "page_start": 1073872896,
+                "page_end": 1073954816
+              }
+            ]
+          }
+        },
+        {
+          "name": "volume-service",
+          "sha256": "aa6ab477ec3eca0021aed1083aa7e3028608dc87ec1233ad3d5f2a89d2af4e83",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 57570,
+                "memsz": 57570,
+                "page_start": 1073741824,
+                "page_end": 1073803264
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 65536,
+                "filesz": 1304,
+                "memsz": 1304,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073823744,
+                "offset": 69632,
+                "filesz": 18018,
+                "memsz": 18018,
+                "page_start": 1073823744,
+                "page_end": 1073844224
+              }
+            ]
+          }
+        },
+        {
+          "name": "materiaal-app",
+          "sha256": "0094939ce52bb9b2eb6094a17c74610011e8c6713de1db118b82a5e5bcb773ee",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 19,
+                "memsz": 19,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1024,
+                "memsz": 1024,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 470552,
+                "memsz": 470552,
+                "page_start": 1073872896,
+                "page_end": 1074343936
+              },
+              {
+                "flags": 6,
+                "address": 1074462720,
+                "offset": 483328,
+                "filesz": 184,
+                "memsz": 200704,
+                "page_start": 1074462720,
+                "page_end": 1074663424
+              },
+              {
+                "flags": 5,
+                "address": 1074724864,
+                "offset": 487424,
+                "filesz": 97257,
+                "memsz": 97257,
+                "page_start": 1074724864,
+                "page_end": 1074823168
+              }
+            ]
+          }
+        },
+        {
+          "name": "input-source",
+          "sha256": "3c8852188ddb7f5b3ded12d9caef17e63d0164c679dffee0a3183433f33111b9",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 6,
+                "memsz": 6,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1200,
+                "memsz": 1200,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 754,
+                "memsz": 754,
+                "page_start": 1073872896,
+                "page_end": 1073876992
+              },
+              {
+                "flags": 5,
+                "address": 1074003968,
+                "offset": 16384,
+                "filesz": 12263,
+                "memsz": 12263,
+                "page_start": 1074003968,
+                "page_end": 1074016256
+              }
+            ]
+          }
+        },
+        {
+          "name": "input-policy",
+          "sha256": "fc7782e67787b61f8990851881b46b71f8400b1a3d781bdd18cf71d850b4f085",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 6,
+                "memsz": 6,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1200,
+                "memsz": 1200,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 2522,
+                "memsz": 2522,
+                "page_start": 1073872896,
+                "page_end": 1073876992
+              },
+              {
+                "flags": 5,
+                "address": 1074003968,
+                "offset": 16384,
+                "filesz": 21575,
+                "memsz": 21575,
+                "page_start": 1074003968,
+                "page_end": 1074028544
+              }
+            ]
+          }
+        },
+        {
+          "name": "window-init",
+          "sha256": "afe0d4a2ce856a69fb1e5cb712bd18ab2fc9995545f144c6166e2f5b5b1e58b9",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 6,
+                "memsz": 6,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1024,
+                "memsz": 1024,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 799,
+                "memsz": 799,
+                "page_start": 1073872896,
+                "page_end": 1073876992
+              },
+              {
+                "flags": 6,
+                "address": 1074790400,
+                "offset": 16384,
+                "filesz": 72,
+                "memsz": 72,
+                "page_start": 1074790400,
+                "page_end": 1074794496
+              },
+              {
+                "flags": 5,
+                "address": 1090519040,
+                "offset": 20480,
+                "filesz": 7927,
+                "memsz": 7927,
+                "page_start": 1090519040,
+                "page_end": 1090527232
+              }
+            ]
+          }
+        },
+        {
+          "name": "window-compositor",
+          "sha256": "d0b4fdd77605bc1a27a4557ad376370b278ea6e0cd6b786735b779e757eedb25",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 6,
+                "memsz": 6,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1024,
+                "memsz": 1024,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 279317,
+                "memsz": 279317,
+                "page_start": 1073872896,
+                "page_end": 1074155520
+              },
+              {
+                "flags": 6,
+                "address": 1074790400,
+                "offset": 294912,
+                "filesz": 88,
+                "memsz": 5600088,
+                "page_start": 1074790400,
+                "page_end": 1080393728
+              },
+              {
+                "flags": 5,
+                "address": 1090519040,
+                "offset": 299008,
+                "filesz": 37959,
+                "memsz": 37959,
+                "page_start": 1090519040,
+                "page_end": 1090560000
+              }
+            ]
+          }
+        },
+        {
+          "name": "calculator-app",
+          "sha256": "faa66c930a829bf6f4af70ee974f6b630baac528a410ef5d5d6b1ad0ad2b8677",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 19,
+                "memsz": 19,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1024,
+                "memsz": 1024,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 189145,
+                "memsz": 189145,
+                "page_start": 1073872896,
+                "page_end": 1074065408
+              },
+              {
+                "flags": 6,
+                "address": 1074200576,
+                "offset": 204800,
+                "filesz": 144,
+                "memsz": 144,
+                "page_start": 1074200576,
+                "page_end": 1074204672
+              },
+              {
+                "flags": 5,
+                "address": 1074462720,
+                "offset": 208896,
+                "filesz": 55766,
+                "memsz": 55766,
+                "page_start": 1074462720,
+                "page_end": 1074520064
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "command": [
+    "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+    "-L",
+    ".",
+    "-machine",
+    "pc-q35-10.0",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "file:serial.txt",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-device",
+    "VGA,vgamem_mb=16,romfile=VGA.rom",
+    "-qmp",
+    "stdio",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,file=volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST"
+  ],
+  "run_directory": "/workspace/nieuw-os/build/window-final/run/window-4775b608668d44e6b8019b1c3b1aa2c6",
+  "qemu_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+  "immutable": {
+    "volume.json": "37d82d3cd0a7a619c5c1e0e7ac62dbb75fa8a1002922ad3066e1ccd1d070476d",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+    "VGA.rom": "88277c3ebff60fe83696d99d44b7eee4426112ee1763c87347c30a5b75781932",
+    "bios-256k.bin": "fc6d2ea888862e6b26d53fb877ab712324726eb8f44eb6baf076c64a31f1c3fb",
+    "esp/kernel.elf": "dc7578eefdc750f6d2a3f88ef6f34dfa6ea15ffbf9ac9cf97d5b7d2c816f7284",
+    "esp/EFI/BOOT/BOOTX64.EFI": "0511e8654c61c1188bab696688becd73df05503db44b34ba283ce0a3e7728418"
+  },
+  "phases": {
+    "boot": {
+      "seconds": 110.23310197300088,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 3,
+          "FRAMES": 1,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 1,
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "OBJECT": 18446744073709551615,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 1,
+          "FRAMES": 1,
+          "EVALUATIONS": 0,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "CURRENT": 0,
+          "CARET": 0,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 0,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "f1aa7a45a5f4a2edb0fff7ee10bb4ee1e80273ea267f90931d8d655dd5fd587e",
+      "oracle": null
+    },
+    "initial": {
+      "seconds": 113.51033558700146,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 3,
+          "FRAMES": 1,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 1,
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "OBJECT": 18446744073709551615,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 1,
+          "FRAMES": 1,
+          "EVALUATIONS": 0,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "CURRENT": 0,
+          "CARET": 0,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 0,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "6ed1645b503ba3957005cfd984c2bb5031b2f6788e9ee0b9040ae21ecef07fd7",
+      "oracle": "initial"
+    },
+    "editor": {
+      "seconds": 185.46359876499992,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 4,
+          "FRAMES": 2,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 14695981039346656037,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 1,
+          "FRAMES": 1,
+          "EVALUATIONS": 0,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "CURRENT": 0,
+          "CARET": 0,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 0,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "84576317ae5a71b50b6f5fcdd2a476656be22884629a2e5db9f94276502110dc",
+      "oracle": "editor"
+    },
+    "dirty": {
+      "seconds": 266.5190396800026,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 18,
+          "FRAMES": 3,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 1,
+          "FRAMES": 1,
+          "EVALUATIONS": 0,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "CURRENT": 0,
+          "CARET": 0,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 0,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "78136db9ea20fcc1eccda7e70b58d6342aadfa4bb4d46907a43c6c5a01fef25d",
+      "oracle": "dirty"
+    },
+    "calculated": {
+      "seconds": 308.77322873999947,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 18,
+          "FRAMES": 3,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 5,
+          "FRAMES": 2,
+          "EVALUATIONS": 1,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "CURRENT": 1,
+          "CARET": 3,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 5000000000,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 1,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "222294328f8bdcdca1c5e4abd620e7e898869c9c1d6922ddde4f64a1fb719c3b",
+      "oracle": null
+    },
+    "moved": {
+      "seconds": 314.2259153640007,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 18,
+          "FRAMES": 3,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 5,
+          "FRAMES": 2,
+          "EVALUATIONS": 1,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "CURRENT": 1,
+          "CARET": 3,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 5000000000,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 1,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "be0393f2d9f8c0c3ee87f970c03e9962aa3c6f8e1be4de8489f41aaeffde37c3",
+      "oracle": null
+    }
+  },
+  "qemu_implementation": {
+    "path": "/workspace/.nieuw-os-env/sysroot/usr/bin/qemu-system-x86_64",
+    "sha256": "d3c1a558ad220e77a4412048c8d96b44f8c2b41c7ad2a4ecfe522a4b122fe067"
+  },
+  "error": "ValueError: Native guest failed",
+  "raw_qemu_exit": 35,
+  "duration_s": 314.717197381,
+  "qmp_trace": [
+    {
+      "request": {
+        "execute": "qmp_capabilities",
+        "id": 1
+      },
+      "response": {
+        "return": {},
+        "id": 1
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 2,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/window-final/run/window-4775b608668d44e6b8019b1c3b1aa2c6/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 2
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 3,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            },
+            {
+              "type": "rel",
+              "data": {
+                "axis": "y",
+                "value": 50
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 3
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 4,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 4
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 5,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 5
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 6,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 6
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 7,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 7
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 8,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 8
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 9,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 9
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 10,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 10
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 11,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 11
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 12,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 12
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 13,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 13
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 14,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 14
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 15,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 15
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 16,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 12
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 16
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 17,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/window-final/run/window-4775b608668d44e6b8019b1c3b1aa2c6/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 17
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 18,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ret"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 18
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 19,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/window-final/run/window-4775b608668d44e6b8019b1c3b1aa2c6/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 19
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 20,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "n"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 20
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 21,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "i"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 21
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 22,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "e"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 22
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 23,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "u"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 23
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 24,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "w"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 24
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 25,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "spc"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 25
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 26,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "o"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 26
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 27,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "s"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 27
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 28,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "spc"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 28
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 29,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "w"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 29
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 30,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "e"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 30
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 31,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "r"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 31
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 32,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "k"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 32
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 33,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "t"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 33
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 34,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/window-final/run/window-4775b608668d44e6b8019b1c3b1aa2c6/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 34
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 35,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "f6"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 35
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 36,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "2"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 36
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 37,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "shift"
+            },
+            {
+              "type": "qcode",
+              "data": "equal"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 37
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 38,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "3"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 38
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 39,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ret"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 39
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 40,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/window-final/run/window-4775b608668d44e6b8019b1c3b1aa2c6/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 40
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 41,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -96
+              }
+            },
+            {
+              "type": "rel",
+              "data": {
+                "axis": "y",
+                "value": 68
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 41
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 42,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 42
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 43,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -8
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 43
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 44,
+        "arguments": {
+          "events": [
+            {
+              "type": "btn",
+              "data": {
+                "down": true,
+                "button": "left"
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 44
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 45,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -96
+              }
+            },
+            {
+              "type": "rel",
+              "data": {
+                "axis": "y",
+                "value": -18
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 45
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 46,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -64
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 46
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 47,
+        "arguments": {
+          "events": [
+            {
+              "type": "btn",
+              "data": {
+                "down": false,
+                "button": "left"
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 47
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 48,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/window-final/run/window-4775b608668d44e6b8019b1c3b1aa2c6/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 48
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 49,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/window-final/run/window-4775b608668d44e6b8019b1c3b1aa2c6/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 49
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 50,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/window-final/run/window-4775b608668d44e6b8019b1c3b1aa2c6/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 50
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 51,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/window-final/run/window-4775b608668d44e6b8019b1c3b1aa2c6/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 51
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 52,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/window-final/run/window-4775b608668d44e6b8019b1c3b1aa2c6/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 52
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 53,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/window-final/run/window-4775b608668d44e6b8019b1c3b1aa2c6/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 53
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 54,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/window-final/run/window-4775b608668d44e6b8019b1c3b1aa2c6/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 54
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 55,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/window-final/run/window-4775b608668d44e6b8019b1c3b1aa2c6/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 55
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 56,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/window-final/run/window-4775b608668d44e6b8019b1c3b1aa2c6/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 56
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 57,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/window-final/run/window-4775b608668d44e6b8019b1c3b1aa2c6/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 57
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 58,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/window-final/run/window-4775b608668d44e6b8019b1c3b1aa2c6/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 58
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 59,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/window-final/run/window-4775b608668d44e6b8019b1c3b1aa2c6/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 59
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 60,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/window-final/run/window-4775b608668d44e6b8019b1c3b1aa2c6/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 60
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 61,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/window-final/run/window-4775b608668d44e6b8019b1c3b1aa2c6/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 61
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 62,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/window-final/run/window-4775b608668d44e6b8019b1c3b1aa2c6/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 62
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 63,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "f6"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 63
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 64,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "f12"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 64
+      }
+    }
+  ],
+  "serial_sha256": "84270089635b750017f1888919b69edce31c9727ad1226c7ca4f09a680160ede",
+  "oracle": {
+    "kind": "host-rendered real Controller/Frame oracle; not native execution",
+    "source_sha256": "f483ad51a7b0702c44baee136fd37bbbe993e2f03dd596d309a90bb6f14182e4",
+    "source_fingerprint_version": 3,
+    "generator_command": [
+      "cargo",
+      "+1.90.0",
+      "test",
+      "--offline",
+      "--locked",
+      "--manifest-path",
+      "/workspace/nieuw-os/ui/native/Cargo.toml",
+      "--test",
+      "window_native_fixture",
+      "--",
+      "--nocapture"
+    ],
+    "generator_exit": 0,
+    "files_sha256": {
+      "880x510-initial.ppm": "07eb581d79a9c68672a71e189d42684bd0989f7231a3db4a1bb476305b31c7df",
+      "880x510-editor.ppm": "4240ab1814ca2ce2fcb08855f0adfc5243423ccef64c59e9c99e094b69e25046",
+      "880x510-dirty.ppm": "671691f2dea0e6954436123a92aa71809a5da095e821f7e58ff2b0dbb5c6a588",
+      "880x510-saved.ppm": "d46701665641e021cfa00b804dcd7a57957ce619acf8b0cda9140e973b3e35e8",
+      "880x510-list.ppm": "c0c715448f812c63b124198e7ad9240bf3cdebd7bb0e2bb92b08766a7e9ed213",
+      "880x510-reopened.ppm": "c21c20b8400384e60e3ace7c2e6cca2fbbaa0539d32d56c7363f9126d9f793c4",
+      "880x510-dirty-focus-lost.ppm": "c32ade8a74d2cb2e7f34760664acf0cb058c6b4c7717558a2b9ec6c57140b3d2",
+      "880x510-dirty-rebound.ppm": "c32ade8a74d2cb2e7f34760664acf0cb058c6b4c7717558a2b9ec6c57140b3d2",
+      "880x510-dirty-recovered.ppm": "671691f2dea0e6954436123a92aa71809a5da095e821f7e58ff2b0dbb5c6a588",
+      "1120x660-initial.ppm": "673fbb6f9ad64fe6db6065d469e0f5b79ab93d4a7858b022b0c78e3b8eade84e",
+      "1120x660-editor.ppm": "1f66989b0f1ec07f75aaaa9fd44f3cee5cf0e603f64616f64e607605735a2b34",
+      "1120x660-dirty.ppm": "8aacd96193c84d4d269c616e65f2982d8ad75b4c4a0bf0824f2aa7ee245f5e95",
+      "1120x660-saved.ppm": "7263c5ab6e667f3bf999170412c8970cacea30472dabb440738548af127bebb7",
+      "1120x660-list.ppm": "4293c18ad55ddf049c9680d7d8e5bdb6800b141cac5e8136405bedbbe31f3eb3",
+      "1120x660-reopened.ppm": "bd6e54d122a2e4ad7d4c9c1edb6fbf0dcc4a49a990cf935d96e0148123c73b84",
+      "1120x660-dirty-focus-lost.ppm": "28c0a8bab48c218336a0c534e34518c5ccdc32337f9fb2140b9b39adc2ed8c13",
+      "1120x660-dirty-rebound.ppm": "28c0a8bab48c218336a0c534e34518c5ccdc32337f9fb2140b9b39adc2ed8c13",
+      "1120x660-dirty-recovered.ppm": "8aacd96193c84d4d269c616e65f2982d8ad75b4c4a0bf0824f2aa7ee245f5e95"
+    }
+  }
+}

@@ -46,13 +46,28 @@ if ($LASTEXITCODE -ne 0 -or $displayTypes -notmatch "(?m)^\s*sdl\s*$") {
 $bundle = $PSScriptRoot
 $manifestPath = Join-Path $bundle "manifest.json"
 $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-if ($manifest.schema_version -ne 1 -or $manifest.kernel_feature -notin @("native-system-materiaal", "native-system-session-preview")) {
-    throw "Not a supported native Materiaal test bundle."
+if ($manifest.schema_version -ne 1 -or $manifest.kernel_feature -notin @("native-system-materiaal", "native-system-session-preview", "native-window-session")) {
+    throw "Not a supported native desktop test bundle."
+}
+$windowSession = $manifest.kernel_feature -eq "native-window-session"
+if ($windowSession -and (
+    $manifest.loader_feature -ne "desktop-mode" -or
+    $manifest.session.classification -ne "public-workspace-research" -or
+    $manifest.session.authentication_integrated -isnot [bool] -or
+    $manifest.session.authentication_integrated -ne $false -or
+    $manifest.session.initial_processes -ne 8 -or
+    $manifest.session.width -ne 1280 -or $manifest.session.height -ne 720
+)) {
+    throw "Window research bundle requires its eight-process public workspace and 1280x720 desktop loader; authentication is not integrated."
 }
 $requiredFiles = @(
     "Start-NieuwOS.ps1", "Acceleration.ps1", "README.md",
     "OVMF_CODE.fd", "OVMF_VARS.template.fd", "bios-256k.bin", "VGA.rom",
     "licenses/OVMF-COPYRIGHT", "licenses/SeaBIOS-COPYRIGHT",
+    "licenses/OpenSans-NOTICE.md", "licenses/OpenSans-Apache-2.0.txt",
+    "licenses/Native-graphics-README.md", "licenses/OpenSans-font-provenance.json",
+    "licenses/NotoSansMono-NOTICE.md", "licenses/NotoSansMono-OFL.txt",
+    "licenses/noto-sans-mono-bitmap-MIT.txt",
     "volume.empty.img", "esp/kernel.elf", "esp/EFI/BOOT/BOOTX64.EFI"
 )
 foreach ($relative in $requiredFiles) {
@@ -71,6 +86,9 @@ foreach ($relative in $requiredFiles) {
     if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne $entry.Value.sha256) {
         throw "Bundle file hash differs: $relative"
     }
+}
+if ($windowSession) {
+    Write-Output "Native onderzoeksversie met Materiaal en Rekenmachine: openbare werkruimte zonder gekoppelde authenticatie."
 }
 $accelerators = (& $QemuPath -accel help 2>&1 | Out-String)
 if ($LASTEXITCODE -ne 0) { throw "Could not query QEMU accelerators." }
@@ -133,6 +151,8 @@ try {
         cpu = "qemu64"
         vcpus = 1
         memory_mib = 256
+        kernel_feature = $manifest.kernel_feature
+        source_sha256 = $manifest.source_sha256
         started_at_utc = [DateTime]::UtcNow.ToString("o")
     }
     $configuration | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $state "launch.json") -Encoding UTF8

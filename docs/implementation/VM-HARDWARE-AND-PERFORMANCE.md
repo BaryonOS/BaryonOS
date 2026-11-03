@@ -200,3 +200,31 @@ gast→desktop4,070s (3,932–4,231); TCG respectievelijk13,356s en10,023s.
 Volledige route31,481s tegenover71,982s. Drie starts per backend op één pc,
 niet beheerst voor achtergrondlast. Verdere bron-/pakkethashes en de
 afzonderlijke idle-CPU-observatie staan in het lokale eindrapport hierboven.
+
+## Bekende ABI 1.11 en bestaande idle-wachtroutes
+
+2 november 2026, fixbasis `2bb84c2`. De vensterkernel biedt IPC-wait aan onder
+ABI1.11, maar de bestaande keyring- en volumedienst activeerden hun idle-wait
+uitsluitend bij1.10. Daardoor bleven deze twee diensten in dit profiel lege
+queues pollen. De gedeelde, syscallvrije SDK-helper `supports_ipc_wait` herkent
+nu uitsluitend de bekende1.10- en1.11-profielen; beide bestaande selectors
+gebruiken hem. Algemene ABI-compatibiliteit, bijvoorbeeld RTC1.9, impliceert
+geen wachtvoorziening. Onbekende majors/minors blijven uitgesloten.
+
+Keyrings RANDOM-/beheeruitsluitingen, bestaande queuevoorwaarden, absolute
+deadlines, capabilityrollen, foutafhandeling en verwerking van lopend brokerwerk
+zijn ongewijzigd. RANDOM- of beheer-ingress behoudt zijn bestaande pollingpad.
+Er is geen wijziging aan de GUI-, SUR-/INP-protocollen of bron-hardwarepolling.
+
+De gerichte SDK-hosttests, inclusief negatieve ABI-selectie zonder hostsyscall,
+en strikte SDK-Clippy slagen. Beide echte scalar x86_64-unknown-none-diensten
+bouwen en doorlopen de ELF-inspectie. Logs en servicehashes staan onder
+`build/abi-wait/logs/`. De onafhankelijke diffreview vond geen blocker; geen
+VM is voor deze kandidaat gestart. De uiteindelijke geïntegreerde native gates
+moeten het1.11-wachtpad nog uitvoeren.
+
+Dit herstelt twee concrete compatibiliteitsfouten en bewijst geen volledige
+VM-idle of latencywinst. De compositor, beide GUI-apps en window-init bevatten
+nog eigen pollinglussen; hun verdere idle-inrichting en daadwerkelijke
+idle-CPU-meting blijven open. CPU100% tijdens actief tekenen is geen
+idle-meting en er worden geen U02-punten toegekend.

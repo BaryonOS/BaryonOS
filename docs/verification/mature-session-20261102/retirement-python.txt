@@ -1,0 +1,77 @@
+...................................................................................................................................................................................
+----------------------------------------------------------------------
+Ran 179 tests in 21.048s
+
+OK
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-q008v35f/checkout/build/run/cap-bench-4dc04f84e27e49339beb9b81bc9bf5fd
+Frozen guest/archive input changed: inputs/system_app.elf
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-0qx2l6wb/checkout/build/run/cap-bench-f7d71d8e69a24ed4aa34cc385938c728
+Frozen guest/archive input changed: OVMF_CODE.fd
+CAPBENCH passed=True raw=33; /tmp/capbench-HOST_ONLY-hap1adv8/checkout/build/run/cap-bench-5269102af1e94abaac8cb0a23f4c7581
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-s9hd6rgm/checkout/build/run/cap-bench-b758b94342d24cdca997af8d5b88439b
+Symlink in FPU artifact path
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-blzhj_km/checkout/build/run/cap-bench-f10bef8f9ee548a4b27b47d492d5646e
+Frozen source input changed: /tmp/capbench-HOST_ONLY-blzhj_km/checkout/source-code.fd
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-blzhj_km/checkout/build/run/cap-bench-83a4c3145ca24bca9e7f26a6f3c1deec
+Frozen source input changed: /tmp/capbench-HOST_ONLY-blzhj_km/checkout/source-vars.fd
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-blzhj_km/checkout/build/run/cap-bench-e8d8dacb519a4fc08fafcc481f5495c2
+Frozen source input changed: /tmp/capbench-HOST_ONLY-blzhj_km/checkout/qemu-system-x86_64
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-blzhj_km/checkout/build/run/cap-bench-b474f7dd5db24d8984cc365c03b3e8ec
+Frozen source input changed: /tmp/capbench-HOST_ONLY-blzhj_km/checkout/build/manifest.json
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-blzhj_km/checkout/build/run/cap-bench-9a64f6cae0f04c438d1585c4a60316c7
+Frozen source input changed: /tmp/capbench-HOST_ONLY-blzhj_km/checkout/build/esp/kernel.elf
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-blzhj_km/checkout/build/run/cap-bench-3545cd31db9c46f789f32be4f06c7afc
+Frozen source input changed: /tmp/capbench-HOST_ONLY-blzhj_km/checkout/build/esp/EFI/BOOT/BOOTX64.EFI
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-blzhj_km/checkout/build/run/cap-bench-ec37417662a8442cb0cf3ef5afb58084
+Frozen source input changed: /tmp/capbench-HOST_ONLY-blzhj_km/checkout/target/system-system/x86_64-unknown-none/release/system-app
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-blzhj_km/checkout/build/run/cap-bench-062c1071876c482ab6cbdb8d946f07d6
+Frozen source input changed: /tmp/capbench-HOST_ONLY-blzhj_km/checkout/kernel/src/m2/m3/cap_bench.rs
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-li_19zja/checkout/build/run/cap-bench-ded0c474e7d64e7cae7552ebd87f2cf7
+Frozen guest/archive input changed: OVMF_VARS.template.fd
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-li_19zja/checkout/build/run/cap-bench-2155429f2149415fb21c158f1b69910e
+Frozen guest/archive input changed: inputs/manifest.json
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-li_19zja/checkout/build/run/cap-bench-bcc15a48ce344b71bafb540c156e7179
+Frozen guest/archive input changed: inputs/frozen-inputs.json
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-li_19zja/checkout/build/run/cap-bench-08b1bdf0f9dd412c8128f2a113ddf21d
+Frozen guest/archive input changed: volume.img
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-li_19zja/checkout/build/run/cap-bench-d12c1b1f078f4cfa840959f372a54257
+Frozen guest/archive input changed: volume.json
+CAPBENCH passed=True raw=33; /tmp/capbench-HOST_ONLY-3_ryb1xk/checkout/build/run/cap-bench-4c303669c7864eb5ba6a3449f152077f
+IMAGES normal: passed=False gate=False /tmp/tmpco6gbxr1/checkout/build/run/system-normal-11111111111111111111111111111111
+ValueError: changed serial
+IMAGES normal: passed=False gate=False /tmp/tmpco6gbxr1/checkout/build/run/system-normal-11111111111111111111111111111111
+ValueError: source, QEMU or firmware changed during image gate
+RANDOM raw: passed=False gate=False /tmp/tmp9jtijgns/checkout/build/run/system-normal-11111111111111111111111111111111
+ValueError: changed serial
+RANDOM raw: passed=False gate=False /tmp/tmp9jtijgns/checkout/build/run/system-normal-11111111111111111111111111111111
+ValueError: source, QEMU or firmware changed during RANDOM gate
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+RTC:UTC:1793361600
+RTC:DATE:2026,10,30,12,0,0
+RTC:QUALITY:UNAUTHENTICATED
+RTC:NEGATIVE:PASS
+RTC:RESTORE:PASS
+RTC:PASS
+M2:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /tmp/tmpzdhfp1nk/build/run/smoke-56bc7a4f31
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+RTC:UTC:1793361600
+RTC:DATE:2026,10,30,12,0,0
+RTC:QUALITY:UNAUTHENTICATED
+RTC:NEGATIVE:PASS
+RTC:RESTORE:PASS
+RTC:PASS
+M2:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /tmp/tmpzdhfp1nk/build/run/smoke-744e516a72

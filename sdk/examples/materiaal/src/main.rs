@@ -5,6 +5,8 @@
 //! display, the isolated source owns raw PS/2, the volume service owns disk.
 #[path = "../../system/src/support.rs"]
 mod support;
+#[path = "../../window-session/src/probe.rs"]
+mod window_probe;
 use core::{arch::global_asm, cell::UnsafeCell};
 use nieuw_os_catalog_client::NativeTransport;
 use nieuw_os_document_session::{
@@ -13,7 +15,7 @@ use nieuw_os_document_session::{
 };
 use nieuw_os_input_client::{Binding, Session as Input};
 use nieuw_os_materiaal::{controller::Controller, Viewport};
-use nieuw_os_materiaal_app::{bootstrap::Bootstrap, App, Evidence, Observation};
+use nieuw_os_materiaal_app::{bootstrap::Bootstrap, idle, App, Evidence, Observation};
 use nieuw_os_sdk_runtime::{native, Outgoing, Received, SendEndpoint};
 use nieuw_os_surface_protocol::client::Session as Surface;
 
@@ -118,8 +120,11 @@ fn publish(e: Evidence, observation: Observation) {
 
 #[no_mangle]
 pub extern "C" fn materiaal_main() -> ! {
-    native::check_abi().unwrap_or_else(|_| fail(1));
-    let config = Bootstrap::read(support::word).unwrap_or_else(|| fail(2));
+    let idle_mode = native::abi_info()
+        .ok()
+        .and_then(idle::Mode::from_abi)
+        .unwrap_or_else(|| fail(1));
+    let mut config = Bootstrap::read(support::word).unwrap_or_else(|| fail(2));
     // READY here is bootstrap/ELF readiness, not rendered UI or a saved file.
     send(config.registry_send, 1);
     let mut go = false;
@@ -147,6 +152,18 @@ pub extern "C" fn materiaal_main() -> ! {
     )
     .unwrap_or_else(|_| fail(5));
     let geometry = surface.geometry().unwrap_or_else(|_| fail(6));
+    if support::word(664) == 1 {
+        let count = window_probe::run(
+            &mut surface,
+            config.input_send,
+            config.input_receive,
+            config.compositor_pid,
+            config.input_epoch,
+            config.input_client,
+        )
+        .unwrap_or_else(|e| fail(80 + e.code()));
+        support::put(672, count);
+    }
     let viewport = Viewport::new(
         u32::from(geometry.assigned.width),
         u32::from(geometry.assigned.height),
@@ -199,6 +216,12 @@ pub extern "C" fn materiaal_main() -> ! {
         config.input_epoch,
     )
     .unwrap_or_else(|_| fail(10));
+    let window_session = support::word(656) == 1;
+    if window_session {
+        controller
+            .set_compositor_cursor(true)
+            .unwrap_or_else(|_| fail(15));
+    }
     let session_preview = support::word(648) == 1;
     if session_preview {
         controller.enable_vm_desktop().unwrap_or_else(|_| fail(14));
@@ -210,18 +233,99 @@ pub extern "C" fn materiaal_main() -> ! {
     let mut damage = [0; nieuw_os_materiaal_app::DAMAGE_TILES];
     let mut app = App::with_damage_cache(controller, input, surface, geometry, &mut damage)
         .unwrap_or_else(|_| fail(11));
+    if window_session {
+        app.enable_clipboard();
+        app.enable_retained().unwrap_or_else(|_| fail(11));
+    }
+    let mut paused = false;
     loop {
         tick();
-        let _ = if session_preview {
-            app.step_interactive()
-        } else {
-            app.step()
-        };
+        if !paused {
+            let _ = if session_preview || window_session {
+                app.step_interactive()
+            } else {
+                app.step()
+            };
+        }
         publish(app.evidence(), app.observation());
-        if let Some(message) = control(&config) {
+        let message = control(&config);
+        let control_empty = message.is_none();
+        if let Some(message) = message {
             // STOP is an explicit supervisor request, never an implicit save or
             // discard. A dirty/busy document refuses; all three owners close
             // before DONE. Full OS session/shutdown policy is a separate task.
+            if window_session && message.payload() == [7] && !paused {
+                app.detach_presentation().unwrap_or_else(|_| fail(16));
+                paused = true;
+                send(config.registry_send, 7);
+                continue;
+            }
+            if window_session && message.payload() == [8] && paused {
+                let next = Bootstrap::read(support::word).unwrap_or_else(|| fail(17));
+                if next.document_send != config.document_send
+                    || next.document_receive != config.document_receive
+                    || next.registry_send != config.registry_send
+                    || next.control_receive != config.control_receive
+                    || next.self_pid != config.self_pid
+                    || next.init_pid != config.init_pid
+                    || next.volume_pid != config.volume_pid
+                    || next.compositor_pid == config.compositor_pid
+                {
+                    fail(18);
+                }
+                let mut surface = Surface::new(
+                    NativeTransport,
+                    next.compositor_pid,
+                    next.surface_epoch,
+                    next.surface_send,
+                    next.surface_receive,
+                    POLL,
+                )
+                .unwrap_or_else(|_| fail(19));
+                let geometry = surface.geometry().unwrap_or_else(|_| fail(20));
+                if support::word(664) == 1 {
+                    let stale = window_probe::stale(&[
+                        config.input_send.handle(),
+                        config.input_receive.handle(),
+                        config.surface_send.handle(),
+                        config.surface_receive.handle(),
+                    ])
+                    .unwrap_or_else(|e| fail(80 + e.code()));
+                    let refused = window_probe::run(
+                        &mut surface,
+                        next.input_send,
+                        next.input_receive,
+                        next.compositor_pid,
+                        next.input_epoch,
+                        next.input_client,
+                    )
+                    .unwrap_or_else(|e| fail(80 + e.code()));
+                    let count = support::word(672)
+                        .checked_add(stale + refused)
+                        .unwrap_or_else(|| fail(98));
+                    support::put(672, count);
+                }
+                let input = Input::new(
+                    NativeTransport,
+                    Binding {
+                        epoch: next.input_epoch,
+                        service_pid: next.policy_pid,
+                        client_id: next.input_client,
+                        width: geometry.width,
+                        height: geometry.height,
+                        send: next.input_send,
+                        receive: next.input_receive,
+                    },
+                    POLL,
+                )
+                .unwrap_or_else(|_| fail(21));
+                app.rebind_presentation(input, surface, geometry)
+                    .unwrap_or_else(|_| fail(22));
+                config = next;
+                paused = false;
+                send(config.registry_send, 8);
+                continue;
+            }
             if message.payload() != [5] {
                 fail(12);
             }
@@ -237,7 +341,13 @@ pub extern "C" fn materiaal_main() -> ! {
                 Err(_) => fail(13),
             }
         }
-        let _ = native::yield_now();
+        if idle_mode == idle::Mode::Wait && !paused && control_empty && app.can_idle() {
+            let now = native::monotonic_ticks().unwrap_or_else(|_| fail(96));
+            let poll = idle::Poll::new(now, config.control_receive).unwrap_or_else(|| fail(96));
+            poll.park(native::ipc_wait).unwrap_or_else(|_| fail(97));
+        } else {
+            native::yield_now().unwrap_or_else(|_| fail(97));
+        }
     }
 }
 #[panic_handler]

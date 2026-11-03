@@ -1,0 +1,352 @@
+
+running 67 tests
+test digest_differential::host_microbenchmark_reference_and_optimized ... ignored, host cost/ratio only; invoke explicitly, never native performance evidence
+test digest_differential::dense_private_corruptions_cover_every_table_field_and_inactive_queue ... ok
+test digest_differential::zero_runs_compose_exactly_across_boundaries_for_all_table_lengths ... ok
+test snapshot_tests::every_authority_field_and_inactive_message_is_compared_exactly ... ok
+test snapshot_tests::snapshot_message_erasure_covers_all_headers_descriptors_and_payload_bytes ... ok
+test snapshot_tests::snapshot_storage_rejects_reentrancy_and_releases_on_scope_exit ... ok
+test digest_differential::every_message_wire_bit_including_invalid_and_trailing_bytes_is_preserved ... ok
+test snapshot_tests::snapshots_preserve_failed_operation_and_detect_unexpected_error_write ... ok
+test tests::b01_entropy_capability_is_typed_exclusive_and_bounded ... ok
+test tests::bounded_transaction_state_machine_fuzz_preserves_error_atomicity ... ok
+test snapshot_tests::snapshots_match_full_clone_and_fresh_oracles_through_real_lifecycle ... ok
+test tests::closed_object_tombstones_hold_global_capacity_without_retargeting ... ok
+test tests::display_input_creation_checks_slot_node_and_pid_quota_atomically ... ok
+test tests::display_input_generation_exhaustion_retires_sole_object_without_wrap ... ok
+test tests::display_input_sources_are_sole_typed_manifest_authorities ... ok
+test tests::display_input_sources_cannot_derive_transfer_revoke_or_escalate ... ok
+test tests::display_input_close_reuse_exit_never_restore_stale_source ... ok
+test tests::endpoint_replacement_preflight_conservatively_retains_queued_capabilities ... ok
+test tests::endpoint_replacement_preflight_keeps_remote_leaves_and_ignores_stale_handles ... ok
+test tests::exact_public_error_numbers_match_the_syscall_contract ... ok
+test tests::k05_delegation_precheck_matches_bootstrap_rules ... ok
+test tests::k05_invalid_death_states_and_duplicate_children_are_rejected ... ok
+test tests::endpoint_owner_and_global_quotas_recover_after_close ... ok
+test tests::k05_launch_is_typed_non_derivable_non_transferable_and_closable ... ok
+test tests::k05_launch_quota_and_owner_exit_close_objects ... ok
+test tests::k05_process_object_reports_lifecycle_to_its_spawner_only ... ok
+test tests::k05_process_quota_and_capacity_probes ... ok
+test tests::k05_rights_constants_and_known_mask ... ok
+test tests::k05_spawner_exit_ends_grandchildren_iteratively ... ok
+test tests::ks10_bounded_wire_bit_fuzz_never_panics_or_mutates_on_reject ... ok
+test tests::ks10_message_rejection_and_endpoint_priority_are_atomic ... ok
+test tests::ks10_wire_exact_offsets_canonical_fields_and_misaligned_byte_source ... ok
+test tests::ks11_snapshot_fifo_and_queue_quota ... ok
+test tests::ks12_process_local_numeric_collision_and_stale_handles ... ok
+test tests::ks13_all_transfer_authority_precedes_any_depth_resource_failure ... ok
+test tests::ks13_attenuation_transfer_and_zero_rights ... ok
+test tests::ks14_revocation_after_delivery_and_close_do_not_recall_bytes ... ok
+test tests::ks14_revoke_cancels_whole_queued_transfer_but_preserves_fifo ... ok
+test tests::k05_running_child_without_handles_stays_an_orphan_candidate ... ok
+test tests::ks14_revoke_is_not_array_order_dependent_and_preserves_own_node ... ok
+test tests::ks15_receive_reserves_both_slots_before_commit ... ok
+test tests::ks15_depth_eight_parent_retention_and_reclamation ... ok
+test tests::ks15_slot_node_object_max_generation_retire_without_aba ... ok
+test tests::ks16_exit_revokes_received_and_issued_descendants_and_queued_caps ... ok
+test tests::ks15_two_cap_send_global_node_exhaustion_has_no_partial_node ... ok
+test tests::ks16_last_receive_close_tombstone_and_revoked_before_closed ... ok
+test tests::m5_block_quota_is_separate_from_all_64_endpoint_objects ... ok
+test tests::m5_block_scope_invalid_masks_error_order_and_generation_retirement ... ok
+test tests::m5_block_transfer_revoke_and_owner_exit_use_common_lifetimes ... ok
+test tests::m5_block_type_scope_and_admin_close_are_enforced ... ok
+test tests::m6_explicit_write_flush_roots_preserve_legacy_rights_and_type_boundary ... ok
+test tests::m5_revoked_queued_block_cap_cancels_complete_mixed_type_message ... ok
+test tests::m6_queued_write_authority_revoke_exit_and_generation_remain_bounded ... ok
+test tests::m6_writable_objects_do_not_reduce_endpoint_or_separate_block_quota ... ok
+test tests::manifest_capacity_queries_count_only_reusable_objects_without_mutation ... ok
+test tests::monotone_process_identity_quota_and_process_row_reuse ... ok
+test tests::raw_network_authority_is_typed_private_and_cannot_be_delegated ... ok
+test tests::raw_network_close_exit_and_reissue_do_not_resurrect_authority ... ok
+test tests::source_recreation_preflight_checks_owner_and_terminal_generation ... ok
+test tests::m6_manifest_masks_and_subset_failures_are_transactional ... ok
+test wait_readiness_tests::existing_type_rights_and_full_handle_errors_are_preserved ... ok
+test wait_readiness_tests::queued_data_can_be_ready_while_cap_slot_quota_still_refuses_receive ... ok
+test wait_readiness_tests::revocation_wakes_full_sender_without_queue_progress_and_precedes_closed ... ok
+test wait_readiness_tests::revoked_queued_transfers_can_make_send_space_ready ... ok
+test wait_readiness_tests::queue_empty_full_wrap_queries_are_read_only ... ok
+test digest_differential::zero_corrupt_states_and_single_inactive_trailing_bytes_match_reference ... ok
+test digest_differential::real_lifecycle_failures_revoke_transfer_and_queue_wrap_match_reference ... ok
+
+test result: ok. 66 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 3.22s
+
+
+running 7 tests
+test wait::tests::all_caps_are_validated_even_after_an_earlier_ready_condition_or_expiry ... ok
+test wait::tests::absolute_expiration_horizon_and_clock_rollback_are_not_renewed ... ok
+test wait::tests::copied_snapshot_pid_and_handle_generation_cannot_rebind ... ok
+test wait::tests::multiple_senders_observe_space_without_a_reservation ... ok
+test wait::tests::scalar_arguments_and_every_interest_are_checked_before_registration ... ok
+test wait::tests::real_queue_changes_between_poll_and_registration_are_observed ... ok
+test wait::tests::full_sender_is_woken_by_revocation_without_queue_progress ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 20 tests
+test tests::batch_resource_errors_preserve_owners_aliases_output_and_zero_count ... ok
+test tests::checked_ranges ... ok
+test tests::fragmented_batch_is_sorted_zeroed_once_and_rollback_reclaims_every_frame ... ok
+test tests::physical_alias_wx_and_mapped_free ... ok
+test tests::ovmf_cache_capabilities_are_not_special_memory ... ok
+test tests::physical_page_width_and_overflow_fail_closed ... ok
+test tests::batch_quota_is_total_per_pid_and_failure_is_atomic ... ok
+test tests::reserved_and_special_memory ... ok
+test tests::unique_exhaustion_ownership_and_zero_order ... ok
+test tests::unmap_mismatched_alias_is_atomic_and_cannot_free_executable ... ok
+test user::tests::copy_plan_checks_entire_range_before_any_copy ... ok
+test user::tests::legal_large_image_and_exact_user_mapping_budget ... ok
+test user::tests::overflow_offset_and_page_overlap ... ok
+test user::tests::pids_survive_16bit_boundary_and_never_wrap ... ok
+test user::tests::return_flags_strip_authority ... ok
+test user::tests::sector_input_validates_second_page_owner_and_preserves_ipc_limit ... ok
+test user::tests::user_return_layout_rejects_untrusted_stack_and_noncanonical_alias ... ok
+test user::tests::valid_and_wx_entry_checks ... ok
+test tests::batch_scan_cost_is_measured_separately_from_native_performance ... ok
+test tests::quota_no_partial_allocation ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running unittests src/lib.rs (target/m4-regression-host/debug/deps/capability_core-e1b8727debf17276)
+     Running tests/native_wait.rs (target/m4-regression-host/debug/deps/native_wait-e6ddfeea2f019bee)
+     Running unittests src/lib.rs (target/m4-regression-host/debug/deps/kernel_core-6d6e9fb9453fbf62)
+   Doc-tests capability_core
+   Doc-tests kernel_core
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.02s
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.22s
+Built and inspected m4: 3 ELF load segments
+test_actual_binary_contains_limits_before_script_execution (__main__.IpcArtifact.test_actual_binary_contains_limits_before_script_execution) ... ok
+test_actual_private_output_and_load_instructions_exist (__main__.IpcArtifact.test_actual_private_output_and_load_instructions_exist) ... ok
+test_actual_rx_rw_ro_segments_have_no_writable_executable_page (__main__.IpcArtifact.test_actual_rx_rw_ro_segments_have_no_writable_executable_page) ... ok
+test_actual_syscalls_generic_dispatch_and_failure_exit_use_int80 (__main__.IpcArtifact.test_actual_syscalls_generic_dispatch_and_failure_exit_use_int80) ... ok
+test_all_control_rows_results_and_message_bytes_start_zero (__main__.IpcArtifact.test_all_control_rows_results_and_message_bytes_start_zero) ... ok
+test_manifest_matches_actual_binary_source_and_linker (__main__.IpcArtifact.test_manifest_matches_actual_binary_source_and_linker) ... ok
+test_no_tls_dynamic_relocation_or_unexpected_allocatable_section (__main__.IpcArtifact.test_no_tls_dynamic_relocation_or_unexpected_allocatable_section) ... ok
+test_reject_bad_headers_and_dynamic_features (__main__.IpcArtifact.test_reject_bad_headers_and_dynamic_features) ... ok
+test_reject_entry_in_data_or_readonly_and_page_overlap (__main__.IpcArtifact.test_reject_entry_in_data_or_readonly_and_page_overlap) ... ok
+test_reject_permission_escalation_and_readonly_boundary_changes (__main__.IpcArtifact.test_reject_permission_escalation_and_readonly_boundary_changes) ... ok
+test_reject_size_overflow_alignment_and_control_shrink (__main__.IpcArtifact.test_reject_size_overflow_alignment_and_control_shrink) ... ok
+test_reject_truncation_of_required_load_bytes (__main__.IpcArtifact.test_reject_truncation_of_required_load_bytes) ... ok
+test_script_and_result_tables_fit_control_page_without_overlap (__main__.IpcArtifact.test_script_and_result_tables_fit_control_page_without_overlap) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.005s
+
+OK
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M4:EXCHANGE:PASS
+M4:SURVIVOR_PROGRESS:PASS
+M4:CLEANUP:PASS
+M4:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /workspace/nieuw-os/build/run/m4-exchange-7435f874b0
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.03s
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.24s
+Built and inspected test-m4-copy: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M4:CASE:COPY:PASS
+M4:SURVIVOR_PROGRESS:PASS
+M4:CLEANUP:PASS
+KS-09:PASS
+M4:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /workspace/nieuw-os/build/run/test-m4-copy-2cdfff0530
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.02s
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.41s
+Built and inspected test-m4-wire: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M4:CASE:WIRE:PASS
+M4:SURVIVOR_PROGRESS:PASS
+M4:CLEANUP:PASS
+KS-10:PASS
+M4:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /workspace/nieuw-os/build/run/test-m4-wire-977ffeb47b
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.02s
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.19s
+Built and inspected test-m4-snapshot: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M4:CASE:SNAPSHOT:PASS
+M4:SURVIVOR_PROGRESS:PASS
+M4:CLEANUP:PASS
+KS-11:PASS
+M4:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /workspace/nieuw-os/build/run/test-m4-snapshot-b71bdc6cf1
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.02s
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.24s
+Built and inspected test-m4-handles: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M4:CASE:HANDLES:PASS
+M4:SURVIVOR_PROGRESS:PASS
+M4:CLEANUP:PASS
+KS-12:PASS
+M4:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /workspace/nieuw-os/build/run/test-m4-handles-9d073831ff
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.02s
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.41s
+Built and inspected test-m4-rights: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M4:CASE:RIGHTS:PASS
+M4:SURVIVOR_PROGRESS:PASS
+M4:CLEANUP:PASS
+KS-13:PASS
+M4:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /workspace/nieuw-os/build/run/test-m4-rights-713e68ccf6
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.02s
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.24s
+Built and inspected test-m4-revoke: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M4:CASE:REVOKE:PASS
+M4:SURVIVOR_PROGRESS:PASS
+M4:CLEANUP:PASS
+KS-14:PASS
+M4:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /workspace/nieuw-os/build/run/test-m4-revoke-128857ddaf
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.02s
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.37s
+Built and inspected test-m4-quotas: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M4:CASE:QUOTAS:PASS
+M4:SURVIVOR_PROGRESS:PASS
+M4:CLEANUP:PASS
+KS-15:PASS
+M4:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /workspace/nieuw-os/build/run/test-m4-quotas-427c145dac
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.02s
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.23s
+Built and inspected test-m4-lifecycle: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M4:CASE:LIFECYCLE:PASS
+M4:SURVIVOR_PROGRESS:PASS
+M4:CLEANUP:PASS
+KS-16:PASS
+M4:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /workspace/nieuw-os/build/run/test-m4-lifecycle-666ab21ee2
+    Finished `release` profile [optimized] target(s) in 0.02s
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 0.11s
+Built and inspected normal: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /workspace/nieuw-os/build/run/m1-after-m4-a6d167431d
+M4 gate passed: 12 groups; final review/audit still required
