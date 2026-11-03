@@ -105,6 +105,17 @@ bronbinding staan in het [driveronderzoek](research/2026-11-03/os-repos-and-hard
 `python3 tools/progress.py --write`, `--check` en `git diff --check` zijn de
 documentcontroles; native OS-tests zijn niet uitgevoerd.
 
+Vervolgonderzoek naar de [rust-osdev-organisatie](https://github.com/rust-osdev)
+(3 november 2026), assessmentbasis `47cc895b`: **41 -> 41**. ACPI-, PCI-,
+xHCI- en USB-repositories leveren bruikbare parser-/type-/registerbouwstenen,
+maar geen geïntegreerde, capability-begrensde drivers. `virtio-spec-rs` is
+specificatiedefinitie, geen driver. De concrete `uart_16550`-driver 0.9.0
+vereist Rust 1.91.0 en past niet bij onze 1.90.0-pin. Geen crate toegevoegd,
+gebouwd of op hardware getest; geen nieuw acceptatiebewijs. Zie het
+[driveronderzoek](research/2026-11-03/os-repos-and-hardware-drivers.md).
+`python3 tools/progress.py --write`, `--check` en `git diff --check` zijn de
+uitgevoerde documentcontroles.
+
 PR139-review (3 november2026), exact geteste geïntegreerde bron `0a49a382`:
 **41 → 41**. Negen artifact-store-contracttests, Rust1.90.0 fmt en Clippy
 daadwerkelijk opnieuw groen; primaire logs/boom/commando's/codehashes staan

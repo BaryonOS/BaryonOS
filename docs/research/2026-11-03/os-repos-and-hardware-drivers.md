@@ -6,6 +6,8 @@
 
 Aanvulling na twee extra door de gebruiker genoemde repositories: Nieuw OS-bron
 `9e13e7be17845e03256dd451de57419eb242e376` (3 november 2026).
+Aanvulling na de organisatieverwijzing `rust-osdev`: Nieuw OS-bron
+`47cc895b4de6bfde02f294399ebc777c67575d24` (3 november 2026).
 
 ## Conclusie
 
@@ -47,11 +49,42 @@ syscall-ABI voor gebruikersprogramma's. Een Linux-driver “foppen” vraagt dus
 meer dan een dunne syscall-laag: bus-, geheugen-, DMA-, interrupt-, apparaat-
 en subsystemcontracten moeten passen.
 
+## Wat de rust-osdev-organisatie bijdraagt
+
+De organisatie is een verzameling losse Rust-bibliotheken, geen geïntegreerde
+driverstack. De nuttigste projecten voor de huidige x86-64/UEFI-route zijn:
+
+| Project | Wat de bron daadwerkelijk levert | Relevantie en beperking voor Nieuw OS |
+|---|---|---|
+| [acpi](https://github.com/rust-osdev/acpi/tree/386035c1badb74e8bd5f3a63b385e77c60d79b1f) `386035c` | Rust-parser/API voor ACPI-tabellen en AML; een beperkte API werkt zonder allocator, rijkere functies/AML vereisen alloc. Licentie MIT/Apache-2.0; huidige manifest is versie `7.0.0-pre1`, Rust 2024 edition. | Kansrijke bouwsteen voor platform-/interrupt-/energie-inventarisatie, maar geen PCI- of apparaatspecifieke driver. Pre-release, dependencyboom en firmware-afwijkingen vragen een concrete test vóór adoptie. |
+| [pci_types](https://github.com/rust-osdev/pci_types/tree/eff856b6bab81adbe1bda0ab750009f3786cb8d3) `eff856b` | `pci_types` 0.10.1: `no_std`-types en helpers voor PCI-adressen, configuratieregisters, capabilities en deviceklassen; geen PCI-configuratie-accessbackend of driverbinding. MIT/Apache-2.0. | Mogelijk nuttig bij toekomstige generieke PCI-enumeratie. Het vervangt geen veilige config-space access, BAR-toekenning, interrupt- of DMA-policy. |
+| [xhci](https://github.com/rust-osdev/xhci/tree/f2254c86d5ba12754259bf0ae483c6c8dc821aad) `f2254c8` | `xhci` 0.9.2: `no_std`-register-, context-, ring- en extended-capabilitytypes voor xHCI. De README zegt expliciet dat een OS hiermee zelf een USB-device-driver kan implementeren. MIT/Apache-2.0; laatste commit in de onderzochte geschiedenis is uit 2024. | Bruikbaar als laag onder een toekomstige eigen xHCI-hostcontrollerdriver, niet als complete controller-, DMA-, interrupt-, enumeratie- of USB-HID-driver. Activiteit en API moeten vóór gebruik opnieuw worden beoordeeld. |
+| [usb](https://github.com/rust-osdev/usb/tree/75e219179df7e0961aa42e18774beb8878765341) `75e2191` | Losse 0.1.0-hulppakketten, waaronder `usb_request` en `usb_hid_item`, voor USB-requests en HID-item-/usagegegevens; geen hostcontroller. De laatst gevonden commit dateert uit 2022. | Kan eventueel parser-/descriptorwerk versnellen nadat de USB-transportgrens bestaat. Oudere crates en parsergedrag eerst op malformed/truncated input testen; het is geen vervanging van onze USB-enumeratie of xHCI. |
+| [uart_16550](https://github.com/rust-osdev/uart_16550/tree/770cbd28330de1cc461d62d8fc8ac5814c673304) `770cbd2` | Echte `no_std`, allocatievrije 16550-driver voor x86 port-I/O, MMIO en aangepaste backends, inclusief configuratie, RX/TX en interrupts; MIT/Apache-2.0. | Technisch concreter dan de meeste repos, maar manifest `0.9.0` vereist `rust-version = 1.91.0`; Nieuw OS staat vast op Rust 1.90.0. Dus de huidige upstream is niet direct in onze gepinde toolchain te gebruiken zonder expliciet toolchain-/versiebesluit en compatibiliteitstests. |
+| [virtio-spec-rs](https://github.com/rust-osdev/virtio-spec-rs/tree/ad565bd701e93fa47bc288d45701e1ae53ac3c12) `ad565bd` | `virtio-spec` 0.4.0: Rust-definities uit de VirtIO-specificatie; README zegt expliciet dat de crate geen mening heeft over of de drivers erboven implementeert. MIT/Apache-2.0. | Mogelijk referentie-/typebron, maar geen VirtIO-driver en geen snellere route naar fysieke apparaten. Nieuw OS heeft al een eigen `virtio-core` en gerichte VirtIO-drivers; geen tweede protocolbron invoeren zonder concrete behoefte en contractvergelijking. |
+
+De organisatie bevat daarnaast onder meer `bootloader`, `uefi-rs`,
+`x86_64`, `pic8259` en `apic`. Dat zijn respectievelijk boot-, firmware-,
+architectuur- en interruptbouwstenen, niet een algemene verzameling moderne
+GPU-, wifi-, NVMe- of laptopdrivers. Een `xhci`-registercrate of
+`virtio-spec`-definitie mag niet als een werkende driver worden geteld.
+
+**Praktisch oordeel:** dit is de waardevolste bron die tot nu toe is bekeken
+voor herbruikbare Rust-bouwstenen die bij onze taal en `no_std`-richting passen.
+Het kan later parser-, type- en registerwerk beperken. De beste kandidaat hangt
+af van de eerstvolgende concrete gate: PCI/ACPI voor platforminventarisatie,
+xHCI-types voor een USB-hostcontrollerport, of een seriële driver zodra de
+toolchaingrens is opgelost. Geen van deze crates levert op zichzelf een
+geïntegreerde, capability-begrensde driverstack. Voeg niets toe voordat
+herkomst, exacte versie, licentie, `no_std`/MSRV, build scripts, `unsafe`-
+grenzen en negatieve native QEMU-tests zijn gecontroleerd.
+
 ## Beoordeling van de voorgestelde shortcuts
 
 | Voorstel | Beoordeling voor Nieuw OS |
 |---|---|
 | Linux-drivers wrappen | **Niet als snelle route.** Een Linux-userspace-ABI helpt applicaties, niet kerneldrivers. Een compatibiliteitslaag voor `.ko`-modules zou een omvangrijk Linux-kernel-/subsystemmodel en een nieuwe vertrouwensgrens introduceren. Onderzoek dit hoogstens later als afgebakende haalbaarheidsproef; neem geen bestaande kernel als basis. Elke codeport vereist afzonderlijke licentie-, herkomst-, API- en beveiligingsreview. |
+| rust-osdev-bibliotheken | **Gerichte versneller voor bouwstenen.** `acpi`, `pci_types`, `xhci` en USB-hulppakketten kunnen bepaalde parsing-/type-/registertaken schelen, maar zijn geen kant-en-klare drivers. `uart_16550` is een concretere driver, maar upstream vereist Rust 1.91 en past dus niet bij de huidige Rust 1.90-pin. `virtio-spec-rs` bevat specificatiedefinities, geen VirtIO-driver. |
 | ODI gebruiken | **Mogelijk per driver, na port- en securityreview.** De C-code kan concrete controllerlogica bieden, maar verwacht OS-bindingen; de generieke pointer/callback-interface is geen Nieuw OS-capabilitymodel. Selecteer pas een driver na keuze van het apparaat en test die op het exacte QEMU-/hardwareprofiel. |
 | `device-driver` gebruiken | **Mogelijk als codegenerator, niet als driverbibliotheek voor alle hardware.** DDSL kan registervelden en commando-API's reduceren; het lost geen bus, interrupts, DMA, device lifecycle of protocolstack op. Eerst een kleine geïsoleerde toolchain-/`no_std`-proef doen en dependencies/feature/buildscripts vastzetten voordat adoptie wordt overwogen. |
 | VirtIO en UEFI GOP | **Direct bruikbaar binnen hun grenzen.** VirtIO levert gestandaardiseerde apparaten aan VM's en past bij QEMU/CI; het is geen fysieke NIC-/NVMe-/GPU-driver voor gewone pc's. GOP laat de loader een firmwaremodus en framebuffer doorgeven, bruikbaar voor initiële pixels zonder GPU-versnelling. Het vervangt geen native GPU-driver, modesetting, audio, wifi of post-boot USB-stack. |
@@ -81,6 +114,7 @@ acceptatiegates; gedeeltelijk driverwerk kent geen nieuwe punten toe.
 - vib-OS, `README.md` en wijzigingsgeschiedenis, commit [`73b6429`](https://github.com/viralcode/vib-OS/commit/73b64299bf6e591e738c58c9d1845f0babdd6f58).
 - Open Driver Interface, [README](https://github.com/Open-Driver-Interface/odi/blob/ef58952c4a7b27338cb47bdb9401d4b6f970143c/README.md), [quickstart/portcontract](https://github.com/Open-Driver-Interface/odi/blob/ef58952c4a7b27338cb47bdb9401d4b6f970143c/docs/quickstart.md) en [dependency-/portnotities](https://github.com/Open-Driver-Interface/odi/blob/ef58952c4a7b27338cb47bdb9401d4b6f970143c/docs/dependencies.md).
 - Dion Dokter, [device-driver-toolkit README](https://github.com/diondokter/device-driver/blob/036fb189f382d1ced62fa2695d43b3a69dcdaa73/README.md), [runtimemanifest](https://github.com/diondokter/device-driver/blob/036fb189f382d1ced62fa2695d43b3a69dcdaa73/device-driver/Cargo.toml) en [repositorylicentie](https://github.com/diondokter/device-driver/blob/036fb189f382d1ced62fa2695d43b3a69dcdaa73/LICENSE-MIT).
+- rust-osdev, vastgezette [ACPI README](https://github.com/rust-osdev/acpi/blob/386035c1badb74e8bd5f3a63b385e77c60d79b1f/README.md) en [Cargo.toml](https://github.com/rust-osdev/acpi/blob/386035c1badb74e8bd5f3a63b385e77c60d79b1f/Cargo.toml), [PCI Cargo.toml](https://github.com/rust-osdev/pci_types/blob/eff856b6bab81adbe1bda0ab750009f3786cb8d3/Cargo.toml), [xHCI README](https://github.com/rust-osdev/xhci/blob/f2254c86d5ba12754259bf0ae483c6c8dc821aad/README.md) en [Cargo.toml](https://github.com/rust-osdev/xhci/blob/f2254c86d5ba12754259bf0ae483c6c8dc821aad/Cargo.toml), [USB-repository](https://github.com/rust-osdev/usb/tree/75e219179df7e0961aa42e18774beb8878765341), [uart_16550 Cargo.toml](https://github.com/rust-osdev/uart_16550/blob/770cbd28330de1cc461d62d8fc8ac5814c673304/Cargo.toml), [virtio-spec-rs README](https://github.com/rust-osdev/virtio-spec-rs/blob/ad565bd701e93fa47bc288d45701e1ae53ac3c12/README.md) en [Cargo.toml](https://github.com/rust-osdev/virtio-spec-rs/blob/ad565bd701e93fa47bc288d45701e1ae53ac3c12/Cargo.toml), en [organisatie-repositories](https://github.com/orgs/rust-osdev/repositories).
 
 ### Technische specificaties en documentatie
 
@@ -89,11 +123,12 @@ acceptatiegates; gedeeltelijk driverwerk kent geen nieuwe punten toe.
 - UEFI Forum, *UEFI Specification 2.11*, [hoofdstuk 12: Console Support, inclusief Graphics Output Protocol](https://uefi.org/specs/UEFI/2.11/12_Protocols_Console_Support.html).
 - Nieuw OS, [G0 native grafische basis](../../implementation/GRAPHICS-G0.md), [VirtIO-net-taakcontract](../../implementation/VIRTIO-NET.md), [volledige release en driveracceptatie](../../FULL-TEST-RELEASE.md), [virtio-blk](../../../drivers/virtio-blk/README.md) en [virtio-snd](../../../drivers/virtio-snd/README.md).
 
-De externe repositoryclaims zijn gelezen op 3 november 2026; bij de twee
-aanvullende bronnen zijn bovenstaande commit-ID's vastgezet. De Linux-, OASIS-
-en UEFI-bronnen zijn geraadpleegd als technische referenties; de UEFI-host
+De externe repositoryclaims zijn gelezen op 3 november 2026; bij aanvullende
+broncode zijn bovenstaande commit-ID's vastgezet. De Linux-, OASIS- en UEFI-
+bronnen zijn geraadpleegd als technische referenties; de UEFI-host
 weigerde in de eerdere sessie directe paginaophaling, zodat voor de GOP-grens
 de specificatie-inhoudsopgave en de bestaande Nieuw OS G0-specificatie zijn
 gebruikt. Er zijn geen externe repositories gekloond of gebouwd, geen code
 overgenomen, geen toolkit als dependency toegevoegd en geen QEMU- of fysieke
-hardwaretests uitgevoerd.
+hardwaretests uitgevoerd. De huidige toolchain is Rust 1.90.0; in het bijzonder
+is `uart_16550` 0.9.0 met Rust 1.91.0 daarom niet als compatibel behandeld.

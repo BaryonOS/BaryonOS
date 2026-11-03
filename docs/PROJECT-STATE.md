@@ -51,6 +51,23 @@ bewijsgrenzen: [`driveronderzoek`](research/2026-11-03/os-repos-and-hardware-dri
 `git diff --check` slaagden; score **41 → 41/100**. De oorspronkelijke
 PR139-hervatstap bovenaan blijft ongewijzigd.
 
+## Onderzoek rust-osdev-bibliotheken — 3 november 2026
+
+Gebruikerslink naar de `rust-osdev`-organisatie, beoordeeld vanaf
+`47cc895b4de6bfde02f294399ebc777c67575d24`. Bruikbare mogelijke bouwstenen:
+ACPI-tabellen/AML, PCI-datatypes, xHCI-register-/contextstructuren en USB
+descriptor-/HID-hulppakketten. Geen daarvan is op zichzelf een complete
+capability-/DMA-begrensde apparaatdriver; `virtio-spec-rs` levert definities,
+geen driver. `uart_16550` is een echte `no_std`-driver, maar upstream 0.9.0
+vereist Rust 1.91.0 tegenover de projectpin 1.90.0. Geen repository gekloond,
+code of dependency toegevoegd, geen externe cratebuild of hardwaretest.
+Volledige vastgezette bronnen en beoordeling:
+[`os-repos-and-hardware-drivers.md`](research/2026-11-03/os-repos-and-hardware-drivers.md).
+
+`python3 tools/progress.py --write`, `python3 tools/progress.py --check` en
+`git diff --check` geslaagd; score **41 → 41/100**. Eerdere PR139-hervatstap
+blijft ongewijzigd.
+
 ## Historisch checkpoint — PR139 actuele main geïntegreerd — 3 november 2026
 
 Basis vóór integratie: PR-head `341d1b428d436ac0e33c5bf3d7eb684f8543109c`

@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`9e13e7be`](https://github.com/simonvanieperen/nieuw-os/commit/9e13e7be17845e03256dd451de57419eb242e376) ·
+**Bron:** [`47cc895b`](https://github.com/simonvanieperen/nieuw-os/commit/47cc895b4de6bfde02f294399ebc777c67575d24) ·
 **Ontwikkelbranch:** `simonvanieperen-ideal-lamp`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Vervolgvergelijking van ODI en device-driver-toolkit voor hardwaredrivers.
-41/100 blijft 41/100. Vervolgonderzoek op basis van ODI ef58952 (C-driverframework met enkele drivers, OS-port nodig) en diondokter/device-driver 036fb18 (no_std Rust register-/commandocodegenerator, geen volledige busdrivers). Mogelijke gerichte port- of codegeneratiekandidaten, maar geen plug-and-play oplossing; geen dependency, codeport, build of hardwaretest. De eerdere vergelijking met Ginux/VibeOS/vib-OS, beperkingen en bronbinding staan in docs/research/2026-11-03/os-repos-and-hardware-drivers.md.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Beoordeling rust-osdev-bibliotheken voor hardwaredrivers.
+41/100 blijft 41/100. Beoordeeld zijn rust-osdev/acpi, pci_types, xhci, usb, uart_16550 en virtio-spec-rs op vastgezette bronversies. ACPI/PCI/XHCI/USB leveren parser-, type- of registerbouwstenen, geen complete geïsoleerde drivers; virtio-spec-rs zijn definities en geen driver. uart_16550 is wel een echte no_std-driver, maar upstream 0.9.0 vereist Rust 1.91.0 tegenover onze 1.90.0-pin. Geen code/dependency toegevoegd of tests voor deze externe crates uitgevoerd. Volledige vergelijking en grenzen staan in docs/research/2026-11-03/os-repos-and-hardware-drivers.md.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
