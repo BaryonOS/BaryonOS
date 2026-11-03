@@ -2,8 +2,9 @@
 
 ## NEXT AGENT HANDOFF — Materiaal benoemen/save/zoek/heropenen — 3 november 2026
 
-**Bron:** `21d14592a54a80da2debf7cfad139d37264078c7`, branch
-`simonvanieperen-animated-garbanzo`, productdelta in dit checkpoint.
+**Bron:** productcommit `34d23e8f5a23077e9f92d416efcb44615d7e9858`
+op basis `21d14592a54a80da2debf7cfad139d37264078c7`, branch
+`simonvanieperen-animated-garbanzo`; productcommit gepusht en remote SHA gelijk.
 Een gebruiker kan nu een document maken, via F2 benoemen, inhoud invoeren,
 Ctrl+S bewaren, teruggaan, Ctrl+F op naam zoeken en met Enter heropenen.
 De app-hostproef start daarna een nieuwe app en volume-service met alleen
@@ -18,8 +19,11 @@ volume-v7-contracten, geen personal-storage-/encryptieclaim.
 renderregressies, 39 appketens en 2 app-semantiekproeven groen; beide Clippy
 all-targets en fmt exit 0. Exacte commando's, logpaden, initiële fouten en
 bewijsgrens: [ACCEPTANCE.md](verification/material-named-flow/ACCEPTANCE.md).
-Native scalar-appbuild/ELF-parser nog niet uitgevoerd op dit checkpoint;
-geen nieuwe QEMU-runtime, hardware-, menselijke of releaseacceptatie.
+Native scalar-appbuild en bestaande ELF-parsertest tegen het werkelijke
+executable zijn daarna exit 0: 201 pagina's, vijf begrensde W^X-segmenten,
+drie private 64-KiB-buffers. Geen nieuwe QEMU-runtime, hardware-, menselijke
+of releaseacceptatie. De 49 betrokken UI-hosttests zijn op productcommit
+`34d23e8f` opnieuw uitgevoerd (6,32 s, exit 0).
 
 **Ownership:** Veld heeft controller/render expliciet vrijgegeven; General
 is enige schrijver. HC is apart gepubliceerd op `16c26c1c`, maar niet hier
@@ -30,9 +34,11 @@ Auth/session-UI blijft stil; persoonlijke storage/settings blijven afhankelijk
 van B02/profile-key-authority, zonder bypass.
 
 **Score: 39 -> 39/100.** Hostintegratie sluit geen native criterium.
-**Eerstvolgend commando:** `python3 -B sdk/examples/materiaal/build.py`,
-gevolgd door de bestaande ELF-parsertest tegen dat echte executable.
-Bewaar het resultaat als buildbewijs, niet als native runtime.
+**Eerstvolgend:** native input/save/search/reopen op een geisoleerd image
+valideren zodra de betreffende runtimeomgeving beschikbaar is; geen herhaling
+van auth-/B02-analyse. Persoonlijke opslag/settings blijven expliciet extern
+geblokkeerd; de naam/save/close/reopen-appslice is als bron-/host-/buildstap
+opgeleverd, niet als afgevinkte native releaseketen.
 
 ## Historisch checkpoint — expliciete maturity-integratieclaims — 3 november 2026
 

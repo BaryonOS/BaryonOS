@@ -61,7 +61,7 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **39** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`21d14592`](https://github.com/simonvanieperen/nieuw-os/commit/21d14592a54a80da2debf7cfad139d37264078c7) ·
+**Bron:** [`34d23e8f`](https://github.com/simonvanieperen/nieuw-os/commit/34d23e8f5a23077e9f92d416efcb44615d7e9858) ·
 **Ontwikkelbranch:** `simonvanieperen-animated-garbanzo`.
 Deze opdracht: **39% → 39% (+0 procentpunt)**. **Opdracht:** Materiaal: document benoemen, bewaren, sluiten, zoeken en opnieuw openen.
 39% → 39%: nieuwe geintegreerde productcode voor documentnaam en lokale naamsearch boven de bestaande volume-v7-save/open-keten. De app-hostproef herstart met alleen de bewaarde RAM-sectoren en vindt identieke naam/inhoud terug. Gerichte hosttests zijn groen; dit is geen native runtime-, encrypted-storage- of menselijke acceptatie. Geen rubriccriterium gewijzigd.
