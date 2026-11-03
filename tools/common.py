@@ -76,9 +76,9 @@ def regular_files_below(root: Path, *, validate_path: Callable[[Path], Path]) ->
     """List regular descendants, validating each path before checking its type."""
     files: set[Path] = set()
     for path in root.rglob("*"):
-        checked = validate_path(path)
-        if checked.is_file():
-            files.add(checked)
+        validate_path(path)
+        if path.is_file():
+            files.add(path)
     return files
 
 

@@ -131,6 +131,20 @@ class SharedArtifactHelpers(unittest.TestCase):
             self.assertIn(second, checked)
             self.assertIn(root / "nested", checked)
 
+    def test_tree_listing_preserves_relative_paths_for_callers(self):
+        with tempfile.TemporaryDirectory(dir=Path.cwd()) as directory:
+            absolute_root = Path(directory)
+            relative_root = absolute_root.relative_to(Path.cwd())
+            expected = relative_root / "artifact.bin"
+            (absolute_root / expected.name).write_bytes(b"fixture")
+
+            files = common.regular_files_below(
+                relative_root,
+                validate_path=lambda path: path.absolute(),
+            )
+
+            self.assertEqual(files, {expected})
+
     def test_tree_listing_refuses_a_link_before_including_its_target(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
