@@ -31,11 +31,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`52e1909c`](https://github.com/simonvanieperen/nieuw-os/commit/52e1909cb2667a5862732c9d2dc74a6f81b4e016) ·
+**Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
+**Bron:** [`d7d1fdc0`](https://github.com/simonvanieperen/nieuw-os/commit/d7d1fdc0356be47c225d7bd216075c4a62030ad4) ·
 **Ontwikkelbranch:** `simon/profiles-users-plan`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR114-review: metadata naar de echte contractfix en gecombineerde bron verwijzen.
-41 blijft41. De PR114-contractverwijzing noemt nu daadwerkelijke fix68d427b, niet basis c1d62d83; het assessment verwijst naar gecombineerde bron52e1909c die contract, onderzoek en actuele native runtime bevat. Main ging eerder34 naar41 via PR127/U01/N01:31 checks, actuele review zonder bevindingen,22 native window/clipboard/herstelfasen en beide N01-cases raw33 op source-v3b7ccd11f. Deze metadata-/documentatiedelta voegt0punten toe; postmerge-CI loopt afzonderlijk. Alle207 archiefblobs en37 unieke ADR-identiteiten zijn gecontroleerd, oude titelankers behouden. Geen U02/U03, echte auth/installer, Btrfs/OpenZFS-adoptie, Windows/fysieke/menselijke of volledige releaseacceptatie geclaimd.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR114-review: bronlinks herstellen en onveilige historische replay afschermen.
+41 blijft41. Vier researchfixes behouden alle brondefinities en corrigeren242 Markdownlinkgrenzen en de Ubuntu-volgorde. Historische34-puntenmetadata is expliciet historisch.207 oorspronkelijke opslagbewijsblobs blijven exact gehasht; onveilige vaste-host/shared-temp-replayentrypoints zijn alleen niet-uitvoerbare tekstsnapshots. De nieuwe expliciete private offlinevoorbereiding en bewijscontrole hebben7 groene negatieve hosttests; volledige foreign-engine/native replay blijft open, OpenZFS-uitvoering wordt expliciet geweigerd. Geen nieuwe native criteria, backendadoptie, fysieke/menselijke audit of volledige release; actuele gecombineerde CI/review blijft verplicht.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

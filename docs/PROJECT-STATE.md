@@ -1,6 +1,28 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — ontwerp, onderzoek en opslagbewijs combineren — 2 november 2026
+## NEXT AGENT HANDOFF — PR114-reviewfixes combineren — 3 november 2026
+
+Bron `d7d1fdc0356be47c225d7bd216075c4a62030ad4`: researchfix
+`fcbf64e3`, veilige bewijsroute `305f1133` en historische metadatafix
+`6d0852fa` zijn inhoudsbehoudend opgenomen. Vier researchbevindingen
+zijn met echte Markdownrendering gecontroleerd;242 bronlinkgrenzen en
+Ubuntu-desktop/Initial-Setup-volgorde hersteld.
+Alle207 oorspronkelijke opslagblobhashes blijven geldig. Onveilige oude
+scripts zijn niet-uitvoerbare historische snapshots, niet veilige huidige
+entrypoints. Nieuwe private offlinevoorbereiding/bewijscontrole heeft7
+groene negatieve hosttests. Volledige foreign-engine/native replay blijft
+open; OpenZFS-create/crash is expliciet geblokkeerd, niet fictief gerepareerd.
+Bewijs: `verification/pr114-doc4-fixes.json` en
+`verification/pr114-storage-review-fixes.json`. Score **41 -> 41**.
+Publicatiehead vereist verse CI/review en inhoudelijke threadafhandeling.
+De eerdere guarded merge is door GitHub geweigerd; geen merge of bypass.
+Main blijft380111b6.135 bevat de latere desktop-/volumestapel en134 wordt
+afzonderlijk inhoudsbehoudend geïntegreerd; rode fixturelevering en B03-
+flushcompletion moeten vóór merge opgelost/geverifieerd worden.
+Eerstvolgend: publicatiehead controleren, threads beantwoorden en actuele
+CI uitvoeren; geen fysieke writes, productiekeys of volledige releaseclaim.
+
+## Historisch checkpoint — ontwerp, onderzoek en opslagbewijs combineren
 
 Actuele metadatareviewbron: `52e1909cb2667a5862732c9d2dc74a6f81b4e016`.
 De verwijzing naar het gebruikerswisselcontract noemt nu de echte

@@ -85,6 +85,12 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR114-research-/replayreview (3 november 2026), bron `d7d1fdc0`:
+**41 -> 41**. Bronlinks/Ubuntu-volgorde hersteld;207 historische hashes
+behouden, onveilige historische entrypoints afgeschermd en7 negatieve
+hosttests groen. Volledige engine-/native replay blijft open; geen
+backendadoptie, nieuw productcriterium of veiligheidspercentage.
+
 PR114-metadataverwijzing (2 november 2026), bron `52e1909c`: **41 -> 41**.
 De contractverwijzing noemt nu de echte fixbron `68d427b`, niet haar ouder
 `c1d62d83`; het actuele assessment verwijst naar de volledige gecombineerde
