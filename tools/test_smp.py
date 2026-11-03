@@ -90,6 +90,7 @@ def main() -> int:
         ("four-m2", "native-smp", 4, "smp"),
         ("m3-two", "native-smp-m3", 2, "m3-smp"),
         ("m3-exit-two", "native-smp-m3-exit", 2, "m3-exit-smp"),
+        ("m3-lock-contention-two", "native-smp-m3-lock-contention", 2, "m3-smp"),
         ("m3-tlb-reuse-two", "native-smp-m3-tlb-reuse", 2, "m3-tlb-smp"),
         ("m3-single-regression", "milestone-m3", 1, "m3"),
         ("m3-four", "native-smp-m3", 4, "m3-smp"),

@@ -6,6 +6,8 @@ use super::{
     text_start, FRAME_COUNT,
 };
 use crate::serial;
+#[cfg(feature = "native-smp-m3-lock-contention")]
+use core::sync::atomic::AtomicU64;
 use core::{
     arch::asm,
     mem::{replace, MaybeUninit},
@@ -482,6 +484,8 @@ struct EventRecord {
 static mut STATE: MaybeUninit<State> = MaybeUninit::uninit();
 #[cfg(feature = "native-smp-m3")]
 static M3_LOCKED: AtomicBool = AtomicBool::new(false);
+#[cfg(feature = "native-smp-m3-lock-contention")]
+static M3_LOCK_CONTENTIONS: AtomicU64 = AtomicU64::new(0);
 #[cfg(feature = "native-smp-m3")]
 const M3_LOCK_POLLS: usize = 100_000_000;
 #[cfg(feature = "native-smp-m3")]
@@ -496,6 +500,8 @@ impl M3Guard {
             {
                 return Self;
             }
+            #[cfg(feature = "native-smp-m3-lock-contention")]
+            M3_LOCK_CONTENTIONS.fetch_add(1, Ordering::Relaxed);
             spin_loop();
         }
         serial::fail(b"M3:SMP:LOCK_TIMEOUT")
@@ -735,7 +741,29 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
                     .select_smp(super::smp::bootstrap_index())
                     .unwrap_or_else(|| serial::fail(b"M3:SMP:NO_BOOT_PROCESS"))
             };
-            #[cfg(all(feature = "native-smp-m3", not(feature = "native-smp-m4")))]
+            #[cfg(feature = "native-smp-m3-lock-contention")]
+            let next = {
+                let _guard = M3Guard::acquire();
+                super::smp::schedule_aps();
+                let mut observed = false;
+                for _ in 0..M3_LOCK_POLLS {
+                    if M3_LOCK_CONTENTIONS.load(Ordering::Relaxed) != 0 {
+                        observed = true;
+                        break;
+                    }
+                    spin_loop();
+                }
+                if !observed {
+                    serial::fail(b"M3:SMP:CONTENTION_TIMEOUT");
+                }
+                state
+                    .select_smp(super::smp::bootstrap_index())
+                    .unwrap_or_else(|| serial::fail(b"M3:SMP:NO_BOOT_PROCESS"))
+            };
+            #[cfg(all(
+                feature = "native-smp-m3",
+                not(any(feature = "native-smp-m4", feature = "native-smp-m3-lock-contention"))
+            ))]
             let next = state
                 .select_smp(super::smp::bootstrap_index())
                 .unwrap_or_else(|| serial::fail(b"M3:SMP:NO_BOOT_PROCESS"));
@@ -1544,6 +1572,11 @@ impl State {
                 print_number(b"M3:SMP:CPU:", cpu as u64);
                 print_number(b"M3:SMP:SCHEDULES:", self.cpu_selections[cpu]);
             }
+            #[cfg(feature = "native-smp-m3-lock-contention")]
+            print_number(
+                b"M3:SMP:LOCK:CONTENDED:",
+                M3_LOCK_CONTENTIONS.load(Ordering::Relaxed),
+            );
             serial::write(b"M3:SMP:SCHEDULER:PASS\n");
             serial::exit(0x10);
         }

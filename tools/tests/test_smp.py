@@ -92,6 +92,13 @@ def m3_tlb_reuse_transcript(exit_cpus=(1, 1)):
     return "\n".join(lines) + "\n"
 
 
+def m3_lock_contention_transcript(contentions=1):
+    lines = m3_transcript(2).splitlines()
+    scheduler_pass = lines.index("M3:SMP:SCHEDULER:PASS")
+    lines.insert(scheduler_pass, f"M3:SMP:LOCK:CONTENDED:{contentions:020d}")
+    return "\n".join(lines) + "\n"
+
+
 class SmpEvidenceTests(unittest.TestCase):
     def test_two_and_four_cpu_transcripts_require_unique_online_apic_ids(self):
         for cpus in (2, 4):
@@ -267,6 +274,35 @@ class SmpEvidenceTests(unittest.TestCase):
         for bad in cases:
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 run_smp.evaluate_m3_tlb_reuse_smp(2, bad, 33, False)
+
+    def test_native_m3_lock_contention_requires_nonzero_ordered_evidence(self):
+        valid = m3_lock_contention_transcript(3)
+        result = run_smp.evaluate_m3_lock_contention_smp(2, valid, 33, False)
+        self.assertEqual(result["lock_contention_attempts"], 3)
+        malformed = valid.replace(
+            "M3:SMP:LOCK:CONTENDED:00000000000000000003",
+            "M3:SMP:LOCK:CONTENDED:0000000000000000000x",
+        )
+        out_of_order = valid.replace(
+            "M3:SMP:LOCK:CONTENDED:00000000000000000003\n",
+            "",
+        ).replace(
+            "M3:SMP:SCHEDULER:PASS\n",
+            "M3:SMP:SCHEDULER:PASS\n"
+            "M3:SMP:LOCK:CONTENDED:00000000000000000003\n",
+        )
+        for bad in (
+            m3_lock_contention_transcript(0),
+            valid.replace("M3:SMP:LOCK:CONTENDED:00000000000000000003\n", ""),
+            malformed,
+            out_of_order,
+        ):
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                run_smp.evaluate_m3_lock_contention_smp(2, bad, 33, False)
+
+    def test_native_m3_lock_contention_profile_requires_two_cpus(self):
+        with self.assertRaises(ValueError):
+            run_smp.expected_markers(4, "native-smp-m3-lock-contention")
 
 
 if __name__ == "__main__":

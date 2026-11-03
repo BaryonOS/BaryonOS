@@ -28,12 +28,14 @@ def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
         "native-smp-m3",
         "native-smp-m3-exit",
         "native-smp-m3-tlb-reuse",
+        "native-smp-m3-lock-contention",
         "native-smp-m4",
         "native-smp-m4-revoke",
     ):
         raise ValueError("unknown SMP kernel profile")
     if profile in (
         "native-smp-m3-tlb-reuse",
+        "native-smp-m3-lock-contention",
         "native-smp-m4",
         "native-smp-m4-revoke",
     ) and cpus != 2:
@@ -51,6 +53,7 @@ def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
                           "native-smp-m3",
                           "native-smp-m3-exit",
                           "native-smp-m3-tlb-reuse",
+                          "native-smp-m3-lock-contention",
                           "native-smp-m4",
                           "native-smp-m4-revoke",
                       ) else ())
@@ -396,6 +399,35 @@ def evaluate_m3_tlb_reuse_smp(
     }
 
 
+def evaluate_m3_lock_contention_smp(
+    cpus: int, stdout: str, returncode: int | None, timed_out: bool
+) -> dict:
+    expected_markers(cpus, "native-smp-m3-lock-contention")
+    scheduler = evaluate_m3(cpus, stdout, returncode, timed_out)
+    lines = stdout.splitlines()
+    pattern = re.compile(r"M3:SMP:LOCK:CONTENDED:([0-9]{20})")
+    markers = [
+        (index, pattern.fullmatch(line))
+        for index, line in enumerate(lines)
+        if line.startswith("M3:SMP:LOCK:CONTENDED:")
+    ]
+    if len(markers) != 1 or markers[0][1] is None:
+        raise ValueError("missing or malformed M3 lock-contention evidence")
+    marker_index, match = markers[0]
+    assert match is not None
+    contentions = int(match.group(1))
+    if contentions == 0:
+        raise ValueError("M3 lock-contention fixture observed no failed acquisitions")
+    if marker_index <= max(
+        index for index, line in enumerate(lines)
+        if line.startswith("M3:SMP:SCHEDULES:")
+    ) or marker_index >= lines.index("M3:SMP:SCHEDULER:PASS"):
+        raise ValueError("M3 lock-contention evidence is out of order")
+    if any(marker in line for marker in FAILURES for line in lines):
+        raise ValueError("M3 lock-contention failure marker present")
+    return {"scheduler": scheduler, "lock_contention_attempts": contentions}
+
+
 def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp") -> dict:
     expected_markers(cpus, profile)
     if type(timeout) is not int or not 0 < timeout <= MAX_TIMEOUT:
@@ -522,6 +554,9 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
                 cpus, stdout, raw_exit, timed_out
             ),
             "native-smp-m3-tlb-reuse": lambda: evaluate_m3_tlb_reuse_smp(
+                cpus, stdout, raw_exit, timed_out
+            ),
+            "native-smp-m3-lock-contention": lambda: evaluate_m3_lock_contention_smp(
                 cpus, stdout, raw_exit, timed_out
             ),
             "native-smp-m3": lambda: evaluate_m3(cpus, stdout, raw_exit, timed_out),

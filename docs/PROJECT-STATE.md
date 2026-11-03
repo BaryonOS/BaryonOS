@@ -123,6 +123,18 @@ revoke. Iedere VM had verwachte raw exit 33. De ontbrekende
 `kvmvapic.bin`-waarschuwing bleef ononderzocht. Receipt:
 [`smp-rendezvous-20261103T185030Z.json`](verification/sm-smp/smp-rendezvous-20261103T185030Z.json).
 
+**M3Guard-contentionproef PASS op bronfingerprint
+`5d9f0256e588e957826c5a5528913117d3097b9fe8c25180be6ec767aede36aa`:**
+opt-in 2-CPU-profiel houdt de guard op de BSP vast, geeft de AP een schedule-
+IPI, eist een waargenomen mislukte AP-acquire vóór bounded release en kiest de
+BSP-taak onder dezelfde guard. Drie QEMU-runs slaagden met raw exit 33 en
+58.034/59.255/60.484 contention-acquires; 15 hosttests, formattering en
+`git diff --check` slaagden. Receipt:
+[`m3-lock-contention-20261103.json`](verification/sm-smp/m3-lock-contention-20261103.json).
+Een eerdere fixturepoging gaf raw exit 35 doordat de BSP-selectie buiten de
+guard viel; de testsequencing is gecorrigeerd. Dit is geen fairness-/
+starvationgrens en geen bewijs van volledige K06.
+
 **Niet-geaccepteerde SMP-lifecycleverkenning:** het combineren van de bestaande
 M4 multi-round lifecyclefixture met SMP eindigde op raw QEMU exit 35 bij
 `kernel/src/m2/m3.rs:1849` (`current < state.amount`) na AP-bring-up.
@@ -143,13 +155,15 @@ leidende bewijs voor de gepushte bron.
 
 **Bewijsgrens:** de actuele tien-stagematrix bevestigt 1/2/4 CPU, scheduling,
 AP-exit, cross-CPU IPC/revoke en lokale adresruimte-/TLB-reuse op dezelfde AP.
-Dit bewijst geen algemeen remote-shootdownprotocol. K06-race-/failureacceptatie
-blijft open; K06 is niet volledig afgerond. `DRIVER-DEVICE-EXECUTION-INTERFACE`
-blijft QUEUED.
+De aparte 2-CPU-proef bevestigt ook lockcontention en voortgang na vrijgave.
+Dit bewijst geen algemeen remote-shootdownprotocol, fair lock of volledige
+race-/failureacceptatie; K06 is niet afgerond.
+`DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
 
-**Eerstvolgende actie:** vervolg de resterende K06-race-/failureacceptatie
-met een kleine native SMP-lock-/schedulerproef; laat reguliere scheduler- en
-capabilitysemantiek ongewijzigd.
+**Eerstvolgende actie:** herhaal de volledige SMP-matrix nu met de nieuwe
+contentionstage. Daarna onderzoek de bestaande niet-geaccepteerde M4 multi-
+round lifecycleproef; laat reguliere scheduler- en capabilitysemantiek
+ongewijzigd.
 
 **Cross-CPU capability-IPC — eerdere lokale proef vóór matrix:**
 `native-smp-m4` combineert het bestaande SMP-M3-profiel met de bestaande M4
