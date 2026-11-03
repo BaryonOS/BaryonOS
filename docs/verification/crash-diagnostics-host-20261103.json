@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-03",
+  "branch": "simonvanieperen-studious-spoon",
+  "source_commit": "9b43c805f3e1dbd4b37d181d08261ebfbc2f4aa5",
+  "scope": "Bounded process/service crash record extension in the standalone journal core; host API tests only.",
+  "source_sha256": {
+    "crates/system-journal/src/lib.rs": "9b1052e58e6040b77e8b6a51d1894c544d66ccdcca0bdc764df68e3bd32311d3",
+    "crates/system-journal/src/crash.rs": "45179638b2c0c519e3be7ba0be1d45fce4400a3f618604f502c1f166a712c639",
+    "crates/system-journal/tests/consumer.rs": "f348758b0a3e47a1ce6bb412e60db56c9b7057f869728e06e0e9007d11ac6aae",
+    "crates/system-journal/README.md": "68ec62fe835b48be98f6f7c64838463430ce412c190fc21493fd2a1c7980f5b0"
+  },
+  "environment": "Rust 1.90.0; PATH prefixed with /tmp/nieuw-os-c-toolchain/bin and $HOME/.cargo/bin; CARGO_TARGET_DIR=/tmp/nieuw-os-system-journal-target.",
+  "checks": [
+    {
+      "command": "cargo +1.90.0 fmt --manifest-path crates/system-journal/Cargo.toml -- --check",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-crash-diag-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "cargo +1.90.0 test --manifest-path crates/system-journal/Cargo.toml --offline --locked",
+      "exit_code": 0,
+      "results": "8 external-consumer tests passed; no failures.",
+      "log": "/tmp/nieuw-os-crash-diag-test.log",
+      "log_sha256": "60531bb0aa7a740e6a1fbac21f95ddeb05b86c7a7bfd5d767c5dba4319994052"
+    },
+    {
+      "command": "cargo +1.90.0 clippy --manifest-path crates/system-journal/Cargo.toml --all-targets --offline --locked -- -D warnings",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-crash-diag-clippy.log",
+      "log_sha256": "f7bfe669c388ac423e55c09d73dc33031b8b9e4389d6d555259041a42d4a3b7f"
+    },
+    {
+      "command": "cargo +1.90.0 check --manifest-path crates/system-journal/Cargo.toml --target x86_64-unknown-none --offline --locked",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-crash-diag-none.log",
+      "log_sha256": "bbd278244621465949dfb440bf5ae3e69836472ec572b653d40701a06bfc6ad9"
+    }
+  ],
+  "implemented": [
+    "Process identity, optional service identity, fixed 32-byte executable/build identity, fault class, typed bounded context, monotonic timestamp, and restart outcome.",
+    "Crash records share the bounded journal ring and require ProcessFaulted event code; invalid zero process IDs and zero restart generations are rejected.",
+    "No register dump, process-memory bytes, pointer values, or arbitrary context text are accepted."
+  ],
+  "limitations": [
+    "No kernel panic hook, persistent previous-panic marker, native diagnostic app, or real process/service producer integration.",
+    "Build identity is supplied by the caller and its provenance is not verified here.",
+    "Kernel/root and runtime integration remain outside this standalone crate; this is not native crash-recovery or release evidence."
+  ]
+}
