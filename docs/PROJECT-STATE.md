@@ -1,32 +1,33 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR149 derde main-integratie — 3 november 2026
+## NEXT AGENT HANDOFF — PR148 slot1-admissie opvolging — 3 november 2026
 
-**Basis:** Watch-merge `bb8877e3e1aaec304d7478510b65c8116aeb634e`, met
-ouders `416886354dbb0c6135a0740c429a3fbd4530a16d` en main
-`99d132768fd72276caa4a3b3e9a09f8f1909f0ed`, branch
-`simonvanieperen-reimagined-train`. Vier centrale documentatieconflicten;
-de compacte UI-fixes en hun bewijs blijven uit de PR behouden, de
-PR139-receipts komen ongewijzigd uit main. Beide historische statuslijnen
-blijven behouden en krijgen geen nieuwe bewijsbron toegewezen.
-Rubric en score blijven **41 → 41/100**.
+**Basis:** PR148-head `c6b25873c915a98f8c0b2bb7400395e01ba44741`, branch
+`simonvanieperen-upgraded-disco`, met slot1-admissiefix, marker-crashgrens
+en host-suitebewijs al aanwezig. Score en rubric blijven **41 → 41/100**.
 
-**Werkelijk opnieuw uitgevoerd op schone `bb8877e3`:**
-`cargo +1.90.0 test --offline --locked --manifest-path ui/native/Cargo.toml`,
-59 hosttests, exit0, 10,816s. Cwd, HEAD, schone status en Cargo.lock-/Rust-
-bronhashes vóór én na, exact commando en volledig gehasht log:
-[primaire receipt](verification/pr149-bb8877-host-receipt.json).
-Dit is een nieuwe run, geen retrospectieve bronbinding van de door Watch
-gemelde tooluitvoer/tijden. De integrator controleerde apart rubricbehoud,
-ongewijzigde Rust-code ten opzichte van532, één handoff en geen markers.
-Een historische PR140-verwijzing naar PR139-bewijs is bij deze integratie
-hersteld naar haar eigen oorspronkelijke commando's en bron.
-Dit is geen menselijke audit. Geen nieuwe formatter-/Clippy-run,
-cross-build, volledige CI of native/QEMU-uitvoering voor deze
-uitsluitend documentatie betreffende integratie.
-**Open/eerstvolgend:** na publicatie nieuwe-head-controles laten evalueren.
-Alleen bewijs-/statuscorrecties; geen oude CI-retry of nieuwe runtimecode.
-Native/QEMU-, fysieke en menselijke acceptatie blijven afzonderlijk open.
+**Status en classificatie (actueel):**
+- Vereiste checks (`host-quality`, `qemu-smoke`) zijn groen.
+- `native-foundation` faalde in run `41640409938` met
+  `system marker sequence mismatch`/`RANDOM guest report ... not bound`;
+  dit is buiten de PR148-volumewijzigingen en geclassificeerd als
+  **transient/infrastructuur**. Een rerun (`gh run rerun --failed 41640409938`)
+  is gestart.
+- Open CodeRabbit-threads betreffen vooral documentatiestatus en bronlabels;
+  productiegedrag voor slot1-admissie is al gecorrigeerd en hostmatig bewezen.
+
+**Primaire bronnen (code + bewijs):**
+- Recovery/admissie: `services/volume/src/table.rs` op commit `c6b25873`.
+- Onafhankelijk orakel: `tools/volume_disk.py` op commit `c6b25873`.
+- Bewijs: `docs/verification/pr148-slot1-review.json`,
+  `docs/verification/pr148-marker-crash-review.json`,
+  `docs/verification/pr148-volume-core-host-suite.json`.
+- Repositorybron: https://github.com/simonvanieperen/nieuw-os/tree/c6b25873c915a98f8c0b2bb7400395e01ba44741
+
+**Open/eerstvolgend:** rond PR148 de resterende documentatie-threads sluiten,
+uitkomst van de `native-foundation` rerun verwerken en daarna opnieuw
+merge-preflight op exact head/base/checks/reviewthreads draaien.
+Native metadata-only fixture en native QEMU-volume-admissie blijven apart open.
 
 ## Historisch checkpoint — PR149 compacte kaartregressies hersteld — 3 november2026
 

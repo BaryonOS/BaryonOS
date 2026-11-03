@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "bb8877e3e1aaec304d7478510b65c8116aeb634e",
-    "branch": "simonvanieperen-reimagined-train",
-    "task": "PR149: nieuwe primaire59-hosttestreceipt op schone Watch-main99-merge bewaren",
+    "source_commit": "c6b25873c915a98f8c0b2bb7400395e01ba44741",
+    "branch": "simonvanieperen-upgraded-disco",
+    "task": "PR148: slot1-admissie en marker-crashgrens met actuele reviewstatus bijwerken",
     "previous_score": 41,
-    "summary": "41 blijft 41. Op schone Watch-merge bb8877e3 met main99 zijn59 hosttests echt opnieuw groen; cwd/HEAD/status/lock- en Rust-hashes vóór/na en volledige logs vastgelegd. Geen retrospectieve bronbinding van eerdere Watch-tijden. De UI-Rust-code blijft exact53256f82; historische scalar/Clippy/fmt behouden die bron. Assessmentbasis is niet de uiteindelijke PR-head of automatisch elke testbron. Geen nieuwe code, native/QEMU/fysieke/menselijke acceptatie of punten."
+    "summary": "41 blijft 41. PR148 houdt de eerder bewezen slot1-admissiefix en marker-crashgrens vast; hostbewijzen staan in de drie pr148-receipts. Vereiste checks zijn groen. De native-foundation-fout in run 41640409938 is geclassificeerd als transient/infrastructuur buiten de volumediff en is herstart met een rerun. Geen nieuwe acceptatiecriteria gesloten en geen native/QEMU/fysieke/menselijke acceptatie toegevoegd."
   },
   "tracks": [
     {

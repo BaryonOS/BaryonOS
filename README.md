@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`bb8877e3`](https://github.com/simonvanieperen/nieuw-os/commit/bb8877e3e1aaec304d7478510b65c8116aeb634e) ·
-**Ontwikkelbranch:** `simonvanieperen-reimagined-train`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR149: nieuwe primaire59-hosttestreceipt op schone Watch-main99-merge bewaren.
-41 blijft 41. Op schone Watch-merge bb8877e3 met main99 zijn59 hosttests echt opnieuw groen; cwd/HEAD/status/lock- en Rust-hashes vóór/na en volledige logs vastgelegd. Geen retrospectieve bronbinding van eerdere Watch-tijden. De UI-Rust-code blijft exact53256f82; historische scalar/Clippy/fmt behouden die bron. Assessmentbasis is niet de uiteindelijke PR-head of automatisch elke testbron. Geen nieuwe code, native/QEMU/fysieke/menselijke acceptatie of punten.
+**Bron:** [`c6b25873`](https://github.com/simonvanieperen/nieuw-os/commit/c6b25873c915a98f8c0b2bb7400395e01ba44741) ·
+**Ontwikkelbranch:** `simonvanieperen-upgraded-disco`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR148: slot1-admissie en marker-crashgrens met actuele reviewstatus bijwerken.
+41 blijft 41. PR148 houdt de eerder bewezen slot1-admissiefix en marker-crashgrens vast; hostbewijzen staan in de drie pr148-receipts. Vereiste checks zijn groen. De native-foundation-fout in run 41640409938 is geclassificeerd als transient/infrastructuur buiten de volumediff en is herstart met een rerun. Geen nieuwe acceptatiecriteria gesloten en geen native/QEMU/fysieke/menselijke acceptatie toegevoegd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

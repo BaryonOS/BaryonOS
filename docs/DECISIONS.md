@@ -40,6 +40,26 @@ geometrie worden vervangen, mits de volledige media-admissie en crashproeven
 behouden blijven. Native QEMU-resultaat en exacte bronbinding staan in
 `docs/verification/foreign-volume-admission-20261103/README.md`.
 
+**Ontwerpregel:** zonder geldige NOSVOL02-tabel of volledige `NOSFMT02`-marker
+is alleen volledig nul over de huidige volumegrens `[0,580)` toelaatbaar.
+
+**Implementatiestatus:** geïmplementeerd in `services/volume/src/table.rs`
+(`choose` en `recover_with_state`) en het onafhankelijke hostorakel
+`tools/volume_disk.py`.
+
+**Testbewijs:** host-regressies en crashgrenzen zijn vastgelegd in
+`docs/verification/pr148-slot1-review.json`,
+`docs/verification/pr148-marker-crash-review.json` en
+`docs/verification/pr148-volume-core-host-suite.json`.
+
+**Onbekend / open:** native metadata-only fixtureacceptatie en native QEMU
+volume-admissie op deze branch.
+
+**Primaire bronmetadata:** Nieuw OS repository (`simonvanieperen/nieuw-os`),
+branch `simonvanieperen-upgraded-disco`, commit
+`c6b25873c915a98f8c0b2bb7400395e01ba44741`,
+https://github.com/simonvanieperen/nieuw-os/tree/c6b25873c915a98f8c0b2bb7400395e01ba44741 .
+
 ## Nummerbehoud bij desktopintegratie — 2 november 2026
 
 De desktopbranches gebruikten al bezette ADR-nummers. Bestaande IPC- en
