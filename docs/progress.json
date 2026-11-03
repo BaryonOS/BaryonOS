@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "c2d65c5c6e7487ace6ce86d88b465697dc9bb554",
+    "source_commit": "9f2e6e2b7be614d35a83bc0f4fb7678ad86adbe6",
     "branch": "simonvanieperen-sturdy-guide",
-    "task": "PR141: primaire closure-status bewaren en historische server-auditgrens corrigeren",
+    "task": "PR141 integreren met actuele main 99d13276",
     "previous_score": 41,
-    "summary": "41 blijft41. Statuscorrectie op basis c2d65c5c: primaire GitHub-receipts bevestigen vijf gesloten/vervangen leafs, los van inhoudsbehoud. PR140's ongekoppelde merge na gefaalde lokale preflight blijft een uitvoeringsfout. Geen --admin aangevraagd; historische server-side branchregeltoepassing/bypassstatus niet onafhankelijk gecontroleerd. Eerdere 41 Node +9 artifact-store-tests op37240c1f en Chrome opc94 blijven historisch brongebonden; geen nieuwe code- of runtimeacceptatie, geen criteriumwijziging."
+    "summary": "41/100 blijft gelijk. PR141 wordt geïntegreerd met main 99d13276; alleen centrale status-/voortgangsbestanden conflicteren. Main's PR139 artifact-store-contracttestreceipt en overige niet-conflicterende inhoud blijven behouden. Validatie van de samengevoegde boom wordt afzonderlijk vastgelegd; geen nieuwe native of releaseacceptatie."
   },
   "tracks": [
     {

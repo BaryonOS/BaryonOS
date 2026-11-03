@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`c2d65c5c`](https://github.com/simonvanieperen/nieuw-os/commit/c2d65c5c6e7487ace6ce86d88b465697dc9bb554) ·
+**Bron:** [`9f2e6e2b`](https://github.com/simonvanieperen/nieuw-os/commit/9f2e6e2b7be614d35a83bc0f4fb7678ad86adbe6) ·
 **Ontwikkelbranch:** `simonvanieperen-sturdy-guide`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR141: primaire closure-status bewaren en historische server-auditgrens corrigeren.
-41 blijft41. Statuscorrectie op basis c2d65c5c: primaire GitHub-receipts bevestigen vijf gesloten/vervangen leafs, los van inhoudsbehoud. PR140's ongekoppelde merge na gefaalde lokale preflight blijft een uitvoeringsfout. Geen --admin aangevraagd; historische server-side branchregeltoepassing/bypassstatus niet onafhankelijk gecontroleerd. Eerdere 41 Node +9 artifact-store-tests op37240c1f en Chrome opc94 blijven historisch brongebonden; geen nieuwe code- of runtimeacceptatie, geen criteriumwijziging.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR141 integreren met actuele main 99d13276.
+41/100 blijft gelijk. PR141 wordt geïntegreerd met main 99d13276; alleen centrale status-/voortgangsbestanden conflicteren. Main's PR139 artifact-store-contracttestreceipt en overige niet-conflicterende inhoud blijven behouden. Validatie van de samengevoegde boom wordt afzonderlijk vastgelegd; geen nieuwe native of releaseacceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
