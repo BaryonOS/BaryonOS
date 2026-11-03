@@ -1,6 +1,50 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Veld-04 geverifieerd, Veld-05 actief — 3 november 2026
+## NEXT AGENT HANDOFF — Veld-05 appbediening, native controle open — 3 november 2026
+
+**Basis/branch:** `16c26c1c4b2d20e4644633439edf1dfe848bc140`,
+`simonvanieperen-veld-hc-20261103`. Deze afzonderlijke branch is veilig
+gepubliceerd nadat de oorspronkelijke remote `simonvanieperen-fictional-disco`
+onverwacht op `dcb9717553fdde095dfca66b800bdddbb73b122d` stond.
+Geen forcepush, reset of opname van die remote delta uitgevoerd.
+Alle lokale HC-commits blijven behouden; de oude remote is ongemoeid.
+De huidige branchscore41 wordt niet met General-bron34d23e8f/score39 vermengd.
+
+**Schrijfgrens:** General blijft enige schrijver van
+`ui/native/src/controller.rs` en `render.rs`; sinds16c26c1c geen nieuwe writes
+daaraan. Zijn geparkeerde documentnaam/zoek-werk blijft buiten deze branch.
+Hij gaf `sdk/examples/materiaal/tests/chain.rs` expliciet vrij; zijn nieuwe
+naam/save/zoek/heropenproef moet bij latere seriele integratie behouden blijven.
+Geen K05-, OOM-, SMP-, kernel-, proces-ABI- of capabilitywijzigingen.
+
+**Nieuwe code:** gedeeld HC-palet, echte rekenmachinestaat/-pixels en
+Ctrl+Alt+H voor de gefocuste app. Materiaal valideert eerst het bestaande
+inputevent en gebruikt alleen een aanvaarde Press; Repeat/Release togglen niet.
+Geen opslag-RPC, documentmutatie of globale/persistente voorkeur.
+Rekenmachineselectie heeft zwarte tekst op cyaan; knopfocus een dubbele grens.
+Standaardpixels keren exact terug. Dit is app-lokaal, geen voltooid
+OS-breed toegankelijkheidsprofiel.
+
+**Hostbewijs:** alle tests en strikte Clippy voor graphics, native UI,
+Materiaal en Rekenmachine exit0; fmt uitgevoerd;17 runnertests exit0.
+Nieuwe echte inputdienstketen behoudt tekst, caret, status, opslag-RPC-teller
+en het gehele standaardframe. Rekenmachinetests toetsen hotkeyacties,
+volledige repaint, no-op, selectie/resultaat/foutbehoud en kleurcontrast.
+Log `files/veld-env/logs/veld-hc-app-final-host.log`.
+Een aanvankelijk foutieve testverwachting voor `7/0` is hersteld:
+`evaluations` telt alleen geslaagde evaluaties; productgedrag niet aangepast.
+De luminantietest vereiste expliciete u32-kanaaltypen; alle tests daarna herhaald.
+
+**Eerstvolgend:** na dit checkpoint beide volledige native
+`run_window_session.py --clipboard --workspace --scale 1/2`-gates en beide
+normale builds uitvoeren; verwacht48 fasen per schaal, waaronder echte
+HC-menu-/rekenmachinebediening en exact pixelherstel. Native HC is
+**niet uitgevoerd**, geen nieuwe CI-, hardware- of menselijke claim.
+Commando's en grenzen: [Veld-05-bewijs](verification/veld-hc-20261103/README.md).
+Score **41 -> 41**: geen nieuw volledig geaccepteerd criterium; complete
+Veld-omgeving, systeeminstellingen, motion, drag/drop en resize blijven open.
+
+## Vorig checkpoint — Veld-04 geverifieerd, HC-hostprimitive — 3 november 2026
 
 **Productbron:** `3799ec63b9be6a2a5dbe67bd2cb38af703f101a0`, branch
 `simonvanieperen-fictional-disco`, PR #146. Veld-03 heeft44 volledige native

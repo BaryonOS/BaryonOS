@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`d5cd460a`](https://github.com/simonvanieperen/nieuw-os/commit/d5cd460a6bf8b7e9fe133e347d5439257ac9b442) ·
-**Ontwikkelbranch:** `simonvanieperen-fictional-disco`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Veld-05: app-lokale hoogcontrastprimitive en seriele integratie.
-41% blijft 41%: native3799ec63 heeft44 volledige fasen per schaal100/200%. Hoogcontrastleaf189edbd7 opgenomen alsd5cd460a; zes nieuwe echte pixeltests,72 defaultframes en zes viewports. Na fixture-integratie slagen volledige UI/app-hosttests, beide all-target Clippy en fmtchecks. Dit is uitsluitend app-lokale hostimplementatie; globale instellingen, shell/rekenmachine en native HC-bediening nog open. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Complete Veld-omgeving, U02-U06, fysieke/menselijke acceptatie en release blijven open.
+**Bron:** [`16c26c1c`](https://github.com/simonvanieperen/nieuw-os/commit/16c26c1c4b2d20e4644633439edf1dfe848bc140) ·
+**Ontwikkelbranch:** `simonvanieperen-veld-hc-20261103`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Veld-05: gevalideerde app-lokale hoogcontrastbediening voor native controle.
+41% blijft 41%: gevalideerde Ctrl+Alt+H-appbediening, gedeeld HC-palet en rekenmachinecontrast toegevoegd op basis16c26c1c. Vier volledige hosttestsuites, strikte Clippy/fmt en17 runnertests slagen; echte inputdienstketen behoudt document, status, opslag-RPC-teller en exact standaardframe. Nieuwe native48-fasengates100/200% zijn nog niet uitgevoerd. Aparte veilige HC-branch bewaart lokale commits; onverwachte oude remote-delta niet geintegreerd en General-score39 niet geimporteerd. Geen criteria, gewichten of historisch bewijs gewijzigd; OS-brede instellingen en volledige Veld-, menselijke/hardware-/releaseacceptatie blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

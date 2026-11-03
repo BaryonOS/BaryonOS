@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "d5cd460a6bf8b7e9fe133e347d5439257ac9b442",
-    "branch": "simonvanieperen-fictional-disco",
-    "task": "Veld-05: app-lokale hoogcontrastprimitive en seriele integratie",
+    "source_commit": "16c26c1c4b2d20e4644633439edf1dfe848bc140",
+    "branch": "simonvanieperen-veld-hc-20261103",
+    "task": "Veld-05: gevalideerde app-lokale hoogcontrastbediening voor native controle",
     "previous_score": 41,
-    "summary": "41% blijft 41%: native3799ec63 heeft44 volledige fasen per schaal100/200%. Hoogcontrastleaf189edbd7 opgenomen alsd5cd460a; zes nieuwe echte pixeltests,72 defaultframes en zes viewports. Na fixture-integratie slagen volledige UI/app-hosttests, beide all-target Clippy en fmtchecks. Dit is uitsluitend app-lokale hostimplementatie; globale instellingen, shell/rekenmachine en native HC-bediening nog open. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Complete Veld-omgeving, U02-U06, fysieke/menselijke acceptatie en release blijven open."
+    "summary": "41% blijft 41%: gevalideerde Ctrl+Alt+H-appbediening, gedeeld HC-palet en rekenmachinecontrast toegevoegd op basis16c26c1c. Vier volledige hosttestsuites, strikte Clippy/fmt en17 runnertests slagen; echte inputdienstketen behoudt document, status, opslag-RPC-teller en exact standaardframe. Nieuwe native48-fasengates100/200% zijn nog niet uitgevoerd. Aparte veilige HC-branch bewaart lokale commits; onverwachte oude remote-delta niet geintegreerd en General-score39 niet geimporteerd. Geen criteria, gewichten of historisch bewijs gewijzigd; OS-brede instellingen en volledige Veld-, menselijke/hardware-/releaseacceptatie blijven open."
   },
   "tracks": [
     {

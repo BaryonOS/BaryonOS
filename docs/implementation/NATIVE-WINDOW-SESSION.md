@@ -1,5 +1,32 @@
 # Native venstersessie — U01 bouwcontract
 
+## Veld-05: app-lokale hoogcontrastbediening
+
+3 november 2026, basis `16c26c1c`. Ctrl+Alt+H schakelt uitsluitend de
+gefocuste Materiaal- of Rekenmachine-app. Dit is nog geen globale,
+persistente of via Instellingen vindbare OS-voorkeur; de shell verandert niet.
+Alleen een gevalideerde Press zonder Shift/Super togglet. Repeat/Release
+veranderen de voorkeur niet; oude input blijft de bestaande validatie volgen.
+Document, selectie, caret, resultaat, fout/status en menu blijven behouden;
+geen opslagactie, nieuw netwerkrecht of proces-/capabilitywijziging.
+
+Schrijfbestanden: gedeeld graphics-palet, rekenmachinemodel/render/tests,
+Materiaal-inputadapter en chainhosttest, bestaande native fixtures/runner/CI
+en contract-/status-/bewijsbestanden. Native controller/render zijn na de
+HC-hostleaf expliciet vrijgegeven aan General en worden niet opnieuw gewijzigd.
+Zijn documentnaam/zoek-proef wordt hier niet geimporteerd of overschreven.
+
+Acceptatie: de vier betrokken hosttestsuites, strikte Clippy/fmt, exacte
+default-roundtrip op de ondersteunde viewports, contrastrolmetingen en de
+echte inputdienstketen zonder opslag-RPC. Native: volledige48 fasen op
+100% en200%, vier nieuwe ongemaskerde hele apporakels voor menu/rekenmachine
+hoogcontrast en herstel, echte QMP-toetsen en buitenbodytegenproeven.
+`app_high_contrast_gate` wordt alleen groen in de volledige
+`--clipboard --workspace`-proef, niet bij diagnostische kortsluitingen.
+Alle bestaande herstel-, isolatie-, bewaren/heropenen- en schijfgates blijven.
+Beide normale profielen moeten zonder fault-probe bouwen.
+Een kleur-/hosttest sluit geen native of menselijke toegankelijkheidsgate.
+
 ## Veld-02: objectgebonden gereedschappen en venstertoestanden
 
 3 november 2026, expliciete vervolgopdracht; baseline `264ad5b0`.

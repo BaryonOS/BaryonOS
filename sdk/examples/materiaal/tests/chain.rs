@@ -867,6 +867,51 @@ macro_rules! scenario {
     };
 }
 
+fn contrast_shortcut_chain() {
+    let h = Host::new();
+    let (mut d, mut o, mut s) = ([0; 65536], [0; 65536], [0; 65536]);
+    let mut a = app(
+        &h,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    new_text(&h, &mut a);
+    finish_paint(&mut a);
+    let default = h.borrow().framebuffer.clone();
+    let requests = h.borrow().requests.len();
+    let caret = a.controller().view().caret;
+    let status = a.controller().view().status;
+    keys(&h, &mut a, &[0x1d, 0x38, 0x23]);
+    assert!(a.controller().view().high_contrast);
+    keys(&h, &mut a, &[0x23, 0xa3, 0xb8, 0x9d]);
+    assert!(
+        a.controller().view().high_contrast,
+        "Repeat/release must not toggle"
+    );
+    finish_paint(&mut a);
+    assert_retained_material_pixels(&a, &h.borrow());
+    assert_ne!(h.borrow().framebuffer, default);
+    assert_eq!(a.controller().view().contents, Some("hi"));
+    assert_eq!(a.controller().view().caret, caret);
+    assert_eq!(a.controller().view().status, status);
+    assert_eq!(
+        h.borrow().requests.len(),
+        requests,
+        "No storage RPC on contrast toggle"
+    );
+    keys(&h, &mut a, &[0x1d, 0x38, 0x23, 0xa3, 0xb8, 0x9d]);
+    assert!(!a.controller().view().high_contrast);
+    finish_paint(&mut a);
+    assert_eq!(h.borrow().framebuffer, default);
+}
+scenario!(
+    real_input_contrast_shortcut_preserves_work_and_default_pixels,
+    contrast_shortcut_chain
+);
+
 fn assert_retained_material_pixels(a: &App<'_, Port, Port, Port>, h: &Host) {
     let frame = Frame::new(a.controller().view());
     let geometry = geometry();

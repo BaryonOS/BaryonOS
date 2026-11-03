@@ -80,6 +80,24 @@ class WindowRunnerTests(unittest.TestCase):
                     changed[header + (py * width + px) * 3] ^= 1
                     self.assertFalse(window.oracle_matches(bytes(changed), expected, phase, scale))
 
+    def test_high_contrast_requires_entire_real_app_without_color_masks(self):
+        for scale in (1, 2):
+            width, height, body, calc = window.profile_geometry(scale)
+            raw = image(width, height, (0, 0, 0))
+            for rectangle, phases in (
+                (body, ("document-menu-high-contrast", "document-menu-contrast-restored")),
+                (calc, ("calculator-high-contrast", "calculator-contrast-restored")),
+            ):
+                expected = image(*rectangle[2:], (0, 0, 0))
+                x, y, w, h = rectangle
+                header = len(raw) - width * height * 3
+                for phase in phases:
+                    self.assertTrue(window.oracle_matches(raw, expected, phase, scale))
+                    for px, py in ((x, y), (x + w - 1, y + h - 1), (x + w // 2, y + h // 2)):
+                        changed = bytearray(raw)
+                        changed[header + (py * width + px) * 3] ^= 1
+                        self.assertFalse(window.oracle_matches(bytes(changed), expected, phase, scale))
+
     def test_workspace_checks_every_pixel_in_declared_shell_regions(self):
         raw = image(1280, 720, (1, 2, 3))
         header = len(raw) - 1280 * 720 * 3

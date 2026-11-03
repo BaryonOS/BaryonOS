@@ -393,6 +393,13 @@ fn render_native_window_material_walkthrough_oracle() {
                 "Pointer-leave must change actual hover pixels"
             );
             snapshot(&ui, "document-menu-mouse", directory.as_deref());
+            ui.set_high_contrast(true).unwrap();
+            assert!(ui.view().document_menu.is_some());
+            assert_eq!(ui.view().focus, focus);
+            assert_eq!(ui.view().status, status);
+            snapshot(&ui, "document-menu-high-contrast", directory.as_deref());
+            ui.set_high_contrast(false).unwrap();
+            snapshot(&ui, "document-menu-contrast-restored", directory.as_deref());
             key(
                 &mut ui,
                 INPUT_EPOCH,

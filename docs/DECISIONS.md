@@ -1,5 +1,27 @@
 # Ontwerpbesluiten
 
+## ADR-VELD-004 — app-lokaal hoogcontrast zonder nieuwe autoriteit
+
+3 november 2026, basis `16c26c1c`. De bestaande gevalideerde inputroute
+levert Ctrl+Alt+H aan de gefocuste app. Alleen Press schakelt de
+presentatie om; Repeat/Release of extra Shift/Super doen dat niet.
+Materiaal valideert afzender/generatie via de controller voordat de
+bestaande HC-setter wordt aangeroepen. Geen nieuwe capability, opslag-RPC,
+wijziging van document/selectie/focus/status of omzeiling van modals.
+
+De rekenmachine gebruikt hetzelfde expliciete rolpalet als de native
+Materiaal-renderer: zwart/wit, zwart/geel en zwart/cyaan met aparte
+fout-/disabledrollen. Selectietekst en knopfocus krijgen een eigen
+voorgrond/grens; kleur alleen draagt geen foutbetekenis. De standaardmodus
+blijft exact pixelgelijk na heen/terug schakelen. Contrastmetingen betreffen
+de rolkleuren; niet iedere antialiasrand heeft dezelfde verhouding.
+
+Dit is een tussentijdse app-lokale bediening, geen OS-brede of persistente
+toegankelijkheidsvoorkeur. Compositorshell, vindbare instellingen,
+schermlezers en reduced-motion blijven afzonderlijke vervolgstappen.
+Herzien bij het echte instellingen-/profielcontract: geen appvoorkeur als
+systeemautoriteit doorgeven en geen schijnbaar OS-brede schakelaar tonen.
+
 ## ADR-VELD-003 — pointer-leave is geen focusverlies
 
 3 november 2026, bronbasis `d5781e72`. De native menugate vond achterblijvende

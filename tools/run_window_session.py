@@ -35,11 +35,13 @@ FIXTURE_PHASES = ("initial", "editor", "dirty", "saved", "list", "reopened",
                   "document-menu", "document-menu-next", "document-menu-read",
                   "document-menu-blocked", "document-menu-cancelled", "document-menu-write",
                   "document-menu-mouse", "document-menu-mouse-cancelled",
+                  "document-menu-high-contrast", "document-menu-contrast-restored",
                   "reopened-window-restored",
                   "dirty-focus-lost", "dirty-rebound", "dirty-recovered")
 CLIPBOARD_PHASES = ("clipboard-copied", "clipboard-numeric", "clipboard-back",
                     "clipboard-empty", "clipboard-recovered-empty")
-CALCULATOR_CLIPBOARD_PHASES = ("clipboard-unsupported", "clipboard-pasted", "clipboard-calculator-copied")
+CALCULATOR_CLIPBOARD_PHASES = ("clipboard-unsupported", "clipboard-pasted", "clipboard-calculator-copied",
+                              "calculator-high-contrast", "calculator-contrast-restored")
 CALCULATOR_BODY = (932, 140, 320, 484)
 WORKSPACE_REGIONS = {
     # Exact shell regions only. Existing unmasked full-app oracles stay mandatory.
@@ -312,6 +314,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                   recovery_handshake_only=recovery_handshake, clipboard_requested=clipboard, clipboard_gate=False, source_sha256=frozen,
                   workspace_requested=workspace, workspace_gate=False,
                   document_tools_gate=False, document_menu_gate=False, pointer_leave_gate=False,
+                  app_high_contrast_gate=False,
                   window_states_gate=False,
                   source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                   source_fingerprint_version=3, kernel_feature=manifest["kernel_feature"], manifest=manifest, command=command,
@@ -644,12 +647,34 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                     button(True); button(False); move(width - 20, 50 * scale)
                     wait("document-menu-mouse", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM
                          and s["MATERIAL"][-1]["SAVE_ACKS"] == 1, "document-menu-mouse")
+                    key("ctrl", "alt", "h")
+                    wait("document-menu-high-contrast", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM
+                         and s["MATERIAL"][-1]["SAVE_ACKS"] == 1, "document-menu-high-contrast")
+                    key("ctrl", "alt", "h")
+                    wait("document-menu-contrast-restored", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM,
+                         "document-menu-contrast-restored")
+                    if captured["document-menu-mouse"] != captured["document-menu-contrast-restored"]:
+                        raise ValueError("High contrast roundtrip changed the real menu or document")
                     key("esc")
                     wait("document-menu-mouse-cancelled", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM
                          and s["MATERIAL"][-1]["DIRTY"] == 0, "document-menu-mouse-cancelled")
-                    for phase in ("document-menu-mouse", "document-menu-mouse-cancelled"):
+                    for phase in ("document-menu-mouse", "document-menu-mouse-cancelled",
+                                  "document-menu-high-contrast", "document-menu-contrast-restored"):
                         if changed_outside(captured["window-restored"], captured[phase], body):
                             raise ValueError("Mouse document menu changed pixels outside its assigned body")
+                    if clipboard:
+                        key("f6")
+                        key("ctrl", "alt", "h")
+                        wait("calculator-high-contrast", lambda raw, s: s["CALCULATOR"][-1]["ANSWER_LOW"] == 5_000_000_000
+                             and s["CALCULATOR"][-1]["EVALUATIONS"] == 2, "calculator-high-contrast")
+                        key("ctrl", "alt", "h")
+                        wait("calculator-contrast-restored", lambda raw, s: s["CALCULATOR"][-1]["EVALUATIONS"] == 2,
+                             "calculator-contrast-restored")
+                        if crop(captured["calculated"], calculator_body) != crop(captured["calculator-contrast-restored"], calculator_body):
+                            raise ValueError("Calculator contrast roundtrip changed the real calculation")
+                        if changed_outside(captured["calculator-high-contrast"],
+                                           captured["calculator-contrast-restored"], calculator_body):
+                            raise ValueError("Calculator high contrast painted outside its assigned body")
                 key("f10")
             process.wait(timeout=max(0.1, deadline - time.monotonic()))
             raw = serial(directory / "serial.txt")
@@ -682,6 +707,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                           document_tools_gate=not diagnostic,
                           document_menu_gate=workspace and not diagnostic,
                           pointer_leave_gate=workspace and not diagnostic,
+                          app_high_contrast_gate=workspace and clipboard and not diagnostic,
                           window_states_gate=workspace and not diagnostic,
                           native_scale200_gate=scale == 2 and not diagnostic,
                           duration_s=time.monotonic() - start, serial_sha256=sha256(directory / "serial.txt"), qmp_trace=control.trace)

@@ -79,6 +79,19 @@ pub const MATERIAAL: Palette = Palette {
     accent_soft: color(b"--accent-soft"),
     border: color(b"--border"),
 };
+pub const HIGH_CONTRAST: Palette = Palette {
+    desktop_start: 0,
+    desktop_end: 0,
+    glow: 0,
+    surface: 0,
+    background: 0,
+    text: 0xffffff,
+    muted: 0xb8b8b8,
+    accent: 0xffff00,
+    accent_soft: 0x00ffff,
+    border: 0xffffff,
+};
+pub const HIGH_CONTRAST_DANGER: u32 = 0xffb4b4;
 pub const DIVIDER: u32 = color(b"--line");
 pub const SHELL_TEXT: u32 = color(b"--desktop-text");
 pub const SHELL_MUTED: u32 = color(b"--shell-muted");
