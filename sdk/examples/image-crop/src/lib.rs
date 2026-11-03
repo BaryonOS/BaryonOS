@@ -1,5 +1,5 @@
 //! Crop coordinates refer to the displayed, EXIF-oriented image.
-//! This is the active crop core; the maintained PNG encoder/CLI follows.
+//! The optional host CLI uses an upstream PNG encoder; this crop core is no_std.
 #![no_std]
 #![forbid(unsafe_code)]
 extern crate alloc;

@@ -103,6 +103,7 @@ fn no_clamp_overflow_or_silent_precision_reduction() {
             Err(Error::InvalidRectangle)
         );
     }
+
     source.pixels = Pixels::Rgba16(vec![65535; 24]);
     assert_eq!(
         crop(
@@ -116,5 +117,27 @@ fn no_clamp_overflow_or_silent_precision_reduction() {
             28
         ),
         Err(Error::UnsupportedPrecision)
+    );
+}
+
+#[test]
+fn malformed_caller_image_returns_codec_error_instead_of_indexing_bad_pixels() {
+    let mut source = image();
+    source.pixels = Pixels::Rgba8(vec![0; 23]);
+    let rect = Rect {
+        x: 0,
+        y: 0,
+        width: 1,
+        height: 1,
+    };
+    assert_eq!(
+        crop(&source, rect, 28),
+        Err(Error::Codec(nieuw_os_image_codec::Error::OutputSize))
+    );
+    source.pixels = Pixels::Rgba8(vec![0; 24]);
+    source.display_width = 2;
+    assert_eq!(
+        crop(&source, rect, 28),
+        Err(Error::Codec(nieuw_os_image_codec::Error::OutputSize))
     );
 }

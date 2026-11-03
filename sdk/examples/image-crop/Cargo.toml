@@ -10,6 +10,16 @@ resolver = "2"
 
 [dependencies]
 nieuw-os-image-codec = { path = "../../../services/image-codec" }
+png = { version = "=0.18.1", default-features = false, optional = true }
+
+[features]
+default = []
+host-cli = ["dep:png"]
+
+[[bin]]
+name = "image-crop"
+path = "src/main.rs"
+required-features = ["host-cli"]
 
 [profile.release]
 panic = "abort"
