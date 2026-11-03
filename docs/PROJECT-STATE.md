@@ -16,6 +16,11 @@ commitversie en URL. Voorstel, implementatie, hosttestbewijs en onbekend
 zijn expliciet gescheiden. Nieuwe progress write/check-uitvoering staat
 afzonderlijk als documentvalidatie, niet als oude b1-hosttest.
 Score **41 → 41**, geen nieuw criterium.
+**Broncorrectie op `f774cc26`:** de hieronder historisch gemelde vier
+artifact-store-controles hebben geen primaire receipt van de geteste
+mergecommit/tree. Hun exacte testbron is **onbekend**, niet bewezen `1f67ef7c`.
+Geen retrospectieve bronbinding of nieuwe uitvoering; de afzonderlijke
+87-testsbron `b1d45e63` en PR140-bron `2bf95782` blijven intact.
 **Eerstvolgend:** `GH_PAGER="" gh pr checks 142`; exacte head/base,
 nieuwe reviews en volledige CI vóór merge. PR135's echte RAW-fouten en
 ontbrekende volume-fixtures, #41/#42 en fysieke/menselijke gates blijven open.
@@ -36,14 +41,19 @@ PR140's 9 artifact-store-tests en cargo check/Clippy/fmt horen bij
 `verification/pr140-review-evidence.json`. Geen van beide wordt als verse
 test van deze integratie beschouwd.
 
-**Uitgevoerd op de opgeloste mergeboom:** met Rust 1.90.0 zijn
+**Historisch gemeld, exacte testbron onbekend:** er is geen primaire
+receipt die onderstaande vier controles aan de commit/tree van de
+opgeloste mergeboom bindt. Niet als bewezen tests van `1f67ef7c` gebruiken.
+Destijds werd met Rust 1.90.0 gemeld dat
 `cargo +1.90.0 test --locked --manifest-path crates/artifact-store-core/Cargo.toml`
 (9 integratietests), `cargo +1.90.0 check --locked --manifest-path
 crates/artifact-store-core/Cargo.toml --tests`,
 `cargo +1.90.0 clippy --locked --manifest-path
 crates/artifact-store-core/Cargo.toml --all-targets -- -D warnings` en
 `cargo +1.90.0 fmt --manifest-path crates/artifact-store-core/Cargo.toml --all
--- --check` zijn elk exit 0. De toolchain ontbrak aanvankelijk; na eenmalige
+-- --check` elk exit 0 waren. Ook de toen gemelde toolchaininstallatie en
+heruitvoering hieronder zijn geen primaire testreceipt. De toolchain
+ontbrak volgens de toenmalige melding aanvankelijk; na eenmalige
 installatie van de vastgepinde Rust 1.90.0 toolchain/components zijn de
 controles opnieuw uitgevoerd en geslaagd. De 87 PR142-hosttests hierboven
 blijven bewijs van `b1d45e63`, niet van deze mergeboom.

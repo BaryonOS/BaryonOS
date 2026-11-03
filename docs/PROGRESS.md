@@ -4,6 +4,12 @@ De actieve volledige releaseopdracht en productacceptatie staan in
 [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft
 de ontwikkelmeter; het vervangt de conjunctieve releaseacceptatie niet.
 
+PR142-broncorrectie op `f774cc26`: vier historisch gemelde Watch-
+mergecontroles hebben zonder primaire commit/tree-receipt een **onbekende
+testbron**; niet bewezen op `1f67ef7c`. De bestaande 87-testsbron `b1d45e63`
+en PR140-bron `2bf95782` blijven afzonderlijk. **41 → 41**, geen nieuwe
+testuitvoering of acceptatie.
+
 ## Betekenis van het percentage
 
 De README toont **behaalde acceptatiepunten / 100**. De gewichten zijn een

@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`1f67ef7c`](https://github.com/simonvanieperen/nieuw-os/commit/1f67ef7cfe61b54149f253d45dbbd516227a9ac6) ·
+**Bron:** [`f774cc26`](https://github.com/simonvanieperen/nieuw-os/commit/f774cc2628ee636ed3c48501f172dea37f4e0c07) ·
 **Ontwikkelbranch:** `simonvanieperen-friendly-system`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Bewaar PR142-hostlogs duurzaam met expliciete bronmetadata, tellingen en bewijsgrenzen.
-41/100 blijft 41/100. Alleen bewijsdocumentatie op basis 1f67ef7c: alle zes oorspronkelijke logs van 87 geslaagde hosttests op b1d45e63 zijn opnieuw gehasht, volledig bewaard en per commando geteld zonder skips. Docs/verification/pr142-source-claim-review.json bewaart originele en genormaliseerde loghashes; volledige host-PATH verwijderd uit de huidige weergave zonder geschiedenis te herschrijven. Vaste repositorybronmetadata en afzonderlijke documentvalidatie toegevoegd; oude tests niet naar deze Watch-head gepromoveerd. Geen nieuwe native, fysieke, menselijke of releaseacceptatie.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR142: ontbrekende bronbinding van historische Watch-mergecontroles expliciet onbekend labelen.
+41/100 blijft41/100. Alleen documentcorrectie op basisf774cc26: de exacte testbron van vier historisch door Watch gemelde mergeboomcontroles is onbekend zonder primaire commit/tree-receipt. Niet bewezen op1f67 en niet retrospectief daaraan gebonden. De zes primaire logs van87 hosttests blijven exactb1d45e63; PR140's artifact-storebewijs blijft2bf95782. Geen nieuwe runtimeproef, native/fysieke/menselijke acceptatie of criteriumwijziging.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
