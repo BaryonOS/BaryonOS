@@ -3,7 +3,8 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 //! Bounded PCI configuration access and conventional segment-zero enumeration.
 
-use driver_core::{DriverMatch, PciAddress, PciDeviceDescriptor, PciHeaderError};
+pub use driver_core::PciAddress;
+use driver_core::{DriverMatch, PciDeviceDescriptor, PciHeaderError};
 
 /// Maximum conventional PCI buses scanned on segment zero.
 pub const BUS_COUNT: u16 = 256;
@@ -257,6 +258,87 @@ pub struct MatchedPciFunction<A> {
     driver: DriverMatch,
 }
 
+/// One memory BAR probed through a registry-matched PCI function.
+///
+/// The value is not constructible outside this crate. It binds the physical
+/// window to the PCI function, matched driver, and BAR index.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct PciBarGrant {
+    address: PciAddress,
+    driver_id: driver_core::DriverId,
+    index: u8,
+    base: u64,
+    size: u64,
+}
+
+impl PciBarGrant {
+    /// Returns the matched PCI function.
+    pub const fn address(self) -> PciAddress {
+        self.address
+    }
+
+    /// Returns the matched driver identifier.
+    pub const fn driver_id(self) -> driver_core::DriverId {
+        self.driver_id
+    }
+
+    /// Returns the BAR index.
+    pub const fn index(self) -> u8 {
+        self.index
+    }
+
+    /// Returns the assigned physical base address.
+    pub const fn base(self) -> u64 {
+        self.base
+    }
+
+    /// Returns the BAR's decoded byte length.
+    pub const fn size(self) -> u64 {
+        self.size
+    }
+
+    /// Checks the grant's device, driver, and BAR identity.
+    pub const fn matches_device(
+        self,
+        address: PciAddress,
+        driver_id: driver_core::DriverId,
+        index: u8,
+    ) -> bool {
+        self.address.segment == address.segment
+            && self.address.bus == address.bus
+            && self.address.device == address.device
+            && self.address.function == address.function
+            && self.driver_id.get() == driver_id.get()
+            && self.index == index
+    }
+
+    /// Resolves one complete 4-KiB page contained in this BAR.
+    pub fn page_address(self, offset: u64) -> Result<u64, PciBarError> {
+        const PAGE_SIZE: u64 = 4096;
+        if !offset.is_multiple_of(PAGE_SIZE)
+            || offset
+                .checked_add(PAGE_SIZE)
+                .is_none_or(|end| end > self.size)
+        {
+            return Err(PciBarError::Range);
+        }
+        self.base.checked_add(offset).ok_or(PciBarError::Range)
+    }
+}
+
+/// Failure while probing a PCI memory BAR.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum PciBarError {
+    /// PCI configuration access failed.
+    Config(ConfigError),
+    /// BAR index or memory encoding is unsupported.
+    Unsupported,
+    /// BAR is unassigned or its decoded range is malformed.
+    Range,
+    /// A probed BAR register could not be restored.
+    Restore,
+}
+
 impl<A: PciConfigAccess> MatchedPciFunction<A> {
     /// Binds configuration access after validating the current descriptor and
     /// the selected driver's match rule against that descriptor.
@@ -295,6 +377,112 @@ impl<A: PciConfigAccess> MatchedPciFunction<A> {
     /// Returns the registry result bound to this function.
     pub const fn driver_match(&self) -> DriverMatch {
         self.driver
+    }
+
+    /// Probes conventional memory BARs for this matched function.
+    ///
+    /// I/O BARs are omitted. Only 32-bit and 64-bit non-prefetchable memory
+    /// BARs are accepted by this initial device profile. PCI I/O decode,
+    /// memory decode, and bus mastering are disabled before probing and remain
+    /// disabled on success or failure; callers may enable only the exact
+    /// features needed after their resources have been validated.
+    pub fn probe_memory_bars(&mut self) -> Result<[Option<PciBarGrant>; 6], PciBarError> {
+        let address = self.descriptor.address;
+        let command = self.read_u32(address, 4).map_err(PciBarError::Config)? as u16;
+        self.write_u16(address, 4, command & !7)
+            .map_err(PciBarError::Config)?;
+
+        let mut bars = [None; 6];
+        let mut index = 0usize;
+        while index < bars.len() {
+            let (grant, wide) = self.probe_memory_bar(index as u8)?;
+            bars[index] = grant;
+            index += if wide { 2 } else { 1 };
+        }
+        Ok(bars)
+    }
+
+    fn probe_memory_bar(&mut self, index: u8) -> Result<(Option<PciBarGrant>, bool), PciBarError> {
+        if index >= 6 {
+            return Err(PciBarError::Unsupported);
+        }
+        let address = self.descriptor.address;
+        let offset = 0x10 + index * 4;
+        let low = self
+            .read_u32(address, offset)
+            .map_err(PciBarError::Config)?;
+        if low & 1 != 0 {
+            return Ok((None, false));
+        }
+
+        let encoding = low & 6;
+        let wide = encoding == 4;
+        if encoding != 0 && !wide || wide && index == 5 {
+            return Err(PciBarError::Unsupported);
+        }
+        let high = if wide {
+            self.read_u32(address, offset + 4)
+                .map_err(PciBarError::Config)?
+        } else {
+            0
+        };
+
+        let probed = (|| {
+            self.write_u32(address, offset, u32::MAX)
+                .map_err(PciBarError::Config)?;
+            if wide {
+                self.write_u32(address, offset + 4, u32::MAX)
+                    .map_err(PciBarError::Config)?;
+            }
+            let mask_low = self
+                .read_u32(address, offset)
+                .map_err(PciBarError::Config)?;
+            let mask_high = if wide {
+                self.read_u32(address, offset + 4)
+                    .map_err(PciBarError::Config)?
+            } else {
+                u32::MAX
+            };
+            Ok::<_, PciBarError>((mask_low, mask_high))
+        })();
+
+        let restore_high = if wide {
+            self.write_u32(address, offset + 4, high)
+        } else {
+            Ok(())
+        };
+        let restore_low = self.write_u32(address, offset, low);
+        if restore_high.is_err() || restore_low.is_err() {
+            return Err(PciBarError::Restore);
+        }
+        let (mask_low, mask_high) = probed?;
+        let masked_low = mask_low & !15;
+        if masked_low == 0 && (!wide || mask_high == 0) {
+            return Ok((None, wide));
+        }
+        let base = u64::from(low & !15) | (u64::from(high) << 32);
+        let mask = u64::from(masked_low) | (u64::from(mask_high) << 32);
+        let size = (!mask).wrapping_add(1);
+        if size == 0
+            || !size.is_power_of_two()
+            || base & (size - 1) != 0
+            || base.checked_add(size).is_none()
+        {
+            return Err(PciBarError::Range);
+        }
+        if base == 0 {
+            return Err(PciBarError::Range);
+        }
+        Ok((
+            Some(PciBarGrant {
+                address,
+                driver_id: self.driver.registration.id,
+                index,
+                base,
+                size,
+            }),
+            wide,
+        ))
     }
 }
 
@@ -355,6 +543,8 @@ mod tests {
     struct MockFunction {
         address: PciAddress,
         config: [u8; 256],
+        bar_masks: [u32; 6],
+        bar_probing: [bool; 6],
     }
 
     #[derive(Clone)]
@@ -383,8 +573,25 @@ mod tests {
                     .wrapping_add(u32::from(device) << 16)
                     .to_le_bytes(),
             );
-            *slot = Some(MockFunction { address, config });
+            *slot = Some(MockFunction {
+                address,
+                config,
+                bar_masks: [0; 6],
+                bar_probing: [false; 6],
+            });
             &mut slot.as_mut().unwrap().config
+        }
+
+        fn set_bar(&mut self, address: PciAddress, index: usize, value: u32, mask: u32) {
+            let function = self
+                .functions
+                .iter_mut()
+                .flatten()
+                .find(|function| function.address == address)
+                .unwrap();
+            let offset = 0x10 + index * 4;
+            function.config[offset..offset + 4].copy_from_slice(&value.to_le_bytes());
+            function.bar_masks[index] = mask;
         }
 
         fn word(&self, address: PciAddress, offset: u8) -> u32 {
@@ -414,24 +621,64 @@ mod tests {
                 return Err(ConfigError::InvalidOffset);
             }
             self.reads += 1;
+            if (0x10..=0x24).contains(&offset) {
+                let index = usize::from((offset - 0x10) / 4);
+                if let Some(function) = self
+                    .functions
+                    .iter()
+                    .flatten()
+                    .find(|function| function.address == address)
+                {
+                    if function.bar_probing[index] {
+                        return Ok(function.bar_masks[index]);
+                    }
+                }
+            }
             Ok(self.word(address, offset))
         }
 
         fn write_u32(
             &mut self,
-            _address: PciAddress,
-            _offset: u8,
-            _value: u32,
+            address: PciAddress,
+            offset: u8,
+            value: u32,
         ) -> Result<(), ConfigError> {
+            let function = self
+                .functions
+                .iter_mut()
+                .flatten()
+                .find(|function| function.address == address)
+                .ok_or(ConfigError::WrongFunction)?;
+            if (0x10..=0x24).contains(&offset) {
+                let index = usize::from((offset - 0x10) / 4);
+                if value == u32::MAX {
+                    function.bar_probing[index] = true;
+                } else {
+                    function.bar_probing[index] = false;
+                    let offset = offset as usize;
+                    function.config[offset..offset + 4].copy_from_slice(&value.to_le_bytes());
+                }
+            } else {
+                let offset = offset as usize;
+                function.config[offset..offset + 4].copy_from_slice(&value.to_le_bytes());
+            }
             Ok(())
         }
 
         fn write_u16(
             &mut self,
-            _address: PciAddress,
-            _offset: u8,
-            _value: u16,
+            address: PciAddress,
+            offset: u8,
+            value: u16,
         ) -> Result<(), ConfigError> {
+            let function = self
+                .functions
+                .iter_mut()
+                .flatten()
+                .find(|function| function.address == address)
+                .ok_or(ConfigError::WrongFunction)?;
+            let offset = offset as usize;
+            function.config[offset..offset + 2].copy_from_slice(&value.to_le_bytes());
             Ok(())
         }
     }
@@ -443,6 +690,97 @@ mod tests {
             device,
             function,
         }
+    }
+
+    fn matched_block_function(
+        mock: MockConfig,
+        address: PciAddress,
+    ) -> MatchedPciFunction<MockConfig> {
+        let mut snapshot = [0; 256];
+        for offset in (0..256).step_by(4) {
+            snapshot[offset..offset + 4]
+                .copy_from_slice(&mock.word(address, offset as u8).to_le_bytes());
+        }
+        let descriptor = PciDeviceDescriptor::from_type0_config(address, &snapshot).unwrap();
+        let registration = DriverRegistration {
+            id: DriverId::new(1),
+            name: "test-block",
+            version: DriverVersion::new(1, 0, 0),
+            class: DeviceClass::BlockDevice,
+            pci: PciMatch {
+                vendor_id: Some(0x1af4),
+                device_id: Some(0x1042),
+                class: None,
+                subclass: None,
+                programming_interface: None,
+                revision: None,
+                subsystem_vendor_id: None,
+                subsystem_device_id: None,
+            },
+        };
+        let mut registry = DriverRegistry::<1>::new();
+        registry.register(registration).unwrap();
+        let matched = registry.best_match(&descriptor).unwrap().unwrap();
+        MatchedPciFunction::bind(mock, descriptor, matched).unwrap()
+    }
+
+    #[test]
+    fn matched_bar_probe_returns_bounded_device_and_driver_grant() {
+        let device = address(5, 0);
+        let mut mock = MockConfig::new();
+        let config = mock.add(device, 0x1af4, 0x1042);
+        config[0x0b] = 1;
+        config[4..6].copy_from_slice(&7u16.to_le_bytes());
+        mock.set_bar(device, 0, 0x8000_0000, 0xffff_f000);
+        let mut matched = matched_block_function(mock, device);
+
+        let bars = matched.probe_memory_bars().unwrap();
+        let bar = bars[0].unwrap();
+
+        assert_eq!(bar.address(), device);
+        assert_eq!(bar.driver_id(), DriverId::new(1));
+        assert_eq!(bar.index(), 0);
+        assert_eq!(bar.base(), 0x8000_0000);
+        assert_eq!(bar.size(), 4096);
+        assert!(bar.matches_device(device, DriverId::new(1), 0));
+        assert!(!bar.matches_device(address(6, 0), DriverId::new(1), 0));
+        assert!(!bar.matches_device(device, DriverId::new(2), 0));
+        assert!(!bar.matches_device(device, DriverId::new(1), 1));
+        assert_eq!(bar.page_address(0), Ok(0x8000_0000));
+        assert_eq!(bar.page_address(4096), Err(PciBarError::Range));
+        assert_eq!(bar.page_address(1), Err(PciBarError::Range));
+        assert_eq!(matched.read_u32(device, 0x10), Ok(0x8000_0000));
+        assert_eq!(matched.read_u32(device, 4).unwrap() as u16 & 7, 0);
+    }
+
+    #[test]
+    fn matched_bar_probe_handles_64_bit_bars_and_skips_unimplemented_bars() {
+        let device = address(5, 0);
+        let mut mock = MockConfig::new();
+        mock.add(device, 0x1af4, 0x1042)[0x0b] = 1;
+        mock.set_bar(device, 0, 0x8000_0004, 0xffff_f004);
+        mock.set_bar(device, 1, 1, u32::MAX);
+        let mut matched = matched_block_function(mock, device);
+
+        let bars = matched.probe_memory_bars().unwrap();
+
+        assert_eq!(bars[0].unwrap().base(), 0x1_8000_0000);
+        assert_eq!(bars[0].unwrap().size(), 4096);
+        assert_eq!(bars[1], None);
+        assert_eq!(bars[2], None);
+    }
+
+    #[test]
+    fn matched_bar_probe_rejects_malformed_ranges_and_restores_bar_registers() {
+        let device = address(5, 0);
+        let mut mock = MockConfig::new();
+        mock.add(device, 0x1af4, 0x1042)[0x0b] = 1;
+        mock.set_bar(device, 0, 0x8000_0000, 0xffff_d000);
+        let mut matched = matched_block_function(mock, device);
+
+        assert_eq!(matched.probe_memory_bars(), Err(PciBarError::Range));
+        assert_eq!(matched.read_u32(device, 0x10), Ok(0x8000_0000));
+        assert_eq!(matched.read_u32(device, 4).unwrap() as u16 & 7, 0);
     }
 
     #[test]

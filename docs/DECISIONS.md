@@ -63,16 +63,24 @@ brokers één transportinstantie beheren. De netwerkbroker vertrouwt niet langer
 op het QEMU-fixture-MAC-adres. `MatchedPciFunction` herleest de descriptor bij
 binding, controleert dat de registry-match nog klopt en weigert config-space-
 toegang tot een ander BDF. De VirtIO-paden gebruiken deze adapter ook voor
-busmaster- en BAR-probing na de match. Alle bestaande block-profielen alloceren
-hun pinned DMA-pool pas nadat discovery en registrymatching zijn geslaagd.
+busmaster- en BAR-probing na de match. De adapter levert nu `PciBarGrant`-
+waarden die BDF, driver-ID, BAR-index en begrensde fysieke range binden.
+BAR-probing laat I/O-decode, memory-decode en bus mastering uitgeschakeld;
+BAR-registers worden hersteld vóór een fout wordt geretourneerd. De kernel
+mapt voor block/net alleen volledige 4-KiB-pagina's binnen de grant en
+controleert device, driver en BAR-index. Alle bestaande block-profielen
+alloceren hun pinned DMA-pool pas nadat discovery en registrymatching zijn
+geslaagd.
 
 **Beperkingen:** de scanner gebruikt alle 256 conventionele busnummers in
 segment 0 omdat de bootinformatie nog geen ACPI MCFG/rootbridge-topologie
-aanlevert. Andere segmenten, ECAM, bridge-validatie, hotplug, generieke
-BAR/MMIO/IRQ/DMA resourcegrants, interrupt lifecycle, DMA/IOMMU-authority,
-dynamische factoryregistratie en meerdere actieve apparaten blijven open.
-Geen universele physical-memory-capability toegevoegd. De mechanism-1-adapter
-vereist geserialiseerde kerneltoegang; dit ontwerp is alleen voor de huidige
+aanlevert. Andere segmenten, ECAM, bridge-validatie en hotplug blijven open.
+BAR-grants zijn alleen in de block-/netwerkroute gebruikt; dit is geen
+algemene resourcebroker of driverisolatie. IRQ-grants, interrupt lifecycle,
+busmastertoestemming als afzonderlijke grant, DMA/IOMMU-authority,
+factoryregistratie en meerdere actieve apparaten blijven open. Geen universele
+physical-memory-capability toegevoegd. De mechanism-1-adapter vereist
+geserialiseerde kerneltoegang; dit ontwerp is alleen voor de huidige
 single-CPU-initialisatie-/transportpaden.
 
 **Herzien:** zodra firmware-rootinformatie, een kernel-owned

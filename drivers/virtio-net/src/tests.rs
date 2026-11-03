@@ -289,6 +289,7 @@ fn info() -> Discovery {
         },
         config,
         bars,
+        bar_grants: [None; 6],
         regions,
     }
 }

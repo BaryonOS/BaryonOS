@@ -31,6 +31,13 @@ const RAM_END: u64 = 256 * 1024 * 1024;
 fn config_error(_: pci_core::ConfigError) -> Error {
     Error::Protocol
 }
+fn bar_error(error: pci_core::PciBarError) -> Error {
+    match error {
+        pci_core::PciBarError::Config(_) | pci_core::PciBarError::Restore => Error::Protocol,
+        pci_core::PciBarError::Unsupported => Error::Unsupported,
+        pci_core::PciBarError::Range => Error::Range,
+    }
+}
 
 fn select_device() -> Result<PciAddress, Error> {
     let mut registry = driver_core::DriverRegistry::<1>::new();
@@ -96,6 +103,8 @@ pub struct Discovery {
     pub address: PciAddress,
     pub config: [u8; 256],
     pub bars: [Bar; 6],
+    /// Kernel-usable BAR grants from the matched PCI function.
+    pub bar_grants: [Option<pci_core::PciBarGrant>; 6],
     pub regions: Regions,
 }
 pub fn discover() -> Result<Discovery, Error> {
@@ -123,57 +132,19 @@ pub fn discover_at(address: PciAddress) -> Result<Discovery, Error> {
     let matched = validate_registration(address, &config)?;
     let mut pci = MatchedPciFunction::bind(pci, descriptor, matched).map_err(bind_error)?;
     let original = pci.read_u32(address, 4).map_err(config_error)? as u16;
-    pci.write_u16(address, 4, (original & !7) | (1 << 10))
-        .map_err(config_error)?; // Disable DMA and decode while probing this function's BARs.
+    let bar_grants = pci.probe_memory_bars().map_err(bar_error)?;
     let mut bars = [Bar::NONE; 6];
-    let mut i = 0;
-    while i < 6 {
-        let offset = 0x10 + i as u8 * 4;
-        let low = pci.read_u32(address, offset).map_err(config_error)?;
-        if low & 1 != 0 {
-            i += 1;
-            continue;
-        }
-        let wide = low & 6 == 4;
-        if low & 6 != 0 && !wide || wide && i == 5 {
-            return Err(Error::Unsupported);
-        }
-        let high = if wide {
-            pci.read_u32(address, offset + 4).map_err(config_error)?
-        } else {
-            0
-        };
-        pci.write_u32(address, offset, u32::MAX)
-            .map_err(config_error)?;
-        if wide {
-            pci.write_u32(address, offset + 4, u32::MAX)
-                .map_err(config_error)?;
-        }
-        let mask_low = pci.read_u32(address, offset).map_err(config_error)?;
-        let mask_high = if wide {
-            pci.read_u32(address, offset + 4).map_err(config_error)?
-        } else {
-            u32::MAX
-        };
-        pci.write_u32(address, offset, low).map_err(config_error)?;
-        if wide {
-            pci.write_u32(address, offset + 4, high)
-                .map_err(config_error)?;
-        }
-        let base = u64::from(low & !15) | (u64::from(high) << 32);
-        let mask = u64::from(mask_low & !15) | (u64::from(mask_high) << 32);
-        let size = (!mask).wrapping_add(1);
-        if base != 0 && size != 0 {
-            if !size.is_power_of_two() || size > 65536 || base % 4096 != 0 {
+    for (index, grant) in bar_grants.iter().enumerate() {
+        if let Some(grant) = grant {
+            if grant.size() > 65536 || grant.base() % 4096 != 0 {
                 return Err(Error::Range);
             }
-            bars[i] = Bar {
-                base,
-                size,
+            bars[index] = Bar {
+                base: grant.base(),
+                size: grant.size(),
                 is_memory: true,
             };
         }
-        i += if wide { 2 } else { 1 };
     }
     pci.write_u16(address, 4, (original & !5) | 2 | (1 << 10))
         .map_err(config_error)?; // MMIO decode on; DMA remains off.
@@ -215,6 +186,7 @@ pub fn discover_at(address: PciAddress) -> Result<Discovery, Error> {
         address,
         config,
         bars,
+        bar_grants,
         regions,
     })
 }

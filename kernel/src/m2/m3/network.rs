@@ -96,15 +96,23 @@ pub(super) fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
         info.regions.device,
     ] {
         let index = region.bar as usize;
-        let bar = info.bars[index];
-        assert!(bar.base >= 0x80000000 && bar.size <= 65536);
+        let bar = info.bar_grants[index].expect("matched PCI BAR grant");
+        let driver_id = virtio_net_driver::DRIVER_REGISTRATION.id.get();
+        assert!(bar.matches_device(
+            info.address,
+            virtio_net_driver::DRIVER_REGISTRATION.id,
+            region.bar
+        ));
+        assert!(bar.base() >= 0x80000000 && bar.size() <= 65536);
         mapped[index] = 0x3f100000 + index as u64 * 65536;
         let first = u64::from(region.offset) & !(PAGE - 1);
         let end = (u64::from(region.offset) + u64::from(region.length) + PAGE - 1) & !(PAGE - 1);
         for offset in (first..end).step_by(PAGE as usize) {
             let va = mapped[index] + offset;
             if kernel.leaf(va) == 0 {
-                kernel.map_mmio(frames, va, bar.base + offset).unwrap();
+                kernel
+                    .map_pci_bar(frames, va, bar, info.address, driver_id, region.bar, offset)
+                    .unwrap();
             }
             assert_eq!(kernel.leaf(va) & (4 | NX | 8 | 16), NX | 8 | 16);
         }
@@ -343,7 +351,7 @@ pub(super) fn broker_tick(s: &State) {
     }
     let r = runtime();
     if r.resetting {
-        if r.device.as_ref().is_some_and(Device::reset_acknowledged) {
+        if r.device.as_mut().is_some_and(Device::reset_acknowledged) {
             r.resetting = false;
             r.reset_acks += 1;
         } else if s.ticks >= r.reset_deadline {

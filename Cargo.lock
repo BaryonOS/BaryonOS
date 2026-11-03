@@ -458,6 +458,7 @@ dependencies = [
  "nieuw-os-rtc",
  "nieuw-os-tpm-crb",
  "object-core",
+ "pci-core",
  "ui-core",
  "virtio-blk-driver",
  "virtio-core",

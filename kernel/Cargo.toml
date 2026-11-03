@@ -220,6 +220,7 @@ boot-protocol = { path = "../crates/boot-protocol" }
 kernel-core = { path = "../crates/kernel-core" }
 capability-core = { path = "../crates/capability-core" }
 virtio-core = { path = "../crates/virtio-core" }
+pci-core = { path = "../crates/pci-core" }
 virtio-blk-driver = { path = "../drivers/virtio-blk" }
 virtio-rng-driver = { path = "../drivers/virtio-rng", optional = true }
 virtio-net-driver = { path = "../drivers/virtio-net", optional = true }

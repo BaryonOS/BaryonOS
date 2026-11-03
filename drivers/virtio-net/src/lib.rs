@@ -46,6 +46,8 @@ pub struct Discovery {
     pub address: driver_core::PciAddress,
     pub config: [u8; 256],
     pub bars: [Bar; 6],
+    /// Kernel-usable BAR grants from the matched PCI function.
+    pub bar_grants: [Option<pci_core::PciBarGrant>; 6],
     pub regions: Regions,
 }
 
