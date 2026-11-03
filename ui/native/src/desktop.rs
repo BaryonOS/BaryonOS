@@ -448,7 +448,7 @@ impl Desktop {
     pub fn deliver(&mut self, event: Event, viewport: Viewport) -> Action {
         match event {
             Event::Key(key) => self.key(key, viewport),
-            Event::Cancel(_) => {
+            Event::Cancel(_) | Event::PointerLeave => {
                 self.cancel_pointer();
                 Action::None
             }

@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`9b1c8200`](https://github.com/simonvanieperen/nieuw-os/commit/9b1c82000d03885e9938c62eb2533fb207f04eab) ·
+**Bron:** [`d5781e72`](https://github.com/simonvanieperen/nieuw-os/commit/d5781e720c9f9cf263565c88c0461965669d7bfa) ·
 **Ontwikkelbranch:** `simonvanieperen-fictional-disco`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Veld-03: native 200%-gate en echt documentcontextmenu.
-41% blijft 41%: bron9b1c8200 heeft44 volledige nativefasen per schaal, 100% en200%, exit0/ruwe33. Echt documentcontextmenu via toetsenbord en muisknop, toolkeuze, modale invoerweigering en read-only tegenproeven; hele apppixels zonder maskers en onverkorte oude gates. UI/app-hosttests, Clippy, fmt,16 runnertegenproeven en beide normale builds slagen. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Hover-leave, complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Veld-04: echte pointer-leave zonder focusverlies of buitenbodydata.
+41% blijft 41%: eerder44 volledige nativefasen per schaal op9b1c8200. Nu pointer-leave geimplementeerd zonder buitenbodydata, focusverlies of menuafsluiting; acht betrokken hosttest-/Clippysuites en16 runnertegenproeven slagen. Echte hoverpixelverschillen, malformed/replay/authorisatietegenproeven aanwezig; native04 nog niet uitgevoerd. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Oudere derdenapps vereisen protocolonderhandeling. Complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

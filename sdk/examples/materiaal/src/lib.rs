@@ -407,7 +407,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
                     increment(&mut self.evidence.keys)?;
                     self.controller.deliver(envelope)
                 }
-                Event::Cancel(_) => self.controller.deliver(envelope),
+                Event::Cancel(_) | Event::PointerLeave => self.controller.deliver(envelope),
             };
             let accepted = result.is_ok();
             self.operation(result)?;

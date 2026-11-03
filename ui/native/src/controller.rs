@@ -1380,6 +1380,7 @@ impl<'a, T: Transport> Controller<'a, T> {
                 }
                 self.dragging = false;
                 self.pressed = None;
+                self.cursor = None;
                 self.dismiss_document_menu();
                 if !self.document.is_uncertain()
                     && !self.document.is_conflicted()
@@ -1407,7 +1408,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             }
             self.focus_generation = envelope.generation;
         }
-        if self.awaiting_input {
+        if self.awaiting_input && envelope.event != Event::PointerLeave {
             self.awaiting_input = false;
             if !self.document.is_uncertain()
                 && !self.document.is_conflicted()
@@ -1426,6 +1427,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             self.invalidate()?;
         }
         match envelope.event {
+            Event::PointerLeave => self.cancel_pointer(),
             event if self.desktop.as_ref().is_some_and(|d| d.overlay()) => {
                 self.dismiss_document_menu();
                 if let Event::Mouse { x, y, .. } = event {

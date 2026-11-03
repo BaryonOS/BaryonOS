@@ -1,6 +1,36 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Veld-03 in uitvoering — 3 november 2026
+## NEXT AGENT HANDOFF — Veld-04 in uitvoering — 3 november 2026
+
+**Bronbasis:** `d5781e720c9f9cf263565c88c0461965669d7bfa`, branch
+`simonvanieperen-fictional-disco`, PR #146. Veld-03 heeft44 volledige native
+fasen per schaal; [bewijs](verification/veld-context-20261103/README.md).
+
+**Implementatie:** werkelijk pointerverlaten krijgt INP1-type4 zonder
+coordinaten/knoppen. Controller wist hover/press, behoudt menu/focus/status;
+geen klembordautoriteit. Resync bij actieve drag blijft bestaan. Ook oude
+cursor bij focusverlies gewist. SDK-decoder, compositorrouter en alle drie
+bestaande appconsumenten bijgewerkt, inclusief de host-afbeeldingsviewer.
+SDK en twee native apps worden samen gebouwd; oudere derdenapps vereisen
+later protocolonderhandeling. ADR-VELD-003 legt deze grens vast.
+
+**Hostbewijs:** alle tests en strikte Clippy voor input-core, input-client,
+native UI, Materiaal, Rekenmachine, window-session en input-service exit0;
+fmt uitgevoerd,16 runnertests exit0. Afbeeldingsviewer15 hosttests/Clippy exit0
+na ophalen van uitsluitend ontbrekende reeds gelockte packages.
+Negatieve tests: payloadbytes, verkeerde afzender/correlatie/type,
+oude generatie/replay, geen klembordautoriteit en geen onzichtbare drag.
+Hele menufixture vereist werkelijk verschillende hoverpixels voor/na leave.
+Logs `files/veld-env/logs/veld-pointer-{full-host,viewer-host}.log`.
+Eerdere testfixture-/lintfouten hersteld; geen productiegrens versoepeld.
+
+**Nog niet uitgevoerd:** native Veld-04 op100/200%, normale builds en nieuwe
+CI. Volgende commando: probebuild en volledige runner
+`--clipboard --workspace --scale 1`, vervolgens hidpi met `--scale 2`, elk in
+eigen build-/targetmap. Bron tijdens runs bevriezen. Score **41 -> 41**;
+complete Veld-omgeving, drag/drop, resize en overige functies blijven open.
+
+## Vorig checkpoint — Veld-03 native geverifieerd — 3 november 2026
 
 **Basis:** `264ad5b0b1bfeaf0e36c4d52021b11d347db2227`, branch
 `simonvanieperen-fictional-disco`, PR #146. De vervolgopdracht vraagt een

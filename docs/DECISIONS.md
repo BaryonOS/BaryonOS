@@ -1,5 +1,24 @@
 # Ontwerpbesluiten
 
+## ADR-VELD-003 — pointer-leave is geen focusverlies
+
+3 november 2026, bronbasis `d5781e72`. De native menugate vond achterblijvende
+hover na een voltooide klik gevolgd door body-exit. Buitenbodycoordinaten
+doorsturen zou de toegewezen invoergrens verruimen; Resync zou onterecht het
+geopende menu sluiten. Daarom krijgt de bestaande INP1-reply een afzonderlijk
+eventtype4 `PointerLeave`, met nul-payload en dezelfde afzender-, epoch-,
+volgnummer- en generatiecontroles. Geen nieuwe requestopcode of capability.
+
+Alleen de compositor leidt het event af uit zijn eigen werkelijke hitroute.
+Het wist pointer/hover/press, niet document, selectie, modal, focus of status.
+Het is geen toets-/klembordgebaar en geen bewijs van herstelde invoer.
+Een actieve drag, echte focuswisseling en systeemoverlay blijven strengere
+annulering gebruiken. De twee vaste apps en SDK worden gezamenlijk gebouwd;
+oudere derdenapps zijn hiermee niet compatibel verklaard. Voor algemene
+appdistributie is expliciete protocolonderhandeling een open voorwaarde.
+Herzien bij vrije surfacegeometrie of systeemwijde drag/drop: geen onzichtbare
+grab of buitenbodydata invoeren als tijdelijke omweg.
+
 ## ADR-VELD-002 — gereedschappen lenen dezelfde documenteigenaar
 
 3 november 2026, baseline `264ad5b0`. De eerste objectgebonden gereedschappen

@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "9b1c82000d03885e9938c62eb2533fb207f04eab",
+    "source_commit": "d5781e720c9f9cf263565c88c0461965669d7bfa",
     "branch": "simonvanieperen-fictional-disco",
-    "task": "Veld-03: native 200%-gate en echt documentcontextmenu",
+    "task": "Veld-04: echte pointer-leave zonder focusverlies of buitenbodydata",
     "previous_score": 41,
-    "summary": "41% blijft 41%: bron9b1c8200 heeft44 volledige nativefasen per schaal, 100% en200%, exit0/ruwe33. Echt documentcontextmenu via toetsenbord en muisknop, toolkeuze, modale invoerweigering en read-only tegenproeven; hele apppixels zonder maskers en onverkorte oude gates. UI/app-hosttests, Clippy, fmt,16 runnertegenproeven en beide normale builds slagen. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Hover-leave, complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open."
+    "summary": "41% blijft 41%: eerder44 volledige nativefasen per schaal op9b1c8200. Nu pointer-leave geimplementeerd zonder buitenbodydata, focusverlies of menuafsluiting; acht betrokken hosttest-/Clippysuites en16 runnertegenproeven slagen. Echte hoverpixelverschillen, malformed/replay/authorisatietegenproeven aanwezig; native04 nog niet uitgevoerd. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Oudere derdenapps vereisen protocolonderhandeling. Complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open."
   },
   "tracks": [
     {

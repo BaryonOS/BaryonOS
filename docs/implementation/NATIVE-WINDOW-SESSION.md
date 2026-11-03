@@ -66,9 +66,25 @@ op beide schalen voor open menu, navigatie, echte toolkeuze, geblokkeerde
 mutatie, annuleren en de zichtbare muisknop. Alle bestaande native gates
 blijven vereist. `document_menu_gate` wordt alleen groen na de volledige
 workspacegate inclusief echte muisbediening; diagnostische runs voldoen niet.
-Bekende grens: pointerverlaten na een voltooide klik meldt nog geen
-hover-leave aan de app. De muisorakels behouden de werkelijk achtergebleven
-knophover; dit wordt niet gemaskeerd of als opgelost voorgesteld.
+Veld-03-bewijs behoudt de toen werkelijk achtergebleven knophover.
+
+**Pointer-leave (Veld-04):** de compositor meldt een werkelijk waargenomen
+body-exit eenmaal als INP1-eventtype4, zonder buitenbodycoordinaten. De app
+wist uitsluitend pointer/hover/press, niet menu, document, selectie, focus
+of opslagstatus. Oude generaties en replay blijven geweigerd; het event
+verleent geen klembordautoriteit en herstelt op zichzelf geen verloren input.
+Een actieve drag blijft bij body-exit de bestaande Resync-annulering krijgen.
+Shelloverlays, focusverlies en verborgen vensters behouden hun strengere
+annulering; ook hun oude cursor verdwijnt.
+
+Schrijfgrens: input-core enum/wire, SDK-decoder, controller/desktop, beide
+appadapters, compositorrouter, gerichte protocol-/autoriteits-/pixeltests,
+bestaande native fixtures/runner/CI en deze contract-/bewijsbestanden.
+Geen nieuwe capability, kernelbeleid, opslag-RPC of buitenbody-muispacket.
+Acceptatie: betrokken hosttests/Clippy/fmt en beide volledige native gates,
+met werkelijk verschillende hoverpixels voor/na leave en behoud van het
+geopende menu. Pinned apps en SDK worden samen gebouwd; oudere derdenapps
+zijn geen bewezen compatibiliteitsdoel van deze tweevensterproef.
 
 ## Veld: eerste native uitvoering
 

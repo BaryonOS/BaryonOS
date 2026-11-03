@@ -342,7 +342,57 @@ fn render_native_window_material_walkthrough_oracle() {
             }
             assert!(ui.view().cursor.is_some());
             assert!(ui.view().document_menu.is_some());
-            snapshot_frame(&ui, "document-menu-mouse", directory.as_deref());
+            let tile_x = x / TILE_WIDTH * TILE_WIDTH;
+            let tile_y = y / TILE_HEIGHT * TILE_HEIGHT;
+            let mut hovered = [0; TILE_PIXELS];
+            Frame::new(ui.view())
+                .render_tile(tile_x, tile_y, &mut hovered)
+                .unwrap();
+            let status = ui.view().status;
+            let focus = ui.view().focus;
+            let cursor = ui.view().cursor;
+            sequence += 1;
+            assert_eq!(
+                ui.deliver(InputEnvelope {
+                    epoch: INPUT_EPOCH,
+                    sequence,
+                    generation: 1,
+                    event: Event::PointerLeave,
+                }),
+                Err(nieuw_os_materiaal::controller::Error::StaleInput)
+            );
+            assert_eq!(ui.view().cursor, cursor);
+            assert!(ui.view().document_menu.is_some());
+            sequence += 1;
+            ui.deliver(InputEnvelope {
+                epoch: INPUT_EPOCH,
+                sequence,
+                generation: 2,
+                event: Event::PointerLeave,
+            })
+            .unwrap();
+            assert!(ui.view().document_menu.is_some());
+            assert_eq!(ui.view().status, status);
+            assert_eq!(ui.view().focus, focus);
+            assert_eq!(ui.view().cursor, None);
+            assert_eq!(
+                ui.deliver(InputEnvelope {
+                    epoch: INPUT_EPOCH,
+                    sequence,
+                    generation: 2,
+                    event: Event::PointerLeave,
+                }),
+                Err(nieuw_os_materiaal::controller::Error::StaleInput)
+            );
+            let mut left = [0; TILE_PIXELS];
+            Frame::new(ui.view())
+                .render_tile(tile_x, tile_y, &mut left)
+                .unwrap();
+            assert_ne!(
+                hovered, left,
+                "Pointer-leave must change actual hover pixels"
+            );
+            snapshot(&ui, "document-menu-mouse", directory.as_deref());
             key(
                 &mut ui,
                 INPUT_EPOCH,
@@ -354,7 +404,7 @@ fn render_native_window_material_walkthrough_oracle() {
             assert!(ui.view().document_menu.is_none());
             assert_eq!(ui.view().contents, Some(TEXT));
             assert!(!ui.document().is_dirty());
-            snapshot_frame(&ui, "document-menu-mouse-cancelled", directory.as_deref());
+            snapshot(&ui, "document-menu-mouse-cancelled", directory.as_deref());
         }
     });
 }

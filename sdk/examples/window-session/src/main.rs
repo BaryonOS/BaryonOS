@@ -274,6 +274,7 @@ fn run() -> ! {
     let mut last_buttons = 0u64;
     let mut next_input_tick = tick();
     let mut app_pointer_capture = None;
+    let mut app_pointer_hover = None;
     let mut input_backlog = false;
     loop {
         let mut ingress_empty = false;
@@ -354,11 +355,24 @@ fn run() -> ! {
                     Event::Cancel(reason) => {
                         last_buttons = 0;
                         app_pointer_capture = None;
+                        app_pointer_hover = None;
                         scene.cancel_palette_input(&mut damage);
                         scene.cancel_pointer();
                         for q in &mut queues {
                             q.cancel(reason).unwrap_or_else(|_| fail(20));
                         }
+                    }
+                    Event::PointerLeave => {
+                        if let Some(captured) = app_pointer_capture.take() {
+                            queues[captured]
+                                .cancel(CancelReason::Resync)
+                                .unwrap_or_else(|_| fail(22));
+                        } else if let Some(hovered) = app_pointer_hover {
+                            queues[hovered]
+                                .push(Event::PointerLeave)
+                                .unwrap_or_else(|_| fail(22));
+                        }
+                        app_pointer_hover = None;
                     }
                     Event::Mouse { input: mouse, x, y } => {
                         last_buttons = u64::from(mouse.buttons.bits());
@@ -371,6 +385,20 @@ fn run() -> ! {
                                 &mut damage,
                             )
                             .unwrap_or_else(|_| fail(21));
+                        if let Some(hovered) = app_pointer_hover {
+                            if recipient != Some(hovered)
+                                && app_pointer_capture != Some(hovered)
+                                && !scene.palette_is_open()
+                                && !scene.window_menu_is_open()
+                            {
+                                // No outside coordinates or button state cross
+                                // the app boundary; leaving is not focus loss.
+                                queues[hovered]
+                                    .push(Event::PointerLeave)
+                                    .unwrap_or_else(|_| fail(22));
+                            }
+                        }
+                        app_pointer_hover = recipient;
                         if let Some(index) = recipient {
                             if mouse.changed.left() && mouse.buttons.left() {
                                 app_pointer_capture = Some(index);
@@ -398,6 +426,7 @@ fn run() -> ! {
                 }
                 if !overlay_was_open && (scene.palette_is_open() || scene.window_menu_is_open()) {
                     app_pointer_capture = None;
+                    app_pointer_hover = None;
                     for queue in &mut queues {
                         queue
                             .cancel(CancelReason::Resync)
@@ -406,6 +435,9 @@ fn run() -> ! {
                 }
                 for (index, was_visible) in previous_visible.into_iter().enumerate() {
                     if was_visible && !scene.visible(index) && index != previous {
+                        if app_pointer_hover == Some(index) {
+                            app_pointer_hover = None;
+                        }
                         queues[index]
                             .cancel(CancelReason::FocusLost)
                             .unwrap_or_else(|_| fail(23));
@@ -415,6 +447,9 @@ fn run() -> ! {
                     && !scene.visible(previous)
                     && scene.focused == previous
                 {
+                    if app_pointer_hover == Some(previous) {
+                        app_pointer_hover = None;
+                    }
                     queues[previous]
                         .cancel(CancelReason::FocusLost)
                         .unwrap_or_else(|_| fail(23));
@@ -428,12 +463,20 @@ fn run() -> ! {
                             .cancel(CancelReason::Resync)
                             .unwrap_or_else(|_| fail(20));
                     }
+                    if let Some(hovered) = app_pointer_hover.take() {
+                        queues[hovered]
+                            .push(Event::PointerLeave)
+                            .unwrap_or_else(|_| fail(22));
+                    }
                 }
                 if scene.focused != previous {
                     // A real click into the new body may already own a new grab;
                     // drop only the old focus's capture, never the new title drag.
                     if app_pointer_capture == Some(previous) {
                         app_pointer_capture = None;
+                    }
+                    if app_pointer_hover == Some(previous) {
+                        app_pointer_hover = None;
                     }
                     queues[previous]
                         .cancel(CancelReason::FocusLost)
@@ -442,6 +485,7 @@ fn run() -> ! {
                 }
                 if input.ack(&offer).unwrap_or_else(|_| fail(24)) == AckOutcome::Superseded {
                     app_pointer_capture = None;
+                    app_pointer_hover = None;
                     scene.cancel_palette_input(&mut damage);
                     scene.cancel_pointer();
                     for q in &mut queues {
