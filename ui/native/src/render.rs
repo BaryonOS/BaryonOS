@@ -271,7 +271,7 @@ impl<'a> Frame<'a> {
         };
         paint.pixels.fill(d::BACKGROUND);
         if let Some(desktop) = self.view.desktop.filter(|desktop| desktop.overlay()) {
-            paint.desktop(desktop, viewport);
+            paint.desktop(desktop, self.view);
             paint.pointer(self.view.cursor.filter(|_| self.view.draw_pointer));
             return Ok(rect);
         }
@@ -1244,8 +1244,9 @@ impl Paint<'_> {
             }
         }
     }
-    fn desktop(&mut self, desktop: &crate::desktop::Desktop, viewport: Viewport) {
+    fn desktop(&mut self, desktop: &crate::desktop::Desktop, view: View<'_>) {
         use crate::desktop::{Page, Target};
+        let viewport = view.viewport;
         let w = viewport.logical_width();
         let h = viewport.logical_height();
         let compact = h < 420;
@@ -1510,16 +1511,32 @@ impl Paint<'_> {
             }
             Page::Home | Page::Search | Page::Material => {
                 if desktop.page() == Page::Home {
-                    self.title_color(32, if compact { 6 } else { 48 }, "Je werkruimte", 0xf6fbff);
                     if !compact {
-                        self.label(
-                            32,
-                            106,
-                            "Open je documenten of zoek een programma.",
-                            0xb8cbd6,
-                        );
+                        self.small(32, 22, "NIEUW OS  /  WERKRUIMTE", 0xb8cbd6);
                     }
-                    self.small(w.saturating_sub(140), 16, "Gast · VM-test", 0xd7e5ec);
+                    self.title_color(32, if compact { 8 } else { 48 }, "Je werkruimte", 0xf6fbff);
+                    if !compact {
+                        self.label(32, 94, "Je materiaal, direct bij de hand.", 0xb8cbd6);
+                        let badge = Rect {
+                            x: w.saturating_sub(174),
+                            y: 20,
+                            width: 142,
+                            height: 36,
+                        };
+                        self.rounded(badge, 0x252a32, 18);
+                        self.icon(
+                            Rect {
+                                x: badge.x + 12,
+                                y: badge.y + 9,
+                                width: 18,
+                                height: 18,
+                            },
+                            Icon::User,
+                            0xd7e5ec,
+                            1,
+                        );
+                        self.small(badge.x + 38, badge.y + 11, "Gast · VM-test", 0xd7e5ec);
+                    }
                 } else {
                     let panel_width = w.saturating_sub(48).min(620);
                     let top = if compact { 40 } else { 132 };
@@ -1570,40 +1587,124 @@ impl Paint<'_> {
                                 1,
                             );
                         } else {
-                            self.rounded(r, 0xeff7f7, 20);
+                            self.outlined(r, d::SURFACE, d::LINE, 20);
+                            self.fill(
+                                Rect {
+                                    x: r.x + 20,
+                                    y: r.y + r.height - 1,
+                                    width: r.width.saturating_sub(40),
+                                    height: 1,
+                                },
+                                d::LINE,
+                            );
                             self.rounded(
                                 Rect {
-                                    x: r.x + 16,
-                                    y: r.y + 16,
+                                    x: r.x + if compact { 14 } else { 24 },
+                                    y: r.y + if compact { 22 } else { 28 },
                                     width: if compact { 48 } else { 64 },
                                     height: if compact { 48 } else { 64 },
                                 },
                                 0xd2eae3,
-                                16,
+                                18,
                             );
                             self.icon(
                                 Rect {
-                                    x: r.x + 28,
-                                    y: r.y + 25,
+                                    x: r.x + if compact { 26 } else { 36 },
+                                    y: r.y + if compact { 30 } else { 37 },
                                     width: if compact { 24 } else { 40 },
-                                    height: if compact { 32 } else { 46 },
+                                    height: if compact { 30 } else { 44 },
                                 },
                                 Icon::Material,
                                 d::ACCENT,
                                 2,
                             );
-                            self.medium(
-                                r.x + if compact { 80 } else { 18 },
-                                r.y + if compact { 17 } else { 96 },
-                                "Materiaal",
-                                d::TEXT,
-                            );
-                            self.small(
-                                r.x + if compact { 80 } else { 18 },
-                                r.y + if compact { 44 } else { 124 },
-                                "Documenten",
-                                d::MUTED,
-                            );
+                            let text_x = r.x + if compact { 76 } else { 112 };
+                            let text_y = r.y + if compact { 19 } else { 28 };
+                            self.small(text_x, text_y, "MATERIAAL", d::MUTED);
+                            self.medium(text_x, text_y + 22, "Documenten", d::TEXT);
+                            if compact {
+                                self.icon(
+                                    Rect {
+                                        x: r.x + r.width - 36,
+                                        y: r.y + (r.height - 18) / 2,
+                                        width: 18,
+                                        height: 18,
+                                    },
+                                    Icon::ChevronRight,
+                                    d::ACCENT,
+                                    1,
+                                );
+                            } else {
+                                self.label(text_x, text_y + 52, "Je bibliotheek", d::MUTED);
+                                self.button(
+                                    Rect {
+                                        x: r.x + r.width - 176,
+                                        y: r.y + (r.height - 48) / 2,
+                                        width: 152,
+                                        height: 48,
+                                    },
+                                    "Open Materiaal",
+                                    false,
+                                    true,
+                                    ButtonStyle::Primary,
+                                );
+                            }
+                            let content_x = r.x + if compact { 76 } else { 24 };
+                            let content_y = r.y + if compact { 68 } else { 140 };
+                            let content_width =
+                                r.width.saturating_sub(if compact { 128 } else { 48 });
+                            let message = if matches!(view.status, Status::Failed(_)) {
+                                Some(if compact {
+                                    "Opslag niet beschikbaar"
+                                } else {
+                                    status_label(view.status)
+                                })
+                            } else if view.list_loaded && view.objects.is_empty() {
+                                Some(if compact {
+                                    "Nog geen documenten"
+                                } else {
+                                    "Nog geen documenten. Maak je eerste in Materiaal."
+                                })
+                            } else if !view.list_loaded {
+                                Some(if compact {
+                                    "Open om te laden"
+                                } else {
+                                    "Open Materiaal om je bibliotheek te laden."
+                                })
+                            } else {
+                                None
+                            };
+                            if let Some(message) = message {
+                                self.wrapped(
+                                    content_x,
+                                    content_y,
+                                    message,
+                                    content_width,
+                                    if matches!(view.status, Status::Failed(_)) {
+                                        status_color(view.status)
+                                    } else {
+                                        d::MUTED
+                                    },
+                                );
+                            } else {
+                                let first = &view.objects[0];
+                                let name = first
+                                    .name
+                                    .get(..first.name_length)
+                                    .and_then(|bytes| core::str::from_utf8(bytes).ok())
+                                    .unwrap_or("Naam niet leesbaar");
+                                if compact {
+                                    self.label(content_x, content_y, "Document gereed", d::MUTED);
+                                } else {
+                                    self.wrapped(
+                                        content_x,
+                                        content_y,
+                                        name,
+                                        content_width,
+                                        d::TEXT,
+                                    );
+                                }
+                            }
                         }
                         if desktop.focus() == target {
                             self.focus(r);
@@ -1664,7 +1765,27 @@ impl Paint<'_> {
                 self.rounded(bar, 0xf5fafb, 18);
                 for (target, r, label) in desktop.controls(viewport).into_iter().flatten().take(3) {
                     if target == Target::Start {
-                        self.icon_button(r, Icon::Apps, desktop.focus() == target, true);
+                        self.button(
+                            r,
+                            "",
+                            desktop.focus() == target,
+                            true,
+                            ButtonStyle::Secondary,
+                        );
+                        self.icon(
+                            Rect {
+                                x: r.x + 12,
+                                y: r.y + 12,
+                                width: 20,
+                                height: 20,
+                            },
+                            Icon::Apps,
+                            d::TEXT,
+                            1,
+                        );
+                        if r.width > 60 {
+                            self.small(r.x + 40, r.y + 15, "Start", d::TEXT);
+                        }
                     } else if target == Target::Search {
                         self.rounded(r, 0xe7eff2, 10);
                         self.icon(
