@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_commit": "380111b68688c981eec6abb8fab29174a29f5601",
+  "source_commit": "08710d55db5690acc12aa8458ceeab7cb39ae72c",
   "branch": "simonvanieperen-animated-umbrella",
   "scope": "Additional host contract tests for artifact-store descriptor authentication and open errors",
   "tests_added": [
@@ -11,9 +11,16 @@
     {
       "command": "PATH=\"$HOME/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:$PATH\" CARGO_TARGET_DIR=\"$PWD/target/artifact-store-coverage\" cargo test --locked -p artifact-store-core",
       "exit_status": 101,
-      "result": "Tests did not execute: host linker cc is unavailable.",
+      "result": "Initial attempt. Tests did not execute because the host linker cc was unavailable; system installation required interactive sudo authentication.",
       "log": "/tmp/nieuw-os-artifact-store-test.log",
       "log_sha256": "511c56acd049f9954c7f8e50b373ef8fbfa31fb9ae3fe6b194f4545b2d525069"
+    },
+    {
+      "command": "LD_LIBRARY_PATH=\"/tmp/nieuw-os-hostcc-20261103/root/usr/lib/x86_64-linux-gnu\" CARGO_TARGET_DIR=\"$PWD/target/artifact-store-coverage\" CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=\"/tmp/nieuw-os-hostcc-20261103/root/usr/bin/x86_64-linux-gnu-gcc-15\" RUSTFLAGS=\"-C link-arg=--sysroot=/tmp/nieuw-os-hostcc-20261103/root -C link-arg=-B/tmp/nieuw-os-hostcc-20261103/root/usr/libexec/gcc/x86_64-linux-gnu/15/ -C link-arg=-B/tmp/nieuw-os-hostcc-20261103/root/usr/lib/gcc/x86_64-linux-gnu/15/ -C link-arg=-B/tmp/nieuw-os-hostcc-20261103/root/usr/lib/x86_64-linux-gnu/\" PATH=\"$HOME/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:$PATH\" cargo test --locked -p artifact-store-core",
+      "exit_status": 0,
+      "result": "9 contract tests passed; 0 failed. Rust 1.90.0. GCC 15.2.0 and libc development packages were extracted from Ubuntu packages into a temporary directory; no system packages were installed.",
+      "log": "/tmp/nieuw-os-artifact-store-test-resolved.log",
+      "log_sha256": "25174e4898f6762ca5d3bf97be844391b97d68181945f6a37e302d7401ddafdf"
     },
     {
       "command": "PATH=\"$HOME/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:$PATH\" CARGO_TARGET_DIR=\"$PWD/target/artifact-store-coverage\" cargo check --locked -p artifact-store-core --tests",
@@ -37,5 +44,5 @@
       "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   ],
-  "product_acceptance": "None. Tests, host typechecking, and formatting do not establish native OS behavior."
+  "product_acceptance": "None. These are host contract tests; they do not establish native OS behavior."
 }

@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`380111b6`](https://github.com/simonvanieperen/nieuw-os/commit/380111b68688c981eec6abb8fab29174a29f5601) ·
+**Bron:** [`08710d55`](https://github.com/simonvanieperen/nieuw-os/commit/08710d55db5690acc12aa8458ceeab7cb39ae72c) ·
 **Ontwikkelbranch:** `simonvanieperen-animated-umbrella`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Negatieve tests voor artifact-store-openbeleid toevoegen.
-41% blijft 41%; alleen negatieve contracttests toegevoegd, geen productcriterium of productiegedrag gewijzigd. De tests controleren dat ongeldige verwachte descriptoren de backend niet bereiken, dat malformed of afwijkend gebonden backenddescriptoren worden geweigerd, en dat Unauthorized, Stale en Io bij openen expliciet blijven. cargo check --tests, Clippy en fmt slagen; runtime cargo test is niet uitgevoerd omdat de hostlinker cc ontbreekt. Geen nieuwe native, fysieke, gebruikers- of releaseacceptatie.
+41% blijft 41%; alleen negatieve contracttests toegevoegd, geen productcriterium of productiegedrag gewijzigd. De tests controleren dat ongeldige verwachte descriptoren de backend niet bereiken, dat malformed of afwijkend gebonden backenddescriptoren worden geweigerd, en dat Unauthorized, Stale en Io bij openen expliciet blijven. Alle 9 contracttests slagen met Rust 1.90.0 en een tijdelijke, niet-systeembreed uitgepakte GCC-linker. cargo check --tests, Clippy en fmt slagen. Geen nieuwe native, fysieke, gebruikers- of releaseacceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

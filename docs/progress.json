@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "380111b68688c981eec6abb8fab29174a29f5601",
+    "source_commit": "08710d55db5690acc12aa8458ceeab7cb39ae72c",
     "branch": "simonvanieperen-animated-umbrella",
     "task": "Negatieve tests voor artifact-store-openbeleid toevoegen",
     "previous_score": 41,
-    "summary": "41% blijft 41%; alleen negatieve contracttests toegevoegd, geen productcriterium of productiegedrag gewijzigd. De tests controleren dat ongeldige verwachte descriptoren de backend niet bereiken, dat malformed of afwijkend gebonden backenddescriptoren worden geweigerd, en dat Unauthorized, Stale en Io bij openen expliciet blijven. cargo check --tests, Clippy en fmt slagen; runtime cargo test is niet uitgevoerd omdat de hostlinker cc ontbreekt. Geen nieuwe native, fysieke, gebruikers- of releaseacceptatie."
+    "summary": "41% blijft 41%; alleen negatieve contracttests toegevoegd, geen productcriterium of productiegedrag gewijzigd. De tests controleren dat ongeldige verwachte descriptoren de backend niet bereiken, dat malformed of afwijkend gebonden backenddescriptoren worden geweigerd, en dat Unauthorized, Stale en Io bij openen expliciet blijven. Alle 9 contracttests slagen met Rust 1.90.0 en een tijdelijke, niet-systeembreed uitgepakte GCC-linker. cargo check --tests, Clippy en fmt slagen. Geen nieuwe native, fysieke, gebruikers- of releaseacceptatie."
   },
   "tracks": [
     {
