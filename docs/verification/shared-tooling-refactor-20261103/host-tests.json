@@ -27,8 +27,38 @@
     {
       "command": "git diff --check && python3 -m py_compile tools/common.py tools/run_images.py tools/run_random.py tools/run_fpu.py tests/test_common.py",
       "exit_status": 0
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_*.py' -v",
+      "exit_status": 0,
+      "tests_run": 469,
+      "log": "/tmp/nieuw-os-refactor-final-root.log",
+      "log_sha256": "05d35e9b68b13e0c17b394d6b42484fefd81cc499df03f71d8f5645191cb1b68"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p 'test_*.py' -v",
+      "exit_status": 0,
+      "tests_run": 189,
+      "skipped": 3,
+      "skip_reason": "existing Rust-toolchain-dependent tests; Rust toolchain unavailable",
+      "log": "/tmp/nieuw-os-refactor-final-tools.log",
+      "log_sha256": "1f237bfc349f8a85339c0212385e7dee7414e5ae0fbc8d66f9798d7400449e85"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s .agents/skills/os-dev/tests -p 'test_*.py' -v",
+      "exit_status": 0,
+      "tests_run": 6,
+      "log": "/tmp/nieuw-os-refactor-final-osdev.log",
+      "log_sha256": "e07fd33059a74d8f04a3e7ea76d416956776813424b227e3f2656689176a0dff"
+    },
+    {
+      "command": "python3 -B tools/test_fpu.py -v",
+      "exit_status": 0,
+      "tests_run": 12,
+      "log": "/tmp/nieuw-os-refactor-final-fpu.log",
+      "log_sha256": "719794564ebcc6c15533406b320c2d5ed3102b5618b097f9b4fbba19d12146cc"
     }
   ],
-  "full_host_suites_on_this_source": "pending",
+  "full_host_suites_on_this_source": "passed; tools suite reports three existing skips due to missing Rust toolchain",
   "native_vm_physical_human_release_tests": "not_run"
 }

@@ -35,7 +35,7 @@ alleen een nette desktop haalt die eindgrens niet.
 **Bron:** [`4ca9262d`](https://github.com/simonvanieperen/nieuw-os/commit/4ca9262d776a8cb978e49ec209e67398b11fc9ad) ·
 **Ontwikkelbranch:** `simonvanieperen-friendly-system`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Gedeelde host-artefacthelpers refactoren zonder gedrag te wijzigen.
-41/100 blijft 41/100; deze refactor wijzigt geen productcriterium en levert geen native OS-bewijs op. Gedeelde SHA-256-bytehelpers en gecontroleerde bestandsinventarisatie zijn ingevoerd in tools/common.py en hergebruikt door de image-, RANDOM- en FPU-hostgates. De inventarisatie bewaart ook relatieve paden. Gerichte tests op deze bron slagen (20 image, 21 RANDOM, 8 common) en Python-syntaxiscontrole slaagt; de volledige Python-hosttests zijn op deze laatste bron nog niet herhaald. Geen native, fysieke, menselijke of releasevalidatie.
+41/100 blijft 41/100; deze refactor wijzigt geen productcriterium en levert geen native OS-bewijs op. Gedeelde SHA-256-bytehelpers en gecontroleerde bestandsinventarisatie zijn ingevoerd in tools/common.py en hergebruikt door de image-, RANDOM- en FPU-hostgates; relatieve paden blijven behouden. Op bron 4ca9262 slagen de volledige root-hosttests (469), tools-hosttests (189, met 3 bestaande skips omdat de Rust-toolchain ontbreekt), OSDev-skilltests (6) en FPU-hosttests (12), naast gerichte image/RANDOM/common-tests en Python-syntaxiscontrole. Geen native VM-, fysieke, menselijke of releasevalidatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

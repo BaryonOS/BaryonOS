@@ -13,20 +13,19 @@ de FPU-validator verwacht. Dit wijzigt geen OS-runtime of capability.
 **Uitgevoerd op deze bron:** `python3 -B -m unittest discover -s tools/tests
 -p 'test_images.py' -v` (20 tests), dezelfde opdracht met `test_random.py`
 (21), en `python3 -B -m unittest discover -s tests -p 'test_common.py' -v`
-(8): alle exit 0. `git diff --check && python3 -m py_compile tools/common.py
+(8): alle exit 0. De volledige suites slagen ook op deze bron:
+root-hosttests 469/469; `tools/tests` 189 tests, exit 0 met 3 bestaande skips
+omdat de Rust-toolchain ontbreekt; OSDev-skilltests 6/6; de aparte FPU-
+hostpoort 12/12. `git diff --check && python3 -m py_compile tools/common.py
 tools/run_images.py tools/run_random.py tools/run_fpu.py tests/test_common.py`:
-exit 0. Volledige root-/tools-/OSDev-Python-hosttests waren eerder groen op de
-voorloper `4945aef`, maar worden opnieuw uitgevoerd na deze padcompatibiliteitsfix.
-Dit zijn hosttests met synthetische fixtures, geen bewijs van QEMU-/native
-OS-gedrag. Compacte hashes:
+exit 0. Dit zijn hosttests met synthetische fixtures, geen bewijs van
+QEMU-/native OS-gedrag. Exacte commando's, exits en loghashes:
 `verification/shared-tooling-refactor-20261103/host-tests.json`.
 
 **Voortgang:** 41 → 41; geen criteriumbewijs toegevoegd. Eerstvolgend:
-voer de bestaande volledige Python-hosttests uit voor `tests/`,
-`tools/tests/` en de OSDev-skillsuite op exacte bron `4ca9262`; werk daarna
-het bewijsrapport bij, controleer de voortgangsmeter en push. Native
-productgates, volledige release, fysieke hardware en menselijke review zijn
-niet uitgevoerd.
+controleer de definitieve diff/voortgangsmeter en push het bijgewerkte
+testbewijs. Native productgates, volledige release, fysieke hardware en
+menselijke review zijn niet uitgevoerd.
 
 ## Vorig checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 
