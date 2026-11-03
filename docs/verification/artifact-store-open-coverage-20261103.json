@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "source_commit": "08710d55db5690acc12aa8458ceeab7cb39ae72c",
+  "branch": "simonvanieperen-animated-umbrella",
+  "scope": "Aanvullende host-contracttests voor validatie en binding van artifact-storedescriptoren en fouten bij openen",
+  "review_evidence": "pr140-review-evidence.json bevat verse controles op 2bf9578290bef88d53c17f9913434da6f27441f2 met volledige logs en SHA-256 in Git. De onderstaande historische bron-, command-, exit- en loghashvelden blijven ongewijzigd; tijdelijke paden zijn geen duurzame artifactverwijzingen.",
+  "tests_added": [
+    "open_rejects_malformed_or_differently_bound_store_descriptors",
+    "open_preserves_backend_authorization_and_storage_failures"
+  ],
+  "checks": [
+    {
+      "command": "PATH=\"$HOME/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:$PATH\" CARGO_TARGET_DIR=\"$PWD/target/artifact-store-coverage\" cargo test --locked -p artifact-store-core",
+      "exit_status": 101,
+      "result": "Eerste poging. Tests zijn niet uitgevoerd omdat de hostlinker cc ontbrak; systeeminstallatie vereiste interactieve sudo-authenticatie.",
+      "log": "/tmp/nieuw-os-artifact-store-test.log",
+      "log_sha256": "511c56acd049f9954c7f8e50b373ef8fbfa31fb9ae3fe6b194f4545b2d525069"
+    },
+    {
+      "command": "LD_LIBRARY_PATH=\"/tmp/nieuw-os-hostcc-20261103/root/usr/lib/x86_64-linux-gnu\" CARGO_TARGET_DIR=\"$PWD/target/artifact-store-coverage\" CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=\"/tmp/nieuw-os-hostcc-20261103/root/usr/bin/x86_64-linux-gnu-gcc-15\" RUSTFLAGS=\"-C link-arg=--sysroot=/tmp/nieuw-os-hostcc-20261103/root -C link-arg=-B/tmp/nieuw-os-hostcc-20261103/root/usr/libexec/gcc/x86_64-linux-gnu/15/ -C link-arg=-B/tmp/nieuw-os-hostcc-20261103/root/usr/lib/gcc/x86_64-linux-gnu/15/ -C link-arg=-B/tmp/nieuw-os-hostcc-20261103/root/usr/lib/x86_64-linux-gnu/\" PATH=\"$HOME/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:$PATH\" cargo test --locked -p artifact-store-core",
+      "exit_status": 0,
+      "result": "9 contracttests geslaagd; 0 mislukt. Rust 1.90.0. GCC 15.2.0 en libc-ontwikkelpakketten zijn vanuit Ubuntu-pakketten in een tijdelijke map uitgepakt; geen systeempakketten geinstalleerd.",
+      "log": "/tmp/nieuw-os-artifact-store-test-resolved.log",
+      "log_sha256": "25174e4898f6762ca5d3bf97be844391b97d68181945f6a37e302d7401ddafdf"
+    },
+    {
+      "command": "PATH=\"$HOME/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:$PATH\" CARGO_TARGET_DIR=\"$PWD/target/artifact-store-coverage\" cargo check --locked -p artifact-store-core --tests",
+      "exit_status": 0,
+      "result": "Typecontrole van productie- en testcode geslaagd; dit voert geen tests uit.",
+      "log": "/tmp/nieuw-os-artifact-store-check.log",
+      "log_sha256": "6d77f64dfc8c5325b90fdbe05d8be367bdd578bcccec24f275c5ffee7d03dd6e"
+    },
+    {
+      "command": "PATH=\"$HOME/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:$PATH\" CARGO_TARGET_DIR=\"$PWD/target/artifact-store-coverage\" cargo clippy --locked -p artifact-store-core --all-targets -- -D warnings",
+      "exit_status": 0,
+      "result": "Clippy geslaagd voor productie- en testdoelen.",
+      "log": "/tmp/nieuw-os-artifact-store-clippy.log",
+      "log_sha256": "736e2582f563605dd272e5fb977840b0c0767377d27b6940c440caf75eec7157"
+    },
+    {
+      "command": "PATH=\"$HOME/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin:$PATH\" cargo fmt --manifest-path crates/artifact-store-core/Cargo.toml -- --check",
+      "exit_status": 0,
+      "result": "Opmaakcontrole geslaagd.",
+      "log": "/tmp/nieuw-os-artifact-store-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "product_acceptance": "Geen. Dit zijn host-contracttests; zij bewijzen geen native OS-gedrag."
+}
