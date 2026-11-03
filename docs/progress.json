@@ -7,7 +7,7 @@
     "branch": "copilot/universal-driver-framework",
     "task": "USB-interface-descriptor decoding and class matching",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. De USB-core decodeert het standaard interface-descriptor en matcht class/subclass/protocol met optionele wildcards; geen enumeratie of driverstart. Formattercheck slaagt. Hosttests stopten vóór uitvoering omdat cc ontbreekt; geen systeemwijziging of workaround. Strict Clippy en freestanding check volgen. Geen USB-, QEMU- of fysiek bewijs en geen nieuw geaccepteerd criterium."
+    "summary": "41/100 blijft 41/100. De USB-core decodeert het standaard interface-descriptor en matcht class/subclass/protocol met optionele wildcards; geen enumeratie of driverstart. Formattercheck, strict Clippy en freestanding check slagen. Hosttests stopten vóór uitvoering omdat cc ontbreekt; geen systeemwijziging of workaround. Geen USB-, QEMU- of fysiek bewijs en geen nieuw geaccepteerd criterium."
   },
   "tracks": [
     {

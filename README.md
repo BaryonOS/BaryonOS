@@ -64,7 +64,7 @@ alleen een nette desktop haalt die eindgrens niet.
 **Bron:** [`e6e38d1e`](https://github.com/simonvanieperen/nieuw-os/commit/e6e38d1e524776241b4485bef278e16b5a2865ad) ·
 **Ontwikkelbranch:** `copilot/universal-driver-framework`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** USB-interface-descriptor decoding and class matching.
-41/100 blijft 41/100. De USB-core decodeert het standaard interface-descriptor en matcht class/subclass/protocol met optionele wildcards; geen enumeratie of driverstart. Formattercheck slaagt. Hosttests stopten vóór uitvoering omdat cc ontbreekt; geen systeemwijziging of workaround. Strict Clippy en freestanding check volgen. Geen USB-, QEMU- of fysiek bewijs en geen nieuw geaccepteerd criterium.
+41/100 blijft 41/100. De USB-core decodeert het standaard interface-descriptor en matcht class/subclass/protocol met optionele wildcards; geen enumeratie of driverstart. Formattercheck, strict Clippy en freestanding check slagen. Hosttests stopten vóór uitvoering omdat cc ontbreekt; geen systeemwijziging of workaround. Geen USB-, QEMU- of fysiek bewijs en geen nieuw geaccepteerd criterium.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
