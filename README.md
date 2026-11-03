@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`c4b3e57e`](https://github.com/simonvanieperen/nieuw-os/commit/c4b3e57e5ba63d74f52e7bbfe4ce274a3239d5c2) ·
+**Bron:** [`7e9bddcf`](https://github.com/simonvanieperen/nieuw-os/commit/7e9bddcfc92b6d5f788d7b2ccafb98205af7e0ce) ·
 **Ontwikkelbranch:** `simonvanieperen-vigilant-robot`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** M1: evidence-aware platform capability profiler core.
-41 blijft 41. Nieuwe no_std-profielkern rapporteert gevalideerd UEFI-conventioneel geheugen en GOP-modus; CPU, GPU-acceleratie, opslag, media, AI en energie blijven expliciet onbekend. Vier hosttests en gerichte check/Clippy/fmt slagen. Geen kernel-/dienstintegratie, native uitvoering of nieuw rubricbewijs; geen punten.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** M1/M2: platform capability profile and scoped user-policy cores.
+41 blijft 41. Twee no_std-cores voegen profielmodellering en exact scoped policy toe; 9 gerichte hosttests plus check/Clippy/fmt slagen. Hardwarevelden buiten gevalideerd bootgeheugen/GOP blijven Unknown. Policybytes zijn niet geauthenticeerd of duurzaam opgeslagen en policy is niet aan native runtimecapability-uitgifte gekoppeld. Geen native acceptatie of rubricpunten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

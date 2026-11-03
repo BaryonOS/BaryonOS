@@ -15,6 +15,38 @@ Historische bewijsbestanden behouden hun oorspronkelijke nummervermelding.
 | 056, eenmalig klembord | ADR-062 |
 | 056, herkenbare VM-sessieroute | ADR-063 |
 
+## ADR-064 — Persistente gebruikerspolicy blijft gescheiden van runtime-capabilities
+
+3 november 2026. De M4-kernelengine beheert actuele procesgebonden
+capabilityhandles en hun rechten/delegatie/intrekking. Een duurzame
+gebruikerskeuze is een andere soort toestand: zij beschrijft welke app voor
+welk middel en doel, in welke context en tijdens welke activiteit mag worden
+geactiveerd; zij is zelf geen kernelrecht.
+
+**Besluit:** `permission-policy-core` modelleert exacte scoped allow/deny-
+regels en levert uitsluitend `PolicyResult`. Een allow past alleen bij de
+volledige scope en, waar gevraagd, een actieve taak en foregroundcontext.
+Alleen een aparte vertrouwde broker mag een actuele capability laten uitgeven
+door de bestaande kernelengine en die bij taak-/sessie-einde intrekken.
+Policy krijgt geen `Cap`, handle, delegatierecht of kernelbootstraptoegang.
+Missende policy is `NoRule`; zij geeft geen recht.
+
+Het canonieke `NOSPOL01`-codec valideert alleen bytes en framing. Het
+authenticeert geen policy; alleen data uit een later ontworpen geauthenticeerde
+settings-store mag als gebruikerskeuze worden vertrouwd. De huidige kern
+implementeert geen duurzame store, accountbinding, consent-UI, transient
+`Once`/`This session`-grants, broker of runtime-uitgifte. Haar hosttests zijn
+geen native rechtenacceptatie. De M1-hardwareprofielkern houdt onbekende
+observaties expliciet `Unknown` en heeft geen security-/performancepolicy.
+
+**Gevolgen/herziening:** integreer pas nadat app-identiteit, geauthenticeerde
+policy-opslag en een vertrouwde taak-/sessiebron contractueel zijn vastgelegd.
+Test dan normale matching, achtergrondweigering, intrekking, herstel en
+storage-authenticiteitsfouten op de native service-/kernelgrens. Herzie bij
+een tegenvoorbeeld waarbij policydata zelf runtimeautoriteit blijkt te dragen
+of bij een afzonderlijk goedgekeurd brokercontract. Status en bewijsgrens:
+[UNIVERSAL-PROFESSIONAL-PLATFORM.md](implementation/UNIVERSAL-PROFESSIONAL-PLATFORM.md).
+
 ## Onderzoeksbesluit J-20261102 — herkenbare basis, expliciete installatiegrens
 
 **Datum:** 2 november 2026. **Status:** ontwerp-/onderzoekskeuze, geen

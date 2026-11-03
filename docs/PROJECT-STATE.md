@@ -1,6 +1,40 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — M1 hardwareprofielkern — 3 november 2026
+## NEXT AGENT HANDOFF — M1/M2 platformfundamenten — 3 november 2026
+
+**Bron:** `7e9bddcfc92b6d5f788d7b2ccafb98205af7e0ce` op branch
+`simonvanieperen-vigilant-robot`; M1-profielkern `c4b3e57e` en M2-policykern
+`d66b2e00` zijn afzonderlijke commits. De werkboom was schoon vóór deze
+opdracht.
+
+**Resultaat:** `platform-profile-core` modelleert acht hardwaredomeinen en
+vult alleen gevalideerd UEFI-ConventionalMemory en GOP-modus in.
+`permission-policy-core` bevat een begrensde policy met exacte
+app/resource/purpose/context/activity-scope, canonieke encode/decode en
+actieve-context-/foregroundvoorwaarden. Policyresultaat is niet converteerbaar
+naar een kernelcapability; `capability-core::Engine` blijft runtimeautoriteit.
+ADR-064 en de centrale status staan in
+[UNIVERSAL-PROFESSIONAL-PLATFORM.md](implementation/UNIVERSAL-PROFESSIONAL-PLATFORM.md).
+
+**Bewijs:** gecombineerde gerichte hosttests: 9 geslaagd; `cargo check`,
+Clippy, rustfmt en `git diff --check` exit 0.
+[M2-testbewijs](verification/permission-policy-core-20261103/README.md) en
+[M1-testbewijs](verification/platform-profile-core-20261103/README.md).
+
+**Open/beperking:** geen profilerintegratie in kernel/driver/service en geen
+opgeslagen beleidsrecords. Het M2-codec authenticeert bytes niet; er is nog
+geen vertrouwde settings-store, geverifieerde appidentiteit of
+task/session-broker die policy veilig evalueert, tijdelijke capabilities
+uitgeeft en ze bij taakafloop intrekt. Geen native/VM-/fysiek bewijs.
+
+**Voortgang:** 41 → 41/100; geen rubriccriterium gesloten.
+
+**Eerstvolgend:** controleer de actuele eigenaar/fileclaims rond het bestaande
+app-package-/app-managementspoor en kies daarna één native integratiestap.
+De verificatiekern en transactiemodellen bestaan al; een installer,
+duurzame bronregistratie en native launchroute ontbreken.
+
+## Historisch checkpoint — M1 hardwareprofielkern — 3 november 2026
 
 **Bron:** `c4b3e57e5ba63d74f52e7bbfe4ce274a3239d5c2` op branch
 `simonvanieperen-vigilant-robot`; de
