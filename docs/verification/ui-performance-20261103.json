@@ -1,0 +1,39 @@
+{
+  "task": "Materiaal-prototype input responsiveness",
+  "source_commit": "f2c3354d159ae91699e0926fd6f39a769705aa14",
+  "branch": "simonvanieperen-sturdy-guide",
+  "environment": {
+    "node": "v24.16.0"
+  },
+  "checks": [
+    {
+      "command": "\"/mnt/c/Program Files/nodejs/node.exe\" --test --test-isolation=none ui/prototype/tests/*.test.mjs",
+      "exit_status": 0,
+      "result": "41 tests passed; 0 failed; 729 ms"
+    },
+    {
+      "command": "\"/mnt/c/Program Files/nodejs/node.exe\" --check ui/prototype/app.js && \"/mnt/c/Program Files/nodejs/node.exe\" --check ui/prototype/state.js && \"/mnt/c/Program Files/nodejs/node.exe\" --check ui/prototype/tests/render-performance.test.mjs",
+      "exit_status": 0,
+      "result": "All three syntax checks passed"
+    },
+    {
+      "command": "git diff --cached --check",
+      "exit_status": 0,
+      "result": "No whitespace errors before commit"
+    }
+  ],
+  "measured_behavior": {
+    "search_root_dom_replacements_per_input": 0,
+    "search_focus_changes_per_input": 0,
+    "session_storage_writes_for_three_rapid_profile_inputs": 1,
+    "pending_write_flushed_on_focusout_and_pagehide": true,
+    "draft_keystrokes_deep_clone_saved_object_history": false
+  },
+  "sha256": {
+    "ui/prototype/app.js": "28445d36cc2a7f5385010dbd490a2a2969deaf46ac614d6416148d623761d2c2",
+    "ui/prototype/state.js": "c5e7a64522a66ac901ec36082b89a811d733f98241d4a44273a7f73dfdf5c0a6",
+    "ui/prototype/tests/render-performance.test.mjs": "39ceaf33de6fddc554ea2214d0f4a9e890df29fb1845fe65fd3be1ee14c055e1",
+    "ui/prototype/tests/state.test.mjs": "9a61eae30fcdbf3ef067d8be3572de990262f55ed0ae2a0f74c3e46b3cfd0227"
+  },
+  "evidence_boundary": "Host-side Node tests with a small fake DOM; not a browser benchmark or native OS performance result. No database or production bundle pipeline exists in the inspected P02 path."
+}
