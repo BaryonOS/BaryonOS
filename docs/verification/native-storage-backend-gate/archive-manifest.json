@@ -9,14 +9,14 @@
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\verification.json",
     "source_sha256": "3192407802d80ac940fe15694c53363e8cd0393b3990a9e060522ce98ac40189",
-    "archive": "verification.json",
+    "archive": "verification.json.historical.txt",
     "archive_sha256": "3192407802d80ac940fe15694c53363e8cd0393b3990a9e060522ce98ac40189",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\verify_evidence.py",
     "source_sha256": "bdd5d84fce52d9d38fd1bd2a7e5ed248cd38842581151ec14b539202d2ca1acc",
-    "archive": "verify_evidence.py",
+    "archive": "verify_evidence.py.historical.txt",
     "archive_sha256": "bdd5d84fce52d9d38fd1bd2a7e5ed248cd38842581151ec14b539202d2ca1acc",
     "reduction": "none"
   },
@@ -58,7 +58,7 @@
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\README.md",
     "source_sha256": "cfe4381c2183b8f612a2dace85ee5aea258db20e1376e8db11651fd3b933e1b8",
-    "archive": "btrfs/README.md",
+    "archive": "btrfs/README.md.historical.txt",
     "archive_sha256": "cfe4381c2183b8f612a2dace85ee5aea258db20e1376e8db11651fd3b933e1b8",
     "reduction": "none"
   },
@@ -93,7 +93,7 @@
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\metadata\\README.md",
     "source_sha256": "377264dabbc6a4d229f4b0cb96bcc5b97e608decfb02499debe83be909cdf71f",
-    "archive": "btrfs/metadata/README.md",
+    "archive": "btrfs/metadata/README.md.historical.txt",
     "archive_sha256": "377264dabbc6a4d229f4b0cb96bcc5b97e608decfb02499debe83be909cdf71f",
     "reduction": "none"
   },
@@ -107,14 +107,14 @@
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\README.md",
     "source_sha256": "fa811d1fcb578d148b1743b065c11a3b89fac5a27bebfc26b0efc924c1d884fe",
-    "archive": "native/README.md",
+    "archive": "native/README.md.historical.txt",
     "archive_sha256": "fa811d1fcb578d148b1743b065c11a3b89fac5a27bebfc26b0efc924c1d884fe",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\native_probe.py",
     "source_sha256": "cfc9bc9b34821350dec0f89456311f3982df20d38e2d84d0a2cbf0d418870aec",
-    "archive": "native/native_probe.py",
+    "archive": "native/native_probe.py.historical.txt",
     "archive_sha256": "cfc9bc9b34821350dec0f89456311f3982df20d38e2d84d0a2cbf0d418870aec",
     "reduction": "none"
   },
@@ -205,42 +205,42 @@
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\probe.py",
     "source_sha256": "f689648d7b279b3325fcd7f62af4bafd6dbb3d47ad770224a11666fa7216a2ae",
-    "archive": "btrfs/probe.py",
+    "archive": "btrfs/probe.py.historical.txt",
     "archive_sha256": "f689648d7b279b3325fcd7f62af4bafd6dbb3d47ad770224a11666fa7216a2ae",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\experiment.py",
     "source_sha256": "9c418780b33d9345d58dd97675641d2d47448a2a02f9932cc735509bd12b5b33",
-    "archive": "btrfs/experiment.py",
+    "archive": "btrfs/experiment.py.historical.txt",
     "archive_sha256": "9c418780b33d9345d58dd97675641d2d47448a2a02f9932cc735509bd12b5b33",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\faults.py",
     "source_sha256": "5364d8fab091da5f8b699f8337d26c2307afc2838373475bc852093f45e9b63a",
-    "archive": "btrfs/faults.py",
+    "archive": "btrfs/faults.py.historical.txt",
     "archive_sha256": "5364d8fab091da5f8b699f8337d26c2307afc2838373475bc852093f45e9b63a",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\finalize.py",
     "source_sha256": "8bae86a1ed3d2a4b192185da7974672f4616dad6bbba49ea8ad01b29ee3ef3e5",
-    "archive": "btrfs/finalize.py",
+    "archive": "btrfs/finalize.py.historical.txt",
     "archive_sha256": "8bae86a1ed3d2a4b192185da7974672f4616dad6bbba49ea8ad01b29ee3ef3e5",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\metadata_probe.py",
     "source_sha256": "68a0d98a6d0d00609f3188e0c294b8aa35a40c2b0acffb99cd2dda3fa8769f1f",
-    "archive": "btrfs/metadata_probe.py",
+    "archive": "btrfs/metadata_probe.py.historical.txt",
     "archive_sha256": "68a0d98a6d0d00609f3188e0c294b8aa35a40c2b0acffb99cd2dda3fa8769f1f",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\btrfs\\metadata_review.py",
     "source_sha256": "77c8984f58994b5653564f03278eef648587806c6170e03b52456774801d8265",
-    "archive": "btrfs/metadata_review.py",
+    "archive": "btrfs/metadata_review.py.historical.txt",
     "archive_sha256": "77c8984f58994b5653564f03278eef648587806c6170e03b52456774801d8265",
     "reduction": "none"
   },
@@ -310,14 +310,14 @@
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\README.md",
     "source_sha256": "960f4276a9f3d6d0903d16c2f96e596fccd7fe7df17b914d7371ac50f88caa6e",
-    "archive": "native-current/README.md",
+    "archive": "native-current/README.md.historical.txt",
     "archive_sha256": "960f4276a9f3d6d0903d16c2f96e596fccd7fe7df17b914d7371ac50f88caa6e",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\native_probe.py",
     "source_sha256": "288787eb58bc38642f35358987ed35e572619905590f102ca4fb677e0ff9e652",
-    "archive": "native-current/native_probe.py",
+    "archive": "native-current/native_probe.py.historical.txt",
     "archive_sha256": "288787eb58bc38642f35358987ed35e572619905590f102ca4fb677e0ff9e652",
     "reduction": "none"
   },
@@ -464,119 +464,119 @@
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\01-acquire.sh",
     "source_sha256": "3f320091402fd7478aecb84f5cd238b81c8fa2598440374aa1fdac042c275ae0",
-    "archive": "openzfs/01-acquire.sh",
+    "archive": "openzfs/01-acquire.sh.historical.txt",
     "archive_sha256": "3f320091402fd7478aecb84f5cd238b81c8fa2598440374aa1fdac042c275ae0",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\02-preflight.sh",
     "source_sha256": "c9e3babae990af4f37b02707f90851606ed663fef805f6876666a71e80220859",
-    "archive": "openzfs/02-preflight.sh",
+    "archive": "openzfs/02-preflight.sh.historical.txt",
     "archive_sha256": "c9e3babae990af4f37b02707f90851606ed663fef805f6876666a71e80220859",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\03-create-initial-help-mismatch.sh",
     "source_sha256": "25102cb932bdfb79dcf6502df299863bad3104ebd961c9965f68c57f577c1ff8",
-    "archive": "openzfs/03-create-initial-help-mismatch.sh",
+    "archive": "openzfs/03-create-initial-help-mismatch.sh.historical.txt",
     "archive_sha256": "25102cb932bdfb79dcf6502df299863bad3104ebd961c9965f68c57f577c1ff8",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\03-create-invalid-dedup.sh",
     "source_sha256": "2e5ef10e4f00a986a7bc73182286b0a23d6779b8186b529f1aa881d3803a2fa3",
-    "archive": "openzfs/03-create-invalid-dedup.sh",
+    "archive": "openzfs/03-create-invalid-dedup.sh.historical.txt",
     "archive_sha256": "2e5ef10e4f00a986a7bc73182286b0a23d6779b8186b529f1aa881d3803a2fa3",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\03-create-low-as.sh",
     "source_sha256": "032dc28e9164a5add425609dcfbe83eadbb60e2ca185ac0785743aaea3b579cb",
-    "archive": "openzfs/03-create-low-as.sh",
+    "archive": "openzfs/03-create-low-as.sh.historical.txt",
     "archive_sha256": "032dc28e9164a5add425609dcfbe83eadbb60e2ca185ac0785743aaea3b579cb",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\03-create-unsupported-tunable.sh",
     "source_sha256": "5932711a644643dfe04d252644311758eceaf08cfc9fc65675884cbe5eb060ab",
-    "archive": "openzfs/03-create-unsupported-tunable.sh",
+    "archive": "openzfs/03-create-unsupported-tunable.sh.historical.txt",
     "archive_sha256": "5932711a644643dfe04d252644311758eceaf08cfc9fc65675884cbe5eb060ab",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\03-create.sh",
     "source_sha256": "499c8567472e0865d0d8aeffaac2b6fa86ddf3c2e52219112c69b11b453ba2ef",
-    "archive": "openzfs/03-create.sh",
+    "archive": "openzfs/03-create.sh.historical.txt",
     "archive_sha256": "499c8567472e0865d0d8aeffaac2b6fa86ddf3c2e52219112c69b11b453ba2ef",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\04-baseline-freshcheck.sh",
     "source_sha256": "3028313c3a8c4488171d69a2bab0c7cccb29e02d5e8ef01d3f9e129959a24c0a",
-    "archive": "openzfs/04-baseline-freshcheck.sh",
+    "archive": "openzfs/04-baseline-freshcheck.sh.historical.txt",
     "archive_sha256": "3028313c3a8c4488171d69a2bab0c7cccb29e02d5e8ef01d3f9e129959a24c0a",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\05-reuse-kill.sh",
     "source_sha256": "b22ccfc8a71a892b89971431a27a2ec96aa301a5814f07997dcf8c270cc4ebad",
-    "archive": "openzfs/05-reuse-kill.sh",
+    "archive": "openzfs/05-reuse-kill.sh.historical.txt",
     "archive_sha256": "b22ccfc8a71a892b89971431a27a2ec96aa301a5814f07997dcf8c270cc4ebad",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\06-labels.sh",
     "source_sha256": "48e007da181aeca2f93d31330053594711cc6d44c55f58c7b78ca28c312e10f7",
-    "archive": "openzfs/06-labels.sh",
+    "archive": "openzfs/06-labels.sh.historical.txt",
     "archive_sha256": "48e007da181aeca2f93d31330053594711cc6d44c55f58c7b78ca28c312e10f7",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\07-crash-create.sh",
     "source_sha256": "f6004f404faa3b78d7bba9d1b0cd4e90ead5b5a41fa015a728f68e7e0d615295",
-    "archive": "openzfs/07-crash-create.sh",
+    "archive": "openzfs/07-crash-create.sh.historical.txt",
     "archive_sha256": "f6004f404faa3b78d7bba9d1b0cd4e90ead5b5a41fa015a728f68e7e0d615295",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\08-backup-stream.sh",
     "source_sha256": "63e05564d6f9e378b3f1aa2773a2a778f739c24bec5de3173a0e9554df499347",
-    "archive": "openzfs/08-backup-stream.sh",
+    "archive": "openzfs/08-backup-stream.sh.historical.txt",
     "archive_sha256": "63e05564d6f9e378b3f1aa2773a2a778f739c24bec5de3173a0e9554df499347",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\09-crash-freshcheck-blocks.sh",
     "source_sha256": "a8eb7f323215cfac6d5ca3ccdcf95c09007c07d8fc771fac3ab78c169f9fe0c8",
-    "archive": "openzfs/09-crash-freshcheck-blocks.sh",
+    "archive": "openzfs/09-crash-freshcheck-blocks.sh.historical.txt",
     "archive_sha256": "a8eb7f323215cfac6d5ca3ccdcf95c09007c07d8fc771fac3ab78c169f9fe0c8",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\10-blockpointers.sh",
     "source_sha256": "fbcbf00adfe5ab8521e95416737c7829bf9b866905dd09e1c1de6228c0725967",
-    "archive": "openzfs/10-blockpointers.sh",
+    "archive": "openzfs/10-blockpointers.sh.historical.txt",
     "archive_sha256": "fbcbf00adfe5ab8521e95416737c7829bf9b866905dd09e1c1de6228c0725967",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\11-package-evidence.sh",
     "source_sha256": "31e839d6fcd309709f595136f2da1d4ee283bb2983a693e32bda93cd5acabd61",
-    "archive": "openzfs/11-package-evidence.sh",
+    "archive": "openzfs/11-package-evidence.sh.historical.txt",
     "archive_sha256": "31e839d6fcd309709f595136f2da1d4ee283bb2983a693e32bda93cd5acabd61",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\12-write-evidence.py",
     "source_sha256": "6633b7093979bc2f9c2ff0872698c580e26b99deba91147e58116c5268f386a7",
-    "archive": "openzfs/12-write-evidence.py",
+    "archive": "openzfs/12-write-evidence.py.historical.txt",
     "archive_sha256": "6633b7093979bc2f9c2ff0872698c580e26b99deba91147e58116c5268f386a7",
     "reduction": "none"
   },
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\13-hash-artifacts.py",
     "source_sha256": "7b76e01e5fe154c0b55586e35ac7529fd91865d22355372cf81b02356adbb065",
-    "archive": "openzfs/13-hash-artifacts.py",
+    "archive": "openzfs/13-hash-artifacts.py.historical.txt",
     "archive_sha256": "7b76e01e5fe154c0b55586e35ac7529fd91865d22355372cf81b02356adbb065",
     "reduction": "none"
   },
@@ -590,7 +590,7 @@
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\COMMANDS.md",
     "source_sha256": "f0c2ac598a254951ac20ff2f64b867c086ac961490d7a2a0ab60b870c9b1282d",
-    "archive": "openzfs/COMMANDS.md",
+    "archive": "openzfs/COMMANDS.md.historical.txt",
     "archive_sha256": "f0c2ac598a254951ac20ff2f64b867c086ac961490d7a2a0ab60b870c9b1282d",
     "reduction": "none"
   },
@@ -604,7 +604,7 @@
   {
     "source": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\openzfs\\README.md",
     "source_sha256": "a1a40fa5c66da97818868431be03a932f6222e9ffe485edb82422185bee7ba29",
-    "archive": "openzfs/README.md",
+    "archive": "openzfs/README.md.historical.txt",
     "archive_sha256": "a1a40fa5c66da97818868431be03a932f6222e9ffe485edb82422185bee7ba29",
     "reduction": "none"
   },
