@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-03",
+  "branch": "simonvanieperen-studious-spoon",
+  "source_commit": "782193953cd82d858cecc1de0c07cf862619522a",
+  "scope": "Deterministic state-transition regression test for the standalone in-memory system journal; host API tests only.",
+  "source_sha256": {
+    "crates/system-journal/tests/consumer.rs": "e1cb520acf167af40cee05f76bd74016416f2efd4f2b35e66e2616c0c43c5cbe",
+    "crates/system-journal/README.md": "23c7c7b887fe42a509b33516493ec35a15932cde8ffb7a7cae6a39a0fcf239e6"
+  },
+  "environment": "Rust 1.90.0; PATH prefixed with /tmp/nieuw-os-c-toolchain/bin and $HOME/.cargo/bin; CARGO_TARGET_DIR=/tmp/nieuw-os-system-journal-target.",
+  "checks": [
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-system-journal-target cargo +1.90.0 fmt --manifest-path crates/system-journal/Cargo.toml -- --check",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-journal-state-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-system-journal-target cargo +1.90.0 test --manifest-path crates/system-journal/Cargo.toml --offline --locked",
+      "exit_code": 0,
+      "results": "9 external-consumer tests passed; no failures.",
+      "log": "/tmp/nieuw-os-journal-state-test.log",
+      "log_sha256": "1fe89f19c4ff2b52d44274ad55adb1d186cbada52064c7ac584b3112dd8c6b6a"
+    },
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-system-journal-target cargo +1.90.0 clippy --manifest-path crates/system-journal/Cargo.toml --all-targets --offline --locked -- -D warnings",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-journal-state-clippy.log",
+      "log_sha256": "d75fd0f2e4a62cad560dccf2d9118ca73d0bdb91c0b995c447f73b389bd154dd"
+    },
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-system-journal-target cargo +1.90.0 check --manifest-path crates/system-journal/Cargo.toml --target x86_64-unknown-none --offline --locked",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-journal-state-none.log",
+      "log_sha256": "02db5a66fa0c60ca8618bd08aac556eac4f3ec863e8630a0d353dba6a0f6e126"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "implemented": [
+    "A 257-write deterministic sequence with periodic timestamp-regression rejection is compared with a reference model.",
+    "After every transition, the test checks retained sequence/order, process- and capability-scoped reads, and written/overwritten/rejected counters.",
+    "The repeated wraparound path remains an external consumer test; no production API or dependency changed."
+  ],
+  "limitations": [
+    "This is deterministic state-transition testing, not coverage-guided or continuous fuzzing.",
+    "The standalone journal remains in-memory and is not integrated into kernel/service producers or a native diagnostics app.",
+    "No product rubric criterion is closed by this host-test slice; the roadmap remains 41/100.",
+    "Central PROJECT-STATE and progress files remain with their designated owner and were not modified."
+  ]
+}
