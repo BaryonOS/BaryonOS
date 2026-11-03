@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`05706135`](https://github.com/simonvanieperen/nieuw-os/commit/057061351784535448bf9e631d6fc7952bab3195) ·
+**Bron:** [`37240c1f`](https://github.com/simonvanieperen/nieuw-os/commit/37240c1f190c5d684c9c97d3adedbeb8d717c8f4) ·
 **Ontwikkelbranch:** `simonvanieperen-sturdy-guide`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Combineer PR141 met nieuwe main d115cc96 zonder prototype- of bewijsverlies.
-41 blijft 41. PR141-basis 05706135 en main d115cc96 zijn gecombineerd met behoud van beide geschiedenissen, de prototypefix en alle PR140-contracttests/receipts. Vier conflicten alleen centrale metadata; beide rubrics identiek. Oude Node/Chrome- en artifact-store-resultaten blijven eigen bronbewijs. Nieuwe tests op de gecombineerde commit en volledige CI/review blijven vereist; PR135-fixtures/RANDOM en fysieke/menselijke releasegrenzen blijven open. De eerdere PR140-mergeafwijking is ongewijzigd bewaard in docs/verification/pr140-merge-postcheck.json.
+41 blijft 41. Geteste merge 37240c1f combineert PR141-basis 05706135 en main d115cc96 met behoud van beide geschiedenissen, prototypefix en alle PR140-tests/receipts. Vier conflicten alleen metadata; rubrics identiek. Op deze merge opnieuw 41 reguliere Node- en 9 artifact-store-tests groen; exacte commando's en volledige logs in docs/verification/pr141-d115-integration.json. Oude Chromeproef blijft eigen c94-bronbewijs. Volledige CI/review, PR135-fixtures/RANDOM en fysieke/menselijke releasegrenzen blijven open. Eerdere PR140-mergeafwijking blijft vastgelegd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -2,16 +2,21 @@
 
 ## NEXT AGENT HANDOFF — PR141 neemt main d115cc96 behoudend op — 3 november 2026
 
-Basis `057061351784535448bf9e631d6fc7952bab3195` en main
-`d115cc96c19ac4371baed77409a23d1adddffaf0` worden gecombineerd.
+Geteste merge `37240c1f190c5d684c9c97d3adedbeb8d717c8f4` combineert
+basis `057061351784535448bf9e631d6fc7952bab3195` en main
+`d115cc96c19ac4371baed77409a23d1adddffaf0`.
 Vier conflicten uitsluitend centrale metadata; beide geschiedenissen,
 prototypefix, PR140-tests en alle brongebonden receipts blijven behouden.
 Prototypeboom blijft gelijk aan `c94a40e9`; artifact-store-tests gelijk aan
 main `d115cc96`. Beide rubrics identiek: **41 → 41**.
 
-Eerst de gecombineerde commit testen met de reguliere 41 Node-tests en
-9 artifact-store-contracttests; oude Chromeproef blijft aan c94 gebonden.
-Daarna nieuwe CI/native/review beoordelen. De eerdere PR140-mergeafwijking
+Op deze merge slagen opnieuw 41 reguliere Node-tests en 9 artifact-store-
+contracttests, elk exit 0. De volledige Node-testkopie is bytegecontroleerd;
+exacte commando's, tree/ouders, omgeving en volledige logs met SHA-256:
+[integratiebewijs](verification/pr141-d115-integration.json).
+Oude Chromeproef blijft aan c94 gebonden. Eerstvolgend:
+`GH_PAGER="" gh pr checks 141`; nieuwe CI/native/review beoordelen.
+De eerdere PR140-mergeafwijking
 blijft hieronder en in het auditrapport zichtbaar; volgende merge-aanroep
 alleen binnen een geslaagde gekoppelde preflight, geen shellvervolg.
 PR135's twee echte RAW-fouten, ontbrekende volume-fixtures en fysieke/

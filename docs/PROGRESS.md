@@ -85,6 +85,12 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR141-mainvervolg (3 november 2026), geteste merge `37240c1f`:
+**41 → 41**. Main `d115cc96` en PR141 zijn behoudend gecombineerd; 41
+reguliere Node-tests en 9 artifact-store-contracttests opnieuw groen.
+[Exacte bron/commando's en volledige logs](verification/pr141-d115-integration.json).
+Geen nieuwe Chrome-, native-, fysieke of menselijke acceptatie.
+
 Integratiecheckpoint (3 november 2026), basis `71cdb210`: **41 → 41**.
 PR140 is werkelijk main `d115cc96`, exact dezelfde geteste boom; 32
 technische checks groen. De herstartte CodeRabbit-review liet de extra

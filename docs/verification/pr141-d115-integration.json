@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-03",
+  "tested_source_commit": "37240c1f190c5d684c9c97d3adedbeb8d717c8f4",
+  "tested_source_tree": "49ea965463b6ea5fd5e7fcdcce5e92237712373b",
+  "parents": [
+    "057061351784535448bf9e631d6fc7952bab3195",
+    "d115cc96c19ac4371baed77409a23d1adddffaf0"
+  ],
+  "windows_snapshot": "/mnt/c/Users/simon/AppData/Local/nieuw-os/copilot-tests/pr141-d115-37240c1f190c",
+  "snapshot_validation": "Entire git archive ui/prototype byte-matched to actual source; regular Node file runner, no memory loader.",
+  "environment": {
+    "PATH": "/home/simon/.cargo/bin:/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/host-linker:/home/simon/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Users/simon/adb-fastboot/platform-tools:/mnt/c/Program Files/dotnet/:/mnt/c/Program Files/nodejs/:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/Tailscale/:/mnt/c/Program Files/WSL/:/mnt/c/Users/simon/AppData/Local/studio/bin:/mnt/c/Users/simon/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/simon/AppData/Local/Programs/Microsoft VS Code/bin:/mnt/c/Users/simon/AppData/Roaming/npm:/mnt/c/Users/simon/.local/bin:/mnt/c/Program Files (x86)/Google/Cloud SDK/google-cloud-sdk/bin:/mnt/c/Users/simon/AppData/Local/PowerToys/DSCModules/:/mnt/c/Users/simon/AppData/Local/Programs/Ollama:/mnt/c/ProgramData/simon/studio/bin:/mnt/c/ProgramData/simon/studio_app/bin:/mnt/c/Users/simon/AppData/Local/Programs/ProtonPass:/mnt/c/ProgramData/simon/GitHubDesktop/bin:/mnt/c/Users/simon/AppData/Local/Microsoft/WinGet/Links:/mnt/c/Users/simon/AppData/Local/Programs/coderabbit:/mnt/c/Users/simon/AppData/Local/GitHubCopilotCLI/:/mnt/c/Users/simon/AppData/Local/PowerToys/bin/:/snap/bin:/home/simon/.cache/copilot/pkg/linux-x64/1.0.104-0/ripgrep/bin/linux-x64",
+    "CARGO_TARGET_DIR": "target/pr141-d115-host"
+  },
+  "checks": [
+    {
+      "argv": [
+        "/mnt/c/Program Files/nodejs/node.exe",
+        "--test",
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\copilot-tests\\pr141-d115-37240c1f190c\\ui\\prototype\\tests\\nas-sharing.test.mjs",
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\copilot-tests\\pr141-d115-37240c1f190c\\ui\\prototype\\tests\\render-performance.test.mjs",
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\copilot-tests\\pr141-d115-37240c1f190c\\ui\\prototype\\tests\\state.test.mjs"
+      ],
+      "exit_status": 0,
+      "seconds": 0.172582,
+      "log": "/tmp/nieuw-os-pr141-d115-0.log",
+      "sha256": "b60522240543177dae8defc78f87c552736996dcd0e561acb16c173c1df9ae5b",
+      "raw_log_utf8": "✔ NAS-UI-01: discovery alone grants no connection; confirmation and identity are required (0.833ms)\n✔ NAS-UI-02: invitations expire and cannot be replayed after acceptance (0.1251ms)\n✔ NAS-UI-03: remote opt-in is specific to the confirmed peer; identity failure revokes it (0.6861ms)\n✔ NAS-UI-04: owner NAS can reconnect remotely only after explicit bound permission (0.4305ms)\n✔ NAS-UI-04b: remote permission can be revoked while the known NAS is offline (16.6696ms)\n✔ NAS-UI-04c: verified route observations switch seamlessly using existing consent and retire local admin (0.4803ms)\n✔ NAS-UI-04d: route observations cannot invent consent, trust or reachability; failures preserve local editing (1.2338ms)\n✔ NAS-UI-05: offering space requires own NAS, explicit setup, and available quota (0.3636ms)\n✔ NAS-UI-05b: data pairing grants no admin role and internet routes cannot enable, invite or remove (0.8461ms)\n✔ NAS-UI-06: admin removal needs admin confirmation, never guest consent or a decryption key (0.3517ms)\n✔ NAS-UI-07: stale upload completions cannot reopen evicted space; new invite gets a different id (0.2772ms)\n✔ NAS-UI-08: admin sees only allocation metadata, never guest document fields (0.2239ms)\n✔ NAS-UI-09: receiving revocation blocks stale requests and preserves local documents and AI boundary (0.1704ms)\n✔ NAS-UI-10: refresh expires internet and admin permissions, preserving bounded deletion history (0.7613ms)\n✔ NAS-UI-11: UI mock stays network-free and retains explicit simulation labels (5.2445ms)\n✔ search preserves its shell and input persistence is bounded and flushed (10.3788ms)\n✔ P2-01: onboarding steps and local profile complete without account (0.9571ms)\n✔ P2-01: search, collection and empty fixture results (0.4736ms)\n✔ P2-01: search also finds the visible document type within its collection (0.117ms)\n✔ P2-02: requesting and denying access never modifies content or grants (0.8304ms)\n✔ P2-02: explicit grant stays scoped to one document, session and operations (0.2865ms)\n✔ P2-02: forged broad and unknown requests fail closed (0.171ms)\n✔ P2-02: revocation blocks subsequent saves and preserves local draft (0.229ms)\n✔ P2-02: closing and reopening expires the old grant, resumes draft only (0.2342ms)\n✔ P2-02: refresh resumes fixtures but never an active lease (0.6336ms)\n✔ stored display values cannot inject version markup or alter tool permissions (0.371ms)\n✔ P2-02: fixture installation grants zero rights and invalid signature blocks it (0.1969ms)\n✔ P2-02: Webvenster requests explicit destination but receives no write grant (0.1777ms)\n✔ P2-02: granting Webvenster preserves a valid editor grant (0.2265ms)\n✔ P2-03: all NAS failure states keep local save working without a sync claim (0.4303ms)\n✔ P2-03: NAS identity cannot be trusted by a network-state toggle (0.3132ms)\n✔ P2-04: missing local model or memory never produces a summary (0.1662ms)\n✔ P2-04: summary uses selected material only (0.1405ms)\n✔ P2-04: cancellation and changed context reject stale asynchronous completion (0.189ms)\n✔ P2-05: restore first previews, then appends without erasing history (0.1869ms)\n✔ stale revision and oversized content cannot overwrite saved material (0.1131ms)\n✔ unknown object route never keeps a previous object or lease open (0.1041ms)\n✔ reducer does not mutate its caller state (0.1369ms)\n✔ draft keystrokes preserve saved history without deep-cloning it (0.0848ms)\n✔ P2-08: CSP blocks outbound connections and app code has no networking APIs (7.5764ms)\n✔ P2-06: specified text and control color pairs meet their contrast thresholds (3.8793ms)\nℹ tests 41\nℹ suites 0\nℹ pass 41\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 99.0828\n"
+    },
+    {
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "-p",
+        "artifact-store-core"
+      ],
+      "exit_status": 0,
+      "seconds": 0.393922,
+      "log": "/tmp/nieuw-os-pr141-d115-1.log",
+      "sha256": "789dfd113c91db8134b485c2d9fe9828af0a6224b0bb5c7360d215cc284ea0b9",
+      "raw_log_utf8": "   Compiling artifact-store-core v0.1.0 (/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr141-performance/crates/artifact-store-core)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.36s\n     Running unittests src/lib.rs (target/pr141-d115-host/debug/deps/artifact_store_core-55114e96a10c57b4)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/contract.rs (target/pr141-d115-host/debug/deps/contract-fc4af10993e7c71a)\n\nrunning 9 tests\ntest bounded_read_accepts_positive_short_reads_and_clamps_at_eof ... ok\ntest capacity_uses_checked_u64_arithmetic_and_provider_quota ... ok\ntest descriptor_requires_nonzero_id_generation_and_length ... ok\ntest invalid_buffers_eof_and_out_of_range_never_reach_store ... ok\ntest open_preserves_backend_authorization_and_storage_failures ... ok\ntest open_rejects_malformed_or_differently_bound_store_descriptors ... ok\ntest open_rejects_noncanonical_or_different_store_descriptor ... ok\ntest store_stale_revocation_and_io_errors_remain_explicit ... ok\ntest zero_short_and_impossible_backend_reads_fail_closed ... ok\n\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Doc-tests artifact_store_core\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    }
+  ],
+  "tests": {
+    "regular_node": 41,
+    "artifact_store": 9
+  },
+  "boundary": "Geen verse Chrome/native/QEMU/fullCI- of productacceptatie; oude proeven behouden eigen bron. Vier conflicten alleen metadata, beide rubrics41 gelijk.",
+  "progress_previous": 41,
+  "progress_current": 41
+}
