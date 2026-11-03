@@ -85,6 +85,17 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Visueel ontwerpplan (3 november 2026), basis `380111b6`, branch
+`simonvanieperen-fictional-disco`: **41 -> 41**, geen gewijzigde
+criteriumstatussen of gewichten. Publieke rendercode, officiële richtlijnen,
+vijf presentatiearchitecturen, twintig tekstuele toestanden per richting en
+concrete studiewaarden onderbouwen vervolgonderzoek. Veld en Werkstuk zijn
+aanbevelingen, geen definitieve keuze of native implementatie.
+Geen afbeeldingen, nieuwe host-/VM-/fysieke productproeven of menselijke
+acceptatie. U02-U06 en de volledige release blijven open; bestaand bewijs
+blijft brongebonden. Zie [ontwerpplan](design/VISUAL-ARCHITECTURE-PLAN.md)
+en [brononderzoek](research/VISUAL-RENDERING-RESEARCH.md).
+
 PR127-reviewintegratie (2 november 2026), basis `798706c` met `8f08db4`:
 branch **41 → 41**, main **34 → 34**. Zeven reviewpunten en gekoppelde
 font/damage-integratie hersteld; 189 Rust-app/UI-,9 netwerk- en31 Python-tests

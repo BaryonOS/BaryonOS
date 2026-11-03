@@ -2,6 +2,18 @@
 
 Status: **onderzoek en strategische onderbouwing, geen native implementatiebewijs**.
 
+## Visueel ontwerp — 3 november 2026
+
+[VISUAL-RENDERING-RESEARCH.md](VISUAL-RENDERING-RESEARCH.md) vergelijkt publieke
+rendercode en officiële richtlijnen met de huidige eigen graphicsstack.
+[Het concrete ontwerpplan](../design/VISUAL-ARCHITECTURE-PLAN.md) bevat vijf
+verschillende presentatiearchitecturen, twintig toestanden per richting en
+studiewaarden voor kleur, tekst, diepte en motion. Veld en Werkstuk zijn
+aanbevolen voor beoordeling, niet definitief gekozen of geïmplementeerd.
+Geen gegenereerde beelden, native acceptatie of nieuwe voortgangspunten.
+
+## Bestaand markt- en consumentenonderzoek
+
 Deze map bewaart de repositoryvertaling van twee onderzoeken van 28 oktober 2026:
 
 - het marktonderzoek naar gaten in de desktop-OS-markt, Europese alternatieven, ontwerp-/prestatietrends, positionering en blijvende overstap;

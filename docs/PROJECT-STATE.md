@@ -1,6 +1,44 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
+## NEXT AGENT HANDOFF — visueel ontwerpplan, geen redesign — 3 november 2026
+
+**Basis:** `380111b68688c981eec6abb8fab29174a29f5601`, branch
+`simonvanieperen-fictional-disco`; werkboom was schoon bij aanvang, geen PR
+op deze branch aangetroffen. Andere worktrees/main zijn niet gelezen of
+gecombineerd. De actieve opdracht was onderzoek en een concreet designplan,
+expliciet zonder afbeeldingen of productcode.
+
+**Oplevering:** `docs/research/VISUAL-RENDERING-RESEARCH.md` bevat publieke
+rendermechanismen uit KWin, Mutter, GNOME Shell, Material Color Utilities en
+Impeller, met individuele bronpins; Microsoft/Apple-richtlijnen apart gelabeld.
+`docs/design/VISUAL-ARCHITECTURE-PLAN.md` bevat kritiek op de beschreven oude
+richtingen, vijf presentatiearchitecturen, 20 tekstuele toestanden per richting,
+concrete composities/studiewaarden, gap-analyse en meetbare vervolgproeven.
+Veld en Werkstuk zijn aanbevelingen, geen definitief gekozen designsysteem.
+README, onderzoeksindex en de vier gekoppelde voortgangsbestanden zijn bijgewerkt.
+Geen runtime, dependencies, capabilities of criteriumstatussen gewijzigd.
+
+**Controle:** 33 opaque sRGB-kleurparen voldoen aan de voorgestelde 4,5:1
+tekst-/3:1-grenzen; hoog-contrastlichtfocus afzonderlijk berekend op 12,98:1.
+Relatieve documentlinks, vijf richtingen en 20 x 5 toestandcellen gecontroleerd;
+criteria/evidence/gewichten byte-inhoudelijk gelijk aan de JSON-basis.
+`python3 tools/progress.py --write`, `python3 tools/progress.py --check`
+en `git diff --check`: exit 0. Exacte controles, outputloghashes en grenzen:
+`docs/verification/visual-design-20261103/README.md`.
+
+**Open/bewijsgrens:** geen afbeeldingen, prototype, native rendering,
+host-/VM-producttests, GPU-benchmark, fysieke of menselijke beoordeling uitgevoerd.
+De oorspronkelijke A/B/C-beelden ontbraken; kritiek geldt hun aangeleverde
+beschrijvingen. Nog geen complete historische archiefstudie of achtuurgebruik
+bewezen. Branchscore **41 -> 41**; historische productbewijzen en alle
+releasegrenzen blijven aan hun eigen bron verbonden.
+
+**Eerstvolgend:** inhoud van het ontwerpplan beoordelen, niet alvast de native
+tokens overschrijven. Eerstvolgend reproduceerbaar controlecommando:
+`python3 tools/progress.py --check`.
+Geen merge, release of PR-sluiting in deze opdracht.
+
+## Vorig checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 
 **Basis:** PR127 `798706c2a53d0062ce0474e5f84f294b2c37b825`, drie lokale
 fixleaves en PR126 `8f08db4c12573f91b57e55c30fa417e7abd358e6`, met main
