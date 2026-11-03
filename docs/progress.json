@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "d115cc96c19ac4371baed77409a23d1adddffaf0",
+    "source_commit": "99d132768fd72276caa4a3b3e9a09f8f1909f0ed",
     "branch": "codex/os-research-phases-2-4-20261102",
-    "task": "PR131: derde conflictoplossing met behoud van actuele main-tests en PR140-bewijs",
+    "task": "PR131: vierde conflictoplossing met behoud van beide statushistories en PR139-receipts",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Head2c17b933 gecombineerd met maind115cc96; vier centrale metadata-conflicten opgelost met behoud van beide geschiedenissen. Nieuwe artifact-store-contracttests, descriptorvalidatieclaims en duurzame PR140-testreceipts blijven ongewijzigd uit main behouden. Productcode, tools, tests, criteria en evidence zijn exact main. Geen nieuwe Rust-, native-, fysieke-, menselijke of releaseacceptatie; oudere testclaims blijven aan hun eigen bron gebonden. Reviewverzoeken blijven buiten deze conflictoplossingsautorisatie open. Nieuwe-head controles en mergeability worden afzonderlijk beoordeeld."
+    "summary": "41/100 blijft 41/100. Head59989b49 gecombineerd met main99d13276; vier centrale statusconflicten opgelost met behoud van beide geschiedenissen en de nieuwe PR139-receipts. Alle bestanden buiten README, PROJECT-STATE, PROGRESS en progress.json zijn exact main; criteria/evidence blijven gelijk. Geen nieuwe Rust-, native-, fysieke-, menselijke of releaseacceptatie. Historische PR139- en PR140-testclaims blijven aan hun oorspronkelijke bronnen gebonden. Reviewverzoeken blijven buiten deze conflictoplossingsautorisatie open; nieuwe-head controles en mergeability worden afzonderlijk beoordeeld."
   },
   "tracks": [
     {
