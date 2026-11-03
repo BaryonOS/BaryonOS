@@ -91,10 +91,17 @@ niet tot productbeleid verheven; grote foto's blijven een expliciete producteis.
 
 ## Stackgrens en eigen arena
 
-Integratiegrens: de huidige `sdk/examples/image-viewer` tekent nog de ruwe
-decoderpixels. EXIF-correctie in `rgba8_into` bewijst daarom geen
-georienteerde viewer of native gebruikersflow. De fixture is voor de nieuwe
-`Image`-velden bijgewerkt en afzonderlijk meegetest.
+**Implementatie:** Nieuw OS, *image-viewer: render_tile*, versie
+`d269f9b4` (3 november 2026), tekent nog de ruwe decoderpixels
+([primaire rendererbron](https://github.com/simonvanieperen/nieuw-os/blob/d269f9b45a54576b39629b36de94f9cdbb9f6f71/sdk/examples/image-viewer/src/lib.rs)).
+EXIF-correctie in `rgba8_into` bewijst daarom geen georienteerde viewer of
+native gebruikersflow.
+
+**Testbewijs:** Nieuw OS, *viewer-fixture en kleine image-integratieslice*,
+versie `d269f9b4` (3 november 2026): de fixture is voor de nieuwe
+`Image`-velden bijgewerkt en afzonderlijk meegetest
+([primaire testbron](https://github.com/simonvanieperen/nieuw-os/blob/d269f9b45a54576b39629b36de94f9cdbb9f6f71/sdk/examples/image-viewer/tests/viewer.rs),
+[commando's en resultaten](https://github.com/simonvanieperen/nieuw-os/blob/d269f9b45a54576b39629b36de94f9cdbb9f6f71/docs/verification/integration-sprint-20261103-image.md)).
 
 Een eerste instructiescreen zag alleen losse stackaanpassingen tot4KiB. Dat
 was onvoldoende: het werkelijke decoderframe reserveerde cumulatief30760bytes.
