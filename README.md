@@ -31,11 +31,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`c6ce3906`](https://github.com/simonvanieperen/nieuw-os/commit/c6ce3906f395f9babad9444efea6cde64bc2a0c4) ·
-**Ontwikkelbranch:** `codex/native-workspace-v2-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Alle zeven PR127-reviewpunten en volledige PR126/main-inhoud combineren.
-Geerfde branchscore41 blijft41; main34 blijft34, geen nieuwe criteria. De gecombineerde kandidaat bewaart alle PR126/main-inhoud en herstelt zeven reviewpunten: native palet, proportionele klikposities, twee TCP-status/deadlinefouten, probeconfigisolatie, dockdamage en semantisch write-only wachtwoord. Integratietests vonden daarnaast echte oude damagegeometrie onder de nieuwe fonts; renderer en model delen nu werkelijke resultaat/statusbounds, met behouden pixel- en ten minste90%-sendbudgettests. 189 Rust-app/UI-,9 netwerk- en31 Python-hosttests slagen; beide TCP-fouten zijn echt rood/groen gereproduceerd met gepinde Rust1.91.1. Clippy en echte native-targetchecks/build slagen. PR126-parent8f08 is afzonderlijk native groen met22fasen/raw33/clipboard/herstel/schijf; dat is geen bewijs voor deze nieuwe bron. Verse gecombineerde CI, review en native runtime blijven nodig. Geen nieuwe fysieke, Windows-, volledige release- of U02-acceptatie.
+**Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
+**Bron:** [`f2c3354d`](https://github.com/simonvanieperen/nieuw-os/commit/f2c3354d159ae91699e0926fd6f39a769705aa14) ·
+**Ontwikkelbranch:** `simonvanieperen-sturdy-guide`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** P02-invoer en zoekscherm versnellen.
+Zoeken in het P02-prototype werkt alleen de resultatenlijst bij; focus en app-shell blijven staan. Profiel- en draftinvoer bundelt synchrone sessionStorage-schrijfacties maximaal 180 ms met direct wegschrijven bij focusverlies, de volgende toestandsovergang en pagehide. Draftupdates maken geen diepe kopie van de onveranderde documentgeschiedenis. De volledige hosttestsuite slaagt met 41 tests; een fake-DOM-test bevestigt nul app-rootvervangingen bij zoeken en één write voor drie snelle invoer-events. Branchscore blijft 41/100; geen nieuw native criterium. Geen browserbenchmark, native rendermeting of volledige releaseacceptatie uitgevoerd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

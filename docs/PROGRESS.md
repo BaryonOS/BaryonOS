@@ -85,6 +85,8 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+P02-invoerperformance (3 november 2026), bron `f2c3354d159ae91699e0926fd6f39a769705aa14`, branch `simonvanieperen-sturdy-guide`: **41% → 41%**. Zoeken werkt alleen de resultatenlijst bij; korte invoerpieken bundelen opslagwrites en draftupdates delen onveranderde objectgeschiedenis. De complete prototypehostsuite slaagt (41 tests); de fake-DOM-test controleert render-/focusgedrag. Geen native criterium gesloten en geen browserbenchmark uitgevoerd. Bewijs: `verification/ui-performance-20261103.json`.
+
 PR127-reviewintegratie (2 november 2026), basis `798706c` met `8f08db4`:
 branch **41 → 41**, main **34 → 34**. Zeven reviewpunten en gekoppelde
 font/damage-integratie hersteld; 189 Rust-app/UI-,9 netwerk- en31 Python-tests

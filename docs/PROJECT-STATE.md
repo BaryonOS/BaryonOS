@@ -1,6 +1,37 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
+## NEXT AGENT HANDOFF — P02 zoek- en invoerpad minder blokkerend — 3 november 2026
+
+**Bron:** branch `simonvanieperen-sturdy-guide`, commit
+`f2c3354d159ae91699e0926fd6f39a769705aa14`; remote branch wijst naar dezelfde
+commit. Werkboom is schoon na de implementatiecommit.
+
+**Resultaat:** zoeken in het P02-browserprototype vervangt niet langer de
+volledige app-DOM per teken; alleen de resultatenlijst wordt bijgewerkt en
+focus blijft in het bestaande veld. Profiel-/draftinvoer coalesseert
+synchrone `sessionStorage`-writes gedurende 180 ms en schrijft direct weg
+bij focusverlies, een volgende toestandsovergang of `pagehide`. Draftupdates
+kopiëren niet meer de onveranderde object-/versiegeschiedenis. Geen
+dependency, querybackend, capability of native interface gewijzigd.
+
+**Uitgevoerd:** `"/mnt/c/Program Files/nodejs/node.exe" --test
+--test-isolation=none ui/prototype/tests/*.test.mjs` — exit 0, 41 geslaagd;
+de nieuwe fake-DOM-test meet nul app-rootvervangingen/focuswissels bij zoeken
+en één opslagwrite voor drie snelle profielinvoer-events. De drie
+`node --check`-controles en `git diff --cached --check` slagen (exit 0).
+Exacte bronhashes en uitkomst:
+[`ui-performance-20261103.json`](verification/ui-performance-20261103.json).
+Dit is hosttestbewijs, geen browserbenchmark of native OS-meting.
+
+**Voortgang:** branch **41% → 41%**, nul nieuwe native criteria of punten.
+Geen echte databasequeries of productie-bundler aangetroffen in deze UI-route;
+de fixturesearch blijft een lineaire in-memory-filter. Native render-/IPC-
+latency en echte-browsermetingen zijn niet uitgevoerd.
+
+**Eerstvolgend commando:** herhaal de genoemde Node-suite op deze branch bij
+een volgende UI-wijziging. Geen blocker voor deze beperkte stap.
+
+## Vorig checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 
 **Basis:** PR127 `798706c2a53d0062ce0474e5f84f294b2c37b825`, drie lokale
 fixleaves en PR126 `8f08db4c12573f91b57e55c30fa417e7abd358e6`, met main
