@@ -3,7 +3,7 @@
 ## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
 
 **Gepubliceerde basis:** branch `simonvanieperen-studious-spoon`, commit
-`07d4ab7b6f02dca395e220fbc5cb45c67b270b0c`, gepusht naar
+`8106addda98111e591405d69ec7056553da6910e`, gepusht naar
 `origin/simonvanieperen-studious-spoon`. Actieve toewijzing:
 `SYSTEM-MATURITY-SMP`, queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`.
 OOM/K05 zijn afgesloten en blijven ongewijzigd;
@@ -80,18 +80,20 @@ Dit maakt de eerdere matrixpass onvoldoende stabiel voor acceptatie. Receipt:
 [`smp-rendezvous-20261103T182805Z.json`](verification/sm-smp/smp-rendezvous-20261103T182805Z.json);
 seriële log `build/run/smp-2-dea4af795b/serial.txt`.
 
-**M4-profielstabilisatie — commit `07d4ab7b`, hostcontrole PASS, native nog
-niet uitgevoerd:**
+**M4-profielstabilisatie — commit `07d4ab7b`, gerichte native proeven PASS:**
 de opt-in `native-smp-m4`-profielen wijzen nu slot 0 en 2 aan CPU 0 toe en
 slot 1 aan CPU 1. Kernelstart en evaluator eisen exact twee CPU's; de
 evaluator controleert ook iedere eventidentiteit. Dit raakt alleen de
 acceptatieprofielen, niet de algemene scheduler of ABI. Gericht
 `PYTHONPATH=tools python3 -B -m unittest tools/tests/test_smp.py` slaagde
 (11 tests); `$HOME/.cargo/bin/cargo +1.90.0 fmt --manifest-path kernel/Cargo.toml -- --check`
-en `git diff --check` slaagden. De eerdere hostrun vóór correctie van de revoke-fixture faalde;
-de fixture is bijgewerkt en de herhaalde 11-test-run slaagde. De echte
-2-CPU-IPC/revoke-runs en de volledige matrix zijn nog niet uitgevoerd met
-deze wijziging.
+slaagde. Drie 2-CPU-IPC-runs en drie 2-CPU-revoke-runs slaagden, alle met
+raw QEMU-exit 33 en de verwachte vaste slot/CPU-identiteiten. Het revoke-
+testtranscript is gecorrigeerd toen de eerste hosttest aantoonde dat slot 2
+nog op de oude CPU stond; na die correctie slaagden alle 11 hosttests.
+Compact bewijs en exacte opdrachten:
+[`m4-profile-stability-20261103.json`](verification/sm-smp/m4-profile-stability-20261103.json).
+De volledige 1/2/4-CPU-matrix is nog niet uitgevoerd met deze wijziging.
 
 **Niet-geaccepteerde SMP-lifecycleverkenning:** het combineren van de bestaande
 M4 multi-round lifecyclefixture met SMP eindigde op raw QEMU exit 35 bij
@@ -119,10 +121,8 @@ stabiel geaccepteerd. TLB-shootdown/hergebruik en bredere races/failure-
 acceptatie blijven open. Dit is geen volledige K06-acceptatie.
 `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
 
-**Eerstvolgende actie:** draai meerdere gerichte 2-CPU M4-IPC- en revoke-runs
-met de gepushte profielgebonden plaatsingsfix. Alleen na herhaalbare pass
-volgt de volledige negen-stagematrix. TLB-/hergebruik- en raceacceptatie
-blijven open.
+**Eerstvolgende actie:** draai de volledige negen-stagematrix op deze gepushte
+bron. TLB-/hergebruik- en raceacceptatie blijven open.
 
 **Cross-CPU capability-IPC — eerdere lokale proef vóór matrix:**
 `native-smp-m4` combineert het bestaande SMP-M3-profiel met de bestaande M4

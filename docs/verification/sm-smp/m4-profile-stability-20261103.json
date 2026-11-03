@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "task": "SYSTEM-MATURITY-SMP native M4 acceptance-profile stability",
+  "source_commit": "8106addda98111e591405d69ec7056553da6910e",
+  "source_sha256": "3c0c0dda0e6ae3235978323b6dc488ca4b809166e810e33af85a906dd900fe96",
+  "branch": "simonvanieperen-studious-spoon",
+  "date_europe_amsterdam": "2026-11-03",
+  "status": "targeted-profiles-passed; full-matrix-pending",
+  "environment": {
+    "path_prefix": "$HOME/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin",
+    "ld_library_path": "/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu:/tmp/sm-oom-qemu-root/lib/x86_64-linux-gnu",
+    "os_ovmf_code": "/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd",
+    "os_ovmf_vars": "/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd",
+    "qemu_exit_expected": 33
+  },
+  "host_validation": {
+    "command": "PYTHONPATH=tools python3 -B -m unittest tools/tests/test_smp.py",
+    "exit": 0,
+    "tests": 11
+  },
+  "format_validation": {
+    "command": "$HOME/.cargo/bin/cargo +1.90.0 fmt --manifest-path kernel/Cargo.toml -- --check",
+    "exit": 0
+  },
+  "builds": [
+    {
+      "profile": "native-smp-m4",
+      "command": "PYTHONPATH=tools python3 -B -c \"from build import build; build(None, 'native-smp-m4', 'smp-m4-repeat')\"",
+      "exit": 0
+    },
+    {
+      "profile": "native-smp-m4-revoke",
+      "command": "PYTHONPATH=tools python3 -B -c \"from build import build; build(None, 'native-smp-m4-revoke', 'smp-m4-revoke-repeat')\"",
+      "exit": 0
+    }
+  ],
+  "runs": {
+    "native-smp-m4": [
+      {
+        "run_directory": "build/run/smp-2-15e8967ed4",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "per_cpu_process_selections": [267, 282],
+        "events": [["send", 0, 0], ["recv", 1, 1], ["send", 1, 1], ["recv", 2, 0]],
+        "cross_cpu_message_pairs": 2
+      },
+      {
+        "run_directory": "build/run/smp-2-20c584f2d8",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "per_cpu_process_selections": [109, 113],
+        "events": [["send", 0, 0], ["recv", 1, 1], ["send", 1, 1], ["recv", 2, 0]],
+        "cross_cpu_message_pairs": 2
+      },
+      {
+        "run_directory": "build/run/smp-2-a46a533618",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "per_cpu_process_selections": [434, 450],
+        "events": [["send", 0, 0], ["recv", 1, 1], ["send", 1, 1], ["recv", 2, 0]],
+        "cross_cpu_message_pairs": 2
+      }
+    ],
+    "native-smp-m4-revoke": [
+      {
+        "run_directory": "build/run/smp-2-98f309a4a2",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "per_cpu_process_selections": [1187, 1217],
+        "cross_cpu_revocation": {"revoker_cpu": 0, "receiver_slot": 1, "receiver_cpu": 1}
+      },
+      {
+        "run_directory": "build/run/smp-2-6c42e1d201",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "per_cpu_process_selections": [662, 684],
+        "cross_cpu_revocation": {"revoker_cpu": 0, "receiver_slot": 1, "receiver_cpu": 1}
+      },
+      {
+        "run_directory": "build/run/smp-2-ff221e1ea8",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "per_cpu_process_selections": [353, 369],
+        "cross_cpu_revocation": {"revoker_cpu": 0, "receiver_slot": 1, "receiver_cpu": 1}
+      }
+    ]
+  },
+  "failed_cli_attempt": {
+    "command": "python3 -B tools/build.py --kernel-feature native-smp-m4",
+    "exit": 2,
+    "reason": "The build.py CLI choices omit native-smp-m4; the existing build() helper used by tools/test_smp.py accepts the profile and built it successfully."
+  },
+  "acceptance_boundary": "Six targeted 2-CPU native repetitions validate deterministic M4 IPC and cross-CPU revoke role placement. The 1/2/4-CPU full matrix, TLB/reuse and race/failure K06 gates remain unrun or open; this is not full K06 acceptance."
+}

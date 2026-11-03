@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`07d4ab7b`](https://github.com/simonvanieperen/nieuw-os/commit/07d4ab7b6f02dca395e220fbc5cb45c67b270b0c) ·
+**Bron:** [`8106addd`](https://github.com/simonvanieperen/nieuw-os/commit/8106addda98111e591405d69ec7056553da6910e) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-spoon`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** SYSTEM-MATURITY-SMP: stabilisatie cross-CPU M4-acceptatie.
-41 blijft 41. Een SMP-matrix slaagde eerder, maar een herhaling op dezelfde bronfingerprint faalde bij M4-IPC omdat slots 0 en 1 beide op CPU 1 draaiden. Commit 07d4ab7 begrenst daarom uitsluitend de native M4-acceptatieprofielen: slot 0/2 op CPU 0 en slot 1 op CPU 1, met expliciete evaluator- en 2-CPU-controles. Alle 11 gerichte hosttests en formattering slagen; de nieuwe native reruns en volledige matrix zijn nog niet uitgevoerd. Dit sluit geen rubriccriterium; K06 blijft open.
+41 blijft 41. Een SMP-matrix slaagde eerder, maar een herhaling op dezelfde bronfingerprint faalde bij M4-IPC omdat slots 0 en 1 beide op CPU 1 draaiden. Commit 07d4ab7 begrenst uitsluitend de native M4-acceptatieprofielen: slot 0/2 op CPU 0 en slot 1 op CPU 1, met expliciete evaluator- en 2-CPU-controles. Alle 11 gerichte hosttests en formattering slagen; drie IPC-runs en drie revoke-runs slaagden met de verwachte CPU-identiteiten. De volledige negen-stagematrix is nog niet uitgevoerd. Dit sluit geen rubriccriterium; K06 blijft open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

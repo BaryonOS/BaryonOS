@@ -5,9 +5,10 @@ SYSTEM-MATURITY-SMP (3 november 2026), bron `07d4ab7b`:
 met dezelfde bronfingerprint faalde bij M4-IPC: de benodigde processen landden
 op dezelfde CPU. De gepushte fix begrenst CPU-plaatsing tot de opt-in M4-
 acceptatieprofielen en laat de evaluator die rolverdeling afdwingen. De 11
-gerichte hosttests en rustfmt slagen; de nieuwe native herhaalruns en volledige
-matrix zijn nog niet uitgevoerd. Geen rubriccriterium sluit en K06 blijft
-open. Zie [PROJECT-STATE.md](PROJECT-STATE.md).
+gerichte hosttests, rustfmt en drie IPC- plus drie revoke-QEMU-runs slagen met
+de verwachte CPU-identiteiten. De volledige negen-stagematrix is nog niet
+uitgevoerd. Geen rubriccriterium sluit en K06 blijft open. Zie
+[PROJECT-STATE.md](PROJECT-STATE.md).
 
 De actieve volledige releaseopdracht en productacceptatie staan in
 [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft
