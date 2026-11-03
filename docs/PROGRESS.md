@@ -85,6 +85,14 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Securityreview (3 november 2026), basis `380111b68688c981eec6abb8fab29174a29f5601`,
+branch `simonvanieperen-effective-tribble`: **41% → 41%**. De onafhankelijke
+statische review meldt geen bevestigde kwetsbaarheden in de beoordeelde
+wijzigingen; de Dependabot-alert-API gaf geen open meldingen. Geen nieuwe
+criteria of codefix. GitHub Secret Scanning staat uit en er was geen lokale
+secret-/dependency-scanner beschikbaar, dus volledige scans zijn niet
+uitgevoerd. Zie `verification/security-audit-20261103.md`.
+
 PR127-reviewintegratie (2 november 2026), basis `798706c` met `8f08db4`:
 branch **41 → 41**, main **34 → 34**. Zeven reviewpunten en gekoppelde
 font/damage-integratie hersteld; 189 Rust-app/UI-,9 netwerk- en31 Python-tests
