@@ -92,7 +92,9 @@ ongemarkeerde volume-invoer; 22 servicetests groen op de slot1-fix.
 [Rood/groenreceipt](verification/pr148-slot1-review.json). De aparte
 [initialisatiecrashproef](verification/pr148-marker-crash-review.json) test
 516 beelden; de documentmatrix behoudt alle voor/na- en inhoudsasserties op
-11.699 beelden. 26 Python-tests groen. Volledige Rustsuite en native
+11.699 beelden. 26 Python-tests groen. De volledige hostsuite
+[volume-core](verification/pr148-volume-core-host-suite.json) is nu ook groen.
+Native
 metadata-only/QEMU-gates blijven open; geen nieuwe productpunten.
 
 PR148-documentintegratie (3 november 2026), basis `09e4fa6b` met main

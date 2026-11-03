@@ -1,6 +1,6 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR148 slot1 en eerste-markercrashproeven — 3 november 2026
+## NEXT AGENT HANDOFF — PR148 hostgates groen; native fixture nog open — 3 november 2026
 
 **Basis:** `a5b14596`, inclusief auteursbron `929ebfb8` en main99;
 branch `simonvanieperen-upgraded-disco`. De auteur pauzeert overlappende writes.
@@ -19,10 +19,13 @@ resten. **26 Python-tests groen**, met onafhankelijk alle 513 markerprefixen.
 De eerdere echte failure blijft [bewaard](verification/pr148-slot1-review.json).
 De 22 servicehosttests en Rustfmt/Clippy waren groen op de slot1-fix; dat
 maakt de nog niet herhaalde volledige Rustsuite niet impliciet groen.
+`cargo +1.90.0 test --offline --locked -p volume-core` draait daarna volledig
+groen op de vervolgbron: 1 lib, 5 crash, 22 service en 8 uploads.
+[Host-suite receipt](verification/pr148-volume-core-host-suite.json).
 **Nog niet uitgevoerd:** native metadata-only foreign-case en volledige
 QEMU-regressie. **41 → 41**, geen nieuw criterium of productacceptatie.
-**Eerstvolgend:** `cargo +1.90.0 test --offline --locked -p volume-core`,
-daarna native metadata-only fixture en relevante integratiegates; pas daarna merge.
+**Eerstvolgend:** metadata-only foreign fixture/case native uitwerken en
+draaiende gate bewijzen; daarna resterende integratiegates en pas dan merge.
 
 ## Historisch checkpoint — PR148 met main 99d1327 — 3 november 2026
 

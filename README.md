@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`a8da25d0`](https://github.com/simonvanieperen/nieuw-os/commit/a8da25d0ff4f0e92780c4683dc7606b86bb3728c) ·
+**Bron:** [`6eee63c2`](https://github.com/simonvanieperen/nieuw-os/commit/6eee63c2fdb8fdd29e1064b79eb40a640ec9b166) ·
 **Ontwikkelbranch:** `simonvanieperen-upgraded-disco`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR148: eerste-markercrashes afzonderlijk failclosed testen, documentherstel volledig behouden.
-41 blijft 41. Basis a8da25d0 herstelt de echte slot1-fout. ADR-064 verduidelijkt de eerste formaatidentificatiegrens: 516 initialisatiecrashbeelden testen alle markerprefixen, onherkenbare resten geven Corrupt zonder herstelwrites. De documentcrashmatrix begint na duurzame identificatie en behoudt alle voor/na- en inhoudsasserties op 11699 beelden. 26 onafhankelijke Python-tests groen, inclusief 513 markerprefixen. Volledige Rustsuite en native metadata-only/QEMU-acceptatie blijven open; geen productpunten.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR148: hostvolume-suite bevestigen na slot1+markergrensfixes; native foreign-case nog open.
+41 blijft 41. Op basis 6eee63c2 zijn de slot1-admissieguard en de expliciete marker-initialisatiegrens hostmatig bevestigd. De volledige volume-core hostsuite is groen (1 lib, 5 crash, 22 service, 8 uploads). Eerder vastgelegde marker-prefix en documentcrashinvarianten blijven groen (516 en 11699 beelden) met 26 onafhankelijke Python-tests. Native metadata-only foreign fixture/case en QEMU-acceptatie blijven open; geen nieuwe productpunten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

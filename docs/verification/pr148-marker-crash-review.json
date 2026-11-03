@@ -55,7 +55,6 @@
     }
   ],
   "open_gates": [
-    "Full cargo test -p volume-core (all suites) not rerun after this follow-up.",
     "Native metadata-only foreign fixture/case is still not implemented.",
     "Native QEMU acceptance remains open."
   ],
