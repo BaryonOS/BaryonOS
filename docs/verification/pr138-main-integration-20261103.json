@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-03",
+  "task": "PR138-conflictintegratie met main; geen oude CI-retry",
+  "cwd": "/home/runner/work/nieuw-os/nieuw-os",
+  "branch": "simonvanieperen-laughing-fortnight",
+  "head_before_merge": "fc3b5e2522e04f636bdb443299da6e8f99161afe",
+  "main_parent": "d686bd54e766aed542e9918d1a37dcce434f18e2",
+  "merge_base": "5c66ec57aaf8eb411a83b8d6e42320ddc379383c",
+  "tested_state": "Opgeloste mergewerkboom vóór mergecommit; handmatige wijzigingen uitsluitend status, assessment en dit bewijs. Code komt ongewijzigd uit de ouders.",
+  "manual_conflict": "docs/PROJECT-STATE.md",
+  "score": {"before": 41, "after": 41, "rubric_version": 1},
+  "commands": [
+    {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_common.py'",
+      "exit_code": 0, "tests": 8,
+      "log": "/tmp/pr138-common.log",
+      "sha256": "90f3a22dfff29921510e2812514c1882d6ef915d4e25dde97793f2acdca94d45"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p 'test_random.py'",
+      "exit_code": 0, "tests": 21,
+      "log": "/tmp/pr138-random.log",
+      "sha256": "b3bcd03d927e1240fb7723d36f187e92772025415cfd87f7dffb858eda79dfb6"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p 'test_images.py'",
+      "exit_code": 0, "tests": 20,
+      "log": "/tmp/pr138-images.log",
+      "sha256": "4dc193752802e24e0c858e1358f319dc6d9e9e8636eb81c9ff8ee4dfa8c327cd"
+    },
+    {
+      "command": "python3 -B tools/test_fpu.py",
+      "exit_code": 0, "tests": 12,
+      "log": "/tmp/pr138-fpu.log",
+      "sha256": "b98d97a30579f4bb7543e8bde1fe2372ee04d8b02c0cf619d3b918fed1ac8f4e"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_volume_*.py'",
+      "exit_code": 0, "tests": 26,
+      "log": "/tmp/pr138-volume-python.log",
+      "sha256": "1ac37b4d46aa0e49c19db53b0e90743f7a949b9a1faf9f466e7accebc4fc6f96"
+    },
+    {
+      "command": "cargo +1.90.0 test --locked -p volume-core -p kernel-core -p artifact-store-core",
+      "exit_code": 0, "tests": 76,
+      "log": "/tmp/pr138-rust.log",
+      "sha256": "81caaaaca12a8b3fb730bc15b981a5ab6454b406a3503fc5986677e64284270b"
+    },
+    {
+      "command": "cargo +1.90.0 clippy --locked -p volume-core -p kernel-core -p artifact-store-core --all-targets -- -D warnings",
+      "exit_code": 0,
+      "log": "/tmp/pr138-clippy.log",
+      "sha256": "d14563aabf94b8eb29570139fe54c89dcdcfeaba15e481ea4f31095cb72c822d"
+    },
+    {
+      "command": "cargo +1.90.0 fmt --all -- --check",
+      "exit_code": 0,
+      "log": "/tmp/pr138-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "python3 -B tools/build.py --kernel-feature native-volume",
+      "attempt": 1, "exit_code": 1,
+      "cause": "Offline SDK-build miste de reeds vergrendelde zeroize v1.9.1-download.",
+      "log": "/tmp/pr138-native-build.log",
+      "sha256": "aad4040ba6438e927dccbe8b941becdf84716088fcb3b8f3b00ebf79fe020c0a"
+    },
+    {
+      "command": "cargo +1.90.0 fetch --locked --manifest-path sdk/Cargo.toml",
+      "exit_code": 0,
+      "log": "/tmp/pr138-sdk-fetch.log",
+      "sha256": "2d97d0eb28bf0c071065e25083ac8dc972fcb687b1fa6e70d080f67875068c1d"
+    },
+    {
+      "command": "python3 -B tools/build.py --kernel-feature native-volume",
+      "attempt": 2, "exit_code": 0,
+      "log": "/tmp/pr138-native-build-restored.log",
+      "sha256": "ac13fed229a8eb0810dae556b9d7aafc2d638785002fa062560e9c3be624a9cf"
+    },
+    {
+      "command": "git diff --exit-code origin/main -- kernel services/volume tools tests",
+      "exit_code": 0,
+      "log": "/tmp/pr138-main-preservation.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "git diff --exit-code HEAD -- crates sdk/examples/window-session",
+      "exit_code": 0,
+      "log": "/tmp/pr138-head-preservation.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "python3 tools/progress.py --write",
+      "exit_code": 0,
+      "log": "/tmp/pr138-progress-write.log",
+      "sha256": "3f4fa08c6cb9f7affeb3dedcc3f3f29dbced854f277e68c99bd3b81ccff34434"
+    },
+    {
+      "command": "python3 tools/progress.py --check",
+      "exit_code": 0,
+      "log": "/tmp/pr138-progress-check.log",
+      "sha256": "1963f64b94a52a78464f272cac286fcafea13fea2314c5ea8cddbd65dd78be33"
+    }
+  ],
+  "limits": [
+    "Harnasnegatieftests zijn geen native uitvoering; verwachte foutmeldingen blijven in de logs.",
+    "Cross-build is geen boot- of native-runtimebewijs.",
+    "QEMU niet uitgevoerd: qemu-system-x86_64 ontbreekt.",
+    "Volledige hosted CI op de nieuwe mergecommit moet na publicatie worden beoordeeld.",
+    "Geen fysieke hardware, menselijke audit of releaseacceptatie uitgevoerd.",
+    "Logpaden zijn tijdelijk en worden niet als permanente archieven gepresenteerd."
+  ]
+}

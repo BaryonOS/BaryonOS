@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`19e4c8c4`](https://github.com/simonvanieperen/nieuw-os/commit/19e4c8c4f31305f106a36face481d31c3aaaef22) ·
+**Bron:** [`9454d9c4`](https://github.com/simonvanieperen/nieuw-os/commit/9454d9c4585744e31eff65bae78ad5c5f86e7650) ·
 **Ontwikkelbranch:** `codex/volume-format-admission-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Integreer main d686bd54 met behoud van volumecontracten en bewijs.
-De 41/100-rubric blijft behouden; geen nieuwe punten. Main d686bd54 is geïntegreerd met behoud van PR133-, PR142- en PR149-historie. De gecombineerde volumehosttests (49 Rust- en 36 Python-tests), Rustfmt en Clippy slaagden op de opgeloste werkboom. Historische native gates blijven aan hun eerdere bron gebonden; deze integratie levert geen nieuwe native acceptatie.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR133: main 95d79451 integreren met behoud van projecthistorie.
+De 41/100-rubric blijft behouden; geen nieuwe punten. De documentconflicten met main 95d79451 zijn inhoudsbehoudend opgelost; beide checkpointgeschiedenissen en brongebonden bewijs zijn behouden. 78 core- en 49 window-session-hosttests, Clippy, formatting en de native-volume-cross-build slaagden. Er is geen QEMU- of native runtimeacceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -80,6 +80,20 @@ beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS
 <!-- OS-PROGRESS:END -->
 
 Volledige repository-inventaris: [OS-completeness-audit](docs/audit/os-completeness/README.md).
+
+## Historische geïntegreerde bronstand — 3 november 2026
+
+De bron was [`380111b`](https://github.com/simonvanieperen/nieuw-os/commit/380111b68688c981eec6abb8fab29174a29f5601):
+de volledige PR126-inhoud en PR127-reviewherstellingen zijn hierin op `main`
+gecombineerd. Alle **28 exacte-head GitHub-checkruns** zijn geslaagd.
+De [native venstersessie](https://github.com/simonvanieperen/nieuw-os/actions/runs/41535553113)
+en de [native netwerkdienst](https://github.com/simonvanieperen/nieuw-os/actions/runs/41535553158)
+hebben afzonderlijke QEMU-gates; het netwerk gebruikt een gecontroleerde
+synthetische peer.
+
+Dit vervangt geen fysieke hardwaretest, Windows-gasttest of volledige
+testrelease. De voortgang blijft **41/100**; deze status- en
+API-documentatieaanpassing levert geen productpunten op.
 
 ## Native venstersessie — 2 november 2026
 

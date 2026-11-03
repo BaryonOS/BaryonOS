@@ -1,8 +1,73 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR133-volumecontract en actuele main — 3 november 2026
+## NEXT AGENT HANDOFF — PR133 met main 95d79451 — 3 november 2026
 
-**Basis vóór integratie:** PR-head `19e4c8c4f31305f106a36face481d31c3aaaef22`;
+**Basis vóór integratie:** PR-head `9454d9c4585744e31eff65bae78ad5c5f86e7650`;
+main `95d7945110ce853a1b5827ec59f6115475691805`, branch
+`codex/volume-format-admission-20261102`; merge-base `a32eadb1`.
+Conflicten in README, PROJECT-STATE en progress assessment zijn
+inhoudsbehoudend opgelost; PR133- en PR138-historie en hun brongebonden bewijs
+blijven behouden. Codeconflicten waren er niet; wijzigingen uit beide ouders
+zijn behouden. De rubric blijft **41 → 41/100**.
+
+**Validatie op de opgeloste mergeboom:** `cargo +1.90.0 test --locked -p
+volume-core -p kernel-core -p artifact-store-core` — 78 tests, exit 0;
+`cargo +1.90.0 clippy --locked -p volume-core -p kernel-core
+-p artifact-store-core --all-targets -- -D warnings` en
+`cargo +1.90.0 fmt --all -- --check` — exit 0. De gewijzigde
+`sdk/examples/window-session`-crate: `cargo +1.90.0 test --locked
+--manifest-path sdk/examples/window-session/Cargo.toml` — 49 tests, exit 0;
+Clippy en fmt voor die manifest ook exit 0.
+`python3 -B tools/build.py --kernel-feature native-volume` slaagde en bouwde
+loader, kernel en volume-apps voor de doelplatforms. De eerste pogingen misten
+de geïnstalleerde Rust-targets `x86_64-unknown-none` en
+`x86_64-unknown-uefi`; na installatie van die bestaande targets slaagde de
+herhaling. `python3 tools/progress.py --write`, `--check`,
+`python3 -m json.tool docs/progress.json` en `git diff --check` slagen.
+QEMU, fysieke en menselijke acceptatie zijn niet uitgevoerd; een cross-build
+is geen native runtimebewijs.
+**Vervolg:** na publicatie de nieuwe-head-checks laten evalueren.
+
+## Historisch checkpoint — PR138 met main d686bd54 — 3 november 2026
+
+**Bronnen:** PR-head `fc3b5e2522e04f636bdb443299da6e8f99161afe` en
+main `d686bd54e766aed542e9918d1a37dcce434f18e2`, branch
+`simonvanieperen-laughing-fortnight`. Alleen PROJECT-STATE.md conflicteerde;
+beide checkpointgeschiedenissen blijven behouden. Code is automatisch
+samengevoegd zonder handmatige runtimewijzigingen. **41 → 41/100**;
+geen criterium, gewicht of historisch testbewijs gewijzigd.
+
+**Uitgevoerd op de opgeloste boom:** 87 Python-harnastests en 76
+Rust-hosttests geslaagd; gerichte Clippy en workspace-formatcontrole exit 0.
+De `native-volume`-cross-build van UEFI-loader, kernel en volume-apps slaagt
+na één herstel van ontbrekende, reeds vergrendelde SDK-downloads. De eerste
+offline build mislukte wegens ontbrekende `zeroize v1.9.1`; geen dependency
+of lockfile gewijzigd. Codevergelijkingen bevestigen exact behoud van main
+voor kernel/volume/harnassen en van de PR voor crates/window-session.
+Exacte commando's, exitstatussen en loghashes:
+[integratiebewijs](verification/pr138-main-integration-20261103.json).
+Historische receipts bewijzen niet automatisch deze opgeloste boom.
+QEMU niet uitgevoerd: `qemu-system-x86_64` ontbreekt. Geen nieuwe
+native-runtime-, release-, fysieke-hardware- of menselijke acceptatie.
+
+**Vervolg:** na publicatie de nieuwe-head-controles laten beoordelen.
+De oude native-foundation-run wordt na deze integratie niet herstart.
+Eerstvolgende lokale controle: `python3 tools/progress.py --check`.
+
+## Historisch checkpoint — PR138 documentatieconflicten — 3 november 2026
+
+**Bronnen:** PR-head `d263acdeb9f94905c52457cccfeafabdc3011571` en
+main `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`. De vier conflicterende
+statusbestanden behouden beide geschiedenissen; de laatst vastgelegde
+beoordeling blijft **41/100**. Historische controles blijven aan hun eigen
+bron gebonden en gelden niet automatisch voor de samengevoegde boom.
+
+**Vervolg:** beoordeel de controles op de nieuwe mergecommit. Volledige
+release-, fysieke-hardware- en menselijke acceptatie blijven open.
+
+## Historisch checkpoint — PR133 volumecontract met main d686bd54 — 3 november 2026
+
+**Basis vóór die integratie:** PR-head `19e4c8c4f31305f106a36face481d31c3aaaef22`;
 main `d686bd54e766aed542e9918d1a37dcce434f18e2`, branch
 `codex/volume-format-admission-20261102`. De hoofdconflicten zijn opgelost op
 basis van de nieuwere ADR-064: een onbekend volume is alleen leeg als de hele
@@ -27,20 +92,45 @@ worden beoordeeld.
 
 ## Historisch checkpoint — PR148 met main 8e0c15d — 3 november 2026
 
-PR148 `47ec535f15bb10912dbc6cbf1af3de9df0c6c226` was met main
-`8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2` geïntegreerd. De drie centrale
-documentconflicten behielden beide checkpointreeksen en brongebonden receipts;
-de gedeelde harnashulpfuncties kwamen uit main en de volume-admissie uit PR148.
-De score bleef 41/100.
+**Basis:** PR148 `47ec535f15bb10912dbc6cbf1af3de9df0c6c226` met main
+`8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2`, branch
+`simonvanieperen-upgraded-disco`; schone werkboom bij aanvang.
+Drie centrale documentconflicten behouden beide checkpointreeksen en de
+brongebonden receipts. Gedeelde harnashulpfuncties komen exact uit main;
+volume-admissie blijft uit PR148. Geen handmatige codewijziging.
+**41 → 41/100**, geen criterium of gewicht gewijzigd.
 
-**Uitgevoerd toen op de opgeloste boom:** `python3 -B -m unittest discover -s tests -p 'test_common.py'`
-(8 tests), de random-harnastests (21), image-harnastests (20),
-`python3 -B tools/test_fpu.py` (12), volume-orakelsuite (26),
-voortgangs- en diffcontroles: exit 0. De volledige volume-core suite en
-formatting/Clippy waren niet opnieuw uitgevoerd; geen native acceptatie.
-Uitvoer stond alleen in het toenmalige sessietranscript. De bijbehorende
-PR148-hostreceipts betroffen eerdere werkbomen, geen integratiereview.
-Nieuwe-head CI/review stonden open.
+**Uitgevoerd op de opgeloste boom (alle eindcommando's exit 0):**
+- `python3 -B -m unittest discover -s tests -p 'test_common.py'`: 8 tests.
+- `python3 -B -m unittest discover -s tools/tests -p 'test_random.py'`: 21 tests.
+- `python3 -B -m unittest discover -s tools/tests -p 'test_images.py'`: 20 tests.
+- `python3 -B tools/test_fpu.py`: 12 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_volume_*.py'`: 26 tests.
+- `python3 tools/progress.py --write` en `python3 tools/progress.py --check`.
+- `git diff --check`; vergelijking met beide parents bevestigt exact behoud
+  van de gewijzigde harnassen uit main en de volume-implementatie uit PR148.
+
+De eerste discoverypogingen voor random/images/fpu onder `tests` vonden
+geen tests (elk exit 5); daarna zijn de werkelijke bovenstaande entrypoints
+uitgevoerd. Verwachte foutmeldingen in negatieve harnastests zijn geen
+native uitvoering. Rust-builds en QEMU niet herhaald; geen native acceptatie.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:69f0ce3ef4e7240e6d8b1e44a29d90b2c36c7dcd2008b6a678a3f075e30514e8 -->
+
+**PR148-integratiereview: open.** De assessmentbasis is PR148 `47ec535f`;
+de tweede mergeouder is main `8e0c15d8` en de resulterende merge is `7412d0bb`.
+De hierboven gemelde gerichte controles hebben alleen uitvoer in het
+sessietranscript; een afzonderlijk brongebonden integratiereviewbewijs ontbreekt
+in de checkout. De PR148-hostreceipts hieronder betreffen eerdere werkbomen en
+bewijzen deze integratiereview niet. De `reviewed_commit`-verwijzing naar
+`cc1dea7` in `docs/progress.json` is een historische review van de eerdere
+verduidelijking van documentatiestatus en hostbewijs.
+
+**Eerstvolgend:** nieuwe-head CI en review beoordelen en passend reviewbewijs
+vastleggen. Native volume-acceptatie blijft afzonderlijk open.
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 ## Historisch checkpoint — PR133 volume-admissie op main 0e3b9e7 — 3 november 2026
 
@@ -741,6 +831,50 @@ voordat alle talen klaar waren; geen volledige CodeQL-scan. De app meldde vóór
 deze integratie geen vereiste checks; nieuwe-headchecks bleven vereist.
 Score34, geen productacceptatiebesluit. De toenmalige vraag
 om publicatie via `report_progress` is historisch, geen nieuw mandaat.
+
+## Historisch checkpoint — mainstand en documentatie — 3 november 2026
+
+**Basis:** `380111b68688c981eec6abb8fab29174a29f5601` op
+`simonvanieperen-laughing-fortnight`, destijds gelijk aan `origin/main`; parent
+`74a34d05ef5591b782a0da9da34e4669910d0722`. PR126-inhoud en de zeven
+PR127-reviewfixes zijn nu in deze main-commit geïntegreerd.
+
+**Exact-head controles:** GitHub rapporteert 28/28 check-runs als `success`.
+De [native venstersessie-run](https://github.com/simonvanieperen/nieuw-os/actions/runs/41535553113)
+sluit de actuele QEMU-route met echte invoer, pixel-/isolatieasserties,
+compositorherstel en schijfcontrole af; de
+[netwerk-run](https://github.com/simonvanieperen/nieuw-os/actions/runs/41535553158)
+sluit hostkwaliteit en de native netwerkdienst met gecontroleerde peer af.
+Dit is geen Windows-runtime-, fysieke-hardware-, menselijke-audit- of
+volledige-releasebewijs.
+
+**Documentatie:** README, status, voortgangsassessment en verificatierecord
+zijn bijgewerkt naar deze bron. Alle publieke functies in
+`kernel-core`, `artifact-store-core` en de window-session-scene hebben nu
+Rustdoc; comments
+verduidelijken beschadigingstegels en toetsrelease-eigenaarschap. Deze
+documentatiewijziging verandert geen OS-gedrag of acceptatiecriterium.
+
+**Voortgang:** **41/100 → 41/100**, rubric v1; er zijn geen punten toegekend.
+U02, authenticatie/vergrendeling, de resterende releasecriteria, fysieke
+hardware en de volledige testrelease blijven open.
+
+**Uitgevoerd:** `python3 tools/progress.py --write` exit 0;
+`python3 tools/progress.py --check` exit 0; `git diff --check` en beide
+`python3 -m json.tool`-controles exit 0. Publieke-functiedekking van de drie
+gewijzigde Rust-bronbestanden is statisch gecontroleerd. Exact-head status is
+gecontroleerd met `gh api repos/simonvanieperen/nieuw-os/commits/380111b68688c981eec6abb8fab29174a29f5601/check-runs --jq '.total_count'`
+(28, alle success), plus `gh run view 41535553113 --json conclusion,headSha,jobs,workflowName,url`
+en `gh run view 41535553158 --json conclusion,headSha,jobs,workflowName,url` (beide exit 0). Rustdocgeneratie
+`RUSTDOCFLAGS='-D missing-docs' cargo doc --locked --no-deps -p capability-core -p kernel-core -p virtio-core -p ui-core -p update-core -p app-package-core -p artifact-store-core`
+is **niet uitgevoerd**: exit 127, `cargo: command not found`.
+`python3 -B tools/dev.py cargo +1.90.0 --version` exit 1 doordat de Cargo-
+binary ontbreekt. CodeRabbit CLI-review is niet gestart; het uitvoerbare
+bestand was niet vindbaar en beschikbaarheid/authenticatie zijn onbekend.
+
+**Eerstvolgend commando:** `git status --short && git rev-parse HEAD &&
+python3 -B tools/progress.py --check`; raadpleeg daarna `docs/WORK-QUEUE.md`
+voor het volgende productwerk.
 
 ## Native checkpoint PR127 — zeven reviewfixes — 2 november 2026
 
