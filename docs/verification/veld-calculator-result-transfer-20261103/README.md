@@ -1,6 +1,6 @@
 # VELD-11: rekenresultaat naar document overnemen
 
-Status: **ACTIVE**, native deelacceptatie nog niet uitgevoerd.
+Status: **QUEUED-FOR-INTEGRATION**, geen OPEN-PR-LEASE en dus geen nieuwe PR.
 Branch `veld/calculator-result-transfer-20261103`, opnieuw opgehaalde
 mainbasis `681f1137e411d6c6fe536bd2bf499c27b34832be`.
 Geen import van VELD-09/10/#157, geen PR zonder OPEN-PR-LEASE.
@@ -77,7 +77,7 @@ van current: exit 101 in de bestaande damageproef, Clippy niet bereikt.
 `veld11-result-host-attempt1.log`. Beide fouten zijn in bovengenoemde
 definitieve volledige reeks hersteld; geen oude groene run hergebruikt.
 
-## Nog open: gerichte native overdracht
+## Uitgevoerd: gerichte native overdracht
 
 ```sh
 export NOS_BUILD_DIR="$PWD/build/veld11-result-20261103"
@@ -94,7 +94,29 @@ bij beide selecties veranderen; model/formule/evaluatieteller blijven correct.
 Deze route kan uitsluitend `calculator_result_gate=true`, niet volledige
 `native_gate=true`, opleveren. Default-/herstel-/opslaggate ongewijzigd.
 
-Niet uitgevoerd: deze VM-deelgate, gewijzigde-mainintegratie, CI, fysieke
+Op bron `9c2a994ad8f30500e54ac228e1de0cceff267e16`:
+build exit 0 / 2,91 s; runner exit 0 / 121,70 s, twaalf fasen,
+ruwe QEMU-exit 33 en normale cleanupmarkers.
+`passed=true`, `calculator_result_gate=true`, bewust `native_gate=false`.
+Run `window-b79afae6ff7644c287c0dc7a9ce5893b`, log
+`$VELD_ENV/logs/veld11-result-native-attempt1.log`.
+Bronfingerprint:
+`74eb21b6aafb03f16c96f8196468e43453205d7bb6115a256bcc114d8d90fe53`.
+Beide waarden zijn werkelijk in de Materiaaldraft aangekomen; geen
+hostinvoeging, testbroker of nieuwe apprechten in deze VM-keten.
+
+`native.json` behoudt manifest, images, firmware, serial, frames en
+raw-reportpad/hash. Alleen de omvangrijke QMP-trace is vervangen door aantal
+entries en SHA-256 van canonieke JSON (`sort_keys=True`, separators `(',', ':')`).
+`logs.sha256` bindt alle zes ontwikkellogs, inclusief beide rode hostproeven.
+De ruwe artifacts staan in de daarin genoemde lokale buildrun, niet in Git.
+Alle loghashes en `git diff --check` zijn exit 0.
+`python3 -B tools/test_window_session.py`: exit 0, twaalf runnertegenproeven.
+
+Niet uitgevoerd: gewijzigde-mainintegratie, CI, fysieke
 hardware-, menselijke gebruiks-, onafhankelijke audit- en releasegates.
 Geen scoreverhoging; geen volwaardige opslag-/herstel-/releaseacceptatie.
 Rollback: uitsluitend deze scopedelta reverten.
+De milestone is bevroren; nieuwe code volgt uitsluitend op een aparte
+opnieuw opgehaalde mainbasis. VELD-09/10 blijven zelfstandige brongebonden
+opleveringen, niet automatisch meegeaccepteerd.
