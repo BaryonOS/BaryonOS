@@ -147,8 +147,9 @@ class SharedArtifactHelpers(unittest.TestCase):
 
     def test_tree_listing_refuses_a_link_before_including_its_target(self):
         with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            outside = root.parent / f"{root.name}-outside"
+            root = Path(directory) / "root"
+            root.mkdir()
+            outside = Path(directory) / "outside"
             outside.write_bytes(b"preserve")
             self.addCleanup(outside.unlink, missing_ok=True)
             link = root / "linked"

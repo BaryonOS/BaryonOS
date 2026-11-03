@@ -64,7 +64,7 @@ alleen een nette desktop haalt die eindgrens niet.
 **Bron:** [`37ad1e98`](https://github.com/simonvanieperen/nieuw-os/commit/37ad1e98328e59b752c230310a4abeaca749b669) ·
 **Ontwikkelbranch:** `simonvanieperen-friendly-system`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR142: integreer actuele main 5c66ec57 en behoud alle unieke bronreceipts.
-41 blijft 41. Main 5c66ec57 is inhoudsbehoudend geïntegreerd; 41 prototype-hosttests en gewijzigde JS-syntaxcheck slagen op de opgeloste boom. Snapshotregister behoudt unieke PR131/132/141/142-historie. Geen nieuwe native/QEMU/fysieke/menselijke acceptatie of criteriumpunten.
+41 blijft 41. Assessmentbasis blijft 37ad1e98. Main 5c66ec57 is inhoudsbehoudend geïntegreerd; 41 prototype-hosttests en de gewijzigde JS-syntaxcheck zijn zonder receipt uitgevoerd op de opgeloste mergeboom. Snapshotregister behoudt unieke PR131/132/141/142-historie. Geen nieuwe native/QEMU/fysieke/menselijke acceptatie of criteriumpunten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

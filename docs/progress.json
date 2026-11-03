@@ -7,7 +7,7 @@
     "branch": "simonvanieperen-friendly-system",
     "task": "PR142: integreer actuele main 5c66ec57 en behoud alle unieke bronreceipts",
     "previous_score": 41,
-    "summary": "41 blijft 41. Main 5c66ec57 is inhoudsbehoudend geïntegreerd; 41 prototype-hosttests en gewijzigde JS-syntaxcheck slagen op de opgeloste boom. Snapshotregister behoudt unieke PR131/132/141/142-historie. Geen nieuwe native/QEMU/fysieke/menselijke acceptatie of criteriumpunten."
+    "summary": "41 blijft 41. Assessmentbasis blijft 37ad1e98. Main 5c66ec57 is inhoudsbehoudend geïntegreerd; 41 prototype-hosttests en de gewijzigde JS-syntaxcheck zijn zonder receipt uitgevoerd op de opgeloste mergeboom. Snapshotregister behoudt unieke PR131/132/141/142-historie. Geen nieuwe native/QEMU/fysieke/menselijke acceptatie of criteriumpunten."
   },
   "tracks": [
     {
