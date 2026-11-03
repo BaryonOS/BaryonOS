@@ -1,6 +1,14 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR114 gemerged; native stack met main gecombineerd — 3 november2026
+## NEXT AGENT HANDOFF — PR140-main met native stack integreren — 3 november 2026
+
+PR-head `2ccb539d` is inhoudsbehoudend met base `main`=`d115cc96c19ac4371baed77409a23d1adddffaf0` geïntegreerd. Vier centrale statusconflicten zijn inhoudelijk opgelost; beide takken' status en de unieke PR140-test/bewijsinformatie blijven behouden. Main brengt één artifact-store-contracttestwijziging en de brongebonden PR140-bewijsbestanden mee; geen productiecodewijziging.
+
+**Validatie op de gecombineerde boom:** `cargo +1.90.0 test --offline --locked -p artifact-store-core` (9 tests), `cargo +1.90.0 check --offline --locked -p artifact-store-core --tests`, `python3 tools/progress.py --write`, `python3 tools/progress.py --check` en `git diff --check` slagen. De eerste offline testpoging miste `ed25519-dalek`; `cargo +1.90.0 fetch --locked` herstelde de cache en de gerichte test slaagde daarna. `cargo +1.90.0 clippy ...` en `cargo +1.90.0 fmt ...` konden niet draaien omdat de Clippy- en rustfmt-componenten voor Rust 1.90.0 ontbreken; die componenten zijn niet opnieuw geïnstalleerd. Geen native/QEMU-gate of volledige CI lokaal uitgevoerd.
+
+De oude-head `native-volume-admission`-failure meldde dat repositoryvariabele `VOLUME_ADMISSION_FIXTURE_RUN_ID` ontbreekt. Die run is door de gepubliceerde integratie-head achterhaald, maar de configuratie blijft een bekende externe blocker voor nieuwe runs; een repositorybeheerder moet de variabele koppelen aan een geldige artifact-run. Nieuwe-head checks moeten afzonderlijk worden beoordeeld. Score **41 -> 41**, geen nieuw criterium.
+
+## Vorig checkpoint — PR114 gemerged; native stack met main gecombineerd
 
 PR114 is daadwerkelijk guarded-squashgemerged als main
 `69809c2cb53dfb3bd77abe5352892810fba6e82d`, exact head32b6c9e2/basecbbc:
@@ -198,8 +206,43 @@ De laatste commit wijzigt alleen documentatie/bewijs. #43 blijft open; geen issu
 merge, nieuwe bevoegdheid of afhankelijkheid. **41 → 41/100**; geen nieuwe
 native productcriteria, hardware- of volledige releaseclaim.
 
-## Vorig checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
-## Historisch checkpoint — documentstapel vóór PR114-merge — 3 november2026
+## Historisch checkpoint — PR140 bewijs en descriptorclaims — 3 november 2026
+
+**Geteste bron:** `2bf9578290bef88d53c17f9913434da6f27441f2`, inclusief
+main `69809c2cb53dfb3bd77abe5352892810fba6e82d`.
+Op deze exacte bron zijn met Rust 1.90.0 de 9 artifact-store-contracttests,
+`cargo check --tests`, Clippy en formattering opnieuw uitgevoerd: elk exit 0.
+Exacte commando's, omgeving, source-tree, codehashes en volledige logs met
+SHA-256 staan duurzaam in
+[pr140-review-evidence.json](verification/pr140-review-evidence.json).
+De tijdelijke logpaden zijn alleen oorspronkelijke uitvoerpaden.
+
+De tests bewijzen descriptorvalidatie, binding en foutdoorgifte, niet
+identiteit, herkomst of cryptografische authenticatie. Het historische
+rapport behoudt bron `08710d55`, commando's, exits en hashes; alleen de
+scopeclaim is gecorrigeerd en het verse bewijs toegevoegd.
+Score **41 → 41**, geen nieuwe productacceptatie of productiecodewijziging.
+
+**Open ten tijde van dat checkpoint:** verse volledige CI en definitieve
+review vóór merge. Native/QEMU, fysieke en menselijke acceptatie zijn niet
+opnieuw uitgevoerd. PR135's volume-fixture- en RANDOM-gates bleven apart open.
+
+## Historisch checkpoint — PR #140 main-integratie — 3 november 2026
+
+PR-head `75cda7f4d49c5afe895277ada1102d630fdb75ad` is inhoudsbehoudend
+geïntegreerd met main `69809c2cb53dfb3bd77abe5352892810fba6e82d`.
+De Nederlandse beschrijvingen in het PR140-hostrapport blijven behouden;
+main's documentstapel, opslagherstelmateriaal, audit en replaytests zijn
+eveneens behouden. De rubric is ongewijzigd: **41 → 41/100**.
+
+**Gecontroleerd:** `umask 077 && python3 -B -m unittest discover -s tests -p
+'test_storage_backend_replay.py'` slaagt (16 tests). De eerste poging met de
+omgeving-umask `0002` faalde op drie permission-gebonden fixtures; geen
+productiecode gewijzigd. `python3 tools/progress.py --write` en `--check`,
+JSON-syntaxiscontrole en `git diff --check` slagen.
+**Open ten tijde van dat checkpoint:** de nieuwe integratiehead moest opnieuw
+door hosted controles worden beoordeeld. Er was geen nieuwe native/QEMU-
+acceptatie uitgevoerd.
 
 Main is inmiddels `cbbc9c9941b08ea5edfbd3637d494635b4fb1df0`: Simon
 bevestigde zelf dat hij134 handmatig squash-mergede (3nov10:05:36Z).

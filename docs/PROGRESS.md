@@ -85,6 +85,14 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Main-integratie (3 november 2026), basis `2ccb539d` en main `d115cc96`:
+**41 -> 41**. PR140's artifact-store-contracttests en primaire
+descriptorbewijsbestanden zijn behouden; de bestaande PR135/142-status blijft
+actueel. Vier centrale statusconflicten zijn samengevoegd. Negen gerichte tests,
+typecontrole en diff-check slagen; Clippy/rustfmt waren niet beschikbaar omdat
+de pinned toolchaincomponenten ontbreken. Geen nieuwe productacceptatie of punten;
+nieuwe-head CI blijft vereist.
+
 Main114/native-stackreconciliatie (3 november2026), main`69809c2c` met
 135/142`2825a4a0`: **41 ->41**.114 daadwerkelijk guarded-squashgemerged,
 boom bytegelijk aan volledig groene head32b6;22 echte windowfasen/
@@ -137,6 +145,17 @@ gelezen. Zie `verification/pr127-postmerge-acceptance.json`.
 De latere130/129/128/127-combinatie heeft63 geslaagde host-/buildcontroles;
 haar source `7ad8b7df` vereist nieuwe native gates. Geen overname van44/U03,
 geen nieuwe punten en geen fysieke of volledige releaseacceptatie.
+PR140-reviewvervolg (3 november 2026), geteste bron `2bf95782`: **41 → 41**.
+De 9 contracttests, typecontrole, Clippy en formattering zijn opnieuw groen.
+Volledige primaire logs met SHA-256 staan duurzaam in
+[het reviewbewijs](verification/pr140-review-evidence.json).
+Descriptorvalidatie/binding is geen bewijs van identiteit of authenticatie.
+Geen nieuwe native of productacceptatie.
+
+Historische PR140-reviewcorrectie (3 november 2026), basis `c07d15b8`: **41 → 41**.
+Alleen Nederlandse beschrijvingen in het historische hostrapport; commands,
+exitstatussen, bron-/loghashes en criteria blijven gelijk. Geen nieuwe tests
+of native productacceptatie door deze tekstcorrectie.
 PR119-inhoudsbehoud (3 november 2026), head `5a8317f1`: **41 -> 41**.
 Volledige nieuwste NAS-history opgenomen; alleen centrale statusconflicten,
 rubric buiten assessment identiek. Tweede/derde119-resolutie blijven

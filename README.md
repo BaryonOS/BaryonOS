@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`cb69eada`](https://github.com/simonvanieperen/nieuw-os/commit/cb69eada952fc4d68b7700fa5ee4d412a6ef9143) ·
+**Bron:** [`2ccb539d`](https://github.com/simonvanieperen/nieuw-os/commit/2ccb539d09546e21055b585aa7b97709cac11a9a) ·
 **Ontwikkelbranch:** `integrate/stack130-local`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Gemergde114-hoofdbranch met native135/142 behoudend combineren en vijf ingehaalde leafheads sluiten.
-41 blijft41.114 daadwerkelijk guarded-squashgemerged als main69809c2c, boom bytegelijk aan volledig groene head32b6. Echte22fase windowrun41620192281 opnieuw geverifieerd:22frames/34hostoraclebeelden/serial/schijf, sourcefe0fe328 gelijk. Actuele119/136/143/144/145 daarna uitsluitend als behouden gesloten na byte/mode/source/rubric-checks; geen dubbele merges. Main nu behoudend met135/142 gecombineerd: vijf centrale doc-/ADR-conflicten, dubbele058 opgelost als volume064 met oude alias, geen productiecodeverschil tegenover2825.16opslaghosttests en207oudehashes+99receiptentries groen. Voorafgaande142-combinatie heeft61gerichte plus490root/197tools groenehosttests zonder skips; drie eerste tool-ENV-fouten expliciet bewaard en alleen bestaande rustup-PATH hersteld. Nieuwe gecombineerde source2a8bf7d3 vereist verse native/CI/review; hostedfixturelevering blijft rood. Oudere19volume-/netwerkVMs niet gepromoveerd, geen nieuwe punten of productacceptatie.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Main d115cc96 inhoudsbehoudend in de PR-branch integreren.
+De actuele main is inhoudsbehoudend geïntegreerd. PR135/142-status en PR140 artifact-store-test-/bewijsbestanden zijn behouden; vier conflicten waren uitsluitend centrale statusmetadata. Geen nieuw productcriterium of geaccepteerd bewijs. De gecombineerde boom vereist gerichte validatie en nieuwe-head CI; oude-head failures gelden niet als nieuwe-head resultaten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
