@@ -2,10 +2,11 @@
 
 ## NEXT AGENT HANDOFF — PR146-conflicten met main 95d79451 — 3 november 2026
 
-**Bronnen:** PR #146-head `873f76c3abd1b7f8f7a74e26e980920f8a5d3e08`
+**Bronnen:** mergecommit `9f631820e85f15b392a1ff1be99c8ae13f27c8a4`, met ouders
+PR #146-head `873f76c3abd1b7f8f7a74e26e980920f8a5d3e08`
 en de aangewezen `main`-commit `95d7945110ce853a1b5827ec59f6115475691805`.
-Vier conflicten zijn inhoudelijk opgelost; de merge commit wordt hierna
-afgerond. `scene.rs` behoudt de PR-workspace/window-state-implementatie en
+Vier conflicten zijn inhoudelijk opgelost en de merge commit is lokaal afgerond.
+`scene.rs` behoudt de PR-workspace/window-state-implementatie en
 main-side API-documentatie, met PR key-cancellation handling. README en de
 voortgangsassessment blijven bij PR #146; main's PR138-status is historische
 context. Niet-conflicterende main-wijzigingen en de PR138-integratiereceipt
