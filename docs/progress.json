@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "348ee19555146ed3d44971b09c3bf0505515acdd",
+    "source_commit": "19e4c8c4f31305f106a36face481d31c3aaaef22",
     "branch": "codex/volume-format-admission-20261102",
-    "task": "Integreer main 8e0c15d8 en behoud PR133/PR142/PR149-inhoud",
+    "task": "Integreer main d686bd54 met behoud van volumecontracten en bewijs",
     "previous_score": 41,
-    "summary": "De 41/100-rubric blijft behouden; geen punten toegekend. Main 8e0c15d8 is inhoudsbehoudend geïntegreerd met behoud van PR133's volume-admissiegeschiedenis, PR142's unieke receipts en PR149's UI-bewijs. Historische native volumegates blijven aan hun oudere bron gebonden; native volumeacceptatie blijft open."
+    "summary": "De 41/100-rubric blijft behouden; geen nieuwe punten. Main d686bd54 is geïntegreerd met behoud van PR133-, PR142- en PR149-historie. De gecombineerde volumehosttests (49 Rust- en 36 Python-tests), Rustfmt en Clippy slaagden op de opgeloste werkboom. Historische native gates blijven aan hun eerdere bron gebonden; deze integratie levert geen nieuwe native acceptatie."
   },
   "tracks": [
     {

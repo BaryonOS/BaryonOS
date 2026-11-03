@@ -2,50 +2,53 @@
 
 ## NEXT AGENT HANDOFF — PR133-volumecontract en actuele main — 3 november 2026
 
-**Basis vóór integratie:** PR-head `348ee19555146ed3d44971b09c3bf0505515acdd`;
-main `8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2`, branch
-`codex/volume-format-admission-20261102`. De README-, status- en
-assessmentconflicten zijn verenigd; PR142's unieke receipts en snapshotregister,
-PR149's UI-bewijs en PR133's volume-admissiegeschiedenis blijven behouden.
-Rubric blijft **41 → 41/100**; de 10+9-volume-VM-proeven zijn alleen bewijs voor
-de oudere bron `94f12da` en moeten op een nieuw bevroren checkpoint opnieuw.
+**Basis vóór integratie:** PR-head `19e4c8c4f31305f106a36face481d31c3aaaef22`;
+main `d686bd54e766aed542e9918d1a37dcce434f18e2`, branch
+`codex/volume-format-admission-20261102`. De hoofdconflicten zijn opgelost op
+basis van de nieuwere ADR-064: een onbekend volume is alleen leeg als de hele
+scope nul is; de eerste write flusht eerst een volledige NOSFMT02-marker.
+De overflow-veilige generatievergelijking uit PR133 blijft behouden. PR142's
+unieke receipts/snapshotregister en PR149's UI-bewijs blijven ongewijzigd.
+Rubric blijft **41 → 41/100**.
 
-**Validatie van deze integratie (exit 0):** `python3 -B tests/test_common.py`
-(8 tests), `python3 -B -m unittest discover -s tools/tests -p test_random.py -v`
-(21 tests), dezelfde opdracht met `test_images.py` (20 tests),
-`python3 -B -m py_compile tools/common.py tools/run_fpu.py tools/run_images.py tools/run_random.py tests/test_common.py`,
-`python3 tools/progress.py --write`, `python3 tools/progress.py --check` en
-`git diff --check`. De incoming main-ref was exact `8e0c15d8`; Python-
-wijzigingen centraliseren hash-/padhelpers voor de image- en random-harnassen.
-Geen nieuwe native VM-, fysieke of menselijke acceptatie wordt geclaimd.
-**Open/eerstvolgend:** na publicatie de nieuwe-head-checks laten evalueren;
-volume-VM-gates blijven open.
+**Validatie op de opgeloste werkboom:** `cargo +1.90.0 test --locked
+--manifest-path services/volume/Cargo.toml` — alle 49 hosttests geslaagd,
+exit 0; `python3 -B -m unittest discover -s tests -p 'test_volume_*.py'` — 36
+tests geslaagd, exit 0; `cargo +1.90.0 clippy --locked --manifest-path
+services/volume/Cargo.toml --all-targets -- -D warnings` en
+`cargo +1.90.0 fmt --all -- --check` — exit 0. Het eerdere Python-orakelresultaat
+was eerst niet groen; de lege-imagefixture volgt nu ADR-064 en de tests zijn
+opnieuw geslaagd. De uitvoer is in het sessietranscript, niet als apart
+duurzaam log bewaard. Geen native/QEMU-, fysieke of menselijke acceptatie.
+De historische 10+9-volume-VM-runs blijven aan bron `94f12da` gebonden; deze
+integratie geeft daarvoor geen nieuwe native acceptatie.
+**Open/eerstvolgend:** na de opgeloste merge moeten nieuwe-head checks opnieuw
+worden beoordeeld.
 
-## Historisch checkpoint — PR133 volume-admissie en bijgewerkte main — 3 november 2026
+## Historisch checkpoint — PR148 met main 8e0c15d — 3 november 2026
 
-**Bron:** PR-head `794ddcc0d866ee8847a519b5a6f23c2ceddd69ea` met de actuele
-main `0e3b9e7f02ee7556e4b713fa58c9cd9e6b26a740`, branch
-`codex/volume-format-admission-20261102`. De drie documentconflicten zijn
-opgelost met behoud van de 41/100-rubric, PR149's status/UI/bewijs en PR133's
-volume-admissiegeschiedenis. De UI-testdisk schrijft nu expliciet de canonieke
-lege volumetabel; een nulgevulde disk is volgens het PR133-contract niet
-stilzwijgend geformatteerd.
+PR148 `47ec535f15bb10912dbc6cbf1af3de9df0c6c226` was met main
+`8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2` geïntegreerd. De drie centrale
+documentconflicten behielden beide checkpointreeksen en brongebonden receipts;
+de gedeelde harnashulpfuncties kwamen uit main en de volume-admissie uit PR148.
+De score bleef 41/100.
 
-**Validatie op de opgeloste boom:** de eerder gemelde UI-tests, volumetests,
-formattering, Clippy, voortgangscontroles, diffcontrole en secretscan hebben
-hier geen controleerbare commando's en brongebonden logs of receipts. Hun
-uitkomst is daarom niet als bewijs voor deze boom bevestigd. De afzonderlijke
-[UI-receipt](verification/pr149-bb8877-host-receipt.json) betreft een andere
-bron `bb8877e3` en accepteert deze boom niet.
+**Uitgevoerd toen op de opgeloste boom:** `python3 -B -m unittest discover -s tests -p 'test_common.py'`
+(8 tests), de random-harnastests (21), image-harnastests (20),
+`python3 -B tools/test_fpu.py` (12), volume-orakelsuite (26),
+voortgangs- en diffcontroles: exit 0. De volledige volume-core suite en
+formatting/Clippy waren niet opnieuw uitgevoerd; geen native acceptatie.
+Uitvoer stond alleen in het toenmalige sessietranscript. De bijbehorende
+PR148-hostreceipts betroffen eerdere werkbomen, geen integratiereview.
+Nieuwe-head CI/review stonden open.
 
-**Bewijsgrens:** de 10 matrix- en 9 crash-VM-runs uit `f12e8ca` zijn gebonden
-aan de oudere bron `94f12da`; dit bewijs accepteert de nieuw samengevoegde
-bron niet. Herhaal alle 10+9 volumegates op een nieuw bevroren checkpoint met
-eigen targets, images en logs onder
-`volume-format-admission/native-current/`. Tot die hertest blijven de
-gecombineerde native gates open; er zijn geen punten toegekend. Nieuwe-head
-checks moeten na publicatie opnieuw worden beoordeeld.
+## Historisch checkpoint — PR133 volume-admissie op main 0e3b9e7 — 3 november 2026
 
+De 10 matrix- en 9 crash-VM-runs uit `f12e8ca` zijn gebonden aan de oudere bron
+`94f12da`. Herhaal alle 10+9 volumegates op een nieuw bevroren checkpoint met
+eigen targets, images en logs onder `volume-format-admission/native-current/`.
+De afzonderlijke UI-receipt betreft bron `bb8877e3`; deze receipts bewijzen
+geen gecombineerde native volumeacceptatie.
 
 ## Historisch checkpoint — PR142 main-integratie — 3 november 2026
 
@@ -92,6 +95,41 @@ uitsluitend documentatie betreffende integratie.
 **Open/eerstvolgend:** na publicatie nieuwe-head-controles laten evalueren.
 Alleen bewijs-/statuscorrecties; geen oude CI-retry of nieuwe runtimecode.
 Native/QEMU-, fysieke en menselijke acceptatie blijven afzonderlijk open.
+
+## Historisch checkpoint — PR148 slot1-admissie opvolging — 3 november 2026
+
+**Basis:** PR148-head `c6b25873c915a98f8c0b2bb7400395e01ba44741`, branch
+`simonvanieperen-upgraded-disco`, met slot1-admissiefix, marker-crashgrens
+en host-suitebewijs al aanwezig. Score en rubric blijven **41 → 41/100**.
+
+**Status en classificatie (actueel):**
+- Vereiste checks (`host-quality`, `qemu-smoke`) zijn groen.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:d8b787176e01e7132a22480ebc41537196905df76f55d8e674355a4700a5bc60 -->
+
+- `native-foundation` faalde volgens de handoff in run `41640409938` met
+  `system marker sequence mismatch`/`RANDOM guest report ... not bound`.
+  De oorzaak is **onbekend**: de primaire workflowbron, de exacte gefaalde
+  stap en het resultaat van de gestarte rerun (`gh run rerun --failed 41640409938`)
+  ontbreken. De gate blijft open.
+
+<!-- /coderabbit-ai-generated:v1 -->
+- Open CodeRabbit-threads betreffen vooral documentatiestatus en bronlabels;
+  productiegedrag voor slot1-admissie is al gecorrigeerd en hostmatig bewezen.
+
+**Primaire bronnen (code + bewijs):**
+- Recovery/admissie: `services/volume/src/table.rs` op commit `c6b25873`.
+- Onafhankelijk orakel: `tools/volume_disk.py` op commit `c6b25873`.
+- Bewijs: `docs/verification/pr148-slot1-review.json`,
+  `docs/verification/pr148-marker-crash-review.json`,
+  `docs/verification/pr148-volume-core-host-suite.json`.
+- Repositorybron: https://github.com/simonvanieperen/nieuw-os/tree/c6b25873c915a98f8c0b2bb7400395e01ba44741
+
+**Open/eerstvolgend:** rond PR148 de resterende documentatie-threads sluiten,
+uitkomst van de `native-foundation` rerun verwerken en daarna opnieuw
+merge-preflight op exact head/base/checks/reviewthreads draaien.
+Native metadata-only fixture en native QEMU-volume-admissie blijven apart open.
 
 ## Historisch checkpoint — PR149 compacte kaartregressies hersteld — 3 november2026
 

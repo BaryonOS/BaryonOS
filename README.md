@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`348ee195`](https://github.com/simonvanieperen/nieuw-os/commit/348ee19555146ed3d44971b09c3bf0505515acdd) ·
+**Bron:** [`19e4c8c4`](https://github.com/simonvanieperen/nieuw-os/commit/19e4c8c4f31305f106a36face481d31c3aaaef22) ·
 **Ontwikkelbranch:** `codex/volume-format-admission-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Integreer main 8e0c15d8 en behoud PR133/PR142/PR149-inhoud.
-De 41/100-rubric blijft behouden; geen punten toegekend. Main 8e0c15d8 is inhoudsbehoudend geïntegreerd met behoud van PR133's volume-admissiegeschiedenis, PR142's unieke receipts en PR149's UI-bewijs. Historische native volumegates blijven aan hun oudere bron gebonden; native volumeacceptatie blijft open.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Integreer main d686bd54 met behoud van volumecontracten en bewijs.
+De 41/100-rubric blijft behouden; geen nieuwe punten. Main d686bd54 is geïntegreerd met behoud van PR133-, PR142- en PR149-historie. De gecombineerde volumehosttests (49 Rust- en 36 Python-tests), Rustfmt en Clippy slaagden op de opgeloste werkboom. Historische native gates blijven aan hun eerdere bron gebonden; deze integratie levert geen nieuwe native acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
