@@ -18,7 +18,11 @@ eigen bewijs. Een groene oude head is geen acceptatie van een nieuwe head.
 - General: selectieve image-/keyring-integratie en centrale sprintregistratie.
   Geen writes aan Drivers- of Veld-implementaties.
 - Drivers: `SPRINT-DRIVER-REVIEW`, uitsluitend bestaande #153-bevindingen,
-  eigen tests en receipt. Geen nieuwe driverfeature of centrale docs.
+  eigen tests en receipt. Ook `Cargo.toml`/`Cargo.lock` uitsluitend voor de
+  ontbrekende rootmembers/lokale lockentries van driver-core/pci-core
+  expliciet vrijgegeven; geen externe dependency of andere rootwijziging.
+  Reviewfix afgerond op `c1508aa0`, exact gepoort naar #153 `78623c5b`.
+  Geen nieuwe driverfeature of centrale docs.
 - Veld: `SPRINT-VELD-REVIEW`, uitsluitend bestaande #157-bevindingen,
   eigen tests en receipt. Geen nieuwe shellfeature of centrale docs.
 - Platform: featurefreeze bevestigd; volledige bron `8c837d5c` behouden op
@@ -36,7 +40,7 @@ toewijzen als die bestaat, anders `BLOCKED-BY:<owner/interface>` met een
 concrete hervatvoorwaarde vastleggen. Ownership is geen permanente stilstand.
 Dit heft de huidige featurefreeze niet op.
 
-### PR-triage op exacte heads
+### PR-triage op gepinde bronheads voor checkpointpublicatie
 
 Snapshot: 3 november 2026; 17 oorspronkelijke PR's plus aangetroffen #159.
 READY-TO-MERGE hieronder is een technische classificatie, GEEN mergebesluit.
@@ -44,19 +48,19 @@ Lopende CI wordt niet afgewacht of als geslaagd geboekt.
 
 | PR / head | Klasse | Concrete blocker / actie / hervatvoorwaarde |
 |---|---|---|
-| #159 `41f4a6de` | BLOCKED | Kleine vijf-file imagecandidate op main, 23 codec- en 15 viewertests groen; downstream-compilefout opgelost. Nieuwe-head CI nog lopend. Concept gemaakt; inhoudelijk identiek aan beperkte #156. Kies slechts een van beide. |
+| #159 `5cfbfd10` | BLOCKED | Kleine vijf-file imagecandidate op main, 23 codec- en 15 viewertests groen; downstream-compilefout opgelost. EXIF-limietdocumentatiethread beantwoord/opgelost, geen reviewgoedkeuring geclaimd. Nieuwe-head CI/review nog nodig. Concept; exacte tree gelijk aan #156. Kies slechts een van beide. |
 | #158 `568741f3` | BLOCKED | Ontbrekende volledige native B03-gate nu opgelost: 18 QEMU-stappen groen. Nieuwe-head CI nog lopend; daarna review. Productie-key lifecycle blijft buiten deze TEST-policyfix. |
-| #157 `92f5972b` | NEEDS-FIX | Veld bevestigt echte false-positive notice-closed-wait: oude 60-fasenruns bewijzen geen volledige paneelverwijdering/mouse-isolatie. Runner-/pixel-/inputfix en verse native proef bij owner; nog geen nieuw native resultaat. Tevens mainconflicten/review. |
-| #156 `299ceefe` | SUPERSEDED | Van 63 naar vijf bestanden beperkt, exacte tree gelijk aan #159. Volledige restscope op archiefbranch en in historie; niet kwijt, niet geaccepteerd. Geen sluiting; reviewDecision blijft CHANGES_REQUESTED. |
-| #155 `a1eba0db` | BLOCKED | Van 46 naar tien bestanden beperkt: keyring-herstelautorisatie op main, vijf native cases groen. Nieuwe-head CI/review nog nodig; positieve beheerrecovery alleen hostgetest. Centrale sprintregistratie volgt als aparte documentdelta. |
+| #157 `b3117312` | NEEDS-FIX | Oude 60-fasenruns bewijzen geen volledige paneelverwijdering/mouse-isolatie. Owner levert gerichte runner/input/pixelregressiefix, meldt 23 tegenproeven en nieuwe native100%-gate met 61 fasen groen (406,23s). Eerste fixpoging11405312 terecht rood op ontbrekend MICE-veld. Nieuwe200%-gate nog lopend; geen resultaatclaim. Tevens mainconflicten/review. |
+| #156 `4ef1deef` | SUPERSEDED | Van 63 naar vijf bestanden beperkt, exacte tree gelijk aan #159. Volledige restscope op archiefbranch en in historie; niet kwijt, niet geaccepteerd. Geen sluiting; CHANGES_REQUESTED niet weggepoetst. |
+| #155 `1122d2c8` | BLOCKED | Van 46 naar tien keyringbestanden plus zes centrale checkpointbestanden beperkt; vijf native cases groen. Nieuwe-head CI/review nog nodig; positieve beheerrecovery alleen hostgetest. Productbron a1eba0db, daarna uitsluitend centrale documentatie. |
 | #154 `63f1da11` | NEEDS-REBASE/UPDATE | Gemengde maturityprimitieven/OOM plus mainconflicten; SMP-WIP blijft apart. Kleine bestaande slices tegen main afbakenen na freezebevestiging, geen generieke merge of SMP-duplicatie. |
-| #153 `f2a8f6ee` | NEEDS-FIX | Zeven xHCI-/configwrite-/negatieve-test-/documentatiebevindingen en mainconflicten. Begrensde reviewfix bij Drivers; probe is geen controller-executionproof. |
+| #153 `78623c5b` | BLOCKED | Van 75 naar 13 bestanden op main beperkt, exacte tree c1508aa0. Zeven concrete threads beantwoord/opgelost; CHANGES_REQUESTED niet als opgeheven geclaimd. Twee echte positieve-fixturefouten en ontbrekende rootworkspacewiring eerst rood, daarna 34 hosttests groen. Nieuwe-head CI/review nodig; geen controller-executionproof. |
 | #152 `df474de4` | RESEARCH/DOCS | Vijf onderzoeksdocumenten, mainconflicten; geen native driverresultaat. Alleen documentdelta selectief actualiseren, geen hardwareacceptatie. |
 | #151 `46357904` | RESEARCH/DOCS | 17 auditdocumenten, 21 threads opgelost, 30 checks geslaagd; reviewDecision nog CHANGES_REQUESTED. Verse reviewbeslissing nodig, geen punten of onafhankelijke auditclaim. |
 | #150 `39569721` | NEEDS-FIX | Agentprofielen/docs; assessment-source-thread en CHANGES_REQUESTED blijven, 30 checks geslaagd. Centrale historische status niet importeren als productbewijs. |
 | #147 `8d871592` | NEEDS-REBASE/UPDATE | 692-file gemengde branch/mainconflicten; unieke session-route/runnerdelta, geen volledige supersession bewezen. Alleen concrete niet-gedekte slice bewaren/porteren; niet sluiten. |
 | #146 `16eefda3` | NEEDS-FIX | native-foundation en native-window-session rood, review/assessment-thread open. Eerst concrete gast-/gatefout oplossen op passende bron, geen groene-CI-claim. |
-| #138 `0de93c50` | READY-TO-MERGE | 33 checks geslaagd, geen open threads; delta in Rust-files uitsluitend API-/implementatiecommentaar, daarnaast documentatie/bewijs. Geen nieuwe runtimefunctionaliteit; PR-body nog concreet maken. Geen merge uitgevoerd. |
+| #138 `0de93c50` | READY-TO-MERGE | 33 checks geslaagd, geen open threads; delta in Rust-files uitsluitend API-/implementatiecommentaar, daarnaast documentatie/bewijs. Geen nieuwe runtimefunctionaliteit; PR-body met concrete scope/validatie ingevuld. Geen merge uitgevoerd. |
 | #137 `6ecfca9d` | NEEDS-FIX | Vier centrale statusdocumenten, assessment-source-thread en CHANGES_REQUESTED; 30 checks geslaagd vervangen die correctie niet. Geen productcode. |
 | #135 `ea94eca7` | NEEDS-FIX | native-volume-admission rood en mainconflicten; unieke collection/history-/servicecode niet volledig vervangen. Begrensde repro/slice nodig, geen sluiting. |
 | #133 `9454d9c4` | NEEDS-FIX | 16 reviewthreads, omvangrijke unieke test/toolingdelta en conflicterende admissionvarianten. Geen bewijs voor volledige inhoudsdekking; niet als geheel superseded verklaren/sluiten. |
@@ -75,6 +79,9 @@ Lopende CI wordt niet afgewacht of als geslaagd geboekt.
 General-bron voor verdere splits: `archive/general-pre-sprint-20261103`
 op `707a768c`; Materiaal/UTF-8/app-cleanup/ownershiphistorie blijven daar
 behouden, niet stil geclaimd als onderdeel van de beperkte keyring-PR.
+Volledige oorspronkelijke driverbron: `archive/drivers-pre-sprint-20261103`
+op `f2a8f6ee`; kernel-/VirtIO-/andere driverrestscope niet weggegooid of
+automatisch geaccepteerd door de dertien-file xHCI-slice.
 
 ## Historisch register — 30 oktober 2026
 

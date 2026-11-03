@@ -19,6 +19,9 @@ mainmerge of issue-/PR-sluiting. PR-classificatie en ownership:
   hersteld. Geen georienteerde native viewerclaim. Slechts een kandidaat
   kiezen; geen dubbele merge. Volledige oorspronkelijke Platform-code
   behouden op `archive/platform-pre-sprint-20261103` @ `8c837d5c`.
+  Daarna uitsluitend de concrete EXIF-metadatalimietdocumentatiereview
+  hersteld: actuele #159 `5cfbfd10`, #156 `4ef1deef`, eindtrees opnieuw
+  exact gelijk; geen nieuwe runtime-testclaim voor die documentatie.
 - #155 `a1eba0db`: bestaande keyring-herstelautorisatiefix op main,
   oorspronkelijke 46-file branch teruggebracht tot tien bestanden.
   [Brongebonden receipt](verification/integration-sprint-20261103-keyring.md):
@@ -26,6 +29,25 @@ mainmerge of issue-/PR-sluiting. PR-classificatie en ownership:
   groen, laatste gate exit 0, 15,10 s. Eerste run terecht rood door
   SDK-README-write tijdens bronfreeze; volledige frozen herhaling groen.
   Positieve beheerrecovery alleen hostgetest; B01/B02 blijven open.
+- #153 `78623c5b`: van 75 naar 13 bestanden beperkt, exact geteste main-
+  gebaseerde candidate `c1508aa0`. General reproduceerde op `5ea1c349`
+  werkelijk 13 PASS/2 FAIL en twee niet-startende prerequisite-unittests.
+  Owner repareerde ongeldige positieve xECP-fixtures en ontbrekende
+  rootworkspace-members/lokale lockentries; productievalidatie niet
+  versoepeld. General herhaalde op exacte nieuwe bron:
+  `cargo +1.90.0 test --offline --locked -p driver-core -p pci-core`
+  (11+8 tests, exit0,0,45s) en
+  `cargo +1.90.0 test --offline --locked --manifest-path drivers/xhci/Cargo.toml`
+  (15tests, exit0,0,27s). Volledige logs onder `/tmp/`:
+  `nieuw-os-sprint-driver-workspace-green.log` SHA256
+  `300cdb8bdd4fddd032379a5654a9e31b6d9d845148c2aee5ce91e162b502595e`;
+  `nieuw-os-sprint-xhci-green.log` SHA256
+  `18c2a6ee6413e72774082bbfcc67e19f2f271b487810514e4e3e36ba4c0df42a`.
+  Ownerreceipt met eigen lint/fmt/freestandingchecks staat op die branch
+  onder `docs/verification/xhci-pci-probe-2026-11-03/README.md`.
+  Zeven concrete reviewthreads beantwoord/opgelost, geen
+  reviewgoedkeuring of controller-/QEMU-/hardwareclaim. Volledige oude
+  driverbron behouden op `archive/drivers-pre-sprint-20261103` @ `f2a8f6ee`.
 
 De volledige oorspronkelijke General-code en SMP-assignment blijven op
 `archive/general-pre-sprint-20261103` @ `707a768c`; geen Materiaal-,
@@ -33,10 +55,15 @@ app-lifecycle-, UTF-8- of ownershipwerk weggegooid. Portselectie is met
 exacte treevergelijking gecontroleerd, niet via een verliesgevende forcepush.
 Nieuwe heads hebben opnieuw CI/review nodig; lopende checks zijn geen groen.
 
-**Open grenzen:** Drivers en Veld voeren uitsluitend begrensde bestaande
-reviewfixes uit; geen centrale writes of nieuwe features. Veld bevestigt
-dat oude paneelacceptatie een onjuiste closed-wait bevatte; geen nieuwe
-native-resultaatclaim, geen import van dat oude bewijs. Maturity-freeze
+**Open grenzen:** Drivers-reviewfix gepubliceerd, nieuwe-head CI/review
+blijft nodig. Veld voert uitsluitend begrensde bestaande reviewfixes uit;
+geen centrale writes of nieuwe features. Veld bevestigt dat oude
+paneelacceptatie een onjuiste closed-wait bevatte. Op `b3117312` meldt owner
+23 tegenproeven en een nieuwe 100%-nativegate met 61 fasen groen,
+406,23s,exit0;
+geen herhaalde General-run. Eerste fixpoging11405312 terecht rood op
+ontbrekend MICE-veld; nieuwe200%-gate loopt nog, geen resultaatclaim.
+Geen import van oude60fasen als volledig paneelbewijs. Maturity-freeze
 verzonden maar ontvangst niet bevestigd; bestaande SMP-WIP/ownership niet
 overnemen. #138 is technisch groen, maar documentatie, geen productwinst.
 ReviewDecision CHANGES_REQUESTED niet wissen op basis van opgeloste threads.

@@ -10,6 +10,8 @@ op `707a768c`: vijf verse native cases bewijzen onder andere geweigerde
 app-recovery, maar positieve beheerrecovery is uitsluitend hostgetest.
 B03's 18 native stappen en de imagehostslice zijn begrensde
 integratiecorrecties, geen nieuwe volledige acceptatiecriteria.
+De afzonderlijke xHCI-reviewcandidate heeft 34 werkelijk geslaagde
+hosttests, geen controller-, QEMU- of fysieke hardwareacceptatie.
 Gewichten en overige criteriumstatussen blijven ongewijzigd.
 
 PR149-review op bron `53256f82`: **41 → 41**. Drie daadwerkelijk rood

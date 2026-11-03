@@ -63,8 +63,8 @@ alleen een nette desktop haalt die eindgrens niet.
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
 **Bron:** [`a1eba0db`](https://github.com/simonvanieperen/nieuw-os/commit/a1eba0db269bdf59653d067c3a63c9fb7f9490e4) ·
 **Ontwikkelbranch:** `simonvanieperen-animated-garbanzo`.
-Deze opdracht: **39% → 39% (+0 procentpunt)**. **Opdracht:** Integratiesprint: begrensde B03-, image- en keyringcorrecties; ownership en PR-triage.
-General 39/100 blijft 39/100 zoals op 707a768c. Main's 41 niet geimporteerd: B01 blijft open totdat ook positieve beheerrecovery native is bewezen. Alle andere criteria en gewichten ongewijzigd. Vijf native keyringcases en 70 hosttests groen; afzonderlijke B03-gate 18 stappen groen en imageslice hostgetest. Geen nieuwe volledige acceptatie, mainmerge, hardwaretest, menselijke audit of releasevalidatie.
+Deze opdracht: **39% → 39% (+0 procentpunt)**. **Opdracht:** Integratiesprint: begrensde B03-, image-, keyring- en xHCI-correcties; ownership en PR-triage.
+General 39/100 blijft 39/100 zoals op 707a768c. Main's 41 niet geimporteerd: B01 blijft open totdat ook positieve beheerrecovery native is bewezen. Alle andere criteria en gewichten ongewijzigd. Vijf native keyringcases en 70 hosttests groen; afzonderlijke B03-gate 18 stappen groen, imageslice hostgetest en xHCI-reviewcandidate34hosttests groen op eigen branch. Veld meldt verse100%-acceptatie,200% nog lopend. Geen bronmix, nieuwe volledige acceptatie, mainmerge, hardwaretest, menselijke audit of releasevalidatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
