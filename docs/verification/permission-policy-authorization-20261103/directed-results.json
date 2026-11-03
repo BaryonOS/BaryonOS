@@ -1,0 +1,37 @@
+[
+  {
+    "name": "directed",
+    "command": "cargo +1.90.0 test --offline --locked -p permission-policy-core",
+    "exit_status": 0,
+    "seconds": 0.373,
+    "log": "target/policy-authorization-review/directed.log"
+  },
+  {
+    "name": "fmt",
+    "command": "cargo +1.90.0 fmt -p permission-policy-core -- --check",
+    "exit_status": 0,
+    "seconds": 0.047,
+    "log": "target/policy-authorization-review/fmt.log"
+  },
+  {
+    "name": "clippy",
+    "command": "cargo +1.90.0 clippy --offline --locked -p permission-policy-core --all-targets -- -D warnings",
+    "exit_status": 0,
+    "seconds": 0.195,
+    "log": "target/policy-authorization-review/clippy.log"
+  },
+  {
+    "name": "target",
+    "command": "cargo +1.90.0 check --offline --locked -p permission-policy-core -p capability-core -p kernel-core -p platform-profile-core --target x86_64-unknown-none",
+    "exit_status": 0,
+    "seconds": 0.255,
+    "log": "target/policy-authorization-review/target.log"
+  },
+  {
+    "name": "diff",
+    "command": "git diff --check",
+    "exit_status": 0,
+    "seconds": 0.006,
+    "log": "target/policy-authorization-review/diff.log"
+  }
+]

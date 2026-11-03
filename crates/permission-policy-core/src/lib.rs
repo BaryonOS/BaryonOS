@@ -25,6 +25,7 @@ pub struct ContextId(pub u32);
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ActivityId(pub u32);
 
+/// Exact policy target. Conditions belong to the stored rule, not this identity.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Scope {
     pub app: AppIdentity,
@@ -32,7 +33,6 @@ pub struct Scope {
     pub purpose: PurposeId,
     pub context: ContextId,
     pub activity: ActivityId,
-    pub foreground_only: bool,
 }
 
 impl Scope {
@@ -58,6 +58,8 @@ pub enum StoredDecision {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Rule {
     pub scope: Scope,
+    /// Stored policy condition, never a request-selected matching key.
+    pub foreground_only: bool,
     pub decision: StoredDecision,
 }
 
@@ -66,6 +68,7 @@ pub struct Request {
     pub scope: Scope,
     /// Supplied by a trusted activity/session broker, not by the requesting app.
     pub activity_active: bool,
+    /// Supplied by the trusted session broker, not by the requesting app.
     pub foreground: bool,
 }
 
@@ -74,6 +77,7 @@ pub enum PolicyResult {
     NoRule,
     Denied,
     Inactive,
+    /// A broker may consider issuing a capability; no runtime authority is issued.
     PermitsActivation,
 }
 
@@ -108,7 +112,8 @@ impl UserPolicy {
         self.len == 0
     }
 
-    /// Replaces a rule with the same exact scope; no wildcard matching exists.
+    /// Replaces the same target, including its decision and foreground condition.
+    /// No wildcard matching exists.
     pub fn set(&mut self, rule: Rule) -> Result<(), Error> {
         rule.scope.validate()?;
         for existing in self.rules.iter_mut().flatten() {
@@ -144,8 +149,7 @@ impl UserPolicy {
         match rule.decision {
             StoredDecision::Deny => PolicyResult::Denied,
             StoredDecision::Allow
-                if request.activity_active
-                    && (!request.scope.foreground_only || request.foreground) =>
+                if request.activity_active && (!rule.foreground_only || request.foreground) =>
             {
                 PolicyResult::PermitsActivation
             }
@@ -173,7 +177,7 @@ impl UserPolicy {
             record[12..16].copy_from_slice(&rule.scope.purpose.0.to_le_bytes());
             record[16..20].copy_from_slice(&rule.scope.context.0.to_le_bytes());
             record[20..24].copy_from_slice(&rule.scope.activity.0.to_le_bytes());
-            record[24..28].copy_from_slice(&u32::from(rule.scope.foreground_only).to_le_bytes());
+            record[24..28].copy_from_slice(&u32::from(rule.foreground_only).to_le_bytes());
             record[28] = match rule.decision {
                 StoredDecision::Allow => 1,
                 StoredDecision::Deny => 2,
@@ -218,7 +222,6 @@ impl UserPolicy {
                 purpose: PurposeId(u32::from_le_bytes(record[12..16].try_into().unwrap())),
                 context: ContextId(u32::from_le_bytes(record[16..20].try_into().unwrap())),
                 activity: ActivityId(u32::from_le_bytes(record[20..24].try_into().unwrap())),
-                foreground_only: flags == 1,
             };
             scope.validate()?;
             if policy
@@ -234,7 +237,11 @@ impl UserPolicy {
                 2 => StoredDecision::Deny,
                 _ => return Err(Error::InvalidEncoding),
             };
-            policy.set(Rule { scope, decision })?;
+            policy.set(Rule {
+                scope,
+                foreground_only: flags == 1,
+                decision,
+            })?;
         }
         Ok(policy)
     }
@@ -257,7 +264,6 @@ mod tests {
             purpose: PurposeId(3),
             context: ContextId(4),
             activity: ActivityId(5),
-            foreground_only: true,
         }
     }
 
@@ -275,6 +281,7 @@ mod tests {
         policy
             .set(Rule {
                 scope: scope(),
+                foreground_only: true,
                 decision: StoredDecision::Allow,
             })
             .unwrap();
@@ -303,6 +310,7 @@ mod tests {
         policy
             .set(Rule {
                 scope: scope(),
+                foreground_only: true,
                 decision: StoredDecision::Deny,
             })
             .unwrap();
@@ -315,6 +323,7 @@ mod tests {
         policy
             .set(Rule {
                 scope: scope(),
+                foreground_only: true,
                 decision: StoredDecision::Allow,
             })
             .unwrap();
@@ -334,6 +343,7 @@ mod tests {
         policy
             .set(Rule {
                 scope: scope(),
+                foreground_only: true,
                 decision: StoredDecision::Allow,
             })
             .unwrap();
@@ -373,10 +383,304 @@ mod tests {
         assert_eq!(
             policy.set(Rule {
                 scope: invalid,
+                foreground_only: true,
                 decision: StoredDecision::Allow,
             }),
             Err(Error::InvalidScope)
         );
         assert_eq!(policy.evaluate(request(invalid)), PolicyResult::NoRule);
+    }
+
+    fn regression_rule(foreground_only: bool, decision: StoredDecision) -> Rule {
+        Rule {
+            scope: scope(),
+            foreground_only,
+            decision,
+        }
+    }
+
+    fn regression_request(foreground: bool, activity_active: bool) -> Request {
+        Request {
+            scope: scope(),
+            foreground,
+            activity_active,
+        }
+    }
+
+    #[test]
+    fn regression_deny_replaces_foreground_allow_for_same_target() {
+        let mut policy = UserPolicy::new();
+        policy
+            .set(regression_rule(true, StoredDecision::Allow))
+            .unwrap();
+        policy
+            .set(regression_rule(false, StoredDecision::Deny))
+            .unwrap();
+        for foreground in [true, false] {
+            for activity_active in [true, false] {
+                assert_eq!(
+                    policy.evaluate(Request {
+                        scope: scope(),
+                        foreground,
+                        activity_active,
+                    }),
+                    PolicyResult::Denied
+                );
+            }
+        }
+        assert_eq!(policy.len(), 1);
+    }
+
+    #[test]
+    fn regression_foreground_allow_replaces_deny_for_same_target() {
+        let mut policy = UserPolicy::new();
+        policy
+            .set(regression_rule(false, StoredDecision::Deny))
+            .unwrap();
+        policy
+            .set(regression_rule(true, StoredDecision::Allow))
+            .unwrap();
+        assert_eq!(
+            policy.evaluate(regression_request(false, true)),
+            PolicyResult::Inactive
+        );
+        assert_eq!(
+            policy.evaluate(regression_request(true, true)),
+            PolicyResult::PermitsActivation
+        );
+        assert_eq!(policy.len(), 1);
+    }
+
+    #[test]
+    fn regression_stored_foreground_condition_and_activity_govern_activation() {
+        for foreground_only in [false, true] {
+            let mut policy = UserPolicy::new();
+            policy
+                .set(regression_rule(foreground_only, StoredDecision::Allow))
+                .unwrap();
+            for foreground in [false, true] {
+                for activity_active in [false, true] {
+                    let expected = if activity_active && (!foreground_only || foreground) {
+                        PolicyResult::PermitsActivation
+                    } else {
+                        PolicyResult::Inactive
+                    };
+                    assert_eq!(
+                        policy.evaluate(regression_request(foreground, activity_active)),
+                        expected
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn regression_codec_preserves_last_target_decision_and_condition() {
+        for (first, last) in [
+            (
+                regression_rule(true, StoredDecision::Allow),
+                regression_rule(false, StoredDecision::Deny),
+            ),
+            (
+                regression_rule(false, StoredDecision::Deny),
+                regression_rule(true, StoredDecision::Allow),
+            ),
+        ] {
+            let mut policy = UserPolicy::new();
+            policy.set(first).unwrap();
+            policy.set(last).unwrap();
+            let mut encoded = [0; HEADER_SIZE + RECORD_SIZE * 2];
+            let length = policy.encode(&mut encoded).unwrap();
+            let decoded = UserPolicy::decode(&encoded[..length]).unwrap();
+            for foreground in [false, true] {
+                for activity_active in [false, true] {
+                    let expected = match last.decision {
+                        StoredDecision::Deny => PolicyResult::Denied,
+                        StoredDecision::Allow if foreground && activity_active => {
+                            PolicyResult::PermitsActivation
+                        }
+                        StoredDecision::Allow => PolicyResult::Inactive,
+                    };
+                    assert_eq!(
+                        decoded.evaluate(regression_request(foreground, activity_active)),
+                        expected
+                    );
+                }
+            }
+            assert_eq!(decoded, policy);
+            assert_eq!(decoded.len(), 1);
+            assert_eq!(length, HEADER_SIZE + RECORD_SIZE);
+            let mut canonical = [0; HEADER_SIZE + RECORD_SIZE * 2];
+            assert_eq!(decoded.encode(&mut canonical), Ok(length));
+            assert_eq!(canonical, encoded);
+        }
+    }
+
+    #[test]
+    fn regression_codec_rejects_duplicate_targets_with_conflicting_conditions() {
+        for first_decision in [StoredDecision::Allow, StoredDecision::Deny] {
+            for second_decision in [StoredDecision::Allow, StoredDecision::Deny] {
+                for first_foreground_only in [false, true] {
+                    let mut policy = UserPolicy::new();
+                    policy
+                        .set(regression_rule(first_foreground_only, first_decision))
+                        .unwrap();
+                    let mut encoded = [0; HEADER_SIZE + RECORD_SIZE * 2];
+                    let length = policy.encode(&mut encoded).unwrap();
+                    encoded[10..12].copy_from_slice(&2u16.to_le_bytes());
+                    encoded.copy_within(HEADER_SIZE..length, length);
+                    encoded[length + 24] = u8::from(!first_foreground_only);
+                    encoded[length + 28] = match second_decision {
+                        StoredDecision::Allow => 1,
+                        StoredDecision::Deny => 2,
+                    };
+                    assert_eq!(UserPolicy::decode(&encoded), Err(Error::DuplicateRule));
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn regression_each_target_field_is_part_of_identity() {
+        let target = scope();
+        let alternatives = [
+            Scope {
+                app: AppIdentity(8),
+                ..target
+            },
+            Scope {
+                resource: ResourceId(8),
+                ..target
+            },
+            Scope {
+                purpose: PurposeId(8),
+                ..target
+            },
+            Scope {
+                context: ContextId(8),
+                ..target
+            },
+            Scope {
+                activity: ActivityId(8),
+                ..target
+            },
+        ];
+        let mut policy = UserPolicy::new();
+        policy
+            .set(regression_rule(true, StoredDecision::Allow))
+            .unwrap();
+        for alternative in alternatives {
+            assert_eq!(policy.evaluate(request(alternative)), PolicyResult::NoRule);
+            policy
+                .set(Rule {
+                    scope: alternative,
+                    foreground_only: false,
+                    decision: StoredDecision::Deny,
+                })
+                .unwrap();
+        }
+        assert_eq!(policy.len(), alternatives.len() + 1);
+        assert_eq!(
+            policy.evaluate(request(target)),
+            PolicyResult::PermitsActivation
+        );
+        for alternative in alternatives {
+            assert_eq!(policy.evaluate(request(alternative)), PolicyResult::Denied);
+        }
+    }
+
+    #[test]
+    fn regression_same_target_replaces_even_when_policy_is_full() {
+        let mut policy = UserPolicy::new();
+        for app in 1..=MAX_RULES as u64 {
+            policy
+                .set(Rule {
+                    scope: Scope {
+                        app: AppIdentity(app),
+                        ..scope()
+                    },
+                    foreground_only: true,
+                    decision: StoredDecision::Allow,
+                })
+                .unwrap();
+        }
+        policy
+            .set(regression_rule(false, StoredDecision::Deny))
+            .unwrap();
+        assert_eq!(policy.len(), MAX_RULES);
+        assert_eq!(
+            policy.evaluate(regression_request(true, true)),
+            PolicyResult::Denied
+        );
+        assert_eq!(
+            policy.set(Rule {
+                scope: Scope {
+                    app: AppIdentity(MAX_RULES as u64 + 1),
+                    ..scope()
+                },
+                foreground_only: false,
+                decision: StoredDecision::Allow,
+            }),
+            Err(Error::NoSpace)
+        );
+    }
+
+    #[test]
+    fn regression_version_one_wire_layout_is_unchanged() {
+        for foreground_only in [false, true] {
+            for decision in [StoredDecision::Allow, StoredDecision::Deny] {
+                let mut expected = [0; 48];
+                expected[..8].copy_from_slice(b"NOSPOL01");
+                expected[8] = 1;
+                expected[10] = 1;
+                expected[16] = 7;
+                expected[24] = 2;
+                expected[28] = 3;
+                expected[32] = 4;
+                expected[36] = 5;
+                expected[40] = u8::from(foreground_only);
+                expected[44] = match decision {
+                    StoredDecision::Allow => 1,
+                    StoredDecision::Deny => 2,
+                };
+                let mut policy = UserPolicy::new();
+                policy
+                    .set(regression_rule(foreground_only, decision))
+                    .unwrap();
+                let mut encoded = [0; 48];
+                assert_eq!(policy.encode(&mut encoded), Ok(expected.len()));
+                assert_eq!(encoded, expected);
+                assert_eq!(UserPolicy::decode(&expected), Ok(policy));
+            }
+        }
+    }
+
+    #[test]
+    fn regression_meeting_microphone_policy_is_not_runtime_authority() {
+        // These IDs stand for a meeting app, microphone, call purpose, room and call.
+        // No driver, broker or capability engine is linked by this policy test.
+        let mut policy = UserPolicy::new();
+        policy
+            .set(regression_rule(true, StoredDecision::Allow))
+            .unwrap();
+        let remembered_policy = policy;
+        assert_eq!(
+            policy.evaluate(regression_request(true, true)),
+            PolicyResult::PermitsActivation
+        );
+        assert_eq!(
+            policy.evaluate(regression_request(false, true)),
+            PolicyResult::Inactive
+        );
+        assert_eq!(
+            policy.evaluate(regression_request(true, false)),
+            PolicyResult::Inactive
+        );
+        assert_eq!(policy, remembered_policy);
+        policy
+            .set(regression_rule(false, StoredDecision::Deny))
+            .unwrap();
+        assert_eq!(policy.evaluate(request(scope())), PolicyResult::Denied);
+        // Denial affects future policy decisions; runtime revocation is the broker's job.
     }
 }
