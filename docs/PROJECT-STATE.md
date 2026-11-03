@@ -24,8 +24,15 @@ alleen hostgetest. Dit is bewijsverlies voor het bestaande criterium, geen
 nieuwe scope of gewijzigde weging; de beveiligingsfix wordt niet teruggedraaid
 om punten te behouden. Alle overige maincriteria blijven gelijk.
 
-**Open/eerstvolgend:** gerichte keyringintegratietests, nieuwe-head-CI en
-actuele review afhandelen; pas daarna #155 mergen. #159/#158 zijn nu werkelijk
+**Nieuw integratiebewijs:** op bevroren `3639ecaa` zijn opnieuw de 70
+keyringhosttests, 14 updateharnastests en volledige vijf-case QEMU-keyringgate
+groen (24,83 s; alle ruwe exits 33, normale afsluitbuild groen).
+[Bron, omgeving en gecontroleerde hashes](verification/integration-sprint-20261103-keyring.md#testbewijs-op-gezamenlijke-main78ff7c03).
+Gewone app-herstelverzoeken blijven geweigerd; positieve manifest-bevoegde
+beheerrecovery blijft alleen hostgetest. Geen nieuwe B01-punten.
+
+**Open/eerstvolgend:** nieuwe-head-CI en actuele review afhandelen;
+pas daarna #155 mergen. #159/#158 zijn nu werkelijk
 op main; de gerichte auditfix blijft een afzonderlijke kandidaat, geen impliciete
 onderlinge featurebranchintegratie. #154 heeft actieve nieuwe ownerheads;
 SMP-WIP blijft onaangeroerd. Epics #39/#41/#42/#43 blijven gedeeltelijk/open.

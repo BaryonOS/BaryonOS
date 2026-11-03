@@ -3,16 +3,16 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "0d04ac581903f85021bdafe247481fdb80f9c071",
+    "source_commit": "3639ecaac8ce10bcf4f29581a969b8db7e7cedb9",
     "assessment_basis": "source_commit",
-    "reviewed_commit": "a1eba0db269bdf59653d067c3a63c9fb7f9490e4",
-    "reviewed_commit_context": "Eigen scope- en treevergelijking met geteste keyringcandidate ba0eb2b4; geen onafhankelijke audit of nieuwe-head-CI-acceptatie.",
+    "reviewed_commit": "3639ecaac8ce10bcf4f29581a969b8db7e7cedb9",
+    "reviewed_commit_context": "Eigen scope-/treevergelijking en volledige vijf-case native keyringgate op deze gezamenlijke main78ff7c03-boom; geen onafhankelijke audit of impliciete CI-acceptatie.",
     "integration_review": {
       "status": "open",
       "source_commit": "da6e89a0",
-      "main_commit": "a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e",
-      "merge_commit": "a1eba0db269bdf59653d067c3a63c9fb7f9490e4",
-      "evidence_basis": "docs/verification/integration-sprint-20261103-keyring.json en .md: bevroren vijf-case native gate, hosttests en exacte treevergelijking. Afzonderlijke B03- en imageslices op eigen heads, niet stil in deze bron gemengd.",
+      "main_commit": "78ff7c03b015ad16fe665ae7df9fe239d078e08d",
+      "merge_commit": "3639ecaac8ce10bcf4f29581a969b8db7e7cedb9",
+      "evidence_basis": "docs/verification/integration-sprint-20261103-keyring.md: nieuwe bevroren vijf-case gate op merge3639ecaa/main78ff7c03, exit0. De .json en eerdere .md-sectie blijven historisch productbewijs op da6e89a0/maina32/mergea1eba0db; eerdere scopevergelijking op78fd8e76/main95. B03 en images zijn nu via echte mainmerges opgenomen, geen vermenging van los branchbewijs.",
       "missing_evidence": "Nieuwe-head CI/review nog niet integraal groen vastgesteld. Positieve manifest-gebonden beheerrecovery is uitsluitend hostgetest; B01 blijft open."
     },
     "branch": "simonvanieperen-animated-garbanzo",

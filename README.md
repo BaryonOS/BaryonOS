@@ -61,7 +61,7 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **39** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`0d04ac58`](https://github.com/simonvanieperen/nieuw-os/commit/0d04ac581903f85021bdafe247481fdb80f9c071) ·
+**Bron:** [`3639ecaa`](https://github.com/simonvanieperen/nieuw-os/commit/3639ecaac8ce10bcf4f29581a969b8db7e7cedb9) ·
 **Ontwikkelbranch:** `simonvanieperen-animated-garbanzo`.
 Deze opdracht: **41% → 39% (-2 procentpunt)**. **Opdracht:** Geautoriseerde integratiesprint: main78ff7c03 en keyringherstelgrens samenvoegen.
 Main41/100 wordt39/100: B01 heropend doordat de oude native positieve herstelproef gewone appautoriteit gebruikte en nu terecht wordt geweigerd. Positieve manifest-bevoegde beheerrecovery is alleen hostgetest. Alle overige maincriteria en gewichten behouden. PR138,159,158 werkelijk gemerged; vier historische/duplicaat-PRs gesloten met inhoudsbehoud. RANDOM veilig uit grote PR146 geextraheerd in PR160. Keyringintegratie vereist nog actuele-head-CI/review. Geen hardware-, menselijke audit- of releaseclaim.

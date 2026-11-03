@@ -5,6 +5,12 @@ Uitgevoerd op 3 november 2026, bron
 `/home/simon/.copilot/session-state/0fc9ee51f1e94fc69b3031941f626af0/files/sprint-xhci`.
 Dit is een hosthertest door een tweede AI-uitvoerder, geen menselijke audit.
 
+## Voorstel
+
+Geen nieuwe driverfunctionaliteit; alleen de bestaande reviewfix hertesten.
+
+## Testbewijs
+
 Omgeving: `PATH=/home/simon/.cargo/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH`,
 `CC=/tmp/nieuw-os-c-toolchain/bin/cc`,
 `CARGO_TARGET_DIR="$PWD/target/sprint-review"`. Rust/Cargo 1.90.0,
@@ -24,8 +30,21 @@ De ruwe logs zijn lokale artifacts, geen publiek geleverde bundle. De
 commando's en hashes maken herhaling en artifactvergelijking mogelijk; een
 hash zonder het log levert geen onafhankelijke inhoudscontrole op.
 
+## Implementatie
+
+Primaire bronnen: Nieuw OS-project, 3 november 2026:
+[xECP-fixturefix, commit 2731f279](https://github.com/simonvanieperen/nieuw-os/commit/2731f279661fb5a8d87399d0129d0f1c91cd5f27)
+wijzigt uitsluitend de twee fixtureheaders in `drivers/xhci/src/lib.rs`,
+niet de productievalidatie;
+[rootworkspace-prerequisites, commit c1508aa0](https://github.com/simonvanieperen/nieuw-os/commit/c1508aa05b79bcd57bd08bc5d320f6142d82bc71)
+voegt de twee lokale workspaceleden en lockentries toe.
+
 De twee oorspronkelijke positieve xECP-fixtures faalden werkelijk op
 `5ea1c349`; de owner verplaatste alleen de fixtures buiten de operational
 MMIO-regio. Productievalidatie is niet versoepeld. De rootworkspace bevat nu
-beide lokale prerequisitecrates. Geen controlleruitvoering, native QEMU,
-USB-enumeratie, fysieke hardware of afsluiting van issue #42 bewezen.
+beide lokale prerequisitecrates.
+
+## Onbekend
+
+Geen controlleruitvoering, native QEMU, USB-enumeratie, fysieke hardware of
+afsluiting van issue #42 bewezen.

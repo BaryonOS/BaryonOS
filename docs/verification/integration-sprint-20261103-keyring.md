@@ -57,6 +57,47 @@ Volledig lokaal gateverslag: `build/keyring-gate.json`.
 | `nieuw-os-sprint-keyring-native.log` (afgewezen run) | `816e404ae07e6d42ff42a5c72d7c8ca91e40f31a2366b4d5c11fed05062f4461` |
 | `nieuw-os-sprint-keyring-native-frozen.log` | `b3aa2b0dd961aab2c01f3264c4eaf23d908c0b5ed5e7ab6fca088a8ab5898872` |
 
+## Testbewijs op gezamenlijke main78ff7c03
+
+Nieuw OS-project, 3 november 2026:
+[integratiebron 3639ecaa](https://github.com/simonvanieperen/nieuw-os/tree/3639ecaac8ce10bcf4f29581a969b8db7e7cedb9),
+met de inmiddels werkelijk gemergde imageslice en B03 TEST-policy.
+Keyringcode bytegelijk de eerder geteste productbron; geen nieuwe rechten.
+Vanuit de General-rootworktree werkelijk opnieuw uitgevoerd:
+
+- `cargo +1.90.0 test --offline --locked --manifest-path services/keyring/Cargo.toml`:
+  exit 0, 70 tests.
+- `python3 -B -m unittest discover -s tests -p test_update_harness.py`:
+  exit 0, 14 tests.
+- `python3 -B -u tools/test_keyring.py`: exit 0, 24,83 s totale wandtijd,
+  alle hostsubgates, vijf profielbuilds/QEMU-cases en normale afsluitbuild groen.
+
+Omgeving: `PATH=/home/simon/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH`,
+`CC=/tmp/nieuw-os-c-toolchain/bin/cc`,
+`LD_LIBRARY_PATH=/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu`,
+`OS_OVMF_CODE=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd`,
+`OS_OVMF_VARS=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd`,
+`NOS_QEMU_MACHINE=pc-q35-8.2`,
+`CARGO_TARGET_DIR="$PWD/target/sprint-keyring-integration"`.
+De twee gerichte hostcommando's gebruikten alleen het Rust-/C-pad en dezelfde targetmap.
+
+Vingerafdruk v3:
+`f31d0b9fdb7555846fe49a4fd6088a5795dbb792030f6d7d3c852e285850b932`.
+`normal`, `no-device`, `stuck`, `timeout`, `restart` allemaal
+`passed=true`, ruwe QEMU-exit 33; gate `status=completed`, `passed=true`.
+In normal/restart beide app-hersteloperaties elk eenmaal geweigerd.
+Dit vervangt geen native positieve manifest-bevoegde beheerrecovery:
+B01 blijft open en de score blijft 39, niet 41.
+
+| Lokaal artifact | SHA-256, gecontroleerd |
+|---|---|
+| `/tmp/nieuw-os-keyring-main78-targeted.log` | `354eaf1c2c9b8ecf1a7cedf906418dd516cf59a415831a05fe09f8c242744e5c` |
+| `/tmp/nieuw-os-keyring-main78-native.log` | `ca025292e3ea04e3b8e9d47012eb627ac07287b8ab6983f421b4b2d40e65d82b` |
+| `build/keyring-gate.json` | `f3e60b93df7384b9c71147710f9e77a5d24d2745a4102b825f2501da18f7be85` |
+
+Ruwe artifacts blijven lokaal; hashes alleen geven geen publieke
+inhoudscontrole. Geen hardware-, menselijke audit- of releaseacceptatie.
+
 Rollback: de afzonderlijke acht code-/test-/specificatiebestanden samen
 terugnemen. Geen bron-WIP van andere owners overgenomen; geen mainmerge,
 keys, nieuwe dependency of scorepunten.
