@@ -1,0 +1,106 @@
+{
+  "empty-dir": {
+    "type": "directory",
+    "mode": "0o755",
+    "mtime_ns": 1793655343224591421,
+    "uid": 1000,
+    "gid": 1000,
+    "inode": 13138,
+    "nlink": 2,
+    "st_blocks_512": 0,
+    "size": 40,
+    "xattrs": {}
+  },
+  "hard-a.bin": {
+    "type": "file",
+    "mode": "0o644",
+    "mtime_ns": 1577836800000000000,
+    "uid": 1000,
+    "gid": 1000,
+    "inode": 13134,
+    "nlink": 1,
+    "st_blocks_512": 16,
+    "size": 8192,
+    "xattrs": {},
+    "sha256": "2690ee9b1acc69b3b301679d49798b83e2a2d2ebc76f39d21a9d76f416e9d9a4"
+  },
+  "hard-b.bin": {
+    "type": "file",
+    "mode": "0o644",
+    "mtime_ns": 1577836800000000000,
+    "uid": 1000,
+    "gid": 1000,
+    "inode": 13133,
+    "nlink": 1,
+    "st_blocks_512": 16,
+    "size": 8192,
+    "xattrs": {},
+    "sha256": "2690ee9b1acc69b3b301679d49798b83e2a2d2ebc76f39d21a9d76f416e9d9a4"
+  },
+  "mode-file.txt": {
+    "type": "file",
+    "mode": "0o600",
+    "mtime_ns": 1577836800000000000,
+    "uid": 1000,
+    "gid": 1000,
+    "inode": 13135,
+    "nlink": 1,
+    "st_blocks_512": 8,
+    "size": 27,
+    "xattrs": {
+      "user.nieuwos.test": "66696c652d78617474722d76616c75652d7631"
+    },
+    "sha256": "42562261ee5d9311b45e5af508bb7519492943b9205e9eb6070517c753293d97"
+  },
+  "nested": {
+    "type": "directory",
+    "mode": "0o700",
+    "mtime_ns": 1577836800000000000,
+    "uid": 1000,
+    "gid": 1000,
+    "inode": 13136,
+    "nlink": 2,
+    "st_blocks_512": 0,
+    "size": 60,
+    "xattrs": {}
+  },
+  "nested/child.txt": {
+    "type": "file",
+    "mode": "0o640",
+    "mtime_ns": 1577836800000000000,
+    "uid": 1000,
+    "gid": 1000,
+    "inode": 13137,
+    "nlink": 1,
+    "st_blocks_512": 8,
+    "size": 13,
+    "xattrs": {},
+    "sha256": "a201713716b0a96b16c1615421a07680cc9beb97a735fa802ed41e2448041858"
+  },
+  "sparse.bin": {
+    "type": "file",
+    "mode": "0o640",
+    "mtime_ns": 1577836800000000000,
+    "uid": 1000,
+    "gid": 1000,
+    "inode": 13132,
+    "nlink": 1,
+    "st_blocks_512": 16384,
+    "size": 8388608,
+    "xattrs": {},
+    "sha256": "97ea4a9493bfd30dfc8e7968b71b62ba09808b97eacc07ce52612b0ebfebd87b"
+  },
+  "symbolic-link": {
+    "type": "symlink",
+    "mode": "0o777",
+    "mtime_ns": 1577836800000000000,
+    "uid": 1000,
+    "gid": 1000,
+    "inode": 13131,
+    "nlink": 1,
+    "st_blocks_512": 0,
+    "size": 13,
+    "xattrs": {},
+    "target": "mode-file.txt"
+  }
+}

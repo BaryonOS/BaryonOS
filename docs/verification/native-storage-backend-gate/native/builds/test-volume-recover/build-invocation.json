@@ -1,0 +1,29 @@
+{
+  "command": [
+    "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+    "-B",
+    "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os\\tools\\build.py",
+    "--kernel-feature",
+    "test-volume-recover"
+  ],
+  "cwd": "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os",
+  "returncode": 0,
+  "duration_s": 2.6291268999998465,
+  "source_before": {
+    "head": "e08fb0e48c1bb0781e98357f588c2f73b6ae8500",
+    "source_sha256": "e439227e6ed9b0f68d808ca95d0896d85c3531b656db8bb5be7fdd7cb4507161",
+    "git_status": [
+      "?? .github/github-app.yml"
+    ]
+  },
+  "source": {
+    "head": "e08fb0e48c1bb0781e98357f588c2f73b6ae8500",
+    "source_sha256": "e439227e6ed9b0f68d808ca95d0896d85c3531b656db8bb5be7fdd7cb4507161",
+    "git_status": [
+      "?? .github/github-app.yml"
+    ]
+  },
+  "source_unchanged": true,
+  "isolated_build": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\builds\\test-volume-recover",
+  "isolated_target": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native\\target"
+}

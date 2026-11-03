@@ -1,0 +1,87 @@
+verifying concrete vdev 0, metaslab 0 of 15 ...verifying concrete vdev 0, metaslab 1 of 15 ...verifying concrete vdev 0, metaslab 2 of 15 ...verifying concrete vdev 0, metaslab 3 of 15 ...verifying concrete vdev 0, metaslab 4 of 15 ...verifying concrete vdev 0, metaslab 5 of 15 ...verifying concrete vdev 0, metaslab 6 of 15 ...verifying concrete vdev 0, metaslab 7 of 15 ...verifying concrete vdev 0, metaslab 8 of 15 ...verifying concrete vdev 0, metaslab 9 of 15 ...verifying concrete vdev 0, metaslab 10 of 15 ...verifying concrete vdev 0, metaslab 11 of 15 ...verifying concrete vdev 0, metaslab 12 of 15 ...verifying concrete vdev 0, metaslab 13 of 15 ...verifying concrete vdev 0, metaslab 14 of 15 ...
+loading concrete vdev 0, metaslab 0 of 15 ...loading concrete vdev 0, metaslab 1 of 15 ...loading concrete vdev 0, metaslab 2 of 15 ...loading concrete vdev 0, metaslab 3 of 15 ...loading concrete vdev 0, metaslab 4 of 15 ...loading concrete vdev 0, metaslab 5 of 15 ...loading concrete vdev 0, metaslab 6 of 15 ...loading concrete vdev 0, metaslab 7 of 15 ...loading concrete vdev 0, metaslab 8 of 15 ...loading concrete vdev 0, metaslab 9 of 15 ...loading concrete vdev 0, metaslab 10 of 15 ...loading concrete vdev 0, metaslab 11 of 15 ...loading concrete vdev 0, metaslab 12 of 15 ...loading concrete vdev 0, metaslab 13 of 15 ...loading concrete vdev 0, metaslab 14 of 15 ...
+
+ZFS_DBGMSG(zdb) START:
+metaslab.c:1837:spa_set_allocator(): spa allocator: dynamic
+spa.c:7396:spa_import(): spa_import: importing nieuwos_crash
+spa_misc.c:431:spa_load_note(): spa_load(nieuwos_crash, config trusted): LOADING
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/crash/nieuwos_crash.1a': probe done, cant_read=0 cant_write=1
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/crash/nieuwos_crash.0a': probe done, cant_read=0 cant_write=1
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/crash/nieuwos_crash.0a': best uberblock found for spa nieuwos_crash, txg=210 seq=0
+spa_misc.c:431:spa_load_note(): spa_load(nieuwos_crash, config untrusted): using uberblock with txg=210
+spa.c:3833:spa_activity_check_required(): mmp: skipping check ZFS_IMPORT_SKIP_MMP is set, spa=nieuwos_crash
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/crash/nieuwos_crash.1a': probe done, cant_read=0 cant_write=1
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/crash/nieuwos_crash.0a': probe done, cant_read=0 cant_write=1
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_crash' Loading checkpoint txg
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_crash' Loading indirect vdev metadata
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_crash' Checking feature flags
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_crash' Loading special MOS directories
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_crash' Loading properties
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_crash' Loading AUX vdevs
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_crash' Loading vdev metadata
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_crash' Loading dedup tables
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_crash' Loading BRT
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_crash' Verifying Log Devices
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_crash' Verifying pool data
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_crash' Calculating deflated space
+spa.c:9960:spa_async_request(): spa=nieuwos_crash async request task=2048
+spa_misc.c:431:spa_load_note(): spa_load(nieuwos_crash, config trusted): LOADED
+spa.c:9960:spa_async_request(): spa=nieuwos_crash async request task=32
+ZFS_DBGMSG(zdb) END
+Verifying deleted livelist entries
+Verifying metaslab entries
+Dataset mos [META], ID 0, cr_txg 4, 330K, 99 objects
+Dataset nieuwos_crash/ds_1 [OTHER], ID 30, cr_txg 50, 257K, 14 objects
+Dataset nieuwos_crash/temp_1 [OTHER], ID 19, cr_txg 154, 39K, 5 objects
+Dataset nieuwos_crash/ds_0@0 [OTHER], ID 135, cr_txg 202, 570K, 10 objects
+Dataset nieuwos_crash/ds_0 [OTHER], ID 5, cr_txg 6, 588K, 12 objects
+Dataset nieuwos_crash [ZPL], ID 54, cr_txg 1, 1K, 0 objects
+Verified large_blocks feature refcount of 3 is correct
+Verified large_dnode feature refcount of 4 is correct
+Verified sha512 feature refcount of 0 is correct
+Verified skein feature refcount of 0 is correct
+Verified edonr feature refcount of 0 is correct
+Verified userobj_accounting feature refcount of 0 is correct
+Verified encryption feature refcount of 2 is correct
+Verified project_quota feature refcount of 0 is correct
+Verified redaction_bookmarks feature refcount of 0 is correct
+Verified redacted_datasets feature refcount of 0 is correct
+Verified bookmark_written feature refcount of 0 is correct
+Verified livelist feature refcount of 0 is correct
+Verified zstd_compress feature refcount of 4 is correct
+Verified zilsaxattr feature refcount of 4 is correct
+Verified blake3 feature refcount of 2 is correct
+Verified redaction_list_spill feature refcount of 0 is correct
+Verified longname feature refcount of 0 is correct
+Verified large_microzap feature refcount of 0 is correct
+Verified physical_rewrite feature refcount of 0 is correct
+Verified device_removal feature refcount of 0 is correct
+Verified indirect_refcount feature refcount of 0 is correct
+
+Traversing all blocks to verify checksums and verify nothing leaked ...
+
+leaked space: vdev 0, offset 0xa039400, size 4096
+leaked space: vdev 0, offset 0xb038800, size 4096
+leaked space: vdev 0, offset 0xc049400, size 512
+leaked space: vdev 0, offset 0xd047000, size 512
+block traversal size 1346560 != alloc 1355776 (leaked 9216)
+
+	bp count:                   519
+	ganged count:                 0
+	bp logical:            42397696      avg:  81691
+	bp physical:             595456      avg:   1147     compression:  71.20
+	bp allocated:           1346560      avg:   2594     compression:  31.49
+	bp deduped:                   0    ref>1:      0   deduplication:   1.00
+	bp cloned:                    0    count:      0
+	Normal class:           1155584     used:  0.46%
+	Embedded log class              0     used:  -nan%
+
+	additional, non-pointer bps of type 0:         80
+	Dittoed blocks on same vdev: 396
+
+                            capacity   operations   bandwidth  ---- errors ----
+description                used avail  read write  read write  read write cksum
+nieuwos_crash             1.10M  239M 2.23K     0 4.01M     0     0     0     0
+  mirror                  1.10M  239M 2.23K     0 4.01M     0     0     0     0
+    /tmp/nieuw-os-storage-zfs-20261102/images/crash/nieuwos_crash.0a                                1.21K     0 2.11M     0     0     0     0
+    /tmp/nieuw-os-storage-zfs-20261102/images/crash/nieuwos_crash.1a                                1.03K     0 1.90M     0     0     0     0

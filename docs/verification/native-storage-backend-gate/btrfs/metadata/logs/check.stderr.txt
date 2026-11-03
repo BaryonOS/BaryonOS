@@ -1,0 +1,8 @@
+[1/8] checking log skipped (none written)
+[2/8] checking root items
+[3/8] checking extents
+[4/8] checking free space tree
+[5/8] checking fs roots
+[6/8] checking csums against data
+[7/8] checking root refs
+[8/8] checking quota groups skipped (not enabled on this FS)

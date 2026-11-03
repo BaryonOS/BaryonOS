@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "c07d15b85f85b534e1fe16c8a127c0e7baa2525c",
+    "source_commit": "75cda7f4d49c5afe895277ada1102d630fdb75ad",
     "branch": "simonvanieperen-animated-umbrella",
-    "task": "PR140: beschrijvende verificatieteksten in het Nederlands vastleggen",
+    "task": "PR #140: main-conflicten inhoudsbehoudend oplossen",
     "previous_score": 41,
-    "summary": "41 blijft41. Alleen beschrijvende waarden scope/result/product_acceptance van het historische artifact-store-hostrapport naar Nederlands vertaald; JSON-keys, commando's, exits, bron08710d55 en loghashes onveranderd. Alle rubricvelden buiten assessment blijven gelijk. Progress write/check, JSON- en gerichte inhoudsvergelijking slagen. De eerdere9 contracttests en build/lintbewijzen blijven historisch aan hun bron gebonden; voor deze tekstcorrectie geen nieuwe Rust/native/QEMU-proef of productcriterium."
+    "summary": "41 blijft 41. Main op 69809c2 is inhoudsbehoudend geïntegreerd; PR140's Nederlandse verificatieteksten en main's uitgebreide documentatie, audit en opslag-replaytests blijven behouden. De rubric is ongewijzigd. De 16 replay-/bewijs-hosttests slagen met umask 077; de eerste poging met umask 0002 faalde alleen door groepsschrijfbare tijdelijke fixtures. De roadmapcontrole, JSON-syntaxis en diff-check slagen. Geen nieuwe native/QEMU-acceptatie of productcriterium."
   },
   "tracks": [
     {

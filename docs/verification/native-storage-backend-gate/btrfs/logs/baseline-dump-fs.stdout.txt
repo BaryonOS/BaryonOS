@@ -1,0 +1,2874 @@
+btrfs-progs v6.17.1
+fs tree key (FS_TREE ROOT_ITEM 0) 
+node 30539776 level 1 items 5 free space 488 generation 6 owner FS_TREE
+node 30539776 flags 0x1(WRITTEN) backref revision 1
+fs uuid 69f54c99-916f-45d5-b23f-9b2051b31b62
+chunk uuid c3401b8d-8e56-4771-b8f2-f1defbb32725
+	key (256 INODE_ITEM 0) block 30408704 gen 6
+	key (259 DIR_INDEX 30) block 30572544 gen 6
+	key (272 INODE_ITEM 0) block 30556160 gen 6
+	key (326 INODE_ITEM 0) block 30588928 gen 6
+	key (353 INODE_ITEM 0) block 30605312 gen 6
+leaf 30408704 items 173 free space 4192 generation 6 owner FS_TREE
+leaf 30408704 flags 0x1(WRITTEN) backref revision 1
+fs uuid 69f54c99-916f-45d5-b23f-9b2051b31b62
+chunk uuid c3401b8d-8e56-4771-b8f2-f1defbb32725
+	item 0 key (256 INODE_ITEM 0) itemoff 16123 itemsize 160
+		generation 0 transid 0 size 64 nbytes 0
+		block group 0 mode 40755 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 1 key (256 INODE_REF 256) itemoff 16111 itemsize 12
+		index 0 namelen 2 name: ..
+	item 2 key (256 DIR_ITEM 1432874879) itemoff 16068 itemsize 43
+		location key (257 INODE_ITEM 0) type SYMLINK
+		transid 6 data_len 0 name_len 13
+		name: document-link
+	item 3 key (256 DIR_ITEM 2759366182) itemoff 16029 itemsize 39
+		location key (388 INODE_ITEM 0) type DIR
+		transid 6 data_len 0 name_len 9
+		name: documents
+	item 4 key (256 DIR_ITEM 3107154202) itemoff 15994 itemsize 35
+		location key (259 INODE_ITEM 0) type DIR
+		transid 6 data_len 0 name_len 5
+		name: small
+	item 5 key (256 DIR_ITEM 4109068191) itemoff 15959 itemsize 35
+		location key (258 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 5
+		name: empty
+	item 6 key (256 DIR_INDEX 2) itemoff 15916 itemsize 43
+		location key (257 INODE_ITEM 0) type SYMLINK
+		transid 6 data_len 0 name_len 13
+		name: document-link
+	item 7 key (256 DIR_INDEX 3) itemoff 15881 itemsize 35
+		location key (258 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 5
+		name: empty
+	item 8 key (256 DIR_INDEX 4) itemoff 15846 itemsize 35
+		location key (259 INODE_ITEM 0) type DIR
+		transid 6 data_len 0 name_len 5
+		name: small
+	item 9 key (256 DIR_INDEX 5) itemoff 15807 itemsize 39
+		location key (388 INODE_ITEM 0) type DIR
+		transid 6 data_len 0 name_len 9
+		name: documents
+	item 10 key (257 INODE_ITEM 0) itemoff 15647 itemsize 160
+		generation 0 transid 0 size 27 nbytes 28
+		block group 0 mode 120777 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 11 key (257 INODE_REF 256) itemoff 15624 itemsize 23
+		index 2 namelen 13 name: document-link
+	item 12 key (257 EXTENT_DATA 0) itemoff 15575 itemsize 49
+		generation 6 type 0 (inline)
+		inline extent data size 28 ram_bytes 28 compression 0 (none)
+	item 13 key (258 INODE_ITEM 0) itemoff 15415 itemsize 160
+		generation 0 transid 0 size 0 nbytes 0
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 14 key (258 INODE_REF 256) itemoff 15400 itemsize 15
+		index 3 namelen 5 name: empty
+	item 15 key (259 INODE_ITEM 0) itemoff 15240 itemsize 160
+		generation 0 transid 0 size 3328 nbytes 0
+		block group 0 mode 40755 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 16 key (259 INODE_REF 256) itemoff 15225 itemsize 15
+		index 4 namelen 5 name: small
+	item 17 key (259 DIR_ITEM 40785186) itemoff 15182 itemsize 43
+		location key (349 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0038.txt
+	item 18 key (259 DIR_ITEM 64285854) itemoff 15139 itemsize 43
+		location key (301 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0086.txt
+	item 19 key (259 DIR_ITEM 77860320) itemoff 15096 itemsize 43
+		location key (275 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0112.txt
+	item 20 key (259 DIR_ITEM 98481820) itemoff 15053 itemsize 43
+		location key (315 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0072.txt
+	item 21 key (259 DIR_ITEM 101107523) itemoff 15010 itemsize 43
+		location key (330 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0057.txt
+	item 22 key (259 DIR_ITEM 134850966) itemoff 14967 itemsize 43
+		location key (264 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0123.txt
+	item 23 key (259 DIR_ITEM 158536426) itemoff 14924 itemsize 43
+		location key (344 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0043.txt
+	item 24 key (259 DIR_ITEM 179004213) itemoff 14881 itemsize 43
+		location key (321 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0066.txt
+	item 25 key (259 DIR_ITEM 198301769) itemoff 14838 itemsize 43
+		location key (281 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0106.txt
+	item 26 key (259 DIR_ITEM 211892535) itemoff 14795 itemsize 43
+		location key (295 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0092.txt
+	item 27 key (259 DIR_ITEM 247722324) itemoff 14752 itemsize 43
+		location key (378 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0009.txt
+	item 28 key (259 DIR_ITEM 271079942) itemoff 14709 itemsize 43
+		location key (366 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0021.txt
+	item 29 key (259 DIR_ITEM 334506969) itemoff 14666 itemsize 43
+		location key (383 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0004.txt
+	item 30 key (259 DIR_ITEM 478543472) itemoff 14623 itemsize 43
+		location key (377 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0010.txt
+	item 31 key (259 DIR_ITEM 526225327) itemoff 14580 itemsize 43
+		location key (352 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0035.txt
+	item 32 key (259 DIR_ITEM 613716444) itemoff 14537 itemsize 43
+		location key (376 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0011.txt
+	item 33 key (259 DIR_ITEM 659349507) itemoff 14494 itemsize 43
+		location key (353 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0034.txt
+	item 34 key (259 DIR_ITEM 674837930) itemoff 14451 itemsize 43
+		location key (367 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0020.txt
+	item 35 key (259 DIR_ITEM 736183413) itemoff 14408 itemsize 43
+		location key (382 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0005.txt
+	item 36 key (259 DIR_ITEM 806929978) itemoff 14365 itemsize 43
+		location key (265 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0122.txt
+	item 37 key (259 DIR_ITEM 828538182) itemoff 14322 itemsize 43
+		location key (345 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0042.txt
+	item 38 key (259 DIR_ITEM 851053721) itemoff 14279 itemsize 43
+		location key (320 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0067.txt
+	item 39 key (259 DIR_ITEM 868268005) itemoff 14236 itemsize 43
+		location key (280 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0107.txt
+	item 40 key (259 DIR_ITEM 883971739) itemoff 14193 itemsize 43
+		location key (294 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0093.txt
+	item 41 key (259 DIR_ITEM 919772920) itemoff 14150 itemsize 43
+		location key (379 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0008.txt
+	item 42 key (259 DIR_ITEM 981416590) itemoff 14107 itemsize 43
+		location key (348 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0039.txt
+	item 43 key (259 DIR_ITEM 1002799922) itemoff 14064 itemsize 43
+		location key (300 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0087.txt
+	item 44 key (259 DIR_ITEM 1018520140) itemoff 14021 itemsize 43
+		location key (274 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0113.txt
+	item 45 key (259 DIR_ITEM 1037031728) itemoff 13978 itemsize 43
+		location key (314 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0073.txt
+	item 46 key (259 DIR_ITEM 1041737967) itemoff 13935 itemsize 43
+		location key (331 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0056.txt
+	item 47 key (259 DIR_ITEM 1077549410) itemoff 13892 itemsize 43
+		location key (267 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0120.txt
+	item 48 key (259 DIR_ITEM 1094754846) itemoff 13849 itemsize 43
+		location key (347 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0040.txt
+	item 49 key (259 DIR_ITEM 1117311937) itemoff 13806 itemsize 43
+		location key (322 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0065.txt
+	item 50 key (259 DIR_ITEM 1138911421) itemoff 13763 itemsize 43
+		location key (282 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0105.txt
+	item 51 key (259 DIR_ITEM 1150454211) itemoff 13720 itemsize 43
+		location key (296 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0091.txt
+	item 52 key (259 DIR_ITEM 1273453674) itemoff 13677 itemsize 43
+		location key (302 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0085.txt
+	item 53 key (259 DIR_ITEM 1285012756) itemoff 13634 itemsize 43
+		location key (276 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0111.txt
+	item 54 key (259 DIR_ITEM 1307379304) itemoff 13591 itemsize 43
+		location key (316 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0071.txt
+	item 55 key (259 DIR_ITEM 1312126903) itemoff 13548 itemsize 43
+		location key (333 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0054.txt
+	item 56 key (259 DIR_ITEM 1392946490) itemoff 13505 itemsize 43
+		location key (328 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0059.txt
+	item 57 key (259 DIR_ITEM 1421233796) itemoff 13462 itemsize 43
+		location key (374 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0013.txt
+	item 58 key (259 DIR_ITEM 1456768743) itemoff 13419 itemsize 43
+		location key (299 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0088.txt
+	item 59 key (259 DIR_ITEM 1466842971) itemoff 13376 itemsize 43
+		location key (351 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0036.txt
+	item 60 key (259 DIR_ITEM 1478224626) itemoff 13333 itemsize 43
+		location key (365 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0022.txt
+	item 61 key (259 DIR_ITEM 1539545901) itemoff 13290 itemsize 43
+		location key (380 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0007.txt
+	item 62 key (259 DIR_ITEM 1590800944) itemoff 13247 itemsize 43
+		location key (279 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0108.txt
+	item 63 key (259 DIR_ITEM 1605044556) itemoff 13204 itemsize 43
+		location key (319 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0068.txt
+	item 64 key (259 DIR_ITEM 1611302238) itemoff 13161 itemsize 43
+		location key (364 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0023.txt
+	item 65 key (259 DIR_ITEM 1674769537) itemoff 13118 itemsize 43
+		location key (381 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0006.txt
+	item 66 key (259 DIR_ITEM 1723915676) itemoff 13075 itemsize 43
+		location key (278 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0109.txt
+	item 67 key (259 DIR_ITEM 1740269280) itemoff 13032 itemsize 43
+		location key (318 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0069.txt
+	item 68 key (259 DIR_ITEM 1796719254) itemoff 12989 itemsize 43
+		location key (329 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0058.txt
+	item 69 key (259 DIR_ITEM 1822892328) itemoff 12946 itemsize 43
+		location key (375 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0012.txt
+	item 70 key (259 DIR_ITEM 1858464075) itemoff 12903 itemsize 43
+		location key (298 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0089.txt
+	item 71 key (259 DIR_ITEM 1870614775) itemoff 12860 itemsize 43
+		location key (350 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0037.txt
+	item 72 key (259 DIR_ITEM 1945514950) itemoff 12817 itemsize 43
+		location key (303 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0084.txt
+	item 73 key (259 DIR_ITEM 1954992824) itemoff 12774 itemsize 43
+		location key (277 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0110.txt
+	item 74 key (259 DIR_ITEM 1979476420) itemoff 12731 itemsize 43
+		location key (317 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0070.txt
+	item 75 key (259 DIR_ITEM 1982076955) itemoff 12688 itemsize 43
+		location key (332 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0055.txt
+	item 76 key (259 DIR_ITEM 2016114382) itemoff 12645 itemsize 43
+		location key (266 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0121.txt
+	item 77 key (259 DIR_ITEM 2035404210) itemoff 12602 itemsize 43
+		location key (346 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0041.txt
+	item 78 key (259 DIR_ITEM 2055847021) itemoff 12559 itemsize 43
+		location key (323 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0064.txt
+	item 79 key (259 DIR_ITEM 2079524625) itemoff 12516 itemsize 43
+		location key (283 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0104.txt
+	item 80 key (259 DIR_ITEM 2089018991) itemoff 12473 itemsize 43
+		location key (297 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0090.txt
+	item 81 key (259 DIR_ITEM 2152676334) itemoff 12430 itemsize 43
+		location key (360 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0027.txt
+	item 82 key (259 DIR_ITEM 2180350546) itemoff 12387 itemsize 43
+		location key (288 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0099.txt
+	item 83 key (259 DIR_ITEM 2207730225) itemoff 12344 itemsize 43
+		location key (385 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0002.txt
+	item 84 key (259 DIR_ITEM 2217191823) itemoff 12301 itemsize 43
+		location key (339 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0048.txt
+	item 85 key (259 DIR_ITEM 2290748921) itemoff 12258 itemsize 43
+		location key (308 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0079.txt
+	item 86 key (259 DIR_ITEM 2314253957) itemoff 12215 itemsize 43
+		location key (268 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0119.txt
+	item 87 key (259 DIR_ITEM 2363662232) itemoff 12172 itemsize 43
+		location key (371 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0016.txt
+	item 88 key (259 DIR_ITEM 2403003975) itemoff 12129 itemsize 43
+		location key (354 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0033.txt
+	item 89 key (259 DIR_ITEM 2478017910) itemoff 12086 itemsize 43
+		location key (307 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0080.txt
+	item 90 key (259 DIR_ITEM 2495835144) itemoff 12043 itemsize 43
+		location key (273 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0114.txt
+	item 91 key (259 DIR_ITEM 2511984500) itemoff 12000 itemsize 43
+		location key (313 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0074.txt
+	item 92 key (259 DIR_ITEM 2522982059) itemoff 11957 itemsize 43
+		location key (336 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0051.txt
+	item 93 key (259 DIR_ITEM 2557397118) itemoff 11914 itemsize 43
+		location key (262 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0125.txt
+	item 94 key (259 DIR_ITEM 2568254210) itemoff 11871 itemsize 43
+		location key (342 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0045.txt
+	item 95 key (259 DIR_ITEM 2597061341) itemoff 11828 itemsize 43
+		location key (327 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0060.txt
+	item 96 key (259 DIR_ITEM 2612443553) itemoff 11785 itemsize 43
+		location key (287 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0100.txt
+	item 97 key (259 DIR_ITEM 2630244575) itemoff 11742 itemsize 43
+		location key (293 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0094.txt
+	item 98 key (259 DIR_ITEM 2692720594) itemoff 11699 itemsize 43
+		location key (263 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0124.txt
+	item 99 key (259 DIR_ITEM 2701466798) itemoff 11656 itemsize 43
+		location key (343 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0044.txt
+	item 100 key (259 DIR_ITEM 2732420465) itemoff 11613 itemsize 43
+		location key (326 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0061.txt
+	item 101 key (259 DIR_ITEM 2745685517) itemoff 11570 itemsize 43
+		location key (286 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0101.txt
+	item 102 key (259 DIR_ITEM 2765567859) itemoff 11527 itemsize 43
+		location key (292 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0095.txt
+	item 103 key (259 DIR_ITEM 2879578842) itemoff 11484 itemsize 43
+		location key (306 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0081.txt
+	item 104 key (259 DIR_ITEM 2899444644) itemoff 11441 itemsize 43
+		location key (272 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0115.txt
+	item 105 key (259 DIR_ITEM 2913515736) itemoff 11398 itemsize 43
+		location key (312 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0075.txt
+	item 106 key (259 DIR_ITEM 2926627079) itemoff 11355 itemsize 43
+		location key (337 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0050.txt
+	item 107 key (259 DIR_ITEM 2962973269) itemoff 11312 itemsize 43
+		location key (309 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0078.txt
+	item 108 key (259 DIR_ITEM 2984368425) itemoff 11269 itemsize 43
+		location key (269 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0118.txt
+	item 109 key (259 DIR_ITEM 3035885620) itemoff 11226 itemsize 43
+		location key (370 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0017.txt
+	item 110 key (259 DIR_ITEM 3073081835) itemoff 11183 itemsize 43
+		location key (355 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0032.txt
+	item 111 key (259 DIR_ITEM 3093189698) itemoff 11140 itemsize 43
+		location key (361 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0026.txt
+	item 112 key (259 DIR_ITEM 3118788094) itemoff 11097 itemsize 43
+		location key (289 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0098.txt
+	item 113 key (259 DIR_ITEM 3146130845) itemoff 11054 itemsize 43
+		location key (384 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0003.txt
+	item 114 key (259 DIR_ITEM 3157706275) itemoff 11011 itemsize 43
+		location key (338 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0049.txt
+	item 115 key (259 DIR_ITEM 3302043500) itemoff 10968 itemsize 43
+		location key (372 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0015.txt
+	item 116 key (259 DIR_ITEM 3339280051) itemoff 10925 itemsize 43
+		location key (357 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0030.txt
+	item 117 key (259 DIR_ITEM 3363605274) itemoff 10882 itemsize 43
+		location key (363 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0024.txt
+	item 118 key (259 DIR_ITEM 3416586949) itemoff 10839 itemsize 43
+		location key (386 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0001.txt
+	item 119 key (259 DIR_ITEM 3495786634) itemoff 10796 itemsize 43
+		location key (261 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0126.txt
+	item 120 key (259 DIR_ITEM 3509044214) itemoff 10753 itemsize 43
+		location key (341 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0046.txt
+	item 121 key (259 DIR_ITEM 3539972649) itemoff 10710 itemsize 43
+		location key (324 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0063.txt
+	item 122 key (259 DIR_ITEM 3548711253) itemoff 10667 itemsize 43
+		location key (284 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0103.txt
+	item 123 key (259 DIR_ITEM 3572885547) itemoff 10624 itemsize 43
+		location key (290 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0097.txt
+	item 124 key (259 DIR_ITEM 3578745239) itemoff 10581 itemsize 43
+		location key (358 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0029.txt
+	item 125 key (259 DIR_ITEM 3655529953) itemoff 10538 itemsize 43
+		location key (369 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0018.txt
+	item 126 key (259 DIR_ITEM 3682614658) itemoff 10495 itemsize 43
+		location key (304 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0083.txt
+	item 127 key (259 DIR_ITEM 3706772732) itemoff 10452 itemsize 43
+		location key (270 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0117.txt
+	item 128 key (259 DIR_ITEM 3716835200) itemoff 10409 itemsize 43
+		location key (310 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0077.txt
+	item 129 key (259 DIR_ITEM 3729921631) itemoff 10366 itemsize 43
+		location key (335 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0052.txt
+	item 130 key (259 DIR_ITEM 3790838349) itemoff 10323 itemsize 43
+		location key (368 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0019.txt
+	item 131 key (259 DIR_ITEM 3817951790) itemoff 10280 itemsize 43
+		location key (305 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0082.txt
+	item 132 key (259 DIR_ITEM 3839996752) itemoff 10237 itemsize 43
+		location key (271 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0116.txt
+	item 133 key (259 DIR_ITEM 3852142636) itemoff 10194 itemsize 43
+		location key (311 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0076.txt
+	item 134 key (259 DIR_ITEM 3863181811) itemoff 10151 itemsize 43
+		location key (334 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0053.txt
+	item 135 key (259 DIR_ITEM 3897300774) itemoff 10108 itemsize 43
+		location key (260 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0127.txt
+	item 136 key (259 DIR_ITEM 3912674394) itemoff 10065 itemsize 43
+		location key (340 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0047.txt
+	item 137 key (259 DIR_ITEM 3941522821) itemoff 10022 itemsize 43
+		location key (325 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0062.txt
+	item 138 key (259 DIR_ITEM 3952371449) itemoff 9979 itemsize 43
+		location key (285 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0102.txt
+	item 139 key (259 DIR_ITEM 3974399879) itemoff 9936 itemsize 43
+		location key (291 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0096.txt
+	item 140 key (259 DIR_ITEM 3982376507) itemoff 9893 itemsize 43
+		location key (359 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0028.txt
+	item 141 key (259 DIR_ITEM 4033733814) itemoff 9850 itemsize 43
+		location key (362 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0025.txt
+	item 142 key (259 DIR_ITEM 4088763753) itemoff 9807 itemsize 43
+		location key (387 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0000.txt
+	item 143 key (259 DIR_ITEM 4240457920) itemoff 9764 itemsize 43
+		location key (373 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0014.txt
+	item 144 key (259 DIR_ITEM 4279775519) itemoff 9721 itemsize 43
+		location key (356 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0031.txt
+	item 145 key (259 DIR_INDEX 2) itemoff 9678 itemsize 43
+		location key (260 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0127.txt
+	item 146 key (259 DIR_INDEX 3) itemoff 9635 itemsize 43
+		location key (261 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0126.txt
+	item 147 key (259 DIR_INDEX 4) itemoff 9592 itemsize 43
+		location key (262 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0125.txt
+	item 148 key (259 DIR_INDEX 5) itemoff 9549 itemsize 43
+		location key (263 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0124.txt
+	item 149 key (259 DIR_INDEX 6) itemoff 9506 itemsize 43
+		location key (264 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0123.txt
+	item 150 key (259 DIR_INDEX 7) itemoff 9463 itemsize 43
+		location key (265 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0122.txt
+	item 151 key (259 DIR_INDEX 8) itemoff 9420 itemsize 43
+		location key (266 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0121.txt
+	item 152 key (259 DIR_INDEX 9) itemoff 9377 itemsize 43
+		location key (267 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0120.txt
+	item 153 key (259 DIR_INDEX 10) itemoff 9334 itemsize 43
+		location key (268 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0119.txt
+	item 154 key (259 DIR_INDEX 11) itemoff 9291 itemsize 43
+		location key (269 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0118.txt
+	item 155 key (259 DIR_INDEX 12) itemoff 9248 itemsize 43
+		location key (270 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0117.txt
+	item 156 key (259 DIR_INDEX 13) itemoff 9205 itemsize 43
+		location key (271 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0116.txt
+	item 157 key (259 DIR_INDEX 14) itemoff 9162 itemsize 43
+		location key (272 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0115.txt
+	item 158 key (259 DIR_INDEX 15) itemoff 9119 itemsize 43
+		location key (273 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0114.txt
+	item 159 key (259 DIR_INDEX 16) itemoff 9076 itemsize 43
+		location key (274 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0113.txt
+	item 160 key (259 DIR_INDEX 17) itemoff 9033 itemsize 43
+		location key (275 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0112.txt
+	item 161 key (259 DIR_INDEX 18) itemoff 8990 itemsize 43
+		location key (276 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0111.txt
+	item 162 key (259 DIR_INDEX 19) itemoff 8947 itemsize 43
+		location key (277 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0110.txt
+	item 163 key (259 DIR_INDEX 20) itemoff 8904 itemsize 43
+		location key (278 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0109.txt
+	item 164 key (259 DIR_INDEX 21) itemoff 8861 itemsize 43
+		location key (279 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0108.txt
+	item 165 key (259 DIR_INDEX 22) itemoff 8818 itemsize 43
+		location key (280 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0107.txt
+	item 166 key (259 DIR_INDEX 23) itemoff 8775 itemsize 43
+		location key (281 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0106.txt
+	item 167 key (259 DIR_INDEX 24) itemoff 8732 itemsize 43
+		location key (282 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0105.txt
+	item 168 key (259 DIR_INDEX 25) itemoff 8689 itemsize 43
+		location key (283 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0104.txt
+	item 169 key (259 DIR_INDEX 26) itemoff 8646 itemsize 43
+		location key (284 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0103.txt
+	item 170 key (259 DIR_INDEX 27) itemoff 8603 itemsize 43
+		location key (285 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0102.txt
+	item 171 key (259 DIR_INDEX 28) itemoff 8560 itemsize 43
+		location key (286 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0101.txt
+	item 172 key (259 DIR_INDEX 29) itemoff 8517 itemsize 43
+		location key (287 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0100.txt
+leaf 30572544 items 136 free space 5859 generation 6 owner FS_TREE
+leaf 30572544 flags 0x1(WRITTEN) backref revision 1
+fs uuid 69f54c99-916f-45d5-b23f-9b2051b31b62
+chunk uuid c3401b8d-8e56-4771-b8f2-f1defbb32725
+	item 0 key (259 DIR_INDEX 30) itemoff 16240 itemsize 43
+		location key (288 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0099.txt
+	item 1 key (259 DIR_INDEX 31) itemoff 16197 itemsize 43
+		location key (289 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0098.txt
+	item 2 key (259 DIR_INDEX 32) itemoff 16154 itemsize 43
+		location key (290 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0097.txt
+	item 3 key (259 DIR_INDEX 33) itemoff 16111 itemsize 43
+		location key (291 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0096.txt
+	item 4 key (259 DIR_INDEX 34) itemoff 16068 itemsize 43
+		location key (292 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0095.txt
+	item 5 key (259 DIR_INDEX 35) itemoff 16025 itemsize 43
+		location key (293 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0094.txt
+	item 6 key (259 DIR_INDEX 36) itemoff 15982 itemsize 43
+		location key (294 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0093.txt
+	item 7 key (259 DIR_INDEX 37) itemoff 15939 itemsize 43
+		location key (295 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0092.txt
+	item 8 key (259 DIR_INDEX 38) itemoff 15896 itemsize 43
+		location key (296 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0091.txt
+	item 9 key (259 DIR_INDEX 39) itemoff 15853 itemsize 43
+		location key (297 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0090.txt
+	item 10 key (259 DIR_INDEX 40) itemoff 15810 itemsize 43
+		location key (298 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0089.txt
+	item 11 key (259 DIR_INDEX 41) itemoff 15767 itemsize 43
+		location key (299 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0088.txt
+	item 12 key (259 DIR_INDEX 42) itemoff 15724 itemsize 43
+		location key (300 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0087.txt
+	item 13 key (259 DIR_INDEX 43) itemoff 15681 itemsize 43
+		location key (301 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0086.txt
+	item 14 key (259 DIR_INDEX 44) itemoff 15638 itemsize 43
+		location key (302 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0085.txt
+	item 15 key (259 DIR_INDEX 45) itemoff 15595 itemsize 43
+		location key (303 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0084.txt
+	item 16 key (259 DIR_INDEX 46) itemoff 15552 itemsize 43
+		location key (304 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0083.txt
+	item 17 key (259 DIR_INDEX 47) itemoff 15509 itemsize 43
+		location key (305 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0082.txt
+	item 18 key (259 DIR_INDEX 48) itemoff 15466 itemsize 43
+		location key (306 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0081.txt
+	item 19 key (259 DIR_INDEX 49) itemoff 15423 itemsize 43
+		location key (307 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0080.txt
+	item 20 key (259 DIR_INDEX 50) itemoff 15380 itemsize 43
+		location key (308 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0079.txt
+	item 21 key (259 DIR_INDEX 51) itemoff 15337 itemsize 43
+		location key (309 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0078.txt
+	item 22 key (259 DIR_INDEX 52) itemoff 15294 itemsize 43
+		location key (310 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0077.txt
+	item 23 key (259 DIR_INDEX 53) itemoff 15251 itemsize 43
+		location key (311 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0076.txt
+	item 24 key (259 DIR_INDEX 54) itemoff 15208 itemsize 43
+		location key (312 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0075.txt
+	item 25 key (259 DIR_INDEX 55) itemoff 15165 itemsize 43
+		location key (313 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0074.txt
+	item 26 key (259 DIR_INDEX 56) itemoff 15122 itemsize 43
+		location key (314 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0073.txt
+	item 27 key (259 DIR_INDEX 57) itemoff 15079 itemsize 43
+		location key (315 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0072.txt
+	item 28 key (259 DIR_INDEX 58) itemoff 15036 itemsize 43
+		location key (316 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0071.txt
+	item 29 key (259 DIR_INDEX 59) itemoff 14993 itemsize 43
+		location key (317 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0070.txt
+	item 30 key (259 DIR_INDEX 60) itemoff 14950 itemsize 43
+		location key (318 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0069.txt
+	item 31 key (259 DIR_INDEX 61) itemoff 14907 itemsize 43
+		location key (319 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0068.txt
+	item 32 key (259 DIR_INDEX 62) itemoff 14864 itemsize 43
+		location key (320 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0067.txt
+	item 33 key (259 DIR_INDEX 63) itemoff 14821 itemsize 43
+		location key (321 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0066.txt
+	item 34 key (259 DIR_INDEX 64) itemoff 14778 itemsize 43
+		location key (322 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0065.txt
+	item 35 key (259 DIR_INDEX 65) itemoff 14735 itemsize 43
+		location key (323 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0064.txt
+	item 36 key (259 DIR_INDEX 66) itemoff 14692 itemsize 43
+		location key (324 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0063.txt
+	item 37 key (259 DIR_INDEX 67) itemoff 14649 itemsize 43
+		location key (325 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0062.txt
+	item 38 key (259 DIR_INDEX 68) itemoff 14606 itemsize 43
+		location key (326 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0061.txt
+	item 39 key (259 DIR_INDEX 69) itemoff 14563 itemsize 43
+		location key (327 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0060.txt
+	item 40 key (259 DIR_INDEX 70) itemoff 14520 itemsize 43
+		location key (328 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0059.txt
+	item 41 key (259 DIR_INDEX 71) itemoff 14477 itemsize 43
+		location key (329 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0058.txt
+	item 42 key (259 DIR_INDEX 72) itemoff 14434 itemsize 43
+		location key (330 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0057.txt
+	item 43 key (259 DIR_INDEX 73) itemoff 14391 itemsize 43
+		location key (331 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0056.txt
+	item 44 key (259 DIR_INDEX 74) itemoff 14348 itemsize 43
+		location key (332 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0055.txt
+	item 45 key (259 DIR_INDEX 75) itemoff 14305 itemsize 43
+		location key (333 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0054.txt
+	item 46 key (259 DIR_INDEX 76) itemoff 14262 itemsize 43
+		location key (334 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0053.txt
+	item 47 key (259 DIR_INDEX 77) itemoff 14219 itemsize 43
+		location key (335 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0052.txt
+	item 48 key (259 DIR_INDEX 78) itemoff 14176 itemsize 43
+		location key (336 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0051.txt
+	item 49 key (259 DIR_INDEX 79) itemoff 14133 itemsize 43
+		location key (337 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0050.txt
+	item 50 key (259 DIR_INDEX 80) itemoff 14090 itemsize 43
+		location key (338 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0049.txt
+	item 51 key (259 DIR_INDEX 81) itemoff 14047 itemsize 43
+		location key (339 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0048.txt
+	item 52 key (259 DIR_INDEX 82) itemoff 14004 itemsize 43
+		location key (340 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0047.txt
+	item 53 key (259 DIR_INDEX 83) itemoff 13961 itemsize 43
+		location key (341 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0046.txt
+	item 54 key (259 DIR_INDEX 84) itemoff 13918 itemsize 43
+		location key (342 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0045.txt
+	item 55 key (259 DIR_INDEX 85) itemoff 13875 itemsize 43
+		location key (343 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0044.txt
+	item 56 key (259 DIR_INDEX 86) itemoff 13832 itemsize 43
+		location key (344 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0043.txt
+	item 57 key (259 DIR_INDEX 87) itemoff 13789 itemsize 43
+		location key (345 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0042.txt
+	item 58 key (259 DIR_INDEX 88) itemoff 13746 itemsize 43
+		location key (346 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0041.txt
+	item 59 key (259 DIR_INDEX 89) itemoff 13703 itemsize 43
+		location key (347 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0040.txt
+	item 60 key (259 DIR_INDEX 90) itemoff 13660 itemsize 43
+		location key (348 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0039.txt
+	item 61 key (259 DIR_INDEX 91) itemoff 13617 itemsize 43
+		location key (349 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0038.txt
+	item 62 key (259 DIR_INDEX 92) itemoff 13574 itemsize 43
+		location key (350 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0037.txt
+	item 63 key (259 DIR_INDEX 93) itemoff 13531 itemsize 43
+		location key (351 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0036.txt
+	item 64 key (259 DIR_INDEX 94) itemoff 13488 itemsize 43
+		location key (352 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0035.txt
+	item 65 key (259 DIR_INDEX 95) itemoff 13445 itemsize 43
+		location key (353 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0034.txt
+	item 66 key (259 DIR_INDEX 96) itemoff 13402 itemsize 43
+		location key (354 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0033.txt
+	item 67 key (259 DIR_INDEX 97) itemoff 13359 itemsize 43
+		location key (355 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0032.txt
+	item 68 key (259 DIR_INDEX 98) itemoff 13316 itemsize 43
+		location key (356 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0031.txt
+	item 69 key (259 DIR_INDEX 99) itemoff 13273 itemsize 43
+		location key (357 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0030.txt
+	item 70 key (259 DIR_INDEX 100) itemoff 13230 itemsize 43
+		location key (358 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0029.txt
+	item 71 key (259 DIR_INDEX 101) itemoff 13187 itemsize 43
+		location key (359 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0028.txt
+	item 72 key (259 DIR_INDEX 102) itemoff 13144 itemsize 43
+		location key (360 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0027.txt
+	item 73 key (259 DIR_INDEX 103) itemoff 13101 itemsize 43
+		location key (361 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0026.txt
+	item 74 key (259 DIR_INDEX 104) itemoff 13058 itemsize 43
+		location key (362 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0025.txt
+	item 75 key (259 DIR_INDEX 105) itemoff 13015 itemsize 43
+		location key (363 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0024.txt
+	item 76 key (259 DIR_INDEX 106) itemoff 12972 itemsize 43
+		location key (364 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0023.txt
+	item 77 key (259 DIR_INDEX 107) itemoff 12929 itemsize 43
+		location key (365 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0022.txt
+	item 78 key (259 DIR_INDEX 108) itemoff 12886 itemsize 43
+		location key (366 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0021.txt
+	item 79 key (259 DIR_INDEX 109) itemoff 12843 itemsize 43
+		location key (367 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0020.txt
+	item 80 key (259 DIR_INDEX 110) itemoff 12800 itemsize 43
+		location key (368 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0019.txt
+	item 81 key (259 DIR_INDEX 111) itemoff 12757 itemsize 43
+		location key (369 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0018.txt
+	item 82 key (259 DIR_INDEX 112) itemoff 12714 itemsize 43
+		location key (370 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0017.txt
+	item 83 key (259 DIR_INDEX 113) itemoff 12671 itemsize 43
+		location key (371 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0016.txt
+	item 84 key (259 DIR_INDEX 114) itemoff 12628 itemsize 43
+		location key (372 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0015.txt
+	item 85 key (259 DIR_INDEX 115) itemoff 12585 itemsize 43
+		location key (373 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0014.txt
+	item 86 key (259 DIR_INDEX 116) itemoff 12542 itemsize 43
+		location key (374 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0013.txt
+	item 87 key (259 DIR_INDEX 117) itemoff 12499 itemsize 43
+		location key (375 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0012.txt
+	item 88 key (259 DIR_INDEX 118) itemoff 12456 itemsize 43
+		location key (376 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0011.txt
+	item 89 key (259 DIR_INDEX 119) itemoff 12413 itemsize 43
+		location key (377 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0010.txt
+	item 90 key (259 DIR_INDEX 120) itemoff 12370 itemsize 43
+		location key (378 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0009.txt
+	item 91 key (259 DIR_INDEX 121) itemoff 12327 itemsize 43
+		location key (379 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0008.txt
+	item 92 key (259 DIR_INDEX 122) itemoff 12284 itemsize 43
+		location key (380 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0007.txt
+	item 93 key (259 DIR_INDEX 123) itemoff 12241 itemsize 43
+		location key (381 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0006.txt
+	item 94 key (259 DIR_INDEX 124) itemoff 12198 itemsize 43
+		location key (382 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0005.txt
+	item 95 key (259 DIR_INDEX 125) itemoff 12155 itemsize 43
+		location key (383 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0004.txt
+	item 96 key (259 DIR_INDEX 126) itemoff 12112 itemsize 43
+		location key (384 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0003.txt
+	item 97 key (259 DIR_INDEX 127) itemoff 12069 itemsize 43
+		location key (385 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0002.txt
+	item 98 key (259 DIR_INDEX 128) itemoff 12026 itemsize 43
+		location key (386 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0001.txt
+	item 99 key (259 DIR_INDEX 129) itemoff 11983 itemsize 43
+		location key (387 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: file-0000.txt
+	item 100 key (260 INODE_ITEM 0) itemoff 11823 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 101 key (260 INODE_REF 259) itemoff 11800 itemsize 23
+		index 2 namelen 13 name: file-0127.txt
+	item 102 key (260 EXTENT_DATA 0) itemoff 11756 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 103 key (261 INODE_ITEM 0) itemoff 11596 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 104 key (261 INODE_REF 259) itemoff 11573 itemsize 23
+		index 3 namelen 13 name: file-0126.txt
+	item 105 key (261 EXTENT_DATA 0) itemoff 11529 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 106 key (262 INODE_ITEM 0) itemoff 11369 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 107 key (262 INODE_REF 259) itemoff 11346 itemsize 23
+		index 4 namelen 13 name: file-0125.txt
+	item 108 key (262 EXTENT_DATA 0) itemoff 11302 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 109 key (263 INODE_ITEM 0) itemoff 11142 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 110 key (263 INODE_REF 259) itemoff 11119 itemsize 23
+		index 5 namelen 13 name: file-0124.txt
+	item 111 key (263 EXTENT_DATA 0) itemoff 11075 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 112 key (264 INODE_ITEM 0) itemoff 10915 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 113 key (264 INODE_REF 259) itemoff 10892 itemsize 23
+		index 6 namelen 13 name: file-0123.txt
+	item 114 key (264 EXTENT_DATA 0) itemoff 10848 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 115 key (265 INODE_ITEM 0) itemoff 10688 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 116 key (265 INODE_REF 259) itemoff 10665 itemsize 23
+		index 7 namelen 13 name: file-0122.txt
+	item 117 key (265 EXTENT_DATA 0) itemoff 10621 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 118 key (266 INODE_ITEM 0) itemoff 10461 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 119 key (266 INODE_REF 259) itemoff 10438 itemsize 23
+		index 8 namelen 13 name: file-0121.txt
+	item 120 key (266 EXTENT_DATA 0) itemoff 10394 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 121 key (267 INODE_ITEM 0) itemoff 10234 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 122 key (267 INODE_REF 259) itemoff 10211 itemsize 23
+		index 9 namelen 13 name: file-0120.txt
+	item 123 key (267 EXTENT_DATA 0) itemoff 10167 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 124 key (268 INODE_ITEM 0) itemoff 10007 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 125 key (268 INODE_REF 259) itemoff 9984 itemsize 23
+		index 10 namelen 13 name: file-0119.txt
+	item 126 key (268 EXTENT_DATA 0) itemoff 9940 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 127 key (269 INODE_ITEM 0) itemoff 9780 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 128 key (269 INODE_REF 259) itemoff 9757 itemsize 23
+		index 11 namelen 13 name: file-0118.txt
+	item 129 key (269 EXTENT_DATA 0) itemoff 9713 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 130 key (270 INODE_ITEM 0) itemoff 9553 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 131 key (270 INODE_REF 259) itemoff 9530 itemsize 23
+		index 12 namelen 13 name: file-0117.txt
+	item 132 key (270 EXTENT_DATA 0) itemoff 9486 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 133 key (271 INODE_ITEM 0) itemoff 9326 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 134 key (271 INODE_REF 259) itemoff 9303 itemsize 23
+		index 13 namelen 13 name: file-0116.txt
+	item 135 key (271 EXTENT_DATA 0) itemoff 9259 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+leaf 30556160 items 162 free space 13 generation 6 owner FS_TREE
+leaf 30556160 flags 0x1(WRITTEN) backref revision 1
+fs uuid 69f54c99-916f-45d5-b23f-9b2051b31b62
+chunk uuid c3401b8d-8e56-4771-b8f2-f1defbb32725
+	item 0 key (272 INODE_ITEM 0) itemoff 16123 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 1 key (272 INODE_REF 259) itemoff 16100 itemsize 23
+		index 14 namelen 13 name: file-0115.txt
+	item 2 key (272 EXTENT_DATA 0) itemoff 16056 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 3 key (273 INODE_ITEM 0) itemoff 15896 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 4 key (273 INODE_REF 259) itemoff 15873 itemsize 23
+		index 15 namelen 13 name: file-0114.txt
+	item 5 key (273 EXTENT_DATA 0) itemoff 15829 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 6 key (274 INODE_ITEM 0) itemoff 15669 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 7 key (274 INODE_REF 259) itemoff 15646 itemsize 23
+		index 16 namelen 13 name: file-0113.txt
+	item 8 key (274 EXTENT_DATA 0) itemoff 15602 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 9 key (275 INODE_ITEM 0) itemoff 15442 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 10 key (275 INODE_REF 259) itemoff 15419 itemsize 23
+		index 17 namelen 13 name: file-0112.txt
+	item 11 key (275 EXTENT_DATA 0) itemoff 15375 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 12 key (276 INODE_ITEM 0) itemoff 15215 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 13 key (276 INODE_REF 259) itemoff 15192 itemsize 23
+		index 18 namelen 13 name: file-0111.txt
+	item 14 key (276 EXTENT_DATA 0) itemoff 15148 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 15 key (277 INODE_ITEM 0) itemoff 14988 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 16 key (277 INODE_REF 259) itemoff 14965 itemsize 23
+		index 19 namelen 13 name: file-0110.txt
+	item 17 key (277 EXTENT_DATA 0) itemoff 14921 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 18 key (278 INODE_ITEM 0) itemoff 14761 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 19 key (278 INODE_REF 259) itemoff 14738 itemsize 23
+		index 20 namelen 13 name: file-0109.txt
+	item 20 key (278 EXTENT_DATA 0) itemoff 14694 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 21 key (279 INODE_ITEM 0) itemoff 14534 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 22 key (279 INODE_REF 259) itemoff 14511 itemsize 23
+		index 21 namelen 13 name: file-0108.txt
+	item 23 key (279 EXTENT_DATA 0) itemoff 14467 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 24 key (280 INODE_ITEM 0) itemoff 14307 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 25 key (280 INODE_REF 259) itemoff 14284 itemsize 23
+		index 22 namelen 13 name: file-0107.txt
+	item 26 key (280 EXTENT_DATA 0) itemoff 14240 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 27 key (281 INODE_ITEM 0) itemoff 14080 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 28 key (281 INODE_REF 259) itemoff 14057 itemsize 23
+		index 23 namelen 13 name: file-0106.txt
+	item 29 key (281 EXTENT_DATA 0) itemoff 14013 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 30 key (282 INODE_ITEM 0) itemoff 13853 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 31 key (282 INODE_REF 259) itemoff 13830 itemsize 23
+		index 24 namelen 13 name: file-0105.txt
+	item 32 key (282 EXTENT_DATA 0) itemoff 13786 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 33 key (283 INODE_ITEM 0) itemoff 13626 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 34 key (283 INODE_REF 259) itemoff 13603 itemsize 23
+		index 25 namelen 13 name: file-0104.txt
+	item 35 key (283 EXTENT_DATA 0) itemoff 13559 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 36 key (284 INODE_ITEM 0) itemoff 13399 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 37 key (284 INODE_REF 259) itemoff 13376 itemsize 23
+		index 26 namelen 13 name: file-0103.txt
+	item 38 key (284 EXTENT_DATA 0) itemoff 13332 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 39 key (285 INODE_ITEM 0) itemoff 13172 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 40 key (285 INODE_REF 259) itemoff 13149 itemsize 23
+		index 27 namelen 13 name: file-0102.txt
+	item 41 key (285 EXTENT_DATA 0) itemoff 13105 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 42 key (286 INODE_ITEM 0) itemoff 12945 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 43 key (286 INODE_REF 259) itemoff 12922 itemsize 23
+		index 28 namelen 13 name: file-0101.txt
+	item 44 key (286 EXTENT_DATA 0) itemoff 12878 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 45 key (287 INODE_ITEM 0) itemoff 12718 itemsize 160
+		generation 0 transid 0 size 23 nbytes 23
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 46 key (287 INODE_REF 259) itemoff 12695 itemsize 23
+		index 29 namelen 13 name: file-0100.txt
+	item 47 key (287 EXTENT_DATA 0) itemoff 12651 itemsize 44
+		generation 6 type 0 (inline)
+		inline extent data size 23 ram_bytes 23 compression 0 (none)
+	item 48 key (288 INODE_ITEM 0) itemoff 12491 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 49 key (288 INODE_REF 259) itemoff 12468 itemsize 23
+		index 30 namelen 13 name: file-0099.txt
+	item 50 key (288 EXTENT_DATA 0) itemoff 12425 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 51 key (289 INODE_ITEM 0) itemoff 12265 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 52 key (289 INODE_REF 259) itemoff 12242 itemsize 23
+		index 31 namelen 13 name: file-0098.txt
+	item 53 key (289 EXTENT_DATA 0) itemoff 12199 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 54 key (290 INODE_ITEM 0) itemoff 12039 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 55 key (290 INODE_REF 259) itemoff 12016 itemsize 23
+		index 32 namelen 13 name: file-0097.txt
+	item 56 key (290 EXTENT_DATA 0) itemoff 11973 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 57 key (291 INODE_ITEM 0) itemoff 11813 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 58 key (291 INODE_REF 259) itemoff 11790 itemsize 23
+		index 33 namelen 13 name: file-0096.txt
+	item 59 key (291 EXTENT_DATA 0) itemoff 11747 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 60 key (292 INODE_ITEM 0) itemoff 11587 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 61 key (292 INODE_REF 259) itemoff 11564 itemsize 23
+		index 34 namelen 13 name: file-0095.txt
+	item 62 key (292 EXTENT_DATA 0) itemoff 11521 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 63 key (293 INODE_ITEM 0) itemoff 11361 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 64 key (293 INODE_REF 259) itemoff 11338 itemsize 23
+		index 35 namelen 13 name: file-0094.txt
+	item 65 key (293 EXTENT_DATA 0) itemoff 11295 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 66 key (294 INODE_ITEM 0) itemoff 11135 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 67 key (294 INODE_REF 259) itemoff 11112 itemsize 23
+		index 36 namelen 13 name: file-0093.txt
+	item 68 key (294 EXTENT_DATA 0) itemoff 11069 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 69 key (295 INODE_ITEM 0) itemoff 10909 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 70 key (295 INODE_REF 259) itemoff 10886 itemsize 23
+		index 37 namelen 13 name: file-0092.txt
+	item 71 key (295 EXTENT_DATA 0) itemoff 10843 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 72 key (296 INODE_ITEM 0) itemoff 10683 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 73 key (296 INODE_REF 259) itemoff 10660 itemsize 23
+		index 38 namelen 13 name: file-0091.txt
+	item 74 key (296 EXTENT_DATA 0) itemoff 10617 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 75 key (297 INODE_ITEM 0) itemoff 10457 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 76 key (297 INODE_REF 259) itemoff 10434 itemsize 23
+		index 39 namelen 13 name: file-0090.txt
+	item 77 key (297 EXTENT_DATA 0) itemoff 10391 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 78 key (298 INODE_ITEM 0) itemoff 10231 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 79 key (298 INODE_REF 259) itemoff 10208 itemsize 23
+		index 40 namelen 13 name: file-0089.txt
+	item 80 key (298 EXTENT_DATA 0) itemoff 10165 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 81 key (299 INODE_ITEM 0) itemoff 10005 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 82 key (299 INODE_REF 259) itemoff 9982 itemsize 23
+		index 41 namelen 13 name: file-0088.txt
+	item 83 key (299 EXTENT_DATA 0) itemoff 9939 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 84 key (300 INODE_ITEM 0) itemoff 9779 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 85 key (300 INODE_REF 259) itemoff 9756 itemsize 23
+		index 42 namelen 13 name: file-0087.txt
+	item 86 key (300 EXTENT_DATA 0) itemoff 9713 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 87 key (301 INODE_ITEM 0) itemoff 9553 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 88 key (301 INODE_REF 259) itemoff 9530 itemsize 23
+		index 43 namelen 13 name: file-0086.txt
+	item 89 key (301 EXTENT_DATA 0) itemoff 9487 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 90 key (302 INODE_ITEM 0) itemoff 9327 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 91 key (302 INODE_REF 259) itemoff 9304 itemsize 23
+		index 44 namelen 13 name: file-0085.txt
+	item 92 key (302 EXTENT_DATA 0) itemoff 9261 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 93 key (303 INODE_ITEM 0) itemoff 9101 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 94 key (303 INODE_REF 259) itemoff 9078 itemsize 23
+		index 45 namelen 13 name: file-0084.txt
+	item 95 key (303 EXTENT_DATA 0) itemoff 9035 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 96 key (304 INODE_ITEM 0) itemoff 8875 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 97 key (304 INODE_REF 259) itemoff 8852 itemsize 23
+		index 46 namelen 13 name: file-0083.txt
+	item 98 key (304 EXTENT_DATA 0) itemoff 8809 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 99 key (305 INODE_ITEM 0) itemoff 8649 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 100 key (305 INODE_REF 259) itemoff 8626 itemsize 23
+		index 47 namelen 13 name: file-0082.txt
+	item 101 key (305 EXTENT_DATA 0) itemoff 8583 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 102 key (306 INODE_ITEM 0) itemoff 8423 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 103 key (306 INODE_REF 259) itemoff 8400 itemsize 23
+		index 48 namelen 13 name: file-0081.txt
+	item 104 key (306 EXTENT_DATA 0) itemoff 8357 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 105 key (307 INODE_ITEM 0) itemoff 8197 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 106 key (307 INODE_REF 259) itemoff 8174 itemsize 23
+		index 49 namelen 13 name: file-0080.txt
+	item 107 key (307 EXTENT_DATA 0) itemoff 8131 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 108 key (308 INODE_ITEM 0) itemoff 7971 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 109 key (308 INODE_REF 259) itemoff 7948 itemsize 23
+		index 50 namelen 13 name: file-0079.txt
+	item 110 key (308 EXTENT_DATA 0) itemoff 7905 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 111 key (309 INODE_ITEM 0) itemoff 7745 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 112 key (309 INODE_REF 259) itemoff 7722 itemsize 23
+		index 51 namelen 13 name: file-0078.txt
+	item 113 key (309 EXTENT_DATA 0) itemoff 7679 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 114 key (310 INODE_ITEM 0) itemoff 7519 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 115 key (310 INODE_REF 259) itemoff 7496 itemsize 23
+		index 52 namelen 13 name: file-0077.txt
+	item 116 key (310 EXTENT_DATA 0) itemoff 7453 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 117 key (311 INODE_ITEM 0) itemoff 7293 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 118 key (311 INODE_REF 259) itemoff 7270 itemsize 23
+		index 53 namelen 13 name: file-0076.txt
+	item 119 key (311 EXTENT_DATA 0) itemoff 7227 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 120 key (312 INODE_ITEM 0) itemoff 7067 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 121 key (312 INODE_REF 259) itemoff 7044 itemsize 23
+		index 54 namelen 13 name: file-0075.txt
+	item 122 key (312 EXTENT_DATA 0) itemoff 7001 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 123 key (313 INODE_ITEM 0) itemoff 6841 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 124 key (313 INODE_REF 259) itemoff 6818 itemsize 23
+		index 55 namelen 13 name: file-0074.txt
+	item 125 key (313 EXTENT_DATA 0) itemoff 6775 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 126 key (314 INODE_ITEM 0) itemoff 6615 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 127 key (314 INODE_REF 259) itemoff 6592 itemsize 23
+		index 56 namelen 13 name: file-0073.txt
+	item 128 key (314 EXTENT_DATA 0) itemoff 6549 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 129 key (315 INODE_ITEM 0) itemoff 6389 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 130 key (315 INODE_REF 259) itemoff 6366 itemsize 23
+		index 57 namelen 13 name: file-0072.txt
+	item 131 key (315 EXTENT_DATA 0) itemoff 6323 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 132 key (316 INODE_ITEM 0) itemoff 6163 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 133 key (316 INODE_REF 259) itemoff 6140 itemsize 23
+		index 58 namelen 13 name: file-0071.txt
+	item 134 key (316 EXTENT_DATA 0) itemoff 6097 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 135 key (317 INODE_ITEM 0) itemoff 5937 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 136 key (317 INODE_REF 259) itemoff 5914 itemsize 23
+		index 59 namelen 13 name: file-0070.txt
+	item 137 key (317 EXTENT_DATA 0) itemoff 5871 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 138 key (318 INODE_ITEM 0) itemoff 5711 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 139 key (318 INODE_REF 259) itemoff 5688 itemsize 23
+		index 60 namelen 13 name: file-0069.txt
+	item 140 key (318 EXTENT_DATA 0) itemoff 5645 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 141 key (319 INODE_ITEM 0) itemoff 5485 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 142 key (319 INODE_REF 259) itemoff 5462 itemsize 23
+		index 61 namelen 13 name: file-0068.txt
+	item 143 key (319 EXTENT_DATA 0) itemoff 5419 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 144 key (320 INODE_ITEM 0) itemoff 5259 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 145 key (320 INODE_REF 259) itemoff 5236 itemsize 23
+		index 62 namelen 13 name: file-0067.txt
+	item 146 key (320 EXTENT_DATA 0) itemoff 5193 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 147 key (321 INODE_ITEM 0) itemoff 5033 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 148 key (321 INODE_REF 259) itemoff 5010 itemsize 23
+		index 63 namelen 13 name: file-0066.txt
+	item 149 key (321 EXTENT_DATA 0) itemoff 4967 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 150 key (322 INODE_ITEM 0) itemoff 4807 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 151 key (322 INODE_REF 259) itemoff 4784 itemsize 23
+		index 64 namelen 13 name: file-0065.txt
+	item 152 key (322 EXTENT_DATA 0) itemoff 4741 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 153 key (323 INODE_ITEM 0) itemoff 4581 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 154 key (323 INODE_REF 259) itemoff 4558 itemsize 23
+		index 65 namelen 13 name: file-0064.txt
+	item 155 key (323 EXTENT_DATA 0) itemoff 4515 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 156 key (324 INODE_ITEM 0) itemoff 4355 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 157 key (324 INODE_REF 259) itemoff 4332 itemsize 23
+		index 66 namelen 13 name: file-0063.txt
+	item 158 key (324 EXTENT_DATA 0) itemoff 4289 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 159 key (325 INODE_ITEM 0) itemoff 4129 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 160 key (325 INODE_REF 259) itemoff 4106 itemsize 23
+		index 67 namelen 13 name: file-0062.txt
+	item 161 key (325 EXTENT_DATA 0) itemoff 4063 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+leaf 30588928 items 81 free space 8156 generation 6 owner FS_TREE
+leaf 30588928 flags 0x1(WRITTEN) backref revision 1
+fs uuid 69f54c99-916f-45d5-b23f-9b2051b31b62
+chunk uuid c3401b8d-8e56-4771-b8f2-f1defbb32725
+	item 0 key (326 INODE_ITEM 0) itemoff 16123 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 1 key (326 INODE_REF 259) itemoff 16100 itemsize 23
+		index 68 namelen 13 name: file-0061.txt
+	item 2 key (326 EXTENT_DATA 0) itemoff 16057 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 3 key (327 INODE_ITEM 0) itemoff 15897 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 4 key (327 INODE_REF 259) itemoff 15874 itemsize 23
+		index 69 namelen 13 name: file-0060.txt
+	item 5 key (327 EXTENT_DATA 0) itemoff 15831 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 6 key (328 INODE_ITEM 0) itemoff 15671 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 7 key (328 INODE_REF 259) itemoff 15648 itemsize 23
+		index 70 namelen 13 name: file-0059.txt
+	item 8 key (328 EXTENT_DATA 0) itemoff 15605 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 9 key (329 INODE_ITEM 0) itemoff 15445 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 10 key (329 INODE_REF 259) itemoff 15422 itemsize 23
+		index 71 namelen 13 name: file-0058.txt
+	item 11 key (329 EXTENT_DATA 0) itemoff 15379 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 12 key (330 INODE_ITEM 0) itemoff 15219 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 13 key (330 INODE_REF 259) itemoff 15196 itemsize 23
+		index 72 namelen 13 name: file-0057.txt
+	item 14 key (330 EXTENT_DATA 0) itemoff 15153 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 15 key (331 INODE_ITEM 0) itemoff 14993 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 16 key (331 INODE_REF 259) itemoff 14970 itemsize 23
+		index 73 namelen 13 name: file-0056.txt
+	item 17 key (331 EXTENT_DATA 0) itemoff 14927 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 18 key (332 INODE_ITEM 0) itemoff 14767 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 19 key (332 INODE_REF 259) itemoff 14744 itemsize 23
+		index 74 namelen 13 name: file-0055.txt
+	item 20 key (332 EXTENT_DATA 0) itemoff 14701 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 21 key (333 INODE_ITEM 0) itemoff 14541 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 22 key (333 INODE_REF 259) itemoff 14518 itemsize 23
+		index 75 namelen 13 name: file-0054.txt
+	item 23 key (333 EXTENT_DATA 0) itemoff 14475 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 24 key (334 INODE_ITEM 0) itemoff 14315 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 25 key (334 INODE_REF 259) itemoff 14292 itemsize 23
+		index 76 namelen 13 name: file-0053.txt
+	item 26 key (334 EXTENT_DATA 0) itemoff 14249 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 27 key (335 INODE_ITEM 0) itemoff 14089 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 28 key (335 INODE_REF 259) itemoff 14066 itemsize 23
+		index 77 namelen 13 name: file-0052.txt
+	item 29 key (335 EXTENT_DATA 0) itemoff 14023 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 30 key (336 INODE_ITEM 0) itemoff 13863 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 31 key (336 INODE_REF 259) itemoff 13840 itemsize 23
+		index 78 namelen 13 name: file-0051.txt
+	item 32 key (336 EXTENT_DATA 0) itemoff 13797 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 33 key (337 INODE_ITEM 0) itemoff 13637 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 34 key (337 INODE_REF 259) itemoff 13614 itemsize 23
+		index 79 namelen 13 name: file-0050.txt
+	item 35 key (337 EXTENT_DATA 0) itemoff 13571 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 36 key (338 INODE_ITEM 0) itemoff 13411 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 37 key (338 INODE_REF 259) itemoff 13388 itemsize 23
+		index 80 namelen 13 name: file-0049.txt
+	item 38 key (338 EXTENT_DATA 0) itemoff 13345 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 39 key (339 INODE_ITEM 0) itemoff 13185 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 40 key (339 INODE_REF 259) itemoff 13162 itemsize 23
+		index 81 namelen 13 name: file-0048.txt
+	item 41 key (339 EXTENT_DATA 0) itemoff 13119 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 42 key (340 INODE_ITEM 0) itemoff 12959 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 43 key (340 INODE_REF 259) itemoff 12936 itemsize 23
+		index 82 namelen 13 name: file-0047.txt
+	item 44 key (340 EXTENT_DATA 0) itemoff 12893 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 45 key (341 INODE_ITEM 0) itemoff 12733 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 46 key (341 INODE_REF 259) itemoff 12710 itemsize 23
+		index 83 namelen 13 name: file-0046.txt
+	item 47 key (341 EXTENT_DATA 0) itemoff 12667 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 48 key (342 INODE_ITEM 0) itemoff 12507 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 49 key (342 INODE_REF 259) itemoff 12484 itemsize 23
+		index 84 namelen 13 name: file-0045.txt
+	item 50 key (342 EXTENT_DATA 0) itemoff 12441 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 51 key (343 INODE_ITEM 0) itemoff 12281 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 52 key (343 INODE_REF 259) itemoff 12258 itemsize 23
+		index 85 namelen 13 name: file-0044.txt
+	item 53 key (343 EXTENT_DATA 0) itemoff 12215 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 54 key (344 INODE_ITEM 0) itemoff 12055 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 55 key (344 INODE_REF 259) itemoff 12032 itemsize 23
+		index 86 namelen 13 name: file-0043.txt
+	item 56 key (344 EXTENT_DATA 0) itemoff 11989 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 57 key (345 INODE_ITEM 0) itemoff 11829 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 58 key (345 INODE_REF 259) itemoff 11806 itemsize 23
+		index 87 namelen 13 name: file-0042.txt
+	item 59 key (345 EXTENT_DATA 0) itemoff 11763 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 60 key (346 INODE_ITEM 0) itemoff 11603 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 61 key (346 INODE_REF 259) itemoff 11580 itemsize 23
+		index 88 namelen 13 name: file-0041.txt
+	item 62 key (346 EXTENT_DATA 0) itemoff 11537 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 63 key (347 INODE_ITEM 0) itemoff 11377 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 64 key (347 INODE_REF 259) itemoff 11354 itemsize 23
+		index 89 namelen 13 name: file-0040.txt
+	item 65 key (347 EXTENT_DATA 0) itemoff 11311 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 66 key (348 INODE_ITEM 0) itemoff 11151 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 67 key (348 INODE_REF 259) itemoff 11128 itemsize 23
+		index 90 namelen 13 name: file-0039.txt
+	item 68 key (348 EXTENT_DATA 0) itemoff 11085 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 69 key (349 INODE_ITEM 0) itemoff 10925 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 70 key (349 INODE_REF 259) itemoff 10902 itemsize 23
+		index 91 namelen 13 name: file-0038.txt
+	item 71 key (349 EXTENT_DATA 0) itemoff 10859 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 72 key (350 INODE_ITEM 0) itemoff 10699 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 73 key (350 INODE_REF 259) itemoff 10676 itemsize 23
+		index 92 namelen 13 name: file-0037.txt
+	item 74 key (350 EXTENT_DATA 0) itemoff 10633 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 75 key (351 INODE_ITEM 0) itemoff 10473 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 76 key (351 INODE_REF 259) itemoff 10450 itemsize 23
+		index 93 namelen 13 name: file-0036.txt
+	item 77 key (351 EXTENT_DATA 0) itemoff 10407 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 78 key (352 INODE_ITEM 0) itemoff 10247 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 79 key (352 INODE_REF 259) itemoff 10224 itemsize 23
+		index 94 namelen 13 name: file-0035.txt
+	item 80 key (352 EXTENT_DATA 0) itemoff 10181 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+leaf 30605312 items 122 free space 4193 generation 6 owner FS_TREE
+leaf 30605312 flags 0x1(WRITTEN) backref revision 1
+fs uuid 69f54c99-916f-45d5-b23f-9b2051b31b62
+chunk uuid c3401b8d-8e56-4771-b8f2-f1defbb32725
+	item 0 key (353 INODE_ITEM 0) itemoff 16123 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 1 key (353 INODE_REF 259) itemoff 16100 itemsize 23
+		index 95 namelen 13 name: file-0034.txt
+	item 2 key (353 EXTENT_DATA 0) itemoff 16057 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 3 key (354 INODE_ITEM 0) itemoff 15897 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 4 key (354 INODE_REF 259) itemoff 15874 itemsize 23
+		index 96 namelen 13 name: file-0033.txt
+	item 5 key (354 EXTENT_DATA 0) itemoff 15831 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 6 key (355 INODE_ITEM 0) itemoff 15671 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 7 key (355 INODE_REF 259) itemoff 15648 itemsize 23
+		index 97 namelen 13 name: file-0032.txt
+	item 8 key (355 EXTENT_DATA 0) itemoff 15605 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 9 key (356 INODE_ITEM 0) itemoff 15445 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 10 key (356 INODE_REF 259) itemoff 15422 itemsize 23
+		index 98 namelen 13 name: file-0031.txt
+	item 11 key (356 EXTENT_DATA 0) itemoff 15379 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 12 key (357 INODE_ITEM 0) itemoff 15219 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 13 key (357 INODE_REF 259) itemoff 15196 itemsize 23
+		index 99 namelen 13 name: file-0030.txt
+	item 14 key (357 EXTENT_DATA 0) itemoff 15153 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 15 key (358 INODE_ITEM 0) itemoff 14993 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 16 key (358 INODE_REF 259) itemoff 14970 itemsize 23
+		index 100 namelen 13 name: file-0029.txt
+	item 17 key (358 EXTENT_DATA 0) itemoff 14927 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 18 key (359 INODE_ITEM 0) itemoff 14767 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 19 key (359 INODE_REF 259) itemoff 14744 itemsize 23
+		index 101 namelen 13 name: file-0028.txt
+	item 20 key (359 EXTENT_DATA 0) itemoff 14701 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 21 key (360 INODE_ITEM 0) itemoff 14541 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 22 key (360 INODE_REF 259) itemoff 14518 itemsize 23
+		index 102 namelen 13 name: file-0027.txt
+	item 23 key (360 EXTENT_DATA 0) itemoff 14475 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 24 key (361 INODE_ITEM 0) itemoff 14315 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 25 key (361 INODE_REF 259) itemoff 14292 itemsize 23
+		index 103 namelen 13 name: file-0026.txt
+	item 26 key (361 EXTENT_DATA 0) itemoff 14249 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 27 key (362 INODE_ITEM 0) itemoff 14089 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 28 key (362 INODE_REF 259) itemoff 14066 itemsize 23
+		index 104 namelen 13 name: file-0025.txt
+	item 29 key (362 EXTENT_DATA 0) itemoff 14023 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 30 key (363 INODE_ITEM 0) itemoff 13863 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 31 key (363 INODE_REF 259) itemoff 13840 itemsize 23
+		index 105 namelen 13 name: file-0024.txt
+	item 32 key (363 EXTENT_DATA 0) itemoff 13797 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 33 key (364 INODE_ITEM 0) itemoff 13637 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 34 key (364 INODE_REF 259) itemoff 13614 itemsize 23
+		index 106 namelen 13 name: file-0023.txt
+	item 35 key (364 EXTENT_DATA 0) itemoff 13571 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 36 key (365 INODE_ITEM 0) itemoff 13411 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 37 key (365 INODE_REF 259) itemoff 13388 itemsize 23
+		index 107 namelen 13 name: file-0022.txt
+	item 38 key (365 EXTENT_DATA 0) itemoff 13345 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 39 key (366 INODE_ITEM 0) itemoff 13185 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 40 key (366 INODE_REF 259) itemoff 13162 itemsize 23
+		index 108 namelen 13 name: file-0021.txt
+	item 41 key (366 EXTENT_DATA 0) itemoff 13119 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 42 key (367 INODE_ITEM 0) itemoff 12959 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 43 key (367 INODE_REF 259) itemoff 12936 itemsize 23
+		index 109 namelen 13 name: file-0020.txt
+	item 44 key (367 EXTENT_DATA 0) itemoff 12893 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 45 key (368 INODE_ITEM 0) itemoff 12733 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 46 key (368 INODE_REF 259) itemoff 12710 itemsize 23
+		index 110 namelen 13 name: file-0019.txt
+	item 47 key (368 EXTENT_DATA 0) itemoff 12667 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 48 key (369 INODE_ITEM 0) itemoff 12507 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 49 key (369 INODE_REF 259) itemoff 12484 itemsize 23
+		index 111 namelen 13 name: file-0018.txt
+	item 50 key (369 EXTENT_DATA 0) itemoff 12441 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 51 key (370 INODE_ITEM 0) itemoff 12281 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 52 key (370 INODE_REF 259) itemoff 12258 itemsize 23
+		index 112 namelen 13 name: file-0017.txt
+	item 53 key (370 EXTENT_DATA 0) itemoff 12215 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 54 key (371 INODE_ITEM 0) itemoff 12055 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 55 key (371 INODE_REF 259) itemoff 12032 itemsize 23
+		index 113 namelen 13 name: file-0016.txt
+	item 56 key (371 EXTENT_DATA 0) itemoff 11989 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 57 key (372 INODE_ITEM 0) itemoff 11829 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 58 key (372 INODE_REF 259) itemoff 11806 itemsize 23
+		index 114 namelen 13 name: file-0015.txt
+	item 59 key (372 EXTENT_DATA 0) itemoff 11763 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 60 key (373 INODE_ITEM 0) itemoff 11603 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 61 key (373 INODE_REF 259) itemoff 11580 itemsize 23
+		index 115 namelen 13 name: file-0014.txt
+	item 62 key (373 EXTENT_DATA 0) itemoff 11537 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 63 key (374 INODE_ITEM 0) itemoff 11377 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 64 key (374 INODE_REF 259) itemoff 11354 itemsize 23
+		index 116 namelen 13 name: file-0013.txt
+	item 65 key (374 EXTENT_DATA 0) itemoff 11311 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 66 key (375 INODE_ITEM 0) itemoff 11151 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 67 key (375 INODE_REF 259) itemoff 11128 itemsize 23
+		index 117 namelen 13 name: file-0012.txt
+	item 68 key (375 EXTENT_DATA 0) itemoff 11085 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 69 key (376 INODE_ITEM 0) itemoff 10925 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 70 key (376 INODE_REF 259) itemoff 10902 itemsize 23
+		index 118 namelen 13 name: file-0011.txt
+	item 71 key (376 EXTENT_DATA 0) itemoff 10859 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 72 key (377 INODE_ITEM 0) itemoff 10699 itemsize 160
+		generation 0 transid 0 size 22 nbytes 22
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 73 key (377 INODE_REF 259) itemoff 10676 itemsize 23
+		index 119 namelen 13 name: file-0010.txt
+	item 74 key (377 EXTENT_DATA 0) itemoff 10633 itemsize 43
+		generation 6 type 0 (inline)
+		inline extent data size 22 ram_bytes 22 compression 0 (none)
+	item 75 key (378 INODE_ITEM 0) itemoff 10473 itemsize 160
+		generation 0 transid 0 size 21 nbytes 21
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 76 key (378 INODE_REF 259) itemoff 10450 itemsize 23
+		index 120 namelen 13 name: file-0009.txt
+	item 77 key (378 EXTENT_DATA 0) itemoff 10408 itemsize 42
+		generation 6 type 0 (inline)
+		inline extent data size 21 ram_bytes 21 compression 0 (none)
+	item 78 key (379 INODE_ITEM 0) itemoff 10248 itemsize 160
+		generation 0 transid 0 size 21 nbytes 21
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 79 key (379 INODE_REF 259) itemoff 10225 itemsize 23
+		index 121 namelen 13 name: file-0008.txt
+	item 80 key (379 EXTENT_DATA 0) itemoff 10183 itemsize 42
+		generation 6 type 0 (inline)
+		inline extent data size 21 ram_bytes 21 compression 0 (none)
+	item 81 key (380 INODE_ITEM 0) itemoff 10023 itemsize 160
+		generation 0 transid 0 size 21 nbytes 21
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 82 key (380 INODE_REF 259) itemoff 10000 itemsize 23
+		index 122 namelen 13 name: file-0007.txt
+	item 83 key (380 EXTENT_DATA 0) itemoff 9958 itemsize 42
+		generation 6 type 0 (inline)
+		inline extent data size 21 ram_bytes 21 compression 0 (none)
+	item 84 key (381 INODE_ITEM 0) itemoff 9798 itemsize 160
+		generation 0 transid 0 size 21 nbytes 21
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 85 key (381 INODE_REF 259) itemoff 9775 itemsize 23
+		index 123 namelen 13 name: file-0006.txt
+	item 86 key (381 EXTENT_DATA 0) itemoff 9733 itemsize 42
+		generation 6 type 0 (inline)
+		inline extent data size 21 ram_bytes 21 compression 0 (none)
+	item 87 key (382 INODE_ITEM 0) itemoff 9573 itemsize 160
+		generation 0 transid 0 size 21 nbytes 21
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 88 key (382 INODE_REF 259) itemoff 9550 itemsize 23
+		index 124 namelen 13 name: file-0005.txt
+	item 89 key (382 EXTENT_DATA 0) itemoff 9508 itemsize 42
+		generation 6 type 0 (inline)
+		inline extent data size 21 ram_bytes 21 compression 0 (none)
+	item 90 key (383 INODE_ITEM 0) itemoff 9348 itemsize 160
+		generation 0 transid 0 size 21 nbytes 21
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 91 key (383 INODE_REF 259) itemoff 9325 itemsize 23
+		index 125 namelen 13 name: file-0004.txt
+	item 92 key (383 EXTENT_DATA 0) itemoff 9283 itemsize 42
+		generation 6 type 0 (inline)
+		inline extent data size 21 ram_bytes 21 compression 0 (none)
+	item 93 key (384 INODE_ITEM 0) itemoff 9123 itemsize 160
+		generation 0 transid 0 size 21 nbytes 21
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 94 key (384 INODE_REF 259) itemoff 9100 itemsize 23
+		index 126 namelen 13 name: file-0003.txt
+	item 95 key (384 EXTENT_DATA 0) itemoff 9058 itemsize 42
+		generation 6 type 0 (inline)
+		inline extent data size 21 ram_bytes 21 compression 0 (none)
+	item 96 key (385 INODE_ITEM 0) itemoff 8898 itemsize 160
+		generation 0 transid 0 size 21 nbytes 21
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 97 key (385 INODE_REF 259) itemoff 8875 itemsize 23
+		index 127 namelen 13 name: file-0002.txt
+	item 98 key (385 EXTENT_DATA 0) itemoff 8833 itemsize 42
+		generation 6 type 0 (inline)
+		inline extent data size 21 ram_bytes 21 compression 0 (none)
+	item 99 key (386 INODE_ITEM 0) itemoff 8673 itemsize 160
+		generation 0 transid 0 size 21 nbytes 21
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 100 key (386 INODE_REF 259) itemoff 8650 itemsize 23
+		index 128 namelen 13 name: file-0001.txt
+	item 101 key (386 EXTENT_DATA 0) itemoff 8608 itemsize 42
+		generation 6 type 0 (inline)
+		inline extent data size 21 ram_bytes 21 compression 0 (none)
+	item 102 key (387 INODE_ITEM 0) itemoff 8448 itemsize 160
+		generation 0 transid 0 size 21 nbytes 21
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 103 key (387 INODE_REF 259) itemoff 8425 itemsize 23
+		index 129 namelen 13 name: file-0000.txt
+	item 104 key (387 EXTENT_DATA 0) itemoff 8383 itemsize 42
+		generation 6 type 0 (inline)
+		inline extent data size 21 ram_bytes 21 compression 0 (none)
+	item 105 key (388 INODE_ITEM 0) itemoff 8223 itemsize 160
+		generation 0 transid 0 size 72 nbytes 0
+		block group 0 mode 40755 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 106 key (388 INODE_REF 256) itemoff 8204 itemsize 19
+		index 5 namelen 9 name: documents
+	item 107 key (388 DIR_ITEM 982384513) itemoff 8163 itemsize 41
+		location key (391 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 11
+		name: payload.bin
+	item 108 key (388 DIR_ITEM 1521403675) itemoff 8125 itemsize 38
+		location key (390 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 8
+		name: zero.dat
+	item 109 key (388 DIR_ITEM 3048695212) itemoff 8078 itemsize 47
+		location key (389 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 17
+		name: rapport-\303\251\303\251n.txt
+	item 110 key (388 DIR_INDEX 2) itemoff 8031 itemsize 47
+		location key (389 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 17
+		name: rapport-\303\251\303\251n.txt
+	item 111 key (388 DIR_INDEX 3) itemoff 7993 itemsize 38
+		location key (390 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 8
+		name: zero.dat
+	item 112 key (388 DIR_INDEX 4) itemoff 7952 itemsize 41
+		location key (391 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 11
+		name: payload.bin
+	item 113 key (389 INODE_ITEM 0) itemoff 7792 itemsize 160
+		generation 0 transid 0 size 36 nbytes 36
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 114 key (389 INODE_REF 388) itemoff 7765 itemsize 27
+		index 2 namelen 17 name: rapport-\303\251\303\251n.txt
+	item 115 key (389 EXTENT_DATA 0) itemoff 7708 itemsize 57
+		generation 6 type 0 (inline)
+		inline extent data size 36 ram_bytes 36 compression 0 (none)
+	item 116 key (390 INODE_ITEM 0) itemoff 7548 itemsize 160
+		generation 0 transid 0 size 131072 nbytes 131072
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 117 key (390 INODE_REF 388) itemoff 7530 itemsize 18
+		index 3 namelen 8 name: zero.dat
+	item 118 key (390 EXTENT_DATA 0) itemoff 7477 itemsize 53
+		generation 6 type 1 (regular)
+		extent data disk byte 13631488 nr 131072
+		extent data offset 0 nr 131072 ram 131072
+		extent compression 0 (none)
+	item 119 key (391 INODE_ITEM 0) itemoff 7317 itemsize 160
+		generation 0 transid 0 size 1048576 nbytes 1048576
+		block group 0 mode 100644 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655146.0 (2026-11-02 22:32:26)
+		ctime 1793655146.0 (2026-11-02 22:32:26)
+		mtime 1793655146.0 (2026-11-02 22:32:26)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 120 key (391 INODE_REF 388) itemoff 7296 itemsize 21
+		index 4 namelen 11 name: payload.bin
+	item 121 key (391 EXTENT_DATA 0) itemoff 7243 itemsize 53
+		generation 6 type 1 (regular)
+		extent data disk byte 13762560 nr 1048576
+		extent data offset 0 nr 1048576 ram 1048576
+		extent compression 0 (none)
+total bytes 268435456
+bytes used 1409024
+uuid 69f54c99-916f-45d5-b23f-9b2051b31b62

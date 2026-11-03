@@ -1,0 +1,11 @@
+Opening filesystem to check...
+Checking filesystem on /tmp/nieuw-os-storage-btrfs-20261102/metadata/metadata.img
+UUID: 2b95d05b-84b0-431b-9226-df13051f75d4
+found 8544256 bytes used, no error found
+total csum bytes: 8200
+total tree bytes: 147456
+total fs tree bytes: 32768
+total extent tree bytes: 16384
+btree space waste bytes: 127708
+file data blocks allocated: 8396800
+ referenced 8396800
