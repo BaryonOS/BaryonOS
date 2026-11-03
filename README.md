@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`23f7a428`](https://github.com/simonvanieperen/nieuw-os/commit/23f7a428cbb826ff298dd8554f8351b378d9e5b7) ·
+**Bron:** [`09e4fa6b`](https://github.com/simonvanieperen/nieuw-os/commit/09e4fa6b6a31b54eea4ebad3cbf98c54347d28c6) ·
 **Ontwikkelbranch:** `simonvanieperen-upgraded-disco`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR148-conflicten met main d115cc9 inhoudsbehoudend integreren.
-41/100 blijft 41/100. Vier documentconflicten combineren beide checkpointreeksen. Artifact-store-contracttests en brongebonden bewijs uit main blijven behouden, evenals PR148's volume-admissie en ADR-064. Geen productiecode, criterium of gewicht gewijzigd door deze integratie. Historische testclaims zijn geen nieuwe native acceptatie; gecombineerde validatie en nieuwe-head CI worden afzonderlijk gerapporteerd.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR148-documentconflicten met main 99d1327 inhoudsbehoudend integreren.
+41/100 blijft 41/100. Vier documentconflicten combineren beide checkpointreeksen. PR139-receipts blijven exact aan hun historische bron gebonden; PR140's eigen bewijsstatus blijft afzonderlijk behouden. Geen code, test, criterium of gewicht gewijzigd door deze integratie. Documentcontroles en nieuwe-head CI worden afzonderlijk gerapporteerd; geen nieuwe native acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

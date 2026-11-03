@@ -1,6 +1,30 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR148 met main d115cc9 — 3 november 2026
+## NEXT AGENT HANDOFF — PR148 met main 99d1327 — 3 november 2026
+
+**Bron:** PR148 `09e4fa6b6a31b54eea4ebad3cbf98c54347d28c6` met main
+`99d132768fd72276caa4a3b3e9a09f8f1909f0ed`, branch
+`simonvanieperen-upgraded-disco`; schone werkboom bij aanvang.
+Vier documentconflicten combineren beide checkpointreeksen. De nieuwe
+PR139-receipts blijven bytegelijk aan main; PR140's eigen brongebonden
+bewijsstatus blijft daarnaast behouden. Geen code, test, criterium of
+gewicht gewijzigd door deze integratie. **41 → 41/100**.
+
+**Uitgevoerd (elk exit 0):** `python3 tools/progress.py --write`,
+`python3 tools/progress.py --check` en `git diff --check`.
+`git diff --exit-code origin/main -- docs/verification/pr139-artifact-contract-receipt.json
+docs/verification/pr139-review-receipts.json
+docs/verification/priority-plan-checkpoint-20261103.json` bevestigt bytebehoud
+van de drie nieuwe rapporten. `git diff --exit-code HEAD -- boot crates drivers
+kernel sdk services tools tests ui` bevestigt ongewijzigde code en tests.
+Uitvoer staat in het sessietranscript; geen afzonderlijke logbestanden.
+Een tweede AI vond geen concrete inhoudsbehoudfout; geen menselijke audit.
+Rust-/Python-tests, builds en QEMU niet herhaald voor deze documentintegratie.
+Historische host-/nativeclaims worden niet naar deze integratie overgedragen.
+**Eerstvolgend:** gevalideerde merge publiceren en nieuwe-head CI/review door
+de app laten beoordelen. Geen automatische PR-merge.
+
+## Vorig checkpoint — PR148 met main d115cc9 — 3 november 2026
 
 **Bron:** PR148 `23f7a428cbb826ff298dd8554f8351b378d9e5b7` en main
 `d115cc96c19ac4371baed77409a23d1adddffaf0`, branch
@@ -133,7 +157,63 @@ JSON-syntaxiscontrole en `git diff --check` slagen.
 **Open:** de nieuwe integratiehead moet opnieuw door hosted controles worden
 beoordeeld. Er is geen nieuwe native/QEMU-acceptatie uitgevoerd.
 
-## Vorig checkpoint — documentstapel inhoudsbehoudend combineren — 3 november 2026
+## Vorig checkpoint — PR139 exacte contracttestreceipt — 3 november 2026
+
+**Werkelijk opnieuw geteste bron:** `0a49a3822e5d872f75573f12cd072e76e1249e1b`,
+de geïntegreerde PR139-boom met main `d115cc96`.
+Negen artifact-store-contracttests, Rust1.90.0 fmt en Clippy: elk exit0.
+Volledige primaire logs, exacte commando's, tree en codehashes:
+[contracttestreceipt](verification/pr139-artifact-contract-receipt.json).
+Dit vervangt geen native acceptatie; eerdere Watch-testclaims zonder
+primaire receipt zijn niet retrospectief als geverifieerd bestempeld.
+Replay-/umaskbewijs blijft exact aan732 gebonden en OS-workflowhistorie
+uitsluitend aan380. **41 → 41**, geen criteriumwijziging.
+
+**Open/eerstvolgend:** `GH_PAGER="" gh pr checks 139`, daarna live
+head/base/threads en inhoudsbehoud hercontroleren vóór guarded squash.
+Geen testbewijs stilzwijgend naar een latere Watch-head promoveren.
+
+## Historisch checkpoint — PR139 actuele main geïntegreerd — 3 november 2026
+
+Basis vóór integratie: PR-head `341d1b428d436ac0e33c5bf3d7eb684f8543109c`
+en actuele `main` `d115cc96c19ac4371baed77409a23d1adddffaf0`.
+Conflicten in README, progress.json, PROGRESS.md en PROJECT-STATE.md zijn
+opgelost met behoud van PR139-bronrollen en PR140-statushistorie. Main voegt
+de `artifact-store-core`-contracttests toe. Eerder gerapporteerd, destijds
+zonder primaire PR139-receipt (dus niet onafhankelijk geverifieerd):
+`cargo test --locked
+--manifest-path crates/artifact-store-core/Cargo.toml` slaagt (9 tests);
+`cargo +1.90.0 fmt --manifest-path crates/artifact-store-core/Cargo.toml
+-- --check` en `cargo +1.90.0 clippy --locked --manifest-path
+crates/artifact-store-core/Cargo.toml --all-targets -- -D warnings` slagen.
+Dit is contracttestbewijs, geen native acceptatie. Voortgang blijft **41/100**.
+Er waren geen reviewtargets meegeleverd, dus geen reviewverzoek is afgehandeld.
+
+De gerapporteerde `b03-native-update`-failure hoort bij oude head `341d1b42`.
+Na publicatie van deze conflictintegratie is dat bewijs achterhaald; de nieuwe
+head moet haar eigen checks krijgen. Reviews zijn volgens de app nog open.
+Eerstvolgend: publiceer de gevalideerde merge en laat nieuwe checks evalueren.
+
+## Historisch checkpoint — PR139 primaire receipts en bronrollen — 3 november 2026
+
+**Geteste bron:** `732fa9cca04ced66b06bee4f0e4f57249c09e96a`, inclusief
+main `69809c2cb53dfb3bd77abe5352892810fba6e82d`.
+De 16 replay-hosttests slaagden met `umask 0077`; dezelfde suite met `umask
+0002` faalde echt (1 failure, 2 errors) door groepsschrijfbare fixtures.
+Exacte commando's, tree/codehashes en logs: `verification/pr139-review-receipts.json`.
+Het historische prioriteitencheckpoint koppelt zijn 15 workflowruns uitsluitend
+aan `380111b`; dat bewijs is niet opnieuw uitgevoerd.
+
+## Historisch checkpoint — PR140 main-integratie — 3 november 2026
+
+PR-head `75cda7f4d49c5afe895277ada1102d630fdb75ad` is geïntegreerd met main
+`69809c2cb53dfb3bd77abe5352892810fba6e82d`. De Nederlandse beschrijvingen
+in PR140's hostrapport en main-documentatie/replaytests zijn behouden.
+De toenmalige umask-beperking en 16 replaytests zijn hierboven geregistreerd;
+dat resultaat is historisch en geen huidige test van deze nieuwe merge.
+De rubric bleef **41 → 41/100**. Geen nieuwe native/QEMU-acceptatie.
+
+## Historische context — eerdere main/statusintegratie op cbbc9c99
 
 Main is inmiddels `cbbc9c9941b08ea5edfbd3637d494635b4fb1df0`: Simon
 bevestigde zelf dat hij134 handmatig squash-mergede (3nov10:05:36Z).
