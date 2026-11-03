@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "source_commit": "4945aef2f245bcca749d7a70b71ba3137073dfc6",
+  "scope": "Host-only refactor of shared artifact and hash helpers; no OS runtime evidence.",
+  "tests": [
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p 'test_images.py' -v",
+      "exit_status": 0,
+      "tests_run": 20,
+      "log": "/tmp/nieuw-os-refactor-images.log",
+      "log_sha256": "c16aab339f7e8863968b2d6d69456f9c223a00e01841e787a570a2b0725e1dc3"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p 'test_random.py' -v",
+      "exit_status": 0,
+      "tests_run": 21,
+      "log": "/tmp/nieuw-os-refactor-random.log",
+      "log_sha256": "95ec720554c03401bf4f39f1961a9d2b91550409643d66aa0bd3867babeed8b3"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_common.py' -v",
+      "exit_status": 0,
+      "tests_run": 7,
+      "log": "/tmp/nieuw-os-refactor-common.log",
+      "log_sha256": "37c43c72d82706d5c31d6ce8714fc8e7f16f180262449dde1f9801a703fe7abf"
+    },
+    {
+      "command": "git diff --check && python3 -m py_compile tools/common.py tools/run_images.py tools/run_random.py tools/run_fpu.py tests/test_common.py",
+      "exit_status": 0
+    }
+  ],
+  "native_vm_physical_human_release_tests": "not_run"
+}

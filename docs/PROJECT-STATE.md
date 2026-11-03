@@ -1,6 +1,29 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
+## NEXT AGENT HANDOFF — gedeelde host-artefacthelpers — 3 november 2026
+
+**Basis:** `4945aef2f245bcca749d7a70b71ba3137073dfc6` op
+`simonvanieperen-friendly-system`. De beeld-, RANDOM- en FPU-hostgates delen
+nu byte-SHA256/hexvalidatie en gecontroleerde inventarisatie van gewone
+bestanden. Iedere ESP-kandidaat blijft vóór gebruik door dezelfde
+`private_path`-guard lopen; hash-, grootte-, hardlink- en symlinkcontroles zijn
+behouden. Dit wijzigt geen OS-runtime of capability.
+
+**Uitgevoerd:** `python3 -B -m unittest discover -s tools/tests -p
+'test_images.py' -v` (20 tests), dezelfde opdracht met `test_random.py` (21)
+en `python3 -B -m unittest discover -s tests -p 'test_common.py' -v` (7):
+alle exit 0. `git diff --check && python3 -m py_compile tools/common.py
+tools/run_images.py tools/run_random.py tools/run_fpu.py tests/test_common.py`:
+exit 0. Dit zijn hosttests met synthetische fixtures, geen bewijs van
+QEMU-/native OS-gedrag. Compacte hashes: `verification/shared-tooling-refactor-20261103/host-tests.json`.
+
+**Voortgang:** 41 → 41; geen criteriumbewijs toegevoegd. Eerstvolgend:
+voer de bestaande volledige Python-hosttests uit voor `tests/`,
+`tools/tests/` en de OSDev-skillsuite; controleer daarna diff, rapport en
+branchpush. Native productgates, volledige release, fysieke hardware en
+menselijke review zijn niet uitgevoerd.
+
+## Vorig checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 
 **Basis:** PR127 `798706c2a53d0062ce0474e5f84f294b2c37b825`, drie lokale
 fixleaves en PR126 `8f08db4c12573f91b57e55c30fa417e7abd358e6`, met main
