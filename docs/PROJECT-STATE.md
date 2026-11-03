@@ -2,8 +2,8 @@
 
 ## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
 
-**Bron:** branch `simonvanieperen-studious-spoon`, commit
-`dfb983d1150506392234bda4d8a632c6ef95cf2b`, gepusht naar
+**Gepubliceerde basis:** branch `simonvanieperen-studious-spoon`, commit
+`bb34d8785096a4fa71d235cc4d3177ba96807df5`, gepusht naar
 `origin/simonvanieperen-studious-spoon`. Actieve toewijzing:
 `SYSTEM-MATURITY-SMP`, queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`.
 OOM/K05 zijn afgesloten en blijven ongewijzigd;
@@ -52,6 +52,23 @@ processselectie; het toont nog geen cross-CPU IPC, process-exit/revoke,
 TLB-shootdown/hergebruik of bredere races/failureacceptatie. Dit is geen
 volledige K06-acceptatie. `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
 
+**Volgende SMP-slice — cross-CPU capability-IPC, lokaal gericht getest:**
+`native-smp-m4` combineert het bestaande SMP-M3-profiel met de bestaande M4
+ring-3-uitwisseling; syscall-/capabilitysemantiek blijft ongewijzigd. De BSP
+stuurt de AP's eenmaal onder `M3Guard` aan vóór de eerste user-return, zodat
+de normale M4-uitwisseling niet volledig op BSP-only tijd afrondt. Succesvolle
+send/receive-events registreren CPU en proces-slot; de evaluator vereist de
+bestaande `M4:EXCHANGE:PASS` plus minstens één berichtpaar over twee CPU's.
+Een gerichte 2-CPU-run slaagde op eerdere worktree-vingerafdruk
+`befb5fa409d5c5b50ed6536191045e99274bf3dceb46513ed2887a4cfa039f90`:
+CPU 1 verstuurde slot 1, CPU 0 ontving in slot 2; M4-uitwisseling en M3-
+scheduler slaagden, raw QEMU exit 33. Log:
+`build/run/smp-2-2834565f0e/`. Hostharnas telt nu 7 tests, exit 0; rustfmt en
+`git diff --check` slagen. Die gerichte run ging vooraf aan de laatste
+rapport-/evaluatoraanpassing en is geen eindreceipt voor de huidige bron.
+M4-gebruik onder SMP is alleen via de bestaande globale lock; de safety-
+rationales in de M4-code zijn daarop bijgewerkt.
+
 **Rapportmetadata:** de eerste receipt bevatte de volledige host-PATH, inclusief
 ongerelateerde Windows-paden. De opgeslagen receipt is gesaneerd en de runner
 is aangepast om alleen de benodigde executablepaden en expliciete runtime-
@@ -72,18 +89,15 @@ Een eerdere aanroep met `--help` is geen helpmodus, voerde de runner uit en
 stopte door ontbrekende `cargo` op de standaard-PATH; die poging staat apart in
 [`smp-rendezvous-20261103T173931Z.json`](verification/sm-smp/smp-rendezvous-20261103T173931Z.json).
 
-**Eerstvolgende actie:** ga verder met de eerstvolgende bestaande K06-
-acceptatieslice: aantoonbare cross-CPU IPC en cleanup/revoke-exit/TLB-
-correctheid, binnen de bestaande opt-in serialisatie en zonder ABI- of
-capabilitysemantiek te wijzigen. Ontwerp eerst de concrete invariant en
-negatieve tests; commit/push pas na een coherent bewezen resultaat. Gebruik
-voor regressies de matrix met
+**Eerstvolgende actie:** commit/push de gerichte cross-CPU IPC-slice en draai
+de volledige `python3 -B tools/test_smp.py`-matrix inclusief de M4-2CPU-gate
+met
 `PATH="$HOME/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH"`,
 `LD_LIBRARY_PATH=/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu:/tmp/sm-oom-qemu-root/lib/x86_64-linux-gnu`,
 `OS_OVMF_CODE=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd` en
 `OS_OVMF_VARS=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd`.
-QEMU 10.2.1 en OVMF 4M zijn aanwezig. De M3 1/2/4-bring-up en single-CPU-
-regressie zijn nu afgetekend; cross-CPU-IPC, exit/revoke, TLB-hergebruik en
+QEMU 10.2.1 en OVMF 4M zijn aanwezig. Bij succes is alleen het gerichte
+cross-CPU IPC-paar afgetekend; cross-CPU exit/revoke, TLB-hergebruik en
 races/failurecases blijven open. Dit is geen volledige K06-acceptatie. De
 bestaande dirty wijzigingen in README en voortgangsbestanden zijn behouden en
 niet door deze SMP-taak aangepast.

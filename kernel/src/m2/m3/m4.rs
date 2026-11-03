@@ -119,7 +119,8 @@ static mut EVIDENCE: Evidence = EMPTY_EVIDENCE;
 ))]
 static mut LIFECYCLE_ROUNDS: u8 = 0;
 pub(super) fn engine() -> &'static mut Engine {
-    // SAFETY: One CPU, IF=0, no nested engine calls or retained engine borrows.
+    // SAFETY: Setup uses the BSP before AP release; afterward M3Guard serializes
+    // all engine access across CPUs with IF clear. No nested calls or borrows.
     unsafe { &mut *ptr::addr_of_mut!(ENGINE) }
 }
 static SNAPSHOT_LOCK: SnapshotLock = SnapshotLock::new();
@@ -145,8 +146,9 @@ pub(super) fn observe_authority() -> AuthorityObservation {
         .try_claim()
         .expect("nested authority observation");
     // SAFETY: Claim precedes constructing the unique static-buffer reference.
-    // One CPU, IF=0; all access uses this nonblocking lease, which is retained
-    // until the complete message wipe. The live Engine is distinct storage;
+    // M3Guard serializes engine snapshots across CPUs; IF is clear. The snapshot
+    // lease prevents nested access to this static buffer until its message wipe.
+    // The live Engine is distinct storage;
     // its short borrow ends here, before dispatch or any scheduling.
     let snapshot = unsafe { &mut *ptr::addr_of_mut!(AUTHORITY_SNAPSHOT) };
     engine().snapshot_into(snapshot);
@@ -226,7 +228,8 @@ pub(super) fn write_plan(plan: &CopyPlan, bytes: &[u8; 320]) {
         paging::physical(chunk.physical, |dest| {
             for i in 0..chunk.length {
                 // SAFETY: All output pages were validated writable/owned before
-                // engine commit. IF=0, one thread, no unmap/shared memory/DMA API.
+                // engine commit. Setup is BSP-only before AP release; runtime
+                // M3 events hold M3Guard with IF clear. No shared-memory/DMA API.
                 unsafe {
                     dest.add(chunk.offset + i).write_volatile(bytes[at + i]);
                 }
@@ -514,7 +517,8 @@ mod acceptance {
             ptr::addr_of_mut!(EVIDENCE).write(EMPTY_EVIDENCE);
         }
         if state.round == 0 {
-            // SAFETY: One test manifest at a time, IF=0; reset only before first round.
+            // SAFETY: BSP-only setup precedes AP release; later lifecycle rounds
+            // are serialized by M3Guard with IF clear. Reset only before round one.
             unsafe {
                 ptr::addr_of_mut!(LIFECYCLE_ROUNDS).write(0);
             }
@@ -604,6 +608,9 @@ mod acceptance {
         serial::write(b"M4:CLEANUP:PASS\n");
         serial::write(ks_marker());
         serial::write(b"M4:PASS\nM1:PASS\n");
+        #[cfg(feature = "native-smp-m4")]
+        state.complete_round();
+        #[cfg(not(feature = "native-smp-m4"))]
         serial::exit(0x10)
     }
     fn cleanup_all(state: &mut State) {

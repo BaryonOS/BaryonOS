@@ -700,7 +700,15 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
         #[cfg(not(feature = "native-cap-digest-bench"))]
         {
             timer_init();
-            #[cfg(feature = "native-smp-m3")]
+            #[cfg(feature = "native-smp-m4")]
+            let next = {
+                let _guard = M3Guard::acquire();
+                super::smp::schedule_aps();
+                state
+                    .select_smp(super::smp::bootstrap_index())
+                    .unwrap_or_else(|| serial::fail(b"M3:SMP:NO_BOOT_PROCESS"))
+            };
+            #[cfg(all(feature = "native-smp-m3", not(feature = "native-smp-m4")))]
             let next = state
                 .select_smp(super::smp::bootstrap_index())
                 .unwrap_or_else(|| serial::fail(b"M3:SMP:NO_BOOT_PROCESS"));
@@ -1968,6 +1976,15 @@ fn m3_event_locked(state: &mut State, source: *const u64) -> *const u64 {
                     || cfg!(feature = "milestone-m6a") && matches!(number, 0x42 | 0x43)))
         {
             let (rax, rdx) = m4::syscall(state, current, number, args);
+            #[cfg(feature = "native-smp-m4")]
+            if rax == 0 && matches!(number, 0x20 | 0x21) {
+                let operation: &[u8] = if number == 0x20 {
+                    b"M4:SMP:SEND:"
+                } else {
+                    b"M4:SMP:RECV:"
+                };
+                print_number(operation, ((current as u64) << 8) | cpu as u64);
+            }
             #[cfg(feature = "milestone-m6b")]
             m5::ipc_result(current, number, rax);
             state.processes[current].context[14] = rax as u64;

@@ -30,16 +30,19 @@ CPU krijgt een eigen kernel-entrystack, TSS-stackpointer en GS-gebaseerde
 CPU-local record; usermode krijgt geen kernel-GS-basis. Entry/return wisselt
 GS alleen op de ring-3-grens.
 
-De BSP-PIT blijft de enige schedulerklok. De BSP stuurt per tick een vaste xAPIC
-schedule-IPI naar iedere AP; AP's sturen hun eigen lokale APIC-EOI. Alleen de
-BSP telt ticks. In dit eerste profiel blijft PCID en PGE uit en worden geen
-adresruimten gedeeld. Een proces is nooit tegelijk actief op twee CPU's; iedere
-trap schakelt naar kernel-CR3 en iedere processelectie laadt de proces-CR3.
-Daarom wordt frame-/mappingcleanup pas toegestaan nadat de eigenaar de trap
-heeft afgehandeld en de lokale CR3-wissel heeft plaatsgevonden. Dit is geen
-algemeen remote-TLB-protocol: zodra PCID/PGE, gedeelde adresruimten, lazy TLB of
-parallelle mutatie van één adresruimte worden ingevoerd, is een expliciet
-shootdown-/acknowledgementprotocol een voorwaarde vóór hergebruik.
+De BSP-PIT blijft de enige schedulerklok. Het opt-in profiel
+`native-smp-m4` stuurt, na M4-manifestinitialisatie en terwijl de M3-lock
+wordt vastgehouden, eenmaal een schedule-IPI naar iedere AP voordat de BSP
+ring 3 binnengaat. Daarna stuurt de BSP per tick een vaste xAPIC schedule-IPI;
+AP's sturen hun eigen lokale APIC-EOI. Alleen de BSP telt ticks. In dit eerste
+profiel blijven PCID en PGE uit en worden geen adresruimten gedeeld. Een proces
+is nooit tegelijk actief op twee CPU's; iedere trap schakelt naar kernel-CR3
+en iedere processelectie laadt de proces-CR3. Daarom wordt frame-/
+mappingcleanup pas toegestaan nadat de eigenaar de trap heeft afgehandeld en
+de lokale CR3-wissel heeft plaatsgevonden. Dit is geen algemeen remote-TLB-
+protocol: zodra PCID/PGE, gedeelde adresruimten, lazy TLB of parallelle
+mutatie van één adresruimte worden ingevoerd, is een expliciet shootdown-/
+acknowledgementprotocol een voorwaarde vóór hergebruik.
 
 De opt-in profile sluit SIMD/FPU-context uit totdat die toestand per CPU is
 gemodelleerd. De lock is fail-closed bij bounded contention; timeout stopt de

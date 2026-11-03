@@ -13,6 +13,7 @@ import time
 import uuid
 
 from common import BUILD, ROOT, environment, firmware, qemu_machine, save_json, sha256, source_hash
+from gate_contract import guest_expectation
 
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "KS-03:PASS")
 FAILURES = ("PANIC", "FAIL")
@@ -22,7 +23,7 @@ MAX_TIMEOUT = 180
 def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
     if type(cpus) is not int or cpus not in (2, 4):
         raise ValueError("SMP QEMU profiles are exactly 2 or 4 CPUs")
-    if profile not in ("native-smp", "native-smp-m3"):
+    if profile not in ("native-smp", "native-smp-m3", "native-smp-m4"):
         raise ValueError("unknown SMP kernel profile")
     markers = BOOT + ("SMP:AP:ENTRY",) * (cpus - 1) + tuple(
         f"SMP:CPU:{index}:APIC:" for index in range(cpus)
@@ -32,7 +33,8 @@ def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
         "SMP:WORKERS:PASS",
         "SMP:PASS",
     )
-    return markers + (("M3:SMP:SCHEDULER:PASS",) if profile == "native-smp-m3" else ())
+    return markers + (("M3:SMP:SCHEDULER:PASS",)
+                      if profile in ("native-smp-m3", "native-smp-m4") else ())
 
 
 def evaluate(cpus: int, stdout: str, returncode: int | None, timed_out: bool) -> dict:
@@ -167,6 +169,66 @@ def evaluate_m3(cpus: int, stdout: str, returncode: int | None, timed_out: bool)
     }
 
 
+def evaluate_m4_smp(cpus: int, stdout: str, returncode: int | None, timed_out: bool) -> dict:
+    scheduler = evaluate_m3(cpus, stdout, returncode, timed_out)
+    lines = stdout.splitlines()
+    required, expected_exit, forbidden = guest_expectation("m4", "real-ring3-message-exchange")
+    cursor = 0
+    for marker in required:
+        try:
+            cursor = lines.index(marker, cursor) + 1
+        except ValueError as error:
+            raise ValueError(f"missing or out-of-order M4 marker: {marker}") from error
+    if any(marker in line for marker in forbidden for line in lines):
+        raise ValueError("M4 failure marker present")
+    if returncode != expected_exit or timed_out:
+        raise ValueError(f"raw QEMU exit {returncode}, timeout {timed_out}")
+
+    pattern = re.compile(r"M4:SMP:(SEND|RECV):([0-9]{20})")
+    events = []
+    event_lines = [(index, line) for index, line in enumerate(lines)
+                   if line.startswith("M4:SMP:")]
+    for line_index, line in event_lines:
+        match = pattern.fullmatch(line)
+        if match is None:
+            raise ValueError("malformed M4 cross-CPU IPC marker")
+        operation, packed = match.groups()
+        identity = int(packed)
+        slot, cpu = identity >> 8, identity & 0xFF
+        if slot not in (0, 1, 2) or cpu >= cpus:
+            raise ValueError("M4 IPC marker has an invalid process or CPU")
+        events.append((operation, slot, cpu, line_index))
+    expected_ops = {("SEND", 0), ("RECV", 1), ("SEND", 1), ("RECV", 2)}
+    if len(events) != len(expected_ops) or {(op, slot) for op, slot, _, _ in events} != expected_ops:
+        raise ValueError("M4 exchange did not complete its two send/receive pairs")
+    exchange_index = lines.index("M4:EXCHANGE:PASS")
+    if any(line_index >= exchange_index for _, _, _, line_index in events):
+        raise ValueError("M4 IPC evidence appeared after the exchange pass marker")
+
+    by_operation = {(operation, slot): cpu for operation, slot, cpu, _ in events}
+    crossed = []
+    for sender, receiver in ((0, 1), (1, 2)):
+        send_cpu = by_operation[("SEND", sender)]
+        receive_cpu = by_operation[("RECV", receiver)]
+        if send_cpu != receive_cpu:
+            crossed.append({
+                "sender_slot": sender,
+                "receiver_slot": receiver,
+                "sender_cpu": send_cpu,
+                "receiver_cpu": receive_cpu,
+            })
+    if not crossed:
+        raise ValueError("no successful IPC exchange crossed a CPU boundary")
+    return {
+        "scheduler": scheduler,
+        "ipc_events": [
+            {"operation": operation.lower(), "slot": slot, "cpu": cpu}
+            for operation, slot, cpu, _ in events
+        ],
+        "cross_cpu_message_pairs": crossed,
+    }
+
+
 def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp") -> dict:
     expected_markers(cpus, profile)
     if type(timeout) is not int or not 0 < timeout <= MAX_TIMEOUT:
@@ -251,7 +313,11 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
                              *(f"SMP:CPU:{i}:APIC:<id>:ONLINE" for i in range(cpus)),
                              f"SMP:CPUS:{cpus}", "SMP:RENDEZVOUS:PASS",
                              "SMP:WORKERS:PASS", "SMP:PASS",
-                             *(("M3:SMP:SCHEDULER:PASS",) if profile == "native-smp-m3" else ())],
+                             *(("M3:SMP:SCHEDULER:PASS",)
+                               if profile in ("native-smp-m3", "native-smp-m4") else ()),
+                             *(("M4:EXCHANGE:PASS", "M4:SURVIVOR_PROGRESS:PASS",
+                                "M4:CLEANUP:PASS", "M4:PASS", "M1:PASS")
+                               if profile == "native-smp-m4" else ())],
         "command": command,
         "qemu_version": version,
         "profile": f"{machine}/qemu64/TCG-multi/{cpus}CPU/256MiB",
@@ -266,11 +332,10 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
         "kernel_feature": profile,
     }
     try:
-        report["evidence"] = (
-            evaluate_m3(cpus, stdout, raw_exit, timed_out)
-            if profile == "native-smp-m3"
-            else evaluate(cpus, stdout, raw_exit, timed_out)
-        )
+        report["evidence"] = {
+            "native-smp-m4": lambda: evaluate_m4_smp(cpus, stdout, raw_exit, timed_out),
+            "native-smp-m3": lambda: evaluate_m3(cpus, stdout, raw_exit, timed_out),
+        }.get(profile, lambda: evaluate(cpus, stdout, raw_exit, timed_out))()
         report["passed"] = source_hash() == frozen
         if not report["passed"]:
             raise ValueError("source changed during QEMU run")

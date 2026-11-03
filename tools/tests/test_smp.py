@@ -31,6 +31,28 @@ def m3_transcript(cpus=2):
     return "\n".join(lines) + "\n"
 
 
+def m4_smp_transcript(cpus=2, send_cpus=(0, 1), receive_cpus=(1, 0)):
+    lines = m3_transcript(cpus).splitlines()
+    events = (
+        ("SEND", 0, send_cpus[0]),
+        ("RECV", 1, receive_cpus[0]),
+        ("SEND", 1, send_cpus[1]),
+        ("RECV", 2, receive_cpus[1]),
+    )
+    lines.extend(
+        f"M4:SMP:{operation}:{((slot << 8) | cpu):020d}"
+        for operation, slot, cpu in events
+    )
+    lines.extend((
+        "M4:EXCHANGE:PASS",
+        "M4:SURVIVOR_PROGRESS:PASS",
+        "M4:CLEANUP:PASS",
+        "M4:PASS",
+        "M1:PASS",
+    ))
+    return "\n".join(lines) + "\n"
+
+
 class SmpEvidenceTests(unittest.TestCase):
     def test_two_and_four_cpu_transcripts_require_unique_online_apic_ids(self):
         for cpus in (2, 4):
@@ -91,6 +113,42 @@ class SmpEvidenceTests(unittest.TestCase):
         for bad in cases:
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 run_smp.evaluate_m3(2, bad, 33, False)
+
+    def test_native_m4_ipc_requires_a_successful_cross_cpu_message_pair(self):
+        result = run_smp.evaluate_m4_smp(2, m4_smp_transcript(), 33, False)
+        self.assertEqual(len(result["ipc_events"]), 4)
+        self.assertEqual(
+            result["cross_cpu_message_pairs"],
+            [
+                {
+                    "sender_slot": 0,
+                    "receiver_slot": 1,
+                    "sender_cpu": 0,
+                    "receiver_cpu": 1,
+                },
+                {
+                    "sender_slot": 1,
+                    "receiver_slot": 2,
+                    "sender_cpu": 1,
+                    "receiver_cpu": 0,
+                },
+            ],
+        )
+
+    def test_native_m4_ipc_rejects_missing_exchange_or_same_cpu_pairs(self):
+        valid = m4_smp_transcript()
+        same_cpu = m4_smp_transcript(send_cpus=(0, 1), receive_cpus=(0, 1))
+        cases = (
+            valid.replace("M4:EXCHANGE:PASS\n", ""),
+            valid.replace("M4:SMP:SEND:00000000000000000000\n", ""),
+            same_cpu,
+            valid.replace("M4:SMP:SEND:00000000000000000000",
+                          "M4:SMP:SEND:not-a-number"),
+            valid.replace("M4:PASS\n", "M4:FAIL\nM4:PASS\n"),
+        )
+        for bad in cases:
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                run_smp.evaluate_m4_smp(2, bad, 33, False)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run host evidence tests and native 1/2/4-CPU QEMU SMP rendezvous probes."""
+"""Run host evidence tests and native 1/2/4-CPU SMP scheduling/IPC probes."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -24,7 +24,7 @@ def main() -> int:
     receipt = ROOT / "docs/verification/sm-smp" / f"smp-rendezvous-{stamp}.json"
     summary = {
         "schema_version": 1,
-        "task": "SYSTEM-MATURITY-SMP AP bring-up, rendezvous, and M3 scheduler checkpoint",
+        "task": "SYSTEM-MATURITY-SMP AP bring-up, M3 scheduling, and cross-CPU M4 IPC",
         "source_fingerprint_version": 3,
         "source_sha256": source,
         "source_commit": subprocess.check_output(
@@ -59,8 +59,8 @@ def main() -> int:
         "host": None,
         "stages": [],
         "acceptance_boundary": (
-            "AP startup, bounded rendezvous, and opt-in native M3 per-CPU process scheduling "
-            "only; not full K06 IPC, revoke, exit, cross-CPU TLB, or race acceptance."
+            "AP startup, bounded rendezvous, per-CPU M3 process scheduling, and successful "
+            "cross-CPU M4 ring-3 message exchange only; not full K06 revoke, exit, TLB, or race acceptance."
         ),
     }
     receipt.parent.mkdir(parents=True, exist_ok=True)
@@ -90,6 +90,7 @@ def main() -> int:
         ("m3-two", "native-smp-m3", 2, "m3-smp"),
         ("m3-single-regression", "milestone-m3", 1, "m3"),
         ("m3-four", "native-smp-m3", 4, "m3-smp"),
+        ("m4-two", "native-smp-m4", 2, "m4-smp"),
     )
     for label, feature, cpus, runner in stages:
         try:
@@ -107,6 +108,8 @@ def main() -> int:
                     label="m3-single-smp-regression",
                 )
             elif runner == "m3-smp":
+                report = run_smp(cpus, profile=feature)
+            elif runner == "m4-smp":
                 report = run_smp(cpus, profile=feature)
             else:
                 report = run_smp(cpus)
