@@ -1,0 +1,65 @@
+{
+  "task": "PR127-UI-FIX",
+  "date": "2026-11-02",
+  "base_commit": "798706c2a53d0062ce0474e5f84f294b2c37b825",
+  "source_hash_version": 3,
+  "source_sha256": "4a04100305c73bc0ea95d7dc2f9308ceda0ee84d7c9b0d80c7e854c7a856260e",
+  "delivery": "One local commit on the exact requested base; no push, merge, PR mutation, issue closure, central status, score, dependency or lockfile changes.",
+  "fixes": [
+    "Wire native Ctrl+K through the existing scene palette: filter, selection, Tab/Shift+Tab, arrows, Enter, Escape, pointer selection and redraw. Consume owned key releases, cancel app input on opening, and clear palette input on cancellation.",
+    "Use render::expression_caret_at in the actual calculator pointer path, sharing the proportional font advances and cropped formula viewport.",
+    "Native mouse damage covers entire old and new hovered dock buttons, not just pointer tiles.",
+    "Offer semantic password set_value without value or selection readback. Validate active page, account mode, auth phase/method, byte length and all characters before mutation; preserve the existing unavailable authentication policy."
+  ],
+  "regressions_added": [
+    "window-session/workspace_v2: Set1 Ctrl+K input filters/selects at both scales, consumes releases and damages the palette.",
+    "window-session/workspace_v2: navigation, empty results, Escape, mouse selection, cancellation and app input exclusion.",
+    "window-session/workspace_v2: every pixel of both old/new dock buttons is covered by native mouse damage at both scales.",
+    "calculator/chain: actual INP1/capability pointer pipeline positions and drags the caret for 1.1+(8/2) at both scales.",
+    "native/interaction: write-only semantic password, stale generation, rejected invalid/oversized values without mutation, maximum length, clearing, unavailable authentication and guest rejection at both scales."
+  ],
+  "environment": {
+    "toolchain_bin": "/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin",
+    "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "CARGO_TARGET_DIR": "$PWD/target/pr127-review",
+    "log_directory": "/home/simon/.copilot/session-state/1dac4c3701424da981afb7df1c2d64a8/files/pr127",
+    "timing": "Cargo command logs include measured /usr/bin/time -p real/user/sys seconds.",
+    "packages_installed": false
+  },
+  "checks": [
+    {"command": "cargo fmt --manifest-path sdk/examples/window-session/Cargo.toml -- --check", "exit": 0, "log": "window-session-fmt.log"},
+    {"command": "cargo fmt --manifest-path sdk/examples/calculator/Cargo.toml -- --check", "exit": 0, "log": "calculator-fmt.log"},
+    {"command": "cargo fmt --manifest-path ui/native/Cargo.toml -- --check", "exit": 0, "log": "native-ui-fmt.log"},
+    {"command": "cargo clippy --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --all-targets -- -D warnings", "exit": 0, "log": "window-session-clippy.log", "sha256": "c375ee4b1f87c14a35644d9f4abad69316a6597e7b39d7d96a6d346eaee9f46a"},
+    {"command": "cargo clippy --offline --locked --manifest-path sdk/examples/calculator/Cargo.toml --all-targets -- -D warnings", "exit": 0, "log": "calculator-clippy.log", "sha256": "0134718e71ec603994066e5c279ad65c1e968f8e6415aed4498749fa7d20fc64"},
+    {"command": "cargo clippy --offline --locked --manifest-path ui/native/Cargo.toml --all-targets -- -D warnings", "exit": 0, "log": "native-ui-clippy.log", "sha256": "a0797bb17b5397538e56539ac685210dc320ec307da7769b07edbf659b6b0798"},
+    {"command": "cargo check --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --features native --bins --target x86_64-unknown-none", "exit": 0, "log": "window-session-native-check.log", "sha256": "cddb64f6df603dc5551683f82571e2bb205bd6d22e8b0594841a695718978454"},
+    {"command": "cargo check --offline --locked --manifest-path sdk/examples/calculator/Cargo.toml --features native --bins --target x86_64-unknown-none", "exit": 0, "log": "calculator-native-check.log", "sha256": "8f99159d9621a6343c7aba0f6d9de44f9b894536122bd6c5c4ea6efc6bdebadd"},
+    {"command": "cargo check --offline --locked --manifest-path sdk/examples/materiaal/Cargo.toml --features native --bins --target x86_64-unknown-none", "exit": 0, "log": "materiaal-native-check.log", "sha256": "2cc6f08db5dde3f9f0ec531114a5e7a0ea6e028419c03f1462a954482c9efbf8"},
+    {"command": "cargo clippy --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --features native --bins --target x86_64-unknown-none -- -D warnings", "exit": 0, "log": "window-session-native-clippy.log", "sha256": "991c4daa4eae70717095055c5159d929a120634221c5b4e6b824609740e86a14"},
+    {"command": "cargo clippy --offline --locked --manifest-path sdk/examples/calculator/Cargo.toml --features native --bins --target x86_64-unknown-none -- -D warnings", "exit": 0, "log": "calculator-native-clippy.log", "sha256": "ca03643fc459ae18b4c8147e1cc850ffe42dc0ae15d2d9bfcec220e81d6f6dbe"},
+    {"command": "cargo clippy --offline --locked --manifest-path sdk/examples/materiaal/Cargo.toml --features native --bins --target x86_64-unknown-none -- -D warnings", "exit": 0, "log": "materiaal-native-clippy.log", "sha256": "f5530f77b5f5a6863a9c67e7b706ddf18191ec9ff50ec58729ed587adaa9a75a"},
+    {"command": "cargo check --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --features native,fault-injection --bins --target x86_64-unknown-none", "exit": 0, "log": "window-session-probe-check.log", "sha256": "1622d2d491e0f659be6e3a183ecc3b7d140b0dc05d873f1835a600411778b8f8"},
+    {"command": "cargo test --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml", "exit": 101, "log": "window-session-tests.log", "sha256": "ae371972a7f191a57dc3e8363dfcd6dc10a83493f49353ac873f48948a10ada1"},
+    {"command": "cargo test --offline --locked --manifest-path sdk/examples/calculator/Cargo.toml", "exit": 101, "log": "calculator-tests.log", "sha256": "6e3075540ecab8e93fcc9ef95ed219a199c5cb59483824a5c0bb4435e60b639b"},
+    {"command": "cargo test --offline --locked --manifest-path ui/native/Cargo.toml", "exit": 101, "log": "native-ui-tests.log", "sha256": "191e84f506ce7d55aa8ade64fc4660b2b9ff8e3362dbe57f5a18479101a36b15"},
+    {"command": "python3 -B tools/progress.py --check", "exit": 0, "log": "progress-check.log", "sha256": "1963f64b94a52a78464f272cac286fcafea13fea2314c5ea8cddbd65dd78be33"},
+    {"command": "git diff --check", "exit": 0}
+  ],
+  "evidence_boundary": {
+    "host_lint_and_test_typechecking": "passed; all-targets Clippy includes the new test functions",
+    "native_typechecking_and_lint": "passed; this is not a native build, boot or runtime test",
+    "rust_test_execution": "NOT EXECUTED: all three cargo test attempts stop at linker cc not found. No red/green runtime claim.",
+    "native_qemu_recovery_pixels_clipboard_gates": "NOT EXECUTED: QEMU and the complete native build/link environment are unavailable locally",
+    "windows_acceleration_gate": "NOT EXECUTED; owned by the integrator",
+    "required_next_gate": "Integrator must execute host regressions and applicable native CI on the exact combined head before resolving/merging."
+  },
+  "integration": {
+    "pr126_fix_commit_preserved": "5dead467d491107f7244e00450435c41072d6dc7",
+    "pr126_dependency": "This UI delta is based solely on 798706c and does not include 5dead467. Merge/cherry-pick UI input changes without replacing the compositor file: preserve the independent SUR1 deadline-expiry calls and native retained enable from PR126.",
+    "pr126_ci_note": "Run41525824050 exposed a backwards-clock fixture error in the earlier PR126 regression. Integrator owns its separate test-only followup; it is not changed here.",
+    "unchanged_policy": "No auth broker, trust policy, capability, networking, package or design changes.",
+    "progress": {"old": 41, "new": 41, "reason": "No new accepted product criteria; central assessment/rendered score remains integrator-owned."},
+    "rollback": "Revert this standalone local UI commit without reverting PR126."
+  }
+}

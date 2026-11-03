@@ -13,6 +13,10 @@ pub const CHUNK: usize = 208;
 pub const TILE_BYTES: usize = 1024;
 pub const MAX_MESSAGE: usize = HEADER + CHUNK;
 pub const REPLY: u16 = 0x8000;
+pub const MAX_RETAIN_TILES: u32 = 256;
+pub const MAX_TILES: usize = 60 * 135;
+const CHANGED_WORDS: usize = 128;
+const _: () = assert!(MAX_TILES <= CHANGED_WORDS * 64);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[repr(u16)]
@@ -21,6 +25,8 @@ pub enum Operation {
     Begin = 2,
     Chunk = 3,
     Commit = 4,
+    Retain = 5,
+    SolidBegin = 6,
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[repr(u32)]
@@ -92,6 +98,8 @@ impl Header {
             2 => Operation::Begin,
             3 => Operation::Chunk,
             4 => Operation::Commit,
+            5 => Operation::Retain,
+            6 => Operation::SolidBegin,
             _ => return Err(Error::Malformed),
         };
         let header = Self {
@@ -115,6 +123,15 @@ impl Header {
                     && header.arg1 == 0
             }
             Operation::Begin => bytes.len() == HEADER + 8 && header.frame != 0,
+            Operation::SolidBegin => bytes.len() == HEADER + 12 && header.frame != 0,
+            Operation::Retain => {
+                bytes.len() == HEADER + 8
+                    && header.frame != 0
+                    && header.arg0 != 0
+                    && header.arg0 <= MAX_RETAIN_TILES
+                    && header.arg1 == 0
+                    && u64at(bytes, HEADER) != 0
+            }
             Operation::Chunk => {
                 header.frame != 0
                     && header.arg1 != 0
@@ -163,6 +180,7 @@ impl Geometry {
             || r.height == 0
             || u64::from(r.x) + u64::from(r.width) > u64::from(self.width)
             || u64::from(r.y) + u64::from(r.height) > u64::from(self.height)
+            || self.tiles() > MAX_TILES as u64
         {
             return Err(Error::Grid);
         }
@@ -218,7 +236,10 @@ impl Reply {
         &self.bytes[..self.length]
     }
     pub fn decode(bytes: &[u8], expected: Header) -> Result<Self, Error> {
-        if !matches!(expected.operation, Operation::Info | Operation::Commit) {
+        if !matches!(
+            expected.operation,
+            Operation::Info | Operation::Commit | Operation::Retain
+        ) {
             return Err(Error::Malformed);
         }
         let length = if expected.operation == Operation::Info {
@@ -242,6 +263,14 @@ impl Reply {
             return Err(Error::Malformed);
         }
         if status != 0 && (u32at(bytes, 44) != 0 || bytes[HEADER..].iter().any(|b| *b != 0)) {
+            return Err(Error::Malformed);
+        }
+        if expected.operation == Operation::Retain
+            && (expected.arg0 == 0
+                || expected.arg0 > MAX_RETAIN_TILES
+                || expected.arg1 != 0
+                || (status == 0 && u32at(bytes, 44) != expected.arg0))
+        {
             return Err(Error::Malformed);
         }
         let mut out = [0; 80];
@@ -271,7 +300,19 @@ impl Reply {
         }
     }
     pub fn pixels(&self) -> u32 {
-        u32at(&self.bytes, 44)
+        if u16at(&self.bytes, 6) == (Operation::Commit as u16 | REPLY) {
+            u32at(&self.bytes, 44)
+        } else {
+            0
+        }
+    }
+    /// Retained tile coverage, never a count of newly written pixels.
+    pub fn retained_tiles(&self) -> u32 {
+        if u16at(&self.bytes, 6) == (Operation::Retain as u16 | REPLY) {
+            u32at(&self.bytes, 44)
+        } else {
+            0
+        }
     }
     pub fn geometry(&self) -> Result<Geometry, Error> {
         self.status()?;
@@ -348,6 +389,8 @@ pub enum Action {
     Staged,
     Info(Reply),
     Commit(CommitReady),
+    /// Confirms unchanged private backing coverage, not a new display write.
+    Retain(Reply),
 }
 pub struct Receiver {
     peer: u64,
@@ -358,9 +401,18 @@ pub struct Receiver {
     last_rejected: u64,
     frame: u64,
     next_tile: u64,
+    /// At least one frame of this epoch had every canonical tile committed.
+    /// Only then may later frames omit tiles the client has not changed.
+    complete: bool,
     stage: Option<Stage>,
     pixels: [u8; TILE_BYTES],
     closed: bool,
+    retained: bool,
+    retained_base: u64,
+    changed_since_base: [u64; CHANGED_WORDS],
+    full_sync_required: bool,
+    full_sync_after: u64,
+    frame_has_retain: bool,
 }
 impl Receiver {
     pub fn new(peer: u64, geometry: Geometry, timeout: u64) -> Result<Self, Error> {
@@ -377,21 +429,93 @@ impl Receiver {
             last_rejected: 0,
             frame: 0,
             next_tile: 0,
+            complete: false,
             stage: None,
             pixels: [0; TILE_BYTES],
             closed: false,
+            retained: false,
+            retained_base: 0,
+            changed_since_base: [0; CHANGED_WORDS],
+            full_sync_required: true,
+            full_sync_after: 0,
+            frame_has_retain: false,
         })
+    }
+    /// Opt in only when the adapter preserves this peer's private backing
+    /// between callbacks and retires/rebinds the receiver whenever it resets.
+    pub fn new_retained(peer: u64, geometry: Geometry, timeout: u64) -> Result<Self, Error> {
+        let mut receiver = Self::new(peer, geometry, timeout)?;
+        receiver.retained = true;
+        Ok(receiver)
+    }
+    pub fn retained_base(&self) -> Option<u64> {
+        (self.retained && !self.closed && self.retained_base != 0).then_some(self.retained_base)
+    }
+    fn invalidate_retained(&mut self) {
+        if self.retained {
+            self.retained_base = 0;
+            self.full_sync_required = true;
+            self.full_sync_after = self.frame;
+        }
+    }
+    fn position(&self, header: Header) -> Result<(), Error> {
+        self.geometry.rectangle(header.tile)?;
+        // Until one full frame exists, tiles are dense from tile 0.
+        // Afterwards a frame may skip unchanged tiles but stays
+        // strictly increasing; skipped tiles keep this app's own
+        // previously committed pixels. The last tile completes a frame.
+        // A retained receiver awaiting a full sync stays dense, and RETAIN
+        // keeps its explicit sequential coverage.
+        let sparse = self.complete
+            && header.operation != Operation::Retain
+            && !(self.retained && self.full_sync_required);
+        if header.frame < self.frame
+            || (header.frame == self.frame
+                && if sparse {
+                    header.tile < self.next_tile
+                } else {
+                    header.tile != self.next_tile
+                })
+            || (header.frame > self.frame && !sparse && header.tile != 0)
+            || (self.retained && self.full_sync_required && header.frame <= self.full_sync_after)
+        {
+            return Err(Error::Grid);
+        }
+        Ok(())
+    }
+    fn start_frame(&mut self, frame: u64) {
+        if frame > self.frame {
+            self.frame = frame;
+            self.next_tile = 0;
+            self.frame_has_retain = false;
+        }
+    }
+    fn finish_frame(&mut self) {
+        self.complete |= self.next_tile == self.geometry.tiles();
+        if self.retained && self.next_tile == self.geometry.tiles() {
+            // A failed transaction requires a NEW frame with only real
+            // callbacks. Earlier retained coverage cannot repair that proof.
+            if !self.full_sync_required || !self.frame_has_retain {
+                self.retained_base = self.frame;
+                self.changed_since_base.fill(0);
+                self.full_sync_required = false;
+            }
+        }
     }
     fn clear(&mut self) {
         self.stage = None;
         self.pixels.fill(0);
     }
     pub fn retire(&mut self) {
+        self.invalidate_retained();
         self.clear();
         self.closed = true;
     }
     pub fn completed_frame(&self) -> Option<u64> {
-        if !self.closed && self.next_tile == self.geometry.tiles() {
+        if !self.closed
+            && (!self.retained || !self.full_sync_required)
+            && self.next_tile == self.geometry.tiles()
+        {
             Some(self.frame)
         } else {
             None
@@ -410,6 +534,7 @@ impl Receiver {
         self.clock(now)?;
         if let Some(stage) = self.stage {
             if now >= stage.deadline {
+                self.invalidate_retained();
                 self.last_rejected = stage.header.request;
                 self.clear();
                 return Ok(Some(reply(
@@ -449,8 +574,9 @@ impl Receiver {
         }
         self.last_rejected = header.request;
         self.last_request = self.last_request.max(header.request);
+        self.invalidate_retained();
         self.clear();
-        if header.operation != Operation::Info {
+        if !matches!(header.operation, Operation::Info | Operation::Retain) {
             header.operation = Operation::Commit;
             header.arg0 = 0;
             header.arg1 = 0;
@@ -458,6 +584,17 @@ impl Receiver {
         Some(reply(header, Err(error), None))
     }
     pub fn accept(&mut self, sender: u64, now: u64, bytes: &[u8]) -> Result<Action, Error> {
+        let result = self.accept_inner(sender, now, bytes);
+        if result.is_err() && sender == self.peer && !self.closed {
+            if let Ok(header) = Header::decode(bytes) {
+                if header.epoch == self.geometry.epoch {
+                    self.invalidate_retained();
+                }
+            }
+        }
+        result
+    }
+    fn accept_inner(&mut self, sender: u64, now: u64, bytes: &[u8]) -> Result<Action, Error> {
         if sender != self.peer {
             return Err(Error::Access);
         }
@@ -468,6 +605,7 @@ impl Receiver {
         // Expiry precedes decoding: even malformed traffic must not preserve
         // a token whose deadline is now known to have elapsed.
         if self.stage.is_some_and(|s| now >= s.deadline) {
+            self.invalidate_retained();
             self.clear();
             return Err(Error::Timeout);
         }
@@ -476,7 +614,7 @@ impl Receiver {
             return Err(Error::Epoch);
         }
         match header.operation {
-            Operation::Info | Operation::Begin => {
+            Operation::Info | Operation::Begin | Operation::SolidBegin | Operation::Retain => {
                 if self.stage.is_some() {
                     return Err(Error::Busy);
                 }
@@ -487,13 +625,37 @@ impl Receiver {
                     self.last_request = header.request;
                     return Ok(Action::Info(reply(header, Ok(0), Some(self.geometry))));
                 }
-                let rectangle = self.geometry.rectangle(header.tile)?;
-                if header.frame < self.frame
-                    || (header.frame == self.frame && header.tile != self.next_tile)
-                    || (header.frame > self.frame && header.tile != 0)
-                {
-                    return Err(Error::Grid);
+                self.position(header)?;
+                if header.operation == Operation::Retain {
+                    if !self.retained || self.full_sync_required || self.retained_base == 0 {
+                        return Err(Error::Access);
+                    }
+                    if u64at(bytes, HEADER) != self.retained_base {
+                        return Err(Error::Replay);
+                    }
+                    let end = header
+                        .tile
+                        .checked_add(u64::from(header.arg0))
+                        .filter(|end| *end <= self.geometry.tiles())
+                        .ok_or(Error::Grid)?;
+                    for tile in header.tile..end {
+                        if self.changed_since_base[tile as usize / 64] & (1u64 << (tile % 64)) != 0
+                        {
+                            return Err(Error::Grid);
+                        }
+                    }
+                    now.checked_add(self.timeout).ok_or(Error::Clock)?;
+                    self.start_frame(header.frame);
+                    self.last_request = header.request;
+                    self.next_tile = end;
+                    self.frame_has_retain = true;
+                    self.finish_frame();
+                    return Ok(Action::Retain(reply(header, Ok(header.arg0), None)));
                 }
+                if header.operation == Operation::SolidBegin && !self.retained {
+                    return Err(Error::Access);
+                }
+                let rectangle = self.geometry.rectangle(header.tile)?;
                 if header.arg0 != rectangle.x
                     || header.arg1 != rectangle.y
                     || u16at(bytes, 48) != rectangle.width
@@ -502,17 +664,23 @@ impl Receiver {
                 {
                     return Err(Error::Grid);
                 }
+                if header.operation == Operation::SolidBegin && u32at(bytes, 56) >> 24 != 0 {
+                    return Err(Error::Pixels);
+                }
                 let deadline = now.checked_add(self.timeout).ok_or(Error::Clock)?;
-                if header.frame > self.frame {
-                    self.frame = header.frame;
-                    self.next_tile = 0;
+                self.start_frame(header.frame);
+                let solid = header.operation == Operation::SolidBegin;
+                if solid {
+                    for pixel in self.pixels[..rectangle.bytes()].chunks_exact_mut(4) {
+                        pixel.copy_from_slice(&bytes[56..60]);
+                    }
                 }
                 self.last_request = header.request;
                 self.stage = Some(Stage {
                     header,
                     rectangle,
                     length: rectangle.bytes(),
-                    received: 0,
+                    received: if solid { rectangle.bytes() } else { 0 },
                     deadline,
                     ready: false,
                 });
@@ -528,6 +696,9 @@ impl Receiver {
                     return Err(Error::Token);
                 }
                 if header.operation == Operation::Chunk {
+                    if stage.header.operation == Operation::SolidBegin {
+                        return Err(Error::Length);
+                    }
                     let count = header.arg1 as usize;
                     if header.arg0 as usize != stage.received
                         || count != (stage.length - stage.received).min(CHUNK)
@@ -568,6 +739,18 @@ impl Receiver {
         now: u64,
         blit: impl FnOnce(Rectangle, &[u8]) -> Result<(), E>,
     ) -> Result<Reply, Error> {
+        let result = self.commit_inner(token, now, blit);
+        if result.is_err() {
+            self.invalidate_retained();
+        }
+        result
+    }
+    fn commit_inner<E>(
+        &mut self,
+        token: CommitReady,
+        now: u64,
+        blit: impl FnOnce(Rectangle, &[u8]) -> Result<(), E>,
+    ) -> Result<Reply, Error> {
         if self.closed {
             return Err(Error::Closed);
         }
@@ -585,6 +768,7 @@ impl Receiver {
         // admission, before the first blit. This is not a vsync/deadline promise
         // across later preemption, and does not undo already written pixels.
         if now >= stage.deadline {
+            self.invalidate_retained();
             self.last_rejected = stage.header.request;
             let header = Header {
                 operation: Operation::Commit,
@@ -595,17 +779,37 @@ impl Receiver {
             self.clear();
             return Ok(reply(header, Err(Error::Timeout), None));
         }
+        if self.retained && self.full_sync_required && stage.header.frame <= self.full_sync_after {
+            self.clear();
+            return Ok(reply(
+                Header {
+                    operation: Operation::Commit,
+                    arg0: 0,
+                    arg1: 0,
+                    ..stage.header
+                },
+                Err(Error::Grid),
+                None,
+            ));
+        }
         let global = Rectangle {
             x: self.geometry.assigned.x + stage.rectangle.x,
             y: self.geometry.assigned.y + stage.rectangle.y,
             ..stage.rectangle
         };
+        if self.retained {
+            let tile = stage.header.tile as usize;
+            self.changed_since_base[tile / 64] |= 1u64 << (tile % 64);
+        }
         let result = blit(global, &self.pixels[..stage.length])
             .map(|()| stage.length as u32 / 4)
             .map_err(|_| Error::Blit);
         if result.is_ok() {
             self.frame = stage.header.frame;
             self.next_tile = stage.header.tile.checked_add(1).ok_or(Error::Exhausted)?;
+            self.finish_frame();
+        } else {
+            self.invalidate_retained();
         }
         let header = Header {
             operation: Operation::Commit,

@@ -12,12 +12,12 @@ SECTIONS {
   . = 0x40020000;
   /* Consume static font pointer tables before the later writable wildcard. */
   .rodata : ALIGN(4096) { *(.data.rel.ro .data.rel.ro.*) *(.rodata .rodata.*) } :readonly
-  ASSERT(SIZEOF(.rodata) <= 0x40000, "readonly exceeds 256 KiB")
-  . = 0x40070000;
+  ASSERT(SIZEOF(.rodata) <= 0x80000, "readonly exceeds 512 KiB")
+  . = 0x400b0000;
   .data : ALIGN(4096) { *(.data .data.*) *(.got .got.*) } :data
   .bss (NOLOAD) : ALIGN(4096) { *(.bss .bss.*) *(COMMON) } :data
-  ASSERT(. <= 0x400b0000, "data/BSS exceeds 256 KiB")
-  . = 0x400b0000;
+  ASSERT(. <= 0x400f0000, "data/BSS exceeds 256 KiB")
+  . = 0x400f0000;
   .text : ALIGN(4096) { *(.text .text.*) } :code
   ASSERT(SIZEOF(.text) <= 0x20000, "code exceeds 128 KiB")
   /DISCARD/ : { *(.eh_frame*) *(.comment) *(.note*) *(.llvm_addrsig) }

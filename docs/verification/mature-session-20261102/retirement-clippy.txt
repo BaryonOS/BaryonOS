@@ -1,0 +1,23 @@
+    Checking zeroize v1.9.1
+    Checking ui-core v0.1.0 (/workspace/nieuw-os/crates/ui-core)
+    Checking catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+    Checking capability-core v0.1.0 (/workspace/nieuw-os/crates/capability-core)
+    Checking nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+    Checking nieuw-os-input-core v0.1.0 (/workspace/nieuw-os/services/input-core)
+    Checking nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os/sdk/catalog-client)
+    Checking nieuw-os-input-client v0.1.0 (/workspace/nieuw-os/sdk/input-client)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.68s
+    Checking nieuw-os-surface-protocol v0.1.0 (/workspace/nieuw-os/ui/surface-protocol)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.46s
+    Checking volume-core v0.1.0 (/workspace/nieuw-os/services/volume)
+    Checking nieuw-os-graphics v0.1.0 (/workspace/nieuw-os/ui/graphics)
+    Checking noto-sans-mono-bitmap v0.3.2
+    Checking nieuw-os-input-client v0.1.0 (/workspace/nieuw-os/sdk/input-client)
+    Checking nieuw-os-surface-protocol v0.1.0 (/workspace/nieuw-os/ui/surface-protocol)
+    Checking kernel-core v0.1.0 (/workspace/nieuw-os/crates/kernel-core)
+    Checking nieuw-os-document-session v0.1.0 (/workspace/nieuw-os/sdk/document-session)
+    Checking nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os/ui/native)
+    Checking nieuw-os-materiaal-app v0.1.0 (/workspace/nieuw-os/sdk/examples/materiaal)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.75s
+    Checking nieuw-os-calculator v0.1.0 (/workspace/nieuw-os/sdk/examples/calculator)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.64s

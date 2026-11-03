@@ -33,6 +33,10 @@ pub enum DriveOutcome {
 #[derive(Clone, Copy, Debug)]
 pub(super) struct Schedule {
     phase: Phase,
+    /// XID whose retry deadline `due`/`backoff` describe. A new transaction
+    /// (fresh XID from start or begin_renewal) never inherits the previous
+    /// transaction's deadline, even when it lands in the same phase.
+    transaction: u32,
     due: u64,
     backoff: u64,
     starting: bool,
@@ -68,6 +72,7 @@ impl Service<'_> {
         self.link_down(ticks)?;
         self.automatic = Some(Schedule {
             phase: Phase::Idle,
+            transaction: self.transaction_id,
             due: ticks,
             backoff: 400,
             starting: false,
@@ -135,8 +140,9 @@ impl Service<'_> {
             phase,
             Phase::Selecting | Phase::Requesting | Phase::Renewing | Phase::Rebinding
         ) {
-            if schedule.phase != phase {
+            if schedule.phase != phase || schedule.transaction != self.transaction_id {
                 schedule.phase = phase;
+                schedule.transaction = self.transaction_id;
                 schedule.due = ticks;
                 schedule.backoff = 400;
             }

@@ -1,0 +1,21 @@
+{
+  "scope": "Previously executed root component host/Clippy/fmt on unchanged compiled idle sources, plus181 Python tools after test-only F12 fix. Exact originating checkout appears in raw logs. No new VM execution or human audit. Empty fmt log is successful check with no output.",
+  "logs": {
+    "idle-reviewed-host.log": {
+      "uncompressed_sha256": "cd469645d4ee392a779dcb9c5acc234129f2b7949dc89cc31e676932feb35721",
+      "bytes": 11753
+    },
+    "idle-reviewed-clippy.log": {
+      "uncompressed_sha256": "459d6a5b791a2392d1747f7ad1a2eef01307ad25e2c722cf0ef71521aa4abdb4",
+      "bytes": 1994
+    },
+    "idle-reviewed-fmt.log": {
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "idle-final-python.log": {
+      "uncompressed_sha256": "2567142dba0beddeb9fee83077b8871dbc22bc90411b5e55ac30f24a39247901",
+      "bytes": 5004
+    }
+  }
+}

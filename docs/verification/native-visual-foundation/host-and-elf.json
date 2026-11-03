@@ -1,0 +1,140 @@
+{
+  "task": "native-visual-foundation",
+  "base_commit": "f19aec5334c77d1951bbe2582303fd82d74e46db",
+  "scope": "Host renderer, mechanics and actual scalar native ELF; not QEMU/native acceptance",
+  "native_execution": false,
+  "auth_service": false,
+  "font_parser_native": false,
+  "editor_uses_proportional_text": false,
+  "reference_fixtures": [
+    [
+      1280,
+      720,
+      100
+    ],
+    [
+      1920,
+      1080,
+      200
+    ]
+  ],
+  "font_provenance": {
+    "font": "Open Sans",
+    "sources": {
+      "regular": {
+        "source": "/usr/share/fonts/truetype/open-sans/OpenSans-Regular.ttf",
+        "sha256": "e64e508b2aa2880f907e470c4550980ec4c0694d103a43f36150ac3f93189bee",
+        "version": "1.10",
+        "copyright": "Digitized data copyright (c) 2010-2011 Google Corporation",
+        "license": "Apache-2.0"
+      },
+      "semibold": {
+        "source": "/usr/share/fonts/truetype/open-sans/OpenSans-Semibold.ttf",
+        "sha256": "aa3b0ef53db12e3d45094030cac0e69d384e44cc5978643dd4390041cad546e2",
+        "version": "1.10",
+        "copyright": "Digitized data copyright (c) 2010-2011 Google Corporation",
+        "license": "Apache-2.0"
+      }
+    },
+    "specs": [
+      [
+        "regular",
+        12
+      ],
+      [
+        "regular",
+        16
+      ],
+      [
+        "regular",
+        24
+      ],
+      [
+        "regular",
+        32
+      ],
+      [
+        "semibold",
+        16
+      ],
+      [
+        "semibold",
+        32
+      ],
+      [
+        "semibold",
+        64
+      ]
+    ],
+    "characters": 194,
+    "glyphs": 1358,
+    "row_offsets": 29055,
+    "data_bytes": 193017,
+    "data_sha256": "a4e3efa8027d5eba26bea742f7350bda34380cab9d77030d21481cb06c5f2e07",
+    "encoding": "Rows of (run length minus1) in high nibble and 4bit coverage in low nibble; 16 levels",
+    "native_parser": "None; fixed checked metadata and bounded row decoder",
+    "build_time_only": "Pillow/FreeType; not native dependencies"
+  },
+  "checks": {
+    "graphics_tests": 7,
+    "ui_tests": 47,
+    "clippy": "all-targets -D warnings both crates",
+    "fmt": "graphics/native/Material",
+    "actual_elf_loader_policy": "five bounded W^X segments; RO<=512KiB code<=128KiB",
+    "actual_elf_scalar_instructions": 21740
+  },
+  "actual_elf_sha256": "0f8f8644e89469036b2c0e8f98e05e8af18423bc9fdf8db3b56abdb6d5a56592",
+  "source_files": {
+    "sdk/examples/materiaal/Cargo.lock": "017fc0a08e9c96dff62464386d5047d8b8372a8c045ecd5f6cb9a232c8fed435",
+    "sdk/examples/materiaal/Cargo.toml": "fc305f369b73bc8d31778ab4fc059a8b499bd9bb3ca368b4d6789bd97fd46e6a",
+    "sdk/examples/materiaal/README.md": "5d4e0910ccdbf1d8257e3884b2f9a9c13773575543969145880ee5754cddfc10",
+    "sdk/examples/materiaal/build.py": "2a15917118752bc7eea3adfeee9636c2f9720fb067d34c796733fa891c0631b6",
+    "sdk/examples/materiaal/linker.ld": "a7e2959b4c71be4f18a5ba4813740ee28b686f61c0c1f0d6de4654ce127c5aed",
+    "sdk/examples/materiaal/src/bootstrap.rs": "8e46cc8875adaf984698caa020e3af94f23b861c67b3c0021f0b349949324941",
+    "sdk/examples/materiaal/src/lib.rs": "8d369802d95d78117443c3243e9d63e172f8dc1ed33b570f2ca3c91c32402825",
+    "sdk/examples/materiaal/src/main.rs": "d796280d29e169008cb7ad36d8b8b180929c177aa9f3b21b905a36fc6a7e5399",
+    "sdk/examples/materiaal/tests/chain.rs": "53a7fdb2c42b36fd35e53d898d93bc1e93e34a3c8643a1b1ed858ea562d78fc9",
+    "sdk/examples/materiaal/tests/elf.rs": "f443498771f7b495c940c26b648732284787b76580b0a3ce0c0d578858fbffcd",
+    "sdk/examples/materiaal/tests/semantic_actions.rs": "295ac5cb907345bd9b01090feca61ccd19e7eea3a31df0866649a204f43f6bed",
+    "sdk/examples/materiaal/verify.py": "004296d19d6287f64ebb45c2cf2743686337c3f8750f4ab50e4e6f1abdc44f40",
+    "ui/graphics/Cargo.lock": "009e51a7dfcc8488f47078d2f86e9b9ec9644fc95cb859af655c3d4cdaf7b199",
+    "ui/graphics/Cargo.toml": "9f7ba52926359429229c29a8a56212e70c5a74045ee02d1a10282572bacf028b",
+    "ui/graphics/README.md": "3983fb246b308986033280525699182ee1e322b5fdca91485a6597732d9b80c2",
+    "ui/graphics/THIRD-PARTY.md": "12edb62082689ef35c8d665259318609b5c359560c9895b5f74ae0b833bb9d28",
+    "ui/graphics/assets/font-provenance.json": "924a7f85977bf54270f45107bf7d18220eb4e7b1e4b240af78d3ec0eb803e704",
+    "ui/graphics/assets/open-sans-atlas.rle": "a4e3efa8027d5eba26bea742f7350bda34380cab9d77030d21481cb06c5f2e07",
+    "ui/graphics/licenses/Apache-2.0.txt": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "ui/graphics/scripts/generate_font.py": "0595c48acada83f7b351edf5bf0d33ae0064f2976307e5847204f6aad1d405ee",
+    "ui/graphics/src/atlas.rs": "65f52768f2719b5a23bd0499a44d4472b5558f85e8cc93c69e8125eb88bc2950",
+    "ui/graphics/src/icon.rs": "53e0c7cdebe647f71132f7e466d237e06775917cff30c4eb51feef2bd62c14fc",
+    "ui/graphics/src/lib.rs": "3a04bf45889c33388f438e763ee3ba29c10ab2b844b22676dacb5abc234002e0",
+    "ui/graphics/src/text.rs": "31f307c3d3c086487dde2a1b4d85a70345cac2dec76c6604e7119a9ca0c4fa16",
+    "ui/graphics/src/theme.rs": "1196a335f57fd3a6fe0a92be0950d2906d938020505d93cb68623a83645829c5",
+    "ui/graphics/tests/clipping.rs": "f3820fc83d14c9bf940347ce8ce28ab754993dc05ab278d0f5b88994859ed83d",
+    "ui/native/Cargo.lock": "15ec80af91bfe94430ed7d8fc7dee97869c4d356ff2a33fd0a40b0891ce62d8e",
+    "ui/native/Cargo.toml": "1b7f7f8ee2840ddf22ca62b4b262981e82f238be0799a92bba4d2e64f3e538bb",
+    "ui/native/README.md": "d2cfb2542ab3907f99707491f5a691fd78dc9a80074ead6cb13d6cecb92fea44",
+    "ui/native/THIRD-PARTY.md": "2e60f45a7d4e8387c5746e552cd11566a7b9d46a4b5c712be3ddac7d7af24f5a",
+    "ui/native/licenses/NotoSansMono-OFL.txt": "e2e177a32561584d4fc13aaa3cd8e53758a12910f013fe9ca125419111722029",
+    "ui/native/licenses/noto-sans-mono-bitmap-MIT.txt": "d084589aca58e74853c2d03f8a1f7b6f3a13f1fcc4b0c451f30455da09c624b7",
+    "ui/native/src/controller.rs": "845f324adb2c5a6c0e63d424691ec86328cdfb1ad251be487205cc99609ac891",
+    "ui/native/src/design.rs": "b3f42befff77577be4e5fb5c9bd02c570643b69d7c5d9e99ac8eb97e78448325",
+    "ui/native/src/desktop.rs": "d0b8d1666c0a6d5c67eba87b3207652881437dc1e92db7101405cd137411efc1",
+    "ui/native/src/lib.rs": "0852ddcbcb77fd518e63176f5697eb2333245ab4a85227cff92aeb22f3a5600d",
+    "ui/native/src/render.rs": "a460d8dae73ee16d554aaece8c6e88c25cda267cc5be90ee58877412709e25b6",
+    "ui/native/src/session.rs": "7cff848989caac0c4bc5398bb6d71a653c27e16ebe5230ff669ffbfa13192d6e",
+    "ui/native/src/text.rs": "d159d4025d7c24db47f1416d6f45aa379b911d05a3b3835aabfe7c514ddcf6cc",
+    "ui/native/tests/common/mod.rs": "52b685a72a05438a98e80f6d294375590bd3fa02164351fd46ec82f6f11ae383",
+    "ui/native/tests/desktop_native_fixture.rs": "6cf00f75141d6f69db477f541e92695d8fa2a1303633ca38720d59011d97940a",
+    "ui/native/tests/interaction.rs": "78db562d6a45331c02b653537b05fe143b73e506db7bd473b1b678b3699105a9",
+    "ui/native/tests/render_regressions.rs": "ab549ab6527794547a9ec911b57759783e031708b090859aa45ca90d1e6b8bb8",
+    "ui/native/tests/session.rs": "62e74d6381c504708e3e4907d6dc23914a989920f42b1038f08290fd70b95e4c",
+    "ui/native/verify.py": "c887a75b2d0326038ae1db37c6614a570b08cc2b8f8d166eff60481719627dca"
+  },
+  "open": [
+    "Root integration/new compositor QEMU acceptance",
+    "OS accessibility broker and real user task evaluation",
+    "Complex-script shaping/IME; editor retains Noto mono metrics",
+    "Real authentication and physical hardware acceptance"
+  ]
+}

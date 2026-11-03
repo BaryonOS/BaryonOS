@@ -1,0 +1,111 @@
+{
+  "scope": "Root recomputation from raw archived Win32 100ns counters and independent per-counter monotone read intervals; does not access Windows processes again.",
+  "runs": [
+    {
+      "arm": "A",
+      "source_commit": "337f2f29f1833ef4a8d2cd640b09419f85dbb83b",
+      "checks": {
+        "process": {
+          "cpu_seconds": "14.890625",
+          "wall_seconds_midpoint": "15.0002909",
+          "percent_one_logical_cpu": "99.26890817830739535857934595121751938824"
+        },
+        "vcpu": {
+          "cpu_seconds": "14.859375",
+          "wall_seconds_midpoint": "15.00027615",
+          "percent_one_logical_cpu": "99.06067629294944680068439940020704218835"
+        }
+      }
+    },
+    {
+      "arm": "B",
+      "source_commit": "1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b",
+      "checks": {
+        "process": {
+          "cpu_seconds": "1.75",
+          "wall_seconds_midpoint": "15.00048705",
+          "percent_one_logical_cpu": "11.66628786229977779288173179683522342696"
+        },
+        "vcpu": {
+          "cpu_seconds": "1.65625",
+          "wall_seconds_midpoint": "15.0004834",
+          "percent_one_logical_cpu": "11.04131084202259775174978694353276641738"
+        }
+      }
+    },
+    {
+      "arm": "B",
+      "source_commit": "1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b",
+      "checks": {
+        "process": {
+          "cpu_seconds": "1.859375",
+          "wall_seconds_midpoint": "15.00051455",
+          "percent_one_logical_cpu": "12.39540812951646382023608650144604539582"
+        },
+        "vcpu": {
+          "cpu_seconds": "1.78125",
+          "wall_seconds_midpoint": "15.00050765",
+          "percent_one_logical_cpu": "11.87459812401748950143030659365718199544"
+        }
+      }
+    },
+    {
+      "arm": "A",
+      "source_commit": "337f2f29f1833ef4a8d2cd640b09419f85dbb83b",
+      "checks": {
+        "process": {
+          "cpu_seconds": "14.90625",
+          "wall_seconds_midpoint": "15.00039745",
+          "percent_one_logical_cpu": "99.37236696351669001943678498998704864317"
+        },
+        "vcpu": {
+          "cpu_seconds": "14.84375",
+          "wall_seconds_midpoint": "15.00039065",
+          "percent_one_logical_cpu": "98.95575619558947953132140595285096791796"
+        }
+      }
+    },
+    {
+      "arm": "A",
+      "source_commit": "337f2f29f1833ef4a8d2cd640b09419f85dbb83b",
+      "checks": {
+        "process": {
+          "cpu_seconds": "14.90625",
+          "wall_seconds_midpoint": "15.0002147",
+          "percent_one_logical_cpu": "99.37357763285881501416109730749387207104"
+        },
+        "vcpu": {
+          "cpu_seconds": "14.828125",
+          "wall_seconds_midpoint": "15.0002039",
+          "percent_one_logical_cpu": "98.85282292729367498797799675243081195716"
+        }
+      }
+    },
+    {
+      "arm": "B",
+      "source_commit": "1f2ac0ae7cf8944d77ca0656affb01fe9b086f1b",
+      "checks": {
+        "process": {
+          "cpu_seconds": "1.75",
+          "wall_seconds_midpoint": "15.0005565",
+          "percent_one_logical_cpu": "11.66623384939085426597339905356177952465"
+        },
+        "vcpu": {
+          "cpu_seconds": "1.703125",
+          "wall_seconds_midpoint": "15.0005430",
+          "percent_one_logical_cpu": "11.35375566071174890135643756362686337421"
+        }
+      }
+    }
+  ],
+  "process": {
+    "A_median": "99.37236696351669001943678498998704864317",
+    "B_median": "11.66628786229977779288173179683522342696",
+    "median_reduction_percent": "88.26002819618565783212345440356689284267"
+  },
+  "vcpu": {
+    "A_median": "98.95575619558947953132140595285096791796",
+    "B_median": "11.35375566071174890135643756362686337421",
+    "median_reduction_percent": "88.52643231964125705666998714295665303934"
+  }
+}

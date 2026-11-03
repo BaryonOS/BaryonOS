@@ -14,6 +14,7 @@ nieuw-os-sdk-runtime = { path = "../runtime" }
 nieuw-os-catalog-client = { path = "../catalog-client" }
 nieuw-os-input-core = { path = "../../services/input-core" }
 ui-core = { path = "../../crates/ui-core" }
+zeroize = { version = "=1.9.1", default-features = false }
 
 [dev-dependencies]
 capability-core = { path = "../../crates/capability-core" }

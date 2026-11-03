@@ -1363,3 +1363,151 @@ fn display_input_creation_checks_slot_node_and_pid_quota_atomically() {
         assert_atomic(e, Error::Quota, |e| e.create_input(1));
     });
 }
+
+#[test]
+fn manifest_capacity_queries_count_only_reusable_objects_without_mutation() {
+    run(|e| {
+        setup(e, 2);
+        e.endpoints[MAX_ENDPOINTS - 1].generation = u32::MAX;
+        e.endpoints[MAX_ENDPOINTS - 1].retired = true;
+        e.children[MAX_PROCESS_OBJECTS - 1].generation = u32::MAX;
+        e.children[MAX_PROCESS_OBJECTS - 1].retired = true;
+        let root = e.create_endpoint(1).unwrap();
+        let sender = e.bootstrap_delegate(1, root, 2, SEND).unwrap();
+        let process = e.create_process(1, 2).unwrap();
+        e.close(1, root).unwrap();
+        let before = e.clone();
+        assert_eq!(e.available_processes(), MAX_PROCESSES - 2);
+        assert_eq!(e.available_process_objects(), MAX_PROCESS_OBJECTS - 2);
+        assert_eq!(e.available_endpoints(), MAX_ENDPOINTS - 2);
+        assert_eq!(e.available_nodes(), MAX_NODES - e.stats().nodes);
+        assert_eq!(*e, before);
+        e.close(2, sender).unwrap();
+        assert_eq!(e.available_endpoints(), MAX_ENDPOINTS - 1);
+        e.process_died(2, PROCESS_EXITED, 0);
+        e.exit(2).unwrap();
+        e.close(1, process).unwrap();
+        assert_eq!(e.available_processes(), MAX_PROCESSES - 1);
+        assert_eq!(e.available_process_objects(), MAX_PROCESS_OBJECTS - 1);
+    });
+}
+
+#[test]
+fn endpoint_replacement_preflight_keeps_remote_leaves_and_ignores_stale_handles() {
+    run(|e| {
+        setup(e, 2);
+        let root = e.create_endpoint(1).unwrap();
+        let receiver = e.derive(1, root, RECV).unwrap();
+        let sender = e.bootstrap_delegate(1, root, 2, SEND).unwrap();
+        e.close(1, root).unwrap();
+        let unrelated: Vec<_> = (1..MAX_OWNED_ENDPOINTS)
+            .map(|_| e.create_endpoint(1).unwrap())
+            .collect();
+        let before = e.clone();
+        assert!(!e.can_create_owned_endpoints_after_closing(1, &[receiver], 1, &[]));
+        assert!(e.can_create_owned_endpoints_after_closing(1, &[receiver], 1, &[2]));
+        assert!(!e.can_create_owned_endpoints_after_closing(1, &[receiver], 2, &[2]));
+        assert!(!e.can_create_owned_endpoints_after_closing(1, &[receiver], 1, &[1, 2]));
+        assert!(!e.can_create_owned_endpoints_after_closing(99, &[], 0, &[]));
+        assert_eq!(*e, before);
+
+        // The planned teardown really frees exactly one object. Reusing the
+        // local slot must not let its old handle excuse the replacement object.
+        e.close(1, receiver).unwrap();
+        e.close(2, sender).unwrap();
+        let replacement = e.create_endpoint(1).unwrap();
+        assert_ne!(replacement, receiver);
+        let before = e.clone();
+        assert!(!e.can_create_owned_endpoints_after_closing(1, &[receiver], 1, &[2]));
+        assert!(e.can_create_owned_endpoints_after_closing(1, &[replacement], 1, &[2]));
+        assert!(e.can_create_owned_endpoints_after_closing(1, &[unrelated[0]], 1, &[]));
+        assert_eq!(*e, before);
+    });
+}
+
+#[test]
+fn endpoint_replacement_preflight_conservatively_retains_queued_capabilities() {
+    run(|e| {
+        setup(e, 2);
+        let root = e.create_endpoint(1).unwrap();
+        let (_destination, sender) = destination(e);
+        e.send(1, sender, &cap_message(root, SEND)).unwrap();
+        for _ in 1..MAX_OWNED_ENDPOINTS {
+            e.create_endpoint(1).unwrap();
+        }
+        let before = e.clone();
+        // Exit(2) will eventually flush the queue. Preflight deliberately does
+        // not anticipate cancellation or weaken the closed-tombstone rule.
+        assert!(!e.can_create_owned_endpoints_after_closing(1, &[root], 1, &[2]));
+        assert_eq!(*e, before);
+    });
+}
+
+#[test]
+fn source_recreation_preflight_checks_owner_and_terminal_generation() {
+    run(|e| {
+        setup(e, 2);
+        assert!(e.can_create_display_after_exit(99));
+        assert!(e.can_create_input_after_exit(99));
+        let display = e.create_display(1).unwrap();
+        let input = e.create_input(2).unwrap();
+        let before = e.clone();
+        assert!(e.can_create_display_after_exit(1));
+        assert!(!e.can_create_display_after_exit(2));
+        assert!(e.can_create_input_after_exit(2));
+        assert!(!e.can_create_input_after_exit(1));
+        assert_eq!(*e, before);
+        e.exit(2).unwrap();
+        assert!(e.can_create_input_after_exit(99));
+        e.close(1, display).unwrap();
+        assert!(e.can_create_display_after_exit(99));
+        assert_atomic(e, Error::BadHandle, |e| e.check_input(2, input));
+    });
+    run(|e| {
+        setup(e, 1);
+        e.display[0].generation = u32::MAX;
+        e.input[0].generation = u32::MAX;
+        e.create_display(1).unwrap();
+        e.create_input(1).unwrap();
+        let before = e.clone();
+        assert!(!e.can_create_display_after_exit(1));
+        assert!(!e.can_create_input_after_exit(1));
+        assert_eq!(*e, before);
+        e.exit(1).unwrap();
+        assert!(!e.can_create_display_after_exit(1));
+        assert!(!e.can_create_input_after_exit(1));
+        e.register(2).unwrap();
+        assert_atomic(e, Error::Quota, |e| e.create_display(2));
+    });
+}
+
+#[test]
+fn endpoint_object_identifies_shared_endpoints_without_granting_anything() {
+    run(|e| {
+        setup(e, 3);
+        let root = e.create_endpoint(1).unwrap();
+        let receive = e.derive(1, root, RECV).unwrap();
+        let send = e.bootstrap_delegate(1, root, 2, SEND).unwrap();
+        let other_root = e.create_endpoint(1).unwrap();
+        let other_send = e.bootstrap_delegate(1, other_root, 3, SEND).unwrap();
+        let object = e.endpoint_object(1, root).unwrap();
+        assert_eq!(e.endpoint_object(1, receive).unwrap(), object);
+        assert_eq!(e.endpoint_object(2, send).unwrap(), object);
+        assert_ne!(e.endpoint_object(3, other_send).unwrap(), object);
+        // A handle number is meaningful only inside its own process table: the
+        // same number in another process is absent or names another object.
+        // This is why a manifest check must compare objects, not numbers.
+        match e.endpoint_object(3, send) {
+            Ok(found) => assert_ne!(found, object),
+            Err(error) => assert_eq!(error, Error::BadHandle),
+        }
+        let entropy = e.create_entropy(2).unwrap();
+        assert_atomic(e, Error::Type, |e| e.endpoint_object(2, entropy));
+        assert_atomic(e, Error::BadHandle, |e| e.endpoint_object(2, u64::MAX));
+        e.close(1, root).unwrap();
+        // Read-only: the lookup changes no engine state.
+        let before = e.clone();
+        assert_eq!(e.endpoint_object(2, send).unwrap(), object);
+        assert!(*e == before);
+    });
+}

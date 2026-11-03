@@ -1,0 +1,9 @@
+   Compiling zeroize v1.9.1
+   Compiling capability-core v0.1.0 (/home/simon/projects/nieuw-os-b02/crates/capability-core)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/simon/projects/nieuw-os-b02/sdk/runtime)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.55s
+     Running unittests src/lib.rs (target/fu-system-host/debug/deps/nieuw_os_sdk_runtime-f65fb5d9532a7d35)
+     Running tests/message.rs (target/fu-system-host/debug/deps/message-613f8d48dff34887)
+     Running tests/process.rs (target/fu-system-host/debug/deps/process-f5d274a9c6a2007b)
+     Running tests/tls_time.rs (target/fu-system-host/debug/deps/tls_time-463291215586951a)
+   Doc-tests nieuw_os_sdk_runtime

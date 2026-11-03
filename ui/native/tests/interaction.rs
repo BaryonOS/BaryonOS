@@ -842,7 +842,11 @@ fn mouse_click_uses_real_ps2_buttons_and_release_must_match_impl() {
     ui.refresh().unwrap();
     let mut mouse = Ps2Mouse::new();
     let mut sequence = 0;
-    for (flags, x, y) in [(0x09, 40, 90), (0x08, 40, 90)] {
+    let new_button = Frame::new(ui.view()).layout().new;
+    for (flags, x, y) in [
+        (0x09, new_button.x + 16, new_button.y + 10),
+        (0x08, new_button.x + 16, new_button.y + 10),
+    ] {
         let mut event = None;
         for byte in [flags, 0, 0] {
             event = mouse.feed(byte).unwrap();
@@ -1316,16 +1320,98 @@ fn display_epoch_stale_frame_and_failed_present_keep_repaint_pending_impl() {
     );
     let generation = ui.view().generation;
     assert!(!ui.presented(generation, 2));
+    assert!(ui.paint_damage().intersects(0, 0, 32, 8));
     assert!(ui.view().dirty);
     ui.resize(Viewport::new(640, 480, Scale::Percent200, 2).unwrap())
         .unwrap();
     assert!(!ui.presented(generation, 1));
     assert!(!ui.presented(generation, 2));
+    assert!(ui.paint_damage().intersects(0, 0, 32, 8));
     let generation = ui.view().generation;
     assert!(ui.presented(generation, 2));
+    assert!(!ui.paint_damage().intersects(0, 0, 640, 480));
     assert!(Frame::new(ui.view()).tiles().next().is_none());
     ui.refresh().unwrap();
     assert!(ui.view().dirty);
+    assert!(ui.paint_damage().intersects(0, 0, 640, 480));
+}
+
+fn editor_damage_covers_wrapping_selection_and_superseded_rows_impl() {
+    for scale in [Scale::Percent100, Scale::Percent200] {
+        let host = Host::new();
+        let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut ui = controller(
+            &host,
+            EditMode::ReadWrite,
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+        );
+        ui.resize(Viewport::new(800, 600, scale, 2).unwrap())
+            .unwrap();
+        ui.create().unwrap();
+        let columns = Frame::new(ui.view()).layout().columns();
+        ui.insert(&"a".repeat(columns + 1)).unwrap();
+        ui.presented(ui.view().generation, 2);
+        fn snapshot(view: nieuw_os_materiaal::controller::View<'_>) -> Vec<[u32; TILE_PIXELS]> {
+            let frame = Frame::new(view);
+            let mut pixels = Vec::new();
+            for y in (0..600).step_by(8) {
+                for x in (0..800).step_by(32) {
+                    let mut tile = [0; TILE_PIXELS];
+                    frame.render_tile(x, y, &mut tile).unwrap();
+                    pixels.push(tile);
+                }
+            }
+            pixels
+        }
+        let before = snapshot(ui.view());
+        for value in [None, Some("\nCafé\t"), Some("tail\n"), Some("last")] {
+            let old = ui.view().generation;
+            if let Some(value) = value {
+                ui.insert(value).unwrap();
+            } else {
+                ui.deliver(envelope(1, 1, key(PhysicalKey::Backspace)))
+                    .unwrap();
+                assert_eq!(
+                    text::position(ui.view().contents.unwrap(), ui.view().caret, columns).row,
+                    0
+                );
+            }
+            assert!(!ui.presented(old, 2));
+            let after = snapshot(ui.view());
+            for (index, (a, b)) in before.iter().zip(&after).enumerate() {
+                if a != b {
+                    assert!(ui.paint_damage().intersects(
+                        (index % 25) as u32 * 32,
+                        (index / 25) as u32 * 8,
+                        32,
+                        8,
+                    ));
+                }
+            }
+            // Do not complete these frames: damage must cover every mutation
+            // since the last complete frame, not just the latest insertion.
+        }
+        assert!(ui.presented(ui.view().generation, 2));
+        ui.deliver(envelope(2, 1, control(PhysicalKey::A))).unwrap();
+        assert!(ui.presented(ui.view().generation, 2));
+        let before = snapshot(ui.view());
+        ui.insert("short").unwrap();
+        let after = snapshot(ui.view());
+        for (index, (a, b)) in before.iter().zip(&after).enumerate() {
+            if a != b {
+                assert!(ui.paint_damage().intersects(
+                    (index % 25) as u32 * 32,
+                    (index / 25) as u32 * 8,
+                    32,
+                    8,
+                ));
+            }
+        }
+    }
 }
 
 // The existing capability/volume host model is large by value. Match the
@@ -1343,6 +1429,10 @@ macro_rules! scenario {
         }
     };
 }
+scenario!(
+    editor_damage_covers_wrapping_selection_and_superseded_rows,
+    editor_damage_covers_wrapping_selection_and_superseded_rows_impl
+);
 scenario!(
     sr06_failed_save_blocks_editor_save_actions,
     sr06_failed_save_blocks_editor_save_actions_impl
@@ -1781,4 +1871,526 @@ fn pointer_only_cancel_requires_fresh_down_after_outside_release_and_reentry_imp
 scenario!(
     pointer_only_cancel_requires_fresh_down_after_outside_release_and_reentry,
     pointer_only_cancel_requires_fresh_down_after_outside_release_and_reentry_impl
+);
+
+fn vm_desktop_semantic_password_is_write_only_bounded_and_generation_bound_impl() {
+    use nieuw_os_materiaal::{
+        desktop::{Page, Target},
+        session::MAX_PASSWORD_BYTES,
+    };
+    for scale in [Scale::Percent100, Scale::Percent200] {
+        let host = Host::new();
+        let (mut a, mut b, mut c) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut ui = controller(
+            &host,
+            EditMode::ReadWrite,
+            Buffers {
+                draft: &mut a,
+                original: &mut b,
+                staging: &mut c,
+            },
+        );
+        ui.resize(Viewport::new(800, 600, scale, 2).unwrap())
+            .unwrap();
+        ui.enable_vm_desktop().unwrap();
+        let password = SemanticId::Desktop(Target::Password);
+        assert_eq!(
+            ui.set_semantic_value(password, ui.view().generation, "secret"),
+            Err(Error::InvalidInput)
+        );
+        ui.activate_semantic(SemanticId::Desktop(Target::Personal), ui.view().generation)
+            .unwrap();
+        let old_generation = ui.view().generation;
+        ui.set_semantic_value(password, old_generation, "synthetic-password")
+            .unwrap();
+        assert_eq!(ui.view().desktop.unwrap().password_len(), 18);
+        assert_eq!(
+            ui.set_semantic_value(password, old_generation, "stale"),
+            Err(Error::StaleInput)
+        );
+        for value in [
+            "bad\nvalue",
+            "bad\0value",
+            &"x".repeat(MAX_PASSWORD_BYTES + 1),
+        ] {
+            let generation = ui.view().generation;
+            assert_eq!(
+                ui.set_semantic_value(password, generation, value),
+                Err(Error::InvalidInput)
+            );
+            assert_eq!(ui.view().generation, generation);
+            assert_eq!(ui.view().desktop.unwrap().password_len(), 18);
+        }
+        let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let count = Frame::new(ui.view()).semantics(&mut nodes).unwrap();
+        let node = nodes[..count]
+            .iter()
+            .find(|node| node.id == password)
+            .unwrap();
+        assert_eq!(node.role, Role::TextEditor);
+        assert!(node.enabled && node.actions.set_value && node.focused);
+        assert_eq!(node.value, None);
+        assert_eq!(node.selection, None);
+        assert!(!node.actions.activate);
+        assert!(nodes[..count].iter().all(|node| node.value.is_none()));
+        ui.set_semantic_value(
+            password,
+            ui.view().generation,
+            &"x".repeat(MAX_PASSWORD_BYTES),
+        )
+        .unwrap();
+        assert_eq!(
+            ui.view().desktop.unwrap().password_len(),
+            MAX_PASSWORD_BYTES
+        );
+        ui.set_semantic_value(password, ui.view().generation, "")
+            .unwrap();
+        assert_eq!(ui.view().desktop.unwrap().password_len(), 0);
+        ui.set_semantic_value(password, ui.view().generation, "niet-authentiek")
+            .unwrap();
+        ui.activate_semantic(SemanticId::Desktop(Target::Submit), ui.view().generation)
+            .unwrap();
+        let desktop = ui.view().desktop.unwrap();
+        assert_eq!(desktop.page(), Page::Login);
+        assert!(desktop.unavailable());
+        assert_eq!(desktop.password_len(), 0);
+        assert!(host.borrow().requests.is_empty());
+        ui.activate_semantic(SemanticId::Desktop(Target::Back), ui.view().generation)
+            .unwrap();
+        ui.activate_semantic(SemanticId::Desktop(Target::Guest), ui.view().generation)
+            .unwrap();
+        assert_eq!(
+            ui.set_semantic_value(password, ui.view().generation, "guest"),
+            Err(Error::InvalidInput)
+        );
+    }
+}
+scenario!(
+    vm_desktop_semantic_password_is_write_only_bounded_and_generation_bound,
+    vm_desktop_semantic_password_is_write_only_bounded_and_generation_bound_impl
+);
+fn vm_desktop_guest_navigation_semantics_and_storage_impl() {
+    use nieuw_os_materiaal::desktop::{Page, Target};
+    let host = Host::new();
+    host.borrow_mut().seed_named(0, b"Prive naam", b"inhoud");
+    let (mut a, mut b, mut c) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut a,
+            original: &mut b,
+            staging: &mut c,
+        },
+    );
+    ui.enable_vm_desktop().unwrap();
+    {
+        let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let count = Frame::new(ui.view()).semantics(&mut nodes).unwrap();
+        assert_semantic_tree(&nodes, count);
+        assert!(!nodes[..count]
+            .iter()
+            .any(|node| node.label.contains("Prive")));
+    }
+    let activate = |ui: &mut nieuw_os_materiaal::controller::Controller<'_, Port>, target| {
+        ui.activate_semantic(SemanticId::Desktop(target), ui.view().generation)
+            .unwrap();
+    };
+    activate(&mut ui, Target::Guest);
+    assert_eq!(ui.view().desktop.unwrap().page(), Page::Login);
+    activate(&mut ui, Target::Submit);
+    assert_eq!(ui.view().desktop.unwrap().page(), Page::Home);
+    activate(&mut ui, Target::Search);
+    {
+        let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let count = Frame::new(ui.view()).semantics(&mut nodes).unwrap();
+        assert_semantic_tree(&nodes, count);
+        assert!(nodes[..count]
+            .iter()
+            .any(|n| n.id == SemanticId::Desktop(Target::SearchField)
+                && n.role == Role::TextEditor
+                && n.actions.set_value));
+    }
+    let generation = ui.view().generation;
+    ui.set_semantic_value(
+        SemanticId::Desktop(Target::SearchField),
+        generation,
+        "onbekend",
+    )
+    .unwrap();
+    assert!(ui
+        .activate_semantic(SemanticId::Desktop(Target::Material), ui.view().generation)
+        .is_err());
+    assert!(ui
+        .set_semantic_value(SemanticId::Desktop(Target::SearchField), generation, "mat")
+        .is_err());
+    ui.set_semantic_value(
+        SemanticId::Desktop(Target::SearchField),
+        ui.view().generation,
+        "mat",
+    )
+    .unwrap();
+    activate(&mut ui, Target::Material);
+    assert_eq!(ui.view().desktop.unwrap().page(), Page::Material);
+    assert_eq!(ui.view().objects.len(), 1);
+    ui.open(0).unwrap();
+    ui.insert("extra").unwrap();
+    // Escape from an editor must retain its normal unsaved-work dialog.
+    ui.deliver(envelope(1, 1, key(PhysicalKey::Escape)))
+        .unwrap();
+    assert_eq!(ui.view().screen, Screen::ConfirmClose);
+    assert!(ui.document().is_dirty());
+}
+scenario!(
+    vm_desktop_guest_navigation_semantics_and_storage,
+    vm_desktop_guest_navigation_semantics_and_storage_impl
+);
+
+fn vm_desktop_cancel_cannot_release_an_old_account_click_impl() {
+    use nieuw_os_materiaal::desktop::{Page, Target};
+    for cancellation in [true, false] {
+        let host = Host::new();
+        let (mut a, mut b, mut c) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut ui = controller(
+            &host,
+            EditMode::ReadWrite,
+            Buffers {
+                draft: &mut a,
+                original: &mut b,
+                staging: &mut c,
+            },
+        );
+        ui.enable_vm_desktop().unwrap();
+        let rect = ui
+            .view()
+            .desktop
+            .unwrap()
+            .controls(ui.view().viewport)
+            .into_iter()
+            .flatten()
+            .find(|(t, _, _)| *t == Target::Guest)
+            .unwrap()
+            .1;
+        let x = rect.x + 16;
+        let y = rect.y + 16;
+        let mut mouse = Ps2Mouse::new();
+        let mut event = None;
+        for byte in [0x09, 0, 0] {
+            if let Some(input) = mouse.feed(byte).unwrap() {
+                event = Some(Event::Mouse { input, x, y });
+            }
+        }
+        ui.deliver(envelope(1, 1, event.unwrap())).unwrap();
+        let mut sequence = 2;
+        if cancellation {
+            ui.deliver(envelope(
+                sequence,
+                1,
+                Event::Cancel(CancelReason::FocusLost),
+            ))
+            .unwrap();
+            sequence += 1;
+        }
+        for byte in [0x08, 0, 0] {
+            if let Some(input) = mouse.feed(byte).unwrap() {
+                event = Some(Event::Mouse { input, x, y });
+            }
+        }
+        ui.deliver(envelope(sequence, 2, event.unwrap())).unwrap();
+        assert_eq!(ui.view().desktop.unwrap().page(), Page::Accounts);
+    }
+}
+scenario!(
+    vm_desktop_cancel_cannot_release_an_old_account_click,
+    vm_desktop_cancel_cannot_release_an_old_account_click_impl
+);
+
+#[test]
+fn vm_desktop_controls_remain_inside_supported_viewports() {
+    use nieuw_os_materiaal::desktop::{Desktop, Target};
+    for (width, height, scale) in [
+        (320, 240, Scale::Percent100),
+        (800, 600, Scale::Percent200),
+        (768, 536, Scale::Percent100),
+    ] {
+        let viewport = Viewport::new(width, height, scale, 1).unwrap();
+        let mut desktop = Desktop::new();
+        for step in 0..4 {
+            for (_, bounds, _) in desktop.controls(viewport).into_iter().flatten() {
+                assert!(bounds.x + bounds.width <= viewport.logical_width());
+                assert!(bounds.y + bounds.height <= viewport.logical_height());
+            }
+            match step {
+                0 => {
+                    desktop.activate(Target::Guest);
+                }
+                1 => {
+                    desktop.activate(Target::Submit);
+                }
+                2 => {
+                    desktop.activate(Target::Search);
+                }
+                _ => {}
+            }
+        }
+    }
+}
+
+fn clipboard_selection_and_paste_keep_utf8_and_storage_state_atomic_impl() {
+    let host = Host::new();
+    let (mut draft, mut original, mut scratch) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut draft,
+            original: &mut original,
+            staging: &mut scratch,
+        },
+    );
+    ui.create().unwrap();
+    ui.insert("Café").unwrap();
+    assert_eq!(
+        ui.clipboard_selection(),
+        None,
+        "no entire-document fallback"
+    );
+    ui.deliver(envelope(1, 1, control(PhysicalKey::A))).unwrap();
+    assert_eq!(ui.clipboard_selection(), Some("Café"));
+    ui.paste_clipboard("2+3").unwrap();
+    assert_eq!(ui.view().contents, Some("2+3"));
+    assert_eq!(ui.view().caret, 3);
+    ui.deliver(envelope(2, 1, control(PhysicalKey::A))).unwrap();
+    let before = (ui.view().caret, ui.view().anchor);
+    assert!(ui.paste_clipboard(&"a".repeat(4097)).is_err());
+    assert_eq!(ui.view().contents, Some("2+3"));
+    assert_eq!((ui.view().caret, ui.view().anchor), before);
+    ui.clipboard_feedback(Status::ClipboardCopied).unwrap();
+    assert_eq!(ui.view().status, Status::ClipboardCopied);
+    assert!(
+        ui.document().is_dirty(),
+        "copy feedback cannot mark a document saved"
+    );
+    ui.save().unwrap();
+    let saving = ui.view().status;
+    ui.paste_clipboard("99").unwrap();
+    ui.clipboard_feedback(Status::ClipboardEmpty).unwrap();
+    assert_eq!(ui.view().contents, Some("2+3"));
+    assert_eq!(
+        ui.view().status,
+        saving,
+        "clipboard feedback cannot hide saving"
+    );
+}
+scenario!(
+    clipboard_selection_and_paste_keep_utf8_and_storage_state_atomic,
+    clipboard_selection_and_paste_keep_utf8_and_storage_state_atomic_impl
+);
+
+/// Exactly one semantic node is focused, enabled and has visible bounds.
+fn assert_single_live_focus(ui_view: nieuw_os_materiaal::controller::View<'_>) -> SemanticId {
+    let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+    let count = Frame::new(ui_view).semantics(&mut nodes).unwrap();
+    let mut focused = nodes[..count].iter().filter(|node| node.focused);
+    let node = focused.next().expect("one semantic node must be focused");
+    assert!(focused.next().is_none(), "only one node may be focused");
+    assert!(node.enabled, "focused node {:?} must be enabled", node.id);
+    assert!(
+        node.bounds.width > 0 && node.bounds.height > 0,
+        "focused node {:?} must be visible",
+        node.id
+    );
+    node.id
+}
+
+// R113-1: a SaveAndBack BEGIN failure that keeps saving possible (quota)
+// must not leave focus on the modal-only SaveAndBack control in the editor.
+fn r113_save_and_back_begin_failure_refocuses_editor_control_impl() {
+    let host = Host::new();
+    host.borrow_mut().seed(0, b"Original");
+    let big = vec![b'a'; 4096 * 5];
+    for object in 1..7 {
+        host.borrow_mut().seed(object, &big);
+    }
+    host.borrow_mut().seed(7, &vec![b'b'; 4096 * 9]);
+    let (mut d, mut o, mut s) = ([0; 1024], [0; 1024], [0; 1024]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    ui.open(0).unwrap();
+    ui.insert("Mine ").unwrap();
+    ui.request_back().unwrap();
+    ui.deliver(envelope(
+        1,
+        1,
+        Event::Key(KeyboardEvent {
+            key: PhysicalKey::Tab,
+            action: KeyAction::Press,
+            modifiers: KeyboardModifiers {
+                left_shift: true,
+                ..KeyboardModifiers::default()
+            },
+        }),
+    ))
+    .unwrap();
+    assert_eq!(ui.view().focus, Focus::SaveAndBack);
+    assert_eq!(
+        ui.deliver(envelope(2, 1, key(PhysicalKey::Enter))),
+        Err(Error::Storage(StorageError::Service(
+            volume_core::Status::Quota
+        )))
+    );
+    assert_eq!(ui.view().screen, Screen::Editor);
+    assert!(ui.view().can_save);
+    assert_ne!(ui.view().focus, Focus::SaveAndBack);
+    assert_eq!(ui.view().focus, Focus::Save);
+    assert_eq!(assert_single_live_focus(ui.view()), SemanticId::Save);
+    // Enter retries the explicit save instead of hitting a dangling node.
+    assert_eq!(
+        ui.deliver(envelope(3, 1, key(PhysicalKey::Enter))),
+        Err(Error::Storage(StorageError::Service(
+            volume_core::Status::Quota
+        )))
+    );
+    assert_eq!(assert_single_live_focus(ui.view()), SemanticId::Save);
+    assert_eq!(ui.view().contents, Some("Mine Original"));
+}
+scenario!(
+    r113_save_and_back_begin_failure_refocuses_editor_control,
+    r113_save_and_back_begin_failure_refocuses_editor_control_impl
+);
+
+// R113-2: returning to Material in read-only mode must not focus the
+// disabled New control; it uses the read-only initial focus (Refresh).
+fn r113_read_only_back_focuses_enabled_refresh_impl() {
+    let host = Host::new();
+    host.borrow_mut().seed(0, b"Original");
+    host.borrow_mut().seed(1, b"Second");
+    let (mut d, mut o, mut s) = ([0; 1024], [0; 1024], [0; 1024]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadOnly,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    assert_eq!(ui.view().focus, Focus::Refresh);
+    ui.open(0).unwrap();
+    ui.deliver(envelope(1, 1, key(PhysicalKey::Escape)))
+        .unwrap();
+    assert_eq!(ui.view().screen, Screen::Material);
+    assert_eq!(ui.view().focus, Focus::Refresh);
+    assert_eq!(assert_single_live_focus(ui.view()), SemanticId::Refresh);
+    ui.deliver(envelope(2, 1, key(PhysicalKey::Enter))).unwrap();
+    assert_eq!(ui.view().screen, Screen::Material);
+    assert_eq!(assert_single_live_focus(ui.view()), SemanticId::Refresh);
+}
+scenario!(
+    r113_read_only_back_focuses_enabled_refresh,
+    r113_read_only_back_focuses_enabled_refresh_impl
+);
+
+// R113-3: a pending pointer press/drag is bound to the old screen/list and
+// must not survive an accepted semantic action that replaces that context.
+fn r113_semantic_action_cancels_pending_pointer_gesture_impl() {
+    let host = Host::new();
+    host.borrow_mut().seed_named(1, b"Een", b"one");
+    host.borrow_mut().seed_named(2, b"Twee", b"two");
+    let (mut d, mut o, mut s) = ([0; 1024], [0; 1024], [0; 1024]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    ui.refresh().unwrap();
+    let row = Frame::new(ui.view()).layout().object(0);
+    let mut mouse = Ps2Mouse::new();
+    let mut packet = |flags: u8| {
+        let mut input = None;
+        for byte in [flags, 0, 0] {
+            input = mouse.feed(byte).unwrap();
+        }
+        input.unwrap()
+    };
+    let (x, y) = (row.x + 10, row.y + 10);
+    ui.deliver(envelope(
+        1,
+        1,
+        Event::Mouse {
+            input: packet(0x09),
+            x,
+            y,
+        },
+    ))
+    .unwrap();
+    host.borrow_mut().seed_named(0, b"Nul", b"zero");
+    ui.activate_semantic(SemanticId::Refresh, ui.view().generation)
+        .unwrap();
+    assert_eq!(ui.view().objects.len(), 3);
+    ui.deliver(envelope(
+        2,
+        1,
+        Event::Mouse {
+            input: packet(0x08),
+            x,
+            y,
+        },
+    ))
+    .unwrap();
+    assert_ne!(
+        ui.view().contents,
+        Some("zero"),
+        "release opened an unpressed object"
+    );
+    assert_eq!(ui.view().screen, Screen::Material);
+    assert_eq!(ui.view().contents, None);
+
+    // A text drag must not keep extending a selection over replaced text.
+    ui.open(1).unwrap();
+    let editor = Frame::new(ui.view()).layout().editor;
+    ui.deliver(envelope(
+        3,
+        1,
+        Event::Mouse {
+            input: packet(0x09),
+            x: editor.x + 8,
+            y: editor.y + 8,
+        },
+    ))
+    .unwrap();
+    ui.set_semantic_value(SemanticId::Document, ui.view().generation, "replaced text")
+        .unwrap();
+    assert_eq!(ui.view().caret, "replaced text".len());
+    ui.deliver(envelope(
+        4,
+        1,
+        Event::Mouse {
+            input: packet(0x09),
+            x: editor.x + 8,
+            y: editor.y + 8,
+        },
+    ))
+    .unwrap();
+    assert_eq!(
+        ui.view().caret,
+        ui.view().anchor,
+        "stale drag changed the selection"
+    );
+    assert_eq!(ui.view().caret, "replaced text".len());
+}
+scenario!(
+    r113_semantic_action_cancels_pending_pointer_gesture,
+    r113_semantic_action_cancels_pending_pointer_gesture_impl
 );

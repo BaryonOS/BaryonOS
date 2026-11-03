@@ -57,7 +57,9 @@ def numeric(line: str, name: str) -> int:
 
 def snapshot_checks(current: dict, previous: dict | None, case: str) -> None:
     require(current["READY"] == 1 and current["PRESENTED_GEN"] > 0 and current["FRAMES"] > 0
-            and current["TILES"] >= current["FRAMES"] * TILES and current["SCALE"] == 1
+            # SUR1 sparse frames: the first frame sends every tile, every later
+            # frame at least its final tile. Pixels are checked exactly elsewhere.
+            and current["TILES"] >= TILES + current["FRAMES"] - 1 and current["SCALE"] == 1
             and current["SCREEN"] in (1, 2, 3) and current["DRAFT_DIRTY"] in (0, 1)
             and current["INPUT_ACKS"] >= current["KEYS"] + current["MOUSE"]
             and current["SAVE_ACKS"] in (0, 1), "Invalid actual frame/counter snapshot")
@@ -73,7 +75,7 @@ def snapshot_checks(current: dict, previous: dict | None, case: str) -> None:
         require(current["SAVE_ACKS"] == 0 and current["DRAFT_DIRTY"] == 0, "Readonly app changed draft or committed")
     if previous is not None:
         require(current["PRESENTED_GEN"] > previous["PRESENTED_GEN"] and current["FRAMES"] > previous["FRAMES"]
-                and current["TILES"] >= previous["TILES"] + (current["FRAMES"]-previous["FRAMES"])*TILES, "Repeated/stale/incomplete presented frame")
+                and current["TILES"] >= previous["TILES"] + current["FRAMES"] - previous["FRAMES"], "Repeated/stale/incomplete presented frame")
         require(all(current[key] >= previous[key] for key in ("KEYS", "MOUSE", "INPUT_ACKS", "SAVE_ACKS", "ERRORS")),
                 "Regressing actual counters")
 
@@ -229,7 +231,7 @@ def qmp_groups(directory: Path, case: str) -> list[tuple[str, list[dict]]]:
         # The source-checked ui-core Cursor::new starts at global (0,0). Move
         # without buttons, in bounded relative steps, before a fresh click.
         x, y = 0, 0
-        target_x, target_y = ASSIGNED[0] + 40, ASSIGNED[1] + 102
+        target_x, target_y = ASSIGNED[0] + 258, ASSIGNED[1] + 102
         moves = []
         while (x, y) != (target_x, target_y):
             dx, dy = max(-96, min(96, target_x-x)), max(-96, min(96, target_y-y))

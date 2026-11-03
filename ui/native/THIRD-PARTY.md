@@ -1,3 +1,12 @@
+# Native tekstbronnen
+
+De proportionele systeemtekst, vectorpictogrammen en geometrie komen uit de
+lokale, dependencyvrije `nieuw-os-graphics`-crate. De gehashte Open Sans 1.10-
+bron, offline rastergeneratie en Apache 2.0-notices staan in
+[graphics/THIRD-PARTY.md](../graphics/THIRD-PARTY.md). De app parseert geen TTF.
+De bestaande Noto Sans Mono-subset hieronder blijft uitsluitend voor de
+bewerkbare documenttekst, zodat caret-/selectiemetrics bij de tekst passen.
+
 # Noto Sans Mono bitmap backend
 
 - Crate `noto-sans-mono-bitmap = 0.3.2`, defaults uit; regular, size16/32,

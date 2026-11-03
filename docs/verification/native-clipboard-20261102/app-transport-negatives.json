@@ -1,0 +1,40 @@
+{
+  "source_commit": "78661e2c53281bee6a457c4fee3274e0846eca4d",
+  "base_commit": "d0ae570",
+  "scope": "Actual host counterparts over capability Engine and typed INP/SUR; not native broker or VM evidence. Test-only donor, root source left frozen during running VM.",
+  "chains": {
+    "material": 33,
+    "calculator": 13
+  },
+  "logs": {
+    "clipboard-app-materiaal-chain.txt": {
+      "uncompressed_sha256": "4daa4a58e9d30bf97b278b5386119290d4bd00ab54e6b888c8f2a0545c1a5e86",
+      "bytes": 2566
+    },
+    "clipboard-app-materiaal-clippy.txt": {
+      "uncompressed_sha256": "84f776ccd2e8b810422c522db45f01dcd1b781fbbac956c291e3ab8ba344431c",
+      "bytes": 180
+    },
+    "clipboard-app-materiaal-fmt.txt": {
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "clipboard-app-calculator-chain.log": {
+      "uncompressed_sha256": "eed0c9832b6243b23a2519bf4b9bc828282d165f0858accfdad8c2baa13fea5f",
+      "bytes": 1573
+    },
+    "clipboard-app-calculator-clippy.log": {
+      "uncompressed_sha256": "5636fb90c68576f3770fefbf9e1a822fd08c42f3aa9309135776000be69438c3",
+      "bytes": 1129
+    }
+  },
+  "final_fmt_check": {
+    "source_commit": "e3182f0bba72f300596dd81417fbbd371a8d5d79",
+    "command": "cargo +1.90.0 fmt --manifest-path <sdk/examples/materiaal|sdk/examples/calculator>/Cargo.toml -- --check",
+    "exit_codes": [
+      0,
+      0
+    ],
+    "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

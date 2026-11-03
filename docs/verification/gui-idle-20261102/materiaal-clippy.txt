@@ -1,0 +1,17 @@
+    Checking zeroize v1.9.1
+    Checking catalog-core v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/services/catalog)
+    Checking ui-core v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/crates/ui-core)
+    Checking noto-sans-mono-bitmap v0.3.2
+    Checking nieuw-os-graphics v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/ui/graphics)
+    Checking kernel-core v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/crates/kernel-core)
+    Checking capability-core v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/crates/capability-core)
+    Checking nieuw-os-sdk-runtime v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/runtime)
+    Checking volume-core v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/services/volume)
+    Checking nieuw-os-catalog-client v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/catalog-client)
+    Checking nieuw-os-input-core v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/services/input-core)
+    Checking nieuw-os-surface-protocol v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/ui/surface-protocol)
+    Checking nieuw-os-input-client v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/input-client)
+    Checking nieuw-os-document-session v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/document-session)
+    Checking nieuw-os-materiaal v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/ui/native)
+    Checking nieuw-os-materiaal-app v0.1.0 (/home/simon/.codex-local-os-tests/window-idle-b1b292a/sdk/examples/materiaal)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.54s

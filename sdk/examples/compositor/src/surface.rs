@@ -165,6 +165,10 @@ impl<D: Transport> Surface<D> {
                         {
                             Ok(Action::Staged) => {}
                             Ok(Action::Info(reply)) => self.pending(reply, now),
+                            // This legacy adapter paints directly into a
+                            // display shared with its diagnostic chrome. Its
+                            // Receiver::new never grants retained backing.
+                            Ok(Action::Retain(_)) => return Err(Fatal::Configuration),
                             Ok(Action::Commit(token)) => {
                                 let tick = fresh_tick()?;
                                 let display = &mut self.display;

@@ -1,0 +1,71 @@
+{
+  "schema": "nieuw-os-ci-foundation-readonly-v1",
+  "repository": "simonvanieperen/nieuw-os",
+  "requested_commit": "48267b631ef8276fe9a76e0d489ee7ff622602e8",
+  "run_id": 41483671592,
+  "job_id": 125408399508,
+  "run_name": "Native RANDOM and image foundation acceptance",
+  "job_status": "completed",
+  "job_conclusion": "success",
+  "raw_step": {
+    "name": "Native RANDOM raw validation, quota, rebind and revoke",
+    "status": "completed",
+    "conclusion": "success",
+    "number": 12
+  },
+  "actual_native_success_lines": [
+    {
+      "line": 1510,
+      "text": "2026-11-02T16:41:58.3179950Z SYSTEM normal: passed=True raw=33 duration=9.3s /home/runner/work/nieuw-os/nieuw-os/build/foundation-ci/random-raw/run/system-normal-b3c66829267b44c9bfd0006854891872"
+    },
+    {
+      "line": 1511,
+      "text": "2026-11-02T16:41:58.6128491Z RANDOM raw: passed=True gate=True /home/runner/work/nieuw-os/nieuw-os/build/foundation-ci/random-raw/run/system-normal-b3c66829267b44c9bfd0006854891872"
+    },
+    {
+      "line": 1537,
+      "text": "2026-11-02T16:42:08.2563986Z SYSTEM normal: passed=True raw=33 duration=5.8s /home/runner/work/nieuw-os/nieuw-os/build/foundation-ci/random-sdk/run/system-normal-ec8118d0036c4cd6be95e414d2b9227f"
+    },
+    {
+      "line": 1538,
+      "text": "2026-11-02T16:42:08.5537718Z RANDOM sdk: passed=True gate=True /home/runner/work/nieuw-os/nieuw-os/build/foundation-ci/random-sdk/run/system-normal-ec8118d0036c4cd6be95e414d2b9227f"
+    },
+    {
+      "line": 1564,
+      "text": "2026-11-02T16:42:18.1726744Z SYSTEM normal: passed=True raw=33 duration=5.8s /home/runner/work/nieuw-os/nieuw-os/build/foundation-ci/random-unknown/run/system-normal-e11cc48fa7ce4e1691872d35b564fdbe"
+    },
+    {
+      "line": 1565,
+      "text": "2026-11-02T16:42:18.4703181Z RANDOM unknown: passed=True gate=True /home/runner/work/nieuw-os/nieuw-os/build/foundation-ci/random-unknown/run/system-normal-e11cc48fa7ce4e1691872d35b564fdbe"
+    },
+    {
+      "line": 1591,
+      "text": "2026-11-02T16:42:28.1082756Z SYSTEM normal: passed=True raw=33 duration=5.8s /home/runner/work/nieuw-os/nieuw-os/build/foundation-ci/random-wrong-caller/run/system-normal-96cac316449643768bd3a2faf6f68591"
+    },
+    {
+      "line": 1631,
+      "text": "2026-11-02T16:42:42.5888975Z SYSTEM normal: passed=True raw=33 duration=6.1s /home/runner/work/nieuw-os/nieuw-os/build/foundation-ci/images/run/system-normal-5522941c69ef419589c2d78d152fe7a2"
+    }
+  ],
+  "log_representation": "UTF-8 encoding of connector-decoded job log string; not claimed original HTTP log bytes",
+  "decoded_log_sha256": "2dd18200581d71d88dfedbe7ec7eb45c5fd65386adeb64e53216428ab6ca5537",
+  "source_mutations": false,
+  "rerun_requested": false,
+  "new_local_vm_started": false,
+  "artifact_downloaded": false,
+  "limitations": [
+    "This one CI run passed; earlier 2bb84c2 raw request/status/window rollover remain unknown.",
+    "No failure-only diagnostic header/clock fields were emitted, so request1064 rollover is not confirmed.",
+    "The independently proven host counterexample to the 64-call timing assumption remains valid.",
+    "No claim that all repository workflows passed or that the quota fixture timing defect was fixed."
+  ],
+  "safe_conditional_next_fix": [
+    "Only after correlated native evidence confirms window rollover: replace raw fixture serial burst with at most eight published requests in flight, using existing rights and no SDK Session semantics change.",
+    "Kernel endpoint capacity is sixteen; service consumes one request only when its single pending reply has been published. Client must drain replies and never assume eight simultaneous service operations.",
+    "Use unique bounded request IDs; validate each real reply peer/tag/no transferred capabilities/shape/opcode/index/request ID; count only actual correlated status -2 zero-length response as quota denial.",
+    "Retry kernel Again only before a request was published; do not replay unknown delivery or reinterpret local SDK Busy/kernel backpressure as wire Quota.",
+    "Measure start before first publication and end after final reply with the real guest clock. Require entire 64-success-plus-quota proof in less than WINDOW_TICKS=100, else fail explicitly on the timing precondition rather than claim quota.",
+    "Preserve service policy, quotas, positive reply checks and fail-closed deadlines. Pipelining reduces overhead but cannot guarantee success on arbitrarily slow hardware.",
+    "Independently decoding unexpected valid quota reply with its actual request count makes an unexpected positive response fail as expected-quota instead of malformed codec; it must still fail and cannot substitute for proving quota."
+  ]
+}

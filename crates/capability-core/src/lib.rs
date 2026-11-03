@@ -599,12 +599,114 @@ pub struct Engine {
     input: [EntropyObject; MAX_INPUT_OBJECTS],
     last_pid: u64,
 }
+/// Caller-owned comparison storage. Never used as an authority engine or
+/// restored into one. Initialize statically in a small-stack kernel.
+pub struct AuthoritySnapshot {
+    state: Engine,
+}
+impl AuthoritySnapshot {
+    pub const fn new() -> Self {
+        Self {
+            state: Engine::new(),
+        }
+    }
+    /// Exact typed comparison, including inactive slots and queue cells.
+    pub fn matches(&self, engine: &Engine) -> bool {
+        self.state == *engine
+    }
+    /// Only snapshot messages are exposed, for caller-supplied observable
+    /// erasure before releasing its exclusive storage lease. No live Engine
+    /// or authority metadata can be obtained through this interface.
+    pub fn messages_mut(&mut self) -> impl Iterator<Item = &mut Message> {
+        self.state
+            .endpoints
+            .iter_mut()
+            .flat_map(|endpoint| endpoint.queue.iter_mut().map(|queued| &mut queued.message))
+    }
+}
+impl Default for AuthoritySnapshot {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+/// Nonblocking exclusive lease for caller-owned snapshot storage. It never
+/// provides storage access itself; the kernel must check IF=0 before borrowing
+/// its private static buffer and end that borrow before releasing the lease.
+pub struct SnapshotLock {
+    held: core::sync::atomic::AtomicBool,
+}
+impl SnapshotLock {
+    pub const fn new() -> Self {
+        Self {
+            held: core::sync::atomic::AtomicBool::new(false),
+        }
+    }
+    pub fn try_claim(&self) -> Option<SnapshotLease<'_>> {
+        self.held
+            .compare_exchange(
+                false,
+                true,
+                core::sync::atomic::Ordering::Acquire,
+                core::sync::atomic::Ordering::Relaxed,
+            )
+            .ok()?;
+        Some(SnapshotLease { lock: self })
+    }
+}
+impl Default for SnapshotLock {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+pub struct SnapshotLease<'a> {
+    lock: &'a SnapshotLock,
+}
+impl Drop for SnapshotLease<'_> {
+    fn drop(&mut self) {
+        self.lock
+            .held
+            .store(false, core::sync::atomic::Ordering::Release);
+    }
+}
 impl Default for Engine {
     fn default() -> Self {
         Self::new()
     }
 }
 impl Engine {
+    /// Copy each complete typed authority array directly into reserved storage.
+    /// No Engine-sized return value, clone, allocator or padding comparison.
+    /// Exhaustive binding plus deny(unused_variables) makes field growth a
+    /// compile error until this coverage is deliberately extended.
+    #[deny(unused_variables)]
+    #[inline(never)]
+    pub fn snapshot_into(&self, destination: &mut AuthoritySnapshot) {
+        let Self {
+            processes,
+            nodes,
+            endpoints,
+            blocks,
+            launches,
+            children,
+            entropy,
+            network,
+            display,
+            input,
+            last_pid,
+        } = self;
+        let out = &mut destination.state;
+        out.processes.copy_from_slice(processes);
+        out.nodes.copy_from_slice(nodes);
+        out.endpoints.copy_from_slice(endpoints);
+        out.blocks.copy_from_slice(blocks);
+        out.launches.copy_from_slice(launches);
+        out.children.copy_from_slice(children);
+        out.entropy.copy_from_slice(entropy);
+        out.network.copy_from_slice(network);
+        out.display.copy_from_slice(display);
+        out.input.copy_from_slice(input);
+        out.last_pid = *last_pid;
+    }
     /// Use directly in a static initializer in the kernel, not as a stack local.
     pub const fn new() -> Self {
         Self {
@@ -770,9 +872,102 @@ impl Engine {
     pub fn can_register(&self) -> bool {
         self.processes.iter().any(|p| !p.live)
     }
+    /// Process table capacity only; does not reserve entries or validate PIDs.
+    pub fn available_processes(&self) -> usize {
+        self.processes.iter().filter(|p| !p.live).count()
+    }
+    /// Read-only manifest lifecycle preflight. This reserves or grants nothing.
+    pub fn is_registered(&self, pid: u64) -> bool {
+        self.process(pid).is_ok()
+    }
     /// Free node count, so a caller can check all resources before committing.
     pub fn available_nodes(&self) -> usize {
         self.nodes.iter().filter(|n| !n.live && !n.retired).count()
+    }
+    /// Free endpoint objects. Closed tombstones and retired objects do not
+    /// count: their stale references must never alias a replacement endpoint.
+    pub fn available_endpoints(&self) -> usize {
+        self.endpoints
+            .iter()
+            .filter(|e| !e.live && !e.retired)
+            .count()
+    }
+    /// Conservative owner-quota preflight for a bounded manifest transaction.
+    /// Only exact current handles of `owner` are considered closed. Handles of
+    /// the listed exiting principals are also disregarded. Stale handles never
+    /// exempt an unrelated endpoint that reused the same local slot.
+    ///
+    /// Queued capability references are retained conservatively, even if later
+    /// teardown would cancel their messages. A false result may refuse a safe
+    /// transaction; a true result only predicts the per-owner endpoint quota.
+    /// Global objects/nodes, local slots, authority and lifecycle checks remain
+    /// the caller's responsibility. This query reserves and changes nothing.
+    pub fn can_create_owned_endpoints_after_closing(
+        &self,
+        owner: u64,
+        handles: &[u64],
+        additional: usize,
+        exiting_pids: &[u64],
+    ) -> bool {
+        if self.process(owner).is_err()
+            || exiting_pids.contains(&owner)
+            || handles.len() > MAX_SLOTS
+            || exiting_pids.len() > MAX_PROCESSES
+            || additional > MAX_OWNED_ENDPOINTS
+        {
+            return false;
+        }
+        let mut retained = 0usize;
+        for (index, endpoint) in self.endpoints.iter().enumerate() {
+            if !endpoint.live || endpoint.owner != owner {
+                continue;
+            }
+            let object = Id {
+                index: index as u16,
+                generation: endpoint.generation,
+            };
+            let held = self.processes.iter().any(|process| {
+                process.live
+                    && !exiting_pids.contains(&process.pid)
+                    && process.slots[1..].iter().enumerate().any(|(i, slot)| {
+                        let handle = (u64::from(slot.generation) << 32) | (i as u64 + 1);
+                        self.node_live(slot.node)
+                            && self.nodes[slot.node.index as usize].object == object
+                            && !(process.pid == owner && handles.contains(&handle))
+                    })
+            });
+            // An endpoint object can also be kept alive by a capability in a
+            // queued message. Keep those references rather than duplicating
+            // maintain()/exit() cancellation and revocation policy here.
+            let queued = self.endpoints.iter().any(|queue| {
+                (0..usize::from(queue.len)).any(|position| {
+                    let entry = &queue.queue[(usize::from(queue.head) + position) % QUEUE_CAPACITY];
+                    entry.caps[..entry.message.cap_count as usize]
+                        .iter()
+                        .any(|node| {
+                            self.node_live(*node)
+                                && self.nodes[node.index as usize].object == object
+                        })
+                })
+            });
+            retained += usize::from(held || queued);
+        }
+        retained + additional <= MAX_OWNED_ENDPOINTS
+    }
+    /// Manifest-only nondelegable source-object capacity after this principal
+    /// exits. Slot/node availability is separate. Terminal generations retire
+    /// on reclamation and cannot be used by the replacement service.
+    pub fn can_create_display_after_exit(&self, exiting_pid: u64) -> bool {
+        Self::console_source_available_after_exit(&self.display, exiting_pid)
+    }
+    pub fn can_create_input_after_exit(&self, exiting_pid: u64) -> bool {
+        Self::console_source_available_after_exit(&self.input, exiting_pid)
+    }
+    fn console_source_available_after_exit(objects: &[EntropyObject], exiting_pid: u64) -> bool {
+        objects.iter().any(|object| {
+            !object.retired
+                && (!object.live || object.owner == exiting_pid && object.generation != u32::MAX)
+        })
     }
     /// Free local slots of a live process (0 for an unknown pid).
     pub fn available_slots(&self, pid: u64) -> usize {
@@ -843,6 +1038,13 @@ impl Engine {
     /// True when one more `Process` object can be created.
     pub fn can_create_process(&self) -> bool {
         self.children.iter().any(|c| !c.live && !c.retired)
+    }
+    /// Free typed process objects only; does not reserve an owner handle.
+    pub fn available_process_objects(&self) -> usize {
+        self.children
+            .iter()
+            .filter(|c| !c.live && !c.retired)
+            .count()
     }
     /// Kernel-only, after the child is registered: the spawner receives the
     /// only handle to a fresh `Process` object; the child itself holds none.
@@ -985,6 +1187,17 @@ impl Engine {
             0,
         );
         Ok(self.attach(p, slot, self.node_id(node)))
+    }
+    /// Identity of the endpoint object behind a live handle, for manifest
+    /// checks such as "process A holds no handle to endpoint X". Read-only; it
+    /// grants nothing and reveals only an internal table index to the kernel.
+    pub fn endpoint_object(&self, pid: u64, handle: u64) -> Result<usize, Error> {
+        let node = self.resolve(pid, handle)?;
+        let object = self.nodes[node].object;
+        if object.index as usize >= MAX_ENDPOINTS {
+            return Err(Error::Type);
+        }
+        Ok(object.index as usize)
     }
     pub fn check_endpoint(&self, pid: u64, handle: u64, required: u64) -> Result<(), Error> {
         let node = self.resolve(pid, handle)?;
@@ -2510,6 +2723,9 @@ impl Engine {
         })
     }
 }
+
+#[cfg(test)]
+mod snapshot_tests;
 fn advance(g: u32) -> (u32, bool) {
     match g.checked_add(1) {
         Some(n) => (n, false),
@@ -2650,6 +2866,112 @@ mod wait_readiness_tests {
             assert_eq!(e.stats().queued_messages, 0);
             assert_eq!(query(e, 1, sender, SEND), Ok(true));
             assert_eq!(query(e, 2, destination, RECV), Ok(false));
+        });
+    }
+}
+
+/// INT3-FU-116: the FR-I01 manifest (`kernel/src/m2/m3/system.rs`) proves the
+/// app holds only its listed handles via `available_slots(app) == MAX_SLOTS -
+/// 1 - list.len()`. These tests pin the counting rules that equation uses.
+#[cfg(test)]
+mod manifest_handle_count_tests {
+    extern crate std;
+    use super::*;
+
+    fn run(f: impl FnOnce(&mut Engine) + Send + 'static) {
+        std::thread::Builder::new()
+            .stack_size(16 * 1024 * 1024)
+            .spawn(move || {
+                let mut engine = Engine::new();
+                f(&mut engine);
+                assert!(engine.check_invariants());
+            })
+            .unwrap()
+            .join()
+            .unwrap();
+    }
+    /// Same helper as the kernel manifest: the owner keeps RECV, the sender
+    /// gets SEND, the temporary root is closed.
+    fn channel(e: &mut Engine, owner: u64, sender: u64) -> (u64, u64) {
+        let root = e.create_endpoint(owner).unwrap();
+        let receive = e.derive(owner, root, RECV).unwrap();
+        let send = e.bootstrap_delegate(owner, root, sender, SEND).unwrap();
+        e.close(owner, root).unwrap();
+        (receive, send)
+    }
+    const INIT: u64 = 1;
+    const KEY: u64 = 2;
+    const VOLUME: u64 = 3;
+    const APP: u64 = 4;
+    /// Builds the app's six manifest handles and returns them plus the admin
+    /// ingress root (still open, owned by KEY) for extra delegations.
+    fn manifest_app(e: &mut Engine) -> ([u64; 6], u64) {
+        for pid in [INIT, KEY, VOLUME, APP] {
+            e.register(pid).unwrap();
+        }
+        let registry = e.create_endpoint(INIT).unwrap();
+        let app_registry = e.bootstrap_delegate(INIT, registry, APP, SEND).unwrap();
+        let (app_control, _) = channel(e, APP, INIT);
+        let (key_reply, _) = channel(e, APP, KEY);
+        let (_, app_key) = channel(e, KEY, APP);
+        let admin_root = e.create_endpoint(KEY).unwrap();
+        e.derive(KEY, admin_root, RECV).unwrap();
+        e.bootstrap_delegate(KEY, admin_root, INIT, SEND).unwrap();
+        let (volume_reply, _) = channel(e, APP, VOLUME);
+        let (_, app_volume) = channel(e, VOLUME, APP);
+        (
+            [
+                key_reply,
+                app_key,
+                volume_reply,
+                app_volume,
+                app_registry,
+                app_control,
+            ],
+            admin_root,
+        )
+    }
+
+    #[test]
+    fn manifest_equation_is_exact_and_detects_a_seventh_app_handle() {
+        run(|e| {
+            let (handles, admin_root) = manifest_app(e);
+            // Closed channel roots leave no slot behind; slot 0 is never free.
+            assert_eq!(e.available_slots(APP), MAX_SLOTS - 1 - handles.len());
+            // The reviewer's scenario: an unlisted SEND to the admin ingress.
+            let extra = e.bootstrap_delegate(KEY, admin_root, APP, SEND).unwrap();
+            assert!(!handles.contains(&extra));
+            assert_eq!(e.available_slots(APP), MAX_SLOTS - 1 - handles.len() - 1);
+            // A revoked handle keeps its slot until closed: the count fails
+            // closed rather than hiding a stale entry.
+            e.revoke(KEY, admin_root).unwrap();
+            assert_eq!(e.endpoint_object(APP, extra), Err(Error::Revoked));
+            assert_eq!(e.available_slots(APP), MAX_SLOTS - 1 - handles.len() - 1);
+            e.close(APP, extra).unwrap();
+            assert_eq!(e.available_slots(APP), MAX_SLOTS - 1 - handles.len());
+            // Other processes' tables do not influence the app's count.
+            let other = e.create_endpoint(INIT).unwrap();
+            e.bootstrap_delegate(INIT, other, KEY, SEND).unwrap();
+            assert_eq!(e.available_slots(APP), MAX_SLOTS - 1 - handles.len());
+        });
+    }
+
+    #[test]
+    fn every_slot_except_zero_is_counted_until_the_table_is_full() {
+        run(|e| {
+            let (handles, _) = manifest_app(e);
+            let root = e.create_endpoint(APP).unwrap();
+            let mut held = handles.len() + 1;
+            assert_eq!(e.available_slots(APP), MAX_SLOTS - 1 - held);
+            while e.available_slots(APP) > 0 {
+                let handle = e.derive(APP, root, SEND).unwrap();
+                assert_ne!(handle & 0xffff_ffff, 0, "slot 0 is never handed out");
+                held += 1;
+                assert_eq!(e.available_slots(APP), MAX_SLOTS - 1 - held);
+            }
+            // Exactly MAX_SLOTS - 1 live handles fit; the next one is refused.
+            assert_eq!(held, MAX_SLOTS - 1);
+            assert_eq!(e.derive(APP, root, SEND), Err(Error::Quota));
         });
     }
 }
