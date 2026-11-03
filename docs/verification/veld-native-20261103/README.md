@@ -5,6 +5,78 @@ branch `simonvanieperen-fictional-disco`. Dit checkpoint bewaart de eerste
 code en hostcontroles vóór de langere native build/VM-controle. Geen
 volledige Veld-, U02–U06-, fysieke, menselijke of releaseacceptatie.
 
+## Definitieve uitslag
+
+Productbron **`7eb50b64a7dd140a69f6c3d509faebc24553d3ab`**, fingerprint v3
+**`deab6b57e772c4c90a9aefe95276e8391db45294a7fe106459bc6915b21e1a35`**:
+
+- Native venster-/klembord-/Veld-gate: **exit 0**, 28 fasen, **244,01 s**;
+  ruwe QEMU-exit **33**. Alle bestaande volledige appbeeld-, isolatie-,
+  verplaatsings-, crash/herstel-, schijf- en cleanupcontroles blijven actief.
+- Apart normaal vensterprofiel zonder foutinjectie: build/ELF-inspectie exit 0.
+- Afzonderlijke native gast/sessiepreview: **exit 0**, **64,04 s**,
+  ruwe QEMU-exit 0 na gecontroleerd afsluiten. De acht echte QMP-/beeldfasen
+  omvatten persoonlijke-loginweigering, gasttoegang, Home, zoeken en Materiaal;
+  dit is uitdrukkelijk geen echte persoonlijke authenticatieketen.
+- **22** exact vastgelegde en gemeten host-/lint-/bouwcommando's: exit 0.
+  Inclusief de vijf relevante Rust-consumenten, kern-/capability-/invoerlogica,
+  SUR1-client, runnertegenvoorbeelden, Windows-packager en 39 prototypetests.
+  Gedeelde tekstrollen voldoen over alle 256 verloopstappen aan 4,5:1.
+
+Compacte machineleesbare uitkomsten:
+[native-report.json](native-report.json),
+[session-preview-report.json](session-preview-report.json) en
+[host-commands.json](host-commands.json).
+[attempts.json](attempts.json) bewaart eerdere mislukte of gestopte pogingen;
+[host-logs.sha256](host-logs.sha256) bindt de volledige lokale commandologs.
+Dit document bevat hieronder de chronologie, inclusief verworpen hypotheses.
+
+Uitgevoerde native opdrachten na de omgevingsprefix hieronder:
+
+```sh
+export NOS_BUILD_DIR="$PWD/build/veld-native-20261103/probe"
+export NOS_TARGET_DIR="$PWD/target/veld-native-20261103"
+python3 -B -u tools/build.py --kernel-feature native-window-session-probe
+python3 -B -u tools/run_window_session.py --clipboard --workspace --timeout 1800 --bios-rom "$NOS_BIOS_ROM" --vga-rom "$NOS_VGA_ROM"
+export NOS_BUILD_DIR="$PWD/build/veld-native-20261103/normal"
+export NOS_TARGET_DIR="$PWD/target/veld-native-20261103-normal"
+python3 -B -u tools/build.py --kernel-feature native-window-session
+export NOS_BUILD_DIR="$PWD/build/veld-native-20261103/session-preview"
+export NOS_TARGET_DIR="$PWD/target/veld-native-20261103-session-preview"
+python3 -B -u tools/build.py --kernel-feature native-system-session-preview
+python3 -B -u tools/run_session_preview.py --timeout 240 --bios-rom "$NOS_BIOS_ROM" --vga-rom "$NOS_VGA_ROM"
+```
+
+Alle vijf bovenstaande Python-opdrachten gaven **exit 0**. Eigen x86_64-kernel,
+UEFI/OVMF, QEMU 10.2.1, expliciet profiel `pc-q35-10.0`, TCG single-thread,
+wegwerpimages en synthetische gegevens. Geen hostschijf of gastnetwerk.
+Dit is een lokaal ontwikkelprofiel; de GitHub-CI met haar eigen pakket-/
+machineprofiel is **niet opnieuw uitgevoerd**. Geen U02-timing-/energieclaim,
+fysiek hardwarebewijs, menselijke gebruikerstest, schermlezertest,
+onafhankelijke menselijke review of volledige releasevalidatie.
+Voortgang **41 → 41**: geen nieuw volledig criterium, geen gewijzigde
+gewichten/statussen of overschreven historische bewijzen.
+
+## Wijzigingsoppervlak en terugkeer
+
+Product-/testbestanden vanaf onderzoekscommit `d6f8e981`:
+`ui/prototype/tokens.css`, `ui/graphics/src/{lib,theme}.rs`,
+`ui/graphics/tests/clipping.rs`, `ui/native/src/{design,render}.rs`,
+`sdk/examples/window-session/src/{main,scene}.rs`,
+`sdk/examples/window-session/tests/{workspace_v2,workspace_native_fixture}.rs`,
+`tools/{run_window_session,test_window_session}.py`,
+`.github/workflows/native-window-session.yml` en uitsluitend de opt-in
+snapshottrigger in `kernel/src/m2/m3/window_session.rs`.
+Bijbehorende ontwerp-, besluit-, status-, meter- en bewijsdocumenten zijn
+bijgewerkt; geen Cargo-manifest/lockfile of productieafhankelijkheid gewijzigd.
+
+Aannames blijven expliciet: Veld is een eerste uitvoeringsrichting, de twee
+werklabels zijn geen echte geopende objectmetadata en deze VM-profielen zijn
+geen productrelease. Geen rollback uitgevoerd. De oude bron is
+`d6f8e98178d73d6aeda0abe84ca404dfde03123c`; een vergelijking of terugbouw
+hoort in een afzonderlijke gecontroleerde worktree, niet via reset van bestaand
+gebruikerswerk. Historische acceptatie en productscore worden niet vervangen.
+
 ## Omgeving en uitgevoerde hostcontroles
 
 De oorspronkelijke `python3 tools/preflight.py --strict` faalde met exit 2:
@@ -44,7 +116,7 @@ zijn niet als uitgevoerd bewijs gebruikt; de uiteindelijke testlijst telt
 de nieuwe tests expliciet mee. Optionele fixture-/previewtests zonder
 omgevingsvariabele zijn geen visuele of native acceptatie.
 
-## Native en overige grenzen
+## Verloop van native uitvoering en herstelde fouten
 
 Eerste native uitvoering op `093d26eb`: build exit 0 (11,34 s), echte
 QEMU-workspaceproeven tot en met Finder-selectie en documentinvoer uitgevoerd.

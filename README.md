@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`52aa1885`](https://github.com/simonvanieperen/nieuw-os/commit/52aa1885445b8a2de1f52024adb7abd64de1ab5a) ·
+**Bron:** [`7eb50b64`](https://github.com/simonvanieperen/nieuw-os/commit/7eb50b64a7dd140a69f6c3d509faebc24553d3ab) ·
 **Ontwikkelbranch:** `simonvanieperen-fictional-disco`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Eerste native Veld-stap: gedeelde visuele rollen, werkfocus, ordening en lokale zoekaliassen.
-41% blijft 41%: de onverkorte native Veld-/klembordgate op 52aa1885 slaagt met 28 fasen, echte crash/herstelketen, ongewijzigde appisolatie-/verplaatsingsorakels, bewaren/heropenen, schijfcontrole en cleanup. De caretregressie en opt-in snapshot-observatie zijn hersteld zonder rechtenverruiming of zwakkere pixelcontrole. Gedeelde Home-tekstrollen zijn daarna nog aangescherpt met contrastcontrole over alle 256 verloopstappen; hostchecks slagen en de definitieve native bronherhaling volgt. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Volledig Veld, U02-U06, fysieke/menselijke beoordeling en release blijven open.
+41% blijft 41%: de eerste twee-app native Veld-stap op 7eb50b64 is brongebonden geverifieerd. De onverkorte QEMU-venster-/klembord-/workspacegate slaagt met 28 fasen, echte crash/herstelketen, ongewijzigde appisolatie-/verplaatsingsorakels, bewaren/heropenen, schijfcontrole en cleanup. Ook de afzonderlijke gast/sessiepreview, het normale vensterprofiel en 22 gemeten host-/lint-/bouwcommando's slagen. Gedeelde tekstrollen voldoen over alle 256 verloopstappen aan 4,5:1. De lokale proeven zijn QEMU 10.2.1/pc-q35-10.0, geen nieuwe GitHub-CI-, menselijke of fysieke acceptatie. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Volledig Veld, vier werkzaamheden, objectgebonden toolwisseling, U02-U06 en release blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

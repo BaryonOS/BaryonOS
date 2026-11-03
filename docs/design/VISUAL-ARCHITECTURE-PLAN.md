@@ -12,6 +12,11 @@ ontwerp of de alternatieven al gevalideerd te noemen. De oorspronkelijke
 onderzoeksafbakening hieronder beschrijft de eerdere opdracht, niet een verbod
 op deze expliciet gevraagde vervolgstap. Huidige implementatie en open grenzen:
 [native venstersessie](../implementation/NATIVE-WINDOW-SESSION.md#veld-eerste-native-uitvoering).
+De eerste twee-appstap is inmiddels op productbron `7eb50b64` met echte
+VM-invoer, pixels, crash/herstel en opslag geverifieerd; ook de gedeelde
+sessiepreview is gecontroleerd. Dit realiseert niet automatisch vier
+werkzaamheden of objectgebonden gereedschapswisseling. Exacte uitkomsten en
+open grenzen: [Veld-bewijsverslag](../verification/veld-native-20261103/README.md).
 
 ## 1. Uitkomst en afbakening
 

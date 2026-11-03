@@ -1,0 +1,352 @@
+{
+  "source_commit": "7eb50b64a7dd140a69f6c3d509faebc24553d3ab",
+  "source_sha256": "deab6b57e772c4c90a9aefe95276e8391db45294a7fe106459bc6915b21e1a35",
+  "commands": [
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/graphics/Cargo.toml"
+      ],
+      "exit_status": 0,
+      "seconds": 0.08,
+      "log": "veld-final-ui-graphics-test.log",
+      "log_sha256": "cfc6b5e739e85ecbd91c0c5dc0aa22702d2e88651186a8dcdf2ab34bd22d5d60"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/graphics/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_status": 0,
+      "seconds": 0.05,
+      "log": "veld-final-ui-graphics-clippy.log",
+      "log_sha256": "736e2582f563605dd272e5fb977840b0c0767377d27b6940c440caf75eec7157"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "ui/graphics/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_status": 0,
+      "seconds": 0.087,
+      "log": "veld-final-ui-graphics-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/native/Cargo.toml"
+      ],
+      "exit_status": 0,
+      "seconds": 9.864,
+      "log": "veld-final-ui-native-test.log",
+      "log_sha256": "c50affa6454608ce1e4e426ffb691e9fd4383c061dba685a847ad2c6b99a1818"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/native/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_status": 0,
+      "seconds": 0.052,
+      "log": "veld-final-ui-native-clippy.log",
+      "log_sha256": "736e2582f563605dd272e5fb977840b0c0767377d27b6940c440caf75eec7157"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "ui/native/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_status": 0,
+      "seconds": 0.067,
+      "log": "veld-final-ui-native-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml"
+      ],
+      "exit_status": 0,
+      "seconds": 12.13,
+      "log": "veld-final-sdk-examples-window-session-test.log",
+      "log_sha256": "9d25328646860961ee03560259cf962dc440f87ce4e8231cebcee955693f0037"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_status": 0,
+      "seconds": 0.052,
+      "log": "veld-final-sdk-examples-window-session-clippy.log",
+      "log_sha256": "736e2582f563605dd272e5fb977840b0c0767377d27b6940c440caf75eec7157"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_status": 0,
+      "seconds": 0.056,
+      "log": "veld-final-sdk-examples-window-session-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml"
+      ],
+      "exit_status": 0,
+      "seconds": 0.855,
+      "log": "veld-final-sdk-examples-materiaal-test.log",
+      "log_sha256": "8829dc2643ca4ed4fa7180f849a71487a64793fcdebf026975fca93ad9ae1dd5"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_status": 0,
+      "seconds": 0.052,
+      "log": "veld-final-sdk-examples-materiaal-clippy.log",
+      "log_sha256": "736e2582f563605dd272e5fb977840b0c0767377d27b6940c440caf75eec7157"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_status": 0,
+      "seconds": 0.049,
+      "log": "veld-final-sdk-examples-materiaal-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/calculator/Cargo.toml"
+      ],
+      "exit_status": 0,
+      "seconds": 4.123,
+      "log": "veld-final-sdk-examples-calculator-test.log",
+      "log_sha256": "a90dd7fab71859f74d31bcb48b66d9ad3323dbf4ab5794e68bbe820a766e7b1d"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/calculator/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_status": 0,
+      "seconds": 0.053,
+      "log": "veld-final-sdk-examples-calculator-clippy.log",
+      "log_sha256": "736e2582f563605dd272e5fb977840b0c0767377d27b6940c440caf75eec7157"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "sdk/examples/calculator/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_status": 0,
+      "seconds": 0.053,
+      "log": "veld-final-sdk-examples-calculator-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "-p",
+        "kernel-core",
+        "-p",
+        "capability-core",
+        "-p",
+        "ui-core"
+      ],
+      "exit_status": 0,
+      "seconds": 1.202,
+      "log": "veld-final-kernel-host.log",
+      "log_sha256": "f2d00c9f441a64819644f2f0e9500176f786b6c90c2ba89dff858dee81e4160a"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_status": 0,
+      "seconds": 0.463,
+      "log": "veld-final-root-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--features",
+        "client"
+      ],
+      "exit_status": 0,
+      "seconds": 0.179,
+      "log": "veld-final-surface.log",
+      "log_sha256": "bb3488ec1d6eaf638d4de78e8d385b475e40edeecbf5e42b0451d6ab6c47f1ab"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/test_window_session.py"
+      ],
+      "exit_status": 0,
+      "seconds": 0.227,
+      "log": "veld-final-runner.log",
+      "log_sha256": "9b6baa0ba2826d866d055fcd6feb94141a98cb0404b710cc749a0ce29e7de351"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "tools.tests.test_package_windows_qemu"
+      ],
+      "exit_status": 0,
+      "seconds": 0.244,
+      "log": "veld-final-package.log",
+      "log_sha256": "62aabd1b42471f539e4e31a325fda1680a14a3126d268ec8f1ddd83280e5a6d5"
+    },
+    {
+      "command": [
+        "/home/simon/.copilot/session-state/7f2fb1d137004b68b9bef4b8ca72f938/files/veld-env/node/node-v24.11.0-linux-x64/bin/node",
+        "--test",
+        "--test-isolation=none",
+        "ui/prototype/tests/nas-sharing.test.mjs",
+        "ui/prototype/tests/state.test.mjs"
+      ],
+      "exit_status": 0,
+      "seconds": 0.072,
+      "log": "veld-final-prototype.log",
+      "log_sha256": "682cc64c2ec577df0adf785cde5ccd5e582e7742c952cc7fa0ece0662327c003"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-u",
+        "tools/build.py",
+        "--kernel-feature",
+        "native-window-session"
+      ],
+      "exit_status": 0,
+      "seconds": 2.935,
+      "log": "veld-final-normal-build.log",
+      "log_sha256": "bd5c11880ac758da3c0b59a2ee9e32a1ae8392bdab6efa4f4762d5e9193d2f01"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — eerste Veld-VM-keten geslaagd, gedeelde rollen afronden — 3 november 2026
+## NEXT AGENT HANDOFF — eerste native Veld-stap geverifieerd — 3 november 2026
 
 **Basis:** `d6f8e98178d73d6aeda0abe84ca404dfde03123c`,
 branch `simonvanieperen-fictional-disco`. De expliciete vervolgopdracht
@@ -23,31 +23,40 @@ Exacte commando's, fouten en grenzen:
 herkenbare acties en lokale zoekaliassen zijn relevant. Geen merge,
 overgenomen testresultaten of vermenging met die onderzoeksbranch.
 
-**Native resultaat:** `52aa1885445b8a2de1f52024adb7abd64de1ab5a`,
-source-SHA-256 `c63a4d7a7cdde0998e6d0b8e91eaf65706e57181cd27055b99e193f262aa0c24`:
+**Definitieve geverifieerde bron:** `7eb50b64a7dd140a69f6c3d509faebc24553d3ab`,
+source-SHA-256 `deab6b57e772c4c90a9aefe95276e8391db45294a7fe106459bc6915b21e1a35`:
 volledige QEMU-gate met `--clipboard --workspace` exit 0, 28 fasen,
-241,63 s, ruwe QEMU-exit 33. Werkfocus, Finderselectie, exacte appisolatie,
+244,01 s, ruwe QEMU-exit 33. Werkfocus, Finderselectie, exacte appisolatie,
 ongemaskerde verplaatsing, ordening, echte compositorfault/rebind, behouden
 draft/berekening, klembordleegte na herstel, bewaren/heropenen, onafhankelijke
 schijforacle en cleanup slagen. Geen eerder mislukte poging wordt groen geteld.
 De probe-snapshottrigger volgt nu ook shell-only input; geen nieuwe velden
 of productkernel-/rechtenwijziging. De echte caretregressie is hersteld zonder
-de verplaatsingsoracle af te zwakken.
+de verplaatsingsoracle af te zwakken. Ook het normale vensterprofiel bouwt
+zonder foutinjectie. De afzonderlijke native gast/sessiepreview slaagt
+op dezelfde bron in 64,04 s: echte persoonlijke-loginweigering, gast-Home,
+zoeken en Materiaal met exacte apppixels. Geen echte accountauthenticatie.
+22 gemeten host-/lint-/bouwcommando's geven exit 0; compacte brongebonden
+JSON-rapporten en loghashes staan naast het bewijsverslag.
 
-**Open/eerstvolgend:** controle van gedeelde afnemers vond daarnaast oude
-lichte Home-tekst in de afzonderlijke native gast/sessiepreview. Die gebruikt
-nu gedeelde tekstrollen; graphics toetst alle 256 statische verloopstappen
-op 4,5:1. De vijf relevante hosttest-/Clippy-/fmt-routes slagen opnieuw.
-Omdat deze bronwijziging de fingerprint verandert, volgt nog een volledige
-verse native build/gate op de definitieve bron. Het vorige VM-resultaat wordt
-niet stilzwijgend aan deze nieuwe bron toegeschreven.
+**Open/eerstvolgend:** Home gebruikt nu gedeelde tekstrollen; graphics toetst
+alle 256 statische verloopstappen op 4,5:1. De hierboven vermelde verse
+VM-controles omvatten deze definitieve bron. U02–U06, menselijke en fysieke
+beoordeling en de volledige release blijven open; de lokale proeven gebruikten
+QEMU 10.2.1 / `pc-q35-10.0`, niet een uitgevoerde GitHub-CI-run.
+Het volgende inhoudelijke kritieke pad is echt objectmetadata en
+gereedschapscontinuïteit, niet nog een nieuwe kleurstudie of vier nep-apps.
+Leg eerst het begrensde object-/statuscontract vast; de huidige shell mag
+geen geopende titel/opslagstatus verzinnen. Eerste hervatcontrole:
+`python3 tools/progress.py --check`.
 Gebruik lokale genegeerde build-/targetmappen; een externe artifactmap wordt
 terecht door de bestaande guard geweigerd. De volledige gate blijft
 verplicht naast bestaande volledige appbeeld-, isolatie-, echte crash/herstel-,
 schijf- en cleanupgates. Omgeving hersteld zonder hostinstallatie:
 `source /home/simon/.copilot/session-state/7f2fb1d137004b68b9bef4b8ca72f938/files/veld-env/env.sh`,
 daarna `export NOS_BUILD_DIR="$PWD/build/veld-native-20261103/probe" NOS_TARGET_DIR="$PWD/target/veld-native-20261103"`
-en `python3 -B -u tools/build.py --kernel-feature native-window-session-probe`.
+en `python3 -B -u tools/build.py --kernel-feature native-window-session-probe`
+reproduceren de build; de volledige runneropdracht staat in het bewijsverslag.
 Vier werkzaamheden, toolwisseling op hetzelfde object, resizen, blur/GPU,
 dark/hoogcontrast/motion, schermlezer, menselijke en fysieke beoordeling blijven
 open. Voortgang **41 -> 41**. Geen merge, release of PR-sluiting.
