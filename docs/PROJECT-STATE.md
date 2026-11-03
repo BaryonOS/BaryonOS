@@ -19,6 +19,27 @@ Score **41 -> 41**. Eerst publiceren/reply+resolve, daarna verse CI/review;
 technisch groene checks op783 vervangen geen review van deze followup.
 Integrator blijft deze sessie;136-reconcile41034178 wacht lokale opname.
 
+## Historisch checkpoint PR136 — volledigheidsaudit — 3 november 2026
+
+Volledige bron `f6921e49d08a7c547ffda356f71bc17f1de15f31` behoudt d777,
+reconcile `d7b4c378` en bewijs `41034178`. De historische native L02-bronnen
+433bab9f/7fb8c722 zijn niet als ontbrekende port voorgesteld; geïntegreerde
+FR-L04-regressie en fysiekeQPU blijven apart. A01 accepted2/R03open
+verduidelijkt beperkte SDKacceptatie, geen releasegovernance of extra punten.
+Parent valideerde de zeven geleverde bestandshashes, Draft2020-12,
+39 unieke groepen,62 releasekoppelingen, VM-telling21 en0 gesloten
+volledige releasecriteria. D777's exact-head-CI-entry is behouden.
+Zie `verification/pr136-review-fixes.json` en
+`verification/pr136-integrator-check.json` voor exacte commando's en logs.
+
+De eerdere auditcontrole op4a52 rapporteerde29 groene checks, één overgeslagen
+CodeRabbit-job en nul mislukt; vier toenmalige threads waren later opgelost.
+Die branch-/reviewstatus blijft historisch, niet een verklaring dat de
+nieuwe documentcombinatie is geaccepteerd. Geen nieuwe lokale productbuild,
+native/QEMU-, hardware-, gebruikerstest, menselijke securityaudit of
+releasevalidatie. Alle62 FR-rijen blijven open; score41 ->41.
+De integrator is niet overgedragen. Eerstvolgend was nieuwe-head-CI/review.
+
 ## Historisch checkpoint PR145 — statische AI-review — 3 november 2026
 
 Overgenomen van `da5918fbe6d8173c4cf44810d403f965c204d36e`, rapportbasis

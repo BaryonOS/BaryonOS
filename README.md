@@ -79,6 +79,8 @@ Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).
 <!-- OS-PROGRESS:END -->
 
+Volledige repository-inventaris: [OS-completeness-audit](docs/audit/os-completeness/README.md).
+
 ## Native venstersessie — 2 november 2026
 
 [PR #122](https://github.com/simonvanieperen/nieuw-os/pull/122) bevat een eigen

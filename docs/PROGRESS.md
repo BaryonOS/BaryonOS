@@ -85,6 +85,13 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR136-documentintegratie (3 november 2026), bron `f6921e49`: **41 -> 41**.
+De L02-nativebron en A01accepted/R03open zijn correct geclassificeerd,
+zonder nieuwe productpunten. Alle zeven geleverde bestandshashes en het
+schema met39 groepen/62open releasekoppelingen zijn door parent gecontroleerd;
+de d777-CI-entry blijft behouden. Geen verse native of menselijke
+acceptatie afgeleid uit deze documentatiecorrectie.
+
 PR145-rapportintegratie (3 november 2026), rapportbasis `380111b6`:
 **41 -> 41**. Statische AI-review zonder opgeleverde bestands-/regeldekking;
 geen onafhankelijke menselijke of volledige codebase-audit. Toenmalige
