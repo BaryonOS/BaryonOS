@@ -1,9 +1,35 @@
 {
   "task": "Correct two evidence classifications in the PR136 OS-completeness audit",
   "baseline": {
-    "commit": "4a52aeae6c481cbee0b058c71430b45feb10d5bb",
-    "branch": "codex/pr136-review-fixes-20261103",
+    "commit": "d777819530bf753167210d3e97e76f1bdeec204e",
+    "branch": "codex/pr136-review-fixes-20261103-reconciled",
     "github_mutations": false
+  },
+  "reconciliation": {
+    "original_fix_commit": "32b7aa0ce0dbb2b1928661e22a85579d7ed42183",
+    "original_base_commit": "4a52aeae6c481cbee0b058c71430b45feb10d5bb",
+    "live_pr_head_commit": "d777819530bf753167210d3e97e76f1bdeec204e",
+    "local_reconciled_commit": "d7b4c378217d5aad0a12a82a0516d0da348403c2",
+    "drift_provenance": {
+      "commit": "d777819530bf753167210d3e97e76f1bdeec204e",
+      "author_and_committer": "S.W.J.B.M. van Ieperen <205651656+simonvanieperen@users.noreply.github.com>",
+      "coauthor": "Copilot <223556219+Copilot@users.noreply.github.com>",
+      "subject": "docs: record audit PR validation status",
+      "changed_in_overlapping_scope": [
+        "docs/audit/os-completeness/verification.json"
+      ],
+      "other_preserved_changes": [
+        "README.md",
+        "docs/PROJECT-STATE.md",
+        "docs/progress.json"
+      ],
+      "assessment": "Within the requested audit-document scope, the commit appends a source-bound exact-head CI check to verification.json. Its other changes update central status files, which were preserved untouched. The two fix hunks did not overlap and were replayed conflict-free."
+    },
+    "review_thread_snapshot": {
+      "unresolved_threads": 4,
+      "new_findings_on_d777": 0,
+      "note": "The four unresolved CodeRabbit threads are the earlier exact-head CI wording, priority labels, release-criteria map and release-profile findings. No new inline thread was present in the read-only snapshot."
+    }
   },
   "changes": [
     {
@@ -42,7 +68,7 @@
     },
     {
       "path": "docs/audit/os-completeness/verification.json",
-      "sha256": "e168d9daf17ea4b8029bf024e8474867a8421b23bb16becd007ce1eb2d85a98e"
+      "sha256": "ca11fc6baef5324bafeeec7155b8e50c999465bd6d84be54677abb85f91fdfb3"
     }
   ],
   "validation": [
@@ -57,9 +83,9 @@
       "result": "No whitespace errors."
     },
     {
-      "command": "python3 -B - <<'PY' [Draft 2020-12 schema, matrix invariants, FR crosswalk, summary counts, A01/R03 status, source binding and Markdown-link assertions] PY",
+      "command": "python3 -B -c 'import json,re; from pathlib import Path; from jsonschema import Draft202012Validator; r=Path(\".\"); m=json.loads((r/\"docs/audit/os-completeness/matrix.json\").read_text()); Draft202012Validator(json.loads((r/\"docs/audit/os-completeness/matrix.schema.json\").read_text())).validate(m); it=m[\"items\"]; q=next(x for x in it if x[\"id\"]==\"QUANTUM-LOCAL\"); g=next(x for x in it if x[\"id\"]==\"GOVERNANCE\"); p=json.loads((r/\"docs/progress.json\").read_text()); walk=lambda x: ([x]+sum((walk(v) for v in x.values()),[]) if isinstance(x,dict) else sum((walk(v) for v in x),[]) if isinstance(x,list) else []); a=next(x for x in walk(p) if isinstance(x,dict) and x.get(\"id\")==\"A01\"); z=next(x for x in walk(p) if isinstance(x,dict) and x.get(\"id\")==\"R03\"); full=(r/\"docs/FULL-TEST-RELEASE.md\").read_text(); mp=(r/\"docs/audit/os-completeness/release-criteria-map.md\").read_text(); ids=re.findall(r\"^\\| (FR-[A-Z][0-9]{2})\\b\",full,re.M); mapped=re.findall(r\"^\\| (FR-[A-Z][0-9]{2})\\b\",mp,re.M); v=json.loads((r/\"docs/audit/os-completeness/verification.json\").read_text())[\"matrix_summary\"]; assert len(it)==39 and len({x[\"id\"] for x in it})==39 and set(q[\"evidence_levels\"])=={\"HOST_TESTED\",\"VM_TESTED\",\"SOURCE_ONLY\"}; assert any(\"433bab9feab74473517eb8d44f2fb4475848e0cf\" in e and \"7fb8c722fc853692251e26fcdcea0ed86954ef15\" in e for e in q[\"evidence\"]) and \"FR-L04\" in \" \".join(q[\"blockers\"]+[q[\"recommended_next_step\"]]); assert any(\"A01 accepted (+2 points); R03 open (2 points)\" in e for e in g[\"evidence\"]) and a[\"status\"]==\"accepted\" and a[\"points\"]==2 and z[\"status\"]==\"open\"; assert len(ids)==len(set(ids))==62 and len(mapped)==62 and set(ids)==set(mapped); assert v[\"feature_groups\"]==39 and v[\"binding_full_release_rows\"]==v[\"binding_release_rows_mapped\"]==62 and v[\"binding_full_release_rows_closed\"]==0 and v[\"evidence_level_assignments\"][\"VM_TESTED\"]==21'",
       "exit_status": 0,
-      "result": "39 unique matrix records; 62/62 release IDs mapped and still open; dashboard counts match the matrix; A01 accepted/2 and R03 open; historical L02 VM evidence retained; changed-document relative links resolve."
+      "result": "Re-run on d777819530bf753167210d3e97e76f1bdeec204e with its verification entry preserved: Draft 2020-12 schema valid; 39 unique matrix records; all 62 release IDs mapped and open; dashboard counts match; A01 accepted/2 and R03 open; L02 source binding and open FR-L04 gate retained."
     }
   ],
   "not_run": [
