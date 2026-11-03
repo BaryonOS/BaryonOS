@@ -142,6 +142,26 @@ observerende pointerevents; de zuivere keyboardroute heeft afzonderlijk
 hostbewijs. Geen latentie- of fysiek toetsenbordbewijs geclaimd.
 Nieuwe native-uitkomsten van deze fix nog open.
 
+Derde 100%-poging op `dd8f445e4d0db74a1e84e6964845f9e28d043275`:
+probebuild exit 0 (2,05 s), runner exit 1 na 900,41 s;
+`switcher-ready` bereikt op 80,96 s, daarna pixelwait verlopen.
+Run `window-8f9f3cdb850d419595766ab94425de6b`,
+log `veld-switcher-native-scale1-attempt3.log`.
+De finale capture verschilde op slechts 85 pixels van de hostfixture:
+lokale rechthoek x=310..323, y=146..161. Dat is exact de standaardcursor
+van de hostscene midden in het paneel, niet een appminiatuurverschil.
+De native cursor stond correct op de headerparkeerplaats.
+Vervolgfix zet alleen de fixturecursor op dezelfde parkeerpositie.
+Geen scene-/main-productwrites; tijdelijke scenevrijgave aan PR157-agent B
+blijft behouden. Dit mislukte resultaat blijft bewaard als exit 1.
+Gerichte hostregressie: fixturetest met de bestaande `backing.bin` en
+`OS_SWITCHER_FIXTURE_SCALE=1`, exit 0 (0,71 s wandtijd); het volledige
+gecorrigeerde paneel is nu bytegelijk aan de opgeslagen nativecapture.
+Log `veld-switcher-fixture-cursor-regression.log`. Hierbij zijn de twee
+hostfixturebeelden in die mislukte runmap opnieuw gegenereerd; zij zijn
+dus geen ongewijzigde historische oracle-artifacts. Raw result, serial en
+nativecaptures zijn niet gewijzigd; de poging blijft mislukt.
+
 CI en main-integratie zijn nog niet uitgevoerd. Geen fysieke/menselijke/audit-/
 releaseacceptatie, geen scorewijziging. De volledige OS-/Veld-opdracht blijft
 open. Na deze ene afgeronde milestone volgt direct een kleine concept-PR voor

@@ -26,6 +26,7 @@ fn generate_switcher_from_native_app_backing_when_requested() {
         .collect();
     assert!(backing.iter().all(|color| color >> 24 == 0));
     let mut scene = Scene::new(width, height, scale, [1, 2]).unwrap();
+    scene.pointer = (width - 20, 50 * scale);
     let mut damage = Damage::new(width, height).unwrap();
     let key = |physical| KeyboardEvent {
         key: physical,
