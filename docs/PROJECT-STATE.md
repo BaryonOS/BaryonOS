@@ -92,10 +92,21 @@ profielen, RTC blijft niet-geauthenticeerd; suspend-/high-resolution-
 correctie en fysieke klokacceptatie ontbreken. Geen rubriekcriterium is
 hiermee gesloten.
 
-**Blokker:** geen blocker voor lokaal vervolgwerk; de uitgevoerde QEMU-build
-verschilt van CI. **Eerstvolgende opdracht:** onderzoek de keyring-eventlus
-zonder de huidige deadline-/rechtensemantiek te wijzigen. Start met
-`rg -n -C 3 "monotonic_ticks|ipc_wait|IPC_WAIT_HORIZON_TICKS" sdk/examples/keyring/src/service.rs`.
+**Vervolgonderzoek:** de keyring-service wacht al met één `ipc_wait` tot
+`now + IPC_WAIT_HORIZON_TICKS` (1000 ticks, nominaal 10 s) en doet dat alleen
+zonder RANDOM- of beheer-ingress. De cancelbare `clock::wait_until` hakt
+wachten op in maximaal 100 ticks (nominaal 1 s); die vervanging zou de idle-
+wakefrequentie verhogen en is daarom geen semantisch neutrale kandidaat.
+
+**Blokker:** `docs/WORK-QUEUE.md` registreert SEC72/SEC2 als bevroren, met
+SDK/keyring-paden exclusief toegewezen en zonder andere runtime-writer.
+Daarom zijn de tijdelijke experimentele wijzigingen teruggedraaid; HEAD
+`140ad397e95b33f57f5d7c1888b7883c4475047d` is schoon. De canonieke B01-gate
+is niet uitgevoerd. **Eerstvolgende stap:** controleer de actuele
+taak-/eigenaarstoewijzing vóór een nieuwe write; onderzoek daarna alleen een
+vrijgegeven service-eventlus waarvan omzetting de bestaande idle-wake-
+frequentie en deadline behoudt. **Eerstvolgend commando:**
+`git log -1 --oneline -- docs/WORK-QUEUE.md && rg -n -C 3 "SEC72|SDK/keyring|runtime-writer" docs/WORK-QUEUE.md`.
 
 ## Historisch checkpoint — PR149 derde main-integratie — 3 november 2026
 

@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`22b7bbab`](https://github.com/simonvanieperen/nieuw-os/commit/22b7bbabb336439dcf478fbd8151b6c10b535bf0) ·
+**Bron:** [`140ad397`](https://github.com/simonvanieperen/nieuw-os/commit/140ad397e95b33f57f5d7c1888b7883c4475047d) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-spoon`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** M1: centrale klok/wait-API ook voor window-session idle.
-41 blijft 41. SDK-runtime biedt absolute monotone timer-/wait-semantiek met atomische annulering; supervisor worker, wait_ticks en window-session NativeIdle gebruiken de centrale API, met bestaande mask-/yieldsemantiek behouden. Op bron 22b7bbab slagen 49 window-session Rust-tests, 10 runner-tests, 21 packaging-tests en Clippy/fmt. Native window probe: alle 22 fases, clipboard gate, disk-oracle en 23 screenshots slagen in disposable QEMU 10.2.1/pc-q35-8.2. Geen generiek OS-resourcebudget, gebruikersrapportage, fysieke/menselijke acceptatie of rubricsluiting.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** M1-vervolg: onderzoek centrale wait-integratie voor keyring.
+41 blijft 41. De keyring-eventlus gebruikt al een eenmalige IPC-wacht met deadline now + 1000 ticks en wacht alleen zonder RANDOM-/beheer-ingress; clock::wait_until zou door de 100-tick annuleringchunks de idle-wakefrequentie verhogen. Geen conversie uitgevoerd. docs/WORK-QUEUE.md registreert de relevante SDK/keyring/runtimepaden als bevroren en exclusief toegewezen. Tijdelijke experimentele wijzigingen teruggedraaid; bron-HEAD 140ad397 schoon. De B01-gate is niet uitgevoerd; geen nieuw rubricbewijs of acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
