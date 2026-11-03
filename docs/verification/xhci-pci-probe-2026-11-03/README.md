@@ -32,6 +32,36 @@ Deze hosttests bewijzen parser-/mockgedrag, geen werkende xHCI-controller.
 Onderstaande receipt blijft het historische compilebewijs vóór dit herstel;
 de eerdere linkerblocker is voor de hosttests hierboven opgeheven.
 
+## Workspace-integratie van prerequisites
+
+Vervolg op fixtureherstelcommit `2731f279661fb5a8d87399d0129d0f1c91cd5f27`:
+de ontbrekende rootworkspaceleden `driver-core` en `pci-core` en uitsluitend
+hun lokale lockfile-entries zijn toegevoegd. Geen externe dependency,
+versiewijziging of afzonderlijke workspace toegevoegd. Met dezelfde hierboven
+vermelde omgeving zijn daarna alle volgende commando's uitgevoerd (exit 0):
+
+| Commando | Resultaat |
+|---|---|
+| `cargo +1.90.0 test --offline --locked -p driver-core -p pci-core` | 11 driver-core- en 8 pci-core-hosttests geslaagd; 0 doctests |
+| `cargo +1.90.0 test --offline --locked --manifest-path drivers/xhci/Cargo.toml` | 15 xHCI-hosttests geslaagd; 0 doctests |
+| `cargo +1.90.0 fmt -p driver-core -p pci-core -- --check` | Geslaagd |
+| `cargo +1.90.0 fmt --manifest-path drivers/xhci/Cargo.toml -- --check` | Geslaagd |
+| `cargo +1.90.0 clippy --offline --locked -p driver-core -p pci-core --all-targets -- -D warnings` | Geslaagd |
+| `cargo +1.90.0 clippy --offline --locked --manifest-path drivers/xhci/Cargo.toml --all-targets -- -D warnings` | Geslaagd |
+| `cargo +1.90.0 check --offline --locked -p driver-core -p pci-core --target x86_64-unknown-none` | Geslaagd |
+| `cargo +1.90.0 check --offline --locked --manifest-path drivers/xhci/Cargo.toml --target x86_64-unknown-none` | Geslaagd |
+| `git diff --check` | Geslaagd |
+
+Logs en SHA-256:
+
+| Log | SHA-256 |
+|---|---|
+| `/tmp/nieuw-os-driver-workspace-test.log` | `0cef1097c4c093bcc24016feccd4270dd3c6e4f1ac4f78b362c8f017e3c4d75e` |
+| `/tmp/nieuw-os-driver-workspace-xhci-test.log` | `c3dc03bd1a7280b43a9d69bd2794615c9192971fc23ab5eef2d72086ca5cc1bd` |
+| `/tmp/nieuw-os-driver-workspace-fmt.log` | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
+| `/tmp/nieuw-os-driver-workspace-clippy.log` | `7e01dad433bc36975e7922e925ef767a88a267116a1a6e73e70d7c4427fff5d4` |
+| `/tmp/nieuw-os-driver-workspace-none.log` | `2f6a1328c42ad74b9a072d733413a1d90d9eaa953e8dda0ce584c095b4b6e7f4` |
+
 ## Bron en resultaat
 
 - Branch: `copilot/xhci-reviewfix`
