@@ -157,6 +157,37 @@ class WindowRunnerTests(unittest.TestCase):
             self.assertTrue(width - 460 * scale <= px < width - 36 * scale and 64 * scale <= py < 280 * scale)
             self.assertFalse(width - 188 * scale <= px < width - 52 * scale and 200 * scale <= py < 236 * scale)
 
+    def test_notification_resync_uses_published_ack_counters_not_an_unpublished_mouse_field(self):
+        raw = b"".join(f"WINDOW:{role}:{field}:{value:020}\n".encode()
+                       for role in ("MATERIAL", "CALCULATOR")
+                       for field, value in (("KEYS", 8), ("INPUT_ACKS", 12)))
+        before = window.app_input_progress(raw)
+        self.assertEqual(before["CALCULATOR"], {"KEYS": 8, "INPUT_ACKS": 12})
+        for alt_keys in (0, 1):
+            after = {role: dict(progress) for role, progress in before.items()}
+            for progress in after.values():
+                progress["INPUT_ACKS"] += 1
+            after["MATERIAL"]["KEYS"] += alt_keys
+            after["MATERIAL"]["INPUT_ACKS"] += alt_keys
+            self.assertTrue(window.notification_resync_matches(before, after, alt_open=True))
+            self.assertEqual(window.notification_resync_matches(before, after), not alt_keys)
+            for role in after:
+                for field in ("KEYS", "INPUT_ACKS"):
+                    bad = {name: dict(progress) for name, progress in after.items()}
+                    bad[role][field] += 2
+                    self.assertFalse(window.notification_resync_matches(before, bad, alt_open=True))
+        self.assertFalse(window.notification_resync_matches(before, before, alt_open=True))
+
+    def test_notification_input_progress_requires_both_roles_and_every_counter(self):
+        for missing_role in ("MATERIAL", "CALCULATOR"):
+            for missing_field in ("KEYS", "INPUT_ACKS"):
+                raw = b"".join(f"WINDOW:{role}:{field}:00000000000000000000\n".encode()
+                               for role in ("MATERIAL", "CALCULATOR")
+                               for field in ("KEYS", "INPUT_ACKS")
+                               if (role, field) != (missing_role, missing_field))
+                with self.assertRaisesRegex(ValueError, "Missing native input progress"):
+                    window.app_input_progress(raw)
+
     def test_workspace_checks_every_pixel_in_declared_shell_regions(self):
         raw = image(1280, 720, (1, 2, 3))
         header = len(raw) - 1280 * 720 * 3

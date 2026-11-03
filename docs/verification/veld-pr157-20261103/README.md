@@ -14,7 +14,7 @@ Geen centrale README/progress/PROJECT-STATE/WORK-QUEUE/DECISIONS-writes.
 |---|---|
 | 4457643877, app-GEN-wait | Verwijderd. Werkelijke compositorinputbevestiging plus paneelpixels bepalen de shell-wait. De claim dat GEN nooit kon stijgen is te absoluut: de bestaande Resync annuleert appinput en invalideert de controller. Dat maakt GEN nog geen geschikte shell-wachtvoorwaarde. |
 | 4457643865, sluitpixels | Volledige paneel-plus-schaduwregio moet overeenkomen met de echte vooraf geverifieerde opname; header met de shellfixture. Geen vergelijking van echte apppixels met lege hostbacking. |
-| 4457643893, muisisolatie | Echte niet-activerende paneelklik boven de calculatorbody, beide app-MICE-tellers en model-/focusbehoud; extra native fase. |
+| 4457643893, muisisolatie | Echte niet-activerende paneelklik boven de calculatorbody, bestaande KEYS/INPUT_ACKS-tellers en model-/focusbehoud; extra native fase. Openings-Resync wordt eerst bevestigd en als enige niet-toetsinput toegestaan; de volgende echte paste controleert op vertraagde input. Geen MICE-protocol toegevoegd. |
 | 4457643856, muisdamage | Eerste volledige paint en na iedere muisgestuurde overgang incremental/referencepixelvergelijking, op vijf displays. |
 | 4457643822/4457643830/4457643846, receipts | Relatieve log-artifactroot, gescheiden status/meetwaarden, commando-exits en precieze historische hostdekking. |
 | Centrale status-/score-/besluitdocumentatie | Bij General gemeld; geen write-eigenaarschap overgenomen. |
@@ -44,7 +44,26 @@ Runner: 21 tegenproeven. Log `veld-pr157-targeted-host.log` onder
 `$VELD_ENV/logs`; hashes worden bij native archivering vastgelegd.
 Geen nieuwe volledige scenehostrun geclaimd.
 
-## Testbewijs: nieuwe native gates nog open
+## Mislukte nieuwe native poging; acceptatie nog open
+
+Runnerbron `114053122e198b5b4ec62c86663ae5bed0f931e6`:
+100%-probebuild exit 0 (1,98 s), runner exit 1 (155,29 s).
+Runnerduur 131,33 s; fout direct na `workspace-notice-copied`:
+`IndexError: list index out of range`. De runner las een niet-gepubliceerd
+`WINDOW:<role>:MICE`-veld. De apps houden intern wel muisgebeurtenissen bij,
+maar de bestaande kernelprobe publiceert alleen KEYS en INPUT_ACKS.
+Dit is een runnerfout, geen groen native resultaat of productregressieclaim.
+Log `veld-pr157-native-scale1-attempt1.log`; ruwe uitkomst:
+`build/veld-pr157-20261103/scale1/run/window-2bcdc528cc42446cb5ef3942acf28e72/result.json`.
+
+Vervolgfix gebruikt alleen bestaande KEYS/INPUT_ACKS: precies een
+openingsannulering per app, eventueel een reeds verwerkte Alt-press voor
+Materiaal; daarna geen paneelinput naar apps. Extra tegenproeven weigeren
+ontbrekende velden, extra afleveringen en een ontbrekende annulering.
+Geen kernel-/ABI-writes. Vervolgcommand
+`python3 -B tools/test_window_session.py`: exit 0, 23 tegenproeven, 1,30 s;
+log `veld-pr157-runner-followup.log`. Rust bleef sinds de gerichte hostgate
+ongewijzigd. Nieuwe native-uitkomsten nog open.
 
 Verwacht 61 fasen per schaal, inclusief de nieuwe overlapklik.
 Na dit checkpoint, op dezelfde bevroren runnerbron:

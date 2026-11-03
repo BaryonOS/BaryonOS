@@ -285,6 +285,29 @@ def numbers(raw: bytes, name: str) -> list[int]:
     return [int(m[1]) for m in re.finditer(rb"(?:^|\n)" + re.escape(name.encode()) + rb":([0-9]{20})\n", raw)]
 
 
+def app_input_progress(raw: bytes) -> dict:
+    progress = {}
+    for role in ("MATERIAL", "CALCULATOR"):
+        progress[role] = {}
+        for field in ("KEYS", "INPUT_ACKS"):
+            values = numbers(raw, f"WINDOW:{role}:{field}")
+            if not values:
+                raise ValueError(f"Missing native input progress: {role}:{field}")
+            progress[role][field] = values[-1]
+    return progress
+
+
+def notification_resync_matches(before: dict, after: dict, *, alt_open: bool = False) -> bool:
+    for role in ("MATERIAL", "CALCULATOR"):
+        keys = after[role]["KEYS"] - before[role]["KEYS"]
+        allowed_keys = (0, 1) if alt_open and role == "MATERIAL" else (0,)
+        # Opening cancels each queue once; the preceding Alt press may already
+        # have been acknowledged or be superseded by that cancellation.
+        if keys not in allowed_keys or after[role]["INPUT_ACKS"] - before[role]["INPUT_ACKS"] != keys + 1:
+            return False
+    return True
+
+
 def validate_build(frozen: str, scale: int = 1) -> dict:
     profile_geometry(scale)
     manifest = load_json(private_path(BUILD / "manifest.json", regular=True))
@@ -583,11 +606,14 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                     key("f6"); key("3"); key("ctrl", "a"); key("ctrl", "c")
                     wait("clipboard-numeric", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == volume_disk.fnv(b"3"), "clipboard-numeric")
                     if workspace:
+                        before_panel_input = app_input_progress(serial(directory / "serial.txt"))
                         shell_key("alt", "n")
+                        observe("notification Resync acknowledgements", lambda raw:
+                                notification_resync_matches(before_panel_input, app_input_progress(raw), alt_open=True)
+                                and snapshots(raw, "CALCULATOR")[-1]["ACTIVE"] == 0)
                         workspace_wait("notice-copied")
                         panel_raw = serial(directory / "serial.txt")
-                        panel_mice = {role: numbers(panel_raw, f"WINDOW:{role}:MICE")[-1]
-                                      for role in ("MATERIAL", "CALCULATOR")}
+                        panel_input = app_input_progress(panel_raw)
                         panel_state = {role: {field: snapshots(panel_raw, role)[-1][field]
                                               for field in fields} for role, fields in (
                             ("MATERIAL", ("DRAFT_BYTES", "DRAFT_SUM", "DIRTY", "SAVE_ACKS")),
@@ -596,6 +622,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                         move(*notification_overlap_point(scale))
                         button(True); button(False); move(width - 20, 50 * scale)
                         wait("workspace-notice-mouse-isolated", lambda raw, s: comp(raw).get("FOCUSED") == 0
+                             and app_input_progress(raw) == panel_input
                              and all(s[role][-1][field] == value for role, fields in panel_state.items()
                                      for field, value in fields.items()),
                              image_check=lambda image: workspace_matches(
@@ -609,8 +636,13 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                         if any(numbers(serial(directory / "serial.txt"), f"WINDOW:{role}:KEYS")[-1] != count
                                for role, count in panel_keys.items()):
                             raise ValueError("Notification panel leaked a key gesture into an app")
+                        if app_input_progress(serial(directory / "serial.txt")) != panel_input:
+                            raise ValueError("Notification panel forwarded input to an underlying app")
                         move(302 * scale, 2 * scale)
                         button(True); button(False); move(width - 20, 50 * scale)
+                        observe("empty notification Resync acknowledgements", lambda raw:
+                                notification_resync_matches(panel_input, app_input_progress(raw)))
+                        panel_input = app_input_progress(serial(directory / "serial.txt"))
                         workspace_wait("notice-empty-mouse")
                         close_x = width - 72 * scale + 2 * scale
                         move(close_x, 70 * scale)
@@ -621,9 +653,16 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                                  captured["clipboard-numeric"], scale))
                     key("f6"); key("ctrl", "v")
                     wait("clipboard-pasted", lambda raw, s: s["CALCULATOR"][-1]["EXPRESSION_BYTES"] == 1 and s["CALCULATOR"][-1]["EXPRESSION_SUM"] == volume_disk.fnv(b"3") and s["CALCULATOR"][-1]["EVALUATIONS"] == 0, "clipboard-pasted")
-                    if workspace and any(numbers(serial(directory / "serial.txt"), f"WINDOW:{role}:MICE")[-1] != count
-                                         for role, count in panel_mice.items()):
-                        raise ValueError("Notification panel forwarded mouse input to an underlying app")
+                    if workspace:
+                        expected_input = {role: dict(progress) for role, progress in panel_input.items()}
+                        expected_input["MATERIAL"]["INPUT_ACKS"] += 1  # F6 FocusLost.
+                        expected_input["CALCULATOR"]["KEYS"] += 4
+                        expected_input["CALCULATOR"]["INPUT_ACKS"] += 4  # Ctrl+V edges.
+                        observe("post-panel focus cancellation", lambda raw:
+                                numbers(raw, "WINDOW:MATERIAL:INPUT_ACKS")[-1]
+                                >= expected_input["MATERIAL"]["INPUT_ACKS"])
+                        if app_input_progress(serial(directory / "serial.txt")) != expected_input:
+                            raise ValueError("Notification panel forwarded unexpected input to an app")
                     key("shift", "equal"); key("4"); key("ctrl", "a"); key("ctrl", "c")
                     wait("clipboard-calculator-copied", lambda raw, s: s["CALCULATOR"][-1]["EXPRESSION_SUM"] == volume_disk.fnv(b"3+4"), "clipboard-calculator-copied")
                     key("ctrl", "a"); key("backspace")
