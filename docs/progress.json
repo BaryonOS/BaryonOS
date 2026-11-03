@@ -3,11 +3,22 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "bb8877e3e1aaec304d7478510b65c8116aeb634e",
-    "branch": "simonvanieperen-reimagined-train",
-    "task": "PR149: nieuwe primaire59-hosttestreceipt op schone Watch-main99-merge bewaren",
+    "source_commit": "47ec535f15bb10912dbc6cbf1af3de9df0c6c226",
+    "assessment_basis": "source_commit",
+    "reviewed_commit": "cc1dea7eeeae01448a378ee422837b0438ecc7b5",
+    "reviewed_commit_context": "Historische review van de PR148-documentatiestatus en reikwijdte van hostbewijs; geen integratiereview.",
+    "integration_review": {
+      "status": "open",
+      "source_commit": "47ec535f15bb10912dbc6cbf1af3de9df0c6c226",
+      "main_commit": "8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2",
+      "merge_commit": "7412d0bb4b8ef2d146fc5b942bec8d6f370470e5",
+      "evidence_basis": "Git-mergeouders en handoff in docs/PROJECT-STATE.md; gerichte integratietests zijn daar gemeld met uitvoer uitsluitend in het sessietranscript. De eerdere PR148-hostreceipts zijn geen integratiereviewbewijs.",
+      "missing_evidence": "Afzonderlijk, brongebonden bewijs van de integratiereview ontbreekt; nieuwe-head CI en review moeten nog worden beoordeeld."
+    },
+    "branch": "simonvanieperen-upgraded-disco",
+    "task": "PR148-conflicten met main 8e0c15d inhoudsbehoudend integreren",
     "previous_score": 41,
-    "summary": "41 blijft 41. Op schone Watch-merge bb8877e3 met main99 zijn59 hosttests echt opnieuw groen; cwd/HEAD/status/lock- en Rust-hashes vóór/na en volledige logs vastgelegd. Geen retrospectieve bronbinding van eerdere Watch-tijden. De UI-Rust-code blijft exact53256f82; historische scalar/Clippy/fmt behouden die bron. Assessmentbasis is niet de uiteindelijke PR-head of automatisch elke testbron. Geen nieuwe code, native/QEMU/fysieke/menselijke acceptatie of punten."
+    "summary": "41/100 blijft 41/100. Drie centrale documentconflicten behouden beide checkpointreeksen en hun afzonderlijke bewijsbronnen. Gedeelde harnashulpfuncties komen exact uit main; PR148-volume-admissie blijft behouden. Geen handmatige codewijziging, nieuw criterium of native acceptatie. Gerichte integratievalidatie en nieuwe-head CI worden afzonderlijk gerapporteerd."
   },
   "tracks": [
     {

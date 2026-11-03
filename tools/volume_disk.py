@@ -39,6 +39,8 @@ CLOCKS = 40
 TRAILER = 488
 NO_CHUNK = 0xFFFF
 MAGIC = b"NOSVOL02"
+FORMAT_MARKER_MAGIC = b"NOSFMT02"
+FORMAT_MARKER_VERSION = 1
 FNV_OFFSET = 0xCBF29CE484222325
 FNV_PRIME = 0x100000001B3
 MASK = (1 << 64) - 1
@@ -79,6 +81,22 @@ def valid_name(name: bytes) -> bool:
         if 0x202A <= code <= 0x202E or 0x2066 <= code <= 0x2069:
             return False
     return True
+
+
+def format_marker() -> bytes:
+    sector = bytearray(SECTOR)
+    sector[:8] = FORMAT_MARKER_MAGIC
+    struct.pack_into("<HHIII", sector, 8, FORMAT_MARKER_VERSION, 2, DATA_START, VOLUME_SECTORS, CHUNKS)
+    struct.pack_into("<Q", sector, 504, fnv(sector[:504]))
+    return bytes(sector)
+
+
+def is_format_marker(sector: bytes) -> bool:
+    return (len(sector) == SECTOR and sector[:8] == FORMAT_MARKER_MAGIC
+            and struct.unpack_from("<HHIII", sector, 8)
+            == (FORMAT_MARKER_VERSION, 2, DATA_START, VOLUME_SECTORS, CHUNKS)
+            and not any(sector[24:504])
+            and struct.unpack_from("<Q", sector, 504)[0] == fnv(sector[:504]))
 
 
 def sector_sum(slot: int, index: int, sector: bytes) -> int:
@@ -275,7 +293,9 @@ def choose(volume: bytes):
         except ValueError:
             table = None
         uniform = states[0][0] == "valid" and all(s == states[0] for s in states)
-        scans.append({"states": states, "table": table, "uniform_invalid": uniform and table is None})
+        marker_only = is_format_marker(sectors[0]) and all(kind == "zero" for kind, _, _ in states[1:])
+        scans.append({"states": states, "table": table, "uniform_invalid": uniform and table is None,
+                      "marker_only": marker_only})
     a, b = scans
     if a["table"] and b["table"]:
         newer, older = sorted((a["table"], b["table"]), key=lambda t: -t["generation"])
@@ -289,8 +309,11 @@ def choose(volume: bytes):
             return mine["table"]
     first_attempt = not b["uniform_invalid"] and all(
         kind in ("zero", "invalid") or (kind == "valid" and g == 1) for kind, g, _ in b["states"])
-    if all(kind == "zero" for kind, _, _ in a["states"]) and first_attempt:
-        return empty_table()
+    marker_only = a["marker_only"]
+    if (all(kind == "zero" for kind, _, _ in a["states"]) or marker_only) and first_attempt:
+        if marker_only or not any(volume):
+            return empty_table()
+        raise ValueError("nonzero data in an unmarked volume")
     raise ValueError("no recoverable table")
 
 
@@ -367,10 +390,13 @@ def analyse(image: bytes, opaque=frozenset()):
                    for i, c in enumerate(table["collections"])]
     # Generation per table sector of both copies (0 = zero, -1 = invalid),
     # so a runner can tell a torn table write from an untouched copy.
+    scans = [slot_states(volume, slot) for slot in range(2)]
     slots = [[g if kind == "valid" else (0 if kind == "zero" else -1)
-              for kind, g, _ in slot_states(volume, slot)[1]] for slot in range(2)]
+              for kind, g, _ in states] for _, states in scans]
+    slot_markers = [is_format_marker(sectors[0]) for sectors, _ in scans]
     return {"generation": table["generation"], "clocks": table["clocks"], "objects": objects,
             "collections": collections, "chunks_used": used, "slots": slots,
+            "slot_markers": slot_markers,
             "digests": [domain_digest(table, d) for d in range(DOMAINS)]}
 
 
@@ -432,6 +458,8 @@ def create_image(path: Path, variant: str = "empty") -> dict:
 
     `corrupt` writes a fully sealed generation-1 table whose current version
     has a non-canonical name, which recovery must refuse before READY.
+    `foreign` leaves the table area zero and places a Btrfs-like magic at the
+    standard 64 KiB superblock offset; the fixture is not a valid Btrfs image.
     """
     if path.exists():
         raise FileExistsError(path)
@@ -446,6 +474,9 @@ def create_image(path: Path, variant: str = "empty") -> dict:
         for index, sector in enumerate(encode_table(1, 5, entries)):
             start = (FIRST + TABLE_SECTORS + index) * SECTOR
             image[start:start + SECTOR] = sector
+    elif variant == "foreign":
+        start = FIRST * SECTOR + 64 * 1024 + 0x40
+        image[start:start + 8] = b"_BHRfS_M"
     elif variant != "empty":
         raise ValueError("unknown volume variant")
     path.write_bytes(bytes(image))
