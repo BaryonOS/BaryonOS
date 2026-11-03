@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "794ddcc0d866ee8847a519b5a6f23c2ceddd69ea",
+    "source_commit": "348ee19555146ed3d44971b09c3bf0505515acdd",
     "branch": "codex/volume-format-admission-20261102",
-    "task": "Integreer actuele main met behoud PR149 en volume-admissie; native volumegates opnieuw vereist",
+    "task": "Integreer main 8e0c15d8 en behoud PR133/PR142/PR149-inhoud",
     "previous_score": 41,
-    "summary": "De 41/100-rubric blijft behouden; geen nieuwe punten. De actuele main is inhoudsbehoudend geïntegreerd: PR149's UI-code, testreceipt en mainstatus blijven aanwezig, evenals PR133's volume-admissiegeschiedenis. De branchgebonden 10+9-VM-proeven horen bij een oudere bron en accepteren de combinatie niet; herhaal ze op een nieuw bevroren checkpoint. Native volumeacceptatie blijft open."
+    "summary": "De 41/100-rubric blijft behouden; geen punten toegekend. Main 8e0c15d8 is inhoudsbehoudend geïntegreerd met behoud van PR133's volume-admissiegeschiedenis, PR142's unieke receipts en PR149's UI-bewijs. Historische native volumegates blijven aan hun oudere bron gebonden; native volumeacceptatie blijft open."
   },
   "tracks": [
     {

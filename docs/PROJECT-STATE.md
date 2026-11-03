@@ -1,6 +1,27 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR133 volume-admissie en bijgewerkte main — 3 november 2026
+## NEXT AGENT HANDOFF — PR133-volumecontract en actuele main — 3 november 2026
+
+**Basis vóór integratie:** PR-head `348ee19555146ed3d44971b09c3bf0505515acdd`;
+main `8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2`, branch
+`codex/volume-format-admission-20261102`. De README-, status- en
+assessmentconflicten zijn verenigd; PR142's unieke receipts en snapshotregister,
+PR149's UI-bewijs en PR133's volume-admissiegeschiedenis blijven behouden.
+Rubric blijft **41 → 41/100**; de 10+9-volume-VM-proeven zijn alleen bewijs voor
+de oudere bron `94f12da` en moeten op een nieuw bevroren checkpoint opnieuw.
+
+**Validatie van deze integratie (exit 0):** `python3 -B tests/test_common.py`
+(8 tests), `python3 -B -m unittest discover -s tools/tests -p test_random.py -v`
+(21 tests), dezelfde opdracht met `test_images.py` (20 tests),
+`python3 -B -m py_compile tools/common.py tools/run_fpu.py tools/run_images.py tools/run_random.py tests/test_common.py`,
+`python3 tools/progress.py --write`, `python3 tools/progress.py --check` en
+`git diff --check`. De incoming main-ref was exact `8e0c15d8`; Python-
+wijzigingen centraliseren hash-/padhelpers voor de image- en random-harnassen.
+Geen nieuwe native VM-, fysieke of menselijke acceptatie wordt geclaimd.
+**Open/eerstvolgend:** na publicatie de nieuwe-head-checks laten evalueren;
+volume-VM-gates blijven open.
+
+## Historisch checkpoint — PR133 volume-admissie en bijgewerkte main — 3 november 2026
 
 **Bron:** PR-head `794ddcc0d866ee8847a519b5a6f23c2ceddd69ea` met de actuele
 main `0e3b9e7f02ee7556e4b713fa58c9cd9e6b26a740`, branch
@@ -25,7 +46,26 @@ eigen targets, images en logs onder
 gecombineerde native gates open; er zijn geen punten toegekend. Nieuwe-head
 checks moeten na publicatie opnieuw worden beoordeeld.
 
-## NEXT AGENT HANDOFF — PR149 derde main-integratie — 3 november 2026
+
+## Historisch checkpoint — PR142 main-integratie — 3 november 2026
+
+**Basis vóór integratie:** PR-head `37ad1e98328e59b752c230310a4abeaca749b669`;
+main `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`. De enige conflicthunk was
+`docs/verification/retained-document-heads-20261103.json`. De opgeloste
+snapshotlijst behoudt alle unieke PR131/132-, PR141- en PR142-ingangen;
+PR149's code/tests en receipts zijn eveneens behouden uit main. Geen receipt
+wordt als bewijs voor een latere mergeboom aangeduid.
+
+**Uitgevoerd op de opgeloste boom:** `node --test ui/prototype/tests/*.test.mjs`
+— 41 geslaagd, 0 mislukt; `node --check ui/prototype/app.js` en
+`node --check ui/prototype/state.js` — exit 0. De README-voorgestelde
+`--test-isolation=none`-optie wordt niet herkend door Node v22.23.4; de suite
+is daarna met de ondersteunde standaardopties geslaagd. Progressmeter is
+bijgewerkt: **41 → 41/100**, zonder nieuw criteriumbewijs. Native/QEMU,
+fysieke en menselijke acceptatie zijn niet uitgevoerd.
+**Open:** nieuwe-head-checks evalueren; geen native bewijs geclaimd.
+
+## Historisch checkpoint — PR149 derde main-integratie — 3 november 2026
 
 **Basis:** Watch-merge `bb8877e3e1aaec304d7478510b65c8116aeb634e`, met
 ouders `416886354dbb0c6135a0740c429a3fbd4530a16d` en main
