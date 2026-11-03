@@ -14,17 +14,22 @@ compile_error!("update-service is only for the Nieuw OS x86_64-unknown-none targ
 
 mod support;
 
-#[cfg(all(feature = "native", not(feature = "test-signing-anchors")))]
-compile_error!(
-    "the update service requires an explicit signing policy; TEST anchors are test-only"
-);
-
 use nieuw_os_sdk_runtime::{block::READ_MAX, native, BlockDevice, Error, Handle};
 use update_core::{
-    decide, header_after_install, image_sector, image_sectors, manifest_sector,
-    test_policy::verify_manifest, Decision, Header, ImageDigest, Manifest, Reject, INBOX_IMAGE,
-    INBOX_MANIFEST, MANIFEST_LEN, MANIFEST_SECTORS, SECTOR,
+    decide, header_after_install, image_sector, image_sectors, manifest_sector, Decision, Header,
+    ImageDigest, Manifest, Reject, INBOX_IMAGE, INBOX_MANIFEST, MANIFEST_LEN, MANIFEST_SECTORS,
+    SECTOR,
 };
+
+#[cfg(feature = "test-signing-anchors")]
+use update_core::test_policy::verify_manifest;
+
+#[cfg(all(feature = "native", not(feature = "test-signing-anchors")))]
+fn verify_manifest(_: &[u8; MANIFEST_LEN]) -> Result<Manifest, Reject> {
+    compile_error!(
+        "the update service requires an explicit signing policy; TEST anchors are test-only"
+    );
+}
 
 const POLL_LIMIT: usize = 200_000;
 
