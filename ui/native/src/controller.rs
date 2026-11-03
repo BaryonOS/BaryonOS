@@ -21,6 +21,8 @@ use nieuw_os_input_core::Event;
 use ui_core::{KeyAction, KeyboardEvent, PhysicalKey};
 use volume_core::PER_DOMAIN;
 
+pub const MAX_SEARCH_BYTES: usize = 64;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Screen {
     Material,
@@ -31,11 +33,13 @@ pub enum Screen {
 pub enum Focus {
     New,
     Refresh,
+    Search,
     Previous,
     Next,
     Object(usize),
     Back,
     Document,
+    DocumentName,
     Save,
     CancelSave,
     KeepEditing,
@@ -94,6 +98,9 @@ pub struct View<'a> {
     pub list_scroll: usize,
     pub contents: Option<&'a str>,
     pub title: &'a [u8],
+    pub query: &'a str,
+    pub field_caret: usize,
+    pub field_anchor: usize,
     pub caret: usize,
     pub anchor: usize,
     pub scroll: usize,
@@ -145,6 +152,12 @@ pub struct Controller<'a, T> {
     status: Status,
     objects: [ListEntry; PER_DOMAIN],
     object_count: usize,
+    all_objects: [ListEntry; PER_DOMAIN],
+    all_object_count: usize,
+    query: [u8; MAX_SEARCH_BYTES],
+    query_length: usize,
+    field_caret: usize,
+    field_anchor: usize,
     list_loaded: bool,
     list_scroll: usize,
     caret: usize,
@@ -198,6 +211,12 @@ impl<'a, T: Transport> Controller<'a, T> {
             },
             objects: [ListEntry::EMPTY; PER_DOMAIN],
             object_count: 0,
+            all_objects: [ListEntry::EMPTY; PER_DOMAIN],
+            all_object_count: 0,
+            query: [0; MAX_SEARCH_BYTES],
+            query_length: 0,
+            field_caret: 0,
+            field_anchor: 0,
             list_loaded: false,
             list_scroll: 0,
             caret: 0,
@@ -286,6 +305,9 @@ impl<'a, T: Transport> Controller<'a, T> {
             list_scroll: self.list_scroll,
             contents: draft.and_then(|d| core::str::from_utf8(d.contents).ok()),
             title: draft.map_or(&[], |d| d.name),
+            query: self.query(),
+            field_caret: self.field_caret,
+            field_anchor: self.field_anchor,
             caret: self.caret,
             anchor: self.anchor,
             scroll: self.scroll,
@@ -412,10 +434,15 @@ impl<'a, T: Transport> Controller<'a, T> {
         let mut objects = [ListEntry::EMPTY; PER_DOMAIN];
         match self.document.list(&mut objects) {
             Ok(count) => {
-                self.objects = objects;
-                self.object_count = count;
+                self.all_objects = objects;
+                self.all_object_count = count;
+                self.filter_objects();
                 self.list_loaded = true;
-                self.list_scroll = self.list_scroll.min(count.saturating_sub(1));
+                self.list_scroll = self.list_scroll.min(self.object_count.saturating_sub(1));
+                self.pressed = None;
+                if matches!(self.focus, Focus::Object(_)) {
+                    self.focus = Focus::Refresh;
+                }
                 self.invalidate()
             }
             Err(error) => {
@@ -423,6 +450,57 @@ impl<'a, T: Transport> Controller<'a, T> {
                 Err(self.failed(Error::Storage(error)))
             }
         }
+    }
+    fn query(&self) -> &str {
+        core::str::from_utf8(&self.query[..self.query_length])
+            .expect("search is set only from validated UTF-8")
+    }
+    fn filter_objects(&mut self) {
+        self.object_count = 0;
+        for entry in &self.all_objects[..self.all_object_count] {
+            let matches = self.query_length == 0
+                || core::str::from_utf8(&entry.name[..entry.name_length])
+                    .is_ok_and(|name| contains_name(name, self.query()));
+            if matches {
+                self.objects[self.object_count] = *entry;
+                self.object_count += 1;
+            }
+        }
+        self.objects[self.object_count..].fill(ListEntry::EMPTY);
+    }
+    fn set_search(&mut self, value: &str) -> Result<(), Error> {
+        if self.screen != Screen::Material
+            || value.len() > MAX_SEARCH_BYTES
+            || value.chars().any(char::is_control)
+        {
+            return Err(self.failed(Error::InvalidInput));
+        }
+        self.query.fill(0);
+        self.query[..value.len()].copy_from_slice(value.as_bytes());
+        self.query_length = value.len();
+        self.filter_objects();
+        self.list_scroll = 0;
+        self.focus = Focus::Search;
+        self.field_caret = value.len();
+        self.field_anchor = self.field_caret;
+        self.pressed = None;
+        self.dragging = false;
+        self.invalidate()
+    }
+    fn rename(&mut self, value: &str) -> Result<(), Error> {
+        if self.screen != Screen::Editor || !self.view().can_save || self.document.is_saving() {
+            return Err(self.failed(Error::InvalidInput));
+        }
+        self.document
+            .rename_draft(value.as_bytes())
+            .map_err(|error| self.failed(Error::Storage(error)))?;
+        self.focus = Focus::DocumentName;
+        self.field_caret = value.len();
+        self.field_anchor = self.field_caret;
+        self.pressed = None;
+        self.dragging = false;
+        self.update_edit_status();
+        self.invalidate()
     }
     pub fn open(&mut self, object: u64) -> Result<(), Error> {
         if let Err(error) = self.document.open(object) {
@@ -445,7 +523,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             self.refresh()?;
         }
         let Some(object) = (0..PER_DOMAIN).find(|index| {
-            !self.objects[..self.object_count]
+            !self.all_objects[..self.all_object_count]
                 .iter()
                 .any(|entry| entry.object as usize == *index)
         }) else {
@@ -543,7 +621,9 @@ impl<'a, T: Transport> Controller<'a, T> {
             Focus::KeepEditing => SemanticId::KeepEditing,
             Focus::SaveAndBack => SemanticId::SaveAndBack,
             Focus::Discard => SemanticId::Discard,
-            Focus::Document => return Err(Error::InvalidInput),
+            Focus::Document | Focus::DocumentName | Focus::Search => {
+                return Err(Error::InvalidInput)
+            }
         };
         self.activate_semantic(id, self.generation)
     }
@@ -571,6 +651,13 @@ impl<'a, T: Transport> Controller<'a, T> {
                 return Err(Error::InvalidInput);
             }
             return self.invalidate();
+        }
+        if enabled && actions.set_value {
+            match id {
+                SemanticId::Search => return self.set_search(value),
+                SemanticId::DocumentName => return self.rename(value),
+                _ => {}
+            }
         }
         if id != SemanticId::Document || !enabled || !actions.set_value {
             return Err(Error::InvalidInput);
@@ -700,6 +787,7 @@ impl<'a, T: Transport> Controller<'a, T> {
                 .and_then(|id| self.open(id)),
             Focus::Back => self.request_back(),
             Focus::Document => Ok(()),
+            Focus::DocumentName | Focus::Search => self.focus_field(focus, false),
             Focus::Save => self.save(),
             Focus::CancelSave => self.cancel_save(),
             Focus::KeepEditing => {
@@ -865,8 +953,129 @@ impl<'a, T: Transport> Controller<'a, T> {
         self.ensure_caret();
         self.invalidate()
     }
+    fn field_value(&self) -> Result<&str, Error> {
+        match self.focus {
+            Focus::Search => Ok(self.query()),
+            Focus::DocumentName => {
+                core::str::from_utf8(self.view().title).map_err(|_| Error::InvalidUtf8)
+            }
+            _ => Err(Error::InvalidInput),
+        }
+    }
+    fn focus_field(&mut self, focus: Focus, select_all: bool) -> Result<(), Error> {
+        self.focus = focus;
+        self.field_caret = self.field_value()?.len();
+        self.field_anchor = if select_all { 0 } else { self.field_caret };
+        self.pressed = None;
+        self.dragging = false;
+        self.invalidate()
+    }
+    fn replace_field(&mut self, value: &str) -> Result<(), Error> {
+        let current = self.field_value()?;
+        let range = text::selection(
+            text::boundary(current, self.field_anchor),
+            text::boundary(current, self.field_caret),
+        );
+        let length = current.len() - range.len() + value.len();
+        let limit = if self.focus == Focus::Search {
+            MAX_SEARCH_BYTES
+        } else {
+            volume_core::NAME
+        };
+        if length > limit {
+            return Err(self.failed(Error::Storage(StorageError::ContentTooLarge)));
+        }
+        let mut bytes = [0; MAX_SEARCH_BYTES];
+        bytes[..range.start].copy_from_slice(&current.as_bytes()[..range.start]);
+        bytes[range.start..range.start + value.len()].copy_from_slice(value.as_bytes());
+        bytes[range.start + value.len()..length].copy_from_slice(&current.as_bytes()[range.end..]);
+        let next = core::str::from_utf8(&bytes[..length]).map_err(|_| Error::InvalidUtf8)?;
+        if self.focus == Focus::Search {
+            self.set_search(next)?;
+        } else {
+            self.rename(next)?;
+        }
+        self.field_caret = range.start + value.len();
+        self.field_anchor = self.field_caret;
+        Ok(())
+    }
+    fn field_key(&mut self, event: KeyboardEvent) -> Result<(), Error> {
+        if event.modifiers.control() {
+            if event.key == PhysicalKey::A {
+                self.field_anchor = 0;
+                self.field_caret = self.field_value()?.len();
+                return self.invalidate();
+            }
+            return Ok(());
+        }
+        if event.modifiers.alt() || event.modifiers.super_key() {
+            return Ok(());
+        }
+        let current = self.field_value()?;
+        let selected = text::selection(self.field_anchor, self.field_caret);
+        let next = match event.key {
+            PhysicalKey::Left => Some(if !event.modifiers.shift() && !selected.is_empty() {
+                selected.start
+            } else {
+                text::previous(current, self.field_caret)
+            }),
+            PhysicalKey::Right => Some(if !event.modifiers.shift() && !selected.is_empty() {
+                selected.end
+            } else {
+                text::next(current, self.field_caret)
+            }),
+            PhysicalKey::Home => Some(0),
+            PhysicalKey::End => Some(current.len()),
+            _ => None,
+        };
+        if let Some(next) = next {
+            self.field_caret = next;
+            if !event.modifiers.shift() {
+                self.field_anchor = next;
+            }
+            return self.invalidate();
+        }
+        match event.key {
+            PhysicalKey::Backspace => {
+                if selected.is_empty() {
+                    self.field_anchor = text::previous(current, self.field_caret);
+                }
+                self.replace_field("")
+            }
+            PhysicalKey::Delete => {
+                if selected.is_empty() {
+                    self.field_anchor = text::next(current, self.field_caret);
+                }
+                self.replace_field("")
+            }
+            PhysicalKey::Enter | PhysicalKey::KeypadEnter => {
+                if self.focus == Focus::Search {
+                    if self.object_count > 0 {
+                        self.activate_focus_semantically(Focus::Object(0))
+                    } else {
+                        Ok(())
+                    }
+                } else {
+                    self.focus = Focus::Document;
+                    self.invalidate()
+                }
+            }
+            key => {
+                if let Some(byte) =
+                    us_character(key, event.modifiers.shift(), event.modifiers.caps_lock)
+                {
+                    let bytes = [byte];
+                    self.replace_field(
+                        core::str::from_utf8(&bytes).map_err(|_| Error::InvalidInput)?,
+                    )
+                } else {
+                    Ok(())
+                }
+            }
+        }
+    }
     fn tab(&mut self, reverse: bool) -> Result<(), Error> {
-        let mut choices = [Focus::New; PER_DOMAIN + 4];
+        let mut choices = [Focus::New; PER_DOMAIN + 5];
         let count = match self.screen {
             Screen::Material => {
                 let mut prefix = if self.editable {
@@ -892,7 +1101,8 @@ impl<'a, T: Transport> Controller<'a, T> {
                 {
                     *choice = Focus::Object(i);
                 }
-                self.object_count + prefix
+                choices[self.object_count + prefix] = Focus::Search;
+                self.object_count + prefix + 1
             }
             Screen::Editor => {
                 choices[0] = Focus::Back;
@@ -900,10 +1110,15 @@ impl<'a, T: Transport> Controller<'a, T> {
                 choices[2] = if self.document.is_saving() {
                     Focus::CancelSave
                 } else {
-                    Focus::Save
+                    Focus::DocumentName
                 };
+                choices[3] = Focus::Save;
                 if self.view().can_save || self.document.is_saving() {
-                    3
+                    if self.document.is_saving() {
+                        3
+                    } else {
+                        4
+                    }
                 } else {
                     2
                 }
@@ -930,6 +1145,9 @@ impl<'a, T: Transport> Controller<'a, T> {
         } else {
             (at + 1) % count
         }];
+        if matches!(self.focus, Focus::Search | Focus::DocumentName) {
+            return self.focus_field(self.focus, false);
+        }
         if let Focus::Object(index) = self.focus {
             let rows = Layout::new(self.viewport).list_rows();
             if index < self.list_scroll {
@@ -946,6 +1164,21 @@ impl<'a, T: Transport> Controller<'a, T> {
             return Ok(());
         }
         let press = event.action == KeyAction::Press;
+        if press
+            && event.modifiers.control()
+            && event.key == PhysicalKey::F
+            && self.screen == Screen::Material
+        {
+            return self.focus_field(Focus::Search, true);
+        }
+        if press
+            && event.key == PhysicalKey::F2
+            && self.screen == Screen::Editor
+            && self.view().can_save
+            && !self.document.is_saving()
+        {
+            return self.focus_field(Focus::DocumentName, true);
+        }
         if self.screen == Screen::Material {
             if event.key == PhysicalKey::PageDown
                 && self.list_scroll + Layout::new(self.viewport).list_rows() < self.object_count
@@ -960,6 +1193,9 @@ impl<'a, T: Transport> Controller<'a, T> {
             return self.tab(event.modifiers.shift());
         }
         if event.key == PhysicalKey::Escape && press {
+            if self.screen == Screen::Material && self.query_length > 0 {
+                return self.set_search("");
+            }
             return match self.screen {
                 Screen::ConfirmClose => self.activate_focus_semantically(Focus::KeepEditing),
                 Screen::Editor => self.activate_focus_semantically(Focus::Back),
@@ -976,6 +1212,14 @@ impl<'a, T: Transport> Controller<'a, T> {
                 self.ensure_caret();
                 return self.invalidate();
             }
+        }
+        if (self.screen == Screen::Material && self.focus == Focus::Search)
+            || (self.screen == Screen::Editor && self.focus == Focus::DocumentName)
+        {
+            if self.document.is_saving() && self.focus == Focus::DocumentName {
+                return Ok(());
+            }
+            return self.field_key(event);
         }
         if self.focus != Focus::Document || self.screen != Screen::Editor {
             if press
@@ -1068,6 +1312,9 @@ impl<'a, T: Transport> Controller<'a, T> {
                 if layout.refresh.contains(x, y) {
                     return Some(Focus::Refresh);
                 }
+                if layout.search.contains(x, y) {
+                    return Some(Focus::Search);
+                }
                 if self.list_scroll > 0 && layout.list_previous.contains(x, y) {
                     return Some(Focus::Previous);
                 }
@@ -1095,6 +1342,11 @@ impl<'a, T: Transport> Controller<'a, T> {
                     } else {
                         Focus::Save
                     })
+                } else if layout.name.contains(x, y)
+                    && self.view().can_save
+                    && !self.document.is_saving()
+                {
+                    Some(Focus::DocumentName)
                 } else if layout.editor.contains(x, y) {
                     Some(Focus::Document)
                 } else {
@@ -1210,6 +1462,7 @@ impl<'a, T: Transport> Controller<'a, T> {
                 if key.key == PhysicalKey::Escape
                     && key.action == KeyAction::Press
                     && self.screen == Screen::Material
+                    && self.query_length == 0
                     && self.desktop.is_some() =>
             {
                 self.desktop.as_mut().unwrap().home();
@@ -1223,6 +1476,15 @@ impl<'a, T: Transport> Controller<'a, T> {
                 if input.changed.left() && input.buttons.left() {
                     self.pressed = self.hit(x, y);
                     if let Some(focus) = self.pressed {
+                        if focus != self.focus
+                            && matches!(focus, Focus::Search | Focus::DocumentName)
+                        {
+                            self.field_caret = match focus {
+                                Focus::Search => self.query_length,
+                                _ => self.view().title.len(),
+                            };
+                            self.field_anchor = self.field_caret;
+                        }
                         self.focus = focus;
                     }
                     if self.pressed == Some(Focus::Document) {
@@ -1244,6 +1506,16 @@ impl<'a, T: Transport> Controller<'a, T> {
             Event::Cancel(_) => Ok(()),
         }
     }
+}
+
+fn contains_name(name: &str, query: &str) -> bool {
+    name.char_indices().any(|(start, _)| {
+        let mut candidate = name[start..].chars().flat_map(char::to_lowercase);
+        query
+            .chars()
+            .flat_map(char::to_lowercase)
+            .all(|ch| candidate.next() == Some(ch))
+    })
 }
 
 pub(crate) fn us_character(key: PhysicalKey, shift: bool, caps: bool) -> Option<u8> {

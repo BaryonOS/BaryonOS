@@ -1,6 +1,40 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — expliciete maturity-integratieclaims — 3 november 2026
+## NEXT AGENT HANDOFF — Materiaal benoemen/save/zoek/heropenen — 3 november 2026
+
+**Bron:** `21d14592a54a80da2debf7cfad139d37264078c7`, branch
+`simonvanieperen-animated-garbanzo`, productdelta in dit checkpoint.
+Een gebruiker kan nu een document maken, via F2 benoemen, inhoud invoeren,
+Ctrl+S bewaren, teruggaan, Ctrl+F op naam zoeken en met Enter heropenen.
+De app-hostproef start daarna een nieuwe app en volume-service met alleen
+de bewaarde RAM-sectoren: dezelfde naam/inhoud, zonder oude buffers/tabel/
+endpoints, daarna schone cleanup. Dit is nieuwe productcode boven bestaande
+volume-v7-contracten, geen personal-storage-/encryptieclaim.
+
+**Bestanden:** `ui/native/src/{controller,render}.rs`, nieuwe
+`ui/native/tests/named_documents.rs`, bestaande interaction/renderregressies,
+`sdk/examples/materiaal/tests/chain.rs` en direct gerelateerde docs.
+**Bewijs:** 5 nieuwe UI-hostscenario's, 37 bestaande interactie- en 7
+renderregressies, 39 appketens en 2 app-semantiekproeven groen; beide Clippy
+all-targets en fmt exit 0. Exacte commando's, logpaden, initiële fouten en
+bewijsgrens: [ACCEPTANCE.md](verification/material-named-flow/ACCEPTANCE.md).
+Native scalar-appbuild/ELF-parser nog niet uitgevoerd op dit checkpoint;
+geen nieuwe QEMU-runtime, hardware-, menselijke of releaseacceptatie.
+
+**Ownership:** Veld heeft controller/render expliciet vrijgegeven; General
+is enige schrijver. HC is apart gepubliceerd op `16c26c1c`, maar niet hier
+geintegreerd wegens ontbrekende eerdere Veld-basis. Drivers gaat verder met
+VirtIO-RNG/keyring-BAR; `m3.rs` blijft bij Maturity voor toegewezen OOM/SMP-
+hooks. De eerder verstuurde SM-OOM-1/SMP/K05-claims blijven ongewijzigd.
+Auth/session-UI blijft stil; persoonlijke storage/settings blijven afhankelijk
+van B02/profile-key-authority, zonder bypass.
+
+**Score: 39 -> 39/100.** Hostintegratie sluit geen native criterium.
+**Eerstvolgend commando:** `python3 -B sdk/examples/materiaal/build.py`,
+gevolgd door de bestaande ELF-parsertest tegen dat echte executable.
+Bewaar het resultaat als buildbewijs, niet als native runtime.
+
+## Historisch checkpoint — expliciete maturity-integratieclaims — 3 november 2026
 
 **Bron:** productbasis `ed592537751f5d50710fc61744331d1a6334a10f`,
 daarna remote-integratie `86e8092e` inhoudsbehoudend overgenomen; branch

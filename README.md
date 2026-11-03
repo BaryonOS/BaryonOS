@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **39** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`ed592537`](https://github.com/simonvanieperen/nieuw-os/commit/ed592537751f5d50710fc61744331d1a6334a10f) ·
+**Bron:** [`21d14592`](https://github.com/simonvanieperen/nieuw-os/commit/21d14592a54a80da2debf7cfad139d37264078c7) ·
 **Ontwikkelbranch:** `simonvanieperen-animated-garbanzo`.
-Deze opdracht: **39% → 39% (+0 procentpunt)**. **Opdracht:** Actieve WORK-QUEUE-herbalancering: OOM, SMP en K05-consumer naar System Maturity.
-39% → 39%: expliciete integration writeclaims voor System Maturity (P0 OOM, P1 SMP, P2 K05 journal/crash), gecontroleerde actieve owners en seriele filehandoffs vervangen historische directoryfreezes. Dit is coordinatie, geen implementatie- of native acceptatiebewijs. Ongecommitteerde Materiaal-WIP blijft apart en nog niet groen; geen rubriccriterium gewijzigd.
+Deze opdracht: **39% → 39% (+0 procentpunt)**. **Opdracht:** Materiaal: document benoemen, bewaren, sluiten, zoeken en opnieuw openen.
+39% → 39%: nieuwe geintegreerde productcode voor documentnaam en lokale naamsearch boven de bestaande volume-v7-save/open-keten. De app-hostproef herstart met alleen de bewaarde RAM-sectoren en vindt identieke naam/inhoud terug. Gerichte hosttests zijn groen; dit is geen native runtime-, encrypted-storage- of menselijke acceptatie. Geen rubriccriterium gewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

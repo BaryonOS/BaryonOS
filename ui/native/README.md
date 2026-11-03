@@ -32,6 +32,19 @@ van **alle** tiles. Fout/onderbreking/nieuwe generatie laat repaint open. De
 eerste versie tekent het volledige frame opnieuw; er is geen latencyclaim of
 atomische pageflip. Root moet dit op het referentieprofiel meten/integreren.
 
+Documenten hebben een bewerkbaar naamveld: F2 selecteert de naam, Enter keert
+terug naar de inhoud en Ctrl+S bewaart naam en inhoud via dezelfde volume-v7-
+transactie. Teruggaan behoudt de bestaande dirty-/discardbeveiliging.
+Ctrl+F focust de lokale naamzoeker; Enter opent het eerste resultaat.
+Zoeken gebruikt Unicode-kleine letters en een substring, zonder accent- of
+normalisatiegarantie. Esc wist eerst de zoekterm. Namen blijven begrensd door
+het bestaande opslagcontract; zoeken mag ook bij alleen-lezen opslag.
+Een filter verbergt objecten, maar maakt hun opslagslots niet beschikbaar.
+De velden hebben pointerfocus, keyboardselectie en semantische tekstacties.
+De gerichte [hostproeven](../../docs/verification/material-named-flow/ACCEPTANCE.md)
+gebruiken de echte app-/input-/volumecontracten; zij bewijzen geen koude
+versleutelde persoonlijke opslag of nieuwe native runtimeacceptatie.
+
 `Frame::semantics` levert een begrensde tree met rollen, stabiele ID's,
 ouderrelaties, fysieke bounds, focus, read-only/enabled, tekstwaarde,
 byte-selectie en echte savevoortgang. `activate` en `set_value` beschrijven

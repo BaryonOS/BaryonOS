@@ -867,6 +867,94 @@ macro_rules! scenario {
     };
 }
 
+fn named_save_search_reopen_after_app_and_service_recreation_impl() {
+    let h = Host::new();
+    let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut a = app(
+        &h,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    new_text(&h, &mut a);
+    // Real Set1 F2, "notes", Enter, then Ctrl+S through INP1 and the app loop.
+    keys(
+        &h,
+        &mut a,
+        &[
+            0x3c, 0xbc, 0x31, 0xb1, 0x18, 0x98, 0x14, 0x94, 0x12, 0x92, 0x1f, 0x9f, 0x1c, 0x9c,
+            0x1d, 0x1f, 0x9f, 0x9d,
+        ],
+    );
+    for _ in 0..3 {
+        a.step().unwrap();
+    }
+    assert_eq!(a.controller().view().title, b"notes");
+    assert_eq!(a.evidence().save_acks, 1);
+    assert_eq!(h.borrow_mut().contents(), b"hi");
+    keys(
+        &h,
+        &mut a,
+        &[
+            0x01, 0x81, 0x1d, 0x21, 0xa1, 0x9d, 0x31, 0xb1, 0x18, 0x98, 0x14, 0x94, 0x12, 0x92,
+            0x1f, 0x9f, 0x1c, 0x9c,
+        ],
+    );
+    assert_eq!(a.controller().view().screen, Screen::Editor);
+    assert_eq!(a.controller().view().contents, Some("hi"));
+    finish_paint(&mut a);
+    a.stop_clean().unwrap();
+    assert_eq!(h.borrow().closed.len(), 6);
+    drop(a);
+    d.fill(0);
+    o.fill(0);
+    s.fill(0);
+
+    // Only persisted RAM sectors cross this host restart; no app buffers,
+    // volume table, endpoints, input policy or surface state are retained.
+    let restarted = Host::new();
+    {
+        let mut next = restarted.borrow_mut();
+        next.disk.sectors = h.borrow().disk.sectors.clone();
+        let mut table = Table::EMPTY;
+        volume::table::recover(&mut next.disk, &mut table).unwrap();
+        assert_eq!(table.entries[0].name(), b"notes");
+        next.volume = Service::new(DOC_EPOCH, table, false);
+    }
+    let mut reopened = app(
+        &restarted,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    keys(
+        &restarted,
+        &mut reopened,
+        &[
+            0x1d, 0x21, 0xa1, 0x9d, 0x31, 0xb1, 0x18, 0x98, 0x14, 0x94, 0x12, 0x92, 0x1f, 0x9f,
+            0x1c, 0x9c,
+        ],
+    );
+    assert_eq!(reopened.controller().view().screen, Screen::Editor);
+    assert_eq!(reopened.controller().view().title, b"notes");
+    assert_eq!(reopened.controller().view().contents, Some("hi"));
+    assert!(!reopened.controller().document().is_dirty());
+    assert_eq!(reopened.evidence().save_acks, 0);
+    finish_paint(&mut reopened);
+    assert!(reopened.evidence().ready);
+    assert_retained_material_pixels(&reopened, &restarted.borrow());
+    reopened.stop_clean().unwrap();
+    assert_eq!(restarted.borrow().closed.len(), 6);
+}
+scenario!(
+    named_save_search_reopen_after_app_and_service_recreation,
+    named_save_search_reopen_after_app_and_service_recreation_impl
+);
+
 fn assert_retained_material_pixels(a: &App<'_, Port, Port, Port>, h: &Host) {
     let frame = Frame::new(a.controller().view());
     let geometry = geometry();

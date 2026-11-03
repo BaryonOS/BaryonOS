@@ -1108,7 +1108,7 @@ fn semantic_tree_bounds_maximum_material_page_and_dirty_dialog_impl() {
         let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
         let frame = Frame::new(ui.view());
         let count = frame.semantics(&mut nodes).unwrap();
-        assert_eq!(count, 6 + volume_core::PER_DOMAIN);
+        assert_eq!(count, 7 + volume_core::PER_DOMAIN);
         assert_semantic_tree(&nodes, count);
         assert_eq!(
             nodes[..count]
@@ -1127,8 +1127,7 @@ fn semantic_tree_bounds_maximum_material_page_and_dirty_dialog_impl() {
         assert!(short.iter().all(|node| node.id == SemanticId::Empty));
     }
 
-    // Seven visible entries plus pagination need fifteen nodes, exceeding
-    // the old fourteen-node bound even though all eight objects fit a domain.
+    // Search, seven entries and pagination must all fit the semantic budget.
     ui.resize(Viewport::new(800, 720, Scale::Percent100, 3).unwrap())
         .unwrap();
     {
@@ -1136,7 +1135,7 @@ fn semantic_tree_bounds_maximum_material_page_and_dirty_dialog_impl() {
         assert_eq!(frame.layout().list_rows(), 7);
         let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
         let count = frame.semantics(&mut nodes).unwrap();
-        assert_eq!(count, 15);
+        assert_eq!(count, 16);
         assert_semantic_tree(&nodes, count);
         assert_eq!(
             nodes[..count]
@@ -1162,7 +1161,7 @@ fn semantic_tree_bounds_maximum_material_page_and_dirty_dialog_impl() {
         let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
         let count = frame.semantics(&mut nodes).unwrap();
         assert_semantic_tree(&nodes, count);
-        assert_eq!(count, 9);
+        assert_eq!(count, 10);
         let previous = nodes[..count]
             .iter()
             .find(|node| node.id == SemanticId::PreviousPage)
