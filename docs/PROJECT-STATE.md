@@ -1,6 +1,25 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR149 derde main-integratie — 3 november 2026
+## NEXT AGENT HANDOFF — PR142 main-integratie — 3 november 2026
+
+**Basis vóór integratie:** PR-head `37ad1e98328e59b752c230310a4abeaca749b669`;
+main `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`. De enige conflicthunk was
+`docs/verification/retained-document-heads-20261103.json`. De opgeloste
+snapshotlijst behoudt alle unieke PR131/132-, PR141- en PR142-ingangen;
+PR149's code/tests en receipts zijn eveneens behouden uit main. Geen receipt
+wordt als bewijs voor deze nieuwe mergeboom aangeduid.
+
+**Uitgevoerd op de opgeloste boom:** `node --test ui/prototype/tests/*.test.mjs`
+— 41 geslaagd, 0 mislukt; `node --check ui/prototype/app.js` en
+`node --check ui/prototype/state.js` — exit 0. De README-voorgestelde
+`--test-isolation=none`-optie wordt niet herkend door Node v22.23.4; de suite
+is daarna met de ondersteunde standaardopties geslaagd. Progressmeter is
+bijgewerkt: **41 → 41/100**, zonder nieuw criteriumbewijs. Native/QEMU,
+fysieke en menselijke acceptatie zijn niet uitgevoerd.
+**Open:** finaliseer de merge na JSON/progress- en diffcontroles en secret scan;
+na publicatie moeten de nieuwe-head-checks worden geëvalueerd.
+
+## Historisch checkpoint — PR149 derde main-integratie — 3 november 2026
 
 **Basis:** Watch-merge `bb8877e3e1aaec304d7478510b65c8116aeb634e`, met
 ouders `416886354dbb0c6135a0740c429a3fbd4530a16d` en main
