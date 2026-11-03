@@ -6,6 +6,7 @@ runner independently checks screenshots, protected chrome and final disk bytes.
 """
 from __future__ import annotations
 import argparse
+from array import array
 import hashlib
 import json
 import os
@@ -36,6 +37,58 @@ CLIPBOARD_PHASES = ("clipboard-copied", "clipboard-numeric", "clipboard-back",
                     "clipboard-empty", "clipboard-recovered-empty")
 CALCULATOR_CLIPBOARD_PHASES = ("clipboard-unsupported", "clipboard-pasted", "clipboard-calculator-copied")
 CALCULATOR_BODY = (932, 140, 320, 484)
+SWITCHER_MAX_PIXELS = 1_400_000
+
+
+def switcher_geometry(scale: int) -> tuple:
+    if scale == 1:
+        return (1280, 720, BODY, CALCULATOR_BODY, (330, 214, 620, 292))
+    if scale == 2:
+        return (1920, 1080, (56, 228, 1120, 660), (1224, 280, 640, 608), (340, 248, 1240, 584))
+    raise ValueError("Only 100% and 200% switcher profiles are supported")
+
+
+def switcher_matches(raw: bytes, expected: bytes, scale: int) -> bool:
+    width, height, _, _, bounds = switcher_geometry(scale)
+    return (ppm(raw)[:2] == (width, height) and ppm(expected)[:2] == bounds[2:]
+            and crop(raw, bounds) == ppm(expected)[2])
+
+
+def generate_switcher_fixture(directory: Path, image: bytes, scale: int) -> dict:
+    width, height, body, calc, _ = switcher_geometry(scale)
+    if ppm(image)[:2] != (width, height):
+        raise ValueError("Wrong native backing capture dimensions")
+    backing = array("I", [0]) * SWITCHER_MAX_PIXELS
+    offset = 0
+    for rectangle in (body, calc):
+        pixels = crop(image, rectangle)
+        for at in range(0, len(pixels), 3):
+            backing[offset + at // 3] = int.from_bytes(pixels[at:at + 3], "big")
+        offset += rectangle[2] * rectangle[3]
+    if backing.itemsize != 4:
+        raise ValueError("Host cannot encode 32-bit backing")
+    import sys
+    if sys.byteorder != "little":
+        backing.byteswap()
+    publish(directory / "backing.bin", backing.tobytes())
+    env = environment()
+    env.update(CARGO_TARGET_DIR=str(private_path(TARGET / "window-switcher-fixture")),
+               OS_SWITCHER_FIXTURE_DIRECTORY=str(directory), OS_SWITCHER_FIXTURE_SCALE=str(scale))
+    command = ["cargo", "+1.90.0", "test", "--offline", "--locked", "--manifest-path",
+               str(ROOT / "sdk/examples/window-session/Cargo.toml"), "--test", "switcher_native_fixture"]
+    with (directory / "switcher-generator.log").open("xb") as log:
+        result = subprocess.run(command, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT,
+                                timeout=180, check=False)
+    if result.returncode:
+        raise ValueError("Native-backing host oracle failed: " + str(directory))
+    paths = [directory / "backing.bin", directory / "switcher-generator.log",
+             directory / "switcher-0.ppm", directory / "switcher-1.ppm"]
+    return dict(directory=directory, frames={index: (directory / f"switcher-{index}.ppm").read_bytes()
+                                            for index in (0, 1)},
+                metadata=dict(kind="host shell reference using captured native app backing; not native execution",
+                              source_sha256=source_hash(), generator_commands=[command], generator_exit=0,
+                              native_backing_capture_sha256=hashlib.sha256(image).hexdigest(),
+                              files_sha256={path.name: sha256(path) for path in paths}))
 SNAPSHOT_FIELDS = {
     "MATERIAL": {"PID", "SERVICE_GENERATION", "SURFACE_EPOCH", "INPUT_EPOCH", "READY", "GEN", "FRAMES",
                  "SAVE_ACKS", "REVISION", "SAVED_BYTES", "SAVED_SUM", "SCREEN", "DIRTY", "DRAFT_BYTES", "DRAFT_SUM", "OBJECT", "SCALE", "ERRORS", "PROBES"},
@@ -175,9 +228,12 @@ def numbers(raw: bytes, name: str) -> list[int]:
     return [int(m[1]) for m in re.finditer(rb"(?:^|\n)" + re.escape(name.encode()) + rb":([0-9]{20})\n", raw)]
 
 
-def validate_build(frozen: str) -> dict:
+def validate_build(frozen: str, scale: int = 1) -> dict:
+    switcher_geometry(scale)
     manifest = load_json(private_path(BUILD / "manifest.json", regular=True))
-    if (manifest.get("kernel_feature") != FEATURE or manifest.get("loader_feature") != "desktop-mode"
+    feature = FEATURE if scale == 1 else "native-window-session-hidpi-probe"
+    loader = "desktop-mode" if scale == 1 else "desktop-hidpi"
+    if (manifest.get("kernel_feature") != feature or manifest.get("loader_feature") != loader
             or manifest.get("source_sha256") != frozen or manifest.get("source_fingerprint_version") != 3):
         raise ValueError("Build the unchanged native window probe first")
     check_esp(BUILD / "esp", manifest)
@@ -193,16 +249,20 @@ def validate_build(frozen: str) -> dict:
 
 
 def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
-        recovery_handshake: bool = False, clipboard: bool = False) -> dict:
+        recovery_handshake: bool = False, clipboard: bool = False,
+        switcher: bool = False, scale: int = 1) -> dict:
     if not 30 <= timeout <= 1800:
         raise ValueError("Timeout must be bounded 30..1800 seconds")
     if smoke and recovery_handshake or clipboard and (smoke or recovery_handshake):
         raise ValueError("Clipboard requires the full native gate; choose one diagnostic mode")
+    if switcher and (smoke or recovery_handshake or clipboard) or scale != 1 and not switcher:
+        raise ValueError("Switcher is a separate native part gate; scale 2 requires --switcher")
+    width, height, body, calc_body, switcher_bounds = switcher_geometry(scale)
     diagnostic = smoke or recovery_handshake
     private_path(BUILD)
     frozen = source_hash()
-    manifest = validate_build(frozen)
-    fixture = None if diagnostic else (generate_fixture(clipboard=True) if clipboard else generate_fixture())
+    manifest = validate_build(frozen, scale)
+    fixture = None if diagnostic or switcher else (generate_fixture(clipboard=True) if clipboard else generate_fixture())
     env = environment()
     qemu = Path(shutil.which("qemu-system-x86_64", path=env["PATH"]) or "missing")
     qemu_hash = sha256(qemu)
@@ -237,7 +297,8 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
     report = dict(schema_version=1, passed=False, native_gate=False, smoke_only=diagnostic,
                   recovery_handshake_only=recovery_handshake, clipboard_requested=clipboard, clipboard_gate=False, source_sha256=frozen,
                   source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
-                  source_fingerprint_version=3, kernel_feature=FEATURE, manifest=manifest, command=command,
+                  source_fingerprint_version=3, kernel_feature=manifest["kernel_feature"], manifest=manifest, command=command,
+                  switcher_requested=switcher, switcher_gate=False, scale=scale, viewport=[width, height],
                   run_directory=str(directory), qemu_sha256=qemu_hash, immutable=immutable, phases={})
     publish_json(directory / "result.json", report)
     process = control = None
@@ -274,7 +335,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                         path = private_path(directory / "candidate.ppm", regular=(directory / "candidate.ppm").exists())
                         control.command("screendump", {"filename": str(path)})
                         image = private_path(path, regular=True).read_bytes()
-                        if ppm(image)[:2] != (1280, 720):
+                        if ppm(image)[:2] != (width, height):
                             raise ValueError("Wrong actual GOP size")
                         if (oracle is not None and not oracle_matches(image, fixture["frames"][oracle], oracle)) or (image_check is not None and not image_check(image)):
                             if time.monotonic() >= deadline:
@@ -352,6 +413,120 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 control.command("quit")
             elif smoke:
                 control.command("quit")
+            elif switcher:
+                def complete(raw, state):
+                    return (all(state.values()) and all(
+                        comp(raw).get(role) == state[role][-1]["GEN"]
+                        for role in ("MATERIAL", "CALCULATOR")))
+
+                def progress(raw):
+                    return {role: {field: numbers(raw, f"WINDOW:{role}:{field}")[-1]
+                                   for field in ("KEYS", "INPUT_ACKS")}
+                            for role in ("MATERIAL", "CALCULATOR")}
+
+                def edge(physical, down):
+                    before = comp(serial(directory / "serial.txt"))["INPUT"]
+                    control.command("input-send-event", {"events": [
+                        {"type": "key", "data": {"down": down, "key": {"type": "qcode", "data": physical}}}]})
+                    observe("switcher edge " + physical, lambda raw: comp(raw).get("INPUT", 0) >= before + 1)
+
+                def shell(physical):
+                    edge(physical, True); edge(physical, False)
+
+                def open_switcher():
+                    raw = serial(directory / "serial.txt")
+                    role = "CALCULATOR" if comp(raw)["FOCUSED"] else "MATERIAL"
+                    before = progress(raw)[role]
+                    edge("alt", True)
+                    observe("Alt delivered before shell ownership", lambda raw:
+                            all(progress(raw)[role][field] == count + 1 for field, count in before.items()))
+                    before = progress(serial(directory / "serial.txt"))
+                    shell("tab")
+                    observe("switcher opening cancellations", lambda raw:
+                            all(progress(raw)[role]["KEYS"] == old["KEYS"]
+                                and progress(raw)[role]["INPUT_ACKS"] == old["INPUT_ACKS"] + 1
+                                for role, old in before.items()))
+                    return progress(serial(directory / "serial.txt"))
+
+                def same_models(state, baseline):
+                    fields = {"MATERIAL": ("PID", "DRAFT_BYTES", "DRAFT_SUM", "DIRTY", "SAVE_ACKS"),
+                              "CALCULATOR": ("PID", "EXPRESSION_BYTES", "EXPRESSION_SUM",
+                                             "EVALUATIONS", "FAILURES", "CARET", "CURRENT",
+                                             "HAS_ANSWER", "ANSWER_LOW", "ANSWER_HIGH")}
+                    return all(state[role][-1][field] == baseline[role][-1][field]
+                               for role, names in fields.items() for field in names)
+
+                move(width - 20, 50 * scale)
+                wait("switcher-initial", complete)
+                key("ret")
+                wait("switcher-editor", lambda raw, s: complete(raw, s) and s["MATERIAL"][-1]["SCREEN"] == 2)
+                for char in TEXT.decode():
+                    key("spc" if char == " " else char)
+                key("f6")
+                for chord in (("2",), ("shift", "equal"), ("3",), ("ret",)):
+                    key(*chord)
+                key("f6")
+                baseline = wait("switcher-work", lambda raw, s: complete(raw, s)
+                                and s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM
+                                and s["MATERIAL"][-1]["DIRTY"] == 1
+                                and s["CALCULATOR"][-1]["EVALUATIONS"] == 1
+                                and s["CALCULATOR"][-1]["EXPRESSION_SUM"] == volume_disk.fnv(b"2+3")
+                                and s["CALCULATOR"][-1]["ANSWER_LOW"] == 5_000_000_000)
+                open_switcher()
+                shell("esc"); edge("alt", False)
+                wait("switcher-ready", lambda raw, s: complete(raw, s) and same_models(s, baseline))
+                fixture = generate_switcher_fixture(directory, captured["switcher-ready"], scale)
+
+                def switcher_wait(name, selected, focused, ledger):
+                    return wait(name, lambda raw, s: complete(raw, s)
+                                and same_models(s, baseline) and comp(raw).get("FOCUSED") == focused
+                                and progress(raw) == ledger,
+                                image_check=lambda image: switcher_matches(image, fixture["frames"][selected], scale))
+
+                ledger = open_switcher()
+                switcher_wait("switcher-preview", 1, 0, ledger)
+                for physical in ("x", "f6", "delete"):
+                    shell(physical)
+                switcher_wait("switcher-key-isolated", 1, 0, ledger)
+                shell("tab")
+                switcher_wait("switcher-cycle", 0, 0, ledger)
+                shell("left")
+                switcher_wait("switcher-reverse", 1, 0, ledger)
+                shell("esc"); edge("alt", False)
+                wait("switcher-cancelled", lambda raw, s: same_models(s, baseline) and progress(raw) == ledger,
+                     image_check=lambda image: image == captured["switcher-ready"])
+                ledger = open_switcher()
+                switcher_wait("switcher-commit-preview", 1, 0, ledger)
+                edge("alt", False)
+                ledger["MATERIAL"]["INPUT_ACKS"] += 1
+                wait("switcher-committed", lambda raw, s: complete(raw, s) and same_models(s, baseline)
+                     and comp(raw).get("FOCUSED") == 1 and progress(raw) == ledger)
+                ledger = open_switcher()
+                switcher_wait("switcher-mouse-preview", 0, 1, ledger)
+                x, y, _, _ = switcher_bounds
+                move(x + 32 * scale, y + 64 * scale); button(True)
+                move(body[0] + 8 * scale, body[1] + 8 * scale); button(False)
+                move(width - 20, 50 * scale); edge("alt", False)
+                ledger["CALCULATOR"]["INPUT_ACKS"] += 1
+                wait("switcher-mouse-committed", lambda raw, s: complete(raw, s) and same_models(s, baseline)
+                     and comp(raw).get("FOCUSED") == 0 and progress(raw) == ledger,
+                     image_check=lambda image: image == captured["switcher-ready"])
+                ledger = open_switcher()
+                switcher_wait("switcher-outside-preview", 1, 0, ledger)
+                move(calc_body[0] + calc_body[2] - 4, calc_body[1] + calc_body[3] - 4)
+                button(True); button(False); move(width - 20, 50 * scale); edge("alt", False)
+                wait("switcher-outside-cancelled", lambda raw, s: complete(raw, s)
+                     and same_models(s, baseline) and comp(raw).get("FOCUSED") == 0 and progress(raw) == ledger,
+                     image_check=lambda image: image == captured["switcher-ready"])
+                key("z")
+                ledger["MATERIAL"]["KEYS"] += 2
+                ledger["MATERIAL"]["INPUT_ACKS"] += 2
+                wait("switcher-real-input-restored", lambda raw, s: complete(raw, s) and progress(raw) == ledger
+                     and s["MATERIAL"][-1]["DRAFT_SUM"] == volume_disk.fnv(TEXT + b"z")
+                     and s["MATERIAL"][-1]["DRAFT_BYTES"] == len(TEXT) + 1
+                     and s["CALCULATOR"][-1]["EXPRESSION_SUM"] == volume_disk.fnv(b"2+3"))
+                report["switcher_scope"] = "Live app previews, deferred focus, key/mouse isolation, cancel/commit and resumed real input; not the complete window-session/recovery/storage gate."
+                key("f10")
             else:
                 move(1260, 50)
                 initial = wait("initial", lambda raw, s: all(s.values()), "initial")
@@ -450,10 +625,14 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
             else:
                 if process.returncode != 33 or not raw.endswith(b"WINDOW:CLEANUP:PASS\nWINDOW:CASE:PASS\nM1:PASS\n"):
                     raise ValueError("Missing actual cleanup/normal exit")
-                if numbers(raw, "WINDOW:FAULT_SLOT") != [4] or numbers(raw, "WINDOW:FAULT_VECTOR") != [6] or numbers(raw, "WINDOW:RESTARTS") != [1]:
+                if switcher:
+                    if numbers(raw, "WINDOW:FAULT_SLOT") or numbers(raw, "WINDOW:RESTARTS") != [0]:
+                        raise ValueError("Unexpected fault/restart in switcher part gate")
+                elif numbers(raw, "WINDOW:FAULT_SLOT") != [4] or numbers(raw, "WINDOW:FAULT_VECTOR") != [6] or numbers(raw, "WINDOW:RESTARTS") != [1]:
                     raise ValueError("Wrong actual fault/restart")
-                report["disk_oracle"] = disk_oracle(private_path(directory / "volume.img", regular=True).read_bytes())
-            if source_hash() != frozen or validate_build(frozen) != manifest or sha256(qemu) != qemu_hash:
+                if not switcher:
+                    report["disk_oracle"] = disk_oracle(private_path(directory / "volume.img", regular=True).read_bytes())
+            if source_hash() != frozen or validate_build(frozen, scale) != manifest or sha256(qemu) != qemu_hash:
                 raise ValueError("Source/build/QEMU changed during run")
             if {name: sha256(private_path(directory / name, regular=True)) for name in immutable} != immutable or {name: sha256(Path(name)) for name in originals} != originals:
                 raise ValueError("Immutable inputs changed during run")
@@ -467,7 +646,9 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                     if sha256(private_path(fixture["directory"] / name, regular=True)) != digest:
                         raise ValueError("Host oracle changed")
                 report["oracle"] = fixture["metadata"]
-            report.update(passed=True, native_gate=not diagnostic, clipboard_gate=clipboard and not diagnostic, duration_s=time.monotonic() - start, serial_sha256=sha256(directory / "serial.txt"), qmp_trace=control.trace)
+            report.update(passed=True, native_gate=not diagnostic and not switcher, switcher_gate=switcher,
+                          clipboard_gate=clipboard and not diagnostic, duration_s=time.monotonic() - start,
+                          serial_sha256=sha256(directory / "serial.txt"), qmp_trace=control.trace)
     except Exception as error:
         report["error"] = f"{type(error).__name__}: {error}"
     finally:
@@ -504,6 +685,9 @@ if __name__ == "__main__":
     parser.add_argument("--smoke-only", action="store_true")
     parser.add_argument("--recovery-handshake-only", action="store_true")
     parser.add_argument("--clipboard", action="store_true", help="Include genuine bounded clipboard exchange, clear and post-fault empty checks")
+    parser.add_argument("--switcher", action="store_true", help="Separate window-switcher interaction/pixel part gate, not full session acceptance")
+    parser.add_argument("--scale", type=int, choices=(1, 2), default=1, help="Switcher profile: 1=100%%, 2=200%%; default session stays 100%%")
     args = parser.parse_args()
     raise SystemExit(0 if run(timeout=args.timeout, bios_rom=args.bios_rom, vga_rom=args.vga_rom,
-                            smoke=args.smoke_only, recovery_handshake=args.recovery_handshake_only, clipboard=args.clipboard)["passed"] else 1)
+                            smoke=args.smoke_only, recovery_handshake=args.recovery_handshake_only,
+                            clipboard=args.clipboard, switcher=args.switcher, scale=args.scale)["passed"] else 1)

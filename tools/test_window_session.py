@@ -1,5 +1,7 @@
 """Adversarial host checks for the native runner, never OS execution."""
 import unittest
+import subprocess
+import sys
 import run_window_session as window
 
 
@@ -17,6 +19,38 @@ def image(width,height,color):
 
 
 class WindowRunnerTests(unittest.TestCase):
+    def test_switcher_profiles_compare_all_overlay_pixels_without_masks(self):
+        for scale in (1, 2):
+            width, height, body, calc, bounds = window.switcher_geometry(scale)
+            raw = image(width, height, (4, 5, 6))
+            expected = image(*bounds[2:], (4, 5, 6))
+            self.assertTrue(window.switcher_matches(raw, expected, scale))
+            header = len(raw) - width * height * 3
+            x, y, w, h = bounds
+            for px, py in ((x, y), (x+w-1, y+h-1), (x+w//2, y+h//2),
+                           (x+32*scale, y+64*scale)):
+                changed = bytearray(raw)
+                changed[header+(py*width+px)*3] ^= 1
+                self.assertFalse(window.switcher_matches(bytes(changed), expected, scale))
+            for rect in (body, calc, bounds):
+                window.crop(raw, rect)
+            self.assertFalse(window.switcher_matches(raw, image(1, 1, (4, 5, 6)), scale))
+        for scale in (-1, 0, 3):
+            with self.assertRaises(ValueError):
+                window.switcher_geometry(scale)
+
+    def test_switcher_part_gate_cannot_claim_old_session_or_diagnostic_acceptance(self):
+        for flags in ({"smoke": True}, {"recovery_handshake": True}, {"clipboard": True}):
+            with self.assertRaises(ValueError):
+                window.run(timeout=30, bios_rom=None, vga_rom=None, switcher=True, **flags)
+        with self.assertRaises(ValueError):
+            window.run(timeout=30, bios_rom=None, vga_rom=None, scale=2)
+        result = subprocess.run([sys.executable, window.__file__, "--help"],
+                                capture_output=True, text=True, timeout=10, check=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("--switcher", result.stdout)
+        self.assertIn("200%", result.stdout)
+
     def test_clipboard_oracle_checks_calculator_body_without_internal_masks(self):
         raw = image(1280, 720, (1, 2, 3))
         expected = image(320, 484, (1, 2, 3))
