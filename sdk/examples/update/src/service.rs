@@ -14,6 +14,11 @@ compile_error!("update-service is only for the Nieuw OS x86_64-unknown-none targ
 
 mod support;
 
+#[cfg(all(feature = "native", not(feature = "test-signing-anchors")))]
+compile_error!(
+    "the update service requires an explicit signing policy; TEST anchors are test-only"
+);
+
 use nieuw_os_sdk_runtime::{block::READ_MAX, native, BlockDevice, Error, Handle};
 use update_core::{
     decide, header_after_install, image_sector, image_sectors, manifest_sector,
