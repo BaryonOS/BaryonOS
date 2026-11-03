@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "08710d55db5690acc12aa8458ceeab7cb39ae72c",
+    "source_commit": "c07d15b85f85b534e1fe16c8a127c0e7baa2525c",
     "branch": "simonvanieperen-animated-umbrella",
-    "task": "Negatieve tests voor artifact-store-openbeleid toevoegen",
+    "task": "PR140: beschrijvende verificatieteksten in het Nederlands vastleggen",
     "previous_score": 41,
-    "summary": "41% blijft 41%; alleen negatieve contracttests toegevoegd, geen productcriterium of productiegedrag gewijzigd. De tests controleren dat ongeldige verwachte descriptoren de backend niet bereiken, dat malformed of afwijkend gebonden backenddescriptoren worden geweigerd, en dat Unauthorized, Stale en Io bij openen expliciet blijven. Alle 9 contracttests slagen met Rust 1.90.0 en een tijdelijke, niet-systeembreed uitgepakte GCC-linker. cargo check --tests, Clippy en fmt slagen. Geen nieuwe native, fysieke, gebruikers- of releaseacceptatie."
+    "summary": "41 blijft41. Alleen beschrijvende waarden scope/result/product_acceptance van het historische artifact-store-hostrapport naar Nederlands vertaald; JSON-keys, commando's, exits, bron08710d55 en loghashes onveranderd. Alle rubricvelden buiten assessment blijven gelijk. Progress write/check, JSON- en gerichte inhoudsvergelijking slagen. De eerdere9 contracttests en build/lintbewijzen blijven historisch aan hun bron gebonden; voor deze tekstcorrectie geen nieuwe Rust/native/QEMU-proef of productcriterium."
   },
   "tracks": [
     {

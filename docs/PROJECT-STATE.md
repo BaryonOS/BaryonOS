@@ -2,6 +2,13 @@
 
 ## NEXT AGENT HANDOFF — PR #140 main-integratie — 3 november 2026
 
+**Reviewcorrectie op basis`c07d15b8`:** beschrijvende waarden van
+`scope`, `result` en `product_acceptance` in het hostrapport nu Nederlands,
+volgens docs/AGENTS. Keys, technische identifiers, oorspronkelijke exits,
+commands en loghashes blijven gelijk. JSON-/inhoudsvergelijking,
+progress write/check en diff-check exit0; voor alleen tekst geen nieuwe
+Rust/QEMU-run.41 ->41. Nieuwe exacte-head CI/review blijft vereist.
+
 **Basis:** PR-head `bd9fce790b5a2edd6ed08283143ee05caf1e8966` geïntegreerd met
 main `cbbc9c9941b08ea5edfbd3637d494635b4fb1df0`. De N01-timeoutfix van main
 blijft behouden: `ReceiveTcp` rapporteert `Closed` na annulering, terwijl

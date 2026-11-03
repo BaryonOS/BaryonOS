@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`08710d55`](https://github.com/simonvanieperen/nieuw-os/commit/08710d55db5690acc12aa8458ceeab7cb39ae72c) ·
+**Bron:** [`c07d15b8`](https://github.com/simonvanieperen/nieuw-os/commit/c07d15b85f85b534e1fe16c8a127c0e7baa2525c) ·
 **Ontwikkelbranch:** `simonvanieperen-animated-umbrella`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Negatieve tests voor artifact-store-openbeleid toevoegen.
-41% blijft 41%; alleen negatieve contracttests toegevoegd, geen productcriterium of productiegedrag gewijzigd. De tests controleren dat ongeldige verwachte descriptoren de backend niet bereiken, dat malformed of afwijkend gebonden backenddescriptoren worden geweigerd, en dat Unauthorized, Stale en Io bij openen expliciet blijven. Alle 9 contracttests slagen met Rust 1.90.0 en een tijdelijke, niet-systeembreed uitgepakte GCC-linker. cargo check --tests, Clippy en fmt slagen. Geen nieuwe native, fysieke, gebruikers- of releaseacceptatie.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR140: beschrijvende verificatieteksten in het Nederlands vastleggen.
+41 blijft41. Alleen beschrijvende waarden scope/result/product_acceptance van het historische artifact-store-hostrapport naar Nederlands vertaald; JSON-keys, commando's, exits, bron08710d55 en loghashes onveranderd. Alle rubricvelden buiten assessment blijven gelijk. Progress write/check, JSON- en gerichte inhoudsvergelijking slagen. De eerdere9 contracttests en build/lintbewijzen blijven historisch aan hun bron gebonden; voor deze tekstcorrectie geen nieuwe Rust/native/QEMU-proef of productcriterium.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
