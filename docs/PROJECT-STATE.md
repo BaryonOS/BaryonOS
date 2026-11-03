@@ -5,13 +5,18 @@
 **Basis:** `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`, branch
 `simonvanieperen-studious-spoon`. Eerste maturitystap op M1 (time): één
 centrale runtime-API boven de bestaande ABI 1.6/1.9/1.10-syscalls.
-Toegevoegd in `sdk/runtime/src/clock.rs`:
+Toegevoegd in `sdk/runtime/src/clock.rs` en direct gebruikt in
+`sdk/examples/supervisor/src/worker.rs`.
+Nieuwe runtimelaag:
 `TimerRegistration`, `WaitOutcome`, `WaitDriver`, `wait_until_with`,
 native wrappers `now_monotonic`, `now_wall`, `sleep_until`, `wait_until`,
-en gerichte unittests voor cancel/timeout/horizon-chunking.
+en gerichte unittests voor cancel/timeout/horizon-chunking. De supervisor-
+worker gebruikt nu dezelfde centrale wait/deadline-semantiek in plaats van
+een lokale `monotonic_ticks + ipc_wait`-combinatie.
 
 **Uitgevoerd:**  
 `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 check --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime --tests --locked` (exit 0)  
+`python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 check --manifest-path sdk/examples/supervisor/Cargo.toml --locked` (exit 0)  
 `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check` (exit 0)
 
 **Niet volledig uitgevoerd:**  

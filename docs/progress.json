@@ -5,9 +5,9 @@
     "date": "2026-11-03",
     "source_commit": "5c66ec57aaf8eb411a83b8d6e42320ddc379383c",
     "branch": "simonvanieperen-studious-spoon",
-    "task": "M1-time: centrale runtime-deadline waits en timerregistratie",
+    "task": "M1-time: centrale runtime-deadline waits, cancel en eerste service-wiring",
     "previous_score": 41,
-    "summary": "41 blijft 41. De SDK-runtime heeft nu een centrale tijdslaag met TimerRegistration, wait_until/sleep_until, cancel- en timeoutuitkomsten en horizon-gechunkte monotone waits bovenop ABI 1.10. Dit is host-gecheckte broncode (check+fmt) zonder nieuwe native/QEMU/fysieke/humane acceptatie of rubricsluiting."
+    "summary": "41 blijft 41. De SDK-runtime heeft nu een centrale tijdslaag met TimerRegistration, wait_until/sleep_until, cancel- en timeoutuitkomsten en horizon-gechunkte monotone waits bovenop ABI 1.10; de supervisor-worker is als eerste callsite op deze gedeelde semantiek aangesloten. Dit is host-gecheckte broncode (check+fmt) zonder nieuwe native/QEMU/fysieke/humane acceptatie of rubricsluiting."
   },
   "tracks": [
     {
