@@ -27,6 +27,18 @@ Voortgang blijft **41% → 41%**; geen nieuw native criterium.
 **Eerstvolgend commando zodra Rust 1.90 beschikbaar is:** herhaal de hierboven
 genoemde `render_performance`-test. Geen claim over native latency of energie.
 
+## Geïntegreerde main-wijziging — issue #43
+
+Main bevat de gerichte N01-reparatie waarbij `ReceiveTcp` na een
+verbindings-time-out `Closed` meldt terwijl de diagnostische status
+`TimedOut` blijft. Het vastgelegde bewijs omvatte 10 service-, 35 broker-
+(inclusief doctests), 26 stack-, 4 protocol-, 6 client- en 11 peerharnastests,
+plus bestaande native `normal`- en `client-exit`-gates. De specifieke
+timeout-ontvangsttest is alleen als hostregressie rood/groen bewezen; dit is
+geen nieuwe native scenarioassertie. Details en bewijsgrenzen:
+[`issue-43-receive-timeout.md`](verification/issue-43-receive-timeout.md) en
+[`issue-43-receive-timeout.json`](verification/issue-43-receive-timeout.json).
+
 ## Vorig checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 
 **Basis:** PR127 `798706c2a53d0062ce0474e5f84f294b2c37b825`, drie lokale
