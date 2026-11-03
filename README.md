@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`fdc4754e`](https://github.com/simonvanieperen/nieuw-os/commit/fdc4754e57f0a42493cb5717964a0aa41370d9e9) ·
+**Bron:** [`71cdb210`](https://github.com/simonvanieperen/nieuw-os/commit/71cdb2100aecf30242a7fc6c4d84352fb483cdea) ·
 **Ontwikkelbranch:** `simonvanieperen-sturdy-guide`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Integreer main 69809c2 in PR141 met behoud van persistentiefix en brongebonden browserbewijs.
-41 blijft 41. Geteste mergecommit fdc4754e combineert main 69809c2 en PR141-head 1c4b2a4b; vier conflicten alleen centrale metadata, beide geschiedenissen behouden. Alle 41 reguliere Node-prototypetests en 16 opslaghosttests opnieuw groen op deze commit; volledige logs en bron/tree/ouders staan in docs/verification/pr141-main698-integration.json. De gehele prototypeboom blijft bytegelijk aan bron c94a40e9; diens bestaande Chromeproef blijft aan die eigen bron en acht hashes gebonden. Volledige CI/native/netwerk/review en PR135-fixtures/RANDOM blijven open. Geen nieuwe productpunten of duurzame OS-opslagclaim.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Leg reviewfixes, werkelijke PR140-mergeafwijking en herhaalde PR135-native blokkades vast.
+41 blijft 41. PR140 is gemerged als d115cc96 met exact de geteste 9ad80874-boom en 32 groene technische checks. De extra lokale gate faalde op een herstartte CodeRabbit-review maar het ongekoppelde shellvervolg mergede toch; de afgebroken botreview telt niet als groen. Afwijking en echte postcheck staan in docs/verification/pr140-merge-postcheck.json. PR139/141/142-reviewfixes zijn gepubliceerd; bestaande 41+16 tests op fdc4754e en Chrome op c94a40e9 houden hun eigen bron. PR135 faalt tweemaal echt op het RAW-quotatestvenster en mist hosted volume-fixtures; primaire receipts in docs/verification/pr135-ci-blockers-2ccb.json. Nieuwe main-reconciliatie en alle toepasselijke gates blijven open. Geen nieuwe acceptatiepunten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

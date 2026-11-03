@@ -85,6 +85,16 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Integratiecheckpoint (3 november 2026), basis `71cdb210`: **41 → 41**.
+PR140 is werkelijk main `d115cc96`, exact dezelfde geteste boom; 32
+technische checks groen. De herstartte CodeRabbit-review liet de extra
+lokale gate falen, maar het ongekoppelde shellvervolg mergede toch.
+Geen branchregelbypass; afgebroken review niet als geslaagd geteld.
+[Volledige afwijking/postcheck](verification/pr140-merge-postcheck.json).
+PR135's twee echte RAW-fouten en ontbrekende fixturelevering blijven open,
+met [primaire receipts](verification/pr135-ci-blockers-2ccb.json).
+Geen nieuwe OS-, fysieke, menselijke of releaseacceptatie.
+
 PR141-mainintegratie (3 november 2026), geteste merge `fdc4754e` met ouders
 `1c4b2a4b` en `69809c2c`: **41 → 41**. Vier metadata-conflicten behouden beide
 geschiedenissen. Alle 41 reguliere Node- en 16 opslaghosttests zijn opnieuw

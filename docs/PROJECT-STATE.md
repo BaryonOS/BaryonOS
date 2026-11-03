@@ -1,6 +1,48 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR141 en main 69809c2 gecombineerd — 3 november 2026
+## NEXT AGENT HANDOFF — reviewfixes gepubliceerd, PR140 gemerged, native blokkades — 3 november 2026
+
+**Basis van dit checkpoint:** `71cdb2100aecf30242a7fc6c4d84352fb483cdea`,
+branch `simonvanieperen-sturdy-guide`. Integratie blijft exclusief bij deze
+sessie. Geen overdracht of nieuwe punten: **41 → 41**.
+
+**Werkelijk opgenomen:** PR140 is guarded gesquasht als main
+`d115cc96c19ac4371baed77409a23d1adddffaf0`, parent `69809c2c`.
+De boom `ab23fb8523f8edd3a15209575ceb5638b973bc8a` is exact de geteste head
+`9ad80874`; alle 32 technische checks waren groen en alle threads opgelost.
+**Uitvoeringsafwijking:** de extra lokale preflight faalde doordat CodeRabbit
+na eerder CLEAN opnieuw liep. Een niet met `&&` gekoppeld shellvervolg voerde
+de exacte-headmerge toch uit. Geen admin- of branchregelbypass. CodeRabbit
+werd door de merge afgebroken, niet als geslaagd geteld. Volledige controles,
+afwijking en postcheck: [mergeaudit](verification/pr140-merge-postcheck.json).
+Volgende merges alleen na een gekoppelde preflight, met de merge-aanroep
+binnen dezelfde controle na alle geslaagde asserties. Geen automatische
+rollback of amend van de inhoudelijk exact behouden mainboom.
+
+**Gepubliceerd:** PR139 `341d1b42` scheidt de twee echte replayreceipts
+(0077 groen, 0002 werkelijk rood) van 15 historische OS-workflowruns.
+PR142 `a521dbf7` corrigeert FPU-helperclaims en bewijst 87 hosttests op
+`b1d45e63`. De brede symlink-`OSError`-skip is gemotiveerd geweigerd:
+Linux-CI voert de echte negatieve test uit; Windows zonder symlinkrecht is
+niet als geteste configuratie geclaimd. PR141 `71cdb210` behoudt de echte
+persistentiefix en Chromeproef; 41 Node- en 16 opslagtests op merge `fdc4754e`
+zijn groen. Hun exacte commando's, exits en logs blijven brongebonden.
+
+**Harde gates:** PR135 `2ccb539d` faalt tweemaal echt op RAW-request 1064:
+de burst duurt 110/101 ticks bij een venster van 100. Geen derde blinde retry
+of quotaversoepeling. Hosted volume-admission heeft nog geen fixtureartifact
+of `VOLUME_ADMISSION_FIXTURE_RUN_ID`. De nativewindowrun was nog actief;
+geen resultaat voorspeld of via een nieuwe PR135-push geannuleerd.
+[Beide primaire faalreceipts](verification/pr135-ci-blockers-2ccb.json).
+Issues #39/#41/#42/#43 en fysieke/menselijke/full-releasegates blijven open.
+
+**Eerstvolgend:** live heads/base/threads/CI opnieuw lezen. Deze PR141-branch
+bevat main `69809c2c`, nog niet de nieuwe main `d115cc96`; eerst de eigen
+upstream en daarna main behoudend reconciliëren. PR142 is daardoor eveneens
+opnieuw conflicterend. Geen blinde sluitingen of acceptatie van Watch-heads;
+de vijf bewezen vervangen leafs 119/136/143/144/145 blijven reeds gesloten.
+
+## Historisch checkpoint — PR141 en main 69809c2 gecombineerd — 3 november 2026
 
 Geteste mergecommit `fdc4754e57f0a42493cb5717964a0aa41370d9e9` combineert
 PR-head `1c4b2a4b89d47588a3393ab25472c4354ffceed9` en main

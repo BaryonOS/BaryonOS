@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-03",
+  "reviewed_source_commit": "2ccb539d09546e21055b585aa7b97709cac11a9a",
+  "comparison_main": "69809c2cb53dfb3bd77abe5352892810fba6e82d",
+  "foundation_attempts": [
+    {
+      "attempt": 1,
+      "run_id": 41622627442,
+      "artifact_id": 13224641485,
+      "artifact_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41622627442/artifacts/13224641485",
+      "local_zip": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr135-2ccb-foundation.zip",
+      "zip_sha256": "328e23d74d7303e65896931bcef9273dbd1a3afc9248b3130cf0b74b5ee93ab4",
+      "serial_entry": "random-raw/run/system-normal-6528b0034f2e430cac517c0cf04689b3/serial.txt",
+      "serial_sha256": "c0c97835e5bce95f3abb5d45f7cf681be98440e88f0afca6ccaa95b6019f9ab2",
+      "raw_serial_utf8": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nSYSTEM:MANIFEST:PASS\nSYSTEM:RANDOM_ERROR_STEP:00000000000000000015\nSYSTEM:RANDOM_ERROR_EXIT:00000000000000000001\nSYSTEM:RANDOM_ERROR_PHASE:00000000000000000000\nSYSTEM:RANDOM_DIAG_REQUEST:00000000000000001064\nSYSTEM:RANDOM_DIAG_EXPECTED_COUNT:00000000000000000000\nSYSTEM:RANDOM_DIAG_REQUEST_COUNT:00000000000000000001\nSYSTEM:RANDOM_DIAG_STATUS_I32_BITS:00000000000000000000\nSYSTEM:RANDOM_DIAG_REPLY_BODY_LENGTH:00000000000000000017\nSYSTEM:RANDOM_DIAG_REPLY_PAYLOAD_LENGTH:00000000000000000256\nSYSTEM:RANDOM_DIAG_BURST_START:00000000000000000127\nSYSTEM:RANDOM_DIAG_BURST_END:00000000000000000237\nSYSTEM:RANDOM_DIAG_FAILURE_TICK:00000000000000000238\nSYSTEM:RANDOM:FAIL:PROBE_RESULT\n",
+      "burst_start": 127,
+      "burst_end": 237,
+      "elapsed_ticks": 110,
+      "failure_tick": 238,
+      "reports": {
+        "random-raw": false,
+        "random-sdk": true,
+        "random-unknown": true,
+        "random-wrong-caller": true
+      },
+      "raw_qemu_exit": 35,
+      "failure_log": "/tmp/nieuw-os-pr135-2ccb-foundation-failed.log",
+      "failure_log_sha256": "a0f853d1a92dfc5782d0c50e131a6a3486d73decdf6ae22dd808fa982628ee93"
+    },
+    {
+      "attempt": 2,
+      "run_id": 41622627442,
+      "artifact_id": 13225363702,
+      "artifact_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41622627442/artifacts/13225363702",
+      "local_zip": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr135-2ccb-foundation-attempt2.zip",
+      "zip_sha256": "e10f16558ec65743fe7e460bb492e5534702a5118d0b5aceafcf26d68274643a",
+      "serial_entry": "random-raw/run/system-normal-c64cee2688e1425498e0271f23d65abc/serial.txt",
+      "serial_sha256": "63ca7ba15c00a39a6b67f336363233cb59f480ec2e3cb5ad33585e940c5d4fbd",
+      "raw_serial_utf8": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nSYSTEM:MANIFEST:PASS\nSYSTEM:RANDOM_ERROR_STEP:00000000000000000015\nSYSTEM:RANDOM_ERROR_EXIT:00000000000000000001\nSYSTEM:RANDOM_ERROR_PHASE:00000000000000000000\nSYSTEM:RANDOM_DIAG_REQUEST:00000000000000001064\nSYSTEM:RANDOM_DIAG_EXPECTED_COUNT:00000000000000000000\nSYSTEM:RANDOM_DIAG_REQUEST_COUNT:00000000000000000001\nSYSTEM:RANDOM_DIAG_STATUS_I32_BITS:00000000000000000000\nSYSTEM:RANDOM_DIAG_REPLY_BODY_LENGTH:00000000000000000017\nSYSTEM:RANDOM_DIAG_REPLY_PAYLOAD_LENGTH:00000000000000000256\nSYSTEM:RANDOM_DIAG_BURST_START:00000000000000000131\nSYSTEM:RANDOM_DIAG_BURST_END:00000000000000000232\nSYSTEM:RANDOM_DIAG_FAILURE_TICK:00000000000000000233\nSYSTEM:RANDOM:FAIL:PROBE_RESULT\n",
+      "burst_start": 131,
+      "burst_end": 232,
+      "elapsed_ticks": 101,
+      "failure_tick": 233,
+      "reports": {
+        "random-raw": false,
+        "random-sdk": true,
+        "random-unknown": true,
+        "random-wrong-caller": true
+      },
+      "raw_qemu_exit": 35,
+      "failure_log": "/tmp/nieuw-os-pr135-2ccb-foundation-attempt2-failed.log",
+      "failure_log_sha256": "9cb08dc2842d6f94241e712b6ae0b31b6141e2e5571fe3bd20af9b2fb79087c2"
+    }
+  ],
+  "diagnosis": "Beide echte RAW-probes falen bij stap 15/request 1064: het burstvenster duurt 110 respectievelijk 101 ticks bij WINDOW_TICKS=100. De ontvangen succesvolle reply voldoet niet aan de verwachte quotaweigering. Dit is een herhaalde timinggevoelige testfout, geen aangetoond herstel, geen bewijs van een quotabypass en niet zonder verder bewijs als uitsluitend transient geclassificeerd.",
+  "unchanged_source_paths_against_main": [
+    "sdk/examples/random-probe",
+    "sdk/runtime",
+    "services/keyring",
+    "kernel/src/m2/m3/random_fixture.rs",
+    "kernel/src/m2/m3/system.rs",
+    "kernel/src/m2/m3/mod.rs"
+  ],
+  "policy": "Na de eerste run eenmaal opnieuw uitgevoerd; ook poging 2 blijft rood. Geen derde blinde retry, geen quota-/timeout-/oracleversoepeling of gateverzwakking.",
+  "volume_admission": {
+    "run_id": 41622627408,
+    "job_id": 125871908894,
+    "conclusion": "failure",
+    "error": "VOLUME_ADMISSION_FIXTURE_RUN_ID must identify a same-repository run containing volume-admission-fixtures; absence is not a passed native matrix.",
+    "live_fixture_artifacts_found": 0,
+    "live_repository_variable_found": false,
+    "query": "gh api repos/simonvanieperen/nieuw-os/actions/artifacts?name=volume-admission-fixtures&per_page=10; gh variable list --repo simonvanieperen/nieuw-os",
+    "failure_log": "/tmp/nieuw-os-pr135-2ccb-volume-failed.log",
+    "failure_log_sha256": "a705a5abf937261c0989721270a3892d5ade24ef1ab74788747e7946611dd24e"
+  },
+  "pending_at_observation": {
+    "native_window_job_id": 125872338500,
+    "active_step": "Native material names, collections, search and revision recovery",
+    "conclusion": null
+  },
+  "boundary": "Geen PR135-merge; vereiste GitHub-host-quality/qemu-smoke groen is niet hetzelfde als volledige native acceptatie. Andere verse PR-checks blijven afzonderlijk. Dit rapport staat op de actieve integratorbranch zonder een lopende PR135-nativewindowrun met een nieuwe push te annuleren.",
+  "progress_previous": 41,
+  "progress_current": 41
+}
