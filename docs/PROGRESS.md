@@ -85,6 +85,14 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Geïntegreerde mainstand (3 november 2026), bron
+`380111b68688c981eec6abb8fab29174a29f5601`: **41% → 41%** voor deze
+documentatietaak; geen criterium of gewicht gewijzigd. De exacte commit heeft
+28/28 geslaagde GitHub-checkruns, waaronder de actuele native venstersessie en
+de gecontroleerde native netwerkdienst. De wijzigingen documenteren bestaand
+gedrag en voegen geen productbewijs of rubricpunten toe. Fysieke hardware,
+Windows-runtime, menselijke audit en volledige testrelease blijven open.
+
 PR127-reviewintegratie (2 november 2026), basis `798706c` met `8f08db4`:
 branch **41 → 41**, main **34 → 34**. Zeven reviewpunten en gekoppelde
 font/damage-integratie hersteld; 189 Rust-app/UI-,9 netwerk- en31 Python-tests

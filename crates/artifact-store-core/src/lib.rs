@@ -14,6 +14,7 @@ pub struct ArtifactRef {
 }
 
 impl ArtifactRef {
+    /// Reject a zero identifier or generation.
     pub fn validate(&self) -> Result<(), Error> {
         if self.artifact_id.iter().all(|byte| *byte == 0) || self.immutable_generation == 0 {
             return Err(Error::Invalid);
@@ -30,6 +31,7 @@ pub struct ArtifactDescriptor {
 }
 
 impl ArtifactDescriptor {
+    /// Validate the reference and require a non-empty artifact.
     pub fn validate(&self) -> Result<(), Error> {
         self.reference.validate()?;
         if self.length == 0 {
@@ -48,6 +50,10 @@ pub struct StoreCapacity {
 }
 
 impl StoreCapacity {
+    /// Compute free bytes within the tighter of the store and caller quota.
+    ///
+    /// Returns [`Error::Overflow`] if used plus reserved bytes overflow, or
+    /// [`Error::Corrupt`] if committed usage exceeds the applicable limit.
     pub fn available_bytes(&self) -> Result<u64, Error> {
         let limit = core::cmp::min(self.capacity_bytes, self.quota_bytes);
         let committed = self
@@ -102,6 +108,7 @@ pub trait ArtifactStore {
         output: &mut [u8],
     ) -> Result<usize, Error>;
 
+    /// Return the store's current capacity, usage, reservations, and quota.
     fn capacity(&mut self) -> Result<StoreCapacity, Error>;
 }
 
@@ -112,11 +119,14 @@ pub struct ArtifactReadHandle<H> {
 }
 
 impl<H> ArtifactReadHandle<H> {
+    /// Return the immutable descriptor validated when this handle was opened.
     pub const fn descriptor(&self) -> &ArtifactDescriptor {
         &self.descriptor
     }
 }
 
+/// Open an artifact only when the store returns the exact validated descriptor
+/// requested by the caller.
 pub fn open_checked<S: ArtifactStore>(
     store: &mut S,
     expected: &ArtifactDescriptor,

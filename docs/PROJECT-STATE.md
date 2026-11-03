@@ -1,6 +1,50 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
+## NEXT AGENT HANDOFF — actuele mainstand en documentatie — 3 november 2026
+
+**Basis:** `380111b68688c981eec6abb8fab29174a29f5601` op
+`simonvanieperen-laughing-fortnight`, gelijk aan `origin/main`; parent
+`74a34d05ef5591b782a0da9da34e4669910d0722`. PR126-inhoud en de zeven
+PR127-reviewfixes zijn nu in deze main-commit geïntegreerd.
+
+**Exact-head controles:** GitHub rapporteert 28/28 check-runs als `success`.
+De [native venstersessie-run](https://github.com/simonvanieperen/nieuw-os/actions/runs/41535553113)
+sluit de actuele QEMU-route met echte invoer, pixel-/isolatieasserties,
+compositorherstel en schijfcontrole af; de
+[netwerk-run](https://github.com/simonvanieperen/nieuw-os/actions/runs/41535553158)
+sluit hostkwaliteit en de native netwerkdienst met gecontroleerde peer af.
+Dit is geen Windows-runtime-, fysieke-hardware-, menselijke-audit- of
+volledige-releasebewijs.
+
+**Documentatie:** README, status, voortgangsassessment en verificatierecord
+zijn bijgewerkt naar deze bron. Alle publieke functies in
+`kernel-core`, `artifact-store-core` en de window-session-scene hebben nu
+Rustdoc; comments
+verduidelijken beschadigingstegels en toetsrelease-eigenaarschap. Deze
+documentatiewijziging verandert geen OS-gedrag of acceptatiecriterium.
+
+**Voortgang:** **41/100 → 41/100**, rubric v1; er zijn geen punten toegekend.
+U02, authenticatie/vergrendeling, de resterende releasecriteria, fysieke
+hardware en de volledige testrelease blijven open.
+
+**Uitgevoerd:** `python3 tools/progress.py --write` exit 0;
+`python3 tools/progress.py --check` exit 0; `git diff --check` en beide
+`python3 -m json.tool`-controles exit 0. Publieke-functiedekking van de drie
+gewijzigde Rust-bronbestanden is statisch gecontroleerd. Exact-head status is
+gecontroleerd met `gh api repos/simonvanieperen/nieuw-os/commits/380111b68688c981eec6abb8fab29174a29f5601/check-runs --jq '.total_count'`
+(28, alle success), plus `gh run view 41535553113 --json conclusion,headSha,jobs,workflowName,url`
+en `gh run view 41535553158 --json conclusion,headSha,jobs,workflowName,url` (beide exit 0). Rustdocgeneratie
+`RUSTDOCFLAGS='-D missing-docs' cargo doc --locked --no-deps -p capability-core -p kernel-core -p virtio-core -p ui-core -p update-core -p app-package-core -p artifact-store-core`
+is **niet uitgevoerd**: exit 127, `cargo: command not found`.
+`python3 -B tools/dev.py cargo +1.90.0 --version` exit 1 doordat de Cargo-
+binary ontbreekt. CodeRabbit CLI-review is niet gestart; het uitvoerbare
+bestand was niet vindbaar en beschikbaarheid/authenticatie zijn onbekend.
+
+**Eerstvolgend commando:** `git status --short && git rev-parse HEAD &&
+python3 -B tools/progress.py --check`; raadpleeg daarna `docs/WORK-QUEUE.md`
+voor het volgende productwerk.
+
+## Vorig checkpoint — PR127-kandidaat vóór exacte-head integratie — 2 november 2026
 
 **Basis:** PR127 `798706c2a53d0062ce0474e5f84f294b2c37b825`, drie lokale
 fixleaves en PR126 `8f08db4c12573f91b57e55c30fa417e7abd358e6`, met main
