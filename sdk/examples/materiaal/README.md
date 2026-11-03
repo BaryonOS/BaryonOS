@@ -60,6 +60,17 @@ STOP_REFUSED6, geen autosave/verwerpen/DONE. Alleen clean/idle plus expliciete
 cleanup van de drie kanaaleigenaren geeft DONE3. Volledig sessieherstel, opnieuw
 grants ontvangen en veilige persistente encrypted keys blijven afzonderlijk open.
 
+Na een clean-stop is de app definitief gestopt: Ready/zichtbaarheid gaan uit,
+alle drie kanaaleigenaren proberen hun beide endpoints te sluiten en latere
+invoer-, semantiek-, paint- of herstelacties geven `Error::Closed` zonder
+nieuwe dienstaanvraag. `is_stopped()` onderscheidt dit van een geweigerde
+stop bij onopgeslagen werk. Herhaald stoppen geeft exact het eerdere
+cleanupresultaat terug, ook als dat een fout was. Nieuwe presentatiegrants
+kunnen een gestopte app niet heractiveren en worden bij zo'n poging gesloten.
+Een nieuwe app vereist een nieuwe constructie en echte bootstrapgrants.
+Dit sluit de app-lokale teardown; een algemene launch-/window-/procesketen
+blijft afhankelijk van de nog ontbrekende native dynamic-launchprovider.
+
 De twintig hostketenproeven plus één echte ELFpolicytest staan in verification/.
 De reviewfix heeft afzonderlijk rood/groenbewijs: Ready is uit tijdens iedere
 nieuwe paint; PresentedGeneration verandert uitsluitend na alle actuele ACKs.

@@ -666,6 +666,7 @@ fn complete_chain() {
     );
     assert_eq!(a.evidence().save_acks, 0);
     assert_eq!(a.stop_clean(), Err(Error::Unsaved));
+    assert!(!a.is_stopped());
     keys(&h, &mut a, &[0x1d, 0x1f, 0x9f, 0x9d]);
     for _ in 0..3 {
         a.step().unwrap();
@@ -1522,6 +1523,154 @@ fn stop_after_no_work() {
         .all(|r| r.operation != volume::wire::COMMIT));
     assert_eq!(a.evidence().save_acks, 0);
 }
+fn stop_after_presented_frame_is_terminal_impl() {
+    let h = Host::new();
+    let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut a = app(
+        &h,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    finish_paint(&mut a);
+    assert!(a.evidence().ready);
+    assert!(a.is_visible());
+    a.stop_clean().unwrap();
+    assert!(
+        !a.evidence().ready,
+        "closed endpoints cannot certify a live app"
+    );
+    assert!(!a.is_visible());
+    assert!(!a.can_idle());
+    assert!(a.is_stopped());
+    let pairs = h.borrow().pairs;
+    for pair in pairs {
+        let mut host = h.borrow_mut();
+        assert!(host
+            .engine
+            .check_endpoint(APP, pair.app_send, SEND)
+            .is_err());
+        assert!(host
+            .engine
+            .check_endpoint(APP, pair.app_receive, RECV)
+            .is_err());
+        assert!(host
+            .engine
+            .send(APP, pair.app_send, &Message::new())
+            .is_err());
+        assert!(host.engine.receive(APP, pair.app_receive).is_err());
+    }
+    let before = a.evidence();
+    let calls = (
+        h.borrow().input_requests,
+        h.borrow().requests.len(),
+        h.borrow().blits,
+    );
+    let generation = a.controller().view().generation;
+    let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+    assert_eq!(a.step(), Err(Error::Closed));
+    assert_eq!(a.step_interactive(), Err(Error::Closed));
+    assert_eq!(a.detach_presentation(), Err(Error::Closed));
+    assert_eq!(a.enable_retained(), Err(Error::Closed));
+    assert_eq!(a.semantic_snapshot(&mut nodes), Err(Error::Closed));
+    assert_eq!(
+        a.activate_semantic(
+            nieuw_os_materiaal::render::SemanticId::NewDocument,
+            generation
+        ),
+        Err(Error::Closed)
+    );
+    assert_eq!(
+        a.set_semantic_value(
+            nieuw_os_materiaal::render::SemanticId::Search,
+            generation,
+            "after stop"
+        ),
+        Err(Error::Closed)
+    );
+    a.stop_clean().unwrap();
+    assert_eq!(a.evidence(), before);
+    assert_eq!(
+        (
+            h.borrow().input_requests,
+            h.borrow().requests.len(),
+            h.borrow().blits
+        ),
+        calls
+    );
+    assert_eq!(h.borrow().closed.len(), 6);
+    assert!(h.borrow().engine.check_invariants());
+
+    let replacement = replace_services(&h, [COMP, SOURCE, POLICY], 10, INPUT_EPOCH + 1, geometry());
+    let fresh = h.borrow().pairs;
+    let (input, surface, geometry) = replacement_channels(&h, replacement, replacement.input_epoch);
+    assert_eq!(
+        a.rebind_presentation(input, surface, geometry),
+        Err(Error::Closed)
+    );
+    assert_graphics_closed(&h.borrow(), fresh);
+    assert_eq!(h.borrow().closed.len(), 10);
+    assert!(a.is_stopped());
+    assert!(!a.evidence().ready);
+}
+fn failed_cleanup_is_not_success_on_retry_impl() {
+    for owner in 0..3 {
+        let h = Host::new();
+        let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut a = app(
+            &h,
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+        );
+        let pairs = h.borrow().pairs;
+        h.borrow_mut()
+            .engine
+            .close(APP, pairs[owner].app_send)
+            .unwrap();
+        let result = a.stop_clean();
+        if owner == 0 {
+            assert!(matches!(result, Err(Error::Controller(_))));
+        } else {
+            assert!(matches!(result, Err(Error::Cleanup(_))));
+        }
+        assert_eq!(h.borrow().closed.len(), 6, "every owner attempts cleanup");
+        assert_eq!(
+            a.stop_clean(),
+            result,
+            "a failed cleanup never becomes success"
+        );
+        assert_eq!(h.borrow().closed.len(), 6);
+        assert!(a.is_stopped());
+        assert_eq!(a.step(), Err(Error::Closed));
+        assert!(!a.evidence().ready);
+        for pair in pairs {
+            assert!(h
+                .borrow()
+                .engine
+                .check_endpoint(APP, pair.app_send, SEND)
+                .is_err());
+            assert!(h
+                .borrow()
+                .engine
+                .check_endpoint(APP, pair.app_receive, RECV)
+                .is_err());
+        }
+        assert!(h.borrow().engine.check_invariants());
+    }
+}
+scenario!(
+    stop_after_presented_frame_is_terminal,
+    stop_after_presented_frame_is_terminal_impl
+);
+scenario!(
+    failed_cleanup_is_not_success_on_retry,
+    failed_cleanup_is_not_success_on_retry_impl
+);
 scenario!(negative_display_completion_never_presents, negative_blit);
 scenario!(generation_change_abandons_partial_frame, change_midframe);
 scenario!(

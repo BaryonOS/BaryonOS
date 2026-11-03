@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **39** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`34d23e8f`](https://github.com/simonvanieperen/nieuw-os/commit/34d23e8f5a23077e9f92d416efcb44615d7e9858) ·
+**Bron:** [`e37989f5`](https://github.com/simonvanieperen/nieuw-os/commit/e37989f5b1893dfd1b4a610fe83a043751ae43f1) ·
 **Ontwikkelbranch:** `simonvanieperen-animated-garbanzo`.
-Deze opdracht: **39% → 39% (+0 procentpunt)**. **Opdracht:** Materiaal: document benoemen, bewaren, sluiten, zoeken en opnieuw openen.
-39% → 39%: nieuwe geintegreerde productcode voor documentnaam en lokale naamsearch boven de bestaande volume-v7-save/open-keten. De app-hostproef herstart met alleen de bewaarde RAM-sectoren en vindt identieke naam/inhoud terug. Gerichte hosttests zijn groen; dit is geen native runtime-, encrypted-storage- of menselijke acceptatie. Geen rubriccriterium gewijzigd.
+Deze opdracht: **39% → 39% (+0 procentpunt)**. **Opdracht:** Dagelijkse editor-save/close/reopen en terminale app-cleanup; volgende productdependencies.
+39% → 39%: dagelijkse UTF-8-editorflow met selectie/save/close/fresh reopen gevalideerd; nieuw app-lifecycleproductcode voorkomt Ready, acties of herleving na cleanup en bewaart cleanupfouten bij herhaling. Settings/algemene launch/TLS/NAS/AI/update stuiten op exact vastgelegde ontbrekende authority-/providerinterfaces. Hostbewijs vervangt geen native runtime-, persoonlijke-opslag- of volledige appacceptatie; geen rubriccriterium gewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

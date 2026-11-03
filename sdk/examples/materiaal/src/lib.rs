@@ -57,6 +57,7 @@ pub enum Error {
     Accessibility(RenderError),
     Cleanup(nieuw_os_sdk_runtime::Error),
     Unsaved,
+    Closed,
 }
 /// Tiles inspected per step while looking for a changed tile. Rendering is
 /// private CPU work; this keeps every iteration bounded and input-responsive.
@@ -92,6 +93,7 @@ pub struct App<'a, V: Transport, I: Transport, S: Transport> {
     step_succeeded: bool,
     input_failed: bool,
     surface_failed: bool,
+    stop_result: Option<Result<(), Error>>,
     frame: u64,
     next_tile: u64,
     clipboard_enabled: bool,
@@ -132,6 +134,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             step_succeeded: false,
             input_failed: false,
             surface_failed: false,
+            stop_result: None,
             frame: 0,
             next_tile: 0,
             clipboard_enabled: false,
@@ -159,6 +162,16 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     pub fn controller(&self) -> &Controller<'a, V> {
         &self.controller
     }
+    pub const fn is_stopped(&self) -> bool {
+        self.stop_result.is_some()
+    }
+    fn running(&self) -> Result<(), Error> {
+        if self.is_stopped() {
+            Err(Error::Closed)
+        } else {
+            Ok(())
+        }
+    }
     /// Protocol opt-in for the window compositor, never an input authority.
     pub fn enable_clipboard(&mut self) {
         self.clipboard_enabled = true;
@@ -166,6 +179,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     /// Only the jointly built window compositor promises private retained
     /// backing. Legacy display adapters keep the original full-frame path.
     pub fn enable_retained(&mut self) -> Result<(), Error> {
+        self.running()?;
         self.surface.enable_retained().map_err(Error::Surface)?;
         self.retained_enabled = true;
         Ok(())
@@ -180,7 +194,8 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     pub fn can_idle(&self) -> bool {
         let view = self.controller.view();
         let document = self.controller.document();
-        self.step_succeeded
+        !self.is_stopped()
+            && self.step_succeeded
             && self.input_empty
             && !self.input_failed
             && !self.surface_failed
@@ -209,6 +224,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         &'s self,
         out: &mut [SemanticNode<'s>],
     ) -> Result<SemanticSnapshot, Error> {
+        self.running()?;
         let view = self.controller.view();
         let generation = view.generation;
         let node_count = Frame::new(view)
@@ -222,6 +238,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     /// Dispatch an action within this app after the controller revalidates the
     /// node, action bit, enabled state, and snapshot generation.
     pub fn activate_semantic(&mut self, id: SemanticId, generation: u64) -> Result<(), Error> {
+        self.running()?;
         let result = self.controller.activate_semantic(id, generation);
         self.semantic_operation(result)
     }
@@ -232,13 +249,15 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         generation: u64,
         value: &str,
     ) -> Result<(), Error> {
+        self.running()?;
         let result = self.controller.set_semantic_value(id, generation, value);
         self.semantic_operation(result)
     }
     pub fn evidence(&self) -> Evidence {
         let mut evidence = self.evidence;
         let view = self.controller.view();
-        evidence.ready &= !view.dirty && evidence.presented_generation == view.generation;
+        evidence.ready &=
+            !self.is_stopped() && !view.dirty && evidence.presented_generation == view.generation;
         evidence
     }
     pub fn observation(&self) -> Observation {
@@ -260,7 +279,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         }
     }
     pub const fn is_visible(&self) -> bool {
-        self.evidence.frames != 0 && !self.surface_failed
+        !self.is_stopped() && self.evidence.frames != 0 && !self.surface_failed
     }
     pub const fn input_failed(&self) -> bool {
         self.input_failed
@@ -594,6 +613,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     /// one bounded tile transaction. Individual IPC polling is also bounded.
     /// Input/surface failure leaves document memory alive for explicit recovery.
     pub fn step(&mut self) -> Result<(), Error> {
+        self.running()?;
         self.step_succeeded = false;
         let input = self.input_step();
         self.save_step()?;
@@ -607,6 +627,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     /// between those transactions; this is a work bound, not a latency promise.
     /// The diagnostic one-tile `step` contract remains unchanged.
     pub fn step_interactive(&mut self) -> Result<(), Error> {
+        self.running()?;
         self.step_succeeded = false;
         let input = self.input_step();
         self.save_step()?;
@@ -627,6 +648,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     /// Close presentation only. Document ownership, draft and save state stay
     /// live while the supervisor replaces the failed display/input services.
     pub fn detach_presentation(&mut self) -> Result<(), Error> {
+        self.running()?;
         self.step_succeeded = false;
         self.input_empty = false;
         self.surface_failed = true;
@@ -642,6 +664,11 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         mut surface: Surface<S>,
         geometry: Geometry,
     ) -> Result<(), Error> {
+        if self.is_stopped() {
+            let input = input.close().map_err(Error::Cleanup);
+            let surface = surface.close().map_err(Error::Cleanup);
+            return input.and(surface).and(Err(Error::Closed));
+        }
         let binding = input.binding();
         if !self.surface_failed
             || !self.input_failed
@@ -699,14 +726,21 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         Ok(())
     }
     pub fn stop_clean(&mut self) -> Result<(), Error> {
+        if let Some(result) = self.stop_result {
+            return result;
+        }
         self.step_succeeded = false;
         if self.controller.document().is_dirty() || self.controller.document().is_saving() {
             return Err(Error::Unsaved);
         }
+        self.evidence.ready = false;
+        self.input_empty = false;
         // Attempt all endpoint owners even if one cleanup reports an error.
         let document = self.controller.close_clean().map_err(Error::Controller);
         let input = self.input.close().map_err(Error::Cleanup);
         let surface = self.surface.close().map_err(Error::Cleanup);
-        document.and(input).and(surface)
+        let result = document.and(input).and(surface);
+        self.stop_result = Some(result);
+        result
     }
 }

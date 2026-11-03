@@ -92,6 +92,31 @@ Die owner heeft alleen netwerk-syscallrouting, geen geheugen-/SMP-claim.
 
 ### Overige werkstromen en periodieke herverdeling
 
+### General — volgende verticale productketens, bron e37989f5
+
+Simon sloot de naam/save/search-slice op 3 november expliciet voor verdere
+polish. Daarna is Settings-eigenaarschap daadwerkelijk gecontroleerd:
+Veld meldt op `047abfa1` geen settingsconsumer/router/persistenceclaim en
+geen aanvullend opslagcontract. Het volgende register benoemt technische
+interfaceblokkades, geen impliciete directoryreserveringen.
+
+| Ketentaak / status | Bestaande consumer en concrete uitkomst | Afhankelijkheid / hervatgebeurtenis |
+|---|---|---|
+| `GP-SETTINGS-1` / BLOCKED | Geen native settingsservice/-protocol/-namespace in deze bron. Bestaande app-HC is expliciet alleen app-lokaal, geen persistence. Geen documentobject als settingsstore aangemaakt. | `BLOCKED-BY:B02/profile-key-authority + PROFILE/settings-namespace`. PROFILES-AND-USERS stap 2 vereist deze grens. Hervat met echte toegekende settingsscope, bestaande persistente adapter en ondersteunde consumer, niet met een nieuwe plaintext-opslagarchitectuur. |
+| `GP-EDITOR-1` / hostflow gevalideerd, native bewijs open | Bestaande Controller/volume-v7: UTF-8-selectie/edit, unsaved close/cancel, SaveAndBack, clean-close, nieuwe engine/service/controller uitsluitend uit bewaarde sectoren. 64-KiB-concept met I/O/revoke/stale revisie; expliciet discard/open van de vervangende versie. Writes uitsluitend `ui/native/tests/daily_editor.rs` en testsectorzichtbaarheid in `tests/common/mod.rs`. | Geen verdere polish of Work Suite-duplicatie. Undo/redo is niet ondersteund en niet toegevoegd. Nieuwe native bediening blijft een afzonderlijke gate; het eerdere Materiaalproduct blijft gesloten. |
+| `GP-APP-TEARDOWN-1` / ACTIVE productcheckpoint | Veld geeft `sdk/examples/materiaal/src/lib.rs` en `tests/chain.rs` NU expliciet vrij: General enige schrijver voor terminale stopuitkomst/guards en gerichte tests. Reproduceert closed-app Ready; sluit zes endpoints, voorkomt toekomstige acties/herleving en behoudt cleanupfouten. | Geen proces-/capabilitysemantiek of window-/pakketarchitectuur wijzigen. Native build/ELF-parser volgen; volledige launch hieronder blijft open. HC-hunks uit afzonderlijke Veldbranch bij latere seriele integratie behouden. |
+| `GP-APP-LAUNCH-1` / BLOCKED | Scene-programmapalette focust twee vooraf gestarte apps. K05 `supervisor.rs::spawn_checked` accepteert vaste `image_elf`-images; packageverificatie verleent geen launch. Geen algemene AuthorizedImage/provider met window-/inputregistratie. | `BLOCKED-BY:APP/AuthorizedImage-kernel-preflight + SESSION/dynamic-window-registration`. APP-PACKAGES benoemt ontbrekende provider. Interfacevraag aan Platform verstuurd; geen package-/K05-/SMP-rewrite door General. Hervat met provider-issued launchauthority en echte registratie/teardown; een mocklauncher is geen vervanging. |
+| `GP-NETWORK-1` / BLOCKED | Bestaande networkservice/TCP/DNS-bouwstenen; `services/net-tls` bevat alleen random/time-adapters, `custom-provider` zonder native cryptoprovider. `sdk/runtime/src/tls_time.rs` weigert alle huidige tijdbronnen. | `BLOCKED-BY:SEC/authenticated-certificate-time + NET/native-TLS-crypto-provider`. Maturity bevestigt geen consumable certificate-time op `ce1c5e7f`. Geen RTC/hosttijd/uitgeschakelde certcontrole als bypass. Driver-NIC blijft bij Drivers. |
+| `GP-NAS-SYNC-1` / BLOCKED | `services/nas/native-{core,client}` verwacht reeds versleutelde bytes en een vertrouwd geauthenticeerde Principal; geen pairing/crypto/peertransport. Offline checkpoints zijn geheugenmodellen, geen durable clientstore. | `BLOCKED-BY:NAS/authenticated-peer-ingress + B02/object-key-authority + NET/TLS + NAS/durable-client-checkpoint`. Hervat met echte peeridentiteit, bestaande objectcrypto en persistent offlinecontract; geen plaintexttransfer of tweede syncframework. |
+| `GP-AI-1` / BLOCKED | `experiments/ai/model-store-contract` is modelartifactreader, geen installatie/catalogus/parser/inference. Geen echte lokale AI-jobconsumer beschikbaar. | `BLOCKED-BY:COMPUTE/native-model-artifact-provider + native-inference-runtime`. Geen fake modelantwoord, stille contextobservatie of cloudfallback. Hervat met store-issued modelref en echte lokale job met scoped context. |
+| `GP-UPDATE-1` / BLOCKED | Bestaande update-service verifieert/installereert inactief slot; loader past versievloer toe. Geen consumable health/promote/known-good-statusinterface, eveneens bevestigd door Maturity op `ce1c5e7f`. | `BLOCKED-BY:MATURITY/verified-health-promote-recovery-interface`. Geen zelf verzonnen Healthy of verlaagde rollbackvloer. Hervat boven echte geversioneerde update-/hersteluitkomst en ondersteunde transitie. |
+| `GP-DAILY-COMBINED-1` / BLOCKED | Echte Material-save/open bestaat; geen gecombineerde imageacceptatie geclaimd. | Vereist ten minste GP-SETTINGS-1 en GP-APP-LAUNCH-1 plus bestaande session-/shutdowncontracten. Geen fixture vervangt ontbrekend subsysteem. |
+
+Een BLOCKED-rij reserveert geen bestanden. General behoudt alleen zijn
+concrete actieve productleaf; oplevering van een benoemde interface opent
+de betreffende keten opnieuw. Geen algemene corecrate of concurrerende
+workstream wordt ter vervanging gebouwd.
+
 | Werkstroom / eigenaar | Actuele concrete scope | Interfacegrens / volgende overdracht |
 |---|---|---|
 | Drivers / `de4ecebf` | MAC-code af op `d27b04e1`, owner meldt nog receipt/statuspublicatie; `m3.rs` expliciet vrijgegeven. Verdere driverwrites blijven bij `kernel/src/m2/m3/network.rs`, `sdk/runtime/src/{native,network}.rs`, `sdk/examples/net-probe/src/main.rs`, `sdk/examples/network-service/src/service.rs`, `tools/run_net_system.py`. Universele registry/matching/VirtIO/fysieke drivers en adaptatie blijven dit spoor. | Geen K05/heap/OOM/SMP of nieuwe `m3.rs`-write zonder seriele overdracht; device/DMA/IOMMU-grenzen alleen met het maturitycontract afstemmen. |

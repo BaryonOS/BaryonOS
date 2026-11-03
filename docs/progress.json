@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "34d23e8f5a23077e9f92d416efcb44615d7e9858",
+    "source_commit": "e37989f5b1893dfd1b4a610fe83a043751ae43f1",
     "branch": "simonvanieperen-animated-garbanzo",
-    "task": "Materiaal: document benoemen, bewaren, sluiten, zoeken en opnieuw openen",
+    "task": "Dagelijkse editor-save/close/reopen en terminale app-cleanup; volgende productdependencies",
     "previous_score": 39,
-    "summary": "39% → 39%: nieuwe geintegreerde productcode voor documentnaam en lokale naamsearch boven de bestaande volume-v7-save/open-keten. De app-hostproef herstart met alleen de bewaarde RAM-sectoren en vindt identieke naam/inhoud terug. Gerichte hosttests zijn groen; dit is geen native runtime-, encrypted-storage- of menselijke acceptatie. Geen rubriccriterium gewijzigd."
+    "summary": "39% → 39%: dagelijkse UTF-8-editorflow met selectie/save/close/fresh reopen gevalideerd; nieuw app-lifecycleproductcode voorkomt Ready, acties of herleving na cleanup en bewaart cleanupfouten bij herhaling. Settings/algemene launch/TLS/NAS/AI/update stuiten op exact vastgelegde ontbrekende authority-/providerinterfaces. Hostbewijs vervangt geen native runtime-, persoonlijke-opslag- of volledige appacceptatie; geen rubriccriterium gewijzigd."
   },
   "tracks": [
     {

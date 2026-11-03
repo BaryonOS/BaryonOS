@@ -1,6 +1,50 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Materiaal benoemen/save/zoek/heropenen — 3 november 2026
+## NEXT AGENT HANDOFF — editorflow en terminale app-cleanup — 3 november 2026
+
+**Bron:** `e37989f5b1893dfd1b4a610fe83a043751ae43f1`, branch
+`simonvanieperen-animated-garbanzo`; productdelta in dit checkpoint.
+De afgeronde Materiaal-naam/search-slice is niet verder gepolijst.
+Settings ownership is vrij volgens Veld, maar de instellingendienst,
+persistente profielnamespace en keyauthority ontbreken; geen opslagbypass.
+Daarna is de bestaande dagelijkse editorflow gericht gesloten op hostniveau:
+UTF-8-selectie vervangen, unsaved close annuleren, save/close en nieuw
+opbouwen uit uitsluitend sectoren met identieke inhoud. Een 64-KiB-draft
+behoudt inhoud bij I/O/revoke/stale revisie; geen nieuwe Work Suite of undo.
+
+**Nieuwe productcode:** `sdk/examples/materiaal/src/lib.rs` bewaart een
+terminale stopuitkomst. Een gesloten app meldt geen Ready/zichtbaarheid,
+verwerkt geen oude acties en kan niet via nieuwe presentationgrants herleven.
+Alle zes endpoints worden geprobeerd; cleanupfouten blijven bij herhaling
+fouten. Dit repareert echt rood in de volgende app-teardownflow, maar sluit
+de ontbrekende algemene launch/window/process-keten niet.
+Veld heeft `lib.rs` en `tests/chain.rs` expliciet seriel vrijgegeven.
+Eigen extra editorproeven: `ui/native/tests/daily_editor.rs`; bestaande
+harnas exposeert alleen zijn RAM-sectoren voor de echte heropbouw.
+
+**Bewijs:** 2 editor- en 41 appketens + 2 app-semantiekproeven groen; beide
+Clippy all-targets groen. Rode symptoomproef exit 101 bewaard. Exacte
+commando's, scope en logs:
+[ACCEPTANCE.md](verification/product-flows-20261103/ACCEPTANCE.md).
+Native build/ELF-parser nog niet uitgevoerd op dit checkpoint; geen nieuwe
+QEMU-, fysieke, menselijke of releaseacceptatie.
+
+**Open dependencies:** algemene AuthorizedImage-/kernel-launchprovider en
+windowregistration; veilige certificate-time/native-TLS-provider; NAS
+geauthenticeerde pairing + objectcrypto + peertransport; AI store-issued
+modelcatalogus + inferenceruntime; update health/promote/known-good consumer.
+Concrete bronnen en hervatvoorwaarden staan bovenaan WORK-QUEUE. Geen
+concurrerende Drivers/Maturity/Platform/Veld-implementatie gestart.
+Maturity meldt eigen OOM/K05-gates groen op `ce1c5e7f`, vervolgens SMP; dat
+bewijs is niet in deze branch geimporteerd. Veld HC staat apart op
+`43284264`; nieuwe Veldscope windowmove in Scene/main, niet deze files.
+
+**Score: 39 -> 39/100. Eerstvolgend commando:**
+`python3 -B sdk/examples/materiaal/build.py`, daarna bestaande ELF-parsertest
+tegen het echte executable. Vervolgens productafhankelijkheden gericht
+overdragen; geen herhaling van auth/B02-UI of Materiaalpolish.
+
+## Historisch checkpoint — Materiaal benoemen/save/zoek/heropenen — 3 november 2026
 
 **Bron:** productcommit `34d23e8f5a23077e9f92d416efcb44615d7e9858`
 op basis `21d14592a54a80da2debf7cfad139d37264078c7`, branch
