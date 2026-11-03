@@ -9,6 +9,20 @@ gezeroiseerd antwoord. Alleen afzonderlijke manifest-gebonden beheer-ingress
 mag herstelmateriaal behandelen. De native adapter controleert de afzender;
 de gedeelde app-dispatcher krijgt geen beheerautoriteit.
 
+Primaire implementatiebronnen (organisatie: Nieuw OS-project; versie
+`da6e89a0`, 3 november 2026):
+
+- [App- en beheerdispatchers, `services/keyring/src/wire.rs`](https://github.com/simonvanieperen/nieuw-os/blob/da6e89a0/services/keyring/src/wire.rs#L334):
+  `dispatch_domain` sluit herstel uit; `dispatch_management` behandelt de
+  afzonderlijke beheeroperaties. De dispatcher zelf authenticeert geen caller.
+- [Native beheeradapter, `sdk/examples/keyring/src/service.rs`](https://github.com/simonvanieperen/nieuw-os/blob/da6e89a0/sdk/examples/keyring/src/service.rs#L232):
+  `admin_ingress`/`poll_admin` controleren manifestbinding, afzender en
+  capabilitydelegatie voordat beheerdispatch wordt aangeroepen.
+- [Native resetfixture, `kernel/src/m2/m3/keyring.rs`](https://github.com/simonvanieperen/nieuw-os/blob/da6e89a0/kernel/src/m2/m3/keyring.rs#L529):
+  `restart_fixture` reset en herinitialiseert het entropydevice, behoudt
+  gepinde resources en controleert een nieuwe 32-byte transactie. Geen
+  proces wordt daarvoor afgesloten of opnieuw gestart.
+
 ## Uitgevoerd
 
 Rust 1.90.0, bestaande C-toolchain, QEMU/OVMF en wegwerpimages.
@@ -25,7 +39,8 @@ Commando's vanuit de geisoleerde worktree `files/sprint-keyring`:
 
 QEMU-cases: normal, no-device, stuck, timeout, restart; alle vijf
 `passed=true`, ruwe QEMU-exit 33. Native bewijs betreft onder andere de
-weigering van app-herstelverzoeken, entropyfailures en procesherstart.
+weigering van app-herstelverzoeken, entropyfailures en deviceherinitialisatie
+na bevestigde reset. Dit is geen bewijs van een procesherstart.
 Positieve managementrecovery is uitsluitend hostgetest; geen native
 supervisorherstel-, hardware-, gebruikers- of releaseclaim. Deze wijziging
 sluit B01/B02 niet op basis van hostbewijs.

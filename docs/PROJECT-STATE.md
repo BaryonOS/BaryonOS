@@ -11,7 +11,7 @@ mainmerge of issue-/PR-sluiting. PR-classificatie en ownership:
 **Concrete resultaten, gecommit/gepusht:**
 - #158 `568741f3`: ontbrekende volledige B03-native gate opgelost;
   `python3 -B -u tools/test_update.py`, exit 0, 18 QEMU-stappen, 106,91 s.
-  [Receipt](verification/b03-test-anchor-gating/native-sprint.json) staat
+  [Receipt op exacte bewijscommit](https://github.com/simonvanieperen/nieuw-os/blob/568741f35ff219ff03762e9692909b2c46ce5f63/docs/verification/b03-test-anchor-gating/native-sprint.json) staat
   op die branch; TEST-policy, geen productie-key-lifecycle of #41-sluiting.
 - #159 `41f4a6de` / #156 `299ceefe`: bestaande image-/EXIF-slice op main,
   exact dezelfde eindtree. Codec 23 en viewer 15 hosttests groen;
