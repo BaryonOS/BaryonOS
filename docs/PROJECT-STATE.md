@@ -1,33 +1,30 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PCI-mismatchrapportage en constructiebeveiliging — 3 november 2026
+## NEXT AGENT HANDOFF — PCI-mismatchrapportage gecontroleerd — 3 november 2026
 
-Werkbranch `copilot/universal-driver-framework`; actuele lokale bron
-`cace93cc2a24ada0d8088c0b782ee0e75443104b`. Laatste gepushte head vóór de
-statusupdate was `195fbae3c14be479d55e5af89daeeb587d1c6ccc`; PR #153 is open
-met `CHANGES_REQUESTED`, zonder gerapporteerde CI-checks. De M5-read-only
-segment-0-scan en profielgebonden `UNSUPPORTED:PCI`-regels staan op
-`340ecd12938f3915140315051aa2ca4bbcacd005`. Een vervolgfix maakt de
-`Mechanism1`-constructor niet meer veilig rechtstreeks aanroepbaar via de
-publieke unit-struct, en corrigeert verouderde BDF-claims in de drivercatalogus.
-Deze laatste fix is nog niet opnieuw getest of gepusht.
+Werkbranch `copilot/universal-driver-framework`; gecontroleerde en gepushte
+bronboom `6eeae37cef88d61d71905f03291014793304f470`. De PCI-rapportage staat
+op `340ecd12938f3915140315051aa2ca4bbcacd005`; constructiebeveiliging van
+`Mechanism1` en de BDF-documentatiecorrectie staan op `cace93cc2a24ada0d8088c0b782ee0e75443104b`.
+De registrygebonden constructie voorkomt veilige rechtstreekse constructie
+van de config-space-adapter zonder de onveilige constructor.
 
-De 40 hosttests, Clippy, fmt, diff-check en M5-/`native-system-net`-builds in
-de [receipt](verification/pci-unsupported-report-2026-11-03/README.md) horen
-alleen bij bron `340ecd1`. De eerstvolgende controle moet opnieuw lopen op
-`cace93c`; gebruik voor hosttests de bestaande compiler onder
-`/tmp/nieuw-os-hostcc-2026-11-03` en voor builds Rust uit `/home/simon/.cargo/bin`.
-QEMU ontbreekt; serial runtime en fysieke hardware zijn niet getest. Score
+Op de gecontroleerde bronboom slaagden 40 hosttests, Clippy met
+`-D warnings`, formattercontrole, whitespacecontrole en de
+`milestone-m5`-/`native-system-net`-builds. Exacte commando's, exits, logs en
+hashes staan in de [receipt](verification/pci-unsupported-report-2026-11-03/README.md).
+PR #153 is open met `CHANGES_REQUESTED`; de gepushte head is gecontroleerd,
+maar er zijn geen CI-checks gerapporteerd. QEMU ontbreekt; serial runtime,
+fysieke hardware en onafhankelijke menselijke review zijn niet getest. Score
 blijft **41/100 → 41/100**.
 
-**Open/eerstvolgend:** na de gerichte hercontrole de status/receipt bijwerken
-en pushen. De PR heeft daarnaast nog reviewbevindingen die niet door deze
-fix zijn opgelost, waaronder het doorgeven van de werkelijke NIC-MAC aan
-ring-3-networksoftware en de primaire PCI-bronverwijzingen. Migreer de
-resterende RNG-fixed-BDF-route en voeg actieve drivers pas daarna aan één
-gezaghebbende catalogus toe. Interrupt-/busmaster-/DMA-lifecycle wacht op het
-maturitybranch-contract. Meerdere instanties, ACPI/ECAM, bridges,
-USB-klassen, NVMe, GOP en daadwerkelijke QEMU-uitvoer blijven open.
+**Open/eerstvolgend:** pak de resterende PR-bevindingen aan, waaronder het
+doorgeven van de werkelijke NIC-MAC aan ring-3-networksoftware en de primaire
+PCI-bronverwijzingen. Migreer de resterende RNG-fixed-BDF-route en voeg
+actieve drivers daarna aan één gezaghebbende catalogus toe.
+Interrupt-/busmaster-/DMA-lifecycle wacht op het maturitybranch-contract.
+Meerdere instanties, ACPI/ECAM, bridges, USB-klassen, NVMe, GOP, QEMU-runtime
+en fysieke hardware blijven open.
 
 ### Implementatiestap — segment-0 enumeratie en VirtIO BDF-migratie
 

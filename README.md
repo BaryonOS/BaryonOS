@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`cace93cc`](https://github.com/simonvanieperen/nieuw-os/commit/cace93cc2a24ada0d8088c0b782ee0e75443104b) ·
+**Bron:** [`6eeae37c`](https://github.com/simonvanieperen/nieuw-os/commit/6eeae37cef88d61d71905f03291014793304f470) ·
 **Ontwikkelbranch:** `copilot/universal-driver-framework`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PCI-mismatchrapportage vóór M5-deviceactivatie.
-41/100 blijft 41/100. M5-profielen rapporteren type-0-PCI-endpoints zonder profielmatch vóór deviceactivatie; de scan is read-only en markeert onvolledige scans expliciet. 40 hosttests, Clippy, fmt, diff-check en M5-/native-system-net-builds slaagden op parentbron 340ecd1. De actuele bron cace93c sluit een veilige constructieroute voor Mechanism1 en corrigeert BDF-documentatie; die vervolgfix is nog niet opnieuw getest. QEMU/runtime en fysieke hardware zijn niet getest, dus geen nieuw acceptatiepunt.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PCI-mismatchrapportage en constructiebeveiliging.
+41/100 blijft 41/100. M5-profielen rapporteren type-0-PCI-endpoints zonder profielmatch vóór deviceactivatie; de scan is read-only en markeert onvolledige scans expliciet. De Mechanism1-adapter kan niet veilig buiten de onveilige constructor worden geconstrueerd en de BDF-documentatie is gecorrigeerd. Op bronboom 6eeae37 slaagden 40 hosttests, Clippy, fmt, diff-check en M5-/native-system-net-builds. QEMU/runtime, fysieke hardware en onafhankelijke menselijke review zijn niet getest; er is geen nieuw acceptatiepunt.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
