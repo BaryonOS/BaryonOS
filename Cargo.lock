@@ -222,6 +222,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "driver-core"
+version = "0.1.0"
+
+[[package]]
 name = "ed25519"
 version = "2.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -469,6 +473,13 @@ dependencies = [
  "elf-loader-core",
  "r-efi",
  "update-core",
+]
+
+[[package]]
+name = "pci-core"
+version = "0.1.0"
+dependencies = [
+ "driver-core",
 ]
 
 [[package]]
