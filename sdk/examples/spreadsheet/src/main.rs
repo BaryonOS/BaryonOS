@@ -17,7 +17,8 @@ fn run() -> Result<(), String> {
             .next()
             .and_then(|a| a.into_string().ok())
             .ok_or(usage)?;
-        let address = Address::parse(&address_text).map_err(|e| format!("{e:?}"))?;
+        let address = Address::parse(&address_text)
+            .map_err(|e| format!("Ongeldig adres '{address_text}': {e}"))?;
         if action == "--set" {
             let input = args
                 .next()
@@ -25,11 +26,11 @@ fn run() -> Result<(), String> {
                 .ok_or(usage)?;
             sheet
                 .set(address, &input)
-                .map_err(|e| format!("Cel instellen mislukt: {e:?}"))?;
+                .map_err(|e| format!("Cel instellen mislukt: {e}"))?;
         } else if action == "--get" {
             let value = sheet
                 .value(address)
-                .map_err(|e| format!("Herberekenen mislukt: {e:?}"))?;
+                .map_err(|e| format!("Herberekenen mislukt: {e}"))?;
             let text = value.value.format();
             output
                 .try_reserve(text.as_str().len() + 16)

@@ -5,6 +5,7 @@
 extern crate alloc;
 
 use alloc::string::String;
+use core::fmt;
 use nieuw_os_calculator::decimal::{self, Evaluation};
 
 pub const MAX_CELLS: usize = 64;
@@ -66,6 +67,43 @@ pub enum Error {
     CellLimit,
     OutOfMemory,
     Cell { address: Address, kind: CellError },
+}
+
+impl fmt::Display for Address {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}{}", char::from(b'A' + self.column), self.row)
+    }
+}
+
+impl fmt::Display for CellError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Cycle => f.write_str("circulaire celverwijzing"),
+            Self::DependencyDepth => f.write_str("maximale afhankelijkheidsdiepte bereikt"),
+            Self::MissingReference => f.write_str("verwezen cel ontbreekt"),
+            Self::InvalidReference => f.write_str("ongeldige celverwijzing"),
+            Self::InvalidNumber => f.write_str("ongeldig getal"),
+            Self::ExpandedLimit => f.write_str("uitgebreide formule is te lang"),
+            Self::Arithmetic(error) => write!(
+                f,
+                "{} (positie {} in de geëvalueerde formule)",
+                error.label(),
+                error.position
+            ),
+        }
+    }
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidAddress => f.write_str("ongeldig celadres (gebruik A1 t/m Z64)"),
+            Self::InputLimit => f.write_str("celinvoer is ongeldig of te lang"),
+            Self::CellLimit => f.write_str("maximaal 64 gevulde cellen"),
+            Self::OutOfMemory => f.write_str("onvoldoende geheugen"),
+            Self::Cell { address, kind } => write!(f, "Cel {address}: {kind}"),
+        }
+    }
 }
 
 struct Cell {

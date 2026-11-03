@@ -38,3 +38,22 @@ fn usage_and_cell_errors_have_no_success_shaped_output() {
         assert!(!output.stderr.is_empty());
     }
 }
+
+#[test]
+fn error_messages_show_a1_addresses_without_internal_debug_coordinates() {
+    for (args, expected) in [
+        (vec!["--set", "A1", "=A1+1", "--get", "A1"], "Cel A1: circulaire celverwijzing"),
+        (vec!["--get", "B1"], "Cel B1: verwezen cel ontbreekt"),
+        (vec!["--get", "a1"], "Ongeldig adres 'a1'"),
+    ] {
+        let output = Command::new(env!("CARGO_BIN_EXE_sheet-calc"))
+            .args(&args)
+            .output()
+            .unwrap();
+        assert!(!output.status.success(), "{args:?}");
+        assert!(output.stdout.is_empty(), "{args:?}");
+        let error = String::from_utf8(output.stderr).unwrap();
+        assert!(error.contains(expected), "got: {error}");
+        assert!(!error.contains("Address {"), "got: {error}");
+    }
+}

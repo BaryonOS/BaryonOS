@@ -36,6 +36,17 @@ bestands-, netwerk-, macro- of procesrechten.
 
 ## Exacte uitgevoerde controles
 
+**Herleidbaarheid van de onafhankelijke Decimal-orakelvergelijking:** Python
+Software Foundation, *decimal — Decimal fixed-point and floating-point
+arithmetic*, Python 3 Standard Library Documentation (versie 3.x),
+<https://docs.python.org/3/library/decimal.html#decimal.ROUND_HALF_EVEN>.
+`ROUND_HALF_EVEN` rondt gelijke grensgevallen naar het even cijfer af.
+De exacte Python-microversie van de historische run is **onbekend**: de uitvoer
+van `python3 --version` is niet in dit oorspronkelijke bewijs vastgelegd.
+Voor een nieuwe reproductie moet eerst `python3 --version` worden uitgevoerd
+en de werkelijke uitvoer in een nieuwe receipt worden bewaard; dit is geen
+achteraf geclaimde controle van de oorspronkelijke run.
+
 Werkdirectory
 `/home/simon/.copilot/session-state/edf11e7c8b3e4c9ba1a91b7ef0779695/files/platform-sheet`.
 Rust 1.90.0, bestaande `/tmp/nieuw-os-c-toolchain/cc-wrapper` met sysroot;

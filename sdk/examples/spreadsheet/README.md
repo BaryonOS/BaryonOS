@@ -74,9 +74,13 @@ spreadsheetapp of oorspronkelijke M10-acceptatie geclaimd.
 ## Gerichte acceptatie
 
 ```sh
+# Uitvoeren vanaf de repositoryroot op een voorbereide Rust-toolchain.
+set -e
+export CARGO_TARGET_DIR="$PWD/target/platform-sheet-host"
 cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/spreadsheet/Cargo.toml --features host-cli
 cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/spreadsheet/Cargo.toml --features host-cli --all-targets -- -D warnings
 cargo +1.90.0 fmt --manifest-path sdk/examples/spreadsheet/Cargo.toml -- --check
+cargo +1.90.0 build --offline --locked --manifest-path sdk/examples/spreadsheet/Cargo.toml --features host-cli --bin sheet-calc
 cargo +1.90.0 build --offline --locked --release --lib --manifest-path sdk/examples/spreadsheet/Cargo.toml --target x86_64-unknown-none
 python3 -B sdk/examples/spreadsheet/tests/interop.py target/platform-sheet-host/debug/sheet-calc
 ```
