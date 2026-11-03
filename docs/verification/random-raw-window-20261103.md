@@ -38,7 +38,7 @@ daarnaast deterministisch als hostregressie nagebootst.
 
 ## Correctie en invarianten
 
-Dezelfde requests 1000..1064, elk een byte, gaan in vier batches van 16.
+De succesvolle requests 1000..1063, elk een byte, gaan in vier batches van 16. Request 1064 volgt afzonderlijk als de 65e request en moet `Quota` opleveren.
 Beide bestaande IPC-endpointwachtrijen hebben capaciteit 16. De primaire
 bron is [Nieuw OS, `capability-core` endpointqueue (`QUEUE_CAPACITY`), commit
 `78ff7c03b015ad16fe665ae7df9fe239d078e08d`, 3 november 2026](https://github.com/simonvanieperen/nieuw-os/blob/78ff7c03b015ad16fe665ae7df9fe239d078e08d/crates/capability-core/src/lib.rs#L72);
