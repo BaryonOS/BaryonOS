@@ -7,8 +7,8 @@
 werkboom was schoon.
 
 **M5-commit:** `3e2ae4a7c8bac6c151833c9262bd30bad0cc0b6e`; de remote-branch
-bevat deze commit. PR #156 is open tegen `main`, met deze head. `gh pr checks`
-meldde geen checks op de nieuwe commit; de reviewbeslissing blijft
+bevat deze commit. PR #156 is open tegen `main`. `gh pr checks` meldde na de
+M5-codepush geen checks op die commit; de reviewbeslissing blijft
 `CHANGES_REQUESTED`. De bestaande CodeRabbit-review bevat een niet-beoordeelde
 mogelijke policy-authorisatiebevinding en documentatiepunten op eerder werk.
 M5 wijzigt die code niet; deze checkpoint is geen reviewgoedkeuring of merge.
