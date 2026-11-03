@@ -3,9 +3,9 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "794ddcc0d866ee8847a519b5a6f23c2ceddd69ea",
-    "branch": "codex/volume-format-admission-20261102",
-    "task": "Integreer actuele main met behoud PR149 en volume-admissie; native volumegates opnieuw vereist",
+    "source_commit": "348ee19555146ed3d44971b09c3bf0505515acdd",
+    "branch": "coderabbit/volume-admission-review-fixes/c797a4b6",
+    "task": "Herstel geldige reviewpunten in historisch volume-admissiebewijs",
     "previous_score": 41,
     "summary": "De 41/100-rubric blijft behouden; geen nieuwe punten. De actuele main is inhoudsbehoudend geïntegreerd: PR149's UI-code, testreceipt en mainstatus blijven aanwezig, evenals PR133's volume-admissiegeschiedenis. De branchgebonden 10+9-VM-proeven horen bij een oudere bron en accepteren de combinatie niet; herhaal ze op een nieuw bevroren checkpoint. Native volumeacceptatie blijft open."
   },

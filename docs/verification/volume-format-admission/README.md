@@ -22,7 +22,7 @@ Bestaande complete generaties blijven geldig, ook generatie 1 met een oude
 nulcompanion. Een onderbroken eerste commit blijft herstelbaar vanuit de
 geldige generatie-0-basis. Alle gedeeltelijke eerste-commitprefixen zijn ook
 gericht op de host getest. Uniform sealed maar semantisch corrupte metadata
-blijft een harde fout. Zie [ADR-053](../../DECISIONS.md#adr-053--positieve-volume-identiteit-vóór-toelating-als-lege-opslag).
+blijft een harde fout. Zie [ADR-058](../../DECISIONS.md#adr-058--positieve-volume-identiteit-vóór-toelating-als-lege-opslag).
 
 De eigen kernel, IPC en capabilities zijn niet verruimd. Er is geen
 runtimeformatteerpad of nieuwe bestandssysteemdriver toegevoegd. Alleen
@@ -129,6 +129,10 @@ AI-teamcontrole, geen onafhankelijke menselijke audit.
 - `native-import.json`: koppeling van iedere archiefkopie aan oorspronkelijke
   bytes/SHA256. `ARTIFACTS.json`: hashes van de hele compacte bewijsbundel;
   gziplogs bevatten ook de ongecomprimeerde hash.
+  De bijgewerkte reviewverifiers verschillen van de historische import;
+  de oude receipts en importhashes blijven bewijs van de eerdere controle.
+  De volledige rootcontrole blijft open tot de import opnieuw bytegelijk is
+  en de externe bron en oorspronkelijke bestanden beschikbaar zijn.
 
 Images, binaries, Cargo-targets en caches blijven buiten Git. De gearchiveerde
 runner is een snapshot van het externe dossier, met bronpaden relatief aan
@@ -148,4 +152,4 @@ FNV/seals leveren formaatvalidatie en foutdetectie, geen cryptografische
 authenticatie tegen bewust vervalste eigen metadata. Native Btrfs/OpenZFS-
 ondersteuning, vreemde bestandslezing/herstel, fysieke powercuts en productie-
 geschiktheid zijn hiermee niet aangetoond. De eerdere backendpoort blijft
-open. Deze gerichte bugfix verandert geen rubriccriterium: **34/100 → 34/100**.
+open. Deze gerichte bugfix verandert geen rubriccriterium: **34/100 → 34/100** bij bron `94f12da`; de huidige projectscore is **41/100**.

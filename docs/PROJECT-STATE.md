@@ -1,6 +1,18 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR133 volume-admissie en bijgewerkte main — 3 november 2026
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:fc73d1b6ce9196bcb1431a21ebb2658e00de7d6c510f8978ad652617ac3dd760 -->
+
+# NEXT AGENT HANDOFF — review volume-admissiebewijs — 3 november 2026
+
+**Basis:** `348ee19555146ed3d44971b09c3bf0505515acdd`; score **41 → 41/100**. Archief-, matrix- en regressieverifiers wijzen ontbrekend of afwijkend bewijs nu af. De hostfixture was al correct. Historische import- en reviewhashes blijven behouden; de gewijzigde verifiers zijn niet opnieuw onafhankelijk beoordeeld op de oorspronkelijke externe images en bron. De gecombineerde native 10+9-gate blijft open.
+
+**Gerichte controles:** synthetische positieve en negatieve archief-, matrix- en regressiegevallen, manifestcontrole ook onder `python -O`, voortgangsgeneratie/-controle en 21 bestaande volume-servicetests geslaagd. Dit is geen nieuwe VM-uitvoering. Herhaal de native gates op een nieuw bevroren checkpoint.
+
+## Historisch checkpoint — PR133 volume-admissie en bijgewerkte main — 3 november 2026
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 **Bron:** PR-head `794ddcc0d866ee8847a519b5a6f23c2ceddd69ea` met de actuele
 main `0e3b9e7f02ee7556e4b713fa58c9cd9e6b26a740`, branch

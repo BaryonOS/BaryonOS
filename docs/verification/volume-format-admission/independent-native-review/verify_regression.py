@@ -9,11 +9,49 @@ FEATURES = {'normal':'native-volume','recover':'test-volume-recover','cut-data':
             'cut-table':'test-volume-cut-table','cut-txn':'test-volume-cut-txn',
             'recover-cut':'test-volume-recover-cut','corrupt':'test-volume-corrupt'}
 CUTS = {'cut-data':'VOLUME:CUT:DATA','cut-table':'VOLUME:CUT:TABLE','cut-txn':'VOLUME:CUT:TXN'}
+HOST_CARGO = [
+    ['cargo','+1.90.0','test','--locked','-p','volume-core'],
+    ['cargo','+1.90.0','test','--locked','--manifest-path','sdk/Cargo.toml','-p','nieuw-os-sdk-runtime'],
+]
+HOST_PYTHON_ARGS = ['-B','-m','unittest','discover','-s','tests','-p','test_volume_*.py']
 
 
 def logged_text_matches(path, text):
     raw = Path(path).read_bytes()
     return raw in (text.encode('utf-8'), text.replace('\n','\r\n').encode('utf-8'))
+
+
+def verify_host_checks(records):
+    v.need(len(records) == 3 and all(type(h['exit']) is int and h['exit'] == 0 for h in records), 'host checks failed/absent')
+    host=[]
+    for index,h in enumerate(records):
+        command=h['command']
+        if index < len(HOST_CARGO):
+            v.need(command == HOST_CARGO[index], 'host cargo suite mismatch')
+        else:
+            v.need(isinstance(command,list) and len(command) == 1+len(HOST_PYTHON_ARGS)
+                   and isinstance(command[0],str)
+                   and re.fullmatch(r'python(?:\d+(?:\.\d+)*)?(?:\.exe)?', command[0].replace('\\','/').rsplit('/',1)[-1], re.IGNORECASE)
+                   and command[1:] == HOST_PYTHON_ARGS, 'host Python suite mismatch')
+        totals=[line for line in (h['stdout']+h['stderr']).splitlines()
+                if line.startswith(('test result:','Ran ','OK','FAILED'))]
+        v.need(totals == h['totals'], 'host test totals mismatch')
+        v.need(totals and not any('FAILED' in l or re.search(r'\b[1-9]\d* failed\b',l) for l in totals), 'host test failure in complete logs')
+        if index < len(HOST_CARGO):
+            results=[re.fullmatch(r'test result: ok\. (\d+) passed; 0 failed; \d+ ignored; \d+ measured; \d+ filtered out; finished in .+', line) for line in totals]
+            v.need(all(results) and sum(int(result[1]) for result in results) > 0, 'host cargo test count absent/zero')
+        else:
+            count = re.fullmatch(r'Ran ([1-9]\d*) tests? in .+', totals[0]) if len(totals) == 2 else None
+            result = re.fullmatch(r'OK(?: \(skipped=(\d+)\))?', totals[1]) if len(totals) == 2 else None
+            v.need(count and result and int(result[1] or 0) < int(count[1]), 'host Python test count absent/zero')
+        host.append({'command':command,'exit':h['exit'],'totals_reconstructed':totals})
+    return host
+
+
+def verify_cut(case, result):
+    v.need(result['host_kill'] is True and result['running_before_kill'] is True
+           and type(result['raw_qemu_exit']) is int and result['raw_qemu_exit'] == 1,
+           f'{case}: live host kill/exit not recorded')
 
 
 def verify():
@@ -33,14 +71,7 @@ def verify():
     expected_tests = {p.relative_to(v.SOURCE).as_posix() for p in (v.SOURCE/'tests').rglob('test_volume_*.py')}
     expected_tests |= {p.relative_to(v.SOURCE).as_posix() for p in (v.SOURCE/'tests').rglob('__init__.py')}
     v.need(set(gate['test_inputs']) == expected_tests, 'missing/extra host test fingerprints')
-    v.need(len(gate['host']) == 3 and all(h['exit'] == 0 for h in gate['host']), 'host checks failed/absent')
-    host=[]
-    for h in gate['host']:
-        totals=[line for line in (h['stdout']+h['stderr']).splitlines()
-                if line.startswith(('test result:','Ran ','OK','FAILED'))]
-        v.need(totals == h['totals'], 'host test totals mismatch')
-        v.need(totals and not any('FAILED' in l or re.search(r'\b[1-9]\d* failed\b',l) for l in totals), 'host test failure in complete logs')
-        host.append({'command':h['command'],'exit':h['exit'],'totals_reconstructed':totals})
+    host=verify_host_checks(gate['host'])
     expected_initial=v.sha(v.NATIVE/'seeds/own-empty.img')
     snapshots={}
     checked=[]
@@ -84,7 +115,7 @@ def verify():
         expected=v.BOOT.copy()
         if case in CUTS:
             expected += [CUTS[case]]
-            v.need(r['host_kill'] is True and r['running_before_kill'] is True,f'{case}: live host kill not recorded')
+            verify_cut(case,r)
         else:
             name={'normal':'NORMAL','recover':'RECOVER','recover-cut':'RECOVER_CUT','corrupt':'CORRUPT'}[case]
             expected += ['VOLUME:READY',f'VOLUME:CASE:{name}:PASS','VOLUME:RESOURCES:PASS','VOLUME:PASS','M1:PASS']

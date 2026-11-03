@@ -20,8 +20,27 @@ def archive() -> None:
     native = ROOT / "native"
     matrix = json.loads((native / "matrix.json").read_text())
     regression = json.loads((native / "regression/invocation.json").read_text())
-    if not (matrix["passed"] and len(matrix["runs"]) == 10 and regression["passed"]
-            and regression["stage_count"] == 9):
+    gate = json.loads((native / "regression/build/volume-gate.json").read_text())
+    source = matrix.get("source")
+    labels = {"own-normal", "own-cold-recover"} | {
+        f"{candidate}-{mode}" for candidate in ("btrfs", "zero", "zero-prefix-payload-tail", "openzfs-leaf")
+        for mode in ("readonly", "writable")}
+    runs = matrix.get("runs", [])
+    plan = [("normal", None), ("recover", "normal"), ("cut-data", None),
+            ("recover-cut", "cut-data"), ("cut-table", None), ("recover-cut", "cut-table"),
+            ("cut-txn", None), ("recover-cut", "cut-txn"), ("corrupt", None)]
+    if not (isinstance(source, dict) and source.get("head") and source.get("source_sha256")
+            and regression.get("source") == source and gate.get("source_sha256") == source["source_sha256"]
+            and matrix.get("passed") is True and matrix.get("source_unchanged") is True
+            and len(runs) == 10 and {run.get("label") for run in runs} == labels
+            and all(run.get("passed") is True and run.get("timed_out") is False
+                    and run.get("source_unchanged") is True and run.get("source") == source for run in runs)
+            and regression.get("passed") is True
+            and regression.get("returncode") == 0 and regression.get("source_unchanged") is True
+            and regression.get("gate_passed") is True and regression.get("stage_count") == 9
+            and gate.get("passed") is True and gate.get("status") == "completed"
+            and [(stage.get("case"), stage.get("parent")) for stage in gate.get("stages", [])] == plan
+            and all(stage.get("passed") is True for stage in gate["stages"])):
         raise RuntimeError("native acceptance incomplete; preserve current evidence")
     imported = []
     for source_root, destination in ((native, DEST / "native"),

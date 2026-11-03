@@ -61,9 +61,9 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`794ddcc0`](https://github.com/simonvanieperen/nieuw-os/commit/794ddcc0d866ee8847a519b5a6f23c2ceddd69ea) ·
-**Ontwikkelbranch:** `codex/volume-format-admission-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Integreer actuele main met behoud PR149 en volume-admissie; native volumegates opnieuw vereist.
+**Bron:** [`348ee195`](https://github.com/simonvanieperen/nieuw-os/commit/348ee19555146ed3d44971b09c3bf0505515acdd) ·
+**Ontwikkelbranch:** `coderabbit/volume-admission-review-fixes/c797a4b6`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Herstel geldige reviewpunten in historisch volume-admissiebewijs.
 De 41/100-rubric blijft behouden; geen nieuwe punten. De actuele main is inhoudsbehoudend geïntegreerd: PR149's UI-code, testreceipt en mainstatus blijven aanwezig, evenals PR133's volume-admissiegeschiedenis. De branchgebonden 10+9-VM-proeven horen bij een oudere bron en accepteren de combinatie niet; herhaal ze op een nieuw bevroren checkpoint. Native volumeacceptatie blijft open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
