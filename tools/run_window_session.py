@@ -373,7 +373,9 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 move(1260, 50)
                 key("f6")
                 wait("recall-focused", lambda raw, s: s["CALCULATOR"] and
+                     s["MATERIAL"] and s["MATERIAL"][-1]["GEN"] > initial["MATERIAL"][-1]["GEN"] and
                      comp(raw).get("FOCUSED") == 1 and
+                     comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"] and
                      comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
                 baseline = snapshots(serial(directory / "serial.txt"), "CALCULATOR")[-1]
 

@@ -93,6 +93,19 @@ buitengebiedbasis; vanaf daar moet iedere recall-/draftstap exact gelijk
 blijven buiten de appbody. Geen pixels gemaskeerd, geen sleeps toegevoegd,
 geen geslaagde gate voor de mislukte poging geclaimd.
 
+Tweede poging op `ccf5617f`: build exit 0 / 2,17 s, runner exit 1 /
+50,49 s; run `window-e0c3bfab5e144c958e7d72f74721d3a3`,
+log `veld10-recall-native-attempt2.log`.
+De recall-/draft- en eerste editstappen voldeden, maar daarna veranderden
+1.869 pixels in Materiaals statusregel (x221..513/y581..593).
+De bestaande Materiaalconsumer schildert zijn FocusLost-status pas na de
+volledige achtergrondframeketen; oude READY-snapshots bleven tijdens die
+paint zichtbaar. De brontrace bevestigt dat iedere Cancel in deze mainbasis
+de Materiaalstatus ongeldig maakt. Dit is geen calculatorpaint.
+De runner wacht nu vóór zijn baseline expliciet op de nieuwe Materiaal-
+framegeneratie na F6 en de bijbehorende compositorcommit, naast de echte
+calculatorcommit. Geen Materiaalcode gewijzigd of statusregel gemaskeerd.
+
 Niet uitgevoerd: recall-VM-proef, gewijzigde-mainintegratie, CI, fysieke
 hardware-, menselijke gebruiks-, onafhankelijke audit- en releasegates.
 Geen punten toegekend; geen volledige product-/opslag-/herstelclaim.
