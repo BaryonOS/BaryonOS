@@ -198,17 +198,18 @@ fn main() -> ! {
         -11,
         48,
     );
-    let local = Interface {
+    let local_interface = Interface {
         mac: native::net_mac(source).unwrap_or_else(|_| fail(49)),
         ipv4: LOCAL_IPV4,
     };
-    check(local.mac == [2, 0, 0, 0, 0, 7], 50);
+    check(local_interface.mac == [2, 0, 0, 0, 0, 7], 50);
 
     let mut clock = 0u64; // Monotonic receive-poll steps, not wall-clock seconds.
-    let mut neighbor = NeighborSlot::new(local).unwrap_or_else(|_| fail(9));
+    let mut neighbor = NeighborSlot::new(local_interface).unwrap_or_else(|_| fail(9));
     check(neighbor.begin(PEER_IP, clock, 1_000_000).is_ok(), 10);
     for attempt in 0..3 {
-        let length = arp::build_request(local, PEER_IP, &mut tx).unwrap_or_else(|_| fail(11));
+        let length =
+            arp::build_request(local_interface, PEER_IP, &mut tx).unwrap_or_else(|_| fail(11));
         send(source, &tx[..length], 12);
         let length = receive(source, &mut rx, &mut clock).unwrap_or_else(|| fail(13));
         let reply = neighbor.accept_reply(&rx[..length], clock, 1_000_000);
@@ -236,15 +237,15 @@ fn main() -> ! {
     payload[..prefix.len()].copy_from_slice(prefix);
     payload[prefix.len()..prefix.len() + 8].copy_from_slice(&support::word(176).to_le_bytes());
     let payload = &payload[..prefix.len() + 8];
-    let length = udp(payload, PEER_IP, 9000, 49153, local, &mut tx);
+    let length = udp(payload, PEER_IP, 9000, 49153, local_interface, &mut tx);
     send(source, &tx[..length], 23);
     let length = receive(source, &mut rx, &mut clock).unwrap_or_else(|| fail(24));
     let echo = parse(&rx[..length]).unwrap_or_else(|_| fail(25));
     check(
         echo.source_mac() == PEER_MAC
-            && echo.destination_mac() == local.mac
+            && echo.destination_mac() == local_interface.mac
             && echo.source_address() == PEER_IP
-            && echo.destination_address() == local.ipv4
+            && echo.destination_address() == local_interface.ipv4
             && echo.source_port() == 9000
             && echo.destination_port() == 49153
             && echo.payload() == payload,
@@ -258,7 +259,7 @@ fn main() -> ! {
         kind: QueryType::A,
     };
     let local = Endpoint {
-        address: local.ipv4,
+        address: local_interface.ipv4,
         port: 49152,
     };
     let server = Endpoint {
@@ -270,7 +271,14 @@ fn main() -> ! {
     let mut query = [0; 256];
     let query_len = dns::build_query(question, &mut query).unwrap_or_else(|_| fail(29));
     for attempt in 0..3 {
-        let length = udp(&query[..query_len], DNS_IP, 53, 49152, local, &mut tx);
+        let length = udp(
+            &query[..query_len],
+            DNS_IP,
+            53,
+            49152,
+            local_interface,
+            &mut tx,
+        );
         send(source, &tx[..length], 30);
         let length = receive(source, &mut rx, &mut clock).unwrap_or_else(|| fail(31));
         let packet = parse(&rx[..length]).unwrap_or_else(|_| fail(32));
@@ -310,7 +318,14 @@ fn main() -> ! {
     let mut pending = PendingQuery::new(timeout_question, local, server, clock, POLLS as u64)
         .unwrap_or_else(|_| fail(38));
     let query_len = dns::build_query(timeout_question, &mut query).unwrap_or_else(|_| fail(39));
-    let length = udp(&query[..query_len], DNS_IP, 53, 49152, local, &mut tx);
+    let length = udp(
+        &query[..query_len],
+        DNS_IP,
+        53,
+        49152,
+        local_interface,
+        &mut tx,
+    );
     send(source, &tx[..length], 40);
     check(receive(source, &mut rx, &mut clock).is_none(), 41);
     pending.cancel();

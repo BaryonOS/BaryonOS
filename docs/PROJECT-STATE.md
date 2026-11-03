@@ -2,8 +2,8 @@
 
 ## NEXT AGENT HANDOFF — netwerkdienst gebruikt NIC-MAC uit capability — 3 november 2026
 
-Werkbranch `copilot/universal-driver-framework`; basiscommit
-`b8bae256f8db1e2bfc05db4694bfe61d938ee51f`. De vorige stap is getest,
+Werkbranch `copilot/universal-driver-framework`; huidige gepushte basiscommit
+`9e27d381b30a2b45633ba2e9a3f2ec2c241508d9`. De vorige PCI-stap is getest,
 vastgelegd en gepusht; de [PCI-mismatchreceipt](verification/pci-unsupported-report-2026-11-03/README.md)
 documenteert de 40 hosttests, Clippy, formatter-/diff-checks en twee
 kernelprofielbuilds. PR #153 is open met `CHANGES_REQUESTED`, zonder
@@ -15,15 +15,18 @@ bytes uit de gematchte NIC ontvangen. `net-probe` gebruikt dit adres voor
 frames en test verkeerde capability, pointer en lengte; de netwerkdienst
 initialiseert zijn link-MAC dynamisch. `tools/run_net_system.py` en de
 verwachte denial-counters zijn aangepast. Besluit ADR-068 begrenst deze API.
-Deze werkboom is nog niet gevalideerd of gecommit.
+Hosttests, Python-fixturetests en Clippy slaagden. De eerste
+`native-system-net`-build vond een lokale naamoverschaduwing in `net-probe`;
+die is gerepareerd maar nog niet herbouwd. `.gitignore` voorkomt committen van
+de nieuw aangemaakte geneste Cargo-targetcaches.
 
-**Eerstvolgend:** voer SDK/service-hosttests, Python netwerkfixturetests,
-formatter/Clippy en de `native-system-net`-/`native-net-service`-builds uit;
-voer daarna de native gate uit als QEMU beschikbaar is. QEMU ontbreekt volgens
-de laatst gecontroleerde omgeving, dus VM- en fysieke hardwarebewijs mogen
-niet worden geclaimd. Werk daarna receipt/status bij en commit/push. Score
-blijft voorlopig **41/100**; deze interface/compileerbaarheid geeft op zichzelf
-geen acceptatiepunt.
+**Eerstvolgend:** herhaal `native-system-net` en bouw `native-net-service`
+met de naamfix; controleer daarna beide formattergates en de 10-denial
+verwachting in de netwerkfixturetests. Commit/push de fix en definitieve
+receipt. Voer de native gate alleen uit als QEMU beschikbaar is; QEMU ontbreekt
+volgens de laatst gecontroleerde omgeving. VM- en fysieke hardwarebewijs
+mogen dus niet worden geclaimd. Score blijft **41/100**; deze interface en
+builds geven geen acceptatiepunt.
 
 **Verder open:** primaire PCI-bronverwijzingen in review #153, resterende
 RNG-fixed-BDF-route, centrale drivercatalogus, resource broker voor IRQ/
