@@ -1,7 +1,7 @@
 use nieuw_os_materiaal::session::{
-    Account, AccountId, AuthBroker, AuthFailure, AuthMethod, AuthRequest, BrokerReply,
-    BrokerTicket, Error, Phase, SessionFlow, SessionIdentity, UnavailableBroker,
-    MAX_PASSWORD_BYTES,
+    Account, AccountId, AuthBroker, AuthContext, AuthFailure, AuthMethod, AuthPurpose, AuthRequest,
+    BrokerReply, BrokerTicket, Error, Phase, RetryPolicy, SessionFlow, SessionIdentity,
+    UnavailableBroker, AUTH_TIMEOUT_MS, MAX_PASSWORD_BYTES, MAX_RETRY_ACCOUNTS,
 };
 
 #[derive(Default)]
@@ -305,4 +305,340 @@ fn submission_error_clears_password_and_never_records_a_pending_request() {
     assert_eq!(flow.pending_request(), None);
     assert_eq!(flow.phase(), Phase::CredentialEntry);
     assert_eq!(flow.identity(), None);
+}
+
+// These exercise a synthetic service boundary, never real credentials or keys.
+fn context(boot: u64, session: u64, purpose: AuthPurpose) -> AuthContext {
+    AuthContext::new(boot, session, purpose).unwrap()
+}
+
+#[test]
+fn reply_binding_rejects_another_boot_session_or_purpose() {
+    let original = context(11, 22, AuthPurpose::Login);
+    for wrong in [
+        context(12, 22, AuthPurpose::Login),
+        context(11, 23, AuthPurpose::Login),
+        context(11, 22, AuthPurpose::Unlock),
+    ] {
+        let mut actual = SessionFlow::with_context(original);
+        let mut other = SessionFlow::with_context(wrong);
+        let mut broker = ServiceFixture::default();
+        actual.select_account(user(1)).unwrap();
+        other.select_account(user(1)).unwrap();
+        enter(&mut actual);
+        enter(&mut other);
+        let current = actual.submit_at(&mut broker, 100).unwrap();
+        let foreign = other.submit_at(&mut broker, 100).unwrap();
+        assert_eq!(current.id(), foreign.id());
+        assert_eq!(current.epoch(), foreign.epoch());
+        assert_eq!(current.context(), original);
+        assert_eq!(
+            actual.apply_reply_at(grant(foreign), 101),
+            Err(Error::StaleReply)
+        );
+        assert_eq!(actual.pending_request(), Some(current));
+        assert_eq!(actual.identity(), None);
+    }
+    assert_eq!(AuthContext::new(0, 1, AuthPurpose::Login), None);
+    assert_eq!(AuthContext::new(1, 0, AuthPurpose::Login), None);
+}
+
+#[test]
+fn deadline_expires_pending_reply_and_already_granted_activation() {
+    for scenario in 0..3 {
+        let mut flow = SessionFlow::with_context(context(1, 2, AuthPurpose::Unlock));
+        let mut broker = ServiceFixture::default();
+        flow.select_account(user(1)).unwrap();
+        enter(&mut flow);
+        let req = flow.submit_at(&mut broker, 10).unwrap();
+        assert_eq!(req.deadline_ms(), 10 + AUTH_TIMEOUT_MS);
+        let result = match scenario {
+            0 => flow.advance_time(req.deadline_ms()),
+            1 => flow.apply_reply_at(grant(req), req.deadline_ms()),
+            2 => {
+                flow.apply_reply_at(grant(req), 11).unwrap();
+                flow.activate_at(&mut broker, req.deadline_ms())
+            }
+            _ => unreachable!(),
+        };
+        assert_eq!(result, Err(Error::Auth(AuthFailure::TimedOut)));
+        assert_eq!(flow.phase(), Phase::CredentialEntry);
+        assert_eq!(flow.identity(), None);
+        assert_eq!(flow.pending_request(), None);
+        assert_eq!(
+            flow.apply_reply_at(grant(req), req.deadline_ms()),
+            Err(Error::StaleReply)
+        );
+        assert_eq!(
+            flow.activate_at(&mut broker, req.deadline_ms()),
+            Err(Error::WrongPhase)
+        );
+        assert_eq!(broker.activations, 0);
+    }
+}
+
+#[test]
+fn clock_regression_and_deadline_overflow_fail_closed() {
+    let mut broker = ServiceFixture::default();
+    let mut flow = SessionFlow::with_context(context(1, 2, AuthPurpose::Login));
+    flow.select_account(user(1)).unwrap();
+    enter(&mut flow);
+    let req = flow.submit_at(&mut broker, 50).unwrap();
+    assert_eq!(flow.apply_reply_at(grant(req), 49), Err(Error::InvalidTime));
+    assert_eq!(flow.phase(), Phase::Unavailable);
+    assert_eq!(flow.identity(), None);
+    assert_eq!(flow.pending_request(), None);
+    let mut flow = SessionFlow::new();
+    flow.select_account(user(1)).unwrap();
+    enter(&mut flow);
+    assert_eq!(
+        flow.submit_at(&mut broker, u64::MAX),
+        Err(Error::InvalidTime)
+    );
+    assert_eq!(flow.phase(), Phase::Unavailable);
+    assert_eq!(flow.password_len(), 0);
+}
+
+#[test]
+fn retry_policy_survives_method_account_cancel_and_lock_switches() {
+    let retry = RetryPolicy::new(1_000);
+    let mut flow = SessionFlow::with_context(context(1, 2, AuthPurpose::Login));
+    let mut broker = ServiceFixture::default();
+    flow.select_account(user(1)).unwrap();
+    enter(&mut flow);
+    let req = flow.submit_at(&mut broker, 100).unwrap();
+    assert_eq!(
+        flow.apply_reply_at(
+            BrokerReply::denied(req, AuthFailure::TemporarilyLocked(retry)),
+            101
+        ),
+        Err(Error::Auth(AuthFailure::TemporarilyLocked(retry)))
+    );
+    for action in 0..4 {
+        match action {
+            0 => flow.select_method(AuthMethod::Fido2SecurityKey).unwrap(),
+            1 => {
+                flow.select_account(user(2)).unwrap();
+                flow.select_account(user(1)).unwrap();
+            }
+            2 => {
+                flow.cancel().unwrap();
+                flow.select_account(user(1)).unwrap();
+            }
+            3 => {
+                flow.lock().unwrap();
+                flow.unlock().unwrap();
+            }
+            _ => unreachable!(),
+        }
+        assert_eq!(flow.retry_policy(), Some(retry));
+        assert_eq!(
+            flow.submit_at(&mut broker, 500),
+            Err(Error::Auth(AuthFailure::TemporarilyLocked(retry)))
+        );
+        assert_eq!(flow.identity(), None);
+        assert_eq!(broker.calls, 1);
+    }
+    flow.select_method(AuthMethod::Fido2SecurityKey).unwrap();
+    flow.submit_at(&mut broker, 1_000).unwrap();
+    assert_eq!(broker.calls, 2);
+    assert_eq!(flow.retry_policy(), None);
+}
+
+#[test]
+fn retry_cache_does_not_evict_a_still_locked_account() {
+    let mut flow = SessionFlow::new();
+    let mut broker = ServiceFixture::default();
+    for id in 1..=MAX_RETRY_ACCOUNTS as u64 {
+        flow.select_account(user(id)).unwrap();
+        enter(&mut flow);
+        let req = flow.submit_at(&mut broker, 0).unwrap();
+        assert_eq!(
+            flow.apply_reply(BrokerReply::denied(
+                req,
+                AuthFailure::TemporarilyLocked(RetryPolicy::new(10_000))
+            )),
+            Err(Error::Auth(AuthFailure::TemporarilyLocked(
+                RetryPolicy::new(10_000)
+            )))
+        );
+    }
+    flow.select_account(user(MAX_RETRY_ACCOUNTS as u64 + 1))
+        .unwrap();
+    enter(&mut flow);
+    let req = flow.submit_at(&mut broker, 0).unwrap();
+    assert_eq!(
+        flow.apply_reply(BrokerReply::denied(
+            req,
+            AuthFailure::TemporarilyLocked(RetryPolicy::new(10_000))
+        )),
+        Err(Error::RetryCapacity)
+    );
+    assert_eq!(flow.phase(), Phase::Unavailable);
+    assert_eq!(flow.identity(), None);
+}
+
+#[test]
+fn missing_removed_cancelled_sensor_and_service_failure_never_become_success() {
+    for method in [AuthMethod::Fingerprint, AuthMethod::Fido2SecurityKey] {
+        for failure in [
+            AuthFailure::HardwareUnavailable,
+            AuthFailure::HardwareRemoved,
+            AuthFailure::Cancelled,
+            AuthFailure::TimedOut,
+            AuthFailure::ServiceFailure,
+        ] {
+            let mut flow = SessionFlow::new();
+            let mut broker = ServiceFixture::default();
+            flow.select_account(user(1)).unwrap();
+            flow.select_method(method).unwrap();
+            let req = flow.submit_at(&mut broker, 0).unwrap();
+            assert_eq!(
+                flow.apply_reply_at(BrokerReply::denied(req, failure), 1),
+                Err(Error::Auth(failure))
+            );
+            assert_eq!(flow.identity(), None);
+            assert_eq!(flow.pending_request(), None);
+            assert_eq!(flow.apply_reply_at(grant(req), 2), Err(Error::StaleReply));
+            assert_eq!(broker.activations, 0);
+        }
+    }
+}
+
+#[test]
+fn pin_and_recovery_require_their_own_bounded_secret_entry() {
+    for method in [AuthMethod::LocalPin, AuthMethod::RecoveryMethod] {
+        let mut flow = SessionFlow::new();
+        let mut broker = ServiceFixture::default();
+        flow.select_account(user(1)).unwrap();
+        flow.select_method(method).unwrap();
+        assert_eq!(flow.submit_at(&mut broker, 0), Err(Error::EmptyCredential));
+        assert_eq!(flow.push_password_byte(b'x'), Err(Error::WrongPhase));
+        for byte in b"123456" {
+            flow.push_secret_byte(*byte).unwrap();
+        }
+        assert_eq!(flow.password_len(), 6);
+        flow.backspace_secret().unwrap();
+        assert_eq!(flow.password_len(), 5);
+        let req = flow.submit_at(&mut broker, 1).unwrap();
+        assert_eq!(req.method(), method);
+        assert_eq!(broker.received_password_len, 5);
+        assert_eq!(flow.password_len(), 0);
+        assert_eq!(flow.identity(), None);
+    }
+    let mut flow = SessionFlow::new();
+    flow.select_account(user(1)).unwrap();
+    flow.select_method(AuthMethod::LocalPin).unwrap();
+    assert_eq!(
+        flow.push_secret_byte(b'a'),
+        Err(Error::InvalidCredentialByte)
+    );
+    flow.push_secret_byte(b'1').unwrap();
+    flow.select_method(AuthMethod::RecoveryMethod).unwrap();
+    assert_eq!(flow.password_len(), 0);
+}
+
+#[test]
+fn wrong_password_and_default_all_methods_are_closed() {
+    let mut flow = SessionFlow::new();
+    let mut broker = ServiceFixture {
+        begin_failure: Some(AuthFailure::Denied),
+        ..Default::default()
+    };
+    flow.select_account(user(1)).unwrap();
+    enter(&mut flow);
+    assert_eq!(
+        flow.submit_at(&mut broker, 0),
+        Err(Error::Auth(AuthFailure::Denied))
+    );
+    assert_eq!(flow.identity(), None);
+    assert_eq!(flow.password_len(), 0);
+    for method in [
+        AuthMethod::Password,
+        AuthMethod::LocalPin,
+        AuthMethod::Fingerprint,
+        AuthMethod::Fido2SecurityKey,
+        AuthMethod::RecoveryMethod,
+    ] {
+        flow.select_method(method).unwrap();
+        assert_eq!(
+            flow.submit_at(&mut UnavailableBroker, 1),
+            Err(Error::Auth(AuthFailure::Unavailable))
+        );
+        assert_eq!(flow.identity(), None);
+    }
+}
+
+#[test]
+fn consumed_assertion_cannot_activate_twice_or_survive_logout_or_lock() {
+    for logout in [false, true] {
+        let mut flow = SessionFlow::with_context(context(1, 2, AuthPurpose::Login));
+        let mut broker = ServiceFixture::default();
+        flow.select_account(user(1)).unwrap();
+        enter(&mut flow);
+        let req = flow.submit_at(&mut broker, 0).unwrap();
+        flow.apply_reply_at(grant(req), 1).unwrap();
+        assert_eq!(flow.apply_reply_at(grant(req), 1), Err(Error::StaleReply));
+        flow.activate_at(&mut broker, 2).unwrap();
+        assert_eq!(flow.activate_at(&mut broker, 2), Err(Error::WrongPhase));
+        if logout {
+            flow.sign_out().unwrap();
+        } else {
+            flow.lock().unwrap();
+        }
+        assert_eq!(flow.identity(), None);
+        assert_eq!(flow.apply_reply_at(grant(req), 3), Err(Error::StaleReply));
+        assert_eq!(broker.activations, 1);
+    }
+}
+
+#[test]
+fn service_failure_or_removed_hardware_during_begin_or_activation_is_closed() {
+    for failure in [
+        AuthFailure::ServiceFailure,
+        AuthFailure::HardwareRemoved,
+        AuthFailure::HardwareUnavailable,
+        AuthFailure::Cancelled,
+        AuthFailure::TimedOut,
+    ] {
+        for at_activation in [false, true] {
+            let mut flow = SessionFlow::new();
+            let mut broker = ServiceFixture::default();
+            flow.select_account(user(1)).unwrap();
+            flow.select_method(AuthMethod::Fido2SecurityKey).unwrap();
+            if at_activation {
+                let req = flow.submit_at(&mut broker, 0).unwrap();
+                flow.apply_reply_at(grant(req), 1).unwrap();
+                broker.activation_failure = Some(failure);
+                assert_eq!(flow.activate_at(&mut broker, 2), Err(Error::Auth(failure)));
+                assert_eq!(flow.apply_reply_at(grant(req), 3), Err(Error::StaleReply));
+            } else {
+                broker.begin_failure = Some(failure);
+                assert_eq!(flow.submit_at(&mut broker, 0), Err(Error::Auth(failure)));
+            }
+            assert_eq!(flow.phase(), Phase::CredentialEntry);
+            assert_eq!(flow.identity(), None);
+            assert_eq!(flow.pending_request(), None);
+            assert_eq!(flow.password_len(), 0);
+        }
+    }
+}
+
+#[test]
+fn malformed_retry_deadline_does_not_enable_immediate_retry() {
+    let mut flow = SessionFlow::new();
+    let mut broker = ServiceFixture::default();
+    flow.select_account(user(1)).unwrap();
+    enter(&mut flow);
+    let req = flow.submit_at(&mut broker, 50).unwrap();
+    assert_eq!(
+        flow.apply_reply_at(
+            BrokerReply::denied(req, AuthFailure::TemporarilyLocked(RetryPolicy::new(50))),
+            50
+        ),
+        Err(Error::Auth(AuthFailure::InvalidReply))
+    );
+    assert_eq!(flow.phase(), Phase::Unavailable);
+    assert_eq!(flow.identity(), None);
+    assert_eq!(flow.pending_request(), None);
 }

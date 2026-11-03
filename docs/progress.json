@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-02",
-    "source_commit": "1f0dd9c93959e3b1335656da1e548525a288133e",
-    "branch": "codex/native-workspace-performance-20261102",
-    "task": "Overdracht en pauze onder leiding van de aangewezen desktopchat",
+    "source_commit": "64044318c622eaacab25272611acf856a5fca5d5",
+    "branch": "codex/materiaal-library-20261102",
+    "task": "U03 native openen, bewerken, benoemen, organiseren en versieherstel geaccepteerd",
     "previous_score": 41,
-    "summary": "De score blijft 41/100. Simon heeft de chat Verbeter de Nieuw OS-desktop leidend gemaakt. Visuele wijzigingen, retained surfaces en de gedeelde damage-scaffold zijn als onvoltooide, afzonderlijke checkpoints bewaard; geen daarvan is geïntegreerd of native geaccepteerd. Alle eigen builders zijn gepauzeerd in afwachting van een concrete taaktoewijzing. De geaccepteerde klembord- en desktopbasis blijft ongewijzigd. U02, echte authenticatie en volledige releaseacceptatie blijven open."
+    "summary": "41 → 44/100 door uitsluitend U03 (+3). Native documenten worden benoemd, gezocht, geordend en als nieuwe revisie hersteld. Write10/cold4/full22 en openbare sessieroute18 slagen op640/source069666e5, met complete appbeelden, onafhankelijke disk/hashreadback, echte compositorfault, clipboard en cleanup. Alle18 CI-workflows op640 zijn groen en de drie CI-runs zijn uit het artifact opnieuw gecontroleerd. Materiaal LOADgeheugen195→156pagina’s gemeten. Afzonderlijke toolingcorrectie:195tests groen; kernel+8apps bytegelijk, UEFI alleen andere linkmetadata, geen nieuwe native claim voor die rebuild. Grote TCG-overgangen blijven45–53s; U02/U04/U05, echte authenticatie en hardware blijven open."
   },
   "tracks": [
     {
@@ -286,9 +286,14 @@
           "id": "U03",
           "title": "Materiaal van openen tot bewaren",
           "points": 3,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "Gebruikers openen, bewerken, hernoemen en organiseren echte native documenten; rechten, historie en locatie blijven begrijpelijk en correct.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/materiaal-library-20261102/README.md",
+            "docs/verification/materiaal-library-20261102/native-write.json",
+            "docs/verification/materiaal-library-20261102/native-cold.json",
+            "docs/verification/materiaal-library-20261102/native-regression-readback.json"
+          ]
         },
         {
           "id": "U04",

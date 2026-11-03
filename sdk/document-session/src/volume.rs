@@ -7,7 +7,32 @@ use crate::{EditMode, SaveOutcome};
 use nieuw_os_catalog_client::{Delivery, Transport, MAX_POLL_BUDGET};
 use nieuw_os_sdk_runtime::{Error as RuntimeError, Outgoing, ReceiveEndpoint, SendEndpoint};
 use volume_core::{client, upload, wire, NAME, PER_DOMAIN};
-pub use volume_core::{client::Stat, wire::ListEntry, Status, MAX_LENGTH};
+pub use volume_core::{
+    client::{CollectionInfo, HistoryInfo, Stat},
+    wire::ListEntry,
+    Status, MAX_LENGTH,
+};
+
+/// A collection is a bounded index in the already granted volume domain.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ListFilter {
+    All,
+    Uncollected,
+    Collection(u8),
+}
+
+impl ListFilter {
+    fn wire(self) -> Result<u32, Error> {
+        match self {
+            Self::All => Ok(0),
+            Self::Uncollected => Ok(1),
+            Self::Collection(index) if (1..=volume_core::COLLECTIONS as u8).contains(&index) => {
+                Ok(u32::from(index) + 1)
+            }
+            Self::Collection(_) => Err(Error::InvalidRequest),
+        }
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Error {
@@ -24,9 +49,15 @@ pub enum Error {
     ReadOnly,
     ContentTooLarge,
     InvalidRange,
+    InvalidUtf8,
     Busy,
     Conflict,
     Uncertain,
+    /// RESTORE was acknowledged, but refreshing the editor failed. The old
+    /// draft remains available; explicitly reopen, never repeat the restore.
+    CommittedRefreshFailed {
+        revision: u64,
+    },
     Service(Status),
     Interrupted {
         delivery: Delivery,
@@ -281,11 +312,21 @@ impl<T: Transport> VolumeSession<T> {
 
     /// Paged catalog, returned only when every page has the same domain clock.
     pub fn list(&mut self, out: &mut [ListEntry; PER_DOMAIN]) -> Result<usize, Error> {
+        self.list_filtered(ListFilter::All, out)
+    }
+
+    pub fn list_filtered(
+        &mut self,
+        filter: ListFilter,
+        out: &mut [ListEntry; PER_DOMAIN],
+    ) -> Result<usize, Error> {
+        let filter = filter.wire()?;
         let mut staged = [ListEntry::EMPTY; PER_DOMAIN];
         let (mut cursor, mut count, mut generation) = (0, 0, None);
         while cursor < PER_DOMAIN as u64 {
             let mut h = self.header(wire::LIST, (self.domain * PER_DOMAIN) as u64)?;
             h.aux = cursor;
+            h.count = filter;
             let (reply, body) = self.exchange(&h, &[])?;
             if generation.is_some_and(|g| g != reply.revision) {
                 return Err(Error::Conflict);
@@ -305,13 +346,43 @@ impl<T: Transport> VolumeSession<T> {
         Ok(count)
     }
 
+    pub fn collection_stat(&mut self, index: usize) -> Result<CollectionInfo, Error> {
+        if !(1..=volume_core::COLLECTIONS).contains(&index) {
+            return Err(Error::InvalidRequest);
+        }
+        let mut h = self.header(wire::COLLECTION_STAT, (self.domain * PER_DOMAIN) as u64)?;
+        h.aux = index as u64;
+        let (reply, body) = self.exchange(&h, &[])?;
+        let length = reply.length as usize;
+        let mut name = [0; NAME];
+        name[..length].copy_from_slice(wire::data(&body, length));
+        Ok(CollectionInfo {
+            revision: reply.revision,
+            request_id: reply.aux,
+            present: reply.count == 1,
+            name_length: length,
+            name,
+        })
+    }
+
     fn read(&mut self, object: u64, revision: u64, out: &mut [u8]) -> Result<(), Error> {
+        self.read_version(object, revision, 0, out)
+    }
+
+    fn read_version(
+        &mut self,
+        object: u64,
+        revision: u64,
+        selector: usize,
+        out: &mut [u8],
+    ) -> Result<(), Error> {
         let mut offset = 0;
         while offset < out.len() {
             let mut h = self.header(wire::READ, object)?;
             h.revision = revision;
             h.aux = offset as u64;
             h.count = (out.len() - offset).min(wire::DATA) as u32;
+            h.name_length = selector as u32;
             let (reply, body) = self.exchange(&h, &[])?;
             let amount = reply.length as usize;
             if amount == 0 || amount > out.len() - offset {
@@ -338,6 +409,15 @@ pub struct Draft<'a> {
     pub loaded_revision: u64,
     pub name: &'a [u8],
     pub contents: &'a [u8],
+}
+
+/// A text preview verified against the entire retained version. `copied`
+/// always ends on a UTF-8 character boundary; truncation is never implicit.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct HistoryPrefix {
+    pub copied: usize,
+    pub total: usize,
+    pub truncated: bool,
 }
 
 #[derive(Clone, Copy)]
@@ -481,12 +561,19 @@ impl<'a, T: Transport> DocumentSession<'a, T> {
     }
 
     pub fn open(&mut self, object: u64) -> Result<(), Error> {
+        self.load(object, None)
+    }
+
+    fn load(&mut self, object: u64, expected: Option<u64>) -> Result<(), Error> {
         self.available()?;
         self.idle()?;
         if self.is_dirty() {
             return Err(Error::UnsavedChanges);
         }
         let stat = self.session.stat(object)?;
+        if expected.is_some_and(|revision| stat.revision != revision) {
+            return Err(Error::Conflict);
+        }
         if stat.length > self.buffers.draft.len() {
             return Err(Error::ContentTooLarge);
         }
@@ -635,9 +722,223 @@ impl<'a, T: Transport> DocumentSession<'a, T> {
     }
 
     pub fn list(&mut self, out: &mut [ListEntry; PER_DOMAIN]) -> Result<usize, Error> {
+        self.list_filtered(ListFilter::All, out)
+    }
+
+    pub fn list_filtered(
+        &mut self,
+        filter: ListFilter,
+        out: &mut [ListEntry; PER_DOMAIN],
+    ) -> Result<usize, Error> {
         self.available()?;
         self.idle()?;
-        self.session.list(out)
+        self.session.list_filtered(filter, out)
+    }
+
+    pub fn collection_stat(&mut self, index: usize) -> Result<CollectionInfo, Error> {
+        self.available()?;
+        self.idle()?;
+        self.session.collection_stat(index)
+    }
+
+    fn clean_write(&self) -> Result<(), Error> {
+        self.available()?;
+        self.idle()?;
+        if self.mode == EditMode::ReadOnly {
+            return Err(Error::ReadOnly);
+        }
+        if self.conflict {
+            return Err(Error::Conflict);
+        }
+        if self.is_dirty() {
+            return Err(Error::UnsavedChanges);
+        }
+        Ok(())
+    }
+
+    fn expected_document(&self, expected: u64) -> Result<Loaded, Error> {
+        let loaded = self.loaded.ok_or(Error::NotLoaded)?;
+        if expected == u64::MAX {
+            return Err(Error::InvalidRequest);
+        }
+        if expected != loaded.revision {
+            return Err(Error::Conflict);
+        }
+        Ok(loaded)
+    }
+
+    /// Create/rename a collection, or delete it with an empty name. The
+    /// existing service rejects deleting a non-empty collection. Selection
+    /// and collection reads never call this explicit mutation.
+    pub fn update_collection(
+        &mut self,
+        index: usize,
+        expected: u64,
+        name: &[u8],
+    ) -> Result<u64, Error> {
+        self.clean_write()?;
+        if !(1..=volume_core::COLLECTIONS).contains(&index)
+            || expected == u64::MAX
+            || name.len() > NAME
+            || !name.is_empty() && !volume_core::valid_name(name)
+        {
+            return Err(Error::InvalidRequest);
+        }
+        let mut h = self
+            .session
+            .header(wire::COLLECTION, (self.session.domain * PER_DOMAIN) as u64)?;
+        h.revision = expected;
+        h.aux = index as u64;
+        h.length = name.len() as u32;
+        h.name_length = h.length;
+        self.session
+            .exchange(&h, name)
+            .map(|(reply, _)| reply.revision)
+            .map_err(|error| self.failed(error, true))
+    }
+
+    /// Update the loaded object's metadata with its exact CAS revision.
+    /// Content/name and the editor's clean original bytes stay unchanged.
+    pub fn set_metadata(
+        &mut self,
+        expected_revision: u64,
+        tags: u32,
+        kind: u16,
+        collection: u8,
+    ) -> Result<u64, Error> {
+        self.clean_write()?;
+        let loaded = self.expected_document(expected_revision)?;
+        if collection as usize > volume_core::COLLECTIONS {
+            return Err(Error::InvalidRequest);
+        }
+        let mut h = self.session.header(wire::META, loaded.object)?;
+        h.revision = expected_revision;
+        h.aux = wire::meta(tags, kind, collection);
+        match self.session.exchange(&h, &[]) {
+            Ok((reply, _)) => {
+                self.loaded.as_mut().unwrap().revision = reply.revision;
+                Ok(reply.revision)
+            }
+            Err(error) => Err(self.failed(error, true)),
+        }
+    }
+
+    fn history_stat(&mut self, expected: u64, selector: usize) -> Result<Stat, Error> {
+        let loaded = self.expected_document(expected)?;
+        if !(1..=volume_core::HISTORY).contains(&selector) {
+            return Err(Error::InvalidRequest);
+        }
+        let stat = self.session.stat(loaded.object)?;
+        if stat.revision != expected {
+            return Err(self.failed(Error::Service(Status::Stale), false));
+        }
+        if selector > stat.history_count {
+            return Err(Error::NotFound {
+                object: loaded.object,
+                revision: stat.revision,
+            });
+        }
+        Ok(stat)
+    }
+
+    /// Preview a retained version without modifying the draft or disk. The
+    /// caller's output changes only after the entire bound read is verified.
+    /// Dirty drafts may preview history, but an active upload may not.
+    pub fn read_history(
+        &mut self,
+        expected_revision: u64,
+        selector: usize,
+        out: &mut [u8],
+    ) -> Result<usize, Error> {
+        let info = self.load_history(expected_revision, selector, out.len())?;
+        out[..info.length].copy_from_slice(&self.buffers.staging[..info.length]);
+        Ok(info.length)
+    }
+
+    /// Verify the entire historical version using the existing staging
+    /// buffer, then copy a UTF-8-safe prefix. No output byte changes on any
+    /// failure, including malformed UTF-8 beyond the displayed prefix. This
+    /// does not write, select a new current version or discard a dirty draft.
+    pub fn read_history_prefix(
+        &mut self,
+        expected_revision: u64,
+        selector: usize,
+        out: &mut [u8],
+    ) -> Result<HistoryPrefix, Error> {
+        let info = self.load_history(expected_revision, selector, usize::MAX)?;
+        let text = core::str::from_utf8(&self.buffers.staging[..info.length])
+            .map_err(|_| Error::InvalidUtf8)?;
+        let mut copied = out.len().min(info.length);
+        while !text.is_char_boundary(copied) {
+            copied -= 1;
+        }
+        out[..copied].copy_from_slice(&self.buffers.staging[..copied]);
+        Ok(HistoryPrefix {
+            copied,
+            total: info.length,
+            truncated: copied < info.length,
+        })
+    }
+
+    fn load_history(
+        &mut self,
+        expected_revision: u64,
+        selector: usize,
+        output_limit: usize,
+    ) -> Result<HistoryInfo, Error> {
+        self.available()?;
+        self.idle()?;
+        let stat = self.history_stat(expected_revision, selector)?;
+        let info = stat.history[selector - 1];
+        if info.length > self.buffers.staging.len() || info.length > output_limit {
+            return Err(Error::ContentTooLarge);
+        }
+        let object = self.loaded.unwrap().object;
+        if let Err(error) = self.session.read_version(
+            object,
+            expected_revision,
+            selector,
+            &mut self.buffers.staging[..info.length],
+        ) {
+            return Err(self.failed(error, false));
+        }
+        if volume_core::checksum_update(
+            volume_core::FNV_OFFSET,
+            &self.buffers.staging[..info.length],
+        ) != info.content_sum
+        {
+            return Err(self.session.protocol());
+        }
+        Ok(info)
+    }
+
+    /// Restore history as a new durable revision, then load that exact
+    /// revision. A lost mutation reply is sticky uncertainty. A known commit
+    /// followed by failed reading is reported separately and blocks saving
+    /// the retained old draft until an explicit successful open.
+    pub fn restore_history(
+        &mut self,
+        expected_revision: u64,
+        selector: usize,
+    ) -> Result<u64, Error> {
+        self.clean_write()?;
+        let stat = self.history_stat(expected_revision, selector)?;
+        if stat.history[selector - 1].length > self.buffers.draft.len() {
+            return Err(Error::ContentTooLarge);
+        }
+        let object = self.loaded.unwrap().object;
+        let mut h = self.session.header(wire::RESTORE, object)?;
+        h.revision = expected_revision;
+        h.aux = selector as u64;
+        let revision = match self.session.exchange(&h, &[]) {
+            Ok((reply, _)) => reply.revision,
+            Err(error) => return Err(self.failed(error, true)),
+        };
+        if self.load(object, Some(revision)).is_err() {
+            self.conflict = true;
+            return Err(Error::CommittedRefreshFailed { revision });
+        }
+        Ok(revision)
     }
 
     pub fn begin_save(&mut self) -> Result<(), Error> {

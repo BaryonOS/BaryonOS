@@ -1,0 +1,13 @@
+   Compiling nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os/ui/native)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.54s
+     Running unittests src/lib.rs (target/library-root-host/debug/deps/nieuw_os_materiaal-fe7cab2d65056a32)
+     Running tests/desktop_native_fixture.rs (target/library-root-host/debug/deps/desktop_native_fixture-d1aa61466b3e433e)
+     Running tests/interaction.rs (target/library-root-host/debug/deps/interaction-63353db4ddde65ac)
+     Running tests/library_contract.rs (target/library-root-host/debug/deps/library_contract-9b88db1083fae15c)
+     Running tests/library_native_fixture.rs (target/library-root-host/debug/deps/library_native_fixture-83534c6983c2f688)
+     Running tests/proportional.rs (target/library-root-host/debug/deps/proportional-361b50f8b8858577)
+     Running tests/render_regressions.rs (target/library-root-host/debug/deps/render_regressions-fa65e5c778fb434e)
+     Running tests/session.rs (target/library-root-host/debug/deps/session-d378410a3a4528cc)
+     Running tests/session_board.rs (target/library-root-host/debug/deps/session_board-6648ab3063986e0a)
+     Running tests/window_native_fixture.rs (target/library-root-host/debug/deps/window_native_fixture-d2bc0b511da4a962)
+   Doc-tests nieuw_os_materiaal

@@ -1,0 +1,2 @@
+    Checking nieuw-os-graphics v0.1.0 (/workspace/nieuw-os/ui/graphics)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.77s

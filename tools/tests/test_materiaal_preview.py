@@ -143,6 +143,9 @@ def reference_frames():
     for index, name in enumerate(preview.probe.PHASES["normal"], 1):
         at = ((y + 10) * 800 + x + 10) * 3
         pixels[at:at + 3] = bytes((index * 20, 30, 40))
+        status_x, status_y, _, _ = preview.probe.SAVE_STATUS
+        at = ((y + status_y + 10) * 800 + x + status_x + 10) * 3
+        pixels[at:at + 3] = bytes((index * 20, 40, 50))
         frames[name] = b"P6\n800 600\n255\n" + pixels
     return frames
 

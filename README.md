@@ -3,9 +3,9 @@
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 41% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 44% van de vaste productroadmap](docs/assets/progress.svg)
 
-**41% — 41 van 100 gewogen acceptatiepunten.** Dit is een
+**44% — 44 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -22,20 +22,20 @@ alleen een nette desktop haalt die eindgrens niet.
 | Eigen kern en procesisolatie | 15 | 13 |
 | Opslag en gegevensherstel | 15 | 13 |
 | Hardware, drivers en energie | 12 | 1 |
-| Native Materiaal en toegankelijkheid | 15 | 4 |
+| Native Materiaal en toegankelijkheid | 15 | 7 |
 | Internet en netwerkdiensten | 10 | 3 |
 | Beveiliging, privacy en updates | 12 | 4 |
 | Apps, SDK en installatie | 8 | 2 |
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **41** |
+| **Totaal** | **100** | **44** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`1f0dd9c9`](https://github.com/simonvanieperen/nieuw-os/commit/1f0dd9c93959e3b1335656da1e548525a288133e) ·
-**Ontwikkelbranch:** `codex/native-workspace-performance-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Overdracht en pauze onder leiding van de aangewezen desktopchat.
-De score blijft 41/100. Simon heeft de chat Verbeter de Nieuw OS-desktop leidend gemaakt. Visuele wijzigingen, retained surfaces en de gedeelde damage-scaffold zijn als onvoltooide, afzonderlijke checkpoints bewaard; geen daarvan is geïntegreerd of native geaccepteerd. Alle eigen builders zijn gepauzeerd in afwachting van een concrete taaktoewijzing. De geaccepteerde klembord- en desktopbasis blijft ongewijzigd. U02, echte authenticatie en volledige releaseacceptatie blijven open.
+**Bron:** [`64044318`](https://github.com/simonvanieperen/nieuw-os/commit/64044318c622eaacab25272611acf856a5fca5d5) ·
+**Ontwikkelbranch:** `codex/materiaal-library-20261102`.
+Deze opdracht: **41% → 44% (+3 procentpunt)**. **Opdracht:** U03 native openen, bewerken, benoemen, organiseren en versieherstel geaccepteerd.
+41 → 44/100 door uitsluitend U03 (+3). Native documenten worden benoemd, gezocht, geordend en als nieuwe revisie hersteld. Write10/cold4/full22 en openbare sessieroute18 slagen op640/source069666e5, met complete appbeelden, onafhankelijke disk/hashreadback, echte compositorfault, clipboard en cleanup. Alle18 CI-workflows op640 zijn groen en de drie CI-runs zijn uit het artifact opnieuw gecontroleerd. Materiaal LOADgeheugen195→156pagina’s gemeten. Afzonderlijke toolingcorrectie:195tests groen; kernel+8apps bytegelijk, UEFI alleen andere linkmetadata, geen nieuwe native claim voor die rebuild. Grote TCG-overgangen blijven45–53s; U02/U04/U05, echte authenticatie en hardware blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -49,6 +49,25 @@ productpunten. Elk criterium telt volledig of niet; onbewezen werk blijft open.
 Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).
 <!-- OS-PROGRESS:END -->
+
+## Nieuwe sessieroute — openbare VM-proef
+
+[Concept-PR 129](https://github.com/simonvanieperen/nieuw-os/pull/129) bouwt voort
+op de bestaande geïsoleerde vensters. Lockscreen, gebruikerskeuze, expliciete
+VM-gast, systeemstatus/UTC-klok, zoeken, appactivatie en sessiemenu werken nu
+native. Persoonlijke authenticatie blijft gesloten totdat de echte dienst
+bestaat; afschermen is nog geen keyring- of opslagrechtenintrekking.
+
+```sh
+python3 -B tools/build.py --kernel-feature native-session-route
+```
+
+De brongebonden route met 18 toestanden en de volledige 22-fasenregressie met
+echt compositorherstel, clipboard en schijfcontrole slagen op 703cc07. De
+sparsevergelijking meet1542,275→697,463s, maar koude appframes blijven te traag.
+De score blijft 41/100. [Rapport, commando's en echte screenshots](docs/verification/session-quality-20261102/README.md) ·
+[Visueel board](docs/verification/session-quality-20261102/screenshots/session-board-host.png) ·
+[VMware-proefopdracht en huidige drivergrens](docs/implementation/VMWARE-WORKSTATION-TRIAL.md).
 
 ## Native venstersessie — 2 november 2026
 

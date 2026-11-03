@@ -1,6 +1,169 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — desktopchat leidend; WIP bewaard en gepauzeerd — 2 november 2026
+## NEXT AGENT HANDOFF — U03 geaccepteerd, 44/100 — 2 november 2026
+
+Branch `codex/materiaal-library-20261102`, concept-PR 130 op PR 129; begin 159ad79.
+Native geteste code: `64044318c622eaacab25272611acf856a5fca5d5`, source-v3
+`069666e5406a893f64aa5d8e00298863f33f8be9cef57b6e0522b8bdf9648670`.
+**41 → 44/100 door uitsluitend U03 (+3)**; criteria/gewichten zijn gelijk.
+De volledige totaalprompt blijft actief. Geen merge naar main of volledige OS-claim.
+
+Gebouwd: proportionele editor met gedeelde caret/selectie/wrap/pointer/navigatie,
+prominente titel, lokale locatie/rechten/revisie, naamzoeking, hernoemen en
+bewaren, vier echte collecties, historiepreview/scroll en herstel als nieuwe
+revisie. SDK behoudt domein, read-only, CAS, draft en onzekerheidsgrenzen;
+mutaties worden niet blind herhaald. Nieuwe negatieve tests sluiten onder meer
+stale acties, dialoog-overschrijdende muisklik en META-conflict na collectiecreate.
+
+Op 640: write 10 fasen/382,604 s; cold 4/191,301 s; full 22/487,007 s;
+alle raw 33/pass. Onafhankelijke readback herhaalt hele appbeelden, diskbytes,
+revisies/collecties/canaries, bytegelijke koude kopie, echte UD2/PID-herstart,
+werkbehoud, clipboard en cleanup. Openbare native sessieroute slaagt opnieuw
+18 toestanden met echte klok: lock 7,769 s, desktop 91,174 s. Geen persoonlijke
+authenticatieclaim. Alle 28 host- en 14 native librarybeelden zijn beoordeeld.
+
+Alle 18 GitHub-workflows op 640 zijn werkelijk groen. CI-merge f6bada heeft
+exact dezelfde source-v3; artifact 13183010575 is gedownload en onafhankelijk
+teruggelezen (full/write/cold, 31 exacte appbeelden, acht embedded ELF's,
+disk/serial en 19 pakketpayloads). Geen nieuwe Windows- of VMware-runtimeclaim.
+Bewijs, exacte commando's en grenzen:
+`docs/verification/materiaal-library-20261102/README.md`.
+
+Controles: 76 UI-, 109 SDK-, 41 app-, 190 oorspronkelijke Python-tests plus
+11 runnerchecks, Clippy/fmt/build/ELF-parser slagen. De laatste toolingcorrectie
+2f41107 heeft 195 tooltests groen. Zij volgt actuele editorbounds en behoudt
+alle tekst-/caret-/randpixels plus zichtbare bewaarfeedback. De zesfasen-legacy-
+QEMU-probe is daarna niet opnieuw uitgevoerd. Herbouw: kernel en acht apps
+bytegelijk aan 640; UEFI verschilt alleen in linktimestamps/debugidentiteit.
+Nieuwe native uitvoering van die rebuild wordt niet geclaimd.
+
+Gemeten Materiaal-LOADgeheugen: 195 → 156 pagina's; R/RW/W^X/guards/caps blijven
+geldig. Grote TCG-paginaovergangen duren nog 45–53 s: U02 blijft open. Op het
+880×510-profiel vereist een volle raw SUR1-frame 1792 tiles/12388 uitgaande
+berichten plus ACK's. SolidBegin uit bewaarde PR126 is nog niet geïntegreerd;
+eerst apart meten en protocol-/negatievenreview, geen onbewezen snelheidclaim.
+
+Volgende kritieke stap: echte profiel/auth/sessieauthority en keyring/capability-
+revoke voor persoonlijke lock/logout; daarnaast grote redraws versnellen.
+Compact 200% verbergt toolbar/metadata en gebruikt toetsenroutes; shaping, IME,
+screenreader en menselijke acceptatie blijven open. VMware/hardwaregrenzen uit
+het eerdere overdrachtscontract blijven gelden. De UI-deelagent bereikte quota;
+zijn werk is behouden, root heeft de beperkte toolingcorrectie afgerond.
+
+## Vorig checkpoint — Materiaalbibliotheek in uitvoering — 2 november 2026
+
+Branch `codex/materiaal-library-20261102`, basis `159ad799d2a94fb6542d60e26ed8bbd22bdbd752`.
+De volledige gebruikersopdracht blijft actief. **41/100 blijft 41** tot U03 volledig
+is geaccepteerd; criterium, gewicht en scope zijn ongewijzigd. PR129 en de
+brongebonden eerdere sessie-/prestatiebewijzen blijven behouden.
+
+Taakcontract: `docs/implementation/NATIVE-MATERIAL-LIBRARY.md`. Twee afzonderlijke
+builders werken op dezelfde basis: SDK in `nieuw-os-library-sdk` ontsluit bestaande
+volume-v7-collecties/history met CAS en foutgrenzen; UI in `nieuw-os-library-ui`
+bouwt proportionele documentlayout en echte benoembare/zoekbare bibliotheek.
+Root bezit integratie, native runner/oracles en voortgangsmeter. Geen gedeelde
+schrijvers. PR126/127/128 zijn geïnspecteerd en blijven apart bewaard; hun WIP
+is niet stil geïntegreerd of als nieuwe acceptatie geteld.
+
+Geïntegreerd: proportionele tekstlayout `2fe2604` en SDK-collecties/history
+`c77831a`. De eerste editorstap slaagt in 35 gerichte UI-interactie/layouttests,
+41 apphosttests en een echte native appbuild. SDK-builder rapporteert 104
+workspacetests en 63 compatibiliteitstests, Clippy/fmt en native SDK-librarybuild
+groen. SDK-commando-/loghashes staan in de eigen worktree onder
+`build/library-sdk/logs/handoff.json`. Dit is nog geen nieuwe native uitvoering.
+De volledige UI-bibliotheek is geïntegreerd (`afdb142`, `4e66ff6`, `ebdcebf`),
+plus volledig geverifieerde historieprefix (`c98fcad`). Root14fase-hostfixture
+slaagde op het eerste librarycheckpoint met werkelijk typen, naam, collectie,
+query en restore; geen gesimuleerde lijst. Finale herhaling na de focus-,
+200%- en caret-affinityfixes en nieuwe native gates volgt. Drie onafhankelijke
+library-negatieven en elf runnerchecks slagen; reviewer heeft gevonden index-,
+stale-pointer-, compactfocus-, cold-input- en extra-mutatiegaten laten herstellen.
+Het RX-codebudget is na gemeten131177bytes vast144KiB; echte ELF-parsergate
+vindt156pagina's, vijf W^X-segmenten, ongewijzigde192KiB-documentbuffers/RWquota.
+Zie NATIVE-MATERIAL-LIBRARY voor diagnostische128KiB/LTO/z-mislukkingen.
+
+Finale hostcontrole op `ca503c8` is wél volledig afgesloten:76 UI-,41 app-,
+109 SDK-tests,190 Python-tooltests,11 runnerchecks en Clippy/fmt exit0;
+`build/library-final-checks/logs/` bevat de exacte opdrachten en resultaten.
+De echte8ELF/kernel/UEFI-build slaagde op source174e80. Vóór acceptatie vond de
+beeldreview een ongedekte en-dash in de historieregel; die wordt ASCII `-`.
+De vroege native writeproef is daarom expliciet SIGTERM-diagnostiek, geen groen
+resultaat; bron-/binaire herbouw en alle native gates volgen op de correctie.
+
+Een voorlopige volledige UI-controle is door verlies van de toolsessie
+onderbroken zonder exitstatus of eindrapport. Die telt niet als groen. Er wordt
+op de finale bron opnieuw getest met een blijvende uitvoercel. Native
+bibliotheek/cold/volledige regressie zijn nog niet uitgevoerd op deze bron. Volgende stap: SDK/UI integreren, echte native bibliotheekroute
+plus koude heropening, volledige compositor/clipboardregressie, screenshots en
+visuele review. Geen Windows-, VMware-, biometrie-, FIDO2- of hardwareclaim.
+
+## Vorig checkpoint — eerste native sessieslice getest; hoofdopdracht blijft open — 2 november 2026
+
+Branch `codex/session-quality-20261102`, concept-PR 129 bovenop PR 122.
+Functionele codebron `703cc0705471062ffb1483a16f42a2e580a6fdf7`, source-v3
+`e4ad9f922d202ee4249b6b1dd02a02d724f6775c616ad1c46dde48bf7ee2271c`.
+De oorspronkelijke totaalprompt blijft leidend. VMware is aanvullend; geen
+main-merge en geen volledige release-/persoonlijke-authenticatieclaim.
+**41/100 blijft 41**; U01/N01 zijn geërfd van PR 122, U02/FR-S02 blijven open.
+
+**Gebouwd:** herkenbare openbare VM-sessieroute met lock, gebruikerskeuze,
+gesloten persoonlijke authenticatiemethoden, expliciete gast, complete desktop,
+zoek-/actielaag, systeemstatus/UTC-klok, sessie-/instellingen-/meldingenschermen.
+Het vijfmethoden-authcontract bindt boot/sessie/doel/deadline/retry en fouten;
+de UI verleent geen rechten. Compositorcover blokkeert appinput en oude
+clipboardoffers. Oude/nieuwe paneelgrenzen, verborgen vensters en klok krijgen
+juiste damage; desktop wordt pas na beide echte complete SUR-frames zichtbaar.
+Sparse SUR1 bewaart eerste volledige frame, actor/epoch/bounds/COMMIT/deadlines;
+rebind maakt de cache ongeldig. Proportionele systeem-/calculatorlabels,
+herkenbaar zoekveld en betere datum/200%-klok zijn na beeldreview verfijnd.
+
+**Bewezen op 703:** openbare route 18 toestanden/raw33/cleanup; afzonderlijke
+volledige regressie 22 fasen/raw33/native_gate/clipboard_gate in508,802s.
+Echte compositorfault/herstart (PID 5→9), apps 4/8 en werk behouden, nieuwe
+surface/inputepochs, 34 hostoracles, 17 exacte appbodyvergelijkingen,
+14-byte/revisie1-diskoracle, canaries en cleanup/framebaseline gecontroleerd.
+Code-, artifact-, rawserial- en readbackbinding staat in
+`docs/verification/session-quality-20261102/README.md`. Alle gebruikte VM's zijn
+wegwerpimages en inmiddels netjes beëindigd; diagnostisch afgebroken runs blijven rood.
+
+**Metingen:** aparte bron A1f/dense en B2ff/sparse slagen beide 22 fasen:
+1542,275→697,463s; laatste letter→exact appbeeld62,962→1,165s. Eén run per arm
+met deels gelijktijdige hostlast; geen p95/algemene veiligheids- of latencyclaim.
+Boot tot beide appframes98,082→109,222s: geen bootwinst. Op703 lockinteractie
+8,269s, volledige desktop111,142s, gastactie→desktop82,049s. Die koude start
+blijft te traag. Hostletter1608→3 SUR-tegels met gelijke pixels; opaque/paneel-
+renderwinst apart in drie hostrepetities gemeten.
+
+**Controle:**63 UI-,58 window-,41 Materiaal-,23 SUR-client/protocol-,30 calculator-
+en 9 graphicstests; Clippy/fmt en echte native builds,187 Python-tooltests,
+10 runnerchecks en 39 prototype-state-tests groen.40 Rust-hostbeelden op vijf
+resolutie/schaalprofielen en actuele native screenshots beoordeeld. Geen fysieke,
+VMware-, nieuwe Windows-runtime-, schermlezer-, echte biometrie/FIDO2- of
+menselijke acceptatie. Rode voorproeven en correcties zijn opgeslagen; geen
+oracle, timeout of beveiligingsgrens verlaagd. GitHub-CI niet als groen afgetekend.
+
+**VMware-overdracht:** Simon vroeg de chat `Ontwerp veilige OS-desktop`
+(`durable/01a19c0e-6a17-70e4-8da0-263949812063`) aan te sturen. De hoofdchat
+heeft hem gelezen; hij stond stil op de eerdere afstemming. In deze sessie is
+wel `read_thread` beschikbaar maar geen chat-stuur-/handofffunctie. Er is dus
+geen bericht verzonden en geen VMware-agent in die chat geactiveerd. Concrete
+opdracht en driver-/toolgrenzen: `docs/implementation/VMWARE-WORKSTATION-TRIAL.md`.
+Workstation is geen directe vervanging voor de verplichte virtio-blk/rng;
+eerst een afzonderlijke UEFI/GOP/PS2-proef, zonder host- of beveiligingswijziging.
+
+**Eerstvolgend kritisch werk:** echte profiel-/auth-/sessieauthority en
+keyring/capability-revoke voor persoonlijke lock/logout; tegelijk de lange eerste
+appframes/IPC verder profileren. Resize, echte materiaalindex, persistente
+instellingen/notificaties, draftbewuste restart, IME/screenreader en dagelijkse
+budgetten blijven volgens de bestaande acceptatiematrix open. Geen derde roadmap.
+
+## Vorig checkpoint — desktopchat leidend; WIP bewaard en gepauzeerd — 2 november 2026
+
+Deze overdracht beschrijft de eerdere stand op `354d6016` en de daarin
+genoemde basis `1f0dd9c`; uitspraken over score, pauze en integratie
+gelden voor dat checkpoint. De huidige samenvoeging bevat de gedeelde
+damage-scaffold; visuele en retained-surface-WIP blijven afzonderlijk.
+Er is geen nieuwe native of performanceacceptatie voor de samengevoegde stand.
 
 Simon heeft **Verbeter de Nieuw OS-desktop** aangewezen als leidende chat:
 `01a19dcf-1da5-7192-bab2-7349f1e4a07a`, host `durable`. Deze chat wacht op
@@ -20,7 +183,7 @@ bevestiging dat de leidende chat het al heeft ontvangen.
 Eerstvolgende actie: verwerk de concrete basis-/bestand-/gate-instructie van
 de leidende chat. Geen verdere implementatie of merge vóór die afstemming.
 
-## Vorig geïntegreerd checkpoint — native klembord; U02 blijft open — 2 november 2026
+## Vorig checkpoint — native klembord geïntegreerd; U02 blijft open — 2 november 2026
 
 Branch `codex/mature-native-session-20261102`, concept-PR122 op PR121.
 PR124 is na18 groene CI-workflows en code-/artifactreview opgenomen als

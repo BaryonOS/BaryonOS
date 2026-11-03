@@ -1,0 +1,196 @@
+{
+  "readback_passed": true,
+  "evidence_level": "Independent reread of actual QEMU full clipboard/compositor regression, no hardware claim",
+  "commit": "64044318c622eaacab25272611acf856a5fca5d5",
+  "source_sha256": "069666e5406a893f64aa5d8e00298863f33f8be9cef57b6e0522b8bdf9648670",
+  "report": "/workspace/nieuw-os/build/library-native-final/full-regression-report.json",
+  "report_sha256": "9e3c60eec1bd7df9265b9f726037a4c6393f573bd8e405bd0cfc19dbf2aabe39",
+  "serial_sha256": "adfff13d7040ba54a5ac479ea321640f53f05e51fbed497225d3089d39bfcb03",
+  "volume_sha256": "9ac6c76b016edf07e5c3c72f0ec97aa5349ee90f097da1523e708303b58dd589",
+  "run_directory": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8",
+  "duration_s": 487.00677922999967,
+  "phases": {
+    "boot": {
+      "sha256": "dc91900e57ad1bc8907dc86b8f164ffbe267ddf75df3353fb2a5f6435ef5b4b7",
+      "seconds": 87.63773086299989,
+      "oracle": null
+    },
+    "initial": {
+      "sha256": "26dd5dcdbaad6ce4482ce8da2b07846fda7e3f67038a95ccdccb614571d54f93",
+      "seconds": 90.30963444900044,
+      "oracle": "initial"
+    },
+    "editor": {
+      "sha256": "8f15643aa016bf8d6a7bbfda03784f18636e4483b32afa8e056af02eccde3e34",
+      "seconds": 137.7530612390001,
+      "oracle": "editor"
+    },
+    "dirty": {
+      "sha256": "0ca6e88535b9dfbb503196b7dede7ed7ed8ec72154566c58e6dce5a3baabfef9",
+      "seconds": 142.88417664999997,
+      "oracle": "dirty"
+    },
+    "clipboard-copied": {
+      "sha256": "8767b4e176ab92c5eb60e3728fdcb3b32e0f79580e26391b0e7b4b89d4aae61c",
+      "seconds": 145.6011933990003,
+      "oracle": "clipboard-copied"
+    },
+    "clipboard-rejected": {
+      "sha256": "c082fbaf0da9aed68dd7ba4937d9450855b24ee27f2a41832403909656623044",
+      "seconds": 158.2322067969999,
+      "oracle": "clipboard-unsupported"
+    },
+    "clipboard-numeric": {
+      "sha256": "c4cc265e3545ffd553709889ce3367bbe672853754fc9b97ed7ad7ba811a3968",
+      "seconds": 164.51485868300006,
+      "oracle": "clipboard-numeric"
+    },
+    "clipboard-pasted": {
+      "sha256": "8d15656d439f0c3c4f0034510780e4bf9aa276df9b372107a13c9b303db02225",
+      "seconds": 189.39132273999985,
+      "oracle": "clipboard-pasted"
+    },
+    "clipboard-calculator-copied": {
+      "sha256": "640227921b2fe85eb2143160861bf830e6255c05dcda06426492b3ba6e2fc901",
+      "seconds": 210.33611432599992,
+      "oracle": "clipboard-calculator-copied"
+    },
+    "clipboard-back": {
+      "sha256": "3765287cb9fb0e81c67ed7f8fd67484f8a2db69b40e54dcb63fcc7728cba2e4c",
+      "seconds": 216.17751547599983,
+      "oracle": "clipboard-back"
+    },
+    "clipboard-empty": {
+      "sha256": "8922ece9caa052e543eb4c56a8b354558764bc5fc9e5b2fdd60805fa72fb82d0",
+      "seconds": 220.16416691999984,
+      "oracle": "clipboard-empty"
+    },
+    "clipboard-reset": {
+      "sha256": "9a83e76e34584c43773cf38d1a3e0a9b3b9150977132a1bf06e72616313c9b47",
+      "seconds": 230.52287600599993,
+      "oracle": "dirty"
+    },
+    "calculated": {
+      "sha256": "6134606ba25cf2bcf5a2fd87e702fea0830db4853512227befdfbc7d6bc36653",
+      "seconds": 256.4425827260002,
+      "oracle": null
+    },
+    "moved": {
+      "sha256": "730c77e26e86697c1bc0913f6335242ccc856ecf84483f0a64829597f1587c98",
+      "seconds": 259.81686777400046,
+      "oracle": null
+    },
+    "recovered": {
+      "sha256": "a905b6c1efe87282c5fb6fdd9846f5801eabc8b4e36240da287b8413cfef4956",
+      "seconds": 341.42730272599965,
+      "oracle": null
+    },
+    "rebound-editor": {
+      "sha256": "c46beb7d1decc3d6f6d885d6c1ce0eef52ee12bb6894c1454041a8e15ac91c54",
+      "seconds": 345.1862308210002,
+      "oracle": "dirty-rebound"
+    },
+    "calculator-restored": {
+      "sha256": "0b85d50ce7b790d5be98cff6c894d9f8d623510045e4ecf8ba3552dc5f347fb6",
+      "seconds": 371.98152533899975,
+      "oracle": null
+    },
+    "restored-editor": {
+      "sha256": "cdcfb9727439907eac7c928469c34786245ec6ed231832c7e0e4901a468441bf",
+      "seconds": 383.2224807100001,
+      "oracle": "dirty-recovered"
+    },
+    "clipboard-recovered-empty": {
+      "sha256": "f151cd2d20d963e1868df064f26f9d2c3ea6ae5b39e18286bc10dec6bb0e3c05",
+      "seconds": 386.7860039269999,
+      "oracle": "clipboard-recovered-empty"
+    },
+    "saved": {
+      "sha256": "d79663e458d1968ddf7d9963ad1420e37686e60349dda6708624056235a0c6ec",
+      "seconds": 389.8280257010001,
+      "oracle": "saved"
+    },
+    "list": {
+      "sha256": "9df777b24a35a8cbb577902f4ab92d6fd3b21140febfdec7fe81f342180ab6a7",
+      "seconds": 441.0676670749999,
+      "oracle": "list"
+    },
+    "reopened": {
+      "sha256": "1c30e837a35ebbde27bcaf6e297ec80878fad068b79dad53285108daaf00ae2e",
+      "seconds": 486.1896822010003,
+      "oracle": "reopened"
+    }
+  },
+  "oracle_count": 34,
+  "matched_fixture": "/workspace/nieuw-os/build/library-native-final/window-fixture-af3b52cac5c54219a94033056f1bbb13",
+  "exact_native_app_body_oracles": 17,
+  "material_oracles": 14,
+  "calculator_oracles": 3,
+  "calculator_shift_and_restore_pixel_equalities": 2,
+  "protected_chrome_app_paint_checks": 2,
+  "fault": {
+    "slot": 4,
+    "vector": 6,
+    "restarts": 1,
+    "compositor_generation_pids": [
+      [
+        1,
+        5
+      ],
+      [
+        2,
+        9
+      ]
+    ],
+    "material_pid": 4,
+    "calculator_pid": 8,
+    "new_surface_epochs": {
+      "MATERIAL": [
+        6004795838121902081,
+        6004795838121902082
+      ],
+      "CALCULATOR": [
+        6004795838121902081,
+        6004795838121902082
+      ]
+    },
+    "new_input_epochs": {
+      "MATERIAL": [
+        5282247373882392577,
+        5282247373882392578
+      ],
+      "CALCULATOR": [
+        5282247373882392577,
+        5282247373882392578
+      ]
+    },
+    "work_preserved": true,
+    "probes": [
+      3,
+      10
+    ]
+  },
+  "clipboard_qmp_gestures": {
+    "copy": 4,
+    "paste": 5,
+    "clear": 1
+  },
+  "clipboard_post_fault_empty": true,
+  "disk_oracle": {
+    "object": 0,
+    "revision": 1,
+    "name": "Nieuw document",
+    "length": 14,
+    "sha256": "9a45a00fa9ff69c17e124f54c14bb14cf2c7650e8cf1c272f6631f618a19a5a5",
+    "fnv": 2786778974461010050,
+    "generation": 1,
+    "clocks": [
+      1,
+      0
+    ],
+    "canaries_intact": true
+  },
+  "clean_exit": 33,
+  "cleanup_live_processes": 0,
+  "cleanup_live_handles": 0
+}

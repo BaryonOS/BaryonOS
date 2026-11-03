@@ -1,0 +1,8 @@
+   Compiling nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os/ui/native)
+   Compiling nieuw-os-materiaal-app v0.1.0 (/workspace/nieuw-os/sdk/examples/materiaal)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.52s
+     Running unittests src/lib.rs (target/library-root-host/debug/deps/nieuw_os_materiaal_app-73829b5bee0e538b)
+     Running tests/chain.rs (target/library-root-host/debug/deps/chain-3c4bbe1459d42402)
+     Running tests/elf.rs (target/library-root-host/debug/deps/elf-3683c78db79947db)
+     Running tests/semantic_actions.rs (target/library-root-host/debug/deps/semantic_actions-266db3a014317207)
+   Doc-tests nieuw_os_materiaal_app

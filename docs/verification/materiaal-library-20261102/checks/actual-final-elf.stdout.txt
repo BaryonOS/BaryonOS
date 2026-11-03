@@ -1,0 +1,7 @@
+
+running 1 test
+actual ELF: 156 pages, buffers 0x400b1000+0x30000, five W^X LOAD segments
+test actual_native_elf_has_five_bounded_segments_and_private_bss_buffers ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

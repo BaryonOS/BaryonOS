@@ -1,0 +1,284 @@
+{
+  "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+  "source_sha256": "e4ad9f922d202ee4249b6b1dd02a02d724f6775c616ad1c46dde48bf7ee2271c",
+  "scope": "Source-bound native QEMU TCG regression and artifact readback by AI, not hardware/human audit or secure account authentication.",
+  "passed": true,
+  "native_gate": true,
+  "clipboard_gate": true,
+  "raw_qemu_exit": 33,
+  "duration_s": 508.80173779399956,
+  "full_frame_captures": 22,
+  "source_bound_host_oracles": 34,
+  "exact_app_body_oracles": [
+    "initial",
+    "editor",
+    "dirty",
+    "clipboard-copied",
+    "clipboard-rejected",
+    "clipboard-numeric",
+    "clipboard-pasted",
+    "clipboard-calculator-copied",
+    "clipboard-back",
+    "clipboard-empty",
+    "clipboard-reset",
+    "rebound-editor",
+    "restored-editor",
+    "clipboard-recovered-empty",
+    "saved",
+    "list",
+    "reopened"
+  ],
+  "native_calculator_pixel_equalities": 2,
+  "identity_before_after": {
+    "MATERIAL": {
+      "PID": [
+        4,
+        4
+      ],
+      "SERVICE_GENERATION": [
+        1,
+        2
+      ],
+      "SURFACE_EPOCH": [
+        6004795838121902081,
+        6004795838121902082
+      ],
+      "INPUT_EPOCH": [
+        5282247373882392577,
+        5282247373882392578
+      ],
+      "PROBES": [
+        3,
+        10
+      ]
+    },
+    "CALCULATOR": {
+      "PID": [
+        8,
+        8
+      ],
+      "SERVICE_GENERATION": [
+        1,
+        2
+      ],
+      "SURFACE_EPOCH": [
+        6004795838121902081,
+        6004795838121902082
+      ],
+      "INPUT_EPOCH": [
+        5282247373882392577,
+        5282247373882392578
+      ],
+      "PROBES": [
+        3,
+        10
+      ]
+    }
+  },
+  "compositor_pids": {
+    "1": [
+      5
+    ],
+    "2": [
+      9
+    ]
+  },
+  "fault": {
+    "slot": 4,
+    "vector": 6,
+    "restarts": 1,
+    "presentation_retired": [
+      1
+    ]
+  },
+  "disk_oracle": {
+    "object": 0,
+    "revision": 1,
+    "name": "Nieuw document",
+    "length": 14,
+    "sha256": "9a45a00fa9ff69c17e124f54c14bb14cf2c7650e8cf1c272f6631f618a19a5a5",
+    "fnv": 2786778974461010050,
+    "generation": 1,
+    "clocks": [
+      1,
+      0
+    ],
+    "canaries_intact": true
+  },
+  "cleanup": {
+    "processes": 0,
+    "handles": 0,
+    "queued_messages": 0,
+    "frames_reclaimed": true,
+    "basis": "Native kernel require ENGINE_CLEANUP/FRAME_CLEANUP passed before final markers and raw exit33."
+  },
+  "boot_milestone_observations": {
+    "firmware_exit": {
+      "first_observed_seconds": 2.5362534229998346,
+      "scope": "host monotonic polling bound; not exact guest duration"
+    },
+    "kernel_entry": {
+      "first_observed_seconds": 2.536257247999856,
+      "scope": "host monotonic polling bound; not exact guest duration"
+    },
+    "kernel_memory_ready": {
+      "first_observed_seconds": 3.1939889809996203,
+      "scope": "host monotonic polling bound; not exact guest duration"
+    },
+    "process_manifest_ready": {
+      "first_observed_seconds": 3.851518980999572,
+      "scope": "host monotonic polling bound; not exact guest duration"
+    },
+    "required_services_ready": {
+      "first_observed_seconds": 9.369795489999888,
+      "scope": "host monotonic polling bound; not exact guest duration"
+    },
+    "calculator_complete_frame": {
+      "first_observed_seconds": 46.44802825399984,
+      "scope": "host monotonic polling bound; not exact guest duration"
+    },
+    "material_complete_frame": {
+      "first_observed_seconds": 103.18700750899961,
+      "scope": "host monotonic polling bound; not exact guest duration"
+    }
+  },
+  "phases": {
+    "boot": {
+      "seconds": 103.20444102299962,
+      "frame_sha256": "8bbb2eec67db43e4de8cbf575f7192e003e82a247b68e30207ef4741500bc45d",
+      "oracle": null
+    },
+    "initial": {
+      "seconds": 106.78318356699992,
+      "frame_sha256": "41463ad13bbdda3339eae88d7dd8bc5f68d5d57c02952aabb358ee9c0a34769d",
+      "oracle": "initial"
+    },
+    "editor": {
+      "seconds": 164.14833389899968,
+      "frame_sha256": "fc79be9819c81dd9e69a90cb3b06fba9978108492c0176999e0d45028bfdb7c5",
+      "oracle": "editor",
+      "last_input_to_verified_app_image_s": 57.34688437199975
+    },
+    "dirty": {
+      "seconds": 168.9903225869998,
+      "frame_sha256": "91a98b328eedafcf7254ac101c3b56738e53d852b068bfda8ac21899af196724",
+      "oracle": "dirty",
+      "last_input_to_verified_app_image_s": 0.8937181890000829
+    },
+    "clipboard-copied": {
+      "seconds": 171.4069596999998,
+      "frame_sha256": "9684d91e6d3fd7dd44f19b12172a1c549b64ef8110b88817b280427d7df068aa",
+      "oracle": "clipboard-copied",
+      "last_input_to_verified_app_image_s": 2.071963933999996
+    },
+    "clipboard-rejected": {
+      "seconds": 183.4006932149996,
+      "frame_sha256": "2f3823a319c3145319e697f7ba2610b8caddbb3ccec3b541e50687f456eccd0b",
+      "oracle": "clipboard-unsupported",
+      "last_input_to_verified_app_image_s": 11.836617258999922
+    },
+    "clipboard-numeric": {
+      "seconds": 188.44357164999974,
+      "frame_sha256": "229ae06e025a4e8f9cf35af076ccf5e02ce078c183431ab034cff40edf942546",
+      "oracle": "clipboard-numeric",
+      "last_input_to_verified_app_image_s": 3.8126556700003675
+    },
+    "clipboard-pasted": {
+      "seconds": 212.54859048399976,
+      "frame_sha256": "c0370253b6f34961d5a97cac998b45dc7b23a88ad27725edd0a6f2c1f0ccb58c",
+      "oracle": "clipboard-pasted",
+      "last_input_to_verified_app_image_s": 23.835542299999815
+    },
+    "clipboard-calculator-copied": {
+      "seconds": 233.95614925799964,
+      "frame_sha256": "2aa2c3132e3b7af5b3b559b897c8bf95db54d998747dd73f1c80ce8cab07581b",
+      "oracle": "clipboard-calculator-copied",
+      "last_input_to_verified_app_image_s": 19.56925021400002
+    },
+    "clipboard-back": {
+      "seconds": 239.33971811599986,
+      "frame_sha256": "5cdcc6e9550e3abffc82be028c100e21c7d37d6dbc0f41344b75a2aee67ba5df",
+      "oracle": "clipboard-back",
+      "last_input_to_verified_app_image_s": 4.024084184999992
+    },
+    "clipboard-empty": {
+      "seconds": 243.56070680099992,
+      "frame_sha256": "af0f461bb312548f917efe6de2d29d9d4f98f1bfb96531c1fa687c60f3b0a2e6",
+      "oracle": "clipboard-empty",
+      "last_input_to_verified_app_image_s": 3.552030530999673
+    },
+    "clipboard-reset": {
+      "seconds": 253.16598459499983,
+      "frame_sha256": "d91c2be7be670ce6bc70b505dddd2863bbb1ea2a87e5a4d0c593663868f52699",
+      "oracle": "dirty",
+      "last_input_to_verified_app_image_s": 2.186836385999868
+    },
+    "calculated": {
+      "seconds": 278.34734702499964,
+      "frame_sha256": "ad28a8c7f3c424160209e26cf803bb8ab93560f366f42cbfe40e966d73c89c1a",
+      "oracle": null
+    },
+    "moved": {
+      "seconds": 281.6335166929998,
+      "frame_sha256": "057a31a81ccf43f68ac9ebbdf46f4de33f999cc9d9906d4950ba12173ac8157d",
+      "oracle": null
+    },
+    "recovered": {
+      "seconds": 361.4401696529999,
+      "frame_sha256": "7c8d0496e534933d2dc9216e94be56547a319abf913cc615937ddebc921ca567",
+      "oracle": null
+    },
+    "rebound-editor": {
+      "seconds": 365.0211131039996,
+      "frame_sha256": "74621eb8860c49bf7c3412d78cb0f292bd24caf0426bb421873caf9abcf531da",
+      "oracle": "dirty-rebound",
+      "last_input_to_verified_app_image_s": 83.15459317600016
+    },
+    "calculator-restored": {
+      "seconds": 390.8846597979996,
+      "frame_sha256": "5730a100354f636ad882e2a31b8dcc4a4e5d83e20bb216abb0cce39e693b6509",
+      "oracle": null
+    },
+    "restored-editor": {
+      "seconds": 401.6892548699998,
+      "frame_sha256": "5782e27fc9c826c111163b881103b0adf304c55cbb7721b16a185979e20e2f0c",
+      "oracle": "dirty-recovered",
+      "last_input_to_verified_app_image_s": 3.8281247890004124
+    },
+    "clipboard-recovered-empty": {
+      "seconds": 404.9513762089996,
+      "frame_sha256": "0d265e4f6199c9057707ebf3edbefa9fd9952a93e5a827e91b3a01eab2cc0593",
+      "oracle": "clipboard-recovered-empty",
+      "last_input_to_verified_app_image_s": 3.2317272390000653
+    },
+    "saved": {
+      "seconds": 407.5135281189996,
+      "frame_sha256": "bcf686ee1e0d6e22d95abaed224d67a865ae4cb62f1310737cde40a1cba66224",
+      "oracle": "saved",
+      "last_input_to_verified_app_image_s": 2.5287114910001947
+    },
+    "list": {
+      "seconds": 461.7901895389996,
+      "frame_sha256": "307b3c8bb4e92f1f257033c26e910a8474b3661fb0d653b5345f2df1a8ef800a",
+      "oracle": "list",
+      "last_input_to_verified_app_image_s": 54.224703239000064
+    },
+    "reopened": {
+      "seconds": 507.9809628609996,
+      "frame_sha256": "ef5544dc7b633042d57d104ed2352e76f97b024b97985140d43b2c3f5bf03b6a",
+      "oracle": "reopened",
+      "last_input_to_verified_app_image_s": 45.35441360000004
+    }
+  },
+  "report_path": "/workspace/nieuw-os-session-final-verified/build/final-verified/window-session-report.json",
+  "run_directory": "/workspace/nieuw-os-session-final-verified/build/final-verified/run/window-8cfcb9a47b664dcfbae40d2f73f3d2bf",
+  "report_sha256": "8f50c5b5259088c0db6f30496cd1953529e63a620d858fd3d73097117e596c7d",
+  "serial_sha256": "c1ff4d4a0c12d011a9596658538f045551dcd0d2998122733bb2f8437393ef9b",
+  "serial_gzip_sha256": "b20ed8d2d9cafca385f9d31fa36abea40333d82be7035f30d881a117903c9b18",
+  "qemu_implementation": {
+    "path": "/workspace/.nieuw-os-env/sysroot/usr/bin/qemu-system-x86_64",
+    "sha256": "d3c1a558ad220e77a4412048c8d96b44f8c2b41c7ad2a4ecfe522a4b122fe067"
+  },
+  "volume_sha256": "246c8f9773533796718a729389c26d6103f45f04e7a83b4d06503e17c6d4e07e",
+  "immutable_checked": 7
+}
