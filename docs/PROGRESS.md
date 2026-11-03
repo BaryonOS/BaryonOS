@@ -85,6 +85,52 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR139-review (3 november2026), exact geteste geïntegreerde bron `0a49a382`:
+**41 → 41**. Negen artifact-store-contracttests, Rust1.90.0 fmt en Clippy
+daadwerkelijk opnieuw groen; primaire logs/boom/commando's/codehashes staan
+in [de contracttestreceipt](verification/pr139-artifact-contract-receipt.json).
+Geen retrospectieve validatie van eerdere Watch-claims zonder receipt,
+geen nieuwe native of menselijke acceptatie.
+
+PR139-mainintegratie (3 november 2026), basis `341d1b42` met main
+`d115cc96`: **41 → 41**. De negen `artifact-store-core`-contracttests,
+formatcontrole en Clippy waren destijds als geslaagd gemeld zonder primaire
+PR139-receipt. Niet retrospectief geverifieerd; de nieuwe uitvoering op
+`0a49a382` hierboven heeft wel volledige primaire receipts.
+Dit toetst descriptorvalidatie en bounded-readgedrag, niet identiteit of
+authenticatie; geen native/productacceptatie of nieuwe punten. De op oude
+head `341d1b42` gerapporteerde `b03-native-update`-failure is door de
+gepubliceerde merge superseded en wordt niet als actuele testuitslag hergebruikt.
+
+PR139-reviewvervolg (3 november 2026), geteste bron `732fa9cc`: **41 → 41**.
+De 16 replay-hosttests met `umask 0077` zijn opnieuw groen; met `umask 0002`
+blijft exit 1 (1 failure, 2 errors) zichtbaar, geen groen resultaat.
+[Primaire receipts met volledige logs](verification/pr139-review-receipts.json)
+staan los van het
+[historische prioriteitencheckpoint](verification/priority-plan-checkpoint-20261103.json).
+Alleen dat historische checkpoint bevat de 15 workflowruns op `380111b`.
+De primaire PR139-receipts bevatten uitsluitend de twee replaytestuitvoeringen.
+Geen nieuwe native of productacceptatie.
+
+PR139-mainintegratie (3 november 2026), basis `76743f5d` met main
+`69809c2c`: **41 -> 41**. `76743f5d` is de assessmentbasis; de 15
+historische OS-workflowruns blijven uitsluitend bewijs op `380111b` en zijn
+niet opnieuw uitgevoerd. De unieke main-statushistorie is behouden; de 16
+storage-backend-replaytests slagen met
+umask `0077`. De ongewijzigde aanroep faalde in deze sandbox met umask
+`0002` doordat de private-inputtests groepsschrijfbare fixtures produceerden;
+de private-inputcontrole weigerde die correct. Progresscontrole slaagt; geen
+nieuwe productcriteria of punten. Reviewverzoeken blijven open en zijn niet
+in deze conflictintegratie afgehandeld.
+
+PR139-reviewcorrectie (3 november2026), basis`716f3ec1`: **41 ->41**.
+De gegenereerde `Bron` identificeert de assessmentbasis, niet automatisch
+de commit van ieder onderliggend bewijs. De samenvatting noemt nu expliciet
+de oorspronkelijke assessmentbasis`d3e5602c`, actuele basis`716f3ec1` en
+uitsluitende historische OS-bewijsbron`380111b`. Bestaand verplicht veld
+`assessment.source_commit` en generator blijven intact; afzonderlijke
+bewijsbron staat in het checkpoint. Geen nieuwe native uitvoering of punten.
+
 PR140-reviewvervolg (3 november 2026), geteste bron `2bf95782`: **41 → 41**.
 De 9 contracttests, typecontrole, Clippy en formattering zijn opnieuw groen.
 Volledige primaire logs met SHA-256 staan duurzaam in
@@ -96,7 +142,6 @@ Historische PR140-reviewcorrectie (3 november 2026), basis `c07d15b8`: **41 → 
 Alleen Nederlandse beschrijvingen in het historische hostrapport; commands,
 exitstatussen, bron-/loghashes en criteria blijven gelijk. Geen nieuwe tests
 of native productacceptatie door deze tekstcorrectie.
-
 PR119-inhoudsbehoud (3 november 2026), head `5a8317f1`: **41 -> 41**.
 Volledige nieuwste NAS-history opgenomen; alleen centrale statusconflicten,
 rubric buiten assessment identiek. Tweede/derde119-resolutie blijven
@@ -171,7 +216,6 @@ Vóór het status-/metercheckpoint was de opgeloste boom bytegelijk aan main.
 slagen. Strikte preflight faalt wegens ontbrekende Rust-/native-/QEMU-/OVMF-tools;
 native uitvoering en Rust-format/lint zijn niet uitgevoerd. Nieuwe-head CI
 blijft vereist. Geen nieuw geaccepteerd criterium of productpunt.
-
 PR127-reviewintegratie (2 november 2026), basis `798706c` met `8f08db4`:
 branch **41 → 41**, main **34 → 34**. Zeven reviewpunten en gekoppelde
 font/damage-integratie hersteld; 189 Rust-app/UI-,9 netwerk- en31 Python-tests
