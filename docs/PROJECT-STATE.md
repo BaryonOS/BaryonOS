@@ -1,31 +1,34 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — factorygekoppelde PCI-matches — 3 november 2026
+## NEXT AGENT HANDOFF — PCI-mismatchrapportage — 3 november 2026
 
-Werkbranch `copilot/universal-driver-framework`, codecommit
-`43da75947cb5b147c1435a81547a22b3cebfb04a`, geteste code/buildbron
-`9b2d6fb6b71eade4ffb2386480645564229c958e`, actuele remote branch/PR #153
-head `b89caf4d6fec2f0caf162e0cd2d8b2d166506ce7` (receipt-only wijziging).
-Segment-0-enumerator en VirtIO-selectie zonder vaste BDF staan op `9984b180`;
-config-space is aan de gevalideerde descriptor/registrymatch gebonden.
+Werkbranch `copilot/universal-driver-framework`; implementatiebron
+`340ecd12938f3915140315051aa2ca4bbcacd005`. De remote branch heeft de code
+nog niet ontvangen; laatst bekende remote head `f643d23cea9e277a5218572cda54416943df0ad6`.
+PR #153 blijft open. De code voegt vóór M5-deviceactivatie een read-only
+segment-0-scan toe: type-0-endpoints zonder profielmatch worden op COM1 gemeld
+met BDF, hardware-ID's en classvelden. Niet-type-0-functies worden geteld;
+configuratiefouten markeren de scan als onvolledig en melden geen gedeeltelijke
+lijst als volledig. VirtIO RNG heeft nu registry-identiteitsmetadata zodat het
+actieve profiel hem kan herkennen; de RNG-driver zelf gebruikt nog een vaste
+BDF. Deze inventaris matcht metadata, verleent geen resources en activeert
+geen driver.
 
-**Nieuw:** `DriverRegistry` kan match metadata aan een statische initializer
-koppelen. VirtIO block/net halen hun initializer uit de unieke registrymatch
-en roepen die aan via hun bestaande `Device::initialize`-ingang, nadat de
-kernel resources heeft aangeleverd. De per-driver BAR-grants blijven actief.
-[Gerichte testreceipt](verification/driver-factory-2026-11-03/README.md):
-28 hosttests, Clippy, fmt, diff-check en zeven profielbuilds exit 0. Geen
-QEMU/runtime- of fysieke hardwaretest; lokale QEMU ontbreekt. Geen nieuw
-voortgangspunt; score **41/100 → 41/100**. `gh pr checks 153` meldde geen
-checks op de branch; dit is geen groen CI-resultaat.
+**Tussenstand vóór uitgebreide controles:** formatter en `git diff --check`
+zijn geslaagd. `cargo test -p virtio-rng-driver -p driver-core` faalde met
+exit 101 doordat `cc` niet op PATH staat; een eerder gebruikte tijdelijke
+hostcompiler ligt onder `/tmp/nieuw-os-hostcc-2026-11-03`. Dezelfde test moet
+met die compiler opnieuw worden uitgevoerd. QEMU ontbreekt; runtime en fysieke
+hardware zijn niet getest. Score blijft **41/100 → 41/100**; de code alleen is
+geen acceptatiebewijs.
 
-**Open/eerstvolgend:** een gedeelde heterogene registry en interrupt-/
-busmaster-/DMA-resource lifecycle in afstemming met de maturitybranch. De
-families hebben nog verschillende factory-ABI's; drivers blijven in kernelcontext.
-BAR-grants gelden niet voor virtio-rng. Meerdere instanties,
-ACPI-roottopologie/ECAM, bridges, USB-klassen, NVMe, GOP en
-unsupported-hardwarerapportage zijn niet gerealiseerd. Eerstvolgende commando:
-`rg -n "UNSUPPORTED|unsupported|enumerate\\(|serial" crates/pci-core kernel/src drivers`.
+**Eerstvolgende controles:** herhaal de gerichte hosttests met de compiler-
+omgeving uit `verification/driver-factory-2026-11-03/README.md`, voer daarna
+de M5- en `native-system-net`-profielbuilds uit. Beoordeel geen native
+rapportage voordat echte QEMU-uitvoer is vastgelegd. Daarna: een gedeelde
+heterogene registry en interrupt-/busmaster-/DMA-resource lifecycle blijven
+afhankelijk van een gezaghebbend maturitybranch-contract. Meerdere instanties,
+ACPI/ECAM, bridges, USB-klassen, NVMe en GOP blijven open.
 
 ### Implementatiestap — segment-0 enumeratie en VirtIO BDF-migratie
 
