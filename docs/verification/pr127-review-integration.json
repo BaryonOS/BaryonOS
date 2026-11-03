@@ -87,7 +87,7 @@
     "log": "/tmp/nieuw-os-pr127-integrated-ui.log",
     "log_sha256": "2f1ccd5bf9d03ebf284a87399acf1a6795c3bbbf8a5b2607d46eb11bcbb0ea1f"
   },
-  "ci_wiring": "Existing Rust1.91.1 net-broker-quality workflow now also tests/lints/formats and builds network-service. A dependent clean native-network-service job runs the existing bounded normal/client-exit QEMU runners on fresh own-kernel images and archives source-bound raw peer/serial/reports. Pinned kernel1.90/service1.91.1, explicit pc-q35-8.2/OVMF, localhost synthetic peer only, no TAP/Internet/real disk. This new gate is pending, not historical N01 acceptance. Inherited PR126 native workflow executes full Material/calculator host suites.",
+  "ci_wiring": "At candidate time, the Rust1.91.1 net-broker-quality workflow and dependent native-network-service gate were pending. The exact-head results are recorded in integration_confirmation below. The native runner uses fresh own-kernel images, a controlled localhost peer, and no TAP/Internet/real disk.",
   "native_ci_preparation_validation": {
     "base": "c6ce3906f395f9babad9444efea6cde64bc2a0c4",
     "commands": [
@@ -122,13 +122,53 @@
     "local_full_build": "tools/build.py --kernel-feature native-window-session-probe exit0 in8s after private cargo/rustc shims reused existing Rust1.90; no compiler reinstall. Log /tmp/nieuw-os-pr126-main-build-tools.log SHA256c8343bc5a1a124f590e8e52e6846e395614af004de5c48d6671bc2b1ea915f04.",
     "boundary": "Strong parent-source evidence only. New combined PR127 native runtime and package must be repeated."
   },
-  "open_boundaries": [
+  "candidate_open_boundaries_at_2026-11-02": [
     "Fresh exact-head hosted CI, review and native/window/clipboard/recovery/pixel/disk evidence",
     "Actual Windows/PowerShell/WHPX execution of changed probe",
     "Physical hardware, human audit, full release and interaction budgets"
   ],
   "review": "Local CodeRabbit CLI not found on PATH/default path; availability/auth unknown, no CLI review started or silently treated as clean. GitHub current-head reviews remain required.",
   "progress": {"branch_previous": 41, "branch_current": 41, "main_previous": 34, "main_current": 34, "new_criteria": []},
-  "integration_policy": "PR127 is the combined candidate, preserving all PR126 changes and fixing its new duplicate TCP Closed finding. Do not separately merge an unfixed PR126 or close source PRs before main-content proof.",
+  "integration_confirmation": {
+    "date_europe_amsterdam": "2026-11-03",
+    "commit": "380111b68688c981eec6abb8fab29174a29f5601",
+    "parent": "74a34d05ef5591b782a0da9da34e4669910d0722",
+    "check_run_count": 28,
+    "check_run_conclusion": "All 28 exact-head check runs report success.",
+    "runs": [
+      {
+        "workflow": "Native window session and Windows QEMU bundle",
+        "run_id": 41535553113,
+        "job": "native-window-session",
+        "job_id": 125586357385,
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41535553113"
+      },
+      {
+        "workflow": "Network broker quality",
+        "run_id": 41535553158,
+        "native_job": "native-network-service",
+        "native_job_id": 125587456689,
+        "quality_job": "net-broker-quality",
+        "quality_job_id": 125586357860,
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41535553158"
+      }
+    ],
+    "progress": {
+      "main_before": 34,
+      "main_after": 41,
+      "documentation_task_before": 41,
+      "documentation_task_after": 41,
+      "new_criteria": []
+    },
+    "open_boundaries": [
+      "Windows guest runtime and physical hardware",
+      "Human audit and full release acceptance",
+      "U02 interaction budgets and full product criteria"
+    ],
+    "evidence_boundary": "Exact-head GitHub checks and native QEMU gates do not establish Windows runtime, physical hardware support, human audit or full release acceptance."
+  },
+  "integration_policy": "PR127's combined PR126/PR127 content is integrated at 380111b. Preserve the existing source history; close source PRs only after proving their content is present on main.",
   "rollback": "Reject or normally revert the combined integration commit, preserving all original leaves and source histories."
 }

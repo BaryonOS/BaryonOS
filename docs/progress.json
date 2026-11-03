@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "ea94eca7baa8902014334a196b857f251d71042c",
+    "source_commit": "fb160165bf410098becb7a7b45121160859e4463",
     "branch": "integrate/stack130-local",
-    "task": "Main a32eadb1 inhoudsbehoudend in PR135 integreren",
+    "task": "PR135: main 95d79451 inhoudsbehoudend integreren",
     "previous_score": 41,
-    "summary": "Assessment op PR-head ea94eca7 voor integratie met main a32eadb1. ADR-064 blijft leidend: ongemarkeerde opslag wordt alleen na nulcontrole van de volledige scope toegelaten; de eerste schrijfroute flusht NOSFMT02. Op de opgeloste boom slagen 48 volume-core-Rusttests, 39 volumehosttests, 20 image-, 21 random- en 8 helpertests, Clippy, rustfmt en de voortgangscontrole. Score blijft 41/100; geen nieuw criterium of native/QEMU-acceptatie."
+    "summary": "41/100 blijft 41/100. De opgeloste base-integratie behoudt zowel PR135- als main-wijzigingen; kernel-core heeft 20 hosttests en window-session 70 hosttests doorstaan, met Clippy, formattering en de native cross-build. QEMU/OVMF ontbreken, dus geen runtimeacceptatie of nieuw productcriterium."
   },
   "tracks": [
     {
