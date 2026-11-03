@@ -1,8 +1,8 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Veld-04 in uitvoering — 3 november 2026
+## NEXT AGENT HANDOFF — Veld-04 geverifieerd, Veld-05 actief — 3 november 2026
 
-**Bronbasis:** `d5781e720c9f9cf263565c88c0461965669d7bfa`, branch
+**Productbron:** `3799ec63b9be6a2a5dbe67bd2cb38af703f101a0`, branch
 `simonvanieperen-fictional-disco`, PR #146. Veld-03 heeft44 volledige native
 fasen per schaal; [bewijs](verification/veld-context-20261103/README.md).
 
@@ -24,13 +24,20 @@ Hele menufixture vereist werkelijk verschillende hoverpixels voor/na leave.
 Logs `files/veld-env/logs/veld-pointer-{full-host,viewer-host}.log`.
 Eerdere testfixture-/lintfouten hersteld; geen productiegrens versoepeld.
 
-**Nog niet uitgevoerd:** native Veld-04 op100/200%, normale builds en nieuwe
-CI. Eerste nativebuild op `3f72f2f3` stopte voor VM-start met E0282:
+**Native geverifieerd:** 44 volledige fasen per schaal, 344,97 s bij100%,
+609,74 s bij200%, beide exit0/ruwe33. Ook beide normale builds exit0.
+Fingerprint `af315f77251383dfcafca5f25f2d4fd4087371f675ef3ab1112659032b3ad234`.
+[Brongebonden bewijs](verification/veld-pointer-20261103/README.md).
+Eerste nativebuild op `3f72f2f3` stopte voor VM-start met E0282:
 door de eerdere nieuwe matcharm kon Rust het queue-index-type niet afleiden.
 Capture en hover zijn nu expliciet `Option<usize>`; geen cast of grenswijziging.
-Volgende commando: probebuild en volledige runner
-`--clipboard --workspace --scale 1`, vervolgens hidpi met `--scale 2`, elk in
-eigen build-/targetmap. Bron tijdens runs bevriezen. Score **41 -> 41**;
+**Volgende werkstap:** agent `fcb96a26` bouwt een hoogcontrastprimitive in eigen
+worktree vanaf3799ec63, alleen controller/render en gerichte hosttest.
+API `View.high_contrast` en `Controller::set_high_contrast(bool)`;
+hoofdagent integreert daarna gezamenlijke instellingen, shell/rekenmachine
+en native pixel-/interactiegates. Agentresultaat nog niet ontvangen of
+geintegreerd; geen native hoogcontrastclaim. Nieuwe CI niet uitgevoerd.
+Score **41 -> 41**;
 complete Veld-omgeving, drag/drop, resize en overige functies blijven open.
 
 ## Vorig checkpoint — Veld-03 native geverifieerd — 3 november 2026

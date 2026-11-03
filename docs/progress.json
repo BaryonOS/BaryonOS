@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "3f72f2f3be7c01217b299ec38d35d57e122b14a7",
+    "source_commit": "3799ec63b9be6a2a5dbe67bd2cb38af703f101a0",
     "branch": "simonvanieperen-fictional-disco",
     "task": "Veld-04: echte pointer-leave zonder focusverlies of buitenbodydata",
     "previous_score": 41,
-    "summary": "41% blijft 41%: eerder44 volledige nativefasen per schaal op9b1c8200. Pointer-leave zonder buitenbodydata, focusverlies of menuafsluiting; acht hosttest-/Clippysuites en16 runnertegenproeven slagen. Eerste targetbuild op3f72f2f3 vond E0282 voor een queue-index; expliciete indextypen herstellen dit, echte probebuild slaagt. Native04 nog niet uitgevoerd. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Oudere derdenapps vereisen protocolonderhandeling. Complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open."
+    "summary": "41% blijft 41%: bron3799ec63 heeft44 volledige nativefasen per schaal,100/200%, exit0/ruwe33. Pointer-leave wist werkelijk andere hoverpixels zonder buitenbodydata, focusverlies of menuafsluiting; onverkorte oude gates slagen. Acht hosttest-/Clippysuites,16 runnertegenproeven en beide normale builds slagen. Eerste targetcompilefout bewaard en na typeherstel volledig herhaald. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Oudere derdenapps vereisen protocolonderhandeling. Hoogcontrast, complete Veld-omgeving, U02-U06, fysieke/menselijke acceptatie en release blijven open."
   },
   "tracks": [
     {

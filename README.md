@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`3f72f2f3`](https://github.com/simonvanieperen/nieuw-os/commit/3f72f2f3be7c01217b299ec38d35d57e122b14a7) ·
+**Bron:** [`3799ec63`](https://github.com/simonvanieperen/nieuw-os/commit/3799ec63b9be6a2a5dbe67bd2cb38af703f101a0) ·
 **Ontwikkelbranch:** `simonvanieperen-fictional-disco`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Veld-04: echte pointer-leave zonder focusverlies of buitenbodydata.
-41% blijft 41%: eerder44 volledige nativefasen per schaal op9b1c8200. Pointer-leave zonder buitenbodydata, focusverlies of menuafsluiting; acht hosttest-/Clippysuites en16 runnertegenproeven slagen. Eerste targetbuild op3f72f2f3 vond E0282 voor een queue-index; expliciete indextypen herstellen dit, echte probebuild slaagt. Native04 nog niet uitgevoerd. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Oudere derdenapps vereisen protocolonderhandeling. Complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open.
+41% blijft 41%: bron3799ec63 heeft44 volledige nativefasen per schaal,100/200%, exit0/ruwe33. Pointer-leave wist werkelijk andere hoverpixels zonder buitenbodydata, focusverlies of menuafsluiting; onverkorte oude gates slagen. Acht hosttest-/Clippysuites,16 runnertegenproeven en beide normale builds slagen. Eerste targetcompilefout bewaard en na typeherstel volledig herhaald. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Oudere derdenapps vereisen protocolonderhandeling. Hoogcontrast, complete Veld-omgeving, U02-U06, fysieke/menselijke acceptatie en release blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -54,11 +54,13 @@ beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS
 
 Baseline `264ad5b0` wordt iteratief uitgebreid tot een volledige native
 gebruikersomgeving. Schrijven en Lezen gebruiken inmiddels hetzelfde echte
-document met behoud van draft en selectie; de volledige eigen-kernelgate met
-31 pixel-/interactiefasen slaagt op `3e79b6a8`.
-[Uitvoering en grenzen](docs/verification/veld-tools-20261103/README.md).
-Vensterstates en de overige UI-functies blijven in uitvoering; geen claim van
-volledige productacceptatie.
+document met behoud van draft en selectie. Normal/Minimized, echte venster-
+en documentmenu's en correct verdwijnende hover zijn native uitgevoerd.
+De volledige eigen-kernelgate slaagt op `3799ec63` met44 pixel-/interactiefasen
+per schaal,100% en200%.
+[Uitvoering en grenzen](docs/verification/veld-pointer-20261103/README.md).
+Hoogcontrast en de overige UI-functies blijven in uitvoering; geen claim
+van volledige productacceptatie.
 
 ## Visueel ontwerpplan — onderzoeksbasis
 
