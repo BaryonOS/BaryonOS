@@ -57,8 +57,9 @@ geen stille providerfallback; formaten leveren meetbare loss reporting.
 - Valideer Materiaal-continuïteit via waargenomen user tasks.
 - Local AI alleen na runtime/model/licence/resource experiment en native
   netwerkdeny; geselecteerde context en cancel.
-- Bouw quantum Q1 apart; simulator, host prototype, OS port en physical QPU
-  blijven verschillende bewijsniveaus.
+- Herhaal de geaccepteerde native L02 QSIM-jobinterface op de geïntegreerde
+  release-image voor FR-L04; houd simulator-, historisch OS-port- en fysieke
+  QPU-bewijs afzonderlijk.
 
 **Poort:** user value en security meetbaar, zonder basisfuncties te vervangen.
 

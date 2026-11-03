@@ -29,9 +29,10 @@ Security Floor en afhankelijke fundering vóór zichtbare polish.
   quiet-futurism design, pas na native fundering en menselijke evaluatie.
 - **P4 later:** uitbreidingen die geen dagelijkse beta blocker zijn, na
   resource-/supportonderzoek.
-- **RESEARCH:** Q1 quantum-interface, fysieke QPU, CHERI, extra ISA's en
-  formele verkenning. Deze nemen geen P0/P1-capaciteit weg zonder expliciet
-  besluit.
+- **RESEARCH:** regressie van de eerder geaccepteerde native L02 QSIM-interface
+  op de geïntegreerde release-image (FR-L04 blijft open), fysieke QPU, CHERI,
+  extra ISA's en formele verkenning. Deze nemen geen P0/P1-capaciteit weg
+  zonder expliciet besluit.
 
 ## Uitstelregels
 

@@ -27,7 +27,7 @@ gevalideerd.
 | Desktop, sessie, Materiaal en gegevensuitwisseling | `DESKTOP-COMPOSITOR`, `WINDOW-MANAGEMENT`, `SESSION-AUTH`, `MATERIAL-EDITOR`, `CLIPBOARD-SHARE` | Native preview/bouwstenen bestaan; echte login en complete save/reopen/desktoproute zijn niet afgetekend. |
 | Installer, instellingen, apps en platform | `INSTALLER`, `SETTINGS`, `APPS-UTILITIES`, `SDK-PACKAGES`, `UTILITIES` | SDK en beperkte apps bestaan; installer, pakketlevenscyclus en dagelijkse utilityset ontbreken. |
 | Browser, media, notificaties en toegankelijkheid | `BROWSER`, `BROWSER-ENGINE`, `MEDIA`, `NOTIFICATIONS`, `ACCESSIBILITY`, `INTERNATIONALIZATION`, `VISUAL-DESIGN` | Prototype-/designwerk aanwezig; native web, media, a11y en brede i18n niet bewezen. |
-| Netwerk, privacy, NAS, AI en quantum | `NETWORK-STACK`, `NETWORK-INTERNET`, `TLS-PEER`, `NETWORK-PERMISSIONS`, `NAS-CONTINUITY`, `PRIVACY-SECURITY`, `AI-LOCAL`, `QUANTUM-LOCAL` | Stack-/sleutel-/simulatorcomponenten hebben beperkt bewijs; native productdiensten grotendeels open. |
+| Netwerk, privacy, NAS, AI en quantum | `NETWORK-STACK`, `NETWORK-INTERNET`, `TLS-PEER`, `NETWORK-PERMISSIONS`, `NAS-CONTINUITY`, `PRIVACY-SECURITY`, `AI-LOCAL`, `QUANTUM-LOCAL` | Native L02 QSIM-jobservice is beperkt QEMU-geaccepteerd; de geïntegreerde FR-L04-regressie en overige native productdiensten blijven open. |
 | Compatibiliteit en release | `COMPATIBILITY`, `UPDATES-RECOVERY`, `RELEASE-VALIDATION`, `GOVERNANCE` | Specificaties en losse gates; geen finale image, hardware- of releasevalidatie. |
 
 ## Bewijsclusters

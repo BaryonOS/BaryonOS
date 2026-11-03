@@ -690,11 +690,13 @@
       "evidence": [
         "sdk/README.md",
         "sdk/runtime/",
+        "docs/verification/A01-ACCEPTANCE.md",
         "docs/DECISIONS.md: ADR-055/056",
         "docs/FULL-TEST-RELEASE.md: FR-A11–A13"
       ],
       "limitations": [
         "No_std runtime, package verifier and app/service libraries exist",
+        "Roadmap A01 (2 points) is accepted for the bounded native SDK app/catalog path; A02/A03 and the full package lifecycle remain open",
         "Verifier is not package installer, launch authority, store, update/removal lifecycle or permission enforcement"
       ],
       "blockers": [
@@ -1382,6 +1384,7 @@
       "status": "PROTOTYPE",
       "evidence_levels": [
         "HOST_TESTED",
+        "VM_TESTED",
         "SOURCE_ONLY"
       ],
       "release_profile": "TECHNICAL_PREVIEW",
@@ -1392,14 +1395,14 @@
       "evidence": [
         "experiments/quantum/README.md",
         "docs/QUANTUM-RESEARCH.md",
-        "docs/verification/L02-ACCEPTANCE.md"
+        "docs/verification/L02-ACCEPTANCE.md: accepted on source 433bab9feab74473517eb8d44f2fb4475848e0cf; integrated in main at 7fb8c722fc853692251e26fcdcea0ed86954ef15"
       ],
       "limitations": [
-        "Q0 local simulator is distinct from a native Q1 OS port",
+        "The bounded native L02 QSIM job service has historical QEMU acceptance; this is not a fresh run on audit commit 380111b68688c981eec6abb8fab29174a29f5601",
         "No physical QPU, quantum speedup, PQC proof or cloud fallback evidence"
       ],
       "blockers": [
-        "Q1 interface/port and hardware-independent correctness criteria"
+        "Integrated L02 regression and full FR-L04 acceptance remain open; physical QPU evidence is separate"
       ],
       "dependencies": [
         "Resource quota",
@@ -1408,9 +1411,9 @@
         "Optional physical device interface"
       ],
       "acceptance_criteria": [
-        "Q1 runs a documented local job through the OS interface with deterministic reference vectors, cancellation and quota; simulator, host prototype, OS port and physical QPU results are separately labeled."
+        "The integrated release image repeats L02's documented local job, reference vectors, cancellation, quota and cleanup; distinguish the historical native OS port, the integrated regression and any physical QPU result."
       ],
-      "recommended_next_step": "Continue Q1 as a bounded independent experiment; do not count simulator completion as native release.",
+      "recommended_next_step": "Repeat the L02 native gate on the integrated release image and keep FR-L04 open until it passes; assess physical QPU scope separately.",
       "complexity": "research_program",
       "impacts": {
         "user": "Experimentele differentiator; geen vereiste voor gewone desktopfunctie.",
@@ -1599,11 +1602,13 @@
       "implemented_on": [],
       "evidence": [
         "docs/PRODUCT-AND-SOVEREIGNTY.md",
-        "docs/progress.json: A01/R03 open",
+        "docs/progress.json: A01 accepted (+2 points); R03 open (2 points)",
+        "docs/verification/A01-ACCEPTANCE.md: bounded native SDK app/catalog acceptance, not release governance",
         "docs/FULL-TEST-RELEASE.md: FR-R04",
         "docs/WORK-QUEUE.md: dated 30 October status still reports 34/100 and older integration context"
       ],
       "limitations": [
+        "A01's accepted native SDK scope does not demonstrate release governance or satisfy R03",
         "Policies and release tasks are described; no complete release process, support lifecycle, legal/license audit or owner coverage demonstrated",
         "Dated queue context is stale relative to current main score/PR state and was not edited because it declares an exclusive writer"
       ],

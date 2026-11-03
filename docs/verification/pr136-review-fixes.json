@@ -1,0 +1,74 @@
+{
+  "task": "Correct two evidence classifications in the PR136 OS-completeness audit",
+  "baseline": {
+    "commit": "4a52aeae6c481cbee0b058c71430b45feb10d5bb",
+    "branch": "codex/pr136-review-fixes-20261103",
+    "github_mutations": false
+  },
+  "changes": [
+    {
+      "finding": "QUANTUM-LOCAL omitted previously accepted native L02 evidence",
+      "result": "Recorded historical VM_TESTED evidence on source 433bab9feab74473517eb8d44f2fb4475848e0cf, integrated at 7fb8c722fc853692251e26fcdcea0ed86954ef15. Replaced the missing-port claim with the still-required integrated FR-L04 regression. FR-L04 remains open; physical QPU evidence remains separate."
+    },
+    {
+      "finding": "GOVERNANCE incorrectly described A01 and R03 as both open",
+      "result": "Recorded A01 as accepted for 2 points and R03 as open for 2 points. Clarified that the bounded native SDK/catalog acceptance does not demonstrate release governance. No rubric state or score was changed."
+    }
+  ],
+  "changed_files": [
+    {
+      "path": "docs/audit/os-completeness/completeness-matrix.md",
+      "sha256": "fa795a780f0126b3f815b9d613284055ab8730c368f64686070bee26c62b718b"
+    },
+    {
+      "path": "docs/audit/os-completeness/evidence-register.md",
+      "sha256": "6c2312f05bcfb71f5bb5dc830fadfe44935dc31631614e327094056b247a77fb"
+    },
+    {
+      "path": "docs/audit/os-completeness/matrix.json",
+      "sha256": "740581cf231700bd8e6a9c68d5c08daa9262800ae819677ee6b125b81e631c18"
+    },
+    {
+      "path": "docs/audit/os-completeness/priorities.md",
+      "sha256": "a052b1c2eff3dded3db71b043507d0f45e867e3bd820499055ca75cb6e212763"
+    },
+    {
+      "path": "docs/audit/os-completeness/product-gaps.md",
+      "sha256": "6fc057291b8b4aa915664b118e3f0cc48d3343464d87c38b67f36ef60c3a9999"
+    },
+    {
+      "path": "docs/audit/os-completeness/recommended-roadmap.md",
+      "sha256": "80dad2c5ac428852c10c088b027dec00eb49227d8f7a642976b412b407b96cd0"
+    },
+    {
+      "path": "docs/audit/os-completeness/verification.json",
+      "sha256": "e168d9daf17ea4b8029bf024e8474867a8421b23bb16becd007ce1eb2d85a98e"
+    }
+  ],
+  "validation": [
+    {
+      "command": "python3 -B tools/progress.py --check",
+      "exit_status": 0,
+      "result": "Fixed rubric remains consistent at 41/100."
+    },
+    {
+      "command": "git diff --check",
+      "exit_status": 0,
+      "result": "No whitespace errors."
+    },
+    {
+      "command": "python3 -B - <<'PY' [Draft 2020-12 schema, matrix invariants, FR crosswalk, summary counts, A01/R03 status, source binding and Markdown-link assertions] PY",
+      "exit_status": 0,
+      "result": "39 unique matrix records; 62/62 release IDs mapped and still open; dashboard counts match the matrix; A01 accepted/2 and R03 open; historical L02 VM evidence retained; changed-document relative links resolve."
+    }
+  ],
+  "not_run": [
+    "No native QEMU rerun; historical L02 acceptance remains bound to its recorded source and integration commits.",
+    "No product build, hardware run, human test, security audit or release validation."
+  ],
+  "score": {
+    "before": 41,
+    "after": 41,
+    "reason": "Audit evidence corrections only; no product criterion or fixed-rubric status changed."
+  }
+}

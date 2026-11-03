@@ -41,7 +41,9 @@ de belofte.
   onafhankelijke backup.
 - Native algemeen internet, volledig afgedwongen netwerkbestemmingen,
   geïntegreerde NAS of synchronisatie.
-- Werkende lokale AI of Q1 quantumport op de eigen OS.
+- Werkende lokale AI of volledige FR-L04-acceptatie op de geïntegreerde
+  release-image. De begrensde native QSIM-jobservice is eerder als L02
+  geaccepteerd; een nieuwe geïntegreerde regressie blijft open.
 - Screenreader-/WCAG-conformiteit, menselijke usability of fysieke
   hardwareondersteuning.
 - Onafhankelijke securityaudit, onkraakbaarheid, quantumproofheid,

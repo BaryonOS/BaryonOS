@@ -19,7 +19,7 @@
     "evidence_level_assignments": {
       "HOST_TESTED": 11,
       "SOURCE_ONLY": 36,
-      "VM_TESTED": 20,
+      "VM_TESTED": 21,
       "HARDWARE_TESTED": 0,
       "HUMAN_TESTED": 0,
       "INDEPENDENTLY_REVIEWED": 0,

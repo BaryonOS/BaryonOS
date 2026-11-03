@@ -35,7 +35,8 @@ voor dagelijks gebruik, fysiek gedrag of alle releasecriteria.
 | `TLS-PEER` | `services/nas/TRANSPORT.md`; `docs/verification/pqc-transport/` | Host/loopback transportonderzoek | Native TLS/peer-authenticatie en productie-/release trust |
 | `PRIVACY-SECURITY` | `docs/LOCAL-PRIVACY-CONTRACT.md`; `docs/progress.json` B01–B06 | Bindende privacy/security-eisen en scoped B01-gate | Volledige native LP-suite, B02 en externe review |
 | `UPDATES-RECOVERY` | `docs/verification/B03-ACCEPTANCE.md`, `b03/update-gate.json` | Native update-signature-/rollbackgate in vastgesteld profiel | Complete installer, production chain, recovery image en finale release |
-| `QUANTUM-LOCAL` | `docs/verification/L02-ACCEPTANCE.md`; `experiments/quantum/README.md` | Q0 simulator-/hostscope waar het rapport dat vermeldt | Q1 native port, fysieke QPU of quantumvoordeel |
+| `SDK-PACKAGES` | `docs/verification/A01-ACCEPTANCE.md`; `docs/progress.json` A01/A02/A03 | A01's bounded native SDK app/catalog path is accepted for 2 points | Package installation/update/removal, complete permission enforcement and A02/A03 |
+| `QUANTUM-LOCAL` | `docs/verification/L02-ACCEPTANCE.md`; source `433bab9feab74473517eb8d44f2fb4475848e0cf`, integrated at `7fb8c722fc853692251e26fcdcea0ed86954ef15` | Historical native QEMU acceptance for the bounded L02 QSIM job service; this is source-bound VM evidence | Fresh integrated FR-L04 regression, physical QPU, quantum speedup or cloud execution |
 | `RELEASE-VALIDATION` | `docs/FULL-TEST-RELEASE.md`; exact-head CI-run 41535553113 | CI workflows succesvol op audit-HEAD | Gevalideerde releasebundle, alle FR-rijen, hardware- of human gates |
 
 ## Exacte-head workflowwaarneming
