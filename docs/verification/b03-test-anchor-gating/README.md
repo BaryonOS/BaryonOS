@@ -1,5 +1,30 @@
 # B03 TEST-ankergrens — verificatiebewijs
 
+## Integratiesprint: native gate werkelijk uitgevoerd
+
+Op 3 november 2026 is de volledige bestaande B03-gate uitgevoerd op exacte
+PR #158-head `26108a25fdfebde87305264d0dcb0d02b6dd906b`, gebaseerd op
+actuele main `a32eadb1`. Alleen deze receipt is daarna toegevoegd.
+Bronfingerprint v3:
+`35b607f312135448ed83374476d2de02ebbd3c3ada1af1d59bfc23735d3265f8`.
+
+`python3 -B -u tools/test_update.py` eindigde met **exit 0**, 106,91 s:
+alle **18 echte QEMU-stappen**, drie updateprofielbuilds, hostchecks en
+de normale afsluitende build slagen. De gate controleert installatie,
+versievloer, signatures, ongeldige images, onderbreken/hervatten en
+TEST-key-lifecycle. De eerdere ontbrekende native regressiepoort is hiermee
+voor deze bron afgedekt, niet de ontbrekende productie-key lifecycle.
+
+De bestaande lokale QEMU/OVMF-toolset is hergebruikt met `pc-q35-8.2`;
+alleen eigen wegwerp-slotimages en firmwarekopieen gebruikt. Exacte omgeving,
+commando, hostuitkomsten, 18 stapuitkomsten en log-/rapporthashes staan in
+[`native-sprint.json`](native-sprint.json).
+Volledig log: `/tmp/nieuw-os-sprint-b03-native.log`.
+Geen hardwaretest, menselijke audit, productieankers of releasevalidatie;
+issue #41 blijft open. Geen merge uitgevoerd.
+
+## Historisch hostcheckpoint voor de native uitvoering
+
 **Broncodecommit:** `07e7f9a0471798c49e1844bf885f94491bb481d8`
 
 **Diagnostiekcommit:** `ceb957557af821bb95786aa505b5df41077f7403`
