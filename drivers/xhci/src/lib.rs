@@ -1,7 +1,10 @@
 #![no_std]
 #![deny(missing_docs)]
 #![deny(unsafe_op_in_unsafe_fn)]
-//! Read-only xHCI PCI discovery and capability-register inspection.
+//! xHCI PCI discovery and read-only controller-MMIO capability inspection.
+//!
+//! PCI BAR sizing temporarily writes configuration BARs and restores their
+//! original values, leaving PCI decoding and bus mastering disabled.
 //!
 //! This crate does not take controller ownership, enable bus mastering, or
 //! allocate DMA.
