@@ -70,9 +70,13 @@ Geraadpleegd 3 november 2026: RIFF-lengtes, WORD-padding, fmt/data,
 samplerate, block alignment en byte rate. Geen Windows-runtime of -kernel.
 
 ```sh
+# Uitvoeren vanaf de repositoryroot op een voorbereide Rust-toolchain.
+export CARGO_TARGET_DIR=target/platform-wav-host
+mkdir -p build/platform-wav-evidence
 cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/audio-clip/Cargo.toml --features host-cli
 cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/audio-clip/Cargo.toml --features host-cli --all-targets -- -D warnings
 cargo +1.90.0 fmt --manifest-path sdk/examples/audio-clip/Cargo.toml -- --check
+cargo +1.90.0 build --offline --locked --manifest-path sdk/examples/audio-clip/Cargo.toml --features host-cli --bin wav-clip
 cargo +1.90.0 build --offline --locked --release --lib --manifest-path sdk/examples/audio-clip/Cargo.toml --target x86_64-unknown-none
 python3 -B sdk/examples/audio-clip/tests/interop.py target/platform-wav-host/debug/wav-clip build/platform-wav-evidence/fragment.wav
 file build/platform-wav-evidence/fragment.wav
