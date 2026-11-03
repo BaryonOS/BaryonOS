@@ -3,32 +3,34 @@
 ## NEXT AGENT HANDOFF — DMA pas na PCI-match — 3 november 2026
 
 Werkbranch `copilot/universal-driver-framework`, lokale broncommit
-`9badc8659bc48e71a020cb0ae3f36ce7de8ea3f3` (nog te pushen). De bestaande
-segment-0-enumerator en VirtIO-selectie zonder vaste BDF staan op `9984b180`;
-config-space is sinds `d9b97c4` aan de gevalideerde descriptor/registrymatch
-gebonden. In de zes block-profielen (`m5`, `m6`, `m6b`, `m6c`, `volume`,
-`update`) gebeurt PCI-discovery/matching nu vóór DMA-poolallocatie. Afwezige
-of niet-gematchte hardware reserveert zo geen pinned DMA-pagina's. Kernel blijft
-eigenaar van DMA-pagina's en BAR/MMIO-mappings; er is geen universele
-physical-memory-capability.
+`28dd57593cbcbf324a3b59a52e4f46117e817674` (statuscheckpoint nog te pushen;
+remote staat op `e680d3df`). Segment-0-enumerator en VirtIO-selectie zonder
+vaste BDF staan op `9984b180`; PCI-config-space is sinds `d9b97c4` aan de
+gevalideerde descriptor/registrymatch gebonden. De zes block-profielen doen
+discovery/matching vóór DMA-poolallocatie. De eerste builds vonden een bestaand
+compilefoutje in dezelfde resetpaden: `as_ref()` leverde `&Device`, terwijl
+`reset_acknowledged` `&mut self` vereist. De zes block-profielen gebruiken nu
+`as_mut()`. Kernel blijft eigenaar van DMA-pagina's en BAR/MMIO-mappings; geen
+universele physical-memory-capability.
 
-**Bewijs tot nu:** formatter/diffcontrole, driver-testtarget-typecheck,
-Clippy, freestanding releasebuild en hosttests zijn exit 0 met een tijdelijk
-uitgepakte Ubuntu-hostcompiler; hosttestlogs staan in
-`/tmp/nieuw-os-resource-order-2026-11-03/`. De profile-specifieke kernelbuilds
-moeten nog worden uitgevoerd. `--all-features` is hier geen geldige gate:
-kernelprofielen zijn onderling exclusief. Geen QEMU/runtime- of fysieke
-hardwareproef. Adapterbewijs:
-[PCI-configbinding-receipt](verification/pci-config-binding-2026-11-03/README.md).
+**Bewijs tot nu:** formatter, diffcontrole, driver-testtarget-typecheck,
+Clippy, freestanding releasebuild en hosttests exit 0 met een tijdelijk
+uitgepakte Ubuntu-hostcompiler. Eerste profile-buildlogs staan onder
+`/tmp/nieuw-os-kernel-profile-builds-2026-11-03/`: `milestone-m5`,
+`milestone-m6a`, `milestone-m6b`, `milestone-m6c` en `native-volume` faalden
+op de `as_ref()` typefout; `native-update` stopte vóór compilatie omdat de
+opdracht `--image-version` miste. De code is aangepast maar deze profielen
+moeten opnieuw gebouwd worden. Geen QEMU/runtime- of fysieke hardwareproef.
 Score **41/100 → 41/100**.
 
-**Open/eerstvolgend:** push dit checkpoint en bouw de zes aangepaste
-kernelprofielen met `tools/build.py` vóór verdere runtime-resource/factory-
-integratie. Daarna kernel-owned BAR/MMIO-grants uitwerken zonder DMA/IOMMU-
-semantiek van de maturitybranch te dupliceren. De huidige configadapter is
-geen algemene resourcebroker of driverisolatie. Meerdere actieve devices,
-ACPI-roottopologie, ECAM, bridge-validatie, interrupt lifecycle, USB-klassen,
-NVMe, GOP en unsupported-hardwarerapportage zijn niet gerealiseerd.
+**Open/eerstvolgend:** push dit statuscheckpoint; voer de vijf mislukte
+`tools/build.py`-profielen opnieuw uit en `native-update` met een tijdelijke
+compileversie (`--image-version 1`). Daarna kernel-owned BAR/MMIO-grants en
+factoryactivatie verder uitwerken zonder DMA/IOMMU-semantiek van de
+maturitybranch te dupliceren. De huidige configadapter is geen algemene
+resourcebroker of driverisolatie. Meerdere actieve devices, ACPI-roottopologie,
+ECAM, bridge-validatie, interrupt lifecycle, USB-klassen, NVMe, GOP en
+unsupported-hardwarerapportage zijn niet gerealiseerd.
 
 ### Implementatiestap — segment-0 enumeratie en VirtIO BDF-migratie
 

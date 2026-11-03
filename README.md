@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`9badc865`](https://github.com/simonvanieperen/nieuw-os/commit/9badc8659bc48e71a020cb0ae3f36ce7de8ea3f3) ·
+**Bron:** [`28dd5759`](https://github.com/simonvanieperen/nieuw-os/commit/28dd57593cbcbf324a3b59a52e4f46117e817674) ·
 **Ontwikkelbranch:** `copilot/universal-driver-framework`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Block-DMA-pool pas na PCI-match alloceren.
-41/100 blijft 41/100. De zes block-profielen (M5, M6, M6b, M6c, volume, update) voeren PCI-discovery en registrymatching uit vóór allocatie en pinning van hun DMA-pool; bij afwezige of onbekende hardware worden geen device-DMA-pagina's gereserveerd. De netwerkroute volgde deze volgorde al. Formatter, gerichte driver-check/typecheck, Clippy, freestanding releasebuild en hosttests zijn exit 0 met een tijdelijk in /tmp uitgepakte hostcompiler. Profile-specifieke kernelbuilds moeten nog volgen; geen QEMU/runtime- of fysieke hardwareproef. --all-features is geen geldige gate voor de elkaar uitsluitende kernelprofielen. Geen nieuw acceptatiebewijs of hardwarepunten.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PCI-match vóór DMA-allocatie; kernelprofielen herstellen.
+41/100 blijft 41/100. De zes block-profielen matchen PCI voordat ze DMA-pagina's alloceren. Profile builds vonden een bestaande resetpad-typefout: as_ref leverde &Device terwijl reset_acknowledged &mut self nodig heeft; de zes paden gebruiken nu as_mut. De eerste builds faalden vóór deze fix; native-update stopte vóór compilatie omdat --image-version ontbrak. Formatter, gerichte driver-check/typecheck, Clippy, freestanding build en hosttests zijn exit 0 met tijdelijke compiler. De profile-builds moeten opnieuw worden uitgevoerd; geen runtime-/hardwarebewijs of nieuw acceptatiepunt.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

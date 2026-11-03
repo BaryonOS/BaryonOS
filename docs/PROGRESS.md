@@ -110,15 +110,16 @@ acceptatiebewijs. De adapter is nog geen BAR/MMIO/IRQ/DMA-broker of
 security-isolatie. Zie de
 [PCI-configbinding-receipt](verification/pci-config-binding-2026-11-03/README.md).
 
-DMA-poolallocatie na PCI-match (3 november 2026), bron
-`9badc8659bc48e71a020cb0ae3f36ce7de8ea3f3`, branch
+DMA-poolallocatie na PCI-match en resetpad-typeherstel (3 november 2026), bron
+`28dd57593cbcbf324a3b59a52e4f46117e817674`, branch
 `copilot/universal-driver-framework`: **41 -> 41**. De zes block-profielen
 voeren discovery/registrymatching uit voordat ze pinned DMA-pagina's
-alloceren. Daarmee blijft onbekende/afwezige hardware zonder device-DMA-
-reservering. Formatter, gerichte driver-check/typecheck, Clippy,
-freestanding releasebuild en hosttests zijn exit 0 met tijdelijke compiler;
-profile-specifieke kernelbuilds moeten nog volgen. Geen runtime- of
-hardwarebewijs en geen nieuw acceptatiepunt.
+alloceren. De eerste profile-builds vonden een bestaand `as_ref()`/`&mut self`
+typeconflict; de resetpaden zijn hersteld met `as_mut()`. De vijf builds die
+compileerden faalden vóór deze fix; de updatebuild miste `--image-version`.
+Formatter en gerichte driver-check/typecheck, Clippy, freestanding build en
+hosttests zijn exit 0 met tijdelijke compiler. Profile-builds moeten opnieuw
+worden uitgevoerd. Geen runtime-/hardwarebewijs of nieuw acceptatiepunt.
 
 Driver-/repositoryonderzoek (3 november 2026), basis `99d13276`:
 **41 -> 41**. Ginux `c86945b`, VibeOS `866bfb9` en vib-OS `73b6429`
