@@ -30,16 +30,15 @@ struct MemoryDisk {
 }
 impl MemoryDisk {
     fn new() -> Self {
-        let mut sectors = vec![[0; SECTOR]; VOLUME_SECTORS as usize];
-        for index in 0..volume_core::TABLE_SECTORS {
-            sectors[index as usize] = Table::EMPTY.encode_sector(index);
-        }
-        Self {
+        let sectors = vec![[0; SECTOR]; VOLUME_SECTORS as usize];
+        let mut disk = Self {
             sectors,
             writes: 0,
             fail: false,
             fail_write_at: None,
-        }
+        };
+        table::write_format_marker(&mut disk).unwrap();
+        disk
     }
 }
 impl Disk for MemoryDisk {

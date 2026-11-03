@@ -83,13 +83,12 @@ struct VolumeHost {
 }
 impl VolumeHost {
     fn new() -> Rc<RefCell<Self>> {
-        let mut sectors = vec![[0; SECTOR]; volume::VOLUME_SECTORS as usize];
-        for index in 0..volume::TABLE_SECTORS {
-            sectors[index as usize] = Table::EMPTY.encode_sector(index);
-        }
+        let sectors = vec![[0; SECTOR]; volume::VOLUME_SECTORS as usize];
+        let mut disk = RamDisk { sectors };
+        volume::table::write_format_marker(&mut disk).unwrap();
         Rc::new(RefCell::new(Self {
             service: Service::new(DOC_EPOCH, Table::EMPTY, false),
-            disk: RamDisk { sectors },
+            disk,
             reply: None,
         }))
     }
