@@ -256,13 +256,12 @@ fn malformed_interface_and_endpoint_shapes_are_not_unknown_descriptors() {
         let mut interface = vec![0; usize::from(length)];
         interface[0] = length;
         interface[1] = 4;
-        if length == 9 {
-            continue;
+        if length != 9 {
+            assert_eq!(
+                select(&configuration(&interface), 0, Speed::Full),
+                Err(Error::Interface)
+            );
         }
-        assert_eq!(
-            select(&configuration(&interface), 0, Speed::Full),
-            Err(Error::Interface)
-        );
         let mut endpoint = vec![0; usize::from(length)];
         endpoint[0] = length;
         endpoint[1] = 5;
