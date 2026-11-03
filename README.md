@@ -61,7 +61,7 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`5ea5971f`](https://github.com/simonvanieperen/nieuw-os/commit/5ea5971fa8f26df63fee511ffb0045932a571e8f) ·
+**Bron:** [`ceb95755`](https://github.com/simonvanieperen/nieuw-os/commit/ceb957557af821bb95786aa505b5df41077f7403) ·
 **Ontwikkelbranch:** `fix/b03-test-anchors-guard`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** B03 TEST-ondertekenankers expliciet opt-in maken.
 41/100 blijft 41/100. De TEST-policy is nu expliciet opt-in en ongemarkeerde loader-/dienstbuilds falen gesloten. Hosttests en cross-builds leveren geen nieuwe productacceptatiepunten op. Productiesleutels, rotatieceremonie en native 18-staps-QEMU-acceptatie ontbreken nog; issue #41 blijft open.

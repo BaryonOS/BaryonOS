@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "5ea5971fa8f26df63fee511ffb0045932a571e8f",
+    "source_commit": "ceb957557af821bb95786aa505b5df41077f7403",
     "assessment_basis": "source_commit",
     "branch": "fix/b03-test-anchors-guard",
     "task": "B03 TEST-ondertekenankers expliciet opt-in maken",

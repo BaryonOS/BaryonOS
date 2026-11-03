@@ -2,9 +2,9 @@
 
 ## NEXT AGENT HANDOFF — B03 TEST-ankergrens — 3 november 2026
 
-**Basis:** `main` `d686bd54e766aed542e9918d1a37dcce434f18e2`; codecommits
-`1fefc22765478f4798b5d4e003a1d10f467d0063` en
-`5ea5971fa8f26df63fee511ffb0045932a571e8f` op
+**Basis:** `main` `a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e`; codecommits
+`07e7f9a0471798c49e1844bf885f94491bb481d8` en
+`ceb957557af821bb95786aa505b5df41077f7403` op
 `fix/b03-test-anchors-guard`. `test_policy` vereist nu de expliciete
 `test-signing-anchors`-feature; UEFI-loader- en update-servicebuilds zonder
 gekozen ondertekenbeleid falen tijdens compilatie. TEST-sleutels blijven
