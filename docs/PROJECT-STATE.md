@@ -78,17 +78,29 @@ lijkt samen te hangen met state-/CPU-lifetime tijdens round-reset, maar er is
 geen root-cause-fix of acceptatieclaim. Dit experimentele profiel is niet in
 de SMP-runner opgenomen.
 
+**Cross-CPU capability-revoke — gerichte proef geslaagd, matrix nog open:**
+`native-smp-m4-revoke` combineert de bestaande KS-14-fixture met de
+SMP-scheduler en registreert succesvolle revoke-calls en daaropvolgend
+gebruik van revoked handles per CPU/proces-slot. Op worktree-fingerprint
+`09e6be60a3685356fb2e357306502750a430e840afe1320cff5cfd9889840d59` slaagde
+de 2-CPU-QEMU-proef met raw exit 33: slot 0 revokeerde tweemaal op CPU 1;
+slot 2 werd daarna op CPU 0 geweigerd. M3-selecties waren `[41, 39]`.
+Log: `build/run/smp-2-2ae5598874/`. Het hostharnas telde 11 tests, exit 0.
+Na deze proef veranderde alleen de runnerreceipt-omschrijving; de volledige
+matrix moet de actuele bron opnieuw vastleggen.
+
 **Bewijsgrens:** dit checkpoint toont AP-bring-up, opt-in per-CPU M3-
 processselectie, process-exit/cleanup van processlot 0 op CPU 1 en succesvolle
-M4 ring-3-berichtuitwisseling over CPU-grenzen. Het bewijst geen cross-CPU
-capability-revoke,
-TLB-shootdown/hergebruik of bredere races/failureacceptatie. Dit is geen
-volledige K06-acceptatie. `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
+M4 ring-3-berichtuitwisseling over CPU-grenzen. Een gerichte KS-14-proef toont
+ook revoked-handle-afwijzing op CPU 0 na revoke op CPU 1. De nieuwe revoke-
+stage en alle regressies zijn nog niet in één actuele matrixreceipt gebonden.
+TLB-shootdown/hergebruik en bredere races/failureacceptatie blijven open. Dit
+is geen volledige K06-acceptatie. `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft
+QUEUED.
 
-**Eerstvolgende actie:** voeg een opt-in 2-CPU-profiel toe voor de bestaande
-M4 capability-revoke-fixture; bewijs operatievolgorde en CPU/procesidentiteit
-zonder authoritysemantiek te wijzigen. Daarna herhaal de SMP-matrix. TLB-
-shootdown/hergebruik en bredere races blijven apart open; claim geen remote
+**Eerstvolgende actie:** commit/push de beperkte KS-14-acceptatieslice en draai
+daarna de volledige SMP-matrix met het nieuwe revokeprofiel. TLB-shootdown/
+hergebruik en bredere races blijven apart open; claim geen remote
 shootdownprotocol zonder implementatie en bewijs.
 
 **Cross-CPU capability-IPC — eerdere lokale proef vóór matrix:**
@@ -128,8 +140,8 @@ Een eerdere aanroep met `--help` is geen helpmodus, voerde de runner uit en
 stopte door ontbrekende `cargo` op de standaard-PATH; die poging staat apart in
 [`smp-rendezvous-20261103T173931Z.json`](verification/sm-smp/smp-rendezvous-20261103T173931Z.json).
 
-**Eerstvolgende actie:** cross-CPU capability-revoke op 2 CPU, daarna de
-volledige matrix en de resterende TLB-/hergebruikacceptatie.
+**Eerstvolgende actie:** volledige matrix met AP-exit en cross-CPU-revoke,
+daarna resterende TLB-/hergebruikacceptatie.
 Matrixomgeving en commando staan hierboven.
 De bestaande dirty wijzigingen in README en voortgangsbestanden zijn behouden
 en niet door deze SMP-taak aangepast.

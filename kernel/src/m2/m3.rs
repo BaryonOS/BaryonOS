@@ -1985,6 +1985,14 @@ fn m3_event_locked(state: &mut State, source: *const u64) -> *const u64 {
                 };
                 print_number(operation, ((current as u64) << 8) | cpu as u64);
             }
+            #[cfg(feature = "native-smp-m4-revoke")]
+            if number == 0x12 && rax == 0 {
+                print_number(b"M4:SMP:REVOKE:", ((current as u64) << 8) | cpu as u64);
+            }
+            #[cfg(feature = "native-smp-m4-revoke")]
+            if matches!(number, 0x20 | 0x21) && rax == -10 {
+                print_number(b"M4:SMP:REVOKED:", ((current as u64) << 8) | cpu as u64);
+            }
             #[cfg(feature = "milestone-m6b")]
             m5::ipc_result(current, number, rax);
             state.processes[current].context[14] = rax as u64;

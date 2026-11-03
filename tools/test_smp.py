@@ -24,7 +24,7 @@ def main() -> int:
     receipt = ROOT / "docs/verification/sm-smp" / f"smp-rendezvous-{stamp}.json"
     summary = {
         "schema_version": 1,
-        "task": "SYSTEM-MATURITY-SMP AP bring-up, M3 scheduling, process exit, and cross-CPU M4 IPC",
+        "task": "SYSTEM-MATURITY-SMP AP bring-up, M3 scheduling, process exit, and cross-CPU M4 IPC/revoke",
         "source_fingerprint_version": 3,
         "source_sha256": source,
         "source_commit": subprocess.check_output(
@@ -60,8 +60,8 @@ def main() -> int:
         "stages": [],
         "acceptance_boundary": (
             "AP startup, bounded rendezvous, per-CPU M3 process scheduling, and successful "
-            "process-exit cleanup on an AP plus successful cross-CPU M4 ring-3 message exchange; "
-            "not full K06 revoke, TLB, or race acceptance."
+            "process-exit cleanup on an AP plus cross-CPU M4 ring-3 IPC and revoked-capability "
+            "rejection; not full K06 TLB or race acceptance."
         ),
     }
     receipt.parent.mkdir(parents=True, exist_ok=True)
@@ -93,6 +93,7 @@ def main() -> int:
         ("m3-single-regression", "milestone-m3", 1, "m3"),
         ("m3-four", "native-smp-m3", 4, "m3-smp"),
         ("m4-two", "native-smp-m4", 2, "m4-smp"),
+        ("m4-revoke-two", "native-smp-m4-revoke", 2, "m4-revoke-smp"),
     )
     for label, feature, cpus, runner in stages:
         try:
@@ -114,6 +115,8 @@ def main() -> int:
             elif runner == "m3-exit-smp":
                 report = run_smp(cpus, profile=feature)
             elif runner == "m4-smp":
+                report = run_smp(cpus, profile=feature)
+            elif runner == "m4-revoke-smp":
                 report = run_smp(cpus, profile=feature)
             else:
                 report = run_smp(cpus)

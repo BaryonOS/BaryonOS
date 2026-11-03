@@ -53,6 +53,29 @@ def m4_smp_transcript(cpus=2, send_cpus=(0, 1), receive_cpus=(1, 0)):
     return "\n".join(lines) + "\n"
 
 
+def m4_revoke_smp_transcript(revoke_cpus=(0, 0), denied_cpus=(1, 1)):
+    lines = m3_transcript(2).splitlines()
+    events = (
+        ("REVOKE", 0, revoke_cpus[0]),
+        ("REVOKE", 0, revoke_cpus[1]),
+        ("REVOKED", 1, denied_cpus[0]),
+        ("REVOKED", 2, denied_cpus[1]),
+    )
+    lines.extend(
+        f"M4:SMP:{operation}:{((slot << 8) | cpu):020d}"
+        for operation, slot, cpu in events
+    )
+    lines.extend((
+        "M4:CASE:REVOKE:PASS",
+        "M4:SURVIVOR_PROGRESS:PASS",
+        "M4:CLEANUP:PASS",
+        "KS-14:PASS",
+        "M4:PASS",
+        "M1:PASS",
+    ))
+    return "\n".join(lines) + "\n"
+
+
 def m3_exit_smp_transcript(cpus=2, exit_cpu=1):
     lines = m3_transcript(cpus).splitlines()
     lines.extend(("M3:EXIT:PASS", "M3:SURVIVOR_PROGRESS:PASS",
@@ -156,6 +179,29 @@ class SmpEvidenceTests(unittest.TestCase):
         for bad in cases:
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 run_smp.evaluate_m4_smp(2, bad, 33, False)
+
+    def test_native_m4_revoke_requires_cross_cpu_revoked_receive(self):
+        result = run_smp.evaluate_m4_revoke_smp(
+            2, m4_revoke_smp_transcript(), 33, False
+        )
+        self.assertEqual(
+            result["cross_cpu_revocation"],
+            {"revoker_cpu": 0, "receiver_slot": 1, "receiver_cpu": 1},
+        )
+
+    def test_native_m4_revoke_rejects_missing_or_misordered_cross_cpu_events(self):
+        valid = m4_revoke_smp_transcript()
+        cases = (
+            valid.replace("M4:SMP:REVOKED:00000000000000000257\n", ""),
+            m4_revoke_smp_transcript(denied_cpus=(0, 0)),
+            valid.replace("M4:SMP:REVOKE:00000000000000000000\n", "", 1),
+            valid.replace("M4:SMP:REVOKE:00000000000000000000",
+                          "M4:SMP:REVOKE:not-a-number", 1),
+            valid.replace("KS-14:PASS\n", ""),
+        )
+        for bad in cases:
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                run_smp.evaluate_m4_revoke_smp(2, bad, 33, False)
 
     def test_native_m3_exit_requires_cleanup_on_an_ap(self):
         result = run_smp.evaluate_m3_exit_smp(2, m3_exit_smp_transcript(), 33, False)

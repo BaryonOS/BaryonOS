@@ -28,6 +28,7 @@ def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
         "native-smp-m3",
         "native-smp-m3-exit",
         "native-smp-m4",
+        "native-smp-m4-revoke",
     ):
         raise ValueError("unknown SMP kernel profile")
     markers = BOOT + ("SMP:AP:ENTRY",) * (cpus - 1) + tuple(
@@ -43,6 +44,7 @@ def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
                           "native-smp-m3",
                           "native-smp-m3-exit",
                           "native-smp-m4",
+                          "native-smp-m4-revoke",
                       ) else ())
 
 
@@ -238,6 +240,66 @@ def evaluate_m4_smp(cpus: int, stdout: str, returncode: int | None, timed_out: b
     }
 
 
+def evaluate_m4_revoke_smp(
+    cpus: int, stdout: str, returncode: int | None, timed_out: bool
+) -> dict:
+    scheduler = evaluate_m3(cpus, stdout, returncode, timed_out)
+    lines = stdout.splitlines()
+    required, expected_exit, forbidden = guest_expectation("m4", "test-m4-revoke")
+    cursor = 0
+    for marker in required:
+        try:
+            cursor = lines.index(marker, cursor) + 1
+        except ValueError as error:
+            raise ValueError(f"missing or out-of-order M4 revoke marker: {marker}") from error
+    if any(marker in line for marker in forbidden for line in lines):
+        raise ValueError("M4 revoke failure marker present")
+    if returncode != expected_exit or timed_out:
+        raise ValueError(f"raw QEMU exit {returncode}, timeout {timed_out}")
+
+    pattern = re.compile(
+        r"M4:SMP:(SEND|RECV|REVOKE|REVOKED):([0-9]{20})"
+    )
+    events = []
+    for index, line in enumerate(lines):
+        if not line.startswith("M4:SMP:"):
+            continue
+        match = pattern.fullmatch(line)
+        if match is None:
+            raise ValueError("malformed M4 cross-CPU revoke marker")
+        operation, packed = match.groups()
+        identity = int(packed)
+        slot, cpu = identity >> 8, identity & 0xFF
+        if slot not in (0, 1, 2) or cpu >= cpus:
+            raise ValueError("M4 revoke marker has an invalid process or CPU")
+        events.append((operation, slot, cpu, index))
+
+    revokes = [event for event in events if event[0] == "REVOKE" and event[1] == 0]
+    denied = [event for event in events if event[0] == "REVOKED" and event[1] in (1, 2)]
+    if len(revokes) != 2 or len(denied) < 2:
+        raise ValueError("M4 revoke fixture lacks the expected revoke/denial operations")
+    _, _, _, second_revoke_index = revokes[-1]
+    crossed = next(
+        (event for event in denied
+         if event[3] > second_revoke_index and event[2] != revokes[-1][2]),
+        None,
+    )
+    if crossed is None:
+        raise ValueError("revoked capability use was not rejected on another CPU")
+    return {
+        "scheduler": scheduler,
+        "events": [
+            {"operation": operation.lower(), "slot": slot, "cpu": cpu}
+            for operation, slot, cpu, _ in events
+        ],
+        "cross_cpu_revocation": {
+            "revoker_cpu": revokes[-1][2],
+            "receiver_slot": crossed[1],
+            "receiver_cpu": crossed[2],
+        },
+    }
+
+
 def evaluate_m3_exit_smp(
     cpus: int, stdout: str, returncode: int | None, timed_out: bool
 ) -> dict:
@@ -367,10 +429,14 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
                                    "native-smp-m3",
                                    "native-smp-m3-exit",
                                    "native-smp-m4",
+                                   "native-smp-m4-revoke",
                                ) else ()),
                              *(("M4:EXCHANGE:PASS", "M4:SURVIVOR_PROGRESS:PASS",
                                 "M4:CLEANUP:PASS", "M4:PASS", "M1:PASS")
                                if profile == "native-smp-m4" else ()),
+                             *(("M4:CASE:REVOKE:PASS", "M4:SURVIVOR_PROGRESS:PASS",
+                                "M4:CLEANUP:PASS", "KS-14:PASS", "M4:PASS", "M1:PASS")
+                               if profile == "native-smp-m4-revoke" else ()),
                              *(("M3:EXIT:PASS", "M3:SURVIVOR_PROGRESS:PASS")
                                if profile == "native-smp-m3-exit" else ())],
         "command": command,
@@ -389,6 +455,9 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
     try:
         report["evidence"] = {
             "native-smp-m4": lambda: evaluate_m4_smp(cpus, stdout, raw_exit, timed_out),
+            "native-smp-m4-revoke": lambda: evaluate_m4_revoke_smp(
+                cpus, stdout, raw_exit, timed_out
+            ),
             "native-smp-m3-exit": lambda: evaluate_m3_exit_smp(
                 cpus, stdout, raw_exit, timed_out
             ),
