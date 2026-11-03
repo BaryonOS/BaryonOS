@@ -4,7 +4,7 @@
 
 ## Volume-admissie — status en vervolg
 
-**Integratiecheckpoint:** huidige main `69809c2cb53dfb3bd77abe5352892810fba6e82d`
+**Integratiecheckpoint:** huidige main `d115cc96c19ac4371baed77409a23d1adddffaf0`
 is in deze werkbranch geïntegreerd; main zelf wordt niet gewijzigd. De
 documentconflicten zijn opgelost met behoud van de volume-admissiegeschiedenis
 en de nieuwste main-statushistorie, rubric, auditdocumentatie en bewijs.
@@ -22,7 +22,46 @@ ADR-058 bewaart het toelatingsbesluit (op oude bron nog ADR-053).
 Geërfde rubriccriteria van main blijven behouden; geen nieuwe punten voor de fix.
 Concept-PR #133 blijft apart van main onder het actuele integratormandaat.
 
-## Mainstatus van de geïntegreerde documentstapel — 3 november 2026
+## Main-checkpoint — PR140 bewijs en descriptorclaims — 3 november 2026
+
+**Geteste bron:** `2bf9578290bef88d53c17f9913434da6f27441f2`, inclusief
+main `69809c2cb53dfb3bd77abe5352892810fba6e82d`.
+Op deze exacte bron zijn met Rust 1.90.0 de 9 artifact-store-contracttests,
+`cargo check --tests`, Clippy en formattering opnieuw uitgevoerd: elk exit 0.
+Exacte commando's, omgeving, source-tree, codehashes en volledige logs met
+SHA-256 staan duurzaam in
+[pr140-review-evidence.json](verification/pr140-review-evidence.json).
+De tijdelijke logpaden zijn alleen oorspronkelijke uitvoerpaden.
+
+De tests bewijzen descriptorvalidatie, binding en foutdoorgifte, niet
+identiteit, herkomst of cryptografische authenticatie. Het historische
+rapport behoudt bron `08710d55`, commando's, exits en hashes; alleen de
+scopeclaim is gecorrigeerd en het verse bewijs toegevoegd.
+Score **41 → 41**, geen nieuwe productacceptatie of productiecodewijziging.
+
+**Open:** verse volledige CI en definitieve review vóór merge. Native/QEMU,
+fysieke en menselijke acceptatie zijn niet opnieuw uitgevoerd. PR135's
+volume-fixture- en RANDOM-gates blijven afzonderlijk open; bron-PRs niet
+blind sluiten. **Eerstvolgend:** `GH_PAGER="" gh pr checks 140`; bij
+Watch-headwijziging opnieuw head/base en inhoud controleren.
+
+## Historisch checkpoint — PR #140 main-integratie — 3 november 2026
+
+PR-head `75cda7f4d49c5afe895277ada1102d630fdb75ad` is inhoudsbehoudend
+geïntegreerd met main `69809c2cb53dfb3bd77abe5352892810fba6e82d`.
+De Nederlandse beschrijvingen in het PR140-hostrapport blijven behouden;
+main's documentstapel, opslagherstelmateriaal, audit en replaytests zijn
+eveneens behouden. De rubric is ongewijzigd: **41 → 41/100**.
+
+**Gecontroleerd:** `umask 077 && python3 -B -m unittest discover -s tests -p
+'test_storage_backend_replay.py'` slaagt (16 tests). De eerste poging met de
+omgeving-umask `0002` faalde op drie permission-gebonden fixtures; geen
+productiecode gewijzigd. `python3 tools/progress.py --write` en `--check`,
+JSON-syntaxiscontrole en `git diff --check` slagen.
+**Open:** de nieuwe integratiehead moet opnieuw door hosted controles worden
+beoordeeld. Er is geen nieuwe native/QEMU-acceptatie uitgevoerd.
+
+## Vorig checkpoint — documentstapel inhoudsbehoudend combineren — 3 november 2026
 
 Main is inmiddels `cbbc9c9941b08ea5edfbd3637d494635b4fb1df0`: Simon
 bevestigde zelf dat hij134 handmatig squash-mergede (3nov10:05:36Z).

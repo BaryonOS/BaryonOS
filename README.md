@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`25de3b99`](https://github.com/simonvanieperen/nieuw-os/commit/25de3b99ad994200d975d566702e0a73cfa85bfe) ·
+**Bron:** [`a5c18b02`](https://github.com/simonvanieperen/nieuw-os/commit/a5c18b02482aa3d4445f9365883111bbe3f484ee) ·
 **Ontwikkelbranch:** `codex/volume-format-admission-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Integratiecheckpoint: huidige main met behoud van volume-admissie; native hertest open.
-De 41/100-puntenrubric blijft behouden; geen nieuwe punten toegekend. De huidige main (69809c2) en haar documentatie-/bewijsupdates zijn geïntegreerd met behoud van de volume-admissiegeschiedenis. Eerder 10+9-nativebewijs hoort bij een oudere bron en accepteert deze gecombineerde bron niet; herhaal alle volumegates op een nieuw bevroren checkpoint. De native hertest blijft open.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Integreer huidige main met behoud van volume-admissie; gecombineerde native hertest open.
+De 41/100-puntenrubric blijft behouden; geen nieuwe punten toegekend. De actuele main (d115cc9) en haar documentatie-/bewijsupdates zijn geïntegreerd met behoud van de volume-admissiegeschiedenis. Eerder 10+9-nativebewijs hoort bij een oudere bron en accepteert deze gecombineerde bron niet; herhaal alle volumegates op een nieuw bevroren checkpoint. De native hertest blijft open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
