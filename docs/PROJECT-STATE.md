@@ -7,7 +7,8 @@
 **Implementatiebronnen:** `7fd2e748b36cefce235a72841d4473b739929649`
 (capability-accounting) en `3f2dd4f19e1daa31476e0d70f968bb691c6bc7c3`
 (supervisorintegratie); `3249c93ece0285b71648a39709614e9c95e3b6fb`
-(reparatie worker-aanroep cancellation-aware timer-API).
+(reparatie worker-aanroep cancellation-aware timer-API); `e8da9bfe009844f931bd343ae383f30e758212fb`
+(supervisor `wait_ticks` via centrale `sleep_until`).
 Toegevoegd in `sdk/runtime/src/clock.rs` en direct gebruikt in
 `sdk/examples/supervisor/src/worker.rs`.
 Nieuwe runtimelaag:
@@ -38,6 +39,8 @@ beschikbaar.
 - `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 fmt --manifest-path kernel/Cargo.toml --` (exit 0)
 - `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check` (exit 0)
 - `git diff --check` (exit 0)
+- Voor bron `3249c93e`: zes K05-QEMU-cases geslaagd; exacte opdracht, host-suite-uitkomsten, serialhashes en tijdelijke QEMU/OVMF-build staan in `docs/verification/m1-resource-accounting-20261103.json`.
+- Voor bron `e8da9bfe`: formatterings- en diff-check exit 0; K05-gate nog niet opnieuw uitgevoerd.
 - `python3 -B -u tools/test_supervisor.py` (exit 1; `cargo` niet in `PATH`)
 - `PATH="$HOME/.cargo/bin:$PATH" python3 -B -u tools/test_supervisor.py` (exit 1; wrapper meldde host-check mislukt, onderliggende detail niet getoond)
 - `PATH="/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH" python3 -B -u tools/test_supervisor.py` (exit 1; native worker gebruikte verouderde `TimerRegistration::at`-signatuur; gerepareerd in `3249c93e`)
@@ -61,7 +64,9 @@ Geen fysieke of menselijke acceptatie uitgevoerd. Volledig compact bewijs:
 `docs/verification/m1-resource-accounting-20261103.json`. Score blijft
 **41 → 41**.
 
-**Open/eerstvolgend:** capability-accounting blijft beperkt tot handles,
+**Open/eerstvolgend:** herhaal de zes K05-cases op bron `e8da9bfe`; de vorige
+groene receipt hoort bij `3249c93e`. Daarna kan de centrale sleep-API naar een
+volgende service worden overgezet. Capability-accounting blijft beperkt tot handles,
 capability-objecten en IPC-queues; geheugen-/CPU-/storage-/DMA-budgettering en
 gebruikersrapportage ontbreken. De score sluit geen rubriekcriterium. De klok
 blijft 100-Hz PIT op bestaande profielen, RTC blijft unauthenticated en

@@ -10,15 +10,17 @@ onjuiste opslagoorzaak.59 volledige hosttests, Clippy, formattering en
 scalarno_std-librarybuild slagen. Geen nieuwe native gast-/screenshot- of
 menselijke acceptatie. [Volledig bewijs](verification/pr149-compact-review.json).
 
-M1-resource-integratie, bron `3249c93e` op 3 november 2026:
-**41 → 41/100**. De K05-supervisor valideert `ProcessUsage` bij manifeststart
-en gebruikt de vrije capability-handle-slots als spawn-preflight vóór
-allocatie. De native gate vond een verouderde timerregistratie-aanroep in de
-worker; die is aangepast aan de cancellation-aware API. Alle zes native
-K05-cases slagen onder QEMU 10.2.1 met machineprofiel `pc-q35-8.2`; dit is
-niet de QEMU-build uit de CI-image. 130 hosttests slagen, één bestaande
-benchmark is ignored. Dit dekt geen geheugen-, CPU-, opslag- of DMA-budget en
-sluit geen rubriekcriterium. [Compacte receipt](verification/m1-resource-accounting-20261103.json).
+M1 (3 november 2026), actuele bron `e8da9bfe`:
+**41 → 41/100**. K05 valideert `ProcessUsage` bij manifeststart en gebruikt
+vrije capability-handle-slots voor spawn-preflight. Worker en supervisor
+gebruiken de centrale timer-/wait-API; `wait_ticks` is recent aangesloten op
+`sleep_until`. De zes K05-cases en 130 hosttests (één bestaande benchmark
+ignored) slagen op de voorafgaande bron `3249c93e` onder QEMU 10.2.1 met
+machineprofiel `pc-q35-8.2`, niet de CI-QEMU-build. De recente wijziging op
+`e8da9bfe` heeft alleen formatterings- en diff-checks; QEMU-gate volgt nog.
+Geen geheugen-, CPU-, opslag- of DMA-budget, geen fysieke/menselijke
+acceptatie en geen gesloten rubriekcriterium.
+[Receipt van de voorafgaande bron](verification/m1-resource-accounting-20261103.json).
 
 ## Betekenis van het percentage
 

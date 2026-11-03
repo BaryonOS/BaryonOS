@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "3249c93ece0285b71648a39709614e9c95e3b6fb",
+    "source_commit": "e8da9bfe009844f931bd343ae383f30e758212fb",
     "branch": "simonvanieperen-studious-spoon",
-    "task": "M1: tijds-API en capability-resourcegebruik gekoppeld aan supervisorpreflight",
+    "task": "M1: centrale sleep-API ook in supervisordeadline gebruiken",
     "previous_score": 41,
-    "summary": "41 blijft 41. SDK-runtime heeft absolute monotone timer-/wait-semantiek met atomische annulering; de native worker gebruikt de cancellation-aware API. capability-core ProcessUsage per PID wordt in K05 gecontroleerd bij manifeststart en gebruikt voor spawn-preflight op vrije handle-slots vóór allocatie. De zes K05-cases slagen onder QEMU 10.2.1 met pc-q35-8.2; niet dezelfde QEMU-build als CI. 130 hosttests geslaagd, één bestaande benchmark ignored. Geen generiek OS-resourcebudget, syscall of gebruikersrapportage. PIT blijft 100 Hz, RTC ongeauthenticeerd; geen fysieke/menselijke acceptatie of rubricsluiting."
+    "summary": "41 blijft 41. SDK-runtime biedt absolute monotone timer-/wait-semantiek met atomische annulering; worker en supervisor gebruiken nu de cancellation-aware API. capability-core ProcessUsage per PID wordt door K05 gecontroleerd en voor spawn-preflight gebruikt. De zes K05-cases en 130 hosttests (1 bestaande benchmark ignored) slagen voor basisbron 3249c93e onder QEMU 10.2.1 met pc-q35-8.2; dit is niet dezelfde QEMU-build als CI. Nieuwere sleep_until-wiring in e8da9bfe is alleen gefmt/diff-gecheckt; de gate wordt opnieuw uitgevoerd. Geen generiek OS-resourcebudget, syscall of gebruikersrapportage; geen fysieke/menselijke acceptatie of rubricsluiting."
   },
   "tracks": [
     {

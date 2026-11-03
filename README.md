@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`3249c93e`](https://github.com/simonvanieperen/nieuw-os/commit/3249c93ece0285b71648a39709614e9c95e3b6fb) ·
+**Bron:** [`e8da9bfe`](https://github.com/simonvanieperen/nieuw-os/commit/e8da9bfe009844f931bd343ae383f30e758212fb) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-spoon`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** M1: tijds-API en capability-resourcegebruik gekoppeld aan supervisorpreflight.
-41 blijft 41. SDK-runtime heeft absolute monotone timer-/wait-semantiek met atomische annulering; de native worker gebruikt de cancellation-aware API. capability-core ProcessUsage per PID wordt in K05 gecontroleerd bij manifeststart en gebruikt voor spawn-preflight op vrije handle-slots vóór allocatie. De zes K05-cases slagen onder QEMU 10.2.1 met pc-q35-8.2; niet dezelfde QEMU-build als CI. 130 hosttests geslaagd, één bestaande benchmark ignored. Geen generiek OS-resourcebudget, syscall of gebruikersrapportage. PIT blijft 100 Hz, RTC ongeauthenticeerd; geen fysieke/menselijke acceptatie of rubricsluiting.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** M1: centrale sleep-API ook in supervisordeadline gebruiken.
+41 blijft 41. SDK-runtime biedt absolute monotone timer-/wait-semantiek met atomische annulering; worker en supervisor gebruiken nu de cancellation-aware API. capability-core ProcessUsage per PID wordt door K05 gecontroleerd en voor spawn-preflight gebruikt. De zes K05-cases en 130 hosttests (1 bestaande benchmark ignored) slagen voor basisbron 3249c93e onder QEMU 10.2.1 met pc-q35-8.2; dit is niet dezelfde QEMU-build als CI. Nieuwere sleep_until-wiring in e8da9bfe is alleen gefmt/diff-gecheckt; de gate wordt opnieuw uitgevoerd. Geen generiek OS-resourcebudget, syscall of gebruikersrapportage; geen fysieke/menselijke acceptatie of rubricsluiting.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
