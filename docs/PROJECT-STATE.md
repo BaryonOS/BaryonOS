@@ -1,66 +1,73 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR142 helperclaims en testbron gecontroleerd — 3 november 2026
+## NEXT AGENT HANDOFF — actuele main geïntegreerd, artifact-store-tests valideren — 3 november 2026
 
-**Geteste bron:** `b1d45e63afd4605dcd06562d0ab2aefd756a00d6`,
-tree `86ffc23b1278cb0b380aa4573b3a2e373d1ff8e5`, inclusief main
-`69809c2cb53dfb3bd77abe5352892810fba6e82d`. Branchbasis `d577f185`
-en eerste mainmerge `8e2b1afc` zijn historische bronnen, niet de bron van
-de hieronder opnieuw uitgevoerde tests.
+**Basis:** PR-head `a521dbf7144037ad2cae55f79a2e408a31c444c1` met actuele
+main `d115cc96c19ac4371baed77409a23d1adddffaf0`; gemeenschappelijke
+voorganger `69809c2cb53dfb3bd77abe5352892810fba6e82d`. De integratie moet
+PR142's helperclaimcorrectie en brongebonden hostbewijs behouden, evenals
+PR140's artifact-store descriptorreview, tests en duurzame receipts. Score
+blijft 41/100; geen native of volledigere releaseacceptatie afgeleid.
 
-**Implementatie:** images/random delen `regular_files_below`,
-`sha256_bytes` en `require_sha256`; FPU deelt alleen `regular_files_below`.
-De SHA-256-hexvalidatie van FPU blijft lokaal. Geen productiecode gewijzigd.
+**Eerder brongebonden bewijs:** op `b1d45e63`/tree `86ffc23b` slaagden 87
+hosttests, beschreven in `verification/pr142-source-claim-review.json`.
+PR140's 9 artifact-store-tests en cargo check/Clippy/fmt horen bij
+`2bf95782` en staan met primaire logs/hashes in
+`verification/pr140-review-evidence.json`. Geen van beide wordt als verse
+test van deze integratie beschouwd.
 
-**Nieuw uitgevoerd:** 8 common-, 20 images-, 21 random-, 12 FPU-,
-16 storage-backend-replay- en 10 network-service-hosttests: **87/87,
-alle exit 0**. Exacte commando's, omgeving, looptijden, bron-/loghashes en
-treebinding: [reviewbewijs](verification/pr142-source-claim-review.json).
-De eerdere 61 tests op `8e2b1afc` zijn niet naar deze bron omgelabeld.
+**Uitgevoerd op de opgeloste mergeboom:** met Rust 1.90.0 zijn
+`cargo +1.90.0 test --locked --manifest-path crates/artifact-store-core/Cargo.toml`
+(9 integratietests), `cargo +1.90.0 check --locked --manifest-path
+crates/artifact-store-core/Cargo.toml --tests`,
+`cargo +1.90.0 clippy --locked --manifest-path
+crates/artifact-store-core/Cargo.toml --all-targets -- -D warnings` en
+`cargo +1.90.0 fmt --manifest-path crates/artifact-store-core/Cargo.toml --all
+-- --check` zijn elk exit 0. De toolchain ontbrak aanvankelijk; na eenmalige
+installatie van de vastgepinde Rust 1.90.0 toolchain/components zijn de
+controles opnieuw uitgevoerd en geslaagd. De 87 PR142-hosttests hierboven
+blijven bewijs van `b1d45e63`, niet van deze mergeboom.
 
-**Open:** verse volledige CI/native gates en definitieve review vóór merge;
-oude VM-bewijzen blijven aan hun eigen bron gebonden. De volume-fixturegate
-van PR135, productiesleutels (#41), fysieke invoer (#42) en menselijke
-acceptatie blijven afzonderlijk open. Score **41 → 41**, geen nieuw criterium.
-**Eerstvolgend commando:** `GH_PAGER="" gh pr checks 142`; bij gewijzigde
-Watch-head eerst bron en inhoud opnieuw controleren. Geen bypass of blinde
-sluiting van bron-PRs.
+## Historisch checkpoint — PR140 bewijs en descriptorclaims — 3 november 2026
 
-## Historisch checkpoint — actuele main geïntegreerd en gerichte gates groen — 3 november 2026
+**Geteste bron:** `2bf9578290bef88d53c17f9913434da6f27441f2`, inclusief
+main `69809c2cb53dfb3bd77abe5352892810fba6e82d`.
+Op deze exacte bron zijn met Rust 1.90.0 de 9 artifact-store-contracttests,
+`cargo check --tests`, Clippy en formattering opnieuw uitgevoerd: elk exit 0.
+Exacte commando's, omgeving, source-tree, codehashes en volledige logs met
+SHA-256 staan duurzaam in
+[pr140-review-evidence.json](verification/pr140-review-evidence.json).
+De tijdelijke logpaden zijn alleen oorspronkelijke uitvoerpaden.
 
-**Basis:** PR-head `8e2b1afc5983c9aa63d909cf17954995ee5f9e42` en actuele
-main `69809c2cb53dfb3bd77abe5352892810fba6e82d`, met gemeenschappelijke
-voorganger `cbbc9c9941b08ea5edfbd3637d494635b4fb1df0`. De tweede
-mainintegratie behoudt de PR's gedeelde host-artefacthelpers en de eerste
-mainintegratie met de terminale TCP-time-outfix. README, projectstatus en
-roadmapassessment zijn inhoudelijk verenigd; de inkomende historische
-status-/bewijsregistratie blijft hieronder behouden.
+De tests bewijzen descriptorvalidatie, binding en foutdoorgifte, niet
+identiteit, herkomst of cryptografische authenticatie. Het historische
+rapport behoudt bron `08710d55`, commando's, exits en hashes; alleen de
+scopeclaim is gecorrigeerd en het verse bewijs toegevoegd.
+Score **41 → 41**, geen nieuwe productacceptatie of productiecodewijziging.
 
-**Uitgevoerd op de opgeloste merge-werkboom:**
+**Open:** verse volledige CI en definitieve review vóór merge. Native/QEMU,
+fysieke en menselijke acceptatie zijn niet opnieuw uitgevoerd. PR135's
+volume-fixture- en RANDOM-gates blijven afzonderlijk open; bron-PRs niet
+blind sluiten. **Eerstvolgend:** `GH_PAGER="" gh pr checks 140`; bij
+Watch-headwijziging opnieuw head/base en inhoud controleren.
 
-- `umask 022 && python3 -B -m unittest discover -s tests -p 'test_storage_backend_replay.py' -v`: exit 0, 16 tests.
-- `cargo +1.91.1 test --locked --manifest-path services/network-service/Cargo.toml`: exit 0, 10 tests.
-- `python3 -m py_compile tools/storage_backend_replay.py docs/verification/native-storage-backend-gate/verify_evidence.py tests/test_storage_backend_replay.py`: exit 0.
-- `cargo +1.91.1 fmt --manifest-path services/network-service/Cargo.toml --all -- --check`: exit 0.
-- `cargo +1.91.1 clippy --locked --manifest-path services/network-service/Cargo.toml --all-targets -- -D warnings`: exit 0.
-- `cargo +1.91.1 build --locked --manifest-path services/network-service/Cargo.toml --release --target x86_64-unknown-none`: exit 0.
-- `python3 tools/progress.py --write`, `python3 tools/progress.py --check`, `python3 -m json.tool docs/progress.json` en `git diff --cached --check`: elk exit 0.
+## Historisch checkpoint — PR #140 main-integratie — 3 november 2026
 
-De eerste replaytestuitvoering met de omgeving-standaardumask `0002` eindigde
-met 3 fixturefouten: die bestanden werden door de tool terecht als
-group-writable geweigerd; aan de test-/productiecode is niets veranderd. De
-replaytests slagen ook met `umask 077`. Eerder op `d577f185` slaagden dezelfde
-netwerkservicegates.
+PR-head `75cda7f4d49c5afe895277ada1102d630fdb75ad` is inhoudsbehoudend
+geïntegreerd met main `69809c2cb53dfb3bd77abe5352892810fba6e82d`.
+De Nederlandse beschrijvingen in het PR140-hostrapport blijven behouden;
+main's documentstapel, opslagherstelmateriaal, audit en replaytests zijn
+eveneens behouden. De rubric is ongewijzigd: **41 → 41/100**.
 
-De native `normal`-gate kon eerder niet starten omdat Rust 1.90.0 ontbrak;
-`client-exit` is niet uitgevoerd op deze merge. Oud native bewijs blijft
-gebonden aan `5925c915`, niet aan deze integratie.
+**Gecontroleerd:** `umask 077 && python3 -B -m unittest discover -s tests -p
+'test_storage_backend_replay.py'` slaagt (16 tests). De eerste poging met de
+omgeving-umask `0002` faalde op drie permission-gebonden fixtures; geen
+productiecode gewijzigd. `python3 tools/progress.py --write` en `--check`,
+JSON-syntaxiscontrole en `git diff --check` slagen.
+**Open:** de nieuwe integratiehead moet opnieuw door hosted controles worden
+beoordeeld. Er is geen nieuwe native/QEMU-acceptatie uitgevoerd.
 
-**Voortgang:** 41 → 41; geen criteriumbewijs toegevoegd. Rapporteer nieuwe
-tests alleen met de exacte mergecommit en houd fysieke, menselijke en volledige
-releaseacceptatie open.
-
-## Historische checkpointstatus uit inkomende main `69809c2` — documentstapel
+## Vorig checkpoint — documentstapel inhoudsbehoudend combineren — 3 november 2026
 
 Main is inmiddels `cbbc9c9941b08ea5edfbd3637d494635b4fb1df0`: Simon
 bevestigde zelf dat hij134 handmatig squash-mergede (3nov10:05:36Z).

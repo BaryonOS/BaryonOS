@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`b1d45e63`](https://github.com/simonvanieperen/nieuw-os/commit/b1d45e63afd4605dcd06562d0ab2aefd756a00d6) ·
+**Bron:** [`a521dbf7`](https://github.com/simonvanieperen/nieuw-os/commit/a521dbf7144037ad2cae55f79a2e408a31c444c1) ·
 **Ontwikkelbranch:** `simonvanieperen-friendly-system`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Corrigeer PR142-helperclaims en verifieer de actuele mergebron met 87 hosttests.
-41/100 blijft 41/100. Op exacte mergecommit b1d45e63/tree 86ffc23b slagen opnieuw 87 hosttests: common 8, images 20, random 21, FPU 12, storage-replay 16 en netwerkservice 10. Images/random delen bestandsinventaris en beide SHA-256-helpers; FPU deelt alleen regular_files_below en houdt lokale hexvalidatie. Branchbasis d577f185 en eerste mainmerge 8e2b1afc blijven afzonderlijk historisch. Alleen documentclaimcorrectie; geen nieuwe native/QEMU/fullCI- of criteriumacceptatie.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Integreer actuele main d115cc96; valideer artifact-store descriptorcontracttests.
+41/100 blijft 41/100. Integratie behoudt PR142's helperclaimcorrectie en brongebonden 87-hosttestbewijs, plus PR140's descriptorreview en duurzame receipts. Op de opgeloste mergeboom slagen alle 9 artifact-store-contracttests, cargo check --tests, Clippy en rustfmt met Rust 1.90.0. Geen native acceptatie of rubriccriterium toegevoegd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

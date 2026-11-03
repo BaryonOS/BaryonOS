@@ -10,6 +10,8 @@ struct TestHandle {
 struct Store {
     descriptor: ArtifactDescriptor,
     opened_descriptor: Option<ArtifactDescriptor>,
+    open_error: Option<Error>,
+    open_calls: usize,
     read_result: Result<usize, Error>,
     read_calls: usize,
     last_read_len: usize,
@@ -21,6 +23,8 @@ impl Store {
         Self {
             descriptor: descriptor(5000),
             opened_descriptor: None,
+            open_error: None,
+            open_calls: 0,
             read_result: Ok(1),
             read_calls: 0,
             last_read_len: 0,
@@ -36,6 +40,10 @@ impl ArtifactStore for Store {
         &mut self,
         _expected: &ArtifactDescriptor,
     ) -> Result<(Self::Handle, ArtifactDescriptor), Error> {
+        self.open_calls += 1;
+        if let Some(error) = self.open_error {
+            return Err(error);
+        }
         Ok((
             TestHandle { epoch: self.epoch },
             self.opened_descriptor.unwrap_or(self.descriptor),
@@ -103,6 +111,7 @@ fn open_rejects_noncanonical_or_different_store_descriptor() {
         open_checked(&mut store, &expected).err(),
         Some(Error::Invalid)
     );
+    assert_eq!(store.open_calls, 0);
     assert_eq!(store.read_calls, 0);
 
     expected = descriptor(5000);
@@ -111,6 +120,79 @@ fn open_rejects_noncanonical_or_different_store_descriptor() {
         open_checked(&mut store, &expected).err(),
         Some(Error::Corrupt)
     );
+    assert_eq!(store.open_calls, 1);
+    assert_eq!(store.read_calls, 0);
+}
+
+#[test]
+fn open_rejects_malformed_or_differently_bound_store_descriptors() {
+    let expected = descriptor(5000);
+    let mut store = Store::new();
+
+    let mut malformed = descriptor(5000);
+    malformed.reference.artifact_id = [0; 32];
+    store.opened_descriptor = Some(malformed);
+    assert_eq!(
+        open_checked(&mut store, &expected).err(),
+        Some(Error::Invalid)
+    );
+
+    malformed = descriptor(5000);
+    malformed.reference.immutable_generation = 0;
+    store.opened_descriptor = Some(malformed);
+    assert_eq!(
+        open_checked(&mut store, &expected).err(),
+        Some(Error::Invalid)
+    );
+
+    store.opened_descriptor = Some(descriptor(0));
+    assert_eq!(
+        open_checked(&mut store, &expected).err(),
+        Some(Error::Invalid)
+    );
+    assert_eq!(store.read_calls, 0);
+
+    for changed in [
+        {
+            let mut value = expected;
+            value.reference.artifact_id[0] ^= 1;
+            value
+        },
+        {
+            let mut value = expected;
+            value.reference.immutable_generation += 1;
+            value
+        },
+        {
+            let mut value = expected;
+            value.sha256[0] ^= 1;
+            value
+        },
+        {
+            let mut value = expected;
+            value.length += 1;
+            value
+        },
+    ] {
+        store.opened_descriptor = Some(changed);
+        assert_eq!(
+            open_checked(&mut store, &expected).err(),
+            Some(Error::Corrupt)
+        );
+    }
+    assert_eq!(store.read_calls, 0);
+}
+
+#[test]
+fn open_preserves_backend_authorization_and_storage_failures() {
+    let expected = descriptor(5000);
+    let mut store = Store::new();
+
+    for error in [Error::Unauthorized, Error::Stale, Error::Io] {
+        store.open_error = Some(error);
+        assert_eq!(open_checked(&mut store, &expected).err(), Some(error));
+    }
+    assert_eq!(store.open_calls, 3);
     assert_eq!(store.read_calls, 0);
 }
 
