@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`47ec535f`](https://github.com/simonvanieperen/nieuw-os/commit/47ec535f15bb10912dbc6cbf1af3de9df0c6c226) ·
-**Ontwikkelbranch:** `simonvanieperen-upgraded-disco`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR148-conflicten met main 8e0c15d inhoudsbehoudend integreren.
-41/100 blijft 41/100. Drie centrale documentconflicten behouden beide checkpointreeksen en hun afzonderlijke bewijsbronnen. Gedeelde harnashulpfuncties komen exact uit main; PR148-volume-admissie blijft behouden. Geen handmatige codewijziging, nieuw criterium of native acceptatie. Gerichte integratievalidatie en nieuwe-head CI worden afzonderlijk gerapporteerd.
+**Bron:** [`fc3b5e25`](https://github.com/simonvanieperen/nieuw-os/commit/fc3b5e2522e04f636bdb443299da6e8f99161afe) ·
+**Ontwikkelbranch:** `simonvanieperen-laughing-fortnight`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR138: statusconflict met main d686bd54 inhoudsbehoudend integreren.
+41/100 blijft 41/100. Eén statusconflict met main d686bd54 is inhoudsbehoudend opgelost; beide checkpointgeschiedenissen en hun brongebonden bewijs blijven behouden. Code is automatisch samengevoegd zonder handmatige runtimewijziging. De integration_review-velden beschrijven uitsluitend de historische PR148-integratie, niet deze PR138-boom. Geen nieuw criterium of native acceptatie. Gerichte integratievalidatie en nieuwe-head CI worden afzonderlijk gerapporteerd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -80,6 +80,20 @@ beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS
 <!-- OS-PROGRESS:END -->
 
 Volledige repository-inventaris: [OS-completeness-audit](docs/audit/os-completeness/README.md).
+
+## Historische geïntegreerde bronstand — 3 november 2026
+
+De bron was [`380111b`](https://github.com/simonvanieperen/nieuw-os/commit/380111b68688c981eec6abb8fab29174a29f5601):
+de volledige PR126-inhoud en PR127-reviewherstellingen zijn hierin op `main`
+gecombineerd. Alle **28 exacte-head GitHub-checkruns** zijn geslaagd.
+De [native venstersessie](https://github.com/simonvanieperen/nieuw-os/actions/runs/41535553113)
+en de [native netwerkdienst](https://github.com/simonvanieperen/nieuw-os/actions/runs/41535553158)
+hebben afzonderlijke QEMU-gates; het netwerk gebruikt een gecontroleerde
+synthetische peer.
+
+Dit vervangt geen fysieke hardwaretest, Windows-gasttest of volledige
+testrelease. De voortgang blijft **41/100**; deze status- en
+API-documentatieaanpassing levert geen productpunten op.
 
 ## Native venstersessie — 2 november 2026
 
