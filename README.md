@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`e853a017`](https://github.com/simonvanieperen/nieuw-os/commit/e853a017ac4a4228d97a0e6ef3d22024753c1f55) ·
+**Bron:** [`e5e8502d`](https://github.com/simonvanieperen/nieuw-os/commit/e5e8502d521d11a8b1a1aae543541f6764c59e35) ·
 **Ontwikkelbranch:** `simonvanieperen-sturdy-guide`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR141: schone372-Cargoreceipt en statusarchief behoudend met Watch-main99 combineren.
-41 blijft41. Reviewfixd1f1f60b en Watche853a017/main99 worden behouden gecombineerd; vier conflicten alleen centrale metadata en beide bronhistorieën exact gearchiveerd. Oorspronkelijke Rust-run niet aantoonbaar372; nieuwe9-test-run op schone detached372 met cwd/HEAD/status/lock vóór en na is echtgroen.41 eerdere Node-tests houden eigen bron; Chrome blijftc94. Aanvullende Watch-hostclaims zonder primaire bronreceipts niet naar de nieuwe merge gepromoveerd. Geen codewijziging, native/cloudruntime/humanaudit of criteriumwijziging.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR131/132: volledig exact inhoudsbehoud en centrale bronbytes vastleggen, nog niet sluiten.
+41 blijft 41. Beoordelingsbasis e5e8502d. PR132 op4cf1bc88 heeft uitsluitend25 historische scriptadds, alle byte/blob/modegelijk op main99 als100644 tekstaliases. PR131 op59989b49 heeft alleen4 centrale deltas. Tien exacte centrale bronsnapshots toegevoegd; oude20 en eerdere8 behouden. Geen script uitgevoerd, runtimecode gewijzigd of oude rubric geactiveerd. Beide PRs blijven open tot dit bewijs op main staat en actuele heads opnieuw zijn gecontroleerd. Bestaande372-Cargoreceipt en prototypefix blijven behouden; geen nieuwe native/fysieke/menselijke acceptatie of punten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

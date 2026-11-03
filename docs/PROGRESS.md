@@ -85,6 +85,13 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Behoudsvervolg131/132 (3 november2026), basis `e5e8502d`: **41 →41**.
+132's25 historische scriptadds zijn exact als veilige tekstaliases op main99
+behouden;131's volledige delta bevat alleen vier centrale wijzigingen.
+Tien extra exacte centrale snapshots bewaren beide heads zonder hun oude
+assessments te activeren. [Receipt](verification/pr131-pr132-retention.json).
+Geen nieuwe runtime-, product- of sluitacceptatie; beide PRs nog open.
+
 PR141-mainvervolg (3 november 2026), geteste merge `37240c1f`:
 **41 → 41**. Main `d115cc96` en PR141 zijn behoudend gecombineerd; 41
 reguliere Node-tests groen op hun bytegeverifieerde kopie. De oorspronkelijke

@@ -28,6 +28,15 @@ Geen merge buiten één geslaagde gekoppelde preflight; PR135's twee echte
 RAW-fouten, ontbrekende volume-fixtures en fysieke/releasegates blijven open.
 Het integratiemandaat blijft exclusief bij deze sessie.
 
+**Behoudsvervolg op `e5e8502d`:**131/`59989b49` heeft uitsluitend vier
+centrale wijzigingen;132/`4cf1bc88` uitsluitend25 historische scripts.
+Alle25 staan byte-/blob-/modegelijk op main99 als100644 `.historical.txt`;
+beide heads hebben nu vijf exacte centrale snapshots. In totaal38 snapshots.
+[Volledige deltas en behoudsreceipt](verification/pr131-pr132-retention.json).
+Beide PRs blijven open totdat dit bewijs werkelijk op main staat en hun live
+heads opnieuw exact overeenkomen. Geen script uitgevoerd, geen oude punten
+of testacceptatie overgenomen; **41 →41**.
+
 ## Historisch checkpoint — PR139 exacte contracttestreceipt — 3 november 2026
 
 **Werkelijk opnieuw geteste bron:** `0a49a3822e5d872f75573f12cd072e76e1249e1b`,
