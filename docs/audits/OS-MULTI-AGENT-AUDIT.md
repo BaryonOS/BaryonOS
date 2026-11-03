@@ -172,8 +172,11 @@ Red-teamhypothesen tellen niet als nieuwe bevestigde kwetsbaarheden.
 | 1 | 🟠 HIGH | `sdk/examples/keyring/src/service.rs` | 520-536 | Gewoon domeinendpoint staat legacy `EXPORT_RECOVERY` toe en retourneert geheim plus masterblob samen | 9/10 |
 
 Dit is AUDIT-04-01, **E3-bronbevinding**, geen uitgevoerde exploit/E5.
-Het systeemmanifest verleent de gewone app deze route ondanks een apart
-admin-ingress. Zie rapport 04 voor de volledige keten en exacte broncitaten.
+De B01-acceptatiemanifest `kernel/src/m2/m3/system.rs` verleent de niet-admin
+app SEND op het domeinendpoint; het admin-ingress blijft apart bij init.
+HIGH/9 op 10 betreft dit profiel. Productie- of gewone-app-provisioning van
+deze route is niet aangetroffen; productiebereikbaarheid en exploitability
+zijn **ONBEKEND**. Zie rapport 04 voor de historische brontrace.
 Geen automatische toegang tot alle ciphertext of kernelrechten bewezen.
 Vervolg vraagt expliciete domeinallowlist, afwijzing van legacyherstel via
 app-ingress en native adversariële deny/regressie; niets tijdens audit gefixt.
