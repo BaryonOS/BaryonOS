@@ -196,7 +196,9 @@ def validate_artifacts(report: dict, frozen: str, *, qemu: str, qemu_sha256: str
         if name == "image_probe":
             probe = binary
     initial = load_json(private_path(volume / "volume.json", regular=True))
-    empty = volume_disk.empty_image_bytes()
+    empty = b"".join(bytes(volume_disk.SECTOR)
+                     if volume_disk.FIRST <= i < volume_disk.FIRST + volume_disk.VOLUME_SECTORS
+                     else volume_disk.canary(i) for i in range(volume_disk.IMAGE_SECTORS))
     if (initial.get("variant") != "empty" or initial.get("sha256") != digest(empty)
             or report.get("before_sha256") != digest(empty)):
         raise ValueError("image probe must use a fresh empty disposable disk")

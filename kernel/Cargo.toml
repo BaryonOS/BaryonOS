@@ -206,6 +206,7 @@ test-volume-cut-data = ["native-volume"]
 test-volume-cut-table = ["native-volume"]
 test-volume-recover-cut = ["native-volume"]
 test-volume-corrupt = ["native-volume"]
+test-volume-foreign = ["native-volume"]
 test-volume-cut-txn = ["native-volume"]
 
 # B03 signed updates: generic broker over the slot store, one ring-3 update

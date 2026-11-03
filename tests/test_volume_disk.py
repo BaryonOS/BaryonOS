@@ -65,73 +65,6 @@ class VolumeOracleTests(unittest.TestCase):
         image = bytes(image_with({}))
         result = vd.analyse(image)
         self.assertEqual((result["generation"], result["chunks_used"]), (0, 0))
-        start = vd.FIRST * vd.SECTOR
-        sectors, states = vd.slot_states(image[start:], 0)
-        self.assertTrue(all(kind == "valid" and generation == 0 for kind, generation, _ in states))
-        self.assertEqual(vd.decode_table(0, sectors), vd.empty_table())
-        self.assertEqual(vd.slot_states(image[start:], 1)[1], [("zero", 0, 0)] * vd.TABLE_SECTORS)
-
-    def test_raw_zero_volume_is_not_formatted_storage(self):
-        zero = [bytes(vd.SECTOR)] * vd.TABLE_SECTORS
-        with self.assertRaisesRegex(ValueError, "no recoverable table"):
-            vd.analyse(bytes(image_with({0: zero, 1: zero})))
-
-    def test_zero_table_sectors_do_not_admit_unrelated_tail_data(self):
-        zero = [bytes(vd.SECTOR)] * vd.TABLE_SECTORS
-        image = image_with({0: zero, 1: zero}, {3: b"foreign filesystem or user content"})
-        before = bytes(image)
-        with self.assertRaisesRegex(ValueError, "no recoverable table"):
-            vd.analyse(image)
-        self.assertEqual(image, before)
-
-    def test_partial_first_commit_without_format_is_refused(self):
-        entry, _ = document(0, 1, 0, [], 5)
-        gen1 = vd.encode_table(1, 5, entries_with({0: entry}))
-        zero = [bytes(vd.SECTOR)] * vd.TABLE_SECTORS
-        for prefix in (1, 4, vd.TABLE_SECTORS - 1):
-            with self.subTest(prefix=prefix), self.assertRaisesRegex(ValueError, "no recoverable table"):
-                vd.analyse(bytes(image_with({0: zero, 1: gen1[:prefix] + zero[prefix:]})))
-
-    def test_explicit_canonical_format_is_accepted(self):
-        formatted = vd.encode_table(0, 0, entries_with({}))
-        self.assertEqual(vd.decode_table(0, formatted), vd.empty_table())
-        self.assertEqual(vd.analyse(bytes(image_with({0: formatted})))["generation"], 0)
-
-    def test_first_commit_cuts_recover_the_formatted_generation_zero(self):
-        formatted = vd.encode_table(0, 0, entries_with({}))
-        entry, payload = document(0, 1, 100, [0], 5)
-        gen1 = vd.encode_table(1, 5, entries_with({0: entry}))
-        zero = [bytes(vd.SECTOR)] * vd.TABLE_SECTORS
-        for prefix in range(vd.TABLE_SECTORS):
-            with self.subTest(prefix=prefix):
-                result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:prefix] + zero[prefix:]}, payload)))
-                self.assertEqual((result["generation"], result["chunks_used"]), (0, 0))
-        torn = bytearray(gen1[3])
-        torn[31] ^= 1
-        result = vd.analyse(bytes(image_with({0: formatted, 1: gen1[:3] + [bytes(torn)] + zero[4:]}, payload)))
-        self.assertEqual(result["generation"], 0)
-        self.assertEqual(vd.analyse(bytes(image_with({0: formatted, 1: gen1}, payload)))["generation"], 1)
-
-    def test_format_with_any_bad_sector_checksum_is_refused(self):
-        formatted = vd.encode_table(0, 0, entries_with({}))
-        for index in range(vd.TABLE_SECTORS):
-            sectors = list(formatted)
-            bad = bytearray(sectors[index])
-            bad[504] ^= 1
-            sectors[index] = bytes(bad)
-            with self.subTest(sector=index), self.assertRaises(ValueError):
-                vd.analyse(bytes(image_with({0: sectors})))
-
-    def test_generation_zero_is_only_the_canonical_empty_table(self):
-        variants = (
-            vd.encode_table(0, 1, entries_with({})),
-            vd.encode_table(0, 0, entries_with({}), clocks=[1, 0]),
-            vd.encode_table(0, 0, entries_with({0: dict(vd.empty_entry(), tags=1)})),
-            vd.encode_table(0, 0, entries_with({}), collections_with({0: b"foreign"}, 1)),
-        )
-        for index, sectors in enumerate(variants):
-            with self.subTest(variant=index), self.assertRaises(ValueError):
-                vd.analyse(bytes(image_with({0: sectors})))
 
     def test_committed_generation_one_with_legacy_zero_companion_is_accepted(self):
         entry, payload = document(0, 1, 100, [0], 5)
@@ -140,11 +73,53 @@ class VolumeOracleTests(unittest.TestCase):
         self.assertEqual((result["generation"], result["chunks_used"]), (1, 1))
 
     def test_companion_generation_boundaries_do_not_wrap(self):
-        self.assertTrue(vd.compatible([("zero", 0, 0), ("valid", 1, 1)], 0, False))
+        self.assertFalse(vd.compatible([("zero", 0, 0)], 0, False))
+        self.assertTrue(vd.compatible([("zero", 0, 0)], 1, False))
         self.assertFalse(vd.compatible([("valid", vd.MASK, 1)], 0, False))
         self.assertFalse(vd.compatible([("valid", 0, 1)], vd.MASK, False))
         self.assertTrue(vd.compatible([("valid", vd.MASK - 1, 1)], vd.MASK, False))
         self.assertFalse(vd.compatible([("zero", 0, 0)], 2, False))
+
+    def test_nonzero_unmarked_volume_is_not_an_empty_volume(self):
+        image = image_with({})
+        start = (vd.FIRST + vd.VOLUME_SECTORS - 1) * vd.SECTOR
+        image[start] = 0xB5
+        with self.assertRaisesRegex(ValueError, "unmarked volume"):
+            vd.analyse(bytes(image))
+
+        marker_start = vd.FIRST * vd.SECTOR
+        image[marker_start:marker_start + vd.SECTOR] = vd.format_marker()
+        result = vd.analyse(bytes(image))
+        self.assertEqual((result["generation"], result["chunks_used"]), (0, 0))
+
+    def test_unmarked_nonzero_table_sectors_are_not_empty(self):
+        baseline = image_with({})
+        for sector in range(vd.DATA_START):
+            with self.subTest(sector=sector):
+                image = bytearray(baseline)
+                image[(vd.FIRST + sector) * vd.SECTOR + 17] = 0xB5
+                with self.assertRaises(ValueError):
+                    vd.analyse(bytes(image))
+
+    def test_format_marker_preserves_a_torn_first_table(self):
+        image = image_with({})
+        image[(vd.FIRST + vd.DATA_START - 1) * vd.SECTOR + 17] = 0xB5
+        start = vd.FIRST * vd.SECTOR
+        image[start:start + vd.SECTOR] = vd.format_marker()
+        result = vd.analyse(bytes(image))
+        self.assertEqual((result["generation"], result["chunks_used"]), (0, 0))
+
+    def test_torn_first_format_marker_is_never_silently_admitted(self):
+        marker = vd.format_marker()
+        for prefix in range(vd.SECTOR + 1):
+            with self.subTest(prefix=prefix):
+                volume = bytearray(vd.VOLUME_SECTORS * vd.SECTOR)
+                volume[:prefix] = marker[:prefix]
+                if not any(volume) or volume[:vd.SECTOR] == marker:
+                    self.assertEqual(vd.choose(bytes(volume))["generation"], 0)
+                else:
+                    with self.assertRaises(ValueError):
+                        vd.choose(bytes(volume))
 
     def test_document_content_and_revision_are_verified(self):
         entry, payload = document(1, 1, 5000, [3, 7], 11)
@@ -297,6 +272,13 @@ class VolumeOracleTests(unittest.TestCase):
             path = Path(directory) / "c.img"
             vd.create_image(path, "corrupt")
             with self.assertRaises(ValueError):
+                vd.analyse(path.read_bytes())
+
+    def test_foreign_volume_fixture_is_refused(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "foreign.img"
+            vd.create_image(path, "foreign")
+            with self.assertRaisesRegex(ValueError, "unmarked volume"):
                 vd.analyse(path.read_bytes())
 
     def test_write_outside_scope_is_detected(self):

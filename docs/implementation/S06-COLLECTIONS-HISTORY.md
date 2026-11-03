@@ -52,6 +52,43 @@ Gescopete sectoren `[4, 584)`. Iedere tabelkopie telt 34 sectoren
 - Alle sectoren dragen dezelfde trailer als v1: generatie, pogingdigest over
   de payload van alle 34 sectoren en een sectorchecksum.
 
+## Toelating van lege en vreemde volumes
+
+Een lege tabel is niet genoeg om een volume als nieuw te behandelen: een
+vreemd bestandssysteem kan de NOSVOL02-tabelregio niet gebruiken en elders
+wel gegevens bevatten. Als beide tabelkopieën leeg zijn en er geen geldige
+formaatmarker staat, leest herstel daarom ook alle sectoren van de
+experimentele volumegrens `[0, 580)`. Alleen een volledig nulgevuld volume
+wordt dan als generatie 0 geaccepteerd. Niet-nuldata zonder herkenbare
+NOSVOL02-toestand geeft `Corrupt`; de dienst formatteert of schrijft niets.
+
+Dit omvat ook beide tabelkopieën: willekeurige niet-nulbytes in alleen slot 1
+zijn geen bewijs van een onderbroken eigen tabelwrite. Zonder geldige marker
+of herstelde tabel moet de volledige tabelregio eveneens nul zijn. Met een
+geldige, geflushte marker blijft een onderbroken eerste tabel herstelbaar.
+
+Vóór de eerste upload accepteert `BEGIN` eerst een geldig lege of reeds
+gemarkeerde volume-invoer en schrijft sector 0 als `NOSFMT02`-formaatmarker,
+gevolgd door `FLUSH`, vóór de eerste inhoudssector. Andere eerste mutaties
+zetten dezelfde marker vóór hun tabelcommit. Bij een onderbroken eerste
+upload kan herstel zo de marker herkennen en de logische lege generatie
+teruggeven; ongecommitte inhoud blijft weesdata en wordt niet als bestand
+gepresenteerd. Zodra generatie 2 naar tabelslot 0 wordt geschreven, vervangt
+die tabel de marker. Een ongeldige of beschadigde marker is geen bewijs van
+leegte.
+
+Een direct geconstrueerde service vertrouwt ook een meegegeven generatie niet:
+vóór de eerste mutatie vergelijkt zij de herstelde schijftoestand met de
+meegegeven tabel. Alleen `Service::recover` mag de toelatingscontrole vooraf
+als voltooid markeren.
+
+De marker bevat de formaatversie en geometrie en heeft een checksum tegen
+toevallige beschadiging. Dit is geen authenticatie of bescherming tegen een
+opzettelijk nagemaakte marker. De native buitenlandse-mediafixture bevat
+alleen een Btrfs-achtige magicwaarde op de bekende 64-KiB-offset; zij is geen
+geldig Btrfs-volume en bewijst geen volledige detectie van andere
+bestandssystemen.
+
 ## Invarianten (aanvulling op M6e)
 
 **Toelating vóór herstel (ADR-064, 2 november 2026).** Minstens één volledige

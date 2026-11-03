@@ -98,6 +98,15 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Main-integratie (3 november 2026), PR-head `ea94eca7` met main
+`a32eadb1`: **41 → 41**. Conflictresolutie volgt de actuele ADR-064:
+onherkende opslag wordt alleen geaccepteerd na nulcontrole van de volledige
+volumebereik; de eerste inhoudswrite wordt voorafgegaan door een geflushte
+`NOSFMT02`-marker. Op de opgeloste boom slagen 48 `volume-core`-Rusttests,
+39 host-volumechecks, 20 image-, 21 random- en 8 gedeelde helpertests, Clippy,
+rustfmt en de voortgangscontrole. Geen nieuwe productcriteria of native
+acceptatie.
+
 Main-integratie (3 november 2026), basis `15164088` en main `0e3b9e7f`:
 **41 -> 41**. PR135-status en PR149-startoppervlakcode/-bewijs zijn behouden.
 Vier centrale statusconflicten zijn samengevoegd. `python3 -B ui/native/verify.py`
@@ -157,6 +166,25 @@ gelezen. Zie `verification/pr127-postmerge-acceptance.json`.
 De latere130/129/128/127-combinatie heeft63 geslaagde host-/buildcontroles;
 haar source `7ad8b7df` vereist nieuwe native gates. Geen overname van44/U03,
 geen nieuwe punten en geen fysieke of volledige releaseacceptatie.
+
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:ab73c9e98b6e8e4f98c9394ee7fc9b7f34e8e2a2808b0067c5965ffb55c55446 -->
+
+PR148-integratie (3 november 2026), PR-bron `47ec535f` met main `8e0c15d8`,
+merge `7412d0bb`: **41 → 41**. De drie documentconflicten zijn opgelost met
+behoud van beide bewijsreeksen; gedeelde harnashulpfuncties komen uit main en
+volume-admissie uit PR148. Geen nieuw criterium of native acceptatie.
+
+De integratiereview staat **open**: de handoff meldt gerichte controles met
+uitvoer alleen in het sessietranscript; afzonderlijk brongebonden bewijs van
+de review ontbreekt in de checkout. De eerdere PR148-hostreceipts zijn geen
+bewijs voor deze integratiereview. De `reviewed_commit` `cc1dea7` in
+`progress.json` hoort bij de historische documentatiereview; nieuwe-head CI en
+review moeten nog worden beoordeeld. Zie [de handoff](PROJECT-STATE.md).
+<!-- /coderabbit-ai-generated:v1 -->
+<!-- /coderabbit-ai-generated:v1 -->
+
 PR149 bronbewijsvervolg (3 november 2026), schone bron `bb8877e3`:
 59 hosttests echt opnieuw exit0 met cwd/HEAD/status/lock-/Rust-hashes vóór/na
 en volledig gehasht log in

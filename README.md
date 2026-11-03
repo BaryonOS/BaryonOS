@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`15164088`](https://github.com/simonvanieperen/nieuw-os/commit/151640881406e7629f18ebc38c89f6a6381ded86) ·
+**Bron:** [`ea94eca7`](https://github.com/simonvanieperen/nieuw-os/commit/ea94eca7baa8902014334a196b857f251d71042c) ·
 **Ontwikkelbranch:** `integrate/stack130-local`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Main 0e3b9e7f inhoudsbehoudend in PR135 integreren.
-Assessment op PR-head 15164088 voor integratie met main 0e3b9e7f. PR135-status en PR149-startoppervlakcode/bewijs zijn behouden. python3 -B ui/native/verify.py slaagt: 84 hosttests, Clippy, formattering, dependency graph, scalar release build en objectscan. Geen nieuw productcriterium of native/QEMU-acceptatie; score blijft 41/100.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Main a32eadb1 inhoudsbehoudend in PR135 integreren.
+Assessment op PR-head ea94eca7 voor integratie met main a32eadb1. ADR-064 blijft leidend: ongemarkeerde opslag wordt alleen na nulcontrole van de volledige scope toegelaten; de eerste schrijfroute flusht NOSFMT02. Op de opgeloste boom slagen 48 volume-core-Rusttests, 39 volumehosttests, 20 image-, 21 random- en 8 helpertests, Clippy, rustfmt en de voortgangscontrole. Score blijft 41/100; geen nieuw criterium of native/QEMU-acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
