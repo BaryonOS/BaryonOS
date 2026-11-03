@@ -612,10 +612,13 @@ impl DeviceLease {
         offset: u16,
         width: u8,
     ) -> Result<u32, Error> {
-        if !matches!(width, 1 | 2 | 4) || !offset.is_multiple_of(u16::from(width)) {
+        if !matches!(width, 1 | 2 | 4) {
             return Err(Error::Range);
         }
         let absolute = self.config_offset(grant, offset, u16::from(width))?;
+        if !absolute.is_multiple_of(u16::from(width)) {
+            return Err(Error::Range);
+        }
         control
             .read_config(
                 self.function.address,
@@ -736,6 +739,14 @@ impl DeviceLease {
         let (vector, mode) = control
             .bind_interrupt(self.function.address, self.driver, self.function.generation)
             .map_err(|_| Error::Hardware)?;
+        self.interrupt = Some(InterruptGrant {
+            function: self.function,
+            driver: self.driver,
+            generation: self.function.generation,
+            vector,
+            mode,
+        });
+        self.interrupt_masked = true;
         if !(32..=254).contains(&vector) || vector == 128 {
             let masked = control
                 .mask_interrupt(
@@ -759,16 +770,9 @@ impl DeviceLease {
                 self.phase = Phase::Quarantined;
                 return Err(Error::Quarantined);
             }
+            self.interrupt = None;
             return Err(Error::Hardware);
         }
-        self.interrupt = Some(InterruptGrant {
-            function: self.function,
-            driver: self.driver,
-            generation: self.function.generation,
-            vector,
-            mode,
-        });
-        self.interrupt_masked = true;
         Ok(vector)
     }
 
@@ -1342,6 +1346,56 @@ mod tests {
         let config = lease.config_range(0x10, 4, false).unwrap();
         assert_eq!(lease.read_config(&mut control, &config, 0, 4), Ok(0x10));
         assert_eq!(control.calls[10], 1);
+    }
+
+    #[test]
+    fn config_reads_align_the_absolute_register_not_the_grant_offset() {
+        let mut lease = matched();
+        lease.authorize(DRIVER, GENERATION).unwrap();
+        lease.begin_initialization().unwrap();
+        let config = lease.config_range(0x11, 7, false).unwrap();
+        let mut control = Control::default();
+        assert_eq!(
+            lease.read_config(&mut control, &config, 0, 4),
+            Err(Error::Range)
+        );
+        assert_eq!(control.calls[10], 0);
+        assert_eq!(lease.read_config(&mut control, &config, 3, 4), Ok(0x14));
+        assert_eq!(control.calls[10], 1);
+    }
+
+    #[test]
+    fn invalid_interrupt_routes_remain_tracked_until_teardown_succeeds() {
+        for vector in [0, 31, 128, 255] {
+            let mut lease = matched();
+            lease.authorize(DRIVER, GENERATION).unwrap();
+            lease.begin_initialization().unwrap();
+            let mut frames = frames::<8>();
+            let before = free_count(&frames);
+            let dma = lease
+                .allocate_dma(&mut frames, 32, DmaDirection::DeviceReads, |_| {})
+                .unwrap();
+            let mut control = Control {
+                irq_vector: vector,
+                fail_irq_sync: true,
+                reset_ack: true,
+                ..Control::default()
+            };
+            assert_eq!(lease.bind_interrupt(&mut control), Err(Error::Quarantined));
+            assert_eq!(lease.quiesce(&mut control), Err(Error::Quarantined));
+            assert_eq!(control.calls[7], 2);
+            assert_eq!(
+                lease.release_dma(&dma, &mut frames, |_| {}),
+                Err(Error::InvalidState)
+            );
+            assert_eq!(free_count(&frames), before - 1);
+            control.fail_irq_sync = false;
+            lease.quiesce(&mut control).unwrap();
+            assert_eq!(control.calls[7], 3);
+            assert!(lease.interrupt.is_none());
+            lease.release_dma(&dma, &mut frames, |_| {}).unwrap();
+            assert_eq!(free_count(&frames), before);
+        }
     }
 
     #[test]
