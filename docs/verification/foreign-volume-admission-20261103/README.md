@@ -1,6 +1,20 @@
 # NOSVOL02 toelating van vreemde volumes
 
-## Status
+## Integratorvervolg op a5b14596
+
+De slot1-review heeft een aanvullende echte fout gevonden: niet-nuldata in
+alleen de tweede tabelkopie werd zonder marker als lege opslag toegelaten.
+Rust en het onafhankelijke Python-orakel eisen nu nulbytes in de volledige
+ongemarkeerde volume-invoer. De22 service- en25 orakeltests zijn echt groen,
+inclusief alle68 metadatasectoren en gemarkeerd herstel; exacte rood/groenlogs:
+[nieuwe receipt](../pr148-slot1-review.json).
+
+De volledige Rustsuite is nog niet groen: zij faalde al vóór de slot1-fix
+bij een onderbroken eerste formaatmarker. Native metadata-only en volledige
+QEMU-regressie blijven open. Dit vervolg maakt de oorspronkelijke niet-
+uitgevoerde tests hieronder niet retrospectief groen.
+
+## Historisch implementatiecheckpoint
 
 Implementatiecheckpoint op basis `cbbc9c9941b08ea5edfbd3637d494635b4fb1df0`,
 branch `simonvanieperen-upgraded-disco`. De lege-volumecontrole en onafhankelijke

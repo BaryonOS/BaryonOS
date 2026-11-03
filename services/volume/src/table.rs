@@ -863,7 +863,8 @@ pub fn choose(slots: [SlotScan; 2]) -> Result<Option<u64>, Status> {
 }
 
 /// Recover the durable table through the service's own disk capability into
-/// `out`. Only table sectors are read; content is verified lazily on access.
+/// `out`. Unmarked empty volumes are checked in full; committed content is
+/// verified lazily on access.
 pub fn recover(disk: &mut impl Disk, out: &mut Table) -> Result<(), Status> {
     recover_with_state(disk, out).map(|_| ())
 }
@@ -878,6 +879,9 @@ pub fn recover_with_state(disk: &mut impl Disk, out: &mut Table) -> Result<bool,
         None => {
             let initialized = zero.format_marker_only();
             if !initialized {
+                if !zero.all_zero() || !one.all_zero() {
+                    return Err(Status::Corrupt);
+                }
                 for index in DATA_START..VOLUME_SECTORS {
                     if read_sector(disk, index)?.iter().any(|byte| *byte != 0) {
                         return Err(Status::Corrupt);

@@ -1,6 +1,28 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR148 met main 99d1327 — 3 november 2026
+## NEXT AGENT HANDOFF — PR148 slot1-toelatingsfout hersteld; crashgate open — 3 november 2026
+
+**Basis:** `a5b14596`, inclusief auteursbron `929ebfb8` en main99;
+branch `simonvanieperen-upgraded-disco`. De auteur pauzeert overlappende writes.
+Echt rood: ongemarkeerde niet-nulmetadata in alleen tabelslot1 werd als leeg
+toegelaten; de directe service schreef vervolgens op die vreemde invoer.
+De Rust-service en onafhankelijke Python-orakelcontrole eisen nu ook nulbytes
+in beide tabelkopieën. Geen IPC-, capability-, formaat- of quotaverruiming.
+
+**Gericht groen:** 22 echte servicehosttests en 25 Python-orakeltests,
+inclusief alle68 metadatasectoren en herstel met een geldige marker;
+Rustfmt en Clippy exit0. [Primaire rood/groenreceipt](verification/pr148-slot1-review.json).
+**Niet groen:** de volledige Rustsuite faalde al op ongewijzigde productiecode
+in `every_crash_point_recovers_to_before_or_after`, bij de eerste markercrash.
+Dat is geen groene volledige gate en wordt niet weggefilterd. De correcte
+grens tussen mislukte eerste formaatinitialisatie en herstel van een al
+geïdentificeerd volume moet nog expliciet getest worden.
+**Nog niet uitgevoerd:** native metadata-only foreign-case en volledige
+QEMU-regressie. **41 →41**, geen nieuw criterium of productacceptatie.
+**Eerstvolgend:** gerichte marker-crashtest reproduceren/verfijnen en oplossen,
+vervolgens volledige volume-Rust-/host-/nativegates; pas daarna merge.
+
+## Historisch checkpoint — PR148 met main 99d1327 — 3 november 2026
 
 **Bron:** PR148 `09e4fa6b6a31b54eea4ebad3cbf98c54347d28c6` met main
 `99d132768fd72276caa4a3b3e9a09f8f1909f0ed`, branch

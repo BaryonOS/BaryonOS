@@ -62,19 +62,55 @@ fn nonzero_unrecognized_data_is_not_admitted_as_an_empty_volume() {
 }
 
 #[test]
-fn direct_service_constructor_cannot_claim_a_foreign_volume() {
+fn unmarked_nonzero_table_sectors_are_not_admitted_as_empty() {
+    for sector in 0..DATA_START {
+        let mut disk = SimDisk::new();
+        disk.durable[sector as usize][17] = 0xb5;
+        let mut table = Table::EMPTY;
+        assert_eq!(
+            table::recover(&mut disk, &mut table),
+            Err(Status::Corrupt),
+            "unmarked sector {sector}"
+        );
+        assert!(!disk
+            .log
+            .iter()
+            .any(|(operation, _)| matches!(operation, Op::Write | Op::Flush)));
+    }
+}
+
+#[test]
+fn format_marker_preserves_recovery_of_a_torn_first_table() {
     let mut disk = SimDisk::new();
-    disk.durable[VOLUME_SECTORS as usize - 1][0] = 0xb5;
-    let mut service = Service::new(EPOCH, Table::EMPTY, false);
-    let mut c = client(&mut service, &mut disk, 0);
-    assert_eq!(
-        c.write(0, 0, b"Document", 1, fill(0, 1)),
-        Err(Status::Corrupt)
-    );
+    table::write_format_marker(&mut disk).unwrap();
+    disk.durable[DATA_START as usize - 1][17] = 0xb5;
+    disk.log.clear();
+    let mut table = Table::EMPTY;
+    assert_eq!(table::recover_with_state(&mut disk, &mut table), Ok(true));
+    assert_eq!(table, Table::EMPTY);
     assert!(!disk
         .log
         .iter()
         .any(|(operation, _)| matches!(operation, Op::Write | Op::Flush)));
+}
+
+#[test]
+fn direct_service_constructor_cannot_claim_a_foreign_volume() {
+    for sector in [TABLE_SECTORS, DATA_START - 1, VOLUME_SECTORS - 1] {
+        let mut disk = SimDisk::new();
+        disk.durable[sector as usize][0] = 0xb5;
+        let mut service = Service::new(EPOCH, Table::EMPTY, false);
+        let mut c = client(&mut service, &mut disk, 0);
+        assert_eq!(
+            c.write(0, 0, b"Document", 1, fill(0, 1)),
+            Err(Status::Corrupt),
+            "unmarked sector {sector}"
+        );
+        assert!(!disk
+            .log
+            .iter()
+            .any(|(operation, _)| matches!(operation, Op::Write | Op::Flush)));
+    }
 }
 
 #[test]

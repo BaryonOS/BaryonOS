@@ -311,7 +311,7 @@ def choose(volume: bytes):
         kind in ("zero", "invalid") or (kind == "valid" and g == 1) for kind, g, _ in b["states"])
     marker_only = a["marker_only"]
     if (all(kind == "zero" for kind, _, _ in a["states"]) or marker_only) and first_attempt:
-        if marker_only or not any(volume[DATA_START * SECTOR:]):
+        if marker_only or not any(volume):
             return empty_table()
         raise ValueError("nonzero data in an unmarked volume")
     raise ValueError("no recoverable table")

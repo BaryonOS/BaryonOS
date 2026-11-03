@@ -62,6 +62,11 @@ experimentele volumegrens `[0, 580)`. Alleen een volledig nulgevuld volume
 wordt dan als generatie 0 geaccepteerd. Niet-nuldata zonder herkenbare
 NOSVOL02-toestand geeft `Corrupt`; de dienst formatteert of schrijft niets.
 
+Dit omvat ook beide tabelkopieën: willekeurige niet-nulbytes in alleen slot 1
+zijn geen bewijs van een onderbroken eigen tabelwrite. Zonder geldige marker
+of herstelde tabel moet de volledige tabelregio eveneens nul zijn. Met een
+geldige, geflushte marker blijft een onderbroken eerste tabel herstelbaar.
+
 Vóór de eerste upload accepteert `BEGIN` eerst een geldig lege of reeds
 gemarkeerde volume-invoer en schrijft sector 0 als `NOSFMT02`-formaatmarker,
 gevolgd door `FLUSH`, vóór de eerste inhoudssector. Andere eerste mutaties

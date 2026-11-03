@@ -77,6 +77,23 @@ class VolumeOracleTests(unittest.TestCase):
         result = vd.analyse(bytes(image))
         self.assertEqual((result["generation"], result["chunks_used"]), (0, 0))
 
+    def test_unmarked_nonzero_table_sectors_are_not_empty(self):
+        baseline = image_with({})
+        for sector in range(vd.DATA_START):
+            with self.subTest(sector=sector):
+                image = bytearray(baseline)
+                image[(vd.FIRST + sector) * vd.SECTOR + 17] = 0xB5
+                with self.assertRaises(ValueError):
+                    vd.analyse(bytes(image))
+
+    def test_format_marker_preserves_a_torn_first_table(self):
+        image = image_with({})
+        image[(vd.FIRST + vd.DATA_START - 1) * vd.SECTOR + 17] = 0xB5
+        start = vd.FIRST * vd.SECTOR
+        image[start:start + vd.SECTOR] = vd.format_marker()
+        result = vd.analyse(bytes(image))
+        self.assertEqual((result["generation"], result["chunks_used"]), (0, 0))
+
     def test_document_content_and_revision_are_verified(self):
         entry, payload = document(1, 1, 5000, [3, 7], 11)
         tables = {1: vd.encode_table(1, 11, entries_with({1: entry}))}

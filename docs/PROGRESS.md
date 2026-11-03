@@ -85,6 +85,14 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR148 slot1-review (3 november2026), basis `a5b14596`: **41 →41**.
+Echte rode regressies tonen toelating van vreemde niet-nulmetadata uitsluitend
+in tabelslot1. Rust en onafhankelijk Python-orakel controleren nu de volledige
+ongemarkeerde volume-invoer;22 service- en25 orakeltests groen, fmt/Clippy exit0.
+[Receipt](verification/pr148-slot1-review.json). De eerder al falende volledige
+Rust-markercrashgate en native metadata-only proef blijven expliciet open;
+geen nieuwe native/fysieke/menselijke acceptatie of punten.
+
 PR148-documentintegratie (3 november 2026), basis `09e4fa6b` met main
 `99d13276`: **41 → 41**. Vier documentconflicten inhoudsbehoudend opgelost;
 PR139-receipts en PR140-bronstatus blijven afzonderlijk behouden. Geen code,

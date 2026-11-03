@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`09e4fa6b`](https://github.com/simonvanieperen/nieuw-os/commit/09e4fa6b6a31b54eea4ebad3cbf98c54347d28c6) ·
+**Bron:** [`a5b14596`](https://github.com/simonvanieperen/nieuw-os/commit/a5b14596dc947059a83bc6b09ad19db3f0f0bfc5) ·
 **Ontwikkelbranch:** `simonvanieperen-upgraded-disco`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR148-documentconflicten met main 99d1327 inhoudsbehoudend integreren.
-41/100 blijft 41/100. Vier documentconflicten combineren beide checkpointreeksen. PR139-receipts blijven exact aan hun historische bron gebonden; PR140's eigen bewijsstatus blijft afzonderlijk behouden. Geen code, test, criterium of gewicht gewijzigd door deze integratie. Documentcontroles en nieuwe-head CI worden afzonderlijk gerapporteerd; geen nieuwe native acceptatie.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR148: echte slot1-toelatingsfout herstellen; eerste-markercrashgate blijft open.
+41 blijft 41. Beoordelingsbasis a5b14596, met auteursbron929 en main99. Echte rode proeven: onherkende metadata uitsluitend in slot1 wordt als leeg geaccepteerd en door de directe service overschreven. Beide tabelkopieën moeten nu ook nul zijn zonder geldige marker/tabel; het onafhankelijke orakel controleert het hele volume.22 service- en25 Python-tests, fmt en Clippy groen; geen IPC/rechten/formaatverruiming. Volledige Rustsuite had al een echte eerste-markercrashfailure; die en native metadata-only/QEMU-acceptatie blijven open. Geen productpunten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
