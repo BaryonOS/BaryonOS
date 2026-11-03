@@ -267,7 +267,8 @@ def torn_sectors(oracle, in_table: bool) -> int:
     other = oracle["slots"][(g + 1) % 2]
     count = sum(1 for sector in other if sector == g + 1)
     if not in_table:
-        if count or any(sector != g - 1 for sector in other):
+        marker_only = g == 1 and other[0] == -1 and all(sector == 0 for sector in other[1:])
+        if count or (not marker_only and any(sector != g - 1 for sector in other)):
             raise ValueError(f"content cut touched the other table copy: {other}")
         return 0
     prefix = other[:count] == [g + 1] * count
