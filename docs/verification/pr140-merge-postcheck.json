@@ -705,7 +705,12 @@
       }
     ]
   },
-  "deviation": "De lokale assertie voor CLEAN en alle checks voltooid faalde: CodeRabbit was na eerder CLEAN opnieuw IN_PROGRESS, zonder nieuwe open threads of CHANGES_REQUESTED. Door een niet met && gekoppeld shellvervolg werd de guarded gh squash toch uitgevoerd. Dit is een uitvoeringsfout, geen geslaagde lokale preflight. Geen admin- of branchregelbypass; de exacte headguard en GitHub-protectie bleven actief.",
+  "deviation": "De lokale assertie voor CLEAN en alle checks voltooid faalde: CodeRabbit was na eerder CLEAN opnieuw IN_PROGRESS, zonder nieuwe open threads of CHANGES_REQUESTED. Door een niet met && gekoppeld shellvervolg werd de guarded gh squash toch uitgevoerd. Dit is een uitvoeringsfout, geen geslaagde lokale preflight. Geen --admin aangevraagd; exacte headguard gebruikt. Historische server-side branchregeltoepassing/bypassstatus is niet onafhankelijk gecontroleerd en wordt niet uit de geslaagde merge afgeleid.",
+  "server_side_protection_audit": {
+    "performed": false,
+    "historical_bypass_status": "unknown",
+    "boundary": "De controle van parent, tree en32 technische CI-checks is geen primaire server-side ref-update-/branchprotectionaudit. Een huidige branchregelsnapshot zou historische toepassing niet bewijzen."
+  },
   "verification": "Alle 32 technische checks waren daadwerkelijk SUCCESS. GitHub-squashboom exact gelijk aan geteste9ad; parent exactmain698; geen onbedoelde inhoudsdelta.",
   "followup": "Nieuwe merges alleen via één gekoppelde Python-preflight met de daadwerkelijke merge-aanroep na alle geslaagde asserties. Afgebroken140-botreview niet als groen beschouwen. Geen automatische rollback of amend; volledig geteste technische boom is exact behouden.",
   "progress_previous": 41,

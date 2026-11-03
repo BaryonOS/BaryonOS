@@ -22,6 +22,16 @@ alleen binnen een geslaagde gekoppelde preflight, geen shellvervolg.
 PR135's twee echte RAW-fouten, ontbrekende volume-fixtures en fysieke/
 menselijke/full-releasegates blijven open. Geen bron-PR blind sluiten.
 
+**Statusreview op `c2d65c5c`:** de primaire GitHub-pull-API bevestigt op
+3 november 11:39:46 UTC dat119/136/143/144/145 gesloten, niet afzonderlijk
+gemerged zijn; hun inhoudsbehoud is afzonderlijk bewezen. Compacte receipt:
+[bron-PR-status](verification/pr141-source-pr-status.json).
+De eerdere uitspraak over afwezigheid van server-side branchregelbypass is
+teruggebracht tot wat bekend is: geen `--admin` aangevraagd; historische
+server-side toepassing/audit niet onafhankelijk gecontroleerd. De mislukte
+lokale preflight blijft nadrukkelijk een uitvoeringsfout, geen groene gate.
+Alleen bewijs-/statuscorrecties; **41 → 41**, geen nieuwe runtimeproef.
+
 ## Historisch checkpoint — reviewfixes gepubliceerd, PR140 gemerged, native blokkades — 3 november 2026
 
 **Basis van dit checkpoint:** `71cdb2100aecf30242a7fc6c4d84352fb483cdea`,
@@ -34,7 +44,9 @@ De boom `ab23fb8523f8edd3a15209575ceb5638b973bc8a` is exact de geteste head
 `9ad80874`; alle 32 technische checks waren groen en alle threads opgelost.
 **Uitvoeringsafwijking:** de extra lokale preflight faalde doordat CodeRabbit
 na eerder CLEAN opnieuw liep. Een niet met `&&` gekoppeld shellvervolg voerde
-de exacte-headmerge toch uit. Geen admin- of branchregelbypass. CodeRabbit
+de exacte-headmerge toch uit. Geen `--admin` aangevraagd; historische
+server-side branchregeltoepassing/bypassstatus niet onafhankelijk
+gecontroleerd. CodeRabbit
 werd door de merge afgebroken, niet als geslaagd geteld. Volledige controles,
 afwijking en postcheck: [mergeaudit](verification/pr140-merge-postcheck.json).
 Volgende merges alleen na een gekoppelde preflight, met de merge-aanroep
@@ -85,7 +97,9 @@ PR135's volume-fixture- en herhaalde RANDOM-fout worden niet omzeild.
 De vier oorspronkelijke PR141-threads zijn beantwoord en opgelost.
 
 Main bevat werkelijk PR114; de vijf aantoonbaar behouden leafs
-119/136/143/144/145 zijn als vervangen gesloten. Andere bron-PRs niet
+119/136/143/144/145 zijn als vervangen gesloten
+([primaire GitHub-statusreceipt](verification/pr141-source-pr-status.json)).
+Dit is een andere controle dan inhoudsbehoud. Andere bron-PRs niet
 blind sluiten. Fysieke/human-/sleutel-/releaseacceptatie blijft open.
 **Eerstvolgend:** `GH_PAGER="" gh pr checks 141`; bij een nieuwe Watch-head
 eerst head/base, inhoudsbehoud en concrete reviewbevindingen herbeoordelen.

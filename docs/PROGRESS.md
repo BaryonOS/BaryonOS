@@ -95,7 +95,9 @@ Integratiecheckpoint (3 november 2026), basis `71cdb210`: **41 → 41**.
 PR140 is werkelijk main `d115cc96`, exact dezelfde geteste boom; 32
 technische checks groen. De herstartte CodeRabbit-review liet de extra
 lokale gate falen, maar het ongekoppelde shellvervolg mergede toch.
-Geen branchregelbypass; afgebroken review niet als geslaagd geteld.
+Geen `--admin` aangevraagd; historische server-side branchregeltoepassing/
+bypassstatus niet onafhankelijk gecontroleerd. Afgebroken review niet als
+geslaagd geteld.
 [Volledige afwijking/postcheck](verification/pr140-merge-postcheck.json).
 PR135's twee echte RAW-fouten en ontbrekende fixturelevering blijven open,
 met [primaire receipts](verification/pr135-ci-blockers-2ccb.json).

@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`37240c1f`](https://github.com/simonvanieperen/nieuw-os/commit/37240c1f190c5d684c9c97d3adedbeb8d717c8f4) ·
+**Bron:** [`c2d65c5c`](https://github.com/simonvanieperen/nieuw-os/commit/c2d65c5c6e7487ace6ce86d88b465697dc9bb554) ·
 **Ontwikkelbranch:** `simonvanieperen-sturdy-guide`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Combineer PR141 met nieuwe main d115cc96 zonder prototype- of bewijsverlies.
-41 blijft 41. Geteste merge 37240c1f combineert PR141-basis 05706135 en main d115cc96 met behoud van beide geschiedenissen, prototypefix en alle PR140-tests/receipts. Vier conflicten alleen metadata; rubrics identiek. Op deze merge opnieuw 41 reguliere Node- en 9 artifact-store-tests groen; exacte commando's en volledige logs in docs/verification/pr141-d115-integration.json. Oude Chromeproef blijft eigen c94-bronbewijs. Volledige CI/review, PR135-fixtures/RANDOM en fysieke/menselijke releasegrenzen blijven open. Eerdere PR140-mergeafwijking blijft vastgelegd.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR141: primaire closure-status bewaren en historische server-auditgrens corrigeren.
+41 blijft41. Statuscorrectie op basis c2d65c5c: primaire GitHub-receipts bevestigen vijf gesloten/vervangen leafs, los van inhoudsbehoud. PR140's ongekoppelde merge na gefaalde lokale preflight blijft een uitvoeringsfout. Geen --admin aangevraagd; historische server-side branchregeltoepassing/bypassstatus niet onafhankelijk gecontroleerd. Eerdere 41 Node +9 artifact-store-tests op37240c1f en Chrome opc94 blijven historisch brongebonden; geen nieuwe code- of runtimeacceptatie, geen criteriumwijziging.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
