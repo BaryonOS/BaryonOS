@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`cbe28f39`](https://github.com/simonvanieperen/nieuw-os/commit/cbe28f397ea026ea1b1d2164899b140556060bef) ·
+**Bron:** [`9e9a5016`](https://github.com/simonvanieperen/nieuw-os/commit/9e9a50162bff019a557e6d16caa02e21a59bf3d2) ·
 **Ontwikkelbranch:** `simon/profiles-users-plan`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Simons actuele main-TCP-merge behoudend in de volledige documentstapel opnemen.
-41 blijft41. Simons handmatige mainmergecbbc9c99 is behoudend opgenomen naast volledige136/143/144/145-heads en PR114720-fixes. Exacte main-TCP-code/tests/bewijs intact; nieuwere documentstatus en historische134-proefgrenzen apart behouden.10 echte netwerkservice- en16 opslaghosttests groen,207 archiefhashes plus99 receiptentries geldig; rubric buiten assessment identiek aan main. Nieuwe gecombineerde CI/review vereist. Geen nieuwe native/hardware/menselijke/releaseacceptatie;119metadata en135hostedfixturelevering blijven afzonderlijk open.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Nieuwste NAS-statushistory en gelijktijdige cloudcheckpointbronnen exact behouden.
+41 blijft41. Volledige nieuwste119-head5a8317f1 en eerdere136/143/144/145-leafheads zijn naast maincbbc behouden. Vier119-conflicten zijn uitsluitend centrale status; rubric buiten assessment identiek.20 exacte centrale tekstsnapshots van119 en nieuwe cloudmain-mergeheads136/143/144/145 zijn gehasht opgeslagen, zodat unieke status niet verdwijnt en historische proeven niet naar nieuwe bron worden gepromoveerd. Geen runtime/tool/testcodewijziging door de119-merge;10netwerk/16opslaghosttests en207oudehashes+99receiptentries blijven het eerdere brongebonden bewijs. Actuele CI/review/integratie en135hostedfixturelevering blijven open; geen nieuwe punten of productacceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
