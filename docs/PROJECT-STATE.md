@@ -31,13 +31,13 @@ afgerond met `success`, waaronder CI, `native-window-session`,
 CodeRabbit gaf één documentatiebevinding: de handoff noemde een verouderde
 branchhead. De status gebruikt nu expliciet de geteste codecommit in plaats
 van een dynamische HEAD-claim; dit is een geautomatiseerde review, geen
-onafhankelijke menselijke audit.
+onafhankelijke menselijke audit. De reviewthread is beantwoord en opgelost.
 
 **Open:** PR #137 blijft open en niet-concept; er is niet gemerged. Alleen de
 bewijs-/statusdocumentatie en gegenereerde voortgangsweergave zijn daarna
-gewijzigd; de bronvingerafdruk bleef gelijk. Controleer na de documentatiepush
-de nieuwe CodeRabbit-status en verwerk de concrete reviewthread. Geen merge of
-branchregel omzeild.
+gewijzigd; de bronvingerafdruk bleef gelijk. Na die documentatiepush meldde
+GitHub geen nieuwe checkruns op de docs-only head; alle 30 checks blijven
+bewijs voor de genoemde codecommit. Geen merge of branchregel omzeild.
 Aanmeld-/sleuteldienst en end-to-end NAS/internet blijven afzonderlijke
 implementatiestappen; hiervoor is in dit checkpoint geen productcode
 gewijzigd. Score blijft **41/100**: deze poort voegt geen vast rubriccriterium toe.

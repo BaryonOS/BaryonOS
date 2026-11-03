@@ -170,8 +170,9 @@
       "native_network_service": 41615665316
     },
     "tested_source_commit_status": "all 30 GitHub check-runs completed with success",
-    "review_status": "CodeRabbit requested changes for a stale handoff-head label; the documentation now names the tested source commit explicitly. This is automated review, not independent human review.",
-    "status": "CI checks passed on the tested source commit; PR remains open and unmerged"
+    "review_status": "CodeRabbit requested changes for a stale handoff-head label; the status now names the tested source commit. The inline thread was answered and resolved. Automated review is not independent human review.",
+    "latest_documentation_only_head": "GitHub reported no new check-runs after the evidence-only documentation pushes; source fingerprint is unchanged.",
+    "status": "All 30 CI check-runs passed on the tested source commit; PR remains open and unmerged"
   },
   "private_package_manifest_sha256": "1be9f63a8c586cc4ff37da00ff6b715703524e091d103ccc60e7dd51b983a98a"
 }
