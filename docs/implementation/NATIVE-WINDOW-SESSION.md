@@ -11,8 +11,11 @@ Het oorspronkelijke U01-contract hieronder blijft gelden.
 **Doel en schrijfgrens:** gedeelde visuele rollen in `ui/prototype/tokens.css`,
 `ui/graphics` en de native designbridge; werkgerichte shellcompositie,
 zoektermen, focus-/ordeningacties in `sdk/examples/window-session`; bijbehorende
-tests en uitbreiding van de bestaande runner/CI. Geen wijziging van kernel,
-capabilities, authenticatie, cryptografie of opslagprotocollen.
+tests en uitbreiding van de bestaande runner/CI. Een aangetoonde observatiefout
+in `kernel/src/m2/m3/window_session.rs` vereist daarnaast uitsluitend een
+opt-in proefdiagnostiekwijziging: de al gelogde inputteller triggert voortaan
+ook een snapshot zonder kunstmatige appframecommit. Geen productkernelbeleid,
+capabilities, authenticatie, cryptografie of opslagprotocollen gewijzigd.
 
 **Bediening:** de werkbalk toont de bestaande collectie en berekening, telkens
 met het echte gereedschap. Ctrl+K en de zoekknop vinden deze twee bestaande

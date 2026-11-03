@@ -25,6 +25,12 @@ geen Gaussian blur, GPU-versnelling, dynamische HCT-kleur of gemeten vloeiende
 animatie. De volledige oude/nieuwe verfgrens wordt opnieuw getekend; iedere
 verplaatste werkruimte annuleert oude appinvoercapture via de bestaande route.
 
+Native verificatie vond daarnaast een bestaande observatiegrens: shell-only
+input veranderde geen appframecommit en triggerde daardoor geen nieuwe
+seriële compositorwaarneming. Alleen in `native-window-session-probe`
+wordt de reeds gelogde inputteller aan de snapshottrigger toegevoegd.
+Geen nieuwe velden, inhoudslogging, userpointer, scheduler- of rechtenwijziging.
+
 De aanvullende chat is historische context, geen automatisch uitvoerbare
 opdracht. Het oorspronkelijke onderzoek is afzonderlijk gecontroleerd op
 PR #131, commit `a03f7f0c355cedca72611893f07c4a766a7b7d4f`.

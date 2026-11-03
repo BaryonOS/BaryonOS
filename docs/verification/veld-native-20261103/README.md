@@ -72,14 +72,30 @@ uitsluitend een werkelijk aanwezige appmuiscapture bij layout-/modewisseling.
 Titelbeweging zonder grab laat gewone invoer en caret ongemoeid.
 Nog geen geslaagde volledige native acceptatie; herbouw/herhaling volgen.
 
-De derde poging op `1915d510` blokkeerde al vóór ontvangst van F7:
-de laatste inputteller bleef 14, zonder enige nieuwe appkey of modewijziging.
+De derde poging op `1915d510` blokkeerde op de seriële ontvangstobservatie:
+de laatste gepubliceerde inputteller bleef 14. Dat is achteraf geen bewijs
+dat F7 niet ontvangen werd.
 De uitsluitend geïdentificeerde QEMU-PID is beëindigd; de runner sloot eerlijk
 af met exit 1 / ontbrekende input-ACK. Dit bewijst niet dat de vorige
 caretfix faalt. De nieuwe shell-injector gebruikt nu QMP's normale 100 ms
 keyhold in plaats van een 1 ms-puls en begrenst ontvangst tot 30 s. Geen
 automatische herinjectie van toggletoetsen en geen versoepelde pixel- of
 ownershipcontrole. De oorspronkelijke gewone appkeyroute blijft ongewijzigd.
+
+**Oorzaak daarna afgebakend:** ook 100 ms en afzonderlijk geïnjecteerde
+press/release-edges bleven op dezelfde seriële observatie wachten; een gewone
+Enter-/klemborddiagnose werkte wel (bewust op 90 s afgekapt, geen acceptatie).
+De native kernelproef publiceerde compositorrecords alleen bij
+app-framecommits, focus, beweging of pointerstatus. F7 verandert uitsluitend
+shellpixels; na de caretfix ontstond terecht geen kunstmatige appframecommit
+meer. De eerdere verklaring "niet ontvangen" wordt daarom ingetrokken.
+
+De bestaande inputteller wordt nu meegenomen in de **alleen voor
+`native-window-session-probe` gecompileerde snapshottrigger**. Geen nieuw
+logveld, plaintext, recht, syscall, userpointer, scheduler- of productkernel-
+gedrag toegevoegd. De shell-injector observeert echte press en release apart,
+zonder herhaling of willekeurige keyhold als synchronisatie. De volledige
+native herkansing moet dit samen met de originele regressiepoort toetsen.
 
 De eerste buildpoging naar de artifactmap buiten de checkout is terecht
 geweigerd (exit 1, `FPU artifact escaped checkout`). Geen guard aangepast;

@@ -344,9 +344,17 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
 
             def shell_key(*keys):
                 before = comp(serial(directory / "serial.txt"))
-                # QMP's normal 100 ms hold, not a one-millisecond pulse under TCG.
-                control.command("send-key", {"keys": [{"type": "qcode", "data": k} for k in keys], "hold-time": 100})
-                observe("shell " + "/".join(keys), lambda raw:
+                # Observe the real press before releasing; never retry toggles.
+                control.command("input-send-event", {"events": [
+                    {"type": "key", "data": {"down": True, "key": {"type": "qcode", "data": k}}}
+                    for k in keys]})
+                observe("shell press " + "/".join(keys), lambda raw:
+                        comp(raw).get("GENERATION") == group_generation[0] and
+                        comp(raw).get("INPUT", 0) >= before["INPUT"] + len(keys), timeout_s=30)
+                control.command("input-send-event", {"events": [
+                    {"type": "key", "data": {"down": False, "key": {"type": "qcode", "data": k}}}
+                    for k in reversed(keys)]})
+                observe("shell release " + "/".join(keys), lambda raw:
                         comp(raw).get("GENERATION") == group_generation[0] and
                         comp(raw).get("INPUT", 0) >= before["INPUT"] + 2 * len(keys), timeout_s=30)
 
