@@ -18,3 +18,7 @@ Receipts en herhaalbare read-only verifiers:
 - `verify_regression.py` — voer uit met `python -B verify_regression.py`.
 
 De scripts lezen alleen bron en bewijs; uitsluitend hun eigen receipts worden geschreven. Historische before-hashes zijn gebonden aan bewaarde bronimages en de oorspronkelijke runrapporten: de verifier heeft de oorspronkelijke VM-uitvoering niet zelf waargenomen. De bevindingen gelden voor deze QEMU/virtio-tests en bewijzen geen fysieke stroomuitvalbestendigheid, native Btrfs/OpenZFS-ondersteuning of bestandherstel uit die bestandssystemen.
+
+De bewaarde receipts zijn door eerdere versies van de verifiers gemaakt; hun
+`verifier_sha256` identificeert die versies. De aangescherpte controles zijn
+niet opnieuw op het externe dossier uitgevoerd.

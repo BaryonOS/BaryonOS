@@ -7,9 +7,19 @@
       "sha256": "107c6ece69ecba038208b47084640c610fda7444d1b5fec4c6f4f6f98fd00b59"
     },
     {
+      "path": "README.md",
+      "bytes": 8288,
+      "sha256": "e35f3bb03862501599d47c91705c5b660978a8301329d4619a8d406a5fa4b54e"
+    },
+    {
+      "path": "TASK.md",
+      "bytes": 2450,
+      "sha256": "46e78ee1d5fa892403bead8ce6ddee3120e095c5733935aa0795ac7ee2fdd7dc"
+    },
+    {
       "path": "archive_native.py",
-      "bytes": 3994,
-      "sha256": "e80df86b7b53b171583b5c790ef4396496eed1cbc7d4b5e4fa4fd0658d556dc8"
+      "bytes": 5495,
+      "sha256": "cab98ff597e0db65c6012f43f5d767b84c5b1f1eba833a0f1d4c1538a258a92a"
     },
     {
       "path": "host/logs/document-session.json",
@@ -227,14 +237,14 @@
       "sha256": "43d4e584845bece53e3a3dd9c75fa3fe0c9aeb1a2f020bcc0b0fe9251ec6d27d"
     },
     {
+      "path": "independent-native-review/README.md",
+      "bytes": 2747,
+      "sha256": "4c7d28279f62c1198f139a9fdc9d37683c04f8e7fb53d70021a92b8bde105802"
+    },
+    {
       "path": "independent-native-review/matrix-review.json",
       "bytes": 7067,
       "sha256": "b32e9287b99c6a453e0714ede09492e138eb8fe37783a36ebe2aabcecbccbef8"
-    },
-    {
-      "path": "independent-native-review/README.md",
-      "bytes": 2544,
-      "sha256": "c938f8416854bcd0c2667c28c81ff26cd7c789fa320086aa34c0b6f65e7cc952"
     },
     {
       "path": "independent-native-review/regression-review.json",
@@ -242,14 +252,24 @@
       "sha256": "f6ce39fb80c69ddd02dd04b485f94c5e595792977d35cea75605d66b41cb89c1"
     },
     {
+      "path": "independent-native-review/test_verify_reviews.py",
+      "bytes": 4754,
+      "sha256": "66a2965e2eb8d6675cb074ea5383247197e3c70cee30a1d05bb744e483cb540b"
+    },
+    {
       "path": "independent-native-review/verify_receipts.py",
-      "bytes": 11357,
-      "sha256": "fbdac1d7524f870df1bf68971ee1ba00195a85ab6e0512c793d9cb7f855816a2"
+      "bytes": 12877,
+      "sha256": "69e383f099a21475bd05cf0bc6775d659045cba44c61f6c71dfa18b837a09c53"
     },
     {
       "path": "independent-native-review/verify_regression.py",
-      "bytes": 8745,
-      "sha256": "51fd6750561876c85416fb6c2ddc37bbe883841c16c8884e6a59bdfc6c998cff"
+      "bytes": 10299,
+      "sha256": "2ee084e9e3cc78735882db0e9f6b108c183e3b70a36a1911b5d7ed780b7dec85"
+    },
+    {
+      "path": "native/README.md",
+      "bytes": 6013,
+      "sha256": "d045c4f8f98eb0496640cc15542858a5fd6d4231ded8e35f663b8d33a6d5564b"
     },
     {
       "path": "native/builds/native-volume/build-invocation.json",
@@ -425,11 +445,6 @@
       "path": "native/preflight-failure-01/native_admission.py",
       "bytes": 19043,
       "sha256": "aa81ddbdd635d3639af9d4a8e57d7e1eebae1db81b6a198075f4b8569a2e6937"
-    },
-    {
-      "path": "native/README.md",
-      "bytes": 6013,
-      "sha256": "d045c4f8f98eb0496640cc15542858a5fd6d4231ded8e35f663b8d33a6d5564b"
     },
     {
       "path": "native/regression/build/logs/build-native-volume-manifest.json",
@@ -1167,24 +1182,19 @@
       "sha256": "47599854f4f7ff4fa9239e1a1ba1478ae4e916a212a661a5232f79cdabc23177"
     },
     {
-      "path": "README.md",
-      "bytes": 8218,
-      "sha256": "226f20bcc7486ce4727178eef18f33898724b0dc72d080578f76cdde3388615b"
-    },
-    {
       "path": "root-verification.json",
       "bytes": 642,
       "sha256": "4e226358aea1b6ec12371659c6715c30a8d1b6d1c1c17276964ae04354a245a6"
     },
     {
-      "path": "TASK.md",
-      "bytes": 2325,
-      "sha256": "acac41b84455e4674fc544f5470855724a82320e36054c0520ea0baeef91b86d"
+      "path": "test_archive_verification.py",
+      "bytes": 11255,
+      "sha256": "3c2dfb0aacf3a3e3fee472d4dd417639a96bbd4114ba3acdaf5e4a8f30644987"
     },
     {
       "path": "verify_archive.py",
-      "bytes": 3251,
-      "sha256": "5847b1b8565de6202e317f26479735a64a6f340a4ff4022a0a58717ed499a7cb"
+      "bytes": 6218,
+      "sha256": "16bf3e4478e61e159c1afcdc194ee3b3714210d1da5a425f35de8dd263c4372b"
     }
   ]
 }

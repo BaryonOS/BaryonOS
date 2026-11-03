@@ -10,15 +10,12 @@ volume-admissiegeschiedenis. De UI-testdisk schrijft nu expliciet de canonieke
 lege volumetabel; een nulgevulde disk is volgens het PR133-contract niet
 stilzwijgend geformatteerd.
 
-**Validatie op de opgeloste boom (exit 0):** de gerichte
-`semantic_actions_revalidate_current_controls_and_persist_only_on_save`-test,
-de volledige `ui/native`-suite (59 hosttests), de volledige volumetest-suite
-(45 tests), UI `fmt --check`, UI Clippy met `-D warnings`,
-`python3 tools/progress.py --write`, `python3 tools/progress.py --check`,
-`git diff --check` en de secretscan. Rustfmt/Clippy ontbraken aanvankelijk;
-`rustup component add --toolchain 1.90.0 rustfmt clippy` slaagde en maakte
-beide controles uitvoerbaar. `rg` was niet beschikbaar; `grep` bevestigde
-dat de opgeloste documenten geen conflictmarkeringen bevatten.
+**Validatie op de opgeloste boom:** de eerder gemelde UI-tests, volumetests,
+formattering, Clippy, voortgangscontroles, diffcontrole en secretscan hebben
+hier geen controleerbare commando's en brongebonden logs of receipts. Hun
+uitkomst is daarom niet als bewijs voor deze boom bevestigd. De afzonderlijke
+[UI-receipt](verification/pr149-bb8877-host-receipt.json) betreft een andere
+bron `bb8877e3` en accepteert deze boom niet.
 
 **Bewijsgrens:** de 10 matrix- en 9 crash-VM-runs uit `f12e8ca` zijn gebonden
 aan de oudere bron `94f12da`; dit bewijs accepteert de nieuw samengevoegde

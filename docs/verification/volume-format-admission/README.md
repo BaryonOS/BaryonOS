@@ -22,7 +22,7 @@ Bestaande complete generaties blijven geldig, ook generatie 1 met een oude
 nulcompanion. Een onderbroken eerste commit blijft herstelbaar vanuit de
 geldige generatie-0-basis. Alle gedeeltelijke eerste-commitprefixen zijn ook
 gericht op de host getest. Uniform sealed maar semantisch corrupte metadata
-blijft een harde fout. Zie [ADR-053](../../DECISIONS.md#adr-053--positieve-volume-identiteit-vóór-toelating-als-lege-opslag).
+blijft een harde fout. Zie [ADR-058](../../DECISIONS.md#adr-058--positieve-volume-identiteit-vóór-toelating-als-lege-opslag).
 
 De eigen kernel, IPC en capabilities zijn niet verruimd. Er is geen
 runtimeformatteerpad of nieuwe bestandssysteemdriver toegevoegd. Alleen
@@ -148,4 +148,5 @@ FNV/seals leveren formaatvalidatie en foutdetectie, geen cryptografische
 authenticatie tegen bewust vervalste eigen metadata. Native Btrfs/OpenZFS-
 ondersteuning, vreemde bestandslezing/herstel, fysieke powercuts en productie-
 geschiktheid zijn hiermee niet aangetoond. De eerdere backendpoort blijft
-open. Deze gerichte bugfix verandert geen rubriccriterium: **34/100 → 34/100**.
+open. Deze gerichte bugfix veranderde geen rubriccriterium: historisch
+**34/100 → 34/100** bij bron `94f12da`; de huidige projectscore is **41/100**.

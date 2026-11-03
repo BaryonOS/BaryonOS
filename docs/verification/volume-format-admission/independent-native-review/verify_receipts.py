@@ -21,6 +21,25 @@ RUNNER = 'dc5707cc6972b6b666d2e9d6925a275850d5afa9b48fa9bd68ce69d2c26175a0'
 BOOT = ['BOOT:EBS_OK', 'KERNEL:ENTRY', 'BOOTINFO:OK', 'VOLUME:MANIFEST:PASS']
 HASHES = {}
 
+# Fixed from the preserved independent matrix review and the original seed and
+# candidate records, not from the matrix being checked. These identify the
+# pre-run image for each case; own-normal is expected to change its probe.
+IMAGE_HASHES = {
+    'own-normal': '45e7b67b8940ac5ad287cd46071fcb67db13dcc58d70c956cf0db92ee6732ae6',
+    'own-cold-recover': '19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3',
+    'btrfs': '0f3e5d9631ac9e8747abd7d6744538772620c0d2d9c6c5f40f2ed7e864edac39',
+    'zero': '30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58',
+    'zero-prefix-payload-tail': '3dd443382e1edb96c2ebcd6d11c0361f249096245afda8df4d43193e8234270b',
+    'openzfs-leaf': '23a409ac5e9a844056d9096ead0453112f1d1e6e45d4b7d5db084a397baea4ea',
+}
+EXPECTED_RUNS = {
+    'own-normal': (IMAGE_HASHES['own-normal'], False),
+    'own-cold-recover': (IMAGE_HASHES['own-cold-recover'], True),
+    **{f'{candidate}-{mode}': (IMAGE_HASHES[candidate], mode == 'readonly')
+       for candidate in ('btrfs', 'zero', 'zero-prefix-payload-tail', 'openzfs-leaf')
+       for mode in ('readonly', 'writable')},
+}
+
 
 def sha(path):
     path = Path(path).resolve(strict=True)
@@ -78,19 +97,32 @@ def option_pairs(command, flag):
     return [command[i+1] for i, value in enumerate(command[:-1]) if value == flag]
 
 
+def check_run_contract(item):
+    label = item['label']
+    need(label in EXPECTED_RUNS, f'{label}: unexpected label')
+    image_hash, readonly = EXPECTED_RUNS[label]
+    need(item.get('source_image_sha256_before') == image_hash, f'{label}: expected image hash')
+    need(item.get('data_disk_read_only') is readonly, f'{label}: expected data drive mode')
+
+
+def check_serial_digests(item, serial, label):
+    digests = item.get('oracle_digests')
+    need(isinstance(digests, list) and len(digests) == 2, f'{label}: expected two oracle digests')
+    for prefix, digest in zip(('VOLUME:A:DIGEST:', 'VOLUME:B:DIGEST:'), digests):
+        need([int(l[len(prefix):]) for l in serial if l.startswith(prefix)] == [digest], f'{label}: serial digest')
+
+
 def verify_matrix():
     matrix_path = NATIVE/'matrix.json'
     matrix = read(matrix_path)
     need(matrix['passed'] is True, 'matrix not complete/passed')
     source = verify_source(matrix['source'])
-    expected_labels = {'own-normal','own-cold-recover'} | {
-        f'{candidate}-{mode}' for candidate in ('btrfs','zero','zero-prefix-payload-tail','openzfs-leaf')
-        for mode in ('readonly','writable')}
     need(len(matrix['runs']) == 10, 'matrix must contain ten runs')
-    need({r['label'] for r in matrix['runs']} == expected_labels, 'matrix labels mismatch')
+    need({r['label'] for r in matrix['runs']} == set(EXPECTED_RUNS), 'matrix labels mismatch')
     checked = []
     for item in matrix['runs']:
         label = item['label']
+        check_run_contract(item)
         directory = NATIVE/'runs'/label
         report = read(directory/'result.json')
         need(report == item, f'{label}: individual and aggregate report differ')
@@ -135,8 +167,7 @@ def verify_matrix():
             need(positions == sorted(positions), f'{label}: ordered control markers')
             need(item['raw_qemu_exit'] == 33 and not any('FAIL' in l or 'PANIC' in l for l in serial), f'{label}: positive control exit/markers')
             need(item['oracle_generation'] == 84, f'{label}: control generation')
-            for prefix, digest in zip(('VOLUME:A:DIGEST:','VOLUME:B:DIGEST:'), item['oracle_digests']):
-                need([int(l[len(prefix):]) for l in serial if l.startswith(prefix)] == [digest], f'{label}: serial digest')
+            check_serial_digests(item, serial, label)
             if readonly:
                 need(not writes and actual_probe == actual_original, f'{label}: cold image/write count')
             else:
