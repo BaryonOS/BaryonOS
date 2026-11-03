@@ -1,5 +1,7 @@
 """Adversarial host checks for the native runner, never OS execution."""
 import unittest
+import subprocess
+import sys
 import run_window_session as window
 
 
@@ -17,6 +19,13 @@ def image(width,height,color):
 
 
 class WindowRunnerTests(unittest.TestCase):
+    def test_cli_scale_help_is_valid_without_booting_or_touching_images(self):
+        result = subprocess.run([sys.executable, window.__file__, "--help"],
+                                capture_output=True, text=True, timeout=10, check=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("--scale {1,2}", result.stdout)
+        self.assertIn("200%", result.stdout)
+
     def test_scale200_oracles_use_actual_app_and_shell_geometry(self):
         width, height, body, calc = window.profile_geometry(2)
         self.assertEqual((width, height, body, calc), (1920, 1080, (56, 228, 1120, 660), (1224, 280, 640, 608)))

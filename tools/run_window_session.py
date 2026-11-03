@@ -681,7 +681,7 @@ if __name__ == "__main__":
     parser.add_argument("--recovery-handshake-only", action="store_true")
     parser.add_argument("--clipboard", action="store_true", help="Include genuine bounded clipboard exchange, clear and post-fault empty checks")
     parser.add_argument("--workspace", action="store_true", help="Include actual work/focus, Finder search and arrange interactions with exact shell regions")
-    parser.add_argument("--scale", type=int, choices=(1, 2), default=1, help="Native scale profile: 1=1280x720/100%, 2=1920x1080/200%")
+    parser.add_argument("--scale", type=int, choices=(1, 2), default=1, help="Native scale profile: 1=1280x720/100%%, 2=1920x1080/200%%")
     args = parser.parse_args()
     raise SystemExit(0 if run(timeout=args.timeout, bios_rom=args.bios_rom, vga_rom=args.vga_rom,
                             smoke=args.smoke_only, recovery_handshake=args.recovery_handshake_only, clipboard=args.clipboard,

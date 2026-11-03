@@ -50,6 +50,10 @@ Nieuwe kernel-feature combineert alleen de twee bestaande hidpi-/probefeatures.
 Log `files/veld-env/logs/veld-hidpi-host.log`. De volledige native200%-gate
 is bij dit checkpoint nog **niet uitgevoerd**. Geen 100%-bewijs omgelabeld.
 CI heeft beide schalen; er is nog geen nieuwe CI-uitvoering geclaimd.
+Eerste hidpi-poging op `a95a8b97`: build exit0 (11,40 s), runner exit1
+vóór VM-start door een niet-ge-escapete `%` in argparse-help onder Python3.14.
+Helptekst hersteld met `%%` en een echte CLI-helptest toegevoegd.
+Geen native200%-succes geclaimd; herbouw en herhaling volgen.
 
 Volgende stap: nieuwe hidpi-probebuild en dezelfde volledige gate met
 `--clipboard --workspace --scale 2`, daarna documentcontextmenu integreren.

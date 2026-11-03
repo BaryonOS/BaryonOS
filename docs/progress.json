@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "0c66173bed205b2d2b04368e39d4a59b9f5a2b9c",
+    "source_commit": "a95a8b97ce96a5dd5aa3d793c9e5829d11ae40eb",
     "branch": "simonvanieperen-fictional-disco",
     "task": "Veld-03: native 200%-gate en echt documentcontextmenu",
     "previous_score": 41,
-    "summary": "41% blijft 41%: bron0c66173b heeft36 native100%-fasen voor gereedschappen, venstertoestanden en de onverkorte isolatie-/klembord-/herstel-/schijfketen. Runner en echte orakels ondersteunen nu daarnaast1920x1080/200%, inclusief manifest- en GOP-controle;14 runnertegenvoorbeelden,21 packagertests en61 compositorhosttests slagen. De verse native200%-gate is nog niet uitgevoerd; documentcontextmenu wordt afzonderlijk gebouwd. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open."
+    "summary": "41% blijft 41%: bron0c66173b heeft36 native100%-fasen voor gereedschappen, venstertoestanden en onverkorte isolatie-/klembord-/herstel-/schijfketen. Het native200%-profiel bouwt op a95a8b97, maar de runner faalde voor VM-start op argparse-help onder Python3.14; de helptekst is hersteld met een echte CLI-tegenproef.15 runnertests,21 packagertests en61 compositorhosttests slagen. Nog geen native200%-succes. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Documentcontextmenu, complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open."
   },
   "tracks": [
     {
