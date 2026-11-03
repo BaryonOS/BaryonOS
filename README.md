@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`f774cc26`](https://github.com/simonvanieperen/nieuw-os/commit/f774cc2628ee636ed3c48501f172dea37f4e0c07) ·
+**Bron:** [`6725d90e`](https://github.com/simonvanieperen/nieuw-os/commit/6725d90edd2fb84d430855d3d35d58b44b498913) ·
 **Ontwikkelbranch:** `simonvanieperen-friendly-system`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR142: ontbrekende bronbinding van historische Watch-mergecontroles expliciet onbekend labelen.
-41/100 blijft41/100. Alleen documentcorrectie op basisf774cc26: de exacte testbron van vier historisch door Watch gemelde mergeboomcontroles is onbekend zonder primaire commit/tree-receipt. Niet bewezen op1f67 en niet retrospectief daaraan gebonden. De zes primaire logs van87 hosttests blijven exactb1d45e63; PR140's artifact-storebewijs blijft2bf95782. Geen nieuwe runtimeproef, native/fysieke/menselijke acceptatie of criteriumwijziging.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Integreer actuele main 99d13276 met PR142-bewijs en PR139-contracttestreceipts.
+41/100 blijft 41/100. Integratie behoudt PR142's bronlabels en testbewijs plus PR139's primaire artifact-store receipts en contracttestwijzigingen. Geen nieuw native bewijs of productcriterium toegekend.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
