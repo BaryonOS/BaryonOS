@@ -79,18 +79,23 @@ bewijs voor de accounting- en sleep-API-checkpoints:
 `docs/verification/m1-resource-accounting-20261103.json` en
 `docs/verification/m1-central-sleep-20261103.json`. Score blijft **41 → 41**.
 
-**Open/eerstvolgend:** de nieuwe `NativeIdle`-adapter is getest volgens de
-relevante host- en native-gates. Daarna kan de centrale sleep-API naar een
-volgende service-eventlus worden overgezet. Capability-accounting blijft beperkt tot handles,
-capability-objecten en IPC-queues; geheugen-/CPU-/storage-/DMA-budgettering en
-gebruikersrapportage ontbreken. De score sluit geen rubriekcriterium. De klok
-blijft 100-Hz PIT op bestaande profielen, RTC blijft unauthenticated en
-suspend-/high-resolution-/fysieke klokacceptatie ontbreekt.
-De integratie toetst alleen capability-handle-beschikbaarheid; geheugen-/CPU-/
-storage-/DMA-accounting en gebruikersrapportage ontbreken nog. De klok blijft
-100-Hz PIT op bestaande profielen,
-RTC blijft unauthenticated en slaap-/suspendcorrectie, hoge-resolutietimers en
-fysieke klokacceptatie zijn niet geïmplementeerd.
+De `NativeIdle`-adapter op bron `22b7bbab` heeft 49 Rust-tests, 10 runner-
+tests, 21 packaging-tests, Clippy, formattering, native build en de
+disposable-QEMU-window-sessiongate doorstaan. Die run gebruikte QEMU 10.2.1
+met `pc-q35-8.2`, niet de QEMU-build uit CI. De drie compacte receipts staan
+onder `docs/verification/m1-*-20261103.json`. Score blijft **41 → 41/100**.
+
+**Open werk:** capability-accounting omvat alleen handles, capability-
+objecten en IPC-queues; geheugen-/CPU-/storage-/DMA-budgettering en
+gebruikersrapportage ontbreken. De klok blijft 100-Hz PIT op bestaande
+profielen, RTC blijft niet-geauthenticeerd; suspend-/high-resolution-
+correctie en fysieke klokacceptatie ontbreken. Geen rubriekcriterium is
+hiermee gesloten.
+
+**Blokker:** geen blocker voor lokaal vervolgwerk; de uitgevoerde QEMU-build
+verschilt van CI. **Eerstvolgende opdracht:** onderzoek de keyring-eventlus
+zonder de huidige deadline-/rechtensemantiek te wijzigen. Start met
+`rg -n -C 3 "monotonic_ticks|ipc_wait|IPC_WAIT_HORIZON_TICKS" sdk/examples/keyring/src/service.rs`.
 
 ## Historisch checkpoint — PR149 derde main-integratie — 3 november 2026
 
