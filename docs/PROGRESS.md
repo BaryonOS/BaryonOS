@@ -91,14 +91,17 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
-M1-time (3 november 2026), implementatiebron `2b5fff67`:
+M1 (3 november 2026), implementatiebron `7fd2e748`:
 **41 → 41/100**. De SDK-runtime biedt absolute monotone timerregistratie,
 gedeelde atomische annulering, timeout- en IPC-readyuitkomsten met begrensde
-wachtchunks; de supervisor-worker gebruikt de gedeelde API. Veertig
-runtime-/ABI-/TLS-time-/doc-tests, Clippy, formattering en twee
-`x86_64-unknown-none`-checks slagen. Geen productcriterium gesloten:
-de klok blijft 100-Hz PIT, RTC is ongeauthenticeerd en native,
-fysieke en menselijke acceptatie zijn niet uitgevoerd.
+wachtchunks; de supervisor-worker gebruikt de gedeelde API. `capability-core`
+voegt read-only per-PID-accounting toe voor capabilities en IPC-queues, niet
+voor alle OS-resources en nog niet voor kernel-/gebruikersbudgetafdwinging.
+121 runtime-/ABI-/TLS-time-/capability hosttests slagen; één bestaande
+benchmark is ignored. Clippy, formattering en drie
+`x86_64-unknown-none`-checks slagen. Geen productcriterium gesloten: de klok
+blijft 100-Hz PIT, RTC is ongeauthenticeerd; native, fysieke en menselijke
+acceptatie zijn niet uitgevoerd.
 
 PR149 bronbewijsvervolg (3 november 2026), schone bron `bb8877e3`:
 59 hosttests echt opnieuw exit0 met cwd/HEAD/status/lock-/Rust-hashes vóór/na

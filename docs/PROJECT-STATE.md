@@ -1,11 +1,10 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — M1-time runtimelaag (sdk) — 3 november 2026
+## NEXT AGENT HANDOFF — M1 tijd en procesresource-accounting — 3 november 2026
 
 **Uitgangs-HEAD:** `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`, branch
-`simonvanieperen-studious-spoon`. Eerste maturitystap op M1 (time): één
-centrale runtime-API boven de bestaande ABI 1.6/1.9/1.10-syscalls.
-**Implementatiebron:** `2b5fff67c3e809b601be99879f2068ce73286e6e`.
+`simonvanieperen-studious-spoon`. M1-stappen time en capabilities:
+**Implementatiebron:** `7fd2e748b36cefce235a72841d4473b739929649`.
 Toegevoegd in `sdk/runtime/src/clock.rs` en direct gebruikt in
 `sdk/examples/supervisor/src/worker.rs`.
 Nieuwe runtimelaag:
@@ -13,12 +12,12 @@ Nieuwe runtimelaag:
 native wrappers `now_monotonic`, `now_wall`, `sleep_until`, `wait_until`,
 en gerichte unittests voor cancel/timeout/horizon-chunking. De supervisor-
 worker gebruikt nu dezelfde centrale wait/deadline-semantiek in plaats van
-een lokale `monotonic_ticks + ipc_wait`-combinatie.
-
-**Uitgevoerd:**  
-`python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 check --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime --tests --locked` (exit 0)  
-`python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 check --manifest-path sdk/examples/supervisor/Cargo.toml --locked` (exit 0)  
-`python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check` (exit 0)
+een lokale `monotonic_ticks + ipc_wait`-combinatie. `capability-core` biedt
+nu read-only `ProcessUsage` per geregistreerde PID voor handles, door die
+principal uitgegeven/revoked nodes, endpoints/IPC-queue en getypeerde
+capabilityobjecten, plus resterende handle-/endpointquota. Dit is alleen
+capability-engine-accounting; het is geen generiek OS-resourcebudget en is
+nog niet aan een syscall of gebruikersrapportage gekoppeld.
 
 **Validatie:**
 
@@ -27,19 +26,25 @@ een lokale `monotonic_ticks + ipc_wait`-combinatie.
 - `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 check --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime --target x86_64-unknown-none --locked` (exit 0)
 - `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 check --manifest-path sdk/examples/supervisor/Cargo.toml --target x86_64-unknown-none --locked` (exit 0)
 - `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check` (exit 0)
+- `PATH="/tmp/nieuw-os-c-toolchain/bin:$PATH" python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 test --manifest-path crates/capability-core/Cargo.toml --locked` (exit 0; 71 + 7 + 3 tests, 1 bestaande ignored benchmark)
+- `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 clippy --manifest-path crates/capability-core/Cargo.toml --all-targets --locked -- -D warnings` (exit 0)
+- `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 fmt --manifest-path crates/capability-core/Cargo.toml -- --check` (exit 0)
+- `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 check --manifest-path crates/capability-core/Cargo.toml --target x86_64-unknown-none --locked` (exit 0)
 
 De eerste testpoging miste `cc`; daarna is de al aanwezige tijdelijke
 toolchain onder `/tmp/nieuw-os-c-toolchain` gebruikt, zonder systeeminstallatie.
 Een tussenliggende testuitvoering vond twee onjuiste verwachte chunkwaarden;
-de assertions zijn gecorrigeerd en de volledige suite is daarna groen.
-Geen native/QEMU-, fysieke of menselijke acceptatie uitgevoerd. Score blijft
-**41 → 41**.
+de assertions zijn gecorrigeerd en de volledige suite is daarna groen. De
+capability-usage-tests toetsen read-only gedrag, principal-isolatie,
+quotaweergave en queue-toerekening aan de endpointowner. Geen native/QEMU-,
+fysieke of menselijke acceptatie uitgevoerd. Score blijft **41 → 41**.
 
-**Open/eerstvolgend:** installeer of routeer een beschikbare C-linker voor
-verdere hosttest-runs indien nodig. Werk de nieuwe API nog in andere service-
-eventlussen in; kernelklok blijft 100-Hz PIT op bestaande profielen, RTC blijft
-unauthenticated en slaap-/suspendcorrectie, hoge-resolutietimers en fysieke
-klokacceptatie zijn niet geïmplementeerd.
+**Open/eerstvolgend:** integreer per-process capability-usage in het kernel-
+supervisorresourcebeleid zonder de bestaande vaste quota te vervangen voordat
+grenzen en failure semantics zijn getest. Geheugen-/CPU-/storage-/DMA-
+accounting ontbreekt nog. De klok blijft 100-Hz PIT op bestaande profielen,
+RTC blijft unauthenticated en slaap-/suspendcorrectie, hoge-resolutietimers en
+fysieke klokacceptatie zijn niet geïmplementeerd.
 
 ## Historisch checkpoint — PR149 derde main-integratie — 3 november 2026
 

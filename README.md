@@ -63,8 +63,8 @@ alleen een nette desktop haalt die eindgrens niet.
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
 **Bron:** [`2b5fff67`](https://github.com/simonvanieperen/nieuw-os/commit/2b5fff67c3e809b601be99879f2068ce73286e6e) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-spoon`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** M1-time: centrale runtime-deadline waits, cancel en eerste service-wiring.
-41 blijft 41. De SDK-runtime heeft nu een centrale tijdslaag met absolute monotone TimerRegistration, atomische gedeelde cancel, timeout- en IPC-readyuitkomsten, en begrensde wachtchunks; de supervisor-worker is aangesloten. Runtime-, ABI-, TLS-time- en doc-tests: 40 tests groen; Clippy, fmt en x86_64-unknown-none checks voor runtime en worker groen. Tijdbron blijft 100-Hz PIT, RTC ongeauthenticeerd; geen suspend/high-resolution/native/fysieke/menselijke acceptatie of rubricsluiting.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** M1: runtime timeouts, supervisor wiring en capability usage per process.
+41 blijft 41. De SDK-runtime heeft centrale absolute monotone timer-/wait-semantiek met gedeelde atomische annulering en supervisor-worker wiring. capability-core voegt read-only ProcessUsage per PID toe voor engine-owned/held capability- en IPC-resourceklassen; geen algemeen OS-resourcebudget of syscall/UI-wiring. 121 hosttests groen (1 bestaande benchmark ignored); Clippy/fmt en x86_64-unknown-none checks groen. Tijdbron blijft 100-Hz PIT, RTC ongeauthenticeerd; geen suspend/high-resolution/native/fysieke/menselijke acceptatie of rubricsluiting.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
