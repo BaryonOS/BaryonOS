@@ -83,13 +83,6 @@ impl Selected {
         }
         self.addresses |= bit;
         if input {
-            let minimum = match self.binding.protocol {
-                Protocol::Keyboard => 8,
-                Protocol::Mouse => 3,
-            };
-            if packet < minimum {
-                return Err(Error::Endpoint);
-            }
             if self.input {
                 return Err(Error::AmbiguousInput);
             }
