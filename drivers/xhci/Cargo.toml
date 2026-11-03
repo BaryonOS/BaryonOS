@@ -1,0 +1,11 @@
+[package]
+name = "nieuw-os-xhci-probe"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+driver-core = { path = "../../crates/driver-core" }
+pci-core = { path = "../../crates/pci-core" }
+
+[workspace]
