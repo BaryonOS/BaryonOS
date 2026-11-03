@@ -118,7 +118,10 @@ impl Layout {
     pub fn result_bounds(self, scale: u32) -> Rect {
         Rect {
             x: self.x,
-            y: self.result_y.saturating_sub(18),
+            y: self
+                .result_y
+                .saturating_sub(18)
+                .max(self.expression.y + self.expression.height),
             width: self.width,
             height: Font::new(Size::Title, Weight::Semibold, scale == 2)
                 .height()

@@ -172,3 +172,18 @@ fn complete_result_selection_and_clear_pixels_are_inside_retained_damage_at_both
         }
     }
 }
+
+#[test]
+fn result_hit_box_starts_below_formula_at_all_supported_proof_scales() {
+    for (width, height, scale) in [(320, 240, 1), (320, 484, 1), (640, 608, 2)] {
+        let view = Viewport::new(width, height, scale).unwrap();
+        let layout = render::Layout::new(view);
+        let result = layout.result_bounds(scale);
+        assert!(result.y >= layout.expression.y + layout.expression.height);
+        assert!(result.contains(layout.x + 1, layout.result_y));
+        assert!(!result.contains(
+            layout.expression.x + 1,
+            layout.expression.y + layout.expression.height - 1
+        ));
+    }
+}

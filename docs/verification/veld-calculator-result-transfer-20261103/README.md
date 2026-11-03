@@ -1,9 +1,13 @@
 # VELD-11: rekenresultaat naar document overnemen
 
-Status: **QUEUED-FOR-INTEGRATION**, geen OPEN-PR-LEASE en dus geen nieuwe PR.
-Branch `veld/calculator-result-transfer-20261103`, opnieuw opgehaalde
+Status (3 november 2026): **OPEN PR #192**, in review en nog niet
+geïntegreerd. De eerdere fase **QUEUED-FOR-INTEGRATION** en eventuele
+OPEN-PR-LEASE betreffen de werkorganisatie, niet het actuele bestaan
+van deze PR.
+Branch `veld/calculator-result-transfer-20261103`, oorspronkelijke
 mainbasis `681f1137e411d6c6fe536bd2bf499c27b34832be`.
-Geen import van VELD-09/10/#157, geen PR zonder OPEN-PR-LEASE.
+Geen import van VELD-09/10/#157; een volgende zelfstandige PR vereist
+opnieuw een passende OPEN-PR-LEASE.
 De mainintegratie van deze onafhankelijke calculatorhunks vraagt later
 behoud van de afzonderlijke undo-/recallwijzigingen en gerichte regressies.
 
