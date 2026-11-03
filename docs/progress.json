@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "47ec535f15bb10912dbc6cbf1af3de9df0c6c226",
+    "source_commit": "fc3b5e2522e04f636bdb443299da6e8f99161afe",
     "assessment_basis": "source_commit",
     "reviewed_commit": "cc1dea7eeeae01448a378ee422837b0438ecc7b5",
     "reviewed_commit_context": "Historische review van de PR148-documentatiestatus en reikwijdte van hostbewijs; geen integratiereview.",
@@ -15,10 +15,10 @@
       "evidence_basis": "Git-mergeouders en handoff in docs/PROJECT-STATE.md; gerichte integratietests zijn daar gemeld met uitvoer uitsluitend in het sessietranscript. De eerdere PR148-hostreceipts zijn geen integratiereviewbewijs.",
       "missing_evidence": "Afzonderlijk, brongebonden bewijs van de integratiereview ontbreekt; nieuwe-head CI en review moeten nog worden beoordeeld."
     },
-    "branch": "simonvanieperen-upgraded-disco",
-    "task": "PR148-conflicten met main 8e0c15d inhoudsbehoudend integreren",
+    "branch": "simonvanieperen-laughing-fortnight",
+    "task": "PR138: statusconflict met main d686bd54 inhoudsbehoudend integreren",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Drie centrale documentconflicten behouden beide checkpointreeksen en hun afzonderlijke bewijsbronnen. Gedeelde harnashulpfuncties komen exact uit main; PR148-volume-admissie blijft behouden. Geen handmatige codewijziging, nieuw criterium of native acceptatie. Gerichte integratievalidatie en nieuwe-head CI worden afzonderlijk gerapporteerd."
+    "summary": "41/100 blijft 41/100. Eén statusconflict met main d686bd54 is inhoudsbehoudend opgelost; beide checkpointgeschiedenissen en hun brongebonden bewijs blijven behouden. Code is automatisch samengevoegd zonder handmatige runtimewijziging. De integration_review-velden beschrijven uitsluitend de historische PR148-integratie, niet deze PR138-boom. Geen nieuw criterium of native acceptatie. Gerichte integratievalidatie en nieuwe-head CI worden afzonderlijk gerapporteerd."
   },
   "tracks": [
     {
