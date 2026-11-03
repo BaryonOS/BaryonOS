@@ -213,12 +213,62 @@ beveiligingsupdates, toegankelijkheid, prestatie, sitebreuk en herstel op de
 ondersteunde hardware. Pas dan kan browserfunctionaliteit bijdragen aan A04 en
 relevante privacy-/netwerkcriteria van de vaste roadmap.
 
+### BR1 — eerste upstream hostslice, 3 november 2026
+
+De geïsoleerde crate `experiments/browser-parser-host` bouwt upstream
+`scraper 0.29.0` op een vaste UTF-8-HTML-fixture: invoerbytes → HTML5-DOM →
+CSS-selectorquery → begrensde titel-/linkinventaris. Dit is een parser-/DOM-
+componentproef op de host, niet een browserenginekeuze of Nieuw-OS-port.
+Dependencyherkomst, licenties, buildscripts en exacte tests staan in
+[`browser-parser-host-verificatie`](verification/browser-parser-host/README.md)
+en [`de derdenregistratie`](../experiments/browser-parser-host/THIRD-PARTY.md).
+
+| Browserfunctie/platformgrens | Benodigde Nieuw-OS-service of autoriteit | Deze slice |
+|---|---|---|
+| Documentinvoer | Een expliciete bron, later via een begrensde document-/downloadpoort of netwerkresponse; geen algemene bestandsmachtiging | Caller geeft maximaal 64 KiB fixturebytes door; geen bestand- of netwerk-I/O |
+| HTML5-DOM en selectorquery | Browserprocesgeheugen en parser | Hostcrate gebruikt upstream `scraper`; `no_std`-doel faalt |
+| CSS-styling, layout, fonts en paint | Browserstijl-/layoutketen, fontservice en een geïsoleerd compositor-/renderendpoint | Niet aanwezig |
+| Navigatie, DNS, TLS en verbindingen | Netwerkdienst met app-/bestemmingsrechten; geverifieerde peerfacts en onderhouden TLS | Niet aanwezig; `href` wordt niet opgelost of opgehaald |
+| Downloads en lokale documenten | Afzonderlijk download-/documentportaal met concrete objectrechten | Niet aanwezig |
+| Rendererprocessen, IPC en shared memory | Eigen kernel-launch, procesisolatie, begrensde IPC en capability-uitgifte/intrekking | Niet aanwezig |
+| Input, clipboard, camera/microfoon en locatie | Native input-/toestemmingsportalen met handeling- en oorsprongsgebonden scope | Niet aanwezig |
+| Browser-/engine-updates en certificaat-/tijdvertrouwen | Geauthenticeerde updateketen en expliciete tijd-/trustbron | Niet aanwezig |
+
+De tabel is een product-/servicegrensinventaris, geen bewezen engine-ABI- of
+capabilitymapping. De precieze interfaces hangen af van een latere enginekeuze.
+De huidige parserlimieten begrenzen de caller-invoer en uitvoervorm, maar geen
+interne heap-, rekentijd- of parserdiepteconsumptie van upstream.
+
+De upstream `scraper`-release heeft ISC-licentie en recente repositoryactiviteit;
+de exacte packageversie/checksum en dependencyboom zijn vastgezet. `scraper`,
+`html5ever` en `tendril` gebruiken `std`; de check voor
+`x86_64-unknown-none` faalde. Daarmee is deze component alleen geschikt voor
+de hostfixtureproef. Chromium blijft een voorkeurskandidaat **als** zijn
+onderhoud, licentie, build en integratie met deze OS-services haalbaar blijken.
+De [officiële Chromium-buildinstructies](https://chromium.googlesource.com/chromium/src/+/main/docs/linux/build_instructions.md)
+beschrijven een omvangrijke Linux-hostbuild, niet een Nieuw-OS-target. Die
+build en de BR0 Chromium/Gecko-
+vergelijking zijn hier niet uitgevoerd; geen enginebesluit is genomen.
+
+**Primaire bronnen gecontroleerd op 3 november 2026:**
+
+- rust-scraper, *scraper 0.29.0*, crate-/releasemetadata en dependencymanifest:
+  [crates.io](https://crates.io/crates/scraper/0.29.0) en
+  [manifest op VCS-revisie `149ae5c9`](https://github.com/rust-scraper/scraper/blob/149ae5c9dfbaca2e6b92470018fedc95ab254d5d/scraper/Cargo.toml).
+- Servo, *html5ever 0.40.1*, upstream HTML-parserdocumentatie en manifest:
+  [crates.io](https://crates.io/crates/html5ever/0.40.1) en
+  [Servo/html5ever](https://github.com/servo/html5ever).
+- Chromium Project, *Linux build instructions*, actuele upstream
+  buildvereisten:
+  [chromium.googlesource.com](https://chromium.googlesource.com/chromium/src/+/main/docs/linux/build_instructions.md).
+
 ## 10. Bewijsgrens en voortgang
 
 Deze notitie is onderzoeks- en productdocumentatie. Zij implementeert geen
 browser, netwerkstack of sandbox en sluit daarom geen bestaand
-acceptatiecriterium. De vaste projectscore blijft door deze wijziging
-**14% → 14%**.
+acceptatiecriterium. De **historische meting op 28 oktober 2026** was
+**14% → 14%**; de actuele assessment staat in
+[`PROJECT-STATE.md`](PROJECT-STATE.md) en `docs/progress.json`.
 
 ## Bronnen
 

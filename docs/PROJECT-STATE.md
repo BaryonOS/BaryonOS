@@ -1,6 +1,43 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — M4 Terminal-I/O-fundament — 3 november 2026
+## NEXT AGENT HANDOFF — M5 Browser Platform eerste hostslice — 3 november 2026
+
+**Basisbron:** `17cd0ace7ca8730e3fd6fa8ebc76a226cbc2d1be`, branch
+`simonvanieperen-vigilant-robot`; de remote-head was bij aanvang gelijk en de
+werkboom was schoon.
+
+**PR-status bij controle vóór deze M5-commit:** #156 is open tegen `main`;
+de head was `17cd0ace7ca8730e3fd6fa8ebc76a226cbc2d1be` en de reviewbeslissing
+was `CHANGES_REQUESTED`. De bestaande CodeRabbit-review bevat een
+niet-beoordeelde mogelijke policy-authorisatiebevinding en documentatiepunten
+op eerder werk. M5 wijzigt die code niet; deze checkpoint is geen
+reviewgoedkeuring of merge.
+
+**M5-resultaat:** `experiments/browser-parser-host` bouwt de vastgezette
+upstream `scraper 0.29.0` voor een hostfixture: HTML5-DOM en CSS-selectorquery
+leveren een begrensde titel-/linkinventaris. Vijf hosttests, Clippy, rustfmt
+en offline lockfilecontrole slagen. Geen enginekeuze, Chromium-build,
+Nieuw-OS-port, native renderer, netwerk, bestandstoegang of capability is
+geïmplementeerd. De `x86_64-unknown-none`-check faalt omdat de parserketen
+`std` gebruikt. Exacte commando's, logs, hashes en dependencygrenzen:
+[M5 hostbewijs](verification/browser-parser-host/README.md) en
+[derdenregistratie](../experiments/browser-parser-host/THIRD-PARTY.md).
+
+**M4-afhankelijkheid geregistreerd:** de volledige native Terminal-keten blijft
+geblokkeerd op de in `docs/WORK-QUEUE.md` vermelde REL-ownerhandoff voor
+consumer-IPC/protocol/rootbootstrap; UI13 bezit daarnaast de renderer- en
+regressiepaden. Deze stap heeft die toegewezen paden niet gewijzigd.
+
+**Voortgang:** **41 → 41/100**. De vaste rubric verandert niet: hostparser- en
+fixturebewijs accepteert geen bestaand criterium. Geen QEMU-, native-,
+CI-, fysieke- of gebruikerstest is uitgevoerd.
+
+**Open/eerstvolgend:** enginekeuze blijft open. De browser-servicekaart staat
+in [privacybrowseronderzoek](PRIVACY-BROWSER-RESEARCH.md); BR0 Chromium/Gecko-
+vergelijking en echte OS-serviceintegratie zijn niet uitgevoerd. Blijf
+capability-, netwerk-, document- en procesgrenzen afzonderlijk houden.
+
+## Historisch checkpoint — M4 Terminal-I/O-fundament — 3 november 2026
 
 **Bronbasis:** `49e83f56ed083b4f7a9628559d6a37f99b986dca`, branch
 `simonvanieperen-vigilant-robot`. De werkboom was schoon bij aanvang. Er is

@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`49e83f56`](https://github.com/simonvanieperen/nieuw-os/commit/49e83f56ed083b4f7a9628559d6a37f99b986dca) ·
+**Bron:** [`17cd0ace`](https://github.com/simonvanieperen/nieuw-os/commit/17cd0ace7ca8730e3fd6fa8ebc76a226cbc2d1be) ·
 **Ontwikkelbranch:** `simonvanieperen-vigilant-robot`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** M4: terminal input, argv parsing, and bounded Message320 I/O protocol.
-41 blijft 41. De SDK-terminalkern levert begrensde UTF-8-regelbewerking, argv-parsing en een peer-/job-/sequence-gebonden Message320-payloadprotocol; 11 hosttests, fmt/check/Clippy en x86_64-unknown-none-check slagen. Geen endpoint-/launchintegratie of native Terminal-app; geen vast rubriccriterium gesloten.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** M5 Browser Platform: begrensde upstream HTML-hostproef.
+41 blijft 41. Een geïsoleerde hostcrate bouwt upstream scraper 0.29.0 op een vaste HTML-fixture; vijf hosttests, Clippy, fmt en offline lockfilecontrole slagen. De no_std-doelcheck faalt; geen OS-service of native browserintegratie en geen vast rubriccriterium gesloten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
