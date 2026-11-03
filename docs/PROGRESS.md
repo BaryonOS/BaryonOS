@@ -85,6 +85,12 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Main-reconciliatie (3 november 2026), bron `cbe28f39`: **41 -> 41**.
+Simons main134-squashcbbc9c99 behoudend opgenomen;10 netwerkservice- en16
+opslaghosttests groen,207 archiefhashes/99manifestentries geldig.
+Rubric buiten assessment identiek; historische134-nativegrenzen niet als
+verse uitvoering gepresenteerd. Volledige nieuwe CI/review blijft vereist.
+
 Documentstapelintegratie (3 november 2026), bron `1552e5ae`: **41 -> 41**.
 Volledige136/143/144/145-heads zijn boven de PR114-fixes behouden; geen
 runtime-, tool- of testcode gewijzigd door die vier merges. Alle rubricvelden

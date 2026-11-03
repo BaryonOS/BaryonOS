@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`1552e5ae`](https://github.com/simonvanieperen/nieuw-os/commit/1552e5ae1a0e053a6df5ef802f6c0e4e78544cf7) ·
+**Bron:** [`cbe28f39`](https://github.com/simonvanieperen/nieuw-os/commit/cbe28f397ea026ea1b1d2164899b140556060bef) ·
 **Ontwikkelbranch:** `simon/profiles-users-plan`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR136/143/144/145 inhoudsbehoudend met de actuele PR114-reviewfixes combineren.
-41 blijft41. Volledige136f692/143d169/144a974/145da591-heads zijn boven PR114720 behouden: README-codeleesintro, vaste14-commitchangelog, expliciet beperkte statische AI-review zonder bestandsdekking en gecorrigeerde39-groepen/62open-criteria-audit. Alle rubricvelden buiten assessment waren identiek; huidige centrale status blijft behouden en oudere unieke checkpoints zijn historisch opgenomen. Geen runtime/tool/testcode gewijzigd door deze vier merges;16 manifest/replayhosttests en207 oude hashes plus99 vaste manifestentries blijven verplicht. Geen nieuwe native, menselijke of releaseacceptatie; actuele gecombineerde CI/review en hoofdbranchopname nog open.119headdrift en135fixturelevering blijven afzonderlijk open.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Simons actuele main-TCP-merge behoudend in de volledige documentstapel opnemen.
+41 blijft41. Simons handmatige mainmergecbbc9c99 is behoudend opgenomen naast volledige136/143/144/145-heads en PR114720-fixes. Exacte main-TCP-code/tests/bewijs intact; nieuwere documentstatus en historische134-proefgrenzen apart behouden.10 echte netwerkservice- en16 opslaghosttests groen,207 archiefhashes plus99 receiptentries geldig; rubric buiten assessment identiek aan main. Nieuwe gecombineerde CI/review vereist. Geen nieuwe native/hardware/menselijke/releaseacceptatie;119metadata en135hostedfixturelevering blijven afzonderlijk open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
