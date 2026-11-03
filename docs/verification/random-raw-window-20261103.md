@@ -13,12 +13,18 @@
 
 ## Rood bewijs en oorzaak
 
-Run `41671957624`, job `126042385200`, CI-head
-`16eefda390cce7d71a35ddf35c6e58dcb44a3938`: de gast faalt op stap 15,
+Run [41671957624, job 126042385200](https://github.com/simonvanieperen/nieuw-os/actions/runs/41671957624/job/126042385200),
+CI-head `16eefda390cce7d71a35ddf35c6e58dcb44a3938`: de gast faalt op stap 15,
 request 1064, expected count 0, status 0, bodylengte 17. Burst start 131,
 eind 245, failure tick 247. De 64 sequentiele volledige RPC's duren 114 ticks,
 terwijl het productiequotavenster 100 ticks duurt. Een success na vernieuwing
 van het venster is toegestaan; dit is geen aangetoonde productquotafout.
+
+Primaire bron voor deze CI-waarneming: de genoemde GitHub Actions-job
+`native-foundation` in workflow **Native RANDOM and image foundation
+acceptance** van GitHub (3 november 2026; run 41671957624, job 126042385200; head
+`16eefda390cce7d71a35ddf35c6e58dcb44a3938`). Dit is bestaand rood CI-bewijs,
+geen herhaalde run in deze extractie.
 
 `git diff 16eefda3 a32eadb1 -- sdk/examples/random-probe
 services/keyring/src/random.rs tools/run_random.py
@@ -33,9 +39,16 @@ daarnaast deterministisch als hostregressie nagebootst.
 ## Correctie en invarianten
 
 Dezelfde requests 1000..1064, elk een byte, gaan in vier batches van 16.
-Beide bestaande IPC-wachtrijen hebben capaciteit 16. Iedere batch wordt
-volledig ontvangen voordat de volgende wordt verstuurd. De service behoudt
-haar bestaande verwerking, scheduler en pending-replygedrag.
+Beide bestaande IPC-endpointwachtrijen hebben capaciteit 16. De primaire
+bron is [Nieuw OS, `capability-core` endpointqueue (`QUEUE_CAPACITY`), commit
+`78ff7c03b015ad16fe665ae7df9fe239d078e08d`, 3 november 2026](https://github.com/simonvanieperen/nieuw-os/blob/78ff7c03b015ad16fe665ae7df9fe239d078e08d/crates/capability-core/src/lib.rs#L72);
+de capaciteit geldt per endpoint in de gedeelde capability-engine.
+Het ongewijzigde productiebeleid staat in [Nieuw OS, keyring RANDOM-quotavenster
+en calllimiet, commit `78ff7c03b015ad16fe665ae7df9fe239d078e08d`,
+3 november 2026](https://github.com/simonvanieperen/nieuw-os/blob/78ff7c03b015ad16fe665ae7df9fe239d078e08d/services/keyring/src/random.rs#L17-L19):
+100 ticks en maximaal 64 calls per venster. Iedere batch wordt volledig
+ontvangen voordat de volgende wordt verstuurd. De service behoudt haar
+bestaande verwerking, scheduler en pending-replygedrag.
 
 Iedere reply blijft strikt gecontroleerd op afzender, tag, capabilities,
 request-ID, status, lengte en canonicalisatie; buffers behouden zeroizing.
@@ -245,6 +258,10 @@ SHA-256 `serial.txt`:
 `878ecf82053e1618147ec08be10fe48fad8d371bddfba34e36406b11feaab611`.
 SHA-256 `result.json` en `random-report.json`:
 `cd9ba380c5820e3f5d14d52f547f624c0ba865d4566705a3d7a4dc62208efd80`.
+De runmap, VM-/diskimages, ruwe serial- en JSON-resultaatbestanden en
+commandologs zijn lokale buildartefacten buiten Git; alleen de hierboven
+vermelde compacte uitkomsten, paden en hashes staan in deze receipt. De hashes
+maken de niet-gecommitte lokale artefacten niet zelfstandig beschikbaar.
 
 Logs zijn buiten Git bewaard:
 
