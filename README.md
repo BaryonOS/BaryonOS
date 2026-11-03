@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`341d1b42`](https://github.com/simonvanieperen/nieuw-os/commit/341d1b428d436ac0e33c5bf3d7eb684f8543109c) ·
+**Bron:** [`0a49a382`](https://github.com/simonvanieperen/nieuw-os/commit/0a49a3822e5d872f75573f12cd072e76e1249e1b) ·
 **Ontwikkelbranch:** `simonvanieperen-supreme-spork`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR139: actuele main integreren met behoud van bron-/bewijsgrenzen.
-41/100 blijft 41/100. De assessmentbasis is de PR-head 341d1b42; eerder replay-/umaskbewijs blijft exact gebonden aan 732fa9cc en historische OS-workflowruns uitsluitend aan 380111b. De negen artifact-store-contracttests, pinned Rust 1.90.0 formatting en Clippy slagen op de geïntegreerde boom. Dit bewijst geen identiteit/authenticatie, native uitvoering of nieuw productcriterium.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR139: ontbrekende contracttestreceipt op exact geïntegreerde boom uitvoeren en bewaren.
+41/100 blijft41/100. Op exacte geïntegreerde bron0a49a382 zijn negen artifact-store-contracttests, Rust1.90.0 fmt en Clippy werkelijk opnieuw uitgevoerd: elk exit0. Primaire volledige logs, exacte commando's, tree en codehashes staan in docs/verification/pr139-artifact-contract-receipt.json. Eerdere gemelde Watch-tests zonder primaire receipt blijven historisch niet onafhankelijk geverifieerd; replay/umask blijft bron732 en historische OS-workflowruns bron380. Geen identiteit/authenticatie, native uitvoering of nieuw criterium.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -1,12 +1,30 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR139 actuele main geïntegreerd — 3 november 2026
+## NEXT AGENT HANDOFF — PR139 exacte contracttestreceipt — 3 november 2026
+
+**Werkelijk opnieuw geteste bron:** `0a49a3822e5d872f75573f12cd072e76e1249e1b`,
+de geïntegreerde PR139-boom met main `d115cc96`.
+Negen artifact-store-contracttests, Rust1.90.0 fmt en Clippy: elk exit0.
+Volledige primaire logs, exacte commando's, tree en codehashes:
+[contracttestreceipt](verification/pr139-artifact-contract-receipt.json).
+Dit vervangt geen native acceptatie; eerdere Watch-testclaims zonder
+primaire receipt zijn niet retrospectief als geverifieerd bestempeld.
+Replay-/umaskbewijs blijft exact aan732 gebonden en OS-workflowhistorie
+uitsluitend aan380. **41 → 41**, geen criteriumwijziging.
+
+**Open/eerstvolgend:** `GH_PAGER="" gh pr checks 139`, daarna live
+head/base/threads en inhoudsbehoud hercontroleren vóór guarded squash.
+Geen testbewijs stilzwijgend naar een latere Watch-head promoveren.
+
+## Historisch checkpoint — PR139 actuele main geïntegreerd — 3 november 2026
 
 Basis vóór integratie: PR-head `341d1b428d436ac0e33c5bf3d7eb684f8543109c`
 en actuele `main` `d115cc96c19ac4371baed77409a23d1adddffaf0`.
 Conflicten in README, progress.json, PROGRESS.md en PROJECT-STATE.md zijn
 opgelost met behoud van PR139-bronrollen en PR140-statushistorie. Main voegt
-de `artifact-store-core`-contracttests toe. `cargo test --locked
+de `artifact-store-core`-contracttests toe. Eerder gerapporteerd, destijds
+zonder primaire PR139-receipt (dus niet onafhankelijk geverifieerd):
+`cargo test --locked
 --manifest-path crates/artifact-store-core/Cargo.toml` slaagt (9 tests);
 `cargo +1.90.0 fmt --manifest-path crates/artifact-store-core/Cargo.toml
 -- --check` en `cargo +1.90.0 clippy --locked --manifest-path

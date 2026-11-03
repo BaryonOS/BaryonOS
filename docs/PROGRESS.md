@@ -85,9 +85,18 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR139-review (3 november2026), exact geteste geïntegreerde bron `0a49a382`:
+**41 → 41**. Negen artifact-store-contracttests, Rust1.90.0 fmt en Clippy
+daadwerkelijk opnieuw groen; primaire logs/boom/commando's/codehashes staan
+in [de contracttestreceipt](verification/pr139-artifact-contract-receipt.json).
+Geen retrospectieve validatie van eerdere Watch-claims zonder receipt,
+geen nieuwe native of menselijke acceptatie.
+
 PR139-mainintegratie (3 november 2026), basis `341d1b42` met main
 `d115cc96`: **41 → 41**. De negen `artifact-store-core`-contracttests,
-formatcontrole en Clippy slagen met Rust 1.90.0 op de geïntegreerde boom.
+formatcontrole en Clippy waren destijds als geslaagd gemeld zonder primaire
+PR139-receipt. Niet retrospectief geverifieerd; de nieuwe uitvoering op
+`0a49a382` hierboven heeft wel volledige primaire receipts.
 Dit toetst descriptorvalidatie en bounded-readgedrag, niet identiteit of
 authenticatie; geen native/productacceptatie of nieuwe punten. De op oude
 head `341d1b42` gerapporteerde `b03-native-update`-failure is door de
