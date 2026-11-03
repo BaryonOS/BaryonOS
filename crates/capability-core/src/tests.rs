@@ -1482,6 +1482,62 @@ fn source_recreation_preflight_checks_owner_and_terminal_generation() {
 }
 
 #[test]
+fn process_usage_is_read_only_scoped_and_accounts_owned_capability_resources() {
+    run(|e| {
+        setup(e, 2);
+        e.create_endpoint(1).unwrap();
+        e.create_block_device(1, block_scope()).unwrap();
+        e.create_launch(1, 7).unwrap();
+        e.create_process(1, 2).unwrap();
+        e.create_entropy(1).unwrap();
+        e.create_network(1).unwrap();
+        e.create_display(1).unwrap();
+        e.create_input(1).unwrap();
+        let before = e.clone();
+        let usage = e.process_usage(1).unwrap();
+        assert_eq!(
+            usage,
+            ProcessUsage {
+                pid: 1,
+                handles: 8,
+                authority_nodes_issued: 8,
+                endpoints: 1,
+                block_objects: 1,
+                launch_objects: 1,
+                child_process_objects: 1,
+                entropy_objects: 1,
+                network_objects: 1,
+                display_objects: 1,
+                input_objects: 1,
+                available_handle_slots: MAX_SLOTS - 1 - 8,
+                remaining_owned_endpoint_quota: MAX_OWNED_ENDPOINTS - 1,
+                ..ProcessUsage::default()
+            }
+        );
+        assert_eq!(e.process_usage(2).unwrap().handles, 0);
+        assert_eq!(e.process_usage(99), Err(Error::BadHandle));
+        assert_eq!(*e, before);
+    });
+}
+
+#[test]
+fn process_usage_charges_ipc_queue_to_receiver_owner_and_releases_it() {
+    run(|e| {
+        setup(e, 2);
+        let (receiver, sender) = destination(e);
+        e.send(1, sender, &Message::new()).unwrap();
+        let owner_usage = e.process_usage(2).unwrap();
+        let sender_usage = e.process_usage(1).unwrap();
+        assert_eq!(owner_usage.endpoints, 1);
+        assert_eq!(owner_usage.queued_messages, 1);
+        assert_eq!(sender_usage.endpoints, 0);
+        assert_eq!(sender_usage.queued_messages, 0);
+        e.receive(2, receiver).unwrap();
+        assert_eq!(e.process_usage(2).unwrap().queued_messages, 0);
+    });
+}
+
+#[test]
 fn endpoint_object_identifies_shared_endpoints_without_granting_anything() {
     run(|e| {
         setup(e, 3);

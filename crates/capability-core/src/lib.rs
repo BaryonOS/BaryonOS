@@ -585,6 +585,29 @@ pub struct Stats {
     pub state_digest: u64,
 }
 
+/// Read-only capability and IPC usage owned or held by one registered process.
+///
+/// This view covers only resources represented by the capability engine; it
+/// does not account for memory, CPU time, storage, DMA or device-driver buffers.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ProcessUsage {
+    pub pid: u64,
+    pub handles: usize,
+    pub authority_nodes_issued: usize,
+    pub revoked_nodes_issued: usize,
+    pub endpoints: usize,
+    pub queued_messages: usize,
+    pub block_objects: usize,
+    pub launch_objects: usize,
+    pub child_process_objects: usize,
+    pub entropy_objects: usize,
+    pub network_objects: usize,
+    pub display_objects: usize,
+    pub input_objects: usize,
+    pub available_handle_slots: usize,
+    pub remaining_owned_endpoint_quota: usize,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Engine {
     processes: [Process; MAX_PROCESSES],
@@ -1989,6 +2012,82 @@ impl Engine {
         }
         s
     }
+
+    /// Return a non-mutating per-process usage snapshot for resources owned by
+    /// or held in that process. Queued IPC is charged to its receiving
+    /// endpoint owner; capability nodes are attributed to their issuer.
+    pub fn process_usage(&self, pid: u64) -> Result<ProcessUsage, Error> {
+        let process_index = self.process(pid)?;
+        let process = &self.processes[process_index];
+        let mut usage = ProcessUsage {
+            pid,
+            handles: process.slots[1..]
+                .iter()
+                .filter(|slot| slot.node != Id::NONE)
+                .count(),
+            authority_nodes_issued: self
+                .nodes
+                .iter()
+                .filter(|node| node.live && node.issuer == pid)
+                .count(),
+            revoked_nodes_issued: self
+                .nodes
+                .iter()
+                .filter(|node| node.live && node.revoked && node.issuer == pid)
+                .count(),
+            available_handle_slots: process.slots[1..]
+                .iter()
+                .filter(|slot| !slot.retired && slot.node == Id::NONE)
+                .count(),
+            ..ProcessUsage::default()
+        };
+        for endpoint in self
+            .endpoints
+            .iter()
+            .filter(|endpoint| endpoint.live && endpoint.owner == pid)
+        {
+            usage.endpoints += 1;
+            usage.queued_messages += usize::from(endpoint.len);
+        }
+        usage.block_objects = self
+            .blocks
+            .iter()
+            .filter(|object| object.live && object.owner == pid)
+            .count();
+        usage.launch_objects = self
+            .launches
+            .iter()
+            .filter(|object| object.live && object.owner == pid)
+            .count();
+        usage.child_process_objects = self
+            .children
+            .iter()
+            .filter(|object| object.live && object.owner == pid)
+            .count();
+        usage.entropy_objects = self
+            .entropy
+            .iter()
+            .filter(|object| object.live && object.owner == pid)
+            .count();
+        usage.network_objects = self
+            .network
+            .iter()
+            .filter(|object| object.live && object.owner == pid)
+            .count();
+        usage.display_objects = self
+            .display
+            .iter()
+            .filter(|object| object.live && object.owner == pid)
+            .count();
+        usage.input_objects = self
+            .input
+            .iter()
+            .filter(|object| object.live && object.owner == pid)
+            .count();
+        usage.remaining_owned_endpoint_quota = MAX_OWNED_ENDPOINTS.saturating_sub(usage.endpoints);
+        Ok(usage)
+    }
+
     /// Diagnostic fingerprint only, not cryptography or proof against collisions.
     /// The complete original word stream is retained; no cache/live filtering.
     pub fn state_digest(&self) -> u64 {
