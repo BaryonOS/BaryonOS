@@ -9,15 +9,15 @@ geënumereerd, QEMU-run of fysieke hardwaretest uitgevoerd.
 - Branch: `copilot/xhci-reviewfix`
 - Basis: main `a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e`
 - Bevroren reviewreferentie: `f2a8f6eecb2cf2be5399b331223da152d8975d80`
-- Reviewfixbroncommit: `3a63f4512f6f16c2f5ebca7b2e2e21221f87f7f4`
+- Reviewfixbroncommit: `5995dacb9d28225a389a71d2c392e220f702fab4`
 - De standalone `no_std`-crate matcht PCI class `0c:03:30`, valideert een
   devicegebonden 32-/64-bit non-prefetchable BAR0-grant van minimaal 4 KiB en
   leest alleen `CAPLENGTH`, `HCIVERSION`, `HCSPARAMS1`, `HCCPARAMS1`, `DBOFF`
   en `RTSOFF`.
 - De volledige operationalregisterregio inclusief `max_ports` portregisters,
   de doorbell-array, runtime-registers en de eerste extended-capabilityheader
-  worden op uitlijning, overflow, BAR-bounds en overlap met andere
-  geadverteerde gebieden gecontroleerd. Alle drie `HCSPARAMS1`-limieten
+  worden op uitlijning, overflow, BAR-bounds en overlap met capability- of
+  andere geadverteerde gebieden gecontroleerd. Alle drie `HCSPARAMS1`-limieten
   (`max_slots`, `max_interrupters`, `max_ports`) moeten niet nul zijn. De
   extended-capabilityketen wordt niet gevolgd.
 - De crate schrijft geen controllerregisters, neemt het device niet over van
@@ -26,19 +26,20 @@ geënumereerd, QEMU-run of fysieke hardwaretest uitgevoerd.
   tijdelijk de PCI-configuratie-BARs, herstelt hun oorspronkelijke waarden en
   laat I/O-decode, memory-decode en bus mastering uitgeschakeld; xHCI-MMIO
   wordt alleen gelezen.
-- Dertien hosttestgevallen zijn aanwezig en door Clippy gecompileerd/typechecked,
+- Vijftien hosttestgevallen zijn aanwezig en door Clippy gecompileerd/typechecked,
   maar de testbinary werd niet gelinkt of uitgevoerd. Negatieve gevallen
   bestrijken nul-limieten, overlap van portregisters en extended-capability-
-  headers, uitgeschakelde PCI-decode/bus mastering na discovery en een
-  niet-reagerende PCI-functie.
+  headers, overlap met de capabilityruimte, `max_ports`-BAR-bounds,
+  uitgeschakelde PCI-decode/bus mastering na discovery en een niet-reagerende
+  PCI-functie.
 
 ## Uitgevoerde controles
 
 | Commando | Exit | Resultaat |
 |---|---:|---|
 | `CARGO_TARGET_DIR=build/xhci-reviewfix $HOME/.cargo/bin/cargo +1.90.0 fmt --manifest-path drivers/xhci/Cargo.toml -- --check` | 0 | Formattercheck geslaagd; log `/tmp/nieuw-os-xhci-reviewfix-fmt.log`, SHA-256 `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
-| `CARGO_TARGET_DIR=build/xhci-reviewfix $HOME/.cargo/bin/cargo +1.90.0 clippy --manifest-path drivers/xhci/Cargo.toml --all-targets --offline -- -D warnings` | 0 | Strict Clippy geslaagd, inclusief compilatie/typecheck van testcode; log `/tmp/nieuw-os-xhci-reviewfix-clippy.log`, SHA-256 `0b5c81ddcec9e1e2acb0d7e44f73a0dfdf9bf25cad47b4eec678146db3adbe57` |
-| `CARGO_TARGET_DIR=build/xhci-reviewfix $HOME/.cargo/bin/cargo +1.90.0 check --manifest-path drivers/xhci/Cargo.toml --target x86_64-unknown-none --offline --locked` | 0 | Freestanding librarycheck geslaagd; log `/tmp/nieuw-os-xhci-reviewfix-none-check.log`, SHA-256 `02db5a66fa0c60ca8618bd08aac556eac4f3ec863e8630a0d353dba6a0f6e126` |
+| `CARGO_TARGET_DIR=build/xhci-reviewfix $HOME/.cargo/bin/cargo +1.90.0 clippy --manifest-path drivers/xhci/Cargo.toml --all-targets --offline -- -D warnings` | 0 | Strict Clippy geslaagd, inclusief compilatie/typecheck van testcode; log `/tmp/nieuw-os-xhci-reviewfix-clippy.log`, SHA-256 `fdc5ca451b3817065e58c2902bdbb45f75609908eb7dd770b133231909607567` |
+| `CARGO_TARGET_DIR=build/xhci-reviewfix $HOME/.cargo/bin/cargo +1.90.0 check --manifest-path drivers/xhci/Cargo.toml --target x86_64-unknown-none --offline --locked` | 0 | Freestanding librarycheck geslaagd; log `/tmp/nieuw-os-xhci-reviewfix-none-check.log`, SHA-256 `1b54b439d4653b115688021ef7dbdacf9b7049b72bc76d4f864334e32f4beae6` |
 | `CARGO_TARGET_DIR=build/xhci-reviewfix $HOME/.cargo/bin/cargo +1.90.0 test --manifest-path drivers/xhci/Cargo.toml --offline --locked` | 101 | Hosttests niet uitgevoerd: linker `cc` ontbreekt; log `/tmp/nieuw-os-xhci-reviewfix-host-test.log`, SHA-256 `5794eb392edef4fa5869665314b6e8c20e7f6d7fa83025c80c151481c5bca224` |
 | `git diff --check` | 0 | Geen whitespacefouten in de reviewfix |
 
