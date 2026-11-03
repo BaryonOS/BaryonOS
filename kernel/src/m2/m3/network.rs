@@ -223,12 +223,12 @@ pub(super) fn syscall(s: &mut State, slot: usize, number: u64, args: [u64; 6]) -
     }
 }
 fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
-    if !matches!(n, 0x70..=0x72) {
+    if !matches!(n, 0x70..=0x72 | 0x74) {
         return Err(-2);
     }
     if a[4..].iter().any(|x| *x != 0)
         || n == 0x71 && a[2..4].iter().any(|x| *x != 0)
-        || n == 0x72 && a[3] != 0
+        || matches!(n, 0x72 | 0x74) && a[3] != 0
     {
         return Err(-1);
     }
@@ -306,6 +306,19 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
                 stop(r, s.ticks, error(e));
             }
             Ok(count as u64)
+        }
+        0x74 => {
+            if a[2] != 6 {
+                return Err(-11);
+            }
+            let copy = plans(s, slot, a[1], 6, true)?;
+            let r = runtime();
+            if r.offline != 0 {
+                return Err(r.offline);
+            }
+            let mac = r.device.as_ref().ok_or(-14)?.mac();
+            write(&copy, &mac);
+            Ok(6)
         }
         _ => Err(-2),
     }

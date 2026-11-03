@@ -149,6 +149,28 @@ blijven open. Geen native runtime-, fysieke hardware- of voortgangspunt volgt
 uit deze wijziging. Herzie de registryclassificatie wanneer alle actieve
 PCI-drivers via een gedeelde catalogus registreren.
 
+## ADR-068 — NIC-configuratie lezen via de gematchte netwerkcapability
+
+**Datum:** 3 november 2026. De netwerkdienst en native netwerkproef moeten
+de MAC van de werkelijk ontdekte NIC gebruiken, niet een in de ring-3-code
+ingebakken VirtIO-fixturewaarde. ABI-call `0x74` kopieert precies zes bytes
+uit de reeds gematchte VirtIO-netdriver, uitsluitend voor de eigenaar van de
+bijbehorende `NetworkSource`. De kernel valideert die capability, de volledige
+schrijfbare userspace-range en de exacte lengte vóór kopiëren. Dit is geen
+PCI-config-space-interface, geen algemene device-query en geen uitbreiding
+van bevoegdheid naar apps zonder `NetworkSource`.
+
+De netwerkproef controleert voor haar afgebakende QEMU-fixture nog steeds de
+verwachte MAC, maar bouwt ARP/UDP/DNS-frames met de uit de driver gelezen
+waarde. De herbruikbare ring-3-netwerkdienst haalt de MAC dynamisch op. MAC-,
+ARP- en IP-waarden zijn geen cryptografische peeridentiteit. QEMU-runtime en
+fysieke NIC zijn voor deze wijziging niet getest; daarvoor worden geen
+hardwareclaims gedaan.
+
+**Herzien:** bij een gedeelde `NetworkDevice`-interface of wanneer een tweede
+netwerkdriver wordt gekoppeld; die integratie mag de capabilitybinding niet
+verruimen.
+
 ## Onderzoeksbesluit J-20261102 — herkenbare basis, expliciete installatiegrens
 
 **Datum:** 2 november 2026. **Status:** ontwerp-/onderzoekskeuze, geen

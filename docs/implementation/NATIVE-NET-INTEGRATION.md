@@ -28,17 +28,23 @@ ABI-minor 1.5 voegt typed SDK-operaties toe, zonder Message320 te wijzigen:
 - `0x70`: send(cap, pointer, lengte, timeout 1..500 ticks) → ticket.
 - `0x71`: poll_tx(cap, ticket) → verstuurde framebytes of EAGAIN.
 - `0x72`: receive(cap, pointer, capaciteit) → volledig frame of EAGAIN.
+- `0x74`: net_mac(cap, pointer, lengte=6) → zes bytes van de gematchte NIC.
 
-Lengte maximaal 1514 bytes. Alle gebruikersmappings en rechten worden vóór
-publicatie of bufferwijziging gecontroleerd, ook over paginagrenzen. Gegevens
-worden gekopieerd naar/vanaf vier permanent gepinde driverpagina's. De
+Voor `0x74` wordt de volledige schrijfbare outputrange en dezelfde
+NetworkSource-eigenaarscapability gevalideerd; het is geen algemene
+PCI-/config-space-read. Frame-lengte is maximaal 1514 bytes. Alle
+gebruikersmappings en rechten worden vóór publicatie of bufferwijziging
+gecontroleerd, ook over paginagrenzen. Framegegevens worden gekopieerd
+naar/vanaf vier permanent gepinde driverpagina's. De
 privileged code verwerkt geen ARP-, IP-, UDP- of DNS-beleid. De huidige kleine
 broker plus virtio-driver blijft wel onderdeel van de onderzochte TCB; native
 userspacedriver-/IOMMU-isolatie wordt niet hierdoor geclaimd.
 
 Alleen het nieuwe profiel krijgt zijn begrensde UC/NX-MMIO-venster vanaf
-`0x3f100000`. MAC `02:00:00:00:00:07` en VERSION_1/MAC/STATUS-keuzes worden
-daadwerkelijk gecontroleerd. Een RX-wachtperiode is geen veilige DMA-reset.
+`0x3f100000`. De driver leest de MAC uit de gematchte NIC; de ring-3-proef
+controleert voor dit QEMU-fixture dat die `02:00:00:00:00:07` is.
+VERSION_1/MAC/STATUS-keuzes worden ook daadwerkelijk gecontroleerd. Een
+RX-wachtperiode is geen veilige DMA-reset.
 Een onzekere TX wordt niet herhaald; geheugen blijft gepind tot reset-ACK of
 quarantaine. Completion betekent devicecompletion, geen ontvangst door de peer.
 
@@ -59,7 +65,7 @@ gebruik na sluiten. De onafhankelijke peercontrole vergelijkt echte packets;
 de systeemgate behoudt daarnaast zijn disk-, crypto- en cleanupvoorwaarden.
 
 Verwachte aanvullende cijfers: ARP_REPLIES=1, UDP_ECHOES=1, DNS_ANSWERS=1,
-DENIED=7, TX_COMPLETIONS=8, RX_FRAMES=7, ARP_REJECTS=2, DNS_REJECTS=2,
+DENIED=10 (inclusief drie MAC-queryfoutgevallen), TX_COMPLETIONS=8, RX_FRAMES=7, ARP_REJECTS=2, DNS_REJECTS=2,
 RX_TIMEOUTS=1, CACHE_INTACT=1, STALE_CAP=1 (prefix `NET_`). Die waarden zijn
 vooraf vastgelegde eisen, geen reeds uitgevoerde resultaten.
 

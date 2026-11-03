@@ -83,8 +83,10 @@ De service valideert afzonderlijke handles en verschillende service/app-PIDs.
 |136/144|exacte UDP-poort A/B|
 |152/160|optionele controllerRECV / werkelijke controllerPID; beide0=afwezig|
 
-Linkprofiel is het bestaande NIC-profiel MAC02:00:00:00:00:07,
-192.0.2.2/24,peer192.0.2.1. De library ondersteunt gevalideerde andere
+De dienst leest de MAC van de bij offset48 toegekende `NetworkSource` via
+`net_mac`; er staat geen NIC-MAC hardcoded in de dienst-ELF. Het huidige
+QEMU-profiel levert `02:00:00:00:00:07`; IP-configuratie blijft hier
+`192.0.2.2/24`, peer `192.0.2.1`. De library ondersteunt gevalideerde andere
 on-linkconfiguraties; de native proof legt deze expliciete fixtureconfig vast.
 De service verkrijgt8bytes via de echte EntropySource voor de smoltcp-seed;
 geen vaste proefseed als productie-ISN-claim. MAC/ARP geven geen authenticatie.

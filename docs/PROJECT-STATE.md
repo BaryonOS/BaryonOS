@@ -1,30 +1,35 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PCI-mismatchrapportage gecontroleerd — 3 november 2026
+## NEXT AGENT HANDOFF — netwerkdienst gebruikt NIC-MAC uit capability — 3 november 2026
 
-Werkbranch `copilot/universal-driver-framework`; gecontroleerde en gepushte
-bronboom `6eeae37cef88d61d71905f03291014793304f470`. De PCI-rapportage staat
-op `340ecd12938f3915140315051aa2ca4bbcacd005`; constructiebeveiliging van
-`Mechanism1` en de BDF-documentatiecorrectie staan op `cace93cc2a24ada0d8088c0b782ee0e75443104b`.
-De registrygebonden constructie voorkomt veilige rechtstreekse constructie
-van de config-space-adapter zonder de onveilige constructor.
+Werkbranch `copilot/universal-driver-framework`; basiscommit
+`b8bae256f8db1e2bfc05db4694bfe61d938ee51f`. De vorige stap is getest,
+vastgelegd en gepusht; de [PCI-mismatchreceipt](verification/pci-unsupported-report-2026-11-03/README.md)
+documenteert de 40 hosttests, Clippy, formatter-/diff-checks en twee
+kernelprofielbuilds. PR #153 is open met `CHANGES_REQUESTED`, zonder
+gerapporteerde CI-checks.
 
-Op de gecontroleerde bronboom slaagden 40 hosttests, Clippy met
-`-D warnings`, formattercontrole, whitespacecontrole en de
-`milestone-m5`-/`native-system-net`-builds. Exacte commando's, exits, logs en
-hashes staan in de [receipt](verification/pci-unsupported-report-2026-11-03/README.md).
-PR #153 is open met `CHANGES_REQUESTED`; de gepushte head is gecontroleerd,
-maar er zijn geen CI-checks gerapporteerd. QEMU ontbreekt; serial runtime,
-fysieke hardware en onafhankelijke menselijke review zijn niet getest. Score
-blijft **41/100 → 41/100**.
+De huidige werkboom voegt netwerk-syscall `0x74` toe: alleen de eigenaar van
+dezelfde `NetworkSource` kan via volledige writable-range-validatie zes MAC-
+bytes uit de gematchte NIC ontvangen. `net-probe` gebruikt dit adres voor
+frames en test verkeerde capability, pointer en lengte; de netwerkdienst
+initialiseert zijn link-MAC dynamisch. `tools/run_net_system.py` en de
+verwachte denial-counters zijn aangepast. Besluit ADR-068 begrenst deze API.
+Deze werkboom is nog niet gevalideerd of gecommit.
 
-**Open/eerstvolgend:** pak de resterende PR-bevindingen aan, waaronder het
-doorgeven van de werkelijke NIC-MAC aan ring-3-networksoftware en de primaire
-PCI-bronverwijzingen. Migreer de resterende RNG-fixed-BDF-route en voeg
-actieve drivers daarna aan één gezaghebbende catalogus toe.
-Interrupt-/busmaster-/DMA-lifecycle wacht op het maturitybranch-contract.
-Meerdere instanties, ACPI/ECAM, bridges, USB-klassen, NVMe, GOP, QEMU-runtime
-en fysieke hardware blijven open.
+**Eerstvolgend:** voer SDK/service-hosttests, Python netwerkfixturetests,
+formatter/Clippy en de `native-system-net`-/`native-net-service`-builds uit;
+voer daarna de native gate uit als QEMU beschikbaar is. QEMU ontbreekt volgens
+de laatst gecontroleerde omgeving, dus VM- en fysieke hardwarebewijs mogen
+niet worden geclaimd. Werk daarna receipt/status bij en commit/push. Score
+blijft voorlopig **41/100**; deze interface/compileerbaarheid geeft op zichzelf
+geen acceptatiepunt.
+
+**Verder open:** primaire PCI-bronverwijzingen in review #153, resterende
+RNG-fixed-BDF-route, centrale drivercatalogus, resource broker voor IRQ/
+busmaster/DMA en lifecycle-afstemming met maturitybranch. Meerdere device-
+instanties, ACPI/ECAM, bridges, USB-klassen, NVMe, GOP, runtime en hardware
+blijven niet aangetoond.
 
 ### Implementatiestap — segment-0 enumeratie en VirtIO BDF-migratie
 

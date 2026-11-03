@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`6eeae37c`](https://github.com/simonvanieperen/nieuw-os/commit/6eeae37cef88d61d71905f03291014793304f470) ·
+**Bron:** [`b8bae256`](https://github.com/simonvanieperen/nieuw-os/commit/b8bae256f8db1e2bfc05db4694bfe61d938ee51f) ·
 **Ontwikkelbranch:** `copilot/universal-driver-framework`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PCI-mismatchrapportage en constructiebeveiliging.
-41/100 blijft 41/100. M5-profielen rapporteren type-0-PCI-endpoints zonder profielmatch vóór deviceactivatie; de scan is read-only en markeert onvolledige scans expliciet. De Mechanism1-adapter kan niet veilig buiten de onveilige constructor worden geconstrueerd en de BDF-documentatie is gecorrigeerd. Op bronboom 6eeae37 slaagden 40 hosttests, Clippy, fmt, diff-check en M5-/native-system-net-builds. QEMU/runtime, fysieke hardware en onafhankelijke menselijke review zijn niet getest; er is geen nieuw acceptatiepunt.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** NIC-MAC via capabilitygebonden netwerkinterface.
+41/100 blijft 41/100. De eerder geteste M5-PCI-scan rapporteert profielgebonden unsupported endpoints; Mechanism1-construction bypass is gesloten. Deze assessment betreft de nog niet gevalideerde toevoeging van capabilitygebonden NIC-MAC-lezen voor net-probe en de ring-3-netwerkdienst. Er is geen nieuw geaccepteerd criterium; QEMU-runtime en fysieke hardware zijn niet getest.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

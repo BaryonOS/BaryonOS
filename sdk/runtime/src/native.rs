@@ -410,6 +410,30 @@ pub fn net_receive(source: NetworkSource, out: &mut [u8]) -> Result<usize, Error
     }
 }
 
+/// Read the MAC address of the NIC bound to this `NetworkSource`.
+///
+/// The kernel validates the complete writable range before copying. This
+/// identifies the local link interface; it is not an authenticated peer ID.
+pub fn net_mac(source: NetworkSource) -> Result<[u8; 6], Error> {
+    let mut mac = [0; 6];
+    let count = call(
+        0x74,
+        [
+            source.handle().raw(),
+            mac.as_mut_ptr() as u64,
+            mac.len() as u64,
+            0,
+            0,
+            0,
+        ],
+    )?;
+    if count != mac.len() as u64 {
+        Err(Error::InvalidReturn)
+    } else {
+        Ok(mac)
+    }
+}
+
 /// ABI1.8: public geometry only; a Handle value never grants display authority.
 pub fn display_info(source: Handle, out: &mut [u8; 32]) -> Result<u64, Error> {
     let count = call(0x80, [source.raw(), out.as_mut_ptr() as u64, 32, 0, 0, 0])?;

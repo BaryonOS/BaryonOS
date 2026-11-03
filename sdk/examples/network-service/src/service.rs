@@ -97,6 +97,7 @@ fn run() -> ! {
     }
     let epoch = support::word(40);
     let source = NetworkSource::from_handle(handle(48));
+    let mac = native::net_mac(source).unwrap_or_else(|_| fail(23));
     let entropy = EntropySource::from_handle(handle(104));
     let service_pid = support::word(112);
     let receives = [
@@ -155,7 +156,7 @@ fn run() -> ! {
             epoch,
             pids,
             link: Config {
-                mac: [2, 0, 0, 0, 0, 7],
+                mac,
                 ipv4: [192, 0, 2, 2],
                 prefix_len: 24,
                 random_seed,
