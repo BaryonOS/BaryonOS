@@ -35,7 +35,7 @@ EXPECT = {
     "normal": {"SERVICE_A_STATE": 1, "SERVICE_B_STATE": 1, "SERVICE_A_REASON": 0,
                "SERVICE_B_REASON": 0, "OFFLINE_ERRORS": 0, "APP_QUOTA_DENIED": 1,
                "APP_RECOVERY_EXPORT_DENIED": 1, "APP_RECOVERY_RESTORE_DENIED": 1,
-               "APP_NOT_READY": 0, "SERVICE_B_KEYS": 1},
+               "APP_NOT_READY": 0, "SERVICE_B_KEYS": 0},
     "no-device": {"SERVICE_A_STATE": 2, "SERVICE_B_STATE": 2, "SERVICE_A_REASON": 1,
                   "SERVICE_B_REASON": 1, "DELIVERED_BYTES": 0, "APP_GENERATED": 0,
                   "APP_SEALED": 0, "SERVICE_A_KEYS": 0, "SERVICE_B_KEYS": 0},
