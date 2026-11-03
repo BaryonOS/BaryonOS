@@ -122,3 +122,52 @@ centrale beoordeling/status bij General, geen centrale write.
 
 Rollback: verwijder uitsluitend nieuwe presentation-subtree en receipt;
 geen bestaande grafische API, ABI of opslagformaat verandert.
+
+## Integratiereview PR182, 3 november 2026
+
+Exact reviewhead `9171756ab5864c09bbcfb6b784e73dae2fee9f58`, main
+`ab85d6339ce5bdddb10a2de171d0c1b04e4b62ff`.
+De bestaande PR182 is door de hoofdcoordinator expliciet voor integratie
+vrijgegeven; de historische QUEUED-FOR-INTEGRATION-tekst hierboven is geen
+actuele publicatieblocker of opdracht om een nieuwe PR te maken.
+
+De begrensde inhoudelijke review controleerde stdin-/selectie-/schaalgrenzen,
+volledige titel-/bodypreflight voor pixelwrites, bufferlengtes, paginateller,
+werkelijk hergebruik van `ui/graphics::Canvas`/`Font`, gedeelde kleuren en
+PPM-uitvoergrootte. Geen concrete productcodeblocker gevonden; geen onafhankelijke
+audit of native presentatieclaim. Een verkeerd argument kon wel de CLI-testhelper
+met BrokenPipe laten panikeren wanneer het kind stdin vroeg sloot. Een nieuwe
+geregistreerde 128-KiB-regressie faalde op de oude helper (Cargo exit 101).
+De helper accepteert nu uitsluitend BrokenPipe bij een daadwerkelijk falend
+kindproces; andere schrijffouten en onverwacht succes blijven testfouten.
+Geen productcode of gedeelde renderer gewijzigd.
+
+Met Rust 1.90.0, eigen targets `target/pr-agent-c-host` en
+`target/pr-agent-c-none` opnieuw uitgevoerd, alle exit 0:
+
+```text
+cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/presentation/Cargo.toml --features host-cli
+# 5 model/render- en 3 werkelijke CLI-procestests
+cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/presentation/Cargo.toml --features host-cli --all-targets -- -D warnings
+cargo +1.90.0 fmt --manifest-path sdk/examples/presentation/Cargo.toml -- --check
+python3 -B sdk/examples/presentation/tests/interop.py target/pr-agent-c-host/debug/slide-preview build/pr-agent-c-182
+# vier echte PPM-frames, header/lengte/accent/titel-/body-/footerregio's
+cargo +1.90.0 build --offline --locked --release --lib --manifest-path sdk/examples/presentation/Cargo.toml --target x86_64-unknown-none
+git diff --check
+```
+
+Lokale logs onder `build/pr-agent-c-182/`, SHA-256:
+
+```text
+c70a04462e227850228839c6af44bc32ca23b78007562fdbd13e2e42c97afd60 pipe-red.log
+387b0e8514d7650cf8c2edc0480ad405e9360102bf1db22e7281a53133901a4d green.log
+2c129809a99e173e3ceb01fb951f255ff02d0109145030a01940b993f38d6e9a tests/cli.rs
+```
+
+Oude hashes en aantallen hierboven beschrijven uitsluitend de oorspronkelijke
+bron. De vier gemeten PPM-fingerprints staan in green.log; de PNG's zijn
+alleen lokaal testbewijs. Geen nieuwe visuele/humanetest of vollediger
+typografisch pixelorakel geclaimd. Geen native runtimeconsumer gewijzigd;
+QEMU, PPTX/ODP, native venster/input/surface, opslag en M11/FR-A15 blijven
+open. Verse vereiste CI op het finale head is een aparte integratievoorwaarde.
+Scorevoorstel **41 -> 41/100**, centrale metadata bij de hoofdcoordinator.

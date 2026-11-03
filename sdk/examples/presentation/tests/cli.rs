@@ -12,8 +12,13 @@ fn run(source: &[u8], args: &[&str]) -> std::process::Output {
         .stderr(Stdio::piped())
         .spawn()
         .unwrap();
-    child.stdin.take().unwrap().write_all(source).unwrap();
-    child.wait_with_output().unwrap()
+    let write = child.stdin.take().unwrap().write_all(source);
+    let output = child.wait_with_output().unwrap();
+    if let Err(error) = write {
+        assert_eq!(error.kind(), std::io::ErrorKind::BrokenPipe);
+        assert!(!output.status.success(), "stdin was not fully consumed");
+    }
+    output
 }
 
 #[test]
@@ -29,6 +34,14 @@ fn real_process_emits_different_full_ppm_frames_for_selected_pages() {
         b"P6\n640 360\n255\n".len() + 640 * 360 * 3
     );
     assert_ne!(first.stdout, second.stdout);
+}
+
+#[test]
+fn rejected_scale_closes_stdin_before_large_input_without_test_panic() {
+    let output = run(&vec![b'a'; 128 * 1024], &["--slide", "1", "--scale", "3"]);
+    assert_eq!(output.status.code(), Some(1));
+    assert!(output.stdout.is_empty());
+    assert!(!output.stderr.is_empty());
 }
 
 #[test]
