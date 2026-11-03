@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`ce1c5e7f`](https://github.com/simonvanieperen/nieuw-os/commit/ce1c5e7f7fae67b4f07b3eed65f04c21b90a21bd) ·
+**Bron:** [`07d4ab7b`](https://github.com/simonvanieperen/nieuw-os/commit/07d4ab7b6f02dca395e220fbc5cb45c67b270b0c) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-spoon`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** SM-OOM-1 P0: native OOM-gate en K05-cleanupregressie.
-41 blijft 41. Op bron d5d5776 slagen alle vijf native QEMU-profielen en de vijf kernel-/loader-/appbuilds. De 128-MiB OOM-run registreert 16 fysieke allocatiefouten, één Critical reclaimkans, ordelijke afsluiting van 15 peers, herstel van 15.204 frames en een nulde retry van 4 KiB. De parserfix is gericht gevalideerd. Op bron ce1c5e7 slagen ook alle zes bestaande K05 QEMU-cases plus de capability, SDK-runtime, supervisor-lib en harnesshosttests. Dit sluit geen rubriccriterium; volgende toegewezen stap is SM-SMP-K06-1.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** SYSTEM-MATURITY-SMP: stabilisatie cross-CPU M4-acceptatie.
+41 blijft 41. Een SMP-matrix slaagde eerder, maar een herhaling op dezelfde bronfingerprint faalde bij M4-IPC omdat slots 0 en 1 beide op CPU 1 draaiden. Commit 07d4ab7 begrenst daarom uitsluitend de native M4-acceptatieprofielen: slot 0/2 op CPU 0 en slot 1 op CPU 1, met expliciete evaluator- en 2-CPU-controles. Alle 11 gerichte hosttests en formattering slagen; de nieuwe native reruns en volledige matrix zijn nog niet uitgevoerd. Dit sluit geen rubriccriterium; K06 blijft open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

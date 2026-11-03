@@ -1,5 +1,14 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+SYSTEM-MATURITY-SMP (3 november 2026), bron `07d4ab7b`:
+**41 → 41/100**. Een eerdere negen-stagematrix slaagde, maar een herhaling
+met dezelfde bronfingerprint faalde bij M4-IPC: de benodigde processen landden
+op dezelfde CPU. De gepushte fix begrenst CPU-plaatsing tot de opt-in M4-
+acceptatieprofielen en laat de evaluator die rolverdeling afdwingen. De 11
+gerichte hosttests en rustfmt slagen; de nieuwe native herhaalruns en volledige
+matrix zijn nog niet uitgevoerd. Geen rubriccriterium sluit en K06 blijft
+open. Zie [PROJECT-STATE.md](PROJECT-STATE.md).
+
 De actieve volledige releaseopdracht en productacceptatie staan in
 [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft
 de ontwikkelmeter; het vervangt de conjunctieve releaseacceptatie niet.
