@@ -111,6 +111,21 @@ de nieuwe delta's niet als gereviewd geclaimd of in General gemengd.
 Eigen drie bewijsdocumentatiethreads op #155 zijn gerepareerd/opgelost
 in `6aa738d1`; de nieuwe CI/reviewbeslissing blijft afzonderlijk.
 
+**Veld-finale overdracht:** ownerbewijs `def61f42` op runnerbron `b3117312`
+ontvangen: nieuwe 100%- en 200%-deelacceptatie elk 61 fasen, runner exit 0,
+ruwe QEMU-exit 33; respectievelijk 406,23 s en 727,20 s.
+Exacte receipt op
+[`def61f42:veld-pr157-20261103`](https://github.com/simonvanieperen/nieuw-os/tree/def61f42a37af0baf5d6ea3f9e89b23f5d8b28ae/docs/verification/veld-pr157-20261103).
+General heeft de zes expliciet overgedragen centrale reviewpunten
+gecorrigeerd/gepusht als `3d4045da` op #157 en alle zes threads
+beantwoord/opgelost. Alleen documentatie, focusafhankelijke Enter gecontroleerd
+tegen scene.rs; criteria exact behouden, Veld41 blijft41 zonder import in
+General39. Generator write/check en diff-check exit0. Eerste generatorpoging
+wees een verboden ASCII-pijl in summary af; hersteld vóór publicatie.
+Geen nieuwe runtime-uitvoering door General. Gezamenlijke main-integratie,
+nieuwe-head CI/review en niet-herhaalde volledige scene-/normale buildgates
+blijven open; historische 60-fasenruns niet als sterker paneelbewijs gebruiken.
+
 ## Historisch checkpoint — PR148 met main 8e0c15d — 3 november 2026
 
 **Basis:** PR148 `47ec535f15bb10912dbc6cbf1af3de9df0c6c226` met main
