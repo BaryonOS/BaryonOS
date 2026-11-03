@@ -467,6 +467,12 @@ fn all_jpeg_exif_orientations_apply_for_both_tiff_byte_orders() {
                 "orientation {value}, little={little_endian}"
             );
             assert_eq!(pixel_hash(&image), pixel_hash(&raw));
+            let (Pixels::Rgba8(actual_raw), Pixels::Rgba8(expected_raw)) =
+                (&image.pixels, &raw.pixels)
+            else {
+                panic!("JPEG decoder did not return RGBA8")
+            };
+            assert_eq!(actual_raw, expected_raw);
             assert!(!image.metadata_transforms_applied);
             assert_eq!(image.source, input);
         }
