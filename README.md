@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`794ddcc0`](https://github.com/simonvanieperen/nieuw-os/commit/794ddcc0d866ee8847a519b5a6f23c2ceddd69ea) ·
+**Bron:** [`348ee195`](https://github.com/simonvanieperen/nieuw-os/commit/348ee19555146ed3d44971b09c3bf0505515acdd) ·
 **Ontwikkelbranch:** `codex/volume-format-admission-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Integreer actuele main met behoud PR149 en volume-admissie; native volumegates opnieuw vereist.
-De 41/100-rubric blijft behouden; geen nieuwe punten. De actuele main is inhoudsbehoudend geïntegreerd: PR149's UI-code, testreceipt en mainstatus blijven aanwezig, evenals PR133's volume-admissiegeschiedenis. De branchgebonden 10+9-VM-proeven horen bij een oudere bron en accepteren de combinatie niet; herhaal ze op een nieuw bevroren checkpoint. Native volumeacceptatie blijft open.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Integreer main 8e0c15d8 en behoud PR133/PR142/PR149-inhoud.
+De 41/100-rubric blijft behouden; geen punten toegekend. Main 8e0c15d8 is inhoudsbehoudend geïntegreerd met behoud van PR133's volume-admissiegeschiedenis, PR142's unieke receipts en PR149's UI-bewijs. Historische native volumegates blijven aan hun oudere bron gebonden; native volumeacceptatie blijft open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
