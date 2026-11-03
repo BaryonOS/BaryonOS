@@ -1,34 +1,41 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR150 integreert main 5c66ec5 — 3 november 2026
+## NEXT AGENT HANDOFF — PR150 integreert main 8e0c15d8 — 3 november 2026
 
-PR-head `742d4b3b7c3398e3ef2f68f463da848ece26d713` is inhoudsbehoudend
-geïntegreerd met actuele main `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`.
-De overlapconflicten in `retained-document-heads-20261103.json` zijn opgelost
-door alle vier unieke PR141/131/132-snapshots en beide PR150/139-snapshots
-te behouden; gedeelde bronregisters zijn identiek. Main's prototype-
-prestatiebewijs en UI-toepassingen blijven daarnaast behouden.
+PR-head `c826225cc2aec5161772145f0a8f3a6ae37fa95d` is inhoudsbehoudend
+geïntegreerd met actuele main `8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2`.
+De beoordelingsconflicten in README, progress.json en PROJECT-STATE zijn
+opgelost; het retentieregister is automatisch samengevoegd en de PR141-
+en PR142-bronrecords zijn behouden naast de bestaande PR150/PR149-historie.
+Main's shared-tooling-refactor, Python-tests en bijbehorende bewijsreceipts
+blijven behouden. Voortgang **41 → 41/100**.
 
-**Bewijsgrens:** PR149 hosttests gelden alleen voor receiptbron `bb8877e3`;
-PR150-faalreceipts blijven aan hun vermelde bron/runs gebonden. De actuele
-integratie voegt geen native OS-acceptatie toe. UI-tests en formattering/
-Clippy zijn op de samengevoegde boom uitgevoerd:
-`cargo +1.90.0 test --offline --locked --manifest-path ui/native/Cargo.toml`
-(59 tests), `cargo +1.90.0 fmt --manifest-path ui/native/Cargo.toml --all
--- --check`, `cargo +1.90.0 clippy --locked --manifest-path
-ui/native/Cargo.toml --all-targets -- -D warnings` en
-`node --test ui/prototype/tests/state.test.mjs
-ui/prototype/tests/render-performance.test.mjs` (26 tests): alle eindpogingen
-exit 0. De eerste offline test- en Clippy-pogingen misten `zeroize`; de locked
-fetch herstelde dit. Eerste parallelle fmt/Clippy-pogingen raakten eveneens
-de Rustup-toolchaininstallatie; daarna slaagden afzonderlijke reruns.
-`python3 tools/progress.py --write` slaagde. Voortgang blijft **41 → 41/100**.
-**Open:** na publicatie moeten de nieuwe-head-checks evalueren; reviewwerk is
-niet onderdeel van deze conflicttick.
+**Bewijsgrens:** tests draaien op deze mergeboom en zijn geen native OS-,
+QEMU-, fysieke of menselijke acceptatie. Bestaande receipts blijven gebonden
+aan hun eigen source commit. Op deze mergeboom geslaagd:
+`umask 077 && python3 -B -m unittest discover -s tests -p 'test_*.py' -v`
+(485 tests), `umask 077 && python3 -B -m unittest discover -s tools/tests
+-p 'test_*.py' -v` (189 tests), `node --test ui/prototype/tests/*.test.mjs`
+(41 tests), `python3 -B -m py_compile tools/common.py tools/run_fpu.py
+tools/run_images.py tools/run_random.py tests/test_common.py`,
+`python3 tools/progress.py --write`, `python3 tools/progress.py --check` en
+`git diff --check HEAD`. De eerste roottestsessie met de standaard umask
+faalde op drie private-inputfixturecontrolegevallen; de private umask-run
+slaagde. De eerste volledige toolsuite miste `ed25519-dalek`; na
+`cargo +1.90.0 fetch --locked` en een private-umaskrerun slaagden alle tests.
+Dit herstelde alleen lokale dependencycache en testumask, geen repositorycode.
+Geen nieuwe native/QEMU-, fysieke of menselijke acceptatie.
+
+## Historisch checkpoint — PR142 main-integratie — 3 november 2026
+
+PR142-head `37ad1e98328e59b752c230310a4abeaca749b669` was geïntegreerd met
+main `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`. Die tick meldde 41
+prototype-hosttests en twee JavaScript-syntaxchecks zonder aparte testreceipt;
+dat historische verslag is geen bewijs voor deze mergeboom. De unieke
+PR131/132-, PR141- en PR142-retentierecords zijn in de latere integraties
+behouden.
 
 ## Historisch checkpoint — PR149 derde main-integratie — 3 november 2026
-
-## NEXT AGENT HANDOFF — PR149 derde main-integratie — 3 november 2026
 
 **Basis:** Watch-merge `bb8877e3e1aaec304d7478510b65c8116aeb634e`, met
 ouders `416886354dbb0c6135a0740c429a3fbd4530a16d` en main

@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`742d4b3b`](https://github.com/simonvanieperen/nieuw-os/commit/742d4b3b7c3398e3ef2f68f463da848ece26d713) ·
+**Bron:** [`c826225c`](https://github.com/simonvanieperen/nieuw-os/commit/c826225cc2aec5161772145f0a8f3a6ae37fa95d) ·
 **Ontwikkelbranch:** `copilot/add-os-specialist-agents`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR150: integreer de nieuwste main-conflicten inhoudsbehoudend.
-41/100 blijft 41/100. PR150-head 742d4b3 is geïntegreerd met main 5c66ec5; specialistprofielen en PR150-receipts, PR149's UI-wijzigingen en bewijs, plus PR141-documentatie/bewijs zijn behouden. De beide ouderlijke bronhistorieën in het retentieregister zijn gecombineerd. Rubric en criteria zijn ongewijzigd; geen nieuwe OS-acceptatie.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR150: integreer actuele main 8e0c15d8 en behoud bronhistorie.
+41/100 blijft 41/100. PR150-head c826225c is geïntegreerd met main 8e0c15d8; specialistprofielen, PR149-UI-wijzigingen, main's gedeelde toolingwijzigingen en PR142-documentatie/bewijs blijven behouden. Het snapshotregister bewaart unieke historische records van beide kanten. Rubric en criteria zijn ongewijzigd; geen nieuwe OS-acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
