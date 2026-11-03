@@ -1345,6 +1345,21 @@ Herziening: persistent antirollback-/recoverycontract in B02, of een concreet
 tegenvoorbeeld tegen de levende-instantie-invariant. Terugdraaien: revert
 herstelcommits en B01 open houden, geen onzeker bewijs accepteren.
 
+### Aanvulling ADR-043 — herstelautoriteit alleen via beheer-ingress (3 november 2026)
+
+Gewone app-ingress mag geen herstelgeheim of hoofdsleutelnamespace exporteren
+en mag geen recoveryblob importeren. `EXPORT_RECOVERY` en `RESTORE` blijven
+wire-compatibel, maar worden uitsluitend door de bestaande afzonderlijke
+beheer-ingress afgehandeld na controle van de manifest-genoemde caller; die
+ingress voert verder alleen de persistentie-opcodes uit. Er komt geen nieuwe
+capability of cryptografisch formaat bij.
+
+De native appfixture controleert de weigering via beide domein-endpoints. De
+host-wiretests controleren daarnaast dat de management-dispatcher een
+recovery-export/-herstel kan uitvoeren en andere opcodes weigert. Dit
+hostbewijs bewijst niet zelfstandig de kernelmanifest- of native
+managementcallergrens; die blijft een afzonderlijke native controle.
+
 ## ADR-044 — Native netwerk via één begrensde capabilitybroker
 
 **Datum:**30oktober2026. In uitvoering als deel van de volledige release;
