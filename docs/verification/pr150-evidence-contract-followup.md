@@ -20,11 +20,15 @@ en [OS Maturity Auditor](https://github.com/simonvanieperen/nieuw-os/blob/cccb29
 
 ## Testbewijs
 
-Uitgevoerd vanuit de worktree, exit 0:
+De oorspronkelijke worktreecontrole gaf exit 0. De hieronder aangescherpte
+hercontrole controleert de huidige zestien toolsets en vergelijkt de twee
+historische profielhashes met de bytes op contractfix `cccb29e8`, niet met
+latere profielwijzigingen. Hercontrole op basis `3ee3e73a` met main
+`ab85d633`: exit 0 op 3 november 2026.
 
 ```sh
 python3 -B - <<'PY'
-import json,hashlib
+import json,hashlib,subprocess
 from pathlib import Path
 profiles=sorted(Path('.github/agents').glob('os-*.agent.md'))
 assert len(profiles)==16
@@ -36,8 +40,17 @@ for p in profiles:
  tools=json.loads(fields['tools'])
  assert tools==(['read','search','edit','execute'] if p.name=='os-builder.agent.md' else ['read','search']),p
 print('PASS:16 frontmatter/toolsets; not full cloud schema or runtime confinement')
-for n in ('os-verifier','os-maturity-auditor'):
- p=Path('.github/agents')/(n+'.agent.md');print(p,hashlib.sha256(p.read_bytes()).hexdigest())
+source='cccb29e8daf311a9db47e3747a6fb9d05329bda3'
+expected={
+ 'os-verifier.agent.md':'6380991093181852e2044e0b8b0804587d62d8e0c268ac7bcc7152826286ab78',
+ 'os-maturity-auditor.agent.md':'755945403323331f1ff8b2634b6e2bc69d11379a2447a544ddb3eabcd8852e94',
+}
+for name,wanted in expected.items():
+ p=Path('.github/agents')/name
+ data=subprocess.check_output(['git','show',f'{source}:{p.as_posix()}'],timeout=30)
+ actual=hashlib.sha256(data).hexdigest()
+ assert actual==wanted,(p,source,actual,wanted)
+ print(p,source,actual)
 PY
 ```
 
