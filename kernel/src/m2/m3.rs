@@ -694,6 +694,12 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
             arch::set_cpu_local(bootstrap, arch::service_stack(), true);
             super::smp::release_to_m3();
             super::smp::wait_for_m3_ready();
+            #[cfg(feature = "native-smp-m4")]
+            assert_eq!(
+                super::ap::cpu_count(),
+                2,
+                "native M4 SMP acceptance requires exactly two CPUs"
+            );
         }
         #[cfg(feature = "native-cap-digest-bench")]
         cap_bench::run(m4::engine());
@@ -1243,6 +1249,10 @@ impl State {
         for offset in 0..self.amount {
             let slot = (self.round_robin_cursor + offset) % self.amount;
             if self.processes[slot].status != Status::Ready {
+                continue;
+            }
+            #[cfg(feature = "native-smp-m4")]
+            if cpu != if slot == 1 { 1 } else { 0 } {
                 continue;
             }
             let valid = {

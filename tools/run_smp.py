@@ -31,6 +31,8 @@ def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
         "native-smp-m4-revoke",
     ):
         raise ValueError("unknown SMP kernel profile")
+    if profile in ("native-smp-m4", "native-smp-m4-revoke") and cpus != 2:
+        raise ValueError("native M4 SMP acceptance profiles require exactly two CPUs")
     markers = BOOT + ("SMP:AP:ENTRY",) * (cpus - 1) + tuple(
         f"SMP:CPU:{index}:APIC:" for index in range(cpus)
     ) + (
@@ -181,6 +183,7 @@ def evaluate_m3(cpus: int, stdout: str, returncode: int | None, timed_out: bool)
 
 
 def evaluate_m4_smp(cpus: int, stdout: str, returncode: int | None, timed_out: bool) -> dict:
+    expected_markers(cpus, "native-smp-m4")
     scheduler = evaluate_m3(cpus, stdout, returncode, timed_out)
     lines = stdout.splitlines()
     required, expected_exit, forbidden = guest_expectation("m4", "real-ring3-message-exchange")
@@ -212,6 +215,9 @@ def evaluate_m4_smp(cpus: int, stdout: str, returncode: int | None, timed_out: b
     expected_ops = {("SEND", 0), ("RECV", 1), ("SEND", 1), ("RECV", 2)}
     if len(events) != len(expected_ops) or {(op, slot) for op, slot, _, _ in events} != expected_ops:
         raise ValueError("M4 exchange did not complete its two send/receive pairs")
+    expected_cpu = {0: 0, 1: 1, 2: 0}
+    if any(cpu != expected_cpu[slot] for _, slot, cpu, _ in events):
+        raise ValueError("M4 process ran outside its acceptance-profile CPU assignment")
     exchange_index = lines.index("M4:EXCHANGE:PASS")
     if any(line_index >= exchange_index for _, _, _, line_index in events):
         raise ValueError("M4 IPC evidence appeared after the exchange pass marker")
@@ -243,6 +249,7 @@ def evaluate_m4_smp(cpus: int, stdout: str, returncode: int | None, timed_out: b
 def evaluate_m4_revoke_smp(
     cpus: int, stdout: str, returncode: int | None, timed_out: bool
 ) -> dict:
+    expected_markers(cpus, "native-smp-m4-revoke")
     scheduler = evaluate_m3(cpus, stdout, returncode, timed_out)
     lines = stdout.splitlines()
     required, expected_exit, forbidden = guest_expectation("m4", "test-m4-revoke")
@@ -272,6 +279,8 @@ def evaluate_m4_revoke_smp(
         slot, cpu = identity >> 8, identity & 0xFF
         if slot not in (0, 1, 2) or cpu >= cpus:
             raise ValueError("M4 revoke marker has an invalid process or CPU")
+        if cpu != (1 if slot == 1 else 0):
+            raise ValueError("M4 revoke process ran outside its acceptance-profile CPU assignment")
         events.append((operation, slot, cpu, index))
 
     revokes = [event for event in events if event[0] == "REVOKE" and event[1] == 0]

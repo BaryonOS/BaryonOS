@@ -3,7 +3,7 @@
 ## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
 
 **Gepubliceerde basis:** branch `simonvanieperen-studious-spoon`, commit
-`3cbb79954e73122b5e9f2f7daa2241db82fe1e39`, gepusht naar
+`a67d594c49d962d7b37dabfa01b76f539962c1d5`, gepusht naar
 `origin/simonvanieperen-studious-spoon`. Actieve toewijzing:
 `SYSTEM-MATURITY-SMP`, queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`.
 OOM/K05 zijn afgesloten en blijven ongewijzigd;
@@ -80,6 +80,18 @@ Dit maakt de eerdere matrixpass onvoldoende stabiel voor acceptatie. Receipt:
 [`smp-rendezvous-20261103T182805Z.json`](verification/sm-smp/smp-rendezvous-20261103T182805Z.json);
 seriële log `build/run/smp-2-dea4af795b/serial.txt`.
 
+**M4-profielstabilisatie — hostcontrole PASS, native nog niet uitgevoerd:**
+de opt-in `native-smp-m4`-profielen wijzen nu slot 0 en 2 aan CPU 0 toe en
+slot 1 aan CPU 1. Kernelstart en evaluator eisen exact twee CPU's; de
+evaluator controleert ook iedere eventidentiteit. Dit raakt alleen de
+acceptatieprofielen, niet de algemene scheduler of ABI. Gericht
+`PYTHONPATH=tools python3 -B -m unittest tools/tests/test_smp.py` slaagde
+(11 tests); kernel `cargo +1.90.0 fmt -- --check` en `git diff --check`
+slaagden. De eerdere hostrun vóór correctie van de revoke-fixture faalde;
+de fixture is bijgewerkt en de herhaalde 11-test-run slaagde. De echte
+2-CPU-IPC/revoke-runs en de volledige matrix zijn nog niet uitgevoerd met
+deze wijziging.
+
 **Niet-geaccepteerde SMP-lifecycleverkenning:** het combineren van de bestaande
 M4 multi-round lifecyclefixture met SMP eindigde op raw QEMU exit 35 bij
 `kernel/src/m2/m3.rs:1849` (`current < state.amount`) na AP-bring-up.
@@ -106,11 +118,10 @@ stabiel geaccepteerd. TLB-shootdown/hergebruik en bredere races/failure-
 acceptatie blijven open. Dit is geen volledige K06-acceptatie.
 `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
 
-**Eerstvolgende actie:** maak de bestaande 2-CPU-M4-consumerfixture
-deterministisch: slot 0 en 2 op CPU 0, slot 1 op CPU 1, uitsluitend in de
-opt-in SMP-acceptatieprofielen. Behoud gewone schedulersemantiek en ABI; eis
-per-profiel de verwachte CPU-identiteiten. Daarna de volledige negen-
-stagematrix herhalen. TLB-/hergebruik- en raceacceptatie blijven open.
+**Eerstvolgende actie:** commit/push deze profielgebonden plaatsingsfix en
+draai daarna meerdere gerichte 2-CPU M4-IPC- en revoke-runs. Alleen na
+herhaalbare pass volgt de volledige negen-stagematrix. TLB-/hergebruik- en
+raceacceptatie blijven open.
 
 **Cross-CPU capability-IPC — eerdere lokale proef vóór matrix:**
 `native-smp-m4` combineert het bestaande SMP-M3-profiel met de bestaande M4

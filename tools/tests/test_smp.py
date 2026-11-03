@@ -53,7 +53,7 @@ def m4_smp_transcript(cpus=2, send_cpus=(0, 1), receive_cpus=(1, 0)):
     return "\n".join(lines) + "\n"
 
 
-def m4_revoke_smp_transcript(revoke_cpus=(0, 0), denied_cpus=(1, 1)):
+def m4_revoke_smp_transcript(revoke_cpus=(0, 0), denied_cpus=(1, 0)):
     lines = m3_transcript(2).splitlines()
     events = (
         ("REVOKE", 0, revoke_cpus[0]),
@@ -113,6 +113,9 @@ class SmpEvidenceTests(unittest.TestCase):
         for cpus in (0, 1, 3, 5, True):
             with self.subTest(cpus=cpus), self.assertRaises(ValueError):
                 run_smp.expected_markers(cpus)
+        for profile in ("native-smp-m4", "native-smp-m4-revoke"):
+            with self.subTest(profile=profile), self.assertRaises(ValueError):
+                run_smp.expected_markers(4, profile)
         for exit_code, timeout in ((0, False), (35, False), (None, True), (33, True)):
             with self.subTest(exit_code=exit_code, timeout=timeout), self.assertRaises(ValueError):
                 run_smp.evaluate(2, transcript(), exit_code, timeout)
@@ -168,10 +171,14 @@ class SmpEvidenceTests(unittest.TestCase):
     def test_native_m4_ipc_rejects_missing_exchange_or_same_cpu_pairs(self):
         valid = m4_smp_transcript()
         same_cpu = m4_smp_transcript(send_cpus=(0, 1), receive_cpus=(0, 1))
+        wrong_assignment = m4_smp_transcript(
+            send_cpus=(1, 0), receive_cpus=(0, 1)
+        )
         cases = (
             valid.replace("M4:EXCHANGE:PASS\n", ""),
             valid.replace("M4:SMP:SEND:00000000000000000000\n", ""),
             same_cpu,
+            wrong_assignment,
             valid.replace("M4:SMP:SEND:00000000000000000000",
                           "M4:SMP:SEND:not-a-number"),
             valid.replace("M4:PASS\n", "M4:FAIL\nM4:PASS\n"),
@@ -191,9 +198,13 @@ class SmpEvidenceTests(unittest.TestCase):
 
     def test_native_m4_revoke_rejects_missing_or_misordered_cross_cpu_events(self):
         valid = m4_revoke_smp_transcript()
+        wrong_assignment = m4_revoke_smp_transcript(
+            revoke_cpus=(1, 1), denied_cpus=(0, 1)
+        )
         cases = (
             valid.replace("M4:SMP:REVOKED:00000000000000000257\n", ""),
             m4_revoke_smp_transcript(denied_cpus=(0, 0)),
+            wrong_assignment,
             valid.replace("M4:SMP:REVOKE:00000000000000000000\n", "", 1),
             valid.replace("M4:SMP:REVOKE:00000000000000000000",
                           "M4:SMP:REVOKE:not-a-number", 1),
