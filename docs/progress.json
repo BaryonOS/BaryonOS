@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "0a49a3822e5d872f75573f12cd072e76e1249e1b",
-    "branch": "simonvanieperen-supreme-spork",
-    "task": "PR139: ontbrekende contracttestreceipt op exact geïntegreerde boom uitvoeren en bewaren",
+    "source_commit": "bb8877e3e1aaec304d7478510b65c8116aeb634e",
+    "branch": "simonvanieperen-reimagined-train",
+    "task": "PR149: nieuwe primaire59-hosttestreceipt op schone Watch-main99-merge bewaren",
     "previous_score": 41,
-    "summary": "41/100 blijft41/100. Op exacte geïntegreerde bron0a49a382 zijn negen artifact-store-contracttests, Rust1.90.0 fmt en Clippy werkelijk opnieuw uitgevoerd: elk exit0. Primaire volledige logs, exacte commando's, tree en codehashes staan in docs/verification/pr139-artifact-contract-receipt.json. Eerdere gemelde Watch-tests zonder primaire receipt blijven historisch niet onafhankelijk geverifieerd; replay/umask blijft bron732 en historische OS-workflowruns bron380. Geen identiteit/authenticatie, native uitvoering of nieuw criterium."
+    "summary": "41 blijft 41. Op schone Watch-merge bb8877e3 met main99 zijn59 hosttests echt opnieuw groen; cwd/HEAD/status/lock- en Rust-hashes vóór/na en volledige logs vastgelegd. Geen retrospectieve bronbinding van eerdere Watch-tijden. De UI-Rust-code blijft exact53256f82; historische scalar/Clippy/fmt behouden die bron. Assessmentbasis is niet de uiteindelijke PR-head of automatisch elke testbron. Geen nieuwe code, native/QEMU/fysieke/menselijke acceptatie of punten."
   },
   "tracks": [
     {
