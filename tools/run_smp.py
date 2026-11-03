@@ -30,6 +30,7 @@ def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
         "native-smp-m3-tlb-reuse",
         "native-smp-m3-lock-contention",
         "native-smp-m4",
+        "native-smp-m4-lifecycle",
         "native-smp-m4-revoke",
     ):
         raise ValueError("unknown SMP kernel profile")
@@ -37,6 +38,7 @@ def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
         "native-smp-m3-tlb-reuse",
         "native-smp-m3-lock-contention",
         "native-smp-m4",
+        "native-smp-m4-lifecycle",
         "native-smp-m4-revoke",
     ) and cpus != 2:
         raise ValueError("native TLB-reuse and M4 SMP profiles require exactly two CPUs")
@@ -55,6 +57,7 @@ def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
                           "native-smp-m3-tlb-reuse",
                           "native-smp-m3-lock-contention",
                           "native-smp-m4",
+                          "native-smp-m4-lifecycle",
                           "native-smp-m4-revoke",
                       ) else ())
 
@@ -204,13 +207,26 @@ def evaluate_m4_smp(cpus: int, stdout: str, returncode: int | None, timed_out: b
             raise ValueError(f"missing or out-of-order M4 marker: {marker}") from error
     if any(marker in line for marker in forbidden for line in lines):
         raise ValueError("M4 failure marker present")
+    if lines.count("M4:SMP:QUIESCED:PASS") != 1:
+        raise ValueError("M4 cleanup lacked a single completed CPU-quiescence handshake")
+    if not (
+        lines.index("M4:SMP:QUIESCED:PASS")
+        < lines.index("M4:SMP:ROUND_CLEANUP:PASS")
+        < lines.index("M4:CLEANUP:PASS")
+    ):
+        raise ValueError("M4 cleanup was reported before CPU quiescence")
     if returncode != expected_exit or timed_out:
         raise ValueError(f"raw QEMU exit {returncode}, timeout {timed_out}")
 
     pattern = re.compile(r"M4:SMP:(SEND|RECV):([0-9]{20})")
     events = []
     event_lines = [(index, line) for index, line in enumerate(lines)
-                   if line.startswith("M4:SMP:")]
+                   if line.startswith("M4:SMP:")
+                   and line not in {
+                       "M4:SMP:QUIESCED:PASS",
+                       "M4:SMP:ROUND_CLEANUP:PASS",
+                       "M4:SMP:ROUND_RESET:PASS",
+                   }]
     for line_index, line in event_lines:
         match = pattern.fullmatch(line)
         if match is None:
@@ -270,6 +286,14 @@ def evaluate_m4_revoke_smp(
             raise ValueError(f"missing or out-of-order M4 revoke marker: {marker}") from error
     if any(marker in line for marker in forbidden for line in lines):
         raise ValueError("M4 revoke failure marker present")
+    if lines.count("M4:SMP:QUIESCED:PASS") != 1:
+        raise ValueError("M4 revoke cleanup lacked a single completed CPU-quiescence handshake")
+    if not (
+        lines.index("M4:SMP:QUIESCED:PASS")
+        < lines.index("M4:SMP:ROUND_CLEANUP:PASS")
+        < lines.index("M4:CLEANUP:PASS")
+    ):
+        raise ValueError("M4 revoke cleanup was reported before CPU quiescence")
     if returncode != expected_exit or timed_out:
         raise ValueError(f"raw QEMU exit {returncode}, timeout {timed_out}")
 
@@ -278,7 +302,11 @@ def evaluate_m4_revoke_smp(
     )
     events = []
     for index, line in enumerate(lines):
-        if not line.startswith("M4:SMP:"):
+        if not line.startswith("M4:SMP:") or line in {
+            "M4:SMP:QUIESCED:PASS",
+            "M4:SMP:ROUND_CLEANUP:PASS",
+            "M4:SMP:ROUND_RESET:PASS",
+        }:
             continue
         match = pattern.fullmatch(line)
         if match is None:
@@ -315,6 +343,44 @@ def evaluate_m4_revoke_smp(
             "receiver_slot": crossed[1],
             "receiver_cpu": crossed[2],
         },
+    }
+
+
+def evaluate_m4_lifecycle_smp(
+    cpus: int, stdout: str, returncode: int | None, timed_out: bool
+) -> dict:
+    expected_markers(cpus, "native-smp-m4-lifecycle")
+    scheduler = evaluate_m3(cpus, stdout, returncode, timed_out)
+    lines = stdout.splitlines()
+    required, expected_exit, forbidden = guest_expectation("m4", "test-m4-lifecycle")
+    cursor = 0
+    for marker in required:
+        try:
+            cursor = lines.index(marker, cursor) + 1
+        except ValueError as error:
+            raise ValueError(f"missing or out-of-order M4 lifecycle marker: {marker}") from error
+    if any(marker in line for marker in forbidden for line in lines):
+        raise ValueError("M4 lifecycle failure marker present")
+    if returncode != expected_exit or timed_out:
+        raise ValueError(f"raw QEMU exit {returncode}, timeout {timed_out}")
+    if lines.count("M4:SMP:QUIESCED:PASS") != 3:
+        raise ValueError("M4 lifecycle did not quiesce all CPUs before each cleanup")
+    if lines.count("M4:SMP:ROUND_CLEANUP:PASS") != 3:
+        raise ValueError("M4 lifecycle did not complete all three cleanup rounds")
+    if lines.count("M4:SMP:ROUND_RESET:PASS") != 2:
+        raise ValueError("M4 lifecycle did not complete both process-table resets")
+    quiesced = [i for i, line in enumerate(lines) if line == "M4:SMP:QUIESCED:PASS"]
+    cleanups = [i for i, line in enumerate(lines) if line == "M4:SMP:ROUND_CLEANUP:PASS"]
+    resets = [i for i, line in enumerate(lines) if line == "M4:SMP:ROUND_RESET:PASS"]
+    if any(not (q < c) for q, c in zip(quiesced, cleanups)):
+        raise ValueError("M4 lifecycle cleanup preceded its quiescence acknowledgement")
+    if any(not (cleanups[i] < resets[i] < quiesced[i + 1]) for i in range(2)):
+        raise ValueError("M4 lifecycle reset was not bracketed by completed quiescence phases")
+    return {
+        "scheduler": scheduler,
+        "quiescence_rounds": 3,
+        "cleanup_rounds": 3,
+        "process_table_resets": 2,
     }
 
 
@@ -439,7 +505,12 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
     frozen = source_hash()
     manifest_path = build / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    if (manifest.get("kernel_feature") != profile
+    expected_kernel_feature = (
+        "native-smp-m4,test-m4-lifecycle"
+        if profile == "native-smp-m4-lifecycle"
+        else profile
+    )
+    if (manifest.get("kernel_feature") != expected_kernel_feature
             or manifest.get("loader_feature") is not None
             or manifest.get("source_fingerprint_version") != 3
             or manifest.get("source_sha256") != frozen):
@@ -518,6 +589,7 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
                                    "native-smp-m3-exit",
                                    "native-smp-m3-tlb-reuse",
                                    "native-smp-m4",
+                                   "native-smp-m4-lifecycle",
                                    "native-smp-m4-revoke",
                                ) else ()),
                              *(("M4:EXCHANGE:PASS", "M4:SURVIVOR_PROGRESS:PASS",
@@ -526,6 +598,9 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
                              *(("M4:CASE:REVOKE:PASS", "M4:SURVIVOR_PROGRESS:PASS",
                                 "M4:CLEANUP:PASS", "KS-14:PASS", "M4:PASS", "M1:PASS")
                                if profile == "native-smp-m4-revoke" else ()),
+                              *(("M4:CASE:LIFECYCLE:PASS", "M4:SURVIVOR_PROGRESS:PASS",
+                                "M4:CLEANUP:PASS", "KS-16:PASS", "M4:PASS", "M1:PASS")
+                               if profile == "native-smp-m4-lifecycle" else ()),
                              *(("M3:EXIT:PASS", "M3:SURVIVOR_PROGRESS:PASS")
                                if profile == "native-smp-m3-exit" else ()),
                              *(("M3:EXIT:PASS", "M3:SURVIVOR_PROGRESS:PASS",
@@ -548,6 +623,9 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
         report["evidence"] = {
             "native-smp-m4": lambda: evaluate_m4_smp(cpus, stdout, raw_exit, timed_out),
             "native-smp-m4-revoke": lambda: evaluate_m4_revoke_smp(
+                cpus, stdout, raw_exit, timed_out
+            ),
+            "native-smp-m4-lifecycle": lambda: evaluate_m4_lifecycle_smp(
                 cpus, stdout, raw_exit, timed_out
             ),
             "native-smp-m3-exit": lambda: evaluate_m3_exit_smp(

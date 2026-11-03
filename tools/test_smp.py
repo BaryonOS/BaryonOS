@@ -61,7 +61,8 @@ def main() -> int:
         "acceptance_boundary": (
             "AP startup, bounded rendezvous, per-CPU M3 process scheduling, and successful "
             "process-exit cleanup on an AP plus cross-CPU M4 ring-3 IPC and revoked-capability "
-            "rejection; not full K06 TLB or race acceptance."
+            "rejection, including M4 quiescence before cleanup and repeated lifecycle resets; "
+            "not full K06 remote TLB or general race acceptance."
         ),
     }
     receipt.parent.mkdir(parents=True, exist_ok=True)
@@ -95,6 +96,8 @@ def main() -> int:
         ("m3-single-regression", "milestone-m3", 1, "m3"),
         ("m3-four", "native-smp-m3", 4, "m3-smp"),
         ("m4-two", "native-smp-m4", 2, "m4-smp"),
+        ("m4-two-repeat", "native-smp-m4", 2, "m4-smp"),
+        ("m4-lifecycle-two", "native-smp-m4,test-m4-lifecycle", 2, "m4-lifecycle-smp"),
         ("m4-revoke-two", "native-smp-m4-revoke", 2, "m4-revoke-smp"),
     )
     for label, feature, cpus, runner in stages:
@@ -120,6 +123,8 @@ def main() -> int:
                 report = run_smp(cpus, profile=feature)
             elif runner == "m4-smp":
                 report = run_smp(cpus, profile=feature)
+            elif runner == "m4-lifecycle-smp":
+                report = run_smp(cpus, profile="native-smp-m4-lifecycle")
             elif runner == "m4-revoke-smp":
                 report = run_smp(cpus, profile=feature)
             else:

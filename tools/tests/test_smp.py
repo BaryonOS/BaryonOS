@@ -46,6 +46,8 @@ def m4_smp_transcript(cpus=2, send_cpus=(0, 1), receive_cpus=(1, 0)):
     lines.extend((
         "M4:EXCHANGE:PASS",
         "M4:SURVIVOR_PROGRESS:PASS",
+        "M4:SMP:QUIESCED:PASS",
+        "M4:SMP:ROUND_CLEANUP:PASS",
         "M4:CLEANUP:PASS",
         "M4:PASS",
         "M1:PASS",
@@ -68,6 +70,8 @@ def m4_revoke_smp_transcript(revoke_cpus=(0, 0), denied_cpus=(1, 0)):
     lines.extend((
         "M4:CASE:REVOKE:PASS",
         "M4:SURVIVOR_PROGRESS:PASS",
+        "M4:SMP:QUIESCED:PASS",
+        "M4:SMP:ROUND_CLEANUP:PASS",
         "M4:CLEANUP:PASS",
         "KS-14:PASS",
         "M4:PASS",
@@ -96,6 +100,23 @@ def m3_lock_contention_transcript(contentions=1):
     lines = m3_transcript(2).splitlines()
     scheduler_pass = lines.index("M3:SMP:SCHEDULER:PASS")
     lines.insert(scheduler_pass, f"M3:SMP:LOCK:CONTENDED:{contentions:020d}")
+    return "\n".join(lines) + "\n"
+
+
+def m4_lifecycle_smp_transcript():
+    lines = m3_transcript(2).splitlines()
+    for round_index in range(3):
+        lines.extend(("M4:SMP:QUIESCED:PASS", "M4:SMP:ROUND_CLEANUP:PASS"))
+        if round_index < 2:
+            lines.append("M4:SMP:ROUND_RESET:PASS")
+    lines.extend((
+        "M4:CASE:LIFECYCLE:PASS",
+        "M4:SURVIVOR_PROGRESS:PASS",
+        "M4:CLEANUP:PASS",
+        "KS-16:PASS",
+        "M4:PASS",
+        "M1:PASS",
+    ))
     return "\n".join(lines) + "\n"
 
 
@@ -132,6 +153,7 @@ class SmpEvidenceTests(unittest.TestCase):
         for profile in (
             "native-smp-m3-tlb-reuse",
             "native-smp-m4",
+            "native-smp-m4-lifecycle",
             "native-smp-m4-revoke",
         ):
             with self.subTest(profile=profile), self.assertRaises(ValueError):
@@ -206,6 +228,32 @@ class SmpEvidenceTests(unittest.TestCase):
         for bad in cases:
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 run_smp.evaluate_m4_smp(2, bad, 33, False)
+
+    def test_native_m4_cleanup_requires_completed_quiescence(self):
+        valid = m4_smp_transcript()
+        missing = valid.replace("M4:SMP:QUIESCED:PASS\n", "")
+        after_cleanup = valid.replace(
+            "M4:SMP:QUIESCED:PASS\nM4:SMP:ROUND_CLEANUP:PASS\n",
+            "M4:SMP:ROUND_CLEANUP:PASS\nM4:SMP:QUIESCED:PASS\n",
+        )
+        for bad in (missing, after_cleanup):
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                run_smp.evaluate_m4_smp(2, bad, 33, False)
+
+    def test_native_m4_lifecycle_requires_each_quiesced_cleanup_and_reset(self):
+        valid = m4_lifecycle_smp_transcript()
+        result = run_smp.evaluate_m4_lifecycle_smp(2, valid, 33, False)
+        self.assertEqual(result["quiescence_rounds"], 3)
+        self.assertEqual(result["cleanup_rounds"], 3)
+        self.assertEqual(result["process_table_resets"], 2)
+        for bad in (
+            valid.replace("M4:SMP:QUIESCED:PASS\n", "", 1),
+            valid.replace("M4:SMP:ROUND_CLEANUP:PASS\n", "", 1),
+            valid.replace("M4:SMP:ROUND_RESET:PASS\n", "", 1),
+            valid.replace("M4:PASS\n", "M4:FAIL:SMP:CLEANUP_REMOTE_ACTIVE\nM4:PASS\n"),
+        ):
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                run_smp.evaluate_m4_lifecycle_smp(2, bad, 33, False)
 
     def test_native_m4_revoke_requires_cross_cpu_revoked_receive(self):
         result = run_smp.evaluate_m4_revoke_smp(

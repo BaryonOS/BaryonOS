@@ -1900,6 +1900,8 @@ extern "C" fn m3_cpu_idle() -> ! {
 extern "C" fn m3_event(source: *const u64) -> *const u64 {
     #[cfg(feature = "native-smp-m3")]
     {
+        #[cfg(feature = "native-smp-m4")]
+        let cpu = arch::current_cpu_index();
         let next = {
             let _guard = M3Guard::acquire();
             // SAFETY: The SMP lock is held, interrupts are disabled on this
@@ -1907,6 +1909,15 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
             let state = unsafe { (&mut *ptr::addr_of_mut!(STATE)).assume_init_mut() };
             m3_event_locked(state, source)
         };
+        #[cfg(feature = "native-smp-m4")]
+        if cpu == super::smp::bootstrap_index() && m4::quiescence_requested() {
+            m4::wait_for_quiescence();
+            let _guard = M3Guard::acquire();
+            // SAFETY: M3Guard serializes the shared state and IF is clear. All APs
+            // acknowledged the park request before M4 can release process frames.
+            let state = unsafe { (&mut *ptr::addr_of_mut!(STATE)).assume_init_mut() };
+            return m4::finish_quiescence(state);
+        }
         return next;
     }
     #[cfg(not(feature = "native-smp-m3"))]
@@ -1949,6 +1960,11 @@ fn m3_event_locked(state: &mut State, source: *const u64) -> *const u64 {
             } else {
                 serial::write(b"M3:FAIL:UNEXPECTED_KERNEL_INTERRUPT\n");
                 serial::exit(0x11);
+            }
+            #[cfg(feature = "native-smp-m4")]
+            if m4::quiescence_requested() {
+                m4::mark_quiesced(cpu);
+                return source;
             }
             return state.select_smp(cpu).unwrap_or(source);
         }
@@ -2295,6 +2311,11 @@ fn m3_event_locked(state: &mut State, source: *const u64) -> *const u64 {
     }
     if let Some(next) = state.progress_observers() {
         return next;
+    }
+    #[cfg(feature = "native-smp-m4")]
+    if m4::quiescence_requested() {
+        m4::mark_quiesced(cpu);
+        return ptr::null();
     }
     #[cfg(all(
         not(feature = "milestone-m4"),
