@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`8e2b1afc`](https://github.com/simonvanieperen/nieuw-os/commit/8e2b1afc5983c9aa63d909cf17954995ee5f9e42) ·
+**Bron:** [`b1d45e63`](https://github.com/simonvanieperen/nieuw-os/commit/b1d45e63afd4605dcd06562d0ab2aefd756a00d6) ·
 **Ontwikkelbranch:** `simonvanieperen-friendly-system`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Integreer actuele main 69809c2 met behoud van gedeelde host-tooling en checkpointbewijs.
-41/100 blijft 41/100; main 69809c2 is geïntegreerd met behoud van de gedeelde host-artefacthelpers en historische bewijsstatussen. Op de opgeloste mergeboom slagen de 16 storage-backend-replaytests (met umask 077), alle 10 network-service-tests, Python-syntaxiscontrole, rustfmt, Clippy, de x86_64-unknown-none releasebuild en voortgangs-/JSON-/whitespacecontroles. De standaardumask 0002 veroorzaakte eerst 3 fixturefouten; met private bestandscreatie slagen die tests. Geen nieuw native bewijs of criterium toegekend.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Corrigeer PR142-helperclaims en verifieer de actuele mergebron met 87 hosttests.
+41/100 blijft 41/100. Op exacte mergecommit b1d45e63/tree 86ffc23b slagen opnieuw 87 hosttests: common 8, images 20, random 21, FPU 12, storage-replay 16 en netwerkservice 10. Images/random delen bestandsinventaris en beide SHA-256-helpers; FPU deelt alleen regular_files_below en houdt lokale hexvalidatie. Branchbasis d577f185 en eerste mainmerge 8e2b1afc blijven afzonderlijk historisch. Alleen documentclaimcorrectie; geen nieuwe native/QEMU/fullCI- of criteriumacceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

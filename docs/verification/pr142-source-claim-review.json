@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-03",
+  "tested_source_commit": "b1d45e63afd4605dcd06562d0ab2aefd756a00d6",
+  "tested_source_tree": "86ffc23b1278cb0b380aa4573b3a2e373d1ff8e5",
+  "historical_branch_base": "d577f1853323b2fd1d569057f1e15688dcd10574",
+  "historical_first_main_merge": "8e2b1afc5983c9aa63d909cf17954995ee5f9e42",
+  "scope": "Verse87 hosttests daadwerkelijk op b1d45e63, niet alleen op branchbasisd577 of eerste-mainmerge8e2. Images/random delen sha256_bytes/require_sha256 en regular_files_below. FPU deelt alleen regular_files_below; lokale hexvalidatie intact. Alleen documentclaimcorrectie; geen nieuwe runtimefunctie.",
+  "source_file_sha256": {
+    "tools/common.py": "f05c743eee6b1a114f663eafa3f0a166d5b654109cc3d6b1dd07e39510e3a4fc",
+    "tools/run_fpu.py": "9119ac232e5fbb9847abf41bbd04d51441bdcd442787fc50f66af54c71dfb648",
+    "tools/run_images.py": "2f5d7da367ca4f90718254c0b79cfc2d4ef790c7bf6a0439cc9b70378c4e7fcb",
+    "tools/run_random.py": "7b5fa6da1df5f5fb097128ceb075f39f8cf508921b3b6837c57c9208a2c6720f",
+    "services/network-service/src/lib.rs": "d18db38613a2f3c54eed49e3874310d148c01eb7caf4c21f67fe08486628bc35",
+    "services/network-service/tests/service.rs": "cc2f178611f17396c06837f789f801fd910af34c3296f1f7f3864002ae85a22a"
+  },
+  "checks": [
+    {
+      "command": "python3 -B -m unittest discover -s tests -p test_common.py -v",
+      "exit_status": 0,
+      "seconds": 0.058171,
+      "log": "/tmp/nieuw-os-pr142-b1-source-0.log",
+      "sha256": "b2018da3c2a62e83ab9574e93dce05bc82f0a1464293d4057d5be55c924235ab"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p test_images.py -v",
+      "exit_status": 0,
+      "seconds": 0.492938,
+      "log": "/tmp/nieuw-os-pr142-b1-source-1.log",
+      "sha256": "f3ac70289469bc9ff682542e0b376851fee549fed7a584f787bcd2f1d9ee3bee"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p test_random.py -v",
+      "exit_status": 0,
+      "seconds": 0.567157,
+      "log": "/tmp/nieuw-os-pr142-b1-source-2.log",
+      "sha256": "1d24a123b24efc95e717ed8cac0fd135ac72bd056e4c194572da3acf42dd0ad1"
+    },
+    {
+      "command": "python3 -B tools/test_fpu.py -v",
+      "exit_status": 0,
+      "seconds": 0.069191,
+      "log": "/tmp/nieuw-os-pr142-b1-source-3.log",
+      "sha256": "719794564ebcc6c15533406b320c2d5ed3102b5618b097f9b4fbba19d12146cc"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tests -p test_storage_backend_replay.py -v",
+      "exit_status": 0,
+      "seconds": 0.326727,
+      "log": "/tmp/nieuw-os-pr142-b1-source-4.log",
+      "sha256": "3a7baddbf3f47730bd9f4bf6875d575eed0eae3d23800f99b91e56a41d4df361"
+    },
+    {
+      "command": "cargo test --offline --locked --manifest-path services/network-service/Cargo.toml",
+      "exit_status": 0,
+      "seconds": 1.52607,
+      "log": "/tmp/nieuw-os-pr142-b1-source-5.log",
+      "sha256": "0cb41680d4a9a8ec94918c364cca529f058bf5d275d5f84b56da126324aaee4f",
+      "environment": {
+        "PATH": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/rust191/toolchains/toolchains/1.91.1-x86_64-unknown-linux-gnu/bin:/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/host-linker:/home/simon/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Users/simon/adb-fastboot/platform-tools:/mnt/c/Program Files/dotnet/:/mnt/c/Program Files/nodejs/:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/Tailscale/:/mnt/c/Program Files/WSL/:/mnt/c/Users/simon/AppData/Local/studio/bin:/mnt/c/Users/simon/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/simon/AppData/Local/Programs/Microsoft VS Code/bin:/mnt/c/Users/simon/AppData/Roaming/npm:/mnt/c/Users/simon/.local/bin:/mnt/c/Program Files (x86)/Google/Cloud SDK/google-cloud-sdk/bin:/mnt/c/Users/simon/AppData/Local/PowerToys/DSCModules/:/mnt/c/Users/simon/AppData/Local/Programs/Ollama:/mnt/c/ProgramData/simon/studio/bin:/mnt/c/ProgramData/simon/studio_app/bin:/mnt/c/Users/simon/AppData/Local/Programs/ProtonPass:/mnt/c/ProgramData/simon/GitHubDesktop/bin:/mnt/c/Users/simon/AppData/Local/Microsoft/WinGet/Links:/mnt/c/Users/simon/AppData/Local/Programs/coderabbit:/mnt/c/Users/simon/AppData/Local/GitHubCopilotCLI/:/mnt/c/Users/simon/AppData/Local/PowerToys/bin/:/snap/bin:/home/simon/.cache/copilot/pkg/linux-x64/1.0.104-0/ripgrep/bin/linux-x64",
+        "CARGO_TARGET_DIR": "target/pr142-network-host"
+      }
+    }
+  ],
+  "not_run": "Nieuwe native/QEMU/fullCI op deze bron; oudere hoofd-/VM-bewijzen blijven aan eigen bron gebonden. Geen nieuwe fmt/Clippy/native build uitgevoerd voor alleen deze documentcorrectie.",
+  "progress_previous": 41,
+  "progress_current": 41
+}

@@ -1,6 +1,32 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — actuele main geïntegreerd en gerichte gates groen — 3 november 2026
+## NEXT AGENT HANDOFF — PR142 helperclaims en testbron gecontroleerd — 3 november 2026
+
+**Geteste bron:** `b1d45e63afd4605dcd06562d0ab2aefd756a00d6`,
+tree `86ffc23b1278cb0b380aa4573b3a2e373d1ff8e5`, inclusief main
+`69809c2cb53dfb3bd77abe5352892810fba6e82d`. Branchbasis `d577f185`
+en eerste mainmerge `8e2b1afc` zijn historische bronnen, niet de bron van
+de hieronder opnieuw uitgevoerde tests.
+
+**Implementatie:** images/random delen `regular_files_below`,
+`sha256_bytes` en `require_sha256`; FPU deelt alleen `regular_files_below`.
+De SHA-256-hexvalidatie van FPU blijft lokaal. Geen productiecode gewijzigd.
+
+**Nieuw uitgevoerd:** 8 common-, 20 images-, 21 random-, 12 FPU-,
+16 storage-backend-replay- en 10 network-service-hosttests: **87/87,
+alle exit 0**. Exacte commando's, omgeving, looptijden, bron-/loghashes en
+treebinding: [reviewbewijs](verification/pr142-source-claim-review.json).
+De eerdere 61 tests op `8e2b1afc` zijn niet naar deze bron omgelabeld.
+
+**Open:** verse volledige CI/native gates en definitieve review vóór merge;
+oude VM-bewijzen blijven aan hun eigen bron gebonden. De volume-fixturegate
+van PR135, productiesleutels (#41), fysieke invoer (#42) en menselijke
+acceptatie blijven afzonderlijk open. Score **41 → 41**, geen nieuw criterium.
+**Eerstvolgend commando:** `GH_PAGER="" gh pr checks 142`; bij gewijzigde
+Watch-head eerst bron en inhoud opnieuw controleren. Geen bypass of blinde
+sluiting van bron-PRs.
+
+## Historisch checkpoint — actuele main geïntegreerd en gerichte gates groen — 3 november 2026
 
 **Basis:** PR-head `8e2b1afc5983c9aa63d909cf17954995ee5f9e42` en actuele
 main `69809c2cb53dfb3bd77abe5352892810fba6e82d`, met gemeenschappelijke

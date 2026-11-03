@@ -65,6 +65,13 @@ algemeen dagelijks desktop-OS te zijn en krijgt geen verzonnen voortgang.
 
 ## Eerste meting en afbakening
 
+PR142-reviewcorrectie, 3 november 2026: **41 → 41**. Op mergecommit
+`b1d45e63afd4605dcd06562d0ab2aefd756a00d6` zijn 87 hosttests opnieuw groen;
+branchbasis en eerdere merge worden niet als deze testbron gepresenteerd.
+FPU deelt alleen de bestandsinventaris, niet de twee SHA-256-helpers.
+[Brongebonden reviewbewijs](verification/pr142-source-claim-review.json).
+Geen nieuwe native, fysieke, menselijke of releaseacceptatie.
+
 Op bron `b58ae2a56be6978eab2b5ac4bb5d12e3d615865f` is de beginscore **13%**:
 9 punten voor M1–M4 (boot, geheugen, processen, capability-IPC), 3 voor M6a–M6c
 (WRITE/FLUSH, objectherstel, namen/catalogus), en 1 voor het M5-devicepad.
