@@ -16,6 +16,7 @@ mod support;
 
 use k05_protocol::*;
 use nieuw_os_sdk_runtime::{
+    clock::{self, TimerCancellation, TimerRegistration, WaitOutcome},
     native, Capability, ChildProcess, Error, Handle, LaunchImage, Outgoing, ProcessStatus,
     ReceiveEndpoint, Received, Rights, SendEndpoint,
 };
@@ -555,10 +556,13 @@ impl Supervisor {
     }
 
     fn wait_ticks(&self, ticks: u64) {
-        let now = native::monotonic_ticks().unwrap_or_else(|_| fail(100));
+        let now = clock::now_monotonic().unwrap_or_else(|_| fail(100));
         let deadline = now.checked_add(ticks).unwrap_or_else(|| fail(101));
-        if native::ipc_wait(&[], deadline) != Ok(0) {
-            fail(102);
+        let cancellation = TimerCancellation::new();
+        let timer = TimerRegistration::at(deadline, &cancellation);
+        match clock::sleep_until(&timer) {
+            Ok(WaitOutcome::TimedOut) => {}
+            Ok(WaitOutcome::Ready(_)) | Ok(WaitOutcome::Cancelled) | Err(_) => fail(102),
         }
     }
 
