@@ -65,13 +65,18 @@ fmt en16 runnertests slagen. Log `files/veld-env/logs/veld-context-final-host.lo
 Nieuwe hele-apporakels toetsen keyboardbediening, read-only tegenproeven en
 de muisknop op beide schalen. Twee fixturefouten (verkeerde enumnaam en
 oude inputgeneratie na FocusLost) zijn hersteld; geen productgrens versoepeld.
-Native menuacceptatie is bij dit checkpoint **niet uitgevoerd**.
+Native menuacceptatie slaagt op `9b1c82000d03885e9938c62eb2533fb207f04eab`:
+44 volledige fasen per schaal, 330,02 s bij100%, 600,60 s bij200%,
+beide exit0/ruwe33. Fingerprint
+`be9f05ecc64049506701670833d1d325bd2eb9fb1830c549cf693bac248f093d`.
+Beide normale profielen bouwen ook zonder foutinjectie.
+[Bewijs](verification/veld-context-20261103/README.md).
 Bekend open: hover blijft na pointerverlaten zonder actieve grab staan;
 muisorakels behouden die echte toestand, zonder masker.
 
-Volgende commando's: normale probebuild en volledige runner
-`--clipboard --workspace --scale 1`; daarna hidpi-probebuild en dezelfde gate
-met `--scale 2`, elk in eigen build-/targetmap. Bron tijdens runs bevriezen.
+Volgende stap: echte pointer-leave zonder buitenbodycoordinaten, zonder
+focusverlies en zonder appmenu te sluiten. Daarna selectie/drag-drop en
+overige complete-omgevingsfuncties; geen nieuw algemeen visueel onderzoek.
 De complete omgeving blijft actief. Score **41 -> 41**;
 geen U02–U06-, fysieke, menselijke of releaseacceptatie.
 

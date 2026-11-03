@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`6d5b3de3`](https://github.com/simonvanieperen/nieuw-os/commit/6d5b3de380708c144f5d56021af8fe2f613c9711) ·
+**Bron:** [`9b1c8200`](https://github.com/simonvanieperen/nieuw-os/commit/9b1c82000d03885e9938c62eb2533fb207f04eab) ·
 **Ontwikkelbranch:** `simonvanieperen-fictional-disco`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Veld-03: native 200%-gate en echt documentcontextmenu.
-41% blijft 41%: bron48655bce heeft36 volledige native200%-fasen op1920x1080, exit0, naast eerder native100%-bewijs op0c66173b. Documentcontextmenu geintegreerd op6d5b3de3; samengevoegde UI/app-hosttests, Clippy, fmt en16 runnertegenproeven slagen. Nieuwe toetsenbord-/muismenu-orakels voor beide schalen; menu-nativeacceptatie nog niet uitgevoerd. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Hover-leave, complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open.
+41% blijft 41%: bron9b1c8200 heeft44 volledige nativefasen per schaal, 100% en200%, exit0/ruwe33. Echt documentcontextmenu via toetsenbord en muisknop, toolkeuze, modale invoerweigering en read-only tegenproeven; hele apppixels zonder maskers en onverkorte oude gates. UI/app-hosttests, Clippy, fmt,16 runnertegenproeven en beide normale builds slagen. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Hover-leave, complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
