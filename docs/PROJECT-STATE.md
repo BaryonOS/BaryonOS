@@ -12,9 +12,11 @@ en host-/native acceptatie. Geen nieuwe losse corecrates in plaats van
 integratie. Geen runtime- of acceptatieclaim door deze toewijzing.
 
 **Actief gecontroleerd:** Drivers, de historische kernelowner en integrator
-bevestigen geen K05/OOM/SMP-WIP. Drivers bezit tijdelijk alleen de concrete
-`m3.rs`-netwerkdispatchdelta `DRV-MAC-0X74`; de memory-/SMP-integratiehaak
-wordt na expliciete filevrijgave seriëel overgedragen. Heap/framecore en de
+bevestigen geen K05/OOM/SMP-WIP. Drivers heeft daarna expliciet `m3.rs`
+vrijgegeven op gemelde codecommit `d27b04e188f4c7e557719dea58b60c5b83e72739`:
+geen lopende/geplande writes; alleen twee MAC-dispatchroutes voor `0x74`.
+De memory-/SMP-integratiehaak is nu exclusief aan Maturity overgedragen;
+de concrete driverownershipblokkade is opgeheven. Heap/framecore en de
 K05-diagnostic consumer zijn daardoor niet als hele directory geblokkeerd.
 Veld bevestigt wel een actieve high-contrast-leaf op controller/render:
 General stopt daar nieuwe writes tot expliciete HC-oplevering/filevrijgave.
@@ -36,7 +38,7 @@ native criterium gerealiseerd. Gerichte queue-/meter-/diffcontroles staan
 in het committranscript. Geen herhaalde brede release-/UI-poort uitgevoerd.
 **Eerstvolgend:** stuur na push de gepinde queueclaim aan System Maturity:
 start `SM-OOM-1` in diens bestaande branch/omgeving, zonder op oude
-directoryclaims te wachten. Drivers meldt expliciete `m3.rs`-vrijgave;
+directoryclaims te wachten. Meld ook de ontvangen `m3.rs`-filevrijgave;
 Veld levert de begrensde HC-filehandoff voor latere producthervatting.
 
 ## Historisch checkpoint — PR155 main-integratie — 3 november 2026
