@@ -3,7 +3,7 @@
 ## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
 
 **Gepubliceerde basis:** branch `simonvanieperen-studious-spoon`, commit
-`8106addda98111e591405d69ec7056553da6910e`, gepusht naar
+`e528da3fcec2248707e9b13aff2f46308f4b94ce`, gepusht naar
 `origin/simonvanieperen-studious-spoon`. Actieve toewijzing:
 `SYSTEM-MATURITY-SMP`, queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`.
 OOM/K05 zijn afgesloten en blijven ongewijzigd;
@@ -93,7 +93,15 @@ testtranscript is gecorrigeerd toen de eerste hosttest aantoonde dat slot 2
 nog op de oude CPU stond; na die correctie slaagden alle 11 hosttests.
 Compact bewijs en exacte opdrachten:
 [`m4-profile-stability-20261103.json`](verification/sm-smp/m4-profile-stability-20261103.json).
-De volledige 1/2/4-CPU-matrix is nog niet uitgevoerd met deze wijziging.
+
+**Volledige SMP-matrix PASS op broncommit `e528da3f` (exit 0):** exact
+`PATH="$HOME/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH" LD_LIBRARY_PATH=/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu:/tmp/sm-oom-qemu-root/lib/x86_64-linux-gnu OS_OVMF_CODE=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd OS_OVMF_VARS=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd python3 -B tools/test_smp.py`.
+Alle negen stages en 11 hosttests slaagden: M2 met 1/2/4 CPU, M3 met 2 CPU,
+procesexit op een AP, de M3 1-CPU-regressie, M3 met 4 CPU, cross-CPU M4-IPC
+en cross-CPU M4-revoke. De M4-profielen tonen telkens beide verwachte
+CPU-grenzen; raw QEMU-exit 33 was voor alle VM-runs verwacht. QEMU meldde
+opnieuw ontbrekend `kvmvapic.bin`; niet onderzocht. Receipt:
+[`smp-rendezvous-20261103T183655Z.json`](verification/sm-smp/smp-rendezvous-20261103T183655Z.json).
 
 **Niet-geaccepteerde SMP-lifecycleverkenning:** het combineren van de bestaande
 M4 multi-round lifecyclefixture met SMP eindigde op raw QEMU exit 35 bij
@@ -121,8 +129,9 @@ stabiel geaccepteerd. TLB-shootdown/hergebruik en bredere races/failure-
 acceptatie blijven open. Dit is geen volledige K06-acceptatie.
 `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
 
-**Eerstvolgende actie:** draai de volledige negen-stagematrix op deze gepushte
-bron. TLB-/hergebruik- en raceacceptatie blijven open.
+**Eerstvolgende actie:** hervat de bestaande K06-acceptatie voor TLB-
+consistentie/hergebruik en SMP-race-/failuregevallen. De matrixpass bewijst
+geen remote TLB-shootdownprotocol en sluit K06 niet.
 
 **Cross-CPU capability-IPC — eerdere lokale proef vóór matrix:**
 `native-smp-m4` combineert het bestaande SMP-M3-profiel met de bestaande M4
