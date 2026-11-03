@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`fb160165`](https://github.com/simonvanieperen/nieuw-os/commit/fb160165bf410098becb7a7b45121160859e4463) ·
+**Bron:** [`28ab5135`](https://github.com/simonvanieperen/nieuw-os/commit/28ab51355789fe17fe86f4845cfcabd6096a1591) ·
 **Ontwikkelbranch:** `integrate/stack130-local`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR135: main 95d79451 inhoudsbehoudend integreren.
-41/100 blijft 41/100. De opgeloste base-integratie behoudt zowel PR135- als main-wijzigingen; kernel-core heeft 20 hosttests en window-session 70 hosttests doorstaan, met Clippy, formattering en de native cross-build. QEMU/OVMF ontbreken, dus geen runtimeacceptatie of nieuw productcriterium.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR135: main 78ff7c03 inhoudsbehoudend integreren.
+41/100 blijft 41/100. De documentconflicten zijn inhoudsbehoudend opgelost. Volume (48), image-codec/viewer (38), update-core/tool (15), window-session (70) en gerichte Python-tests slagen; Clippy, formattering en de native update-cross-build slagen. QEMU/OVMF ontbreken, dus geen runtimeacceptatie of nieuw criterium.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

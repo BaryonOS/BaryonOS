@@ -1,6 +1,55 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR135-integratie met main `95d79451` — 3 november 2026
+## NEXT AGENT HANDOFF — PR135-integratie met main `78ff7c03` — 3 november 2026
+
+**Basis vóór integratie:** PR-head `28ab51355789fe17fe86f4845cfcabd6096a1591`;
+main `78ff7c03b015ad16fe665ae7df9fe239d078e08d`; merge-base
+`95d7945110ce853a1b5827ec59f6115475691805`. Conflicten in README,
+PROJECT-STATE en progress.json zijn inhoudsbehoudend opgelost. Main's
+update-ondertekenbeleid en image format-/EXIF-wijzigingen zijn meegenomen.
+
+**Validatie op de opgeloste boom (exit 0):**
+- `cargo +1.90.0 test --locked -p volume-core`: 48 tests;
+  `cargo +1.90.0 test --offline --locked --manifest-path
+  /home/runner/work/nieuw-os/nieuw-os/services/image-codec/Cargo.toml`: 23;
+  `cargo +1.90.0 test --offline --locked --manifest-path
+  /home/runner/work/nieuw-os/nieuw-os/sdk/examples/image-viewer/Cargo.toml`: 15;
+  `cargo +1.90.0 test --locked -p update-core --features
+  test-signing-anchors`: 13;
+  `cargo +1.90.0 test --offline --locked --manifest-path
+  /home/runner/work/nieuw-os/nieuw-os/sdk/examples/window-session/Cargo.toml`: 70;
+  `cargo +1.90.0 test --locked --manifest-path
+  /home/runner/work/nieuw-os/nieuw-os/tools/update-tool/Cargo.toml`: 2.
+- Python: `python3 -B -m unittest discover -s
+  /home/runner/work/nieuw-os/nieuw-os/tests -p 'test_update_harness.py'` (14),
+  `... -p 'test_volume_disk.py'` (22),
+  `python3 -B -m unittest discover -s
+  /home/runner/work/nieuw-os/nieuw-os/tools/tests -p 'test_images.py'` (20),
+  `python3 -B -m unittest discover -s
+  /home/runner/work/nieuw-os/nieuw-os/services/image-codec/tests
+  -p 'test_vendor.py' -v` (4) en
+  `python3 -B /home/runner/work/nieuw-os/nieuw-os/services/image-codec/verify_vendor.py`.
+- Clippy slaagde voor image-codec, image-viewer, update-core met TEST-policy,
+  update-service voor `x86_64-unknown-none`, volume-core en window-session.
+  Workspace- en standalone formatteringcontroles slaagden.
+- `NOS_BUILD_DIR=/home/runner/work/nieuw-os/nieuw-os/build/pr135-update-78ff
+  NOS_TARGET_DIR=/home/runner/work/nieuw-os/nieuw-os/target/pr135-update-native-78ff
+  CARGO_TARGET_DIR=/home/runner/work/nieuw-os/nieuw-os/target/pr135-update-host-78ff
+  CARGO_NET_OFFLINE=true python3 -B -u
+  /home/runner/work/nieuw-os/nieuw-os/tools/build.py --kernel-feature native-update
+  --image-version 1`: native cross-build en ELF-inspectie slagen, geen boot.
+- `python3 /home/runner/work/nieuw-os/nieuw-os/tools/progress.py --write`
+  en `--check`, JSON-parse en `git diff --check` slagen.
+
+Voor Rust zijn de ontbrekende pinned toolchaincomponenten en targets hersteld;
+voor offline builds zijn alleen bestaande locked dependencies opgehaald. Geen
+dependency of lockfile gewijzigd. `python3 -B
+/home/runner/work/nieuw-os/nieuw-os/tools/preflight.py --strict` eindigde met
+exit 2: QEMU en OVMF ontbreken. Native QEMU-acceptatie is dus niet uitgevoerd.
+Voortgang blijft **41 → 41/100**; geen criterium of gewicht gewijzigd. Nieuwe
+head-checks en mergeability moeten na publicatie worden beoordeeld.
+
+## Historisch checkpoint — PR135-integratie met main `95d79451` — 3 november 2026
 
 **Basis vóór integratie:** PR-head `fb160165bf410098becb7a7b45121160859e4463`;
 main `95d7945110ce853a1b5827ec59f6115475691805`. De merge-base is
@@ -354,6 +403,74 @@ native productcriteria, hardware- of volledige releaseclaim.
 ## Historisch checkpoint — PR149 derde main-integratie op `99d13276` — 3 november 2026
 
 ## Historisch checkpoint — PR138-integratie met main `d686bd54` — 3 november 2026
+## Historisch checkpoint — PR158-documentconflicten met main `95d79451` — 3 november 2026
+
+**Bronnen:** PR-head `04d727c306d13e03a192d9d002a7d44348841c9f` en
+main `95d7945110ce853a1b5827ec59f6115475691805`, branch
+`fix/b03-test-anchors-guard`. De drie documentconflicten behouden de
+B03- en PR138-checkpointgeschiedenissen en hun brongebonden bewijs.
+De automatisch geïntegreerde Rust-wijzigingen uit main zijn uitsluitend
+commentaar; de B03-ondertekenpolicy blijft ongewijzigd.
+**41 → 41/100**; geen nieuw criterium, gewicht of native acceptatie.
+De historische PR148-integratiereviewvelden blijven expliciet historisch.
+
+**Validatie op de opgeloste boom:** 78 Rust-hosttests en 14 Python-harnastests
+geslaagd; gerichte Clippy en beide formatcontroles exit 0. De eerste
+parallelle Rust-commando's raakten een toolchain-downloadrace; na voltooide
+installatie en één herstel van ontbrekende rustfmt/Clippy zijn alle controles
+opnieuw geslaagd. Geen dependency of lockfile gewijzigd.
+Vergelijkingen bevestigen exact behoud van de B03-code uit de PR en van de
+drie gedocumenteerde Rust-bestanden uit main. Exacte commando's, logpaden,
+exitstatussen en hashes staan in
+[integratiebewijs](verification/pr158-main-integration-20261103.json).
+`tools/progress.py --write` en `--check` slagen; de SVG blijft bytegelijk.
+Native builds en QEMU niet herhaald voor deze documentintegratie.
+Oud testbewijs geldt niet automatisch voor deze integratie.
+
+**Vervolg:** na publicatie nieuwe-head CI laten beoordelen; geen oude
+CI-run herstarten. Productiesleutelbeleid en issue #41 blijven open.
+Eerstvolgende lokale controle: `python3 tools/progress.py --check`.
+
+## Historisch checkpoint — B03 TEST-ankergrens — 3 november 2026
+
+**Basis:** `main` `a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e`; codecommits
+`07e7f9a0471798c49e1844bf885f94491bb481d8` en
+`ceb957557af821bb95786aa505b5df41077f7403` op
+`fix/b03-test-anchors-guard`. `test_policy` vereist nu de expliciete
+`test-signing-anchors`-feature; UEFI-loader- en update-servicebuilds zonder
+gekozen ondertekenbeleid falen tijdens compilatie. TEST-sleutels blijven
+uitsluitend fixtures. Productieankers, sleutelrotatie/-intrekking en
+releaseceremonie zijn niet ontworpen of bewezen; #41 blijft open.
+
+**Gerichte controles:** update-core met TEST-feature 13 tests, update-tool
+2 tests, update-core zonder TEST-feature 7 tests en B03 Python-harnas 14 tests
+geslaagd. De testloader en update-service zijn crossgebouwd. Negatieve
+compilatiechecks voor de ongemarkeerde loader en service falen verwacht met
+alleen de bedoelde policyfout. Update-core/update-tool- en service-Clippy
+slagen; loader-Clippy slaagt met alleen de bestaande
+`clippy::not_unsafe_ptr_arg_deref`-lint toegestaan; de ongewijzigde pointer
+entrypoint is geen onderdeel van deze wijziging. Zie de exacte commando's en
+bewijshashes in
+[B03-verificatierapport](verification/b03-test-anchor-gating/README.md).
+Een directe release-`cargo build` buiten de projectwrapper raakte daarnaast
+een LLVM SIGILL tijdens codegeneratie voor `curve25519-dalek`; de
+voorgeschreven update-service-buildwrapper slaagde wel en is het gerapporteerde
+buildresultaat.
+
+**Native vervolgbewijs:** op productbron `26108a25` is
+`python3 -B -u tools/test_update.py` uitgevoerd: exit 0, 106,91 s,
+alle 18 QEMU-stappen en de afsluitende normale build geslaagd. Zie
+[native-sprint.json](verification/b03-test-anchor-gating/native-sprint.json)
+voor de exacte omgeving, hashes en bewijsgrens. Evidencehead `568741f3`
+had 31 geslaagde checks en een overgeslagen check. Geen hardwaretest,
+productiesleutelbeleid of nieuwe productcriteria geaccepteerd.
+
+**Voortgang:** branchscore **41 → 41/100**; `tools/progress.py --write`
+en `--check` bevestigen deze berekening. Er zijn geen criteria of gewichten
+gewijzigd en deze wijziging levert geen productacceptatiepunten op.
+
+**Eerstvolgend:** de gerichte sprintcorrectie na actuele-head-CI integreren;
+#41 blijft open voor productiesleutelbeleid en bijbehorende acceptatie.
 
 **Bronnen:** PR-head `fc3b5e2522e04f636bdb443299da6e8f99161afe` en
 main `d686bd54e766aed542e9918d1a37dcce434f18e2`, branch

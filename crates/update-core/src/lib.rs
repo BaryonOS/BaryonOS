@@ -1,7 +1,8 @@
 #![no_std]
 #![forbid(unsafe_code)]
 //! B03 update core (ADR-049): the signed manifest format, hybrid
-//! Ed25519 + ML-DSA-65 verification against pinned anchors, the slot store
+//! Ed25519 + ML-DSA-65 verification, test anchors behind an opt-in feature,
+//! the slot store
 //! layout, the loader's slot selection policy with a version floor, and the
 //! two-phase install plan. Shared by the UEFI loader, the ring-3 update
 //! service and the host signing tool so all three agree byte for byte.
@@ -14,6 +15,7 @@ use ml_dsa::{
 use sha2::{Digest, Sha256};
 
 pub mod policy;
+#[cfg(feature = "test-signing-anchors")]
 pub mod test_policy;
 
 pub const SECTOR: usize = 512;

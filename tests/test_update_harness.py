@@ -13,6 +13,7 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
+import build as update_build  # noqa: E402
 import run_update as ru  # noqa: E402
 import update_disk as disk  # noqa: E402
 
@@ -46,6 +47,17 @@ def good(stage: str) -> dict[str, int]:
 
 def verdict(stage: str, text: str, rc=33, timed_out=False, killed=False, running=False):
     return ru.evaluate(stage, text, rc, timed_out, killed, running)
+
+
+class BuildProfiles(unittest.TestCase):
+    def test_signed_loader_requires_an_explicit_policy_profile(self):
+        with self.assertRaisesRegex(ValueError, "no configured policy"):
+            update_build.build(loader_feature="signed-boot")
+
+    def test_update_fixture_rejects_the_unlabelled_signed_loader(self):
+        with self.assertRaisesRegex(ValueError, "require the signed-boot-test loader"):
+            update_build.build(loader_feature="signed-boot", kernel_feature="native-update",
+                               image_version=1)
 
 
 class Layout(unittest.TestCase):

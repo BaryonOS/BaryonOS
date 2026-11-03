@@ -3,11 +3,22 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "fb160165bf410098becb7a7b45121160859e4463",
+    "source_commit": "28ab51355789fe17fe86f4845cfcabd6096a1591",
+    "assessment_basis": "source_commit",
+    "reviewed_commit": "cc1dea7eeeae01448a378ee422837b0438ecc7b5",
+    "reviewed_commit_context": "Historische review van de PR148-documentatiestatus en reikwijdte van hostbewijs; geen integratiereview.",
+    "integration_review": {
+      "status": "open",
+      "source_commit": "47ec535f15bb10912dbc6cbf1af3de9df0c6c226",
+      "main_commit": "8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2",
+      "merge_commit": "7412d0bb4b8ef2d146fc5b942bec8d6f370470e5",
+      "evidence_basis": "Git-mergeouders en handoff in docs/PROJECT-STATE.md; gerichte integratietests zijn daar gemeld met uitvoer uitsluitend in het sessietranscript. De eerdere PR148-hostreceipts zijn geen integratiereviewbewijs.",
+      "missing_evidence": "Afzonderlijk, brongebonden bewijs van de integratiereview ontbreekt; nieuwe-head CI en review moeten nog worden beoordeeld."
+    },
     "branch": "integrate/stack130-local",
-    "task": "PR135: main 95d79451 inhoudsbehoudend integreren",
+    "task": "PR135: main 78ff7c03 inhoudsbehoudend integreren",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. De opgeloste base-integratie behoudt zowel PR135- als main-wijzigingen; kernel-core heeft 20 hosttests en window-session 70 hosttests doorstaan, met Clippy, formattering en de native cross-build. QEMU/OVMF ontbreken, dus geen runtimeacceptatie of nieuw productcriterium."
+    "summary": "41/100 blijft 41/100. De documentconflicten zijn inhoudsbehoudend opgelost. Volume (48), image-codec/viewer (38), update-core/tool (15), window-session (70) en gerichte Python-tests slagen; Clippy, formattering en de native update-cross-build slagen. QEMU/OVMF ontbreken, dus geen runtimeacceptatie of nieuw criterium."
   },
   "tracks": [
     {

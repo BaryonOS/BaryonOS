@@ -1,5 +1,12 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+PR158-integratie met main `95d79451` op basis `04d727c3`: **41 → 41/100**.
+De drie documentconflicten behouden beide checkpointgeschiedenissen en hun
+brongebonden bewijs. De Rust-wijzigingen uit main zijn uitsluitend commentaar;
+B03 blijft behouden. Geen criterium, gewicht of native acceptatie gewijzigd.
+De historische PR148-integratiereview geldt niet voor deze integratie.
+Nieuwe-head CI blijft afzonderlijk te beoordelen.
+
 PR138-integratie met main `d686bd54` op basis `fc3b5e25`: **41 → 41/100**.
 Alleen het statusconflict is handmatig opgelost; beide geschiedenissen en
 brongebonden receipts blijven behouden. Geen nieuw acceptatiecriterium,
