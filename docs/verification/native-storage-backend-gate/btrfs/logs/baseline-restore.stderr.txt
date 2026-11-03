@@ -1,0 +1,1 @@
+ERROR: failed to restore symlink '/tmp/nieuw-os-storage-btrfs-20261102/restore-baseline/document-link': No such file or directory

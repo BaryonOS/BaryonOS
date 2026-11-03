@@ -113,6 +113,18 @@ Een interactieprototype op een bestaand hostsysteem is ontwerpgereedschap; het w
 
 Een technische onzekerheid wordt een korte onderzoekstaak met hypothese, experiment en besliscriterium. Bestaande beperkingen zijn input voor onderzoek, geen automatische reden om terug te vallen op een Linux-achtige productervaring. Kies een conventioneel patroon alleen als de gebruikersproef dat ondersteunt. Bewaar verworpen concepten en de reden, zodat ontwerpkeuzes overdraagbaar blijven.
 
+## Onderzoeksinvoer volledige OS-journey — 2 november 2026
+
+De [installatie-/day-one-vergelijking](research/2026-11-02/journey/README.md)
+voegt herkenbare basisbediening, lokale zoekaliassen, optionele begeleiding
+en een volledige grens vóór schijfmutaties toe als **te toetsen voorstellen**.
+Het begrensde vervolg staat in [PRODUCT-SPEC.md](implementation/PRODUCT-SPEC.md):
+eerst een niet-schrijvende plan-/aliasproef, daarna alleen native koppeling
+bij echte service-, auth-, encryptie-, recovery- en toegankelijkheidsgates.
+Geen installer/onboarding geïmplementeerd, P2 niet verruimd, geen nieuw
+acceptatiepunt of kalenderbelofte. Fysieke installatie blijft buiten deze
+onderzoeksopdracht en vereist afzonderlijke toestemming en hardwarebewijs.
+
 ## Parallel quantumspoor vanaf M0
 
 Volg [QUANTUM-RESEARCH.md](QUANTUM-RESEARCH.md): Q0 is voor de eerste proef afgerond in [implementation/QUANTUM-SPEC.md](implementation/QUANTUM-SPEC.md); Q1 bouwt de gekozen lokale simulator en jobinterface; Q2 een lokaal QPU-contract; Q3 de eigen OS-kernel als klassieke host/controller van één hybride quantumplatform; Q4 verdere uitvoeringsmodellen. Het quantumspoor is een expliciete ambitie, geen losse toekomstige wens. Elke fase heeft eigen bewijs; postkwantumcryptografie blijft bovendien onderdeel van de beveiliging van gewone apparaten. Geen externe quantumcloud.

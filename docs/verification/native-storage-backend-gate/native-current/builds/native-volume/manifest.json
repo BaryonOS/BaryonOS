@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "profile": "native-volume",
+  "kernel_feature": "native-volume",
+  "loader_feature": null,
+  "source_fingerprint_version": 3,
+  "source_sha256": "8fd739dd015b9d01908ccc0e385f5b584985cade44702f6e6662483f4be0b6d3",
+  "loader": {
+    "sha256": "0a0a6446229b496c64ad7b5d0b8d38112e651dcc1c16ff1a3c09cb7f1251b078",
+    "format": "AMD64 PE32+",
+    "subsystem": "EFI_APPLICATION",
+    "imports": 0
+  },
+  "kernel": {
+    "sha256": "d2020b9dbb9492ad34419986bdc833c85a5dd2a5960673221e5727b2a21b194b",
+    "entry": 33554432,
+    "segments": [
+      {
+        "flags": 5,
+        "offset": 4096,
+        "address": 33554432,
+        "filesz": 122823,
+        "memsz": 122823,
+        "page_start": 33554432,
+        "page_end": 33677312
+      },
+      {
+        "flags": 4,
+        "offset": 126976,
+        "address": 33677312,
+        "filesz": 178672,
+        "memsz": 178672,
+        "page_start": 33677312,
+        "page_end": 33857536
+      },
+      {
+        "flags": 6,
+        "offset": 307200,
+        "address": 33857536,
+        "filesz": 1258144,
+        "memsz": 4344912,
+        "page_start": 33857536,
+        "page_end": 38203392
+      }
+    ],
+    "sections": [
+      {
+        "name": "",
+        "type": 0,
+        "flags": 0,
+        "size": 0
+      },
+      {
+        "name": ".text",
+        "type": 1,
+        "flags": 6,
+        "size": 122823
+      },
+      {
+        "name": ".rodata",
+        "type": 1,
+        "flags": 50,
+        "size": 178672
+      },
+      {
+        "name": ".data",
+        "type": 1,
+        "flags": 3,
+        "size": 1258144
+      },
+      {
+        "name": ".bss",
+        "type": 8,
+        "flags": 3,
+        "size": 3083344
+      },
+      {
+        "name": ".symtab",
+        "type": 2,
+        "flags": 0,
+        "size": 7272
+      },
+      {
+        "name": ".shstrtab",
+        "type": 3,
+        "flags": 0,
+        "size": 52
+      },
+      {
+        "name": ".strtab",
+        "type": 3,
+        "flags": 0,
+        "size": 15896
+      }
+    ]
+  },
+  "sdk_runtime": false,
+  "document_session": false,
+  "volume_docs": {
+    "app_sha256": "2056b4d803dd04272c91137c076889e93a223ce2bfa62ba1eeceb48f400187fc",
+    "app_elf": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 37714,
+          "memsz": 37714,
+          "page_start": 1073741824,
+          "page_end": 1073782784
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 45056,
+          "filesz": 1248,
+          "memsz": 1248,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 49152,
+          "filesz": 3448,
+          "memsz": 3448,
+          "page_start": 1073823744,
+          "page_end": 1073827840
+        }
+      ]
+    },
+    "service_sha256": "9f389151e1e34f22446875a3e632af42061cad5732413a536e4fff64c83adefa",
+    "service_elf": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 57570,
+          "memsz": 57570,
+          "page_start": 1073741824,
+          "page_end": 1073803264
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 65536,
+          "filesz": 1304,
+          "memsz": 1304,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 69632,
+          "filesz": 18266,
+          "memsz": 18266,
+          "page_start": 1073823744,
+          "page_end": 1073844224
+        }
+      ]
+    }
+  }
+}

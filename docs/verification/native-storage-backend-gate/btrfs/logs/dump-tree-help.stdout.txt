@@ -1,0 +1,24 @@
+usage: btrfs inspect-internal dump-tree [options] <device> [<device> ..]
+
+    Dump tree structures from a given device
+
+    Dump tree structures from a given device in textual form, expand keys to human
+    readable equivalents where possible.
+    Note: contains file names, consider that if you're asked to send the dump
+    for analysis.
+
+    -e|--extents              print only extent info: extent and device trees 
+    -d|--device               print only device info: tree root, chunk and device trees 
+    -r|--roots                print only short root node info 
+    -R|--backups              same as --roots plus print backup root info 
+    -u|--uuid                 print only the uuid tree 
+    -b|--block <block_num>    print info from the specified block only can be specified multiple times 
+    -t|--tree <tree_id>       print only tree with the given id (string or number) 
+    --follow                  use with -b, to show all children tree blocks of <block_num> 
+    --noscan                  do not scan the devices from the filesystem, use only the listed ones 
+    --bfs                     breadth-first traversal of the trees, print nodes, then leaves (default) 
+    --dfs                     depth-first traversal of the trees 
+    --hide-names              hide filenames/subvolume/xattrs and other name references 
+    --csum-headers            print node checksums stored in headers (metadata) 
+    --csum-items              print checksums stored in checksum items (data) 
+
