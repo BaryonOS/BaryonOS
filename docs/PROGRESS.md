@@ -4,6 +4,12 @@ De actieve volledige releaseopdracht en productacceptatie staan in
 [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft
 de ontwikkelmeter; het vervangt de conjunctieve releaseacceptatie niet.
 
+PR149-review op bron `53256f82`: **41 → 41**. Drie daadwerkelijk rood
+gereproduceerde kaartfouten hersteld: smal/hoog, overlopende tekst en
+onjuiste opslagoorzaak.59 volledige hosttests, Clippy, formattering en
+scalarno_std-librarybuild slagen. Geen nieuwe native gast-/screenshot- of
+menselijke acceptatie. [Volledig bewijs](verification/pr149-compact-review.json).
+
 ## Betekenis van het percentage
 
 De README toont **behaalde acceptatiepunten / 100**. De gewichten zijn een

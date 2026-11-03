@@ -1,6 +1,32 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR149 tweede main-integratie
+## NEXT AGENT HANDOFF — PR149 compacte kaartregressies hersteld — 3 november2026
+
+**Bron:** `53256f82baf097ebaab2497018ef2c37196c8e5d`, boven
+layoutfix `f67b1e85` en actuele Watch-parent `5492158d` met main `d115cc96`.
+Smalle/hoge viewports gebruiken nu dezelfde compacte geometrie voor
+hit-testing en tekenen. De Start-breedtetest volgt de werkelijke
+werkbalkbreedte; nieuwe320/400/639/640-pixelgevallen en echte geschaalde
+framebufferpixels controleren de grens. Compacte toestandstekst past
+binnen de kaart en onderscheidt opslagfouten van volle objectruimte en
+andere fouten. Geen autorisatie-/opslagcontract gewijzigd.
+
+**Echt rood/groen:** oude kaart was200 in plaats van96 pixels hoog;
+`Ready` veranderde pixel109,163 buiten de kaart en opslag-/niet-opslagfouten
+gaven identieke pixels. Na correctie **59 hosttests**, Clippy, formattering
+en scalar `x86_64-unknown-none`-librarybuild: exit0.
+Volledige relevante logs, exacte commando's, SHA-256 en bronbinding:
+[reviewbewijs](verification/pr149-compact-review.json).
+De eerste extra pixeltest gebruikte onjuist logische coördinaten bij200%;
+die testfout is hersteld, de mislukte poging blijft vermeld.
+
+**Open/eerstvolgend:** `GH_PAGER="" gh pr checks 149`; verse volledige
+CI/native-QEMU-/screenshotacceptatie en review op exact de nieuwe head.
+Geen gast-run, fysieke/human-/releaseacceptatie of gebruiksmeting geclaimd.
+Oude55/57-tests en Watch-meldingen hieronder zijn historisch, niet verse
+bronacceptatie. **41 → 41**, geen criteriumwijziging of mandaatvrijgave.
+
+## Historisch checkpoint — PR149 tweede main-integratie
 
 **Bron:** PR-head `b75cfc3c7c5cc16efd618b2d6d179938abdabbdf` met main
 `d115cc96c19ac4371baed77409a23d1adddffaf0`, branch
