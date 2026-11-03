@@ -1,32 +1,45 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR149 derde main-integratie — 3 november 2026
+## NEXT AGENT HANDOFF — keyring-herstelautoriteit — 3 november 2026
 
-**Basis:** Watch-merge `bb8877e3e1aaec304d7478510b65c8116aeb634e`, met
-ouders `416886354dbb0c6135a0740c429a3fbd4530a16d` en main
-`99d132768fd72276caa4a3b3e9a09f8f1909f0ed`, branch
-`simonvanieperen-reimagined-train`. Vier centrale documentatieconflicten;
-de compacte UI-fixes en hun bewijs blijven uit de PR behouden, de
-PR139-receipts komen ongewijzigd uit main. Beide historische statuslijnen
-blijven behouden en krijgen geen nieuwe bewijsbron toegewezen.
-Rubric en score blijven **41 → 41/100**.
+**Basis/implementatie:** branch `simonvanieperen-animated-garbanzo`,
+broncommit `75495efc37f1753d652f52e55f4670ebdb564c22`; oorspronkelijke
+werkboom was schoon op `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`.
+De legacy `EXPORT_RECOVERY`/`RESTORE`-route via gewone app-ingress is gesloten.
+De gedeelde domeindispatcher weigert beide; de bestaande afzonderlijke
+beheer-ingress controleert de manifest-genoemde caller en dispatcht herstel
+naast persistentie. Tijdelijke secret-, blob- en antwoordbuffers worden
+gewist. De appfixture toetst beide weigeringen; de management-wiretest toetst
+een geldige export/herstelronde en weigert een gewone STATUS-opcode.
+De parallelle branch `copilot/universal-driver-framework` bestaat; deze stap
+raakt geen drivercode.
 
-**Werkelijk opnieuw uitgevoerd op schone `bb8877e3`:**
-`cargo +1.90.0 test --offline --locked --manifest-path ui/native/Cargo.toml`,
-59 hosttests, exit0, 10,816s. Cwd, HEAD, schone status en Cargo.lock-/Rust-
-bronhashes vóór én na, exact commando en volledig gehasht log:
-[primaire receipt](verification/pr149-bb8877-host-receipt.json).
-Dit is een nieuwe run, geen retrospectieve bronbinding van de door Watch
-gemelde tooluitvoer/tijden. De integrator controleerde apart rubricbehoud,
-ongewijzigde Rust-code ten opzichte van532, één handoff en geen markers.
-Een historische PR140-verwijzing naar PR139-bewijs is bij deze integratie
-hersteld naar haar eigen oorspronkelijke commando's en bron.
-Dit is geen menselijke audit. Geen nieuwe formatter-/Clippy-run,
-cross-build, volledige CI of native/QEMU-uitvoering voor deze
-uitsluitend documentatie betreffende integratie.
-**Open/eerstvolgend:** na publicatie nieuwe-head-controles laten evalueren.
-Alleen bewijs-/statuscorrecties; geen oude CI-retry of nieuwe runtimecode.
-Native/QEMU-, fysieke en menselijke acceptatie blijven afzonderlijk open.
+**Uitgevoerd op exact de broninhoud van `75495efc`:** root- en SDK-
+`cargo +1.90.0 fmt --all -- --check`, `cargo +1.90.0 test --offline --locked
+-p keyring-core` (70 hosttests), en
+`cargo +1.90.0 clippy --offline --locked -p keyring-core --all-targets -- -D
+warnings`: exit0. De volledige hosttestuitvoer staat tijdelijk in
+`/tmp/nieuw-os-keyring-recovery-host.log`; Clippy in
+`/tmp/nieuw-os-keyring-recovery-clippy.log`. De gehashte bron-/commando-
+receipt staat in
+[host-report.json](verification/keyring-recovery-authority-20261103/host-report.json).
+De standaard testgate liep
+eerst vast op ontbrekend `cargo` in PATH en daarna op ontbrekend `cc`; de
+geslaagde herhaling gebruikte de reeds uitgepakte tijdelijke toolchain uit
+`/tmp/nieuw-os-c-toolchain`, zonder systeeminstallatie.
+
+**Score:** B01 is heropend omdat het oude native bewijs de recovery-operaties
+juist via gewone app-ingress uitvoerde. **41 → 39/100**; de hosttest kan geen
+punten sluiten. Verse native/QEMU-proeven van de appweigering én positief
+beheerherstel zijn niet uitgevoerd. `qemu-system-x86_64` ontbreekt in deze
+omgeving; ook volledige B01-gate, hardware- en menselijke acceptatie ontbreken.
+
+**Eerstvolgend:** voer na de checkpoint-/metercommit de native
+`native-keyring`-profielbuild uit met het bestaande tijdelijke
+C-toolchainpad; inventariseer daarna QEMU/OVMF opnieuw. B01 blijft open totdat
+dezelfde bron de native beheer- en negatieve appgrens aantoont. Daarna volgt
+een afzonderlijke controle van de actuele bootvloer-/rollbackcode; volledige
+releaseacceptatie blijft open.
 
 ## Historisch checkpoint — PR149 compacte kaartregressies hersteld — 3 november2026
 

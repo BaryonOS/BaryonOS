@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "bb8877e3e1aaec304d7478510b65c8116aeb634e",
-    "branch": "simonvanieperen-reimagined-train",
-    "task": "PR149: nieuwe primaire59-hosttestreceipt op schone Watch-main99-merge bewaren",
+    "source_commit": "75495efc37f1753d652f52e55f4670ebdb564c22",
+    "branch": "simonvanieperen-animated-garbanzo",
+    "task": "P0 keyring: herstel-export alleen via manifest-gebonden beheer-ingress",
     "previous_score": 41,
-    "summary": "41 blijft 41. Op schone Watch-merge bb8877e3 met main99 zijn59 hosttests echt opnieuw groen; cwd/HEAD/status/lock- en Rust-hashes vóór/na en volledige logs vastgelegd. Geen retrospectieve bronbinding van eerdere Watch-tijden. De UI-Rust-code blijft exact53256f82; historische scalar/Clippy/fmt behouden die bron. Assessmentbasis is niet de uiteindelijke PR-head of automatisch elke testbron. Geen nieuwe code, native/QEMU/fysieke/menselijke acceptatie of punten."
+    "summary": "41% → 39%: op bron 5c66ec57 bleek EXPORT_RECOVERY/RESTORE via gewone app-ingress bereikbaar; B01 is daarom heropend tot verse native acceptatie. Fix 75495ef verplaatst recovery naar de manifest-gebonden beheer-ingress. 70 keyring-hosttests, formattering en Clippy slagen; QEMU/native beheer- en weigeringstests zijn niet uitgevoerd, dus geen nieuw B01-bewijs of punten."
   },
   "tracks": [
     {
@@ -368,13 +368,9 @@
           "id": "B01",
           "title": "Entropy en sleutelbeheer",
           "points": 2,
-          "status": "accepted",
-          "acceptance": "Native cryptografische entropy, key lifecycle, bescherming en herstel gebruiken gecontroleerde standaarden en geteste failure paths.",
-          "evidence": [
-            "docs/verification/B01-ACCEPTANCE.md",
-            "docs/verification/native-recovery-hardening/b01/keyring-gate.json",
-            "docs/verification/native-recovery-hardening/integration.json"
-          ]
+          "status": "open",
+          "acceptance": "Native cryptografische entropy en key lifecycle; recovery uitsluitend via manifest-gebonden beheer-ingress. Vereist verse native positieve beheer- en negatieve app-ingressproeven.",
+          "evidence": []
         },
         {
           "id": "B02",

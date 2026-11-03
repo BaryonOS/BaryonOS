@@ -32,9 +32,9 @@ geen bewijs van een complete release of ondersteuning van fysieke hardware.
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 41% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 39% van de vaste productroadmap](docs/assets/progress.svg)
 
-**41% — 41 van 100 gewogen acceptatiepunten.** Dit is een
+**39% — 39 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -53,18 +53,18 @@ alleen een nette desktop haalt die eindgrens niet.
 | Hardware, drivers en energie | 12 | 1 |
 | Native Materiaal en toegankelijkheid | 15 | 4 |
 | Internet en netwerkdiensten | 10 | 3 |
-| Beveiliging, privacy en updates | 12 | 4 |
+| Beveiliging, privacy en updates | 12 | 2 |
 | Apps, SDK en installatie | 8 | 2 |
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **41** |
+| **Totaal** | **100** | **39** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`bb8877e3`](https://github.com/simonvanieperen/nieuw-os/commit/bb8877e3e1aaec304d7478510b65c8116aeb634e) ·
-**Ontwikkelbranch:** `simonvanieperen-reimagined-train`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR149: nieuwe primaire59-hosttestreceipt op schone Watch-main99-merge bewaren.
-41 blijft 41. Op schone Watch-merge bb8877e3 met main99 zijn59 hosttests echt opnieuw groen; cwd/HEAD/status/lock- en Rust-hashes vóór/na en volledige logs vastgelegd. Geen retrospectieve bronbinding van eerdere Watch-tijden. De UI-Rust-code blijft exact53256f82; historische scalar/Clippy/fmt behouden die bron. Assessmentbasis is niet de uiteindelijke PR-head of automatisch elke testbron. Geen nieuwe code, native/QEMU/fysieke/menselijke acceptatie of punten.
+**Bron:** [`75495efc`](https://github.com/simonvanieperen/nieuw-os/commit/75495efc37f1753d652f52e55f4670ebdb564c22) ·
+**Ontwikkelbranch:** `simonvanieperen-animated-garbanzo`.
+Deze opdracht: **41% → 39% (-2 procentpunt)**. **Opdracht:** P0 keyring: herstel-export alleen via manifest-gebonden beheer-ingress.
+41% → 39%: op bron 5c66ec57 bleek EXPORT_RECOVERY/RESTORE via gewone app-ingress bereikbaar; B01 is daarom heropend tot verse native acceptatie. Fix 75495ef verplaatst recovery naar de manifest-gebonden beheer-ingress. 70 keyring-hosttests, formattering en Clippy slagen; QEMU/native beheer- en weigeringstests zijn niet uitgevoerd, dus geen nieuw B01-bewijs of punten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
