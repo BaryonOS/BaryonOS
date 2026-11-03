@@ -715,7 +715,7 @@ fn advance(now: u64) {
     r.now = now;
     if r.resetting {
         let acknowledged =
-            r.device.as_ref().is_some_and(Device::reset_acknowledged) && m5_case() != 12;
+            r.device.as_mut().is_some_and(Device::reset_acknowledged) && m5_case() != 12;
         if acknowledged {
             // SAFETY: Real reset status0 observed before any pool byte is reused.
             // BAR mappings and pinned pages have not changed ownership/lifetime.

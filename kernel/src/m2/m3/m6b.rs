@@ -655,7 +655,7 @@ fn advance(s: &State) {
     let now = s.ticks;
     r.now = now;
     if r.resetting {
-        let actual_ack = r.device.as_ref().is_some_and(Device::reset_acknowledged);
+        let actual_ack = r.device.as_mut().is_some_and(Device::reset_acknowledged);
         r.masked_ack_seen |= case() == 11 && actual_ack;
         if actual_ack && case() != 11 {
             check_held_pool(r);

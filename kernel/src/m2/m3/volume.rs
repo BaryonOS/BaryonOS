@@ -610,7 +610,7 @@ fn advance(s: &State) {
     let now = s.ticks;
     r.now = now;
     if r.resetting {
-        if r.device.as_ref().is_some_and(Device::reset_acknowledged) {
+        if r.device.as_mut().is_some_and(Device::reset_acknowledged) {
             // SAFETY: Real reset acknowledgement permits reuse of the same
             // pinned owned RAM pages and permanent validated supervisor MMIO.
             match unsafe {

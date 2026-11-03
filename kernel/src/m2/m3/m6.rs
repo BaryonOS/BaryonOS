@@ -646,7 +646,7 @@ fn advance(s: &State) {
         return;
     }
     if r.resetting {
-        let ack = r.device.as_ref().is_some_and(Device::reset_acknowledged) && case() != 8;
+        let ack = r.device.as_mut().is_some_and(Device::reset_acknowledged) && case() != 8;
         if ack {
             // SAFETY: Real status0 observed. Original UC mappings and exclusive
             // pinned pages are still live. Only this ack authorizes pool reuse.

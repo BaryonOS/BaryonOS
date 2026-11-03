@@ -602,7 +602,7 @@ fn advance(s: &State) {
     let now = s.ticks;
     r.now = now;
     if r.resetting {
-        let acknowledged = r.device.as_ref().is_some_and(Device::reset_acknowledged)
+        let acknowledged = r.device.as_mut().is_some_and(Device::reset_acknowledged)
             && !(case() == 12 && r.injected);
         if acknowledged {
             // SAFETY: Real reset acknowledgement permits reuse of the same
