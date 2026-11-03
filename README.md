@@ -35,7 +35,7 @@ alleen een nette desktop haalt die eindgrens niet.
 **Bron:** [`bd4134c1`](https://github.com/simonvanieperen/nieuw-os/commit/bd4134c1d565f58736a2c829587f337a415dd47b) ·
 **Ontwikkelbranch:** `simonvanieperen-reimagined-train`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Native startoppervlak verfijnen.
-41/100 blijft 41/100. De native VM-startweergave toont niet-geladen, lege, fout- en gevulde bibliotheektoestanden zonder verzonnen laadstatus. Een renderregressie voor statusverschil en vier viewport-/schaalcombinaties is toegevoegd. Rustfmt, check --tests en Clippy slagen op Rust 1.90.0; de pixeltest start niet omdat cc ontbreekt. QEMU en OVMF ontbreken eveneens. Geen nieuw geaccepteerd criterium, native VM- of volledige releaseacceptatie.
+41/100 blijft 41/100. De native VM-startweergave toont feitelijke bibliotheektoestanden. Alle 55 ui/native hosttests slagen, inclusief pixel- en layoutregressies; rustfmt, check --tests, Clippy en de scalar x86_64-unknown-none-build slagen. Tests gebruikten een tijdelijke Ubuntu GCC/libc-toolchain in /tmp, niet als systeeminstallatie. QEMU/OVMF ontbreken, dus native runtime/screenshot is niet uitgevoerd. Geen rubriccriterium gesloten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

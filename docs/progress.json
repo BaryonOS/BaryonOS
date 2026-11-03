@@ -7,7 +7,7 @@
     "branch": "simonvanieperen-reimagined-train",
     "task": "Native startoppervlak verfijnen",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. De native VM-startweergave toont niet-geladen, lege, fout- en gevulde bibliotheektoestanden zonder verzonnen laadstatus. Een renderregressie voor statusverschil en vier viewport-/schaalcombinaties is toegevoegd. Rustfmt, check --tests en Clippy slagen op Rust 1.90.0; de pixeltest start niet omdat cc ontbreekt. QEMU en OVMF ontbreken eveneens. Geen nieuw geaccepteerd criterium, native VM- of volledige releaseacceptatie."
+    "summary": "41/100 blijft 41/100. De native VM-startweergave toont feitelijke bibliotheektoestanden. Alle 55 ui/native hosttests slagen, inclusief pixel- en layoutregressies; rustfmt, check --tests, Clippy en de scalar x86_64-unknown-none-build slagen. Tests gebruikten een tijdelijke Ubuntu GCC/libc-toolchain in /tmp, niet als systeeminstallatie. QEMU/OVMF ontbreken, dus native runtime/screenshot is niet uitgevoerd. Geen rubriccriterium gesloten."
   },
   "tracks": [
     {

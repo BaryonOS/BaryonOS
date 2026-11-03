@@ -20,10 +20,14 @@ Clippy (`--all-targets -- -D warnings`) en `git diff --check`: exit 0.
 De bestaande scalar `x86_64-unknown-none`-releasebuild van de native UI slaagt
 ook (exit 0); het `.rlib` heeft SHA-256
 `42eda9397dc739d098b666d9f5a013911fc0b3d867469fde8a558b34b3888b5d`.
-Dit is compilebewijs, geen OS-runtimebewijs.
-De nieuwe pixelregressietest startte niet (exit 101), omdat de hostlinker
-`cc` ontbreekt; testassertions zijn dus niet uitgevoerd. De gecorrigeerde
-preflight met Rust in `PATH` eindigde met exit 2: `cc`, QEMU en OVMF ontbreken.
+Dit is compilebewijs, geen OS-runtimebewijs. De volledige `ui/native`
+hosttestsuite slaagt met 55 tests (37 algemene, 5 renderer-, 10 sessie- en
+3 fixturetests). Omdat de host `cc` mist, is GCC 15.2/libc6-dev uit Ubuntu
+26.04-pakketten alleen naar `/tmp` uitgepakt; er is niets op het systeem
+geïnstalleerd. De eerste directe testpoging stopte daardoor op ontbrekende
+`cc` (exit 101); de geïsoleerde rerun slaagde. Zonder tijdelijke linker
+eindigde preflight met exit 2; met die linker op `PATH` was exit 2 alleen
+wegens ontbrekende QEMU en OVMF.
 Er is geen QEMU-runtime of native screenshot gemaakt. Commando's, logs en
 bewijsgrenzen: `docs/verification/native-start-surface-20261103/README.md`.
 
@@ -36,9 +40,11 @@ De vaste meter is opnieuw gegenereerd en gecontroleerd:
 beide exit 0. De assessmentbron is de codecommit hierboven; de huidige
 status-/meterupdate is een documentatiecheckpoint daarop.
 
-**Eerstvolgend:** zodra een host-C-linker beschikbaar is, voer uit:
-`PATH="$HOME/.cargo/bin:$PATH" cargo +1.90.0 test --offline --locked --manifest-path ui/native/Cargo.toml --test render_regressions desktop_home_card_follows_the_real_library_state_and_stays_above_the_bar -- --nocapture`.
-De afzonderlijke native QEMU-/screenshotgate vereist ook QEMU en OVMF.
+**Eerstvolgend:** voer bij beschikbaarheid van QEMU en BIOS/VGA-ROM's de
+brongebonden sessiepreview uit via `python3 -B tools/run_session_preview.py`
+met expliciete `--bios-rom` en `--vga-rom`. De hostrenderer is daarin alleen
+oracle; alleen QMP-invoer en pixels uit de echte gast kunnen native bewijs
+opleveren. De huidige omgeving heeft QEMU/firmware niet.
 
 ## Historisch checkpoint — issue #43: ReceiveTcp na verbindingstime-out
 

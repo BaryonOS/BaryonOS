@@ -87,10 +87,10 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 Native startoppervlak (3 november 2026), implementatiebron `bd4134c`:
 **41% → 41%**. De opt-in VM-preview toont niet-geladen, lege, fout- en
-gevulde Materiaaltoestanden; renderer- en layoutregressiecode compileert en
-lint. Ook de scalar `x86_64-unknown-none`-releasebuild slaagt
-(artifacthash `42eda9397dc739d098b666d9f5a013911fc0b3d867469fde8a558b34b3888b5d`).
-De pixeltest kon niet starten door ontbrekende hostlinker `cc`; QEMU/OVMF en
+gevulde Materiaaltoestanden. Alle 55 `ui/native`-hosttests slagen, inclusief
+de pixelregressie; rustfmt, check, Clippy en de scalar
+`x86_64-unknown-none`-releasebuild slagen. De testlinker is tijdelijk uit
+Ubuntu-pakketten in `/tmp` opgebouwd, zonder systeeminstallatie. QEMU/OVMF en
 native screenshot ontbreken. Geen nieuw criterium of runtimebewijs.
 Zie `verification/native-start-surface-20261103/README.md`.
 
