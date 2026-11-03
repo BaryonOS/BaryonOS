@@ -125,68 +125,90 @@ fn all_real_notice_states_keyboard_focus_and_dismissal_repaint_every_pixel() {
 
 #[test]
 fn mouse_affordances_and_input_cancellation_cannot_click_or_type_through() {
-    let mut scene = Scene::new(1280, 720, 1, [1, 2]).unwrap();
-    let mut damage = Damage::new(1280, 720).unwrap();
-    scene.set_clipboard_notice(Notice::Copied);
-    let button = scene.clipboard_notice_bounds();
-    click(&mut scene, &mut damage, button);
-    assert!(scene.notifications_are_open());
-    for key in [
-        PhysicalKey::A,
-        PhysicalKey::F6,
-        PhysicalKey::F7,
-        PhysicalKey::F8,
-        PhysicalKey::F9,
+    for (w, h, s) in [
+        (800, 500, 1),
+        (1280, 720, 1),
+        (1920, 1080, 1),
+        (1600, 1000, 2),
+        (1920, 1080, 2),
     ] {
-        tap(&mut scene, &mut damage, key, false);
-    }
-    assert!(!scene.keyboard_move_is_active());
-    assert_eq!((scene.focused, scene.moves, scene.switches), (0, 0, 0));
-    let dismiss = scene.notification_dismiss_button();
-    click(&mut scene, &mut damage, dismiss);
-    assert!(!scene.notification_is_present());
-    let close = scene.notification_close_button();
-    click(&mut scene, &mut damage, close);
-    assert!(!scene.notifications_are_open());
-    click(&mut scene, &mut damage, button);
-    assert_eq!(
-        scene.mouse_with_damage(100, 200, true, true, &mut damage),
-        Ok(None)
-    );
-    assert!(!scene.notifications_are_open());
-    assert_eq!(
-        scene.mouse_with_damage(100, 200, false, false, &mut damage),
-        Ok(None)
-    );
-    assert_eq!(
-        scene.mouse_with_damage(100, 200, false, false, &mut damage),
-        Ok(Some(0))
-    );
-    tap(&mut scene, &mut damage, PhysicalKey::N, true);
-    assert!(scene
-        .palette_key(
-            KeyboardEvent {
-                key: PhysicalKey::A,
-                action: KeyAction::Press,
-                modifiers: Default::default(),
-            },
-            &mut damage
-        )
-        .unwrap());
-    scene.cancel_palette_input(&mut damage);
-    for action in [KeyAction::Repeat, KeyAction::Release] {
+        let mut scene = Scene::new(w, h, s, [1, 2]).unwrap();
+        let mut damage = Damage::new(w, h).unwrap();
+        let mut backing = vec![0xabcdef; MAX_PIXELS];
+        backing[..scene.windows[1].offset].fill(0xc0ffee);
+        let mut screen = vec![0; (w * h) as usize];
+        scene.set_clipboard_notice(Notice::Copied);
+        damage.mark(Rect::new(0, 0, w, h));
+        repaint(&scene, &mut damage, &mut screen, &backing);
+        let button = scene.clipboard_notice_bounds();
+        click(&mut scene, &mut damage, button);
+        assert!(scene.notifications_are_open());
+        repaint(&scene, &mut damage, &mut screen, &backing);
+        for key in [
+            PhysicalKey::A,
+            PhysicalKey::F6,
+            PhysicalKey::F7,
+            PhysicalKey::F8,
+            PhysicalKey::F9,
+        ] {
+            tap(&mut scene, &mut damage, key, false);
+        }
+        assert!(!scene.keyboard_move_is_active());
+        assert_eq!((scene.focused, scene.moves, scene.switches), (0, 0, 0));
+        let dismiss = scene.notification_dismiss_button();
+        click(&mut scene, &mut damage, dismiss);
+        assert!(!scene.notification_is_present());
+        repaint(&scene, &mut damage, &mut screen, &backing);
+        let close = scene.notification_close_button();
+        click(&mut scene, &mut damage, close);
+        assert!(!scene.notifications_are_open());
+        repaint(&scene, &mut damage, &mut screen, &backing);
+        click(&mut scene, &mut damage, button);
+        repaint(&scene, &mut damage, &mut screen, &backing);
+        let (x, y) = (100 * s, 200 * s);
+        assert_eq!(
+            scene.mouse_with_damage(x, y, true, true, &mut damage),
+            Ok(None)
+        );
+        assert!(!scene.notifications_are_open());
+        repaint(&scene, &mut damage, &mut screen, &backing);
+        assert_eq!(
+            scene.mouse_with_damage(x, y, false, false, &mut damage),
+            Ok(None)
+        );
+        repaint(&scene, &mut damage, &mut screen, &backing);
+        assert_eq!(
+            scene.mouse_with_damage(x, y, false, false, &mut damage),
+            Ok(Some(0))
+        );
+        tap(&mut scene, &mut damage, PhysicalKey::N, true);
+        repaint(&scene, &mut damage, &mut screen, &backing);
         assert!(scene
             .palette_key(
                 KeyboardEvent {
                     key: PhysicalKey::A,
-                    action,
-                    modifiers: Default::default(),
+                    action: KeyAction::Press,
+                    modifiers: Default::default()
                 },
-                &mut damage
+                &mut damage,
             )
             .unwrap());
+        scene.cancel_palette_input(&mut damage);
+        repaint(&scene, &mut damage, &mut screen, &backing);
+        for action in [KeyAction::Repeat, KeyAction::Release] {
+            assert!(scene
+                .palette_key(
+                    KeyboardEvent {
+                        key: PhysicalKey::A,
+                        action,
+                        modifiers: Default::default()
+                    },
+                    &mut damage,
+                )
+                .unwrap());
+        }
+        assert!(!scene.notifications_are_open());
     }
-    assert!(!scene.notifications_are_open());
 }
 
 #[test]

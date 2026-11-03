@@ -52,8 +52,9 @@ python3 -B -u tools/run_window_session.py --clipboard --workspace --scale 2 --ti
 Daarna eigen normal1/normal2-buildmappen en dezelfde respectieve targetmappen:
 `python3 -B -u tools/build.py --kernel-feature native-window-session` en
 `python3 -B -u tools/build.py --kernel-feature native-window-session-hidpi`.
-Alle vier opdrachten exit0.100%:56 fasen,412,07 s, runnerwandtijd432,36 s.
-200%:56 fasen,726,07 s, runnerwandtijd764,34 s. Beide ruwe QEMU-exit33;
+De twee probe-builds en twee runners eindigden elk met exitstatus 0.
+Bij 100%: 56 fasen, 412,07 s; runnerwandtijd 432,36 s.
+Bij 200%: 56 fasen, 726,07 s; runnerwandtijd 764,34 s. Beide ruwe QEMU-exit33;
 alle toepasselijke gates true, inclusief `keyboard_window_move_gate` en HC.
 Beide normale builds exit0,2,84 s en2,52 s; compilatie, geen extra runtimeclaim.
 56 volledige fasen per schaal. Iedere nieuwe fase vereist het hele
@@ -66,6 +67,11 @@ Alle oorspronkelijke isolatie-/klembord-/HC-/herstel-/schijfgates behouden.
 [loghashes](logs.sha256). De compacte rapporten behouden alle runnergegevens
 behalve de omvangrijke QMP-tracelijst; `raw_report` bewaart pad/hash van het
 volledige oorspronkelijke rapport, `qmp_trace_summary` aantal/hash van die lijst.
+Het checksum-manifest gebruikt bestandsnamen relatief aan de log-artifactroot.
+In de uitvoeromgeving is die root `$VELD_ENV/logs`; de ruwe logs zijn
+sessie-artifacts, niet meegeleverd in de checkout. Met de geleverde logbundle:
+`cd <log-artifactroot> && sha256sum -c <checkout>/docs/verification/veld-move-20261103/logs.sha256`.
+Een schone checkout zonder die bundle kan de ruwe logs niet controleren.
 Geen gastnetwerk, hostdisk of productiedata gebruikt.
 Geen nieuwe CI-, fysieke of menselijke acceptatie.
 Score **41 -> 41**; complete gebruikersomgeving blijft open.

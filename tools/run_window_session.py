@@ -64,7 +64,7 @@ WORKSPACE_REGIONS = {
     "notice-copied": ((820, 64, 424, 216),),
     "notice-dismissed": ((820, 64, 424, 216),),
     "notice-empty-mouse": ((820, 64, 424, 216),),
-    "notice-closed": ((0, 0, 1280, 40),),
+    "notice-closed": ((0, 0, 1280, 40), (800, 44, 464, 256)),
 }
 HIDPI_WORKSPACE_REGIONS = {
     "focus-material": ((0, 0, 1920, 80), (1200, 180, 688, 740), (0, 940, 1920, 140)),
@@ -81,7 +81,7 @@ HIDPI_WORKSPACE_REGIONS = {
     "notice-copied": ((1000, 128, 848, 432),),
     "notice-dismissed": ((1000, 128, 848, 432),),
     "notice-empty-mouse": ((1000, 128, 848, 432),),
-    "notice-closed": ((0, 0, 1920, 80),),
+    "notice-closed": ((0, 0, 1920, 80), (960, 88, 928, 512)),
 }
 
 
@@ -189,6 +189,23 @@ def workspace_matches(raw: bytes, expected: bytes, phase: str, scale: int = 1) -
     if ppm(raw)[:2] != size or ppm(expected)[:2] != size:
         return False
     return all(crop(raw, r) == crop(expected, r) for r in workspace_regions(scale)[phase])
+
+def notification_closed_matches(raw: bytes, shell: bytes, before: bytes, scale: int) -> bool:
+    size = profile_geometry(scale)[:2]
+    if any(ppm(image)[:2] != size for image in (raw, shell, before)):
+        return False
+    header, restored = workspace_regions(scale)["notice-closed"]
+    # App pixels under this panel come from the verified real pre-open frame,
+    # not from a shell fixture with zero-filled app backing.
+    return crop(raw, header) == crop(shell, header) and crop(raw, restored) == crop(before, restored)
+
+def notification_overlap_point(scale: int) -> tuple:
+    width, _, _, calculator = profile_geometry(scale)
+    point = (width - 180 * scale, 180 * scale)
+    x, y, w, h = calculator
+    if not (x <= point[0] < x + w and y <= point[1] < y + h):
+        raise ValueError("Notification isolation probe does not overlap a real app")
+    return point
 
 
 def material_matches(raw: bytes, expected: bytes, body: tuple = BODY) -> bool:
@@ -566,9 +583,21 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                     key("f6"); key("3"); key("ctrl", "a"); key("ctrl", "c")
                     wait("clipboard-numeric", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == volume_disk.fnv(b"3"), "clipboard-numeric")
                     if workspace:
-                        panel_generation = snapshots(serial(directory / "serial.txt"), "MATERIAL")[-1]["GEN"]
                         shell_key("alt", "n")
-                        wait("workspace-notice-copied", lambda raw, s: s["MATERIAL"][-1]["GEN"] > panel_generation,
+                        workspace_wait("notice-copied")
+                        panel_raw = serial(directory / "serial.txt")
+                        panel_mice = {role: numbers(panel_raw, f"WINDOW:{role}:MICE")[-1]
+                                      for role in ("MATERIAL", "CALCULATOR")}
+                        panel_state = {role: {field: snapshots(panel_raw, role)[-1][field]
+                                              for field in fields} for role, fields in (
+                            ("MATERIAL", ("DRAFT_BYTES", "DRAFT_SUM", "DIRTY", "SAVE_ACKS")),
+                            ("CALCULATOR", ("EXPRESSION_BYTES", "EXPRESSION_SUM", "EVALUATIONS",
+                                            "FAILURES", "CARET", "ACTIVE")))}
+                        move(*notification_overlap_point(scale))
+                        button(True); button(False); move(width - 20, 50 * scale)
+                        wait("workspace-notice-mouse-isolated", lambda raw, s: comp(raw).get("FOCUSED") == 0
+                             and all(s[role][-1][field] == value for role, fields in panel_state.items()
+                                     for field, value in fields.items()),
                              image_check=lambda image: workspace_matches(
                                  image, fixture["frames"]["workspace-notice-copied"], "notice-copied", scale))
                         panel_keys = {role: numbers(serial(directory / "serial.txt"), f"WINDOW:{role}:KEYS")[-1]
@@ -586,9 +615,15 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                         close_x = width - 72 * scale + 2 * scale
                         move(close_x, 70 * scale)
                         button(True); button(False); move(width - 20, 50 * scale)
-                        workspace_wait("notice-closed")
+                        wait("workspace-notice-closed", lambda raw, s: comp(raw).get("FOCUSED") == 0,
+                             image_check=lambda image: notification_closed_matches(
+                                 image, fixture["frames"]["workspace-notice-closed"],
+                                 captured["clipboard-numeric"], scale))
                     key("f6"); key("ctrl", "v")
                     wait("clipboard-pasted", lambda raw, s: s["CALCULATOR"][-1]["EXPRESSION_BYTES"] == 1 and s["CALCULATOR"][-1]["EXPRESSION_SUM"] == volume_disk.fnv(b"3") and s["CALCULATOR"][-1]["EVALUATIONS"] == 0, "clipboard-pasted")
+                    if workspace and any(numbers(serial(directory / "serial.txt"), f"WINDOW:{role}:MICE")[-1] != count
+                                         for role, count in panel_mice.items()):
+                        raise ValueError("Notification panel forwarded mouse input to an underlying app")
                     key("shift", "equal"); key("4"); key("ctrl", "a"); key("ctrl", "c")
                     wait("clipboard-calculator-copied", lambda raw, s: s["CALCULATOR"][-1]["EXPRESSION_SUM"] == volume_disk.fnv(b"3+4"), "clipboard-calculator-copied")
                     key("ctrl", "a"); key("backspace")

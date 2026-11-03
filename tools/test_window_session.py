@@ -126,7 +126,36 @@ class WindowRunnerTests(unittest.TestCase):
             expected_panel = ((width - 460 * scale, 64 * scale, 424 * scale, 216 * scale),)
             for phase in ("notice-copied", "notice-dismissed", "notice-empty-mouse"):
                 self.assertEqual(window.workspace_regions(scale)[phase], expected_panel)
-            self.assertEqual(window.workspace_regions(scale)["notice-closed"], ((0, 0, width, 40 * scale),))
+            self.assertEqual(window.workspace_regions(scale)["notice-closed"],
+                             ((0, 0, width, 40 * scale),
+                              (width - 480 * scale, 44 * scale, 464 * scale, 256 * scale)))
+
+    def test_notification_close_requires_real_underlay_and_entire_shadow_restoration(self):
+        for scale in (1, 2):
+            width, height, _, _ = window.profile_geometry(scale)
+            before = image(width, height, (2, 3, 4))
+            shell = image(width, height, (1, 1, 1))
+            actual = bytearray(before)
+            header_bytes = len(before) - width * height * 3
+            actual[header_bytes:header_bytes + width * 40 * scale * 3] = bytes((1, 1, 1)) * (width * 40 * scale)
+            self.assertTrue(window.notification_closed_matches(bytes(actual), shell, before, scale))
+            self.assertFalse(window.workspace_matches(bytes(actual), shell, "notice-closed", scale),
+                             "Shell fixtures do not contain real underlying application pixels")
+            for x, y, w, h in window.workspace_regions(scale)["notice-closed"]:
+                for px, py in ((x, y), (x + w - 1, y + h - 1), (x + w // 2, y + h // 2)):
+                    changed = bytearray(actual)
+                    changed[header_bytes + (py * width + px) * 3] ^= 1
+                    self.assertFalse(window.notification_closed_matches(bytes(changed), shell, before, scale))
+            self.assertFalse(window.notification_closed_matches(bytes(actual), shell, image(1, 1, (0, 0, 0)), scale))
+
+    def test_notification_mouse_probe_overlaps_actual_app_and_not_panel_actions(self):
+        for scale in (1, 2):
+            width, _, _, calc = window.profile_geometry(scale)
+            px, py = window.notification_overlap_point(scale)
+            x, y, w, h = calc
+            self.assertTrue(x <= px < x + w and y <= py < y + h)
+            self.assertTrue(width - 460 * scale <= px < width - 36 * scale and 64 * scale <= py < 280 * scale)
+            self.assertFalse(width - 188 * scale <= px < width - 52 * scale and 200 * scale <= py < 236 * scale)
 
     def test_workspace_checks_every_pixel_in_declared_shell_regions(self):
         raw = image(1280, 720, (1, 2, 3))
