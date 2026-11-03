@@ -4,6 +4,14 @@ De actieve volledige releaseopdracht en productacceptatie staan in
 [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft
 de ontwikkelmeter; het vervangt de conjunctieve releaseacceptatie niet.
 
+Integratiesprint op main `a32eadb1`, General-bron `a1eba0db`:
+**General 39 -> 39**, zonder import van main's 41. B01 blijft open zoals
+op `707a768c`: vijf verse native cases bewijzen onder andere geweigerde
+app-recovery, maar positieve beheerrecovery is uitsluitend hostgetest.
+B03's 18 native stappen en de imagehostslice zijn begrensde
+integratiecorrecties, geen nieuwe volledige acceptatiecriteria.
+Gewichten en overige criteriumstatussen blijven ongewijzigd.
+
 PR149-review op bron `53256f82`: **41 → 41**. Drie daadwerkelijk rood
 gereproduceerde kaartfouten hersteld: smal/hoog, overlopende tekst en
 onjuiste opslagoorzaak.59 volledige hosttests, Clippy, formattering en
@@ -431,11 +439,11 @@ Het script voert geen OS-tests uit en beoordeelt de bewijsinhoud niet.
 | **N03 — Native geauthenticeerd transport** | 2 | Open | Onderhouden cryptografie/TLS met de vastgelegde hybride PQC-keuze werkt native, met peercontrole, negatieve handshakes en geen stille onveilige fallback. |
 | **N04 — Afdwingbare netwerkrechten** | 2 | Open | Proces-/bestemmingsrechten, intrekking en helperroutes worden native afgedwongen en via verkeer waargenomen; geen onbedoelde luisterpoorten. |
 
-### B — Beveiliging, privacy en updates (4/12)
+### B — Beveiliging, privacy en updates (2/12)
 
 | Criterium | Punten | Status | Acceptatie en bewijs |
 |---|---:|---|---|
-| **B01 — Entropy en sleutelbeheer** | 2 | Behaald | Native cryptografische entropy, key lifecycle, bescherming en herstel gebruiken gecontroleerde standaarden en geteste failure paths. [bewijs 1](../docs/verification/B01-ACCEPTANCE.md) · [bewijs 2](../docs/verification/native-recovery-hardening/b01/keyring-gate.json) · [bewijs 3](../docs/verification/native-recovery-hardening/integration.json) |
+| **B01 — Entropy en sleutelbeheer** | 2 | Open | Native cryptografische entropy en key lifecycle; recovery uitsluitend via manifest-gebonden beheer-ingress. Vereist verse native positieve beheer- en negatieve app-ingressproeven. |
 | **B02 — Geauthenticeerde persoonlijke opslag** | 2 | Open | Inhoud en gevoelige metadata worden native beschermd; manipulatie, replay/rollback binnen het dreigingsmodel en sleutelverlies zijn getest. |
 | **B03 — Ondertekende updates en rollback** | 2 | Behaald | Authentieke updates, onderbreking, downgrade-aanvallen en herstel naar een geldige vorige versie zijn end-to-end getest. [bewijs 1](../docs/verification/B03-ACCEPTANCE.md) · [bewijs 2](../docs/verification/b03/update-gate.json) |
 | **B04 — Vertrouwde boot- en distributieketen** | 2 | Open | Image-/bootverificatie, sleutelrotatie en dependency-/buildherkomst zijn voor het releaseprofiel afgebakend en onafhankelijk gecontroleerd. |

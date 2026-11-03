@@ -32,9 +32,9 @@ geen bewijs van een complete release of ondersteuning van fysieke hardware.
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 41% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 39% van de vaste productroadmap](docs/assets/progress.svg)
 
-**41% — 41 van 100 gewogen acceptatiepunten.** Dit is een
+**39% — 39 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -53,18 +53,18 @@ alleen een nette desktop haalt die eindgrens niet.
 | Hardware, drivers en energie | 12 | 1 |
 | Native Materiaal en toegankelijkheid | 15 | 4 |
 | Internet en netwerkdiensten | 10 | 3 |
-| Beveiliging, privacy en updates | 12 | 4 |
+| Beveiliging, privacy en updates | 12 | 2 |
 | Apps, SDK en installatie | 8 | 2 |
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **41** |
+| **Totaal** | **100** | **39** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`47ec535f`](https://github.com/simonvanieperen/nieuw-os/commit/47ec535f15bb10912dbc6cbf1af3de9df0c6c226) ·
-**Ontwikkelbranch:** `simonvanieperen-upgraded-disco`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR148-conflicten met main 8e0c15d inhoudsbehoudend integreren.
-41/100 blijft 41/100. Drie centrale documentconflicten behouden beide checkpointreeksen en hun afzonderlijke bewijsbronnen. Gedeelde harnashulpfuncties komen exact uit main; PR148-volume-admissie blijft behouden. Geen handmatige codewijziging, nieuw criterium of native acceptatie. Gerichte integratievalidatie en nieuwe-head CI worden afzonderlijk gerapporteerd.
+**Bron:** [`a1eba0db`](https://github.com/simonvanieperen/nieuw-os/commit/a1eba0db269bdf59653d067c3a63c9fb7f9490e4) ·
+**Ontwikkelbranch:** `simonvanieperen-animated-garbanzo`.
+Deze opdracht: **39% → 39% (+0 procentpunt)**. **Opdracht:** Integratiesprint: begrensde B03-, image- en keyringcorrecties; ownership en PR-triage.
+General 39/100 blijft 39/100 zoals op 707a768c. Main's 41 niet geimporteerd: B01 blijft open totdat ook positieve beheerrecovery native is bewezen. Alle andere criteria en gewichten ongewijzigd. Vijf native keyringcases en 70 hosttests groen; afzonderlijke B03-gate 18 stappen groen en imageslice hostgetest. Geen nieuwe volledige acceptatie, mainmerge, hardwaretest, menselijke audit of releasevalidatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -1,6 +1,58 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR148 met main 8e0c15d — 3 november 2026
+## NEXT AGENT HANDOFF — integratiesprint — 3 november 2026
+
+**Basis:** actuele main `a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e`;
+General-producthead `a1eba0db269bdf59653d067c3a63c9fb7f9490e4`,
+branch `simonvanieperen-animated-garbanzo`. Geen nieuwe features,
+mainmerge of issue-/PR-sluiting. PR-classificatie en ownership:
+[WORK-QUEUE](WORK-QUEUE.md#actieve-integratiesprint-geen-nieuwe-features).
+
+**Concrete resultaten, gecommit/gepusht:**
+- #158 `568741f3`: ontbrekende volledige B03-native gate opgelost;
+  `python3 -B -u tools/test_update.py`, exit 0, 18 QEMU-stappen, 106,91 s.
+  [Receipt](verification/b03-test-anchor-gating/native-sprint.json) staat
+  op die branch; TEST-policy, geen productie-key-lifecycle of #41-sluiting.
+- #159 `41f4a6de` / #156 `299ceefe`: bestaande image-/EXIF-slice op main,
+  exact dezelfde eindtree. Codec 23 en viewer 15 hosttests groen;
+  downstream-compilefout eerst rood gereproduceerd en fixturecompatibiliteit
+  hersteld. Geen georienteerde native viewerclaim. Slechts een kandidaat
+  kiezen; geen dubbele merge. Volledige oorspronkelijke Platform-code
+  behouden op `archive/platform-pre-sprint-20261103` @ `8c837d5c`.
+- #155 `a1eba0db`: bestaande keyring-herstelautorisatiefix op main,
+  oorspronkelijke 46-file branch teruggebracht tot tien bestanden.
+  [Brongebonden receipt](verification/integration-sprint-20261103-keyring.md):
+  70 keyringhosttests, strict Clippy/fmt en complete vijf-case QEMU-gate
+  groen, laatste gate exit 0, 15,10 s. Eerste run terecht rood door
+  SDK-README-write tijdens bronfreeze; volledige frozen herhaling groen.
+  Positieve beheerrecovery alleen hostgetest; B01/B02 blijven open.
+
+De volledige oorspronkelijke General-code en SMP-assignment blijven op
+`archive/general-pre-sprint-20261103` @ `707a768c`; geen Materiaal-,
+app-lifecycle-, UTF-8- of ownershipwerk weggegooid. Portselectie is met
+exacte treevergelijking gecontroleerd, niet via een verliesgevende forcepush.
+Nieuwe heads hebben opnieuw CI/review nodig; lopende checks zijn geen groen.
+
+**Open grenzen:** Drivers en Veld voeren uitsluitend begrensde bestaande
+reviewfixes uit; geen centrale writes of nieuwe features. Veld bevestigt
+dat oude paneelacceptatie een onjuiste closed-wait bevatte; geen nieuwe
+native-resultaatclaim, geen import van dat oude bewijs. Maturity-freeze
+verzonden maar ontvangst niet bevestigd; bestaande SMP-WIP/ownership niet
+overnemen. #138 is technisch groen, maar documentatie, geen productwinst.
+ReviewDecision CHANGES_REQUESTED niet wissen op basis van opgeloste threads.
+
+**Meter:** General **39 -> 39/100**, B01 blijft open zoals op `707a768c`.
+Main's 41 wordt niet stil geimporteerd: de oude native app-recoveryroute
+bewijst geen nieuwe native positieve beheerrecovery. Overige criteria,
+gewichten en bewijsverwijzingen ongewijzigd. Geen hardware-, menselijke
+securityaudit- of releasevalidatie.
+
+**Eerstvolgend:** `gh pr checks 155` en overeenkomstige exacte heads pas
+bij een integratiebesluit beoordelen; verse review/ontbrekende ownerfixes
+verwerken. Merge of sluiting uitsluitend na expliciete toestemming en
+bewezen inhoudsdekking. Geen CI-polling of herstart van featurewerk.
+
+## Historisch checkpoint — PR148 met main 8e0c15d — 3 november 2026
 
 **Basis:** PR148 `47ec535f15bb10912dbc6cbf1af3de9df0c6c226` met main
 `8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2`, branch

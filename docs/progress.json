@@ -3,22 +3,22 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "47ec535f15bb10912dbc6cbf1af3de9df0c6c226",
+    "source_commit": "a1eba0db269bdf59653d067c3a63c9fb7f9490e4",
     "assessment_basis": "source_commit",
-    "reviewed_commit": "cc1dea7eeeae01448a378ee422837b0438ecc7b5",
-    "reviewed_commit_context": "Historische review van de PR148-documentatiestatus en reikwijdte van hostbewijs; geen integratiereview.",
+    "reviewed_commit": "a1eba0db269bdf59653d067c3a63c9fb7f9490e4",
+    "reviewed_commit_context": "Eigen scope- en treevergelijking met geteste keyringcandidate ba0eb2b4; geen onafhankelijke audit of nieuwe-head-CI-acceptatie.",
     "integration_review": {
       "status": "open",
-      "source_commit": "47ec535f15bb10912dbc6cbf1af3de9df0c6c226",
-      "main_commit": "8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2",
-      "merge_commit": "7412d0bb4b8ef2d146fc5b942bec8d6f370470e5",
-      "evidence_basis": "Git-mergeouders en handoff in docs/PROJECT-STATE.md; gerichte integratietests zijn daar gemeld met uitvoer uitsluitend in het sessietranscript. De eerdere PR148-hostreceipts zijn geen integratiereviewbewijs.",
-      "missing_evidence": "Afzonderlijk, brongebonden bewijs van de integratiereview ontbreekt; nieuwe-head CI en review moeten nog worden beoordeeld."
+      "source_commit": "da6e89a0",
+      "main_commit": "a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e",
+      "merge_commit": "a1eba0db269bdf59653d067c3a63c9fb7f9490e4",
+      "evidence_basis": "docs/verification/integration-sprint-20261103-keyring.json en .md: bevroren vijf-case native gate, hosttests en exacte treevergelijking. Afzonderlijke B03- en imageslices op eigen heads, niet stil in deze bron gemengd.",
+      "missing_evidence": "Nieuwe-head CI/review nog niet integraal groen vastgesteld. Positieve manifest-gebonden beheerrecovery is uitsluitend hostgetest; B01 blijft open."
     },
-    "branch": "simonvanieperen-upgraded-disco",
-    "task": "PR148-conflicten met main 8e0c15d inhoudsbehoudend integreren",
-    "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Drie centrale documentconflicten behouden beide checkpointreeksen en hun afzonderlijke bewijsbronnen. Gedeelde harnashulpfuncties komen exact uit main; PR148-volume-admissie blijft behouden. Geen handmatige codewijziging, nieuw criterium of native acceptatie. Gerichte integratievalidatie en nieuwe-head CI worden afzonderlijk gerapporteerd."
+    "branch": "simonvanieperen-animated-garbanzo",
+    "task": "Integratiesprint: begrensde B03-, image- en keyringcorrecties; ownership en PR-triage",
+    "previous_score": 39,
+    "summary": "General 39/100 blijft 39/100 zoals op 707a768c. Main's 41 niet geimporteerd: B01 blijft open totdat ook positieve beheerrecovery native is bewezen. Alle andere criteria en gewichten ongewijzigd. Vijf native keyringcases en 70 hosttests groen; afzonderlijke B03-gate 18 stappen groen en imageslice hostgetest. Geen nieuwe volledige acceptatie, mainmerge, hardwaretest, menselijke audit of releasevalidatie."
   },
   "tracks": [
     {
@@ -379,13 +379,9 @@
           "id": "B01",
           "title": "Entropy en sleutelbeheer",
           "points": 2,
-          "status": "accepted",
-          "acceptance": "Native cryptografische entropy, key lifecycle, bescherming en herstel gebruiken gecontroleerde standaarden en geteste failure paths.",
-          "evidence": [
-            "docs/verification/B01-ACCEPTANCE.md",
-            "docs/verification/native-recovery-hardening/b01/keyring-gate.json",
-            "docs/verification/native-recovery-hardening/integration.json"
-          ]
+          "status": "open",
+          "acceptance": "Native cryptografische entropy en key lifecycle; recovery uitsluitend via manifest-gebonden beheer-ingress. Vereist verse native positieve beheer- en negatieve app-ingressproeven.",
+          "evidence": []
         },
         {
           "id": "B02",

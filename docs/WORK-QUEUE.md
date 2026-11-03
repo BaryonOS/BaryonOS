@@ -1,4 +1,82 @@
-# Operationele werkqueue — 30 oktober 2026
+# Operationele werkqueue — integratiesprint 3 november 2026
+
+## Actieve integratiesprint: geen nieuwe features
+
+Bron: main `a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e`.
+General coordineert deze sprint op Simons expliciete opdracht. De oudere
+mandaten, scores en sessietabellen hieronder zijn historische context, niet
+een actuele claim van actieve uitvoering of toestemming voor nieuwe merges.
+Geen mainmerge, issue-/PR-sluiting of score-import uitgevoerd.
+
+Nieuwe code uitsluitend voor concrete review-, regressie-, compatibility-
+en integratieblockers. Een workstream wordt op main geintegreerd, niet op
+een andere productbranch. Een PR bevat voortaan een begrensde mijlpaal met
+eigen bewijs. Een groene oude head is geen acceptatie van een nieuwe head.
+
+### Ownership tijdens de sprint
+
+- General: selectieve image-/keyring-integratie en centrale sprintregistratie.
+  Geen writes aan Drivers- of Veld-implementaties.
+- Drivers: `SPRINT-DRIVER-REVIEW`, uitsluitend bestaande #153-bevindingen,
+  eigen tests en receipt. Geen nieuwe driverfeature of centrale docs.
+- Veld: `SPRINT-VELD-REVIEW`, uitsluitend bestaande #157-bevindingen,
+  eigen tests en receipt. Geen nieuwe shellfeature of centrale docs.
+- Platform: featurefreeze bevestigd; volledige bron `8c837d5c` behouden op
+  `archive/platform-pre-sprint-20261103`. Geen restscope stil geaccepteerd.
+- System Maturity: OOM-afronding en SMP-eigenaarschap blijven gelden zoals
+  [de exacte assignment op 707a768c](https://github.com/simonvanieperen/nieuw-os/blob/707a768c1df81e674a15c4aa013f44b85b90c700/docs/WORK-QUEUE.md).
+  Freeze verzonden, ontvangst/uitvoering nog niet bevestigd: dit is GEEN
+  vrijgave aan General. Behouden SMP-WIP in `boot/loader/src/main.rs`,
+  `crates/boot-protocol/src/{graphics,lib,smp}.rs` en
+  `crates/kernel-core/src/{lib,smp}.rs` niet overschrijven.
+
+Als een owner alle relevante scopes geblokkeerd meldt: actuele en stale
+claims onderscheiden, veilig splitsen, een werkelijk uitvoerbare scope
+toewijzen als die bestaat, anders `BLOCKED-BY:<owner/interface>` met een
+concrete hervatvoorwaarde vastleggen. Ownership is geen permanente stilstand.
+Dit heft de huidige featurefreeze niet op.
+
+### PR-triage op exacte heads
+
+Snapshot: 3 november 2026; 17 oorspronkelijke PR's plus aangetroffen #159.
+READY-TO-MERGE hieronder is een technische classificatie, GEEN mergebesluit.
+Lopende CI wordt niet afgewacht of als geslaagd geboekt.
+
+| PR / head | Klasse | Concrete blocker / actie / hervatvoorwaarde |
+|---|---|---|
+| #159 `41f4a6de` | BLOCKED | Kleine vijf-file imagecandidate op main, 23 codec- en 15 viewertests groen; downstream-compilefout opgelost. Nieuwe-head CI nog lopend. Concept gemaakt; inhoudelijk identiek aan beperkte #156. Kies slechts een van beide. |
+| #158 `568741f3` | BLOCKED | Ontbrekende volledige native B03-gate nu opgelost: 18 QEMU-stappen groen. Nieuwe-head CI nog lopend; daarna review. Productie-key lifecycle blijft buiten deze TEST-policyfix. |
+| #157 `92f5972b` | NEEDS-FIX | Veld bevestigt echte false-positive notice-closed-wait: oude 60-fasenruns bewijzen geen volledige paneelverwijdering/mouse-isolatie. Runner-/pixel-/inputfix en verse native proef bij owner; nog geen nieuw native resultaat. Tevens mainconflicten/review. |
+| #156 `299ceefe` | SUPERSEDED | Van 63 naar vijf bestanden beperkt, exacte tree gelijk aan #159. Volledige restscope op archiefbranch en in historie; niet kwijt, niet geaccepteerd. Geen sluiting; reviewDecision blijft CHANGES_REQUESTED. |
+| #155 `a1eba0db` | BLOCKED | Van 46 naar tien bestanden beperkt: keyring-herstelautorisatie op main, vijf native cases groen. Nieuwe-head CI/review nog nodig; positieve beheerrecovery alleen hostgetest. Centrale sprintregistratie volgt als aparte documentdelta. |
+| #154 `63f1da11` | NEEDS-REBASE/UPDATE | Gemengde maturityprimitieven/OOM plus mainconflicten; SMP-WIP blijft apart. Kleine bestaande slices tegen main afbakenen na freezebevestiging, geen generieke merge of SMP-duplicatie. |
+| #153 `f2a8f6ee` | NEEDS-FIX | Zeven xHCI-/configwrite-/negatieve-test-/documentatiebevindingen en mainconflicten. Begrensde reviewfix bij Drivers; probe is geen controller-executionproof. |
+| #152 `df474de4` | RESEARCH/DOCS | Vijf onderzoeksdocumenten, mainconflicten; geen native driverresultaat. Alleen documentdelta selectief actualiseren, geen hardwareacceptatie. |
+| #151 `46357904` | RESEARCH/DOCS | 17 auditdocumenten, 21 threads opgelost, 30 checks geslaagd; reviewDecision nog CHANGES_REQUESTED. Verse reviewbeslissing nodig, geen punten of onafhankelijke auditclaim. |
+| #150 `39569721` | NEEDS-FIX | Agentprofielen/docs; assessment-source-thread en CHANGES_REQUESTED blijven, 30 checks geslaagd. Centrale historische status niet importeren als productbewijs. |
+| #147 `8d871592` | NEEDS-REBASE/UPDATE | 692-file gemengde branch/mainconflicten; unieke session-route/runnerdelta, geen volledige supersession bewezen. Alleen concrete niet-gedekte slice bewaren/porteren; niet sluiten. |
+| #146 `16eefda3` | NEEDS-FIX | native-foundation en native-window-session rood, review/assessment-thread open. Eerst concrete gast-/gatefout oplossen op passende bron, geen groene-CI-claim. |
+| #138 `0de93c50` | READY-TO-MERGE | 33 checks geslaagd, geen open threads; delta in Rust-files uitsluitend API-/implementatiecommentaar, daarnaast documentatie/bewijs. Geen nieuwe runtimefunctionaliteit; PR-body nog concreet maken. Geen merge uitgevoerd. |
+| #137 `6ecfca9d` | NEEDS-FIX | Vier centrale statusdocumenten, assessment-source-thread en CHANGES_REQUESTED; 30 checks geslaagd vervangen die correctie niet. Geen productcode. |
+| #135 `ea94eca7` | NEEDS-FIX | native-volume-admission rood en mainconflicten; unieke collection/history-/servicecode niet volledig vervangen. Begrensde repro/slice nodig, geen sluiting. |
+| #133 `9454d9c4` | NEEDS-FIX | 16 reviewthreads, omvangrijke unieke test/toolingdelta en conflicterende admissionvarianten. Geen bewijs voor volledige inhoudsdekking; niet als geheel superseded verklaren/sluiten. |
+| #132 `3fdc9448` | RESEARCH/DOCS | Btrfs/OpenZFS-hostonderzoek/evidence, geen eigen-OS-filesystemport; een check nog lopend. Alleen onderzoeksstatus, geen native filesystempunt. |
+| #131 `768f31cd` | RESEARCH/DOCS | Vier centrale documenten, 30 checks geslaagd; oorspronkelijke onderzoeksrichting grotendeels op main. Historische conflict-/assessmentdelta is geen nieuwe productmijlpaal. |
+
+### Issues blijven acceptatie-epics
+
+| Issue | BLOCKED-BY / RESUME-WHEN |
+|---|---|
+| #39 N01 | Werkelijke NIC-execution en pakketten/IP/transport met revoke/reset/cleanup en native bewijs; read-only discovery sluit dit niet. |
+| #41 B03 | Productieankers, sleutelrotatie/intrekking, ceremony en vertrouwde policy ontbreken. TEST-native-gate is nu groen, geen releasekeys gemaakt. |
+| #42 H02 | Controller-execution, enumeratie, HID/hotplug en VM-/fysieke matrix ontbreken; xHCI BAR-probe is alleen discovery. |
+| #43 Roadmap | Criteria afzonderlijk met passend native/hardware-/menselijk bewijs accepteren; geen automatische 50%, score-import of epicsluiting. |
+
+General-bron voor verdere splits: `archive/general-pre-sprint-20261103`
+op `707a768c`; Materiaal/UTF-8/app-cleanup/ownershiphistorie blijven daar
+behouden, niet stil geclaimd als onderdeel van de beperkte keyring-PR.
+
+## Historisch register — 30 oktober 2026
 
 ## Mandaat, bron en continuiteit
 
