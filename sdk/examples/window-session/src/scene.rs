@@ -35,6 +35,11 @@ pub enum WorkspaceMode {
     Work,
     Focus,
 }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum WindowState {
+    Normal,
+    Minimized,
+}
 const QUERY_BYTES: usize = 32;
 struct ProgramPalette {
     open: bool,
@@ -82,6 +87,12 @@ pub struct Scene {
     clipboard_notice: ClipboardNotice,
     palette: ProgramPalette,
     palette_keys: [bool; PhysicalKey::Menu as usize + 1],
+    cancelled_keys: [bool; PhysicalKey::Menu as usize + 1],
+    states: [WindowState; WINDOWS],
+    window_menu_open: bool,
+    window_menu_target: usize,
+    window_menu_selected: usize,
+    overlay_pointer: bool,
 }
 impl Scene {
     pub fn new(width: u32, height: u32, scale: u32, epochs: [u64; 2]) -> Result<Self, Invalid> {
@@ -144,6 +155,12 @@ impl Scene {
             clipboard_notice: ClipboardNotice::None,
             palette: ProgramPalette::new(),
             palette_keys: [false; PhysicalKey::Menu as usize + 1],
+            cancelled_keys: [false; PhysicalKey::Menu as usize + 1],
+            states: [WindowState::Normal; WINDOWS],
+            window_menu_open: false,
+            window_menu_target: 0,
+            window_menu_selected: 0,
+            overlay_pointer: false,
         })
     }
     pub fn frame(&self, index: usize) -> Rect {
@@ -159,7 +176,119 @@ impl Scene {
         self.mode
     }
     pub fn visible(&self, index: usize) -> bool {
-        index < WINDOWS && (self.mode == WorkspaceMode::Work || self.focused == index)
+        self.window_state(index) == Some(WindowState::Normal)
+            && (self.mode == WorkspaceMode::Work || self.focused == index)
+    }
+    pub fn window_state(&self, index: usize) -> Option<WindowState> {
+        self.states.get(index).copied()
+    }
+    pub fn focused_visible(&self) -> bool {
+        self.visible(self.focused)
+    }
+    fn minimize_state(&mut self, index: usize) -> Result<(), Invalid> {
+        if index >= WINDOWS {
+            return Err(Invalid);
+        }
+        if self.focused == index && self.states[1 - index] == WindowState::Normal {
+            self.select(1 - index)?;
+        }
+        self.states[index] = WindowState::Minimized;
+        self.cancel_pointer();
+        Ok(())
+    }
+    pub fn minimize(&mut self, index: usize, damage: &mut Damage) -> Result<(), Invalid> {
+        self.minimize_state(index)?;
+        self.close_window_menu(damage);
+        for index in 0..WINDOWS {
+            damage.mark(self.paint_bounds(index));
+        }
+        damage.mark(self.dock());
+        Ok(())
+    }
+    pub fn window_menu_is_open(&self) -> bool {
+        self.window_menu_open
+    }
+    pub fn window_menu_button(&self, index: usize) -> Rect {
+        if index >= WINDOWS {
+            return Rect::default();
+        }
+        let frame = self.frame(index);
+        let s = self.scale;
+        Rect::new(
+            frame.x + frame.width as i32 - 72 * s as i32,
+            frame.y + 7 * s as i32,
+            28 * s,
+            28 * s,
+        )
+    }
+    pub fn minimize_button(&self, index: usize) -> Rect {
+        let mut r = self.window_menu_button(index);
+        if index < WINDOWS {
+            r.x += 36 * self.scale as i32;
+        }
+        r
+    }
+    /// Physical pixels; the anchor survives closing for shadow damage repair.
+    pub fn window_menu_bounds(&self) -> Rect {
+        let s = self.scale;
+        let button = self.window_menu_button(self.window_menu_target);
+        Rect::new(
+            button.x.clamp(12 * s as i32, (self.width - 312 * s) as i32),
+            (button.y + 33 * s as i32).clamp(52 * s as i32, (self.height - 260 * s) as i32),
+            300 * s,
+            184 * s,
+        )
+    }
+    fn window_menu_paint_bounds(&self) -> Rect {
+        let r = self.window_menu_bounds();
+        let pad = 12 * self.scale;
+        Rect::new(
+            r.x - pad as i32,
+            r.y - pad as i32,
+            r.width + 2 * pad,
+            r.height + 2 * pad,
+        )
+    }
+    fn window_menu_row(&self, index: usize) -> Rect {
+        let r = self.window_menu_bounds();
+        let s = self.scale;
+        Rect::new(
+            r.x + 8 * s as i32,
+            r.y + (8 + index as i32 * 44) * s as i32,
+            r.width - 16 * s,
+            40 * s,
+        )
+    }
+    fn open_window_menu(&mut self) {
+        if self.focused_visible() {
+            self.palette_close();
+            self.cancel_pointer();
+            self.window_menu_target = self.focused;
+            self.window_menu_selected = 0;
+            self.window_menu_open = true;
+        }
+    }
+    fn close_window_menu(&mut self, damage: &mut Damage) {
+        if self.window_menu_open {
+            damage.mark(self.window_menu_paint_bounds());
+            self.window_menu_open = false;
+            damage.mark(self.dock());
+        }
+    }
+    fn activate_window_menu(&mut self) -> Result<(), Invalid> {
+        self.window_menu_open = false;
+        match self.window_menu_selected {
+            0 => self.minimize_state(self.window_menu_target)?,
+            1 => self.arrange_positions(),
+            _ => {
+                self.cancel_pointer();
+                self.mode = match self.mode {
+                    WorkspaceMode::Work => WorkspaceMode::Focus,
+                    WorkspaceMode::Focus => WorkspaceMode::Work,
+                };
+            }
+        }
+        Ok(())
     }
     pub fn toggle_focus(&mut self, damage: &mut Damage) {
         for index in 0..WINDOWS {
@@ -219,7 +348,7 @@ impl Scene {
         )
     }
     pub fn palette_open(&mut self) -> bool {
-        if self.palette.open {
+        if self.palette.open || self.window_menu_is_open() {
             return false;
         }
         self.palette.open = true;
@@ -337,12 +466,67 @@ impl Scene {
         damage: &mut Damage,
     ) -> Result<bool, Invalid> {
         let index = key.key as usize;
-        if key.action == KeyAction::Release && self.palette_keys[index] {
+        if key.action == KeyAction::Release
+            && (self.palette_keys[index] || self.cancelled_keys[index])
+        {
             self.palette_keys[index] = false;
+            self.cancelled_keys[index] = false;
+            return Ok(true);
+        }
+        if key.action == KeyAction::Press {
+            self.cancelled_keys[index] = false;
+        } else if self.cancelled_keys[index] {
+            return Ok(true);
+        }
+        let frames = [self.paint_bounds(0), self.paint_bounds(1)];
+        let states = self.states;
+        let focus = self.focused;
+        let mode = self.mode;
+        if self.window_menu_is_open() {
+            damage.mark(self.window_menu_paint_bounds());
+            if matches!(key.action, KeyAction::Press | KeyAction::Repeat) {
+                self.palette_keys[index] = true;
+                match key.key {
+                    PhysicalKey::Escape => self.window_menu_open = false,
+                    PhysicalKey::Up | PhysicalKey::Down | PhysicalKey::Tab => {
+                        let reverse = key.key == PhysicalKey::Up
+                            || (key.key == PhysicalKey::Tab && key.modifiers.shift());
+                        self.window_menu_selected =
+                            (self.window_menu_selected + if reverse { 2 } else { 1 }) % 3;
+                    }
+                    PhysicalKey::Enter | PhysicalKey::KeypadEnter
+                        if key.action == KeyAction::Press =>
+                    {
+                        self.activate_window_menu()?;
+                    }
+                    _ => {}
+                }
+            }
+            if !self.window_menu_is_open() {
+                damage.mark(self.dock());
+            }
+            self.mark_window_changes(frames, states, focus, mode, damage);
             return Ok(true);
         }
         if !self.palette_is_open() {
             if self.palette_keys[index] {
+                return Ok(true);
+            }
+            if key.modifiers.alt()
+                && !key.modifiers.control()
+                && !key.modifiers.super_key()
+                && matches!(key.key, PhysicalKey::F9 | PhysicalKey::Space)
+            {
+                if key.action == KeyAction::Press {
+                    self.palette_keys[index] = true;
+                    if key.key == PhysicalKey::F9 {
+                        self.minimize(self.focused, damage)?;
+                    } else {
+                        self.open_window_menu();
+                        damage.mark(self.window_menu_paint_bounds());
+                        damage.mark(self.dock());
+                    }
+                }
                 return Ok(true);
             }
             if matches!(key.key, PhysicalKey::F7 | PhysicalKey::F8) {
@@ -411,10 +595,11 @@ impl Scene {
         }
         damage.mark(self.palette_paint_bounds());
         damage.mark(self.dock());
+        self.mark_window_changes(frames, states, focus, mode, damage);
         Ok(true)
     }
     pub fn hovered_task(&self) -> Option<usize> {
-        (!self.palette_is_open())
+        (!self.palette_is_open() && !self.window_menu_is_open())
             .then(|| {
                 (0..WINDOWS).find(|index| {
                     self.task_button(*index)
@@ -424,7 +609,12 @@ impl Scene {
             .flatten()
     }
     pub fn cancel_palette_input(&mut self, damage: &mut Damage) {
-        self.palette_keys.fill(false);
+        // Keep ownership until release, even when focus loss closes an overlay.
+        for (cancelled, owned) in self.cancelled_keys.iter_mut().zip(&mut self.palette_keys) {
+            *cancelled |= *owned;
+            *owned = false;
+        }
+        self.close_window_menu(damage);
         if self.palette_close() {
             damage.mark(self.palette_paint_bounds());
             damage.mark(self.dock());
@@ -440,6 +630,9 @@ impl Scene {
     ) -> Result<Option<usize>, Invalid> {
         let hover = self.hovered_task();
         let palette_open = self.palette_is_open();
+        let menu_open = self.window_menu_is_open();
+        let menu_bounds = self.window_menu_paint_bounds();
+        let states = self.states;
         let mode = self.mode;
         let focus = self.focused;
         let frames = [self.paint_bounds(0), self.paint_bounds(1)];
@@ -455,11 +648,32 @@ impl Scene {
             damage.mark(self.palette_paint_bounds());
             damage.mark(self.dock());
         }
-        if focus != self.focused {
+        if menu_open {
+            damage.mark(menu_bounds);
+        }
+        if self.window_menu_is_open() {
+            damage.mark(self.window_menu_paint_bounds());
+        }
+        self.mark_window_changes(frames, states, focus, mode, damage);
+        Ok(recipient)
+    }
+    fn mark_window_changes(
+        &self,
+        frames: [Rect; WINDOWS],
+        states: [WindowState; WINDOWS],
+        focus: usize,
+        mode: WorkspaceMode,
+        damage: &mut Damage,
+    ) {
+        if focus != self.focused || states != self.states {
             damage.mark(self.dock());
         }
         for (index, frame) in frames.into_iter().enumerate() {
-            if frame != self.paint_bounds(index) || focus != self.focused || mode != self.mode {
+            if frame != self.paint_bounds(index)
+                || focus != self.focused
+                || mode != self.mode
+                || states[index] != self.states[index]
+            {
                 damage.mark(frame);
                 damage.mark(self.paint_bounds(index));
             }
@@ -467,7 +681,6 @@ impl Scene {
                 damage.mark(self.mode_button());
             }
         }
-        Ok(recipient)
     }
     pub fn clipboard_notice_bounds(&self) -> Rect {
         Rect::new(
@@ -498,10 +711,12 @@ impl Scene {
             return Err(Invalid);
         }
         if index != self.focused {
+            let switches = self.switches.checked_add(1).ok_or(Invalid)?;
             self.drag = None;
             self.focused = index;
-            self.switches = self.switches.checked_add(1).ok_or(Invalid)?;
+            self.switches = switches;
         }
+        self.states[index] = WindowState::Normal;
         Ok(())
     }
     pub fn cycle(&mut self) -> Result<(), Invalid> {
@@ -533,14 +748,41 @@ impl Scene {
             return Err(Invalid);
         }
         self.pointer = (x, y);
+        if self.window_menu_is_open() {
+            if down {
+                self.overlay_pointer = true;
+                if let Some(index) =
+                    (0..3).find(|index| self.window_menu_row(*index).contains(x as i32, y as i32))
+                {
+                    self.window_menu_selected = index;
+                    self.activate_window_menu()?;
+                } else if !self.window_menu_bounds().contains(x as i32, y as i32) {
+                    self.window_menu_open = false;
+                }
+            }
+            if !held && !down {
+                self.overlay_pointer = false;
+            }
+            return Ok(None);
+        }
         if self.palette_is_open() {
             if down {
+                self.overlay_pointer = true;
                 if let Some(index) = self.palette_hit(x, y) {
                     self.select(index)?;
                     self.palette_close();
                 } else if !self.palette_bounds().contains(x as i32, y as i32) {
                     self.palette_close();
                 }
+            }
+            if !held && !down {
+                self.overlay_pointer = false;
+            }
+            return Ok(None);
+        }
+        if self.overlay_pointer {
+            if !held {
+                self.overlay_pointer = false;
             }
             return Ok(None);
         }
@@ -593,6 +835,16 @@ impl Scene {
                 if frame.contains(x as i32, y as i32) {
                     self.select(index)?;
                     if y < self.windows[index].body.y as u32 {
+                        if self.window_menu_button(index).contains(x as i32, y as i32) {
+                            self.open_window_menu();
+                            self.overlay_pointer = true;
+                            return Ok(None);
+                        }
+                        if self.minimize_button(index).contains(x as i32, y as i32) {
+                            self.minimize_state(index)?;
+                            self.overlay_pointer = true;
+                            return Ok(None);
+                        }
                         let b = self.windows[index].body;
                         self.drag = Some((index, x as i32 - b.x, y as i32 - b.y));
                         return Ok(None);
@@ -603,7 +855,7 @@ impl Scene {
             return Ok(None);
         }
         let b = self.windows[self.focused].body;
-        Ok(b.contains(x as i32, y as i32).then_some(self.focused))
+        Ok((self.focused_visible() && b.contains(x as i32, y as i32)).then_some(self.focused))
     }
     pub fn dock(&self) -> Rect {
         Rect::new(
@@ -690,7 +942,8 @@ impl Scene {
         // from an app: this is the compositor's private, validated backing.
         Canvas::new(rect, pixels).map_err(|_| Invalid)?;
         for (index, window) in self.windows.iter().enumerate() {
-            if self.paint_bounds(index).intersects(rect)
+            if self.visible(index)
+                && self.paint_bounds(index).intersects(rect)
                 && window
                     .body
                     .width
@@ -709,10 +962,12 @@ impl Scene {
                 <= i64::from(body.x) + i64::from(body.width)
             && i64::from(rect.y) + i64::from(rect.height)
                 <= i64::from(body.y) + i64::from(body.height);
-        if !inside
+        if !self.focused_visible()
+            || !inside
             || rect.intersects(self.dock_paint_bounds())
             || rect.intersects(self.pointer_bounds())
             || (self.palette_is_open() && rect.intersects(self.palette_paint_bounds()))
+            || (self.window_menu_is_open() && rect.intersects(self.window_menu_paint_bounds()))
         {
             return self.render_reference(rect, pixels, backing);
         }
@@ -869,7 +1124,7 @@ impl Scene {
             let title_width = font.measure(title);
             let small = Font::new(Size::Small, Weight::Regular, s == 2);
             let tool = APP_NAMES[index];
-            if title_width + small.measure(tool) + 84 * s <= frame.width {
+            if title_width + small.measure(tool) + 156 * s <= frame.width {
                 c.text(
                     frame.x + 60 * s as i32 + title_width as i32,
                     frame.y + 12 * s as i32,
@@ -877,6 +1132,21 @@ impl Scene {
                     small,
                     palette.muted,
                 );
+            }
+            for (bounds, menu) in [
+                (self.window_menu_button(index), true),
+                (self.minimize_button(index), false),
+            ] {
+                c.rounded_rect(bounds, 5 * s, palette.background);
+                let x = bounds.x + 8 * s as i32;
+                let y = bounds.y + 13 * s as i32;
+                for dy in if menu {
+                    [-5, 0, 5].as_slice()
+                } else {
+                    [5].as_slice()
+                } {
+                    c.fill_rect(Rect::new(x, y + dy * s as i32, 12 * s, 2 * s), palette.text);
+                }
             }
             // Trusted app identity and focus marker live outside app bounds.
             if index == self.focused {
@@ -925,9 +1195,10 @@ impl Scene {
         );
         for (index, name) in WORK_NAMES.iter().enumerate() {
             let r = self.task_button(index);
-            let hovered =
-                !self.palette_is_open() && r.contains(self.pointer.0 as i32, self.pointer.1 as i32);
-            if index == self.focused || hovered {
+            let active = index == self.focused && self.focused_visible();
+            let minimized = self.states[index] == WindowState::Minimized;
+            let hovered = self.hovered_task() == Some(index);
+            if active || hovered {
                 c.rounded_rect(r, 6 * s, theme::SHELL_ACTIVE);
             }
             c.icon(
@@ -937,7 +1208,7 @@ impl Scene {
                 } else {
                     Icon::Apps
                 },
-                if index == self.focused {
+                if active {
                     palette.accent
                 } else {
                     theme::SHELL_MUTED
@@ -954,14 +1225,29 @@ impl Scene {
             c.text(
                 r.x + 38 * s as i32,
                 r.y + 25 * s as i32,
-                APP_NAMES[index],
+                if minimized {
+                    "Geminimaliseerd"
+                } else {
+                    APP_NAMES[index]
+                },
                 Font::new(Size::Small, Weight::Regular, s == 2),
                 theme::SHELL_MUTED,
             );
-            if index == self.focused {
+            if active {
                 c.fill_rect(
                     Rect::new(r.x + 10 * s as i32, r.y + 40 * s as i32, 20 * s, 2 * s),
                     palette.accent,
+                );
+            } else if minimized {
+                let marker = Rect::new(r.x + 12 * s as i32, r.y + 36 * s as i32, 12 * s, 6 * s);
+                c.fill_rect(marker, theme::SHELL_MUTED);
+                c.fill_rect(
+                    Rect::new(marker.x + s as i32, marker.y + s as i32, 10 * s, 4 * s),
+                    if hovered {
+                        theme::SHELL_ACTIVE
+                    } else {
+                        palette.surface
+                    },
                 );
             }
         }
@@ -984,11 +1270,65 @@ impl Scene {
             theme::SHELL_MUTED,
         );
         self.render_palette(&mut c);
+        self.render_window_menu(&mut c);
         let (x, y) = (self.pointer.0 as i32, self.pointer.1 as i32);
         c.line(x, y, x, y + 18 * s as i32, 3 * s, 0xffffff);
         c.line(x, y, x + 12 * s as i32, y + 12 * s as i32, 3 * s, 0xffffff);
         c.line(x, y, x + 3 * s as i32, y + 15 * s as i32, s, 0x172a3a);
         Ok(())
+    }
+    fn render_window_menu(&self, c: &mut Canvas<'_>) {
+        if !self.window_menu_is_open() || !self.window_menu_paint_bounds().intersects(c.bounds()) {
+            return;
+        }
+        let p = theme::MATERIAAL;
+        let r = self.window_menu_bounds();
+        let s = self.scale;
+        c.soft_shadow(r, 12 * s, theme::SHADOW, 40)
+            .expect("validated workspace scale and nonempty window menu");
+        c.rounded_rect(r, 8 * s, p.border);
+        c.rounded_rect(
+            Rect::new(
+                r.x + s as i32,
+                r.y + s as i32,
+                r.width - 2 * s,
+                r.height - 2 * s,
+            ),
+            7 * s,
+            p.surface,
+        );
+        for (index, label) in [
+            "Minimaliseren",
+            "Ordenen",
+            if self.mode == WorkspaceMode::Focus {
+                "Alles tonen"
+            } else {
+                "Dit werk"
+            },
+        ]
+        .iter()
+        .enumerate()
+        {
+            let row = self.window_menu_row(index);
+            if index == self.window_menu_selected {
+                c.fill_rect(row, p.accent_soft);
+                c.fill_rect(Rect::new(row.x, row.y, 3 * s, row.height), p.accent);
+            }
+            c.text(
+                row.x + 12 * s as i32,
+                row.y + 10 * s as i32,
+                label,
+                Font::new(Size::Body, Weight::Regular, s == 2),
+                p.text,
+            );
+        }
+        c.text(
+            r.x + 20 * s as i32,
+            r.y + 152 * s as i32,
+            "Alt+Space · Venstermenu",
+            Font::new(Size::Small, Weight::Regular, s == 2),
+            p.muted,
+        );
     }
     fn render_palette(&self, c: &mut Canvas<'_>) {
         if !self.palette_is_open() || !self.palette_paint_bounds().intersects(c.bounds()) {
