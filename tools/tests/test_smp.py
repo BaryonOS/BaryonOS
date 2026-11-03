@@ -21,6 +21,14 @@ def m3_transcript(cpus=2):
     lines = transcript(cpus).splitlines()
     lines.extend(
         marker
+        for index in range(1, cpus)
+        for marker in (
+            f"M3:SMP:AP:PROTECTION_CPU:{index:020d}",
+            "M3:SMP:AP:CR0_WP_EM_TS:00000000000000000007",
+        )
+    )
+    lines.extend(
+        marker
         for index in range(cpus)
         for marker in (
             f"M3:SMP:CPU:{index:020d}",
@@ -28,6 +36,26 @@ def m3_transcript(cpus=2):
         )
     )
     lines.append("M3:SMP:SCHEDULER:PASS")
+    return "\n".join(lines) + "\n"
+
+
+def m3_x87_transcript():
+    lines = m3_transcript().splitlines()
+    scheduler = lines.index("M3:SMP:CPU:00000000000000000000")
+    lines[scheduler:scheduler] = (
+        "M3:SMP:FAULT_CPU:00000000000000000001",
+        "M3:FAULT:X87:PASS",
+    )
+    return "\n".join(lines) + "\n"
+
+
+def m3_unexpected_ud_transcript():
+    lines = m3_transcript().splitlines()
+    lines.remove("M3:SMP:SCHEDULER:PASS")
+    lines.extend((
+        "M3:SMP:FAULT_INJECTION:UNEXPECTED_UD",
+        "M3:FAIL:UNEXPECTED_USER_EVENT",
+    ))
     return "\n".join(lines) + "\n"
 
 
@@ -158,6 +186,9 @@ class SmpEvidenceTests(unittest.TestCase):
         ):
             with self.subTest(profile=profile), self.assertRaises(ValueError):
                 run_smp.expected_markers(4, profile)
+        for profile in ("native-smp-m3-x87", "native-smp-m3-unexpected-ud"):
+            with self.subTest(profile=profile), self.assertRaises(ValueError):
+                run_smp.expected_markers(4, profile)
         for exit_code, timeout in ((0, False), (35, False), (None, True), (33, True)):
             with self.subTest(exit_code=exit_code, timeout=timeout), self.assertRaises(ValueError):
                 run_smp.evaluate(2, transcript(), exit_code, timeout)
@@ -173,6 +204,13 @@ class SmpEvidenceTests(unittest.TestCase):
     def test_native_m3_scheduling_rejects_missing_zero_duplicate_and_reordered_evidence(self):
         valid = m3_transcript()
         cases = (
+            valid.replace("M3:SMP:AP:CR0_WP_EM_TS:00000000000000000007\n", ""),
+            valid.replace("M3:SMP:AP:CR0_WP_EM_TS:00000000000000000007",
+                          "M3:SMP:AP:CR0_WP_EM_TS:00000000000000000003"),
+            valid.replace("M3:SMP:AP:PROTECTION_CPU:00000000000000000001\n"
+                          "M3:SMP:AP:CR0_WP_EM_TS:00000000000000000007\n",
+                          "M3:SMP:AP:CR0_WP_EM_TS:00000000000000000007\n"
+                          "M3:SMP:AP:PROTECTION_CPU:00000000000000000001\n"),
             valid.replace("M3:SMP:SCHEDULER:PASS\n", ""),
             valid.replace("M3:SMP:SCHEDULES:00000000000000000014",
                           "M3:SMP:SCHEDULES:00000000000000000000"),
@@ -188,6 +226,52 @@ class SmpEvidenceTests(unittest.TestCase):
         for bad in cases:
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 run_smp.evaluate_m3(2, bad, 33, False)
+
+    def test_native_smp_x87_probe_requires_ap_trap_and_protection_readback(self):
+        result = run_smp.evaluate_m3_x87(2, m3_x87_transcript(), 33, False)
+        self.assertEqual(result["x87_fault_cpu"], 1)
+        for bad in (
+            m3_x87_transcript().replace("M3:FAULT:X87:PASS\n", ""),
+            m3_x87_transcript().replace(
+                "M3:SMP:FAULT_CPU:00000000000000000001",
+                "M3:SMP:FAULT_CPU:00000000000000000000",
+            ),
+            m3_x87_transcript().replace(
+                "M3:SMP:AP:CR0_WP_EM_TS:00000000000000000007",
+                "M3:SMP:AP:CR0_WP_EM_TS:00000000000000000003",
+            ),
+        ):
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                run_smp.evaluate_m3_x87(2, bad, 33, False)
+
+    def test_native_smp_unexpected_ud_fails_closed_before_scheduler_pass(self):
+        result = run_smp.evaluate_m3_unexpected_ud(
+            2, m3_unexpected_ud_transcript(), 35, False
+        )
+        self.assertFalse(result["scheduler_pass"])
+        cases = (
+            m3_unexpected_ud_transcript().replace(
+                "M3:SMP:FAULT_INJECTION:UNEXPECTED_UD\n", ""
+            ),
+            m3_unexpected_ud_transcript().replace(
+                "M3:FAIL:UNEXPECTED_USER_EVENT\n", ""
+            ),
+            m3_unexpected_ud_transcript().replace(
+                "M3:FAIL:UNEXPECTED_USER_EVENT",
+                "M3:FAIL:UNEXPECTED_USER_EVENT\nM3:SMP:SCHEDULER:PASS",
+            ),
+            m3_unexpected_ud_transcript().replace(
+                "M3:SMP:AP:CR0_WP_EM_TS:00000000000000000007",
+                "M3:SMP:AP:CR0_WP_EM_TS:00000000000000000003",
+            ),
+        )
+        for bad in cases:
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                run_smp.evaluate_m3_unexpected_ud(2, bad, 35, False)
+        with self.assertRaises(ValueError):
+            run_smp.evaluate_m3_unexpected_ud(
+                2, m3_unexpected_ud_transcript(), 33, False
+            )
 
     def test_native_m4_ipc_requires_a_successful_cross_cpu_message_pair(self):
         result = run_smp.evaluate_m4_smp(2, m4_smp_transcript(), 33, False)

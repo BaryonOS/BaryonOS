@@ -361,6 +361,17 @@ pub fn protection() {
         asm!("mov cr0, {}",in(reg) cr0,options(nostack));
     }
 }
+#[cfg(feature = "native-smp-m3")]
+pub fn protection_status() -> u8 {
+    let cr0: u64;
+    // SAFETY: Reading the local CPU's CR0 at CPL0 has no memory or control-flow effects.
+    unsafe {
+        asm!("mov {}, cr0", out(reg) cr0, options(nomem, nostack, preserves_flags));
+    }
+    u8::from(cr0 & (1 << 16) != 0)
+        | (u8::from(cr0 & (1 << 2) != 0) << 1)
+        | (u8::from(cr0 & (1 << 3) != 0) << 2)
+}
 pub fn activate(root: u64) {
     // SAFETY: paging builder validates/retains own aligned tables and maps current
     // code, stacks, GDT, IDT, TSS and all metadata before this serializing switch.

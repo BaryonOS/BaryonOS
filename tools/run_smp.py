@@ -29,6 +29,8 @@ def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
         "native-smp-m3-exit",
         "native-smp-m3-tlb-reuse",
         "native-smp-m3-lock-contention",
+        "native-smp-m3-x87",
+        "native-smp-m3-unexpected-ud",
         "native-smp-m4",
         "native-smp-m4-lifecycle",
         "native-smp-m4-revoke",
@@ -37,6 +39,8 @@ def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
     if profile in (
         "native-smp-m3-tlb-reuse",
         "native-smp-m3-lock-contention",
+        "native-smp-m3-x87",
+        "native-smp-m3-unexpected-ud",
         "native-smp-m4",
         "native-smp-m4-lifecycle",
         "native-smp-m4-revoke",
@@ -56,6 +60,7 @@ def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
                           "native-smp-m3-exit",
                           "native-smp-m3-tlb-reuse",
                           "native-smp-m3-lock-contention",
+                          "native-smp-m3-x87",
                           "native-smp-m4",
                           "native-smp-m4-lifecycle",
                           "native-smp-m4-revoke",
@@ -115,6 +120,70 @@ def evaluate_m3(cpus: int, stdout: str, returncode: int | None, timed_out: bool)
     lines = stdout.splitlines()
     if any(marker in line for marker in FAILURES for line in lines):
         raise ValueError("failure marker present")
+    lines, parsed, expected_protection = _m3_inventory(cpus, lines)
+
+    cpu_markers = [line for line in lines if line.startswith("M3:SMP:CPU:")]
+    schedule_markers = [line for line in lines if line.startswith("M3:SMP:SCHEDULES:")]
+    number = re.compile(r"M3:SMP:CPU:([0-9]{20})")
+    schedules = re.compile(r"M3:SMP:SCHEDULES:([0-9]{20})")
+    cpu_ids = []
+    schedule_counts = []
+    for line in cpu_markers:
+        match = number.fullmatch(line)
+        if match is None:
+            raise ValueError("malformed M3 CPU marker")
+        cpu_ids.append(int(match.group(1)))
+    for line in schedule_markers:
+        match = schedules.fullmatch(line)
+        if match is None:
+            raise ValueError("malformed M3 scheduler count")
+        schedule_counts.append(int(match.group(1)))
+    if cpu_ids != list(range(cpus)) or len(schedule_counts) != cpus:
+        raise ValueError("M3 scheduling evidence is incomplete or out of order")
+    if any(count == 0 for count in schedule_counts):
+        raise ValueError("an online CPU never selected a user process")
+    expected_m3 = expected_protection + tuple(
+        marker
+        for cpu, count in zip(cpu_ids, schedule_counts, strict=True)
+        for marker in (f"M3:SMP:CPU:{cpu:020d}", f"M3:SMP:SCHEDULES:{count:020d}")
+    ) + ("M3:SMP:SCHEDULER:PASS",)
+    observed_m3 = tuple(
+        line for line in lines
+        if line.startswith((
+            "M3:SMP:AP:PROTECTION_CPU:",
+            "M3:SMP:AP:CR0_WP_EM_TS:",
+            "M3:SMP:CPU:",
+            "M3:SMP:SCHEDULES:",
+        ))
+        or line == "M3:SMP:SCHEDULER:PASS"
+    )
+    if observed_m3 != expected_m3:
+        raise ValueError("M3 scheduler or AP protection evidence is malformed or out of order")
+    scheduler_passes = [index for index, line in enumerate(lines)
+                        if line == "M3:SMP:SCHEDULER:PASS"]
+    if (len(scheduler_passes) != 1
+            or scheduler_passes[0] <= max(
+                index for index, line in enumerate(lines)
+                if line.startswith("M3:SMP:SCHEDULES:")
+            )):
+        raise ValueError("missing or out-of-order SMP scheduler pass marker")
+    if returncode != 33 or timed_out:
+        raise ValueError(f"raw QEMU exit {returncode}, timeout {timed_out}")
+    return {
+        "cpu_count": cpus,
+        "logical_apic_ids": parsed,
+        "per_cpu_process_selections": schedule_counts,
+        "ap_cr0_wp_em_ts": 7,
+    }
+
+
+def _m3_inventory(cpus: int, lines: list[str], expected_failure: str | None = None):
+    if any(
+        marker in line and line != expected_failure
+        for marker in FAILURES
+        for line in lines
+    ):
+        raise ValueError("unexpected failure marker present")
     boot_cursor = 0
     for marker in BOOT:
         try:
@@ -145,52 +214,100 @@ def evaluate_m3(cpus: int, stdout: str, returncode: int | None, timed_out: bool)
     if observed_smp != expected_smp:
         raise ValueError(f"SMP evidence sequence mismatch: {observed_smp}")
 
-    cpu_markers = [line for line in lines if line.startswith("M3:SMP:CPU:")]
-    schedule_markers = [line for line in lines if line.startswith("M3:SMP:SCHEDULES:")]
-    number = re.compile(r"M3:SMP:CPU:([0-9]{20})")
-    schedules = re.compile(r"M3:SMP:SCHEDULES:([0-9]{20})")
-    cpu_ids = []
-    schedule_counts = []
-    for line in cpu_markers:
-        match = number.fullmatch(line)
-        if match is None:
-            raise ValueError("malformed M3 CPU marker")
-        cpu_ids.append(int(match.group(1)))
-    for line in schedule_markers:
-        match = schedules.fullmatch(line)
-        if match is None:
-            raise ValueError("malformed M3 scheduler count")
-        schedule_counts.append(int(match.group(1)))
-    if cpu_ids != list(range(cpus)) or len(schedule_counts) != cpus:
-        raise ValueError("M3 scheduling evidence is incomplete or out of order")
-    if any(count == 0 for count in schedule_counts):
-        raise ValueError("an online CPU never selected a user process")
-    expected_m3 = tuple(
-        marker
-        for cpu, count in zip(cpu_ids, schedule_counts, strict=True)
-        for marker in (f"M3:SMP:CPU:{cpu:020d}", f"M3:SMP:SCHEDULES:{count:020d}")
-    ) + ("M3:SMP:SCHEDULER:PASS",)
-    observed_m3 = tuple(
+    cpu_number = re.compile(r"M3:SMP:AP:PROTECTION_CPU:([0-9]{20})")
+    flag_number = re.compile(r"M3:SMP:AP:CR0_WP_EM_TS:([0-9]{20})")
+    observed_protection = tuple(
         line for line in lines
-        if line.startswith(("M3:SMP:CPU:", "M3:SMP:SCHEDULES:"))
-        or line == "M3:SMP:SCHEDULER:PASS"
+        if line.startswith((
+            "M3:SMP:AP:PROTECTION_CPU:",
+            "M3:SMP:AP:CR0_WP_EM_TS:",
+        ))
     )
-    if observed_m3 != expected_m3:
-        raise ValueError("M3 scheduler evidence is malformed or out of order")
-    scheduler_passes = [index for index, line in enumerate(lines)
-                        if line == "M3:SMP:SCHEDULER:PASS"]
-    if (len(scheduler_passes) != 1
-            or scheduler_passes[0] <= max(
-                index for index, line in enumerate(lines)
-                if line.startswith("M3:SMP:SCHEDULES:")
-            )):
-        raise ValueError("missing or out-of-order SMP scheduler pass marker")
-    if returncode != 33 or timed_out:
-        raise ValueError(f"raw QEMU exit {returncode}, timeout {timed_out}")
+    protection_cpus = []
+    if len(observed_protection) != 2 * (cpus - 1):
+        raise ValueError("AP CR0 WP/EM/TS readback is missing, invalid, or out of order")
+    for index in range(0, len(observed_protection), 2):
+        cpu_match = cpu_number.fullmatch(observed_protection[index])
+        flag_match = flag_number.fullmatch(observed_protection[index + 1])
+        if (
+            cpu_match is None
+            or flag_match is None
+            or int(cpu_match.group(1)) >= cpus
+            or int(flag_match.group(1)) != 7
+        ):
+            raise ValueError("AP CR0 WP/EM/TS readback is invalid or out of order")
+        protection_cpus.append(int(cpu_match.group(1)))
+    if len(set(protection_cpus)) != cpus - 1:
+        raise ValueError("AP CR0 protection readback does not cover each AP exactly once")
+    return lines, parsed, observed_protection
+
+
+def evaluate_m3_x87(cpus: int, stdout: str, returncode: int | None, timed_out: bool) -> dict:
+    expected_markers(cpus, "native-smp-m3-x87")
+    scheduler = evaluate_m3(cpus, stdout, returncode, timed_out)
+    lines = stdout.splitlines()
+    if lines.count("M3:FAULT:X87:PASS") != 1:
+        raise ValueError("AP x87 probe did not produce exactly one expected #NM fault")
+    fault_cpus = [
+        line for line in lines if line.startswith("M3:SMP:FAULT_CPU:")
+    ]
+    pattern = re.compile(r"M3:SMP:FAULT_CPU:([0-9]{20})")
+    matches = [pattern.fullmatch(line) for line in fault_cpus]
+    ap_indices = {
+        int(match.group(1))
+        for line in lines
+        if (match := re.fullmatch(r"M3:SMP:AP:PROTECTION_CPU:([0-9]{20})", line))
+    }
+    if (
+        len(matches) != 1
+        or matches[0] is None
+        or int(matches[0].group(1)) not in ap_indices
+    ):
+        raise ValueError("x87 fault did not occur on the AP")
+    if not (
+        max(
+            index for index, line in enumerate(lines)
+            if line.startswith("M3:SMP:AP:CR0_WP_EM_TS:")
+        )
+        < lines.index(fault_cpus[0])
+        < lines.index("M3:FAULT:X87:PASS")
+        < lines.index("M3:SMP:SCHEDULER:PASS")
+    ):
+        raise ValueError("x87 fault occurred outside the protected AP execution sequence")
+    return {"scheduler": scheduler, "x87_fault_cpu": 1}
+
+
+def evaluate_m3_unexpected_ud(
+    cpus: int, stdout: str, returncode: int | None, timed_out: bool
+) -> dict:
+    expected_markers(cpus, "native-smp-m3-unexpected-ud")
+    if cpus != 2 or not isinstance(stdout, str) or len(stdout) > 128 * 1024:
+        raise ValueError("unexpected-UD injection requires a bounded two-CPU transcript")
+    lines = stdout.splitlines()
+    failure = "M3:FAIL:UNEXPECTED_USER_EVENT"
+    lines, parsed, protection = _m3_inventory(cpus, lines, expected_failure=failure)
+    if lines.count(failure) != 1:
+        raise ValueError("unexpected user fault did not fail closed exactly once")
+    injection = "M3:SMP:FAULT_INJECTION:UNEXPECTED_UD"
+    if lines.count(injection) != 1 or lines.count("M3:FAULT:UD:PASS") != 0:
+        raise ValueError("unexpected-UD fault injection evidence is missing or success-shaped")
+    if any(line.startswith((
+        "M3:SMP:SCHEDULER:PASS",
+        "M3:PASS",
+        "M1:PASS",
+    )) for line in lines):
+        raise ValueError("scheduler or kernel success marker followed unexpected user fault")
+    if returncode != 35 or timed_out:
+        raise ValueError(f"expected fail-closed raw QEMU exit 35, got {returncode}")
+    if lines.index(injection) >= lines.index(failure):
+        raise ValueError("unexpected-UD failure preceded the injected fault")
     return {
         "cpu_count": cpus,
         "logical_apic_ids": parsed,
-        "per_cpu_process_selections": schedule_counts,
+        "ap_cr0_wp_em_ts": 7,
+        "fault_injection": "unexpected-user-ud",
+        "failure_marker": failure,
+        "scheduler_pass": False,
     }
 
 
@@ -505,11 +622,11 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
     frozen = source_hash()
     manifest_path = build / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    expected_kernel_feature = (
-        "native-smp-m4,test-m4-lifecycle"
-        if profile == "native-smp-m4-lifecycle"
-        else profile
-    )
+    expected_kernel_feature = {
+        "native-smp-m4-lifecycle": "native-smp-m4,test-m4-lifecycle",
+        "native-smp-m3-x87": "native-smp-m3,test-m3-x87",
+        "native-smp-m3-unexpected-ud": "native-smp-m3,test-m3-ud",
+    }.get(profile, profile)
     if (manifest.get("kernel_feature") != expected_kernel_feature
             or manifest.get("loader_feature") is not None
             or manifest.get("source_fingerprint_version") != 3
@@ -578,20 +695,32 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
         "timeout_s": timeout,
         "timed_out": timed_out,
         "raw_qemu_exit": raw_exit,
-        "expected_exit": 33,
+        "expected_exit": 35 if profile == "native-smp-m3-unexpected-ud" else 33,
         "required_markers": [*BOOT, *(("SMP:AP:ENTRY",) * (cpus - 1)),
                              *(f"SMP:CPU:{i}:APIC:<id>:ONLINE" for i in range(cpus)),
                              f"SMP:CPUS:{cpus}", "SMP:RENDEZVOUS:PASS",
                              "SMP:WORKERS:PASS", "SMP:PASS",
+                             *(marker for index in range(1, cpus)
+                               for marker in (
+                                   f"M3:SMP:AP:PROTECTION_CPU:{index:020d}",
+                                   "M3:SMP:AP:CR0_WP_EM_TS:00000000000000000007",
+                               ) if profile.startswith(("native-smp-m3", "native-smp-m4"))),
                              *(("M3:SMP:SCHEDULER:PASS",)
                                if profile in (
                                    "native-smp-m3",
                                    "native-smp-m3-exit",
                                    "native-smp-m3-tlb-reuse",
+                                   "native-smp-m3-lock-contention",
+                                   "native-smp-m3-x87",
                                    "native-smp-m4",
                                    "native-smp-m4-lifecycle",
                                    "native-smp-m4-revoke",
                                ) else ()),
+                             *(("M3:FAULT:X87:PASS",)
+                               if profile == "native-smp-m3-x87" else ()),
+                             *(("M3:SMP:FAULT_INJECTION:UNEXPECTED_UD",
+                                "M3:FAIL:UNEXPECTED_USER_EVENT")
+                               if profile == "native-smp-m3-unexpected-ud" else ()),
                              *(("M4:EXCHANGE:PASS", "M4:SURVIVOR_PROGRESS:PASS",
                                 "M4:CLEANUP:PASS", "M4:PASS", "M1:PASS")
                                if profile == "native-smp-m4" else ()),
@@ -617,7 +746,7 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
         "stdout": stdout,
         "stderr": stderr,
         "passed": False,
-        "kernel_feature": profile,
+        "kernel_feature": expected_kernel_feature,
     }
     try:
         report["evidence"] = {
@@ -635,6 +764,12 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
                 cpus, stdout, raw_exit, timed_out
             ),
             "native-smp-m3-lock-contention": lambda: evaluate_m3_lock_contention_smp(
+                cpus, stdout, raw_exit, timed_out
+            ),
+            "native-smp-m3-x87": lambda: evaluate_m3_x87(
+                cpus, stdout, raw_exit, timed_out
+            ),
+            "native-smp-m3-unexpected-ud": lambda: evaluate_m3_unexpected_ud(
                 cpus, stdout, raw_exit, timed_out
             ),
             "native-smp-m3": lambda: evaluate_m3(cpus, stdout, raw_exit, timed_out),

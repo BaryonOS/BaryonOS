@@ -5,6 +5,22 @@ use super::smp::BootstrapData;
 const GUARD_SIZE: usize = 4096;
 const STACK_SIZE: usize = 16 * 1024;
 const MAX_CPUS: usize = boot_protocol::smp::MAX_CPUS;
+const AP_CR0_SET: u32 = if cfg!(feature = "fpu-context") {
+    (1 << 31) | (1 << 16) | (1 << 5) | (1 << 1)
+} else {
+    (1 << 31) | (1 << 16) | (1 << 1) | (1 << 2) | (1 << 3)
+};
+const AP_CR0_CLEAR: u32 = if cfg!(feature = "fpu-context") {
+    (1 << 2) | (1 << 3)
+} else {
+    0
+};
+const AP_CR0_PROTECTION_MASK: u32 = (1 << 16) | (1 << 2) | (1 << 3);
+const AP_CR0_PROTECTION_EXPECTED: u32 = if cfg!(feature = "fpu-context") {
+    1 << 16
+} else {
+    (1 << 16) | (1 << 2) | (1 << 3)
+};
 
 #[repr(C, align(4096))]
 struct Stack {
@@ -235,7 +251,8 @@ __ap_trampoline_boot_data_operand:
     or eax, 0x900
     wrmsr
     mov eax, cr0
-    or eax, 0x80000000
+    and eax, {ap_cr0_clear}
+    or eax, {ap_cr0_set}
     mov cr0, eax
 .global __ap_trampoline_lm_far
 __ap_trampoline_lm_far:
@@ -250,6 +267,10 @@ __ap_trampoline_lm_far:
 .code64
 .global __ap_trampoline_lm
 __ap_trampoline_lm:
+    mov eax, cr0
+    and eax, {ap_cr0_protection_mask}
+    cmp eax, {ap_cr0_protection_expected}
+    jne 6f
     mov ax, 0x10
     mov ds, ax
     mov es, ax
@@ -262,6 +283,10 @@ __ap_trampoline_lm:
     cli
     hlt
     jmp 5b
+6:
+    cli
+    hlt
+    jmp 6b
 
 .align 8
 .global __ap_trampoline_gdt
@@ -288,4 +313,8 @@ __ap_trampoline_end:
     apic_ids_offset = const core::mem::offset_of!(BootstrapData, apic_ids),
     stack_tops_offset = const core::mem::offset_of!(BootstrapData, stack_tops),
     cr3_offset = const core::mem::offset_of!(BootstrapData, cr3),
+    ap_cr0_clear = const !AP_CR0_CLEAR,
+    ap_cr0_set = const AP_CR0_SET,
+    ap_cr0_protection_mask = const AP_CR0_PROTECTION_MASK,
+    ap_cr0_protection_expected = const AP_CR0_PROTECTION_EXPECTED,
 );

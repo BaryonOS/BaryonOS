@@ -1315,6 +1315,16 @@ impl State {
             if cpu != (if slot == 0 { 1 } else { 0 }) {
                 continue;
             }
+            #[cfg(all(feature = "native-smp-m3", feature = "test-m3-x87"))]
+            {
+                let bootstrap = super::smp::bootstrap_index();
+                let fault_cpu = (0..super::ap::cpu_count())
+                    .find(|candidate| *candidate != bootstrap)
+                    .expect("two-CPU x87 profile has an AP");
+                if cpu != (if slot == 0 { fault_cpu } else { bootstrap }) {
+                    continue;
+                }
+            }
             let valid = {
                 let process = &self.processes[slot];
                 let context = &process.context;
@@ -1576,6 +1586,10 @@ impl State {
     fn complete_round(&mut self) -> ! {
         #[cfg(feature = "native-smp-m3")]
         {
+            if self.unexpected {
+                serial::write(b"M3:FAIL:UNEXPECTED_USER_EVENT\n");
+                serial::exit(0x11);
+            }
             for cpu in 0..super::ap::cpu_count() {
                 if self.cpu_selections[cpu] == 0 {
                     serial::write(b"M3:SMP:CPU_WITHOUT_PROCESS\n");
@@ -1854,9 +1868,13 @@ impl State {
                         && (record.vector != 14 || record.cr2 == e.2)
                         && (!(mode() == 6 || mode() == 7) || record.rip == e.2)
                 });
-            self.unexpected |= !valid;
-            if valid {
+            let inject_unexpected = cfg!(feature = "native-smp-m3") && mode() == 14;
+            self.unexpected |= !valid || inject_unexpected;
+            if valid && !inject_unexpected {
                 serial::write(fault_marker());
+            }
+            if inject_unexpected {
+                serial::write(b"M3:SMP:FAULT_INJECTION:UNEXPECTED_UD\n");
             }
             self.observer_survivor(slot);
         }
@@ -1879,6 +1897,15 @@ impl State {
 
 #[cfg(feature = "native-smp-m3")]
 pub(super) fn start_ap(index: usize) -> ! {
+    let protection = arch::protection_status();
+    let expected_protection = if cfg!(feature = "fpu-context") { 1 } else { 7 };
+    if protection != expected_protection {
+        serial::fail(b"M3:SMP:AP_PROTECTION");
+    }
+    let _guard = M3Guard::acquire();
+    print_number(b"M3:SMP:AP:PROTECTION_CPU:", index as u64);
+    print_number(b"M3:SMP:AP:CR0_WP_EM_TS:", u64::from(protection));
+    drop(_guard);
     arch::set_cpu_local(index, super::ap::stack_top(index), false);
     super::smp::mark_m3_ready(index);
     m3_cpu_idle()
@@ -2227,6 +2254,8 @@ fn m3_event_locked(state: &mut State, source: *const u64) -> *const u64 {
             cr2,
         };
         let counter = read_word(state.processes[current].physical(DATA + 8));
+        #[cfg(all(feature = "native-smp-m3", feature = "test-m3-x87"))]
+        print_number(b"M3:SMP:FAULT_CPU:", cpu as u64);
         state.observer_fault(current, &context, counter);
         state.fault = true;
         terminate = true;
