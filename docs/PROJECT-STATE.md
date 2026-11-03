@@ -19,6 +19,22 @@ Score **41 -> 41**. Eerst publiceren/reply+resolve, daarna verse CI/review;
 technisch groene checks op783 vervangen geen review van deze followup.
 Integrator blijft deze sessie;136-reconcile41034178 wacht lokale opname.
 
+## Historisch checkpoint PR144 — changelog — 3 november 2026
+
+Overgenomen van `a974fb9f731847a8b4dc55f1e080ced945a58e63`, basis
+`380111b68688c981eec6abb8fab29174a29f5601`, branch
+`simonvanieperen-shiny-waddle`. `CHANGELOG.md` vat de14 commits in het vaste
+bereik `ad2b981fe1f2bcccb03cb776b2281d32529d2f00..380111b68688c981eec6abb8fab29174a29f5601`
+samen, niet een veranderlijk bereik "sinds main". Documentatie-only,
+geen OS-tests of nieuwe productacceptatie; score41 ->41.
+
+Het oorspronkelijke checkpoint signaleerde dat de HEAD-tekst30 CI-controles
+meldde terwijl `pr127-review-integration.json` exacte-head/native bewijs nog
+open liet. Dat is een historische provenancewaarschuwing, geen actuele
+afwijzing van later brongebonden postmergebewijs. De changelogtaak heeft
+die tests niet herhaald. Fysieke hardware, menselijke audit en volledige
+testrelease bleven open; eerstvolgend was brongebonden CI-resultaten vastleggen.
+
 ## Historisch checkpoint — eerste PR114-reviewfixintegratie
 
 Bron `d7d1fdc0356be47c225d7bd216075c4a62030ad4`: researchfix
