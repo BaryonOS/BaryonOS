@@ -4,8 +4,9 @@
 //! xHCI PCI discovery and read-only controller-MMIO capability inspection.
 //!
 //! PCI BAR sizing temporarily writes configuration BARs and attempts to restore
-//! their original values. PCI-core failures, including `PciBarError::Restore`,
-//! map to `Error::InvalidBar` here. After a successful command disable write,
+//! their original values. BAR-probe failures, including `PciBarError::Restore`,
+//! map to `Error::InvalidBar` here; scan, bind, and BAR-register read failures
+//! map to `Error::Pci`. After a successful command disable write,
 //! PCI decoding and bus mastering remain disabled; an earlier command read or
 //! write failure may leave the previous command state in place.
 //!
