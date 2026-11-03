@@ -29,8 +29,9 @@ rollbackreceipt](verification/keyring-recovery-authority-20261103/native-build-a
 
 Op basiscommit `72dfdca5` is de wachtwoordinvoergrens aangescherpt: ongeldige
 UTF-8 komt niet bij de toekomstige broker en wordt gewist. De gerichte
-sessiesuite (11 tests), formattering en Clippy slagen; de volledige UI-suite en
-native auth zijn nog niet uitgevoerd. Dit is geen volledige auth-/sessiepoort.
+sessiesuite (11 tests) en daarna de volledige `ui/native/verify.py`-poort
+(60 hosttests, Clippy/fmt en scalar no_std-build) slagen; de verifier meldt
+expliciet geen native uitvoering. Dit is geen volledige auth-/sessiepoort.
 **39% blijft 39%**. [Sessiereceipt](verification/session-password-utf8-20261103.json).
 
 ## Betekenis van het percentage

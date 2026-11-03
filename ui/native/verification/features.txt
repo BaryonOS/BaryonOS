@@ -1,33 +1,33 @@
-command: ["/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo", "+1.90.0", "tree", "--offline", "--locked", "--manifest-path", "ui/native/Cargo.toml", "-e", "features"]
+command: ["/home/simon/.cargo/bin/cargo", "+1.90.0", "tree", "--offline", "--locked", "--manifest-path", "ui/native/Cargo.toml", "-e", "features"]
 exit: 0
 
 stdout:
-nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os/ui/native)
+nieuw-os-materiaal v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-animated-garbanzo/ui/native)
 ├── zeroize v1.9.1
 ├── nieuw-os-catalog-client feature "default"
-│   └── nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os/sdk/catalog-client)
+│   └── nieuw-os-catalog-client v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-animated-garbanzo/sdk/catalog-client)
 │       ├── catalog-core feature "default"
-│       │   └── catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+│       │   └── catalog-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-animated-garbanzo/services/catalog)
 │       └── nieuw-os-sdk-runtime feature "default"
-│           └── nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+│           └── nieuw-os-sdk-runtime v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-animated-garbanzo/sdk/runtime)
 │               └── zeroize v1.9.1
 ├── nieuw-os-sdk-runtime feature "default" (*)
 ├── nieuw-os-document-session feature "default"
-│   └── nieuw-os-document-session v0.1.0 (/workspace/nieuw-os/sdk/document-session)
+│   └── nieuw-os-document-session v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-animated-garbanzo/sdk/document-session)
 │       ├── nieuw-os-catalog-client feature "default" (*)
 │       ├── catalog-core feature "default" (*)
 │       ├── nieuw-os-sdk-runtime feature "default" (*)
 │       └── volume-core feature "default"
-│           └── volume-core v0.1.0 (/workspace/nieuw-os/services/volume)
+│           └── volume-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-animated-garbanzo/services/volume)
 │               └── catalog-core feature "default" (*)
 ├── volume-core feature "default" (*)
 ├── nieuw-os-graphics feature "default"
-│   └── nieuw-os-graphics v0.1.0 (/workspace/nieuw-os/ui/graphics)
+│   └── nieuw-os-graphics v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-animated-garbanzo/ui/graphics)
 ├── nieuw-os-input-core feature "default"
-│   └── nieuw-os-input-core v0.1.0 (/workspace/nieuw-os/services/input-core)
+│   └── nieuw-os-input-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-animated-garbanzo/services/input-core)
 │       ├── nieuw-os-sdk-runtime feature "default" (*)
 │       └── ui-core feature "default"
-│           └── ui-core v0.1.0 (/workspace/nieuw-os/crates/ui-core)
+│           └── ui-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-animated-garbanzo/crates/ui-core)
 ├── ui-core feature "default" (*)
 ├── noto-sans-mono-bitmap feature "regular"
 │   └── noto-sans-mono-bitmap v0.3.2
@@ -43,6 +43,6 @@ nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os/ui/native)
     └── noto-sans-mono-bitmap v0.3.2
 [dev-dependencies]
 └── capability-core feature "default"
-    └── capability-core v0.1.0 (/workspace/nieuw-os/crates/capability-core)
+    └── capability-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-animated-garbanzo/crates/capability-core)
 
 stderr:

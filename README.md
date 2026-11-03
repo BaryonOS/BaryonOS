@@ -64,7 +64,7 @@ alleen een nette desktop haalt die eindgrens niet.
 **Bron:** [`75495efc`](https://github.com/simonvanieperen/nieuw-os/commit/75495efc37f1753d652f52e55f4670ebdb564c22) ·
 **Ontwikkelbranch:** `simonvanieperen-animated-garbanzo`.
 Deze opdracht: **39% → 39% (+0 procentpunt)**. **Opdracht:** Sessiewachtwoord: ongeldige UTF-8 blokkeren voor de auth-broker.
-39% → 39%: de sessieflow valideert wachtwoord-UTF-8 vóór AuthBroker::begin en wist ongeldige buffers. 11 gerichte hosttests, fmt en Clippy slagen. Dit herstelt een invoergrens maar implementeert geen echte authenticator, persistente account of key unlock; FR-S01/S02 blijven open en er worden geen punten toegekend. Volledige native UI-suite nog niet uitgevoerd.
+39% → 39%: de sessieflow valideert wachtwoord-UTF-8 vóór AuthBroker::begin en wist ongeldige buffers. De gerichte suite (11 tests) en volledige ui/native-poort (60 hosttests, Clippy, fmt, scalar no_std-build en scan van 11 archives) slagen. Native uitvoering, echte authenticator, persistent account en key unlock ontbreken; FR-S01/S02 blijven open en er worden geen punten toegekend.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

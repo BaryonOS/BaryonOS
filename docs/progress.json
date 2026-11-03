@@ -7,7 +7,7 @@
     "branch": "simonvanieperen-animated-garbanzo",
     "task": "Sessiewachtwoord: ongeldige UTF-8 blokkeren voor de auth-broker",
     "previous_score": 39,
-    "summary": "39% → 39%: de sessieflow valideert wachtwoord-UTF-8 vóór AuthBroker::begin en wist ongeldige buffers. 11 gerichte hosttests, fmt en Clippy slagen. Dit herstelt een invoergrens maar implementeert geen echte authenticator, persistente account of key unlock; FR-S01/S02 blijven open en er worden geen punten toegekend. Volledige native UI-suite nog niet uitgevoerd."
+    "summary": "39% → 39%: de sessieflow valideert wachtwoord-UTF-8 vóór AuthBroker::begin en wist ongeldige buffers. De gerichte suite (11 tests) en volledige ui/native-poort (60 hosttests, Clippy, fmt, scalar no_std-build en scan van 11 archives) slagen. Native uitvoering, echte authenticator, persistent account en key unlock ontbreken; FR-S01/S02 blijven open en er worden geen punten toegekend."
   },
   "tracks": [
     {

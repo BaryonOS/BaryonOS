@@ -17,7 +17,12 @@ blijft fail-closed; dit voegt geen accountauthenticatie toe.
 ui/native/Cargo.toml --test session --offline -- -D warnings` en
 `git diff --check`: exit 0. Logs en hashes staan in
 [session-password-utf8-20261103.json](verification/session-password-utf8-20261103.json).
-Volledige UI-suite en native login zijn nog niet uitgevoerd.
+Daarna slaagde `PATH=/home/simon/.cargo/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH
+CC=/tmp/nieuw-os-c-toolchain/bin/cc python3 -B ui/native/verify.py` op exacte
+codecommit `59b67cb8`: 60 hosttests, Clippy, fmt, locked feature graph,
+scalar `x86_64-unknown-none`-releasebuild en scan van 11 archives; exit 0.
+Het script rapporteert `native_execution=false`. QEMU-login, echte
+accountauthenticatie en persistente sleutelvrijgave zijn niet uitgevoerd.
 
 **Score:** **39 → 39/100**; dit grensherstel voldoet niet zelfstandig aan
 FR-S01/S02. B01 blijft open tot native/QEMU-verificatie van de beheer- en
@@ -25,10 +30,14 @@ app-ingress; QEMU/OVMF ontbreken. B02-koude rollback en write-ahead blijven
 vereist voor echte gebruikerssleutels en duurzame profielen. Driverframework
 en system-maturitysporen zijn niet gewijzigd.
 
-**Eerstvolgend:** voer na deze checkpointcommit de volledige `ui/native`-
-hostsuite en relevante native build uit; daarna kies een volgende onafhankelijke
-productintegratie die geen ontbrekende identity/key/persistenceauthority
-simuleert. De algemene OS-/releaseacceptatie blijft open.
+**Eerstvolgend:** de eerstvolgende productcodepoort is een echte vertrouwde
+AuthBroker/accountdienst plus key unlock en duurzame profielstatus. Zij kan
+niet veilig op de huidige preview aansluiten zonder geversioneerde Argon2id-
+parameters/resourcebudget, capability-gebonden dienst-IPC en B02 write-ahead/
+rollbackauthority. De parameters hangen af van de afgescheiden
+system-maturity resourceprofielen; definieer geen lokale vervangende policy.
+Werk ondertussen aan geen parallelle driver-/maturityimplementatie. De
+algemene OS-/releaseacceptatie blijft open.
 
 ## Historisch checkpoint — PR149 compacte kaartregressies hersteld — 3 november2026
 
