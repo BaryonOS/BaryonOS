@@ -51,6 +51,7 @@
   "limitations": [
     "No ACPI, device callbacks, storage flush, scheduler, session coordinator, or concrete power consumer is integrated.",
     "Host state-machine tests do not establish suspend/resume reliability, physical hardware support, or power-failure safety.",
-    "This is a PARTIAL contract primitive, not a native power-management feature."
+    "This is a PARTIAL contract primitive, not a native power-management feature.",
+    "The referenced logs are under /tmp, are not part of the repository, and cannot be independently checked by reviewers."
   ]
 }
