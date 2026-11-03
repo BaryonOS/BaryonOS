@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-03",
+  "parents": [
+    "d1f1f60b682daf31bc43c2c78833e066405e5922",
+    "e853a017ac4a4228d97a0e6ef3d22024753c1f55"
+  ],
+  "included_main": "99d132768fd72276caa4a3b3e9a09f8f1909f0ed",
+  "conflicts": [
+    "README.md",
+    "docs/PROGRESS.md",
+    "docs/PROJECT-STATE.md",
+    "docs/progress.json"
+  ],
+  "original_snapshots": 20,
+  "additional_exact_parent_snapshots": 8,
+  "original_register_retained": true,
+  "checks": {
+    "all28_snapshots_byte_matched_to_git_sources": 0,
+    "all_core_code_and_workflows_exact_Watch_parent": 0,
+    "artifact_store_manifest_lock_config_and_sources_exact_clean372_rerun": 0,
+    "single_handoff_and_no_conflict_markers": 0,
+    "progress_write": 0,
+    "progress_check": 0
+  },
+  "primary_rerun_receipt": "pr141-372-cargo-rerun.json",
+  "historical_prefix_receipt": "pr141-status-history-9f2e6e2b.json",
+  "watch_extra_host_claims": {
+    "source": "e853a017",
+    "independently_verified": false,
+    "primary_source_receipts_available": false,
+    "not_promoted_to_current_merge": true
+  },
+  "source_pr_status_receipt": "pr141-source-pr-status.json",
+  "boundary": "Only metadata merge; original Rust test is unbound, new9-test rerun is source372. No new native/fullCI/cloudruntime/physical/humanacceptance.",
+  "progress_previous": 41,
+  "progress_current": 41
+}

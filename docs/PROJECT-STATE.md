@@ -1,5 +1,33 @@
 # Actuele projectstatus
 
+## NEXT AGENT HANDOFF — PR150 integreert main 5c66ec5 — 3 november 2026
+
+PR-head `742d4b3b7c3398e3ef2f68f463da848ece26d713` is inhoudsbehoudend
+geïntegreerd met actuele main `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`.
+De overlapconflicten in `retained-document-heads-20261103.json` zijn opgelost
+door alle vier unieke PR141/131/132-snapshots en beide PR150/139-snapshots
+te behouden; gedeelde bronregisters zijn identiek. Main's prototype-
+prestatiebewijs en UI-toepassingen blijven daarnaast behouden.
+
+**Bewijsgrens:** PR149 hosttests gelden alleen voor receiptbron `bb8877e3`;
+PR150-faalreceipts blijven aan hun vermelde bron/runs gebonden. De actuele
+integratie voegt geen native OS-acceptatie toe. UI-tests en formattering/
+Clippy zijn op de samengevoegde boom uitgevoerd:
+`cargo +1.90.0 test --offline --locked --manifest-path ui/native/Cargo.toml`
+(59 tests), `cargo +1.90.0 fmt --manifest-path ui/native/Cargo.toml --all
+-- --check`, `cargo +1.90.0 clippy --locked --manifest-path
+ui/native/Cargo.toml --all-targets -- -D warnings` en
+`node --test ui/prototype/tests/state.test.mjs
+ui/prototype/tests/render-performance.test.mjs` (26 tests): alle eindpogingen
+exit 0. De eerste offline test- en Clippy-pogingen misten `zeroize`; de locked
+fetch herstelde dit. Eerste parallelle fmt/Clippy-pogingen raakten eveneens
+de Rustup-toolchaininstallatie; daarna slaagden afzonderlijke reruns.
+`python3 tools/progress.py --write` slaagde. Voortgang blijft **41 → 41/100**.
+**Open:** na publicatie moeten de nieuwe-head-checks evalueren; reviewwerk is
+niet onderdeel van deze conflicttick.
+
+## Historisch checkpoint — PR149 derde main-integratie — 3 november 2026
+
 ## NEXT AGENT HANDOFF — PR149 derde main-integratie — 3 november 2026
 
 **Basis:** Watch-merge `bb8877e3e1aaec304d7478510b65c8116aeb634e`, met

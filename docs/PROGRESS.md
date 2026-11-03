@@ -10,6 +10,13 @@ onjuiste opslagoorzaak.59 volledige hosttests, Clippy, formattering en
 scalarno_std-librarybuild slagen. Geen nieuwe native gast-/screenshot- of
 menselijke acceptatie. [Volledig bewijs](verification/pr149-compact-review.json).
 
+PR150-mainintegratie (3 november 2026), PR-head `742d4b3b` met main
+`5c66ec57`: **41 → 41**. De conflicterende historische retentiesnapshots
+van PR150 en PR141/131/132 zijn gecombineerd; specialistprofielen,
+PR149's UI-werk en bewijs blijven behouden. De gebruikte testresultaten
+blijven strikt gekoppeld aan hun oorspronkelijke bronnen; geen nieuwe
+native OS-acceptatie of rubricpunten.
+
 ## Betekenis van het percentage
 
 De README toont **behaalde acceptatiepunten / 100**. De gewichten zijn een

@@ -52,7 +52,9 @@ function appendRevision(state, object, version) {
 
 export function reducer(previous, event) {
   if (event.type === 'openObject' && previous.selectedObjectId === event.id) return previous;
-  const state = structuredClone(previous);
+  const state = event.type === 'updateDraft'
+    ? { ...previous, draft: previous.draft ? { ...previous.draft } : null }
+    : structuredClone(previous);
   state.message = null;
   switch (event.type) {
     case 'onboardingStep': state.onboarding.step = Math.max(1, Math.min(3, event.step)); break;
@@ -293,4 +295,3 @@ export function resumeState(serialized) {
     return state;
   } catch { return createFixtureState(); }
 }
-
