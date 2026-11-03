@@ -1,6 +1,34 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR131: zesde main-conflictoplossing — 3 november 2026
+## NEXT AGENT HANDOFF — PR131: zevende main-conflictoplossing — 3 november 2026
+
+**Bronnen en scope:** head `4b6238e3f6eb0a2e888e9af20d1bc0135708acf6`
+op `codex/os-research-phases-2-4-20261102` gecombineerd met main
+`d686bd54e766aed542e9918d1a37dcce434f18e2`. Vier centrale
+status-/assessmentconflicten; beide geschiedenissen, volume-admissiecode,
+tests en receipts blijven behouden. Buiten vier statusbestanden is de boom
+exact main; de rubric blijft gelijk. **41/100 → 41/100**.
+
+**Mandaat en bewijsgrens:** alleen conflictoplossing; geen PR-merge of
+reviewafhandeling. De open PR148-integratiereview wordt niet gesloten en haar
+historische metadata blijft expliciet behouden. Vóór de mergecommit uitgevoerd,
+alle exit 0:
+- `python3 tools/progress.py --write`.
+- `python3 tools/progress.py --check`; `/tmp/pr131-r7-progress.log`.
+- `git diff --exit-code origin/main -- . ':!README.md' ':!docs/PROJECT-STATE.md' ':!docs/PROGRESS.md' ':!docs/progress.json'`:
+  alle overige bestanden exact main.
+- `git diff --check origin/main`; `/tmp/pr131-r7-diff.log`.
+- `git diff --cached --check`; `/tmp/pr131-r7-staged.log`.
+
+Geen nieuwe Rust-/QEMU- of volume-hosttests voor deze documentatieresolutie;
+historische tests worden niet als nieuwe uitvoering gepresenteerd.
+Tijdelijke logs blijven buiten Git.
+
+**Open/eerstvolgend:** reviewverzoeken blijven buiten deze autorisatie open;
+nieuwe-head controles en mergeability afzonderlijk laten beoordelen.
+Eerstvolgende lokale controle: `python3 tools/progress.py --check`.
+
+## Historisch checkpoint PR131 — zesde main-conflictoplossing — 3 november 2026
 
 **Bronnen en scope:** head `c39f8abd9664b317f1989fc326c0b1608b9644ec`
 op `codex/os-research-phases-2-4-20261102` gecombineerd met main
@@ -193,6 +221,49 @@ beoordelen; oude testresultaten gelden niet als nieuwe uitvoering. Eerste
 lokale controle: `python3 tools/progress.py --check`. De bestaande release-,
 installer-, authenticatie- en toegankelijkheidsgates blijven open.
 
+## Historisch checkpoint — PR148 met main 8e0c15d — 3 november 2026
+
+**Basis:** PR148 `47ec535f15bb10912dbc6cbf1af3de9df0c6c226` met main
+`8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2`, branch
+`simonvanieperen-upgraded-disco`; schone werkboom bij aanvang.
+Drie centrale documentconflicten behouden beide checkpointreeksen en de
+brongebonden receipts. Gedeelde harnashulpfuncties komen exact uit main;
+volume-admissie blijft uit PR148. Geen handmatige codewijziging.
+**41 → 41/100**, geen criterium of gewicht gewijzigd.
+
+**Uitgevoerd op de opgeloste boom (alle eindcommando's exit 0):**
+- `python3 -B -m unittest discover -s tests -p 'test_common.py'`: 8 tests.
+- `python3 -B -m unittest discover -s tools/tests -p 'test_random.py'`: 21 tests.
+- `python3 -B -m unittest discover -s tools/tests -p 'test_images.py'`: 20 tests.
+- `python3 -B tools/test_fpu.py`: 12 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_volume_*.py'`: 26 tests.
+- `python3 tools/progress.py --write` en `python3 tools/progress.py --check`.
+- `git diff --check`; vergelijking met beide parents bevestigt exact behoud
+  van de gewijzigde harnassen uit main en de volume-implementatie uit PR148.
+
+De eerste discoverypogingen voor random/images/fpu onder `tests` vonden
+geen tests (elk exit 5); daarna zijn de werkelijke bovenstaande entrypoints
+uitgevoerd. Verwachte foutmeldingen in negatieve harnastests zijn geen
+native uitvoering. Uitvoer staat in het sessietranscript, zonder afzonderlijke
+logbestanden. Rust-builds en QEMU niet herhaald; geen native acceptatie.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:69f0ce3ef4e7240e6d8b1e44a29d90b2c36c7dcd2008b6a678a3f075e30514e8 -->
+
+**PR148-integratiereview: open.** De assessmentbasis is PR148 `47ec535f`;
+de tweede mergeouder is main `8e0c15d8` en de resulterende merge is `7412d0bb`.
+De hierboven gemelde gerichte controles hebben alleen uitvoer in het
+sessietranscript; een afzonderlijk brongebonden integratiereviewbewijs ontbreekt
+in de checkout. De PR148-hostreceipts hieronder betreffen eerdere werkbomen en
+bewijzen deze integratiereview niet. De `reviewed_commit`-verwijzing naar
+`cc1dea7` in `docs/progress.json` is een historische review van de eerdere
+verduidelijking van documentatiestatus en hostbewijs.
+
+**Eerstvolgend:** nieuwe-head CI en review beoordelen en passend reviewbewijs
+vastleggen. Native volume-acceptatie blijft afzonderlijk open.
+
+<!-- /coderabbit-ai-generated:v1 -->
+
 ## Historisch checkpoint — PR142 main-integratie — 3 november 2026
 
 **Basis vóór integratie:** PR-head `37ad1e98328e59b752c230310a4abeaca749b669`;
@@ -239,6 +310,41 @@ uitsluitend documentatie betreffende integratie.
 **Open/eerstvolgend:** na publicatie nieuwe-head-controles laten evalueren.
 Alleen bewijs-/statuscorrecties; geen oude CI-retry of nieuwe runtimecode.
 Native/QEMU-, fysieke en menselijke acceptatie blijven afzonderlijk open.
+
+## Historisch checkpoint — PR148 slot1-admissie opvolging — 3 november 2026
+
+**Basis:** PR148-head `c6b25873c915a98f8c0b2bb7400395e01ba44741`, branch
+`simonvanieperen-upgraded-disco`, met slot1-admissiefix, marker-crashgrens
+en host-suitebewijs al aanwezig. Score en rubric blijven **41 → 41/100**.
+
+**Status en classificatie (actueel):**
+- Vereiste checks (`host-quality`, `qemu-smoke`) zijn groen.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:d8b787176e01e7132a22480ebc41537196905df76f55d8e674355a4700a5bc60 -->
+
+- `native-foundation` faalde volgens de handoff in run `41640409938` met
+  `system marker sequence mismatch`/`RANDOM guest report ... not bound`.
+  De oorzaak is **onbekend**: de primaire workflowbron, de exacte gefaalde
+  stap en het resultaat van de gestarte rerun (`gh run rerun --failed 41640409938`)
+  ontbreken. De gate blijft open.
+
+<!-- /coderabbit-ai-generated:v1 -->
+- Open CodeRabbit-threads betreffen vooral documentatiestatus en bronlabels;
+  productiegedrag voor slot1-admissie is al gecorrigeerd en hostmatig bewezen.
+
+**Primaire bronnen (code + bewijs):**
+- Recovery/admissie: `services/volume/src/table.rs` op commit `c6b25873`.
+- Onafhankelijk orakel: `tools/volume_disk.py` op commit `c6b25873`.
+- Bewijs: `docs/verification/pr148-slot1-review.json`,
+  `docs/verification/pr148-marker-crash-review.json`,
+  `docs/verification/pr148-volume-core-host-suite.json`.
+- Repositorybron: https://github.com/simonvanieperen/nieuw-os/tree/c6b25873c915a98f8c0b2bb7400395e01ba44741
+
+**Open/eerstvolgend:** rond PR148 de resterende documentatie-threads sluiten,
+uitkomst van de `native-foundation` rerun verwerken en daarna opnieuw
+merge-preflight op exact head/base/checks/reviewthreads draaien.
+Native metadata-only fixture en native QEMU-volume-admissie blijven apart open.
 
 ## Historisch checkpoint — PR149 compacte kaartregressies hersteld — 3 november2026
 

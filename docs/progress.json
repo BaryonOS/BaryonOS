@@ -3,11 +3,22 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2",
+    "source_commit": "d686bd54e766aed542e9918d1a37dcce434f18e2",
     "branch": "codex/os-research-phases-2-4-20261102",
-    "task": "PR131: zesde conflictoplossing met behoud van actuele prototype-, runner- en bewijsinhoud",
+    "task": "PR131: zevende conflictoplossing met behoud van volume-admissie en open reviewgrenzen",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Headc39f8abd gecombineerd met main8e0c15d8; drie metadata-conflicten opgelost met behoud van beide geschiedenissen, prototype-/runnercode, tests en alle receipts. Buiten README, PROJECT-STATE, PROGRESS en progress.json is de boom exact main; criteria/evidence blijven gelijk. Geen nieuwe Rust-, Node-, native-, fysieke-, menselijke of releaseacceptatie. Historische testclaims blijven aan hun oorspronkelijke bronnen gebonden. Reviewverzoeken blijven buiten deze conflictoplossingsautorisatie open; nieuwe-head controles en mergeability worden afzonderlijk beoordeeld."
+    "summary": "41/100 blijft 41/100. Head4b6238e3 gecombineerd met maind686bd54; vier centrale metadata-conflicten opgelost met behoud van beide geschiedenissen, volume-admissiecode, tests en receipts. Buiten README, PROJECT-STATE, PROGRESS en progress.json is de boom exact main; criteria/evidence blijven gelijk. Geen nieuwe Rust-, volume-host-, native-, fysieke-, menselijke of releaseacceptatie. Historische testclaims en de open PR148-integratiereview blijven aan hun oorspronkelijke bronnen gebonden. Reviewverzoeken vallen buiten deze autorisatie; nieuwe-head controles en mergeability worden afzonderlijk beoordeeld.",
+    "assessment_basis": "source_commit",
+    "reviewed_commit": "cc1dea7eeeae01448a378ee422837b0438ecc7b5",
+    "reviewed_commit_context": "Historische review van de PR148-documentatiestatus en reikwijdte van hostbewijs; geen integratiereview.",
+    "integration_review": {
+      "status": "open",
+      "source_commit": "47ec535f15bb10912dbc6cbf1af3de9df0c6c226",
+      "main_commit": "8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2",
+      "merge_commit": "7412d0bb4b8ef2d146fc5b942bec8d6f370470e5",
+      "evidence_basis": "Git-mergeouders en handoff in docs/PROJECT-STATE.md; gerichte integratietests zijn daar gemeld met uitvoer uitsluitend in het sessietranscript. De eerdere PR148-hostreceipts zijn geen integratiereviewbewijs.",
+      "missing_evidence": "Afzonderlijk, brongebonden bewijs van de integratiereview ontbreekt; nieuwe-head CI en review moeten nog worden beoordeeld."
+    }
   },
   "tracks": [
     {

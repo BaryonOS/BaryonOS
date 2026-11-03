@@ -91,6 +91,13 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR131-zevende-conflictoplossing (3 november 2026), head `4b6238e3` met
+main `d686bd54`: **41 → 41/100**. Vier centrale metadata-conflicten opgelost;
+beide geschiedenissen, volume-admissiecode/tests en receipts behouden.
+Buiten vier statusbestanden exact main; geen nieuw criterium of runtimebewijs.
+De historische PR148-integratiereview blijft open; reviewafhandeling is
+niet geautoriseerd voor deze ronde.
+
 PR131-zesde-conflictoplossing (3 november 2026), head `c39f8abd` met
 main `8e0c15d8`: **41 → 41/100**. Drie centrale metadata-conflicten opgelost;
 beide statusgeschiedenissen, nieuwe prototype-/runnertests en alle receipts
@@ -130,6 +137,24 @@ Beide documentatiegeschiedenissen en de main-bewijsverwijzingen blijven
 behouden. Alleen documentatieresolutie en metergeneratie; geen nieuw native,
 fysiek, menselijk of releasebewijs. Zie het historische PR131-checkpoint
 in PROJECT-STATE.md.
+
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:ab73c9e98b6e8e4f98c9394ee7fc9b7f34e8e2a2808b0067c5965ffb55c55446 -->
+
+PR148-integratie (3 november 2026), PR-bron `47ec535f` met main `8e0c15d8`,
+merge `7412d0bb`: **41 → 41**. De drie documentconflicten zijn opgelost met
+behoud van beide bewijsreeksen; gedeelde harnashulpfuncties komen uit main en
+volume-admissie uit PR148. Geen nieuw criterium of native acceptatie.
+
+De integratiereview staat **open**: de handoff meldt gerichte controles met
+uitvoer alleen in het sessietranscript; afzonderlijk brongebonden bewijs van
+de review ontbreekt in de checkout. De eerdere PR148-hostreceipts zijn geen
+bewijs voor deze integratiereview. De `reviewed_commit` `cc1dea7` in
+`progress.json` hoort bij de historische documentatiereview; nieuwe-head CI en
+review moeten nog worden beoordeeld. Zie [de handoff](PROJECT-STATE.md).
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 PR149 bronbewijsvervolg (3 november 2026), schone bron `bb8877e3`:
 59 hosttests echt opnieuw exit0 met cwd/HEAD/status/lock-/Rust-hashes vóór/na

@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`8e0c15d8`](https://github.com/simonvanieperen/nieuw-os/commit/8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2) ·
+**Bron:** [`d686bd54`](https://github.com/simonvanieperen/nieuw-os/commit/d686bd54e766aed542e9918d1a37dcce434f18e2) ·
 **Ontwikkelbranch:** `codex/os-research-phases-2-4-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR131: zesde conflictoplossing met behoud van actuele prototype-, runner- en bewijsinhoud.
-41/100 blijft 41/100. Headc39f8abd gecombineerd met main8e0c15d8; drie metadata-conflicten opgelost met behoud van beide geschiedenissen, prototype-/runnercode, tests en alle receipts. Buiten README, PROJECT-STATE, PROGRESS en progress.json is de boom exact main; criteria/evidence blijven gelijk. Geen nieuwe Rust-, Node-, native-, fysieke-, menselijke of releaseacceptatie. Historische testclaims blijven aan hun oorspronkelijke bronnen gebonden. Reviewverzoeken blijven buiten deze conflictoplossingsautorisatie open; nieuwe-head controles en mergeability worden afzonderlijk beoordeeld.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR131: zevende conflictoplossing met behoud van volume-admissie en open reviewgrenzen.
+41/100 blijft 41/100. Head4b6238e3 gecombineerd met maind686bd54; vier centrale metadata-conflicten opgelost met behoud van beide geschiedenissen, volume-admissiecode, tests en receipts. Buiten README, PROJECT-STATE, PROGRESS en progress.json is de boom exact main; criteria/evidence blijven gelijk. Geen nieuwe Rust-, volume-host-, native-, fysieke-, menselijke of releaseacceptatie. Historische testclaims en de open PR148-integratiereview blijven aan hun oorspronkelijke bronnen gebonden. Reviewverzoeken vallen buiten deze autorisatie; nieuwe-head controles en mergeability worden afzonderlijk beoordeeld.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
