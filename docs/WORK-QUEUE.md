@@ -6,7 +6,31 @@ Bron: main `a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e`.
 General coordineert deze sprint op Simons expliciete opdracht. De oudere
 mandaten, scores en sessietabellen hieronder zijn historische context, niet
 een actuele claim van actieve uitvoering of toestemming voor nieuwe merges.
-Geen mainmerge, issue-/PR-sluiting of score-import uitgevoerd.
+Dit was de situatie bij de eerdere intake. Simon autoriseerde daarna
+expliciet veilige merges en superseded-sluitingen voor deze sprint.
+
+### Actuele uitvoering na mergemandaat
+
+Main na gecontroleerde squashmerge #138:
+`95d7945110ce853a1b5827ec59f6115475691805`. Alle volgende kandidaten worden
+tegen deze echte main herbeoordeeld; geen historische featurebranches ketenen.
+
+| PR | Uitvoering / grens |
+|---|---|
+| #138 | MERGED, commit95d79451; uitsluitend API-commentaar/historische docs, 33 checks geslaagd, drie threads opgelost. |
+| #156 | CLOSED/SUPERSEDED door treegelijke #159; oorspronkelijke restscope bewaard op platformarchiefbranch. |
+| #131 | CLOSED/HISTORISCH; alleen vier statusbestanden resteren, criteria exact main; volledige historie op archive/pr131-history-20261103. |
+| #137 | CLOSED/HISTORISCH; geen unieke runtimecode; oud plan-execution-receipt expliciet behouden op archive/pr137-history-20261103. |
+| #132 | CLOSED/SUPERSEDED; alle resterende scripts bytegelijk aan reeds geïntegreerde historische tekstsnapshots; geen onveilige oude uitvoerbare scripts heringevoerd. |
+| #159 | Zelfde vijf-file milestone op main95; 23+15 hosttests opnieuw groen op d269f9b4. Verse documentatiethread hersteld op cc4054d5, actuele checks/review vereist. |
+| #158 | Native18bewijs blijft brongebonden; verouderde checkpointstatus hersteld op04d727c3. Externe bot nam main95 op in ec889588; die delta en verse checks afzonderlijk beoordelen. |
+| #151 | Drie concrete auditdocbevindingen hersteld op0e4c51e2; main95 samen met auditdocs gepubliceerd als2a0cd010. Geen productwijziging of menselijke auditclaim. |
+| #155 | Main95 inhoudsbehoudend opgenomen; vier nieuwe bewijsdocumentatiepunten hersteld. Integratie heropent B01 expliciet: main41 wordt39, geen native positieve beheerrecovery. CI/review vereist vóór merge. |
+| #150/#154 | Extern nieuwe owner-/botheads ontvangen; geen oude-head-goedkeuring toepassen op nieuwe delta. |
+
+Overige PR's en vier gedeeltelijke acceptatie-epics blijven in de eerdere
+intaketabel hieronder brongebonden geclassificeerd; die tabel is geen
+actueel head- of mergeoverzicht. Geen branches verwijderd.
 
 Nieuwe code uitsluitend voor concrete review-, regressie-, compatibility-
 en integratieblockers. Een workstream wordt op main geintegreerd, niet op
@@ -40,7 +64,7 @@ toewijzen als die bestaat, anders `BLOCKED-BY:<owner/interface>` met een
 concrete hervatvoorwaarde vastleggen. Ownership is geen permanente stilstand.
 Dit heft de huidige featurefreeze niet op.
 
-### PR-triage op gepinde bronheads voor checkpointpublicatie
+### Historische PR-intake op gepinde bronheads voor checkpointpublicatie
 
 Snapshot: 3 november 2026; 17 oorspronkelijke PR's plus aangetroffen #159.
 READY-TO-MERGE hieronder is een technische classificatie, GEEN mergebesluit.

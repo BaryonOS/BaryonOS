@@ -1,5 +1,19 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+Integratiesprint na expliciet mergemandaat, 3 november 2026:
+main95d79451 **41 wordt 39/100** in de keyringintegratie. B01 is heropend
+omdat de oude native positieve herstelproef gewone appautoriteit gebruikte,
+die de securityfix terecht weigert. Manifest-bevoegde positieve hersteltests
+bestaan nog alleen op de host. Geen andere criterium-, gewichts- of
+eindscopewijziging en geen punten voor documentatie of PR-afhandeling.
+Deze terugval benoemt ontbrekend bewijs, niet een verzwakte Security Floor.
+
+PR138-integratie met main `d686bd54` op basis `fc3b5e25`: **41 → 41/100**.
+Alleen het statusconflict is handmatig opgelost; beide geschiedenissen en
+brongebonden receipts blijven behouden. Geen nieuw acceptatiecriterium,
+gewijzigd gewicht of nieuwe native acceptatie. Gerichte controles van de
+opgeloste boom staan in PROJECT-STATE.md; nieuwe-head CI blijft afzonderlijk.
+
 De actieve volledige releaseopdracht en productacceptatie staan in
 [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft
 de ontwikkelmeter; het vervangt de conjunctieve releaseacceptatie niet.
@@ -256,6 +270,14 @@ behouden, onveilige historische entrypoints afgeschermd en7 negatieve
 hosttests groen. Volledige engine-/native replay blijft open; geen
 backendadoptie, nieuw productcriterium of veiligheidspercentage.
 
+Geïntegreerde mainstand (3 november 2026), bron
+`380111b68688c981eec6abb8fab29174a29f5601`: **41% → 41%** voor deze
+documentatietaak; geen criterium of gewicht gewijzigd. De exacte commit heeft
+28/28 geslaagde GitHub-checkruns, waaronder de actuele native venstersessie en
+de gecontroleerde native netwerkdienst. De wijzigingen documenteren bestaand
+gedrag en voegen geen productbewijs of rubricpunten toe. Fysieke hardware,
+Windows-runtime, menselijke audit en volledige testrelease blijven open.
+
 PR114-metadataverwijzing (2 november 2026), bron `52e1909c`: **41 -> 41**.
 De contractverwijzing noemt nu de echte fixbron `68d427b`, niet haar ouder
 `c1d62d83`; het actuele assessment verwijst naar de volledige gecombineerde
@@ -283,6 +305,7 @@ Vóór het status-/metercheckpoint was de opgeloste boom bytegelijk aan main.
 slagen. Strikte preflight faalt wegens ontbrekende Rust-/native-/QEMU-/OVMF-tools;
 native uitvoering en Rust-format/lint zijn niet uitgevoerd. Nieuwe-head CI
 blijft vereist. Geen nieuw geaccepteerd criterium of productpunt.
+
 PR127-reviewintegratie (2 november 2026), basis `798706c` met `8f08db4`:
 branch **41 → 41**, main **34 → 34**. Zeven reviewpunten en gekoppelde
 font/damage-integratie hersteld; 189 Rust-app/UI-,9 netwerk- en31 Python-tests

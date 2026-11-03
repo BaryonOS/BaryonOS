@@ -16,8 +16,9 @@ Primaire implementatiebronnen (organisatie: Nieuw OS-project; versie
   `dispatch_domain` sluit herstel uit; `dispatch_management` behandelt de
   afzonderlijke beheeroperaties. De dispatcher zelf authenticeert geen caller.
 - [Native beheeradapter, `sdk/examples/keyring/src/service.rs`](https://github.com/simonvanieperen/nieuw-os/blob/da6e89a0/sdk/examples/keyring/src/service.rs#L232):
-  `admin_ingress`/`poll_admin` controleren manifestbinding, afzender en
-  capabilitydelegatie voordat beheerdispatch wordt aangeroepen.
+  `admin_ingress` controleert de manifestbinding. `poll_admin` weigert
+  berichten met capabilities en controleert daarna afzender, tag en header
+  voordat beheerdispatch wordt aangeroepen.
 - [Native resetfixture, `kernel/src/m2/m3/keyring.rs`](https://github.com/simonvanieperen/nieuw-os/blob/da6e89a0/kernel/src/m2/m3/keyring.rs#L529):
   `restart_fixture` reset en herinitialiseert het entropydevice, behoudt
   gepinde resources en controleert een nieuwe 32-byte transactie. Geen
