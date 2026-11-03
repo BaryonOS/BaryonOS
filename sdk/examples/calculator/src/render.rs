@@ -281,7 +281,12 @@ pub fn render_tile(
     } else if model.answer().is_some_and(|answer| answer.rounded) && model.current() {
         "Afgerond op 9 decimalen."
     } else {
-        ""
+        match (model.can_undo(), model.can_redo()) {
+            (true, true) => "Ctrl+Z: ongedaan | Ctrl+Y: opnieuw",
+            (true, false) => "Ctrl+Z: ongedaan",
+            (false, true) => "Ctrl+Y: opnieuw",
+            (false, false) => "",
+        }
     };
     let color = match model.notice() {
         Notice::ClipboardCopied => d::ACCENT,

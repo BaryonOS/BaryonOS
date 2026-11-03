@@ -114,6 +114,17 @@ def calculator_matches(raw: bytes, expected: bytes) -> bool:
     return ppm(expected)[:2] == CALCULATOR_BODY[2:] and crop(raw, CALCULATOR_BODY) == ppm(expected)[2]
 
 
+def calculator_undo_matches(state: dict, baseline: dict, expression: bytes, current: bool,
+                            evaluations: int) -> bool:
+    expected = {"EXPRESSION_BYTES": len(expression), "EXPRESSION_SUM": volume_disk.fnv(expression),
+                "CARET": len(expression), "CURRENT": int(current), "EVALUATIONS": evaluations,
+                "FAILURES": 0, "ERRORS": 0, "HAS_ANSWER": 1,
+                "ANSWER_LOW": 5_000_000_000, "ANSWER_HIGH": 0, "READY": 1, "ACTIVE": 1}
+    expected.update({name: baseline[name] for name in
+                     ("PID", "SERVICE_GENERATION", "SURFACE_EPOCH", "INPUT_EPOCH", "PROBES", "SCALE")})
+    return all(state.get(name) == value for name, value in expected.items())
+
+
 def oracle_matches(raw: bytes, expected: bytes, name: str) -> bool:
     if name in CALCULATOR_CLIPBOARD_PHASES:
         return calculator_matches(raw, expected)
@@ -193,16 +204,19 @@ def validate_build(frozen: str) -> dict:
 
 
 def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
-        recovery_handshake: bool = False, clipboard: bool = False) -> dict:
+        recovery_handshake: bool = False, clipboard: bool = False,
+        calculator_undo: bool = False) -> dict:
     if not 30 <= timeout <= 1800:
         raise ValueError("Timeout must be bounded 30..1800 seconds")
     if smoke and recovery_handshake or clipboard and (smoke or recovery_handshake):
         raise ValueError("Clipboard requires the full native gate; choose one diagnostic mode")
+    if calculator_undo and (smoke or recovery_handshake or clipboard):
+        raise ValueError("Calculator undo is a separate interaction gate")
     diagnostic = smoke or recovery_handshake
     private_path(BUILD)
     frozen = source_hash()
     manifest = validate_build(frozen)
-    fixture = None if diagnostic else (generate_fixture(clipboard=True) if clipboard else generate_fixture())
+    fixture = None if diagnostic or calculator_undo else (generate_fixture(clipboard=True) if clipboard else generate_fixture())
     env = environment()
     qemu = Path(shutil.which("qemu-system-x86_64", path=env["PATH"]) or "missing")
     qemu_hash = sha256(qemu)
@@ -239,6 +253,9 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                   source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                   source_fingerprint_version=3, kernel_feature=FEATURE, manifest=manifest, command=command,
                   run_directory=str(directory), qemu_sha256=qemu_hash, immutable=immutable, phases={})
+    if calculator_undo:
+        report.update(calculator_undo_requested=True, calculator_undo_gate=False,
+                      interaction_scope="Native calculator undo/redo, app-body pixel roundtrips and clean exit; not recovery/storage/full window-session acceptance.")
     publish_json(directory / "result.json", report)
     process = control = None
     try:
@@ -352,6 +369,45 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 control.command("quit")
             elif smoke:
                 control.command("quit")
+            elif calculator_undo:
+                move(1260, 50)
+                key("f6")
+                wait("undo-focused", lambda raw, s: s["CALCULATOR"] and
+                     comp(raw).get("FOCUSED") == 1 and
+                     comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
+                for chord in (("2",), ("shift", "equal"), ("3",), ("ret",)):
+                    key(*chord)
+                calculated = wait("undo-calculated", lambda raw, s: s["CALCULATOR"] and
+                                  s["CALCULATOR"][-1]["CURRENT"] == 1 and
+                                  s["CALCULATOR"][-1]["EVALUATIONS"] == 1 and
+                                  comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
+                baseline = calculated["CALCULATOR"][-1]
+                if not calculator_undo_matches(baseline, baseline, b"2+3", True, 1):
+                    raise ValueError("Calculator baseline differs from actual typed 2+3")
+                for name, chord, expression, same_as in (
+                    ("undo-deleted", ("backspace",), b"2+", None),
+                    ("undo-restored", ("ctrl", "z"), b"2+3", None),
+                    ("undo-redone", ("ctrl", "y"), b"2+", "undo-deleted"),
+                    ("undo-restored-again", ("ctrl", "z"), b"2+3", "undo-restored"),
+                    ("undo-shift-redone", ("ctrl", "shift", "z"), b"2+", "undo-deleted"),
+                    ("undo-final-restored", ("ctrl", "z"), b"2+3", "undo-restored"),
+                ):
+                    key(*chord)
+                    wait(name, lambda raw, s: s["CALCULATOR"] and
+                         calculator_undo_matches(s["CALCULATOR"][-1], baseline, expression, False, 1) and
+                         comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
+                    image = captured[name]
+                    if changed_outside(captured["undo-calculated"], image, CALCULATOR_BODY):
+                        raise ValueError("Undo paint escaped the calculator body")
+                    if crop(image, CALCULATOR_BODY) == crop(captured["undo-calculated"], CALCULATOR_BODY):
+                        raise ValueError("Undo did not repaint formula/stale result")
+                    if same_as is not None and crop(image, CALCULATOR_BODY) != crop(captured[same_as], CALCULATOR_BODY):
+                        raise ValueError("Complete undo/redo app pixels differ on roundtrip")
+                key("ret")
+                wait("undo-explicit-evaluation", lambda raw, s: s["CALCULATOR"] and
+                     calculator_undo_matches(s["CALCULATOR"][-1], baseline, b"2+3", True, 2) and
+                     comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
+                key("f10")
             else:
                 move(1260, 50)
                 initial = wait("initial", lambda raw, s: all(s.values()), "initial")
@@ -450,9 +506,13 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
             else:
                 if process.returncode != 33 or not raw.endswith(b"WINDOW:CLEANUP:PASS\nWINDOW:CASE:PASS\nM1:PASS\n"):
                     raise ValueError("Missing actual cleanup/normal exit")
-                if numbers(raw, "WINDOW:FAULT_SLOT") != [4] or numbers(raw, "WINDOW:FAULT_VECTOR") != [6] or numbers(raw, "WINDOW:RESTARTS") != [1]:
-                    raise ValueError("Wrong actual fault/restart")
-                report["disk_oracle"] = disk_oracle(private_path(directory / "volume.img", regular=True).read_bytes())
+                if calculator_undo:
+                    if numbers(raw, "WINDOW:RESTARTS") not in ([], [0]) or numbers(raw, "WINDOW:FAULT_SLOT"):
+                        raise ValueError("Unexpected fault during calculator undo")
+                else:
+                    if numbers(raw, "WINDOW:FAULT_SLOT") != [4] or numbers(raw, "WINDOW:FAULT_VECTOR") != [6] or numbers(raw, "WINDOW:RESTARTS") != [1]:
+                        raise ValueError("Wrong actual fault/restart")
+                    report["disk_oracle"] = disk_oracle(private_path(directory / "volume.img", regular=True).read_bytes())
             if source_hash() != frozen or validate_build(frozen) != manifest or sha256(qemu) != qemu_hash:
                 raise ValueError("Source/build/QEMU changed during run")
             if {name: sha256(private_path(directory / name, regular=True)) for name in immutable} != immutable or {name: sha256(Path(name)) for name in originals} != originals:
@@ -467,7 +527,9 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                     if sha256(private_path(fixture["directory"] / name, regular=True)) != digest:
                         raise ValueError("Host oracle changed")
                 report["oracle"] = fixture["metadata"]
-            report.update(passed=True, native_gate=not diagnostic, clipboard_gate=clipboard and not diagnostic, duration_s=time.monotonic() - start, serial_sha256=sha256(directory / "serial.txt"), qmp_trace=control.trace)
+            report.update(passed=True, native_gate=not diagnostic and not calculator_undo, clipboard_gate=clipboard and not diagnostic, duration_s=time.monotonic() - start, serial_sha256=sha256(directory / "serial.txt"), qmp_trace=control.trace)
+            if calculator_undo:
+                report["calculator_undo_gate"] = True
     except Exception as error:
         report["error"] = f"{type(error).__name__}: {error}"
     finally:
@@ -504,6 +566,8 @@ if __name__ == "__main__":
     parser.add_argument("--smoke-only", action="store_true")
     parser.add_argument("--recovery-handshake-only", action="store_true")
     parser.add_argument("--clipboard", action="store_true", help="Include genuine bounded clipboard exchange, clear and post-fault empty checks")
+    parser.add_argument("--calculator-undo", action="store_true", help="Only the calculator undo/redo interaction, pixel roundtrips and normal cleanup")
     args = parser.parse_args()
     raise SystemExit(0 if run(timeout=args.timeout, bios_rom=args.bios_rom, vga_rom=args.vga_rom,
-                            smoke=args.smoke_only, recovery_handshake=args.recovery_handshake_only, clipboard=args.clipboard)["passed"] else 1)
+                            smoke=args.smoke_only, recovery_handshake=args.recovery_handshake_only, clipboard=args.clipboard,
+                            calculator_undo=args.calculator_undo)["passed"] else 1)

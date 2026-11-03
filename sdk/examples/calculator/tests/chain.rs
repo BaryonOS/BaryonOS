@@ -1128,6 +1128,53 @@ fn supervisor_retirement_detaches_both_owners_when_one_session_already_failed() 
     }
 }
 #[test]
+fn calculator_undo_redo_uses_authenticated_scan_events_and_commits_restored_frames() {
+    for scale in [1, 2] {
+        let h = Host::new();
+        let mut a = app(&h, scale);
+        finish(&mut a);
+        keys(
+            &h,
+            &mut a,
+            &[0x03, 0x83, 0x2a, 0x0d, 0x8d, 0xaa, 0x04, 0x84, 0x1c, 0x9c],
+        );
+        finish(&mut a);
+        assert_eq!(a.model().expression(), "2+3");
+        assert!(a.model().current());
+        let evaluations = a.model().evaluations();
+        let baseline = a.evidence();
+        // Backspace, undo, redo, undo: all decoded by the real input service.
+        for (scans, expression) in [
+            (&[0x0e, 0x8e][..], "2+"),
+            (&[0x1d, 0x2c, 0xac, 0x9d][..], "2+3"),
+            (&[0x1d, 0x15, 0x95, 0x9d][..], "2+"),
+            (&[0x1d, 0x2c, 0xac, 0x9d][..], "2+3"),
+        ] {
+            keys(&h, &mut a, scans);
+            assert_eq!(a.model().expression(), expression);
+            assert!(!a.model().current());
+            assert_eq!(a.model().evaluations(), evaluations);
+            finish(&mut a);
+            assert_eq!(
+                h.borrow().surface.completed_frame(),
+                Some(a.model().generation())
+            );
+            assert_eq!(a.evidence().presented_generation, a.model().generation());
+            assert_eq!(a.evidence().errors, 0);
+            assert!(h.borrow().engine.check_invariants());
+        }
+        assert_eq!(a.evidence().keys - baseline.keys, 14);
+        assert_eq!(a.evidence().input_acks - baseline.input_acks, 14);
+        keys(&h, &mut a, &[0x1c, 0x9c]);
+        finish(&mut a);
+        assert_eq!(a.model().evaluations(), evaluations + 1);
+        assert!(a.model().current());
+        assert_eq!(a.model().answer().unwrap().value.raw(), 5 * SCALE);
+        a.stop_clean().unwrap();
+        assert_eq!(h.borrow().closed.len(), 4);
+    }
+}
+#[test]
 fn actual_typed_service_chain_computes_from_real_scan_bytes_and_commits_only_current_frames() {
     for scale in [1, 2] {
         let h = Host::new();

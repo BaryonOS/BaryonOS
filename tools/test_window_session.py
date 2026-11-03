@@ -17,6 +17,24 @@ def image(width,height,color):
 
 
 class WindowRunnerTests(unittest.TestCase):
+    def test_calculator_undo_is_never_a_combined_diagnostic_or_storage_gate(self):
+        for flag in ("smoke", "recovery_handshake", "clipboard"):
+            with self.assertRaises(ValueError):
+                window.run(timeout=30, bios_rom=None, vga_rom=None,
+                           calculator_undo=True, **{flag: True})
+
+    def test_calculator_undo_requires_exact_formula_stale_result_and_original_binding(self):
+        baseline = dict(window.snapshots(block("CALCULATOR"), "CALCULATOR")[0])
+        state = dict(baseline, EXPRESSION_BYTES=3, EXPRESSION_SUM=window.volume_disk.fnv(b"2+3"),
+                     CARET=3, CURRENT=0, EVALUATIONS=1, FAILURES=0, ERRORS=0, HAS_ANSWER=1,
+                     ANSWER_LOW=5_000_000_000, ANSWER_HIGH=0, ACTIVE=1)
+        self.assertTrue(window.calculator_undo_matches(state, baseline, b"2+3", False, 1))
+        for field in state:
+            if field not in ("GEN", "FRAMES"):
+                damaged = dict(state)
+                damaged[field] += 1
+                self.assertFalse(window.calculator_undo_matches(damaged, baseline, b"2+3", False, 1), field)
+
     def test_clipboard_oracle_checks_calculator_body_without_internal_masks(self):
         raw = image(1280, 720, (1, 2, 3))
         expected = image(320, 484, (1, 2, 3))
