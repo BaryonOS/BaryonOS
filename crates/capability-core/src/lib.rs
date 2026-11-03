@@ -556,31 +556,56 @@ impl ProcessObject {
     };
 }
 
+/// System-wide, read-only view of resources represented by the capability engine.
+///
+/// Availability fields describe independently reusable table/queue capacity,
+/// not a reservation or guarantee that a specific operation can succeed.
+/// Threads currently count the single scheduler context attached to each
+/// registered process; this engine has no independently managed threads.
+/// Memory, shared buffers, pinned pages, CPU time, storage and driver resources
+/// are not represented here.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Stats {
     pub processes: usize,
+    /// One scheduler execution context per registered process in the current ABI.
+    pub threads: usize,
+    /// Free slots in the process registry; PID monotonicity still applies.
+    pub available_processes: usize,
     pub handles: usize,
+    /// Free non-retired handle slots in currently registered processes.
+    pub available_handle_slots: usize,
     pub nodes: usize,
+    pub available_nodes: usize,
     pub endpoints: usize,
+    pub available_endpoints: usize,
     pub open_endpoints: usize,
     pub queued_messages: usize,
+    /// Free queue cells across live, open endpoints; this grants no send right.
+    pub available_endpoint_queue_slots: usize,
     pub revoked_nodes: usize,
     pub retired_slots: usize,
     pub retired_nodes: usize,
     pub retired_endpoints: usize,
     pub block_objects: usize,
+    pub available_block_objects: usize,
     pub retired_block_objects: usize,
     pub launch_objects: usize,
+    pub available_launch_objects: usize,
     pub retired_launch_objects: usize,
     pub process_objects: usize,
+    pub available_process_objects: usize,
     pub retired_process_objects: usize,
     pub entropy_objects: usize,
+    pub available_entropy_objects: usize,
     pub retired_entropy_objects: usize,
     pub network_objects: usize,
+    pub available_network_objects: usize,
     pub retired_network_objects: usize,
     pub display_objects: usize,
+    pub available_display_objects: usize,
     pub retired_display_objects: usize,
     pub input_objects: usize,
+    pub available_input_objects: usize,
     pub retired_input_objects: usize,
     pub state_digest: u64,
 }
@@ -1939,76 +1964,104 @@ impl Engine {
     pub fn stats(&self) -> Stats {
         let mut s = Stats {
             processes: 0,
+            threads: 0,
+            available_processes: self.processes.iter().filter(|p| !p.live).count(),
             handles: 0,
+            available_handle_slots: 0,
             nodes: 0,
+            available_nodes: 0,
             endpoints: 0,
+            available_endpoints: 0,
             open_endpoints: 0,
             queued_messages: 0,
+            available_endpoint_queue_slots: 0,
             revoked_nodes: 0,
             retired_slots: 0,
             retired_nodes: 0,
             retired_endpoints: 0,
             block_objects: 0,
+            available_block_objects: 0,
             retired_block_objects: 0,
             launch_objects: 0,
+            available_launch_objects: 0,
             retired_launch_objects: 0,
             process_objects: 0,
+            available_process_objects: 0,
             retired_process_objects: 0,
             entropy_objects: 0,
+            available_entropy_objects: 0,
             retired_entropy_objects: 0,
             network_objects: 0,
+            available_network_objects: 0,
             retired_network_objects: 0,
             display_objects: 0,
+            available_display_objects: 0,
             retired_display_objects: 0,
             input_objects: 0,
+            available_input_objects: 0,
             retired_input_objects: 0,
             state_digest: self.state_digest(),
         };
         for p in &self.processes {
             s.processes += usize::from(p.live);
+            s.threads += usize::from(p.live);
             for x in &p.slots[1..] {
                 s.handles += usize::from(x.node != Id::NONE);
                 s.retired_slots += usize::from(x.retired);
+                s.available_handle_slots += usize::from(p.live && !x.retired && x.node == Id::NONE);
             }
         }
         for n in &self.nodes {
             s.nodes += usize::from(n.live);
             s.revoked_nodes += usize::from(n.live && n.revoked);
             s.retired_nodes += usize::from(n.retired);
+            s.available_nodes += usize::from(!n.live && !n.retired);
         }
         for e in &self.endpoints {
             s.endpoints += usize::from(e.live);
             s.open_endpoints += usize::from(e.live && e.open);
             s.queued_messages += usize::from(e.len);
             s.retired_endpoints += usize::from(e.retired);
+            s.available_endpoints += usize::from(!e.live && !e.retired);
+            if e.live && e.open {
+                s.available_endpoint_queue_slots +=
+                    QUEUE_CAPACITY.saturating_sub(usize::from(e.len));
+            }
         }
         for b in &self.blocks {
             s.block_objects += usize::from(b.live);
             s.retired_block_objects += usize::from(b.retired);
+            s.available_block_objects += usize::from(!b.live && !b.retired);
         }
         for l in &self.launches {
             s.launch_objects += usize::from(l.live);
             s.retired_launch_objects += usize::from(l.retired);
+            s.available_launch_objects += usize::from(!l.live && !l.retired);
         }
         for c in &self.children {
             s.process_objects += usize::from(c.live);
             s.retired_process_objects += usize::from(c.retired);
+            s.available_process_objects += usize::from(!c.live && !c.retired);
         }
         for e in &self.entropy {
             s.entropy_objects += usize::from(e.live);
             s.retired_entropy_objects += usize::from(e.retired);
+            s.available_entropy_objects += usize::from(!e.live && !e.retired);
         }
         for n in &self.network {
             s.network_objects += usize::from(n.live);
             s.retired_network_objects += usize::from(n.retired);
+            s.available_network_objects += usize::from(!n.live && !n.retired);
         }
         for e in &self.display {
             s.display_objects += usize::from(e.live);
             s.retired_display_objects += usize::from(e.retired);
+            s.available_display_objects += usize::from(!e.live && !e.retired);
         }
         for e in &self.input {
             s.input_objects += usize::from(e.live);
             s.retired_input_objects += usize::from(e.retired);
+            s.available_input_objects += usize::from(!e.live && !e.retired);
         }
         s
     }
