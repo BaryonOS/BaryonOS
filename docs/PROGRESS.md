@@ -85,6 +85,14 @@ branch, datum en opdracht staan in de README. Een behaalde mijlpaal op die
 branch is niet automatisch opgenomen in `main` of vrijgegeven als product.
 Het scoreblad verandert geen bestaande acceptatiegrenzen van M1–M6c.
 
+`assessment.source_commit` is de vooraf bestaande **beoordelingsbasis** van
+de opdracht. De gegenereerde README noemt deze waarde `Bron`; het is niet de
+uiteindelijke PR-head (die pas na vastlegging ontstaat), en niet automatisch
+de bron van elk bewijs. Een testreceipt vermeldt zijn eigen geteste bron,
+omgeving en afbakening. PR150 controleert alleen een gedocumenteerde
+frontmatter-veldsubset en toolsets, geen volledige YAML-/cloudconfigvalidatie
+of werkelijk geladen agent/runtime-isolatie.
+
 M6d op uitvoeringsbron `88e6c04be218b8b09ea4f0a226f6b9719da706a6` sluit
 **S07** met opgeslagen fout-/herstelbewijs en de vereiste regressie. De score
 stijgt daardoor **13% → 14%**: opslag van 3 naar 4 punten; alle andere gewichten

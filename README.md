@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`953a10a2`](https://github.com/simonvanieperen/nieuw-os/commit/953a10a27d4b55f4c5184139b6c0ebe7edca5fa4) ·
+**Bron:** [`564a3617`](https://github.com/simonvanieperen/nieuw-os/commit/564a36175ebb4db52ddb1ba33beae08179a417c8) ·
 **Ontwikkelbranch:** `copilot/add-os-specialist-agents`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR139 werkelijk mergen en PR150 behoudend met nieuwe main99 combineren.
-41 blijft41. PR139 guarded-squash naar main99d13276, exact geteste boom8ef71ad2, alle30 checks voltooid en CodeRabbit echtSUCCESS; gekoppelde Python-preflight.150-parent953a10a2 neemt deze main behoudend op: drie metadataconflicten, OS-code exactmain99 en profielen exact953. Beide centrale bronhistorieën gehasht opgeslagen als appendix zonder oorspronkelijke twintig snapshots te wijzigen.16 statische profielcontroles en progressgates groen; geen cloudruntime/native/humanauditacceptatie of nieuwe punten.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR150: beoordelingsbasis en statische veldsubset preciseren; nativefout blijft open.
+41 blijft 41. Beoordelingsbasis 564a3617, niet de uiteindelijke PR-head of automatisch iedere testbron. De 16 statische profielcontroles toetsen uitsluitend de gedocumenteerde frontmatter-veldsubset en toolsets, geen volledige YAML-/cloudconfigvalidatie of cloudruntime/toolisolatie. Twee historische profielhashes zijn geen werkboommanifest. PR139 is werkelijk main99; beide bronhistorieën behouden. Native-foundation op564 faalt echt in RANDOM raw en blijft open; geen nieuwe native/fysieke/menselijke acceptatie of punten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

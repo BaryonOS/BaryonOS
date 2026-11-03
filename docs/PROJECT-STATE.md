@@ -5,12 +5,12 @@
 PR139 is werkelijk guarded-squashgemerged als main
 `99d132768fd72276caa4a3b3e9a09f8f1909f0ed`, parent `d115cc96`.
 De boom `b7b34e0bf6594e4c2bd8d3c6376fc175b97595fb` is exact de geteste
-head `8ef71ad2`; alle30 gerapporteerde checks voltooid en groen/skipped,
+head `8ef71ad2`; alle 30 gerapporteerde checks voltooid en groen/skipped,
 inclusief werkelijk geslaagde CodeRabbit. Merge-aanroep binnen dezelfde
 geslaagde Python-preflight, geen ongekoppeld shellvervolg.
 [Primaire mergepostcheck](verification/pr139-merge-postcheck.json).
 
-Deze main wordt nu behoudend met150-parent
+Deze main is behoudend met150-parent
 `953a10a27d4b55f4c5184139b6c0ebe7edca5fa4` gecombineerd. Drie conflicten
 alleen README/PROJECT-STATE/progress; profielen exact953, OS-code exactmain99.
 Beide rubrics ongewijzigd. De oorspronkelijke centrale bytes van beide
@@ -19,10 +19,17 @@ parents staan als latere appendix in het bestaande
 de oorspronkelijke vijf bronnen/twintig snapshots blijven ongewijzigd.
 Alle139-receipts en beide checkpointintenties blijven behouden.
 
-**Bewijsgrens:** zestien statische profielcontroles en progress write/check,
-geen cloudruntime-, native-, fysieke of menselijke acceptatie.
+**Bewijsgrens:** zestien statische controles van uitsluitend de gedocumenteerde
+frontmatter-veldsubset en toolsets; geen volledige YAML-/cloudconfigvalidatie.
+Progress write/check groen; geen cloudruntime-, native-, fysieke of menselijke
+acceptatie. `assessment.source_commit` is de vooraf bestaande beoordelingsbasis,
+niet de huidige PR-head of automatisch de bron van ieder testresultaat.
 **41 →41**, geen criteriumwijziging. PR135's echte RAW-fouten en ontbrekende
 volume-admissionfixtures blijven open; geen integratiemandaat overgedragen.
+De nieuwe native-foundationrun `41632495284` op `564a3617` is echt rood in
+RANDOM raw (marker-/exit-/bronbinding mislukt); geen groen resultaat of merge.
+De profielen wijzigen geen OS-code. De concrete serialoorzaak wordt apart
+onderzocht; niet zonder bewijs gelijkstellen aan de twee oude135-fouten.
 **Eerstvolgend:** `GH_PAGER="" gh pr checks 150`; nieuwe head/base en
 reviewthreads opnieuw controleren vóór guarded squash.
 
@@ -44,11 +51,12 @@ selectie/toolbeschikbaarheid en runtime-isolatie zijn niet uitgevoerd.
 Dit is een AI-tekstreview, geen menselijke audit of OS-acceptatie.
 Score **41 → 41**, rubric ongewijzigd.
 
-Vervolg op55da4734 verduidelijkt uitsluitend twee zinnen: geïsoleerde QEMU
+Vervolg op 55da4734 verduidelijkt uitsluitend twee zinnen: geïsoleerde QEMU
 is een vereiste voor toekomstige proeven, geen bestaande geteste omgeving;
 de pointer-/IPC-regel verbiedt expliciet het vertrouwen op onbetrouwbare
-invoer. Toolsets ongewijzigd; dezelfde16 statische controles opnieuw groen.
-Exacte werkboomhashes en bronbasis zijn toegevoegd aan het reviewrapport.
+invoer. Toolsets ongewijzigd; dezelfde 16 statische subsetcontroles opnieuw groen.
+Hashes van de twee gewijzigde profielbestanden en hun bronbasis staan in
+het reviewrapport; dat is geen compleet werkboommanifest.
 
 **Open:** verse headgebonden CI en review vóór merge; geen automatische
 goedkeuring van Watch-heads. PR135's tweemaal rode RAW-proef en ontbrekende

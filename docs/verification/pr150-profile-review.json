@@ -59,5 +59,31 @@
     "same_validation_command_reexecuted": true,
     "exit": 0,
     "stdout": "PASS:16 profiles structurally valid within documented field subset; actual cloud runtime/tool confinement not tested\n"
+  },
+  "scope_followup": {
+    "basis_commit": "564a36175ebb4db52ddb1ba33beae08179a417c8",
+    "source_commit_semantics": "Previously existing assessment basis, not final reviewed PR head or automatically source of each test. Individual receipts have their own source.",
+    "same_validation_command_reexecuted": true,
+    "exit": 0,
+    "stdout": "PASS:16 profiles structurally valid within documented field subset; actual cloud runtime/tool confinement not tested\n",
+    "scope": "Only documented frontmatter field subset and toolsets; not full YAML/cloud configuration schema validation, actual loading/selection/tool invocation or runtime confinement.",
+    "source_file_sha256": {
+      ".github/agents/os-app-platform-reviewer.agent.md": "91c931b829b1c565e4809f134e4c719db400ecb2eaef9d6e4a9c0db2b342e5fe",
+      ".github/agents/os-architect.agent.md": "d8efd3ca809f76ae13b106816cd681bc978d3fb5d39de95313d98318f685063f",
+      ".github/agents/os-builder.agent.md": "276eb72c9fa9ab03e5dd07483acd9b6ba11f2792ceeddff59799f74c2ad01640",
+      ".github/agents/os-claims-auditor.agent.md": "de6541c604897acdfa7454460f64464435e2424a7dc3f65bca686e9be587124d",
+      ".github/agents/os-eu-compliance-reviewer.agent.md": "047c81bf8ec9d12e5acb87aa41dc92d81f4cfee4b15f4ff3d7161c989aeeb31c",
+      ".github/agents/os-hardware-driver-architect.agent.md": "39be7de346c9c71ffd10cf03a38e2a7819965912455fcfdd93d6265711f3a707",
+      ".github/agents/os-maturity-auditor.agent.md": "657859d4e4600053886b42b99d0e49ad33be76f158d55f9779e1fea20c69b390",
+      ".github/agents/os-network-distributed-reviewer.agent.md": "69ab923f576f95619cef22f2061ea6f6f10f302cdf5f5f507f33c2864f29446e",
+      ".github/agents/os-performance-energy.agent.md": "307f275288e1d66b06dccc6c0e45a2c68c5abdeb1e67c9609bd56dcda7938fa0",
+      ".github/agents/os-privacy-reviewer.agent.md": "0053afa17836195edf82c08f15e2d59328c126b3b72a72818477e03cbeb694e5",
+      ".github/agents/os-red-team.agent.md": "8675ede4c2bb1a43f992897d7630295ef832448f4a5fcbfeb8652966ea12c825",
+      ".github/agents/os-release-engineer.agent.md": "f963df3d41c42c563d6aa89ac1566b391f5eef974c535d16b1ed8fb8bc7b91e1",
+      ".github/agents/os-reliability-recovery.agent.md": "bdc9613dd02e88a7e17578bb85183bae9ae1b192200c8dd48dab9fb9fa1a24d5",
+      ".github/agents/os-security-reviewer.agent.md": "2b39e323a34d4bdb33a37984d9cdaaaf651c4f4837e8a6c0e5b4448f442c7608",
+      ".github/agents/os-ux-accessibility-reviewer.agent.md": "acc5ca7f0359bb80202106e1e607ffe931c465a8d7e2f3d5ebbb0348f0b9c873",
+      ".github/agents/os-verifier.agent.md": "10222ec3dc1a309a214169fdbb667a76ab8711fea48ae324a7389165aca2a366"
+    }
   }
 }
