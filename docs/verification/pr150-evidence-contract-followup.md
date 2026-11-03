@@ -3,6 +3,11 @@
 3 november 2026; basis `fc23841faf8ba4e0918245aef5c413745a790c67`
 met main `95d7945110ce853a1b5827ec59f6115475691805`.
 
+Gepinde primaire bronnen voor deze historische basis:
+
+- Nieuw OS-project (GitHub), 3 november 2026, *Merge remote-tracking branch 'origin/main' into copilot/add-os-specialist-agents*, commit [`fc23841faf8ba4e0918245aef5c413745a790c67`](https://github.com/simonvanieperen/nieuw-os/commit/fc23841faf8ba4e0918245aef5c413745a790c67).
+- Nieuw OS-project (GitHub), 3 november 2026, *docs: documenteer bestaande kernel-, opslag- en scene-API (#138)*, commit [`95d7945110ce853a1b5827ec59f6115475691805`](https://github.com/simonvanieperen/nieuw-os/commit/95d7945110ce853a1b5827ec59f6115475691805).
+
 ## Voorstel
 
 Geen tooluitbreiding of nieuwe uitvoerdersrol.
@@ -20,7 +25,9 @@ en [OS Maturity Auditor](https://github.com/simonvanieperen/nieuw-os/blob/cccb29
 
 ## Testbewijs
 
-De oorspronkelijke worktreecontrole gaf exit 0. De hieronder aangescherpte
+De uitkomst van de oorspronkelijke worktreecontrole is **onbekend**:
+het oorspronkelijke commando, de exitstatus en de relevante uitvoer zijn
+hier niet beschikbaar. De hieronder aangescherpte, afzonderlijke
 hercontrole controleert alleen dat de huidige zestien toolsets gelijk zijn aan
 de hieronder hardcoded verwachte lijsten, en vergelijkt de twee historische
 profielhashes met de bytes op contractfix `cccb29e8`, niet met latere
