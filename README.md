@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`2bf95782`](https://github.com/simonvanieperen/nieuw-os/commit/2bf9578290bef88d53c17f9913434da6f27441f2) ·
-**Ontwikkelbranch:** `simonvanieperen-animated-umbrella`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR140: descriptorclaims en duurzame primaire testreceipts corrigeren.
-41 blijft 41. Op exacte bron 2bf95782 zijn de 9 artifact-store-contracttests, cargo check --tests, Clippy en formattering met Rust 1.90.0 opnieuw groen. Primaire volledige logs, codehashes en exacte omgeving staan duurzaam in docs/verification/pr140-review-evidence.json. Het historische rapport docs/verification/artifact-store-open-coverage-20261103.json behoudt bron 08710d55 en zijn command-, exit- en hashvelden. De scope is descriptorvalidatie en binding, niet identiteit of authenticatie. Geen productiecodewijziging, nieuwe native/QEMU-acceptatie of criteriumpunten.
+**Bron:** [`bb8877e3`](https://github.com/simonvanieperen/nieuw-os/commit/bb8877e3e1aaec304d7478510b65c8116aeb634e) ·
+**Ontwikkelbranch:** `simonvanieperen-reimagined-train`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR149: nieuwe primaire59-hosttestreceipt op schone Watch-main99-merge bewaren.
+41 blijft 41. Op schone Watch-merge bb8877e3 met main99 zijn59 hosttests echt opnieuw groen; cwd/HEAD/status/lock- en Rust-hashes vóór/na en volledige logs vastgelegd. Geen retrospectieve bronbinding van eerdere Watch-tijden. De UI-Rust-code blijft exact53256f82; historische scalar/Clippy/fmt behouden die bron. Assessmentbasis is niet de uiteindelijke PR-head of automatisch elke testbron. Geen nieuwe code, native/QEMU/fysieke/menselijke acceptatie of punten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
