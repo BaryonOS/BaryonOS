@@ -1,12 +1,14 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
-SYSTEM-MATURITY-SMP (3 november 2026), bron `875c31fa`:
-**41 → 41/100**. De elf-stagematrix en drie M3Guard-contentionruns slaagden op
-de eerdere codecommit `bf1f3c68`. Op `875c31fa` slaagt AP-procescleanup; de
-bestaande SMP M4 multi-round reset wordt nu fail-closed geweigerd vóór
-remote-actieve frames worden vrijgegeven. 15 hosttests en formattering
-slagen. De volledige matrix na deze guard is niet uitgevoerd; geen
-rubriccriterium sluit. Zie [PROJECT-STATE.md](PROJECT-STATE.md).
+SYSTEM-MATURITY-SMP (3 november 2026), codebasis `a49cc651`:
+**41 → 41/100**. De eerste negen stages van `tools/test_smp.py` slaagden,
+inclusief 1/2/4 CPU, AP-exit, contention, TLB-reuse en 1-CPU-regressie.
+Gewone 2-CPU `native-smp-m4` faalde fail-closed met raw exit 35 tijdens
+`cleanup_all`, terwijl een andere CPU nog usercode uitvoert. 15 hosttests en
+formattering slagen. De eerdere volledige matrix op `bf1f3c68` geldt niet voor
+deze guardbron. Geen rubriccriterium sluit; quiescence vereist een
+M4-callerwijziging buiten de huidige write-claim. Zie
+[PROJECT-STATE.md](PROJECT-STATE.md).
 
 De actieve volledige releaseopdracht en productacceptatie staan in
 [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft

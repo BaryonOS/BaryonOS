@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`875c31fa`](https://github.com/simonvanieperen/nieuw-os/commit/875c31fa7d8e1465892f9ddb25c8792c10c38269) ·
+**Bron:** [`a49cc651`](https://github.com/simonvanieperen/nieuw-os/commit/a49cc651975cc848be89198b84bfa0ee1d621a45) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-spoon`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** SYSTEM-MATURITY-SMP: remote cleanup fail-closed.
-41 blijft 41. De elf-stagematrix en drie M3Guard-contentionruns slaagden op eerdere codecommit bf1f3c68. Op 875c31fa AP-procescleanup slaagt; de bestaande SMP M4 multi-round reset wordt nu veilig fail-closed geweigerd vóór remote-actieve frames worden vrijgegeven. 15 hosttests en formattering slagen. De volledige matrix na de guard is nog niet uitgevoerd; geen rubriccriterium sluit.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** SYSTEM-MATURITY-SMP: cleanupguard regression matrix.
+41 blijft 41. Op codebasis a49cc651 slaagden de eerste negen stages van tools/test_smp.py, inclusief 1/2/4 CPU, AP-exit, contention, TLB-reuse en 1-CPU-regressie. Gewone 2-CPU native-smp-m4 faalde fail-closed met raw exit 35 tijdens cleanup_all terwijl een andere CPU nog usercode uitvoert. 15 hosttests en formattering slagen; de vorige volledige matrix op bf1f3c68 geldt niet voor deze guardbron. Geen rubriccriterium sluit; correcte quiescence vereist een M4-callerwijziging buiten de huidige write-claim.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

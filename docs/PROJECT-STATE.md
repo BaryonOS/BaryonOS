@@ -2,12 +2,15 @@
 
 ## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
 
-**Gepubliceerde basis:** branch `simonvanieperen-studious-spoon`, commit
-`875c31fa7d8e1465892f9ddb25c8792c10c38269`, gepusht naar
+**Gepubliceerde codebasis:** branch `simonvanieperen-studious-spoon`, commit
+`a49cc651975cc848be89198b84bfa0ee1d621a45`, gepusht naar
 `origin/simonvanieperen-studious-spoon`. Actieve toewijzing:
 `SYSTEM-MATURITY-SMP`, queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`.
 OOM/K05 zijn afgesloten en blijven ongewijzigd;
 `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
+
+De fail-closed cleanupguard zelf staat in codecommit `875c31fa`; het
+voortgangsassessment en de matrixreceipt zijn tegen `a49cc651` vastgelegd.
 
 **AP-bring-up/rendezvous is eerder bewezen**, op commits `cec73173` en
 `5da76325`: de AP-stackpagina's waren identity-mapped RW/NX in de gedeelde
@@ -144,7 +147,7 @@ QEMU-waarschuwing over ontbrekend `kvmvapic.bin` blijft ononderzocht. Receipt:
 [`smp-rendezvous-20261103T190216Z.json`](verification/sm-smp/smp-rendezvous-20261103T190216Z.json);
 bronfingerprint `5d9f0256e588e957826c5a5528913117d3097b9fe8c25180be6ec767aede36aa`.
 
-**M4 multi-round cleanupfout gereproduceerd; fail-closed guard gericht getest:**
+**M4 cleanupfout gereproduceerd; fail-closed guard gericht getest:**
 de bestaande combinatie `native-smp-m4,test-m4-lifecycle` eindigt op twee CPU's
 met raw exit 35. Tijdelijke, daarna verwijderde serial-instrumentatie liet
 tijdens round-1-setup CPU0 nog eigenaar van processlot 2 zien, terwijl CPU1
@@ -157,10 +160,8 @@ De diagnose staat in
 `State::cleanup` weigert nu vóór het vrijgeven van een remote-actief processlot
 met `M1:FAIL:SMP:CLEANUP_REMOTE_ACTIVE`. De gerichte 2-CPU AP-exitproef slaagde
 (raw 33); de lifecyclecombinatie geeft de bedoelde fail-closed marker (raw 35).
-Dit herstelt de multi-round lifecycle niet. De volledige matrix is nog niet
-opnieuw gedraaid na deze guard. Veilig herstel vereist een lifecycle-hook die
-de M3-scheduler alle CPU's naar kernelcontext laat parkeren vóór bulk-cleanup;
-geen stilzwijgende BSP-only affinityworkaround.
+Dit herstelt de multi-round lifecycle niet. De gerichte lifecyclecombinatie
+wordt fail-closed geweigerd; dit is geen acceptatie.
 
 **Niet-geaccepteerde SMP-lifecycleverkenning:** het combineren van de bestaande
 M4 multi-round lifecyclefixture met SMP eindigde op raw QEMU exit 35 bij
@@ -170,27 +171,42 @@ lijkt samen te hangen met state-/CPU-lifetime tijdens round-reset, maar er is
 geen root-cause-fix of acceptatieclaim. Dit experimentele profiel is niet in
 de SMP-runner opgenomen.
 
-**Historische gerichte revoke-proef (nu gedekt door de volledige matrix):**
+**Historische gerichte revoke-proef (ook opgenomen in de eerdere matrix op
+`bf1f3c68`):**
 `native-smp-m4-revoke` combineert de bestaande KS-14-fixture met de
 SMP-scheduler en registreert succesvolle revoke-calls en daaropvolgend
 gebruik van revoked handles per CPU/proces-slot. Op worktree-fingerprint
 `09e6be60a3685356fb2e357306502750a430e840afe1320cff5cfd9889840d59` slaagde
 de 2-CPU-QEMU-proef met raw exit 33: slot 0 revokeerde tweemaal op CPU 1;
 slot 2 werd daarna op CPU 0 geweigerd. M3-selecties waren `[41, 39]`.
-Log: `build/run/smp-2-2ae5598874/`. De actuele matrixreceipt hierboven is het
-leidende bewijs voor de gepushte bron.
+Log: `build/run/smp-2-2ae5598874/`. Dit is geen actuele matrixpass op
+`a49cc651`; de nieuwe poging faalde vóór de revoke-stage.
 
-**Bewijsgrens:** de actuele elf-stagematrix bevestigt 1/2/4 CPU, scheduling,
-AP-exit, cross-CPU IPC/revoke en lokale adresruimte-/TLB-reuse op dezelfde AP.
-De aparte 2-CPU-proef bevestigt ook lockcontention en voortgang na vrijgave.
-Dit bewijst geen algemeen remote-shootdownprotocol, fair lock of volledige
-race-/failureacceptatie; K06 is niet afgerond.
+**Laatste volledige matrixpoging op codebasis `a49cc651`:** commando
+`env PATH="$HOME/.cargo/bin:/tmp/nieuw-os-c-toolchain/bin:/tmp/sm-oom-qemu-root/usr/bin:$PATH" LD_LIBRARY_PATH="/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu" OS_OVMF_CODE="/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd" OS_OVMF_VARS="/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd" python3 -B tools/test_smp.py`
+eindigde met exit 1. De eerste negen stages, waaronder 1/2/4 CPU,
+AP-exit, contention, TLB-reuse en 1-CPU-regressie, slaagden met verwachte raw
+exit 33. De tiende stage, gewone `native-smp-m4` op 2 CPU, faalde met raw
+exit 35 na `M4:EXCHANGE:PASS` en `M4:SURVIVOR_PROGRESS:PASS`, gevolgd door
+`M1:FAIL:SMP:CLEANUP_REMOTE_ACTIVE`. Receipt:
+[`smp-rendezvous-20261103T191954Z.json`](verification/sm-smp/smp-rendezvous-20261103T191954Z.json);
+seriallog: `build/run/smp-2-5dcacd2a10/serial.txt`. De eerdere volledige
+matrix op `bf1f3c68` slaagde, maar dat is geen bewijs voor deze guardbron.
+
+**Bewijsgrens en blocker:** de guard voorkomt vrijgave terwijl een andere CPU
+het processlot nog als actief heeft. Ook de gewone M4-afronding roept
+`m4::poll` → `cleanup_all` aan terwijl een andere CPU nog usercode draait.
+Een correcte oplossing vereist een quiescence-/park-handshake vóór bulkcleanup
+en round-reset. De caller staat in `kernel/src/m2/m3/m4.rs`, buiten de huidige
+write-claim; alleen `kernel/src/m2/m3.rs` is vrijgegeven. Geen bypass,
+BSP-only-affiniteit of capability-/process-ABI-wijziging. K06 blijft open; dit
+bewijst geen algemeen remote-shootdownprotocol.
 `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
 
-**Eerstvolgende actie:** voer de volledige SMP-matrix opnieuw uit met de
-remote-cleanup guard. Daarna is de M4-lifecyclecaller-/M3-quiescencehandshake
-de open grens; behoud de fail-closed weigering en wijzig geen capability- of
-process-ABI.
+**Eerstvolgende actie:** behoud de fail-closed guard en laat de coordinator
+`kernel/src/m2/m3/m4.rs` expliciet aan deze SMP-scope toewijzen. Pas daarna kan
+de quiescence-handshake worden geïntegreerd en de volledige matrix worden
+herhaald.
 
 **Cross-CPU capability-IPC — eerdere lokale proef vóór matrix:**
 `native-smp-m4` combineert het bestaande SMP-M3-profiel met de bestaande M4
