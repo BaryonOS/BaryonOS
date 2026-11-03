@@ -1,5 +1,26 @@
 # Actuele projectstatus
 
+## NEXT AGENT HANDOFF — M1-time runtimelaag (sdk) — 3 november 2026
+
+**Basis:** `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`, branch
+`simonvanieperen-studious-spoon`. Eerste maturitystap op M1 (time): één
+centrale runtime-API boven de bestaande ABI 1.6/1.9/1.10-syscalls.
+Toegevoegd in `sdk/runtime/src/clock.rs`:
+`TimerRegistration`, `WaitOutcome`, `WaitDriver`, `wait_until_with`,
+native wrappers `now_monotonic`, `now_wall`, `sleep_until`, `wait_until`,
+en gerichte unittests voor cancel/timeout/horizon-chunking.
+
+**Uitgevoerd:**  
+`python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 check --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime --tests --locked` (exit 0)  
+`python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check` (exit 0)
+
+**Niet volledig uitgevoerd:**  
+`... cargo test ...` stopte op deze host met ontbrekende linker `cc`; dus geen
+volledige test-run/lint/native bewijs geclaimd. Score blijft **41 → 41**.
+
+**Open/eerstvolgend:** installeer of routeer een beschikbare C-linker voor
+deze omgeving en draai daarna `cargo test --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime --locked`; koppel daarna de nieuwe tijdslaag aan minstens één bestaande service/app-lus om duplicaat wait-logic te verwijderen.
+
 ## NEXT AGENT HANDOFF — PR149 derde main-integratie — 3 november 2026
 
 **Basis:** Watch-merge `bb8877e3e1aaec304d7478510b65c8116aeb634e`, met
