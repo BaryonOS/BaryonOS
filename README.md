@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`6f15ab28`](https://github.com/simonvanieperen/nieuw-os/commit/6f15ab28a0d8dcf43b84df54fe48bec9f0f622d9) ·
+**Bron:** [`66eb8834`](https://github.com/simonvanieperen/nieuw-os/commit/66eb883480a40dffbca81389bcca5f08506cf9dc) ·
 **Ontwikkelbranch:** `integrate/stack130-local`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Werkelijk uitgevoerde fragment- en terminale ontvangstacceptatie onafhankelijk controleren.
-41 blijft41. Verse native netwerkrun41614590388 op6f15ab28/source1ca86157 slaagt normal/client-exit, beide raw33. Werkelijke eerste/tailfragmenten2/2 en1/1, malformed8/4, tweemaal terminale ReceiveTcp-EOF per actieve app en0 bij vertrokken APP_A zijn uit werkelijk gedownloade ruwe serial/stderr/peertranscripts opnieuw gecontroleerd. Volledige gecombineerde CI/review/integratie en hosted foreignfixturelevering blijven open. Lokale10+9VM-volumeacceptatie bindt afzonderlijk aan bevrorence02. N01 was al geaccepteerd; geen nieuwepunten,44/U03, fysieke, productiesleutel-, menselijke of volledige releaseacceptatie.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Alle19 daadwerkelijke Windows-volumetoelatings- en crashherstelruns onafhankelijk controleren.
+41 blijft41. Echte Windows10+9VM-volumeacceptatie op bevrorence02/source2c410004 slaagt na uitsluitend locked-cacheherstel. Parent controleert alle19 daadwerkelijke log/snapshot-hashes en schijforacles: normal/koud gen84/raw33; acht RO/RW-negatieven raw35/nul writes/identieke bytes; drie echte hostkills raw1 met bewezen live process en koud herstel. Geen promotie naar nieuwstesource1ca86157. Die bron heeft afzonderlijk echte fragment/terminale EOF-netwerkacceptatie. Hosted foreignfixturelevering, volledige gecombineerde CI/review/integratie, productiekeys en fysieke tests blijven open. Geen nieuwepunten of dubbele bestaande acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

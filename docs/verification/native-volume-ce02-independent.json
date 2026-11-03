@@ -1,0 +1,224 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-03",
+  "frozen_head": "ce02f093627a2c0b9808461ac821d4ebcd8dbb5f",
+  "source_sha256": "2c410004daceb557f5501e58270d5b315744f1a6eb22d44499d45bc31bef41b7",
+  "source_fingerprint_version": 3,
+  "matrix_report": {
+    "path": "/mnt/c/Users/simon/AppData/Local/nieuw-os/copilot-tests/volume-ce02f093/repo/native-build-fetch4/volume-admission/matrix.json",
+    "sha256": "4474ed16520e8edcface5dcbae3371d4412290b1f97afd16b3f8a29c849b3435",
+    "passed": true,
+    "runs": [
+      {
+        "label": "own-normal",
+        "raw_qemu_exit": 33,
+        "duration_s": 72.69355450000148,
+        "probe_image_sha256_before": "45e7b67b8940ac5ad287cd46071fcb67db13dcc58d70c956cf0db92ee6732ae6",
+        "probe_image_sha256_after": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
+        "serial_sha256": "efef690bbf368886a621b6160a6d37a1707ef81741d104543dbf4036fcbe2399",
+        "trace_sha256": "b4a85cae1312c8982791f3f5ced87ad88ee32987a316197bd9fefb2138b3a19c",
+        "trace_write_requests": 4963
+      },
+      {
+        "label": "own-cold-recover",
+        "raw_qemu_exit": 33,
+        "duration_s": 33.922870800000965,
+        "probe_image_sha256_before": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
+        "probe_image_sha256_after": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
+        "serial_sha256": "459b32eb34f4f3f7dd6225c6a346e05c00b412adf312cfa8f42b62b3673dabb7",
+        "trace_sha256": "9d93bfd4ee16ac085f61bc41bc0db1fb2932941dcbb135b14f3bfa85c86da6a3",
+        "trace_write_requests": 0
+      },
+      {
+        "label": "btrfs-readonly",
+        "raw_qemu_exit": 35,
+        "duration_s": 2.5957006000026013,
+        "probe_image_sha256_before": "0f3e5d9631ac9e8747abd7d6744538772620c0d2d9c6c5f40f2ed7e864edac39",
+        "probe_image_sha256_after": "0f3e5d9631ac9e8747abd7d6744538772620c0d2d9c6c5f40f2ed7e864edac39",
+        "serial_sha256": "5ce13e3d1efe478bda5c4ae88baa47dd8073ff1bda293ad28dda41b57891cfcc",
+        "trace_sha256": "a5705568130cd65fccaffa3b617f25e43279088545a6fab0fc28412eeea1e563",
+        "trace_write_requests": 0
+      },
+      {
+        "label": "btrfs-writable",
+        "raw_qemu_exit": 35,
+        "duration_s": 2.691953800000192,
+        "probe_image_sha256_before": "0f3e5d9631ac9e8747abd7d6744538772620c0d2d9c6c5f40f2ed7e864edac39",
+        "probe_image_sha256_after": "0f3e5d9631ac9e8747abd7d6744538772620c0d2d9c6c5f40f2ed7e864edac39",
+        "serial_sha256": "5ce13e3d1efe478bda5c4ae88baa47dd8073ff1bda293ad28dda41b57891cfcc",
+        "trace_sha256": "23332d3d9f6880bdb15a91d4dfae367939b2826b76e74f440bb4661a3620de62",
+        "trace_write_requests": 0
+      },
+      {
+        "label": "zero-readonly",
+        "raw_qemu_exit": 35,
+        "duration_s": 2.225321600002644,
+        "probe_image_sha256_before": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58",
+        "probe_image_sha256_after": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58",
+        "serial_sha256": "8a42c0029ae46f277bd03e75ddb09f2cfedca878d25feef19bf19be6a2dec8ef",
+        "trace_sha256": "1c595ddaa213cbfa0f58cf1a4a96e5cda69a9e5d6617973f04b622f1d13be8da",
+        "trace_write_requests": 0
+      },
+      {
+        "label": "zero-writable",
+        "raw_qemu_exit": 35,
+        "duration_s": 2.386541200001375,
+        "probe_image_sha256_before": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58",
+        "probe_image_sha256_after": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58",
+        "serial_sha256": "8a42c0029ae46f277bd03e75ddb09f2cfedca878d25feef19bf19be6a2dec8ef",
+        "trace_sha256": "29933becc71c26dcc9ba9d9a66b7359c003c0976712949aa23f9674117b9f163",
+        "trace_write_requests": 0
+      },
+      {
+        "label": "zero-prefix-payload-tail-readonly",
+        "raw_qemu_exit": 35,
+        "duration_s": 2.2411430000065593,
+        "probe_image_sha256_before": "3dd443382e1edb96c2ebcd6d11c0361f249096245afda8df4d43193e8234270b",
+        "probe_image_sha256_after": "3dd443382e1edb96c2ebcd6d11c0361f249096245afda8df4d43193e8234270b",
+        "serial_sha256": "8a42c0029ae46f277bd03e75ddb09f2cfedca878d25feef19bf19be6a2dec8ef",
+        "trace_sha256": "8e35289fd2ece077468841b922ea621aa7ddb9c5127e22742661d5288b6fdcb4",
+        "trace_write_requests": 0
+      },
+      {
+        "label": "zero-prefix-payload-tail-writable",
+        "raw_qemu_exit": 35,
+        "duration_s": 2.259871199996269,
+        "probe_image_sha256_before": "3dd443382e1edb96c2ebcd6d11c0361f249096245afda8df4d43193e8234270b",
+        "probe_image_sha256_after": "3dd443382e1edb96c2ebcd6d11c0361f249096245afda8df4d43193e8234270b",
+        "serial_sha256": "8a42c0029ae46f277bd03e75ddb09f2cfedca878d25feef19bf19be6a2dec8ef",
+        "trace_sha256": "c935d9ae09c4234a8e5d964fa1935c08c352667686d82b0bf7f0686b66fba1a5",
+        "trace_write_requests": 0
+      },
+      {
+        "label": "openzfs-leaf-readonly",
+        "raw_qemu_exit": 35,
+        "duration_s": 2.6597802999967826,
+        "probe_image_sha256_before": "23a409ac5e9a844056d9096ead0453112f1d1e6e45d4b7d5db084a397baea4ea",
+        "probe_image_sha256_after": "23a409ac5e9a844056d9096ead0453112f1d1e6e45d4b7d5db084a397baea4ea",
+        "serial_sha256": "8a42c0029ae46f277bd03e75ddb09f2cfedca878d25feef19bf19be6a2dec8ef",
+        "trace_sha256": "d600f6b6de2ba49101100a28351c405ea8deeac24dae0ba679b0604e60f4d1e1",
+        "trace_write_requests": 0
+      },
+      {
+        "label": "openzfs-leaf-writable",
+        "raw_qemu_exit": 35,
+        "duration_s": 2.5319030999962706,
+        "probe_image_sha256_before": "23a409ac5e9a844056d9096ead0453112f1d1e6e45d4b7d5db084a397baea4ea",
+        "probe_image_sha256_after": "23a409ac5e9a844056d9096ead0453112f1d1e6e45d4b7d5db084a397baea4ea",
+        "serial_sha256": "8a42c0029ae46f277bd03e75ddb09f2cfedca878d25feef19bf19be6a2dec8ef",
+        "trace_sha256": "870a8a27569a914c005d8711b8fc8af340adca7048859c92f95d0c1079065a61",
+        "trace_write_requests": 0
+      }
+    ]
+  },
+  "crash_report": {
+    "path": "/mnt/c/Users/simon/AppData/Local/nieuw-os/copilot-tests/volume-ce02f093/repo/native-crashgate-fetch5/volume-gate.json",
+    "sha256": "41f88c6d4c98989be8cfddfaefa6a71d94e72a6f4a4e8dc8f494d3638a8db70a",
+    "passed": true,
+    "runs": [
+      {
+        "case": "normal",
+        "raw_qemu_exit": 33,
+        "duration_s": 69.18126370000391,
+        "before_sha256": "45e7b67b8940ac5ad287cd46071fcb67db13dcc58d70c956cf0db92ee6732ae6",
+        "after_sha256": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
+        "host_kill": false,
+        "serial_file_sha256": "7b0514b5f352bec7d68195d52ad6a5ab5cbab5ef5959e62e63f35f8ce71cfa09",
+        "stderr_file_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "case": "recover",
+        "raw_qemu_exit": 33,
+        "duration_s": 30.77039550000336,
+        "before_sha256": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
+        "after_sha256": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
+        "host_kill": false,
+        "serial_file_sha256": "1a89bf6160614576b0788be4e6a65ea5b24a0af3c4c49388425127e8e9bf420f",
+        "stderr_file_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "case": "cut-data",
+        "raw_qemu_exit": 1,
+        "duration_s": 3.0711115000012796,
+        "before_sha256": "45e7b67b8940ac5ad287cd46071fcb67db13dcc58d70c956cf0db92ee6732ae6",
+        "after_sha256": "b264a6993a356c84c9f127be93cb9d2b9352910fa658a8a03398b93f0478645a",
+        "host_kill": true,
+        "serial_file_sha256": "143dc3cc133f1539c8f0f0e9c8508f99f4f9c5dd657bbc176640449034711eb5",
+        "stderr_file_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "case": "recover-cut",
+        "raw_qemu_exit": 33,
+        "duration_s": 3.0901096999950823,
+        "before_sha256": "b264a6993a356c84c9f127be93cb9d2b9352910fa658a8a03398b93f0478645a",
+        "after_sha256": "b264a6993a356c84c9f127be93cb9d2b9352910fa658a8a03398b93f0478645a",
+        "host_kill": false,
+        "serial_file_sha256": "0e9b47aa133d614ef8affc70691ea385dfa4083372a67bbaf825787939cc8c8e",
+        "stderr_file_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "case": "cut-table",
+        "raw_qemu_exit": 1,
+        "duration_s": 3.151044500002172,
+        "before_sha256": "45e7b67b8940ac5ad287cd46071fcb67db13dcc58d70c956cf0db92ee6732ae6",
+        "after_sha256": "53616c6d0816f9b78ffbd14c5098340ad0d1edd3c5407b966d4295155f6e97f9",
+        "host_kill": true,
+        "serial_file_sha256": "a93c4c2b70b9afd21448a1255629165b3e7e22226d24013bf375ed283fd1602d",
+        "stderr_file_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "case": "recover-cut",
+        "raw_qemu_exit": 33,
+        "duration_s": 3.078442300000461,
+        "before_sha256": "53616c6d0816f9b78ffbd14c5098340ad0d1edd3c5407b966d4295155f6e97f9",
+        "after_sha256": "53616c6d0816f9b78ffbd14c5098340ad0d1edd3c5407b966d4295155f6e97f9",
+        "host_kill": false,
+        "serial_file_sha256": "b5d8dbf19aa9efdf67bec1cd2d82e65196bf053b2151e25632687c8c8b4cbfe6",
+        "stderr_file_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "case": "cut-txn",
+        "raw_qemu_exit": 1,
+        "duration_s": 2.7963497000018833,
+        "before_sha256": "45e7b67b8940ac5ad287cd46071fcb67db13dcc58d70c956cf0db92ee6732ae6",
+        "after_sha256": "ede3a54c8ed3e3012e68e11152e36eb14445da0e18f5905dc406673e96268b44",
+        "host_kill": true,
+        "serial_file_sha256": "8b35df60ac54b8e020fe487612696b2790545a57838f5d2aea6630b94d143959",
+        "stderr_file_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "case": "recover-cut",
+        "raw_qemu_exit": 33,
+        "duration_s": 2.9974237000060384,
+        "before_sha256": "ede3a54c8ed3e3012e68e11152e36eb14445da0e18f5905dc406673e96268b44",
+        "after_sha256": "ede3a54c8ed3e3012e68e11152e36eb14445da0e18f5905dc406673e96268b44",
+        "host_kill": false,
+        "serial_file_sha256": "bed509af43cebbf1d7faa0b82d769a3d609693a79e8107ae046cfa95bb8c41ff",
+        "stderr_file_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "case": "corrupt",
+        "raw_qemu_exit": 33,
+        "duration_s": 3.297216099999787,
+        "before_sha256": "2e43b6875326217c8506b15c87cd26a2b48e3b61685772f7fb712b1b777dbf82",
+        "after_sha256": "2e43b6875326217c8506b15c87cd26a2b48e3b61685772f7fb712b1b777dbf82",
+        "host_kill": false,
+        "serial_file_sha256": "ff42b27654049b73ada702df64cd5c7b38f2cb5226b3b205dbf1d499c4bc114b",
+        "stderr_file_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  "verification_command": "PYTHONPATH=tools python3 -B /home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/verify-volume-ce02.py",
+  "verification_script_sha256": "2a4cf9e1127ee0e9bd1d79e9c67f91c68483bf5aae9af1b5e1ba56bf8c33d7fb",
+  "verification_script": "import hashlib\nimport json\nfrom pathlib import Path, PureWindowsPath\n\nimport volume_disk\nfrom run_volume import FAILURES, READ_ONLY, check_state, controlled, expected_markers, numbers\nfrom run_volume_admission import CORRUPT, STARTUP_FAILURE\n\n\nROOT = Path(\"/mnt/c/Users/simon/AppData/Local/nieuw-os/copilot-tests/volume-ce02f093/repo\")\nSOURCE = \"2c410004daceb557f5501e58270d5b315744f1a6eb22d44499d45bc31bef41b7\"\nHEAD = \"ce02f093627a2c0b9808461ac821d4ebcd8dbb5f\"\n\n\ndef sha(path):\n    digest = hashlib.sha256()\n    with path.open(\"rb\") as stream:\n        for chunk in iter(lambda: stream.read(1024 * 1024), b\"\"):\n            digest.update(chunk)\n    return digest.hexdigest()\n\n\ndef local(windows):\n    original = PureWindowsPath(windows)\n    assert original.drive.lower() == \"c:\"\n    path = Path(\"/mnt/c\").joinpath(*original.parts[1:])\n    assert path.is_relative_to(ROOT)\n    return path\n\n\nmatrix_path = ROOT / \"native-build-fetch4/volume-admission/matrix.json\"\ngate_path = ROOT / \"native-crashgate-fetch5/volume-gate.json\"\nassert sha(matrix_path) == \"4474ed16520e8edcface5dcbae3371d4412290b1f97afd16b3f8a29c849b3435\"\nassert sha(gate_path) == \"41f88c6d4c98989be8cfddfaefa6a71d94e72a6f4a4e8dc8f494d3638a8db70a\"\nmatrix = json.loads(matrix_path.read_bytes())\ngate = json.loads(gate_path.read_bytes())\nassert matrix[\"passed\"] is True and matrix[\"source_unchanged\"] is True\nassert matrix[\"source\"][\"head\"] == HEAD\nassert matrix[\"source\"][\"source_sha256\"] == gate[\"source_sha256\"] == SOURCE\nassert gate[\"passed\"] is True and gate[\"status\"] == \"completed\"\nassert len(matrix[\"runs\"]) == 10 and len(gate[\"stages\"]) == 9\nassert all(item[\"exit\"] == 0 for item in gate[\"host\"])\nsummary = []\nfor run in matrix[\"runs\"]:\n    assert run[\"passed\"] is True and run[\"source_unchanged\"] is True\n    directory = local(run[\"cwd\"])\n    assert run == json.loads((directory / \"result.json\").read_bytes())\n    assert sha(directory / \"serial.txt\") == run[\"serial_sha256\"]\n    assert sha(directory / \"stderr-trace.txt\") == run[\"trace_sha256\"]\n    assert sha(directory / \"data.img\") == run[\"probe_image_sha256_after\"]\n    assert run[\"source_image_sha256_before\"] == run[\"source_image_sha256_after\"]\n    assert run[\"timed_out\"] is False\n    lines = (directory / \"serial.txt\").read_text().splitlines()\n    if run[\"control\"]:\n        assert run[\"raw_qemu_exit\"] == 33 and run[\"oracle_generation\"] == 84\n        assert volume_disk.analyse((directory / \"data.img\").read_bytes())[\"generation\"] == 84\n    else:\n        assert run[\"raw_qemu_exit\"] == 35 and run[\"trace_write_requests\"] == 0\n        assert run[\"probe_image_sha256_before\"] == run[\"probe_image_sha256_after\"]\n        assert lines.count(CORRUPT) == lines.count(STARTUP_FAILURE) == 1\n        assert not any(line.startswith((\"VOLUME:READY\", \"VOLUME:APP_\", \"VOLUME:CASE:\", \"VOLUME:PASS\", \"M1:PASS\")) for line in lines)\n    summary.append({key: run[key] for key in (\n        \"label\", \"raw_qemu_exit\", \"duration_s\", \"probe_image_sha256_before\",\n        \"probe_image_sha256_after\", \"serial_sha256\", \"trace_sha256\", \"trace_write_requests\"\n    )})\ncrashes = []\nfor stage in gate[\"stages\"]:\n    directory = local(stage[\"run_directory\"])\n    result = json.loads((directory / \"result.json\").read_bytes())\n    assert stage[\"passed\"] is result[\"passed\"] is True\n    assert result[\"source_sha256\"] == SOURCE and result[\"timed_out\"] is False\n    assert sha(directory / \"volume.after.img\") == stage[\"after_sha256\"] == result[\"after_sha256\"]\n    assert (directory / \"serial.txt\").read_bytes() == result[\"stdout\"].replace(\"\\n\", \"\\r\\n\").encode()\n    assert (directory / \"stderr.txt\").read_bytes() == result[\"stderr\"].replace(\"\\n\", \"\\r\\n\").encode()\n    if stage[\"case\"].startswith(\"cut-\"):\n        assert result[\"host_kill\"] is result[\"running_before_kill\"] is True\n        assert result[\"raw_qemu_exit\"] == stage[\"raw_qemu_exit\"] == 1\n    else:\n        assert result[\"host_kill\"] is False and result[\"raw_qemu_exit\"] == 33\n    assert controlled(result[\"stdout\"]) == list(expected_markers(stage[\"case\"]))\n    assert not any(marker in line for line in result[\"stdout\"].splitlines() for marker in FAILURES)\n    assert numbers(result[\"stdout\"]) == result[\"evidence\"]\n    if stage[\"case\"] in READ_ONLY:\n        assert stage[\"before_sha256\"] == stage[\"after_sha256\"]\n    if stage[\"case\"] == \"corrupt\":\n        try:\n            volume_disk.analyse((directory / \"volume.after.img\").read_bytes())\n        except ValueError as error:\n            assert result[\"oracle\"] == {\"refused\": str(error)}\n        else:\n            raise AssertionError(\"Corrupt snapshot was accepted\")\n    else:\n        oracle = volume_disk.analyse((directory / \"volume.after.img\").read_bytes())\n        check_state(stage[\"case\"], oracle, result[\"evidence\"], result[\"parent_case\"])\n    crashes.append({\n        **{key: stage[key] for key in (\"case\", \"raw_qemu_exit\", \"duration_s\", \"before_sha256\", \"after_sha256\")},\n        \"host_kill\": result[\"host_kill\"],\n        \"serial_file_sha256\": sha(directory / \"serial.txt\"),\n        \"stderr_file_sha256\": sha(directory / \"stderr.txt\"),\n    })\nreport = {\n    \"schema_version\": 1,\n    \"date_europe_amsterdam\": \"2026-11-03\",\n    \"frozen_head\": HEAD,\n    \"source_sha256\": SOURCE,\n    \"source_fingerprint_version\": 3,\n    \"matrix_report\": {\"path\": str(matrix_path), \"sha256\": sha(matrix_path), \"passed\": True, \"runs\": summary},\n    \"crash_report\": {\"path\": str(gate_path), \"sha256\": sha(gate_path), \"passed\": True, \"runs\": crashes},\n    \"verification_command\": \"PYTHONPATH=tools python3 -B /home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/verify-volume-ce02.py\",\n    \"verification_script_sha256\": sha(Path(__file__)),\n    \"verification_script\": Path(__file__).read_text(),\n    \"scope\": \"Actual Windows QEMU 10-run admission and 9-run crash/recovery on frozen ce02, not latest combined source. Eight negative RO/RW images remain byte-identical with zero writes. Crash snapshots independently rehashed and disk oracle rerun. Windows serial/stderr files use text-mode CRLF conversion; compared explicitly to the stored process output, not claimed byte-identical to pre-conversion process bytes.\",\n    \"remaining\": [\"Hosted foreign-fixture artifact delivery is still missing.\", \"This frozen result is not a latest-source full regression or physical hardware, foreign filesystem support, production-key or release acceptance.\"],\n    \"progress\": {\"previous\": 41, \"current\": 41, \"new_points\": 0},\n}\nprint(json.dumps(report, indent=2))\n",
+  "scope": "Actual Windows QEMU 10-run admission and 9-run crash/recovery on frozen ce02, not latest combined source. Eight negative RO/RW images remain byte-identical with zero writes. Crash snapshots independently rehashed and disk oracle rerun. Windows serial/stderr files use text-mode CRLF conversion; compared explicitly to the stored process output, not claimed byte-identical to pre-conversion process bytes.",
+  "remaining": [
+    "Hosted foreign-fixture artifact delivery is still missing.",
+    "This frozen result is not a latest-source full regression or physical hardware, foreign filesystem support, production-key or release acceptance."
+  ],
+  "progress": {
+    "previous": 41,
+    "current": 41,
+    "new_points": 0
+  }
+}

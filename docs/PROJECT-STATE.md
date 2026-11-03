@@ -13,10 +13,18 @@ vertrokken APP_A0. Artifact13220607974 daadwerkelijk gedownload; ruwe serial-
 en stderrhashes en volledige peerreplay onafhankelijk gecontroleerd.
 Bewijs: `verification/native-network-combined-acceptance.json`.
 Gecombineerde volledige CI/review/integratie blijft vereist vóór sluiting39/134.
-Volumeverifier-agent blijft bevroren opce02/source2c410004; eerste build
-faalde door ontbrekende offlinechacha20. Alleen bestaande locked dependencies
-worden na die echte miss opgehaald; geen manifests/lockfiles gewijzigd.
-Zijn resultaat geldt niet automatisch voor deze nieuwste sourcefingerprint.
+Volumeverifier heeft de echte **10+9 VM-runs afgerond op bevrorence02/source2c410004**.
+Na de bewaarde offlinechacha20miss waren uitsluitend locked fetches nodig;
+build en10run-matrix slagen: eigen normal/koud raw33/gen84, acht negatieve
+foreign/zero/payload-tail RO/RW raw35, nul writes, identieke schijfhashes.
+Ook9run-crashgate slaagt: normale/koude/herstelfasen raw33; drie echte
+Windowshostkills raw1, host_kill/running_before_kill true. Parent heeft alle19
+log-/snapshothashes en hersteloracles onafhankelijk opnieuw gecontroleerd,
+incl. geweigerde corruptfixture. Windows-crashlogs zijn tekstmodus-CRLF,
+niet als identieke pre-conversion processbytes voorgesteld.
+Bewijs: `verification/native-volume-ce02-independent.json`.
+Dit resultaat geldt niet automatisch voor de nieuwste sourcefingerprint.
+Hosted fixtureartifact/run-ID blijft ontbreken; die gate blijft rood.
 B03-herproefartifact13220271802:18 fasen passed op oudeefaf/source3abcacd2,
 ZIP-SHA256 `2dc90145cd43e87e2c53a931a4f78f662052b382578aea437b4398d38697aaaf`.
 Geen verhulde eerste flushfout of onbewezen rootfix. Score **41 -> 41**.
@@ -39,8 +47,9 @@ Windows-Python/Git/Rust1.90/QEMU/OVMF en eigen-Popen-kill/wait zijn gecontroleer
 Agent07bee9cb-fb9b-493f-ae14-2ec74495c7ed voert de concrete10+9VM-
 volumeacceptatie op deze bevrorenbron uit in eigen wegwerpclone; resultaat
 nog niet ontvangen. Hosted fixtureartifact/run-ID ontbreekt afzonderlijk.
-114-reviewfixes staan op783a48aa, alle16 bekende threads resolved;
-native systeem/window en CodeRabbit liepen bij laatste check nog. Geen merge.
+114-reviewfixes staan op783a48aa, alle16 eerdere threads resolved;
+technische controles groen. CodeRabbit heeft nu vier nieuwe concrete
+bevindingen gepubliceerd (review3nov10:02); eerst lezen/fixen. Geen merge.
 136-lokale auditfix32b7aa0c corrigeert historische L02/A01-bewijslabels;
 live136 is inmiddels d7778195. Fixsessie reconcileert die nieuwe bron eerst
 lokaal; geen blind pushen of scorewijziging.

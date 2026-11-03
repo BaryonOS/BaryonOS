@@ -85,6 +85,14 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Volumetoelating/herstel (3 november 2026), bevroren bron `ce02f093`:
+**41 -> 41**. Werkelijke10+9Windows-QEMU-runs geslaagd; parent heeft alle19
+log-/schijfhashes en hersteloracles onafhankelijk gecontroleerd. Acht
+negatieve RO/RW-runs schrijven niets; echte hostkills blijven raw1, geen
+succes-exit verzonnen. `verification/native-volume-ce02-independent.json`.
+Hosted fixturelevering en nieuwste gecombineerde regressie blijven apart
+open; geen native Btrfs/OpenZFS-ondersteuning of nieuwe punten geclaimd.
+
 Native timeoutontvangst (3 november 2026), geteste bron `6f15ab28`: **41 -> 41**.
 Naast14 hostharnastests/native-target-Clippy is echte QEMU-run41614590388
 groen: normal/client-exit beide raw33, eerste/tailfragmenten en tweemaal
