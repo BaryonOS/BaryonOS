@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "1eeb5af8fff255eaef3714c43a0a933dd0027176",
+    "source_commit": "af00927da73dcdc26007802e612e7ecc2a1c5f40",
     "branch": "copilot/universal-driver-framework",
-    "task": "NIC-MAC via capabilitygebonden netwerkinterface",
+    "task": "VirtIO RNG generieke PCI-discovery en activatie",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. De eerder geteste M5-PCI-scan rapporteert profielgebonden unsupported endpoints; de Mechanism1-construction bypass is gesloten. De capabilitygebonden NIC-MAC-query is geïmplementeerd; 102 Rust-/Python-tests, formatter/Clippy en de native-system-net- en native-net-service-builds slagen op codecommit 1eeb5af. De runtimegate is niet uitgevoerd door ontbrekende QEMU; fysieke hardware is niet getest. Geen nieuw geaccepteerd criterium."
+    "summary": "41/100 blijft 41/100. VirtIO RNG gebruikt nu segment-0-PCI-discovery, registratie-match, gebonden config-space, kernel-owned BAR-grants en factorygestuurde initialisatie; keyring reserveert de DMA-pool pas na discovery. RNG/PCI typechecks, strict Clippy en formattercheck slagen. Hosttests en de kernelprofielcheck zijn door ontbrekende libc_nonshared.a bij host-linking geblokkeerd; tools/build.py en runtime zijn nog niet uitgevoerd. QEMU en fysieke hardware zijn niet getest. Geen nieuw geaccepteerd criterium."
   },
   "tracks": [
     {

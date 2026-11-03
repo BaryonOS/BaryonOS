@@ -55,8 +55,8 @@ initializer; de door discovery gemaakte waarde bewaart hem privé. Na kernel-
 toekenning van bestaande BAR-mappings en DMA-pagina's roept
 `Device::initialize` de geselecteerde factory aan. Familiespecifieke opties
 en de bestaande reset-/quarantainelogica blijven bij de concrete initializer.
-Er wordt geen drivercode geladen, heapobject gemaakt of nieuwe resource-
-extra resource-authority gecreëerd; resources blijven kernel-toekenningen.
+Er wordt geen drivercode dynamisch geladen, heapobject gemaakt of extra
+resource-authority gecreëerd; resources blijven kernel-toekenningen.
 
 `MatchedPciFunction` bindt config-space-toegang aan een opnieuw gevalideerde
 descriptor en `DriverMatch`. Reads en writes naar een ander BDF worden

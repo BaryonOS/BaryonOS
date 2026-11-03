@@ -1,33 +1,16 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — capabilitygebonden NIC-MAC geverifieerd — 3 november 2026
+## NEXT AGENT HANDOFF — VirtIO RNG generieke PCI-start — 3 november 2026
 
-Werkbranch `copilot/universal-driver-framework`; geteste en gepushte
-codecommit `1eeb5af8fff255eaef3714c43a0a933dd0027176`. De vorige
-PCI-mismatchstap staat in de [PCI-receipt](verification/pci-unsupported-report-2026-11-03/README.md).
-PR #153 is open met `CHANGES_REQUESTED`; CI liep deels nog bij de laatste
-controle.
+Werkbranch `copilot/universal-driver-framework`; basis `377446b0c9b8168e2c13c55fc09e373ccefa9d15`; implementatiecommit `af00927da73dcdc26007802e612e7ecc2a1c5f40`. De branch is gepusht en `git ls-remote` bevestigt exact dezelfde remote SHA.
 
-Syscall `0x74` levert precies de MAC van de gematchte NIC aan alleen de
-eigenaar van dezelfde `NetworkSource`, na capability-, exacte-lengte- en
-volledige writable-rangevalidatie. `net-probe` gebruikt de werkelijke MAC,
-houdt een fixturevergelijking en controleert drie nieuwe negatieve gevallen.
-De ring-3-netwerkdienst haalt de MAC dynamisch op. ADR-068 en de netwerkdocs
-leggen de grens vast. De [receipt](verification/nic-mac-capability-2026-11-03/README.md)
-bevat 102 geslaagde Rust-/Python-tests, fmt/Clippy, beide freestanding builds,
-ELF-hashes en logs.
+VirtIO RNG gebruikt nu segment-0-enumeratie, registry-match, een aan de match gebonden PCI-configadapter, kernel-owned BAR-grants en een statisch gekozen initializerfactory. `keyring::prepare` ontdekt eerst en reserveert zonder device geen DMA-pagina's. De bestaande queue, entropy-authority, timeout en reset/quarantaineregels blijven behouden. `kernel/src/m2/m3.rs` is niet gewijzigd; alle codewijzigingen aan maturity-geclaimde `m3.rs` zijn vermeden.
 
-De `native-system-net`- en `native-net-service`-profiles bouwen en inspecteren
-de ELFs; dit is geen runtimebewijs. QEMU ontbreekt, dus de gewijzigde syscall
-en het echte packetpad zijn niet op een VM of hardware uitgevoerd. Score blijft
-**41/100 → 41/100**; er is geen nieuw geaccepteerd criterium.
+**Bewijs op commit `af00927`:** formattercheck, `pci-core`/RNG all-targets-typecheck, RNG `x86_64-unknown-none`-check en strikte Clippy slagen. De hosttestuitvoering stopte met exit 101 omdat `/usr/lib/x86_64-linux-gnu/libc_nonshared.a` ontbreekt. De kernelprofielcheck stopte eveneens vóór kernelcompilatie bij het linken van `os-kernel`'s host-buildscript. Loghashes en exacte commando's staan in [de RNG-PCI-receipt](verification/virtio-rng-pci-2026-11-03/README.md). De volledige `tools/build.py`-profilebuild is nog niet uitgevoerd. QEMU is niet beschikbaar; runtime en fysieke hardware zijn niet getest.
 
-**Eerstvolgend:** migreer de resterende VirtIO-RNG fixed-BDF-start naar dezelfde
-PCI-discovery/matchketen zonder zijn bestaande entropy-authority te verruimen.
-Pak daarnaast de open primaire PCI-bronverwijzingen in review #153 aan.
-Interrupt-/busmaster-/DMA-lifecycle blijft afhankelijk van het maturitybranch-
-contract; ACPI/ECAM, bridges, USB-klassen, NVMe, GOP, QEMU-runtime en fysieke
-hardware blijven open.
+De score blijft **41/100 → 41/100**: code/compilebewijs vervangt geen native driveracceptatie. Interrupt-/DMA/IOMMU-semantiek, geverifieerde quiescence, userspace-driverisolatie en fysieke hardware blijven open.
+
+**Eerstvolgend:** `python3 -B tools/build.py --kernel-feature native-keyring`; rapporteer de uitkomst zonder runtimeclaim. QEMU-proef blijft geblokkeerd zolang `qemu-system-x86_64` ontbreekt.
 
 ### Implementatiestap — segment-0 enumeratie en VirtIO BDF-migratie
 
