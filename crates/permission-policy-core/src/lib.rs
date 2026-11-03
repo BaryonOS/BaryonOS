@@ -1,7 +1,8 @@
 #![no_std]
 #![forbid(unsafe_code)]
 
-//! Persistent user policy is data, never a kernel capability.
+//! Persistent user policy is data, never a kernel capability. This codec does
+//! not authenticate bytes; callers must trust the storage source before use.
 
 pub const MAX_RULES: usize = 64;
 const MAGIC: [u8; 8] = *b"NOSPOL01";
