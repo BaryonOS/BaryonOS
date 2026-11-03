@@ -2,13 +2,19 @@
 
 ## NEXT AGENT HANDOFF — Driver Core: PCI type-0 validatie — 3 november 2026
 
-Werkbranch `copilot/universal-driver-framework`; vorige gepushte bron
-`ca2cbcf78a43bcc62ff32bd62836f881401227d5`. Eerste implementatiestap staat
+Werkbranch `copilot/universal-driver-framework`; actuele gepushte bron
+`9e1721e49e5898573579ffea8107045ad1fb4f8c`. Eerste implementatiestap staat
 op die branch; deze vervolgdelta voegt een veilige type-0-configsnapshotdecoder
 toe en laat de bestaande fixed-BDF VirtIO-probes hun snapshot vóór en na
 BAR-probing aan de eigen fail-closed registry toetsen. Root-CI bevat nu ook
 `driver-core`-tests en Clippy. Geen algemene busenumeratie, driverstart,
 resourcegrant of capabilityverruiming.
+
+Bestaande PR #153 is open tegen `main`
+(`5c66ec57aaf8eb411a83b8d6e42320ddc379383c`), maar GitHub rapporteert
+`CONFLICTING`; er zijn geen CI-checks zichtbaar. Agent Merge-run
+`41644279989` slaagde op oudere SHA `ca2cbcf7` en valideert dus niet de huidige
+bron. Niet gemerged.
 
 **Bewijs:** fmt-check, `cargo check --tests`, Clippy `-D warnings` en
 `x86_64-unknown-none` releasebuild exit 0. De volledige commando's, logs en

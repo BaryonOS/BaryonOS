@@ -128,7 +128,7 @@ nieuw criteriumbewijs. Exacte grenzen staan in
 [`docs/drivers`](drivers/DRIVER-ARCHITECTURE.md).
 
 PCI type-0-validatie en eerste vaste-probe-integratie (3 november 2026),
-assessmentbasis `ca2cbcf7`, branch `copilot/universal-driver-framework`:
+assessmentbasis `9e1721e4`, branch `copilot/universal-driver-framework`:
 **41 -> 41**. Een vaste type-0 PCI-configsnapshot wordt in de safe core
 gedecodeerd; de bestaande block/net fixed-BDF probes toetsen de identiteit
 fail-closed aan hun registratie vóór en na BAR-probing. Root-CI test en lint

@@ -61,7 +61,7 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`ca2cbcf7`](https://github.com/simonvanieperen/nieuw-os/commit/ca2cbcf78a43bcc62ff32bd62836f881401227d5) ·
+**Bron:** [`9e1721e4`](https://github.com/simonvanieperen/nieuw-os/commit/9e1721e49e5898573579ffea8107045ad1fb4f8c) ·
 **Ontwikkelbranch:** `copilot/universal-driver-framework`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Type-0 PCI-descriptor en fixed-probe registry-integratie.
 41/100 blijft 41/100. De dependencyvrije no_std driver-core decodeert vaste 256-byte conventionele type-0 PCI snapshots en weigert afwezige functies, ongeldige BDF's en andere header types. Bestaande VirtIO block/net fixed-BDF probes valideren de decoded identity via hun registry vóór en na BAR-probing; kernel-owned discovery, resourcegrants, driverstart en capabilitygrenzen zijn niet gewijzigd. Root CI neemt driver-core nu mee in hosttests en Clippy. Directe fmt-check, cargo check --tests, Clippy -D warnings en x86_64-unknown-none releasebuild slaagden. Hosttests konden niet linken (cc ontbreekt); preflight/QEMU native run blokkeert op ontbrekende lokale omgeving. Geen nieuw hardwareacceptatiebewijs.
