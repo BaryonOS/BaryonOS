@@ -1,0 +1,270 @@
+{
+  "assessed_at": "2026-11-03T16:13:05.876784+01:00",
+  "base_commit": "8389a7924323b9564667996c6c95d83d91106754",
+  "tested_commit": "eb94683895cf69ea3a6cb3e3f88c228154b6d921",
+  "branch": "simonvanieperen-vigilant-robot",
+  "source": "crates/permission-policy-core/src/lib.rs",
+  "source_sha256": "0a1d11000fda842c95453ab2f0046516e709ca2027d038d305772a7ac566ceb5",
+  "red_source_sha256": "00b5614c46073fb669c13292ddb15505489beaefe199cefa0f31ab29dfac8f37",
+  "red_source_reconstructed_from_saved_patch": true,
+  "red_command": "cargo +1.90.0 test --offline --locked -p permission-policy-core regression_",
+  "red_exit_status": 101,
+  "red_tests_failed": 6,
+  "red_existing_tests_filtered_out": 5,
+  "red_wall_seconds": null,
+  "toolchain_restore_reason": "Initial test failed with missing cc; forbidden temporary installation not accessed. Restore local GCC/libc only after missing-tool failure.",
+  "toolchain_packages": [
+    {
+      "file": "cpp-15-x86-64-linux-gnu_15.2.0-16ubuntu1_amd64.deb",
+      "fields": [
+        "Package: cpp-15-x86-64-linux-gnu",
+        "Version: 15.2.0-16ubuntu1",
+        "Architecture: amd64"
+      ],
+      "sha256": "1649aa71c45b047feda5b9ca303c94799bdba5befa5c9de9735cbfc59c3ef93f"
+    },
+    {
+      "file": "gcc-15-x86-64-linux-gnu_15.2.0-16ubuntu1_amd64.deb",
+      "fields": [
+        "Package: gcc-15-x86-64-linux-gnu",
+        "Version: 15.2.0-16ubuntu1",
+        "Architecture: amd64"
+      ],
+      "sha256": "df0e5375c9e981b18e396c2e9ec1e359f226576a9b94a311bf07603f3ca6023a"
+    },
+    {
+      "file": "libc-dev-bin_2.43-2ubuntu2.4_amd64.deb",
+      "fields": [
+        "Package: libc-dev-bin",
+        "Version: 2.43-2ubuntu2.4",
+        "Architecture: amd64"
+      ],
+      "sha256": "515a2f156a94b7467842409f9bd9db1330b136f44a1791ed747f0708fb1a7227"
+    },
+    {
+      "file": "libc6-dev_2.43-2ubuntu2.4_amd64.deb",
+      "fields": [
+        "Package: libc6-dev",
+        "Version: 2.43-2ubuntu2.4",
+        "Architecture: amd64"
+      ],
+      "sha256": "17bb816a65a25c3416854eef7e9cc6d9a3761f45bad0d44e49bc676b7bab1769"
+    },
+    {
+      "file": "libc6_2.43-2ubuntu2.4_amd64.deb",
+      "fields": [
+        "Package: libc6",
+        "Version: 2.43-2ubuntu2.4",
+        "Architecture: amd64"
+      ],
+      "sha256": "a613b457f3ff9c84ebd28af8a05afdec22605ad9aed87c71e3a6ae5170aeb9ca"
+    },
+    {
+      "file": "libgcc-15-dev_15.2.0-16ubuntu1_amd64.deb",
+      "fields": [
+        "Package: libgcc-15-dev",
+        "Version: 15.2.0-16ubuntu1",
+        "Architecture: amd64"
+      ],
+      "sha256": "32fa5bde1891f46fd4f422e466c863fb78e834b634e1aa08211c8eea68870af5"
+    },
+    {
+      "file": "libgcc-s1_16-20260322-1ubuntu1_amd64.deb",
+      "fields": [
+        "Package: libgcc-s1",
+        "Version: 16-20260322-1ubuntu1",
+        "Architecture: amd64"
+      ],
+      "sha256": "2fb4d81c14fdf34251639ae82f5181f9f98480ea16125d535571ac1be9db3065"
+    }
+  ],
+  "commands": [
+    {
+      "name": "directed",
+      "command": "cargo +1.90.0 test --offline --locked -p permission-policy-core",
+      "exit_status": 0,
+      "seconds": 0.373,
+      "log": "target/policy-authorization-review/directed.log",
+      "sha256": "1b7d4e7c85b9aea946173a2c0162561eb3f27b2685926798e9253bbe1e64895c",
+      "persisted_log": "docs/verification/permission-policy-authorization-20261103/directed.log"
+    },
+    {
+      "name": "fmt",
+      "command": "cargo +1.90.0 fmt -p permission-policy-core -- --check",
+      "exit_status": 0,
+      "seconds": 0.047,
+      "log": "target/policy-authorization-review/fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "persisted_log": "docs/verification/permission-policy-authorization-20261103/fmt.log"
+    },
+    {
+      "name": "clippy",
+      "command": "cargo +1.90.0 clippy --offline --locked -p permission-policy-core --all-targets -- -D warnings",
+      "exit_status": 0,
+      "seconds": 0.195,
+      "log": "target/policy-authorization-review/clippy.log",
+      "sha256": "277734ab98ce8ce71c43bfc472eeeaae9228e6366267bcc63db667b0ac302451",
+      "persisted_log": "docs/verification/permission-policy-authorization-20261103/clippy.log"
+    },
+    {
+      "name": "target",
+      "command": "cargo +1.90.0 check --offline --locked -p permission-policy-core -p capability-core -p kernel-core -p platform-profile-core --target x86_64-unknown-none",
+      "exit_status": 0,
+      "seconds": 0.255,
+      "log": "target/policy-authorization-review/target.log",
+      "sha256": "6c5b4eb5a362727274b070223628671945f7e326028f2f158544dd4910db2dd5",
+      "persisted_log": "docs/verification/permission-policy-authorization-20261103/target.log"
+    },
+    {
+      "name": "diff",
+      "command": "git diff --check",
+      "exit_status": 0,
+      "seconds": 0.006,
+      "log": "target/policy-authorization-review/diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "persisted_log": "docs/verification/permission-policy-authorization-20261103/diff.log"
+    },
+    {
+      "name": "workspace-tests",
+      "command": "cargo +1.90.0 test --offline --locked --workspace --exclude os-loader --exclude os-kernel",
+      "exit_status": 101,
+      "seconds": 31.737,
+      "log": "target/policy-authorization-review/workspace-tests.log",
+      "sha256": "f549e70d7a5d883c65b37b97ca2166e49db3779340e0d95cddfb2ae66862c86a",
+      "persisted_log": null
+    },
+    {
+      "name": "workspace-clippy",
+      "command": "cargo +1.90.0 clippy --offline --locked --workspace --exclude os-loader --exclude os-kernel --all-targets -- -D warnings",
+      "exit_status": 0,
+      "seconds": 2.729,
+      "log": "target/policy-authorization-review/workspace-clippy.log",
+      "sha256": "4e6b608793cb2c95e11d92badc08e6e86b43db22b5252b3c13a0cf9636922fbb",
+      "persisted_log": "docs/verification/permission-policy-authorization-20261103/workspace-clippy.log"
+    },
+    {
+      "name": "workspace-check",
+      "command": "cargo +1.90.0 check --offline --locked --workspace --exclude os-loader --exclude os-kernel --all-targets",
+      "exit_status": 0,
+      "seconds": 0.782,
+      "log": "target/policy-authorization-review/workspace-check.log",
+      "sha256": "092856fa29b1d744104c65a19c07059acde3166147302d175e1e3003821c5427",
+      "persisted_log": "docs/verification/permission-policy-authorization-20261103/workspace-check.log"
+    },
+    {
+      "name": "workspace-tests-final",
+      "command": "cargo +1.90.0 test --offline --locked --workspace --exclude os-loader --exclude os-kernel",
+      "exit_status": 0,
+      "seconds": 27.813,
+      "log": "target/policy-authorization-review/workspace-tests-final.log",
+      "environment_change": "RUSTDOCFLAGS uses same sysroot as RUSTFLAGS",
+      "sha256": "49e411945e31746c2c865b89a0dea94fbd0dda1381cea88957d5c979f7ac1bb6",
+      "persisted_log": "docs/verification/permission-policy-authorization-20261103/workspace-tests-final.log"
+    }
+  ],
+  "workspace_final": {
+    "passed": 444,
+    "failed": 0,
+    "ignored": 1
+  },
+  "scope_boundary": "No UI/shared progress writes, no merge/rebase/thread resolution. Host tests and no_std cross-check only.",
+  "not_run": [
+    "native/QEMU runtime",
+    "physical hardware",
+    "complete CI",
+    "human security audit"
+  ],
+  "proposed_progress": {
+    "before": 41,
+    "after": 41,
+    "K04": "unchanged",
+    "B05": "open",
+    "B06": "open"
+  },
+  "files": [
+    {
+      "path": "docs/verification/permission-policy-authorization-20261103/README.md",
+      "sha256": "8e393d9552001dac984801765806c77f05fd3aaaccd768b38aa6fb7207a69897"
+    },
+    {
+      "path": "docs/verification/permission-policy-authorization-20261103/clippy.log",
+      "sha256": "277734ab98ce8ce71c43bfc472eeeaae9228e6366267bcc63db667b0ac302451"
+    },
+    {
+      "path": "docs/verification/permission-policy-authorization-20261103/diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/permission-policy-authorization-20261103/directed-results.json",
+      "sha256": "4f05f14aeb7438e9176ec7681bf8ceb639989e9c23ea75fa0d3ca558ea237b0e"
+    },
+    {
+      "path": "docs/verification/permission-policy-authorization-20261103/directed.log",
+      "sha256": "1b7d4e7c85b9aea946173a2c0162561eb3f27b2685926798e9253bbe1e64895c"
+    },
+    {
+      "path": "docs/verification/permission-policy-authorization-20261103/divergence-after.json",
+      "sha256": "20c0c4ab966917c1f7996455691d69573bdff94ccbc94cdd912ccc3f512b5e4a"
+    },
+    {
+      "path": "docs/verification/permission-policy-authorization-20261103/env.sh",
+      "sha256": "00864405cd6bf073d41264f609cf18e62c7b8c5120caf1133979e46e6465ac93"
+    },
+    {
+      "path": "docs/verification/permission-policy-authorization-20261103/fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/permission-policy-authorization-20261103/green-source.sha256",
+      "sha256": "e76771796db96d8baf0e23f2c0914070b195b719cd65139aaf4bb4ab0cf30a66"
+    },
+    {
+      "path": "docs/verification/permission-policy-authorization-20261103/pr-after.json",
+      "sha256": "607aa95e38e2cee153f5c1bb990a0fcd9ff7ea2e59447b084d5004aa014bfd61"
+    },
+    {
+      "path": "docs/verification/permission-policy-authorization-20261103/pr-threads-after.json",
+      "sha256": "273215ccf5d29c8410720e35ad45e27392bf806cfd7e9891655a49882b73dded"
+    },
+    {
+      "path": "docs/verification/permission-policy-authorization-20261103/red-first-attempt.log",
+      "sha256": "6b92de3a6c028a84b8e83e315e965edeb35e11bec8c8e2602757eef29aa2d7e1"
+    },
+    {
+      "path": "docs/verification/permission-policy-authorization-20261103/red-source.sha256",
+      "sha256": "dcd7991c2ead332e4904d7da1d77b69aed0d096d2b74cc0a33c9adc1e5cb637a"
+    },
+    {
+      "path": "docs/verification/permission-policy-authorization-20261103/red.log",
+      "sha256": "633de7e5c4697f493a08e40216fef8d35040a2cd26cfcd9bf76c7e4c00f4a7b8"
+    },
+    {
+      "path": "docs/verification/permission-policy-authorization-20261103/target.log",
+      "sha256": "6c5b4eb5a362727274b070223628671945f7e326028f2f158544dd4910db2dd5"
+    },
+    {
+      "path": "docs/verification/permission-policy-authorization-20261103/tests-only.patch",
+      "sha256": "27cedc1f4dbcbd8fb229a60089a3734ede0235144e3dbcd993b935b9627220b5"
+    },
+    {
+      "path": "docs/verification/permission-policy-authorization-20261103/workspace-check.log",
+      "sha256": "092856fa29b1d744104c65a19c07059acde3166147302d175e1e3003821c5427"
+    },
+    {
+      "path": "docs/verification/permission-policy-authorization-20261103/workspace-clippy.log",
+      "sha256": "4e6b608793cb2c95e11d92badc08e6e86b43db22b5252b3c13a0cf9636922fbb"
+    },
+    {
+      "path": "docs/verification/permission-policy-authorization-20261103/workspace-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/permission-policy-authorization-20261103/workspace-tests-final.log",
+      "sha256": "49e411945e31746c2c865b89a0dea94fbd0dda1381cea88957d5c979f7ac1bb6"
+    },
+    {
+      "path": "docs/verification/permission-policy-authorization-20261103/workspace-tests-first-failure.txt",
+      "sha256": "10b73256d8673549620bf090231814c6dff597866295926141ca25dfc71d5c4f"
+    }
+  ]
+}

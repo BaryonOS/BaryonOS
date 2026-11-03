@@ -1,0 +1,36 @@
+Bounded excerpt of initial workspace run; full log hash is in receipt.json.
+error: linking with `/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-robot/target/policy-authorization-review/toolchain/root/usr/bin/x86_64-linux-gnu-gcc-15` failed: exit status: 1
+  |
+  = note:  "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-robot/target/policy-authorization-review/toolchain/root/usr/bin/x86_64-linux-gnu-gcc-15" "-m64" "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-robot/target/policy-authorization-review/scratch/rustc4jMuqf/symbols.o" "<2 object files omitted>" "-Wl,--as-needed" "-Wl,-Bstatic" "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-robot/target/policy-authorization-review/build/debug/deps/{libhex_literal-58dfd93ca1c587e3,libsha2-73b80e762b3d54ac,libcpufeatures-478097dd18536bcd,libcfg_if-8dc0d8a8eaff4e15,libhkdf-fc1a91be7aa39916,libhmac-9dc73dd373f13395,libdigest-d0847b67a00a3df1,libcrypto_common-a1d853bd13a72b57,libblock_buffer-ee6381d222661aa6,libhybrid_array-135953d0f8f9214b,libctutils-766668e9c160e1f9,libcmov-5215abedcc5c8653,libtypenum-2960018011c0fcc6,libzeroize-52c3d45c6ba2a397}.rlib" "<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/lib/{libstd-*,libpanic_unwind-*,libobject-*,libmemchr-*,libaddr2line-*,libgimli-*,librustc_demangle-*,libstd_detect-*,libhashbrown-*,librustc_std_workspace_alloc-*,libminiz_oxide-*,libadler2-*,libunwind-*,libcfg_if-*,liblibc-*,librustc_std_workspace_core-*,liballoc-*,libcore-*,libcompiler_builtins-*}.rlib" "-Wl,-Bdynamic" "-lgcc_s" "-lutil" "-lrt" "-lpthread" "-lm" "-ldl" "-lc" "-L" "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-robot/target/policy-authorization-review/scratch/rustc4jMuqf/raw-dylibs" "-Wl,--eh-frame-hdr" "-Wl,-z,noexecstack" "-L" "<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/lib" "-o" "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-robot/target/policy-authorization-review/scratch/rustdoctestUeVwmj/rust_out" "-Wl,--gc-sections" "-pie" "-Wl,-z,relro,-z,now" "-nodefaultlibs"
+  = note: some arguments are omitted. use `--verbose` to show all linker arguments
+  = note: /usr/bin/x86_64-linux-gnu-ld.bfd: cannot find /usr/lib/x86_64-linux-gnu/libc_nonshared.a: No such file or directory
+          collect2: error: ld returned 1 exit status
+          
+
+error: aborting due to 1 previous error
+
+Couldn't compile the test.
+---- services/keyring/vendor/hkdf-0.13.0/src/../README.md - (line 16) stdout ----
+error: linking with `/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-robot/target/policy-authorization-review/toolchain/root/usr/bin/x86_64-linux-gnu-gcc-15` failed: exit status: 1
+  |
+  = note:  "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-robot/target/policy-authorization-review/toolchain/root/usr/bin/x86_64-linux-gnu-gcc-15" "-m64" "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-robot/target/policy-authorization-review/scratch/rustcRnRSpf/symbols.o" "<2 object files omitted>" "-Wl,--as-needed" "-Wl,-Bstatic" "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-robot/target/policy-authorization-review/build/debug/deps/{libhex_literal-58dfd93ca1c587e3,libsha2-73b80e762b3d54ac,libcpufeatures-478097dd18536bcd,libcfg_if-8dc0d8a8eaff4e15,libhkdf-fc1a91be7aa39916,libhmac-9dc73dd373f13395,libdigest-d0847b67a00a3df1,libcrypto_common-a1d853bd13a72b57,libblock_buffer-ee6381d222661aa6,libhybrid_array-135953d0f8f9214b,libctutils-766668e9c160e1f9,libcmov-5215abedcc5c8653,libtypenum-2960018011c0fcc6,libzeroize-52c3d45c6ba2a397}.rlib" "<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/lib/{libstd-*,libpanic_unwind-*,libobject-*,libmemchr-*,libaddr2line-*,libgimli-*,librustc_demangle-*,libstd_detect-*,libhashbrown-*,librustc_std_workspace_alloc-*,libminiz_oxide-*,libadler2-*,libunwind-*,libcfg_if-*,liblibc-*,librustc_std_workspace_core-*,liballoc-*,libcore-*,libcompiler_builtins-*}.rlib" "-Wl,-Bdynamic" "-lgcc_s" "-lutil" "-lrt" "-lpthread" "-lm" "-ldl" "-lc" "-L" "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-robot/target/policy-authorization-review/sc
+...
+onvanieperen-vigilant-robot/target/policy-authorization-review/scratch/rustcZC3H9L/raw-dylibs" "-Wl,--eh-frame-hdr" "-Wl,-z,noexecstack" "-L" "<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/lib" "-o" "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-robot/target/policy-authorization-review/scratch/rustdoctest1s3dXr/rust_out" "-Wl,--gc-sections" "-pie" "-Wl,-z,relro,-z,now" "-nodefaultlibs"
+  = note: some arguments are omitted. use `--verbose` to show all linker arguments
+  = note: /usr/bin/x86_64-linux-gnu-ld.bfd: cannot find /usr/lib/x86_64-linux-gnu/libc_nonshared.a: No such file or directory
+          collect2: error: ld returned 1 exit status
+          
+
+error: aborting due to 1 previous error
+
+Couldn't compile the test.
+
+failures:
+    services/keyring/vendor/hkdf-0.13.0/src/../README.md - (line 16)
+    services/keyring/vendor/hkdf-0.13.0/src/../README.md - (line 40)
+    services/keyring/vendor/hkdf-0.13.0/src/../README.md - (line 62)
+
+test result: FAILED. 0 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s
+
+all doctests ran in 0.56s; merged doctests compilation took 0.30s
+error: doctest failed, to rerun pass `-p hkdf --doc`

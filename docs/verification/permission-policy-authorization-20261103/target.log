@@ -1,0 +1,6 @@
+    Checking boot-protocol v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-robot/crates/boot-protocol)
+    Checking kernel-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-robot/crates/kernel-core)
+    Checking capability-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-robot/crates/capability-core)
+    Checking permission-policy-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-robot/crates/permission-policy-core)
+    Checking platform-profile-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-robot/crates/platform-profile-core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.24s
