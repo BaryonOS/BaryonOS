@@ -1,6 +1,6 @@
-use nieuw_os_document_session::volume::ListEntry;
+use nieuw_os_document_session::volume::{Error as StorageError, ListEntry};
 use nieuw_os_materiaal::{
-    controller::{Focus, Screen, Status, View},
+    controller::{Error as UiError, Focus, Screen, Status, View},
     design,
     desktop::{Desktop, Page, Target},
     render::{Frame, Role, SemanticId, SemanticNode},
@@ -110,6 +110,71 @@ fn image(frame: &Frame<'_>, width: u32, height: u32) -> Vec<u32> {
         }
     }
     pixels
+}
+
+#[test]
+fn compact_home_status_text_stays_inside_card() {
+    let mut desktop = Desktop::new();
+    desktop.activate(Target::Guest);
+    desktop.activate(Target::Submit);
+    for (width, height, scale) in [(320, 240, Scale::Percent100), (640, 480, Scale::Percent200)] {
+        let viewport = Viewport::new(width, height, scale, 1).unwrap();
+        let card = desktop
+            .controls(viewport)
+            .into_iter()
+            .flatten()
+            .find(|(target, _, _)| *target == Target::Material)
+            .unwrap()
+            .1;
+        let mut baseline_view = view(viewport, &[]);
+        baseline_view.desktop = Some(&desktop);
+        baseline_view.list_loaded = false;
+        let baseline = image(&Frame::new(baseline_view), width, height);
+        let factor = scale.factor();
+        for status in [
+            Status::Ready,
+            Status::Failed(UiError::Storage(StorageError::Busy)),
+            Status::Failed(UiError::NoFreeObject),
+            Status::Failed(UiError::InvalidInput),
+        ] {
+            let mut state_view = baseline_view;
+            state_view.list_loaded = true;
+            state_view.status = status;
+            let rendered = image(&Frame::new(state_view), width, height);
+            assert!(rendered != baseline, "{status:?} must differ from unloaded");
+            for (at, (before, after)) in baseline.iter().zip(&rendered).enumerate() {
+                if before != after {
+                    let x = at as u32 % width;
+                    let y = at as u32 / width;
+                    assert!(
+                        x >= card.x * factor
+                            && x < (card.x + card.width) * factor
+                            && y >= card.y * factor
+                            && y < (card.y + card.height) * factor,
+                        "{status:?} changed a pixel outside the card at {x},{y}"
+                    );
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn compact_home_distinguishes_storage_from_other_failures() {
+    let mut desktop = Desktop::new();
+    desktop.activate(Target::Guest);
+    desktop.activate(Target::Submit);
+    let viewport = Viewport::new(320, 240, Scale::Percent100, 1).unwrap();
+    let mut home_view = view(viewport, &[]);
+    home_view.desktop = Some(&desktop);
+    home_view.status = Status::Failed(UiError::Storage(StorageError::Busy));
+    let storage = image(&Frame::new(home_view), 320, 240);
+    home_view.status = Status::Failed(UiError::NoFreeObject);
+    let no_space = image(&Frame::new(home_view), 320, 240);
+    assert!(
+        storage != no_space,
+        "non-storage failure must not report a storage fault"
+    );
 }
 
 #[test]

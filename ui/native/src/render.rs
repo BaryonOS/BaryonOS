@@ -1655,19 +1655,23 @@ impl Paint<'_> {
                                 r.width.saturating_sub(if compact { 128 } else { 48 });
                             let message = if matches!(view.status, Status::Failed(_)) {
                                 Some(if compact {
-                                    "Opslag niet beschikbaar"
+                                    match view.status {
+                                        Status::Failed(UiError::Storage(_)) => "Opslagfout",
+                                        Status::Failed(UiError::NoFreeObject) => "Geen ruimte",
+                                        _ => "Mislukt.",
+                                    }
                                 } else {
                                     status_label(view.status)
                                 })
                             } else if view.list_loaded && view.objects.is_empty() {
                                 Some(if compact {
-                                    "Nog geen documenten"
+                                    "Nog leeg"
                                 } else {
                                     "Nog geen documenten. Maak je eerste in Materiaal."
                                 })
                             } else if !view.list_loaded {
                                 Some(if compact {
-                                    "Open om te laden"
+                                    "Open app"
                                 } else {
                                     "Open Materiaal om je bibliotheek te laden."
                                 })
