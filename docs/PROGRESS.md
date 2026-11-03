@@ -141,6 +141,16 @@ profielbuilds zijn exit 0. Geen QEMU/runtime- of fysieke hardwareproef, dus
 geen nieuw criterium geaccepteerd. Zie de
 [BAR-grant-receipt](verification/pci-bar-grants-2026-11-03/README.md).
 
+Factorygekoppelde PCI-matches (3 november 2026), bron
+`43da75947cb5b147c1435a81547a22b3cebfb04a`, branch
+`copilot/universal-driver-framework`: **41 -> 41**. `DriverRegistry` geeft
+naast de fail-closed match de concrete statisch geregistreerde initializer
+terug. De bestaande block-/netwerkinitializers worden via die factory
+aangeroepen na de bestaande kernelresource-toekenning. 28 gerichte hosttests,
+Clippy, fmt en diff-check slagen. Kernelprofielbuilds en runtime/hardware zijn
+niet uitgevoerd; geen nieuw criterium geaccepteerd. Zie de
+[factoryreceipt](verification/driver-factory-2026-11-03/README.md).
+
 Driver-/repositoryonderzoek (3 november 2026), basis `99d13276`:
 **41 -> 41**. Ginux `c86945b`, VibeOS `866bfb9` en vib-OS `73b6429`
 vergeleken met de bestaande Nieuw OS-drivercontracten en primaire Linux-,

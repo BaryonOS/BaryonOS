@@ -1,29 +1,30 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — devicegebonden PCI BAR-grants — 3 november 2026
+## NEXT AGENT HANDOFF — factorygekoppelde PCI-matches — 3 november 2026
 
 Werkbranch `copilot/universal-driver-framework`, implementatiecommit
-`b67f8739b48378bd30e57bbb97d86de109fa9b95`; remote branch en PR #153 head
+`43da75947cb5b147c1435a81547a22b3cebfb04a`; remote branch en PR #153 head
 zijn gecontroleerd op dezelfde SHA. Segment-0-enumerator en VirtIO-selectie
 zonder vaste BDF staan op `9984b180`; config-space is aan de gevalideerde
 descriptor/registrymatch gebonden.
 
-**Nieuw:** `MatchedPciFunction` maakt niet publiek construeerbare
-`PciBarGrant`-waarden met deviceadres, driver-ID, BAR-index en begrensde range.
-BAR-probing houdt I/O-decode, memory-decode en bus mastering uit; de kernel
-mapt alleen volledige pagina's binnen een grant. Block en netwerk gebruiken
-dezelfde route in alle zes opslagprofielen plus `native-system-net`.
-[Tests, buildstatussen en loghashes](verification/pci-bar-grants-2026-11-03/README.md).
-25 hosttests, Clippy, fmt en zeven profielbuilds zijn exit 0. Geen QEMU/runtime-
-of fysieke hardwaretest. Geen voortgangspunt; score **41/100 → 41/100**.
+**Nieuw:** `DriverRegistry` kan match metadata aan een statische initializer
+koppelen. VirtIO block/net halen hun initializer uit de unieke registrymatch
+en roepen die aan via hun bestaande `Device::initialize`-ingang, nadat de
+kernel resources heeft aangeleverd. De per-driver BAR-grants blijven actief.
+[Gerichte testreceipt](verification/driver-factory-2026-11-03/README.md):
+28 hosttests, Clippy, fmt en `git diff --check` exit 0. Kernelprofielbuilds
+volgen nog; geen QEMU/runtime- of fysieke hardwaretest. Geen nieuw
+voortgangspunt; score **41/100 → 41/100**.
 
-**Open/eerstvolgend:** concrete factorygestuurde driveractivatie, daarna
-interrupt-/busmaster-/DMA-resource lifecycle in afstemming met de
-maturitybranch. De BAR-grant geldt nog niet voor virtio-rng; de drivers draaien
-nog in kernelcontext en zijn niet geïsoleerd. Meerdere instanties,
+**Open/eerstvolgend:** de profielbuilds voor deze activatie, daarna een
+gedeelde heterogene registry en interrupt-/busmaster-/DMA-resource lifecycle
+in afstemming met de maturitybranch. De families
+hebben nog verschillende factory-ABI's; drivers blijven in kernelcontext.
+BAR-grants gelden niet voor virtio-rng. Meerdere instanties,
 ACPI-roottopologie/ECAM, bridges, USB-klassen, NVMe, GOP en
-unsupported-hardwarerapportage zijn niet gerealiseerd. Eerste inspectiecommando:
-`rg -n "DriverRegistry|discover\\(|Device::initialize" kernel/src/m2/m3 drivers/virtio-blk drivers/virtio-net`.
+unsupported-hardwarerapportage zijn niet gerealiseerd. Eerstvolgende commando:
+`python3 -B tools/build.py --kernel-feature milestone-m5`.
 
 ### Implementatiestap — segment-0 enumeratie en VirtIO BDF-migratie
 
@@ -86,8 +87,28 @@ Op exact deze bron slagen 25 gerichte hosttests, Clippy met `-D warnings`,
 --image-version 1` en `native-system-net`, alle exit 0.
 [Volledige receipt](verification/pci-bar-grants-2026-11-03/README.md).
 QEMU-runtime en fysiek hardware zijn niet getest; het resultaat is geen
-hardwareacceptatie. De virtio-rng-route, IRQ/DMA-broker en factoryactivatie
-blijven open.
+hardwareacceptatie. De virtio-rng-route, IRQ/DMA-broker en familie-
+overstijgende factoryregistry blijven open.
+
+### Implementatiestap — factorygekoppelde PCI-matches
+
+Commit `43da75947cb5b147c1435a81547a22b3cebfb04a`, gepusht; remote branch en
+PR #153 head komen exact overeen. De vaste `no_std`-registry biedt
+`register_with_factory` en `best_match_with_factory`, zonder allocatie of
+drivercode te laden. VirtIO block en netwerk koppelen hun registrymatch aan
+een privé gehouden statische initializerfunctie. Hun bestaande
+`Device::initialize`-ingang dispatcht via die factory nadat de kernel de
+devicegebonden BAR-mappings en de bestaande DMA-pool heeft aangeleverd. De
+concrete initializers behouden hun identiteits-, pool-, reset- en
+quarantaineregels.
+
+11 core-, 1 block- en 16 netwerkhosttests, Clippy met `-D warnings`,
+`cargo fmt --all -- --check` en `git diff --check` slagen; de exacte
+commando's en hashes staan in de
+[factoryreceipt](verification/driver-factory-2026-11-03/README.md).
+Kernelprofielbuilds op deze code moeten nog worden uitgevoerd. Geen
+QEMU-runtime- of fysieke hardwareproef. Dit is nog geen centrale heterogene
+registry of driverisolatie.
 
 ### Gepauzeerd werk — PR139 exacte contracttestreceipt
 

@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`b67f8739`](https://github.com/simonvanieperen/nieuw-os/commit/b67f8739b48378bd30e57bbb97d86de109fa9b95) ·
+**Bron:** [`43da7594`](https://github.com/simonvanieperen/nieuw-os/commit/43da75947cb5b147c1435a81547a22b3cebfb04a) ·
 **Ontwikkelbranch:** `copilot/universal-driver-framework`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Devicegebonden PCI BAR-grants voor VirtIO block en netwerk.
-41/100 blijft 41/100. Devicegebonden PciBarGrant en gecontroleerde BAR/MMIO-mapping zijn voor VirtIO block/net geïmplementeerd; 25 gerichte hosttests, Clippy, fmt en zeven kernelprofielbuilds slagen met exit 0. Exacte commando's, logs, duur en SHA-256 staan in docs/verification/pci-bar-grants-2026-11-03/README.md. Geen QEMU/runtime- of fysieke hardwareproef en geen nieuw acceptatiepunt.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Factorygekoppelde PCI-matches voor VirtIO block en netwerk.
+41/100 blijft 41/100. DriverRegistry koppelt de unieke PCI-match aan een statische initializer voor VirtIO block/net; 28 gerichte hosttests, Clippy, fmt en diff-check slagen met exit 0. Exacte commando's, logs, duur en SHA-256 staan in docs/verification/driver-factory-2026-11-03/README.md. Kernelprofielbuilds, QEMU/runtime en fysiek hardwarebewijs zijn nog niet uitgevoerd; geen nieuw acceptatiepunt.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
