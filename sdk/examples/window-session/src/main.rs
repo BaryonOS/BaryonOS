@@ -296,23 +296,17 @@ fn run() -> ! {
                 let previous = scene.focused;
                 let previous_mode = scene.workspace_mode();
                 let previous_bodies = scene.windows.map(|window| window.body);
+                let previous_visible =
+                    core::array::from_fn::<_, 2, _>(|index| scene.visible(index));
                 let queue_generations = queues.each_ref().map(Queue::generation);
                 let event = offer.event();
-                let palette_was_open = scene.palette_is_open();
+                let overlay_was_open = scene.palette_is_open() || scene.window_menu_is_open();
                 let palette_key = match event {
                     Event::Key(key) => scene
                         .palette_key(key, &mut damage)
                         .unwrap_or_else(|_| fail(17)),
                     _ => false,
                 };
-                if !palette_was_open && scene.palette_is_open() {
-                    app_pointer_capture = None;
-                    for queue in &mut queues {
-                        queue
-                            .cancel(CancelReason::Resync)
-                            .unwrap_or_else(|_| fail(20));
-                    }
-                }
                 let clear = match event {
                     Event::Key(key) => clear_chord.key(key),
                     _ => ClearAction::Pass,
@@ -339,7 +333,7 @@ fn run() -> ! {
                             }
                         }
                     }
-                    Event::Key(key) if key.key == PhysicalKey::F10 => {
+                    Event::Key(key) if key.key == PhysicalKey::F10 && !key.modifiers.shift() => {
                         if key.action == KeyAction::Press {
                             send(
                                 boot.registry,
@@ -348,12 +342,14 @@ fn run() -> ! {
                         }
                     }
                     Event::Key(key) => {
-                        if copy_gesture(key) {
-                            clipboard.clear(&queues).unwrap_or_else(|_| fail(39));
+                        if scene.focused_visible() {
+                            if copy_gesture(key) {
+                                clipboard.clear(&queues).unwrap_or_else(|_| fail(39));
+                            }
+                            queues[scene.focused]
+                                .push(event)
+                                .unwrap_or_else(|_| fail(19));
                         }
-                        queues[scene.focused]
-                            .push(event)
-                            .unwrap_or_else(|_| fail(19));
                     }
                     Event::Cancel(reason) => {
                         last_buttons = 0;
@@ -399,6 +395,30 @@ fn run() -> ! {
                                 .unwrap_or_else(|_| fail(22));
                         }
                     }
+                }
+                if !overlay_was_open && (scene.palette_is_open() || scene.window_menu_is_open()) {
+                    app_pointer_capture = None;
+                    for queue in &mut queues {
+                        queue
+                            .cancel(CancelReason::Resync)
+                            .unwrap_or_else(|_| fail(20));
+                    }
+                }
+                for (index, was_visible) in previous_visible.into_iter().enumerate() {
+                    if was_visible && !scene.visible(index) && index != previous {
+                        queues[index]
+                            .cancel(CancelReason::FocusLost)
+                            .unwrap_or_else(|_| fail(23));
+                    }
+                }
+                if previous_visible[previous]
+                    && !scene.visible(previous)
+                    && scene.focused == previous
+                {
+                    queues[previous]
+                        .cancel(CancelReason::FocusLost)
+                        .unwrap_or_else(|_| fail(23));
+                    clipboard.revoke(&queues).unwrap_or_else(|_| fail(39));
                 }
                 if scene.workspace_mode() != previous_mode
                     || scene.windows.map(|window| window.body) != previous_bodies

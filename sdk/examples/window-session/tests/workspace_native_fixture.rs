@@ -2,6 +2,7 @@
 use nieuw_os_graphics::Rect;
 use nieuw_os_window_session::scene::{Damage, Scene, MAX_PIXELS};
 use std::io::Write;
+use ui_core::{KeyAction, KeyboardEvent, KeyboardModifiers, PhysicalKey};
 
 #[test]
 fn render_workspace_shell_oracles() {
@@ -19,6 +20,11 @@ fn render_workspace_shell_oracles() {
         "work",
         "search",
         "selected",
+        "window-menu",
+        "window-menu-next",
+        "window-minimized",
+        "window-empty",
+        "window-restored",
     ] {
         match phase {
             "focus-material" => scene.toggle_focus(&mut damage),
@@ -34,6 +40,58 @@ fn render_workspace_shell_oracles() {
                 scene.select(0).unwrap();
                 scene.palette_close();
             }
+            "window-menu" => {
+                for (key, action, alt) in [
+                    (PhysicalKey::Space, KeyAction::Press, true),
+                    (PhysicalKey::Space, KeyAction::Release, true),
+                ] {
+                    scene
+                        .palette_key(
+                            KeyboardEvent {
+                                key,
+                                action,
+                                modifiers: KeyboardModifiers {
+                                    left_alt: alt,
+                                    ..Default::default()
+                                },
+                            },
+                            &mut damage,
+                        )
+                        .unwrap();
+                }
+                assert!(scene.window_menu_is_open());
+            }
+            "window-menu-next" => {
+                for action in [KeyAction::Press, KeyAction::Release] {
+                    scene
+                        .palette_key(
+                            KeyboardEvent {
+                                key: PhysicalKey::Down,
+                                action,
+                                modifiers: Default::default(),
+                            },
+                            &mut damage,
+                        )
+                        .unwrap();
+                }
+            }
+            "window-minimized" => {
+                for action in [KeyAction::Press, KeyAction::Release] {
+                    scene
+                        .palette_key(
+                            KeyboardEvent {
+                                key: PhysicalKey::Escape,
+                                action,
+                                modifiers: Default::default(),
+                            },
+                            &mut damage,
+                        )
+                        .unwrap();
+                }
+                scene.minimize(0, &mut damage).unwrap();
+            }
+            "window-empty" => scene.minimize(1, &mut damage).unwrap(),
+            "window-restored" => scene.select(0).unwrap(),
             _ => unreachable!(),
         }
         let mut pixels = vec![0; 1280 * 720];

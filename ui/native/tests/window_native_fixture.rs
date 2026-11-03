@@ -206,6 +206,15 @@ fn render_native_window_material_walkthrough_oracle() {
             assert_eq!(ui.view().focus, Focus::Document);
             snapshot(&ui, "reopened", directory.as_deref());
             assert_eq!(host.borrow_mut().recover().entries[0].revision, 1);
+            sequence += 1;
+            ui.deliver(InputEnvelope {
+                epoch: INPUT_EPOCH,
+                sequence,
+                generation: 1,
+                event: Event::Cancel(CancelReason::FocusLost),
+            })
+            .unwrap();
+            snapshot(&ui, "reopened-window-restored", directory.as_deref());
         }
     });
 }

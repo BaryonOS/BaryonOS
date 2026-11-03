@@ -22,9 +22,16 @@ Eerste hostrun vond een test die slechts twee Tab-stappen toestond; de test
 doorloopt nu begrensd de werkelijke focuscyclus inclusief nieuwe toolknop en
 blijft vereisen dat nieuwe invoer pas na verse inputbinding tekst wijzigt.
 
-**Parallel:** agent `98fcb496-0147-4a3e-a62a-e9064580b0af` bouwt uitsluitend
-`scene.rs` en `tests/window_states.rs` in een aparte worktree op baseline264ad5b0.
-Nog niet geïntegreerd of als native geaccepteerd. Geen gedeelde schrijvers.
+**Venstertoestanden geïntegreerd:** agent `98fcb496` leverde in aparte
+worktree `d9c2f8ae`, geïntegreerd als `b38f17ea`: Normal/Minimized,
+zichtbare titelbediening, Alt+F9, modaal venstermenu via Alt+Space,
+keyboardnavigatie en herstel via zoeken/werkbalk. Hoofdagent sluit
+de zichtbaarheid-/paneelgrens op echte INP1-annulering aan; bij twee
+geminimaliseerde vensters gaan geen toetsen naar een app.
+61 compositorhosttests, strikte Clippy en nieuwe samengevoegde UI-tests slagen.
+Log `files/veld-env/logs/veld-window-integration-host.log`. De eerste fmt
+vond een verkeerd ingevoegde matchpositie; hersteld vóór compilatie.
+Nieuwe native windowstate-fasen zijn nog **niet uitgevoerd**.
 
 **Native resultaat:** bron `3e79b6a8a6bba75c42efe5e307813eefc066fa71`,
 fingerprint `7da356474e591a062456f395e70ac6bba053acc29a080d077df86ec488557e71`:
@@ -32,7 +39,7 @@ eigen-kernelbuild exit 0; volledige `run_window_session.py --clipboard --workspa
 exit 0, 31 fasen, 254,22 s, ruwe QEMU-exit 33. Lezen, geweigerde bewerking,
 hersteld Schrijven en de oorspronkelijke volledige herstel-/schijfketen slagen.
 [Brongebonden bewijs](verification/veld-tools-20261103/README.md).
-Daarna vensterstates integreren en opnieuw native
+Volgende stap: nieuwe gecombineerde bron native
 toetsen, vervolgens verder met resterende gebruikersomgeving. Score **41 -> 41**;
 geen U02–U06-, fysieke, menselijke of releaseacceptatie.
 

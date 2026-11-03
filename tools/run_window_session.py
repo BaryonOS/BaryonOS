@@ -32,6 +32,7 @@ SERIAL_LIMIT = 4 * 1024 * 1024
 BODY = (28, 114, 880, 510)
 FIXTURE_PHASES = ("initial", "editor", "dirty", "saved", "list", "reopened",
                   "read-tool", "read-tool-blocked", "write-tool-restored",
+                  "reopened-window-restored",
                   "dirty-focus-lost", "dirty-rebound", "dirty-recovered")
 CLIPBOARD_PHASES = ("clipboard-copied", "clipboard-numeric", "clipboard-back",
                     "clipboard-empty", "clipboard-recovered-empty")
@@ -45,6 +46,11 @@ WORKSPACE_REGIONS = {
     "search": ((382, 96, 516, 232),),
     "selected": ((0, 0, 1280, 114), (0, 114, 28, 510), (908, 114, 372, 26),
                  (908, 140, 24, 484), (1252, 140, 28, 484), (0, 624, 1280, 96)),
+    "window-menu": ((844, 120, 284, 168),),
+    "window-menu-next": ((844, 120, 284, 168),),
+    "window-minimized": ((16, 64, 904, 576), (0, 650, 1280, 70)),
+    "window-empty": ((0, 40, 1280, 680),),
+    "window-restored": ((0, 650, 1280, 70),),
 }
 SNAPSHOT_FIELDS = {
     "MATERIAL": {"PID", "SERVICE_GENERATION", "SURFACE_EPOCH", "INPUT_EPOCH", "READY", "GEN", "FRAMES",
@@ -267,6 +273,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                   recovery_handshake_only=recovery_handshake, clipboard_requested=clipboard, clipboard_gate=False, source_sha256=frozen,
                   workspace_requested=workspace, workspace_gate=False,
                   document_tools_gate=False,
+                  window_states_gate=False,
                   source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                   source_fingerprint_version=3, kernel_feature=FEATURE, manifest=manifest, command=command,
                   run_directory=str(directory), qemu_sha256=qemu_hash, immutable=immutable, phases={})
@@ -535,6 +542,33 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 wait("list", lambda raw, s: s["MATERIAL"] and s["MATERIAL"][-1]["SCREEN"] == 1, "list")
                 key("tab"); key("tab"); key("ret")
                 wait("reopened", lambda raw, s: s["MATERIAL"] and s["MATERIAL"][-1]["SCREEN"] == 2 and s["MATERIAL"][-1]["DIRTY"] == 0 and s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM, "reopened")
+                if workspace:
+                    shell_key("alt", "spc")
+                    workspace_wait("window-menu")
+                    shell_key("down")
+                    workspace_wait("window-menu-next")
+                    shell_key("esc")
+                    # The trusted title affordance hides the window, not its
+                    # process, document owner, surface geometry or revision.
+                    move(886, 93); button(True); button(False); move(1260, 50)
+                    workspace_wait("window-minimized")
+                    shell_key("alt", "f9")
+                    workspace_wait("window-empty")
+                    hidden_keys = {role: numbers(serial(directory / "serial.txt"), f"WINDOW:{role}:KEYS")[-1]
+                                   for role in ("MATERIAL", "CALCULATOR")}
+                    shell_key("x")
+                    after = serial(directory / "serial.txt")
+                    if any(numbers(after, f"WINDOW:{role}:KEYS")[-1] != count
+                           for role, count in hidden_keys.items()):
+                        raise ValueError("A minimized app received keyboard input")
+                    move(80, 680); button(True); button(False); move(1260, 50)
+                    wait("window-restored", lambda raw, s: comp(raw).get("FOCUSED") == 0
+                         and s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM
+                         and s["MATERIAL"][-1]["SAVE_ACKS"] == 1
+                         and s["MATERIAL"][-1]["DIRTY"] == 0,
+                         "reopened-window-restored",
+                         image_check=lambda image: workspace_matches(
+                             image, fixture["frames"]["workspace-window-restored"], "window-restored"))
                 key("f10")
             process.wait(timeout=max(0.1, deadline - time.monotonic()))
             raw = serial(directory / "serial.txt")
@@ -565,6 +599,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
             report.update(passed=True, native_gate=not diagnostic, clipboard_gate=clipboard and not diagnostic,
                           workspace_gate=workspace and not diagnostic,
                           document_tools_gate=not diagnostic,
+                          window_states_gate=workspace and not diagnostic,
                           duration_s=time.monotonic() - start, serial_sha256=sha256(directory / "serial.txt"), qmp_trace=control.trace)
     except Exception as error:
         report["error"] = f"{type(error).__name__}: {error}"

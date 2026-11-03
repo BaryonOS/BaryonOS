@@ -30,6 +30,17 @@ compositorherstel-, schijf- en cleanupgates blijven verplicht. Schaal 200%
 blijft onderdeel van hostpixels en een afzonderlijk te draaien VM-profiel.
 Een hosttest sluit die native schaalgate niet.
 
+**Venstertoestanden:** Normal/Minimized met behoud van proces, appbuffers en
+opslag. Zichtbare titelknop of Alt+F9 minimaliseert; werkbalk/zoeken/F6
+herstelt het doel. Alt+Space of de titelmenuknop opent een echt modaal
+venstermenu voor Minimaliseren, Ordenen en Dit werk/Alles tonen. Tab/pijlen,
+Enter en Escape bedienen het zonder muis. Geen nep-maximaliseer/sluitknop.
+Bij nul zichtbare vensters krijgt geen app toetsen of muishits. Een nieuw
+shellpaneel annuleert oude appinvoercapture via INP1; verborgen vensters
+verliezen ook bestaande invoer en klembordtickets. Native acceptatie toetst
+menu-pixels, muisminimaliseren, toetsenminimaliseren, weigering van
+invoer bij twee verborgen vensters en herstel van de echte documentbody.
+
 ## Veld: eerste native uitvoering
 
 **Opdracht/basis:** uitvoering na het visuele onderzoeksplan,

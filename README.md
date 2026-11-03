@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`3e79b6a8`](https://github.com/simonvanieperen/nieuw-os/commit/3e79b6a8a6bba75c42efe5e307813eefc066fa71) ·
+**Bron:** [`b38f17ea`](https://github.com/simonvanieperen/nieuw-os/commit/b38f17ea3407b510b30b60b45125267596c60f8f) ·
 **Ontwikkelbranch:** `simonvanieperen-fictional-disco`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Veld-02: objectgebonden Schrijven/Lezen en native venstertoestanden.
-41% blijft 41%: Schrijven/Lezen op dezelfde echte documenteigenaar is native geverifieerd op 3e79b6a8. De volledige eigen-kernelgate slaagt met 31 fasen, echte F4-toolwisseling, geweigerde bewerking, exacte apppixels en onverkorte isolatie-, klembord-, compositorherstel-, schijf- en cleanupcontroles. Gerichte native-UI- en app-hosttests, Clippy/fmt en 13 runnertegenvoorbeelden slagen. Vensterstates worden afzonderlijk gebouwd. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open.
+41% blijft 41%: Schrijven/Lezen op dezelfde echte documenteigenaar is native geverifieerd op 3e79b6a8 met31 fasen en onverkorte isolatie-, klembord-, compositorherstel-, schijf- en cleanupcontroles. Normal/Minimized en een echt keyboard-/muismenu zijn vanaf b38f17ea geintegreerd; 61 compositorhosttests, UI-tests, strikte Clippy en runnertegenvoorbeelden slagen. De verse gecombineerde native gate is nog niet uitgevoerd. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
