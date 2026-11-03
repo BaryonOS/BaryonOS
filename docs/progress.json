@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "c2d65c5c6e7487ace6ce86d88b465697dc9bb554",
+    "source_commit": "9f2e6e2b7be614d35a83bc0f4fb7678ad86adbe6",
     "branch": "simonvanieperen-sturdy-guide",
-    "task": "PR141: primaire closure-status bewaren en historische server-auditgrens corrigeren",
+    "task": "PR141: negen Cargo-tests opnieuw op schone372-snapshot binden en statusgeschiedenis archiveren",
     "previous_score": 41,
-    "summary": "41 blijft41. Statuscorrectie op basis c2d65c5c: primaire GitHub-receipts bevestigen vijf gesloten/vervangen leafs, los van inhoudsbehoud. PR140's ongekoppelde merge na gefaalde lokale preflight blijft een uitvoeringsfout. Geen --admin aangevraagd; historische server-side branchregeltoepassing/bypassstatus niet onafhankelijk gecontroleerd. Eerdere 41 Node +9 artifact-store-tests op37240c1f en Chrome opc94 blijven historisch brongebonden; geen nieuwe code- of runtimeacceptatie, geen criteriumwijziging."
+    "summary": "41 blijft41. Op basis9f2e6e2b wordt de oorspronkelijke Rust-run zonder cwd/HEAD/status/Cargo.lock niet als bewezen372-resultaat geclaimd. Een echte nieuwe rerun op expliciet schone detached372-snapshot slaagt met9tests; HEAD/status/lockhash vóór en na vastgelegd.41 eerdere Node-tests houden hun eigen geverifieerde kopie; Chrome blijftc94. De141-statusgeschiedenis exact met blob/hash naar eigen receipt verplaatst. Geen codewijziging, nieuwe native/cloudruntime/humanaudit of criteriumwijziging."
   },
   "tracks": [
     {

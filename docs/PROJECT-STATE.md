@@ -1,170 +1,28 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR141 neemt main d115cc96 behoudend op — 3 november 2026
+## NEXT AGENT HANDOFF — PR141 bronbewijs hersteld — 3 november 2026
 
-Geteste merge `37240c1f190c5d684c9c97d3adedbeb8d717c8f4` combineert
-basis `057061351784535448bf9e631d6fc7952bab3195` en main
-`d115cc96c19ac4371baed77409a23d1adddffaf0`.
-Vier conflicten uitsluitend centrale metadata; beide geschiedenissen,
-prototypefix, PR140-tests en alle brongebonden receipts blijven behouden.
-Prototypeboom blijft gelijk aan `c94a40e9`; artifact-store-tests gelijk aan
-main `d115cc96`. Beide rubrics identiek: **41 → 41**.
+**Basis:** `9f2e6e2b`, branch `simonvanieperen-sturdy-guide`.
+Geen codewijziging; eigen kernel, rechten en rubric blijven gelijk: **41 →41**.
+Negen Cargo-contracttests opnieuw exit0 op een schone, detached
+`37240c1f190c5d684c9c97d3adedbeb8d717c8f4`-snapshot, met cwd, HEAD,
+werkboomstatus en Cargo.lock-hash vóór én na de run:
+[nieuwe primaire receipt](verification/pr141-372-cargo-rerun.json).
+De oorspronkelijke Rust-run miste die bronkoppeling en wordt niet achteraf
+als bewezen372-resultaat gepresenteerd; de41 Node-tests behouden hun eigen
+geverifieerde kopie. Chrome blijft c94; geen nieuwe native/QEMU/humanaudit.
 
-Op deze merge slagen opnieuw 41 reguliere Node-tests en 9 artifact-store-
-contracttests, elk exit 0. De volledige Node-testkopie is bytegecontroleerd;
-exacte commando's, tree/ouders, omgeving en volledige logs met SHA-256:
-[integratiebewijs](verification/pr141-d115-integration.json).
-Oude Chromeproef blijft aan c94 gebonden. Eerstvolgend:
-`GH_PAGER="" gh pr checks 141`; nieuwe CI/native/review beoordelen.
-De eerdere PR140-mergeafwijking
-blijft hieronder en in het auditrapport zichtbaar; volgende merge-aanroep
-alleen binnen een geslaagde gekoppelde preflight, geen shellvervolg.
-PR135's twee echte RAW-fouten, ontbrekende volume-fixtures en fysieke/
-menselijke/full-releasegates blijven open. Geen bron-PR blind sluiten.
-
-**Statusreview op `c2d65c5c`:** de primaire GitHub-pull-API bevestigt op
-3 november 11:39:46 UTC dat119/136/143/144/145 gesloten, niet afzonderlijk
-gemerged zijn; hun inhoudsbehoud is afzonderlijk bewezen. Compacte receipt:
-[bron-PR-status](verification/pr141-source-pr-status.json).
-De eerdere uitspraak over afwezigheid van server-side branchregelbypass is
-teruggebracht tot wat bekend is: geen `--admin` aangevraagd; historische
-server-side toepassing/audit niet onafhankelijk gecontroleerd. De mislukte
-lokale preflight blijft nadrukkelijk een uitvoeringsfout, geen groene gate.
-Alleen bewijs-/statuscorrecties; **41 → 41**, geen nieuwe runtimeproef.
-
-## Historisch checkpoint — reviewfixes gepubliceerd, PR140 gemerged, native blokkades — 3 november 2026
-
-**Basis van dit checkpoint:** `71cdb2100aecf30242a7fc6c4d84352fb483cdea`,
-branch `simonvanieperen-sturdy-guide`. Integratie blijft exclusief bij deze
-sessie. Geen overdracht of nieuwe punten: **41 → 41**.
-
-**Werkelijk opgenomen:** PR140 is guarded gesquasht als main
-`d115cc96c19ac4371baed77409a23d1adddffaf0`, parent `69809c2c`.
-De boom `ab23fb8523f8edd3a15209575ceb5638b973bc8a` is exact de geteste head
-`9ad80874`; alle 32 technische checks waren groen en alle threads opgelost.
-**Uitvoeringsafwijking:** de extra lokale preflight faalde doordat CodeRabbit
-na eerder CLEAN opnieuw liep. Een niet met `&&` gekoppeld shellvervolg voerde
-de exacte-headmerge toch uit. Geen `--admin` aangevraagd; historische
-server-side branchregeltoepassing/bypassstatus niet onafhankelijk
-gecontroleerd. CodeRabbit
-werd door de merge afgebroken, niet als geslaagd geteld. Volledige controles,
-afwijking en postcheck: [mergeaudit](verification/pr140-merge-postcheck.json).
-Volgende merges alleen na een gekoppelde preflight, met de merge-aanroep
-binnen dezelfde controle na alle geslaagde asserties. Geen automatische
-rollback of amend van de inhoudelijk exact behouden mainboom.
-
-**Gepubliceerd:** PR139 `341d1b42` scheidt de twee echte replayreceipts
-(0077 groen, 0002 werkelijk rood) van 15 historische OS-workflowruns.
-PR142 `a521dbf7` corrigeert FPU-helperclaims en bewijst 87 hosttests op
-`b1d45e63`. De brede symlink-`OSError`-skip is gemotiveerd geweigerd:
-Linux-CI voert de echte negatieve test uit; Windows zonder symlinkrecht is
-niet als geteste configuratie geclaimd. PR141 `71cdb210` behoudt de echte
-persistentiefix en Chromeproef; 41 Node- en 16 opslagtests op merge `fdc4754e`
-zijn groen. Hun exacte commando's, exits en logs blijven brongebonden.
-
-**Harde gates:** PR135 `2ccb539d` faalt tweemaal echt op RAW-request 1064:
-de burst duurt 110/101 ticks bij een venster van 100. Geen derde blinde retry
-of quotaversoepeling. Hosted volume-admission heeft nog geen fixtureartifact
-of `VOLUME_ADMISSION_FIXTURE_RUN_ID`. De nativewindowrun was nog actief;
-geen resultaat voorspeld of via een nieuwe PR135-push geannuleerd.
-[Beide primaire faalreceipts](verification/pr135-ci-blockers-2ccb.json).
-Issues #39/#41/#42/#43 en fysieke/menselijke/full-releasegates blijven open.
-
-**Eerstvolgend:** live heads/base/threads/CI opnieuw lezen. Deze PR141-branch
-bevat main `69809c2c`, nog niet de nieuwe main `d115cc96`; eerst de eigen
-upstream en daarna main behoudend reconciliëren. PR142 is daardoor eveneens
-opnieuw conflicterend. Geen blinde sluitingen of acceptatie van Watch-heads;
-de vijf bewezen vervangen leafs 119/136/143/144/145 blijven reeds gesloten.
-
-## Historisch checkpoint — PR141 en main 69809c2 gecombineerd — 3 november 2026
-
-Geteste mergecommit `fdc4754e57f0a42493cb5717964a0aa41370d9e9` combineert
-PR-head `1c4b2a4b89d47588a3393ab25472c4354ffceed9` en main
-`69809c2cb53dfb3bd77abe5352892810fba6e82d` inhoudsbehoudend.
-Alle vier conflicten zijn centrale metadata; beide statusgeschiedenissen,
-main's bronarchief/audit en de volledige PR141-persistentiefix blijven behouden.
-Rubrics buiten assessment zijn identiek: **41 → 41**.
-
-De volledige `ui/prototype`-boom blijft exact gelijk aan bron `c94a40e9`.
-De bestaande echte rood/groen- en Chrome-DOM/focusbewijzen blijven aan die
-bron gebonden; geen nieuwe native meting. Op de gecombineerde commit zijn
-alle 41 reguliere prototypehosttests en 16 opslag-replayhosttests opnieuw
-groen, exit 0. De volledige Windows-testkopie is bytegecontroleerd.
-Exacte bron/tree/ouders, commando's, looptijden en volledige logs met SHA-256:
-[integratiebewijs](verification/pr141-main698-integration.json).
-Volledige nieuwe CI, native/netwerkpoorten en definitieve review blijven open.
-PR135's volume-fixture- en herhaalde RANDOM-fout worden niet omzeild.
-De vier oorspronkelijke PR141-threads zijn beantwoord en opgelost.
-
-Main bevat werkelijk PR114; de vijf aantoonbaar behouden leafs
-119/136/143/144/145 zijn als vervangen gesloten
-([primaire GitHub-statusreceipt](verification/pr141-source-pr-status.json)).
-Dit is een andere controle dan inhoudsbehoud. Andere bron-PRs niet
-blind sluiten. Fysieke/human-/sleutel-/releaseacceptatie blijft open.
-**Eerstvolgend:** `GH_PAGER="" gh pr checks 141`; bij een nieuwe Watch-head
-eerst head/base, inhoudsbehoud en concrete reviewbevindingen herbeoordelen.
-
-## Historisch checkpoint — PR141-persistentiereview hersteld — 3 november 2026
-
-Code`c94a40e97622ecd854865e4171ba9004011ebd87`, basisfbbc94aa,
-branch`simonvanieperen-sturdy-guide`; integrator blijftf090b913.
-Echte rode regressie op oude appcode:6*60ms aanhoudend typen schrijft niet
-binnen180ms(3!==4), exit1.1regel fix behoudt eerste pendingtimer;41 volledige
-reguliere Node-hosttests daarna exit0. Laatste invoer blijft opgeslagen;
-focusout/pagehide annuleren pendingwrite en bewaren actuele draft/cursor.
-Editor bereikt via de echte openObject/requestEdit/grantSession-handlerroute.
-Resultatenmock bestaat alleen als de echte appmarkup de container bevat.
-
-Echte Chrome156-DOM/focusproef op de8 exacte frontendhashes van c94a40e9,
-WindowsNode24, localhost en eigen wegwerpprofiel: exit0,2890ms.
-Input.insertText filtert Tuinplan/Boodschappen; werkelijk actief zoekveld,
-inputnode, resultatencontainer en appshellnode blijven behouden. Parent
-verifieert bron-/rawloghashes; script, observaties en rawCDPlog opgeslagen in
-`verification/pr141-browser-review.json`. Geen geheugenloader/fakeDOM als
-browserbewijs. Geen nieuwe package, securitybypass, OS- of p95-claim.
-
-De eerder wegens ontbrekend Cargo geblokkeerde `render_performance`-
-hostoracle is nu echt uitgevoerd met bestaande Rust1.90/private linker:
-2tests exit0; dit is geen QEMU/native latency. Exacte commands en rood/groen/
-alle41Node-/rendererloghashes: `verification/pr141-persist-review-fixes.json`.
-Score41 ->41; geen criterium gesloten. Een browser kan timers later uitvoeren;
-sessionStorage is geen duurzame OS-opslag.
-
-**Open integratie, niet alleen rendering:** actuelemain is69809c2c (114
-daadwerkelijk gemerged);119/136/143/144/145 zijn na exact inhoudsbehoud als
-vervangen gesloten. Deze141-branch heeft main698 nog niet opgenomen.
-Eerstvolgend: eigen upstream/live head hercontroleren, main behoudend
-combineren, dan verse volledige CI incl. native-/netwerkpoorten en alle
-reviewthreads op de werkelijke head beoordelen. Bron-PRs pas sluiten ná
-aantoonbaar behoud op main; oude VM-/hostresultaten niet herlabelen.
-Volledige release, echte gebruikersmeting en fysieke/menselijke gates open.
-
-## Vorig checkpoint — Performancevervolg: native rendergrens — 3 november2026
-
-**Bron:** branch `simonvanieperen-sturdy-guide`, broncommit
-`40f83e3f059102fe30c8818991ba0b4c47b488d0`. Deze vervolginspectie heeft geen
-native broncode gewijzigd.
-
-**Resultaat:** de native compositor verwerkt maximaal 32 bestaande
-damage-tiles per beurt, ondersteunt retained frames en heeft al een
-opaque-body raster-fast-path naast de referentierenderer. De gedocumenteerde
-1.248×656 app-oppervlakte kent nog 22.386 SUR1-verzoeken en 3.198 replies per
-volledige frame; aanpassen daarvan vereist een gedeeld, versieerbaar
-protocolcontract. Geen extra interfacewijziging gedaan zonder meetbewijs.
-
-**Controle:** geprobeerd `cargo +1.90.0 test --locked --manifest-path
-sdk/examples/window-session/Cargo.toml --test render_performance`; exit 127,
-`cargo` ontbreekt. Native test, QEMU en workloadmeting zijn dus niet
-uitgevoerd. Statische waarnemingen en bewijsgrens:
-[`performance-followup-20261103.json`](verification/performance-followup-20261103.json).
-
-**P02-wijziging blijft:** commit `f2c3354d` optimaliseert zoekrender, draftkopie
-en gebundelde opslagwrites; 41 prototype-hosttests slaagden. Geen echte
-databasequery of production-bundler aangetroffen. Browserbenchmark ontbreekt.
-Voortgang blijft **41% → 41%**; geen nieuw native criterium.
-
-**Eerstvolgend commando zodra Rust 1.90 beschikbaar is:** herhaal de hierboven
-genoemde `render_performance`-test. Geen claim over native latency of energie.
+Historische merge-, test- en auditdetails zijn exact met bronblob/hash naar
+[de141-geschiedenisreceipt](verification/pr141-status-history-9f2e6e2b.json)
+verplaatst. [PR140's uitvoeringsafwijking](verification/pr140-merge-postcheck.json)
+en [vijf gesloten bron-PRs](verification/pr141-source-pr-status.json) blijven
+expliciet; historische server-side branchregeltoepassing is niet geaudit.
+**Open:** main is inmiddels139-merge `99d13276`; deze branch bevat nogd115.
+Eerstvolgend: eigen upstream/live hoofd controleren, main behouden opnemen,
+dan `GH_PAGER="" gh pr checks 141` en nieuwe reviewthreads beoordelen.
+Geen merge buiten één geslaagde gekoppelde preflight; PR135's twee echte
+RAW-fouten, ontbrekende volume-fixtures en fysieke/releasegates blijven open.
+Het integratiemandaat blijft exclusief bij deze sessie.
 
 ## Geïntegreerde main-wijziging — issue #43
 
