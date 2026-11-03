@@ -1,5 +1,45 @@
 # RANDOM raw: begrensde fixturecorrectie
 
+## Afzonderlijke PR146-integratie door General
+
+De oorspronkelijke standalone resultaten hieronder blijven uitsluitend
+aan hun eigen bron gebonden. General heeft de vier-file-slice daarna
+conflictvrij overgenomen op PR146 `9a51747f`; integratiebron
+`7b135c8589c6282b6d03a9bd620ffe56ba250372`.
+Geen productiequota-, kernel- of runnerassertion gewijzigd.
+
+Werkelijk opnieuw uitgevoerd vanuit `files/sprint-pr146`, met bestaande
+C-toolchain, QEMU/OVMF en afzonderlijke wegwerpimage:
+
+- `cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/random-probe/Cargo.toml`:
+  exit 0, zes tests.
+- `python3 -B -m unittest discover -s tools/tests -p test_random.py`:
+  exit 0, 21 tests.
+- `python3 -B tools/build.py --kernel-feature native-system-random`:
+  exit 0.
+- `python3 -B tools/run_random.py --case raw`: exit 0,
+  `passed=true`, `random_gate=true`, `status=completed`, ruwe QEMU-exit 33,
+  6,701460578 s. Totale commandoreeks 17,17 s, exit 0.
+- `git diff --check`: exit 0.
+
+Bronvingerafdruk v3:
+`1b2d62e07d34b6f2a27f3f15ff1483f3726034ccd0189ef97fc65e6df41a5ea1`.
+Run-ID `system-normal-1ce61f6e48b744f9a02a72b497765697`;
+lokaal verslag `build/random-report.json`.
+Volledig log `/tmp/nieuw-os-pr146-random-integration.log`, SHA-256
+`abda75df3a318643a0e167af3d51f5ec9f2537649b29a2b9a99292a2b13b6cb8`.
+
+Vooraf is ook de standalone bron `94bd96d0` door General opnieuw getest:
+zes hosttests, 21 harnastests en echte native rawgate exit 0, ruwe QEMU-exit
+33; bronhash exact `cf9b1d30` zoals hieronder volledig vermeld. Native log
+`/tmp/nieuw-os-sprint-random-review-native.log`, SHA-256
+`4b7c98e9e54e39e6718fe972647475c47368130a8c86b759db9fd8b1e9a56f8f`.
+Dit is een tweede agentcontrole, geen onafhankelijke menselijke audit.
+
+De oorspronkelijke CI-run is niet opnieuw uitgevoerd; nieuwe-head CI
+moet alle workflowstappen opnieuw beoordelen. Geen volledige
+native-foundation-, Veld-, hardware-, release- of mainmergeclaim.
+
 ## Scope en bron
 
 - Basis: `a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e` (`origin/main` bij start).
