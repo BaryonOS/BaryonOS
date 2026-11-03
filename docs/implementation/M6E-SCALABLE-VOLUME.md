@@ -68,7 +68,7 @@ Een volledig nulvolume is de lege generatie 0; er wordt niets geformatteerd.
 
 Dit is de historische v1-regel. Voor de huidige `NOSVOL02`-dienst is impliciete
 nulvolume-admissie verwijderd: alleen expliciet vooraf geformatteerde,
-volledig geldige lege metadata wordt toegelaten. Zie ADR-058 en
+volledig geldige lege metadata wordt toegelaten. Zie <!-- coderabbit-ai-generated:v1 --><!-- coderabbit-ai-generated-section:v1:2941fcfe7d64441664b4df6848d0ea457481b12ec613622a2b7e228bcd269c2b -->ADR-064<!-- /coderabbit-ai-generated:v1 --> en
 [het v2-toelatingscontract](S06-COLLECTIONS-HISTORY.md#invarianten-aanvulling-op-m6e).
 
 ## Duurzaamheidsvolgorde en invarianten

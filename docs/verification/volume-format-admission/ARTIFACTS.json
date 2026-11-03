@@ -8,8 +8,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 8288,
-      "sha256": "e35f3bb03862501599d47c91705c5b660978a8301329d4619a8d406a5fa4b54e"
+      "bytes": 8829,
+      "sha256": "3a69cedc728641a71120c1f2051e9db5d4786f6a539dcb4897b9a47341e3bde4"
     },
     {
       "path": "TASK.md",
@@ -238,8 +238,8 @@
     },
     {
       "path": "independent-native-review/README.md",
-      "bytes": 2747,
-      "sha256": "4c7d28279f62c1198f139a9fdc9d37683c04f8e7fb53d70021a92b8bde105802"
+      "bytes": 4848,
+      "sha256": "fd268df91bef56ae8bcafef177e691c57fefab1f17822022d91d7dee9c709420"
     },
     {
       "path": "independent-native-review/matrix-review.json",
@@ -1193,8 +1193,8 @@
     },
     {
       "path": "verify_archive.py",
-      "bytes": 6218,
-      "sha256": "16bf3e4478e61e159c1afcdc194ee3b3714210d1da5a425f35de8dd263c4372b"
+      "bytes": 6284,
+      "sha256": "d3faeb2affae17feddd8daeeeb649ef84e6d4978b4a7903c09b73aa12878a871"
     }
   ]
 }

@@ -24,7 +24,8 @@ def verify_manifest(proof):
     manifest = json.loads((proof / "ARTIFACTS.json").read_text())
     entries = [item["path"] for item in manifest["files"]]
     actual = {p.relative_to(proof).as_posix() for p in proof.rglob("*")
-              if p.is_file() and p != proof / "ARTIFACTS.json"}
+              if p.is_file() and p != proof / "ARTIFACTS.json"
+              and "__pycache__" not in p.relative_to(proof).parts}
     required = {"native-import.json", "native/freeze.json", "native/matrix.json", "native/regression/build/volume-gate.json",
                 "independent-native-review/matrix-review.json", "independent-native-review/regression-review.json"}
     need(len(entries) == len(set(entries)) and set(entries) == actual and required <= actual,

@@ -1,7 +1,17 @@
 # Volume-admissie — native acceptatie
 
-**De bestaande volumedienst weigert onbekende en nulgevulde volumes tijdens
-service-startup; 10 toelatingsproeven en de bestaande 9-VM-crashgate slagen.**
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:28307e11c7caec591523c3ab8010d50890df26895277171b43181cb6ad0eeec3 -->
+
+**Historisch checkpoint `94f12da`:** de volumedienst weigerde onbekende en
+nulgevulde volumes tijdens service-startup; tien toelatingsproeven en de
+bestaande 9-VM-crashgate slaagden op die bron.
+
+**Huidige bron:** de native toelatings- en crashgates staan open totdat zij
+opnieuw zijn getest op een nieuw bevroren checkpoint.
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 Datum: 2026-11-02 (Europe/Amsterdam). Uitvoeringsbasis `74a34d05ef5591b782a0da9da34e4669910d0722`;
 geteste broncommit `94f12da0b9740a1a0ced1f08b4a30787f82ae79f` op
@@ -18,11 +28,17 @@ toestand vooraf naar een nieuw wegwerpbestand. Recovery leidt nooit meer
 lege opslag af uit ontbrekende of gedeeltelijke metadata. Aangrenzende
 generaties worden overflowveilig vergeleken.
 
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:2bff770cbad0c6d2004cc56a7571ae47384065d3dcbcf5a59c1ff3496c15f2a4 -->
+
 Bestaande complete generaties blijven geldig, ook generatie 1 met een oude
 nulcompanion. Een onderbroken eerste commit blijft herstelbaar vanuit de
 geldige generatie-0-basis. Alle gedeeltelijke eerste-commitprefixen zijn ook
 gericht op de host getest. Uniform sealed maar semantisch corrupte metadata
-blijft een harde fout. Zie [ADR-058](../../DECISIONS.md#adr-058--positieve-volume-identiteit-vóór-toelating-als-lege-opslag).
+blijft een harde fout. Zie [ADR-064](../../DECISIONS.md#adr-064--positieve-volume-identiteit-vóór-toelating-als-lege-opslag).
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 De eigen kernel, IPC en capabilities zijn niet verruimd. Er is geen
 runtimeformatteerpad of nieuwe bestandssysteemdriver toegevoegd. Alleen

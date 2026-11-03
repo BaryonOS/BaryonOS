@@ -1591,7 +1591,13 @@ streaming, meer apps, veilige accountvelden of een echte sessiegrens.
 Contract, bron en nog lopende native gate: implementation/NATIVE-CLIPBOARD.md
 en verification/native-clipboard-20261102/.
 
-## ADR-058 — Positieve volume-identiteit vóór toelating als lege opslag
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:adfb08a0c1d6b6c5caea886da6a4656c272d7febd8e7284290adf46355700f76 -->
+
+## ADR-064 — Positieve volume-identiteit vóór toelating als lege opslag
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 **Datum:** 2 november 2026. Uitvoeringsbasis: `74a34d0`.
 
