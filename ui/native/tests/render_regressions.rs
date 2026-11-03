@@ -7,6 +7,8 @@ use nieuw_os_materiaal::{
 };
 
 fn view<'a>(viewport: Viewport, objects: &'a [ListEntry]) -> View<'a> {
+    static WORKSPACE: nieuw_os_materiaal::workspace::Workspace =
+        nieuw_os_materiaal::workspace::Workspace::new();
     View {
         draw_pointer: true,
         desktop: None,
@@ -17,15 +19,19 @@ fn view<'a>(viewport: Viewport, objects: &'a [ListEntry]) -> View<'a> {
         focus: Focus::New,
         status: Status::Ready,
         objects,
+        workspace: &WORKSPACE,
         list_loaded: true,
         list_scroll: 0,
         contents: None,
         title: b"Materiaal",
+        revision: 0,
         caret: 0,
+        caret_trailing: false,
         anchor: 0,
         scroll: 0,
         editable: true,
         can_save: false,
+        can_inspect: false,
         saving: false,
         document_dirty: false,
         cursor: None,
@@ -43,15 +49,15 @@ fn semantics_budget_includes_paging_and_preserves_short_output() {
     let viewport = Viewport::new(800, 720, Scale::Percent100, 1).unwrap();
     let frame = Frame::new(view(viewport, &objects));
 
-    let mut nodes = [SemanticNode::EMPTY; 15];
+    let mut nodes = [SemanticNode::EMPTY; 16];
     let count = frame.semantics(&mut nodes).unwrap();
-    assert_eq!(count, 15);
+    assert_eq!(count, 16);
     assert_eq!(
         nodes[..count]
             .iter()
             .filter(|node| node.role == Role::ListItem)
             .count(),
-        7
+        6
     );
     assert!(nodes[..count]
         .iter()
@@ -61,7 +67,7 @@ fn semantics_budget_includes_paging_and_preserves_short_output() {
         .any(|node| node.id == SemanticId::NextPage));
     assert_eq!(nodes[count - 1].id, SemanticId::Status);
 
-    let mut short = [SemanticNode::EMPTY; 14];
+    let mut short = [SemanticNode::EMPTY; 15];
     assert!(frame.semantics(&mut short).is_err());
     assert!(short.iter().all(|node| node.id == SemanticId::Empty));
 }
@@ -117,6 +123,7 @@ fn primary_buttons_preserve_accent_and_focus_when_hovered_at_both_scales() {
                 Screen::Material => layout.new,
                 Screen::Editor => layout.save,
                 Screen::ConfirmClose => layout.modal_save,
+                _ => unreachable!("this test enumerates only primary screens"),
             };
             state.cursor = Some(((button.x + 8) * factor, (button.y + 8) * factor));
             let hovered = Frame::new(state);

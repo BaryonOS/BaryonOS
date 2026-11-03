@@ -24,6 +24,7 @@ from run_graphics import QmpPipe, ppm
 from run_system import check_esp, check_image
 from run_materiaal_probe import disk_oracle, TEXT, TEXT_SUM
 import volume_disk
+import window_library
 
 FEATURE = "native-window-session-probe"
 NAMES = {"window-init", "window-compositor", "materiaal-app", "calculator-app",
@@ -45,7 +46,9 @@ SNAPSHOT_FIELDS = {
 }
 
 
-def generate_fixture(*, clipboard: bool = False) -> dict:
+def generate_fixture(*, clipboard: bool = False, library: bool = False) -> dict:
+    if clipboard and library:
+        raise ValueError("Library and clipboard have separate complete oracles")
     directory = private_path(BUILD / ("window-fixture-" + uuid.uuid4().hex))
     directory.mkdir(parents=True)
     frozen = source_hash()
@@ -53,7 +56,8 @@ def generate_fixture(*, clipboard: bool = False) -> dict:
     env["CARGO_TARGET_DIR"] = str(private_path(TARGET / "window-fixture"))
     env["OS_WINDOW_FIXTURE_DIRECTORY"] = str(directory)
     command = ["cargo", "+1.90.0", "test", "--offline", "--locked", "--manifest-path",
-               str(ROOT / "ui/native/Cargo.toml"), "--test", "window_native_fixture", "--", "--nocapture"]
+               str(ROOT / "ui/native/Cargo.toml"), "--test",
+               "library_native_fixture" if library else "window_native_fixture", "--", "--nocapture"]
     commands = [command]
     if clipboard:
         commands.append(["cargo", "+1.90.0", "test", "--offline", "--locked", "--manifest-path",
@@ -68,7 +72,7 @@ def generate_fixture(*, clipboard: bool = False) -> dict:
         raise ValueError("Host fixture failed or source changed: " + str(directory))
     hashes, frames = {}, {}
     for size in ("880x510", "1120x660"):
-        for phase in FIXTURE_PHASES + (CLIPBOARD_PHASES if clipboard else ()):
+        for phase in (window_library.PHASES if library else FIXTURE_PHASES) + (CLIPBOARD_PHASES if clipboard else ()):
             path = private_path(directory / f"{size}-{phase}.ppm", regular=True)
             if path.stat().st_size > 3 * 1120 * 660 + 128:
                 raise ValueError("Oversized oracle")
@@ -92,7 +96,7 @@ def generate_fixture(*, clipboard: bool = False) -> dict:
                     frames[phase] = raw
     metadata = dict(kind="host-rendered real Controller/Frame oracle; not native execution",
                     source_sha256=frozen, source_fingerprint_version=3, generator_command=command,
-                    generator_commands=commands, clipboard_oracles=clipboard,
+                    generator_commands=commands, clipboard_oracles=clipboard, library_oracles=library,
                     generator_exit=result.returncode, files_sha256=hashes)
     publish_json(directory / "fixture.json", metadata)
     return dict(directory=directory, metadata=metadata, frames=frames)
@@ -193,19 +197,23 @@ def validate_build(frozen: str, feature: str = FEATURE) -> dict:
 
 
 def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
-        recovery_handshake: bool = False, clipboard: bool = False, session_route: bool = False) -> dict:
+        recovery_handshake: bool = False, clipboard: bool = False, session_route: bool = False,
+        library: bool = False, library_parent: Path | None = None) -> dict:
     if not 30 <= timeout <= 1800:
         raise ValueError("Timeout must be bounded 30..1800 seconds")
     if smoke and recovery_handshake or clipboard and (smoke or recovery_handshake):
         raise ValueError("Clipboard requires the full native gate; choose one diagnostic mode")
     if session_route and (smoke or recovery_handshake or clipboard):
         raise ValueError("The public session route is separate from the fault/clipboard gate")
+    if library and (smoke or recovery_handshake or clipboard or session_route) or library_parent is not None and not library:
+        raise ValueError("Library requires its separate complete walkthrough")
     feature = "native-session-route" if session_route else FEATURE
-    diagnostic = smoke or recovery_handshake or session_route
+    diagnostic = smoke or recovery_handshake or session_route or library
     private_path(BUILD)
     frozen = source_hash()
     manifest = validate_build(frozen, feature) if session_route else validate_build(frozen)
-    fixture = None if diagnostic else (generate_fixture(clipboard=True) if clipboard else generate_fixture())
+    fixture = generate_fixture(library=True) if library else (None if diagnostic else generate_fixture(clipboard=clipboard))
+    parent = window_library.cold_parent(library_parent, source=frozen, manifest=manifest) if library_parent is not None else None
     env = environment()
     qemu = Path(shutil.which("qemu-system-x86_64", path=env["PATH"]) or "missing")
     qemu_hash = sha256(qemu)
@@ -220,7 +228,10 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
         if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or not 0 < info.st_size <= limit:
             raise ValueError("Invalid external firmware/ROM")
         publish(directory / name, original.read_bytes())
-    volume_disk.create_image(directory / "volume.img", "empty")
+    if parent is None:
+        volume_disk.create_image(directory / "volume.img", "empty")
+    else:
+        publish(directory / "volume.img", parent["image"])
     check_image(directory / "volume.img")
     immutable = {p.relative_to(directory).as_posix(): sha256(p) for p in directory.rglob("*")
                  if p.is_file() and p.name not in {"OVMF_VARS.fd", "volume.img"}}
@@ -235,12 +246,16 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                "-object", "rng-random,id=rng0,filename=/dev/urandom", "-device", "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
                "-drive", "if=none,id=volume,format=raw,cache=writeback,file=volume.img",
                "-device", "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST"]
+    if parent is not None and (parent["qemu_sha256"] != qemu_hash or parent["command"] != command):
+        raise ValueError("Cold library emulator or configuration differs from parent")
     start = time.monotonic()
     deadline = start + timeout
-    report = dict(schema_version=1, passed=False, native_gate=False, smoke_only=diagnostic,
+    report = dict(schema_version=1, passed=False, native_gate=False, smoke_only=diagnostic and not library,
                   recovery_handshake_only=recovery_handshake, clipboard_requested=clipboard, clipboard_gate=False, source_sha256=frozen,
                   source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                   source_fingerprint_version=3, kernel_feature=feature, session_route_requested=session_route, session_route_gate=False, manifest=manifest, command=command,
+                  library_requested=library, library_gate=False, library_cold=parent is not None,
+                  library_parent=None if parent is None else {k: v for k, v in parent.items() if k != "image"},
                   run_directory=str(directory), qemu_sha256=qemu_hash, immutable=immutable, phases={})
     publish_json(directory / "result.json", report)
     report["boot_milestone_observations"] = {}
@@ -262,13 +277,17 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                     "scope": "host monotonic polling bound; not exact guest duration"}
         return raw
     process = control = None
+    cpu_before = None
     try:
         with (directory / "stderr.txt").open("xb") as stderr:
+            cpu_before = os.times() if os.name == "posix" else None
             process = subprocess.Popen(command, cwd=directory, env=env, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr, bufsize=0)
             control = QmpPipe(process, deadline)
 
             implementation = Path(os.readlink(f"/proc/{process.pid}/exe"))
             implementation_hash = sha256(implementation)
+            if parent is not None and parent["qemu_implementation_sha256"] != implementation_hash:
+                raise ValueError("Cold library QEMU implementation differs from parent")
             report["qemu_implementation"] = {"path": str(implementation), "sha256": implementation_hash}
             captured = {}
             group_generation = [1]
@@ -350,8 +369,15 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 move(x, y); button(True); button(False)
                 observe("mouse focus", lambda raw: comp(raw).get("GENERATION") == group_generation[0] and comp(raw).get("FOCUSED") == index)
 
-            initial = None if recovery_handshake or session_route else wait("boot", lambda raw, s: all(s.values()) and 31 in numbers(raw, "WINDOW:INITMASK"))
-            if session_route:
+            initial = None if recovery_handshake or session_route or library else wait("boot", lambda raw, s: all(s.values()) and 31 in numbers(raw, "WINDOW:INITMASK"))
+            if library:
+                observe("library app frames", lambda raw:
+                    all(snapshots(raw, role) for role in ("MATERIAL", "CALCULATOR"))
+                    and comp(raw).get("GENERATION") == 1)
+                move(1260, 50)
+                window_library.walkthrough(key=key, wait=wait, cold=parent is not None)
+                key("f10")
+            elif session_route:
                 # These are real compositor/input states plus unmasked captured
                 # frames. They do not certify a credential/keyring boundary or
                 # the existing crash/storage/clipboard gate.
@@ -508,13 +534,24 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 wait("saved", lambda raw, s: s["MATERIAL"] and s["MATERIAL"][-1]["SAVE_ACKS"] == 1 and s["MATERIAL"][-1]["DIRTY"] == 0, "saved")
                 key("esc")
                 wait("list", lambda raw, s: s["MATERIAL"] and s["MATERIAL"][-1]["SCREEN"] == 1, "list")
-                key("tab"); key("tab"); key("ret")
+                key("ctrl", "f"); key("ret")
                 wait("reopened", lambda raw, s: s["MATERIAL"] and s["MATERIAL"][-1]["SCREEN"] == 2 and s["MATERIAL"][-1]["DIRTY"] == 0 and s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM, "reopened")
                 key("f10")
             process.wait(timeout=max(0.1, deadline - time.monotonic()))
             raw = observed_serial()
             report["raw_qemu_exit"] = process.returncode
-            if session_route:
+            if library:
+                if process.returncode != 33 or not raw.endswith(b"WINDOW:CLEANUP:PASS\nWINDOW:CASE:PASS\nM1:PASS\n"):
+                    raise ValueError("Library did not shut down with verified cleanup")
+                disk_path = private_path(directory / "volume.img", regular=True)
+                report["disk_oracle"] = window_library.disk_oracle(disk_path.read_bytes())
+                report["volume_sha256"] = sha256(disk_path)
+                if parent is not None:
+                    current_parent = window_library.cold_parent(library_parent, source=frozen, manifest=manifest)
+                    if current_parent != parent or disk_path.read_bytes() != parent["image"]:
+                        raise ValueError("Cold reopen changed the image or its parent evidence")
+                report["library_gate"] = True
+            elif session_route:
                 if process.returncode != 33 or not raw.endswith(b"WINDOW:CLEANUP:PASS\nWINDOW:CASE:PASS\nM1:PASS\n"):
                     raise ValueError("Public session route did not shut down with verified cleanup")
                 report["session_route_gate"] = True
@@ -556,6 +593,12 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 process.kill(); process.wait(timeout=5)
         if process is not None:
             report["raw_qemu_exit"] = process.returncode
+            if cpu_before is not None:
+                cpu_after = os.times()
+                report["qemu_host_cpu"] = {
+                    "user_seconds": cpu_after.children_user - cpu_before.children_user,
+                    "system_seconds": cpu_after.children_system - cpu_before.children_system,
+                    "scope": "POSIX reaped child CPU during this QEMU invocation; excludes host fixture generation, not guest CPU cycles or scanout latency"}
         report["duration_s"] = time.monotonic() - start
         if control is not None:
             report["qmp_trace"] = control.trace
@@ -580,6 +623,9 @@ if __name__ == "__main__":
     parser.add_argument("--recovery-handshake-only", action="store_true")
     parser.add_argument("--clipboard", action="store_true", help="Include genuine bounded clipboard exchange, clear and post-fault empty checks")
     parser.add_argument("--session-route", action="store_true", help="Check the separate public VM compositor session route; no authentication/security-gate claim")
+    parser.add_argument("--library", action="store_true", help="Native naming, collections and history; separate from the full compositor/clipboard gate")
+    parser.add_argument("--library-cold-parent", type=Path, help="Copy only a validated successful library run's disposable image for cold reopening")
     args = parser.parse_args()
     raise SystemExit(0 if run(timeout=args.timeout, bios_rom=args.bios_rom, vga_rom=args.vga_rom,
-                            smoke=args.smoke_only, recovery_handshake=args.recovery_handshake_only, clipboard=args.clipboard, session_route=args.session_route)["passed"] else 1)
+                            smoke=args.smoke_only, recovery_handshake=args.recovery_handshake_only, clipboard=args.clipboard, session_route=args.session_route,
+                            library=args.library, library_parent=args.library_cold_parent)["passed"] else 1)

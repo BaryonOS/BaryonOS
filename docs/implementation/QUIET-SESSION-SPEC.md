@@ -70,9 +70,10 @@ tekenen; alleen compositor, inputfocus en capabilities beschermen trusted UI.
   monospace. Werkelijke fontmetrics bepalen uitlijning, niet tekenaantallen.
 - Native hergebruikt de gepinde Open Sans-atlas. Nieuwe optische maten vereisen
   echte atlas-/schaaltests; vergrote pixelletters zijn geen high-DPI-acceptatie.
-- Bewerkbare documenttekst behoudt tijdelijk monospace met juiste caretmetrics;
-  proportionele editing vereist ook aangepaste selectie/wrapping/caret en
-  verandert nooit opgeslagen UTF-8 om de vormgeving passend te maken.
+- Bewerkbare documenttekst gebruikt dezelfde proportionele glyphmetingen voor
+  selectie, wrapping, caret, pointer en navigatie. UTF-8-bytes veranderen nooit
+  om de vormgeving passend te maken. De begrensde atlas/fallback ondersteunt
+  nog geen volledige tekstshaping, IME of native schermlezeracceptatie.
 - Motion verklaart oorzaak/plaats, maximaal 120–160 ms als doel. Reduced motion
   wisselt direct; geen animatie/sleep stelt readiness of input kunstmatig uit.
 

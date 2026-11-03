@@ -7,13 +7,15 @@ use crate::{
         Error as RenderError, Frame, Layout, SemanticActions, SemanticId, SemanticNode,
         MAX_SEMANTIC_NODES,
     },
-    text::{self, Position},
+    text::{self, VisualPosition},
+    workspace::Workspace,
     Viewport,
 };
 use nieuw_os_catalog_client::Transport;
 use nieuw_os_document_session::{
     volume::{
-        Buffers, DocumentSession, Error as StorageError, ListEntry, SaveProgress, VolumeSession,
+        Buffers, DocumentSession, Error as StorageError, ListEntry, ListFilter, SaveProgress,
+        VolumeSession,
     },
     EditMode, SaveOutcome,
 };
@@ -26,6 +28,10 @@ pub enum Screen {
     Material,
     Editor,
     ConfirmClose,
+    Rename,
+    Organize,
+    History,
+    Filter,
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Focus {
@@ -41,6 +47,18 @@ pub enum Focus {
     KeepEditing,
     SaveAndBack,
     Discard,
+    Search,
+    Filter,
+    Rename,
+    Organize,
+    History,
+    FormInput,
+    FormConfirm,
+    FormCancel,
+    CollectionSlot(usize),
+    FilterSlot(usize),
+    HistoryVersion(usize),
+    RestoreHistory,
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Status {
@@ -51,6 +69,13 @@ pub enum Status {
     Saving { completed: usize, total: usize },
     Saved { revision: u64 },
     Cancelled,
+    Renamed,
+    Organized { revision: u64 },
+    Restored { revision: u64 },
+    RestoreRefreshFailed { revision: u64 },
+    NeedsSave,
+    PreviewUnavailable,
+    CollectionSavedAssignmentFailed,
     InputLost,
     ClipboardCopied,
     ClipboardEmpty,
@@ -90,15 +115,19 @@ pub struct View<'a> {
     pub focus: Focus,
     pub status: Status,
     pub objects: &'a [ListEntry],
+    pub workspace: &'a Workspace,
     pub list_loaded: bool,
     pub list_scroll: usize,
     pub contents: Option<&'a str>,
     pub title: &'a [u8],
+    pub revision: u64,
     pub caret: usize,
+    pub caret_trailing: bool,
     pub anchor: usize,
     pub scroll: usize,
     pub editable: bool,
     pub can_save: bool,
+    pub can_inspect: bool,
     pub saving: bool,
     pub document_dirty: bool,
     pub cursor: Option<(u32, u32)>,
@@ -114,10 +143,14 @@ pub struct Controller<'a, T> {
     focus: Focus,
     status: Status,
     objects: [ListEntry; PER_DOMAIN],
+    unfiltered: [ListEntry; PER_DOMAIN],
+    unfiltered_count: usize,
+    workspace: Workspace,
     object_count: usize,
     list_loaded: bool,
     list_scroll: usize,
     caret: usize,
+    caret_trailing: bool,
     anchor: usize,
     scroll: usize,
     generation: u64,
@@ -166,10 +199,14 @@ impl<'a, T: Transport> Controller<'a, T> {
                 Status::ReadOnly
             },
             objects: [ListEntry::EMPTY; PER_DOMAIN],
+            unfiltered: [ListEntry::EMPTY; PER_DOMAIN],
+            unfiltered_count: 0,
+            workspace: Workspace::new(),
             object_count: 0,
             list_loaded: false,
             list_scroll: 0,
             caret: 0,
+            caret_trailing: false,
             anchor: 0,
             scroll: 0,
             generation: 1,
@@ -241,11 +278,14 @@ impl<'a, T: Transport> Controller<'a, T> {
             focus: self.focus,
             status: self.status,
             objects: &self.objects[..self.object_count],
+            workspace: &self.workspace,
             list_loaded: self.list_loaded,
             list_scroll: self.list_scroll,
             contents: draft.and_then(|d| core::str::from_utf8(d.contents).ok()),
             title: draft.map_or(&[], |d| d.name),
+            revision: draft.map_or(0, |d| d.loaded_revision),
             caret: self.caret,
+            caret_trailing: self.caret_trailing,
             anchor: self.anchor,
             scroll: self.scroll,
             editable: self.editable,
@@ -254,6 +294,10 @@ impl<'a, T: Transport> Controller<'a, T> {
                     .and_then(|d| core::str::from_utf8(d.contents).ok())
                     .is_some()
                 && draft.is_some()
+                && !self.document.is_closed()
+                && !self.document.is_uncertain()
+                && !self.document.is_conflicted(),
+            can_inspect: draft.is_some()
                 && !self.document.is_closed()
                 && !self.document.is_uncertain()
                 && !self.document.is_conflicted(),
@@ -365,10 +409,14 @@ impl<'a, T: Transport> Controller<'a, T> {
     }
     pub fn refresh(&mut self) -> Result<(), Error> {
         let mut objects = [ListEntry::EMPTY; PER_DOMAIN];
-        match self.document.list(&mut objects) {
+        match self
+            .document
+            .list_filtered(self.workspace.filter, &mut objects)
+        {
             Ok(count) => {
-                self.objects = objects;
-                self.object_count = count;
+                self.unfiltered = objects;
+                self.unfiltered_count = count;
+                self.filter_query();
                 self.list_loaded = true;
                 self.list_scroll = self.list_scroll.min(count.saturating_sub(1));
                 self.invalidate()
@@ -383,9 +431,15 @@ impl<'a, T: Transport> Controller<'a, T> {
         if let Err(error) = self.document.open(object) {
             return Err(self.failed(Error::Storage(error)));
         }
+        self.workspace.metadata = Some(
+            self.document
+                .metadata()
+                .map_err(|e| self.failed(Error::Storage(e)))?,
+        );
         self.screen = Screen::Editor;
         self.focus = Focus::Document;
         self.caret = 0;
+        self.caret_trailing = false;
         self.anchor = 0;
         self.scroll = 0;
         self.back_after_save = false;
@@ -396,11 +450,14 @@ impl<'a, T: Transport> Controller<'a, T> {
         self.invalidate()
     }
     pub fn create(&mut self) -> Result<(), Error> {
-        if !self.list_loaded {
-            self.refresh()?;
-        }
+        // Allocation considers the complete granted domain, never a filtered view.
+        let mut all = [ListEntry::EMPTY; PER_DOMAIN];
+        let count = self
+            .document
+            .list(&mut all)
+            .map_err(|e| self.failed(Error::Storage(e)))?;
         let Some(object) = (0..PER_DOMAIN).find(|index| {
-            !self.objects[..self.object_count]
+            !all[..count]
                 .iter()
                 .any(|entry| entry.object as usize == *index)
         }) else {
@@ -412,11 +469,337 @@ impl<'a, T: Transport> Controller<'a, T> {
         self.screen = Screen::Editor;
         self.focus = Focus::Document;
         self.caret = 0;
+        self.caret_trailing = false;
         self.anchor = 0;
         self.scroll = 0;
         self.back_after_save = false;
         self.status = Status::Dirty;
+        self.workspace.metadata = None;
         self.invalidate()
+    }
+    fn filter_query(&mut self) {
+        self.objects.fill(ListEntry::EMPTY);
+        self.object_count = 0;
+        for entry in &self.unfiltered[..self.unfiltered_count] {
+            if self.workspace.matches(&entry.name[..entry.name_length]) {
+                self.objects[self.object_count] = *entry;
+                self.object_count += 1;
+            }
+        }
+        self.list_scroll = self.list_scroll.min(self.object_count.saturating_sub(1));
+    }
+    pub fn set_search_query(&mut self, value: &str) -> Result<(), Error> {
+        self.pressed = None;
+        self.dragging = false;
+        if self.screen != Screen::Material
+            || value.len() > crate::workspace::QUERY
+            || value.chars().any(char::is_control)
+        {
+            return Err(Error::InvalidInput);
+        }
+        self.workspace.query.fill(0);
+        self.workspace.query[..value.len()].copy_from_slice(value.as_bytes());
+        self.workspace.query_len = value.len();
+        self.filter_query();
+        self.focus = Focus::Search;
+        self.invalidate()
+    }
+    fn load_collections(&mut self) -> Result<(), Error> {
+        for i in 0..volume_core::COLLECTIONS {
+            self.workspace.collections[i] = self
+                .document
+                .collection_stat(i + 1)
+                .map_err(|e| self.failed(Error::Storage(e)))?;
+        }
+        Ok(())
+    }
+    pub fn set_form_value(&mut self, value: &str) -> Result<(), Error> {
+        self.pressed = None;
+        self.dragging = false;
+        if !matches!(self.screen, Screen::Rename | Screen::Organize)
+            || !self.workspace.set_form(value)
+        {
+            return Err(Error::InvalidInput);
+        }
+        self.workspace.form_selected = false;
+        self.focus = Focus::FormInput;
+        self.invalidate()
+    }
+    pub fn begin_rename(&mut self) -> Result<(), Error> {
+        self.pressed = None;
+        self.dragging = false;
+        if self.screen != Screen::Editor || !self.view().can_save || self.document.is_saving() {
+            return Err(Error::InvalidInput);
+        }
+        let draft = self.document.draft().ok_or(Error::InvalidInput)?;
+        self.workspace.form.fill(0);
+        self.workspace.form[..draft.name.len()].copy_from_slice(draft.name);
+        self.workspace.form_len = draft.name.len();
+        self.workspace.form_selected = true;
+        self.screen = Screen::Rename;
+        self.focus = Focus::FormInput;
+        self.invalidate()
+    }
+    fn clean_operation(&mut self, write: bool) -> Result<bool, Error> {
+        if self.screen != Screen::Editor
+            || !self.view().can_inspect
+            || (write && !self.editable)
+            || self.document.is_saving()
+        {
+            return Err(Error::InvalidInput);
+        }
+        if self.document.is_dirty() {
+            self.status = Status::NeedsSave;
+            self.invalidate()?;
+            return Ok(false);
+        }
+        self.workspace.metadata = Some(
+            self.document
+                .metadata()
+                .map_err(|e| self.failed(Error::Storage(e)))?,
+        );
+        Ok(true)
+    }
+    pub fn begin_organize(&mut self) -> Result<(), Error> {
+        self.pressed = None;
+        self.dragging = false;
+        if !self.clean_operation(true)? {
+            return Ok(());
+        }
+        self.load_collections()?;
+        let current = self
+            .workspace
+            .metadata
+            .map_or(0, |s| usize::from(s.collection));
+        self.screen = Screen::Organize;
+        self.select_collection(current.saturating_sub(1).min(volume_core::COLLECTIONS - 1))
+    }
+    pub fn select_collection(&mut self, index: usize) -> Result<(), Error> {
+        self.pressed = None;
+        self.dragging = false;
+        if self.screen != Screen::Organize || index >= volume_core::COLLECTIONS {
+            return Err(Error::InvalidInput);
+        }
+        self.workspace.selected_collection = index;
+        let entry = self.workspace.collections[index];
+        self.workspace.form.fill(0);
+        self.workspace.form[..entry.name_length].copy_from_slice(entry.name());
+        self.workspace.form_len = entry.name_length;
+        self.workspace.form_selected = true;
+        self.focus = Focus::FormInput;
+        self.invalidate()
+    }
+    pub fn confirm_form(&mut self) -> Result<(), Error> {
+        self.pressed = None;
+        self.dragging = false;
+        match self.screen {
+            Screen::Rename => {
+                self.document
+                    .rename_draft(&self.workspace.form[..self.workspace.form_len])
+                    .map_err(|e| self.failed(Error::Storage(e)))?;
+                self.status = Status::Renamed;
+            }
+            Screen::Organize => {
+                let stat = self.workspace.metadata.ok_or(Error::InvalidInput)?;
+                let index = self.workspace.selected_collection;
+                let collection = self.workspace.collections[index];
+                let form = self.workspace.form;
+                let name = &form[..self.workspace.form_len];
+                let mut collection_changed = false;
+                if name.is_empty() {
+                    return Err(Error::InvalidInput);
+                }
+                if !collection.present || collection.name() != name {
+                    let result =
+                        self.document
+                            .update_collection(index + 1, collection.revision, name);
+                    let revision = result.map_err(|e| self.failed(Error::Storage(e)))?;
+                    self.workspace.collections[index].revision = revision;
+                    self.workspace.collections[index].present = true;
+                    self.workspace.collections[index].name.fill(0);
+                    self.workspace.collections[index].name[..name.len()].copy_from_slice(name);
+                    self.workspace.collections[index].name_length = name.len();
+                    collection_changed = true;
+                }
+                let revision = match self.document.set_metadata(
+                    stat.revision,
+                    stat.tags,
+                    stat.kind,
+                    (index + 1) as u8,
+                ) {
+                    Ok(revision) => revision,
+                    Err(e) => {
+                        let error = self.failed(Error::Storage(e));
+                        if collection_changed {
+                            self.status = Status::CollectionSavedAssignmentFailed;
+                        }
+                        return Err(error);
+                    }
+                };
+                let mut current = stat;
+                current.revision = revision;
+                current.collection = (index + 1) as u8;
+                self.workspace.metadata = Some(current);
+                self.status = Status::Organized { revision };
+            }
+            _ => return Err(Error::InvalidInput),
+        }
+        self.screen = Screen::Editor;
+        self.focus = Focus::Document;
+        self.workspace.form.fill(0);
+        self.workspace.form_len = 0;
+        self.pressed = None;
+        self.dragging = false;
+        self.invalidate()
+    }
+    pub fn begin_history(&mut self) -> Result<(), Error> {
+        self.pressed = None;
+        self.dragging = false;
+        if !self.clean_operation(false)? {
+            return Ok(());
+        }
+        self.screen = Screen::History;
+        self.select_history(1)
+    }
+    pub fn select_history(&mut self, selector: usize) -> Result<(), Error> {
+        self.pressed = None;
+        self.dragging = false;
+        if self.screen != Screen::History || selector == 0 || selector > volume_core::HISTORY {
+            return Err(Error::InvalidInput);
+        }
+        let stat = self.workspace.metadata.ok_or(Error::InvalidInput)?;
+        self.workspace.clear_preview();
+        self.workspace.selected_history = selector;
+        self.focus = Focus::HistoryVersion(selector);
+        if selector > stat.history_count {
+            self.status = Status::PreviewUnavailable;
+            self.focus = Focus::FormCancel;
+            return self.invalidate();
+        }
+        let result =
+            self.document
+                .read_history_prefix(stat.revision, selector, &mut self.workspace.preview);
+        let prefix = result.map_err(|e| self.failed(Error::Storage(e)))?;
+        self.workspace.preview_len = prefix.copied;
+        self.workspace.preview_total = prefix.total;
+        self.workspace.preview_complete = true; // verified prefix, explicitly labelled when shortened
+        if !self.workspace.preview_complete {
+            self.status = Status::PreviewUnavailable;
+        }
+        self.invalidate()
+    }
+    pub fn restore_selected_history(&mut self) -> Result<(), Error> {
+        self.pressed = None;
+        self.dragging = false;
+        if self.screen != Screen::History || !self.workspace.preview_complete {
+            return Err(Error::InvalidInput);
+        }
+        let stat = self.workspace.metadata.ok_or(Error::InvalidInput)?;
+        let result = self
+            .document
+            .restore_history(stat.revision, self.workspace.selected_history);
+        match result {
+            Ok(revision) => self.status = Status::Restored { revision },
+            Err(StorageError::CommittedRefreshFailed { revision }) => {
+                self.status = Status::RestoreRefreshFailed { revision };
+                self.workspace.metadata = None;
+                self.screen = Screen::Editor;
+                self.focus = Focus::Document;
+                self.workspace.clear_preview();
+                return self.invalidate();
+            }
+            Err(e) => return Err(self.failed(Error::Storage(e))),
+        }
+        self.workspace.metadata = None;
+        if let Some(draft) = self.document.draft() {
+            let revision = draft.loaded_revision;
+            match self.document.metadata() {
+                Ok(stat) if stat.revision == revision => self.workspace.metadata = Some(stat),
+                Ok(_) => {}
+                Err(_) => self.status = Status::RestoreRefreshFailed { revision },
+            }
+        }
+        self.workspace.clear_preview();
+        self.caret = 0;
+        self.caret_trailing = false;
+        self.anchor = 0;
+        self.scroll = 0;
+        self.screen = Screen::Editor;
+        self.focus = Focus::Document;
+        self.invalidate()
+    }
+    fn cancel_workspace(&mut self) -> Result<(), Error> {
+        self.pressed = None;
+        self.dragging = false;
+        self.screen = if self.screen == Screen::Filter {
+            Screen::Material
+        } else {
+            Screen::Editor
+        };
+        self.focus = if self.screen == Screen::Material {
+            Focus::Search
+        } else {
+            Focus::Document
+        };
+        self.workspace.form.fill(0);
+        self.workspace.form_len = 0;
+        self.workspace.clear_preview();
+        self.invalidate()
+    }
+    pub fn choose_filter(&mut self, slot: usize) -> Result<(), Error> {
+        self.pressed = None;
+        self.dragging = false;
+        if self.screen != Screen::Filter {
+            return Err(Error::InvalidInput);
+        }
+        self.workspace.filter = match slot {
+            0 => ListFilter::All,
+            1 => ListFilter::Uncollected,
+            2.. if slot - 2 < volume_core::COLLECTIONS
+                && self.workspace.collections[slot - 2].present =>
+            {
+                ListFilter::Collection((slot - 1) as u8)
+            }
+            _ => return Err(Error::InvalidInput),
+        };
+        self.screen = Screen::Material;
+        self.focus = Focus::Filter;
+        self.refresh()
+    }
+    pub fn workspace_controls(&self, mut visit: impl FnMut(Focus, crate::Rect, bool)) {
+        let l = Layout::for_screen(self.viewport, self.screen);
+        match self.screen {
+            Screen::Rename | Screen::Organize => {
+                visit(Focus::FormInput, l.form_input, true);
+                visit(Focus::FormConfirm, l.form_confirm, self.view().can_save);
+                if self.screen == Screen::Organize {
+                    for i in 0..volume_core::COLLECTIONS {
+                        visit(Focus::CollectionSlot(i), l.collection_slot(i), true);
+                    }
+                }
+            }
+            Screen::History => {
+                if let Some(stat) = self.workspace.metadata {
+                    for i in 1..=stat.history_count {
+                        visit(Focus::HistoryVersion(i), l.history_slot(i), true);
+                    }
+                }
+                visit(
+                    Focus::RestoreHistory,
+                    l.form_confirm,
+                    self.workspace.preview_complete && self.view().can_save,
+                );
+            }
+            Screen::Filter => {
+                for i in 0..volume_core::COLLECTIONS + 2 {
+                    if i < 2 || self.workspace.collections[i - 2].present {
+                        visit(Focus::FilterSlot(i), l.filter_slot(i), true);
+                    }
+                }
+            }
+            _ => return,
+        }
+        visit(Focus::FormCancel, l.form_cancel, true);
     }
     fn semantic_actions(
         &self,
@@ -470,6 +853,18 @@ impl<'a, T: Transport> Controller<'a, T> {
             SemanticId::SaveAndBack => Focus::SaveAndBack,
             SemanticId::KeepEditing => Focus::KeepEditing,
             SemanticId::Discard => Focus::Discard,
+            SemanticId::LibrarySearch => Focus::Search,
+            SemanticId::CollectionFilter => Focus::Filter,
+            SemanticId::Rename => Focus::Rename,
+            SemanticId::Organize => Focus::Organize,
+            SemanticId::History => Focus::History,
+            SemanticId::FormInput => Focus::FormInput,
+            SemanticId::FormConfirm => Focus::FormConfirm,
+            SemanticId::FormCancel => Focus::FormCancel,
+            SemanticId::CollectionSlot(i) => Focus::CollectionSlot(i),
+            SemanticId::FilterSlot(i) => Focus::FilterSlot(i),
+            SemanticId::HistoryVersion(i) => Focus::HistoryVersion(i),
+            SemanticId::RestoreHistory => Focus::RestoreHistory,
             _ => return Err(Error::InvalidInput),
         };
         self.focus = focus;
@@ -494,6 +889,18 @@ impl<'a, T: Transport> Controller<'a, T> {
             Focus::KeepEditing => SemanticId::KeepEditing,
             Focus::SaveAndBack => SemanticId::SaveAndBack,
             Focus::Discard => SemanticId::Discard,
+            Focus::Search => SemanticId::LibrarySearch,
+            Focus::Filter => SemanticId::CollectionFilter,
+            Focus::Rename => SemanticId::Rename,
+            Focus::Organize => SemanticId::Organize,
+            Focus::History => SemanticId::History,
+            Focus::FormInput => SemanticId::FormInput,
+            Focus::FormConfirm => SemanticId::FormConfirm,
+            Focus::FormCancel => SemanticId::FormCancel,
+            Focus::CollectionSlot(i) => SemanticId::CollectionSlot(i),
+            Focus::FilterSlot(i) => SemanticId::FilterSlot(i),
+            Focus::HistoryVersion(i) => SemanticId::HistoryVersion(i),
+            Focus::RestoreHistory => SemanticId::RestoreHistory,
             Focus::Document => return Err(Error::InvalidInput),
         };
         self.activate_semantic(id, self.generation)
@@ -521,6 +928,13 @@ impl<'a, T: Transport> Controller<'a, T> {
             }
             return self.invalidate();
         }
+        if enabled && actions.set_value {
+            match id {
+                SemanticId::LibrarySearch => return self.set_search_query(value),
+                SemanticId::FormInput => return self.set_form_value(value),
+                _ => {}
+            }
+        }
         if id != SemanticId::Document || !enabled || !actions.set_value {
             return Err(Error::InvalidInput);
         }
@@ -530,6 +944,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             .map_err(|error| self.failed(Error::Storage(error)))?;
         self.focus = Focus::Document;
         self.caret = value.len();
+        self.caret_trailing = false;
         self.anchor = self.caret;
         self.update_edit_status();
         self.ensure_caret();
@@ -614,6 +1029,29 @@ impl<'a, T: Transport> Controller<'a, T> {
     }
     fn activate(&mut self, focus: Focus) -> Result<(), Error> {
         match focus {
+            Focus::Search => {
+                self.focus = Focus::Search;
+                self.invalidate()
+            }
+            Focus::Filter => {
+                self.load_collections()?;
+                self.screen = Screen::Filter;
+                self.focus = Focus::FilterSlot(0);
+                self.invalidate()
+            }
+            Focus::Rename => self.begin_rename(),
+            Focus::Organize => self.begin_organize(),
+            Focus::History => self.begin_history(),
+            Focus::FormInput => {
+                self.focus = Focus::FormInput;
+                self.invalidate()
+            }
+            Focus::FormConfirm => self.confirm_form(),
+            Focus::FormCancel => self.cancel_workspace(),
+            Focus::CollectionSlot(i) => self.select_collection(i),
+            Focus::FilterSlot(i) => self.choose_filter(i),
+            Focus::HistoryVersion(i) => self.select_history(i),
+            Focus::RestoreHistory => self.restore_selected_history(),
             Focus::New => self.create(),
             Focus::Refresh => self.refresh(),
             Focus::Previous | Focus::Next => {
@@ -676,7 +1114,10 @@ impl<'a, T: Transport> Controller<'a, T> {
         self.caret = text::boundary(text, self.caret);
         self.anchor = text::boundary(text, self.anchor);
         let layout = Layout::new(self.viewport);
-        let row = text::position(text, self.caret, layout.columns()).row;
+        let row = layout
+            .text_metrics()
+            .position_with_affinity(text, self.caret, self.caret_trailing)
+            .row;
         if row < self.scroll {
             self.scroll = row;
         }
@@ -694,6 +1135,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             .replace_range(range, replacement.as_bytes())
             .map_err(|e| self.failed(Error::Storage(e)))?;
         self.caret = start + replacement.len();
+        self.caret_trailing = false;
         self.anchor = self.caret;
         self.update_edit_status();
         self.ensure_caret();
@@ -771,7 +1213,7 @@ impl<'a, T: Transport> Controller<'a, T> {
         self.invalidate()
     }
     fn tab(&mut self, reverse: bool) -> Result<(), Error> {
-        let mut choices = [Focus::New; PER_DOMAIN + 4];
+        let mut choices = [Focus::New; PER_DOMAIN + 12];
         let count = match self.screen {
             Screen::Material => {
                 let mut prefix = if self.editable {
@@ -797,7 +1239,10 @@ impl<'a, T: Transport> Controller<'a, T> {
                 {
                     *choice = Focus::Object(i);
                 }
-                self.object_count + prefix
+                let end = self.object_count + prefix;
+                choices[end] = Focus::Search;
+                choices[end + 1] = Focus::Filter;
+                end + 2
             }
             Screen::Editor => {
                 choices[0] = Focus::Back;
@@ -808,10 +1253,68 @@ impl<'a, T: Transport> Controller<'a, T> {
                     Focus::Save
                 };
                 if self.view().can_save || self.document.is_saving() {
+                    if self.viewport.logical_width() >= 700 {
+                        choices[3] = Focus::Rename;
+                        choices[4] = Focus::Organize;
+                        choices[5] = Focus::History;
+                        6
+                    } else {
+                        3
+                    }
+                } else if self.viewport.logical_width() >= 700 && self.view().can_inspect {
+                    choices[2] = Focus::History;
                     3
                 } else {
                     2
                 }
+            }
+            Screen::Rename | Screen::Organize => {
+                choices[0] = Focus::FormInput;
+                let mut count = 1;
+                if !self.workspace.form().is_empty() && self.view().can_save {
+                    choices[count] = Focus::FormConfirm;
+                    count += 1;
+                }
+                choices[count] = Focus::FormCancel;
+                count += 1;
+                if self.screen == Screen::Organize {
+                    for i in 0..volume_core::COLLECTIONS {
+                        choices[count] = Focus::CollectionSlot(i);
+                        count += 1;
+                    }
+                }
+                count
+            }
+            Screen::Filter => {
+                let mut count = 0;
+                for i in 0..volume_core::COLLECTIONS + 2 {
+                    if i < 2 || self.workspace.collections[i - 2].present {
+                        choices[count] = Focus::FilterSlot(i);
+                        count += 1;
+                    }
+                }
+                choices[count] = Focus::FormCancel;
+                count + 1
+            }
+            Screen::History => {
+                choices[0] = Focus::HistoryVersion(self.workspace.selected_history);
+                let mut count = 1;
+                if self.workspace.preview_complete && self.view().can_save {
+                    choices[count] = Focus::RestoreHistory;
+                    count += 1;
+                }
+                choices[count] = Focus::FormCancel;
+                count += 1;
+                if self.workspace.metadata.is_some_and(|s| s.history_count > 1) {
+                    choices[count] =
+                        Focus::HistoryVersion(if self.workspace.selected_history == 1 {
+                            2
+                        } else {
+                            1
+                        });
+                    count += 1;
+                }
+                count
             }
             Screen::ConfirmClose => {
                 if self.view().can_save {
@@ -846,6 +1349,56 @@ impl<'a, T: Transport> Controller<'a, T> {
         }
         self.invalidate()
     }
+    fn edit_workspace_field(&mut self, event: KeyboardEvent, query: bool) -> Result<(), Error> {
+        if event.modifiers.control() && event.key == PhysicalKey::A {
+            if query {
+                return self.set_search_query("");
+            }
+            self.workspace.form_selected = true;
+            return self.invalidate();
+        }
+        if event.modifiers.control() || event.modifiers.alt() || event.modifiers.super_key() {
+            return Ok(());
+        }
+        let mut buffer = [0; crate::workspace::QUERY];
+        let value = if query {
+            self.workspace.query()
+        } else {
+            self.workspace.form()
+        };
+        buffer[..value.len()].copy_from_slice(value.as_bytes());
+        let mut length = value.len();
+        if !query && self.workspace.form_selected {
+            length = 0;
+        }
+        if event.key == PhysicalKey::Backspace {
+            let text = core::str::from_utf8(&buffer[..length]).map_err(|_| Error::InvalidUtf8)?;
+            length = text::previous(text, length);
+        } else if let Some(byte) = us_character(
+            event.key,
+            event.modifiers.shift(),
+            event.modifiers.caps_lock,
+        ) {
+            let limit = if query {
+                crate::workspace::QUERY
+            } else {
+                volume_core::NAME
+            };
+            if length >= limit {
+                return Ok(());
+            }
+            buffer[length] = byte;
+            length += 1;
+        } else {
+            return Ok(());
+        }
+        let value = core::str::from_utf8(&buffer[..length]).map_err(|_| Error::InvalidUtf8)?;
+        if query {
+            self.set_search_query(value)
+        } else {
+            self.set_form_value(value)
+        }
+    }
     fn key(&mut self, event: KeyboardEvent) -> Result<(), Error> {
         if !matches!(event.action, KeyAction::Press | KeyAction::Repeat) {
             return Ok(());
@@ -859,6 +1412,63 @@ impl<'a, T: Transport> Controller<'a, T> {
             }
             if event.key == PhysicalKey::PageUp && self.list_scroll > 0 {
                 return self.activate_focus_semantically(Focus::Previous);
+            }
+        }
+        if press
+            && event.modifiers.control()
+            && event.key == PhysicalKey::F
+            && self.screen == Screen::Material
+        {
+            self.focus = Focus::Search;
+            return self.invalidate();
+        }
+        if press && self.screen == Screen::Editor {
+            if event.key == PhysicalKey::F2 {
+                return self.begin_rename();
+            }
+            if event.modifiers.control() && event.key == PhysicalKey::G {
+                return self.begin_organize();
+            }
+            if event.modifiers.alt() && event.key == PhysicalKey::H {
+                return self.begin_history();
+            }
+        }
+        if event.key == PhysicalKey::Escape
+            && press
+            && matches!(
+                self.screen,
+                Screen::Rename | Screen::Organize | Screen::History | Screen::Filter
+            )
+        {
+            return self.cancel_workspace();
+        }
+        if self.screen == Screen::History
+            && matches!(event.key, PhysicalKey::PageUp | PhysicalKey::PageDown)
+        {
+            if let Some(value) = self.workspace.preview() {
+                let l = Layout::for_screen(self.viewport, self.screen);
+                let scale = self.viewport.scale();
+                let font = nieuw_os_graphics::Font::new(
+                    nieuw_os_graphics::Size::Body,
+                    nieuw_os_graphics::Weight::Regular,
+                    scale == crate::Scale::Percent200,
+                );
+                let metrics =
+                    text::Proportional::new(font, (l.preview.width - 24) * scale.factor());
+                let total = metrics.position(value, value.len()).row + 1;
+                let rows =
+                    (l.preview.height.saturating_sub(8) / design::LINE_HEIGHT).max(1) as usize;
+                self.workspace.preview_scroll = if event.key == PhysicalKey::PageUp {
+                    self.workspace.preview_scroll.saturating_sub(rows)
+                } else {
+                    self.workspace
+                        .preview_scroll
+                        .saturating_add(rows)
+                        .min(total.saturating_sub(rows))
+                };
+                self.pressed = None;
+                self.dragging = false;
+                return self.invalidate();
             }
         }
         if event.key == PhysicalKey::Tab && press {
@@ -882,6 +1492,33 @@ impl<'a, T: Transport> Controller<'a, T> {
                 return self.invalidate();
             }
         }
+        if self.screen == Screen::Material && self.focus == Focus::Search {
+            if matches!(event.key, PhysicalKey::Enter | PhysicalKey::KeypadEnter) {
+                if let Some(entry) = self.objects.first().filter(|_| self.object_count > 0) {
+                    return self.open(entry.object);
+                }
+                return self.invalidate();
+            }
+            return self.edit_workspace_field(event, true);
+        }
+        if matches!(self.screen, Screen::Rename | Screen::Organize)
+            && self.focus == Focus::FormInput
+        {
+            if matches!(event.key, PhysicalKey::Enter | PhysicalKey::KeypadEnter) {
+                return self.confirm_form();
+            }
+            if self.screen == Screen::Organize
+                && matches!(event.key, PhysicalKey::Up | PhysicalKey::Down)
+            {
+                let i = self.workspace.selected_collection;
+                return self.select_collection(if event.key == PhysicalKey::Up {
+                    (i + volume_core::COLLECTIONS - 1) % volume_core::COLLECTIONS
+                } else {
+                    (i + 1) % volume_core::COLLECTIONS
+                });
+            }
+            return self.edit_workspace_field(event, false);
+        }
         if self.focus != Focus::Document || self.screen != Screen::Editor {
             if press
                 && matches!(
@@ -900,6 +1537,9 @@ impl<'a, T: Transport> Controller<'a, T> {
             return Err(self.failed(Error::InvalidUtf8));
         };
         let selected = text::selection(self.anchor, self.caret);
+        let metrics = Layout::new(self.viewport).text_metrics();
+        let current = metrics.position_with_affinity(contents, self.caret, self.caret_trailing);
+        let mut target_row = current.row;
         let next = match event.key {
             PhysicalKey::Left => Some(if !event.modifiers.shift() && !selected.is_empty() {
                 selected.start
@@ -911,25 +1551,40 @@ impl<'a, T: Transport> Controller<'a, T> {
             } else {
                 text::next(contents, self.caret)
             }),
-            PhysicalKey::Home => Some(contents[..self.caret].rfind('\n').map_or(0, |n| n + 1)),
-            PhysicalKey::End => Some(
-                contents[self.caret..]
-                    .find('\n')
-                    .map_or(contents.len(), |n| self.caret + n),
-            ),
+            PhysicalKey::Home => Some(metrics.byte_at(
+                contents,
+                VisualPosition {
+                    row: current.row,
+                    x_64: 0,
+                },
+            )),
+            PhysicalKey::End => Some(metrics.byte_at(
+                contents,
+                VisualPosition {
+                    row: current.row,
+                    x_64: u64::MAX,
+                },
+            )),
             PhysicalKey::Up | PhysicalKey::Down => {
-                let columns = Layout::new(self.viewport).columns();
-                let mut at = text::position(contents, self.caret, columns);
-                at.row = if event.key == PhysicalKey::Up {
-                    at.row.saturating_sub(1)
+                target_row = if event.key == PhysicalKey::Up {
+                    current.row.saturating_sub(1)
                 } else {
-                    at.row + 1
+                    current.row + 1
                 };
-                Some(text::byte_at(contents, at, columns))
+                Some(metrics.byte_at(
+                    contents,
+                    VisualPosition {
+                        row: target_row,
+                        x_64: current.x_64,
+                    },
+                ))
             }
             _ => None,
         };
         if let Some(next) = next {
+            self.caret_trailing = event.key == PhysicalKey::End
+                || (matches!(event.key, PhysicalKey::Up | PhysicalKey::Down)
+                    && metrics.position(contents, next).row > target_row);
             return self.move_caret(next, event.modifiers.shift());
         }
         if event.modifiers.control() || event.modifiers.alt() || event.modifiers.super_key() {
@@ -964,7 +1619,38 @@ impl<'a, T: Transport> Controller<'a, T> {
         }
     }
     fn hit(&self, x: u32, y: u32) -> Option<Focus> {
-        let layout = Layout::new(self.viewport);
+        let layout = Layout::for_screen(self.viewport, self.screen);
+        if matches!(
+            self.screen,
+            Screen::Rename | Screen::Organize | Screen::History | Screen::Filter
+        ) {
+            let mut hit = None;
+            self.workspace_controls(|focus, bounds, enabled| {
+                if enabled && bounds.contains(x, y) {
+                    hit = Some(focus);
+                }
+            });
+            return hit;
+        }
+        if self.screen == Screen::Material {
+            if layout.search.contains(x, y) {
+                return Some(Focus::Search);
+            }
+            if layout.filter.contains(x, y) {
+                return Some(Focus::Filter);
+            }
+        }
+        if self.screen == Screen::Editor && self.viewport.logical_width() >= 700 {
+            for (bounds, focus) in [
+                (layout.rename, Focus::Rename),
+                (layout.organize, Focus::Organize),
+                (layout.history, Focus::History),
+            ] {
+                if bounds.contains(x, y) {
+                    return Some(focus);
+                }
+            }
+        }
         match self.screen {
             Screen::Material => {
                 if self.editable && layout.new.contains(x, y) {
@@ -1006,6 +1692,7 @@ impl<'a, T: Transport> Controller<'a, T> {
                     None
                 }
             }
+            Screen::Rename | Screen::Organize | Screen::History | Screen::Filter => None,
             Screen::ConfirmClose => [
                 (layout.modal_save, Focus::SaveAndBack),
                 (layout.modal_cancel, Focus::KeepEditing),
@@ -1021,17 +1708,17 @@ impl<'a, T: Transport> Controller<'a, T> {
     fn point_caret(&mut self, x: u32, y: u32, extend: bool) {
         if let Some(contents) = self.view().contents {
             let layout = Layout::new(self.viewport);
-            let column = x.saturating_sub(layout.editor.x + 8) as usize / layout.character_width();
-            let row = y.saturating_sub(layout.editor.y + 8) as usize / design::LINE_HEIGHT as usize
+            let x_64 = u64::from(x.saturating_sub(layout.text_left()))
+                * u64::from(self.viewport.scale().factor())
+                * 64;
+            let row = y.saturating_sub(layout.text_top()) as usize / design::LINE_HEIGHT as usize
                 + self.scroll;
-            self.caret = text::byte_at(
-                contents,
-                Position {
-                    row,
-                    column: column.min(layout.columns()),
-                },
-                layout.columns(),
-            );
+            let next = layout
+                .text_metrics()
+                .byte_at(contents, VisualPosition { row, x_64 });
+            let trailing = layout.text_metrics().position(contents, next).row > row;
+            self.caret = next;
+            self.caret_trailing = trailing;
             if !extend {
                 self.anchor = self.caret;
             }

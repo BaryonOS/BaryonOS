@@ -1108,7 +1108,7 @@ fn semantic_tree_bounds_maximum_material_page_and_dirty_dialog_impl() {
         let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
         let frame = Frame::new(ui.view());
         let count = frame.semantics(&mut nodes).unwrap();
-        assert_eq!(count, 6 + volume_core::PER_DOMAIN);
+        assert_eq!(count, 8 + volume_core::PER_DOMAIN);
         assert_semantic_tree(&nodes, count);
         assert_eq!(
             nodes[..count]
@@ -1127,23 +1127,23 @@ fn semantic_tree_bounds_maximum_material_page_and_dirty_dialog_impl() {
         assert!(short.iter().all(|node| node.id == SemanticId::Empty));
     }
 
-    // Seven visible entries plus pagination need fifteen nodes, exceeding
-    // the old fourteen-node bound even though all eight objects fit a domain.
+    // Six visible entries, pagination and the real search/filter fields need
+    // sixteen nodes; short output remains untouched on failure.
     ui.resize(Viewport::new(800, 720, Scale::Percent100, 3).unwrap())
         .unwrap();
     {
         let frame = Frame::new(ui.view());
-        assert_eq!(frame.layout().list_rows(), 7);
+        assert_eq!(frame.layout().list_rows(), 6);
         let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
         let count = frame.semantics(&mut nodes).unwrap();
-        assert_eq!(count, 15);
+        assert_eq!(count, 16);
         assert_semantic_tree(&nodes, count);
         assert_eq!(
             nodes[..count]
                 .iter()
                 .filter(|node| node.role == Role::ListItem)
                 .count(),
-            7
+            6
         );
         for id in [
             SemanticId::PreviousPage,
@@ -1162,7 +1162,7 @@ fn semantic_tree_bounds_maximum_material_page_and_dirty_dialog_impl() {
         let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
         let count = frame.semantics(&mut nodes).unwrap();
         assert_semantic_tree(&nodes, count);
-        assert_eq!(count, 9);
+        assert_eq!(count, 11);
         let previous = nodes[..count]
             .iter()
             .find(|node| node.id == SemanticId::PreviousPage)
@@ -1597,10 +1597,14 @@ fn fresh_input_epoch_preserves_draft_and_cannot_inherit_a_pressed_button_impl() 
     // Document, then a new key from the verified fresh epoch edits normally.
     fresh.event = key(PhysicalKey::Tab);
     ui.deliver(fresh).unwrap();
-    if ui.view().focus != Focus::Document {
+    for _ in 0..8 {
+        if ui.view().focus == Focus::Document {
+            break;
+        }
         fresh.sequence += 1;
         ui.deliver(fresh).unwrap();
     }
+    assert_eq!(ui.view().focus, Focus::Document);
     fresh.sequence += 1;
     fresh.event = key(PhysicalKey::A);
     ui.deliver(fresh).unwrap();

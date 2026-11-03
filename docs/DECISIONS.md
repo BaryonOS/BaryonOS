@@ -1504,3 +1504,23 @@ de latch voorkomt dat een oude clear-repeat documenttekst wist. Herzien bij
 streaming, meer apps, veilige accountvelden of een echte sessiegrens.
 Contract, bron en nog lopende native gate: implementation/NATIVE-CLIPBOARD.md
 en verification/native-clipboard-20261102/.
+
+
+## ADR-MATERIAL-LIBRARY-20261102 — bestaande volumeobjecten native bedienen
+
+De native werkruimte ontsluit bestaande volume-v7-namen, collecties, metadata
+en twee historieplaatsen; geen nieuw wireformaat, opslagformaat of kernelrecht.
+Hernoemen blijft draft tot expliciet bewaren. Ordenen gebruikt CAS, historie
+herstelt als nieuwe revisie. Onzekere publicatie wordt niet herhaald; een
+bevestigde restore met mislukte herlezing blokkeert bewaren tot expliciet heropenen.
+Een begrensde tekstpreview valideert eerst de volledige historische versie en
+UTF-8 in de bestaande stagingbuffer. Labels maken verkorting en locatie duidelijk.
+Proportionele tekst deelt metrics/caret/selection/wrap/hittest en bewaart bytes.
+
+Het eigen scalar appspecifieke RX-budget wordt na echte131177-byte-linkermeting
+128→144KiB; vaste adressen, vijf segmenten, W^X, R/RW/stack/guard/kernelquota en
+capabilities blijven gelijk. Zie `implementation/NATIVE-MATERIAL-LIBRARY.md`.
+De native gate gebruikt volledige toegewezen appbeelden en een onafhankelijke
+schijfdecoder; koude heropening kopieert uitsluitend een opnieuw gevalideerde
+bron-/profielgebonden wegwerprun. U03 blijft open totdat de volledige route en
+regressie werkelijk slagen. Geen authenticatie-, encryptie- of hardwareclaim.
