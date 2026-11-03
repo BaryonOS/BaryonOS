@@ -1,6 +1,6 @@
 # VELD-10: eerdere berekeningen opnieuw gebruiken
 
-Status: **ACTIVE**, implementatie gestart; geen integratieoverdracht.
+Status: **QUEUED-FOR-INTEGRATION**, geen OPEN-PR-LEASE en dus geen nieuwe PR.
 Branch `veld/calculator-recall-20261103`, opnieuw opgehaalde mainbasis
 `6d523964ab85638d4dd981bcdb19580d18646fab`.
 VELD-09 blijft afzonderlijk bevroren op `35475ee6`, queued zonder PR-lease.
@@ -63,13 +63,13 @@ rustfmt stopte met exit 1, geen tests uitgevoerd. Bewaard in
 `veld10-recall-targeted.log`. Na correctie vijf toen bestaande recalltests
 en Clippy exit 0: `veld10-recall-targeted-attempt2.log`.
 
-## Actieve vervolgstap en bewijsgrens
+## Native deelacceptatie en bewijsgrens
 
-De nieuwe gerichte VM-deelgate is geimplementeerd; uitvoering volgt.
+De nieuwe gerichte VM-deelgate is geimplementeerd en uitgevoerd.
 Zij gebruikt echte QMP-pijltoetsen, herstelt de oorspronkelijke draft,
 controleert actuele/stale-resultaattellers en volledige native appbeelden.
 Dat is geen herhaling van VELD-08 of de al geaccepteerde VELD-09-route.
-Daarna pas native acceptatie, queued-handoff en de volgende vrije milestone.
+Dit is een afzonderlijke interactiedeelgate, geen volledige OS-acceptatie.
 
 ```sh
 python3 -B tools/test_window_session.py
@@ -106,7 +106,26 @@ De runner wacht nu vóór zijn baseline expliciet op de nieuwe Materiaal-
 framegeneratie na F6 en de bijbehorende compositorcommit, naast de echte
 calculatorcommit. Geen Materiaalcode gewijzigd of statusregel gemaskeerd.
 
-Niet uitgevoerd: recall-VM-proef, gewijzigde-mainintegratie, CI, fysieke
+Derde VM-poging op `9e5af2049c93d417c36777309e80fe257456d4e4`
+geslaagd: build exit 0 / 2,26 s; runner exit 0 / 63,56 s, veertien fasen,
+ruwe QEMU-exit 33 en normale cleanupmarkers.
+`passed=true`, `calculator_recall_gate=true`, bewust `native_gate=false`.
+Run `window-a44e2f969c164431b0e0b3ce9db95ccb`,
+log `$VELD_ENV/logs/veld10-recall-native-attempt3.log`.
+Bronfingerprint
+`0541b0b0e66a6fb110e1d54a7ceae07aa3a73eb0dda755db9ca8d09a2e60d2e6`.
+Product-Rust sinds `51e06fbf` ongewijzigd; beide vervolgfixes betroffen
+uitsluitend concrete runner-observatiegrenzen.
+
+`native.json` behoudt manifest, images, firmware, serial, frames en
+raw-reportpad/hash. Alleen de omvangrijke QMP-trace is vervangen door aantal
+entries en SHA-256 van canonieke JSON (`sort_keys=True`, separators `(',', ':')`).
+`logs.sha256` bindt alle zeven ontwikkellogs, inclusief de twee mislukte
+VM-pogingen. De ruwe artifacts staan in de daarin genoemde lokale buildrun,
+niet als binaries in Git. Alle loghashes en `git diff --check` zijn exit 0.
+`python3 -B tools/test_window_session.py`: exit 0, twaalf runnertegenproeven.
+
+Niet uitgevoerd: gewijzigde-mainintegratie, CI, fysieke
 hardware-, menselijke gebruiks-, onafhankelijke audit- en releasegates.
 Geen punten toegekend; geen volledige product-/opslag-/herstelclaim.
 
@@ -115,3 +134,5 @@ behouden blijven: undo-registratie van terughalen en beide sneltoetshints
 vragen een gerichte integratiebeslissing en regressietest. Geen bewijs van
 de ene branch als runtimebewijs van de andere gebruiken.
 Geen PR zonder OPEN-PR-LEASE. Rollback: uitsluitend deze scopedelta reverten.
+De milestone is bevroren; nieuwe productcode volgt uitsluitend op een
+afzonderlijke opnieuw opgehaalde mainbasis.
