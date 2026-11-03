@@ -63,13 +63,13 @@ def source_fingerprint():
     # deliberately does not import the runner or source's common.py.
     digest = hashlib.sha256(b'nieuw-os source inputs v3\n')
     folders = ('boot', 'kernel', 'crates', 'drivers', 'services', 'userspace', 'sdk',
-               'ui/native', 'ui/surface-protocol', 'experiments/quantum/qsim-core',
+               'ui/native', 'ui/graphics', 'ui/surface-protocol', 'experiments/quantum/qsim-core',
                'experiments/quantum/native', 'experiments/quantum/job-protocol', 'tools', '.cargo')
     excluded = {'__pycache__','verification','target','build','.git'}
     for name in folders:
         folder = SOURCE / name
         if folder.exists():
-            for path in sorted(folder.rglob('*')):
+            for path in sorted(folder.rglob('*'), key=lambda item: item.relative_to(folder).parts):
                 if path.is_file() and not excluded.intersection(path.relative_to(folder).parts):
                     digest.update(path.relative_to(SOURCE).as_posix().encode())
                     digest.update(path.read_bytes())
@@ -103,6 +103,8 @@ def check_run_contract(item):
     image_hash, readonly = EXPECTED_RUNS[label]
     need(item.get('source_image_sha256_before') == image_hash, f'{label}: expected image hash')
     need(item.get('data_disk_read_only') is readonly, f'{label}: expected data drive mode')
+    profile = 'test-volume-recover' if readonly else 'native-volume'
+    need(item.get('profile') == profile, f'{label}: expected kernel profile {profile}')
 
 
 def check_serial_digests(item, serial, label):

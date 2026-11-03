@@ -1,8 +1,11 @@
 """Counterexamples for the historical native-evidence reviewers; no VM is run."""
 import copy
+import hashlib
 import json
 from pathlib import Path
+import tempfile
 import unittest
+from unittest.mock import patch
 
 import verify_receipts as receipts
 import verify_regression as regression
@@ -52,6 +55,47 @@ class ReviewContracts(unittest.TestCase):
                 changed_serial[index] = changed_serial[index].rsplit(':', 1)[0] + ':0'
                 with self.assertRaises(AssertionError):
                     receipts.check_serial_digests(run, changed_serial, run['label'])
+
+    def test_synthetic_labels_require_their_kernel_profile(self):
+        labels = {'own-normal': False, 'own-cold-recover': True}
+        labels.update({f'{candidate}-{mode}': mode == 'readonly'
+                       for candidate in ('btrfs', 'zero', 'zero-prefix-payload-tail', 'openzfs-leaf')
+                       for mode in ('readonly', 'writable')})
+        for label, readonly in labels.items():
+            image = receipts.IMAGE_HASHES[label if label.startswith('own-')
+                                          else label.rsplit('-', 1)[0]]
+            profile = 'test-volume-recover' if readonly else 'native-volume'
+            item = dict(label=label, source_image_sha256_before=image,
+                        data_disk_read_only=readonly, profile=profile)
+            receipts.check_run_contract(item)
+            for wrong in ('native-volume' if readonly else 'test-volume-recover', '', None):
+                with self.subTest(label=label, profile=wrong):
+                    with self.assertRaisesRegex(AssertionError, 'profile'):
+                        receipts.check_run_contract(dict(item, profile=wrong))
+            del item['profile']
+            with self.assertRaisesRegex(AssertionError, 'profile'):
+                receipts.check_run_contract(item)
+
+    def test_synthetic_v3_graphics_scope_order_and_exclusions(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            files = {'ui/graphics/a.rs': b'lower', 'ui/graphics/A.rs': b'upper',
+                     'ui/graphics/Z/z.rs': b'nested', 'Cargo.toml': b'workspace'}
+            excluded = {'ui/graphics/target/ignored.rs': b'cache',
+                        'ui/graphics/verification/ignored.rs': b'proof'}
+            for name, data in {**files, **excluded}.items():
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(data)
+            digest = hashlib.sha256(b'nieuw-os source inputs v3\n')
+            for name in ('ui/graphics/A.rs', 'ui/graphics/Z/z.rs', 'ui/graphics/a.rs',
+                         'Cargo.toml'):
+                digest.update(name.encode())
+                digest.update(files[name])
+            with patch.object(receipts, 'SOURCE', root):
+                self.assertEqual(receipts.source_fingerprint(), digest.hexdigest())
+                (root / 'ui/graphics/a.rs').write_bytes(b'changed')
+                self.assertNotEqual(receipts.source_fingerprint(), digest.hexdigest())
 
     def test_host_suites_require_expected_commands_and_nonzero_counts(self):
         regression.verify_host_checks(self.host)
