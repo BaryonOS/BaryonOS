@@ -59,20 +59,36 @@ De receipt bevat broncommit, bronfingerprint, toolpaden, relevante runtime-
 omgevingsvariabelen en stage-evidence:
 [`smp-rendezvous-20261103T180507Z.json`](verification/sm-smp/smp-rendezvous-20261103T180507Z.json).
 
+**Proces-exit/cleanup op een AP — gerichte proef geslaagd, matrix nog open:**
+een opt-in `native-smp-m3-exit`-profiel combineert de bestaande exitfixture
+met M3-SMP. Op worktree-fingerprint
+`8cd0deaeefbda54958c2f76f2da16923fe410920529714b1b2081cec10b31ed0`
+liep de 2-CPU-QEMU-proef met verwachte raw exit 33; processlot 0 werd na de
+exittrap op CPU 1 opgeschoond. Per-CPU-selecties waren `[7, 4]`.
+Log: `build/run/smp-2-d34017d2d4/`. Hostharnas had 9 tests, exit 0.
+Een daarna aangepaste receipt-omschrijving veranderde de bronfingerprint;
+de definitieve matrix moet deze route daarom opnieuw testen en vastleggen.
+
+**Niet-geaccepteerde SMP-lifecycleverkenning:** het combineren van de bestaande
+M4 multi-round lifecyclefixture met SMP eindigde op raw QEMU exit 35 bij
+`kernel/src/m2/m3.rs:1849` (`current < state.amount`) na AP-bring-up.
+Log: `build/run/smp-2-593281996e/serial.txt`. Oorzaak is niet bewezen; dit
+lijkt samen te hangen met state-/CPU-lifetime tijdens round-reset, maar er is
+geen root-cause-fix of acceptatieclaim. Dit experimentele profiel is niet in
+de SMP-runner opgenomen.
+
 **Bewijsgrens:** dit checkpoint toont AP-bring-up, opt-in per-CPU M3-
 processselectie en een werkelijke succesvolle M4 ring-3-berichtuitwisseling
-over CPU-grenzen. Het bewijst geen cross-CPU process-exit/revoke,
+over CPU-grenzen, plus een gerichte process-exit/cleanup op de AP. Het bewijst
+geen cross-CPU capability-revoke,
 TLB-shootdown/hergebruik of bredere races/failureacceptatie. Dit is geen
 volledige K06-acceptatie. `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
 
-**Volgende SMP-slice — cross-CPU exit/revoke en cleanup:** onderzoek de
-bestaande M4 process lifecycle en M3 cleanup op eigenaarschap/lifetime, maak
-een begrensde opt-in native SMP acceptance die bewijst dat exit/revoke en
-resourcehergebruik pas na correcte CPU-lokale CR3/trap-overdracht plaatsvinden.
-Voeg negatieve/race-evidence toe zonder capabilitysemantiek of ABI te wijzigen;
-houd TLB-grenzen expliciet en gebruik geen niet-geïmplementeerde remote
-shootdownclaim. Eerst invariant en gerichte 2-CPU-proef, daarna volledige
-regressiematrix. De volledige K06-acceptatie blijft open.
+**Eerstvolgende actie:** checkpoint de process-exit/cleanup-proef, draai daarna
+de volledige SMP-matrix op de nieuwste gepushte bron. Hervat vervolgens de
+bestaande K06-acceptatie met capability-revoke en TLB-/hergebruikgrenzen;
+wijzig geen capabilitysemantiek of ABI en claim geen remote shootdownprotocol
+zonder implementatie en bewijs.
 
 **Cross-CPU capability-IPC — eerdere lokale proef vóór matrix:**
 `native-smp-m4` combineert het bestaande SMP-M3-profiel met de bestaande M4
@@ -111,8 +127,8 @@ Een eerdere aanroep met `--help` is geen helpmodus, voerde de runner uit en
 stopte door ontbrekende `cargo` op de standaard-PATH; die poging staat apart in
 [`smp-rendezvous-20261103T173931Z.json`](verification/sm-smp/smp-rendezvous-20261103T173931Z.json).
 
-**Eerstvolgende actie:** werk verder aan cross-CPU exit/revoke en cleanup
-volgens de bestaande K06-acceptatie. Matrixomgeving en commando staan hierboven.
+**Eerstvolgende actie:** checkpoint en valideer de AP-exit/cleanup-slice;
+matrixomgeving en commando staan hierboven.
 De bestaande dirty wijzigingen in README en voortgangsbestanden zijn behouden
 en niet door deze SMP-taak aangepast.
 

@@ -53,6 +53,13 @@ def m4_smp_transcript(cpus=2, send_cpus=(0, 1), receive_cpus=(1, 0)):
     return "\n".join(lines) + "\n"
 
 
+def m3_exit_smp_transcript(cpus=2, exit_cpu=1):
+    lines = m3_transcript(cpus).splitlines()
+    lines.extend(("M3:EXIT:PASS", "M3:SURVIVOR_PROGRESS:PASS",
+                  f"M3:SMP:EXIT:{exit_cpu:020d}"))
+    return "\n".join(lines) + "\n"
+
+
 class SmpEvidenceTests(unittest.TestCase):
     def test_two_and_four_cpu_transcripts_require_unique_online_apic_ids(self):
         for cpus in (2, 4):
@@ -149,6 +156,26 @@ class SmpEvidenceTests(unittest.TestCase):
         for bad in cases:
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 run_smp.evaluate_m4_smp(2, bad, 33, False)
+
+    def test_native_m3_exit_requires_cleanup_on_an_ap(self):
+        result = run_smp.evaluate_m3_exit_smp(2, m3_exit_smp_transcript(), 33, False)
+        self.assertEqual(
+            result["process_cleanup_event"],
+            {"slot": 0, "cpu": 1},
+        )
+
+    def test_native_m3_exit_rejects_missing_or_bsp_cleanup(self):
+        valid = m3_exit_smp_transcript()
+        cases = (
+            valid.replace("M3:SMP:EXIT:00000000000000000001\n", ""),
+            m3_exit_smp_transcript(exit_cpu=0),
+            valid.replace("M3:SMP:EXIT:00000000000000000001",
+                          "M3:SMP:EXIT:not-a-number"),
+            valid.replace("M3:EXIT:PASS\n", ""),
+        )
+        for bad in cases:
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                run_smp.evaluate_m3_exit_smp(2, bad, 33, False)
 
 
 if __name__ == "__main__":

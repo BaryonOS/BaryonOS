@@ -50,6 +50,7 @@ native-memory-oom = ["native-memory"]
 native-smp = ["milestone-m2"]
 # M3 SMP scheduler acceptance; FPU/SIMD remains excluded pending per-CPU state.
 native-smp-m3 = ["native-smp", "milestone-m3"]
+native-smp-m3-exit = ["native-smp-m3", "test-m3-exit"]
 # Capability IPC cross-CPU fixture over the serialized M3 scheduler.
 native-smp-m4 = ["native-smp-m3", "milestone-m4"]
 native-system-random = ["native-system", "monotonic-clock"]

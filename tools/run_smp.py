@@ -23,7 +23,12 @@ MAX_TIMEOUT = 180
 def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
     if type(cpus) is not int or cpus not in (2, 4):
         raise ValueError("SMP QEMU profiles are exactly 2 or 4 CPUs")
-    if profile not in ("native-smp", "native-smp-m3", "native-smp-m4"):
+    if profile not in (
+        "native-smp",
+        "native-smp-m3",
+        "native-smp-m3-exit",
+        "native-smp-m4",
+    ):
         raise ValueError("unknown SMP kernel profile")
     markers = BOOT + ("SMP:AP:ENTRY",) * (cpus - 1) + tuple(
         f"SMP:CPU:{index}:APIC:" for index in range(cpus)
@@ -34,7 +39,11 @@ def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
         "SMP:PASS",
     )
     return markers + (("M3:SMP:SCHEDULER:PASS",)
-                      if profile in ("native-smp-m3", "native-smp-m4") else ())
+                      if profile in (
+                          "native-smp-m3",
+                          "native-smp-m3-exit",
+                          "native-smp-m4",
+                      ) else ())
 
 
 def evaluate(cpus: int, stdout: str, returncode: int | None, timed_out: bool) -> dict:
@@ -229,6 +238,46 @@ def evaluate_m4_smp(cpus: int, stdout: str, returncode: int | None, timed_out: b
     }
 
 
+def evaluate_m3_exit_smp(
+    cpus: int, stdout: str, returncode: int | None, timed_out: bool
+) -> dict:
+    scheduler = evaluate_m3(cpus, stdout, returncode, timed_out)
+    lines = stdout.splitlines()
+    required = ("M3:EXIT:PASS", "M3:SURVIVOR_PROGRESS:PASS")
+    cursor = 0
+    for marker in required:
+        try:
+            cursor = lines.index(marker, cursor) + 1
+        except ValueError as error:
+            raise ValueError(f"missing or out-of-order M3 exit marker: {marker}") from error
+    if any(marker in line for marker in FAILURES for line in lines):
+        raise ValueError("M3 exit failure marker present")
+    if returncode != 33 or timed_out:
+        raise ValueError(f"raw QEMU exit {returncode}, timeout {timed_out}")
+
+    pattern = re.compile(r"M3:SMP:EXIT:([0-9]{20})")
+    exits = []
+    for line in lines:
+        if not line.startswith("M3:SMP:EXIT:"):
+            continue
+        match = pattern.fullmatch(line)
+        if match is None:
+            raise ValueError("malformed M3 process-cleanup marker")
+        identity = int(match.group(1))
+        slot, cpu = identity >> 8, identity & 0xFF
+        if slot != 0 or cpu >= cpus:
+            raise ValueError("M3 process-cleanup marker has an invalid slot or CPU")
+        exits.append((slot, cpu))
+    if len(exits) != 1:
+        raise ValueError("M3 exit fixture did not clean up exactly one process")
+    if exits[0][1] == 0:
+        raise ValueError("M3 test process exited on the BSP, not an AP")
+    return {
+        "scheduler": scheduler,
+        "process_cleanup_event": {"slot": exits[0][0], "cpu": exits[0][1]},
+    }
+
+
 def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp") -> dict:
     expected_markers(cpus, profile)
     if type(timeout) is not int or not 0 < timeout <= MAX_TIMEOUT:
@@ -314,10 +363,16 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
                              f"SMP:CPUS:{cpus}", "SMP:RENDEZVOUS:PASS",
                              "SMP:WORKERS:PASS", "SMP:PASS",
                              *(("M3:SMP:SCHEDULER:PASS",)
-                               if profile in ("native-smp-m3", "native-smp-m4") else ()),
+                               if profile in (
+                                   "native-smp-m3",
+                                   "native-smp-m3-exit",
+                                   "native-smp-m4",
+                               ) else ()),
                              *(("M4:EXCHANGE:PASS", "M4:SURVIVOR_PROGRESS:PASS",
                                 "M4:CLEANUP:PASS", "M4:PASS", "M1:PASS")
-                               if profile == "native-smp-m4" else ())],
+                               if profile == "native-smp-m4" else ()),
+                             *(("M3:EXIT:PASS", "M3:SURVIVOR_PROGRESS:PASS")
+                               if profile == "native-smp-m3-exit" else ())],
         "command": command,
         "qemu_version": version,
         "profile": f"{machine}/qemu64/TCG-multi/{cpus}CPU/256MiB",
@@ -334,6 +389,9 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
     try:
         report["evidence"] = {
             "native-smp-m4": lambda: evaluate_m4_smp(cpus, stdout, raw_exit, timed_out),
+            "native-smp-m3-exit": lambda: evaluate_m3_exit_smp(
+                cpus, stdout, raw_exit, timed_out
+            ),
             "native-smp-m3": lambda: evaluate_m3(cpus, stdout, raw_exit, timed_out),
         }.get(profile, lambda: evaluate(cpus, stdout, raw_exit, timed_out))()
         report["passed"] = source_hash() == frozen

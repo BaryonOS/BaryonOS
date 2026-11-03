@@ -2098,6 +2098,8 @@ fn m3_event_locked(state: &mut State, source: *const u64) -> *const u64 {
     if terminate {
         state.processes[current].status = Status::Dying;
         state.cleanup(current);
+        #[cfg(feature = "native-smp-m3-exit")]
+        print_number(b"M3:SMP:EXIT:", ((current as u64) << 8) | cpu as u64);
     } else {
         #[cfg(feature = "ipc-wait")]
         {
