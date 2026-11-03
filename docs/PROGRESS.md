@@ -1,15 +1,13 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
-SYSTEM-MATURITY-SMP (3 november 2026), bron `e528da3f`:
-**41 → 41/100**. Een eerdere negen-stagematrix slaagde, maar een herhaling
-met dezelfde bronfingerprint faalde bij M4-IPC: de benodigde processen landden
-op dezelfde CPU. De gepushte fix begrenst CPU-plaatsing tot de opt-in M4-
-acceptatieprofielen en laat de evaluator die rolverdeling afdwingen. De 11
-gerichte hosttests, rustfmt en drie IPC- plus drie revoke-QEMU-runs slagen met
-de verwachte CPU-identiteiten. Daarna slaagden alle negen stages van
-`tools/test_smp.py`, waaronder 1/2/4 CPU, AP-procesexit, cross-CPU IPC/revoke
-en de single-CPU-regressie. Geen rubriccriterium sluit; TLB-/hergebruik- en
-race-/failureacceptatie voor K06 blijven open. Zie [PROJECT-STATE.md](PROJECT-STATE.md).
+SYSTEM-MATURITY-SMP (3 november 2026), bron `65b8da60`:
+**41 → 41/100**. De volledige SMP-matrix op `e528da3f` slaagde na
+deterministische CPU-plaatsing voor de opt-in M4-profielen, inclusief 1/2/4
+CPU, AP-exit, cross-CPU IPC/revoke en de 1-CPU-regressie. De nieuwe
+`native-smp-m3-tlb-reuse`-fixture bouwt en de 13 hosttests slagen; de gerichte
+QEMU-proef is nog niet uitgevoerd. Geen rubriccriterium sluit; TLB-runtime,
+bredere race-/failureacceptatie en een algemeen remote-shootdownprotocol
+blijven open. Zie [PROJECT-STATE.md](PROJECT-STATE.md).
 
 De actieve volledige releaseopdracht en productacceptatie staan in
 [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft

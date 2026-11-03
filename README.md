@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`e528da3f`](https://github.com/simonvanieperen/nieuw-os/commit/e528da3fcec2248707e9b13aff2f46308f4b94ce) ·
+**Bron:** [`65b8da60`](https://github.com/simonvanieperen/nieuw-os/commit/65b8da607308d7a1766435601d53ac6794ac6881) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-spoon`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** SYSTEM-MATURITY-SMP: stabilisatie en volledige 1/2/4-matrix.
-41 blijft 41. Een eerdere matrixherhaling faalde bij M4-IPC doordat slots 0 en 1 beide op CPU 1 draaiden. Commit 07d4ab7 begrenst uitsluitend de native M4-acceptatieprofielen: slot 0/2 op CPU 0 en slot 1 op CPU 1, met expliciete evaluator- en 2-CPU-controles. Alle 11 hosttests, drie gerichte IPC-runs en drie revoke-runs slagen; daarna slaagden alle negen stages van tools/test_smp.py, inclusief 1/2/4 CPU, M3-exit en de single-CPU-regressie. Dit sluit geen rubriccriterium; TLB-/hergebruik- en race-/failureacceptatie voor K06 blijven open.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** SYSTEM-MATURITY-SMP: TLB-processlothergebruik.
+41 blijft 41. De volledige SMP-matrix op e528da3f slaagde na deterministische rolplaatsing voor M4, inclusief 1/2/4 CPU, AP-exit, cross-CPU IPC/revoke en de 1-CPU-regressie. De nieuwe native-smp-m3-tlb-reuse-fixture bouwt en de 13 hosttests slagen; de gerichte QEMU-proef is nog niet uitgevoerd. Dit sluit geen rubriccriterium; K06-TLB-runtime, bredere race-/failureacceptatie en een algemeen remote-shootdownprotocol blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -3,7 +3,7 @@
 ## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
 
 **Gepubliceerde basis:** branch `simonvanieperen-studious-spoon`, commit
-`e528da3fcec2248707e9b13aff2f46308f4b94ce`, gepusht naar
+`65b8da607308d7a1766435601d53ac6794ac6881`, gepusht naar
 `origin/simonvanieperen-studious-spoon`. Actieve toewijzing:
 `SYSTEM-MATURITY-SMP`, queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`.
 OOM/K05 zijn afgesloten en blijven ongewijzigd;
@@ -138,8 +138,8 @@ race-/failureacceptatie en een algemeen remote-shootdownprotocol blijven open.
 Dit is geen volledige K06-acceptatie.
 `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
 
-**Eerstvolgende actie:** commit/push de TLB-slothergebruikfixture en voer
-eerst de gerichte 2-CPU-QEMU-proef uit. Bij pass volgt de volledige matrix;
+**Eerstvolgende actie:** voer de gerichte 2-CPU-QEMU-proef uit. Bij pass
+volgt de volledige matrix;
 race-/failureacceptatie en elk algemeen remote-shootdownprotocol blijven open.
 
 **Cross-CPU capability-IPC — eerdere lokale proef vóór matrix:**
