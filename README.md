@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`9f2e6e2b`](https://github.com/simonvanieperen/nieuw-os/commit/9f2e6e2b7be614d35a83bc0f4fb7678ad86adbe6) ·
+**Bron:** [`e853a017`](https://github.com/simonvanieperen/nieuw-os/commit/e853a017ac4a4228d97a0e6ef3d22024753c1f55) ·
 **Ontwikkelbranch:** `simonvanieperen-sturdy-guide`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR141: negen Cargo-tests opnieuw op schone372-snapshot binden en statusgeschiedenis archiveren.
-41 blijft41. Op basis9f2e6e2b wordt de oorspronkelijke Rust-run zonder cwd/HEAD/status/Cargo.lock niet als bewezen372-resultaat geclaimd. Een echte nieuwe rerun op expliciet schone detached372-snapshot slaagt met9tests; HEAD/status/lockhash vóór en na vastgelegd.41 eerdere Node-tests houden hun eigen geverifieerde kopie; Chrome blijftc94. De141-statusgeschiedenis exact met blob/hash naar eigen receipt verplaatst. Geen codewijziging, nieuwe native/cloudruntime/humanaudit of criteriumwijziging.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR141: schone372-Cargoreceipt en statusarchief behoudend met Watch-main99 combineren.
+41 blijft41. Reviewfixd1f1f60b en Watche853a017/main99 worden behouden gecombineerd; vier conflicten alleen centrale metadata en beide bronhistorieën exact gearchiveerd. Oorspronkelijke Rust-run niet aantoonbaar372; nieuwe9-test-run op schone detached372 met cwd/HEAD/status/lock vóór en na is echtgroen.41 eerdere Node-tests houden eigen bron; Chrome blijftc94. Aanvullende Watch-hostclaims zonder primaire bronreceipts niet naar de nieuwe merge gepromoveerd. Geen codewijziging, native/cloudruntime/humanaudit of criteriumwijziging.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

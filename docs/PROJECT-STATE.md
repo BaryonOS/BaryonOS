@@ -2,7 +2,8 @@
 
 ## NEXT AGENT HANDOFF — PR141 bronbewijs hersteld — 3 november 2026
 
-**Basis:** `9f2e6e2b`, branch `simonvanieperen-sturdy-guide`.
+**Parents:** lokale reviewfix `d1f1f60b` en Watch-main99-merge `e853a017`,
+branch `simonvanieperen-sturdy-guide`.
 Geen codewijziging; eigen kernel, rechten en rubric blijven gelijk: **41 →41**.
 Negen Cargo-contracttests opnieuw exit0 op een schone, detached
 `37240c1f190c5d684c9c97d3adedbeb8d717c8f4`-snapshot, met cwd, HEAD,
@@ -17,65 +18,73 @@ Historische merge-, test- en auditdetails zijn exact met bronblob/hash naar
 verplaatst. [PR140's uitvoeringsafwijking](verification/pr140-merge-postcheck.json)
 en [vijf gesloten bron-PRs](verification/pr141-source-pr-status.json) blijven
 expliciet; historische server-side branchregeltoepassing is niet geaudit.
-**Open:** main is inmiddels139-merge `99d13276`; deze branch bevat nogd115.
-Eerstvolgend: eigen upstream/live hoofd controleren, main behouden opnemen,
-dan `GH_PAGER="" gh pr checks 141` en nieuwe reviewthreads beoordelen.
+Main139 `99d13276` is via de eigen Watch-upstream behouden opgenomen.
+Beide centrale bronhistorieën staan exact in
+[het snapshotregister](verification/retained-document-heads-20261103.json).
+Watch's aanvullende hosttestclaims missen primaire bronreceipts en worden
+niet als geverifieerde tests op `e853a017` of deze merge hergebruikt.
+Eerstvolgend: `GH_PAGER="" gh pr checks 141`; nieuwe CI en threads beoordelen.
 Geen merge buiten één geslaagde gekoppelde preflight; PR135's twee echte
 RAW-fouten, ontbrekende volume-fixtures en fysieke/releasegates blijven open.
 Het integratiemandaat blijft exclusief bij deze sessie.
 
-## Geïntegreerde main-wijziging — issue #43
+## Historisch checkpoint — PR139 exacte contracttestreceipt — 3 november 2026
 
-Main bevat de gerichte N01-reparatie waarbij `ReceiveTcp` na een
-verbindings-time-out `Closed` meldt terwijl de diagnostische status
-`TimedOut` blijft. Het vastgelegde bewijs omvatte 10 service-, 35 broker-
-(inclusief doctests), 26 stack-, 4 protocol-, 6 client- en 11 peerharnastests,
-plus bestaande native `normal`- en `client-exit`-gates. De specifieke
-timeout-ontvangsttest is alleen als hostregressie rood/groen bewezen; dit is
-geen nieuwe native scenarioassertie. Details en bewijsgrenzen:
-[`issue-43-receive-timeout.md`](verification/issue-43-receive-timeout.md) en
-[`issue-43-receive-timeout.json`](verification/issue-43-receive-timeout.json).
-## Historisch checkpoint uit main 69809c2 — documentstapel combineren — 3 november 2026
-## Historisch maincheckpoint — PR140 bewijs en descriptorclaims — 3 november 2026
+**Werkelijk opnieuw geteste bron:** `0a49a3822e5d872f75573f12cd072e76e1249e1b`,
+de geïntegreerde PR139-boom met main `d115cc96`.
+Negen artifact-store-contracttests, Rust1.90.0 fmt en Clippy: elk exit0.
+Volledige primaire logs, exacte commando's, tree en codehashes:
+[contracttestreceipt](verification/pr139-artifact-contract-receipt.json).
+Dit vervangt geen native acceptatie; eerdere Watch-testclaims zonder
+primaire receipt zijn niet retrospectief als geverifieerd bestempeld.
+Replay-/umaskbewijs blijft exact aan732 gebonden en OS-workflowhistorie
+uitsluitend aan380. **41 → 41**, geen criteriumwijziging.
 
-**Geteste bron:** `2bf9578290bef88d53c17f9913434da6f27441f2`, inclusief
+**Open/eerstvolgend:** `GH_PAGER="" gh pr checks 139`, daarna live
+head/base/threads en inhoudsbehoud hercontroleren vóór guarded squash.
+Geen testbewijs stilzwijgend naar een latere Watch-head promoveren.
+
+## Historisch checkpoint — PR139 actuele main geïntegreerd — 3 november 2026
+
+Basis vóór integratie: PR-head `341d1b428d436ac0e33c5bf3d7eb684f8543109c`
+en actuele `main` `d115cc96c19ac4371baed77409a23d1adddffaf0`.
+Conflicten in README, progress.json, PROGRESS.md en PROJECT-STATE.md zijn
+opgelost met behoud van PR139-bronrollen en PR140-statushistorie. Main voegt
+de `artifact-store-core`-contracttests toe. Eerder gerapporteerd, destijds
+zonder primaire PR139-receipt (dus niet onafhankelijk geverifieerd):
+`cargo test --locked
+--manifest-path crates/artifact-store-core/Cargo.toml` slaagt (9 tests);
+`cargo +1.90.0 fmt --manifest-path crates/artifact-store-core/Cargo.toml
+-- --check` en `cargo +1.90.0 clippy --locked --manifest-path
+crates/artifact-store-core/Cargo.toml --all-targets -- -D warnings` slagen.
+Dit is contracttestbewijs, geen native acceptatie. Voortgang blijft **41/100**.
+Er waren geen reviewtargets meegeleverd, dus geen reviewverzoek is afgehandeld.
+
+De gerapporteerde `b03-native-update`-failure hoort bij oude head `341d1b42`.
+Na publicatie van deze conflictintegratie is dat bewijs achterhaald; de nieuwe
+head moet haar eigen checks krijgen. Reviews zijn volgens de app nog open.
+Eerstvolgend: publiceer de gevalideerde merge en laat nieuwe checks evalueren.
+
+## Historisch checkpoint — PR139 primaire receipts en bronrollen — 3 november 2026
+
+**Geteste bron:** `732fa9cca04ced66b06bee4f0e4f57249c09e96a`, inclusief
 main `69809c2cb53dfb3bd77abe5352892810fba6e82d`.
-Op deze exacte bron zijn met Rust 1.90.0 de 9 artifact-store-contracttests,
-`cargo check --tests`, Clippy en formattering opnieuw uitgevoerd: elk exit 0.
-Exacte commando's, omgeving, source-tree, codehashes en volledige logs met
-SHA-256 staan duurzaam in
-[pr140-review-evidence.json](verification/pr140-review-evidence.json).
-De tijdelijke logpaden zijn alleen oorspronkelijke uitvoerpaden.
+De 16 replay-hosttests slaagden met `umask 0077`; dezelfde suite met `umask
+0002` faalde echt (1 failure, 2 errors) door groepsschrijfbare fixtures.
+Exacte commando's, tree/codehashes en logs: `verification/pr139-review-receipts.json`.
+Het historische prioriteitencheckpoint koppelt zijn 15 workflowruns uitsluitend
+aan `380111b`; dat bewijs is niet opnieuw uitgevoerd.
 
-De tests bewijzen descriptorvalidatie, binding en foutdoorgifte, niet
-identiteit, herkomst of cryptografische authenticatie. Het historische
-rapport behoudt bron `08710d55`, commando's, exits en hashes; alleen de
-scopeclaim is gecorrigeerd en het verse bewijs toegevoegd.
-Score **41 → 41**, geen nieuwe productacceptatie of productiecodewijziging.
+## Historisch checkpoint — PR140 main-integratie — 3 november 2026
 
-**Open:** verse volledige CI en definitieve review vóór merge. Native/QEMU,
-fysieke en menselijke acceptatie zijn niet opnieuw uitgevoerd. PR135's
-volume-fixture- en RANDOM-gates blijven afzonderlijk open; bron-PRs niet
-blind sluiten. **Eerstvolgend:** `GH_PAGER="" gh pr checks 140`; bij
-Watch-headwijziging opnieuw head/base en inhoud controleren.
+PR-head `75cda7f4d49c5afe895277ada1102d630fdb75ad` is geïntegreerd met main
+`69809c2cb53dfb3bd77abe5352892810fba6e82d`. De Nederlandse beschrijvingen
+in PR140's hostrapport en main-documentatie/replaytests zijn behouden.
+De toenmalige umask-beperking en 16 replaytests zijn hierboven geregistreerd;
+dat resultaat is historisch en geen huidige test van deze nieuwe merge.
+De rubric bleef **41 → 41/100**. Geen nieuwe native/QEMU-acceptatie.
 
-## Historisch checkpoint — PR #140 main-integratie — 3 november 2026
-
-PR-head `75cda7f4d49c5afe895277ada1102d630fdb75ad` is inhoudsbehoudend
-geïntegreerd met main `69809c2cb53dfb3bd77abe5352892810fba6e82d`.
-De Nederlandse beschrijvingen in het PR140-hostrapport blijven behouden;
-main's documentstapel, opslagherstelmateriaal, audit en replaytests zijn
-eveneens behouden. De rubric is ongewijzigd: **41 → 41/100**.
-
-**Gecontroleerd:** `umask 077 && python3 -B -m unittest discover -s tests -p
-'test_storage_backend_replay.py'` slaagt (16 tests). De eerste poging met de
-omgeving-umask `0002` faalde op drie permission-gebonden fixtures; geen
-productiecode gewijzigd. `python3 tools/progress.py --write` en `--check`,
-JSON-syntaxiscontrole en `git diff --check` slagen.
-**Open:** de nieuwe integratiehead moet opnieuw door hosted controles worden
-beoordeeld. Er is geen nieuwe native/QEMU-acceptatie uitgevoerd.
-
-## Vorig checkpoint — documentstapel inhoudsbehoudend combineren — 3 november 2026
+## Historische context — eerdere main/statusintegratie op cbbc9c99
 
 Main is inmiddels `cbbc9c9941b08ea5edfbd3637d494635b4fb1df0`: Simon
 bevestigde zelf dat hij134 handmatig squash-mergede (3nov10:05:36Z).
