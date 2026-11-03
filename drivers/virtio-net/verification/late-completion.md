@@ -60,7 +60,12 @@ Logs onder `/tmp/nieuw-os-net-late-`, met SHA-256:
 | `none.log` | `83a5f5870d856f7095215acf28d5b7147b7c56d2ded5bad4265676af2b7c44ab` |
 
 Dit is een geserialiseerd register-/DMA-hostmodel, geen echte NIC, concurrerende
-DMA of IOMMU-isolatie. Het bestaande contract uit
+DMA of IOMMU-isolatie. Alleen dit geserialiseerde hostmodel toont hier geen
+replay, bytegelijke pagina's tijdens geweigerde reset en gewiste ringstatus
+na bevestigde reset aan. Isolatie van buffers en capability-beschermd geheugen
+tegen concurrerende of kwaadwillende device-DMA vereist afzonderlijke
+IOMMU-/hardwareafscherming; CPU-capabilities alleen bewijzen dat niet.
+Geen van die hardwaregaranties is hier getest. Het bestaande contract uit
 `docs/implementation/VIRTIO-NET.md` blijft leidend: pagina's permanent gepind,
 hergebruik alleen na status nul en bus mastering uit. QEMU-, fysieke en
 menselijke controles zijn niet uitgevoerd. De freestanding build is geen
