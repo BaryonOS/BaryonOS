@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`c6ce3906`](https://github.com/simonvanieperen/nieuw-os/commit/c6ce3906f395f9babad9444efea6cde64bc2a0c4) ·
-**Ontwikkelbranch:** `codex/native-workspace-v2-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Alle zeven PR127-reviewpunten en volledige PR126/main-inhoud combineren.
-Geerfde branchscore41 blijft41; main34 blijft34, geen nieuwe criteria. De gecombineerde kandidaat bewaart alle PR126/main-inhoud en herstelt zeven reviewpunten: native palet, proportionele klikposities, twee TCP-status/deadlinefouten, probeconfigisolatie, dockdamage en semantisch write-only wachtwoord. Integratietests vonden daarnaast echte oude damagegeometrie onder de nieuwe fonts; renderer en model delen nu werkelijke resultaat/statusbounds, met behouden pixel- en ten minste90%-sendbudgettests. 189 Rust-app/UI-,9 netwerk- en31 Python-hosttests slagen; beide TCP-fouten zijn echt rood/groen gereproduceerd met gepinde Rust1.91.1. Clippy en echte native-targetchecks/build slagen. PR126-parent8f08 is afzonderlijk native groen met22fasen/raw33/clipboard/herstel/schijf; dat is geen bewijs voor deze nieuwe bron. Verse gecombineerde CI, review en native runtime blijven nodig. Geen nieuwe fysieke, Windows-, volledige release- of U02-acceptatie.
+**Bron:** [`5925c915`](https://github.com/simonvanieperen/nieuw-os/commit/5925c915f6b8d02842fffd89a94f21c0e018689a) ·
+**Ontwikkelbranch:** `coderabbit/issue-43-receive-timeout`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Issue #43: terminale ReceiveTcp-status na verbindingstime-out.
+41/100 blijft 41/100. Gerichte N01-reparatie: ReceiveTcp meldt Closed na een verbindingstime-out; State behoudt TimedOut. Oude code rood (Again versus Closed); 10 service-, 35 broker- inclusief doctests, 26 stack-, 4 protocol-, 6 client- en 11 peer-hosttests groen. Rustfmt/Clippy en de no_std-librarybuild slagen. Bestaande native QEMU-normal en client-exit slagen op bron5925c915 met dezelfde bronhash: raw exit33, echte pakketten en volledige opruiming. Het specifieke nieuwe timeout-ontvangstscenario is alleen op de host rood/groen bewezen. Concept-PR134; hosted CI/review blijven afzonderlijk. Geen nieuwe criteria, fysieke hardware-, volledige release- of 50%-acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
