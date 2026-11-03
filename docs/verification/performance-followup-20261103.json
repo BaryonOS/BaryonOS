@@ -1,0 +1,31 @@
+{
+  "task": "Native render performance follow-up",
+  "source_commit": "40f83e3f059102fe30c8818991ba0b4c47b488d0",
+  "branch": "simonvanieperen-sturdy-guide",
+  "findings": [
+    {
+      "area": "Damage and retained rendering",
+      "source": "sdk/examples/window-session/src/main.rs::repaint",
+      "observation": "The compositor renders a bounded batch of at most 32 pending damage tiles per loop. Retained surfaces are supported through the window-session receiver."
+    },
+    {
+      "area": "Native raster path",
+      "source": "sdk/examples/window-session/src/scene.rs::Scene::render",
+      "observation": "Validated opaque body tiles use a direct backing-buffer copy; tiles intersecting chrome, pointer, dock or palette use the composite renderer."
+    },
+    {
+      "area": "Surface IPC",
+      "source": "ui/surface-protocol/src/client.rs::Session::blit",
+      "observation": "Tiles remain serialized through bounded SUR1 messages and per-tile acknowledgement. The existing performance contract documents 22,386 requests and 3,198 replies for a 1,248x656 app surface at 1280x720. Changing this requires a versioned protocol and native gates."
+    }
+  ],
+  "checks": [
+    {
+      "command": "cargo +1.90.0 test --locked --manifest-path sdk/examples/window-session/Cargo.toml --test render_performance",
+      "exit_status": 127,
+      "result": "Not run: cargo is not available in this execution environment."
+    }
+  ],
+  "decision": "No native code change: the inspected paths already have damage batching, retained-frame support and an oracle-tested raster fast path. Further changes to per-tile IPC would affect a shared interface and are not justified without the unavailable native test/toolchain and workload measurements.",
+  "evidence_boundary": "Source inspection only. No native test, QEMU run, browser benchmark, latency, CPU, memory or energy measurement was performed."
+}
