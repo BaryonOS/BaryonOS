@@ -1,5 +1,124 @@
 # Operationele werkqueue — actuele herbalancering 3 november 2026
 
+## SYSTEM MATURITY ASSIGNMENT — leidend vanaf 3 november 2026, 17:01 CET
+
+Deze expliciete opdracht van Simon vervangt de oudere start-/wachtstatussen
+hieronder. Alleen deze assignment is nu ACTIVE; geen scorewijziging.
+
+**Task ID:** `SYSTEM-MATURITY-OOM`
+
+**Owner:** System Maturity, `3b8bdc33-7b14-40f1-9d34-1a0f2a38ab04`
+
+**Status:** ACTIVE
+
+**Source HEAD coordinator:** `e74240daf66268f407634ee5d85c56b6d9303fe2`
+
+**Source HEAD implementatie:** `63f1da11c6dd510e6ad692fdd20fb454e8fe156c`,
+branch `simonvanieperen-studious-spoon`.
+
+**Actuele claims, geen historische reservering als actieve code tellen:**
+
+| Scope | Status / actuele ownershipwaarheid |
+|---|---|
+| A. Memory Pressure / OOM | ACTIVE: deze concrete opdracht aan System Maturity. Owner meldt eerdere `SM-OOM-1` afgerond en geen OOM-WIP op `63f1da11`; bestaande implementatie en bewijs hergebruiken, niet opnieuw bouwen. |
+| B. SMP / K06 | RESERVED: `SYSTEM-MATURITY-SMP` is QUEUED achter deze OOM-opdracht. Owner meldt werkelijk begonnen WIP in `crates/kernel-core/src/lib.rs`, nieuw `crates/kernel-core/src/smp.rs`, `crates/boot-protocol/src/lib.rs` en nieuw `crates/boot-protocol/src/smp.rs`. Bewaar die WIP; geen tweede schrijver en geen verdere SMP-writes tijdens de actieve OOM-taak. |
+| C. K05 supervisor + journal/crash | RESERVED: begrensde diagnostic-adapter blijft de fallback na OOM/SMP volgens de exacte scopes hieronder. Owner meldt geen K05-WIP; afgeronde zes-case K05-regressie is geen bewijs dat nieuwe journalintegratie wordt gebouwd. Algemene supervisorlogica/ABI blijven read-only. |
+| D. Background Job + Notification consumer | AVAILABLE: geen concrete actieve consumerwriter gemeld; geen assignment of algemene update-/syncwriteclaim verleend. |
+| E. Power lifecycle consumer | AVAILABLE: geen concrete actieve softwareconsumerwriter gemeld; driverpower/firmware-I/O blijven Drivers. |
+
+### Allowed writes — uitsluitend OOM-integratie
+
+- **Primaire integratie:** `kernel/src/m2/m3.rs`: bestaande
+  memory-accounting, pressuretoestand, bounded allocation failure en
+  gecontroleerde OOM-/cleanuphooks aansluiten. Drivers heeft dit bestand
+  expliciet vrijgegeven; behoud diens MAC-dispatchroutes.
+- `kernel/src/m2/m3/heap.rs` en `kernel/src/m2/m3/memory_fixture.rs`:
+  uitsluitend noodzakelijke bestaande allocatie-/pressure-/failurekoppeling
+  en kunstmatig begrensde geheugenfixture.
+- `crates/kernel-core/src/pressure.rs` en
+  `crates/kernel-core/src/lib.rs`: uitsluitend bestaande pressure/accounting-
+  interface en noodzakelijke modulewiring. Bewaar SMP-WIP in `lib.rs`;
+  geen SMP-integratie binnen deze taak.
+- `sdk/examples/memory/src/{lib,main,contract}.rs`: uitsluitend de bestaande
+  memoryconsumer, bounded failure en cleanupcontrole.
+- `tools/{run_memory,test_memory,test_memory_system}.py` en
+  `tools/tests/{native_memory_boundaries.rs,test_kernel_memory.py}`:
+  uitsluitend gerichte constrained-memory- en cleanupacceptatie.
+- `docs/verification/sm-oom/`: uitsluitend taakgebonden compacte receipts.
+
+Deze aanvullende bestanden behoren al tot dezelfde Maturity-owner; geen
+andere actieve schrijver is gemeld. Een noodzakelijke wijziging buiten deze
+lijst wordt een concrete interface dependency, niet een automatische overname.
+
+### Read-only
+
+`kernel/src/m2/{smp,ap,arch,paging}.rs`,
+`crates/kernel-core/src/smp.rs`, `crates/boot-protocol/src/{lib,smp}.rs`,
+`sdk/heap-allocator/src/lib.rs`,
+`kernel/src/m2/m3/{supervisor,network,keyring}.rs`,
+`sdk/examples/supervisor/src/{supervisor,protocol}.rs`,
+`crates/capability-core/**`, `boot/loader/src/main.rs`.
+De algemene scheduler-/process-/syscalllogica in `m3.rs` blijft read-only
+buiten de expliciet benoemde OOM-hooks.
+
+### Forbidden
+
+Geen hardwaredrivers of VirtIO-logica (`drivers/**`), algemene
+schedulerrewrite, keyringbeleid, capabilitysemantiek of nieuwe rechten,
+appproductcode (`sdk/examples/materiaal/**`, `ui/native/**`),
+Veld/window-session, Professional Platform/browserparser, unrelated
+loader/updatewerk, DMA-unpin of versoepeling van quota/zeroing/W^X.
+Geen concurrerende allocator, willekeurige OOM-killer of swapimplementatie.
+Raakt een noodzakelijke wijziging een neighbour: registreer
+`BLOCKED-BY:<owner/interface>` en neem diens implementatie niet over.
+
+### Dependencies en uitvoerbare eerste stap
+
+Hergebruik de op `63f1da11` aanwezige OOM-code, pressure-interface,
+accounting en bestaande cleanup; `m3.rs` is vrijgegeven en heeft geen
+andere actieve schrijver. Begin direct bij de bestaande integratie en
+gerapporteerde acceptatie: behoud wat al werkt en implementeer alleen een
+aantoonbaar ontbrekende OOM-koppeling of regressie binnen deze scope.
+De coordinator claimt geen ontbrekend defect en verlangt geen duplicatie van
+de afgeronde eerste slice. Als alle onderstaande voorwaarden al gedekt zijn,
+lever de exacte bron-/bewijsdekking en filevrijgave terug zodat de coordinator
+SMP expliciet kan activeren; geen onbegrensde analyse of geforceerde codewijziging.
+
+### Acceptance
+
+A. Normaal geheugenbedrijf blijft werken; onderscheid aantoonbaar
+`Normal -> Elevated -> Critical` met bestaande accounting.
+B. Kunstmatig klein geheugenbudget en pressure escalation worden getest.
+C. Allocation failure heeft een begrensd fout-/reclaim-/retrypad; geen
+onbegrensde retry of vermijdbare kernelpanic als normale OOM-policy.
+D. Geen authorityverruiming; behoud quota, capabilitychecks, zeroing en W^X.
+E. Accounting/cleanup, partial reservation/rollback, dubbel vrijgeven en
+stale proceshandles blijven consistent; geheugen wordt na cleanup herbruikbaar.
+F. Unrelated bestaande processen/services blijven intact voor zover de
+fixture dat betrouwbaar meet; beëindig geen willekeurige levende peers.
+G. Voer de bestaande gerichte kernel-core-/memorytests uit, daarna
+`python3 -B tools/test_memory.py` en
+`python3 -B tools/test_memory_system.py`: behoud normal/NX/guard/peer/oom,
+inclusief constrained-memory QEMU-bewijs wanneer de bestaande toolset werkt.
+Bij gedeelde cleanupwijzigingen ook `python3 -B tools/test_supervisor.py`
+met alle zes bestaande cases. Leg bron, exacte commando's, exits en logs vast;
+ontbrekende runtime blijft expliciet open. Geen swap vereist en geen claim
+van volledige production OOM-hardening na deze slice.
+
+### Volgende taak
+
+**Task ID:** `SYSTEM-MATURITY-SMP`
+
+**Owner:** System Maturity
+
+**Status:** QUEUED, niet ACTIVE zolang OOM de huidige opdracht is.
+Behoud de hierboven gemelde SMP-WIP zonder overschrijven. De bestaande
+exacte SMP-writegrenzen in de oudere `SM-SMP-K06-1`-rij blijven gereserveerd
+voor dezelfde owner. Latere acceptatie: echte 1 -> 2 -> 4 CPU-uitvoering,
+AP-startup, per-CPU-state, scheduling, synchronisatie, IPC, exit, revoke,
+TLB-/cross-CPU-correctness en failuretests; compile-only of AP-parking sluit
+K06 niet. Geen parallelle hervatting zonder expliciet veilige scopesplitsing.
+
 ## Actief mandaat en interfaceclaims — 3 november 2026
 
 Simon heeft de algemene hoofdontwikkelaar op 3 november rechtstreeks opgedragen
@@ -46,7 +165,7 @@ niet wachten op een voormalige eigenaar.
 
 | Taak / status | Exclusieve schrijfbestanden en interface | Verboden naburige scope | Acceptatie en bewijsgrens |
 |---|---|---|---|
-| `SM-OOM-1` / RESERVED uitsluitend tot startmelding op verstuurde kickoff; writeclaim onvoorwaardelijk vrijgegeven | `kernel/src/m2/m3/heap.rs`, `kernel/src/m2/m3/memory_fixture.rs`, `crates/kernel-core/src/lib.rs` uitsluitend framebeschikbaarheid/pressure/reclaim-interface zonder gewijzigde owner-/aliasregels, nieuw `crates/kernel-core/src/pressure.rs`, `sdk/heap-allocator/src/lib.rs` en `sdk/heap-allocator/tests/{arena,collections,pressure}.rs`, `sdk/examples/memory/src/{lib,main,contract}.rs`, `tools/{run_memory,test_memory,test_memory_system}.py`, `tools/tests/{native_memory_boundaries.rs,test_kernel_memory.py}`. Na de expliciete driverfilevrijgave hieronder ook `kernel/src/m2/m3.rs` uitsluitend memory-pressure/reclaim/cleanup-hooks. Eigen verslag `docs/verification/sm-oom/`. Alleen noodzakelijke dependency/modulewiring in de bijbehorende Cargo-manifests/locks. | Read-only: overige schedulerlogica, capability-engine, process-ABI en drivercode. Geen andere allocator, kernelmemory-intrinsics (`kernel/src/memory.rs`), willekeurige OOM-killer, quota-/zeroing-/W^X-versoepeling, DMA-unpin of process-ABI-wijziging. De vrijgegeven `m3.rs`-haak heeft uitsluitend Maturity als schrijver. | Werkelijke vrije frames/own-process allocatie -> Normal/Elevated/Critical -> begrensde reclaim opportunity -> fallible allocation -> gecontroleerde OOM -> deterministische bestaande cleanup. Geen swap vereist, oneindige retry of geveinsde reclaim. Test quota versus fysieke OOM, partial reservation/rollback, zeroing, dubbel vrijgeven, stale proces/cleanup en herstel na vrijgave; andere processen en kritisch pad blijven bruikbaar. Bestaande `python3 -B tools/test_memory.py` en `python3 -B tools/test_memory_system.py` behouden; echte vijf memory-cases inclusief constrained-memory `oom`, targeted kernel-core/heap-allocator-tests en relevante K05-cleanupgate. |
+| `SM-OOM-1` / historische afgeronde slice; actuele opdracht `SYSTEM-MATURITY-OOM` hierboven is leidend | `kernel/src/m2/m3/heap.rs`, `kernel/src/m2/m3/memory_fixture.rs`, `crates/kernel-core/src/lib.rs` uitsluitend framebeschikbaarheid/pressure/reclaim-interface zonder gewijzigde owner-/aliasregels, nieuw `crates/kernel-core/src/pressure.rs`, `sdk/heap-allocator/src/lib.rs` en `sdk/heap-allocator/tests/{arena,collections,pressure}.rs`, `sdk/examples/memory/src/{lib,main,contract}.rs`, `tools/{run_memory,test_memory,test_memory_system}.py`, `tools/tests/{native_memory_boundaries.rs,test_kernel_memory.py}`. Na de expliciete driverfilevrijgave hieronder ook `kernel/src/m2/m3.rs` uitsluitend memory-pressure/reclaim/cleanup-hooks. Eigen verslag `docs/verification/sm-oom/`. Alleen noodzakelijke dependency/modulewiring in de bijbehorende Cargo-manifests/locks. | Read-only: overige schedulerlogica, capability-engine, process-ABI en drivercode. Geen andere allocator, kernelmemory-intrinsics (`kernel/src/memory.rs`), willekeurige OOM-killer, quota-/zeroing-/W^X-versoepeling, DMA-unpin of process-ABI-wijziging. De vrijgegeven `m3.rs`-haak heeft uitsluitend Maturity als schrijver. | Werkelijke vrije frames/own-process allocatie -> Normal/Elevated/Critical -> begrensde reclaim opportunity -> fallible allocation -> gecontroleerde OOM -> deterministische bestaande cleanup. Geen swap vereist, oneindige retry of geveinsde reclaim. Test quota versus fysieke OOM, partial reservation/rollback, zeroing, dubbel vrijgeven, stale proces/cleanup en herstel na vrijgave; andere processen en kritisch pad blijven bruikbaar. Bestaande `python3 -B tools/test_memory.py` en `python3 -B tools/test_memory_system.py` behouden; echte vijf memory-cases inclusief constrained-memory `oom`, targeted kernel-core/heap-allocator-tests en relevante K05-cleanupgate. |
 | `SM-SMP-K06-1` / RESERVED achter OOM, exclusieve SMP-toewijzing aan Maturity | Nieuwe AP-/per-CPU-code `kernel/src/m2/{smp,ap}.rs`, `crates/kernel-core/src/smp.rs` met eigen tests; `kernel/src/m2.rs`, `kernel/src/m2/arch.rs`, `kernel/src/m2/paging.rs` voor AP-bootstrap, per-CPU-state, synchronisatie en TLB-handling. Indien nodig: `crates/boot-protocol/src/lib.rs` uitsluitend geversioneerde ACPI/AP-handoff met validatie, `boot/loader/src/main.rs` uitsluitend die handoff, `kernel/Cargo.toml`, eigen `tools/{run_smp,test_smp}.py`, verslag `docs/verification/sm-smp/`. Na expliciete filevrijgave van Drivers ook de bestaande scheduler-/cleanup-integratie in `kernel/src/m2/m3.rs`; geen gelijktijdige schrijver. | Read-only: driveradapters, signing/updatebeleid, extern process/syscall-ABI en capabilitysemantiek. Geen andere kernel als basis, geen ongemeten aanzetten van huidige single-CPU `static mut`/IF=0-paden op meerdere CPUs, geen algemene pagingrewrite. Lock-/per-CPU-invarianten gaan vooraf aan het werkelijk parallel uitvoeren van bestaande processen. | Doel is werkelijke 1 -> 2 -> 4 CPU-uitvoering: AP-startup, per-CPU-state, scheduling, synchronisatie, IPC, revoke, process exit, relevante TLB-invalidatie en race/failuretests. Eerste kleinere native checkpoint mag AP-bootstrap/parkeren aantonen, maar sluit K06 niet. Begrensde startup-timeout, dubbele/ongeldige CPU-identiteit, startupfalen, cleanup en single-CPU-regressies vereist. Compilatie alleen is geen SMP-acceptatie. |
 | `SM-JOURNAL-K05-1` / RESERVED achter OOM/SMP, volledig toegewezen fallback bij technische blokkade | `sdk/examples/supervisor/src/diagnostics.rs` (nieuw), `src/supervisor.rs` voor aanroepen na echte spawn/status/exit/fault/restart-uitkomsten, `src/protocol.rs` uitsluitend module-export zonder wirewijziging, `sdk/examples/supervisor/Cargo.toml`, `tests/diagnostics.rs` (nieuw). Hergebruik `crates/system-journal/**` uit eigen branch; geen tweede journal/crashimplementatie. `kernel/src/m2/m3/supervisor.rs` uitsluitend aanvullende diagnostic observerwoorden/assertions; `tools/run_supervisor.py` en `tests/test_supervisor_harness.py` uitsluitend extra diagnostic checks; `sdk/Cargo.lock` voor deze paddependency. Eigen verslag `docs/verification/sm-journal-k05/`. | Read-only: overige supervisorlogica/worker/client-protocol, scheduler, process/syscall-ABI en capability-engine. Geen supervisorrewrite, capabilitywijziging, vrije tekst/geheugendumps/secrets in logs, nieuwe apprechten of algemene diagnostic-IPC. Bestaande K05-assertions niet verwijderen of versoepelen. | Echt waargenomen proces-/service-event -> bestaand Journal -> CrashRecord -> gescopeerde read. Producent/reader ontstaat bij vertrouwde supervisorinitialisatie; geen door een request geclaimde rol/boolean. Test normale exit, crash/herstart, ontbrekende/verkeerde authorization/scope en vreemde journalpermit, begrensde ring/overflow en cleanup. Gerichte adaptertests en fmt/Clippy/scalarbuild; daarna `python3 -B tools/test_supervisor.py`: behoud alle zes bestaande normal/crash/denied/parent-exit/quota/wait-cases en hun oude assertions; extra runtime-diagnostic assertions. Geen hostbewijs als VM-run verkopen. |
 
