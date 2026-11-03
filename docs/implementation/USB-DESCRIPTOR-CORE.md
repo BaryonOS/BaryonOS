@@ -1,11 +1,11 @@
-# USB descriptor framing core
+# USB descriptor and interface-matching core
 
 ## Taakcontract
 
-Doel van deze eerste USB-stap: een kleine dependencyvrije `no_std`-parser die
-de grenzen van achtereenvolgende USB-descriptors controleert. De bytes komen
-later van een begrensde control-transfer; deze core voert zelf geen apparaat-
-I/O uit.
+Doel van deze USB-bouwsteen: een kleine dependencyvrije `no_std`-parser die
+de grenzen van achtereenvolgende USB-descriptors controleert en standaard
+interface-descriptors decodeert voor klassematching. De bytes komen later van
+een begrensde control-transfer; deze core voert zelf geen apparaat-I/O uit.
 
 De USB 2.0-descriptorstructuur begint met `bLength` en `bDescriptorType`.
 `bLength` omvat de descriptorheader zelf. De parser accepteert alleen lengtes
@@ -22,10 +22,15 @@ voor een latere policylaag.
   controllerstatus of capability.
 - De core alloceert niet, houdt geen globale toestand bij en gebruikt geen
   `unsafe`. Descriptors lenen hun ruwe bytes uit de input-slice.
-- Alleen generieke framing wordt gecontroleerd. Dit is geen USB-enumeratie,
-  configuratie-/interfacevalidatie, HID-driver, USB-hostcontroller of xHCI-
-  driver. Descriptorvolgorde, typevelden en apparaatbeleid blijven voor latere
-  afzonderlijke lagen.
+- De interface-decoder accepteert alleen descriptor type 4 met de standaard
+  lengte van negen bytes. Hij geeft nummer, alternate setting,
+  endpointaantal en class/subclass/protocol terug. `InterfaceClassMatch`
+  vergelijkt class en optionele subclass-/protocolvelden; `None` betekent
+  wildcard.
+- Dit is geen USB-enumeratie, configuratievalidatie, registry, HID-driver,
+  mass-storage-driver, USB-hostcontroller of xHCI-driver. Een match verleent
+  geen resource en start geen code. Descriptorvolgorde en apparaatbeleid
+  blijven voor afzonderlijke lagen.
 - Een framingfout beëindigt de iteratie; gedeeltelijk gevalideerde opvolgende
   descriptors worden niet gepubliceerd.
 - Het verwijderen van dit standalone component verandert geen kernel-, IPC-,
@@ -34,9 +39,11 @@ voor een latere policylaag.
 ## Acceptatie en bewijsgrens
 
 Hosttests bestrijken lege input, geldige en onbekende types, descriptorgrenzen,
-lengtes 0/1/2/255, ontbrekende headerbytes, afgekorte descriptors en terminale
-foutafhandeling. Controleer daarnaast formattering, Clippy en een
-`x86_64-unknown-none`-librarybuild met de vastgezette Rust 1.90.0-toolchain.
+lengtes 0/1/2/255, ontbrekende headerbytes, afgekorte descriptors, terminale
+foutafhandeling, interfacevelden, class/subclass/protocol-wildcards en
+ongeldige interface-descriptortypen/-lengtes. Controleer daarnaast
+formattering, Clippy en een `x86_64-unknown-none`-librarybuild met de
+vastgezette Rust 1.90.0-toolchain.
 
 Deze bouwsteen levert geen H02-punt op: er is nog geen USB-hostcontroller die
 een apparaat enumereert of gebeurtenissen aan een proces levert. xHCI-ringen,
@@ -46,7 +53,8 @@ referentiehardware blijven afzonderlijke vervolgstappen.
 ## Primaire bron
 
 - USB Implementers Forum, *USB 2.0 Specification*, descriptorbeschrijving
-  §9.5. De officiële documentpagina is bijgewerkt op 3 juni 2025 en koppelt de
+  §9.5 en interface descriptor §9.6.5. De officiële documentpagina is
+  bijgewerkt op 3 juni 2025 en koppelt de
   specificatie met bijbehorende errata/ECN's:
   <https://www.usb.org/document-library/usb-20-specification>.
   De pagina linkt het officiële archief
