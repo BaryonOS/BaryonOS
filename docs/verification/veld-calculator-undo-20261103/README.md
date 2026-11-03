@@ -1,11 +1,12 @@
 # VELD-09: herstelbare rekenmachinecorrecties
 
-Status: **QUEUED-FOR-INTEGRATION**, geen OPEN-PR-LEASE en dus geen nieuwe PR.
-Basis: actuele main `6d523964ab85638d4dd981bcdb19580d18646fab`.
+Status: **OPEN PR #186**, in review en nog niet geïntegreerd in `main`.
+Implementatiebasis: toenmalige main `6d523964ab85638d4dd981bcdb19580d18646fab`;
+dit is geen claim over de actuele `main`-HEAD.
 Eigen branch: `veld/calculator-undo-20261103`. Geen VELD-08-import;
 `scene.rs`/`init.rs` blijven ongewijzigd en tijdelijk bij General.
-Geen PR zonder OPEN-PR-LEASE; deze milestone gaat na acceptatie naar
-QUEUED-FOR-INTEGRATION.
+De eerdere fase **QUEUED-FOR-INTEGRATION** ging aan het openen van PR #186 vooraf.
+Integratie volgt uitsluitend na review, vereiste CI en actuele-maincontrole.
 
 ## Gebruikersinteractie en invarianten
 
