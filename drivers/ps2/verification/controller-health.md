@@ -57,10 +57,38 @@ Logs onder `/tmp/nieuw-os-ps2-health-`, SHA-256:
 | `none.log` | `d6d692ad44185969848b3d1759af0eac908128df53611e01b77a7db55a604282` |
 
 `python3 -B -u tools/build.py --kernel-feature native-display-probe` is op de
-gewijzigde bron geslaagd, exit 0. Native run nog niet uitgevoerd op dit
-checkpoint; de gevonden bestaande VGA-ROM wordt expliciet aan de runner
-geleverd. Geen fysieke/humanacceptatie of scorepunten. Centrale beoordeling
-blijft bij integrator.
+gewijzigde bron geslaagd, exit 0, met onderstaande native omgeving. Daarna:
+
+```sh
+export PATH=/home/simon/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH
+export LD_LIBRARY_PATH=/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu
+export OS_OVMF_CODE=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd
+export OS_OVMF_VARS=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd
+export NOS_QEMU_MACHINE=pc-q35-8.2
+export NOS_BUILD_DIR="$PWD/build/ps2-health-native"
+export NOS_TARGET_DIR="$PWD/target/ps2-health-native"
+export CARGO_TARGET_DIR="$PWD/target/ps2-health-host"
+export CARGO_NET_OFFLINE=true
+python3 -B -u tools/run_display_probe.py --machine pc-q35-8.2 --qmp-transport pipe --vga-rom '/mnt/c/Program Files/qemu/share/vgabios-stdvga.bin'
+```
+
+Exit 0, werkelijk QEMU raw 33, passed true, 2.6429 s. Beide resets worden
+Ready met nieuwe epochs/tickets, 16 echte samples verdeeld over twee
+levensduren, alle input/isolation/cleanup/pixelcontroles groen. Zes processen
+beindigd, nul overgebleven; drie slotreuses. Het harnas levert QMP-invoer en
+observeert pixels, niet de eigen driverlogica of succesmarkers.
+Gecompileerde/uitgevoerde bron `76369c7c9598cc3d515427bad25a2a710e976651`,
+fingerprint v3 `47ccf9da3c02084f783e14ed1830ffb5261666c1064ab25310062e89ccc63933`.
+Alle source/artifact/transcript/QMP/pixelbindings true.
+Geen nieuwe failure-injectie in QEMU; fouten hierboven blijven hostbewijs.
+
+| Bestand | SHA-256 |
+|---|---|
+| `/tmp/nieuw-os-ps2-health-native-build.log` | `e2b33a057f3c35cd4455a1594ee6d0d249f1ea042f277186c8616e93d79b3bc9` |
+| `/tmp/nieuw-os-ps2-health-native-run.log` | `82709a31bd94d500797011a88b67866f69e8ece705e1d3334d7bea7db78c45d0` |
+| `build/ps2-health-native/run/display-input-7b29103c6d/result.json` | `3f641c7ef7070e4cc9aadb82f5b74ad8c44fbeec265400ac61e5fca698729b55` |
+
+Geen fysieke/humanacceptatie of scorepunten. Centrale beoordeling bij integrator.
 
 Integratie: #166 bevat een apart fixture met dertien oorspronkelijke
 device/modeantwoorden; dit pad voegt drie controllerantwoorden toe. Pas bij
