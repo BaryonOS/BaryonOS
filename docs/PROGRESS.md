@@ -65,12 +65,18 @@ algemeen dagelijks desktop-OS te zijn en krijgt geen verzonnen voortgang.
 
 ## Eerste meting en afbakening
 
-PR142-reviewcorrectie, 3 november 2026: **41 → 41**. Op mergecommit
-`b1d45e63afd4605dcd06562d0ab2aefd756a00d6` zijn 87 hosttests opnieuw groen;
-branchbasis en eerdere merge worden niet als deze testbron gepresenteerd.
-FPU deelt alleen de bestandsinventaris, niet de twee SHA-256-helpers.
-[Brongebonden reviewbewijs](verification/pr142-source-claim-review.json).
-Geen nieuwe native, fysieke, menselijke of releaseacceptatie.
+PR142-reviewcorrectie, 3 november 2026: **41 → 41**.
+**Voorstel:** geen nieuwe runtimefunctie of rubricwijziging.
+**Implementatie:** FPU deelt alleen de bestandsinventaris; images/random
+delen daarnaast de twee SHA-256-helpers.
+**Testbewijs:** 87 hosttests op exacte mergecommit
+`b1d45e63afd4605dcd06562d0ab2aefd756a00d6`, alle geslaagd zonder skips.
+Per commando aantallen, volledige loginhoud, originele en weergegeven
+SHA-256 en primaire bronmetadata:
+[brongebonden reviewbewijs](verification/pr142-source-claim-review.json).
+**Onbekend/niet uitgevoerd:** nieuwe native, fysieke, menselijke en
+volledige releaseacceptatie. De oude 87 tests worden niet naar de nieuwste
+Watch-merge `1f67ef7c` omgelabeld.
 
 Op bron `b58ae2a56be6978eab2b5ac4bb5d12e3d615865f` is de beginscore **13%**:
 9 punten voor M1–M4 (boot, geheugen, processen, capability-IPC), 3 voor M6a–M6c

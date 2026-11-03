@@ -20,35 +20,65 @@
       "exit_status": 0,
       "seconds": 0.058171,
       "log": "/tmp/nieuw-os-pr142-b1-source-0.log",
-      "sha256": "b2018da3c2a62e83ab9574e93dce05bc82f0a1464293d4057d5be55c924235ab"
+      "sha256": "b2018da3c2a62e83ab9574e93dce05bc82f0a1464293d4057d5be55c924235ab",
+      "tests": 8,
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "retained_log_utf8": "test_only_explicit_versioned_profiles_and_no_silent_fallback (test_common.MachineSelection.test_only_explicit_versioned_profiles_and_no_silent_fallback) ... ok\ntest_inherited_package_manifest_and_job_codec_are_source_inputs (test_common.QuantumSourceBinding.test_inherited_package_manifest_and_job_codec_are_source_inputs) ... ok\ntest_windows_and_posix_path_order_bind_the_same_source_bytes (test_common.QuantumSourceBinding.test_windows_and_posix_path_order_bind_the_same_source_bytes) ... ok\ntest_timeout_saves_partial_output_and_metadata_before_reraising (test_common.RunLoggedTimeout.test_timeout_saves_partial_output_and_metadata_before_reraising) ... ok\ntest_hash_helpers_preserve_sha256_format_and_validation (test_common.SharedArtifactHelpers.test_hash_helpers_preserve_sha256_format_and_validation) ... ok\ntest_tree_listing_guards_each_path_before_returning_regular_files (test_common.SharedArtifactHelpers.test_tree_listing_guards_each_path_before_returning_regular_files) ... ok\ntest_tree_listing_preserves_relative_paths_for_callers (test_common.SharedArtifactHelpers.test_tree_listing_preserves_relative_paths_for_callers) ... ok\ntest_tree_listing_refuses_a_link_before_including_its_target (test_common.SharedArtifactHelpers.test_tree_listing_refuses_a_link_before_including_its_target) ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in 0.005s\n\nOK\n",
+      "retained_log_sha256": "b2018da3c2a62e83ab9574e93dce05bc82f0a1464293d4057d5be55c924235ab"
     },
     {
       "command": "python3 -B -m unittest discover -s tools/tests -p test_images.py -v",
       "exit_status": 0,
       "seconds": 0.492938,
       "log": "/tmp/nieuw-os-pr142-b1-source-1.log",
-      "sha256": "f3ac70289469bc9ff682542e0b376851fee549fed7a584f787bcd2f1d9ee3bee"
+      "sha256": "f3ac70289469bc9ff682542e0b376851fee549fed7a584f787bcd2f1d9ee3bee",
+      "tests": 20,
+      "passed": 20,
+      "failed": 0,
+      "skipped": 0,
+      "retained_log_utf8": "test_bad_existing_output_fails_before_any_vm_or_external_write (test_images.ArtifactTests.test_bad_existing_output_fails_before_any_vm_or_external_write) ... ok\ntest_changed_elf_esp_or_stored_image_inspection_fails (test_images.ArtifactTests.test_changed_elf_esp_or_stored_image_inspection_fails) ... ok\ntest_copied_success_or_stale_profile_source_and_counters_are_rejected (test_images.ArtifactTests.test_copied_success_or_stale_profile_source_and_counters_are_rejected) ... ok\ntest_delegate_exception_replaces_old_green_index_and_propagates_failure (test_images.ArtifactTests.test_delegate_exception_replaces_old_green_index_and_propagates_failure) ... ok\ntest_generic_pass_cannot_authorize_after_capture_error_or_source_drift (test_images.ArtifactTests.test_generic_pass_cannot_authorize_after_capture_error_or_source_drift) ... ok\ntest_links_are_rejected_without_mutating_external_content (test_images.ArtifactTests.test_links_are_rejected_without_mutating_external_content) ... ok\ntest_manifest_alias_and_actual_six_program_set_cannot_contradict (test_images.ArtifactTests.test_manifest_alias_and_actual_six_program_set_cannot_contradict) ... ok\ntest_preflight_failure_replaces_old_green_index_with_failed_attempt (test_images.ArtifactTests.test_preflight_failure_replaces_old_green_index_with_failed_attempt) ... ok\ntest_snapshot_network_wrong_disk_and_host_success_command_are_rejected (test_images.ArtifactTests.test_snapshot_network_wrong_disk_and_host_success_command_are_rejected) ... ok\ntest_source_esp_external_link_is_refused_before_delegate_or_marker_exposure (test_images.ArtifactTests.test_source_esp_external_link_is_refused_before_delegate_or_marker_exposure) ... ok\ntest_source_esp_refuses_extra_file_hardlink_and_directory_link_before_copy (test_images.ArtifactTests.test_source_esp_refuses_extra_file_hardlink_and_directory_link_before_copy) ... ok\ntest_stale_pixel_result_or_oracle_cannot_hide_changed_serial_or_disk (test_images.ArtifactTests.test_stale_pixel_result_or_oracle_cannot_hide_changed_serial_or_disk) ... ok\ntest_synthetic_model_binds_all_six_elfs_disk_and_actual_serial (test_images.ArtifactTests.test_synthetic_model_binds_all_six_elfs_disk_and_actual_serial) ... ok\ntest_actual_exit_fault_or_timeout_cannot_be_replaced_with_pass (test_images.SequenceTests.test_actual_exit_fault_or_timeout_cannot_be_replaced_with_pass) ... ok\ntest_complete_image_scope_and_known_noncryptographic_fnv_vectors (test_images.SequenceTests.test_complete_image_scope_and_known_noncryptographic_fnv_vectors) ... ok\ntest_exact_format_quality_pixel_negative_and_heap_stack_facts_remain_required (test_images.SequenceTests.test_exact_format_quality_pixel_negative_and_heap_stack_facts_remain_required) ... ok\ntest_missing_duplicate_reordered_unknown_or_overflow_evidence_is_rejected (test_images.SequenceTests.test_missing_duplicate_reordered_unknown_or_overflow_evidence_is_rejected) ... ok\ntest_original_system_crypto_storage_privilege_and_cleanup_cannot_disappear (test_images.SequenceTests.test_original_system_crypto_storage_privilege_and_cleanup_cannot_disappear) ... ok\ntest_ticks_and_real_linked_elf_drift_cannot_reuse_a_prior_pixel_pass (test_images.SequenceTests.test_ticks_and_real_linked_elf_drift_cannot_reuse_a_prior_pixel_pass) ... ok\ntest_wrong_or_reused_pid_cannot_reuse_a_bootstrap_identity (test_images.SequenceTests.test_wrong_or_reused_pid_cannot_reuse_a_bootstrap_identity) ... ok\n\n----------------------------------------------------------------------\nRan 20 tests in 0.419s\n\nOK\nIMAGES normal: passed=False gate=False /tmp/tmpg_4axuqm/checkout/build/run/system-normal-11111111111111111111111111111111\nValueError: changed serial\nIMAGES normal: passed=False gate=False /tmp/tmpg_4axuqm/checkout/build/run/system-normal-11111111111111111111111111111111\nValueError: source, QEMU or firmware changed during image gate\n",
+      "retained_log_sha256": "f3ac70289469bc9ff682542e0b376851fee549fed7a584f787bcd2f1d9ee3bee"
     },
     {
       "command": "python3 -B -m unittest discover -s tools/tests -p test_random.py -v",
       "exit_status": 0,
       "seconds": 0.567157,
       "log": "/tmp/nieuw-os-pr142-b1-source-2.log",
-      "sha256": "1d24a123b24efc95e717ed8cac0fd135ac72bd056e4c194572da3acf42dd0ad1"
+      "sha256": "1d24a123b24efc95e717ed8cac0fd135ac72bd056e4c194572da3acf42dd0ad1",
+      "tests": 21,
+      "passed": 21,
+      "failed": 0,
+      "skipped": 0,
+      "retained_log_utf8": "test_bad_existing_report_is_rejected_before_vm_or_external_write (test_random.ArtifactTests.test_bad_existing_report_is_rejected_before_vm_or_external_write) ... ok\ntest_changed_esp_loader_or_embedded_program_is_rejected (test_random.ArtifactTests.test_changed_esp_loader_or_embedded_program_is_rejected) ... ok\ntest_command_snapshot_network_or_wrong_disk_is_rejected (test_random.ArtifactTests.test_command_snapshot_network_or_wrong_disk_is_rejected) ... ok\ntest_complete_synthetic_artifacts_bind_serial_elf_and_disk (test_random.ArtifactTests.test_complete_synthetic_artifacts_bind_serial_elf_and_disk) ... ok\ntest_copied_pass_flag_cannot_hide_false_capture_or_wrong_profile (test_random.ArtifactTests.test_copied_pass_flag_cannot_hide_false_capture_or_wrong_profile) ... ok\ntest_delegate_exception_replaces_old_green_index_and_propagates_failure (test_random.ArtifactTests.test_delegate_exception_replaces_old_green_index_and_propagates_failure) ... ok\ntest_generic_pass_cannot_publish_rng_pass_after_capture_error_or_source_drift (test_random.ArtifactTests.test_generic_pass_cannot_publish_rng_pass_after_capture_error_or_source_drift) ... ok\ntest_linked_evidence_rejected_without_touching_external_content (test_random.ArtifactTests.test_linked_evidence_rejected_without_touching_external_content) ... ok\ntest_manifest_alias_and_actual_six_program_set_cannot_contradict (test_random.ArtifactTests.test_manifest_alias_and_actual_six_program_set_cannot_contradict) ... ok\ntest_preflight_failure_replaces_old_green_index_with_failed_attempt (test_random.ArtifactTests.test_preflight_failure_replaces_old_green_index_with_failed_attempt) ... ok\ntest_source_esp_external_link_is_refused_before_delegate_or_marker_exposure (test_random.ArtifactTests.test_source_esp_external_link_is_refused_before_delegate_or_marker_exposure) ... ok\ntest_source_esp_refuses_extra_file_hardlink_and_directory_link_before_copy (test_random.ArtifactTests.test_source_esp_refuses_extra_file_hardlink_and_directory_link_before_copy) ... ok\ntest_stale_serial_or_wrong_initial_snapshot_never_uses_saved_counters (test_random.ArtifactTests.test_stale_serial_or_wrong_initial_snapshot_never_uses_saved_counters) ... ok\ntest_true_disk_bytes_override_ui_or_oracle_success (test_random.ArtifactTests.test_true_disk_bytes_override_ui_or_oracle_success) ... ok\ntest_actual_pid_binding_cannot_mix_callers_or_reused_slots (test_random.SequenceTests.test_actual_pid_binding_cannot_mix_callers_or_reused_slots) ... ok\ntest_any_delivery_output_reseed_or_denial_cannot_be_omitted (test_random.SequenceTests.test_any_delivery_output_reseed_or_denial_cannot_be_omitted) ... ok\ntest_four_distinct_profiles_and_both_legal_cancel_races (test_random.SequenceTests.test_four_distinct_profiles_and_both_legal_cancel_races) ... ok\ntest_legacy_status_must_follow_terminal_rng_and_precede_probe_exit (test_random.SequenceTests.test_legacy_status_must_follow_terminal_rng_and_precede_probe_exit) ... ok\ntest_missing_duplicate_reordered_unknown_and_overflow_counters_fail (test_random.SequenceTests.test_missing_duplicate_reordered_unknown_and_overflow_counters_fail) ... ok\ntest_timeout_or_silence_is_not_actual_wrong_caller_rejection (test_random.SequenceTests.test_timeout_or_silence_is_not_actual_wrong_caller_rejection) ... ok\ntest_uncertain_output_or_automatic_retry_never_counts_as_cancellation (test_random.SequenceTests.test_uncertain_output_or_automatic_retry_never_counts_as_cancellation) ... ok\n\n----------------------------------------------------------------------\nRan 21 tests in 0.493s\n\nOK\nRANDOM raw: passed=False gate=False /tmp/tmpcz_gdmor/checkout/build/run/system-normal-11111111111111111111111111111111\nValueError: changed serial\nRANDOM raw: passed=False gate=False /tmp/tmpcz_gdmor/checkout/build/run/system-normal-11111111111111111111111111111111\nValueError: source, QEMU or firmware changed during RANDOM gate\n",
+      "retained_log_sha256": "1d24a123b24efc95e717ed8cac0fd135ac72bd056e4c194572da3acf42dd0ad1"
     },
     {
       "command": "python3 -B tools/test_fpu.py -v",
       "exit_status": 0,
       "seconds": 0.069191,
       "log": "/tmp/nieuw-os-pr142-b1-source-3.log",
-      "sha256": "719794564ebcc6c15533406b320c2d5ed3102b5618b097f9b4fbba19d12146cc"
+      "sha256": "719794564ebcc6c15533406b320c2d5ed3102b5618b097f9b4fbba19d12146cc",
+      "tests": 12,
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "retained_log_utf8": "test_actual_builder_refuses_hardlinked_output_before_cargo (__main__.EvidenceTests.test_actual_builder_refuses_hardlinked_output_before_cargo) ... ok\ntest_atomic_publication_does_not_mutate_prior_inode (__main__.EvidenceTests.test_atomic_publication_does_not_mutate_prior_inode) ... ok\ntest_bad_numeric_fields (__main__.EvidenceTests.test_bad_numeric_fields) ... ok\ntest_duplicate_or_oversized_json (__main__.EvidenceTests.test_duplicate_or_oversized_json) ... ok\ntest_each_exact_elf_must_be_embedded (__main__.EvidenceTests.test_each_exact_elf_must_be_embedded) ... ok\ntest_guest_artifact_profile_source_and_serial_binding (__main__.EvidenceTests.test_guest_artifact_profile_source_and_serial_binding) ... ok\ntest_symlinks_and_special_files_rejected_before_reads (__main__.EvidenceTests.test_symlinks_and_special_files_rejected_before_reads) ... ok\ntest_unknown_missing_duplicate_or_reordered_markers (__main__.EvidenceTests.test_unknown_missing_duplicate_or_reordered_markers) ... ok\ntest_valid_numeric_evidence (__main__.EvidenceTests.test_valid_numeric_evidence) ... ok\ntest_wait_profile_cannot_reuse_normal_guest_evidence (__main__.EvidenceTests.test_wait_profile_cannot_reuse_normal_guest_evidence) ... ok\ntest_wait_profile_requires_real_blocking_and_exact_counters (__main__.EvidenceTests.test_wait_profile_requires_real_blocking_and_exact_counters) ... ok\ntest_wrong_build_profile_or_source (__main__.EvidenceTests.test_wrong_build_profile_or_source) ... ok\n\n----------------------------------------------------------------------\nRan 12 tests in 0.009s\n\nOK\n",
+      "retained_log_sha256": "719794564ebcc6c15533406b320c2d5ed3102b5618b097f9b4fbba19d12146cc"
     },
     {
       "command": "python3 -B -m unittest discover -s tests -p test_storage_backend_replay.py -v",
       "exit_status": 0,
       "seconds": 0.326727,
       "log": "/tmp/nieuw-os-pr142-b1-source-4.log",
-      "sha256": "3a7baddbf3f47730bd9f4bf6875d575eed0eae3d23800f99b91e56a41d4df361"
+      "sha256": "3a7baddbf3f47730bd9f4bf6875d575eed0eae3d23800f99b91e56a41d4df361",
+      "tests": 16,
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0,
+      "retained_log_utf8": "test_added_valid_file_cannot_change_required_manifest (test_storage_backend_replay.StorageEvidenceChecks.test_added_valid_file_cannot_change_required_manifest) ... ok\ntest_complete_local_payload_set_is_checked (test_storage_backend_replay.StorageEvidenceChecks.test_complete_local_payload_set_is_checked) ... ok\ntest_full_manifest_does_not_allow_missing_payload (test_storage_backend_replay.StorageEvidenceChecks.test_full_manifest_does_not_allow_missing_payload) ... ok\ntest_pinned_metadata_parent_alias_stays_inside_evidence_root (test_storage_backend_replay.StorageEvidenceChecks.test_pinned_metadata_parent_alias_stays_inside_evidence_root) ... ok\ntest_second_manifest_is_checked_before_any_payload_hash (test_storage_backend_replay.StorageEvidenceChecks.test_second_manifest_is_checked_before_any_payload_hash) ... ok\ntest_single_valid_file_cannot_replace_full_manifest (test_storage_backend_replay.StorageEvidenceChecks.test_single_valid_file_cannot_replace_full_manifest) ... ok\ntest_allowlist_rejects_extra_package_before_parsing (test_storage_backend_replay.StorageReplayChecks.test_allowlist_rejects_extra_package_before_parsing) ... ok\ntest_archive_paths_and_special_files_are_rejected (test_storage_backend_replay.StorageReplayChecks.test_archive_paths_and_special_files_are_rejected) ... ok\ntest_copy_requires_hash_and_independent_input (test_storage_backend_replay.StorageReplayChecks.test_copy_requires_hash_and_independent_input) ... ok\ntest_fresh_workspace_rejects_reuse_and_links (test_storage_backend_replay.StorageReplayChecks.test_fresh_workspace_rejects_reuse_and_links) ... ok\ntest_future_packaging_creates_images_directory_itself (test_storage_backend_replay.StorageReplayChecks.test_future_packaging_creates_images_directory_itself) ... ok\ntest_future_zdb_argv_uses_only_project_copy_and_pool_name (test_storage_backend_replay.StorageReplayChecks.test_future_zdb_argv_uses_only_project_copy_and_pool_name) ... ok\ntest_image_copy_is_bound_to_previously_recorded_baseline (test_storage_backend_replay.StorageReplayChecks.test_image_copy_is_bound_to_previously_recorded_baseline) ... ok\ntest_openzfs_execution_is_explicitly_blocked (test_storage_backend_replay.StorageReplayChecks.test_openzfs_execution_is_explicitly_blocked) ... ok\ntest_preflight_failure_cannot_be_hidden_by_later_output (test_storage_backend_replay.StorageReplayChecks.test_preflight_failure_cannot_be_hidden_by_later_output) ... ok\ntest_timeout_reaps_only_owned_process (test_storage_backend_replay.StorageReplayChecks.test_timeout_reaps_only_owned_process) ... ok\n\n----------------------------------------------------------------------\nRan 16 tests in 0.270s\n\nOK\n",
+      "retained_log_sha256": "3a7baddbf3f47730bd9f4bf6875d575eed0eae3d23800f99b91e56a41d4df361"
     },
     {
       "command": "cargo test --offline --locked --manifest-path services/network-service/Cargo.toml",
@@ -57,12 +87,62 @@
       "log": "/tmp/nieuw-os-pr142-b1-source-5.log",
       "sha256": "0cb41680d4a9a8ec94918c364cca529f058bf5d275d5f84b56da126324aaee4f",
       "environment": {
-        "PATH": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/rust191/toolchains/toolchains/1.91.1-x86_64-unknown-linux-gnu/bin:/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/host-linker:/home/simon/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Users/simon/adb-fastboot/platform-tools:/mnt/c/Program Files/dotnet/:/mnt/c/Program Files/nodejs/:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/Tailscale/:/mnt/c/Program Files/WSL/:/mnt/c/Users/simon/AppData/Local/studio/bin:/mnt/c/Users/simon/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/simon/AppData/Local/Programs/Microsoft VS Code/bin:/mnt/c/Users/simon/AppData/Roaming/npm:/mnt/c/Users/simon/.local/bin:/mnt/c/Program Files (x86)/Google/Cloud SDK/google-cloud-sdk/bin:/mnt/c/Users/simon/AppData/Local/PowerToys/DSCModules/:/mnt/c/Users/simon/AppData/Local/Programs/Ollama:/mnt/c/ProgramData/simon/studio/bin:/mnt/c/ProgramData/simon/studio_app/bin:/mnt/c/Users/simon/AppData/Local/Programs/ProtonPass:/mnt/c/ProgramData/simon/GitHubDesktop/bin:/mnt/c/Users/simon/AppData/Local/Microsoft/WinGet/Links:/mnt/c/Users/simon/AppData/Local/Programs/coderabbit:/mnt/c/Users/simon/AppData/Local/GitHubCopilotCLI/:/mnt/c/Users/simon/AppData/Local/PowerToys/bin/:/snap/bin:/home/simon/.cache/copilot/pkg/linux-x64/1.0.104-0/ripgrep/bin/linux-x64",
+        "toolchain": "Rust 1.91.1, bestaande lokale toolchain en hostlinker",
+        "path_policy": "Alleen de gekozen Rust-binmap en linkerwrapper werden voor de geerfde PATH gezet; volledige host-PATH niet nodig voor dit bewijs en uit de huidige rapportweergave verwijderd.",
         "CARGO_TARGET_DIR": "target/pr142-network-host"
-      }
+      },
+      "tests": 10,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "retained_log_utf8": "   Compiling byteorder v1.5.0\n   Compiling heapless v0.9.3\n   Compiling smoltcp v0.14.0\n   Compiling stable_deref_trait v1.2.1\n   Compiling managed v0.8.0\n   Compiling cfg-if v1.0.5\n   Compiling bitflags v1.3.2\n   Compiling nieuw-os-net-protocol v0.1.0 (<HOME>/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr142-claims/services/net-protocol)\n   Compiling nieuw-os-network-protocol v0.1.0 (<HOME>/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr142-claims/services/network-service/protocol)\n   Compiling hash32 v0.3.1\n   Compiling nieuw-os-net-stack v0.1.0 (<HOME>/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr142-claims/services/net-stack)\n   Compiling nieuw-os-network-service v0.1.0 (<HOME>/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr142-claims/services/network-service)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.43s\n     Running unittests src/lib.rs (target/pr142-network-host/debug/deps/nieuw_os_network_service-92b2225886c2cade)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/service.rs (target/pr142-network-host/debug/deps/service-d336193e625dc92d)\n\nrunning 10 tests\ntest real_sender_epoch_request_and_connection_owner_are_separate_fences ... ok\ntest receive_after_connect_timeout_reports_terminal_closed ... ok\ntest send_after_peer_reset_reports_terminal_closed ... ok\ntest subnet_broadcast_and_network_destination_are_rejected ... ok\ntest udp_corruption_scope_and_full_slot_preserve_first_datagram ... ok\ntest terminal_channel_failure_retires_one_slot_without_releasing_live_transmission ... ok\ntest whitelist_close_timeout_and_retire_do_not_grant_authority ... ok\ntest established_connection_with_traffic_outlives_connect_deadline ... ok\ntest two_ipc_owners_fill_real_tcp_buffers_recover_backpressure_and_close ... ok\ntest one_owner_port_exhaustion_preserves_the_other_owners_budget ... ok\n\ntest result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s\n\n   Doc-tests nieuw_os_network_service\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "retained_log_sha256": "465460bd209ffda0567f2c57c96406a4e4589356717f878b239a3b04db8fecd1"
     }
   ],
   "not_run": "Nieuwe native/QEMU/fullCI op deze bron; oudere hoofd-/VM-bewijzen blijven aan eigen bron gebonden. Geen nieuwe fmt/Clippy/native build uitgevoerd voor alleen deze documentcorrectie.",
   "progress_previous": 41,
-  "progress_current": 41
+  "progress_current": 41,
+  "primary_sources": [
+    {
+      "title": "Nieuw OS gedeelde artefacthelpers",
+      "author_organisation": "Nieuw OS-project, simonvanieperen/nieuw-os",
+      "version_commit": "b1d45e63afd4605dcd06562d0ab2aefd756a00d6",
+      "date": "2026-11-03",
+      "url": "https://github.com/simonvanieperen/nieuw-os/blob/b1d45e63afd4605dcd06562d0ab2aefd756a00d6/tools/common.py",
+      "supports": "regular_files_below, sha256_bytes en require_sha256"
+    },
+    {
+      "title": "Nieuw OS native gate-imports en lokale FPU-hexvalidatie",
+      "author_organisation": "Nieuw OS-project, simonvanieperen/nieuw-os",
+      "version_commit": "b1d45e63afd4605dcd06562d0ab2aefd756a00d6",
+      "date": "2026-11-03",
+      "urls": [
+        "https://github.com/simonvanieperen/nieuw-os/blob/b1d45e63afd4605dcd06562d0ab2aefd756a00d6/tools/run_images.py",
+        "https://github.com/simonvanieperen/nieuw-os/blob/b1d45e63afd4605dcd06562d0ab2aefd756a00d6/tools/run_random.py",
+        "https://github.com/simonvanieperen/nieuw-os/blob/b1d45e63afd4605dcd06562d0ab2aefd756a00d6/tools/run_fpu.py"
+      ],
+      "supports": "Images/random importeren beide hashhelpers; FPU alleen de bestandsinventaris, lokale hexvalidatie blijft intact."
+    }
+  ],
+  "retention": "De volledige loginhoud staat per check duurzaam in Git. Alleen lokale homeprefixen zijn voor de weergave vervangen door <HOME>/<WINDOWS_HOME>; originele log-SHA256 blijft behouden, afzonderlijke SHA256 controleert de weergegeven tekst. Geen testuitvoer, aantallen of foutregels verwijderd. Volledige PATH-inventaris niet in de huidige rapportweergave; eerdere Gitgeschiedenis is niet herschreven.",
+  "documentation_validation": {
+    "revision_base": "1f67ef7cfe61b54149f253d45dbbd516227a9ac6",
+    "scope": "Deze progresscommando’s zijn nu echt uitgevoerd op de documentrevisie, niet als tests op historische b1-bron gepresenteerd.",
+    "checks": [
+      {
+        "command": "python3 tools/progress.py --write",
+        "exit_status": 0,
+        "seconds": 0.032495,
+        "raw_log_utf8": "Nieuw OS: 41/100 punten (41%); rubric v1; bijgewerkt.\nDit controleert berekening, verwijzingen en weergave; geen nieuwe native tests of beoordeling van bewijsinhoud.\n",
+        "sha256": "3f4fa08c6cb9f7affeb3dedcc3f3f29dbced854f277e68c99bd3b81ccff34434"
+      },
+      {
+        "command": "python3 tools/progress.py --check",
+        "exit_status": 0,
+        "seconds": 0.031513,
+        "raw_log_utf8": "Nieuw OS: 41/100 punten (41%); rubric v1; consistent.\nDit controleert berekening, verwijzingen en weergave; geen nieuwe native tests of beoordeling van bewijsinhoud.\n",
+        "sha256": "1963f64b94a52a78464f272cac286fcafea13fea2314c5ea8cddbd65dd78be33"
+      }
+    ]
+  }
 }

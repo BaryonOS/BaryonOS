@@ -1,6 +1,26 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — actuele main geïntegreerd, artifact-store-tests valideren — 3 november 2026
+## NEXT AGENT HANDOFF — PR142 bewijsretentie en bronlabels — 3 november 2026
+
+**Basis:** `1f67ef7cfe61b54149f253d45dbbd516227a9ac6`, inclusief main
+`d115cc96`. Alleen bewijsdocumentatie, geen runtime-/testcodewijziging.
+Alle zes oorspronkelijke logs bij de historische 87 hosttests op `b1d45e63`
+zijn aan hun opgeslagen SHA-256 getoetst en volledig in het rapport bewaard,
+met aantallen en nul skips/fouten. Lokale homeprefixen zijn uitsluitend in
+de weergegeven logkopie genormaliseerd; originele en weergegeven hash
+blijven apart. De onnodige volledige host-PATH is uit de huidige
+rapportweergave verwijderd; geschiedenis is niet herschreven.
+
+Bronmetadata benoemt de repositorybestanden met titel, organisatie, vaste
+commitversie en URL. Voorstel, implementatie, hosttestbewijs en onbekend
+zijn expliciet gescheiden. Nieuwe progress write/check-uitvoering staat
+afzonderlijk als documentvalidatie, niet als oude b1-hosttest.
+Score **41 → 41**, geen nieuw criterium.
+**Eerstvolgend:** `GH_PAGER="" gh pr checks 142`; exacte head/base,
+nieuwe reviews en volledige CI vóór merge. PR135's echte RAW-fouten en
+ontbrekende volume-fixtures, #41/#42 en fysieke/menselijke gates blijven open.
+
+## Historisch checkpoint — actuele main geïntegreerd, artifact-store-tests valideren — 3 november 2026
 
 **Basis:** PR-head `a521dbf7144037ad2cae55f79a2e408a31c444c1` met actuele
 main `d115cc96c19ac4371baed77409a23d1adddffaf0`; gemeenschappelijke

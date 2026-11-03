@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "a521dbf7144037ad2cae55f79a2e408a31c444c1",
+    "source_commit": "1f67ef7cfe61b54149f253d45dbbd516227a9ac6",
     "branch": "simonvanieperen-friendly-system",
-    "task": "Integreer actuele main d115cc96; valideer artifact-store descriptorcontracttests",
+    "task": "Bewaar PR142-hostlogs duurzaam met expliciete bronmetadata, tellingen en bewijsgrenzen",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Integratie behoudt PR142's helperclaimcorrectie en brongebonden 87-hosttestbewijs, plus PR140's descriptorreview en duurzame receipts. Op de opgeloste mergeboom slagen alle 9 artifact-store-contracttests, cargo check --tests, Clippy en rustfmt met Rust 1.90.0. Geen native acceptatie of rubriccriterium toegevoegd."
+    "summary": "41/100 blijft 41/100. Alleen bewijsdocumentatie op basis 1f67ef7c: alle zes oorspronkelijke logs van 87 geslaagde hosttests op b1d45e63 zijn opnieuw gehasht, volledig bewaard en per commando geteld zonder skips. Docs/verification/pr142-source-claim-review.json bewaart originele en genormaliseerde loghashes; volledige host-PATH verwijderd uit de huidige weergave zonder geschiedenis te herschrijven. Vaste repositorybronmetadata en afzonderlijke documentvalidatie toegevoegd; oude tests niet naar deze Watch-head gepromoveerd. Geen nieuwe native, fysieke, menselijke of releaseacceptatie."
   },
   "tracks": [
     {

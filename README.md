@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`a521dbf7`](https://github.com/simonvanieperen/nieuw-os/commit/a521dbf7144037ad2cae55f79a2e408a31c444c1) ·
+**Bron:** [`1f67ef7c`](https://github.com/simonvanieperen/nieuw-os/commit/1f67ef7cfe61b54149f253d45dbbd516227a9ac6) ·
 **Ontwikkelbranch:** `simonvanieperen-friendly-system`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Integreer actuele main d115cc96; valideer artifact-store descriptorcontracttests.
-41/100 blijft 41/100. Integratie behoudt PR142's helperclaimcorrectie en brongebonden 87-hosttestbewijs, plus PR140's descriptorreview en duurzame receipts. Op de opgeloste mergeboom slagen alle 9 artifact-store-contracttests, cargo check --tests, Clippy en rustfmt met Rust 1.90.0. Geen native acceptatie of rubriccriterium toegevoegd.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Bewaar PR142-hostlogs duurzaam met expliciete bronmetadata, tellingen en bewijsgrenzen.
+41/100 blijft 41/100. Alleen bewijsdocumentatie op basis 1f67ef7c: alle zes oorspronkelijke logs van 87 geslaagde hosttests op b1d45e63 zijn opnieuw gehasht, volledig bewaard en per commando geteld zonder skips. Docs/verification/pr142-source-claim-review.json bewaart originele en genormaliseerde loghashes; volledige host-PATH verwijderd uit de huidige weergave zonder geschiedenis te herschrijven. Vaste repositorybronmetadata en afzonderlijke documentvalidatie toegevoegd; oude tests niet naar deze Watch-head gepromoveerd. Geen nieuwe native, fysieke, menselijke of releaseacceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
