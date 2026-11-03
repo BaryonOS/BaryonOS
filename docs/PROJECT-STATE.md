@@ -2,12 +2,11 @@
 
 ## NEXT AGENT HANDOFF — SM-OOM-1 P0 geheugenpressure — 3 november 2026
 
-**Bron:** branch `simonvanieperen-studious-spoon`, gepushte HEAD
-`2df24968e450c52d456e89233e961b74ed40b3dd`. P0 is toegewezen in
-`docs/WORK-QUEUE.md` op queuebron
-`21d14592a54a80da2debf7cfad139d37264078c7`. OOM-implementatie staat in
-`66fdeef`; een niet-overlappende remote commit is in mergecommit `f3c3711`
-behouden. De daaropvolgende harnessfix is `2df2496`.
+**Gatebron:** `d5d5776e00f16229e2d1f7ff40e8badf1d30f614`, branch
+`simonvanieperen-studious-spoon`. P0 is toegewezen in `docs/WORK-QUEUE.md`
+op queuebron `21d14592a54a80da2debf7cfad139d37264078c7`. OOM-implementatie
+staat in `66fdeef`; een niet-overlappende remote commit is in mergecommit
+`f3c3711` behouden; de testharnasfix is `2df2496`.
 
 **Gerealiseerd:** `kernel-core` rapporteert toegelaten/vrije frames en
 classificeert Normal/Elevated/Critical met 1/8- en 1/32-watermarks. Het
@@ -21,34 +20,35 @@ biedt één caller-owned cleanupcallback en maximaal één retry.
 
 **Hostbewijs:** kernel-core 24 tests; heap-allocator 2 unit-, 13 arena- en 3
 bounded-reclaimtests plus de bestaande collectieproef; memory-evidenceharnas
-9 tests; kernel memory-boundarytest 1 pass. De harnesswijziging op `2df2496`
-is gericht getest: 9 tests geslaagd, inclusief een OOM-voorbeeld met 15.205
-vrijgekomen frames. Exacte eerdere commando's en hashes staan in
+9 tests; kernel memory-boundarytest 1 pass. De parserfix is gericht getest
+met 9 geslaagde tests. Exacte hostcommando's en hashes staan in
 [`sm-oom/host-20261103.json`](verification/sm-oom/host-20261103.json).
 
-**Native gedeeltelijk bewijs op `f3c3711`:** alle vijf profielen zijn
-gecrossbuild; normal, NX, guard en peer QEMU-gasten slagen. De 128-MiB
-OOM-gast bootte, rapporteerde de verwachte markers en exitcode, sloot 15
-peers af, herstelde 15.205 frames en liet de survivor 4 KiB nulde geheugen
-opnieuw alloceren. De gate eindigde toch met exit 1: haar parser eiste
-foutief exact één reclaimed frame. `tools/run_memory.py` accepteert nu elk
-positief reclaimed-frameaantal voor OOM en blijft nul eisen in de andere
-profielen; dit is een testharnasfix, geen productcodewijziging.
-[`sm-oom/native-20261103.json`](verification/sm-oom/native-20261103.json)
-legt de gedeeltelijke run vast. QEMU 10.2.1 en OVMF zijn voor deze run uit
-officiële Ubuntu-pakketten onder `/tmp` geëxtraheerd, zonder systeembrede
-installatie; dit is niet de CI-QEMU-build.
+**Native resultaat op `d5d5776`:** de volledige vijf-profielgate is geslaagd:
+normal, NX, guard, peer en fysieke OOM bij 128 MiB. De kernel, UEFI-loader
+en memory-app zijn per profiel voor `x86_64-unknown-none` gebouwd en
+geïnspecteerd. De OOM-guest rapporteerde 16 fysieke allocatiefouten,
+Normal→Elevated→Critical, één reclaim opportunity, normale afsluiting van 15
+reeds afgeronde peers, 15.204 vrijgekomen frames, volledig herstel en één
+geslaagde retry van 4 KiB nulde geheugen. De eerdere gatepoging op `f3c3711`
+wees hetzelfde geldige gedrag af door een foutieve exact-één-frameassertie;
+de fix in `2df2496` is met een meerframe-regressiecase getest. De oude
+gedeeltelijke poging en de volledige gate hebben elk een eigen receipt:
+[`native-20261103.json`](verification/sm-oom/native-20261103.json) en
+[`native-gate-20261103.json`](verification/sm-oom/native-gate-20261103.json).
+QEMU 10.2.1 en OVMF zijn uit officiële Ubuntu-pakketten onder `/tmp`
+geëxtraheerd, niet systeembreed geïnstalleerd; dit is niet de CI-QEMU-build.
+QEMU meldde in stderr een `kvmvapic.bin`-lookupfout, maar alle vijf gasten
+behaalden hun vereiste markers en exitcode; de oorzaak is niet onderzocht.
 
-**Eerstvolgend:** herhaal op de gepushte bron `2df2496` de bestaande
-`python3 -B -u tools/test_memory_system.py`-gate met dezelfde disposable
-QEMU/OVMF-omgeving; vereis alle vijf profielen inclusief 128-MiB OOM. Daarna
-voer `python3 -B -u tools/test_supervisor.py` uit als K05-cleanupregressie.
-Rapporteer host-, crossbuild- en QEMU-bewijs afzonderlijk. Geen fysieke of
-menselijke acceptatie geclaimd.
+**Eerstvolgend:** voer `python3 -B -u tools/test_supervisor.py` uit als
+K05-cleanupregressie op de gepushte bron. Daarna status, receipt en
+voortgangsmeter bijwerken en commit/push. Het volledige release-, fysiek-
+hardware- en menselijke bewijs blijft buiten deze OOM-gate.
 
-**Voortgang:** 41/100 → 41/100. Geen rubriccriterium gesloten; volledige
-QEMU-gate en K05-regressie zijn nog open. De score en dit checkpoint zijn
-opnieuw beoordeeld in `docs/progress.json`.
+**Voortgang:** 41/100 → 41/100. Geen rubriccriterium gesloten; K05-regressie
+is nog open. De score en dit checkpoint zijn opnieuw beoordeeld in
+`docs/progress.json`.
 
 ## Historisch checkpoint — M1 tijd en procesresource-accounting — 3 november 2026
 

@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`2df24968`](https://github.com/simonvanieperen/nieuw-os/commit/2df24968e450c52d456e89233e961b74ed40b3dd) ·
+**Bron:** [`d5d5776e`](https://github.com/simonvanieperen/nieuw-os/commit/d5d5776e00f16229e2d1f7ff40e8badf1d30f614) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-spoon`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** SM-OOM-1 P0: integreer fysieke geheugenpressure, begrensde reclaim opportunity en gecontroleerde cleanup.
-41 blijft 41. De native vijf-case-run op voorganger f3c3711 liet vier profielen slagen. De 128-MiB OOM-gast gaf de verwachte exit en markers, sloot 15 peers af, herstelde 15.205 frames en liet de survivor 4 KiB nulde geheugen opnieuw alloceren; de gate wees dit af door een foutieve verwachting van exact één reclaimed frame. Die parserfout is op 2df2496 hersteld met een meerframe-regressiecase; de volledige rerun en K05-cleanupregressie staan nog open. Geen rubriccriterium gesloten.
+41 blijft 41. Op bron d5d5776 slagen alle vijf native QEMU-profielen en de vijf kernel-/loader-/appbuilds. De 128-MiB OOM-run registreert 16 fysieke allocatiefouten, één Critical reclaimkans, ordelijke afsluiting van 15 peers, herstel van 15.204 frames en een nulde retry van 4 KiB. Een eerdere gatepoging op f3c3711 vond en reproduceerde een te strikte parserverwachting; die is op 2df2496 hersteld en met negen harnas-tests gevalideerd. De K05-cleanupregressie blijft open; geen rubriccriterium gesloten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
