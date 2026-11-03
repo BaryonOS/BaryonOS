@@ -472,6 +472,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "permission-policy-core"
+version = "0.1.0"
+
+[[package]]
 name = "platform-profile-core"
 version = "0.1.0"
 dependencies = [
