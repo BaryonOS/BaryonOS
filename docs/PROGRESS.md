@@ -85,6 +85,16 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Driver-/repositoryonderzoek (3 november 2026), basis `99d13276`:
+**41 -> 41**. Ginux `c86945b`, VibeOS `866bfb9` en vib-OS `73b6429`
+vergeleken met de bestaande Nieuw OS-drivercontracten en primaire Linux-,
+VirtIO- en UEFI-documentatie. Geen codeport, native/hardwaretest of nieuw
+acceptatiebewijs; H01 blijft het enige geaccepteerde hardwarecriterium en de
+volledige FR-H01/02/03-releasegates blijven open. Zie
+[het driveronderzoek](research/2026-11-03/os-repos-and-hardware-drivers.md).
+`python3 tools/progress.py --write`, `--check` en `git diff --check` slaagden;
+geen OS-build of hardwaretest uitgevoerd.
+
 PR139-review (3 november2026), exact geteste geïntegreerde bron `0a49a382`:
 **41 → 41**. Negen artifact-store-contracttests, Rust1.90.0 fmt en Clippy
 daadwerkelijk opnieuw groen; primaire logs/boom/commando's/codehashes staan

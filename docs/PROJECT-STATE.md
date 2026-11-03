@@ -16,6 +16,24 @@ uitsluitend aan380. **41 → 41**, geen criteriumwijziging.
 head/base/threads en inhoudsbehoud hercontroleren vóór guarded squash.
 Geen testbewijs stilzwijgend naar een latere Watch-head promoveren.
 
+## Onderzoek OS-repositories en hardwaredrivers — 3 november 2026
+
+Opdracht op branch `simonvanieperen-ideal-lamp`, basis
+`99d132768fd72276caa4a3b3e9a09f8f1909f0ed`: read-only vergelijking van
+Ginux, VibeOS, vib-OS en de aangehaalde driverstrategieën. De kernbevinding:
+Ginux' Linux-userspace-ABI is geen Linux-kerneldriverwrapper; VirtIO is
+passend voor de bestaande QEMU-route en GOP voor een eenvoudige framebuffer,
+elk met een beperkte scope. De bestaande eigen-kernel-/capabilityarchitectuur
+blijft intact. Volledige bevindingen en bronversies:
+[`os-repos-and-hardware-drivers.md`](research/2026-11-03/os-repos-and-hardware-drivers.md).
+
+Geen kernel-/drivercode gewijzigd of code overgenomen. `python3
+tools/progress.py --write`, `python3 tools/progress.py --check` en
+`git diff --check` eindigden alle met exit 0. Geen OS-build/test of
+hardwareproef uitgevoerd. Voortgang **41 → 41/100**; H01 blijft geaccepteerd,
+terwijl de volledige releasecriteria FR-H01/02/03 open blijven. Dit onderzoek
+wijzigt de bestaande PR139-hervatstap hierboven niet.
+
 ## Historisch checkpoint — PR139 actuele main geïntegreerd — 3 november 2026
 
 Basis vóór integratie: PR-head `341d1b428d436ac0e33c5bf3d7eb684f8543109c`

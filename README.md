@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`0a49a382`](https://github.com/simonvanieperen/nieuw-os/commit/0a49a3822e5d872f75573f12cd072e76e1249e1b) ·
-**Ontwikkelbranch:** `simonvanieperen-supreme-spork`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR139: ontbrekende contracttestreceipt op exact geïntegreerde boom uitvoeren en bewaren.
-41/100 blijft41/100. Op exacte geïntegreerde bron0a49a382 zijn negen artifact-store-contracttests, Rust1.90.0 fmt en Clippy werkelijk opnieuw uitgevoerd: elk exit0. Primaire volledige logs, exacte commando's, tree en codehashes staan in docs/verification/pr139-artifact-contract-receipt.json. Eerdere gemelde Watch-tests zonder primaire receipt blijven historisch niet onafhankelijk geverifieerd; replay/umask blijft bron732 en historische OS-workflowruns bron380. Geen identiteit/authenticatie, native uitvoering of nieuw criterium.
+**Bron:** [`99d13276`](https://github.com/simonvanieperen/nieuw-os/commit/99d132768fd72276caa4a3b3e9a09f8f1909f0ed) ·
+**Ontwikkelbranch:** `simonvanieperen-ideal-lamp`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Onderzoek van verwante OS-repositories en passende hardware-driverstrategie.
+41/100 blijft 41/100. Read-only vergelijking op basis van Ginux c86945b, VibeOS 866bfb9, vib-OS 73b6429 en primaire Linux-, VirtIO- en UEFI-bronnen. Ginux biedt Linux-userspacecompatibiliteit, geen kant-en-klare Linux-driverwrapper; VirtIO/GOP zijn bruikbaar binnen VM- en framebuffergrenzen. Bevindingen en voorstel staan in docs/research/2026-11-03/os-repos-and-hardware-drivers.md. Geen codeport, hardwaretest of nieuwe productacceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -80,6 +80,7 @@ beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS
 <!-- OS-PROGRESS:END -->
 
 Volledige repository-inventaris: [OS-completeness-audit](docs/audit/os-completeness/README.md).
+Driververgelijking en voorstel: [OS-repositories en hardwaredrivers](docs/research/2026-11-03/os-repos-and-hardware-drivers.md).
 
 ## Native venstersessie — 2 november 2026
 
