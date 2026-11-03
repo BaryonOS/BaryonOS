@@ -139,6 +139,13 @@ fn runtime() -> &'static mut Runtime {
     unsafe { &mut *ptr::addr_of_mut!(RUNTIME) }
 }
 pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
+    let info = match virtio_blk_driver::discover() {
+        Ok(i) => i,
+        Err(_) => {
+            runtime().offline = -14;
+            return;
+        }
+    };
     let mut pages = [0; 5];
     for page in &mut pages {
         *page = frames
@@ -155,13 +162,6 @@ pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
     };
     pool.validate(PAGE * FRAME_COUNT as u64).unwrap();
     runtime().pool = pool;
-    let info = match virtio_blk_driver::discover() {
-        Ok(i) => i,
-        Err(_) => {
-            runtime().offline = -14;
-            return;
-        }
-    };
     let mut mapped = [0u64; 6];
     for region in [
         info.regions.common,
