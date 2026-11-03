@@ -24,8 +24,11 @@ behouden op een bepaald display. Geen kleurbeheerclaim.
 
 No_std-cropbibliotheek, optionele **std-hostencoder** via `host-cli`.
 De encoder is niet naar Nieuw OS geport. Default no_std-tree bevat
-geen png/crc32fast/flate2. Invoer uitsluitend stdin, uitvoer stdout/stderr;
-geen disk-/netwerkautoriteit of nieuwe capability.
+geen png/crc32fast/flate2. Invoer uitsluitend stdin, uitvoer stdout/stderr. De eigen CLI opent
+geen bestanden of netwerkverbindingen en verstrekt geen Nieuw-OS-capability.
+Een normaal gestart hostproces behoudt echter zijn bestaande disk- en
+netwerkbevoegdheden; deze stdio-interface is **geen sandbox**. Beperkingen
+van hostrechten vereisen een afzonderlijk aantoonbaar afgedwongen procesgrens.
 Alles vóór stdout wordt afgerond; errors geen successtdout.
 Stdoutschrijffout kan gedeeltelijke output hebben gegeven.
 
@@ -57,6 +60,26 @@ alleen Cargo's `RUSTC --version` en emit van compiler-cfg/check-cfg,
 geen C-compilatie/download/netwerk/extra scriptketen.
 No_std-defaultclosure heeft dit buildscript niet.
 Geen onafhankelijk securityauditclaim.
+
+Primaire herkomstbronnen voor de pakketcontrole (3 november 2026):
+
+- image-rs Developers, *png — PNG decoding and encoding library in pure
+  Rust*, versie **0.18.1** (release 14 februari 2026), gepinde registry-
+  metagegevens, licentie en dependencies:
+  <https://docs.rs/crate/png/0.18.1>. De bronpackage omvat `Cargo.toml.orig`,
+  `CHANGES.md`, `LICENSE-MIT`, `LICENSE-APACHE` en `src/` (package-include).
+  De package-sourcecatalogus voor deze versie is beschikbaar via
+  <https://docs.rs/crate/png/0.18.1/source/>;
+  upstreammaintainer: <https://github.com/image-rs/image-png>.
+- Nieuw OS-project, *THIRD-PARTY: Dependencycontrole beeld-crop*,
+  3 november 2026, gepinde bron
+  [`1cae768c`](https://github.com/simonvanieperen/nieuw-os/blob/1cae768c2c99af905c92b29b4e5a325bf21907c7/sdk/examples/image-crop/THIRD-PARTY.md)
+  met geraadpleegde manifest-/licentie-/buildscriptinventaris;
+  de exact geselecteerde transitive versies en checksums zijn vastgelegd in
+  [`Cargo.lock` op dezelfde commit](https://github.com/simonvanieperen/nieuw-os/blob/1cae768c2c99af905c92b29b4e5a325bf21907c7/sdk/examples/image-crop/Cargo.lock).
+
+Deze bronnen ondersteunen versie- en provenancecontrole; zij bewijzen
+geen volledige upstream-codeaudit, licentieadvies of runtime-isolatie.
 
 ## Exacte uitgevoerde controles
 

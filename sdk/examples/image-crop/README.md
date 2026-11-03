@@ -22,8 +22,11 @@ Uitvoer is statische PNG RGBA8 zonder ancillary chunks, geen APNG/JPEG-
 encoding of volledig PNG/JPEG-profielclaim. Ondersteunde invoer volgt
 de bestaande codec; onder meer CMYK/animatie/unsupported precisie faalt.
 
-`image-crop` leest uitsluitend stdin en schrijft stdout/stderr. Geen
-bestandsopeningen, netwerkrechten of metadatarelay. Alle import/crop/PNG-
+`image-crop` leest broninhoud via stdin en schrijft stdout/stderr. De eigen
+CLI opent geen bestanden of netwerkverbindingen en verstuurt geen metadata.
+Dat ontneemt het hostproces **niet** automatisch zijn disk-/netwerkrechten;
+standaard hostuitvoering biedt hier geen sandbox of rechtenbeperking.
+Afgeschermde hostrechten vereisen een afzonderlijk afgedwongen procesgrens. Alle import/crop/PNG-
 encoding voltooit vóór stdout; fouten geven exit 1 en uitleg. Stdoutwrite
 kan gedeeltelijk mislukken; geen atomaire save-/durabilityclaim.
 Onbekende/dubbele argumenten, overflow, negatieven, lege/buitenbeeld-
