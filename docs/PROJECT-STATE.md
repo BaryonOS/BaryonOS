@@ -79,6 +79,29 @@ bij een integratiebesluit beoordelen; verse review/ontbrekende ownerfixes
 verwerken. Merge of sluiting uitsluitend na expliciete toestemming en
 bewezen inhoudsdekking. Geen CI-polling of herstart van featurewerk.
 
+**Gerichte sprintvervolgcorrecties:** #158 op dezelfde `568741f3` inmiddels
+31 checks geslaagd, een overgeslagen, CLEAN: technische mergekandidaat,
+geen mergebesluit. #153 uitsluitend twee resterende read-only-docformuleringen
+gecorrigeerd op `45df5a7a`, threads beantwoord/opgelost; productlogica blijft
+dezelfde geteste bron. #137 `47706038` pint historische reviewmetadata aan
+`a32eadb1:docs/progress.json`, geen runtime-/scorewijziging. #146 `9a51747f`
+herstelt assessmentbron naar reviewed merge266b41f1; bestaande generator,
+ancestry- en diffcontroles exit0, thread opgelost. Geen oude CI-resultaten
+als bewijs van de nieuwe heads aangemerkt.
+Ook #150 `51125b46` herstelt uitsluitend de twee historische
+reviewmetadataverwijzingen, progress-/diffcontrole exit0, thread opgelost.
+Deze drie kleine documentcorrecties zijn afzonderlijk gecommit/gepusht;
+geen product- of scorewijziging en geen CI-acceptatie van hun nieuwe heads.
+
+De overblijvende #146 native-foundation-fout is uit daadwerkelijk gastbewijs
+gelezen: RANDOM raw request1064 verwacht Quota maar krijgt succes; de
+64-callburst loopt van tick131 tot245, fout bij247. Artifact van run
+`41671957624`, job `126042385200`, opgehaald onder
+`files/sprint-pr146-ci-evidence`; failed log
+`/tmp/nieuw-os-sprint-pr146-foundation-failure.log`. Geen oorzaak of
+productbug bewezen: Platform krijgt een begrensde fixture-/timingrepro,
+productquotapolicy blijft read-only. General dupliceert die scope niet.
+
 ## Historisch checkpoint — PR148 met main 8e0c15d — 3 november 2026
 
 **Basis:** PR148 `47ec535f15bb10912dbc6cbf1af3de9df0c6c226` met main
