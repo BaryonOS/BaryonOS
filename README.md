@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **39** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`3639ecaa`](https://github.com/simonvanieperen/nieuw-os/commit/3639ecaac8ce10bcf4f29581a969b8db7e7cedb9) ·
+**Bron:** [`1fcfe314`](https://github.com/simonvanieperen/nieuw-os/commit/1fcfe314c2799402069fb41ad46f3ec1391e499f) ·
 **Ontwikkelbranch:** `simonvanieperen-animated-garbanzo`.
-Deze opdracht: **41% → 39% (-2 procentpunt)**. **Opdracht:** Geautoriseerde integratiesprint: main78ff7c03 en keyringherstelgrens samenvoegen.
-Main41/100 wordt39/100: B01 heropend doordat de oude native positieve herstelproef gewone appautoriteit gebruikte en nu terecht wordt geweigerd. Positieve manifest-bevoegde beheerrecovery is alleen hostgetest. Alle overige maincriteria en gewichten behouden. PR138,159,158 werkelijk gemerged; vier historische/duplicaat-PRs gesloten met inhoudsbehoud. RANDOM veilig uit grote PR146 geextraheerd in PR160. Keyringintegratie vereist nog actuele-head-CI/review. Geen hardware-, menselijke audit- of releaseclaim.
+Deze opdracht: **39% → 39% (+0 procentpunt)**. **Opdracht:** Sprint Control Panel: drie historische bewijs-PRs sluiten, echte productblockers vrijgeven en keyring-PR bijwerken naar mainab85.
+Branch39 blijft39/100; main41 zou bij keyringintegratie39 worden. B01 blijft open: gewone apprecovery is terecht geweigerd, positieve manifest-bevoegde beheerrecovery alleen hostgetest. Geen criteria/gewichten gewijzigd. PR152/151 werkelijk gemerged;172/174/175 veilig gesloten als historische baselinebewijs-PRs met behoud van vaste commits/branches/receipts, niet als geintegreerd of geaccepteerd. Native app-launch en echte ACPI-device-handoff naar owners vrijgegeven. Nieuwe-head-CI/review155 en SMP154 nog open; geen hardware-, menselijke audit- of releaseclaim.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -4,6 +4,15 @@ Basis: `a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e`.
 Productcommit: `da6e89a0`, geporteerd uit bestaande General-code op
 `707a768c`; geen nieuwe auth/session-UI of concurrerende driverimplementatie.
 
+Primaire herkomstbronnen, organisatie Nieuw OS-project, gepinde versies:
+
+- [Herkenbare native sessiepreview en snellere QEMU-schermopbouw (#121)](https://github.com/simonvanieperen/nieuw-os/commit/a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e):
+  commit `a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e`, basis van de extractie.
+- [coordination: activeer SMP na ontvangen OOM-overdracht](https://github.com/simonvanieperen/nieuw-os/commit/707a768c1df81e674a15c4aa013f44b85b90c700):
+  commit `707a768c1df81e674a15c4aa013f44b85b90c700`, historische General-boom
+  waaruit de bestaande keyringwijziging is geporteerd, niet de geteste
+  integratierevisie.
+
 Gewone app-ingress weigert EXPORT_RECOVERY en RESTORE met een leeg,
 gezeroiseerd antwoord. Alleen afzonderlijke manifest-gebonden beheer-ingress
 mag herstelmateriaal behandelen. De native adapter controleert de afzender;
@@ -62,6 +71,8 @@ Volledig lokaal gateverslag: `build/keyring-gate.json`.
 Nieuw OS-project, 3 november 2026:
 [integratiebron 3639ecaa](https://github.com/simonvanieperen/nieuw-os/tree/3639ecaac8ce10bcf4f29581a969b8db7e7cedb9),
 met de inmiddels werkelijk gemergde imageslice en B03 TEST-policy.
+De tests draaiden op deze mergecommit `3639ecaa`, niet rechtstreeks op
+[mainouder 78ff7c03 — fix(updates): vereis expliciete TEST-ondertekenpolicy (#158)](https://github.com/simonvanieperen/nieuw-os/commit/78ff7c03b015ad16fe665ae7df9fe239d078e08d).
 Keyringcode bytegelijk de eerder geteste productbron; geen nieuwe rechten.
 Vanuit de General-rootworktree werkelijk opnieuw uitgevoerd:
 

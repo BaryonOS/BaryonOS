@@ -2,6 +2,39 @@
 
 ## Actieve integratiesprint: geen nieuwe features
 
+**Actuele scopewijziging van Simon:** de featurebeperking geldt alleen voor de
+General-integrator, niet voor de specialistische workstreams. Permanente
+Sprint Control Panel-modus: integratie, dispatch en historische backlogreductie
+lopen tegelijk. Overdracht maakt een milestone integratorwerk; de specialist
+start direct de volgende onafhankelijke milestone en wacht niet op PR, CI of
+merge. Geen archief-/preservation-PR; Gitgeschiedenis is het archief.
+
+**Publicatiebackpressure:** bij bestaande open integratie-PR's blijft de
+specialist ontwikkelen, testen, committen en pushen, maar levert de volgende
+milestone als `QUEUED-FOR-INTEGRATION` zonder nieuwe PR. Een publicatieslot
+wordt pas na afbouw van de actuele queue vrijgegeven. Vier PR-agents bereiden
+hun exclusieve sets parallel voor; daadwerkelijke merges krijgen elk een
+eenmalige exacte head/main-lease. Strict-up-to-date en verplichte
+`host-quality`/`qemu-smoke` blijven gelden; achterlopende heads zijn niet READY.
+
+Actuele technische scope: System Maturity heeft SMP/M4-quiescence aan #154
+overgedragen en het device-execution-contractmodel op `7cfd3404` aan #181.
+Het model is geen echte kerneladapter en verleent Drivers nog geen
+executionrecht; de echte ACPI-handoff/discoveryleaf is nu vrijgegeven.
+Drivers heeft TPM-I/O-, USB-framing- en ACPI-registermasktests overgedragen;
+deze staan inmiddels als #178/#179/#180 open. Geen verdere PR zonder
+`OPEN-PR-LEASE`. Veld werkt aan de native acceptatie van
+de Alt+Tab-switcher #167; alleen concrete #157/main-conflicthunks in
+`scene.rs` zijn tijdelijk aan PR-agent B vrijgegeven, terwijl de #167-Rustbron
+bevroren blijft. B mag ook de bestaande render-/contrasttests aanpassen aan
+de behouden #149-layout, zonder contrastgrenzen te versoepelen. Platform
+heeft EXIF/CSV/BMP/recalc en de presentatiepreview overgedragen; die laatste
+staat inmiddels als #182 open. Native consumers blijven geblokkeerd op de
+echte app-ID-launch-, input-/surfacegrantketen. General-product heeft
+TCP-loss/backpressure aan #177 overgedragen en bouwt nu de toegewezen native
+app-launchconsumer in de bestaande window-compositorroute.
+Geen duplicatie van AuthBroker/B02, Drivers of System Maturity.
+
 Bron: main `a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e`.
 General coordineert deze sprint op Simons expliciete opdracht. De oudere
 mandaten, scores en sessietabellen hieronder zijn historische context, niet
@@ -19,7 +52,12 @@ Vervolg: #159 is werkelijk gesquashmerged als
 `1c6872063fab055211eff48fce11496db39728be`; #158 daarna als
 `78ff7c03b015ad16fe665ae7df9fe239d078e08d`. Beide mainheads via fetch en
 GitHub-mergecommit bevestigd, telkens overige PR's opnieuw gelezen.
-Actuele waarheid is nu **78ff7c03**, niet de eerdere intakepins.
+Daarna is #152 werkelijk gemerged als
+`d10b5cdaf56774a39e3ef10463f674c6188a463a`, via fetch en GitHub bevestigd.
+Daarna is #151 werkelijk gemerged als
+`ab85d6339ce5bdddb10a2de171d0c1b04e4b62ff`, eveneens zelf via fetch en
+GitHub-mergecommit bevestigd. Dit is de actuele main bij dit checkpoint;
+de laatste delta bevat uitsluitend 17 historische auditdocumenten.
 Op #158 was de nieuwe B03-native18-gate groen; vereiste host/smokechecks
 groen, overige lopende checks niet als geslaagd geclaimd.
 
@@ -29,11 +67,15 @@ raw groen op eigen bron; code bytegelijk aan de eerder geteste standalonefix.
 Een verse primaire-bronnen-docreview is bij de eigenaar voor afhandeling;
 geen productiequota-/kernel-/runnerwijziging.
 
-#152 is beperkt tot exact twee files: onderzoeksdocument en README-link.
+#152 was beperkt tot exact twee files: onderzoeksdocument en README-link.
 Alle andere bestanden exact main1c; oorspronkelijke metadata volledig op
 `archive/driver-research-pre-sprint-20261103` behouden. Rust1.95-eis en
 ongemeten snelheidsclaim gecorrigeerd, geen driveradoptie of nieuw punt.
-Nieuwe main78/CI/review blijven apart vereist.
+Drie concrete bronreviewpunten opgelost; vereiste host/smokechecks groen.
+Archief-PR's #161–#164 zijn als duplicaat gesloten, geen vervanging gemaakt:
+de historische backlog daalde van 16 naar 12, daarna #152 geïntegreerd.
+Nieuwe feature-PR's #165/#166 tellen afzonderlijk als ontvangen milestones,
+niet als archief of cleanupvervanging.
 
 De vier issues #39/#41/#42/#43 kregen afzonderlijk DONE/PARTIAL/MISSING/
 BLOCKED-BY-aftekening; geen epic voldoet integraal. N01 heeft wel degelijk
@@ -47,9 +89,10 @@ NIC-ondersteuning of de aanvullende reset/revokematrix in het issue.
 | #131 | CLOSED/HISTORISCH; alleen vier statusbestanden resteren, criteria exact main; volledige historie op archive/pr131-history-20261103. |
 | #137 | CLOSED/HISTORISCH; geen unieke runtimecode; oud plan-execution-receipt expliciet behouden op archive/pr137-history-20261103. |
 | #132 | CLOSED/SUPERSEDED; alle resterende scripts bytegelijk aan reeds geïntegreerde historische tekstsnapshots; geen onveilige oude uitvoerbare scripts heringevoerd. |
-| #159 | Zelfde vijf-file milestone op main95; 23+15 hosttests opnieuw groen op d269f9b4. Verse documentatiethread hersteld op cc4054d5, actuele checks/review vereist. |
-| #158 | Native18bewijs blijft brongebonden; verouderde checkpointstatus hersteld op04d727c3. Externe bot nam main95 op in ec889588; die delta en verse checks afzonderlijk beoordelen. |
-| #151 | Drie concrete auditdocbevindingen hersteld op0e4c51e2; main95 samen met auditdocs gepubliceerd als2a0cd010. Geen productwijziging of menselijke auditclaim. |
+| #159 | MERGED, commit1c687206; vijf-file imageslice na concrete review en vereiste checks. |
+| #158 | MERGED, commit78ff7c03; expliciete B03 TEST-policy, nieuwe-head-native18 en vereiste checks geslaagd. |
+| #151 | MERGED, commitab85d633; 17 historische auditdocumenten, reviewthreads opgelost en vereiste checks geslaagd. Geen productwijziging of menselijke auditclaim. |
+| #172/#174/#175 | CLOSED/BASELINE-EVIDENCE-ONLY; uitsluitend historische receipts op reeds geintegreerde d10-productbron. Unieke vaste commits, branches en receipts behouden; geen product-/testcode verwijderd en geen acceptatieclaim. Na deze batch25 open PRs. |
 | #155 | Main95 inhoudsbehoudend opgenomen; vier nieuwe bewijsdocumentatiepunten hersteld. Integratie heropent B01 expliciet: main41 wordt39, geen native positieve beheerrecovery. CI/review vereist vóór merge. |
 | #150/#154 | Extern nieuwe owner-/botheads ontvangen; geen oude-head-goedkeuring toepassen op nieuwe delta. |
 
@@ -57,12 +100,12 @@ Overige PR's en vier gedeeltelijke acceptatie-epics blijven in de eerdere
 intaketabel hieronder brongebonden geclassificeerd; die tabel is geen
 actueel head- of mergeoverzicht. Geen branches verwijderd.
 
-Nieuwe code uitsluitend voor concrete review-, regressie-, compatibility-
+Nieuwe code door de General-integrator uitsluitend voor review-, regressie-, compatibility-
 en integratieblockers. Een workstream wordt op main geintegreerd, niet op
 een andere productbranch. Een PR bevat voortaan een begrensde mijlpaal met
 eigen bewijs. Een groene oude head is geen acceptatie van een nieuwe head.
 
-### Ownership tijdens de sprint
+### Historische ownership tijdens de eerdere featurefreeze
 
 - General: selectieve image-/keyring-integratie en centrale sprintregistratie.
   Geen writes aan Drivers- of Veld-implementaties.
@@ -87,7 +130,8 @@ Als een owner alle relevante scopes geblokkeerd meldt: actuele en stale
 claims onderscheiden, veilig splitsen, een werkelijk uitvoerbare scope
 toewijzen als die bestaat, anders `BLOCKED-BY:<owner/interface>` met een
 concrete hervatvoorwaarde vastleggen. Ownership is geen permanente stilstand.
-Dit heft de huidige featurefreeze niet op.
+De toenmalige globale featurefreeze is inmiddels door Simon opgeheven;
+de actuele scope bovenaan vervangt deze historische beperkingen.
 
 ### Historische PR-intake op gepinde bronheads voor checkpointpublicatie
 

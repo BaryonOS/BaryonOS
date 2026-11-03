@@ -1,18 +1,32 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — geautoriseerde seriele integratie — 3 november 2026
+## NEXT AGENT HANDOFF — parallelle PR-afbouw, seriele merges — 3 november 2026
 
 Simon heeft op 3 november expliciet veilige merges en superseded-sluitingen
-voor deze sprint geautoriseerd. Geen nieuwe features. Actuele main na
-squashmerges #138, #159 en #158:
-`78ff7c03b015ad16fe665ae7df9fe239d078e08d`, zelf via
-fetch en GitHub-mergecommit gecontroleerd. De diff van #138 is uitsluitend
-API-commentaar en historische documentatie; 33 headchecks geslaagd, drie
-reviewthreads opgelost. #156 is treegelijk vervangen door #159; #131/#137
-bevatten alleen ingehaalde statusintegratie met expliciet gearchiveerde
-historie. #132 is reeds op main als historische tekst behouden; de oude
-uitvoerbare scripts worden niet heringevoerd. Deze vier PR's zijn gesloten
-zonder branches te verwijderen. Besluiten staan bij de PR's.
+voor deze sprint geautoriseerd, zonder nieuwe menselijke mergegate.
+Geen nieuwe features door de integrator; de specialisten ontwikkelen door.
+Actuele main na #138/#159/#158/#152/#151:
+`ab85d6339ce5bdddb10a2de171d0c1b04e4b62ff`, zelf via fetch en
+GitHub-mergecommit gecontroleerd. Lokale integratiebasis:
+`1fcfe314c2799402069fb41ad46f3ec1391e499f`.
+Sinds de native geteste `3639ecaa` zijn alleen documentatiepaden gewijzigd;
+het oude native bewijs wordt niet als een nieuwe uitvoering gepresenteerd.
+
+Vier PR-agents doen parallel review/fix/test; de enige interne mergelease
+serialiseert echte merges. #166 is terecht afgebroken op strict `BEHIND`;
+de vijf resterende driverheads zijn met main bijgewerkt en wachten op verse
+vereiste CI. Geen bypass of oude-head-goedkeuring. Nieuwe PR's krijgen eerst
+een expliciete interne `OPEN-PR-LEASE`; zonder die lease levert een
+specialist branches als `QUEUED-FOR-INTEGRATION`, zonder ontwikkelstop.
+
+**Werkelijk afgesloten:** #172/#174/#175 zijn gesloten als
+`BASELINE-EVIDENCE-ONLY`, niet als gemergd of geaccepteerd. Ze bevatten
+uitsluitend unieke historische receipts voor bestaande productbron
+`d10b5cda`, die al op main staat. Alle drie vaste commits, branches en receipts
+zijn behouden; geen runtime-/testimplementatie verwijderd, geen issue
+gesloten of punt toegekend. De closurestates en exacte heads zijn door de
+coordinator zelf via REST gecontroleerd. Open PR's na deze batch: **25**
+(vanaf 28 direct voor de batch); dit is een tijdgebonden telling.
 
 **Keyringintegratie:** main78ff7c03 is inhoudsbehoudend in deze branch
 opgenomen; beide checkpointgeschiedenissen blijven hieronder behouden.
@@ -31,11 +45,25 @@ groen (24,83 s; alle ruwe exits 33, normale afsluitbuild groen).
 Gewone app-herstelverzoeken blijven geweigerd; positieve manifest-bevoegde
 beheerrecovery blijft alleen hostgetest. Geen nieuwe B01-punten.
 
-**Open/eerstvolgend:** nieuwe-head-CI en actuele review afhandelen;
-pas daarna #155 mergen. #159/#158 zijn nu werkelijk
-op main; de gerichte auditfix blijft een afzonderlijke kandidaat, geen impliciete
-onderlinge featurebranchintegratie. #154 heeft actieve nieuwe ownerheads;
-SMP-WIP blijft onaangeroerd. Epics #39/#41/#42/#43 blijven gedeeltelijk/open.
+**Vrijgegeven productblockers:** General bouwt de echte native app-launchketen
+via de bestaande window-compositor: expliciete appkeuze, nieuw child,
+eigen input/surface, close en exacte cleanup. Veld heeft de betrokken
+product-Rust tijdelijk vrijgegeven; #167 blijft op eigen bevroren bron native
+testen. System Maturity heeft de concrete ACPI-handoff/discoveryleaf voor de
+device-executionadapter gekregen. #181 is alleen een hostgetest contractmodel,
+geen PCI/DMA/IOMMU/IRQ-adapter en geen vrijgave voor Drivers.
+Platform krijgt pas een native consumer zodra het echte launchcontract
+beschikbaar is, geen tweede compositor of extra hostfoundation.
+
+**Open/eerstvolgend:** reviewfixcheckpoint pushen, drie concrete #155-threads
+afhandelen en verse vereiste headchecks afwachten; daarna intern leasen en
+mergen zodra de repositoryregels dat toestaan. #154 vergt nog de eigen
+begrensde SMP-integratiereview/conflictresolutie. #157 is met echte main
+geintegreerd en wordt op eigen bron native getest; #146 blijft open totdat
+de gewenste inhoud via #157/#160 werkelijk is geintegreerd. #133 heeft een
+gerichte verifierreparatie, maar ontbrekende historische native dossiers en
+provenance zijn niet opnieuw gecertificeerd. Epics #39/#41/#42/#43 blijven
+gedeeltelijk/open.
 Geen hardware-, menselijke audit- of releaseacceptatie.
 
 ## Historisch checkpoint — integratiesprint voor mergemandaat — 3 november 2026
