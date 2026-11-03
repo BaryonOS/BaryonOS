@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "56a025bb326f7341ec89f40caf6a18345de9110f",
+    "source_commit": "66157cf2f6ecfe0c872d3514b5ab50bfca501966",
     "branch": "copilot/universal-driver-framework",
     "task": "Implementatie eerste Driver Core en PCI-matchregistry",
     "previous_score": 41,

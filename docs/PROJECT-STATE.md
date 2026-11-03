@@ -2,8 +2,10 @@
 
 ## NEXT AGENT HANDOFF — Driver Core en PCI-matching — 3 november 2026
 
-Werkbranch `copilot/universal-driver-framework`, basiscommit
-`56a025bb326f7341ec89f40caf6a18345de9110f`. Er staat een dependencyvrije
+Werkbranch `copilot/universal-driver-framework`, implementatiecommit
+`66157cf2f6ecfe0c872d3514b5ab50bfca501966`, gepusht naar `origin`;
+basiscommit `56a025bb326f7341ec89f40caf6a18345de9110f`. Er staat een
+dependencyvrije
 `no_std` Driver Core met categoriecontracten, een vaste-capaciteit
 PCI-registry, fail-closed ambiguïteitsafhandeling en metadataregistraties
 voor bestaande VirtIO block/netdrivers. Geen externe code/dependency

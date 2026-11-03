@@ -61,7 +61,7 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`56a025bb`](https://github.com/simonvanieperen/nieuw-os/commit/56a025bb326f7341ec89f40caf6a18345de9110f) ·
+**Bron:** [`66157cf2`](https://github.com/simonvanieperen/nieuw-os/commit/66157cf2f6ecfe0c872d3514b5ab50bfca501966) ·
 **Ontwikkelbranch:** `copilot/universal-driver-framework`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Implementatie eerste Driver Core en PCI-matchregistry.
 41/100 blijft 41/100. Toegevoegd is een eigen dependencyvrije no_std driver-core met Block/Network/Display/Input traits, toekomstige categorielabels, PCI descriptor/selector en vaste-capaciteit registry met exact-matchcriteria en fail-closed tie handling. Bestaande VirtIO block/netdrivers publiceren alleen PCI matchmetadata; hun fixed-BDF transporten en kernelautoriteit zijn onveranderd, en er is nog geen generieke enumerator, resourcegrant of driverstart. x86_64-unknown-none cargo check slaagde. Hosttests konden niet linken wegens ontbrekende cc; QEMU en fysieke tests niet uitgevoerd. Dit is infrastructuur, geen FR-H01/02/03-acceptatie.
