@@ -1,6 +1,29 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
+## NEXT AGENT HANDOFF — PR127 exacte-head-gates nog open — 3 november 2026
+
+**Actuele branch/head:** `simonvanieperen-refactored-fiesta`,
+`15a1fe7252cb0999d7d52065f8306d5b7e010b10`; de OS-bron is
+`380111b68688c981eec6abb8fab29174a29f5601` en de laatste commit bevat alleen
+deze voortgangsregistratie. Werktree schoon na push. Er is geen PR voor deze
+branch en `gh run list --branch simonvanieperen-refactored-fiesta` gaf geen
+CI-runs; de native-window-workflow start alleen op pull requests of pushes
+naar `main`.
+
+**Voorbereidende controle:** `python3 -B tools/test_window_session.py` slaagt
+met 10 tests. `python3 -B tools/preflight.py --strict` exit 2: de gepinde
+Rust-toolchain staat onder `/home/simon/.rustup/toolchains/1.90.0-.../bin`,
+maar is niet aan PATH toegevoegd; QEMU, OVMF, SeaBIOS en `cc` ontbreken.
+Er zijn nog geen exacte-head Rust-host-, native-QEMU-, herstel-, pixel-,
+klembord- of schijfgates uitgevoerd. Geen PR aangemaakt; daarvoor was geen
+expliciete opdracht. Geen punten toegekend; 41/100 blijft 41/100.
+
+**Eerstvolgend:** gebruik de bestaande gepinde toolchain expliciet voor de
+native-window-hostsuite en `fmt`/Clippy; archiveer exacte exitstatussen. De
+QEMU-gate blijft geblokkeerd totdat QEMU/firmware beschikbaar zijn of de
+geautoriseerde PR-CI-route expliciet wordt geopend.
+
+## Vorig checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 
 **Basis:** PR127 `798706c2a53d0062ce0474e5f84f294b2c37b825`, drie lokale
 fixleaves en PR126 `8f08db4c12573f91b57e55c30fa417e7abd358e6`, met main

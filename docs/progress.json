@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "380111b68688c981eec6abb8fab29174a29f5601",
+    "source_commit": "15a1fe7252cb0999d7d52065f8306d5b7e010b10",
     "branch": "simonvanieperen-refactored-fiesta",
-    "task": "Architectuurverkenning en prioritering van vervolgstappen",
+    "task": "Voorbereiden exacte-head native-window-integratiegate",
     "previous_score": 41,
-    "summary": "Score blijft 41/100: deze architectuurverkenning levert geen nieuw native acceptatiebewijs op en verandert geen criteriumstatus. De codebasis bevat een eigen Rust no_std x86_64/UEFI-kernel, userspace-services, native UI-primitives en afzonderlijke hostprototypes voor onder meer NAS en quantum. De volledige geïntegreerde release, echte authenticatie, bredere native UI/toegankelijkheid, netwerk/NAS-koppeling en fysieke hardwareacceptatie blijven open; de actuele checkpointstatus vraagt verse CI-, review- en native runtimegates."
+    "summary": "Score blijft 41/100; er is geen nieuw native criteriumbewijs. Geen PR of CI-run bestaat voor deze branch. De native-runner-hosttests slagen (10 tests), maar de Rust/QEMU-preflight is geblokkeerd door ontbrekende PATH-koppeling en ontbrekende QEMU/OVMF/SeaBIOS/cc. De gepinde Rust 1.90 toolchainmap bestaat lokaal en wordt gericht gebruikt voor beschikbare hostcontroles. De native-window-, herstel-, pixel-, clipboard- en schijfgates zijn niet uitgevoerd; geen release- of hardwareclaim."
   },
   "tracks": [
     {

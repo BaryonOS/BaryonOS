@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`380111b6`](https://github.com/simonvanieperen/nieuw-os/commit/380111b68688c981eec6abb8fab29174a29f5601) ·
+**Bron:** [`15a1fe72`](https://github.com/simonvanieperen/nieuw-os/commit/15a1fe7252cb0999d7d52065f8306d5b7e010b10) ·
 **Ontwikkelbranch:** `simonvanieperen-refactored-fiesta`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Architectuurverkenning en prioritering van vervolgstappen.
-Score blijft 41/100: deze architectuurverkenning levert geen nieuw native acceptatiebewijs op en verandert geen criteriumstatus. De codebasis bevat een eigen Rust no_std x86_64/UEFI-kernel, userspace-services, native UI-primitives en afzonderlijke hostprototypes voor onder meer NAS en quantum. De volledige geïntegreerde release, echte authenticatie, bredere native UI/toegankelijkheid, netwerk/NAS-koppeling en fysieke hardwareacceptatie blijven open; de actuele checkpointstatus vraagt verse CI-, review- en native runtimegates.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Voorbereiden exacte-head native-window-integratiegate.
+Score blijft 41/100; er is geen nieuw native criteriumbewijs. Geen PR of CI-run bestaat voor deze branch. De native-runner-hosttests slagen (10 tests), maar de Rust/QEMU-preflight is geblokkeerd door ontbrekende PATH-koppeling en ontbrekende QEMU/OVMF/SeaBIOS/cc. De gepinde Rust 1.90 toolchainmap bestaat lokaal en wordt gericht gebruikt voor beschikbare hostcontroles. De native-window-, herstel-, pixel-, clipboard- en schijfgates zijn niet uitgevoerd; geen release- of hardwareclaim.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
