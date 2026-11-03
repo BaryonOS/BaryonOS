@@ -1,6 +1,6 @@
 //! Registry-selected PCI discovery and the sole volatile/port-I/O boundary.
 use super::{Discovery, Io, DEVICE_ID_NET, DRIVER_REGISTRATION};
-use driver_core::{DriverMatch, PciAddress, PciDeviceDescriptor, PciHeaderError};
+use driver_core::{DriverFactoryMatch, PciAddress, PciDeviceDescriptor, PciHeaderError};
 use pci_core::{MatchedPciFunction, Mechanism1, PciConfigAccess};
 use virtio_core::{parse_capabilities_for, Bar, Error};
 
@@ -15,7 +15,10 @@ fn bar_error(error: pci_core::PciBarError) -> Error {
     }
 }
 
-fn validate_registration(address: PciAddress, config: &[u8; 256]) -> Result<DriverMatch, Error> {
+fn validate_registration(
+    address: PciAddress,
+    config: &[u8; 256],
+) -> Result<DriverFactoryMatch<super::DriverFactory>, Error> {
     let descriptor =
         PciDeviceDescriptor::from_type0_config(address, config).map_err(|error| match error {
             PciHeaderError::NotPresent => Error::Offline,
@@ -23,11 +26,11 @@ fn validate_registration(address: PciAddress, config: &[u8; 256]) -> Result<Driv
                 Error::Protocol
             }
         })?;
-    let mut registry = driver_core::DriverRegistry::<1>::new();
+    let mut registry = driver_core::DriverRegistry::<1, super::DriverFactory>::with_factories();
     registry
-        .register(DRIVER_REGISTRATION)
+        .register_with_factory(DRIVER_REGISTRATION, super::DRIVER_FACTORY)
         .map_err(|_| Error::Protocol)?;
-    match registry.best_match(&descriptor) {
+    match registry.best_match_with_factory(&descriptor) {
         Ok(Some(matched)) => Ok(matched),
         Ok(None) => Err(Error::Offline),
         Err(_) => Err(Error::Protocol),
@@ -44,9 +47,9 @@ fn bind_error(error: pci_core::BindError) -> Error {
 }
 
 fn select_device() -> Result<PciAddress, Error> {
-    let mut registry = driver_core::DriverRegistry::<1>::new();
+    let mut registry = driver_core::DriverRegistry::<1, super::DriverFactory>::with_factories();
     registry
-        .register(DRIVER_REGISTRATION)
+        .register_with_factory(DRIVER_REGISTRATION, super::DRIVER_FACTORY)
         .map_err(|_| Error::Protocol)?;
     let mut selected = None;
     let mut ambiguous = false;
@@ -54,7 +57,7 @@ fn select_device() -> Result<PciAddress, Error> {
     // before device services or interrupts can access PCI configuration.
     let mut access = unsafe { Mechanism1::new() };
     pci_core::enumerate(&mut access, |descriptor| {
-        match registry.best_match(&descriptor) {
+        match registry.best_match_with_factory(&descriptor) {
             Ok(Some(_)) => {
                 if selected.replace(descriptor.address).is_some() {
                     ambiguous = true;
@@ -95,7 +98,8 @@ pub fn discover_at(address: PciAddress) -> Result<Discovery, Error> {
     let descriptor =
         PciDeviceDescriptor::from_type0_config(address, &config).map_err(|_| Error::Protocol)?;
     let matched = validate_registration(address, &config)?;
-    let mut pci = MatchedPciFunction::bind(pci, descriptor, matched).map_err(bind_error)?;
+    let mut pci =
+        MatchedPciFunction::bind(pci, descriptor, matched.driver_match).map_err(bind_error)?;
     let original = pci.read_u32(address, 4).map_err(config_error)? as u16;
     let bar_grants = pci.probe_memory_bars().map_err(bar_error)?;
     let mut bars = [Bar::NONE; 6];
@@ -121,7 +125,7 @@ pub fn discover_at(address: PciAddress) -> Result<Discovery, Error> {
         );
     }
     let matched_after_probe = validate_registration(address, &config)?;
-    if matched_after_probe.registration.id != matched.registration.id {
+    if matched_after_probe.driver_match.registration.id != matched.driver_match.registration.id {
         return Err(Error::Protocol);
     }
     let regions = parse_capabilities_for(&config, &bars, DEVICE_ID_NET)?;
@@ -145,6 +149,7 @@ pub fn discover_at(address: PciAddress) -> Result<Discovery, Error> {
         bars,
         bar_grants,
         regions,
+        driver_factory: matched.factory,
     })
 }
 
@@ -160,7 +165,8 @@ pub(super) unsafe fn hardware(address: PciAddress, config: &[u8; 256]) -> Result
     // SAFETY: The caller is the synchronous, single-CPU kernel initialization
     // path; it serializes PCI config access and keeps interrupts disabled.
     let access = unsafe { Mechanism1::new() };
-    let pci = MatchedPciFunction::bind(access, descriptor, matched).map_err(bind_error)?;
+    let pci =
+        MatchedPciFunction::bind(access, descriptor, matched.driver_match).map_err(bind_error)?;
     Ok(Hardware { address, pci })
 }
 

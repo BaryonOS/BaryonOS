@@ -34,6 +34,13 @@ pub const DRIVER_REGISTRATION: driver_core::DriverRegistration = driver_core::Dr
         subsystem_device_id: None,
     },
 };
+/// Matched network-device initializer selected by the PCI registry.
+///
+/// # Safety
+/// The caller must uphold the permanent MMIO mapping and exclusive pinned-DMA
+/// ownership contract documented by [`Device::initialize`].
+pub type DriverFactory = unsafe fn(Discovery, [u64; 6], NetPool) -> Result<Device, Error>;
+const DRIVER_FACTORY: DriverFactory = Device::initialize_matched;
 pub const FEATURE_MAC: u64 = 1 << 5;
 pub const FEATURE_STATUS: u64 = 1 << 16;
 const RAM_END: u64 = 256 * 1024 * 1024;
@@ -49,6 +56,7 @@ pub struct Discovery {
     /// Kernel-usable BAR grants from the matched PCI function.
     pub bar_grants: [Option<pci_core::PciBarGrant>; 6],
     pub regions: Regions,
+    driver_factory: DriverFactory,
 }
 
 /// Four distinct, exclusive, identity-mapped and permanently pinned RAM pages.
@@ -515,6 +523,16 @@ impl Device {
     /// CPU/serialized I/O; initialization requires interrupts disabled and
     /// exclusive access to PCI configuration ports.
     pub unsafe fn initialize(
+        info: Discovery,
+        mapped: [u64; 6],
+        pool: NetPool,
+    ) -> Result<Self, Error> {
+        // SAFETY: Caller upholds the mapping and DMA ownership contract above;
+        // the factory was selected by this discovery's validated registry match.
+        unsafe { (info.driver_factory)(info, mapped, pool) }
+    }
+
+    unsafe fn initialize_matched(
         info: Discovery,
         mapped: [u64; 6],
         pool: NetPool,

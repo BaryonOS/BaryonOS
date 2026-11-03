@@ -78,15 +78,47 @@ aanlevert. Andere segmenten, ECAM, bridge-validatie en hotplug blijven open.
 BAR-grants zijn alleen in de block-/netwerkroute gebruikt; dit is geen
 algemene resourcebroker of driverisolatie. IRQ-grants, interrupt lifecycle,
 busmastertoestemming als afzonderlijke grant, DMA/IOMMU-authority,
-factoryregistratie en meerdere actieve apparaten blijven open. Geen universele
-physical-memory-capability toegevoegd. De mechanism-1-adapter vereist
-geserialiseerde kerneltoegang; dit ontwerp is alleen voor de huidige
-single-CPU-initialisatie-/transportpaden.
+familie-overstijgende factoryregistratie en meerdere actieve apparaten blijven
+open. Geen universele physical-memory-capability toegevoegd. De
+mechanism-1-adapter vereist geserialiseerde kerneltoegang; dit ontwerp is
+alleen voor de huidige single-CPU-initialisatie-/transportpaden.
 
 **Herzien:** zodra firmware-rootinformatie, een kernel-owned
 resourcebroker/factory-interface of meerdere device-instanties worden
 geïntegreerd; ook bij een target waarop mechanism 1 niet beschikbaar is.
 Geen native/hardwareacceptatie of extra voortgangspunt volgt uit compilatie.
+
+## ADR-066 — Factorygekoppelde PCI-matches voor ingebouwde VirtIO-drivers
+
+**Datum:** 3 november 2026. De vaste `no_std`-registry kan optioneel een
+statisch geregistreerde initializerfunctie per PCI-match bewaren. De
+factoryvariant retourneert de bestaande `DriverMatch` plus de functiepointer;
+gelijke meest-specifieke matches blijven een fout. VirtIO block en netwerk
+bewaren de gekozen initializer privé in hun door discovery gemaakte
+`Discovery`. Hun bestaande `Device::initialize`-ingang roept die geselecteerde
+factory aan nadat de kernel de devicegebonden BAR-mappings en de bestaande
+DMA-pool heeft toegewezen.
+
+De callback is een Rust-functiepointer naar reeds gelinkte code, geen
+dlopen/plugin, trait-objectheap of door device-data gekozen adres. De
+registrylaag blijft generiek over de callbacksoort; block en netwerk hebben
+vooralsnog afzonderlijke, familietypede registries vanwege hun verschillende
+pool-/initialisatie-ABI's. De factory valideert PCI-identiteit en pool opnieuw
+via de bestaande concrete initializer. Er verandert geen busmaster-, DMA-,
+IRQ-, reset-, fout- of cleanupbeleid. Een mislukte initialisatie kan dus nog
+steeds pinned kernelpagina's/quarantaine achterlaten zoals voorheen.
+
+**Alternatieven:** een centraal heterogeen registry met trait objects vereist
+een gemeenschappelijke driver-instance/resource/lifecycle-ABI en allocatie;
+die is nog niet door de maturitybranch geleverd en wordt hier niet
+vooruitgelopen. Een `DriverId`-switch in ieder kernelprofiel zou factories
+van de match loskoppelen. Deze statische factorybinding is de kleinste stap die
+dezelfde fail-closed PCI-selectie aan de concrete bestaande initializer bindt.
+
+**Grenzen en herziening:** de block- en netwerkregistries zijn nog niet één
+catalogus en de drivers blijven in kernelcontext. Herzie bij gedeelde
+resourcebroker, tweede driver per class, userspace-driverinstances of
+meerdere devices. Dit levert geen hardwareacceptatie of scorepunt op.
 
 ## Onderzoeksbesluit J-20261102 — herkenbare basis, expliciete installatiegrens
 

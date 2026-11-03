@@ -317,6 +317,20 @@ pub struct DriverMatch {
     pub specificity: PciSpecificity,
 }
 
+/// A selected driver registration paired with its concrete initializer.
+///
+/// The factory type is supplied by the kernel-facing registry, keeping this
+/// crate independent of transport resources and concrete driver crates.
+/// Statically linked function pointers are used; registration allocates no
+/// memory and does not load executable code.
+#[derive(Clone, Copy)]
+pub struct DriverFactoryMatch<F: Copy> {
+    /// Selected registered driver and match specificity.
+    pub driver_match: DriverMatch,
+    /// Initializer registered for the selected driver.
+    pub factory: F,
+}
+
 /// Specificity of a PCI match; fields are ordered from strongest to weakest.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct PciSpecificity {
@@ -343,13 +357,19 @@ pub enum RegistryError {
     AmbiguousMatch,
 }
 
+#[derive(Clone, Copy)]
+struct RegisteredDriver<F> {
+    registration: DriverRegistration,
+    factory: F,
+}
+
 /// Fixed-capacity PCI driver registry; it allocates no memory.
-pub struct DriverRegistry<const N: usize> {
-    entries: [Option<DriverRegistration>; N],
+pub struct DriverRegistry<const N: usize, F = ()> {
+    entries: [Option<RegisteredDriver<F>>; N],
     len: usize,
 }
 
-impl<const N: usize> DriverRegistry<N> {
+impl<const N: usize> DriverRegistry<N, ()> {
     /// Creates an empty registry.
     pub const fn new() -> Self {
         Self {
@@ -360,6 +380,25 @@ impl<const N: usize> DriverRegistry<N> {
 
     /// Registers one PCI driver without replacing existing entries.
     pub fn register(&mut self, registration: DriverRegistration) -> Result<(), RegistryError> {
+        self.register_with_factory(registration, ())
+    }
+}
+
+impl<const N: usize, F: Copy> DriverRegistry<N, F> {
+    /// Creates an empty registry whose entries each carry an initializer.
+    pub const fn with_factories() -> Self {
+        Self {
+            entries: [None; N],
+            len: 0,
+        }
+    }
+
+    /// Registers one PCI driver and the initializer associated with it.
+    pub fn register_with_factory(
+        &mut self,
+        registration: DriverRegistration,
+        factory: F,
+    ) -> Result<(), RegistryError> {
         if !registration.pci.is_valid() {
             return Err(RegistryError::InvalidPciMatch);
         }
@@ -367,58 +406,83 @@ impl<const N: usize> DriverRegistry<N> {
             .entries
             .iter()
             .flatten()
-            .any(|entry| entry.id == registration.id)
+            .any(|entry| entry.registration.id == registration.id)
         {
             return Err(RegistryError::DuplicateDriverId);
         }
         let Some(slot) = self.entries.iter_mut().find(|entry| entry.is_none()) else {
             return Err(RegistryError::Full);
         };
-        *slot = Some(registration);
+        *slot = Some(RegisteredDriver {
+            registration,
+            factory,
+        });
         self.len += 1;
         Ok(())
     }
 
-    /// Returns the number of registered drivers.
-    pub const fn len(&self) -> usize {
-        self.len
-    }
-
-    /// Returns whether the registry has no registrations.
-    pub const fn is_empty(&self) -> bool {
-        self.len == 0
-    }
-
-    /// Selects the unique most-specific matching driver.
+    /// Selects the unique most-specific matching driver without its factory.
     ///
-    /// Returns `Ok(None)` when no driver matches and `AmbiguousMatch` when
-    /// equally specific registrations match. Callers must not start a driver
-    /// when selection is ambiguous.
+    /// Metadata-only consumers can continue to use this method. Activation
+    /// paths should use [`Self::best_match_with_factory`].
     pub fn best_match(
         &self,
         device: &PciDeviceDescriptor,
     ) -> Result<Option<DriverMatch>, RegistryError> {
-        let mut best: Option<DriverMatch> = None;
+        Ok(self
+            .best_entry(device)?
+            .map(|entry| Self::driver_match(entry.registration)))
+    }
+
+    /// Selects the unique most-specific matching driver and its initializer.
+    ///
+    /// Returns `Ok(None)` when no driver matches and `AmbiguousMatch` when
+    /// equally specific registrations match. Callers must not initialize a
+    /// driver when selection is ambiguous.
+    pub fn best_match_with_factory(
+        &self,
+        device: &PciDeviceDescriptor,
+    ) -> Result<Option<DriverFactoryMatch<F>>, RegistryError> {
+        Ok(self.best_entry(device)?.map(|entry| DriverFactoryMatch {
+            driver_match: Self::driver_match(entry.registration),
+            factory: entry.factory,
+        }))
+    }
+
+    fn driver_match(registration: DriverRegistration) -> DriverMatch {
+        DriverMatch {
+            registration,
+            specificity: registration.pci.specificity(),
+        }
+    }
+
+    fn best_entry(
+        &self,
+        device: &PciDeviceDescriptor,
+    ) -> Result<Option<RegisteredDriver<F>>, RegistryError> {
+        let mut best: Option<RegisteredDriver<F>> = None;
         let mut ambiguous = false;
 
-        for registration in self.entries.iter().flatten() {
-            if !registration.pci.matches(device) {
+        for entry in self.entries.iter().flatten() {
+            if !entry.registration.pci.matches(device) {
                 continue;
             }
-            let candidate = DriverMatch {
-                registration: *registration,
-                specificity: registration.pci.specificity(),
-            };
             match best {
                 None => {
-                    best = Some(candidate);
+                    best = Some(*entry);
                     ambiguous = false;
                 }
-                Some(current) if candidate.specificity > current.specificity => {
-                    best = Some(candidate);
+                Some(current)
+                    if entry.registration.pci.specificity()
+                        > current.registration.pci.specificity() =>
+                {
+                    best = Some(*entry);
                     ambiguous = false;
                 }
-                Some(current) if candidate.specificity == current.specificity => {
+                Some(current)
+                    if entry.registration.pci.specificity()
+                        == current.registration.pci.specificity() =>
+                {
                     ambiguous = true;
                 }
                 Some(_) => {}
@@ -433,7 +497,19 @@ impl<const N: usize> DriverRegistry<N> {
     }
 }
 
-impl<const N: usize> Default for DriverRegistry<N> {
+impl<const N: usize, F> DriverRegistry<N, F> {
+    /// Returns the number of registered drivers.
+    pub const fn len(&self) -> usize {
+        self.len
+    }
+
+    /// Returns whether the registry has no registrations.
+    pub const fn is_empty(&self) -> bool {
+        self.len == 0
+    }
+}
+
+impl<const N: usize> Default for DriverRegistry<N, ()> {
     fn default() -> Self {
         Self::new()
     }
@@ -750,6 +826,40 @@ mod tests {
         let selected = registry.best_match(&descriptor()).unwrap().unwrap();
         assert_eq!(selected.registration.id, NET_ID);
         assert_eq!(selected.specificity.identity, 2);
+    }
+
+    #[test]
+    fn factory_registry_returns_initializer_for_selected_registration() {
+        fn block_factory() -> u8 {
+            1
+        }
+        fn network_factory() -> u8 {
+            2
+        }
+
+        let broad = PciMatch {
+            vendor_id: Some(0x1af4),
+            ..PciMatch::any()
+        };
+        let exact = PciMatch {
+            vendor_id: Some(0x1af4),
+            device_id: Some(0x1042),
+            ..PciMatch::any()
+        };
+        let mut registry = DriverRegistry::<2, fn() -> u8>::with_factories();
+        registry
+            .register_with_factory(registration(BLOCK_ID, broad), block_factory)
+            .unwrap();
+        registry
+            .register_with_factory(registration(NET_ID, exact), network_factory)
+            .unwrap();
+
+        let selected = registry
+            .best_match_with_factory(&descriptor())
+            .unwrap()
+            .unwrap();
+        assert_eq!(selected.driver_match.registration.id, NET_ID);
+        assert_eq!((selected.factory)(), 2);
     }
 
     #[test]

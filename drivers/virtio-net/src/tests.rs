@@ -291,6 +291,7 @@ fn info() -> Discovery {
         bars,
         bar_grants: [None; 6],
         regions,
+        driver_factory: Device::initialize_matched,
     }
 }
 
