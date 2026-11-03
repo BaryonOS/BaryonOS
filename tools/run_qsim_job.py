@@ -5,7 +5,7 @@ import importlib.util
 import json
 from pathlib import Path
 import re
-from common import ROOT, BUILD, save_json, sha256, source_hash
+from common import ROOT, BUILD, save_json, sha256, source_hash, without_acpi_diagnostics
 from run import run_guest
 
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "M2:PASS")
@@ -37,6 +37,7 @@ def number(line: str, label: str) -> int:
 def validate_sequence(stdout: str) -> dict:
     if any(word in stdout for word in FORBIDDEN):
         raise ValueError("Native qsim job failure marker")
+    stdout = without_acpi_diagnostics(stdout)
     lines = stdout.splitlines()
     start = lines.index(BOOT[0])
     observed = lines[start:]

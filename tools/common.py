@@ -15,6 +15,38 @@ BUILD = Path(os.environ.get("NOS_BUILD_DIR", str(ROOT / "build"))).resolve()
 TARGET = Path(os.environ.get("NOS_TARGET_DIR", str(ROOT / "target"))).resolve()
 LOCAL = Path(os.environ.get("LOCALAPPDATA", str(ROOT / ".tools"))) / "nieuw-os"
 QEMU_MACHINES = ("pc-q35-10.0", "pc-q35-8.2", "pc-q35-7.2")
+ACPI_STATUS_MARKERS = frozenset({
+    "ACPI:UNAVAILABLE:NO_HANDOFF",
+    "ACPI:UNAVAILABLE:BAD_HANDOFF",
+    "ACPI:UNAVAILABLE:INVALID_TABLES",
+    "ACPI:UNAVAILABLE:NO_MCFG",
+    "ACPI:UNAVAILABLE:NO_DMAR",
+    "ACPI:UNAVAILABLE:NO_DMAR_UNITS",
+    "ACPI:DISCOVERY:MCFG_DMAR",
+})
+DEVICE_EXECUTION_MARKER = "DEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT"
+
+
+def without_acpi_diagnostics(stdout: str) -> str:
+    """Remove only the bounded ACPI status pair from the KS-02/KS-03 gap."""
+    if not isinstance(stdout, str):
+        raise ValueError("Malformed native serial output")
+    lines = stdout.splitlines(keepends=True)
+    values = [line.rstrip("\r\n") for line in lines]
+    acpi = [i for i, line in enumerate(values) if line.startswith("ACPI:")]
+    execution = [i for i, line in enumerate(values) if line.startswith("DEVICE-EXECUTION:")]
+    if not acpi and not execution:
+        return stdout
+    if (len(acpi) != 1 or len(execution) != 1
+            or values[acpi[0]] not in ACPI_STATUS_MARKERS
+            or values[execution[0]] != DEVICE_EXECUTION_MARKER
+            or execution[0] != acpi[0] + 1
+            or acpi[0] == 0 or acpi[0] + 2 >= len(values)
+            or values[acpi[0] - 1] != "KS-02:PASS"
+            or values[acpi[0] + 2] != "KS-03:PASS"):
+        raise ValueError("Malformed or misplaced ACPI boot diagnostics")
+    del lines[acpi[0]:acpi[0] + 2]
+    return "".join(lines)
 
 
 def qemu_machine(value: str | None = None) -> str:
