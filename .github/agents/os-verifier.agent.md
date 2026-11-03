@@ -39,6 +39,9 @@ Gebruik uitsluitend:
 - `GEFAALD`: criterium niet gehaald of regressie;
 - `NIET VAST TE STELLEN`: bewijs ontbreekt of is niet reproduceerbaar.
 
-Geef geen goedkeuring wanneer bron, commando, exitstatus of relevante output ontbreekt.
+Geef geen goedkeuring wanneer bron ontbreekt. Voor uitvoerbare controles
+zijn ook commando, exitstatus en relevante output verplicht. Voor statische
+en documentaire controles is het toepasselijke bronfragment met een
+traceerbare conclusie vereist; dit vervangt geen vereist uitvoeringsbewijs.
 `GESLAAGD` beoordeelt uitsluitend het aangeleverde bewijs en claimt geen
 eigen testuitvoering.

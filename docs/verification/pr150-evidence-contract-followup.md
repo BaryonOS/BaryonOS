@@ -39,7 +39,7 @@ for p in profiles:
  assert fields['disable-model-invocation']=='true'
  tools=json.loads(fields['tools'])
  assert tools==(['read','search','edit','execute'] if p.name=='os-builder.agent.md' else ['read','search']),p
-print('PASS:16 frontmatter/toolsets; not full cloud schema or runtime confinement')
+print('PASS:16 profiles: target, disable-model-invocation, tools; not full schema or runtime confinement')
 source='cccb29e8daf311a9db47e3747a6fb9d05329bda3'
 expected={
  'os-verifier.agent.md':'6380991093181852e2044e0b8b0804587d62d8e0c268ac7bcc7152826286ab78',
@@ -75,3 +75,10 @@ niet over; die historie blijft volledig behouden op
 `archive/pr150-pre-main78-20261103` (`4ef30bf7`).
 Alleen profielen, direct gerelateerde profielinstructies en eigen receipts
 blijven als inhoudsdelta. De huidige mainassessment is geen profieltest.
+
+Primaire bronnen voor deze historische status: Nieuw OS-project,
+3 november 2026, [contractfix: beperk verifier tot bewijsbeoordeling en
+definieer bewijssoorten](https://github.com/simonvanieperen/nieuw-os/commit/cccb29e8daf311a9db47e3747a6fb9d05329bda3),
+[reviewcorrectie: referentiebaselines en bewijsankers](https://github.com/simonvanieperen/nieuw-os/commit/3ee3e73a7e8a9422d027fe5d0268923689888472),
+[main: expliciete TEST-ondertekenpolicy](https://github.com/simonvanieperen/nieuw-os/commit/78ff7c03b015ad16fe665ae7df9fe239d078e08d)
+en [historische mainintegratie op de bewaarde archiefcommit](https://github.com/simonvanieperen/nieuw-os/commit/4ef30bf7d0e2d3056783a949a970e06fcbbe7a89).
