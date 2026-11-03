@@ -86,7 +86,8 @@
       "seconds": 0.373,
       "log": "target/policy-authorization-review/directed.log",
       "sha256": "1b7d4e7c85b9aea946173a2c0162561eb3f27b2685926798e9253bbe1e64895c",
-      "persisted_log": "docs/verification/permission-policy-authorization-20261103/directed.log"
+      "persisted_log": "docs/verification/permission-policy-authorization-20261103/directed.log",
+      "persisted_log_sha256": "6b84a726b22be92cc102150219b0ff696535316060e69b62dce0557e6816b604"
     },
     {
       "name": "fmt",
@@ -95,7 +96,8 @@
       "seconds": 0.047,
       "log": "target/policy-authorization-review/fmt.log",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "persisted_log": "docs/verification/permission-policy-authorization-20261103/fmt.log"
+      "persisted_log": "docs/verification/permission-policy-authorization-20261103/fmt.log",
+      "persisted_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
       "name": "clippy",
@@ -104,7 +106,8 @@
       "seconds": 0.195,
       "log": "target/policy-authorization-review/clippy.log",
       "sha256": "277734ab98ce8ce71c43bfc472eeeaae9228e6366267bcc63db667b0ac302451",
-      "persisted_log": "docs/verification/permission-policy-authorization-20261103/clippy.log"
+      "persisted_log": "docs/verification/permission-policy-authorization-20261103/clippy.log",
+      "persisted_log_sha256": "277734ab98ce8ce71c43bfc472eeeaae9228e6366267bcc63db667b0ac302451"
     },
     {
       "name": "target",
@@ -113,7 +116,8 @@
       "seconds": 0.255,
       "log": "target/policy-authorization-review/target.log",
       "sha256": "6c5b4eb5a362727274b070223628671945f7e326028f2f158544dd4910db2dd5",
-      "persisted_log": "docs/verification/permission-policy-authorization-20261103/target.log"
+      "persisted_log": "docs/verification/permission-policy-authorization-20261103/target.log",
+      "persisted_log_sha256": "6c5b4eb5a362727274b070223628671945f7e326028f2f158544dd4910db2dd5"
     },
     {
       "name": "diff",
@@ -122,7 +126,8 @@
       "seconds": 0.006,
       "log": "target/policy-authorization-review/diff.log",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "persisted_log": "docs/verification/permission-policy-authorization-20261103/diff.log"
+      "persisted_log": "docs/verification/permission-policy-authorization-20261103/diff.log",
+      "persisted_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
       "name": "workspace-tests",
@@ -140,7 +145,8 @@
       "seconds": 2.729,
       "log": "target/policy-authorization-review/workspace-clippy.log",
       "sha256": "4e6b608793cb2c95e11d92badc08e6e86b43db22b5252b3c13a0cf9636922fbb",
-      "persisted_log": "docs/verification/permission-policy-authorization-20261103/workspace-clippy.log"
+      "persisted_log": "docs/verification/permission-policy-authorization-20261103/workspace-clippy.log",
+      "persisted_log_sha256": "4e6b608793cb2c95e11d92badc08e6e86b43db22b5252b3c13a0cf9636922fbb"
     },
     {
       "name": "workspace-check",
@@ -149,7 +155,8 @@
       "seconds": 0.782,
       "log": "target/policy-authorization-review/workspace-check.log",
       "sha256": "092856fa29b1d744104c65a19c07059acde3166147302d175e1e3003821c5427",
-      "persisted_log": "docs/verification/permission-policy-authorization-20261103/workspace-check.log"
+      "persisted_log": "docs/verification/permission-policy-authorization-20261103/workspace-check.log",
+      "persisted_log_sha256": "092856fa29b1d744104c65a19c07059acde3166147302d175e1e3003821c5427"
     },
     {
       "name": "workspace-tests-final",
@@ -159,7 +166,8 @@
       "log": "target/policy-authorization-review/workspace-tests-final.log",
       "environment_change": "RUSTDOCFLAGS uses same sysroot as RUSTFLAGS",
       "sha256": "49e411945e31746c2c865b89a0dea94fbd0dda1381cea88957d5c979f7ac1bb6",
-      "persisted_log": "docs/verification/permission-policy-authorization-20261103/workspace-tests-final.log"
+      "persisted_log": "docs/verification/permission-policy-authorization-20261103/workspace-tests-final.log",
+      "persisted_log_sha256": "b040d4cdc1176befcd280d90e930ff75d55b3e0f13a83956a291b8b817c74a65"
     }
   ],
   "workspace_final": {
@@ -184,7 +192,7 @@
   "files": [
     {
       "path": "docs/verification/permission-policy-authorization-20261103/README.md",
-      "sha256": "8e393d9552001dac984801765806c77f05fd3aaaccd768b38aa6fb7207a69897"
+      "sha256": "b07da2517e79d85eef9e02ec39de71c17e8c67d60dbe982161c513678d71d56d"
     },
     {
       "path": "docs/verification/permission-policy-authorization-20261103/clippy.log",
@@ -200,7 +208,7 @@
     },
     {
       "path": "docs/verification/permission-policy-authorization-20261103/directed.log",
-      "sha256": "1b7d4e7c85b9aea946173a2c0162561eb3f27b2685926798e9253bbe1e64895c"
+      "sha256": "6b84a726b22be92cc102150219b0ff696535316060e69b62dce0557e6816b604"
     },
     {
       "path": "docs/verification/permission-policy-authorization-20261103/divergence-after.json",
@@ -260,11 +268,18 @@
     },
     {
       "path": "docs/verification/permission-policy-authorization-20261103/workspace-tests-final.log",
-      "sha256": "49e411945e31746c2c865b89a0dea94fbd0dda1381cea88957d5c979f7ac1bb6"
+      "sha256": "b040d4cdc1176befcd280d90e930ff75d55b3e0f13a83956a291b8b817c74a65"
     },
     {
       "path": "docs/verification/permission-policy-authorization-20261103/workspace-tests-first-failure.txt",
-      "sha256": "10b73256d8673549620bf090231814c6dff597866295926141ca25dfc71d5c4f"
+      "sha256": "66f8d2089252679d0babc8fa209a246dcb6b0a4d636386738a87828f31f188ee"
     }
-  ]
+  ],
+  "log_archival": "Trailing horizontal whitespace and excess final blank lines normalized; command sha256 fields bind raw local logs, persisted_log_sha256 binds archived content.",
+  "final_diff_check": {
+    "command": "git diff 8389a7924323b9564667996c6c95d83d91106754 --check",
+    "initial_exit_status": 2,
+    "reason": "Trailing whitespace in archived tool output, not product code",
+    "final_exit_status": 0
+  }
 }

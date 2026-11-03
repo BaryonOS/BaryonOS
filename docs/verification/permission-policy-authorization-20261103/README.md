@@ -102,11 +102,16 @@ zonder bronwijziging. De loader-/kernelbinaries zijn expliciet uitgesloten
 van de hostgate; dit is geen native bootbewijs.
 
 Volledige rode/gerichte logs en de definitieve workspace-uitvoer zijn hier
-opgeslagen. De eerste workspacefout staat als begrensd foutfragment in
+opgeslagen met genormaliseerde eindwitruimte (de inhoud en uitslagen zijn
+ongewijzigd). De ruwe lokale hashes en opgeslagen hashes staan afzonderlijk
+in `receipt.json`. De eerste workspacefout staat als begrensd foutfragment in
 `workspace-tests-first-failure.txt`; het volledige initiële log blijft lokaal
 onder `target/policy-authorization-review/workspace-tests.log`.
 `receipt.json` bindt alle commando's, exits, doorlooptijden en loghashes aan
 de bron; de initiële rode reproductie is niet op wandkloktijd gemeten.
+Een afsluitende `git diff 8389a7924323b9564667996c6c95d83d91106754 --check`
+vond alleen eindwitruimte in opgeslagen testuitvoer. Na deze expliciete
+archiefnormalisatie slaagt ook die volledige wijzigingscontrole.
 
 ## Open status / integratiegrens
 
