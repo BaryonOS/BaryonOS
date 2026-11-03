@@ -17,7 +17,10 @@ Kernel en isolatie; boot en platformvertrouwen; accounts; opslag; netwerk; drive
 
 ## Kernregels
 
-- Beoordeel ieder onderdeel met E0-E8.
+- Label per onderdeel de bestaande repositorybewijssoort: documentatie,
+  prototype, broncode, hosttest, VM-test, fysieke hardwaretest, menselijke
+  gebruikerstest, onafhankelijke review of releasevalidatie. Noteer ontbrekend
+  bewijs expliciet; AI-review is geen onafhankelijke menselijke audit.
 - Maak onderscheid tussen fundamenteel gat, productgat en cosmetisch gat.
 - Een roadmapscore is geen veiligheids- of gereedheidspercentage.
 - Prioriteer eerst gegevensveiligheid en herstel, daarna dagelijks gebruik, daarna volwassen productvoering, daarna futuristische differentiatie.
