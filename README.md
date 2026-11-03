@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`47ec535f`](https://github.com/simonvanieperen/nieuw-os/commit/47ec535f15bb10912dbc6cbf1af3de9df0c6c226) ·
-**Ontwikkelbranch:** `simonvanieperen-upgraded-disco`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR148-conflicten met main 8e0c15d inhoudsbehoudend integreren.
-41/100 blijft 41/100. Drie centrale documentconflicten behouden beide checkpointreeksen en hun afzonderlijke bewijsbronnen. Gedeelde harnashulpfuncties komen exact uit main; PR148-volume-admissie blijft behouden. Geen handmatige codewijziging, nieuw criterium of native acceptatie. Gerichte integratievalidatie en nieuwe-head CI worden afzonderlijk gerapporteerd.
+**Bron:** [`5ea5971f`](https://github.com/simonvanieperen/nieuw-os/commit/5ea5971fa8f26df63fee511ffb0045932a571e8f) ·
+**Ontwikkelbranch:** `fix/b03-test-anchors-guard`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** B03 TEST-ondertekenankers expliciet opt-in maken.
+41/100 blijft 41/100. De TEST-policy is nu expliciet opt-in en ongemarkeerde loader-/dienstbuilds falen gesloten. Hosttests en cross-builds leveren geen nieuwe productacceptatiepunten op. Productiesleutels, rotatieceremonie en native 18-staps-QEMU-acceptatie ontbreken nog; issue #41 blijft open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -1,6 +1,43 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR148 met main 8e0c15d — 3 november 2026
+## NEXT AGENT HANDOFF — B03 TEST-ankergrens — 3 november 2026
+
+**Basis:** `main` `d686bd54e766aed542e9918d1a37dcce434f18e2`; codecommits
+`1fefc22765478f4798b5d4e003a1d10f467d0063` en
+`5ea5971fa8f26df63fee511ffb0045932a571e8f` op
+`fix/b03-test-anchors-guard`. `test_policy` vereist nu de expliciete
+`test-signing-anchors`-feature; UEFI-loader- en update-servicebuilds zonder
+gekozen ondertekenbeleid falen tijdens compilatie. TEST-sleutels blijven
+uitsluitend fixtures. Productieankers, sleutelrotatie/-intrekking en
+releaseceremonie zijn niet ontworpen of bewezen; #41 blijft open.
+
+**Gerichte controles:** update-core met TEST-feature 13 tests, update-tool
+2 tests, update-core zonder TEST-feature 7 tests en B03 Python-harnas 14 tests
+geslaagd. De testloader en update-service zijn crossgebouwd. Negatieve
+compilatiechecks voor de ongemarkeerde loader en service falen verwacht met
+alleen de bedoelde policyfout. Update-core/update-tool- en service-Clippy
+slagen; loader-Clippy slaagt met alleen de bestaande
+`clippy::not_unsafe_ptr_arg_deref`-lint toegestaan; de ongewijzigde pointer
+entrypoint is geen onderdeel van deze wijziging. Zie de exacte commando's en
+bewijshashes in
+[B03-verificatierapport](verification/b03-test-anchor-gating/README.md).
+Een directe release-`cargo build` buiten de projectwrapper raakte daarnaast
+een LLVM SIGILL tijdens codegeneratie voor `curve25519-dalek`; de
+voorgeschreven update-service-buildwrapper slaagde wel en is het gerapporteerde
+buildresultaat.
+
+**Niet uitgevoerd:** de native 18-staps B03-QEMU-gate en runtimevalidatie:
+strikte preflight mist `qemu-system-x86_64` en OVMF. Dit blijft open voor
+exacte-head-CI. Geen nieuwe productcriteria geaccepteerd.
+
+**Voortgang:** branchscore **41 → 41/100**; `tools/progress.py --write`
+en `--check` bevestigen deze berekening. Er zijn geen criteria of gewichten
+gewijzigd en deze wijziging levert geen productacceptatiepunten op.
+
+**Eerstvolgend:** exacte-head CI op de draft-PR beoordelen; #41 pas sluiten na
+productiesleutelbeleid en vereiste native acceptatie.
+
+## Historisch checkpoint — PR148 met main 8e0c15d — 3 november 2026
 
 **Basis:** PR148 `47ec535f15bb10912dbc6cbf1af3de9df0c6c226` met main
 `8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2`, branch
