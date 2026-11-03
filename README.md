@@ -64,7 +64,7 @@ alleen een nette desktop haalt die eindgrens niet.
 **Bron:** [`65b8da60`](https://github.com/simonvanieperen/nieuw-os/commit/65b8da607308d7a1766435601d53ac6794ac6881) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-spoon`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** SYSTEM-MATURITY-SMP: TLB-processlothergebruik.
-41 blijft 41. De volledige SMP-matrix op e528da3f slaagde na deterministische rolplaatsing voor M4, inclusief 1/2/4 CPU, AP-exit, cross-CPU IPC/revoke en de 1-CPU-regressie. De nieuwe native-smp-m3-tlb-reuse-fixture bouwt en de 13 hosttests slagen; de gerichte QEMU-proef is nog niet uitgevoerd. Dit sluit geen rubriccriterium; K06-TLB-runtime, bredere race-/failureacceptatie en een algemeen remote-shootdownprotocol blijven open.
+41 blijft 41. De volledige SMP-matrix op e528da3f slaagde na deterministische rolplaatsing voor M4, inclusief 1/2/4 CPU, AP-exit, cross-CPU IPC/revoke en de 1-CPU-regressie. De native-smp-m3-tlb-reuse-fixture bouwt; 13 hosttests en drie gerichte 2-CPU-QEMU-runs slagen met twee slot-0-exits op dezelfde AP en nieuwe data-backing. De volledige matrix met deze nieuwe stage is nog niet uitgevoerd. Dit sluit geen rubriccriterium; bredere race-/failureacceptatie en een algemeen remote-shootdownprotocol blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

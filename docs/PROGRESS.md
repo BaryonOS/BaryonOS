@@ -4,10 +4,11 @@ SYSTEM-MATURITY-SMP (3 november 2026), bron `65b8da60`:
 **41 → 41/100**. De volledige SMP-matrix op `e528da3f` slaagde na
 deterministische CPU-plaatsing voor de opt-in M4-profielen, inclusief 1/2/4
 CPU, AP-exit, cross-CPU IPC/revoke en de 1-CPU-regressie. De nieuwe
-`native-smp-m3-tlb-reuse`-fixture bouwt en de 13 hosttests slagen; de gerichte
-QEMU-proef is nog niet uitgevoerd. Geen rubriccriterium sluit; TLB-runtime,
-bredere race-/failureacceptatie en een algemeen remote-shootdownprotocol
-blijven open. Zie [PROJECT-STATE.md](PROJECT-STATE.md).
+`native-smp-m3-tlb-reuse`-fixture bouwt; 13 hosttests en drie gerichte 2-CPU-
+QEMU-runs slagen met twee slot-0-exits op dezelfde AP en een ander fysiek
+datablad voor de vervanger. De volledige matrix met deze stage is nog niet
+uitgevoerd. Geen rubriccriterium sluit; bredere race-/failureacceptatie en een
+algemeen remote-shootdownprotocol blijven open. Zie [PROJECT-STATE.md](PROJECT-STATE.md).
 
 De actieve volledige releaseopdracht en productacceptatie staan in
 [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft

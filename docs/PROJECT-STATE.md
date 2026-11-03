@@ -3,7 +3,7 @@
 ## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
 
 **Gepubliceerde basis:** branch `simonvanieperen-studious-spoon`, commit
-`65b8da607308d7a1766435601d53ac6794ac6881`, gepusht naar
+`4f4cbb3b97b6c2a0e1ec2b87dc2e04c163454703`, gepusht naar
 `origin/simonvanieperen-studious-spoon`. Actieve toewijzing:
 `SYSTEM-MATURITY-SMP`, queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`.
 OOM/K05 zijn afgesloten en blijven ongewijzigd;
@@ -103,15 +103,17 @@ CPU-grenzen; raw QEMU-exit 33 was voor alle VM-runs verwacht. QEMU meldde
 opnieuw ontbrekend `kvmvapic.bin`; niet onderzocht. Receipt:
 [`smp-rendezvous-20261103T183655Z.json`](verification/sm-smp/smp-rendezvous-20261103T183655Z.json).
 
-**K06 TLB-slothergebruik — build/host PASS, native nog niet uitgevoerd:**
+**K06 TLB-slothergebruik — drie gerichte native runs PASS:**
 het nieuwe opt-in `native-smp-m3-tlb-reuse`-profiel laat slot 0 op AP1 en
 slot 1 op BSP0 draaien. Bij de eerste slot-0-exit wordt het oude, ontmapte
 datablad tijdelijk vastgehouden; de vervanger krijgt hetzelfde virtuele
 adres met gegarandeerd een ander fysiek blad. De vervanger moet vanaf nul
 tellen en op dezelfde AP afsluiten voordat het blad wordt vrijgegeven. Zo
 test de proef de lokale CR3/TLB-overgang en adreshergebruik zonder een algemeen
-remote-shootdownprotocol te claimen. De profielbuild, 13 hosttests,
-rustfmt en diffcontrole slaagden; QEMU-runtimebewijs is nog niet uitgevoerd.
+remote-shootdownprotocol te claimen. De profielbuild en 13 hosttests
+slaagden; drie QEMU-runs slaagden met raw exit 33 en dezelfde twee
+AP1-slot-0-exits. Receipt:
+[`tlb-reuse-20261103.json`](verification/sm-smp/tlb-reuse-20261103.json).
 
 **Niet-geaccepteerde SMP-lifecycleverkenning:** het combineren van de bestaande
 M4 multi-round lifecyclefixture met SMP eindigde op raw QEMU exit 35 bij
@@ -138,9 +140,9 @@ race-/failureacceptatie en een algemeen remote-shootdownprotocol blijven open.
 Dit is geen volledige K06-acceptatie.
 `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
 
-**Eerstvolgende actie:** voer de gerichte 2-CPU-QEMU-proef uit. Bij pass
-volgt de volledige matrix;
-race-/failureacceptatie en elk algemeen remote-shootdownprotocol blijven open.
+**Eerstvolgende actie:** voer de volledige SMP-matrix opnieuw uit, nu met de
+nieuwe TLB-slothergebruikstage. De overige race-/failureacceptatie en een
+algemeen remote-shootdownprotocol blijven open.
 
 **Cross-CPU capability-IPC — eerdere lokale proef vóór matrix:**
 `native-smp-m4` combineert het bestaande SMP-M3-profiel met de bestaande M4
