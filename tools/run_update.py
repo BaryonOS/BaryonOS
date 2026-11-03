@@ -388,8 +388,8 @@ def run_update(stage: str, state_dir: Path | None = None, *, timeout=MAX_TIMEOUT
     frozen = source_hash()
     images = load_images()
     manifest = json.loads((BUILD / "manifest.json").read_text())
-    if manifest.get("loader_feature") != "signed-boot" or manifest.get("source_sha256") != frozen:
-        raise ValueError("build an update kernel with the signed-boot loader from the current source first")
+    if manifest.get("loader_feature") != "signed-boot-test" or manifest.get("source_sha256") != frozen:
+        raise ValueError("build an update test kernel with signed-boot-test from the current source first")
     if manifest["loader"]["sha256"] != images["loader_sha256"]:
         raise ValueError("the ESP loader differs from the one recorded with the images")
     env = environment()

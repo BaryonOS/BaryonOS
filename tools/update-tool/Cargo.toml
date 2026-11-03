@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-update-core = { path = "../../crates/update-core" }
+update-core = { path = "../../crates/update-core", features = ["test-signing-anchors"] }
 
 [[bin]]
 name = "update-tool"
