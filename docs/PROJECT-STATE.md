@@ -2,12 +2,17 @@
 
 ## NEXT AGENT HANDOFF — desktop, volume en terminale netwerkstatus — 3 november 2026
 
-Nieuwste bron `b44c46e9add9d586fe0dfe857954a74163e1d225`, source-v3
+Geteste publicatie `6f15ab28a0d8dcf43b84df54fe48bec9f0f622d9`
+(code `b44c46e9add9d586fe0dfe857954a74163e1d225`), source-v3
 `1ca8615711e88eefa058c206e91cf9b52d00a4640760a7b4d9d4216cd3928408`.
 De echte timeoutgast voert nu twee ReceiveTcp-RPCs uit na terminale state:
 beide EOF, actieve-appcounter520 exact2.14 harnastests en echte native-
-target-Clippy groen; QEMU-normal/client-exit op deze bron nog niet uitgevoerd.
-Bewijs: `verification/native-timeout-receive-proof.json`.
+target-Clippy groen. Verse QEMU-run41614590388 is ook groen: normal/client-exit
+raw33, echte eerste/tailfragmenten2/2 en1/1; malformed8/4; actieve EOFcounter2,
+vertrokken APP_A0. Artifact13220607974 daadwerkelijk gedownload; ruwe serial-
+en stderrhashes en volledige peerreplay onafhankelijk gecontroleerd.
+Bewijs: `verification/native-network-combined-acceptance.json`.
+Gecombineerde volledige CI/review/integratie blijft vereist vóór sluiting39/134.
 Volumeverifier-agent blijft bevroren opce02/source2c410004; eerste build
 faalde door ontbrekende offlinechacha20. Alleen bestaande locked dependencies
 worden na die echte miss opgehaald; geen manifests/lockfiles gewijzigd.
@@ -34,7 +39,11 @@ Windows-Python/Git/Rust1.90/QEMU/OVMF en eigen-Popen-kill/wait zijn gecontroleer
 Agent07bee9cb-fb9b-493f-ae14-2ec74495c7ed voert de concrete10+9VM-
 volumeacceptatie op deze bevrorenbron uit in eigen wegwerpclone; resultaat
 nog niet ontvangen. Hosted fixtureartifact/run-ID ontbreekt afzonderlijk.
-114-reviewfixes staan op3225a359; geen ontwerp-PR gemerged.
+114-reviewfixes staan op783a48aa, alle16 bekende threads resolved;
+native systeem/window en CodeRabbit liepen bij laatste check nog. Geen merge.
+136-lokale auditfix32b7aa0c corrigeert historische L02/A01-bewijslabels;
+live136 is inmiddels d7778195. Fixsessie reconcileert die nieuwe bron eerst
+lokaal; geen blind pushen of scorewijziging.
 Eerstvolgend: native volumeresultaat lezen en actuele gecombineerde CI/review
 afhandelen, zonder legacy bewijs tot deze nieuwe bron te promoveren.
 

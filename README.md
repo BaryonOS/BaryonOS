@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`b44c46e9`](https://github.com/simonvanieperen/nieuw-os/commit/b44c46e9add9d586fe0dfe857954a74163e1d225) ·
+**Bron:** [`6f15ab28`](https://github.com/simonvanieperen/nieuw-os/commit/6f15ab28a0d8dcf43b84df54fe48bec9f0f622d9) ·
 **Ontwikkelbranch:** `integrate/stack130-local`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Terminale TCP-ontvangststatus ook door echte native guest-RPCs laten bewijzen.
-41 blijft41. Na inhoudsbehoudende PR134-integratie vereist de bestaande echte ring3-timeoutgast nu tweemaal EOF bij ReceiveTcp; actieve-appcounter520 moet exact2 zijn.14 peerhosttests en native-target-Clippy zijn groen, maar nieuwe normal/client-exit-QEMU-uitvoering blijft verplicht op source1ca86157.10 serviceregressies op voorafgaandece02 zijn groen; volume10+9VM-proef op die bevrorenbron liep tegen ontbrekende lockedchacha20dependency en herstelt alleen die bestaande cache. B03exacte-head-herproef heeft18 geslaagde fasen op oude135efaf, niet op deze nieuwebron. Hosted foreignfixturelevering blijft open. Geen nieuwepunten,44/U03, fysieke, productiesleutel-, menselijke of volledige releaseacceptatie.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Werkelijk uitgevoerde fragment- en terminale ontvangstacceptatie onafhankelijk controleren.
+41 blijft41. Verse native netwerkrun41614590388 op6f15ab28/source1ca86157 slaagt normal/client-exit, beide raw33. Werkelijke eerste/tailfragmenten2/2 en1/1, malformed8/4, tweemaal terminale ReceiveTcp-EOF per actieve app en0 bij vertrokken APP_A zijn uit werkelijk gedownloade ruwe serial/stderr/peertranscripts opnieuw gecontroleerd. Volledige gecombineerde CI/review/integratie en hosted foreignfixturelevering blijven open. Lokale10+9VM-volumeacceptatie bindt afzonderlijk aan bevrorence02. N01 was al geaccepteerd; geen nieuwepunten,44/U03, fysieke, productiesleutel-, menselijke of volledige releaseacceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

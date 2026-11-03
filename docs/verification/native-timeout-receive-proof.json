@@ -13,6 +13,7 @@
     {"command": "cargo fmt --manifest-path sdk/examples/network-service/Cargo.toml -- --check", "exit": 0},
     {"command": "git diff --check", "exit": 0}
   ],
-  "native_runtime": "NOT EXECUTED on this source. Existing normal/client-exit hosted jobs must prove actual counter520=2 for active owners. Host synthetic serial tests only show that missing observations are rejected, not that QEMU passed.",
+  "native_runtime_at_original_checkpoint": "NOT EXECUTED at the original local checkpoint. Host synthetic serial tests only show that missing observations are rejected, not that QEMU passed.",
+  "later_native_runtime": "Actual run41614590388 on published6f15ab28/source1ca86157 passed normal/client-exit, both raw33. Raw serial/stderr and full peer transcripts independently checked. See native-network-combined-acceptance.json; active-app counter520 is exactly2 and departed APP_A remains0.",
   "progress": {"previous": 41, "current": 41, "new_points": 0}
 }
