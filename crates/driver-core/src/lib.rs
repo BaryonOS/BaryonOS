@@ -81,6 +81,8 @@ pub enum DeviceClass {
     StorageController,
     /// Serial port.
     SerialDevice,
+    /// Hardware entropy source.
+    EntropyDevice,
 }
 
 /// Lifecycle state reported by the trusted device manager.

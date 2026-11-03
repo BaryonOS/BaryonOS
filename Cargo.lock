@@ -452,6 +452,7 @@ dependencies = [
  "boot-protocol",
  "capability-core",
  "catalog-core",
+ "driver-core",
  "kernel-core",
  "nieuw-os-display-client",
  "nieuw-os-ps2",
@@ -685,6 +686,7 @@ dependencies = [
 name = "virtio-rng-driver"
 version = "0.1.0"
 dependencies = [
+ "driver-core",
  "virtio-core",
 ]
 

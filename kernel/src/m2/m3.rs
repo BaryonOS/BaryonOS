@@ -68,6 +68,8 @@ mod keyring;
 mod m4;
 #[cfg(feature = "native-system-net")]
 mod network;
+#[cfg(feature = "milestone-m5")]
+mod pci_report;
 #[cfg(feature = "native-qsim")]
 mod qsim;
 #[cfg(feature = "native-qsim-job")]
@@ -574,6 +576,8 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
     let image = user::parse(process_elf(0)).expect("embedded user ELF");
     assert_eq!(image.entry, 0x40000000);
     kernel.begin_scratch(frames);
+    #[cfg(feature = "milestone-m5")]
+    pci_report::report_unsupported_devices();
     #[cfg(feature = "native-tpm-crb")]
     tpm_fixture::prepare(frames, &mut kernel);
     #[cfg(all(feature = "milestone-m5", not(feature = "native-net-service")))]

@@ -14,6 +14,23 @@ use core::{
 use virtio_core::{parse_capabilities_for, ACCESS_PLATFORM, DEVICE_ID_ENTROPY, VERSION_1, WRITE};
 pub use virtio_core::{Bar, Error, Regions};
 
+pub const DRIVER_REGISTRATION: driver_core::DriverRegistration = driver_core::DriverRegistration {
+    id: driver_core::DriverId::new(0x4e4f_0003),
+    name: "nieuw-os-virtio-rng",
+    version: driver_core::DriverVersion::new(0, 1, 0),
+    class: driver_core::DeviceClass::EntropyDevice,
+    pci: driver_core::PciMatch {
+        vendor_id: Some(0x1af4),
+        device_id: Some(DEVICE_ID_ENTROPY),
+        class: None,
+        subclass: None,
+        programming_interface: None,
+        revision: None,
+        subsystem_vendor_id: None,
+        subsystem_device_id: None,
+    },
+};
+
 const BDF: u32 = 6 << 11;
 const RAM_END: u64 = 256 * 1024 * 1024;
 pub const QUEUE_SIZE: u16 = 8;
@@ -407,6 +424,32 @@ unsafe fn write64(a: u64, v: u64) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn pci_registration_matches_only_the_virtio_entropy_identity() {
+        let descriptor = driver_core::PciDeviceDescriptor {
+            address: driver_core::PciAddress {
+                segment: 0,
+                bus: 3,
+                device: 12,
+                function: 2,
+            },
+            vendor_id: 0x1af4,
+            device_id: DEVICE_ID_ENTROPY,
+            class: 0xff,
+            subclass: 0,
+            programming_interface: 0,
+            revision: 0,
+            subsystem_vendor_id: None,
+            subsystem_device_id: None,
+        };
+        assert!(DRIVER_REGISTRATION.pci.matches(&descriptor));
+        let unrelated = driver_core::PciDeviceDescriptor {
+            device_id: 0x1042,
+            ..descriptor
+        };
+        assert!(!DRIVER_REGISTRATION.pci.matches(&unrelated));
+    }
+
     #[test]
     fn features_accept_only_version_1_without_platform_access() {
         assert_eq!(negotiate_rng_features(VERSION_1), Ok(VERSION_1));

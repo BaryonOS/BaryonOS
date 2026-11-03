@@ -115,7 +115,7 @@ test-m4-rights = ["milestone-m4"]
 test-m4-revoke = ["milestone-m4"]
 test-m4-quotas = ["milestone-m4"]
 test-m4-lifecycle = ["milestone-m4"]
-milestone-m5 = ["milestone-m4"]
+milestone-m5 = ["milestone-m4", "dep:driver-core"]
 test-m5-service-errors = ["milestone-m5"]
 test-m5-device-rights = ["milestone-m5"]
 test-m5-async = ["milestone-m5"]
@@ -212,6 +212,7 @@ native-update = ["milestone-m6a"]
 test-update-cut = ["native-update"]
 
 [dependencies]
+driver-core = { path = "../crates/driver-core", optional = true }
 nieuw-os-tpm-crb = { path = "../drivers/tpm-crb", optional = true }
 nieuw-os-rtc = { path = "../drivers/rtc", optional = true }
 nieuw-os-display-client = { path = "../sdk/display-client", default-features = false, optional = true }

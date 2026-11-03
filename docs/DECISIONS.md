@@ -120,6 +120,35 @@ catalogus en de drivers blijven in kernelcontext. Herzie bij gedeelde
 resourcebroker, tweede driver per class, userspace-driverinstances of
 meerdere devices. Dit levert geen hardwareacceptatie of scorepunt op.
 
+## ADR-067 — PCI-mismatchrapportage vóór M5-deviceactivatie
+
+**Datum:** 3 november 2026. M5-profielen voeren vóór device-initialisatie een
+read-only segment-0-scan uit. Type-0-endpoints zonder match in de registry van
+het actieve profiel worden via COM1 gemeld met BDF, vendor/device-ID,
+class/subclass/programming interface/revision en subsystem-ID's wanneer
+beschikbaar. Niet-type-0-functies worden als telling gemeld. Bij een
+configuratiefout meldt de kernel een onvolledige scan en presenteert geen
+gedeeltelijke lijst als volledig.
+
+De registratie wordt alleen gebruikt om de inventaris te classificeren; deze
+scan kent geen BAR's, schrijft geen configuratie en activeert geen driver.
+VirtIO RNG heeft nu PCI-identiteitsmetadata zodat zijn bestaande profiel niet
+als onbekend wordt gerapporteerd; de RNG-driver zelf gebruikt nog een vaste
+BDF. De melding betekent daarom uitsluitend dat in de registry van dit
+kernelprofiel geen match bestaat, niet dat alle mogelijke driverfamilies
+meegenomen zijn of dat een gematchte driver succesvol start.
+
+**Alternatieven:** onbekende apparaten stil overslaan verhindert de gevraagde
+hardwareinventaris; een universele fysieke-memorymapping of driverstart tijdens
+de scan zou de resourcegrens overschrijden. Deze vroege seriële diagnose
+gebruikt de bestaande uitvoerroute zonder extra bevoegdheden.
+
+**Grenzen en herziening:** de scan ziet alleen segment 0 en type-0-endpoints;
+bridge-topologie, andere segmenten, ECAM, hotplug en rapportage buiten COM1
+blijven open. Geen native runtime-, fysieke hardware- of voortgangspunt volgt
+uit deze wijziging. Herzie de registryclassificatie wanneer alle actieve
+PCI-drivers via een gedeelde catalogus registreren.
+
 ## Onderzoeksbesluit J-20261102 — herkenbare basis, expliciete installatiegrens
 
 **Datum:** 2 november 2026. **Status:** ontwerp-/onderzoekskeuze, geen

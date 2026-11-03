@@ -31,6 +31,18 @@ alleen type-0-endpoints aan de caller. De scanner leest configuratieruimte
 voordat de descriptor aan de registry wordt aangeboden. De huidige scan
 ondersteunt geen ECAM, segmenten buiten 0, bridge-topologie of hotplug.
 
+M5-kernelprofielen doen vóór device-initialisatie een extra read-only scan.
+Functies zonder match in de voor dat profiel geregistreerde drivers worden op
+COM1 gemeld als `UNSUPPORTED:PCI`, met segment, bus/BDF, vendor/device,
+class/subclass/programming interface/revision en subsystem-ID's wanneer
+beschikbaar. Niet-type-0-functies worden alleen als aantal gemeld; een
+onvolledige configuratiescan wordt expliciet gemeld en levert geen
+unsupported-records op. Dit is een diagnostische matchinventaris, geen bewijs
+dat een gematchte driver succesvol is geïnitialiseerd of dat alle PCI-driver-
+families in iedere profielregistry zijn opgenomen. VirtIO RNG heeft hiervoor
+identiteitsmetadata, maar de bestaande RNG-initialisatie gebruikt nog zijn
+vaste BDF.
+
 De VirtIO block- en netwerkdrivers registreren hun PCI-ID's en selecteren hun
 apparaat met `DriverRegistry::best_match_with_factory`, in plaats van een vooraf vastgelegde
 BDF. BAR-probing en verdere toegang blijven beperkt tot de geselecteerde
