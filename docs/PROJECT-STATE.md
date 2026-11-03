@@ -1,16 +1,16 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — USB interface-class matching — 3 november 2026
+## NEXT AGENT HANDOFF — xHCI PCI-capabilityprobe — 3 november 2026
 
-Branch `copilot/universal-driver-framework`; USB interface-matching implementatie `e6e38d1e524776241b4485bef278e16b5a2865ad`, gepusht en remote SHA gecontroleerd. De vorige NVMe-probe staat op `6733559898e1c95536666472422c000e02f75599`.
+Branch `copilot/universal-driver-framework`; xHCI-probe `8c7ccdac31823837dfbcd28871a78f64b26b082e`, gepusht en remote SHA gecontroleerd. De USB-interface-match staat op `e6e38d1e524776241b4485bef278e16b5a2865ad`; de NVMe-probe op `6733559898e1c95536666472422c000e02f75599`.
 
-`drivers/usb` decodeert nu het standaard USB-interface-descriptor en kan class/subclass/protocol selecteren, waarbij niet-opgegeven velden wildcards zijn. Drie nieuwe hosttestgevallen dekken de veldmapping, selectors en ongeldige types/lengtes. De crate doet nog geen configuratie-enumeratie, classdriverregistratie, HID/mass-storage-I/O, xHCI of resourcegrant. Geen kernel-/volume-/Maturity-bestanden gewijzigd en geen dependency toegevoegd.
+De losse `drivers/xhci`-crate matcht PCI class `0c:03:30`, valideert een devicegebonden 32-/64-bit non-prefetchable BAR0-grant van minimaal één pagina en leest de capabilityregisters read-only. Offset-, alignment-, range- en overlapcontroles begrenzen operational/doorbell/runtime-registers en de optionele extended-capabilitypointer. Daarnaast decodeert `drivers/usb` het standaard interface-descriptor en matcht class/subclass/protocol met wildcards. Geen van beide crates is aan de kernel geactiveerd; geen kernel-/volume-/Maturity-bestanden gewijzigd.
 
-**Bewijs op `e6e38d1`:** Rust 1.90.0 formattercheck, strict Clippy (`--all-targets`) en `x86_64-unknown-none`-check exit 0. De hosttestopdracht eindigde met exit 101 vóór uitvoering van testgevallen omdat `cc` ontbreekt; er is geen nieuwe workaround uitgevoerd. Exacte commando's, logs en SHA-256 staan in [de USB-interface-match-receipt](verification/usb-interface-match-2026-11-03/README.md). Er is geen USB-apparaat, QEMU-USB of fysieke hardware getest.
+**Bewijs op `8c7ccda`:** Rust 1.90.0 formattercheck, strict Clippy (`--all-targets`) en `x86_64-unknown-none`-check exit 0; Clippy compileerde/typecheckte ook de 10 xHCI-testgevallen. De hosttests eindigden met exit 101 vóór uitvoering omdat `cc` ontbreekt; geen toolchaininstallatie of workaround. Exacte commando's, logs en SHA-256 staan in [de xHCI-probe-receipt](verification/xhci-pci-probe-2026-11-03/README.md). Geen controllerstart, USB-apparaat, QEMU-runtime of fysieke hardware getest.
 
-Score blijft **41/100 → 41/100**. Descriptorparsing en klassematching zijn geen native USB- of HID-functionaliteit. NVMe-queue/I/O blijft afhankelijk van kernel-owned devicegebonden DMA en busmaster-/interruptlifecycle; xHCI-registratie, MMIO-probe, transfer-rings, USB-enumeratie en USB classdrivers zijn eveneens open. Geen concurrerend DMA-model toegevoegd.
+Score blijft **41/100 → 41/100**. Een PCI-capabilityprobe en USB-selector sluiten geen native drivercriterium. NVMe-queue/I/O, xHCI-transfer-rings, USB-enumeratie en HID blijven open; ze vereisen de kernel-owned devicegebonden DMA-/interrupt-/failure-cleanup-interface. Geen concurrerend DMA-model toegevoegd.
 
-**Eerstvolgend:** voeg een afzonderlijke `no_std` xHCI capability-probe toe als read-only USB-controllerstap, zonder DMA, bus mastering of registerwrites; bouw daarna pas transfer-rings wanneer de kernelresourceadapter expliciet is vrijgegeven. Hervat NVMe-adminqueue/Identify na dezelfde DMA-/lifecycle-interface.
+**Eerstvolgend:** na expliciete kernelresourceadapter-/lifecycle-interface hervat eerst de prioritaire NVMe admin-queue/Identify en één begrensde block-read; bouw daarna xHCI ownership/rings en USB-device-enumeratie. Tot die interface beschikbaar is: geen bus mastering, DMA of controllerwrites.
 
 ### Historische driverstappen
 

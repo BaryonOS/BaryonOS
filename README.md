@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`e6e38d1e`](https://github.com/simonvanieperen/nieuw-os/commit/e6e38d1e524776241b4485bef278e16b5a2865ad) ·
+**Bron:** [`8c7ccdac`](https://github.com/simonvanieperen/nieuw-os/commit/8c7ccdac31823837dfbcd28871a78f64b26b082e) ·
 **Ontwikkelbranch:** `copilot/universal-driver-framework`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** USB-interface-descriptor decoding and class matching.
-41/100 blijft 41/100. De USB-core decodeert het standaard interface-descriptor en matcht class/subclass/protocol met optionele wildcards; geen enumeratie of driverstart. Formattercheck, strict Clippy en freestanding check slagen. Hosttests stopten vóór uitvoering omdat cc ontbreekt; geen systeemwijziging of workaround. Geen USB-, QEMU- of fysiek bewijs en geen nieuw geaccepteerd criterium.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** xHCI PCI-capability and BAR probe.
+41/100 blijft 41/100. De losse no_std xHCI-crate matcht PCI class 0c:03:30 en valideert BAR0 plus capability-, operational-, doorbell-, runtime- en extended-capabilityranges, zonder controllerwrites, DMA of interruptsetup. Strict Clippy, formattercheck en x86_64-unknown-none-check slagen. De 10 hosttestgevallen zijn gecompileerd/typechecked maar niet uitgevoerd doordat cc ontbreekt. Geen controller-/USB-, QEMU- of fysiek bewijs en geen nieuw geaccepteerd criterium.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
