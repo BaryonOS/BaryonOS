@@ -71,6 +71,7 @@ samplerate, block alignment en byte rate. Geen Windows-runtime of -kernel.
 
 ```sh
 # Uitvoeren vanaf de repositoryroot op een voorbereide Rust-toolchain.
+set -e
 export CARGO_TARGET_DIR=target/platform-wav-host
 mkdir -p build/platform-wav-evidence
 cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/audio-clip/Cargo.toml --features host-cli
