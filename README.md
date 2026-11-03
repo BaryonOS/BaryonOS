@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`9e9a5016`](https://github.com/simonvanieperen/nieuw-os/commit/9e9a50162bff019a557e6d16caa02e21a59bf3d2) ·
-**Ontwikkelbranch:** `simon/profiles-users-plan`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Nieuwste NAS-statushistory en gelijktijdige cloudcheckpointbronnen exact behouden.
-41 blijft41. Volledige nieuwste119-head5a8317f1 en eerdere136/143/144/145-leafheads zijn naast maincbbc behouden. Vier119-conflicten zijn uitsluitend centrale status; rubric buiten assessment identiek.20 exacte centrale tekstsnapshots van119 en nieuwe cloudmain-mergeheads136/143/144/145 zijn gehasht opgeslagen, zodat unieke status niet verdwijnt en historische proeven niet naar nieuwe bron worden gepromoveerd. Geen runtime/tool/testcodewijziging door de119-merge;10netwerk/16opslaghosttests en207oudehashes+99receiptentries blijven het eerdere brongebonden bewijs. Actuele CI/review/integratie en135hostedfixturelevering blijven open; geen nieuwe punten of productacceptatie.
+**Bron:** [`2bf95782`](https://github.com/simonvanieperen/nieuw-os/commit/2bf9578290bef88d53c17f9913434da6f27441f2) ·
+**Ontwikkelbranch:** `simonvanieperen-animated-umbrella`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR140: descriptorclaims en duurzame primaire testreceipts corrigeren.
+41 blijft 41. Op exacte bron 2bf95782 zijn de 9 artifact-store-contracttests, cargo check --tests, Clippy en formattering met Rust 1.90.0 opnieuw groen. Primaire volledige logs, codehashes en exacte omgeving staan duurzaam in docs/verification/pr140-review-evidence.json. Het historische rapport docs/verification/artifact-store-open-coverage-20261103.json behoudt bron 08710d55 en zijn command-, exit- en hashvelden. De scope is descriptorvalidatie en binding, niet identiteit of authenticatie. Geen productiecodewijziging, nieuwe native/QEMU-acceptatie of criteriumpunten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
