@@ -1,34 +1,33 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PCI-mismatchrapportage — 3 november 2026
+## NEXT AGENT HANDOFF — PCI-mismatchrapportage en constructiebeveiliging — 3 november 2026
 
-Werkbranch `copilot/universal-driver-framework`; implementatiebron
-`340ecd12938f3915140315051aa2ca4bbcacd005`. De remote branch heeft de code
-nog niet ontvangen; laatst bekende remote head `f643d23cea9e277a5218572cda54416943df0ad6`.
-PR #153 blijft open. De code voegt vóór M5-deviceactivatie een read-only
-segment-0-scan toe: type-0-endpoints zonder profielmatch worden op COM1 gemeld
-met BDF, hardware-ID's en classvelden. Niet-type-0-functies worden geteld;
-configuratiefouten markeren de scan als onvolledig en melden geen gedeeltelijke
-lijst als volledig. VirtIO RNG heeft nu registry-identiteitsmetadata zodat het
-actieve profiel hem kan herkennen; de RNG-driver zelf gebruikt nog een vaste
-BDF. Deze inventaris matcht metadata, verleent geen resources en activeert
-geen driver.
+Werkbranch `copilot/universal-driver-framework`; actuele lokale bron
+`cace93cc2a24ada0d8088c0b782ee0e75443104b`. Laatste gepushte head vóór de
+statusupdate was `195fbae3c14be479d55e5af89daeeb587d1c6ccc`; PR #153 is open
+met `CHANGES_REQUESTED`, zonder gerapporteerde CI-checks. De M5-read-only
+segment-0-scan en profielgebonden `UNSUPPORTED:PCI`-regels staan op
+`340ecd12938f3915140315051aa2ca4bbcacd005`. Een vervolgfix maakt de
+`Mechanism1`-constructor niet meer veilig rechtstreeks aanroepbaar via de
+publieke unit-struct, en corrigeert verouderde BDF-claims in de drivercatalogus.
+Deze laatste fix is nog niet opnieuw getest of gepusht.
 
-**Tussenstand vóór uitgebreide controles:** formatter en `git diff --check`
-zijn geslaagd. `cargo test -p virtio-rng-driver -p driver-core` faalde met
-exit 101 doordat `cc` niet op PATH staat; een eerder gebruikte tijdelijke
-hostcompiler ligt onder `/tmp/nieuw-os-hostcc-2026-11-03`. Dezelfde test moet
-met die compiler opnieuw worden uitgevoerd. QEMU ontbreekt; runtime en fysieke
-hardware zijn niet getest. Score blijft **41/100 → 41/100**; de code alleen is
-geen acceptatiebewijs.
+De 40 hosttests, Clippy, fmt, diff-check en M5-/`native-system-net`-builds in
+de [receipt](verification/pci-unsupported-report-2026-11-03/README.md) horen
+alleen bij bron `340ecd1`. De eerstvolgende controle moet opnieuw lopen op
+`cace93c`; gebruik voor hosttests de bestaande compiler onder
+`/tmp/nieuw-os-hostcc-2026-11-03` en voor builds Rust uit `/home/simon/.cargo/bin`.
+QEMU ontbreekt; serial runtime en fysieke hardware zijn niet getest. Score
+blijft **41/100 → 41/100**.
 
-**Eerstvolgende controles:** herhaal de gerichte hosttests met de compiler-
-omgeving uit `verification/driver-factory-2026-11-03/README.md`, voer daarna
-de M5- en `native-system-net`-profielbuilds uit. Beoordeel geen native
-rapportage voordat echte QEMU-uitvoer is vastgelegd. Daarna: een gedeelde
-heterogene registry en interrupt-/busmaster-/DMA-resource lifecycle blijven
-afhankelijk van een gezaghebbend maturitybranch-contract. Meerdere instanties,
-ACPI/ECAM, bridges, USB-klassen, NVMe en GOP blijven open.
+**Open/eerstvolgend:** na de gerichte hercontrole de status/receipt bijwerken
+en pushen. De PR heeft daarnaast nog reviewbevindingen die niet door deze
+fix zijn opgelost, waaronder het doorgeven van de werkelijke NIC-MAC aan
+ring-3-networksoftware en de primaire PCI-bronverwijzingen. Migreer de
+resterende RNG-fixed-BDF-route en voeg actieve drivers pas daarna aan één
+gezaghebbende catalogus toe. Interrupt-/busmaster-/DMA-lifecycle wacht op het
+maturitybranch-contract. Meerdere instanties, ACPI/ECAM, bridges,
+USB-klassen, NVMe, GOP en daadwerkelijke QEMU-uitvoer blijven open.
 
 ### Implementatiestap — segment-0 enumeratie en VirtIO BDF-migratie
 

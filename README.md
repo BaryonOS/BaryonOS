@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`340ecd12`](https://github.com/simonvanieperen/nieuw-os/commit/340ecd12938f3915140315051aa2ca4bbcacd005) ·
+**Bron:** [`cace93cc`](https://github.com/simonvanieperen/nieuw-os/commit/cace93cc2a24ada0d8088c0b782ee0e75443104b) ·
 **Ontwikkelbranch:** `copilot/universal-driver-framework`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PCI-mismatchrapportage vóór M5-deviceactivatie.
-41/100 blijft 41/100. M5-profielen inventariseren type-0 PCI-endpoints vóór deviceactivatie; alleen metadata zonder match in de profielregistry wordt als UNSUPPORTED gemeld. De scan is read-only en meldt onvolledige scans expliciet. Formatter en diff-check slagen; de gerichte hosttest is nog niet uitgevoerd wegens ontbrekende cc op PATH en wordt met de bestaande tijdelijke compiler herhaald. QEMU/runtime en fysieke hardware zijn niet getest; geen nieuw acceptatiepunt.
+41/100 blijft 41/100. M5-profielen rapporteren type-0-PCI-endpoints zonder profielmatch vóór deviceactivatie; de scan is read-only en markeert onvolledige scans expliciet. 40 hosttests, Clippy, fmt, diff-check en M5-/native-system-net-builds slaagden op parentbron 340ecd1. De actuele bron cace93c sluit een veilige constructieroute voor Mechanism1 en corrigeert BDF-documentatie; die vervolgfix is nog niet opnieuw getest. QEMU/runtime en fysieke hardware zijn niet getest, dus geen nieuw acceptatiepunt.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
