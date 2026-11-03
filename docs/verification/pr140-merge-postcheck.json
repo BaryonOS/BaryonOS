@@ -1,0 +1,724 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-03",
+  "pr": 140,
+  "reviewed_head": "9ad8087484241aa227bbe1839642f7d0423a470b",
+  "base_before": "69809c2cb53dfb3bd77abe5352892810fba6e82d",
+  "merged_commit": "d115cc96c19ac4371baed77409a23d1adddffaf0",
+  "expected_and_actual_tree": "ab23fb8523f8edd3a15209575ceb5638b973bc8a",
+  "technical_checks": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:12:32Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473793/job/125881590469",
+      "name": "app-package-core and app-management host/target quality",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "App package and artifact quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:11:49Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473965/job/125881590998",
+      "name": "artifact-store-core",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "Artifact store contract quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:13:02Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473833/job/125881590550",
+      "name": "b01-native-supervisor",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "B01 entropy and key management acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:15:22Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473802/job/125881590524",
+      "name": "b03-native-update",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "B03 signed updates acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:15:21Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473801/job/125881590721",
+      "name": "host-quality",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:11:49Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473859/job/125881591216",
+      "name": "component-quality (artifact-store)",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:18:51Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473836/job/125881591330",
+      "name": "native-system",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "FR-I01 joint native system acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:12:56Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473677/job/125881589780",
+      "name": "k05-native-supervisor",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "K05 process management acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:15:50Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473811/job/125881591392",
+      "name": "m6e-native-volume",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "M6e scalable volume acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:11:53Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473817/job/125881590892",
+      "name": "nas-native-core-host-target",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "NAS host, target and native normal/cold checks"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:12:31Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473890/job/125881590415",
+      "name": "native-rtc",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "Native CMOS RTC acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:23:08Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473934/job/125885764504",
+      "name": "native-foundation",
+      "startedAt": "2026-11-03T11:20:27Z",
+      "status": "COMPLETED",
+      "workflowName": "Native RANDOM and image foundation acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:12:41Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473723/job/125881590311",
+      "name": "native-display-input",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "Native display and input acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:18:38Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473794/job/125881590751",
+      "name": "native-window-session",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "Native window session and Windows QEMU bundle"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:11:56Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473706/job/125881590108",
+      "name": "net-tls-quality",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "Network TLS adapter quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:12:05Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473926/job/125881591030",
+      "name": "net-broker-quality",
+      "startedAt": "2026-11-03T11:11:31Z",
+      "status": "COMPLETED",
+      "workflowName": "Network broker quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:12:25Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473958/job/125881591400",
+      "name": "k07-native",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "Resource pressure acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:14:15Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473790/job/125881590121",
+      "name": "s08-native-resilience",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "Storage resilience acceptance"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:12:23Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473970/job/125881591254",
+      "name": "package-and-verify",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "Windows QEMU native Materiaal test bundle"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:11:54Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473859/job/125881591341",
+      "name": "component-quality (ai-model-reader)",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:12:00Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473817/job/125881591099",
+      "name": "nas-native-volume-host-target",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "NAS host, target and native normal/cold checks"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:11:58Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473859/job/125881590889",
+      "name": "component-quality (image-viewer)",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:12:04Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473817/job/125881590623",
+      "name": "nas-native-probe-host-target",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "NAS host, target and native normal/cold checks"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:11:49Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473859/job/125881591491",
+      "name": "component-quality (virtio-snd)",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:11:51Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473817/job/125881590986",
+      "name": "nas-native-client-host-target",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "NAS host, target and native normal/cold checks"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:11:52Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473859/job/125881591354",
+      "name": "component-quality (acpi-power)",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:11:49Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473859/job/125881591212",
+      "name": "component-quality (usb)",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:12:31Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473859/job/125881591386",
+      "name": "component-quality (materiaal-ui)",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:11:55Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473859/job/125881591353",
+      "name": "component-quality (net-config)",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "Component leaf quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:17:20Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473801/job/125883424801",
+      "name": "qemu-smoke",
+      "startedAt": "2026-11-03T11:15:24Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:12:37Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473817/job/125881591056",
+      "name": "nas-native-normal-cold",
+      "startedAt": "2026-11-03T11:11:30Z",
+      "status": "COMPLETED",
+      "workflowName": "NAS host, target and native normal/cold checks"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-11-03T11:13:40Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473926/job/125881875584",
+      "name": "native-network-service",
+      "startedAt": "2026-11-03T11:12:14Z",
+      "status": "COMPLETED",
+      "workflowName": "Network broker quality"
+    }
+  ],
+  "review_threads_at_preflight": {
+    "data": {
+      "repository": {
+        "pullRequest": {
+          "reviewThreads": {
+            "nodes": [
+              {
+                "id": "PRRT_kwDOVZC91s6zEQ75",
+                "isResolved": true
+              },
+              {
+                "id": "PRRT_kwDOVZC91s6zFBQD",
+                "isResolved": true
+              },
+              {
+                "id": "PRRT_kwDOVZC91s6zFR0s",
+                "isResolved": true
+              },
+              {
+                "id": "PRRT_kwDOVZC91s6zFR01",
+                "isResolved": true
+              },
+              {
+                "id": "PRRT_kwDOVZC91s6zFR1A",
+                "isResolved": true
+              },
+              {
+                "id": "PRRT_kwDOVZC91s6zFR1I",
+                "isResolved": true
+              },
+              {
+                "id": "PRRT_kwDOVZC91s6zFR1X",
+                "isResolved": true
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "preflight": {
+    "headRefOid": "9ad8087484241aa227bbe1839642f7d0423a470b",
+    "mergeStateStatus": "UNSTABLE",
+    "reviewDecision": "",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:12:32Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473793/job/125881590469",
+        "name": "app-package-core and app-management host/target quality",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "App package and artifact quality"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:11:49Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473965/job/125881590998",
+        "name": "artifact-store-core",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "Artifact store contract quality"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:13:02Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473833/job/125881590550",
+        "name": "b01-native-supervisor",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "B01 entropy and key management acceptance"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:15:22Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473802/job/125881590524",
+        "name": "b03-native-update",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "B03 signed updates acceptance"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:15:21Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473801/job/125881590721",
+        "name": "host-quality",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:11:49Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473859/job/125881591216",
+        "name": "component-quality (artifact-store)",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "Component leaf quality"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:18:51Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473836/job/125881591330",
+        "name": "native-system",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "FR-I01 joint native system acceptance"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:12:56Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473677/job/125881589780",
+        "name": "k05-native-supervisor",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "K05 process management acceptance"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:15:50Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473811/job/125881591392",
+        "name": "m6e-native-volume",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "M6e scalable volume acceptance"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:11:53Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473817/job/125881590892",
+        "name": "nas-native-core-host-target",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "NAS host, target and native normal/cold checks"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:12:31Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473890/job/125881590415",
+        "name": "native-rtc",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "Native CMOS RTC acceptance"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:23:08Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473934/job/125885764504",
+        "name": "native-foundation",
+        "startedAt": "2026-11-03T11:20:27Z",
+        "status": "COMPLETED",
+        "workflowName": "Native RANDOM and image foundation acceptance"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:12:41Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473723/job/125881590311",
+        "name": "native-display-input",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "Native display and input acceptance"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:18:38Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473794/job/125881590751",
+        "name": "native-window-session",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "Native window session and Windows QEMU bundle"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:11:56Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473706/job/125881590108",
+        "name": "net-tls-quality",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "Network TLS adapter quality"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:12:05Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473926/job/125881591030",
+        "name": "net-broker-quality",
+        "startedAt": "2026-11-03T11:11:31Z",
+        "status": "COMPLETED",
+        "workflowName": "Network broker quality"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:12:25Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473958/job/125881591400",
+        "name": "k07-native",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "Resource pressure acceptance"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:14:15Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473790/job/125881590121",
+        "name": "s08-native-resilience",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "Storage resilience acceptance"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:12:23Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473970/job/125881591254",
+        "name": "package-and-verify",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "Windows QEMU native Materiaal test bundle"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:11:54Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473859/job/125881591341",
+        "name": "component-quality (ai-model-reader)",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "Component leaf quality"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:12:00Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473817/job/125881591099",
+        "name": "nas-native-volume-host-target",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "NAS host, target and native normal/cold checks"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:11:58Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473859/job/125881590889",
+        "name": "component-quality (image-viewer)",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "Component leaf quality"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:12:04Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473817/job/125881590623",
+        "name": "nas-native-probe-host-target",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "NAS host, target and native normal/cold checks"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:11:49Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473859/job/125881591491",
+        "name": "component-quality (virtio-snd)",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "Component leaf quality"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:11:51Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473817/job/125881590986",
+        "name": "nas-native-client-host-target",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "NAS host, target and native normal/cold checks"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:11:52Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473859/job/125881591354",
+        "name": "component-quality (acpi-power)",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "Component leaf quality"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:11:49Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473859/job/125881591212",
+        "name": "component-quality (usb)",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "Component leaf quality"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:12:31Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473859/job/125881591386",
+        "name": "component-quality (materiaal-ui)",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "Component leaf quality"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:11:55Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473859/job/125881591353",
+        "name": "component-quality (net-config)",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "Component leaf quality"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:17:20Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473801/job/125883424801",
+        "name": "qemu-smoke",
+        "startedAt": "2026-11-03T11:15:24Z",
+        "status": "COMPLETED",
+        "workflowName": "CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:12:37Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473817/job/125881591056",
+        "name": "nas-native-normal-cold",
+        "startedAt": "2026-11-03T11:11:30Z",
+        "status": "COMPLETED",
+        "workflowName": "NAS host, target and native normal/cold checks"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-11-03T11:13:40Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41625473926/job/125881875584",
+        "name": "native-network-service",
+        "startedAt": "2026-11-03T11:12:14Z",
+        "status": "COMPLETED",
+        "workflowName": "Network broker quality"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "0001-01-01T00:00:00Z",
+        "conclusion": "",
+        "detailsUrl": "https://app.coderabbit.ai/change-stack/simonvanieperen/nieuw-os/pull/140",
+        "name": "CodeRabbit",
+        "startedAt": "2026-11-03T11:25:15Z",
+        "status": "IN_PROGRESS",
+        "workflowName": ""
+      }
+    ]
+  },
+  "deviation": "De lokale assertie voor CLEAN en alle checks voltooid faalde: CodeRabbit was na eerder CLEAN opnieuw IN_PROGRESS, zonder nieuwe open threads of CHANGES_REQUESTED. Door een niet met && gekoppeld shellvervolg werd de guarded gh squash toch uitgevoerd. Dit is een uitvoeringsfout, geen geslaagde lokale preflight. Geen --admin aangevraagd; exacte headguard gebruikt. Historische server-side branchregeltoepassing/bypassstatus is niet onafhankelijk gecontroleerd en wordt niet uit de geslaagde merge afgeleid.",
+  "server_side_protection_audit": {
+    "performed": false,
+    "historical_bypass_status": "unknown",
+    "boundary": "De controle van parent, tree en32 technische CI-checks is geen primaire server-side ref-update-/branchprotectionaudit. Een huidige branchregelsnapshot zou historische toepassing niet bewijzen."
+  },
+  "verification": "Alle 32 technische checks waren daadwerkelijk SUCCESS. GitHub-squashboom exact gelijk aan geteste9ad; parent exactmain698; geen onbedoelde inhoudsdelta.",
+  "followup": "Nieuwe merges alleen via één gekoppelde Python-preflight met de daadwerkelijke merge-aanroep na alle geslaagde asserties. Afgebroken140-botreview niet als groen beschouwen. Geen automatische rollback of amend; volledig geteste technische boom is exact behouden.",
+  "progress_previous": 41,
+  "progress_current": 41,
+  "post_merge_bot_review": {
+    "status": "COMPLETED",
+    "conclusion": "CANCELLED",
+    "open_threads": 0,
+    "boundary": "Door de merge afgebroken; niet als geslaagde review of goedkeuring gerapporteerd."
+  }
+}
