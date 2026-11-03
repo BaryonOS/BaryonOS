@@ -1,0 +1,49 @@
+"""Host-side counterexamples for SMP QEMU evidence validation."""
+import unittest
+
+import run_smp
+
+
+def transcript(cpus=2):
+    lines = list(run_smp.BOOT)
+    lines.extend("SMP:AP:ENTRY" for _ in range(cpus - 1))
+    lines.extend(f"SMP:CPU:{index}:APIC:{index}:ONLINE" for index in range(cpus))
+    lines.extend((f"SMP:CPUS:{cpus}", "SMP:WORKERS:PASS", "SMP:PASS"))
+    return "\n".join(lines) + "\n"
+
+
+class SmpEvidenceTests(unittest.TestCase):
+    def test_two_and_four_cpu_transcripts_require_unique_online_apic_ids(self):
+        for cpus in (2, 4):
+            with self.subTest(cpus=cpus):
+                result = run_smp.evaluate(cpus, transcript(cpus), 33, False)
+                self.assertEqual(len(result["logical_apic_ids"]), cpus)
+                self.assertEqual(result["workers"], 64)
+
+    def test_missing_duplicate_reordered_and_failure_evidence_is_rejected(self):
+        valid = transcript()
+        cases = (
+            valid.replace("SMP:WORKERS:PASS\n", ""),
+            valid + "SMP:PASS\n",
+            valid.replace("SMP:AP:ENTRY\n", ""),
+            valid.replace("SMP:CPU:1:APIC:1:ONLINE\n", ""),
+            valid.replace("SMP:CPU:1:APIC:1:ONLINE", "SMP:CPU:1:APIC:0:ONLINE"),
+            valid.replace("SMP:PASS\n", "PANIC\nSMP:PASS\n"),
+            valid.replace("KS-02:PASS\nKS-03:PASS", "KS-03:PASS\nKS-02:PASS"),
+            valid.replace("SMP:CPU:0:APIC:0:ONLINE", "SMP:CPU:00:APIC:0:ONLINE"),
+        )
+        for bad in cases:
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                run_smp.evaluate(2, bad, 33, False)
+
+    def test_unexpected_cpu_counts_exit_codes_and_timeouts_are_rejected(self):
+        for cpus in (0, 1, 3, 5, True):
+            with self.subTest(cpus=cpus), self.assertRaises(ValueError):
+                run_smp.expected_markers(cpus)
+        for exit_code, timeout in ((0, False), (35, False), (None, True), (33, True)):
+            with self.subTest(exit_code=exit_code, timeout=timeout), self.assertRaises(ValueError):
+                run_smp.evaluate(2, transcript(), exit_code, timeout)
+
+
+if __name__ == "__main__":
+    unittest.main()

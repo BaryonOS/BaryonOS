@@ -46,6 +46,8 @@ native-memory-nx = ["native-memory"]
 native-memory-guard = ["native-memory"]
 native-memory-peer = ["native-memory"]
 native-memory-oom = ["native-memory"]
+# Explicit QEMU SMP bring-up acceptance; ordinary profiles remain single-CPU.
+native-smp = ["milestone-m2"]
 native-system-random = ["native-system", "monotonic-clock"]
 test-system-random-sdk = ["native-system-random"]
 test-system-random-unknown = ["native-system-random"]

@@ -11,6 +11,10 @@ pub const KERNEL_START: u64 = 0x0200_0000;
 pub const KERNEL_LEN: u64 = 0x0100_0000;
 pub const ABI_MAJOR: u16 = 1;
 pub const ABI_MINOR: u16 = 1;
+pub const SMP_MINOR: u16 = 3;
+pub const SMP_INFO_OFFSET: u64 = 256;
+pub const SMP_HEADER_SIZE: u32 = 152;
+pub const BOOTINFO_SMP_LEN: u64 = 2 * PAGE_SIZE;
 pub const STACK_LEN: u64 = 65536;
 pub const MAP_LIMIT: u64 = 1024 * 1024;
 pub const MAGIC: [u8; 8] = *b"NOSBOOT\0";
@@ -37,11 +41,14 @@ pub struct BootInfo {
     pub loader_len: u64,
     pub memory_map_capacity: u64,
     pub reserved0: u64,
+    pub smp_info_addr: u64,
+    pub smp_info_len: u64,
+    pub smp_trampoline_page: u64,
 }
 
 const _: () = {
     use core::mem::{align_of, offset_of, size_of};
-    assert!(size_of::<BootInfo>() == 128);
+    assert!(size_of::<BootInfo>() == 152);
     assert!(align_of::<BootInfo>() == 8);
     assert!(offset_of!(BootInfo, magic) == 0);
     assert!(offset_of!(BootInfo, abi_major) == 8);
@@ -62,7 +69,12 @@ const _: () = {
     assert!(offset_of!(BootInfo, loader_len) == 104);
     assert!(offset_of!(BootInfo, memory_map_capacity) == 112);
     assert!(offset_of!(BootInfo, reserved0) == 120);
+    assert!(offset_of!(BootInfo, smp_info_addr) == 128);
+    assert!(offset_of!(BootInfo, smp_info_len) == 136);
+    assert!(offset_of!(BootInfo, smp_trampoline_page) == 144);
 };
+
+pub mod smp;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Error {
@@ -72,6 +84,7 @@ pub enum Error {
     MapShape,
     Descriptor,
     Ownership,
+    SmpTopology,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -100,31 +113,52 @@ impl Range {
 }
 
 impl BootInfo {
-    pub fn retained_ranges(&self) -> Result<[Range; 5], Error> {
+    pub fn retained_ranges(&self) -> Result<[Range; 6], Error> {
         Ok([
             Range::retained(self.kernel_reserved_start, self.kernel_reserved_len)?,
             Range::retained(self.stack_start, self.stack_len)?,
             Range::retained(self.bootinfo_start, self.bootinfo_len)?,
             Range::retained(self.loader_start, self.loader_len)?,
             Range::retained(self.memory_map_addr, self.memory_map_capacity)?,
+            if self.smp_info_len == 0 && self.smp_trampoline_page == 0 {
+                Range { start: 0, end: 0 }
+            } else {
+                Range::retained(self.smp_trampoline_page, PAGE_SIZE)?
+            },
         ])
     }
 
     /// Pure validation of the copied header; `received_addr` is never dereferenced.
     pub fn validate_header(&self, received_addr: u64) -> Result<(), Error> {
-        if self.magic != MAGIC
-            || self.abi_major != ABI_MAJOR
-            || self.abi_minor != ABI_MINOR
-            || self.header_size != 128
-            || self.flags != 7
-            || self.reserved0 != 0
-        {
+        let legacy = self.abi_minor == ABI_MINOR
+            && self.header_size == 128
+            && self.flags == 7
+            && self.reserved0 == 0
+            && self.smp_info_addr == 0
+            && self.smp_info_len == 0
+            && self.smp_trampoline_page == 0
+            && self.bootinfo_len == PAGE_SIZE;
+        let smp = self.abi_minor == SMP_MINOR
+            && self.header_size == SMP_HEADER_SIZE
+            && self.flags == 7
+            && self.reserved0 == 0
+            && self.bootinfo_len == BOOTINFO_SMP_LEN
+            && self.smp_info_addr
+                == self
+                    .bootinfo_start
+                    .checked_add(SMP_INFO_OFFSET)
+                    .ok_or(Error::Range)?
+            && self.smp_info_len == core::mem::size_of::<smp::Info>() as u64;
+        let smp = smp
+            && self.smp_trampoline_page.is_multiple_of(PAGE_SIZE)
+            && self.smp_trampoline_page != 0
+            && self.smp_trampoline_page < smp::SIPI_LIMIT;
+        if self.magic != MAGIC || self.abi_major != ABI_MAJOR || !(legacy || smp) {
             return Err(Error::Header);
         }
         if self.kernel_reserved_start != KERNEL_START
             || self.kernel_reserved_len != KERNEL_LEN
             || self.stack_len != STACK_LEN
-            || self.bootinfo_len != PAGE_SIZE
             || self.bootinfo_start != received_addr
         {
             return Err(Error::Range);
@@ -152,8 +186,8 @@ impl BootInfo {
     }
 
     /// Explicit serialization also supplies an independent host byte fixture.
-    pub fn to_bytes(&self) -> [u8; 128] {
-        let mut bytes = [0u8; 128];
+    pub fn to_bytes(&self) -> [u8; 152] {
+        let mut bytes = [0u8; 152];
         bytes[..8].copy_from_slice(&self.magic);
         bytes[8..10].copy_from_slice(&self.abi_major.to_le_bytes());
         bytes[10..12].copy_from_slice(&self.abi_minor.to_le_bytes());
@@ -174,6 +208,9 @@ impl BootInfo {
             (104, self.loader_len),
             (112, self.memory_map_capacity),
             (120, self.reserved0),
+            (128, self.smp_info_addr),
+            (136, self.smp_info_len),
+            (144, self.smp_trampoline_page),
         ] {
             bytes[offset..offset + 8].copy_from_slice(&value.to_le_bytes());
         }
@@ -325,6 +362,9 @@ mod tests {
             loader_len: 0x20000,
             memory_map_capacity: 0x40000,
             reserved0: 0,
+            smp_info_addr: 0,
+            smp_info_len: 0,
+            smp_trampoline_page: 0,
         }
     }
 
@@ -341,7 +381,9 @@ mod tests {
     fn valid_map(info: &BootInfo) -> Vec<u8> {
         let mut b = Vec::new();
         for r in info.retained_ranges().unwrap().iter().rev() {
-            b.extend(record(2, r.start, (r.end - r.start) / PAGE_SIZE));
+            if r.start != r.end {
+                b.extend(record(2, r.start, (r.end - r.start) / PAGE_SIZE));
+            }
         }
         b
     }
@@ -349,15 +391,38 @@ mod tests {
     #[test]
     fn explicit_wire_fixture_and_offsets() {
         let h = header();
-        let fixture: [u8; 128] = [
+        let legacy_fixture: [u8; 128] = [
             78, 79, 83, 66, 79, 79, 84, 0, 1, 0, 1, 0, 128, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 5, 0, 0, 0, 0, 240, 0, 0, 0, 0, 0, 0, 0, 48, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 2, 0, 0,
             0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 16,
             4, 0, 0, 0, 0, 0, 16, 0, 0, 0, 0, 0, 0, 0, 0, 32, 4, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0,
             0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         ];
+        let mut fixture = [0; 152];
+        fixture[..128].copy_from_slice(&legacy_fixture);
         assert_eq!(h.to_bytes(), fixture);
         assert_eq!(h.validate_header(h.bootinfo_start), Ok(()));
+    }
+
+    #[test]
+    fn smp_header_reserves_the_trampoline_and_requires_the_versioned_handoff() {
+        let mut h = header();
+        h.abi_minor = SMP_MINOR;
+        h.header_size = SMP_HEADER_SIZE;
+        h.bootinfo_len = BOOTINFO_SMP_LEN;
+        h.smp_info_addr = h.bootinfo_start + SMP_INFO_OFFSET;
+        h.smp_info_len = core::mem::size_of::<smp::Info>() as u64;
+        h.smp_trampoline_page = 0x8000;
+        assert_eq!(h.validate_header(h.bootinfo_start), Ok(()));
+        assert_eq!(
+            h.retained_ranges().unwrap()[5],
+            Range {
+                start: 0x8000,
+                end: 0x9000,
+            }
+        );
+        h.smp_trampoline_page = smp::SIPI_LIMIT;
+        assert_eq!(h.validate_header(h.bootinfo_start), Err(Error::Header));
     }
 
     #[test]

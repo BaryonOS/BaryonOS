@@ -45,6 +45,7 @@ pub enum Error {
     Permission,
 }
 pub mod pressure;
+pub mod smp;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Range {
     pub start: u64,

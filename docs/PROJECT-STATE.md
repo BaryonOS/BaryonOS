@@ -1,6 +1,43 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — SM-SMP-K06-1 P1 — 3 november 2026
+## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
+
+**Bronbasis:** branch `simonvanieperen-studious-spoon`, HEAD
+`63f1da11c6dd510e6ad692fdd20fb454e8fe156c`; worktree dirty en niet
+gecommit/gepusht. Queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`
+wees `SYSTEM-MATURITY-SMP` actief toe. OOM/K05 zijn afgesloten; hun code
+blijft ongemoeid.
+
+**AP-bring-upcheckpoint: PASS op de huidige worktree, nog niet gecommit.**
+De AP-stackfout kwam niet door een ontbrekende virtuele mapping: alle AP-
+stackpagina's stonden identity-mapped RW/NX in de gedeelde `Paging`-root.
+De BSP had `EFER.NXE` gezet, maar de AP-trampoline niet; daardoor behandelde
+de AP NX-bits als gereserveerd en kreeg de stackpush een page fault. De AP zet
+nu LME en NXE vóór paging. De trampoline gebruikt daarnaast een 32-bit
+protected-mode-descriptor vóór de 64-bit long-mode-descriptor. Elke AP-stack
+heeft vier RW/NX-pagina's en onbemapte onder-/boven-guardpagina's; voorbereiding
+controleert mapping, rechten, bounds, guards en niet-overlappende stackranges.
+
+**Bewijs:** `python3 -B tools/test_smp.py` slaagde op 3 november 2026: 3
+hosttests, single-CPU M2, 2 CPU en 4 CPU; de native QEMU-runs eindigden alle op
+verwachte raw exit 33. CPU-identiteiten waren in de 4-CPU-run 0, 1, 2 en 3;
+alle AP's rapporteerden online en voltooiden 64 workerrounds. QEMU 10.2.1 /
+OVMF 4M kwam uit `/tmp/sm-oom-qemu-root`; de disposable rundirectories en
+ruwe logs staan onder `build/run/`. Compact bewijs:
+[`ap-bringup-20261103T165905Z.json`](verification/sm-smp/ap-bringup-20261103T165905Z.json).
+QEMU meldde op stderr dat `kvmvapic.bin` niet gevonden werd; de vereiste
+gastmarkers en exits slaagden, maar die waarschuwing is niet onderzocht.
+
+Dit is **geen volledige K06-acceptatie**. De workerproef gebruikt atomische
+polling en bewijst nog geen SMP-scheduling van M3-processen, cross-CPU-IPC,
+revoke/exit, TLB-shootdown of race/failure-integratie. De M3-state en huidige
+interruptpaden zijn single-CPU/IF=0; die paden parallel activeren zonder een
+afgebakend serialisatie- en per-CPU-model is niet veilig. Volgende stap binnen
+SYSTEM-MATURITY-SMP: een begrensde, echte AP-barrière/synchronisatieproef en
+daarna alleen de noodzakelijke M3-integratie volgens de bestaande acceptatie.
+`DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
+
+## Afgerond checkpoint — SM-OOM-1 P0 en K05-regressie — 3 november 2026
 
 **Bron:** branch `simonvanieperen-studious-spoon`, K05-regressiebron
 `ce1c5e7f7fae67b4f07b3eed65f04c21b90a21bd`; remote was gelijk aan lokaal

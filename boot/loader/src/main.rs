@@ -10,8 +10,9 @@ mod serial;
 mod signed;
 
 use boot_protocol::{
-    BootInfo, ABI_MAJOR, ABI_MINOR, ADDRESS_LIMIT, KERNEL_LEN, KERNEL_START, MAGIC, MAP_LIMIT,
-    PAGE_SIZE, STACK_LEN,
+    smp::{parse_madt, Info as SmpInfo, MAX_MADT_LEN},
+    BootInfo, ABI_MAJOR, ADDRESS_LIMIT, BOOTINFO_SMP_LEN, KERNEL_LEN, KERNEL_START,
+    MAGIC, MAP_LIMIT, PAGE_SIZE, SMP_HEADER_SIZE, SMP_INFO_OFFSET, SMP_MINOR, STACK_LEN,
 };
 use core::{
     arch::{asm, global_asm},
@@ -50,6 +51,7 @@ fn page_round(n: u64) -> Result<u64> {
 
 /// Present only before finalization. No Drop implementation or global service pointer.
 struct Firmware {
+    system_table: *mut efi::SystemTable,
     services: *mut efi::BootServices,
     #[cfg_attr(not(feature = "signed-boot"), allow(dead_code))]
     runtime: *mut efi::RuntimeServices,
@@ -89,6 +91,7 @@ impl Firmware {
             return Err(b"BOOT_SERVICES_TABLE");
         }
         let fw = Self {
+            system_table: table as *const efi::SystemTable as *mut efi::SystemTable,
             services: table.boot_services,
             runtime: table.runtime_services,
         };
@@ -98,6 +101,89 @@ impl Firmware {
             b"WATCHDOG",
         )?;
         Ok(fw)
+    }
+
+    fn smp_info(&self, trampoline_page: u64) -> Result<SmpInfo> {
+        // SAFETY: The configuration table is part of the validated live UEFI
+        // SystemTable. Its entries and ACPI pointers remain firmware-owned until
+        // ExitBootServices; this copies only the bounded MADT-derived values.
+        unsafe {
+            let system = &*self.system_table;
+            let count = system.number_of_table_entries;
+            if count == 0
+                || count > 4096
+                || system.configuration_table.is_null()
+                || !(system.configuration_table as usize)
+                    .is_multiple_of(align_of::<efi::ConfigurationTable>())
+            {
+                return Err(b"ACPI_CONFIGURATION_TABLE");
+            }
+            let entries = core::slice::from_raw_parts(system.configuration_table, count);
+            let rsdp = entries
+                .iter()
+                .find(|entry| entry.vendor_guid == efi::ACPI_20_TABLE_GUID)
+                .map(|entry| entry.vendor_table.cast::<u8>())
+                .filter(|pointer| !pointer.is_null())
+                .ok_or(b"ACPI_RSDP" as Failure)?;
+            let rsdp_head = core::slice::from_raw_parts(rsdp, 20);
+            if &rsdp_head[..8] != b"RSD PTR " || checksum(rsdp_head) != 0 {
+                return Err(b"ACPI_RSDP_CHECKSUM");
+            }
+            let revision = rsdp_head[15];
+            let (root_address, root_signature, entry_width) = if revision >= 2 {
+                let revision2 = core::slice::from_raw_parts(rsdp, 36);
+                let length = read_u32(revision2, 20)? as usize;
+                if !(36..=4096).contains(&length) {
+                    return Err(b"ACPI_RSDP_LENGTH");
+                }
+                let extended = core::slice::from_raw_parts(rsdp, length);
+                if checksum(extended) != 0 {
+                    return Err(b"ACPI_RSDP_EXT_CHECKSUM");
+                }
+                (
+                    read_u64(extended, 24)?,
+                    b"XSDT",
+                    8usize,
+                )
+            } else {
+                (u64::from(read_u32(rsdp_head, 16)?), b"RSDT", 4usize)
+            };
+            if root_address == 0 || root_address >= (1u64 << 52) {
+                return Err(b"ACPI_ROOT_ADDRESS");
+            }
+            let root = sdt_bytes(root_address as *const u8)?;
+            if &root[..4] != root_signature || (root.len() - 36) % entry_width != 0 {
+                return Err(b"ACPI_ROOT_TABLE");
+            }
+            let mut madt = None;
+            for record in root[36..].chunks_exact(entry_width) {
+                let address = if entry_width == 8 {
+                    u64::from_le_bytes(
+                        record
+                            .try_into()
+                            .map_err(|_| b"ACPI_TABLE_ADDRESS" as Failure)?,
+                    )
+                } else {
+                    u64::from(u32::from_le_bytes(
+                        record
+                            .try_into()
+                            .map_err(|_| b"ACPI_TABLE_ADDRESS" as Failure)?,
+                    ))
+                };
+                if address == 0 || address >= (1u64 << 52) {
+                    return Err(b"ACPI_TABLE_ADDRESS");
+                }
+                let table = sdt_bytes(address as *const u8)?;
+                if &table[..4] == b"APIC" {
+                    madt = Some(table);
+                    break;
+                }
+            }
+            let madt = madt.ok_or(b"ACPI_MADT" as Failure)?;
+            let bootstrap_id = core::arch::x86_64::__cpuid(1).ebx >> 24;
+            parse_madt(madt, bootstrap_id, trampoline_page)
+                .map_err(|_| b"ACPI_MADT_INVALID" as Failure)
+        }
     }
 
     fn services(&self) -> &efi::BootServices {
@@ -142,6 +228,35 @@ impl Firmware {
             || address.is_some_and(|wanted| wanted != base)
         {
             return Err(b"ALLOC_RANGE");
+        }
+        Ok(base)
+    }
+
+    fn pages_below(&self, pages: usize, kind: efi::MemoryType, limit: u64) -> Result<u64> {
+        let length = (pages as u64)
+            .checked_mul(PAGE_SIZE)
+            .ok_or(b"ALLOC_RANGE" as Failure)?;
+        let mut base = limit.checked_sub(1).ok_or(b"ALLOC_RANGE" as Failure)?;
+        // SAFETY: Live UEFI service; allocation is constrained by AllocateMax.
+        check(
+            unsafe {
+                (self.services().allocate_pages)(
+                    efi::ALLOCATE_MAX_ADDRESS,
+                    kind,
+                    pages,
+                    &mut base,
+                )
+            },
+            b"ALLOC_LOW_PAGES",
+        )?;
+        if base == 0
+            || !base.is_multiple_of(PAGE_SIZE)
+            || base
+                .checked_add(length)
+                .filter(|end| *end <= limit)
+                .is_none()
+        {
+            return Err(b"ALLOC_LOW_RANGE");
         }
         Ok(base)
     }
@@ -508,6 +623,8 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
     let (device, loader_start, loader_len) = fw.loaded_image(image)?;
     #[cfg(feature = "framebuffer")]
     let framebuffer = graphics::prepare(&fw)?;
+    let trampoline_page = fw.pages_below(1, efi::LOADER_DATA, boot_protocol::smp::SIPI_LIMIT)?;
+    let smp_info = fw.smp_info(trampoline_page)?;
     fw.pages(
         (KERNEL_LEN / PAGE_SIZE) as usize,
         efi::LOADER_CODE,
@@ -557,16 +674,23 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
     }
     fw.free_pages(file_address, file_pages)?;
     let stack_start = fw.pages((STACK_LEN / PAGE_SIZE) as usize, efi::LOADER_DATA, None)?;
-    let info_address = fw.pages(1, efi::LOADER_DATA, None)?;
+    let info_address = fw.pages(2, efi::LOADER_DATA, None)?;
     // SAFETY: Own dedicated page with no references yet; initialize padding and remainder too.
     unsafe {
-        ptr::write_bytes(info_address as *mut u8, 0, PAGE_SIZE as usize);
+        ptr::write_bytes(info_address as *mut u8, 0, BOOTINFO_SMP_LEN as usize);
     }
     #[cfg(feature = "framebuffer")]
-    // SAFETY: Our disjoint, zero-initialized page has 3968 bytes after its
-    // 128-byte header. The copied scalar extension uses only the first 64.
+    // SAFETY: The zeroed two-page allocation has a disjoint 64-byte graphics
+    // extension at offset 192 and fixed SMP metadata at offset 256.
     unsafe {
-        ((info_address + 128) as *mut boot_protocol::graphics::FramebufferInfo).write(framebuffer);
+        ((info_address + boot_protocol::graphics::SMP_EXTENSION_OFFSET)
+            as *mut boot_protocol::graphics::FramebufferInfo)
+            .write(framebuffer);
+    }
+    // SAFETY: The fixed-size handoff is initialized inside the reserved two-page
+    // BootInfo allocation; it does not overlap the header or graphics extension.
+    unsafe {
+        ((info_address + SMP_INFO_OFFSET) as *mut SmpInfo).write(smp_info);
     }
 
     let (needed, stride) = fw.map_size()?;
@@ -599,12 +723,8 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
     let info = BootInfo {
         magic: MAGIC,
         abi_major: ABI_MAJOR,
-        abi_minor: if cfg!(feature = "framebuffer") {
-            2
-        } else {
-            ABI_MINOR
-        },
-        header_size: 128,
+        abi_minor: SMP_MINOR,
+        header_size: SMP_HEADER_SIZE,
         flags: if cfg!(feature = "framebuffer") { 14 } else { 6 },
         memory_map_addr: map_address,
         memory_map_len: 0,
@@ -615,15 +735,18 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
         stack_start,
         stack_len: STACK_LEN,
         bootinfo_start: info_address,
-        bootinfo_len: PAGE_SIZE,
+        bootinfo_len: BOOTINFO_SMP_LEN,
         loader_start,
         loader_len,
         memory_map_capacity: capacity as u64,
         reserved0: if cfg!(feature = "framebuffer") {
-            info_address + 128
+            info_address + boot_protocol::graphics::SMP_EXTENSION_OFFSET
         } else {
             0
         },
+        smp_info_addr: info_address + SMP_INFO_OFFSET,
+        smp_info_len: core::mem::size_of::<SmpInfo>() as u64,
+        smp_trampoline_page: trampoline_page,
     };
     // SAFETY: Own aligned page, initialized and disjoint from every other live object.
     unsafe {
@@ -658,7 +781,59 @@ fn map_capacity(needed: usize, stride: usize) -> Result<usize> {
     if capacity > MAP_LIMIT {
         return Err(b"MAP_CAPACITY");
     }
+
     Ok(capacity as usize)
+}
+
+fn checksum(bytes: &[u8]) -> u8 {
+    bytes.iter().fold(0u8, |sum, byte| sum.wrapping_add(*byte))
+}
+
+fn read_u32(bytes: &[u8], offset: usize) -> Result<u32> {
+    let end = offset
+        .checked_add(4)
+        .ok_or(b"ACPI_FIELD_RANGE" as Failure)?;
+    let field: [u8; 4] = bytes
+        .get(offset..end)
+        .ok_or(b"ACPI_FIELD_RANGE" as Failure)?
+        .try_into()
+        .map_err(|_| b"ACPI_FIELD_RANGE" as Failure)?;
+    Ok(u32::from_le_bytes(field))
+}
+
+fn read_u64(bytes: &[u8], offset: usize) -> Result<u64> {
+    let end = offset
+        .checked_add(8)
+        .ok_or(b"ACPI_FIELD_RANGE" as Failure)?;
+    let field: [u8; 8] = bytes
+        .get(offset..end)
+        .ok_or(b"ACPI_FIELD_RANGE" as Failure)?
+        .try_into()
+        .map_err(|_| b"ACPI_FIELD_RANGE" as Failure)?;
+    Ok(u64::from_le_bytes(field))
+}
+
+/// # Safety
+/// Firmware supplies a live, mapped ACPI table pointer. Its header and declared
+/// extent are read only after pointer alignment and bounded-length checks.
+unsafe fn sdt_bytes<'a>(address: *const u8) -> Result<&'a [u8]> {
+    if address.is_null() || !(address as usize).is_multiple_of(4) {
+        return Err(b"ACPI_TABLE_ALIGNMENT");
+    }
+    // SAFETY: The caller guarantees a live firmware table pointer and the
+    // 36-byte ACPI standard header is the minimum readable prefix.
+    let header = unsafe { core::slice::from_raw_parts(address, 36) };
+    let length = read_u32(header, 4)? as usize;
+    if !(36..=MAX_MADT_LEN).contains(&length) {
+        return Err(b"ACPI_TABLE_LENGTH");
+    }
+    // SAFETY: Firmware's ACPI header declares the complete table extent; length
+    // is bounded above and the table remains live before ExitBootServices.
+    let table = unsafe { core::slice::from_raw_parts(address, length) };
+    if checksum(table) != 0 {
+        return Err(b"ACPI_TABLE_CHECKSUM");
+    }
+    Ok(table)
 }
 
 #[no_mangle]

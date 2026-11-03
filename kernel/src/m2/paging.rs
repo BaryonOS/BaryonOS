@@ -66,6 +66,8 @@ pub struct Paging {
     asid: u16,
     #[cfg(feature = "framebuffer")]
     framebuffer: Option<(u64, u64)>,
+    #[cfg(feature = "native-smp")]
+    local_apic: Option<(u64, u64)>,
 }
 impl Paging {
     /// Fallible read-only seam before existing scalar map commit. The caller
@@ -208,7 +210,8 @@ impl Paging {
         feature = "milestone-m5",
         feature = "framebuffer",
         feature = "native-keyring",
-        feature = "native-tpm-crb"
+        feature = "native-tpm-crb",
+        feature = "native-smp"
     ))]
     fn map_device_page(
         &mut self,
@@ -259,6 +262,23 @@ impl Paging {
         invalidate(va);
         Ok(())
     }
+    #[cfg(feature = "native-smp")]
+    pub fn map_local_apic(
+        &mut self,
+        frames: &mut Frames<FRAME_COUNT>,
+        physical_base: u64,
+    ) -> Result<u64, kernel_core::Error> {
+        const LOCAL_APIC_WINDOW: u64 = 0x3f20_0000;
+        if !physical_base.is_multiple_of(PAGE) {
+            return Err(kernel_core::Error::Range);
+        }
+        if self.local_apic.is_some() {
+            return Err(kernel_core::Error::Overlap);
+        }
+        self.map_device_page(frames, LOCAL_APIC_WINDOW, physical_base)?;
+        self.local_apic = Some((LOCAL_APIC_WINDOW, physical_base));
+        Ok(LOCAL_APIC_WINDOW)
+    }
     pub fn new(frames: &mut Frames<FRAME_COUNT>) -> Self {
         let root = frames
             .allocate(Owner::PageTable(0), zero)
@@ -270,6 +290,8 @@ impl Paging {
             asid: 0,
             #[cfg(feature = "framebuffer")]
             framebuffer: None,
+            #[cfg(feature = "native-smp")]
+            local_apic: None,
         };
         result.tables[0] = root;
         result
@@ -372,6 +394,8 @@ impl Paging {
             asid,
             #[cfg(feature = "framebuffer")]
             framebuffer: kernel.framebuffer,
+            #[cfg(feature = "native-smp")]
+            local_apic: kernel.local_apic,
         };
         result.tables[0] = root;
         result.tables[1] = pdpt;
@@ -546,6 +570,22 @@ impl Paging {
                     if (start..start + length).contains(&va) {
                         assert_eq!(pa, base + va - start, "framebuffer physical binding");
                         assert!(writable && nx);
+                        assert_eq!(
+                            entry & (PRESENT | WRITE | USER | NX | 8 | 16),
+                            PRESENT | WRITE | NX | 8 | 16
+                        );
+                        assert_eq!(
+                            entry & !(ADDRESS | PRESENT | WRITE | NX | 8 | 16 | 32 | 64),
+                            0
+                        );
+                        continue;
+                    }
+                }
+                #[cfg(feature = "native-smp")]
+                if let Some((window, base)) = self.local_apic {
+                    if va == window {
+                        assert_eq!(pa, base, "local APIC physical binding");
+                        assert!(!user && writable && nx);
                         assert_eq!(
                             entry & (PRESENT | WRITE | USER | NX | 8 | 16),
                             PRESENT | WRITE | NX | 8 | 16

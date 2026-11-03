@@ -2,8 +2,10 @@
 use crate::{BootInfo, Error, MemoryMap, PAGE_SIZE};
 
 pub const GRAPHICS_MINOR: u16 = 2;
+pub const GRAPHICS_SMP_MINOR: u16 = crate::SMP_MINOR;
 pub const GRAPHICS_FLAGS: u64 = 15;
 pub const EXTENSION_OFFSET: u64 = 128;
+pub const SMP_EXTENSION_OFFSET: u64 = 192;
 pub const FRAMEBUFFER_MAGIC: [u8; 8] = *b"NOSGOP\0\0";
 pub const MAX_FRAMEBUFFER: u64 = 32 * 1024 * 1024;
 pub const FRAMEBUFFER_WINDOW: u64 = 0x3800_0000;
@@ -33,30 +35,57 @@ const _: () = {
 };
 impl BootInfo {
     pub fn validate_graphics_header(&self, received_addr: u64) -> Result<(), Error> {
-        if self.abi_minor != GRAPHICS_MINOR
-            || self.flags != GRAPHICS_FLAGS
-            || self.reserved0
-                != received_addr
-                    .checked_add(EXTENSION_OFFSET)
-                    .ok_or(Error::Range)?
+        if self.flags != GRAPHICS_FLAGS {
+            return Err(Error::Header);
+        }
+        let extension_offset = match self.abi_minor {
+            GRAPHICS_MINOR
+                if self.smp_info_addr == 0
+                    && self.smp_info_len == 0
+                    && self.smp_trampoline_page == 0
+                    && self.header_size == 128
+                    && self.bootinfo_len == PAGE_SIZE =>
+            {
+                EXTENSION_OFFSET
+            }
+            GRAPHICS_SMP_MINOR
+                if self.header_size == crate::SMP_HEADER_SIZE
+                    && self.bootinfo_len == crate::BOOTINFO_SMP_LEN
+                    && self.smp_info_addr
+                        == received_addr
+                            .checked_add(crate::SMP_INFO_OFFSET)
+                            .ok_or(Error::Range)?
+                    && self.smp_info_len == core::mem::size_of::<crate::smp::Info>() as u64 =>
+            {
+                SMP_EXTENSION_OFFSET
+            }
+            _ => return Err(Error::Header),
+        };
+        if self.reserved0
+            != received_addr
+                .checked_add(extension_offset)
+                .ok_or(Error::Range)?
         {
             return Err(Error::Header);
         }
-        // All original ownership, span and map constraints remain identical.
-        let mut legacy = *self;
-        legacy.abi_minor = crate::ABI_MINOR;
-        legacy.flags = 7;
-        legacy.reserved0 = 0;
-        legacy.validate_header(received_addr)
+        let mut normal = *self;
+        normal.flags = 7;
+        normal.reserved0 = 0;
+        if self.abi_minor == GRAPHICS_MINOR {
+            normal.abi_minor = crate::ABI_MINOR;
+        }
+        normal.validate_header(received_addr)
     }
 }
 pub fn validate_graphics_memory_map(info: &BootInfo, bytes: &[u8]) -> Result<(), Error> {
     info.validate_graphics_header(info.bootinfo_start)?;
-    let mut legacy = *info;
-    legacy.abi_minor = crate::ABI_MINOR;
-    legacy.flags = 7;
-    legacy.reserved0 = 0;
-    crate::validate_memory_map(&legacy, bytes)
+    let mut normal = *info;
+    normal.flags = 7;
+    normal.reserved0 = 0;
+    if info.abi_minor == GRAPHICS_MINOR {
+        normal.abi_minor = crate::ABI_MINOR;
+    }
+    crate::validate_memory_map(&normal, bytes)
 }
 impl FramebufferInfo {
     pub fn validate(&self) -> Result<(), Error> {
@@ -143,6 +172,9 @@ mod tests {
             loader_len: 0x20000,
             memory_map_capacity: 0x40000,
             reserved0: 0x0410_0080,
+            smp_info_addr: 0,
+            smp_info_len: 0,
+            smp_trampoline_page: 0,
         }
     }
     #[test]
@@ -170,6 +202,7 @@ mod tests {
             mutate(&mut i);
             assert!(i.validate_graphics_header(i.bootinfo_start).is_err());
         }
+
         let mut overlapping = original;
         overlapping.stack_start = crate::KERNEL_START;
         assert_eq!(
@@ -181,10 +214,30 @@ mod tests {
             .is_err());
     }
     #[test]
+    fn graphics_and_smp_extensions_have_disjoint_versioned_offsets() {
+        let mut info = header();
+        info.abi_minor = GRAPHICS_SMP_MINOR;
+        info.header_size = crate::SMP_HEADER_SIZE;
+        info.bootinfo_len = crate::BOOTINFO_SMP_LEN;
+        info.reserved0 = info.bootinfo_start + SMP_EXTENSION_OFFSET;
+        info.smp_info_addr = info.bootinfo_start + crate::SMP_INFO_OFFSET;
+        info.smp_info_len = core::mem::size_of::<crate::smp::Info>() as u64;
+        info.smp_trampoline_page = 0x8000;
+        assert_eq!(info.validate_graphics_header(info.bootinfo_start), Ok(()));
+        info.reserved0 = info.bootinfo_start + EXTENSION_OFFSET;
+        assert_eq!(
+            info.validate_graphics_header(info.bootinfo_start),
+            Err(Error::Header)
+        );
+    }
+    #[test]
     fn graphics_map_keeps_all_five_owned_retained_allocations() {
         let info = header();
         let mut bytes = [0u8; 200];
         for (index, r) in info.retained_ranges().unwrap().into_iter().enumerate() {
+            if r.start == r.end {
+                continue;
+            }
             let at = index * 40;
             bytes[at..at + 4].copy_from_slice(&2u32.to_le_bytes());
             bytes[at + 8..at + 16].copy_from_slice(&r.start.to_le_bytes());
