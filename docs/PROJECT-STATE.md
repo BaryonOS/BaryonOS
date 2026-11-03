@@ -1,38 +1,40 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PCI-configuratie aan match binden — 3 november 2026
+## NEXT AGENT HANDOFF — DMA pas na PCI-match — 3 november 2026
 
-Werkbranch `copilot/universal-driver-framework`, broncommit
-`d9b97c4ad701b5c4410909000269e3114d2cfb80` (implementatiecommit; dit
-checkpoint legt de status ervan vast). Segment-0-enumeratie en VirtIO-selectie
-zonder vaste BDF staan op `9984b180`; `MatchedPciFunction` herleest en
-valideert nu het type-0-descriptor en registryresultaat, en weigert
-PCI-configuratie-I/O naar
-een ander BDF. VirtIO block/net gebruiken die adapter bij BAR-probing en
-busmasterbeheer. De kernel behoudt DMA-pagina's en BAR/MMIO-mappings; er is
-geen universele physical-memory-capability toegevoegd.
+Werkbranch `copilot/universal-driver-framework`, lokale broncommit
+`9badc8659bc48e71a020cb0ae3f36ce7de8ea3f3` (nog te pushen). De bestaande
+segment-0-enumerator en VirtIO-selectie zonder vaste BDF staan op `9984b180`;
+config-space is sinds `d9b97c4` aan de gevalideerde descriptor/registrymatch
+gebonden. In de zes block-profielen (`m5`, `m6`, `m6b`, `m6c`, `volume`,
+`update`) gebeurt PCI-discovery/matching nu vóór DMA-poolallocatie. Afwezige
+of niet-gematchte hardware reserveert zo geen pinned DMA-pagina's. Kernel blijft
+eigenaar van DMA-pagina's en BAR/MMIO-mappings; er is geen universele
+physical-memory-capability.
 
-**Bewijs:** formatter, testtarget-typecheck, Clippy, freestanding releasebuild
-en `git diff --check` exit 0. Hosttests en de volledige kernelcheck zijn
-geprobeerd maar geblokkeerd vóór uitvoering door ontbrekende hostlinker `cc`.
-Geen QEMU/runtime- of fysieke hardwareproef. Details en bron-/loghashes:
+**Bewijs tot nu:** formatter/diffcontrole, driver-testtarget-typecheck,
+Clippy, freestanding releasebuild en hosttests zijn exit 0 met een tijdelijk
+uitgepakte Ubuntu-hostcompiler; hosttestlogs staan in
+`/tmp/nieuw-os-resource-order-2026-11-03/`. De profile-specifieke kernelbuilds
+moeten nog worden uitgevoerd. `--all-features` is hier geen geldige gate:
+kernelprofielen zijn onderling exclusief. Geen QEMU/runtime- of fysieke
+hardwareproef. Adapterbewijs:
 [PCI-configbinding-receipt](verification/pci-config-binding-2026-11-03/README.md).
-Score **41/100 → 41/100**; compilatie en typecheck sluiten geen native
-acceptatiecriterium.
+Score **41/100 → 41/100**.
 
-**Open/eerstvolgend:** remote push en PR/CI-uitkomst controleren; daarna
-kernel-owned BAR/MMIO-resourcegrant en concrete factoryactivatie ontwerpen
-zonder DMA/IOMMU-semantiek van de maturitybranch te dupliceren. De huidige
-adapter is geen algemene resourcebroker of driver-isolatie. Meerdere actieve
-devices, ACPI-roottopologie, ECAM, bridge-validatie, interrupt lifecycle,
-USB-klassen, NVMe, GOP en unsupported-hardwarerapportage zijn niet
-gerealiseerd. Voortgang blijft 41/100.
+**Open/eerstvolgend:** push dit checkpoint en bouw de zes aangepaste
+kernelprofielen met `tools/build.py` vóór verdere runtime-resource/factory-
+integratie. Daarna kernel-owned BAR/MMIO-grants uitwerken zonder DMA/IOMMU-
+semantiek van de maturitybranch te dupliceren. De huidige configadapter is
+geen algemene resourcebroker of driverisolatie. Meerdere actieve devices,
+ACPI-roottopologie, ECAM, bridge-validatie, interrupt lifecycle, USB-klassen,
+NVMe, GOP en unsupported-hardwarerapportage zijn niet gerealiseerd.
 
 ### Implementatiestap — segment-0 enumeratie en VirtIO BDF-migratie
 
 Commit `9984b1806a99e9bf0b2df0de7935d4a0d72a5219`, gepusht naar
 `copilot/universal-driver-framework`; remote SHA komt exact overeen.
-`pci-core` voert een bounded scan uit en start geen resources of drivers.
+`pci-core` voert een bounded scan uit en start geen drivers.
 Block- en netwerkdiscovery matchen de eigen registry, weigeren meerdere
 passende functies en dragen het geselecteerde adres door tot initialisatie.
 Netwerk vertrouwt niet meer op het QEMU-fixture-MAC-adres; resetmeldingen
@@ -43,6 +45,22 @@ De gerichte freestanding builds en lint slagen, maar daadwerkelijke
 hosttests zijn geblokkeerd door ontbrekende `cc`; kernelbuildscript en
 QEMU-proef zijn daardoor niet gecontroleerd. Er zijn geen nieuwe
 hardwareacceptatiepunten.
+
+### Implementatiestap — configbinding en matching vóór block-DMA
+
+Bron `9badc8659bc48e71a020cb0ae3f36ce7de8ea3f3`, gepusht na statuscheckpoint.
+De VirtIO-configadapter is gebonden aan de gekozen registrymatch; de zes
+kernel-blockprofielen ontdekken en matchen nu het PCI-device vóór allocatie van
+de pinned DMA-pool. Daardoor blijft de bestaande DMA-bufferindeling gelijk,
+maar een afwezige of onbekende device reserveert geen devicepagina's.
+
+Formatter, gerichte driver-check/typecheck, Clippy, freestanding releasebuild
+en hosttests zijn exit 0 met een tijdelijke hostcompiler onder `/tmp`.
+Profile-specifieke kernelbuilds, native runtime, QEMU en hardware zijn nog
+niet uitgevoerd. `cargo check --all-features` is niet toepasselijk omdat de
+kernelfeatures incompatibele acceptatieprofielen selecteren. Dit levert geen
+voortgangspunt op; resterende resourcegrants/factories en hardwarebewijs staan
+open.
 
 ### Gepauzeerd werk — PR139 exacte contracttestreceipt
 

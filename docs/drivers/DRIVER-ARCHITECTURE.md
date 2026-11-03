@@ -41,7 +41,9 @@ descriptor en `DriverMatch`. Reads en writes naar een ander BDF worden
 geweigerd; stale descriptors en registraties die niet bij het device passen,
 worden niet gebonden. Dit is een concrete devicegrens voor PCI-configuratie,
 geen volledige resourcegrant of capability. De kernel blijft eigenaar van
-BAR/MMIO-mappings en DMA-pagina's.
+BAR/MMIO-mappings en DMA-pagina's. Alle bestaande block-kernelprofielen
+alloceren hun DMA-pool pas na een succesvolle discovery- en registrymatch;
+de netwerkroute volgde deze volgorde al.
 
 ```text
 PCI segment-0 scan

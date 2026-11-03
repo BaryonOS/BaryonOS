@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`d9b97c4a`](https://github.com/simonvanieperen/nieuw-os/commit/d9b97c4ad701b5c4410909000269e3114d2cfb80) ·
+**Bron:** [`9badc865`](https://github.com/simonvanieperen/nieuw-os/commit/9badc8659bc48e71a020cb0ae3f36ce7de8ea3f3) ·
 **Ontwikkelbranch:** `copilot/universal-driver-framework`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PCI-configuratie aan registrymatch binden.
-41/100 blijft 41/100. MatchedPciFunction herleest en valideert het type-0-descriptor en de registrymatch voordat PCI-configuratie-I/O aan één BDF wordt gebonden; toegang naar een ander BDF wordt geweigerd. VirtIO block/net gebruiken de adapter voor BAR-probing en busmasterbeheer na registryselectie. Kernelcode blijft eigenaar van DMA-pagina's en BAR/MMIO-mappings; er is geen universele physical-memory-capability. Formatter, testtarget-typecheck, Clippy en x86_64-unknown-none releasebuild zijn exit 0. Hosttests en kernelcheck konden niet linken doordat cc ontbreekt; geen native/QEMU- of hardwareproef. Een algemene BAR/MMIO/IRQ/DMA-broker, factoryactivatie, meerdere instanties, ACPI/ECAM/bridges en extra apparaatfamilies blijven open; geen nieuw acceptatiebewijs of hardwarepunten.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Block-DMA-pool pas na PCI-match alloceren.
+41/100 blijft 41/100. De zes block-profielen (M5, M6, M6b, M6c, volume, update) voeren PCI-discovery en registrymatching uit vóór allocatie en pinning van hun DMA-pool; bij afwezige of onbekende hardware worden geen device-DMA-pagina's gereserveerd. De netwerkroute volgde deze volgorde al. Formatter, gerichte driver-check/typecheck, Clippy, freestanding releasebuild en hosttests zijn exit 0 met een tijdelijk in /tmp uitgepakte hostcompiler. Profile-specifieke kernelbuilds moeten nog volgen; geen QEMU/runtime- of fysieke hardwareproef. --all-features is geen geldige gate voor de elkaar uitsluitende kernelprofielen. Geen nieuw acceptatiebewijs of hardwarepunten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

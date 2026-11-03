@@ -63,7 +63,8 @@ brokers één transportinstantie beheren. De netwerkbroker vertrouwt niet langer
 op het QEMU-fixture-MAC-adres. `MatchedPciFunction` herleest de descriptor bij
 binding, controleert dat de registry-match nog klopt en weigert config-space-
 toegang tot een ander BDF. De VirtIO-paden gebruiken deze adapter ook voor
-busmaster- en BAR-probing na de match.
+busmaster- en BAR-probing na de match. Alle bestaande block-profielen alloceren
+hun pinned DMA-pool pas nadat discovery en registrymatching zijn geslaagd.
 
 **Beperkingen:** de scanner gebruikt alle 256 conventionele busnummers in
 segment 0 omdat de bootinformatie nog geen ACPI MCFG/rootbridge-topologie
