@@ -103,9 +103,13 @@ De tests, buildlogs en artefacten staan buiten Git onder `/tmp`:
 
 ## Open bewijsgrenzen
 
-De volledige native 18-staps B03-QEMU-gate is **niet uitgevoerd**: lokale
-preflight mist `qemu-system-x86_64` en OVMF. Een hosttest of cross-build
-vervangt die gate niet. Ook ontbreken productieondertekenankers,
+De historische host-preflight voor broncommits `07e7f9a0`/`ceb95755`
+draaide zonder de native QEMU/OVMF-omgeving en eindigde met exit 2.
+Die preflight is geen native bewijs. De latere volledige 18-staps
+B03-QEMU-gate op productbron `26108a25` staat met exit 0 in
+`native-sprint.json`; evidencecommit `568741f3` legt dit vast.
+De ruwe logs en artifacts onder `/tmp` zijn lokaal en niet vanuit Git
+inhoudelijk controleerbaar. Ook ontbreken productieondertekenankers,
 productiesleutelrotatie/-intrekking, een releaseceremonie en vertrouwde
 kalendertijd. Issue #41 blijft daarom open; geen acceptatiepunt wordt met
 deze wijziging gesloten.

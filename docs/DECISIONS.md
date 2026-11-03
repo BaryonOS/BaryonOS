@@ -377,6 +377,10 @@ of releaseclaim. Terugdraaien herstelt de ongeconditioneerde
 `test_policy`-module en de oude profielnaam, maar verwijdert deze
 build-time-bescherming.
 
+Herzieningscriteria: herzie deze testfeaturegrens zodra productiebeleid voor
+sleuteldistributie, releaseconfiguratie of distributie van intrekkingen wordt
+ingevoerd. TEST-ankers worden daarbij niet stilzwijgend productiebeleid.
+
 ## ADR-053 — Wachten op IPC behoudt bestaande rechten en krijgt ABI 1.10
 
 Bij main-integratie hernummerd vanaf de branchlokale ADR-051; de
