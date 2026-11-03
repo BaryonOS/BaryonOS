@@ -2,6 +2,7 @@
 import unittest
 import subprocess
 import sys
+from unittest.mock import Mock
 import run_window_session as window
 
 
@@ -19,6 +20,30 @@ def image(width,height,color):
 
 
 class WindowRunnerTests(unittest.TestCase):
+    def test_switcher_key_edge_observes_real_ordered_pointer_barrier_not_unsampled_key_counter(self):
+        for scale in (1, 2):
+            width = window.switcher_geometry(scale)[0]
+            for lost_key in (False, True):
+                state = {"INPUT": 10, "POINTER_X": width - 20, "POINTER_Y": 50 * scale}
+                control = Mock()
+                def command(name, arguments):
+                    self.assertEqual(name, "input-send-event")
+                    self.assertEqual(arguments["events"][0]["data"]["key"]["data"], "alt")
+                    if not lost_key:
+                        state["INPUT"] += 1
+                control.command.side_effect = command
+                moves = []
+                def move(x, y):
+                    moves.append((x, y))
+                    state.update(INPUT=state["INPUT"] + 1, POINTER_X=x, POINTER_Y=y)
+                if lost_key:
+                    with self.assertRaisesRegex(ValueError, "ordered switcher input barrier"):
+                        window.switcher_key_edge(control, move, lambda: dict(state), "alt", True, scale)
+                else:
+                    window.switcher_key_edge(control, move, lambda: dict(state), "alt", True, scale)
+                self.assertEqual(moves, [(width-21, 50*scale), (width-20, 50*scale)])
+                control.command.assert_called_once()
+
     def test_switcher_profiles_compare_all_overlay_pixels_without_masks(self):
         for scale in (1, 2):
             width, height, body, calc, bounds = window.switcher_geometry(scale)

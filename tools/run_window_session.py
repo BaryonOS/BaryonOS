@@ -54,6 +54,21 @@ def switcher_matches(raw: bytes, expected: bytes, scale: int) -> bool:
             and crop(raw, bounds) == ppm(expected)[2])
 
 
+def switcher_key_edge(control, move, current, physical: str, down: bool, scale: int):
+    width, _, _, _, _ = switcher_geometry(scale)
+    before = current()["INPUT"]
+    control.command("input-send-event", {"events": [
+        {"type": "key", "data": {"down": down, "key": {"type": "qcode", "data": physical}}}]})
+    # Main's probe samples pointer changes, but does not publish every isolated
+    # key edge. Two acknowledged header moves form an ordered input barrier.
+    move(width - 21, 50 * scale)
+    move(width - 20, 50 * scale)
+    after = current()
+    if (after["INPUT"] < before + 3
+            or (after["POINTER_X"], after["POINTER_Y"]) != (width - 20, 50 * scale)):
+        raise ValueError("Missing ordered switcher input barrier")
+
+
 def generate_switcher_fixture(directory: Path, image: bytes, scale: int) -> dict:
     width, height, body, calc, _ = switcher_geometry(scale)
     if ppm(image)[:2] != (width, height):
@@ -426,11 +441,8 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                             for role in ("MATERIAL", "CALCULATOR")}
 
                 def edge(physical, down):
-                    before = comp(serial(directory / "serial.txt"))["INPUT"]
-                    control.command("input-send-event", {"events": [
-                        {"type": "key", "data": {"down": down, "key": {"type": "qcode", "data": physical}}}]})
-                    observe("switcher edge " + physical, lambda raw: comp(raw).get("INPUT", 0) >= before + 1,
-                            timeout_s=90)
+                    switcher_key_edge(control, move, lambda: comp(serial(directory / "serial.txt")),
+                                      physical, down, scale)
 
                 def shell(physical):
                     edge(physical, True); edge(physical, False)

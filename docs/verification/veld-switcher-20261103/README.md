@@ -121,7 +121,26 @@ Dit is een runner-synchronisatiefout; geen productfout of nativeacceptatie.
 Vervolgfix wacht bij iedere voorbereidende F6 eerst expliciet op de enige
 FocusLost-ACK van de vorige app. De nieuwe switcher-ACK-waits hebben een
 begrensde observatietijd van 90 s; er zijn geen arbitraire sleeps toegevoegd
-en geen inputcounters gemaskeerd. Bron-/native-uitkomsten van deze fix nog open.
+en geen inputcounters gemaskeerd.
+
+Tweede 100%-poging op `27de1241c4d90a04fb4a94b9ba164a21e072abd9`:
+probebuild exit 0 (1,94 s); runner exit 1 na 153,45 s met
+`TimeoutError: Native input acknowledgement missing: switcher edge alt`.
+Log `veld-switcher-native-scale1-attempt2.log`; run
+`window-b94bc3a941814a30bf4075e9cdab47bd`. Nu is de F6-baseline wel bevestigd.
+Concrete oorzaak: main's bestaande probe bemonstert focus/positie/knoppen,
+maar niet iedere losse toetsaanslag in zijn compositor-activityset.
+De Alt-press bereikt de app aantoonbaar, maar veroorzaakt geen nieuw
+compositorserialrecord. Geen kernelruntimewijziging nodig.
+
+De vervolgfix bevestigt iedere nieuwe shell-keyedge via twee geobserveerde
+pointerbewegingen in de appvrije header, terug naar dezelfde parkeerpositie.
+De geordende inputqueue levert daarmee een echte observatiebarriere
+(key + twee pointerevents); ontbrekende input wordt niet succesvol verklaard.
+Een gerichte tegenproef weigert een verloren keyedge. De VM-proef bevat dus
+observerende pointerevents; de zuivere keyboardroute heeft afzonderlijk
+hostbewijs. Geen latentie- of fysiek toetsenbordbewijs geclaimd.
+Nieuwe native-uitkomsten van deze fix nog open.
 
 CI en main-integratie zijn nog niet uitgevoerd. Geen fysieke/menselijke/audit-/
 releaseacceptatie, geen scorewijziging. De volledige OS-/Veld-opdracht blijft
