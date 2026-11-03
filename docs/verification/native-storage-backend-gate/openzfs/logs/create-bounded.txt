@@ -1,0 +1,429 @@
+1 vdevs, 2 datasets, 2 threads, 1 raidz disks, parity 0, 15 seconds...
+
+verifying concrete vdev 0, metaslab 0 of 15 ...verifying concrete vdev 0, metaslab 1 of 15 ...verifying concrete vdev 0, metaslab 2 of 15 ...verifying concrete vdev 0, metaslab 3 of 15 ...verifying concrete vdev 0, metaslab 4 of 15 ...verifying concrete vdev 0, metaslab 5 of 15 ...verifying concrete vdev 0, metaslab 6 of 15 ...verifying concrete vdev 0, metaslab 7 of 15 ...verifying concrete vdev 0, metaslab 8 of 15 ...verifying concrete vdev 0, metaslab 9 of 15 ...verifying concrete vdev 0, metaslab 10 of 15 ...verifying concrete vdev 0, metaslab 11 of 15 ...verifying concrete vdev 0, metaslab 12 of 15 ...verifying concrete vdev 0, metaslab 13 of 15 ...verifying concrete vdev 0, metaslab 14 of 15 ...
+loading concrete vdev 0, metaslab 0 of 15 ...loading concrete vdev 0, metaslab 1 of 15 ...loading concrete vdev 0, metaslab 2 of 15 ...loading concrete vdev 0, metaslab 3 of 15 ...loading concrete vdev 0, metaslab 4 of 15 ...loading concrete vdev 0, metaslab 5 of 15 ...loading concrete vdev 0, metaslab 6 of 15 ...loading concrete vdev 0, metaslab 7 of 15 ...loading concrete vdev 0, metaslab 8 of 15 ...loading concrete vdev 0, metaslab 9 of 15 ...loading concrete vdev 0, metaslab 10 of 15 ...loading concrete vdev 0, metaslab 11 of 15 ...loading concrete vdev 0, metaslab 12 of 15 ...loading concrete vdev 0, metaslab 13 of 15 ...loading concrete vdev 0, metaslab 14 of 15 ...
+
+ZFS_DBGMSG(zdb) START:
+metaslab.c:1837:spa_set_allocator(): spa allocator: dynamic
+spa.c:7396:spa_import(): spa_import: importing 4965091495589648948
+spa_misc.c:431:spa_load_note(): spa_load(4965091495589648948, config trusted): LOADING
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.0a': probe done, cant_read=0 cant_write=1
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.1a': probe done, cant_read=0 cant_write=1
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.0a': best uberblock found for spa 4965091495589648948, txg=4 seq=0
+spa_misc.c:431:spa_load_note(): spa_load(4965091495589648948, config untrusted): using uberblock with txg=4
+spa.c:3833:spa_activity_check_required(): mmp: skipping check ZFS_IMPORT_SKIP_MMP is set, spa=4965091495589648948
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.1a': probe done, cant_read=0 cant_write=1
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.0a': probe done, cant_read=0 cant_write=1
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading checkpoint txg
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading indirect vdev metadata
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Checking feature flags
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading special MOS directories
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading properties
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading AUX vdevs
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading vdev metadata
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading dedup tables
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading BRT
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Verifying Log Devices
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Verifying pool data
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Calculating deflated space
+spa.c:9960:spa_async_request(): spa=4965091495589648948 async request task=2048
+spa_misc.c:431:spa_load_note(): spa_load(4965091495589648948, config trusted): LOADED
+spa.c:9960:spa_async_request(): spa=4965091495589648948 async request task=32
+ZFS_DBGMSG(zdb) END
+Verifying deleted livelist entries
+Verifying metaslab entries
+Dataset mos [META], ID 0, cr_txg 4, 75K, 51 objects
+Dataset 4965091495589648948 [ZPL], ID 54, cr_txg 1, 1K, 0 objects
+Verified large_blocks feature refcount of 0 is correct
+Verified large_dnode feature refcount of 0 is correct
+Verified sha512 feature refcount of 0 is correct
+Verified skein feature refcount of 0 is correct
+Verified edonr feature refcount of 0 is correct
+Verified userobj_accounting feature refcount of 0 is correct
+Verified encryption feature refcount of 0 is correct
+Verified project_quota feature refcount of 0 is correct
+Verified redaction_bookmarks feature refcount of 0 is correct
+Verified redacted_datasets feature refcount of 0 is correct
+Verified bookmark_written feature refcount of 0 is correct
+Verified livelist feature refcount of 0 is correct
+Verified zstd_compress feature refcount of 0 is correct
+Verified zilsaxattr feature refcount of 0 is correct
+Verified blake3 feature refcount of 0 is correct
+Verified redaction_list_spill feature refcount of 0 is correct
+Verified longname feature refcount of 0 is correct
+Verified large_microzap feature refcount of 0 is correct
+Verified physical_rewrite feature refcount of 0 is correct
+Verified device_removal feature refcount of 0 is correct
+Verified indirect_refcount feature refcount of 0 is correct
+
+Traversing all blocks to verify checksums and verify nothing leaked ...
+
+
+	No leaks (block sum matches space maps exactly)
+
+	bp count:                    52
+	ganged count:                 0
+	bp logical:              550400      avg:  10584
+	bp physical:              31744      avg:    610     compression:  17.34
+	bp allocated:             94720      avg:   1821     compression:   5.81
+	bp deduped:                   0    ref>1:      0   deduplication:   1.00
+	bp cloned:                    0    count:      0
+	Normal class:             94720     used:  0.04%
+	Embedded log class              0     used:  -nan%
+
+	additional, non-pointer bps of type 0:         33
+	Dittoed blocks on same vdev: 19
+
+                            capacity   operations   bandwidth  ---- errors ----
+description                used avail  read write  read write  read write cksum
+4965091495589648948       92.5K  240M   118     0 1.09M     0     0     0     0
+  mirror                  92.5K  240M   118     0 1.09M     0     0     0     0
+    /tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.0a                                 63     0  564K     0     0     0     0
+    /tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.1a                                 55     0  548K     0     0     0     0
+testing spa_freeze()...
+verifying concrete vdev 0, metaslab 0 of 15 ...verifying concrete vdev 0, metaslab 1 of 15 ...verifying concrete vdev 0, metaslab 2 of 15 ...verifying concrete vdev 0, metaslab 3 of 15 ...verifying concrete vdev 0, metaslab 4 of 15 ...verifying concrete vdev 0, metaslab 5 of 15 ...verifying concrete vdev 0, metaslab 6 of 15 ...verifying concrete vdev 0, metaslab 7 of 15 ...verifying concrete vdev 0, metaslab 8 of 15 ...verifying concrete vdev 0, metaslab 9 of 15 ...verifying concrete vdev 0, metaslab 10 of 15 ...verifying concrete vdev 0, metaslab 11 of 15 ...verifying concrete vdev 0, metaslab 12 of 15 ...verifying concrete vdev 0, metaslab 13 of 15 ...verifying concrete vdev 0, metaslab 14 of 15 ...
+loading concrete vdev 0, metaslab 0 of 15 ...loading concrete vdev 0, metaslab 1 of 15 ...loading concrete vdev 0, metaslab 2 of 15 ...loading concrete vdev 0, metaslab 3 of 15 ...loading concrete vdev 0, metaslab 4 of 15 ...loading concrete vdev 0, metaslab 5 of 15 ...loading concrete vdev 0, metaslab 6 of 15 ...loading concrete vdev 0, metaslab 7 of 15 ...loading concrete vdev 0, metaslab 8 of 15 ...loading concrete vdev 0, metaslab 9 of 15 ...loading concrete vdev 0, metaslab 10 of 15 ...loading concrete vdev 0, metaslab 11 of 15 ...loading concrete vdev 0, metaslab 12 of 15 ...loading concrete vdev 0, metaslab 13 of 15 ...loading concrete vdev 0, metaslab 14 of 15 ...
+
+ZFS_DBGMSG(zdb) START:
+metaslab.c:1837:spa_set_allocator(): spa allocator: dynamic
+spa.c:7396:spa_import(): spa_import: importing 9169139500157372876
+spa_misc.c:431:spa_load_note(): spa_load(9169139500157372876, config trusted): LOADING
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.1a': probe done, cant_read=0 cant_write=1
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.0a': probe done, cant_read=0 cant_write=1
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.0a': best uberblock found for spa 9169139500157372876, txg=27 seq=0
+spa_misc.c:431:spa_load_note(): spa_load(9169139500157372876, config untrusted): using uberblock with txg=27
+spa.c:3833:spa_activity_check_required(): mmp: skipping check ZFS_IMPORT_SKIP_MMP is set, spa=9169139500157372876
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.0a': probe done, cant_read=0 cant_write=1
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.1a': probe done, cant_read=0 cant_write=1
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading checkpoint txg
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading indirect vdev metadata
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Checking feature flags
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading special MOS directories
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading properties
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading AUX vdevs
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading vdev metadata
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading dedup tables
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading BRT
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Verifying Log Devices
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Verifying pool data
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Calculating deflated space
+spa.c:9960:spa_async_request(): spa=9169139500157372876 async request task=2048
+spa_misc.c:431:spa_load_note(): spa_load(9169139500157372876, config trusted): LOADED
+spa.c:9960:spa_async_request(): spa=9169139500157372876 async request task=32
+ZFS_DBGMSG(zdb) END
+Verifying deleted livelist entries
+Verifying metaslab entries
+Dataset mos [META], ID 0, cr_txg 4, 116K, 63 objects
+Dataset 9169139500157372876/ds_0 [OTHER], ID 5, cr_txg 6, 95K, 6 objects
+Dataset 9169139500157372876 [ZPL], ID 54, cr_txg 1, 1K, 0 objects
+Verified large_blocks feature refcount of 1 is correct
+Verified large_dnode feature refcount of 1 is correct
+Verified sha512 feature refcount of 0 is correct
+Verified skein feature refcount of 0 is correct
+Verified edonr feature refcount of 0 is correct
+Verified userobj_accounting feature refcount of 0 is correct
+Verified encryption feature refcount of 1 is correct
+Verified project_quota feature refcount of 0 is correct
+Verified redaction_bookmarks feature refcount of 0 is correct
+Verified redacted_datasets feature refcount of 0 is correct
+Verified bookmark_written feature refcount of 0 is correct
+Verified livelist feature refcount of 0 is correct
+Verified zstd_compress feature refcount of 0 is correct
+Verified zilsaxattr feature refcount of 0 is correct
+Verified blake3 feature refcount of 0 is correct
+Verified redaction_list_spill feature refcount of 0 is correct
+Verified longname feature refcount of 0 is correct
+Verified large_microzap feature refcount of 0 is correct
+Verified physical_rewrite feature refcount of 0 is correct
+Verified device_removal feature refcount of 0 is correct
+Verified indirect_refcount feature refcount of 0 is correct
+
+Traversing all blocks to verify checksums and verify nothing leaked ...
+
+
+	No leaks (block sum matches space maps exactly)
+
+	bp count:                   113
+	ganged count:                 0
+	bp logical:             6280192      avg:  55576
+	bp physical:             110080      avg:    974     compression:  57.05
+	bp allocated:            253440      avg:   2242     compression:  24.78
+	bp deduped:                   0    ref>1:      0   deduplication:   1.00
+	bp cloned:                    0    count:      0
+	Normal class:            253440     used:  0.10%
+	Embedded log class              0     used:  -nan%
+
+	additional, non-pointer bps of type 0:         28
+	Dittoed blocks on same vdev: 72
+
+                            capacity   operations   bandwidth  ---- errors ----
+description                used avail  read write  read write  read write cksum
+9169139500157372876        248K  240M   396     0 1.42M     0     0     0     0
+  mirror                   248K  240M   396     0 1.42M     0     0     0     0
+    /tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.0a                                218     0  744K     0     0     0     0
+    /tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.1a                                178     0  710K     0     0     0     0
+Pass   1, Complete,   0 ENOSPC,  1.8% of  240M used,  52% done,       7s to go
+
+Workload summary:
+
+  Calls      Time   Function
+  -----      ----   --------
+     14        0s   ztest_dmu_read_write
+     14        5s   ztest_dmu_write_parallel
+     21        1s   ztest_dmu_object_alloc_free
+      0        0s   ztest_dmu_object_next_chunk
+     16        0s   ztest_dmu_commit_callbacks
+     13        0s   ztest_zap
+     17        0s   ztest_zap_parallel
+      0        0s   ztest_split_pool
+     16        0s   ztest_zil_commit
+      0        0s   ztest_zil_remount
+      5        0s   ztest_dmu_read_write_zcopy
+      6        1s   ztest_dmu_objset_create_destroy
+      5        0s   ztest_dsl_prop_get_set
+      0        0s   ztest_spa_prop_get_set
+      0        0s   ztest_fzap
+      0        0s   ztest_dmu_snapshot_create_destroy
+      0        0s   ztest_spa_create_destroy
+      0        0s   ztest_fault_inject
+      0        0s   ztest_dmu_snapshot_hold
+      0        0s   ztest_mmp_enable_disable
+      0        0s   ztest_reguid
+      0        0s   ztest_scrub
+      0        0s   ztest_spa_upgrade
+      0        0s   ztest_dsl_dataset_promote_busy
+      0        0s   ztest_vdev_attach_detach
+      1        0s   ztest_vdev_raidz_attach
+      0        0s   ztest_vdev_LUN_growth
+      0        0s   ztest_vdev_add_remove
+      0        0s   ztest_vdev_class_add
+      1        0s   ztest_vdev_aux_add_remove
+      0        0s   ztest_device_removal
+      0        0s   ztest_spa_checkpoint_create_discard
+      1        0s   ztest_initialize
+      0        0s   ztest_trim
+      0        0s   ztest_blake3
+      0        0s   ztest_fletcher
+      0        0s   ztest_fletcher_incr
+      0        0s   ztest_verify_dnode_bt
+      0        0s   ztest_pool_prefetch_ddt
+      0        0s   ztest_ddt_prune
+
+verifying concrete vdev 0, metaslab 0 of 15 ...verifying concrete vdev 0, metaslab 1 of 15 ...verifying concrete vdev 0, metaslab 2 of 15 ...verifying concrete vdev 0, metaslab 3 of 15 ...verifying concrete vdev 0, metaslab 4 of 15 ...verifying concrete vdev 0, metaslab 5 of 15 ...verifying concrete vdev 0, metaslab 6 of 15 ...verifying concrete vdev 0, metaslab 7 of 15 ...verifying concrete vdev 0, metaslab 8 of 15 ...verifying concrete vdev 0, metaslab 9 of 15 ...verifying concrete vdev 0, metaslab 10 of 15 ...verifying concrete vdev 0, metaslab 11 of 15 ...verifying concrete vdev 0, metaslab 12 of 15 ...verifying concrete vdev 0, metaslab 13 of 15 ...verifying concrete vdev 0, metaslab 14 of 15 ...
+loading concrete vdev 0, metaslab 0 of 15 ...loading concrete vdev 0, metaslab 1 of 15 ...loading concrete vdev 0, metaslab 2 of 15 ...loading concrete vdev 0, metaslab 3 of 15 ...loading concrete vdev 0, metaslab 4 of 15 ...loading concrete vdev 0, metaslab 5 of 15 ...loading concrete vdev 0, metaslab 6 of 15 ...loading concrete vdev 0, metaslab 7 of 15 ...loading concrete vdev 0, metaslab 8 of 15 ...loading concrete vdev 0, metaslab 9 of 15 ...loading concrete vdev 0, metaslab 10 of 15 ...loading concrete vdev 0, metaslab 11 of 15 ...loading concrete vdev 0, metaslab 12 of 15 ...loading concrete vdev 0, metaslab 13 of 15 ...loading concrete vdev 0, metaslab 14 of 15 ...
+
+ZFS_DBGMSG(zdb) START:
+metaslab.c:1837:spa_set_allocator(): spa allocator: dynamic
+spa.c:7396:spa_import(): spa_import: importing 9169139500157372876
+spa_misc.c:431:spa_load_note(): spa_load(9169139500157372876, config trusted): LOADING
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.0a': probe done, cant_read=0 cant_write=1
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.1a': probe done, cant_read=0 cant_write=1
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.0a': best uberblock found for spa 9169139500157372876, txg=399 seq=0
+spa_misc.c:431:spa_load_note(): spa_load(9169139500157372876, config untrusted): using uberblock with txg=399
+spa.c:3833:spa_activity_check_required(): mmp: skipping check ZFS_IMPORT_SKIP_MMP is set, spa=9169139500157372876
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.1a': probe done, cant_read=0 cant_write=1
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.0a': probe done, cant_read=0 cant_write=1
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading checkpoint txg
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading indirect vdev metadata
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Checking feature flags
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading special MOS directories
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading properties
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading AUX vdevs
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading vdev metadata
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading dedup tables
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading BRT
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Verifying Log Devices
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Verifying pool data
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Calculating deflated space
+spa.c:9960:spa_async_request(): spa=9169139500157372876 async request task=2048
+spa_misc.c:431:spa_load_note(): spa_load(9169139500157372876, config trusted): LOADED
+spa.c:9960:spa_async_request(): spa=9169139500157372876 async request task=32
+ZFS_DBGMSG(zdb) END
+Verifying deleted livelist entries
+Verifying metaslab entries
+Dataset mos [META], ID 0, cr_txg 4, 722K, 87 objects
+Dataset 9169139500157372876/ds_1 [OTHER], ID 17, cr_txg 29, 2.31M, 14 objects
+Dataset 9169139500157372876/temp_0 [OTHER], ID 116, cr_txg 334, 130K, 5 objects
+Dataset 9169139500157372876/ds_0 [OTHER], ID 5, cr_txg 6, 722K, 15 objects
+Dataset 9169139500157372876/temp_1 [OTHER], ID 92, cr_txg 219, 56K, 5 objects
+Dataset 9169139500157372876 [ZPL], ID 54, cr_txg 1, 1K, 0 objects
+Verified large_blocks feature refcount of 4 is correct
+Verified large_dnode feature refcount of 4 is correct
+Verified sha512 feature refcount of 1 is correct
+Verified skein feature refcount of 1 is correct
+Verified edonr feature refcount of 2 is correct
+Verified userobj_accounting feature refcount of 0 is correct
+Verified encryption feature refcount of 2 is correct
+Verified project_quota feature refcount of 0 is correct
+Verified redaction_bookmarks feature refcount of 0 is correct
+Verified redacted_datasets feature refcount of 0 is correct
+Verified bookmark_written feature refcount of 0 is correct
+Verified livelist feature refcount of 0 is correct
+Verified zstd_compress feature refcount of 4 is correct
+Verified zilsaxattr feature refcount of 4 is correct
+Verified blake3 feature refcount of 0 is correct
+Verified redaction_list_spill feature refcount of 0 is correct
+Verified longname feature refcount of 0 is correct
+Verified large_microzap feature refcount of 0 is correct
+Verified physical_rewrite feature refcount of 0 is correct
+Verified device_removal feature refcount of 0 is correct
+Verified indirect_refcount feature refcount of 0 is correct
+
+Traversing all blocks to verify checksums and verify nothing leaked ...
+
+
+	No leaks (block sum matches space maps exactly)
+
+	bp count:                  1007
+	ganged count:                 0
+	bp logical:            71438336      avg:  70941
+	bp physical:            3239936      avg:   3217     compression:  22.05
+	bp allocated:           4434432      avg:   4403     compression:  16.11
+	bp deduped:                   0    ref>1:      0   deduplication:   1.00
+	bp cloned:                    0    count:      0
+	Normal class:           4434432     used:  1.76%
+	Embedded log class              0     used:  -nan%
+
+	additional, non-pointer bps of type 0:         97
+	Dittoed blocks on same vdev: 768
+
+                            capacity   operations   bandwidth  ---- errors ----
+description                used avail  read write  read write  read write cksum
+9169139500157372876       4.23M  236M 4.18K     0 11.6M     0     0     0     0
+  mirror                  4.23M  236M 4.18K     0 11.6M     0     0     0     0
+    /tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.0a                              2.10K     0 6.41M     0     0     0     0
+    /tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.1a                              2.08K     0 5.22M     0     0     0     0
+Pass   2, Complete,   0 ENOSPC,  2.0% of  240M used, 100% done,       0s to go
+
+Workload summary:
+
+  Calls      Time   Function
+  -----      ----   --------
+      2        0s   ztest_dmu_read_write
+      0        0s   ztest_dmu_write_parallel
+      2        0s   ztest_dmu_object_alloc_free
+      0        0s   ztest_dmu_object_next_chunk
+      1        0s   ztest_dmu_commit_callbacks
+      0        0s   ztest_zap
+      1        0s   ztest_zap_parallel
+      1        0s   ztest_split_pool
+      4        0s   ztest_zil_commit
+      0        0s   ztest_zil_remount
+      1        0s   ztest_dmu_read_write_zcopy
+      5        1s   ztest_dmu_objset_create_destroy
+      0        0s   ztest_dsl_prop_get_set
+      2        0s   ztest_spa_prop_get_set
+      1        0s   ztest_fzap
+      0        0s   ztest_dmu_snapshot_create_destroy
+      1        0s   ztest_spa_create_destroy
+      0        0s   ztest_fault_inject
+      0        0s   ztest_dmu_snapshot_hold
+      0        0s   ztest_mmp_enable_disable
+      0        0s   ztest_reguid
+      0        0s   ztest_scrub
+      0        0s   ztest_spa_upgrade
+      0        0s   ztest_dsl_dataset_promote_busy
+      0        0s   ztest_vdev_attach_detach
+      0        0s   ztest_vdev_raidz_attach
+      0        0s   ztest_vdev_LUN_growth
+      0        0s   ztest_vdev_add_remove
+      0        0s   ztest_vdev_class_add
+      0        0s   ztest_vdev_aux_add_remove
+      0        0s   ztest_device_removal
+      0        0s   ztest_spa_checkpoint_create_discard
+      0        0s   ztest_initialize
+      1        0s   ztest_trim
+      0        0s   ztest_blake3
+      0        0s   ztest_fletcher
+      0        0s   ztest_fletcher_incr
+      1        0s   ztest_verify_dnode_bt
+      0        0s   ztest_pool_prefetch_ddt
+      0        0s   ztest_ddt_prune
+
+verifying concrete vdev 0, metaslab 0 of 15 ...verifying concrete vdev 0, metaslab 1 of 15 ...verifying concrete vdev 0, metaslab 2 of 15 ...verifying concrete vdev 0, metaslab 3 of 15 ...verifying concrete vdev 0, metaslab 4 of 15 ...verifying concrete vdev 0, metaslab 5 of 15 ...verifying concrete vdev 0, metaslab 6 of 15 ...verifying concrete vdev 0, metaslab 7 of 15 ...verifying concrete vdev 0, metaslab 8 of 15 ...verifying concrete vdev 0, metaslab 9 of 15 ...verifying concrete vdev 0, metaslab 10 of 15 ...verifying concrete vdev 0, metaslab 11 of 15 ...verifying concrete vdev 0, metaslab 12 of 15 ...verifying concrete vdev 0, metaslab 13 of 15 ...verifying concrete vdev 0, metaslab 14 of 15 ...
+loading concrete vdev 0, metaslab 0 of 15 ...loading concrete vdev 0, metaslab 1 of 15 ...loading concrete vdev 0, metaslab 2 of 15 ...loading concrete vdev 0, metaslab 3 of 15 ...loading concrete vdev 0, metaslab 4 of 15 ...loading concrete vdev 0, metaslab 5 of 15 ...loading concrete vdev 0, metaslab 6 of 15 ...loading concrete vdev 0, metaslab 7 of 15 ...loading concrete vdev 0, metaslab 8 of 15 ...loading concrete vdev 0, metaslab 9 of 15 ...loading concrete vdev 0, metaslab 10 of 15 ...loading concrete vdev 0, metaslab 11 of 15 ...loading concrete vdev 0, metaslab 12 of 15 ...loading concrete vdev 0, metaslab 13 of 15 ...loading concrete vdev 0, metaslab 14 of 15 ...
+
+ZFS_DBGMSG(zdb) START:
+metaslab.c:1837:spa_set_allocator(): spa allocator: dynamic
+spa.c:7396:spa_import(): spa_import: importing 9169139500157372876
+spa_misc.c:431:spa_load_note(): spa_load(9169139500157372876, config trusted): LOADING
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.0a': probe done, cant_read=0 cant_write=1
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.1a': probe done, cant_read=0 cant_write=1
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.0a': best uberblock found for spa 9169139500157372876, txg=526 seq=0
+spa_misc.c:431:spa_load_note(): spa_load(9169139500157372876, config untrusted): using uberblock with txg=526
+spa.c:3833:spa_activity_check_required(): mmp: skipping check ZFS_IMPORT_SKIP_MMP is set, spa=9169139500157372876
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.0a': probe done, cant_read=0 cant_write=1
+vdev.c:184:vdev_dbgmsg(): file vdev '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.1a': probe done, cant_read=0 cant_write=1
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading checkpoint txg
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading indirect vdev metadata
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Checking feature flags
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading special MOS directories
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading properties
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading AUX vdevs
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading vdev metadata
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading dedup tables
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Loading BRT
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Verifying Log Devices
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Verifying pool data
+spa_misc.c:2489:spa_import_progress_set_notes_impl(): 'nieuwos_n3' Calculating deflated space
+spa.c:9960:spa_async_request(): spa=9169139500157372876 async request task=2048
+spa_misc.c:431:spa_load_note(): spa_load(9169139500157372876, config trusted): LOADED
+spa.c:9960:spa_async_request(): spa=9169139500157372876 async request task=32
+ZFS_DBGMSG(zdb) END
+Verifying deleted livelist entries
+Verifying metaslab entries
+Dataset mos [META], ID 0, cr_txg 4, 922K, 94 objects
+Dataset 9169139500157372876/ds_1 [OTHER], ID 17, cr_txg 29, 2.49M, 15 objects
+Dataset 9169139500157372876/temp_0@0 [OTHER], ID 126, cr_txg 461, 61.5K, 5 objects
+Dataset 9169139500157372876/temp_0 [OTHER], ID 122, cr_txg 459, 61.5K, 5 objects
+Dataset 9169139500157372876/ds_0 [OTHER], ID 5, cr_txg 6, 790K, 15 objects
+Dataset 9169139500157372876/temp_1@1 [OTHER], ID 128, cr_txg 479, 336K, 5 objects
+Dataset 9169139500157372876/temp_1 [OTHER], ID 112, cr_txg 454, 336K, 5 objects
+Dataset 9169139500157372876 [ZPL], ID 54, cr_txg 1, 1K, 0 objects
+Verified large_blocks feature refcount of 6 is correct
+Verified large_dnode feature refcount of 6 is correct
+Verified sha512 feature refcount of 1 is correct
+Verified skein feature refcount of 1 is correct
+Verified edonr feature refcount of 2 is correct
+Verified userobj_accounting feature refcount of 0 is correct
+Verified encryption feature refcount of 5 is correct
+Verified project_quota feature refcount of 0 is correct
+Verified redaction_bookmarks feature refcount of 0 is correct
+Verified redacted_datasets feature refcount of 0 is correct
+Verified bookmark_written feature refcount of 0 is correct
+Verified livelist feature refcount of 0 is correct
+Verified zstd_compress feature refcount of 4 is correct
+Verified zilsaxattr feature refcount of 2 is correct
+Verified blake3 feature refcount of 0 is correct
+Verified redaction_list_spill feature refcount of 0 is correct
+Verified longname feature refcount of 0 is correct
+Verified large_microzap feature refcount of 0 is correct
+Verified physical_rewrite feature refcount of 0 is correct
+Verified device_removal feature refcount of 0 is correct
+Verified indirect_refcount feature refcount of 0 is correct
+
+Traversing all blocks to verify checksums and verify nothing leaked ...
+
+
+	No leaks (block sum matches space maps exactly)
+
+	bp count:                  1141
+	ganged count:                 0
+	bp logical:           100532736      avg:  88109
+	bp physical:            3571712      avg:   3130     compression:  28.15
+	bp allocated:           4961280      avg:   4348     compression:  20.26
+	bp deduped:                   0    ref>1:      0   deduplication:   1.00
+	bp cloned:                    0    count:      0
+	Normal class:           4961280     used:  1.97%
+	Embedded log class              0     used:  -nan%
+
+	additional, non-pointer bps of type 0:         75
+	Dittoed blocks on same vdev: 836
+
+                            capacity   operations   bandwidth  ---- errors ----
+description                used avail  read write  read write  read write cksum
+9169139500157372876       4.73M  235M 4.81K     0 13.3M     0     0     0     0
+  mirror                  4.73M  235M 4.81K     0 13.3M     0     0     0     0
+    /tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.0a                              2.46K     0 7.37M     0     0     0     0
+    /tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.1a                              2.36K     0 5.94M     0     0     0     0
+0 killed, 2 completed, 0% kill rate

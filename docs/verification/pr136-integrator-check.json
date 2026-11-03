@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-03",
+  "source_commit": "41034178e7338676ec8dbbf894a8a40c75a8833a",
+  "preserved_base": "d777819530bf753167210d3e97e76f1bdeec204e",
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "-c",
+    "import json,hashlib,re\nfrom pathlib import Path\nfrom jsonschema import Draft202012Validator\nr=Path('.');p=json.loads((r/'docs/verification/pr136-review-fixes.json').read_text())\nfor e in p['changed_files']:\n assert hashlib.sha256((r/e['path']).read_bytes()).hexdigest()==e['sha256'],e['path']\na=r/'docs/audit/os-completeness';m=json.loads((a/'matrix.json').read_text());Draft202012Validator(json.loads((a/'matrix.schema.json').read_text())).validate(m)\nassert len(m['items'])==len({v['id'] for v in m['items']})==39\nids=re.findall(r'^\\| (FR-[A-Z][0-9]{2})\\b',(r/'docs/FULL-TEST-RELEASE.md').read_text(),re.M)\nmapped=re.findall(r'^\\| (FR-[A-Z][0-9]{2})\\b',(a/'release-criteria-map.md').read_text(),re.M)\nassert len(ids)==len(mapped)==len(set(ids))==62 and set(ids)==set(mapped)\nq=next(v for v in m['items'] if v['id']=='QUANTUM-LOCAL');assert 'VM_TESTED' in q['evidence_levels'] and 'FR-L04' in str(q['blockers'])\ns=json.loads((a/'verification.json').read_text())['matrix_summary'];assert s['binding_full_release_rows_closed']==0 and s['evidence_level_assignments']['VM_TESTED']==21\nprint('PASS:7 source hashes; Draft2020-12;39 groups;62 release mappings; historical L02 VM evidence;0 full-release rows closed')\n"
+  ],
+  "exit": 0,
+  "seconds": 0.07437180099987017,
+  "log": "/tmp/nieuw-os-pr136-integrator-check.log",
+  "log_sha256": "1cdb67d02bb0cb1f5e6dbb7f70f27ee9c1bbff552415cadc14f76d1c59fd5ad9",
+  "scope": "Parent file-hash/schema/crosswalk verification only; not a new native run, human audit, release acceptance or new points. Leaf exact A01/R03 checks remain recorded separately.",
+  "progress": {
+    "previous": 41,
+    "current": 41,
+    "new_points": 0
+  }
+}
