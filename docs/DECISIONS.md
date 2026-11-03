@@ -36,7 +36,10 @@ begrensde BAR/IRQ/DMA-grants, IOMMU-integratie, resetquarantaine en
 unsupported-device logging blijven open. De bestaande fixed-BDF-profielen
 blijven ongewijzigd totdat een generieke enumerator dezelfde grenzen en
 regressies behoudt. Geen scorepunten of fysieke compatibiliteitsclaim volgt
-uit deze core.
+uit deze core. De block-/netwerkprobes decoderen hun vaste type-0 PCI-snapshot
+en toetsen die nu fail-closed aan hun eigen registratie, vóór en na BAR-
+proberen. Dit is identiteitsvalidatie van bestaande endpoints, geen
+automatische driverselectie of resourcegrant.
 
 **Herziening:** wanneer een kernel-owned resourcegrant en een descriptor-
 enumerator met negatieve tests bestaan, of wanneer echte deviceproeven een

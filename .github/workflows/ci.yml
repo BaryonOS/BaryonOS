@@ -69,8 +69,8 @@ jobs:
           python3 -m unittest discover -s .agents/skills/os-dev/tests -p 'test_*.py'
       - name: Root Rust host tests
         run: |
-          cargo +1.90.0 test --locked -p boot-protocol -p elf-loader-core -p kernel-core -p capability-core -p virtio-core -p ui-core -p virtio-blk-driver -p block-protocol -p object-core -p catalog-core -p volume-core -p keyring-core -p virtio-rng-driver -p virtio-net-driver
-          cargo +1.90.0 clippy --locked -p boot-protocol -p elf-loader-core -p kernel-core -p capability-core -p virtio-core -p ui-core -p virtio-blk-driver -p block-protocol -p object-core -p catalog-core -p volume-core -p keyring-core -p virtio-rng-driver -p virtio-net-driver --all-targets -- -D warnings
+          cargo +1.90.0 test --locked -p boot-protocol -p elf-loader-core -p kernel-core -p capability-core -p virtio-core -p driver-core -p ui-core -p virtio-blk-driver -p block-protocol -p object-core -p catalog-core -p volume-core -p keyring-core -p virtio-rng-driver -p virtio-net-driver
+          cargo +1.90.0 clippy --locked -p boot-protocol -p elf-loader-core -p kernel-core -p capability-core -p virtio-core -p driver-core -p ui-core -p virtio-blk-driver -p block-protocol -p object-core -p catalog-core -p volume-core -p keyring-core -p virtio-rng-driver -p virtio-net-driver --all-targets -- -D warnings
           cargo +1.90.0 fmt --all -- --check
       - name: SDK tests and lint
         run: |

@@ -127,6 +127,16 @@ ontbrekende `cc`, en native/hardwareproeven zijn niet uitgevoerd. Dit is geen
 nieuw criteriumbewijs. Exacte grenzen staan in
 [`docs/drivers`](drivers/DRIVER-ARCHITECTURE.md).
 
+PCI type-0-validatie en eerste vaste-probe-integratie (3 november 2026),
+assessmentbasis `ca2cbcf7`, branch `copilot/universal-driver-framework`:
+**41 -> 41**. Een vaste type-0 PCI-configsnapshot wordt in de safe core
+gedecodeerd; de bestaande block/net fixed-BDF probes toetsen de identiteit
+fail-closed aan hun registratie vóór en na BAR-probing. Root-CI test en lint
+nu ook `driver-core`. Fmt-check, `cargo check --tests`, Clippy en
+`x86_64-unknown-none` releasebuild zijn lokaal exit 0. Hosttests konden niet
+linken (`cc` ontbreekt); strikte preflight exit 2 en geen QEMU-runtimeproef.
+Daarom geen nieuwe hardwareacceptatiepunten.
+
 PR139-review (3 november2026), exact geteste geïntegreerde bron `0a49a382`:
 **41 → 41**. Negen artifact-store-contracttests, Rust1.90.0 fmt en Clippy
 daadwerkelijk opnieuw groen; primaire logs/boom/commando's/codehashes staan

@@ -28,6 +28,31 @@ pub const DRIVER_REGISTRATION: driver_core::DriverRegistration = driver_core::Dr
 };
 const BDF: u32 = 5 << 11;
 const RAM_END: u64 = 256 * 1024 * 1024;
+fn validate_registration(config: &[u8; 256]) -> Result<(), Error> {
+    let address = driver_core::PciAddress {
+        segment: 0,
+        bus: 0,
+        device: 5,
+        function: 0,
+    };
+    let descriptor =
+        driver_core::PciDeviceDescriptor::from_type0_config(address, config).map_err(|error| {
+            match error {
+                driver_core::PciHeaderError::NotPresent => Error::Offline,
+                driver_core::PciHeaderError::InvalidAddress
+                | driver_core::PciHeaderError::UnsupportedHeaderType => Error::Protocol,
+            }
+        })?;
+    let mut registry = driver_core::DriverRegistry::<1>::new();
+    registry
+        .register(DRIVER_REGISTRATION)
+        .map_err(|_| Error::Protocol)?;
+    match registry.best_match(&descriptor) {
+        Ok(Some(_)) => Ok(()),
+        Ok(None) => Err(Error::Offline),
+        Err(_) => Err(Error::Protocol),
+    }
+}
 #[derive(Clone, Copy)]
 pub struct Discovery {
     pub config: [u8; 256],
@@ -63,6 +88,11 @@ pub fn discover() -> Result<Discovery, Error> {
     if cfg_read(0) != 0x10421af4 {
         return Err(Error::Offline);
     }
+    let mut config = [0u8; 256];
+    for offset in (0..256).step_by(4) {
+        config[offset..offset + 4].copy_from_slice(&cfg_read(offset as u16).to_le_bytes());
+    }
+    validate_registration(&config)?;
     let original = cfg_read(4) as u16;
     command((original & !7) | (1 << 10)); // DMA and decode off while probing only target BARs.
     let mut bars = [Bar::NONE; 6];
@@ -105,10 +135,10 @@ pub fn discover() -> Result<Discovery, Error> {
         i += if wide { 2 } else { 1 };
     }
     command((original & !5) | 2 | (1 << 10)); // MMIO decode on; DMA remains off.
-    let mut config = [0u8; 256];
     for offset in (0..256).step_by(4) {
         config[offset..offset + 4].copy_from_slice(&cfg_read(offset as u16).to_le_bytes());
     }
+    validate_registration(&config)?;
     let regions = parse_capabilities(&config, &bars)?;
     // Disable MSI/MSI-X as well as INTx; first driver polls without IRQ routing.
     let mut at = config[0x34] as usize;
@@ -555,42 +585,19 @@ unsafe fn write64(a: u64, v: u64) {
 #[cfg(test)]
 mod registry_tests {
     use super::*;
-    use driver_core::{DriverRegistry, PciAddress, PciDeviceDescriptor};
 
     #[test]
-    fn registration_matches_only_supported_virtio_block_identity() {
-        let mut registry = DriverRegistry::<1>::new();
-        registry.register(DRIVER_REGISTRATION).unwrap();
-        let descriptor = PciDeviceDescriptor {
-            address: PciAddress {
-                segment: 0,
-                bus: 0,
-                device: 5,
-                function: 0,
-            },
-            vendor_id: 0x1af4,
-            device_id: 0x1042,
-            class: 0x01,
-            subclass: 0x00,
-            programming_interface: 0x00,
-            revision: 1,
-            subsystem_vendor_id: None,
-            subsystem_device_id: None,
-        };
-        assert_eq!(
-            registry
-                .best_match(&descriptor)
-                .unwrap()
-                .unwrap()
-                .registration,
-            DRIVER_REGISTRATION
-        );
-        assert_eq!(
-            registry.best_match(&PciDeviceDescriptor {
-                device_id: 0x1043,
-                ..descriptor
-            }),
-            Ok(None)
-        );
+    fn fixed_profile_registration_accepts_only_supported_endpoint_headers() {
+        let mut config = [0; 256];
+        config[0x00..0x04].copy_from_slice(&[0xf4, 0x1a, 0x42, 0x10]);
+        config[0x08..0x0c].copy_from_slice(&[1, 0, 0, 1]);
+        assert_eq!(validate_registration(&config), Ok(()));
+
+        config[0x02..0x04].copy_from_slice(&[0x43, 0x10]);
+        assert_eq!(validate_registration(&config), Err(Error::Offline));
+
+        config[0x02..0x04].copy_from_slice(&[0x42, 0x10]);
+        config[0x0e] = 1;
+        assert_eq!(validate_registration(&config), Err(Error::Protocol));
     }
 }

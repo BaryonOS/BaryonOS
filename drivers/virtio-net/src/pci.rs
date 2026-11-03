@@ -5,6 +5,32 @@ use virtio_core::{parse_capabilities_for, Bar, Error};
 
 const BDF: u32 = 7 << 11;
 
+fn validate_registration(config: &[u8; 256]) -> Result<(), Error> {
+    let address = driver_core::PciAddress {
+        segment: 0,
+        bus: 0,
+        device: 7,
+        function: 0,
+    };
+    let descriptor =
+        driver_core::PciDeviceDescriptor::from_type0_config(address, config).map_err(|error| {
+            match error {
+                driver_core::PciHeaderError::NotPresent => Error::Offline,
+                driver_core::PciHeaderError::InvalidAddress
+                | driver_core::PciHeaderError::UnsupportedHeaderType => Error::Protocol,
+            }
+        })?;
+    let mut registry = driver_core::DriverRegistry::<1>::new();
+    registry
+        .register(super::DRIVER_REGISTRATION)
+        .map_err(|_| Error::Protocol)?;
+    match registry.best_match(&descriptor) {
+        Ok(Some(_)) => Ok(()),
+        Ok(None) => Err(Error::Offline),
+        Err(_) => Err(Error::Protocol),
+    }
+}
+
 fn cfg_read(offset: u16) -> u32 {
     let value: u32;
     // SAFETY: CPL0, serialized single-CPU access to fixed owned PCI 00:07.0.
@@ -38,6 +64,11 @@ pub fn discover() -> Result<Discovery, Error> {
     if cfg_read(0) != (u32::from(DEVICE_ID_NET) << 16) | 0x1af4 {
         return Err(Error::Offline);
     }
+    let mut config = [0; 256];
+    for offset in (0..256).step_by(4) {
+        config[offset..offset + 4].copy_from_slice(&cfg_read(offset as u16).to_le_bytes());
+    }
+    validate_registration(&config)?;
     let original = cfg_read(4) as u16;
     command((original & !7) | (1 << 10));
     let mut bars = [Bar::NONE; 6];
@@ -80,10 +111,10 @@ pub fn discover() -> Result<Discovery, Error> {
         index += if wide { 2 } else { 1 };
     }
     command((original & !5) | 2 | (1 << 10));
-    let mut config = [0; 256];
     for offset in (0..256).step_by(4) {
         config[offset..offset + 4].copy_from_slice(&cfg_read(offset as u16).to_le_bytes());
     }
+    validate_registration(&config)?;
     let regions = parse_capabilities_for(&config, &bars, DEVICE_ID_NET)?;
     let mut at = config[0x34] as usize;
     // parse_capabilities_for has already validated the complete capability walk.

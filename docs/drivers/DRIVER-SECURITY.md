@@ -15,6 +15,12 @@ vendor/device-paar. Class selectors volgen de class→subclass→programming-
 interface-hiërarchie. Registryvolte, dubbele driver-ID's en ongeldige
 selectors leveren expliciete fouten.
 
+`PciDeviceDescriptor::from_type0_config` leest alleen een vaste snapshot van
+256 bytes, controleert BDF-grenzen, afwezigheid en header type, en decodeert
+geen BAR- of resourcebevoegdheid. De huidige VirtIO-probes gebruiken de parser
+en registry voor hun vaste endpoints en valideren opnieuw na BAR-probing. Dit
+is geen busenumerator en geeft de driver geen extra rechten.
+
 ## Resourcegrens
 
 Geen generieke resource/HAL-adapter is geïmplementeerd. Het kernelcontract

@@ -156,6 +156,50 @@ pub struct PciDeviceDescriptor {
     pub subsystem_device_id: Option<u16>,
 }
 
+/// Errors while decoding a conventional PCI endpoint header.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum PciHeaderError {
+    /// The PCI device or function number is outside the conventional range.
+    InvalidAddress,
+    /// The vendor field indicates that no function is present.
+    NotPresent,
+    /// The snapshot is not a type-0 endpoint header.
+    UnsupportedHeaderType,
+}
+
+impl PciDeviceDescriptor {
+    /// Decodes identity fields from a fixed-size type-0 PCI configuration
+    /// snapshot. This does not enumerate hardware or grant device resources.
+    pub fn from_type0_config(
+        address: PciAddress,
+        config: &[u8; 256],
+    ) -> Result<Self, PciHeaderError> {
+        if address.device > 31 || address.function > 7 {
+            return Err(PciHeaderError::InvalidAddress);
+        }
+
+        let vendor_id = u16::from_le_bytes([config[0x00], config[0x01]]);
+        if vendor_id == u16::MAX {
+            return Err(PciHeaderError::NotPresent);
+        }
+        if config[0x0e] & 0x7f != 0 {
+            return Err(PciHeaderError::UnsupportedHeaderType);
+        }
+
+        Ok(Self {
+            address,
+            vendor_id,
+            device_id: u16::from_le_bytes([config[0x02], config[0x03]]),
+            revision: config[0x08],
+            programming_interface: config[0x09],
+            subclass: config[0x0a],
+            class: config[0x0b],
+            subsystem_vendor_id: Some(u16::from_le_bytes([config[0x2c], config[0x2d]])),
+            subsystem_device_id: Some(u16::from_le_bytes([config[0x2e], config[0x2f]])),
+        })
+    }
+}
+
 /// Exact-value PCI selectors for a driver registration.
 ///
 /// More specific registrations are ranked by subsystem identity, vendor/device
@@ -567,6 +611,62 @@ mod tests {
             subsystem_vendor_id: Some(0x1af4),
             subsystem_device_id: Some(0x1100),
         }
+    }
+
+    #[test]
+    fn type0_header_decodes_identity_and_subsystem_fields() {
+        let mut config = [0; 256];
+        config[0x00..0x04].copy_from_slice(&[0xf4, 0x1a, 0x42, 0x10]);
+        config[0x08..0x0c].copy_from_slice(&[1, 0, 0, 1]);
+        config[0x0e] = 0x80;
+        config[0x2c..0x30].copy_from_slice(&[0xf4, 0x1a, 0x00, 0x11]);
+        let decoded = PciDeviceDescriptor::from_type0_config(
+            PciAddress {
+                segment: 0,
+                bus: 0,
+                device: 5,
+                function: 0,
+            },
+            &config,
+        )
+        .unwrap();
+        assert_eq!(decoded, descriptor());
+    }
+
+    #[test]
+    fn type0_header_rejects_absent_functions_invalid_bdf_and_other_headers() {
+        let address = descriptor().address;
+        assert_eq!(
+            PciDeviceDescriptor::from_type0_config(address, &[0xff; 256]),
+            Err(PciHeaderError::NotPresent)
+        );
+        assert_eq!(
+            PciDeviceDescriptor::from_type0_config(
+                PciAddress {
+                    device: 32,
+                    ..address
+                },
+                &[0; 256]
+            ),
+            Err(PciHeaderError::InvalidAddress)
+        );
+        assert_eq!(
+            PciDeviceDescriptor::from_type0_config(
+                PciAddress {
+                    function: 8,
+                    ..address
+                },
+                &[0; 256]
+            ),
+            Err(PciHeaderError::InvalidAddress)
+        );
+        let mut bridge = [0; 256];
+        bridge[0x00] = 0xf4;
+        bridge[0x0e] = 1;
+        assert_eq!(
+            PciDeviceDescriptor::from_type0_config(address, &bridge),
+            Err(PciHeaderError::UnsupportedHeaderType)
+        );
     }
 
     const fn registration(id: DriverId, pci: PciMatch) -> DriverRegistration {

@@ -1,29 +1,40 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Driver Core en PCI-matching — 3 november 2026
+## NEXT AGENT HANDOFF — Driver Core: PCI type-0 validatie — 3 november 2026
 
-Werkbranch `copilot/universal-driver-framework`, implementatiecommit
-`66157cf2f6ecfe0c872d3514b5ab50bfca501966`, gepusht naar `origin`;
-basiscommit `56a025bb326f7341ec89f40caf6a18345de9110f`. Er staat een
-dependencyvrije
-`no_std` Driver Core met categoriecontracten, een vaste-capaciteit
-PCI-registry, fail-closed ambiguïteitsafhandeling en metadataregistraties
-voor bestaande VirtIO block/netdrivers. Geen externe code/dependency
-overgenomen; geen kernel/capability-/DMA-grens gewijzigd.
+Werkbranch `copilot/universal-driver-framework`; vorige gepushte bron
+`ca2cbcf78a43bcc62ff32bd62836f881401227d5`. Eerste implementatiestap staat
+op die branch; deze vervolgdelta voegt een veilige type-0-configsnapshotdecoder
+toe en laat de bestaande fixed-BDF VirtIO-probes hun snapshot vóór en na
+BAR-probing aan de eigen fail-closed registry toetsen. Root-CI bevat nu ook
+`driver-core`-tests en Clippy. Geen algemene busenumeratie, driverstart,
+resourcegrant of capabilityverruiming.
 
-**Uitgevoerde gates:** exacte commando's, logs, exitstatussen en bronhashes
-staan in [het verificatierapport](verification/universal-driver-core-2026-11-03.md).
-Formatcheck, `cargo check --tests`, Clippy `-D warnings` en releasebuild voor
-`x86_64-unknown-none` slaagden. De initiële Clippy-run vond een niet-minimale
-boolean op; die is aangepast en de volledige gate is opnieuw groen. Hosttests
-konden niet linken omdat `cc` ontbreekt; `cargo check --tests` controleert
-alleen compilatie, niet de uitvoering. Geen VM-/hardwarerun. Score blijft
-41/100.
+**Bewijs:** fmt-check, `cargo check --tests`, Clippy `-D warnings` en
+`x86_64-unknown-none` releasebuild exit 0. De volledige commando's, logs en
+hashes staan in [de integratie-receipt](verification/universal-driver-core-integration-2026-11-03.md).
+Hosttests konden niet linken (`cc` ontbreekt; exit 101). `tools/preflight.py
+--strict` eindigde exit 2: lokale QEMU/OVMF en target/compiler in PATH
+ontbreken; daarom geen kernel-QEMU-run. Score blijft 41/100.
 
-**Open/eerstvolgend:** voer unit/modeltests uit wanneer een host C-linker
-beschikbaar is. Beoordeel daarna of een beperkte kernel-side enumerator/
-resourcegrant op de huidige architectuur veilig uitvoerbaar is. De matchregistry
-start zelf geen driver en is nog niet aan boot gekoppeld.
+**Open/eerstvolgend:** voer hosttests/Clippy via CI of een passende ontwikkelhost
+uit en voer de bestaande wegwerp-QEMU-regressie uit. Pas daarna onderzoek naar
+een begrensde generieke PCI-discovery/resourcegrant; deze snapshotdecoder is
+alleen voor conventionele type-0 endpoints.
+
+### Gepauzeerd werk — PR139 exacte contracttestreceipt
+
+Geteste bron `0a49a3822e5d872f75573f12cd072e76e1249e1b`, geïntegreerde boom
+met main `d115cc96`; negen artifact-store-contracttests, Rust 1.90.0 fmt en
+Clippy exit 0. Primaire logs/boom/hash:
+[contracttestreceipt](verification/pr139-artifact-contract-receipt.json).
+Dit vervangt geen native acceptatie; eerdere Watch-testclaims zonder primaire
+receipt zijn niet retrospectief als geverifieerd bestempeld.
+Replay-/umaskbewijs blijft exact aan732 gebonden en OS-workflowhistorie
+uitsluitend aan380. Volgende oude PR-actie blijft
+`GH_PAGER="" gh pr checks 139` en live head/base/threads hercontroleren vóór
+guarded squash. Deze featurebranch wijzigt die PR niet en promoveert geen ouder
+testbewijs naar een andere head.
 
 ### Gepauzeerd werk — PR139 exacte contracttestreceipt
 
