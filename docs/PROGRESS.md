@@ -85,6 +85,13 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR136-reconciliatie (3 november 2026), bron `41034178`: **41 -> 41**.
+De L02-nativebron en A01accepted/R03open zijn correct geclassificeerd,
+zonder nieuwe productpunten. Alle zeven geleverde bestandshashes en het
+schema met39 groepen/62open releasekoppelingen zijn door parent gecontroleerd;
+de actuele d777-CI-entry blijft behouden. Geen verse native of menselijke
+acceptatie afgeleid uit een documentatiecorrectie.
+
 PR127-reviewintegratie (2 november 2026), basis `798706c` met `8f08db4`:
 branch **41 → 41**, main **34 → 34**. Zeven reviewpunten en gekoppelde
 font/damage-integratie hersteld; 189 Rust-app/UI-,9 netwerk- en31 Python-tests

@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`4a52aeae`](https://github.com/simonvanieperen/nieuw-os/commit/4a52aeae6c481cbee0b058c71430b45feb10d5bb) ·
+**Bron:** [`41034178`](https://github.com/simonvanieperen/nieuw-os/commit/41034178e7338676ec8dbbf894a8a40c75a8833a) ·
 **Ontwikkelbranch:** `simonvanieperen-cautious-happiness`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** OS-auditreviewcorrecties valideren op concept-PR #136.
-Audit-only reviewfixes: score 41/100 → 41/100, rubric v1; geen productcode, criteria of gewichten gewijzigd. Vier documentatiebevindingen zijn gecorrigeerd en JSON Schema, matrix, 62 FR-koppelingen, profieltellingen en links slagen. Op concept-PR-head 4a52aeae zijn 29 CI-checks succesvol, één CodeRabbit-job overgeslagen en nul mislukt; dit is geen releasevalidatie. Alle 62 productcriteria blijven open; geen lokale productbuild/QEMU-, hardware-, gebruikerstest of onafhankelijke securityreview uitgevoerd.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR136-auditlabels bronbehoudend reconciliëren en onafhankelijk via hashes/schema controleren.
+41 blijft41. De twee aanvullende L02/A01-classificatiefixes zijn op actuele d777-basis gereconcilieerd, inclusief behoud van de d777-CI-entry en bronmetadata. Parent controleert zeven geleverde hashes en Draft2020-12:39 unieke groepen,62 FR-koppelingen,21 VM_TESTED-toewijzingen en0 gesloten volledige releasecriteria. L02 blijft historisch native bewijs, FR-L04 geïntegreerde regressie en fysiekeQPU blijven apart; A01accepted2/R03open voegt geen punten toe. Nieuwe huidige-head CI/review blijft nodig; geen lokale native-/hardware-/menselijke-/releaseacceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

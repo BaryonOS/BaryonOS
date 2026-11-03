@@ -1,6 +1,23 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR #136 documentatiecorrecties gecontroleerd — 3 november 2026
+## NEXT AGENT HANDOFF — PR136-bewijslabels reconciliëren — 3 november 2026
+
+Lokale oplevering `41034178e7338676ec8dbbf894a8a40c75a8833a` behoudt exact
+live basis `d777819530bf753167210d3e97e76f1bdeec204e`; bronfix
+`d7b4c378217d5aad0a12a82a0516d0da348403c2` corrigeert historische L02-native-
+bewijslabels en A01 accepted (+2) tegenover R03 open. De nieuwe d777-CI-entry
+en centrale broninformatie zijn behouden, geen oude branch blind gepusht.
+Parent controleerde alle zeven geleverde bestandshashes en het JSON Schema,
+39 unieke groepen, alle62 FR-koppelingen, VM-telling21 en nul gesloten
+volledige releasecriteria. `verification/pr136-review-fixes.json` bevat
+de exacte leafcommando's en historische L02-bronbinding.
+Vier eerdere reviewthreads waren bij actuele read-only inventaris resolved.
+Nieuwe huidige-head CI/review blijft nodig; geen lokale native herproef,
+hardwaretest of menselijke audit. Score **41 -> 41**. Integrator blijft
+deze sessie (historisch f090; actuele app85c93164), geen mandaat naar leaf.
+Eerstvolgend: publicatie/remote-SHA controleren en huidige CI/review afhandelen.
+
+## Historisch checkpoint — PR #136 documentatiecorrecties gecontroleerd — 3 november 2026
 
 **Productbasis:** `main` `380111b68688c981eec6abb8fab29174a29f5601`.
 Documentatiebranch `simonvanieperen-cautious-happiness` stond tijdens de
