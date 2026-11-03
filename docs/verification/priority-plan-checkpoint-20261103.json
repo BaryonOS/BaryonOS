@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-03",
+  "task": "Execute and verify the three prioritized follow-up recommendations",
+  "checkout": {
+    "branch": "simonvanieperen-supreme-spork",
+    "assessment_base": "d3e5602c01b0e12bf805a3b6e963979d35d06cce",
+    "verified_os_source": "380111b68688c981eec6abb8fab29174a29f5601",
+    "working_tree_was_clean": true
+  },
+  "integration": {
+    "pull_request": 127,
+    "url": "https://github.com/simonvanieperen/nieuw-os/pull/127",
+    "state": "MERGED",
+    "head": "5343b0a681ebc4cb9b6461bbe8d4447722eec91c",
+    "base": "74a34d05ef5591b782a0da9da34e4669910d0722",
+    "merged_source": "380111b68688c981eec6abb8fab29174a29f5601"
+  },
+  "github_checks": {
+    "query": "gh run list --commit 380111b68688c981eec6abb8fab29174a29f5601 --limit 30 --json databaseId,name,workflowName,status,conclusion,headSha,url",
+    "workflow_runs_returned": 15,
+    "all_returned_runs_concluded_success": true,
+    "selected_runs": [
+      {
+        "id": 41535553013,
+        "workflow": "FR-I01 joint native system acceptance",
+        "head": "380111b68688c981eec6abb8fab29174a29f5601",
+        "conclusion": "success",
+        "job": "native-system",
+        "successful_steps": 18,
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41535553013"
+      },
+      {
+        "id": 41535553113,
+        "workflow": "Native window session and Windows QEMU bundle",
+        "head": "380111b68688c981eec6abb8fab29174a29f5601",
+        "conclusion": "success",
+        "job": "native-window-session",
+        "successful_steps": 17,
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41535553113"
+      },
+      {
+        "id": 41535553158,
+        "workflow": "Network broker quality",
+        "head": "380111b68688c981eec6abb8fab29174a29f5601",
+        "conclusion": "success",
+        "job": "native-network-service",
+        "successful_steps": 9,
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41535553158"
+      }
+    ],
+    "interpretation": "These source-bound CI jobs validate separate native profiles and component gates. They do not prove the single final VM-FR/VM-AI release image or close the full release matrix."
+  },
+  "local_preflight": {
+    "command": "python3 -B tools/preflight.py --strict",
+    "exit_code": 2,
+    "scope": "read-only inventory; no build or boot attempted",
+    "missing": [
+      "rustc",
+      "cargo",
+      "rustup",
+      "qemu-system-x86_64",
+      "OVMF code firmware",
+      "ld.lld",
+      "clang",
+      "cc",
+      "link.exe",
+      "x86_64-unknown-uefi",
+      "x86_64-unknown-none"
+    ]
+  },
+  "remaining_scope": {
+    "full_release_matrix_open_rows": 62,
+    "storage": "B02 provides authenticated record/key-state core, but protected volume integration and an independently trusted cold rollback anchor remain open.",
+    "nas": "Native NAS data/lifecycle acceptance remains open; the work queue assigns the sealing/device/restore lifecycle brief and requires a separate trust-boundary disposition before implementation.",
+    "progress_score": {
+      "previous": 41,
+      "current": 41,
+      "reason": "No new product acceptance criterion was closed by checking already-merged CI results."
+    }
+  }
+}

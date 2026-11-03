@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`380111b6`](https://github.com/simonvanieperen/nieuw-os/commit/380111b68688c981eec6abb8fab29174a29f5601) ·
+**Bron:** [`d3e5602c`](https://github.com/simonvanieperen/nieuw-os/commit/d3e5602c01b0e12bf805a3b6e963979d35d06cce) ·
 **Ontwikkelbranch:** `simonvanieperen-supreme-spork`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Architectuuroverzicht en prioritering van vervolgstappen.
-Alleen codebaseverkenning en advies; geen code-, product- of acceptatiebewijs toegevoegd. Criteria, bewijsstatus en gewichten zijn ongewijzigd. Score blijft 41/100; main blijft afzonderlijk beoordeeld. De samenvatting onderscheidt native implementatie van hostprototype en geeft drie vervolgstappen op basis van de open volledige-releasepoorten.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Uitvoeren en verifiëren van de drie geprioriteerde vervolgstappen.
+PR127 is gemergd; GitHub toont alle 15 workflowruns op exacte bron 380111b groen, waaronder FR-I01 joint native system (18 stappen), native-window-session (17 stappen) en native-network-service (9 stappen). Dit zijn afzonderlijke gates, geen finale gecombineerde FR-release. FULL-TEST-RELEASE houdt alle 62 rijen open. Lokale preflight exit 2: rustc/cargo/rustup/QEMU/OVMF ontbreken. Native B02-core bestaat, maar volume-integratie en onafhankelijke koude rollbackanker ontbreken; native NAS-lifecycle blijft eveneens open en heeft een toegewezen owner. Exacte bewijslinks en grenzen: docs/verification/priority-plan-checkpoint-20261103.json. Geen nieuwe acceptatiecriteria gesloten; score 41/100 blijft gelijk.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
