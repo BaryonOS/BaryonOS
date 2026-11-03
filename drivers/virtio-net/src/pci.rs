@@ -1,28 +1,24 @@
 //! Fixed-BDF PCI discovery and the sole volatile/port-I/O boundary.
-use super::{Discovery, Io, DEVICE_ID_NET};
-use core::arch::asm;
+use super::{Discovery, Io, DEVICE_ID_NET, DRIVER_REGISTRATION};
+use driver_core::{PciAddress, PciDeviceDescriptor, PciHeaderError};
+use pci_core::{Mechanism1, PciConfigAccess};
 use virtio_core::{parse_capabilities_for, Bar, Error};
 
-const BDF: u32 = 7 << 11;
+fn config_error(_: pci_core::ConfigError) -> Error {
+    Error::Protocol
+}
 
-fn validate_registration(config: &[u8; 256]) -> Result<(), Error> {
-    let address = driver_core::PciAddress {
-        segment: 0,
-        bus: 0,
-        device: 7,
-        function: 0,
-    };
+fn validate_registration(address: PciAddress, config: &[u8; 256]) -> Result<(), Error> {
     let descriptor =
-        driver_core::PciDeviceDescriptor::from_type0_config(address, config).map_err(|error| {
-            match error {
-                driver_core::PciHeaderError::NotPresent => Error::Offline,
-                driver_core::PciHeaderError::InvalidAddress
-                | driver_core::PciHeaderError::UnsupportedHeaderType => Error::Protocol,
+        PciDeviceDescriptor::from_type0_config(address, config).map_err(|error| match error {
+            PciHeaderError::NotPresent => Error::Offline,
+            PciHeaderError::InvalidAddress | PciHeaderError::UnsupportedHeaderType => {
+                Error::Protocol
             }
         })?;
     let mut registry = driver_core::DriverRegistry::<1>::new();
     registry
-        .register(super::DRIVER_REGISTRATION)
+        .register(DRIVER_REGISTRATION)
         .map_err(|_| Error::Protocol)?;
     match registry.best_match(&descriptor) {
         Ok(Some(_)) => Ok(()),
@@ -31,51 +27,64 @@ fn validate_registration(config: &[u8; 256]) -> Result<(), Error> {
     }
 }
 
-fn cfg_read(offset: u16) -> u32 {
-    let value: u32;
-    // SAFETY: CPL0, serialized single-CPU access to fixed owned PCI 00:07.0.
-    unsafe {
-        asm!("out dx,eax",in("dx") 0xcf8u16,in("eax") 0x80000000|BDF|u32::from(offset&0xfc),options(nomem,nostack));
-        asm!("in eax,dx",in("dx") 0xcfcu16,out("eax") value,options(nomem,nostack));
+fn select_device() -> Result<PciAddress, Error> {
+    let mut registry = driver_core::DriverRegistry::<1>::new();
+    registry
+        .register(DRIVER_REGISTRATION)
+        .map_err(|_| Error::Protocol)?;
+    let mut selected = None;
+    let mut ambiguous = false;
+    // SAFETY: Called synchronously during single-CPU kernel initialization
+    // before device services or interrupts can access PCI configuration.
+    let mut access = unsafe { Mechanism1::new() };
+    pci_core::enumerate(&mut access, |descriptor| {
+        match registry.best_match(&descriptor) {
+            Ok(Some(_)) => {
+                if selected.replace(descriptor.address).is_some() {
+                    ambiguous = true;
+                }
+            }
+            Err(_) => ambiguous = true,
+            _ => {}
+        }
+    })
+    .map_err(|_| Error::Protocol)?;
+    if ambiguous {
+        return Err(Error::Protocol);
     }
-    value
+    selected.ok_or(Error::Offline)
 }
 
-fn cfg_write(offset: u16, value: u32) {
-    // SAFETY: Same fixed-device exclusive config-I/O contract as cfg_read.
-    unsafe {
-        asm!("out dx,eax",in("dx") 0xcf8u16,in("eax") 0x80000000|BDF|u32::from(offset&0xfc),options(nomem,nostack));
-        asm!("out dx,eax",in("dx") 0xcfcu16,in("eax") value,options(nomem,nostack));
-    }
-}
-
-fn command(value: u16) {
-    // SAFETY: Only this fixed function's command register. A 16-bit write avoids
-    // clearing PCI status W1C bits in the high half of the config dword.
-    unsafe {
-        asm!("out dx,eax",in("dx") 0xcf8u16,in("eax") 0x80000000|BDF|4,options(nomem,nostack));
-        asm!("out dx,ax",in("dx") 0xcfcu16,in("ax") value,options(nomem,nostack));
-    }
-}
-
-/// Probe only the exact configured modern network device. No other PCI function
-/// or host device is touched; DMA remains disabled until validated initialization.
 pub fn discover() -> Result<Discovery, Error> {
-    if cfg_read(0) != (u32::from(DEVICE_ID_NET) << 16) | 0x1af4 {
+    discover_at(select_device()?)
+}
+
+/// Probes one registry-selected type-0 VirtIO network function.
+pub fn discover_at(address: PciAddress) -> Result<Discovery, Error> {
+    // SAFETY: Called synchronously during single-CPU kernel initialization
+    // before device services or interrupts can access PCI configuration.
+    let mut pci = unsafe { Mechanism1::new() };
+    if pci.read_u32(address, 0).map_err(config_error)? != (u32::from(DEVICE_ID_NET) << 16) | 0x1af4
+    {
         return Err(Error::Offline);
     }
     let mut config = [0; 256];
     for offset in (0..256).step_by(4) {
-        config[offset..offset + 4].copy_from_slice(&cfg_read(offset as u16).to_le_bytes());
+        config[offset..offset + 4].copy_from_slice(
+            &pci.read_u32(address, offset as u8)
+                .map_err(config_error)?
+                .to_le_bytes(),
+        );
     }
-    validate_registration(&config)?;
-    let original = cfg_read(4) as u16;
-    command((original & !7) | (1 << 10));
+    validate_registration(address, &config)?;
+    let original = pci.read_u32(address, 4).map_err(config_error)? as u16;
+    pci.write_u16(address, 4, (original & !7) | (1 << 10))
+        .map_err(config_error)?;
     let mut bars = [Bar::NONE; 6];
     let mut index = 0;
     while index < 6 {
-        let offset = 0x10 + index as u16 * 4;
-        let low = cfg_read(offset);
+        let offset = 0x10 + index as u8 * 4;
+        let low = pci.read_u32(address, offset).map_err(config_error)?;
         if low & 1 != 0 {
             index += 1;
             continue;
@@ -84,16 +93,27 @@ pub fn discover() -> Result<Discovery, Error> {
         if low & 6 != 0 && !wide || wide && index == 5 {
             return Err(Error::Unsupported);
         }
-        let high = if wide { cfg_read(offset + 4) } else { 0 };
-        cfg_write(offset, u32::MAX);
+        let high = if wide {
+            pci.read_u32(address, offset + 4).map_err(config_error)?
+        } else {
+            0
+        };
+        pci.write_u32(address, offset, u32::MAX)
+            .map_err(config_error)?;
         if wide {
-            cfg_write(offset + 4, u32::MAX);
+            pci.write_u32(address, offset + 4, u32::MAX)
+                .map_err(config_error)?;
         }
-        let mask_low = cfg_read(offset);
-        let mask_high = if wide { cfg_read(offset + 4) } else { u32::MAX };
-        cfg_write(offset, low);
+        let mask_low = pci.read_u32(address, offset).map_err(config_error)?;
+        let mask_high = if wide {
+            pci.read_u32(address, offset + 4).map_err(config_error)?
+        } else {
+            u32::MAX
+        };
+        pci.write_u32(address, offset, low).map_err(config_error)?;
         if wide {
-            cfg_write(offset + 4, high);
+            pci.write_u32(address, offset + 4, high)
+                .map_err(config_error)?;
         }
         let base = u64::from(low & !15) | u64::from(high) << 32;
         let mask = u64::from(mask_low & !15) | u64::from(mask_high) << 32;
@@ -110,32 +130,52 @@ pub fn discover() -> Result<Discovery, Error> {
         }
         index += if wide { 2 } else { 1 };
     }
-    command((original & !5) | 2 | (1 << 10));
+    pci.write_u16(address, 4, (original & !5) | 2 | (1 << 10))
+        .map_err(config_error)?;
     for offset in (0..256).step_by(4) {
-        config[offset..offset + 4].copy_from_slice(&cfg_read(offset as u16).to_le_bytes());
+        config[offset..offset + 4].copy_from_slice(
+            &pci.read_u32(address, offset as u8)
+                .map_err(config_error)?
+                .to_le_bytes(),
+        );
     }
-    validate_registration(&config)?;
+    validate_registration(address, &config)?;
     let regions = parse_capabilities_for(&config, &bars, DEVICE_ID_NET)?;
     let mut at = config[0x34] as usize;
     // parse_capabilities_for has already validated the complete capability walk.
     while at != 0 {
-        let value = cfg_read(at as u16);
+        let value = pci.read_u32(address, at as u8).map_err(config_error)?;
         if config[at] == 5 {
-            cfg_write(at as u16, value & !(1 << 16));
+            pci.write_u32(address, at as u8, value & !(1 << 16))
+                .map_err(config_error)?;
         }
         if config[at] == 0x11 {
-            cfg_write(at as u16, (value & !(1 << 31)) | (1 << 30));
+            pci.write_u32(address, at as u8, (value & !(1 << 31)) | (1 << 30))
+                .map_err(config_error)?;
         }
         at = config[at + 1] as usize;
     }
     Ok(Discovery {
+        address,
         config,
         bars,
         regions,
     })
 }
 
-pub(super) struct Hardware;
+pub(super) struct Hardware {
+    address: PciAddress,
+    pci: Mechanism1,
+}
+
+pub(super) unsafe fn hardware(address: PciAddress) -> Hardware {
+    // SAFETY: The caller is the synchronous, single-CPU kernel initialization
+    // path; it serializes PCI config access and keeps interrupts disabled.
+    Hardware {
+        address,
+        pci: unsafe { Mechanism1::new() },
+    }
+}
 
 impl Io for Hardware {
     fn read8(&self, address: u64) -> u8 {
@@ -178,15 +218,24 @@ impl Io for Hardware {
             (address as *mut u64).write_volatile(value);
         }
     }
-    fn bus_master(&mut self, enabled: bool) {
-        let current = cfg_read(4) as u16;
-        command(if enabled {
-            current | 6 | (1 << 10)
-        } else {
-            (current & !4) | (1 << 10)
-        });
+    fn bus_master(&mut self, enabled: bool) -> Result<(), Error> {
+        let current = self.pci.read_u32(self.address, 4).map_err(config_error)? as u16;
+        self.pci
+            .write_u16(
+                self.address,
+                4,
+                if enabled {
+                    current | 6 | (1 << 10)
+                } else {
+                    (current & !4) | (1 << 10)
+                },
+            )
+            .map_err(config_error)
     }
-    fn bus_master_enabled(&self) -> bool {
-        cfg_read(4) & 4 != 0
+    fn bus_master_enabled(&mut self) -> Result<bool, Error> {
+        self.pci
+            .read_u32(self.address, 4)
+            .map(|command| command & 4 != 0)
+            .map_err(config_error)
     }
 }

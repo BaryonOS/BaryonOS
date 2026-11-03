@@ -437,7 +437,9 @@ fn reset(r: &mut Runtime, now: u64) {
     r.resetting = true;
     r.reset_deadline = now + RESET_TIMEOUT;
     if let Some(device) = r.device.as_mut() {
-        device.begin_reset();
+        if device.begin_reset().is_err() {
+            r.quarantined = true;
+        }
     }
 }
 pub fn detach(pid: u64) {
@@ -706,8 +708,7 @@ fn finish(s: &mut State) -> ! {
     }
     if !r.quarantined {
         if let Some(device) = r.device.as_mut() {
-            device.begin_reset();
-            if !device.reset_acknowledged() {
+            if device.begin_reset().is_err() || !device.reset_acknowledged() {
                 fail(b"FINAL_RESET");
             }
         }

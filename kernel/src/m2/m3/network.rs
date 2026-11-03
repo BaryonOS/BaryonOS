@@ -70,6 +70,10 @@ fn error(e: virtio_core::Error) -> i64 {
     }
 }
 pub(super) fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
+    let info = match virtio_net_driver::discover() {
+        Ok(i) => i,
+        Err(_) => return,
+    };
     let mut pages = [0; 4];
     for page in &mut pages {
         *page = frames
@@ -84,10 +88,6 @@ pub(super) fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
         tx_bounce: pages[3],
     };
     pool.validate(PAGE * FRAME_COUNT as u64).unwrap();
-    let info = match virtio_net_driver::discover() {
-        Ok(i) => i,
-        Err(_) => return,
-    };
     let mut mapped = [0; 6];
     for region in [
         info.regions.common,
@@ -120,16 +120,8 @@ pub(super) fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
             return;
         }
     };
-    if device.mac() != [2, 0, 0, 0, 0, 7] {
-        device.begin_reset();
-        runtime().offline = -15;
-        runtime().quarantined = true;
-        runtime().device = Some(device);
-        return;
-    }
     if let Err(e) = device.post_rx() {
-        device.begin_reset();
-        runtime().offline = error(e);
+        runtime().offline = device.begin_reset().err().map_or_else(|| error(e), error);
         runtime().quarantined = true;
         runtime().device = Some(device);
         return;
@@ -311,9 +303,14 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
     }
 }
 fn stop(r: &mut Runtime, now: u64, code: i64) {
-    if let Some(device) = r.device.as_mut() {
-        device.begin_reset();
+    let reset_error = r
+        .device
+        .as_mut()
+        .and_then(|device| device.begin_reset().err());
+    if reset_error.is_some() {
+        r.quarantined = true;
     }
+    let code = reset_error.map_or(code, error);
     r.offline = code;
     // RX failures reset the same device as TX. Preserve every published TX's
     // binding and provide a terminal uncertain outcome instead of eternal Again.

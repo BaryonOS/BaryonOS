@@ -12,7 +12,13 @@ De vertrouwde basis (TCB) omvat het kerneltransport en het protocolconforme QEMU
 
 ## Driver en geheugen
 
-- Exact testdevice `00:05.0`, vendor `1af4`, device `1042`; de bestaande boot-ESP is een ander device. Eén splitqueue met acht plaatsen, maximaal één uitstaande READ, sector 512 bytes, resultaatslice 1–128 bytes.
+- Het QEMU-testprofiel plaatst het VirtIO-blokdevice op `00:05.0` (vendor
+  `1af4`, device `1042`); dit BDF is geen driveraanname meer. Segment-0-
+  enumeratie en `DriverRegistry` selecteren de matchende type-0-functie; een
+  tweede match wordt voorlopig geweigerd omdat deze broker één transport
+  beheert. De bestaande boot-ESP wordt niet door de VirtIO-match gekozen. Eén
+  splitqueue met acht plaatsen, maximaal één uitstaande READ, sector 512 bytes,
+  resultaatslice 1–128 bytes.
 - PCI-capabilityketen, BAR-type/grootte, capabilityoffset/lengte en notify-multiplier worden begrensd en met overflowcontrole verwerkt. Alleen gevalideerde devicegebieden krijgen supervisor-RW/NX-UC-mappings. Geen algemene RAM-map-bypass of user-MMIO.
 - Vereis VIRTIO_F_VERSION_1; onderhandel uitsluitend begrepen features. Alleen-lezen testbackend; geen willekeurige devicecommando's. Capaciteit komt uit stabiel gelezen deviceconfiguratie.
 - Vijf vaste pagina's: descriptors, available-ring, used-ring, request/status en bouncebuffer. Header 16 bytes leesbaar voor device, bouncebuffer 512 bytes en status 1 byte schrijfbaar; keten 0→1→2. Valideer de volledige draft vóór publicatie. Geheugenbarrières vóór available/notify en na used-index vóór dataread. Device-interrupts blijven gemaskeerd; PIT/yield verzorgen voortgang.

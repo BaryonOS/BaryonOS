@@ -635,7 +635,9 @@ fn reset(r: &mut Runtime, now: u64) {
         }
     }
     if let Some(device) = r.device.as_mut() {
-        device.begin_reset();
+        if device.begin_reset().is_err() {
+            r.quarantined = true;
+        }
     }
 }
 pub fn detach(pid: u64) {
@@ -1333,7 +1335,7 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
         serial::write(b"M6B:SURVIVOR_PROGRESS:PASS\n");
         if !r.quarantined {
             if let Some(device) = r.device.as_mut() {
-                device.begin_reset();
+                assert!(device.begin_reset().is_ok());
                 assert!(device.reset_acknowledged());
             }
         }

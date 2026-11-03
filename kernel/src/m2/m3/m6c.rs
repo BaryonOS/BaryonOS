@@ -582,7 +582,9 @@ fn reset(r: &mut Runtime, now: u64) {
     r.resetting = true;
     r.reset_deadline = now + RESET_TIMEOUT;
     if let Some(device) = r.device.as_mut() {
-        device.begin_reset();
+        if device.begin_reset().is_err() {
+            r.quarantined = true;
+        }
     }
 }
 pub fn detach(pid: u64) {
@@ -1347,7 +1349,7 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
         broker_diagnostic(r, s.ticks);
         if !r.quarantined {
             if let Some(device) = r.device.as_mut() {
-                device.begin_reset();
+                assert!(device.begin_reset().is_ok());
                 assert!(device.reset_acknowledged());
             }
         }

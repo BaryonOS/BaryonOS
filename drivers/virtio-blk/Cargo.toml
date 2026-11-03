@@ -7,3 +7,4 @@ publish = false
 [dependencies]
 virtio-core = { path = "../../crates/virtio-core" }
 driver-core = { path = "../../crates/driver-core" }
+pci-core = { path = "../../crates/pci-core" }

@@ -46,6 +46,36 @@ enumerator met negatieve tests bestaan, of wanneer echte deviceproeven een
 incompatibele matching-/category-API aantonen. Zie
 [`docs/drivers`](drivers/DRIVER-ARCHITECTURE.md).
 
+## ADR-065 — Segment-0 PCI-discovery voor VirtIO block en netwerk
+
+**Datum:** 3 november 2026. De eerste runtime-integratie gebruikt een gedeelde
+`pci-core`-scanner en PCI configuration mechanism 1 om conventionele segment-0-
+functies te ontdekken. Hij scant begrensd de bus/device/function-ruimte,
+respecteert het multifunction-bit en levert alleen type-0-endpoints aan de
+registries. Onbekende IDs en niet-type-0 headers starten geen driver.
+
+VirtIO block en net selecteren nu op hun geregistreerde vendor/device-ID's in
+plaats van vaste BDF's. Na een match blijft het geselecteerde `PciAddress`
+gekoppeld aan config reads/writes en busmasterbeheer; de kernel behoudt de
+toewijzing van DMA-pagina's en de supervisor-MMIO-mappings. Meer dan één
+matchende functie per driver wordt voorlopig geweigerd, omdat de bestaande
+brokers één transportinstantie beheren. De netwerkbroker vertrouwt niet langer
+op het QEMU-fixture-MAC-adres.
+
+**Beperkingen:** de scanner gebruikt alle 256 conventionele busnummers in
+segment 0 omdat de bootinformatie nog geen ACPI MCFG/rootbridge-topologie
+aanlevert. Andere segmenten, ECAM, bridge-validatie, hotplug, generieke
+resourcegrants, IRQ-lifecycle, DMA/IOMMU-authority, dynamische factory-
+registratie en meerdere actieve apparaten blijven open. Geen universele
+physical-memory-capability toegevoegd. De mechanism-1-adapter vereist
+geserialiseerde kerneltoegang; dit ontwerp is alleen voor de huidige single-
+CPU-initialisatie-/transportpaden.
+
+**Herzien:** zodra firmware-rootinformatie, een kernel-owned
+resourcebroker/factory-interface of meerdere device-instanties worden
+geïntegreerd; ook bij een target waarop mechanism 1 niet beschikbaar is.
+Geen native/hardwareacceptatie of extra voortgangspunt volgt uit compilatie.
+
 ## Onderzoeksbesluit J-20261102 — herkenbare basis, expliciete installatiegrens
 
 **Datum:** 2 november 2026. **Status:** ontwerp-/onderzoekskeuze, geen

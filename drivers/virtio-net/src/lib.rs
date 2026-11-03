@@ -42,6 +42,8 @@ const TX: usize = 1;
 
 #[derive(Clone, Copy)]
 pub struct Discovery {
+    /// PCI function selected by generic segment-zero enumeration and matching.
+    pub address: driver_core::PciAddress,
     pub config: [u8; 256],
     pub bars: [Bar; 6],
     pub regions: Regions,
@@ -164,8 +166,8 @@ trait Io {
     fn write16(&mut self, address: u64, value: u16);
     fn write32(&mut self, address: u64, value: u32);
     fn write64(&mut self, address: u64, value: u64);
-    fn bus_master(&mut self, enabled: bool);
-    fn bus_master_enabled(&self) -> bool;
+    fn bus_master(&mut self, enabled: bool) -> Result<(), Error>;
+    fn bus_master_enabled(&mut self) -> Result<bool, Error>;
 }
 
 #[derive(Clone, Copy, Default)]
@@ -228,7 +230,7 @@ impl<T: Io> Engine<T> {
 
     fn initialize(&mut self) -> Result<(), Error> {
         let c = self.common;
-        self.io.bus_master(false);
+        self.io.bus_master(false)?;
         self.io.write8(c + 20, 0);
         if self.io.read8(c + 20) != 0 {
             return Err(Error::Timeout);
@@ -290,7 +292,7 @@ impl<T: Io> Engine<T> {
             }
         }
         fence(Ordering::SeqCst);
-        self.io.bus_master(true);
+        self.io.bus_master(true)?;
         self.io.write8(c + 20, 15);
         if self.io.read8(c + 20) != 15 {
             return Err(Error::Protocol);
@@ -397,7 +399,7 @@ impl<T: Io> Engine<T> {
         // An unsolicited/stale used entry must not be attributed to the next
         // request after we publish it. Check before touching its bounce page.
         if self.io.read16(self.pool.queue(index).used() + 2) != self.queues[index].used {
-            self.begin_reset();
+            self.begin_reset()?;
             return Err(Error::Protocol);
         }
         Ok(())
@@ -419,7 +421,7 @@ impl<T: Io> Engine<T> {
         let id = self.io.read32(at);
         let length = self.io.read32(at + 4);
         if let Err(error) = validate_used(index == RX, queue.used, next, id, length) {
-            self.begin_reset();
+            self.begin_reset()?;
             return Err(error);
         }
         Ok(Some((next, length)))
@@ -430,7 +432,7 @@ impl<T: Io> Engine<T> {
             return Err(Error::Offline);
         }
         if self.io.read8(self.common + 20) != 15 {
-            self.begin_reset();
+            self.begin_reset()?;
             return Err(Error::Io);
         }
         Ok(())
@@ -441,7 +443,7 @@ impl<T: Io> Engine<T> {
             return Err(Error::Offline);
         }
         if self.queues[TX].posted && now >= self.tx_deadline {
-            self.begin_reset();
+            self.begin_reset()?;
             return Err(Error::Timeout);
         }
         let Some((next, _)) = self.completion(TX)? else {
@@ -461,7 +463,7 @@ impl<T: Io> Engine<T> {
             *byte = self.io.read8(self.pool.rx_bounce + offset as u64);
         }
         if let Err(error) = validate_rx_header(&header) {
-            self.begin_reset();
+            self.begin_reset()?;
             return Err(error);
         }
         let size = length as usize - HEADER_BYTES;
@@ -478,18 +480,21 @@ impl<T: Io> Engine<T> {
         Ok(Some(size))
     }
 
-    fn begin_reset(&mut self) {
+    fn begin_reset(&mut self) -> Result<(), Error> {
         self.ready = false;
         self.io.write8(self.common + 20, 0);
-        self.io.bus_master(false);
+        self.io.bus_master(false)?;
         // DMA pages are never freed here; a reset request alone is not an ACK.
         for queue in &mut self.queues {
             queue.posted = false;
         }
+        Ok(())
     }
 
-    fn reset_acknowledged(&self) -> bool {
-        !self.ready && self.io.read8(self.common + 20) == 0 && !self.io.bus_master_enabled()
+    fn reset_acknowledged(&mut self) -> bool {
+        !self.ready
+            && self.io.read8(self.common + 20) == 0
+            && self.io.bus_master_enabled() == Ok(false)
     }
 }
 
@@ -503,15 +508,20 @@ impl Device {
     /// validated BARs and four exclusive, identity-mapped, pinned normal-RAM
     /// pages. Neither firmware, another driver nor a process may access them.
     /// Pages remain pinned until reboot even on failure, and can be reused for
-    /// reinitialization only after an observed reset ACK. One CPU/serialized I/O.
+    /// reinitialization only after an observed reset ACK. `info.address` must
+    /// be the matched function owning the supplied mappings and pages. One
+    /// CPU/serialized I/O.
     pub unsafe fn initialize(
         info: Discovery,
         mapped: [u64; 6],
         pool: NetPool,
     ) -> Result<Self, Error> {
-        let mut engine = Engine::new(info, mapped, pool, Hardware)?;
+        // SAFETY: Initialization occurs in the single-CPU setup path; only
+        // this device instance accesses CF8/CFC until driver activation ends.
+        let hardware = unsafe { pci::hardware(info.address) };
+        let mut engine = Engine::new(info, mapped, pool, hardware)?;
         if let Err(error) = engine.initialize() {
-            engine.begin_reset();
+            engine.begin_reset()?;
             return Err(error);
         }
         Ok(Self { engine })
@@ -537,10 +547,10 @@ impl Device {
     pub fn poll_tx(&mut self, now: u64) -> Result<Option<usize>, Error> {
         self.engine.poll_tx(now)
     }
-    pub fn begin_reset(&mut self) {
-        self.engine.begin_reset();
+    pub fn begin_reset(&mut self) -> Result<(), Error> {
+        self.engine.begin_reset()
     }
-    pub fn reset_acknowledged(&self) -> bool {
+    pub fn reset_acknowledged(&mut self) -> bool {
         self.engine.reset_acknowledged()
     }
     pub fn tx_pending(&self) -> bool {

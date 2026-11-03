@@ -476,6 +476,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "pci-core"
+version = "0.1.0"
+dependencies = [
+ "driver-core",
+]
+
+[[package]]
 name = "poly1305"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -656,6 +663,7 @@ name = "virtio-blk-driver"
 version = "0.1.0"
 dependencies = [
  "driver-core",
+ "pci-core",
  "virtio-core",
 ]
 
@@ -668,6 +676,7 @@ name = "virtio-net-driver"
 version = "0.1.0"
 dependencies = [
  "driver-core",
+ "pci-core",
  "virtio-core",
 ]
 

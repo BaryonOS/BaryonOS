@@ -7,9 +7,18 @@ driver later aan een native broker en netwerkdienst. N01 blijft open.
 
 ## Profiel en interfaces
 
-- Eigen modern PCI-driver voor QEMU q35, vast BDF `00:07.0`, vendor `1af4`,
-  device `1041`; één CPU, 256 MiB identiteit-gemapte RAM, MMIO supervisor/UC.
-  Hergebruik de bestaande `virtio-core`-capabilityparser via lokale pathdependency.
+- Eigen modern PCI-driver voor QEMU q35, vendor `1af4`, device `1041`; één CPU,
+  256 MiB identiteit-gemapte RAM, MMIO supervisor/UC. De driver scant
+  segment 0 via PCI configuration mechanism 1 en selecteert via
+  `DriverRegistry`; de runtime is niet meer aan BDF `00:07.0` gebonden.
+  Hergebruik de bestaande `virtio-core`-capabilityparser via lokale
+  pathdependency.
+- De huidige scanner leest maximaal 256 conventionele busnummers, 32 devices
+  per bus en alleen functies 1–7 als functie 0 het multifunction-bit zet.
+  Niet-aanwezige functies en niet-type-0 headers worden overgeslagen. Meer dan
+  één matchende VirtIO-netfunctie wordt fail-closed geweigerd: deze kernelbroker
+  heeft nog capaciteit voor één NIC. ACPI-rootbridges, andere PCI-segmenten,
+  ECAM, bridge-topologie en hotplug zijn nog niet geïmplementeerd.
 - Vereist `VERSION_1` en `MAC`; onderhandel optioneel `STATUS`. Geen checksum-,
   segmentatie-, mergeable-buffer-, multiqueue-, indirecte-descriptor- of
   controlqueuefeatures. MTU 1500, Ethernet maximaal 1514 bytes, geen FCS.
@@ -43,6 +52,10 @@ driver later aan een native broker en netwerkdienst. N01 blijft open.
   Tot die bevestiging geen hergebruik; dit profiel houdt alle DMA-pagina's
   bovendien tot reboot gepind, ook na mislukte initialisatie. Geen IOMMU- of
   bescherming tegen een kwaadwillend fysiek apparaat geclaimd.
+- De PCI-configadapter bewaart het gematchte adres in de driverinstantie;
+  configuratie- en busmasterwrites zijn daardoor aan dezelfde functie gebonden.
+  Kernelcode blijft eigenaar van RAM-paginatoewijzing en de beperkte BAR-MMIO-
+  mappings. Dit is nog geen generieke resourcebroker of userspacedriver.
 
 ## Acceptatie en bewijsgrens
 

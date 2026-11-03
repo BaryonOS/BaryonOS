@@ -475,7 +475,9 @@ fn begin_reset(now: u64, restart: bool) {
     r.reset_deadline = now + RESET_TIMEOUT;
     r.need_restart |= restart;
     if let Some(device) = r.device.as_mut() {
-        device.begin_reset();
+        if device.begin_reset().is_err() {
+            r.quarantined = true;
+        }
     }
 }
 pub fn detach(pid: u64) {
@@ -905,7 +907,7 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
     // explicitly proves quarantine. Pinned pages are never returned to Frames.
     if !r.quarantined {
         if let Some(device) = r.device.as_mut() {
-            device.begin_reset();
+            assert!(device.begin_reset().is_ok());
             assert!(device.reset_acknowledged());
         }
     }

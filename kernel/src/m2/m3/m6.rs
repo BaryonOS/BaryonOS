@@ -620,7 +620,9 @@ fn reset(now: u64, restart: bool) {
     r.reset_deadline = now + RESET_TIMEOUT;
     r.need_restart |= restart;
     if let Some(d) = r.device.as_mut() {
-        d.begin_reset();
+        if d.begin_reset().is_err() {
+            r.quarantined = true;
+        }
     }
 }
 pub fn detach(pid: u64) {
@@ -1162,7 +1164,7 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
     serial::write(b"M6A:SURVIVOR_PROGRESS:PASS\n");
     if !r.quarantined {
         if let Some(d) = r.device.as_mut() {
-            d.begin_reset();
+            assert!(d.begin_reset().is_ok());
             assert!(d.reset_acknowledged());
         }
     }
