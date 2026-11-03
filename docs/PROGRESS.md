@@ -4,14 +4,11 @@ De actieve volledige releaseopdracht en productacceptatie staan in
 [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft
 de ontwikkelmeter; het vervangt de conjunctieve releaseacceptatie niet.
 
-PR150 voegt specialistprofielen en expliciete bewijs-/toolgrenzen toe.
-Statische profielcontrole is geen gemeten cloudruntime, technische sandbox
-of native OS-acceptatie: **41 → 41/100**, geen criterium gewijzigd.
-
-PR139 is werkelijk main `99d13276`, met exact de geteste boom en30 voltooide
-checks inclusief succesvolle CodeRabbit. PR150 neemt die main behoudend op;
-beide centrale bronhistorieën zijn gehasht gearchiveerd, profielen en
-OS-code blijven hun eigen bron behouden. **41 →41**, geen nieuw criterium.
+PR149-review op bron `53256f82`: **41 → 41**. Drie daadwerkelijk rood
+gereproduceerde kaartfouten hersteld: smal/hoog, overlopende tekst en
+onjuiste opslagoorzaak.59 volledige hosttests, Clippy, formattering en
+scalarno_std-librarybuild slagen. Geen nieuwe native gast-/screenshot- of
+menselijke acceptatie. [Volledig bewijs](verification/pr149-compact-review.json).
 
 ## Betekenis van het percentage
 
@@ -85,14 +82,6 @@ branch, datum en opdracht staan in de README. Een behaalde mijlpaal op die
 branch is niet automatisch opgenomen in `main` of vrijgegeven als product.
 Het scoreblad verandert geen bestaande acceptatiegrenzen van M1–M6c.
 
-`assessment.source_commit` is de vooraf bestaande **beoordelingsbasis** van
-de opdracht. De gegenereerde README noemt deze waarde `Bron`; het is niet de
-uiteindelijke PR-head (die pas na vastlegging ontstaat), en niet automatisch
-de bron van elk bewijs. Een testreceipt vermeldt zijn eigen geteste bron,
-omgeving en afbakening. PR150 controleert alleen een gedocumenteerde
-frontmatter-veldsubset en toolsets, geen volledige YAML-/cloudconfigvalidatie
-of werkelijk geladen agent/runtime-isolatie.
-
 M6d op uitvoeringsbron `88e6c04be218b8b09ea4f0a226f6b9719da706a6` sluit
 **S07** met opgeslagen fout-/herstelbewijs en de vereiste regressie. De score
 stijgt daardoor **13% → 14%**: opslag van 3 naar 4 punten; alle andere gewichten
@@ -102,13 +91,38 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
-PR150 native-faalbewijs (3 november2026), bron564/run41632495284:
-**41 →41**. Echte serial1064/status0 na112 ticks bij venster100, rawexit35;
-artifact/report/serialhashes en source-v3-bij-code433 vastgelegd in
-[de receipt](verification/pr150-foundation-failure.json). Geen bewezen
-quotabypass of geslaagde564-gate. Foundation op latere reviewcorrectie433
-is afzonderlijk groen; dit herlabelt de eerdere rode proef niet en geeft
-geen productpunten. Geen quota-/assertion-/CI-wijziging.
+PR149 bronbewijsvervolg (3 november 2026), schone bron `bb8877e3`:
+59 hosttests echt opnieuw exit0 met cwd/HEAD/status/lock-/Rust-hashes vóór/na
+en volledig gehasht log in
+[de nieuwe receipt](verification/pr149-bb8877-host-receipt.json).
+De eerdere Watch-tijden zijn geen primaire receipt. Scalar/Clippy/fmt blijven
+hun oorspronkelijke bron532 houden; geen nieuw native/fysiek/menselijk bewijs.
+**41 →41**, geen code- of criteriumwijziging.
+
+PR149 derde main-integratie (3 november 2026), basis `41688635` met main
+`99d13276`: **41 → 41**. Vier documentatieconflicten verzoend met behoud
+van de compacte UI-fixes, hun brongebonden bewijs en de PR139-receipts.
+Geen runtimecode gewijzigd of nieuw acceptatiecriterium gesloten.
+
+PR149 tweede main-integratie (3 november 2026), basis `b75cfc3c` met main
+`d115cc96`: **41 → 41**. Vier documentatieconflicten inhoudsbehoudend
+verzoend. UI-code en artifact-store-tests blijven uit hun betreffende
+parent behouden; geen nieuwe criteria of native acceptatie.
+
+PR149-conflictoplossing (3 november 2026), PR-bron `92fdf2ff` met main
+`69809c2c`: **41 → 41**. Vier centrale documentatieconflicten verzoend;
+beide checkpointgeschiedenissen en de bestaande rubric blijven behouden.
+Geen runtimecode handmatig gewijzigd, geen nieuw acceptatiecriterium.
+Nieuwe-head-CI en native productacceptatie blijven afzonderlijke gates.
+
+Native startoppervlak (3 november 2026), implementatiebron `bd4134c`:
+**41% → 41%**. De opt-in VM-preview toont niet-geladen, lege, fout- en
+gevulde Materiaaltoestanden. Alle 55 `ui/native`-hosttests slagen, inclusief
+de pixelregressie; rustfmt, check, Clippy en de scalar
+`x86_64-unknown-none`-releasebuild slagen. De testlinker is tijdelijk uit
+Ubuntu-pakketten in `/tmp` opgebouwd, zonder systeeminstallatie. QEMU/OVMF en
+native screenshot ontbreken. Geen nieuw criterium of runtimebewijs.
+Zie `verification/native-start-surface-20261103/README.md`.
 
 PR139-review (3 november2026), exact geteste geïntegreerde bron `0a49a382`:
 **41 → 41**. Negen artifact-store-contracttests, Rust1.90.0 fmt en Clippy

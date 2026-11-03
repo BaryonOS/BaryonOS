@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`43340832`](https://github.com/simonvanieperen/nieuw-os/commit/43340832d0a512b9ae0eba80e4469d84e814c229) ·
-**Ontwikkelbranch:** `copilot/add-os-specialist-agents`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR150: echte112tick-RANDOM-faalserial brongebonden bewaren zonder quota of gates te wijzigen.
-41 blijft 41. Beoordelingsbasis433, niet de uiteindelijke PR-head of iedere testbron. Primair artifact op564 toont1064/status0 na112ticks bij venster100, rawexit35; Actions-testmerge en runhead apart, code-v3 exact433. Dit bewijst een niet vervulde timingaanname van de native callproef, geen productquotabypass. Latere433-foundation groen maar andere checks nog bezig; oude rode proef blijft rood.16 statische checks uitsluitend gedocumenteerde frontmatter-veldsubset/toolsets, geen volledige YAML/cloudconfig/runtime-isolatie of nieuwe productacceptatie.
+**Bron:** [`bb8877e3`](https://github.com/simonvanieperen/nieuw-os/commit/bb8877e3e1aaec304d7478510b65c8116aeb634e) ·
+**Ontwikkelbranch:** `simonvanieperen-reimagined-train`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR149: nieuwe primaire59-hosttestreceipt op schone Watch-main99-merge bewaren.
+41 blijft 41. Op schone Watch-merge bb8877e3 met main99 zijn59 hosttests echt opnieuw groen; cwd/HEAD/status/lock- en Rust-hashes vóór/na en volledige logs vastgelegd. Geen retrospectieve bronbinding van eerdere Watch-tijden. De UI-Rust-code blijft exact53256f82; historische scalar/Clippy/fmt behouden die bron. Assessmentbasis is niet de uiteindelijke PR-head of automatisch elke testbron. Geen nieuwe code, native/QEMU/fysieke/menselijke acceptatie of punten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

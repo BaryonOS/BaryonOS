@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "43340832d0a512b9ae0eba80e4469d84e814c229",
-    "branch": "copilot/add-os-specialist-agents",
-    "task": "PR150: echte112tick-RANDOM-faalserial brongebonden bewaren zonder quota of gates te wijzigen",
+    "source_commit": "bb8877e3e1aaec304d7478510b65c8116aeb634e",
+    "branch": "simonvanieperen-reimagined-train",
+    "task": "PR149: nieuwe primaire59-hosttestreceipt op schone Watch-main99-merge bewaren",
     "previous_score": 41,
-    "summary": "41 blijft 41. Beoordelingsbasis433, niet de uiteindelijke PR-head of iedere testbron. Primair artifact op564 toont1064/status0 na112ticks bij venster100, rawexit35; Actions-testmerge en runhead apart, code-v3 exact433. Dit bewijst een niet vervulde timingaanname van de native callproef, geen productquotabypass. Latere433-foundation groen maar andere checks nog bezig; oude rode proef blijft rood.16 statische checks uitsluitend gedocumenteerde frontmatter-veldsubset/toolsets, geen volledige YAML/cloudconfig/runtime-isolatie of nieuwe productacceptatie."
+    "summary": "41 blijft 41. Op schone Watch-merge bb8877e3 met main99 zijn59 hosttests echt opnieuw groen; cwd/HEAD/status/lock- en Rust-hashes vóór/na en volledige logs vastgelegd. Geen retrospectieve bronbinding van eerdere Watch-tijden. De UI-Rust-code blijft exact53256f82; historische scalar/Clippy/fmt behouden die bron. Assessmentbasis is niet de uiteindelijke PR-head of automatisch elke testbron. Geen nieuwe code, native/QEMU/fysieke/menselijke acceptatie of punten."
   },
   "tracks": [
     {
