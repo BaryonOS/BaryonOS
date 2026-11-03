@@ -25,3 +25,9 @@ not durable storage or cloud telemetry.
 
 The integration test is an external crate consumer. Its host execution tests
 the public API, not native OS enforcement.
+
+The consumer suite also compares a deterministic sequence of 257 writes and
+timestamp rejections against a small reference model, checking repeated ring
+wraparound, scoped reads, sequence continuity, and accounting after each step.
+This is a reproducible state-transition regression test, not a coverage-guided
+fuzzer.

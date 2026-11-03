@@ -1,9 +1,39 @@
 use system_journal::{
     BuildIdentity, CrashRecord, CrashRecordError, DenialClass, EventCode, ExitClass, FailureClass,
     FaultClass, FaultContext, Journal, JournalError, JournalId, MetadataField, MetadataValue,
-    Producer, RateLimit, Reader, RecordInput, ResourceKind, RestartOutcome, ServiceIdentity,
-    Severity, Subsystem,
+    Producer, RateLimit, Reader, ReaderPermit, RecordInput, ResourceKind, RestartOutcome,
+    ServiceIdentity, Severity, Subsystem,
 };
+
+#[derive(Clone, Copy)]
+struct ModelRecord {
+    sequence: u64,
+    monotonic_ticks: u64,
+    producer: Producer,
+    subsystem: Subsystem,
+    event: EventCode,
+}
+
+fn assert_scoped_records<const N: usize>(
+    journal: &Journal<N>,
+    reader: &ReaderPermit,
+    expected: &[ModelRecord],
+    subsystem: Subsystem,
+) {
+    let visible = expected
+        .iter()
+        .filter(|record| record.subsystem == subsystem)
+        .collect::<std::vec::Vec<_>>();
+    assert_eq!(journal.len(Some(reader)), Ok(visible.len()));
+    for (index, expected) in visible.into_iter().enumerate() {
+        let actual = journal.read(Some(reader), index).unwrap();
+        assert_eq!(actual.sequence, expected.sequence);
+        assert_eq!(actual.monotonic_ticks, expected.monotonic_ticks);
+        assert_eq!(actual.producer, expected.producer);
+        assert_eq!(actual.subsystem, expected.subsystem);
+        assert_eq!(actual.event, expected.event);
+    }
+}
 
 fn journal<const N: usize>() -> (
     Journal<N>,
@@ -488,4 +518,118 @@ fn schema_boundary_redacts_free_form_data_and_enforces_minimum_severity() {
     );
     assert_eq!(record.metadata().count(), 1);
     assert_eq!(journal.stats(&admin).unwrap().rejected, 1);
+}
+
+#[test]
+fn deterministic_state_sequence_preserves_ring_order_and_accounting() {
+    const CAPACITY: usize = 7;
+    let (mut journal, admin) = Journal::<CAPACITY>::new(
+        JournalId::new(42).unwrap(),
+        RateLimit {
+            window_ticks: 10,
+            max_low_severity_events: 2,
+        },
+    )
+    .unwrap();
+    let supervisor = admin.producer(Producer::Supervisor);
+    let capability = admin.producer(Producer::CapabilityEngine);
+    let process_reader = admin
+        .reader(Reader::DiagnosticsApp, &[Subsystem::Process])
+        .unwrap();
+    let capability_reader = admin
+        .reader(Reader::DiagnosticsApp, &[Subsystem::Capability])
+        .unwrap();
+    let process_metadata = [MetadataField::exit_class(ExitClass::Normal)];
+    let capability_metadata = [MetadataField::denial_class(DenialClass::MissingRight)];
+    let mut model = std::vec::Vec::new();
+    let mut written = 0u64;
+    let mut rejected = 0u64;
+
+    for step in 0..257u64 {
+        let now = 100 + step * 2;
+        let (permit, producer, subsystem, event, metadata) = if step % 2 == 0 {
+            (
+                &supervisor,
+                Producer::Supervisor,
+                Subsystem::Process,
+                EventCode::ProcessExited,
+                &process_metadata[..],
+            )
+        } else {
+            (
+                &capability,
+                Producer::CapabilityEngine,
+                Subsystem::Capability,
+                EventCode::CapabilityDenied,
+                &capability_metadata[..],
+            )
+        };
+
+        if step > 0 && step % 9 == 4 {
+            assert_eq!(
+                journal.record(
+                    permit,
+                    RecordInput {
+                        monotonic_ticks: now - 3,
+                        wall_ticks: None,
+                        severity: Severity::Warning,
+                        subsystem,
+                        event,
+                        correlation_id: None,
+                        metadata,
+                    },
+                ),
+                Err(JournalError::TimestampRegressed)
+            );
+            rejected += 1;
+        }
+
+        written += 1;
+        assert_eq!(
+            journal.record(
+                permit,
+                RecordInput {
+                    monotonic_ticks: now,
+                    wall_ticks: None,
+                    severity: Severity::Warning,
+                    subsystem,
+                    event,
+                    correlation_id: None,
+                    metadata,
+                },
+            ),
+            Ok(written)
+        );
+        model.push(ModelRecord {
+            sequence: written,
+            monotonic_ticks: now,
+            producer,
+            subsystem,
+            event,
+        });
+
+        let mut retained = model
+            .iter()
+            .rev()
+            .take(CAPACITY)
+            .copied()
+            .collect::<std::vec::Vec<_>>();
+        retained.reverse();
+        assert_scoped_records(&journal, &process_reader, &retained, Subsystem::Process);
+        assert_scoped_records(
+            &journal,
+            &capability_reader,
+            &retained,
+            Subsystem::Capability,
+        );
+        assert_eq!(
+            journal.stats(&admin).unwrap(),
+            system_journal::JournalStats {
+                written,
+                overwritten: written.saturating_sub(CAPACITY as u64),
+                rate_limited: 0,
+                rejected,
+            }
+        );
+    }
 }
