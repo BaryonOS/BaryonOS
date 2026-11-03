@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`f1998bdb`](https://github.com/simonvanieperen/nieuw-os/commit/f1998bdbd8fccd0b26eaf897116b1dd93cb7637e) ·
+**Bron:** [`b3117312`](https://github.com/simonvanieperen/nieuw-os/commit/b31173128d4c0004ada0bfef9de89de4265833a3) ·
 **Ontwikkelbranch:** `simonvanieperen-veld-hc-20261103`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Veld-07 native geverifieerd; featurestand bevroren voor seriele integratie.
-41% blijft 41%: meldingenpaneel native geverifieerd opf1998bdb,60 volledige fasen per schaal100/200% in415,49/761,61s, exit0/ruwe33. Echte panelbediening, lege toestand, inputisolatie en numerieke paste na dismiss groen; alle eerdere HC-, venster-, opslag- en herstelgates behouden. Beide normale builds en scenehosttests/Clippy/fmt plus19 runnertegenproeven groen; compact bewijs opgeslagen. Op Simons integratiesprintopdracht featurewerk bevroren, geen nieuwe features of merge/mainwrites. Geen nieuwe criteriumacceptatie, General-/Settingswrites of score-/remoteimport; volledige Veld- en releaseacceptatie open.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Veld-07 begrensde native reviewdeelacceptatie; featurestand bevroren voor seriële integratie.
+41 blijft 41. Implementatie: bestaande meldingenpaneelreferentie f1998bdb, runnerreviewfix b3117312; featurestop. Testbewijs: docs/verification/veld-pr157-20261103/README.md, beide schalen 61 fasen, runner exit 0 en ruwe QEMU-exit 33; 100% 406,23 s, 200% 727,20 s. Drie gerichte notification-hosttests, Clippy/fmt en 23 runnertegenproeven exit 0. Historisch bewijs docs/verification/veld-notice-20261103/README.md betreft oudere 60-fasenruns en bewijst geen volledige paneelverwijdering/muisisolatie. Openstaand/onbekend: volledige scenehostrun en normale non-probebuilds niet herhaald op fixbron; gezamenlijke main-integratie/CI, fysieke en menselijke acceptatie ontbreken. Geen nieuwe criteria, score-import of mainmerge; volledige Veld- en releaseacceptatie open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

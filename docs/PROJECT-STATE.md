@@ -1,6 +1,22 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Veld bevroren voor seriele integratie — 3 november 2026
+## NEXT AGENT HANDOFF — Veld bevroren voor seriële integratie — 3 november 2026
+
+**Actuele implementatie:** productreferentie `f1998bdb`, runnerfixbron
+`b31173128d4c0004ada0bfef9de89de4265833a3`, bewijshead `def61f42`.
+**Testbewijs: native deelacceptatie Veld-07**, geen volledige productacceptatie:
+100%-schaal: 61 fasen, runner exit 0, ruwe QEMU-exit 33, 406,23 s;
+200%-schaal: 61 fasen, runner exit 0, ruwe QEMU-exit 33, 727,20 s.
+Beide probebuilds exit 0. Gerichte hosttests: drie notification-tests,
+Clippy/fmt en 23 runnertegenproeven exit 0.
+[Exacte bronnen, commando's, fouten en hashes](verification/veld-pr157-20261103/README.md).
+**Openstaand:** volledige scenehostrun en normale non-probebuilds niet
+herhaald op deze fixbron; gezamenlijke main-integratie/CI, fysieke en
+menselijke acceptatie niet uitgevoerd. Geen scorepunten of mainmerge.
+De oudere 60-fasenruns hieronder bewijzen geen volledige paneelverwijdering
+of muisisolatie: de oude closed-wait kon gedeeltelijke paneelpixels missen.
+
+### Historische feature-overdracht, begrensd door bovenstaande correctie
 
 **Basis/branch:** `ea0cd6d19235c5f8575f21d527e5bcc8526056ee`,
 `simonvanieperen-veld-hc-20261103`. Geen General-/remote-/scoreimport.
@@ -8,9 +24,11 @@ Veld-06 blijft op eigen bron0d232c70 native bewezen.
 
 **Nieuwe code:** `window-session/src/scene.rs` en `main.rs` tonen een echt
 meldingenpaneel voor uitsluitend de bestaande compositor-klembordstatus.
-Zichtbare bovenbalkactie of Alt+N opent het; Tab/pijlen kiezen, Delete of
-Enter verwijdert alleen de melding uit de presentatie, Escape/sluitknop
-sluit. Lege toestand en zichtbare focus zijn werkelijk gerenderd.
+Zichtbare bovenbalkactie of Alt+N opent het; Tab/pijlen kiezen.
+Enter, KeypadEnter en Space activeren de gefocuste knop: Verwijderen
+verwijdert de melding uit de presentatie, de sluitknop sluit het paneel.
+Delete verwijdert de melding altijd; Escape sluit.
+Lege toestand en zichtbare focus zijn werkelijk gerenderd.
 Dezelfde statuspoll laat een verwijderde melding niet terugkomen; een
 nieuwe status mag opnieuw zichtbaar worden. Geen documentnamen of inhoud.
 Dit is nog geen algemene appnotificatie-API, historie of persistentie.
@@ -31,13 +49,14 @@ inclusief lege toestand, en de volledige bovenbalk na sluiten; bestaande
 ongemaskerde hele apporakels blijven. De echte numerieke paste na dismiss
 moet aantonen dat de klembordinhoud niet is gewist.
 
-**Native geverifieerd:** product
+**Historisch testbewijs, uitsluitend Veld-07-deelscope:** productreferentie
 `f1998bdbd8fccd0b26eaf897116b1dd93cb7637e`, fingerprint
 `94c3b156c01013542a50c591d605eca28b574bc0ab039f6a04caddb31b661c76`.
-60 volledige fasen per schaal;100%415,49 s,200%761,61 s,
-beide exit0/ruwe33. Alle toepasselijke gates true, ook alle eerdere HC-,
+60 fasen per schaal: 100%-schaal 415,49 s; 200%-schaal 761,61 s.
+Beide runner-exits 0, beide ruwe QEMU-exits 33. Destijds gerapporteerde gates true, ook eerdere HC-,
 venster-, opslag-, herstel- en isolatiegates. Dismiss/lege toestand en
-muis-/keyboardroute slagen; echte numerieke paste behoudt clipboardinhoud,
+muis-/keyboardroute waren destijds groen gerapporteerd; de hierboven genoemde
+closed-wait beperkt dit historische bewijs. Echte numerieke paste behoudt clipboardinhoud,
 ook na de clear-chord tijdens het paneel. Beide normale builds exit0.
 [Exacte commando's, compacte rapporten en loghashes](verification/veld-notice-20261103/README.md).
 Geen nieuwe CI-, fysieke of menselijke claim.

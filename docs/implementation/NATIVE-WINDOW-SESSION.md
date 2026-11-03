@@ -2,7 +2,7 @@
 
 ## Veld-07: systeemmeldingenpaneel
 
-Eerste bron is uitsluitend de bestaande compositor-klembordfeedback.
+**Implementatie:** eerste bron is uitsluitend de bestaande compositor-klembordfeedback.
 Alt+N of de zichtbare bovenbalkactie opent een exclusief paneel. Tab/pijlen,
 Enter/Delete, Escape en echte dismiss-/sluitknoppen bedienen het.
 Verwijderen betreft alleen presentatie; geen klembordinhoud, document,
@@ -10,15 +10,25 @@ capability of persistentie. Geen algemene appnotificatie-API of historie.
 De lege toestand en keyboardfocus zijn zichtbaar; oude releases lekken niet.
 Geen nieuwe writes aan General-/Settingsbestanden.
 
-Acceptatie: volledige scenehosttests/Clippy/fmt, alle statusrollen en hele
-incremental/referenceframes op vijf displays. Beide volledige native60-
-fasengates, inclusief heel ondoorzichtig paneelinterieur, muis-/keyboardroute,
+**Acceptatiecriterium:** volledige scenehosttests/Clippy/fmt, alle statusrollen en hele
+incremental/referenceframes op vijf displays. Beide volledige native gates,
+inclusief heel ondoorzichtig paneelinterieur, volledige verwijdering plus schaduw,
+muis-/keyboardroute,
 geen appkeys tijdens modaliteit en echte numerieke paste na dismiss.
 Dat laatste moet ook na de globaal bekende clear-chord tijdens het paneel
 slagen; een meldingsactie mag geen klembordautoriteit nabootsen.
 `notification_panel_gate` alleen na volledige niet-diagnostische
 workspace+clipboardacceptatie. Alle eerdere appbody-, HC-, venster-,
 opslag-, isolatie- en herstelgates blijven; normale builds blijven verplicht.
+
+**Testbewijs:** runnerbron `b3117312`, beide schalen 61 fasen, runner exit 0,
+ruwe QEMU-exit 33; 100%: 406,23 s, 200%: 727,20 s. Drie gerichte
+notification-hosttests, Clippy/fmt en 23 runnertegenproeven exit 0.
+[Commando's, bronbinding en hashes](../verification/veld-pr157-20261103/README.md).
+Oudere 60-fasenruns bewijzen geen volledige paneelverwijdering/muisisolatie.
+**Openstaand/onbekend:** volledige scenehostrun en normale non-probebuilds
+niet herhaald op deze runnerfixbron; gezamenlijke main-integratie/CI,
+fysieke en menselijke acceptatie ontbreken. Geen volledige Veld-/releaseacceptatie.
 
 ## Veld-06: toetsenbordverplaatsing
 
