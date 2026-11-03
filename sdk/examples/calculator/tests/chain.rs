@@ -1128,6 +1128,49 @@ fn supervisor_retirement_detaches_both_owners_when_one_session_already_failed() 
     }
 }
 #[test]
+fn recent_calculations_and_unfinished_draft_roundtrip_through_real_arrow_scan_events() {
+    for scale in [1, 2] {
+        let h = Host::new();
+        let mut a = app(&h, scale);
+        finish(&mut a);
+        keys(
+            &h,
+            &mut a,
+            &[
+                0x03, 0x83, 0x2a, 0x0d, 0x8d, 0xaa, 0x04, 0x84, 0x1c, 0x9c, 0x01, 0x81, 0x05, 0x85,
+                0x2a, 0x09, 0x89, 0xaa, 0x06, 0x86, 0x1c, 0x9c, 0x01, 0x81, 0x0a, 0x8a, 0x35, 0xb5,
+                0x03, 0x83,
+            ],
+        );
+        finish(&mut a);
+        assert_eq!(a.model().expression(), "9/2");
+        assert_eq!(a.model().evaluations(), 2);
+        let baseline = a.evidence();
+        for (scans, expression) in [
+            (&[0xe0, 0x48, 0xe0, 0xc8][..], "4*5"),
+            (&[0xe0, 0x48, 0xe0, 0xc8][..], "2+3"),
+            (&[0xe0, 0x50, 0xe0, 0xd0][..], "4*5"),
+            (&[0xe0, 0x50, 0xe0, 0xd0][..], "9/2"),
+        ] {
+            keys(&h, &mut a, scans);
+            finish(&mut a);
+            assert_eq!(a.model().expression(), expression);
+            assert_eq!(a.model().evaluations(), 2);
+            assert!(!a.model().current());
+            assert_eq!(a.evidence().presented_generation, a.model().generation());
+            assert_eq!(a.evidence().errors, 0);
+            assert!(h.borrow().engine.check_invariants());
+        }
+        assert_eq!(a.evidence().keys - baseline.keys, 8);
+        assert_eq!(a.evidence().input_acks - baseline.input_acks, 8);
+        keys(&h, &mut a, &[0x1c, 0x9c]);
+        finish(&mut a);
+        assert_eq!(a.model().evaluations(), 3);
+        assert_eq!(a.model().answer().unwrap().value.raw(), 4_500_000_000);
+        a.stop_clean().unwrap();
+    }
+}
+#[test]
 fn actual_typed_service_chain_computes_from_real_scan_bytes_and_commits_only_current_frames() {
     for scale in [1, 2] {
         let h = Host::new();

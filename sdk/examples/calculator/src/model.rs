@@ -8,6 +8,7 @@ pub const LABELS: [&str; 20] = [
     "7", "8", "9", "/", "C", "4", "5", "6", "*", "Wis", "1", "2", "3", "-", "(", "0", ",", "=",
     "+", ")",
 ];
+pub const RECENT_CAPACITY: usize = 8;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Command {
     Insert(u8),
@@ -16,6 +17,8 @@ pub enum Command {
     Cancel,
     Backspace,
     Delete,
+    RecallOlder,
+    RecallNewer,
     Left(bool),
     Right(bool),
     Home(bool),
@@ -85,6 +88,7 @@ pub struct Model {
     failures: u64,
     exhausted: bool,
     selecting: bool,
+    recent: Recent,
     paint: PaintState,
     damage: Damage,
 }
@@ -102,6 +106,59 @@ struct PaintState {
     active: bool,
     hover: Option<usize>,
     pressed: Option<usize>,
+    recall_available: bool,
+    recalling: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Formula {
+    bytes: [u8; MAX_INPUT],
+    length: usize,
+}
+impl Formula {
+    const EMPTY: Self = Self {
+        bytes: [0; MAX_INPUT],
+        length: 0,
+    };
+}
+#[derive(Clone, Copy, Debug)]
+struct RecallDraft {
+    formula: Formula,
+    caret: usize,
+    anchor: usize,
+}
+#[derive(Clone, Debug)]
+struct Recent {
+    entries: [Formula; RECENT_CAPACITY],
+    length: usize,
+    browsing: Option<usize>,
+    draft: Option<RecallDraft>,
+}
+impl Recent {
+    const fn new() -> Self {
+        Self {
+            entries: [Formula::EMPTY; RECENT_CAPACITY],
+            length: 0,
+            browsing: None,
+            draft: None,
+        }
+    }
+    fn leave(&mut self) {
+        self.browsing = None;
+        self.draft = None;
+    }
+    fn record(&mut self, formula: Formula) {
+        self.leave();
+        if self.length != 0 && self.entries[self.length - 1] == formula {
+            return;
+        }
+        if self.length == RECENT_CAPACITY {
+            self.entries.copy_within(1..RECENT_CAPACITY, 0);
+            self.length -= 1;
+        }
+        self.entries[self.length] = formula;
+        self.length += 1;
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -191,6 +248,7 @@ impl Model {
             failures: 0,
             exhausted: false,
             selecting: false,
+            recent: Recent::new(),
             paint: PaintState {
                 bytes: [0; MAX_INPUT],
                 length: 0,
@@ -203,6 +261,8 @@ impl Model {
                 active: true,
                 hover: None,
                 pressed: None,
+                recall_available: false,
+                recalling: false,
             },
             damage: Damage::new(true, 0),
         }
@@ -300,6 +360,12 @@ impl Model {
     pub const fn exhausted(&self) -> bool {
         self.exhausted
     }
+    pub const fn recent_count(&self) -> usize {
+        self.recent.length
+    }
+    pub const fn recalling(&self) -> bool {
+        self.recent.browsing.is_some()
+    }
     pub fn paint_damage(&self, viewport: Viewport) -> PaintDamage {
         let mut out = PaintDamage {
             rects: [Rect {
@@ -385,6 +451,8 @@ impl Model {
         }
         self.damage.result |= old.answer != self.answer || old.current != self.current;
         self.damage.status |= old.notice != self.notice
+            || old.recall_available != (self.recent_count() != 0)
+            || old.recalling != self.recalling()
             || (old.answer.is_some_and(|a| a.rounded) && old.current)
                 != (self.answer.is_some_and(|a| a.rounded) && self.current);
         for index in 0..20 {
@@ -407,6 +475,8 @@ impl Model {
             active: self.active,
             hover: self.hover,
             pressed: self.pressed,
+            recall_available: self.recent_count() != 0,
+            recalling: self.recalling(),
         };
         if let Some(next) = self.generation.checked_add(1) {
             self.generation = next;
@@ -415,6 +485,7 @@ impl Model {
         }
     }
     fn edited(&mut self) {
+        self.recent.leave();
         self.current = false;
         self.notice = Notice::None;
         self.changed();
@@ -432,6 +503,52 @@ impl Model {
             self.anchor = self.caret;
         }
         self.focus = 0;
+        self.changed();
+    }
+    fn recall(&mut self, older: bool) {
+        if self.focus != 0 || self.recent.length == 0 {
+            return;
+        }
+        let next = match (self.recent.browsing, older) {
+            (None, false) | (Some(0), true) => return,
+            (None, true) => {
+                self.recent.draft = Some(RecallDraft {
+                    formula: Formula {
+                        bytes: self.bytes,
+                        length: self.length,
+                    },
+                    caret: self.caret,
+                    anchor: self.anchor,
+                });
+                Some(self.recent.length - 1)
+            }
+            (Some(index), true) => Some(index - 1),
+            (Some(index), false) if index + 1 < self.recent.length => Some(index + 1),
+            (Some(_), false) => None,
+        };
+        let state = match next {
+            Some(index) => {
+                let formula = self.recent.entries[index];
+                RecallDraft {
+                    formula,
+                    caret: formula.length,
+                    anchor: formula.length,
+                }
+            }
+            None => self
+                .recent
+                .draft
+                .take()
+                .expect("recall retains its starting draft"),
+        };
+        self.recent.browsing = next;
+        self.bytes = state.formula.bytes;
+        self.length = state.formula.length;
+        self.caret = state.caret;
+        self.anchor = state.anchor;
+        self.pressed = None;
+        self.current = false;
+        self.notice = Notice::None;
         self.changed();
     }
     pub fn command(&mut self, command: Command) {
@@ -465,8 +582,13 @@ impl Model {
                 self.edited();
             }
             Command::Evaluate => {
+                self.recent.leave();
                 match decimal::evaluate(self.expression()) {
                     Ok(answer) => {
+                        self.recent.record(Formula {
+                            bytes: self.bytes,
+                            length: self.length,
+                        });
                         self.answer = Some(answer);
                         self.current = true;
                         self.notice = Notice::None;
@@ -489,6 +611,7 @@ impl Model {
                 self.changed();
             }
             Command::Reset => {
+                self.recent.leave();
                 self.bytes.fill(0);
                 self.length = 0;
                 self.caret = 0;
@@ -501,6 +624,7 @@ impl Model {
                 self.changed();
             }
             Command::Cancel => {
+                self.recent.leave();
                 self.bytes.fill(0);
                 self.length = 0;
                 self.caret = 0;
@@ -525,6 +649,8 @@ impl Model {
                     self.edited();
                 }
             }
+            Command::RecallOlder => self.recall(true),
+            Command::RecallNewer => self.recall(false),
             Command::Left(select) => self.move_to(
                 if !select && !self.selection().is_empty() {
                     self.selection().start
@@ -689,6 +815,10 @@ impl Model {
             Right => Command::Right(m.shift()),
             Home => Command::Home(m.shift()),
             End => Command::End(m.shift()),
+            Up if !m.shift() => Command::RecallOlder,
+            Down if !m.shift() => Command::RecallNewer,
+            Keypad8 if !numeric && !m.shift() => Command::RecallOlder,
+            Keypad2 if !numeric && !m.shift() => Command::RecallNewer,
             Keypad4 if !numeric => Command::Left(false),
             Keypad6 if !numeric => Command::Right(false),
             Keypad7 if !numeric => Command::Home(false),
@@ -760,6 +890,8 @@ impl Model {
                     | Command::Tab(_)
                     | Command::Cancel
                     | Command::Reset
+                    | Command::RecallOlder
+                    | Command::RecallNewer
             )
         {
             return;
