@@ -8,11 +8,17 @@ en host-suitebewijs al aanwezig. Score en rubric blijven **41 → 41/100**.
 
 **Status en classificatie (actueel):**
 - Vereiste checks (`host-quality`, `qemu-smoke`) zijn groen.
-- `native-foundation` faalde in run `41640409938` met
-  `system marker sequence mismatch`/`RANDOM guest report ... not bound`;
-  dit is buiten de PR148-volumewijzigingen en geclassificeerd als
-  **transient/infrastructuur**. Een rerun (`gh run rerun --failed 41640409938`)
-  is gestart.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:d8b787176e01e7132a22480ebc41537196905df76f55d8e674355a4700a5bc60 -->
+
+- `native-foundation` faalde volgens de handoff in run `41640409938` met
+  `system marker sequence mismatch`/`RANDOM guest report ... not bound`.
+  De oorzaak is **onbekend**: de primaire workflowbron, de exacte gefaalde
+  stap en het resultaat van de gestarte rerun (`gh run rerun --failed 41640409938`)
+  ontbreken. De gate blijft open.
+
+<!-- /coderabbit-ai-generated:v1 -->
 - Open CodeRabbit-threads betreffen vooral documentatiestatus en bronlabels;
   productiegedrag voor slot1-admissie is al gecorrigeerd en hostmatig bewezen.
 

@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`c6b25873`](https://github.com/simonvanieperen/nieuw-os/commit/c6b25873c915a98f8c0b2bb7400395e01ba44741) ·
-**Ontwikkelbranch:** `simonvanieperen-upgraded-disco`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR148: slot1-admissie en marker-crashgrens met actuele reviewstatus bijwerken.
-41 blijft 41. PR148 houdt de eerder bewezen slot1-admissiefix en marker-crashgrens vast; hostbewijzen staan in de drie pr148-receipts. Vereiste checks zijn groen. De native-foundation-fout in run 41640409938 is geclassificeerd als transient/infrastructuur buiten de volumediff en is herstart met een rerun. Geen nieuwe acceptatiecriteria gesloten en geen native/QEMU/fysieke/menselijke acceptatie toegevoegd.
+**Bron:** [`8f519a11`](https://github.com/simonvanieperen/nieuw-os/commit/8f519a111a4146705835eeaffa1a503670cfe8a1) ·
+**Ontwikkelbranch:** `coderabbit/clarify-verification-status/49e45d00`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR148: verificatiestatus en reikwijdte van hostbewijs verduidelijken.
+41 blijft 41. PR148 houdt de eerder bewezen slot1-admissiefix en marker-crashgrens vast; hostbewijzen staan in de drie pr148-receipts. `host-quality` en `qemu-smoke` zijn groen volgens de handoff. `native-foundation` faalde in run 41640409938; de oorzaak is onbekend en een rerun is gestart. `native-foundation` en de native volume-acceptatie blijven open; de rerunuitkomst ontbreekt. Geen nieuwe acceptatiecriteria gesloten en geen native/QEMU/fysieke/menselijke acceptatie toegevoegd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

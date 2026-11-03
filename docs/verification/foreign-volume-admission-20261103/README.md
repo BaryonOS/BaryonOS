@@ -11,9 +11,17 @@ inclusief alle68 metadatasectoren en gemarkeerd herstel; exacte rood/groenlogs:
 
 De eerste-markercrash is daarna apart getest: 516 beelden en 11.699 beelden
 in de onverkorte documentcrashmatrix groen; 26 Python-tests groen.
-[Primaire receipt](../pr148-marker-crash-review.json). De volledige Rustsuite
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:c4ea8517e8f409aa7689c5b5312311cc41893fd13ff5578bf4a242f917ed2fa9 -->
+
+[Primaire receipt](../pr148-marker-crash-review.json). De `volume-core` host-suite
 is inmiddels ook groen op deze branch:
-[host-suite receipt](../pr148-volume-core-host-suite.json). Alleen de native
+[host-suite receipt](../pr148-volume-core-host-suite.json).
+
+<!-- /coderabbit-ai-generated:v1 -->
+
+Alleen de native
 metadata-only/QEMU-regressie blijft open. Dit vervolg maakt de
 oorspronkelijke niet-uitgevoerde tests hieronder niet retrospectief groen.
 
