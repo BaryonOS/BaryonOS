@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`a5c18b02`](https://github.com/simonvanieperen/nieuw-os/commit/a5c18b02482aa3d4445f9365883111bbe3f484ee) ·
+**Bron:** [`794ddcc0`](https://github.com/simonvanieperen/nieuw-os/commit/794ddcc0d866ee8847a519b5a6f23c2ceddd69ea) ·
 **Ontwikkelbranch:** `codex/volume-format-admission-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Integreer nieuwste main met behoud van volume-admissie; gecombineerde native hertest open.
-De 41/100-puntenrubric blijft behouden; geen nieuwe punten toegekend. De actuele main (99d1327), inclusief PR139-contracttestreceipts, is geïntegreerd met behoud van de volume-admissiegeschiedenis. Op deze mergeboom slaagden 9 artifact-store-contracttests, fmt, Clippy en de voortgangscontrole. Eerder 10+9-nativebewijs hoort bij een oudere bron en accepteert deze boom niet; de gecombineerde native hertest blijft open.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Integreer actuele main met behoud PR149 en volume-admissie; native volumegates opnieuw vereist.
+De 41/100-rubric blijft behouden; geen nieuwe punten. De actuele main is inhoudsbehoudend geïntegreerd: PR149's UI-code, testreceipt en mainstatus blijven aanwezig, evenals PR133's volume-admissiegeschiedenis. De branchgebonden 10+9-VM-proeven horen bij een oudere bron en accepteren de combinatie niet; herhaal ze op een nieuw bevroren checkpoint. Native volumeacceptatie blijft open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

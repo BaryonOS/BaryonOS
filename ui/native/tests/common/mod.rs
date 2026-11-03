@@ -15,7 +15,7 @@ use volume_core::{
     client::{Client, Transport as CoreTransport},
     service::Service,
     table::{self, Table},
-    upload, wire, Disk, Status, SECTOR, VOLUME_SECTORS,
+    upload, wire, Disk, Status, SECTOR, TABLE_SECTORS, VOLUME_SECTORS,
 };
 
 pub const EPOCH: u64 = 17;
@@ -74,11 +74,15 @@ impl Host {
         let app_send = engine.bootstrap_delegate(2, request_root, 1, SEND).unwrap();
         let app_receive = engine.create_endpoint(1).unwrap();
         let reply_send = engine.bootstrap_delegate(1, app_receive, 2, SEND).unwrap();
+        let mut sectors = vec![[0; SECTOR]; VOLUME_SECTORS as usize];
+        for index in 0..TABLE_SECTORS {
+            sectors[index as usize] = Table::EMPTY.encode_sector(index);
+        }
         Rc::new(RefCell::new(Self {
             engine,
             service: Service::new(EPOCH, Table::EMPTY, false),
             disk: MemoryDisk {
-                sectors: vec![[0; SECTOR]; VOLUME_SECTORS as usize],
+                sectors,
                 fail: false,
             },
             request_root,
