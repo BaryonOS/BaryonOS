@@ -1,8 +1,10 @@
 # B03 TEST-ankergrens — verificatiebewijs
 
-**Broncodecommit:** `1fefc22765478f4798b5d4e003a1d10f467d0063`  
-**Diagnostiekcommit:** `5ea5971fa8f26df63fee511ffb0045932a571e8f`  
-**Basis:** `d686bd54e766aed542e9918d1a37dcce434f18e2`  
+**Broncodecommit:** `07e7f9a0471798c49e1844bf885f94491bb481d8`
+
+**Diagnostiekcommit:** `ceb957557af821bb95786aa505b5df41077f7403`
+
+**Basis:** `a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e`
 **Branch:** `fix/b03-test-anchors-guard`  
 **Beoordeling:** gerichte hosttests en cross-builds; geen volledige B03-acceptatie.
 
