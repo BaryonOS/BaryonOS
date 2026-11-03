@@ -4,51 +4,11 @@ De actieve volledige releaseopdracht en productacceptatie staan in
 [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft
 de ontwikkelmeter; het vervangt de conjunctieve releaseacceptatie niet.
 
-Herbeoordeling 3 november na PR #148: squash `d686bd54` bevat exact de
-PR-head `c6873b32`; GitHub meldt 32 succesvolle checks. De afzonderlijke
-squashboom blijft **41 -> 41/100**: geen nieuw criterium of releasebewijs.
-Deze productbranch op `f1a69b07` blijft **39 -> 39/100**, omdat B01 hier open
-staat wegens de recovery-autoriteitsgrens. De squashboom accepteert B01 nog;
-de scores zijn dus niet zonder bronintegratie uitwisselbaar. Geen merge of
-scoreimport uitgevoerd. De actuele assessment bewaart beide bronverwijzingen.
-De eigen native productbuild slaagt; de QEMU-proef eindigt na ready met
-TIMEOUT, voor save/heropenen/stop. Dat is geen nieuwe native acceptatie.
-
-Coordinatieopdracht 3 november op basis `ed592537`: System Maturity heeft nu
-expliciete OOM-, SMP- en K05 journal/crash-consumerclaims, met bestandsgrenzen
-en native acceptatie in WORK-QUEUE. Dit heft eigenaarsblokkades op maar levert
-geen productfunctionaliteit of nieuw acceptatiebewijs: **39 -> 39/100**.
-De lopende ongecommitteerde Materiaal-slice blijft apart, nog niet groen.
-
 PR149-review op bron `53256f82`: **41 → 41**. Drie daadwerkelijk rood
 gereproduceerde kaartfouten hersteld: smal/hoog, overlopende tekst en
 onjuiste opslagoorzaak.59 volledige hosttests, Clippy, formattering en
 scalarno_std-librarybuild slagen. Geen nieuwe native gast-/screenshot- of
 menselijke acceptatie. [Volledig bewijs](verification/pr149-compact-review.json).
-
-Keyring P0-herbeoordeling op 3 november: de toenmalige bron `5c66ec57` liet
-`EXPORT_RECOVERY` en `RESTORE` via gewone app-ingress uitvoeren. De eerder
-geaccepteerde B01-proef bewijst daarom niet de vereiste autoriteitsgrens;
-B01 gaat terug naar open en de score van **41% naar 39%**. Commit `75495efc`
-verplaatst beide operaties naar de manifest-gebonden beheer-ingress. De
-70 keyring-hosttests, formattering en Clippy slagen. Verse QEMU-proeven van de
-appweigering en het positieve beheerpad zijn niet uitgevoerd; de score kent
-daarom geen nieuwe punten toe. [Hostbewijs en hashreceipt](verification/keyring-recovery-authority-20261103/host-report.json).
-
-Vervolg op dezelfde codecommit `75495efc`: de `native-keyring`-profielbuild
-en 13 `update-core`-hosttests slagen. De B03-broncontrole vindt geen nieuwe
-afwijking van het gedocumenteerde model: de UEFI-vloer wordt pas na geldige
-imagecontrole verhoogd, maar firmwarevariabelen-reset en loaderauthenticatie
-blijven expliciete grenzen. QEMU/OVMF ontbreken; native recovery- en
-rollbackgedrag is niet opnieuw uitgevoerd. **39% blijft 39%**. [Build- en
-rollbackreceipt](verification/keyring-recovery-authority-20261103/native-build-and-rollback-check.json).
-
-Op basiscommit `72dfdca5` is de wachtwoordinvoergrens aangescherpt: ongeldige
-UTF-8 komt niet bij de toekomstige broker en wordt gewist. De gerichte
-sessiesuite (11 tests) en daarna de volledige `ui/native/verify.py`-poort
-(60 hosttests, Clippy/fmt en scalar no_std-build) slagen; de verifier meldt
-expliciet geen native uitvoering. Dit is geen volledige auth-/sessiepoort.
-**39% blijft 39%**. [Sessiereceipt](verification/session-password-utf8-20261103.json).
 
 ## Betekenis van het percentage
 
@@ -130,6 +90,24 @@ zijn afzonderlijke beperking. Zie [M6d-acceptatie](verification/M6D-ACCEPTANCE.m
 K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
+
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:ab73c9e98b6e8e4f98c9394ee7fc9b7f34e8e2a2808b0067c5965ffb55c55446 -->
+
+PR148-integratie (3 november 2026), PR-bron `47ec535f` met main `8e0c15d8`,
+merge `7412d0bb`: **41 → 41**. De drie documentconflicten zijn opgelost met
+behoud van beide bewijsreeksen; gedeelde harnashulpfuncties komen uit main en
+volume-admissie uit PR148. Geen nieuw criterium of native acceptatie.
+
+De integratiereview staat **open**: de handoff meldt gerichte controles met
+uitvoer alleen in het sessietranscript; afzonderlijk brongebonden bewijs van
+de review ontbreekt in de checkout. De eerdere PR148-hostreceipts zijn geen
+bewijs voor deze integratiereview. De `reviewed_commit` `cc1dea7` in
+`progress.json` hoort bij de historische documentatiereview; nieuwe-head CI en
+review moeten nog worden beoordeeld. Zie [de handoff](PROJECT-STATE.md).
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 PR149 bronbewijsvervolg (3 november 2026), schone bron `bb8877e3`:
 59 hosttests echt opnieuw exit0 met cwd/HEAD/status/lock-/Rust-hashes vóór/na
@@ -453,11 +431,11 @@ Het script voert geen OS-tests uit en beoordeelt de bewijsinhoud niet.
 | **N03 — Native geauthenticeerd transport** | 2 | Open | Onderhouden cryptografie/TLS met de vastgelegde hybride PQC-keuze werkt native, met peercontrole, negatieve handshakes en geen stille onveilige fallback. |
 | **N04 — Afdwingbare netwerkrechten** | 2 | Open | Proces-/bestemmingsrechten, intrekking en helperroutes worden native afgedwongen en via verkeer waargenomen; geen onbedoelde luisterpoorten. |
 
-### B — Beveiliging, privacy en updates (2/12)
+### B — Beveiliging, privacy en updates (4/12)
 
 | Criterium | Punten | Status | Acceptatie en bewijs |
 |---|---:|---|---|
-| **B01 — Entropy en sleutelbeheer** | 2 | Open | Native cryptografische entropy en key lifecycle; recovery uitsluitend via manifest-gebonden beheer-ingress. Vereist verse native positieve beheer- en negatieve app-ingressproeven. |
+| **B01 — Entropy en sleutelbeheer** | 2 | Behaald | Native cryptografische entropy, key lifecycle, bescherming en herstel gebruiken gecontroleerde standaarden en geteste failure paths. [bewijs 1](../docs/verification/B01-ACCEPTANCE.md) · [bewijs 2](../docs/verification/native-recovery-hardening/b01/keyring-gate.json) · [bewijs 3](../docs/verification/native-recovery-hardening/integration.json) |
 | **B02 — Geauthenticeerde persoonlijke opslag** | 2 | Open | Inhoud en gevoelige metadata worden native beschermd; manipulatie, replay/rollback binnen het dreigingsmodel en sleutelverlies zijn getest. |
 | **B03 — Ondertekende updates en rollback** | 2 | Behaald | Authentieke updates, onderbreking, downgrade-aanvallen en herstel naar een geldige vorige versie zijn end-to-end getest. [bewijs 1](../docs/verification/B03-ACCEPTANCE.md) · [bewijs 2](../docs/verification/b03/update-gate.json) |
 | **B04 — Vertrouwde boot- en distributieketen** | 2 | Open | Image-/bootverificatie, sleutelrotatie en dependency-/buildherkomst zijn voor het releaseprofiel afgebakend en onafhankelijk gecontroleerd. |

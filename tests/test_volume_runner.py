@@ -16,11 +16,13 @@ import volume_disk as vd  # noqa: E402
 N = vd.TABLE_SECTORS
 
 
-def oracle(generation: int, other: list[int]) -> dict:
+def oracle(generation: int, other: list[int], other_marker: bool = False) -> dict:
     slots = [None, None]
     slots[generation % 2] = [generation] * N
     slots[(generation + 1) % 2] = other
-    return {"generation": generation, "slots": slots}
+    markers = [False, False]
+    markers[(generation + 1) % 2] = other_marker
+    return {"generation": generation, "slots": slots, "slot_markers": markers}
 
 
 class TornTableWriteTests(unittest.TestCase):
@@ -40,8 +42,11 @@ class TornTableWriteTests(unittest.TestCase):
 
     def test_content_cut_leaves_the_other_copy_untouched(self):
         self.assertEqual(rv.torn_sectors(oracle(1, [0] * N), False), 0)
+        self.assertEqual(rv.torn_sectors(oracle(1, [-1] + [0] * (N - 1), other_marker=True), False), 0)
         with self.assertRaises(ValueError):
             rv.torn_sectors(oracle(1, [2] + [0] * (N - 1)), False)
+        with self.assertRaises(ValueError):
+            rv.torn_sectors(oracle(1, [-1] + [0] * (N - 1), other_marker=False), False)
 
 
 if __name__ == "__main__":

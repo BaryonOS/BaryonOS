@@ -1,5 +1,65 @@
 # Ontwerpbesluiten
 
+<a id="adr-057--vreemde-opslag-nooit-als-leeg-volume-toelaten"></a>
+## ADR-064 — Vreemde opslag nooit als leeg volume toelaten
+
+3 november 2026; correctie op herstel van het experimentele NOSVOL02-volume.
+De eerdere herstelroute controleerde bij twee lege tabelkopieën alleen de
+tabelsectoren. Daardoor kon een niet-herkend volume met gegevens buiten die
+regio als generatie 0 worden behandeld. Formatteer- of schrijfgedrag mag niet
+uit een ontbrekende herkenning worden afgeleid.
+
+Een onherkend volume is uitsluitend leeg wanneer de volledige huidige
+volumegrens nul bevat. Voor een klein eerste schrijfresultaat legt de dienst
+vóór inhouds- of tabelwrites een versie-/geometriegebonden `NOSFMT02`-marker
+vast en flusht die. Daardoor blijven ongecommitte eerste uploads herstelbaar
+als logische lege toestand, zonder dat vreemde niet-nuldata wordt geaccepteerd.
+Een marker is formaatidentificatie en foutdetectie, geen authenticatie.
+Bestaande geldige NOSVOL02-tabelkopieën blijven de primaire recoverybron.
+
+De eerste markerwrite en -flush zijn een aparte initialisatiegrens. Bij een
+crash vóór een geldige duurzame marker mag een onherkenbare niet-nulrest niet
+als eigen opslag worden behandeld: herstel stopt met `Corrupt`, zonder writes
+of stil wissen. Alleen volledig nul of een volledige geldige marker levert
+hier generatie0. De before/after-invariant voor documenttransacties begint
+na duurzame formaatidentificatie en blijft onverkort gelden; afzonderlijke
+crashproeven controleren ieder byteprefix van de eerste marker en het eerste
+datawritepunt. Expliciete herstel-/formatteerbediening blijft apart open.
+
+De kernel blijft een generieke, begrensde blokbroker; de herkenning en
+admissie blijven in `volume-core`. Er wordt geen bestandssysteemdriver,
+importpad of automatische formatter toegevoegd. Een niet-gemarkeerd volume
+met niet-nuldata geeft `Corrupt` en krijgt geen schrijf-/flushverzoek.
+Een synthetische Btrfs-achtige fixture test de nul-tabel/niet-nul-data-grens;
+zij is geen volledig Btrfs-bestandssysteem.
+
+Herzien bij wijziging van de volumegeometrie of introductie van expliciete
+formatteer-/importbediening. Terugzetten naar alleen tabelcontrole is niet
+toegestaan. De marker kan bij een overgang naar een andere persistente
+geometrie worden vervangen, mits de volledige media-admissie en crashproeven
+behouden blijven. Native QEMU-resultaat en exacte bronbinding staan in
+`docs/verification/foreign-volume-admission-20261103/README.md`.
+
+**Ontwerpregel:** zonder geldige NOSVOL02-tabel of volledige `NOSFMT02`-marker
+is alleen volledig nul over de huidige volumegrens `[0,580)` toelaatbaar.
+
+**Implementatiestatus:** geïmplementeerd in `services/volume/src/table.rs`
+(`choose` en `recover_with_state`) en het onafhankelijke hostorakel
+`tools/volume_disk.py`.
+
+**Testbewijs:** host-regressies en crashgrenzen zijn vastgelegd in
+`docs/verification/pr148-slot1-review.json`,
+`docs/verification/pr148-marker-crash-review.json` en
+`docs/verification/pr148-volume-core-host-suite.json`.
+
+**Onbekend / open:** native metadata-only fixtureacceptatie en native QEMU
+volume-admissie op deze branch.
+
+**Primaire bronmetadata:** Nieuw OS repository (`simonvanieperen/nieuw-os`),
+branch `simonvanieperen-upgraded-disco`, commit
+`c6b25873c915a98f8c0b2bb7400395e01ba44741`,
+https://github.com/simonvanieperen/nieuw-os/tree/c6b25873c915a98f8c0b2bb7400395e01ba44741 .
+
 ## Nummerbehoud bij desktopintegratie — 2 november 2026
 
 De desktopbranches gebruikten al bezette ADR-nummers. Bestaande IPC- en
@@ -14,6 +74,7 @@ Historische bewijsbestanden behouden hun oorspronkelijke nummervermelding.
 | 055, begrensde GUI-rust | ADR-061 |
 | 056, eenmalig klembord | ADR-062 |
 | 056, herkenbare VM-sessieroute | ADR-063 |
+| 057, vreemde opslag nooit als leeg volume toelaten | ADR-064 |
 
 ## Onderzoeksbesluit J-20261102 — herkenbare basis, expliciete installatiegrens
 
@@ -1344,21 +1405,6 @@ Eigenaar: hoofdagent; wijzigingen en bewijs in native-recovery-hardening.
 Herziening: persistent antirollback-/recoverycontract in B02, of een concreet
 tegenvoorbeeld tegen de levende-instantie-invariant. Terugdraaien: revert
 herstelcommits en B01 open houden, geen onzeker bewijs accepteren.
-
-### Aanvulling ADR-043 — herstelautoriteit alleen via beheer-ingress (3 november 2026)
-
-Gewone app-ingress mag geen herstelgeheim of hoofdsleutelnamespace exporteren
-en mag geen recoveryblob importeren. `EXPORT_RECOVERY` en `RESTORE` blijven
-wire-compatibel, maar worden uitsluitend door de bestaande afzonderlijke
-beheer-ingress afgehandeld na controle van de manifest-genoemde caller; die
-ingress voert verder alleen de persistentie-opcodes uit. Er komt geen nieuwe
-capability of cryptografisch formaat bij.
-
-De native appfixture controleert de weigering via beide domein-endpoints. De
-host-wiretests controleren daarnaast dat de management-dispatcher een
-recovery-export/-herstel kan uitvoeren en andere opcodes weigert. Dit
-hostbewijs bewijst niet zelfstandig de kernelmanifest- of native
-managementcallergrens; die blijft een afzonderlijke native controle.
 
 ## ADR-044 — Native netwerk via één begrensde capabilitybroker
 

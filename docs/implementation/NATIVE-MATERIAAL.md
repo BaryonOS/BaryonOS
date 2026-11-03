@@ -1,27 +1,5 @@
 # TASK-NATIVE-MATERIAAL — eerste native frontendketen
 
-## Documentnaam, lokaal zoeken en opnieuw openen — 3 november 2026
-
-De bestaande Controller en native app verbinden nu document maken, naam en
-inhoud invoeren, volume-v7-save, teruggaan, naamzoeken en opnieuw openen.
-F2 selecteert de naam; Enter keert terug naar de editor. Ctrl+F opent de
-zoekfocus; Enter opent het eerste zichtbare resultaat. Ctrl+S bevestigt
-naam en inhoud samen via de bestaande DocumentSession; discard herstelt beide.
-Geen nieuw opslagprotocol, grant of andere capabilitysemantiek.
-
-De ongefilterde lijst blijft leidend voor vrije objectslots. De zichtbare
-lijst gebruikt begrensde lokale Unicode-lowercase-substringsearch, geen
-netwerkverzoek, inhoudsindex of Unicode-normalisatie. Alleen-lezen blijft
-doorzoekbaar maar niet hernoembaar. Semantische acties zijn generatiegebonden;
-ongeldige namen, revoke, I/O en onbevestigde commits geven geen Saved.
-Veld heeft controller/render expliciet vrijgegeven. De afzonderlijke HC-leaf
-op `16c26c1c` is niet geimporteerd: zijn eerdere Veld-basis ontbreekt hier.
-
-Het [bewijsregister](../verification/material-named-flow/ACCEPTANCE.md)
-scheidt broncode, hostketen, build en ontbrekende native runtimeproef.
-Persoonlijke encrypted storage/settings en AuthBroker/B02 blijven buiten
-deze slice; de bestaande volumeproef is daarvoor geen vervangend bewijs.
-
 ## REV-APP-1 — huidige paint en juiste C-entry
 
 De onafhankelijke appreview reproduceerde echt rood dat Ready400 na een

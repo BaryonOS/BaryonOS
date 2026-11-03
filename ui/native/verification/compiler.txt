@@ -1,4 +1,4 @@
-command: ["/home/simon/.cargo/bin/rustc", "+1.90.0", "-vV"]
+command: ["/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/rustc", "+1.90.0", "-vV"]
 exit: 0
 
 stdout:

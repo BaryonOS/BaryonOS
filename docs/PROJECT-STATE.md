@@ -1,223 +1,129 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — editorflow en terminale app-cleanup — 3 november 2026
+## NEXT AGENT HANDOFF — PR148 met main 8e0c15d — 3 november 2026
 
-**Bron:** `f1a69b07c478ba640d85bc9caa27d273d54ba317`, branch
-`simonvanieperen-animated-garbanzo`; productdelta gecommit en gepusht.
-Voortgangsintegratie: PR #148 is geverifieerd gesquasht als `d686bd54`
-vanaf exacte head `c6873b32`, met 32 succesvolle GitHub-checks.
-Afzonderlijke squashbron **41 -> 41**, eigen branch **39 -> 39**; B01 staat
-hier open en daar nog accepted. Geen code-/scoreimport of merge uitgevoerd.
-De afgeronde Materiaal-naam/search-slice is niet verder gepolijst.
-Settings ownership is vrij volgens Veld, maar de instellingendienst,
-persistente profielnamespace en keyauthority ontbreken; geen opslagbypass.
-Daarna is de bestaande dagelijkse editorflow gericht gesloten op hostniveau:
-UTF-8-selectie vervangen, unsaved close annuleren, save/close en nieuw
-opbouwen uit uitsluitend sectoren met identieke inhoud. Een 64-KiB-draft
-behoudt inhoud bij I/O/revoke/stale revisie; geen nieuwe Work Suite of undo.
+**Basis:** PR148 `47ec535f15bb10912dbc6cbf1af3de9df0c6c226` met main
+`8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2`, branch
+`simonvanieperen-upgraded-disco`; schone werkboom bij aanvang.
+Drie centrale documentconflicten behouden beide checkpointreeksen en de
+brongebonden receipts. Gedeelde harnashulpfuncties komen exact uit main;
+volume-admissie blijft uit PR148. Geen handmatige codewijziging.
+**41 → 41/100**, geen criterium of gewicht gewijzigd.
 
-**Nieuwe productcode:** `sdk/examples/materiaal/src/lib.rs` bewaart een
-terminale stopuitkomst. Een gesloten app meldt geen Ready/zichtbaarheid,
-verwerkt geen oude acties en kan niet via nieuwe presentationgrants herleven.
-Alle zes endpoints worden geprobeerd; cleanupfouten blijven bij herhaling
-fouten. Dit repareert echt rood in de volgende app-teardownflow, maar sluit
-de ontbrekende algemene launch/window/process-keten niet.
-Veld heeft `lib.rs` en `tests/chain.rs` expliciet seriel vrijgegeven.
-Eigen extra editorproeven: `ui/native/tests/daily_editor.rs`; bestaande
-harnas exposeert alleen zijn RAM-sectoren voor de echte heropbouw.
+**Uitgevoerd op de opgeloste boom (alle eindcommando's exit 0):**
+- `python3 -B -m unittest discover -s tests -p 'test_common.py'`: 8 tests.
+- `python3 -B -m unittest discover -s tools/tests -p 'test_random.py'`: 21 tests.
+- `python3 -B -m unittest discover -s tools/tests -p 'test_images.py'`: 20 tests.
+- `python3 -B tools/test_fpu.py`: 12 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_volume_*.py'`: 26 tests.
+- `python3 tools/progress.py --write` en `python3 tools/progress.py --check`.
+- `git diff --check`; vergelijking met beide parents bevestigt exact behoud
+  van de gewijzigde harnassen uit main en de volume-implementatie uit PR148.
 
-**Bewijs:** 2 editor- en 41 appketens + 2 app-semantiekproeven groen; beide
-Clippy all-targets groen. Rode symptoomproef exit 101 bewaard. Exacte
-commando's, scope en logs:
-[ACCEPTANCE.md](verification/product-flows-20261103/ACCEPTANCE.md).
-Native scalar-appbuild en echte ELF-parser slagen (201 pagina's, vijf
-W^X LOAD-segmenten). De aparte profielbuild slaagt (11,42 s); de QEMU-proef
-faalt na ready, voor save/heropenen/stop (202,69 s, runner exit 1, QEMU 35).
-Gast meldt TIMEOUT; parser meldt vervolgens onbekend TIMEOUT_SLOT-record.
-Geen nieuwe native keten-, fysieke, menselijke of releaseacceptatie.
+De eerste discoverypogingen voor random/images/fpu onder `tests` vonden
+geen tests (elk exit 5); daarna zijn de werkelijke bovenstaande entrypoints
+uitgevoerd. Verwachte foutmeldingen in negatieve harnastests zijn geen
+native uitvoering. Uitvoer staat in het sessietranscript, zonder afzonderlijke
+logbestanden. Rust-builds en QEMU niet herhaald; geen native acceptatie.
+<!-- coderabbit-ai-generated:v1 -->
 
-**Open dependencies:** algemene AuthorizedImage-/kernel-launchprovider en
-windowregistration; veilige certificate-time/native-TLS-provider; NAS
-geauthenticeerde pairing + objectcrypto + peertransport; AI store-issued
-modelcatalogus + inferenceruntime; update health/promote/known-good consumer.
-Concrete bronnen en hervatvoorwaarden staan bovenaan WORK-QUEUE. Geen
-concurrerende Drivers/Maturity/Platform/Veld-implementatie gestart.
-Maturity meldt eigen OOM/K05-gates groen op `ce1c5e7f`, vervolgens SMP; dat
-bewijs is niet in deze branch geimporteerd. Veld HC staat apart op
-`43284264`; nieuwe Veldscope windowmove in Scene/main, niet deze files.
+<!-- coderabbit-ai-generated-section:v1:69f0ce3ef4e7240e6d8b1e44a29d90b2c36c7dcd2008b6a678a3f075e30514e8 -->
 
-**Score: 39 -> 39/100. Eerstvolgend commando:**
-`cat build/product-flow-lifecycle/run/materiaal-normal-dce9992cd4/qmp-trace.json`.
-Vervolg de input-/proberoutingdiagnose, niet de niet-bereikte stoproute.
-Geen herhaling van auth/B02-UI of Materiaalpolish.
+**PR148-integratiereview: open.** De assessmentbasis is PR148 `47ec535f`;
+de tweede mergeouder is main `8e0c15d8` en de resulterende merge is `7412d0bb`.
+De hierboven gemelde gerichte controles hebben alleen uitvoer in het
+sessietranscript; een afzonderlijk brongebonden integratiereviewbewijs ontbreekt
+in de checkout. De PR148-hostreceipts hieronder betreffen eerdere werkbomen en
+bewijzen deze integratiereview niet. De `reviewed_commit`-verwijzing naar
+`cc1dea7` in `docs/progress.json` is een historische review van de eerdere
+verduidelijking van documentatiestatus en hostbewijs.
 
-## Historisch checkpoint — Materiaal benoemen/save/zoek/heropenen — 3 november 2026
+**Eerstvolgend:** nieuwe-head CI en review beoordelen en passend reviewbewijs
+vastleggen. Native volume-acceptatie blijft afzonderlijk open.
 
-**Bron:** productcommit `34d23e8f5a23077e9f92d416efcb44615d7e9858`
-op basis `21d14592a54a80da2debf7cfad139d37264078c7`, branch
-`simonvanieperen-animated-garbanzo`; productcommit gepusht en remote SHA gelijk.
-Een gebruiker kan nu een document maken, via F2 benoemen, inhoud invoeren,
-Ctrl+S bewaren, teruggaan, Ctrl+F op naam zoeken en met Enter heropenen.
-De app-hostproef start daarna een nieuwe app en volume-service met alleen
-de bewaarde RAM-sectoren: dezelfde naam/inhoud, zonder oude buffers/tabel/
-endpoints, daarna schone cleanup. Dit is nieuwe productcode boven bestaande
-volume-v7-contracten, geen personal-storage-/encryptieclaim.
-
-**Bestanden:** `ui/native/src/{controller,render}.rs`, nieuwe
-`ui/native/tests/named_documents.rs`, bestaande interaction/renderregressies,
-`sdk/examples/materiaal/tests/chain.rs` en direct gerelateerde docs.
-**Bewijs:** 5 nieuwe UI-hostscenario's, 37 bestaande interactie- en 7
-renderregressies, 39 appketens en 2 app-semantiekproeven groen; beide Clippy
-all-targets en fmt exit 0. Exacte commando's, logpaden, initiële fouten en
-bewijsgrens: [ACCEPTANCE.md](verification/material-named-flow/ACCEPTANCE.md).
-Native scalar-appbuild en bestaande ELF-parsertest tegen het werkelijke
-executable zijn daarna exit 0: 201 pagina's, vijf begrensde W^X-segmenten,
-drie private 64-KiB-buffers. Geen nieuwe QEMU-runtime, hardware-, menselijke
-of releaseacceptatie. De 49 betrokken UI-hosttests zijn op productcommit
-`34d23e8f` opnieuw uitgevoerd (6,32 s, exit 0).
-
-**Ownership:** Veld heeft controller/render expliciet vrijgegeven; General
-is enige schrijver. HC is apart gepubliceerd op `16c26c1c`, maar niet hier
-geintegreerd wegens ontbrekende eerdere Veld-basis. Drivers gaat verder met
-VirtIO-RNG/keyring-BAR; `m3.rs` blijft bij Maturity voor toegewezen OOM/SMP-
-hooks. De eerder verstuurde SM-OOM-1/SMP/K05-claims blijven ongewijzigd.
-Auth/session-UI blijft stil; persoonlijke storage/settings blijven afhankelijk
-van B02/profile-key-authority, zonder bypass.
-
-**Score: 39 -> 39/100.** Hostintegratie sluit geen native criterium.
-**Eerstvolgend:** native input/save/search/reopen op een geisoleerd image
-valideren zodra de betreffende runtimeomgeving beschikbaar is; geen herhaling
-van auth-/B02-analyse. Persoonlijke opslag/settings blijven expliciet extern
-geblokkeerd; de naam/save/close/reopen-appslice is als bron-/host-/buildstap
-opgeleverd, niet als afgevinkte native releaseketen.
-
-## Historisch checkpoint — expliciete maturity-integratieclaims — 3 november 2026
-
-**Bron:** productbasis `ed592537751f5d50710fc61744331d1a6334a10f`,
-daarna remote-integratie `86e8092e` inhoudsbehoudend overgenomen; branch
-`simonvanieperen-animated-garbanzo`. Op Simons directe coordinatieopdracht
-staat de actuele ownershipsituatie nu bovenaan [WORK-QUEUE.md](WORK-QUEUE.md).
-System Maturity krijgt **P0 SM-OOM-1**, daarna **P1 SM-SMP-K06-1** en
-**P2 SM-JOURNAL-K05-1**, met expliciete bestanden, read-only-/verboden grenzen
-en host-/native acceptatie. Geen nieuwe losse corecrates in plaats van
-integratie. Geen runtime- of acceptatieclaim door deze toewijzing.
-
-**Actief gecontroleerd:** Drivers, de historische kernelowner en integrator
-bevestigen geen K05/OOM/SMP-WIP. Drivers heeft daarna expliciet `m3.rs`
-vrijgegeven op gemelde codecommit `d27b04e188f4c7e557719dea58b60c5b83e72739`:
-geen lopende/geplande writes; alleen twee MAC-dispatchroutes voor `0x74`.
-De memory-/SMP-integratiehaak is nu exclusief aan Maturity overgedragen;
-de concrete driverownershipblokkade is opgeheven. Heap/framecore en de
-K05-diagnostic consumer zijn daardoor niet als hele directory geblokkeerd.
-Veld bevestigt wel een actieve high-contrast-leaf op controller/render:
-General stopt daar nieuwe writes tot expliciete HC-oplevering/filevrijgave.
-
-**Ongecommitteerde product-WIP behouden:** documentnaam en lokale naamsearch
-in `ui/native/src/{controller,render}.rs` en
-`ui/native/tests/render_regressions.rs`; niet in dit coordinatiecheckpoint
-opnemen. `cargo +1.90.0 check --manifest-path ui/native/Cargo.toml --tests
---offline` slaagde. De betrokken interactierun is nog rood: 35/37 slagen,
-een gewijzigde tabvolgorde en een verouderde semantische nodetelling moeten
-nog worden afgehandeld. Renderer-suite werd daardoor niet gestart. De eerste
-linkpoging miste `cc`; de herhaling gebruikte de bestaande tijdelijke
-C-wrapper. Log: `/tmp/nieuw-os-named-material-existing-tests.log`.
-Dit is geen afgeronde productoplevering en mag niet als groen bewijs worden
-overgenomen. Auth/session-UI blijft buiten vervolgwerk.
-
-**Score: 39 -> 39/100.** Alleen eigenaarschap is gewijzigd; geen nieuw
-native criterium gerealiseerd. Gerichte queue-/meter-/diffcontroles staan
-in het committranscript. Geen herhaalde brede release-/UI-poort uitgevoerd.
-**Eerstvolgend:** stuur na push de gepinde queueclaim aan System Maturity:
-start `SM-OOM-1` in diens bestaande branch/omgeving, zonder op oude
-directoryclaims te wachten. Meld ook de ontvangen `m3.rs`-filevrijgave;
-Veld levert de begrensde HC-filehandoff voor latere producthervatting.
-
-## Historisch checkpoint — PR155 main-integratie — 3 november 2026
-
-**Basis vóór merge:** PR-head `ed592537751f5d50710fc61744331d1a6334a10f`;
-main `8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2`. Conflicten in `README.md`,
-`docs/PROJECT-STATE.md` en `docs/progress.json` zijn inhoudsbehoudend opgelost.
-De main-wijzigingen aan gedeelde hosttooling en tests blijven behouden; de PR-
-wijziging aan `tools/run_keyring.py` blijft behouden.
-
-**Voortgang:** **39 → 39/100**. Main kende B01 opnieuw twee punten toe op basis
-van de eerdere herstelproef. Die proef gebruikt de oude herstelgrens; de PR
-beperkt herstel tot manifest-gebonden beheer-ingress en vereist verse native
-proeven voor zowel beheer als app-weigering. B01 blijft daarom open en de score
-blijft 39. Er is geen nieuwe native/QEMU-acceptatie of andere criteriumwinst.
-
-**Validatie op de opgeloste boom (exit 0):**
-`python3 -B -m unittest discover -s tests -p test_common.py -v` (8 tests),
-`python3 -B -m unittest discover -s tools/tests -p test_random.py -v`
-(21 tests), `python3 -B -m unittest discover -s tools/tests -p test_images.py
--v` (20 tests), `python3 -B -m unittest discover -s tests -p
-'test_keyring_*.py' -v` (11 tests), `python3 tools/progress.py --write`,
-`python3 tools/progress.py --check`, `python3 -m json.tool docs/progress.json`
-en `git diff --check`. Dit zijn host-/documentcontroles; native QEMU/OVMF,
-volledige CI, fysieke en menselijke acceptatie zijn niet uitgevoerd.
-
-**Open/eerstvolgend:** publiceer uitsluitend de gevalideerde merge-integratie;
-laat daarna checks op de nieuwe head evalueren. B01 blijft open tot verse native
-beheer- en app-ingressproeven slagen. B02-rollback, echte accountauthenticatie
-en persistente sleutelvrijgave blijven eveneens open.
+<!-- /coderabbit-ai-generated:v1 -->
 
 ## Historisch checkpoint — PR142 main-integratie — 3 november 2026
 
-De eerdere integratie gebruikte PR-head `37ad1e98328e59b752c230310a4abeaca749b669`
-en main `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`. De snapshotlijst behield
-toen PR131/132-, PR141- en PR142-ingangen en de PR149-code/tests en receipts.
-`node --test ui/prototype/tests/*.test.mjs` rapporteerde 41 geslaagde tests;
-de twee `node --check`-controles slaagden. Score 41 bleef 41; er werd geen
-native/QEMU-, fysieke of menselijke acceptatie geclaimd. Dit is historisch
-bewijs voor die integratie, niet voor PR155.
+**Basis vóór integratie:** PR-head `37ad1e98328e59b752c230310a4abeaca749b669`;
+main `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`. De enige conflicthunk was
+`docs/verification/retained-document-heads-20261103.json`. De opgeloste
+snapshotlijst behoudt alle unieke PR131/132-, PR141- en PR142-ingangen;
+PR149's code/tests en receipts zijn eveneens behouden uit main. Geen receipt
+wordt als bewijs voor deze nieuwe mergeboom aangeduid.
+
+**Uitgevoerd op de opgeloste boom:** `node --test ui/prototype/tests/*.test.mjs`
+— 41 geslaagd, 0 mislukt; `node --check ui/prototype/app.js` en
+`node --check ui/prototype/state.js` — exit 0. De README-voorgestelde
+`--test-isolation=none`-optie wordt niet herkend door Node v22.23.4; de suite
+is daarna met de ondersteunde standaardopties geslaagd. Progressmeter is
+bijgewerkt: **41 → 41/100**, zonder nieuw criteriumbewijs. Native/QEMU,
+fysieke en menselijke acceptatie zijn niet uitgevoerd.
+**Open:** finaliseer de merge na JSON/progress- en diffcontroles en secret scan;
+na publicatie moeten de nieuwe-head-checks worden geëvalueerd.
 
 ## Historisch checkpoint — PR149 derde main-integratie — 3 november 2026
 
-De eerdere integratie gebruikte Watch-merge `bb8877e3e1aaec304d7478510b65c8116aeb634e`,
-met ouders `416886354dbb0c6135a0740c429a3fbd4530a16d` en main
-`99d132768fd72276caa4a3b3e9a09f8f1909f0ed`. De compacte UI-fixes en hun bewijs
-bleven uit de PR behouden; de PR139-receipts kwamen uit main. De gehaste
-`ui/native`-hosttests rapporteerden 59 geslaagde tests op die historische
-mergeboom. Score 41 bleef 41; geen nieuwe formatter-/Clippy-run, cross-build,
-volledige CI of native/QEMU-run werd geclaimd.
+**Basis:** Watch-merge `bb8877e3e1aaec304d7478510b65c8116aeb634e`, met
+ouders `416886354dbb0c6135a0740c429a3fbd4530a16d` en main
+`99d132768fd72276caa4a3b3e9a09f8f1909f0ed`, branch
+`simonvanieperen-reimagined-train`. Vier centrale documentatieconflicten;
+de compacte UI-fixes en hun bewijs blijven uit de PR behouden, de
+PR139-receipts komen ongewijzigd uit main. Beide historische statuslijnen
+blijven behouden en krijgen geen nieuwe bewijsbron toegewezen.
+Rubric en score blijven **41 → 41/100**.
 
-## Historisch checkpoint — wachtwoordinvoergrens — 3 november 2026
+**Werkelijk opnieuw uitgevoerd op schone `bb8877e3`:**
+`cargo +1.90.0 test --offline --locked --manifest-path ui/native/Cargo.toml`,
+59 hosttests, exit0, 10,816s. Cwd, HEAD, schone status en Cargo.lock-/Rust-
+bronhashes vóór én na, exact commando en volledig gehasht log:
+[primaire receipt](verification/pr149-bb8877-host-receipt.json).
+Dit is een nieuwe run, geen retrospectieve bronbinding van de door Watch
+gemelde tooluitvoer/tijden. De integrator controleerde apart rubricbehoud,
+ongewijzigde Rust-code ten opzichte van532, één handoff en geen markers.
+Een historische PR140-verwijzing naar PR139-bewijs is bij deze integratie
+hersteld naar haar eigen oorspronkelijke commando's en bron.
+Dit is geen menselijke audit. Geen nieuwe formatter-/Clippy-run,
+cross-build, volledige CI of native/QEMU-uitvoering voor deze
+uitsluitend documentatie betreffende integratie.
+**Open/eerstvolgend:** na publicatie nieuwe-head-controles laten evalueren.
+Alleen bewijs-/statuscorrecties; geen oude CI-retry of nieuwe runtimecode.
+Native/QEMU-, fysieke en menselijke acceptatie blijven afzonderlijk open.
 
-**Basis/resultaat:** branch `simonvanieperen-animated-garbanzo`, basis
-`72dfdca5de7750d0c3559ae1193c3554dd0fa65e`; wachtwoordindiening in
-`ui/native/src/session.rs` controleert nu de volledige bytebuffer als UTF-8
-vóór `AuthBroker::begin`. Ongeldige, afgebroken, overlong en surrogate-
-coderingen worden gewist en niet aan de broker doorgegeven. De standaardbroker
-blijft fail-closed; dit voegt geen accountauthenticatie toe.
+## Historisch checkpoint — PR148 slot1-admissie opvolging — 3 november 2026
 
-**Getest op source fingerprint v3**
-`9a6cc120764e1cb0820af1005350642f8961e9123e465f5395184c9968bd61d7`:
-`cargo +1.90.0 fmt --manifest-path ui/native/Cargo.toml --all -- --check`,
-`cargo +1.90.0 test --manifest-path ui/native/Cargo.toml --test session
---offline` (11 tests), `cargo +1.90.0 clippy --manifest-path
-ui/native/Cargo.toml --test session --offline -- -D warnings` en
-`git diff --check`: exit 0.
-Daarna slaagde `PATH=/home/simon/.cargo/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH
-CC=/tmp/nieuw-os-c-toolchain/bin/cc python3 -B ui/native/verify.py` op exacte
-codecommit `59b67cb8`: 60 hosttests, Clippy, fmt, locked feature graph,
-scalar `x86_64-unknown-none`-releasebuild en scan van 11 archives; exit 0.
-Het script rapporteert `native_execution=false`. QEMU-login, echte
-accountauthenticatie en persistente sleutelvrijgave zijn niet uitgevoerd.
+**Basis:** PR148-head `c6b25873c915a98f8c0b2bb7400395e01ba44741`, branch
+`simonvanieperen-upgraded-disco`, met slot1-admissiefix, marker-crashgrens
+en host-suitebewijs al aanwezig. Score en rubric blijven **41 → 41/100**.
 
-**Score:** **39 → 39/100**; dit grensherstel voldoet niet zelfstandig aan
-FR-S01/S02. B01 blijft open tot native/QEMU-verificatie van de beheer- en
-app-ingress; QEMU/OVMF ontbreken. B02-koude rollback en write-ahead blijven
-vereist voor echte gebruikerssleutels en duurzame profielen. Driverframework
-en system-maturitysporen zijn niet gewijzigd.
+**Status en classificatie (actueel):**
+- Vereiste checks (`host-quality`, `qemu-smoke`) zijn groen.
+<!-- coderabbit-ai-generated:v1 -->
 
-**Eerstvolgend:** de eerstvolgende productcodepoort is een echte vertrouwde
-AuthBroker/accountdienst plus key unlock en duurzame profielstatus. Zij kan
-niet veilig op de huidige preview aansluiten zonder geversioneerde Argon2id-
-parameters/resourcebudget, capability-gebonden dienst-IPC en B02 write-ahead/
-rollbackauthority. De parameters hangen af van de afgescheiden
-system-maturity resourceprofielen; definieer geen lokale vervangende policy.
-Werk ondertussen aan geen parallelle driver-/maturityimplementatie. De
-algemene OS-/releaseacceptatie blijft open.
+<!-- coderabbit-ai-generated-section:v1:d8b787176e01e7132a22480ebc41537196905df76f55d8e674355a4700a5bc60 -->
+
+- `native-foundation` faalde volgens de handoff in run `41640409938` met
+  `system marker sequence mismatch`/`RANDOM guest report ... not bound`.
+  De oorzaak is **onbekend**: de primaire workflowbron, de exacte gefaalde
+  stap en het resultaat van de gestarte rerun (`gh run rerun --failed 41640409938`)
+  ontbreken. De gate blijft open.
+
+<!-- /coderabbit-ai-generated:v1 -->
+- Open CodeRabbit-threads betreffen vooral documentatiestatus en bronlabels;
+  productiegedrag voor slot1-admissie is al gecorrigeerd en hostmatig bewezen.
+
+**Primaire bronnen (code + bewijs):**
+- Recovery/admissie: `services/volume/src/table.rs` op commit `c6b25873`.
+- Onafhankelijk orakel: `tools/volume_disk.py` op commit `c6b25873`.
+- Bewijs: `docs/verification/pr148-slot1-review.json`,
+  `docs/verification/pr148-marker-crash-review.json`,
+  `docs/verification/pr148-volume-core-host-suite.json`.
+- Repositorybron: https://github.com/simonvanieperen/nieuw-os/tree/c6b25873c915a98f8c0b2bb7400395e01ba44741
+
+**Open/eerstvolgend:** rond PR148 de resterende documentatie-threads sluiten,
+uitkomst van de `native-foundation` rerun verwerken en daarna opnieuw
+merge-preflight op exact head/base/checks/reviewthreads draaien.
+Native metadata-only fixture en native QEMU-volume-admissie blijven apart open.
 
 ## Historisch checkpoint — PR149 compacte kaartregressies hersteld — 3 november2026
 
@@ -825,8 +731,9 @@ diff-check waarschuwde voor hashgebonden CRLF-/blank-at-EOF-bewijsbytes;
 die bytes zijn niet aangepast.
 
 **Historische scan/bewijsgrens:** CodeQL vond geen Python-alerts maar liep vast
-voordat alle talen klaar waren; geen volledige CodeQL-scan. Nieuwe-headchecks
-bleven vereist. Score34, geen productacceptatiebesluit. De toenmalige vraag
+voordat alle talen klaar waren; geen volledige CodeQL-scan. De app meldde vóór
+deze integratie geen vereiste checks; nieuwe-headchecks bleven vereist.
+Score34, geen productacceptatiebesluit. De toenmalige vraag
 om publicatie via `report_progress` is historisch, geen nieuw mandaat.
 
 ## Native checkpoint PR127 — zeven reviewfixes — 2 november 2026

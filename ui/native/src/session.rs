@@ -65,7 +65,6 @@ pub enum Error {
     NoAccount,
     GuestHasNoCredential,
     EmptyPassword,
-    InvalidPasswordEncoding,
     PasswordFull,
     InvalidPasswordByte,
     StaleReply,
@@ -317,14 +316,8 @@ impl SessionFlow {
             self.last_failure = Some(AuthFailure::Unavailable);
             return Err(Error::Auth(AuthFailure::Unavailable));
         }
-        if self.method == AuthMethod::Password {
-            if self.password.len == 0 {
-                return Err(Error::EmptyPassword);
-            }
-            if core::str::from_utf8(&self.password.bytes[..self.password.len]).is_err() {
-                self.password.clear();
-                return Err(Error::InvalidPasswordEncoding);
-            }
+        if self.method == AuthMethod::Password && self.password.len == 0 {
+            return Err(Error::EmptyPassword);
         }
         let id = self.next_request;
         let Some(next) = self.next_request.checked_add(1) else {

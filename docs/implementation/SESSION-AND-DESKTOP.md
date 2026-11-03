@@ -110,10 +110,8 @@ laat geen actieve identiteit over. Account-/methodewisseling, annuleren,
 vergrendelen en afmelden wissen wachtwoordinvoer en maken lopende antwoorden
 ongeldig. Een oude reply mag de nieuwe aanvraag niet vervullen.
 
-Wachtwoorden gebruiken maximaal 128 bytes; overloop geeft een fout. Bij
-indiening wordt password-invoer als UTF-8 gevalideerd; een ongeldige of
-afgebroken byte-reeks wordt gewist en bereikt de broker niet. De UI kan alleen
-de lengte opvragen. Invoer en ticketbytes worden bij verlaten van hun
+Wachtwoorden gebruiken maximaal 128 bytes; overloop geeft een fout. De UI kan
+alleen de lengte opvragen. Invoer en ticketbytes worden bij verlaten van hun
 levensduur met de bestaande gepinde `zeroize 1.9.1`-implementatie gewist.
 De native UI gebruikt dezelfde no_std-configuratie zonder extra crate of
 buildscript als de SDK. Dit beschermt de expliciete owned buffers tegen
@@ -151,8 +149,7 @@ geen tutorialcode overgenomen.
 ## Acceptatie en bewijsgrens
 
 Gerichte hosttests controleren: expliciete gastidentiteit, alle wachtwoorden
-geweigerd door de standaardbroker, ongeldige UTF-8 geweigerd vóór de broker,
-geen desktop vóór activatie, weigering en
+geweigerd door de standaardbroker, geen desktop vóór activatie, weigering en
 timeout, mislukte activatie, annuleren/wisselen/lock met verlate replies,
 volledige account-/methodebinding, retry met een nieuwe request-ID, invoergrens
 en secret-lengteopruiming. Een servicefixture in de tests is geen echte

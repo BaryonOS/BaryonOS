@@ -21,7 +21,7 @@ use volume_core::{
 pub const EPOCH: u64 = 17;
 pub const INPUT_EPOCH: u64 = 31;
 pub struct MemoryDisk {
-    pub sectors: Vec<[u8; SECTOR]>,
+    sectors: Vec<[u8; SECTOR]>,
     pub fail: bool,
 }
 impl Disk for MemoryDisk {

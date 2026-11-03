@@ -1,19 +1,7 @@
-command: ["/home/simon/.cargo/bin/cargo", "+1.90.0", "clippy", "--offline", "--locked", "--manifest-path", "ui/native/Cargo.toml", "--all-targets", "--", "-D", "warnings"]
+command: ["/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo", "+1.90.0", "clippy", "--offline", "--locked", "--manifest-path", "ui/native/Cargo.toml", "--all-targets", "--", "-D", "warnings"]
 exit: 0
 
 stdout:
 
 stderr:
-    Checking zeroize v1.9.1
-    Checking catalog-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-animated-garbanzo/services/catalog)
-    Checking ui-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-animated-garbanzo/crates/ui-core)
-    Checking noto-sans-mono-bitmap v0.3.2
-    Checking nieuw-os-graphics v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-animated-garbanzo/ui/graphics)
-    Checking capability-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-animated-garbanzo/crates/capability-core)
-    Checking nieuw-os-sdk-runtime v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-animated-garbanzo/sdk/runtime)
-    Checking volume-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-animated-garbanzo/services/volume)
-    Checking nieuw-os-catalog-client v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-animated-garbanzo/sdk/catalog-client)
-    Checking nieuw-os-input-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-animated-garbanzo/services/input-core)
-    Checking nieuw-os-document-session v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-animated-garbanzo/sdk/document-session)
-    Checking nieuw-os-materiaal v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-animated-garbanzo/ui/native)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.70s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.06s

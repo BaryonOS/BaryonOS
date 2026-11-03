@@ -8,7 +8,7 @@ use noto_sans_mono_bitmap::{get_raster, get_raster_width, FontWeight, RasterHeig
 
 pub const MAX_TEXT_ROWS: usize = 48;
 /// Fixed material nodes, pagination controls and one entry per domain object.
-pub const MAX_SEMANTIC_NODES: usize = 9 + volume_core::PER_DOMAIN;
+pub const MAX_SEMANTIC_NODES: usize = 8 + volume_core::PER_DOMAIN;
 
 fn raster_height(scale: Scale) -> RasterHeight {
     match scale {
@@ -20,8 +20,6 @@ fn raster_height(scale: Scale) -> RasterHeight {
 pub struct Layout {
     pub new: Rect,
     pub refresh: Rect,
-    pub search: Rect,
-    pub name: Rect,
     pub back: Rect,
     pub save: Rect,
     pub editor: Rect,
@@ -59,7 +57,7 @@ impl Layout {
         } else {
             d::PAD
         };
-        let new_width = if width >= 560 { 164 } else { 80 };
+        let button_width = (width - 2 * d::PAD - 2 * d::SPACE) / 2;
         let modal = Rect {
             x: d::PAD,
             y: (height - 208) / 2,
@@ -71,25 +69,18 @@ impl Layout {
             new: Rect {
                 x: content_left,
                 y: controls_y,
-                width: new_width,
+                width: if width >= 560 { 164 } else { button_width },
                 height: d::CONTROL_HEIGHT,
             },
             refresh: Rect {
-                x: content_left + new_width + 12,
+                x: content_left
+                    + if width >= 560 {
+                        176
+                    } else {
+                        button_width + 2 * d::SPACE
+                    },
                 y: controls_y,
-                width: 44,
-                height: d::CONTROL_HEIGHT,
-            },
-            search: Rect {
-                x: content_left + new_width + 68,
-                y: controls_y,
-                width: width - d::PAD - content_left - new_width - 68,
-                height: d::CONTROL_HEIGHT,
-            },
-            name: Rect {
-                x: d::PAD,
-                y: if compact { 64 } else { 72 },
-                width: width - 2 * d::PAD,
+                width: if width >= 560 { 44 } else { button_width },
                 height: d::CONTROL_HEIGHT,
             },
             back: Rect {
@@ -317,20 +308,22 @@ impl<'a> Frame<'a> {
                     self.view.editable,
                     ButtonStyle::Primary,
                 );
-                paint.icon_button(
-                    layout.refresh,
-                    Icon::Refresh,
-                    self.view.focus == Focus::Refresh,
-                    true,
-                );
-                paint.text_field(
-                    layout.search,
-                    "Zoeken",
-                    self.view.query,
-                    self.view.focus == Focus::Search,
-                    true,
-                    (self.view.field_anchor, self.view.field_caret),
-                );
+                if viewport.logical_width() >= 560 {
+                    paint.icon_button(
+                        layout.refresh,
+                        Icon::Refresh,
+                        self.view.focus == Focus::Refresh,
+                        true,
+                    );
+                } else {
+                    paint.button(
+                        layout.refresh,
+                        "Vernieuwen",
+                        self.view.focus == Focus::Refresh,
+                        true,
+                        ButtonStyle::Secondary,
+                    );
+                }
                 if !self.view.list_loaded {
                     paint.wrapped(
                         layout.content_left,
@@ -359,15 +352,9 @@ impl<'a> Frame<'a> {
                         d::ACCENT,
                         1,
                     );
-                    let title = if self.view.query.is_empty() {
-                        "Nog geen documenten"
-                    } else {
-                        "Geen resultaten"
-                    };
+                    let title = "Nog geen documenten";
                     paint.medium(layout.content_left + 52, top, title, d::TEXT);
-                    let body = if !self.view.query.is_empty() {
-                        "Pas je zoekopdracht aan."
-                    } else if available >= 360 {
+                    let body = if available >= 360 {
                         "Maak een document om aan de slag te gaan."
                     } else {
                         "Maak je eerste document."
@@ -496,16 +483,9 @@ impl<'a> Frame<'a> {
                     },
                 );
                 let title = core::str::from_utf8(self.view.title).unwrap_or("Naam niet leesbaar");
-                paint.text_field(
-                    layout.name,
-                    "Documentnaam",
-                    title,
-                    self.view.focus == Focus::DocumentName,
-                    self.view.can_save && !self.view.saving && self.view.screen == Screen::Editor,
-                    (self.view.field_anchor, self.view.field_caret),
-                );
+                paint.medium(d::PAD, 84, title, d::TEXT);
                 if viewport.logical_height() >= 360 {
-                    paint.small(d::PAD, 120, "Op dit apparaat · Naam wijzigen: F2", d::MUTED);
+                    paint.small(d::PAD, 116, "Op dit apparaat", d::MUTED);
                 }
                 paint.fill(layout.editor, d::SURFACE);
                 paint.fill(
@@ -791,22 +771,10 @@ impl<'a> Frame<'a> {
                     enabled,
                     actions: SemanticActions {
                         activate: enabled && matches!(role, Role::Button | Role::ListItem),
-                        set_value: enabled
-                            && role == Role::TextEditor
-                            && (self.view.editable || id == SemanticId::Search),
+                        set_value: enabled && role == Role::TextEditor && self.view.editable,
                     },
-                    read_only: role == Role::TextEditor
-                        && !self.view.editable
-                        && id != SemanticId::Search,
-                    selection: if matches!(id, SemanticId::Search | SemanticId::DocumentName) {
-                        let length = value.map_or(0, str::len);
-                        let focused = focus == Some(self.view.focus);
-                        Some(if focused {
-                            (self.view.field_anchor, self.view.field_caret)
-                        } else {
-                            (length, length)
-                        })
-                    } else if role == Role::TextEditor {
+                    read_only: role == Role::TextEditor && !self.view.editable,
+                    selection: if role == Role::TextEditor {
                         Some((self.view.anchor, self.view.caret))
                     } else {
                         None
@@ -868,16 +836,6 @@ impl<'a> Frame<'a> {
                     None,
                     l.refresh,
                     Some(Focus::Refresh),
-                    true,
-                );
-                push(
-                    SemanticId::Search,
-                    Some(SemanticId::Window),
-                    Role::TextEditor,
-                    "Zoeken op documentnaam",
-                    Some(self.view.query),
-                    l.search,
-                    Some(Focus::Search),
                     true,
                 );
                 push(
@@ -947,16 +905,6 @@ impl<'a> Frame<'a> {
                 }
             }
             Screen::Editor => {
-                push(
-                    SemanticId::DocumentName,
-                    Some(SemanticId::Window),
-                    Role::TextEditor,
-                    "Documentnaam",
-                    core::str::from_utf8(self.view.title).ok(),
-                    l.name,
-                    Some(Focus::DocumentName),
-                    self.view.can_save && !self.view.saving,
-                );
                 push(
                     SemanticId::Back,
                     Some(SemanticId::Window),
@@ -1097,7 +1045,6 @@ pub enum SemanticId {
     Heading,
     NewDocument,
     Refresh,
-    Search,
     MaterialList,
     PreviousPage,
     NextPage,
@@ -1105,7 +1052,6 @@ pub enum SemanticId {
     Back,
     Save,
     Document,
-    DocumentName,
     CloseDialog,
     SaveAndBack,
     KeepEditing,
@@ -1939,72 +1885,6 @@ impl Paint<'_> {
                 },
                 fill,
                 radius.saturating_sub(1),
-            );
-        }
-    }
-    fn text_field(
-        &mut self,
-        r: Rect,
-        placeholder: &str,
-        value: &str,
-        focused: bool,
-        enabled: bool,
-        selection: (usize, usize),
-    ) {
-        self.outlined(r, d::SURFACE, d::BORDER, d::SURFACE_RADIUS);
-        if focused {
-            self.focus(r);
-        }
-        let cell = get_raster_width(FontWeight::Regular, raster_height(self.scale))
-            .div_ceil(self.scale.factor() as usize);
-        let columns = (r.width.saturating_sub(16) as usize / cell).max(1);
-        let caret = text::boundary(value, selection.1);
-        let start = if focused {
-            value[..caret].chars().count().saturating_sub(columns - 1)
-        } else {
-            0
-        };
-        let selected = text::selection(selection.0, selection.1);
-        let shown = if value.is_empty() { placeholder } else { value };
-        for (column, (offset, ch)) in shown.char_indices().skip(start).take(columns).enumerate() {
-            let x = r.x + 8 + (column * cell) as u32;
-            let y = r.y + (r.height - 16) / 2;
-            if focused
-                && !value.is_empty()
-                && selected.start < offset + ch.len_utf8()
-                && offset < selected.end
-            {
-                self.fill(
-                    Rect {
-                        x,
-                        y,
-                        width: cell as u32,
-                        height: 16,
-                    },
-                    d::ACCENT_SOFT,
-                );
-            }
-            self.character(
-                x,
-                y,
-                ch,
-                if enabled && !value.is_empty() {
-                    d::TEXT
-                } else {
-                    d::MUTED
-                },
-            );
-        }
-        if focused && enabled {
-            let column = value[..caret].chars().count() - start;
-            self.fill(
-                Rect {
-                    x: r.x + 8 + (column * cell) as u32,
-                    y: r.y + (r.height - 16) / 2,
-                    width: 2,
-                    height: 16,
-                },
-                d::ACCENT,
             );
         }
     }

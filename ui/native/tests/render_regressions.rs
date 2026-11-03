@@ -22,9 +22,6 @@ fn view<'a>(viewport: Viewport, objects: &'a [ListEntry]) -> View<'a> {
         list_scroll: 0,
         contents: None,
         title: b"Materiaal",
-        query: "",
-        field_caret: 0,
-        field_anchor: 0,
         caret: 0,
         anchor: 0,
         scroll: 0,
@@ -47,9 +44,9 @@ fn semantics_budget_includes_paging_and_preserves_short_output() {
     let viewport = Viewport::new(800, 720, Scale::Percent100, 1).unwrap();
     let frame = Frame::new(view(viewport, &objects));
 
-    let mut nodes = [SemanticNode::EMPTY; 16];
+    let mut nodes = [SemanticNode::EMPTY; 15];
     let count = frame.semantics(&mut nodes).unwrap();
-    assert_eq!(count, 16);
+    assert_eq!(count, 15);
     assert_eq!(
         nodes[..count]
             .iter()
@@ -65,7 +62,7 @@ fn semantics_budget_includes_paging_and_preserves_short_output() {
         .any(|node| node.id == SemanticId::NextPage));
     assert_eq!(nodes[count - 1].id, SemanticId::Status);
 
-    let mut short = [SemanticNode::EMPTY; 15];
+    let mut short = [SemanticNode::EMPTY; 14];
     assert!(frame.semantics(&mut short).is_err());
     assert!(short.iter().all(|node| node.id == SemanticId::Empty));
 }

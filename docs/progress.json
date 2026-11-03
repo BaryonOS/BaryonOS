@@ -3,22 +3,22 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "f1a69b07c478ba640d85bc9caa27d273d54ba317",
-    "branch": "simonvanieperen-animated-garbanzo",
-    "task": "PR148-squash herbeoordelen zonder scoreimport; native productproef registreren",
-    "previous_score": 39,
-    "summary": "39% → 39% op deze branch. PR148 is gesquasht als d686bd54 vanaf c6873b32, met 32 succesvolle checks; de afzonderlijke squashboom blijft 41→41 zonder nieuw criterium. Die boom accepteert B01 nog, deze branch houdt B01 open wegens de recovery-autoriteitsgrens. Geen score- of codeimport. De eigen native productbuild slaagt; de QEMU-proef faalt na ready met TIMEOUT, voor save/reopen/stop. Geen nieuwe native acceptatie.",
-    "external_assessment": {
-      "date": "2026-11-03",
-      "timezone": "Europe/Amsterdam",
-      "task": "PR148-integratie afronden en issue-/PR-claims controleren",
-      "source_commit": "d686bd54e766aed542e9918d1a37dcce434f18e2",
-      "reviewed_head": "c6873b322eb67cf997054de6bd6f16437d279512",
-      "branch": "main",
-      "previous_score": 41,
-      "score": 41,
-      "summary": "Squash en 32 succesvolle GitHub-checks gecontroleerd; geen nieuw rubriccriterium of releaseacceptatie. Afzonderlijke bronbeoordeling, niet geimporteerd in de lokale 39-puntenboom."
-    }
+    "source_commit": "47ec535f15bb10912dbc6cbf1af3de9df0c6c226",
+    "assessment_basis": "source_commit",
+    "reviewed_commit": "cc1dea7eeeae01448a378ee422837b0438ecc7b5",
+    "reviewed_commit_context": "Historische review van de PR148-documentatiestatus en reikwijdte van hostbewijs; geen integratiereview.",
+    "integration_review": {
+      "status": "open",
+      "source_commit": "47ec535f15bb10912dbc6cbf1af3de9df0c6c226",
+      "main_commit": "8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2",
+      "merge_commit": "7412d0bb4b8ef2d146fc5b942bec8d6f370470e5",
+      "evidence_basis": "Git-mergeouders en handoff in docs/PROJECT-STATE.md; gerichte integratietests zijn daar gemeld met uitvoer uitsluitend in het sessietranscript. De eerdere PR148-hostreceipts zijn geen integratiereviewbewijs.",
+      "missing_evidence": "Afzonderlijk, brongebonden bewijs van de integratiereview ontbreekt; nieuwe-head CI en review moeten nog worden beoordeeld."
+    },
+    "branch": "simonvanieperen-upgraded-disco",
+    "task": "PR148-conflicten met main 8e0c15d inhoudsbehoudend integreren",
+    "previous_score": 41,
+    "summary": "41/100 blijft 41/100. Drie centrale documentconflicten behouden beide checkpointreeksen en hun afzonderlijke bewijsbronnen. Gedeelde harnashulpfuncties komen exact uit main; PR148-volume-admissie blijft behouden. Geen handmatige codewijziging, nieuw criterium of native acceptatie. Gerichte integratievalidatie en nieuwe-head CI worden afzonderlijk gerapporteerd."
   },
   "tracks": [
     {
@@ -379,9 +379,13 @@
           "id": "B01",
           "title": "Entropy en sleutelbeheer",
           "points": 2,
-          "status": "open",
-          "acceptance": "Native cryptografische entropy en key lifecycle; recovery uitsluitend via manifest-gebonden beheer-ingress. Vereist verse native positieve beheer- en negatieve app-ingressproeven.",
-          "evidence": []
+          "status": "accepted",
+          "acceptance": "Native cryptografische entropy, key lifecycle, bescherming en herstel gebruiken gecontroleerde standaarden en geteste failure paths.",
+          "evidence": [
+            "docs/verification/B01-ACCEPTANCE.md",
+            "docs/verification/native-recovery-hardening/b01/keyring-gate.json",
+            "docs/verification/native-recovery-hardening/integration.json"
+          ]
         },
         {
           "id": "B02",
