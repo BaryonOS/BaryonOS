@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "53256f82baf097ebaab2497018ef2c37196c8e5d",
+    "source_commit": "416886354dbb0c6135a0740c429a3fbd4530a16d",
     "branch": "simonvanieperen-reimagined-train",
-    "task": "PR149: smalle/hoge Homekaart, begrensde toestandstekst en juiste foutoorzaak herstellen",
+    "task": "PR149 derde main-integratie met behoud van compacte UI en primaire receipts",
     "previous_score": 41,
-    "summary": "41 blijft41. Op bron53256f82 boven5492158d zijn compacte kaartregressies hersteld: minder dan640 breed of420 hoog geldt voor hit-testing en tekenen; korte toestandstekst blijft binnen de kaart en opslagfouten zijn niet identiek aan niet-opslagfouten. Echte rode proeven bewaard; daarna59 volledige hosttests, Clippy, formattering en scalarno_std-librarybuild exit0 met bestaande Rust1.90/private linker. Geen nieuwe gast-run, QEMU-screenshot, fysieke/human-/releaseacceptatie of criteriumpunten. Exacte logs en bronbinding in docs/verification/pr149-compact-review.json."
+    "summary": "41/100 blijft 41/100. Assessmentbasis 41688635 wordt gecombineerd met main 99d13276. Vier centrale documentatieconflicten behouden de compacte UI-fixes, PR149-reviewbewijs en de primaire PR139-receipts. Runtimecode en historische bewijsbronnen blijven ongewijzigd; de assessmentbasis is niet de uitvoerbron van alle historische tests. Nieuwe-head-controles en native acceptatie blijven afzonderlijk; geen nieuw criterium of menselijke audit."
   },
   "tracks": [
     {

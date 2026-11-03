@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`53256f82`](https://github.com/simonvanieperen/nieuw-os/commit/53256f82baf097ebaab2497018ef2c37196c8e5d) ·
+**Bron:** [`41688635`](https://github.com/simonvanieperen/nieuw-os/commit/416886354dbb0c6135a0740c429a3fbd4530a16d) ·
 **Ontwikkelbranch:** `simonvanieperen-reimagined-train`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR149: smalle/hoge Homekaart, begrensde toestandstekst en juiste foutoorzaak herstellen.
-41 blijft41. Op bron53256f82 boven5492158d zijn compacte kaartregressies hersteld: minder dan640 breed of420 hoog geldt voor hit-testing en tekenen; korte toestandstekst blijft binnen de kaart en opslagfouten zijn niet identiek aan niet-opslagfouten. Echte rode proeven bewaard; daarna59 volledige hosttests, Clippy, formattering en scalarno_std-librarybuild exit0 met bestaande Rust1.90/private linker. Geen nieuwe gast-run, QEMU-screenshot, fysieke/human-/releaseacceptatie of criteriumpunten. Exacte logs en bronbinding in docs/verification/pr149-compact-review.json.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR149 derde main-integratie met behoud van compacte UI en primaire receipts.
+41/100 blijft 41/100. Assessmentbasis 41688635 wordt gecombineerd met main 99d13276. Vier centrale documentatieconflicten behouden de compacte UI-fixes, PR149-reviewbewijs en de primaire PR139-receipts. Runtimecode en historische bewijsbronnen blijven ongewijzigd; de assessmentbasis is niet de uitvoerbron van alle historische tests. Nieuwe-head-controles en native acceptatie blijven afzonderlijk; geen nieuw criterium of menselijke audit.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
