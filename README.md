@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`6eee63c2`](https://github.com/simonvanieperen/nieuw-os/commit/6eee63c2fdb8fdd29e1064b79eb40a640ec9b166) ·
-**Ontwikkelbranch:** `simonvanieperen-upgraded-disco`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR148: hostvolume-suite bevestigen na slot1+markergrensfixes; native foreign-case nog open.
-41 blijft 41. Op basis 6eee63c2 zijn de slot1-admissieguard en de expliciete marker-initialisatiegrens hostmatig bevestigd. De volledige volume-core hostsuite is groen (1 lib, 5 crash, 22 service, 8 uploads). Eerder vastgelegde marker-prefix en documentcrashinvarianten blijven groen (516 en 11699 beelden) met 26 onafhankelijke Python-tests. Native metadata-only foreign fixture/case en QEMU-acceptatie blijven open; geen nieuwe productpunten.
+**Bron:** [`bb8877e3`](https://github.com/simonvanieperen/nieuw-os/commit/bb8877e3e1aaec304d7478510b65c8116aeb634e) ·
+**Ontwikkelbranch:** `simonvanieperen-reimagined-train`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR149: nieuwe primaire59-hosttestreceipt op schone Watch-main99-merge bewaren.
+41 blijft 41. Op schone Watch-merge bb8877e3 met main99 zijn59 hosttests echt opnieuw groen; cwd/HEAD/status/lock- en Rust-hashes vóór/na en volledige logs vastgelegd. Geen retrospectieve bronbinding van eerdere Watch-tijden. De UI-Rust-code blijft exact53256f82; historische scalar/Clippy/fmt behouden die bron. Assessmentbasis is niet de uiteindelijke PR-head of automatisch elke testbron. Geen nieuwe code, native/QEMU/fysieke/menselijke acceptatie of punten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -4,6 +4,12 @@ De actieve volledige releaseopdracht en productacceptatie staan in
 [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft
 de ontwikkelmeter; het vervangt de conjunctieve releaseacceptatie niet.
 
+PR149-review op bron `53256f82`: **41 → 41**. Drie daadwerkelijk rood
+gereproduceerde kaartfouten hersteld: smal/hoog, overlopende tekst en
+onjuiste opslagoorzaak.59 volledige hosttests, Clippy, formattering en
+scalarno_std-librarybuild slagen. Geen nieuwe native gast-/screenshot- of
+menselijke acceptatie. [Volledig bewijs](verification/pr149-compact-review.json).
+
 ## Betekenis van het percentage
 
 De README toont **behaalde acceptatiepunten / 100**. De gewichten zijn een
@@ -85,34 +91,38 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
-PR148 slot1-/markercrashreview (3 november 2026), basis `a8da25d0`: **41 → 41**.
-Echte rode regressies tonen toelating van vreemde niet-nulmetadata uitsluitend
-in tabelslot1. Rust en onafhankelijk Python-orakel controleren nu de volledige
-ongemarkeerde volume-invoer; 22 servicetests groen op de slot1-fix.
-[Rood/groenreceipt](verification/pr148-slot1-review.json). De aparte
-[initialisatiecrashproef](verification/pr148-marker-crash-review.json) test
-516 beelden; de documentmatrix behoudt alle voor/na- en inhoudsasserties op
-11.699 beelden. 26 Python-tests groen. De volledige hostsuite
-[volume-core](verification/pr148-volume-core-host-suite.json) is nu ook groen.
-Native
-metadata-only/QEMU-gates blijven open; geen nieuwe productpunten.
+PR149 bronbewijsvervolg (3 november 2026), schone bron `bb8877e3`:
+59 hosttests echt opnieuw exit0 met cwd/HEAD/status/lock-/Rust-hashes vóór/na
+en volledig gehasht log in
+[de nieuwe receipt](verification/pr149-bb8877-host-receipt.json).
+De eerdere Watch-tijden zijn geen primaire receipt. Scalar/Clippy/fmt blijven
+hun oorspronkelijke bron532 houden; geen nieuw native/fysiek/menselijk bewijs.
+**41 →41**, geen code- of criteriumwijziging.
 
-PR148-documentintegratie (3 november 2026), basis `09e4fa6b` met main
-`99d13276`: **41 → 41**. Vier documentconflicten inhoudsbehoudend opgelost;
-PR139-receipts en PR140-bronstatus blijven afzonderlijk behouden. Geen code,
-criterium, gewicht of bewijsbron gewijzigd; geen nieuwe native acceptatie.
+PR149 derde main-integratie (3 november 2026), basis `41688635` met main
+`99d13276`: **41 → 41**. Vier documentatieconflicten verzoend met behoud
+van de compacte UI-fixes, hun brongebonden bewijs en de PR139-receipts.
+Geen runtimecode gewijzigd of nieuw acceptatiecriterium gesloten.
 
-PR148-vervolgintegratie (3 november 2026), bron `23f7a428` met main
-`d115cc96`: **41 → 41**. Vier documentconflicten combineren beide
-checkpointreeksen; artifact-store-tests/bewijs uit main en volume-admissie
-uit PR148 blijven behouden. Geen productcriterium of productiecode gewijzigd.
-Gecombineerde validatie en nieuwe-head CI blijven afzonderlijk vereist.
+PR149 tweede main-integratie (3 november 2026), basis `b75cfc3c` met main
+`d115cc96`: **41 → 41**. Vier documentatieconflicten inhoudsbehoudend
+verzoend. UI-code en artifact-store-tests blijven uit hun betreffende
+parent behouden; geen nieuwe criteria of native acceptatie.
 
-PR148-conflictintegratie (3 november 2026), bron `929ebfb8` met main
-`69809c2c`: **41 → 41**. Vier documentconflicten inhoudsbehoudend opgelost;
-volume-admissie, onderzoeksdocumentatie en historische bewijsgrenzen blijven
-behouden. Geen criterium, gewicht of runtimegedrag gewijzigd door de
-conflictoplossing. Nieuwe-head CI en review blijven afzonderlijk vereist.
+PR149-conflictoplossing (3 november 2026), PR-bron `92fdf2ff` met main
+`69809c2c`: **41 → 41**. Vier centrale documentatieconflicten verzoend;
+beide checkpointgeschiedenissen en de bestaande rubric blijven behouden.
+Geen runtimecode handmatig gewijzigd, geen nieuw acceptatiecriterium.
+Nieuwe-head-CI en native productacceptatie blijven afzonderlijke gates.
+
+Native startoppervlak (3 november 2026), implementatiebron `bd4134c`:
+**41% → 41%**. De opt-in VM-preview toont niet-geladen, lege, fout- en
+gevulde Materiaaltoestanden. Alle 55 `ui/native`-hosttests slagen, inclusief
+de pixelregressie; rustfmt, check, Clippy en de scalar
+`x86_64-unknown-none`-releasebuild slagen. De testlinker is tijdelijk uit
+Ubuntu-pakketten in `/tmp` opgebouwd, zonder systeeminstallatie. QEMU/OVMF en
+native screenshot ontbreken. Geen nieuw criterium of runtimebewijs.
+Zie `verification/native-start-surface-20261103/README.md`.
 
 PR139-review (3 november2026), exact geteste geïntegreerde bron `0a49a382`:
 **41 → 41**. Negen artifact-store-contracttests, Rust1.90.0 fmt en Clippy

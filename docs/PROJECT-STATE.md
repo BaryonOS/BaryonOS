@@ -1,151 +1,174 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR148 hostgates groen; native fixture nog open — 3 november 2026
+## NEXT AGENT HANDOFF — PR149 derde main-integratie — 3 november 2026
 
-**Basis:** `a5b14596`, inclusief auteursbron `929ebfb8` en main99;
-branch `simonvanieperen-upgraded-disco`. De auteur pauzeert overlappende writes.
-Echt rood: ongemarkeerde niet-nulmetadata in alleen tabelslot1 werd als leeg
-toegelaten; de directe service schreef vervolgens op die vreemde invoer.
-De Rust-service en onafhankelijke Python-orakelcontrole eisen nu ook nulbytes
-in beide tabelkopieën. Geen IPC-, capability-, formaat- of quotaverruiming.
-
-**Vervolg op `a8da25d0`:** ADR-064 maakt de initialisatiegrens expliciet.
-De documentcrashmatrix begint na een echte markerwrite en -flush; alle
-before/after- en inhoudsasserties blijven behouden: **11.699 beelden groen**.
-Een aparte proef test **516 initialisatiecrashbeelden**, inclusief ieder
-markerbyteprefix, en vereist `Corrupt` zonder herstelwrites voor onherkenbare
-resten. **26 Python-tests groen**, met onafhankelijk alle 513 markerprefixen.
-[Nieuwe primaire receipt](verification/pr148-marker-crash-review.json).
-De eerdere echte failure blijft [bewaard](verification/pr148-slot1-review.json).
-De 22 servicehosttests en Rustfmt/Clippy waren groen op de slot1-fix; dat
-maakt de nog niet herhaalde volledige Rustsuite niet impliciet groen.
-`cargo +1.90.0 test --offline --locked -p volume-core` draait daarna volledig
-groen op de vervolgbron: 1 lib, 5 crash, 22 service en 8 uploads.
-[Host-suite receipt](verification/pr148-volume-core-host-suite.json).
-**Nog niet uitgevoerd:** native metadata-only foreign-case en volledige
-QEMU-regressie. **41 → 41**, geen nieuw criterium of productacceptatie.
-**Eerstvolgend:** metadata-only foreign fixture/case native uitwerken en
-draaiende gate bewijzen; daarna resterende integratiegates en pas dan merge.
-
-## Historisch checkpoint — PR148 met main 99d1327 — 3 november 2026
-
-**Bron:** PR148 `09e4fa6b6a31b54eea4ebad3cbf98c54347d28c6` met main
+**Basis:** Watch-merge `bb8877e3e1aaec304d7478510b65c8116aeb634e`, met
+ouders `416886354dbb0c6135a0740c429a3fbd4530a16d` en main
 `99d132768fd72276caa4a3b3e9a09f8f1909f0ed`, branch
-`simonvanieperen-upgraded-disco`; schone werkboom bij aanvang.
-Vier documentconflicten combineren beide checkpointreeksen. De nieuwe
-PR139-receipts blijven bytegelijk aan main; PR140's eigen brongebonden
-bewijsstatus blijft daarnaast behouden. Geen code, test, criterium of
-gewicht gewijzigd door deze integratie. **41 → 41/100**.
+`simonvanieperen-reimagined-train`. Vier centrale documentatieconflicten;
+de compacte UI-fixes en hun bewijs blijven uit de PR behouden, de
+PR139-receipts komen ongewijzigd uit main. Beide historische statuslijnen
+blijven behouden en krijgen geen nieuwe bewijsbron toegewezen.
+Rubric en score blijven **41 → 41/100**.
 
-**Uitgevoerd (elk exit 0):** `python3 tools/progress.py --write`,
-`python3 tools/progress.py --check` en `git diff --check`.
-`git diff --exit-code origin/main -- docs/verification/pr139-artifact-contract-receipt.json
-docs/verification/pr139-review-receipts.json
-docs/verification/priority-plan-checkpoint-20261103.json` bevestigt bytebehoud
-van de drie nieuwe rapporten. `git diff --exit-code HEAD -- boot crates drivers
-kernel sdk services tools tests ui` bevestigt ongewijzigde code en tests.
-Uitvoer staat in het sessietranscript; geen afzonderlijke logbestanden.
-Een tweede AI vond geen concrete inhoudsbehoudfout; geen menselijke audit.
-Rust-/Python-tests, builds en QEMU niet herhaald voor deze documentintegratie.
-Historische host-/nativeclaims worden niet naar deze integratie overgedragen.
-**Eerstvolgend:** gevalideerde merge publiceren en nieuwe-head CI/review door
-de app laten beoordelen. Geen automatische PR-merge.
+**Werkelijk opnieuw uitgevoerd op schone `bb8877e3`:**
+`cargo +1.90.0 test --offline --locked --manifest-path ui/native/Cargo.toml`,
+59 hosttests, exit0, 10,816s. Cwd, HEAD, schone status en Cargo.lock-/Rust-
+bronhashes vóór én na, exact commando en volledig gehasht log:
+[primaire receipt](verification/pr149-bb8877-host-receipt.json).
+Dit is een nieuwe run, geen retrospectieve bronbinding van de door Watch
+gemelde tooluitvoer/tijden. De integrator controleerde apart rubricbehoud,
+ongewijzigde Rust-code ten opzichte van532, één handoff en geen markers.
+Een historische PR140-verwijzing naar PR139-bewijs is bij deze integratie
+hersteld naar haar eigen oorspronkelijke commando's en bron.
+Dit is geen menselijke audit. Geen nieuwe formatter-/Clippy-run,
+cross-build, volledige CI of native/QEMU-uitvoering voor deze
+uitsluitend documentatie betreffende integratie.
+**Open/eerstvolgend:** na publicatie nieuwe-head-controles laten evalueren.
+Alleen bewijs-/statuscorrecties; geen oude CI-retry of nieuwe runtimecode.
+Native/QEMU-, fysieke en menselijke acceptatie blijven afzonderlijk open.
 
-## Vorig checkpoint — PR148 met main d115cc9 — 3 november 2026
+## Historisch checkpoint — PR149 compacte kaartregressies hersteld — 3 november2026
 
-**Bron:** PR148 `23f7a428cbb826ff298dd8554f8351b378d9e5b7` en main
+**Bron:** `53256f82baf097ebaab2497018ef2c37196c8e5d`, boven
+layoutfix `f67b1e85` en actuele Watch-parent `5492158d` met main `d115cc96`.
+Smalle/hoge viewports gebruiken nu dezelfde compacte geometrie voor
+hit-testing en tekenen. De Start-breedtetest volgt de werkelijke
+werkbalkbreedte; nieuwe320/400/639/640-pixelgevallen en echte geschaalde
+framebufferpixels controleren de grens. Compacte toestandstekst past
+binnen de kaart en onderscheidt opslagfouten van volle objectruimte en
+andere fouten. Geen autorisatie-/opslagcontract gewijzigd.
+
+**Echt rood/groen:** oude kaart was200 in plaats van96 pixels hoog;
+`Ready` veranderde pixel109,163 buiten de kaart en opslag-/niet-opslagfouten
+gaven identieke pixels. Na correctie **59 hosttests**, Clippy, formattering
+en scalar `x86_64-unknown-none`-librarybuild: exit0.
+Volledige relevante logs, exacte commando's, SHA-256 en bronbinding:
+[reviewbewijs](verification/pr149-compact-review.json).
+De eerste extra pixeltest gebruikte onjuist logische coördinaten bij200%;
+die testfout is hersteld, de mislukte poging blijft vermeld.
+
+**Open/eerstvolgend:** `GH_PAGER="" gh pr checks 149`; verse volledige
+CI/native-QEMU-/screenshotacceptatie en review op exact de nieuwe head.
+Geen gast-run, fysieke/human-/releaseacceptatie of gebruiksmeting geclaimd.
+Oude55/57-tests en Watch-meldingen hieronder zijn historisch, niet verse
+bronacceptatie. **41 → 41**, geen criteriumwijziging of mandaatvrijgave.
+
+## Historisch checkpoint — PR149 tweede main-integratie
+
+**Bron:** PR-head `b75cfc3c7c5cc16efd618b2d6d179938abdabbdf` met main
 `d115cc96c19ac4371baed77409a23d1adddffaf0`, branch
-`simonvanieperen-upgraded-disco`; schone werkboom bij aanvang.
-Vier documentconflicten combineren de checkpoints en de ongewijzigde
-41-puntenrubric. De nieuwe artifact-store-contracttests en brongebonden
-bewijsrapporten uit main blijven exact behouden, evenals PR148's
-volume-admissie en ADR-064. Geen productiecode gewijzigd door deze integratie.
+`simonvanieperen-reimagined-train`. Alleen vier centrale
+documentatieconflicten; beide checkpointgeschiedenissen behouden.
+De artifact-store-tests en bewijsrapporten komen ongewijzigd uit main;
+de UI blijft ongewijzigd uit de PR-parent. Score **41 → 41/100**.
 
-**Uitgevoerd op de gecombineerde boom (alle exit 0):**
-- `cargo +1.90.0 test --locked -p artifact-store-core`: 9 contracttests.
-- `cargo +1.90.0 clippy --locked -p artifact-store-core --all-targets -- -D warnings`.
-- `cargo +1.90.0 fmt -p artifact-store-core -- --check`.
-- `python3 -B -m unittest discover -s tests -p 'test_volume_*.py'`: 23 tests.
-- `python3 tools/progress.py --write` en `python3 tools/progress.py --check`.
-- `git diff --check`; vergelijking met main toont exacte bytes voor de
-  nieuwe contracttests en beide PR140-bewijsrapporten.
+**Validatie op de opgeloste boom (exit 0):**
+`cargo +1.90.0 test --locked -p artifact-store-core` (9 tests),
+`cargo +1.90.0 test --manifest-path ui/native/Cargo.toml --locked`
+(57 hosttests), `cargo +1.90.0 clippy --locked -p artifact-store-core --all-targets -- -D warnings`,
+`cargo +1.90.0 fmt --manifest-path crates/artifact-store-core/Cargo.toml -- --check`,
+`python3 tools/progress.py --write`, `python3 tools/progress.py --check`
+en `git diff --check`. De eerste UI-poging stopte met exit 1 doordat de
+gelijktijdige Rust-installatie een downloadbestand verplaatste; de herhaling
+na installatie slaagde. Bestaande rustfmt/Clippy-componenten hersteld met
+`rustup component add --toolchain 1.90.0 rustfmt clippy` (exit 0).
+Uitvoer: toolsessies `artifact-tests`, `ui-retry`, `clippy`, `fmt`, `progress`.
+Een directe vergelijking met Gitblobs bevestigt de ongewijzigde rubric
+buiten assessment voor beide parents, behouden UI uit de PR en exacte
+tests/bewijsrapporten uit main; geen conflictmarkeringen (exit 0).
+Geen nieuwe cross-build of volledige CI-uitvoering.
+**Open/eerstvolgend:** nieuwe-head-controles en open reviewpunten door de
+bevoegde vervolgstap laten beoordelen. Deze tick is uitsluitend voor
+conflictoplossing; geen reviewafhandeling of PR-merge.
+Native/QEMU-acceptatie en menselijke audit zijn niet uitgevoerd.
 
-Logs staan in het sessietranscript, niet in afzonderlijke logbestanden.
-Een tweede AI vond geen concrete inhoudsbehoudfout; geen menselijke audit.
-Historische testclaims hieronder horen bij hun oorspronkelijke bron.
-Volledige kernelbuild, QEMU en native acceptatie zijn niet herhaald.
-**41 → 41/100**: geen nieuw criterium of native acceptatie.
-**Eerstvolgend:** integratie publiceren en nieuwe-head CI/review door de app
-laten beoordelen; de PR niet automatisch mergen.
+## Historisch checkpoint — PR149-conflictoplossing met main
 
-## Vorig checkpoint — PR148-conflictintegratie — 3 november 2026
-
-**Bron:** PR148 `929ebfb84b885c26c3cfd6ef0cb0d77e436ee8f5` met main
+**Bron:** PR-head `92fdf2ff941284dfaeacffc9ad49295b2e9da21f` met main
 `69809c2cb53dfb3bd77abe5352892810fba6e82d`, branch
-`simonvanieperen-upgraded-disco`. De werkboom was schoon.
-Vier documentconflicten zijn inhoudsbehoudend gecombineerd: README en
-assessment beschrijven deze integratie, beide eerdere checkpoints blijven
-hieronder historisch behouden. Het volume-admissiebesluit krijgt het vrije
-nummer ADR-064 met behoud van zijn oude titelanker; main behoudt ADR-057
-voor CMOS-bootstrap. Geen runtimewijziging door de conflictoplossing.
+`simonvanieperen-reimagined-train`. De vier conflicten betreffen alleen
+README, PROJECT-STATE, PROGRESS en het assessment in progress.json.
+Beide checkpointgeschiedenissen blijven behouden; de gegenereerde meter
+wordt opnieuw opgebouwd. Geen handmatige runtime-, rechten- of testcodewijziging.
 
-**Uitgevoerd op de gecombineerde werkboom:** `python3 -B -m unittest discover
--s tests -p 'test_volume_*.py'`: exit 0, 23 tests.
-`python3 -B -m unittest discover -s tests -p 'test_storage_backend_replay.py'`:
-eerst exit 1 bij omgevings-umask `0002` (één failure, twee errors:
-groepsschrijfbare fixtures worden terecht geweigerd); herhaald met
-`umask 022; python3 -B -m unittest discover -s tests -p
-'test_storage_backend_replay.py'`: exit 0, 16 tests. Geen test of
-veiligheidscontrole aangepast. `python3 tools/progress.py --write` en
-`python3 tools/progress.py --check`: beide exit 0, 41/100.
-`git diff --check`: exit 0. Uitvoer staat in het sessietranscript; geen
-afzonderlijke logbestanden opgeslagen. Een tweede AI controleerde
-inhoudsbehoud zonder concrete bevinding; geen menselijke audit.
+**Uitgevoerd op de opgeloste boom (alle onderstaande eindcontroles exit 0):**
+`python3 tools/progress.py --write`, `python3 tools/progress.py --check`,
+`cargo +1.90.0 test --manifest-path ui/native/Cargo.toml --locked`
+(57 hosttests), `cargo +1.90.0 fmt --manifest-path ui/native/Cargo.toml --all -- --check`,
+`cargo +1.90.0 clippy --manifest-path ui/native/Cargo.toml --locked --all-targets -- -D warnings`
+en `git diff --check`.
+`umask 077 && python3 -m unittest discover -s tests -p 'test_storage_backend_replay.py'`
+slaagt met 16 tests. De eerste opslagrun met de omgevings-umask faalde
+(1 failure, 2 errors: schrijfbare fixturebestanden); de private umask
+herstelt de fixturevoorwaarde zonder test-/productiecode te wijzigen.
+Rustfmt startte eerst niet door een gelijktijdige toolchaininstallatie;
+daarna ontbraken rustfmt/Clippy. Eén `rustup component add --toolchain 1.90.0 rustfmt clippy`
+herstelde de bestaande gereedschappen, waarna beide controles slaagden.
+De uitvoer staat in de toolsessies `ui-tests`, `storage-tests`,
+`storage-private`, `fmt-final` en `clippy-final`; geen raw logs toegevoegd.
+Secretscan op de opgeloste bestanden en geïmporteerde Python-code: geen
+secrets gevonden. Een tweede AI controleerde alleen-lezen het inhoudsbehoud;
+dat is geen menselijke audit.
 
-**Bewijsgrens:** alleen de documentconflicten zijn handmatig gewijzigd.
-Rust-builds en QEMU niet opnieuw uitgevoerd; nieuwe-head CI en review
-blijven vereist. De oude CI-fouten worden niet opnieuw gestart na deze
-integratie. Geen productacceptatie of fysieke test geclaimd.
-**41 → 41/100**, geen criterium of gewicht gewijzigd.
+**Bewijsgrens:** `git diff --quiet HEAD -- ui/native` bevestigt bytegelijkheid
+met de PR-parent (exit 0); de vaste rubric buiten assessment is gelijk aan
+beide parents. Historische netwerk-, opslag- en native resultaten hieronder
+blijven aan hun eigen bron gebonden. QEMU/native gates, cross-build en de
+volledige CI zijn deze tick niet uitgevoerd. Score **41 → 41/100**;
+geen nieuw criterium, native runtimebewijs of volledige releaseacceptatie.
 
-**Eerstvolgend:** integratie publiceren en CI op de nieuwe HEAD door de app
-laten beoordelen; de PR niet automatisch mergen.
+**Open/eerstvolgend:** na gevalideerde publicatie de nieuwe-head-CI door
+GitHub laten beoordelen. Deze tick merge't de PR niet en herstart geen
+oude-head-checks. De native preview- en productacceptatie blijven open.
 
-## Vorig checkpoint — vreemde opslag weigeren als lege NOSVOL02
+## Historisch checkpoint — native startoppervlak verfijnen
 
-**Basis:** `cbbc9c9941b08ea5edfbd3637d494635b4fb1df0`, `origin/main`;
-werkbranch `simonvanieperen-upgraded-disco`. Geen eerder gebruikerswerk in de
-werkboom. Het herstelpad van `volume-core` controleerde alleen tabelkopieën;
-de fix controleert bij een ongemarkeerde kandidaat-lege volume-invoer ook de
-volledige dataregio. Een eerste writer flusht een `NOSFMT02`-marker vóór
-inhouds- of tabelwrites, zodat een afgebroken eerste upload niet als vreemde
-media wordt geaccepteerd maar wel naar de logische lege toestand kan herstellen.
-Er is geen eigen bestandssysteemdriver toegevoegd.
+**Bron:** `bd4134c1d565f58736a2c829587f337a415dd47b`, bovenop
+`cbbc9c9941b08ea5edfbd3637d494635b4fb1df0` (op dat moment `origin/main`),
+branch `simonvanieperen-reimagined-train`.
+Het opt-in VM-startscherm heeft nu een duidelijke hiërarchie, een zichtbare
+Start-actie en een Materiaalkaart die de echte bibliotheekstatus weergeeft.
+De kaart onderscheidt niet-geladen, leeg, fout en bestaand document; de
+compacte indeling voorkomt overlap met de navigatiebalk. Er zijn geen
+capabilities, authenticatie, opslagrechten of sessieovergangen toegevoegd.
 
-**Uitgevoerd:** Python-orakeltests `python3 -B -m unittest discover -s tests -p
-'test_volume_*.py'` — exit 0, 23 tests; Rust `fmt --check`, `cargo check
---all-targets` en Clippy op `volume-core` — alle exit 0. De volledige
-`cargo test --locked -p volume-core` stopte met exit 101 omdat linker `cc`
-ontbreekt. `python3 -B tools/preflight.py --strict` gaf exit 2: QEMU/OVMF en
-andere vereiste buildtools staan niet in PATH. De geïsoleerde
-`test-volume-foreign`-featurebuild is geprobeerd; de userservice en loader
-compileerden, maar het kernel-buildscript stopte met exit 1 omdat linker `cc`
-ontbreekt. Er is dus geen native image opgeleverd. QEMU-test niet uitgevoerd.
-De juiste freestanding SDK-build van `sdk/examples/volume-docs/build.py`
-slaagde met exit 0 voor de volume-app en -service, niet voor kernel of image.
-`sudo`-installatie vroeg om interactieve authenticatie en is niet voortgezet.
-Logs, hashes, exacte commando's en hervatstappen:
-`docs/verification/foreign-volume-admission-20261103/README.md`.
+**Gewijzigd:** `ui/native/src/desktop.rs`, `ui/native/src/render.rs`,
+`ui/native/tests/render_regressions.rs`, `ui/native/README.md` en
+`docs/implementation/SESSION-AND-DESKTOP.md`.
 
-**Open/eerstvolgend:** in een omgeving met gepinde Rust-targets, `cc`, QEMU en
-OVMF `python3 -B tools/build.py --kernel-feature test-volume-foreign` uitvoeren,
-daarna `python3 -B tools/run_volume.py --case foreign` en de volledige
-`python3 -B tools/test_volume.py` regressiegate. Bevestig bytegelijkheid,
-`Corrupt` vóór servicebeschikbaarheid en nul schrijf-/flush-/appreply-operaties.
-Daarna bewijs/status bijwerken. **41 → 41/100**: hosttests, typecheck en
-AI-review zijn geen native acceptatie; geen nieuw rubriccriterium toegekend.
+**Uitgevoerd:** Rust 1.90.0 `fmt --check`, `cargo check --tests`,
+Clippy (`--all-targets -- -D warnings`) en `git diff --check`: exit 0.
+De bestaande scalar `x86_64-unknown-none`-releasebuild van de native UI slaagt
+ook (exit 0); het `.rlib` heeft SHA-256
+`42eda9397dc739d098b666d9f5a013911fc0b3d867469fde8a558b34b3888b5d`.
+Dit is compilebewijs, geen OS-runtimebewijs. De volledige `ui/native`
+hosttestsuite slaagt met 55 tests (37 algemene, 5 renderer-, 10 sessie- en
+3 fixturetests). Omdat de host `cc` mist, is GCC 15.2/libc6-dev uit Ubuntu
+26.04-pakketten alleen naar `/tmp` uitgepakt; er is niets op het systeem
+geïnstalleerd. De eerste directe testpoging stopte daardoor op ontbrekende
+`cc` (exit 101); de geïsoleerde rerun slaagde. Zonder tijdelijke linker
+eindigde preflight met exit 2; met die linker op `PATH` was exit 2 alleen
+wegens ontbrekende QEMU en OVMF.
+Er is geen QEMU-runtime of native screenshot gemaakt. Commando's, logs en
+bewijsgrenzen: `docs/verification/native-start-surface-20261103/README.md`.
 
-## Vorig checkpoint — PR140 bewijs en descriptorclaims — 3 november 2026
+**Voortgang:** 41 → 41/100. Geen rubriccriterium gesloten; UI-compilatie en
+een toegevoegde test zijn geen native visuele acceptatie. U03/U04 en de
+volledige release blijven open.
+
+De vaste meter is opnieuw gegenereerd en gecontroleerd:
+`python3 tools/progress.py --write` en `python3 tools/progress.py --check`,
+beide exit 0. De assessmentbron is de codecommit hierboven; de huidige
+status-/meterupdate is een documentatiecheckpoint daarop.
+
+**Eerstvolgend:** voer bij beschikbaarheid van QEMU en BIOS/VGA-ROM's de
+brongebonden sessiepreview uit via `python3 -B tools/run_session_preview.py`
+met expliciete `--bios-rom` en `--vga-rom`. De hostrenderer is daarin alleen
+oracle; alleen QMP-invoer en pixels uit de echte gast kunnen native bewijs
+opleveren. De huidige omgeving heeft QEMU/firmware niet.
+
+## Historisch checkpoint — PR140 bewijs en descriptorclaims — 3 november 2026
 
 **Geteste bron:** `2bf9578290bef88d53c17f9913434da6f27441f2`, inclusief
 main `69809c2cb53dfb3bd77abe5352892810fba6e82d`.
@@ -168,23 +191,7 @@ volume-fixture- en RANDOM-gates blijven afzonderlijk open; bron-PRs niet
 blind sluiten. **Eerstvolgend:** `GH_PAGER="" gh pr checks 140`; bij
 Watch-headwijziging opnieuw head/base en inhoud controleren.
 
-## Historisch checkpoint — PR #140 main-integratie — 3 november 2026
-
-PR-head `75cda7f4d49c5afe895277ada1102d630fdb75ad` is inhoudsbehoudend
-geïntegreerd met main `69809c2cb53dfb3bd77abe5352892810fba6e82d`.
-De Nederlandse beschrijvingen in het PR140-hostrapport blijven behouden;
-main's documentstapel, opslagherstelmateriaal, audit en replaytests zijn
-eveneens behouden. De rubric is ongewijzigd: **41 → 41/100**.
-
-**Gecontroleerd:** `umask 077 && python3 -B -m unittest discover -s tests -p
-'test_storage_backend_replay.py'` slaagt (16 tests). De eerste poging met de
-omgeving-umask `0002` faalde op drie permission-gebonden fixtures; geen
-productiecode gewijzigd. `python3 tools/progress.py --write` en `--check`,
-JSON-syntaxiscontrole en `git diff --check` slagen.
-**Open:** de nieuwe integratiehead moet opnieuw door hosted controles worden
-beoordeeld. Er is geen nieuwe native/QEMU-acceptatie uitgevoerd.
-
-## Vorig checkpoint — PR139 exacte contracttestreceipt — 3 november 2026
+## Historisch checkpoint — PR139 exacte contracttestreceipt — 3 november 2026
 
 **Werkelijk opnieuw geteste bron:** `0a49a3822e5d872f75573f12cd072e76e1249e1b`,
 de geïntegreerde PR139-boom met main `d115cc96`.
@@ -233,12 +240,21 @@ aan `380111b`; dat bewijs is niet opnieuw uitgevoerd.
 
 ## Historisch checkpoint — PR140 main-integratie — 3 november 2026
 
-PR-head `75cda7f4d49c5afe895277ada1102d630fdb75ad` is geïntegreerd met main
-`69809c2cb53dfb3bd77abe5352892810fba6e82d`. De Nederlandse beschrijvingen
-in PR140's hostrapport en main-documentatie/replaytests zijn behouden.
-De toenmalige umask-beperking en 16 replaytests zijn hierboven geregistreerd;
-dat resultaat is historisch en geen huidige test van deze nieuwe merge.
-De rubric bleef **41 → 41/100**. Geen nieuwe native/QEMU-acceptatie.
+PR-head `75cda7f4d49c5afe895277ada1102d630fdb75ad` is inhoudsbehoudend
+geïntegreerd met main `69809c2cb53dfb3bd77abe5352892810fba6e82d`.
+De Nederlandse beschrijvingen in het PR140-hostrapport blijven behouden;
+main's documentstapel, opslagherstelmateriaal, audit en replaytests zijn
+eveneens behouden. De rubric is ongewijzigd: **41 → 41/100**.
+
+**Destijds gerapporteerd:** `umask 077 && python3 -B -m unittest discover -s tests -p
+'test_storage_backend_replay.py'` slaagt (16 tests). De eerste poging met de
+omgeving-umask `0002` faalde op drie permission-gebonden fixtures; geen
+productiecode gewijzigd. `python3 tools/progress.py --write` en `--check`,
+JSON-syntaxiscontrole en `git diff --check` slagen.
+Dit historische PR140-resultaat is niet het PR139-bewijs op `732fa9cc`
+en is niet opnieuw uitgevoerd voor deze PR149-integratie.
+**Toen open:** de nieuwe integratiehead moest opnieuw door hosted controles
+worden beoordeeld. Geen nieuwe native/QEMU-acceptatie uitgevoerd.
 
 ## Historische context — eerdere main/statusintegratie op cbbc9c99
 
