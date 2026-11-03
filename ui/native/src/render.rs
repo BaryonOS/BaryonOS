@@ -1249,7 +1249,7 @@ impl Paint<'_> {
         let viewport = view.viewport;
         let w = viewport.logical_width();
         let h = viewport.logical_height();
-        let compact = h < 420;
+        let compact = h < 420 || w < 640;
         let factor = self.scale.factor();
         nieuw_os_graphics::theme::wallpaper(
             &mut self.canvas(),

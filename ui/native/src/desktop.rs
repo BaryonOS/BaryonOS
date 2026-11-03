@@ -143,7 +143,7 @@ impl Desktop {
     pub fn controls(&self, viewport: Viewport) -> [Option<(Target, Rect, &'static str)>; 7] {
         let w = viewport.logical_width();
         let h = viewport.logical_height();
-        let compact = h < 420;
+        let compact = h < 420 || w < 640;
         let width = w.saturating_sub(48).min(440);
         let x = (w - width) / 2;
         let y = if compact {

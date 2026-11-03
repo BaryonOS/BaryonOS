@@ -124,6 +124,10 @@ fn desktop_home_card_follows_the_real_library_state_and_stays_above_the_bar() {
         (1280, 720, Scale::Percent100),
         (800, 600, Scale::Percent200),
         (320, 240, Scale::Percent100),
+        (320, 536, Scale::Percent100),
+        (400, 600, Scale::Percent100),
+        (639, 536, Scale::Percent100),
+        (640, 536, Scale::Percent100),
     ] {
         let viewport = Viewport::new(width, height, scale, 1).unwrap();
         let logical_height = viewport.logical_height();
@@ -148,7 +152,31 @@ fn desktop_home_card_follows_the_real_library_state_and_stays_above_the_bar() {
             .2;
         assert!(card.x + card.width <= viewport.logical_width());
         assert!(card.y + card.height <= logical_height - 68);
-        assert_eq!(start.width, if logical_height < 420 { 44 } else { 88 });
+        assert_eq!(
+            start.width,
+            if viewport.logical_width() >= 464 {
+                88
+            } else {
+                44
+            }
+        );
+        if viewport.logical_width() < 640 {
+            assert_eq!(card.height, 96, "narrow home uses the compact card");
+            assert_eq!(card.y, 64, "narrow home leaves room for navigation");
+        } else if logical_height >= 420 {
+            assert_eq!(card.height, 200, "roomy home keeps its full card");
+        }
+        let mut home_view = view(viewport, &[]);
+        home_view.desktop = Some(&desktop);
+        assert_eq!(
+            pixel(
+                &Frame::new(home_view),
+                (card.x + card.width / 2) * scale.factor(),
+                (card.y + 8) * scale.factor()
+            ),
+            design::SURFACE,
+            "home paint follows the same compact layout as hit testing"
+        );
         assert_eq!(start_label, "Start");
     }
 
