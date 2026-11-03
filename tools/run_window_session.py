@@ -382,7 +382,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                                  calculator_recall_matches(s["CALCULATOR"][-1], baseline,
                                                            expression, current, evaluations, answer) and
                                  comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
-                    if changed_outside(captured["recall-focused"], captured[name], CALCULATOR_BODY):
+                    if name != "recall-first" and changed_outside(captured["recall-first"], captured[name], CALCULATOR_BODY):
                         raise ValueError("Recall paint escaped the calculator body")
                     if same_as is not None and crop(captured[name], CALCULATOR_BODY) != crop(captured[same_as], CALCULATOR_BODY):
                         raise ValueError("Complete recall/draft app pixels differ on roundtrip")

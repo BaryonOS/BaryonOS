@@ -82,6 +82,17 @@ python3 -B -u tools/run_window_session.py --calculator-recall --timeout 600 --bi
 De opt-in route kan uitsluitend `calculator_recall_gate=true` opleveren,
 niet volledige `native_gate=true`. Default-/herstel-/opslaggate ongewijzigd.
 
+Eerste VM-poging op `13f0a505`: build exit 0 / 2,89 s; runner exit 1 /
+32,97 s. Run `window-28698ca01c2d44abbe91d424e2281349`, log
+`veld10-recall-native-attempt1.log`. De eerste berekening was correct,
+maar de buitengebiedcontrole vergeleek met een opname direct na F6, terwijl
+de compositor zijn eigen focuschrome nog schilderde (58.390 pixels buiten
+de appbody, x20..1252/y80..713). Geen appmodelwijziging of productfout
+geclaimd. Runnerfix neemt de eerste complete berekening als native
+buitengebiedbasis; vanaf daar moet iedere recall-/draftstap exact gelijk
+blijven buiten de appbody. Geen pixels gemaskeerd, geen sleeps toegevoegd,
+geen geslaagde gate voor de mislukte poging geclaimd.
+
 Niet uitgevoerd: recall-VM-proef, gewijzigde-mainintegratie, CI, fysieke
 hardware-, menselijke gebruiks-, onafhankelijke audit- en releasegates.
 Geen punten toegekend; geen volledige product-/opslag-/herstelclaim.
