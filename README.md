@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`e5e8502d`](https://github.com/simonvanieperen/nieuw-os/commit/e5e8502d521d11a8b1a1aae543541f6764c59e35) ·
-**Ontwikkelbranch:** `simonvanieperen-sturdy-guide`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR131/132: volledig exact inhoudsbehoud en centrale bronbytes vastleggen, nog niet sluiten.
-41 blijft 41. Beoordelingsbasis e5e8502d. PR132 op4cf1bc88 heeft uitsluitend25 historische scriptadds, alle byte/blob/modegelijk op main99 als100644 tekstaliases. PR131 op59989b49 heeft alleen4 centrale deltas. Tien exacte centrale bronsnapshots toegevoegd; oude20 en eerdere8 behouden. Geen script uitgevoerd, runtimecode gewijzigd of oude rubric geactiveerd. Beide PRs blijven open tot dit bewijs op main staat en actuele heads opnieuw zijn gecontroleerd. Bestaande372-Cargoreceipt en prototypefix blijven behouden; geen nieuwe native/fysieke/menselijke acceptatie of punten.
+**Bron:** [`bb8877e3`](https://github.com/simonvanieperen/nieuw-os/commit/bb8877e3e1aaec304d7478510b65c8116aeb634e) ·
+**Ontwikkelbranch:** `simonvanieperen-reimagined-train`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR149: nieuwe primaire59-hosttestreceipt op schone Watch-main99-merge bewaren.
+41 blijft 41. Op schone Watch-merge bb8877e3 met main99 zijn59 hosttests echt opnieuw groen; cwd/HEAD/status/lock- en Rust-hashes vóór/na en volledige logs vastgelegd. Geen retrospectieve bronbinding van eerdere Watch-tijden. De UI-Rust-code blijft exact53256f82; historische scalar/Clippy/fmt behouden die bron. Assessmentbasis is niet de uiteindelijke PR-head of automatisch elke testbron. Geen nieuwe code, native/QEMU/fysieke/menselijke acceptatie of punten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

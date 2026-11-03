@@ -104,6 +104,20 @@ synthetische appdomein met vooraf verleende VM-rechten. Geen echte gegevens
 of productiecredentials in deze preview gebruiken. Zie het
 [sessiecontract](../../docs/implementation/SESSION-AND-DESKTOP.md).
 
+Het startoppervlak heeft een duidelijke kop, een herkenbare gaststatus en één
+primaire actie naar Materiaal. De kaart toont de echte bibliotheektoestand:
+een nog niet geladen of lege bibliotheek, een opslagfout of een bestaand
+document.
+Zij verzint geen recente documenten, netwerkstatus of energiegegevens. De
+compacte lay-out houdt de kaart vrij van de navigatiebalk; de brede balk noemt
+de Start-actie expliciet. Dit blijft een VM-preview boven de bestaande
+Materiaal-app, geen volledige desktop of geauthenticeerde gebruikerssessie.
+
+De compacte indeling geldt ook bij minder dan640 logische pixels breedte,
+niet alleen bij minder dan420 pixels hoogte. Korte kaartteksten blijven op
+de minimale viewport binnen de kaart; een volle objectlijst of andere
+niet-opslagfout wordt niet als opslaguitval gepresenteerd.
+
 Aanvullende leerbron: OSDev, *Drawing In a Linear Framebuffer*, W004597,
 revisie30599 (21 mei 2026). De bestaande UEFI/GOP- en capabilitytransporten
 blijven leidend; geen tutorialcode is overgenomen.
