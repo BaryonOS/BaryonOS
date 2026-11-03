@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "5c66ec57aaf8eb411a83b8d6e42320ddc379383c",
+    "source_commit": "2b5fff67c3e809b601be99879f2068ce73286e6e",
     "branch": "simonvanieperen-studious-spoon",
     "task": "M1-time: centrale runtime-deadline waits, cancel en eerste service-wiring",
     "previous_score": 41,
-    "summary": "41 blijft 41. De SDK-runtime heeft nu een centrale tijdslaag met TimerRegistration, wait_until/sleep_until, cancel- en timeoutuitkomsten en horizon-gechunkte monotone waits bovenop ABI 1.10; de supervisor-worker is als eerste callsite op deze gedeelde semantiek aangesloten. Dit is host-gecheckte broncode (check+fmt) zonder nieuwe native/QEMU/fysieke/humane acceptatie of rubricsluiting."
+    "summary": "41 blijft 41. De SDK-runtime heeft nu een centrale tijdslaag met absolute monotone TimerRegistration, atomische gedeelde cancel, timeout- en IPC-readyuitkomsten, en begrensde wachtchunks; de supervisor-worker is aangesloten. Runtime-, ABI-, TLS-time- en doc-tests: 40 tests groen; Clippy, fmt en x86_64-unknown-none checks voor runtime en worker groen. Tijdbron blijft 100-Hz PIT, RTC ongeauthenticeerd; geen suspend/high-resolution/native/fysieke/menselijke acceptatie of rubricsluiting."
   },
   "tracks": [
     {

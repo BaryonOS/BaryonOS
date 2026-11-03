@@ -2,9 +2,10 @@
 
 ## NEXT AGENT HANDOFF — M1-time runtimelaag (sdk) — 3 november 2026
 
-**Basis:** `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`, branch
+**Uitgangs-HEAD:** `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`, branch
 `simonvanieperen-studious-spoon`. Eerste maturitystap op M1 (time): één
 centrale runtime-API boven de bestaande ABI 1.6/1.9/1.10-syscalls.
+**Implementatiebron:** `2b5fff67c3e809b601be99879f2068ce73286e6e`.
 Toegevoegd in `sdk/runtime/src/clock.rs` en direct gebruikt in
 `sdk/examples/supervisor/src/worker.rs`.
 Nieuwe runtimelaag:
@@ -19,14 +20,28 @@ een lokale `monotonic_ticks + ipc_wait`-combinatie.
 `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 check --manifest-path sdk/examples/supervisor/Cargo.toml --locked` (exit 0)  
 `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check` (exit 0)
 
-**Niet volledig uitgevoerd:**  
-`... cargo test ...` stopte op deze host met ontbrekende linker `cc`; dus geen
-volledige test-run/lint/native bewijs geclaimd. Score blijft **41 → 41**.
+**Validatie:**
+
+- `PATH="/tmp/nieuw-os-c-toolchain/bin:$PATH" python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 test --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime --locked` (exit 0; 16 unit-, 14 message-, 3 process-, 4 TLS-time- en 3 doc-tests)
+- `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 clippy --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime --all-targets --locked -- -D warnings` (exit 0)
+- `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 check --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime --target x86_64-unknown-none --locked` (exit 0)
+- `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 check --manifest-path sdk/examples/supervisor/Cargo.toml --target x86_64-unknown-none --locked` (exit 0)
+- `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check` (exit 0)
+
+De eerste testpoging miste `cc`; daarna is de al aanwezige tijdelijke
+toolchain onder `/tmp/nieuw-os-c-toolchain` gebruikt, zonder systeeminstallatie.
+Een tussenliggende testuitvoering vond twee onjuiste verwachte chunkwaarden;
+de assertions zijn gecorrigeerd en de volledige suite is daarna groen.
+Geen native/QEMU-, fysieke of menselijke acceptatie uitgevoerd. Score blijft
+**41 → 41**.
 
 **Open/eerstvolgend:** installeer of routeer een beschikbare C-linker voor
-deze omgeving en draai daarna `cargo test --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime --locked`; koppel daarna de nieuwe tijdslaag aan minstens één bestaande service/app-lus om duplicaat wait-logic te verwijderen.
+verdere hosttest-runs indien nodig. Werk de nieuwe API nog in andere service-
+eventlussen in; kernelklok blijft 100-Hz PIT op bestaande profielen, RTC blijft
+unauthenticated en slaap-/suspendcorrectie, hoge-resolutietimers en fysieke
+klokacceptatie zijn niet geïmplementeerd.
 
-## NEXT AGENT HANDOFF — PR149 derde main-integratie — 3 november 2026
+## Historisch checkpoint — PR149 derde main-integratie — 3 november 2026
 
 **Basis:** Watch-merge `bb8877e3e1aaec304d7478510b65c8116aeb634e`, met
 ouders `416886354dbb0c6135a0740c429a3fbd4530a16d` en main

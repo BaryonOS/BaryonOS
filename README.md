@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`5c66ec57`](https://github.com/simonvanieperen/nieuw-os/commit/5c66ec57aaf8eb411a83b8d6e42320ddc379383c) ·
+**Bron:** [`2b5fff67`](https://github.com/simonvanieperen/nieuw-os/commit/2b5fff67c3e809b601be99879f2068ce73286e6e) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-spoon`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** M1-time: centrale runtime-deadline waits, cancel en eerste service-wiring.
-41 blijft 41. De SDK-runtime heeft nu een centrale tijdslaag met TimerRegistration, wait_until/sleep_until, cancel- en timeoutuitkomsten en horizon-gechunkte monotone waits bovenop ABI 1.10; de supervisor-worker is als eerste callsite op deze gedeelde semantiek aangesloten. Dit is host-gecheckte broncode (check+fmt) zonder nieuwe native/QEMU/fysieke/humane acceptatie of rubricsluiting.
+41 blijft 41. De SDK-runtime heeft nu een centrale tijdslaag met absolute monotone TimerRegistration, atomische gedeelde cancel, timeout- en IPC-readyuitkomsten, en begrensde wachtchunks; de supervisor-worker is aangesloten. Runtime-, ABI-, TLS-time- en doc-tests: 40 tests groen; Clippy, fmt en x86_64-unknown-none checks voor runtime en worker groen. Tijdbron blijft 100-Hz PIT, RTC ongeauthenticeerd; geen suspend/high-resolution/native/fysieke/menselijke acceptatie of rubricsluiting.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
