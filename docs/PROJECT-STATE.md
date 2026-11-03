@@ -1,13 +1,13 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR #136 auditreview hersteld — 3 november 2026
+## NEXT AGENT HANDOFF — PR #136 documentatiecorrecties gecontroleerd — 3 november 2026
 
 **Productbasis:** `main` `380111b68688c981eec6abb8fab29174a29f5601`.
-Documentatiebranch `simonvanieperen-cautious-happiness` stond bij hervatten
-op `047c52e82e58d20026461fe5f533a4efa58b569d`; concept-PR #136 richt zich op
-dezelfde main-HEAD. Vier CodeRabbit-opmerkingen zijn bevestigd en minimaal
-hersteld in auditdocumentatie. Geen productcode, acceptatiecriteria of
-gewichten gewijzigd. Roadmap **41/100 → 41/100**.
+Documentatiebranch `simonvanieperen-cautious-happiness` stond tijdens de
+controle op `4a52aeae6c481cbee0b058c71430b45feb10d5bb`; concept-PR #136 richt
+zich op dezelfde main-HEAD. Vier CodeRabbit-opmerkingen zijn bevestigd en
+minimaal hersteld in auditdocumentatie. Geen productcode,
+acceptatiecriteria of gewichten gewijzigd. Roadmap **41/100 → 41/100**.
 
 **Audituitkomst:** 39 gegroepeerde feature-records staan in
 `docs/audit/os-completeness/`; alle 62 bindende `FR-*`-releasecriteria blijven
@@ -27,10 +27,13 @@ in lijn gebracht met de matrix; `POWER-ENERGY` en `INSTALLER` aan FR-S04/FR-R03
 gekoppeld; ACCESSIBILITY/COMPATIBILITY-profielpoorten gecorrigeerd en
 INSTALLER-afbakening verduidelijkt. JSON Schema, 39 groepen, statussen,
 profiel-/prioriteitsaantallen, alle 62 criteria-koppelingen en interne links
-zijn gecontroleerd; voortgangsmeter slaagt op 41/100. PR #136 blijft concept
-tot de review-/gates op de nieuwe head opnieuw zijn beoordeeld. Geen
-productcode of producttests gewijzigd. De bestaande werkqueue benoemt een
-exclusieve integrator; nieuwe productcode is hier niet toegekend.
+zijn gecontroleerd; voortgangsmeter slaagt op 41/100. Op head `4a52aeae`
+waren 29 GitHub-checks succesvol, 1 CodeRabbit-job overgeslagen en 0 checks
+mislukt. Dit is geen product-/releasevalidatie. PR #136 blijft concept en de
+reviewbeslissing staat nog op `CHANGES_REQUESTED`; drie oude threads zijn
+outdated en één thread blijft open. Geen threads handmatig gesloten.
+Geen productcode of producttests gewijzigd. De bestaande werkqueue benoemt
+een exclusieve integrator; nieuwe productcode is hier niet toegekend.
 
 Auditrapport en bronstand: `docs/audit/os-completeness/`.
 

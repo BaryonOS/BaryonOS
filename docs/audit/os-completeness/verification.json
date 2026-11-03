@@ -79,6 +79,13 @@
       "evidence": "Validated all four documentation corrections against the binding matrix. Profile counts are 5 technical preview, 11 experimental desktop, 19 daily-driver beta, and 4 consumer release; all 62 release rows remain open."
     },
     {
+      "id": "PR136-EXACT-HEAD-CI",
+      "result": "passed",
+      "command": "gh pr view 136 --repo simonvanieperen/nieuw-os --json statusCheckRollup",
+      "exit_status": 0,
+      "evidence": "At head 4a52aeae6c481cbee0b058c71430b45feb10d5bb, 29 CI checks completed with SUCCESS and the CodeRabbit job was SKIPPED; no failed checks. These audit-branch checks do not close any product release criterion."
+    },
+    {
       "id": "INTERNAL-LINKS",
       "result": "passed",
       "evidence": "Relative links in audit Markdown resolve within the worktree."

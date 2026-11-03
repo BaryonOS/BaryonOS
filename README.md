@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`047c52e8`](https://github.com/simonvanieperen/nieuw-os/commit/047c52e82e58d20026461fe5f533a4efa58b569d) ·
+**Bron:** [`4a52aeae`](https://github.com/simonvanieperen/nieuw-os/commit/4a52aeae6c481cbee0b058c71430b45feb10d5bb) ·
 **Ontwikkelbranch:** `simonvanieperen-cautious-happiness`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Vier gevalideerde documentatiebevindingen in OS-completeness-audit herstellen.
-Audit-only reviewfixes: score 41/100 → 41/100, rubric v1; geen productcode, criteria of gewichten gewijzigd. Vier documentatiebevindingen zijn gecorrigeerd: exacte-head CI-status, matrix-prioriteiten, FR-koppelingen en eerste releaseprofielen. De audit op main 380111b houdt alle 62 releasecriteria open. Geen nieuwe producttests of releasebewijzen; geen lokale build/QEMU-, hardware-, gebruikerstest of onafhankelijke securityreview uitgevoerd.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** OS-auditreviewcorrecties valideren op concept-PR #136.
+Audit-only reviewfixes: score 41/100 → 41/100, rubric v1; geen productcode, criteria of gewichten gewijzigd. Vier documentatiebevindingen zijn gecorrigeerd en JSON Schema, matrix, 62 FR-koppelingen, profieltellingen en links slagen. Op concept-PR-head 4a52aeae zijn 29 CI-checks succesvol, één CodeRabbit-job overgeslagen en nul mislukt; dit is geen releasevalidatie. Alle 62 productcriteria blijven open; geen lokale productbuild/QEMU-, hardware-, gebruikerstest of onafhankelijke securityreview uitgevoerd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
