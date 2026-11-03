@@ -85,6 +85,13 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR139-reviewvervolg (3 november 2026), geteste bron `732fa9cc`: **41 → 41**.
+De 16 replay-hosttests met `umask 0077` zijn opnieuw groen; met `umask 0002`
+blijft exit 1 (1 failure, 2 errors) zichtbaar, geen groen resultaat.
+[Primaire receipts met volledige logs](verification/pr139-review-receipts.json)
+staan los van het historische prioriteitencheckpoint en zijn 15
+workflowruns op `380111b`. Geen nieuwe native of productacceptatie.
+
 PR139-mainintegratie (3 november 2026), basis `76743f5d` met main
 `69809c2c`: **41 -> 41**. `76743f5d` is de assessmentbasis; de 15
 historische OS-workflowruns blijven uitsluitend bewijs op `380111b` en zijn

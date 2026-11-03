@@ -1,6 +1,29 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR139 en actuele main inhoudsbehoudend geïntegreerd — 3 november 2026
+## NEXT AGENT HANDOFF — PR139 primaire receipts en bronrollen — 3 november 2026
+
+**Geteste bron:** `732fa9cca04ced66b06bee4f0e4f57249c09e96a`, inclusief
+main `69809c2cb53dfb3bd77abe5352892810fba6e82d`.
+De 16 replay-hosttests zijn opnieuw uitgevoerd met `umask 0077`: exit 0.
+Dezelfde suite met `umask 0002` eindigde echt met exit 1:
+1 failure en 2 errors door groepsschrijfbare fixtures. Dat is geen groen
+testresultaat; de private-inputcontrole is niet versoepeld.
+Exacte commando's, tree/codehashes en volledige primaire logs met SHA-256:
+[PR139-receipts](verification/pr139-review-receipts.json).
+
+Het [oudere prioriteitencheckpoint](verification/priority-plan-checkpoint-20261103.json)
+blijft historisch: assessmentbasis `716f3ec1`, oorspronkelijke basis
+`d3e5602c`, 15 OS-workflowruns uitsluitend op `380111b`. Dat bestand wordt
+niet als bewijs voor de nieuwe replay-/umaskruns gebruikt.
+Score **41 → 41**, geen nieuwe native of productacceptatie.
+
+**Open:** verse hosted CI en definitieve review vóór merge, geen blinde
+sluiting van bron-PRs. PR135's volume-fixtures en RANDOM-gate, #41/#42 en
+fysieke/menselijke releaseacceptatie blijven afzonderlijk open.
+**Eerstvolgend:** `GH_PAGER="" gh pr checks 139`; bij Watch-headwijziging
+eerst head/base en inhoud opnieuw beoordelen.
+
+## Historisch checkpoint — PR139 en main inhoudsbehoudend geïntegreerd — 3 november 2026
 
 Basis vóór integratie: PR-head `76743f5d60ec517ec38edd48aa256f942e47a69f`
 en actuele `main` `69809c2cb53dfb3bd77abe5352892810fba6e82d`.

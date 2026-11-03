@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "76743f5d60ec517ec38edd48aa256f942e47a69f",
+    "source_commit": "732fa9cca04ced66b06bee4f0e4f57249c09e96a",
     "branch": "simonvanieperen-supreme-spork",
-    "task": "PR139: actuele main-conflicten inhoudsbehoudend integreren",
+    "task": "PR139: primaire replay-/umaskreceipts scheiden van historisch OS-bewijs",
     "previous_score": 41,
-    "summary": "De assessmentbasis van deze meting is PR-head 76743f5d; de 15 historische OS-workflowruns blijven uitsluitend bewijs op 380111b en zijn niet opnieuw uitgevoerd. De actuele main is inhoudsbehoudend geïntegreerd. De 16 storage-backend-replaytests slagen met umask 0077; bij sandbox-umask 0002 faalde de ongewijzigde testaanroep op groepsschrijfbare fixtures, die door de private-inputcontrole terecht worden geweigerd. Progresscontrole slaagt. De unieke main-statushistorie is behouden. Geen nieuwe acceptatiecriteria of punten: 41/100 blijft gelijk. Reviewverzoeken zijn nog open en vielen buiten deze tickautorisatie."
+    "summary": "41/100 blijft 41/100. Op exacte bron 732fa9cc slagen opnieuw 16 replay-hosttests met umask 0077; met umask 0002 blijft de echte mislukking exit 1 (1 failure, 2 errors) bewaard. Primaire volledige logs en tree/codehashes: docs/verification/pr139-review-receipts.json. Het afzonderlijke historische docs/verification/priority-plan-checkpoint-20261103.json hoort bij assessmentbasis 716f3ec1 en OS-bewijs 380111b, niet bij deze replay-/umaskruns. Geen nieuwe native uitvoering of criteriumacceptatie."
   },
   "tracks": [
     {

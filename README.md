@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`76743f5d`](https://github.com/simonvanieperen/nieuw-os/commit/76743f5d60ec517ec38edd48aa256f942e47a69f) ·
+**Bron:** [`732fa9cc`](https://github.com/simonvanieperen/nieuw-os/commit/732fa9cca04ced66b06bee4f0e4f57249c09e96a) ·
 **Ontwikkelbranch:** `simonvanieperen-supreme-spork`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR139: actuele main-conflicten inhoudsbehoudend integreren.
-De assessmentbasis van deze meting is PR-head 76743f5d; de 15 historische OS-workflowruns blijven uitsluitend bewijs op 380111b en zijn niet opnieuw uitgevoerd. De actuele main is inhoudsbehoudend geïntegreerd. De 16 storage-backend-replaytests slagen met umask 0077; bij sandbox-umask 0002 faalde de ongewijzigde testaanroep op groepsschrijfbare fixtures, die door de private-inputcontrole terecht worden geweigerd. Progresscontrole slaagt. De unieke main-statushistorie is behouden. Geen nieuwe acceptatiecriteria of punten: 41/100 blijft gelijk. Reviewverzoeken zijn nog open en vielen buiten deze tickautorisatie.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR139: primaire replay-/umaskreceipts scheiden van historisch OS-bewijs.
+41/100 blijft 41/100. Op exacte bron 732fa9cc slagen opnieuw 16 replay-hosttests met umask 0077; met umask 0002 blijft de echte mislukking exit 1 (1 failure, 2 errors) bewaard. Primaire volledige logs en tree/codehashes: docs/verification/pr139-review-receipts.json. Het afzonderlijke historische docs/verification/priority-plan-checkpoint-20261103.json hoort bij assessmentbasis 716f3ec1 en OS-bewijs 380111b, niet bij deze replay-/umaskruns. Geen nieuwe native uitvoering of criteriumacceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
