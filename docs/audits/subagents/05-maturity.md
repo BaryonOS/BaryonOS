@@ -1,5 +1,13 @@
 # AUDIT-05 — productvolwassenheid en functionele probleemoplossing
 
+**Bronmetadata:** primaire repositorybron: *Nieuw OS — “Add OS specialist
+agent profiles”*, auteur/organisatie S.W.J.B.M. van Ieperen, 3 november 2026,
+commit `beafdedfc188154fe7285848fbd411e651013f54`
+([onveranderlijke snapshot](https://github.com/simonvanieperen/nieuw-os/tree/beafdedfc188154fe7285848fbd411e651013f54)).
+Alle lokale `pad:regel`-citaten hieronder verwijzen naar die snapshot.
+De referenties naar andere besturingssystemen zijn productdoelen en
+toetsvragen, geen geverifieerde beschrijvingen van hun gedrag.
+
 ## Managementsamenvatting
 
 Nieuw OS heeft een aantoonbare eigen technische basis en beperkte native
@@ -39,8 +47,8 @@ hardwaretest of onafhankelijke menselijke audit door deze sessie uitgevoerd.
   `69809c2cb53dfb3bd77abe5352892810fba6e82d`; werkboom schoon.
   Na de toegestane switch: **detached HEAD op beafdedf**, niet een checkout van
   de bronbranch. De opgegeven branchnaam is context, niet live remote-verificatie.
-- Alleen deze eigen worktree is als bestandsbron gebruikt:
-  `/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-ubiquitous-barnacle`.
+- Alleen de eigen worktree is als bestandsbron gebruikt; het lokale pad is
+  niet gepubliceerd.
   Lokale worktree-metadata is gelezen; andere checkouts zijn niet onderzocht.
 - Alleen dit rapport wordt geschreven. Geen productcode, scoreblad,
   projectstatus, roadmap, commit, push, PR of merge. De integrator verzamelt
@@ -138,22 +146,22 @@ Een Windows-host met QEMU/WHPX uit B3 is geen fysieke Nieuw-OS-hardwaretest.
 ## 4. Vergelijking met referentie-OS'en
 
 Onderstaande tabel gebruikt Windows, macOS, Linux, Android, iOS, ChromeOS,
-Qubes OS en Fuchsia als **functionele referentiekaders**, niet als
-geverifieerde actuele featurelijsten. Geen externe diensten zijn geraadpleegd;
-versie, editie, hardware en beleid van die systemen zijn niet onderzocht.
-De genoemde taak is een vergelijkingsvraag, geen uitspraak dat iedere versie
-van het referentie-OS die taak gelijk of foutloos oplost.
+Qubes OS en Fuchsia uitsluitend als **productdoelen en toetsvragen**, niet als
+geverifieerde actuele featurelijsten of technische beschrijvingen. Geen externe
+diensten zijn geraadpleegd; versies, edities, hardware en beleid zijn
+`ONBEKEND`. De genoemde taken zeggen niet dat een bestaand systeem ze gelijk
+of foutloos oplost.
 
-| Referentiekader | Vergelijkbare probleemoplossing en acceptatievraag | Nieuw OS: bewijs tegenover ontbrekende keten |
+| Referentiekader | Productdoel/toetsvraag (geen beschrijving van bestaand OS) | Nieuw OS: bewijs tegenover ontbrekende keten |
 |---|---|---|
-| Windows | Een gewone gebruiker opent bestaand werk, gebruikt meerdere tools en herstelt na app-/updatefout zonder data te verliezen. | U01/K05/B03 leveren deelbewijs; import/export, installer, dagelijkse apps, updates met gebruikersdata en support nog niet integraal bewezen (B2–B6/B13). |
-| macOS | Herkenbare, samenhangende setup/login/document-/apparaatervaring; ook na onderbreking weet de gebruiker waar werk en rechten staan. | ADR-058 en Materiaal passen als ontwerp; U01 is echt. Auth, multidevice, volledige afwerking en menselijke continuïteitstaken zijn open (B3/B8/B9/B16). |
-| Linux | Een gebruiker kan gereedschap kiezen, configureren en onderhouden, inclusief begrijpelijke foutdiagnose, drivers en herstel. | Eigen kernel blijft verplicht; “Linux-achtig instelbaar” vereist niet Linux als basis. SDK/documentatie bestaan, apparaat-/pakket-/supportketen is beperkt (B1/B10/B11/B16). |
-| Android | Een geïnstalleerde app krijgt alleen haar benodigde rechten en hervat veilig na onderbreking, resourcegebrek of netwerkverlies. | Capability- en quota/faultproeven zijn relevante basis; algemene package lifecycle, deviceportalen en dagelijkse achtergrondwerking zijn niet bewezen (B1/B2/B7/B13). |
-| iOS | Maken, delen, terugvinden en veilig vergrendelen werken met beperkte handelingen en consistente toegankelijkheid. | Begrensde tekst-/venstertaken bestaan; trusted lock, portals, native semantiek en menselijke taakkwaliteit ontbreken als totaalbewijs (B3/B9/B15). |
-| ChromeOS | De gebruiker bereikt webtaken, downloads en offline werk zonder zelf de transport-/updateketen te beheren. | Geen native browseracceptatie; synthetische HTTP-peer is geen webplatform. TLS, engineport, downloads, offline/dataherstel en updatevoering zijn afhankelijkheden (B6/B7/B15). |
-| Qubes OS | Scheid contexten; maak een overdracht tussen contexten expliciet en begrijpelijk, ook bij fouten. | Capabilityprocessen zijn geen bewijs van dezelfde compartiment-/VM-grenzen. Toets eigen document-, klembord-, download- en netwerkgrenzen met negatieve taken; kopieer niet de architectuur (B1–B3/B17). |
-| Fuchsia | Rechten en servicelevenscyclus blijven controleerbaar tijdens starten, falen, vervangen en opruimen van componenten. | Getypeerde handles, K05 en U01-herbinding zijn relevante eigen deelresultaten; ze erven geen Zircon/Fuchsia-bewijs of volledige platformvolwassenheid (B1–B3/B11). |
+| Windows | Toetsvraag: kunnen gewone taken met bestaand werk, meerdere apps en herstel na app-/updatefout zonder gegevensverlies worden uitgevoerd? | U01/K05/B03 leveren deelbewijs; import/export, installer, dagelijkse apps, updates met gebruikersdata en support nog niet integraal bewezen (B2–B6/B13). |
+| macOS | Toetsvraag: is setup/login/document-/apparaatgebruik herkenbaar en blijft na onderbreking duidelijk waar werk en rechten staan? | ADR-058 en Materiaal passen als ontwerp; U01 is echt. Auth, multidevice, volledige afwerking en menselijke continuïteitstaken zijn open (B3/B8/B9/B16). |
+| Linux | Toetsvraag: kunnen gebruikers gereedschap kiezen, configureren en onderhouden met begrijpelijke diagnose, drivers en herstel? | Eigen kernel blijft verplicht; “Linux-achtig instelbaar” vereist niet Linux als basis. SDK/documentatie bestaan, apparaat-/pakket-/supportketen is beperkt (B1/B10/B11/B16). |
+| Android | Toetsvraag: krijgen apps alleen benodigde rechten en hervatten ze veilig na onderbreking, resourcegebrek of netwerkverlies? | Capability- en quota/faultproeven zijn relevante basis; algemene package lifecycle, deviceportalen en dagelijkse achtergrondwerking zijn niet bewezen (B1/B2/B7/B13). |
+| iOS | Toetsvraag: zijn maken, delen, terugvinden en veilig vergrendelen toegankelijk en met beperkte handelingen uitvoerbaar? | Begrensde tekst-/venstertaken bestaan; trusted lock, portals, native semantiek en menselijke taakkwaliteit ontbreken als totaalbewijs (B3/B9/B15). |
+| ChromeOS | Toetsvraag: zijn webtaken, downloads en offline werk uitvoerbaar zonder handmatige transport-/updateafhandeling? | Geen native browseracceptatie; synthetische HTTP-peer is geen webplatform. TLS, engineport, downloads, offline/dataherstel en updatevoering zijn afhankelijkheden (B6/B7/B15). |
+| Qubes OS | Toetsvraag: zijn contexten gescheiden en overdrachten expliciet en begrijpelijk, ook bij fouten? | Capabilityprocessen zijn geen bewijs van dezelfde compartiment-/VM-grenzen. Toets eigen document-, klembord-, download- en netwerkgrenzen met negatieve taken; kopieer niet de architectuur (B1–B3/B17). |
+| Fuchsia | Toetsvraag: blijven rechten en servicelevenscyclus controleerbaar tijdens starten, falen, vervangen en opruimen? | Getypeerde handles, K05 en U01-herbinding zijn relevante eigen deelresultaten; ze erven geen Zircon/Fuchsia-bewijs of volledige platformvolwassenheid (B1–B3/B11). |
 
 Een latere eerlijke vergelijking gebruikt dezelfde synthetische dataset,
 concrete systeemversies, vergelijkbare hardware en gebruikerservaring.
@@ -386,8 +394,8 @@ Resterend risico is vooral dat losse succesvolle bouwstenen als complete
 gebruikservaring worden gepresenteerd of dat oud bewijs naar een nieuwe
 integratie wordt doorgeschoven.
 
-Opleverbestand:
-`/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-ubiquitous-barnacle/docs/audits/subagents/05-maturity.md`.
+Opleverbestand: `docs/audits/subagents/05-maturity.md`; het oorspronkelijke
+lokale worktreepad is niet gepubliceerd.
 Integrator: behoud de bronbinding beafdedf en de historische scopes, verzamel
 de overige rapporten en leg pas gezamenlijk vast. M01–M10 zijn geen
 audituitvoeringsblockers, maar open product-/acceptatieblockers.

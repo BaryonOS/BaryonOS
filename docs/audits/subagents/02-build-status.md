@@ -1,8 +1,18 @@
 # AUDIT-02 - Bouwbaarheid en implementatiestatus
 
-**Resultaat:** er zijn daadwerkelijk gebouwde eigen UEFI-/kernelimages,
-gebruikersprogramma's en native VM-deelproeven in het bronarchief aanwezig.
-Nieuw OS bestaat dus niet uitsluitend uit ontwerp of een browserprototype.
+**Bronmetadata:** primaire repositorybron: *Nieuw OS — “Add OS specialist
+agent profiles”*, auteur/organisatie S.W.J.B.M. van Ieperen, 3 november 2026,
+commit `beafdedfc188154fe7285848fbd411e651013f54`
+([onveranderlijke snapshot](https://github.com/simonvanieperen/nieuw-os/tree/beafdedfc188154fe7285848fbd411e651013f54)).
+Alle lokale `pad:regel`-citaten hieronder verwijzen naar die snapshot.
+Externe normen, hardwaregedrag en vergelijkingen met andere OS'en zijn niet
+onafhankelijk geverifieerd; behandel ze als `ONBEKEND` of als toetsvraag.
+
+**Resultaat:** de repository bevat historische build- en
+uitvoeringsregistraties voor eigen UEFI-/kernelimages, gebruikersprogramma's
+en native VM-deelproeven. Deze registratiebestanden bewijzen niet dat de
+oorspronkelijke binaries nog in het bronarchief aanwezig zijn. Nieuw OS
+bestaat dus niet uitsluitend uit ontwerp of een browserprototype.
 Voor de exacte auditbron is echter geen passend build-/uitvoeringsbewijs
 aangetroffen. Deze audit heeft niets opnieuw gebouwd. Een volledige
 geintegreerde productrelease volgt niet uit de afzonderlijke bewijzen.
@@ -21,8 +31,7 @@ geintegreerde productrelease volgt niet uit de afzonderlijke bewijzen.
   `69809c2cb53dfb3bd77abe5352892810fba6e82d`, schone werkboom.
   Na de expliciet toegestane `git switch --detach` is de audit **detached**
   uitgevoerd. De oorspronkelijke werkbranch is niet verplaatst.
-- Werkmap:
-  `/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-miniature-fiesta`.
+- Werkmap: eigen worktree; het lokale pad is niet gepubliceerd.
   Andere worktrees zijn uitsluitend als Git-metadata gezien; hun bestanden
   zijn niet gelezen en hun actuele resultaten zijn niet gebruikt.
 - Source-v3, zelf berekend via `tools/common.py:68-84`:
@@ -114,7 +123,7 @@ in oude rapporten zijn niet gevolgd.
 | H02 | `docs/verification/parallel-final-qsim/README.md:5-13,30-50,53-76`: bron `3e41bbf93822f7044c6020259f4a752925e1966d`, v3 `307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60`. Werkelijke loader/kernel/user-ELF-buildreceipts, drie exit0; `docs/verification/parallel-final-qsim/build-logs/build-native-qsim-os-kernel.json:2-20` bevat exacte Cargo-opdracht en status. Een echte native selftest, geen QPU. |
 | H03 | `docs/verification/L02-ACCEPTANCE.md:3-35`: uitvoeringsbron `433bab9feab74473517eb8d44f2fb4475848e0cf`, bewaarde CI-run `40743008938`, native quantum-jobstap geslaagd. Twee processen, IPC, Cancel/budget/paging/cleanup; software-simulatie. De externe run is niet opnieuw opgevraagd. |
 | H04 | `docs/verification/ordinary-dev1/README.md:43-76,193-265` en `isolated-build-1/build-command-records.json`: bron `ca45a7dabe6a040921de03bdc2fad3e5045a75ba`, v3 `bda48571144d7771bff145cc17b0f0712e271cbc6ee323dec43bee099ea5e89d`; normale en referentiebuild uiteindelijk exit0, geinspecteerde ELFs en gecorrigeerde linkgrenzen. De eerdere dubbele Cargo-configuratie gaf een echte mislukte VM. Na buildisolatie geen nieuwe VM in dit bewijs; niet als blijvend actuele codefout gerapporteerd. |
-| H05 | `docs/verification/session-desktop-20261102/README.md:3-30,39-64` en `docs/verification/session-desktop-20261102/final-native.json:3-20`: bron `344dc0afde893784503217ac676e154b13662507`, v3 `05b047819f1c1cddce6868034ab2208d8a35a95d9f974860afb8bbc53eeb8658`; zeven executables plus loader/kernel gebouwd, acht native sessiefasen, rawQEMUexit0. Gast werkt; persoonlijke testinvoer wordt geweigerd. Geen echte accountauthenticatie. De serialhash is tijdens deze audit opnieuw gelijk bevonden. |
+| H05 | `docs/verification/session-desktop-20261102/README.md:3-30,39-64` en `docs/verification/session-desktop-20261102/final-native.json:3-20`: historische registratie voor bron `344dc0afde893784503217ac676e154b13662507`, v3 `05b047819f1c1cddce6868034ab2208d8a35a95d9f974860afb8bbc53eeb8658`; die registratie vermeldt zeven executables plus loader/kernel, acht native sessiefasen en rawQEMUexit0. Dit bewijst niet dat de oorspronkelijke binaries nu aanwezig zijn. Gast werkt volgens het historische resultaat; persoonlijke testinvoer wordt geweigerd. Geen echte accountauthenticatie. De serialhash is tijdens deze audit opnieuw gelijk bevonden. |
 | H06 | `docs/verification/mature-session-20261102/U01-ACCEPTANCE.md:3-6,10-54`: bron `337f2f29f1833ef4a8d2cd640b09419f85dbb83b`, v3 `3919403542c923bc86467db3184345159a5ce6881567a0e11baa85f2d39f1995`. Volledige dertienfasenvenstergate, twee apps, echte compositorfault en herstel; root raw33 en CI raw33. CI-merge `663bb8c` is expliciet afzonderlijk gebonden aan dezelfde v3. Geen E7/E8. |
 | H07 | `docs/verification/native-clipboard-20261102/README.md:13-56`: rootbron `d0ae570bd4666626096f92e57acef981c0f0d7b6`, v3 `05307fef9684d97480a77ea39050d80f6affcf522a6c09c7eb53340c789b35aa`; finale testbron `e3182f0bba72f300596dd81417fbbd371a8d5d79`, CI-merge `5754763ffb257d6420f74126cae7252e36afab1e`, v3 `038615b1b425d3f24ea2d9c52b36184ea666f81237c813303dc0fac93fb756ca`. Test-only-binaire brug staat apart; 22 native fasen root/CI raw33. Geen volledige U02-acceptatie. |
 | H08 | `docs/verification/n01-native-service-20261102/README.md:3-18,20-56,60-91`: bron `f152aec0615285065689f0a7e2855e5858fdb350`, v3 `56ed10aade50703e08c8422251e323b4400bf37196320d24befe0b46883bbce8`; echte TCP/UDP/NIC/RPC- en client-exitproeven, raw33. `docs/verification/issue-43-receive-timeout.md:25-85` bewaart latere builds en twee regressieruns op `5925c915f6b8d02842fffd89a94f21c0e018689a`, v3 `9a8b521f4b2e5a24b279142d8554538c5cf618e3e55a9cac3e7070e12ad4fc39`. De specifieke ReceiveTcp-timeoutfix is daar alleen host-rood/groen bewezen. Geen TLS/DHCP/productinternetclaim. |
@@ -196,7 +205,7 @@ volgende sectie is volledig herhaalbaar zonder Cargo, netwerk of outputfiles.
 | `git switch --detach beafdedfc188154fe7285848fbd411e651013f54` | 0; alleen na vastgestelde schone eigen werkboom |
 | `git rev-parse copilot/add-os-specialist-agents` | 0; exacte auditcommit |
 | `git diff --name-only` en `git ls-files --others --exclude-standard` | elk 0; geen uitvoer voor rapportschrijven |
-| `git diff --check` | 0 na rapportschrijven; aanvullend read-only controle van het ongevolgde rapport: geen trailing whitespace, gebalanceerde codeblokken en geldige expliciete bronpad-/regelverwijzingen |
+| `git diff --check` | 0 na rapportschrijven; controleerde alleen tracked wijzigingen. Het rapport was toen untracked, dus deze controle valideert dat rapport niet. Er is geen exact commandolog van een rapport-specifieke controle vastgelegd; die claim blijft onbewezen. |
 | `python3 --version` | 0; Python 3.14.4 |
 | `command -v python3`, `command -v git`, `command -v objdump`, `command -v readelf`, `command -v nm` | elk 0; beschikbaar op PATH |
 | `command -v cargo`, `command -v rustc`, `command -v rustup`, `command -v rust-lld`, `command -v clang`, `command -v ld.lld`, `command -v qemu-system-x86_64`, `command -v qemu-img`, `command -v node`, `command -v cc` | elk 1; niet gevonden op PATH. Geen compiler/VM gestart |
@@ -296,8 +305,8 @@ De bestaande README-meter staat op 41/100 (`README.md:32-61`) en is niet
 herbeoordeeld of gewijzigd: scorebeheer en gezamenlijke integratie behoren
 expliciet aan de hoofdagent. Deze audit levert geen nieuw native criteriumbewijs.
 
-Overdracht: volledig rapport in
-`/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-miniature-fiesta/docs/audits/subagents/02-build-status.md`.
+Overdracht: volledig rapport in `docs/audits/subagents/02-build-status.md`;
+het oorspronkelijke lokale worktreepad is niet gepubliceerd.
 De inhoud is ongecommit op detached `beafdedfc188154fe7285848fbd411e651013f54`.
 De hoofdagent kan alleen dit document opnemen in de gezamenlijke auditcommit;
 er is geen productimplementatie of integratiebesluit genomen.

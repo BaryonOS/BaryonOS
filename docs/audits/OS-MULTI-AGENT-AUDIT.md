@@ -20,10 +20,14 @@ juridische conformiteitsverklaring of releasevalidatie.
 |---|---|
 | Repository | `simonvanieperen/nieuw-os` |
 | Onderzochte bronbranch | `copilot/add-os-specialist-agents` |
-| Exacte auditcommit | `beafdedfc188154fe7285848fbd411e651013f54` |
+| Geauditeerde broncommit | `beafdedfc188154fe7285848fbd411e651013f54` |
+| Audit-/rapportcommit | `6929b986440fe659fa1d45167f476313abb6c6d3` |
 | Parent van auditbron | `69809c2cb53dfb3bd77abe5352892810fba6e82d` |
+| Titel broncommit | `Add OS specialist agent profiles` |
+| Auteur/organisatie en datum broncommit | S.W.J.B.M. van Ieperen, 3 november 2026 |
+| Vastgepinde bron-URL | [GitHub-bronsnapshot](https://github.com/simonvanieperen/nieuw-os/tree/beafdedfc188154fe7285848fbd411e651013f54) |
 | Source-v3 via bestaande `tools/common.py` | `fe0fe328ef3909e2dab4386c0ba77ebf3cf6a8244301e245863b21debfde4c99` |
-| Integratiewerkmap | `/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-effective-enigma` |
+| Integratiewerkmap | Eigen worktree; lokaal pad niet gepubliceerd |
 | Wijzigingsscope | Alleen dit hoofdrapport en zestien deelrapporten |
 | Productscore | Bestaand 41/100; ongewijzigd, niet opnieuw inhoudelijk geaccepteerd |
 
@@ -45,11 +49,19 @@ rapport 04 en is geen technisch geladen OS-profiel of menselijke audit.
 
 Primaire bewijsbasis is uitsluitend de bestaande repository. Externe
 standaarden, actuele juridische bronnen, advisories en CI-artifacts zijn niet
-opnieuw opgehaald. Lokale OSDev-passages zijn aanvullende leerbronnen, geen
+opnieuw opgehaald tijdens de oorspronkelijke audit. In deze PR-review is
+alleen de publicatiemetadata van de officiële WCAG 2.2-pagina nagekeken om een
+citatie te corrigeren; inhoudelijke EU-toepasselijkheid en andere externe
+claims zijn niet gecontroleerd. Lokale OSDev-passages zijn aanvullende leerbronnen, geen
 normatieve hardware- of beveiligingscertificering. Rapporten zijn hashgelijk
 overgenomen; noodzakelijke citaat-/scopepreciseringen zijn door hun auteurs
 gedaan. Mechanische citatencontrole bevestigt vindbaarheid en regelbereik,
 niet automatisch de inhoudelijke juistheid.
+
+Alle technische bevindingen over Nieuw OS zijn repository-observaties tegen de
+hierboven vastgepinde snapshot. Uitspraken over externe standaarden, hardware,
+wetgeving of andere besturingssystemen zijn niet onafhankelijk geverifieerd
+en gelden als `ONBEKEND` of als toetsvraag, niet als vastgestelde feiten.
 
 ### Remote drift tijdens de audit
 
@@ -243,13 +255,13 @@ een uitgevoerde mislukte runtimeproef.
 | `tomllib`-inventaris van gevolgde `Cargo.lock` | Exit 0; 53 locks, 338 externe entries niet ontdubbeld, alle met checksum. Geen advisory-/licentiescan. |
 | `(cd docs/verification/b03-key-policy-mainca45 && sha256sum --check --quiet SHA256SUMS)` plus JSON-asserties | Exit 0; 56 hashes en opgeslagen 18/18 completed/passed-stages; geen nieuwe updateproef. |
 | PyYAML `safe_load` op de zestien `.github/agents/os-*.agent.md`-frontmatters | Exit 0; zestien mappings met naam/beschrijving; geen profielbestanden gewijzigd. |
-| `python3 -B /home/simon/.copilot/session-state/1526c76c44df4099b017a302e4742279/files/validate_audit.py` | Exit 0: zestien auteurhashes, 826 volledige broncitaten via `git show`, rapportlinks, whitespace, codefences en Pythonbloksyntax; exact zeventien uitsluitend toegevoegde rapporten. Geen OS-test. |
+| Integratievalidator uit een lokaal sessieartefact (pad geredigeerd; geen repositorybestand) | Historisch exit 0: zestien auteurhashes, 826 volledige broncitaten via `git show`, rapportlinks, whitespace, codefences en Pythonbloksyntax; exact zeventien uitsluitend toegevoegde rapporten. Geen OS-test. |
 | `git diff --cached --check` | Exit 0; staged auditdiff zonder whitespacefouten. |
 
 De hosttestlogs `audit-host-count.log` en `audit-window-harness.log`, het
-manifestlog en de integratievalidator staan buiten Git onder
-`/home/simon/.copilot/session-state/1526c76c44df4099b017a302e4742279/files/`.
-Zij zijn sessieartefacten, geen beloofd permanent CI-archief. De beslissende
+manifestlog en de integratievalidator staan buiten Git in een lokaal
+sessieartefact; het privépad is niet gepubliceerd. Zij zijn sessieartefacten,
+geen beloofd permanent CI-archief. De beslissende
 manifest- en CPU-herhaalcommando's staan volledig in de deelrapporten;
 overige inline controles en exitstatussen staan in het tooltranscript.
 

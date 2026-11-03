@@ -1,5 +1,13 @@
 # AUDIT-13 - defensief dreigingsmodel en aanvalsbomen
 
+**Bronmetadata:** primaire repositorybron: *Nieuw OS — “Add OS specialist
+agent profiles”*, auteur/organisatie S.W.J.B.M. van Ieperen, 3 november 2026,
+commit `beafdedfc188154fe7285848fbd411e651013f54`
+([onveranderlijke snapshot](https://github.com/simonvanieperen/nieuw-os/tree/beafdedfc188154fe7285848fbd411e651013f54)).
+Alle lokale `pad:regel`-citaten hieronder verwijzen naar die snapshot.
+Externe standaarden en dreigingsclaims zijn niet onafhankelijk geverifieerd;
+de aanvalstakken zijn hypotheses, geen vastgestelde externe feiten.
+
 Datum: 3 november 2026 (Europe/Amsterdam). Alleen repositoryonderzoek.
 Opdracht: "Maak een defensief dreigingsmodel en aanvalsbomen. Gebruik geen
 echte data, productiecredentials of destructieve tests."
@@ -21,7 +29,7 @@ profiel is niet technisch als customagent geladen. De repositoryskill
 | Herkomstcontrole | Waargenomen |
 |---|---|
 | Repository | `simonvanieperen/nieuw-os`, lokale bron; geen remote opgevraagd |
-| Eigen werkboom | `/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-laughing-carnival` |
+| Eigen werkboom | Eigen worktree; lokaal pad niet gepubliceerd |
 | Beginbranch | `simonvanieperen-laughing-carnival`, dus niet de gevraagde bronbranch |
 | Begin-HEAD | `69809c2cb53dfb3bd77abe5352892810fba6e82d` |
 | Beginstatus | `git status --short` en `--porcelain=v1`: leeg |
@@ -124,7 +132,9 @@ het slagen van een aanval. Geen van deze rijen is een uitgevoerde exploit.
 DMA blijft een apart platformrisico: ADR-026 omvat de protocolconforme
 QEMU-backend in de TCB en sluit IOMMU-containment uit
 (`docs/DECISIONS.md:636-644`). Dat is geen nieuw gevonden driverlek.
-Als lokale leerbron is OSDev, *IOMMU*, W005001, revisie 30116
+Als lokale, niet-normatieve leerbron is OSDev, *IOMMU*, OSDev-community,
+W005001, revisie 30116 (3 maart 2026),
+`https://wiki.osdev.org/index.php?title=IOMMU&oldid=30116`
 (3 maart 2026) gelezen in
 `.agents/skills/os-dev/references/corpus/wiki-14.md:17949-17965`.
 Dit is een aanvullende communitybron, niet een hardwareconformiteitsbewijs.
@@ -376,13 +386,18 @@ en `.agents/skills/os-dev/references/workflows/06-debugging-and-review.md:19-47`
 Mislukte verkennende lookups, geen productfouten en geen bewijs van globale
 afwezigheid:
 
-| Exacte lookup | Waarneming |
-|---|---|
-| `rg -n 'AI|inference|netwerk|broker' docs/implementation/LOCAL-AI*.md` | rg meldde ontbrekend pad, eigen foutstatus 2; omgevende pipeline/batch eindigde 0 |
-| `rg -n 'clipboard|Clipboard|fn authorize|ticket' ui/native/window-session/src/lib.rs sdk/input-client/src/lib.rs` | Eerste pad ontbreekt, rg-fout; echte bron daarna gevonden onder `sdk/examples/window-session/` |
-| `rg -n 'AI|inference|prompt|model' services/README.md docs/implementation/PRODUCT-SPEC.md` | Eerste pad ontbreekt; productspecificatie wel gelezen |
-| `nl -ba services/nas/native-core/tests/core.rs` | Bestand ontbreekt; inventaris toont `services/nas/native-core/tests/authority.rs`, niet uitgevoerd |
-| `nl -ba docs/README.md` | Bestand ontbreekt; root-README was reeds gelezen |
+- `rg -n 'AI|inference|netwerk|broker' docs/implementation/LOCAL-AI*.md` meldde
+  een ontbrekend pad (rg-status 2; de omgevende pipeline/batch eindigde 0).
+- `rg -n 'clipboard|Clipboard|fn authorize|ticket' ui/native/window-session/src/lib.rs sdk/input-client/src/lib.rs`
+  meldde het eerste pad als ontbrekend; de echte bron is daarna gevonden
+  onder `sdk/examples/window-session/`.
+- `rg -n 'AI|inference|prompt|model' services/README.md docs/implementation/PRODUCT-SPEC.md`
+  meldde het eerste pad als ontbrekend; de productspecificatie is wel gelezen.
+- `nl -ba services/nas/native-core/tests/core.rs` meldde een ontbrekend bestand;
+  de inventaris toonde `services/nas/native-core/tests/authority.rs`, niet
+  uitgevoerd.
+- `nl -ba docs/README.md` meldde een ontbrekend bestand; de root-README was al
+  gelezen.
 
 De leesbatches bewaren hun tijdelijke uitvoer via het tooltranscript; er is
 geen aparte permanente commandolog aangemaakt. Geen testlog of runtimeartefact

@@ -1,5 +1,13 @@
 # AUDIT-14 - prestaties en energie
 
+**Bronmetadata:** primaire repositorybron: *Nieuw OS — “Add OS specialist
+agent profiles”*, auteur/organisatie S.W.J.B.M. van Ieperen, 3 november 2026,
+commit `beafdedfc188154fe7285848fbd411e651013f54`
+([onveranderlijke snapshot](https://github.com/simonvanieperen/nieuw-os/tree/beafdedfc188154fe7285848fbd411e651013f54)).
+Alle lokale `pad:regel`-citaten hieronder zijn repository-observaties uit die
+snapshot. Externe energie-/hardwareclaims en vergelijkingen zijn niet
+onafhankelijk geverifieerd en blijven `ONBEKEND`.
+
 Datum: 3 november 2026, Europe/Amsterdam. Audit-only, repository-only.
 **Uitkomst:** bruikbare brongebonden microbenchmark- en idle-CPU-bewijzen,
 maar geen aangetoonde volledige performance- of energieacceptatie van de
@@ -17,11 +25,9 @@ I/O, idlegedrag en energieverbruik. Voer geen ongecontroleerde optimalisaties ui
 - Beginbranch: `simonvanieperen-sturdy-carnival`, HEAD
   `69809c2cb53dfb3bd77abe5352892810fba6e82d`, **schone** beginboom.
   Deze beginbranch was dus niet de gevraagde bronbranch.
-- Eigen worktree:
-  `/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-sturdy-carnival`.
-  De worktreeregistratie bevestigde dit eigen pad. De hoofdcheckout
-  `/home/simon/projects/nieuw-os` is alleen als Git-worktreemetadata gezien,
-  niet als bestandsbron gelezen of beschreven.
+- Eigen worktree; het lokale pad is niet gepubliceerd. De worktreeregistratie
+  bevestigde de eigen werkplek. De hoofdcheckout is uitsluitend als
+  Git-worktreemetadata gezien, niet als bestandsbron gelezen of beschreven.
 - Na de toegestane `git switch --detach` is de audit geheel uitgevoerd op
   **detached HEAD `beafdedfc188154fe7285848fbd411e651013f54`**.
   Geen branchhernoeming, commit, push, merge of PR-actie.
@@ -255,7 +261,7 @@ lees-/zoekuitkomsten gebruikt, niet als geslaagde tests.
 | Controle | Exacte shellopdracht of verwijzing naar hieronder |
 |---|---|
 | Begincontrole | `pwd && git branch --show-current && git rev-parse HEAD && git status --short && git worktree list --porcelain && git cat-file -t beafdedfc188154fe7285848fbd411e651013f54 && git show-ref --verify refs/remotes/origin/copilot/add-os-specialist-agents` |
-| Pinning | `git status --porcelain=v1 && git worktree list --porcelain \| grep -A3 -F 'worktree /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-sturdy-carnival' && git rev-parse refs/remotes/origin/copilot/add-os-specialist-agents && git switch --detach beafdedfc188154fe7285848fbd411e651013f54 && git rev-parse HEAD && git status --short && find . -name AGENTS.md -not -path './.git/*' -print` |
+| Pinning | `git status --porcelain=v1 && git worktree list --porcelain` (privé worktreepad niet gepubliceerd); de overige exacte stappen zijn in de lokale audituitvoer vastgelegd. |
 | Historische CPU/hashcontrole | `python3 -B - <<'PY'` met uitsluitend standaardbibliotheek: gzip/SHA256/JSON/Decimal/statistics/Path; formule en resultaten staan hierboven. Asserties: aggregatehash, leesbare hash, JSON-gelijkheid, 12 gedecomprimeerde hashes, native gate/raw33, creatietijden, telleroptellingen en afwijking kleiner dan 1e-9. Geen outputbestand. |
 | Historische profiel-/benchmark-/memorycontrole | `python3 -B - <<'PY'` met gzip/hashlib/json/Path; controleerde zes rapporten op native_gate/passed/raw33/13 fasen en identiek profiel/QEMU-hash; negen rondetotalen/min/max en vijf memoryrapporthashes. Gevolgd door `git status --short && git diff --stat && git rev-parse HEAD`. Geen outputbestand. |
 

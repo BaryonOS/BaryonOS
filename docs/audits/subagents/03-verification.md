@@ -1,5 +1,13 @@
 # AUDIT-03 - reproduceerbaarheid en bewijsbinding
 
+**Bronmetadata:** primaire repositorybron: *Nieuw OS — “Add OS specialist
+agent profiles”*, auteur/organisatie S.W.J.B.M. van Ieperen, 3 november 2026,
+commit `beafdedfc188154fe7285848fbd411e651013f54`
+([onveranderlijke snapshot](https://github.com/simonvanieperen/nieuw-os/tree/beafdedfc188154fe7285848fbd411e651013f54)).
+Alle lokale `pad:regel`-citaten hieronder verwijzen naar die snapshot.
+Externe normen, hardwaregedrag en vergelijkingen met andere OS'en zijn niet
+onafhankelijk geverifieerd; behandel ze als `ONBEKEND` of als toetsvraag.
+
 **Uitkomst: NIET VAST TE STELLEN voor native acceptatie van de actuele
 samengestelde bron en de volledige testrelease. GEFAALD voor de gecombineerde
 volledigheids- en integriteitscontrole van de SHA256SUMS-archieven.** De beperkte eigen
@@ -24,8 +32,7 @@ herleesbaar, maar zijn geen opnieuw uitgevoerde VM-tests.
 - `git status --short` was leeg. De commit bestond lokaal. Daarna uitsluitend
   in de eigen werkboom `git switch --detach` naar de opgegeven commit, exit 0.
   De werkstand tijdens onderzoek is dus **detached HEAD**, niet de bronbranch.
-- Werkpad:
-  `/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-redesigned-funicular`.
+- Werkpad: eigen worktree; het lokale pad is niet gepubliceerd.
 - Actuele bronvingerafdruk volgens `tools/common.py:68-84`, source-v3:
   `fe0fe328ef3909e2dab4386c0ba77ebf3cf6a8244301e245863b21debfde4c99`.
   Dit is een hash van de door die functie geselecteerde build-/toolbronnen,
@@ -379,10 +386,13 @@ of registreer hun niet-reproduceerbaarheid expliciet. Laat daarna de bevoegde
 integrator actuele bron-/artifactgebonden native/CI-gates en het finale
 releasepakket controleren. Alleen dit rapport is de oplevering van AUDIT-03.
 
-## Eindcontrole van de rapportoplevering
+## Historische eindcontrole van de rapportoplevering
 
-Onderstaand read-only controlescript eindigt met exit 0. Het controleert
-alleen de rapportoplevering; geen aanvullende productacceptatie:
+Het volgende script is de historische receipt van de oorspronkelijke audit
+op detached HEAD `beafdedf`, toen dit rapport nog untracked was. De HEAD- en
+untracked-asserties zijn na publicatie niet meer van toepassing; voer dit
+script niet uit als controle van de huidige PR-revisie. Het controleerde geen
+aanvullende productacceptatie:
 
 ```sh
 python3 -B - <<'PY'
@@ -404,5 +414,11 @@ print('FINAL_REPORT_SCOPE_STRUCTURE_SOURCE_OK')
 PY
 ```
 
-De eindcontrole voegt zelf een zesde shellblok toe; daarom verwacht zij twaalf
+Controleer een gepubliceerde revisie zonder de historische HEAD-/untracked-
+voorwaarden met:
+`git show --check --format=oneline HEAD -- docs/audits/subagents/03-verification.md && git ls-files --error-unmatch docs/audits/subagents/03-verification.md && git cat-file -e beafdedfc188154fe7285848fbd411e651013f54^{commit} && grep -Fq beafdedfc188154fe7285848fbd411e651013f54 docs/audits/subagents/03-verification.md`.
+Dit controleert commitdiff-witruimte, tracking en de vastgepinde bronverwijzing;
+het is geen OS-test of heruitvoering van de historische controles.
+
+De historische eindcontrole voegde zelf een zesde shellblok toe; daarom verwacht zij twaalf
 fences, anders dan de vijf blokken bij de eerste mechanische controle.

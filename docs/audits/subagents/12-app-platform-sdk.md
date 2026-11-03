@@ -1,5 +1,13 @@
 # AUDIT-12 — appplatform, ABI en SDK
 
+**Bronmetadata:** primaire repositorybron: *Nieuw OS — “Add OS specialist
+agent profiles”*, auteur/organisatie S.W.J.B.M. van Ieperen, 3 november 2026,
+commit `beafdedfc188154fe7285848fbd411e651013f54`
+([onveranderlijke snapshot](https://github.com/simonvanieperen/nieuw-os/tree/beafdedfc188154fe7285848fbd411e651013f54)).
+Alle lokale `pad:regel`-citaten hieronder verwijzen naar die snapshot.
+Externe ABI-/platformclaims zijn niet onafhankelijk geverifieerd en blijven
+`ONBEKEND` of toetsvragen.
+
 Datum: 3 november 2026 (Europe/Amsterdam). Opdracht: “Beoordeel ABI, SDK,
 appmanifesten, pakketten, sandboxing, rechten, backwards compatibility en
 ontwikkelaarservaring.”
@@ -21,7 +29,7 @@ algemene productrijpheidsverklaring of veiligheidsgoedkeuring.
 | Exact onderzochte bron | `beafdedfc188154fe7285848fbd411e651013f54` |
 | Gevraagde bronbranch | `copilot/add-os-specialist-agents`; de lokale `refs/remotes/origin/copilot/add-os-specialist-agents` wijst exact naar deze commit; niet via netwerk ververst |
 | Beginbranch / HEAD | `simonvanieperen-urban-funicular` / `69809c2cb53dfb3bd77abe5352892810fba6e82d` — afwijkend van de gevraagde bronbranch |
-| Werkplek | `/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-urban-funicular`; eigen worktree, niet de hoofdcheckout |
+| Werkplek | Eigen worktree, niet de hoofdcheckout; lokaal pad niet gepubliceerd |
 | Beginboom | `git status --short`: leeg; broncommit aanwezig als Git-commit |
 | Bronselectie | Toegestane `git switch --detach beafdedfc188154fe7285848fbd411e651013f54`; daarna opnieuw schone boom en exact HEAD gecontroleerd |
 | Werkwijze | Gewone chat; `.github/agents/os-app-platform-reviewer.agent.md:10-32` expliciet gelezen, niet technisch als custom agent geladen; geen subagents |
@@ -177,12 +185,20 @@ controlecommando's en uitkomsten:
 | `git switch --detach beafdedfc188154fe7285848fbd411e651013f54 && git rev-parse HEAD && git status --short && git ls-files '*AGENTS.md' 'docs/AGENTS*' '.github/agents/os-app-platform-reviewer.agent.md' && git remote get-url origin` | 0; exacte detached bron, schone boom, instructies gevonden |
 | `git show-ref --verify refs/remotes/origin/copilot/add-os-specialist-agents` | 0; lokale ref exact `beafdedf…`; geen fetch |
 | `git status --porcelain=v1 --untracked-files=all; git rev-parse HEAD` | 0; vóór schrijven leeg en exact audit-HEAD |
-| `rg -n 'app.package|app_package|app.management|app_management|AuthorizedImage' kernel services tools -g '*.{rs,py}'` | Geen matches; tool meldt geen matches. Begrensde zoekobservatie, geen bewijs dat iedere mogelijke implementatie ontbreekt |
-| `git ls-files 'sdk/*/src/*' \| grep -E 'portal\|notif\|mime\|background\|debug\|profil'` | 1 (geen bestandsnaammatches); aanvullende inhoud-/README-lezing hierboven gebruikt |
 | `test ! -e docs/audits/subagents/12-app-platform-sdk.md` | 0 vóór aanmaak; geen bestaand rapport overschreven |
 | `git diff --check` | 0 na schrijven; alleen whitespacecontrole, geen OS-test |
 | `git status --short --untracked-files=all` | Alleen dit rapport als nieuw bestand; HEAD blijft exact auditcommit |
 | `sha256sum docs/audits/subagents/12-app-platform-sdk.md` | 0; digest in overdracht, niet zelfreferentieel in dit rapport |
+
+De bestandsnaaminventaris
+`git ls-files 'sdk/*/src/*' | grep -E 'portal|notif|mime|background|debug|profil'`
+gaf exit 1 (geen bestandsnaammatches); aanvullende inhoud- en README-lezing is
+hierboven gebruikt.
+
+De inhoudszoekopdracht
+`rg -n 'app.package|app_package|app.management|app_management|AuthorizedImage' kernel services tools -g '*.{rs,py}'`
+gaf geen matches; dit is een begrensde zoekwaarneming, geen bewijs dat iedere
+mogelijke implementatie ontbreekt.
 
 Twee verkennende paden bestonden niet: `sdk/runtime/ABI.md` (view:
 pad ontbreekt) en `sdk/runtime/src/abi.rs` (`wc`/`nl`: ontbreekt).

@@ -1,5 +1,13 @@
 # AUDIT-10 — gebruikerservaring en toegankelijkheid
 
+**Bronmetadata:** primaire repositorybron: *Nieuw OS — “Add OS specialist
+agent profiles”*, auteur/organisatie S.W.J.B.M. van Ieperen, 3 november 2026,
+commit `beafdedfc188154fe7285848fbd411e651013f54`
+([onveranderlijke snapshot](https://github.com/simonvanieperen/nieuw-os/tree/beafdedfc188154fe7285848fbd411e651013f54)).
+Alle lokale `pad:regel`-citaten hieronder verwijzen naar die snapshot.
+Externe toegankelijkheidsnormen en vergelijkingen met andere OS'en zijn niet
+onafhankelijk geverifieerd; behandel ze als `ONBEKEND` of als toetsvraag.
+
 Datum: 3 november 2026, Europe/Amsterdam. **Resultaat:** er is aantoonbaar
 historisch native deelbewijs voor vensters, documentbediening, compositorherstel
 en tekstklembord. Een volledige persoonlijke, toegankelijke en herstelbare
@@ -17,8 +25,7 @@ instellingen, foutmeldingen, herstel, toegankelijkheid en dagelijkse bruikbaarhe
   chatsessie, geen technisch geladen customagent en geen nieuwe deelagents.
 - Bevroren bronbranch: `copilot/add-os-specialist-agents`.
   Broncommit: `beafdedfc188154fe7285848fbd411e651013f54`.
-- Eigen werkmap:
-  `/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-spoon`.
+- Eigen werkmap; het lokale pad is niet gepubliceerd.
   Beginbranch: `simonvanieperen-musical-spoon`;
   begin-HEAD: `69809c2cb53dfb3bd77abe5352892810fba6e82d`.
   Beginstatus schoon. Daarna uitsluitend deze eigen worktree detached op
@@ -85,7 +92,7 @@ geen nieuwe scorecriteria.
 | App openen en lokaal vinden | Preview: gast → desktop → zoeken → Materiaal; vensterprofiel: dock of Ctrl+K-palet | Twee opt-in paden met verschillende zoek-/shellbediening; preview zoekt één vaste app, geen systeeminstellingen of bestandenindex | Geen resultaat blijft een lege uitkomst, geen alternatieve werkende service | Vaste ASCII-invoer, geen IME; palet en semantiek niet OS-breed verbonden | E3, `ui/native/src/desktop.rs:84-109,353-365`; `sdk/examples/window-session/src/scene.rs:240-299`. ON-03/U05: beschikbare doelen en ontbrekendstatus, alle benoemde aliassen en focus toetsen. |
 | Vensters wisselen en schikken | Dockklik/F6 → focus; titelbalk slepen; Ctrl+K → app kiezen | F6 wijkt af van ontworpen Alt+Tab; geen bewezen volledige min/max/resize/snap/close-route | Echte compositorherstart behoudt apps; geen bewijs van iedere venster-/inputfout | Muisloze positionering en vensterbeheer niet aangetoond | E3 en historische E4/E5/E6 U01; `sdk/examples/window-session/src/main.rs:318-352`, `sdk/examples/window-session/src/scene.rs:375-462`. D2/FR-U01–02 met keyboard-only uitvoeren. |
 | Tekst maken, opslaan en terugvinden | Nieuw → typen/selecteren → Ctrl+S of Bewaren → bevestigde commit → lijst → hetzelfde object openen | Native smalle keten bestaat; algemene bestandsordening/zoekindex en formaatdekking niet bewezen | Dirty-terug opent keuze; bewaren mislukt niet als succes; expliciet verwerpen | Appfocus/semantiek voorbereid, nog geen hoorbare status in hulpmiddel | E3 en historische E4/E5 voor hoofdketen; `ui/native/src/controller.rs:645-725`, U01-bewijs. FR-A01/A02 vereisen bredere echte workload, fouten en zelfstandig terugvinden. |
-| Kopiëren/plakken tussen apps | Selecteer → Ctrl+C → andere app → Ctrl+V; Ctrl+Shift+Delete wist | 192-bytegrens en alleen tekst; knippen ontbreekt | Te lange selectie zichtbaar geweigerd, ongeschikte Calculator-invoer atomair geweigerd; herstel begint leeg | Feedback moet ook hoorbaar zijn; grens mag geen stil afkappen worden | Historische E4/E5/E6, klembordrapport `README.md:60-101`; U02 blijft open tot ruime afgesproken capaciteit en interactiebudgetten. |
+| Kopiëren/plakken tussen apps | Selecteer → Ctrl+C → andere app → Ctrl+V; Ctrl+Shift+Delete wist | 192-bytegrens en alleen tekst; knippen ontbreekt | Te lange selectie zichtbaar geweigerd, ongeschikte Calculator-invoer atomair geweigerd; herstel begint leeg | Feedback moet ook hoorbaar zijn; grens mag geen stil afkappen worden | Historische E4/E5/E6, klembordrapport `docs/verification/native-clipboard-20261102/README.md:60-101`; U02 blijft open tot ruime afgesproken capaciteit en interactiebudgetten. |
 | Instellingen wijzigen | Zoek categorie → wijzig → bevestig waar nodig → koude herstart → controleer | Uniforme native instellingen en persistente profielvoorkeuren niet bewezen | Vol/ongeldige waarde/I/O en onleesbare displayinstelling vereisen echte terugval | Geen bewezen systeemkeuze voor schaal, contrast, toetsenbord of motion | E1, `docs/implementation/DESKTOP-SHELL.md:35-48,99-113`; FR-S03/U05 open. Iedere instelling moet echte toestand tonen, fouten bewaren en herstart overleven. |
 | Fout begrijpen en doorgaan | Probleem zien/horen → gevolgen begrijpen → ondersteunde herstelactie | Concrete labels voor conflict/closed/uncertain, maar generieke restfout zonder handelingsperspectief | Draft blijft in levend proces; onbekende commit niet replayen. Geen algemene rescue-/reconnectactie aangetoond | Fouttekst mag niet alleen in pixels staan; compact login mist brede toelichting | E3, `ui/native/src/render.rs:1106-1139,1500-1512`; `docs/implementation/UX-MATERIAAL-SAVE-RECOVERY.md:60-105`. FR-U03: gebruikers laten herstellen zonder terminal of blind retry. |
 | Herstellen na crash of verlies | Compositorfault → verse kanalen → draft/berekening behouden; opslag-/sleutelverlies apart | Presentatieherstel bestaat, geen volledige gebruikersgerichte sleutel-/appcrash-/OS-recovery | Onzekere save bewaart alleen de levende draft; dat is geen herstel na app-exit of stroomverlies | Focus én status van hulpmiddel moeten na herstel terugkomen | Historische E4/E5 compositor; E1 voor bredere herstelroute. `docs/implementation/UX-MATERIAAL-SAVE-RECOVERY.md:60-88`; FR-O/FR-S04/R01 blijven apart. |
@@ -303,28 +310,40 @@ stopte daarom vóór de vervolglezingen. Bij een tweede aanroep bleef de
 no-index-status 1, terwijl de los volgende scope-/regelleesbatch exit 0 gaf
 en uitsluitend dit ongetrackte rapport meldde. Dit is niet als groene
 `git diff --check` geregistreerd. De onderstaande aparte read-only controle
-controleert trailing whitespace en alle expliciete bestands-/regelranges.
-Een eerste verwijzingsscan vond 19 onvolledige/te ruime verwijzingen; die
-zijn hersteld. De definitieve uitvoering gaf exit **0**,
+controleert trailing whitespace en alle expliciete repositoryrelatieve
+bestands-/regelranges in de vastgepinde auditbron, inclusief verschillende
+bestandsextensies. Een eerste verwijzingsscan vond 19 onvolledige/te ruime
+verwijzingen; die zijn hersteld. De definitieve uitvoering gaf exit **0**,
 `references=68 invalid=[] trailing_whitespace=[]`:
 
 ```sh
 python3 -B - <<'PY'
 from pathlib import Path
 import re
+import subprocess
 report = Path('docs/audits/subagents/10-ux-accessibility.md')
 text = report.read_text()
-references = re.findall(r'`([^`\n]+\.(?:md|rs|json)):(\d[\d,\-]*)`', text)
+source = 'beafdedfc188154fe7285848fbd411e651013f54'
+references = re.findall(
+    r'`((?:[A-Za-z0-9._-]+/)*[A-Za-z0-9._-]+\.[A-Za-z0-9]+):(\d[\d,\-]*)`',
+    text,
+)
 errors = []
 for name, ranges in references:
-    path = Path(name)
-    if not path.is_file():
-        errors.append((name, 'missing'))
+    result = subprocess.run(
+        ['git', 'show', f'{source}:{name}'],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode:
+        errors.append((name, 'missing from source snapshot'))
         continue
-    length = len(path.read_text().splitlines())
+    length = len(result.stdout.splitlines())
     for value in ranges.split(','):
         bounds = [int(n) for n in value.split('-')]
-        if not 1 <= bounds[0] <= bounds[-1] <= length:
+        first, last = bounds[0], bounds[-1]
+        if not 1 <= first <= last <= length:
             errors.append((name, value, length))
 whitespace = [n for n, line in enumerate(text.splitlines(), 1) if line.rstrip() != line]
 print(f'references={len(references)} invalid={errors} trailing_whitespace={whitespace}')

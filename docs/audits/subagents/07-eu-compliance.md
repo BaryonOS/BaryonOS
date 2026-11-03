@@ -1,5 +1,16 @@
 # AUDIT-07 - Technische Europese compliance-gap-analyse
 
+**Bronmetadata:** primaire repositorybron: *Nieuw OS — “Add OS specialist
+agent profiles”*, auteur/organisatie S.W.J.B.M. van Ieperen, 3 november 2026,
+commit `beafdedfc188154fe7285848fbd411e651013f54`
+([onveranderlijke snapshot](https://github.com/simonvanieperen/nieuw-os/tree/beafdedfc188154fe7285848fbd411e651013f54)).
+Alle lokale `pad:regel`-citaten hieronder verwijzen naar die snapshot. De
+actuele inhoud en toepasselijkheid van EU-wetgeving is niet extern
+gecontroleerd; juridische claims blijven `ONBEKEND` en vereisen toetsing aan
+de officiële primaire teksten. Tijdens deze PR-review is alleen de
+publicatiemetadata van WCAG 2.2 gecontroleerd bij W3C; geen inhoudelijke
+juridische of toepasselijkheidsconclusie is gevalideerd.
+
 **Resultaat:** de bevroren repository bevat conditionele EU-ontwerpcriteria en
 bruikbaar, brongebonden historisch updatebewijs, maar geen compleet technisch
 release-/conformiteitsdossier. Juridische toepasselijkheid, actuele primaire
@@ -83,21 +94,22 @@ testtranscripten of historische bronvingerafdrukken opnieuw gevalideerd.
 
 ## 3. Primaire bronnen en actualiteitsgrens
 
-Het profiel vraagt actuele primaire EU-bronnen; de opdracht verbiedt externe
-raadpleging. Daarom is voor **alle onderstaande juridische verwijzingen de
+Het profiel vroeg actuele primaire EU-bronnen; de oorspronkelijke auditopdracht
+verbiedt externe raadpleging. Daarom is voor **alle onderstaande juridische verwijzingen de
 actualiteit, volledigheid en concrete toepasselijkheid NIET GEVERIFIEERD**.
 Een lokaal genoteerde raadpleegdatum is geen eigen raadpleging door deze audit.
 De titels, organisaties, datums en URL's hieronder zijn repo-metadata, geen
-bevestiging van de inhoud op die URL's.
+bevestiging van de inhoud op die URL's. Alleen de WCAG 2.2-publicatiedatum en
+officiële URL zijn later tijdens deze PR-review tegen de W3C-pagina gecontroleerd.
 
 | Bron-ID | Reeds aanwezige primaire verwijzing | Lokaal aantoonbare grens |
 |---|---|---|
-| P-AVG | S1:45-46: Europese Commissie, *Data protection explained* (z.d.); EDPB, *Guidelines 07/2020*, versie 2.1 (repo vermeldt 2022), `commission.europa.eu/law/law-topic/data-protection/data-protection-explained_en` en `edpb.europa.eu/system/files/2023-10/EDPB_guidelines_202007_controllerprocessor_final_en.pdf` | Links/uitleg en richtsnoeren; geen in deze audit gecontroleerde geconsolideerde AVG-tekst, nationale regels of verwerkingsbeslissing. |
-| P-CRA | S1:47-49: Europese Commissie, *CRA - Open source*, *Cyber Resilience Act*, *Reporting obligations*, repo-datums 15 oktober/7 september/11 september 2026; `digital-strategy.ec.europa.eu/en/policies/cra-open-source`, `/cyber-resilience-act`, `/cra-reporting` | Geen gecontroleerde volledige verordening, classificatiebijlagen, uitvoeringsregels of meldportaalprocedure. |
-| P-EAA | S1:50-51: Commissie, *European Accessibility Act* (z.d.); Parlement/Raad, Richtlijn (EU) 2019/882 (2019), artikel 2; `eur-lex.europa.eu/eli/dir/2019/882/oj` | Lokaal staat een verwijzing, geen vastgestelde nationale toepasselijkheid of gecontroleerde volledige tekst. |
-| P-ICT | S1:52-53: ETSI, *EN 301 549 V3.2.1* (2021), `etsi.org/deliver/etsi_en/301500_301599/301549/03.02.01_60/en_301549v030201p.pdf`; Commissie, *Web Accessibility Directive - Standards and harmonisation*, repo-datum 5 mei 2025 | Ontwerpbaseline, geen vastgestelde huidige harmonisatie voor dit product/rechtsregime. |
-| P-WCAG | `docs/PRODUCT-AND-SOVEREIGNTY.md:124`: W3C, *WCAG 2.2*, repo-datum 12 december 2024, `w3.org/TR/WCAG22/` | Webstandaardverwijzing, geen complete native OS-norm of juridische verklaring. |
-| P-LIC | S1:54 en `LICENSE-PLAN.md:15-16`: Mozilla, MPL 2.0/FAQ | Primaire licentie-uitgever, geen EU-wetgever; voorstel is geen licentieverlening. |
+| P-AVG | S1:45-46: Europese Commissie, *Data protection explained* (z.d.); EDPB, *Guidelines 07/2020*, versie 2.1 (repo vermeldt 2022), `https://commission.europa.eu/law/law-topic/data-protection/data-protection-explained_en` en `https://edpb.europa.eu/system/files/2023-10/EDPB_guidelines_202007_controllerprocessor_final_en.pdf` | Links/uitleg en richtsnoeren; geen in deze audit gecontroleerde geconsolideerde AVG-tekst, nationale regels of verwerkingsbeslissing. |
+| P-CRA | S1:47-49: Europese Commissie, *CRA - Open source*, *Cyber Resilience Act*, *Reporting obligations*, repo-datums 15 oktober/7 september/11 september 2026; `https://digital-strategy.ec.europa.eu/en/policies/cra-open-source`, `https://digital-strategy.ec.europa.eu/en/policies/cyber-resilience-act`, `https://digital-strategy.ec.europa.eu/en/policies/cra-reporting` | Geen gecontroleerde volledige verordening, classificatiebijlagen, uitvoeringsregels of meldportaalprocedure. |
+| P-EAA | S1:50-51: Commissie, *European Accessibility Act* (z.d.); Parlement/Raad, Richtlijn (EU) 2019/882 (2019), artikel 2; `https://eur-lex.europa.eu/eli/dir/2019/882/oj` | Lokaal staat een verwijzing, geen vastgestelde nationale toepasselijkheid of gecontroleerde volledige tekst. |
+| P-ICT | S1:52-53: ETSI, *EN 301 549 V3.2.1* (2021), `https://www.etsi.org/deliver/etsi_en/301500_301599/301549/03.02.01_60/en_301549v030201p.pdf`; Commissie, *Web Accessibility Directive - Standards and harmonisation*, repo-datum 5 mei 2025 | Ontwerpbaseline, geen vastgestelde huidige harmonisatie voor dit product/rechtsregime. |
+| P-WCAG | W3C Accessibility Guidelines Working Group, *Web Content Accessibility Guidelines (WCAG) 2.2*, W3C Recommendation, 12 december 2024, `https://www.w3.org/TR/2024/REC-WCAG22-20241212/` | Webstandaardverwijzing; hier alleen als webtoegankelijkheidsreferentie gebruikt, geen complete native OS-norm of juridische verklaring. |
+| P-LIC | S1:54 en `LICENSE-PLAN.md:15-16`: Mozilla, *Mozilla Public License, version 2.0*, versie 2.0, `https://www.mozilla.org/en-US/MPL/2.0/` en `https://www.mozilla.org/en-US/MPL/2.0/FAQ/` | Primaire licentie-uitgever, geen EU-wetgever; voorstel is geen licentieverlening. |
 | P-OVERIG | NIS2, ePrivacy, RED/CE, consumentenrecht | De gerichte zoekactie vond deze onderwerpen in het rolprofiel maar geen overeenkomstig uitgewerkt primair bronnenregister in de onderzochte actieve EU-/productdocumenten. Dit is een begrensde zoekbevinding, geen bewijs dat nergens in de gehele repository ooit een losse verwijzing staat. |
 
 **Deadlinebron:** S1:18 bevat CRA-datums en meldvensters; S1:15 bevat een

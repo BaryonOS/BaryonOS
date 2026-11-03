@@ -1,5 +1,13 @@
 # AUDIT-06 — gegevensstromen en gebruikerscontrole
 
+**Bronmetadata:** primaire repositorybron: *Nieuw OS — “Add OS specialist
+agent profiles”*, auteur/organisatie S.W.J.B.M. van Ieperen, 3 november 2026,
+commit `beafdedfc188154fe7285848fbd411e651013f54`
+([onveranderlijke snapshot](https://github.com/simonvanieperen/nieuw-os/tree/beafdedfc188154fe7285848fbd411e651013f54)).
+Alle lokale `pad:regel`-citaten hieronder zijn repository-observaties uit die
+snapshot. Externe privacy-/wetsclaims zijn niet onafhankelijk geverifieerd en
+blijven `ONBEKEND`; dit rapport is geen AVG-verklaring.
+
 Datum: 3 november 2026, Europe/Amsterdam. Dit is een begrensde statische
 privacy-inventaris door een AI, geen onafhankelijke menselijke audit,
 AVG-verklaring, exploitonderzoek of productacceptatie.
@@ -19,7 +27,7 @@ toestemming, lokale verwerking, NAS-koppelingen en gebruikerscontrole."
 | Beginwerkboom | Schoon; de gevraagde commit bestond lokaal als commitobject |
 | Bronselectie | Na die controle `git switch --detach beafdedfc188154fe7285848fbd411e651013f54`; exit 0 |
 | Werkstand tijdens onderzoek | Detached HEAD op de bevroren bron; niet werken op of schrijven naar de bronbranch |
-| Eigen worktree | `/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-friendly-pancake` |
+| Eigen worktree | Eigen worktree; lokaal pad niet gepubliceerd |
 | Enig schrijfbestand | `docs/audits/subagents/06-privacy.md` |
 | Rol | `.github/agents/os-privacy-reviewer.agent.md:12-31` gelezen als rolinstructie; geen technisch geladen customagent |
 
@@ -376,8 +384,8 @@ expliciet behouden en wordt niet als geslaagde test gerapporteerd.
 
 ## Overdracht
 
-Volledig rapportpad:
-`/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-friendly-pancake/docs/audits/subagents/06-privacy.md`.
+Volledig rapportpad: `docs/audits/subagents/06-privacy.md`; het oorspronkelijke
+lokale worktreepad is niet gepubliceerd.
 Broncommit: `beafdedfc188154fe7285848fbd411e651013f54`, detached.
 Geen commit/push/PR of gedeelde voortgangswijziging.
 

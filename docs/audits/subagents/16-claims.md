@@ -1,5 +1,16 @@
 # AUDIT-16 - documentatie en bewijsclaims
 
+**Repository:** `simonvanieperen/nieuw-os`. **Rapportdatum:** 3 november 2026,
+Europe/Amsterdam.
+
+**Bronmetadata:** primaire repositorybron: *Nieuw OS — “Add OS specialist
+agent profiles”*, auteur/organisatie S.W.J.B.M. van Ieperen, 3 november 2026,
+commit `beafdedfc188154fe7285848fbd411e651013f54`
+([onveranderlijke snapshot](https://github.com/simonvanieperen/nieuw-os/tree/beafdedfc188154fe7285848fbd411e651013f54)).
+Alle lokale `pad:regel`-citaten hieronder verwijzen naar die snapshot.
+Externe normen en OSDev-/hardwareclaims zijn niet onafhankelijk geverifieerd;
+behandel ze als `ONBEKEND` of als toetsvraag.
+
 ## Resultaat en opdrachtgrens
 
 Op bron `beafdedfc188154fe7285848fbd411e651013f54` zijn twee concrete
@@ -26,7 +37,7 @@ gegenereerd, commit/push/PR/merge uitgevoerd of gevraagd.
 
 | Controle | Waarneming |
 |---|---|
-| Werkdirectory | `/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-shiny-parakeet` |
+| Werkdirectory | Eigen worktree; lokaal pad niet gepubliceerd |
 | Beginbranch | `simonvanieperen-shiny-parakeet`, dus niet de gevraagde bronbranch |
 | Begin-HEAD | `69809c2cb53dfb3bd77abe5352892810fba6e82d` |
 | Beginstatus | `git status --short`: leeg; geen gebruikerswerk overschreven |

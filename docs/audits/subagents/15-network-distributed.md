@@ -1,5 +1,14 @@
 # AUDIT-15 - Netwerk en verdeelde systemen
 
+**Bronmetadata:** primaire repositorybron: *Nieuw OS — “Add OS specialist
+agent profiles”*, auteur/organisatie S.W.J.B.M. van Ieperen, 3 november 2026,
+commit `beafdedfc188154fe7285848fbd411e651013f54`
+([onveranderlijke snapshot](https://github.com/simonvanieperen/nieuw-os/tree/beafdedfc188154fe7285848fbd411e651013f54)).
+Alle lokale `pad:regel`-citaten hieronder zijn repository-observaties uit die
+snapshot. Externe TLS-, protocol- en securityclaims zijn niet onafhankelijk
+geverifieerd en blijven `ONBEKEND`; de OSDev-verwijzing is alleen een
+aanvullende leerindex.
+
 Datum: 3 november 2026, Europe/Amsterdam. **Audit-only; geen productacceptatie.**
 
 ## Resultaat en bronafbakening
@@ -8,7 +17,9 @@ Nieuw OS heeft native netwerkbron en historisch positief en negatief VM-bewijs v
 
 - Opdracht: "Beoordeel native networking, TLS, DNS, firewall, appnetwerkrechten, peeridentiteit, NAS, synchronisatie en foutscenario's."
 - Enige onderzochte bron: `simonvanieperen/nieuw-os`, `beafdedfc188154fe7285848fbd411e651013f54`; lokale ref `refs/heads/copilot/add-os-specialist-agents` wees exact naar deze commit.
-- Eigen werkmap: `/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-parakeet`. Geen bestanden in hoofdcheckout `/home/simon/projects/nieuw-os` gelezen of geschreven. Alleen diens pad/HEAD kwam voor in Git-worktreemetadata.
+- Eigen werkmap: eigen worktree; lokaal pad niet gepubliceerd. Geen bestanden
+  in de hoofdcheckout gelezen of geschreven. Alleen worktree-metadata kwam
+  voor in Git-worktreemetadata.
 - Eerlijke beginafwijking: branch `simonvanieperen-vigilant-parakeet`, HEAD `69809c2cb53dfb3bd77abe5352892810fba6e82d`, schone beginboom. Daarna expliciet `git switch --detach beafdedfc188154fe7285848fbd411e651013f54`; audit uitgevoerd met detached HEAD, niet op de genoemde bronbranch zelf.
 - Normen gelezen: root `AGENTS.md`, `docs/AGENTS.md`, `kernel/AGENTS.md`, `drivers/AGENTS.md`, `services/AGENTS.md`, `tests/AGENTS.md`; README, actueel checkpoint, release-/privacycontract, relevante architectuur- en beveiligingsregels/besluiten. `git ls-files '*AGENTS.md'` leverde geen dieper instructiebestand onder het rapportpad of de onderzochte netwerkmodules.
 - Profiel `.github/agents/os-network-distributed-reviewer.agent.md` expliciet gelezen als gewoon bestand. **Geen technisch geladen customagent**, geen subagents. OS-dev- en reviewskill geraadpleegd; CodeRabbit niet uitgevoerd wegens repository-only/externe-dienstenverbod.
@@ -139,7 +150,14 @@ Rapportcontrole: `python3 -B -` met standaardbibliotheek controleerde alle **106
 
 - De audit vertrouwt alleen op vastgelegde bron en opgeslagen artefacts, niet op de actuele waarheid van externe joblinks. Alleen vier geselecteerde artefacthashes herberekend; geen complete image-/firmware-/ELFherbouw of alle manifesthashes opnieuw gevalideerd.
 - Begrensde leesdekking: netdriver/kernelbroker, native netwerkmanifest/IPC-entrypoint, service/stack/config/DNS, TLS-adapters, NAS-core/volume/probe/queue, hostcrypto/-transport, relevante tests en bewijs. Geen exhaustieve parserfuzzing, cryptoaudit of bewijs van afwezigheid van alle overige bugs.
-- Lokale kennisbank: OSDev **Network Stack**, W002538, revisie 23577, 2019-04-16; `.agents/skills/os-dev/references/corpus/wiki-05.md:14922-14959`, oorspronkelijke bron `https://wiki.osdev.org/index.php?title=Network_Stack&oldid=23577`. Alleen als aanvullende laagindeling gebruikt, geen normatieve protocolautoriteit. Geen externe bron opgehaald; geen protocolcorrectheidsclaim uitsluitend op deze communitytekst gebaseerd.
+- Lokale kennisbank: OSDev **Network Stack**, OSDev-community, W002538,
+  revisie 23577 (16 april 2019),
+  `.agents/skills/os-dev/references/corpus/wiki-05.md:14922-14959`,
+  oorspronkelijke bron
+  `https://wiki.osdev.org/index.php?title=Network_Stack&oldid=23577`.
+  Alleen als aanvullende laagindeling gebruikt, geen normatieve
+  protocolautoriteit. Geen externe bron opgehaald; geen protocolcorrectheids-
+  claim uitsluitend op deze communitytekst gebaseerd.
 - Bindende engineeringnormen komen uit de repository: privacy-/identiteitsgrenzen `docs/LOCAL-PRIVACY-CONTRACT.md:35-65`, providergrens `docs/implementation/ENCRYPTED-OBJECT-STORAGE.md:62-85`, native brokerbesluit `docs/DECISIONS.md:1348-1365`. Primaire standaarden en versies die de repository noemt zijn in deze audit niet extern opnieuw geverifieerd.
 - Integratievolgorde op afhankelijkheden: (a) geautoriseerde native TLS/crypto/tijd en caller/policy/devicefence, (b) remote peer-/account-/keycontinuiteit en native objectencryptie/versieankers, (c) duurzame queue + resolver/configuratie en sync, (d) gecombineerde foutmatrix en expliciete provideradapter. Kleine positieve VM-deelproeven blijven bruikbaar, maar vervangen deze acceptatie niet.
 - Geen productscorevoorstel, geen nieuwe punten en geen statuswijziging. Hoofdagent blijft eigenaar van score/roadmap en eventuele vervolgimplementatie. Dit rapport vraagt geen fixes, commits of publicatie.

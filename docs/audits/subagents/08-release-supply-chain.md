@@ -1,5 +1,13 @@
 # AUDIT-08 — release en softwareleveringsketen
 
+**Bronmetadata:** primaire repositorybron: *Nieuw OS — “Add OS specialist
+agent profiles”*, auteur/organisatie S.W.J.B.M. van Ieperen, 3 november 2026,
+commit `beafdedfc188154fe7285848fbd411e651013f54`
+([onveranderlijke snapshot](https://github.com/simonvanieperen/nieuw-os/tree/beafdedfc188154fe7285848fbd411e651013f54)).
+Alle lokale `pad:regel`-citaten hieronder zijn repository-observaties uit die
+snapshot. Externe claims over hermetische builds, signing, firmwaretrust,
+SBOM of rollback zijn niet onafhankelijk geverifieerd en blijven `ONBEKEND`.
+
 Datum: 3 november 2026 (Europe/Amsterdam). Opdracht: **"Beoordeel builds,
 dependencies, SBOM, signing, updates, rollback, sleutelbeheer en releaseherkomst."**
 Gewone chatsessie; `.github/agents/os-release-engineer.agent.md:9-31` is gelezen
@@ -22,7 +30,7 @@ onafhankelijke menselijke audit, conformiteitsverklaring of productrijpheidsclai
 | Bevroren broncommit | `beafdedfc188154fe7285848fbd411e651013f54` |
 | Eigen beginbranch | `simonvanieperen-sturdy-tribble` |
 | Eigen begin-HEAD | `69809c2cb53dfb3bd77abe5352892810fba6e82d` |
-| Eigen werkpad | `/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-sturdy-tribble` |
+| Eigen werkpad | Eigen worktree; lokaal pad niet gepubliceerd |
 | Toestand na bronselectie | detached HEAD op exact de bevroren bron; aanvankelijk schone werkboom |
 | Schrijfgrens | Uitsluitend dit rapport; geen commits, push, PR, roadmap-, score- of statuswijzigingen |
 | PR-/CI-livegegevens | Niet opgehaald: externe diensten zijn voor deze opdracht uitgesloten |
@@ -37,9 +45,12 @@ Gelezen kaders: root-`AGENTS.md`, `docs/AGENTS.md`, het rolprofiel,
 README, actuele checkpoint, privacycontract, relevante ADR's en
 `docs/FULL-TEST-RELEASE.md`, in het bijzonder regels 96-117, 226-233 en 541-565.
 De lokale OS-dev-skill is gebruikt. De toolchainroute verwijst naar
-OSDev: *LLVM Cross-Compiler*, W002968, revisie 27941, 9 mei 2023
-(`.agents/skills/os-dev/references/corpus/wiki-07.md:5127-5135`);
-die leerbron is geen releasebeveiligingsnorm. Geen externe bron is opgehaald.
+OSDev: *LLVM Cross-Compiler*, OSDev-community, W002968, revisie 27941
+(9 juli 2023), lokale corpuspassage
+`.agents/skills/os-dev/references/corpus/wiki-07.md:5127-5135`,
+`https://wiki.osdev.org/index.php?title=LLVM_Cross-Compiler&oldid=27941`.
+Die leerbron is geen releasebeveiligingsnorm. Geen externe bron is opgehaald
+tijdens deze audit.
 
 ## Bewijsschaal
 

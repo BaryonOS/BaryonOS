@@ -1,5 +1,13 @@
 # AUDIT-04 — defensieve securityreview
 
+**Bronmetadata:** primaire repositorybron: *Nieuw OS — “Add OS specialist
+agent profiles”*, auteur/organisatie S.W.J.B.M. van Ieperen, 3 november 2026,
+commit `beafdedfc188154fe7285848fbd411e651013f54`
+([onveranderlijke snapshot](https://github.com/simonvanieperen/nieuw-os/tree/beafdedfc188154fe7285848fbd411e651013f54)).
+Alle lokale `pad:regel`-citaten hieronder verwijzen naar die snapshot.
+Externe normen en hardwaregedrag zijn niet onafhankelijk geverifieerd;
+behandel zulke uitspraken als `ONBEKEND` of als toetsvraag.
+
 Datum: 3 november 2026. **Uitkomst: één concrete bevinding met ernst HOOG;
 geen algemene veiligheidsgoedkeuring.** Alleen dit rapport is geschreven.
 Geen reparaties, builds, native tests, commits, pushes of externe diensten.
@@ -20,8 +28,7 @@ foutpaden.”
 - Na de toegestane `git switch --detach`: detached HEAD op de auditbron.
   Alle inhoudelijke conclusies hieronder betreffen uitsluitend die commit.
   De werkbranch is niet hernoemd of gewijzigd.
-- Werkmap:
-  `/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-symmetrical-couscous`.
+- Werkmap: eigen worktree; het lokale pad is niet gepubliceerd.
 
 Het profiel `.github/agents/os-security-reviewer.agent.md` is op deze bron
 gelezen als werkinstructie, niet technisch als OS-customagent geladen.

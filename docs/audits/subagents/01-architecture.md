@@ -1,5 +1,13 @@
 # AUDIT-01 — architectuur, vertrouwensgrenzen en interfaces
 
+**Bronmetadata:** primaire repositorybron: *Nieuw OS — “Add OS specialist
+agent profiles”*, auteur/organisatie S.W.J.B.M. van Ieperen, 3 november 2026,
+commit `beafdedfc188154fe7285848fbd411e651013f54`
+([onveranderlijke snapshot](https://github.com/simonvanieperen/nieuw-os/tree/beafdedfc188154fe7285848fbd411e651013f54)).
+Alle lokale `pad:regel`-citaten hieronder verwijzen naar die snapshot.
+Externe normen, hardwaregedrag en vergelijkingen met andere OS'en zijn niet
+onafhankelijk geverifieerd; behandel ze als `ONBEKEND` of als toetsvraag.
+
 **Resultaat:** de onderzochte bron bevat een eigen `no_std`-kernel met
 procesisolatie, capability-IPC en afzonderlijke native diensten. De architectuur
 heeft aantoonbare ontwikkelbouwstenen, maar nog geen gesloten productketen voor
@@ -78,9 +86,11 @@ per eigenschap:
 | Externe peer/provider → lokale data | E1-contract: identiteit, expliciete scope, ciphertext vóór upload, geen fallback (`docs/LOCAL-PRIVACY-CONTRACT.md:9-19,37-61,67-80`) | Native TLS/NAS/providerketen op het dagelijkse desktopimage |
 | Gebruiker → sessie/keyvrijgave | UI-model scheidt correlatie, brokeractivatie en VmGuest (`ui/native/src/session.rs:145-174,368-405`) | De UI-toestand kan zelf geen kernelgrants intrekken (`ui/native/src/session.rs:416-421`) |
 
-De lokale OSDev-leerbron bevestigt alleen de ontwerples dat userspacediensten
-herstel niet gratis maken: *Microkernel*, W001411, revisie 29930,
-25 januari 2026, lokale snapshot, bronregels 4-12. Dit is geen normatief
+De lokale OSDev-leerbron is aanvullend en niet normatief: *Microkernel*,
+OSDev-community, revisie 29930 (25 januari 2026), W001411,
+https://wiki.osdev.org/index.php?title=Microkernel&oldid=29930.
+Zij illustreert alleen de ontwerples dat userspacediensten herstel niet gratis
+maken (lokale snapshot, bronregels 4-12). Dit is geen normatief
 hardwarebewijs of veiligheidsbewijs voor Nieuw OS.
 
 ## 3. Interfaces, toestand en fouten

@@ -1,5 +1,14 @@
 # AUDIT-09 — Hardwareabstractie, drivers en energiebeheer
 
+**Bronmetadata:** primaire repositorybron: *Nieuw OS — “Add OS specialist
+agent profiles”*, auteur/organisatie S.W.J.B.M. van Ieperen, 3 november 2026,
+commit `beafdedfc188154fe7285848fbd411e651013f54`
+([onveranderlijke snapshot](https://github.com/simonvanieperen/nieuw-os/tree/beafdedfc188154fe7285848fbd411e651013f54)).
+Alle lokale `pad:regel`-citaten hieronder zijn repository-observaties uit die
+snapshot. Claims over virtio, DMA/IOMMU, ACPI, interrupts en power states zijn
+niet onafhankelijk getoetst aan primaire hardwarebronnen en blijven
+`ONBEKEND`/onderzoeksvraag.
+
 **Opdracht:** “Beoordeel hardwareabstractie, drivers, DMA/IOMMU, ACPI,
 energiebeheer en de route van QEMU naar echte ondersteunde hardware.”
 

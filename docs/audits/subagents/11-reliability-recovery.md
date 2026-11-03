@@ -1,5 +1,13 @@
 # AUDIT-11 - betrouwbaarheid, gegevensbehoud en herstel
 
+**Bronmetadata:** primaire repositorybron: *Nieuw OS — “Add OS specialist
+agent profiles”*, auteur/organisatie S.W.J.B.M. van Ieperen, 3 november 2026,
+commit `beafdedfc188154fe7285848fbd411e651013f54`
+([onveranderlijke snapshot](https://github.com/simonvanieperen/nieuw-os/tree/beafdedfc188154fe7285848fbd411e651013f54)).
+Alle lokale `pad:regel`-citaten hieronder zijn repository-observaties uit die
+snapshot. Claims over externe durability-, hardware- en recoverycontracten
+zijn niet onafhankelijk geverifieerd en blijven `ONBEKEND`.
+
 Datum: 3 november 2026, Europe/Amsterdam. Status: afgeronde, begrensde
 repository-audit; geen productacceptatie of onafhankelijke menselijke audit.
 
@@ -11,9 +19,8 @@ resources, mislukte updates, backup, restore en recovery."**
 - Repository: `simonvanieperen/nieuw-os`.
 - Uitsluitende auditbron: `beafdedfc188154fe7285848fbd411e651013f54`,
   lokaal aanwezig op `copilot/add-os-specialist-agents`.
-- Eigen worktree:
-  `/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-redesigned-engine`.
-  Niet gewerkt in hoofdcheckout `/home/simon/projects/nieuw-os`.
+- Eigen worktree; lokaal pad niet gepubliceerd. Niet gewerkt in de
+  hoofdcheckout.
 - Begin: branch `simonvanieperen-redesigned-engine`, HEAD
   `69809c2cb53dfb3bd77abe5352892810fba6e82d`, schone beginboom.
   `git cat-file -t` bevestigde de vereiste commit. Daarna conform toestemming
