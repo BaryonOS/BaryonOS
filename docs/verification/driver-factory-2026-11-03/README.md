@@ -7,9 +7,12 @@ hardwareacceptatie.
 - Implementatiecommit: `43da75947cb5b147c1435a81547a22b3cebfb04a`
 - Geteste bron voor de profielbuilds: `9b2d6fb6b71eade4ffb2386480645564229c958e`
 - Branch: `copilot/universal-driver-framework`
-- Remote branch SHA: gelijk aan de geteste bron.
-- PR #153: open; head `9b2d6fb6b71eade4ffb2386480645564229c958e`,
+- Tijdens de controles wees de remote branch naar de geteste bron. De latere
+  receipt-/statuscommit `b89caf4d6fec2f0caf162e0cd2d8b2d166506ce7` bevat alleen
+  documentatie en is nu de branchhead.
+- PR #153: open; actuele head `b89caf4d6fec2f0caf162e0cd2d8b2d166506ce7`,
   base `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`.
+- `gh pr checks 153`: geen checks gerapporteerd op de branch.
 - Hostcompiler: tijdelijk uitgepakt onder
   `/tmp/nieuw-os-hostcc-2026-11-03/`; geen systeeminstallatie of
   repositorydependency gewijzigd.

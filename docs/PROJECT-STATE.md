@@ -3,8 +3,9 @@
 ## NEXT AGENT HANDOFF — factorygekoppelde PCI-matches — 3 november 2026
 
 Werkbranch `copilot/universal-driver-framework`, codecommit
-`43da75947cb5b147c1435a81547a22b3cebfb04a`, actuele verificatiebron en remote
-branch/PR #153 head `9b2d6fb6b71eade4ffb2386480645564229c958e`.
+`43da75947cb5b147c1435a81547a22b3cebfb04a`, geteste code/buildbron
+`9b2d6fb6b71eade4ffb2386480645564229c958e`, actuele remote branch/PR #153
+head `b89caf4d6fec2f0caf162e0cd2d8b2d166506ce7` (receipt-only wijziging).
 Segment-0-enumerator en VirtIO-selectie zonder vaste BDF staan op `9984b180`;
 config-space is aan de gevalideerde descriptor/registrymatch gebonden.
 
@@ -15,7 +16,8 @@ kernel resources heeft aangeleverd. De per-driver BAR-grants blijven actief.
 [Gerichte testreceipt](verification/driver-factory-2026-11-03/README.md):
 28 hosttests, Clippy, fmt, diff-check en zeven profielbuilds exit 0. Geen
 QEMU/runtime- of fysieke hardwaretest; lokale QEMU ontbreekt. Geen nieuw
-voortgangspunt; score **41/100 → 41/100**.
+voortgangspunt; score **41/100 → 41/100**. `gh pr checks 153` meldde geen
+checks op de branch; dit is geen groen CI-resultaat.
 
 **Open/eerstvolgend:** een gedeelde heterogene registry en interrupt-/
 busmaster-/DMA-resource lifecycle in afstemming met de maturitybranch. De
@@ -23,7 +25,7 @@ families hebben nog verschillende factory-ABI's; drivers blijven in kernelcontex
 BAR-grants gelden niet voor virtio-rng. Meerdere instanties,
 ACPI-roottopologie/ECAM, bridges, USB-klassen, NVMe, GOP en
 unsupported-hardwarerapportage zijn niet gerealiseerd. Eerstvolgende commando:
-`rg -n "DmaCapability|InterruptCapability|DriverFactory|DriverRegistry" crates kernel docs/DECISIONS.md`.
+`rg -n "UNSUPPORTED|unsupported|enumerate\\(|serial" crates/pci-core kernel/src drivers`.
 
 ### Implementatiestap — segment-0 enumeratie en VirtIO BDF-migratie
 
