@@ -137,7 +137,9 @@ where
 /// The object does not serialize access against other CF8/CFC users. Construct
 /// it only during single-core kernel initialization with interrupts disabled,
 /// while no other code can access PCI configuration ports.
-pub struct Mechanism1;
+pub struct Mechanism1 {
+    _private: (),
+}
 
 impl Mechanism1 {
     /// Creates the privileged port-I/O adapter.
@@ -146,7 +148,7 @@ impl Mechanism1 {
     /// Caller is executing at CPL0 on x86, interrupts are disabled, and no
     /// concurrent code accesses CF8/CFC until this adapter is no longer used.
     pub unsafe fn new() -> Self {
-        Self
+        Self { _private: () }
     }
 
     fn validate(address: PciAddress, offset: u8) -> Result<(), ConfigError> {
