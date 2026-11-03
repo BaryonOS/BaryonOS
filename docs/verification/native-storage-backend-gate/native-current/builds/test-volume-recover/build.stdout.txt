@@ -1,0 +1,6 @@
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\current-main-source\\sdk\\Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "C:\\Users\\simon\\Documents\\Codex\\2026-11-02\\native-storage-gate\\native-current\\target\\volume-docs"}
+    Finished `release` profile [optimized] target(s) in 0.08s
+    Finished `release` profile [optimized] target(s) in 0.08s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\Documents\Codex\2026-11-02\native-storage-gate\current-main-source\kernel)
+    Finished `release` profile [optimized] target(s) in 2.02s
+Built and inspected test-volume-recover: 3 ELF load segments

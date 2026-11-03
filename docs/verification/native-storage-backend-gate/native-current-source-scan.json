@@ -1,0 +1,19 @@
+{
+  "source_commit": "74a34d05ef5591b782a0da9da34e4669910d0722",
+  "command": [
+    "rg",
+    "-n",
+    "-i",
+    "btrfs|openzfs|libzpool|libzfs",
+    "Cargo.toml",
+    "Cargo.lock",
+    "kernel",
+    "drivers",
+    "services",
+    "crates",
+    "boot"
+  ],
+  "exit_code": 1,
+  "matching_lines": 0,
+  "scope": "Runtime code and root Cargo manifests; source search supports but does not alone prove engine absence"
+}

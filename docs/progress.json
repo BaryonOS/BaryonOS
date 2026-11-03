@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "cbbc9c9941b08ea5edfbd3637d494635b4fb1df0",
+    "source_commit": "929ebfb84b885c26c3cfd6ef0cb0d77e436ee8f5",
     "branch": "simonvanieperen-upgraded-disco",
-    "task": "Native toelating van vreemde volumes als lege NOSVOL02-opslag",
+    "task": "PR148-conflicten met main 69809c2 inhoudsbehoudend integreren",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. NOSVOL02-herstel controleert bij ongemarkeerde lege tabellen ook de volledige inhoudsregio en weigert onbekende niet-nuldata; de eerste mutationele write flusht vooraf een herstelmarker. 23 onafhankelijke Python-orakeltests, Rust-opmaak, typecheck en Clippy slagen. De freestanding volume-app en -service bouwen; Rust-hosttests en de volledige kernelimagebuild stoppen omdat cc ontbreekt. QEMU-test niet uitgevoerd omdat QEMU en OVMF ontbreken. Geen nieuw geaccepteerd criterium of native productbewijs."
+    "summary": "41/100 blijft 41/100. De vier documentconflicten behouden de volume-admissie en de onderzoeks-/bewijsdocumentatie uit main. Beide historische checkpoints blijven bewaard; het volume-ADR krijgt een uniek nummer met oud titelanker. Geen runtimewijziging door de conflictoplossing, geen nieuwe native acceptatie. Gerichte integratievalidatie en nieuwe-head CI worden afzonderlijk gerapporteerd."
   },
   "tracks": [
     {

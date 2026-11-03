@@ -1,0 +1,1636 @@
+{
+  "schema_version": 1,
+  "audit_basis": {
+    "branch": "simonvanieperen-cautious-happiness",
+    "commit": "380111b68688c981eec6abb8fab29174a29f5601",
+    "date": "2026-11-02"
+  },
+  "items": [
+    {
+      "id": "BOOT-UEFI",
+      "domain": "boot-kernel",
+      "feature": "Eigen UEFI-loader, kernelhandoff en bootfoutafhandeling",
+      "status": "PARTIAL",
+      "evidence_levels": [
+        "VM_TESTED",
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "TECHNICAL_PREVIEW",
+      "priority": "P0_RELEASE_BLOCKER",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "boot/loader/src/main.rs",
+        "kernel/src/main.rs",
+        "docs/verification/m2-m4/ACCEPTANCE.md (historisch profiel, niet opnieuw aan HEAD gebonden)"
+      ],
+      "limitations": [
+        "UEFI/QEMU-ontwikkelprofiel; geen fysieke firmware- of hardwarematrix",
+        "Geen geïntegreerde finale release-image"
+      ],
+      "blockers": [
+        "Herhaal positieve en negatieve bootproeven op de exacte releasebron"
+      ],
+      "dependencies": [
+        "Vastgelegde BootInfo/UEFI-interface",
+        "Hashgebonden loader- en kernelartifact"
+      ],
+      "acceptance_criteria": [
+        "Op het bevroren VM-FR-profiel start uitsluitend de bedoelde kernel; ontbrekende, gewijzigde en ongeldige images worden begrensd geweigerd met opgeslagen logs en hashes."
+      ],
+      "recommended_next_step": "Herhaal de bootmatrix op de geïntegreerde finale image en leg exacte tool-/firmwareversies vast.",
+      "complexity": "large",
+      "impacts": {
+        "user": "Systemstart, isolatie en betrouwbaarheid van alle apps en diensten.",
+        "security": "Kernel-/procesfouten kunnen grenzen tussen processen of systeemdata aantasten.",
+        "accessibility": "Indirect: crashherstel, voorspelbare timing en foutmeldingen zijn nodig voor hulptechnologie."
+      }
+    },
+    {
+      "id": "K-MEMORY",
+      "domain": "boot-kernel",
+      "feature": "Eigen paging, framebeheer, W^X en adresruimte-isolatie",
+      "status": "DONE",
+      "evidence_levels": [
+        "VM_TESTED"
+      ],
+      "release_profile": "TECHNICAL_PREVIEW",
+      "priority": "P0_RELEASE_BLOCKER",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "docs/verification/m2-m4/ACCEPTANCE.md (historisch M2-M4-profiel)",
+        "docs/progress.json: K02 accepted"
+      ],
+      "limitations": [
+        "DONE geldt alleen voor het afgebakende x86_64/QEMU-ontwikkelprofiel",
+        "Geen bewijs voor SMP, hardware of formele verificatie"
+      ],
+      "blockers": [
+        "Exacte-head regressie-/stressherhaling en latere SMP-gates"
+      ],
+      "dependencies": [
+        "BootInfo/geheugenkaart",
+        "Architectuurspecifieke paging- en exceptioncode"
+      ],
+      "acceptance_criteria": [
+        "Native VM-proeven tonen gescheiden user-adresruimten, NX/W^X, guards, correcte cleanup en weigering van ongeldige mappings op dezelfde vastgelegde bron."
+      ],
+      "recommended_next_step": "Behoud de beperkte geaccepteerde claim en herhaal relevante gates bij de geïntegreerde release.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Systemstart, isolatie en betrouwbaarheid van alle apps en diensten.",
+        "security": "Kernel-/procesfouten kunnen grenzen tussen processen of systeemdata aantasten.",
+        "accessibility": "Indirect: crashherstel, voorspelbare timing en foutmeldingen zijn nodig voor hulptechnologie."
+      }
+    },
+    {
+      "id": "K-PROCESS",
+      "domain": "boot-kernel",
+      "feature": "Ring-3-processen, scheduling, syscalls en levenscyclus",
+      "status": "PARTIAL",
+      "evidence_levels": [
+        "VM_TESTED",
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "TECHNICAL_PREVIEW",
+      "priority": "P0_RELEASE_BLOCKER",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "kernel/src/m2/m3/",
+        "docs/verification/K05-ACCEPTANCE.md",
+        "docs/progress.json: K03/K05/K07 accepted"
+      ],
+      "limitations": [
+        "SMP ontbreekt",
+        "Geen volledige productapp-lifecycle, persistente accounts of dagelijks gebruik bewezen"
+      ],
+      "blockers": [
+        "Geïntegreerde service-/app-foutisolatie en finale VM-FR-gates"
+      ],
+      "dependencies": [
+        "Paging",
+        "Capability-IPC",
+        "Resource quotas",
+        "Native service manager"
+      ],
+      "acceptance_criteria": [
+        "Op exacte releasebron starten, wachten, stoppen en herstarten meerdere geïsoleerde processen; appfault, stale handle, quota-uitputting en servicecrash laten andere processen doorwerken."
+      ],
+      "recommended_next_step": "Voer proces-/dienstregressies uit op de finale gecombineerde image en sluit SMP als afzonderlijke eis.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Systemstart, isolatie en betrouwbaarheid van alle apps en diensten.",
+        "security": "Kernel-/procesfouten kunnen grenzen tussen processen of systeemdata aantasten.",
+        "accessibility": "Indirect: crashherstel, voorspelbare timing en foutmeldingen zijn nodig voor hulptechnologie."
+      }
+    },
+    {
+      "id": "K-CAPABILITY",
+      "domain": "boot-kernel",
+      "feature": "Capabilities, usercopy en begrensde IPC",
+      "status": "DONE",
+      "evidence_levels": [
+        "VM_TESTED"
+      ],
+      "release_profile": "TECHNICAL_PREVIEW",
+      "priority": "P0_RELEASE_BLOCKER",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "docs/verification/m2-m4/ACCEPTANCE.md",
+        "docs/verification/regression-m6b/FINAL-ACCEPTANCE.md",
+        "docs/progress.json: K04 accepted"
+      ],
+      "limitations": [
+        "DONE is beperkt tot de geaccepteerde capability-/IPC-primitives",
+        "Alle productdiensten, netwerkrechten en gegevensflows zijn hiermee niet afgedwongen"
+      ],
+      "blockers": [
+        "End-to-end aansluiting van alle app-, opslag-, netwerk- en systeemdiensten"
+      ],
+      "dependencies": [
+        "Kernel objectmodel",
+        "Procesidentiteit",
+        "Veilige usercopy"
+      ],
+      "acceptance_criteria": [
+        "Native negatieve gevallen voor ongeldige pointer/lengte/type/rechten, stale generation en revocation weigeren zonder gedeeltelijke commit of bevoegdheidslek."
+      ],
+      "recommended_next_step": "Herhaal de primitive-gates op de releasebron en toets afzonderlijk iedere productdienst aan het contract.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Systemstart, isolatie en betrouwbaarheid van alle apps en diensten.",
+        "security": "Kernel-/procesfouten kunnen grenzen tussen processen of systeemdata aantasten.",
+        "accessibility": "Indirect: crashherstel, voorspelbare timing en foutmeldingen zijn nodig voor hulptechnologie."
+      }
+    },
+    {
+      "id": "K-SERVICES",
+      "domain": "boot-kernel",
+      "feature": "Systeemdiensten, logging, timers, randomness en crashisolatie",
+      "status": "PARTIAL",
+      "evidence_levels": [
+        "VM_TESTED",
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "EXPERIMENTAL_DESKTOP",
+      "priority": "P1_DAILY_USE_CRITICAL",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "kernel/src/m2/m3/",
+        "kernel/src/serial.rs",
+        "docs/verification/B01-ACCEPTANCE.md",
+        "docs/PROJECT-STATE.md"
+      ],
+      "limitations": [
+        "Logging is beperkt en hoofdzakelijk serial",
+        "Geen complete monotone tijd-, auditlog- of dienstherstelervaring"
+      ],
+      "blockers": [
+        "Productbrede supervisor- en observabilitycontracten"
+      ],
+      "dependencies": [
+        "Proceslevenscyclus",
+        "RTC/entropybronnen",
+        "Begrensde fout- en logformaten"
+      ],
+      "acceptance_criteria": [
+        "Dienstcrash, time-out en entropy-uitval leveren zichtbare begrensde fouten; geen secrets in logs; onafhankelijke diensten blijven reageren."
+      ],
+      "recommended_next_step": "Maak de dienstherstel- en loggingdekking expliciet per releaseprofiel.",
+      "complexity": "large",
+      "impacts": {
+        "user": "Systemstart, isolatie en betrouwbaarheid van alle apps en diensten.",
+        "security": "Kernel-/procesfouten kunnen grenzen tussen processen of systeemdata aantasten.",
+        "accessibility": "Indirect: crashherstel, voorspelbare timing en foutmeldingen zijn nodig voor hulptechnologie."
+      }
+    },
+    {
+      "id": "K-DRIVERS",
+      "domain": "hardware-drivers",
+      "feature": "Drivers, DMA-grenzen en fysieke hardwareondersteuning",
+      "status": "PROTOTYPE",
+      "evidence_levels": [
+        "VM_TESTED",
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "DAILY_DRIVER_BETA",
+      "priority": "P0_RELEASE_BLOCKER",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "drivers/",
+        "docs/verification/m5/ACCEPTANCE.md",
+        "docs/FULL-TEST-RELEASE.md: HW-FR/HW-AI"
+      ],
+      "limitations": [
+        "Virtio/PS2/framebuffer- en RTC-proeven zijn virtuele profielen",
+        "Geen fysieke referentiehardware, IOMMU/DMA-bewijs of brede driverdekking"
+      ],
+      "blockers": [
+        "Geen geautoriseerd en gedocumenteerd fysiek testprofiel"
+      ],
+      "dependencies": [
+        "Benoemde hardware",
+        "Driverreset-/DMA-contract",
+        "Energie- en inputpaden"
+      ],
+      "acceptance_criteria": [
+        "Op exact benoemde hardware werken boot, input, opslag, beeld, netwerk en audio; hotplug-/faultcases en herstel zijn gerapporteerd zonder VM-resultaten als hardwarebewijs te tellen."
+      ],
+      "recommended_next_step": "Kies en documenteer een veilig, geautoriseerd referentieapparaat vóór hardwareclaims.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Zonder ondersteunde apparaten kan de gebruiker niet betrouwbaar invoeren, opslaan, verbinden of beeld/geluid gebruiken.",
+        "security": "Driver/DMA/resetfouten kunnen kernel, geheugen of gegevens blootstellen.",
+        "accessibility": "Input-, display- en audio-ondersteuning bepaalt of hulpmiddelen bruikbaar zijn."
+      }
+    },
+    {
+      "id": "STORAGE-VOLUME",
+      "domain": "storage-material",
+      "feature": "Native volume, catalogus, revisies en crashherstel",
+      "status": "PARTIAL",
+      "evidence_levels": [
+        "VM_TESTED",
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "EXPERIMENTAL_DESKTOP",
+      "priority": "P0_RELEASE_BLOCKER",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "docs/verification/M6E-ACCEPTANCE.md",
+        "docs/verification/M6C-ACCEPTANCE.md",
+        "docs/verification/S08-ACCEPTANCE.md",
+        "README.md"
+      ],
+      "limitations": [
+        "Native synthetische/virtio-volumes en begrensde catalogus zijn bewezen in afzonderlijke rapporten",
+        "Geen geïntegreerd algemeen gebruikersbestandssysteem, encryptie of back-up"
+      ],
+      "blockers": [
+        "Gecombineerde FR-O01–O08-gates en robuuste admission/migratie van volumes"
+      ],
+      "dependencies": [
+        "Blokbroker/flush",
+        "Supervisor",
+        "Materiaalclient",
+        "Onafhankelijke disk-oracle"
+      ],
+      "acceptance_criteria": [
+        "Bevestigde gegevens overleven koude herstart; crash/vol volume/corruptie veroorzaken geen valse ACK, stille format of verlies van eerder bevestigde gegevens."
+      ],
+      "recommended_next_step": "Integreer de volume- en catalogusroute en voer alle cold-recovery-/admission-gates uit op één image.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Bepaalt of persoonlijke inhoud te vinden, te bewerken, veilig te bewaren en te herstellen is.",
+        "security": "Integriteit, vertrouwelijkheid, sleutelverlies en stale grants raken gebruikersdata.",
+        "accessibility": "Materiaal, labels, geschiedenis en herstel moeten met screenreader/keyboard bedienbaar zijn."
+      }
+    },
+    {
+      "id": "STORAGE-CRYPTO",
+      "domain": "storage-material",
+      "feature": "Versleutelde gebruikersopslag, metadata en sleutelherstel",
+      "status": "DOCUMENTED",
+      "evidence_levels": [
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "DAILY_DRIVER_BETA",
+      "priority": "P0_RELEASE_BLOCKER",
+      "implemented_on": [],
+      "evidence": [
+        "docs/implementation/ENCRYPTED-OBJECT-STORAGE.md",
+        "docs/LOCAL-PRIVACY-CONTRACT.md",
+        "docs/progress.json: B02 open"
+      ],
+      "limitations": [
+        "Specificatie en cryptografische ontwerpkeuzes zijn geen native persistentie- of herstelbewijs",
+        "Sleutelverlies/rollback en providercredentials blijven open"
+      ],
+      "blockers": [
+        "Native B02/EO acceptatie en sleutelisolatie in geïntegreerde release"
+      ],
+      "dependencies": [
+        "Goedgekeurde cryptobibliotheek",
+        "Entropy/keyring",
+        "Duurzame opslag- en rollbacksemantiek"
+      ],
+      "acceptance_criteria": [
+        "Native cold reopen, verkeerde sleutel, tamper, replay/rollback en sleutelverlies leveren uitsluitend contractueel toegestane uitkomsten; bytes en observatiepunt zijn onafhankelijk gecontroleerd."
+      ],
+      "recommended_next_step": "Voer eerst het vastgelegde threat model en cryptobibliotheekonderzoek uit; bouw daarna native negatieve tests.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Bepaalt of persoonlijke inhoud te vinden, te bewerken, veilig te bewaren en te herstellen is.",
+        "security": "Integriteit, vertrouwelijkheid, sleutelverlies en stale grants raken gebruikersdata.",
+        "accessibility": "Materiaal, labels, geschiedenis en herstel moeten met screenreader/keyboard bedienbaar zijn."
+      }
+    },
+    {
+      "id": "DESKTOP-COMPOSITOR",
+      "domain": "desktop",
+      "feature": "Native compositor, surfaces en sessie-renderpad",
+      "status": "PARTIAL",
+      "evidence_levels": [
+        "VM_TESTED",
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "EXPERIMENTAL_DESKTOP",
+      "priority": "P0_RELEASE_BLOCKER",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "ui/native/README.md",
+        "sdk/examples/compositor/",
+        "docs/verification/mature-session-20261102/U01-ACCEPTANCE.md (brongebonden eerder bewijs)",
+        "run 41535553113 completed successfully in exact-head CI"
+      ],
+      "limitations": [
+        "Native QEMU-sessie bestaat, maar integrale release-image/volledige schermflow niet afgetekend",
+        "Geen fysieke GPU/displayclaim"
+      ],
+      "blockers": [
+        "De exacte-head CI is groen, maar complete desktop-/releaseacceptatie blijft open"
+      ],
+      "dependencies": [
+        "Framebuffer/rendertransport",
+        "Input",
+        "App surface-lifecycle",
+        "Crash recovery"
+      ],
+      "acceptance_criteria": [
+        "Op één exacte native image worden meerdere surfaces bediend, gepresenteerd en na app-/compositorfout gecontroleerd hersteld; pixels, bediening en status assertions zijn aan hashes gebonden."
+      ],
+      "recommended_next_step": "Bewaar het exacte-head CI-resultaat en voer de volledige geïntegreerde native GUI-gate uit.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Beïnvloedt dagelijks navigeren, appwissel, focus en herstel van werk.",
+        "security": "Compositor/surface-grenzen kunnen inhoud tussen apps lekken.",
+        "accessibility": "Focus, schaal, tekstalternatieven en voorspelbare vensters zijn essentieel."
+      }
+    },
+    {
+      "id": "WINDOW-MANAGEMENT",
+      "domain": "desktop",
+      "feature": "Volwaardige window management en multi-display",
+      "status": "PARTIAL",
+      "evidence_levels": [
+        "VM_TESTED",
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "EXPERIMENTAL_DESKTOP",
+      "priority": "P1_DAILY_USE_CRITICAL",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "sdk/examples/window-session/",
+        "docs/verification/mature-session-20261102/",
+        "docs/FULL-TEST-RELEASE.md: FR-U01/FR-U04"
+      ],
+      "limitations": [
+        "Enkele vensters/focus/slepen/dock bestaan in ontwikkelprofiel",
+        "Geen bewijs voor volwassen snap/workspaces, multi-monitor/hotplug, fractional scaling, HDR of rotation"
+      ],
+      "blockers": [
+        "Complete native bedienings- en displaymatrix"
+      ],
+      "dependencies": [
+        "Compositor",
+        "Input",
+        "Fonts/layout",
+        "Display driver"
+      ],
+      "acceptance_criteria": [
+        "Gebruiker kan meerdere apps toetsenbord/muis bedienen, verplaatsen, resizen, wisselen en herstellen; ondersteunde displays/scales zijn expliciet benoemd en getest."
+      ],
+      "recommended_next_step": "Bevries eerst window-/displaygebruikstaken en laat de native gate alle relevante toestanden bedienen.",
+      "complexity": "large",
+      "impacts": {
+        "user": "Beïnvloedt dagelijks navigeren, appwissel, focus en herstel van werk.",
+        "security": "Compositor/surface-grenzen kunnen inhoud tussen apps lekken.",
+        "accessibility": "Focus, schaal, tekstalternatieven en voorspelbare vensters zijn essentieel."
+      }
+    },
+    {
+      "id": "SESSION-AUTH",
+      "domain": "accounts-sessions",
+      "feature": "Installer first boot, lokale accounts, login, lock en credentials",
+      "status": "PROTOTYPE",
+      "evidence_levels": [
+        "VM_TESTED",
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "DAILY_DRIVER_BETA",
+      "priority": "P0_RELEASE_BLOCKER",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "ui/native/src/session.rs",
+        "docs/implementation/SESSION-AND-DESKTOP.md",
+        "docs/verification/session-desktop-20261102/"
+      ],
+      "limitations": [
+        "Openbare VM-gast/sessionpreview; broker weigert echte wachtwoorden",
+        "Geen accountdatabase, echte authenticator, key unlock, veilige lock/revoke, FIDO2 of biometrie"
+      ],
+      "blockers": [
+        "Auth-/sessiebroker, persistente profielen en veilige credential/key lifecycle ontbreken"
+      ],
+      "dependencies": [
+        "Native UI",
+        "Keyring",
+        "Duurzame profielopslag",
+        "Rate-limit-/recoverybeleid"
+      ],
+      "acceptance_criteria": [
+        "Geldige en ongeldige authenticatie, cancel/race, lock/unlock, logout en revocation zijn native getest; vergrendelde apps krijgen geen oude sessierechten."
+      ],
+      "recommended_next_step": "Implementeer eerst brokercontract en negatieve authenticatieproeven; houd gastpreview als apart profiel gelabeld.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Zonder echt profiel kan de gebruiker niet veilig starten, vergrendelen of hervatten.",
+        "security": "Auth-, sessie- en key-unlockfouten kunnen identiteit of secrets blootstellen.",
+        "accessibility": "Setup, lock en recovery moeten zonder muis en met assistieve feedback werken."
+      }
+    },
+    {
+      "id": "INSTALLER",
+      "domain": "installer",
+      "feature": "Bootable installer, veilige schijfselectie, installatie en migratie",
+      "status": "DOCUMENTED",
+      "evidence_levels": [
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "CONSUMER_RELEASE",
+      "priority": "P0_RELEASE_BLOCKER",
+      "implemented_on": [],
+      "evidence": [
+        "docs/FULL-TEST-RELEASE.md: FR-S01/FR-R03",
+        "docs/ROADMAP.md"
+      ],
+      "limitations": [
+        "Geen aangetoonde installatiemedia, live/try-mode, partitionering, encryptie/setup of migratierun"
+      ],
+      "blockers": [
+        "Installatie- en recoveryimage ontbreken"
+      ],
+      "dependencies": [
+        "Boot-/imageverificatie",
+        "Storage admission",
+        "Accounts/keyring",
+        "Hardware matrix"
+      ],
+      "acceptance_criteria": [
+        "Op een wegwerpimage en benoemd hardwareprofiel kan een gebruiker taal/keyboard/toegankelijkheid kiezen, doel veilig aanwijzen, installeren/annuleren en daarna booten; onbekende/niet-lege doelen worden nooit stil overschreven."
+      ],
+      "recommended_next_step": "Specificeer een veilige installatieroute die op wegwerpimages reproduceerbaar is.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Bepaalt of een gebruiker veilig kan installeren, annuleren en herstellen.",
+        "security": "Verkeerde targetselectie of onauthentieke image kan data/boot compromitteren.",
+        "accessibility": "Taal, keyboard, screenreader en herstel moeten tijdens installatie beschikbaar zijn."
+      }
+    },
+    {
+      "id": "SETTINGS",
+      "domain": "settings",
+      "feature": "Persistente instellingen en centrale systeemconfiguratie",
+      "status": "DOCUMENTED",
+      "evidence_levels": [
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "EXPERIMENTAL_DESKTOP",
+      "priority": "P1_DAILY_USE_CRITICAL",
+      "implemented_on": [],
+      "evidence": [
+        "docs/FULL-TEST-RELEASE.md: FR-S03",
+        "docs/implementation/PRODUCT-SPEC.md"
+      ],
+      "limitations": [
+        "Geen native settings-app met koude-herstartbewijs voor display, sound, network, accounts, privacy, apps en recovery"
+      ],
+      "blockers": [
+        "Native settings service/UI en gebruikersscope ontbreken"
+      ],
+      "dependencies": [
+        "Account/profile store",
+        "Network/device services",
+        "Permission broker"
+      ],
+      "acceptance_criteria": [
+        "Instellingen wijzigen, annuleren, terugzetten en na koude reboot terugvinden; ongeldige waarde, I/O-fout en revoke leveren geen valse status."
+      ],
+      "recommended_next_step": "Bouw Settings pas op werkende diensten en persistente profielopslag.",
+      "complexity": "large",
+      "impacts": {
+        "user": "Gebruiker kan systeemgedrag niet betrouwbaar wijzigen of terugvinden.",
+        "security": "Settings mogen grants, netwerk of privacy niet stil verruimen.",
+        "accessibility": "Alle instellingen moeten doorzoekbaar, keyboardbaar en semantisch bereikbaar zijn."
+      }
+    },
+    {
+      "id": "MATERIAL-EDITOR",
+      "domain": "storage-material",
+      "feature": "Native Materiaal, editor, zoeken, collecties en geschiedenis",
+      "status": "PARTIAL",
+      "evidence_levels": [
+        "VM_TESTED",
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "EXPERIMENTAL_DESKTOP",
+      "priority": "P0_RELEASE_BLOCKER",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "sdk/examples/materiaal/",
+        "ui/native/README.md",
+        "docs/verification/mature-session-20261102/",
+        "docs/FULL-TEST-RELEASE.md: FR-A01/FR-A02"
+      ],
+      "limitations": [
+        "Native renderer/editor en opslagbouwstenen bestaan",
+        "Bindende volledige GUI-keten faalt in opgeslagen bewijs vóór Saved/Reopen; exacte-head sessieworkflow (run 41535553113) is geslaagd, maar is geen Saved/Reopen-acceptatie"
+      ],
+      "blockers": [
+        "End-to-end save/reopen, formaat/capacitymatrix, search/index, crash/data recovery"
+      ],
+      "dependencies": [
+        "Compositor/input",
+        "Native volume/catalog",
+        "Document-session",
+        "Revocable app rights"
+      ],
+      "acceptance_criteria": [
+        "Gebruiker maakt, zoekt, bewerkt, hernoemt en heropent echte inhoud na cold boot; crash/volle opslag/revoke tonen juiste status en behouden bevestigde data."
+      ],
+      "recommended_next_step": "Sluit Saved/Reopen op één geïntegreerde native image af vóór extra zichtbare Materiaalfeatures.",
+      "complexity": "large",
+      "impacts": {
+        "user": "Bepaalt of persoonlijke inhoud te vinden, te bewerken, veilig te bewaren en te herstellen is.",
+        "security": "Integriteit, vertrouwelijkheid, sleutelverlies en stale grants raken gebruikersdata.",
+        "accessibility": "Materiaal, labels, geschiedenis en herstel moeten met screenreader/keyboard bedienbaar zijn."
+      }
+    },
+    {
+      "id": "CLIPBOARD-SHARE",
+      "domain": "data-exchange",
+      "feature": "Clipboard, drag-and-drop, share sheet en open-with",
+      "status": "PARTIAL",
+      "evidence_levels": [
+        "VM_TESTED",
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "EXPERIMENTAL_DESKTOP",
+      "priority": "P1_DAILY_USE_CRITICAL",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "sdk/examples/window-session/src/clipboard.rs",
+        "docs/implementation/NATIVE-CLIPBOARD.md",
+        "docs/verification/native-clipboard-20261102/"
+      ],
+      "limitations": [
+        "Tekst-clipboard is gedeeltelijk native onderzocht",
+        "Geen brede Unicode/rich-text/image/file/mult-item/expiry/cross-device- of drag/dropacceptatie"
+      ],
+      "blockers": [
+        "Eén volledig geïntegreerde broker/API en end-to-end appgebruik"
+      ],
+      "dependencies": [
+        "Focus/input epochs",
+        "Capability grants",
+        "Native app intents"
+      ],
+      "acceptance_criteria": [
+        "Toegestane selectie kan veilig tussen apps worden gedeeld; deny/revoke/stale offer laat inhoud ongewijzigd en gevoelige inhoud verloopt volgens beleid."
+      ],
+      "recommended_next_step": "Maak clipboard-/drag-/intentformaten en permissions expliciet en test normale plus stale/revoked paden.",
+      "complexity": "large",
+      "impacts": {
+        "user": "Klembord/delen beïnvloedt dagelijkse overdracht en verlies van geselecteerde inhoud.",
+        "security": "Cross-app data kan gevoelige inhoud lekken; expiry/revoke moet echt gelden.",
+        "accessibility": "Selectie, status en clipboardacties moeten zonder pointer bereikbaar zijn."
+      }
+    },
+    {
+      "id": "APPS-UTILITIES",
+      "domain": "apps",
+      "feature": "Dagelijkse first-party apps en systeemhulpmiddelen",
+      "status": "PARTIAL",
+      "evidence_levels": [
+        "VM_TESTED",
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "EXPERIMENTAL_DESKTOP",
+      "priority": "P1_DAILY_USE_CRITICAL",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "sdk/examples/materiaal/",
+        "sdk/examples/calculator/",
+        "docs/FULL-TEST-RELEASE.md: FR-A01–A15"
+      ],
+      "limitations": [
+        "Materiaal en rekenmachine hebben native ontwikkel-/VM-bewijs",
+        "Geen complete image/PDF/browser/media/utilities/diagnostics/installer suite"
+      ],
+      "blockers": [
+        "Native app lifecycle, UI toolkit, storage portals, codecs en geaccepteerde formaten"
+      ],
+      "dependencies": [
+        "SDK",
+        "Package/install",
+        "App sandbox",
+        "Object API"
+      ],
+      "acceptance_criteria": [
+        "Elke meegeleverde app voert echte taak uit en doorstaat malformed/large/unsupported input, cancel, storage error en permission denial."
+      ],
+      "recommended_next_step": "Prioriteer utilityset volgens gebruikerstaken; voeg geen mock-schermen als voltooiing toe.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Ontbrekende apps blokkeren veelvoorkomende taken en overstap.",
+        "security": "Parser-, app- en data-access grenzen moeten per tool begrensd zijn.",
+        "accessibility": "Iedere app moet focus, semantiek, toetsenbord en alternatieven ondersteunen."
+      }
+    },
+    {
+      "id": "SDK-PACKAGES",
+      "domain": "app-platform",
+      "feature": "SDK, package format, installation, update, uninstall and permissions",
+      "status": "PARTIAL",
+      "evidence_levels": [
+        "HOST_TESTED",
+        "VM_TESTED",
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "DAILY_DRIVER_BETA",
+      "priority": "P1_DAILY_USE_CRITICAL",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "sdk/README.md",
+        "sdk/runtime/",
+        "docs/verification/A01-ACCEPTANCE.md",
+        "docs/DECISIONS.md: ADR-055/056",
+        "docs/FULL-TEST-RELEASE.md: FR-A11–A13"
+      ],
+      "limitations": [
+        "No_std runtime, package verifier and app/service libraries exist",
+        "Roadmap A01 (2 points) is accepted for the bounded native SDK app/catalog path; A02/A03 and the full package lifecycle remain open",
+        "Verifier is not package installer, launch authority, store, update/removal lifecycle or permission enforcement"
+      ],
+      "blockers": [
+        "Trust-source persistence, consent, loader/install transaction and revocation integration"
+      ],
+      "dependencies": [
+        "Capability kernel",
+        "Artifact store",
+        "Source registry",
+        "Native app lifecycle"
+      ],
+      "acceptance_criteria": [
+        "Signed app is verified against selected trust source, launched under explicit least-privilege grants, updated/removed atomically and denied on malformed/tampered packages."
+      ],
+      "recommended_next_step": "Wire verifier to a minimal native installer/launcher without adding implicit capabilities.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Installeren/bijwerken/verwijderen bepaalt appkeuze en herstelbaarheid.",
+        "security": "Signatuur is herkomst, geen trust; grants mogen niet impliciet ontstaan.",
+        "accessibility": "Catalogus, prompts en lifecycle moeten toegankelijke status-/foutflows bieden."
+      }
+    },
+    {
+      "id": "BROWSER",
+      "domain": "browser",
+      "feature": "Native browser engine, secure browsing, downloads and web platform",
+      "status": "PROTOTYPE",
+      "evidence_levels": [
+        "HOST_TESTED",
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "DAILY_DRIVER_BETA",
+      "priority": "P1_DAILY_USE_CRITICAL",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "ui/prototype/README.md",
+        "docs/verification/browser-report.json",
+        "docs/FULL-TEST-RELEASE.md: FR-A05"
+      ],
+      "limitations": [
+        "Browserprototype is synthetic and creates no native internet connection",
+        "No maintained browser engine, sandboxed downloads, JS/web standards or media/extension support"
+      ],
+      "blockers": [
+        "Native network/DNS/TLS rights and engine selection/port are open"
+      ],
+      "dependencies": [
+        "Network stack",
+        "TLS/certificates",
+        "App sandbox",
+        "Download/file portal"
+      ],
+      "acceptance_criteria": [
+        "Native browser loads controlled test sites, validates certificates, respects peer/destination grants and downloads only via explicit file scope; negative TLS/DNS/revoke cases are observed."
+      ],
+      "recommended_next_step": "Compare maintained embeddable engines and support cost; do not start a new browser engine.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Web en downloads zijn dagelijkse functies en compatibiliteitsingang.",
+        "security": "Webcontent is onbetrouwbaar; engine patching/sandbox/TLS zijn kritieke grenzen.",
+        "accessibility": "Browsercontent, formulieren, media en permissies vragen volledige semantiek."
+      }
+    },
+    {
+      "id": "BROWSER-ENGINE",
+      "domain": "browser",
+      "feature": "Building a new browser engine from scratch",
+      "status": "NOT_RECOMMENDED",
+      "evidence_levels": [
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "DAILY_DRIVER_BETA",
+      "priority": "P4_LATER",
+      "implemented_on": [],
+      "evidence": [
+        "docs/FULL-TEST-RELEASE.md: FR-A05 requires a Chromium/Gecko comparison before engine choice"
+      ],
+      "limitations": [
+        "No dedicated engine-maintenance study completed in this audit",
+        "Recommendation is audit guidance, not an adopted ADR"
+      ],
+      "blockers": [
+        "Web standards, security patching, codecs and accessibility create a very large continuing maintenance burden"
+      ],
+      "dependencies": [
+        "Maintained engine evaluation",
+        "Sandbox/graphics integration",
+        "Security update ownership"
+      ],
+      "acceptance_criteria": [
+        "Before engine choice, compare maintained candidates by license, patch cadence, attack surface, sandboxability, hardware/resource profile and update responsibility."
+      ],
+      "recommended_next_step": "Run the documented Chromium/Gecko feasibility comparison; reconsider only if maintained integration is infeasible.",
+      "complexity": "research_program",
+      "impacts": {
+        "user": "Web en downloads zijn dagelijkse functies en compatibiliteitsingang.",
+        "security": "Webcontent is onbetrouwbaar; engine patching/sandbox/TLS zijn kritieke grenzen.",
+        "accessibility": "Browsercontent, formulieren, media en permissies vragen volledige semantiek."
+      }
+    },
+    {
+      "id": "MEDIA",
+      "domain": "media",
+      "feature": "Audio, video, recording, camera and media sessions",
+      "status": "MISSING",
+      "evidence_levels": [
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "DAILY_DRIVER_BETA",
+      "priority": "P1_DAILY_USE_CRITICAL",
+      "implemented_on": [],
+      "evidence": [
+        "docs/FULL-TEST-RELEASE.md: FR-A06/FR-A07",
+        "docs/PROGRESS.md: H03 open"
+      ],
+      "limitations": [
+        "No accepted native codec/player/capture chain or measured physical output"
+      ],
+      "blockers": [
+        "Audio/video drivers, maintained codec choices, app and permission integration"
+      ],
+      "dependencies": [
+        "Hardware/audio broker",
+        "Compositor",
+        "App permissions",
+        "Format/license review"
+      ],
+      "acceptance_criteria": [
+        "Named media formats play/record with measured sync/latency and device switching; malformed files, resource pressure, device loss and permission denial are handled."
+      ],
+      "recommended_next_step": "Define a small supported-format and device profile before choosing maintained libraries.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Audio/video/camera beïnvloeden communicatie, werk en ontspanning.",
+        "security": "Codec-/camera parsers en capturerechten vergroten aanvalsoppervlak.",
+        "accessibility": "Captions, transcripties, audiofeedback en devicebediening zijn noodzakelijk."
+      }
+    },
+    {
+      "id": "NOTIFICATIONS",
+      "domain": "attention",
+      "feature": "Notification service, history, focus modes and background activity",
+      "status": "MISSING",
+      "evidence_levels": [
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "DAILY_DRIVER_BETA",
+      "priority": "P2_ADOPTION_CRITICAL",
+      "implemented_on": [],
+      "evidence": [
+        "docs/FULL-TEST-RELEASE.md: required domain N"
+      ],
+      "limitations": [
+        "No native notification broker/center/permission lifecycle found in the audited evidence"
+      ],
+      "blockers": [
+        "Service ownership, per-app permission, lock-screen privacy and scheduling policy"
+      ],
+      "dependencies": [
+        "Accounts/session",
+        "App lifecycle",
+        "Settings",
+        "Desktop surfaces"
+      ],
+      "acceptance_criteria": [
+        "Apps can request permission and present grouped/actionable notices; revoke, lock-screen privacy, focus schedule and background visibility behave consistently."
+      ],
+      "recommended_next_step": "Define broker events, privacy levels and action capability before UI implementation.",
+      "complexity": "large",
+      "impacts": {
+        "user": "Meldingen helpen status en onderbrekingen te beheren.",
+        "security": "Lockscreen/history en notification actions kunnen privédata of rechten lekken.",
+        "accessibility": "Urgentie, timing, tekst en focus moeten configureerbaar zijn."
+      }
+    },
+    {
+      "id": "ACCESSIBILITY",
+      "domain": "accessibility",
+      "feature": "Native accessibility tree, screen reader, keyboard, zoom and alternatives",
+      "status": "PROTOTYPE",
+      "evidence_levels": [
+        "SOURCE_ONLY",
+        "HOST_TESTED"
+      ],
+      "release_profile": "DAILY_DRIVER_BETA",
+      "priority": "P0_RELEASE_BLOCKER",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "ui/native/README.md",
+        "ui/prototype/",
+        "docs/verification/browser-report.json",
+        "docs/FULL-TEST-RELEASE.md: FR-U05"
+      ],
+      "limitations": [
+        "Semantics/browser keyboard checks are not a native screen reader or real user test",
+        "No native accessibility event broker, braille/switch route or verified 200% zoom"
+      ],
+      "blockers": [
+        "Semantic APIs, assistive clients and human testing"
+      ],
+      "dependencies": [
+        "Native UI toolkit",
+        "Focus/input",
+        "Text/rendering",
+        "Installer and recovery surfaces"
+      ],
+      "acceptance_criteria": [
+        "Users complete defined setup, editor, permission and recovery tasks keyboard-only and with a native screen reader at 200% scale; focus/status/reduced-motion errors are logged and fixed."
+      ],
+      "recommended_next_step": "Specify native accessibility tree/events and recruit representative testers before calling UI complete.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Ontbrekende assistieve bediening kan gebruikers volledige setup/recovery verhinderen.",
+        "security": "Toegankelijkheidshelpers mogen grants/data niet onbedoeld uitbreiden.",
+        "accessibility": "Rechtstreeks: native screenreader, focus, schaal, contrast, switch en reduced-motion."
+      }
+    },
+    {
+      "id": "INTERNATIONALIZATION",
+      "domain": "internationalization",
+      "feature": "Unicode, shaping, RTL, IME, locales, translations and screen-reader language",
+      "status": "DOCUMENTED",
+      "evidence_levels": [
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "DAILY_DRIVER_BETA",
+      "priority": "P1_DAILY_USE_CRITICAL",
+      "implemented_on": [],
+      "evidence": [
+        "docs/FULL-TEST-RELEASE.md: required domain P",
+        "docs/implementation/PRODUCT-SPEC.md"
+      ],
+      "limitations": [
+        "UTF-8 data-path evidence does not establish text shaping, IME, RTL, locale formatting or translated system UI"
+      ],
+      "blockers": [
+        "Font fallback/shaping, input methods, localization and native accessibility language support"
+      ],
+      "dependencies": [
+        "Text/rendering stack",
+        "Input services",
+        "Settings",
+        "Translation maintenance"
+      ],
+      "acceptance_criteria": [
+        "Representative scripts, combining marks, RTL, IME, locale date/number/currency/timezone and screen-reader language switching work across setup, apps and recovery."
+      ],
+      "recommended_next_step": "Create a script/locale test corpus and select maintained shaping/font/input components.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Taal-/scriptbeperkingen maken lezen, invoer en herstel ontoegankelijk.",
+        "security": "Canonicalization/Unicode kunnen identifiers, paden en beleid beïnvloeden.",
+        "accessibility": "Font/IME/RTL/locale en screenreader-language bepalen toegang."
+      }
+    },
+    {
+      "id": "NETWORK-STACK",
+      "domain": "network",
+      "feature": "Native packet, IP/TCP/UDP service",
+      "status": "PARTIAL",
+      "evidence_levels": [
+        "VM_TESTED",
+        "HOST_TESTED"
+      ],
+      "release_profile": "EXPERIMENTAL_DESKTOP",
+      "priority": "P0_RELEASE_BLOCKER",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "docs/progress.json: N01 accepted",
+        "docs/verification/mature-session-20261102/n01-integrated.json (prior source binding)",
+        "exact-head network workflows"
+      ],
+      "limitations": [
+        "Native bounded packet-stack proof is a component, not daily internet",
+        "Nieuwe TCP-reviewfixes hebben exacte-head CI doorlopen; componentbewijs blijft beperkt tot het geteste profiel"
+      ],
+      "blockers": [
+        "Dagelijkse internetconfiguratie, DNS, bestemmingsrechten en fysieke driverondersteuning blijven open"
+      ],
+      "dependencies": [
+        "Network driver",
+        "Address configuration",
+        "DNS",
+        "TLS",
+        "Rights broker"
+      ],
+      "acceptance_criteria": [
+        "Exact-head native cases cover real packet exchange, malformed packets, backpressure, client exit, timeout and reconnect on a named VM profile."
+      ],
+      "recommended_next_step": "Bewaar het exacte-head CI-resultaat en voer het volledige native FR-N01–N04-profiel uit vóór een claim van dagelijks internet.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Internet, DNS en netwerkverandering zijn nodig voor browser en connected workflows.",
+        "security": "Aanvalsoppervlak, peeridentity, routewijziging en pakketparsers zijn relevant.",
+        "accessibility": "Netwerkstatus, fouten en captive portals moeten leesbaar en bedienbaar zijn."
+      }
+    },
+    {
+      "id": "NETWORK-INTERNET",
+      "domain": "network",
+      "feature": "Ethernet/Wi-Fi, DHCP, DNS, IPv4/IPv6, routing, VPN and diagnostics",
+      "status": "PARTIAL",
+      "evidence_levels": [
+        "SOURCE_ONLY",
+        "HOST_TESTED"
+      ],
+      "release_profile": "DAILY_DRIVER_BETA",
+      "priority": "P0_RELEASE_BLOCKER",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "services/net-broker/",
+        "docs/FULL-TEST-RELEASE.md: FR-N01/FR-N02",
+        "docs/progress.json: N02 open"
+      ],
+      "limitations": [
+        "Network config/DHCP work and host protocol tests do not establish native everyday connectivity",
+        "Wi-Fi, captive portal, VPN/hotspot and offline/resume remain open"
+      ],
+      "blockers": [
+        "Native driver/config/resolver integration and physical support profile"
+      ],
+      "dependencies": [
+        "K-DRIVERS",
+        "NETWORK-STACK",
+        "NETWORK-PERMISSIONS"
+      ],
+      "acceptance_criteria": [
+        "A named VM then physical profile obtains IPv4/IPv6 configuration, resolves names and recovers from link changes; malformed, timeout, captive portal and offline cases show truthful status."
+      ],
+      "recommended_next_step": "Integrate one native Ethernet profile and resolver before broad Wi-Fi claims.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Internet, DNS en netwerkverandering zijn nodig voor browser en connected workflows.",
+        "security": "Aanvalsoppervlak, peeridentity, routewijziging en pakketparsers zijn relevant.",
+        "accessibility": "Netwerkstatus, fouten en captive portals moeten leesbaar en bedienbaar zijn."
+      }
+    },
+    {
+      "id": "TLS-PEER",
+      "domain": "network-security",
+      "feature": "Authenticated TLS, certificate lifecycle and hybrid PQC transport",
+      "status": "PROTOTYPE",
+      "evidence_levels": [
+        "HOST_TESTED",
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "DAILY_DRIVER_BETA",
+      "priority": "P0_RELEASE_BLOCKER",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "services/nas/TRANSPORT.md",
+        "docs/verification/pqc-transport/",
+        "docs/progress.json: N03 open"
+      ],
+      "limitations": [
+        "N02 is host/loopback transport research; native TLS/peer-authentication and release trust roots are not accepted"
+      ],
+      "blockers": [
+        "Native crypto/TLS port, certificates/identity policy and exact-handshake runtime gates"
+      ],
+      "dependencies": [
+        "Entropy/keyring",
+        "NETWORK-INTERNET",
+        "Peer-specific rights"
+      ],
+      "acceptance_criteria": [
+        "Native client authenticates the intended peer and rejects wrong identity, malformed/expired certificate, downgrade and unavailable PQC path without silent insecure fallback."
+      ],
+      "recommended_next_step": "Port a maintained implementation only after native threat model, entropy and identity boundaries are frozen.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Zonder correcte rechten kan connected functionality onbruikbaar of onvoorspelbaar zijn.",
+        "security": "Peer-, app- en destination-authority is een directe Security Floor boundary.",
+        "accessibility": "Permission/identity prompts moeten begrijpelijk en keyboard/screenreader bruikbaar zijn."
+      }
+    },
+    {
+      "id": "NETWORK-PERMISSIONS",
+      "domain": "network-security",
+      "feature": "Per-app, per-destination network capabilities and revocation",
+      "status": "DOCUMENTED",
+      "evidence_levels": [
+        "SOURCE_ONLY",
+        "HOST_TESTED"
+      ],
+      "release_profile": "DAILY_DRIVER_BETA",
+      "priority": "P0_RELEASE_BLOCKER",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "services/net-broker/",
+        "docs/LOCAL-PRIVACY-CONTRACT.md: LP-08–LP-10/LP-23/LP-30/LP-31",
+        "docs/progress.json: N04 open"
+      ],
+      "limitations": [
+        "Broker code/host cases do not prove kernel-enforced native egress restriction",
+        "Helper/socket/listener bypass paths remain release tests"
+      ],
+      "blockers": [
+        "Native process-to-network authority and traffic observation"
+      ],
+      "dependencies": [
+        "Capability kernel",
+        "Native network stack",
+        "Auth/session broker"
+      ],
+      "acceptance_criteria": [
+        "An app with no grant cannot send/receive; grant permits only declared peer; revocation blocks existing and new flows and helpers without changing unrelated grants."
+      ],
+      "recommended_next_step": "Connect the broker to kernel-issued process capabilities and verify traffic at a controlled observation point.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Zonder correcte rechten kan connected functionality onbruikbaar of onvoorspelbaar zijn.",
+        "security": "Peer-, app- en destination-authority is een directe Security Floor boundary.",
+        "accessibility": "Permission/identity prompts moeten begrijpelijk en keyboard/screenreader bruikbaar zijn."
+      }
+    },
+    {
+      "id": "NAS-CONTINUITY",
+      "domain": "multi-device-storage",
+      "feature": "NAS roles, identity pairing, encrypted sync, conflict handling and provider adapter",
+      "status": "PROTOTYPE",
+      "evidence_levels": [
+        "HOST_TESTED",
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "DAILY_DRIVER_BETA",
+      "priority": "P0_RELEASE_BLOCKER",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "services/nas/README.md",
+        "docs/implementation/NAS-SHARING-AND-INTERNET.md",
+        "ui/prototype/README.md",
+        "docs/LOCAL-PRIVACY-CONTRACT.md"
+      ],
+      "limitations": [
+        "Host Node service and simulated UI are not native client/NAS roles",
+        "No accepted end-to-end keys, auto-resume, multi-client conflict resolution or provider ciphertext adapter"
+      ],
+      "blockers": [
+        "Native network, encrypted object storage, key recovery and persistence"
+      ],
+      "dependencies": [
+        "STORAGE-CRYPTO",
+        "TLS-PEER",
+        "NETWORK-PERMISSIONS",
+        "Device identity"
+      ],
+      "acceptance_criteria": [
+        "Two native clients pair by verified identity, sync opaque encrypted objects across offline/reconnect, resolve conflicts, enforce admin quota/revoke/delete and restore locally without provider key escrow."
+      ],
+      "recommended_next_step": "Integrate client-side encryption and native pairing only after key and peer contracts pass threat review.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "NAScontinuïteit beïnvloedt eigen data, sync en meerdere apparaten.",
+        "security": "Key secrecy, peer identity, stale sessions, admin delete en rollback staan centraal.",
+        "accessibility": "Pairing, status, conflict en herstel mogen geen technische expertise vereisen."
+      }
+    },
+    {
+      "id": "PRIVACY-SECURITY",
+      "domain": "security-privacy",
+      "feature": "Security Floor, app sandbox, secrets, privacy dashboard and independent audit",
+      "status": "PARTIAL",
+      "evidence_levels": [
+        "VM_TESTED",
+        "HOST_TESTED",
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "DAILY_DRIVER_BETA",
+      "priority": "P0_RELEASE_BLOCKER",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "docs/LOCAL-PRIVACY-CONTRACT.md",
+        "docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md",
+        "docs/progress.json: B01 accepted; B02/B04–B06 open"
+      ],
+      "limitations": [
+        "Kernel primitives and entropy have scoped native evidence",
+        "End-to-end app permissions, secret isolation, indicators, audit log and complete LP suite are open"
+      ],
+      "blockers": [
+        "B02, trusted distribution, network/file capability enforcement and external human security review"
+      ],
+      "dependencies": [
+        "Kernel capabilities",
+        "Auth/keyring",
+        "App packaging",
+        "Network/storage brokers"
+      ],
+      "acceptance_criteria": [
+        "Applicable LP scenarios run on one native image; privacy education can be disabled without rights changes; no app receives undeclared files, keys, listeners or network; external review findings are resolved."
+      ],
+      "recommended_next_step": "Prioritize deny-by-default native permission enforcement and independent threat-model review.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Gebruiker moet gevolgen van toestemming, opslag en herstel begrijpen.",
+        "security": "Rechtstreeks: isolatie, secrets, authenticity, revoke en privacycontract.",
+        "accessibility": "Consent/security feedback moet duidelijk zijn zonder popupmoeheid of informatie alleen via kleur."
+      }
+    },
+    {
+      "id": "UPDATES-RECOVERY",
+      "domain": "updates-recovery",
+      "feature": "Signed update, rollback protection, repair and recovery environment",
+      "status": "PARTIAL",
+      "evidence_levels": [
+        "VM_TESTED",
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "DAILY_DRIVER_BETA",
+      "priority": "P0_RELEASE_BLOCKER",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "docs/verification/B03-ACCEPTANCE.md",
+        "docs/verification/b03/update-gate.json",
+        "docs/progress.json: B03 accepted",
+        "docs/FULL-TEST-RELEASE.md: FR-B03/FR-R01"
+      ],
+      "limitations": [
+        "Signed update gate has native scoped proof",
+        "No consumer installer, complete recovery environment, production trust/rotation chain or final image validation"
+      ],
+      "blockers": [
+        "Integrate updater with persistent data, boot verification, recovery and authorized release keys"
+      ],
+      "dependencies": [
+        "BOOT-UEFI",
+        "STORAGE-CRYPTO",
+        "INSTALLER",
+        "Trusted release process"
+      ],
+      "acceptance_criteria": [
+        "On exact release image, valid signed update commits atomically; tampering/downgrade fails; interruption at every write stage reaches a documented bootable recovery without user-data loss."
+      ],
+      "recommended_next_step": "Test update/recovery as a combined cold-boot workflow, not a component gate.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Update- of recoveryfout kan apparaatstart/data-toegang blokkeren.",
+        "security": "Authenticity, rollback en atomicity beschermen de trust chain.",
+        "accessibility": "Update-, fout- en recoveryflow moet hulptechnologie behouden."
+      }
+    },
+    {
+      "id": "BACKUP-RESTORE",
+      "domain": "backup-history",
+      "feature": "Independent backup, verification, restore browsing and export",
+      "status": "DOCUMENTED",
+      "evidence_levels": [
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "DAILY_DRIVER_BETA",
+      "priority": "P0_RELEASE_BLOCKER",
+      "implemented_on": [],
+      "evidence": [
+        "docs/FULL-TEST-RELEASE.md: FR-O06/S09/FR-R01",
+        "docs/progress.json: S09 open"
+      ],
+      "limitations": [
+        "Snapshots/revisions and NAS sync are not an independent verified backup/restore product"
+      ],
+      "blockers": [
+        "Backup format, independent destination, integrity verification and restore UI/API"
+      ],
+      "dependencies": [
+        "STORAGE-VOLUME",
+        "STORAGE-CRYPTO",
+        "Material history",
+        "External-media/NAS adapter"
+      ],
+      "acceptance_criteria": [
+        "Create an independent backup, verify it, restore selected objects and full data into a clean image, and export documented formats after source corruption/loss."
+      ],
+      "recommended_next_step": "Define independent backup semantics and tested restore workflow before relying on sync or snapshots.",
+      "complexity": "large",
+      "impacts": {
+        "user": "Zonder onafhankelijke restore kan dataverlies permanent zijn.",
+        "security": "Backup moet confidentiality, integrity en sleutelgrenzen behouden.",
+        "accessibility": "Restore browsing/selectie/voortgang moeten toegankelijk zijn."
+      }
+    },
+    {
+      "id": "POWER-ENERGY",
+      "domain": "power",
+      "feature": "ACPI, suspend/resume, battery, thermal policy and power lifecycle",
+      "status": "PARTIAL",
+      "evidence_levels": [
+        "SOURCE_ONLY",
+        "VM_TESTED"
+      ],
+      "release_profile": "DAILY_DRIVER_BETA",
+      "priority": "P1_DAILY_USE_CRITICAL",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "drivers/",
+        "docs/FULL-TEST-RELEASE.md: FR-S04/FR-S05",
+        "docs/PROJECT-STATE.md"
+      ],
+      "limitations": [
+        "ACPI/RTC probes do not prove laptop suspend, battery, thermals or reliable resume",
+        "No physical power-cycle/sleep evidence"
+      ],
+      "blockers": [
+        "Physical device profile and coordinated device/session restore"
+      ],
+      "dependencies": [
+        "Drivers",
+        "Storage flush",
+        "Session broker",
+        "Monotone timers"
+      ],
+      "acceptance_criteria": [
+        "Repeated sleep/wake, lid, battery/thermal transitions and shutdown on named hardware preserve saved data, device state and revoked rights."
+      ],
+      "recommended_next_step": "Keep VM shutdown evidence scoped; select physical hardware before promising laptop power behavior.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Slaap/wek/batterij beïnvloeden draagbaar dagelijks gebruik en werkbehoud.",
+        "security": "Suspend/resume kan oude rechten, sleutels of apparaatstate heractiveren.",
+        "accessibility": "Power/brightness/status moet zonder visuele signalen alleen toegankelijk zijn."
+      }
+    },
+    {
+      "id": "AI-LOCAL",
+      "domain": "local-ai",
+      "feature": "Local model download, inference, context grants and resource control",
+      "status": "DOCUMENTED",
+      "evidence_levels": [
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "DAILY_DRIVER_BETA",
+      "priority": "P2_ADOPTION_CRITICAL",
+      "implemented_on": [],
+      "evidence": [
+        "docs/LOCAL-PRIVACY-CONTRACT.md: section 3/LP-04–LP-07",
+        "docs/implementation/PRODUCT-SPEC.md: S07"
+      ],
+      "limitations": [
+        "P2 assistant is deterministic simulated response; no native inference runtime or accepted model",
+        "No demonstrated device-only network denial/model resource profile"
+      ],
+      "blockers": [
+        "Model/runtime feasibility, parser/license review, native broker and target hardware"
+      ],
+      "dependencies": [
+        "Local model artifact store",
+        "CPU/GPU/NPU resources",
+        "Context capability broker",
+        "Accessibility"
+      ],
+      "acceptance_criteria": [
+        "A selected real model answers novel tasks locally on named hardware; exact selected context only is available; network/helper attempts are denied; cancel, low-memory and missing-model cases are truthful."
+      ],
+      "recommended_next_step": "Run the smallest local inference feasibility experiment with license/resource measurements and no network capability.",
+      "complexity": "research_program",
+      "impacts": {
+        "user": "Optionele assistentie kan geselecteerde taken versnellen, maar ontbreken mag basiswerk niet blokkeren.",
+        "security": "Modelparser, context leakage, network helper path en action broker zijn risicogebieden.",
+        "accessibility": "AI-invoer/uitvoer, annuleren en status moeten screenreader/keyboard bruikbaar zijn."
+      }
+    },
+    {
+      "id": "QUANTUM-LOCAL",
+      "domain": "quantum",
+      "feature": "Q0 simulator, Q1 OS integration and physical QPU boundary",
+      "status": "PROTOTYPE",
+      "evidence_levels": [
+        "HOST_TESTED",
+        "VM_TESTED",
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "TECHNICAL_PREVIEW",
+      "priority": "RESEARCH",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "experiments/quantum/README.md",
+        "docs/QUANTUM-RESEARCH.md",
+        "docs/verification/L02-ACCEPTANCE.md: accepted on source 433bab9feab74473517eb8d44f2fb4475848e0cf; integrated in main at 7fb8c722fc853692251e26fcdcea0ed86954ef15"
+      ],
+      "limitations": [
+        "The bounded native L02 QSIM job service has historical QEMU acceptance; this is not a fresh run on audit commit 380111b68688c981eec6abb8fab29174a29f5601",
+        "No physical QPU, quantum speedup, PQC proof or cloud fallback evidence"
+      ],
+      "blockers": [
+        "Integrated L02 regression and full FR-L04 acceptance remain open; physical QPU evidence is separate"
+      ],
+      "dependencies": [
+        "Resource quota",
+        "Local job lifecycle",
+        "Security boundary",
+        "Optional physical device interface"
+      ],
+      "acceptance_criteria": [
+        "The integrated release image repeats L02's documented local job, reference vectors, cancellation, quota and cleanup; distinguish the historical native OS port, the integrated regression and any physical QPU result."
+      ],
+      "recommended_next_step": "Repeat the L02 native gate on the integrated release image and keep FR-L04 open until it passes; assess physical QPU scope separately.",
+      "complexity": "research_program",
+      "impacts": {
+        "user": "Experimentele differentiator; geen vereiste voor gewone desktopfunctie.",
+        "security": "Quantum/PQC-claims kunnen cryptografisch vertrouwen verkeerd voorstellen.",
+        "accessibility": "Jobbediening en meetresultaten moeten toegankelijk zijn als functie wordt aangeboden."
+      }
+    },
+    {
+      "id": "COMPATIBILITY",
+      "domain": "compatibility-migration",
+      "feature": "Windows/macOS/Linux migration, filesystem and document-format compatibility",
+      "status": "DOCUMENTED",
+      "evidence_levels": [
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "CONSUMER_RELEASE",
+      "priority": "P1_DAILY_USE_CRITICAL",
+      "implemented_on": [],
+      "evidence": [
+        "docs/FULL-TEST-RELEASE.md: FR-A01–A15 and domain W",
+        "docs/implementation/PRODUCT-SPEC.md"
+      ],
+      "limitations": [
+        "No accepted migration/import/export matrix or compatibility runtime",
+        "Opening one fixture cannot establish round-trip fidelity or app/game compatibility"
+      ],
+      "blockers": [
+        "Format inventory, maintained parsers, licensing, fidelity tests and fallback/export workflow"
+      ],
+      "dependencies": [
+        "Native apps",
+        "Package/sandbox model",
+        "Storage/backup",
+        "Browser/network"
+      ],
+      "acceptance_criteria": [
+        "Named real-world files and migration fixtures import/export with per-feature fidelity assertions; NTFS/exFAT/ext4/SMB/NFS and app-compatibility support are explicitly scoped."
+      ],
+      "recommended_next_step": "Choose a small user-prioritized format/migration set and preserve loss-reporting/export paths.",
+      "complexity": "research_program",
+      "impacts": {
+        "user": "Migratie/export bepalen of gebruikers hun data en workflows kunnen behouden.",
+        "security": "Parser-, macro-, filesystem- en compatibility layers vergroten trust boundary.",
+        "accessibility": "Formaatverlies en migratievoortgang moeten begrijpelijk worden gemeld."
+      }
+    },
+    {
+      "id": "UTILITIES",
+      "domain": "everyday-utilities",
+      "feature": "Calculator, editor, image/PDF, archive, screenshot, help and diagnostics",
+      "status": "PARTIAL",
+      "evidence_levels": [
+        "VM_TESTED",
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "EXPERIMENTAL_DESKTOP",
+      "priority": "P1_DAILY_USE_CRITICAL",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "sdk/examples/calculator/",
+        "sdk/examples/materiaal/",
+        "docs/FULL-TEST-RELEASE.md: FR-A01–A15"
+      ],
+      "limitations": [
+        "A small native editor/calculator/image decode subset exists",
+        "PDF, archive, screenshot, logs/diagnostics/help and consumer-ready features are not accepted"
+      ],
+      "blockers": [
+        "SDK/UI toolkit, storage and format-specific services"
+      ],
+      "dependencies": [
+        "APPS-UTILITIES",
+        "ACCESSIBILITY",
+        "STORAGE-VOLUME",
+        "SDK-PACKAGES"
+      ],
+      "acceptance_criteria": [
+        "Each included utility performs its real task on the release image and is usable with keyboard, errors, large/corrupt files and explicit grants."
+      ],
+      "recommended_next_step": "Define the minimum utility slate for experimental desktop and assign one native acceptance case per tool.",
+      "complexity": "large",
+      "impacts": {
+        "user": "Ontbrekende basisgereedschappen blokkeren alledaagse taken.",
+        "security": "Elke tool heeft eigen input/parser/data permission attack surface.",
+        "accessibility": "Apps moeten dezelfde native accessibility APIs ondersteunen."
+      }
+    },
+    {
+      "id": "VISUAL-DESIGN",
+      "domain": "visual-design",
+      "feature": "Distinctive, coherent and accessible product design system",
+      "status": "PROTOTYPE",
+      "evidence_levels": [
+        "HOST_TESTED",
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "EXPERIMENTAL_DESKTOP",
+      "priority": "P2_ADOPTION_CRITICAL",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "docs/implementation/PRODUCT-SPEC.md",
+        "ui/prototype/",
+        "docs/verification/browser-report.json"
+      ],
+      "limitations": [
+        "Materiaal/quiet-futurism design is selected and browser prototype rendered",
+        "No native end-to-end design-system consistency or human evaluation; prototype is not OS UI proof"
+      ],
+      "blockers": [
+        "Native typography, shaping, accessible component states and integrated first-party apps"
+      ],
+      "dependencies": [
+        "DESKTOP-COMPOSITOR",
+        "ACCESSIBILITY",
+        "INTERNATIONALIZATION",
+        "APPS-UTILITIES"
+      ],
+      "acceptance_criteria": [
+        "Native setup, desktop, settings, apps and recovery share tested tokens/states at supported sizes/scales; representative users complete eight-hour-quality task scenarios with reduced-motion and focus support."
+      ],
+      "recommended_next_step": "Port design tokens to native components only after render/text/accessibility primitives are chosen.",
+      "complexity": "large",
+      "impacts": {
+        "user": "Samenhang en herkenbaarheid beïnvloeden gebruiksgemak maar zijn niet bewezen door screenshots.",
+        "security": "UI mag privacystatus niet misleidend tonen of security choices verbergen.",
+        "accessibility": "Rechtstreeks: contrast, motion, focus, schaal en semantiek zijn releasekwaliteit."
+      }
+    },
+    {
+      "id": "RELEASE-VALIDATION",
+      "domain": "release-maintenance",
+      "feature": "Complete integrated test release, physical/human validation and reproducibility",
+      "status": "BLOCKED",
+      "evidence_levels": [
+        "SOURCE_ONLY",
+        "VM_TESTED"
+      ],
+      "release_profile": "CONSUMER_RELEASE",
+      "priority": "P0_RELEASE_BLOCKER",
+      "implemented_on": [
+        "380111b68688c981eec6abb8fab29174a29f5601"
+      ],
+      "evidence": [
+        "docs/FULL-TEST-RELEASE.md: 62 required rows remain open",
+        "docs/PROJECT-STATE.md",
+        "exact-head CI run 41535553113 completed successfully (geen releasevalidatie)"
+      ],
+      "limitations": [
+        "Separate component/VM proofs do not constitute the final image",
+        "No physical profile, human usability study, independent external audit or full release-validation package"
+      ],
+      "blockers": [
+        "Many FR rows open; no authorized physical target or human/external review evidence"
+      ],
+      "dependencies": [
+        "All P0/P1 functional domains",
+        "Final image build",
+        "Release evidence bundle",
+        "Human and hardware gates"
+      ],
+      "acceptance_criteria": [
+        "All 62 required FR rows pass on the hash-bound final image at their prescribed N/D/V/T/P/H/A/X levels; no blocker remains; another clean environment can reproduce the package."
+      ],
+      "recommended_next_step": "Hervat de bestaande geïntegreerde releasequeue vanaf de groene exacte-head CI; houd niet-uitgevoerde externe gates expliciet open.",
+      "complexity": "very_large",
+      "impacts": {
+        "user": "Zonder reproduceerbare releases/support kan gebruiker niet veilig installeren of onderhouden.",
+        "security": "Patchbeheer, ondertekenaarsbeheer, herkomst en incidentrespons zijn essentieel.",
+        "accessibility": "Uitgave, installatie, documentatie en ondersteuning moeten ook toegankelijk zijn."
+      }
+    },
+    {
+      "id": "GOVERNANCE",
+      "domain": "release-maintenance",
+      "feature": "Release channels, support/security response, licensing, SBOM and maintenance ownership",
+      "status": "PARTIAL",
+      "evidence_levels": [
+        "SOURCE_ONLY"
+      ],
+      "release_profile": "CONSUMER_RELEASE",
+      "priority": "P1_DAILY_USE_CRITICAL",
+      "implemented_on": [],
+      "evidence": [
+        "docs/PRODUCT-AND-SOVEREIGNTY.md",
+        "docs/progress.json: A01 accepted (+2 points); R03 open (2 points)",
+        "docs/verification/A01-ACCEPTANCE.md: bounded native SDK app/catalog acceptance, not release governance",
+        "docs/FULL-TEST-RELEASE.md: FR-R04",
+        "docs/WORK-QUEUE.md: dated 30 October status still reports 34/100 and older integration context"
+      ],
+      "limitations": [
+        "A01's accepted native SDK scope does not demonstrate release governance or satisfy R03",
+        "Policies and release tasks are described; no complete release process, support lifecycle, legal/license audit or owner coverage demonstrated",
+        "Dated queue context is stale relative to current main score/PR state and was not edited because it declares an exclusive writer"
+      ],
+      "blockers": [
+        "Security response, support responsibility, dependency inventory and sustainable maintenance process"
+      ],
+      "dependencies": [
+        "Reproducible build",
+        "Package signing",
+        "CI",
+        "Contributor/review process"
+      ],
+      "acceptance_criteria": [
+        "A release has versioned channels, reproducible artifacts/SBOM, licensing review, security contact and response SLA, support lifecycle, known-issues list and assigned maintainers."
+      ],
+      "recommended_next_step": "Complete governance and provenance requirements before public consumer release.",
+      "complexity": "large",
+      "impacts": {
+        "user": "Zonder reproduceerbare releases/support kan gebruiker niet veilig installeren of onderhouden.",
+        "security": "Patchbeheer, ondertekenaarsbeheer, herkomst en incidentrespons zijn essentieel.",
+        "accessibility": "Uitgave, installatie, documentatie en ondersteuning moeten ook toegankelijk zijn."
+      }
+    }
+  ]
+}
