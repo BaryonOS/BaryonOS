@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`17cd0ace`](https://github.com/simonvanieperen/nieuw-os/commit/17cd0ace7ca8730e3fd6fa8ebc76a226cbc2d1be) ·
-**Ontwikkelbranch:** `simonvanieperen-vigilant-robot`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** M5 Browser Platform: begrensde upstream HTML-hostproef.
-41 blijft 41. Een geïsoleerde hostcrate bouwt upstream scraper 0.29.0 op een vaste HTML-fixture; vijf hosttests, Clippy, fmt en offline lockfilecontrole slagen. De no_std-doelcheck faalt; geen OS-service of native browserintegratie en geen vast rubriccriterium gesloten.
+**Bron:** [`47ec535f`](https://github.com/simonvanieperen/nieuw-os/commit/47ec535f15bb10912dbc6cbf1af3de9df0c6c226) ·
+**Ontwikkelbranch:** `simonvanieperen-upgraded-disco`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR148-conflicten met main 8e0c15d inhoudsbehoudend integreren.
+41/100 blijft 41/100. Drie centrale documentconflicten behouden beide checkpointreeksen en hun afzonderlijke bewijsbronnen. Gedeelde harnashulpfuncties komen exact uit main; PR148-volume-admissie blijft behouden. Geen handmatige codewijziging, nieuw criterium of native acceptatie. Gerichte integratievalidatie en nieuwe-head CI worden afzonderlijk gerapporteerd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

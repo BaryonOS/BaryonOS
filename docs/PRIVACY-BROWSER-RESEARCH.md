@@ -1,10 +1,10 @@
 # Privacybrowser — onderzoeksrichting en open keuzes
 
-**Status:** onderzoeksnotitie, bijgewerkt 3 november 2026. WPE WebKit 2.54 met
-WPEPlatform is gekozen als eerste upstream-portkandidaat, niet als definitieve
-productkeuze. Er is **nog geen browserengine naar Nieuw OS geport**; de keuze
-blijft afhankelijk van een haalbare build-, proces- en surfaceproef. Chromium/
-Blink en Firefox/Gecko zijn kort vergeleken als alternatieven.
+**Status:** onderzoeksnotitie, 28 oktober 2026. Dit document legt de productwens,
+relevante opensourcevoorbeelden en acceptatievragen vast. Er is **nog geen
+browserengine gekozen, geforkt of naar Nieuw OS geport**. Chromium/Blink,
+Firefox/Gecko en hun afgeleiden zijn referenties; een keuze wordt pas een
+architectuurbesluit na een gerichte vergelijking en proef.
 
 ## 1. Productdoel
 
@@ -32,11 +32,6 @@ Het gewenste standaardgedrag is:
 Dit sluit aan op het bestaande privacycontract: internetrecht geeft een browser
 geen algemene document- of NAS-bevoegdheid. De browser blijft een gewone,
 begrensde app boven de capability- en netwerkgrenzen van Nieuw OS.
-Daarbij blijven drie autoriteiten gescheiden: browser-apprechten, rechten van
-een weborigin en door de gebruiker verleende toegang tot een concreet middel.
-Een originverzoek loopt via browserbeleid en een vertrouwde broker; alleen die
-broker kan een scoped runtime-capability aanvragen. Enginepolicy zelf geeft
-geen kernelrecht uit.
 
 ## 2. Twee afzonderlijke privacyproblemen
 
@@ -218,96 +213,12 @@ beveiligingsupdates, toegankelijkheid, prestatie, sitebreuk en herstel op de
 ondersteunde hardware. Pas dan kan browserfunctionaliteit bijdragen aan A04 en
 relevante privacy-/netwerkcriteria van de vaste roadmap.
 
-### BR1 — eerste upstream hostslice, 3 november 2026
-
-De geïsoleerde crate `experiments/browser-parser-host` bouwt upstream
-`scraper 0.29.0` op een vaste UTF-8-HTML-fixture: invoerbytes → HTML5-DOM →
-CSS-selectorquery → begrensde titel-/linkinventaris. Dit is een parser-/DOM-
-componentproef op de host, niet een browserenginekeuze of Nieuw-OS-port.
-Dependencyherkomst, licenties, buildscripts en exacte tests staan in
-[`browser-parser-host-verificatie`](verification/browser-parser-host/README.md)
-en [`de derdenregistratie`](../experiments/browser-parser-host/THIRD-PARTY.md).
-
-| Browserfunctie/platformgrens | Benodigde Nieuw-OS-service of autoriteit | Deze slice |
-|---|---|---|
-| Documentinvoer | Een expliciete bron, later via een begrensde document-/downloadpoort of netwerkresponse; geen algemene bestandsmachtiging | Caller geeft maximaal 64 KiB fixturebytes door; geen bestand- of netwerk-I/O |
-| HTML5-DOM en selectorquery | Browserprocesgeheugen en parser | Hostcrate gebruikt upstream `scraper`; `no_std`-doel faalt |
-| CSS-styling, layout, fonts en paint | Browserstijl-/layoutketen, fontservice en een geïsoleerd compositor-/renderendpoint | Niet aanwezig |
-| Navigatie, DNS, TLS en verbindingen | Netwerkdienst met app-/bestemmingsrechten; geverifieerde peerfacts en onderhouden TLS | Niet aanwezig; `href` wordt niet opgelost of opgehaald |
-| Downloads en lokale documenten | Afzonderlijk download-/documentportaal met concrete objectrechten | Niet aanwezig |
-| Rendererprocessen, IPC en shared memory | Eigen kernel-launch, procesisolatie, begrensde IPC en capability-uitgifte/intrekking | Niet aanwezig |
-| Input, clipboard, camera/microfoon en locatie | Native input-/toestemmingsportalen met handeling- en oorsprongsgebonden scope | Niet aanwezig |
-| Browser-/engine-updates en certificaat-/tijdvertrouwen | Geauthenticeerde updateketen en expliciete tijd-/trustbron | Niet aanwezig |
-
-De tabel is een product-/servicegrensinventaris, geen bewezen engine-ABI- of
-capabilitymapping. De precieze interfaces hangen af van een latere enginekeuze.
-De huidige parserlimieten begrenzen de caller-invoer en uitvoervorm, maar geen
-interne heap-, rekentijd- of parserdiepteconsumptie van upstream.
-
-De upstream `scraper`-release heeft ISC-licentie en recente repositoryactiviteit;
-de exacte packageversie/checksum en dependencyboom zijn vastgezet. `scraper`,
-`html5ever` en `tendril` gebruiken `std`; de check voor
-`x86_64-unknown-none` faalde. Daarmee is deze component alleen geschikt voor
-de hostfixtureproef. Er wordt geen CSS-layout, renderer of JavaScript-engine
-op basis van deze proef gebouwd.
-
-### M5 — korte upstream-routevergelijking
-
-| Route | Concrete portinghaak en resterend platformwerk | Eerste keuze |
-|---|---|---|
-| WPE WebKit 2.54 | `WPEPlatform` is de standaardintegratielaag; een port implementeert display, toplevel, view en buffer en voert input aan. Upstream levert Wayland, DRM/KMS en headless; builds en runtimes zijn beschikbaar via `meta-webkit` voor OpenEmbedded/Yocto. De API is GObject-gebaseerd. Zij levert geen Nieuw-OS-procesmodel, sandbox, scheduler, geheugenservice of capabilitybroker. | **Ja, kandidaat.** Meest begrensde expliciete surface/input-adapter voor een eerste echte engineproef. |
-| Chromium/Blink | Ozone biedt concrete platforminterfaces voor vensters, input, display en surfaces; de Chromium-buildinstructies beschrijven een omvangrijke Linux-hostbuild. Ozone lost procesisolatie, sandbox, geheugen-/threadintegratie en netwerkautoriteit niet op. | Niet eerst: bredere build- en OS-integratie voor de eerste slice. |
-| Firefox/Gecko | Een volledige onderhouden engine met OS-widgetabstracties, netwerkstack, IPC en meerdere processen. De korte officiële-docscan vond geen smallere embedded platforminterface vergelijkbaar met WPEPlatform; een port raakt meerdere OS-lagen. | Niet eerst: grotere integratiescope voor het huidige platformcontract. |
-
-WPEPlatform concretiseert graphics/buffers en input, niet alle platformdiensten.
-Processtart en isolatie, threads/tijd/geheugen, fonttoegang, netwerk, downloads,
-clipboard, audio/media en origin-toestemming hebben dus nog een Nieuw-OS-contract
-en upstream-configuratie nodig. Vooral audio/media, fontafhandeling en de
-volledige dependency-/licentie-inventaris zijn niet in een buildproef
-geverifieerd. WPE/WebKit gebruikt een mix van LGPL- en BSD-licenties; de exacte
-component- en codecselectie moet vóór distributie worden vastgelegd.
-
-**Besluit en blocker:** ADR-065 kiest WPE WebKit 2.54/WPEPlatform als eerste
-route, niet als engineportbewijs. De huidige host heeft geen `pkg-config`
-commando; een WPE/WebKit-build en de beschikbaarheid van de benodigde
-GObject-/graphics-/media-dependencies zijn daarom hier niet vastgesteld.
-Nieuw-OS heeft bovendien nog geen algemene engine-launch/sandbox- en
-surface-adapter aangetoond. Er is bewust geen lege adapter of eigen renderer
-toegevoegd. De eerste vervolgpoort is een reproduceerbare upstream-build plus
-een gekoppelde `WPEDisplay`/`WPEView`/`WPEBuffer`-surface en lokale fixture; pas
-daarna kan de echte layout-/renderpipeline worden geëvalueerd.
-
-**Primaire bronnen gecontroleerd op 3 november 2026:**
-
-- rust-scraper, *scraper 0.29.0*, crate-/releasemetadata en dependencymanifest:
-  [crates.io](https://crates.io/crates/scraper/0.29.0) en
-  [manifest op VCS-revisie `149ae5c9`](https://github.com/rust-scraper/scraper/blob/149ae5c9dfbaca2e6b92470018fedc95ab254d5d/scraper/Cargo.toml).
-- Servo, *html5ever 0.40.1*, upstream HTML-parserdocumentatie en manifest:
-  [crates.io](https://crates.io/crates/html5ever/0.40.1) en
-  [Servo/html5ever](https://github.com/servo/html5ever).
-- Chromium Project, *Linux build instructions*, actuele upstream
-  buildvereisten:
-  [chromium.googlesource.com](https://chromium.googlesource.com/chromium/src/+/main/docs/linux/build_instructions.md).
-- WPE WebKit, *WPE Architecture* en *Builds*: WPEPlatform-objecten, ingebouwde
-  targets en OpenEmbedded/Yocto-routes:
-  [architecture](https://wpewebkit.org/about/architecture.html),
-  [builds](https://wpewebkit.org/about/builds.html).
-- WPE WebKit, *Frequently Asked Questions*: WPE 2.54-route en gemengde
-  LGPLv2/BSD-licenties:
-  [FAQ](https://wpewebkit.org/about/faq.html); WebKit Project,
-  [licenties](https://webkit.org/licensing-webkit/).
-- Chromium Project, *Ozone Overview*: platforminterfaces voor graphics/input:
-  [chromium.googlesource.com](https://chromium.googlesource.com/chromium/src/+/db6267fecee29ec703b51f1e1b854cdf56c53a3c/docs/ozone_overview.md).
-- Mozilla, *Gecko*: engineonderdelen, OS-widgets en procesarchitectuur:
-  [Firefox Source Docs](https://firefox-source-docs.mozilla.org/overview/gecko.html).
-
 ## 10. Bewijsgrens en voortgang
 
 Deze notitie is onderzoeks- en productdocumentatie. Zij implementeert geen
 browser, netwerkstack of sandbox en sluit daarom geen bestaand
-acceptatiecriterium. De **historische meting op 28 oktober 2026** was
-**14% → 14%**; de actuele assessment staat in
-[`PROJECT-STATE.md`](PROJECT-STATE.md) en `docs/progress.json`.
+acceptatiecriterium. De vaste projectscore blijft door deze wijziging
+**14% → 14%**.
 
 ## Bronnen
 

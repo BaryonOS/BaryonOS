@@ -1,5 +1,65 @@
 # Ontwerpbesluiten
 
+<a id="adr-057--vreemde-opslag-nooit-als-leeg-volume-toelaten"></a>
+## ADR-064 — Vreemde opslag nooit als leeg volume toelaten
+
+3 november 2026; correctie op herstel van het experimentele NOSVOL02-volume.
+De eerdere herstelroute controleerde bij twee lege tabelkopieën alleen de
+tabelsectoren. Daardoor kon een niet-herkend volume met gegevens buiten die
+regio als generatie 0 worden behandeld. Formatteer- of schrijfgedrag mag niet
+uit een ontbrekende herkenning worden afgeleid.
+
+Een onherkend volume is uitsluitend leeg wanneer de volledige huidige
+volumegrens nul bevat. Voor een klein eerste schrijfresultaat legt de dienst
+vóór inhouds- of tabelwrites een versie-/geometriegebonden `NOSFMT02`-marker
+vast en flusht die. Daardoor blijven ongecommitte eerste uploads herstelbaar
+als logische lege toestand, zonder dat vreemde niet-nuldata wordt geaccepteerd.
+Een marker is formaatidentificatie en foutdetectie, geen authenticatie.
+Bestaande geldige NOSVOL02-tabelkopieën blijven de primaire recoverybron.
+
+De eerste markerwrite en -flush zijn een aparte initialisatiegrens. Bij een
+crash vóór een geldige duurzame marker mag een onherkenbare niet-nulrest niet
+als eigen opslag worden behandeld: herstel stopt met `Corrupt`, zonder writes
+of stil wissen. Alleen volledig nul of een volledige geldige marker levert
+hier generatie0. De before/after-invariant voor documenttransacties begint
+na duurzame formaatidentificatie en blijft onverkort gelden; afzonderlijke
+crashproeven controleren ieder byteprefix van de eerste marker en het eerste
+datawritepunt. Expliciete herstel-/formatteerbediening blijft apart open.
+
+De kernel blijft een generieke, begrensde blokbroker; de herkenning en
+admissie blijven in `volume-core`. Er wordt geen bestandssysteemdriver,
+importpad of automatische formatter toegevoegd. Een niet-gemarkeerd volume
+met niet-nuldata geeft `Corrupt` en krijgt geen schrijf-/flushverzoek.
+Een synthetische Btrfs-achtige fixture test de nul-tabel/niet-nul-data-grens;
+zij is geen volledig Btrfs-bestandssysteem.
+
+Herzien bij wijziging van de volumegeometrie of introductie van expliciete
+formatteer-/importbediening. Terugzetten naar alleen tabelcontrole is niet
+toegestaan. De marker kan bij een overgang naar een andere persistente
+geometrie worden vervangen, mits de volledige media-admissie en crashproeven
+behouden blijven. Native QEMU-resultaat en exacte bronbinding staan in
+`docs/verification/foreign-volume-admission-20261103/README.md`.
+
+**Ontwerpregel:** zonder geldige NOSVOL02-tabel of volledige `NOSFMT02`-marker
+is alleen volledig nul over de huidige volumegrens `[0,580)` toelaatbaar.
+
+**Implementatiestatus:** geïmplementeerd in `services/volume/src/table.rs`
+(`choose` en `recover_with_state`) en het onafhankelijke hostorakel
+`tools/volume_disk.py`.
+
+**Testbewijs:** host-regressies en crashgrenzen zijn vastgelegd in
+`docs/verification/pr148-slot1-review.json`,
+`docs/verification/pr148-marker-crash-review.json` en
+`docs/verification/pr148-volume-core-host-suite.json`.
+
+**Onbekend / open:** native metadata-only fixtureacceptatie en native QEMU
+volume-admissie op deze branch.
+
+**Primaire bronmetadata:** Nieuw OS repository (`simonvanieperen/nieuw-os`),
+branch `simonvanieperen-upgraded-disco`, commit
+`c6b25873c915a98f8c0b2bb7400395e01ba44741`,
+https://github.com/simonvanieperen/nieuw-os/tree/c6b25873c915a98f8c0b2bb7400395e01ba44741 .
+
 ## Nummerbehoud bij desktopintegratie — 2 november 2026
 
 De desktopbranches gebruikten al bezette ADR-nummers. Bestaande IPC- en
@@ -14,70 +74,7 @@ Historische bewijsbestanden behouden hun oorspronkelijke nummervermelding.
 | 055, begrensde GUI-rust | ADR-061 |
 | 056, eenmalig klembord | ADR-062 |
 | 056, herkenbare VM-sessieroute | ADR-063 |
-
-## ADR-064 — Persistente gebruikerspolicy blijft gescheiden van runtime-capabilities
-
-3 november 2026. De M4-kernelengine beheert actuele procesgebonden
-capabilityhandles en hun rechten/delegatie/intrekking. Een duurzame
-gebruikerskeuze is een andere soort toestand: zij beschrijft welke app voor
-welk middel en doel, in welke context en tijdens welke activiteit mag worden
-geactiveerd; zij is zelf geen kernelrecht.
-
-**Besluit:** `permission-policy-core` modelleert exacte scoped allow/deny-
-regels en levert uitsluitend `PolicyResult`. Een allow past alleen bij de
-volledige scope en, waar gevraagd, een actieve taak en foregroundcontext.
-Alleen een aparte vertrouwde broker mag een actuele capability laten uitgeven
-door de bestaande kernelengine en die bij taak-/sessie-einde intrekken.
-Policy krijgt geen `Cap`, handle, delegatierecht of kernelbootstraptoegang.
-Missende policy is `NoRule`; zij geeft geen recht.
-
-Het canonieke `NOSPOL01`-codec valideert alleen bytes en framing. Het
-authenticeert geen policy; alleen data uit een later ontworpen geauthenticeerde
-settings-store mag als gebruikerskeuze worden vertrouwd. De huidige kern
-implementeert geen duurzame store, accountbinding, consent-UI, transient
-`Once`/`This session`-grants, broker of runtime-uitgifte. Haar hosttests zijn
-geen native rechtenacceptatie. De M1-hardwareprofielkern houdt onbekende
-observaties expliciet `Unknown` en heeft geen security-/performancepolicy.
-
-**Gevolgen/herziening:** integreer pas nadat app-identiteit, geauthenticeerde
-policy-opslag en een vertrouwde taak-/sessiebron contractueel zijn vastgelegd.
-Test dan normale matching, achtergrondweigering, intrekking, herstel en
-storage-authenticiteitsfouten op de native service-/kernelgrens. Herzie bij
-een tegenvoorbeeld waarbij policydata zelf runtimeautoriteit blijkt te dragen
-of bij een afzonderlijk goedgekeurd brokercontract. Status en bewijsgrens:
-[UNIVERSAL-PROFESSIONAL-PLATFORM.md](implementation/UNIVERSAL-PROFESSIONAL-PLATFORM.md).
-
-## ADR-065 — WPE WebKit is de eerste browser-engine-portkandidaat
-
-3 november 2026. Dit is een voorwaardelijke routekeuze, geen engineport,
-productkeuze of compatibiliteitsclaim. De hostfixture met `scraper` blijft
-afgesloten als parserexperiment; er wordt geen eigen CSS-layout, renderer of
-JavaScript-engine op gebouwd.
-
-**Besluit:** onderzoek en implementeer de eerste upstream-portpoging met WPE
-WebKit 2.54 en WPEPlatform. De expliciete `WPEDisplay`, `WPEToplevel`,
-`WPEView`- en `WPEBuffer`-integratie is een concretere eerste surface-/input-
-grens dan de bredere Chromium/Ozone- of Gecko-platformintegratie. WPE-upstream
-biedt buildrecepten voor OpenEmbedded/Yocto en gebruikt een mix van LGPL- en
-BSD-licenties; distributie vereist nog een exacte componentinventaris.
-
-**Veiligheidsgrens:** WPEPlatform vervangt geen Nieuw-OS-processtart,
-procesisolatie/sandbox, threads, geheugenbeheer, netwerkdienst of
-capabilitybroker. Browser-appnetwerkrechten, weboriginverzoeken en
-gebruikersgrants blijven afzonderlijke autoriteiten. Originverzoeken moeten
-via de bestaande policy naar een vertrouwde broker lopen; policy zelf geeft
-geen runtime-capability uit.
-
-**Blokker en herziening:** de huidige host heeft geen `pkg-config`-commando;
-WPE-dependencybeschikbaarheid en een reproduceerbare upstream-build zijn dus
-niet geverifieerd. Ook bestaat nog geen aangetoonde Nieuw-OS-engine-launch- en
-surface-route. Voeg geen lege adapter toe. De eerstvolgende portpoort is een
-reproduceerbare WPE-build, vervolgens initialisatie en een lokale fixture die
-via de echte layout-/renderpipeline in een gekoppelde WPEPlatform-surface
-verschijnt. Heropen de enginekeuze als upstream-afhankelijkheden,
-proces-/sandboxvereisten of onderhoudsroute niet op de bestaande kernel- en
-servicegrenzen passen. Bronnen en actuele bewijsgrens:
-[PRIVACY-BROWSER-RESEARCH.md](PRIVACY-BROWSER-RESEARCH.md).
+| 057, vreemde opslag nooit als leeg volume toelaten | ADR-064 |
 
 ## Onderzoeksbesluit J-20261102 — herkenbare basis, expliciete installatiegrens
 

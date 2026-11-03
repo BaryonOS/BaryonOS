@@ -91,6 +91,11 @@ niet tot productbeleid verheven; grote foto's blijven een expliciete producteis.
 
 ## Stackgrens en eigen arena
 
+Integratiegrens: de huidige `sdk/examples/image-viewer` tekent nog de ruwe
+decoderpixels. EXIF-correctie in `rgba8_into` bewijst daarom geen
+georienteerde viewer of native gebruikersflow. De fixture is voor de nieuwe
+`Image`-velden bijgewerkt en afzonderlijk meegetest.
+
 Een eerste instructiescreen zag alleen losse stackaanpassingen tot4KiB. Dat
 was onvoldoende: het werkelijke decoderframe reserveerde cumulatief30760bytes.
 Samen met een statisch bereikbare scan-/DHT-keten was77232bytes zichtbaar,

@@ -472,17 +472,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "permission-policy-core"
-version = "0.1.0"
-
-[[package]]
-name = "platform-profile-core"
-version = "0.1.0"
-dependencies = [
- "boot-protocol",
-]
-
-[[package]]
 name = "poly1305"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
