@@ -1,5 +1,9 @@
 # Productbesluit en bouwspecificatie P2 — Materiaal
 
+## Aanvulling ADR-058 — 30 oktober 2026
+
+Gebruikersbesluit, leidend boven de regels hieronder dat het hoofdscherm geen bestaande desktop nabootst (§1) en dat er geen dock of taakbalk komt (§5), en boven de zin in *Aanvulling P3/P4* dat de ervaring Windows of macOS niet interactioneel mag nabouwen, voor zover het de gangbare indeling, bediening en sneltoetsen betreft. Visueel nabouwen (huisstijl, iconen, trade dress) blijft uitgesloten; de overige P3/P4-eisen aan afwerking en snelheid blijven gelden. De eindervaring krijgt een herkenbaar bureaublad, taakbalk, startmenu met zoeken, vensterbediening, inrichting en inlogscherm volgens [DESKTOP-SHELL.md](DESKTOP-SHELL.md) en [PROFILES-AND-USERS.md](PROFILES-AND-USERS.md). Materiaal blijft het gegevens-, geschiedenis- en rechtenmodel en verschijnt in de Bestanden-app, recente items en toestemmingsdialogen. P2 hieronder blijft historisch productbewijs. Eigen visuele identiteit blijft verplicht; herkenbaar is de bediening, niet de huisstijl.
+
 ## Onderzoeksaanvulling volledige OS-journey — 2 november 2026
 
 De [31-aspectinstallatievergelijking](../research/os-installation-comparison.md),
@@ -33,6 +37,10 @@ capabilitygrens, performancebaseline en toepasselijke build-/lint-/testcommando'
 vastleggen. Brononderzoek bewijst geen huidige native implementatie. De
 nieuwe criteria zijn toetsdoelen en leveren geen voortgangspunten op; de
 bestaande releasecriteria en opslag-/privacycontracten blijven leidend.
+
+De P2-bevriezing betreft het historische prototype; zij trekt de herkenbare
+desktoprichting uit ADR-058 hierboven niet in. De nieuwe journeyvoorstellen
+zijn geen stilzwijgende wijziging van dat gebruikersbesluit.
 
 ## Aanvulling N01 — 27 oktober 2026
 
@@ -359,4 +367,3 @@ Microsoft. (z.d.). *Snap your windows*. Geraadpleegd op 26 oktober 2026, van htt
 World Wide Web Consortium. (2024, 12 december). *Web Content Accessibility Guidelines (WCAG) 2.2*. https://www.w3.org/TR/WCAG22/
 
 Tokenwaarden, conceptkeuze, taakscenario's, interfaces, schermen en acceptatietests zijn eigen projectbesluiten. De bronnen worden alleen gebruikt voor de genoemde bestaande patronen en toegankelijkheidscriteria.
-

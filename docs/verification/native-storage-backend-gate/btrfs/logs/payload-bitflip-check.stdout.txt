@@ -1,0 +1,11 @@
+Opening filesystem to check...
+Checking filesystem on /tmp/nieuw-os-storage-btrfs-20261102/payload-bitflip.img
+UUID: 69f54c99-916f-45d5-b23f-9b2051b31b62
+found 1409024 bytes used, error(s) found
+total csum bytes: 1152
+total tree bytes: 229376
+total fs tree bytes: 114688
+total extent tree bytes: 16384
+btree space waste bytes: 161504
+file data blocks allocated: 1179648
+ referenced 1179648

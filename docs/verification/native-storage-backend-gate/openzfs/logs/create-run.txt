@@ -1,0 +1,9 @@
+1 vdevs, 2 datasets, 2 threads, 1 raidz disks, parity 0, 15 seconds...
+
+ASSERT at lib/libzpool/kernel.c:144:zk_thread_create()
+VERIFY0(pthread_create(&tid, &attr, zk_thread_wrapper, ztw)) failed (11)
+  PID: 173207    COMM: ztest
+  TID: 173207    NAME: ztest
+Call trace:
+Call trace:
+child died with signal 6

@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "cbbc9c9941b08ea5edfbd3637d494635b4fb1df0",
+    "source_commit": "69809c2cb53dfb3bd77abe5352892810fba6e82d",
     "branch": "codex/os-research-phases-2-4-20261102",
-    "task": "PR #131: onderzoeksdocumentatie inhoudsbehoudend met actuele main geïntegreerd",
+    "task": "PR131: tweede conflictoplossing met actuele main en behoud van onderzoeks- en desktopcorrecties",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Conflictoplossing tussen onderzoekshead a03f7f0c en main cbbc9c99 behoudt beide ontwerpbesluiten, onderzoeksdossiers, historische checkpoints en alle actuele main-criteria en bewijsverwijzingen. De onderzoeksbranch stond op 34/100; de geïntegreerde 41/100 is uitsluitend de bestaande main-score, geen nieuwe acceptatie door onderzoek of onderhoud. Geen handmatige productcodewijziging, nieuwe native proef, fysieke installatie, menselijke audit of releaseacceptatie. Nieuwe-head CI en review blijven afzonderlijk."
+    "summary": "41/100 blijft 41/100. Head6bd107fd is inhoudsbehoudend gecombineerd met main69809c2c. Main bevat de onderzoeksdossiers al; bronlinkcorrecties, Ubuntu-volgorde, actuele desktopbesluiten, unieke ADR-nummers en bewijsarchieven blijven behouden. De eerste PR131-integratie blijft historisch beschreven. Alle criteria/evidence, productcode, tools en tests blijven gelijk aan main. Geen nieuwe native, fysieke, menselijke of releaseacceptatie. Reviewverzoeken zijn buiten het mandaat van deze conflictoplossingsronde en blijven open; nieuwe-head CI en mergeability worden afzonderlijk beoordeeld."
   },
   "tracks": [
     {

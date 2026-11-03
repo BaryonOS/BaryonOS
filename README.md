@@ -1,5 +1,34 @@
 # Nieuw OS — eigen kernel, sessieroute en bureaublad
 
+## Project in het kort
+
+Nieuw OS is een onderzoeksproject voor een zelfstandig besturingssysteem met
+een eigen x86_64-kernel en een eigen productervaring rond documenten en
+collecties: **Materiaal**. Het is geen Linux-distributie en gebruikt geen
+bestaande OS-kernel als basis. Veiligheid en privacy steunen onder meer op
+geïsoleerde processen, expliciete capabilities (kernel-afgedwongen rechten)
+en begrensde IPC (interprocescommunicatie).
+
+De boot- en runtimeketen is **UEFI/OVMF → eigen Rust-loader → bootprotocol →
+`no_std`-Rust-kernel → geïsoleerde processen en diensten → SDK en apps**.
+De workspace bevat daarnaast aparte crates voor kernel-/capabilitylogica,
+drivers en diensten voor opslag, invoer en netwerk, plus de SDK en native
+apps. Rust/Cargo is de hoofdstack (toolchain 1.90.0); Python verzorgt veel
+build- en testharnassen. QEMU/OVMF wordt gebruikt voor geïsoleerde VM-proeven.
+NAS- en quantumsimulatorprototypes zijn afzonderlijke sporen, geen bewijs van
+volledig geïntegreerde native functies.
+
+**Codeleesroute:** begin bij `boot/loader/src/main.rs`, volg naar
+`kernel/src/main.rs` en daarna `kernel/src/m2.rs` en `kernel/src/m2/m3.rs`.
+Lees voor procesrechten `crates/capability-core/`, voor apps
+`sdk/runtime/README.md` en `sdk/examples/materiaal/README.md`. De actuele
+status en open gates staan in [PROJECT-STATE.md](docs/PROJECT-STATE.md);
+architectuurkeuzes en contracten staan in
+[KERNEL-AND-SECURITY-CONTRACT.md](docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md)
+en de volledige acceptatieopdracht in
+[FULL-TEST-RELEASE.md](docs/FULL-TEST-RELEASE.md). Proeven en builds zijn
+geen bewijs van een complete release of ondersteuning van fysieke hardware.
+
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
@@ -32,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`cbbc9c99`](https://github.com/simonvanieperen/nieuw-os/commit/cbbc9c9941b08ea5edfbd3637d494635b4fb1df0) ·
+**Bron:** [`69809c2c`](https://github.com/simonvanieperen/nieuw-os/commit/69809c2cb53dfb3bd77abe5352892810fba6e82d) ·
 **Ontwikkelbranch:** `codex/os-research-phases-2-4-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR #131: onderzoeksdocumentatie inhoudsbehoudend met actuele main geïntegreerd.
-41/100 blijft 41/100. Conflictoplossing tussen onderzoekshead a03f7f0c en main cbbc9c99 behoudt beide ontwerpbesluiten, onderzoeksdossiers, historische checkpoints en alle actuele main-criteria en bewijsverwijzingen. De onderzoeksbranch stond op 34/100; de geïntegreerde 41/100 is uitsluitend de bestaande main-score, geen nieuwe acceptatie door onderzoek of onderhoud. Geen handmatige productcodewijziging, nieuwe native proef, fysieke installatie, menselijke audit of releaseacceptatie. Nieuwe-head CI en review blijven afzonderlijk.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR131: tweede conflictoplossing met actuele main en behoud van onderzoeks- en desktopcorrecties.
+41/100 blijft 41/100. Head6bd107fd is inhoudsbehoudend gecombineerd met main69809c2c. Main bevat de onderzoeksdossiers al; bronlinkcorrecties, Ubuntu-volgorde, actuele desktopbesluiten, unieke ADR-nummers en bewijsarchieven blijven behouden. De eerste PR131-integratie blijft historisch beschreven. Alle criteria/evidence, productcode, tools en tests blijven gelijk aan main. Geen nieuwe native, fysieke, menselijke of releaseacceptatie. Reviewverzoeken zijn buiten het mandaat van deze conflictoplossingsronde en blijven open; nieuwe-head CI en mergeability worden afzonderlijk beoordeeld.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -49,6 +78,8 @@ productpunten. Elk criterium telt volledig of niet; onbewezen werk blijft open.
 Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).
 <!-- OS-PROGRESS:END -->
+
+Volledige repository-inventaris: [OS-completeness-audit](docs/audit/os-completeness/README.md).
 
 ## Native venstersessie — 2 november 2026
 

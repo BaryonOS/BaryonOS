@@ -8,13 +8,13 @@ Onderzocht: 2 november 2026 (Europe/Amsterdam). Status: literatuur- en brononder
 
 ## Oorspronkelijke Eurobarometer gecontroleerd
 
-[BRON] De Commissie publiceerde *Special Eurobarometer 572 — Digital Decade* op 17 juni 2026. Het rapport noemt 26.494 respondenten; de technische bijlage beschrijft veldwerk van 5 februari tot 1 maart 2026 onder EU-nationaliteiten van 15 jaar en ouder, wonend in de 27 lidstaten. Steekproeven zijn gestratificeerd en meertraps; nationale en EU-resultaten worden gewogen. Interviews waren fysiek of, in enkele landen, via video. Dit is geen steekproef uitsluitend onder desktopgebruikers. [EA-01][EA-02]
+[BRON] De Commissie publiceerde *Special Eurobarometer 572 — Digital Decade* op 17 juni 2026. Het rapport noemt 26.494 respondenten; de technische bijlage beschrijft veldwerk van 5 februari tot 1 maart 2026 onder EU-nationaliteiten van 15 jaar en ouder, wonend in de 27 lidstaten. Steekproeven zijn gestratificeerd en meertraps; nationale en EU-resultaten worden gewogen. Interviews waren fysiek of, in enkele landen, via video. Dit is geen steekproef uitsluitend onder desktopgebruikers. [EA-01] [EA-02]
 
 De oorspronkelijke tweetalige mastervragenlijst bevat QB6/ST1045, een vraag naar instemming met stellingen. **QB6.4/ST1045 item 4** luidt exact:
 
 > You, personally, would be willing to switch to an EU-based digital service provider even if it means slightly higher costs
 
-[BRON] De antwoordmogelijkheden lopen van volledig tot enigszins instemmen, enigszins tot volledig afwijzen, plus weet niet. Het bovenstaande is de exacte stelling; de introductievraag vraagt de mate van instemming. Vindplaats: mastervragenlijst PDF-pagina 20 (gedrukt 18); oorspronkelijke data-annex, gedrukte pagina 21/PDF-pagina 23. [EA-03][EA-04]
+[BRON] De antwoordmogelijkheden lopen van volledig tot enigszins instemmen, enigszins tot volledig afwijzen, plus weet niet. Het bovenstaande is de exacte stelling; de introductievraag vraagt de mate van instemming. Vindplaats: mastervragenlijst PDF-pagina 20 (gedrukt 18); oorspronkelijke data-annex, gedrukte pagina 21/PDF-pagina 23. [EA-03] [EA-04]
 
 | EU27, QB6.4 | Percentage |
 |---|---:|
@@ -26,7 +26,7 @@ De oorspronkelijke tweetalige mastervragenlijst bevat QB6/ST1045, een vraag naar
 | Instemmend samen | **58** |
 | Afwijzend samen | **34** |
 
-[BRON] Deze tabel is in de originele annex gelezen én visueel gecontroleerd. Het rapport bevestigt 58% op pagina 44. Vraagstelling en EU27-uitkomst zijn onderling consistent. De annex heeft wel een landlabelafwijking: QB6.4 toont `CY_TCC`, terwijl rapportpagina 7 `CY` beschrijft voor de in EU27 opgenomen Cypriotische populatie. Dit is niet zelfstandig gecorrigeerd; er wordt geen Cypriotische landvergelijking uit afgeleid. Downloadroutes, paginanummers, hashes en de rekencontrole staan in [eurobarometer-check.json](eurobarometer-check.json). [EA-01][EA-02][EA-03][EA-04]
+[BRON] Deze tabel is in de originele annex gelezen én visueel gecontroleerd. Het rapport bevestigt 58% op pagina 44. Vraagstelling en EU27-uitkomst zijn onderling consistent. De annex heeft wel een landlabelafwijking: QB6.4 toont `CY_TCC`, terwijl rapportpagina 7 `CY` beschrijft voor de in EU27 opgenomen Cypriotische populatie. Dit is niet zelfstandig gecorrigeerd; er wordt geen Cypriotische landvergelijking uit afgeleid. Downloadroutes, paginanummers, hashes en de rekencontrole staan in [eurobarometer-check.json](eurobarometer-check.json). [EA-01] [EA-02] [EA-03] [EA-04]
 
 [ANALYSE] De juiste formulering is: **58% stemt in met de bereidheid om naar een in de EU gevestigde digitale dienstverlener over te stappen, ook bij iets hogere kosten.** De vraag noemt geen OS, concrete aanbieder, bedrag, daadwerkelijke betaling of migratiehandeling. Zij onderbouwt daarom niet:
 
@@ -53,7 +53,7 @@ Dezelfde enquête vraagt in QB7 naar motieven voor dienstoverstap. Geaggregeerde
 
 [BRON] Een oorspronkelijke vzbv/eye square-onlinepanelmeting onder volwassen huidige of recente Windows 10-gebruikers in Duitsland (6–17 november 2025; gewogen naar leeftijd, geslacht en opleiding) rapporteert 46% Windows 11-overstap of -voornemen, 34% die zegt Windows 10 te blijven gebruiken ook als updates niet meer beschikbaar zijn, en 4% ander OS, reeds of voorgenomen. F2 vermeldt **ongewogen n=800 en gewogen basis 776**. Het is geen EU-brede populatiesteekproef; de antwoordcategorieën mengen gedrag met intentie. De 34% meet geen waargenomen onbeschermd gebruik en de 4% geen uitsluitend werkelijk gerealiseerde overstap. [EA-05] (methodeblad en F2)
 
-[BRON] CMA's onderzoek uit 2022 onderscheidt tevredenheid/merkvoorkeur van overstapkosten: leren, gegevens/apps overzetten, abonnementen en bestaande apparaten/diensten. Het waarschuwt ook voor selectie: mensen die daadwerkelijk overstappen kunnen vaardiger zijn dan mensen die dat vermijden. De CMA bevestigde in oktober 2025 nog geringe overstapdruk en sterke mobiele ecosystemen. Dit betreft het VK en mobiele platformen, geen gemeten oorzakelijk model voor Europese desktops. [EA-06][EA-07]
+[BRON] CMA's onderzoek uit 2022 onderscheidt tevredenheid/merkvoorkeur van overstapkosten: leren, gegevens/apps overzetten, abonnementen en bestaande apparaten/diensten. Het waarschuwt ook voor selectie: mensen die daadwerkelijk overstappen kunnen vaardiger zijn dan mensen die dat vermijden. De CMA bevestigde in oktober 2025 nog geringe overstapdruk en sterke mobiele ecosystemen. Dit betreft het VK en mobiele platformen, geen gemeten oorzakelijk model voor Europese desktops. [EA-06] [EA-07]
 
 ## Barrièrematrix
 
@@ -69,18 +69,18 @@ Bewijssterkte betreft het bestaan of mechanisme van een barrière; niet haar fre
 | Drivers en randapparatuur | Nieuw-os heeft een afgebakend virtueel profiel; fysieke ondersteuning blijft open [RB-01] | Vooraf toetsen op exacte GPU, wifi, printer, scanner, audio, dock en slaap/wek |
 | Telefoon- en cloudkoppeling | CMA: eerste-partijapparaten en gedeelde functies verhogen wisselkosten [EA-06]; EU beschrijft portabiliteitsverbeteringen [EA-11] | Verlies van berichten, agenda, foto's of sleutels kan een overstap blokkeren; test de hele keten |
 | Gegevensmigratie | EU-factsheet erkent onvolledige transfers; nieuwe routes en API's verlagen specifieke drempels [EA-11] | Proefimport, volledigheidsrapport, bronbehoud en herstel; geen “alles overgezet” zonder controle |
-| Bedrijfsbeleid en IT-beheer | EU OS richt zijn proof-of-concept op centraal beheer; Schleswig-Holstein houdt technische uitzonderingen [EA-12][EA-13] | Identiteit, beheer, updates, gespecialiseerde software en helpdesk zijn afzonderlijke productvoorwaarden |
+| Bedrijfsbeleid en IT-beheer | EU OS richt zijn proof-of-concept op centraal beheer; Schleswig-Holstein houdt technische uitzonderingen [EA-12] [EA-13] | Identiteit, beheer, updates, gespecialiseerde software en helpdesk zijn afzonderlijke productvoorwaarden |
 | Vertrouwen en merk | Tevredenheid en merkvoorkeur bestaan naast barrières [EA-06] | Herstel, begrijpelijke beperkingen en zichtbare supportroute demonstreren; vertrouwen niet veronderstellen |
 | Ondersteuning en onderhoud | Migratiecase omvat investeringen en verdere ontwikkeling [EA-13] | Langdurige updates, verantwoordelijkheid en financiering vooraf begrijpelijk maken |
-| Onduidelijk voordeel | Eurobarometer meet dienstmotieven; Windows-enquête toont geen massale uitwijk [EA-02][EA-05] | Een aantoonbaar betere dagelijkse taak combineren met behoud van noodzakelijke functies |
-| Netwerk- en ecosysteemeffecten | CMA: apps, gebruikers en complementaire apparaten versterken bestaande platformen [EA-06][EA-07] | Ook ontwikkelaars en samenwerkingspartners moeten kunnen meedoen; één aantrekkelijke shell volstaat niet |
+| Onduidelijk voordeel | Eurobarometer meet dienstmotieven; Windows-enquête toont geen massale uitwijk [EA-02] [EA-05] | Een aantoonbaar betere dagelijkse taak combineren met behoud van noodzakelijke functies |
+| Netwerk- en ecosysteemeffecten | CMA: apps, gebruikers en complementaire apparaten versterken bestaande platformen [EA-06] [EA-07] | Ook ontwikkelaars en samenwerkingspartners moeten kunnen meedoen; één aantrekkelijke shell volstaat niet |
 | Angst voor technische complexiteit | Verwachte leerlast is onderzocht; specifiek “angst voor Linux” is hier niet representatief gemeten [EA-06] | Geen CLI als normale herstelroute; concrete angst en hulpbehoefte in eigen interviews toetsen |
 | Fragmentatie en inconsistentie | Linux-/mobiele bronverkenning beschrijft verschillende pakket- en portaalroutes en fabrikantafhankelijke functies [LM-06/08/12 in het register](linux-mobile-needs.md#bronregister) | Eén zichtbaar systeemcontract, met keuze zonder uiteenlopende basisbediening; effect op overstap nog hypothese |
 | Onduidelijk verdienmodel | Voor nieuw-os geen betalings- of vertrouwenstest gevonden | Onderhouds- en financieringshypothese expliciet testen; geen bereidheid tot abonnement uit 58% afleiden |
 
 ## Waarom Europa nog geen uniforme OS-overstap toont
 
-[BRON] EU OS zegt zelf een community-proof-of-concept voor beheerders te zijn en geen officieel EU-project of nieuw consumenten-OS. Zorin rapporteert downloads en helpt Windows-installers naar alternatieven te leiden; downloads tellen geen blijvende actieve gebruikers. Dit zijn uiteenlopende initiatieven met verschillende doelgroepen. [EA-12][EA-14]
+[BRON] EU OS zegt zelf een community-proof-of-concept voor beheerders te zijn en geen officieel EU-project of nieuw consumenten-OS. Zorin rapporteert downloads en helpt Windows-installers naar alternatieven te leiden; downloads tellen geen blijvende actieve gebruikers. Dit zijn uiteenlopende initiatieven met verschillende doelgroepen. [EA-12] [EA-14]
 
 [BRON] Schleswig-Holstein meldde op 4 december 2025 dat bijna 80% van werkplekken **buiten de belastingdienst** LibreOffice gebruikte en dat ongeveer 20% in delen van hun werk nog van Office afhankelijk was door specialistische processen. Dat is een Office-migratie, geen bewezen percentage Linux-desktops. De bron is de uitvoerende overheid, geen onafhankelijke effectevaluatie. [EA-13]
 
