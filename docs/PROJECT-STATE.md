@@ -4,7 +4,7 @@
 
 ## Volume-admissie — status en vervolg
 
-**Integratiecheckpoint:** huidige main `d115cc96c19ac4371baed77409a23d1adddffaf0`
+**Integratiecheckpoint:** huidige main `99d132768fd72276caa4a3b3e9a09f8f1909f0ed`
 is in deze werkbranch geïntegreerd; main zelf wordt niet gewijzigd. De
 documentconflicten zijn opgelost met behoud van de volume-admissiegeschiedenis
 en de nieuwste main-statushistorie, rubric, auditdocumentatie en bewijs.
@@ -44,6 +44,17 @@ fysieke en menselijke acceptatie zijn niet opnieuw uitgevoerd. PR135's
 volume-fixture- en RANDOM-gates blijven afzonderlijk open; bron-PRs niet
 blind sluiten. **Eerstvolgend:** `GH_PAGER="" gh pr checks 140`; bij
 Watch-headwijziging opnieuw head/base en inhoud controleren.
+
+## Main-checkpoint — PR139 contracttestreceipt — 3 november 2026
+
+Main `99d132768fd72276caa4a3b3e9a09f8f1909f0ed` voegt het exacte
+contracttestreceipt toe voor bron `0a49a3822e5d872f75573f12cd072e76e1249e1b`.
+Negen artifact-store-contracttests, Rust 1.90.0 fmt en Clippy zijn op die
+bron opnieuw uitgevoerd; primaire logs, commands, tree en codehashes staan in
+`docs/verification/pr139-artifact-contract-receipt.json`. Deze receipts zijn
+historisch bewijs van die bron, geen native acceptatie of test van de huidige
+merge. De 41/100-rubric blijft ongewijzigd; oude Watch-claims zonder receipt
+blijven niet onafhankelijk geverifieerd.
 
 ## Historisch checkpoint — PR #140 main-integratie — 3 november 2026
 
