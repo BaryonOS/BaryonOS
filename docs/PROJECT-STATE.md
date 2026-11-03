@@ -1,50 +1,111 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR150 integreert main 95d79451 — 3 november 2026
+## NEXT AGENT HANDOFF — PR158 met main 95d79451 — 3 november 2026
 
-PR150-head `51125b46219d2e0e1bf6af2a64252afd1684925a` is inhoudsbehoudend
-geïntegreerd met main `95d7945110ce853a1b5827ec59f6115475691805`. README,
-PROJECT-STATE en progress.json-conflicten zijn opgelost; main's PR138-status,
-bewijsreceipt en codewijzigingen blijven behouden naast de PR150-historie.
-Main voegt documentatie/comments toe in artifact-store-core, kernel-core en
-window-session; de opgeloste source diff is op die codepaden uitsluitend
-documenterend. Voortgang **41 → 41/100**.
+**Bronnen:** PR-head `04d727c306d13e03a192d9d002a7d44348841c9f` en
+main `95d7945110ce853a1b5827ec59f6115475691805`, branch
+`fix/b03-test-anchors-guard`. De drie documentconflicten behouden de
+B03- en PR138-checkpointgeschiedenissen en hun brongebonden bewijs.
+De automatisch geïntegreerde Rust-wijzigingen uit main zijn uitsluitend
+commentaar; de B03-ondertekenpolicy blijft ongewijzigd.
+**41 → 41/100**; geen nieuw criterium, gewicht of native acceptatie.
+De historische PR148-integratiereviewvelden blijven expliciet historisch.
 
-**Uitgevoerd op deze mergeboom (eindpogingen exit 0):**
-- `cargo +1.90.0 test --locked -p kernel-core -p artifact-store-core`: 29 tests.
-- `cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml`: 49 tests.
-- `cargo +1.90.0 clippy --locked -p kernel-core -p artifact-store-core --all-targets -- -D warnings`.
-- `cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --all-targets -- -D warnings`.
-- `cargo +1.90.0 fmt --all -- --check`.
-- Roadmap-/JSON-, conflictmarker- en diffcontroles; de native-window-session/QEMU-gate is niet opnieuw uitgevoerd.
+**Validatie op de opgeloste boom:** 78 Rust-hosttests en 14 Python-harnastests
+geslaagd; gerichte Clippy en beide formatcontroles exit 0. De eerste
+parallelle Rust-commando's raakten een toolchain-downloadrace; na voltooide
+installatie en één herstel van ontbrekende rustfmt/Clippy zijn alle controles
+opnieuw geslaagd. Geen dependency of lockfile gewijzigd.
+Vergelijkingen bevestigen exact behoud van de B03-code uit de PR en van de
+drie gedocumenteerde Rust-bestanden uit main. Exacte commando's, logpaden,
+exitstatussen en hashes staan in
+[integratiebewijs](verification/pr158-main-integration-20261103.json).
+`tools/progress.py --write` en `--check` slagen; de SVG blijft bytegelijk.
+Native builds en QEMU niet herhaald voor deze documentintegratie.
+Oud testbewijs geldt niet automatisch voor deze integratie.
 
-De eerste parallelle Cargo-pogingen botsten op gelijktijdige rustup-component-
-installatie en een ontbrekende bestaande `zeroize`-download. De vastgepinde
-toolchain is daarna serieel hersteld met
-`rustup toolchain install 1.90.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi`,
-en de al vergrendelde SDK-dependency met
-`cargo +1.90.0 fetch --locked --manifest-path sdk/examples/window-session/Cargo.toml`.
-Daarna slaagden alle genoemde eindcontroles. De PR138-receipt blijft aan zijn
-eigen bron en tests gebonden; hosttests/Clippy/formattering zijn geen native
-runtime- of releaseacceptatie. Geen reviewwerk of PR-merge in deze conflicttick.
+**Vervolg:** na publicatie nieuwe-head CI laten beoordelen; geen oude
+CI-run herstarten. Productiesleutelbeleid en issue #41 blijven open.
+Eerstvolgende lokale controle: `python3 tools/progress.py --check`.
 
-## Historisch checkpoint — PR138-integratie met main d686bd54 — 3 november 2026
+## Historisch checkpoint — B03 TEST-ankergrens — 3 november 2026
 
-PR138-head `fc3b5e2522e04f636bdb443299da6e8f99161afe` was geïntegreerd met
-main `d686bd54e766aed542e9918d1a37dcce434f18e2`. De PR138-status en het
-brongebonden rapport zijn behouden in
-[`pr138-main-integration-20261103.json`](verification/pr138-main-integration-20261103.json).
-Daar gerapporteerde 87 Python-tests, 76 Rust-tests, Clippy, formattering en
-native-volume-cross-build horen bij die eerdere mergeboom, niet bij deze.
+**Basis:** `main` `a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e`; codecommits
+`07e7f9a0471798c49e1844bf885f94491bb481d8` en
+`ceb957557af821bb95786aa505b5df41077f7403` op
+`fix/b03-test-anchors-guard`. `test_policy` vereist nu de expliciete
+`test-signing-anchors`-feature; UEFI-loader- en update-servicebuilds zonder
+gekozen ondertekenbeleid falen tijdens compilatie. TEST-sleutels blijven
+uitsluitend fixtures. Productieankers, sleutelrotatie/-intrekking en
+releaseceremonie zijn niet ontworpen of bewezen; #41 blijft open.
+
+**Gerichte controles:** update-core met TEST-feature 13 tests, update-tool
+2 tests, update-core zonder TEST-feature 7 tests en B03 Python-harnas 14 tests
+geslaagd. De testloader en update-service zijn crossgebouwd. Negatieve
+compilatiechecks voor de ongemarkeerde loader en service falen verwacht met
+alleen de bedoelde policyfout. Update-core/update-tool- en service-Clippy
+slagen; loader-Clippy slaagt met alleen de bestaande
+`clippy::not_unsafe_ptr_arg_deref`-lint toegestaan; de ongewijzigde pointer
+entrypoint is geen onderdeel van deze wijziging. Zie de exacte commando's en
+bewijshashes in
+[B03-verificatierapport](verification/b03-test-anchor-gating/README.md).
+Een directe release-`cargo build` buiten de projectwrapper raakte daarnaast
+een LLVM SIGILL tijdens codegeneratie voor `curve25519-dalek`; de
+voorgeschreven update-service-buildwrapper slaagde wel en is het gerapporteerde
+buildresultaat.
+
+**Native vervolgbewijs:** op productbron `26108a25` is
+`python3 -B -u tools/test_update.py` uitgevoerd: exit 0, 106,91 s,
+alle 18 QEMU-stappen en de afsluitende normale build geslaagd. Zie
+[native-sprint.json](verification/b03-test-anchor-gating/native-sprint.json)
+voor de exacte omgeving, hashes en bewijsgrens. Evidencehead `568741f3`
+had 31 geslaagde checks en een overgeslagen check. Geen hardwaretest,
+productiesleutelbeleid of nieuwe productcriteria geaccepteerd.
+
+**Voortgang:** branchscore **41 → 41/100**; `tools/progress.py --write`
+en `--check` bevestigen deze berekening. Er zijn geen criteria of gewichten
+gewijzigd en deze wijziging levert geen productacceptatiepunten op.
+
+**Eerstvolgend:** de gerichte sprintcorrectie na actuele-head-CI integreren;
+#41 blijft open voor productiesleutelbeleid en bijbehorende acceptatie.
+
+## Historisch checkpoint — PR138 met main d686bd54 — 3 november 2026
+
+**Bronnen:** PR-head `fc3b5e2522e04f636bdb443299da6e8f99161afe` en
+main `d686bd54e766aed542e9918d1a37dcce434f18e2`, branch
+`simonvanieperen-laughing-fortnight`. Alleen PROJECT-STATE.md conflicteerde;
+beide checkpointgeschiedenissen blijven behouden. Code is automatisch
+samengevoegd zonder handmatige runtimewijzigingen. **41 → 41/100**;
+geen criterium, gewicht of historisch testbewijs gewijzigd.
+
+**Uitgevoerd op de opgeloste boom:** 87 Python-harnastests en 76
+Rust-hosttests geslaagd; gerichte Clippy en workspace-formatcontrole exit 0.
+De `native-volume`-cross-build van UEFI-loader, kernel en volume-apps slaagt
+na één herstel van ontbrekende, reeds vergrendelde SDK-downloads. De eerste
+offline build mislukte wegens ontbrekende `zeroize v1.9.1`; geen dependency
+of lockfile gewijzigd. Codevergelijkingen bevestigen exact behoud van main
+voor kernel/volume/harnassen en van de PR voor crates/window-session.
+Exacte commando's, exitstatussen en loghashes:
+[integratiebewijs](verification/pr138-main-integration-20261103.json).
+Historische receipts bewijzen niet automatisch deze opgeloste boom.
+QEMU niet uitgevoerd: `qemu-system-x86_64` ontbreekt. Geen nieuwe
+native-runtime-, release-, fysieke-hardware- of menselijke acceptatie.
+
+**Vervolg:** na publicatie de nieuwe-head-controles laten beoordelen.
+De oude native-foundation-run wordt na deze integratie niet herstart.
+Eerstvolgende lokale controle: `python3 tools/progress.py --check`.
 
 ## Historisch checkpoint — PR138 documentatieconflicten — 3 november 2026
 
-PR138-head `d263acdeb9f94905c52457cccfeafabdc3011571` en main
-`5c66ec57aaf8eb411a83b8d6e42320ddc379383c` zijn in een eerdere tick
-gedocumenteerd. De toenmalige statusbestanden en brongebonden claims blijven
-historisch; zij bewijzen deze mergeboom niet.
+**Bronnen:** PR-head `d263acdeb9f94905c52457cccfeafabdc3011571` en
+main `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`. De vier conflicterende
+statusbestanden behouden beide geschiedenissen; de laatst vastgelegde
+beoordeling blijft **41/100**. Historische controles blijven aan hun eigen
+bron gebonden en gelden niet automatisch voor de samengevoegde boom.
 
-## Historisch checkpoint — PR148-integratie met main 8e0c15d8 — 3 november 2026
+**Vervolg:** beoordeel de controles op de nieuwe mergecommit. Volledige
+release-, fysieke-hardware- en menselijke acceptatie blijven open.
+## Historisch checkpoint — PR148 met main 8e0c15d — 3 november 2026
 
 **Basis:** PR148 `47ec535f15bb10912dbc6cbf1af3de9df0c6c226` met main
 `8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2`, branch
@@ -79,60 +140,32 @@ De hierboven gemelde gerichte controles hebben alleen uitvoer in het
 sessietranscript; een afzonderlijk brongebonden integratiereviewbewijs ontbreekt
 in de checkout. De PR148-hostreceipts hieronder betreffen eerdere werkbomen en
 bewijzen deze integratiereview niet. De `reviewed_commit`-verwijzing naar
-`cc1dea7` staat in de historische
-[`a32eadb1:docs/progress.json`](https://github.com/simonvanieperen/nieuw-os/blob/a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e/docs/progress.json),
-niet in de huidige assessment van deze branch. Dit betreft uitsluitend de
-eerdere verduidelijking van documentatiestatus en hostbewijs.
+`cc1dea7` in `docs/progress.json` is een historische review van de eerdere
+verduidelijking van documentatiestatus en hostbewijs.
 
 **Eerstvolgend:** nieuwe-head CI en review beoordelen en passend reviewbewijs
 vastleggen. Native volume-acceptatie blijft afzonderlijk open.
 
 <!-- /coderabbit-ai-generated:v1 -->
 
-## Historisch checkpoint — PR150-integratie met main d686bd54 — 3 november 2026
-
-PR150-head `1f4dd49dfac89ce55951881cd63f4ab89a2c92e6` was geïntegreerd met
-main `d686bd54e766aed542e9918d1a37dcce434f18e2`. De conflictresolutie was
-inhoudsbehoudend; de score bleef **41 → 41/100**. Gerichte volume-orakeltests
-(26), `volume-core`-hosttests (47), formatting, Clippy en de native
-foreign-volume-profielbuild slaagden. De native negen-run QEMU-gate is niet
-uitgevoerd omdat QEMU en OVMF ontbraken. Dit bewijs hoort bij die mergeboom,
-niet bij de huidige integratie.
-
-## Historisch checkpoint — eerdere PR150-integratie met main 8e0c15d8 — 3 november 2026
-
-PR-head `c826225cc2aec5161772145f0a8f3a6ae37fa95d` is inhoudsbehoudend
-geïntegreerd met actuele main `8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2`.
-De beoordelingsconflicten in README, progress.json en PROJECT-STATE zijn
-opgelost; het retentieregister is automatisch samengevoegd en de PR141-
-en PR142-bronrecords zijn behouden naast de bestaande PR150/PR149-historie.
-Main's shared-tooling-refactor, Python-tests en bijbehorende bewijsreceipts
-blijven behouden. Voortgang **41 → 41/100**.
-
-**Bewijsgrens:** tests draaien op deze mergeboom en zijn geen native OS-,
-QEMU-, fysieke of menselijke acceptatie. Bestaande receipts blijven gebonden
-aan hun eigen source commit. Op deze mergeboom geslaagd:
-`umask 077 && python3 -B -m unittest discover -s tests -p 'test_*.py' -v`
-(485 tests), `umask 077 && python3 -B -m unittest discover -s tools/tests
--p 'test_*.py' -v` (189 tests), `node --test ui/prototype/tests/*.test.mjs`
-(41 tests), `python3 -B -m py_compile tools/common.py tools/run_fpu.py
-tools/run_images.py tools/run_random.py tests/test_common.py`,
-`python3 tools/progress.py --write`, `python3 tools/progress.py --check` en
-`git diff --check HEAD`. De eerste roottestsessie met de standaard umask
-faalde op drie private-inputfixturecontrolegevallen; de private umask-run
-slaagde. De eerste volledige toolsuite miste `ed25519-dalek`; na
-`cargo +1.90.0 fetch --locked` en een private-umaskrerun slaagden alle tests.
-Dit herstelde alleen lokale dependencycache en testumask, geen repositorycode.
-Geen nieuwe native/QEMU-, fysieke of menselijke acceptatie.
-
 ## Historisch checkpoint — PR142 main-integratie — 3 november 2026
 
-PR142-head `37ad1e98328e59b752c230310a4abeaca749b669` was geïntegreerd met
-main `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`. Die tick meldde 41
-prototype-hosttests en twee JavaScript-syntaxchecks zonder aparte testreceipt;
-dat historische verslag is geen bewijs voor deze mergeboom. De unieke
-PR131/132-, PR141- en PR142-retentierecords zijn in de latere integraties
-behouden.
+**Basis vóór integratie:** PR-head `37ad1e98328e59b752c230310a4abeaca749b669`;
+main `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`. De enige conflicthunk was
+`docs/verification/retained-document-heads-20261103.json`. De opgeloste
+snapshotlijst behoudt alle unieke PR131/132-, PR141- en PR142-ingangen;
+PR149's code/tests en receipts zijn eveneens behouden uit main. Geen receipt
+wordt als bewijs voor deze nieuwe mergeboom aangeduid.
+
+**Uitgevoerd op de opgeloste boom:** `node --test ui/prototype/tests/*.test.mjs`
+— 41 geslaagd, 0 mislukt; `node --check ui/prototype/app.js` en
+`node --check ui/prototype/state.js` — exit 0. De README-voorgestelde
+`--test-isolation=none`-optie wordt niet herkend door Node v22.23.4; de suite
+is daarna met de ondersteunde standaardopties geslaagd. Progressmeter is
+bijgewerkt: **41 → 41/100**, zonder nieuw criteriumbewijs. Native/QEMU,
+fysieke en menselijke acceptatie zijn niet uitgevoerd.
+**Open:** finaliseer de merge na JSON/progress- en diffcontroles en secret scan;
+na publicatie moeten de nieuwe-head-checks worden geëvalueerd.
 
 ## Historisch checkpoint — PR149 derde main-integratie — 3 november 2026
 

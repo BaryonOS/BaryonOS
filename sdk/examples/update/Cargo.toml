@@ -6,6 +6,7 @@ publish = false
 
 [features]
 native = []
+test-signing-anchors = ["update-core/test-signing-anchors"]
 
 [dependencies]
 nieuw-os-sdk-runtime = { path = "../../runtime" }

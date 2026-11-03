@@ -1,11 +1,11 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
-PR150-mainintegratie met main `95d79451` (3 november 2026): **41 → 41/100**.
-Beide checkpointreeksen en brongebonden bewijs blijven behouden. Auto-merged
-codewijzigingen in artifact-store-core, kernel-core en window-session zijn
-documenterend; de gerichte hosttests, Clippy en formatcontrole slagen. Geen
-nieuw criterium of native acceptatie. Zie de actuele
-[integratiehandoff](PROJECT-STATE.md).
+PR158-integratie met main `95d79451` op basis `04d727c3`: **41 → 41/100**.
+De drie documentconflicten behouden beide checkpointgeschiedenissen en hun
+brongebonden bewijs. De Rust-wijzigingen uit main zijn uitsluitend commentaar;
+B03 blijft behouden. Geen criterium, gewicht of native acceptatie gewijzigd.
+De historische PR148-integratiereview geldt niet voor deze integratie.
+Nieuwe-head CI blijft afzonderlijk te beoordelen.
 
 PR138-integratie met main `d686bd54` op basis `fc3b5e25`: **41 → 41/100**.
 Alleen het statusconflict is handmatig opgelost; beide geschiedenissen en
@@ -22,20 +22,6 @@ gereproduceerde kaartfouten hersteld: smal/hoog, overlopende tekst en
 onjuiste opslagoorzaak.59 volledige hosttests, Clippy, formattering en
 scalarno_std-librarybuild slagen. Geen nieuwe native gast-/screenshot- of
 menselijke acceptatie. [Volledig bewijs](verification/pr149-compact-review.json).
-
-PR150-mainintegratie (3 november 2026), PR-head `742d4b3b` met main
-`5c66ec57`: **41 → 41**. De conflicterende historische retentiesnapshots
-van PR150 en PR141/131/132 zijn gecombineerd; specialistprofielen,
-PR149's UI-werk en bewijs blijven behouden. De gebruikte testresultaten
-blijven strikt gekoppeld aan hun oorspronkelijke bronnen; geen nieuwe
-native OS-acceptatie of rubricpunten.
-
-PR150-mainintegratie met main `d686bd54` (3 november 2026): **41 → 41**.
-PR148-volume-admissie en PR150-inhoud blijven behouden. De gerichte
-volume-corehosttests, Python-orakeltests, formatter en Clippy slagen op deze
-mergeboom en het native foreign-volume-profiel bouwt. De native negen-run
-volumegate is niet uitgevoerd omdat QEMU en OVMF ontbreken; geen nieuw native
-acceptatiebewijs of rubricpunten.
 
 ## Betekenis van het percentage
 
@@ -130,9 +116,8 @@ volume-admissie uit PR148. Geen nieuw criterium of native acceptatie.
 De integratiereview staat **open**: de handoff meldt gerichte controles met
 uitvoer alleen in het sessietranscript; afzonderlijk brongebonden bewijs van
 de review ontbreekt in de checkout. De eerdere PR148-hostreceipts zijn geen
-bewijs voor deze integratiereview. De `reviewed_commit` `cc1dea7` in de
-historische [`a32eadb1:docs/progress.json`](https://github.com/simonvanieperen/nieuw-os/blob/a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e/docs/progress.json)
-hoort bij de historische documentatiereview, niet de huidige assessment; nieuwe-head CI en
+bewijs voor deze integratiereview. De `reviewed_commit` `cc1dea7` in
+`progress.json` hoort bij de historische documentatiereview; nieuwe-head CI en
 review moeten nog worden beoordeeld. Zie [de handoff](PROJECT-STATE.md).
 
 <!-- /coderabbit-ai-generated:v1 -->

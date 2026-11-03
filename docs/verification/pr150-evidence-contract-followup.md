@@ -2,9 +2,23 @@
 
 3 november 2026; basis `fc23841faf8ba4e0918245aef5c413745a790c67`
 met main `95d7945110ce853a1b5827ec59f6115475691805`.
+
+## Voorstel
+
+Geen tooluitbreiding of nieuwe uitvoerdersrol.
+
+## Implementatie
+
 OS Verifier beoordeelt aangeleverd bewijs en voert geen proef uit.
 OS Maturity Auditor gebruikt de bestaande repositorybewijssoorten in plaats
 van een ongedefinieerde E0-E8-schaal. Geen toolrecht uitgebreid.
+
+Primaire bronnen: Nieuw OS-project, 3 november 2026, commit
+`cccb29e8daf311a9db47e3747a6fb9d05329bda3`:
+[OS Verifier](https://github.com/simonvanieperen/nieuw-os/blob/cccb29e8daf311a9db47e3747a6fb9d05329bda3/.github/agents/os-verifier.agent.md)
+en [OS Maturity Auditor](https://github.com/simonvanieperen/nieuw-os/blob/cccb29e8daf311a9db47e3747a6fb9d05329bda3/.github/agents/os-maturity-auditor.agent.md).
+
+## Testbewijs
 
 Uitgevoerd vanuit de worktree, exit 0:
 
@@ -32,7 +46,15 @@ PY
 | `os-verifier.agent.md` | `6380991093181852e2044e0b8b0804587d62d8e0c268ac7bcc7152826286ab78` |
 | `os-maturity-auditor.agent.md` | `755945403323331f1ff8b2634b6e2bc69d11379a2447a544ddb3eabcd8852e94` |
 
+## Onbekend
+
 De eerdere profielhashes in `pr150-profile-review.json` blijven historische
 bronbindingen, niet hashes van deze twee gewijzigde bestanden. Dit is geen
 volledige YAML/cloudschemavalidatie, werkelijke agentselectie, sandbox,
 native uitvoering of menselijke audit. Geen productcriterium of scorewijziging.
+
+De latere main78ff7c03-integratie neemt de ingehaalde centrale metadata
+niet over; die historie blijft volledig behouden op
+`archive/pr150-pre-main78-20261103` (`4ef30bf7`).
+Alleen profielen, direct gerelateerde profielinstructies en eigen receipts
+blijven als inhoudsdelta. De huidige mainassessment is geen profieltest.

@@ -13,6 +13,8 @@ desktop-hidpi = ["framebuffer"]
 graphics-g0 = ["framebuffer"]
 # B03: verify a hybrid-signed kernel from the slot store (ADR-049).
 signed-boot = ["dep:update-core"]
+# Explicit test profile; production anchors and release policy are not configured.
+signed-boot-test = ["signed-boot", "update-core/test-signing-anchors"]
 
 [dependencies]
 r-efi = { version = "=7.1.0", default-features = false }
