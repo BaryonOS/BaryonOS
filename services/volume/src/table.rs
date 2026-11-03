@@ -14,11 +14,13 @@
 //! restorable.
 use crate::{
     checksum_update, chunks_for, domain_of, get16, get32, get64, put16, put32, put64, valid_name,
-    Disk, Status, CHUNKS, COLLECTIONS, DOMAINS, FNV_OFFSET, HISTORY, MAX_CHUNKS, MAX_LENGTH, NAME,
-    NO_CHUNK, OBJECTS, PER_DOMAIN, QUOTA, SECTOR, TABLE_SECTORS,
+    Disk, Status, CHUNKS, COLLECTIONS, DATA_START, DOMAINS, FNV_OFFSET, HISTORY, MAX_CHUNKS,
+    MAX_LENGTH, NAME, NO_CHUNK, OBJECTS, PER_DOMAIN, QUOTA, SECTOR, TABLE_SECTORS, VOLUME_SECTORS,
 };
 
 pub const MAGIC: &[u8; 8] = b"NOSVOL02";
+const FORMAT_MARKER_MAGIC: &[u8; 8] = b"NOSFMT02";
+const FORMAT_MARKER_VERSION: u16 = 1;
 pub const VERSION: u16 = 2;
 pub const VERSION_BYTES: usize = 216;
 pub const COLLECTION_BYTES: usize = 56;
@@ -717,6 +719,17 @@ pub enum SectorState {
     Invalid,
 }
 
+fn is_format_marker(sector: &[u8; SECTOR]) -> bool {
+    &sector[..8] == FORMAT_MARKER_MAGIC
+        && get16(sector, 8) == FORMAT_MARKER_VERSION
+        && get16(sector, 10) == VERSION
+        && get32(sector, 12) == DATA_START as u32
+        && get32(sector, 16) == VOLUME_SECTORS as u32
+        && get32(sector, 20) == CHUNKS as u32
+        && sector[24..504].iter().all(|byte| *byte == 0)
+        && get64(sector, 504) == checksum_update(FNV_OFFSET, &sector[..504])
+}
+
 pub fn classify(slot: u64, index: u64, sector: &[u8; SECTOR]) -> SectorState {
     if sector.iter().all(|byte| *byte == 0) {
         return SectorState::Zero;
@@ -734,6 +747,7 @@ pub fn classify(slot: u64, index: u64, sector: &[u8; SECTOR]) -> SectorState {
 #[derive(Clone, Copy, Debug)]
 pub struct SlotScan {
     pub states: [SectorState; TABLE_SECTORS_USIZE],
+    format_marker: bool,
     /// Generation of a completely valid copy.
     pub valid: Option<u64>,
 }
@@ -747,11 +761,17 @@ impl SlotScan {
         scratch: &mut Table,
     ) -> Result<Self, Status> {
         let mut states = [SectorState::Zero; TABLE_SECTORS_USIZE];
+        let mut format_marker = false;
         for index in 0..TABLE_SECTORS {
-            states[index as usize] = classify(slot, index, &sector(index)?);
+            let bytes = sector(index)?;
+            if slot == 0 && index == 0 {
+                format_marker = is_format_marker(&bytes);
+            }
+            states[index as usize] = classify(slot, index, &bytes);
         }
         let mut scan = Self {
             states,
+            format_marker,
             valid: None,
         };
         if scan.uniform() {
@@ -775,6 +795,13 @@ impl SlotScan {
 
     fn all_zero(&self) -> bool {
         self.states.iter().all(|state| *state == SectorState::Zero)
+    }
+
+    fn format_marker_only(&self) -> bool {
+        self.format_marker
+            && self.states[1..]
+                .iter()
+                .all(|state| *state == SectorState::Zero)
     }
 
     /// Every sector carries the same valid generation. Such a copy looks
@@ -825,7 +852,7 @@ pub fn choose(slots: [SlotScan; 2]) -> Result<Option<u64>, Status> {
                         SectorState::Zero | SectorState::Valid(1, _) | SectorState::Invalid
                     )
                 });
-            if zero.all_zero() && (one.all_zero() || first_attempt) {
+            if (zero.all_zero() || zero.format_marker_only()) && (one.all_zero() || first_attempt) {
                 Ok(None)
             } else {
                 Err(Status::Corrupt)
@@ -836,21 +863,60 @@ pub fn choose(slots: [SlotScan; 2]) -> Result<Option<u64>, Status> {
 }
 
 /// Recover the durable table through the service's own disk capability into
-/// `out`. Only table sectors are read; content is verified lazily on access.
+/// `out`. Unmarked empty volumes are checked in full; committed content is
+/// verified lazily on access.
 pub fn recover(disk: &mut impl Disk, out: &mut Table) -> Result<(), Status> {
+    recover_with_state(disk, out).map(|_| ())
+}
+
+/// Recover the durable table and report whether this volume has ever been
+/// explicitly claimed by the NOSVOL02 writer. An unmarked empty volume is
+/// accepted only when every sector in the scoped volume is zero.
+pub fn recover_with_state(disk: &mut impl Disk, out: &mut Table) -> Result<bool, Status> {
     let zero = SlotScan::scan(0, |index| read_sector(disk, index), out)?;
     let one = SlotScan::scan(1, |index| read_sector(disk, TABLE_SECTORS + index), out)?;
     match choose([zero, one])? {
         None => {
+            let initialized = zero.format_marker_only();
+            if !initialized {
+                if !zero.all_zero() || !one.all_zero() {
+                    return Err(Status::Corrupt);
+                }
+                for index in DATA_START..VOLUME_SECTORS {
+                    if read_sector(disk, index)?.iter().any(|byte| *byte != 0) {
+                        return Err(Status::Corrupt);
+                    }
+                }
+            }
             *out = Table::EMPTY;
-            Ok(())
+            Ok(initialized)
         }
-        Some(slot) => Table::decode_from(
-            slot,
-            |index| read_sector(disk, slot * TABLE_SECTORS + index),
-            out,
-        ),
+        Some(slot) => {
+            Table::decode_from(
+                slot,
+                |index| read_sector(disk, slot * TABLE_SECTORS + index),
+                out,
+            )?;
+            Ok(true)
+        }
     }
+}
+
+/// Persist a recognizable format marker before the first staged content or
+/// metadata write. The checksum detects damage; this marker is not an
+/// authentication mechanism.
+pub fn write_format_marker(disk: &mut impl Disk) -> Result<(), Status> {
+    let mut sector = [0; SECTOR];
+    sector[..8].copy_from_slice(FORMAT_MARKER_MAGIC);
+    put16(&mut sector, 8, FORMAT_MARKER_VERSION);
+    put16(&mut sector, 10, VERSION);
+    put32(&mut sector, 12, DATA_START as u32);
+    put32(&mut sector, 16, VOLUME_SECTORS as u32);
+    put32(&mut sector, 20, CHUNKS as u32);
+    let checksum = checksum_update(FNV_OFFSET, &sector[..504]);
+    put64(&mut sector, 504, checksum);
+    disk.write(0, &sector)?;
+    disk.flush()
 }
 
 fn read_sector(disk: &mut impl Disk, sector: u64) -> Result<[u8; SECTOR], Status> {

@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`bb8877e3`](https://github.com/simonvanieperen/nieuw-os/commit/bb8877e3e1aaec304d7478510b65c8116aeb634e) ·
-**Ontwikkelbranch:** `simonvanieperen-reimagined-train`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR149: nieuwe primaire59-hosttestreceipt op schone Watch-main99-merge bewaren.
-41 blijft 41. Op schone Watch-merge bb8877e3 met main99 zijn59 hosttests echt opnieuw groen; cwd/HEAD/status/lock- en Rust-hashes vóór/na en volledige logs vastgelegd. Geen retrospectieve bronbinding van eerdere Watch-tijden. De UI-Rust-code blijft exact53256f82; historische scalar/Clippy/fmt behouden die bron. Assessmentbasis is niet de uiteindelijke PR-head of automatisch elke testbron. Geen nieuwe code, native/QEMU/fysieke/menselijke acceptatie of punten.
+**Bron:** [`fc3b5e25`](https://github.com/simonvanieperen/nieuw-os/commit/fc3b5e2522e04f636bdb443299da6e8f99161afe) ·
+**Ontwikkelbranch:** `simonvanieperen-laughing-fortnight`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR138: statusconflict met main d686bd54 inhoudsbehoudend integreren.
+41/100 blijft 41/100. Eén statusconflict met main d686bd54 is inhoudsbehoudend opgelost; beide checkpointgeschiedenissen en hun brongebonden bewijs blijven behouden. Code is automatisch samengevoegd zonder handmatige runtimewijziging. De integration_review-velden beschrijven uitsluitend de historische PR148-integratie, niet deze PR138-boom. Geen nieuw criterium of native acceptatie. Gerichte integratievalidatie en nieuwe-head CI worden afzonderlijk gerapporteerd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -1,6 +1,32 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — documentatieconflicten — 3 november 2026
+## NEXT AGENT HANDOFF — PR138 met main d686bd54 — 3 november 2026
+
+**Bronnen:** PR-head `fc3b5e2522e04f636bdb443299da6e8f99161afe` en
+main `d686bd54e766aed542e9918d1a37dcce434f18e2`, branch
+`simonvanieperen-laughing-fortnight`. Alleen PROJECT-STATE.md conflicteerde;
+beide checkpointgeschiedenissen blijven behouden. Code is automatisch
+samengevoegd zonder handmatige runtimewijzigingen. **41 → 41/100**;
+geen criterium, gewicht of historisch testbewijs gewijzigd.
+
+**Uitgevoerd op de opgeloste boom:** 87 Python-harnastests en 76
+Rust-hosttests geslaagd; gerichte Clippy en workspace-formatcontrole exit 0.
+De `native-volume`-cross-build van UEFI-loader, kernel en volume-apps slaagt
+na één herstel van ontbrekende, reeds vergrendelde SDK-downloads. De eerste
+offline build mislukte wegens ontbrekende `zeroize v1.9.1`; geen dependency
+of lockfile gewijzigd. Codevergelijkingen bevestigen exact behoud van main
+voor kernel/volume/harnassen en van de PR voor crates/window-session.
+Exacte commando's, exitstatussen en loghashes:
+[integratiebewijs](verification/pr138-main-integration-20261103.json).
+Historische receipts bewijzen niet automatisch deze opgeloste boom.
+QEMU niet uitgevoerd: `qemu-system-x86_64` ontbreekt. Geen nieuwe
+native-runtime-, release-, fysieke-hardware- of menselijke acceptatie.
+
+**Vervolg:** na publicatie de nieuwe-head-controles laten beoordelen.
+De oude native-foundation-run wordt na deze integratie niet herstart.
+Eerstvolgende lokale controle: `python3 tools/progress.py --check`.
+
+## Historisch checkpoint — PR138 documentatieconflicten — 3 november 2026
 
 **Bronnen:** PR-head `d263acdeb9f94905c52457cccfeafabdc3011571` en
 main `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`. De vier conflicterende
@@ -10,6 +36,67 @@ bron gebonden en gelden niet automatisch voor de samengevoegde boom.
 
 **Vervolg:** beoordeel de controles op de nieuwe mergecommit. Volledige
 release-, fysieke-hardware- en menselijke acceptatie blijven open.
+## Historisch checkpoint — PR148 met main 8e0c15d — 3 november 2026
+
+**Basis:** PR148 `47ec535f15bb10912dbc6cbf1af3de9df0c6c226` met main
+`8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2`, branch
+`simonvanieperen-upgraded-disco`; schone werkboom bij aanvang.
+Drie centrale documentconflicten behouden beide checkpointreeksen en de
+brongebonden receipts. Gedeelde harnashulpfuncties komen exact uit main;
+volume-admissie blijft uit PR148. Geen handmatige codewijziging.
+**41 → 41/100**, geen criterium of gewicht gewijzigd.
+
+**Uitgevoerd op de opgeloste boom (alle eindcommando's exit 0):**
+- `python3 -B -m unittest discover -s tests -p 'test_common.py'`: 8 tests.
+- `python3 -B -m unittest discover -s tools/tests -p 'test_random.py'`: 21 tests.
+- `python3 -B -m unittest discover -s tools/tests -p 'test_images.py'`: 20 tests.
+- `python3 -B tools/test_fpu.py`: 12 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_volume_*.py'`: 26 tests.
+- `python3 tools/progress.py --write` en `python3 tools/progress.py --check`.
+- `git diff --check`; vergelijking met beide parents bevestigt exact behoud
+  van de gewijzigde harnassen uit main en de volume-implementatie uit PR148.
+
+De eerste discoverypogingen voor random/images/fpu onder `tests` vonden
+geen tests (elk exit 5); daarna zijn de werkelijke bovenstaande entrypoints
+uitgevoerd. Verwachte foutmeldingen in negatieve harnastests zijn geen
+native uitvoering. Uitvoer staat in het sessietranscript, zonder afzonderlijke
+logbestanden. Rust-builds en QEMU niet herhaald; geen native acceptatie.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:69f0ce3ef4e7240e6d8b1e44a29d90b2c36c7dcd2008b6a678a3f075e30514e8 -->
+
+**PR148-integratiereview: open.** De assessmentbasis is PR148 `47ec535f`;
+de tweede mergeouder is main `8e0c15d8` en de resulterende merge is `7412d0bb`.
+De hierboven gemelde gerichte controles hebben alleen uitvoer in het
+sessietranscript; een afzonderlijk brongebonden integratiereviewbewijs ontbreekt
+in de checkout. De PR148-hostreceipts hieronder betreffen eerdere werkbomen en
+bewijzen deze integratiereview niet. De `reviewed_commit`-verwijzing naar
+`cc1dea7` in `docs/progress.json` is een historische review van de eerdere
+verduidelijking van documentatiestatus en hostbewijs.
+
+**Eerstvolgend:** nieuwe-head CI en review beoordelen en passend reviewbewijs
+vastleggen. Native volume-acceptatie blijft afzonderlijk open.
+
+<!-- /coderabbit-ai-generated:v1 -->
+
+## Historisch checkpoint — PR142 main-integratie — 3 november 2026
+
+**Basis vóór integratie:** PR-head `37ad1e98328e59b752c230310a4abeaca749b669`;
+main `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`. De enige conflicthunk was
+`docs/verification/retained-document-heads-20261103.json`. De opgeloste
+snapshotlijst behoudt alle unieke PR131/132-, PR141- en PR142-ingangen;
+PR149's code/tests en receipts zijn eveneens behouden uit main. Geen receipt
+wordt als bewijs voor deze nieuwe mergeboom aangeduid.
+
+**Uitgevoerd op de opgeloste boom:** `node --test ui/prototype/tests/*.test.mjs`
+— 41 geslaagd, 0 mislukt; `node --check ui/prototype/app.js` en
+`node --check ui/prototype/state.js` — exit 0. De README-voorgestelde
+`--test-isolation=none`-optie wordt niet herkend door Node v22.23.4; de suite
+is daarna met de ondersteunde standaardopties geslaagd. Progressmeter is
+bijgewerkt: **41 → 41/100**, zonder nieuw criteriumbewijs. Native/QEMU,
+fysieke en menselijke acceptatie zijn niet uitgevoerd.
+**Open:** finaliseer de merge na JSON/progress- en diffcontroles en secret scan;
+na publicatie moeten de nieuwe-head-checks worden geëvalueerd.
 
 ## Historisch checkpoint — PR149 derde main-integratie — 3 november 2026
 
@@ -38,6 +125,41 @@ uitsluitend documentatie betreffende integratie.
 **Open/eerstvolgend:** na publicatie nieuwe-head-controles laten evalueren.
 Alleen bewijs-/statuscorrecties; geen oude CI-retry of nieuwe runtimecode.
 Native/QEMU-, fysieke en menselijke acceptatie blijven afzonderlijk open.
+
+## Historisch checkpoint — PR148 slot1-admissie opvolging — 3 november 2026
+
+**Basis:** PR148-head `c6b25873c915a98f8c0b2bb7400395e01ba44741`, branch
+`simonvanieperen-upgraded-disco`, met slot1-admissiefix, marker-crashgrens
+en host-suitebewijs al aanwezig. Score en rubric blijven **41 → 41/100**.
+
+**Status en classificatie (actueel):**
+- Vereiste checks (`host-quality`, `qemu-smoke`) zijn groen.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:d8b787176e01e7132a22480ebc41537196905df76f55d8e674355a4700a5bc60 -->
+
+- `native-foundation` faalde volgens de handoff in run `41640409938` met
+  `system marker sequence mismatch`/`RANDOM guest report ... not bound`.
+  De oorzaak is **onbekend**: de primaire workflowbron, de exacte gefaalde
+  stap en het resultaat van de gestarte rerun (`gh run rerun --failed 41640409938`)
+  ontbreken. De gate blijft open.
+
+<!-- /coderabbit-ai-generated:v1 -->
+- Open CodeRabbit-threads betreffen vooral documentatiestatus en bronlabels;
+  productiegedrag voor slot1-admissie is al gecorrigeerd en hostmatig bewezen.
+
+**Primaire bronnen (code + bewijs):**
+- Recovery/admissie: `services/volume/src/table.rs` op commit `c6b25873`.
+- Onafhankelijk orakel: `tools/volume_disk.py` op commit `c6b25873`.
+- Bewijs: `docs/verification/pr148-slot1-review.json`,
+  `docs/verification/pr148-marker-crash-review.json`,
+  `docs/verification/pr148-volume-core-host-suite.json`.
+- Repositorybron: https://github.com/simonvanieperen/nieuw-os/tree/c6b25873c915a98f8c0b2bb7400395e01ba44741
+
+**Open/eerstvolgend:** rond PR148 de resterende documentatie-threads sluiten,
+uitkomst van de `native-foundation` rerun verwerken en daarna opnieuw
+merge-preflight op exact head/base/checks/reviewthreads draaien.
+Native metadata-only fixture en native QEMU-volume-admissie blijven apart open.
 
 ## Historisch checkpoint — PR149 compacte kaartregressies hersteld — 3 november2026
 

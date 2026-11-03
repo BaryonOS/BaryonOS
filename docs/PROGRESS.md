@@ -1,5 +1,11 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+PR138-integratie met main `d686bd54` op basis `fc3b5e25`: **41 → 41/100**.
+Alleen het statusconflict is handmatig opgelost; beide geschiedenissen en
+brongebonden receipts blijven behouden. Geen nieuw acceptatiecriterium,
+gewijzigd gewicht of nieuwe native acceptatie. Gerichte controles van de
+opgeloste boom staan in PROJECT-STATE.md; nieuwe-head CI blijft afzonderlijk.
+
 De actieve volledige releaseopdracht en productacceptatie staan in
 [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft
 de ontwikkelmeter; het vervangt de conjunctieve releaseacceptatie niet.
@@ -90,6 +96,24 @@ zijn afzonderlijke beperking. Zie [M6d-acceptatie](verification/M6D-ACCEPTANCE.m
 K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
+
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:ab73c9e98b6e8e4f98c9394ee7fc9b7f34e8e2a2808b0067c5965ffb55c55446 -->
+
+PR148-integratie (3 november 2026), PR-bron `47ec535f` met main `8e0c15d8`,
+merge `7412d0bb`: **41 → 41**. De drie documentconflicten zijn opgelost met
+behoud van beide bewijsreeksen; gedeelde harnashulpfuncties komen uit main en
+volume-admissie uit PR148. Geen nieuw criterium of native acceptatie.
+
+De integratiereview staat **open**: de handoff meldt gerichte controles met
+uitvoer alleen in het sessietranscript; afzonderlijk brongebonden bewijs van
+de review ontbreekt in de checkout. De eerdere PR148-hostreceipts zijn geen
+bewijs voor deze integratiereview. De `reviewed_commit` `cc1dea7` in
+`progress.json` hoort bij de historische documentatiereview; nieuwe-head CI en
+review moeten nog worden beoordeeld. Zie [de handoff](PROJECT-STATE.md).
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 PR149 bronbewijsvervolg (3 november 2026), schone bron `bb8877e3`:
 59 hosttests echt opnieuw exit0 met cwd/HEAD/status/lock-/Rust-hashes vóór/na
