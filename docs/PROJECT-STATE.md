@@ -1,6 +1,6 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Veld-05 appbediening, native controle open — 3 november 2026
+## NEXT AGENT HANDOFF — Veld-05 native geverifieerd — 3 november 2026
 
 **Basis/branch:** `16c26c1c4b2d20e4644633439edf1dfe848bc140`,
 `simonvanieperen-veld-hc-20261103`. Deze afzonderlijke branch is veilig
@@ -35,12 +35,27 @@ Een aanvankelijk foutieve testverwachting voor `7/0` is hersteld:
 `evaluations` telt alleen geslaagde evaluaties; productgedrag niet aangepast.
 De luminantietest vereiste expliciete u32-kanaaltypen; alle tests daarna herhaald.
 
-**Eerstvolgend:** na dit checkpoint beide volledige native
-`run_window_session.py --clipboard --workspace --scale 1/2`-gates en beide
-normale builds uitvoeren; verwacht48 fasen per schaal, waaronder echte
-HC-menu-/rekenmachinebediening en exact pixelherstel. Native HC is
-**niet uitgevoerd**, geen nieuwe CI-, hardware- of menselijke claim.
-Commando's en grenzen: [Veld-05-bewijs](verification/veld-hc-20261103/README.md).
+**Native geverifieerd:** productbron
+`047abfa1cedcfc2740d59793ae30ab07fcd9e197`, fingerprint
+`15997f71b11af72bfebaf0ca8a962c7f7cda0bc0bd3c80fbd19808cb1265d3e8`.
+Beide volledige `run_window_session.py --clipboard --workspace --scale 1/2`
+slagen:48 fasen per schaal,379,46 s en685,62 s, exit0/ruwe33.
+Echte HC-menu-/rekenmachinebediening en exact pixelherstel; alle oude
+herstel-/opslag-/isolatiegates blijven groen. Beide normale builds exit0.
+Commando's, rapporten en loghashes:
+[Veld-05-bewijs](verification/veld-hc-20261103/README.md).
+Geen nieuwe CI-, hardware- of menselijke claim.
+
+**Filevrijgave na bevriezen:** General is nu expliciet enige schrijver van
+ook `sdk/examples/materiaal/src/lib.rs` en `tests/chain.rs` voor begrensde
+app-lifecyclecleanup/-tests. Mijn HC-input-/chainhunken zijn volledig op
+047abfa1 bewaard; zijn product- en lifecycleproeven blijven bij latere seriele
+integratie behouden. Geen nieuwe writes aan deze bestanden.
+Settings persistence/router/consumer heeft hier geen actieve writes of
+aanvullend architectuurcontract; General neemt dat onafhankelijke spoor.
+**Eerstvolgend:** vrije Veld-shell-/interactiescope kiezen zonder nieuwe
+Materiaalpolish of overlap met General. De oorspronkelijke remote-delta
+dcb97175 blijft niet geintegreerd; veilige HC-branch bewaart al het eigen werk.
 Score **41 -> 41**: geen nieuw volledig geaccepteerd criterium; complete
 Veld-omgeving, systeeminstellingen, motion, drag/drop en resize blijven open.
 

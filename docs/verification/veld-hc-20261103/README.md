@@ -1,6 +1,7 @@
 # Veld-05 — app-lokaal hoogcontrast
 
-**Tussenstand voor native acceptatie.** Implementatiebasis
+**Native deelacceptatie geslaagd.** Productbron
+`047abfa1cedcfc2740d59793ae30ab07fcd9e197`, implementatiebasis
 `16c26c1c4b2d20e4644633439edf1dfe848bc140`,
 branch `simonvanieperen-veld-hc-20261103`. Geen opname van de onverwachte
 oude remote-delta `dcb97175`, geen scoreimport van General.
@@ -43,9 +44,11 @@ Eerste nieuwe fouttest verwachtte onterecht een geslaagde evaluatie bij
 De nieuwe luminantietest vereiste expliciete u32-kanaaltypen.
 Productgedrag is voor beide testfouten niet veranderd; volledige keten herhaald.
 
-## Nog niet uitgevoerd: native acceptatie
+## Uitgevoerd: native acceptatie
 
-Bevries eerst dit productcheckpoint. Voorgeschreven sequentiele opdrachten:
+Dezelfde bevroren productbron, fingerprint v3
+`15997f71b11af72bfebaf0ca8a962c7f7cda0bc0bd3c80fbd19808cb1265d3e8`,
+is afzonderlijk op beide schalen getest. Sequentieel uitgevoerd:
 
 ```sh
 export NOS_BUILD_DIR="$PWD/build/veld-hc-20261103/scale1"
@@ -58,15 +61,31 @@ python3 -B -u tools/build.py --kernel-feature native-window-session-hidpi-probe
 python3 -B -u tools/run_window_session.py --clipboard --workspace --scale 2 --timeout 1800 --bios-rom "$NOS_BIOS_ROM" --vga-rom "$NOS_VGA_ROM"
 ```
 
-Daarna normale builds met eigen `normal1`/`normal2`-buildmappen,
-dezelfde respectieve targetmappen en features `native-window-session`
-en `native-window-session-hidpi`.
-Verwacht48 volledige fasen per schaal, echte QMP-hotkeys bij open documentmenu
+Alle vier opdrachten exit0. Native100%:48 fasen,379,46 s
+(runnerwandtijd393,70 s); native200%:48 fasen,685,62 s
+(runnerwandtijd709,53 s). Beide ruwe QEMU-exit33.
+`app_high_contrast_gate` en alle toepasselijke oorspronkelijke gates true;
+`native_scale200_gate` alleen bij de echte200%-run true.
+Daarna uitgevoerd met eigen `normal1`/`normal2`-buildmappen en dezelfde
+respectieve targetmappen:
+
+```sh
+python3 -B -u tools/build.py --kernel-feature native-window-session
+python3 -B -u tools/build.py --kernel-feature native-window-session-hidpi
+```
+
+Beide exit0,3,10 s en2,36 s. Dit is compilatiebewijs zonder foutinjectie,
+geen extra runtimeclaim.48 volledige fasen per schaal, echte QMP-hotkeys bij open documentmenu
 en bij Rekenmachine, behouden berekening en exact herstel van het standaardframe.
 Alle oorspronkelijke crash/rebind-, klembord-, opslag-, canary- en cleanupgates
-blijven verplicht. Een build is geen runtimebewijs.
+zijn geslaagd. Een build is geen runtimebewijs.
 
-Nog geen native HC-, nieuwe CI-, fysieke hardware-, menselijke gebruiks-,
+[100%-rapport](native-scale1.json), [200%-rapport](native-scale2.json) en
+[loghashes](logs.sha256) binden bron, firmware, pixels, fasen en schijf.
+Geen gastnetwerk, hostdisk of productiedata gebruikt. De optionele lokale
+PNG-conversie kon niet starten wegens ontbrekende Pillow; niets geinstalleerd,
+de oorspronkelijke PPM-frames en volledige pixelasserties zijn behouden.
+Geen nieuwe CI-, fysieke hardware-, menselijke gebruiks-,
 schermlezer- of releasevalidatie. Globale instellingen/persistence, shell-HC,
 reduced-motion en overige complete Veld-functies blijven open.
 Score **41 -> 41**, zonder criterium- of gewichtswijziging.
