@@ -187,7 +187,7 @@ def sequence(stdout, case="normal"):
                 raise ValueError("Disconnected app case did not execute exactly its bounded setup")
         else:
             exact = {408: 2, 416: 1, 424: 1, 432: 9, 440: 1, 456: len(RESPONSES[0]),
-                     464: 2, 472: 4, 480: 1, 488: 1, 496: 1, 504: 1, 512: 1, 520: 0, 536: 0}
+                     464: 2, 472: 4, 480: 1, 488: 1, 496: 1, 504: 1, 512: 1, 520: 2, 536: 0}
             if any(app[k] != v for k, v in exact.items()) or app[448] < 3:
                 raise ValueError("Native app success/refusal/reopen evidence differs: " + role)
     expected_net = {"NET_TX_SUBMITTED", "NET_TX_COMPLETED", "NET_RX_COMPLETED", "NET_RX_DELIVERED",

@@ -101,7 +101,7 @@ def native_serial(case="normal"):
     app = dict.fromkeys(OFFSETS, 0)
     app.update({400: 1, 408: 2, 416: 1, 424: 1, 432: 9, 440: 1, 448: 3,
                 456: len(RESPONSES[0]), 464: 2, 472: 4, 480: 1, 488: 1,
-                496: 1, 504: 1, 512: 1, 528: 1})
+                496: 1, 504: 1, 512: 1, 520: 2, 528: 1})
     if case == "client-exit":
         service.update({440: 13, 448: 1, 456: 1, 464: 6, 472: 3 * len(REQUESTS[1]),
                         480: 2 * len(RESPONSES[1]), 488: 2, 512: 4, 520: 1, 536: 1})
@@ -211,6 +211,15 @@ class PeerChecks(unittest.TestCase):
             ]
             with self.subTest(case=case), self.assertRaisesRegex(ValueError, "fragment"):
                 sequence("\n".join(lines) + "\n", case)
+
+    def test_native_serial_requires_actual_terminal_receive_after_timeout(self):
+        for case in ("normal", "client-exit"):
+            original = native_serial(case)
+            for role in (("APP_A", "APP_B") if case == "normal" else ("APP_B",)):
+                bad = original.replace(f"NETSVC:{role}:520:00000000000000000002",
+                                       f"NETSVC:{role}:520:00000000000000000000")
+                with self.subTest(case=case, role=role), self.assertRaises(ValueError):
+                    sequence(bad, case)
 
     def test_raw_input_reply_and_summary_tampering_is_rejected(self):
         for kind in ("input", "output", "events", "counts", "time", "wire", "missing"):

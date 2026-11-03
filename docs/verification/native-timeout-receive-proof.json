@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-03",
+  "base": "faffd2ae28e660ff8f7966f08e63186f94a1e184",
+  "source_fingerprint_version": 3,
+  "source_sha256": "1ca8615711e88eefa058c206e91cf9b52d00a4640760a7b4d9d4216cd3928408",
+  "change": "The existing actual ring3 timeout scenario now performs two ReceiveTcp calls after observing terminal state. Both must return Read::End, never Again. Per-active-app counter520 records the two actual RPC results, and the serial oracle requires exactly2. Client-exit APP_A remains unchanged at0. TCP/UDP, fragment, backpressure, rights, process lifetime and cleanup assertions remain.",
+  "checks": [
+    {"command": "PYTHONPATH=tools python3 -B -m unittest test_network_service_peer", "exit": 0, "tests": 14, "seconds": 0.098, "log": "/tmp/nieuw-os-native-timeout-receive-python.log", "sha256": "a969b166c71b844c169eb9db1c794421cb1693cf85fb4fbae3001f5406b8fad7"},
+    {"command": "cargo fmt --manifest-path sdk/examples/network-service/Cargo.toml -- --check", "exit": 1, "purpose": "Initial format mismatch; corrected using existing cargo fmt"},
+    {"command": "cargo clippy --offline --locked --manifest-path sdk/examples/network-service/Cargo.toml --features native-client --bins --target x86_64-unknown-none -- -D warnings", "exit": 101, "purpose": "Invalid feature selector; no build ran. Correct existing feature is native."},
+    {"command": "cargo clippy --offline --locked --manifest-path sdk/examples/network-service/Cargo.toml --features native --bins --target x86_64-unknown-none -- -D warnings", "exit": 0, "log": "/tmp/nieuw-os-native-timeout-receive-clippy.log", "sha256": "ef41f2cff2d152659b44a612e2c27087addce6fd177398ca6fdb94a71df8bb63"},
+    {"command": "cargo fmt --manifest-path sdk/examples/network-service/Cargo.toml -- --check", "exit": 0},
+    {"command": "git diff --check", "exit": 0}
+  ],
+  "native_runtime": "NOT EXECUTED on this source. Existing normal/client-exit hosted jobs must prove actual counter520=2 for active owners. Host synthetic serial tests only show that missing observations are rejected, not that QEMU passed.",
+  "progress": {"previous": 41, "current": 41, "new_points": 0}
+}
