@@ -85,6 +85,14 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR145-rapportintegratie (3 november 2026), rapportbasis `380111b6`:
+**41 -> 41**. Statische AI-review zonder opgeleverde bestands-/regeldekking;
+geen onafhankelijke menselijke of volledige codebase-audit. Toenmalige
+Dependabot-alertstatus was leeg, geen volledige advisoryscan. Secret
+Scanning stond uit en lokale scanners ontbraken; geen complete secretscan,
+codefix of producttest uitgevoerd. Zie
+`verification/security-audit-20261103.md`; geen nieuw acceptatiepunt.
+
 PR114-vervolgreview (3 november 2026), basis `783a48aa`: **41 -> 41**.
 Primaire bronmetadata verduidelijkt historische proofscope. Twee originele
 Btrfs-receipts binden82+17 entries onafhankelijk; onvolledige lijsten kunnen
