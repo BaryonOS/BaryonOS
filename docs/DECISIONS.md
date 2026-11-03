@@ -31,7 +31,44 @@ VMware blijft een aparte platformproef volgens
 Herzien bij echte account-/sessierechten, resize/rebind, GPU-transport of
 een gewijzigde trusted-inputgrens; een hostbeeld vervangt geen native bewijs.
 
-## ADR-056 — herkenbare sessieroute met expliciete VM-bewijsgrens
+## Nummerbehoud bij desktopintegratie — 2 november 2026
+
+De desktopbranches gebruikten al bezette ADR-nummers. Bestaande IPC- en
+appbesluiten behouden hun nummer; de samengevoegde UI-besluiten krijgen
+unieke nummers. Oude volledige titelankers blijven als alias bestaan.
+Historische bewijsbestanden behouden hun oorspronkelijke nummervermelding.
+
+| Oud nummer / onderwerp | Uniek nummer |
+|---|---|
+| 053, native vensterbeleid | ADR-059 |
+| 054, tijdelijke autoriteitsvergelijking | ADR-060 |
+| 055, begrensde GUI-rust | ADR-061 |
+| 056, eenmalig klembord | ADR-062 |
+| 056, herkenbare VM-sessieroute | ADR-063 |
+| 058, positieve volume-identiteit | ADR-064 |
+
+## Onderzoeksbesluit J-20261102 — herkenbare basis, expliciete installatiegrens
+
+**Datum:** 2 november 2026. **Status:** ontwerp-/onderzoekskeuze, geen
+gerealiseerde architectuur of native acceptatie. Na de
+[volledige OS-journeyvergelijking](research/2026-11-02/journey/README.md)
+is de voorkeursrichting één kerninterface met voorspelbare basisacties,
+lokale zoekaliassen en optionele herkomstgerichte hulp. Geen vier shells,
+herkomst als machtiging of vrije AI-uitvoering. De voorgestelde installer
+toont één compleet wijzigingsplan vóór iedere opslagmutatie, ook Advanced;
+onbekende schijf is niet leeg en een gewijzigd doel maakt autorisatie ongeldig.
+
+**Reden:** gedocumenteerde overeenkomsten helpen kennis overdragen, terwijl
+app-/vensterbetekenis, zoekbereik, installerfasen en vroege schrijfgrenzen
+daadwerkelijk verschillen. Een exacte nieuw-os-volgorde of betere bruikbaarheid
+is daarmee niet bewezen. **Gevolg:** afzonderlijke IN-/ON-/UX-criteria en
+service-/veiligheidsgates vóór uitvoering; P2, kernelkeuze, privacycontract en
+vaste scorecriteria blijven behouden. **Herzien:** op taakobservatie,
+actuele bron-/hardwareverschillen of een aantoonbare technische veiligheidsgrens.
+Details en begrensd vervolg: [PRODUCT-SPEC.md](implementation/PRODUCT-SPEC.md).
+
+<a id="adr-056--herkenbare-sessieroute-met-expliciete-vm-bewijsgrens"></a>
+## ADR-063 — herkenbare sessieroute met expliciete VM-bewijsgrens
 
 2 november 2026. De gebruikersopdracht vraagt bekende stappen uit macOS,
 Windows en Linux binnen de eigen architectuur. Accountkeuze, credentialinvoer,
@@ -109,6 +146,52 @@ blijven gelden. Dit besluit kondigt geen nieuwe mergepauze of vrijgave af.
   routebewijs*, oorspronkelijke overdrachtbron
   `0915828fcd40492f873dc9098ee445306f1f0638`:
   [routeverslag](https://github.com/simonvanieperen/nieuw-os/blob/0915828fcd40492f873dc9098ee445306f1f0638/docs/verification/windows-delivery-21/README.md).
+
+## ADR-058 — Herkenbare consumentenbediening op de eigen kernel
+
+**Datum/status:** 30 oktober 2026; gebruikersbesluit van Simon, vastgelegd
+in PR #114. Leidend boven de eerdere eisen dat het hoofdscherm geen
+bestaande desktop mag nabootsen en dat er geen dock of taakbalk komt
+(PRODUCT-SPEC §1 en §5, het verbod op interactioneel nabouwen in
+PRODUCT-SPEC *Aanvulling P3/P4* voor gangbare indeling en bediening,
+DESIGN-AMBITION, PRODUCT-AND-SOVEREIGNTY §2, AGENTS.md *Productambitie*).
+
+**Besluit:** consumenten hoeven Nieuw OS niet opnieuw te leren. Inrichting,
+inloggen, vergrendelen, gebruikersbeheer, bureaublad, taakbalk, startmenu met
+zoeken, vensterbediening, bestandsbeheer, instellingen en gangbare
+sneltoetsen volgen de conventies die Windows, macOS en gangbare
+Linux-desktops gemeen hebben. Waar die verschillen, kiest het ontwerp één
+variant en legt die vast. Vernieuwing ("futuristisch") is een aanvulling op
+het bekende pad, nooit een vervanging ervan.
+
+**Gevolgen:**
+
+- De eigen kernel, microkernel-/capabilityarchitectuur, eigen code en de
+  Security Floor blijven ongewijzigd. Herkenbare bediening verleent geen
+  bredere rechten: een app krijgt nog steeds alleen expliciet verleende
+  capabilities, ook als de interface op bekende platforms lijkt.
+- Herkenbaar inloggen verandert de beveiliging niet: elke gebruiker heeft
+  eigen sleutelmateriaal (geen gedeelde volumesleutel), inloggegevens worden
+  alleen in de sessiedienst ingevoerd via het vergrendelscherm of
+  Ctrl+Alt+Delete, en de pincode beschermt nooit sleutels op schijf
+  (PROFILES-AND-USERS §4).
+- Materiaal blijft het gegevens-, geschiedenis- en rechtenmodel. Het wordt
+  zichtbaar via de Bestanden-app, recente items in het startmenu en
+  toestemmingsdialogen; het is niet langer het verplichte hoofdscherm.
+  P2 blijft historisch productbewijs, geen te bouwen eindlay-out.
+- Eigen visuele identiteit: geen gekopieerde iconen, afbeeldingen, merknamen
+  of trade dress van andere platforms. Herkenbaar is de indeling en
+  bediening, niet de huisstijl.
+- De functies uit FR-U01 blijven verplicht, maar worden bereikt vanuit het
+  bureaublad en startmenu. De tekst van de matrix in FULL-TEST-RELEASE wordt
+  door de integrator in een vervolgwijziging aangepast; dit besluit schrapt
+  geen rij en sluit geen criterium. Score blijft 34%.
+- Uitwerking: [PROFILES-AND-USERS.md](implementation/PROFILES-AND-USERS.md)
+  en [DESKTOP-SHELL.md](implementation/DESKTOP-SHELL.md).
+
+**Herzien** na gebruikersproeven (U06) die aantonen dat een conventie voor de
+doelgroep slechter werkt, of bij een nieuw expliciet besluit van Simon.
+Rollback: dit ADR intrekken en de eerdere teksten weer leidend maken.
 
 # ADR-054 — Gedeeld immutable artifact-storecontract
 
@@ -1433,7 +1516,8 @@ OSDev: *Memory mapped registers in C/C++*, W003198, revisie30402
 Herzien vóór een productbroker, andere hardware of NV-commits. Rollback:
 opt-in features/fixture verwijderen; legacy profielen blijven ongewijzigd.
 
-## ADR-053 — Native vensterbeleid en vervangbare presentatiediensten
+<a id="adr-053--native-vensterbeleid-en-vervangbare-presentatiediensten"></a>
+## ADR-059 — Native vensterbeleid en vervangbare presentatiediensten
 
 **Datum:** 2 november 2026. De nieuwe opt-in venstersessie gebruikt dezelfde
 eigen kernel, capability-engine, INP1 en SUR1. Twee geïsoleerde applicaties
@@ -1460,7 +1544,8 @@ apparaatdelegatie en geen kernel-GUI-beleid. Zie het exacte bouw-/testcontract
 in `docs/implementation/NATIVE-WINDOW-SESSION.md`; native acceptatie is bij dit
 ontwerpcheckpoint nog open. Geen U01-punten voor alleen deze bouwstap.
 
-## ADR-054 — Exacte, tijdelijke autoriteitsvergelijking op de syscallgrens
+<a id="adr-054--exacte-tijdelijke-autoriteitsvergelijking-op-de-syscallgrens"></a>
+## ADR-060 — Exacte, tijdelijke autoriteitsvergelijking op de syscallgrens
 
 **Datum:** 2 november 2026. De volledige verse `Stats`- en digestfuncties
 blijven de bestaande diagnostische orakels. Op de M4-foutgrens vervangen we
@@ -1486,7 +1571,8 @@ geen native latentiewaarborg of U02-punten. SMP of herintredende kernelcallbacks
 vragen een nieuw ontwerp. Details en bewijsgrenzen:
 `docs/implementation/EXACT-AUTHORITY-SNAPSHOTS.md`.
 
-## ADR-055 — Begrensde rust in GUI-processen via bestaande IPC_WAIT
+<a id="adr-055--begrensde-rust-in-gui-processen-via-bestaande-ipc_wait"></a>
+## ADR-061 — Begrensde rust in GUI-processen via bestaande IPC_WAIT
 
 **Datum:** 2 november 2026. Materiaal, Rekenmachine, compositor en window-init
 parkeren uitsluitend na een echte lege ontvang-/invoercontrole en volledig
@@ -1507,7 +1593,8 @@ herstelstaten; U02 vereist nog klembord en volledige interactiebudgetten.
 Contract en brongebonden bewijs: implementation/GUI-IDLE-WAIT.md en
 verification/gui-idle-20261102/INTEGRATION.md.
 
-## ADR-056 — Klembord als eenmalige, focusgebonden tekstoverdracht
+<a id="adr-056--klembord-als-eenmalige-focusgebonden-tekstoverdracht"></a>
+## ADR-062 — Klembord als eenmalige, focusgebonden tekstoverdracht
 
 **Datum:** 2 november2026. Het bestaande vertrouwde venstercompositorproces
 bemiddelt een vluchtig CLP1-klembord voor expliciet geselecteerde tekst. De
@@ -1556,7 +1643,8 @@ schijfdecoder; koude heropening kopieert uitsluitend een opnieuw gevalideerde
 bron-/profielgebonden wegwerprun. U03 blijft open totdat de volledige route en
 regressie werkelijk slagen. Geen authenticatie-, encryptie- of hardwareclaim.
 
-## ADR-058 — Positieve volume-identiteit vóór toelating als lege opslag
+<a id="adr-058--positieve-volume-identiteit-vóór-toelating-als-lege-opslag"></a>
+## ADR-064 — Positieve volume-identiteit vóór toelating als lege opslag
 
 **Datum:** 2 november 2026. Uitvoeringsbasis: `74a34d0`.
 

@@ -54,7 +54,7 @@ Gescopete sectoren `[4, 584)`. Iedere tabelkopie telt 34 sectoren
 
 ## Invarianten (aanvulling op M6e)
 
-**Toelating vóór herstel (ADR-058, 2 november 2026).** Minstens één volledige
+**Toelating vóór herstel (ADR-064, 2 november 2026).** Minstens één volledige
 kopie moet als eigen `NOSVOL02`-metadata zijn gedecodeerd. Voor een nieuw leeg
 wegwerpvolume zet de offline fixturebuilder de canonieke, volledig verzegelde
 generatie 0 in slot 0; request-ID, klokken, objecten en collecties zijn exact

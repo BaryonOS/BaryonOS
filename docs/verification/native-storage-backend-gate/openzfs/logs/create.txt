@@ -1,0 +1,30 @@
+missing value in property=value '-C' argument (off)
+Usage: ztest [OPTIONS...]
+    -v --vdevs=INTEGER                       Number of vdevs (default: 5)
+    -s --vdev-size=INTEGER                   Size of each vdev (default: 256M)
+    -a --alignment-shift=INTEGER             Alignment shift; use 0 for random (default: 9)
+    -m --mirror-copies=INTEGER               Number of mirror copies (default: 2)
+    -r --raid-disks=INTEGER                  Number of raidz/draid disks (default: 4)
+    -R --raid-parity=INTEGER                 Raid parity (default: 1)
+    -K --raid-kind=raidz|eraidz|draid|random Raid kind (default: random)
+    -D --draid-data=INTEGER                  Number of draid data drives (default: 4)
+    -S --draid-spares=INTEGER                Number of draid spares (default: 1)
+    -d --datasets=INTEGER                    Number of datasets (default: 7)
+    -t --threads=INTEGER                     Number of ztest threads (default: 23)
+    -g --gang-block-threshold=INTEGER        Metaslab gang block threshold (default: 64K)
+    -i --init-count=INTEGER                  Number of times to initialize pool (default: 1)
+    -k --kill-percentage=INTEGER             Kill percentage (default: 70%)
+    -p --pool-name=STRING                    Pool name (default: ztest)
+    -f --vdev-file-directory=PATH            File directory for vdev files (default: /tmp)
+    -M --multi-host                          Multi-host; simulate pool imported on remote host
+    -E --use-existing-pool                   Use existing pool instead of creating new one
+    -T --run-time=INTEGER                    Total run time (default: 300 sec)
+    -P --pass-time=INTEGER                   Time per pass (default: 60 sec)
+    -F --freeze-loops=INTEGER                Max loops in spa_freeze() (default: 50)
+    -B --alt-ztest=PATH                      Alternate ztest path
+    -C --vdev-class-state=on|off|random      vdev class state (default: random)
+    -X --raidz-expansion                     Perform a dedicated raidz expansion test
+    -o --option="NAME=VALUE"                 Set the named tunable to the given value
+    -G --dump-debug-msg                      Dump zfs_dbgmsg buffer before exiting due to an error
+    -V --verbose                             Verbose (use multiple times for ever more verbosity)
+    -h --help                                Show this help

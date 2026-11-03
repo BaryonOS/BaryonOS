@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-03",
+  "source_commit": "1552e5ae1a0e053a6df5ef802f6c0e4e78544cf7",
+  "baseline_before_doc_merges": "720cd431ff15cde6045abde4b4f7dab8878bfdf0",
+  "preserved_full_parents": {
+    "136": "f6921e49d08a7c547ffda356f71bc17f1de15f31",
+    "143": "d169796acdb84960f71b3ef6667da1094f57079e",
+    "144": "a974fb9f731847a8b4dc55f1e080ced945a58e63",
+    "145": "da5918fbe6d8173c4cf44810d403f965c204d36e"
+  },
+  "scope_check": "Every change from720cd431 is README,CHANGELOG or docs; no runtime,tool,test,workflow or rights change introduced by these four merges.",
+  "rubric_check": "All four incoming non-assessment progress objects exactly match the retained41-point rubric.",
+  "content_checks": [
+    "All10 README code-reading paths exist.",
+    "Fixed ad2b981f..380111b6 range is exactly14 commits.",
+    "CHANGELOG and bounded AI-review report byte-match their frozen leaf heads.",
+    "Audit seven-file hashes, schema39,62 release mappings and0 closed release rows pass.",
+    "All4 frozen heads are actual ancestors; no unresolved index entries."
+  ],
+  "checks": [
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_storage_backend_replay.py"
+      ],
+      "exit": 0,
+      "seconds": 0.32931834000009985,
+      "log": "/tmp/nieuw-os-doc-stack-storage.log",
+      "sha256": "34d42af9655d9444aa4907e016e99a2d0a1d27902c0f20eeea4444c341ce7d39"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "docs/verification/native-storage-backend-gate/verify_evidence.py"
+      ],
+      "exit": 0,
+      "seconds": 0.04685620200007179,
+      "log": "/tmp/nieuw-os-doc-stack-archive.log",
+      "sha256": "8ff699d75686b38fbadd0ff64faa4c76e47e1b58c54a9f7d52c3359a3c425212"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "-c",
+        "import json,hashlib,re\nfrom pathlib import Path\nfrom jsonschema import Draft202012Validator\nr=Path('.');p=json.loads((r/'docs/verification/pr136-review-fixes.json').read_text())\nfor e in p['changed_files']:\n assert hashlib.sha256((r/e['path']).read_bytes()).hexdigest()==e['sha256'],e['path']\na=r/'docs/audit/os-completeness';m=json.loads((a/'matrix.json').read_text());Draft202012Validator(json.loads((a/'matrix.schema.json').read_text())).validate(m)\nassert len(m['items'])==len({v['id'] for v in m['items']})==39\nids=re.findall(r'^\\| (FR-[A-Z][0-9]{2})\\b',(r/'docs/FULL-TEST-RELEASE.md').read_text(),re.M)\nmapped=re.findall(r'^\\| (FR-[A-Z][0-9]{2})\\b',(a/'release-criteria-map.md').read_text(),re.M)\nassert len(ids)==len(mapped)==len(set(ids))==62 and set(ids)==set(mapped)\nq=next(v for v in m['items'] if v['id']=='QUANTUM-LOCAL');assert 'VM_TESTED' in q['evidence_levels'] and 'FR-L04' in str(q['blockers'])\ns=json.loads((a/'verification.json').read_text())['matrix_summary'];assert s['binding_full_release_rows_closed']==0 and s['evidence_level_assignments']['VM_TESTED']==21\nprint('PASS:7 source hashes; Draft2020-12;39 groups;62 release mappings; historical L02 VM evidence;0 full-release rows closed')\n"
+      ],
+      "exit": 0,
+      "seconds": 0.08095582500027376,
+      "log": "/tmp/nieuw-os-doc-stack-audit.log",
+      "sha256": "1cdb67d02bb0cb1f5e6dbb7f70f27ee9c1bbff552415cadc14f76d1c59fd5ad9"
+    }
+  ],
+  "integration_decision": "Do not close or merge based on these local checks alone. Fresh combined CI/review and current head/base/content checks remain required.",
+  "not_run": [
+    "Native/QEMU/hardware/human audit/release validation on this documentation combination.",
+    "Complete historical local-payload or foreign engine replay."
+  ],
+  "progress": {
+    "previous": 41,
+    "current": 41,
+    "new_points": 0
+  }
+}

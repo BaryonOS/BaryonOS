@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "audit_basis": {
+    "branch": "simonvanieperen-cautious-happiness",
+    "commit": "380111b68688c981eec6abb8fab29174a29f5601",
+    "date": "2026-11-02"
+  },
+  "matrix_summary": {
+    "feature_groups": 39,
+    "status_counts": {
+      "BLOCKED": 1,
+      "DOCUMENTED": 8,
+      "DONE": 2,
+      "MISSING": 2,
+      "NOT_RECOMMENDED": 1,
+      "PARTIAL": 17,
+      "PROTOTYPE": 8
+    },
+    "evidence_level_assignments": {
+      "HOST_TESTED": 11,
+      "SOURCE_ONLY": 36,
+      "VM_TESTED": 21,
+      "HARDWARE_TESTED": 0,
+      "HUMAN_TESTED": 0,
+      "INDEPENDENTLY_REVIEWED": 0,
+      "RELEASE_VALIDATED": 0
+    },
+    "priority_counts": {
+      "P0_RELEASE_BLOCKER": 21,
+      "P1_DAILY_USE_CRITICAL": 13,
+      "P2_ADOPTION_CRITICAL": 3,
+      "P3_DIFFERENTIATOR": 0,
+      "P4_LATER": 1,
+      "RESEARCH": 1
+    },
+    "complexity_counts": {
+      "large": 11,
+      "very_large": 24,
+      "research_program": 4
+    },
+    "first_required_release_profile_counts": {
+      "TECHNICAL_PREVIEW": 5,
+      "EXPERIMENTAL_DESKTOP": 11,
+      "DAILY_DRIVER_BETA": 19,
+      "CONSUMER_RELEASE": 4
+    },
+    "binding_full_release_rows": 62,
+    "binding_release_rows_mapped": 62,
+    "binding_full_release_rows_closed": 0
+  },
+  "checks": [
+    {
+      "id": "AUDIT-BASELINE",
+      "result": "passed",
+      "evidence": "git branch/HEAD/status, origin ls-remote, gh PR/CI metadata, and git worktree list were read-only checked."
+    },
+    {
+      "id": "JSON-SCHEMA",
+      "result": "passed",
+      "command": "python3 - <<'PY' ... jsonschema.Draft202012Validator(schema).validate(matrix) ... PY",
+      "evidence": "Draft 2020-12 validation passed; 39 items."
+    },
+    {
+      "id": "MATRIX-INVARIANTS",
+      "result": "passed",
+      "evidence": "Unique IDs, exact required key set, allowed status/evidence/profile/priority enums, nonempty string arrays and acceptance criteria were checked."
+    },
+    {
+      "id": "FR-TRACEABILITY",
+      "result": "passed",
+      "command": "python3 - <<'PY' ... compare the 62 FULL-TEST-RELEASE table rows with release-criteria-map.md ... PY",
+      "evidence": "All 62 unique binding row IDs are mapped once; titles match the source and every referenced audit group exists. All release gates remain OPEN."
+    },
+    {
+      "id": "PR136-DOCUMENTATION-REVIEW",
+      "result": "passed",
+      "command": "Python 3 assertion check: schema, audit/status/profile counts, priority labels, release-profile scopes, 62-row mapping, links, and stale CI wording",
+      "exit_status": 0,
+      "evidence": "Validated all four documentation corrections against the binding matrix. Profile counts are 5 technical preview, 11 experimental desktop, 19 daily-driver beta, and 4 consumer release; all 62 release rows remain open."
+    },
+    {
+      "id": "PR136-EXACT-HEAD-CI",
+      "result": "passed",
+      "command": "gh pr view 136 --repo simonvanieperen/nieuw-os --json statusCheckRollup",
+      "exit_status": 0,
+      "evidence": "At head 4a52aeae6c481cbee0b058c71430b45feb10d5bb, 29 CI checks completed with SUCCESS and the CodeRabbit job was SKIPPED; no failed checks. These audit-branch checks do not close any product release criterion."
+    },
+    {
+      "id": "INTERNAL-LINKS",
+      "result": "passed",
+      "evidence": "Relative links in audit Markdown resolve within the worktree."
+    },
+    {
+      "id": "PROGRESS-RUBRIC",
+      "result": "passed",
+      "command": "python3 tools/progress.py --write && python3 tools/progress.py --check",
+      "exit_status": 0,
+      "evidence": "After updating the audit assessment, both commands exited 0; rubric v1 remains 41/100 and this audit adds no product criterion."
+    },
+    {
+      "id": "DIFF-CHECK",
+      "result": "passed",
+      "command": "git diff --cached --check",
+      "exit_status": 0,
+      "evidence": "No whitespace errors in the documentation-only change set."
+    },
+    {
+      "id": "EXACT-HEAD-CI",
+      "result": "passed",
+      "evidence": "15 of 15 listed workflows completed successfully on 380111b, including run 41535553113. Workflow success is not full release validation."
+    },
+    {
+      "id": "AUDIT-LOCAL-PRODUCT-TESTS",
+      "result": "not_run",
+      "evidence": "This documentation audit did not execute local builds, unit tests or QEMU runs; GitHub CI was inspected read-only. No physical tests, user studies, external security review or release validation were performed."
+    },
+    {
+      "id": "UEFI-PRIMARY-SOURCE",
+      "result": "unavailable",
+      "evidence": "The UEFI Forum specification URL returned HTTP 403; no claim was sourced from that failed fetch."
+    }
+  ]
+}

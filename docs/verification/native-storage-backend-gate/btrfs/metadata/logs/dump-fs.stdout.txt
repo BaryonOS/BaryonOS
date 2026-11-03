@@ -1,0 +1,218 @@
+btrfs-progs v6.17.1
+fs tree key (FS_TREE ROOT_ITEM 0) 
+leaf 30408704 items 46 free space 12310 generation 6 owner FS_TREE
+leaf 30408704 flags 0x1(WRITTEN) backref revision 1
+fs uuid 2b95d05b-84b0-431b-9226-df13051f75d4
+chunk uuid 66023f75-0bb3-4280-b740-5e2d6d5acb85
+	item 0 key (256 INODE_ITEM 0) itemoff 16123 itemsize 160
+		generation 0 transid 0 size 142 nbytes 0
+		block group 0 mode 40755 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655343.0 (2026-11-02 22:35:43)
+		ctime 1793655343.0 (2026-11-02 22:35:43)
+		mtime 1793655343.0 (2026-11-02 22:35:43)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 1 key (256 INODE_REF 256) itemoff 16111 itemsize 12
+		index 0 namelen 2 name: ..
+	item 2 key (256 DIR_ITEM 903702614) itemoff 16071 itemsize 40
+		location key (259 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 10
+		name: hard-b.bin
+	item 3 key (256 DIR_ITEM 1098488316) itemoff 16032 itemsize 39
+		location key (263 INODE_ITEM 0) type DIR
+		transid 6 data_len 0 name_len 9
+		name: empty-dir
+	item 4 key (256 DIR_ITEM 1974939041) itemoff 15996 itemsize 36
+		location key (261 INODE_ITEM 0) type DIR
+		transid 6 data_len 0 name_len 6
+		name: nested
+	item 5 key (256 DIR_ITEM 2112805026) itemoff 15956 itemsize 40
+		location key (259 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 10
+		name: hard-a.bin
+	item 6 key (256 DIR_ITEM 3148479821) itemoff 15913 itemsize 43
+		location key (260 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: mode-file.txt
+	item 7 key (256 DIR_ITEM 3767874542) itemoff 15870 itemsize 43
+		location key (257 INODE_ITEM 0) type SYMLINK
+		transid 6 data_len 0 name_len 13
+		name: symbolic-link
+	item 8 key (256 DIR_ITEM 4263504077) itemoff 15830 itemsize 40
+		location key (258 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 10
+		name: sparse.bin
+	item 9 key (256 DIR_INDEX 2) itemoff 15787 itemsize 43
+		location key (257 INODE_ITEM 0) type SYMLINK
+		transid 6 data_len 0 name_len 13
+		name: symbolic-link
+	item 10 key (256 DIR_INDEX 3) itemoff 15747 itemsize 40
+		location key (258 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 10
+		name: sparse.bin
+	item 11 key (256 DIR_INDEX 4) itemoff 15707 itemsize 40
+		location key (259 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 10
+		name: hard-b.bin
+	item 12 key (256 DIR_INDEX 5) itemoff 15667 itemsize 40
+		location key (259 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 10
+		name: hard-a.bin
+	item 13 key (256 DIR_INDEX 6) itemoff 15624 itemsize 43
+		location key (260 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 13
+		name: mode-file.txt
+	item 14 key (256 DIR_INDEX 7) itemoff 15588 itemsize 36
+		location key (261 INODE_ITEM 0) type DIR
+		transid 6 data_len 0 name_len 6
+		name: nested
+	item 15 key (256 DIR_INDEX 8) itemoff 15549 itemsize 39
+		location key (263 INODE_ITEM 0) type DIR
+		transid 6 data_len 0 name_len 9
+		name: empty-dir
+	item 16 key (257 INODE_ITEM 0) itemoff 15389 itemsize 160
+		generation 0 transid 0 size 13 nbytes 14
+		block group 0 mode 120777 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655343.0 (2026-11-02 22:35:43)
+		ctime 1793655343.0 (2026-11-02 22:35:43)
+		mtime 1577836800.0 (2020-01-01 01:00:00)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 17 key (257 INODE_REF 256) itemoff 15366 itemsize 23
+		index 2 namelen 13 name: symbolic-link
+	item 18 key (257 EXTENT_DATA 0) itemoff 15331 itemsize 35
+		generation 6 type 0 (inline)
+		inline extent data size 14 ram_bytes 14 compression 0 (none)
+	item 19 key (258 INODE_ITEM 0) itemoff 15171 itemsize 160
+		generation 0 transid 0 size 8388608 nbytes 8388608
+		block group 0 mode 100640 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655343.0 (2026-11-02 22:35:43)
+		ctime 1793655343.0 (2026-11-02 22:35:43)
+		mtime 1577836800.0 (2020-01-01 01:00:00)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 20 key (258 INODE_REF 256) itemoff 15151 itemsize 20
+		index 3 namelen 10 name: sparse.bin
+	item 21 key (258 EXTENT_DATA 0) itemoff 15098 itemsize 53
+		generation 6 type 1 (regular)
+		extent data disk byte 13631488 nr 1048576
+		extent data offset 0 nr 1048576 ram 1048576
+		extent compression 0 (none)
+	item 22 key (258 EXTENT_DATA 1048576) itemoff 15045 itemsize 53
+		generation 6 type 1 (regular)
+		extent data disk byte 14680064 nr 1048576
+		extent data offset 0 nr 1048576 ram 1048576
+		extent compression 0 (none)
+	item 23 key (258 EXTENT_DATA 2097152) itemoff 14992 itemsize 53
+		generation 6 type 1 (regular)
+		extent data disk byte 15728640 nr 1048576
+		extent data offset 0 nr 1048576 ram 1048576
+		extent compression 0 (none)
+	item 24 key (258 EXTENT_DATA 3145728) itemoff 14939 itemsize 53
+		generation 6 type 1 (regular)
+		extent data disk byte 63963136 nr 1048576
+		extent data offset 0 nr 1048576 ram 1048576
+		extent compression 0 (none)
+	item 25 key (258 EXTENT_DATA 4194304) itemoff 14886 itemsize 53
+		generation 6 type 1 (regular)
+		extent data disk byte 65011712 nr 1048576
+		extent data offset 0 nr 1048576 ram 1048576
+		extent compression 0 (none)
+	item 26 key (258 EXTENT_DATA 5242880) itemoff 14833 itemsize 53
+		generation 6 type 1 (regular)
+		extent data disk byte 66060288 nr 1048576
+		extent data offset 0 nr 1048576 ram 1048576
+		extent compression 0 (none)
+	item 27 key (258 EXTENT_DATA 6291456) itemoff 14780 itemsize 53
+		generation 6 type 1 (regular)
+		extent data disk byte 67108864 nr 1048576
+		extent data offset 0 nr 1048576 ram 1048576
+		extent compression 0 (none)
+	item 28 key (258 EXTENT_DATA 7340032) itemoff 14727 itemsize 53
+		generation 6 type 1 (regular)
+		extent data disk byte 68157440 nr 1048576
+		extent data offset 0 nr 1048576 ram 1048576
+		extent compression 0 (none)
+	item 29 key (259 INODE_ITEM 0) itemoff 14567 itemsize 160
+		generation 0 transid 0 size 8192 nbytes 8192
+		block group 0 mode 100644 links 2 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655343.0 (2026-11-02 22:35:43)
+		ctime 1793655343.0 (2026-11-02 22:35:43)
+		mtime 1577836800.0 (2020-01-01 01:00:00)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 30 key (259 INODE_REF 256) itemoff 14527 itemsize 40
+		index 4 namelen 10 name: hard-b.bin
+		index 5 namelen 10 name: hard-a.bin
+	item 31 key (259 EXTENT_DATA 0) itemoff 14474 itemsize 53
+		generation 6 type 1 (regular)
+		extent data disk byte 69206016 nr 8192
+		extent data offset 0 nr 8192 ram 8192
+		extent compression 0 (none)
+	item 32 key (260 INODE_ITEM 0) itemoff 14314 itemsize 160
+		generation 0 transid 0 size 27 nbytes 27
+		block group 0 mode 100600 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655343.0 (2026-11-02 22:35:43)
+		ctime 1793655343.0 (2026-11-02 22:35:43)
+		mtime 1577836800.0 (2020-01-01 01:00:00)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 33 key (260 INODE_REF 256) itemoff 14291 itemsize 23
+		index 6 namelen 13 name: mode-file.txt
+	item 34 key (260 XATTR_ITEM 2518692344) itemoff 14225 itemsize 66
+		location key (0 UNKNOWN.0 0) type XATTR
+		transid 0 data_len 19 name_len 17
+		name: user.nieuwos.test
+		data file-xattr-value-v1
+	item 35 key (260 EXTENT_DATA 0) itemoff 14177 itemsize 48
+		generation 6 type 0 (inline)
+		inline extent data size 27 ram_bytes 27 compression 0 (none)
+	item 36 key (261 INODE_ITEM 0) itemoff 14017 itemsize 160
+		generation 0 transid 0 size 18 nbytes 0
+		block group 0 mode 40700 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655343.0 (2026-11-02 22:35:43)
+		ctime 1793655343.0 (2026-11-02 22:35:43)
+		mtime 1577836800.0 (2020-01-01 01:00:00)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 37 key (261 INODE_REF 256) itemoff 14001 itemsize 16
+		index 7 namelen 6 name: nested
+	item 38 key (261 DIR_ITEM 2318318603) itemoff 13962 itemsize 39
+		location key (262 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 9
+		name: child.txt
+	item 39 key (261 DIR_INDEX 2) itemoff 13923 itemsize 39
+		location key (262 INODE_ITEM 0) type FILE
+		transid 6 data_len 0 name_len 9
+		name: child.txt
+	item 40 key (262 INODE_ITEM 0) itemoff 13763 itemsize 160
+		generation 0 transid 0 size 13 nbytes 13
+		block group 0 mode 100640 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655343.0 (2026-11-02 22:35:43)
+		ctime 1793655343.0 (2026-11-02 22:35:43)
+		mtime 1577836800.0 (2020-01-01 01:00:00)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 41 key (262 INODE_REF 261) itemoff 13744 itemsize 19
+		index 2 namelen 9 name: child.txt
+	item 42 key (262 EXTENT_DATA 0) itemoff 13710 itemsize 34
+		generation 6 type 0 (inline)
+		inline extent data size 13 ram_bytes 13 compression 0 (none)
+	item 43 key (263 INODE_ITEM 0) itemoff 13550 itemsize 160
+		generation 0 transid 0 size 0 nbytes 0
+		block group 0 mode 40700 links 1 uid 1000 gid 1000 rdev 0
+		sequence 0 flags 0x0(none)
+		atime 1793655343.0 (2026-11-02 22:35:43)
+		ctime 1793655343.0 (2026-11-02 22:35:43)
+		mtime 1577836800.0 (2020-01-01 01:00:00)
+		otime 0.0 (1970-01-01 01:00:00)
+	item 44 key (263 INODE_REF 256) itemoff 13531 itemsize 19
+		index 8 namelen 9 name: empty-dir
+	item 45 key (263 XATTR_ITEM 2518692344) itemoff 13460 itemsize 71
+		location key (0 UNKNOWN.0 0) type XATTR
+		transid 0 data_len 24 name_len 17
+		name: user.nieuwos.test
+		data empty-dir-xattr-value-v1
+total bytes 268435456
+bytes used 8544256
+uuid 2b95d05b-84b0-431b-9226-df13051f75d4
