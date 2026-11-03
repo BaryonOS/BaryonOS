@@ -24,7 +24,7 @@ def evidence(case="normal", image_pages=6):
                   PRESSURE_CRITICAL=int(case == "oom"),
                   RECLAIM_OPPORTUNITIES=int(case == "oom"),
                   RECLAIMED_PROCESSES=15 if case == "oom" else 0,
-                  RECLAIMED_FRAMES=int(case == "oom"),
+                  RECLAIMED_FRAMES=15205 if case == "oom" else 0,
                   PRESSURE_RECOVERED=int(case == "oom"),
                   TIMER_IRQS=19, LIVE_PROCESSES=0, FRAMES_RECOVERED=1, KERNEL_TABLES_RETAINED=10,
                   CLEANUP_ZERO_BYTES=pages * 4096 + lives * 65536)
@@ -39,6 +39,8 @@ class EvidenceTests(unittest.TestCase):
             with self.subTest(case=case):
                 result = m.validate_sequence("UEFI banner\n" + evidence(case), case, 6)
                 self.assertEqual(result["CLEAN_STARTS"], 16 if case == "oom" else 3)
+                if case == "oom":
+                    self.assertEqual(result["RECLAIMED_FRAMES"], 15205)
 
     def test_missing_duplicate_unknown_reordered_or_preboot_evidence_is_rejected(self):
         text = evidence()

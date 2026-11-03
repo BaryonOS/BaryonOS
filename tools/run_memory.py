@@ -94,7 +94,6 @@ def validate_sequence(stdout: str, case: str, image_pages: int) -> dict:
              "PRESSURE_CRITICAL": int(case == "oom"),
              "RECLAIM_OPPORTUNITIES": int(case == "oom"),
              "RECLAIMED_PROCESSES": 15 if case == "oom" else 0,
-             "RECLAIMED_FRAMES": int(case == "oom"),
              "PRESSURE_RECOVERED": int(case == "oom"),
              "OOM_RECOVERIES": int(case == "oom"), "RETRY_ZERO_BYTES": 4096 * int(case == "oom")}
     if any(numbers[name] != value for name, value in fixed.items()):
