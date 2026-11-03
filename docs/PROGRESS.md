@@ -121,6 +121,16 @@ Formatter en gerichte driver-check/typecheck, Clippy, freestanding build en
 hosttests zijn exit 0 met tijdelijke compiler. Profile-builds moeten opnieuw
 worden uitgevoerd. Geen runtime-/hardwarebewijs of nieuw acceptatiepunt.
 
+Herverificatie van de zes kernelprofielen (3 november 2026), assessmentbasis
+`449ecd65`, branch `copilot/universal-driver-framework`: **41 -> 41**.
+`milestone-m5`, `milestone-m6a`, `milestone-m6b`, `milestone-m6c`,
+`native-volume` en `native-update --image-version 1` bouwen nu alle zes met
+exit 0; `1` is alleen compile-invoer. De logs, SHA-256, gebruikte tijdelijke
+compileromgeving en looptijden staan in de
+[profile-retest-receipt](verification/kernel-profile-retest-2026-11-03/README.md).
+Dit lost de profielcompilefout op, maar bewijst geen runtime- of
+hardwareondersteuning en sluit geen voortgangscriterium.
+
 Driver-/repositoryonderzoek (3 november 2026), basis `99d13276`:
 **41 -> 41**. Ginux `c86945b`, VibeOS `866bfb9` en vib-OS `73b6429`
 vergeleken met de bestaande Nieuw OS-drivercontracten en primaire Linux-,

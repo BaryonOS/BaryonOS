@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "28dd57593cbcbf324a3b59a52e4f46117e817674",
+    "source_commit": "449ecd654d5a4c15f69c8d3038a59369366adba6",
     "branch": "copilot/universal-driver-framework",
-    "task": "PCI-match vóór DMA-allocatie; kernelprofielen herstellen",
+    "task": "Kernelprofielen na resetpadfix herbouwen",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. De zes block-profielen matchen PCI voordat ze DMA-pagina's alloceren. Profile builds vonden een bestaande resetpad-typefout: as_ref leverde &Device terwijl reset_acknowledged &mut self nodig heeft; de zes paden gebruiken nu as_mut. De eerste builds faalden vóór deze fix; native-update stopte vóór compilatie omdat --image-version ontbrak. Formatter, gerichte driver-check/typecheck, Clippy, freestanding build en hosttests zijn exit 0 met tijdelijke compiler. De profile-builds moeten opnieuw worden uitgevoerd; geen runtime-/hardwarebewijs of nieuw acceptatiepunt."
+    "summary": "41/100 blijft 41/100. De zes block-profielen matchen PCI voordat ze DMA-pagina's alloceren; de resetpaden gebruiken as_mut voor reset_acknowledged. Alle zes profielbuilds slagen nu (milestone-m5, milestone-m6a/b/c, native-volume en native-update met tijdelijke --image-version 1), exit 0 met een tijdelijk uitgepakte hostcompiler. Logs, duur en SHA-256 staan in docs/verification/kernel-profile-retest-2026-11-03/README.md. Geen QEMU/runtime- of fysieke hardwareproef en geen nieuw acceptatiepunt."
   },
   "tracks": [
     {

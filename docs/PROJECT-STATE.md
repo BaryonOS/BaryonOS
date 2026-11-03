@@ -1,36 +1,32 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — DMA pas na PCI-match — 3 november 2026
+## NEXT AGENT HANDOFF — kernelprofielen herbouwd — 3 november 2026
 
-Werkbranch `copilot/universal-driver-framework`, lokale broncommit
-`28dd57593cbcbf324a3b59a52e4f46117e817674` (statuscheckpoint nog te pushen;
-remote staat op `e680d3df`). Segment-0-enumerator en VirtIO-selectie zonder
-vaste BDF staan op `9984b180`; PCI-config-space is sinds `d9b97c4` aan de
-gevalideerde descriptor/registrymatch gebonden. De zes block-profielen doen
-discovery/matching vóór DMA-poolallocatie. De eerste builds vonden een bestaand
-compilefoutje in dezelfde resetpaden: `as_ref()` leverde `&Device`, terwijl
-`reset_acknowledged` `&mut self` vereist. De zes block-profielen gebruiken nu
-`as_mut()`. Kernel blijft eigenaar van DMA-pagina's en BAR/MMIO-mappings; geen
-universele physical-memory-capability.
+Werkbranch `copilot/universal-driver-framework`, geteste bron
+`449ecd654d5a4c15f69c8d3038a59369366adba6`; remote branch en PR #153 head
+zijn gecontroleerd op dezelfde SHA. Segment-0-enumerator en VirtIO-selectie
+zonder vaste BDF staan op `9984b180`; PCI-config-space is sinds `d9b97c4` aan
+de gevalideerde descriptor/registrymatch gebonden. De zes block-profielen
+doen discovery/matching vóór DMA-poolallocatie en de resetpaden gebruiken
+`as_mut()` voor `reset_acknowledged`.
 
-**Bewijs tot nu:** formatter, diffcontrole, driver-testtarget-typecheck,
-Clippy, freestanding releasebuild en hosttests exit 0 met een tijdelijk
-uitgepakte Ubuntu-hostcompiler. Eerste profile-buildlogs staan onder
-`/tmp/nieuw-os-kernel-profile-builds-2026-11-03/`: `milestone-m5`,
-`milestone-m6a`, `milestone-m6b`, `milestone-m6c` en `native-volume` faalden
-op de `as_ref()` typefout; `native-update` stopte vóór compilatie omdat de
-opdracht `--image-version` miste. De code is aangepast maar deze profielen
-moeten opnieuw gebouwd worden. Geen QEMU/runtime- of fysieke hardwareproef.
-Score **41/100 → 41/100**.
+**Nieuw bewijs:** `milestone-m5`, `milestone-m6a`, `milestone-m6b`,
+`milestone-m6c`, `native-volume` en `native-update --image-version 1` bouwen
+alle zes succesvol (exit 0) met de tijdelijke hostcompiler.
+[Receipt en loghashes](verification/kernel-profile-retest-2026-11-03/README.md).
+Versie `1` was alleen compile-invoer. Geen QEMU/runtime- of fysieke
+hardwareproef; geen nieuw acceptatiepunt. Score **41/100 → 41/100**.
 
-**Open/eerstvolgend:** push dit statuscheckpoint; voer de vijf mislukte
-`tools/build.py`-profielen opnieuw uit en `native-update` met een tijdelijke
-compileversie (`--image-version 1`). Daarna kernel-owned BAR/MMIO-grants en
-factoryactivatie verder uitwerken zonder DMA/IOMMU-semantiek van de
-maturitybranch te dupliceren. De huidige configadapter is geen algemene
-resourcebroker of driverisolatie. Meerdere actieve devices, ACPI-roottopologie,
-ECAM, bridge-validatie, interrupt lifecycle, USB-klassen, NVMe, GOP en
-unsupported-hardwarerapportage zijn niet gerealiseerd.
+**Eerstvolgend:** werk de kernel-owned, devicegebonden BAR/MMIO-resourcegrant
+en concrete factory-activatie uit, aansluitend op de bestaande paging- en
+VirtIO-contracten. Dupliceer geen DMA/IOMMU- of interrupt lifecycle-semantiek
+van de maturitybranch. `MatchedPciFunction` begrenst PCI-configuratie, maar is
+geen algemene resourcebroker of driverisolatie. Meerdere instanties,
+ACPI-roottopologie/ECAM, bridgevalidatie, interrupts, USB-klassen, NVMe, GOP
+en unsupported-hardwarerapportage zijn niet gerealiseerd. Begin met het
+inspecteren van `kernel/src/m2/paging.rs`, de bestaande BAR-validatie en de
+VirtIO-probe/initializer; ontwerp daarna een devicegebonden grant met
+negatieve tests.
 
 ### Implementatiestap — segment-0 enumeratie en VirtIO BDF-migratie
 
@@ -63,6 +59,20 @@ niet uitgevoerd. `cargo check --all-features` is niet toepasselijk omdat de
 kernelfeatures incompatibele acceptatieprofielen selecteren. Dit levert geen
 voortgangspunt op; resterende resourcegrants/factories en hardwarebewijs staan
 open.
+
+### Verificatiestap — herbouw kernelprofielen na resetpadfix
+
+Geteste bron `449ecd654d5a4c15f69c8d3038a59369366adba6`, branch
+`copilot/universal-driver-framework`; remote branch en PR #153 head zijn
+gecontroleerd op deze SHA. Alle zes gerichte builds slagen met exit 0:
+`milestone-m5`, `milestone-m6a`, `milestone-m6b`, `milestone-m6c`,
+`native-volume` en `native-update --image-version 1`. De tijdelijke imageversie
+is compile-invoer, geen release. Exacte commando-omgeving, looptijden,
+logs en SHA-256 staan in de
+[profile-retest-receipt](verification/kernel-profile-retest-2026-11-03/README.md).
+Geen QEMU/runtime- of hardwaretest, geen nieuw acceptatiepunt; score blijft
+**41/100**. Eerstvolgend: devicegebonden kernel-owned BAR/MMIO-grant en
+factory-activatie zonder eigen DMA/IOMMU- of interrupt lifecyclemodel.
 
 ### Gepauzeerd werk — PR139 exacte contracttestreceipt
 

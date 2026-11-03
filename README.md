@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`28dd5759`](https://github.com/simonvanieperen/nieuw-os/commit/28dd57593cbcbf324a3b59a52e4f46117e817674) ·
+**Bron:** [`449ecd65`](https://github.com/simonvanieperen/nieuw-os/commit/449ecd654d5a4c15f69c8d3038a59369366adba6) ·
 **Ontwikkelbranch:** `copilot/universal-driver-framework`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PCI-match vóór DMA-allocatie; kernelprofielen herstellen.
-41/100 blijft 41/100. De zes block-profielen matchen PCI voordat ze DMA-pagina's alloceren. Profile builds vonden een bestaande resetpad-typefout: as_ref leverde &Device terwijl reset_acknowledged &mut self nodig heeft; de zes paden gebruiken nu as_mut. De eerste builds faalden vóór deze fix; native-update stopte vóór compilatie omdat --image-version ontbrak. Formatter, gerichte driver-check/typecheck, Clippy, freestanding build en hosttests zijn exit 0 met tijdelijke compiler. De profile-builds moeten opnieuw worden uitgevoerd; geen runtime-/hardwarebewijs of nieuw acceptatiepunt.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Kernelprofielen na resetpadfix herbouwen.
+41/100 blijft 41/100. De zes block-profielen matchen PCI voordat ze DMA-pagina's alloceren; de resetpaden gebruiken as_mut voor reset_acknowledged. Alle zes profielbuilds slagen nu (milestone-m5, milestone-m6a/b/c, native-volume en native-update met tijdelijke --image-version 1), exit 0 met een tijdelijk uitgepakte hostcompiler. Logs, duur en SHA-256 staan in docs/verification/kernel-profile-retest-2026-11-03/README.md. Geen QEMU/runtime- of fysieke hardwareproef en geen nieuw acceptatiepunt.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
