@@ -698,25 +698,6 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         self.evidence.ready = false;
         Ok(())
     }
-    /// Interactive VM profile: one bounded input/save pass, then at most four
-    /// existing tile transactions. No input, stop or save progress is serviced
-    /// between those transactions; this is a work bound, not a latency promise.
-    /// The diagnostic one-tile `step` contract remains unchanged.
-    pub fn step_interactive(&mut self) -> Result<(), Error> {
-        let input = self.input_step();
-        self.save_step()?;
-        let mut paint = Ok(());
-        for _ in 0..4 {
-            if self.surface_failed || !self.controller.view().dirty {
-                break;
-            }
-            paint = self.paint_step();
-            if paint.is_err() {
-                break;
-            }
-        }
-        input.and(paint)
-    }
     pub fn stop_clean(&mut self) -> Result<(), Error> {
         self.step_succeeded = false;
         if self.controller.document().is_dirty() || self.controller.document().is_saving() {
