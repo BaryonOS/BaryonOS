@@ -17,12 +17,15 @@ supervisor-`wait_ticks` en window-session `NativeIdle` gebruiken de centrale
 timer-/wait-API. Op de voorafgaande bron `e8da9bfe` slagen alle zes K05-cases
 en 130 hosttests (één bestaande benchmark ignored) onder QEMU 10.2.1 met
 machineprofiel `pc-q35-8.2`, niet de CI-QEMU-build.
-De `NativeIdle`-wijziging op `22b7bbab` is alleen gefmt en diff-gecheckt; de
-window-session-gates zijn nog niet uitgevoerd.
+De `NativeIdle`-wijziging op `22b7bbab` heeft 49 Rust-tests, 10 runner-tests, 21 packaging-tests en
+Clippy/fmt doorstaan. De native window-session-probe slaagt in disposable
+QEMU: alle 22 fases, clipboard gate, disk-oracle en 23 screenshots. QEMU 10.2.1
+met `pc-q35-8.2` is niet dezelfde build als CI.
 Geen geheugen-, CPU-, opslag- of DMA-budget, geen fysieke/menselijke
 acceptatie en geen gesloten rubriekcriterium.
-[Receipts](verification/m1-resource-accounting-20261103.json) en
-[centrale sleep-API](verification/m1-central-sleep-20261103.json).
+[Receipts](verification/m1-resource-accounting-20261103.json),
+[centrale sleep-API](verification/m1-central-sleep-20261103.json) en
+[window idle](verification/m1-window-idle-20261103.json).
 
 ## Betekenis van het percentage
 

@@ -45,7 +45,14 @@ beschikbaar.
 - `python3 -m json.tool docs/verification/m1-central-sleep-20261103.json` (exit 0)
 - `python3 -B tools/dev.py ~/.cargo/bin/cargo +1.90.0 fmt --manifest-path sdk/examples/window-session/Cargo.toml --` (exit 0)
 - `git diff --check` (exit 0)
-- Window-session native/host-gates op bron `22b7bbab`: nog niet uitgevoerd.
+- `cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml` (exit 0; 49 tests)
+- `python3 -B tools/test_window_session.py` (exit 0; 10 tests)
+- `python3 -B -m unittest tools.tests.test_package_windows_qemu` (exit 0; 21 tests)
+- `cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --all-targets -- -D warnings` (exit 0)
+- `cargo +1.90.0 fmt --manifest-path sdk/examples/window-session/Cargo.toml -- --check` (exit 0)
+- `python3 -B -u tools/build.py --kernel-feature native-window-session-probe` (exit 0; all eight native images built and inspected)
+- `python3 -B -u tools/run_window_session.py --clipboard --timeout 1800 --bios-rom .../bios-256k.bin --vga-rom .../vgabios-stdvga.bin` (exit 0; native gate and clipboard gate passed, disposable QEMU run)
+- Compacte receipt met exacte omgevingsprefix, bronhash en artifacts: `docs/verification/m1-window-idle-20261103.json`.
 - `python3 -B -u tools/test_supervisor.py` (exit 1; `cargo` niet in `PATH`)
 - `PATH="$HOME/.cargo/bin:$PATH" python3 -B -u tools/test_supervisor.py` (exit 1; wrapper meldde host-check mislukt, onderliggende detail niet getoond)
 - `PATH="/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH" python3 -B -u tools/test_supervisor.py` (exit 1; native worker gebruikte verouderde `TimerRegistration::at`-signatuur; gerepareerd in `3249c93e`)
@@ -72,10 +79,9 @@ bewijs voor de accounting- en sleep-API-checkpoints:
 `docs/verification/m1-resource-accounting-20261103.json` en
 `docs/verification/m1-central-sleep-20261103.json`. Score blijft **41 → 41**.
 
-**Open/eerstvolgend:** valideer de nieuwe `NativeIdle`-adapter volgens
-`.github/workflows/native-window-session.yml`; de K05-receipt hoort bij de
-voorgaande bron `e8da9bfe`. Daarna kan de centrale sleep-API naar een volgende
-service-eventlus worden overgezet. Capability-accounting blijft beperkt tot handles,
+**Open/eerstvolgend:** de nieuwe `NativeIdle`-adapter is getest volgens de
+relevante host- en native-gates. Daarna kan de centrale sleep-API naar een
+volgende service-eventlus worden overgezet. Capability-accounting blijft beperkt tot handles,
 capability-objecten en IPC-queues; geheugen-/CPU-/storage-/DMA-budgettering en
 gebruikersrapportage ontbreken. De score sluit geen rubriekcriterium. De klok
 blijft 100-Hz PIT op bestaande profielen, RTC blijft unauthenticated en

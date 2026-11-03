@@ -64,7 +64,7 @@ alleen een nette desktop haalt die eindgrens niet.
 **Bron:** [`22b7bbab`](https://github.com/simonvanieperen/nieuw-os/commit/22b7bbabb336439dcf478fbd8151b6c10b535bf0) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-spoon`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** M1: centrale klok/wait-API ook voor window-session idle.
-41 blijft 41. SDK-runtime biedt absolute monotone timer-/wait-semantiek met atomische annulering; supervisor worker en wait_ticks gebruiken de centrale API. window-session NativeIdle routeert monotone tijd en bounded IPC-waits nu eveneens via de runtime, met bestaande mask-/yieldsemantiek behouden. K05 zes cases en 130 hosttests slagen op vorige bron e8da9bfe onder QEMU 10.2.1/pc-q35-8.2; window-session wijziging 22b7bbab heeft alleen fmt/diff-check, de native/host-gates volgen. Geen generiek OS-resourcebudget, gebruikersrapportage, fysieke/menselijke acceptatie of rubricsluiting.
+41 blijft 41. SDK-runtime biedt absolute monotone timer-/wait-semantiek met atomische annulering; supervisor worker, wait_ticks en window-session NativeIdle gebruiken de centrale API, met bestaande mask-/yieldsemantiek behouden. Op bron 22b7bbab slagen 49 window-session Rust-tests, 10 runner-tests, 21 packaging-tests en Clippy/fmt. Native window probe: alle 22 fases, clipboard gate, disk-oracle en 23 screenshots slagen in disposable QEMU 10.2.1/pc-q35-8.2. Geen generiek OS-resourcebudget, gebruikersrapportage, fysieke/menselijke acceptatie of rubricsluiting.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
