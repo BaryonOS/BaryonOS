@@ -5,13 +5,24 @@
 - Branch: `simonvanieperen-effective-tribble`
 - Commit: `380111b68688c981eec6abb8fab29174a29f5601`
 - Werkboom bij start: schoon
-- Onafhankelijke read-only review: geen bevestigde kwetsbaarheden gemeld in de
-  statisch beoordeelde wijzigingen.
+- Statische AI-review door een security-reviewagent: geen bevestigde
+  kwetsbaarheden gemeld. Dit was geen onafhankelijke menselijke audit.
 - Code gewijzigd: nee. Tests/builds uitgevoerd: nee.
 
-Dit resultaat is geen verklaring dat de volledige codebase veilig is. De
-review rapporteerde geen bestand-voor-bestand dekking; bevindingen zonder
-bewijs zijn niet als kwetsbaarheid aangemerkt.
+## Beoordeelde scope en herkomst
+
+De reviewopdracht richtte zich op code op snapshot
+`380111b68688c981eec6abb8fab29174a29f5601`, met nadruk op injection,
+authenticatie-/autorisatiebypass, secrets, dependencyrisico's en OS-capability-
+en procesgrenzen. De agent leverde geen lijst van gelezen bestanden,
+regelnummers of subsystemendekking op. Daarom kan dit resultaat niet worden
+gepresenteerd als een volledige codebase-audit of als beoordeling van een
+afgebakende Git-branchdiff.
+
+De werkboom was schoon op die commit; dat betekent alleen dat er geen lokale
+on-gecommit wijzigingen waren. Het bewijst niet dat de commit geen diff ten
+opzichte van `main` bevat. Deze audit legt dus geen branchdiff-dekking vast.
+Bevindingen zonder concreet bewijs zijn niet als kwetsbaarheid aangemerkt.
 
 ## Dependencycontrole
 
@@ -42,5 +53,5 @@ Dit is een dekkingsbeperking, geen bewijs dat een secret is gelekt.
 
 Geen concrete kwetsbaarheid is bevestigd, dus er is geen beveiligingsfix
 toegepast. Er zijn geen tests/builds uitgevoerd omdat de code ongewijzigd bleef.
-De roadmap blijft **41/100**; deze review levert geen native acceptatiebewijs,
-onafhankelijke menselijke audit of releasevalidatie.
+De roadmap blijft **41/100**; deze AI-review levert geen native
+acceptatiebewijs, onafhankelijke menselijke audit of releasevalidatie.
