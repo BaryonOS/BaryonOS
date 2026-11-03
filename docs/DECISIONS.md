@@ -96,6 +96,148 @@ vaste scorecriteria blijven behouden. **Herzien:** op taakobservatie,
 actuele bron-/hardwareverschillen of een aantoonbare technische veiligheidsgrens.
 Details en begrensd vervolg: [PRODUCT-SPEC.md](implementation/PRODUCT-SPEC.md).
 
+## ADR-VELD-006 — meldingen zijn presentatie, geen gegevensautoriteit
+
+3 november 2026, basis `ea0cd6d1`. Het eerste native meldingenpaneel toont
+uitsluitend de bestaande, door de compositor vastgestelde klembordstatus.
+Een zichtbare actie of Alt+N opent het, met volledige toetsenbord- en
+muisbediening en expliciete lege toestand. Er is geen algemene app-API,
+meldinghistorie, tijdstempel, persistent profiel of netwerkafhankelijkheid.
+
+Verwijderen wist alleen de zichtbare melding, niet klembordinhoud,
+documentdata, opslag of rechten. Een herhaalde poll van dezelfde status
+doet de melding niet herleven; een nieuwe statusovergang mag dat wel.
+De compositor ontvangt geen inhoud of app-auteurstekst via een nieuwe route.
+Zijn bestaande exclusieve overlaypad annuleert oude appinput/grants;
+paneeltoetsen, muisklikken en releases mogen niet doorlekken.
+
+De native proef moet de echte numerieke paste na paneldismiss behouden,
+zelfs na de tijdens modaliteit ingedrukte globale clear-chord.
+Dit bewijst een begrensde systeemstatuspresentatie, niet de volledige
+productnotificatieketen. Herzien bij echte sendergebonden appnotificaties:
+identiteit, limieten, prioriteiten en acties krijgen dan een apart contract.
+
+## ADR-VELD-005 — toetsenbord verplaatst dezelfde begrensde vensters
+
+3 november 2026, basis `43284264`. Alt+F7 opent een exclusieve shellmodus
+voor het werkelijk gefocuste zichtbare venster. Pijlen verplaatsen16 logische
+pixels, Shift+pijlen1; Enter bevestigt, Escape herstelt de beginpositie.
+Muisklik of inputannulering herstelt eveneens, zonder clickthrough. De
+bovenbalk geeft bediening aan; het venstermenu toont de shortcut.
+F7 zonder Alt behoudt de bestaande Dit werk/Alles-functie.
+
+Er wordt geen appbuffer, surfacegeometrie, epoch of capability veranderd.
+De shell verplaatst uitsluitend zijn bestaande compositiepositie, binnen
+dezelfde grens als titelbalkdrag. Counteroverflow wordt gecontroleerd voordat
+de positie wijzigt; de muisroute gebruikt dezelfde helper.
+De bestaande overlayannulering trekt oude appinput/klembordtickets in.
+Toetsen/repeats/releases uit de modus blijven bij de shell. Dit is directe
+positionering zonder animatie; geen nep-resize, motion- of toegankelijkheidsclaim.
+Herzien bij echte surfaceherconfiguratie of algemene windowlifecycle.
+
+## ADR-VELD-004 — app-lokaal hoogcontrast zonder nieuwe autoriteit
+
+3 november 2026, basis `16c26c1c`. De bestaande gevalideerde inputroute
+levert Ctrl+Alt+H aan de gefocuste app. Alleen Press schakelt de
+presentatie om; Repeat/Release of extra Shift/Super doen dat niet.
+Materiaal valideert afzender/generatie via de controller voordat de
+bestaande HC-setter wordt aangeroepen. Geen nieuwe capability, opslag-RPC,
+wijziging van document/selectie/focus/status of omzeiling van modals.
+
+De rekenmachine gebruikt hetzelfde expliciete rolpalet als de native
+Materiaal-renderer: zwart/wit, zwart/geel en zwart/cyaan met aparte
+fout-/disabledrollen. Selectietekst en knopfocus krijgen een eigen
+voorgrond/grens; kleur alleen draagt geen foutbetekenis. De standaardmodus
+blijft exact pixelgelijk na heen/terug schakelen. Contrastmetingen betreffen
+de rolkleuren; niet iedere antialiasrand heeft dezelfde verhouding.
+
+Dit is een tussentijdse app-lokale bediening, geen OS-brede of persistente
+toegankelijkheidsvoorkeur. Compositorshell, vindbare instellingen,
+schermlezers en reduced-motion blijven afzonderlijke vervolgstappen.
+Herzien bij het echte instellingen-/profielcontract: geen appvoorkeur als
+systeemautoriteit doorgeven en geen schijnbaar OS-brede schakelaar tonen.
+
+## ADR-VELD-003 — pointer-leave is geen focusverlies
+
+3 november 2026, bronbasis `d5781e72`. De native menugate vond achterblijvende
+hover na een voltooide klik gevolgd door body-exit. Buitenbodycoordinaten
+doorsturen zou de toegewezen invoergrens verruimen; Resync zou onterecht het
+geopende menu sluiten. Daarom krijgt de bestaande INP1-reply een afzonderlijk
+eventtype4 `PointerLeave`, met nul-payload en dezelfde afzender-, epoch-,
+volgnummer- en generatiecontroles. Geen nieuwe requestopcode of capability.
+
+Alleen de compositor leidt het event af uit zijn eigen werkelijke hitroute.
+Het wist pointer/hover/press, niet document, selectie, modal, focus of status.
+Het is geen toets-/klembordgebaar en geen bewijs van herstelde invoer.
+Een actieve drag, echte focuswisseling en systeemoverlay blijven strengere
+annulering gebruiken. De twee vaste apps en SDK worden gezamenlijk gebouwd;
+oudere derdenapps zijn hiermee niet compatibel verklaard. Voor algemene
+appdistributie is expliciete protocolonderhandeling een open voorwaarde.
+Herzien bij vrije surfacegeometrie of systeemwijde drag/drop: geen onzichtbare
+grab of buitenbodydata invoeren als tijdelijke omweg.
+
+## ADR-VELD-002 — gereedschappen lenen dezelfde documenteigenaar
+
+3 november 2026, baseline `264ad5b0`. De eerste objectgebonden gereedschappen
+zijn Schrijven en Lezen binnen de bestaande geïsoleerde Materiaal-app.
+Ze delen dezelfde echte documenteigenaar, niet twee gekopieerde tekstmodellen.
+Wisselen veroorzaakt geen opslagactie en verandert geen capability.
+Lezen voorkomt mutaties langs toetsen, plakken en semantische waardeacties;
+selectie/navigatie/kopiëren en expliciet bewaren blijven mogelijk.
+Schrijven krijgt alleen het al bestaande recht terug. Tijdens opslaan en
+in de onopgeslagen-werkdialoog bestaat geen wisselactie.
+
+Dit is een eerste werkende interne toolwissel, niet DV-01 met twee afzonderlijke
+procesidentiteiten. Algemene objectmetadata in de shell, overdraagbare
+objectgrants en onafhankelijk appbeheer blijven noodzakelijke vervolgstappen.
+Het [native contract](implementation/NATIVE-WINDOW-SESSION.md) behoudt de
+volledige product-/bewijsgrenzen.
+
+## ADR-VELD-001 — Veld uitvoeren binnen de bestaande native veiligheidsgrens
+
+3 november 2026. Simons vervolgopdracht "Voer het uit" autoriseert uitvoering
+van de eerste aanbeveling uit het
+[visuele ontwerpplan](design/VISUAL-ARCHITECTURE-PLAN.md): Veld. Dit is een
+eerste native implementatie, geen definitief door gebruikers gekozen eindontwerp.
+Materiaal blijft de productlogica; geen bestaande OS-kernel, desktoptoolkit
+of aanvullende bevoegdheden worden ingevoerd.
+
+De shell onderscheidt werk en gereedschap: "Mijn materiaal / Materiaal" en
+"Berekening / Rekenmachine". Een collectienaam is geen verzonnen geopende
+documenttitel. Zonder geauthenticeerd objectmetadataprotocol mag de compositor
+geen opslagstatus of documentidentiteit afleiden uit apppixels. "Dit werk"
+verbergt tijdelijk het andere venster; het stopt geen proces en dempt geen
+systeem- of privacymelding. "Ordenen" herstelt bekende posities met behoud van
+dezelfde appbuffers, SUR1-geometrie en epochs. Op de kleinste ondersteunde
+afmeting kunnen de vaste vensters overlappen; dit is geen resize-/tilingbewijs.
+
+CSS-tokens zijn de gedeelde compile-time bron voor native apps en compositor.
+Een statisch kleurverloop onderscheidt achtergrond van werk; begrensde
+afstandsschaduwen duiden overlap en focus aan. Dit zijn scalar RGB-effecten,
+geen Gaussian blur, GPU-versnelling, dynamische HCT-kleur of gemeten vloeiende
+animatie. De volledige oude/nieuwe verfgrens wordt opnieuw getekend; iedere
+verplaatste werkruimte annuleert oude appinvoercapture via de bestaande route.
+
+Native verificatie vond daarnaast een bestaande observatiegrens: shell-only
+input veranderde geen appframecommit en triggerde daardoor geen nieuwe
+seriële compositorwaarneming. Alleen in `native-window-session-probe`
+wordt de reeds gelogde inputteller aan de snapshottrigger toegevoegd.
+Geen nieuwe velden, inhoudslogging, userpointer, scheduler- of rechtenwijziging.
+
+De aanvullende chat is historische context, geen automatisch uitvoerbare
+opdracht. Het oorspronkelijke onderzoek is afzonderlijk gecontroleerd op
+PR #131, commit `a03f7f0c355cedca72611893f07c4a766a7b7d4f`.
+De interactieprincipes en onboardingspecificatie adviseren herkenbare acties,
+lokale zoekaliassen en eerlijke beschikbaarheid. Deze stap neemt alleen die
+begrensde ontwerpkeuzes over: Finder/Verkenner/Files verwijzen naar de werkelijk
+bestaande Materiaal-collectie; ontbrekende instellingen of systeemmonitor
+verschijnen niet als werkend resultaat. De onderzoeksbranch is niet gemerged,
+haar productscore en historische tests zijn niet overgenomen. Installer,
+authenticatie, vier dagelijkse werkzaamheden, toolwisseling op hetzelfde
+object, native toegankelijkheidsdienst en gebruikersonderzoek blijven apart
+werk. Acceptatie en bewijsgrenzen staan in het
+[native bouwcontract](implementation/NATIVE-WINDOW-SESSION.md).
+
 <a id="adr-056--herkenbare-sessieroute-met-expliciete-vm-bewijsgrens"></a>
 ## ADR-063 — herkenbare sessieroute met expliciete VM-bewijsgrens
 

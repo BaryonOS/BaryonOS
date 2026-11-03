@@ -69,6 +69,7 @@ impl Notice {
 }
 #[derive(Clone, Debug)]
 pub struct Model {
+    high_contrast: bool,
     bytes: [u8; MAX_INPUT],
     length: usize,
     caret: usize,
@@ -175,6 +176,7 @@ impl Default for Model {
 impl Model {
     pub const fn new() -> Self {
         Self {
+            high_contrast: false,
             bytes: [0; MAX_INPUT],
             length: 0,
             caret: 0,
@@ -299,6 +301,15 @@ impl Model {
     }
     pub const fn exhausted(&self) -> bool {
         self.exhausted
+    }
+    pub const fn high_contrast(&self) -> bool {
+        self.high_contrast
+    }
+    pub fn set_high_contrast(&mut self, enabled: bool) {
+        if !self.exhausted && self.high_contrast != enabled {
+            self.high_contrast = enabled;
+            self.force_full_repaint();
+        }
     }
     pub fn paint_damage(&self, viewport: Viewport) -> PaintDamage {
         let mut out = PaintDamage {
@@ -660,10 +671,16 @@ impl Model {
         self.changed();
     }
     pub fn keyboard(&mut self, event: KeyboardEvent) {
+        let m = event.modifiers;
+        if event.key == PhysicalKey::H && m.control() && m.alt() && !m.shift() && !m.super_key() {
+            if event.action == KeyAction::Press {
+                self.set_high_contrast(!self.high_contrast);
+            }
+            return;
+        }
         if !matches!(event.action, KeyAction::Press | KeyAction::Repeat) {
             return;
         }
-        let m = event.modifiers;
         if m.alt() || m.super_key() {
             return;
         }

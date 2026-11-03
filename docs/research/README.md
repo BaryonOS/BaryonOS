@@ -15,6 +15,17 @@ achtergrond behouden; actuele broncontroles en beperkingen staan in de aanvullin
 installatie, 28 eerste-dagtaken, overdraagbare kennis en voorgestelde
 installer-/onboardingcontracten. Dit zijn documentanalyses en ontwerpen,
 geen uitgevoerde installaties of nieuw native acceptatiebewijs.
+## Visueel ontwerp — 3 november 2026
+
+[VISUAL-RENDERING-RESEARCH.md](VISUAL-RENDERING-RESEARCH.md) vergelijkt publieke
+rendercode en officiële richtlijnen met de huidige eigen graphicsstack.
+[Het concrete ontwerpplan](../design/VISUAL-ARCHITECTURE-PLAN.md) bevat vijf
+verschillende presentatiearchitecturen, twintig toestanden per richting en
+studiewaarden voor kleur, tekst, diepte en motion. Veld en Werkstuk zijn
+aanbevolen voor beoordeling, niet definitief gekozen of geïmplementeerd.
+Geen gegenereerde beelden, native acceptatie of nieuwe voortgangspunten.
+
+## Bestaand markt- en consumentenonderzoek
 
 Deze map bewaart de repositoryvertaling van twee onderzoeken van 28 oktober 2026:
 

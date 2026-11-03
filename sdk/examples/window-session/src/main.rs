@@ -273,7 +273,8 @@ fn run() -> ! {
     let mut input_events = 0u64;
     let mut last_buttons = 0u64;
     let mut next_input_tick = tick();
-    let mut app_pointer_capture = None;
+    let mut app_pointer_capture: Option<usize> = None;
+    let mut app_pointer_hover: Option<usize> = None;
     let mut input_backlog = false;
     loop {
         let mut ingress_empty = false;
@@ -294,23 +295,19 @@ fn run() -> ! {
                 };
                 input_events = input_events.checked_add(1).unwrap_or_else(|| fail(16));
                 let previous = scene.focused;
+                let previous_mode = scene.workspace_mode();
+                let previous_bodies = scene.windows.map(|window| window.body);
+                let previous_visible =
+                    core::array::from_fn::<_, 2, _>(|index| scene.visible(index));
                 let queue_generations = queues.each_ref().map(Queue::generation);
                 let event = offer.event();
-                let palette_was_open = scene.palette_is_open();
+                let overlay_was_open = scene.overlay_is_open();
                 let palette_key = match event {
                     Event::Key(key) => scene
                         .palette_key(key, &mut damage)
                         .unwrap_or_else(|_| fail(17)),
                     _ => false,
                 };
-                if !palette_was_open && scene.palette_is_open() {
-                    app_pointer_capture = None;
-                    for queue in &mut queues {
-                        queue
-                            .cancel(CancelReason::Resync)
-                            .unwrap_or_else(|_| fail(20));
-                    }
-                }
                 let clear = match event {
                     Event::Key(key) => clear_chord.key(key),
                     _ => ClearAction::Pass,
@@ -337,7 +334,7 @@ fn run() -> ! {
                             }
                         }
                     }
-                    Event::Key(key) if key.key == PhysicalKey::F10 => {
+                    Event::Key(key) if key.key == PhysicalKey::F10 && !key.modifiers.shift() => {
                         if key.action == KeyAction::Press {
                             send(
                                 boot.registry,
@@ -346,21 +343,36 @@ fn run() -> ! {
                         }
                     }
                     Event::Key(key) => {
-                        if copy_gesture(key) {
-                            clipboard.clear(&queues).unwrap_or_else(|_| fail(39));
+                        if scene.focused_visible() {
+                            if copy_gesture(key) {
+                                clipboard.clear(&queues).unwrap_or_else(|_| fail(39));
+                            }
+                            queues[scene.focused]
+                                .push(event)
+                                .unwrap_or_else(|_| fail(19));
                         }
-                        queues[scene.focused]
-                            .push(event)
-                            .unwrap_or_else(|_| fail(19));
                     }
                     Event::Cancel(reason) => {
                         last_buttons = 0;
                         app_pointer_capture = None;
+                        app_pointer_hover = None;
                         scene.cancel_palette_input(&mut damage);
                         scene.cancel_pointer();
                         for q in &mut queues {
                             q.cancel(reason).unwrap_or_else(|_| fail(20));
                         }
+                    }
+                    Event::PointerLeave => {
+                        if let Some(captured) = app_pointer_capture.take() {
+                            queues[captured]
+                                .cancel(CancelReason::Resync)
+                                .unwrap_or_else(|_| fail(22));
+                        } else if let Some(hovered) = app_pointer_hover {
+                            queues[hovered]
+                                .push(Event::PointerLeave)
+                                .unwrap_or_else(|_| fail(22));
+                        }
+                        app_pointer_hover = None;
                     }
                     Event::Mouse { input: mouse, x, y } => {
                         last_buttons = u64::from(mouse.buttons.bits());
@@ -373,6 +385,19 @@ fn run() -> ! {
                                 &mut damage,
                             )
                             .unwrap_or_else(|_| fail(21));
+                        if let Some(hovered) = app_pointer_hover {
+                            if recipient != Some(hovered)
+                                && app_pointer_capture != Some(hovered)
+                                && !scene.overlay_is_open()
+                            {
+                                // No outside coordinates or button state cross
+                                // the app boundary; leaving is not focus loss.
+                                queues[hovered]
+                                    .push(Event::PointerLeave)
+                                    .unwrap_or_else(|_| fail(22));
+                            }
+                        }
+                        app_pointer_hover = recipient;
                         if let Some(index) = recipient {
                             if mouse.changed.left() && mouse.buttons.left() {
                                 app_pointer_capture = Some(index);
@@ -398,11 +423,59 @@ fn run() -> ! {
                         }
                     }
                 }
+                if !overlay_was_open && scene.overlay_is_open() {
+                    app_pointer_capture = None;
+                    app_pointer_hover = None;
+                    for queue in &mut queues {
+                        queue
+                            .cancel(CancelReason::Resync)
+                            .unwrap_or_else(|_| fail(20));
+                    }
+                }
+                for (index, was_visible) in previous_visible.into_iter().enumerate() {
+                    if was_visible && !scene.visible(index) && index != previous {
+                        if app_pointer_hover == Some(index) {
+                            app_pointer_hover = None;
+                        }
+                        queues[index]
+                            .cancel(CancelReason::FocusLost)
+                            .unwrap_or_else(|_| fail(23));
+                    }
+                }
+                if previous_visible[previous]
+                    && !scene.visible(previous)
+                    && scene.focused == previous
+                {
+                    if app_pointer_hover == Some(previous) {
+                        app_pointer_hover = None;
+                    }
+                    queues[previous]
+                        .cancel(CancelReason::FocusLost)
+                        .unwrap_or_else(|_| fail(23));
+                    clipboard.revoke(&queues).unwrap_or_else(|_| fail(39));
+                }
+                if scene.workspace_mode() != previous_mode
+                    || scene.windows.map(|window| window.body) != previous_bodies
+                {
+                    if let Some(captured) = app_pointer_capture.take() {
+                        queues[captured]
+                            .cancel(CancelReason::Resync)
+                            .unwrap_or_else(|_| fail(20));
+                    }
+                    if let Some(hovered) = app_pointer_hover.take() {
+                        queues[hovered]
+                            .push(Event::PointerLeave)
+                            .unwrap_or_else(|_| fail(22));
+                    }
+                }
                 if scene.focused != previous {
                     // A real click into the new body may already own a new grab;
                     // drop only the old focus's capture, never the new title drag.
                     if app_pointer_capture == Some(previous) {
                         app_pointer_capture = None;
+                    }
+                    if app_pointer_hover == Some(previous) {
+                        app_pointer_hover = None;
                     }
                     queues[previous]
                         .cancel(CancelReason::FocusLost)
@@ -411,6 +484,7 @@ fn run() -> ! {
                 }
                 if input.ack(&offer).unwrap_or_else(|_| fail(24)) == AckOutcome::Superseded {
                     app_pointer_capture = None;
+                    app_pointer_hover = None;
                     scene.cancel_palette_input(&mut damage);
                     scene.cancel_pointer();
                     for q in &mut queues {
@@ -602,6 +676,9 @@ fn run() -> ! {
         }
         if scene.set_clipboard_notice(clipboard.notice()) {
             damage.mark(scene.clipboard_notice_bounds());
+            if scene.notifications_are_open() {
+                damage.mark(scene.notifications_paint_bounds());
+            }
         }
         for (at, v) in [
             (400, 1),

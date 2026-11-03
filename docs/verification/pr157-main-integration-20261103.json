@@ -1,0 +1,78 @@
+{
+  "task": "PR-B157: echte mainintegratie met behoud van #149 en Veld-contrastrollen",
+  "main_commit": "ab85d6339ce5bdddb10a2de171d0c1b04e4b62ff",
+  "pr_head": "3d4045da2e81697aef5b0b67c42acc0c519e0440",
+  "source_fingerprint_version": 3,
+  "source_sha256": "4a120c1a795e3965fa094d43b280b02db26ea40c31bea71c95253ba566d089ba",
+  "scene_blob": "7e9d838070ff2bfee8d180b1836c03d6112b8cc5",
+  "resolution": {
+    "central": "README, PROJECT-STATE, progress.json, PROGRESS en SVG exact uit actuele main behouden. Geen criteria, assessment of score uit de oude PR geimporteerd. Beide onderzoeksindexsecties en ADR-reeksen behouden.",
+    "scene": "Main-API-documentatie behouden naast Veld-workspace, modaliteit en cancelled-key-release. Geen PR167-code overgenomen; tijdelijke sceneclaim teruggegeven.",
+    "render": "Main #149-startlayout, echte bibliotheekstatus en foutweergave behouden. Veld-rolpalet gebruikt voor de gewijzigde lichte presentatie en hoogcontrast; geen terugkeer naar de oude vaste desktopkaart.",
+    "tests": "De originele zes 12-statehashes zijn op een aparte exacte PR157-archiefbron bevestigd. Daarop zeven ongewijzigde app-toestanden onafhankelijk gehasht; vijf door #149 gewijzigde desktoptoestanden toetsen contrast-roundtrip, rolkleuren en echte layout. Alle contrastgrenzen blijven 7:1."
+  },
+  "environment": {
+    "PATH_prefix": "/home/simon/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin",
+    "CC": "/tmp/nieuw-os-c-toolchain/bin/cc",
+    "LD_LIBRARY_PATH": "/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu",
+    "scene_target": "target/pr-b-host",
+    "ui_target": "target/pr-b-host-ui",
+    "logs": "/home/simon/.copilot/session-state/d6ad2c9f6cc843b6ab8f3c2a0b968fb5/files/pr-b/"
+  },
+  "checks": [
+    {
+      "command": "cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml",
+      "exit": 0,
+      "passed_tests": 70,
+      "wall_seconds": 191.58,
+      "log": "scene-host.log",
+      "log_sha256": "c0b9f6f5a05f84a162e71c66d7eef0659bc35eba62c3cd90e44f10531bfed3c3"
+    },
+    {
+      "command": "cargo +1.90.0 test --offline --locked --manifest-path ui/native/Cargo.toml",
+      "exit": 0,
+      "passed_tests": 80,
+      "skipped_tests": 0,
+      "wall_seconds": 40.16,
+      "log": "ui-native-full-final.log",
+      "log_sha256": "e7623c7d92f263162a7d0ca64a76c797008db550a53815b074e39c16c758438e"
+    },
+    {
+      "command": "python3 -B tools/test_window_session.py",
+      "exit": 0,
+      "passed_tests": 23,
+      "wall_seconds": 1.62,
+      "log": "window-runner-host.log",
+      "log_sha256": "2e47b17f61b3690180a7692c24b0505cdec45a07056722437317473eb4e02c14"
+    },
+    {
+      "commands": [
+        "cargo +1.90.0 fmt --manifest-path sdk/examples/window-session/Cargo.toml -- --check",
+        "cargo +1.90.0 fmt --manifest-path ui/native/Cargo.toml -- --check",
+        "cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.90.0 clippy --offline --locked --manifest-path ui/native/Cargo.toml --all-targets -- -D warnings",
+        "python3 -B tools/progress.py --write",
+        "python3 -B tools/progress.py --check",
+        "git diff HEAD --exit-code -- README.md docs/PROGRESS.md docs/progress.json docs/assets/progress.svg docs/PROJECT-STATE.md",
+        "git diff --check"
+      ],
+      "each_exit": 0
+    }
+  ],
+  "failed_attempts": [
+    "Eerste renderintegratie compileerde niet door een inmiddels vervangen status_color-helper; vervangen door bestaande Paint::danger.",
+    "Daarna ontbrak cc in PATH; aangewezen bestaande C-toolchain gebruikt, niets geinstalleerd.",
+    "Twee historische HC-oracles pasten niet bij #149. Een tussenpoging die alleen home apart zette vond terecht ook wijzigingen aan de overige desktoplayouts. Definitieve test houdt alle zeven appstates aan onafhankelijk oud bronbewijs en toetst alle vijf desktopstates inhoudelijk; geen tests overgeslagen."
+  ],
+  "pending": [
+    "Normale 100/200-profielbuilds.",
+    "Native QEMU-deelacceptatie op deze gecombineerde bron.",
+    "Actuele remote-head CI en reviews.",
+    "Geen fysieke hardware, menselijke gebruikerstest, onafhankelijke audit of releasevalidatie."
+  ],
+  "score": {
+    "before": 41,
+    "after": 41,
+    "assessment": "Actuele mainassessment exact behouden op coordinatorinstructie; geen nieuw geaccepteerd criterium."
+  }
+}

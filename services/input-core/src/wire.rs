@@ -161,6 +161,7 @@ pub fn response(request: Request, client: u64, event: Option<(u64, u64, Event)>)
                     CancelReason::CompositorDead => 6,
                 };
             }
+            Event::PointerLeave => bytes[40] = 4,
         }
     }
     bytes

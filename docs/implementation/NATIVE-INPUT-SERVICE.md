@@ -67,6 +67,16 @@ de expliciete `PhysicalKey`-u8-representatie van dit broncontract; compatibele
 uitbreiding vraagt behoud van bestaande nummers of een nieuwe wireversie.
 Pijltjes zijn fysieke toetsen; Unicode-/tekstlayout en hit testing blijven
 afzonderlijke compositor-/tekstlaaginterfaces.
+Aanvulling Veld-04: reply-eventtype4 is `PointerLeave`, uitsluitend een
+door de compositor waargenomen uitgang uit een toegewezen appbody. Bytes
+41..47 en64..95 zijn nul; er reizen geen buitenbodycoordinaten, knopbits,
+toetsen of capabilities mee. Eventnummer, generatie, afzender en correlatie
+blijven verplicht. Dit is geen cancel-watermark, focuswisseling of
+klembordgebaar. De hardwarebron en servicecore genereren dit event niet;
+de twee-appcompositor verstuurt het via de bestaande gebonden appqueues.
+De twee vast gebootstrapte apps en SDK worden gezamenlijk herbouwd.
+Oudere decoders weigeren type4; compatibiliteit met oudere derdenapps is
+hiermee niet bewezen en vereist later expliciete protocolonderhandeling.
 Status 0 is succesvol en 1 is Empty; negatieve statussen 2–18 zijn de expliciete
 `Error`-nummers. `error_reply` maakt alleen een negatieve reply voor een al
 gebonden afzender en canonieke huidige-epoch-request. Overige protocolfouten

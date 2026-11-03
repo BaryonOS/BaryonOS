@@ -58,7 +58,7 @@ struct Runtime {
     #[cfg(feature = "native-window-session-probe")]
     compositor_sample_tick: u64,
     #[cfg(feature = "native-window-session-probe")]
-    compositor_activity: [u64; 6],
+    compositor_activity: [u64; 7],
     #[cfg(feature = "native-window-session-probe")]
     input_progress: [[u64; 2]; 2],
 }
@@ -88,7 +88,7 @@ static mut RUNTIME: Runtime = Runtime {
     #[cfg(feature = "native-window-session-probe")]
     compositor_sample_tick: u64::MAX,
     #[cfg(feature = "native-window-session-probe")]
-    compositor_activity: [u64::MAX; 6],
+    compositor_activity: [u64::MAX; 7],
     #[cfg(feature = "native-window-session-probe")]
     input_progress: [[u64::MAX; 2]; 2],
 };
@@ -564,7 +564,7 @@ fn restart_checked(s: &mut State, slot: usize, a: [u64; 6]) -> Result<u64, i64> 
         runtime().app_generations = [u64::MAX; 2];
         runtime().compositor_commits = u64::MAX;
         runtime().compositor_sample_tick = u64::MAX;
-        runtime().compositor_activity = [u64::MAX; 6];
+        runtime().compositor_activity = [u64::MAX; 7];
     }
     runtime().restarts = r
         .restarts
@@ -730,6 +730,7 @@ fn snapshots(s: &State) {
     if s.processes[COMP].status != Status::Dead && word(s, COMP, 400) == 1 {
         let commits = word(s, COMP, 416);
         let activity = [
+            word(s, COMP, 424),
             word(s, COMP, 440),
             word(s, COMP, 448),
             word(s, COMP, 456),

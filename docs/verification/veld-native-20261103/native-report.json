@@ -1,0 +1,679 @@
+{
+  "passed": true,
+  "native_gate": true,
+  "clipboard_requested": true,
+  "clipboard_gate": true,
+  "workspace_requested": true,
+  "workspace_gate": true,
+  "source_commit": "7eb50b64a7dd140a69f6c3d509faebc24553d3ab",
+  "source_sha256": "deab6b57e772c4c90a9aefe95276e8391db45294a7fe106459bc6915b21e1a35",
+  "source_fingerprint_version": 3,
+  "kernel_feature": "native-window-session-probe",
+  "raw_qemu_exit": 33,
+  "duration_s": 244.01424121200034,
+  "serial_sha256": "4c3b404c1537d52f7d742edf8256570d9fae131bfb18794e6759c6942503a0c2",
+  "qemu_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+  "qemu_implementation": {
+    "path": "/home/simon/.copilot/session-state/7f2fb1d137004b68b9bef4b8ca72f938/files/veld-env/root/usr/bin/qemu-system-x86_64",
+    "sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb"
+  },
+  "disk_oracle": {
+    "object": 0,
+    "revision": 1,
+    "name": "Nieuw document",
+    "length": 14,
+    "sha256": "9a45a00fa9ff69c17e124f54c14bb14cf2c7650e8cf1c272f6631f618a19a5a5",
+    "fnv": 2786778974461010050,
+    "generation": 1,
+    "clocks": [
+      1,
+      0
+    ],
+    "canaries_intact": true
+  },
+  "paint_isolation_baseline": "workspace-selected",
+  "schema_version": 1,
+  "run_directory": "build/veld-native-20261103/probe/run/window-226d82052ee54595b6f4f0137e337f3b",
+  "full_report_sha256": "01923a330ea133307c2939cc168d9fd56f74cde85f8804022ecf0b9a96145c3d",
+  "runner_command": [
+    "python3",
+    "-B",
+    "-u",
+    "tools/run_window_session.py",
+    "--clipboard",
+    "--workspace",
+    "--timeout",
+    "1800",
+    "--bios-rom",
+    "$NOS_BIOS_ROM",
+    "--vga-rom",
+    "$NOS_VGA_ROM"
+  ],
+  "machine": "pc-q35-10.0",
+  "accelerator": "tcg,thread=single",
+  "firmware_sha256": {
+    "OVMF_CODE.fd": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "bios-256k.bin": "e26615f9ad430328f49ca105e570b2dc4490a08a34ea73d27cae8b809a30ee06",
+    "VGA.rom": "c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde"
+  },
+  "normal_manifest_sha256": "b16f299267dd4c608c0c76520a079d11a2b50c4b0ebec45100646ce49b493fe9",
+  "native_log_sha256": "37197b9caf90079bb5e0e829cb6e8f03929a99b26ab13fbf506c8487ee0b5a1e",
+  "build_log_sha256": "e9f2b6776b43a436690ff86b6b65636029f8c1743a39876dc6f881fbfa4ff87e",
+  "oracle": {
+    "kind": "host-rendered real Controller/Frame oracle; not native execution",
+    "source_sha256": "deab6b57e772c4c90a9aefe95276e8391db45294a7fe106459bc6915b21e1a35",
+    "source_fingerprint_version": 3,
+    "generator_command": [
+      "cargo",
+      "+1.90.0",
+      "test",
+      "--offline",
+      "--locked",
+      "--manifest-path",
+      "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-fictional-disco/ui/native/Cargo.toml",
+      "--test",
+      "window_native_fixture",
+      "--",
+      "--nocapture"
+    ],
+    "generator_commands": [
+      [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-fictional-disco/ui/native/Cargo.toml",
+        "--test",
+        "window_native_fixture",
+        "--",
+        "--nocapture"
+      ],
+      [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-fictional-disco/sdk/examples/calculator/Cargo.toml",
+        "--test",
+        "clipboard_native_fixture",
+        "--",
+        "--nocapture"
+      ],
+      [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-fictional-disco/sdk/examples/window-session/Cargo.toml",
+        "--test",
+        "workspace_native_fixture",
+        "--",
+        "--nocapture"
+      ]
+    ],
+    "clipboard_oracles": true,
+    "workspace_regions": {
+      "focus-material": [
+        [
+          0,
+          0,
+          1280,
+          40
+        ],
+        [
+          920,
+          90,
+          344,
+          550
+        ],
+        [
+          0,
+          650,
+          1280,
+          70
+        ]
+      ],
+      "focus-calculator": [
+        [
+          0,
+          0,
+          1280,
+          40
+        ],
+        [
+          16,
+          64,
+          904,
+          576
+        ],
+        [
+          0,
+          650,
+          1280,
+          70
+        ]
+      ],
+      "work": [
+        [
+          0,
+          0,
+          1280,
+          40
+        ],
+        [
+          0,
+          650,
+          1280,
+          70
+        ]
+      ],
+      "search": [
+        [
+          382,
+          96,
+          516,
+          232
+        ]
+      ],
+      "selected": [
+        [
+          0,
+          0,
+          1280,
+          114
+        ],
+        [
+          0,
+          114,
+          28,
+          510
+        ],
+        [
+          908,
+          114,
+          372,
+          26
+        ],
+        [
+          908,
+          140,
+          24,
+          484
+        ],
+        [
+          1252,
+          140,
+          28,
+          484
+        ],
+        [
+          0,
+          624,
+          1280,
+          96
+        ]
+      ]
+    },
+    "generator_exit": 0,
+    "files_sha256": {
+      "880x510-initial.ppm": "e805cf99406cca4f7663487a28973c225f9d9bae3448d77cd82fbc19abd45b82",
+      "880x510-editor.ppm": "229745cd01b06244a796f94ffbb0019750e61cea93de1a5f0194605837cafb8a",
+      "880x510-dirty.ppm": "6a6332f4031d7b65c1925a1ebc8612cba9d5cb912fd2c79ffafac58dc1e65c52",
+      "880x510-saved.ppm": "9c82bd8371de49d502f72f3d0857b82bea0ed20fce30064158fba8eef8122611",
+      "880x510-list.ppm": "7da8a12deed25e4f634dae23ed047f579db21739f252b27ae6e8fc8ee7e6815d",
+      "880x510-reopened.ppm": "b6df18a7f3d7f18ce6f14e6ed5bb19c9ee4cc9032932413d2ecb9e46c62634c0",
+      "880x510-dirty-focus-lost.ppm": "66fe4b21956ac144b2f6ac48e33b798eb891dfd41116f60648a7850940fd4f7c",
+      "880x510-dirty-rebound.ppm": "66fe4b21956ac144b2f6ac48e33b798eb891dfd41116f60648a7850940fd4f7c",
+      "880x510-dirty-recovered.ppm": "6a6332f4031d7b65c1925a1ebc8612cba9d5cb912fd2c79ffafac58dc1e65c52",
+      "880x510-clipboard-copied.ppm": "357dff7d36f3b6f4b6b5bc8fa98085e5ecb607cf09be67a2939bf44432e8fac0",
+      "880x510-clipboard-numeric.ppm": "0c23621b495c7b4062c6837ed48c82bd9f3e49bb096266a7b62f2f84e3b2034c",
+      "880x510-clipboard-back.ppm": "08d2b85ec354520048e112d55af8df146b1ff91c2c28709d3b7b49fd8d2bfb06",
+      "880x510-clipboard-empty.ppm": "2b134d73f8fdfe66ccf0101548665f1eed88397f9c2877829368f56ab40cbb1d",
+      "880x510-clipboard-recovered-empty.ppm": "6c2867f6633ed802905dd13c71272e123b295237e4aa13c629371ce53e1d6328",
+      "1120x660-initial.ppm": "ca06d2b24cc6b953e96bd433eb214428438d26a0cc526b0d7e78a9a4eb68a760",
+      "1120x660-editor.ppm": "f018e7e5a3907163a73f5722422d415c77bf4873c9caefc22ba874e601abee35",
+      "1120x660-dirty.ppm": "7f6abd464e0ddabef8afd65caf2056ca5094c8ab8b8a1479bf334cca6a02ec07",
+      "1120x660-saved.ppm": "4dde83adfac1abec9909aaff110731893cb242dab0098d9309dfd089fba8c844",
+      "1120x660-list.ppm": "c30bdaa75ee9d640977158b4a638b9d6af2f9d53bbe7f5b5b0f6fe385653b18c",
+      "1120x660-reopened.ppm": "3255b24fe99622a578303b1b3f220721754d38dde8fb44fda042e3362e775556",
+      "1120x660-dirty-focus-lost.ppm": "a3822e7101191d3681ce7b20beeaef9401c4c847a7916a4a94d6f3e16edf55c0",
+      "1120x660-dirty-rebound.ppm": "a3822e7101191d3681ce7b20beeaef9401c4c847a7916a4a94d6f3e16edf55c0",
+      "1120x660-dirty-recovered.ppm": "7f6abd464e0ddabef8afd65caf2056ca5094c8ab8b8a1479bf334cca6a02ec07",
+      "1120x660-clipboard-copied.ppm": "a50bda5952299cf1ca0c6abbde13136665d6c85886e95bd830efc5a7b491704e",
+      "1120x660-clipboard-numeric.ppm": "70506212a04bc858d8284e2e9170c1ba3fb8731355cb2bbe7478112e8f3e1f91",
+      "1120x660-clipboard-back.ppm": "fdb7362a1a84a317f57f0d172862b6219156fb4882997ba86732882328d38749",
+      "1120x660-clipboard-empty.ppm": "93439bb95cb045087a0da0ed3ddcd703d1a7267b7a289d5042ffda9fe5c655b4",
+      "1120x660-clipboard-recovered-empty.ppm": "4829e8eba9211d6970a238ac80f9e7a960da6ace9e2da22aabbe9b359b159f53",
+      "calculator-320x484-clipboard-unsupported.ppm": "4d011c03842447bf97ff294e5e94a4eb6e41aff21c8b2e92199149ebb572f08c",
+      "calculator-320x484-clipboard-pasted.ppm": "5d2e63c1ac8cc8f240ec4b1a1a29d2bed7b983c6ada3f5cff60092d8da6fbacb",
+      "calculator-320x484-clipboard-calculator-copied.ppm": "06b531d6d60d189de3c3d1b2f5b4d0c345632a69be4f1415c69b7b28331702a0",
+      "calculator-640x608-clipboard-unsupported.ppm": "f457e46e85ec3392ad2faeafd767c599b5987398e4df22ddc0d6d0712ac9f77b",
+      "calculator-640x608-clipboard-pasted.ppm": "0254883b2749e187fd7c9d15b805fb65a323bd7171dec8e9a8ae6a370e255dcd",
+      "calculator-640x608-clipboard-calculator-copied.ppm": "eb279e5f9b3e6246f5f6cdfd89482b378926879e42e91473775b8b4064d058b6",
+      "workspace-focus-material.ppm": "3496008f5bdb722bd4db0187385f9f0892b9f7aaaf8fd27db915e061ed8885f0",
+      "workspace-focus-calculator.ppm": "6c23e67642420f353114bf1a5933062e911246e865f4fff0fc08e6672d44d6fd",
+      "workspace-work.ppm": "cd1de4e7dd8d54d0c5e40943ecfe62b8744517bf7f328b06ea47b360ebecb4cc",
+      "workspace-search.ppm": "ee0236e802920783a2cf12d5d484b886253e59b3c4fdb55ed4ced2836ad4b974",
+      "workspace-selected.ppm": "d6e7b4cfda4c48fb72efdd7692c106339bb45bc1bb75f0f84c6e3fa2dad8ac4e"
+    }
+  },
+  "phases": {
+    "boot": {
+      "seconds": 22.4960287720005,
+      "frame_sha256": "e16d4d4a3983e148b29c5cbf598fa15b19ab51eab79ac30469934b35554e3f6b",
+      "oracle": null
+    },
+    "initial": {
+      "seconds": 23.599466297000617,
+      "frame_sha256": "d18c13b4cb49777bacfb430eed6c57462bf87f199236b104c0ece5baa8e3122a",
+      "oracle": "initial"
+    },
+    "workspace-focus-material": {
+      "seconds": 24.99659397100004,
+      "frame_sha256": "3a21212c6da2b57b8d72af5fb6c6d44c58d544b83e7a79248d05df8f872beb3b",
+      "oracle": null
+    },
+    "workspace-focus-calculator": {
+      "seconds": 28.014179743000568,
+      "frame_sha256": "f77932a41e470d6952b892687cb81a59b2ff3fc17f808ff9c006db21f4d6ceb6",
+      "oracle": null
+    },
+    "workspace-work": {
+      "seconds": 28.20122976699986,
+      "frame_sha256": "262151713444f8f7f2c4268b82026336fc30887f6a2594b87f43e34dc2bae08a",
+      "oracle": null
+    },
+    "workspace-search": {
+      "seconds": 30.716872713000157,
+      "frame_sha256": "98a35545f473cf43d0b07259b73add7c3b2b7e53cd3641e0e39853d3eb4dc51d",
+      "oracle": null
+    },
+    "workspace-selected": {
+      "seconds": 33.80167075999998,
+      "frame_sha256": "365941efc9d62c3e0e1c7e786919c3459f2176cc1c68aa4c4aecde903809f74a",
+      "oracle": null
+    },
+    "editor": {
+      "seconds": 47.782072525999865,
+      "frame_sha256": "f12c23a61e6feb27d9d3961cd5c60f6176ab9191fb55ca95e3198f14d778f3e5",
+      "oracle": "editor"
+    },
+    "dirty": {
+      "seconds": 50.081501768000635,
+      "frame_sha256": "dde01983ac84722caa3a8d34dc33038a586063fa1d86e89535c628514f31045e",
+      "oracle": "dirty",
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 20,
+          "FRAMES": 3,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 2,
+          "FRAMES": 2,
+          "EVALUATIONS": 0,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "CURRENT": 0,
+          "CARET": 0,
+          "ACTIVE": 0,
+          "ANSWER_LOW": 0,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      }
+    },
+    "clipboard-copied": {
+      "seconds": 63.96625707400017,
+      "frame_sha256": "1b2b24b7b97cd17c0f833e3708cb99fa10f74f3513c931766b7f648d0c8a9239",
+      "oracle": "clipboard-copied"
+    },
+    "clipboard-rejected": {
+      "seconds": 65.59434905299986,
+      "frame_sha256": "942177807a77f2780375274157728a71a43640ba470c315b5d35c0cd9e0c9e49",
+      "oracle": "clipboard-unsupported"
+    },
+    "clipboard-numeric": {
+      "seconds": 82.21846161300073,
+      "frame_sha256": "e97cd7148bd78c51a48abaaf47abfb736223ab829f6d8df4976d6f850a1435c0",
+      "oracle": "clipboard-numeric"
+    },
+    "clipboard-pasted": {
+      "seconds": 83.66723068200008,
+      "frame_sha256": "57e8b865ecdc3bf0514303597a9cb62d364627846653fb19cd355c4e3efc628f",
+      "oracle": "clipboard-pasted"
+    },
+    "clipboard-calculator-copied": {
+      "seconds": 86.22288235500037,
+      "frame_sha256": "4073a99bd4bb8937ec83e7dd2d8d1499906f254a198d195f308e0dd5e04a1f47",
+      "oracle": "clipboard-calculator-copied"
+    },
+    "clipboard-back": {
+      "seconds": 103.1735720530005,
+      "frame_sha256": "9fa364374088912f5d25375b205275c44d20bb82dfbd1fc586881e6f99631de7",
+      "oracle": "clipboard-back"
+    },
+    "clipboard-empty": {
+      "seconds": 117.93503114000032,
+      "frame_sha256": "7787e0868d1768fe81e40e7592bbbc2f81d1a7af10ac6b5b5344492e1ed43b70",
+      "oracle": "clipboard-empty"
+    },
+    "clipboard-reset": {
+      "seconds": 135.1797813460007,
+      "frame_sha256": "34916712c6ebdb09e520ad79e6552b64db8aafb5fc51833e9f62d31ecac6f2c9",
+      "oracle": "dirty"
+    },
+    "calculated": {
+      "seconds": 138.60780003499985,
+      "frame_sha256": "972136e121880184f609df014b268032c96956fec01eb29ffc832b1f0ee773f1",
+      "oracle": null,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 46,
+          "FRAMES": 6,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 19,
+          "FRAMES": 8,
+          "EVALUATIONS": 1,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "CURRENT": 1,
+          "CARET": 3,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 5000000000,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 1,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      }
+    },
+    "moved": {
+      "seconds": 140.48754834300053,
+      "frame_sha256": "ae41e6476207c652e3deb8440c9acddbaea12a4679d65b78be590ae379ab6c4e",
+      "oracle": null,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 46,
+          "FRAMES": 6,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 19,
+          "FRAMES": 8,
+          "EVALUATIONS": 1,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "CURRENT": 1,
+          "CARET": 3,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 5000000000,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 1,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      }
+    },
+    "workspace-arranged": {
+      "seconds": 143.45743033000053,
+      "frame_sha256": "5a3dea5efa45eedd3040f788706d8c06768989b091f05abcc50da6a5b1bdb6cd",
+      "oracle": null
+    },
+    "recovered": {
+      "seconds": 165.10750937100056,
+      "frame_sha256": "e7ff4215383ccdf335a1e65a324fc6575353fbf025fb7dcdcd4966870f76308b",
+      "oracle": null,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 49,
+          "FRAMES": 7,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 21,
+          "FRAMES": 9,
+          "EVALUATIONS": 1,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "CURRENT": 1,
+          "CARET": 3,
+          "ACTIVE": 0,
+          "ANSWER_LOW": 5000000000,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 1,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        }
+      }
+    },
+    "rebound-editor": {
+      "seconds": 166.17299300100058,
+      "frame_sha256": "a1a3054f31acf1728cb5317e4619b2ec638811ab6536b0406fc435669c7a52dd",
+      "oracle": "dirty-rebound"
+    },
+    "calculator-restored": {
+      "seconds": 168.09144571400066,
+      "frame_sha256": "e137f50021bfca125b452f0d10454d0b9aea3974ac29d802a8841533c1495e1a",
+      "oracle": null
+    },
+    "restored-editor": {
+      "seconds": 186.25456055300037,
+      "frame_sha256": "1445885f55e794063555a8bd542401260be1dd81c2cae2e0944aa76d9db5d8e4",
+      "oracle": "dirty-recovered"
+    },
+    "clipboard-recovered-empty": {
+      "seconds": 200.44801851600005,
+      "frame_sha256": "4761f004fa5760965137eee9f84d75bf6d49aede1b6397dce49504bd6901b66f",
+      "oracle": "clipboard-recovered-empty"
+    },
+    "saved": {
+      "seconds": 214.8180958870007,
+      "frame_sha256": "9e322a9df1375d982be72eef1c52724c3f1bb09ea48c8a8b064f3d012bf85bf0",
+      "oracle": "saved",
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 56,
+          "FRAMES": 8,
+          "SAVE_ACKS": 1,
+          "REVISION": 1,
+          "SAVED_BYTES": 14,
+          "SAVED_SUM": 2786778974461010050,
+          "SCREEN": 2,
+          "DIRTY": 0,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 24,
+          "FRAMES": 11,
+          "EVALUATIONS": 2,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "CURRENT": 1,
+          "CARET": 3,
+          "ACTIVE": 0,
+          "ANSWER_LOW": 5000000000,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 1,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        }
+      }
+    },
+    "list": {
+      "seconds": 229.19049631000053,
+      "frame_sha256": "3efe238ae509dc51877715eb6e9d1a9abd15dc7ec33d9d12b15712fc72447b27",
+      "oracle": "list"
+    },
+    "reopened": {
+      "seconds": 243.57163363600012,
+      "frame_sha256": "39aa023991614b798fc6c68f04ef57c76db4f81c74807b051071029526d5c21a",
+      "oracle": "reopened",
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 61,
+          "FRAMES": 10,
+          "SAVE_ACKS": 1,
+          "REVISION": 1,
+          "SAVED_BYTES": 14,
+          "SAVED_SUM": 2786778974461010050,
+          "SCREEN": 2,
+          "DIRTY": 0,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 24,
+          "FRAMES": 11,
+          "EVALUATIONS": 2,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "CURRENT": 1,
+          "CARET": 3,
+          "ACTIVE": 0,
+          "ANSWER_LOW": 5000000000,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 1,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        }
+      }
+    }
+  }
+}

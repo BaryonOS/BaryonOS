@@ -297,6 +297,12 @@ pub(super) fn decode(
                 _ => return Err(ProtocolError::Event),
             })
         }
+        4 => {
+            if !zeros(&b[41..48]) || !zeros(&b[64..]) {
+                return Err(ProtocolError::Body);
+            }
+            Event::PointerLeave
+        }
         _ => return Err(ProtocolError::Event),
     };
     Ok(Reply::Event(Offer {
@@ -305,4 +311,80 @@ pub(super) fn decode(
         generation,
         event,
     }))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use capability_core::Message;
+    use nieuw_os_input_core::wire::{self, Request};
+    use nieuw_os_sdk_runtime::{Handle, ReceiveEndpoint, SendEndpoint};
+
+    fn binding() -> Binding {
+        Binding {
+            epoch: 7,
+            service_pid: 10,
+            client_id: 4,
+            width: 1280,
+            height: 720,
+            send: SendEndpoint::from_handle(Handle::from_raw((1 << 32) | 1).unwrap()),
+            receive: ReceiveEndpoint::from_handle(Handle::from_raw((1 << 32) | 2).unwrap()),
+        }
+    }
+
+    fn response() -> Message {
+        let mut message = Message::new();
+        message.sender_pid = 10;
+        message.tag = TAG;
+        message.len = SIZE as u32;
+        message.data[..SIZE].copy_from_slice(&wire::response(
+            Request {
+                operation: Operation::Peek,
+                id: 1,
+                epoch: 7,
+                arg0: 0,
+                arg1: 0,
+            },
+            4,
+            Some((2, 3, Event::PointerLeave)),
+        ));
+        message
+    }
+
+    fn parse(message: &Message) -> Result<Reply, ProtocolError> {
+        decode(
+            &Received::from_bytes(message.encode(), u64::from(message.len)).unwrap(),
+            binding(),
+            Operation::Peek,
+            1,
+        )
+    }
+
+    #[test]
+    fn pointer_leave_has_no_coordinates_buttons_or_authority_payload() {
+        let message = response();
+        let Reply::Event(offer) = parse(&message).unwrap() else {
+            panic!("Expected pointer-leave offer");
+        };
+        assert_eq!(offer.event(), Event::PointerLeave);
+        assert_eq!((offer.sequence(), offer.generation()), (2, 3));
+        for offset in (41..48).chain(64..SIZE) {
+            let mut malformed = message;
+            malformed.data[offset] = 1;
+            assert!(parse(&malformed).is_err(), "Accepted payload byte {offset}");
+        }
+    }
+
+    #[test]
+    fn pointer_leave_keeps_existing_sender_correlation_and_type_checks() {
+        let mut message = response();
+        message.sender_pid = 11;
+        assert!(matches!(parse(&message), Err(ProtocolError::Envelope)));
+        message = response();
+        message.data[8] = 2;
+        assert!(parse(&message).is_err());
+        message = response();
+        message.data[40] = 5;
+        assert!(matches!(parse(&message), Err(ProtocolError::Event)));
+    }
 }
