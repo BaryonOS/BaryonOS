@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "266b41f13cce49f3c13d80e5171d0433a72f20f4",
+    "source_commit": "873f76c3abd1b7f8f7a74e26e980920f8a5d3e08",
     "branch": "simonvanieperen-fictional-disco",
-    "task": "PR #146-conflicten inhoudsbehoudend integreren met main d686bd54",
+    "task": "PR #146-conflicten inhoudsbehoudend integreren met main 95d79451",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. PR #146 is met main d686bd54 inhoudsbehoudend geïntegreerd: Veld-04-code en brongebonden bewijs blijven behouden, evenals main's implementatie en receipts voor vreemde-volume-admissie. Alle 26 volume-Python-tests, 47 volume-core-Rusttests, Clippy, rustfmt en de roadmapcontrole slagen. De native gate bouwde service, loader en kernel maar kon niet aan QEMU beginnen omdat qemu-system-x86_64 ontbreekt; negen VM-proeven en native volume-acceptatie blijven open."
+    "summary": "41/100 blijft 41/100. PR #146 is inhoudsbehoudend geïntegreerd met main 95d79451; de Veld-05-implementatie en de main-wijzigingen blijven behouden. Gerichte window-session-tests (62), runner-tests (16), artifact-store-core (9), kernel-core (20), Clippy, rustfmt en de native probe-build slagen. De QEMU-runtimegate is niet uitgevoerd omdat qemu-system-x86_64 ontbreekt; geen nieuwe native acceptatie."
   },
   "tracks": [
     {

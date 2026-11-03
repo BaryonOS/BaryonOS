@@ -1,6 +1,27 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR146 met main d686bd54 geïntegreerd; Veld-05 actief — 3 november 2026
+## NEXT AGENT HANDOFF — PR146-conflicten met main 95d79451 — 3 november 2026
+
+**Bronnen:** PR #146-head `873f76c3abd1b7f8f7a74e26e980920f8a5d3e08`
+en de aangewezen `main`-commit `95d7945110ce853a1b5827ec59f6115475691805`.
+Vier conflicten zijn inhoudelijk opgelost; de merge commit wordt hierna
+afgerond. `scene.rs` behoudt de PR-workspace/window-state-implementatie en
+main-side API-documentatie, met PR key-cancellation handling. README en de
+voortgangsassessment blijven bij PR #146; main's PR138-status is historische
+context. Niet-conflicterende main-wijzigingen en de PR138-integratiereceipt
+zijn behouden. Score blijft **41/100**; geen rubricpunten gewijzigd.
+
+**Validatie op de opgeloste boom:** window-session Rusttests (62), runner-tests
+(16), `artifact-store-core` (9) en `kernel-core` (20) slagen; strikte Clippy
+voor window-session en beide gewijzigde root-crates, root- en window-session
+rustfmt, plus native `native-window-session-probe`-build slagen. De build
+gebruikte `tools/build.py`; geen QEMU-runtimegate uitgevoerd omdat
+`qemu-system-x86_64` ontbreekt. Eerste offline pogingen misten alleen reeds
+vergrendelde crates; `cargo fetch --locked` herstelde de cache zonder lockfile-
+of dependencywijzigingen. Exacte commando's staan in het sessietranscript;
+geen aparte logs aangemaakt.
+
+## Vorig checkpoint — PR146 met main d686bd54 geïntegreerd; Veld-05 actief — 3 november 2026
 
 **Integratie:** PR #146-head `dcb9717553fdde095dfca66b800bdddbb73b122d`
 is inhoudsbehoudend samengevoegd met de toen actuele `main`
@@ -61,6 +82,14 @@ en native pixel-/interactiegates. Agentresultaat nog niet ontvangen of
 geintegreerd; geen native hoogcontrastclaim. Nieuwe CI niet uitgevoerd.
 Score **41 -> 41**;
 complete Veld-omgeving, drag/drop, resize en overige functies blijven open.
+
+## Historisch checkpoint — PR138 met main d686bd54 — 3 november 2026
+
+PR138 (`fc3b5e25`) is op main `d686bd54` geïntegreerd en testbewijs is
+vastgelegd in [het integratierapport](verification/pr138-main-integration-20261103.json).
+De gerapporteerde Python/Rust-hosttests, Clippy, formatter en cross-build
+betreffen die eerdere opgeloste boom; QEMU ontbrak en native acceptatie bleef
+open. Dit is historische context, geen validatie van de huidige PR146-merge.
 
 ## Vorig checkpoint — Veld-03 native geverifieerd — 3 november 2026
 
@@ -975,6 +1004,50 @@ voordat alle talen klaar waren; geen volledige CodeQL-scan. De app meldde vóór
 deze integratie geen vereiste checks; nieuwe-headchecks bleven vereist.
 Score34, geen productacceptatiebesluit. De toenmalige vraag
 om publicatie via `report_progress` is historisch, geen nieuw mandaat.
+
+## Historisch checkpoint — mainstand en documentatie — 3 november 2026
+
+**Basis:** `380111b68688c981eec6abb8fab29174a29f5601` op
+`simonvanieperen-laughing-fortnight`, destijds gelijk aan `origin/main`; parent
+`74a34d05ef5591b782a0da9da34e4669910d0722`. PR126-inhoud en de zeven
+PR127-reviewfixes zijn nu in deze main-commit geïntegreerd.
+
+**Exact-head controles:** GitHub rapporteert 28/28 check-runs als `success`.
+De [native venstersessie-run](https://github.com/simonvanieperen/nieuw-os/actions/runs/41535553113)
+sluit de actuele QEMU-route met echte invoer, pixel-/isolatieasserties,
+compositorherstel en schijfcontrole af; de
+[netwerk-run](https://github.com/simonvanieperen/nieuw-os/actions/runs/41535553158)
+sluit hostkwaliteit en de native netwerkdienst met gecontroleerde peer af.
+Dit is geen Windows-runtime-, fysieke-hardware-, menselijke-audit- of
+volledige-releasebewijs.
+
+**Documentatie:** README, status, voortgangsassessment en verificatierecord
+zijn bijgewerkt naar deze bron. Alle publieke functies in
+`kernel-core`, `artifact-store-core` en de window-session-scene hebben nu
+Rustdoc; comments
+verduidelijken beschadigingstegels en toetsrelease-eigenaarschap. Deze
+documentatiewijziging verandert geen OS-gedrag of acceptatiecriterium.
+
+**Voortgang:** **41/100 → 41/100**, rubric v1; er zijn geen punten toegekend.
+U02, authenticatie/vergrendeling, de resterende releasecriteria, fysieke
+hardware en de volledige testrelease blijven open.
+
+**Uitgevoerd:** `python3 tools/progress.py --write` exit 0;
+`python3 tools/progress.py --check` exit 0; `git diff --check` en beide
+`python3 -m json.tool`-controles exit 0. Publieke-functiedekking van de drie
+gewijzigde Rust-bronbestanden is statisch gecontroleerd. Exact-head status is
+gecontroleerd met `gh api repos/simonvanieperen/nieuw-os/commits/380111b68688c981eec6abb8fab29174a29f5601/check-runs --jq '.total_count'`
+(28, alle success), plus `gh run view 41535553113 --json conclusion,headSha,jobs,workflowName,url`
+en `gh run view 41535553158 --json conclusion,headSha,jobs,workflowName,url` (beide exit 0). Rustdocgeneratie
+`RUSTDOCFLAGS='-D missing-docs' cargo doc --locked --no-deps -p capability-core -p kernel-core -p virtio-core -p ui-core -p update-core -p app-package-core -p artifact-store-core`
+is **niet uitgevoerd**: exit 127, `cargo: command not found`.
+`python3 -B tools/dev.py cargo +1.90.0 --version` exit 1 doordat de Cargo-
+binary ontbreekt. CodeRabbit CLI-review is niet gestart; het uitvoerbare
+bestand was niet vindbaar en beschikbaarheid/authenticatie zijn onbekend.
+
+**Eerstvolgend commando:** `git status --short && git rev-parse HEAD &&
+python3 -B tools/progress.py --check`; raadpleeg daarna `docs/WORK-QUEUE.md`
+voor het volgende productwerk.
 
 ## Native checkpoint PR127 — zeven reviewfixes — 2 november 2026
 

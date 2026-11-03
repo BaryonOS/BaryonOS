@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`266b41f1`](https://github.com/simonvanieperen/nieuw-os/commit/266b41f13cce49f3c13d80e5171d0433a72f20f4) ·
+**Bron:** [`873f76c3`](https://github.com/simonvanieperen/nieuw-os/commit/873f76c3abd1b7f8f7a74e26e980920f8a5d3e08) ·
 **Ontwikkelbranch:** `simonvanieperen-fictional-disco`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR #146-conflicten inhoudsbehoudend integreren met main d686bd54.
-41/100 blijft 41/100. PR #146 is met main d686bd54 inhoudsbehoudend geïntegreerd: Veld-04-code en brongebonden bewijs blijven behouden, evenals main's implementatie en receipts voor vreemde-volume-admissie. Alle 26 volume-Python-tests, 47 volume-core-Rusttests, Clippy, rustfmt en de roadmapcontrole slagen. De native gate bouwde service, loader en kernel maar kon niet aan QEMU beginnen omdat qemu-system-x86_64 ontbreekt; negen VM-proeven en native volume-acceptatie blijven open.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR #146-conflicten inhoudsbehoudend integreren met main 95d79451.
+41/100 blijft 41/100. PR #146 is inhoudsbehoudend geïntegreerd met main 95d79451; de Veld-05-implementatie en de main-wijzigingen blijven behouden. Gerichte window-session-tests (62), runner-tests (16), artifact-store-core (9), kernel-core (20), Clippy, rustfmt en de native probe-build slagen. De QEMU-runtimegate is niet uitgevoerd omdat qemu-system-x86_64 ontbreekt; geen nieuwe native acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -102,6 +102,20 @@ Het oorspronkelijke onderzoek leverde geen afbeeldingen of productcode;
 de native uitvoering staat hierboven. De ontwikkelmeter blijft **41/100**.
 
 Volledige repository-inventaris: [OS-completeness-audit](docs/audit/os-completeness/README.md).
+
+## Historische geïntegreerde bronstand — 3 november 2026
+
+De bron was [`380111b`](https://github.com/simonvanieperen/nieuw-os/commit/380111b68688c981eec6abb8fab29174a29f5601):
+de volledige PR126-inhoud en PR127-reviewherstellingen zijn hierin op `main`
+gecombineerd. Alle **28 exacte-head GitHub-checkruns** zijn geslaagd.
+De [native venstersessie](https://github.com/simonvanieperen/nieuw-os/actions/runs/41535553113)
+en de [native netwerkdienst](https://github.com/simonvanieperen/nieuw-os/actions/runs/41535553158)
+hebben afzonderlijke QEMU-gates; het netwerk gebruikt een gecontroleerde
+synthetische peer.
+
+Dit vervangt geen fysieke hardwaretest, Windows-gasttest of volledige
+testrelease. De voortgang blijft **41/100**; deze status- en
+API-documentatieaanpassing levert geen productpunten op.
 
 ## Native venstersessie — 2 november 2026
 
