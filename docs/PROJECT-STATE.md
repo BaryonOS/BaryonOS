@@ -1,6 +1,6 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Veld-06 toetsenbordverplaatsing, native open — 3 november 2026
+## NEXT AGENT HANDOFF — Veld-06 native geverifieerd — 3 november 2026
 
 **Basis/branch:** `4328426434edd01d4f7bb8a40c845b4e3bcae70e`,
 `simonvanieperen-veld-hc-20261103`; HC-product047abfa1 blijft afzonderlijk
@@ -30,12 +30,19 @@ Runnertegenproef eist iedere shellpixel EN iedere verplaatste apppixel in
 alle acht nieuwe fasen op beide schalen. Log
 `files/veld-env/logs/veld-move-final-host.log`.
 
-**Native nog niet uitgevoerd:** verwacht56 volledige fasen per schaal.
-Volgende commando's: build met `native-window-session-probe`, runner
-`--clipboard --workspace --scale 1`; daarna hidpi-probe/scale2 en beide
-normale builds. Eigen buildmappen `build/veld-move-20261103/scale1/scale2`;
-bestaande gescheiden targetcaches behouden. Hele app-/shellbeelden en echte
-inputtellers, ook geen toetsen naar apps tijdens verplaatsen.
+**Native geverifieerd:** product
+`0d232c7028ba0696c177a568d07e0e50f8d6f269`, fingerprint
+`2f1ade603fd2ad556ceec23dd6e99c8886e0d300a96624367fa88c853fa52caa`.
+56 volledige fasen per schaal;100%412,07 s,200%726,07 s,
+beide exit0/ruwe33. Alle toepasselijke gates true, ook alle eerdere HC-,
+opslag-/herstel-/isolatiegates. Echte coarse/fine-positie, geen appkeys in
+de modus, iedere shell- en apppixel en exact volledig frameherstel na
+Escape/Ordenen slagen. Beide normale builds exit0.
+[Commando's, compacte rapporten en loghashes](verification/veld-move-20261103/README.md).
+Geen nieuwe CI-, fysieke of menselijke claim.
+**Vervolg:** vrije shellinteracties verder uitbouwen; Materiaal-/Settings-
+filevrijgave aan General blijft gelden. Native bron is vastgelegd, geen
+achtergrondwerk gesuggereerd. Oude remote-delta nog niet geintegreerd.
 Score **41 -> 41**; geen nieuw rubriccriterium, complete Veld-omgeving open.
 
 ## Vorig checkpoint — Veld-05 native geverifieerd — 3 november 2026
