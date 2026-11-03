@@ -1,40 +1,32 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — artifact-store-openbeleid — 3 november 2026
+## NEXT AGENT HANDOFF — PR #140 main-integratie — 3 november 2026
 
-**Basis:** `08710d55db5690acc12aa8458ceeab7cb39ae72c`,
-branch `simonvanieperen-animated-umbrella`. Eén testbestand is uitgebreid:
-`crates/artifact-store-core/tests/contract.rs`. De nieuwe negatieve gevallen
-controleren dat een ongeldige verwachte descriptor de backend niet bereikt,
-dat een backenddescriptor met lege identiteit/generatie/lengte wordt geweigerd,
-dat afwijkende artifact-ID, generatie, digest of lengte `Corrupt` oplevert en
-dat `Unauthorized`, `Stale` en `Io` bij `open` expliciet worden doorgegeven.
-Dit scherpt de testdekking van de verificatiegrens aan; productiecode en
-capabilities zijn niet gewijzigd.
+**Basis:** PR-head `bd9fce790b5a2edd6ed08283143ee05caf1e8966` geïntegreerd met
+main `cbbc9c9941b08ea5edfbd3637d494635b4fb1df0`. De N01-timeoutfix van main
+blijft behouden: `ReceiveTcp` rapporteert `Closed` na annulering, terwijl
+`TimedOut` de diagnostische status blijft. De negatieve artifact-storetests
+blijven behouden; er zijn geen capability- of productieopslagwijzigingen.
 
-**Gecontroleerd:** gepinde Rust 1.90.0 `cargo check --locked -p
-artifact-store-core --tests`, `cargo clippy --locked -p artifact-store-core
---all-targets -- -D warnings` en `cargo fmt --manifest-path
-crates/artifact-store-core/Cargo.toml -- --check`: exit 0. De eerste
-`cargo test --locked -p artifact-store-core`-poging stopte vóór testuitvoering
-(exit 101) omdat de host geen `cc`-linker heeft. Systeembrede installatie
-vroeg om interactieve sudo-authenticatie en is niet gedaan. In plaats daarvan
-is GCC 15.2.0 plus libc-ontwikkelbestanden tijdelijk onder `/tmp` uitgepakt;
-met die linker slaagt de volledige cratesuite: **9 tests, 0 mislukt**, exit 0.
-Geslaagd log:
-`/tmp/nieuw-os-artifact-store-test-resolved.log`
-(SHA-256 `25174e4898f6762ca5d3bf97be844391b97d68181945f6a37e302d7401ddafdf`).
-Overige logs:
-`/tmp/nieuw-os-artifact-store-check.log`,
-`/tmp/nieuw-os-artifact-store-clippy.log`,
-`/tmp/nieuw-os-artifact-store-fmt.log`,
-`/tmp/nieuw-os-artifact-store-test.log` (eerste mislukte poging).
+**Gecontroleerd op de opgeloste boom:** Rust 1.91.1 netwerkservicetests (10),
+Clippy, formattering en de `x86_64-unknown-none`-releasebuild slagen. Rust
+1.90.0 artifact-storetests (9), Clippy en formattering slagen. `tools/progress.py
+--check`, JSON-syntaxiscontrole en `git diff --cached --check` slagen.
 
-**Voortgang:** 41% → 41%; geen productacceptatiepunt volgt uit hosttestcode,
-typechecking of formattering. Geen native, hardware-, gebruikerstest- of
-releasebewijs toegevoegd. De aanvullende tests zijn met de bestaande
-`artifact-store-quality`-suite geverifieerd; de CI-workflow is hier niet
-uitgevoerd.
+**Open:** hosted controles moeten de gepubliceerde integratiehead nog opnieuw
+beoordelen. De specifieke timeout-na-verbindingstest is hostbewijs; op deze
+integratie is geen QEMU-gate opnieuw uitgevoerd. Voortgang blijft **41/100**;
+geen nieuwe native, hardware-, gebruikerstest- of releaseacceptatie.
+
+## Geïntegreerd uit main — Issue #43: ReceiveTcp na verbindingstime-out
+
+De main-basis `cbbc9c9941b08ea5edfbd3637d494635b4fb1df0` bevat de N01-fix:
+na een geannuleerde TCP-verbinding eindigt ontvangst met `Closed`, terwijl
+`TimedOut` behouden blijft als diagnostische status. Host-, lint- en
+`x86_64-unknown-none`-builds zijn eerder geslaagd; native `normal` en
+`client-exit` zijn op broncommit `5925c915` uitgevoerd. Het nieuwe
+timeout-ontvangstscenario is alleen op de host rood/groen bewezen. Zie
+`docs/verification/issue-43-receive-timeout.md` voor commando's en grenzen.
 
 ## Vorig checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 
