@@ -1,0 +1,26 @@
+    Checking nieuw-os-terminal-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-robot/sdk/terminal-core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.05s
+    Checking nieuw-os-terminal-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-robot/sdk/terminal-core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.12s
+   Compiling nieuw-os-terminal-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-robot/sdk/terminal-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.40s
+     Running unittests src/lib.rs (sdk/target/debug/deps/nieuw_os_terminal_core-c3a80961017ccca5)
+
+running 6 tests
+test tests::line_editor_moves_and_deletes_whole_utf8_characters ... ok
+test tests::parser_enforces_argument_and_buffer_bounds ... ok
+test tests::line_editor_rejects_controls_and_keeps_state_on_overflow ... ok
+test tests::parser_rejects_operators_expansion_and_malformed_quotes ... ok
+test tests::parser_handles_quotes_escapes_and_empty_arguments ... ok
+test tests::quoted_operators_are_literal_arguments ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nieuw_os_terminal_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+    Checking nieuw-os-terminal-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-vigilant-robot/sdk/terminal-core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.07s

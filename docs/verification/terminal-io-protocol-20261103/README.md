@@ -24,6 +24,11 @@ Dit is een hosttestbaar SDK-contract, niet de aansluiting op echte endpoints.
 Geen Terminal-proces, keyboard/renderpad, launchbroker, per-job bytequota,
 native procesuitvoering of echte kernelstatus is getest.
 
+Repository-implementatiebronnen (Nieuw OS SDK, commit
+[`49e83f56`](https://github.com/simonvanieperen/nieuw-os/commit/49e83f56ed083b4f7a9628559d6a37f99b986dca),
+3 november 2026): [`Received::sender`](https://github.com/simonvanieperen/nieuw-os/blob/49e83f56ed083b4f7a9628559d6a37f99b986dca/sdk/runtime/src/message.rs#L75-L120)
+en [`native::status` (K05, ABI 1.3)](https://github.com/simonvanieperen/nieuw-os/blob/49e83f56ed083b4f7a9628559d6a37f99b986dca/sdk/runtime/src/native.rs#L263-L272).
+
 ## Controles
 
 Rust `1.90.0`; de hostlinker GCC 15.2 en `libc6-dev` zijn alleen voor deze run
@@ -41,7 +46,7 @@ installatie. Met dezelfde tijdelijke hostlinkeromgeving als beschreven in
 | `git diff --check` | exit 0 |
 
 Volledige uitvoer staat buiten Git in
-`/tmp/nieuwos-terminal-toolchain/terminal-io-protocol-gates.log`.
+[`terminal-io-protocol-gates.log`](terminal-io-protocol-gates.log).
 SHA-256: `821d8ac9a6869ae44f48650dc1df8f38d0aecf856a2ecf9aa995663e0d4e13ca`.
 
 ## Bronvingerafdrukken

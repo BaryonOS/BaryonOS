@@ -18,9 +18,8 @@ native rechtenuitgifte, QEMU- of hardwareacceptatie.
 cargo +1.90.0 test --offline --locked -p platform-profile-core -p permission-policy-core
 ```
 
-Result: exit 0, 9 tests.
-De testlog staat op
-`/tmp/nieuwos-profiler-toolchain/platform-policy-tests-final.log`,
+Result: exit 0, 9 tests. De volledige testuitvoer is nu duurzaam opgeslagen
+in [`platform-policy-tests-final.log`](platform-policy-tests-final.log),
 SHA-256 `1dc913df14c6d0aad519ae36b0ea898afa222ca96086eb5553c9328e116526fe`.
 
 Voor deze native hosttest is GCC 15.2 met `libc6-dev` uit Ubuntu-pakketten

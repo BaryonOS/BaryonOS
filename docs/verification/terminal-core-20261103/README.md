@@ -39,8 +39,9 @@ export RUSTFLAGS='-C link-arg=--sysroot=/tmp/nieuwos-terminal-toolchain/root'
 | `$HOME/.cargo/bin/cargo +1.90.0 check --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-terminal-core --target x86_64-unknown-none` | exit 0 |
 | `git diff --check` | exit 0 |
 
-De gecombineerde uitvoer staat buiten Git in
-`/tmp/nieuwos-terminal-toolchain/terminal-core-gates.log`.
+De gecombineerde uitvoer is opgeslagen in
+[`terminal-core-gates.log`](terminal-core-gates.log), zodat de uitslagen
+duurzaam te controleren zijn.
 SHA-256: `a3468f5d0c679ebaa652ff7bf671fcaf36b2a41a2feacbc591a504fa453268b0`.
 Een eerste testpoging kon niet starten omdat `cargo` niet op `PATH` stond;
 de directe toolchainaanroep miste vervolgens een hostlinker. Na de tijdelijke

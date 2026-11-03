@@ -10,7 +10,7 @@ Cargo-lockfile:
 |---|---|
 | `experiments/browser-parser-host/Cargo.toml` | `06588b0d5396c4d877549e86030d0963930a3be5b259f88bf918fe79d060ef7c` |
 | `experiments/browser-parser-host/Cargo.lock` | `0219a1ccb541a6d35eace66d4597216439afc47a1e12d003267e1d45f59489b4` |
-| `experiments/browser-parser-host/src/lib.rs` | `22dfb750df0d0aaa94ad578f314a79c328cb7ef9320cde4c978bbeee5ef95aef` |
+| `experiments/browser-parser-host/src/lib.rs` | `86e614d7bbb966b5dfc6b79af11447b137ed01f98e7d81616940f38cd094935b` |
 | `experiments/browser-parser-host/fixtures/page.html` | `584e0374d6c51fe304b88a7ca12752b7ba9b8318f1dd4c472546445795201855` |
 
 ## Resultaat
@@ -20,11 +20,17 @@ een HTML5-DOM. Een CSS-selector levert een begrensde titel-/linkinventaris.
 De adapter accepteert uitsluitend door de caller gegeven bytes; zij maakt
 geen sockets, opent geen bestanden en heeft geen Nieuw-OS-interface.
 
-Vijf hosttests controleren de fixture, entity-decoding/selectorresultaten,
+Zeven hosttests controleren de fixture, entity-decoding/selectorresultaten,
 ongeldige UTF-8, de limiet van 64 KiB, maximaal 64 links en het behouden van
 een `javascript:`-URL als onbetrouwbare data. De grenzen beperken de caller-
 invoer en retourvorm, niet interne heap-/tijd-/diepteconsumptie van
 `scraper`.
+
+Twee reviewregressies zijn toegevoegd: een SVG-`title` mag geen HTML-
+documenttitel opleveren, en links in `<template>` tellen niet mee in de
+documentinventaris of linklimiet. Voor de fix faalden beide nieuwe tests;
+na de fix slaagden alle zeven tests. De rood/groenuitvoer en hashes staan in
+het [reviewcorrectiebewijs](review-cleanup-20261103.md).
 
 ## Dependency- en platformgrens
 
@@ -65,7 +71,7 @@ export CARGO_TARGET_DIR=/tmp/nieuwos-browser-parser-host/target
 | Exact commando | Resultaat |
 |---|---|
 | `python3 -B tools/dev.py /home/simon/.cargo/bin/cargo +1.90.0 fetch --offline --locked --manifest-path experiments/browser-parser-host/Cargo.toml` | exit 0 |
-| `python3 -B tools/dev.py /home/simon/.cargo/bin/cargo +1.90.0 test --offline --locked --manifest-path experiments/browser-parser-host/Cargo.toml` | exit 0; 5 tests |
+| `python3 -B tools/dev.py /home/simon/.cargo/bin/cargo +1.90.0 test --offline --locked --manifest-path experiments/browser-parser-host/Cargo.toml` | exit 0; 7 tests |
 | `python3 -B tools/dev.py /home/simon/.cargo/bin/cargo +1.90.0 clippy --offline --locked --manifest-path experiments/browser-parser-host/Cargo.toml --all-targets -- -D warnings` | exit 0 |
 | `python3 -B tools/dev.py /home/simon/.cargo/bin/cargo +1.90.0 fmt --manifest-path experiments/browser-parser-host/Cargo.toml --all -- --check` | exit 0 |
 | `python3 -B tools/dev.py /home/simon/.cargo/bin/cargo +1.90.0 check --offline --locked --manifest-path experiments/browser-parser-host/Cargo.toml --target x86_64-unknown-none` | exit 101; upstream dependency uses `std`; host-only incompatibility bevestigd |

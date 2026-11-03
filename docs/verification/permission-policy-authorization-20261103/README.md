@@ -54,6 +54,15 @@ microfoongebruik zijn niet geïmplementeerd of getest.
 
 ## Uitgevoerde gerichte controles
 
+Voer vanuit de repository-root eerst uit:
+
+```sh
+source docs/verification/permission-policy-authorization-20261103/env.sh
+```
+
+Deze omgeving zet `RUSTDOCFLAGS="$RUSTFLAGS"`, zodat rustdoc dezelfde
+sysroot-linkerflag gebruikt als Cargo.
+
 Alle onderstaande commando's: **exit 0**. Exacte meetgegevens:
 `directed-results.json`; volledige uitvoer in gelijknamige `.log`-bestanden.
 
