@@ -3,7 +3,7 @@
 ## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
 
 **Gepubliceerde basis:** branch `simonvanieperen-studious-spoon`, commit
-`bb34d8785096a4fa71d235cc4d3177ba96807df5`, gepusht naar
+`869457478bfcb946ad8f3b75c11922979b4ca61e`, gepusht naar
 `origin/simonvanieperen-studious-spoon`. Actieve toewijzing:
 `SYSTEM-MATURITY-SMP`, queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`.
 OOM/K05 zijn afgesloten en blijven ongewijzigd;
@@ -89,16 +89,17 @@ Een eerdere aanroep met `--help` is geen helpmodus, voerde de runner uit en
 stopte door ontbrekende `cargo` op de standaard-PATH; die poging staat apart in
 [`smp-rendezvous-20261103T173931Z.json`](verification/sm-smp/smp-rendezvous-20261103T173931Z.json).
 
-**Eerstvolgende actie:** commit/push de gerichte cross-CPU IPC-slice en draai
-de volledige `python3 -B tools/test_smp.py`-matrix inclusief de M4-2CPU-gate
-met
+**Eerstvolgende actie:** draai de volledige `python3 -B tools/test_smp.py`-
+matrix op de gepushte bron `86945747`; die herhaalt de M3 1/2/4-regressies
+en voegt de M4-2CPU cross-CPU-gate toe, met
 `PATH="$HOME/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH"`,
 `LD_LIBRARY_PATH=/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu:/tmp/sm-oom-qemu-root/lib/x86_64-linux-gnu`,
 `OS_OVMF_CODE=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd` en
 `OS_OVMF_VARS=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd`.
-QEMU 10.2.1 en OVMF 4M zijn aanwezig. Bij succes is alleen het gerichte
-cross-CPU IPC-paar afgetekend; cross-CPU exit/revoke, TLB-hergebruik en
-races/failurecases blijven open. Dit is geen volledige K06-acceptatie. De
+QEMU 10.2.1 en OVMF 4M zijn aanwezig. De gerichte probe liet één berichtpaar
+over CPU-grenzen slagen, maar de volledige matrix moet deze en alle regressies
+nog aan exact deze gepushte bron binden. Cross-CPU exit/revoke, TLB-hergebruik
+en races/failurecases blijven open. Dit is geen volledige K06-acceptatie. De
 bestaande dirty wijzigingen in README en voortgangsbestanden zijn behouden en
 niet door deze SMP-taak aangepast.
 
