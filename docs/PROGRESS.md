@@ -102,6 +102,14 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR150 native-faalbewijs (3 november2026), bron564/run41632495284:
+**41 →41**. Echte serial1064/status0 na112 ticks bij venster100, rawexit35;
+artifact/report/serialhashes en source-v3-bij-code433 vastgelegd in
+[de receipt](verification/pr150-foundation-failure.json). Geen bewezen
+quotabypass of geslaagde564-gate. Foundation op latere reviewcorrectie433
+is afzonderlijk groen; dit herlabelt de eerdere rode proef niet en geeft
+geen productpunten. Geen quota-/assertion-/CI-wijziging.
+
 PR139-review (3 november2026), exact geteste geïntegreerde bron `0a49a382`:
 **41 → 41**. Negen artifact-store-contracttests, Rust1.90.0 fmt en Clippy
 daadwerkelijk opnieuw groen; primaire logs/boom/commando's/codehashes staan

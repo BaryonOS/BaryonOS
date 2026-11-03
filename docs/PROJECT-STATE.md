@@ -26,10 +26,16 @@ acceptatie. `assessment.source_commit` is de vooraf bestaande beoordelingsbasis,
 niet de huidige PR-head of automatisch de bron van ieder testresultaat.
 **41 →41**, geen criteriumwijziging. PR135's echte RAW-fouten en ontbrekende
 volume-admissionfixtures blijven open; geen integratiemandaat overgedragen.
-De nieuwe native-foundationrun `41632495284` op `564a3617` is echt rood in
-RANDOM raw (marker-/exit-/bronbinding mislukt); geen groen resultaat of merge.
-De profielen wijzigen geen OS-code. De concrete serialoorzaak wordt apart
-onderzocht; niet zonder bewijs gelijkstellen aan de twee oude135-fouten.
+Native-foundationrun `41632495284` op `564a3617` is echt rood: de werkelijk
+gedownloade serial toont request1064/status0 na112 ticks (126→238), bij
+een100tickvenster. Een vensterreset verklaart de acceptatie; geen bewezen
+productquotabypass. [Primaire artifact-/report-/serialreceipt](verification/pr150-foundation-failure.json).
+Actions-testmerge `0c411367` en runhead564 zijn apart benoemd; source-v3
+is gelijk aan de ongewijzigde code van433. Dit is een afzonderlijke derde
+proef naast135's110/101ticks, geen hergebruik van hun bron.
+Op de latere echte reviewcorrectie433 is foundation groen, maar andere
+checks waren nog bezig; dit wist de112tick-fout niet. Geen blinde rerun,
+quota-/assertion-/CI-versoepeling of nieuwe productpunten.
 **Eerstvolgend:** `GH_PAGER="" gh pr checks 150`; nieuwe head/base en
 reviewthreads opnieuw controleren vóór guarded squash.
 

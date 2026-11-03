@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`564a3617`](https://github.com/simonvanieperen/nieuw-os/commit/564a36175ebb4db52ddb1ba33beae08179a417c8) ·
+**Bron:** [`43340832`](https://github.com/simonvanieperen/nieuw-os/commit/43340832d0a512b9ae0eba80e4469d84e814c229) ·
 **Ontwikkelbranch:** `copilot/add-os-specialist-agents`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR150: beoordelingsbasis en statische veldsubset preciseren; nativefout blijft open.
-41 blijft 41. Beoordelingsbasis 564a3617, niet de uiteindelijke PR-head of automatisch iedere testbron. De 16 statische profielcontroles toetsen uitsluitend de gedocumenteerde frontmatter-veldsubset en toolsets, geen volledige YAML-/cloudconfigvalidatie of cloudruntime/toolisolatie. Twee historische profielhashes zijn geen werkboommanifest. PR139 is werkelijk main99; beide bronhistorieën behouden. Native-foundation op564 faalt echt in RANDOM raw en blijft open; geen nieuwe native/fysieke/menselijke acceptatie of punten.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR150: echte112tick-RANDOM-faalserial brongebonden bewaren zonder quota of gates te wijzigen.
+41 blijft 41. Beoordelingsbasis433, niet de uiteindelijke PR-head of iedere testbron. Primair artifact op564 toont1064/status0 na112ticks bij venster100, rawexit35; Actions-testmerge en runhead apart, code-v3 exact433. Dit bewijst een niet vervulde timingaanname van de native callproef, geen productquotabypass. Latere433-foundation groen maar andere checks nog bezig; oude rode proef blijft rood.16 statische checks uitsluitend gedocumenteerde frontmatter-veldsubset/toolsets, geen volledige YAML/cloudconfig/runtime-isolatie of nieuwe productacceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
