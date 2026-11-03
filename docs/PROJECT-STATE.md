@@ -144,6 +144,24 @@ QEMU-waarschuwing over ontbrekend `kvmvapic.bin` blijft ononderzocht. Receipt:
 [`smp-rendezvous-20261103T190216Z.json`](verification/sm-smp/smp-rendezvous-20261103T190216Z.json);
 bronfingerprint `5d9f0256e588e957826c5a5528913117d3097b9fe8c25180be6ec767aede36aa`.
 
+**M4 multi-round cleanupfout gereproduceerd; fail-closed guard gericht getest:**
+de bestaande combinatie `native-smp-m4,test-m4-lifecycle` eindigt op twee CPU's
+met raw exit 35. Tijdelijke, daarna verwijderde serial-instrumentatie liet
+tijdens round-1-setup CPU0 nog eigenaar van processlot 2 zien, terwijl CPU1
+idle was. `m4::poll` ruimt vervolgens alle processen op en roept `State::setup`
+aan; die reset per-CPU owners zonder dat remote user-CPU's eerst quiescent zijn.
+De `M3Guard` serializeert kernelmutaties, maar stopt geen andere CPU in ring 3.
+De diagnose staat in
+[`m4-lifecycle-smp-failure-20261103.json`](verification/sm-smp/m4-lifecycle-smp-failure-20261103.json).
+
+`State::cleanup` weigert nu vóór het vrijgeven van een remote-actief processlot
+met `M1:FAIL:SMP:CLEANUP_REMOTE_ACTIVE`. De gerichte 2-CPU AP-exitproef slaagde
+(raw 33); de lifecyclecombinatie geeft de bedoelde fail-closed marker (raw 35).
+Dit herstelt de multi-round lifecycle niet. De volledige matrix is nog niet
+opnieuw gedraaid na deze guard. Veilig herstel vereist een lifecycle-hook die
+de M3-scheduler alle CPU's naar kernelcontext laat parkeren vóór bulk-cleanup;
+geen stilzwijgende BSP-only affinityworkaround.
+
 **Niet-geaccepteerde SMP-lifecycleverkenning:** het combineren van de bestaande
 M4 multi-round lifecyclefixture met SMP eindigde op raw QEMU exit 35 bij
 `kernel/src/m2/m3.rs:1849` (`current < state.amount`) na AP-bring-up.
@@ -169,9 +187,10 @@ Dit bewijst geen algemeen remote-shootdownprotocol, fair lock of volledige
 race-/failureacceptatie; K06 is niet afgerond.
 `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
 
-**Eerstvolgende actie:** onderzoek de bestaande niet-geaccepteerde M4 multi-
-round lifecycleproef en haar raw-35 assertion met een minimale reproduceerbare
-SMP-fixture; laat reguliere scheduler- en capabilitysemantiek ongewijzigd.
+**Eerstvolgende actie:** voer de volledige SMP-matrix opnieuw uit met de
+remote-cleanup guard. Daarna is de M4-lifecyclecaller-/M3-quiescencehandshake
+de open grens; behoud de fail-closed weigering en wijzig geen capability- of
+process-ABI.
 
 **Cross-CPU capability-IPC — eerdere lokale proef vóór matrix:**
 `native-smp-m4` combineert het bestaande SMP-M3-profiel met de bestaande M4

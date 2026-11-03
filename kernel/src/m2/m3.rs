@@ -1482,6 +1482,18 @@ impl State {
         }
     }
     fn cleanup(&mut self, slot: usize) {
+        #[cfg(feature = "native-smp-m3")]
+        {
+            let current_cpu = arch::current_cpu_index();
+            if !self
+                .cpu_current
+                .iter()
+                .enumerate()
+                .all(|(cpu, running)| cpu == current_cpu || *running != slot)
+            {
+                serial::fail(b"SMP:CLEANUP_REMOTE_ACTIVE");
+            }
+        }
         #[cfg(feature = "process-memory")]
         assert!(
             heap::clean_boundary(),
