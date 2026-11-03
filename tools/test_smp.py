@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 from zoneinfo import ZoneInfo
@@ -37,10 +38,18 @@ def main() -> int:
             "environment": {
                 name: os.environ.get(name)
                 for name in (
-                    "PATH",
                     "LD_LIBRARY_PATH",
                     "OS_OVMF_CODE",
                     "OS_OVMF_VARS",
+                )
+            },
+            "tool_paths": {
+                name: shutil.which(command)
+                for name, command in (
+                    ("cargo", "cargo"),
+                    ("rustc", "rustc"),
+                    ("cc", "cc"),
+                    ("qemu", "qemu-system-x86_64"),
                 )
             },
         },

@@ -3,7 +3,7 @@
 ## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
 
 **Bron:** branch `simonvanieperen-studious-spoon`, commit
-`636aedbb0456023bf352d02fbab9ac5e346fb629`, gepusht naar
+`e9c44bdc228e1828f84d732eac5e4ac24784e798`, gepusht naar
 `origin/simonvanieperen-studious-spoon`. Actieve toewijzing:
 `SYSTEM-MATURITY-SMP`, queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`.
 OOM/K05 zijn afgesloten en blijven ongewijzigd;
@@ -23,8 +23,7 @@ Een eerste 2-CPU-run vóór deze commit slaagde op bronvingerafdruk `cdb79...`
 De eerdere poging eindigde met raw exit 35 en `M2:FAIL:KERNEL_EXCEPTION`;
 de dispatch onderscheidt nu user-origin en kernel-origin schedule-IPI's.
 Logs: `build/run/smp-2-5d1e382375/` (mislukt) en
-`build/run/smp-2-b54ae3d31e/` (geslaagd). De exacte committed bron is nog niet
-opnieuw door de runtime-matrix gehaald.
+`build/run/smp-2-b54ae3d31e/` (geslaagd).
 
 **Uitgevoerde controles:** `PYTHONPATH=tools python3 -B -m unittest
 tools/tests/test_smp.py` (5 tests, exit 0);
@@ -33,21 +32,48 @@ en `git diff --check` (exit 0). De finale bron bouwt `native-smp` en
 `native-smp-m3` (exit 0; M3 via de bestaande `build()`-helper, die de
 ring-3-probe als `NOS_USER_ELF` meegeeft).
 
-**Matrixpoging op bron `9136edc4`:** hostharnas 5 tests en de 1-CPU M2-run
-slaagden; de single-CPU-run eindigde op raw QEMU exit 33 in
+**M3-profielmatrix PASS op commit `e9c44bdc` (exit 0):** exact commando
+`python3 -B tools/test_smp.py`, met toolchain/QEMU-PATH, `LD_LIBRARY_PATH` en
+OVMF 4M-configuratie hieronder. Alle zes stages slaagden: M2 met 1/2/4 CPU,
+M3 met 2 CPU, de bestaande M3 1-CPU-regressie en M3 met 4 CPU. M2 2/4 bewezen
+unieke CPU/APIC-identiteiten plus 64 rendezvous-generaties en worker-acks.
+M3 2 CPU rapporteerde per-CPU processselecties `[89, 86]`; M3 4 CPU
+`[77, 73, 74, 77]`. Hostharnas: 5 tests, exit 0. QEMU-runs gebruikten raw
+exit 33 als verwachte testexit. QEMU meldde `kvmvapic.bin` ontbrekend; dit is
+niet onderzocht. Receipt:
+[`smp-rendezvous-20261103T174621Z.json`](verification/sm-smp/smp-rendezvous-20261103T174621Z.json);
+ruwe logs: `build/run/smp-single-f40a11226d/`,
+`build/run/smp-2-73a0d4f3cd/`, `build/run/smp-4-3600345eb5/`,
+`build/run/smp-2-240199624e/`, `build/run/m3-single-smp-regression-0982f155b0/`,
+`build/run/smp-4-7f42301518/`.
+
+**Bewijsgrens:** dit checkpoint toont AP-bring-up en opt-in per-CPU M3
+processselectie; het toont nog geen cross-CPU IPC, process-exit/revoke,
+TLB-shootdown/hergebruik of bredere races/failureacceptatie. Dit is geen
+volledige K06-acceptatie. `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
+
+**Rapportmetadata:** de eerste receipt bevatte de volledige host-PATH, inclusief
+ongerelateerde Windows-paden. De opgeslagen receipt is gesaneerd en de runner
+is aangepast om alleen de benodigde executablepaden en expliciete runtime-
+omgevingsvariabelen te registreren. Die metadatawijziging verandert de
+bronvingerafdruk; herhaal daarom de matrix na commit/push voordat dit de
+definitieve matrixreceipt wordt.
+
+**Eerdere mislukte matrixpoging op bron `9136edc4`:** hostharnas 5 tests en de
+1-CPU M2-run slaagden; de run eindigde op raw QEMU exit 33 in
 `build/run/smp-single-6a06910eb9/`. De 2-CPU M2-build stopte vóór QEMU omdat
 `smp.rs` compile-time naar `m3::start_ap` verwees terwijl `m3` in dit profiel
-uitgeschakeld is. De nieuwe bron cfg-gatet die M3-entry en de bijbehorende
-M3-only helpers; beide SMP-profielen bouwen nu. De runner behield bij die
-buildfout ten onrechte `passed: true` van de eerdere 1-CPU-stage; dit is
-hersteld en de mislukte receipt is gecorrigeerd:
+uitgeschakeld is. `636aedbb` gate die M3-entry en M3-only helpers; beide
+SMP-profielen bouwen sindsdien. De runner behield bij die buildfout ten
+onrechte `passed: true` van de eerdere 1-CPU-stage; dit is hersteld en de
+mislukte receipt is gecorrigeerd:
 [`smp-rendezvous-20261103T174143Z.json`](verification/sm-smp/smp-rendezvous-20261103T174143Z.json).
 Een eerdere aanroep met `--help` is geen helpmodus, voerde de runner uit en
 stopte door ontbrekende `cargo` op de standaard-PATH; die poging staat apart in
 [`smp-rendezvous-20261103T173931Z.json`](verification/sm-smp/smp-rendezvous-20261103T173931Z.json).
 
-**Eerstvolgende actie:** herhaal nu de volledige `python3 -B tools/test_smp.py`
-matrix op deze gepushte bron met
+**Eerstvolgende actie:** commit/push de rapportmetadata-aanpassing en herhaal
+dezelfde volledige `python3 -B tools/test_smp.py`-matrix met
 `PATH="$HOME/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH"`,
 `LD_LIBRARY_PATH=/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu:/tmp/sm-oom-qemu-root/lib/x86_64-linux-gnu`,
 `OS_OVMF_CODE=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd` en
