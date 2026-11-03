@@ -86,6 +86,10 @@ fn exchange(
     frame: &[u8; wire::SIZE],
     count: usize,
 ) -> wire::Reply {
+    send(endpoint, frame);
+    receive_reply(receive, frame, count)
+}
+fn receive_reply(receive: ReceiveEndpoint, frame: &[u8; wire::SIZE], count: usize) -> wire::Reply {
     support::put(
         DIAG_REQUEST,
         u64::from_le_bytes(frame[4..12].try_into().unwrap()),
@@ -98,7 +102,6 @@ fn exchange(
     support::put(DIAG_STATUS_I32_BITS, u64::MAX);
     support::put(DIAG_REPLY_BODY_LENGTH, u64::MAX);
     support::put(DIAG_REPLY_PAYLOAD_LENGTH, 0);
-    send(endpoint, frame);
     let end = deadline();
     for _ in 0..POLLS {
         check(clock() < end, 13);
@@ -150,6 +153,9 @@ fn positive(
 ) -> Zeroizing<[u8; wire::MAX]> {
     let frame = wire::request(wire::RANDOM, id, count);
     let reply = exchange(send, recv, &frame, count);
+    positive_reply(reply, count)
+}
+fn positive_reply(reply: wire::Reply, count: usize) -> Zeroizing<[u8; wire::MAX]> {
     check(reply.status == 0 && reply.length == count, 18);
     // Zero and repeated single bytes are valid random output. Only a full
     // 32+-byte sample is used for this supplementary all-zero sanity check.
@@ -233,12 +239,22 @@ fn raw_case(mut send_cap: SendEndpoint, recv: ReceiveEndpoint) {
         bump(INVALID_DENIED);
     }
     wait_ticks(clock(), WINDOW_TICKS);
-    support::put(DIAG_BURST_START, clock());
-    for id in 1000..1064 {
-        drop(positive(send_cap, recv, id, 1));
+    let burst_start = clock();
+    support::put(DIAG_BURST_START, burst_start);
+    // Both endpoints can hold this entire batch. Avoid a client/service
+    // roundtrip per byte without changing the 64-call quota or traffic.
+    for first in (1000..1064).step_by(QUOTA_BATCH) {
+        for id in first..first + QUOTA_BATCH as u64 {
+            send(send_cap, &wire::request(wire::RANDOM, id, 1));
+        }
+        for id in first..first + QUOTA_BATCH as u64 {
+            let reply = receive_reply(recv, &wire::request(wire::RANDOM, id, 1), 1);
+            drop(positive_reply(reply, 1));
+        }
     }
     support::put(DIAG_BURST_END, clock());
     denial(send_cap, recv, &wire::request(wire::RANDOM, 1064, 1), -2);
+    check(clock() - burst_start < WINDOW_TICKS, 53);
     bump(QUOTA_DENIED);
     wait_ticks(clock(), WINDOW_TICKS);
     drop(positive(send_cap, recv, 1065, 128));
