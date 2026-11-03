@@ -63,3 +63,51 @@ Probe ELF SHA-256: `51ccf9d91df495fccecac6612dc329f926b6ce1c8c4631b187b2c6ba0ce8
 | Baseline gate log | `b818ac81ab1c762ea161e70b73991becf4d89883389e71e0397d112eeae7e20b` |
 
 Generated QEMU images, serial logs, reports, and packet transcripts remain outside Git under `build/general-n01-retrans-backpressure/`; the two command logs are under `/tmp/nieuw-os-general-n01-retrans-backpressure/logs/`. The report JSON records each run directory and raw exit status.
+
+## Integratiecontrole PR177, 3 november 2026
+
+Bron `3dd73410473087b3a7c7fb020ea2f962d4d9ab0f` integreert main
+`ab85d6339ce5bdddb10a2de171d0c1b04e4b62ff`. Alleen historische auditdocumenten
+kwamen uit main; de transportcode bleef gelijk aan `6b1dee4b`.
+Dezelfde source-fingerprint `64fd2283cedc6960c2ac70cd397cdfa70064e79a0141b1478e7eb12e7cbb2cc0`
+is voor beide nieuwe gates gecontroleerd.
+
+De hierboven genoemde peer- en transcripttestcommando's slaagden opnieuw
+(17 en 17 tests, exit 0), evenals rustfmt en `git diff --check`.
+Met dezelfde native omgevingsinstellingen, maar eigen paden, zijn uitgevoerd:
+
+```text
+NOS_BUILD_DIR="$PWD/build/pr-agent-d-177-loss"
+NOS_TARGET_DIR="$PWD/target/pr-agent-d-177-native"
+CARGO_TARGET_DIR="$PWD/target/pr-agent-d-177-host"
+python3 -B tools/test_tcp_system.py --scenario loss-backpressure
+
+NOS_BUILD_DIR="$PWD/build/pr-agent-d-177-baseline"
+python3 -B tools/test_tcp_system.py --scenario baseline
+```
+
+Beide commando's: exit 0, vijf hostchecks exit 0, normal en cold-recovery
+`passed=true`, `tcp_gate=true`, raw QEMU-exit 33. QEMU 10.2.1,
+`pc-q35-8.2`, een CPU, TCG, 256 MiB; kernel Rust 1.90.0, probe Rust 1.91.1.
+Beide loss-runs tonen 512+512+436 nieuwe bytes zonder ACK, vervolgens 1460
+inhoudelijk gelijke overlappende retransmissiebytes, een cumulatieve ACK en
+negen vervolgsegmenten. Baseline toont de expliciete RST-weigering op 8085,
+geen loss-counters. Geen logforcing, quota- of retrywijziging; bestaande
+timeouts blijven gelijk. Alleen de nieuwe backpressure-case heeft een eigen
+begrensde 1500-ticktermijn. Het bewijst uitsluitend de kerneltransportprobe,
+niet een complete app-/netwerkdienstketen of volledige N01-acceptatie.
+
+| Nieuw artifact | SHA-256 |
+|---|---|
+| Loss-gate JSON | `d83bc66d7bb0b6e0ec796d8f8514d79a3d710665ae309fcf3e35cf61f7c06dae` |
+| Baseline-gate JSON | `ebbec234c866d13bb123015b95c693729b67f3eee4762bd2e6e3429cc5d4caef` |
+| Loss `network-peer.json`, beide runs | `1d005a927c803f46300dd5ee0972ce27a5c0df26bb33587c7fd12e2940ac5917` |
+| Baseline `network-peer.json`, beide runs | `0857059674333e5d605ad47c0188469f89ab7eb207a09cf7cf12c3eab6b6dc62` |
+| Probe ELF in beide gates | `fb0ec557c9ed840a3898605454004335ea0eb45994bffde19c6d8fba39b37421` |
+
+De nieuwe ELF-hash is apart geregistreerd, niet gelijkgesteld aan de
+oorspronkelijke build. De gate-JSON bevat de exacte runpaden en koppelt de
+geteste ELF aan het manifest. Volledige logs: sessie-artifacts
+`files/pr177-loss-native.log` en `files/pr177-baseline-native.log`; gegenereerde
+images en serial blijven onder de bovengenoemde eigen buildpaden buiten Git.
+Geen fysieke hardwareproef, menselijke audit of releasevalidatie uitgevoerd.
