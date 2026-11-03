@@ -2,7 +2,10 @@
 
 Basis: `a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e`.
 Productcommit: `da6e89a0`, geporteerd uit bestaande General-code op
-`707a768c`; geen nieuwe auth/session-UI of concurrerende driverimplementatie.
+`707a768c`. De [volledige wijzigingsscope van base `ab85d633` naar
+reviewhead `5caf7ee2`](https://github.com/simonvanieperen/nieuw-os/compare/ab85d6339ce5bdddb10a2de171d0c1b04e4b62ff...5caf7ee23d16a9c9fd6d4ccca70bc290b99c132c)
+bevat geen nieuwe auth/session-UI of concurrerende driverimplementatie.
+Deze uitspraak geldt uitsluitend voor deze gepinde diff, niet voor latere branches.
 
 Primaire herkomstbronnen, organisatie Nieuw OS-project, gepinde versies:
 
