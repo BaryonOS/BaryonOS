@@ -108,3 +108,55 @@ Na push, draft-PR en overdracht vervalt deze actieve schrijfclaim;
 volgende onafhankelijke milestone gebruikt opnieuw gefetchte main.
 Rollback: verwijder uitsluitend nieuwe spreadsheet-subtree en receipt;
 geen bestaande rekenkern, ABI of opslagformaat wijzigt.
+
+## Integratiereview PR176, 3 november 2026
+
+Exact reviewhead `a19448fef30b197b70ae9072662e5535accda3cb`,
+samengevoegd met document-only main
+`ab85d6339ce5bdddb10a2de171d0c1b04e4b62ff` tot
+`b51b55e10cc9574ca3d81b1ea9db481fc7680aa6`.
+De begrensde inhoudelijke review controleerde werkelijk hergebruik van
+`nieuw_os_calculator::decimal`, geparentheseerde waardesubstitutie,
+Range-/DivideByZero-fouten, afrondingspropagatie, cyclusdetectie, tijdelijke
+memoization, edits/wissen/foutreparatie en CLI-uitvoer na late fouten.
+Geen concrete productcodeblocker gevonden; geen onafhankelijke audit.
+De cache leeft uitsluitend binnen een `value`-aanroep; de 32-framegrens
+beperkt gelijktijdige evaluatieframes, niet de totale transitieve graaf.
+Geen wijziging aan Calculator of nieuwe rekenkern.
+
+Met Rust 1.90.0, eigen targets `target/pr-agent-c-host` en
+`target/pr-agent-c-none` opnieuw uitgevoerd, alle exit 0:
+
+```text
+cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/spreadsheet/Cargo.toml --features host-cli
+# 8 modeltests + 2 werkelijke CLI-procestests
+cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/spreadsheet/Cargo.toml --features host-cli --all-targets -- -D warnings
+cargo +1.90.0 fmt --manifest-path sdk/examples/spreadsheet/Cargo.toml -- --check
+python3 -B sdk/examples/spreadsheet/tests/interop.py target/pr-agent-c-host/debug/sheet-calc
+# 32 exacte Decimal-orakels + 5 afgeronde dependencyresultaten
+cargo +1.90.0 build --offline --locked --release --lib --manifest-path sdk/examples/spreadsheet/Cargo.toml --target x86_64-unknown-none
+git diff --check
+```
+
+Aanvullende echte CLI-aanroepen via Python `subprocess` bevestigden dat
+een eerdere `--get B1` geen stdout oplevert wanneer een latere dependency
+`99999999999`, `=9999999999*2` of `=1/0` faalt: exit 1, lege stdout,
+expliciete Range respectievelijk DivideByZero op stderr. De eerste
+orakelassertie verwachtte ten onrechte de niet-bestaande foutnaam Overflow;
+dat was een onderzoeksfout, geen productfout of groen bewijs.
+Na correctie naar de bestaande enumnaam Range waren alle drie controles
+groen. Wissen en opnieuw vullen van A1 gaf achtereenvolgens 6 en -12
+voor `B1 = A1*3`, zonder verouderde cachewaarde.
+
+Lokale logs onder `build/pr-agent-c-176/`, SHA-256:
+
+```text
+d99b5dcfd5173340e61d749b95d569a847bc8395cf7e5b4177ac9a6833904b6d host.log
+96548a502d11db60450037c92c98c1c4a7875f82c36f9f577a3656f3630fef0d review-oracles.log
+```
+
+Geen nieuwe productcode of tests toegevoegd; bestaande bronhashes blijven
+gelijk. Geen native runtimeconsumer gewijzigd, geen QEMU-/hardware-/menselijke-
+of releaseproef uitgevoerd. Native spreadsheet, opslag en M10/FR-A14 blijven
+open. Verse vereiste CI op het finale head is een aparte integratievoorwaarde.
+Scorevoorstel **41 -> 41/100**, centrale metadata bij de hoofdcoordinator.
