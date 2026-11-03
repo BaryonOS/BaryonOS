@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`449ecd65`](https://github.com/simonvanieperen/nieuw-os/commit/449ecd654d5a4c15f69c8d3038a59369366adba6) ·
+**Bron:** [`b67f8739`](https://github.com/simonvanieperen/nieuw-os/commit/b67f8739b48378bd30e57bbb97d86de109fa9b95) ·
 **Ontwikkelbranch:** `copilot/universal-driver-framework`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Kernelprofielen na resetpadfix herbouwen.
-41/100 blijft 41/100. De zes block-profielen matchen PCI voordat ze DMA-pagina's alloceren; de resetpaden gebruiken as_mut voor reset_acknowledged. Alle zes profielbuilds slagen nu (milestone-m5, milestone-m6a/b/c, native-volume en native-update met tijdelijke --image-version 1), exit 0 met een tijdelijk uitgepakte hostcompiler. Logs, duur en SHA-256 staan in docs/verification/kernel-profile-retest-2026-11-03/README.md. Geen QEMU/runtime- of fysieke hardwareproef en geen nieuw acceptatiepunt.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Devicegebonden PCI BAR-grants voor VirtIO block en netwerk.
+41/100 blijft 41/100. Devicegebonden PciBarGrant en gecontroleerde BAR/MMIO-mapping zijn voor VirtIO block/net geïmplementeerd; 25 gerichte hosttests, Clippy, fmt en zeven kernelprofielbuilds slagen met exit 0. Exacte commando's, logs, duur en SHA-256 staan in docs/verification/pci-bar-grants-2026-11-03/README.md. Geen QEMU/runtime- of fysieke hardwareproef en geen nieuw acceptatiepunt.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

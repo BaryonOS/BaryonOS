@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "449ecd654d5a4c15f69c8d3038a59369366adba6",
+    "source_commit": "b67f8739b48378bd30e57bbb97d86de109fa9b95",
     "branch": "copilot/universal-driver-framework",
-    "task": "Kernelprofielen na resetpadfix herbouwen",
+    "task": "Devicegebonden PCI BAR-grants voor VirtIO block en netwerk",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. De zes block-profielen matchen PCI voordat ze DMA-pagina's alloceren; de resetpaden gebruiken as_mut voor reset_acknowledged. Alle zes profielbuilds slagen nu (milestone-m5, milestone-m6a/b/c, native-volume en native-update met tijdelijke --image-version 1), exit 0 met een tijdelijk uitgepakte hostcompiler. Logs, duur en SHA-256 staan in docs/verification/kernel-profile-retest-2026-11-03/README.md. Geen QEMU/runtime- of fysieke hardwareproef en geen nieuw acceptatiepunt."
+    "summary": "41/100 blijft 41/100. Devicegebonden PciBarGrant en gecontroleerde BAR/MMIO-mapping zijn voor VirtIO block/net geïmplementeerd; 25 gerichte hosttests, Clippy, fmt en zeven kernelprofielbuilds slagen met exit 0. Exacte commando's, logs, duur en SHA-256 staan in docs/verification/pci-bar-grants-2026-11-03/README.md. Geen QEMU/runtime- of fysieke hardwareproef en geen nieuw acceptatiepunt."
   },
   "tracks": [
     {

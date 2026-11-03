@@ -1,32 +1,29 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — kernelprofielen herbouwd — 3 november 2026
+## NEXT AGENT HANDOFF — devicegebonden PCI BAR-grants — 3 november 2026
 
-Werkbranch `copilot/universal-driver-framework`, geteste bron
-`449ecd654d5a4c15f69c8d3038a59369366adba6`; remote branch en PR #153 head
+Werkbranch `copilot/universal-driver-framework`, implementatiecommit
+`b67f8739b48378bd30e57bbb97d86de109fa9b95`; remote branch en PR #153 head
 zijn gecontroleerd op dezelfde SHA. Segment-0-enumerator en VirtIO-selectie
-zonder vaste BDF staan op `9984b180`; PCI-config-space is sinds `d9b97c4` aan
-de gevalideerde descriptor/registrymatch gebonden. De zes block-profielen
-doen discovery/matching vóór DMA-poolallocatie en de resetpaden gebruiken
-`as_mut()` voor `reset_acknowledged`.
+zonder vaste BDF staan op `9984b180`; config-space is aan de gevalideerde
+descriptor/registrymatch gebonden.
 
-**Nieuw bewijs:** `milestone-m5`, `milestone-m6a`, `milestone-m6b`,
-`milestone-m6c`, `native-volume` en `native-update --image-version 1` bouwen
-alle zes succesvol (exit 0) met de tijdelijke hostcompiler.
-[Receipt en loghashes](verification/kernel-profile-retest-2026-11-03/README.md).
-Versie `1` was alleen compile-invoer. Geen QEMU/runtime- of fysieke
-hardwareproef; geen nieuw acceptatiepunt. Score **41/100 → 41/100**.
+**Nieuw:** `MatchedPciFunction` maakt niet publiek construeerbare
+`PciBarGrant`-waarden met deviceadres, driver-ID, BAR-index en begrensde range.
+BAR-probing houdt I/O-decode, memory-decode en bus mastering uit; de kernel
+mapt alleen volledige pagina's binnen een grant. Block en netwerk gebruiken
+dezelfde route in alle zes opslagprofielen plus `native-system-net`.
+[Tests, buildstatussen en loghashes](verification/pci-bar-grants-2026-11-03/README.md).
+25 hosttests, Clippy, fmt en zeven profielbuilds zijn exit 0. Geen QEMU/runtime-
+of fysieke hardwaretest. Geen voortgangspunt; score **41/100 → 41/100**.
 
-**Eerstvolgend:** werk de kernel-owned, devicegebonden BAR/MMIO-resourcegrant
-en concrete factory-activatie uit, aansluitend op de bestaande paging- en
-VirtIO-contracten. Dupliceer geen DMA/IOMMU- of interrupt lifecycle-semantiek
-van de maturitybranch. `MatchedPciFunction` begrenst PCI-configuratie, maar is
-geen algemene resourcebroker of driverisolatie. Meerdere instanties,
-ACPI-roottopologie/ECAM, bridgevalidatie, interrupts, USB-klassen, NVMe, GOP
-en unsupported-hardwarerapportage zijn niet gerealiseerd. Begin met het
-inspecteren van `kernel/src/m2/paging.rs`, de bestaande BAR-validatie en de
-VirtIO-probe/initializer; ontwerp daarna een devicegebonden grant met
-negatieve tests.
+**Open/eerstvolgend:** concrete factorygestuurde driveractivatie, daarna
+interrupt-/busmaster-/DMA-resource lifecycle in afstemming met de
+maturitybranch. De BAR-grant geldt nog niet voor virtio-rng; de drivers draaien
+nog in kernelcontext en zijn niet geïsoleerd. Meerdere instanties,
+ACPI-roottopologie/ECAM, bridges, USB-klassen, NVMe, GOP en
+unsupported-hardwarerapportage zijn niet gerealiseerd. Eerste inspectiecommando:
+`rg -n "DriverRegistry|discover\\(|Device::initialize" kernel/src/m2/m3 drivers/virtio-blk drivers/virtio-net`.
 
 ### Implementatiestap — segment-0 enumeratie en VirtIO BDF-migratie
 
@@ -71,8 +68,26 @@ is compile-invoer, geen release. Exacte commando-omgeving, looptijden,
 logs en SHA-256 staan in de
 [profile-retest-receipt](verification/kernel-profile-retest-2026-11-03/README.md).
 Geen QEMU/runtime- of hardwaretest, geen nieuw acceptatiepunt; score blijft
-**41/100**. Eerstvolgend: devicegebonden kernel-owned BAR/MMIO-grant en
-factory-activatie zonder eigen DMA/IOMMU- of interrupt lifecyclemodel.
+**41/100**. De BAR/MMIO-grant is in `b67f8739` voor block/net toegevoegd;
+zie de implementatiestap direct hierna. Factory-activatie blijft open.
+
+### Implementatiestap — matched PCI BAR-grants voor block en netwerk
+
+Commit `b67f8739b48378bd30e57bbb97d86de109fa9b95`, gepusht; remote branch en
+PR #153 head komen exact overeen. `pci-core` peilt memory-BARs alleen na
+registrymatch en laat decode/bus mastering uit. De opaque `PciBarGrant` bindt
+BDF, driver-ID, index en range; `Paging::map_pci_bar` controleert die
+identiteit en laat volledige 4-KiB-pagina's binnen de BAR toe. VirtIO block en
+net gebruiken dit pad. Geen universele physical-memory-capability toegevoegd.
+
+Op exact deze bron slagen 25 gerichte hosttests, Clippy met `-D warnings`,
+`cargo fmt --all -- --check` en de zeven builds `milestone-m5`, `milestone-m6a`,
+`milestone-m6b`, `milestone-m6c`, `native-volume`, `native-update
+--image-version 1` en `native-system-net`, alle exit 0.
+[Volledige receipt](verification/pci-bar-grants-2026-11-03/README.md).
+QEMU-runtime en fysiek hardware zijn niet getest; het resultaat is geen
+hardwareacceptatie. De virtio-rng-route, IRQ/DMA-broker en factoryactivatie
+blijven open.
 
 ### Gepauzeerd werk — PR139 exacte contracttestreceipt
 

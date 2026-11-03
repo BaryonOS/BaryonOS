@@ -131,6 +131,16 @@ compileromgeving en looptijden staan in de
 Dit lost de profielcompilefout op, maar bewijst geen runtime- of
 hardwareondersteuning en sluit geen voortgangscriterium.
 
+Devicegebonden PCI BAR-grants (3 november 2026), bron
+`b67f8739b48378bd30e57bbb97d86de109fa9b95`, branch
+`copilot/universal-driver-framework`: **41 -> 41**. `PciBarGrant` bindt de
+gematchte PCI-functie, driverregistratie en BAR-range; de kernel beperkt
+block/net-MMIO-mapping tot volledige pagina's binnen die grant. BAR-probing
+laat decode en bus mastering uit. 25 hosttests, Clippy, fmt en zeven
+profielbuilds zijn exit 0. Geen QEMU/runtime- of fysieke hardwareproef, dus
+geen nieuw criterium geaccepteerd. Zie de
+[BAR-grant-receipt](verification/pci-bar-grants-2026-11-03/README.md).
+
 Driver-/repositoryonderzoek (3 november 2026), basis `99d13276`:
 **41 -> 41**. Ginux `c86945b`, VibeOS `866bfb9` en vib-OS `73b6429`
 vergeleken met de bestaande Nieuw OS-drivercontracten en primaire Linux-,
