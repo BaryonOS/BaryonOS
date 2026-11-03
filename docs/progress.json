@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "9e27d381b30a2b45633ba2e9a3f2ec2c241508d9",
+    "source_commit": "1eeb5af8fff255eaef3714c43a0a933dd0027176",
     "branch": "copilot/universal-driver-framework",
     "task": "NIC-MAC via capabilitygebonden netwerkinterface",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. De eerder geteste M5-PCI-scan rapporteert profielgebonden unsupported endpoints; de Mechanism1-construction bypass is gesloten. De capabilitygebonden NIC-MAC-query en netwerkdienstwijziging zijn geïmplementeerd; host-/fixturetests en Clippy slaagden. De eerste native-system-net build vond een naamoverschaduwing die is hersteld maar nog niet herbouwd. Geen nieuw geaccepteerd criterium; QEMU-runtime en fysieke hardware zijn niet getest."
+    "summary": "41/100 blijft 41/100. De eerder geteste M5-PCI-scan rapporteert profielgebonden unsupported endpoints; de Mechanism1-construction bypass is gesloten. De capabilitygebonden NIC-MAC-query is geïmplementeerd; 102 Rust-/Python-tests, formatter/Clippy en de native-system-net- en native-net-service-builds slagen op codecommit 1eeb5af. De runtimegate is niet uitgevoerd door ontbrekende QEMU; fysieke hardware is niet getest. Geen nieuw geaccepteerd criterium."
   },
   "tracks": [
     {

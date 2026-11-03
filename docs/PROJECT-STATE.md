@@ -1,38 +1,33 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — netwerkdienst gebruikt NIC-MAC uit capability — 3 november 2026
+## NEXT AGENT HANDOFF — capabilitygebonden NIC-MAC geverifieerd — 3 november 2026
 
-Werkbranch `copilot/universal-driver-framework`; huidige gepushte basiscommit
-`9e27d381b30a2b45633ba2e9a3f2ec2c241508d9`. De vorige PCI-stap is getest,
-vastgelegd en gepusht; de [PCI-mismatchreceipt](verification/pci-unsupported-report-2026-11-03/README.md)
-documenteert de 40 hosttests, Clippy, formatter-/diff-checks en twee
-kernelprofielbuilds. PR #153 is open met `CHANGES_REQUESTED`, zonder
-gerapporteerde CI-checks.
+Werkbranch `copilot/universal-driver-framework`; geteste en gepushte
+codecommit `1eeb5af8fff255eaef3714c43a0a933dd0027176`. De vorige
+PCI-mismatchstap staat in de [PCI-receipt](verification/pci-unsupported-report-2026-11-03/README.md).
+PR #153 is open met `CHANGES_REQUESTED`; CI liep deels nog bij de laatste
+controle.
 
-De huidige werkboom voegt netwerk-syscall `0x74` toe: alleen de eigenaar van
-dezelfde `NetworkSource` kan via volledige writable-range-validatie zes MAC-
-bytes uit de gematchte NIC ontvangen. `net-probe` gebruikt dit adres voor
-frames en test verkeerde capability, pointer en lengte; de netwerkdienst
-initialiseert zijn link-MAC dynamisch. `tools/run_net_system.py` en de
-verwachte denial-counters zijn aangepast. Besluit ADR-068 begrenst deze API.
-Hosttests, Python-fixturetests en Clippy slaagden. De eerste
-`native-system-net`-build vond een lokale naamoverschaduwing in `net-probe`;
-die is gerepareerd maar nog niet herbouwd. `.gitignore` voorkomt committen van
-de nieuw aangemaakte geneste Cargo-targetcaches.
+Syscall `0x74` levert precies de MAC van de gematchte NIC aan alleen de
+eigenaar van dezelfde `NetworkSource`, na capability-, exacte-lengte- en
+volledige writable-rangevalidatie. `net-probe` gebruikt de werkelijke MAC,
+houdt een fixturevergelijking en controleert drie nieuwe negatieve gevallen.
+De ring-3-netwerkdienst haalt de MAC dynamisch op. ADR-068 en de netwerkdocs
+leggen de grens vast. De [receipt](verification/nic-mac-capability-2026-11-03/README.md)
+bevat 102 geslaagde Rust-/Python-tests, fmt/Clippy, beide freestanding builds,
+ELF-hashes en logs.
 
-**Eerstvolgend:** herhaal `native-system-net` en bouw `native-net-service`
-met de naamfix; controleer daarna beide formattergates en de 10-denial
-verwachting in de netwerkfixturetests. Commit/push de fix en definitieve
-receipt. Voer de native gate alleen uit als QEMU beschikbaar is; QEMU ontbreekt
-volgens de laatst gecontroleerde omgeving. VM- en fysieke hardwarebewijs
-mogen dus niet worden geclaimd. Score blijft **41/100**; deze interface en
-builds geven geen acceptatiepunt.
+De `native-system-net`- en `native-net-service`-profiles bouwen en inspecteren
+de ELFs; dit is geen runtimebewijs. QEMU ontbreekt, dus de gewijzigde syscall
+en het echte packetpad zijn niet op een VM of hardware uitgevoerd. Score blijft
+**41/100 → 41/100**; er is geen nieuw geaccepteerd criterium.
 
-**Verder open:** primaire PCI-bronverwijzingen in review #153, resterende
-RNG-fixed-BDF-route, centrale drivercatalogus, resource broker voor IRQ/
-busmaster/DMA en lifecycle-afstemming met maturitybranch. Meerdere device-
-instanties, ACPI/ECAM, bridges, USB-klassen, NVMe, GOP, runtime en hardware
-blijven niet aangetoond.
+**Eerstvolgend:** migreer de resterende VirtIO-RNG fixed-BDF-start naar dezelfde
+PCI-discovery/matchketen zonder zijn bestaande entropy-authority te verruimen.
+Pak daarnaast de open primaire PCI-bronverwijzingen in review #153 aan.
+Interrupt-/busmaster-/DMA-lifecycle blijft afhankelijk van het maturitybranch-
+contract; ACPI/ECAM, bridges, USB-klassen, NVMe, GOP, QEMU-runtime en fysieke
+hardware blijven open.
 
 ### Implementatiestap — segment-0 enumeratie en VirtIO BDF-migratie
 

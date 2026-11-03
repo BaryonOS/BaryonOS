@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`9e27d381`](https://github.com/simonvanieperen/nieuw-os/commit/9e27d381b30a2b45633ba2e9a3f2ec2c241508d9) ·
+**Bron:** [`1eeb5af8`](https://github.com/simonvanieperen/nieuw-os/commit/1eeb5af8fff255eaef3714c43a0a933dd0027176) ·
 **Ontwikkelbranch:** `copilot/universal-driver-framework`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** NIC-MAC via capabilitygebonden netwerkinterface.
-41/100 blijft 41/100. De eerder geteste M5-PCI-scan rapporteert profielgebonden unsupported endpoints; de Mechanism1-construction bypass is gesloten. De capabilitygebonden NIC-MAC-query en netwerkdienstwijziging zijn geïmplementeerd; host-/fixturetests en Clippy slaagden. De eerste native-system-net build vond een naamoverschaduwing die is hersteld maar nog niet herbouwd. Geen nieuw geaccepteerd criterium; QEMU-runtime en fysieke hardware zijn niet getest.
+41/100 blijft 41/100. De eerder geteste M5-PCI-scan rapporteert profielgebonden unsupported endpoints; de Mechanism1-construction bypass is gesloten. De capabilitygebonden NIC-MAC-query is geïmplementeerd; 102 Rust-/Python-tests, formatter/Clippy en de native-system-net- en native-net-service-builds slagen op codecommit 1eeb5af. De runtimegate is niet uitgevoerd door ontbrekende QEMU; fysieke hardware is niet getest. Geen nieuw geaccepteerd criterium.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
