@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "bb8877e3e1aaec304d7478510b65c8116aeb634e",
-    "branch": "simonvanieperen-reimagined-train",
-    "task": "PR149: nieuwe primaire59-hosttestreceipt op schone Watch-main99-merge bewaren",
+    "source_commit": "c4b3e57e5ba63d74f52e7bbfe4ce274a3239d5c2",
+    "branch": "simonvanieperen-vigilant-robot",
+    "task": "M1: evidence-aware platform capability profiler core",
     "previous_score": 41,
-    "summary": "41 blijft 41. Op schone Watch-merge bb8877e3 met main99 zijn59 hosttests echt opnieuw groen; cwd/HEAD/status/lock- en Rust-hashes vóór/na en volledige logs vastgelegd. Geen retrospectieve bronbinding van eerdere Watch-tijden. De UI-Rust-code blijft exact53256f82; historische scalar/Clippy/fmt behouden die bron. Assessmentbasis is niet de uiteindelijke PR-head of automatisch elke testbron. Geen nieuwe code, native/QEMU/fysieke/menselijke acceptatie of punten."
+    "summary": "41 blijft 41. Nieuwe no_std-profielkern rapporteert gevalideerd UEFI-conventioneel geheugen en GOP-modus; CPU, GPU-acceleratie, opslag, media, AI en energie blijven expliciet onbekend. Vier hosttests en gerichte check/Clippy/fmt slagen. Geen kernel-/dienstintegratie, native uitvoering of nieuw rubricbewijs; geen punten."
   },
   "tracks": [
     {

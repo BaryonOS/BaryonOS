@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`bb8877e3`](https://github.com/simonvanieperen/nieuw-os/commit/bb8877e3e1aaec304d7478510b65c8116aeb634e) ·
-**Ontwikkelbranch:** `simonvanieperen-reimagined-train`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR149: nieuwe primaire59-hosttestreceipt op schone Watch-main99-merge bewaren.
-41 blijft 41. Op schone Watch-merge bb8877e3 met main99 zijn59 hosttests echt opnieuw groen; cwd/HEAD/status/lock- en Rust-hashes vóór/na en volledige logs vastgelegd. Geen retrospectieve bronbinding van eerdere Watch-tijden. De UI-Rust-code blijft exact53256f82; historische scalar/Clippy/fmt behouden die bron. Assessmentbasis is niet de uiteindelijke PR-head of automatisch elke testbron. Geen nieuwe code, native/QEMU/fysieke/menselijke acceptatie of punten.
+**Bron:** [`c4b3e57e`](https://github.com/simonvanieperen/nieuw-os/commit/c4b3e57e5ba63d74f52e7bbfe4ce274a3239d5c2) ·
+**Ontwikkelbranch:** `simonvanieperen-vigilant-robot`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** M1: evidence-aware platform capability profiler core.
+41 blijft 41. Nieuwe no_std-profielkern rapporteert gevalideerd UEFI-conventioneel geheugen en GOP-modus; CPU, GPU-acceleratie, opslag, media, AI en energie blijven expliciet onbekend. Vier hosttests en gerichte check/Clippy/fmt slagen. Geen kernel-/dienstintegratie, native uitvoering of nieuw rubricbewijs; geen punten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

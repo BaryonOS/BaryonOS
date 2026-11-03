@@ -1,6 +1,46 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR149 derde main-integratie — 3 november 2026
+## NEXT AGENT HANDOFF — M1 hardwareprofielkern — 3 november 2026
+
+**Bron:** `c4b3e57e5ba63d74f52e7bbfe4ce274a3239d5c2` op branch
+`simonvanieperen-vigilant-robot`; de
+werkboom was schoon vóór deze opdracht. M1 heeft nu een hosttestbare
+`no_std`-profielkern in `crates/platform-profile-core`: uit een gevalideerde
+UEFI-geheugenkaart telt zij uitsluitend ConventionalMemory-pagina's en uit
+geverifieerde GOP-metadata neemt zij alleen de framebufferresolutie, stride
+en pixelindeling over. Iedere nog niet gemeten eigenschap blijft `Unknown`,
+niet `Unsupported`; er worden geen Legacy/Modern/Advanced-klasselabels
+afgeleid.
+
+**Bewijs:** vier hosttests geslaagd, plus gerichte `cargo check`, Clippy,
+formatter- en diff-controles. Volledige testlog en hash:
+[`platform-profile-core-20261103`](verification/platform-profile-core-20261103/README.md).
+De hostlinker ontbrak in de omgeving; voor de geslaagde test zijn GCC/libc-
+ontwikkelpakketten alleen onder `/tmp` uitgepakt, niet systeemwijd
+geïnstalleerd.
+
+**Open/beperking:** de profielkern is nog niet door kernel, driverbroker of
+systeemdienst aangeroepen. CPU-topologie/features, GPU, opslag, display-
+verversing/HDR, media, AI en energie worden nog niet ontdekt. Dit is
+hostcodebewijs, geen native profiler of hardwareondersteuning.
+
+**Rechteninventaris:** `capability-core::Engine` beheert procesgebonden
+runtimehandles, rechten, delegatie en intrekking. Er is geen duurzame
+gebruikerspolicy die een app/resource/doel/context matcht en op een actuele
+taak een runtimecapability activeert; die M2-laag is dus nog niet aanwezig.
+Geen runtimecapability is persistent of door profieldata verleend.
+
+**Voortgang:** 41 → 41/100; geen bestaand rubriccriterium is met dit
+hostbewijs geaccepteerd. De assessment en gegenereerde voortgangsweergaven
+zijn bijgewerkt.
+
+**Eerstvolgend:** implementeer een aparte, bounded policy-core voor
+persistente scoped app/resource/purpose/contextregels; houd de bestaande
+kernelcapability-engine de enige runtimeautoriteit. Daarna moet integratie
+met persistente systeeminstellingen en taak-/sessielevensduur afzonderlijk
+worden ontworpen en getest.
+
+## Historisch checkpoint — PR149 derde main-integratie — 3 november 2026
 
 **Basis:** Watch-merge `bb8877e3e1aaec304d7478510b65c8116aeb634e`, met
 ouders `416886354dbb0c6135a0740c429a3fbd4530a16d` en main
