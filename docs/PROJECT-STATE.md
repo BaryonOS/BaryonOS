@@ -41,6 +41,33 @@ metadata vóór afsluiten. #41 productiesleutels, #42 fysieke inputmatrix en
 #43 echte50%-route blijven open; geen administratieve nul-issuesclaim.
 Eerstvolgend: actuele PR114-checks controleren en resultaat van de genoemde
 volume-integratie verwerken. Geen fysieke writes of nieuwe secrets.
+## Historisch PR134-checkpoint — issue #43: ReceiveTcp na verbindingstime-out
+
+**Basis:** `380111b68688c981eec6abb8fab29174a29f5601` (main), branch
+`coderabbit/issue-43-receive-timeout`. Eén gerichte N01-reparatie: een al
+geannuleerde socket geeft bij ontvangst `Closed`, ook als de diagnostische
+status `TimedOut` is. De bestaande bufferafhandeling en tokencontroles blijven
+intact; opnieuw openen zet de time-outstatus terug en vernieuwt het token.
+
+**Bewijs:** regressietest op de oude code echt rood (exit 101: `Again` versus
+`Closed`); daarna alle 10 service-hosttests, rustfmt, Clippy en de
+`x86_64-unknown-none`-librarybuild groen (exit 0), Rust 1.91.1.
+Zie `docs/verification/issue-43-receive-timeout.md` voor commando's en grenzen.
+Een tweede agent bevestigde het codepad alleen-lezen; dit is geen menselijke audit.
+
+**Aanvullend bewijs:** 35 broker- (incl. 4 doctests), 26 stack-, 4 protocol-,
+6 client- en 11 peerharnastests groen. Native `normal` en `client-exit` op
+`5925c915f6b8d02842fffd89a94f21c0e018689a` slagen met raw QEMU-exit 33,
+bronhash `9a8b521f4b2e5a24b279142d8554538c5cf618e3e55a9cac3e7070e12ad4fc39`,
+peer compleet en volledige opruiming (8,27/7,79 s). Nieuwe ontvangstreproductie
+is hostbewijs; native gates herhalen de bestaande netwerkregressiedekking.
+Compacte hashes: `docs/verification/issue-43-receive-timeout.json`.
+
+**Open/eerstvolgend:** hosted CI en inhoudelijke review op de head van
+concept-PR https://github.com/simonvanieperen/nieuw-os/pull/134 controleren.
+De laatste commit wijzigt alleen documentatie/bewijs. #43 blijft open; geen issuewijziging,
+merge, nieuwe bevoegdheid of afhankelijkheid. **41 → 41/100**; geen nieuwe
+native productcriteria, hardware- of volledige releaseclaim.
 
 ## Vorig checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 
