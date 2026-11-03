@@ -1,9 +1,104 @@
 # Operationele werkqueue — actuele herbalancering 3 november 2026
 
-## SYSTEM MATURITY ASSIGNMENT — leidend vanaf 3 november 2026, 17:01 CET
+## SYSTEM MATURITY ASSIGNMENT — leidend vanaf 3 november 2026, 17:05 CET
+
+**Task ID:** `SYSTEM-MATURITY-SMP`
+
+**Owner:** System Maturity, `3b8bdc33-7b14-40f1-9d34-1a0f2a38ab04`
+
+**Status:** ACTIVE
+
+**Source HEAD coordinator:** `5178c22d39b634be007819bac4dfeb4659853885`
+
+**Source HEAD implementatie:** `63f1da11c6dd510e6ad692fdd20fb454e8fe156c`,
+branch `simonvanieperen-studious-spoon`. Bestaande ongecommitteerde SMP-WIP
+blijft behouden, niet overschrijven of mengen met een andere bron.
+
+### OOM-overdracht ontvangen; seriele vrijgave
+
+Owner heeft `SYSTEM-MATURITY-OOM` beantwoord met exacte brondekking en
+filevrijgave. De eerste OOM-slice was al geimplementeerd; geen duplicatie of
+nieuwe OOM-code nodig. Ontvangen bewijs: `docs/verification/sm-oom/`
+`native-gate-20261103.json` op `d5d5776e`, `host-20261103.json` en
+`k05-cleanup-20261103.json` op `ce1c5e7f`; beide native receipts noemen exit 0
+en bronfingerprint
+`9a170636a33e2761abcd191f19e0166f4f7282d67bd53e1cb0c3a5283130094c`.
+Dit is gecontroleerde overdracht van opgeslagen ownerbewijs, geen nieuwe
+testuitvoering, code-integratie of production-hardeningclaim.
+
+`SYSTEM-MATURITY-OOM` is hiermee afgerond als deze begrensde assignment;
+zijn exclusieve OOM-writeclaim vervalt. `kernel/src/m2/m3.rs` gaat seriel
+naar onderstaande SMP-integratie bij dezelfde owner. Pressure/heap/memory-
+fixture en OOM-tests blijven voor deze SMP-taak read-only.
+
+### Actuele scope-status
+
+| Scope | Status / actuele ownershipwaarheid |
+|---|---|
+| A. Memory Pressure / OOM | AVAILABLE voor nieuwe begrensde vervolgopdracht; huidige slice afgerond en writer vrijgegeven. Geen nieuwe toewijzing of generiek victimbeleid. |
+| B. SMP / K06 | ACTIVE: `SYSTEM-MATURITY-SMP`, bestaande code-WIP hervatten onder onderstaande grenzen. |
+| C. K05 journal/crash | RESERVED als begrensde fallback na SMP; geen huidige diagnostic-code-WIP gemeld. |
+| D. Background Job + Notification | AVAILABLE, geen concrete consumerwriter of nieuwe assignment. |
+| E. Power lifecycle consumer | AVAILABLE; driverpower/firmware-I/O blijven Drivers. |
+
+### Allowed writes
+
+- `kernel/src/m2/{smp,ap}.rs`, `crates/kernel-core/src/smp.rs`:
+  AP-startup, per-CPU-state en begrensde synchronisatie.
+- `crates/kernel-core/src/lib.rs`: uitsluitend SMP-modulewiring, bestaande
+  pressure-interface behouden.
+- `kernel/src/m2.rs`, `kernel/src/m2/{arch,paging}.rs`,
+  `kernel/src/m2/m3.rs`: noodzakelijke AP/per-CPU-, scheduler-/IPC-/revoke-/
+  exit-/TLB-integratie; geen algemene rewrite of externe ABI-wijziging.
+- `crates/boot-protocol/src/{lib,smp}.rs`, `boot/loader/src/main.rs`:
+  uitsluitend gevalideerde, geversioneerde ACPI/AP-handoff.
+  `crates/boot-protocol/src/graphics.rs` uitsluitend noodzakelijk behoud/
+  aanpassing van graphics-handoff bij die bootprotocolwijziging; geen
+  renderer-, displaydriver- of product-UI-ownership.
+- `kernel/Cargo.toml` uitsluitend SMP-featurewiring;
+  `tools/{run_smp,test_smp}.py`, nieuw `tools/tests/test_smp.py` en
+  `docs/verification/sm-smp/` uitsluitend taaktests en compact bewijs.
+
+### Read-only / Forbidden
+
+Read-only: `kernel/src/m2/m3/{heap,memory_fixture,supervisor,network,keyring}.rs`,
+`crates/kernel-core/src/pressure.rs`, `sdk/heap-allocator/**`,
+`crates/capability-core/**`, bestaande OOM-/K05-testassertions en
+`sdk/examples/supervisor/**`.
+Forbidden: hardwaredrivers/VirtIO (`drivers/**`), keyringbeleid,
+capabilitysemantiek of nieuwe rechten, externe process/syscall-ABI,
+algemene scheduler-/pagingrewrite, appproductcode/Materiaal/Veld/
+window-session, Professional Platform, unrelated loader/updatebeleid,
+DMA-unpin of versoepeling van quota/zeroing/W^X.
+Noodzakelijke neighbourwijziging wordt `BLOCKED-BY:<owner/interface>`;
+geen automatische scope-overname.
+
+### Dependencies / Acceptance / Start
+
+Drivers heeft `m3.rs` vrijgegeven; behoud de MAC-dispatchroutes en de
+afgeronde OOM-integratie. Modelleer single-CPU `static mut`/IF=0-invarianten
+voordat bestaande processen werkelijk parallel draaien.
+
+Echte 1 -> 2 -> 4 CPU-uitvoering vereist AP-startup, afzonderlijke per-CPU-
+state, scheduling, synchronisatie, IPC, process exit, revoke en relevante
+cross-CPU/TLB-correctness. Test dubbele/ongeldige CPU-identiteit, begrensde
+startup-timeout, startupfalen, races, cleanup en single-CPU-regressies.
+AP-parking of compile-only is slechts een tussenstap, geen K06-acceptatie.
+Gerichte hosttests via `cargo +1.90.0 test --locked -p kernel-core` en
+`cargo +1.90.0 test --locked -p boot-protocol`; bouw de gerichte native
+SMP-fixture en implementeer/voer `python3 -B tools/test_smp.py` uit voor
+QEMU 1/2/4 CPU. Behoud bestaande memory- en K05-cleanupgates na gedeelde
+integratie. Leg exacte commando's, bron, exits, logs en niet-uitgevoerde
+runtime vast. Geen fysieke hardware-, release- of scoreclaim.
+
+**Start nu:** hervat de behouden SMP-WIP; OOM hoeft niet opnieuw opgebouwd
+of herhaald beoordeeld te worden.
+
+## Vorige assignment — vervangen na ontvangen OOM-overdracht
 
 Deze expliciete opdracht van Simon vervangt de oudere start-/wachtstatussen
-hieronder. Alleen deze assignment is nu ACTIVE; geen scorewijziging.
+hieronder. Onderstaande 17:01-toestand is historisch; de 17:05-assignment
+hierboven is leidend. Geen gelijktijdige OOM-/SMP-opdracht.
 
 **Task ID:** `SYSTEM-MATURITY-OOM`
 
