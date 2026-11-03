@@ -90,6 +90,7 @@ pub struct InputEnvelope {
 #[derive(Clone, Copy)]
 pub struct View<'a> {
     pub draw_pointer: bool,
+    pub high_contrast: bool,
     pub desktop: Option<&'a crate::desktop::Desktop>,
     pub viewport: Viewport,
     pub generation: u64,
@@ -163,6 +164,7 @@ impl PaintDamage {
 
 pub struct Controller<'a, T> {
     draw_pointer: bool,
+    high_contrast: bool,
     desktop: Option<crate::desktop::Desktop>,
     document: DocumentSession<'a, T>,
     editable: bool,
@@ -211,6 +213,7 @@ impl<'a, T: Transport> Controller<'a, T> {
         }
         Ok(Self {
             draw_pointer: true,
+            high_contrast: false,
             desktop: None,
             document,
             editable: mode == EditMode::ReadWrite,
@@ -310,6 +313,7 @@ impl<'a, T: Transport> Controller<'a, T> {
         let draft = self.document.draft();
         View {
             draw_pointer: self.draw_pointer,
+            high_contrast: self.high_contrast,
             desktop: self.desktop.as_ref(),
             viewport: self.viewport,
             generation: self.generation,
@@ -342,6 +346,16 @@ impl<'a, T: Transport> Controller<'a, T> {
             document_menu: self.document_menu,
         }
     }
+    /// Presentation only: does not change input, document or storage authority.
+    /// The caller owns authenticated settings routing; no key event is emitted.
+    pub fn set_high_contrast(&mut self, enabled: bool) -> Result<(), Error> {
+        if self.high_contrast != enabled {
+            self.high_contrast = enabled;
+            self.invalidate()?;
+        }
+        Ok(())
+    }
+
     /// The validated native adapter enables this only when a separate compositor
     /// draws the system cursor. Local hover/input state is preserved.
     pub fn set_compositor_cursor(&mut self, enabled: bool) -> Result<(), Error> {
