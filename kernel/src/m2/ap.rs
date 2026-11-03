@@ -267,7 +267,7 @@ __ap_trampoline_lm_far:
 .code64
 .global __ap_trampoline_lm
 __ap_trampoline_lm:
-    mov eax, cr0
+    mov rax, cr0
     and eax, {ap_cr0_protection_mask}
     cmp eax, {ap_cr0_protection_expected}
     jne 6f
