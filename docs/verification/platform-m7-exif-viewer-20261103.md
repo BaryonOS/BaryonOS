@@ -86,12 +86,85 @@ c65b0e00315aaaa85905433ad2dda7b76c90428bff62b1f35af350dec1c77f72 services/image-
 dd2ba0da7fbf3c19f7acb463b6534cc293b2b86c3b6f115cd18c3e2b1e5f4f2b services/image-codec/tests/decode.rs
 ```
 
-## Open bij checkpoint
+## Finale target- en native decoderregressie
 
-no_std-crossbuilds en de bestaande native decoderregressie volgen na dit
-broncheckpoint. Nog geen nieuw native bewijs; een decoder-VM zal evenmin
-een native EXIF-viewer bewijzen. FR-A03/A04 blijven open; voorstel score
-**41 -> 41/100**, beoordeling bij de integrator. Geen volledige
-testreleaseclaim, menselijke audit, hardwaretest of native vieweracceptatie.
+Codecommit: `30c4effe1d6656c971e150dfcb0ab381442a84b8`.
+Na dit codecheckpoint veranderen alleen documentatie en het ontvangstbewijs,
+geen Rust-bron of tests. De SDK-README telt wel mee in de algemene
+bronfingerprint; het native resultaat hieronder blijft daarom expliciet aan
+de volledige codecheckpointbron gebonden, niet aan de latere documenthead.
+
+Gebruikte bestaande omgeving:
+
+```sh
+export PATH=/tmp/nieuw-os-c-toolchain/bin:/home/simon/.cargo/bin:/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu:$PATH
+export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=/tmp/nieuw-os-c-toolchain/cc-wrapper
+export COMPILER_PATH=/tmp/nieuw-os-c-toolchain/root/usr/libexec/gcc/x86_64-linux-gnu/15
+export LIBRARY_PATH=/tmp/nieuw-os-c-toolchain/root/usr/lib/x86_64-linux-gnu:/tmp/nieuw-os-c-toolchain/root/usr/lib/gcc/x86_64-linux-gnu/15
+export LD_LIBRARY_PATH=/tmp/nieuw-os-c-toolchain/root/usr/lib/x86_64-linux-gnu
+export OS_OVMF_CODE=/tmp/nieuw-os-qemu/root/usr/share/OVMF/OVMF_CODE_4M.fd
+export OS_OVMF_VARS=/tmp/nieuw-os-qemu/root/usr/share/OVMF/OVMF_VARS_4M.fd
+export CARGO_NET_OFFLINE=true
+```
+
+Finale commando's, allemaal exit 0:
+
+| Exact commando | Resultaat |
+|---|---|
+| `CARGO_TARGET_DIR="$PWD/target/platform-viewer-none" cargo +1.90.0 build --offline --locked --release --lib --manifest-path sdk/examples/image-viewer/Cargo.toml --target x86_64-unknown-none` | no_std-viewerbibliotheek gebouwd |
+| `CARGO_TARGET_DIR="$PWD/target/platform-viewer-none" cargo +1.90.0 check --offline --locked --manifest-path services/image-codec/Cargo.toml --target x86_64-unknown-none` | codec groen |
+| `NOS_BUILD_DIR="$PWD/build/platform-m7-native" NOS_TARGET_DIR="$PWD/target/platform-native" python3 -B -u tools/build.py --kernel-feature native-system-images` | kernel/loader/diensten/probe gebouwd |
+| `NOS_BUILD_DIR="$PWD/build/platform-m7-native" NOS_TARGET_DIR="$PWD/target/platform-native" python3 -B -u tools/run_images.py --case normal` | echte decoder-VM: gate True, QEMU 33, 6,023 s |
+| `python3 -B -m unittest discover -s tools/tests -p test_images.py` | 20 harnastests groen; getoonde `gate=False`/`ValueError` zijn verwachte negatieve fixtures |
+| `python3 -B tools/progress.py --check` | 41/100, consistent; alleen lezen, geen nieuwe beoordeling |
+
+QEMU 10.2.1, `pc-q35-10.0`, TCG single-thread, qemu64, 256 MiB,
+eigen wegwerpvolume en gekopieerde OVMF CODE/VARS; geen fysieke schijf.
+Resultaat:
+`build/platform-m7-native/run/system-normal-d6602082874e47fc807c075fd5264bff/`.
+`result.json` bindt commit `30c4effe1d6656c971e150dfcb0ab381442a84b8`
+en sourcefingerprint v3
+`24a83ee4be9a2cbf1f56f4def29a2ed5655de79e2417c1206148d135d8142b9d`.
+`passed=true`, `image_gate=true`, `status=completed`, `timed_out=false`.
+Werkelijke probe: acht PNG, drie JPEG, 149647 pixels, tien negatieve gevallen,
+een annulering, nul live allocaties en ongewijzigd pixelorakel
+`548683896226622996`. De stackguard en 16 stackpagina's blijven behouden.
+
+SHA-256:
+
+```text
+2b2a1e998ffc27d3a6c8a98573187a46e4876de19f95d3557cadf2b31c527288 result.json
+9e1d3c3544948c8d21ec0b8fc8c7119110265b34b3b7bf07255054260033733b serial.txt
+3b8c1093a73b12c3c556a69d37ab242c4c3b28bf55b2bb004907b583a5e19983 build/platform-m7-native/manifest.json
+681394d2a4f4c9c7099730f15c578690dfb170feabb3a08cfc81fa570c8bf653 image-probe ELF
+d52aea63c6d893023ea68a58392fdb1d397b2586c1cb91d7291cc9a445bbb5e0 kernel ELF
+8e7ad96089d890fcc5a04065ecd57affa89f2a901ecfe0ebf8531b929902b24a UEFI loader
+874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7 OVMF CODE
+5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e OVMF VARS-template
+```
+
+Aanvullende logs onder `build/platform-m7-evidence/`, SHA-256:
+
+```text
+f476b470ebf72c0d114cfcadc2d466c35a6ed2c7057a9df2b619d9298577f684 none-build.log
+befd2102db0ee72d8c373bcd48c1db78a782bc1d270e4f1fe82ed3d2945a48b6 native-build.log
+b4c02be39c07fe463f101692a3b65e430745957fe5ea145b7d6c85f267262a4c native-run.log
+6e9b0229e42cbebc5e2cad01db7487236c0e46a9c596de4bcc30490c1fdfb6fb image-harness.log
+1963f64b94a52a78464f272cac286fcafea13fea2314c5ea8cddbd65dd78be33 progress-check.log
+```
+
+## Resterende grenzen en overdracht
+
+De echte VM toetst de bestaande decoderketen, **niet** de app-local viewer.
+De viewer is hostgetest en voor de eigen-kerneltarget gebouwd; native
+appstart, objectportal, SUR1-presentatie, bediening, OOM/cancel/revoke en
+menselijke/hardware-/accessibility-/releasevalidatie blijven open.
+CI op deze nieuwe branch is niet als uitgevoerd geclaimd.
+
+FR-A03/A04 blijven open; voorstel score **41 -> 41/100**, beoordeling bij de
+integrator. Geen centrale status-/scorewrites, eigen cleanup of merge.
+De Terminal- en browserdependencies zijn hierboven geregistreerd, niet met
+nieuwe foundations omzeild. De volgende verticale integratie vraagt een
+afzonderlijk vrijgegeven native launch-/object-/surfacecontract.
 Rollback: deze kleine codec-/viewerwijziging terugdraaien; geen opslagformaat,
 recht, bootstrap of ABI gewijzigd.

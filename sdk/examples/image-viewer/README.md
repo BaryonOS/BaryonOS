@@ -109,6 +109,9 @@ De verificatiemap bindt uitgevoerde resultaten aan bron-/artifacthashes.
 **Niet uitgevoerd:** native appstart, objectportal, QEMU-bediening,
 onafhankelijk framebufferorakel, process-OOM/cancel/revoke, cold storage,
 volledige native/hardware/accessibility- en release-integratiegates.
-FR-A03 blijft open; voorgestelde scorewijziging **34% -> 34% (+0)**, via 11
-naar de manager. Terugdraaien: uitsluitend deze nieuwe subtree verwijderen;
-geen gedeelde interface of runtimeprofiel is gewijzigd.
+De [EXIF-consumerproef](../../../docs/verification/platform-m7-exif-viewer-20261103.md)
+scheidt het hostbewijs van de apart herhaalde native decoderregressie.
+FR-A03 blijft open; deze stap levert geen rubricpunten op
+(**41 -> 41/100**, beoordeling bij de integrator).
+Terugdraaien van de EXIF-consumerstap: de kleine codec-/viewerdiff terugdraaien;
+geen recht, opslagformaat of runtimeprofiel is gewijzigd.
