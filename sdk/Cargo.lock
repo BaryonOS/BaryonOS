@@ -410,6 +410,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "nieuw-os-terminal-core"
+version = "0.1.0"
+
+[[package]]
 name = "nieuw-os-update-example"
 version = "0.1.0"
 dependencies = [
