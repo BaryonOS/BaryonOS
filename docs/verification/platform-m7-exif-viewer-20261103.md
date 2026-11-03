@@ -168,3 +168,35 @@ nieuwe foundations omzeild. De volgende verticale integratie vraagt een
 afzonderlijk vrijgegeven native launch-/object-/surfacecontract.
 Rollback: deze kleine codec-/viewerwijziging terugdraaien; geen opslagformaat,
 recht, bootstrap of ABI gewijzigd.
+
+## Integratiereview PR165, 3 november 2026
+
+PR-head `b14bdde173a558f8465408f8f05c9e8f6e06028f` is in de eigen
+integratieworktree samengevoegd met main
+`d10b5cdaf56774a39e3ef10463f674c6188a463a` tot
+`a3e017d3c7f1d458f5a6960b56b832dc8992ce43`. Main voegde uitsluitend
+onderzoeksdocumentatie toe; de vier hierboven gehashte Rustbestanden zijn
+ongewijzigd. De begrensde inhoudelijke review controleerde inverse mapping,
+afmetingsvalidatie, sample-indexering, Fit/zoom/pan en bestaande generatie-/ACK-
+regels. Geen concrete codeblocker gevonden; dit is geen onafhankelijke audit.
+
+Op deze samengevoegde bron opnieuw uitgevoerd, alle exit 0:
+
+- Voor beide manifests `sdk/examples/image-viewer/Cargo.toml` en
+  `services/image-codec/Cargo.toml`:
+  `cargo +1.90.0 test --offline --locked --manifest-path <manifest>`,
+  `cargo +1.90.0 clippy --offline --locked --manifest-path <manifest> --all-targets -- -D warnings`
+  en `cargo +1.90.0 fmt --manifest-path <manifest> -- --check`.
+  Viewer: 19 tests; codec: 24 tests.
+- `cargo +1.90.0 build --offline --locked --release --lib --manifest-path sdk/examples/image-viewer/Cargo.toml --target x86_64-unknown-none`
+- `cargo +1.90.0 check --offline --locked --manifest-path services/image-codec/Cargo.toml --target x86_64-unknown-none`
+- `git diff --check`
+
+Eigen targetmappen: `target/pr-agent-c-host` en `target/pr-agent-c-none`;
+lokale logs: `build/pr-agent-c-165/host.log` en `none.log`.
+Geen native VM-herhaling voor deze document-only main-synchronisatie.
+De native decoderproef hierboven blijft uitsluitend bewijs op `30c4effe`;
+native vieweracceptatie blijft open. Verse vereiste GitHub-checks worden
+afzonderlijk op het definitieve PR-head beoordeeld, niet uit oud groen afgeleid.
+Centrale voortgang en metadata zijn eigendom van de hoofdcoordinator;
+voorstel blijft **41 -> 41/100**, zonder nieuw native productbewijs.
