@@ -1,7 +1,8 @@
 # Browser-parserhostproef
 
 Datum: 3 november 2026 (Europe/Amsterdam). Branch:
-`simonvanieperen-vigilant-robot`. Basiscommit:
+`simonvanieperen-vigilant-robot`. Implementatiecommit:
+`3e2ae4a7c8bac6c151833c9262bd30bad0cc0b6e`, gebaseerd op
 `17cd0ace7ca8730e3fd6fa8ebc76a226cbc2d1be`. De gewijzigde bronbestanden en
 Cargo-lockfile:
 

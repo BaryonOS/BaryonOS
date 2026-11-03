@@ -6,12 +6,12 @@
 `simonvanieperen-vigilant-robot`; de remote-head was bij aanvang gelijk en de
 werkboom was schoon.
 
-**PR-status bij controle vóór deze M5-commit:** #156 is open tegen `main`;
-de head was `17cd0ace7ca8730e3fd6fa8ebc76a226cbc2d1be` en de reviewbeslissing
-was `CHANGES_REQUESTED`. De bestaande CodeRabbit-review bevat een
-niet-beoordeelde mogelijke policy-authorisatiebevinding en documentatiepunten
-op eerder werk. M5 wijzigt die code niet; deze checkpoint is geen
-reviewgoedkeuring of merge.
+**M5-commit:** `3e2ae4a7c8bac6c151833c9262bd30bad0cc0b6e`; de remote-branch
+bevat deze commit. PR #156 is open tegen `main`, met deze head. `gh pr checks`
+meldde geen checks op de nieuwe commit; de reviewbeslissing blijft
+`CHANGES_REQUESTED`. De bestaande CodeRabbit-review bevat een niet-beoordeelde
+mogelijke policy-authorisatiebevinding en documentatiepunten op eerder werk.
+M5 wijzigt die code niet; deze checkpoint is geen reviewgoedkeuring of merge.
 
 **M5-resultaat:** `experiments/browser-parser-host` bouwt de vastgezette
 upstream `scraper 0.29.0` voor een hostfixture: HTML5-DOM en CSS-selectorquery
