@@ -1,0 +1,294 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-03",
+  "verified_main": "99d132768fd72276caa4a3b3e9a09f8f1909f0ed",
+  "kind": "Exact source retention, not new runtime validation, merge ancestry or acceptance.",
+  "sources": [
+    {
+      "pr": 131,
+      "source_head": "59989b499a40a2b9bd5088de9d7ac61e47e729f1",
+      "delta_merge_base": "d115cc96c19ac4371baed77409a23d1adddffaf0",
+      "full_delta_name_status": [
+        "M\tREADME.md",
+        "M\tdocs/PROGRESS.md",
+        "M\tdocs/PROJECT-STATE.md",
+        "M\tdocs/progress.json"
+      ],
+      "noncentral_delta_count": 0,
+      "retained_noncentral_count": 0,
+      "noncentral_mappings": [],
+      "central_source_snapshots": 5,
+      "central_snapshot_register": "retained-document-heads-20261103.json#later_integration_snapshots",
+      "is_closed": false,
+      "closure_condition": "Only after this exact retention proof is on live main; recheck current PR head equals source_head immediately before closure and verify status/head afterward."
+    },
+    {
+      "pr": 132,
+      "source_head": "4cf1bc88681f3b336a44093e39ac97d0d8eb4547",
+      "delta_merge_base": "69809c2cb53dfb3bd77abe5352892810fba6e82d",
+      "full_delta_name_status": [
+        "A\tdocs/verification/native-storage-backend-gate/btrfs/experiment.py",
+        "A\tdocs/verification/native-storage-backend-gate/btrfs/faults.py",
+        "A\tdocs/verification/native-storage-backend-gate/btrfs/finalize.py",
+        "A\tdocs/verification/native-storage-backend-gate/btrfs/metadata_probe.py",
+        "A\tdocs/verification/native-storage-backend-gate/btrfs/metadata_review.py",
+        "A\tdocs/verification/native-storage-backend-gate/btrfs/probe.py",
+        "A\tdocs/verification/native-storage-backend-gate/native-current/native_probe.py",
+        "A\tdocs/verification/native-storage-backend-gate/native/native_probe.py",
+        "A\tdocs/verification/native-storage-backend-gate/openzfs/01-acquire.sh",
+        "A\tdocs/verification/native-storage-backend-gate/openzfs/02-preflight.sh",
+        "A\tdocs/verification/native-storage-backend-gate/openzfs/03-create-initial-help-mismatch.sh",
+        "A\tdocs/verification/native-storage-backend-gate/openzfs/03-create-invalid-dedup.sh",
+        "A\tdocs/verification/native-storage-backend-gate/openzfs/03-create-low-as.sh",
+        "A\tdocs/verification/native-storage-backend-gate/openzfs/03-create-unsupported-tunable.sh",
+        "A\tdocs/verification/native-storage-backend-gate/openzfs/03-create.sh",
+        "A\tdocs/verification/native-storage-backend-gate/openzfs/04-baseline-freshcheck.sh",
+        "A\tdocs/verification/native-storage-backend-gate/openzfs/05-reuse-kill.sh",
+        "A\tdocs/verification/native-storage-backend-gate/openzfs/06-labels.sh",
+        "A\tdocs/verification/native-storage-backend-gate/openzfs/07-crash-create.sh",
+        "A\tdocs/verification/native-storage-backend-gate/openzfs/08-backup-stream.sh",
+        "A\tdocs/verification/native-storage-backend-gate/openzfs/09-crash-freshcheck-blocks.sh",
+        "A\tdocs/verification/native-storage-backend-gate/openzfs/10-blockpointers.sh",
+        "A\tdocs/verification/native-storage-backend-gate/openzfs/11-package-evidence.sh",
+        "A\tdocs/verification/native-storage-backend-gate/openzfs/12-write-evidence.py",
+        "A\tdocs/verification/native-storage-backend-gate/openzfs/13-hash-artifacts.py"
+      ],
+      "noncentral_delta_count": 25,
+      "retained_noncentral_count": 25,
+      "noncentral_mappings": [
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/btrfs/experiment.py",
+          "retained_path": "docs/verification/native-storage-backend-gate/btrfs/experiment.py.historical.txt",
+          "source_blob": "24991df3257629ab0e5350dc5c25cec54321ebc0",
+          "retained_blob": "24991df3257629ab0e5350dc5c25cec54321ebc0",
+          "sha256": "9c418780b33d9345d58dd97675641d2d47448a2a02f9932cc735509bd12b5b33",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/btrfs/faults.py",
+          "retained_path": "docs/verification/native-storage-backend-gate/btrfs/faults.py.historical.txt",
+          "source_blob": "8597dac78edfb720ed0a00c45acd9c90e684e2f0",
+          "retained_blob": "8597dac78edfb720ed0a00c45acd9c90e684e2f0",
+          "sha256": "5364d8fab091da5f8b699f8337d26c2307afc2838373475bc852093f45e9b63a",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/btrfs/finalize.py",
+          "retained_path": "docs/verification/native-storage-backend-gate/btrfs/finalize.py.historical.txt",
+          "source_blob": "122edad72a66ce79a7acb825ae97814d31f6919a",
+          "retained_blob": "122edad72a66ce79a7acb825ae97814d31f6919a",
+          "sha256": "8bae86a1ed3d2a4b192185da7974672f4616dad6bbba49ea8ad01b29ee3ef3e5",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/btrfs/metadata_probe.py",
+          "retained_path": "docs/verification/native-storage-backend-gate/btrfs/metadata_probe.py.historical.txt",
+          "source_blob": "85c35881abd9b3678bad16229a3ea805476657f8",
+          "retained_blob": "85c35881abd9b3678bad16229a3ea805476657f8",
+          "sha256": "68a0d98a6d0d00609f3188e0c294b8aa35a40c2b0acffb99cd2dda3fa8769f1f",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/btrfs/metadata_review.py",
+          "retained_path": "docs/verification/native-storage-backend-gate/btrfs/metadata_review.py.historical.txt",
+          "source_blob": "73b570e48c84ef95415283a4c39400428956a9a3",
+          "retained_blob": "73b570e48c84ef95415283a4c39400428956a9a3",
+          "sha256": "77c8984f58994b5653564f03278eef648587806c6170e03b52456774801d8265",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/btrfs/probe.py",
+          "retained_path": "docs/verification/native-storage-backend-gate/btrfs/probe.py.historical.txt",
+          "source_blob": "87cdbacde0bde0316731951b625d050e3bde9dfa",
+          "retained_blob": "87cdbacde0bde0316731951b625d050e3bde9dfa",
+          "sha256": "f689648d7b279b3325fcd7f62af4bafd6dbb3d47ad770224a11666fa7216a2ae",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/native-current/native_probe.py",
+          "retained_path": "docs/verification/native-storage-backend-gate/native-current/native_probe.py.historical.txt",
+          "source_blob": "c70318c5415de501f37e22e74f2a3ae52558bcf2",
+          "retained_blob": "c70318c5415de501f37e22e74f2a3ae52558bcf2",
+          "sha256": "288787eb58bc38642f35358987ed35e572619905590f102ca4fb677e0ff9e652",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/native/native_probe.py",
+          "retained_path": "docs/verification/native-storage-backend-gate/native/native_probe.py.historical.txt",
+          "source_blob": "3954dfe66451c3de4edbaf6590f817ffd6f8b254",
+          "retained_blob": "3954dfe66451c3de4edbaf6590f817ffd6f8b254",
+          "sha256": "cfc9bc9b34821350dec0f89456311f3982df20d38e2d84d0a2cbf0d418870aec",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/openzfs/01-acquire.sh",
+          "retained_path": "docs/verification/native-storage-backend-gate/openzfs/01-acquire.sh.historical.txt",
+          "source_blob": "110344a70edf10b4b652b1f52a84dc8a678cd201",
+          "retained_blob": "110344a70edf10b4b652b1f52a84dc8a678cd201",
+          "sha256": "3f320091402fd7478aecb84f5cd238b81c8fa2598440374aa1fdac042c275ae0",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/openzfs/02-preflight.sh",
+          "retained_path": "docs/verification/native-storage-backend-gate/openzfs/02-preflight.sh.historical.txt",
+          "source_blob": "74593a6860825a37844b8c27c97dd8fe9c66aae5",
+          "retained_blob": "74593a6860825a37844b8c27c97dd8fe9c66aae5",
+          "sha256": "c9e3babae990af4f37b02707f90851606ed663fef805f6876666a71e80220859",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/openzfs/03-create-initial-help-mismatch.sh",
+          "retained_path": "docs/verification/native-storage-backend-gate/openzfs/03-create-initial-help-mismatch.sh.historical.txt",
+          "source_blob": "8562c616876167559a300c6641070a08428d4526",
+          "retained_blob": "8562c616876167559a300c6641070a08428d4526",
+          "sha256": "25102cb932bdfb79dcf6502df299863bad3104ebd961c9965f68c57f577c1ff8",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/openzfs/03-create-invalid-dedup.sh",
+          "retained_path": "docs/verification/native-storage-backend-gate/openzfs/03-create-invalid-dedup.sh.historical.txt",
+          "source_blob": "78d569d8130345fbd24922434ee4c2d04ff525d8",
+          "retained_blob": "78d569d8130345fbd24922434ee4c2d04ff525d8",
+          "sha256": "2e5ef10e4f00a986a7bc73182286b0a23d6779b8186b529f1aa881d3803a2fa3",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/openzfs/03-create-low-as.sh",
+          "retained_path": "docs/verification/native-storage-backend-gate/openzfs/03-create-low-as.sh.historical.txt",
+          "source_blob": "36983d4f99c87a7dd75c24a088d32ca77f40026f",
+          "retained_blob": "36983d4f99c87a7dd75c24a088d32ca77f40026f",
+          "sha256": "032dc28e9164a5add425609dcfbe83eadbb60e2ca185ac0785743aaea3b579cb",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/openzfs/03-create-unsupported-tunable.sh",
+          "retained_path": "docs/verification/native-storage-backend-gate/openzfs/03-create-unsupported-tunable.sh.historical.txt",
+          "source_blob": "7ca7478bce45d5c15b67972df8d48873002a9218",
+          "retained_blob": "7ca7478bce45d5c15b67972df8d48873002a9218",
+          "sha256": "5932711a644643dfe04d252644311758eceaf08cfc9fc65675884cbe5eb060ab",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/openzfs/03-create.sh",
+          "retained_path": "docs/verification/native-storage-backend-gate/openzfs/03-create.sh.historical.txt",
+          "source_blob": "8547fcda5ae37885152236dd2fea6341f7f0b92c",
+          "retained_blob": "8547fcda5ae37885152236dd2fea6341f7f0b92c",
+          "sha256": "499c8567472e0865d0d8aeffaac2b6fa86ddf3c2e52219112c69b11b453ba2ef",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/openzfs/04-baseline-freshcheck.sh",
+          "retained_path": "docs/verification/native-storage-backend-gate/openzfs/04-baseline-freshcheck.sh.historical.txt",
+          "source_blob": "59860d57300654a7ee409df3cea3962a0e28f13f",
+          "retained_blob": "59860d57300654a7ee409df3cea3962a0e28f13f",
+          "sha256": "3028313c3a8c4488171d69a2bab0c7cccb29e02d5e8ef01d3f9e129959a24c0a",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/openzfs/05-reuse-kill.sh",
+          "retained_path": "docs/verification/native-storage-backend-gate/openzfs/05-reuse-kill.sh.historical.txt",
+          "source_blob": "ffd1bd9b64ca4c2c801f074ebf853686491d672b",
+          "retained_blob": "ffd1bd9b64ca4c2c801f074ebf853686491d672b",
+          "sha256": "b22ccfc8a71a892b89971431a27a2ec96aa301a5814f07997dcf8c270cc4ebad",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/openzfs/06-labels.sh",
+          "retained_path": "docs/verification/native-storage-backend-gate/openzfs/06-labels.sh.historical.txt",
+          "source_blob": "5c9c5c5e9ceb041870759ffe0d9e110fcb72c983",
+          "retained_blob": "5c9c5c5e9ceb041870759ffe0d9e110fcb72c983",
+          "sha256": "48e007da181aeca2f93d31330053594711cc6d44c55f58c7b78ca28c312e10f7",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/openzfs/07-crash-create.sh",
+          "retained_path": "docs/verification/native-storage-backend-gate/openzfs/07-crash-create.sh.historical.txt",
+          "source_blob": "9ee386822232d4aece6af46ab003e4e99c6a17c6",
+          "retained_blob": "9ee386822232d4aece6af46ab003e4e99c6a17c6",
+          "sha256": "f6004f404faa3b78d7bba9d1b0cd4e90ead5b5a41fa015a728f68e7e0d615295",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/openzfs/08-backup-stream.sh",
+          "retained_path": "docs/verification/native-storage-backend-gate/openzfs/08-backup-stream.sh.historical.txt",
+          "source_blob": "ca407a549497887cc9f5b827983194e512f8e004",
+          "retained_blob": "ca407a549497887cc9f5b827983194e512f8e004",
+          "sha256": "63e05564d6f9e378b3f1aa2773a2a778f739c24bec5de3173a0e9554df499347",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/openzfs/09-crash-freshcheck-blocks.sh",
+          "retained_path": "docs/verification/native-storage-backend-gate/openzfs/09-crash-freshcheck-blocks.sh.historical.txt",
+          "source_blob": "14faf8a975428cb3656a33139b739f37ffceaede",
+          "retained_blob": "14faf8a975428cb3656a33139b739f37ffceaede",
+          "sha256": "a8eb7f323215cfac6d5ca3ccdcf95c09007c07d8fc771fac3ab78c169f9fe0c8",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/openzfs/10-blockpointers.sh",
+          "retained_path": "docs/verification/native-storage-backend-gate/openzfs/10-blockpointers.sh.historical.txt",
+          "source_blob": "a445e07f3987a7f0b1ad13b9cb34f334320da0de",
+          "retained_blob": "a445e07f3987a7f0b1ad13b9cb34f334320da0de",
+          "sha256": "fbcbf00adfe5ab8521e95416737c7829bf9b866905dd09e1c1de6228c0725967",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/openzfs/11-package-evidence.sh",
+          "retained_path": "docs/verification/native-storage-backend-gate/openzfs/11-package-evidence.sh.historical.txt",
+          "source_blob": "adf23019c0e8505fee7ac62ef67242babb84f7be",
+          "retained_blob": "adf23019c0e8505fee7ac62ef67242babb84f7be",
+          "sha256": "31e839d6fcd309709f595136f2da1d4ee283bb2983a693e32bda93cd5acabd61",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/openzfs/12-write-evidence.py",
+          "retained_path": "docs/verification/native-storage-backend-gate/openzfs/12-write-evidence.py.historical.txt",
+          "source_blob": "32b780aebe9358353e6039a8322aa98ca50b4330",
+          "retained_blob": "32b780aebe9358353e6039a8322aa98ca50b4330",
+          "sha256": "6633b7093979bc2f9c2ff0872698c580e26b99deba91147e58116c5268f386a7",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        },
+        {
+          "source_path": "docs/verification/native-storage-backend-gate/openzfs/13-hash-artifacts.py",
+          "retained_path": "docs/verification/native-storage-backend-gate/openzfs/13-hash-artifacts.py.historical.txt",
+          "source_blob": "c9c11c3bd865c5635db9a1691af402ba513ac050",
+          "retained_blob": "c9c11c3bd865c5635db9a1691af402ba513ac050",
+          "sha256": "7b76e01e5fe154c0b55586e35ac7529fd91865d22355372cf81b02356adbb065",
+          "source_mode": "100644",
+          "retained_mode": "100644"
+        }
+      ],
+      "central_source_snapshots": 5,
+      "central_snapshot_register": "retained-document-heads-20261103.json#later_integration_snapshots",
+      "is_closed": false,
+      "closure_condition": "Only after this exact retention proof is on live main; recheck current PR head equals source_head immediately before closure and verify status/head afterward."
+    }
+  ],
+  "boundary": "25 historical scripts retained only as non-executable100644 .historical.txt data; none run/revived. Complete deltas checked:132 only25 historical additions;131 only4 central modifications. Both heads central5files stored byte-for-byte; no old rubric promoted. No PR closure or merge yet.",
+  "progress_previous": 41,
+  "progress_current": 41
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-03",
+  "source_commit": "cbe28f397ea026ea1b1d2164899b140556060bef",
+  "main_parent": "cbbc9c9941b08ea5edfbd3637d494635b4fb1df0",
+  "documentation_parent": "884aeb8283d5dcbf5a38b86cb618a31ceadacec3",
+  "provenance": "Simon explicitly confirmed that he manually merged134. No agent mandate transfer or rollback. REST and timeline bind the squash to cbbc9c99 at2026-11-03T10:05:36Z under his account; account alone was not used to infer the executing session.",
+  "conflicts": "README generated assessment, PROJECT-STATE and progress assessment only. Full main TCP code/tests/evidence retained. Current document history retained; unique original134 checkpoint preserved as historical text. All rubric fields outside assessment identical.",
+  "checks": [
+    {
+      "command": "PATH=/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/rust191/toolchains/toolchains/1.91.1-x86_64-unknown-linux-gnu/bin:/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/host-linker:$PATH CARGO_TARGET_DIR=target/pr114-main-net-host cargo test --offline --locked --manifest-path services/network-service/Cargo.toml",
+      "exit": 0,
+      "tests": 10,
+      "log": "/tmp/nieuw-os-pr114-main-net-host.log",
+      "sha256": "c1fb1b384a79ae44a37501dee57692ae58e25189f87a127596776bdb91069c24"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tests -p test_storage_backend_replay.py",
+      "exit": 0,
+      "tests": 16,
+      "log": "/tmp/nieuw-os-pr114-main-storage-host.log",
+      "sha256": "4eefbaef23b5c2c01cfad0f1bbde17b34932d909556e8c27b65ef1c39b4d69f7"
+    },
+    {
+      "command": "python3 -B docs/verification/native-storage-backend-gate/verify_evidence.py",
+      "exit": 0,
+      "original_archive_hashes": 207,
+      "independently_bound_manifest_entries": 99,
+      "log": "/tmp/nieuw-os-pr114-main-archive.log",
+      "sha256": "8ff699d75686b38fbadd0ff64faa4c76e47e1b58c54a9f7d52c3359a3c425212"
+    },
+    {"command": "python3 tools/progress.py --write", "exit": 0},
+    {"command": "python3 tools/progress.py --check", "exit": 0},
+    {"command": "git diff --cached --check", "exit": 0}
+  ],
+  "not_run": ["Native QEMU, physical hardware, human audit and full release acceptance on this new combined source. Current CI/review remain required."],
+  "progress": {"previous": 41, "current": 41, "new_points": 0}
+}

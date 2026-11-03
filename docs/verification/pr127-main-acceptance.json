@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-02",
+  "scope": "Native U01/N01 desktop integration, not full product release",
+  "base": "74a34d05ef5591b782a0da9da34e4669910d0722",
+  "tested_head": "5343b0a681ebc4cb9b6461bbe8d4447722eec91c",
+  "testmerge": "ce93f924c85e5f14d968162e4cee6810a6d0d052",
+  "testmerge_parents": ["74a34d05ef5591b782a0da9da34e4669910d0722", "5343b0a681ebc4cb9b6461bbe8d4447722eec91c"],
+  "squash_main": "380111b68688c981eec6abb8fab29174a29f5601",
+  "tested_head_testmerge_and_main_tree": "86b8a9b8e6c876ca56a52a2eaf2e2abaccafef46",
+  "source_fingerprint_version": 3,
+  "source_sha256": "b7ccd11fa114f3d4506f9b85560b7bcd51289b88cfb8054cd9e0b6537ea7122b",
+  "premerge_checks": {"success": 31, "skipped": 1, "failed": 0, "pending": 0},
+  "review": {
+    "head": "5343b0a681ebc4cb9b6461bbe8d4447722eec91c",
+    "codex_status": "completed",
+    "has_any_findings": false,
+    "has_unresolved_findings": false,
+    "unresolved_threads": 0,
+    "coderabbit": "SKIPPED due to300-file review limit; not counted as clean review",
+    "boundary": "AI review is not an independent human security audit."
+  },
+  "native_window": {
+    "run": 41533342236,
+    "artifact": 13183651643,
+    "artifact_size_bytes": 4413260,
+    "passed": true,
+    "native_gate": true,
+    "clipboard_gate": true,
+    "smoke_only": false,
+    "raw_qemu_exit": 33,
+    "phases": 22,
+    "duration_s": 534.993710152,
+    "actual_serial_sha256": "9b8f18c40bec5beb2edc83b993fab5c894ebebe3f22007e1249aecad7dd0c01e",
+    "disk_oracle": {
+      "object": 0,
+      "revision": 1,
+      "length": 14,
+      "sha256": "9a45a00fa9ff69c17e124f54c14bb14cf2c7650e8cf1c272f6631f618a19a5a5",
+      "clocks": [1, 0],
+      "canaries_intact": true
+    },
+    "windows_bundle_sha256": "c41a57aa669561ea83dcb72b3d83f2ea6d307013ffc67a9cb0d2c92c24edf78e",
+    "readback": "Actual source.json, raw serial bytes and packaged ZIP downloaded and independently hashed; report flags, phase count, native/clipboard/disk oracles and exact checkout binding checked.",
+    "boundary": "TCG/QEMU runtime and package bytes, not Windows/WHPX execution or physical hardware. Duration is one observed run, not p95 or a general performance claim."
+  },
+  "native_network": {
+    "run": 41533342147,
+    "artifact": 13183072186,
+    "artifact_size_bytes": 76147,
+    "normal": {"passed": true, "raw_qemu_exit": 33, "duration_s": 7.132308273000007},
+    "client_exit": {"passed": true, "raw_qemu_exit": 33, "duration_s": 6.744787580999997},
+    "readback": "Both source hashes and checkout match the tested tree. Actual archived serial/stderr SHA256 recomputed against reports; raw peer JSON readback equals report peer. Existing runner validates real wire/service counts, denials, reset acknowledgement, independent app lifetimes and cleanup.",
+    "boundary": "Three isolated ring3 processes and a controlled localhost synthetic Ethernet peer, not ordinary Internet/TLS or physical NIC acceptance."
+  },
+  "preserved_prs": {
+    "126": "8f08db4c12573f91b57e55c30fa417e7abd358e6",
+    "122": "1f0dd9c93959e3b1335656da1e548525a288133e"
+  },
+  "preservation_checks": "Each current remote head matched expected SHA and was verified as full ancestor of5343b0a. Main squash tree exactly equals tested5343 tree. PR126 duplicate TCP Closed finding fixed in replacement127, not falsely claimed fixed in original8f08.",
+  "github_actions": [
+    "gh pr merge127 --squash --match-head-commit5343b0a...: succeeded, main380111b6",
+    "PR126/122 closed only after actual head/ancestor/tree preservation checks",
+    "Issues39/40 remain open pending postmerge checks; production-key/hardware/route issues41/42/43 not administratively closed"
+  ],
+  "postmerge": {
+    "commit": "380111b68688c981eec6abb8fab29174a29f5601",
+    "ci_run": 41535553111,
+    "window_run": 41535553113,
+    "network_run": 41535553158,
+    "status_at_checkpoint": "running; no historical premerge result represented as postmerge execution"
+  },
+  "progress": {"main_previous": 34, "main_current": 41, "accepted_via_integration": {"U01": 4, "N01": 3}, "new_documentation_points": 0},
+  "remaining": ["U02/U03 and full FR matrix", "Actual authentication, installer and production-key lifecycle", "Windows/WHPX, physical hardware and human audit"]
+}

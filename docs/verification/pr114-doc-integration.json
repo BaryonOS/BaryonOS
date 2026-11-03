@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-02",
+  "checkpoint_status": "The original base, validation,34-point assessment and open_at_original_checkpoint entries below are historical. See later_metadata_followup for the completed main380 integration and inherited41-point assessment; current review/CI remain separate gates.",
+  "task": "Ontwerp, onderzoeks- en opslagbewijs en unieke NAS/sessiecheckpoints behouden",
+  "base": "74a34d05ef5591b782a0da9da34e4669910d0722",
+  "local_parent": "69d3574780bf4f2d6a437d381b68d40e390aafb6",
+  "sources": {
+    "pr114_original": "c1d62d83acc8357c698c0ef576367834e81d4a21",
+    "pr114_key_lifecycle_fix": "68d427b76fd4c5fc0a071433d567097038e71a65",
+    "pr131": "a03f7f0c355cedca72611893f07c4a766a7b7d4f",
+    "pr132": "6afdf306f19072c19fd572701a6126220a4d56d2",
+    "pr119": "ee5003e6e654a63d050acb3513c7ed6ae3f5b266",
+    "pr121_metadata": "b83e4e05b923dc2c0d8b4339fc9509b5752cb384",
+    "pr121_runtime_parent": "0fe648b87d1f4959087d3f80a251a7d6fb64dd66"
+  },
+  "preservation": [
+    "Full PR114/131/132/119 heads retained by merge ancestry.",
+    "PR121 unique b83 status observations archived with original source and historical limits in PROJECT-STATE; runtime parent is ancestor of separate PR127 candidate5343b0a. PR121 is not yet closed.",
+    "ADR058 remains leading for familiar own-code shell; P2 freeze explicitly concerns the historical prototype, not a silent reversal.",
+    "All research proposals remain proposals; installer/profile/authentication implementation and tests are not claimed.",
+    "At the original checkpoint, old status/assessment checkpoints were historical and the canonical assessment was34. The later main380 integration inherited41; see later_metadata_followup.",
+    "No engineport, kernel adoption, dependency or authority change."
+  ],
+  "review": {
+    "pr114": "Concrete key-state/session-handle lifecycle finding4428521664 fixed in68d427b, with fail-closed A/B transition and native negative acceptance defined but not executed.",
+    "pr131": "Bounded read-only AI review on exact a03f7f0c: no high-confidence blocking finding. Core58% EU-service-switch claim verified against original annex PDF, SHA2560c370881ea90a43e219204ef7a9047c8f7849f219f70f41e9f70aa262b7e39fd;21+37=58,20+14=34. Not an OS-migration statistic. Not all798 source references individually rechecked.",
+    "pr132": "Bounded read-only AI review on exact6afdf306:207/207 archive hashes independently recalculated from actual Git blobs; eight boot kernel/loader pairs match their source-specific build manifests. Native engine adoption explicitly unaccepted. No runtime replay or human audit."
+  },
+  "storage_archive_integration_validation": {
+    "manifest": "docs/verification/native-storage-backend-gate/archive-manifest.json",
+    "manifest_raw_sha256": "caab7e6c610f1b5c9b9c67f1c2ed398dd5550c458fd28c454985ae3d8512d562",
+    "validated_index_entries": 207,
+    "mismatches": 0,
+    "method": "For each JSON entry, SHA256(subprocess.check_output(['git','show',':'+archive_root+entry['archive']])) equals entry['archive_sha256']. This checks merged Git-index bytes, not just working-tree bytes or manifest self-consistency.",
+    "exit_code": 0,
+    "boundary": "Archived commands/harnesses were not executed. Sub-manifest semantics and full runtime source hashes were not independently replayed."
+  },
+  "validation": [
+    {"command": "python3 tools/progress.py --write", "exit_code": 0, "score": 34},
+    {"command": "python3 tools/progress.py --check", "exit_code": 0, "score": 34},
+    {"command": "git diff --check", "exit_code": 0},
+    {"command": "git diff --cached --check", "exit_code": 0},
+    {"command": "git diff --exit-code 74a34d05 -- boot kernel crates drivers services sdk userspace ui tools Cargo.toml Cargo.lock", "exit_code": 0},
+    {"command": "git merge-base --is-ancestor 0fe648b87d1f4959087d3f80a251a7d6fb64dd66 5343b0a681ebc4cb9b6461bbe8d4447722eec91c", "exit_code": 0}
+  ],
+  "parallel_pr127_network_evidence_not_this_branch": {
+    "head": "5343b0a681ebc4cb9b6461bbe8d4447722eec91c",
+    "run": 41533342147,
+    "artifact": 13183072186,
+    "testmerge": "ce93f924c85e5f14d968162e4cee6810a6d0d052",
+    "parents": ["74a34d05ef5591b782a0da9da34e4669910d0722", "5343b0a681ebc4cb9b6461bbe8d4447722eec91c"],
+    "testmerge_and_head_tree": "86b8a9b8e6c876ca56a52a2eaf2e2abaccafef46",
+    "source_v3": "b7ccd11fa114f3d4506f9b85560b7bcd51289b88cfb8054cd9e0b6537ea7122b",
+    "normal": {"raw_qemu_exit": 33, "passed": true, "duration_s": 7.132308273000007},
+    "client_exit": {"raw_qemu_exit": 33, "passed": true, "duration_s": 6.744787580999997},
+    "artifact_readback": "Actual raw serial/stderr SHA256 equals both reports; archived peer JSON equals actual report peer. Both source hashes and testmerge tree/parents independently checked.",
+    "boundary": "Current PR127 network runtime evidence only; not this doc branch, not physical hardware/Internet/TLS, not yet main acceptance. Separate native-window gate still pending at checkpoint."
+  },
+  "progress": {"previous": 34, "current": 34, "new_criteria": [], "status": "Historical original checkpoint, not the current41-point assessment"},
+  "later_metadata_followup": {
+    "review_root": 4448373534,
+    "base": "52e1909cb2667a5862732c9d2dc74a6f81b4e016",
+    "contract_fix_source": "68d427b76fd4c5fc0a071433d567097038e71a65",
+    "progress": "Actual inherited main acceptance41 remains41, no documentation points.",
+    "validation": "After full main380 merge, initial staged diff-check returned2 solely for unchanged inherited raw CRLF/blank-EOF proof bytes. No proof reformatted. Actual PR diff against380 passes; runtime and source-v3 equal main,207 merged archive hashes and37 unique ADR identities subsequently really checked with exit0."
+  },
+  "open_at_original_checkpoint": [
+    "Current-head CI and concrete review of the combined docs candidate",
+    "Combine with later desktop main only after verified integration; subsequently completed in52e1909c, see later_metadata_followup",
+    "All FR/native product, physical, human and production-key boundaries remain"
+  ]
+}

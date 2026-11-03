@@ -1,0 +1,45 @@
+------------------------------------
+LABEL 0 
+------------------------------------
+    version: 5000
+    name: 'nieuwos_n3'
+    state: 0
+    txg: 525
+    pool_guid: 9169139500157372876
+    errata: 0
+    min_alloc: 512
+    max_alloc: 512
+    hostname: 'MSImon'
+    top_guid: 8613941951167894592
+    guid: 15375037400163598087
+    vdev_children: 1
+    vdev_tree:
+        type: 'mirror'
+        id: 0
+        guid: 8613941951167894592
+        metaslab_array: 70
+        metaslab_shift: 24
+        ashift: 9
+        asize: 263716864
+        min_alloc: 512
+        is_log: 0
+        create_txg: 4
+        children[0]:
+            type: 'file'
+            id: 0
+            guid: 15375037400163598087
+            path: '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.0a'
+            DTL: 22
+            create_txg: 4
+        children[1]:
+            type: 'file'
+            id: 1
+            guid: 16365005860941139855
+            path: '/tmp/nieuw-os-storage-zfs-20261102/images/mirror/nieuwos_n3.1a'
+            DTL: 21
+            create_txg: 4
+    features_for_read:
+        com.delphix:hole_birth
+        com.delphix:embedded_data
+        com.klarasystems:vdev_zaps_v2
+    labels = 0 1 2 3 

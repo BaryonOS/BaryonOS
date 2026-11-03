@@ -1,0 +1,337 @@
+{
+  "kind": "offline metadata roundtrip via mkfs --rootdir and btrfs restore",
+  "toolchain": {
+    "btrfs": "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+    "mkfs": "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/sbin/mkfs.btrfs",
+    "deb": "/tmp/nieuw-os-storage-btrfs-20261102/btrfs-progs_6.17.1-1build1_amd64.deb",
+    "deb_sha256": "89fb4fe8fce0d2ca42d2f26d626c7f46181ef6c7c8e2656ea1462579ec9b67e8"
+  },
+  "mkfs_exit": 0,
+  "check_exit": 0,
+  "restore_exit": 0,
+  "image_sha256_before": "1af9a8e059173fd2a37989fd5bed839da5e31618bf5c3c24bccecd56817c71a3",
+  "image_sha256_after": "1af9a8e059173fd2a37989fd5bed839da5e31618bf5c3c24bccecd56817c71a3",
+  "image_unchanged": true,
+  "paths_match": true,
+  "entries": 8,
+  "compared_fields": [
+    "type",
+    "mode",
+    "mtime_ns",
+    "uid",
+    "gid",
+    "xattrs",
+    "sha256",
+    "target",
+    "regular file size"
+  ],
+  "differences": {
+    "empty-dir": {
+      "mode": {
+        "expected": "0o700",
+        "observed": "0o755"
+      },
+      "mtime_ns": {
+        "expected": 1577836800123456789,
+        "observed": 1793655343224591421
+      },
+      "xattrs": {
+        "expected": {
+          "user.nieuwos.test": "656d7074792d6469722d78617474722d76616c75652d7631"
+        },
+        "observed": {}
+      }
+    },
+    "hard-a.bin": {
+      "mtime_ns": {
+        "expected": 1577836800123456789,
+        "observed": 1577836800000000000
+      }
+    },
+    "hard-b.bin": {
+      "mtime_ns": {
+        "expected": 1577836800123456789,
+        "observed": 1577836800000000000
+      }
+    },
+    "mode-file.txt": {
+      "mtime_ns": {
+        "expected": 1577836800123456789,
+        "observed": 1577836800000000000
+      }
+    },
+    "nested": {
+      "mtime_ns": {
+        "expected": 1577836800123456789,
+        "observed": 1577836800000000000
+      }
+    },
+    "nested/child.txt": {
+      "mtime_ns": {
+        "expected": 1577836800123456789,
+        "observed": 1577836800000000000
+      }
+    },
+    "sparse.bin": {
+      "mtime_ns": {
+        "expected": 1577836800123456789,
+        "observed": 1577836800000000000
+      }
+    },
+    "symbolic-link": {
+      "mtime_ns": {
+        "expected": 1577836800123456789,
+        "observed": 1577836800000000000
+      }
+    }
+  },
+  "hardlink_pair": {
+    "seed_same_inode": true,
+    "restored_same_inode": false,
+    "seed_nlink": 2,
+    "restored_nlink": 1
+  },
+  "sparse_file": {
+    "seed_size": 8388608,
+    "restored_size": 8388608,
+    "seed_allocated_512b_blocks": 16,
+    "restored_allocated_512b_blocks": 16384,
+    "content_matches": true,
+    "allocation_comparison_scope": "seed and restored files are both on same WSL /tmp backing filesystem; st_blocks is allocation observation, not a general filesystem performance score"
+  },
+  "not_tested": [
+    "ACLs",
+    "uid/gid remapping across users/devices",
+    "creation time",
+    "ctime/atime preservation",
+    "security xattrs",
+    "Windows ADS",
+    "resource forks",
+    "native Nieuw OS",
+    "kernel mounts",
+    "hardware power failure"
+  ],
+  "scope": {
+    "mounts": false,
+    "kernel_driver": false,
+    "native": false,
+    "physical_device": false
+  },
+  "import_stage": {
+    "source": "logs/dump-fs.stdout.txt",
+    "method": "Parsed inode items, inode references and xattrs from full host dump-tree; all 8 path mappings found",
+    "manifest": {
+      "symbolic-link": {
+        "inode": 257,
+        "type": "symlink",
+        "mode": "0o777",
+        "size": 13,
+        "allocated_nbytes": 14,
+        "nlink": 1,
+        "uid": 1000,
+        "gid": 1000,
+        "mtime_ns": 1577836800000000000,
+        "xattrs": {}
+      },
+      "sparse.bin": {
+        "inode": 258,
+        "type": "file",
+        "mode": "0o640",
+        "size": 8388608,
+        "allocated_nbytes": 8388608,
+        "nlink": 1,
+        "uid": 1000,
+        "gid": 1000,
+        "mtime_ns": 1577836800000000000,
+        "xattrs": {}
+      },
+      "hard-b.bin": {
+        "inode": 259,
+        "type": "file",
+        "mode": "0o644",
+        "size": 8192,
+        "allocated_nbytes": 8192,
+        "nlink": 2,
+        "uid": 1000,
+        "gid": 1000,
+        "mtime_ns": 1577836800000000000,
+        "xattrs": {}
+      },
+      "hard-a.bin": {
+        "inode": 259,
+        "type": "file",
+        "mode": "0o644",
+        "size": 8192,
+        "allocated_nbytes": 8192,
+        "nlink": 2,
+        "uid": 1000,
+        "gid": 1000,
+        "mtime_ns": 1577836800000000000,
+        "xattrs": {}
+      },
+      "mode-file.txt": {
+        "inode": 260,
+        "type": "file",
+        "mode": "0o600",
+        "size": 27,
+        "allocated_nbytes": 27,
+        "nlink": 1,
+        "uid": 1000,
+        "gid": 1000,
+        "mtime_ns": 1577836800000000000,
+        "xattrs": {
+          "user.nieuwos.test": "66696c652d78617474722d76616c75652d7631"
+        }
+      },
+      "nested": {
+        "inode": 261,
+        "type": "directory",
+        "mode": "0o700",
+        "size": 18,
+        "allocated_nbytes": 0,
+        "nlink": 1,
+        "uid": 1000,
+        "gid": 1000,
+        "mtime_ns": 1577836800000000000,
+        "xattrs": {}
+      },
+      "nested/child.txt": {
+        "inode": 262,
+        "type": "file",
+        "mode": "0o640",
+        "size": 13,
+        "allocated_nbytes": 13,
+        "nlink": 1,
+        "uid": 1000,
+        "gid": 1000,
+        "mtime_ns": 1577836800000000000,
+        "xattrs": {}
+      },
+      "empty-dir": {
+        "inode": 263,
+        "type": "directory",
+        "mode": "0o700",
+        "size": 0,
+        "allocated_nbytes": 0,
+        "nlink": 1,
+        "uid": 1000,
+        "gid": 1000,
+        "mtime_ns": 1577836800000000000,
+        "xattrs": {
+          "user.nieuwos.test": "656d7074792d6469722d78617474722d76616c75652d7631"
+        }
+      }
+    },
+    "comparisons": {
+      "empty-dir": {
+        "imported_inode": 263,
+        "seed_to_import_differences": {
+          "mtime_ns": {
+            "seed": 1577836800123456789,
+            "image": 1577836800000000000
+          }
+        },
+        "import_to_restore_differences": {
+          "mode": {
+            "image": "0o700",
+            "restored": "0o755"
+          },
+          "mtime_ns": {
+            "image": 1577836800000000000,
+            "restored": 1793655343224591421
+          },
+          "xattrs": {
+            "image": {
+              "user.nieuwos.test": "656d7074792d6469722d78617474722d76616c75652d7631"
+            },
+            "restored": {}
+          }
+        }
+      },
+      "hard-a.bin": {
+        "imported_inode": 259,
+        "seed_to_import_differences": {
+          "mtime_ns": {
+            "seed": 1577836800123456789,
+            "image": 1577836800000000000
+          }
+        },
+        "import_to_restore_differences": {}
+      },
+      "hard-b.bin": {
+        "imported_inode": 259,
+        "seed_to_import_differences": {
+          "mtime_ns": {
+            "seed": 1577836800123456789,
+            "image": 1577836800000000000
+          }
+        },
+        "import_to_restore_differences": {}
+      },
+      "mode-file.txt": {
+        "imported_inode": 260,
+        "seed_to_import_differences": {
+          "mtime_ns": {
+            "seed": 1577836800123456789,
+            "image": 1577836800000000000
+          }
+        },
+        "import_to_restore_differences": {}
+      },
+      "nested": {
+        "imported_inode": 261,
+        "seed_to_import_differences": {
+          "mtime_ns": {
+            "seed": 1577836800123456789,
+            "image": 1577836800000000000
+          }
+        },
+        "import_to_restore_differences": {}
+      },
+      "nested/child.txt": {
+        "imported_inode": 262,
+        "seed_to_import_differences": {
+          "mtime_ns": {
+            "seed": 1577836800123456789,
+            "image": 1577836800000000000
+          }
+        },
+        "import_to_restore_differences": {}
+      },
+      "sparse.bin": {
+        "imported_inode": 258,
+        "seed_to_import_differences": {
+          "mtime_ns": {
+            "seed": 1577836800123456789,
+            "image": 1577836800000000000
+          }
+        },
+        "import_to_restore_differences": {}
+      },
+      "symbolic-link": {
+        "imported_inode": 257,
+        "seed_to_import_differences": {
+          "mtime_ns": {
+            "seed": 1577836800123456789,
+            "image": 1577836800000000000
+          }
+        },
+        "import_to_restore_differences": {}
+      }
+    },
+    "claims": {
+      "fractional_mtime_lost_during_import": true,
+      "hardlink_topology_preserved_during_import": true,
+      "sparse_holes_materialized_during_import": true,
+      "empty_directory_mode_and_xattr_preserved_during_import": true
+    }
+  },
+  "restore_stage": {
+    "hardlink_topology_lost": true,
+    "empty_directory_mode_mtime_xattr_lost": true,
+    "regular_file_mode_and_xattr_preserved": true,
+    "all_regular_file_bytes_and_symlink_target_preserved": true
+  },
+  "metadata_roundtrip_complete": false,
+  "interpretation": "The selected mkfs --rootdir and btrfs restore tool path is not a metadata-complete backup/restore workflow; this does not demonstrate an inability of the Btrfs disk format or mounted kernel driver to preserve these properties."
+}
