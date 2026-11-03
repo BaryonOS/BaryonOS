@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`3799ec63`](https://github.com/simonvanieperen/nieuw-os/commit/3799ec63b9be6a2a5dbe67bd2cb38af703f101a0) ·
+**Bron:** [`dcb97175`](https://github.com/simonvanieperen/nieuw-os/commit/dcb9717553fdde095dfca66b800bdddbb73b122d) ·
 **Ontwikkelbranch:** `simonvanieperen-fictional-disco`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Veld-04: echte pointer-leave zonder focusverlies of buitenbodydata.
-41% blijft 41%: bron3799ec63 heeft44 volledige nativefasen per schaal,100/200%, exit0/ruwe33. Pointer-leave wist werkelijk andere hoverpixels zonder buitenbodydata, focusverlies of menuafsluiting; onverkorte oude gates slagen. Acht hosttest-/Clippysuites,16 runnertegenproeven en beide normale builds slagen. Eerste targetcompilefout bewaard en na typeherstel volledig herhaald. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Oudere derdenapps vereisen protocolonderhandeling. Hoogcontrast, complete Veld-omgeving, U02-U06, fysieke/menselijke acceptatie en release blijven open.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR #146-conflicten inhoudsbehoudend integreren met main d686bd54.
+41/100 blijft 41/100. PR #146 is met main d686bd54 inhoudsbehoudend geïntegreerd: Veld-04-code en brongebonden bewijs blijven behouden, evenals main's implementatie en receipts voor vreemde-volume-admissie. Alle 26 volume-Python-tests, 47 volume-core-Rusttests, Clippy, rustfmt en de roadmapcontrole slagen. De native gate bouwde service, loader en kernel maar kon niet aan QEMU beginnen omdat qemu-system-x86_64 ontbreekt; negen VM-proeven en native volume-acceptatie blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
