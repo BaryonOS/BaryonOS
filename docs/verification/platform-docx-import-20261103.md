@@ -26,6 +26,9 @@ wijzigingen, onbekende inhoud en header-/footerreferenties worden geweigerd,
 niet stil als volledige tekst gepresenteerd. Gekoppelde stijlen worden niet
 visueel geïnterpreteerd; geen zichtbaarheid-/Word-renderclaim.
 Het volledige profiel, budgets en primaire formaatbronnen staan in README.
+De aangescherpte bronlijst omvat naast Microsoft/PKWARE de originele
+ECMA-376 Part 2/4-, RFC 1951- en W3C XML 1.0-specificaties.
+Dit verandert de ondersteunde formaten of normconformanceclaim niet.
 
 Maximaal 16 MiB input, 512 parts, 1 MiB per expanded part, 16 MiB totaal,
 32768 XML-nodes per XML-part, 4096 alinea's, 64 KiB tekst.
@@ -85,8 +88,9 @@ Geen nieuw OS-toolchaininstallatie.
 | `git diff --check` | exit 0, 0,142 s |
 | `git diff --cached --check` | exit 0 na staging van de nieuwe subtree |
 
-Rust bewijst namespace-URI versus prefix, Unicode/entities/whitespace,
-geen verborgen content in opmaakproperties, format-/field-/table-denials,
+Rust-tests toetsen voor de genoemde invoervarianten namespace-URI versus prefix,
+Unicode/entities/whitespace, afwijzing van de expliciet geteste verborgen
+opmaakinhoud en format-/field-/table-denials,
 12000 diep geneste elementen zonder stackoverflow, nodebudget, invalid
 XML/UTF-8/DTD/external entities en exacte paragraph-/tekst-/XML-bytebudgetten.
 Python maakt DOCX met onafhankelijke zipfile/ElementTree-writers:
@@ -97,7 +101,10 @@ Negatieven: iedere truncatie van een geldig pakket, CLI-keuze, CRC/header/
 filename-mutaties, duplicaten/casecollisions, traversalnamen, ontbrekende
 parts, 513-entrygrens, main-type/relatie/namespace-spoof, externe rootrelatie,
 macrotype, unsupported inhoud en een forged-small-output DEFLATE-bom.
-Afwijzingen vereisen exit !=0, stderr en lege stdout.
+De oorspronkelijke afwijzingsassertie vereiste slechts een niet-nul-exit,
+stderr en lege stdout; dat liet een Rust-panic (exit 101) ten onrechte door.
+De nieuwe testcode vereist exact exit 1, een `docx-text:`-stderrprefix en
+lege stdout. Nieuwe-head-CI moet de strengere test nog bevestigen.
 
 SHA-256 van buiten Git bewaarde logs/artifacts onder de workdirectory:
 

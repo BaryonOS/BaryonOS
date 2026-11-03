@@ -67,7 +67,9 @@ def package(entries, compression=zipfile.ZIP_DEFLATED, descriptor=False):
 def cli(binary, source, success=None, args=("--plain-text",)):
     result = subprocess.run([binary, *args], input=source, capture_output=True, timeout=5)
     if success is None:
-        assert result.returncode != 0 and result.stdout == b"" and result.stderr, result
+        assert result.returncode == 1, result
+        assert result.stdout == b"", result
+        assert result.stderr.startswith(b"docx-text:"), result
     else:
         assert result.returncode == 0 and result.stdout == success and result.stderr == b"", result
 

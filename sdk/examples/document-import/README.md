@@ -60,6 +60,22 @@ Basisnormen: Microsoft, *Structure of a WordprocessingML document*,
 <https://learn.microsoft.com/en-us/office/open-xml/word/structure-of-a-wordprocessingml-document>;
 PKWARE, APPNOTE 6.3.10, 1 november 2022, secties 4.3/4.4,
 <https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT>.
+Aanvullende primaire formaatbronnen, passend bij de afzonderlijke claims:
+
+- Ecma International, *ECMA-376: Office Open XML file formats*,
+  Part 2 *Open Packaging Conventions*, 5e editie, december 2021
+  (OPC-packageparts, relaties); Part 4 *Transitional Migration Features*,
+  5e editie, december 2016 (Transitional-verwijzingen):
+  <https://ecma-international.org/publications-and-standards/standards/ecma-376/>.
+- Deutsch, L. P., *DEFLATE Compressed Data Format Specification version 1.3*,
+  RFC 1951, RFC Editor, mei 1996 (raw DEFLATE):
+  <https://www.rfc-editor.org/rfc/rfc1951.html>.
+- World Wide Web Consortium, *Extensible Markup Language (XML) 1.0
+  (Fifth Edition)*, W3C Recommendation, 26 november 2008
+  (XML-entiteiten en regelovergangen): <https://www.w3.org/TR/xml/>.
+
+Deze bronverwijzingen definiëren het afgebakende formaat; ze bewijzen geen
+volledige OPC/OOXML/XML-conformance van de implementatie.
 Geen Office-, LibreOffice-, schemavalidatie- of volledig OOXML-profielclaim.
 
 ## Acceptatie
