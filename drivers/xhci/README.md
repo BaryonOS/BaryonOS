@@ -19,6 +19,11 @@ writes the matched function's BAR registers, restores their original values,
 and leaves PCI I/O decode, memory decode, and bus mastering disabled. The
 xHCI-controller MMIO accesses themselves are read-only.
 
+The parser bounds the complete operational range, including the port-register
+area sized by `max_ports`; it rejects zero slot/interrupter/port limits and
+rejects overlaps between capability, operational, doorbell, runtime, and the
+first extended-capability header.
+
 The crate is deliberately outside the root workspace and adds no third-party
 dependency. Hardware support is not demonstrated by the host models or
 freestanding compile check.

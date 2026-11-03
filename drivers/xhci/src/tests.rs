@@ -96,6 +96,29 @@ fn rejects_zero_structural_limits_and_port_register_overlap() {
 }
 
 #[test]
+fn rejects_doorbell_and_runtime_registers_in_capability_space() {
+    let structural = 8 | (2 << 8) | (4 << 24);
+    let capability_word = 0x40 | (0x0100 << 16);
+    assert_eq!(
+        ControllerCapabilities::parse(capability_word, structural, 0, 0x20, 0x2000, 0x4000,),
+        Err(Error::InvalidRegister)
+    );
+    assert_eq!(
+        ControllerCapabilities::parse(capability_word, structural, 0, 0x1000, 0x20, 0x4000,),
+        Err(Error::InvalidRegister)
+    );
+}
+
+#[test]
+fn bounds_the_port_register_area_using_max_ports() {
+    let structural = 1 | (1 << 8) | (0xff << 24);
+    assert_eq!(
+        ControllerCapabilities::parse(0x0100_0020, structural, 0, 0x400, 0x600, 0x1000,),
+        Err(Error::InvalidRegister)
+    );
+}
+
+#[test]
 fn rejects_extended_capability_header_overlapping_advertised_regions() {
     let structural = 8 | (2 << 8) | (4 << 24);
     let capability_word = 0x40 | (0x0100 << 16);

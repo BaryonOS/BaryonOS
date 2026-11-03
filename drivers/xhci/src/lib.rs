@@ -307,22 +307,27 @@ impl ControllerCapabilities {
         validate_region(bar_size, doorbell_offset, doorbell_bytes)?;
         validate_region(bar_size, runtime_offset, runtime_bytes)?;
 
-        if ranges_overlap(
-            operational_offset,
-            operational_bytes,
-            doorbell_offset,
-            doorbell_bytes,
-        )? || ranges_overlap(
-            operational_offset,
-            operational_bytes,
-            runtime_offset,
-            runtime_bytes,
-        )? || ranges_overlap(
-            doorbell_offset,
-            doorbell_bytes,
-            runtime_offset,
-            runtime_bytes,
-        )? {
+        if ranges_overlap(0, capability_length, doorbell_offset, doorbell_bytes)?
+            || ranges_overlap(0, capability_length, runtime_offset, runtime_bytes)?
+            || ranges_overlap(
+                operational_offset,
+                operational_bytes,
+                doorbell_offset,
+                doorbell_bytes,
+            )?
+            || ranges_overlap(
+                operational_offset,
+                operational_bytes,
+                runtime_offset,
+                runtime_bytes,
+            )?
+            || ranges_overlap(
+                doorbell_offset,
+                doorbell_bytes,
+                runtime_offset,
+                runtime_bytes,
+            )?
+        {
             return Err(Error::InvalidRegister);
         }
 
