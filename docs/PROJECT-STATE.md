@@ -1,50 +1,34 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — keyring-build en rollbackcontrole — 3 november 2026
+## NEXT AGENT HANDOFF — wachtwoordinvoergrens — 3 november 2026
 
-**Basis/implementatie:** branch `simonvanieperen-animated-garbanzo`,
-codecommit `75495efc37f1753d652f52e55f4670ebdb564c22`, documentcheckpoint
-`cb1246fec13b086667c005d1e3f4417c50b9138d`; de codefingerprint is
-`d3db62406a60ab897dc92ab658111e4558e71b47d621ed824a8eabc616bb4c31`.
-De legacy `EXPORT_RECOVERY`/`RESTORE`-route via gewone app-ingress is gesloten.
-De gedeelde domeindispatcher weigert beide; de afzonderlijke beheer-ingress
-controleert de manifest-genoemde caller en dispatcht herstel naast
-persistentie. De parallelle branch `copilot/universal-driver-framework`
-bestaat; deze stap raakt geen drivercode.
+**Basis/resultaat:** branch `simonvanieperen-animated-garbanzo`, basis
+`72dfdca5de7750d0c3559ae1193c3554dd0fa65e`; wachtwoordindiening in
+`ui/native/src/session.rs` controleert nu de volledige bytebuffer als UTF-8
+vóór `AuthBroker::begin`. Ongeldige, afgebroken, overlong en surrogate-
+coderingen worden gewist en niet aan de broker doorgegeven. De standaardbroker
+blijft fail-closed; dit voegt geen accountauthenticatie toe.
 
-**Uitgevoerd op exact de codevingerafdruk hierboven:** root- en SDK-
-formatteringscontroles, `cargo +1.90.0 test --offline --locked -p keyring-core`
-(70 hosttests) en Clippy met `-D warnings` slaagden. Daarna slaagde
-`PATH=/home/simon/.cargo/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH
-CC=/tmp/nieuw-os-c-toolchain/bin/cc python3 -B tools/build.py --kernel-feature
-native-keyring`; loader, service, app en kernel zijn gebouwd en de artifact-
-inspectie is geslaagd. `cargo +1.90.0 test --offline --locked -p update-core`
-slaagde met 13 hosttests voor selectie, terugval, versie-vloer en sleutelbeleid.
-De exacte commando's, hashes en artifactdigests staan in
-[native-build-and-rollback-check.json](verification/keyring-recovery-authority-20261103/native-build-and-rollback-check.json);
-de keyring-hostreceipt staat in
-[host-report.json](verification/keyring-recovery-authority-20261103/host-report.json).
-De tijdelijke C-toolchain staat onder `/tmp/nieuw-os-c-toolchain`; er is niets
-globaal geïnstalleerd.
+**Getest op source fingerprint v3**
+`9a6cc120764e1cb0820af1005350642f8961e9123e465f5395184c9968bd61d7`:
+`cargo +1.90.0 fmt --manifest-path ui/native/Cargo.toml --all -- --check`,
+`cargo +1.90.0 test --manifest-path ui/native/Cargo.toml --test session
+--offline` (11 tests), `cargo +1.90.0 clippy --manifest-path
+ui/native/Cargo.toml --test session --offline -- -D warnings` en
+`git diff --check`: exit 0. Logs en hashes staan in
+[session-password-utf8-20261103.json](verification/session-password-utf8-20261103.json).
+Volledige UI-suite en native login zijn nog niet uitgevoerd.
 
-**Score:** B01 is heropend omdat het oude native bewijs de recovery-operaties
-juist via gewone app-ingress uitvoerde. **41 → 39/100**. Deze opdracht houdt de
-score op **39/100**: cross-build en hosttests sluiten geen native acceptatie.
-`qemu-system-x86_64` is niet beschikbaar en OVMF is niet gevonden op de
-gecontroleerde standaardpaden; de B01-QEMU-gate en
-B03-runtime-/firmwarevariabeletests zijn dus niet uitgevoerd. De rollbackcode
-verhoogt de UEFI-`NieuwOsMinVersion`-vloer pas na geldige manifest-, digest- en
-ELF-controle en weigert lagere slotversies. Verwijdering/reset van die
-firmwarevariabele en authenticatie van de loader zijn expliciete open grenzen
-(B03-threat-model/B04), geen aangetoonde codefix in deze stap.
+**Score:** **39 → 39/100**; dit grensherstel voldoet niet zelfstandig aan
+FR-S01/S02. B01 blijft open tot native/QEMU-verificatie van de beheer- en
+app-ingress; QEMU/OVMF ontbreken. B02-koude rollback en write-ahead blijven
+vereist voor echte gebruikerssleutels en duurzame profielen. Driverframework
+en system-maturitysporen zijn niet gewijzigd.
 
-**Eerstvolgend:** B01 blijft open totdat QEMU/OVMF beschikbaar zijn en dezelfde
-bron de native beheer- en negatieve appgrens aantoont. De volgende
-architectuurblokkade is B02: de koude rollbackvloer voor persistente
-sleutelstatus vereist een onafhankelijk vertrouwd, duurzaam anker; een door de
-aanvrager aangeleverde `minimum_generation` is daarvoor geen bewijs. Hergebruik
-geen onbeschermde UEFI-variabele of callerwaarde als beveiligingsanker zonder
-vastgelegd ontwerp en acceptatie. Volledige releaseacceptatie blijft open.
+**Eerstvolgend:** voer na deze checkpointcommit de volledige `ui/native`-
+hostsuite en relevante native build uit; daarna kies een volgende onafhankelijke
+productintegratie die geen ontbrekende identity/key/persistenceauthority
+simuleert. De algemene OS-/releaseacceptatie blijft open.
 
 ## Historisch checkpoint — PR149 compacte kaartregressies hersteld — 3 november2026
 

@@ -27,6 +27,12 @@ blijven expliciete grenzen. QEMU/OVMF ontbreken; native recovery- en
 rollbackgedrag is niet opnieuw uitgevoerd. **39% blijft 39%**. [Build- en
 rollbackreceipt](verification/keyring-recovery-authority-20261103/native-build-and-rollback-check.json).
 
+Op basiscommit `72dfdca5` is de wachtwoordinvoergrens aangescherpt: ongeldige
+UTF-8 komt niet bij de toekomstige broker en wordt gewist. De gerichte
+sessiesuite (11 tests), formattering en Clippy slagen; de volledige UI-suite en
+native auth zijn nog niet uitgevoerd. Dit is geen volledige auth-/sessiepoort.
+**39% blijft 39%**. [Sessiereceipt](verification/session-password-utf8-20261103.json).
+
 ## Betekenis van het percentage
 
 De README toont **behaalde acceptatiepunten / 100**. De gewichten zijn een

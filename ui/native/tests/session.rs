@@ -306,3 +306,30 @@ fn submission_error_clears_password_and_never_records_a_pending_request() {
     assert_eq!(flow.phase(), Phase::CredentialEntry);
     assert_eq!(flow.identity(), None);
 }
+
+#[test]
+fn malformed_utf8_password_is_cleared_before_the_auth_broker_is_called() {
+    for password in [
+        &[0xc3][..],
+        &[0x80][..],
+        &[0xc0, 0xaf][..],
+        &[0xed, 0xa0, 0x80][..],
+    ] {
+        let mut flow = SessionFlow::new();
+        let mut broker = ServiceFixture::default();
+        flow.select_account(user(1)).unwrap();
+        for byte in password {
+            flow.push_password_byte(*byte).unwrap();
+        }
+
+        assert_eq!(
+            flow.submit(&mut broker),
+            Err(Error::InvalidPasswordEncoding)
+        );
+        assert_eq!(broker.calls, 0);
+        assert_eq!(flow.password_len(), 0);
+        assert_eq!(flow.phase(), Phase::CredentialEntry);
+        assert_eq!(flow.identity(), None);
+        assert_eq!(flow.pending_request(), None);
+    }
+}

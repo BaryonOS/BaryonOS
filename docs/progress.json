@@ -5,9 +5,9 @@
     "date": "2026-11-03",
     "source_commit": "75495efc37f1753d652f52e55f4670ebdb564c22",
     "branch": "simonvanieperen-animated-garbanzo",
-    "task": "P0 keyring-herstelgrens, native-keyring-profielbuild en B03-rollbackcontrole",
+    "task": "Sessiewachtwoord: ongeldige UTF-8 blokkeren voor de auth-broker",
     "previous_score": 39,
-    "summary": "39% → 39%: de native-keyring-loader, kernel en keyringbinaries bouwen op codecommit 75495ef (fingerprint d3db6240…). De update-core-suite slaagt met 13 hosttests voor vloer/selectie/terugval. De loader verhoogt de firmwarevloer pas na imagevalidatie; de service kent alleen de versie van de draaiende kernel. QEMU/OVMF ontbreken, dus native recovery, UEFI-persistentie en B03-runtime zijn niet getest; B01 blijft open en er worden geen punten toegekend."
+    "summary": "39% → 39%: de sessieflow valideert wachtwoord-UTF-8 vóór AuthBroker::begin en wist ongeldige buffers. 11 gerichte hosttests, fmt en Clippy slagen. Dit herstelt een invoergrens maar implementeert geen echte authenticator, persistente account of key unlock; FR-S01/S02 blijven open en er worden geen punten toegekend. Volledige native UI-suite nog niet uitgevoerd."
   },
   "tracks": [
     {
