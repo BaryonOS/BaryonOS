@@ -17,6 +17,15 @@ als logische lege toestand, zonder dat vreemde niet-nuldata wordt geaccepteerd.
 Een marker is formaatidentificatie en foutdetectie, geen authenticatie.
 Bestaande geldige NOSVOL02-tabelkopieën blijven de primaire recoverybron.
 
+De eerste markerwrite en -flush zijn een aparte initialisatiegrens. Bij een
+crash vóór een geldige duurzame marker mag een onherkenbare niet-nulrest niet
+als eigen opslag worden behandeld: herstel stopt met `Corrupt`, zonder writes
+of stil wissen. Alleen volledig nul of een volledige geldige marker levert
+hier generatie0. De before/after-invariant voor documenttransacties begint
+na duurzame formaatidentificatie en blijft onverkort gelden; afzonderlijke
+crashproeven controleren ieder byteprefix van de eerste marker en het eerste
+datawritepunt. Expliciete herstel-/formatteerbediening blijft apart open.
+
 De kernel blijft een generieke, begrensde blokbroker; de herkenning en
 admissie blijven in `volume-core`. Er wordt geen bestandssysteemdriver,
 importpad of automatische formatter toegevoegd. Een niet-gemarkeerd volume

@@ -9,10 +9,11 @@ ongemarkeerde volume-invoer. De22 service- en25 orakeltests zijn echt groen,
 inclusief alle68 metadatasectoren en gemarkeerd herstel; exacte rood/groenlogs:
 [nieuwe receipt](../pr148-slot1-review.json).
 
-De volledige Rustsuite is nog niet groen: zij faalde al vóór de slot1-fix
-bij een onderbroken eerste formaatmarker. Native metadata-only en volledige
-QEMU-regressie blijven open. Dit vervolg maakt de oorspronkelijke niet-
-uitgevoerde tests hieronder niet retrospectief groen.
+De eerste-markercrash is daarna apart getest: 516 beelden en 11.699 beelden
+in de onverkorte documentcrashmatrix groen; 26 Python-tests groen.
+[Primaire receipt](../pr148-marker-crash-review.json). De volledige Rustsuite
+en native metadata-only/QEMU-regressie blijven open. Dit vervolg maakt de
+oorspronkelijke niet-uitgevoerde tests hieronder niet retrospectief groen.
 
 ## Historisch implementatiecheckpoint
 

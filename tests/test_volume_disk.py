@@ -94,6 +94,18 @@ class VolumeOracleTests(unittest.TestCase):
         result = vd.analyse(bytes(image))
         self.assertEqual((result["generation"], result["chunks_used"]), (0, 0))
 
+    def test_torn_first_format_marker_is_never_silently_admitted(self):
+        marker = vd.format_marker()
+        for prefix in range(vd.SECTOR + 1):
+            with self.subTest(prefix=prefix):
+                volume = bytearray(vd.VOLUME_SECTORS * vd.SECTOR)
+                volume[:prefix] = marker[:prefix]
+                if not any(volume) or volume[:vd.SECTOR] == marker:
+                    self.assertEqual(vd.choose(bytes(volume))["generation"], 0)
+                else:
+                    with self.assertRaises(ValueError):
+                        vd.choose(bytes(volume))
+
     def test_document_content_and_revision_are_verified(self):
         entry, payload = document(1, 1, 5000, [3, 7], 11)
         tables = {1: vd.encode_table(1, 11, entries_with({1: entry}))}

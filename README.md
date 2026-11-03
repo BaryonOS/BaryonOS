@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`a5b14596`](https://github.com/simonvanieperen/nieuw-os/commit/a5b14596dc947059a83bc6b09ad19db3f0f0bfc5) ·
+**Bron:** [`a8da25d0`](https://github.com/simonvanieperen/nieuw-os/commit/a8da25d0ff4f0e92780c4683dc7606b86bb3728c) ·
 **Ontwikkelbranch:** `simonvanieperen-upgraded-disco`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR148: echte slot1-toelatingsfout herstellen; eerste-markercrashgate blijft open.
-41 blijft 41. Beoordelingsbasis a5b14596, met auteursbron929 en main99. Echte rode proeven: onherkende metadata uitsluitend in slot1 wordt als leeg geaccepteerd en door de directe service overschreven. Beide tabelkopieën moeten nu ook nul zijn zonder geldige marker/tabel; het onafhankelijke orakel controleert het hele volume.22 service- en25 Python-tests, fmt en Clippy groen; geen IPC/rechten/formaatverruiming. Volledige Rustsuite had al een echte eerste-markercrashfailure; die en native metadata-only/QEMU-acceptatie blijven open. Geen productpunten.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR148: eerste-markercrashes afzonderlijk failclosed testen, documentherstel volledig behouden.
+41 blijft 41. Basis a8da25d0 herstelt de echte slot1-fout. ADR-064 verduidelijkt de eerste formaatidentificatiegrens: 516 initialisatiecrashbeelden testen alle markerprefixen, onherkenbare resten geven Corrupt zonder herstelwrites. De documentcrashmatrix begint na duurzame identificatie en behoudt alle voor/na- en inhoudsasserties op 11699 beelden. 26 onafhankelijke Python-tests groen, inclusief 513 markerprefixen. Volledige Rustsuite en native metadata-only/QEMU-acceptatie blijven open; geen productpunten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -1,6 +1,6 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR148 slot1-toelatingsfout hersteld; crashgate open — 3 november 2026
+## NEXT AGENT HANDOFF — PR148 slot1 en eerste-markercrashproeven — 3 november 2026
 
 **Basis:** `a5b14596`, inclusief auteursbron `929ebfb8` en main99;
 branch `simonvanieperen-upgraded-disco`. De auteur pauzeert overlappende writes.
@@ -9,18 +9,20 @@ toegelaten; de directe service schreef vervolgens op die vreemde invoer.
 De Rust-service en onafhankelijke Python-orakelcontrole eisen nu ook nulbytes
 in beide tabelkopieën. Geen IPC-, capability-, formaat- of quotaverruiming.
 
-**Gericht groen:** 22 echte servicehosttests en 25 Python-orakeltests,
-inclusief alle68 metadatasectoren en herstel met een geldige marker;
-Rustfmt en Clippy exit0. [Primaire rood/groenreceipt](verification/pr148-slot1-review.json).
-**Niet groen:** de volledige Rustsuite faalde al op ongewijzigde productiecode
-in `every_crash_point_recovers_to_before_or_after`, bij de eerste markercrash.
-Dat is geen groene volledige gate en wordt niet weggefilterd. De correcte
-grens tussen mislukte eerste formaatinitialisatie en herstel van een al
-geïdentificeerd volume moet nog expliciet getest worden.
+**Vervolg op `a8da25d0`:** ADR-064 maakt de initialisatiegrens expliciet.
+De documentcrashmatrix begint na een echte markerwrite en -flush; alle
+before/after- en inhoudsasserties blijven behouden: **11.699 beelden groen**.
+Een aparte proef test **516 initialisatiecrashbeelden**, inclusief ieder
+markerbyteprefix, en vereist `Corrupt` zonder herstelwrites voor onherkenbare
+resten. **26 Python-tests groen**, met onafhankelijk alle 513 markerprefixen.
+[Nieuwe primaire receipt](verification/pr148-marker-crash-review.json).
+De eerdere echte failure blijft [bewaard](verification/pr148-slot1-review.json).
+De 22 servicehosttests en Rustfmt/Clippy waren groen op de slot1-fix; dat
+maakt de nog niet herhaalde volledige Rustsuite niet impliciet groen.
 **Nog niet uitgevoerd:** native metadata-only foreign-case en volledige
-QEMU-regressie. **41 →41**, geen nieuw criterium of productacceptatie.
-**Eerstvolgend:** gerichte marker-crashtest reproduceren/verfijnen en oplossen,
-vervolgens volledige volume-Rust-/host-/nativegates; pas daarna merge.
+QEMU-regressie. **41 → 41**, geen nieuw criterium of productacceptatie.
+**Eerstvolgend:** `cargo +1.90.0 test --offline --locked -p volume-core`,
+daarna native metadata-only fixture en relevante integratiegates; pas daarna merge.
 
 ## Historisch checkpoint — PR148 met main 99d1327 — 3 november 2026
 
