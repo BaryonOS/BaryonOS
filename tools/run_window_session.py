@@ -317,12 +317,13 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 values = snapshots(raw, "COMPOSITOR")
                 return values[-1] if values else {}
 
-            def observe(label, predicate):
+            def observe(label, predicate, *, timeout_s=None):
+                observation_deadline = deadline if timeout_s is None else min(deadline, time.monotonic() + timeout_s)
                 while True:
                     raw = serial(directory / "serial.txt")
                     if predicate(raw):
                         return raw
-                    if process.poll() is not None or time.monotonic() >= deadline:
+                    if process.poll() is not None or time.monotonic() >= observation_deadline:
                         raise TimeoutError("Native input acknowledgement missing: " + label)
                     time.sleep(0.02)
 
@@ -428,10 +429,21 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                     before = comp(serial(directory / "serial.txt"))["INPUT"]
                     control.command("input-send-event", {"events": [
                         {"type": "key", "data": {"down": down, "key": {"type": "qcode", "data": physical}}}]})
-                    observe("switcher edge " + physical, lambda raw: comp(raw).get("INPUT", 0) >= before + 1)
+                    observe("switcher edge " + physical, lambda raw: comp(raw).get("INPUT", 0) >= before + 1,
+                            timeout_s=90)
 
                 def shell(physical):
                     edge(physical, True); edge(physical, False)
+
+                def focus_cycle():
+                    raw = serial(directory / "serial.txt")
+                    role = "CALCULATOR" if comp(raw)["FOCUSED"] else "MATERIAL"
+                    before = progress(raw)[role]
+                    key("f6")
+                    observe("previous focus cancellation acknowledged", lambda raw:
+                            progress(raw)[role]["KEYS"] == before["KEYS"]
+                            and progress(raw)[role]["INPUT_ACKS"] == before["INPUT_ACKS"] + 1,
+                            timeout_s=90)
 
                 def open_switcher():
                     raw = serial(directory / "serial.txt")
@@ -439,13 +451,14 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                     before = progress(raw)[role]
                     edge("alt", True)
                     observe("Alt delivered before shell ownership", lambda raw:
-                            all(progress(raw)[role][field] == count + 1 for field, count in before.items()))
+                            all(progress(raw)[role][field] == count + 1 for field, count in before.items()),
+                            timeout_s=90)
                     before = progress(serial(directory / "serial.txt"))
                     shell("tab")
                     observe("switcher opening cancellations", lambda raw:
                             all(progress(raw)[role]["KEYS"] == old["KEYS"]
                                 and progress(raw)[role]["INPUT_ACKS"] == old["INPUT_ACKS"] + 1
-                                for role, old in before.items()))
+                                for role, old in before.items()), timeout_s=90)
                     return progress(serial(directory / "serial.txt"))
 
                 def same_models(state, baseline):
@@ -462,10 +475,10 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 wait("switcher-editor", lambda raw, s: complete(raw, s) and s["MATERIAL"][-1]["SCREEN"] == 2)
                 for char in TEXT.decode():
                     key("spc" if char == " " else char)
-                key("f6")
+                focus_cycle()
                 for chord in (("2",), ("shift", "equal"), ("3",), ("ret",)):
                     key(*chord)
-                key("f6")
+                focus_cycle()
                 baseline = wait("switcher-work", lambda raw, s: complete(raw, s)
                                 and s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM
                                 and s["MATERIAL"][-1]["DIRTY"] == 1

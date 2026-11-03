@@ -99,8 +99,31 @@ met de actuele native basis, geen lege appfixture. De inputledger controleert
 preciese KEYS/INPUT_ACKS-veranderingen, ook na een volgende echte edit.
 Dit is het acceptatiecriterium, nog geen uitgevoerd native resultaat.
 
-Nieuwe volledige scenehostrun, native crossbuilds/VM-runs, CI en main-integratie
-zijn op dit checkpoint nog niet uitgevoerd. Geen fysieke/menselijke/audit-/
+## Tussenresultaat op ec231857
+
+De volledige scenehostsuite is op bron
+`ec231857951f3aebb081084a704648bd3c3a984e` uitgevoerd:
+`cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml`
+en de formatcheck met `-- --check`: beide exit 0, tests wandtijd 35,60 s.
+Log `veld-switcher-full-scene-host.log`.
+
+Eerste 100%-probebuild exit 0, 7,20 s; de nieuwe native poging is niet
+geaccepteerd. Na `switcher-work` (63,09 s) bleef de runner op de Alt-ACK
+wachten. De seriële tellerreeks toont Materiaal KEYS 30 -> 31,
+INPUT_ACKS 30 -> 31 -> 32: een eerdere F6-FocusLost werd pas na de gekozen
+baseline bevestigd. De benodigde Alt-ACK werd daardoor gemist.
+De hoofdagent heeft de vastgelopen poging gericht gestopt, geen
+runner-exit-0/resultaat gefingeerd. Log
+`veld-switcher-native-scale1-attempt1.log`, gedeeltelijk rapport:
+`build/veld-switcher-20261103/scale1/run/window-3645fb9e61b0434ea024d302ef088804/result.json`.
+Dit is een runner-synchronisatiefout; geen productfout of nativeacceptatie.
+
+Vervolgfix wacht bij iedere voorbereidende F6 eerst expliciet op de enige
+FocusLost-ACK van de vorige app. De nieuwe switcher-ACK-waits hebben een
+begrensde observatietijd van 90 s; er zijn geen arbitraire sleeps toegevoegd
+en geen inputcounters gemaskeerd. Bron-/native-uitkomsten van deze fix nog open.
+
+CI en main-integratie zijn nog niet uitgevoerd. Geen fysieke/menselijke/audit-/
 releaseacceptatie, geen scorewijziging. De volledige OS-/Veld-opdracht blijft
 open. Na deze ene afgeronde milestone volgt direct een kleine concept-PR voor
 integratie, geen extra featurebatch op dezelfde branch.
