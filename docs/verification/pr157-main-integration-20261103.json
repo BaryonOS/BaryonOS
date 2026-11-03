@@ -2,6 +2,7 @@
   "task": "PR-B157: echte mainintegratie met behoud van #149 en Veld-contrastrollen",
   "main_commit": "ab85d6339ce5bdddb10a2de171d0c1b04e4b62ff",
   "pr_head": "3d4045da2e81697aef5b0b67c42acc0c519e0440",
+  "tested_integration_commit": "d2fc1cc6e3a6ebe2c8b14714b03e369f1e6f3ce8",
   "source_fingerprint_version": 3,
   "source_sha256": "4a120c1a795e3965fa094d43b280b02db26ea40c31bea71c95253ba566d089ba",
   "scene_blob": "7e9d838070ff2bfee8d180b1836c03d6112b8cc5",
@@ -20,6 +21,24 @@
     "logs": "/home/simon/.copilot/session-state/d6ad2c9f6cc843b6ab8f3c2a0b968fb5/files/pr-b/"
   },
   "checks": [
+    {
+      "commands": [
+        "cargo +1.90.0 test --offline --locked --manifest-path ui/surface-protocol/Cargo.toml --features client",
+        "cargo +1.90.0 test --offline --locked --manifest-path ui/graphics/Cargo.toml",
+        "cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/materiaal/Cargo.toml",
+        "cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/calculator/Cargo.toml",
+        "cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/materiaal/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/calculator/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path sdk/examples/materiaal/Cargo.toml -- --check",
+        "cargo +1.90.0 fmt --manifest-path sdk/examples/calculator/Cargo.toml -- --check",
+        "python3 -B -m unittest tools.tests.test_package_windows_qemu"
+      ],
+      "each_exit": 0,
+      "passed_tests_in_order": [40, 9, 44, 44],
+      "package_tests": 21,
+      "logs": ["consumer-surface-protocol.log", "consumer-graphics.log", "consumer-materiaal.log", "consumer-calculator.log", "materiaal-clippy.log", "calculator-clippy.log", "package-host.log"],
+      "note": "De consumer-loop gaf voor de drie crates zonder vereiste feature expliciet --features '' mee; dat selecteert geen extra features."
+    },
     {
       "command": "cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml",
       "exit": 0,
@@ -56,6 +75,107 @@
         "git diff HEAD --exit-code -- README.md docs/PROGRESS.md docs/progress.json docs/assets/progress.svg docs/PROJECT-STATE.md",
         "git diff --check"
       ],
+      "normal_builds": [
+        {
+          "command": "NOS_BUILD_DIR=$PWD/build/pr-b157-normal-scale1 NOS_TARGET_DIR=$PWD/target/pr-b157-native-scale1 CARGO_NET_OFFLINE=true python3 -B -u tools/build.py --kernel-feature native-window-session",
+          "exit": 0,
+          "wall_seconds": 11.60,
+          "log": "normal-scale1-build.log",
+          "log_sha256": "fc973a1cef35c50458da0a0ee8025dd3a6ff1c1d87d8f14182ba5d17393b76ed",
+          "manifest_sha256": "cc00ab94a95402f3d746b730a728491428fbf54cae7a5afaf47113e83b2b5101",
+          "loader_sha256": "7dfb24457715b8b177a46a73eb9befccdf9cc3f28d8fe8d2d833bf3adf18f4ab",
+          "kernel_sha256": "01e3cac099f69752c2a598d43a28f41f530122c5cd8afd17716881b9d431584f"
+        },
+        {
+          "command": "NOS_BUILD_DIR=$PWD/build/pr-b157-normal-scale2 NOS_TARGET_DIR=$PWD/target/pr-b157-native-scale2 CARGO_NET_OFFLINE=true python3 -B -u tools/build.py --kernel-feature native-window-session-hidpi",
+          "exit": 0,
+          "wall_seconds": 11.67,
+          "log": "normal-scale2-build.log",
+          "log_sha256": "cdbcfc82660a306bc30c03edb540cee552c2c21759cf25acda089f5030e9bc69",
+          "manifest_sha256": "4373ccb6cd028d06ec503aebc81ae34d864dbfb2b8bd521b1b4a7c3fa1ba7a4a",
+          "loader_sha256": "f80dfeeddf3fc9634010467f18abe692a4def1bfe13fd6679c35647468e4df4f",
+          "kernel_sha256": "095e87e138744868abff64a31aeaf8ea32228a4a01b4eb040e581b812aa8cb47"
+        }
+      ],
+      "native_environment": {
+        "qemu_version": "10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)",
+        "qemu_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+        "machine": "pc-q35-8.2",
+        "cpu": "qemu64",
+        "accelerator": "tcg,thread=single",
+        "vcpu": 1,
+        "ram": "256M",
+        "OS_OVMF_CODE": "/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd",
+        "OS_OVMF_VARS": "/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd",
+        "NOS_QEMU_MACHINE": "pc-q35-8.2",
+        "CARGO_NET_OFFLINE": "true",
+        "bios_rom": "/tmp/nieuw-os-qemu/root/usr/share/seabios/bios-256k.bin",
+        "vga_rom": "/tmp/nieuw-os-qemu/root/usr/share/seabios/vgabios-stdvga.bin",
+        "ovmf_code_sha256": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+        "ovmf_vars_template_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+        "bios_sha256": "e26615f9ad430328f49ca105e570b2dc4490a08a34ea73d27cae8b809a30ee06",
+        "vga_sha256": "c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde",
+        "boundary": "Geisoleerde wegwerpimages. Dit is het smalle window-session-profiel, niet het volledige VM-FR-profiel en geen fysieke hardware."
+      },
+      "native_runs": [
+        {
+          "scale": 1,
+          "build_command": "NOS_BUILD_DIR=$PWD/build/pr-b157-probe-scale1 NOS_TARGET_DIR=$PWD/target/pr-b157-native-scale1 python3 -B -u tools/build.py --kernel-feature native-window-session-probe",
+          "run_command": "NOS_BUILD_DIR=$PWD/build/pr-b157-probe-scale1 NOS_TARGET_DIR=$PWD/target/pr-b157-native-scale1 python3 -B -u tools/run_window_session.py --clipboard --workspace --scale 1 --timeout 1800 --bios-rom /tmp/nieuw-os-qemu/root/usr/share/seabios/bios-256k.bin --vga-rom /tmp/nieuw-os-qemu/root/usr/share/seabios/vgabios-stdvga.bin",
+          "build_exit": 0,
+          "build_wall_seconds": 2.83,
+          "run_exit": 0,
+          "raw_qemu_exit": 33,
+          "passed": true,
+          "native_gate": true,
+          "phases": 61,
+          "duration_seconds": 413.17665594499704,
+          "wall_seconds": 440.02,
+          "build_log": "probe-scale1-build.log",
+          "build_log_sha256": "85e300187b56557d0860ad2554a55532d17499c336f17984e52ed69d1ece2a31",
+          "run_log": "native-scale1.log",
+          "run_log_sha256": "53862fda308dcfacf49211dad4df3509ac63fb7a1c697b9cba947c591e4b16ca",
+          "run_directory": "build/pr-b157-probe-scale1/run/window-333fe41a9841462fb9047f6e8ca9f2e8",
+          "report": "build/pr-b157-probe-scale1/window-session-report.json",
+          "report_sha256": "983dbe08b46bbbbf3cabb272d778144a0a546cb5eadcc394023037519e70a3a1",
+          "serial_sha256": "c6ce9fac1b929abd82e02de24de180eac169c9ce1835c3c8e902061b7ce35633",
+          "manifest_sha256": "da704f3155cedc65c2a5fbc8239dff096c4d3cb67cebe5e0d4e816e8d1caadd7",
+          "loader_sha256": "7dfb24457715b8b177a46a73eb9befccdf9cc3f28d8fe8d2d833bf3adf18f4ab",
+          "kernel_sha256": "d5c7fc4ab55340c43c4b819736f35c45d23788e333f130f8bb82d6bd15ae18da"
+        },
+        {
+          "scale": 2,
+          "build_command": "NOS_BUILD_DIR=$PWD/build/pr-b157-probe-scale2 NOS_TARGET_DIR=$PWD/target/pr-b157-native-scale2 python3 -B -u tools/build.py --kernel-feature native-window-session-hidpi-probe",
+          "run_command": "NOS_BUILD_DIR=$PWD/build/pr-b157-probe-scale2 NOS_TARGET_DIR=$PWD/target/pr-b157-native-scale2 python3 -B -u tools/run_window_session.py --clipboard --workspace --scale 2 --timeout 1800 --bios-rom /tmp/nieuw-os-qemu/root/usr/share/seabios/bios-256k.bin --vga-rom /tmp/nieuw-os-qemu/root/usr/share/seabios/vgabios-stdvga.bin",
+          "build_exit": 0,
+          "build_wall_seconds": 2.84,
+          "run_exit": 0,
+          "raw_qemu_exit": 33,
+          "passed": true,
+          "native_gate": true,
+          "phases": 61,
+          "duration_seconds": 743.9174880439969,
+          "wall_seconds": 793.75,
+          "build_log": "probe-scale2-build.log",
+          "build_log_sha256": "92e17f7a471402936bf1b7f32f3d9f330dc10c43d8b6288b0711eed4020922c3",
+          "run_log": "native-scale2.log",
+          "run_log_sha256": "0be54e54ed9040df1dd908ac520407b8c98c1fedab2c83c309540c8873fb16cd",
+          "run_directory": "build/pr-b157-probe-scale2/run/window-d7ca06867419465d949c0a9f7c5fe708",
+          "report": "build/pr-b157-probe-scale2/window-session-report.json",
+          "report_sha256": "7f09b7bf9831be42c549297183b2471866958ce668c8556d1c63253cb161fcb6",
+          "serial_sha256": "b08d33e2c586dfb1a851abcbe5e30a4dce4f24875182aae5a39c6064e450bbe2",
+          "manifest_sha256": "c4f4b3bd57ae028d05889ec681e7887be5bdeac51cf3753bfba5f25975edf3be",
+          "loader_sha256": "f80dfeeddf3fc9634010467f18abe692a4def1bfe13fd6679c35647468e4df4f",
+          "kernel_sha256": "baf835a627104debf30845bdec5d35f910a2dd29ededbd559382116b8697ef96"
+        }
+      ],
+      "native_assertions": {
+        "both_scales": ["clipboard_gate", "workspace_gate", "document_tools_gate", "document_menu_gate", "pointer_leave_gate", "app_high_contrast_gate", "keyboard_window_move_gate", "notification_panel_gate", "window_states_gate"],
+        "each_true": true,
+        "native_scale200_gate": "false op schaal 1; true op schaal 2",
+        "source_binding": "Beide native rapporten noemen tested_integration_commit en dezelfde source_sha256. De afsluitende receiptcommit wijzigt uitsluitend dit JSON-bestand; geen runtimeherlabeling.",
+        "artifact_availability": "Volledige rapporten, runmappen, disks en ruwe logs zijn lokale buildartefacten buiten Git. Deze compacte hashes maken ze niet zelfstandig beschikbaar."
+      },
       "each_exit": 0
     }
   ],
@@ -65,8 +185,6 @@
     "Twee historische HC-oracles pasten niet bij #149. Een tussenpoging die alleen home apart zette vond terecht ook wijzigingen aan de overige desktoplayouts. Definitieve test houdt alle zeven appstates aan onafhankelijk oud bronbewijs en toetst alle vijf desktopstates inhoudelijk; geen tests overgeslagen."
   ],
   "pending": [
-    "Normale 100/200-profielbuilds.",
-    "Native QEMU-deelacceptatie op deze gecombineerde bron.",
     "Actuele remote-head CI en reviews.",
     "Geen fysieke hardware, menselijke gebruikerstest, onafhankelijke audit of releasevalidatie."
   ],
