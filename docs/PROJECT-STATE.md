@@ -2,16 +2,20 @@
 
 ## NEXT AGENT HANDOFF — PR141 en main 69809c2 gecombineerd — 3 november 2026
 
+Geteste mergecommit `fdc4754e57f0a42493cb5717964a0aa41370d9e9` combineert
 PR-head `1c4b2a4b89d47588a3393ab25472c4354ffceed9` en main
-`69809c2cb53dfb3bd77abe5352892810fba6e82d` worden behoudend gecombineerd.
+`69809c2cb53dfb3bd77abe5352892810fba6e82d` inhoudsbehoudend.
 Alle vier conflicten zijn centrale metadata; beide statusgeschiedenissen,
 main's bronarchief/audit en de volledige PR141-persistentiefix blijven behouden.
 Rubrics buiten assessment zijn identiek: **41 → 41**.
 
 De volledige `ui/prototype`-boom blijft exact gelijk aan bron `c94a40e9`.
 De bestaande echte rood/groen- en Chrome-DOM/focusbewijzen blijven aan die
-bron gebonden; geen nieuwe native meting. Op de gecombineerde commit moeten
-de reguliere prototypehosttests opnieuw worden uitgevoerd en vastgelegd.
+bron gebonden; geen nieuwe native meting. Op de gecombineerde commit zijn
+alle 41 reguliere prototypehosttests en 16 opslag-replayhosttests opnieuw
+groen, exit 0. De volledige Windows-testkopie is bytegecontroleerd.
+Exacte bron/tree/ouders, commando's, looptijden en volledige logs met SHA-256:
+[integratiebewijs](verification/pr141-main698-integration.json).
 Volledige nieuwe CI, native/netwerkpoorten en definitieve review blijven open.
 PR135's volume-fixture- en herhaalde RANDOM-fout worden niet omzeild.
 De vier oorspronkelijke PR141-threads zijn beantwoord en opgelost.
@@ -19,8 +23,8 @@ De vier oorspronkelijke PR141-threads zijn beantwoord en opgelost.
 Main bevat werkelijk PR114; de vijf aantoonbaar behouden leafs
 119/136/143/144/145 zijn als vervangen gesloten. Andere bron-PRs niet
 blind sluiten. Fysieke/human-/sleutel-/releaseacceptatie blijft open.
-**Eerstvolgend:** reguliere Node-tests op een bytegecontroleerde kopie van
-de gecombineerde commit, vervolgens `GH_PAGER="" gh pr checks 141`.
+**Eerstvolgend:** `GH_PAGER="" gh pr checks 141`; bij een nieuwe Watch-head
+eerst head/base, inhoudsbehoud en concrete reviewbevindingen herbeoordelen.
 
 ## Historisch checkpoint — PR141-persistentiereview hersteld — 3 november 2026
 

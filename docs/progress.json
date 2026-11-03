@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "1c4b2a4b89d47588a3393ab25472c4354ffceed9",
+    "source_commit": "fdc4754e57f0a42493cb5717964a0aa41370d9e9",
     "branch": "simonvanieperen-sturdy-guide",
     "task": "Integreer main 69809c2 in PR141 met behoud van persistentiefix en brongebonden browserbewijs",
     "previous_score": 41,
-    "summary": "41 blijft 41. Main 69809c2 en PR141-head 1c4b2a4b zijn inhoudsbehoudend gecombineerd; vier conflicten betreffen alleen centrale metadata. De volledige prototypecode blijft bytegelijk aan de rood/groen geteste en met Chrome gecontroleerde bron c94a40e9; oude resultaten behouden hun eigen bron. Beide statusgeschiedenissen en de 41-puntenrubric zijn behouden. Verse prototypehosttests volgen op de gecombineerde commit; volledige CI/native/netwerk/review en PR135-fixtures/RANDOM blijven afzonderlijk open. Geen nieuwe productpunten of duurzame OS-opslagclaim."
+    "summary": "41 blijft 41. Geteste mergecommit fdc4754e combineert main 69809c2 en PR141-head 1c4b2a4b; vier conflicten alleen centrale metadata, beide geschiedenissen behouden. Alle 41 reguliere Node-prototypetests en 16 opslaghosttests opnieuw groen op deze commit; volledige logs en bron/tree/ouders staan in docs/verification/pr141-main698-integration.json. De gehele prototypeboom blijft bytegelijk aan bron c94a40e9; diens bestaande Chromeproef blijft aan die eigen bron en acht hashes gebonden. Volledige CI/native/netwerk/review en PR135-fixtures/RANDOM blijven open. Geen nieuwe productpunten of duurzame OS-opslagclaim."
   },
   "tracks": [
     {

@@ -85,11 +85,13 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
-PR141-mainintegratie (3 november 2026), basis `1c4b2a4b` en main
-`69809c2c`: **41 → 41**. Vier metadata-conflicten behouden beide
-geschiedenissen; de volledige prototypeboom blijft gelijk aan de bestaande
-geteste bron `c94a40e9`. Verse tests op de gecombineerde commit en volledige
-CI/native/review blijven vereist; geen nieuwe punten.
+PR141-mainintegratie (3 november 2026), geteste merge `fdc4754e` met ouders
+`1c4b2a4b` en `69809c2c`: **41 → 41**. Vier metadata-conflicten behouden beide
+geschiedenissen. Alle 41 reguliere Node- en 16 opslaghosttests zijn opnieuw
+groen; [volledige brongebonden logs](verification/pr141-main698-integration.json).
+De gehele prototypeboom blijft gelijk aan `c94a40e9`; de bestaande
+Chromeproef blijft eigen bronbewijs. Volledige CI/native/review vereist;
+geen nieuwe punten.
 
 PR141-review (3 november2026), code`c94a40e9`: **41 ->41**.
 Debounce-uithongering echt rood/groen;41 reguliere Node-hosttests en2
