@@ -102,6 +102,15 @@ gelezen: RANDOM raw request1064 verwacht Quota maar krijgt succes; de
 productbug bewezen: Platform krijgt een begrensde fixture-/timingrepro,
 productquotapolicy blijft read-only. General dupliceert die scope niet.
 
+**Beslissnapshot 18:21 CET:** #159 `5cfbfd10` en #158 `568741f3`
+hebben ieder 31 geslaagde checks, een overgeslagen check en CLEAN-status.
+Samen met documentatiekandidaat #138 zijn dit technische kandidaten,
+geen mergebesluiten. #156 blijft exacte duplicaatinhoud van #159.
+#154 is door owner naar `5da76325` en #135 naar `fb160165` gewijzigd;
+de nieuwe delta's niet als gereviewd geclaimd of in General gemengd.
+Eigen drie bewijsdocumentatiethreads op #155 zijn gerepareerd/opgelost
+in `6aa738d1`; de nieuwe CI/reviewbeslissing blijft afzonderlijk.
+
 ## Historisch checkpoint — PR148 met main 8e0c15d — 3 november 2026
 
 **Basis:** PR148 `47ec535f15bb10912dbc6cbf1af3de9df0c6c226` met main
