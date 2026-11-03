@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`65b8da60`](https://github.com/simonvanieperen/nieuw-os/commit/65b8da607308d7a1766435601d53ac6794ac6881) ·
+**Bron:** [`08543df6`](https://github.com/simonvanieperen/nieuw-os/commit/08543df6525f92ba696ed8cf6d065b7c61472824) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-spoon`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** SYSTEM-MATURITY-SMP: TLB-processlothergebruik.
-41 blijft 41. De volledige SMP-matrix op e528da3f slaagde na deterministische rolplaatsing voor M4, inclusief 1/2/4 CPU, AP-exit, cross-CPU IPC/revoke en de 1-CPU-regressie. De native-smp-m3-tlb-reuse-fixture bouwt; 13 hosttests en drie gerichte 2-CPU-QEMU-runs slagen met twee slot-0-exits op dezelfde AP en nieuwe data-backing. De volledige matrix met deze nieuwe stage is nog niet uitgevoerd. Dit sluit geen rubriccriterium; bredere race-/failureacceptatie en een algemeen remote-shootdownprotocol blijven open.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** SYSTEM-MATURITY-SMP: TLB-reuse en volledige SMP-matrix.
+41 blijft 41. De volledige tien-stagematrix slaagde, inclusief 1/2/4 CPU, M3 AP-exit, dezelfde-AP proces-/TLB-hergebruik, cross-CPU IPC/revoke en 1-CPU-regressie; 13 hosttests en drie gerichte TLB-runs slagen. Geen rubriccriterium sluit. SMP-race-/failureacceptatie blijft open; er is geen algemeen remote-shootdownprotocol bewezen.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

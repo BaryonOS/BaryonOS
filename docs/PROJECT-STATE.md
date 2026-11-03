@@ -3,7 +3,7 @@
 ## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
 
 **Gepubliceerde basis:** branch `simonvanieperen-studious-spoon`, commit
-`4f4cbb3b97b6c2a0e1ec2b87dc2e04c163454703`, gepusht naar
+`08543df6525f92ba696ed8cf6d065b7c61472824`, gepusht naar
 `origin/simonvanieperen-studious-spoon`. Actieve toewijzing:
 `SYSTEM-MATURITY-SMP`, queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`.
 OOM/K05 zijn afgesloten en blijven ongewijzigd;
@@ -115,6 +115,14 @@ slaagden; drie QEMU-runs slaagden met raw exit 33 en dezelfde twee
 AP1-slot-0-exits. Receipt:
 [`tlb-reuse-20261103.json`](verification/sm-smp/tlb-reuse-20261103.json).
 
+**Volledige SMP-matrix PASS met TLB-stage op broncommit `08543df6` (exit 0):**
+exact `PATH="$HOME/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH" LD_LIBRARY_PATH=/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu:/tmp/sm-oom-qemu-root/lib/x86_64-linux-gnu OS_OVMF_CODE=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd OS_OVMF_VARS=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd python3 -B tools/test_smp.py`.
+Alle tien stages en 13 hosttests slaagden: M2 1/2/4 CPU, M3 2 CPU, AP-exit,
+AP-slot/TLB-hergebruik, single-CPU-regressie, M3 4 CPU, M4 cross-CPU IPC en
+revoke. Iedere VM had verwachte raw exit 33. De ontbrekende
+`kvmvapic.bin`-waarschuwing bleef ononderzocht. Receipt:
+[`smp-rendezvous-20261103T185030Z.json`](verification/sm-smp/smp-rendezvous-20261103T185030Z.json).
+
 **Niet-geaccepteerde SMP-lifecycleverkenning:** het combineren van de bestaande
 M4 multi-round lifecyclefixture met SMP eindigde op raw QEMU exit 35 bij
 `kernel/src/m2/m3.rs:1849` (`current < state.amount`) na AP-bring-up.
@@ -133,16 +141,15 @@ slot 2 werd daarna op CPU 0 geweigerd. M3-selecties waren `[41, 39]`.
 Log: `build/run/smp-2-2ae5598874/`. De actuele matrixreceipt hierboven is het
 leidende bewijs voor de gepushte bron.
 
-**Bewijsgrens:** AP-bring-up, 1/2/4 CPU, per-CPU M3-scheduling, AP-exit,
-cross-CPU IPC en cross-CPU revoke slagen in de actuele matrix. De gerichte
-TLB-slothergebruikproef is gebouwd maar nog niet native uitgevoerd; bredere
-race-/failureacceptatie en een algemeen remote-shootdownprotocol blijven open.
-Dit is geen volledige K06-acceptatie.
-`DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
+**Bewijsgrens:** de actuele tien-stagematrix bevestigt 1/2/4 CPU, scheduling,
+AP-exit, cross-CPU IPC/revoke en lokale adresruimte-/TLB-reuse op dezelfde AP.
+Dit bewijst geen algemeen remote-shootdownprotocol. K06-race-/failureacceptatie
+blijft open; K06 is niet volledig afgerond. `DRIVER-DEVICE-EXECUTION-INTERFACE`
+blijft QUEUED.
 
-**Eerstvolgende actie:** voer de volledige SMP-matrix opnieuw uit, nu met de
-nieuwe TLB-slothergebruikstage. De overige race-/failureacceptatie en een
-algemeen remote-shootdownprotocol blijven open.
+**Eerstvolgende actie:** vervolg de resterende K06-race-/failureacceptatie
+met een kleine native SMP-lock-/schedulerproef; laat reguliere scheduler- en
+capabilitysemantiek ongewijzigd.
 
 **Cross-CPU capability-IPC — eerdere lokale proef vóór matrix:**
 `native-smp-m4` combineert het bestaande SMP-M3-profiel met de bestaande M4
