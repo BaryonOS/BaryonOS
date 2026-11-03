@@ -1,5 +1,35 @@
 # Ontwerpbesluiten
 
+## ADR-057 — Vreemde opslag nooit als leeg volume toelaten
+
+3 november 2026; correctie op herstel van het experimentele NOSVOL02-volume.
+De eerdere herstelroute controleerde bij twee lege tabelkopieën alleen de
+tabelsectoren. Daardoor kon een niet-herkend volume met gegevens buiten die
+regio als generatie 0 worden behandeld. Formatteer- of schrijfgedrag mag niet
+uit een ontbrekende herkenning worden afgeleid.
+
+Een onherkend volume is uitsluitend leeg wanneer de volledige huidige
+volumegrens nul bevat. Voor een klein eerste schrijfresultaat legt de dienst
+vóór inhouds- of tabelwrites een versie-/geometriegebonden `NOSFMT02`-marker
+vast en flusht die. Daardoor blijven ongecommitte eerste uploads herstelbaar
+als logische lege toestand, zonder dat vreemde niet-nuldata wordt geaccepteerd.
+Een marker is formaatidentificatie en foutdetectie, geen authenticatie.
+Bestaande geldige NOSVOL02-tabelkopieën blijven de primaire recoverybron.
+
+De kernel blijft een generieke, begrensde blokbroker; de herkenning en
+admissie blijven in `volume-core`. Er wordt geen bestandssysteemdriver,
+importpad of automatische formatter toegevoegd. Een niet-gemarkeerd volume
+met niet-nuldata geeft `Corrupt` en krijgt geen schrijf-/flushverzoek.
+Een synthetische Btrfs-achtige fixture test de nul-tabel/niet-nul-data-grens;
+zij is geen volledig Btrfs-bestandssysteem.
+
+Herzien bij wijziging van de volumegeometrie of introductie van expliciete
+formatteer-/importbediening. Terugzetten naar alleen tabelcontrole is niet
+toegestaan. De marker kan bij een overgang naar een andere persistente
+geometrie worden vervangen, mits de volledige media-admissie en crashproeven
+behouden blijven. Native QEMU-resultaat en exacte bronbinding staan in
+`docs/verification/foreign-volume-admission-20261103/README.md`.
+
 ## ADR-056 — herkenbare sessieroute met expliciete VM-bewijsgrens
 
 2 november 2026. De gebruikersopdracht vraagt bekende stappen uit macOS,

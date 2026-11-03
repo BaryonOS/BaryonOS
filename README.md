@@ -31,11 +31,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`5925c915`](https://github.com/simonvanieperen/nieuw-os/commit/5925c915f6b8d02842fffd89a94f21c0e018689a) ·
-**Ontwikkelbranch:** `coderabbit/issue-43-receive-timeout`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Issue #43: terminale ReceiveTcp-status na verbindingstime-out.
-41/100 blijft 41/100. Gerichte N01-reparatie: ReceiveTcp meldt Closed na een verbindingstime-out; State behoudt TimedOut. Oude code rood (Again versus Closed); 10 service-, 35 broker- inclusief doctests, 26 stack-, 4 protocol-, 6 client- en 11 peer-hosttests groen. Rustfmt/Clippy en de no_std-librarybuild slagen. Bestaande native QEMU-normal en client-exit slagen op bron5925c915 met dezelfde bronhash: raw exit33, echte pakketten en volledige opruiming. Het specifieke nieuwe timeout-ontvangstscenario is alleen op de host rood/groen bewezen. Concept-PR134; hosted CI/review blijven afzonderlijk. Geen nieuwe criteria, fysieke hardware-, volledige release- of 50%-acceptatie.
+**Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
+**Bron:** [`cbbc9c99`](https://github.com/simonvanieperen/nieuw-os/commit/cbbc9c9941b08ea5edfbd3637d494635b4fb1df0) ·
+**Ontwikkelbranch:** `simonvanieperen-upgraded-disco`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Native toelating van vreemde volumes als lege NOSVOL02-opslag.
+41/100 blijft 41/100. NOSVOL02-herstel controleert bij ongemarkeerde lege tabellen ook de volledige inhoudsregio en weigert onbekende niet-nuldata; de eerste mutationele write flusht vooraf een herstelmarker. 23 onafhankelijke Python-orakeltests, Rust-opmaak, typecheck en Clippy slagen. De freestanding volume-app en -service bouwen; Rust-hosttests en de volledige kernelimagebuild stoppen omdat cc ontbreekt. QEMU-test niet uitgevoerd omdat QEMU en OVMF ontbreken. Geen nieuw geaccepteerd criterium of native productbewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -24,10 +24,11 @@ FAILURES = ("PANIC", "FAIL", "M5:FAIL")
 FEATURE = {"normal": "native-volume", "recover": "test-volume-recover",
            "cut-data": "test-volume-cut-data", "cut-table": "test-volume-cut-table",
            "cut-txn": "test-volume-cut-txn", "recover-cut": "test-volume-recover-cut",
-           "corrupt": "test-volume-corrupt"}
+           "corrupt": "test-volume-corrupt", "foreign": "test-volume-foreign"}
 CUT_MARKER = {"cut-data": "VOLUME:CUT:DATA", "cut-table": "VOLUME:CUT:TABLE", "cut-txn": "VOLUME:CUT:TXN"}
-CASE_MARKER = {"normal": "NORMAL", "recover": "RECOVER", "recover-cut": "RECOVER_CUT", "corrupt": "CORRUPT"}
-READ_ONLY = ("recover", "recover-cut", "corrupt")
+CASE_MARKER = {"normal": "NORMAL", "recover": "RECOVER", "recover-cut": "RECOVER_CUT",
+               "corrupt": "CORRUPT", "foreign": "CORRUPT"}
+READ_ONLY = ("recover", "recover-cut", "corrupt", "foreign")
 MAX_TIMEOUT = 600
 
 # Expected final state of the normal fixture: object -> (revision, content
@@ -133,12 +134,13 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
     shutil.copytree(BUILD / "esp", run_dir / "esp")
     shutil.copy2(variables, run_dir / "OVMF_VARS.fd")
     shutil.copy2(code, run_dir / "OVMF_CODE.fd")
-    if case in ("normal", "cut-data", "cut-table", "cut-txn", "corrupt"):
+    if case in ("normal", "cut-data", "cut-table", "cut-txn", "corrupt", "foreign"):
         if volume_dir is not None:
             raise ValueError("writable and corrupt cases always start from a fresh image")
         volume_dir = BUILD / "run" / f"volume-image-{uuid.uuid4().hex[:10]}"
         volume_dir.mkdir(parents=True)
-        info = volume_disk.create_image(volume_dir / "volume.img", "corrupt" if case == "corrupt" else "empty")
+        variant = case if case in ("corrupt", "foreign") else "empty"
+        info = volume_disk.create_image(volume_dir / "volume.img", variant)
     else:
         if volume_dir is None:
             raise ValueError("recovery requires the preserved image of a previous run")
@@ -150,7 +152,7 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
                 or last.get("source_sha256") != frozen):
             raise ValueError("recovery requires the exact image left by a passing previous stage")
     parent = None
-    if case not in ("normal", "cut-data", "cut-table", "cut-txn", "corrupt"):
+    if case not in ("normal", "cut-data", "cut-table", "cut-txn", "corrupt", "foreign"):
         parent = last["case"]
         if (case, parent) not in (("recover", "normal"), ("recover-cut", "cut-data"),
                                   ("recover-cut", "cut-table"), ("recover-cut", "cut-txn")):
@@ -203,10 +205,10 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
             raise ValueError("read-only case changed the image")
         evidence = numbers(out)
         oracle = None
-        if case == "corrupt":
+        if case in ("corrupt", "foreign"):
             try:
                 volume_disk.analyse(image.read_bytes())
-                raise ValueError("oracle accepted the corrupt fixture")
+                raise ValueError(f"oracle accepted the {case} fixture")
             except ValueError as error:
                 if "accepted" in str(error):
                     raise

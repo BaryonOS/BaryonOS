@@ -1,32 +1,38 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — issue #43: ReceiveTcp na verbindingstime-out
+## NEXT AGENT HANDOFF — vreemde opslag weigeren als lege NOSVOL02
 
-**Basis:** `380111b68688c981eec6abb8fab29174a29f5601` (main), branch
-`coderabbit/issue-43-receive-timeout`. Eén gerichte N01-reparatie: een al
-geannuleerde socket geeft bij ontvangst `Closed`, ook als de diagnostische
-status `TimedOut` is. De bestaande bufferafhandeling en tokencontroles blijven
-intact; opnieuw openen zet de time-outstatus terug en vernieuwt het token.
+**Basis:** `cbbc9c9941b08ea5edfbd3637d494635b4fb1df0`, `origin/main`;
+werkbranch `simonvanieperen-upgraded-disco`. Geen eerder gebruikerswerk in de
+werkboom. Het herstelpad van `volume-core` controleerde alleen tabelkopieën;
+de fix controleert bij een ongemarkeerde kandidaat-lege volume-invoer ook de
+volledige dataregio. Een eerste writer flusht een `NOSFMT02`-marker vóór
+inhouds- of tabelwrites, zodat een afgebroken eerste upload niet als vreemde
+media wordt geaccepteerd maar wel naar de logische lege toestand kan herstellen.
+Er is geen eigen bestandssysteemdriver toegevoegd.
 
-**Bewijs:** regressietest op de oude code echt rood (exit 101: `Again` versus
-`Closed`); daarna alle 10 service-hosttests, rustfmt, Clippy en de
-`x86_64-unknown-none`-librarybuild groen (exit 0), Rust 1.91.1.
-Zie `docs/verification/issue-43-receive-timeout.md` voor commando's en grenzen.
-Een tweede agent bevestigde het codepad alleen-lezen; dit is geen menselijke audit.
+**Uitgevoerd:** Python-orakeltests `python3 -B -m unittest discover -s tests -p
+'test_volume_*.py'` — exit 0, 23 tests; Rust `fmt --check`, `cargo check
+--all-targets` en Clippy op `volume-core` — alle exit 0. De volledige
+`cargo test --locked -p volume-core` stopte met exit 101 omdat linker `cc`
+ontbreekt. `python3 -B tools/preflight.py --strict` gaf exit 2: QEMU/OVMF en
+andere vereiste buildtools staan niet in PATH. De geïsoleerde
+`test-volume-foreign`-featurebuild is geprobeerd; de userservice en loader
+compileerden, maar het kernel-buildscript stopte met exit 1 omdat linker `cc`
+ontbreekt. Er is dus geen native image opgeleverd. QEMU-test niet uitgevoerd.
+De juiste freestanding SDK-build van `sdk/examples/volume-docs/build.py`
+slaagde met exit 0 voor de volume-app en -service, niet voor kernel of image.
+`sudo`-installatie vroeg om interactieve authenticatie en is niet voortgezet.
+Logs, hashes, exacte commando's en hervatstappen:
+`docs/verification/foreign-volume-admission-20261103/README.md`.
 
-**Aanvullend bewijs:** 35 broker- (incl. 4 doctests), 26 stack-, 4 protocol-,
-6 client- en 11 peerharnastests groen. Native `normal` en `client-exit` op
-`5925c915f6b8d02842fffd89a94f21c0e018689a` slagen met raw QEMU-exit 33,
-bronhash `9a8b521f4b2e5a24b279142d8554538c5cf618e3e55a9cac3e7070e12ad4fc39`,
-peer compleet en volledige opruiming (8,27/7,79 s). Nieuwe ontvangstreproductie
-is hostbewijs; native gates herhalen de bestaande netwerkregressiedekking.
-Compacte hashes: `docs/verification/issue-43-receive-timeout.json`.
-
-**Open/eerstvolgend:** hosted CI en inhoudelijke review op de head van
-concept-PR https://github.com/simonvanieperen/nieuw-os/pull/134 controleren.
-De laatste commit wijzigt alleen documentatie/bewijs. #43 blijft open; geen issuewijziging,
-merge, nieuwe bevoegdheid of afhankelijkheid. **41 → 41/100**; geen nieuwe
-native productcriteria, hardware- of volledige releaseclaim.
+**Open/eerstvolgend:** in een omgeving met gepinde Rust-targets, `cc`, QEMU en
+OVMF `python3 -B tools/build.py --kernel-feature test-volume-foreign` uitvoeren,
+daarna `python3 -B tools/run_volume.py --case foreign` en de volledige
+`python3 -B tools/test_volume.py` regressiegate. Bevestig bytegelijkheid,
+`Corrupt` vóór servicebeschikbaarheid en nul schrijf-/flush-/appreply-operaties.
+Daarna bewijs/status bijwerken. **41 → 41/100**: hosttests, typecheck en
+AI-review zijn geen native acceptatie; geen nieuw rubriccriterium toegekend.
 
 ## Vorig checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 

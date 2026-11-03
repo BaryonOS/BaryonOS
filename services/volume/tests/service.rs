@@ -1,12 +1,13 @@
 mod common;
 
-use common::{fill, pattern, recover, Local, SimDisk};
+use common::{fill, pattern, recover, Local, Op, SimDisk};
 use volume_core::{
     client::{validate_reply, Client},
     service::Service,
     table::{self, SectorState, Table},
     wire::{self, Header},
     Status, CHUNK, CHUNKS, DATA_START, MAX_LENGTH, PER_DOMAIN, QUOTA, SECTOR, TABLE_SECTORS,
+    VOLUME_SECTORS,
 };
 
 const EPOCH: u64 = 7;
@@ -44,7 +45,72 @@ fn empty_volume_recovers_as_generation_zero() {
     let mut table = Table::EMPTY;
     table::recover(&mut disk, &mut table).unwrap();
     assert_eq!(table, Table::EMPTY);
-    assert_eq!(disk.log.len(), 2 * TABLE_SECTORS as usize);
+    assert_eq!(disk.log.len(), VOLUME_SECTORS as usize);
+}
+
+#[test]
+fn nonzero_unrecognized_data_is_not_admitted_as_an_empty_volume() {
+    let mut disk = SimDisk::new();
+    disk.durable[VOLUME_SECTORS as usize - 1][0] = 0xb5;
+    let mut table = Table::EMPTY;
+    assert_eq!(table::recover(&mut disk, &mut table), Err(Status::Corrupt));
+    assert_eq!(disk.log.last(), Some(&(Op::Read, VOLUME_SECTORS - 1)));
+    assert!(!disk
+        .log
+        .iter()
+        .any(|(operation, _)| matches!(operation, Op::Write | Op::Flush)));
+}
+
+#[test]
+fn direct_service_constructor_cannot_claim_a_foreign_volume() {
+    let mut disk = SimDisk::new();
+    disk.durable[VOLUME_SECTORS as usize - 1][0] = 0xb5;
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, 0);
+    assert_eq!(
+        c.write(0, 0, b"Document", 1, fill(0, 1)),
+        Err(Status::Corrupt)
+    );
+    assert!(!disk
+        .log
+        .iter()
+        .any(|(operation, _)| matches!(operation, Op::Write | Op::Flush)));
+}
+
+#[test]
+fn supplied_generation_does_not_skip_foreign_volume_admission() {
+    let mut disk = SimDisk::new();
+    disk.durable[VOLUME_SECTORS as usize - 1][0] = 0xb5;
+    let mut supplied = Table::EMPTY;
+    supplied.generation = 1;
+    let mut service = Service::new(EPOCH, supplied, false);
+    let mut c = client(&mut service, &mut disk, 0);
+    assert_eq!(
+        c.write(0, 0, b"Document", 1, fill(0, 1)),
+        Err(Status::Corrupt)
+    );
+    assert!(!disk
+        .log
+        .iter()
+        .any(|(operation, _)| matches!(operation, Op::Write | Op::Flush)));
+}
+
+#[test]
+fn first_upload_marks_the_empty_volume_before_staging_content() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, 0);
+    c.write(0, 0, b"Document", 1000, fill(0, 1)).unwrap();
+    let writes: Vec<_> = disk
+        .log
+        .iter()
+        .copied()
+        .filter(|(operation, _)| *operation != Op::Read)
+        .collect();
+    assert_eq!(
+        &writes[..3],
+        &[(Op::Write, 0), (Op::Flush, 0), (Op::Write, DATA_START)]
+    );
 }
 
 #[test]
