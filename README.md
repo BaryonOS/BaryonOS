@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`ceb95755`](https://github.com/simonvanieperen/nieuw-os/commit/ceb957557af821bb95786aa505b5df41077f7403) ·
+**Bron:** [`568741f3`](https://github.com/simonvanieperen/nieuw-os/commit/568741f35ff219ff03762e9692909b2c46ce5f63) ·
 **Ontwikkelbranch:** `fix/b03-test-anchors-guard`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** B03 TEST-ondertekenankers expliciet opt-in maken.
-41/100 blijft 41/100. De TEST-policy is nu expliciet opt-in en ongemarkeerde loader-/dienstbuilds falen gesloten. Hosttests en cross-builds leveren geen nieuwe productacceptatiepunten op. Productiesleutels, rotatieceremonie en native 18-staps-QEMU-acceptatie ontbreken nog; issue #41 blijft open.
+41/100 blijft 41/100. TEST-policy is expliciet opt-in en ongemarkeerde loader-/dienstbuilds falen gesloten. De native 18-staps-QEMU-regressiegate en normale afsluitbuild slagen op productbron 26108a25, vastgelegd in native-sprint.json. Productiesleutels en rotatieceremonie ontbreken; issue #41 blijft open. Geen nieuw criterium geaccepteerd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

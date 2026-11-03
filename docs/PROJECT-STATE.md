@@ -26,16 +26,20 @@ een LLVM SIGILL tijdens codegeneratie voor `curve25519-dalek`; de
 voorgeschreven update-service-buildwrapper slaagde wel en is het gerapporteerde
 buildresultaat.
 
-**Niet uitgevoerd:** de native 18-staps B03-QEMU-gate en runtimevalidatie:
-strikte preflight mist `qemu-system-x86_64` en OVMF. Dit blijft open voor
-exacte-head-CI. Geen nieuwe productcriteria geaccepteerd.
+**Native vervolgbewijs:** op productbron `26108a25` is
+`python3 -B -u tools/test_update.py` uitgevoerd: exit 0, 106,91 s,
+alle 18 QEMU-stappen en de afsluitende normale build geslaagd. Zie
+[native-sprint.json](verification/b03-test-anchor-gating/native-sprint.json)
+voor de exacte omgeving, hashes en bewijsgrens. Evidencehead `568741f3`
+had 31 geslaagde checks en een overgeslagen check. Geen hardwaretest,
+productiesleutelbeleid of nieuwe productcriteria geaccepteerd.
 
 **Voortgang:** branchscore **41 → 41/100**; `tools/progress.py --write`
 en `--check` bevestigen deze berekening. Er zijn geen criteria of gewichten
 gewijzigd en deze wijziging levert geen productacceptatiepunten op.
 
-**Eerstvolgend:** exacte-head CI op de draft-PR beoordelen; #41 pas sluiten na
-productiesleutelbeleid en vereiste native acceptatie.
+**Eerstvolgend:** de gerichte sprintcorrectie na actuele-head-CI integreren;
+#41 blijft open voor productiesleutelbeleid en bijbehorende acceptatie.
 
 ## Historisch checkpoint — PR148 met main 8e0c15d — 3 november 2026
 
