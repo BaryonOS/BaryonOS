@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`75cda7f4`](https://github.com/simonvanieperen/nieuw-os/commit/75cda7f4d49c5afe895277ada1102d630fdb75ad) ·
+**Bron:** [`2bf95782`](https://github.com/simonvanieperen/nieuw-os/commit/2bf9578290bef88d53c17f9913434da6f27441f2) ·
 **Ontwikkelbranch:** `simonvanieperen-animated-umbrella`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR #140: main-conflicten inhoudsbehoudend oplossen.
-41 blijft 41. Main op 69809c2 is inhoudsbehoudend geïntegreerd; PR140's Nederlandse verificatieteksten en main's uitgebreide documentatie, audit en opslag-replaytests blijven behouden. De rubric is ongewijzigd. De 16 replay-/bewijs-hosttests slagen met umask 077; de eerste poging met umask 0002 faalde alleen door groepsschrijfbare tijdelijke fixtures. De roadmapcontrole, JSON-syntaxis en diff-check slagen. Geen nieuwe native/QEMU-acceptatie of productcriterium.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR140: descriptorclaims en duurzame primaire testreceipts corrigeren.
+41 blijft 41. Op exacte bron 2bf95782 zijn de 9 artifact-store-contracttests, cargo check --tests, Clippy en formattering met Rust 1.90.0 opnieuw groen. Primaire volledige logs, codehashes en exacte omgeving staan duurzaam in docs/verification/pr140-review-evidence.json. Het historische rapport docs/verification/artifact-store-open-coverage-20261103.json behoudt bron 08710d55 en zijn command-, exit- en hashvelden. De scope is descriptorvalidatie en binding, niet identiteit of authenticatie. Geen productiecodewijziging, nieuwe native/QEMU-acceptatie of criteriumpunten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

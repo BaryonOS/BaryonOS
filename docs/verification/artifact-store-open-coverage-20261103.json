@@ -2,7 +2,8 @@
   "schema_version": 1,
   "source_commit": "08710d55db5690acc12aa8458ceeab7cb39ae72c",
   "branch": "simonvanieperen-animated-umbrella",
-  "scope": "Aanvullende host-contracttests voor authenticatie van artifact-storedescriptoren en fouten bij openen",
+  "scope": "Aanvullende host-contracttests voor validatie en binding van artifact-storedescriptoren en fouten bij openen",
+  "review_evidence": "pr140-review-evidence.json bevat verse controles op 2bf9578290bef88d53c17f9913434da6f27441f2 met volledige logs en SHA-256 in Git. De onderstaande historische bron-, command-, exit- en loghashvelden blijven ongewijzigd; tijdelijke paden zijn geen duurzame artifactverwijzingen.",
   "tests_added": [
     "open_rejects_malformed_or_differently_bound_store_descriptors",
     "open_preserves_backend_authorization_and_storage_failures"

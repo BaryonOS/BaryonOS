@@ -1,6 +1,29 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR #140 main-integratie — 3 november 2026
+## NEXT AGENT HANDOFF — PR140 bewijs en descriptorclaims — 3 november 2026
+
+**Geteste bron:** `2bf9578290bef88d53c17f9913434da6f27441f2`, inclusief
+main `69809c2cb53dfb3bd77abe5352892810fba6e82d`.
+Op deze exacte bron zijn met Rust 1.90.0 de 9 artifact-store-contracttests,
+`cargo check --tests`, Clippy en formattering opnieuw uitgevoerd: elk exit 0.
+Exacte commando's, omgeving, source-tree, codehashes en volledige logs met
+SHA-256 staan duurzaam in
+[pr140-review-evidence.json](verification/pr140-review-evidence.json).
+De tijdelijke logpaden zijn alleen oorspronkelijke uitvoerpaden.
+
+De tests bewijzen descriptorvalidatie, binding en foutdoorgifte, niet
+identiteit, herkomst of cryptografische authenticatie. Het historische
+rapport behoudt bron `08710d55`, commando's, exits en hashes; alleen de
+scopeclaim is gecorrigeerd en het verse bewijs toegevoegd.
+Score **41 → 41**, geen nieuwe productacceptatie of productiecodewijziging.
+
+**Open:** verse volledige CI en definitieve review vóór merge. Native/QEMU,
+fysieke en menselijke acceptatie zijn niet opnieuw uitgevoerd. PR135's
+volume-fixture- en RANDOM-gates blijven afzonderlijk open; bron-PRs niet
+blind sluiten. **Eerstvolgend:** `GH_PAGER="" gh pr checks 140`; bij
+Watch-headwijziging opnieuw head/base en inhoud controleren.
+
+## Historisch checkpoint — PR #140 main-integratie — 3 november 2026
 
 PR-head `75cda7f4d49c5afe895277ada1102d630fdb75ad` is inhoudsbehoudend
 geïntegreerd met main `69809c2cb53dfb3bd77abe5352892810fba6e82d`.
