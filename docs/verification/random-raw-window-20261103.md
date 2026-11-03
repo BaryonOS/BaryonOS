@@ -196,3 +196,66 @@ Geen hardwaretest, onafhankelijke audit, merge of releasevalidatie.
 Score ongewijzigd; centrale beoordeling blijft bij de integratiesessie.
 Rollback: alleen deze fixturecommit terugdraaien; er is geen productpolicy-
 of opslagformaatwijziging.
+
+## Extractiecontrole op actuele main
+
+De beperkte extractie is na ontvangst van de nieuwe main opnieuw gebaseerd op
+`1c6872063fab055211eff48fce11496db39728be`. De fixturecode staat in commit
+`c584f61a4bb0a38fe02be2d3d84420b3f84875ff`; tijdens de controles was de
+volledige bron-HEAD `51d9467bcb60f4281302110cf3562602784b3825`. De native
+runner bond de run aan die HEAD en bronvingerafdruk v3
+`bd99bdb03ae667b491e7ad050360ac6f7fcfc078c50d99d04b0b3e061ac326fe`.
+
+Toolchain: Rust/Cargo 1.90.0, QEMU 10.2.1, machine `pc-q35-8.2`, OVMF 4M.
+QEMU gebruikte uitsluitend de bestaande wegwerpimage. De volgende controles
+zijn op de extractie uitgevoerd:
+
+Voor de hostcontroles:
+
+```sh
+export PATH=/home/simon/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH
+```
+
+Voor de native build en run:
+
+```sh
+export PATH=/home/simon/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH
+export CC=/tmp/nieuw-os-c-toolchain/bin/cc
+export LD_LIBRARY_PATH=/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu
+export OS_OVMF_CODE=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd
+export OS_OVMF_VARS=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd
+export NOS_QEMU_MACHINE=pc-q35-8.2
+export NOS_BUILD_DIR="$PWD/build/random-extract-raw"
+export NOS_TARGET_DIR="$PWD/target/random-extract-native"
+export CARGO_NET_OFFLINE=true
+```
+
+| Commando | Resultaat |
+|---|---|
+| `CARGO_TARGET_DIR="$PWD/target/random-extract-host" cargo +1.90.0 fmt --manifest-path sdk/examples/random-probe/Cargo.toml -- --check` | exit 0 |
+| `CARGO_TARGET_DIR="$PWD/target/random-extract-host" cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/random-probe/Cargo.toml` | exit 0; 6 hosttests |
+| `python3 -B -m unittest discover -s tools/tests -p test_random.py` | exit 0; 21 harnastests |
+| `python3 -B tools/build.py --kernel-feature native-system-random` | exit 0 |
+| `python3 -B tools/run_random.py --case raw` | exit 0; `passed=true`, `random_gate=true`, QEMU-exit 33, `timed_out=false` |
+| `git diff --check origin/main...HEAD` | exit 0 vóór deze receipt-aanvulling |
+
+De native run staat in
+`build/random-extract-raw/run/system-normal-4d14d5fdf3124b5e97ea9545851b0088/`.
+SHA-256 `serial.txt`:
+`878ecf82053e1618147ec08be10fe48fad8d371bddfba34e36406b11feaab611`.
+SHA-256 `result.json` en `random-report.json`:
+`cd9ba380c5820e3f5d14d52f547f624c0ba865d4566705a3d7a4dc62208efd80`.
+
+Logs zijn buiten Git bewaard:
+
+| Log | SHA-256 |
+|---|---|
+| `/tmp/random-extract-host.log` | `125c80979030976738467f484b8f699645b8eca2a526c3d9e3db4b0c21f21a0d` |
+| `/tmp/random-extract-harness.log` | `c7c7b5765cf996863d49b45efaa3cc56ab6c3491abb646eddb0aec401db54a5d` |
+| `/tmp/random-extract-native-build.log` | `7acad9d0544f44fd67aef277e38765ecee38e28ef95b78c193b2913d4eb09da7` |
+| `/tmp/random-extract-native-raw.log` | `3771e55e88c21f64d3c9241668ce13b77227d506b1007397b4c8180d8095f4b3` |
+
+De CI-run is niet opnieuw uitgevoerd; ook Clippy, andere RANDOM-profielen,
+hardwaretest, onafhankelijke audit en releasevalidatie zijn niet uitgevoerd.
+Deze controle valideert uitsluitend de fixturewijziging en de genoemde lokale
+host-/harnas-/VM-gates; zij verruimt geen productiegrenzen.
