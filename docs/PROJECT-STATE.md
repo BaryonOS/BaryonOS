@@ -3,7 +3,7 @@
 ## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
 
 **Bron:** branch `simonvanieperen-studious-spoon`, commit
-`55f78fa04a14dccf72c00dd9d0f8955da03fee41`, gepusht naar
+`636aedbb0456023bf352d02fbab9ac5e346fb629`, gepusht naar
 `origin/simonvanieperen-studious-spoon`. Actieve toewijzing:
 `SYSTEM-MATURITY-SMP`, queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`.
 OOM/K05 zijn afgesloten en blijven ongewijzigd;
@@ -29,11 +29,25 @@ opnieuw door de runtime-matrix gehaald.
 **Uitgevoerde controles:** `PYTHONPATH=tools python3 -B -m unittest
 tools/tests/test_smp.py` (5 tests, exit 0);
 `~/.cargo/bin/cargo +1.90.0 fmt --manifest-path kernel/Cargo.toml -- --check`
-en `git diff --check` (exit 0); opt-in `native-smp-m3`-kernelbuild (exit 0).
-De matrixrunner vereist een expliciete toolchain-PATH omdat `cargo` niet in de
-standaard-PATH staat.
+en `git diff --check` (exit 0). De finale bron bouwt `native-smp` en
+`native-smp-m3` (exit 0; M3 via de bestaande `build()`-helper, die de
+ring-3-probe als `NOS_USER_ELF` meegeeft).
 
-**Eerstvolgende actie:** draai `python3 -B tools/test_smp.py` met
+**Matrixpoging op bron `9136edc4`:** hostharnas 5 tests en de 1-CPU M2-run
+slaagden; de single-CPU-run eindigde op raw QEMU exit 33 in
+`build/run/smp-single-6a06910eb9/`. De 2-CPU M2-build stopte vóór QEMU omdat
+`smp.rs` compile-time naar `m3::start_ap` verwees terwijl `m3` in dit profiel
+uitgeschakeld is. De nieuwe bron cfg-gatet die M3-entry en de bijbehorende
+M3-only helpers; beide SMP-profielen bouwen nu. De runner behield bij die
+buildfout ten onrechte `passed: true` van de eerdere 1-CPU-stage; dit is
+hersteld en de mislukte receipt is gecorrigeerd:
+[`smp-rendezvous-20261103T174143Z.json`](verification/sm-smp/smp-rendezvous-20261103T174143Z.json).
+Een eerdere aanroep met `--help` is geen helpmodus, voerde de runner uit en
+stopte door ontbrekende `cargo` op de standaard-PATH; die poging staat apart in
+[`smp-rendezvous-20261103T173931Z.json`](verification/sm-smp/smp-rendezvous-20261103T173931Z.json).
+
+**Eerstvolgende actie:** herhaal nu de volledige `python3 -B tools/test_smp.py`
+matrix op deze gepushte bron met
 `PATH="$HOME/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH"`,
 `LD_LIBRARY_PATH=/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu:/tmp/sm-oom-qemu-root/lib/x86_64-linux-gnu`,
 `OS_OVMF_CODE=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd` en
