@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-03",
+  "task": "PR127 exact-head window-session host and native-build gates",
+  "source_commit": "063b44ebae2c29e38f57e29904a2f6c8fcee4df3",
+  "source_fingerprint_version": 3,
+  "source_sha256": "b7ccd11fa114f3d4506f9b85560b7bcd51289b88cfb8054cd9e0b6537ea7122b",
+  "toolchain": {
+    "rustc": "1.90.0 (1159e78c4 2025-09-14)",
+    "cargo": "1.90.0 (840b83a10 2025-07-30)",
+    "rustup": "1.27.1 (2026-04-14)",
+    "gcc": "15.2.0-16ubuntu1",
+    "qemu": "10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)",
+    "ovmf": "2025.11-3ubuntu7.3",
+    "seabios": "1.17.0-1ubuntu1",
+    "installation": "Rust was already in the user's toolchain directory. Rustup, GCC/libc development files, QEMU and firmware were extracted under the session files directory; no system package installation."
+  },
+  "host_checks": {
+    "runner_host": {
+      "command": "python3 -B tools/test_window_session.py",
+      "exit_code": 0,
+      "passed": 10,
+      "log": "/tmp/nieuw-os-execution-20261103/runner-host.log",
+      "log_sha256": "108b556859bf0ed04fcbdf4205de873baf2cfef1ab6e788a9588191d7c4ac682"
+    },
+    "rust_tests": [
+      {
+        "command": "cargo test --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml",
+        "exit_code": 0,
+        "passed": 49,
+        "log": "/tmp/nieuw-os-execution-20261103/window-session-host.log",
+        "log_sha256": "23c4262f2de0953ccd91e884fe12bd386b80528514492df18ddbf4f61a81e1dc"
+      },
+      {
+        "command": "cargo test --offline --locked --manifest-path ui/surface-protocol/Cargo.toml --features client",
+        "exit_code": 0,
+        "passed": 40,
+        "log": "/tmp/nieuw-os-execution-20261103/surface-host.log",
+        "log_sha256": "090731c2287f61f8d08d576dae84fe0adf47813a05312aef4943d75f9e1bdfee"
+      },
+      {
+        "command": "cargo test --offline --locked --manifest-path ui/graphics/Cargo.toml",
+        "exit_code": 0,
+        "passed": 7,
+        "log": "/tmp/nieuw-os-execution-20261103/graphics-host.log",
+        "log_sha256": "d53676ff6d886ea1f3138e3119594b7f37617d8b73d95b72ced52271c3f343a2"
+      },
+      {
+        "command": "cargo test --offline --locked --manifest-path sdk/examples/materiaal/Cargo.toml",
+        "exit_code": 0,
+        "passed": 43,
+        "log": "/tmp/nieuw-os-execution-20261103/materiaal-host.log",
+        "log_sha256": "22024cfec889b0a4a66c57c7430c971953ac94056031c0ea237a8bfc5b1fca28"
+      },
+      {
+        "command": "cargo test --offline --locked --manifest-path sdk/examples/calculator/Cargo.toml",
+        "exit_code": 0,
+        "passed": 41,
+        "log": "/tmp/nieuw-os-execution-20261103/calculator-host.log",
+        "log_sha256": "49422143bded1fe9b734c8c2e339b2c5656189e8e2d667e4c1ed96f7101c06c7"
+      }
+    ],
+    "rust_test_total": 180,
+    "clippy": {
+      "commands": [
+        "cargo clippy --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --all-targets -- -D warnings",
+        "cargo clippy --offline --locked --manifest-path sdk/examples/materiaal/Cargo.toml --all-targets -- -D warnings",
+        "cargo clippy --offline --locked --manifest-path sdk/examples/calculator/Cargo.toml --all-targets -- -D warnings"
+      ],
+      "exit_code": 0,
+      "log_sha256": {
+        "window-session": "601ff959935ebbd11b222822e14534c5d69be796f6df2ca14d7637993b3c3d73",
+        "materiaal": "0498fa63d43493c51ad542694d408f64f1c0a1c7f35a3e7a2b9d3ac19156163a",
+        "calculator": "209ea623437fe3d35350098e78ba4afff6690a47484361e9cdd0ef12d4da49cc"
+      }
+    },
+    "format": {
+      "commands": [
+        "cargo fmt --manifest-path sdk/examples/window-session/Cargo.toml -- --check",
+        "cargo fmt --manifest-path sdk/examples/materiaal/Cargo.toml -- --check",
+        "cargo fmt --manifest-path sdk/examples/calculator/Cargo.toml -- --check"
+      ],
+      "exit_code": 0
+    },
+    "preflight": {
+      "command": "python3 -B tools/preflight.py --strict --firmware \"$OS_OVMF_CODE\"",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-execution-20261103/preflight.json",
+      "log_sha256": "2ceb98be5b11def0808a5826dd161932b60f1fa98a5a96fd03434ae844f8403b"
+    }
+  },
+  "native_build": {
+    "command": "python3 -B -u tools/build.py --kernel-feature native-window-session-probe",
+    "exit_code": 0,
+    "duration_seconds": 11.55,
+    "build_directory": "build/plan1-native",
+    "manifest_sha256": "951a9dc1d8ac85707a1f9da036712417fca32cf1e8239fce2878557a139f1226",
+    "loader_sha256": "4e2ba86c2264389bdcc75ee3eed8bc1cf2d9aa6fd3d65b90517e2d475fb2077a",
+    "kernel_sha256": "178c24c3a41ecfaa2d1c89a5769735ef4f586b8c9d9f9d127ff19ffaf6fe3cce",
+    "log": "/tmp/nieuw-os-execution-20261103/probe-build.log",
+    "log_sha256": "750716ae9541d932bcc4571ba88dd6cb301b9cf3bf0cb30f975b75cd132fee06"
+  },
+  "native_runtime": {
+    "status": "not yet run",
+    "evidence_boundary": "Host tests and native ELF build do not establish QEMU execution, image recovery, pixels, clipboard or disk durability."
+  },
+  "private_package_manifest_sha256": "1be9f63a8c586cc4ff37da00ff6b715703524e091d103ccc60e7dd51b983a98a"
+}

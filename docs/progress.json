@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "15a1fe7252cb0999d7d52065f8306d5b7e010b10",
+    "source_commit": "063b44ebae2c29e38f57e29904a2f6c8fcee4df3",
     "branch": "simonvanieperen-refactored-fiesta",
-    "task": "Voorbereiden exacte-head native-window-integratiegate",
+    "task": "Uitvoeren PR127 exact-head native-window-gate",
     "previous_score": 41,
-    "summary": "Score blijft 41/100; er is geen nieuw native criteriumbewijs. Geen PR of CI-run bestaat voor deze branch. De native-runner-hosttests slagen (10 tests), maar de Rust/QEMU-preflight is geblokkeerd door ontbrekende PATH-koppeling en ontbrekende QEMU/OVMF/SeaBIOS/cc. De gepinde Rust 1.90 toolchainmap bestaat lokaal en wordt gericht gebruikt voor beschikbare hostcontroles. De native-window-, herstel-, pixel-, clipboard- en schijfgates zijn niet uitgevoerd; geen release- of hardwareclaim."
+    "summary": "Score blijft 41/100; hosttests en compilatie leveren geen nieuw native criteriumbewijs. De runner-tests (10), relevante Rust-hostsuites (180), Clippy/fmt en strikte preflight slagen. De eigen kernel, loader en acht-processen native venstersessieprobe bouwen met gepinde Rust 1.90; hashes staan in docs/verification/plan-execution-20261103.json. Lokale runtimegate volgt met QEMU 10.2.1/OVMF uit privé uitgepakte Ubuntu-pakketten; hosted exacte-head CI/review, fysieke tests en volledige release zijn nog open."
   },
   "tracks": [
     {

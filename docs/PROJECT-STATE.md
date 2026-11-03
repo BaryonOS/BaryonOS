@@ -1,27 +1,29 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR127 exacte-head-gates nog open — 3 november 2026
+## NEXT AGENT HANDOFF — native venstersessie op exacte branchhead — 3 november 2026
 
 **Actuele branch/head:** `simonvanieperen-refactored-fiesta`,
-`15a1fe7252cb0999d7d52065f8306d5b7e010b10`; de OS-bron is
-`380111b68688c981eec6abb8fab29174a29f5601` en de laatste commit bevat alleen
-deze voortgangsregistratie. Werktree schoon na push. Er is geen PR voor deze
-branch en `gh run list --branch simonvanieperen-refactored-fiesta` gaf geen
-CI-runs; de native-window-workflow start alleen op pull requests of pushes
-naar `main`.
+`063b44ebae2c29e38f57e29904a2f6c8fcee4df3`; bronvingerafdruk
+`b7ccd11fa114f3d4506f9b85560b7bcd51289b88cfb8054cd9e0b6537ea7122b`.
+De gepinde Rust 1.90-toolchain en QEMU 10.2.1/OVMF/SeaBIOS/GCC zijn alleen
+voor deze sessie uit geverifieerde Ubuntu-pakketten uitgepakt; geen
+systeeminstallatie of repositorydependency.
 
-**Voorbereidende controle:** `python3 -B tools/test_window_session.py` slaagt
-met 10 tests. `python3 -B tools/preflight.py --strict` exit 2: de gepinde
-Rust-toolchain staat onder `/home/simon/.rustup/toolchains/1.90.0-.../bin`,
-maar is niet aan PATH toegevoegd; QEMU, OVMF, SeaBIOS en `cc` ontbreken.
-Er zijn nog geen exacte-head Rust-host-, native-QEMU-, herstel-, pixel-,
-klembord- of schijfgates uitgevoerd. Geen PR aangemaakt; daarvoor was geen
-expliciete opdracht. Geen punten toegekend; 41/100 blijft 41/100.
+**Geslaagd:** `python3 -B tools/test_window_session.py` (10 tests); relevante
+venstersessie-, surface-, graphics-, Materiaal- en Rekenmachine-hostsuites
+(180 Rust-tests); drie Clippy- en drie fmt-checks; strikte preflight; en de
+volledige `native-window-session-probe`-build (exit 0, 11,55 s). Loader- en
+kernelhashes en ruwe logs zijn vastgelegd in
+[`plan-execution-20261103.json`](verification/plan-execution-20261103.json).
+Dit is geen runtime-/herstel-/pixel-/klembord-/schijfbewijs.
 
-**Eerstvolgend:** gebruik de bestaande gepinde toolchain expliciet voor de
-native-window-hostsuite en `fmt`/Clippy; archiveer exacte exitstatussen. De
-QEMU-gate blijft geblokkeerd totdat QEMU/firmware beschikbaar zijn of de
-geautoriseerde PR-CI-route expliciet wordt geopend.
+**Open:** `python3 -B -u tools/run_window_session.py --clipboard --timeout
+1800 --bios-rom "$SEABIOS_BIOS" --vga-rom "$SEABIOS_VGA"` op dezelfde
+bronvingerafdruk, met privé QEMU/OVMF en wegwerpimage; daarna inspecteer de
+ruwe fasebeelden, serial en onafhankelijke diskoracle. QEMU 10.2.1 verschilt
+van de CI-runner; de exacte-head hosted CI/review is niet gestart. Er is geen
+PR aangemaakt en geen branchregel omzeild. Geen punten toegekend; 41/100 blijft
+41/100.
 
 ## Vorig checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 

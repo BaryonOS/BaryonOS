@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`15a1fe72`](https://github.com/simonvanieperen/nieuw-os/commit/15a1fe7252cb0999d7d52065f8306d5b7e010b10) ·
+**Bron:** [`063b44eb`](https://github.com/simonvanieperen/nieuw-os/commit/063b44ebae2c29e38f57e29904a2f6c8fcee4df3) ·
 **Ontwikkelbranch:** `simonvanieperen-refactored-fiesta`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Voorbereiden exacte-head native-window-integratiegate.
-Score blijft 41/100; er is geen nieuw native criteriumbewijs. Geen PR of CI-run bestaat voor deze branch. De native-runner-hosttests slagen (10 tests), maar de Rust/QEMU-preflight is geblokkeerd door ontbrekende PATH-koppeling en ontbrekende QEMU/OVMF/SeaBIOS/cc. De gepinde Rust 1.90 toolchainmap bestaat lokaal en wordt gericht gebruikt voor beschikbare hostcontroles. De native-window-, herstel-, pixel-, clipboard- en schijfgates zijn niet uitgevoerd; geen release- of hardwareclaim.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Uitvoeren PR127 exact-head native-window-gate.
+Score blijft 41/100; hosttests en compilatie leveren geen nieuw native criteriumbewijs. De runner-tests (10), relevante Rust-hostsuites (180), Clippy/fmt en strikte preflight slagen. De eigen kernel, loader en acht-processen native venstersessieprobe bouwen met gepinde Rust 1.90; hashes staan in docs/verification/plan-execution-20261103.json. Lokale runtimegate volgt met QEMU 10.2.1/OVMF uit privé uitgepakte Ubuntu-pakketten; hosted exacte-head CI/review, fysieke tests en volledige release zijn nog open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
