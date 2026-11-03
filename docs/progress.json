@@ -7,7 +7,7 @@
     "branch": "copilot/universal-driver-framework",
     "task": "VirtIO RNG generieke PCI-discovery en activatie",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. VirtIO RNG gebruikt nu segment-0-PCI-discovery, registratie-match, gebonden config-space, kernel-owned BAR-grants en factorygestuurde initialisatie; keyring reserveert de DMA-pool pas na discovery. RNG/PCI typechecks, strict Clippy en formattercheck slagen. Hosttests en de kernelprofielcheck zijn door ontbrekende libc_nonshared.a bij host-linking geblokkeerd; tools/build.py en runtime zijn nog niet uitgevoerd. QEMU en fysieke hardware zijn niet getest. Geen nieuw geaccepteerd criterium."
+    "summary": "41/100 blijft 41/100. VirtIO RNG gebruikt nu segment-0-PCI-discovery, registratie-match, gebonden config-space, kernel-owned BAR-grants en factorygestuurde initialisatie; keyring reserveert de DMA-pool pas na discovery. RNG/PCI typechecks, strict Clippy en formattercheck slagen. Hosttests en de volledige native-keyring-profielbuild stopten vóór kernelcompilatie door ontbrekende libc_nonshared.a bij host-linking; installatie kon niet-interactief niet worden uitgevoerd. QEMU en fysieke hardware zijn niet getest. Geen nieuw geaccepteerd criterium."
   },
   "tracks": [
     {

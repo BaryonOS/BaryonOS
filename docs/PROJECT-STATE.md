@@ -2,15 +2,15 @@
 
 ## NEXT AGENT HANDOFF — VirtIO RNG generieke PCI-start — 3 november 2026
 
-Werkbranch `copilot/universal-driver-framework`; basis `377446b0c9b8168e2c13c55fc09e373ccefa9d15`; implementatiecommit `af00927da73dcdc26007802e612e7ecc2a1c5f40`. De branch is gepusht en `git ls-remote` bevestigt exact dezelfde remote SHA.
+Werkbranch `copilot/universal-driver-framework`; basis `377446b0c9b8168e2c13c55fc09e373ccefa9d15`; implementatiecommit `af00927da73dcdc26007802e612e7ecc2a1c5f40`; statuscheckpoint `b55abf2f423f729b8da68ffd29ff27cbfbebcac9`. De branch is gepusht; de remote SHA is gecontroleerd op `b55abf2f423f729b8da68ffd29ff27cbfbebcac9`.
 
 VirtIO RNG gebruikt nu segment-0-enumeratie, registry-match, een aan de match gebonden PCI-configadapter, kernel-owned BAR-grants en een statisch gekozen initializerfactory. `keyring::prepare` ontdekt eerst en reserveert zonder device geen DMA-pagina's. De bestaande queue, entropy-authority, timeout en reset/quarantaineregels blijven behouden. `kernel/src/m2/m3.rs` is niet gewijzigd; alle codewijzigingen aan maturity-geclaimde `m3.rs` zijn vermeden.
 
-**Bewijs op commit `af00927`:** formattercheck, `pci-core`/RNG all-targets-typecheck, RNG `x86_64-unknown-none`-check en strikte Clippy slagen. De hosttestuitvoering stopte met exit 101 omdat `/usr/lib/x86_64-linux-gnu/libc_nonshared.a` ontbreekt. De kernelprofielcheck stopte eveneens vóór kernelcompilatie bij het linken van `os-kernel`'s host-buildscript. Loghashes en exacte commando's staan in [de RNG-PCI-receipt](verification/virtio-rng-pci-2026-11-03/README.md). De volledige `tools/build.py`-profilebuild is nog niet uitgevoerd. QEMU is niet beschikbaar; runtime en fysieke hardware zijn niet getest.
+**Bewijs op implementatiecommit `af00927`:** formattercheck, `pci-core`/RNG all-targets-typecheck, RNG `x86_64-unknown-none`-check en strikte Clippy slagen. Hosttests en de volledige `native-keyring`-profielbuild stopten vóór relevante kernelcompile/test door ontbrekende `/usr/lib/x86_64-linux-gnu/libc_nonshared.a`; het vereiste hostpakket ontbreekt en niet-interactieve sudo is niet beschikbaar. Loghashes en exacte commando's staan in [de RNG-PCI-receipt](verification/virtio-rng-pci-2026-11-03/README.md). QEMU is niet beschikbaar; runtime en fysieke hardware zijn niet getest.
 
 De score blijft **41/100 → 41/100**: code/compilebewijs vervangt geen native driveracceptatie. Interrupt-/DMA/IOMMU-semantiek, geverifieerde quiescence, userspace-driverisolatie en fysieke hardware blijven open.
 
-**Eerstvolgend:** `python3 -B tools/build.py --kernel-feature native-keyring`; rapporteer de uitkomst zonder runtimeclaim. QEMU-proef blijft geblokkeerd zolang `qemu-system-x86_64` ontbreekt.
+**Eerstvolgend:** hervat de profielbuild zodra de ontbrekende host-linkerbestanden beschikbaar zijn; de huidige build is geen kernelbuildbewijs. QEMU-proef blijft geblokkeerd zolang `qemu-system-x86_64` ontbreekt.
 
 ### Implementatiestap — segment-0 enumeratie en VirtIO BDF-migratie
 

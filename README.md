@@ -64,7 +64,7 @@ alleen een nette desktop haalt die eindgrens niet.
 **Bron:** [`af00927d`](https://github.com/simonvanieperen/nieuw-os/commit/af00927da73dcdc26007802e612e7ecc2a1c5f40) ·
 **Ontwikkelbranch:** `copilot/universal-driver-framework`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** VirtIO RNG generieke PCI-discovery en activatie.
-41/100 blijft 41/100. VirtIO RNG gebruikt nu segment-0-PCI-discovery, registratie-match, gebonden config-space, kernel-owned BAR-grants en factorygestuurde initialisatie; keyring reserveert de DMA-pool pas na discovery. RNG/PCI typechecks, strict Clippy en formattercheck slagen. Hosttests en de kernelprofielcheck zijn door ontbrekende libc_nonshared.a bij host-linking geblokkeerd; tools/build.py en runtime zijn nog niet uitgevoerd. QEMU en fysieke hardware zijn niet getest. Geen nieuw geaccepteerd criterium.
+41/100 blijft 41/100. VirtIO RNG gebruikt nu segment-0-PCI-discovery, registratie-match, gebonden config-space, kernel-owned BAR-grants en factorygestuurde initialisatie; keyring reserveert de DMA-pool pas na discovery. RNG/PCI typechecks, strict Clippy en formattercheck slagen. Hosttests en de volledige native-keyring-profielbuild stopten vóór kernelcompilatie door ontbrekende libc_nonshared.a bij host-linking; installatie kon niet-interactief niet worden uitgevoerd. QEMU en fysieke hardware zijn niet getest. Geen nieuw geaccepteerd criterium.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
