@@ -3,7 +3,7 @@
 ## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
 
 **Gepubliceerde basis:** branch `simonvanieperen-studious-spoon`, commit
-`cf3e6866dd828b3927090d933c366663628c7488`, gepusht naar
+`707f6d6d2c00d9b466366f4b0e6b2b91e08197ae`, gepusht naar
 `origin/simonvanieperen-studious-spoon`. Actieve toewijzing:
 `SYSTEM-MATURITY-SMP`, queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`.
 OOM/K05 zijn afgesloten en blijven ongewijzigd;
@@ -84,11 +84,13 @@ geen cross-CPU capability-revoke,
 TLB-shootdown/hergebruik of bredere races/failureacceptatie. Dit is geen
 volledige K06-acceptatie. `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
 
-**Eerstvolgende actie:** checkpoint de process-exit/cleanup-proef, draai daarna
-de volledige SMP-matrix op de nieuwste gepushte bron. Hervat vervolgens de
-bestaande K06-acceptatie met capability-revoke en TLB-/hergebruikgrenzen;
-wijzig geen capabilitysemantiek of ABI en claim geen remote shootdownprotocol
-zonder implementatie en bewijs.
+**Eerstvolgende actie:** draai `python3 -B tools/test_smp.py` op deze gepushte
+bron. De matrix bevat M2 1/2/4 CPU, M3 2 CPU, M3 process-exit op een AP, de
+M3 1-CPU-regressie, M3 4 CPU en cross-CPU M4 IPC met 2 CPU. Gebruik de
+hieronder vastgelegde PATH, QEMU/OVMF en `LD_LIBRARY_PATH`. Hervat daarna K06
+met capability-revoke en TLB-/hergebruikgrenzen; wijzig geen
+capabilitysemantiek of ABI en claim geen remote shootdownprotocol zonder
+implementatie en bewijs.
 
 **Cross-CPU capability-IPC — eerdere lokale proef vóór matrix:**
 `native-smp-m4` combineert het bestaande SMP-M3-profiel met de bestaande M4
@@ -127,8 +129,9 @@ Een eerdere aanroep met `--help` is geen helpmodus, voerde de runner uit en
 stopte door ontbrekende `cargo` op de standaard-PATH; die poging staat apart in
 [`smp-rendezvous-20261103T173931Z.json`](verification/sm-smp/smp-rendezvous-20261103T173931Z.json).
 
-**Eerstvolgende actie:** checkpoint en valideer de AP-exit/cleanup-slice;
-matrixomgeving en commando staan hierboven.
+**Eerstvolgende actie:** valideer de gepushte AP-exit/cleanup-slice met de
+volledige matrix; daarna de resterende cross-CPU-revoke- en TLB-acceptatie.
+Matrixomgeving en commando staan hierboven.
 De bestaande dirty wijzigingen in README en voortgangsbestanden zijn behouden
 en niet door deze SMP-taak aangepast.
 
