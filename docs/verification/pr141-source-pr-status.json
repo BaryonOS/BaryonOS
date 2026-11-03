@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-11-03T11:39:46.523766+00:00",
+  "reviewed_document_base": "c2d65c5c6e7487ace6ce86d88b465697dc9bb554",
+  "primary_endpoint": "GET /repos/simonvanieperen/nieuw-os/pulls/{number}",
+  "command": "for n in 119 136 143 144 145; do GH_PAGER='' gh api repos/simonvanieperen/nieuw-os/pulls/$n --jq '{number,html_url,state,closed_at,merged_at}'; done",
+  "exit": 0,
+  "pull_requests": [
+    {"number":119,"html_url":"https://github.com/simonvanieperen/nieuw-os/pull/119","state":"closed","closed_at":"2026-11-03T10:45:46Z","merged_at":null},
+    {"number":136,"html_url":"https://github.com/simonvanieperen/nieuw-os/pull/136","state":"closed","closed_at":"2026-11-03T10:45:51Z","merged_at":null},
+    {"number":143,"html_url":"https://github.com/simonvanieperen/nieuw-os/pull/143","state":"closed","closed_at":"2026-11-03T10:45:54Z","merged_at":null},
+    {"number":144,"html_url":"https://github.com/simonvanieperen/nieuw-os/pull/144","state":"closed","closed_at":"2026-11-03T10:45:58Z","merged_at":null},
+    {"number":145,"html_url":"https://github.com/simonvanieperen/nieuw-os/pull/145","state":"closed","closed_at":"2026-11-03T10:46:01Z","merged_at":null}
+  ],
+  "boundary": "Primaire closure-statusreceipt, niet het inhoudsbehoudbewijs of een server-side branchprotectionaudit. Niet als afzonderlijke squash-merges tellen.",
+  "progress_previous": 41,
+  "progress_current": 41
+}

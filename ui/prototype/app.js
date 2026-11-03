@@ -15,8 +15,10 @@ let focusAfterRoute = null;
 let saveTimer;
 let installTimer;
 let summaryTimer;
+let persistTimer;
 let storageUnavailable = false;
 let previousRoute = '';
+const PERSIST_DELAY_MS = 180;
 
 const escape = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 const paths = {
@@ -57,9 +59,24 @@ function persist() {
   try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { storageUnavailable = true; }
 }
 
-function dispatch(event, { redraw = true, focus = null } = {}) {
-  state = reducer(state, event);
+function flushPersist() {
+  clearTimeout(persistTimer);
+  persistTimer = undefined;
   persist();
+}
+
+function schedulePersist() {
+  if (persistTimer !== undefined) return;
+  persistTimer = setTimeout(() => {
+    persistTimer = undefined;
+    persist();
+  }, PERSIST_DELAY_MS);
+}
+
+function dispatch(event, { redraw = true, focus = null, persistNow = true } = {}) {
+  state = reducer(state, event);
+  if (persistNow) flushPersist();
+  else schedulePersist();
   if (state.message) announcements.textContent = state.message.text;
   if (redraw) render(focus);
 }
@@ -124,14 +141,18 @@ function startScreen() {
 }
 
 function materialScreen() {
-  const result = listObjects(state, { query, collection }).value;
   const last = state.objects.find((object) => object.id === state.lastOpenedId) || state.objects[0];
   return `${pageHead('Mijn materiaal', 'Waar wil je aan werken?', button('Nieuw document', 'newDocument', 'primary', '', 'plus'))}
     <section class="continue" aria-labelledby="continue-title"><div class="continue-copy"><p class="meta">Verder waar je was</p><h2 id="continue-title">${escape(last.title)}</h2><p class="meta">${escape(last.collectionId)} · Versie ${last.revision} · Op dit apparaat</p><a class="button" href="#/object/${escape(last.id)}">Verder werken ${icon('arrow')}</a></div><div class="paper-preview" aria-hidden="true"><article><h3>${escape(last.title)}</h3><p>${escape(currentVersion(last).text.slice(0, 160))}</p></article></div></section>
     <section aria-label="Materiaal en collecties"><div class="material-toolbar"><div class="collections" role="group" aria-label="Collectie">${['Alles', ...COLLECTIONS].map((name) => button(escape(name), 'collection', '', `data-value="${name}" aria-pressed="${collection === name}"`)).join('')}</div><div class="search"><label class="sr-only" for="material-search">Zoek in mijn materiaal</label>${icon('search')}<input id="material-search" type="search" placeholder="Zoek in je materiaal" value="${escape(query)}" autocomplete="off"></div></div>
-      <div class="section-heading"><h2>${query ? 'Zoekresultaten' : collection === 'Alles' ? 'Je documenten' : collection}</h2><span class="meta" aria-live="polite">${result.length} ${result.length === 1 ? 'object' : 'objecten'}</span></div>
-      ${result.length ? `<ul class="object-list" id="search-results" aria-label="Documenten">${result.map((object) => `<li class="object-row"><span class="object-type ${object.mediaType}" aria-hidden="true">${icon(object.mediaType === 'image' ? 'image' : 'document')}</span><div class="object-info"><a class="object-title result-link" href="#/object/${escape(object.id)}">${escape(object.title)}</a><span class="meta">${object.mediaType === 'image' ? 'Afbeelding' : 'Tekstdocument'} · ${escape(object.collectionId)}</span></div><span class="meta object-location">Op dit apparaat<br>Versie ${object.revision}</span><a class="button quiet icon-button" href="#/object/${escape(object.id)}" aria-label="Open ${escape(object.title)}">${icon('arrow')}</a></li>`).join('')}</ul>` : `<div class="empty"><h2>${query ? 'Niets gevonden' : 'Hier is nog ruimte.'}</h2><p class="muted">${query ? `Geen materiaal met “${escape(query)}”. Probeer een andere titel of collectie.` : 'Deze collectie is nog leeg. Je andere documenten blijven bij Alles staan.'}</p>${button(query ? 'Wis zoekopdracht' : 'Bekijk alle materiaal', 'clearSearch', '')}</div>`}
+      <div id="material-results">${materialResults()}</div>
     </section><p class="inline-note">${icon('devices')}Je materiaal staat op dit apparaat. Gereedschappen krijgen alleen toegang als jij dat toestaat.</p>`;
+}
+
+function materialResults() {
+  const result = listObjects(state, { query, collection }).value;
+  return `<div class="section-heading"><h2>${query ? 'Zoekresultaten' : collection === 'Alles' ? 'Je documenten' : collection}</h2><span class="meta" aria-live="polite">${result.length} ${result.length === 1 ? 'object' : 'objecten'}</span></div>
+    ${result.length ? `<ul class="object-list" id="search-results" aria-label="Documenten">${result.map((object) => `<li class="object-row"><span class="object-type ${object.mediaType}" aria-hidden="true">${icon(object.mediaType === 'image' ? 'image' : 'document')}</span><div class="object-info"><a class="object-title result-link" href="#/object/${escape(object.id)}">${escape(object.title)}</a><span class="meta">${object.mediaType === 'image' ? 'Afbeelding' : 'Tekstdocument'} · ${escape(object.collectionId)}</span></div><span class="meta object-location">Op dit apparaat<br>Versie ${object.revision}</span><a class="button quiet icon-button" href="#/object/${escape(object.id)}" aria-label="Open ${escape(object.title)}">${icon('arrow')}</a></li>`).join('')}</ul>` : `<div class="empty"><h2>${query ? 'Niets gevonden' : 'Hier is nog ruimte.'}</h2><p class="muted">${query ? `Geen materiaal met “${escape(query)}”. Probeer een andere titel of collectie.` : 'Deze collectie is nog leeg. Je andere documenten blijven bij Alles staan.'}</p>${button(query ? 'Wis zoekopdracht' : 'Bekijk alle materiaal', 'clearSearch', '')}</div>`}`;
 }
 
 function planDrawing() {
@@ -346,7 +367,8 @@ document.addEventListener('click', (event) => {
   switch (action) {
     case 'toggleMenu': menuOpen = !menuOpen; render(); break;
     case 'resetDemo': {
-      clearTimeout(saveTimer); clearTimeout(installTimer); clearTimeout(summaryTimer);
+      clearTimeout(saveTimer); clearTimeout(installTimer); clearTimeout(summaryTimer); clearTimeout(persistTimer);
+      persistTimer = undefined;
       try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* Session remains usable in memory. */ }
       state = createFixtureState(); query = ''; collection = 'Alles'; inspectorOpen = false;
       navigate('/start'); break;
@@ -425,9 +447,17 @@ document.addEventListener('click', (event) => {
 
 document.addEventListener('input', (event) => {
   const element = event.target;
-  if (element.id === 'material-search') { query = element.value; render(); }
-  if (element.id === 'profile-name') dispatch({ type: 'profileName', name: element.value }, { redraw: false });
-  if (element.id === 'document-editor') dispatch({ type: 'updateDraft', text: element.value, cursor: element.selectionStart }, { redraw: false });
+  if (element.id === 'material-search') {
+    query = element.value;
+    const results = document.querySelector('#material-results');
+    if (results && currentRoute() === '/materiaal') results.innerHTML = materialResults();
+  }
+  if (element.id === 'profile-name') dispatch({ type: 'profileName', name: element.value }, { redraw: false, persistNow: false });
+  if (element.id === 'document-editor') dispatch({ type: 'updateDraft', text: element.value, cursor: element.selectionStart }, { redraw: false, persistNow: false });
+});
+
+document.addEventListener('focusout', (event) => {
+  if (['profile-name', 'document-editor'].includes(event.target.id)) flushPersist();
 });
 
 document.addEventListener('change', (event) => {
@@ -483,5 +513,5 @@ document.addEventListener('keydown', (event) => {
 });
 
 window.addEventListener('hashchange', routeChanged);
+window.addEventListener('pagehide', flushPersist);
 routeChanged();
-

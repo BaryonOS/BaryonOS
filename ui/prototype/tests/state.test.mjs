@@ -250,6 +250,18 @@ test('reducer does not mutate its caller state', () => {
   assert.notEqual(after.draft.text, before.draft.text);
 });
 
+test('draft keystrokes preserve saved history without deep-cloning it', () => {
+  const before = editable();
+  const beforeText = before.draft.text;
+  const after = reducer(before, { type: 'updateDraft', text: 'nieuwe tekst', cursor: 6 });
+  assert.notEqual(after, before);
+  assert.notEqual(after.draft, before.draft);
+  assert.equal(after.objects, before.objects);
+  assert.equal(after.objects[0].versions, before.objects[0].versions);
+  assert.equal(before.draft.text, beforeText);
+  assert.equal(after.draft.text, 'nieuwe tekst');
+});
+
 test('P2-08: CSP blocks outbound connections and app code has no networking APIs', async () => {
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
   assert.match(html, /connect-src 'none'/);
