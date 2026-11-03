@@ -25,7 +25,10 @@ Logs `files/veld-env/logs/veld-pointer-{full-host,viewer-host}.log`.
 Eerdere testfixture-/lintfouten hersteld; geen productiegrens versoepeld.
 
 **Nog niet uitgevoerd:** native Veld-04 op100/200%, normale builds en nieuwe
-CI. Volgende commando: probebuild en volledige runner
+CI. Eerste nativebuild op `3f72f2f3` stopte voor VM-start met E0282:
+door de eerdere nieuwe matcharm kon Rust het queue-index-type niet afleiden.
+Capture en hover zijn nu expliciet `Option<usize>`; geen cast of grenswijziging.
+Volgende commando: probebuild en volledige runner
 `--clipboard --workspace --scale 1`, vervolgens hidpi met `--scale 2`, elk in
 eigen build-/targetmap. Bron tijdens runs bevriezen. Score **41 -> 41**;
 complete Veld-omgeving, drag/drop, resize en overige functies blijven open.

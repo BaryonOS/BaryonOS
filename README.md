@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`d5781e72`](https://github.com/simonvanieperen/nieuw-os/commit/d5781e720c9f9cf263565c88c0461965669d7bfa) ·
+**Bron:** [`3f72f2f3`](https://github.com/simonvanieperen/nieuw-os/commit/3f72f2f3be7c01217b299ec38d35d57e122b14a7) ·
 **Ontwikkelbranch:** `simonvanieperen-fictional-disco`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Veld-04: echte pointer-leave zonder focusverlies of buitenbodydata.
-41% blijft 41%: eerder44 volledige nativefasen per schaal op9b1c8200. Nu pointer-leave geimplementeerd zonder buitenbodydata, focusverlies of menuafsluiting; acht betrokken hosttest-/Clippysuites en16 runnertegenproeven slagen. Echte hoverpixelverschillen, malformed/replay/authorisatietegenproeven aanwezig; native04 nog niet uitgevoerd. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Oudere derdenapps vereisen protocolonderhandeling. Complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open.
+41% blijft 41%: eerder44 volledige nativefasen per schaal op9b1c8200. Pointer-leave zonder buitenbodydata, focusverlies of menuafsluiting; acht hosttest-/Clippysuites en16 runnertegenproeven slagen. Eerste targetbuild op3f72f2f3 vond E0282 voor een queue-index; expliciete indextypen herstellen dit, echte probebuild slaagt. Native04 nog niet uitgevoerd. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Oudere derdenapps vereisen protocolonderhandeling. Complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

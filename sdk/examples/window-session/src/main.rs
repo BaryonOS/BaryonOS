@@ -273,8 +273,8 @@ fn run() -> ! {
     let mut input_events = 0u64;
     let mut last_buttons = 0u64;
     let mut next_input_tick = tick();
-    let mut app_pointer_capture = None;
-    let mut app_pointer_hover = None;
+    let mut app_pointer_capture: Option<usize> = None;
+    let mut app_pointer_hover: Option<usize> = None;
     let mut input_backlog = false;
     loop {
         let mut ingress_empty = false;
