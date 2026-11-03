@@ -1,6 +1,34 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR114-reviewfixes combineren — 3 november 2026
+## NEXT AGENT HANDOFF — documentstapel inhoudsbehoudend combineren — 3 november 2026
+
+Bron `1552e5ae1a0e053a6df5ef802f6c0e4e78544cf7` bewaart volledige heads
+143/d169796a,144/a974fb9f,145/da5918fb en136/f6921e49 als mergeparents
+boven PR114-fix720cd431. Unieke README-codeleesintro, vaste14-commit-
+changelogrange, beperkt AI-reviewrapport en volledigheidsaudit zijn behouden.
+Vier centrale metadata-conflictklassen zijn inhoudelijk opgelost:
+rubrics buiten assessment waren identiek; actuele score41 blijft leidend,
+oudere unieke status is historisch opgenomen, niet als actieve opdracht.
+De securitytekst noemt overal AI zonder bestandsdekking, geen menselijke audit.
+Geen runtime-/tool-/testbron verschilt van720cd431 door deze vier merges.
+
+PR114's vier vervolgthreads zijn beantwoord/resolved in720cd431; volledige
+originele82+17 Btrfs-manifestbinding en16 hostregressies blijven behouden.
+De audit blijft39 groepen/62open FR-rijen; geen nieuwe productpunten.
+Nieuwe gecombineerde CI/review blijft vereist vóór guarded squashmerge.
+136/143/144/145 nog niet sluiten: controleer opnieuw actuele heads en bewijs
+na daadwerkelijke opname in main. Laatste119-head is inmiddels5a8317f1;
+die extra centrale metadata is nog niet gecombineerd.121-b83 blijft apart
+met eerder bewaarde historische metadata; geen blinde ancestryclaim.
+
+Andere stack:135/eea1cdcc bevat echteN01-acceptatie op6f15/source1ca en
+onafhankelijk gecontroleerde19VM-volumeproeven opce02/source2c410.
+Hosted foreignfixtureartifact/run-ID blijft ontbreken; geen gate overgeslagen.
+Main blijft380111b6;39/41/42/43 blijven open. Integratormandaat is niet
+overgedragen. Score **41 -> 41**. Eerstvolgend: actuele publicatie-CI/review
+afhandelen, bronbehoud controleren en pas daarna geschikte PRs squashen.
+
+## Historisch checkpoint — PR114-vervolgreview — 3 november 2026
 
 Nieuwe reviewbasis `783a48aac610b42e4e1715ed9551f5012376d12b`:
 vier vervolgpunten hersteld. Primaire bronmetadata staat gedeeld in

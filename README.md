@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`783a48aa`](https://github.com/simonvanieperen/nieuw-os/commit/783a48aac610b42e4e1715ed9551f5012376d12b) ·
+**Bron:** [`1552e5ae`](https://github.com/simonvanieperen/nieuw-os/commit/1552e5ae1a0e053a6df5ef802f6c0e4e78544cf7) ·
 **Ontwikkelbranch:** `simon/profiles-users-plan`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Vier PR114-vervolgpunten: primaire bronmetadata en volledige lokale manifestbinding.
-41 blijft41. Drie bronmetadatapunten krijgen gedeelde primaire titels/project/datum-versie/URLs buiten ongewijzigde historische snapshots, zonder handleidingen als bewijs voor gemeten metadataverlies te gebruiken. De lokale Btrfs-controle bindt82+17 manifestentries aan onafhankelijke originele receipthashes en verwerpt onvolledige/uitgebreide lijsten vóór payloadchecks. Nieuwe regressies eerst werkelijk rood, daarna16 hosttests groen;207 oude archiefhashes plus2 nieuwe manifestreceipts geldig. Geen volledige lokale payload-, engine- of native uitvoering op deze followup; nieuwe huidige-head CI/review blijft vereist. Geen nieuwepunten of native backend-, fysieke-, menselijke-/releaseacceptatie.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR136/143/144/145 inhoudsbehoudend met de actuele PR114-reviewfixes combineren.
+41 blijft41. Volledige136f692/143d169/144a974/145da591-heads zijn boven PR114720 behouden: README-codeleesintro, vaste14-commitchangelog, expliciet beperkte statische AI-review zonder bestandsdekking en gecorrigeerde39-groepen/62open-criteria-audit. Alle rubricvelden buiten assessment waren identiek; huidige centrale status blijft behouden en oudere unieke checkpoints zijn historisch opgenomen. Geen runtime/tool/testcode gewijzigd door deze vier merges;16 manifest/replayhosttests en207 oude hashes plus99 vaste manifestentries blijven verplicht. Geen nieuwe native, menselijke of releaseacceptatie; actuele gecombineerde CI/review en hoofdbranchopname nog open.119headdrift en135fixturelevering blijven afzonderlijk open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

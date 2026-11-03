@@ -85,6 +85,13 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Documentstapelintegratie (3 november 2026), bron `1552e5ae`: **41 -> 41**.
+Volledige136/143/144/145-heads zijn boven de PR114-fixes behouden; geen
+runtime-, tool- of testcode gewijzigd door die vier merges. Alle rubricvelden
+buiten assessment waren identiek. Unieke intro/changelog/AI-rapport/audit
+blijven behouden, zonder AI-review als menselijke audit te presenteren.
+Gecombineerde huidige-head CI/review blijft vereist.
+
 PR136-documentintegratie (3 november 2026), bron `f6921e49`: **41 -> 41**.
 De L02-nativebron en A01accepted/R03open zijn correct geclassificeerd,
 zonder nieuwe productpunten. Alle zeven geleverde bestandshashes en het
