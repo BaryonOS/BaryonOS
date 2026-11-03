@@ -1,6 +1,19 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — issue #43: ReceiveTcp na verbindingstime-out
+## NEXT AGENT HANDOFF — PR139-bronrollen verduidelijkt — 3 november2026
+
+Basis`716f3ec11cc8d44bcd66b91e14e7b409a0877cb5`,
+branch`simonvanieperen-supreme-spork`; integrator blijftf090b913.
+Alleen documentaire reviewfix: expliciete scheiding van assessmentbasis
+en historische OS-bewijsbron`380111b` in de gegenereerde README en het
+checkpoint. Vereist`assessment.source_commit` blijft schema-/generator-
+compatibel; oorspronkelijke checkpointvelden en15run-bewijs blijven intact.
+`python3 tools/progress.py --write`, `python3 tools/progress.py --check`
+en`git diff --check`: exit0. Geen native/Rust/QEMU-herproef;41 ->41.
+Eerstvolgend: nieuwe exacte-head CI/review en mergeguard beoordelen;
+geen merge/issueafsluiting onderdeel van deze bronvermeldingcorrectie.
+
+## Vorig checkpoint — issue #43: ReceiveTcp na verbindingstime-out
 
 **Basis:** `380111b68688c981eec6abb8fab29174a29f5601` (main), branch
 `coderabbit/issue-43-receive-timeout`. Eén gerichte N01-reparatie: een al

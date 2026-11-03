@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`d3e5602c`](https://github.com/simonvanieperen/nieuw-os/commit/d3e5602c01b0e12bf805a3b6e963979d35d06cce) ·
+**Bron:** [`716f3ec1`](https://github.com/simonvanieperen/nieuw-os/commit/716f3ec11cc8d44bcd66b91e14e7b409a0877cb5) ·
 **Ontwikkelbranch:** `simonvanieperen-supreme-spork`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Uitvoeren en verifiëren van de drie geprioriteerde vervolgstappen.
-PR127 is gemergd; GitHub toont alle 15 workflowruns op exacte bron 380111b groen, waaronder FR-I01 joint native system (18 stappen), native-window-session (17 stappen) en native-network-service (9 stappen). Dit zijn afzonderlijke gates, geen finale gecombineerde FR-release. FULL-TEST-RELEASE houdt alle 62 rijen open. Lokale preflight exit 2: rustc/cargo/rustup/QEMU/OVMF ontbreken. Native B02-core bestaat, maar volume-integratie en onafhankelijke koude rollbackanker ontbreken; native NAS-lifecycle blijft eveneens open en heeft een toegewezen owner. Exacte bewijslinks en grenzen: docs/verification/priority-plan-checkpoint-20261103.json. Geen nieuwe acceptatiecriteria gesloten; score 41/100 blijft gelijk.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR139: assessmentbron en historische OS-bewijsbron ondubbelzinnig scheiden.
+De bovenstaande Bron is uitsluitend de assessmentbasis716f3ec1, niet de geteste OS-bewijsbron. De oorspronkelijke assessmentbasis was d3e5602c; uitsluitend380111b is de bewijsbron van de15 historische groene workflowruns (waaronder FR-I01 joint system18stappen, window17stappen en netwerk9stappen). Deze aantallen zijn workflowstappen, niet geaccepteerde productcriteria of nieuwe tests van deze branch. De historische lokale preflight exit2 wegens ontbrekende tools blijft aan die oorspronkelijke uitvoering gebonden; nu zijn geen native proeven opnieuw uitgevoerd. Alle62 volledige releaserijen blijven open, inclusief B02-volume/rollbackanker en native NAS-lifecycle. De twee bronrollen staan apart in verification/priority-plan-checkpoint-20261103.json. Alleen bronvermeldingen verduidelijkt;41/100 blijft gelijk.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

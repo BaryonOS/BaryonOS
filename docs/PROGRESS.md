@@ -85,6 +85,14 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR139-reviewcorrectie (3 november2026), basis`716f3ec1`: **41 ->41**.
+De gegenereerde `Bron` identificeert de assessmentbasis, niet automatisch
+de commit van ieder onderliggend bewijs. De samenvatting noemt nu expliciet
+de oorspronkelijke assessmentbasis`d3e5602c`, actuele basis`716f3ec1` en
+uitsluitende historische OS-bewijsbron`380111b`. Bestaand verplicht veld
+`assessment.source_commit` en generator blijven intact; afzonderlijke
+bewijsbron staat in het checkpoint. Geen nieuwe native uitvoering of punten.
+
 PR127-reviewintegratie (2 november 2026), basis `798706c` met `8f08db4`:
 branch **41 → 41**, main **34 → 34**. Zeven reviewpunten en gekoppelde
 font/damage-integratie hersteld; 189 Rust-app/UI-,9 netwerk- en31 Python-tests

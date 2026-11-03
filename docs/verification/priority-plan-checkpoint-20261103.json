@@ -2,6 +2,22 @@
   "schema_version": 1,
   "date": "2026-11-03",
   "task": "Execute and verify the three prioritized follow-up recommendations",
+  "review_followup": {
+    "date": "2026-11-03",
+    "assessment_base": "716f3ec11cc8d44bcd66b91e14e7b409a0877cb5",
+    "original_assessment_base": "d3e5602c01b0e12bf805a3b6e963979d35d06cce",
+    "evidence_source_commit": "380111b68688c981eec6abb8fab29174a29f5601",
+    "source_commit_semantics": "progress.json assessment.source_commit and generated README Bron identify the checkout assessed by that task, not a global replacement for the individual evidence source commits. The summary explicitly distinguishes both roles without removing the existing required schema field or changing the shared generator.",
+    "validation": [
+      "python3 tools/progress.py --write",
+      "python3 tools/progress.py --check",
+      "git diff --check"
+    ],
+    "validation_exit_status": 0,
+    "new_native_or_workflow_runs": "not_run; original run IDs and verified_os_source below remain unchanged and historical",
+    "score_previous": 41,
+    "score_current": 41
+  },
   "checkout": {
     "branch": "simonvanieperen-supreme-spork",
     "assessment_base": "d3e5602c01b0e12bf805a3b6e963979d35d06cce",
