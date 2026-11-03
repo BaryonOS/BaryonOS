@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`71cdb210`](https://github.com/simonvanieperen/nieuw-os/commit/71cdb2100aecf30242a7fc6c4d84352fb483cdea) ·
+**Bron:** [`05706135`](https://github.com/simonvanieperen/nieuw-os/commit/057061351784535448bf9e631d6fc7952bab3195) ·
 **Ontwikkelbranch:** `simonvanieperen-sturdy-guide`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Leg reviewfixes, werkelijke PR140-mergeafwijking en herhaalde PR135-native blokkades vast.
-41 blijft 41. PR140 is gemerged als d115cc96 met exact de geteste 9ad80874-boom en 32 groene technische checks. De extra lokale gate faalde op een herstartte CodeRabbit-review maar het ongekoppelde shellvervolg mergede toch; de afgebroken botreview telt niet als groen. Afwijking en echte postcheck staan in docs/verification/pr140-merge-postcheck.json. PR139/141/142-reviewfixes zijn gepubliceerd; bestaande 41+16 tests op fdc4754e en Chrome op c94a40e9 houden hun eigen bron. PR135 faalt tweemaal echt op het RAW-quotatestvenster en mist hosted volume-fixtures; primaire receipts in docs/verification/pr135-ci-blockers-2ccb.json. Nieuwe main-reconciliatie en alle toepasselijke gates blijven open. Geen nieuwe acceptatiepunten.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Combineer PR141 met nieuwe main d115cc96 zonder prototype- of bewijsverlies.
+41 blijft 41. PR141-basis 05706135 en main d115cc96 zijn gecombineerd met behoud van beide geschiedenissen, de prototypefix en alle PR140-contracttests/receipts. Vier conflicten alleen centrale metadata; beide rubrics identiek. Oude Node/Chrome- en artifact-store-resultaten blijven eigen bronbewijs. Nieuwe tests op de gecombineerde commit en volledige CI/review blijven vereist; PR135-fixtures/RANDOM en fysieke/menselijke releasegrenzen blijven open. De eerdere PR140-mergeafwijking is ongewijzigd bewaard in docs/verification/pr140-merge-postcheck.json.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

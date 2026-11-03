@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "71cdb2100aecf30242a7fc6c4d84352fb483cdea",
+    "source_commit": "057061351784535448bf9e631d6fc7952bab3195",
     "branch": "simonvanieperen-sturdy-guide",
-    "task": "Leg reviewfixes, werkelijke PR140-mergeafwijking en herhaalde PR135-native blokkades vast",
+    "task": "Combineer PR141 met nieuwe main d115cc96 zonder prototype- of bewijsverlies",
     "previous_score": 41,
-    "summary": "41 blijft 41. PR140 is gemerged als d115cc96 met exact de geteste 9ad80874-boom en 32 groene technische checks. De extra lokale gate faalde op een herstartte CodeRabbit-review maar het ongekoppelde shellvervolg mergede toch; de afgebroken botreview telt niet als groen. Afwijking en echte postcheck staan in docs/verification/pr140-merge-postcheck.json. PR139/141/142-reviewfixes zijn gepubliceerd; bestaande 41+16 tests op fdc4754e en Chrome op c94a40e9 houden hun eigen bron. PR135 faalt tweemaal echt op het RAW-quotatestvenster en mist hosted volume-fixtures; primaire receipts in docs/verification/pr135-ci-blockers-2ccb.json. Nieuwe main-reconciliatie en alle toepasselijke gates blijven open. Geen nieuwe acceptatiepunten."
+    "summary": "41 blijft 41. PR141-basis 05706135 en main d115cc96 zijn gecombineerd met behoud van beide geschiedenissen, de prototypefix en alle PR140-contracttests/receipts. Vier conflicten alleen centrale metadata; beide rubrics identiek. Oude Node/Chrome- en artifact-store-resultaten blijven eigen bronbewijs. Nieuwe tests op de gecombineerde commit en volledige CI/review blijven vereist; PR135-fixtures/RANDOM en fysieke/menselijke releasegrenzen blijven open. De eerdere PR140-mergeafwijking is ongewijzigd bewaard in docs/verification/pr140-merge-postcheck.json."
   },
   "tracks": [
     {
