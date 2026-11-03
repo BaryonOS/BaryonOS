@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "source_commit": "4ca9262d776a8cb978e49ec209e67398b11fc9ad",
+  "scope": "Host-only refactor of shared artifact and hash helpers; no OS runtime evidence.",
+  "tests": [
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p 'test_images.py' -v",
+      "exit_status": 0,
+      "tests_run": 20,
+      "log": "/tmp/nieuw-os-refactor-images-final.log",
+      "log_sha256": "d1744a059f77f456af9508b904525d3a31c2f414a37b2788b99e03e9489d649a"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p 'test_random.py' -v",
+      "exit_status": 0,
+      "tests_run": 21,
+      "log": "/tmp/nieuw-os-refactor-random-final.log",
+      "log_sha256": "aca2cc4e1f458309d6d0d06b3039ac4bd80ab67e821ff722d5a154b58094b470"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_common.py' -v",
+      "exit_status": 0,
+      "tests_run": 8,
+      "log": "/tmp/nieuw-os-refactor-common-final.log",
+      "log_sha256": "b2018da3c2a62e83ab9574e93dce05bc82f0a1464293d4057d5be55c924235ab"
+    },
+    {
+      "command": "git diff --check && python3 -m py_compile tools/common.py tools/run_images.py tools/run_random.py tools/run_fpu.py tests/test_common.py",
+      "exit_status": 0
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_*.py' -v",
+      "exit_status": 0,
+      "tests_run": 469,
+      "log": "/tmp/nieuw-os-refactor-final-root.log",
+      "log_sha256": "05d35e9b68b13e0c17b394d6b42484fefd81cc499df03f71d8f5645191cb1b68"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p 'test_*.py' -v",
+      "exit_status": 0,
+      "tests_run": 189,
+      "skipped": 3,
+      "skip_reason": "existing Rust-toolchain-dependent tests; Rust toolchain unavailable",
+      "log": "/tmp/nieuw-os-refactor-final-tools.log",
+      "log_sha256": "1f237bfc349f8a85339c0212385e7dee7414e5ae0fbc8d66f9798d7400449e85"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s .agents/skills/os-dev/tests -p 'test_*.py' -v",
+      "exit_status": 0,
+      "tests_run": 6,
+      "log": "/tmp/nieuw-os-refactor-final-osdev.log",
+      "log_sha256": "e07fd33059a74d8f04a3e7ea76d416956776813424b227e3f2656689176a0dff"
+    },
+    {
+      "command": "python3 -B tools/test_fpu.py -v",
+      "exit_status": 0,
+      "tests_run": 12,
+      "log": "/tmp/nieuw-os-refactor-final-fpu.log",
+      "log_sha256": "719794564ebcc6c15533406b320c2d5ed3102b5618b097f9b4fbba19d12146cc"
+    }
+  ],
+  "full_host_suites_on_this_source": "passed; tools suite reports three existing skips due to missing Rust toolchain",
+  "native_vm_physical_human_release_tests": "not_run"
+}

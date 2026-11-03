@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`8decd2b7`](https://github.com/simonvanieperen/nieuw-os/commit/8decd2b767952b396797188ebfbc80e1a75533bf) ·
+**Bron:** [`ef8e3568`](https://github.com/simonvanieperen/nieuw-os/commit/ef8e3568a04f02796154d517e3c9268c31d4b10e) ·
 **Ontwikkelbranch:** `simonvanieperen-refactored-fiesta`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Uitvoeren PR127 exact-head native-window-gate.
-Score blijft 41/100; deze probe sluit geen vast rubriccriterium af. De 10 runner-tests, 180 relevante Rust-hosttests, Clippy/fmt, strikte preflight en probebuild slagen. De QEMU TCG-venstersessiepoort slaagt op bronvingerafdruk b7ccd11f: 22 fasen, klembord, herstel, opnieuw openen en onafhankelijk schijforakel (14 bytes, revisie 1, canaries intact). Alle 30 hosted GitHub-checkruns op de geteste codecommit slagen. De CodeRabbit-bevinding over het handoff-label is gecorrigeerd; de inline thread is beantwoord en opgelost. Latere wijzigingen tot dit checkpoint zijn documentatie-only. Dit is geen fysieke hardware-, volledige dagelijkse desktop-, echte authenticatie- of NAS/netwerkacceptatie. PR #137 blijft open. Bewijs en hashes: docs/verification/plan-execution-20261103.json.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR #137-conflicten met main d686bd54 inhoudsbehoudend integreren.
+De score blijft 41/100; de conflictintegratie sluit geen vast rubriccriterium af. README.md, docs/PROJECT-STATE.md en docs/progress.json zijn inhoudsbehoudend samengevoegd. De relevante Python-harnassen, root Rust-hosttests, Clippy, rustfmt en de milestone-m6c-cross-build slagen. Geen QEMU-run of nieuwe native acceptatie; commando's en bewijsgrenzen staan in docs/PROJECT-STATE.md.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
