@@ -85,6 +85,19 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Generieke PCI-enumeratie en VirtIO BDF-migratie (3 november 2026), bron
+`9984b1806a99e9bf0b2df0de7935d4a0d72a5219`, branch
+`copilot/universal-driver-framework`: **41 -> 41**. `pci-core` scant
+conventionele segment-0-functies; VirtIO block/net matchen hun registratie
+zonder vaste BDF en behouden devicegebonden config-/busmastertoegang. Alleen
+type-0-endpoints worden doorgestuurd; onbekende devices worden overgeslagen en
+meerdere matches per bestaande single-devicebroker geweigerd. Freestanding
+builds, testtarget-typecheck en Clippy slagen. De hosttests en kernelbuildscript
+zijn niet uitvoerbaar doordat `cc` ontbreekt; QEMU/OVMF ontbreken eveneens.
+Daarom geen nieuwe hardwarepunten of acceptatie. Exacte commands, resultaten,
+loghashes en bronvingerafdrukken staan in de
+[PCI-runtime-receipt](verification/pci-runtime-2026-11-03/README.md).
+
 Driver-/repositoryonderzoek (3 november 2026), basis `99d13276`:
 **41 -> 41**. Ginux `c86945b`, VibeOS `866bfb9` en vib-OS `73b6429`
 vergeleken met de bestaande Nieuw OS-drivercontracten en primaire Linux-,

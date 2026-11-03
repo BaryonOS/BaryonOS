@@ -1,33 +1,52 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Driver Core: PCI type-0 validatie — 3 november 2026
+## NEXT AGENT HANDOFF — Generieke PCI-discovery en VirtIO — 3 november 2026
 
-Werkbranch `copilot/universal-driver-framework`, huidige gepushte HEAD
-`d606b874c6aa5af8a870187a38b7c4ad0c51da73`; de code-/testbron is
-`9e1721e49e5898573579ffea8107045ad1fb4f8c`. Eerste implementatiestap staat
-op die branch; deze vervolgdelta voegt een veilige type-0-configsnapshotdecoder
-toe en laat de bestaande fixed-BDF VirtIO-probes hun snapshot vóór en na
-BAR-probing aan de eigen fail-closed registry toetsen. Root-CI bevat nu ook
-`driver-core`-tests en Clippy. Geen algemene busenumeratie, driverstart,
-resourcegrant of capabilityverruiming.
+Werkbranch `copilot/universal-driver-framework`, broncommit
+`9984b1806a99e9bf0b2df0de7935d4a0d72a5219`; deze SHA is ook op de remote
+branch gecontroleerd. De nieuwe `pci-core` crate scant conventionele
+segment-0 PCI-functies, houdt rekening met multifunction-apparaten, levert
+type-0-descriptors aan de bestaande registry en slaat onbekende/niet-
+ondersteunde apparaten over. VirtIO block en net selecteren nu op PCI-match
+in plaats van vaste BDF's. Geselecteerde adressen blijven gekoppeld aan
+configuratie- en busmastertoegang; kernelcode blijft eigenaar van DMA-pagina's
+en BAR/MMIO-mappings. Meerdere matches per bestaande single-devicebroker
+worden fail-closed geweigerd. Geen generieke physical-memory-capability.
 
-Bestaande PR #153 is open tegen `main`
-(`5c66ec57aaf8eb411a83b8d6e42320ddc379383c`), maar GitHub rapporteert
-`CONFLICTING`; er zijn geen CI-checks zichtbaar. Agent Merge-run
-`41644279989` slaagde op oudere SHA `ca2cbcf7` en valideert dus niet de huidige
-bron. Niet gemerged.
+**Uitgevoerd:** `cargo +1.90.0 fmt --all -- --check`, driver-crate
+`cargo check --tests --offline`, Clippy `--all-targets -- -D warnings` en
+freestanding releasebuild voor `pci-core`, `virtio-blk-driver` en
+`virtio-net-driver`: exit 0. `git diff --check`: exit 0.
+`cargo +1.90.0 test -p pci-core -p virtio-blk-driver -p virtio-net-driver
+--offline`: exit 101, hostlinker `cc` ontbreekt. Kernel `--all-features`
+cross-check: exit 101 om dezelfde reden tijdens compilatie van de buildscript.
+QEMU/OVMF ontbreken; geen native runtime- of hardwareproef. PR #153 staat
+open; `gh pr checks 153` meldt geen checks op de huidige branch.
+Exacte commando's, exits, omgevingsblokkades en hashes staan in
+[de PCI-runtime-receipt](verification/pci-runtime-2026-11-03/README.md).
 
-**Bewijs:** fmt-check, `cargo check --tests`, Clippy `-D warnings` en
-`x86_64-unknown-none` releasebuild exit 0. De volledige commando's, logs en
-hashes staan in [de integratie-receipt](verification/universal-driver-core-integration-2026-11-03.md).
-Hosttests konden niet linken (`cc` ontbreekt; exit 101). `tools/preflight.py
---strict` eindigde exit 2: lokale QEMU/OVMF en target/compiler in PATH
-ontbreken; daarom geen kernel-QEMU-run. Score blijft 41/100.
+**Open/eerstvolgend:** hosttests en volledige kernel/typecheck via CI of een
+ontwikkelhost met C-linker; daarna de devicegebonden resource-adapter/factory
+verder uitwerken zonder DMA/IOMMU-semantiek van een maturitybranch te
+dupliceren. Root-resourcebroker, meerdere actieve devices, ACPI-roottopologie,
+ECAM, bridge-validatie, interrupts, USB, NVMe, GOP en unsupported-hardware-
+rapportage zijn nog niet gerealiseerd. Voortgang blijft 41/100.
 
-**Open/eerstvolgend:** voer hosttests/Clippy via CI of een passende ontwikkelhost
-uit en voer de bestaande wegwerp-QEMU-regressie uit. Pas daarna onderzoek naar
-een begrensde generieke PCI-discovery/resourcegrant; deze snapshotdecoder is
-alleen voor conventionele type-0 endpoints.
+### Implementatiestap — segment-0 enumeratie en VirtIO BDF-migratie
+
+Commit `9984b1806a99e9bf0b2df0de7935d4a0d72a5219`, gepusht naar
+`copilot/universal-driver-framework`; remote SHA komt exact overeen.
+`pci-core` voert een bounded scan uit en start geen resources of drivers.
+Block- en netwerkdiscovery matchen de eigen registry, weigeren meerdere
+passende functies en dragen het geselecteerde adres door tot initialisatie.
+Netwerk vertrouwt niet meer op het QEMU-fixture-MAC-adres; resetmeldingen
+rapporteren PCI-configfouten en behouden quarantainestatus. CI test/lint nu
+ook `pci-core`. Architectuurgrenzen zijn vastgelegd in ADR-065.
+
+De gerichte freestanding builds en lint slagen, maar daadwerkelijke
+hosttests zijn geblokkeerd door ontbrekende `cc`; kernelbuildscript en
+QEMU-proef zijn daardoor niet gecontroleerd. Er zijn geen nieuwe
+hardwareacceptatiepunten.
 
 ### Gepauzeerd werk — PR139 exacte contracttestreceipt
 
