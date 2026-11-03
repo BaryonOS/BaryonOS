@@ -1,7 +1,7 @@
 # Terminal Message320-I/O-protocol — hostcheckpoint
 
 Datum: 3 november 2026. Branch: `simonvanieperen-vigilant-robot`.
-Geteste bronstand: wijzigingen bovenop `d049488b90d6e4f4bee7e21d547c4ab24eb4cb4e`.
+Geteste broncommit: `49e83f56ed083b4f7a9628559d6a37f99b986dca`.
 
 ## Contract
 
@@ -21,8 +21,8 @@ De exit-/fault-/killstatus komt afzonderlijk van de kernel
 `native::status`-API; dit protocol draagt geen vertrouwde exitstatus.
 
 Dit is een hosttestbaar SDK-contract, niet de aansluiting op echte endpoints.
-Geen Terminal-proces, keyboard/renderpad, launchbroker, bufferquota boven de
-berichtenlimiet, native procesuitvoering of echte kernelstatus is getest.
+Geen Terminal-proces, keyboard/renderpad, launchbroker, per-job bytequota,
+native procesuitvoering of echte kernelstatus is getest.
 
 ## Controles
 

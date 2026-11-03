@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`c1cea978`](https://github.com/simonvanieperen/nieuw-os/commit/c1cea978c135b6210a25bc4b41401db304b6c15a) ·
+**Bron:** [`49e83f56`](https://github.com/simonvanieperen/nieuw-os/commit/49e83f56ed083b4f7a9628559d6a37f99b986dca) ·
 **Ontwikkelbranch:** `simonvanieperen-vigilant-robot`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** M4: bounded terminal input and shell argv core.
-41 blijft 41. De SDK-terminalkern levert begrensde UTF-8-regelbewerking en argv-parsing met 6 hosttests; fmt/check/Clippy en x86_64-unknown-none-check slagen. Er is geen native Terminal-app, proces-I/O-protocol of process launch; geen vast rubriccriterium gesloten.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** M4: terminal input, argv parsing, and bounded Message320 I/O protocol.
+41 blijft 41. De SDK-terminalkern levert begrensde UTF-8-regelbewerking, argv-parsing en een peer-/job-/sequence-gebonden Message320-payloadprotocol; 11 hosttests, fmt/check/Clippy en x86_64-unknown-none-check slagen. Geen endpoint-/launchintegratie of native Terminal-app; geen vast rubriccriterium gesloten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

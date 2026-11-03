@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "c1cea978c135b6210a25bc4b41401db304b6c15a",
+    "source_commit": "49e83f56ed083b4f7a9628559d6a37f99b986dca",
     "branch": "simonvanieperen-vigilant-robot",
-    "task": "M4: bounded terminal input and shell argv core",
+    "task": "M4: terminal input, argv parsing, and bounded Message320 I/O protocol",
     "previous_score": 41,
-    "summary": "41 blijft 41. De SDK-terminalkern levert begrensde UTF-8-regelbewerking en argv-parsing met 6 hosttests; fmt/check/Clippy en x86_64-unknown-none-check slagen. Er is geen native Terminal-app, proces-I/O-protocol of process launch; geen vast rubriccriterium gesloten."
+    "summary": "41 blijft 41. De SDK-terminalkern levert begrensde UTF-8-regelbewerking, argv-parsing en een peer-/job-/sequence-gebonden Message320-payloadprotocol; 11 hosttests, fmt/check/Clippy en x86_64-unknown-none-check slagen. Geen endpoint-/launchintegratie of native Terminal-app; geen vast rubriccriterium gesloten."
   },
   "tracks": [
     {

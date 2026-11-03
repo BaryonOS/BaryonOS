@@ -1,8 +1,8 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — M4 Terminal-kern — 3 november 2026
+## NEXT AGENT HANDOFF — M4 Terminal-I/O-fundament — 3 november 2026
 
-**Bronbasis:** `c1cea978c135b6210a25bc4b41401db304b6c15a`, branch
+**Bronbasis:** `49e83f56ed083b4f7a9628559d6a37f99b986dca`, branch
 `simonvanieperen-vigilant-robot`. De werkboom was schoon bij aanvang. Er is
 geen Terminal-/shell-/proces-I/O-eigenaarsclaim in de actuele queue gevonden;
 deze stap wijzigde geen M3-bestanden.
@@ -10,22 +10,29 @@ deze stap wijzigde geen M3-bestanden.
 **Resultaat:** nieuwe SDK-crate `nieuw-os-terminal-core` met een vaste
 UTF-8-regelbewerker en begrensde argv-parser. De parser ondersteunt quotes en
 escaping, begrenst commandoregel/argumenten en weigert onondersteunde
-operator-/expansiesyntax. Ze geeft geen proces- of andere capabilities.
+operator-/expansiesyntax. Het Message320-protocol begrenst stdin/stdout/
+stderr-berichten op 228 bytes, controleert peer/job/tag/volgorde, weigert
+capabilities in streamberichten en sluit een richting bij EOF. Het geeft geen
+proces- of andere capabilities.
 
-**Bewijs:** formattering, hostcheck, Clippy, zes hosttests, `x86_64-unknown-none`
-check en diffcontrole exit 0. Commando's, toolchainbeperking, hashes en
-bewijsgrens: [terminal-core-checkpoint](verification/terminal-core-20261103/README.md).
+**Bewijs:** formattering, hostcheck, Clippy, elf hosttests,
+`x86_64-unknown-none`-check en diffcontrole exit 0. Commando's,
+toolchainbeperking, hashes en bewijsgrens:
+[Terminal-kern](verification/terminal-core-20261103/README.md) en
+[I/O-protocol](verification/terminal-io-protocol-20261103/README.md).
 Roadmap **41 → 41/100**; geen rubriccriterium gesloten.
 
-**Open/beperking:** dit is geen native Terminal-app, geen input-/renderroute,
-geen gezamenlijk proces-I/O-protocol en geen process launch. Bestaande SDK
-IPC/launch-API's maken dit mogelijk als volgende veilige integratiestap, maar
-vereisen eerst een expliciet begrensd stdin/stdout-contract en bindings aan
-geautoriseerde images. Geen VM-, fysiek, gebruikerstest- of releasebewijs.
+**Open/beperking:** protocol is niet aangesloten op echte endpoints; dit is
+geen native Terminal-app, geen input-/renderroute en geen process launch.
+Kernel-senderidentiteit, streamstatus en geautoriseerde imagebinding zijn
+alleen contractinvarianten, geen native afgedwongen/bewijzen functionaliteit.
+Geen VM-, fysiek, gebruikerstest- of releasebewijs.
 
-**Eerstvolgend:** ontwerp en hosttest een Message320-terminal-I/O-protocol met
-peer-/jobbinding, sequentie- en bufferlimieten en expliciete EOF/exitstatus;
-controleer vóór die integratie opnieuw actuele SDK-/kernel-eigenaarsclaims.
+**Eerstvolgend:** controleer de actuele compositor-/input-/launch-eigenaarsclaims
+en bepaal of een kleine native Terminal-childproef via bestaande endpoints
+zonder M3-writes kan worden aangesloten. Kernel `native::status` blijft de
+bron voor exitstatus; schrijf geen shell-applicatie of manifestshortcut die
+de normale launch-/capabilitygrens omzeilt.
 
 ## Historisch checkpoint — M1 hardwareprofielkern — 3 november 2026
 
