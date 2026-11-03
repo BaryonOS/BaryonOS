@@ -157,6 +157,32 @@ appframes/IPC verder profileren. Resize, echte materiaalindex, persistente
 instellingen/notificaties, draftbewuste restart, IME/screenreader en dagelijkse
 budgetten blijven volgens de bestaande acceptatiematrix open. Geen derde roadmap.
 
+## Vorig checkpoint — desktopchat leidend; WIP bewaard en gepauzeerd — 2 november 2026
+
+Deze overdracht beschrijft de eerdere stand op `354d6016` en de daarin
+genoemde basis `1f0dd9c`; uitspraken over score, pauze en integratie
+gelden voor dat checkpoint. De huidige samenvoeging bevat de gedeelde
+damage-scaffold; visuele en retained-surface-WIP blijven afzonderlijk.
+Er is geen nieuwe native of performanceacceptatie voor de samengevoegde stand.
+
+Simon heeft **Verbeter de Nieuw OS-desktop** aangewezen als leidende chat:
+`01a19dcf-1da5-7192-bab2-7349f1e4a07a`, host `durable`. Deze chat wacht op
+een concrete taaktoewijzing en hervat geen overlappende productwijzigingen.
+Alle eigen builders zijn gepauzeerd. Geaccepteerde basis blijft
+`1f0dd9c93959e3b1335656da1e548525a288133e` op PR122; main/PR122 zijn niet gewijzigd.
+**41/100 blijft 41**. Geen nieuwe native of performanceacceptatie.
+
+Gedeelde damage-scaffold, visuele WIP en retained-surface-WIP zijn afzonderlijk
+checkpointbaar/ophaalbaar; onvoltooide inputmain-, journal-, oracle-, stack- en
+native-integratie staan expliciet beschreven. Overdracht:
+`verification/desktop-coordination-20261102/README.md`. Geen authcode toegevoegd.
+De leidende chat is gelezen; directe chatverzending is in deze omgeving niet
+beschikbaar. Dit checkpoint is een beschikbaar overdrachtsartefact, geen
+bevestiging dat de leidende chat het al heeft ontvangen.
+
+Eerstvolgende actie: verwerk de concrete basis-/bestand-/gate-instructie van
+de leidende chat. Geen verdere implementatie of merge vóór die afstemming.
+
 ## Vorig checkpoint — native klembord geïntegreerd; U02 blijft open — 2 november 2026
 
 Branch `codex/mature-native-session-20261102`, concept-PR122 op PR121.

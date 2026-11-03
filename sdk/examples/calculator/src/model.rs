@@ -1,6 +1,7 @@
 //! Local calculator state. Only authenticated INP1 events reach this model in
 //! the native adapter. No input envelope, PID or grant can be forged here.
 use crate::decimal::{self, Evaluation, MAX_INPUT};
+use nieuw_os_graphics::damage::Damage;
 use ui_core::{KeyAction, KeyboardEvent, PhysicalKey};
 
 pub const LABELS: [&str; 20] = [
@@ -84,6 +85,7 @@ pub struct Model {
     failures: u64,
     exhausted: bool,
     selecting: bool,
+    paint_damage: Damage,
 }
 impl Default for Model {
     fn default() -> Self {
@@ -109,10 +111,25 @@ impl Model {
             failures: 0,
             exhausted: false,
             selecting: false,
+            paint_damage: Damage::FULL,
         }
     }
     pub fn expression(&self) -> &str {
         core::str::from_utf8(&self.bytes[..self.length]).expect("calculator input is ASCII")
+    }
+    pub fn paint_damage(&self, _viewport: crate::render::Viewport) -> Damage {
+        self.paint_damage
+    }
+    pub fn presented(&mut self, generation: u64) -> bool {
+        if !self.exhausted && generation == self.generation {
+            self.paint_damage = Damage::EMPTY;
+            true
+        } else {
+            false
+        }
+    }
+    pub fn force_full_repaint(&mut self) {
+        self.paint_damage = Damage::FULL;
     }
     pub const fn caret(&self) -> usize {
         self.caret
@@ -205,6 +222,7 @@ impl Model {
         self.exhausted
     }
     fn changed(&mut self) {
+        self.paint_damage = Damage::FULL;
         if let Some(next) = self.generation.checked_add(1) {
             self.generation = next;
         } else {
