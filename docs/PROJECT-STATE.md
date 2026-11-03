@@ -1,6 +1,6 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Veld-07 meldingenpaneel, native open — 3 november 2026
+## NEXT AGENT HANDOFF — Veld bevroren voor seriele integratie — 3 november 2026
 
 **Basis/branch:** `ea0cd6d19235c5f8575f21d527e5bcc8526056ee`,
 `simonvanieperen-veld-hc-20261103`. Geen General-/remote-/scoreimport.
@@ -31,12 +31,36 @@ inclusief lege toestand, en de volledige bovenbalk na sluiten; bestaande
 ongemaskerde hele apporakels blijven. De echte numerieke paste na dismiss
 moet aantonen dat de klembordinhoud niet is gewist.
 
-**Native nog niet uitgevoerd:** verwacht60 volledige fasen per schaal.
-Volgende build/runner: eigen `build/veld-notice-20261103/scale1/scale2`,
-bestaande gescheiden targetcaches en dezelfde volledige100/200%-commando's
-als [bewijscontract](verification/veld-notice-20261103/README.md).
-Daarna beide normale builds. Score **41 -> 41**; geen nieuw rubriccriterium,
-volledige Veld- en releaseacceptatie open.
+**Native geverifieerd:** product
+`f1998bdbd8fccd0b26eaf897116b1dd93cb7637e`, fingerprint
+`94c3b156c01013542a50c591d605eca28b574bc0ab039f6a04caddb31b661c76`.
+60 volledige fasen per schaal;100%415,49 s,200%761,61 s,
+beide exit0/ruwe33. Alle toepasselijke gates true, ook alle eerdere HC-,
+venster-, opslag-, herstel- en isolatiegates. Dismiss/lege toestand en
+muis-/keyboardroute slagen; echte numerieke paste behoudt clipboardinhoud,
+ook na de clear-chord tijdens het paneel. Beide normale builds exit0.
+[Exacte commando's, compacte rapporten en loghashes](verification/veld-notice-20261103/README.md).
+Geen nieuwe CI-, fysieke of menselijke claim.
+
+**STOP/hervatregel:** tijdens de reeds gestarte200%-run meldde General de
+nieuwe opdracht van Simon: tijdelijke integratiesprint, geen nieuwe features,
+ook geen meldingenuitbreiding. Featurewerk meteen bevroren op de reeds
+gepubliceerde bronf1998bdb; toen geen ongecommitteerde WIP. Alleen de bestaande
+acceptatierun/normale build en bewijsarchivering daarna afgerond.
+Geen merge/mainwrite, nieuwe feature, General-/Settingswrite of scoreimport.
+Geen achtergrondgate meer actief.
+
+**Seriele intake:** HC: d5cd460a (leaf189edbd7), View-fixturedelta16c26c1c,
+appbediening047abfa1, nativebewijs43284264. Vereist eerdere Veld-menu-/
+PointerLeave-basis3799ec63/e8d19fea; geen blinde cherry-pick op oudere
+controllerbasis. Move: code0d232c70, bewijs ea0cd6d1.
+Notification: codef1998bdb rust op move's overlayroute.
+De uitvoerder stuurt deze grens aan General voor workstream→actuele-main
+beoordeling; uitsluitend General coordineert de seriele integratie.
+Controller/render/lib.rs/chain.rs zijn sinds43284264 byte-ongewijzigd.
+Eerstvolgende actie is uitsluitend die intake/handoff, geen nieuwe feature.
+Score **41 -> 41**; geen nieuw rubriccriterium, volledige Veld- en
+releaseacceptatie blijven open, niet als voltooid melden.
 
 ## Vorig checkpoint — Veld-06 native geverifieerd — 3 november 2026
 

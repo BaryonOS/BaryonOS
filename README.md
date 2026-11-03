@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`ea0cd6d1`](https://github.com/simonvanieperen/nieuw-os/commit/ea0cd6d19235c5f8575f21d527e5bcc8526056ee) ·
+**Bron:** [`f1998bdb`](https://github.com/simonvanieperen/nieuw-os/commit/f1998bdbd8fccd0b26eaf897116b1dd93cb7637e) ·
 **Ontwikkelbranch:** `simonvanieperen-veld-hc-20261103`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Veld-07: echt systeemmeldingenpaneel voor native acceptatie.
-41% blijft 41%: eerste native shellmeldingenpaneel geimplementeerd op basisea0cd6d1, uitsluitend voor bestaande echte klembordstatus. Alt+N/zichtbare knop, keyboard/muis, dismiss zonder gegevensmutatie en lege toestand. Alle scenehosttests/Clippy/fmt en19 runnertegenproeven groen, drie nieuwe echte pixel/inputproeven op vijf displays. Nieuwe60-fasengates100/200% nog niet uitgevoerd; eerder verplaatsingsbewijs blijft brongebonden. Geen nieuwe criteriumacceptatie, algemene appnotificatie-API, General-/Settingswrites of score-/remoteimport. Complete Veld- en releaseacceptatie open.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Veld-07 native geverifieerd; featurestand bevroren voor seriele integratie.
+41% blijft 41%: meldingenpaneel native geverifieerd opf1998bdb,60 volledige fasen per schaal100/200% in415,49/761,61s, exit0/ruwe33. Echte panelbediening, lege toestand, inputisolatie en numerieke paste na dismiss groen; alle eerdere HC-, venster-, opslag- en herstelgates behouden. Beide normale builds en scenehosttests/Clippy/fmt plus19 runnertegenproeven groen; compact bewijs opgeslagen. Op Simons integratiesprintopdracht featurewerk bevroren, geen nieuwe features of merge/mainwrites. Geen nieuwe criteriumacceptatie, General-/Settingswrites of score-/remoteimport; volledige Veld- en releaseacceptatie open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
