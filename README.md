@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`37ad1e98`](https://github.com/simonvanieperen/nieuw-os/commit/37ad1e98328e59b752c230310a4abeaca749b669) ·
-**Ontwikkelbranch:** `simonvanieperen-friendly-system`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR142: integreer actuele main 5c66ec57 en behoud alle unieke bronreceipts.
-41 blijft 41. Assessmentbasis blijft 37ad1e98. Main 5c66ec57 is inhoudsbehoudend geïntegreerd; 41 prototype-hosttests en de gewijzigde JS-syntaxcheck zijn zonder receipt uitgevoerd op de opgeloste mergeboom. Snapshotregister behoudt unieke PR131/132/141/142-historie. Geen nieuwe native/QEMU/fysieke/menselijke acceptatie of criteriumpunten.
+**Bron:** [`47ec535f`](https://github.com/simonvanieperen/nieuw-os/commit/47ec535f15bb10912dbc6cbf1af3de9df0c6c226) ·
+**Ontwikkelbranch:** `simonvanieperen-upgraded-disco`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR148-conflicten met main 8e0c15d inhoudsbehoudend integreren.
+41/100 blijft 41/100. Drie centrale documentconflicten behouden beide checkpointreeksen en hun afzonderlijke bewijsbronnen. Gedeelde harnashulpfuncties komen exact uit main; PR148-volume-admissie blijft behouden. Geen handmatige codewijziging, nieuw criterium of native acceptatie. Gerichte integratievalidatie en nieuwe-head CI worden afzonderlijk gerapporteerd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
