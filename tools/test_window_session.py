@@ -98,6 +98,28 @@ class WindowRunnerTests(unittest.TestCase):
                         changed[header + (py * width + px) * 3] ^= 1
                         self.assertFalse(window.oracle_matches(bytes(changed), expected, phase, scale))
 
+    def test_keyboard_move_requires_every_shell_and_translated_app_pixel(self):
+        for scale in (1, 2):
+            width, height, body, _ = window.profile_geometry(scale)
+            shell = image(width, height, (1, 2, 3))
+            app = image(*body[2:], (4, 5, 6))
+            header = len(shell) - width * height * 3
+            for phase, (dx, dy) in window.WINDOW_MOVE_OFFSETS.items():
+                x, y = body[0] + dx * scale, body[1] + dy * scale
+                w, h = body[2:]
+                actual = bytearray(shell)
+                for row in range(h):
+                    start = header + ((y + row) * width + x) * 3
+                    actual[start:start + w * 3] = bytes((4, 5, 6)) * w
+                self.assertTrue(window.window_move_matches(bytes(actual), shell, app, phase, scale))
+                for px, py in ((x, y), (x + w - 1, y + h - 1), (x + w // 2, y + h // 2),
+                               (0, 0), (width - 1, height - 1), (0, y + 1)):
+                    changed = bytearray(actual)
+                    changed[header + (py * width + px) * 3] ^= 1
+                    self.assertFalse(window.window_move_matches(bytes(changed), shell, app, phase, scale))
+                if dx or dy:
+                    self.assertFalse(window.material_matches(bytes(actual), app, body))
+
     def test_workspace_checks_every_pixel_in_declared_shell_regions(self):
         raw = image(1280, 720, (1, 2, 3))
         header = len(raw) - 1280 * 720 * 3

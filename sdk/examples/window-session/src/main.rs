@@ -301,7 +301,7 @@ fn run() -> ! {
                     core::array::from_fn::<_, 2, _>(|index| scene.visible(index));
                 let queue_generations = queues.each_ref().map(Queue::generation);
                 let event = offer.event();
-                let overlay_was_open = scene.palette_is_open() || scene.window_menu_is_open();
+                let overlay_was_open = scene.overlay_is_open();
                 let palette_key = match event {
                     Event::Key(key) => scene
                         .palette_key(key, &mut damage)
@@ -388,8 +388,7 @@ fn run() -> ! {
                         if let Some(hovered) = app_pointer_hover {
                             if recipient != Some(hovered)
                                 && app_pointer_capture != Some(hovered)
-                                && !scene.palette_is_open()
-                                && !scene.window_menu_is_open()
+                                && !scene.overlay_is_open()
                             {
                                 // No outside coordinates or button state cross
                                 // the app boundary; leaving is not focus loss.
@@ -424,7 +423,7 @@ fn run() -> ! {
                         }
                     }
                 }
-                if !overlay_was_open && (scene.palette_is_open() || scene.window_menu_is_open()) {
+                if !overlay_was_open && scene.overlay_is_open() {
                     app_pointer_capture = None;
                     app_pointer_hover = None;
                     for queue in &mut queues {

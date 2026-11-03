@@ -1,5 +1,27 @@
 # Native venstersessie — U01 bouwcontract
 
+## Veld-06: toetsenbordverplaatsing
+
+Alt+F7 verplaatst het gefocuste zichtbare venster zonder muis. Pijlen16,
+Shift+pijlen1 logische pixels; Enter bevestigt, Escape herstelt.
+Een muisklik of inputannulering herstelt de oorsprong zonder clickthrough.
+Alle input uit de modus blijft in de shell; bestaande overlayannulering
+behoudt generatie-/klembordgrenzen. Venstermenu en bovenbalk tonen bediening.
+Appbuffers, surfacegeometry, offsets, epochs, document en rechten blijven
+gelijk. De grens is gelijk aan titelbalkdrag; geen resize- of tilingclaim.
+Counteroverflow verandert geen positie.
+
+Schrijfbestanden: window-session scene/main, eigen window_move-hosttests,
+bestaande shellfixtures, runner/tegenproeven/CI en status-/bewijsdocumenten.
+Geen writes aan de expliciet vrijgegeven Materiaal-/Settingsbestanden.
+Acceptatie: volledige scenehosttests, strikte Clippy/fmt en runnertegenproeven;
+beide volledige native56-fasengates en normale builds. Acht nieuwe fasen
+eisen iedere shellpixel plus alle pixels van de echte verplaatste appbody,
+coarse/fine/coordinaten, nul appkeys tijdens modaliteit, Enterbehoud,
+exact volledig frameherstel na Escape en Ordenen.
+`keyboard_window_move_gate` alleen na volledige niet-diagnostische
+workspaceacceptatie. De eerdere HC- en alle oorspronkelijke gates blijven.
+
 ## Veld-05: app-lokale hoogcontrastbediening
 
 3 november 2026, basis `16c26c1c`. Ctrl+Alt+H schakelt uitsluitend de

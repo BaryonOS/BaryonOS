@@ -1,5 +1,23 @@
 # Ontwerpbesluiten
 
+## ADR-VELD-005 — toetsenbord verplaatst dezelfde begrensde vensters
+
+3 november 2026, basis `43284264`. Alt+F7 opent een exclusieve shellmodus
+voor het werkelijk gefocuste zichtbare venster. Pijlen verplaatsen16 logische
+pixels, Shift+pijlen1; Enter bevestigt, Escape herstelt de beginpositie.
+Muisklik of inputannulering herstelt eveneens, zonder clickthrough. De
+bovenbalk geeft bediening aan; het venstermenu toont de shortcut.
+F7 zonder Alt behoudt de bestaande Dit werk/Alles-functie.
+
+Er wordt geen appbuffer, surfacegeometrie, epoch of capability veranderd.
+De shell verplaatst uitsluitend zijn bestaande compositiepositie, binnen
+dezelfde grens als titelbalkdrag. Counteroverflow wordt gecontroleerd voordat
+de positie wijzigt; de muisroute gebruikt dezelfde helper.
+De bestaande overlayannulering trekt oude appinput/klembordtickets in.
+Toetsen/repeats/releases uit de modus blijven bij de shell. Dit is directe
+positionering zonder animatie; geen nep-resize, motion- of toegankelijkheidsclaim.
+Herzien bij echte surfaceherconfiguratie of algemene windowlifecycle.
+
 ## ADR-VELD-004 — app-lokaal hoogcontrast zonder nieuwe autoriteit
 
 3 november 2026, basis `16c26c1c`. De bestaande gevalideerde inputroute

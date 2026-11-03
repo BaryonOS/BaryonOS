@@ -4,6 +4,25 @@ use nieuw_os_window_session::scene::{Damage, Scene, MAX_PIXELS};
 use std::io::Write;
 use ui_core::{KeyAction, KeyboardEvent, KeyboardModifiers, PhysicalKey};
 
+fn tap(scene: &mut Scene, damage: &mut Damage, key: PhysicalKey, alt: bool, shift: bool) {
+    for action in [KeyAction::Press, KeyAction::Release] {
+        assert!(scene
+            .palette_key(
+                KeyboardEvent {
+                    key,
+                    action,
+                    modifiers: KeyboardModifiers {
+                        left_alt: alt,
+                        left_shift: shift,
+                        ..Default::default()
+                    },
+                },
+                damage,
+            )
+            .unwrap());
+    }
+}
+
 #[test]
 fn render_workspace_shell_oracles() {
     let Some(directory) = std::env::var_os("OS_WINDOW_FIXTURE_DIRECTORY") else {
@@ -34,6 +53,14 @@ fn render_workspace_shell_oracles() {
         "window-minimized",
         "window-empty",
         "window-restored",
+        "move-open",
+        "move-coarse",
+        "move-fine",
+        "move-committed",
+        "move-cancel-open",
+        "move-cancel-step",
+        "move-cancelled",
+        "move-arranged",
     ] {
         match phase {
             "focus-material" => scene.toggle_focus(&mut damage),
@@ -101,6 +128,25 @@ fn render_workspace_shell_oracles() {
             }
             "window-empty" => scene.minimize(1, &mut damage).unwrap(),
             "window-restored" => scene.select(0).unwrap(),
+            "move-open" => {
+                if std::env::var("OS_WINDOW_SHELL_CLIPBOARD").as_deref() == Ok("1") {
+                    scene.set_clipboard_notice(nieuw_os_window_session::clipboard::Notice::Empty);
+                }
+                tap(&mut scene, &mut damage, PhysicalKey::F7, true, false);
+            }
+            "move-coarse" => {
+                tap(&mut scene, &mut damage, PhysicalKey::Right, false, false);
+                tap(&mut scene, &mut damage, PhysicalKey::Down, false, false);
+            }
+            "move-fine" => {
+                tap(&mut scene, &mut damage, PhysicalKey::Right, false, true);
+                tap(&mut scene, &mut damage, PhysicalKey::Up, false, true);
+            }
+            "move-committed" => tap(&mut scene, &mut damage, PhysicalKey::Enter, false, false),
+            "move-cancel-open" => tap(&mut scene, &mut damage, PhysicalKey::F7, true, false),
+            "move-cancel-step" => tap(&mut scene, &mut damage, PhysicalKey::Left, false, false),
+            "move-cancelled" => tap(&mut scene, &mut damage, PhysicalKey::Escape, false, false),
+            "move-arranged" => tap(&mut scene, &mut damage, PhysicalKey::F8, false, false),
             _ => unreachable!(),
         }
         let mut pixels = vec![0; (width * height) as usize];

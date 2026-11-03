@@ -43,6 +43,11 @@ CLIPBOARD_PHASES = ("clipboard-copied", "clipboard-numeric", "clipboard-back",
 CALCULATOR_CLIPBOARD_PHASES = ("clipboard-unsupported", "clipboard-pasted", "clipboard-calculator-copied",
                               "calculator-high-contrast", "calculator-contrast-restored")
 CALCULATOR_BODY = (932, 140, 320, 484)
+WINDOW_MOVE_OFFSETS = {
+    "move-open": (0, 0), "move-coarse": (16, 16), "move-fine": (17, 15),
+    "move-committed": (17, 15), "move-cancel-open": (17, 15),
+    "move-cancel-step": (1, 15), "move-cancelled": (17, 15), "move-arranged": (0, 0),
+}
 WORKSPACE_REGIONS = {
     # Exact shell regions only. Existing unmasked full-app oracles stay mandatory.
     "focus-material": ((0, 0, 1280, 40), (920, 90, 344, 550), (0, 650, 1280, 70)),
@@ -100,6 +105,7 @@ def generate_fixture(*, clipboard: bool = False, workspace: bool = False, scale:
     env["CARGO_TARGET_DIR"] = str(private_path(TARGET / "window-fixture"))
     env["OS_WINDOW_FIXTURE_DIRECTORY"] = str(directory)
     env["OS_WINDOW_SHELL_SCALE"] = str(scale)
+    env["OS_WINDOW_SHELL_CLIPBOARD"] = "1" if clipboard else "0"
     width, height, body, calculator_body = profile_geometry(scale)
     command = ["cargo", "+1.90.0", "test", "--offline", "--locked", "--manifest-path",
                str(ROOT / "ui/native/Cargo.toml"), "--test", "window_native_fixture", "--", "--nocapture"]
@@ -144,7 +150,7 @@ def generate_fixture(*, clipboard: bool = False, workspace: bool = False, scale:
                 if size == f"{calculator_body[2]}x{calculator_body[3]}":
                     frames[phase] = raw
     if workspace:
-        for phase in workspace_regions(scale):
+        for phase in (*workspace_regions(scale), *WINDOW_MOVE_OFFSETS):
             path = private_path(directory / f"workspace-{phase}.ppm", regular=True)
             raw = path.read_bytes()
             if ppm(raw)[:2] != (width, height):
@@ -155,6 +161,7 @@ def generate_fixture(*, clipboard: bool = False, workspace: bool = False, scale:
                     source_sha256=frozen, source_fingerprint_version=3, generator_command=command,
                     generator_commands=commands, clipboard_oracles=clipboard,
                     workspace_regions=workspace_regions(scale) if workspace else {},
+                    window_move_offsets=WINDOW_MOVE_OFFSETS if workspace else {},
                     scale=scale, viewport=[width, height],
                     generator_exit=result.returncode, files_sha256=hashes)
     publish_json(directory / "fixture.json", metadata)
@@ -182,6 +189,13 @@ def material_matches(raw: bytes, expected: bytes, body: tuple = BODY) -> bool:
 
 def calculator_matches(raw: bytes, expected: bytes, body: tuple = CALCULATOR_BODY) -> bool:
     return ppm(expected)[:2] == body[2:] and crop(raw, body) == ppm(expected)[2]
+
+def window_move_matches(raw: bytes, shell: bytes, app: bytes, phase: str, scale: int) -> bool:
+    width, height, body, _ = profile_geometry(scale)
+    dx, dy = WINDOW_MOVE_OFFSETS[phase]
+    moved = (body[0] + dx * scale, body[1] + dy * scale, *body[2:])
+    return (ppm(raw)[:2] == (width, height) and ppm(shell)[:2] == (width, height)
+            and material_matches(raw, app, moved) and not changed_outside(shell, raw, moved))
 
 
 def oracle_matches(raw: bytes, expected: bytes, name: str, scale: int = 1) -> bool:
@@ -315,6 +329,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                   workspace_requested=workspace, workspace_gate=False,
                   document_tools_gate=False, document_menu_gate=False, pointer_leave_gate=False,
                   app_high_contrast_gate=False,
+                  keyboard_window_move_gate=False,
                   window_states_gate=False,
                   source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                   source_fingerprint_version=3, kernel_feature=manifest["kernel_feature"], manifest=manifest, command=command,
@@ -642,6 +657,44 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                          "reopened-window-restored",
                          image_check=lambda image: workspace_matches(
                              image, fixture["frames"]["workspace-window-restored"], "window-restored", scale))
+                    def move_wait(phase):
+                        return wait("workspace-" + phase, lambda raw, s:
+                                    comp(raw).get("FOCUSED") == 0
+                                    and s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM
+                                    and s["MATERIAL"][-1]["SAVE_ACKS"] == 1
+                                    and s["MATERIAL"][-1]["DIRTY"] == 0,
+                                    image_check=lambda image: window_move_matches(
+                                        image, fixture["frames"]["workspace-" + phase],
+                                        fixture["frames"]["reopened-window-restored"], phase, scale))
+                    before_move = comp(serial(directory / "serial.txt"))["MOVES"]
+                    shell_key("alt", "f7")
+                    move_wait("move-open")
+                    modal_keys = {role: numbers(serial(directory / "serial.txt"), f"WINDOW:{role}:KEYS")[-1]
+                                  for role in ("MATERIAL", "CALCULATOR")}
+                    shell_key("x"); shell_key("ctrl", "c"); shell_key("f6")
+                    shell_key("right"); shell_key("down")
+                    move_wait("move-coarse")
+                    shell_key("shift", "right"); shell_key("shift", "up")
+                    move_wait("move-fine")
+                    if any(numbers(serial(directory / "serial.txt"), f"WINDOW:{role}:KEYS")[-1] != count
+                           for role, count in modal_keys.items()):
+                        raise ValueError("Keyboard window movement leaked input to an app")
+                    shell_key("ret")
+                    move_wait("move-committed")
+                    shell_key("alt", "f7")
+                    move_wait("move-cancel-open")
+                    shell_key("left")
+                    move_wait("move-cancel-step")
+                    shell_key("esc")
+                    move_wait("move-cancelled")
+                    if captured["workspace-move-committed"] != captured["workspace-move-cancelled"]:
+                        raise ValueError("Cancelled keyboard move did not restore the entire framebuffer")
+                    if comp(serial(directory / "serial.txt"))["MOVES"] != before_move + 5:
+                        raise ValueError("Keyboard movement did not use the real bounded window position")
+                    shell_key("f8")
+                    move_wait("move-arranged")
+                    if captured["window-restored"] != captured["workspace-move-arranged"]:
+                        raise ValueError("Arranging after keyboard movement changed the original framebuffer")
                     menu_button = (834, 90) if scale == 1 else (1028, 180)
                     move(body[0] + menu_button[0], body[1] + menu_button[1])
                     button(True); button(False); move(width - 20, 50 * scale)
@@ -708,6 +761,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                           document_menu_gate=workspace and not diagnostic,
                           pointer_leave_gate=workspace and not diagnostic,
                           app_high_contrast_gate=workspace and clipboard and not diagnostic,
+                          keyboard_window_move_gate=workspace and not diagnostic,
                           window_states_gate=workspace and not diagnostic,
                           native_scale200_gate=scale == 2 and not diagnostic,
                           duration_s=time.monotonic() - start, serial_sha256=sha256(directory / "serial.txt"), qmp_trace=control.trace)

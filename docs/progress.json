@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "047abfa1cedcfc2740d59793ae30ab07fcd9e197",
+    "source_commit": "4328426434edd01d4f7bb8a40c845b4e3bcae70e",
     "branch": "simonvanieperen-veld-hc-20261103",
-    "task": "Veld-05: app-lokaal hoogcontrast native geverifieerd op beide schalen",
+    "task": "Veld-06: echte toetsenbordverplaatsing voor native acceptatie",
     "previous_score": 41,
-    "summary": "41% blijft 41%: app-lokaal hoogcontrast native geverifieerd op047abfa1. Beide volledige48-fasengates100/200% slagen in379,46/685,62s, exit0 en ruwe33; echte menu/rekenmachine-hotkeys, exact standaardpixelherstel en alle oorspronkelijke gates behouden. Beide normale builds en vier hosttestsuites/Clippy/fmt plus17 runnertests groen. Brongebonden rapporten en loghashes opgeslagen. Veilige HC-branch behoudt eigen commits; oude remote-delta en General-score39 niet geimporteerd. Geen nieuwe criteriumacceptatie: globale instellingen, volledige Veld-omgeving, menselijke/hardware-/releasevalidatie blijven open."
+    "summary": "41% blijft 41%: Alt+F7-toetsenbordverplaatsing toegevoegd op basis43284264, zonder appbuffers, epochs of rechten te veranderen. Volledige scenehosttests/Clippy/fmt en18 runnertegenproeven groen; vijf nieuwe hostproeven meten hele pixels op vijf displays, grenzen, coarse/fine, modaliteit, annulering en overflow. Nieuwe56-fasen-nativegates nog niet uitgevoerd. Eerder HC-bewijs op047abfa1 blijft brongebonden. Geen criteria, gewichten, General-bestanden/score of oude remote-delta gewijzigd; complete Veld- en releaseacceptatie open."
   },
   "tracks": [
     {

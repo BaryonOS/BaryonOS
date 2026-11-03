@@ -1,6 +1,44 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Veld-05 native geverifieerd — 3 november 2026
+## NEXT AGENT HANDOFF — Veld-06 toetsenbordverplaatsing, native open — 3 november 2026
+
+**Basis/branch:** `4328426434edd01d4f7bb8a40c845b4e3bcae70e`,
+`simonvanieperen-veld-hc-20261103`; HC-product047abfa1 blijft afzonderlijk
+op beide schalen native bewezen. Geen oude remote-delta of General-scoreimport.
+
+**Nieuwe code:** `window-session/src/scene.rs` en `main.rs` bieden echte
+toetsenbordverplaatsing: Alt+F7, pijlen16/Shift+pijlen1 logische pixels,
+Enter bevestigt en Escape herstelt de oorsprong. Het venstermenu vermeldt
+de werkende shortcut; tijdens verplaatsen verschijnt expliciete uitleg in
+de vertrouwde bovenbalk. Grenzen zijn dezelfde als voor titelbalkdrag.
+Geen resize, nieuwe surface, kopie van appdata of rechtenwijziging.
+Counteroverflow laat positie ongewijzigd; dezelfde helper herstelt dit ook
+voor de bestaande muisroute.
+
+**Invoergrens:** move is een exclusieve shellmodus. De bestaande
+overlay-openroute annuleert oude appinput en klembordtickets. Alle toetsen
+blijven in de shell; Enter/Escape-releases lekken niet naar de app.
+Invoerverlies of een muisklik annuleert met positieherstel, zonder clickthrough.
+Geen Materiaal-, Settings-, kernel-, K05-, OOM- of SMP-writes.
+General blijft enige schrijver van controller/render en Materiaal lib/chain.
+
+**Hostbewijs:** alle window-session-tests, strikte all-target Clippy en fmt
+exit0;18 runnertests exit0. Vijf nieuwe hostproeven toetsen vijf displays,
+hele incremental/referencepixels, buffer-/epochbehoud, exacte coarse/fine
+positie, grenzen/repeat, overflow, modaliteit, extra modifiers en annulering.
+Runnertegenproef eist iedere shellpixel EN iedere verplaatste apppixel in
+alle acht nieuwe fasen op beide schalen. Log
+`files/veld-env/logs/veld-move-final-host.log`.
+
+**Native nog niet uitgevoerd:** verwacht56 volledige fasen per schaal.
+Volgende commando's: build met `native-window-session-probe`, runner
+`--clipboard --workspace --scale 1`; daarna hidpi-probe/scale2 en beide
+normale builds. Eigen buildmappen `build/veld-move-20261103/scale1/scale2`;
+bestaande gescheiden targetcaches behouden. Hele app-/shellbeelden en echte
+inputtellers, ook geen toetsen naar apps tijdens verplaatsen.
+Score **41 -> 41**; geen nieuw rubriccriterium, complete Veld-omgeving open.
+
+## Vorig checkpoint — Veld-05 native geverifieerd — 3 november 2026
 
 **Basis/branch:** `16c26c1c4b2d20e4644633439edf1dfe848bc140`,
 `simonvanieperen-veld-hc-20261103`. Deze afzonderlijke branch is veilig

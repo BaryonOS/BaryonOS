@@ -40,6 +40,11 @@ pub enum WindowState {
     Normal,
     Minimized,
 }
+#[derive(Clone, Copy)]
+struct KeyboardMove {
+    index: usize,
+    origin: Rect,
+}
 const QUERY_BYTES: usize = 32;
 struct ProgramPalette {
     open: bool,
@@ -93,6 +98,7 @@ pub struct Scene {
     window_menu_target: usize,
     window_menu_selected: usize,
     overlay_pointer: bool,
+    keyboard_move: Option<KeyboardMove>,
 }
 impl Scene {
     pub fn new(width: u32, height: u32, scale: u32, epochs: [u64; 2]) -> Result<Self, Invalid> {
@@ -161,6 +167,7 @@ impl Scene {
             window_menu_target: 0,
             window_menu_selected: 0,
             overlay_pointer: false,
+            keyboard_move: None,
         })
     }
     pub fn frame(&self, index: usize) -> Rect {
@@ -197,6 +204,9 @@ impl Scene {
         Ok(())
     }
     pub fn minimize(&mut self, index: usize, damage: &mut Damage) -> Result<(), Invalid> {
+        if self.keyboard_move_is_active() {
+            return Err(Invalid);
+        }
         self.minimize_state(index)?;
         self.close_window_menu(damage);
         for index in 0..WINDOWS {
@@ -207,6 +217,55 @@ impl Scene {
     }
     pub fn window_menu_is_open(&self) -> bool {
         self.window_menu_open
+    }
+    pub fn keyboard_move_is_active(&self) -> bool {
+        self.keyboard_move.is_some()
+    }
+    pub fn overlay_is_open(&self) -> bool {
+        self.palette_is_open() || self.window_menu_is_open() || self.keyboard_move_is_active()
+    }
+    fn begin_keyboard_move(&mut self, damage: &mut Damage) {
+        if self.focused_visible() {
+            self.cancel_pointer();
+            self.close_window_menu(damage);
+            self.keyboard_move = Some(KeyboardMove {
+                index: self.focused,
+                origin: self.windows[self.focused].body,
+            });
+            damage.mark(Rect::new(0, 0, self.width, 40 * self.scale));
+            damage.mark(self.dock());
+        }
+    }
+    fn finish_keyboard_move(&mut self, cancel: bool) {
+        if let Some(movement) = self.keyboard_move.take() {
+            if cancel {
+                self.windows[movement.index].body = movement.origin;
+            }
+        }
+    }
+    fn cancel_keyboard_move(&mut self, damage: &mut Damage) {
+        if let Some(movement) = self.keyboard_move {
+            damage.mark(self.paint_bounds(movement.index));
+            self.finish_keyboard_move(true);
+            damage.mark(self.paint_bounds(movement.index));
+            damage.mark(Rect::new(0, 0, self.width, 40 * self.scale));
+            damage.mark(self.dock());
+        }
+    }
+    fn position_window(&mut self, index: usize, x: i32, y: i32) -> Result<(), Invalid> {
+        let body = self.windows[index].body;
+        let x = x.clamp(0, (self.width - body.width) as i32);
+        let y = y.clamp(
+            94 * self.scale as i32,
+            (self.height - body.height - 72 * self.scale) as i32,
+        );
+        if (body.x, body.y) != (x, y) {
+            let moves = self.moves.checked_add(1).ok_or(Invalid)?;
+            self.windows[index].body.x = x;
+            self.windows[index].body.y = y;
+            self.moves = moves;
+        }
+        Ok(())
     }
     pub fn window_menu_button(&self, index: usize) -> Rect {
         if index >= WINDOWS {
@@ -291,6 +350,7 @@ impl Scene {
         Ok(())
     }
     pub fn toggle_focus(&mut self, damage: &mut Damage) {
+        self.cancel_keyboard_move(damage);
         for index in 0..WINDOWS {
             damage.mark(self.paint_bounds(index));
         }
@@ -302,6 +362,7 @@ impl Scene {
         damage.mark(self.mode_button());
     }
     pub fn arrange(&mut self, damage: &mut Damage) {
+        self.cancel_keyboard_move(damage);
         let old = [self.paint_bounds(0), self.paint_bounds(1)];
         self.arrange_positions();
         for (index, bounds) in old.into_iter().enumerate() {
@@ -348,7 +409,7 @@ impl Scene {
         )
     }
     pub fn palette_open(&mut self) -> bool {
-        if self.palette.open || self.window_menu_is_open() {
+        if self.overlay_is_open() {
             return false;
         }
         self.palette.open = true;
@@ -482,6 +543,52 @@ impl Scene {
         let states = self.states;
         let focus = self.focused;
         let mode = self.mode;
+        if let Some(movement) = self.keyboard_move {
+            if matches!(key.action, KeyAction::Press | KeyAction::Repeat) {
+                self.palette_keys[index] = true;
+                let step = (if key.modifiers.shift() { 1 } else { 16 }) * self.scale as i32;
+                let body = self.windows[movement.index].body;
+                match key.key {
+                    PhysicalKey::Escape => self.finish_keyboard_move(true),
+                    PhysicalKey::Enter | PhysicalKey::KeypadEnter
+                        if key.action == KeyAction::Press =>
+                    {
+                        self.finish_keyboard_move(false)
+                    }
+                    PhysicalKey::Left => {
+                        self.position_window(movement.index, body.x - step, body.y)?
+                    }
+                    PhysicalKey::Right => {
+                        self.position_window(movement.index, body.x + step, body.y)?
+                    }
+                    PhysicalKey::Up => {
+                        self.position_window(movement.index, body.x, body.y - step)?
+                    }
+                    PhysicalKey::Down => {
+                        self.position_window(movement.index, body.x, body.y + step)?
+                    }
+                    _ => {}
+                }
+            }
+            if !self.keyboard_move_is_active() {
+                damage.mark(Rect::new(0, 0, self.width, 40 * self.scale));
+                damage.mark(self.dock());
+            }
+            self.mark_window_changes(frames, states, focus, mode, damage);
+            return Ok(true);
+        }
+        let move_chord = key.key == PhysicalKey::F7
+            && key.modifiers.alt()
+            && !key.modifiers.control()
+            && !key.modifiers.shift()
+            && !key.modifiers.super_key();
+        if move_chord && !self.palette_is_open() {
+            if key.action == KeyAction::Press && !self.palette_keys[index] {
+                self.palette_keys[index] = true;
+                self.begin_keyboard_move(damage);
+            }
+            return Ok(true);
+        }
         if self.window_menu_is_open() {
             damage.mark(self.window_menu_paint_bounds());
             if matches!(key.action, KeyAction::Press | KeyAction::Repeat) {
@@ -529,7 +636,11 @@ impl Scene {
                 }
                 return Ok(true);
             }
-            if matches!(key.key, PhysicalKey::F7 | PhysicalKey::F8) {
+            if matches!(key.key, PhysicalKey::F7 | PhysicalKey::F8)
+                && !key.modifiers.alt()
+                && !key.modifiers.control()
+                && !key.modifiers.super_key()
+            {
                 if key.action == KeyAction::Press {
                     self.palette_keys[index] = true;
                     if key.key == PhysicalKey::F7 {
@@ -599,7 +710,7 @@ impl Scene {
         Ok(true)
     }
     pub fn hovered_task(&self) -> Option<usize> {
-        (!self.palette_is_open() && !self.window_menu_is_open())
+        (!self.overlay_is_open())
             .then(|| {
                 (0..WINDOWS).find(|index| {
                     self.task_button(*index)
@@ -615,6 +726,7 @@ impl Scene {
             *owned = false;
         }
         self.close_window_menu(damage);
+        self.cancel_keyboard_move(damage);
         if self.palette_close() {
             damage.mark(self.palette_paint_bounds());
             damage.mark(self.dock());
@@ -631,6 +743,7 @@ impl Scene {
         let hover = self.hovered_task();
         let palette_open = self.palette_is_open();
         let menu_open = self.window_menu_is_open();
+        let move_active = self.keyboard_move_is_active();
         let menu_bounds = self.window_menu_paint_bounds();
         let states = self.states;
         let mode = self.mode;
@@ -653,6 +766,10 @@ impl Scene {
         }
         if self.window_menu_is_open() {
             damage.mark(self.window_menu_paint_bounds());
+        }
+        if move_active && !self.keyboard_move_is_active() {
+            damage.mark(Rect::new(0, 0, self.width, 40 * self.scale));
+            damage.mark(self.dock());
         }
         self.mark_window_changes(frames, states, focus, mode, damage);
         Ok(recipient)
@@ -707,7 +824,7 @@ impl Scene {
         )
     }
     pub fn select(&mut self, index: usize) -> Result<(), Invalid> {
-        if index >= WINDOWS {
+        if index >= WINDOWS || self.keyboard_move_is_active() {
             return Err(Invalid);
         }
         if index != self.focused {
@@ -748,6 +865,13 @@ impl Scene {
             return Err(Invalid);
         }
         self.pointer = (x, y);
+        if self.keyboard_move_is_active() {
+            if down {
+                self.finish_keyboard_move(true);
+                self.overlay_pointer = true;
+            }
+            return Ok(None);
+        }
         if self.window_menu_is_open() {
             if down {
                 self.overlay_pointer = true;
@@ -791,16 +915,7 @@ impl Scene {
                 self.drag = None;
                 return Ok(None);
             }
-            let window = &mut self.windows[index];
-            let maxx = self.width - window.body.width;
-            let maxy = self.height - window.body.height - 72 * self.scale;
-            let nx = (x as i32 - dx).clamp(0, maxx as i32);
-            let ny = (y as i32 - dy).clamp(94 * self.scale as i32, maxy as i32);
-            if window.body.x != nx || window.body.y != ny {
-                window.body.x = nx;
-                window.body.y = ny;
-                self.moves = self.moves.checked_add(1).ok_or(Invalid)?;
-            }
+            self.position_window(index, x as i32 - dx, y as i32 - dy)?;
             return Ok(None);
         }
         if down {
@@ -1052,6 +1167,16 @@ impl Scene {
                 label,
                 Font::new(Size::Small, Weight::Regular, s == 2),
                 palette.text,
+            );
+        }
+        if self.keyboard_move_is_active() {
+            c.fill_rect(Rect::new(0, 0, self.width, 39 * s), palette.desktop_start);
+            c.text(
+                22 * s as i32,
+                10 * s as i32,
+                "Verplaatsen · Pijlen 16 px · Shift+pijlen 1 px · Enter bewaren · Esc terug",
+                Font::new(Size::Small, Weight::Regular, s == 2),
+                theme::SHELL_TEXT,
             );
         }
         for index in [1 - self.focused, self.focused] {
@@ -1325,7 +1450,7 @@ impl Scene {
         c.text(
             r.x + 20 * s as i32,
             r.y + 152 * s as i32,
-            "Alt+Space · Venstermenu",
+            "Alt+F7 · Verplaatsen",
             Font::new(Size::Small, Weight::Regular, s == 2),
             p.muted,
         );

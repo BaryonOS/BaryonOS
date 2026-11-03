@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`047abfa1`](https://github.com/simonvanieperen/nieuw-os/commit/047abfa1cedcfc2740d59793ae30ab07fcd9e197) ·
+**Bron:** [`43284264`](https://github.com/simonvanieperen/nieuw-os/commit/4328426434edd01d4f7bb8a40c845b4e3bcae70e) ·
 **Ontwikkelbranch:** `simonvanieperen-veld-hc-20261103`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Veld-05: app-lokaal hoogcontrast native geverifieerd op beide schalen.
-41% blijft 41%: app-lokaal hoogcontrast native geverifieerd op047abfa1. Beide volledige48-fasengates100/200% slagen in379,46/685,62s, exit0 en ruwe33; echte menu/rekenmachine-hotkeys, exact standaardpixelherstel en alle oorspronkelijke gates behouden. Beide normale builds en vier hosttestsuites/Clippy/fmt plus17 runnertests groen. Brongebonden rapporten en loghashes opgeslagen. Veilige HC-branch behoudt eigen commits; oude remote-delta en General-score39 niet geimporteerd. Geen nieuwe criteriumacceptatie: globale instellingen, volledige Veld-omgeving, menselijke/hardware-/releasevalidatie blijven open.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Veld-06: echte toetsenbordverplaatsing voor native acceptatie.
+41% blijft 41%: Alt+F7-toetsenbordverplaatsing toegevoegd op basis43284264, zonder appbuffers, epochs of rechten te veranderen. Volledige scenehosttests/Clippy/fmt en18 runnertegenproeven groen; vijf nieuwe hostproeven meten hele pixels op vijf displays, grenzen, coarse/fine, modaliteit, annulering en overflow. Nieuwe56-fasen-nativegates nog niet uitgevoerd. Eerder HC-bewijs op047abfa1 blijft brongebonden. Geen criteria, gewichten, General-bestanden/score of oude remote-delta gewijzigd; complete Veld- en releaseacceptatie open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
