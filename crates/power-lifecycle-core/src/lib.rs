@@ -80,22 +80,23 @@ impl Lifecycle {
         if request.generation != self.generation {
             return Err(Error::StaleGeneration);
         }
+        let mut suspend_origin = self.suspend_origin;
         let next = match (self.state, request.transition) {
             (State::Active | State::Idle, Transition::BeginSuspend) => {
-                self.suspend_origin = Some(self.state);
+                suspend_origin = Some(self.state);
                 State::Suspending
             }
             (State::Suspending, Transition::SuspendComplete) => {
-                self.suspend_origin = None;
+                suspend_origin = None;
                 State::Suspended
             }
             (State::Suspending, Transition::CancelSuspend) => {
-                let origin = self.suspend_origin.ok_or(Error::InvalidTransition)?;
-                self.suspend_origin = None;
+                let origin = suspend_origin.ok_or(Error::InvalidTransition)?;
+                suspend_origin = None;
                 origin
             }
             (State::Suspending, Transition::SuspendFailed) => {
-                self.suspend_origin = None;
+                suspend_origin = None;
                 State::Failed
             }
             (State::Suspended, Transition::BeginResume) => State::Resuming,
@@ -112,7 +113,7 @@ impl Lifecycle {
                 | State::Failed,
                 Transition::BeginReset,
             ) => {
-                self.suspend_origin = None;
+                suspend_origin = None;
                 State::Resetting
             }
             (State::Resetting, Transition::ResetComplete) => State::Active,
@@ -125,6 +126,7 @@ impl Lifecycle {
             .ok_or(Error::GenerationExhausted)?;
         self.state = next;
         self.generation = generation;
+        self.suspend_origin = suspend_origin;
         Ok(next)
     }
 }
@@ -186,11 +188,49 @@ mod tests {
             Ok(State::Idle)
         );
 
+        apply(&mut lifecycle, Transition::Wake).unwrap();
         apply(&mut lifecycle, Transition::BeginSuspend).unwrap();
         assert_eq!(
             apply(&mut lifecycle, Transition::CancelSuspend),
-            Ok(State::Idle)
+            Ok(State::Active)
         );
+    }
+
+    #[test]
+    fn generation_exhaustion_leaves_all_fields_unchanged() {
+        for (state, suspend_origin, transition) in [
+            (State::Active, None, Transition::BeginSuspend),
+            (State::Idle, None, Transition::BeginSuspend),
+            (
+                State::Suspending,
+                Some(State::Idle),
+                Transition::SuspendComplete,
+            ),
+            (
+                State::Suspending,
+                Some(State::Idle),
+                Transition::CancelSuspend,
+            ),
+            (
+                State::Suspending,
+                Some(State::Idle),
+                Transition::SuspendFailed,
+            ),
+            (State::Suspending, Some(State::Idle), Transition::BeginReset),
+        ] {
+            let mut lifecycle = Lifecycle {
+                state,
+                generation: u64::MAX,
+                suspend_origin,
+            };
+            assert_eq!(
+                apply(&mut lifecycle, transition),
+                Err(Error::GenerationExhausted)
+            );
+            assert_eq!(lifecycle.state, state);
+            assert_eq!(lifecycle.generation, u64::MAX);
+            assert_eq!(lifecycle.suspend_origin, suspend_origin);
+        }
     }
 
     #[test]

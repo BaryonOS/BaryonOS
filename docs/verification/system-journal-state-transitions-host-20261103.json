@@ -42,7 +42,7 @@
   ],
   "implemented": [
     "A 257-write deterministic sequence with periodic timestamp-regression rejection is compared with a reference model.",
-    "After every transition, the test checks retained sequence/order, process- and capability-scoped reads, and written/overwritten/rejected counters.",
+    "After every accepted write, the test checks retained sequence/order, process- and capability-scoped reads, and written/overwritten/rejected counters.",
     "The repeated wraparound path remains an external consumer test; no production API or dependency changed."
   ],
   "limitations": [

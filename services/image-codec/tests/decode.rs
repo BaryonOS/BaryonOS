@@ -129,9 +129,9 @@ fn verify(f: &Fixture, tolerance: u8, format: Format) {
 fn fuzz_limits() -> Limits {
     Limits {
         input_bytes: 64 * 1024,
-        width: 128,
+        width: 193,
         height: 128,
-        pixels: 16_384,
+        pixels: 193 * 113,
         work_bytes: 2 * 1024 * 1024,
         metadata_bytes: 8192,
         png_chunks: 128,
@@ -420,6 +420,10 @@ fn seeded_bounded_parser_sweep_fails_closed_without_panicking() {
     const MAX_CASES: usize = 2048;
     let limits = fuzz_limits();
     let mut rng = DeterministicRng(0x6e65_7577_6f73_0001);
+
+    let progressive = include_bytes!("../fixtures/progressive.jpg");
+    assert!(decode(progressive, limits, &Cancellation::default()).is_ok());
+    exercise_bounded_input(progressive, limits);
 
     for _ in 0..MAX_CASES {
         let length = (rng.next() as usize) % 8193;

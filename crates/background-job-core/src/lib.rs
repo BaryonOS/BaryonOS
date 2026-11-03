@@ -28,6 +28,21 @@ identity_type!(JobIdentity);
 identity_type!(OwnerIdentity);
 identity_type!(CapabilityScopeId);
 
+/// Identifies one owner lifetime within the issuing `BackgroundJobs` instance.
+/// Registrations and handles are supplied by a trusted runtime, not authenticated
+/// by this core. Handles from different instances must not be interchanged.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct OwnerHandle {
+    identity: OwnerIdentity,
+    generation: NonZeroU64,
+}
+
+impl OwnerHandle {
+    pub const fn identity(self) -> OwnerIdentity {
+        self.identity
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct CapabilityScope {
     pub id: CapabilityScopeId,
@@ -115,7 +130,7 @@ impl Lifecycle {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Job {
     pub identity: JobIdentity,
-    pub owner: OwnerIdentity,
+    pub owner: OwnerHandle,
     pub purpose: Purpose,
     pub capability_scope: CapabilityScope,
     pub budget: ResourceBudget,
@@ -133,6 +148,7 @@ pub enum Error {
     UnknownJob,
     OwnerLimit,
     OwnerAlreadyRegistered,
+    OwnerGenerationExhausted,
     OwnerNotRegistered,
     OwnerExited,
     ScopeLimit,
@@ -147,13 +163,13 @@ pub enum Error {
 
 #[derive(Clone, Copy)]
 struct OwnerState {
-    identity: Option<OwnerIdentity>,
+    handle: Option<OwnerHandle>,
     exited: bool,
 }
 
 impl OwnerState {
     const EMPTY: Self = Self {
-        identity: None,
+        handle: None,
         exited: false,
     };
 }
@@ -176,6 +192,7 @@ impl ScopeState {
 pub struct BackgroundJobs<const CAPACITY: usize> {
     jobs: [Option<Job>; CAPACITY],
     owners: [OwnerState; IDENTITY_SLOTS],
+    owner_generation: u64,
     scopes: [ScopeState; IDENTITY_SLOTS],
 }
 
@@ -187,28 +204,41 @@ impl<const CAPACITY: usize> BackgroundJobs<CAPACITY> {
         Ok(Self {
             jobs: [None; CAPACITY],
             owners: [OwnerState::EMPTY; IDENTITY_SLOTS],
+            owner_generation: 0,
             scopes: [ScopeState::EMPTY; IDENTITY_SLOTS],
         })
     }
 
-    pub fn register_owner(&mut self, identity: OwnerIdentity) -> Result<(), Error> {
+    /// Issues a new lifetime handle for a trusted runtime's owner identity.
+    /// A live identity can be registered only once; after exit it can be reused.
+    pub fn register_owner(&mut self, identity: OwnerIdentity) -> Result<OwnerHandle, Error> {
         if self
             .owners
             .iter()
-            .any(|owner| owner.identity == Some(identity))
+            .any(|owner| !owner.exited && owner.handle.is_some_and(|h| h.identity == identity))
         {
             return Err(Error::OwnerAlreadyRegistered);
         }
-        let slot = self
+        let index = self
             .owners
-            .iter_mut()
-            .find(|owner| owner.identity.is_none())
+            .iter()
+            .position(|owner| owner.handle.is_none() || owner.exited)
             .ok_or(Error::OwnerLimit)?;
-        *slot = OwnerState {
-            identity: Some(identity),
+        let generation = self
+            .owner_generation
+            .checked_add(1)
+            .and_then(NonZeroU64::new)
+            .ok_or(Error::OwnerGenerationExhausted)?;
+        let handle = OwnerHandle {
+            identity,
+            generation,
+        };
+        self.owners[index] = OwnerState {
+            handle: Some(handle),
             exited: false,
         };
-        Ok(())
+        self.owner_generation = generation.get();
+        Ok(handle)
     }
 
     pub fn register_scope(&mut self, scope: CapabilityScope) -> Result<(), Error> {
@@ -247,7 +277,7 @@ impl<const CAPACITY: usize> BackgroundJobs<CAPACITY> {
     pub fn create(
         &mut self,
         identity: JobIdentity,
-        owner: OwnerIdentity,
+        owner: OwnerHandle,
         purpose: Purpose,
         scope: CapabilityScope,
         budget: ResourceBudget,
@@ -270,7 +300,7 @@ impl<const CAPACITY: usize> BackgroundJobs<CAPACITY> {
         let owner_state = self
             .owners
             .iter()
-            .find(|state| state.identity == Some(owner))
+            .find(|state| state.handle == Some(owner))
             .ok_or(Error::OwnerNotRegistered)?;
         if owner_state.exited {
             return Err(Error::OwnerExited);
@@ -377,11 +407,11 @@ impl<const CAPACITY: usize> BackgroundJobs<CAPACITY> {
         Ok(cancelled)
     }
 
-    pub fn owner_exit(&mut self, owner: OwnerIdentity) -> Result<usize, Error> {
+    pub fn owner_exit(&mut self, owner: OwnerHandle) -> Result<usize, Error> {
         let state = self
             .owners
             .iter_mut()
-            .find(|state| state.identity == Some(owner))
+            .find(|state| state.handle == Some(owner))
             .ok_or(Error::OwnerNotRegistered)?;
         state.exited = true;
         let mut cancelled = 0;
@@ -463,11 +493,10 @@ mod tests {
         ResourceBudget::new(100, 4096, 8192).unwrap()
     }
 
-    fn setup<const N: usize>() -> (BackgroundJobs<N>, OwnerIdentity, CapabilityScope) {
+    fn setup<const N: usize>() -> (BackgroundJobs<N>, OwnerHandle, CapabilityScope) {
         let mut jobs = BackgroundJobs::new().unwrap();
-        let owner = owner(10);
+        let owner = jobs.register_owner(owner(10)).unwrap();
         let scope = scope(1);
-        jobs.register_owner(owner).unwrap();
         jobs.register_scope(scope).unwrap();
         (jobs, owner, scope)
     }
@@ -558,6 +587,73 @@ mod tests {
             Err(Error::OwnerExited)
         );
         assert_eq!(jobs.start(job(1)), Err(Error::InvalidTransition));
+    }
+
+    #[test]
+    fn owner_slots_reuse_lifetimes_without_retargeting_jobs() {
+        let (mut jobs, old, scope) = setup::<2>();
+        assert_eq!(
+            jobs.register_owner(old.identity()),
+            Err(Error::OwnerAlreadyRegistered)
+        );
+        jobs.create(job(1), old, Purpose::Indexing, scope, budget(), 4)
+            .unwrap();
+        jobs.start(job(1)).unwrap();
+        // Keep the other seven slots occupied while the first slot is recycled.
+        for id in 1..IDENTITY_SLOTS as u64 {
+            jobs.register_owner(owner(id)).unwrap();
+        }
+        let generation = jobs.owner_generation;
+        assert_eq!(jobs.register_owner(owner(100)), Err(Error::OwnerLimit));
+        assert_eq!(jobs.owner_generation, generation);
+        assert_eq!(jobs.owner_exit(old), Ok(1));
+        assert_eq!(jobs.owner_exit(old), Ok(0));
+
+        let mut current = jobs.register_owner(old.identity()).unwrap();
+        assert_ne!(current, old);
+        assert_eq!(current.identity(), old.identity());
+        assert_eq!(jobs.get(job(1)).unwrap().owner, old);
+        assert_eq!(jobs.get(job(1)).unwrap().lifecycle, Lifecycle::Cancelled);
+        assert_eq!(jobs.owner_exit(old), Err(Error::OwnerNotRegistered));
+        assert_eq!(
+            jobs.create(job(2), old, Purpose::Indexing, scope, budget(), 4),
+            Err(Error::OwnerNotRegistered)
+        );
+        // More than eight lifetimes, in the same slot and with the same ID.
+        for _ in 0..IDENTITY_SLOTS + 1 {
+            assert_eq!(jobs.owner_exit(current), Ok(0));
+            let next = jobs.register_owner(old.identity()).unwrap();
+            assert_ne!(next, current);
+            assert_eq!(jobs.owner_exit(current), Err(Error::OwnerNotRegistered));
+            current = next;
+        }
+        jobs.create(job(2), current, Purpose::Indexing, scope, budget(), 4)
+            .unwrap();
+        assert_eq!(jobs.owner_exit(old), Err(Error::OwnerNotRegistered));
+        assert_eq!(jobs.get(job(2)).unwrap().lifecycle, Lifecycle::Queued);
+        assert_eq!(jobs.owner_exit(current), Ok(1));
+        assert_eq!(jobs.get(job(1)).unwrap().owner, old);
+        assert_eq!(jobs.get(job(2)).unwrap().owner, current);
+    }
+
+    #[test]
+    fn exhausted_owner_generation_does_not_mutate_registration_state() {
+        let (mut jobs, old, scope) = setup::<1>();
+        jobs.owner_exit(old).unwrap();
+        jobs.owner_generation = u64::MAX - 1;
+        let last = jobs.register_owner(old.identity()).unwrap();
+        assert_eq!(jobs.owner_generation, u64::MAX);
+        jobs.owner_exit(last).unwrap();
+        assert_eq!(
+            jobs.register_owner(old.identity()),
+            Err(Error::OwnerGenerationExhausted)
+        );
+        assert_eq!(jobs.owner_generation, u64::MAX);
+        assert_eq!(jobs.owner_exit(last), Ok(0));
+        assert_eq!(
+            jobs.create(job(1), last, Purpose::Indexing, scope, budget(), 4),
+            Err(Error::OwnerExited)
+        );
     }
 
     #[test]
