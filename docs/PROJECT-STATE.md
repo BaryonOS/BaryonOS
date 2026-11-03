@@ -3,7 +3,7 @@
 ## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
 
 **Gepubliceerde basis:** branch `simonvanieperen-studious-spoon`, commit
-`aa5aa64cd311f1e1416f7aaa489f7fde2a6508d1`, gepusht naar
+`dd79a39581959ff1fd8610c98d41de510022a3e4`, gepusht naar
 `origin/simonvanieperen-studious-spoon`. Actieve toewijzing:
 `SYSTEM-MATURITY-SMP`, queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`.
 OOM/K05 zijn afgesloten en blijven ongewijzigd;
@@ -98,10 +98,12 @@ TLB-shootdown/hergebruik en bredere races/failureacceptatie blijven open. Dit
 is geen volledige K06-acceptatie. `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft
 QUEUED.
 
-**Eerstvolgende actie:** commit/push de beperkte KS-14-acceptatieslice en draai
-daarna de volledige SMP-matrix met het nieuwe revokeprofiel. TLB-shootdown/
-hergebruik en bredere races blijven apart open; claim geen remote
-shootdownprotocol zonder implementatie en bewijs.
+**Eerstvolgende actie:** draai de volledige `python3 -B tools/test_smp.py`-
+matrix op deze gepushte bron. De negen stages bevatten M2 1/2/4 CPU, M3 2
+CPU, exit op een AP, M3 1-CPU-regressie, M3 4 CPU, cross-CPU M4 IPC en
+cross-CPU KS-14 revoke. Gebruik de exacte PATH/QEMU/OVMF-omgeving hierboven.
+TLB-shootdown/hergebruik en bredere races blijven daarna open; claim geen
+remote shootdownprotocol zonder implementatie en bewijs.
 
 **Cross-CPU capability-IPC — eerdere lokale proef vóór matrix:**
 `native-smp-m4` combineert het bestaande SMP-M3-profiel met de bestaande M4
@@ -140,8 +142,8 @@ Een eerdere aanroep met `--help` is geen helpmodus, voerde de runner uit en
 stopte door ontbrekende `cargo` op de standaard-PATH; die poging staat apart in
 [`smp-rendezvous-20261103T173931Z.json`](verification/sm-smp/smp-rendezvous-20261103T173931Z.json).
 
-**Eerstvolgende actie:** volledige matrix met AP-exit en cross-CPU-revoke,
-daarna resterende TLB-/hergebruikacceptatie.
+**Eerstvolgende actie:** volledige negen-stagematrix met AP-exit en
+cross-CPU-revoke, daarna resterende TLB-/hergebruikacceptatie.
 Matrixomgeving en commando staan hierboven.
 De bestaande dirty wijzigingen in README en voortgangsbestanden zijn behouden
 en niet door deze SMP-taak aangepast.
