@@ -53,6 +53,23 @@ lichtere hidpi-smokeproef. Verplichte uitvoeringscommando's:
 en de volledige runneropdracht hierboven aangevuld met `--scale 2`.
 Normale distributieprofielen blijven zonder foutinjectie.
 
+**Documentcontextmenu (Veld-03):** Menu, Shift+F10, rechterklik en een zichtbare
+knop openen een modaal appmenu: Alles selecteren, Lezen/Schrijven, Opslaan,
+Annuleren. Pijlen/Tab, Enter en Escape zijn voldoende. Onderliggende semantische
+acties verdwijnen zolang het menu open is; oude generaties en read-only writes
+blijven geweigerd. Geen nagebootste klembordgebaren of opslagrechten.
+Schrijfgrens: native controller/render, menutests, bestaande native fixtures,
+runner en CI. Geen kernel-/opslag-/capabilitywijziging.
+
+Acceptatie: volledige UI-/app-hosttests en strikte Clippy/fmt; hele appbeelden
+op beide schalen voor open menu, navigatie, echte toolkeuze, geblokkeerde
+mutatie, annuleren en de zichtbare muisknop. Alle bestaande native gates
+blijven vereist. `document_menu_gate` wordt alleen groen na de volledige
+workspacegate inclusief echte muisbediening; diagnostische runs voldoen niet.
+Bekende grens: pointerverlaten na een voltooide klik meldt nog geen
+hover-leave aan de app. De muisorakels behouden de werkelijk achtergebleven
+knophover; dit wordt niet gemaskeerd of als opgelost voorgesteld.
+
 ## Veld: eerste native uitvoering
 
 **Opdracht/basis:** uitvoering na het visuele onderzoeksplan,

@@ -62,6 +62,24 @@ class WindowRunnerTests(unittest.TestCase):
                 changed[header + (y * 1280 + x) * 3] ^= 1
                 self.assertFalse(window.oracle_matches(bytes(changed), expected, phase))
 
+    def test_document_menu_oracles_require_whole_body_at_both_scales(self):
+        phases = ("document-menu", "document-menu-next", "document-menu-read",
+                  "document-menu-blocked", "document-menu-cancelled", "document-menu-write",
+                  "document-menu-mouse", "document-menu-mouse-cancelled")
+        for scale in (1, 2):
+            width, height, body, _ = window.profile_geometry(scale)
+            raw = image(width, height, (1, 2, 3))
+            expected = image(*body[2:], (1, 2, 3))
+            header = len(raw) - width * height * 3
+            x, y, w, h = body
+            for phase in phases:
+                self.assertIn(phase, window.FIXTURE_PHASES)
+                self.assertTrue(window.oracle_matches(raw, expected, phase, scale))
+                for px, py in ((x, y), (x + w - 1, y + h - 1), (x + w // 2, y + h // 2)):
+                    changed = bytearray(raw)
+                    changed[header + (py * width + px) * 3] ^= 1
+                    self.assertFalse(window.oracle_matches(bytes(changed), expected, phase, scale))
+
     def test_workspace_checks_every_pixel_in_declared_shell_regions(self):
         raw = image(1280, 720, (1, 2, 3))
         header = len(raw) - 1280 * 720 * 3

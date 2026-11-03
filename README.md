@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`48655bce`](https://github.com/simonvanieperen/nieuw-os/commit/48655bce7ccf2ac707ee77de8014ebc4029c1b89) ·
+**Bron:** [`6d5b3de3`](https://github.com/simonvanieperen/nieuw-os/commit/6d5b3de380708c144f5d56021af8fe2f613c9711) ·
 **Ontwikkelbranch:** `simonvanieperen-fictional-disco`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Veld-03: native 200%-gate en echt documentcontextmenu.
-41% blijft 41%: bron48655bce heeft36 volledige native200%-fasen op1920x1080, exit0, naast eerder native100%-bewijs op0c66173b. Gereedschappen, venstertoestanden en onverkorte isolatie-/klembord-/herstel-/schijfketen slagen. Eerste CLI-fout op a95a8b97 apart bewaard en na reparatie volledig herhaald. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Documentcontextmenu, complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open.
+41% blijft 41%: bron48655bce heeft36 volledige native200%-fasen op1920x1080, exit0, naast eerder native100%-bewijs op0c66173b. Documentcontextmenu geintegreerd op6d5b3de3; samengevoegde UI/app-hosttests, Clippy, fmt en16 runnertegenproeven slagen. Nieuwe toetsenbord-/muismenu-orakels voor beide schalen; menu-nativeacceptatie nog niet uitgevoerd. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Hover-leave, complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

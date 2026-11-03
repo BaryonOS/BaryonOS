@@ -32,6 +32,9 @@ SERIAL_LIMIT = 4 * 1024 * 1024
 BODY = (28, 114, 880, 510)
 FIXTURE_PHASES = ("initial", "editor", "dirty", "saved", "list", "reopened",
                   "read-tool", "read-tool-blocked", "write-tool-restored",
+                  "document-menu", "document-menu-next", "document-menu-read",
+                  "document-menu-blocked", "document-menu-cancelled", "document-menu-write",
+                  "document-menu-mouse", "document-menu-mouse-cancelled",
                   "reopened-window-restored",
                   "dirty-focus-lost", "dirty-rebound", "dirty-recovered")
 CLIPBOARD_PHASES = ("clipboard-copied", "clipboard-numeric", "clipboard-back",
@@ -308,7 +311,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
     report = dict(schema_version=1, passed=False, native_gate=False, smoke_only=diagnostic,
                   recovery_handshake_only=recovery_handshake, clipboard_requested=clipboard, clipboard_gate=False, source_sha256=frozen,
                   workspace_requested=workspace, workspace_gate=False,
-                  document_tools_gate=False,
+                  document_tools_gate=False, document_menu_gate=False,
                   window_states_gate=False,
                   source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                   source_fingerprint_version=3, kernel_feature=manifest["kernel_feature"], manifest=manifest, command=command,
@@ -503,6 +506,31 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 for phase in ("read-tool", "read-tool-blocked", "write-tool-restored"):
                     if changed_outside(captured["dirty"], captured[phase], body):
                         raise ValueError("Document tool changed pixels outside its assigned body")
+                key("shift", "f10"); key("x")
+                wait("document-menu", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM,
+                     "document-menu")
+                key("down")
+                wait("document-menu-next", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM,
+                     "document-menu-next")
+                key("ret")
+                wait("document-menu-read", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM,
+                     "document-menu-read")
+                for physical in ("x", "delete", "backspace"):
+                    key(physical)
+                wait("document-menu-blocked", lambda raw, s: s["MATERIAL"][-1]["DRAFT_BYTES"] == len(TEXT)
+                     and s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM
+                     and s["MATERIAL"][-1]["SAVE_ACKS"] == dirty["MATERIAL"][-1]["SAVE_ACKS"],
+                     "document-menu-blocked")
+                key("shift", "f10"); key("esc")
+                wait("document-menu-cancelled", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM,
+                     "document-menu-cancelled")
+                key("f4")
+                wait("document-menu-write", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM,
+                     "document-menu-write")
+                for phase in ("document-menu", "document-menu-next", "document-menu-read",
+                              "document-menu-blocked", "document-menu-cancelled", "document-menu-write"):
+                    if changed_outside(captured["dirty"], captured[phase], body):
+                        raise ValueError("Document menu changed pixels outside its assigned body")
                 if clipboard:
                     key("ctrl", "a"); key("ctrl", "c")
                     wait("clipboard-copied", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM, "clipboard-copied")
@@ -611,6 +639,17 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                          "reopened-window-restored",
                          image_check=lambda image: workspace_matches(
                              image, fixture["frames"]["workspace-window-restored"], "window-restored", scale))
+                    menu_button = (834, 90) if scale == 1 else (1028, 180)
+                    move(body[0] + menu_button[0], body[1] + menu_button[1])
+                    button(True); button(False); move(width - 20, 50 * scale)
+                    wait("document-menu-mouse", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM
+                         and s["MATERIAL"][-1]["SAVE_ACKS"] == 1, "document-menu-mouse")
+                    key("esc")
+                    wait("document-menu-mouse-cancelled", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM
+                         and s["MATERIAL"][-1]["DIRTY"] == 0, "document-menu-mouse-cancelled")
+                    for phase in ("document-menu-mouse", "document-menu-mouse-cancelled"):
+                        if changed_outside(captured["window-restored"], captured[phase], body):
+                            raise ValueError("Mouse document menu changed pixels outside its assigned body")
                 key("f10")
             process.wait(timeout=max(0.1, deadline - time.monotonic()))
             raw = serial(directory / "serial.txt")
@@ -641,6 +680,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
             report.update(passed=True, native_gate=not diagnostic, clipboard_gate=clipboard and not diagnostic,
                           workspace_gate=workspace and not diagnostic,
                           document_tools_gate=not diagnostic,
+                          document_menu_gate=workspace and not diagnostic,
                           window_states_gate=workspace and not diagnostic,
                           native_scale200_gate=scale == 2 and not diagnostic,
                           duration_s=time.monotonic() - start, serial_sha256=sha256(directory / "serial.txt"), qmp_trace=control.trace)

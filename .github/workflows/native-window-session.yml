@@ -141,6 +141,7 @@ jobs:
           assert report["clipboard_requested"] is True and report["clipboard_gate"] is True
           assert report["workspace_requested"] is True and report["workspace_gate"] is True
           assert report["document_tools_gate"] is True
+          assert report["document_menu_gate"] is True
           assert report["window_states_gate"] is True
           assert report["smoke_only"] is False and report["raw_qemu_exit"] == 33
           assert report["kernel_feature"] == os.environ["NOS_WINDOW_PROBE_FEATURE"]

@@ -11,7 +11,7 @@ use nieuw_os_materiaal::{
     Scale, Viewport, TILE_HEIGHT, TILE_PIXELS, TILE_WIDTH,
 };
 use std::{io::Write, path::Path};
-use ui_core::{KeyAction, KeyboardEvent, KeyboardModifiers, PhysicalKey};
+use ui_core::{KeyAction, KeyboardEvent, KeyboardModifiers, MouseButtons, MouseEvent, PhysicalKey};
 
 const TEXT: &str = "nieuw os werkt";
 const PROFILES: [(u32, u32, Scale); 2] = [
@@ -26,6 +26,26 @@ fn key(
     physical: PhysicalKey,
     control: bool,
 ) {
+    modified_key(
+        ui,
+        epoch,
+        sequence,
+        generation,
+        physical,
+        KeyboardModifiers {
+            left_control: control,
+            ..KeyboardModifiers::default()
+        },
+    );
+}
+fn modified_key(
+    ui: &mut Controller<'_, Port>,
+    epoch: u64,
+    sequence: &mut u64,
+    generation: u64,
+    physical: PhysicalKey,
+    modifiers: KeyboardModifiers,
+) {
     for action in [KeyAction::Press, KeyAction::Release] {
         *sequence += 1;
         ui.deliver(InputEnvelope {
@@ -35,10 +55,7 @@ fn key(
             event: Event::Key(KeyboardEvent {
                 key: physical,
                 action,
-                modifiers: KeyboardModifiers {
-                    left_control: control,
-                    ..KeyboardModifiers::default()
-                },
+                modifiers,
             }),
         })
         .unwrap();
@@ -66,10 +83,13 @@ fn text(ui: &mut Controller<'_, Port>, sequence: &mut u64) {
     assert_eq!(ui.view().contents, Some(TEXT));
 }
 fn snapshot(ui: &Controller<'_, Port>, phase: &str, directory: Option<&Path>) {
+    assert_eq!(ui.view().cursor, None);
+    snapshot_frame(ui, phase, directory);
+}
+fn snapshot_frame(ui: &Controller<'_, Port>, phase: &str, directory: Option<&Path>) {
     let view = ui.view();
     assert!(view.desktop.is_none());
     assert!(!view.draw_pointer);
-    assert_eq!(view.cursor, None);
     let (width, height) = (view.viewport.width(), view.viewport.height());
     let frame = Frame::new(view);
     let mut pixels = vec![0; (width * height * 3) as usize];
@@ -173,6 +193,85 @@ fn render_native_window_material_walkthrough_oracle() {
             );
             assert!(ui.view().editable);
             snapshot(&ui, "write-tool-restored", directory.as_deref());
+            modified_key(
+                &mut ui,
+                INPUT_EPOCH,
+                &mut sequence,
+                1,
+                PhysicalKey::F10,
+                KeyboardModifiers {
+                    left_shift: true,
+                    ..KeyboardModifiers::default()
+                },
+            );
+            assert!(ui.view().document_menu.is_some());
+            key(
+                &mut ui,
+                INPUT_EPOCH,
+                &mut sequence,
+                1,
+                PhysicalKey::X,
+                false,
+            );
+            assert_eq!(ui.view().contents, Some(TEXT));
+            snapshot(&ui, "document-menu", directory.as_deref());
+            key(
+                &mut ui,
+                INPUT_EPOCH,
+                &mut sequence,
+                1,
+                PhysicalKey::Down,
+                false,
+            );
+            snapshot(&ui, "document-menu-next", directory.as_deref());
+            key(
+                &mut ui,
+                INPUT_EPOCH,
+                &mut sequence,
+                1,
+                PhysicalKey::Enter,
+                false,
+            );
+            assert!(ui.view().document_menu.is_none());
+            assert!(!ui.view().editable);
+            snapshot(&ui, "document-menu-read", directory.as_deref());
+            for physical in [PhysicalKey::X, PhysicalKey::Delete, PhysicalKey::Backspace] {
+                key(&mut ui, INPUT_EPOCH, &mut sequence, 1, physical, false);
+            }
+            assert_eq!(ui.view().contents, Some(TEXT));
+            snapshot(&ui, "document-menu-blocked", directory.as_deref());
+            modified_key(
+                &mut ui,
+                INPUT_EPOCH,
+                &mut sequence,
+                1,
+                PhysicalKey::F10,
+                KeyboardModifiers {
+                    left_shift: true,
+                    ..KeyboardModifiers::default()
+                },
+            );
+            key(
+                &mut ui,
+                INPUT_EPOCH,
+                &mut sequence,
+                1,
+                PhysicalKey::Escape,
+                false,
+            );
+            assert!(ui.view().document_menu.is_none());
+            assert!(!ui.view().editable);
+            snapshot(&ui, "document-menu-cancelled", directory.as_deref());
+            key(
+                &mut ui,
+                INPUT_EPOCH,
+                &mut sequence,
+                1,
+                PhysicalKey::F4,
+                false,
+            );
+            assert!(ui.view().editable);
+            snapshot(&ui, "document-menu-write", directory.as_deref());
             key(&mut ui, INPUT_EPOCH, &mut sequence, 1, PhysicalKey::S, true);
             assert!(ui.document().is_saving());
             let mut completed = false;
@@ -215,6 +314,47 @@ fn render_native_window_material_walkthrough_oracle() {
             })
             .unwrap();
             snapshot(&ui, "reopened-window-restored", directory.as_deref());
+            let (x, y) = if scale == Scale::Percent100 {
+                (834, 90)
+            } else {
+                (1028, 180)
+            };
+            for buttons in [1, 0] {
+                sequence += 1;
+                ui.deliver(InputEnvelope {
+                    epoch: INPUT_EPOCH,
+                    sequence,
+                    generation: 2,
+                    event: Event::Mouse {
+                        x,
+                        y,
+                        input: MouseEvent {
+                            dx: 0,
+                            dy: 0,
+                            buttons: MouseButtons::checked(buttons).unwrap(),
+                            changed: MouseButtons::checked(1).unwrap(),
+                            x_overflow: false,
+                            y_overflow: false,
+                        },
+                    },
+                })
+                .unwrap();
+            }
+            assert!(ui.view().cursor.is_some());
+            assert!(ui.view().document_menu.is_some());
+            snapshot_frame(&ui, "document-menu-mouse", directory.as_deref());
+            key(
+                &mut ui,
+                INPUT_EPOCH,
+                &mut sequence,
+                2,
+                PhysicalKey::Escape,
+                false,
+            );
+            assert!(ui.view().document_menu.is_none());
+            assert_eq!(ui.view().contents, Some(TEXT));
+            assert!(!ui.document().is_dirty());
+            snapshot_frame(&ui, "document-menu-mouse-cancelled", directory.as_deref());
         }
     });
 }

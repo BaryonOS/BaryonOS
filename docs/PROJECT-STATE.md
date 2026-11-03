@@ -58,10 +58,20 @@ Helptekst hersteld met `%%` en een echte CLI-helptest toegevoegd.
 Herbouw en volledige herhaling slagen na die reparatie.
 [Brongebonden 200%-bewijs](verification/veld-hidpi-20261103/README.md).
 
-Volgende stap: documentcontextmenu `e873ebe0e86391118903260e136b1ea1016a20e1`
-integreren, echte apporakels en native bediening toevoegen op beide schalen.
-Agent `e9f601e4` heeft dat menu in aparte worktree opgeleverd; hosttests
-slagen, native nog niet getest. Hoofdagent beheert runner en fixtures.
+**Documentmenu geintegreerd:** `e873ebe0` opgenomen als `6d5b3de3`.
+Menu/Shift+F10, rechterklik en zichtbare knop; vier echte acties en exclusieve
+modale semantiek. Volledige UI-/app-hosttests, strikte Clippy voor beide,
+fmt en16 runnertests slagen. Log `files/veld-env/logs/veld-context-final-host.log`.
+Nieuwe hele-apporakels toetsen keyboardbediening, read-only tegenproeven en
+de muisknop op beide schalen. Twee fixturefouten (verkeerde enumnaam en
+oude inputgeneratie na FocusLost) zijn hersteld; geen productgrens versoepeld.
+Native menuacceptatie is bij dit checkpoint **niet uitgevoerd**.
+Bekend open: hover blijft na pointerverlaten zonder actieve grab staan;
+muisorakels behouden die echte toestand, zonder masker.
+
+Volgende commando's: normale probebuild en volledige runner
+`--clipboard --workspace --scale 1`; daarna hidpi-probebuild en dezelfde gate
+met `--scale 2`, elk in eigen build-/targetmap. Bron tijdens runs bevriezen.
 De complete omgeving blijft actief. Score **41 -> 41**;
 geen U02–U06-, fysieke, menselijke of releaseacceptatie.
 
