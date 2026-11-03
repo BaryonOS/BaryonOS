@@ -194,3 +194,22 @@ Alleen de echte QMP-invoer en QEMU-screendumps leveren uitvoering aan. De
 zichtbare accountkaart 'Eigen gebruiker' is nog geen geregistreerd profiel;
 een echte auth-/sessiedienst moet later enrollment, persistente verifier,
 herstel, ratelimiting, capability-intrekking en compositor-/input-lock toevoegen.
+
+## Startoppervlak — 3 november 2026
+
+De VM-preview gebruikt nu een hiërarchisch startoppervlak met een herkenbare
+werkruimte, expliciete navigatie en één primaire ingang naar Materiaal. De
+Materiaalkaart leest de bestaande lijsttoestand van de echte app en toont
+niet-geladen, lege, fout- of documenttoestand; zij maakt geen voorbeeldbestanden,
+recente-activiteitstatus of verzonnen netwerk-/energiestatus. De compacte
+lay-out houdt de kaart boven de navigatiebalk en vervangt een tekstloze
+Start-knop door een benoemde actie.
+
+Dit is een visuele en informatiewijziging binnen de bestaande expliciete
+VM-gastpreview. Zij voegt geen accountauthenticatie, opslagrechten,
+zoekresultaten, netwerkstatus of nieuwe sessieovergang toe. De lege en
+gevulde kaarttoestand is als native-rendererhostregressie toegevoegd; lokale
+uitvoering vereist een C-linker. Een hostcompile-/lintcontrole is geen
+pixelproef; de native QEMU-/screenshotgate moet op de exacte commit slagen
+voordat de nieuwe weergave als native uitgevoerd bewijs geldt. De score blijft
+41/100 totdat een volledig rubriccriterium met passend bewijs wordt geaccepteerd.

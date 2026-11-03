@@ -1,0 +1,63 @@
+[
+  {
+    "name": "mkfs",
+    "command": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/sbin/mkfs.btrfs",
+      "--rootdir",
+      "/tmp/nieuw-os-storage-btrfs-20261102/metadata/seed",
+      "-d",
+      "single",
+      "-m",
+      "dup",
+      "--label",
+      "metadata-probe",
+      "/tmp/nieuw-os-storage-btrfs-20261102/metadata/metadata.img"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102/metadata",
+    "exit_code": 0,
+    "elapsed_seconds": 0.02299792100029663
+  },
+  {
+    "name": "check",
+    "command": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+      "check",
+      "--readonly",
+      "--check-data-csum",
+      "/tmp/nieuw-os-storage-btrfs-20261102/metadata/metadata.img"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102/metadata",
+    "exit_code": 0,
+    "elapsed_seconds": 0.019184270999630826
+  },
+  {
+    "name": "dump-fs",
+    "command": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+      "inspect-internal",
+      "dump-tree",
+      "--noscan",
+      "-t",
+      "fs",
+      "/tmp/nieuw-os-storage-btrfs-20261102/metadata/metadata.img"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102/metadata",
+    "exit_code": 0,
+    "elapsed_seconds": 0.012949062999723537
+  },
+  {
+    "name": "restore",
+    "command": [
+      "/tmp/nieuw-os-storage-btrfs-20261102/toolroot/usr/bin/btrfs",
+      "restore",
+      "-m",
+      "-x",
+      "-S",
+      "/tmp/nieuw-os-storage-btrfs-20261102/metadata/metadata.img",
+      "/tmp/nieuw-os-storage-btrfs-20261102/metadata/restored"
+    ],
+    "cwd": "/tmp/nieuw-os-storage-btrfs-20261102/metadata",
+    "exit_code": 0,
+    "elapsed_seconds": 0.016500453000389825
+  }
+]

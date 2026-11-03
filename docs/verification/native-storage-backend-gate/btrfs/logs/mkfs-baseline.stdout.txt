@@ -1,0 +1,24 @@
+btrfs-progs v6.17.1
+See https://btrfs.readthedocs.io for more information.
+
+Rootdir from:       /tmp/nieuw-os-storage-btrfs-20261102/seed
+  Compress:         no
+  Shrink:           no
+Label:              nieuw-os-probe
+UUID:               69f54c99-916f-45d5-b23f-9b2051b31b62
+Node size:          16384
+Sector size:        4096	(CPU page size: 4096)
+Filesystem size:    256.00MiB
+Block group profiles:
+  Data:             single            8.00MiB
+  Metadata:         DUP              32.00MiB
+  System:           DUP               8.00MiB
+SSD detected:       no
+Zoned device:       no
+Features:           extref, skinny-metadata, no-holes, free-space-tree
+Checksum:           crc32c
+Number of devices:  1
+Devices:
+   ID        SIZE  PATH                                             
+    1   256.00MiB  /tmp/nieuw-os-storage-btrfs-20261102/baseline.img
+

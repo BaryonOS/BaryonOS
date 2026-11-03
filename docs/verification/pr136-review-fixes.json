@@ -1,0 +1,100 @@
+{
+  "task": "Correct two evidence classifications in the PR136 OS-completeness audit",
+  "baseline": {
+    "commit": "d777819530bf753167210d3e97e76f1bdeec204e",
+    "branch": "codex/pr136-review-fixes-20261103-reconciled",
+    "github_mutations": false
+  },
+  "reconciliation": {
+    "original_fix_commit": "32b7aa0ce0dbb2b1928661e22a85579d7ed42183",
+    "original_base_commit": "4a52aeae6c481cbee0b058c71430b45feb10d5bb",
+    "live_pr_head_commit": "d777819530bf753167210d3e97e76f1bdeec204e",
+    "local_reconciled_commit": "d7b4c378217d5aad0a12a82a0516d0da348403c2",
+    "drift_provenance": {
+      "commit": "d777819530bf753167210d3e97e76f1bdeec204e",
+      "author_and_committer": "S.W.J.B.M. van Ieperen <205651656+simonvanieperen@users.noreply.github.com>",
+      "coauthor": "Copilot <223556219+Copilot@users.noreply.github.com>",
+      "subject": "docs: record audit PR validation status",
+      "changed_in_overlapping_scope": [
+        "docs/audit/os-completeness/verification.json"
+      ],
+      "other_preserved_changes": [
+        "README.md",
+        "docs/PROJECT-STATE.md",
+        "docs/progress.json"
+      ],
+      "assessment": "Within the requested audit-document scope, the commit appends a source-bound exact-head CI check to verification.json. Its other changes update central status files, which were preserved untouched. The two fix hunks did not overlap and were replayed conflict-free."
+    },
+    "review_thread_snapshot": {
+      "unresolved_threads": 4,
+      "new_findings_on_d777": 0,
+      "note": "The four unresolved CodeRabbit threads are the earlier exact-head CI wording, priority labels, release-criteria map and release-profile findings. No new inline thread was present in the read-only snapshot."
+    }
+  },
+  "changes": [
+    {
+      "finding": "QUANTUM-LOCAL omitted previously accepted native L02 evidence",
+      "result": "Recorded historical VM_TESTED evidence on source 433bab9feab74473517eb8d44f2fb4475848e0cf, integrated at 7fb8c722fc853692251e26fcdcea0ed86954ef15. Replaced the missing-port claim with the still-required integrated FR-L04 regression. FR-L04 remains open; physical QPU evidence remains separate."
+    },
+    {
+      "finding": "GOVERNANCE incorrectly described A01 and R03 as both open",
+      "result": "Recorded A01 as accepted for 2 points and R03 as open for 2 points. Clarified that the bounded native SDK/catalog acceptance does not demonstrate release governance. No rubric state or score was changed."
+    }
+  ],
+  "changed_files": [
+    {
+      "path": "docs/audit/os-completeness/completeness-matrix.md",
+      "sha256": "fa795a780f0126b3f815b9d613284055ab8730c368f64686070bee26c62b718b"
+    },
+    {
+      "path": "docs/audit/os-completeness/evidence-register.md",
+      "sha256": "6c2312f05bcfb71f5bb5dc830fadfe44935dc31631614e327094056b247a77fb"
+    },
+    {
+      "path": "docs/audit/os-completeness/matrix.json",
+      "sha256": "740581cf231700bd8e6a9c68d5c08daa9262800ae819677ee6b125b81e631c18"
+    },
+    {
+      "path": "docs/audit/os-completeness/priorities.md",
+      "sha256": "a052b1c2eff3dded3db71b043507d0f45e867e3bd820499055ca75cb6e212763"
+    },
+    {
+      "path": "docs/audit/os-completeness/product-gaps.md",
+      "sha256": "6fc057291b8b4aa915664b118e3f0cc48d3343464d87c38b67f36ef60c3a9999"
+    },
+    {
+      "path": "docs/audit/os-completeness/recommended-roadmap.md",
+      "sha256": "80dad2c5ac428852c10c088b027dec00eb49227d8f7a642976b412b407b96cd0"
+    },
+    {
+      "path": "docs/audit/os-completeness/verification.json",
+      "sha256": "ca11fc6baef5324bafeeec7155b8e50c999465bd6d84be54677abb85f91fdfb3"
+    }
+  ],
+  "validation": [
+    {
+      "command": "python3 -B tools/progress.py --check",
+      "exit_status": 0,
+      "result": "Fixed rubric remains consistent at 41/100."
+    },
+    {
+      "command": "git diff --check",
+      "exit_status": 0,
+      "result": "No whitespace errors."
+    },
+    {
+      "command": "python3 -B -c 'import json,re; from pathlib import Path; from jsonschema import Draft202012Validator; r=Path(\".\"); m=json.loads((r/\"docs/audit/os-completeness/matrix.json\").read_text()); Draft202012Validator(json.loads((r/\"docs/audit/os-completeness/matrix.schema.json\").read_text())).validate(m); it=m[\"items\"]; q=next(x for x in it if x[\"id\"]==\"QUANTUM-LOCAL\"); g=next(x for x in it if x[\"id\"]==\"GOVERNANCE\"); p=json.loads((r/\"docs/progress.json\").read_text()); walk=lambda x: ([x]+sum((walk(v) for v in x.values()),[]) if isinstance(x,dict) else sum((walk(v) for v in x),[]) if isinstance(x,list) else []); a=next(x for x in walk(p) if isinstance(x,dict) and x.get(\"id\")==\"A01\"); z=next(x for x in walk(p) if isinstance(x,dict) and x.get(\"id\")==\"R03\"); full=(r/\"docs/FULL-TEST-RELEASE.md\").read_text(); mp=(r/\"docs/audit/os-completeness/release-criteria-map.md\").read_text(); ids=re.findall(r\"^\\| (FR-[A-Z][0-9]{2})\\b\",full,re.M); mapped=re.findall(r\"^\\| (FR-[A-Z][0-9]{2})\\b\",mp,re.M); v=json.loads((r/\"docs/audit/os-completeness/verification.json\").read_text())[\"matrix_summary\"]; assert len(it)==39 and len({x[\"id\"] for x in it})==39 and set(q[\"evidence_levels\"])=={\"HOST_TESTED\",\"VM_TESTED\",\"SOURCE_ONLY\"}; assert any(\"433bab9feab74473517eb8d44f2fb4475848e0cf\" in e and \"7fb8c722fc853692251e26fcdcea0ed86954ef15\" in e for e in q[\"evidence\"]) and \"FR-L04\" in \" \".join(q[\"blockers\"]+[q[\"recommended_next_step\"]]); assert any(\"A01 accepted (+2 points); R03 open (2 points)\" in e for e in g[\"evidence\"]) and a[\"status\"]==\"accepted\" and a[\"points\"]==2 and z[\"status\"]==\"open\"; assert len(ids)==len(set(ids))==62 and len(mapped)==62 and set(ids)==set(mapped); assert v[\"feature_groups\"]==39 and v[\"binding_full_release_rows\"]==v[\"binding_release_rows_mapped\"]==62 and v[\"binding_full_release_rows_closed\"]==0 and v[\"evidence_level_assignments\"][\"VM_TESTED\"]==21'",
+      "exit_status": 0,
+      "result": "Re-run on d777819530bf753167210d3e97e76f1bdeec204e with its verification entry preserved: Draft 2020-12 schema valid; 39 unique matrix records; all 62 release IDs mapped and open; dashboard counts match; A01 accepted/2 and R03 open; L02 source binding and open FR-L04 gate retained."
+    }
+  ],
+  "not_run": [
+    "No native QEMU rerun; historical L02 acceptance remains bound to its recorded source and integration commits.",
+    "No product build, hardware run, human test, security audit or release validation."
+  ],
+  "score": {
+    "before": 41,
+    "after": 41,
+    "reason": "Audit evidence corrections only; no product criterion or fixed-rubric status changed."
+  }
+}

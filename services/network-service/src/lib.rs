@@ -466,7 +466,10 @@ impl<'a> Service<'a> {
                     }
                     Err(StackError::Finished) => (Status::Closed, 0),
                     Err(StackError::InvalidState) => (
-                        if self.state(slot)? == ConnectionState::Closed {
+                        if matches!(
+                            self.state(slot)?,
+                            ConnectionState::Closed | ConnectionState::TimedOut
+                        ) {
                             Status::Closed
                         } else {
                             Status::Again

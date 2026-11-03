@@ -1,0 +1,39 @@
+usage: btrfs restore [options] <device> <path>
+        btrfs restore [options] -l <device>
+
+    Try to restore files from a damaged filesystem (unmounted)
+
+    Control:
+    -D|--dry-run              dry run (only list files that would be recovered) 
+    -i|--ignore-errors        ignore errors 
+    -o|--overwrite            overwrite 
+    
+    Restoration:
+    -m|--metadata             restore owner, mode and times 
+    -S|--symlink              restore symbolic links 
+    -s|--snapshots            get snapshots 
+    -x|--xattr                restore extended attributes 
+    
+    Filtering:
+    --path-regex <regex>      restore only filenames matching regex, you have to use following syntax (possibly
+                              quoted): ^/(|home(|/username(|/Desktop(|/.*))))$ 
+    -c                        ignore case (--path-regex only) 
+    
+    Analysis:
+    -d                        find dir 
+    -l|--list-roots           list tree roots 
+    
+    Alternate starting point:
+    -f <bytenr>               filesystem location 
+    -r|--root <rootid>        root objectid 
+    -t <bytenr>               tree location 
+    -u|--super <mirror>       super mirror 
+    
+    Other:
+    -v|--verbose              deprecated, alias for global -v option 
+    
+    Global options:
+    -v|--verbose              increase output verbosity 
+    
+    Compression support: zlib, lzo, zstd
+
