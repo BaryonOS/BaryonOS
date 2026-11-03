@@ -317,7 +317,9 @@ fn run() -> ! {
                     }
                 }
                 let clear = match event {
-                    Event::Key(key) if !palette_key => clear_chord.key(key),
+                    Event::Key(key) if !palette_key || key.action == KeyAction::Release => {
+                        clear_chord.key(key)
+                    }
                     _ => ClearAction::Pass,
                 };
                 match event {
