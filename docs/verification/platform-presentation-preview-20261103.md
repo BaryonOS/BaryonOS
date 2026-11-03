@@ -127,9 +127,20 @@ geen bestaande grafische API, ABI of opslagformaat verandert.
 
 Exact reviewhead `9171756ab5864c09bbcfb6b784e73dae2fee9f58`, main
 `ab85d6339ce5bdddb10a2de171d0c1b04e4b62ff`.
-De bestaande PR182 is door de hoofdcoordinator expliciet voor integratie
-vrijgegeven; de historische QUEUED-FOR-INTEGRATION-tekst hierboven is geen
-actuele publicatieblocker of opdracht om een nieuwe PR te maken.
+Er bestaat inmiddels een open PR #182 voor deze code. De oorspronkelijke
+QUEUED-FOR-INTEGRATION-notitie hierboven is historisch en geen opdracht
+tot het maken van nóg een PR. Een afzonderlijk, verifieerbaar formeel
+integratievrijgavebesluit is in deze receipt **niet aangetoond**. Het
+bestaande integratormandaat is geen automatische READY-status: de actuele
+PR-head, reviewbevindingen, vereiste CI en `main` moeten eerst voldoen.
+
+Primaire bron voor de hieronder besproken helperwijziging en BrokenPipe-
+regressietest: Nieuw OS-project (GitHub), 3 november 2026,
+*test(presentation): handle early-rejection BrokenPipe in preview tests*,
+[commit `ac9b9d650a9e7f2afa04be3cbe578992f4265c24`](https://github.com/simonvanieperen/nieuw-os/commit/ac9b9d650a9e7f2afa04be3cbe578992f4265c24),
+[exacte `tests/cli.rs`-bron op dat commit](https://github.com/simonvanieperen/nieuw-os/blob/ac9b9d650a9e7f2afa04be3cbe578992f4265c24/sdk/examples/presentation/tests/cli.rs).
+De hieronder opgeslagen SHA-256 `2c1298...` verwijst naar deze aangepaste
+CLI-testhelper; de oorspronkelijke bronnen en oudere hashes blijven historisch.
 
 De begrensde inhoudelijke review controleerde stdin-/selectie-/schaalgrenzen,
 volledige titel-/bodypreflight voor pixelwrites, bufferlengtes, paginateller,
