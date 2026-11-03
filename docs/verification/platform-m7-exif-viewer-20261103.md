@@ -20,8 +20,10 @@ terminal-core is nog niet op main geintegreerd en er is geen vrijgegeven
 Terminal-launch-/I/O-consumer. Dit wordt niet opgelost met een derde core
 of ongeautoriseerde kernelbootstrap. De browserroute heeft evenmin een
 geintegreerde upstream-engine-, process- en surfaceketen; geen vervolg van
-het afgeronde scraperexperiment. Deze onafhankelijke bestaande renderconsumer
-is daarom de gekozen kleine productstap, geen nieuwe algemene foundation.
+het afgeronde scraperexperiment. Dit is integratieprioritering, geen nieuwe
+architectuurbeslissing of permanente afwijzing van die productfuncties.
+De bestaande viewerroute blijft host-only; native viewer, objectportal, SUR1
+en FR-A03/A04 blijven open. Geen nieuwe algemene foundation.
 
 ## Implementatie en invariant
 
