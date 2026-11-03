@@ -11,6 +11,12 @@ run41622627360 op2ccb/source2a8 zijn opnieuw gecontroleerd. De algemene
 Twee echte RAW-fouten en ontbrekende volume-admissionfixtures blijven open.
 [Brongebonden receipt](verification/pr135-library-2ccb-review.json).
 
+PR149-review op bron `53256f82`: **41 → 41**. Drie daadwerkelijk rood
+gereproduceerde kaartfouten hersteld: smal/hoog, overlopende tekst en
+onjuiste opslagoorzaak.59 volledige hosttests, Clippy, formattering en
+scalarno_std-librarybuild slagen. Geen nieuwe native gast-/screenshot- of
+menselijke acceptatie. [Volledig bewijs](verification/pr149-compact-review.json).
+
 ## Betekenis van het percentage
 
 De README toont **behaalde acceptatiepunten / 100**. De gewichten zijn een
@@ -92,11 +98,12 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
-Main-integratie (3 november 2026), basis `a4dd7220` en main `99d13276`:
-**41 -> 41**. PR135-status en PR139-contracttestreceipts zijn behouden.
-Vier centrale statusconflicten zijn samengevoegd. Voortgangscontrole,
-JSON-syntaxis en diff-check slagen; geen code-, native- of runtime-tests
-uitgevoerd. Geen nieuwe productacceptatie of punten; nieuwe-head CI blijft vereist.
+Main-integratie (3 november 2026), basis `15164088` en main `0e3b9e7f`:
+**41 -> 41**. PR135-status en PR149-startoppervlakcode/-bewijs zijn behouden.
+Vier centrale statusconflicten zijn samengevoegd. `python3 -B ui/native/verify.py`
+sluit groen af: 84 hosttests, Clippy, formattering, dependency-graphcontrole,
+scalar-releasebuild en objectscan. Geen nieuwe productacceptatie of punten;
+geen native/QEMU-acceptatie.
 
 Main114/native-stackreconciliatie (3 november2026), main`69809c2c` met
 135/142`2825a4a0`: **41 ->41**.114 daadwerkelijk guarded-squashgemerged,
@@ -150,6 +157,39 @@ gelezen. Zie `verification/pr127-postmerge-acceptance.json`.
 De latere130/129/128/127-combinatie heeft63 geslaagde host-/buildcontroles;
 haar source `7ad8b7df` vereist nieuwe native gates. Geen overname van44/U03,
 geen nieuwe punten en geen fysieke of volledige releaseacceptatie.
+PR149 bronbewijsvervolg (3 november 2026), schone bron `bb8877e3`:
+59 hosttests echt opnieuw exit0 met cwd/HEAD/status/lock-/Rust-hashes vóór/na
+en volledig gehasht log in
+[de nieuwe receipt](verification/pr149-bb8877-host-receipt.json).
+De eerdere Watch-tijden zijn geen primaire receipt. Scalar/Clippy/fmt blijven
+hun oorspronkelijke bron532 houden; geen nieuw native/fysiek/menselijk bewijs.
+**41 →41**, geen code- of criteriumwijziging.
+
+PR149 derde main-integratie (3 november 2026), basis `41688635` met main
+`99d13276`: **41 → 41**. Vier documentatieconflicten verzoend met behoud
+van de compacte UI-fixes, hun brongebonden bewijs en de PR139-receipts.
+Geen runtimecode gewijzigd of nieuw acceptatiecriterium gesloten.
+
+PR149 tweede main-integratie (3 november 2026), basis `b75cfc3c` met main
+`d115cc96`: **41 → 41**. Vier documentatieconflicten inhoudsbehoudend
+verzoend. UI-code en artifact-store-tests blijven uit hun betreffende
+parent behouden; geen nieuwe criteria of native acceptatie.
+
+PR149-conflictoplossing (3 november 2026), PR-bron `92fdf2ff` met main
+`69809c2c`: **41 → 41**. Vier centrale documentatieconflicten verzoend;
+beide checkpointgeschiedenissen en de bestaande rubric blijven behouden.
+Geen runtimecode handmatig gewijzigd, geen nieuw acceptatiecriterium.
+Nieuwe-head-CI en native productacceptatie blijven afzonderlijke gates.
+
+Native startoppervlak (3 november 2026), implementatiebron `bd4134c`:
+**41% → 41%**. De opt-in VM-preview toont niet-geladen, lege, fout- en
+gevulde Materiaaltoestanden. Alle 55 `ui/native`-hosttests slagen, inclusief
+de pixelregressie; rustfmt, check, Clippy en de scalar
+`x86_64-unknown-none`-releasebuild slagen. De testlinker is tijdelijk uit
+Ubuntu-pakketten in `/tmp` opgebouwd, zonder systeeminstallatie. QEMU/OVMF en
+native screenshot ontbreken. Geen nieuw criterium of runtimebewijs.
+Zie `verification/native-start-surface-20261103/README.md`.
+
 PR139-review (3 november2026), exact geteste geïntegreerde bron `0a49a382`:
 **41 → 41**. Negen artifact-store-contracttests, Rust1.90.0 fmt en Clippy
 daadwerkelijk opnieuw groen; primaire logs/boom/commando's/codehashes staan

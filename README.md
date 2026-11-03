@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`a4dd7220`](https://github.com/simonvanieperen/nieuw-os/commit/a4dd7220cf3dc6b0e87167d5c405c962a0a36f22) ·
+**Bron:** [`15164088`](https://github.com/simonvanieperen/nieuw-os/commit/151640881406e7629f18ebc38c89f6a6381ded86) ·
 **Ontwikkelbranch:** `integrate/stack130-local`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Main 99d13276 inhoudsbehoudend in de PR-branch integreren.
-Assessment op PR-head a4dd7220 voor integratie met main 99d13276. PR135-status en PR139-contracttestreceipts blijven behouden; vier conflicten betroffen alleen centrale statusmetadata. Voortgangscontrole, JSON-syntaxis en diff-check slagen; geen code-, native- of runtime-tests uitgevoerd. Geen nieuw productcriterium of geaccepteerd bewijs. Nieuwe-head CI moet nog evalueren.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Main 0e3b9e7f inhoudsbehoudend in PR135 integreren.
+Assessment op PR-head 15164088 voor integratie met main 0e3b9e7f. PR135-status en PR149-startoppervlakcode/bewijs zijn behouden. python3 -B ui/native/verify.py slaagt: 84 hosttests, Clippy, formattering, dependency graph, scalar release build en objectscan. Geen nieuw productcriterium of native/QEMU-acceptatie; score blijft 41/100.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
