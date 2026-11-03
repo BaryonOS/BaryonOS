@@ -3,7 +3,8 @@
 This is a trace validator, not another packet parser or proof of packet bytes.
 The peer parses/checks actual frames; source/artifact binding and native results
 are checked by the caller. Here fields, causal order and independently derived
-totals must agree. Only the five explicitly fixed fixture conversations apply.
+totals must agree. Five fixed conversations remain the default; a sixth
+data-ACK-loss/backpressure conversation is explicitly opt-in.
 """
 from __future__ import annotations
 
@@ -11,20 +12,32 @@ from dataclasses import dataclass
 import hashlib
 import re
 
-PORTS = (8080, 8081, 8082, 8083, 8084)
+PORTS = (8080, 8081, 8082, 8083, 8084, 8085)
 FIN, SYN, RST, PSH, ACK = 1, 2, 4, 8, 16
 MASK = (1 << 32) - 1
 REQUEST = b"GET /nieuw-os-tcp HTTP/1.1\r\nHost: fixture.invalid\r\nConnection: close\r\n\r\n"
 RESPONSE = b"HTTP/1.1 200 OK\r\nContent-Length: 20\r\nConnection: close\r\n\r\nNieuw OS native TCP\n"
+BACKPRESSURE_HEADER = (
+    b"POST /nieuw-os-backpressure HTTP/1.1\r\nHost: fixture.invalid\r\n"
+    b"Content-Length: 8088\r\nConnection: close\r\n\r\n"
+)
+BACKPRESSURE_REQUEST = BACKPRESSURE_HEADER + b"X" * (8192 - len(BACKPRESSURE_HEADER))
 COUNTERS = ("client_frames", "server_frames", "arp_requests", "arp_replies", "syns",
             "syn_acks", "refusals", "resets_after_get", "first_syn_dropped", "retry_syns",
             "blackhole_syns", "blackhole_rsts", "corrupt_data_sent", "valid_data_sent",
-            "http_requests", "valid_data_acks", "fins_sent", "client_fins_acked")
+            "http_requests", "valid_data_acks", "fins_sent", "client_fins_acked",
+            "backpressure_disabled", "backpressure_acks_withheld",
+            "backpressure_retransmissions", "backpressure_acks_released",
+            "backpressure_recovery_segments")
 TX_COUNTERS = {"arp-reply": "arp_replies", "syn-ack": "syn_acks",
                "connection-refused": "refusals", "reset-after-get": "resets_after_get",
                "bad-tcp-checksum": "corrupt_data_sent", "http-data": "valid_data_sent",
-               "server-fin": "fins_sent", "client-fin-ack": "client_fins_acked"}
-TX_LABELS = set(TX_COUNTERS) | {"request-ack", "duplicate-client-fin-ack"}
+               "server-fin": "fins_sent", "client-fin-ack": "client_fins_acked",
+               "backpressure-disabled": "backpressure_disabled",
+               "backpressure-release-ack": "backpressure_acks_released"}
+TX_LABELS = set(TX_COUNTERS) | {
+    "request-ack", "backpressure-ack", "duplicate-client-fin-ack"
+}
 
 
 def _integer(value, low: int, high: int) -> int:
@@ -50,6 +63,11 @@ class _Connection:
     fin_sent: bool = False
     closed: bool = False
     corrupt_hash: str | None = None
+    withheld_seq: int | None = None
+    withheld_ack: int | None = None
+    withheld_payload_length: int = 0
+    ack_released: bool = False
+    recovery_segments: int = 0
 
     @property
     def client_next(self) -> int:
@@ -63,7 +81,9 @@ class _Connection:
         return self.closed or self.phase in ("refused", "reset", "blackhole")
 
 
-def validate_transcript(peer: dict, *, request_length: int, response_length: int) -> None:
+def validate_transcript(
+    peer: dict, *, request_length: int, response_length: int, scenario: str = "baseline"
+) -> None:
     """Reject inconsistent/missing handshake, HTTP, retry, CRC or FIN evidence.
 
     SYN identity covers the recorded port/sequence/ACK/flags/payload/length.
@@ -71,6 +91,8 @@ def validate_transcript(peer: dict, *, request_length: int, response_length: int
     cannot be reconstructed from an opaque frame hash in this compact trace.
     """
     _require(type(peer) is dict, "Missing TCP peer object")
+    _require(scenario in ("baseline", "loss-backpressure")
+             and peer.get("scenario", "baseline") == scenario, "TCP scenario changed")
     _require(type(request_length) is int and request_length == len(REQUEST)
              and type(response_length) is int and response_length == len(RESPONSE),
              "Unexpected synthetic HTTP fixture lengths")
@@ -115,7 +137,14 @@ def validate_transcript(peer: dict, *, request_length: int, response_length: int
         seq = _integer(event.get("seq"), 0, MASK)
         ack = _integer(event.get("ack"), 0, MASK)
         flags = _integer(event.get("flags"), 0, 31)
-        payload = _integer(event.get("payload_length"), 0, 1024)
+        payload = _integer(event.get("payload_length"), 0, 1460)
+        if direction == "rx":
+            payload_hash = event.get("payload_sha256")
+            _require(isinstance(payload_hash, str)
+                     and re.fullmatch(r"[0-9a-f]{64}", payload_hash) is not None,
+                     "Missing/malformed actual TCP payload hash")
+            _require(payload != 0 or payload_hash == hashlib.sha256(b"").hexdigest(),
+                     "Empty TCP payload hash changed")
         _require(54 + payload <= length <= max(60, 94 + payload), "TCP length disagrees with payload")
         c = connections.get(port)
         if direction == "tx":
@@ -143,10 +172,12 @@ def validate_transcript(peer: dict, *, request_length: int, response_length: int
             elif label == "server-fin":
                 c.phase = "fin-ack"
                 c.fin_sent = True
+            elif label == "backpressure-release-ack":
+                c.ack_released = True
             continue
 
-        _require(pending is None, "Client event precedes required server response")
         if flags == SYN:
+            _require(pending is None, "Client SYN precedes required server response")
             _require(ack == 0 and payload == 0, "Changed SYN fields")
             if c is None:
                 ordinal = PORTS.index(port)
@@ -154,7 +185,7 @@ def validate_transcript(peer: dict, *, request_length: int, response_length: int
                          (ordinal == 0 or connections[PORTS[ordinal - 1]].terminal()),
                          "TCP scenarios started out of order/before prior completion")
                 c = _Connection(port, seq, length)
-                if port == 8081:
+                if port == 8081 or (port == 8085 and scenario == "baseline"):
                     c.phase = "refused"
                 elif port == 8084:
                     c.phase = "blackhole"
@@ -165,6 +196,8 @@ def validate_transcript(peer: dict, *, request_length: int, response_length: int
             counts["syns"] += 1
             if port == 8081:
                 pending = answer("connection-refused", c, 0, c.client_next, RST | ACK)
+            elif port == 8085 and scenario == "baseline":
+                pending = answer("backpressure-disabled", c, 0, c.client_next, RST | ACK)
             elif port == 8084:
                 counts["blackhole_syns"] += 1
             elif port == 8083 and c.syns == 1:
@@ -176,6 +209,8 @@ def validate_transcript(peer: dict, *, request_length: int, response_length: int
             continue
 
         _require(c is not None, "Client TCP data without SYN")
+        _require(pending is None or (port == 8085 and c.phase == "backpressure-request"),
+                 "Client event precedes required server response")
         if flags & RST:
             _require(port in (8081, 8082, 8084) and c.terminal() and payload == 0
                      and flags in (RST, RST | ACK) and seq == c.client_next,
@@ -191,7 +226,56 @@ def validate_transcript(peer: dict, *, request_length: int, response_length: int
             _require(c.syns >= (2 if port == 8083 else 1)
                      and seq == c.client_next and ack == c.server_start,
                      "Handshake ACK missing/wrong or first retry SYN answered")
-            c.phase = "request"
+            c.phase = "backpressure-request" if port == 8085 else "request"
+        if port == 8085 and c.phase == "backpressure-request":
+            _require(ack == c.server_start and not flags & FIN,
+                     "Backpressure request acknowledgment/FIN changed")
+            if payload == 0:
+                _require(seq == c.client_next, "Bad backpressure handshake ACK")
+                continue
+            payload_hash = event["payload_sha256"]
+            if c.withheld_seq is None:
+                _require(seq == c.client_next
+                         and c.request_bytes + payload <= len(BACKPRESSURE_REQUEST),
+                         "Bad initial backpressure segment")
+                c.withheld_seq = seq
+                c.withheld_ack = ack
+                c.withheld_payload_length = payload
+                _require(payload_hash == hashlib.sha256(
+                    BACKPRESSURE_REQUEST[c.request_bytes:c.request_bytes + payload]
+                ).hexdigest(), "Changed initial backpressure request bytes")
+                c.request_bytes += payload
+                counts["backpressure_acks_withheld"] += 1
+                continue
+            if seq == c.withheld_seq:
+                expected_hash = hashlib.sha256(BACKPRESSURE_REQUEST[:payload]).hexdigest()
+                _require(not c.ack_released and ack == c.withheld_ack
+                         and flags in (ACK, ACK | PSH)
+                         and c.withheld_payload_length <= payload <= c.request_bytes
+                         and payload_hash == expected_hash,
+                         "Changed or repeated backpressure retransmission")
+                counts["backpressure_retransmissions"] += 1
+                pending = answer("backpressure-release-ack", c, c.server_start,
+                                 c.client_next, ACK)
+                continue
+            _require(seq == c.client_next and payload > 0
+                     and c.request_bytes + payload <= len(BACKPRESSURE_REQUEST),
+                     "Backpressure request sequence/length changed")
+            _require(payload_hash == hashlib.sha256(
+                BACKPRESSURE_REQUEST[c.request_bytes:c.request_bytes + payload]
+            ).hexdigest(), "Changed backpressure request bytes")
+            c.request_bytes += payload
+            if c.ack_released:
+                c.recovery_segments += 1
+                counts["backpressure_recovery_segments"] += 1
+            if c.request_bytes == len(BACKPRESSURE_REQUEST):
+                counts["http_requests"] += 1
+                c.phase = "await-data"
+                pending = answer("http-data", c, c.server_start, c.client_next,
+                                 PSH | ACK, response_length)
+            elif c.ack_released:
+                pending = answer("backpressure-ack", c, c.server_start, c.client_next, ACK)
+            continue
         end = (c.server_start + response_length) & MASK
         if c.closed and flags == ACK and seq == (c.client_next + 1) & MASK:
             _require(ack == (end + 1) & MASK and payload == 0, "Wrong post-close ACK")
@@ -239,29 +323,61 @@ def validate_transcript(peer: dict, *, request_length: int, response_length: int
                 raise ValueError("Incomplete server phase")
 
     _require(pending is None, "Transcript ends before required server response")
-    _require(tuple(connections) == PORTS and all(c.terminal() for c in connections.values()),
-             "Incomplete TCP scenarios")
+    expected_ports = PORTS[:-1] if scenario == "baseline" and 8085 not in connections else PORTS
+    _require(tuple(connections) == expected_ports
+             and all(c.terminal() for c in connections.values()), "Incomplete TCP scenarios")
     _require(peer.get("complete") is True, "Missing complete server result")
     actual_counts = peer.get("counts")
     _require(isinstance(actual_counts, dict) and set(actual_counts) == set(counts), "Counter fields changed")
     for name, count in counts.items():
         _require(_integer(actual_counts[name], 0, 1024) == count, "Packet-derived counter differs: " + name)
     cases = peer.get("cases")
-    _require(isinstance(cases, dict) and set(cases) == {str(p) for p in PORTS}, "Missing connection summaries")
+    _require(isinstance(cases, dict) and set(cases) == {str(p) for p in expected_ports},
+             "Missing connection summaries")
     for port, c in connections.items():
-        expected_bytes = request_length if port in (8080, 8082, 8083) else 0
+        expected_bytes = (len(BACKPRESSURE_REQUEST) if port == 8085 and scenario == "loss-backpressure"
+                          else request_length if port in (8080, 8082, 8083) else 0)
         _require(c.request_bytes == expected_bytes, "Incomplete request")
         if port in (8080, 8083):
             _require(c.closed and c.data_acked and c.fin_sent, "HTTP lacked data ACK/FIN exchange")
+        if port == 8085 and scenario == "baseline":
+            _require(c.phase == "refused" and c.request_bytes == 0,
+                     "Disabled backpressure case was not refused")
+        if port == 8085 and scenario == "loss-backpressure":
+            _require(c.closed and c.data_acked and c.fin_sent and c.ack_released
+                     and c.recovery_segments > 0
+                     and c.withheld_seq is not None
+                     and c.request_bytes == len(BACKPRESSURE_REQUEST),
+                     "Backpressure loss/recovery packet evidence is incomplete")
         case = cases[str(port)]
         _require(isinstance(case, dict), "Malformed connection summary")
         for name, value in (("phase", c.phase), ("syns", c.syns), ("request_bytes", c.request_bytes),
-                            ("data_acked", c.data_acked), ("fin_sent", c.fin_sent), ("closed", c.closed)):
+                            ("data_acked", c.data_acked), ("fin_sent", c.fin_sent), ("closed", c.closed),
+                            ("ack_released", c.ack_released),
+                            ("recovery_segments", c.recovery_segments)):
             _require(type(case.get(name)) is type(value) and case[name] == value,
                      "Connection summary contradicts packets: " + name)
-        expected_hash = hashlib.sha256(REQUEST if expected_bytes else b"").hexdigest()
+        if port == 8085 and scenario == "loss-backpressure":
+            expected_request = BACKPRESSURE_REQUEST
+        elif expected_bytes:
+            expected_request = REQUEST
+        else:
+            expected_request = b""
+        expected_hash = hashlib.sha256(expected_request).hexdigest()
         _require(case.get("request_sha256") == expected_hash, "Different HTTP request fixture")
     _require(peer.get("response_sha256") == hashlib.sha256(RESPONSE).hexdigest()
              and peer.get("corrupt_response_sha256") == hashlib.sha256(b"X" + RESPONSE[1:]).hexdigest()
              and type(peer.get("response_body_bytes")) is int and peer["response_body_bytes"] == 20,
              "Different valid/corrupt response fixture")
+    _require(peer.get("backpressure_request_bytes") == len(BACKPRESSURE_REQUEST),
+             "Different bounded backpressure request length")
+    _require(peer.get("backpressure_request_sha256")
+             == hashlib.sha256(BACKPRESSURE_REQUEST).hexdigest(),
+             "Different backpressure request fixture")
+    enabled = scenario == "loss-backpressure"
+    _require(counts["backpressure_acks_withheld"] == int(enabled)
+             and counts["backpressure_retransmissions"] == int(enabled)
+             and counts["backpressure_acks_released"] == int(enabled)
+             and (counts["backpressure_recovery_segments"] > 0 if enabled else
+                  counts["backpressure_recovery_segments"] == 0),
+             "Missing data-ACK loss or bounded backpressure recovery evidence")

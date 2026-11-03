@@ -25,6 +25,7 @@ EXACT = {"TCP_HTTP": 2, "TCP_REFUSED": 1, "TCP_RESET": 1, "TCP_RETRANSMIT": 1,
 PEER_EXACT = {"first_syn_dropped": 1, "corrupt_data_sent": 1, "valid_data_sent": 2,
               "valid_data_acks": 2, "fins_sent": 2, "client_fins_acked": 2,
               "http_requests": 3, "resets_after_get": 1, "refusals": 1}
+SCENARIOS = ("baseline", "loss-backpressure")
 RESPONSE_SHA256 = "d128fa1924be70f9e1f42e2a466e1e94123182b23b11110d273ced90cefda90b"
 CORRUPT_SHA256 = hashlib.sha256(peer_module.CORRUPT_RESPONSE).hexdigest()
 REQUEST_SHA256 = hashlib.sha256(peer_module.REQUEST).hexdigest()
@@ -37,7 +38,9 @@ def integer(values: dict, name: str, low=0, high=(1 << 64) - 1) -> int:
     return value
 
 
-def evaluate_tcp(report: dict, peer: dict) -> None:
+def evaluate_tcp(report: dict, peer: dict, *, scenario: str = "baseline") -> None:
+    if scenario not in SCENARIOS or peer.get("scenario", "baseline") != scenario:
+        raise ValueError("TCP peer scenario changed")
     if report.get("passed") is not True or report.get("kernel_feature") not in FEATURE.values():
         raise ValueError("native joint-system/TCP profile did not pass")
     digest = report.get("manifest", {}).get("system", {}).get("net_probe", {}).get("sha256")
@@ -51,7 +54,11 @@ def evaluate_tcp(report: dict, peer: dict) -> None:
     for name, expected in EXACT.items():
         if integer(values, name) != expected:
             raise ValueError(f"wrong native TCP evidence {name}")
-    for name, expected in PEER_EXACT.items():
+    expected_peer = dict(PEER_EXACT)
+    if scenario == "loss-backpressure":
+        expected_peer.update(valid_data_sent=3, valid_data_acks=3, fins_sent=3,
+                             client_fins_acked=3, http_requests=4)
+    for name, expected in expected_peer.items():
         if integer(counts, name) != expected:
             raise ValueError(f"wrong causal TCP server evidence {name}")
     tx = integer(values, "TCP_TX_COMPLETED", 1, peer_module.MAX_FRAMES)
@@ -73,7 +80,10 @@ def evaluate_tcp(report: dict, peer: dict) -> None:
     if peer.get("corrupt_response_sha256") != CORRUPT_SHA256 or CORRUPT_SHA256 == RESPONSE_SHA256:
         raise ValueError("missing distinct corrupt-checksum response fixture")
     cases = peer.get("cases", {})
-    if set(cases) != {str(port) for port in peer_module.PORTS}:
+    expected_ports = set(map(str, peer_module.PORTS))
+    if scenario == "baseline" and "8085" not in cases:
+        expected_ports.remove("8085")
+    if set(cases) != expected_ports:
         raise ValueError("missing TCP scenarios")
     for port in ("8080", "8083"):
         case = cases[port]
@@ -88,6 +98,19 @@ def evaluate_tcp(report: dict, peer: dict) -> None:
     if any(cases[port].get("phase") != phase for port, phase in
            (("8081", "refused"), ("8082", "reset"), ("8084", "blackhole"))):
         raise ValueError("wrong refused/reset/blackhole scenario")
+    if scenario == "baseline":
+        if "8085" in cases and (cases["8085"].get("phase") != "refused"
+                                or integer(counts, "backpressure_disabled") != 1):
+            raise ValueError("backpressure opt-in was not disabled by an actual refusal")
+    elif (cases["8085"].get("phase") != "closed"
+          or integer(counts, "backpressure_disabled") != 0
+          or integer(counts, "backpressure_acks_withheld") != 1
+          or integer(counts, "backpressure_retransmissions") != 1
+          or integer(counts, "backpressure_acks_released") != 1
+          or integer(counts, "backpressure_recovery_segments", 1, peer_module.MAX_FRAMES) < 1
+          or cases["8085"].get("ack_released") is not True
+          or integer(cases["8085"], "recovery_segments", 1, peer_module.MAX_FRAMES) < 1):
+        raise ValueError("missing actual TCP data-loss/backpressure recovery")
     events = peer.get("events", [])
     if not 1 <= len(events) <= peer_module.MAX_EVENTS:
         raise ValueError("missing or unbounded actual packet transcript")
@@ -102,15 +125,18 @@ def evaluate_tcp(report: dict, peer: dict) -> None:
         directions[event["direction"]] += 1
     if directions != {"rx": tx, "tx": rx}:
         raise ValueError("packet transcript does not match server/broker counts")
-    validate_transcript(peer, request_length=len(peer_module.REQUEST), response_length=len(peer_module.RESPONSE))
+    validate_transcript(peer, request_length=len(peer_module.REQUEST),
+                        response_length=len(peer_module.RESPONSE), scenario=scenario)
 
 
-def run_tcp_system(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT):
-    if case not in FEATURE or not 0 < timeout <= MAX_TIMEOUT:
+def run_tcp_system(
+    case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT, scenario="baseline"
+):
+    if case not in FEATURE or scenario not in SCENARIOS or not 0 < timeout <= MAX_TIMEOUT:
         raise ValueError("unknown TCP case or unbounded timeout")
     report = None
     try:
-        with peer_module.Peer(timeout=timeout) as peer:
+        with peer_module.Peer(timeout=timeout, scenario=scenario) as peer:
             report, volume_dir = run_system(case, volume_dir, timeout=timeout,
                                             kernel_feature=FEATURE[case], network_port=peer.port)
         evidence = peer.finish()
@@ -123,7 +149,9 @@ def run_tcp_system(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIM
         return report, volume_dir
     report.update(network_peer=evidence, network_gate=False, tcp_gate=False)
     try:
-        evaluate_tcp(report, evidence)
+        if "8085" not in evidence.get("cases", {}):
+            raise ValueError("native TCP probe omitted the required opt-in/refusal scenario")
+        evaluate_tcp(report, evidence, scenario=scenario)
         if (report.get("case") != case or report.get("kernel_feature") != FEATURE[case]
                 or source_hash() != report["source_sha256"]):
             raise ValueError("TCP source, case or profile changed")
@@ -140,7 +168,9 @@ def run_tcp_system(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIM
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--case", choices=tuple(FEATURE), required=True)
+    parser.add_argument("--scenario", choices=SCENARIOS, default="baseline")
     parser.add_argument("--volume", type=Path)
     parser.add_argument("--timeout", type=int, default=MAX_TIMEOUT)
     options = parser.parse_args()
-    raise SystemExit(0 if run_tcp_system(options.case, options.volume, timeout=options.timeout)[0]["passed"] else 1)
+    raise SystemExit(0 if run_tcp_system(options.case, options.volume, timeout=options.timeout,
+                                         scenario=options.scenario)[0]["passed"] else 1)

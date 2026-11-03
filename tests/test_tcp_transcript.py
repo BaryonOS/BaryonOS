@@ -15,6 +15,34 @@ def validate(peer):
     validate_transcript(peer, request_length=len(fixtures.peer.REQUEST),
                         response_length=len(fixtures.peer.RESPONSE))
 
+def loss_backpressure_fixture():
+    machine = runner.peer_module.PeerMachine("loss-backpressure")
+    machine.handle(fixtures.ARP)
+    fixtures.first_three(machine)
+    base = fixtures.connect(machine, 8083)
+    fixtures.finish_http(machine, 8083, base, fixtures.request(machine, 8083, base))
+    fixtures.connect(machine, 8084)
+    machine.handle(fixtures.client(8084, options=b"\x02\x04\x05\xb4"), 4)
+    machine.handle(fixtures.client(8084, flags=fixtures.peer.RST, seq=0xfffffff1), 5)
+    base = fixtures.connect(machine, 8085)
+    fixtures.backpressure(machine, base)
+    peer = machine.summary()
+    peer.update(passed=True, connected=True, error=None, rejected_frame=None,
+                wire_frames_sent=peer["counts"]["server_frames"])
+    return peer
+
+
+def report_for(peer):
+    tx = peer["counts"]["client_frames"]
+    rx = peer["counts"]["server_frames"]
+    evidence = dict(runner.EXACT, TCP_TX_COMPLETED=tx, TCP_RX_DELIVERED=rx,
+                    NET_TX_SUBMITTED=tx, NET_TX_COMPLETED=tx,
+                    NET_RX_DELIVERED=rx, NET_RX_COMPLETED=rx,
+                    TCP_START_TICKS=10, TCP_END_TICKS=1810,
+                    TCP_TIMEOUT_TICKS=300, TCP_CLOCK_READS=2000)
+    return dict(passed=True, kernel_feature="native-system-tcp", evidence=evidence,
+                manifest=dict(system=dict(net_probe=dict(sha256="a" * 64))))
+
 
 class TranscriptTests(unittest.TestCase):
     def setUp(self):
@@ -30,6 +58,47 @@ class TranscriptTests(unittest.TestCase):
         validate(self.peer)
         # The independently built wire fixtures wrap the client sequence at 2^32.
         self.assertTrue(any(e.get("seq") == 57 for e in self.peer["events"]))
+
+    def test_opt_in_loss_backpressure_transcript_requires_retransmit_and_recovery(self):
+        peer = loss_backpressure_fixture()
+        runner.evaluate_tcp(report_for(peer), peer, scenario="loss-backpressure")
+        validate_transcript(peer, request_length=len(fixtures.peer.REQUEST),
+                            response_length=len(fixtures.peer.RESPONSE),
+                            scenario="loss-backpressure")
+        for mutation in ("duplicate", "changed_payload", "changed_new_data",
+                         "missing_release", "missing_recovery"):
+            changed = copy.deepcopy(peer)
+            events = changed["events"]
+            if mutation == "duplicate":
+                first = next(e for e in events if e.get("port") == 8085 and e.get("payload_length", 0) > 0)
+                duplicate = next(e for e in events if e.get("port") == 8085 and e.get("seq") == first["seq"]
+                                 and e.get("direction") == "rx" and e is not first)
+                duplicate["payload_sha256"] = "0" * 64
+            elif mutation == "changed_payload":
+                first = next(e for e in events if e.get("port") == 8085 and e.get("payload_length", 0) > 0)
+                retransmit = next(e for e in events if e.get("port") == 8085
+                                  and e.get("direction") == "rx" and e.get("seq") == first["seq"]
+                                  and e is not first)
+                retransmit["payload_sha256"] = "0" * 64
+            elif mutation == "changed_new_data":
+                first = next(e for e in events if e.get("port") == 8085 and e.get("payload_length", 0) > 0)
+                segment = next(e for e in events if e.get("port") == 8085
+                               and e.get("direction") == "rx" and e.get("seq") != first["seq"]
+                               and e.get("payload_length", 0) > 0)
+                segment["payload_sha256"] = "0" * 64
+            elif mutation == "missing_release":
+                changed["events"] = [e for e in events if e.get("event") != "backpressure-release-ack"]
+                changed["counts"]["server_frames"] -= 1
+                changed["wire_frames_sent"] = changed["counts"]["server_frames"]
+            else:
+                changed["counts"]["backpressure_recovery_segments"] = 0
+                changed["cases"]["8085"]["recovery_segments"] = 0
+            for index, event in enumerate(changed["events"], 1):
+                event["sequence"] = index
+            with self.subTest(mutation=mutation), self.assertRaises(ValueError):
+                validate_transcript(changed, request_length=len(fixtures.peer.REQUEST),
+                                    response_length=len(fixtures.peer.RESPONSE),
+                                    scenario="loss-backpressure")
 
     def test_partial_request_duplicate_fin_and_blackhole_retry_remain_valid(self):
         machine = runner.peer_module.PeerMachine()
