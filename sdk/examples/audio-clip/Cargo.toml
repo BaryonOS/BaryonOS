@@ -1,0 +1,20 @@
+[package]
+name = "nieuw-os-audio-clip"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+
+[workspace]
+resolver = "2"
+
+[features]
+host-cli = []
+
+[[bin]]
+name = "wav-clip"
+path = "src/main.rs"
+required-features = ["host-cli"]
+
+[profile.release]
+panic = "abort"
