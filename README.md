@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`4ca9262d`](https://github.com/simonvanieperen/nieuw-os/commit/4ca9262d776a8cb978e49ec209e67398b11fc9ad) ·
+**Bron:** [`d577f185`](https://github.com/simonvanieperen/nieuw-os/commit/d577f1853323b2fd1d569057f1e15688dcd10574) ·
 **Ontwikkelbranch:** `simonvanieperen-friendly-system`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Gedeelde host-artefacthelpers refactoren zonder gedrag te wijzigen.
-41/100 blijft 41/100; deze refactor wijzigt geen productcriterium en levert geen native OS-bewijs op. Gedeelde SHA-256-bytehelpers en gecontroleerde bestandsinventarisatie zijn ingevoerd in tools/common.py en hergebruikt door de image-, RANDOM- en FPU-hostgates; relatieve paden blijven behouden. Op bron 4ca9262 slagen de volledige root-hosttests (469), tools-hosttests (189, met 3 bestaande skips omdat de Rust-toolchain ontbreekt), OSDev-skilltests (6) en FPU-hosttests (12), naast gerichte image/RANDOM/common-tests en Python-syntaxiscontrole. Geen native VM-, fysieke, menselijke of releasevalidatie.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Conflictvrije integratie van main (#134 TCP-time-out) met gedeelde host-toolingbranch.
+41/100 blijft 41/100; de integratie behoudt de gedeelde host-artefacthelpers en neemt de terminale ReceiveTcp-statusfix plus regressietest uit main cbbc9c9 over. Op de opgeloste merge-werkboom slagen alle 10 network-service-tests, rustfmt, Clippy, de x86_64-unknown-none releasebuild en de voortgangs-/JSON-controles. De native normal-gate startte niet omdat Rust 1.90.0 ontbreekt; bestaande native resultaten zijn uitsluitend aan bron 5925c915 gebonden. Geen nieuw native scenario of rubriccriterium geaccepteerd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

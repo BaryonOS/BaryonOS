@@ -1,31 +1,44 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — gedeelde host-artefacthelpers — 3 november 2026
+## NEXT AGENT HANDOFF — main/#134 geïntegreerd in host-toolingbranch — 3 november 2026
 
-**Basis:** `4ca9262d776a8cb978e49ec209e67398b11fc9ad` op
-`simonvanieperen-friendly-system`. De beeld-, RANDOM- en FPU-hostgates delen
-nu byte-SHA256/hexvalidatie en gecontroleerde inventarisatie van gewone
-bestanden. Iedere ESP-kandidaat blijft vóór gebruik door dezelfde
-`private_path`-guard lopen; hash-, grootte-, hardlink- en symlinkcontroles zijn
-behouden. De helper bewaart het oorspronkelijke relatieve/absolute pad, zoals
-de FPU-validator verwacht. Dit wijzigt geen OS-runtime of capability.
+**Integratiebasis:** branch-head `d577f1853323b2fd1d569057f1e15688dcd10574`
+met de actuele main `cbbc9c9941b08ea5edfbd3637d494635b4fb1df0`. De
+gedeelde SHA-256-/bestandsinventarishelpers blijven behouden. Main voegt de
+gerichte N01-reparatie uit issue #43 toe: `ReceiveTcp` meldt `Closed` na een
+geannuleerde TCP-verbindingsopbouw, terwijl `TimedOut` als diagnose behouden
+blijft. De nieuwe regressietest controleert ook tokenverversing en opnieuw
+openen. Geen capability-, wireformaat- of dependencywijziging.
 
-**Uitgevoerd op deze bron:** `python3 -B -m unittest discover -s tools/tests
--p 'test_images.py' -v` (20 tests), dezelfde opdracht met `test_random.py`
-(21), en `python3 -B -m unittest discover -s tests -p 'test_common.py' -v`
-(8): alle exit 0. De volledige suites slagen ook op deze bron:
-root-hosttests 469/469; `tools/tests` 189 tests, exit 0 met 3 bestaande skips
-omdat de Rust-toolchain ontbreekt; OSDev-skilltests 6/6; de aparte FPU-
-hostpoort 12/12. `git diff --check && python3 -m py_compile tools/common.py
-tools/run_images.py tools/run_random.py tools/run_fpu.py tests/test_common.py`:
-exit 0. Dit zijn hosttests met synthetische fixtures, geen bewijs van
-QEMU-/native OS-gedrag. Exacte commando's, exits en loghashes:
+**Uitgevoerd op de opgeloste merge-werkboom:** de 10 network-service-tests
+slagen, inclusief `receive_after_connect_timeout_reports_terminal_closed`.
+Rustfmt, Clippy, releasebuild voor `x86_64-unknown-none`, progress-metercheck,
+JSON-validatie en whitespacecontrole slagen. De branchtooling-refactor heeft
+eigen eerder brongebonden hostbewijs in
 `verification/shared-tooling-refactor-20261103/host-tests.json`.
 
-**Voortgang:** 41 → 41; geen criteriumbewijs toegevoegd. Eerstvolgend:
-controleer de definitieve diff/voortgangsmeter en push het bijgewerkte
-testbewijs. Native productgates, volledige release, fysieke hardware en
-menselijke review zijn niet uitgevoerd.
+**Bewijsgrens/open:** de native `normal`-gate kon niet starten omdat de
+ontwikkelomgeving Rust 1.90.0 niet heeft; `client-exit` is daarom niet
+uitgevoerd op deze integratie. Het opgeslagen native bewijs in
+`docs/verification/issue-43-receive-timeout.md` hoort bij bron `5925c915`,
+niet bij deze merge-werkboom, en test het nieuwe timeoutscenario niet native.
+Voortgang blijft **41 → 41**; geen nieuw criterium geaccepteerd. Na publicatie
+moeten de checks op de nieuwe PR-head opnieuw worden geëvalueerd.
+
+## In main opgenomen — terminale TCP-ontvangst na verbindingstime-out
+
+Main `cbbc9c9` bevat de gerichte N01-reparatie uit issue #43: na een
+geannuleerde TCP-verbindingsopbouw meldt `ReceiveTcp` `Closed`, terwijl
+`TimedOut` als diagnostische status behouden blijft. De bestaande
+bufferafhandeling en tokencontroles blijven intact; opnieuw openen maakt een
+nieuw token aan. Op de oorspronkelijke geteste bron `5925c915` slaagden de
+rood/groen-regressietest (oude uitkomst `Again` in plaats van `Closed`), de
+service-, broker-, stack-, protocol-, client- en peer-hosttests, formatting,
+Clippy en no_std-librarybuild. De bestaande native `normal`- en
+`client-exit`-gates slaagden eveneens, maar testen dit specifieke scenario niet.
+Commando's, bronbinding en grenzen staan in
+`docs/verification/issue-43-receive-timeout.md` en het bijbehorende JSON-rapport.
+Dit is geen nieuwe native scenario-, hardware- of volledige releaseacceptatie.
 
 ## Vorig checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 

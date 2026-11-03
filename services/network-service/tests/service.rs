@@ -686,6 +686,66 @@ fn tcp_rpc(
         tick,
     )
 }
+/// A connect timeout is terminal for reads, just as it is for writes. The
+/// diagnostic TimedOut state must not turn an aborted socket into a retry loop.
+#[test]
+fn receive_after_connect_timeout_reports_terminal_closed() {
+    service!(s, configuration(), {
+        let mut id = 1;
+        let token = rpc(
+            &mut s,
+            0,
+            &request(Operation::OpenTcp, id, 0, 3, PEER, 8080, &[]),
+            0,
+        )
+        .header()
+        .connection;
+        assert_eq!(
+            tcp_rpc(&mut s, &mut id, Operation::ReceiveTcp, token, &[], 0).status(),
+            Status::Again
+        );
+        for tick in 3..=5 {
+            s.poll(tick).unwrap();
+            assert_eq!(
+                tcp_state(&mut s, &mut id, token, tick),
+                ConnectionState::TimedOut as u32
+            );
+            let received = tcp_rpc(&mut s, &mut id, Operation::ReceiveTcp, token, &[], tick);
+            assert_eq!(received.status(), Status::Closed);
+            assert!(received.data().is_empty());
+        }
+        assert_eq!(s.counters().received, 0);
+        assert_eq!(s.counters().rejected, 0);
+        assert_eq!(
+            tcp_rpc(&mut s, &mut id, Operation::ReceiveTcp, token ^ 1, &[], 5).status(),
+            Status::Stale
+        );
+        // Reopening resets the timeout diagnostic and changes the token. A
+        // newly connecting socket still asks the caller to retry its read.
+        id += 1;
+        let reopened = rpc(
+            &mut s,
+            0,
+            &request(Operation::OpenTcp, id, 0, 300, PEER, 8080, &[]),
+            5,
+        );
+        assert_eq!(reopened.status(), Status::Ok);
+        let next_token = reopened.header().connection;
+        assert_ne!(token, next_token);
+        assert_eq!(
+            tcp_rpc(&mut s, &mut id, Operation::ReceiveTcp, token, &[], 5).status(),
+            Status::Stale
+        );
+        assert_eq!(
+            tcp_state(&mut s, &mut id, next_token, 5),
+            ConnectionState::Connecting as u32
+        );
+        assert_eq!(
+            tcp_rpc(&mut s, &mut id, Operation::ReceiveTcp, next_token, &[], 5).status(),
+            Status::Again
+        );
+    });
+}
 /// PR #127 regression: the OpenTcp deadline bounds only connection setup. An
 /// established connection with ongoing traffic must survive well past it, and
 /// an idle one is still ended by the stack's own inactivity timeout.
