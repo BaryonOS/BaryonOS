@@ -2,6 +2,13 @@
 use nieuw_os_ps2::*;
 use std::collections::VecDeque;
 
+#[derive(Clone, Copy, Debug)]
+enum ReplyFault {
+    Corrupt,
+    Parity,
+    Missing,
+}
+
 #[derive(Default)]
 struct Io {
     mode: u8,
@@ -24,9 +31,26 @@ struct Io {
     parity_health: Option<u8>,
     reset_mode_on_test: bool,
     parity_device: bool,
+    replies: usize,
+    reply_fault: Option<(usize, ReplyFault)>,
 }
 impl Io {
     fn byte(&mut self, mouse: bool, byte: u8) {
+        self.replies += 1;
+        if let Some((reply, fault)) = self.reply_fault {
+            if self.replies == reply {
+                match fault {
+                    ReplyFault::Corrupt => self
+                        .queue
+                        .push_back((if mouse { 0x21 } else { 1 }, byte ^ 0x80)),
+                    ReplyFault::Parity => self
+                        .queue
+                        .push_back((if mouse { 0xa1 } else { 0x81 }, byte)),
+                    ReplyFault::Missing => {}
+                }
+                return;
+            }
+        }
         self.queue.push_back((if mouse { 0x21 } else { 1 }, byte));
     }
 }
@@ -439,4 +463,65 @@ fn detach_and_new_reset_invalidate_old_ticket_epoch_and_all_pre_ready_data() {
     let third = c.begin_reset(40).unwrap();
     c.detach();
     assert_eq!(c.poll_reset(third, 40, &mut io), Err(Fault::WrongTicket));
+}
+
+#[test]
+fn each_partial_reset_reply_failure_requires_a_fresh_reset_before_input() {
+    let mut baseline = Controller::new();
+    let mut baseline_io = Io::default();
+    let ticket = baseline.begin_reset(0).unwrap();
+    finish(&mut baseline, &mut baseline_io, ticket, 0).unwrap();
+    assert_eq!(baseline_io.replies, 16);
+
+    for reply in 1..=baseline_io.replies {
+        for fault in [ReplyFault::Corrupt, ReplyFault::Parity, ReplyFault::Missing] {
+            let mut c = Controller::new();
+            let mut io = Io::default();
+            let first = c.begin_reset(0).unwrap();
+            finish(&mut c, &mut io, first, 0).unwrap();
+
+            io.replies = 0;
+            io.reply_fault = Some((reply, fault));
+            let failed = c.begin_reset(2000).unwrap();
+            let error = finish(&mut c, &mut io, failed, 2000)
+                .expect_err(&format!("reply {reply}, {fault:?} published Ready"));
+            assert!(io.replies >= reply, "injection point was not reached");
+            assert!(matches!(
+                error,
+                Fault::Controller | Fault::Response | Fault::UnsupportedDevice | Fault::Timeout
+            ));
+
+            let before = io.operations;
+            assert_eq!(c.poll_reset(failed, 4000, &mut io), Err(error));
+            assert_eq!(c.read_sample(&mut io), Err(Fault::NeedsReset));
+            assert_eq!(io.operations, before);
+
+            io.reply_fault = None;
+            let recovered = c.begin_reset(4000).unwrap();
+            assert_ne!(recovered, failed);
+            let before = io.operations;
+            assert_eq!(c.poll_reset(failed, 4000, &mut io), Err(Fault::WrongTicket));
+            assert_eq!(c.read_sample(&mut io), Err(Fault::NeedsReset));
+            assert_eq!(io.operations, before);
+            let stale_replies = io.queue.len() as u32;
+            let report = finish(&mut c, &mut io, recovered, 4000).unwrap();
+            assert_eq!((report.ticket, report.epoch), (recovered, 2));
+            assert_eq!(report.discarded, stale_replies);
+            assert_eq!(io.mode & 0x73, 0x40);
+            assert_eq!(c.read_sample(&mut io), Ok(None));
+
+            for (sequence, mouse, byte) in [(1, false, 0x1e), (2, true, 0x08)] {
+                io.byte(mouse, byte);
+                assert_eq!(
+                    c.read_sample(&mut io),
+                    Ok(Some(Sample {
+                        epoch: 2,
+                        sequence,
+                        status: if mouse { 0x21 } else { 1 },
+                        byte,
+                    }))
+                );
+            }
+        }
+    }
 }
