@@ -1,6 +1,6 @@
 #![forbid(unsafe_code)]
 //! Raw NIC transport representation for the isolated network service (ABI 1.5).
-//! It conveys no app-level destination grant; protocol policy stays in ring 3.
+//! This conveys no app-level destination grant; protocol policy stays in ring 3.
 use crate::Handle;
 pub const NET_FRAME_MAX: usize = 1514;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

@@ -172,6 +172,8 @@ const RUNTIME_OFFSET_REGISTER: u64 = 0x18;
 const MINIMUM_CAPABILITY_LENGTH: u64 = 0x20;
 const MINIMUM_REGISTER_OFFSET: u64 = 0x20;
 const MINIMUM_OPERATIONAL_LENGTH: u64 = 0x3c;
+const PORT_REGISTER_OFFSET: u64 = 0x400;
+const PORT_REGISTER_LENGTH: u64 = 0x10;
 const RUNTIME_INTERRUPTER_OFFSET: u64 = 0x20;
 const RUNTIME_INTERRUPTER_LENGTH: u64 = 0x20;
 
@@ -245,7 +247,8 @@ pub struct ControllerCapabilities {
 
 impl ControllerCapabilities {
     /// Parses standard capability registers and verifies every advertised
-    /// register range fits inside the granted BAR.
+    /// register range fits inside the granted BAR without overlapping another
+    /// advertised register area.
     pub fn parse(
         capability: u32,
         structural_params_1: u32,
@@ -273,11 +276,22 @@ impl ControllerCapabilities {
         if version >> 8 != 1 {
             return Err(Error::Unsupported);
         }
+        if max_slots == 0 || max_interrupters == 0 || max_ports == 0 {
+            return Err(Error::InvalidRegister);
+        }
         if doorbell_register & 3 != 0 || runtime_register & 0x1f != 0 {
             return Err(Error::InvalidRegister);
         }
 
         let operational_offset = capability_length;
+        let operational_bytes = PORT_REGISTER_OFFSET
+            .checked_add(
+                u64::from(max_ports)
+                    .checked_mul(PORT_REGISTER_LENGTH)
+                    .ok_or(Error::InvalidRegister)?,
+            )
+            .ok_or(Error::InvalidRegister)?
+            .max(MINIMUM_OPERATIONAL_LENGTH);
         let doorbell_bytes = (u64::from(max_slots) + 1)
             .checked_mul(4)
             .ok_or(Error::InvalidRegister)?;
@@ -289,26 +303,31 @@ impl ControllerCapabilities {
             )
             .ok_or(Error::InvalidRegister)?;
 
-        validate_region(bar_size, operational_offset, MINIMUM_OPERATIONAL_LENGTH)?;
+        validate_region(bar_size, operational_offset, operational_bytes)?;
         validate_region(bar_size, doorbell_offset, doorbell_bytes)?;
         validate_region(bar_size, runtime_offset, runtime_bytes)?;
 
-        if ranges_overlap(
-            operational_offset,
-            MINIMUM_OPERATIONAL_LENGTH,
-            doorbell_offset,
-            doorbell_bytes,
-        )? || ranges_overlap(
-            operational_offset,
-            MINIMUM_OPERATIONAL_LENGTH,
-            runtime_offset,
-            runtime_bytes,
-        )? || ranges_overlap(
-            doorbell_offset,
-            doorbell_bytes,
-            runtime_offset,
-            runtime_bytes,
-        )? {
+        if ranges_overlap(0, capability_length, doorbell_offset, doorbell_bytes)?
+            || ranges_overlap(0, capability_length, runtime_offset, runtime_bytes)?
+            || ranges_overlap(
+                operational_offset,
+                operational_bytes,
+                doorbell_offset,
+                doorbell_bytes,
+            )?
+            || ranges_overlap(
+                operational_offset,
+                operational_bytes,
+                runtime_offset,
+                runtime_bytes,
+            )?
+            || ranges_overlap(
+                doorbell_offset,
+                doorbell_bytes,
+                runtime_offset,
+                runtime_bytes,
+            )?
+        {
             return Err(Error::InvalidRegister);
         }
 
@@ -317,6 +336,13 @@ impl ControllerCapabilities {
                 return Err(Error::InvalidRegister);
             }
             validate_region(bar_size, offset, 4)?;
+            if ranges_overlap(offset, 4, 0, capability_length)?
+                || ranges_overlap(offset, 4, operational_offset, operational_bytes)?
+                || ranges_overlap(offset, 4, doorbell_offset, doorbell_bytes)?
+                || ranges_overlap(offset, 4, runtime_offset, runtime_bytes)?
+            {
+                return Err(Error::InvalidRegister);
+            }
         }
 
         Ok(Self {

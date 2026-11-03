@@ -1,182 +1,47 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — xHCI PCI-capabilityprobe — 3 november 2026
+## NEXT AGENT HANDOFF — PR148 met main 8e0c15d — 3 november 2026
 
-Branch `copilot/universal-driver-framework`; xHCI-probe `8c7ccdac31823837dfbcd28871a78f64b26b082e`, gepusht en remote SHA gecontroleerd. De USB-interface-match staat op `e6e38d1e524776241b4485bef278e16b5a2865ad`; de NVMe-probe op `6733559898e1c95536666472422c000e02f75599`.
+**Basis:** PR148 `47ec535f15bb10912dbc6cbf1af3de9df0c6c226` met main
+`8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2`, branch
+`simonvanieperen-upgraded-disco`; schone werkboom bij aanvang.
+Drie centrale documentconflicten behouden beide checkpointreeksen en de
+brongebonden receipts. Gedeelde harnashulpfuncties komen exact uit main;
+volume-admissie blijft uit PR148. Geen handmatige codewijziging.
+**41 → 41/100**, geen criterium of gewicht gewijzigd.
 
-De losse `drivers/xhci`-crate matcht PCI class `0c:03:30`, valideert een devicegebonden 32-/64-bit non-prefetchable BAR0-grant van minimaal één pagina en leest de capabilityregisters read-only. Offset-, alignment-, range- en overlapcontroles begrenzen operational/doorbell/runtime-registers en de optionele extended-capabilitypointer. Daarnaast decodeert `drivers/usb` het standaard interface-descriptor en matcht class/subclass/protocol met wildcards. Geen van beide crates is aan de kernel geactiveerd; geen kernel-/volume-/Maturity-bestanden gewijzigd.
+**Uitgevoerd op de opgeloste boom (alle eindcommando's exit 0):**
+- `python3 -B -m unittest discover -s tests -p 'test_common.py'`: 8 tests.
+- `python3 -B -m unittest discover -s tools/tests -p 'test_random.py'`: 21 tests.
+- `python3 -B -m unittest discover -s tools/tests -p 'test_images.py'`: 20 tests.
+- `python3 -B tools/test_fpu.py`: 12 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_volume_*.py'`: 26 tests.
+- `python3 tools/progress.py --write` en `python3 tools/progress.py --check`.
+- `git diff --check`; vergelijking met beide parents bevestigt exact behoud
+  van de gewijzigde harnassen uit main en de volume-implementatie uit PR148.
 
-**Bewijs op `8c7ccda`:** Rust 1.90.0 formattercheck, strict Clippy (`--all-targets`) en `x86_64-unknown-none`-check exit 0; Clippy compileerde/typecheckte ook de 10 xHCI-testgevallen. De hosttests eindigden met exit 101 vóór uitvoering omdat `cc` ontbreekt; geen toolchaininstallatie of workaround. Exacte commando's, logs en SHA-256 staan in [de xHCI-probe-receipt](verification/xhci-pci-probe-2026-11-03/README.md). Geen controllerstart, USB-apparaat, QEMU-runtime of fysieke hardware getest.
+De eerste discoverypogingen voor random/images/fpu onder `tests` vonden
+geen tests (elk exit 5); daarna zijn de werkelijke bovenstaande entrypoints
+uitgevoerd. Verwachte foutmeldingen in negatieve harnastests zijn geen
+native uitvoering. Uitvoer staat in het sessietranscript, zonder afzonderlijke
+logbestanden. Rust-builds en QEMU niet herhaald; geen native acceptatie.
+<!-- coderabbit-ai-generated:v1 -->
 
-Score blijft **41/100 → 41/100**. Een PCI-capabilityprobe en USB-selector sluiten geen native drivercriterium. NVMe-queue/I/O, xHCI-transfer-rings, USB-enumeratie en HID blijven open; ze vereisen de kernel-owned devicegebonden DMA-/interrupt-/failure-cleanup-interface. Geen concurrerend DMA-model toegevoegd.
+<!-- coderabbit-ai-generated-section:v1:69f0ce3ef4e7240e6d8b1e44a29d90b2c36c7dcd2008b6a678a3f075e30514e8 -->
 
-**Eerstvolgend:** na expliciete kernelresourceadapter-/lifecycle-interface hervat eerst de prioritaire NVMe admin-queue/Identify en één begrensde block-read; bouw daarna xHCI ownership/rings en USB-device-enumeratie. Tot die interface beschikbaar is: geen bus mastering, DMA of controllerwrites.
+**PR148-integratiereview: open.** De assessmentbasis is PR148 `47ec535f`;
+de tweede mergeouder is main `8e0c15d8` en de resulterende merge is `7412d0bb`.
+De hierboven gemelde gerichte controles hebben alleen uitvoer in het
+sessietranscript; een afzonderlijk brongebonden integratiereviewbewijs ontbreekt
+in de checkout. De PR148-hostreceipts hieronder betreffen eerdere werkbomen en
+bewijzen deze integratiereview niet. De `reviewed_commit`-verwijzing naar
+`cc1dea7` in `docs/progress.json` is een historische review van de eerdere
+verduidelijking van documentatiestatus en hostbewijs.
 
-### Historische driverstappen
+**Eerstvolgend:** nieuwe-head CI en review beoordelen en passend reviewbewijs
+vastleggen. Native volume-acceptatie blijft afzonderlijk open.
 
-### Implementatiestap — segment-0 enumeratie en VirtIO BDF-migratie
-
-Commit `9984b1806a99e9bf0b2df0de7935d4a0d72a5219`, gepusht naar
-`copilot/universal-driver-framework`; remote SHA komt exact overeen.
-`pci-core` voert een bounded scan uit en start geen drivers.
-Block- en netwerkdiscovery matchen de eigen registry, weigeren meerdere
-passende functies en dragen het geselecteerde adres door tot initialisatie.
-Netwerk vertrouwt niet meer op het QEMU-fixture-MAC-adres; resetmeldingen
-rapporteren PCI-configfouten en behouden quarantainestatus. CI test/lint nu
-ook `pci-core`. Architectuurgrenzen zijn vastgelegd in ADR-065.
-
-De gerichte freestanding builds en lint slagen, maar daadwerkelijke
-hosttests zijn geblokkeerd door ontbrekende `cc`; kernelbuildscript en
-QEMU-proef zijn daardoor niet gecontroleerd. Er zijn geen nieuwe
-hardwareacceptatiepunten.
-
-### Implementatiestap — configbinding en matching vóór block-DMA
-
-Bron `9badc8659bc48e71a020cb0ae3f36ce7de8ea3f3`, gepusht na statuscheckpoint.
-De VirtIO-configadapter is gebonden aan de gekozen registrymatch; de zes
-kernel-blockprofielen ontdekken en matchen nu het PCI-device vóór allocatie van
-de pinned DMA-pool. Daardoor blijft de bestaande DMA-bufferindeling gelijk,
-maar een afwezige of onbekende device reserveert geen devicepagina's.
-
-Formatter, gerichte driver-check/typecheck, Clippy, freestanding releasebuild
-en hosttests zijn exit 0 met een tijdelijke hostcompiler onder `/tmp`.
-Profile-specifieke kernelbuilds, native runtime, QEMU en hardware zijn nog
-niet uitgevoerd. `cargo check --all-features` is niet toepasselijk omdat de
-kernelfeatures incompatibele acceptatieprofielen selecteren. Dit levert geen
-voortgangspunt op; resterende resourcegrants/factories en hardwarebewijs staan
-open.
-
-### Verificatiestap — herbouw kernelprofielen na resetpadfix
-
-Geteste bron `449ecd654d5a4c15f69c8d3038a59369366adba6`, branch
-`copilot/universal-driver-framework`; remote branch en PR #153 head zijn
-gecontroleerd op deze SHA. Alle zes gerichte builds slagen met exit 0:
-`milestone-m5`, `milestone-m6a`, `milestone-m6b`, `milestone-m6c`,
-`native-volume` en `native-update --image-version 1`. De tijdelijke imageversie
-is compile-invoer, geen release. Exacte commando-omgeving, looptijden,
-logs en SHA-256 staan in de
-[profile-retest-receipt](verification/kernel-profile-retest-2026-11-03/README.md).
-Geen QEMU/runtime- of hardwaretest, geen nieuw acceptatiepunt; score blijft
-**41/100**. De BAR/MMIO-grant is in `b67f8739` voor block/net toegevoegd;
-zie de implementatiestap direct hierna. Factory-activatie blijft open.
-
-### Implementatiestap — matched PCI BAR-grants voor block en netwerk
-
-Commit `b67f8739b48378bd30e57bbb97d86de109fa9b95`, gepusht; remote branch en
-PR #153 head komen exact overeen. `pci-core` peilt memory-BARs alleen na
-registrymatch en laat decode/bus mastering uit. De opaque `PciBarGrant` bindt
-BDF, driver-ID, index en range; `Paging::map_pci_bar` controleert die
-identiteit en laat volledige 4-KiB-pagina's binnen de BAR toe. VirtIO block en
-net gebruiken dit pad. Geen universele physical-memory-capability toegevoegd.
-
-Op exact deze bron slagen 25 gerichte hosttests, Clippy met `-D warnings`,
-`cargo fmt --all -- --check` en de zeven builds `milestone-m5`, `milestone-m6a`,
-`milestone-m6b`, `milestone-m6c`, `native-volume`, `native-update
---image-version 1` en `native-system-net`, alle exit 0.
-[Volledige receipt](verification/pci-bar-grants-2026-11-03/README.md).
-QEMU-runtime en fysiek hardware zijn niet getest; het resultaat is geen
-hardwareacceptatie. De virtio-rng-route, IRQ/DMA-broker en familie-
-overstijgende factoryregistry blijven open.
-
-### Implementatiestap — factorygekoppelde PCI-matches
-
-Commit `43da75947cb5b147c1435a81547a22b3cebfb04a`, gepusht; remote branch en
-PR #153 head komen exact overeen. De vaste `no_std`-registry biedt
-`register_with_factory` en `best_match_with_factory`, zonder allocatie of
-drivercode te laden. VirtIO block en netwerk koppelen hun registrymatch aan
-een privé gehouden statische initializerfunctie. Hun bestaande
-`Device::initialize`-ingang dispatcht via die factory nadat de kernel de
-devicegebonden BAR-mappings en de bestaande DMA-pool heeft aangeleverd. De
-concrete initializers behouden hun identiteits-, pool-, reset- en
-quarantaineregels.
-
-11 core-, 1 block- en 16 netwerkhosttests, Clippy met `-D warnings`,
-`cargo fmt --all -- --check`, `git diff --check` en zeven kernelprofielbuilds
-slagen; de exacte commando's en hashes staan in de
-[factoryreceipt](verification/driver-factory-2026-11-03/README.md).
-De lokale QEMU-executable ontbreekt, dus runtime- en fysieke hardwareproeven
-zijn niet uitgevoerd. Dit is nog geen centrale heterogene registry of
-driverisolatie.
-
-### Gepauzeerd werk — PR139 exacte contracttestreceipt
-
-Geteste bron `0a49a3822e5d872f75573f12cd072e76e1249e1b`, geïntegreerde boom
-met main `d115cc96`; negen artifact-store-contracttests, Rust 1.90.0 fmt en
-Clippy exit 0. Primaire logs/boom/hash:
-[contracttestreceipt](verification/pr139-artifact-contract-receipt.json).
-Dit vervangt geen native acceptatie; eerdere Watch-testclaims zonder primaire
-receipt zijn niet retrospectief als geverifieerd bestempeld.
-Replay-/umaskbewijs blijft exact aan732 gebonden en OS-workflowhistorie
-uitsluitend aan380. Volgende oude PR-actie blijft
-`GH_PAGER="" gh pr checks 139` en live head/base/threads hercontroleren vóór
-guarded squash. Deze featurebranch wijzigt die PR niet en promoveert geen ouder
-testbewijs naar een andere head.
-
-### Gepauzeerd werk — PR139 exacte contracttestreceipt
-
-Geteste bron `0a49a3822e5d872f75573f12cd072e76e1249e1b`, geïntegreerde boom
-met main `d115cc96`; negen artifact-store-contracttests, Rust 1.90.0 fmt en
-Clippy exit 0. Primaire logs/boom/hash:
-[contracttestreceipt](verification/pr139-artifact-contract-receipt.json).
-Dit vervangt geen native acceptatie; eerdere Watch-testclaims zonder primaire
-receipt zijn niet retrospectief als geverifieerd bestempeld.
-Replay-/umaskbewijs blijft exact aan732 gebonden en OS-workflowhistorie
-uitsluitend aan380. Volgende oude PR-actie blijft
-`GH_PAGER="" gh pr checks 139` en live head/base/threads hercontroleren vóór
-guarded squash. Deze featurebranch wijzigt die PR niet en promoveert geen ouder
-testbewijs naar een andere head.
-
-## Onderzoek OS-repositories en hardwaredrivers — 3 november 2026
-
-Opdracht op branch `simonvanieperen-ideal-lamp`, basis
-`99d132768fd72276caa4a3b3e9a09f8f1909f0ed`: read-only vergelijking van
-Ginux, VibeOS, vib-OS en de aangehaalde driverstrategieën. De kernbevinding:
-Ginux' Linux-userspace-ABI is geen Linux-kerneldriverwrapper; VirtIO is
-passend voor de bestaande QEMU-route en GOP voor een eenvoudige framebuffer,
-elk met een beperkte scope. De bestaande eigen-kernel-/capabilityarchitectuur
-blijft intact. Volledige bevindingen en bronversies:
-[`os-repos-and-hardware-drivers.md`](research/2026-11-03/os-repos-and-hardware-drivers.md).
-
-Geen kernel-/drivercode gewijzigd of code overgenomen. `python3
-tools/progress.py --write`, `python3 tools/progress.py --check` en
-`git diff --check` eindigden alle met exit 0. Geen OS-build/test of
-hardwareproef uitgevoerd. Voortgang **41 → 41/100**; H01 blijft geaccepteerd,
-terwijl de volledige releasecriteria FR-H01/02/03 open blijven. Dit onderzoek
-wijzigt de bestaande PR139-hervatstap hierboven niet.
-
-## Vervolgonderzoek ODI en Rust-drivergenerator — 3 november 2026
-
-Vervolg op de gebruikersaanvulling met ODI en `diondokter/device-driver`;
-basiscommit `9e13e7be17845e03256dd451de57419eb242e376`. ODI `ef58952` is een
-C-framework met enkele concrete PCI/seriële/USB-driverimplementaties, maar
-vereist OS-portering en exposeert een generieke callback-/pointerinterface.
-De Rust-toolkit `device-driver` `036fb18` kan vanuit DDSL registers en
-commando-API's genereren; het levert geen PCI-/USB-/VirtIO-bus-, DMA- of
-interruptdriver. Beide zijn mogelijk bruikbaar voor één later geselecteerd
-device, niet als brede compatibiliteitslaag. Geen code gekloond/overgenomen,
-dependency toegevoegd, build of hardwaretest uitgevoerd. Volledige bron- en
-bewijsgrenzen: [`driveronderzoek`](research/2026-11-03/os-repos-and-hardware-drivers.md).
-
-`python3 tools/progress.py --write`, `python3 tools/progress.py --check` en
-`git diff --check` slaagden; score **41 → 41/100**. De oorspronkelijke
-PR139-hervatstap bovenaan blijft ongewijzigd.
-
-## Onderzoek rust-osdev-bibliotheken — 3 november 2026
-
-Gebruikerslink naar de `rust-osdev`-organisatie, beoordeeld vanaf
-`47cc895b4de6bfde02f294399ebc777c67575d24`. Bruikbare mogelijke bouwstenen:
-ACPI-tabellen/AML, PCI-datatypes, xHCI-register-/contextstructuren en USB
-descriptor-/HID-hulppakketten. Geen daarvan is op zichzelf een complete
-capability-/DMA-begrensde apparaatdriver; `virtio-spec-rs` levert definities,
-geen driver. `uart_16550` is een echte `no_std`-driver, maar upstream 0.9.0
-vereist Rust 1.91.0 tegenover de projectpin 1.90.0. Geen repository gekloond,
-code of dependency toegevoegd, geen externe cratebuild of hardwaretest.
-Volledige vastgezette bronnen en beoordeling:
-[`os-repos-and-hardware-drivers.md`](research/2026-11-03/os-repos-and-hardware-drivers.md).
-
-`python3 tools/progress.py --write`, `python3 tools/progress.py --check` en
-`git diff --check` geslaagd; score **41 → 41/100**. Eerdere PR139-hervatstap
-blijft ongewijzigd.
+<!-- /coderabbit-ai-generated:v1 -->
 
 ## Historisch checkpoint — PR142 main-integratie — 3 november 2026
 
@@ -194,7 +59,7 @@ wordt als bewijs voor deze nieuwe mergeboom aangeduid.
 is daarna met de ondersteunde standaardopties geslaagd. Progressmeter is
 bijgewerkt: **41 → 41/100**, zonder nieuw criteriumbewijs. Native/QEMU,
 fysieke en menselijke acceptatie zijn niet uitgevoerd.
-**Toen open:** finaliseer de merge na JSON/progress- en diffcontroles en secret scan;
+**Open:** finaliseer de merge na JSON/progress- en diffcontroles en secret scan;
 na publicatie moeten de nieuwe-head-checks worden geëvalueerd.
 
 ## Historisch checkpoint — PR149 derde main-integratie — 3 november 2026
@@ -224,6 +89,41 @@ uitsluitend documentatie betreffende integratie.
 **Open/eerstvolgend:** na publicatie nieuwe-head-controles laten evalueren.
 Alleen bewijs-/statuscorrecties; geen oude CI-retry of nieuwe runtimecode.
 Native/QEMU-, fysieke en menselijke acceptatie blijven afzonderlijk open.
+
+## Historisch checkpoint — PR148 slot1-admissie opvolging — 3 november 2026
+
+**Basis:** PR148-head `c6b25873c915a98f8c0b2bb7400395e01ba44741`, branch
+`simonvanieperen-upgraded-disco`, met slot1-admissiefix, marker-crashgrens
+en host-suitebewijs al aanwezig. Score en rubric blijven **41 → 41/100**.
+
+**Status en classificatie (actueel):**
+- Vereiste checks (`host-quality`, `qemu-smoke`) zijn groen.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:d8b787176e01e7132a22480ebc41537196905df76f55d8e674355a4700a5bc60 -->
+
+- `native-foundation` faalde volgens de handoff in run `41640409938` met
+  `system marker sequence mismatch`/`RANDOM guest report ... not bound`.
+  De oorzaak is **onbekend**: de primaire workflowbron, de exacte gefaalde
+  stap en het resultaat van de gestarte rerun (`gh run rerun --failed 41640409938`)
+  ontbreken. De gate blijft open.
+
+<!-- /coderabbit-ai-generated:v1 -->
+- Open CodeRabbit-threads betreffen vooral documentatiestatus en bronlabels;
+  productiegedrag voor slot1-admissie is al gecorrigeerd en hostmatig bewezen.
+
+**Primaire bronnen (code + bewijs):**
+- Recovery/admissie: `services/volume/src/table.rs` op commit `c6b25873`.
+- Onafhankelijk orakel: `tools/volume_disk.py` op commit `c6b25873`.
+- Bewijs: `docs/verification/pr148-slot1-review.json`,
+  `docs/verification/pr148-marker-crash-review.json`,
+  `docs/verification/pr148-volume-core-host-suite.json`.
+- Repositorybron: https://github.com/simonvanieperen/nieuw-os/tree/c6b25873c915a98f8c0b2bb7400395e01ba44741
+
+**Open/eerstvolgend:** rond PR148 de resterende documentatie-threads sluiten,
+uitkomst van de `native-foundation` rerun verwerken en daarna opnieuw
+merge-preflight op exact head/base/checks/reviewthreads draaien.
+Native metadata-only fixture en native QEMU-volume-admissie blijven apart open.
 
 ## Historisch checkpoint — PR149 compacte kaartregressies hersteld — 3 november2026
 
@@ -831,8 +731,9 @@ diff-check waarschuwde voor hashgebonden CRLF-/blank-at-EOF-bewijsbytes;
 die bytes zijn niet aangepast.
 
 **Historische scan/bewijsgrens:** CodeQL vond geen Python-alerts maar liep vast
-voordat alle talen klaar waren; geen volledige CodeQL-scan. Nieuwe-headchecks
-bleven vereist. Score34, geen productacceptatiebesluit. De toenmalige vraag
+voordat alle talen klaar waren; geen volledige CodeQL-scan. De app meldde vóór
+deze integratie geen vereiste checks; nieuwe-headchecks bleven vereist.
+Score34, geen productacceptatiebesluit. De toenmalige vraag
 om publicatie via `report_progress` is historisch, geen nieuw mandaat.
 
 ## Native checkpoint PR127 — zeven reviewfixes — 2 november 2026

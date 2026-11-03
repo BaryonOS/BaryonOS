@@ -91,123 +91,23 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
-Generieke PCI-enumeratie en VirtIO BDF-migratie (3 november 2026), bron
-`9984b1806a99e9bf0b2df0de7935d4a0d72a5219`, branch
-`copilot/universal-driver-framework`: **41 -> 41**. `pci-core` scant
-conventionele segment-0-functies; VirtIO block/net matchen hun registratie
-zonder vaste BDF en behouden devicegebonden config-/busmastertoegang. Alleen
-type-0-endpoints worden doorgestuurd; onbekende devices worden overgeslagen en
-meerdere matches per bestaande single-devicebroker geweigerd. Freestanding
-builds, testtarget-typecheck en Clippy slagen. De hosttests en kernelbuildscript
-zijn niet uitvoerbaar doordat `cc` ontbreekt; QEMU/OVMF ontbreken eveneens.
-Daarom geen nieuwe hardwarepunten of acceptatie. Exacte commands, resultaten,
-loghashes en bronvingerafdrukken staan in de
-[PCI-runtime-receipt](verification/pci-runtime-2026-11-03/README.md).
+<!-- coderabbit-ai-generated:v1 -->
 
-Devicegebonden PCI-configuratieadapter (3 november 2026), bron
-`d9b97c4ad701b5c4410909000269e3114d2cfb80`, branch
-`copilot/universal-driver-framework`: **41 -> 41**. `MatchedPciFunction`
-herleest descriptor en registrymatch bij binding en weigert config-space-
-toegang naar een ander BDF; VirtIO block/net gebruiken hem voor BAR-probing en
-busmasterbeheer. Formatter, testtarget-typecheck, Clippy en freestanding
-releasebuild slagen. Hosttests en kernelcheck zijn geprobeerd maar niet
-uitgevoerd doordat `cc` ontbreekt. Geen runtime- of hardwareproef; geen nieuw
-acceptatiebewijs. De adapter is nog geen BAR/MMIO/IRQ/DMA-broker of
-security-isolatie. Zie de
-[PCI-configbinding-receipt](verification/pci-config-binding-2026-11-03/README.md).
+<!-- coderabbit-ai-generated-section:v1:ab73c9e98b6e8e4f98c9394ee7fc9b7f34e8e2a2808b0067c5965ffb55c55446 -->
 
-DMA-poolallocatie na PCI-match en resetpad-typeherstel (3 november 2026), bron
-`28dd57593cbcbf324a3b59a52e4f46117e817674`, branch
-`copilot/universal-driver-framework`: **41 -> 41**. De zes block-profielen
-voeren discovery/registrymatching uit voordat ze pinned DMA-pagina's
-alloceren. De eerste profile-builds vonden een bestaand `as_ref()`/`&mut self`
-typeconflict; de resetpaden zijn hersteld met `as_mut()`. De vijf builds die
-compileerden faalden vóór deze fix; de updatebuild miste `--image-version`.
-Formatter en gerichte driver-check/typecheck, Clippy, freestanding build en
-hosttests zijn exit 0 met tijdelijke compiler. Profile-builds moeten opnieuw
-worden uitgevoerd. Geen runtime-/hardwarebewijs of nieuw acceptatiepunt.
+PR148-integratie (3 november 2026), PR-bron `47ec535f` met main `8e0c15d8`,
+merge `7412d0bb`: **41 → 41**. De drie documentconflicten zijn opgelost met
+behoud van beide bewijsreeksen; gedeelde harnashulpfuncties komen uit main en
+volume-admissie uit PR148. Geen nieuw criterium of native acceptatie.
 
-Herverificatie van de zes kernelprofielen (3 november 2026), assessmentbasis
-`449ecd65`, branch `copilot/universal-driver-framework`: **41 -> 41**.
-`milestone-m5`, `milestone-m6a`, `milestone-m6b`, `milestone-m6c`,
-`native-volume` en `native-update --image-version 1` bouwen nu alle zes met
-exit 0; `1` is alleen compile-invoer. De logs, SHA-256, gebruikte tijdelijke
-compileromgeving en looptijden staan in de
-[profile-retest-receipt](verification/kernel-profile-retest-2026-11-03/README.md).
-Dit lost de profielcompilefout op, maar bewijst geen runtime- of
-hardwareondersteuning en sluit geen voortgangscriterium.
+De integratiereview staat **open**: de handoff meldt gerichte controles met
+uitvoer alleen in het sessietranscript; afzonderlijk brongebonden bewijs van
+de review ontbreekt in de checkout. De eerdere PR148-hostreceipts zijn geen
+bewijs voor deze integratiereview. De `reviewed_commit` `cc1dea7` in
+`progress.json` hoort bij de historische documentatiereview; nieuwe-head CI en
+review moeten nog worden beoordeeld. Zie [de handoff](PROJECT-STATE.md).
 
-Devicegebonden PCI BAR-grants (3 november 2026), bron
-`b67f8739b48378bd30e57bbb97d86de109fa9b95`, branch
-`copilot/universal-driver-framework`: **41 -> 41**. `PciBarGrant` bindt de
-gematchte PCI-functie, driverregistratie en BAR-range; de kernel beperkt
-block/net-MMIO-mapping tot volledige pagina's binnen die grant. BAR-probing
-laat decode en bus mastering uit. 25 hosttests, Clippy, fmt en zeven
-profielbuilds zijn exit 0. Geen QEMU/runtime- of fysieke hardwareproef, dus
-geen nieuw criterium geaccepteerd. Zie de
-[BAR-grant-receipt](verification/pci-bar-grants-2026-11-03/README.md).
-
-Factorygekoppelde PCI-matches (3 november 2026), bron
-`43da75947cb5b147c1435a81547a22b3cebfb04a`, branch
-`copilot/universal-driver-framework`: **41 -> 41**. `DriverRegistry` geeft
-naast de fail-closed match de concrete statisch geregistreerde initializer
-terug. De bestaande block-/netwerkinitializers worden via die factory
-aangeroepen na de bestaande kernelresource-toekenning. 28 gerichte hosttests,
-Clippy, fmt, diff-check en zeven profielbuilds slagen. QEMU-runtime en fysiek
-hardware zijn niet getest; geen nieuw criterium geaccepteerd. Zie de
-[factoryreceipt](verification/driver-factory-2026-11-03/README.md).
-
-Driver-/repositoryonderzoek (3 november 2026), basis `99d13276`:
-**41 -> 41**. Ginux `c86945b`, VibeOS `866bfb9` en vib-OS `73b6429`
-vergeleken met de bestaande Nieuw OS-drivercontracten en primaire Linux-,
-VirtIO- en UEFI-documentatie. Geen codeport, native/hardwaretest of nieuw
-acceptatiebewijs; H01 blijft het enige geaccepteerde hardwarecriterium en de
-volledige FR-H01/02/03-releasegates blijven open. Zie
-[het driveronderzoek](research/2026-11-03/os-repos-and-hardware-drivers.md).
-`python3 tools/progress.py --write`, `--check` en `git diff --check` slaagden;
-geen OS-build of hardwaretest uitgevoerd.
-
-Vervolgonderzoek op door de gebruiker genoemde repositories (3 november 2026),
-assessmentbasis `9e13e7be`: **41 -> 41**. ODI `ef58952` biedt een C-framework
-en enkele drivers waarvoor OS-bindingen geporteerd moeten worden;
-`device-driver` `036fb18` genereert register-/commandocode in Rust maar is
-geen volledige bus-/DMA-/interruptdriver. Geen dependency, port, build of
-hardwaretest; de volledige hardwaregates blijven open. Nadere beoordeling en
-bronbinding staan in het [driveronderzoek](research/2026-11-03/os-repos-and-hardware-drivers.md).
-`python3 tools/progress.py --write`, `--check` en `git diff --check` zijn de
-documentcontroles; native OS-tests zijn niet uitgevoerd.
-
-Vervolgonderzoek naar de [rust-osdev-organisatie](https://github.com/rust-osdev)
-(3 november 2026), assessmentbasis `47cc895b`: **41 -> 41**. ACPI-, PCI-,
-xHCI- en USB-repositories leveren bruikbare parser-/type-/registerbouwstenen,
-maar geen geïntegreerde, capability-begrensde drivers. `virtio-spec-rs` is
-specificatiedefinitie, geen driver. De concrete `uart_16550`-driver 0.9.0
-vereist Rust 1.91.0 en past niet bij onze 1.90.0-pin. Geen crate toegevoegd,
-gebouwd of op hardware getest; geen nieuw acceptatiebewijs. Zie het
-[driveronderzoek](research/2026-11-03/os-repos-and-hardware-drivers.md).
-`python3 tools/progress.py --write`, `--check` en `git diff --check` zijn de
-uitgevoerde documentcontroles.
-
-Eerste implementatiestap Universal Driver Layer (3 november 2026), basis
-`56a025bb`, branch `copilot/universal-driver-framework`: **41 -> 41**. De
-dependencyvrije `no_std`-crate `driver-core` bevat categorytraits, PCI
-identiteitsmatching en een vaste registry die gelijke topmatches weigert;
-VirtIO block/net publiceren alleen registratie-metadata. De kernel start
-geen matches en er zijn geen generieke resourcegrants of PCI-enumerator.
-Freestanding `cargo check` is geslaagd; hosttests konden niet linken wegens
-ontbrekende `cc`, en native/hardwareproeven zijn niet uitgevoerd. Dit is geen
-nieuw criteriumbewijs. Exacte grenzen staan in
-[`docs/drivers`](drivers/DRIVER-ARCHITECTURE.md).
-
-PCI type-0-validatie en eerste vaste-probe-integratie (3 november 2026),
-assessmentbasis `9e1721e4`, branch `copilot/universal-driver-framework`:
-**41 -> 41**. Een vaste type-0 PCI-configsnapshot wordt in de safe core
-gedecodeerd; de bestaande block/net fixed-BDF probes toetsen de identiteit
-fail-closed aan hun registratie vóór en na BAR-probing. Root-CI test en lint
-nu ook `driver-core`. Fmt-check, `cargo check --tests`, Clippy en
-`x86_64-unknown-none` releasebuild zijn lokaal exit 0. Hosttests konden niet
-linken (`cc` ontbreekt); strikte preflight exit 2 en geen QEMU-runtimeproef.
-Daarom geen nieuwe hardwareacceptatiepunten.
+<!-- /coderabbit-ai-generated:v1 -->
 
 PR149 bronbewijsvervolg (3 november 2026), schone bron `bb8877e3`:
 59 hosttests echt opnieuw exit0 met cwd/HEAD/status/lock-/Rust-hashes vóór/na

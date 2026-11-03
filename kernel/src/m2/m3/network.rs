@@ -70,10 +70,6 @@ fn error(e: virtio_core::Error) -> i64 {
     }
 }
 pub(super) fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
-    let info = match virtio_net_driver::discover() {
-        Ok(i) => i,
-        Err(_) => return,
-    };
     let mut pages = [0; 4];
     for page in &mut pages {
         *page = frames
@@ -88,6 +84,10 @@ pub(super) fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
         tx_bounce: pages[3],
     };
     pool.validate(PAGE * FRAME_COUNT as u64).unwrap();
+    let info = match virtio_net_driver::discover() {
+        Ok(i) => i,
+        Err(_) => return,
+    };
     let mut mapped = [0; 6];
     for region in [
         info.regions.common,
@@ -96,23 +96,15 @@ pub(super) fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
         info.regions.device,
     ] {
         let index = region.bar as usize;
-        let bar = info.bar_grants[index].expect("matched PCI BAR grant");
-        let driver_id = virtio_net_driver::DRIVER_REGISTRATION.id.get();
-        assert!(bar.matches_device(
-            info.address,
-            virtio_net_driver::DRIVER_REGISTRATION.id,
-            region.bar
-        ));
-        assert!(bar.base() >= 0x80000000 && bar.size() <= 65536);
+        let bar = info.bars[index];
+        assert!(bar.base >= 0x80000000 && bar.size <= 65536);
         mapped[index] = 0x3f100000 + index as u64 * 65536;
         let first = u64::from(region.offset) & !(PAGE - 1);
         let end = (u64::from(region.offset) + u64::from(region.length) + PAGE - 1) & !(PAGE - 1);
         for offset in (first..end).step_by(PAGE as usize) {
             let va = mapped[index] + offset;
             if kernel.leaf(va) == 0 {
-                kernel
-                    .map_pci_bar(frames, va, bar, info.address, driver_id, region.bar, offset)
-                    .unwrap();
+                kernel.map_mmio(frames, va, bar.base + offset).unwrap();
             }
             assert_eq!(kernel.leaf(va) & (4 | NX | 8 | 16), NX | 8 | 16);
         }
@@ -128,8 +120,16 @@ pub(super) fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
             return;
         }
     };
+    if device.mac() != [2, 0, 0, 0, 0, 7] {
+        device.begin_reset();
+        runtime().offline = -15;
+        runtime().quarantined = true;
+        runtime().device = Some(device);
+        return;
+    }
     if let Err(e) = device.post_rx() {
-        runtime().offline = device.begin_reset().err().map_or_else(|| error(e), error);
+        device.begin_reset();
+        runtime().offline = error(e);
         runtime().quarantined = true;
         runtime().device = Some(device);
         return;
@@ -223,12 +223,12 @@ pub(super) fn syscall(s: &mut State, slot: usize, number: u64, args: [u64; 6]) -
     }
 }
 fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
-    if !matches!(n, 0x70..=0x72 | 0x74) {
+    if !matches!(n, 0x70..=0x72) {
         return Err(-2);
     }
     if a[4..].iter().any(|x| *x != 0)
         || n == 0x71 && a[2..4].iter().any(|x| *x != 0)
-        || matches!(n, 0x72 | 0x74) && a[3] != 0
+        || n == 0x72 && a[3] != 0
     {
         return Err(-1);
     }
@@ -307,31 +307,13 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
             }
             Ok(count as u64)
         }
-        0x74 => {
-            if a[2] != 6 {
-                return Err(-11);
-            }
-            let copy = plans(s, slot, a[1], 6, true)?;
-            let r = runtime();
-            if r.offline != 0 {
-                return Err(r.offline);
-            }
-            let mac = r.device.as_ref().ok_or(-14)?.mac();
-            write(&copy, &mac);
-            Ok(6)
-        }
         _ => Err(-2),
     }
 }
 fn stop(r: &mut Runtime, now: u64, code: i64) {
-    let reset_error = r
-        .device
-        .as_mut()
-        .and_then(|device| device.begin_reset().err());
-    if reset_error.is_some() {
-        r.quarantined = true;
+    if let Some(device) = r.device.as_mut() {
+        device.begin_reset();
     }
-    let code = reset_error.map_or(code, error);
     r.offline = code;
     // RX failures reset the same device as TX. Preserve every published TX's
     // binding and provide a terminal uncertain outcome instead of eternal Again.
@@ -364,7 +346,7 @@ pub(super) fn broker_tick(s: &State) {
     }
     let r = runtime();
     if r.resetting {
-        if r.device.as_mut().is_some_and(Device::reset_acknowledged) {
+        if r.device.as_ref().is_some_and(Device::reset_acknowledged) {
             r.resetting = false;
             r.reset_acks += 1;
         } else if s.ticks >= r.reset_deadline {

@@ -65,6 +65,47 @@ class VolumeOracleTests(unittest.TestCase):
         result = vd.analyse(bytes(image_with({})))
         self.assertEqual((result["generation"], result["chunks_used"]), (0, 0))
 
+    def test_nonzero_unmarked_volume_is_not_an_empty_volume(self):
+        image = image_with({})
+        start = (vd.FIRST + vd.VOLUME_SECTORS - 1) * vd.SECTOR
+        image[start] = 0xB5
+        with self.assertRaisesRegex(ValueError, "unmarked volume"):
+            vd.analyse(bytes(image))
+
+        marker_start = vd.FIRST * vd.SECTOR
+        image[marker_start:marker_start + vd.SECTOR] = vd.format_marker()
+        result = vd.analyse(bytes(image))
+        self.assertEqual((result["generation"], result["chunks_used"]), (0, 0))
+
+    def test_unmarked_nonzero_table_sectors_are_not_empty(self):
+        baseline = image_with({})
+        for sector in range(vd.DATA_START):
+            with self.subTest(sector=sector):
+                image = bytearray(baseline)
+                image[(vd.FIRST + sector) * vd.SECTOR + 17] = 0xB5
+                with self.assertRaises(ValueError):
+                    vd.analyse(bytes(image))
+
+    def test_format_marker_preserves_a_torn_first_table(self):
+        image = image_with({})
+        image[(vd.FIRST + vd.DATA_START - 1) * vd.SECTOR + 17] = 0xB5
+        start = vd.FIRST * vd.SECTOR
+        image[start:start + vd.SECTOR] = vd.format_marker()
+        result = vd.analyse(bytes(image))
+        self.assertEqual((result["generation"], result["chunks_used"]), (0, 0))
+
+    def test_torn_first_format_marker_is_never_silently_admitted(self):
+        marker = vd.format_marker()
+        for prefix in range(vd.SECTOR + 1):
+            with self.subTest(prefix=prefix):
+                volume = bytearray(vd.VOLUME_SECTORS * vd.SECTOR)
+                volume[:prefix] = marker[:prefix]
+                if not any(volume) or volume[:vd.SECTOR] == marker:
+                    self.assertEqual(vd.choose(bytes(volume))["generation"], 0)
+                else:
+                    with self.assertRaises(ValueError):
+                        vd.choose(bytes(volume))
+
     def test_document_content_and_revision_are_verified(self):
         entry, payload = document(1, 1, 5000, [3, 7], 11)
         tables = {1: vd.encode_table(1, 11, entries_with({1: entry}))}
@@ -216,6 +257,13 @@ class VolumeOracleTests(unittest.TestCase):
             path = Path(directory) / "c.img"
             vd.create_image(path, "corrupt")
             with self.assertRaises(ValueError):
+                vd.analyse(path.read_bytes())
+
+    def test_foreign_volume_fixture_is_refused(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "foreign.img"
+            vd.create_image(path, "foreign")
+            with self.assertRaisesRegex(ValueError, "unmarked volume"):
                 vd.analyse(path.read_bytes())
 
     def test_write_outside_scope_is_detected(self):

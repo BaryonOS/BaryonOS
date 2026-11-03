@@ -115,7 +115,7 @@ test-m4-rights = ["milestone-m4"]
 test-m4-revoke = ["milestone-m4"]
 test-m4-quotas = ["milestone-m4"]
 test-m4-lifecycle = ["milestone-m4"]
-milestone-m5 = ["milestone-m4", "dep:driver-core"]
+milestone-m5 = ["milestone-m4"]
 test-m5-service-errors = ["milestone-m5"]
 test-m5-device-rights = ["milestone-m5"]
 test-m5-async = ["milestone-m5"]
@@ -204,6 +204,7 @@ test-volume-cut-data = ["native-volume"]
 test-volume-cut-table = ["native-volume"]
 test-volume-recover-cut = ["native-volume"]
 test-volume-corrupt = ["native-volume"]
+test-volume-foreign = ["native-volume"]
 test-volume-cut-txn = ["native-volume"]
 
 # B03 signed updates: generic broker over the slot store, one ring-3 update
@@ -212,7 +213,6 @@ native-update = ["milestone-m6a"]
 test-update-cut = ["native-update"]
 
 [dependencies]
-driver-core = { path = "../crates/driver-core", optional = true }
 nieuw-os-tpm-crb = { path = "../drivers/tpm-crb", optional = true }
 nieuw-os-rtc = { path = "../drivers/rtc", optional = true }
 nieuw-os-display-client = { path = "../sdk/display-client", default-features = false, optional = true }
@@ -221,7 +221,6 @@ boot-protocol = { path = "../crates/boot-protocol" }
 kernel-core = { path = "../crates/kernel-core" }
 capability-core = { path = "../crates/capability-core" }
 virtio-core = { path = "../crates/virtio-core" }
-pci-core = { path = "../crates/pci-core" }
 virtio-blk-driver = { path = "../drivers/virtio-blk" }
 virtio-rng-driver = { path = "../drivers/virtio-rng", optional = true }
 virtio-net-driver = { path = "../drivers/virtio-net", optional = true }

@@ -69,10 +69,8 @@ sleutels nooit aan gewone apps afgeeft.
 
 ## 3. Entropybron en gezondheidstests
 
-- QEMU-fixture: virtio-rng-pci (modern, in het huidige profiel PCI 00:06.0,
-  `-object rng-random, filename=/dev/urandom`). De kernel vereist die BDF niet:
-  `pci-core` enumereert segment 0 en de RNG-registry selecteert de match.
-  Eigen driver `drivers/virtio-rng` op `virtio-core`
+- Apparaat: virtio-rng-pci (modern, PCI 00:06.0, `-object rng-random,
+  filename=/dev/urandom`), eigen driver `drivers/virtio-rng` op `virtio-core`
   (capability-parsing, één wachtrij van 8, één apparaat-beschrijfbare buffer
   van 256 bytes per aanvraag, gepinde DMA-pagina's). Geen interrupts; polling
   met deadline in ticks zoals de blokbroker.

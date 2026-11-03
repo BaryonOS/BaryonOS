@@ -15,7 +15,10 @@ use nieuw_os_net_protocol::{
 };
 use nieuw_os_sdk_runtime::{decode_return, native, Error, Handle, NetworkSource};
 
-const LOCAL_IPV4: [u8; 4] = [192, 0, 2, 2];
+const LOCAL: Interface = Interface {
+    mac: [2, 0, 0, 0, 0, 7],
+    ipv4: [192, 0, 2, 2],
+};
 const PEER_MAC: [u8; 6] = [2, 0, 0, 0, 0, 1];
 const PEER_IP: [u8; 4] = [192, 0, 2, 1];
 const DNS_IP: [u8; 4] = [192, 0, 2, 53];
@@ -125,19 +128,12 @@ fn receive(source: NetworkSource, output: &mut [u8; 1514], clock: &mut u64) -> O
     None
 }
 
-fn udp(
-    payload: &[u8],
-    ip: [u8; 4],
-    port: u16,
-    source_port: u16,
-    local: Interface,
-    output: &mut [u8; 1514],
-) -> usize {
+fn udp(payload: &[u8], ip: [u8; 4], port: u16, source_port: u16, output: &mut [u8; 1514]) -> usize {
     build_udp_ipv4(
         UdpIpv4Tx {
             destination_mac: PEER_MAC,
-            source_mac: local.mac,
-            source_ipv4: local.ipv4,
+            source_mac: LOCAL.mac,
+            source_ipv4: LOCAL.ipv4,
             destination_ipv4: ip,
             source_port,
             destination_port: port,
@@ -186,30 +182,12 @@ fn main() -> ! {
         7,
     );
     denied(raw(0x71, [handle.raw(), 0, 0, 0, 0, 0]), -1, 8);
-    // The local-link query is scoped to the same raw-network capability.
-    denied(
-        raw(0x74, [wrong_type, rx.as_mut_ptr() as u64, 6, 0, 0, 0]),
-        -6,
-        46,
-    );
-    denied(raw(0x74, [handle.raw(), 0, 6, 0, 0, 0]), -3, 47);
-    denied(
-        raw(0x74, [handle.raw(), rx.as_mut_ptr() as u64, 7, 0, 0, 0]),
-        -11,
-        48,
-    );
-    let local_interface = Interface {
-        mac: native::net_mac(source).unwrap_or_else(|_| fail(49)),
-        ipv4: LOCAL_IPV4,
-    };
-    check(local_interface.mac == [2, 0, 0, 0, 0, 7], 50);
 
     let mut clock = 0u64; // Monotonic receive-poll steps, not wall-clock seconds.
-    let mut neighbor = NeighborSlot::new(local_interface).unwrap_or_else(|_| fail(9));
+    let mut neighbor = NeighborSlot::new(LOCAL).unwrap_or_else(|_| fail(9));
     check(neighbor.begin(PEER_IP, clock, 1_000_000).is_ok(), 10);
     for attempt in 0..3 {
-        let length =
-            arp::build_request(local_interface, PEER_IP, &mut tx).unwrap_or_else(|_| fail(11));
+        let length = arp::build_request(LOCAL, PEER_IP, &mut tx).unwrap_or_else(|_| fail(11));
         send(source, &tx[..length], 12);
         let length = receive(source, &mut rx, &mut clock).unwrap_or_else(|| fail(13));
         let reply = neighbor.accept_reply(&rx[..length], clock, 1_000_000);
@@ -237,15 +215,15 @@ fn main() -> ! {
     payload[..prefix.len()].copy_from_slice(prefix);
     payload[prefix.len()..prefix.len() + 8].copy_from_slice(&support::word(176).to_le_bytes());
     let payload = &payload[..prefix.len() + 8];
-    let length = udp(payload, PEER_IP, 9000, 49153, local_interface, &mut tx);
+    let length = udp(payload, PEER_IP, 9000, 49153, &mut tx);
     send(source, &tx[..length], 23);
     let length = receive(source, &mut rx, &mut clock).unwrap_or_else(|| fail(24));
     let echo = parse(&rx[..length]).unwrap_or_else(|_| fail(25));
     check(
         echo.source_mac() == PEER_MAC
-            && echo.destination_mac() == local_interface.mac
+            && echo.destination_mac() == LOCAL.mac
             && echo.source_address() == PEER_IP
-            && echo.destination_address() == local_interface.ipv4
+            && echo.destination_address() == LOCAL.ipv4
             && echo.source_port() == 9000
             && echo.destination_port() == 49153
             && echo.payload() == payload,
@@ -259,7 +237,7 @@ fn main() -> ! {
         kind: QueryType::A,
     };
     let local = Endpoint {
-        address: local_interface.ipv4,
+        address: LOCAL.ipv4,
         port: 49152,
     };
     let server = Endpoint {
@@ -271,14 +249,7 @@ fn main() -> ! {
     let mut query = [0; 256];
     let query_len = dns::build_query(question, &mut query).unwrap_or_else(|_| fail(29));
     for attempt in 0..3 {
-        let length = udp(
-            &query[..query_len],
-            DNS_IP,
-            53,
-            49152,
-            local_interface,
-            &mut tx,
-        );
+        let length = udp(&query[..query_len], DNS_IP, 53, 49152, &mut tx);
         send(source, &tx[..length], 30);
         let length = receive(source, &mut rx, &mut clock).unwrap_or_else(|| fail(31));
         let packet = parse(&rx[..length]).unwrap_or_else(|_| fail(32));
@@ -318,14 +289,7 @@ fn main() -> ! {
     let mut pending = PendingQuery::new(timeout_question, local, server, clock, POLLS as u64)
         .unwrap_or_else(|_| fail(38));
     let query_len = dns::build_query(timeout_question, &mut query).unwrap_or_else(|_| fail(39));
-    let length = udp(
-        &query[..query_len],
-        DNS_IP,
-        53,
-        49152,
-        local_interface,
-        &mut tx,
-    );
+    let length = udp(&query[..query_len], DNS_IP, 53, 49152, &mut tx);
     send(source, &tx[..length], 40);
     check(receive(source, &mut rx, &mut clock).is_none(), 41);
     pending.cancel();
@@ -341,7 +305,7 @@ fn main() -> ! {
     );
     bump(STALE_CAP);
     check(
-        support::word(DENIED) == 10
+        support::word(DENIED) == 7
             && support::word(TX_COMPLETIONS) == 8
             && support::word(RX_FRAMES) == 7,
         45,

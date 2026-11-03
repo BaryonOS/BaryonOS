@@ -68,8 +68,6 @@ mod keyring;
 mod m4;
 #[cfg(feature = "native-system-net")]
 mod network;
-#[cfg(feature = "milestone-m5")]
-mod pci_report;
 #[cfg(feature = "native-qsim")]
 mod qsim;
 #[cfg(feature = "native-qsim-job")]
@@ -576,8 +574,6 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
     let image = user::parse(process_elf(0)).expect("embedded user ELF");
     assert_eq!(image.entry, 0x40000000);
     kernel.begin_scratch(frames);
-    #[cfg(feature = "milestone-m5")]
-    pci_report::report_unsupported_devices();
     #[cfg(feature = "native-tpm-crb")]
     tpm_fixture::prepare(frames, &mut kernel);
     #[cfg(all(feature = "milestone-m5", not(feature = "native-net-service")))]
@@ -1619,7 +1615,7 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
         let supervisor_call = matches!(number, 0x60 | 0x61);
         #[cfg(feature = "native-system")]
         let supervisor_call = matches!(number, 0x30 | 0x50..=0x52 | 0x60 | 0x61)
-            || cfg!(feature = "native-system-net") && matches!(number, 0x70..=0x72 | 0x74)
+            || cfg!(feature = "native-system-net") && matches!(number, 0x70..=0x72)
             || cfg!(feature = "native-window-session") && number == 0x53;
         #[cfg(feature = "native-system-clock")]
         let supervisor_call = supervisor_call || number == 0x73;
@@ -1673,7 +1669,7 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
             state.processes[current].context[12] = rdx;
         }
         #[cfg(feature = "native-system-net")]
-        if matches!(number, 0x70..=0x72 | 0x74) {
+        if matches!(number, 0x70..=0x72) {
             let (rax, rdx) = network::syscall(state, current, number, args);
             state.processes[current].context[14] = rax as u64;
             state.processes[current].context[12] = rdx;

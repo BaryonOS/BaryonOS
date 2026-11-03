@@ -6,8 +6,6 @@
 /sdk/examples/*/target/
 /ui/*/target/
 /services/input-core/target/
-/services/net-stack/target/
-/services/network-service/target/
 /drivers/rtc/target/
 /services/net-protocol/target/
 /build/

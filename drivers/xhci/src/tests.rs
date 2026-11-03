@@ -1,5 +1,5 @@
 use super::*;
-use std::{vec, vec::Vec};
+use std::{cell::RefCell, rc::Rc, vec, vec::Vec};
 
 #[test]
 fn parses_and_bounds_a_supported_capability_layout() {
@@ -8,7 +8,7 @@ fn parses_and_bounds_a_supported_capability_layout() {
         ControllerCapabilities::parse(
             0x0100_0040,
             structural,
-            0x0040_0000,
+            0x0200_0000,
             0x1000,
             0x2000,
             0x4000,
@@ -22,7 +22,7 @@ fn parses_and_bounds_a_supported_capability_layout() {
             max_ports: 4,
             doorbell_offset: 0x1000,
             runtime_offset: 0x2000,
-            extended_capability_offset: Some(0x100),
+            extended_capability_offset: Some(0x800),
         }
     );
 }
@@ -76,6 +76,65 @@ fn rejects_doorbell_runtime_and_extended_capability_ranges_outside_bar() {
         ControllerCapabilities::parse(capability_word, structural, 0, 0x1000, 0x2001, 0x4000,),
         Err(Error::InvalidRegister)
     );
+}
+
+#[test]
+fn rejects_zero_structural_limits_and_port_register_overlap() {
+    let capability_word = 0x40 | (0x0100 << 16);
+    for structural in [(2 << 8) | (4 << 24), 8 | (4 << 24), 8 | (2 << 8)] {
+        assert_eq!(
+            ControllerCapabilities::parse(capability_word, structural, 0, 0x1000, 0x2000, 0x4000,),
+            Err(Error::InvalidRegister)
+        );
+    }
+
+    let structural = 8 | (2 << 8) | (4 << 24);
+    assert_eq!(
+        ControllerCapabilities::parse(capability_word, structural, 0, 0x440, 0x1000, 0x4000,),
+        Err(Error::InvalidRegister)
+    );
+}
+
+#[test]
+fn rejects_doorbell_and_runtime_registers_in_capability_space() {
+    let structural = 8 | (2 << 8) | (4 << 24);
+    let capability_word = 0x40 | (0x0100 << 16);
+    assert_eq!(
+        ControllerCapabilities::parse(capability_word, structural, 0, 0x20, 0x2000, 0x4000,),
+        Err(Error::InvalidRegister)
+    );
+    assert_eq!(
+        ControllerCapabilities::parse(capability_word, structural, 0, 0x1000, 0x20, 0x4000,),
+        Err(Error::InvalidRegister)
+    );
+}
+
+#[test]
+fn bounds_the_port_register_area_using_max_ports() {
+    let structural = 1 | (1 << 8) | (0xff << 24);
+    assert_eq!(
+        ControllerCapabilities::parse(0x0100_0020, structural, 0, 0x400, 0x600, 0x1000,),
+        Err(Error::InvalidRegister)
+    );
+}
+
+#[test]
+fn rejects_extended_capability_header_overlapping_advertised_regions() {
+    let structural = 8 | (2 << 8) | (4 << 24);
+    let capability_word = 0x40 | (0x0100 << 16);
+    for capability_params in [0x0008_0000, 0x0014_0000, 0x0400_0000, 0x0800_0000] {
+        assert_eq!(
+            ControllerCapabilities::parse(
+                capability_word,
+                structural,
+                capability_params,
+                0x1000,
+                0x2000,
+                0x4000,
+            ),
+            Err(Error::InvalidRegister)
+        );
+    }
 }
 
 #[test]
@@ -134,7 +193,7 @@ fn inspection_reads_only_the_required_capability_registers() {
         values: [
             (CAPABILITY_OFFSET, 0x0100_0040),
             (STRUCTURAL_PARAMS_1_OFFSET, 8 | (2 << 8) | (4 << 24)),
-            (CAPABILITY_PARAMS_1_OFFSET, 0x0040_0000),
+            (CAPABILITY_PARAMS_1_OFFSET, 0x0200_0000),
             (DOORBELL_OFFSET_REGISTER, 0x1000),
             (RUNTIME_OFFSET_REGISTER, 0x2000),
         ],
@@ -186,9 +245,27 @@ impl MockFunction {
 #[derive(Default)]
 struct MockPci {
     functions: Vec<MockFunction>,
+    command_writes: Rc<RefCell<Vec<(PciAddress, u16)>>>,
 }
 
 impl MockPci {
+    fn with_functions(functions: Vec<MockFunction>) -> Self {
+        Self {
+            functions,
+            ..Self::default()
+        }
+    }
+
+    fn with_command_writes(
+        functions: Vec<MockFunction>,
+        command_writes: Rc<RefCell<Vec<(PciAddress, u16)>>>,
+    ) -> Self {
+        Self {
+            functions,
+            command_writes,
+        }
+    }
+
     fn function_mut(&mut self, address: PciAddress) -> Option<&mut MockFunction> {
         self.functions
             .iter_mut()
@@ -228,6 +305,11 @@ impl PciConfigAccess for MockPci {
         }
         let offset = usize::from(offset);
         function.config[offset..offset + 4].copy_from_slice(&value.to_le_bytes());
+        if offset == 4 {
+            self.command_writes
+                .borrow_mut()
+                .push((address, value as u16));
+        }
         Ok(())
     }
 
@@ -242,6 +324,9 @@ impl PciConfigAccess for MockPci {
         };
         let offset = usize::from(offset);
         function.config[offset..offset + 2].copy_from_slice(&value.to_le_bytes());
+        if offset == 4 {
+            self.command_writes.borrow_mut().push((address, value));
+        }
         Ok(())
     }
 }
@@ -258,9 +343,11 @@ fn address(device: u8) -> PciAddress {
 #[test]
 fn discovers_one_xhci_function_and_keeps_activation_disabled() {
     let expected = address(3);
-    let pci = MockPci {
-        functions: vec![MockFunction::new(expected, 0x0c, 0x03, 0x30)],
-    };
+    let command_writes = Rc::new(RefCell::new(Vec::new()));
+    let pci = MockPci::with_command_writes(
+        vec![MockFunction::new(expected, 0x0c, 0x03, 0x30)],
+        Rc::clone(&command_writes),
+    );
     let found = discover(pci).unwrap();
     assert_eq!(found.address(), expected);
     assert_eq!(found.bar0().address(), expected);
@@ -268,6 +355,18 @@ fn discovers_one_xhci_function_and_keeps_activation_disabled() {
     assert_eq!(found.bar0().index(), 0);
     assert_eq!(found.bar0().base(), 0xfebf_0000);
     assert_eq!(found.bar0().size(), 0x4000);
+    assert!(!command_writes.borrow().is_empty());
+    assert!(command_writes
+        .borrow()
+        .iter()
+        .all(|(device, command)| *device == expected && command & 0x7 == 0));
+    assert_eq!(
+        command_writes
+            .borrow()
+            .last()
+            .map(|(_, command)| command & 0x7),
+        Some(0)
+    );
 }
 
 #[test]
@@ -276,10 +375,7 @@ fn accepts_a_32_bit_nonprefetchable_memory_bar() {
     function.config[0x10..0x14].copy_from_slice(&0xfebf_0000u32.to_le_bytes());
     function.bar_masks[0] = 0xffff_c000;
     function.bar_masks[1] = 0;
-    let found = discover(MockPci {
-        functions: vec![function],
-    })
-    .unwrap();
+    let found = discover(MockPci::with_functions(vec![function])).unwrap();
     assert_eq!(found.bar0().base(), 0xfebf_0000);
     assert_eq!(found.bar0().size(), 0x4000);
 }
@@ -287,17 +383,24 @@ fn accepts_a_32_bit_nonprefetchable_memory_bar() {
 #[test]
 fn safely_skips_non_xhci_and_rejects_multiple_matches() {
     assert_eq!(discover(MockPci::default()), Err(Error::NotFound));
-    let other_usb_controller = MockPci {
-        functions: vec![MockFunction::new(address(2), 0x0c, 0x03, 0x20)],
-    };
+    let other_usb_controller =
+        MockPci::with_functions(vec![MockFunction::new(address(2), 0x0c, 0x03, 0x20)]);
     assert_eq!(discover(other_usb_controller), Err(Error::NotFound));
-    let ambiguous = MockPci {
-        functions: vec![
-            MockFunction::new(address(2), 0x0c, 0x03, 0x30),
-            MockFunction::new(address(3), 0x0c, 0x03, 0x30),
-        ],
-    };
+    let ambiguous = MockPci::with_functions(vec![
+        MockFunction::new(address(2), 0x0c, 0x03, 0x30),
+        MockFunction::new(address(3), 0x0c, 0x03, 0x30),
+    ]);
     assert_eq!(discover(ambiguous), Err(Error::Ambiguous));
+}
+
+#[test]
+fn skips_a_nonresponding_pci_function() {
+    let mut nonresponding = MockFunction::new(address(3), 0x0c, 0x03, 0x30);
+    nonresponding.config[0..4].copy_from_slice(&u32::MAX.to_le_bytes());
+    assert_eq!(
+        discover(MockPci::with_functions(vec![nonresponding])),
+        Err(Error::NotFound)
+    );
 }
 
 #[test]
@@ -305,18 +408,14 @@ fn rejects_prefetchable_or_io_bar_shapes() {
     let mut prefetchable = MockFunction::new(address(3), 0x0c, 0x03, 0x30);
     prefetchable.config[0x10..0x14].copy_from_slice(&0xfebf_000cu32.to_le_bytes());
     assert_eq!(
-        discover(MockPci {
-            functions: vec![prefetchable]
-        }),
+        discover(MockPci::with_functions(vec![prefetchable])),
         Err(Error::InvalidBar)
     );
 
     let mut io_bar = MockFunction::new(address(3), 0x0c, 0x03, 0x30);
     io_bar.config[0x10..0x14].copy_from_slice(&0x0000_c001u32.to_le_bytes());
     assert_eq!(
-        discover(MockPci {
-            functions: vec![io_bar]
-        }),
+        discover(MockPci::with_functions(vec![io_bar])),
         Err(Error::InvalidBar)
     );
 }

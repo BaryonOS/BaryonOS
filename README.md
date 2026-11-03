@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`8c7ccdac`](https://github.com/simonvanieperen/nieuw-os/commit/8c7ccdac31823837dfbcd28871a78f64b26b082e) ·
-**Ontwikkelbranch:** `copilot/universal-driver-framework`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** xHCI PCI-capability and BAR probe.
-41/100 blijft 41/100. De losse no_std xHCI-crate matcht PCI class 0c:03:30 en valideert BAR0 plus capability-, operational-, doorbell-, runtime- en extended-capabilityranges, zonder controllerwrites, DMA of interruptsetup. Strict Clippy, formattercheck en x86_64-unknown-none-check slagen. De 10 hosttestgevallen zijn gecompileerd/typechecked maar niet uitgevoerd doordat cc ontbreekt. Geen controller-/USB-, QEMU- of fysiek bewijs en geen nieuw geaccepteerd criterium.
+**Bron:** [`47ec535f`](https://github.com/simonvanieperen/nieuw-os/commit/47ec535f15bb10912dbc6cbf1af3de9df0c6c226) ·
+**Ontwikkelbranch:** `simonvanieperen-upgraded-disco`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR148-conflicten met main 8e0c15d inhoudsbehoudend integreren.
+41/100 blijft 41/100. Drie centrale documentconflicten behouden beide checkpointreeksen en hun afzonderlijke bewijsbronnen. Gedeelde harnashulpfuncties komen exact uit main; PR148-volume-admissie blijft behouden. Geen handmatige codewijziging, nieuw criterium of native acceptatie. Gerichte integratievalidatie en nieuwe-head CI worden afzonderlijk gerapporteerd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -80,7 +80,6 @@ beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS
 <!-- OS-PROGRESS:END -->
 
 Volledige repository-inventaris: [OS-completeness-audit](docs/audit/os-completeness/README.md).
-Driververgelijking en voorstel: [OS-repositories en hardwaredrivers](docs/research/2026-11-03/os-repos-and-hardware-drivers.md).
 
 ## Native venstersessie — 2 november 2026
 

@@ -3,7 +3,6 @@
 use super::{zero, FRAME_COUNT};
 use core::ptr;
 use kernel_core::{Alias, Frames, Owner, PAGE};
-use pci_core::{PciAddress, PciBarGrant};
 const PRESENT: u64 = 1;
 const WRITE: u64 = 2;
 const USER: u64 = 4;
@@ -167,28 +166,6 @@ impl Paging {
             return Err(kernel_core::Error::Range);
         }
         self.map_device_page(frames, va, pa)
-    }
-    #[cfg(any(feature = "milestone-m5", feature = "native-keyring"))]
-    pub fn map_pci_bar(
-        &mut self,
-        frames: &mut Frames<FRAME_COUNT>,
-        va: u64,
-        grant: PciBarGrant,
-        device: PciAddress,
-        driver_id: u64,
-        bar_index: u8,
-        offset: u64,
-    ) -> Result<(), kernel_core::Error> {
-        if grant.address() != device
-            || grant.driver_id().get() != driver_id
-            || grant.index() != bar_index
-        {
-            return Err(kernel_core::Error::Permission);
-        }
-        let pa = grant
-            .page_address(offset)
-            .map_err(|_| kernel_core::Error::Range)?;
-        self.map_mmio(frames, va, pa)
     }
     #[cfg(feature = "native-tpm-crb")]
     pub fn map_tpm_crb(

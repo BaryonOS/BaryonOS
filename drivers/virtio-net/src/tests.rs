@@ -14,40 +14,6 @@ const POOL: NetPool = NetPool {
 };
 const MAC: [u8; 6] = [2, 0, 0, 0, 0, 7];
 
-#[test]
-fn registry_registration_matches_only_supported_virtio_net_identity() {
-    let mut registry = driver_core::DriverRegistry::<1>::new();
-    registry.register(DRIVER_REGISTRATION).unwrap();
-    let mut config = [0; 256];
-    config[0x00..0x04].copy_from_slice(&[0xf4, 0x1a, DEVICE_ID_NET as u8, 0x10]);
-    config[0x08..0x0c].copy_from_slice(&[1, 0, 0, 2]);
-    let descriptor = driver_core::PciDeviceDescriptor::from_type0_config(
-        driver_core::PciAddress {
-            segment: 0,
-            bus: 0,
-            device: 7,
-            function: 0,
-        },
-        &config,
-    )
-    .unwrap();
-    assert_eq!(
-        registry
-            .best_match(&descriptor)
-            .unwrap()
-            .unwrap()
-            .registration,
-        DRIVER_REGISTRATION
-    );
-    assert_eq!(
-        registry.best_match(&driver_core::PciDeviceDescriptor {
-            device_id: 0x1042,
-            ..descriptor
-        }),
-        Ok(None)
-    );
-}
-
 #[derive(Clone)]
 struct Model(Rc<RefCell<Registers>>);
 
@@ -245,12 +211,11 @@ impl Io for Model {
             state.store(address, value, 8);
         }
     }
-    fn bus_master(&mut self, enabled: bool) -> Result<(), Error> {
+    fn bus_master(&mut self, enabled: bool) {
         self.0.borrow_mut().bme = enabled;
-        Ok(())
     }
-    fn bus_master_enabled(&mut self) -> Result<bool, Error> {
-        Ok(self.0.borrow().bme)
+    fn bus_master_enabled(&self) -> bool {
+        self.0.borrow().bme
     }
 }
 
@@ -281,17 +246,9 @@ fn info() -> Discovery {
     };
     let regions = parse_capabilities_for(&config, &bars, DEVICE_ID_NET).unwrap();
     Discovery {
-        address: driver_core::PciAddress {
-            segment: 0,
-            bus: 0,
-            device: 7,
-            function: 0,
-        },
         config,
         bars,
-        bar_grants: [None; 6],
         regions,
-        driver_factory: Device::initialize_matched,
     }
 }
 
@@ -308,7 +265,7 @@ fn online() -> (Engine<Model>, Model) {
 #[test]
 fn model_initialization_programs_two_isolated_queues_and_features() {
     let (engine, model) = online();
-    assert!(engine.ready && model.0.borrow().bme);
+    assert!(engine.ready && model.bus_master_enabled());
     assert_eq!(engine.mac, MAC);
     assert_eq!(engine.link_up(), Ok(true));
     let state = model.0.borrow();
@@ -381,7 +338,7 @@ fn invalid_dma_pages_and_forged_discovery_fail_before_any_io() {
         Err(Error::Range)
     ));
     assert_eq!(model.0.borrow().bytes.len(), 8);
-    assert!(!model.0.borrow().bme);
+    assert!(!model.bus_master_enabled());
 }
 
 #[test]
@@ -404,8 +361,8 @@ fn model_initialization_refusals_are_bounded_and_never_report_ready() {
         let mut engine = new_engine(model.clone());
         assert!(engine.initialize().is_err(), "case {case}");
         // Mirrors the public wrapper's error path: failed init always resets.
-        engine.begin_reset().unwrap();
-        assert!(!engine.ready && !model.0.borrow().bme);
+        engine.begin_reset();
+        assert!(!engine.ready && !model.bus_master_enabled());
         assert!(engine.reset_acknowledged());
     }
 }
@@ -501,7 +458,7 @@ fn malformed_used_ring_snapshots_reset_without_partial_rx_copy() {
         let mut output = [0xa5; MAX_FRAME_BYTES];
         assert_eq!(engine.poll_rx(&mut output), Err(Error::Protocol));
         assert_eq!(output, [0xa5; MAX_FRAME_BYTES]);
-        assert!(!engine.ready && !model.0.borrow().bme);
+        assert!(!engine.ready && !model.bus_master_enabled());
         assert!(engine.reset_acknowledged());
     }
 }
@@ -573,13 +530,13 @@ fn reset_request_is_not_acknowledgement_and_pinned_memory_is_not_reused() {
     engine.post_rx().unwrap();
     model.0.borrow_mut().refuse_reset = true;
     let before = model.read_bytes(POOL.rx_bounce, BUFFER_BYTES);
-    engine.begin_reset().unwrap();
+    engine.begin_reset();
     assert!(!engine.reset_acknowledged());
-    assert!(!model.0.borrow().bme);
+    assert!(!model.bus_master_enabled());
     assert_eq!(engine.post_rx(), Err(Error::Offline));
     assert_eq!(model.read_bytes(POOL.rx_bounce, BUFFER_BYTES), before);
     model.0.borrow_mut().refuse_reset = false;
-    engine.begin_reset().unwrap();
+    engine.begin_reset();
     assert!(engine.reset_acknowledged());
 }
 

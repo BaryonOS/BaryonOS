@@ -161,13 +161,6 @@ fn runtime() -> &'static mut Runtime {
     unsafe { &mut *ptr::addr_of_mut!(RUNTIME) }
 }
 pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
-    let info = match virtio_blk_driver::discover() {
-        Ok(i) => i,
-        Err(_) => {
-            runtime().offline = -14;
-            return;
-        }
-    };
     let mut pages = [0; 5];
     for page in &mut pages {
         *page = frames
@@ -184,6 +177,13 @@ pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
     };
     pool.validate(PAGE * FRAME_COUNT as u64).unwrap();
     runtime().pool = pool;
+    let info = match virtio_blk_driver::discover() {
+        Ok(i) => i,
+        Err(_) => {
+            runtime().offline = -14;
+            return;
+        }
+    };
     let mut mapped = [0u64; 6];
     for region in [
         info.regions.common,
@@ -192,23 +192,16 @@ pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
         info.regions.device,
     ] {
         let index = region.bar as usize;
-        let bar = info.bar_grants[index].expect("matched PCI BAR grant");
-        let driver_id = virtio_blk_driver::DRIVER_REGISTRATION.id.get();
-        assert!(bar.matches_device(
-            info.address,
-            virtio_blk_driver::DRIVER_REGISTRATION.id,
-            region.bar
-        ));
-        assert!(bar.base() >= 0x80000000 && bar.size() <= 65536);
+        let bar = info.bars[index];
+        assert!(bar.base >= 0x80000000 && bar.size <= 65536);
         mapped[index] = 0x3f000000 + index as u64 * 65536;
         let first = u64::from(region.offset) & !(PAGE - 1);
         let end = (u64::from(region.offset) + u64::from(region.length) + PAGE - 1) & !(PAGE - 1);
         for offset in (first..end).step_by(PAGE as usize) {
             let va = mapped[index] + offset;
+            let pa = bar.base + offset;
             if kernel.leaf(va) == 0 {
-                kernel
-                    .map_pci_bar(frames, va, bar, info.address, driver_id, region.bar, offset)
-                    .unwrap();
+                kernel.map_mmio(frames, va, pa).unwrap();
             }
             assert_eq!(kernel.leaf(va) & (4 | NX | 8 | 16), NX | 8 | 16);
         }
@@ -589,9 +582,7 @@ fn reset(r: &mut Runtime, now: u64) {
     r.resetting = true;
     r.reset_deadline = now + RESET_TIMEOUT;
     if let Some(device) = r.device.as_mut() {
-        if device.begin_reset().is_err() {
-            r.quarantined = true;
-        }
+        device.begin_reset();
     }
 }
 pub fn detach(pid: u64) {
@@ -609,7 +600,7 @@ fn advance(s: &State) {
     let now = s.ticks;
     r.now = now;
     if r.resetting {
-        let acknowledged = r.device.as_mut().is_some_and(Device::reset_acknowledged)
+        let acknowledged = r.device.as_ref().is_some_and(Device::reset_acknowledged)
             && !(case() == 12 && r.injected);
         if acknowledged {
             // SAFETY: Real reset acknowledgement permits reuse of the same
@@ -1356,7 +1347,7 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
         broker_diagnostic(r, s.ticks);
         if !r.quarantined {
             if let Some(device) = r.device.as_mut() {
-                assert!(device.begin_reset().is_ok());
+                device.begin_reset();
                 assert!(device.reset_acknowledged());
             }
         }

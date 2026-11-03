@@ -18,29 +18,6 @@ pub const QUEUE_SIZE: u16 = 8;
 pub const MAX_FRAME_BYTES: usize = 1514;
 pub const HEADER_BYTES: usize = 12;
 pub const BUFFER_BYTES: usize = HEADER_BYTES + MAX_FRAME_BYTES;
-pub const DRIVER_REGISTRATION: driver_core::DriverRegistration = driver_core::DriverRegistration {
-    id: driver_core::DriverId::new(0x4e4f_0002),
-    name: "nieuw-os-virtio-net-qemu",
-    version: driver_core::DriverVersion::new(0, 1, 0),
-    class: driver_core::DeviceClass::NetworkDevice,
-    pci: driver_core::PciMatch {
-        vendor_id: Some(0x1af4),
-        device_id: Some(DEVICE_ID_NET),
-        class: None,
-        subclass: None,
-        programming_interface: None,
-        revision: None,
-        subsystem_vendor_id: None,
-        subsystem_device_id: None,
-    },
-};
-/// Matched network-device initializer selected by the PCI registry.
-///
-/// # Safety
-/// The caller must uphold the permanent MMIO mapping and exclusive pinned-DMA
-/// ownership contract documented by [`Device::initialize`].
-pub type DriverFactory = unsafe fn(Discovery, [u64; 6], NetPool) -> Result<Device, Error>;
-const DRIVER_FACTORY: DriverFactory = Device::initialize_matched;
 pub const FEATURE_MAC: u64 = 1 << 5;
 pub const FEATURE_STATUS: u64 = 1 << 16;
 const RAM_END: u64 = 256 * 1024 * 1024;
@@ -49,14 +26,9 @@ const TX: usize = 1;
 
 #[derive(Clone, Copy)]
 pub struct Discovery {
-    /// PCI function selected by generic segment-zero enumeration and matching.
-    pub address: driver_core::PciAddress,
     pub config: [u8; 256],
     pub bars: [Bar; 6],
-    /// Kernel-usable BAR grants from the matched PCI function.
-    pub bar_grants: [Option<pci_core::PciBarGrant>; 6],
     pub regions: Regions,
-    driver_factory: DriverFactory,
 }
 
 /// Four distinct, exclusive, identity-mapped and permanently pinned RAM pages.
@@ -176,8 +148,8 @@ trait Io {
     fn write16(&mut self, address: u64, value: u16);
     fn write32(&mut self, address: u64, value: u32);
     fn write64(&mut self, address: u64, value: u64);
-    fn bus_master(&mut self, enabled: bool) -> Result<(), Error>;
-    fn bus_master_enabled(&mut self) -> Result<bool, Error>;
+    fn bus_master(&mut self, enabled: bool);
+    fn bus_master_enabled(&self) -> bool;
 }
 
 #[derive(Clone, Copy, Default)]
@@ -240,7 +212,7 @@ impl<T: Io> Engine<T> {
 
     fn initialize(&mut self) -> Result<(), Error> {
         let c = self.common;
-        self.io.bus_master(false)?;
+        self.io.bus_master(false);
         self.io.write8(c + 20, 0);
         if self.io.read8(c + 20) != 0 {
             return Err(Error::Timeout);
@@ -302,7 +274,7 @@ impl<T: Io> Engine<T> {
             }
         }
         fence(Ordering::SeqCst);
-        self.io.bus_master(true)?;
+        self.io.bus_master(true);
         self.io.write8(c + 20, 15);
         if self.io.read8(c + 20) != 15 {
             return Err(Error::Protocol);
@@ -409,7 +381,7 @@ impl<T: Io> Engine<T> {
         // An unsolicited/stale used entry must not be attributed to the next
         // request after we publish it. Check before touching its bounce page.
         if self.io.read16(self.pool.queue(index).used() + 2) != self.queues[index].used {
-            self.begin_reset()?;
+            self.begin_reset();
             return Err(Error::Protocol);
         }
         Ok(())
@@ -431,7 +403,7 @@ impl<T: Io> Engine<T> {
         let id = self.io.read32(at);
         let length = self.io.read32(at + 4);
         if let Err(error) = validate_used(index == RX, queue.used, next, id, length) {
-            self.begin_reset()?;
+            self.begin_reset();
             return Err(error);
         }
         Ok(Some((next, length)))
@@ -442,7 +414,7 @@ impl<T: Io> Engine<T> {
             return Err(Error::Offline);
         }
         if self.io.read8(self.common + 20) != 15 {
-            self.begin_reset()?;
+            self.begin_reset();
             return Err(Error::Io);
         }
         Ok(())
@@ -453,7 +425,7 @@ impl<T: Io> Engine<T> {
             return Err(Error::Offline);
         }
         if self.queues[TX].posted && now >= self.tx_deadline {
-            self.begin_reset()?;
+            self.begin_reset();
             return Err(Error::Timeout);
         }
         let Some((next, _)) = self.completion(TX)? else {
@@ -473,7 +445,7 @@ impl<T: Io> Engine<T> {
             *byte = self.io.read8(self.pool.rx_bounce + offset as u64);
         }
         if let Err(error) = validate_rx_header(&header) {
-            self.begin_reset()?;
+            self.begin_reset();
             return Err(error);
         }
         let size = length as usize - HEADER_BYTES;
@@ -490,21 +462,18 @@ impl<T: Io> Engine<T> {
         Ok(Some(size))
     }
 
-    fn begin_reset(&mut self) -> Result<(), Error> {
+    fn begin_reset(&mut self) {
         self.ready = false;
         self.io.write8(self.common + 20, 0);
-        self.io.bus_master(false)?;
+        self.io.bus_master(false);
         // DMA pages are never freed here; a reset request alone is not an ACK.
         for queue in &mut self.queues {
             queue.posted = false;
         }
-        Ok(())
     }
 
-    fn reset_acknowledged(&mut self) -> bool {
-        !self.ready
-            && self.io.read8(self.common + 20) == 0
-            && self.io.bus_master_enabled() == Ok(false)
+    fn reset_acknowledged(&self) -> bool {
+        !self.ready && self.io.read8(self.common + 20) == 0 && !self.io.bus_master_enabled()
     }
 }
 
@@ -518,31 +487,15 @@ impl Device {
     /// validated BARs and four exclusive, identity-mapped, pinned normal-RAM
     /// pages. Neither firmware, another driver nor a process may access them.
     /// Pages remain pinned until reboot even on failure, and can be reused for
-    /// reinitialization only after an observed reset ACK. `info.address` must
-    /// be the matched function owning the supplied mappings and pages. One
-    /// CPU/serialized I/O; initialization requires interrupts disabled and
-    /// exclusive access to PCI configuration ports.
+    /// reinitialization only after an observed reset ACK. One CPU/serialized I/O.
     pub unsafe fn initialize(
         info: Discovery,
         mapped: [u64; 6],
         pool: NetPool,
     ) -> Result<Self, Error> {
-        // SAFETY: Caller upholds the mapping and DMA ownership contract above;
-        // the factory was selected by this discovery's validated registry match.
-        unsafe { (info.driver_factory)(info, mapped, pool) }
-    }
-
-    unsafe fn initialize_matched(
-        info: Discovery,
-        mapped: [u64; 6],
-        pool: NetPool,
-    ) -> Result<Self, Error> {
-        // SAFETY: Caller guarantees single-CPU setup with interrupts disabled;
-        // only this device instance accesses CF8/CFC until activation ends.
-        let hardware = unsafe { pci::hardware(info.address, &info.config) }?;
-        let mut engine = Engine::new(info, mapped, pool, hardware)?;
+        let mut engine = Engine::new(info, mapped, pool, Hardware)?;
         if let Err(error) = engine.initialize() {
-            engine.begin_reset()?;
+            engine.begin_reset();
             return Err(error);
         }
         Ok(Self { engine })
@@ -568,10 +521,10 @@ impl Device {
     pub fn poll_tx(&mut self, now: u64) -> Result<Option<usize>, Error> {
         self.engine.poll_tx(now)
     }
-    pub fn begin_reset(&mut self) -> Result<(), Error> {
-        self.engine.begin_reset()
+    pub fn begin_reset(&mut self) {
+        self.engine.begin_reset();
     }
-    pub fn reset_acknowledged(&mut self) -> bool {
+    pub fn reset_acknowledged(&self) -> bool {
         self.engine.reset_acknowledged()
     }
     pub fn tx_pending(&self) -> bool {

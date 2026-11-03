@@ -1,5 +1,65 @@
 # Ontwerpbesluiten
 
+<a id="adr-057--vreemde-opslag-nooit-als-leeg-volume-toelaten"></a>
+## ADR-064 — Vreemde opslag nooit als leeg volume toelaten
+
+3 november 2026; correctie op herstel van het experimentele NOSVOL02-volume.
+De eerdere herstelroute controleerde bij twee lege tabelkopieën alleen de
+tabelsectoren. Daardoor kon een niet-herkend volume met gegevens buiten die
+regio als generatie 0 worden behandeld. Formatteer- of schrijfgedrag mag niet
+uit een ontbrekende herkenning worden afgeleid.
+
+Een onherkend volume is uitsluitend leeg wanneer de volledige huidige
+volumegrens nul bevat. Voor een klein eerste schrijfresultaat legt de dienst
+vóór inhouds- of tabelwrites een versie-/geometriegebonden `NOSFMT02`-marker
+vast en flusht die. Daardoor blijven ongecommitte eerste uploads herstelbaar
+als logische lege toestand, zonder dat vreemde niet-nuldata wordt geaccepteerd.
+Een marker is formaatidentificatie en foutdetectie, geen authenticatie.
+Bestaande geldige NOSVOL02-tabelkopieën blijven de primaire recoverybron.
+
+De eerste markerwrite en -flush zijn een aparte initialisatiegrens. Bij een
+crash vóór een geldige duurzame marker mag een onherkenbare niet-nulrest niet
+als eigen opslag worden behandeld: herstel stopt met `Corrupt`, zonder writes
+of stil wissen. Alleen volledig nul of een volledige geldige marker levert
+hier generatie0. De before/after-invariant voor documenttransacties begint
+na duurzame formaatidentificatie en blijft onverkort gelden; afzonderlijke
+crashproeven controleren ieder byteprefix van de eerste marker en het eerste
+datawritepunt. Expliciete herstel-/formatteerbediening blijft apart open.
+
+De kernel blijft een generieke, begrensde blokbroker; de herkenning en
+admissie blijven in `volume-core`. Er wordt geen bestandssysteemdriver,
+importpad of automatische formatter toegevoegd. Een niet-gemarkeerd volume
+met niet-nuldata geeft `Corrupt` en krijgt geen schrijf-/flushverzoek.
+Een synthetische Btrfs-achtige fixture test de nul-tabel/niet-nul-data-grens;
+zij is geen volledig Btrfs-bestandssysteem.
+
+Herzien bij wijziging van de volumegeometrie of introductie van expliciete
+formatteer-/importbediening. Terugzetten naar alleen tabelcontrole is niet
+toegestaan. De marker kan bij een overgang naar een andere persistente
+geometrie worden vervangen, mits de volledige media-admissie en crashproeven
+behouden blijven. Native QEMU-resultaat en exacte bronbinding staan in
+`docs/verification/foreign-volume-admission-20261103/README.md`.
+
+**Ontwerpregel:** zonder geldige NOSVOL02-tabel of volledige `NOSFMT02`-marker
+is alleen volledig nul over de huidige volumegrens `[0,580)` toelaatbaar.
+
+**Implementatiestatus:** geïmplementeerd in `services/volume/src/table.rs`
+(`choose` en `recover_with_state`) en het onafhankelijke hostorakel
+`tools/volume_disk.py`.
+
+**Testbewijs:** host-regressies en crashgrenzen zijn vastgelegd in
+`docs/verification/pr148-slot1-review.json`,
+`docs/verification/pr148-marker-crash-review.json` en
+`docs/verification/pr148-volume-core-host-suite.json`.
+
+**Onbekend / open:** native metadata-only fixtureacceptatie en native QEMU
+volume-admissie op deze branch.
+
+**Primaire bronmetadata:** Nieuw OS repository (`simonvanieperen/nieuw-os`),
+branch `simonvanieperen-upgraded-disco`, commit
+`c6b25873c915a98f8c0b2bb7400395e01ba44741`,
+https://github.com/simonvanieperen/nieuw-os/tree/c6b25873c915a98f8c0b2bb7400395e01ba44741 .
+
 ## Nummerbehoud bij desktopintegratie — 2 november 2026
 
 De desktopbranches gebruikten al bezette ADR-nummers. Bestaande IPC- en
@@ -14,255 +74,7 @@ Historische bewijsbestanden behouden hun oorspronkelijke nummervermelding.
 | 055, begrensde GUI-rust | ADR-061 |
 | 056, eenmalig klembord | ADR-062 |
 | 056, herkenbare VM-sessieroute | ADR-063 |
-
-## ADR-064 — Safe Driver Core en fail-closed PCI-selectie
-
-**Datum:** 3 november 2026. De eerste gedeelde driverinterface is een interne,
-dependencyvrije `no_std`-crate met in-memory categoriecontracten en een
-vaste-capaciteit PCI-registry. Exacte subsystem-/vendor-/device-/class-match
-specificiteit bepaalt de kandidaat; een gelijke hoogste match is ambigu en
-wordt niet op registratiewillekeur opgelost. De bestaande VirtIO block- en
-netdrivers publiceren alleen PCI-identiteitsmetadata als eerste adapters.
-
-Dit besluit volgt de categorie- en probingvorm van ArceOS, niet diens kernel-,
-driver- of HAL-code. De `rcore-os/virtio-drivers`-crate wordt niet als
-dependency gebruikt: de gecontroleerde upstream gebruikt een andere PCI/HAL-
-route en meldt `VIRTIO_F_VERSION_1` als TODO in de README; de bestaande Nieuw
-OS VirtIO-contracten worden niet omzeild.
-
-**Belangrijke grens:** `DriverRegistry` selecteert metadata, maar start geen
-driver en verleent geen resources. Algemene PCI-enumeratie, capability-
-begrensde BAR/IRQ/DMA-grants, IOMMU-integratie, resetquarantaine en
-unsupported-device logging blijven open. De bestaande fixed-BDF-profielen
-blijven ongewijzigd totdat een generieke enumerator dezelfde grenzen en
-regressies behoudt. Geen scorepunten of fysieke compatibiliteitsclaim volgt
-uit deze core. De block-/netwerkprobes decoderen hun vaste type-0 PCI-snapshot
-en toetsen die nu fail-closed aan hun eigen registratie, vóór en na BAR-
-proberen. Dit is identiteitsvalidatie van bestaande endpoints, geen
-automatische driverselectie of resourcegrant.
-
-**Herziening:** wanneer een kernel-owned resourcegrant en een descriptor-
-enumerator met negatieve tests bestaan, of wanneer echte deviceproeven een
-incompatibele matching-/category-API aantonen. Zie
-[`docs/drivers`](drivers/DRIVER-ARCHITECTURE.md).
-
-## ADR-065 — Segment-0 PCI-discovery voor VirtIO block en netwerk
-
-**Datum:** 3 november 2026. De eerste runtime-integratie gebruikt een gedeelde
-`pci-core`-scanner en PCI configuration mechanism 1 om conventionele segment-0-
-functies te ontdekken. Hij scant begrensd de bus/device/function-ruimte,
-respecteert het multifunction-bit en levert alleen type-0-endpoints aan de
-registries. Onbekende IDs en niet-type-0 headers starten geen driver.
-
-VirtIO block en net selecteren nu op hun geregistreerde vendor/device-ID's in
-plaats van vaste BDF's. Na een match blijft het geselecteerde `PciAddress`
-gekoppeld aan config reads/writes en busmasterbeheer; de kernel behoudt de
-toewijzing van DMA-pagina's en de supervisor-MMIO-mappings. Meer dan één
-matchende functie per driver wordt voorlopig geweigerd, omdat de bestaande
-brokers één transportinstantie beheren. De netwerkbroker vertrouwt niet langer
-op het QEMU-fixture-MAC-adres. `MatchedPciFunction` herleest de descriptor bij
-binding, controleert dat de registry-match nog klopt en weigert config-space-
-toegang tot een ander BDF. De VirtIO-paden gebruiken deze adapter ook voor
-busmaster- en BAR-probing na de match. De adapter levert nu `PciBarGrant`-
-waarden die BDF, driver-ID, BAR-index en begrensde fysieke range binden.
-BAR-probing laat I/O-decode, memory-decode en bus mastering uitgeschakeld;
-BAR-registers worden hersteld vóór een fout wordt geretourneerd. De kernel
-mapt voor block/net alleen volledige 4-KiB-pagina's binnen de grant en
-controleert device, driver en BAR-index. Alle bestaande block-profielen
-alloceren hun pinned DMA-pool pas nadat discovery en registrymatching zijn
-geslaagd.
-
-**Beperkingen:** de scanner gebruikt alle 256 conventionele busnummers in
-segment 0 omdat de bootinformatie nog geen ACPI MCFG/rootbridge-topologie
-aanlevert. Andere segmenten, ECAM, bridge-validatie en hotplug blijven open.
-BAR-grants zijn alleen in de block-/netwerkroute gebruikt; dit is geen
-algemene resourcebroker of driverisolatie. IRQ-grants, interrupt lifecycle,
-busmastertoestemming als afzonderlijke grant, DMA/IOMMU-authority,
-familie-overstijgende factoryregistratie en meerdere actieve apparaten blijven
-open. Geen universele physical-memory-capability toegevoegd. De
-mechanism-1-adapter vereist geserialiseerde kerneltoegang; dit ontwerp is
-alleen voor de huidige single-CPU-initialisatie-/transportpaden.
-
-**Herzien:** zodra firmware-rootinformatie, een kernel-owned
-resourcebroker/factory-interface of meerdere device-instanties worden
-geïntegreerd; ook bij een target waarop mechanism 1 niet beschikbaar is.
-Geen native/hardwareacceptatie of extra voortgangspunt volgt uit compilatie.
-
-## ADR-066 — Factorygekoppelde PCI-matches voor ingebouwde VirtIO-drivers
-
-**Datum:** 3 november 2026. De vaste `no_std`-registry kan optioneel een
-statisch geregistreerde initializerfunctie per PCI-match bewaren. De
-factoryvariant retourneert de bestaande `DriverMatch` plus de functiepointer;
-gelijke meest-specifieke matches blijven een fout. VirtIO block en netwerk
-bewaren de gekozen initializer privé in hun door discovery gemaakte
-`Discovery`. Hun bestaande `Device::initialize`-ingang roept die geselecteerde
-factory aan nadat de kernel de devicegebonden BAR-mappings en de bestaande
-DMA-pool heeft toegewezen.
-
-De callback is een Rust-functiepointer naar reeds gelinkte code, geen
-dlopen/plugin, trait-objectheap of door device-data gekozen adres. De
-registrylaag blijft generiek over de callbacksoort; block en netwerk hebben
-vooralsnog afzonderlijke, familietypede registries vanwege hun verschillende
-pool-/initialisatie-ABI's. De factory valideert PCI-identiteit en pool opnieuw
-via de bestaande concrete initializer. Er verandert geen busmaster-, DMA-,
-IRQ-, reset-, fout- of cleanupbeleid. Een mislukte initialisatie kan dus nog
-steeds pinned kernelpagina's/quarantaine achterlaten zoals voorheen.
-
-**Alternatieven:** een centraal heterogeen registry met trait objects vereist
-een gemeenschappelijke driver-instance/resource/lifecycle-ABI en allocatie;
-die is nog niet door de maturitybranch geleverd en wordt hier niet
-vooruitgelopen. Een `DriverId`-switch in ieder kernelprofiel zou factories
-van de match loskoppelen. Deze statische factorybinding is de kleinste stap die
-dezelfde fail-closed PCI-selectie aan de concrete bestaande initializer bindt.
-
-**Grenzen en herziening:** de block- en netwerkregistries zijn nog niet één
-catalogus en de drivers blijven in kernelcontext. Herzie bij gedeelde
-resourcebroker, tweede driver per class, userspace-driverinstances of
-meerdere devices. Dit levert geen hardwareacceptatie of scorepunt op.
-
-## ADR-067 — PCI-mismatchrapportage vóór M5-deviceactivatie
-
-**Datum:** 3 november 2026. M5-profielen voeren vóór device-initialisatie een
-read-only segment-0-scan uit. Type-0-endpoints zonder match in de registry van
-het actieve profiel worden via COM1 gemeld met BDF, vendor/device-ID,
-class/subclass/programming interface/revision en subsystem-ID's wanneer
-beschikbaar. Niet-type-0-functies worden als telling gemeld. Bij een
-configuratiefout meldt de kernel een onvolledige scan en presenteert geen
-gedeeltelijke lijst als volledig.
-
-De registratie wordt alleen gebruikt om de inventaris te classificeren; deze
-scan kent geen BAR's, schrijft geen configuratie en activeert geen driver.
-VirtIO RNG heeft nu PCI-identiteitsmetadata zodat zijn bestaande profiel niet
-als onbekend wordt gerapporteerd; de RNG-driver zelf gebruikt nog een vaste
-BDF. De melding betekent daarom uitsluitend dat in de registry van dit
-kernelprofiel geen match bestaat, niet dat alle mogelijke driverfamilies
-meegenomen zijn of dat een gematchte driver succesvol start.
-
-**Alternatieven:** onbekende apparaten stil overslaan verhindert de gevraagde
-hardwareinventaris; een universele fysieke-memorymapping of driverstart tijdens
-de scan zou de resourcegrens overschrijden. Deze vroege seriële diagnose
-gebruikt de bestaande uitvoerroute zonder extra bevoegdheden.
-
-**Grenzen en herziening:** de scan ziet alleen segment 0 en type-0-endpoints;
-bridge-topologie, andere segmenten, ECAM, hotplug en rapportage buiten COM1
-blijven open. Geen native runtime-, fysieke hardware- of voortgangspunt volgt
-uit deze wijziging. Herzie de registryclassificatie wanneer alle actieve
-PCI-drivers via een gedeelde catalogus registreren.
-
-## ADR-068 — NIC-configuratie lezen via de gematchte netwerkcapability
-
-**Datum:** 3 november 2026. De netwerkdienst en native netwerkproef moeten
-de MAC van de werkelijk ontdekte NIC gebruiken, niet een in de ring-3-code
-ingebakken VirtIO-fixturewaarde. ABI-call `0x74` kopieert precies zes bytes
-uit de reeds gematchte VirtIO-netdriver, uitsluitend voor de eigenaar van de
-bijbehorende `NetworkSource`. De kernel valideert die capability, de volledige
-schrijfbare userspace-range en de exacte lengte vóór kopiëren. Dit is geen
-PCI-config-space-interface, geen algemene device-query en geen uitbreiding
-van bevoegdheid naar apps zonder `NetworkSource`.
-
-De netwerkproef controleert voor haar afgebakende QEMU-fixture nog steeds de
-verwachte MAC, maar bouwt ARP/UDP/DNS-frames met de uit de driver gelezen
-waarde. De herbruikbare ring-3-netwerkdienst haalt de MAC dynamisch op. MAC-,
-ARP- en IP-waarden zijn geen cryptografische peeridentiteit. QEMU-runtime en
-fysieke NIC zijn voor deze wijziging niet getest; daarvoor worden geen
-hardwareclaims gedaan.
-
-**Herzien:** bij een gedeelde `NetworkDevice`-interface of wanneer een tweede
-netwerkdriver wordt gekoppeld; die integratie mag de capabilitybinding niet
-verruimen.
-
-## ADR-069 — generieke PCI-start van VirtIO RNG
-
-**Datum:** 3 november 2026. De RNG-start gebruikt nu dezelfde segment-0-
-enumeratie, PCI-registry-match en `MatchedPciFunction`-grens als block en
-netwerk. De registry levert een statische initializerfactory; `Discovery`
-bewaart het geselecteerde BDF, BAR-descriptors en uitsluitend de grants die
-bij die driverregistratie horen. Een ontbrekend apparaat levert `Offline`;
-onbekende functies worden door de scanner overgeslagen en meerdere passende
-RNG-functies worden fail-closed geweigerd zolang de broker één instantie
-beheert.
-
-De kernel mapte vóór deze wijziging de door de RNG-driver rechtstreeks
-gepeilde BAR-adressen. Nu wordt elke gebruikte pagina via
-`Paging::map_pci_bar` uit de bijbehorende `PciBarGrant` gemapt. De drie
-gepinde DMA-pagina's worden pas na succesvolle discovery toegewezen. De
-factory start de bestaande queue pas na MMIO-mapping en poolvalidatie; de
-aan de match gebonden configadapter schakelt bus mastering dan in en bij reset
-weer uit. Bij afwezig apparaat worden geen ongebruikte DMA-pagina's
-gereserveerd. De VirtIO-queue, entropy-broker, polling, timeout en
-resetquarantaine blijven dezelfde concrete RNG-route.
-
-**Beveiligingsgrens:** dit introduceert geen algemene physical-memory-
-capability of generieke DMA-/IOMMU-broker. De kernel houdt bestaande
-gepinde buffers; de driver blijft in kernelcontext en een protocolconform
-device wordt vertrouwd. Bus mastering is nog geen afzonderlijk uitgegeven
-resourcegrant. Interrupts, DMA-isolatie, geverifieerde quiescence en
-drivercrash-herstel blijven open.
-
-**Validatiegrens:** registratie-/matchtestcode compileert samen met de
-PCI-tests; daadwerkelijke hosttestuitvoering is in deze omgeving door de
-ontbrekende `libc_nonshared.a` geblokkeerd. Driver-typecheck, Clippy en de
-`x86_64-unknown-none`-check slagen. De kernelprofielcheck stopte vóór
-kernelcompilatie omdat het host-buildscript niet kon linken zonder
-`libc_nonshared.a`; `tools/build.py` moet nog worden geprobeerd. QEMU ontbreekt,
-dus runtime, fysieke hardware en RNG-kwaliteit zijn niet getest. Dit sluit geen
-productcriterium of voortgangspunt.
-
-**Herzien:** bij de gedeelde PCI-resourcebroker, IOMMU/DMA-semantiek van
-Maturity, meerdere RNG-instanties of een getest ander PCI-configuratiemechanisme.
-
-## ADR-070 — eerste NVMe-stap blijft bij begrensde PCI-probe
-
-**Datum:** 3 november 2026. De volgende ontbrekende storageklasse is NVMe:
-VirtIO block bestaat al, maar er is geen NVMe- of AHCI-driver. De nieuwe
-losse `drivers/nvme`-crate matcht PCI class `01:08:02`, weigert meerdere
-controllers, valideert de 64-bit non-prefetchable BAR0-grant en kan na een
-kernelgemapte uncached mapping alleen `CAP` en `VS` lezen.
-
-De probe schakelt geen bus mastering in, alloceert geen DMA en schrijft niet
-naar controllerregisters. Hij levert daarom nog geen controllerinitialisatie,
-admin-/I/O-queue, namespace of block-I/O op. De crate staat bewust niet in de
-rootworkspace en verandert geen kernel-, volume- of Maturity-owned bestanden;
-de huidige queue laat rootmanifest-/centrale integratiegrenzen bij REL.
-
-De onderzochte `rcore-os/tgoskits`-driver is MIT/no_std en functioneel veel
-completer, maar vereist een IRQ-gedreven `rdif-block`-eigenaar en aparte
-DMA/MMIO/barrier-API's. Hij is daarom geen directe adapter voor de huidige
-kernelcontracten; er is geen dependency of code overgenomen.
-
-**Volgende grens:** queue-/Identify-/block-I/O-integratie wacht op een
-kernel-owned devicegebonden DMA-toekenning en passende busmaster-/interrupt-
-lifecycle. Geen generieke physical-memory-capability, eigen parallelle
-DMA-policy of onbevestigde reset/quiescence toegevoegd. Deze stap levert geen
-hardwarevoortgangspunt en geen QEMU-/fysieke compatibiliteitsclaim.
-
-**Herzien:** zodra de kernel resourceadapter expliciet is vrijgegeven, of
-wanneer een getest platform een nauwere NVMe-profielkeuze vereist.
-
-## ADR-071 — xHCI begint als read-only PCI-capabilityprobe
-
-**Datum:** 3 november 2026. De volgende USB-stap is een standalone
-`no_std`-crate die PCI class `0c:03:30` matcht, de unieke non-prefetchable
-BAR0-grant controleert en de xHCI-capabilityregisters leest. De probe valideert
-de revision en de geadverteerde operationele, doorbel- en runtime-offsets
-tegen de apparaatgebonden BAR; een optionele extended-capabilitypointer wordt
-alleen op bounds gecontroleerd.
-
-De crate neemt het device niet over van firmware, schrijft geen controller-
-registers, schakelt geen bus mastering in en reserveert of deelt geen DMA uit.
-De kernel map blijft supervisor-only, uncached en page-granulair. Daarom worden
-BARs kleiner dan één pagina geweigerd. De probe is niet opgenomen in de
-kernelworkspace en levert geen USB-enumeratie, transfer-rings, HID-input of
-classdriveractivatie op.
-
-**Reden:** hiermee kan de hardwareidentiteit en registerlayout veilig worden
-vastgesteld zonder een concurrerend DMA-/interruptmodel of een ongecontroleerde
-controllerstart. De interface-descriptorparser blijft een aparte USB-corelaag;
-een match verleent geen resource of authority.
-
-**Herzien:** wanneer de kernel-owned devicegebonden DMA-, interrupt- en
-failure-cleanup-interface beschikbaar is; bouw daarna xHCI-ring lifecycle,
-USB-enumeratie en klasseprotocollen binnen die contracten.
+| 057, vreemde opslag nooit als leeg volume toelaten | ADR-064 |
 
 ## Onderzoeksbesluit J-20261102 — herkenbare basis, expliciete installatiegrens
 

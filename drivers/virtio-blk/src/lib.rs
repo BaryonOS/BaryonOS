@@ -4,170 +4,94 @@
 //! Caller retains five exclusive, identity-mapped kernel DMA pages until reboot.
 //! Protocol-conforming QEMU is trusted; this is not a malicious-device IOMMU.
 use core::{
+    arch::asm,
     ptr,
     sync::atomic::{fence, Ordering},
 };
-use driver_core::PciAddress;
-use pci_core::{MatchedPciFunction, Mechanism1, PciConfigAccess};
 use virtio_core::{descriptor_plan, parse_capabilities, validate_descriptors, QUEUE_SIZE};
 pub use virtio_core::{Bar, Completion, DmaPool, Error, Regions};
-pub const DRIVER_REGISTRATION: driver_core::DriverRegistration = driver_core::DriverRegistration {
-    id: driver_core::DriverId::new(0x4e4f_0001),
-    name: "nieuw-os-virtio-blk-qemu",
-    version: driver_core::DriverVersion::new(0, 1, 0),
-    class: driver_core::DeviceClass::BlockDevice,
-    pci: driver_core::PciMatch {
-        vendor_id: Some(0x1af4),
-        device_id: Some(0x1042),
-        class: None,
-        subclass: None,
-        programming_interface: None,
-        revision: None,
-        subsystem_vendor_id: None,
-        subsystem_device_id: None,
-    },
-};
-/// Matched block-device initializer selected by the PCI registry.
-///
-/// # Safety
-/// The caller must uphold the permanent MMIO mapping and exclusive pinned-DMA
-/// ownership contract documented by [`Device::initialize_profile`].
-pub type DriverFactory =
-    unsafe fn(Discovery, [u64; 6], DmaPool, bool, bool) -> Result<Device, Error>;
-const DRIVER_FACTORY: DriverFactory = Device::initialize_matched;
+const BDF: u32 = 5 << 11;
 const RAM_END: u64 = 256 * 1024 * 1024;
-fn config_error(_: pci_core::ConfigError) -> Error {
-    Error::Protocol
-}
-fn bar_error(error: pci_core::PciBarError) -> Error {
-    match error {
-        pci_core::PciBarError::Config(_) | pci_core::PciBarError::Restore => Error::Protocol,
-        pci_core::PciBarError::Unsupported => Error::Unsupported,
-        pci_core::PciBarError::Range => Error::Range,
-    }
-}
-
-fn select_device() -> Result<PciAddress, Error> {
-    let mut registry = driver_core::DriverRegistry::<1, DriverFactory>::with_factories();
-    registry
-        .register_with_factory(DRIVER_REGISTRATION, DRIVER_FACTORY)
-        .map_err(|_| Error::Protocol)?;
-    let mut selected = None;
-    let mut ambiguous = false;
-    // SAFETY: Called synchronously during single-CPU kernel initialization
-    // before device services or interrupts can access PCI configuration.
-    let mut access = unsafe { Mechanism1::new() };
-    pci_core::enumerate(&mut access, |descriptor| {
-        match registry.best_match_with_factory(&descriptor) {
-            Ok(Some(_)) => {
-                if selected.replace(descriptor.address).is_some() {
-                    ambiguous = true;
-                }
-            }
-            Err(_) => ambiguous = true,
-            _ => {}
-        }
-    })
-    .map_err(|_| Error::Protocol)?;
-    if ambiguous {
-        return Err(Error::Protocol);
-    }
-    selected.ok_or(Error::Offline)
-}
-
-fn validate_registration(
-    address: PciAddress,
-    config: &[u8; 256],
-) -> Result<driver_core::DriverFactoryMatch<DriverFactory>, Error> {
-    let descriptor =
-        driver_core::PciDeviceDescriptor::from_type0_config(address, config).map_err(|error| {
-            match error {
-                driver_core::PciHeaderError::NotPresent => Error::Offline,
-                driver_core::PciHeaderError::InvalidAddress
-                | driver_core::PciHeaderError::UnsupportedHeaderType => Error::Protocol,
-            }
-        })?;
-    let mut registry = driver_core::DriverRegistry::<1, DriverFactory>::with_factories();
-    registry
-        .register_with_factory(DRIVER_REGISTRATION, DRIVER_FACTORY)
-        .map_err(|_| Error::Protocol)?;
-    match registry.best_match_with_factory(&descriptor) {
-        Ok(Some(matched)) => Ok(matched),
-        Ok(None) => Err(Error::Offline),
-        Err(_) => Err(Error::Protocol),
-    }
-}
-fn bind_error(error: pci_core::BindError) -> Error {
-    match error {
-        pci_core::BindError::Config(error) => config_error(error),
-        pci_core::BindError::Header(_)
-        | pci_core::BindError::DescriptorChanged
-        | pci_core::BindError::DriverMismatch => Error::Protocol,
-    }
-}
 #[derive(Clone, Copy)]
 pub struct Discovery {
-    /// PCI function selected by generic segment-zero enumeration and matching.
-    pub address: PciAddress,
     pub config: [u8; 256],
     pub bars: [Bar; 6],
-    /// Kernel-usable BAR grants from the matched PCI function.
-    pub bar_grants: [Option<pci_core::PciBarGrant>; 6],
     pub regions: Regions,
-    driver_factory: DriverFactory,
+}
+fn cfg_read(offset: u16) -> u32 {
+    let value: u32;
+    // SAFETY: CPL0 single-CPU initialization/transport, exact fixed PCI BDF.
+    // No userspace-supplied config address and no access to the boot ESP's BDF.
+    unsafe {
+        asm!("out dx,eax",in("dx") 0xcf8u16,in("eax") 0x80000000|BDF|u32::from(offset&0xfc),options(nomem,nostack));
+        asm!("in eax,dx",in("dx") 0xcfcu16,out("eax") value,options(nomem,nostack));
+    }
+    value
+}
+fn cfg_write(offset: u16, value: u32) {
+    // SAFETY: Same fixed-device exclusive config-I/O contract as cfg_read.
+    unsafe {
+        asm!("out dx,eax",in("dx") 0xcf8u16,in("eax") 0x80000000|BDF|u32::from(offset&0xfc),options(nomem,nostack));
+        asm!("out dx,eax",in("dx") 0xcfcu16,in("eax") value,options(nomem,nostack));
+    }
+}
+fn command(value: u16) {
+    // Use 16-bit config access: writing the status upper half could clear W1C.
+    // SAFETY: CPL0, fixed BDF command register only; no arbitrary PCI authority.
+    unsafe {
+        asm!("out dx,eax",in("dx") 0xcf8u16,in("eax") 0x80000000|BDF|4,options(nomem,nostack));
+        asm!("out dx,ax",in("dx") 0xcfcu16,in("ax") value,options(nomem,nostack));
+    }
 }
 pub fn discover() -> Result<Discovery, Error> {
-    discover_at(select_device()?)
-}
-
-/// Discovers and validates one registry-selected type-0 VirtIO block function.
-pub fn discover_at(address: PciAddress) -> Result<Discovery, Error> {
-    // SAFETY: Called synchronously during single-CPU kernel initialization
-    // before device services or interrupts can access PCI configuration.
-    let mut pci = unsafe { Mechanism1::new() };
-    if pci.read_u32(address, 0).map_err(config_error)? != 0x10421af4 {
+    if cfg_read(0) != 0x10421af4 {
         return Err(Error::Offline);
     }
-    let mut config = [0u8; 256];
-    for offset in (0..256).step_by(4) {
-        config[offset..offset + 4].copy_from_slice(
-            &pci.read_u32(address, offset as u8)
-                .map_err(config_error)?
-                .to_le_bytes(),
-        );
-    }
-    let descriptor = driver_core::PciDeviceDescriptor::from_type0_config(address, &config)
-        .map_err(|_| Error::Protocol)?;
-    let matched = validate_registration(address, &config)?;
-    let mut pci =
-        MatchedPciFunction::bind(pci, descriptor, matched.driver_match).map_err(bind_error)?;
-    let original = pci.read_u32(address, 4).map_err(config_error)? as u16;
-    let bar_grants = pci.probe_memory_bars().map_err(bar_error)?;
+    let original = cfg_read(4) as u16;
+    command((original & !7) | (1 << 10)); // DMA and decode off while probing only target BARs.
     let mut bars = [Bar::NONE; 6];
-    for (index, grant) in bar_grants.iter().enumerate() {
-        if let Some(grant) = grant {
-            if grant.size() > 65536 || grant.base() % 4096 != 0 {
+    let mut i = 0;
+    while i < 6 {
+        let offset = 0x10 + i as u16 * 4;
+        let low = cfg_read(offset);
+        if low & 1 != 0 {
+            i += 1;
+            continue;
+        }
+        let wide = low & 6 == 4;
+        if low & 6 != 0 && !wide || wide && i == 5 {
+            return Err(Error::Unsupported);
+        }
+        let high = if wide { cfg_read(offset + 4) } else { 0 };
+        cfg_write(offset, u32::MAX);
+        if wide {
+            cfg_write(offset + 4, u32::MAX);
+        }
+        let mask_low = cfg_read(offset);
+        let mask_high = if wide { cfg_read(offset + 4) } else { u32::MAX };
+        cfg_write(offset, low);
+        if wide {
+            cfg_write(offset + 4, high);
+        }
+        let base = u64::from(low & !15) | (u64::from(high) << 32);
+        let mask = u64::from(mask_low & !15) | (u64::from(mask_high) << 32);
+        let size = (!mask).wrapping_add(1);
+        if base != 0 && size != 0 {
+            if !size.is_power_of_two() || size > 65536 || base % 4096 != 0 {
                 return Err(Error::Range);
             }
-            bars[index] = Bar {
-                base: grant.base(),
-                size: grant.size(),
+            bars[i] = Bar {
+                base,
+                size,
                 is_memory: true,
             };
         }
+        i += if wide { 2 } else { 1 };
     }
-    pci.write_u16(address, 4, (original & !5) | 2 | (1 << 10))
-        .map_err(config_error)?; // MMIO decode on; DMA remains off.
+    command((original & !5) | 2 | (1 << 10)); // MMIO decode on; DMA remains off.
+    let mut config = [0u8; 256];
     for offset in (0..256).step_by(4) {
-        config[offset..offset + 4].copy_from_slice(
-            &pci.read_u32(address, offset as u8)
-                .map_err(config_error)?
-                .to_le_bytes(),
-        );
-    }
-    let matched_after_probe = validate_registration(address, &config)?;
-    if matched_after_probe.driver_match.registration.id != matched.driver_match.registration.id {
-        return Err(Error::Protocol);
+        config[offset..offset + 4].copy_from_slice(&cfg_read(offset as u16).to_le_bytes());
     }
     let regions = parse_capabilities(&config, &bars)?;
     // Disable MSI/MSI-X as well as INTx; first driver polls without IRQ routing.
@@ -177,14 +101,12 @@ pub fn discover_at(address: PciAddress) -> Result<Discovery, Error> {
         if !(0x40..=0xfc).contains(&at) || !at.is_multiple_of(4) {
             return Err(Error::Protocol);
         }
-        let word = pci.read_u32(address, at as u8).map_err(config_error)?;
+        let word = cfg_read(at as u16);
         if config[at] == 5 {
-            pci.write_u32(address, at as u8, word & !(1 << 16))
-                .map_err(config_error)?;
+            cfg_write(at as u16, word & !(1 << 16));
         }
         if config[at] == 0x11 {
-            pci.write_u32(address, at as u8, (word & !(1 << 31)) | (1 << 30))
-                .map_err(config_error)?;
+            cfg_write(at as u16, (word & !(1 << 31)) | (1 << 30));
         }
         at = config[at + 1] as usize;
         count += 1;
@@ -193,17 +115,12 @@ pub fn discover_at(address: PciAddress) -> Result<Discovery, Error> {
         return Err(Error::Protocol);
     }
     Ok(Discovery {
-        address,
         config,
         bars,
-        bar_grants,
         regions,
-        driver_factory: matched.factory,
     })
 }
 pub struct Device {
-    address: PciAddress,
-    pci: MatchedPciFunction<Mechanism1>,
     common: u64,
     notify: u64,
     pub pool: DmaPool,
@@ -223,18 +140,13 @@ impl Device {
     /// `mapped` must contain the permanent supervisor-only UC mappings for the
     /// BAR regions validated in `info`. Every page in `pool` must be an exclusive,
     /// pinned normal-RAM DMA page owned by this device for the full device lifetime.
-    /// `info.address` must be the exact function selected by trusted PCI matching,
-    /// and `mapped`/`pool` must belong only to that function. Initialization
-    /// requires single-core execution with interrupts disabled and exclusive
-    /// serialized access to PCI configuration ports.
     pub unsafe fn initialize(
         info: Discovery,
         mapped: [u64; 6],
         pool: DmaPool,
     ) -> Result<Self, Error> {
-        // SAFETY: Caller upholds the mapping and DMA ownership contract above;
-        // the factory was selected by this discovery's validated registry match.
-        unsafe { (info.driver_factory)(info, mapped, pool, false, false) }
+        // SAFETY: Caller supplies the permanent validated MMIO and pinned pool.
+        unsafe { Self::initialize_profile(info, mapped, pool, false, false) }
     }
     /// Same mapping/pool contract as initialize. Writable mode is explicit;
     /// no_flush is a test-only advertisement snapshot selected by the kernel.
@@ -250,28 +162,7 @@ impl Device {
         writable: bool,
         no_flush: bool,
     ) -> Result<Self, Error> {
-        // SAFETY: Caller upholds the mapping and DMA ownership contract above;
-        // the factory was selected by this discovery's validated registry match.
-        unsafe { (info.driver_factory)(info, mapped, pool, writable, no_flush) }
-    }
-
-    unsafe fn initialize_matched(
-        info: Discovery,
-        mapped: [u64; 6],
-        pool: DmaPool,
-        writable: bool,
-        no_flush: bool,
-    ) -> Result<Self, Error> {
         pool.validate(RAM_END)?;
-        // SAFETY: Initialization happens synchronously before interrupts or a
-        // second caller can access the serialized PCI config mechanism.
-        let access = unsafe { Mechanism1::new() };
-        let descriptor =
-            driver_core::PciDeviceDescriptor::from_type0_config(info.address, &info.config)
-                .map_err(|_| Error::Protocol)?;
-        let matched = validate_registration(info.address, &info.config)?;
-        let pci = MatchedPciFunction::bind(access, descriptor, matched.driver_match)
-            .map_err(bind_error)?;
         let address = |region: virtio_core::Region| -> Result<u64, Error> {
             let base = mapped[region.bar as usize];
             if base == 0 {
@@ -286,8 +177,6 @@ impl Device {
             return Err(Error::Range);
         }
         let mut result = Self {
-            address: info.address,
-            pci,
             common,
             notify: 0,
             pool,
@@ -382,28 +271,14 @@ impl Device {
                 return Err(Error::Range);
             }
             fence(Ordering::SeqCst);
-            let command = result
-                .pci
-                .read_u32(result.address, 4)
-                .map_err(config_error)? as u16;
-            result
-                .pci
-                .write_u16(result.address, 4, command | 6 | (1 << 10))
-                .map_err(config_error)?;
+            command((cfg_read(4) as u16) | 6 | (1 << 10));
             write8(common + 20, 15);
             if read8(common + 20) != 15 {
                 // Failure after BME-enable is not an idle/offline device: first
                 // request reset and disable bus mastering. Caller quarantines
                 // its permanent pool; no future reuse is authorized by this Err.
                 write8(common + 20, 0);
-                let command = result
-                    .pci
-                    .read_u32(result.address, 4)
-                    .map_err(config_error)? as u16;
-                result
-                    .pci
-                    .write_u16(result.address, 4, (command & !4) | (1 << 10))
-                    .map_err(config_error)?;
+                command((cfg_read(4) as u16 & !4) | (1 << 10));
                 return Err(Error::Protocol);
             }
         }
@@ -597,25 +472,18 @@ impl Device {
             Ok(Some((data, outcome)))
         }
     }
-    pub fn begin_reset(&mut self) -> Result<(), Error> {
+    pub fn begin_reset(&mut self) {
         self.ready = false;
         // SAFETY: Fixed owned device; stop DMA authorization and request protocol
         // reset. Pages stay pinned even if the device never acknowledges reset.
         unsafe {
             write8(self.common + 20, 0);
         }
-        let command = self.pci.read_u32(self.address, 4).map_err(config_error)? as u16;
-        self.pci
-            .write_u16(self.address, 4, (command & !4) | (1 << 10))
-            .map_err(config_error)
+        command((cfg_read(4) as u16 & !4) | (1 << 10));
     }
-    pub fn reset_acknowledged(&mut self) -> bool {
+    pub fn reset_acknowledged(&self) -> bool {
         // SAFETY: Own UC status register; BME read confirms fixed-device disable.
-        (unsafe { read8(self.common + 20) == 0 })
-            && self
-                .pci
-                .read_u32(self.address, 4)
-                .is_ok_and(|command| command & 4 == 0)
+        unsafe { read8(self.common + 20) == 0 && cfg_read(4) & 4 == 0 }
     }
     pub fn pending(&self) -> bool {
         self.pending
@@ -665,44 +533,5 @@ unsafe fn write32(a: u64, v: u32) {
 unsafe fn write64(a: u64, v: u64) {
     unsafe {
         (a as *mut u64).write_volatile(v);
-    }
-}
-
-#[cfg(test)]
-mod registry_tests {
-    use super::*;
-
-    #[test]
-    fn fixed_profile_registration_accepts_only_supported_endpoint_headers() {
-        let mut config = [0; 256];
-        config[0x00..0x04].copy_from_slice(&[0xf4, 0x1a, 0x42, 0x10]);
-        config[0x08..0x0c].copy_from_slice(&[1, 0, 0, 1]);
-        let address = PciAddress {
-            segment: 0,
-            bus: 0,
-            device: 5,
-            function: 0,
-        };
-        assert_eq!(
-            validate_registration(address, &config)
-                .unwrap()
-                .driver_match
-                .registration
-                .id,
-            DRIVER_REGISTRATION.id
-        );
-
-        config[0x02..0x04].copy_from_slice(&[0x43, 0x10]);
-        assert!(matches!(
-            validate_registration(address, &config),
-            Err(Error::Offline)
-        ));
-
-        config[0x02..0x04].copy_from_slice(&[0x42, 0x10]);
-        config[0x0e] = 1;
-        assert!(matches!(
-            validate_registration(address, &config),
-            Err(Error::Protocol)
-        ));
     }
 }

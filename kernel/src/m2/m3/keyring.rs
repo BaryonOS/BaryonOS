@@ -158,13 +158,6 @@ fn releasable_frames(s: &State) -> usize {
 /// Map the rng BARs and pin three DMA pages. Without a device the broker
 /// stays Offline: every request then fails with -14 and nothing is cached.
 pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
-    let info = match virtio_rng_driver::discover() {
-        Ok(info) => info,
-        Err(_) => {
-            runtime().offline = -14;
-            return;
-        }
-    };
     let mut pages = [0; 3];
     for page in &mut pages {
         *page = frames
@@ -178,6 +171,14 @@ pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
         bounce: pages[2],
     };
     pool.validate(PAGE * FRAME_COUNT as u64).unwrap();
+    runtime().pool = pool;
+    let info = match virtio_rng_driver::discover() {
+        Ok(info) => info,
+        Err(_) => {
+            runtime().offline = -14;
+            return;
+        }
+    };
     let mut mapped = [0u64; 6];
     for region in [
         info.regions.common,
@@ -186,15 +187,8 @@ pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
         info.regions.device,
     ] {
         let index = region.bar as usize;
-        let bar = info.bar_grants[index].unwrap_or_else(|| fail(b"RNG_BAR_GRANT"));
-        assert!(bar.matches_device(
-            info.address,
-            virtio_rng_driver::DRIVER_REGISTRATION.id,
-            region.bar
-        ));
-        assert!(bar.base() >= 0x80000000 && bar.size() <= 65536);
-        assert_eq!(info.bars[index].base, bar.base());
-        assert_eq!(info.bars[index].size, bar.size());
+        let bar = info.bars[index];
+        assert!(bar.base >= 0x80000000 && bar.size <= 65536);
         // The block broker uses 0x3f000000..0x3f060000; the rng device gets
         // its own window above it inside the MMIO range the paging code allows.
         mapped[index] = 0x3f080000 + index as u64 * 65536;
@@ -202,36 +196,22 @@ pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
         let end = (u64::from(region.offset) + u64::from(region.length) + PAGE - 1) & !(PAGE - 1);
         for offset in (first..end).step_by(PAGE as usize) {
             let va = mapped[index] + offset;
+            let pa = bar.base + offset;
             if kernel.leaf(va) == 0 {
-                kernel
-                    .map_pci_bar(
-                        frames,
-                        va,
-                        bar,
-                        info.address,
-                        virtio_rng_driver::DRIVER_REGISTRATION.id.get(),
-                        region.bar,
-                        offset,
-                    )
-                    .unwrap();
+                kernel.map_mmio(frames, va, pa).unwrap();
             }
             assert_eq!(kernel.leaf(va) & (4 | NX | 8 | 16), NX | 8 | 16);
         }
     }
-    let r = runtime();
-    r.pool = pool;
-    r.info = Some(info);
-    r.mapped = mapped;
     // SAFETY: All validated BAR subregions have permanent supervisor UC/NX
     // mappings; three distinct owned kernel RAM pages remain pinned to reboot.
     let device = unsafe { Device::initialize(info, mapped, pool) };
     let r = runtime();
+    r.info = Some(info);
+    r.mapped = mapped;
     match device {
         Ok(device) => r.device = Some(device),
-        Err(_) => {
-            r.offline = -14;
-            r.quarantined = true;
-        }
+        Err(_) => r.offline = -14,
     }
 }
 
@@ -413,7 +393,7 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
 fn advance(s: &State) {
     let r = runtime();
     if r.resetting {
-        if r.device.as_mut().is_some_and(Device::reset_acknowledged) {
+        if r.device.as_ref().is_some_and(Device::reset_acknowledged) {
             r.resetting = false;
             r.reset_acks += 1;
         } else if s.ticks >= r.reset_deadline {
@@ -457,14 +437,10 @@ fn advance(s: &State) {
                 r.pending = None;
                 r.completed = Some((pid, ticket, Err(-13)));
                 r.bytes = [0; 256];
+                device.begin_reset();
                 r.offline = -13;
-                if device.begin_reset().is_ok() {
-                    r.resetting = true;
-                    r.reset_deadline = s.ticks + RESET_TIMEOUT;
-                } else {
-                    r.quarantined = true;
-                    r.resetting = false;
-                }
+                r.resetting = true;
+                r.reset_deadline = s.ticks + RESET_TIMEOUT;
             }
         }
         Err(_) => {
@@ -481,11 +457,10 @@ pub fn detach(pid: u64) {
         // Dropping the broker ticket alone leaves the driver's DMA request
         // outstanding forever. Fail closed and stop the device; the pinned
         // pages are quarantined until reboot, never reused by another owner.
-        let reset_failed = r
-            .device
-            .as_mut()
-            .is_some_and(|device| device.begin_reset().is_err());
-        r.offline = if reset_failed { -12 } else { -14 };
+        if let Some(device) = r.device.as_mut() {
+            device.begin_reset();
+        }
+        r.offline = -14;
         r.quarantined = true;
         r.pending = None;
         r.bytes = [0; 256];
@@ -564,7 +539,7 @@ fn restart_fixture(s: &State) -> bool {
             .as_mut()
             .unwrap_or_else(|| fail(b"RESTART_NO_DEVICE"));
         require(!device.pending(), b"RESTART_DEVICE_BUSY");
-        require(device.begin_reset().is_ok(), b"RESTART_RESET");
+        device.begin_reset();
         r.resetting = true;
         r.reset_deadline = s.ticks + RESET_TIMEOUT;
         r.restart_stage = 1;
@@ -573,7 +548,7 @@ fn restart_fixture(s: &State) -> bool {
     require(!r.quarantined && r.reset_acks == 1, b"RESTART_RESET_ACK");
     if r.restart_stage == 1 {
         require(
-            r.device.as_mut().is_some_and(Device::reset_acknowledged),
+            r.device.as_ref().is_some_and(Device::reset_acknowledged),
             b"RESTART_WITHOUT_ACK",
         );
         for page in [r.pool.rings, r.pool.used, r.pool.bounce] {
@@ -811,7 +786,8 @@ fn finish(s: &mut State) -> ! {
         fail(b"FRAME_BASELINE_CHANGED");
     }
     if let Some(device) = r.device.as_mut() {
-        if device.begin_reset().is_err() || !device.reset_acknowledged() {
+        device.begin_reset();
+        if !device.reset_acknowledged() {
             fail(b"FINAL_RESET");
         }
     }
@@ -831,17 +807,10 @@ fn finish(s: &mut State) -> ! {
     {
         fail(b"CLEANUP");
     }
-    if pool.rings == 0 {
-        if case() != NO_DEVICE || r.info.is_some() || r.device.is_some() {
-            fail(b"UNEXPECTED_EMPTY_POOL");
-        }
-    } else {
-        for page in [pool.rings, pool.used, pool.bounce] {
-            if s.frames.owner(page) != Ok(Owner::Kernel)
-                || s.kernel.leaf(page) & (4 | NX | 2) != NX | 2
-            {
-                fail(b"DMA_POOL");
-            }
+    for page in [pool.rings, pool.used, pool.bounce] {
+        if s.frames.owner(page) != Ok(Owner::Kernel) || s.kernel.leaf(page) & (4 | NX | 2) != NX | 2
+        {
+            fail(b"DMA_POOL");
         }
     }
     serial::write(b"KEYRING:RESOURCES:PASS\nKEYRING:PASS\nM1:PASS\n");

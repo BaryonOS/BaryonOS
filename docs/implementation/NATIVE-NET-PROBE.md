@@ -31,9 +31,6 @@ de kernel wacht op de werkelijke exit en controleert eigen brokercounters.
   wordt hetzelfde frame niet automatisch herhaald.
 - `net_receive(source, output)` geeft één volledig gevalideerd frame of
   `EAGAIN`. Geen ruimte- of pointerfout mag een frame consumeren.
-- `net_mac(source)` leest zes bytes van de NIC die bij precies deze capability
-  hoort; de probe vergelijkt die met de ingestelde QEMU-fixture-MAC voordat
-  zij ARP/UDP/DNS-frames bouwt.
 - Drie echte ARP-aanvragen: de peer antwoordt met bronheaderafwijking,
   verkeerd target en daarna geldig. De native app moet twee afwijzingen en
   ongewijzigde cache bewijzen vóór hij de juiste next-hop gebruikt.
@@ -45,12 +42,10 @@ de kernel wacht op de werkelijke exit en controleert eigen brokercounters.
 - Eén query voor `timeout.nieuw.test` krijgt bewust geen antwoord. De app
   annuleert na een vast receive-pollbudget; dit bewijst begrensd wachten,
   geen nog ontbrekende algemene systeemtijd-/resolver-timeout-API.
-- Tien exact gematchte raw-ABI-fouten: verkeerde captype `-6`, slechte
+- Zeven exact gematchte raw-ABI-fouten: verkeerde captype `-6`, slechte
   TX-pointer `-3`, TX-lengte 1515 `-11`, slechte RX-pointer `-3`, RX-capaciteit
   1515 `-11`, ticket nul `-1`, na sluiten opnieuw gebruiken `-4`.
-  SDK-, kernel- en driverrechten worden hiervoor niet versoepeld. De
-  MAC-query weigert daarnaast een verkeerd captype, ongeldige outputpointer en
-  lengte anders dan zes bytes.
+  SDK-, kernel- en driverrechten worden hiervoor niet versoepeld.
 
 ## Bewijs en acceptatie
 
@@ -60,12 +55,12 @@ de eigen TX/RX/denial-/cleanupwaarnemingen. Verplicht verwacht:
 | Counter onder `SYSTEM:` | Waarde |
 |---|---:|
 | `NET_ARP_REPLIES`, `NET_UDP_ECHOES`, `NET_DNS_ANSWERS` | ieder 1 |
-| `NET_DENIED` | 10 |
+| `NET_DENIED` | 7 |
 | `NET_TX_COMPLETIONS` | 8 |
 | `NET_RX_FRAMES` | 7 |
 | `NET_ARP_REJECTS`, `NET_DNS_REJECTS` | ieder 2 |
 | `NET_RX_TIMEOUTS`, `NET_CACHE_INTACT`, `NET_STALE_CAP` | ieder 1 |
-| `NET_APP_DENIED` | 10 |
+| `NET_APP_DENIED` | 7 |
 | `NET_TX_SUBMITTED`, `NET_TX_COMPLETED` | ieder 8 |
 | `NET_RX_COMPLETED`, `NET_RX_DELIVERED` | ieder 7 |
 | `NET_TX_TIMEOUTS` | 0 |

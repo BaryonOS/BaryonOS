@@ -62,11 +62,24 @@ resource-authority gecreëerd; resources blijven kernel-toekenningen.
 
 `drivers/nvme` en `drivers/xhci` gebruiken ieder een lokale een-entry PCI-
 registry en een devicegebonden BAR-grant voor een beperkte read-only probe.
-De NVMe-crate leest `CAP`/`VS`; de xHCI-crate controleert revision en
-registeroffsets binnen BAR0. Geen van beide maakt deel uit van de kernel-
-activatieketen: ze schakelen bus mastering niet in en allociëren geen DMA.
-Alleen de USB descriptor-core matcht interface class/subclass/protocol; ook
-die selectie start nog geen classdriver.
+De NVMe-crate leest `CAP`/`VS` volgens NVM Express Base Specification 2.4,
+§§3.1.1–3.1.2. De xHCI-crate matcht de USB-hostcontrollerclass volgens PCI-SIG
+PCI Code and ID Assignment Specification 1.10, §1.2, en controleert revision
+en registeroffsets volgens de Intel xHCI Requirements Specification 1.2c,
+§§5.2–5.3. Geen van beide maakt deel uit van de kernel-activatieketen: ze
+schakelen bus mastering niet in en allociëren geen DMA. Alleen de USB
+descriptor-core matcht interface class/subclass/protocol volgens USB 2.0
+Specification §9.6.5; ook die selectie start nog geen classdriver.
+
+Primaire bronnen: NVM Express, *NVM Express Base Specification*, revision 2.4,
+31 juli 2026, <https://nvmexpress.org/specification/nvm-express-base-specification/>;
+PCI-SIG, *PCI Code and ID Assignment Specification*, revision 1.10,
+28 november 2017, <https://pcisig.com/PCIExpress/Specs/Base/CodeandIDAssignment_1.10>;
+Intel, *eXtensible Host Controller Interface for Universal Serial Bus (xHCI)
+Requirements Specification*, revision 1.2c, oktober 2025,
+<https://cdrdv2-public.intel.com/868295/xHCI__Rev1.2c.pdf>; USB Implementers
+Forum, *USB 2.0 Specification*, descriptorbeschrijving §9.6.5,
+<https://www.usb.org/document-library/usb-20-specification>.
 
 `MatchedPciFunction` bindt config-space-toegang aan een opnieuw gevalideerde
 descriptor en `DriverMatch`. Reads en writes naar een ander BDF worden
