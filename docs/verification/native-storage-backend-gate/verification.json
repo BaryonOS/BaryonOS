@@ -1,67 +1,17 @@
 {
   "kind": "evidence-integrity-check",
+  "mode": "committed",
   "filesystem_acceptance": false,
+  "new_native_execution": false,
+  "local_payloads_checked": false,
   "checks": [
     {
-      "check": "btrfs/sha256-manifest.json",
-      "matching_hashes": 82
+      "check": "207 original archive bindings",
+      "matching_hashes": 207
     },
     {
-      "check": "btrfs/metadata/sha256-manifest.json",
-      "matching_hashes": 17
-    },
-    {
-      "check": "Btrfs corruption outcomes",
+      "check": "historical JSON invariants (not rerun)",
       "passed": true
-    },
-    {
-      "check": "Metadata limitations preserved",
-      "passed": true
-    },
-    {
-      "check": "control-normal",
-      "raw_qemu_exit": 33,
-      "hash_and_scope_verified": true
-    },
-    {
-      "check": "control-recover",
-      "raw_qemu_exit": 33,
-      "hash_and_scope_verified": true
-    },
-    {
-      "check": "btrfs-readonly",
-      "raw_qemu_exit": 35,
-      "hash_and_scope_verified": true
-    },
-    {
-      "check": "openzfs-leaf-readonly",
-      "raw_qemu_exit": 35,
-      "hash_and_scope_verified": true
-    },
-    {
-      "check": "OpenZFS artifact hashes and negative oracle",
-      "matching_hashes": 84,
-      "native_and_file_recovery_accepted": false
-    },
-    {
-      "check": "current-main/control-normal",
-      "raw_qemu_exit": 33,
-      "hash_and_scope_verified": true
-    },
-    {
-      "check": "current-main/control-recover",
-      "raw_qemu_exit": 33,
-      "hash_and_scope_verified": true
-    },
-    {
-      "check": "current-main/btrfs-readonly",
-      "raw_qemu_exit": 35,
-      "hash_and_scope_verified": true
-    },
-    {
-      "check": "current-main/openzfs-leaf-readonly",
-      "raw_qemu_exit": 35,
-      "hash_and_scope_verified": true
     }
   ],
   "all_checks_passed": true
