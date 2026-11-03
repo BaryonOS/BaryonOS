@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`6725d90e`](https://github.com/simonvanieperen/nieuw-os/commit/6725d90edd2fb84d430855d3d35d58b44b498913) ·
+**Bron:** [`47814f19`](https://github.com/simonvanieperen/nieuw-os/commit/47814f19cb2e6891b238fc0df81a11b1912109e7) ·
 **Ontwikkelbranch:** `simonvanieperen-friendly-system`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Integreer actuele main 99d13276 met PR142-bewijs en PR139-contracttestreceipts.
-41/100 blijft 41/100. Integratie behoudt PR142's bronlabels en testbewijs plus PR139's primaire artifact-store receipts en contracttestwijzigingen. Geen nieuw native bewijs of productcriterium toegekend.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR142: actuele schone478-contractreceipt en exacte centrale bronhistorieën bewaren.
+41 blijft 41. Beoordelingsbasis 47814f19 met main99, niet de uiteindelijke PR-head of alle historische testbronnen. Negen contracttests, cargo check --tests, Clippy en fmt-check echt opnieuw exit 0 op schone478, per check cwd/HEAD/status/Cargo.lock vóór/na en gehashte primaire logs. Oude Watch-controles zonder receipt blijven brononbekend; 87 hosttests blijven b1d45e63. Beide centrale bronhistorieën exact bewaard, oorspronkelijke20 plus8snapshots. Geen runtimecode, quota, CI-gate of criterium gewijzigd; geen nieuwe native/fysieke/menselijke acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

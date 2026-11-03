@@ -2,9 +2,8 @@
 
 ## NEXT AGENT HANDOFF — actuele main geïntegreerd, huidige gate-uitkomst bepalen — 3 november 2026
 
-**Basis:** PR-head `6725d90edd2fb84d430855d3d35d58b44b498913` met actuele
-main `99d132768fd72276caa4a3b3e9a09f8f1909f0ed`; gemeenschappelijke
-voorganger `d115cc96c19ac4371baed77409a23d1adddffaf0`. De conflictresolutie
+**Basis:** Watch-merge `47814f19cb2e6891b238fc0df81a11b1912109e7`,
+met PR-head `6725d90e` en main `99d13276`. De conflictresolutie
 behoudt PR142's expliciete bronlabels en PR139's receipts en testwijzigingen.
 Score blijft 41/100.
 
@@ -14,16 +13,20 @@ PR139's negen artifact-store-contracttests, fmt en Clippy horen bij
 `verification/pr139-artifact-contract-receipt.json`. Deze resultaten worden
 niet als tests van de nieuwe integratieboom gepresenteerd.
 
-**Uitgevoerd op de conflict-opgeloste werkboom:** `cargo +1.90.0 test
---locked --manifest-path crates/artifact-store-core/Cargo.toml` slaagde:
-9 contracttests. `cargo +1.90.0 fmt --manifest-path
-crates/artifact-store-core/Cargo.toml -- --check` en `cargo +1.90.0 clippy
---locked --manifest-path crates/artifact-store-core/Cargo.toml --all-targets
--- -D warnings` slaagden eveneens. De eerste offline testpoging kon workspace-
-dependency `ed25519-dalek` niet vinden; online dependencyresolutie en de
-vervolgtest slaagden. Progress write/check en diff-/JSON-controles slagen.
-Dit is hosttestbewijs op deze werkboom, geen native-, fysieke of volledige
-releaseacceptatie.
+**Nieuw primair bewijs op schone `47814f19`:** 9 contracttests, `cargo check
+--tests`, Clippy en fmt-check, elk exit 0 met bestaande Rust 1.90, offline/locked.
+Cwd/HEAD/schone status en Cargo.lock-hash staan per check vóór/na vast;
+volledige gehashte logs en bronhashes:
+[primaire receipt](verification/pr142-478-contract-receipt.json).
+Dit is een nieuwe run, geen retrospectieve bronbinding van oorspronkelijke
+Watch-claims. De eerdere vier controles zonder receipt blijven brononbekend;
+de 87-testsbron blijft `b1d45e63`. Beide centrale bronhistorieën zijn exact opgeslagen
+in [het snapshotregister](verification/retained-document-heads-20261103.json);
+de oorspronkelijke 20 snapshots blijven behouden, nu 28 totaal.
+Geen runtimecode, quota of CI-gate gewijzigd; geen nieuwe native/fysieke/
+menselijke/full-releaseacceptatie. PR135's RAW-/fixtureblokkades blijven open.
+**Eerstvolgend:** `GH_PAGER="" gh pr checks 142`, actuele head/base en threads
+hercontroleren vóór guarded squash; geen stilzwijgende headacceptatie.
 
 ## Historisch checkpoint — PR139 exacte contracttestreceipt — 3 november 2026
 

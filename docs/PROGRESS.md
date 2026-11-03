@@ -10,6 +10,14 @@ testbron**; niet bewezen op `1f67ef7c`. De bestaande 87-testsbron `b1d45e63`
 en PR140-bron `2bf95782` blijven afzonderlijk. **41 → 41**, geen nieuwe
 testuitvoering of acceptatie.
 
+PR142-vervolg op schone `47814f19` (3 november 2026): 9 contracttests,
+`cargo check --tests`, Clippy en fmt-check echt opnieuw exit 0 met per check
+cwd/HEAD/status/lockhash vóór/na en volledige gehashte logs:
+[nieuwe receipt](verification/pr142-478-contract-receipt.json).
+Geen retrospectieve binding van oude Watch-claims; 87 hosttests blijven `b1d45e63`.
+Beide centrale bronhistorieën exact bewaard; **41 → 41**, geen code- of
+native/fysieke/menselijke acceptatie.
+
 ## Betekenis van het percentage
 
 De README toont **behaalde acceptatiepunten / 100**. De gewichten zijn een
