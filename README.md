@@ -1,5 +1,34 @@
 # Nieuw OS — eigen kernel, sessieroute en bureaublad
 
+## Project in het kort
+
+Nieuw OS is een onderzoeksproject voor een zelfstandig besturingssysteem met
+een eigen x86_64-kernel en een eigen productervaring rond documenten en
+collecties: **Materiaal**. Het is geen Linux-distributie en gebruikt geen
+bestaande OS-kernel als basis. Veiligheid en privacy steunen onder meer op
+geïsoleerde processen, expliciete capabilities (kernel-afgedwongen rechten)
+en begrensde IPC (interprocescommunicatie).
+
+De boot- en runtimeketen is **UEFI/OVMF → eigen Rust-loader → bootprotocol →
+`no_std`-Rust-kernel → geïsoleerde processen en diensten → SDK en apps**.
+De workspace bevat daarnaast aparte crates voor kernel-/capabilitylogica,
+drivers en diensten voor opslag, invoer en netwerk, plus de SDK en native
+apps. Rust/Cargo is de hoofdstack (toolchain 1.90.0); Python verzorgt veel
+build- en testharnassen. QEMU/OVMF wordt gebruikt voor geïsoleerde VM-proeven.
+NAS- en quantumsimulatorprototypes zijn afzonderlijke sporen, geen bewijs van
+volledig geïntegreerde native functies.
+
+**Codeleesroute:** begin bij `boot/loader/src/main.rs`, volg naar
+`kernel/src/main.rs` en daarna `kernel/src/m2.rs` en `kernel/src/m2/m3.rs`.
+Lees voor procesrechten `crates/capability-core/`, voor apps
+`sdk/runtime/README.md` en `sdk/examples/materiaal/README.md`. De actuele
+status en open gates staan in [PROJECT-STATE.md](docs/PROJECT-STATE.md);
+architectuurkeuzes en contracten staan in
+[KERNEL-AND-SECURITY-CONTRACT.md](docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md)
+en de volledige acceptatieopdracht in
+[FULL-TEST-RELEASE.md](docs/FULL-TEST-RELEASE.md). Proeven en builds zijn
+geen bewijs van een complete release of ondersteuning van fysieke hardware.
+
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
@@ -31,11 +60,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-02 · **Rubric:** v1 ·
-**Bron:** [`c6ce3906`](https://github.com/simonvanieperen/nieuw-os/commit/c6ce3906f395f9babad9444efea6cde64bc2a0c4) ·
-**Ontwikkelbranch:** `codex/native-workspace-v2-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Alle zeven PR127-reviewpunten en volledige PR126/main-inhoud combineren.
-Geerfde branchscore41 blijft41; main34 blijft34, geen nieuwe criteria. De gecombineerde kandidaat bewaart alle PR126/main-inhoud en herstelt zeven reviewpunten: native palet, proportionele klikposities, twee TCP-status/deadlinefouten, probeconfigisolatie, dockdamage en semantisch write-only wachtwoord. Integratietests vonden daarnaast echte oude damagegeometrie onder de nieuwe fonts; renderer en model delen nu werkelijke resultaat/statusbounds, met behouden pixel- en ten minste90%-sendbudgettests. 189 Rust-app/UI-,9 netwerk- en31 Python-hosttests slagen; beide TCP-fouten zijn echt rood/groen gereproduceerd met gepinde Rust1.91.1. Clippy en echte native-targetchecks/build slagen. PR126-parent8f08 is afzonderlijk native groen met22fasen/raw33/clipboard/herstel/schijf; dat is geen bewijs voor deze nieuwe bron. Verse gecombineerde CI, review en native runtime blijven nodig. Geen nieuwe fysieke, Windows-, volledige release- of U02-acceptatie.
+**Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
+**Bron:** [`380111b6`](https://github.com/simonvanieperen/nieuw-os/commit/380111b68688c981eec6abb8fab29174a29f5601) ·
+**Ontwikkelbranch:** `simonvanieperen-scaling-happiness`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Onboardingintro bovenaan README plaatsen.
+Documentatie-only: korte project-, architectuur-, stack- en codeleesintro toegevoegd vóór de voortgangsmeter. Geen nieuwe implementatie of acceptatiebewijs; rubric en score blijven ongewijzigd op 41/100.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
