@@ -232,8 +232,8 @@ def preflight(workspace, binaries, env=None):
                    expected=status, marker=marker, env=env)
 
 
-def checked_image_copy(source, destination):
-    expected = sha256(private_file(source))
+def checked_image_copy(source, destination, expected):
+    require(sha256(private_file(source)) == expected, "baseline image hash mismatch")
     copy_checked(source, destination, expected)
     require(sha256(source) == expected, "source changed during copy")
     return expected

@@ -20,5 +20,14 @@
     {"command": "git diff --check", "exit": 0}
   ],
   "not_executed": ["Foreign package acquisition/extraction/engine execution", "Full Btrfs fault/metadata or OpenZFS create/crash replay", "Native VM replay", "Local historical payload mode", "Hardware or human audit"],
+  "followup_validation": {
+    "command": "python3 -B -m unittest discover -s tests -p test_storage_backend_replay.py",
+    "exit": 0,
+    "tests": 10,
+    "seconds": 0.116,
+    "log": "/tmp/nieuw-os-pr114-replay-followup.log",
+    "sha256": "61e92c2d3118c0f092450314e8858fe309059b0bea53550bbc133387ecfdad38",
+    "change": "Image-copy helper now requires a previously recorded baseline digest, not a newly computed self-reference. Actual synthetic copy/tar fixtures and portable zdb argv tested. These future OpenZFS helpers remain unwired to engine execution; --execute is still blocked."
+  },
   "progress": {"previous": 41, "current": 41, "new_points": 0}
 }

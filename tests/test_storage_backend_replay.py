@@ -85,6 +85,34 @@ class StorageReplayChecks(unittest.TestCase):
                          "--backend", "openzfs", "--execute"])
         self.assertFalse((self.base / "work").exists())
 
+    def test_image_copy_is_bound_to_previously_recorded_baseline(self):
+        source = self.base / "baseline.img"
+        source.write_bytes(b"synthetic image")
+        expected = replay.sha256(source)
+        destination = self.base / "copy.img"
+        self.assertEqual(replay.checked_image_copy(source, destination, expected), expected)
+        self.assertEqual(source.read_bytes(), destination.read_bytes())
+        with self.assertRaisesRegex(ValueError, "baseline"):
+            replay.checked_image_copy(source, self.base / "bad.img", "0" * 64)
+        self.assertFalse((self.base / "bad.img").exists())
+
+    def test_future_zdb_argv_uses_only_project_copy_and_pool_name(self):
+        work = self.workspace()
+        image_dir = work / "images/copy"
+        argv = replay.zdb_check_argv(work, image_dir)
+        self.assertEqual(argv[-2:], [image_dir, "nieuwos_n3"])
+        with self.assertRaisesRegex(ValueError, "project image"):
+            replay.zdb_check_argv(work, self.base)
+
+    def test_future_packaging_creates_images_directory_itself(self):
+        work = self.workspace()
+        crash = work / "images/crash"
+        crash.mkdir(mode=0o700)
+        (crash / "synthetic.img").write_bytes(b"synthetic")
+        result = replay.package_evidence(work)
+        with tarfile.open(result / "images/crash-pool.tar.gz") as archive:
+            self.assertEqual(archive.extractfile("crash/synthetic.img").read(), b"synthetic")
+
 
 if __name__ == "__main__":
     unittest.main()
