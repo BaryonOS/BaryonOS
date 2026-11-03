@@ -1,7 +1,8 @@
 use system_journal::{
-    DenialClass, EventCode, ExitClass, FailureClass, Journal, JournalError, JournalId,
-    MetadataField, MetadataValue, Producer, RateLimit, Reader, RecordInput, ResourceKind, Severity,
-    Subsystem,
+    BuildIdentity, CrashRecord, CrashRecordError, DenialClass, EventCode, ExitClass, FailureClass,
+    FaultClass, FaultContext, Journal, JournalError, JournalId, MetadataField, MetadataValue,
+    Producer, RateLimit, Reader, RecordInput, ResourceKind, RestartOutcome, ServiceIdentity,
+    Severity, Subsystem,
 };
 
 fn journal<const N: usize>() -> (
@@ -354,6 +355,89 @@ fn producer_scope_and_monotonic_time_are_checked() {
         Err(JournalError::TimestampRegressed)
     );
     assert_eq!(journal.stats(&admin).unwrap().rejected, 2);
+}
+
+#[test]
+fn crash_diagnostics_keep_bounded_identity_and_restart_context() {
+    let (mut journal, admin, _producer, _reader) = journal::<4>();
+    let producer = admin.producer(Producer::Supervisor);
+    let reader = admin
+        .reader(Reader::DiagnosticsApp, &[Subsystem::Process])
+        .unwrap();
+    let correlation = journal.new_correlation().unwrap();
+    let crash = CrashRecord::new(
+        77,
+        Some(ServiceIdentity::BlockStorage),
+        BuildIdentity::new([0xab; 32]),
+        FaultClass::PageFault,
+        FaultContext::ExceptionVector(14),
+        RestartOutcome::Restarted(2),
+    )
+    .unwrap();
+    assert_eq!(
+        CrashRecord::new(
+            0,
+            None,
+            BuildIdentity::new([0; 32]),
+            FaultClass::ProcessExit,
+            FaultContext::None,
+            RestartOutcome::NotAttempted,
+        ),
+        Err(CrashRecordError::InvalidProcessIdentity)
+    );
+    assert_eq!(
+        CrashRecord::new(
+            77,
+            None,
+            BuildIdentity::new([0; 32]),
+            FaultClass::ProcessExit,
+            FaultContext::None,
+            RestartOutcome::Restarted(0),
+        ),
+        Err(CrashRecordError::InvalidRestartGeneration)
+    );
+    assert_eq!(
+        journal.record_crash(
+            &producer,
+            RecordInput {
+                monotonic_ticks: 100,
+                wall_ticks: None,
+                severity: Severity::Warning,
+                subsystem: Subsystem::Process,
+                event: EventCode::ProcessExited,
+                correlation_id: Some(correlation),
+                metadata: &[],
+            },
+            crash,
+        ),
+        Err(JournalError::InvalidCrashRecord)
+    );
+
+    journal
+        .record_crash(
+            &producer,
+            RecordInput {
+                monotonic_ticks: 100,
+                wall_ticks: None,
+                severity: Severity::Warning,
+                subsystem: Subsystem::Process,
+                event: EventCode::ProcessFaulted,
+                correlation_id: Some(correlation),
+                metadata: &[MetadataField::exit_class(ExitClass::Faulted)],
+            },
+            crash,
+        )
+        .unwrap();
+    let record = journal.read(Some(&reader), 0).unwrap();
+    let crash = record.crash.unwrap();
+    assert_eq!(record.monotonic_ticks, 100);
+    assert_eq!(record.correlation_id, Some(correlation));
+    assert_eq!(crash.process().get(), 77);
+    assert_eq!(crash.service(), Some(ServiceIdentity::BlockStorage));
+    assert_eq!(crash.executable().digest(), &[0xab; 32]);
+    assert_eq!(crash.fault(), FaultClass::PageFault);
+    assert_eq!(crash.context(), FaultContext::ExceptionVector(14));
+    assert_eq!(crash.restart(), RestartOutcome::Restarted(2));
 }
 
 #[test]

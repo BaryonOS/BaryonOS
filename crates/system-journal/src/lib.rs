@@ -1,5 +1,11 @@
 #![no_std]
 
+mod crash;
+pub use crash::{
+    BuildIdentity, CrashRecord, CrashRecordError, FaultClass, FaultContext, ProcessIdentity,
+    RestartOutcome, ServiceIdentity, ServicePhase,
+};
+
 pub const MAX_METADATA_FIELDS: usize = 4;
 const PRODUCER_COUNT: usize = 8;
 
@@ -275,6 +281,7 @@ pub enum JournalError {
     CorrelationExhausted,
     SequenceExhausted,
     RecordOutOfRange,
+    InvalidCrashRecord,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -293,6 +300,7 @@ pub struct JournalRecord {
     pub producer: Producer,
     pub event: EventCode,
     pub correlation_id: Option<CorrelationId>,
+    pub crash: Option<CrashRecord>,
     metadata: [Option<MetadataValue>; MAX_METADATA_FIELDS],
     metadata_len: u8,
 }
@@ -437,6 +445,28 @@ impl<const CAPACITY: usize> Journal<CAPACITY> {
         permit: &ProducerPermit,
         input: RecordInput<'_>,
     ) -> Result<u64, JournalError> {
+        self.record_inner(permit, input, None)
+    }
+
+    pub fn record_crash(
+        &mut self,
+        permit: &ProducerPermit,
+        input: RecordInput<'_>,
+        crash: CrashRecord,
+    ) -> Result<u64, JournalError> {
+        if input.event != EventCode::ProcessFaulted {
+            self.reject();
+            return Err(JournalError::InvalidCrashRecord);
+        }
+        self.record_inner(permit, input, Some(crash))
+    }
+
+    fn record_inner(
+        &mut self,
+        permit: &ProducerPermit,
+        input: RecordInput<'_>,
+        crash: Option<CrashRecord>,
+    ) -> Result<u64, JournalError> {
         if permit.journal_id != self.journal_id
             || input
                 .correlation_id
@@ -502,6 +532,7 @@ impl<const CAPACITY: usize> Journal<CAPACITY> {
             producer: permit.producer,
             event: input.event,
             correlation_id: input.correlation_id,
+            crash,
             metadata: stored_metadata,
             metadata_len: input.metadata.len() as u8,
         };
