@@ -1,6 +1,5 @@
-//! Single-CPU ring-3 experiment. Each entry copies all GPR/iret state before
-//! switching to a permanent service stack and kernel CR3. No user reference
-//! survives a scheduling point. There are no locks: IF is clear in all mutations.
+//! Ring-3 experiment. The opt-in SMP profile serializes shared M3 mutations;
+//! each CPU retains its own running-process identity and entry stack.
 use super::{
     arch,
     paging::{self, Paging},
@@ -11,6 +10,11 @@ use core::{
     arch::asm,
     mem::{replace, MaybeUninit},
     ptr,
+};
+#[cfg(feature = "native-smp-m3")]
+use core::{
+    hint::spin_loop,
+    sync::atomic::{AtomicBool, Ordering},
 };
 #[cfg(feature = "native-memory")]
 use kernel_core::pressure::{Level as MemoryPressure, ReclaimBudget};
@@ -318,6 +322,10 @@ const STACK: u64 = if cfg!(feature = "native-update") {
 };
 const STACK_END: u64 = 0x7ffff000;
 const MAX: usize = 16;
+#[cfg(feature = "native-smp-m3")]
+const SMP_CPUS: usize = boot_protocol::smp::MAX_CPUS;
+#[cfg(all(feature = "native-smp-m3", feature = "fpu-context"))]
+compile_error!("native-smp-m3 excludes FPU state until it is modeled per CPU");
 const MAPS: usize = 2048;
 const ADDRESS: u64 = 0x000f_ffff_ffff_f000;
 const NX: u64 = 1 << 63;
@@ -422,6 +430,12 @@ struct State {
     kernel: Paging,
     processes: [Process; MAX],
     current: usize,
+    #[cfg(feature = "native-smp-m3")]
+    cpu_current: [usize; SMP_CPUS],
+    #[cfg(feature = "native-smp-m3")]
+    round_robin_cursor: usize,
+    #[cfg(feature = "native-smp-m3")]
+    cpu_selections: [u64; SMP_CPUS],
     amount: usize,
     next_pid: u64,
     round: u8,
@@ -458,6 +472,33 @@ struct EventRecord {
     cr2: u64,
 }
 static mut STATE: MaybeUninit<State> = MaybeUninit::uninit();
+#[cfg(feature = "native-smp-m3")]
+static M3_LOCKED: AtomicBool = AtomicBool::new(false);
+#[cfg(feature = "native-smp-m3")]
+const M3_LOCK_POLLS: usize = 100_000_000;
+#[cfg(feature = "native-smp-m3")]
+struct M3Guard;
+#[cfg(feature = "native-smp-m3")]
+impl M3Guard {
+    fn acquire() -> Self {
+        for _ in 0..M3_LOCK_POLLS {
+            if M3_LOCKED
+                .compare_exchange_weak(false, true, Ordering::Acquire, Ordering::Relaxed)
+                .is_ok()
+            {
+                return Self;
+            }
+            spin_loop();
+        }
+        serial::fail(b"M3:SMP:LOCK_TIMEOUT")
+    }
+}
+#[cfg(feature = "native-smp-m3")]
+impl Drop for M3Guard {
+    fn drop(&mut self) {
+        M3_LOCKED.store(false, Ordering::Release);
+    }
+}
 #[no_mangle]
 static mut m3_service_stack: u64 = 0;
 #[no_mangle]
@@ -467,6 +508,8 @@ static mut m3_idle_wakeups: u64 = 0;
 extern "C" {
     fn m3_timer();
     fn m3_syscall();
+    #[cfg(feature = "native-smp-m3")]
+    fn m3_schedule_ipi();
     fn m3_restore();
 }
 
@@ -600,6 +643,12 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
                 .write(Process::new());
         }
         ptr::addr_of_mut!((*state).current).write(MAX);
+        #[cfg(feature = "native-smp-m3")]
+        {
+            ptr::addr_of_mut!((*state).cpu_current).write([MAX; SMP_CPUS]);
+            ptr::addr_of_mut!((*state).round_robin_cursor).write(0);
+            ptr::addr_of_mut!((*state).cpu_selections).write([0; SMP_CPUS]);
+        }
         ptr::addr_of_mut!((*state).amount).write(0);
         ptr::addr_of_mut!((*state).next_pid).write(1);
         ptr::addr_of_mut!((*state).round).write(0);
@@ -630,6 +679,8 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
         ptr::addr_of_mut!((*state).wait_metrics).write(wait::Metrics::EMPTY);
         arch::user_gate(32, m3_timer as *const () as u64, false);
         arch::user_gate(128, m3_syscall as *const () as u64, true);
+        #[cfg(feature = "native-smp-m3")]
+        arch::user_gate(0xf1, m3_schedule_ipi as *const () as u64, false);
         let state = (&mut *ptr::addr_of_mut!(STATE)).assume_init_mut();
         #[cfg(feature = "display-input")]
         {
@@ -637,11 +688,23 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
             ps2::prepare();
         }
         state.setup();
+        #[cfg(feature = "native-smp-m3")]
+        {
+            let bootstrap = super::smp::bootstrap_index();
+            arch::set_cpu_local(bootstrap, arch::service_stack(), true);
+            super::smp::release_to_m3();
+            super::smp::wait_for_m3_ready();
+        }
         #[cfg(feature = "native-cap-digest-bench")]
         cap_bench::run(m4::engine());
         #[cfg(not(feature = "native-cap-digest-bench"))]
         {
             timer_init();
+            #[cfg(feature = "native-smp-m3")]
+            let next = state
+                .select_smp(super::smp::bootstrap_index())
+                .unwrap_or_else(|| serial::fail(b"M3:SMP:NO_BOOT_PROCESS"));
+            #[cfg(not(feature = "native-smp-m3"))]
             let next = state.select();
             asm!("mov rax, {context}","jmp {restore}",context=in(reg) next,restore=sym m3_restore,options(noreturn));
         }
@@ -651,6 +714,12 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
 impl State {
     fn setup(&mut self) {
         self.current = MAX;
+        #[cfg(feature = "native-smp-m3")]
+        {
+            self.cpu_current = [MAX; SMP_CPUS];
+            self.round_robin_cursor = 0;
+            self.cpu_selections = [0; SMP_CPUS];
+        }
         self.ticks = 0;
         self.selections = 0;
         self.fault = false;
@@ -1048,6 +1117,7 @@ impl State {
         display_fixture::poll(state);
         None
     }
+    #[cfg_attr(feature = "native-smp-m3", allow(dead_code))]
     fn select(&mut self) -> *const u64 {
         'selection: loop {
             #[cfg(feature = "ipc-wait")]
@@ -1152,6 +1222,111 @@ impl State {
             self.idle()
         }
     }
+    #[cfg(feature = "native-smp-m3")]
+    fn select_smp(&mut self, cpu: usize) -> Option<*const u64> {
+        assert!(cpu < SMP_CPUS && cpu < super::ap::cpu_count());
+        assert!(self.amount > 0 && self.amount <= MAX);
+        assert_eq!(self.cpu_current[cpu], MAX);
+        #[cfg(feature = "ipc-wait")]
+        wait::refresh(self);
+        #[cfg(feature = "native-tpm-crb")]
+        tpm_fixture::poll(self.ticks);
+
+        for offset in 0..self.amount {
+            let slot = (self.round_robin_cursor + offset) % self.amount;
+            if self.processes[slot].status != Status::Ready {
+                continue;
+            }
+            let valid = {
+                let process = &self.processes[slot];
+                let context = &process.context;
+                user::valid_return_layout(
+                    context[17],
+                    context[20],
+                    context[18],
+                    context[21],
+                    STACK..STACK_END,
+                ) && process
+                    .paging
+                    .as_ref()
+                    .unwrap()
+                    .permissions(context[17])
+                    .is_some_and(|permissions| permissions.2 && permissions.3)
+                    && process
+                        .paging
+                        .as_ref()
+                        .unwrap()
+                        .permissions(context[20])
+                        .is_some_and(|permissions| permissions.1 && !permissions.2 && permissions.3)
+            };
+            if !valid {
+                let context = self.processes[slot].context;
+                #[cfg(not(feature = "native-window-session"))]
+                let expected = mode() == 16
+                    && slot == 0
+                    && context[20] == 0
+                    && context[18] == 0x23
+                    && context[21] == 0x1b
+                    && (0x40000000..0x60000000).contains(&context[17])
+                    && self.processes[slot]
+                        .paging
+                        .as_ref()
+                        .unwrap()
+                        .permissions(context[17])
+                        .is_some_and(|permissions| permissions.2 && permissions.3);
+                self.last_event = EventRecord {
+                    pid: self.processes[slot].pid,
+                    code: 0,
+                    vector: 256,
+                    rip: context[17],
+                    cr2: 0,
+                };
+                #[cfg(feature = "native-window-session")]
+                window_session::observe_invalid_return(self, slot);
+                #[cfg(not(feature = "native-window-session"))]
+                {
+                    self.unexpected |= !expected;
+                    if expected {
+                        serial::write(b"M3:INVALID_RSP:PASS\n");
+                    }
+                    self.observer_survivor(slot);
+                }
+                self.fault = true;
+                self.processes[slot].status = Status::Dying;
+                self.cleanup(slot);
+                continue;
+            }
+
+            assert!((0..SMP_CPUS).all(|other| other == cpu || self.cpu_current[other] != slot));
+            self.round_robin_cursor = (slot + 1) % self.amount;
+            self.cpu_current[cpu] = slot;
+            self.cpu_selections[cpu] = self.cpu_selections[cpu].saturating_add(1);
+            self.selections += 1;
+            let process = &mut self.processes[slot];
+            process.status = Status::Running;
+            process.selected += 1;
+            let context = &mut process.context;
+            context[19] = user::return_flags(context[19]);
+            arch::process_stack(process.kernel_top);
+            #[cfg(feature = "fpu-context")]
+            fpu::select(slot);
+            arch::activate(process.paging.as_ref().unwrap().root);
+            return Some(context.as_ptr());
+        }
+        None
+    }
+
+    fn select_after_event(&mut self, cpu: usize) -> *const u64 {
+        #[cfg(feature = "native-smp-m3")]
+        {
+            self.select_smp(cpu).unwrap_or(ptr::null())
+        }
+        #[cfg(not(feature = "native-smp-m3"))]
+        {
+            let _ = cpu;
+            self.select()
+        }
+    }
     #[cfg(feature = "ipc-wait")]
     fn wait_idle_once(&mut self) -> Option<*const u64> {
         arch::activate(self.kernel.root);
@@ -1189,6 +1364,7 @@ impl State {
         // it cannot complete a timer-only wait before the absolute deadline.
         self.progress_observers()
     }
+    #[cfg_attr(feature = "native-smp-m3", allow(dead_code))]
     fn idle(&mut self) -> ! {
         arch::activate(self.kernel.root);
         arch::process_stack(arch::service_stack());
@@ -1280,52 +1456,68 @@ impl State {
         }
     }
     fn complete_round(&mut self) -> ! {
-        for slot in 0..self.amount {
-            if self.processes[slot].status != Status::Dead {
-                self.processes[slot].status = Status::Dying;
-                self.cleanup(slot);
+        #[cfg(feature = "native-smp-m3")]
+        {
+            for cpu in 0..super::ap::cpu_count() {
+                if self.cpu_selections[cpu] == 0 {
+                    serial::write(b"M3:SMP:CPU_WITHOUT_PROCESS\n");
+                    serial::exit(0x11);
+                }
+                print_number(b"M3:SMP:CPU:", cpu as u64);
+                print_number(b"M3:SMP:SCHEDULES:", self.cpu_selections[cpu]);
             }
+            serial::write(b"M3:SMP:SCHEDULER:PASS\n");
+            serial::exit(0x10);
         }
-        if self.unexpected {
-            serial::write(b"M3:FAIL:UNEXPECTED_USER_EVENT\n");
-            serial::exit(0x11);
-        }
-        if mode() == 0 {
-            if self.round == 0 {
-                serial::write(b"KS-04:PASS\n");
-                self.free_baseline = self.free_count();
-            } else {
-                assert_eq!(self.free_count(), self.free_baseline);
-            }
-            if self.round == 1 {
-                serial::write(b"KS-07:PASS\n");
-            }
-            self.round += 1;
-            if self.round < 6 {
-                self.setup();
-                let next = self.select();
-                // SAFETY: Full verified static user context; permanent kernel CR3
-                // and service stack remain retained through iretq.
-                unsafe {
-                    asm!("mov rax, {context}","jmp {restore}",context=in(reg) next,restore=sym m3_restore,options(noreturn));
+        #[cfg(not(feature = "native-smp-m3"))]
+        {
+            for slot in 0..self.amount {
+                if self.processes[slot].status != Status::Dead {
+                    self.processes[slot].status = Status::Dying;
+                    self.cleanup(slot);
                 }
             }
+            if self.unexpected {
+                serial::write(b"M3:FAIL:UNEXPECTED_USER_EVENT\n");
+                serial::exit(0x11);
+            }
+            if mode() == 0 {
+                if self.round == 0 {
+                    serial::write(b"KS-04:PASS\n");
+                    self.free_baseline = self.free_count();
+                } else {
+                    assert_eq!(self.free_count(), self.free_baseline);
+                }
+                if self.round == 1 {
+                    serial::write(b"KS-07:PASS\n");
+                }
+                self.round += 1;
+                if self.round < 6 {
+                    self.setup();
+                    let next = self.select();
+                    // SAFETY: Full verified static user context; permanent kernel CR3
+                    // and service stack remain retained through iretq.
+                    unsafe {
+                        asm!("mov rax, {context}","jmp {restore}",context=in(reg) next,restore=sym m3_restore,options(noreturn));
+                    }
+                }
+            }
+            print_number(b"M3:TIMER_IRQS:", self.timer_interrupts);
+            print_number(b"M3:SYSCALL_CALLS:", self.syscall_calls);
+            print_number(b"M3:MAX_SYSCALL_CYCLES:", self.max_syscall_cycles);
+            print_number(b"M3:MAX_TIMER_GAP_CYCLES:", self.max_tick_gap);
+            serial::write(b"M3:CLEANUP:PASS\n");
+            if (3..=14).contains(&mode()) {
+                serial::write(if mode() <= 5 {
+                    b"KS-05:PASS\n"
+                } else {
+                    b"KS-06:PASS\n"
+                });
+            }
+            assert!(self.had_syscall_df_entry);
+            serial::write(b"KS-08:PASS\nM3:SYSCALL_DF_ENTRY:PASS\nM3:PASS\nM1:PASS\n");
+            serial::exit(0x10)
         }
-        print_number(b"M3:TIMER_IRQS:", self.timer_interrupts);
-        print_number(b"M3:SYSCALL_CALLS:", self.syscall_calls);
-        print_number(b"M3:MAX_SYSCALL_CYCLES:", self.max_syscall_cycles);
-        print_number(b"M3:MAX_TIMER_GAP_CYCLES:", self.max_tick_gap);
-        serial::write(b"M3:CLEANUP:PASS\n");
-        if (3..=14).contains(&mode()) {
-            serial::write(if mode() <= 5 {
-                b"KS-05:PASS\n"
-            } else {
-                b"KS-06:PASS\n"
-            });
-        }
-        assert!(self.had_syscall_df_entry);
-        serial::write(b"KS-08:PASS\nM3:SYSCALL_DF_ENTRY:PASS\nM3:PASS\nM1:PASS\n");
-        serial::exit(0x10)
     }
     fn free_count(&self) -> usize {
         self.frames.availability().free
@@ -1562,13 +1754,89 @@ impl State {
     }
 }
 
+#[cfg(feature = "native-smp-m3")]
+pub(super) fn start_ap(index: usize) -> ! {
+    arch::set_cpu_local(index, super::ap::stack_top(index), false);
+    super::smp::mark_m3_ready(index);
+    m3_cpu_idle()
+}
+
+#[cfg(feature = "native-smp-m3")]
+#[no_mangle]
+extern "C" fn m3_cpu_idle() -> ! {
+    loop {
+        // SAFETY: This CPU is idle on its permanent M3 service stack and has
+        // kernel GS/CR3 installed. The STI-HLT pair atomically waits for an IPI.
+        unsafe {
+            asm!("sti", "hlt", "cli", options(nostack));
+        }
+    }
+}
+
 #[no_mangle]
 extern "C" fn m3_event(source: *const u64) -> *const u64 {
+    #[cfg(feature = "native-smp-m3")]
+    {
+        let next = {
+            let _guard = M3Guard::acquire();
+            // SAFETY: The SMP lock is held, interrupts are disabled on this
+            // entry, and the mutable state borrow ends before the lock is released.
+            let state = unsafe { (&mut *ptr::addr_of_mut!(STATE)).assume_init_mut() };
+            m3_event_locked(state, source)
+        };
+        return next;
+    }
+    #[cfg(not(feature = "native-smp-m3"))]
+    {
+        // SAFETY: The ordinary M3 profile has one CPU and interrupt-gate entry.
+        let state = unsafe { (&mut *ptr::addr_of_mut!(STATE)).assume_init_mut() };
+        m3_event_locked(state, source)
+    }
+}
+
+fn m3_event_locked(state: &mut State, source: *const u64) -> *const u64 {
     let begin = clock();
-    // SAFETY: Entry stub has moved to MAIN service stack with IF=0. Source is
-    // exclusively owned mapped per-process kernel stack, 22 initialized words.
-    // No scheduler can run concurrently; all source bytes are copied before free.
-    let state = unsafe { (&mut *ptr::addr_of_mut!(STATE)).assume_init_mut() };
+    #[cfg(feature = "native-smp-m3")]
+    {
+        let cpu = arch::current_cpu_index();
+        // SAFETY: The assembly entry supplied a live normalized interrupt frame
+        // on this CPU's kernel stack; these two words are within the saved prefix.
+        let vector = unsafe { source.add(15).read() };
+        let cs = unsafe { source.add(18).read() };
+        if cs == 8 {
+            assert_eq!(
+                state.cpu_current[cpu], MAX,
+                "kernel interrupt while process runs"
+            );
+            if vector == 32 {
+                assert_eq!(cpu, super::smp::bootstrap_index(), "PIT interrupt on AP");
+                out8(0x20, 0x20);
+                state.ticks = state.ticks.saturating_add(1);
+                state.timer_interrupts = state.timer_interrupts.saturating_add(1);
+                if state.last_tick != 0 {
+                    state.max_tick_gap = state
+                        .max_tick_gap
+                        .max(begin.saturating_sub(state.last_tick));
+                }
+                state.last_tick = begin;
+                super::smp::schedule_aps();
+            } else if vector == 0xf1 {
+                assert_ne!(cpu, super::smp::bootstrap_index(), "schedule IPI on BSP");
+                super::smp::acknowledge_schedule_ipi();
+            } else {
+                serial::write(b"M3:FAIL:UNEXPECTED_KERNEL_INTERRUPT\n");
+                serial::exit(0x11);
+            }
+            return state.select_smp(cpu).unwrap_or(source);
+        }
+    }
+    #[cfg(feature = "native-smp-m3")]
+    let cpu = arch::current_cpu_index();
+    #[cfg(not(feature = "native-smp-m3"))]
+    let cpu = 0;
+    #[cfg(feature = "native-smp-m3")]
+    let current = state.cpu_current[cpu];
+    #[cfg(not(feature = "native-smp-m3"))]
     let current = state.current;
     assert!(current < state.amount);
     let mut context = [0u64; 22];
@@ -1600,6 +1868,14 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
                 core::cmp::max(state.max_tick_gap, begin.saturating_sub(state.last_tick));
         }
         state.last_tick = begin;
+        #[cfg(feature = "native-smp-m3")]
+        {
+            assert_eq!(cpu, super::smp::bootstrap_index(), "PIT interrupt on AP");
+            super::smp::schedule_aps();
+        }
+    } else if vector == 0xf1 {
+        #[cfg(feature = "native-smp-m3")]
+        super::smp::acknowledge_schedule_ipi();
     } else if vector == 128 {
         state.had_syscall_df_entry |= context[19] & (1 << 10) != 0;
         let number = context[14];
@@ -1819,6 +2095,11 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
             state.processes[current].status = Status::Ready;
         }
     }
+    #[cfg(feature = "native-smp-m3")]
+    {
+        assert_eq!(state.cpu_current[cpu], current);
+        state.cpu_current[cpu] = MAX;
+    }
     if let Some(next) = state.progress_observers() {
         return next;
     }
@@ -1837,7 +2118,7 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
                 state.max_syscall_cycles =
                     core::cmp::max(state.max_syscall_cycles, clock().saturating_sub(begin));
             }
-            return state.select();
+            return state.select_after_event(cpu);
         }
         let survivor = &state.processes[state.survivor_slot];
         assert_eq!(read_word(survivor.physical(DATA + 16)), survivor.pattern);
@@ -1858,7 +2139,7 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
             state.complete_round();
         }
     }
-    let next = state.select();
+    let next = state.select_after_event(cpu);
     if vector == 128 {
         state.max_syscall_cycles =
             core::cmp::max(state.max_syscall_cycles, clock().saturating_sub(begin));

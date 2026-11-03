@@ -1,7 +1,9 @@
 use core::{
     arch::asm,
     hint::spin_loop,
-    sync::atomic::{compiler_fence, fence, AtomicBool, AtomicU32, AtomicU64, AtomicU8, Ordering},
+    sync::atomic::{
+        compiler_fence, fence, AtomicBool, AtomicU32, AtomicU64, AtomicU8, AtomicUsize, Ordering,
+    },
 };
 
 use boot_protocol::smp::{Info, MAX_CPUS};
@@ -23,6 +25,7 @@ const ICR_DELIVERY_PENDING: u32 = 1 << 12;
 const IPI_INIT_ASSERT: u32 = 0x0000_c500;
 const IPI_INIT_DEASSERT: u32 = 0x0000_8500;
 const IPI_STARTUP: u32 = 0x0000_0600;
+const IPI_SCHEDULE: u32 = 0x0000_00f1;
 const MAX_IPI_POLLS: usize = 1_000_000;
 const MAX_AP_POLLS: usize = 100_000_000;
 const INIT_DELAY_SPINS: usize = 20_000_000;
@@ -33,6 +36,7 @@ const AP_ONLINE: u8 = 1;
 const AP_FAILED: u8 = 2;
 const AP_STOPPED: u8 = 3;
 const AP_ENTERED: u8 = 4;
+const AP_M3_READY: u8 = 5;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -51,10 +55,13 @@ impl BootstrapData {
 }
 
 static APIC_WINDOW: AtomicU64 = AtomicU64::new(0);
+static APIC_PHYSICAL: AtomicU64 = AtomicU64::new(0);
+static BOOTSTRAP_INDEX: AtomicUsize = AtomicUsize::new(MAX_CPUS);
 static AP_STATES: [AtomicU8; MAX_CPUS] = [const { AtomicU8::new(AP_DISCOVERED) }; MAX_CPUS];
 static REQUESTS: [AtomicU32; MAX_CPUS] = [const { AtomicU32::new(0) }; MAX_CPUS];
 static ACKS: [AtomicU32; MAX_CPUS] = [const { AtomicU32::new(0) }; MAX_CPUS];
 static STOP: AtomicBool = AtomicBool::new(false);
+static M3_READY: AtomicBool = AtomicBool::new(false);
 static WORK_RENDEZVOUS: Rendezvous = Rendezvous::new();
 
 pub fn prepare(info: &Info, paging: &mut Paging, frames: &mut kernel_core::Frames<FRAME_COUNT>) {
@@ -77,6 +84,7 @@ pub fn prepare(info: &Info, paging: &mut Paging, frames: &mut kernel_core::Frame
         .map_local_apic(frames, info.local_apic_base)
         .expect("local APIC UC mapping");
     APIC_WINDOW.store(apic_window, Ordering::Release);
+    APIC_PHYSICAL.store(info.local_apic_base, Ordering::Release);
     ap::initialize(&info.apic_ids[..count], paging.root);
     for index in 0..count {
         let (start, top) = ap::stack_bounds(index);
@@ -149,6 +157,7 @@ pub fn start_and_test(info: &Info) {
     let bootstrap = info
         .bootstrap_index()
         .unwrap_or_else(|_| serial::fail(b"SMP:BSP_MISSING"));
+    BOOTSTRAP_INDEX.store(bootstrap, Ordering::Release);
     let mut cpus = CpuSet::new(
         &info.apic_ids[..usize::from(info.cpu_count)],
         info.bootstrap_apic_id,
@@ -228,10 +237,12 @@ pub fn start_and_test(info: &Info) {
     }
     serial::write(b"SMP:RENDEZVOUS:PASS\n");
     serial::write(b"SMP:WORKERS:PASS\n");
-    STOP.store(true, Ordering::Release);
-    for index in 0..usize::from(info.cpu_count) {
-        if index != bootstrap {
-            wait_for_state(index, AP_STOPPED);
+    if !cfg!(feature = "native-smp-m3") {
+        STOP.store(true, Ordering::Release);
+        for index in 0..usize::from(info.cpu_count) {
+            if index != bootstrap {
+                wait_for_state(index, AP_STOPPED);
+            }
         }
     }
 }
@@ -251,6 +262,17 @@ extern "C" fn ap_entry(apic_id: u32, index: u32) -> ! {
         AP_STATES[index].store(AP_FAILED, Ordering::Release);
         terminal_halt();
     }
+    let window = APIC_WINDOW.load(Ordering::Acquire);
+    enable_xapic(APIC_PHYSICAL.load(Ordering::Acquire));
+    if apic_read(window, APIC_ID) >> 24 != apic_id {
+        AP_STATES[index].store(AP_FAILED, Ordering::Release);
+        terminal_halt();
+    }
+    apic_write(
+        window,
+        APIC_SPURIOUS,
+        (apic_read(window, APIC_SPURIOUS) & 0x3ff) | 0x100,
+    );
     super::arch::install_ap(index, ap::stack_top(index));
     AP_STATES[index].store(AP_ONLINE, Ordering::Release);
 
@@ -258,6 +280,9 @@ extern "C" fn ap_entry(apic_id: u32, index: u32) -> ! {
         if STOP.load(Ordering::Acquire) {
             AP_STATES[index].store(AP_STOPPED, Ordering::Release);
             terminal_halt();
+        }
+        if M3_READY.load(Ordering::Acquire) {
+            super::m3::start_ap(index);
         }
         let request = REQUESTS[index].load(Ordering::Acquire);
         if request > ACKS[index].load(Ordering::Relaxed) {
@@ -297,7 +322,8 @@ fn enable_xapic(expected_base: u64) {
         serial::fail(b"SMP:XAPIC_MODE_MISMATCH");
     }
     value |= APIC_ENABLE;
-    // SAFETY: BSP enables the firmware-selected xAPIC base after mapping it UC.
+    // SAFETY: This CPU enables only its firmware-selected xAPIC base, already
+    // mapped UC by the BSP before any AP startup IPI.
     unsafe {
         asm!(
             "wrmsr",
@@ -357,6 +383,65 @@ fn send_ipi(window: u64, destination: u32, command: u32) {
         polls += 1;
         spin_loop();
     }
+}
+
+pub fn current_cpu_index() -> usize {
+    let window = APIC_WINDOW.load(Ordering::Acquire);
+    if window == 0 {
+        serial::fail(b"SMP:APIC_UNMAPPED");
+    }
+    let apic_id = apic_read(window, APIC_ID) >> 24;
+    for index in 0..ap::cpu_count() {
+        if ap::cpu_id(index) == Some(apic_id) {
+            return index;
+        }
+    }
+    serial::fail(b"SMP:CPU_ID_UNKNOWN")
+}
+
+pub fn bootstrap_index() -> usize {
+    let index = BOOTSTRAP_INDEX.load(Ordering::Acquire);
+    if index >= MAX_CPUS {
+        serial::fail(b"SMP:BSP_INDEX_UNSET");
+    }
+    index
+}
+
+pub fn release_to_m3() {
+    M3_READY.store(true, Ordering::Release);
+}
+
+pub fn mark_m3_ready(index: usize) {
+    assert!(index < ap::cpu_count() && index != bootstrap_index());
+    AP_STATES[index].store(AP_M3_READY, Ordering::Release);
+}
+
+pub fn wait_for_m3_ready() {
+    for index in 0..ap::cpu_count() {
+        if index != bootstrap_index() {
+            wait_for_state(index, AP_M3_READY);
+        }
+    }
+}
+
+pub fn schedule_aps() {
+    assert_eq!(current_cpu_index(), bootstrap_index());
+    let window = APIC_WINDOW.load(Ordering::Acquire);
+    let bootstrap = bootstrap_index();
+    for index in 0..ap::cpu_count() {
+        if index != bootstrap {
+            let apic_id = ap::cpu_id(index).unwrap_or_else(|| serial::fail(b"SMP:CPU_ID_UNKNOWN"));
+            send_ipi(window, apic_id, IPI_SCHEDULE);
+        }
+    }
+}
+
+pub fn acknowledge_schedule_ipi() {
+    let window = APIC_WINDOW.load(Ordering::Acquire);
+    if window == 0 {
+        serial::fail(b"SMP:APIC_UNMAPPED");
+    }
+    apic_write(window, 0x0b0, 0);
 }
 
 fn wait_for_state(index: usize, expected: u8) {

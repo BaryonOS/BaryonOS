@@ -15,6 +15,48 @@ Historische bewijsbestanden behouden hun oorspronkelijke nummervermelding.
 | 056, eenmalig klembord | ADR-062 |
 | 056, herkenbare VM-sessieroute | ADR-063 |
 
+## ADR-064 — Opt-in SMP-scheduler met per-CPU entry en geserialiseerde M3-mutaties
+
+**Status:** implementatiebesluit voor een afzonderlijk native-QEMU-profiel; geen
+productacceptatie. De bestaande single-CPU-profielen en hun process-/syscall-ABI
+blijven ongewijzigd.
+
+Het eerste M3-SMP-profiel behoudt één kernelbrede, begrensde lock rond
+M3-eventafhandeling, scheduling, IPC en cleanup. De lock wordt alleen genomen
+bij kernel-entry met interrupts uit; hij blijft nooit vast tijdens ring-3-
+uitvoering. Een proces heeft onder deze lock precies één `Running`-eigenaar.
+Een gedeelde round-robincursor selecteert uitsluitend `Ready`-processen. Elke
+CPU krijgt een eigen kernel-entrystack, TSS-stackpointer en GS-gebaseerde
+CPU-local record; usermode krijgt geen kernel-GS-basis. Entry/return wisselt
+GS alleen op de ring-3-grens.
+
+De BSP-PIT blijft de enige schedulerklok. De BSP stuurt per tick een vaste xAPIC
+schedule-IPI naar iedere AP; AP's sturen hun eigen lokale APIC-EOI. Alleen de
+BSP telt ticks. In dit eerste profiel blijft PCID en PGE uit en worden geen
+adresruimten gedeeld. Een proces is nooit tegelijk actief op twee CPU's; iedere
+trap schakelt naar kernel-CR3 en iedere processelectie laadt de proces-CR3.
+Daarom wordt frame-/mappingcleanup pas toegestaan nadat de eigenaar de trap
+heeft afgehandeld en de lokale CR3-wissel heeft plaatsgevonden. Dit is geen
+algemeen remote-TLB-protocol: zodra PCID/PGE, gedeelde adresruimten, lazy TLB of
+parallelle mutatie van één adresruimte worden ingevoerd, is een expliciet
+shootdown-/acknowledgementprotocol een voorwaarde vóór hergebruik.
+
+De opt-in profile sluit SIMD/FPU-context uit totdat die toestand per CPU is
+gemodelleerd. De lock is fail-closed bij bounded contention; timeout stopt de
+kernelrun en maakt geen voortgangs- of autorisatieclaim. Capabilitysemantiek en
+externe process-/syscall-ABI wijzigen niet. Acceptatie vereist native 1/2/4-
+CPU-regressies plus afzonderlijk bewijs voor scheduling, IPC, exit/revoke en
+TLB-reuse; dit besluit en een rendezvousproef zijn daarvoor geen vervanging.
+
+**Bronnen en begrenzing:** de bestaande serialisatie- en mappingaannames staan
+in ADR-024 en
+[KERNEL-AND-SECURITY-CONTRACT](implementation/KERNEL-AND-SECURITY-CONTRACT.md).
+Voor GS-basissen, `SWAPGS`, interrupt/APIC en CR3/TLB-semantiek geldt de
+[Intel 64 and IA-32 Architectures Software Developer's Manual, volume 3](https://cdrdv2-public.intel.com/812391/325384-sdm-vol-3abcd.pdf)
+als primaire referentie. Dit is een Nieuw OS-ontwerpkeuze; geen Intel- of
+hardwarecertificering. Rollback: schakel uitsluitend het nieuwe SMP-M3-profiel
+uit; bestaande single-CPU-profielen blijven beschikbaar.
+
 ## Onderzoeksbesluit J-20261102 — herkenbare basis, expliciete installatiegrens
 
 **Datum:** 2 november 2026. **Status:** ontwerp-/onderzoekskeuze, geen

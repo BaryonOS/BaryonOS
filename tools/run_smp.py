@@ -19,10 +19,12 @@ FAILURES = ("PANIC", "FAIL")
 MAX_TIMEOUT = 180
 
 
-def expected_markers(cpus: int) -> tuple[str, ...]:
+def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
     if type(cpus) is not int or cpus not in (2, 4):
         raise ValueError("SMP QEMU profiles are exactly 2 or 4 CPUs")
-    return BOOT + ("SMP:AP:ENTRY",) * (cpus - 1) + tuple(
+    if profile not in ("native-smp", "native-smp-m3"):
+        raise ValueError("unknown SMP kernel profile")
+    markers = BOOT + ("SMP:AP:ENTRY",) * (cpus - 1) + tuple(
         f"SMP:CPU:{index}:APIC:" for index in range(cpus)
     ) + (
         f"SMP:CPUS:{cpus}",
@@ -30,6 +32,7 @@ def expected_markers(cpus: int) -> tuple[str, ...]:
         "SMP:WORKERS:PASS",
         "SMP:PASS",
     )
+    return markers + (("M3:SMP:SCHEDULER:PASS",) if profile == "native-smp-m3" else ())
 
 
 def evaluate(cpus: int, stdout: str, returncode: int | None, timed_out: bool) -> dict:
@@ -78,8 +81,94 @@ def evaluate(cpus: int, stdout: str, returncode: int | None, timed_out: bool) ->
     }
 
 
-def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT) -> dict:
-    expected_markers(cpus)
+def evaluate_m3(cpus: int, stdout: str, returncode: int | None, timed_out: bool) -> dict:
+    expected_markers(cpus, "native-smp-m3")
+    if not isinstance(stdout, str) or len(stdout) > 128 * 1024:
+        raise ValueError("invalid or oversized guest transcript")
+    lines = stdout.splitlines()
+    if any(marker in line for marker in FAILURES for line in lines):
+        raise ValueError("failure marker present")
+    boot_cursor = 0
+    for marker in BOOT:
+        try:
+            boot_cursor = lines.index(marker, boot_cursor) + 1
+        except ValueError as error:
+            raise ValueError(f"missing or out-of-order marker: {marker}") from error
+
+    cpu_lines = [line for line in lines if line.startswith("SMP:CPU:")]
+    cpu_pattern = re.compile(r"SMP:CPU:([0-9]+):APIC:([0-9]+):ONLINE")
+    parsed = []
+    for line in cpu_lines:
+        match = cpu_pattern.fullmatch(line)
+        if match is None:
+            raise ValueError("malformed CPU identity marker")
+        logical_id, apic_id = int(match.group(1)), int(match.group(2))
+        if str(logical_id) != match.group(1) or str(apic_id) != match.group(2):
+            raise ValueError("noncanonical CPU identity marker")
+        parsed.append((logical_id, apic_id))
+    if (len(parsed) != cpus
+            or [index for index, _ in parsed] != list(range(cpus))
+            or len({apic_id for _, apic_id in parsed}) != cpus):
+        raise ValueError("CPU inventory is incomplete or contains duplicate APIC IDs")
+
+    expected_smp = BOOT + ("SMP:AP:ENTRY",) * (cpus - 1) + tuple(cpu_lines) + (
+        f"SMP:CPUS:{cpus}", "SMP:RENDEZVOUS:PASS", "SMP:WORKERS:PASS", "SMP:PASS",
+    )
+    observed_smp = tuple(line for line in lines if line in BOOT or line.startswith("SMP:"))
+    if observed_smp != expected_smp:
+        raise ValueError(f"SMP evidence sequence mismatch: {observed_smp}")
+
+    cpu_markers = [line for line in lines if line.startswith("M3:SMP:CPU:")]
+    schedule_markers = [line for line in lines if line.startswith("M3:SMP:SCHEDULES:")]
+    number = re.compile(r"M3:SMP:CPU:([0-9]{20})")
+    schedules = re.compile(r"M3:SMP:SCHEDULES:([0-9]{20})")
+    cpu_ids = []
+    schedule_counts = []
+    for line in cpu_markers:
+        match = number.fullmatch(line)
+        if match is None:
+            raise ValueError("malformed M3 CPU marker")
+        cpu_ids.append(int(match.group(1)))
+    for line in schedule_markers:
+        match = schedules.fullmatch(line)
+        if match is None:
+            raise ValueError("malformed M3 scheduler count")
+        schedule_counts.append(int(match.group(1)))
+    if cpu_ids != list(range(cpus)) or len(schedule_counts) != cpus:
+        raise ValueError("M3 scheduling evidence is incomplete or out of order")
+    if any(count == 0 for count in schedule_counts):
+        raise ValueError("an online CPU never selected a user process")
+    expected_m3 = tuple(
+        marker
+        for cpu, count in zip(cpu_ids, schedule_counts, strict=True)
+        for marker in (f"M3:SMP:CPU:{cpu:020d}", f"M3:SMP:SCHEDULES:{count:020d}")
+    ) + ("M3:SMP:SCHEDULER:PASS",)
+    observed_m3 = tuple(
+        line for line in lines
+        if line.startswith(("M3:SMP:CPU:", "M3:SMP:SCHEDULES:"))
+        or line == "M3:SMP:SCHEDULER:PASS"
+    )
+    if observed_m3 != expected_m3:
+        raise ValueError("M3 scheduler evidence is malformed or out of order")
+    scheduler_passes = [index for index, line in enumerate(lines)
+                        if line == "M3:SMP:SCHEDULER:PASS"]
+    if (len(scheduler_passes) != 1
+            or scheduler_passes[0] <= max(
+                index for index, line in enumerate(lines)
+                if line.startswith("M3:SMP:SCHEDULES:")
+            )):
+        raise ValueError("missing or out-of-order SMP scheduler pass marker")
+    if returncode != 33 or timed_out:
+        raise ValueError(f"raw QEMU exit {returncode}, timeout {timed_out}")
+    return {
+        "cpu_count": cpus,
+        "logical_apic_ids": parsed,
+        "per_cpu_process_selections": schedule_counts,
+    }
+
+
+def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp") -> dict:
+    expected_markers(cpus, profile)
     if type(timeout) is not int or not 0 < timeout <= MAX_TIMEOUT:
         raise ValueError("timeout must be in (0, 180]")
     root = ROOT.resolve(strict=True)
@@ -89,11 +178,11 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT) -> dict:
     frozen = source_hash()
     manifest_path = build / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    if (manifest.get("kernel_feature") != "native-smp"
+    if (manifest.get("kernel_feature") != profile
             or manifest.get("loader_feature") is not None
             or manifest.get("source_fingerprint_version") != 3
             or manifest.get("source_sha256") != frozen):
-        raise ValueError("build native-smp from the current source first")
+        raise ValueError(f"build {profile} from the current source first")
     expected_artifacts = {
         "kernel.elf": manifest.get("kernel", {}).get("sha256"),
         "EFI/BOOT/BOOTX64.EFI": manifest.get("loader", {}).get("sha256"),
@@ -102,7 +191,7 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT) -> dict:
         artifact = esp_path = BUILD / "esp" / relative
         if (not isinstance(expected, str) or not re.fullmatch(r"[0-9a-f]{64}", expected)
                 or artifact.is_symlink() or not artifact.is_file() or sha256(artifact) != expected):
-            raise ValueError(f"native-smp build artifact mismatch: {relative}")
+            raise ValueError(f"{profile} build artifact mismatch: {relative}")
 
     env = environment()
     qemu = shutil.which("qemu-system-x86_64", path=env["PATH"])
@@ -161,7 +250,8 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT) -> dict:
         "required_markers": [*BOOT, *(("SMP:AP:ENTRY",) * (cpus - 1)),
                              *(f"SMP:CPU:{i}:APIC:<id>:ONLINE" for i in range(cpus)),
                              f"SMP:CPUS:{cpus}", "SMP:RENDEZVOUS:PASS",
-                             "SMP:WORKERS:PASS", "SMP:PASS"],
+                             "SMP:WORKERS:PASS", "SMP:PASS",
+                             *(("M3:SMP:SCHEDULER:PASS",) if profile == "native-smp-m3" else ())],
         "command": command,
         "qemu_version": version,
         "profile": f"{machine}/qemu64/TCG-multi/{cpus}CPU/256MiB",
@@ -173,9 +263,14 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT) -> dict:
         "stdout": stdout,
         "stderr": stderr,
         "passed": False,
+        "kernel_feature": profile,
     }
     try:
-        report["evidence"] = evaluate(cpus, stdout, raw_exit, timed_out)
+        report["evidence"] = (
+            evaluate_m3(cpus, stdout, raw_exit, timed_out)
+            if profile == "native-smp-m3"
+            else evaluate(cpus, stdout, raw_exit, timed_out)
+        )
         report["passed"] = source_hash() == frozen
         if not report["passed"]:
             raise ValueError("source changed during QEMU run")
@@ -183,7 +278,7 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT) -> dict:
         report["error"] = f"{type(error).__name__}: {error}"
     report["duration_s"] = duration if math.isfinite(duration) else None
     save_json(run_dir / "result.json", report)
-    print(f"SMP {cpus} CPU: passed={report['passed']} raw={raw_exit} "
+    print(f"{profile} {cpus} CPU: passed={report['passed']} raw={raw_exit} "
           f"duration={duration:.1f}s {run_dir}")
     if "error" in report:
         print(report["error"])

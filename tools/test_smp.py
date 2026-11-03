@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 
 from build import build
 from common import BUILD, ROOT, save_json, source_hash
-from run import MILESTONE_MARKERS, run_guest
+from run import MILESTONE_MARKERS, run_gate_case, run_guest
 from run_smp import run_smp
 
 
@@ -23,7 +23,7 @@ def main() -> int:
     receipt = ROOT / "docs/verification/sm-smp" / f"smp-rendezvous-{stamp}.json"
     summary = {
         "schema_version": 1,
-        "task": "SYSTEM-MATURITY-SMP AP bring-up and rendezvous checkpoint",
+        "task": "SYSTEM-MATURITY-SMP AP bring-up, rendezvous, and M3 scheduler checkpoint",
         "source_fingerprint_version": 3,
         "source_sha256": source,
         "source_commit": subprocess.check_output(
@@ -38,8 +38,8 @@ def main() -> int:
         "host": None,
         "stages": [],
         "acceptance_boundary": (
-            "AP startup and bounded all-CPU atomic rendezvous/worker smoke only; not full "
-            "K06 scheduling, IPC, revoke, exit, cross-CPU TLB, or race acceptance."
+            "AP startup, bounded rendezvous, and opt-in native M3 per-CPU process scheduling "
+            "only; not full K06 IPC, revoke, exit, cross-CPU TLB, or race acceptance."
         ),
     }
     receipt.parent.mkdir(parents=True, exist_ok=True)
@@ -63,24 +63,37 @@ def main() -> int:
         return host.returncode
 
     stages = (
-        ("single", "milestone-m2", "single"),
-        ("two", "native-smp", 2),
-        ("four", "native-smp", 4),
+        ("single-m2", "milestone-m2", 1, "m2"),
+        ("two-m2", "native-smp", 2, "smp"),
+        ("four-m2", "native-smp", 4, "smp"),
+        ("m3-two", "native-smp-m3", 2, "m3-smp"),
+        ("m3-single-regression", "milestone-m3", 1, "m3"),
+        ("m3-four", "native-smp-m3", 4, "m3-smp"),
     )
-    for label, feature, cpus in stages:
+    for label, feature, cpus, runner in stages:
         try:
             build(None, feature, f"smp-{label}")
-            if cpus == "single":
+            if runner == "m2":
                 report = run_guest(
                     label="smp-single",
                     required_markers=MILESTONE_MARKERS["m2"],
                     memory_mib=256,
                 )
+            elif runner == "m3":
+                report = run_gate_case(
+                    "m3",
+                    "private-address-spaces-preemption-fairness-cleanup",
+                    label="m3-single-smp-regression",
+                )
+            elif runner == "m3-smp":
+                report = run_smp(cpus, profile=feature)
             else:
                 report = run_smp(cpus)
             summary["stages"].append({
                 "profile": label,
                 "kernel_feature": feature,
+                "cpu_count": cpus,
+                "runner": runner,
                 "passed": report["passed"],
                 "raw_qemu_exit": report.get("raw_qemu_exit"),
                 "duration_s": report.get("duration_s"),
@@ -101,9 +114,9 @@ def main() -> int:
             raise
 
     summary["status"] = "completed"
-    summary["passed"] = source_hash() == source and len(summary["stages"]) == 3
+    summary["passed"] = source_hash() == source and len(summary["stages"]) == len(stages)
     save_json(receipt, summary)
-    print(f"SMP rendezvous passed={summary['passed']} stages={len(summary['stages'])} {receipt}")
+    print(f"SMP gates passed={summary['passed']} stages={len(summary['stages'])} {receipt}")
     return 0 if summary["passed"] else 1
 
 

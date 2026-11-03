@@ -17,6 +17,20 @@ def transcript(cpus=2):
     return "\n".join(lines) + "\n"
 
 
+def m3_transcript(cpus=2):
+    lines = transcript(cpus).splitlines()
+    lines.extend(
+        marker
+        for index in range(cpus)
+        for marker in (
+            f"M3:SMP:CPU:{index:020d}",
+            f"M3:SMP:SCHEDULES:{(index + 1) * 7:020d}",
+        )
+    )
+    lines.append("M3:SMP:SCHEDULER:PASS")
+    return "\n".join(lines) + "\n"
+
+
 class SmpEvidenceTests(unittest.TestCase):
     def test_two_and_four_cpu_transcripts_require_unique_online_apic_ids(self):
         for cpus in (2, 4):
@@ -50,6 +64,33 @@ class SmpEvidenceTests(unittest.TestCase):
         for exit_code, timeout in ((0, False), (35, False), (None, True), (33, True)):
             with self.subTest(exit_code=exit_code, timeout=timeout), self.assertRaises(ValueError):
                 run_smp.evaluate(2, transcript(), exit_code, timeout)
+
+    def test_native_m3_scheduling_requires_each_cpu_to_select_processes(self):
+        for cpus in (2, 4):
+            with self.subTest(cpus=cpus):
+                result = run_smp.evaluate_m3(cpus, m3_transcript(cpus), 33, False)
+                self.assertEqual(len(result["logical_apic_ids"]), cpus)
+                self.assertEqual(len(result["per_cpu_process_selections"]), cpus)
+                self.assertTrue(all(result["per_cpu_process_selections"]))
+
+    def test_native_m3_scheduling_rejects_missing_zero_duplicate_and_reordered_evidence(self):
+        valid = m3_transcript()
+        cases = (
+            valid.replace("M3:SMP:SCHEDULER:PASS\n", ""),
+            valid.replace("M3:SMP:SCHEDULES:00000000000000000014",
+                          "M3:SMP:SCHEDULES:00000000000000000000"),
+            valid.replace("M3:SMP:CPU:00000000000000000001\n", ""),
+            valid.replace("M3:SMP:SCHEDULES:00000000000000000007\n"
+                          "M3:SMP:CPU:00000000000000000001",
+                          "M3:SMP:CPU:00000000000000000001\n"
+                          "M3:SMP:SCHEDULES:00000000000000000007"),
+            valid.replace("M3:SMP:SCHEDULER:PASS\n",
+                          "M3:SMP:SCHEDULER:PASS\nM3:SMP:SCHEDULER:PASS\n"),
+            valid.replace("SMP:PASS\n", "PANIC\nSMP:PASS\n"),
+        )
+        for bad in cases:
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                run_smp.evaluate_m3(2, bad, 33, False)
 
 
 if __name__ == "__main__":

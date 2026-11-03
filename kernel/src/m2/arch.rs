@@ -96,6 +96,22 @@ static mut GDT: [u64; 7] = [0; 7];
 static mut AP_TSS: [Tss; MAX_APS] = [Tss::new(), Tss::new(), Tss::new(), Tss::new()];
 #[cfg(feature = "native-smp")]
 static mut AP_GDT: [[u64; 7]; MAX_APS] = [[0; 7]; MAX_APS];
+#[cfg(feature = "native-smp-m3")]
+#[repr(C)]
+#[derive(Clone, Copy)]
+struct CpuLocal {
+    service_stack: u64,
+    logical_index: u64,
+    is_bootstrap: u64,
+}
+#[cfg(feature = "native-smp-m3")]
+const EMPTY_CPU_LOCAL: CpuLocal = CpuLocal {
+    service_stack: 0,
+    logical_index: 0,
+    is_bootstrap: 0,
+};
+#[cfg(feature = "native-smp-m3")]
+static mut CPU_LOCAL: [CpuLocal; MAX_APS] = [EMPTY_CPU_LOCAL; MAX_APS];
 #[derive(Clone, Copy)]
 #[repr(C, packed)]
 struct Gate {
@@ -255,6 +271,49 @@ pub fn install_ap(index: usize, stack_top: u64) {
     }
 }
 
+#[cfg(feature = "native-smp-m3")]
+pub fn set_cpu_local(index: usize, service_stack: u64, is_bootstrap: bool) {
+    assert!(index < MAX_APS && service_stack.is_multiple_of(16));
+    // SAFETY: Each logical CPU initializes only its own permanent local record
+    // before ring-3 entry. BSP/AP stacks and the record are mapped in every CR3.
+    unsafe {
+        let local = ptr::addr_of_mut!(CPU_LOCAL).cast::<CpuLocal>().add(index);
+        local.write(CpuLocal {
+            service_stack,
+            logical_index: index as u64,
+            is_bootstrap: u64::from(is_bootstrap),
+        });
+        let base = local as u64;
+        asm!(
+            "wrmsr",
+            in("ecx") 0xc0000101u32,
+            in("eax") base as u32,
+            in("edx") (base >> 32) as u32,
+            options(nostack)
+        );
+        asm!(
+            "wrmsr",
+            in("ecx") 0xc0000102u32,
+            in("eax") 0u32,
+            in("edx") 0u32,
+            options(nostack)
+        );
+    }
+}
+
+#[cfg(feature = "native-smp-m3")]
+pub fn current_cpu_index() -> usize {
+    let index: u64;
+    // SAFETY: The kernel GS base is installed before M3 starts; user-origin
+    // entries swap to it before calling this function.
+    unsafe {
+        asm!("mov {}, gs:[8]", out(reg) index, options(nomem, nostack, preserves_flags));
+    }
+    let index = usize::try_from(index).expect("CPU-local index");
+    assert!(index < MAX_APS);
+    index
+}
+
 pub fn protection() {
     // SAFETY: CPUID has no memory effects; own scalar-only kernel target. All CR
     // and MSR operations execute at CPL0 with IF clear. NX checked before NXE.
@@ -321,7 +380,32 @@ pub fn service_stack() -> u64 {
 }
 #[cfg(feature = "milestone-m3")]
 pub fn process_stack(top: u64) {
-    // SAFETY: Single-CPU IF=0; caller supplies mapped supervisor stack with guards.
+    #[cfg(feature = "native-smp-m3")]
+    {
+        let index = current_cpu_index();
+        let is_bootstrap: u64;
+        // SAFETY: Current CPU reads its immutable local record after setup.
+        unsafe {
+            asm!("mov {}, gs:[16]", out(reg) is_bootstrap, options(nomem, nostack, preserves_flags));
+        }
+        assert!(is_bootstrap <= 1);
+        if is_bootstrap == 0 {
+            assert!(index < MAX_APS);
+            // SAFETY: Each AP writes only its own TSS.RSP0 while in kernel mode.
+            unsafe {
+                ptr::addr_of_mut!(AP_TSS)
+                    .cast::<Tss>()
+                    .add(index)
+                    .cast::<u8>()
+                    .add(core::mem::offset_of!(Tss, rsp))
+                    .cast::<u64>()
+                    .write_unaligned(top);
+            }
+            return;
+        }
+    }
+    // SAFETY: IF=0; caller supplies the current CPU's mapped supervisor stack
+    // with guards. The bootstrap CPU owns TSS, while SMP APs use their own TSS.
     unsafe {
         ptr::addr_of_mut!(TSS.rsp)
             .cast::<u64>()
@@ -338,7 +422,7 @@ pub fn reset_debug() {
 }
 #[cfg(feature = "milestone-m3")]
 pub fn user_gate(vector: usize, address: u64, user: bool) {
-    assert!(vector == 32 || vector == 128);
+    assert!(vector == 32 || vector == 128 || cfg!(feature = "native-smp-m3") && vector == 0xf1);
     let gate = Gate {
         lo: address as u16,
         cs: 8,
@@ -525,15 +609,23 @@ m3_syscall:
  push 0
  push 128
  jmp m2_exception_common
+.global m3_schedule_ipi
+m3_schedule_ipi:
+ push 0
+ push 0xf1
+ jmp m2_exception_common
 m2_dispatch:
  cmp qword ptr [rsp+120],2
  je m3_terminal
  cmp qword ptr [rsp+120],8
  je m3_terminal
  cmp qword ptr [rsp+120],32
- jne m3_user_entry
+ jne 1f
  cmp qword ptr [rsp+144],8
  jne m3_user_entry
+ .if {native_smp_m3}
+ jmp m3_kernel_entry
+ .endif
  cmp byte ptr [rip+m3_idle_active],1
  jne m3_terminal
  inc qword ptr [rip+m3_idle_wakeups]
@@ -541,11 +633,30 @@ m2_dispatch:
  out 0x20,al
  mov rax,rsp
  jmp m3_restore
+1:
+ cmp qword ptr [rsp+120],0xf1
+ jne m3_user_entry
+ cmp qword ptr [rsp+144],8
+ je m3_kernel_entry
+ .if {native_smp_m3}
+ jmp m3_user_entry
+ .else
+ jmp m3_terminal
+ .endif
+m3_kernel_entry:
+ mov rdi,rsp
+ and rsp,-16
+ call m3_event
+ mov rsp,rax
+ jmp m3_restore
 m3_user_entry:
  mov rax,[rsp+144]
  and eax,3
  cmp eax,3
  jne m3_terminal
+ .if {native_smp_m3}
+ swapgs
+ .endif
  .if {fpu_context}
  // GPRs already saved. The current owned aligned image is supervisor-only
  // mapped in every user CR3. Save before any Rust or another process runs.
@@ -554,9 +665,24 @@ m3_user_entry:
  inc qword ptr [rip+m3_fpu_saves]
  .endif
  mov rdi,rsp
+ .if {native_smp_m3}
+ mov rsp,gs:[0]
+ .else
  mov rsp,[rip+m3_service_stack]
+ .endif
  and rsp,-16
  call m3_event
+ test rax,rax
+ jnz 2f
+ .if {native_smp_m3}
+ mov rsp,gs:[0]
+ and rsp,-16
+ call m3_cpu_idle
+ ud2
+ .else
+ ud2
+ .endif
+2:
 .global m3_restore
 m3_restore:
  mov rsp,rax
@@ -569,6 +695,12 @@ m3_restore:
  fxrstor64 [rax]
  inc qword ptr [rip+m3_fpu_restores]
 9:
+ .endif
+ .if {native_smp_m3}
+ cmp qword ptr [rsp+144],0x23
+ jne 3f
+ swapgs
+3:
  .endif
  pop r15
  pop r14
@@ -594,4 +726,5 @@ m3_terminal:
  ud2
 "#,
     fpu_context = const cfg!(feature = "fpu-context") as u8,
+    native_smp_m3 = const cfg!(feature = "native-smp-m3") as u8,
 );
