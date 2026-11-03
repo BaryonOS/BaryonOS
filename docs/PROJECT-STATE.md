@@ -3,7 +3,7 @@
 ## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
 
 **Bron:** branch `simonvanieperen-studious-spoon`, commit
-`e9c44bdc228e1828f84d732eac5e4ac24784e798`, gepusht naar
+`dfb983d1150506392234bda4d8a632c6ef95cf2b`, gepusht naar
 `origin/simonvanieperen-studious-spoon`. Actieve toewijzing:
 `SYSTEM-MATURITY-SMP`, queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`.
 OOM/K05 zijn afgesloten en blijven ongewijzigd;
@@ -32,20 +32,20 @@ en `git diff --check` (exit 0). De finale bron bouwt `native-smp` en
 `native-smp-m3` (exit 0; M3 via de bestaande `build()`-helper, die de
 ring-3-probe als `NOS_USER_ELF` meegeeft).
 
-**M3-profielmatrix PASS op commit `e9c44bdc` (exit 0):** exact commando
-`python3 -B tools/test_smp.py`, met toolchain/QEMU-PATH, `LD_LIBRARY_PATH` en
-OVMF 4M-configuratie hieronder. Alle zes stages slaagden: M2 met 1/2/4 CPU,
+**M3-profielmatrix PASS op commit `dfb983d1` (exit 0):** exact commando
+`python3 -B tools/test_smp.py`, met de in de receipt vastgelegde toolpaden,
+`LD_LIBRARY_PATH` en OVMF 4M. Alle zes stages slaagden: M2 met 1/2/4 CPU,
 M3 met 2 CPU, de bestaande M3 1-CPU-regressie en M3 met 4 CPU. M2 2/4 bewezen
 unieke CPU/APIC-identiteiten plus 64 rendezvous-generaties en worker-acks.
-M3 2 CPU rapporteerde per-CPU processselecties `[89, 86]`; M3 4 CPU
-`[77, 73, 74, 77]`. Hostharnas: 5 tests, exit 0. QEMU-runs gebruikten raw
+M3 2 CPU rapporteerde per-CPU processselecties `[90, 85]`; M3 4 CPU
+`[76, 75, 73, 77]`. Hostharnas: 5 tests, exit 0. QEMU-runs gebruikten raw
 exit 33 als verwachte testexit. QEMU meldde `kvmvapic.bin` ontbrekend; dit is
 niet onderzocht. Receipt:
-[`smp-rendezvous-20261103T174621Z.json`](verification/sm-smp/smp-rendezvous-20261103T174621Z.json);
-ruwe logs: `build/run/smp-single-f40a11226d/`,
-`build/run/smp-2-73a0d4f3cd/`, `build/run/smp-4-3600345eb5/`,
-`build/run/smp-2-240199624e/`, `build/run/m3-single-smp-regression-0982f155b0/`,
-`build/run/smp-4-7f42301518/`.
+[`smp-rendezvous-20261103T174940Z.json`](verification/sm-smp/smp-rendezvous-20261103T174940Z.json);
+ruwe logs: `build/run/smp-single-83a3ef4fa6/`,
+`build/run/smp-2-aee4713a11/`, `build/run/smp-4-f0627f2bd7/`,
+`build/run/smp-2-2dc9c334f7/`, `build/run/m3-single-smp-regression-5fee902eea/`,
+`build/run/smp-4-7e411654a4/`.
 
 **Bewijsgrens:** dit checkpoint toont AP-bring-up en opt-in per-CPU M3
 processselectie; het toont nog geen cross-CPU IPC, process-exit/revoke,
@@ -55,9 +55,9 @@ volledige K06-acceptatie. `DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
 **Rapportmetadata:** de eerste receipt bevatte de volledige host-PATH, inclusief
 ongerelateerde Windows-paden. De opgeslagen receipt is gesaneerd en de runner
 is aangepast om alleen de benodigde executablepaden en expliciete runtime-
-omgevingsvariabelen te registreren. Die metadatawijziging verandert de
-bronvingerafdruk; herhaal daarom de matrix na commit/push voordat dit de
-definitieve matrixreceipt wordt.
+omgevingsvariabelen te registreren. De volledige matrix is daarna op de nieuwe
+bronvingerafdruk herhaald; de uiteindelijke receipt hierboven bevat alleen de
+benodigde toolpaden en geen host-PATH.
 
 **Eerdere mislukte matrixpoging op bron `9136edc4`:** hostharnas 5 tests en de
 1-CPU M2-run slaagden; de run eindigde op raw QEMU exit 33 in
@@ -72,18 +72,21 @@ Een eerdere aanroep met `--help` is geen helpmodus, voerde de runner uit en
 stopte door ontbrekende `cargo` op de standaard-PATH; die poging staat apart in
 [`smp-rendezvous-20261103T173931Z.json`](verification/sm-smp/smp-rendezvous-20261103T173931Z.json).
 
-**Eerstvolgende actie:** commit/push de rapportmetadata-aanpassing en herhaal
-dezelfde volledige `python3 -B tools/test_smp.py`-matrix met
+**Eerstvolgende actie:** ga verder met de eerstvolgende bestaande K06-
+acceptatieslice: aantoonbare cross-CPU IPC en cleanup/revoke-exit/TLB-
+correctheid, binnen de bestaande opt-in serialisatie en zonder ABI- of
+capabilitysemantiek te wijzigen. Ontwerp eerst de concrete invariant en
+negatieve tests; commit/push pas na een coherent bewezen resultaat. Gebruik
+voor regressies de matrix met
 `PATH="$HOME/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH"`,
 `LD_LIBRARY_PATH=/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu:/tmp/sm-oom-qemu-root/lib/x86_64-linux-gnu`,
 `OS_OVMF_CODE=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd` en
 `OS_OVMF_VARS=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd`.
-Dit controleert het nieuwe profiel met 1, 2 en 4 CPU's. QEMU 10.2.1 en OVMF
-4M zijn aanwezig. Pas daarna zijn M3 1/2/4-bring-up en single-CPU-regressie
-afgetekend. Daarna blijven cross-CPU-IPC, exit/revoke, TLB-hergebruik en
-races/failurecases open; dit is geen volledige K06-acceptatie. De bestaande
-dirty wijzigingen in README en voortgangsbestanden zijn behouden en niet door
-deze SMP-taak aangepast.
+QEMU 10.2.1 en OVMF 4M zijn aanwezig. De M3 1/2/4-bring-up en single-CPU-
+regressie zijn nu afgetekend; cross-CPU-IPC, exit/revoke, TLB-hergebruik en
+races/failurecases blijven open. Dit is geen volledige K06-acceptatie. De
+bestaande dirty wijzigingen in README en voortgangsbestanden zijn behouden en
+niet door deze SMP-taak aangepast.
 
 ## Historisch SMP-checkpoint — 3 november 2026
 
