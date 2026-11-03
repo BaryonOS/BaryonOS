@@ -91,11 +91,19 @@ niet tot productbeleid verheven; grote foto's blijven een expliciete producteis.
 
 ## Stackgrens en eigen arena
 
-**Implementatie:** Nieuw OS, *image-viewer: render_tile*, versie
+**Historische implementatie:** Nieuw OS, *image-viewer: render_tile*, versie
 `d269f9b4` (3 november 2026), tekent nog de ruwe decoderpixels
 ([primaire rendererbron](https://github.com/simonvanieperen/nieuw-os/blob/d269f9b45a54576b39629b36de94f9cdbb9f6f71/sdk/examples/image-viewer/src/lib.rs)).
 EXIF-correctie in `rgba8_into` bewijst daarom geen georienteerde viewer of
 native gebruikersflow.
+
+**Huidige viewerconsumer:** `Orientation::display_dimensions` en de gecontroleerde
+`source_position` verbinden EXIF aan de bestaande tegelrenderer, zonder
+volledige beeldconversie. Displayafmetingen sturen Fit, zoom, pan en semantiek.
+Bronpixels, metadata en geselecteerde objectbytes blijven ongewijzigd.
+De [consumerproef](../verification/platform-m7-exif-viewer-20261103.md) beschrijft
+het nieuwe hostbewijs en de afzonderlijke native decoderregressie; een native
+viewerstart, objectportal en gebruikersflow blijven open.
 
 **Testbewijs:** Nieuw OS, *viewer-fixture en kleine image-integratieslice*,
 versie `d269f9b4` (3 november 2026): de fixture is voor de nieuwe

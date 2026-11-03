@@ -21,6 +21,10 @@ de toegewezen SUR1-geometrie. 100% gebruikt de opgegeven 100/200%-UI-schaal.
 Fit past beide dimensies in de surface; extreme beeldverhoudingen houden
 minimaal een zichtbare pixel. De eenvoudige nearest-neighbour-weergave
 selecteert echte bronsamples, maar is geen kwaliteitsclaim voor fotoschaling.
+De viewer volgt JPEG-EXIF-orientatie 1–8 bij de pixelkeuze, zonder een tweede
+volledig beeld te alloceren. Fit, zoom, pan en `semantics().image_size` gebruiken
+de georienteerde displayafmetingen. `decoded` weigert afmetingen die niet
+overeenkomen met de orientatie voordat renderen mogelijk wordt.
 RGBA16 wordt alleen voor de weergave afgerond; origineel en metadata blijven
 ongewijzigd. Alpha wordt tegen de door de caller gekozen 24-bit achtergrond
 gemengd. Geen eigen font-, kleur-, focus- of componentensysteem.
@@ -72,8 +76,10 @@ UI-adapter moet deze tekst werkelijk weergeven. De leaf bevat geen venster.
   gewist. Allocator-deallocatie is geen secure erase. De adapter moet echte
   jobs stoppen, endpoints sluiten en de oude surface laten wissen/retiren;
   reeds getoonde pixels of eerder verkregen kopieën worden niet teruggehaald.
-- De codec meldt `metadata_transforms_applied=false`: EXIF-oriëntatie en
-  ICC-kleurbeheer zijn nog open. Geen volledige formaat-/fotogetrouwheidsclaim.
+- De codec en de gelijknamige semantiekvlag melden
+  `metadata_transforms_applied=false` voor de **ruwe samples**. De tegelrenderer
+  past EXIF-orientatie toe op de weergave; ICC/gamma-kleurbeheer en PNG eXIf
+  blijven open. Geen volledige formaat-/fotogetrouwheidsclaim.
   Dependencykeuze/notices blijven in `services/image-codec`; geen nieuwe
   registrydependency, decoder of hostuitvoering toegevoegd.
 
@@ -91,6 +97,9 @@ cargo +1.90.0 build --locked --offline --release --lib --manifest-path sdk/examp
 
 Tests gebruiken echte decoderfixtures plus onafhankelijke bekende
 RGBA8/RGBA16/alpha-/letterboxwaarden en echte bestaande input/surfacetypes.
+Vier EXIF-regressies toetsen alle acht asymmetrische pixelmatrices, echte
+JPEG-decode naar alle BGRX-tegels, ongeldige displayafmetingen en geroteerde
+Fit-/zoom-/panassen bij beide UI-schalen.
 Foutinjecties voor dienstweigering/I/O/OOM zijn uitsluitend controllerinputs,
 geen nagebootste kernel-/serviceacceptatie. Tests dekken stale replies,
 budgetten, malformed decoded buffers, decodefouten, annulering, intrekking,
