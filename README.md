@@ -63,8 +63,8 @@ alleen een nette desktop haalt die eindgrens niet.
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
 **Bron:** [`ed592537`](https://github.com/simonvanieperen/nieuw-os/commit/ed592537751f5d50710fc61744331d1a6334a10f) ·
 **Ontwikkelbranch:** `simonvanieperen-animated-garbanzo`.
-Deze opdracht: **39% → 39% (+0 procentpunt)**. **Opdracht:** PR155: integreer main 8e0c15d8 en behoud de nieuwe keyring-herstelgrens.
-39% blijft 39%. PR155 beperkt key recovery tot manifest-gebonden beheer-ingress en heeft B01 opnieuw op open gezet tot verse native positieve beheer- en negatieve app-ingressproeven slagen. De eerdere main-acceptatie betreft de oude herstelgrens en vervangt dat bewijs niet. Deze integratie kent geen nieuwe criteriumpunten toe.
+Deze opdracht: **39% → 39% (+0 procentpunt)**. **Opdracht:** Actieve WORK-QUEUE-herbalancering: OOM, SMP en K05-consumer naar System Maturity.
+39% → 39%: expliciete integration writeclaims voor System Maturity (P0 OOM, P1 SMP, P2 K05 journal/crash), gecontroleerde actieve owners en seriele filehandoffs vervangen historische directoryfreezes. Dit is coordinatie, geen implementatie- of native acceptatiebewijs. Ongecommitteerde Materiaal-WIP blijft apart en nog niet groen; geen rubriccriterium gewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

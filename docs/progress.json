@@ -5,9 +5,9 @@
     "date": "2026-11-03",
     "source_commit": "ed592537751f5d50710fc61744331d1a6334a10f",
     "branch": "simonvanieperen-animated-garbanzo",
-    "task": "PR155: integreer main 8e0c15d8 en behoud de nieuwe keyring-herstelgrens",
+    "task": "Actieve WORK-QUEUE-herbalancering: OOM, SMP en K05-consumer naar System Maturity",
     "previous_score": 39,
-    "summary": "39% blijft 39%. PR155 beperkt key recovery tot manifest-gebonden beheer-ingress en heeft B01 opnieuw op open gezet tot verse native positieve beheer- en negatieve app-ingressproeven slagen. De eerdere main-acceptatie betreft de oude herstelgrens en vervangt dat bewijs niet. Deze integratie kent geen nieuwe criteriumpunten toe."
+    "summary": "39% → 39%: expliciete integration writeclaims voor System Maturity (P0 OOM, P1 SMP, P2 K05 journal/crash), gecontroleerde actieve owners en seriele filehandoffs vervangen historische directoryfreezes. Dit is coordinatie, geen implementatie- of native acceptatiebewijs. Ongecommitteerde Materiaal-WIP blijft apart en nog niet groen; geen rubriccriterium gewijzigd."
   },
   "tracks": [
     {

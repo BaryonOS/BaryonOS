@@ -4,6 +4,12 @@ De actieve volledige releaseopdracht en productacceptatie staan in
 [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft
 de ontwikkelmeter; het vervangt de conjunctieve releaseacceptatie niet.
 
+Coordinatieopdracht 3 november op basis `ed592537`: System Maturity heeft nu
+expliciete OOM-, SMP- en K05 journal/crash-consumerclaims, met bestandsgrenzen
+en native acceptatie in WORK-QUEUE. Dit heft eigenaarsblokkades op maar levert
+geen productfunctionaliteit of nieuw acceptatiebewijs: **39 -> 39/100**.
+De lopende ongecommitteerde Materiaal-slice blijft apart, nog niet groen.
+
 PR149-review op bron `53256f82`: **41 → 41**. Drie daadwerkelijk rood
 gereproduceerde kaartfouten hersteld: smal/hoog, overlopende tekst en
 onjuiste opslagoorzaak.59 volledige hosttests, Clippy, formattering en

@@ -1,6 +1,45 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR155 main-integratie — 3 november 2026
+## NEXT AGENT HANDOFF — expliciete maturity-integratieclaims — 3 november 2026
+
+**Bron:** productbasis `ed592537751f5d50710fc61744331d1a6334a10f`,
+daarna remote-integratie `86e8092e` inhoudsbehoudend overgenomen; branch
+`simonvanieperen-animated-garbanzo`. Op Simons directe coordinatieopdracht
+staat de actuele ownershipsituatie nu bovenaan [WORK-QUEUE.md](WORK-QUEUE.md).
+System Maturity krijgt **P0 SM-OOM-1**, daarna **P1 SM-SMP-K06-1** en
+**P2 SM-JOURNAL-K05-1**, met expliciete bestanden, read-only-/verboden grenzen
+en host-/native acceptatie. Geen nieuwe losse corecrates in plaats van
+integratie. Geen runtime- of acceptatieclaim door deze toewijzing.
+
+**Actief gecontroleerd:** Drivers, de historische kernelowner en integrator
+bevestigen geen K05/OOM/SMP-WIP. Drivers bezit tijdelijk alleen de concrete
+`m3.rs`-netwerkdispatchdelta `DRV-MAC-0X74`; de memory-/SMP-integratiehaak
+wordt na expliciete filevrijgave seriëel overgedragen. Heap/framecore en de
+K05-diagnostic consumer zijn daardoor niet als hele directory geblokkeerd.
+Veld bevestigt wel een actieve high-contrast-leaf op controller/render:
+General stopt daar nieuwe writes tot expliciete HC-oplevering/filevrijgave.
+
+**Ongecommitteerde product-WIP behouden:** documentnaam en lokale naamsearch
+in `ui/native/src/{controller,render}.rs` en
+`ui/native/tests/render_regressions.rs`; niet in dit coordinatiecheckpoint
+opnemen. `cargo +1.90.0 check --manifest-path ui/native/Cargo.toml --tests
+--offline` slaagde. De betrokken interactierun is nog rood: 35/37 slagen,
+een gewijzigde tabvolgorde en een verouderde semantische nodetelling moeten
+nog worden afgehandeld. Renderer-suite werd daardoor niet gestart. De eerste
+linkpoging miste `cc`; de herhaling gebruikte de bestaande tijdelijke
+C-wrapper. Log: `/tmp/nieuw-os-named-material-existing-tests.log`.
+Dit is geen afgeronde productoplevering en mag niet als groen bewijs worden
+overgenomen. Auth/session-UI blijft buiten vervolgwerk.
+
+**Score: 39 -> 39/100.** Alleen eigenaarschap is gewijzigd; geen nieuw
+native criterium gerealiseerd. Gerichte queue-/meter-/diffcontroles staan
+in het committranscript. Geen herhaalde brede release-/UI-poort uitgevoerd.
+**Eerstvolgend:** stuur na push de gepinde queueclaim aan System Maturity:
+start `SM-OOM-1` in diens bestaande branch/omgeving, zonder op oude
+directoryclaims te wachten. Drivers meldt expliciete `m3.rs`-vrijgave;
+Veld levert de begrensde HC-filehandoff voor latere producthervatting.
+
+## Historisch checkpoint — PR155 main-integratie — 3 november 2026
 
 **Basis vóór merge:** PR-head `ed592537751f5d50710fc61744331d1a6334a10f`;
 main `8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2`. Conflicten in `README.md`,

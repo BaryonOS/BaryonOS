@@ -1,4 +1,128 @@
-# Operationele werkqueue — 30 oktober 2026
+# Operationele werkqueue — actuele herbalancering 3 november 2026
+
+## Actief mandaat en interfaceclaims — 3 november 2026
+
+Simon heeft de algemene hoofdontwikkelaar op 3 november rechtstreeks opgedragen
+deze queue actief te herbalanceren. Voor de onderstaande taken vervangt dit
+register de historische directoryreserveringen en schrijverlabels verderop.
+De algemene hoofdontwikkelaar `414f3056-b3cb-459b-b8ed-318893577225` onderhoudt
+deze actuele toewijzingen. Dit draagt geen merge-, release-, hardware- of
+capabilitybevoegdheid over. Historische WIP en bewijs blijven behouden.
+
+Bron voor deze toewijzing: productbranch `simonvanieperen-animated-garbanzo`
+op `ed592537751f5d50710fc61744331d1a6334a10f`; gepubliceerde maturitybranch
+`simonvanieperen-studious-spoon` op
+`39de952813fbc61e5aa5879b0f1deaea3aa15c64`. Dit zijn verschillende bomen:
+een toewijzing integreert geen code of bewijs van de andere branch.
+
+### Betekenis en overdracht
+
+| Status | Betekenis en vereiste vervolgactie |
+|---|---|
+| ACTIVE | Eigenaar voert de concrete implementatietaak uit; slechts een schrijver per bestand. |
+| RESERVED | Korte, benoemde afhankelijkheid met concrete vrijgavegebeurtenis; geen onbeperkte directoryfreeze. |
+| AVAILABLE | Geen actieve schrijverclaim; een concrete taak mag worden toegewezen. |
+| BLOCKED | Benoemde technische afhankelijkheid; noteer `BLOCKED-BY:<owner/task>` en ga naar vrij werk. |
+
+Een afgeronde/frozen historische leaf reserveert niet automatisch de directory
+voor nieuw werk. Onbekende activiteit is evenmin bewijs van vrijgave: concrete
+WIP wordt eerst bij de bekende eigenaar gecontroleerd. De huidige driverowner
+heeft expliciet geen heap/allocator/paging/arch/SMP/K05-writes; rol14
+`fbf60554` bevestigt geen K05/OOM/SMP-WIP en geen fileclaim. Integrator
+`f090b913` bevestigt evenmin overlap op deze paden of de queue. De
+platformowner `cc106105` bevestigt alleen de afzonderlijke browserparser-hostscope,
+geen native UI/volume/K05-claim. Deze overdracht berust dus niet op stilte.
+
+### SYSTEM MATURITY — uitvoerbare integratie
+
+Eigenaar: `3b8bdc33-7b14-40f1-9d34-1a0f2a38ab04`. Simons nadere opdracht
+van 3 november maakt de volgorde expliciet: eerst `SM-OOM-1` (P0), daarna
+`SM-SMP-K06-1` (P1), daarna `SM-JOURNAL-K05-1` (P2).
+Geen nieuwe losse foundations als vervanging voor deze consumers.
+De allowed writes hieronder zijn NU expliciet toegewezen; een volgende
+queuecontrole of aanvullende toestemming is geen startvoorwaarde. RESERVED
+achter een andere taak betekent uitsluitend uitvoering na de voorganger,
+niet wachten op een voormalige eigenaar.
+
+| Taak / status | Exclusieve schrijfbestanden en interface | Verboden naburige scope | Acceptatie en bewijsgrens |
+|---|---|---|---|
+| `SM-OOM-1` / NU toegewezen, kickoff na publicatie | `kernel/src/m2/m3/heap.rs`, `kernel/src/m2/m3/memory_fixture.rs`, `crates/kernel-core/src/lib.rs` uitsluitend framebeschikbaarheid/pressure/reclaim-interface zonder gewijzigde owner-/aliasregels, nieuw `crates/kernel-core/src/pressure.rs`, `sdk/heap-allocator/src/lib.rs` en `sdk/heap-allocator/tests/{arena,collections,pressure}.rs`, `sdk/examples/memory/src/{lib,main,contract}.rs`, `tools/{run_memory,test_memory,test_memory_system}.py`, `tools/tests/{native_memory_boundaries.rs,test_kernel_memory.py}`. Eigen verslag `docs/verification/sm-oom/`. Alleen noodzakelijke dependency/modulewiring in de bijbehorende Cargo-manifests/locks. | Read-only: scheduler, capability-engine, process-ABI, drivercode en de algemene cleanup in `m3.rs`. Geen andere allocator, kernelmemory-intrinsics (`kernel/src/memory.rs`), willekeurige OOM-killer, quota-/zeroing-/W^X-versoepeling, DMA-unpin of process-ABI-wijziging. `m3.rs` niet gelijktijdig met Drivers bewerken; zie onderstaande seriele haakoverdracht. | Werkelijke vrije frames/own-process allocatie -> Normal/Elevated/Critical -> begrensde reclaim opportunity -> fallible allocation -> gecontroleerde OOM -> deterministische bestaande cleanup. Geen swap vereist, oneindige retry of geveinsde reclaim. Test quota versus fysieke OOM, partial reservation/rollback, zeroing, dubbel vrijgeven, stale proces/cleanup en herstel na vrijgave; andere processen en kritisch pad blijven bruikbaar. Bestaande `python3 -B tools/test_memory.py` en `python3 -B tools/test_memory_system.py` behouden; echte vijf memory-cases inclusief constrained-memory `oom`, targeted kernel-core/heap-allocator-tests en relevante K05-cleanupgate. |
+| `SM-SMP-K06-1` / RESERVED achter OOM, exclusieve SMP-toewijzing aan Maturity | Nieuwe AP-/per-CPU-code `kernel/src/m2/{smp,ap}.rs`, `crates/kernel-core/src/smp.rs` met eigen tests; `kernel/src/m2.rs`, `kernel/src/m2/arch.rs`, `kernel/src/m2/paging.rs` voor AP-bootstrap, per-CPU-state, synchronisatie en TLB-handling. Indien nodig: `crates/boot-protocol/src/lib.rs` uitsluitend geversioneerde ACPI/AP-handoff met validatie, `boot/loader/src/main.rs` uitsluitend die handoff, `kernel/Cargo.toml`, eigen `tools/{run_smp,test_smp}.py`, verslag `docs/verification/sm-smp/`. Na expliciete filevrijgave van Drivers ook de bestaande scheduler-/cleanup-integratie in `kernel/src/m2/m3.rs`; geen gelijktijdige schrijver. | Read-only: driveradapters, signing/updatebeleid, extern process/syscall-ABI en capabilitysemantiek. Geen andere kernel als basis, geen ongemeten aanzetten van huidige single-CPU `static mut`/IF=0-paden op meerdere CPUs, geen algemene pagingrewrite. Lock-/per-CPU-invarianten gaan vooraf aan het werkelijk parallel uitvoeren van bestaande processen. | Doel is werkelijke 1 -> 2 -> 4 CPU-uitvoering: AP-startup, per-CPU-state, scheduling, synchronisatie, IPC, revoke, process exit, relevante TLB-invalidatie en race/failuretests. Eerste kleinere native checkpoint mag AP-bootstrap/parkeren aantonen, maar sluit K06 niet. Begrensde startup-timeout, dubbele/ongeldige CPU-identiteit, startupfalen, cleanup en single-CPU-regressies vereist. Compilatie alleen is geen SMP-acceptatie. |
+| `SM-JOURNAL-K05-1` / RESERVED achter OOM/SMP, volledig toegewezen fallback bij technische blokkade | `sdk/examples/supervisor/src/diagnostics.rs` (nieuw), `src/supervisor.rs` voor aanroepen na echte spawn/status/exit/fault/restart-uitkomsten, `src/protocol.rs` uitsluitend module-export zonder wirewijziging, `sdk/examples/supervisor/Cargo.toml`, `tests/diagnostics.rs` (nieuw). Hergebruik `crates/system-journal/**` uit eigen branch; geen tweede journal/crashimplementatie. `kernel/src/m2/m3/supervisor.rs` uitsluitend aanvullende diagnostic observerwoorden/assertions; `tools/run_supervisor.py` en `tests/test_supervisor_harness.py` uitsluitend extra diagnostic checks; `sdk/Cargo.lock` voor deze paddependency. Eigen verslag `docs/verification/sm-journal-k05/`. | Read-only: overige supervisorlogica/worker/client-protocol, scheduler, process/syscall-ABI en capability-engine. Geen supervisorrewrite, capabilitywijziging, vrije tekst/geheugendumps/secrets in logs, nieuwe apprechten of algemene diagnostic-IPC. Bestaande K05-assertions niet verwijderen of versoepelen. | Echt waargenomen proces-/service-event -> bestaand Journal -> CrashRecord -> gescopeerde read. Producent/reader ontstaat bij vertrouwde supervisorinitialisatie; geen door een request geclaimde rol/boolean. Test normale exit, crash/herstart, ontbrekende/verkeerde authorization/scope en vreemde journalpermit, begrensde ring/overflow en cleanup. Gerichte adaptertests en fmt/Clippy/scalarbuild; daarna `python3 -B tools/test_supervisor.py`: behoud alle zes bestaande normal/crash/denied/parent-exit/quota/wait-cases en hun oude assertions; extra runtime-diagnostic assertions. Geen hostbewijs als VM-run verkopen. |
+
+**Besluit K05:** JA, System Maturity krijgt bovenstaande beperkte bestaande
+supervisorconsumer en observerkoppeling. De algemene K05-logica en het
+capability-/procescontract blijven ongewijzigd. Bestaande K05-acceptatie is een
+verplichte regressiepoort, geen reden om de adapter te blokkeren.
+
+**Besluit OOM en SMP:** beide zijn P0 en toegewezen aan System Maturity.
+Er is geen actieve andere allocator-/SMP-implementatie gemeld door de bekende
+kernel-, driver- of integratorowners. Zij zijn niet langer onbemand gereserveerd.
+De onderlinge volgorde is een werkplanning bij dezelfde eigenaar, geen
+eigenaarsblokkade. Een nieuw feitelijk fileconflict wordt exact geregistreerd,
+niet vertaald naar een hele-directoryfreeze.
+
+### Gedeelde integratiehaak: een schrijver, geen directoryfreeze
+
+`kernel/src/m2/m3.rs` heeft nu een concrete driverdelta:
+`DRV-MAC-0X74`, driverowner `de4ecebf`, werkbranch
+`copilot/universal-driver-framework`, gerapporteerde bron
+`9e27d381b30a2b45633ba2e9a3f2ec2c241508d9`.
+Die owner heeft alleen netwerk-syscallrouting, geen geheugen-/SMP-claim.
+
+- De driverowner rondt die delta/tests af en meldt expliciet laatste commit,
+  gewijzigde functies en geen nog lopende writes aan dit bestand.
+- Tot die vrijgave is **alleen deze filehaak**
+  `BLOCKED-BY:de4ecebf/DRV-MAC-0X74`; journaladapter, heap, framecore en
+  AP-modulewerk gaan door. Dit is geen herhaalde ownershipcontrole.
+- Daarna draagt de algemene hoofdontwikkelaar de noodzakelijke memory-cleanup/
+  SMP-modulehaak seriëel over aan Maturity op een gepinde bron. Geen twee
+  gelijktijdige schrijvers van `m3.rs`; geen automatisch combineren van takken.
+- `sdk/runtime/src/{native,network}.rs` blijft bij dezelfde driverdelta.
+  De maturityadapter gebruikt bestaande clock/process-API's en vraagt geen
+  algemene SDK-/ABI-vrijgave.
+
+### Overige werkstromen en periodieke herverdeling
+
+| Werkstroom / eigenaar | Actuele concrete scope | Interfacegrens / volgende overdracht |
+|---|---|---|
+| Drivers / `de4ecebf` | ACTIVE volgens owner: `DRV-MAC-0X74`; `kernel/src/m2/m3/network.rs`, de bovengenoemde dispatchhaak, `sdk/runtime/src/{native,network}.rs`, `sdk/examples/net-probe/src/main.rs`, `sdk/examples/network-service/src/service.rs`, `tools/run_net_system.py`. Universele registry/matching/VirtIO/fysieke drivers en adaptatie blijven dit spoor. | Geen K05/heap/OOM/SMP. Publiceer filevrijgave van `m3.rs` na deze delta; device/DMA/IOMMU-grenzen alleen met het maturitycontract afstemmen. |
+| Professional Platform / `cc106105` | Bestaande toegewezen M5-scope: `experiments/browser-parser-host/**` en eigen browseronderzoeks-/bewijsdocs op `simonvanieperen-vigilant-robot`; owner meldt code `3e2ae4a7`, head `8389a792`, PR #156 met open review. Geen actieve native productwriter geclaimd. | Geen reservering van personal storage/settings/Materiaal/editor/app-lifecycle, native UI/volume of K05. Geen hostparser als native browser labelen. |
+| Veld / `3d44dbb6` | ACTIVE expliciet bevestigd: begrensde high-contrast-leaf op private bron `3799ec63`, agent `fcb96a26`, writes `ui/native/src/{controller,render}.rs`, nieuw `ui/native/tests/high_contrast.rs`; interface `View.high_contrast` en `set_high_contrast(bool)`. Laatste gemelde gepushte head `e8d19fea`. Geen K05/OOM/SMP-writes. | Veld meldt na HC-oplevering exacte bron/API en expliciete filevrijgave. `sdk/examples/window-session`, calculator, input-core/input-client zijn alleen gepland/read-only, geen ACTIVE writerclaim. |
+| General Product Integration / `414f3056` | ACTIVE: deze queuecoordinatie. Productslice benoemen -> volume-v7-save -> lijst -> naamzoeken -> heropenen is RESERVED: `BLOCKED-BY:3d44dbb6/Veld-HC` voor exact controller/render, tot expliciete HC-filevrijgave. Reeds gemaakte lokale WIP behouden; geen nieuwe writes in die twee files. Geen auth-/sessie-UI-writes. | Personal storage: `BLOCKED-BY:B02/profile-key-authority`; persoonlijke instellingen: dezelfde ontbrekende persistente profielnamespace. Geen bypass. Driver-, maturity-, Veld- en platformslices niet dupliceren; bronintegratie na aparte filehandoff. |
+
+Overige consumerpaden zijn expliciet **AVAILABLE**, niet stil door oude
+directoryclaims gereserveerd: background-job- en notificationintegratie bij
+een bestaande update-/syncconsumer, de power-lifecycle-softwareconsumer en
+de firmware-descriptorconsumer hebben momenteel geen andere actieve schrijver
+gemeld door de huidige vier workstromen. Dit verleent nog geen onbegrensde
+writeclaim op update/NAS/driver-/bootcode. Wanneer Maturity na de drie
+toegewezen taken een van deze paden kiest, legt de coordinator de exacte
+consumerfiles vast; alleen concrete overlap wordt gesplitst. Driverpower/
+firmware-I/O blijft Drivers, orchestration/cleanup/deadlines blijft Maturity,
+appbediening blijft Veld/General en professionele jobconsumers Platform.
+`boot/loader/src/main.rs` heeft alleen de hierboven benoemde korte SMP/ACPI-
+reservering, geen hele firmware-/loaderdirectoryfreeze.
+
+Bij iedere oplevering of concrete ownershipblokkade beoordeelt de algemene
+hoofdontwikkelaar deze vier interfacegrenzen opnieuw: ACTIVE met werkelijke
+delta, RESERVED met eindige vrijgavegebeurtenis, AVAILABLE of een exact
+BLOCKED-BY. Geen nieuwe algemene audit/statusronde, geen permanente impliciete
+freeze en geen achtergrondautomatisering geclaimd. Een concrete overlap vraagt
+scope splitsen of seriele overdracht, niet "controleer later opnieuw".
+
+**Verplichte reactieregel:** zodra een workstream meldt "alle relevante paden
+zijn ownership-blocked", controleert de coordinator de concrete actieve claims,
+geeft stale reservations vrij na WIP-check, splitst overlap en wijst waar
+mogelijk minimaal een uitvoerbare scope toe. Pas als werkelijk geen veilige
+parallelle scope bestaat volgt BLOCKED met eigenaar/taak en technische reden.
+Dit gebeurt autonoom zonder nieuwe menselijke toestemmingsronde. Een
+reservering eindigt bij de genoemde filevrijgave/taakoplevering of expliciete
+afmelding; bij geen lopende implementatie/dependency gaat zij terug naar
+AVAILABLE. De eigenaar meldt bij elke overdracht task, scope, bron-HEAD,
+dependency, status en uitgevoerde acceptatie.
+
+## Historisch register — 30 oktober t/m 2 november 2026
 
 ## Mandaat, bron en continuiteit
 
