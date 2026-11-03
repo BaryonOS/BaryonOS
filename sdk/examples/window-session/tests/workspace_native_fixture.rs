@@ -61,6 +61,10 @@ fn render_workspace_shell_oracles() {
         "move-cancel-step",
         "move-cancelled",
         "move-arranged",
+        "notice-copied",
+        "notice-dismissed",
+        "notice-empty-mouse",
+        "notice-closed",
     ] {
         match phase {
             "focus-material" => scene.toggle_focus(&mut damage),
@@ -147,6 +151,46 @@ fn render_workspace_shell_oracles() {
             "move-cancel-step" => tap(&mut scene, &mut damage, PhysicalKey::Left, false, false),
             "move-cancelled" => tap(&mut scene, &mut damage, PhysicalKey::Escape, false, false),
             "move-arranged" => tap(&mut scene, &mut damage, PhysicalKey::F8, false, false),
+            "notice-copied" => {
+                scene.set_clipboard_notice(nieuw_os_window_session::clipboard::Notice::Copied);
+                tap(&mut scene, &mut damage, PhysicalKey::N, true, false);
+            }
+            "notice-dismissed" => tap(&mut scene, &mut damage, PhysicalKey::Delete, false, false),
+            "notice-empty-mouse" => {
+                tap(&mut scene, &mut damage, PhysicalKey::Escape, false, false);
+                let button = scene.clipboard_notice_bounds();
+                for down in [true, false] {
+                    scene
+                        .mouse_with_damage(
+                            (button.x + 2) as u32,
+                            (button.y + 2) as u32,
+                            down,
+                            down,
+                            &mut damage,
+                        )
+                        .unwrap();
+                }
+                scene
+                    .mouse_with_damage(width - 20, 50 * scale, false, false, &mut damage)
+                    .unwrap();
+            }
+            "notice-closed" => {
+                let button = scene.notification_close_button();
+                for down in [true, false] {
+                    scene
+                        .mouse_with_damage(
+                            (button.x + 2) as u32,
+                            (button.y + 2) as u32,
+                            down,
+                            down,
+                            &mut damage,
+                        )
+                        .unwrap();
+                }
+                scene
+                    .mouse_with_damage(width - 20, 50 * scale, false, false, &mut damage)
+                    .unwrap();
+            }
             _ => unreachable!(),
         }
         let mut pixels = vec![0; (width * height) as usize];

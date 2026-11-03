@@ -120,6 +120,14 @@ class WindowRunnerTests(unittest.TestCase):
                 if dx or dy:
                     self.assertFalse(window.material_matches(bytes(actual), app, body))
 
+    def test_notification_gate_checks_the_whole_opaque_panel_not_only_text(self):
+        for scale in (1, 2):
+            width, height, _, _ = window.profile_geometry(scale)
+            expected_panel = ((width - 460 * scale, 64 * scale, 424 * scale, 216 * scale),)
+            for phase in ("notice-copied", "notice-dismissed", "notice-empty-mouse"):
+                self.assertEqual(window.workspace_regions(scale)[phase], expected_panel)
+            self.assertEqual(window.workspace_regions(scale)["notice-closed"], ((0, 0, width, 40 * scale),))
+
     def test_workspace_checks_every_pixel_in_declared_shell_regions(self):
         raw = image(1280, 720, (1, 2, 3))
         header = len(raw) - 1280 * 720 * 3

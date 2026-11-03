@@ -146,6 +146,7 @@ jobs:
           assert report["app_high_contrast_gate"] is True
           assert report["window_states_gate"] is True
           assert report["keyboard_window_move_gate"] is True
+          assert report["notification_panel_gate"] is True
           assert report["smoke_only"] is False and report["raw_qemu_exit"] == 33
           assert report["kernel_feature"] == os.environ["NOS_WINDOW_PROBE_FEATURE"]
           assert report["scale"] == int(os.environ["NOS_WINDOW_SCALE"])

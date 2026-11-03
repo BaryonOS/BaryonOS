@@ -61,6 +61,10 @@ WORKSPACE_REGIONS = {
     "window-minimized": ((16, 64, 904, 576), (0, 650, 1280, 70)),
     "window-empty": ((0, 40, 1280, 680),),
     "window-restored": ((0, 650, 1280, 70),),
+    "notice-copied": ((820, 64, 424, 216),),
+    "notice-dismissed": ((820, 64, 424, 216),),
+    "notice-empty-mouse": ((820, 64, 424, 216),),
+    "notice-closed": ((0, 0, 1280, 40),),
 }
 HIDPI_WORKSPACE_REGIONS = {
     "focus-material": ((0, 0, 1920, 80), (1200, 180, 688, 740), (0, 940, 1920, 140)),
@@ -74,6 +78,10 @@ HIDPI_WORKSPACE_REGIONS = {
     "window-minimized": ((32, 128, 1168, 792), (0, 940, 1920, 140)),
     "window-empty": ((0, 80, 1920, 1000),),
     "window-restored": ((0, 940, 1920, 140),),
+    "notice-copied": ((1000, 128, 848, 432),),
+    "notice-dismissed": ((1000, 128, 848, 432),),
+    "notice-empty-mouse": ((1000, 128, 848, 432),),
+    "notice-closed": ((0, 0, 1920, 80),),
 }
 
 
@@ -330,6 +338,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                   document_tools_gate=False, document_menu_gate=False, pointer_leave_gate=False,
                   app_high_contrast_gate=False,
                   keyboard_window_move_gate=False,
+                  notification_panel_gate=False,
                   window_states_gate=False,
                   source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                   source_fingerprint_version=3, kernel_feature=manifest["kernel_feature"], manifest=manifest, command=command,
@@ -556,6 +565,28 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                     wait("clipboard-rejected", lambda raw, s: s["CALCULATOR"][-1]["EXPRESSION_BYTES"] == 0 and s["CALCULATOR"][-1]["EVALUATIONS"] == 0, "clipboard-unsupported")
                     key("f6"); key("3"); key("ctrl", "a"); key("ctrl", "c")
                     wait("clipboard-numeric", lambda raw, s: s["MATERIAL"][-1]["DRAFT_SUM"] == volume_disk.fnv(b"3"), "clipboard-numeric")
+                    if workspace:
+                        panel_generation = snapshots(serial(directory / "serial.txt"), "MATERIAL")[-1]["GEN"]
+                        shell_key("alt", "n")
+                        wait("workspace-notice-copied", lambda raw, s: s["MATERIAL"][-1]["GEN"] > panel_generation,
+                             image_check=lambda image: workspace_matches(
+                                 image, fixture["frames"]["workspace-notice-copied"], "notice-copied", scale))
+                        panel_keys = {role: numbers(serial(directory / "serial.txt"), f"WINDOW:{role}:KEYS")[-1]
+                                      for role in ("MATERIAL", "CALCULATOR")}
+                        shell_key("x"); shell_key("f6"); shell_key("ctrl", "shift", "delete")
+                        shell_key("delete")
+                        workspace_wait("notice-dismissed")
+                        shell_key("ret")
+                        if any(numbers(serial(directory / "serial.txt"), f"WINDOW:{role}:KEYS")[-1] != count
+                               for role, count in panel_keys.items()):
+                            raise ValueError("Notification panel leaked a key gesture into an app")
+                        move(302 * scale, 2 * scale)
+                        button(True); button(False); move(width - 20, 50 * scale)
+                        workspace_wait("notice-empty-mouse")
+                        close_x = width - 72 * scale + 2 * scale
+                        move(close_x, 70 * scale)
+                        button(True); button(False); move(width - 20, 50 * scale)
+                        workspace_wait("notice-closed")
                     key("f6"); key("ctrl", "v")
                     wait("clipboard-pasted", lambda raw, s: s["CALCULATOR"][-1]["EXPRESSION_BYTES"] == 1 and s["CALCULATOR"][-1]["EXPRESSION_SUM"] == volume_disk.fnv(b"3") and s["CALCULATOR"][-1]["EVALUATIONS"] == 0, "clipboard-pasted")
                     key("shift", "equal"); key("4"); key("ctrl", "a"); key("ctrl", "c")
@@ -762,6 +793,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                           pointer_leave_gate=workspace and not diagnostic,
                           app_high_contrast_gate=workspace and clipboard and not diagnostic,
                           keyboard_window_move_gate=workspace and not diagnostic,
+                          notification_panel_gate=workspace and clipboard and not diagnostic,
                           window_states_gate=workspace and not diagnostic,
                           native_scale200_gate=scale == 2 and not diagnostic,
                           duration_s=time.monotonic() - start, serial_sha256=sha256(directory / "serial.txt"), qmp_trace=control.trace)

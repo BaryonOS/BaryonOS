@@ -1,6 +1,44 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Veld-06 native geverifieerd — 3 november 2026
+## NEXT AGENT HANDOFF — Veld-07 meldingenpaneel, native open — 3 november 2026
+
+**Basis/branch:** `ea0cd6d19235c5f8575f21d527e5bcc8526056ee`,
+`simonvanieperen-veld-hc-20261103`. Geen General-/remote-/scoreimport.
+Veld-06 blijft op eigen bron0d232c70 native bewezen.
+
+**Nieuwe code:** `window-session/src/scene.rs` en `main.rs` tonen een echt
+meldingenpaneel voor uitsluitend de bestaande compositor-klembordstatus.
+Zichtbare bovenbalkactie of Alt+N opent het; Tab/pijlen kiezen, Delete of
+Enter verwijdert alleen de melding uit de presentatie, Escape/sluitknop
+sluit. Lege toestand en zichtbare focus zijn werkelijk gerenderd.
+Dezelfde statuspoll laat een verwijderde melding niet terugkomen; een
+nieuwe status mag opnieuw zichtbaar worden. Geen documentnamen of inhoud.
+Dit is nog geen algemene appnotificatie-API, historie of persistentie.
+
+**Invoergrens:** exclusieve bestaande overlayroute annuleert oude appinput
+en klembordtickets. Verwijderen verleent of wist geen clipboarddatarecht;
+de panelinput wordt niet naar apps doorgestuurd. Muisklik/release klikt
+niet door. Geen Materiaal-/Settings-/kernel-/K05-/OOM-/SMP-writes.
+General-filevrijgave voor controller/render/lib.rs/chain.rs blijft gelden.
+
+**Hostbewijs:** alle scenehosttests, strikte Clippy/fmt en19 runnertests
+exit0. Drie nieuwe proeven toetsen vijf displays, alle echte statusrollen,
+hele incremental/referencepixels, focus, muisknoppen, modifiergrenzen,
+geen clickthrough en stale release-/herhaalinput. Log
+`files/veld-env/logs/veld-notice-final-host.log`.
+Nieuwe runnergate vergelijkt het hele ondoorzichtige paneelinterieur,
+inclusief lege toestand, en de volledige bovenbalk na sluiten; bestaande
+ongemaskerde hele apporakels blijven. De echte numerieke paste na dismiss
+moet aantonen dat de klembordinhoud niet is gewist.
+
+**Native nog niet uitgevoerd:** verwacht60 volledige fasen per schaal.
+Volgende build/runner: eigen `build/veld-notice-20261103/scale1/scale2`,
+bestaande gescheiden targetcaches en dezelfde volledige100/200%-commando's
+als [bewijscontract](verification/veld-notice-20261103/README.md).
+Daarna beide normale builds. Score **41 -> 41**; geen nieuw rubriccriterium,
+volledige Veld- en releaseacceptatie open.
+
+## Vorig checkpoint — Veld-06 native geverifieerd — 3 november 2026
 
 **Basis/branch:** `4328426434edd01d4f7bb8a40c845b4e3bcae70e`,
 `simonvanieperen-veld-hc-20261103`; HC-product047abfa1 blijft afzonderlijk

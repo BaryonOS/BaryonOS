@@ -1,5 +1,25 @@
 # Native venstersessie — U01 bouwcontract
 
+## Veld-07: systeemmeldingenpaneel
+
+Eerste bron is uitsluitend de bestaande compositor-klembordfeedback.
+Alt+N of de zichtbare bovenbalkactie opent een exclusief paneel. Tab/pijlen,
+Enter/Delete, Escape en echte dismiss-/sluitknoppen bedienen het.
+Verwijderen betreft alleen presentatie; geen klembordinhoud, document,
+capability of persistentie. Geen algemene appnotificatie-API of historie.
+De lege toestand en keyboardfocus zijn zichtbaar; oude releases lekken niet.
+Geen nieuwe writes aan General-/Settingsbestanden.
+
+Acceptatie: volledige scenehosttests/Clippy/fmt, alle statusrollen en hele
+incremental/referenceframes op vijf displays. Beide volledige native60-
+fasengates, inclusief heel ondoorzichtig paneelinterieur, muis-/keyboardroute,
+geen appkeys tijdens modaliteit en echte numerieke paste na dismiss.
+Dat laatste moet ook na de globaal bekende clear-chord tijdens het paneel
+slagen; een meldingsactie mag geen klembordautoriteit nabootsen.
+`notification_panel_gate` alleen na volledige niet-diagnostische
+workspace+clipboardacceptatie. Alle eerdere appbody-, HC-, venster-,
+opslag-, isolatie- en herstelgates blijven; normale builds blijven verplicht.
+
 ## Veld-06: toetsenbordverplaatsing
 
 Alt+F7 verplaatst het gefocuste zichtbare venster zonder muis. Pijlen16,

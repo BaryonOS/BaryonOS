@@ -99,6 +99,9 @@ pub struct Scene {
     window_menu_selected: usize,
     overlay_pointer: bool,
     keyboard_move: Option<KeyboardMove>,
+    notifications_open: bool,
+    notice_dismissed: bool,
+    notification_focus_close: bool,
 }
 impl Scene {
     pub fn new(width: u32, height: u32, scale: u32, epochs: [u64; 2]) -> Result<Self, Invalid> {
@@ -168,6 +171,9 @@ impl Scene {
             window_menu_selected: 0,
             overlay_pointer: false,
             keyboard_move: None,
+            notifications_open: false,
+            notice_dismissed: false,
+            notification_focus_close: false,
         })
     }
     pub fn frame(&self, index: usize) -> Rect {
@@ -222,7 +228,65 @@ impl Scene {
         self.keyboard_move.is_some()
     }
     pub fn overlay_is_open(&self) -> bool {
-        self.palette_is_open() || self.window_menu_is_open() || self.keyboard_move_is_active()
+        self.palette_is_open()
+            || self.window_menu_is_open()
+            || self.keyboard_move_is_active()
+            || self.notifications_are_open()
+    }
+    pub fn notifications_are_open(&self) -> bool {
+        self.notifications_open
+    }
+    pub fn notification_is_present(&self) -> bool {
+        self.clipboard_notice != ClipboardNotice::None && !self.notice_dismissed
+    }
+    pub fn notifications_bounds(&self) -> Rect {
+        let s = self.scale;
+        Rect::new(
+            (self.width - 468 * s) as i32,
+            56 * s as i32,
+            440 * s,
+            232 * s,
+        )
+    }
+    pub fn notifications_paint_bounds(&self) -> Rect {
+        let r = self.notifications_bounds();
+        let pad = 12 * self.scale;
+        Rect::new(
+            r.x - pad as i32,
+            r.y - pad as i32,
+            r.width + 2 * pad,
+            r.height + 2 * pad,
+        )
+    }
+    pub fn notification_close_button(&self) -> Rect {
+        let r = self.notifications_bounds();
+        let s = self.scale;
+        Rect::new(r.x + 396 * s as i32, r.y + 12 * s as i32, 32 * s, 32 * s)
+    }
+    pub fn notification_dismiss_button(&self) -> Rect {
+        let r = self.notifications_bounds();
+        let s = self.scale;
+        Rect::new(r.x + 280 * s as i32, r.y + 144 * s as i32, 136 * s, 36 * s)
+    }
+    fn open_notifications(&mut self, damage: &mut Damage) {
+        if !self.overlay_is_open() {
+            self.cancel_pointer();
+            self.notifications_open = true;
+            self.notification_focus_close = !self.notification_is_present();
+            damage.mark(self.notifications_paint_bounds());
+            damage.mark(self.dock());
+        }
+    }
+    fn close_notifications(&mut self, damage: &mut Damage) {
+        if self.notifications_open {
+            self.notifications_open = false;
+            damage.mark(self.notifications_paint_bounds());
+            damage.mark(self.dock());
+        }
+    }
+    fn dismiss_notification(&mut self) {
+        self.notice_dismissed = true;
+        self.notification_focus_close = true;
     }
     fn begin_keyboard_move(&mut self, damage: &mut Damage) {
         if self.focused_visible() {
@@ -543,6 +607,46 @@ impl Scene {
         let states = self.states;
         let focus = self.focused;
         let mode = self.mode;
+        if self.notifications_are_open() {
+            if matches!(key.action, KeyAction::Press | KeyAction::Repeat) {
+                self.palette_keys[index] = true;
+                if key.action == KeyAction::Press {
+                    match key.key {
+                        PhysicalKey::Escape => self.close_notifications(damage),
+                        PhysicalKey::Tab | PhysicalKey::Up | PhysicalKey::Down
+                            if self.notification_is_present() =>
+                        {
+                            self.notification_focus_close = !self.notification_focus_close
+                        }
+                        PhysicalKey::Delete => self.dismiss_notification(),
+                        PhysicalKey::Enter | PhysicalKey::KeypadEnter | PhysicalKey::Space => {
+                            if self.notification_focus_close {
+                                self.close_notifications(damage);
+                            } else {
+                                self.dismiss_notification();
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            damage.mark(self.notifications_paint_bounds());
+            damage.mark(self.clipboard_notice_bounds());
+            return Ok(true);
+        }
+        if key.key == PhysicalKey::N
+            && key.modifiers.alt()
+            && !key.modifiers.control()
+            && !key.modifiers.shift()
+            && !key.modifiers.super_key()
+            && !self.overlay_is_open()
+        {
+            if key.action == KeyAction::Press && !self.palette_keys[index] {
+                self.palette_keys[index] = true;
+                self.open_notifications(damage);
+            }
+            return Ok(true);
+        }
         if let Some(movement) = self.keyboard_move {
             if matches!(key.action, KeyAction::Press | KeyAction::Repeat) {
                 self.palette_keys[index] = true;
@@ -726,6 +830,7 @@ impl Scene {
             *owned = false;
         }
         self.close_window_menu(damage);
+        self.close_notifications(damage);
         self.cancel_keyboard_move(damage);
         if self.palette_close() {
             damage.mark(self.palette_paint_bounds());
@@ -744,6 +849,7 @@ impl Scene {
         let palette_open = self.palette_is_open();
         let menu_open = self.window_menu_is_open();
         let move_active = self.keyboard_move_is_active();
+        let notifications_open = self.notifications_are_open();
         let menu_bounds = self.window_menu_paint_bounds();
         let states = self.states;
         let mode = self.mode;
@@ -766,6 +872,11 @@ impl Scene {
         }
         if self.window_menu_is_open() {
             damage.mark(self.window_menu_paint_bounds());
+        }
+        if notifications_open || self.notifications_are_open() {
+            damage.mark(self.notifications_paint_bounds());
+            damage.mark(self.clipboard_notice_bounds());
+            damage.mark(self.dock());
         }
         if move_active && !self.keyboard_move_is_active() {
             damage.mark(Rect::new(0, 0, self.width, 40 * self.scale));
@@ -812,6 +923,10 @@ impl Scene {
             return false;
         }
         self.clipboard_notice = notice;
+        self.notice_dismissed = false;
+        if !self.notification_is_present() {
+            self.notification_focus_close = true;
+        }
         true
     }
     pub fn paint_bounds(&self, index: usize) -> Rect {
@@ -865,6 +980,28 @@ impl Scene {
             return Err(Invalid);
         }
         self.pointer = (x, y);
+        if self.notifications_are_open() {
+            if down {
+                self.overlay_pointer = true;
+                if self
+                    .notification_close_button()
+                    .contains(x as i32, y as i32)
+                    || !self.notifications_bounds().contains(x as i32, y as i32)
+                {
+                    self.notifications_open = false;
+                } else if self.notification_is_present()
+                    && self
+                        .notification_dismiss_button()
+                        .contains(x as i32, y as i32)
+                {
+                    self.dismiss_notification();
+                }
+            }
+            if !held && !down {
+                self.overlay_pointer = false;
+            }
+            return Ok(None);
+        }
         if self.keyboard_move_is_active() {
             if down {
                 self.finish_keyboard_move(true);
@@ -919,6 +1056,13 @@ impl Scene {
             return Ok(None);
         }
         if down {
+            if self.clipboard_notice_bounds().contains(x as i32, y as i32) {
+                self.cancel_pointer();
+                self.notifications_open = true;
+                self.notification_focus_close = !self.notification_is_present();
+                self.overlay_pointer = true;
+                return Ok(None);
+            }
             if self.command_button().contains(x as i32, y as i32) {
                 self.palette_open();
                 return Ok(None);
@@ -1083,6 +1227,7 @@ impl Scene {
             || rect.intersects(self.pointer_bounds())
             || (self.palette_is_open() && rect.intersects(self.palette_paint_bounds()))
             || (self.window_menu_is_open() && rect.intersects(self.window_menu_paint_bounds()))
+            || (self.notifications_are_open() && rect.intersects(self.notifications_paint_bounds()))
         {
             return self.render_reference(rect, pixels, backing);
         }
@@ -1136,7 +1281,11 @@ impl Scene {
         c.text(
             300 * s as i32,
             10 * s as i32,
-            self.clipboard_notice.label(),
+            if self.notification_is_present() {
+                self.clipboard_notice.label()
+            } else {
+                "Meldingen · Alt+N"
+            },
             Font::new(Size::Small, Weight::Regular, s == 2),
             theme::SHELL_TEXT,
         );
@@ -1396,11 +1545,102 @@ impl Scene {
         );
         self.render_palette(&mut c);
         self.render_window_menu(&mut c);
+        self.render_notifications(&mut c);
         let (x, y) = (self.pointer.0 as i32, self.pointer.1 as i32);
         c.line(x, y, x, y + 18 * s as i32, 3 * s, 0xffffff);
         c.line(x, y, x + 12 * s as i32, y + 12 * s as i32, 3 * s, 0xffffff);
         c.line(x, y, x + 3 * s as i32, y + 15 * s as i32, s, 0x172a3a);
         Ok(())
+    }
+    fn render_notifications(&self, c: &mut Canvas<'_>) {
+        if !self.notifications_are_open()
+            || !self.notifications_paint_bounds().intersects(c.bounds())
+        {
+            return;
+        }
+        let p = theme::MATERIAAL;
+        let r = self.notifications_bounds();
+        let s = self.scale;
+        let small = Font::new(Size::Small, Weight::Regular, s == 2);
+        let body = Font::new(Size::Body, Weight::Regular, s == 2);
+        c.soft_shadow(r, 12 * s, theme::SHADOW, 40)
+            .expect("validated workspace scale and nonempty notifications");
+        c.rounded_rect(r, 8 * s, p.border);
+        c.rounded_rect(
+            Rect::new(
+                r.x + s as i32,
+                r.y + s as i32,
+                r.width - 2 * s,
+                r.height - 2 * s,
+            ),
+            7 * s,
+            p.surface,
+        );
+        c.text(
+            r.x + 24 * s as i32,
+            r.y + 18 * s as i32,
+            "Systeemmeldingen",
+            Font::new(Size::Body, Weight::Semibold, s == 2),
+            p.text,
+        );
+        let close = self.notification_close_button();
+        c.icon(
+            Rect::new(
+                close.x + 8 * s as i32,
+                close.y + 8 * s as i32,
+                16 * s,
+                16 * s,
+            ),
+            Icon::Close,
+            p.text,
+            s,
+        );
+        if self.notification_focus_close {
+            c.stroke_rounded_rect(close, 4 * s, 2 * s, p.accent);
+        }
+        if self.notification_is_present() {
+            c.text(
+                r.x + 24 * s as i32,
+                r.y + 70 * s as i32,
+                "Klembord · Op dit apparaat",
+                small,
+                p.muted,
+            );
+            c.text(
+                r.x + 24 * s as i32,
+                r.y + 100 * s as i32,
+                self.clipboard_notice.label(),
+                body,
+                p.text,
+            );
+            let dismiss = self.notification_dismiss_button();
+            c.rounded_rect(dismiss, 4 * s, p.accent_soft);
+            if !self.notification_focus_close {
+                c.stroke_rounded_rect(dismiss, 4 * s, 2 * s, p.accent);
+            }
+            c.text(
+                dismiss.x + 14 * s as i32,
+                dismiss.y + 8 * s as i32,
+                "Verwijderen",
+                small,
+                p.text,
+            );
+        } else {
+            c.text(
+                r.x + 24 * s as i32,
+                r.y + 88 * s as i32,
+                "Geen meldingen",
+                body,
+                p.text,
+            );
+        }
+        c.text(
+            r.x + 24 * s as i32,
+            r.y + 202 * s as i32,
+            "Tab kiezen · Delete verwijderen · Esc terug",
+            small,
+            p.muted,
+        );
     }
     fn render_window_menu(&self, c: &mut Canvas<'_>) {
         if !self.window_menu_is_open() || !self.window_menu_paint_bounds().intersects(c.bounds()) {

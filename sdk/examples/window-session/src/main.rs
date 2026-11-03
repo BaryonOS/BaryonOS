@@ -676,6 +676,9 @@ fn run() -> ! {
         }
         if scene.set_clipboard_notice(clipboard.notice()) {
             damage.mark(scene.clipboard_notice_bounds());
+            if scene.notifications_are_open() {
+                damage.mark(scene.notifications_paint_bounds());
+            }
         }
         for (at, v) in [
             (400, 1),

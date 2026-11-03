@@ -1,5 +1,26 @@
 # Ontwerpbesluiten
 
+## ADR-VELD-006 — meldingen zijn presentatie, geen gegevensautoriteit
+
+3 november 2026, basis `ea0cd6d1`. Het eerste native meldingenpaneel toont
+uitsluitend de bestaande, door de compositor vastgestelde klembordstatus.
+Een zichtbare actie of Alt+N opent het, met volledige toetsenbord- en
+muisbediening en expliciete lege toestand. Er is geen algemene app-API,
+meldinghistorie, tijdstempel, persistent profiel of netwerkafhankelijkheid.
+
+Verwijderen wist alleen de zichtbare melding, niet klembordinhoud,
+documentdata, opslag of rechten. Een herhaalde poll van dezelfde status
+doet de melding niet herleven; een nieuwe statusovergang mag dat wel.
+De compositor ontvangt geen inhoud of app-auteurstekst via een nieuwe route.
+Zijn bestaande exclusieve overlaypad annuleert oude appinput/grants;
+paneeltoetsen, muisklikken en releases mogen niet doorlekken.
+
+De native proef moet de echte numerieke paste na paneldismiss behouden,
+zelfs na de tijdens modaliteit ingedrukte globale clear-chord.
+Dit bewijst een begrensde systeemstatuspresentatie, niet de volledige
+productnotificatieketen. Herzien bij echte sendergebonden appnotificaties:
+identiteit, limieten, prioriteiten en acties krijgen dan een apart contract.
+
 ## ADR-VELD-005 — toetsenbord verplaatst dezelfde begrensde vensters
 
 3 november 2026, basis `43284264`. Alt+F7 opent een exclusieve shellmodus
