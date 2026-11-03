@@ -95,6 +95,16 @@ volledige FR-H01/02/03-releasegates blijven open. Zie
 `python3 tools/progress.py --write`, `--check` en `git diff --check` slaagden;
 geen OS-build of hardwaretest uitgevoerd.
 
+Vervolgonderzoek op door de gebruiker genoemde repositories (3 november 2026),
+assessmentbasis `9e13e7be`: **41 -> 41**. ODI `ef58952` biedt een C-framework
+en enkele drivers waarvoor OS-bindingen geporteerd moeten worden;
+`device-driver` `036fb18` genereert register-/commandocode in Rust maar is
+geen volledige bus-/DMA-/interruptdriver. Geen dependency, port, build of
+hardwaretest; de volledige hardwaregates blijven open. Nadere beoordeling en
+bronbinding staan in het [driveronderzoek](research/2026-11-03/os-repos-and-hardware-drivers.md).
+`python3 tools/progress.py --write`, `--check` en `git diff --check` zijn de
+documentcontroles; native OS-tests zijn niet uitgevoerd.
+
 PR139-review (3 november2026), exact geteste geïntegreerde bron `0a49a382`:
 **41 → 41**. Negen artifact-store-contracttests, Rust1.90.0 fmt en Clippy
 daadwerkelijk opnieuw groen; primaire logs/boom/commando's/codehashes staan

@@ -34,6 +34,23 @@ hardwareproef uitgevoerd. Voortgang **41 → 41/100**; H01 blijft geaccepteerd,
 terwijl de volledige releasecriteria FR-H01/02/03 open blijven. Dit onderzoek
 wijzigt de bestaande PR139-hervatstap hierboven niet.
 
+## Vervolgonderzoek ODI en Rust-drivergenerator — 3 november 2026
+
+Vervolg op de gebruikersaanvulling met ODI en `diondokter/device-driver`;
+basiscommit `9e13e7be17845e03256dd451de57419eb242e376`. ODI `ef58952` is een
+C-framework met enkele concrete PCI/seriële/USB-driverimplementaties, maar
+vereist OS-portering en exposeert een generieke callback-/pointerinterface.
+De Rust-toolkit `device-driver` `036fb18` kan vanuit DDSL registers en
+commando-API's genereren; het levert geen PCI-/USB-/VirtIO-bus-, DMA- of
+interruptdriver. Beide zijn mogelijk bruikbaar voor één later geselecteerd
+device, niet als brede compatibiliteitslaag. Geen code gekloond/overgenomen,
+dependency toegevoegd, build of hardwaretest uitgevoerd. Volledige bron- en
+bewijsgrenzen: [`driveronderzoek`](research/2026-11-03/os-repos-and-hardware-drivers.md).
+
+`python3 tools/progress.py --write`, `python3 tools/progress.py --check` en
+`git diff --check` slaagden; score **41 → 41/100**. De oorspronkelijke
+PR139-hervatstap bovenaan blijft ongewijzigd.
+
 ## Historisch checkpoint — PR139 actuele main geïntegreerd — 3 november 2026
 
 Basis vóór integratie: PR-head `341d1b428d436ac0e33c5bf3d7eb684f8543109c`

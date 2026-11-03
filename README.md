@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`99d13276`](https://github.com/simonvanieperen/nieuw-os/commit/99d132768fd72276caa4a3b3e9a09f8f1909f0ed) ·
+**Bron:** [`9e13e7be`](https://github.com/simonvanieperen/nieuw-os/commit/9e13e7be17845e03256dd451de57419eb242e376) ·
 **Ontwikkelbranch:** `simonvanieperen-ideal-lamp`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Onderzoek van verwante OS-repositories en passende hardware-driverstrategie.
-41/100 blijft 41/100. Read-only vergelijking op basis van Ginux c86945b, VibeOS 866bfb9, vib-OS 73b6429 en primaire Linux-, VirtIO- en UEFI-bronnen. Ginux biedt Linux-userspacecompatibiliteit, geen kant-en-klare Linux-driverwrapper; VirtIO/GOP zijn bruikbaar binnen VM- en framebuffergrenzen. Bevindingen en voorstel staan in docs/research/2026-11-03/os-repos-and-hardware-drivers.md. Geen codeport, hardwaretest of nieuwe productacceptatie.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Vervolgvergelijking van ODI en device-driver-toolkit voor hardwaredrivers.
+41/100 blijft 41/100. Vervolgonderzoek op basis van ODI ef58952 (C-driverframework met enkele drivers, OS-port nodig) en diondokter/device-driver 036fb18 (no_std Rust register-/commandocodegenerator, geen volledige busdrivers). Mogelijke gerichte port- of codegeneratiekandidaten, maar geen plug-and-play oplossing; geen dependency, codeport, build of hardwaretest. De eerdere vergelijking met Ginux/VibeOS/vib-OS, beperkingen en bronbinding staan in docs/research/2026-11-03/os-repos-and-hardware-drivers.md.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
