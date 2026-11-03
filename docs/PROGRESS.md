@@ -17,6 +17,13 @@ PR149's UI-werk en bewijs blijven behouden. De gebruikte testresultaten
 blijven strikt gekoppeld aan hun oorspronkelijke bronnen; geen nieuwe
 native OS-acceptatie of rubricpunten.
 
+PR150-mainintegratie met main `d686bd54` (3 november 2026): **41 → 41**.
+PR148-volume-admissie en PR150-inhoud blijven behouden. De gerichte
+volume-corehosttests, Python-orakeltests, formatter en Clippy slagen op deze
+mergeboom en het native foreign-volume-profiel bouwt. De native negen-run
+volumegate is niet uitgevoerd omdat QEMU en OVMF ontbreken; geen nieuw native
+acceptatiebewijs of rubricpunten.
+
 ## Betekenis van het percentage
 
 De README toont **behaalde acceptatiepunten / 100**. De gewichten zijn een
@@ -97,6 +104,24 @@ zijn afzonderlijke beperking. Zie [M6d-acceptatie](verification/M6D-ACCEPTANCE.m
 K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
+
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:ab73c9e98b6e8e4f98c9394ee7fc9b7f34e8e2a2808b0067c5965ffb55c55446 -->
+
+PR148-integratie (3 november 2026), PR-bron `47ec535f` met main `8e0c15d8`,
+merge `7412d0bb`: **41 → 41**. De drie documentconflicten zijn opgelost met
+behoud van beide bewijsreeksen; gedeelde harnashulpfuncties komen uit main en
+volume-admissie uit PR148. Geen nieuw criterium of native acceptatie.
+
+De integratiereview staat **open**: de handoff meldt gerichte controles met
+uitvoer alleen in het sessietranscript; afzonderlijk brongebonden bewijs van
+de review ontbreekt in de checkout. De eerdere PR148-hostreceipts zijn geen
+bewijs voor deze integratiereview. De `reviewed_commit` `cc1dea7` in
+`progress.json` hoort bij de historische documentatiereview; nieuwe-head CI en
+review moeten nog worden beoordeeld. Zie [de handoff](PROJECT-STATE.md).
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 PR149 bronbewijsvervolg (3 november 2026), schone bron `bb8877e3`:
 59 hosttests echt opnieuw exit0 met cwd/HEAD/status/lock-/Rust-hashes vóór/na

@@ -1,18 +1,19 @@
 //! Exhaustive crash-point simulation: every mutating disk operation of every
 //! step in a mixed scenario is interrupted, and several durable images are
 //! derived from the unflushed write cache (none, prefixes, all, torn sector,
-//! reordered subsets). Each image must recover to exactly the state before or
-//! after the step, and every retained version (current and history) of every
-//! object must read back with its expected content.
+//! reordered subsets). On identified storage, each image must recover to exactly
+//! the state before or after the step, with every retained version readable.
+//! First-format crashes are tested separately: an unrecognized torn marker
+//! must be rejected, never silently reformatted.
 mod common;
 
-use common::{fill, pattern, Local, SimDisk};
+use common::{fill, pattern, Local, Op, SimDisk};
 use volume_core::{
     client::Client,
     service::Service,
     table::{self, Table},
     wire::{self, SubOp},
-    Status, CHUNK, MAX_LENGTH, SECTOR,
+    Disk, Status, CHUNK, MAX_LENGTH, SECTOR,
 };
 
 const EPOCH: u64 = 3;
@@ -231,9 +232,67 @@ fn verify_content(table: &Table, image: Vec<[u8; SECTOR]>) {
 }
 
 #[test]
+fn first_format_crashes_reject_unrecognized_marker_prefixes_without_writes() {
+    let mut formatted = SimDisk::new();
+    table::write_format_marker(&mut formatted).unwrap();
+    formatted.flush().unwrap();
+    let formatted = formatted.settled();
+    let mut checked = 0;
+    let mut check = |image: Vec<[u8; SECTOR]>, crash, keep, tear| {
+        let recognized = image == formatted || image.iter().flatten().all(|byte| *byte == 0);
+        let mut disk = SimDisk::from_image(image);
+        let mut recovered = Table::EMPTY;
+        assert_eq!(
+            table::recover(&mut disk, &mut recovered),
+            if recognized {
+                Ok(())
+            } else {
+                Err(Status::Corrupt)
+            },
+            "first format crash {crash} keep {keep} tear {tear:?}"
+        );
+        if recognized {
+            assert_eq!(recovered, Table::EMPTY);
+        }
+        assert!(disk.log.iter().all(|(op, _)| *op == Op::Read));
+        checked += 1;
+    };
+    for crash in 0..=2 {
+        let mut disk = SimDisk::new();
+        let mut service = Service::new(EPOCH, Table::EMPTY, false);
+        disk.crash_at = Some(crash);
+        assert_eq!(
+            apply(&mut service, &mut disk, SCENARIO[0]),
+            Err(if crash < 2 {
+                Status::Unknown
+            } else {
+                Status::Io
+            })
+        );
+        assert_eq!(disk.pending.len(), usize::from(crash == 1));
+        for keep in 0..disk.pending.len() {
+            for tear in 0..=SECTOR {
+                check(disk.crash_image(keep, Some(tear)), crash, keep, Some(tear));
+            }
+        }
+        check(
+            disk.crash_image(disk.pending.len(), None),
+            crash,
+            disk.pending.len(),
+            None,
+        );
+    }
+    assert_eq!(checked, SECTOR + 4);
+    eprintln!("checked {checked} initial-format crash images without recovery writes");
+}
+
+#[test]
 fn every_crash_point_recovers_to_before_or_after() {
-    // Reference run: durable images and tables after each step.
+    // Document recovery starts after durable format identification; see the
+    // separate exhaustive first-format test above.
     let mut disk = SimDisk::new();
+    table::write_format_marker(&mut disk).unwrap();
+    disk.flush().unwrap();
     let mut service = Service::new(EPOCH, Table::EMPTY, false);
     let mut images = vec![disk.settled()];
     let mut tables = vec![Table::EMPTY];
@@ -292,8 +351,9 @@ fn every_crash_point_recovers_to_before_or_after() {
             let suffix = pending.saturating_sub(table::TABLE_SECTORS_USIZE);
             images.push((usize::MAX - 9999, None, disk.crash_subset(|i| i >= suffix)));
             for (keep, tear, image) in images {
-                let recovered = common::recover(image.clone())
-                    .unwrap_or_else(|e| panic!("step {index} crash {crash} keep {keep}: {e:?}"));
+                let recovered = common::recover(image.clone()).unwrap_or_else(|e| {
+                    panic!("step {index} crash {crash} keep {keep} tear {tear:?}: {e:?}")
+                });
                 assert!(
                     recovered == tables[index] || recovered == tables[index + 1],
                     "step {index} {step:?} crash {crash} keep {keep} tear {tear:?}: generation {}",
@@ -305,6 +365,9 @@ fn every_crash_point_recovers_to_before_or_after() {
         }
     }
     assert!(checked > 2000, "only {checked} crash images checked");
+    eprintln!(
+        "checked {checked} document crash images with before/after and retained-content assertions"
+    );
 }
 
 #[test]

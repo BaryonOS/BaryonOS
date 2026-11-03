@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`c826225c`](https://github.com/simonvanieperen/nieuw-os/commit/c826225cc2aec5161772145f0a8f3a6ae37fa95d) ·
+**Bron:** [`1f4dd49d`](https://github.com/simonvanieperen/nieuw-os/commit/1f4dd49dfac89ce55951881cd63f4ab89a2c92e6) ·
 **Ontwikkelbranch:** `copilot/add-os-specialist-agents`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR150: integreer actuele main 8e0c15d8 en behoud bronhistorie.
-41/100 blijft 41/100. PR150-head c826225c is geïntegreerd met main 8e0c15d8; specialistprofielen, PR149-UI-wijzigingen, main's gedeelde toolingwijzigingen en PR142-documentatie/bewijs blijven behouden. Het snapshotregister bewaart unieke historische records van beide kanten. Rubric en criteria zijn ongewijzigd; geen nieuwe OS-acceptatie.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR150: integreer actuele main d686bd54 en behoud beide wijzigingsreeksen.
+41/100 blijft 41/100. PR150-head 1f4dd49d is geïntegreerd met main d686bd54; PR148-volume-admissie en PR150-inhoud blijven behouden. Rubric en criteria zijn ongewijzigd; geen nieuwe OS-acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
