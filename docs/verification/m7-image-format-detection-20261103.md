@@ -2,8 +2,8 @@
 
 **Status:** beperkte codec-/dispatcherhostslice, geen volledige
 file-interoperability.
-**Basis:** `7ec76b727d758057c6ee8f6ee4007a025162cb0d`; codevingerafdrukken
-hieronder binden de nog niet in deze basis opgenomen wijzigingen.
+**Implementatiecommit:** `c2c9b64ba5c8f234b9f2ef1a93cec08f4c569172`.
+**Ouder:** `7ec76b727d758057c6ee8f6ee4007a025162cb0d`.
 
 The existing image decoder now exposes PNG/JPEG signature detection and MIME
 labels, and uses that detector for decoder dispatch. A signature is only a
