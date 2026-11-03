@@ -43,23 +43,26 @@ eigen-kernelbuild exit 0; volledige `run_window_session.py --clipboard --workspa
 exit 0, 31 fasen, 254,22 s, ruwe QEMU-exit 33. Lezen, geweigerde bewerking,
 hersteld Schrijven en de oorspronkelijke volledige herstel-/schijfketen slagen.
 [Brongebonden bewijs](verification/veld-tools-20261103/README.md).
-**Schaal2-harnas geïmplementeerd, native nog open:** runner, echte app-/shellorakels,
+**Schaal2-harnas native geverifieerd:** runner, echte app-/shellorakels,
 manifestvalidatie en QMP-coordinaten ondersteunen nu ook1920x1080/200%.
 Nieuwe kernel-feature combineert alleen de twee bestaande hidpi-/probefeatures.
 14 runnertegenvoorbeelden, 21 packagertests en 61 compositorhosttests slagen.
 Log `files/veld-env/logs/veld-hidpi-host.log`. De volledige native200%-gate
-is bij dit checkpoint nog **niet uitgevoerd**. Geen 100%-bewijs omgelabeld.
+is nu uitgevoerd op `48655bce7ccf2ac707ee77de8014ebc4029c1b89`:
+36 fasen, 469,36 s, exit0, ruwe QEMU-exit33; alle gateflags true,
+1920x1080/200%. Geen 100%-bewijs omgelabeld.
 CI heeft beide schalen; er is nog geen nieuwe CI-uitvoering geclaimd.
 Eerste hidpi-poging op `a95a8b97`: build exit0 (11,40 s), runner exit1
 vóór VM-start door een niet-ge-escapete `%` in argparse-help onder Python3.14.
 Helptekst hersteld met `%%` en een echte CLI-helptest toegevoegd.
-Geen native200%-succes geclaimd; herbouw en herhaling volgen.
+Herbouw en volledige herhaling slagen na die reparatie.
+[Brongebonden 200%-bewijs](verification/veld-hidpi-20261103/README.md).
 
-Volgende stap: nieuwe hidpi-probebuild en dezelfde volledige gate met
-`--clipboard --workspace --scale 2`, daarna documentcontextmenu integreren.
-Agent `e9f601e4` bouwt dat menu in aparte worktree, uitsluitend native
-controller/render en bijbehorende hosttests; hoofdagent beheert runner en
-fixtures. De complete omgeving blijft actief. Score **41 -> 41**;
+Volgende stap: documentcontextmenu `e873ebe0e86391118903260e136b1ea1016a20e1`
+integreren, echte apporakels en native bediening toevoegen op beide schalen.
+Agent `e9f601e4` heeft dat menu in aparte worktree opgeleverd; hosttests
+slagen, native nog niet getest. Hoofdagent beheert runner en fixtures.
+De complete omgeving blijft actief. Score **41 -> 41**;
 geen U02–U06-, fysieke, menselijke of releaseacceptatie.
 
 ## Vorig checkpoint — eerste native Veld-stap geverifieerd — 3 november 2026

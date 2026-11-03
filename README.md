@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`a95a8b97`](https://github.com/simonvanieperen/nieuw-os/commit/a95a8b97ce96a5dd5aa3d793c9e5829d11ae40eb) ·
+**Bron:** [`48655bce`](https://github.com/simonvanieperen/nieuw-os/commit/48655bce7ccf2ac707ee77de8014ebc4029c1b89) ·
 **Ontwikkelbranch:** `simonvanieperen-fictional-disco`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Veld-03: native 200%-gate en echt documentcontextmenu.
-41% blijft 41%: bron0c66173b heeft36 native100%-fasen voor gereedschappen, venstertoestanden en onverkorte isolatie-/klembord-/herstel-/schijfketen. Het native200%-profiel bouwt op a95a8b97, maar de runner faalde voor VM-start op argparse-help onder Python3.14; de helptekst is hersteld met een echte CLI-tegenproef.15 runnertests,21 packagertests en61 compositorhosttests slagen. Nog geen native200%-succes. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Documentcontextmenu, complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open.
+41% blijft 41%: bron48655bce heeft36 volledige native200%-fasen op1920x1080, exit0, naast eerder native100%-bewijs op0c66173b. Gereedschappen, venstertoestanden en onverkorte isolatie-/klembord-/herstel-/schijfketen slagen. Eerste CLI-fout op a95a8b97 apart bewaard en na reparatie volledig herhaald. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Documentcontextmenu, complete Veld-omgeving, afzonderlijke procesgebonden toolwisseling, U02-U06, fysieke/menselijke acceptatie en release blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
