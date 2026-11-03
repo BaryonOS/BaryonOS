@@ -1,6 +1,6 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Veld-code en hostcheckpoint, native controle volgt — 3 november 2026
+## NEXT AGENT HANDOFF — eerste Veld-VM-keten geslaagd, gedeelde rollen afronden — 3 november 2026
 
 **Basis:** `d6f8e98178d73d6aeda0abe84ca404dfde03123c`,
 branch `simonvanieperen-fictional-disco`. De expliciete vervolgopdracht
@@ -23,24 +23,24 @@ Exacte commando's, fouten en grenzen:
 herkenbare acties en lokale zoekaliassen zijn relevant. Geen merge,
 overgenomen testresultaten of vermenging met die onderzoeksbranch.
 
-**Open/eerstvolgend:** native build op `093d26eb` exit 0. De echte uitgebreide
-QEMU-gate liep door werkfocus/Finderselectie en documentinvoer, maar faalde
-op een niet-stabiele beginbeeldbasis na de nieuwe focusacties. De runner wacht
-nu exact op volledige chrome plus Materiaal en bewaart daarna dezelfde
-volledige buiten-appisolatievergelijking. Hosthercontrole exit 0;
-de gehele native herkansing is nog verplicht en niet als geslaagd geteld.
-De tweede VM-poging op `3de934dd` passeerde appisolatie en de klembordketen,
-maar de onverzwakte verplaatsingsoracle vond een echte invoerregressie:
-onnodige Resync van alle apps veranderde de calculatorcaret. De test is
-gericht gestopt; layout/mode annuleert nu alleen een aanwezige appmuiscapture.
-De volledige nieuwe herkansing blijft open.
-Een volgende poging op `1915d510` publiceerde geen nieuwe F7-inputteller
-en eindigde exit 1. De latere diagnose met gewone Enter versus F7 en
-afzonderlijke keyedges vond de echte observatiefout: de opt-in kernelproef
-triggerde snapshots niet op shell-only input. Nu is de reeds bestaande
-inputteller aan die uitsluitend diagnostische trigger toegevoegd.
-Geen nieuwe velden of productkernel-/rechtenwijziging. Shellinvoer observeert
-press/release afzonderlijk met 30 s-ontvangstgrens, zonder herinjectie.
+**Native resultaat:** `52aa1885445b8a2de1f52024adb7abd64de1ab5a`,
+source-SHA-256 `c63a4d7a7cdde0998e6d0b8e91eaf65706e57181cd27055b99e193f262aa0c24`:
+volledige QEMU-gate met `--clipboard --workspace` exit 0, 28 fasen,
+241,63 s, ruwe QEMU-exit 33. Werkfocus, Finderselectie, exacte appisolatie,
+ongemaskerde verplaatsing, ordening, echte compositorfault/rebind, behouden
+draft/berekening, klembordleegte na herstel, bewaren/heropenen, onafhankelijke
+schijforacle en cleanup slagen. Geen eerder mislukte poging wordt groen geteld.
+De probe-snapshottrigger volgt nu ook shell-only input; geen nieuwe velden
+of productkernel-/rechtenwijziging. De echte caretregressie is hersteld zonder
+de verplaatsingsoracle af te zwakken.
+
+**Open/eerstvolgend:** controle van gedeelde afnemers vond daarnaast oude
+lichte Home-tekst in de afzonderlijke native gast/sessiepreview. Die gebruikt
+nu gedeelde tekstrollen; graphics toetst alle 256 statische verloopstappen
+op 4,5:1. De vijf relevante hosttest-/Clippy-/fmt-routes slagen opnieuw.
+Omdat deze bronwijziging de fingerprint verandert, volgt nog een volledige
+verse native build/gate op de definitieve bron. Het vorige VM-resultaat wordt
+niet stilzwijgend aan deze nieuwe bron toegeschreven.
 Gebruik lokale genegeerde build-/targetmappen; een externe artifactmap wordt
 terecht door de bestaande guard geweigerd. De volledige gate blijft
 verplicht naast bestaande volledige appbeeld-, isolatie-, echte crash/herstel-,

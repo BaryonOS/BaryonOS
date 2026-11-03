@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`3de934dd`](https://github.com/simonvanieperen/nieuw-os/commit/3de934dd91a6e2b078f4435ca4724e211406a7c0) ·
+**Bron:** [`52aa1885`](https://github.com/simonvanieperen/nieuw-os/commit/52aa1885445b8a2de1f52024adb7abd64de1ab5a) ·
 **Ontwikkelbranch:** `simonvanieperen-fictional-disco`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Eerste native Veld-stap: gedeelde visuele rollen, werkfocus, ordening en lokale zoekaliassen.
-41% blijft 41%: eerste native Veld-code en hostchecks zijn bewaard. De echte VM vindt en begrenst een caretregressie; alleen aanwezige appmuiscapture wordt nu geannuleerd. Herhaling ontmaskert daarna een observatiefout: de opt-in kernelproef publiceert geen nieuwe snapshot bij shell-only input zonder appframecommit. De bestaande inputteller triggert nu ook die diagnostiek; press/release worden afzonderlijk waargenomen. Geen nieuwe logvelden, productkernelbeleid, rechten, dependencies, criteriumstatussen of historische bewijzen veranderd. Volledige native herkansing, volledig Veld, U02-U06, fysieke/menselijke beoordeling en release blijven open.
+41% blijft 41%: de onverkorte native Veld-/klembordgate op 52aa1885 slaagt met 28 fasen, echte crash/herstelketen, ongewijzigde appisolatie-/verplaatsingsorakels, bewaren/heropenen, schijfcontrole en cleanup. De caretregressie en opt-in snapshot-observatie zijn hersteld zonder rechtenverruiming of zwakkere pixelcontrole. Gedeelde Home-tekstrollen zijn daarna nog aangescherpt met contrastcontrole over alle 256 verloopstappen; hostchecks slagen en de definitieve native bronherhaling volgt. Geen criteriumstatus, gewicht of historisch bewijs gewijzigd. Volledig Veld, U02-U06, fysieke/menselijke beoordeling en release blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

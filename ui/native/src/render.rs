@@ -1510,16 +1510,21 @@ impl Paint<'_> {
             }
             Page::Home | Page::Search | Page::Material => {
                 if desktop.page() == Page::Home {
-                    self.title_color(32, if compact { 6 } else { 48 }, "Je werkruimte", 0xf6fbff);
+                    self.title_color(
+                        32,
+                        if compact { 6 } else { 48 },
+                        "Je werkruimte",
+                        d::DESKTOP_TEXT,
+                    );
                     if !compact {
                         self.label(
                             32,
                             106,
                             "Open je documenten of zoek een programma.",
-                            0xb8cbd6,
+                            d::MUTED,
                         );
                     }
-                    self.small(w.saturating_sub(140), 16, "Gast · VM-test", 0xd7e5ec);
+                    self.small(w.saturating_sub(140), 16, "Gast · VM-test", d::DESKTOP_TEXT);
                 } else {
                     let panel_width = w.saturating_sub(48).min(620);
                     let top = if compact { 40 } else { 132 };

@@ -117,3 +117,28 @@ fn glyphs_and_vectors_have_real_intermediate_coverage() {
     assert!(pixels.iter().any(|p| *p > 0 && *p < 0xffffff));
     assert!(pixels.iter().filter(|p| **p != 0).count() > 100);
 }
+
+#[test]
+fn shared_shell_text_meets_contrast_through_the_entire_static_gradient() {
+    use nieuw_os_graphics::{blend, theme};
+    fn luminance(color: u32) -> f64 {
+        let linear = |shift: u32| {
+            let c = f64::from((color >> shift) & 255u32) / 255.0;
+            if c <= 0.04045 {
+                c / 12.92
+            } else {
+                ((c + 0.055) / 1.055).powf(2.4)
+            }
+        };
+        0.2126 * linear(16) + 0.7152 * linear(8) + 0.0722 * linear(0)
+    }
+    let p = theme::MATERIAAL;
+    for alpha in 0..=255 {
+        let background = blend(p.desktop_end, p.desktop_start, alpha);
+        for foreground in [theme::SHELL_TEXT, theme::SHELL_MUTED] {
+            let a = luminance(foreground);
+            let b = luminance(background);
+            assert!((a.max(b) + 0.05) / (a.min(b) + 0.05) >= 4.5);
+        }
+    }
+}

@@ -97,6 +97,23 @@ gedrag toegevoegd. De shell-injector observeert echte press en release apart,
 zonder herhaling of willekeurige keyhold als synchronisatie. De volledige
 native herkansing moet dit samen met de originele regressiepoort toetsen.
 
+**Geslaagde VM-bron:** `52aa1885445b8a2de1f52024adb7abd64de1ab5a`,
+source-SHA-256 `c63a4d7a7cdde0998e6d0b8e91eaf65706e57181cd27055b99e193f262aa0c24`.
+De onverkorte `--clipboard --workspace`-gate geeft exit 0: 28 fasen in
+241,63 s, ruwe QEMU-exit 33, echte compositorcrash en nieuwe procesidentiteit/
+epochs, bewaarde draft en berekening, werkfocus/Finder/ordening, volledige
+appbeelden en buiten-appisolatie, klembordketen en onafhankelijke diskcontrole.
+Disk: revisie 1, 14 bytes, SHA-256
+`9a45a00fa9ff69c17e124f54c14bb14cf2c7650e8cf1c272f6631f618a19a5a5`;
+canaries intact. Logs: `veld-native-{build,gate}-observed.log`.
+
+De gedeelde-afnemercontrole vond daarna drie oude lichte Home-tekstkleuren
+in de afzonderlijke gast/sessiepreview. Deze zijn vervangen door dezelfde
+tekstrollen; een nieuwe hosttest controleert 4,5:1 over alle 256 verloopstappen.
+Vijf relevante test-/Clippy-/fmt-routes slagen opnieuw. Die bronwijziging
+krijgt nog een eigen volledige VM-herhaling; het bovenstaande bronbewijs
+wordt niet zonder herbouw aan een gewijzigde fingerprint gekoppeld.
+
 De eerste buildpoging naar de artifactmap buiten de checkout is terecht
 geweigerd (exit 1, `FPU artifact escaped checkout`). Geen guard aangepast;
 de build gebruikt daarna de genegeerde lokale mappen
