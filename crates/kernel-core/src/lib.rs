@@ -43,6 +43,10 @@ pub struct Range {
     pub end: u64,
 }
 impl Range {
+    /// Build a non-empty, page-aligned half-open range from a starting address.
+    ///
+    /// Returns [`Error::Range`] if the address is unaligned, the page count is
+    /// zero, or either multiplication or addition overflows.
     pub fn pages(start: u64, pages: u64) -> Result<Self, Error> {
         let end = start
             .checked_add(pages.checked_mul(PAGE).ok_or(Error::Range)?)
@@ -52,6 +56,8 @@ impl Range {
         }
         Ok(Self { start, end })
     }
+
+    /// Return whether these half-open physical-address ranges intersect.
     pub fn overlaps(self, other: Self) -> bool {
         self.start < other.end && other.start < self.end
     }
@@ -78,6 +84,7 @@ impl<const N: usize> Default for Frames<N> {
     }
 }
 impl<const N: usize> Frames<N> {
+    /// Create a pool in which every page is reserved and has no tracked aliases.
     pub const fn new() -> Self {
         Self {
             owners: [Owner::Reserved; N],
@@ -103,9 +110,17 @@ impl<const N: usize> Frames<N> {
             }
         }
     }
+
+    /// Return the recorded owner of one page-aligned address in the pool.
     pub fn owner(&self, address: u64) -> Result<Owner, Error> {
         Ok(self.owners[self.index(address)?])
     }
+
+    /// Mark every page start in `range` as kernel-owned.
+    ///
+    /// Call with a page-aligned range inside this pool, normally constructed by
+    /// [`Range::pages`]. All selected pages must still be reserved; validation
+    /// completes before any ownership metadata is changed.
     pub fn retain_kernel(&mut self, range: Range) -> Result<(), Error> {
         for address in (range.start..range.end).step_by(PAGE as usize) {
             let i = self.index(address)?;
@@ -124,6 +139,14 @@ impl<const N: usize> Frames<N> {
         }
         Ok((address / PAGE) as usize)
     }
+
+    /// Allocate the first free page for `owner` and zero it before publishing
+    /// the ownership change.
+    ///
+    /// `owner` cannot be [`Owner::Free`] or [`Owner::Reserved`], and a user
+    /// owner must have a nonzero process ID and remain within [`USER_QUOTA`].
+    /// The callback must zero exactly the supplied unpublished page and return
+    /// normally; it is called only after the request passes resource checks.
     pub fn allocate(&mut self, owner: Owner, mut zero: impl FnMut(u64)) -> Result<u64, Error> {
         if matches!(owner, Owner::Free | Owner::Reserved) {
             return Err(Error::Owner);
@@ -214,6 +237,11 @@ impl<const N: usize> Frames<N> {
         }
         Ok(())
     }
+
+    /// Zero and release a page owned by `owner`.
+    ///
+    /// A page with any tracked mapping cannot be freed. The callback must zero
+    /// exactly the supplied page and return normally before it becomes free.
     pub fn free(
         &mut self,
         address: u64,
@@ -231,6 +259,11 @@ impl<const N: usize> Frames<N> {
         self.owners[i] = Owner::Free;
         Ok(())
     }
+
+    /// Record one physical alias and enforce the pool's owner and W^X policy.
+    ///
+    /// This updates metadata only; the caller remains responsible for creating
+    /// the corresponding page-table entry and coordinating TLB invalidation.
     pub fn map(
         &mut self,
         address: u64,
@@ -257,6 +290,8 @@ impl<const N: usize> Frames<N> {
         Ok(())
     }
     /// Caller must clear the PTE and invalidate its TLB entry BEFORE releasing metadata.
+    /// The requested alias class must match an existing mapping; invalid
+    /// removals leave the recorded alias counts unchanged.
     pub fn unmap(&mut self, address: u64, writable: bool, executable: bool) -> Result<(), Error> {
         let i = self.index(address)?;
         let a = self.aliases[i];
@@ -286,6 +321,8 @@ impl<const N: usize> Frames<N> {
         self.aliases[i] = candidate;
         Ok(())
     }
+
+    /// Return the tracked writable, executable, and total alias counts.
     pub fn alias(&self, address: u64) -> Result<Alias, Error> {
         Ok(self.aliases[self.index(address)?])
     }

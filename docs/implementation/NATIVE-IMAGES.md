@@ -84,12 +84,24 @@ niet tot productbeleid verheven; grote foto's blijven een expliciete producteis.
 | Profiel | Werkelijk getoetst / huidige grens |
 |---|---|
 | PNG | RGB8, RGBA8/transparantie, palette4+tRNS, grayscale1, gray-alpha8, Adam7RGB8 en RGBA16 met exact behoud van samples. Geen claim dat alle bitdiepte-/kleuren-/metadata-combinaties afgetekend zijn. |
-| JPEG | Huffman baselineRGB4:4:4, progressiveYCbCr4:2:0 en grayscale8; pixels worden werkelijk gedecodeerd. De oorspronkelijke progressive-kwaliteitsfout is hieronder rood→groen bewezen, zonder drempelwijziging. |
+| JPEG | Huffman baselineRGB4:4:4, progressiveYCbCr4:2:0 en grayscale8; pixels worden werkelijk gedecodeerd. Geldige EXIF-orientatie 1–8 stuurt de displaypixels van `rgba8_into`; zie de metadataregel. De oorspronkelijke progressive-kwaliteitsfout is hieronder rood→groen bewezen, zonder drempelwijziging. |
 | Nog open | PNG2/andere combinaties, APNG-compositie/animatie, CMYK/YCCK, arithmetic/lossless/high-precisionJPEG, DRI/APP14 en verdere corpusdekking. `UnsupportedAnimation/Color/Precision` is een expliciete implementatiegrens, geen verborgen hardwaretoestand. |
-| Metadata | Originele bytes inclusief EXIF/ICC blijven onveranderd. EXIF-oriëntatie en ICC/gamma-kleurbeheer worden **nog niet toegepast**; `metadata_transforms_applied=false`. Zoom/pan/export/editor moeten dit later werkelijk integreren. |
+| Metadata | Originele bytes inclusief EXIF/ICC en ruwe decoderpixels blijven onveranderd; bronafmetingen en `pixel_hash` blijven in decoderorde. Voor JPEG past `rgba8_into` geldige EXIF-orientatie 1–8 toe op de displaypixels en -afmetingen. Een EXIF-APP1-payload groter dan `Limits::metadata_bytes` weigert het beeld met `Error::MetadataLimit`, zonder terugval naar ontbrekende orientatie. Ongeldige EXIF-structuur of -waarden worden genegeerd (geen orientatie). `metadata_transforms_applied=false` beschrijft de ruwe samples; ICC/gamma-kleurbeheer en PNG eXIf blijven buiten scope. De EXIF-tag volgt CIPA DC-008-2012, *Exchangeable image file format for digital still cameras: Exif Version 2.3* ([primaire specificatie](https://www.cipa.jp/std/documents/e/DC-008-2012_E.pdf)). Zoom/pan/export/editor moeten dit later werkelijk integreren. |
 | Annulering | Vooraf/PNG-chunkgrenzen/na decode; JPEG heeft daarnaast de echte upstream MCU-checkhook. Native proef toetst vooraf annuleren, geen gemeten mid-decode-annuleringslatentie. PNG-mid-decode vereist nog procesannulering of onderhouden incremental pad. |
 
 ## Stackgrens en eigen arena
+
+**Implementatie:** Nieuw OS, *image-viewer: render_tile*, versie
+`d269f9b4` (3 november 2026), tekent nog de ruwe decoderpixels
+([primaire rendererbron](https://github.com/simonvanieperen/nieuw-os/blob/d269f9b45a54576b39629b36de94f9cdbb9f6f71/sdk/examples/image-viewer/src/lib.rs)).
+EXIF-correctie in `rgba8_into` bewijst daarom geen georienteerde viewer of
+native gebruikersflow.
+
+**Testbewijs:** Nieuw OS, *viewer-fixture en kleine image-integratieslice*,
+versie `d269f9b4` (3 november 2026): de fixture is voor de nieuwe
+`Image`-velden bijgewerkt en afzonderlijk meegetest
+([primaire testbron](https://github.com/simonvanieperen/nieuw-os/blob/d269f9b45a54576b39629b36de94f9cdbb9f6f71/sdk/examples/image-viewer/tests/viewer.rs),
+[commando's en resultaten](https://github.com/simonvanieperen/nieuw-os/blob/d269f9b45a54576b39629b36de94f9cdbb9f6f71/docs/verification/integration-sprint-20261103-image.md)).
 
 Een eerste instructiescreen zag alleen losse stackaanpassingen tot4KiB. Dat
 was onvoldoende: het werkelijke decoderframe reserveerde cumulatief30760bytes.

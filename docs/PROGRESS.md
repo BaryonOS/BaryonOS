@@ -1,5 +1,11 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+PR138-integratie met main `d686bd54` op basis `fc3b5e25`: **41 → 41/100**.
+Alleen het statusconflict is handmatig opgelost; beide geschiedenissen en
+brongebonden receipts blijven behouden. Geen nieuw acceptatiecriterium,
+gewijzigd gewicht of nieuwe native acceptatie. Gerichte controles van de
+opgeloste boom staan in PROJECT-STATE.md; nieuwe-head CI blijft afzonderlijk.
+
 De actieve volledige releaseopdracht en productacceptatie staan in
 [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft
 de ontwikkelmeter; het vervangt de conjunctieve releaseacceptatie niet.
@@ -91,36 +97,23 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
-Driver-/repositoryonderzoek (3 november 2026), basis `99d13276`:
-**41 -> 41**. Ginux `c86945b`, VibeOS `866bfb9` en vib-OS `73b6429`
-vergeleken met de bestaande Nieuw OS-drivercontracten en primaire Linux-,
-VirtIO- en UEFI-documentatie. Geen codeport, native/hardwaretest of nieuw
-acceptatiebewijs; H01 blijft het enige geaccepteerde hardwarecriterium en de
-volledige FR-H01/02/03-releasegates blijven open. Zie
-[het driveronderzoek](research/2026-11-03/os-repos-and-hardware-drivers.md).
-`python3 tools/progress.py --write`, `--check` en `git diff --check` slaagden;
-geen OS-build of hardwaretest uitgevoerd.
+<!-- coderabbit-ai-generated:v1 -->
 
-Vervolgonderzoek op door de gebruiker genoemde repositories (3 november 2026),
-assessmentbasis `9e13e7be`: **41 -> 41**. ODI `ef58952` biedt een C-framework
-en enkele drivers waarvoor OS-bindingen geporteerd moeten worden;
-`device-driver` `036fb18` genereert register-/commandocode in Rust maar is
-geen volledige bus-/DMA-/interruptdriver. Geen dependency, port, build of
-hardwaretest; de volledige hardwaregates blijven open. Nadere beoordeling en
-bronbinding staan in het [driveronderzoek](research/2026-11-03/os-repos-and-hardware-drivers.md).
-`python3 tools/progress.py --write`, `--check` en `git diff --check` zijn de
-documentcontroles; native OS-tests zijn niet uitgevoerd.
+<!-- coderabbit-ai-generated-section:v1:ab73c9e98b6e8e4f98c9394ee7fc9b7f34e8e2a2808b0067c5965ffb55c55446 -->
 
-Vervolgonderzoek naar de [rust-osdev-organisatie](https://github.com/rust-osdev)
-(3 november 2026), assessmentbasis `47cc895b`: **41 -> 41**. ACPI-, PCI-,
-xHCI- en USB-repositories leveren bruikbare parser-/type-/registerbouwstenen,
-maar geen geïntegreerde, capability-begrensde drivers. `virtio-spec-rs` is
-specificatiedefinitie, geen driver. De concrete `uart_16550`-driver 0.9.0
-vereist Rust 1.91.0 en past niet bij onze 1.90.0-pin. Geen crate toegevoegd,
-gebouwd of op hardware getest; geen nieuw acceptatiebewijs. Zie het
-[driveronderzoek](research/2026-11-03/os-repos-and-hardware-drivers.md).
-`python3 tools/progress.py --write`, `--check` en `git diff --check` zijn de
-uitgevoerde documentcontroles.
+PR148-integratie (3 november 2026), PR-bron `47ec535f` met main `8e0c15d8`,
+merge `7412d0bb`: **41 → 41**. De drie documentconflicten zijn opgelost met
+behoud van beide bewijsreeksen; gedeelde harnashulpfuncties komen uit main en
+volume-admissie uit PR148. Geen nieuw criterium of native acceptatie.
+
+De integratiereview staat **open**: de handoff meldt gerichte controles met
+uitvoer alleen in het sessietranscript; afzonderlijk brongebonden bewijs van
+de review ontbreekt in de checkout. De eerdere PR148-hostreceipts zijn geen
+bewijs voor deze integratiereview. De `reviewed_commit` `cc1dea7` in
+`progress.json` hoort bij de historische documentatiereview; nieuwe-head CI en
+review moeten nog worden beoordeeld. Zie [de handoff](PROJECT-STATE.md).
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 PR149 bronbewijsvervolg (3 november 2026), schone bron `bb8877e3`:
 59 hosttests echt opnieuw exit0 met cwd/HEAD/status/lock-/Rust-hashes vóór/na
@@ -259,6 +252,14 @@ behouden, onveilige historische entrypoints afgeschermd en7 negatieve
 hosttests groen. Volledige engine-/native replay blijft open; geen
 backendadoptie, nieuw productcriterium of veiligheidspercentage.
 
+Geïntegreerde mainstand (3 november 2026), bron
+`380111b68688c981eec6abb8fab29174a29f5601`: **41% → 41%** voor deze
+documentatietaak; geen criterium of gewicht gewijzigd. De exacte commit heeft
+28/28 geslaagde GitHub-checkruns, waaronder de actuele native venstersessie en
+de gecontroleerde native netwerkdienst. De wijzigingen documenteren bestaand
+gedrag en voegen geen productbewijs of rubricpunten toe. Fysieke hardware,
+Windows-runtime, menselijke audit en volledige testrelease blijven open.
+
 PR114-metadataverwijzing (2 november 2026), bron `52e1909c`: **41 -> 41**.
 De contractverwijzing noemt nu de echte fixbron `68d427b`, niet haar ouder
 `c1d62d83`; het actuele assessment verwijst naar de volledige gecombineerde
@@ -286,6 +287,7 @@ Vóór het status-/metercheckpoint was de opgeloste boom bytegelijk aan main.
 slagen. Strikte preflight faalt wegens ontbrekende Rust-/native-/QEMU-/OVMF-tools;
 native uitvoering en Rust-format/lint zijn niet uitgevoerd. Nieuwe-head CI
 blijft vereist. Geen nieuw geaccepteerd criterium of productpunt.
+
 PR127-reviewintegratie (2 november 2026), basis `798706c` met `8f08db4`:
 branch **41 → 41**, main **34 → 34**. Zeven reviewpunten en gekoppelde
 font/damage-integratie hersteld; 189 Rust-app/UI-,9 netwerk- en31 Python-tests

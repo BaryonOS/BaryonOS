@@ -57,10 +57,14 @@ fn image(width: usize, height: usize, pixels: Pixels) -> Image<'static> {
         format: Format::Png,
         width,
         height,
+        display_width: width,
+        display_height: height,
+        orientation: None,
         pixels,
         has_exif: true,
         has_icc: true,
         metadata_transforms_applied: false,
+        icc_color_transform_applied: false,
     }
 }
 fn mouse(x: u32, y: u32, down: bool, changed: bool) -> Event {

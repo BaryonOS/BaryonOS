@@ -3,11 +3,22 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "47cc895b4de6bfde02f294399ebc777c67575d24",
-    "branch": "simonvanieperen-ideal-lamp",
-    "task": "Beoordeling rust-osdev-bibliotheken voor hardwaredrivers",
+    "source_commit": "fc3b5e2522e04f636bdb443299da6e8f99161afe",
+    "assessment_basis": "source_commit",
+    "reviewed_commit": "cc1dea7eeeae01448a378ee422837b0438ecc7b5",
+    "reviewed_commit_context": "Historische review van de PR148-documentatiestatus en reikwijdte van hostbewijs; geen integratiereview.",
+    "integration_review": {
+      "status": "open",
+      "source_commit": "47ec535f15bb10912dbc6cbf1af3de9df0c6c226",
+      "main_commit": "8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2",
+      "merge_commit": "7412d0bb4b8ef2d146fc5b942bec8d6f370470e5",
+      "evidence_basis": "Git-mergeouders en handoff in docs/PROJECT-STATE.md; gerichte integratietests zijn daar gemeld met uitvoer uitsluitend in het sessietranscript. De eerdere PR148-hostreceipts zijn geen integratiereviewbewijs.",
+      "missing_evidence": "Afzonderlijk, brongebonden bewijs van de integratiereview ontbreekt; nieuwe-head CI en review moeten nog worden beoordeeld."
+    },
+    "branch": "simonvanieperen-laughing-fortnight",
+    "task": "PR138: statusconflict met main d686bd54 inhoudsbehoudend integreren",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Beoordeeld zijn rust-osdev/acpi, pci_types, xhci, usb, uart_16550 en virtio-spec-rs op vastgezette bronversies. ACPI/PCI/XHCI/USB leveren parser-, type- of registerbouwstenen, geen complete geïsoleerde drivers; virtio-spec-rs zijn definities en geen driver. uart_16550 is wel een echte no_std-driver, maar upstream 0.9.0 vereist Rust 1.91.0 tegenover onze 1.90.0-pin. Geen code/dependency toegevoegd of tests voor deze externe crates uitgevoerd. Volledige vergelijking en grenzen staan in docs/research/2026-11-03/os-repos-and-hardware-drivers.md."
+    "summary": "41/100 blijft 41/100. Eén statusconflict met main d686bd54 is inhoudsbehoudend opgelost; beide checkpointgeschiedenissen en hun brongebonden bewijs blijven behouden. Code is automatisch samengevoegd zonder handmatige runtimewijziging. De integration_review-velden beschrijven uitsluitend de historische PR148-integratie, niet deze PR138-boom. Geen nieuw criterium of native acceptatie. Gerichte integratievalidatie en nieuwe-head CI worden afzonderlijk gerapporteerd."
   },
   "tracks": [
     {

@@ -9,7 +9,8 @@ import shutil
 import stat
 import uuid
 
-from common import ROOT, BUILD, TARGET, environment, qemu_machine, run_logged, save_json, sha256, source_hash
+from common import (ROOT, BUILD, TARGET, environment, qemu_machine, regular_files_below, run_logged, save_json,
+                    sha256, source_hash)
 from build_users import inspect_user
 from run import run_guest
 
@@ -174,11 +175,8 @@ def validate_build(build: Path, frozen: str) -> dict:
     for name, value in expected.items():
         if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value) or sha256(private_path(build / name, regular=True)) != value:
             raise ValueError("Kernel or loader hash mismatch")
-    files = set()
-    for path in (build / "esp").rglob("*"):
-        private_path(path)
-        if path.is_file():
-            files.add(path.relative_to(build).as_posix())
+    files = {path.relative_to(build).as_posix()
+             for path in regular_files_below(build / "esp", validate_path=private_path)}
     if files != set(expected):
         raise ValueError("Unexpected ESP artifact")
     return {"manifest": manifest, "expected": expected, "artifact": artifact}

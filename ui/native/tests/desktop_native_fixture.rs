@@ -84,6 +84,10 @@ fn render_native_session_walkthrough_oracle() {
             );
             ui.resize(Viewport::new(768, 536, Scale::Percent100, 1).unwrap())
                 .unwrap();
+            assert_eq!(
+                (ui.view().viewport.width(), ui.view().viewport.height()),
+                (768, 536)
+            );
             ui.enable_vm_desktop().unwrap();
             ui.refresh().unwrap();
             let mut sequence = 0;
