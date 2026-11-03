@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "9454d9c4585744e31eff65bae78ad5c5f86e7650",
+    "source_commit": "78283666d16ede06220f3666ddceea0978073465",
     "assessment_basis": "source_commit",
     "reviewed_commit": "cc1dea7eeeae01448a378ee422837b0438ecc7b5",
     "reviewed_commit_context": "Historische review van de PR148-documentatiestatus en reikwijdte van hostbewijs; geen integratiereview.",
@@ -16,9 +16,9 @@
       "missing_evidence": "Afzonderlijk, brongebonden bewijs van de integratiereview ontbreekt; nieuwe-head CI en review moeten nog worden beoordeeld."
     },
     "branch": "codex/volume-format-admission-20261102",
-    "task": "PR133: main 95d79451 integreren met behoud van projecthistorie",
+    "task": "PR133: main 78ff7c03 integreren met behoud van projecthistorie",
     "previous_score": 41,
-    "summary": "De 41/100-rubric blijft behouden; geen nieuwe punten. De documentconflicten met main 95d79451 zijn inhoudsbehoudend opgelost; beide checkpointgeschiedenissen en brongebonden bewijs zijn behouden. 78 core- en 49 window-session-hosttests, Clippy, formatting en de native-volume-cross-build slaagden. Er is geen QEMU- of native runtimeacceptatie."
+    "summary": "De vaste rubric blijft 41/100; geen criterium of bewijsstatus wijzigt. De documentconflicten met main 78ff7c03 zijn inhoudsbehoudend opgelost. Update-core/tool/harnas- en image-codec/viewer-tests, Clippy en cross-builds slagen; lokale native B03-QEMU-gate ontbreekt door ontbrekende QEMU/OVMF, dus geen nieuwe runtimeacceptatie."
   },
   "tracks": [
     {

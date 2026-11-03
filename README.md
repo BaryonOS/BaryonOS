@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`9454d9c4`](https://github.com/simonvanieperen/nieuw-os/commit/9454d9c4585744e31eff65bae78ad5c5f86e7650) ·
+**Bron:** [`78283666`](https://github.com/simonvanieperen/nieuw-os/commit/78283666d16ede06220f3666ddceea0978073465) ·
 **Ontwikkelbranch:** `codex/volume-format-admission-20261102`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR133: main 95d79451 integreren met behoud van projecthistorie.
-De 41/100-rubric blijft behouden; geen nieuwe punten. De documentconflicten met main 95d79451 zijn inhoudsbehoudend opgelost; beide checkpointgeschiedenissen en brongebonden bewijs zijn behouden. 78 core- en 49 window-session-hosttests, Clippy, formatting en de native-volume-cross-build slaagden. Er is geen QEMU- of native runtimeacceptatie.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR133: main 78ff7c03 integreren met behoud van projecthistorie.
+De vaste rubric blijft 41/100; geen criterium of bewijsstatus wijzigt. De documentconflicten met main 78ff7c03 zijn inhoudsbehoudend opgelost. Update-core/tool/harnas- en image-codec/viewer-tests, Clippy en cross-builds slagen; lokale native B03-QEMU-gate ontbreekt door ontbrekende QEMU/OVMF, dus geen nieuwe runtimeacceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

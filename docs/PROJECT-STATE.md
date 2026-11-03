@@ -1,32 +1,122 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR133 met main 95d79451 — 3 november 2026
+## NEXT AGENT HANDOFF — PR133 met main 78ff7c03 — 3 november 2026
 
-**Basis vóór integratie:** PR-head `9454d9c4585744e31eff65bae78ad5c5f86e7650`;
+**Bronnen vóór integratie:** PR-head `78283666d16ede06220f3666ddceea0978073465`;
+main `78ff7c03b015ad16fe665ae7df9fe239d078e08d`, branch
+`codex/volume-format-admission-20261102`; merge-base
+`95d7945110ce853a1b5827ec59f6115475691805`. README, PROJECT-STATE en
+progress assessment conflicteerden. Beide checkpointgeschiedenissen en
+brongebonden bewijs zijn behouden. De automatisch samengevoegde bestanden
+bevatten B03-ondertekenbeleid, image-codecwijzigingen en bijbehorende tests van
+main; er waren geen handmatige broncodeconflicten. Score blijft **41/100**.
+
+**Validatie op de opgeloste mergeboom:** update-core met TEST-policy: 13 tests;
+zonder TEST-policy: 7 tests; update-tool: 2 tests; Python-updateharnas:
+14 tests; image-codec: 23 tests; image-viewer: 15 tests — alle exit 0.
+`python3 -B sdk/examples/update/build.py` en de UEFI-testloader-cross-build
+met `signed-boot-test` slaagden. Clippy slaagde voor image-codec, image-viewer,
+update-core, update-tool, update-service en loader (met de eerder vastgelegde
+loader-lintuitzondering). De root-, loader-, update-tool- en update-service
+formatchecks slaagden; gerichte rustfmt-controle van de gewijzigde
+image-codec/viewer-bestanden slaagde. De bredere `cargo fmt --all`-controles
+voor die geïsoleerde workspaces stoppen op niet-gewijzigde, vendored
+`zune-jpeg`-bestanden; de vendorboom is identiek aan de PR-parent.
+
+`python3 -B tools/preflight.py --strict` eindigde met exit 2: QEMU en OVMF
+ontbreken. De volledige native B03-QEMU-gate is daarom niet uitgevoerd; dit
+checkpoint claimt geen nieuwe native-runtimeacceptatie. De eerdere native
+receipt blijft uitsluitend gebonden aan haar eigen broncommit.
+CodeQL meldde nul Python-alerts, maar time-outte voordat alle talen waren
+afgerond; op aanwijzing van de checker is deze analyse niet herhaald.
+`tools/progress.py --write` en `--check`, JSON-validatie en `git diff --check`
+slagen; voortgang blijft **41 → 41/100**.
+
+**Vervolg:** commit de opgeloste merge met twee ouders en publiceer; daarna
+laten we de checks op de nieuwe head afzonderlijk beoordelen.
+
+## Historisch checkpoint — PR158 met main 95d79451 — 3 november 2026
+
+**Bronnen:** PR-head `04d727c306d13e03a192d9d002a7d44348841c9f` en
+main `95d7945110ce853a1b5827ec59f6115475691805`, branch
+`fix/b03-test-anchors-guard`. De drie documentconflicten behouden de
+B03- en PR138-checkpointgeschiedenissen en hun brongebonden bewijs.
+De automatisch geïntegreerde Rust-wijzigingen uit main zijn uitsluitend
+commentaar; de B03-ondertekenpolicy blijft ongewijzigd.
+**41 → 41/100**; geen nieuw criterium, gewicht of native acceptatie.
+De historische PR148-integratiereviewvelden blijven expliciet historisch.
+
+**Validatie op de opgeloste boom:** 78 Rust-hosttests en 14 Python-harnastests
+geslaagd; gerichte Clippy en beide formatcontroles exit 0. De eerste
+parallelle Rust-commando's raakten een toolchain-downloadrace; na voltooide
+installatie en één herstel van ontbrekende rustfmt/Clippy zijn alle controles
+opnieuw geslaagd. Geen dependency of lockfile gewijzigd.
+Vergelijkingen bevestigen exact behoud van de B03-code uit de PR en van de
+drie gedocumenteerde Rust-bestanden uit main. Exacte commando's, logpaden,
+exitstatussen en hashes staan in
+[integratiebewijs](verification/pr158-main-integration-20261103.json).
+`tools/progress.py --write` en `--check` slagen; de SVG blijft bytegelijk.
+Native builds en QEMU niet herhaald voor deze documentintegratie.
+Oud testbewijs geldt niet automatisch voor deze integratie.
+
+**Vervolg:** na publicatie nieuwe-head CI laten beoordelen; geen oude
+CI-run herstarten. Productiesleutelbeleid en issue #41 blijven open.
+Eerstvolgende lokale controle: `python3 tools/progress.py --check`.
+
+## Historisch checkpoint — PR133 met main 95d79451 — 3 november 2026
+
+**Bron vóór integratie:** PR-head `9454d9c4585744e31eff65bae78ad5c5f86e7650`;
 main `95d7945110ce853a1b5827ec59f6115475691805`, branch
 `codex/volume-format-admission-20261102`; merge-base `a32eadb1`.
-Conflicten in README, PROJECT-STATE en progress assessment zijn
+Documentconflicten in README, PROJECT-STATE en progress assessment zijn
 inhoudsbehoudend opgelost; PR133- en PR138-historie en hun brongebonden bewijs
-blijven behouden. Codeconflicten waren er niet; wijzigingen uit beide ouders
-zijn behouden. De rubric blijft **41 → 41/100**.
+zijn behouden. De rubric bleef **41 → 41/100**.
 
-**Validatie op de opgeloste mergeboom:** `cargo +1.90.0 test --locked -p
-volume-core -p kernel-core -p artifact-store-core` — 78 tests, exit 0;
-`cargo +1.90.0 clippy --locked -p volume-core -p kernel-core
--p artifact-store-core --all-targets -- -D warnings` en
-`cargo +1.90.0 fmt --all -- --check` — exit 0. De gewijzigde
-`sdk/examples/window-session`-crate: `cargo +1.90.0 test --locked
---manifest-path sdk/examples/window-session/Cargo.toml` — 49 tests, exit 0;
-Clippy en fmt voor die manifest ook exit 0.
-`python3 -B tools/build.py --kernel-feature native-volume` slaagde en bouwde
-loader, kernel en volume-apps voor de doelplatforms. De eerste pogingen misten
-de geïnstalleerde Rust-targets `x86_64-unknown-none` en
-`x86_64-unknown-uefi`; na installatie van die bestaande targets slaagde de
-herhaling. `python3 tools/progress.py --write`, `--check`,
-`python3 -m json.tool docs/progress.json` en `git diff --check` slagen.
-QEMU, fysieke en menselijke acceptatie zijn niet uitgevoerd; een cross-build
-is geen native runtimebewijs.
-**Vervolg:** na publicatie de nieuwe-head-checks laten evalueren.
+**Validatie op die mergeboom:** 78 core-tests en 49 window-session-hosttests,
+Clippy, formatting en de native-volume-cross-build slaagden. Er was geen
+QEMU- of native-runtimeacceptatie. De exacte uitvoering staat in het
+historische checkpoint in de toenmalige mergecommit.
+
+## Historisch checkpoint — B03 TEST-ankergrens — 3 november 2026
+
+**Basis:** `main` `a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e`; codecommits
+`07e7f9a0471798c49e1844bf885f94491bb481d8` en
+`ceb957557af821bb95786aa505b5df41077f7403` op
+`fix/b03-test-anchors-guard`. `test_policy` vereist nu de expliciete
+`test-signing-anchors`-feature; UEFI-loader- en update-servicebuilds zonder
+gekozen ondertekenbeleid falen tijdens compilatie. TEST-sleutels blijven
+uitsluitend fixtures. Productieankers, sleutelrotatie/-intrekking en
+releaseceremonie zijn niet ontworpen of bewezen; #41 blijft open.
+
+**Gerichte controles:** update-core met TEST-feature 13 tests, update-tool
+2 tests, update-core zonder TEST-feature 7 tests en B03 Python-harnas 14 tests
+geslaagd. De testloader en update-service zijn crossgebouwd. Negatieve
+compilatiechecks voor de ongemarkeerde loader en service falen verwacht met
+alleen de bedoelde policyfout. Update-core/update-tool- en service-Clippy
+slagen; loader-Clippy slaagt met alleen de bestaande
+`clippy::not_unsafe_ptr_arg_deref`-lint toegestaan; de ongewijzigde pointer
+entrypoint is geen onderdeel van deze wijziging. Zie de exacte commando's en
+bewijshashes in
+[B03-verificatierapport](verification/b03-test-anchor-gating/README.md).
+Een directe release-`cargo build` buiten de projectwrapper raakte daarnaast
+een LLVM SIGILL tijdens codegeneratie voor `curve25519-dalek`; de
+voorgeschreven update-service-buildwrapper slaagde wel en is het gerapporteerde
+buildresultaat.
+
+**Native vervolgbewijs:** op productbron `26108a25` is
+`python3 -B -u tools/test_update.py` uitgevoerd: exit 0, 106,91 s,
+alle 18 QEMU-stappen en de afsluitende normale build geslaagd. Zie
+[native-sprint.json](verification/b03-test-anchor-gating/native-sprint.json)
+voor de exacte omgeving, hashes en bewijsgrens. Evidencehead `568741f3`
+had 31 geslaagde checks en een overgeslagen check. Geen hardwaretest,
+productiesleutelbeleid of nieuwe productcriteria geaccepteerd.
+
+**Voortgang:** branchscore **41 → 41/100**; `tools/progress.py --write`
+en `--check` bevestigen deze berekening. Er zijn geen criteria of gewichten
+gewijzigd en deze wijziging levert geen productacceptatiepunten op.
+
+**Eerstvolgend:** de gerichte sprintcorrectie na actuele-head-CI integreren;
+#41 blijft open voor productiesleutelbeleid en bijbehorende acceptatie.
 
 ## Historisch checkpoint — PR138 met main d686bd54 — 3 november 2026
 

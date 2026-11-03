@@ -360,6 +360,27 @@ slot-/manifestformaatmigratie; terugname verwijdert wel lifecycleafdwinging.
 Native resultaat en bronbinding staan afzonderlijk in PROJECT-STATE; B04,
 B05, B06 en de aanvullende gates van #41 blijven open.
 
+## ADR-B03K2 — TEST-ankers uitsluitend via expliciete testfeatures
+
+3 november 2026; basis `d686bd54`. `update-core::test_policy` is niet langer
+onderdeel van de standaardbibliotheekbuild en vereist de feature
+`test-signing-anchors`. De native fixturedienst en de UEFI-fixtureloader
+activeren dit alleen expliciet; het loaderprofiel heet `signed-boot-test`.
+De kale feature `signed-boot` en een native update-servicebuild zonder
+policykeuze falen tijdens compilatie in plaats van stilzwijgend de openbare
+TEST-ankers te gebruiken.
+
+Dit is een fail-closed buildgrens, geen productie-key lifecycle. Er zijn geen
+productieankers, releaseconfiguratie, ondertekeningsceremonie of
+intrekkingsdistributie toegevoegd. #41 blijft daarom open; geen nieuw rubricpunt
+of releaseclaim. Terugdraaien herstelt de ongeconditioneerde
+`test_policy`-module en de oude profielnaam, maar verwijdert deze
+build-time-bescherming.
+
+Herzieningscriteria: herzie deze testfeaturegrens zodra productiebeleid voor
+sleuteldistributie, releaseconfiguratie of distributie van intrekkingen wordt
+ingevoerd. TEST-ankers worden daarbij niet stilzwijgend productiebeleid.
+
 ## ADR-053 — Wachten op IPC behoudt bestaande rechten en krijgt ABI 1.10
 
 Bij main-integratie hernummerd vanaf de branchlokale ADR-051; de
