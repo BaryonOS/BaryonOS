@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`2ccb539d`](https://github.com/simonvanieperen/nieuw-os/commit/2ccb539d09546e21055b585aa7b97709cac11a9a) ·
+**Bron:** [`6c6beb06`](https://github.com/simonvanieperen/nieuw-os/commit/6c6beb06bdd743d9e134bd04967f1d06c539d8de) ·
 **Ontwikkelbranch:** `integrate/stack130-local`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Main d115cc96 inhoudsbehoudend in de PR-branch integreren.
-De actuele main is inhoudsbehoudend geïntegreerd. PR135/142-status en PR140 artifact-store-test-/bewijsbestanden zijn behouden; vier conflicten waren uitsluitend centrale statusmetadata. Geen nieuw productcriterium of geaccepteerd bewijs. De gecombineerde boom vereist gerichte validatie en nieuwe-head CI; oude-head failures gelden niet als nieuwe-head resultaten.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR135: historische library-write/cold-bytecontrole bewaren met echte RAW- en fixtureblokkades.
+41 blijft41. Op historische2ccb/Actions-testmerge2cea zijn14 echte library-fasebeelden,28 hostoraclebeelden per report, serials, koude parenthash en schijfbytes onafhankelijk hergecontroleerd; library_gate=true maar algemene native_gate=false. Nativebron2a8 blijft historisch: Watchmainmerge6c6 heeft source-v3bff47997 door nieuwe tests en krijgt geen oude acceptatie. Twee echte RAW-fouten110/101ticks bij100tickvenster en ontbrekende volume-admissionfixtures blijven blockers. Geen quotaversoepeling, nieuwe runtimeuitvoering, menselijke audit of criteriumpunten. Dubbele identieke assessmentkeys uit Watchmerge verwijderd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

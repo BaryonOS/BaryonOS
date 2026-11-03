@@ -4,6 +4,13 @@ De actieve volledige releaseopdracht en productacceptatie staan in
 [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft
 de ontwikkelmeter; het vervangt de conjunctieve releaseacceptatie niet.
 
+PR135-libraryreview op basis `6c6beb06`: **41 → 41**. Werkelijke14 library-
+fasebeelden, hostoracles, serials en warme/koude schijfbytes van historische
+run41622627360 op2ccb/source2a8 zijn opnieuw gecontroleerd. De algemene
+`native_gate` blijft false; nieuwe bronbff47997 krijgt geen oude acceptatie.
+Twee echte RAW-fouten en ontbrekende volume-admissionfixtures blijven open.
+[Brongebonden receipt](verification/pr135-library-2ccb-review.json).
+
 ## Betekenis van het percentage
 
 De README toont **behaalde acceptatiepunten / 100**. De gewichten zijn een

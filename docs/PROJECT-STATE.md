@@ -1,10 +1,42 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR140-main met native stack integreren — 3 november 2026
+## NEXT AGENT HANDOFF — PR135 librarybewijs en echte blockers — 3 november 2026
+
+**Basis:** `6c6beb06bdd743d9e134bd04967f1d06c539d8de`, Watchmainmerge
+met `d115cc96` behoudend via fast-forward overgenomen. Nieuwe source-v3:
+`bff47997f2b0403c735bbe7c9f5048de254678b29bbe704eacf76c2c6ca8f831`.
+Geen nieuw native runtimebewijs op deze bron; de rollup bevatte alleen
+CodeRabbit-SKIPPED, geen geslaagde technische CI.
+
+**Historische deelproef werkelijk gecontroleerd:** windowrun41622627360,
+artifact13225922655 op2ccb/Actions-testmerge2cea heeft source-v3`2a8bf7d3`.
+14 echte library-fasebeelden,28 hostoraclebeelden per rapport, serials,
+volumehashes en koude parentbinding zijn opnieuw gehasht; het bestaande
+diskoracle opnieuw uitgevoerd op de werkelijke imagebytes. Beide QEMU-
+exits33; Reisnotities/revisie4/generatie5 blijven koud behouden.
+`library_gate=true`, maar `native_gate=false`: geen volledige algemene
+window-/clipboard-/session-routeacceptatie. Dit is geen2a8→bff-bronpromotie.
+[Primaire artifact/bytechecks](verification/pr135-library-2ccb-review.json).
+
+**Blokkerend:** twee echte RAW-fouten op2ccb, quota-request1064 ten onrechte
+als denial verwacht nadat de burst110/101ticks duurde bij100tickvenster.
+Dat is nog geen bewezen productquotabypass; geen derde blinde retry of
+quotaversoepeling. Hosted volume-admission mist de fixture-runvariabele en
+same-repo artifact. Nieuwe-head uitkomsten blijven afzonderlijk nodig.
+[Beide faalreceipts](verification/pr135-ci-blockers-2ccb.json).
+**41 → 41**, geen criteriumwijziging. Dubbele identieke assessmentkeys uit
+de Watchmerge verwijderd; rubriekinhoud ongewijzigd.
+
+**Eerstvolgend:** `GH_PAGER="" gh pr checks 135`; daarna RAW-rootfix alleen
+met behoud van de echte quota-/klokcontracten en onafhankelijke regressie.
+Fixtures alleen via de bestaande veilige leverancier, geen fictieve
+acceptatie of branchregelbypass. Integratiemandaat niet overgedragen.
+
+## Historisch checkpoint — PR140-main met native stack integreren — 3 november 2026
 
 PR-head `2ccb539d` is inhoudsbehoudend met base `main`=`d115cc96c19ac4371baed77409a23d1adddffaf0` geïntegreerd. Vier centrale statusconflicten zijn inhoudelijk opgelost; beide takken' status en de unieke PR140-test/bewijsinformatie blijven behouden. Main brengt één artifact-store-contracttestwijziging en de brongebonden PR140-bewijsbestanden mee; geen productiecodewijziging.
 
-**Validatie op de gecombineerde boom:** `cargo +1.90.0 test --offline --locked -p artifact-store-core` (9 tests), `cargo +1.90.0 check --offline --locked -p artifact-store-core --tests`, `python3 tools/progress.py --write`, `python3 tools/progress.py --check` en `git diff --check` slagen. De eerste offline testpoging miste `ed25519-dalek`; `cargo +1.90.0 fetch --locked` herstelde de cache en de gerichte test slaagde daarna. `cargo +1.90.0 clippy ...` en `cargo +1.90.0 fmt ...` konden niet draaien omdat de Clippy- en rustfmt-componenten voor Rust 1.90.0 ontbreken; die componenten zijn niet opnieuw geïnstalleerd. Geen native/QEMU-gate of volledige CI lokaal uitgevoerd.
+**Historisch door Watch gemelde validatie, zonder primaire commit/tree-receipt niet onafhankelijk geverifieerd:** `cargo +1.90.0 test --offline --locked -p artifact-store-core` (9 tests), `cargo +1.90.0 check --offline --locked -p artifact-store-core --tests`, `python3 tools/progress.py --write`, `python3 tools/progress.py --check` en `git diff --check` slagen. De eerste offline testpoging miste `ed25519-dalek`; `cargo +1.90.0 fetch --locked` herstelde de cache en de gerichte test slaagde daarna. `cargo +1.90.0 clippy ...` en `cargo +1.90.0 fmt ...` konden niet draaien omdat de Clippy- en rustfmt-componenten voor Rust 1.90.0 ontbreken; die componenten zijn niet opnieuw geïnstalleerd. Geen native/QEMU-gate of volledige CI lokaal uitgevoerd.
 
 De oude-head `native-volume-admission`-failure meldde dat repositoryvariabele `VOLUME_ADMISSION_FIXTURE_RUN_ID` ontbreekt. Die run is door de gepubliceerde integratie-head achterhaald, maar de configuratie blijft een bekende externe blocker voor nieuwe runs; een repositorybeheerder moet de variabele koppelen aan een geldige artifact-run. Nieuwe-head checks moeten afzonderlijk worden beoordeeld. Score **41 -> 41**, geen nieuw criterium.
 
