@@ -1,6 +1,31 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR140 bewijs en descriptorclaims — 3 november 2026
+## NEXT AGENT HANDOFF — PR150 begrensde specialistprofielen — 3 november 2026
+
+**Bron:** `5376d8b1d6f43b9b1c9480899749216ab6aeaf78`, met main
+`d115cc96c19ac4371baed77409a23d1adddffaf0` behoudend opgenomen via
+`7027aef4c6cdbb2137757f07ed9c06fc88384e5c`.
+Negen van zestien profielen verduidelijken tien reviewpunten: expliciete
+toolsets, geen impliciete Git-/webverificatie of testuitvoering, begrensde
+DMA en fail-closed release-/security-/benchmarkbewijs. Release/recovery/
+performance zijn read-only ontwerp-/bewijsrollen; de builder behoudt een
+kleine implementatie-/testtoolset. Een allowlist of prompt is geen sandbox.
+
+**Bewijs:** statische controle van de gebruikte frontmatter-subset op alle
+zestien profielen en `git diff --check`: exit 0.
+Primaire GitHub-toolaliasreferentie is geraadpleegd; werkelijke cloudagent-
+selectie/toolbeschikbaarheid en runtime-isolatie zijn niet uitgevoerd.
+Dit is een AI-tekstreview, geen menselijke audit of OS-acceptatie.
+Score **41 → 41**, rubric ongewijzigd.
+
+**Open:** verse headgebonden CI en review vóór merge; geen automatische
+goedkeuring van Watch-heads. PR135's tweemaal rode RAW-proef en ontbrekende
+volume-admissionfixture blijven afzonderlijk blokkerend.
+**Eerstvolgend:** `GH_PAGER="" gh pr checks 150`; daarna live head/base en
+open reviewthreads controleren. Integratiemandaat blijft exclusief bij de
+centrale integrator; de profielen dragen geen mandaat over.
+
+## Historisch checkpoint — PR140 bewijs en descriptorclaims — 3 november 2026
 
 **Geteste bron:** `2bf9578290bef88d53c17f9913434da6f27441f2`, inclusief
 main `69809c2cb53dfb3bd77abe5352892810fba6e82d`.

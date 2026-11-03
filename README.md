@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`2bf95782`](https://github.com/simonvanieperen/nieuw-os/commit/2bf9578290bef88d53c17f9913434da6f27441f2) ·
-**Ontwikkelbranch:** `simonvanieperen-animated-umbrella`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR140: descriptorclaims en duurzame primaire testreceipts corrigeren.
-41 blijft 41. Op exacte bron 2bf95782 zijn de 9 artifact-store-contracttests, cargo check --tests, Clippy en formattering met Rust 1.90.0 opnieuw groen. Primaire volledige logs, codehashes en exacte omgeving staan duurzaam in docs/verification/pr140-review-evidence.json. Het historische rapport docs/verification/artifact-store-open-coverage-20261103.json behoudt bron 08710d55 en zijn command-, exit- en hashvelden. De scope is descriptorvalidatie en binding, niet identiteit of authenticatie. Geen productiecodewijziging, nieuwe native/QEMU-acceptatie of criteriumpunten.
+**Bron:** [`5376d8b1`](https://github.com/simonvanieperen/nieuw-os/commit/5376d8b1d6f43b9b1c9480899749216ab6aeaf78) ·
+**Ontwikkelbranch:** `copilot/add-os-specialist-agents`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR150: expliciete toolsets en bewijsgrenzen voor specialistprofielen.
+41 blijft 41. PR150 bevat zestien specialistprofielen; negen profielen verduidelijken tien reviewpunten. Builder heeft alleen read/search/edit/execute, alle andere profielen read/search. Release/recovery/performance inspecteren bewijs of ontwerpen tests en voeren niets uit. Git-/webprovenance, onafhankelijke herhaling en ontbrekend release-/securitybewijs blijven expliciete grenzen. Statische frontmattercontrole slaagt; daadwerkelijke cloudagentselectie, beschikbare tools en technische runtime-isolatie zijn niet getest. Geen kernelwijziging, native acceptatie of menselijke audit; geen nieuwe criteriumpunten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

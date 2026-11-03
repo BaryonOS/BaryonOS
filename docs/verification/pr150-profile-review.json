@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-03",
+  "original_pr_head": "beafdedfc188154fe7285848fbd411e651013f54",
+  "preserved_main": "d115cc96c19ac4371baed77409a23d1adddffaf0",
+  "main_reconciliation": "7027aef4c6cdbb2137757f07ed9c06fc88384e5c",
+  "profile_source_commit": "5376d8b1d6f43b9b1c9480899749216ab6aeaf78",
+  "review_kind": "AI static text review and primary documentation check, not human audit or vulnerability audit",
+  "primary_reference": {
+    "title": "Custom agents configuration",
+    "publisher": "GitHub",
+    "url": "https://docs.github.com/en/copilot/reference/custom-agents-configuration",
+    "accessed_date": "2026-11-03",
+    "findings": [
+      "Omitted tools defaults to all tools including configured MCP tools.",
+      "Supported aliases include read, search, edit and execute; web is not currently applicable to Copilot cloud.",
+      "An explicit tool allowlist selects tools but does not establish a filesystem or shell sandbox."
+    ]
+  },
+  "changes": [
+    "Builder explicitly allows only read/search/edit/execute; publishing/signing/integration require separate mandate.",
+    "Release/recovery/performance explicitly allow only read/search and describe design/evidence review rather than execution.",
+    "Claims auditor cannot infer verified commit/tree/ancestry binding from a document's commit ID.",
+    "EU reviewer requires supplied primary sources; unverified online currentness and deadlines remain open.",
+    "Read-only red team supplies regression specifications, not executed tests or written artifacts.",
+    "Hardware profile requires bounded DMA and device/IPC length, offset, overflow and ownership validation.",
+    "Benchmark evidence includes all raw runs and failures, hashes with retained source/artifact identity, and a separate independent repetition before acceptance.",
+    "Release requires applicable source/dependency/reproducibility/SBOM/signature/signer/rollback receipts; missing evidence blocks acceptance.",
+    "Security disposition explicitly blocks broken invariants and treats absent proof as open."
+  ],
+  "validation": [
+    {
+      "command": "python3 -B - <<'PY'\nimport json,re\nfrom pathlib import Path\nprofiles=sorted(Path('.github/agents').glob('os-*.agent.md')); assert len(profiles)==16\nfor p in profiles:\n text=p.read_text(); assert text.startswith('---\\n'); front,body=text[4:].split('\\n---\\n',1)\n fields={k:v.strip() for k,v in re.findall(r'^([\\w-]+):\\s*(.+)$',front,re.M)}\n assert fields['description'] and fields['target']=='github-copilot' and fields['disable-model-invocation']=='true'\n tools=json.loads(fields['tools'])\n assert tools==(['read','search','edit','execute'] if p.name=='os-builder.agent.md' else ['read','search'])\n assert len(body)<30000\nprint('PASS:16 profiles structurally valid within documented field subset; actual cloud runtime/tool confinement not tested')\nPY",
+      "exit": 0,
+      "stdout": "PASS:16 profiles structurally valid within documented field subset; actual cloud runtime/tool confinement not tested",
+      "scope": "Subset structural and explicit toolset checks; not full YAML schema or cloud profile acceptance."
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0,
+      "stdout": ""
+    }
+  ],
+  "not_performed": [
+    "Actual GitHub cloud agent loading/selection, effective tool invocation or OS-level sandbox enforcement.",
+    "Kernel/native QEMU or physical hardware tests; no production OS code changes.",
+    "Signing, release publication, real disk writes or destructive recovery execution.",
+    "Independent human audit."
+  ],
+  "progress_previous": 41,
+  "progress_current": 41
+}

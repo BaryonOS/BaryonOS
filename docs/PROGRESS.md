@@ -4,6 +4,10 @@ De actieve volledige releaseopdracht en productacceptatie staan in
 [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft
 de ontwikkelmeter; het vervangt de conjunctieve releaseacceptatie niet.
 
+PR150 voegt specialistprofielen en expliciete bewijs-/toolgrenzen toe.
+Statische profielcontrole is geen gemeten cloudruntime, technische sandbox
+of native OS-acceptatie: **41 → 41/100**, geen criterium gewijzigd.
+
 ## Betekenis van het percentage
 
 De README toont **behaalde acceptatiepunten / 100**. De gewichten zijn een
