@@ -1,0 +1,21 @@
+2331e9e92f9fd5bdedec185d4cbb8ca4b4e6297f63d41c46b55b831e296535df  build/sdk-materiaal/x86_64-unknown-none/release/materiaal-app
+
+Elf file type is EXEC (Executable file)
+Entry point 0x40000000
+There are 5 program headers, starting at offset 64
+
+Program Headers:
+  Type           Offset   VirtAddr           PhysAddr           FileSiz  MemSiz   Flg Align
+  LOAD           0x001000 0x0000000040000000 0x0000000040000000 0x000013 0x000013 R E 0x1000
+  LOAD           0x002000 0x0000000040010000 0x0000000040010000 0x000400 0x000400 RW  0x1000
+  LOAD           0x003000 0x0000000040020000 0x0000000040020000 0x076238 0x076238 R   0x1000
+  LOAD           0x07a000 0x00000000400b0000 0x00000000400b0000 0x0000d8 0x031000 RW  0x1000
+  LOAD           0x07b000 0x00000000400f0000 0x00000000400f0000 0x01e65f 0x01e65f R E 0x1000
+
+ Section to Segment mapping:
+  Segment Sections...
+   00     .text.entry 
+   01     .startup 
+   02     .rodata 
+   03     .data .bss 
+   04     .text 

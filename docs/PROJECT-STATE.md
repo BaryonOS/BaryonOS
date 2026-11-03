@@ -2,8 +2,12 @@
 
 ## NEXT AGENT HANDOFF — editorflow en terminale app-cleanup — 3 november 2026
 
-**Bron:** `e37989f5b1893dfd1b4a610fe83a043751ae43f1`, branch
-`simonvanieperen-animated-garbanzo`; productdelta in dit checkpoint.
+**Bron:** `f1a69b07c478ba640d85bc9caa27d273d54ba317`, branch
+`simonvanieperen-animated-garbanzo`; productdelta gecommit en gepusht.
+Voortgangsintegratie: PR #148 is geverifieerd gesquasht als `d686bd54`
+vanaf exacte head `c6873b32`, met 32 succesvolle GitHub-checks.
+Afzonderlijke squashbron **41 -> 41**, eigen branch **39 -> 39**; B01 staat
+hier open en daar nog accepted. Geen code-/scoreimport of merge uitgevoerd.
 De afgeronde Materiaal-naam/search-slice is niet verder gepolijst.
 Settings ownership is vrij volgens Veld, maar de instellingendienst,
 persistente profielnamespace en keyauthority ontbreken; geen opslagbypass.
@@ -26,8 +30,11 @@ harnas exposeert alleen zijn RAM-sectoren voor de echte heropbouw.
 Clippy all-targets groen. Rode symptoomproef exit 101 bewaard. Exacte
 commando's, scope en logs:
 [ACCEPTANCE.md](verification/product-flows-20261103/ACCEPTANCE.md).
-Native build/ELF-parser nog niet uitgevoerd op dit checkpoint; geen nieuwe
-QEMU-, fysieke, menselijke of releaseacceptatie.
+Native scalar-appbuild en echte ELF-parser slagen (201 pagina's, vijf
+W^X LOAD-segmenten). De aparte profielbuild slaagt (11,42 s); de QEMU-proef
+faalt na ready, voor save/heropenen/stop (202,69 s, runner exit 1, QEMU 35).
+Gast meldt TIMEOUT; parser meldt vervolgens onbekend TIMEOUT_SLOT-record.
+Geen nieuwe native keten-, fysieke, menselijke of releaseacceptatie.
 
 **Open dependencies:** algemene AuthorizedImage-/kernel-launchprovider en
 windowregistration; veilige certificate-time/native-TLS-provider; NAS
@@ -40,9 +47,9 @@ bewijs is niet in deze branch geimporteerd. Veld HC staat apart op
 `43284264`; nieuwe Veldscope windowmove in Scene/main, niet deze files.
 
 **Score: 39 -> 39/100. Eerstvolgend commando:**
-`python3 -B sdk/examples/materiaal/build.py`, daarna bestaande ELF-parsertest
-tegen het echte executable. Vervolgens productafhankelijkheden gericht
-overdragen; geen herhaling van auth/B02-UI of Materiaalpolish.
+`cat build/product-flow-lifecycle/run/materiaal-normal-dce9992cd4/qmp-trace.json`.
+Vervolg de input-/proberoutingdiagnose, niet de niet-bereikte stoproute.
+Geen herhaling van auth/B02-UI of Materiaalpolish.
 
 ## Historisch checkpoint — Materiaal benoemen/save/zoek/heropenen — 3 november 2026
 

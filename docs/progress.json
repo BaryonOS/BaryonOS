@@ -3,11 +3,22 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "e37989f5b1893dfd1b4a610fe83a043751ae43f1",
+    "source_commit": "f1a69b07c478ba640d85bc9caa27d273d54ba317",
     "branch": "simonvanieperen-animated-garbanzo",
-    "task": "Dagelijkse editor-save/close/reopen en terminale app-cleanup; volgende productdependencies",
+    "task": "PR148-squash herbeoordelen zonder scoreimport; native productproef registreren",
     "previous_score": 39,
-    "summary": "39% → 39%: dagelijkse UTF-8-editorflow met selectie/save/close/fresh reopen gevalideerd; nieuw app-lifecycleproductcode voorkomt Ready, acties of herleving na cleanup en bewaart cleanupfouten bij herhaling. Settings/algemene launch/TLS/NAS/AI/update stuiten op exact vastgelegde ontbrekende authority-/providerinterfaces. Hostbewijs vervangt geen native runtime-, persoonlijke-opslag- of volledige appacceptatie; geen rubriccriterium gewijzigd."
+    "summary": "39% → 39% op deze branch. PR148 is gesquasht als d686bd54 vanaf c6873b32, met 32 succesvolle checks; de afzonderlijke squashboom blijft 41→41 zonder nieuw criterium. Die boom accepteert B01 nog, deze branch houdt B01 open wegens de recovery-autoriteitsgrens. Geen score- of codeimport. De eigen native productbuild slaagt; de QEMU-proef faalt na ready met TIMEOUT, voor save/reopen/stop. Geen nieuwe native acceptatie.",
+    "external_assessment": {
+      "date": "2026-11-03",
+      "timezone": "Europe/Amsterdam",
+      "task": "PR148-integratie afronden en issue-/PR-claims controleren",
+      "source_commit": "d686bd54e766aed542e9918d1a37dcce434f18e2",
+      "reviewed_head": "c6873b322eb67cf997054de6bd6f16437d279512",
+      "branch": "main",
+      "previous_score": 41,
+      "score": 41,
+      "summary": "Squash en 32 succesvolle GitHub-checks gecontroleerd; geen nieuw rubriccriterium of releaseacceptatie. Afzonderlijke bronbeoordeling, niet geimporteerd in de lokale 39-puntenboom."
+    }
   },
   "tracks": [
     {

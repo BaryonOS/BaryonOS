@@ -4,6 +4,16 @@ De actieve volledige releaseopdracht en productacceptatie staan in
 [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft
 de ontwikkelmeter; het vervangt de conjunctieve releaseacceptatie niet.
 
+Herbeoordeling 3 november na PR #148: squash `d686bd54` bevat exact de
+PR-head `c6873b32`; GitHub meldt 32 succesvolle checks. De afzonderlijke
+squashboom blijft **41 -> 41/100**: geen nieuw criterium of releasebewijs.
+Deze productbranch op `f1a69b07` blijft **39 -> 39/100**, omdat B01 hier open
+staat wegens de recovery-autoriteitsgrens. De squashboom accepteert B01 nog;
+de scores zijn dus niet zonder bronintegratie uitwisselbaar. Geen merge of
+scoreimport uitgevoerd. De actuele assessment bewaart beide bronverwijzingen.
+De eigen native productbuild slaagt; de QEMU-proef eindigt na ready met
+TIMEOUT, voor save/heropenen/stop. Dat is geen nieuwe native acceptatie.
+
 Coordinatieopdracht 3 november op basis `ed592537`: System Maturity heeft nu
 expliciete OOM-, SMP- en K05 journal/crash-consumerclaims, met bestandsgrenzen
 en native acceptatie in WORK-QUEUE. Dit heft eigenaarsblokkades op maar levert

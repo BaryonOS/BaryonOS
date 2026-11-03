@@ -52,8 +52,25 @@ Cargo-omgeving: `PATH=/home/simon/.cargo/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH
 Groene logs: `/tmp/nieuw-os-daily-editor.log`,
 `/tmp/nieuw-os-lifecycle-green.log`. Compacte bronhashes naast dit document.
 Geen native disk- of persoonlijke encryptieclaim door geordende RAM-sectoren.
-Native build/ELF-parser volgen na het productcheckpoint. Nieuwe QEMU-runtime,
-fysieke hardware, menselijke bediening, volledige CI/releasegate en
+Op productcommit `f1a69b07` slagen de native scalar-appbuild en de echte
+ELF-parserproef: 201 pagina's, vijf W^X LOAD-segmenten en drie private
+64-KiB-buffers. ELF-hash en segmenten staan in `native-elf.txt`.
+
+De gerichte profielbuild
+`python3 -B tools/build.py --loader-feature framebuffer --kernel-feature native-system-materiaal-probe`
+slaagt: exit 0, 11,42 s. De aansluitende proef
+`python3 -B -u tools/run_materiaal_probe.py --case normal --build-dir "$NOS_BUILD_DIR" --machine pc-q35-8.2 --qmp-transport pipe --vga-rom '/mnt/c/Program Files/qemu/share/vgabios-stdvga.bin' --vga-rom-sha256 e8fc9e55790dbe3cb31f019a3deb57206ba6c54f5e581adb2ab2677a9d391472`
+faalt: exit 1, 202,69 s, ruwe QEMU-exit 35. De gast bereikt ready; de
+QMP-muiscommando's krijgen antwoorden, maar editor/save/heropenen/stop worden
+niet bereikt. De gast meldt `MATERIAAL:FAIL:TIMEOUT`; de parser rapporteert
+vervolgens het onbekende `MATERIAAL:TIMEOUT_SLOT`-record. Oorzaak niet bewezen;
+geen geslaagde native lifecycleclaim. Volledig commandolog:
+`/tmp/nieuw-os-lifecycle-native-gate.log`; rapport:
+`build/product-flow-lifecycle/materiaal-probe-report.json`; ruwe uitvoer:
+`build/product-flow-lifecycle/run/materiaal-normal-dce9992cd4/`.
+Eigen build-/targetmap `product-flow-lifecycle`, wegwerpimage; bestaande
+QEMU/OVMF-toolset hergebruikt, geen installatie of persoonlijke disk.
+Fysieke hardware, menselijke bediening, volledige CI/releasegate en
 onafhankelijke securityaudit zijn niet uitgevoerd.
 
 ## Volgende productflows: concrete ontbrekende interfaces

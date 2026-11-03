@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **39** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`e37989f5`](https://github.com/simonvanieperen/nieuw-os/commit/e37989f5b1893dfd1b4a610fe83a043751ae43f1) ·
+**Bron:** [`f1a69b07`](https://github.com/simonvanieperen/nieuw-os/commit/f1a69b07c478ba640d85bc9caa27d273d54ba317) ·
 **Ontwikkelbranch:** `simonvanieperen-animated-garbanzo`.
-Deze opdracht: **39% → 39% (+0 procentpunt)**. **Opdracht:** Dagelijkse editor-save/close/reopen en terminale app-cleanup; volgende productdependencies.
-39% → 39%: dagelijkse UTF-8-editorflow met selectie/save/close/fresh reopen gevalideerd; nieuw app-lifecycleproductcode voorkomt Ready, acties of herleving na cleanup en bewaart cleanupfouten bij herhaling. Settings/algemene launch/TLS/NAS/AI/update stuiten op exact vastgelegde ontbrekende authority-/providerinterfaces. Hostbewijs vervangt geen native runtime-, persoonlijke-opslag- of volledige appacceptatie; geen rubriccriterium gewijzigd.
+Deze opdracht: **39% → 39% (+0 procentpunt)**. **Opdracht:** PR148-squash herbeoordelen zonder scoreimport; native productproef registreren.
+39% → 39% op deze branch. PR148 is gesquasht als d686bd54 vanaf c6873b32, met 32 succesvolle checks; de afzonderlijke squashboom blijft 41→41 zonder nieuw criterium. Die boom accepteert B01 nog, deze branch houdt B01 open wegens de recovery-autoriteitsgrens. Geen score- of codeimport. De eigen native productbuild slaagt; de QEMU-proef faalt na ready met TIMEOUT, voor save/reopen/stop. Geen nieuwe native acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
