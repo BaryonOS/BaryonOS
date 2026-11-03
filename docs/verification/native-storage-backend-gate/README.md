@@ -1,5 +1,23 @@
 # Native backend- en herstelbaarheidstoets — Btrfs en OpenZFS
 
+## Reviewfollow-up: historische data en actuele route gescheiden
+
+De uitslagen hieronder blijven **historische bronclaims**, geen uitvoering
+van de reviewfix. Alle 207 oorspronkelijke hashes blijven behouden;
+33 runnable bronnen/gewijzigde begeleidteksten staan nu bytegelijk als
+`*.historical.txt`, zonder uitvoerbit. Alleen hun `archive`-pad is aangepast
+in `archive-manifest.json`; de oorspronkelijke manifestbytes staan apart
+in `archive-manifest.json.historical.txt`. Nieuwe bronnen/rapporten worden
+uitsluitend door `replay-source-manifest.json` gebonden.
+
+[Actuele COMMANDS](COMMANDS.md) scheidt de schone-checkoutcontrole van
+expliciet gekozen lokale payloads en nieuwe private replaywerkruimten.
+De oude snapshots nooit uitvoeren. De nieuwe Btrfs-route is slechts een
+hostbaseline; OpenZFS-create/crash blijft fail-closed geblokkeerd wegens
+de hardcoded upstream `/tmp`-runtimefile. Geen nieuwe native/fysieke claim
+of productpunten. Ontbrekende licentie-/cache-JSON is expliciet lokaal,
+niet beschikbaar in deze bundel.
+
 **Uitgevoerd: geen van beide kandidaten is toegelaten als native backend van
 Nieuw OS; bestaande NOSVOL02-controles slagen, hostherstel levert afzonderlijke
 positieve resultaten én concrete beperkingen.**
@@ -48,7 +66,7 @@ volledige SHA256. QEMU-datadrive `readonly=on`, READ-only guestcapabilities en
 `-nic none` zijn gecontroleerd. Alle vier runs bereikten de bootmarkers en
 bleven binnen hun timeout. [Native samenvatting](native/N1-result.json),
 [exacte uitvoering en reproduceerroute](native/README.md),
-[runner-snapshot](native/native_probe.py).
+[historische runnertekst](native/native_probe.py.historical.txt).
 
 De Btrfs-proef is geen geslaagde formaatafwijzing. De bestaande volumedienst
 leest 68 tabelsectoren vanaf fysieke sector 4. Twee nultabellen gelden in
@@ -184,9 +202,9 @@ Een afzonderlijke verificatie controleert artefacthashes, read-only/datadrive-
 grenzen, cold-imagegelijkheid en de verwachte negatieve uitkomsten. Het is
 bewijsintegriteit, geen extra OS- of filesystemacceptatie. Mislukte
 preflights/parserruns zijn in de oorspronkelijke logs behouden. Exacte
-reproduceercommando's staan bij iedere subproef; kies voor herhaling een
-nieuwe eigen wegwerpmappenstructuur en controleer de toolhelp van de
-vastgepinde versie.
+historische commando's staan bij iedere subproef als niet-uitvoerbare brondata.
+Alleen [de actuele route](COMMANDS.md) is bedoeld voor nieuwe controles;
+de oude scripts zijn geen veilige reproductieroute.
 
 De hoofdcheckout is ongewijzigd, inclusief de al aanwezige untracked
 `.github/github-app.yml`. Alleen deze bewijsbranch wijzigt documentatie en

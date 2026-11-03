@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-03",
+  "base": "30bb6ea84123ef0d275ed99e96dc5a7b0a966ff9",
+  "task": "PR114-STORAGE-REPLAY",
+  "status": "Historical unsafe entrypoints retired; bounded offline preparation and evidence verification tested. Complete foreign-engine replay remains explicitly unavailable.",
+  "review_roots": [4448694934, 4448694941, 4448694946, 4448694957, 4448694967, 4448694975, 4448694980, 4448694983, 4448695007, 4448695018, 4448695025],
+  "fixes": {
+    "paths_packages_processes": "Historical host-fixed executable scripts are now non-executable .historical.txt data. New helper requires explicit fresh private project workspace, owner/link/ancestor checks, exact package allowlist and SHA256 before extraction, bounded archive paths and explicit child-process cleanup. No package acquisition or installation.",
+    "preflight": "Explicit executable, ldd status and unresolved-library checks, expected help status and output; no pipeline-success fallback.",
+    "log_names": "Historical mismatched create log destinations preserved as facts, not silently corrected records. They are no longer runnable entrypoints. Current replay scope and unavailable scenarios are explicit in COMMANDS.",
+    "image_hash_and_zdb": "Independent copied-image SHA256 verification helper and project-relative pool-name zdb argv replace unsafe historical assumptions; no fresh OpenZFS execution claimed.",
+    "missing_evidence": "License/cache JSON is explicitly local and unavailable, not invented. Default verifier validates207 real committed archive bindings; local payload mode requires separately supplied real images/manifests and rejects missing data.",
+    "archive_integrity": "Original manifestbytes preserved separately. Relocated snapshots retain exact original hashes and all provenance fields. New replay sources have a separate manifest; no historical VM receipt is relabelled.",
+    "openzfs_limit": "Full create/crash replay explicitly blocked due to upstream hardcoded shared temporary runtime; new helper refuses --execute for OpenZFS before workspace creation. This removes the unsafe route but does not implement equivalent engine replay."
+  },
+  "validation": [
+    {"command": "python3 -B -m unittest discover -s tests -p test_storage_backend_replay.py", "exit": 0, "tests": 7, "seconds": 0.102, "log": "/tmp/nieuw-os-storage-replay-host.log", "sha256": "ec83b3c456c77fbfd941032cee006c132ed17c1cb01117189f1e28836e31cb7b"},
+    {"command": "python3 -B docs/verification/native-storage-backend-gate/verify_evidence.py", "exit": 0, "archive_bindings": 207, "new_native_execution": false},
+    {"command": "git diff --check", "exit": 0}
+  ],
+  "not_executed": ["Foreign package acquisition/extraction/engine execution", "Full Btrfs fault/metadata or OpenZFS create/crash replay", "Native VM replay", "Local historical payload mode", "Hardware or human audit"],
+  "progress": {"previous": 41, "current": 41, "new_points": 0}
+}
