@@ -14,10 +14,10 @@ M1-resource-integratie, bron `3249c93e` op 3 november 2026:
 **41 → 41/100**. De K05-supervisor valideert `ProcessUsage` bij manifeststart
 en gebruikt de vrije capability-handle-slots als spawn-preflight vóór
 allocatie. De native gate vond ook een verouderde timerregistratie-aanroep in
-de worker; die is aangepast aan de cancellation-aware API. Formatterings- en
-diff-checks slagen, maar de zes-case QEMU-gate is na deze reparatie nog niet
-uitgevoerd. Dit dekt geen geheugen-, CPU-, opslag- of DMA-budget en sluit geen
-rubriekcriterium.
+de worker; die is aangepast aan de cancellation-aware API. Native supervisor-,
+loader- en kernel-builds slagen. De zes-case gate stopt vóór de eerste
+VM-run doordat QEMU ontbreekt; dit is geen geslaagde QEMU-test. Dit dekt geen
+geheugen-, CPU-, opslag- of DMA-budget en sluit geen rubriekcriterium.
 
 ## Betekenis van het percentage
 

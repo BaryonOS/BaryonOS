@@ -41,6 +41,8 @@ beschikbaar.
 - `python3 -B -u tools/test_supervisor.py` (exit 1; `cargo` niet in `PATH`)
 - `PATH="$HOME/.cargo/bin:$PATH" python3 -B -u tools/test_supervisor.py` (exit 1; wrapper meldde host-check mislukt, onderliggende detail niet getoond)
 - `PATH="/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH" python3 -B -u tools/test_supervisor.py` (exit 1; native worker gebruikte verouderde `TimerRegistration::at`-signatuur; gerepareerd in `3249c93e`)
+- `PATH="/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH" python3 -B -u tools/test_supervisor.py` (exit 1 na succesvolle native supervisor/loader/kernel-builds; `qemu-system-x86_64` niet beschikbaar, geen case geboot)
+- `python3 -B tools/preflight.py --strict` (exit 2; inventaris meldt QEMU/OVMF en directe Rust-/C-toolchainpaden ontbrekend; dit is geen build- of boottest)
 
 De eerste testpoging miste `cc`; daarna is de al aanwezige tijdelijke
 toolchain onder `/tmp/nieuw-os-c-toolchain` gebruikt, zonder systeeminstallatie.
@@ -51,14 +53,16 @@ quotaweergave en queue-toerekening aan de endpointowner. De supervisor-QEMU-
 gate is geprobeerd, maar de eerste run miste `cargo` in `PATH`; de retry met
 alleen Cargo op `PATH` stopte bij de host-check. Met de tijdelijke C-toolchain
 werd vervolgens een verouderde `TimerRegistration::at`-aanroep in de native
-worker gevonden. Commit `3249c93e` herstelt die call. De gate is na deze fix
-nog niet opnieuw uitgevoerd. Geen fysieke of menselijke acceptatie. Score
-blijft **41 → 41**.
+worker gevonden. Commit `3249c93e` herstelt die call; de native supervisor,
+loader en kernel bouwen daarna succesvol. De gate stopt vervolgens vóór de
+eerste VM-run omdat `qemu-system-x86_64` ontbreekt. Geen QEMU-case, fysieke
+of menselijke acceptatie uitgevoerd. Score blijft **41 → 41**.
 
-**Open/eerstvolgend:** voer
+**Open/eerstvolgend:** maak QEMU en OVMF beschikbaar in de ontwikkelomgeving
+en voer daarna
 `PATH="/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH" python3 -B -u tools/test_supervisor.py`
-opnieuw uit (zes disposable-QEMU-cases volgens
-`.github/workflows/process-management.yml`) en herstel eventuele regressies.
+uit (zes disposable-QEMU-cases volgens `.github/workflows/process-management.yml`).
+Herstel eventuele regressies.
 De integratie toetst alleen capability-handle-beschikbaarheid; geheugen-/CPU-/
 storage-/DMA-accounting en gebruikersrapportage ontbreken nog. De klok blijft
 100-Hz PIT op bestaande profielen,
