@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`66eb8834`](https://github.com/simonvanieperen/nieuw-os/commit/66eb883480a40dffbca81389bcca5f08506cf9dc) ·
+**Bron:** [`0a30440c`](https://github.com/simonvanieperen/nieuw-os/commit/0a30440c58d9971628125afde7984fdc449e7569) ·
 **Ontwikkelbranch:** `integrate/stack130-local`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Alle19 daadwerkelijke Windows-volumetoelatings- en crashherstelruns onafhankelijk controleren.
-41 blijft41. Echte Windows10+9VM-volumeacceptatie op bevrorence02/source2c410004 slaagt na uitsluitend locked-cacheherstel. Parent controleert alle19 daadwerkelijke log/snapshot-hashes en schijforacles: normal/koud gen84/raw33; acht RO/RW-negatieven raw35/nul writes/identieke bytes; drie echte hostkills raw1 met bewezen live process en koud herstel. Geen promotie naar nieuwstesource1ca86157. Die bron heeft afzonderlijk echte fragment/terminale EOF-netwerkacceptatie. Hosted foreignfixturelevering, volledige gecombineerde CI/review/integratie, productiekeys en fysieke tests blijven open. Geen nieuwepunten of dubbele bestaande acceptatie.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Gedeelde strikte runnerhelpers uit142 op de135-native stack integreren.
+41 blijft41. Volledige142-head8e2b1afc/maincbbc behoudend op135eea1 gecombineerd; alleen drie centrale statusconflicten. Gedeelde SHA256- en inventarishelpers behouden strikte padvalidatie vóór is_file en oorspronkelijke relatieve paden.61 gerichte echte hosttests op deze combinatie slagen:8common/20images/21random/12FPU. Exacte historische142status en bron/loghashes bewaard; geen nieuwe oracles/rechten/dependencies. Frozen19volumeVMs en fragment/terminaleEOF-netwerkbewijs blijven aan hun eigen bron gebonden. Nieuwe native/CI/review/integratie en hostedforeignfixturelevering zijn open; geen nieuwepunten/hardware/menselijke/releaseacceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
