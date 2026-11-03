@@ -555,6 +555,109 @@ fn tx_writable_length_and_max_rx_frame_are_validated() {
 }
 
 #[test]
+fn late_completions_before_reset_ack_cannot_copy_replay_or_reuse_pages() {
+    for timeout in [false, true] {
+        let (mut engine, model) = online();
+        engine.post_rx().unwrap();
+        engine.send(&[0x31; 60], 0, 5).unwrap();
+        model.0.borrow_mut().refuse_reset = true;
+        if timeout {
+            assert_eq!(engine.poll_tx(5), Err(Error::Timeout));
+        } else {
+            engine.begin_reset();
+        }
+        assert!(!engine.reset_acknowledged());
+        model.receive(&engine, &[0x92; 60]);
+        model.complete(&engine, TX, 1, 0, 0);
+        let pages = [POOL.rx_ring, POOL.tx_ring, POOL.rx_bounce, POOL.tx_bounce]
+            .map(|page| model.read_bytes(page, 4096));
+        let notifications = model.0.borrow().notifications.clone();
+        let mut output = [0xa5; 70];
+        for _ in 0..3 {
+            assert_eq!(engine.poll_rx(&mut output), Err(Error::Offline));
+            assert_eq!(engine.poll_tx(6), Err(Error::Offline));
+            assert_eq!(engine.post_rx(), Err(Error::Offline));
+            assert_eq!(engine.send(&[0x53; 60], 6, 5), Err(Error::Offline));
+            assert!(!engine.reset_acknowledged());
+        }
+        assert_eq!(output, [0xa5; 70]);
+        assert!(!engine.ready && !model.bus_master_enabled());
+        assert!(engine.queues.iter().all(|queue| !queue.posted));
+        let mut candidate = new_engine(model.clone());
+        assert_eq!(candidate.initialize(), Err(Error::Timeout));
+        assert!(!candidate.ready && !model.bus_master_enabled());
+        for (page, before) in [POOL.rx_ring, POOL.tx_ring, POOL.rx_bounce, POOL.tx_bounce]
+            .into_iter()
+            .zip(pages)
+        {
+            assert_eq!(model.read_bytes(page, 4096), before);
+        }
+        assert_eq!(model.0.borrow().notifications, notifications);
+    }
+}
+
+#[test]
+fn acknowledged_reset_clears_late_completions_before_fresh_rx_and_tx() {
+    for initial_used in [0, u16::MAX] {
+        let (mut engine, model) = online();
+        for index in [RX, TX] {
+            engine.queues[index].used = initial_used;
+            engine.queues[index].available = initial_used;
+            model.0.borrow_mut().store(
+                engine.pool.queue(index).used() + 2,
+                u64::from(initial_used),
+                2,
+            );
+        }
+        engine.post_rx().unwrap();
+        engine.send(&[0x31; 60], 0, 5).unwrap();
+        model.0.borrow_mut().refuse_reset = true;
+        engine.begin_reset();
+        model.receive(&engine, &[0x92; 60]);
+        model.complete(&engine, TX, 1, 0, 0);
+        assert!(!engine.reset_acknowledged());
+        model.0.borrow_mut().refuse_reset = false;
+        engine.begin_reset();
+        assert!(engine.reset_acknowledged());
+        drop(engine);
+
+        let notifications = model.0.borrow().notifications.len();
+        let mut fresh = new_engine(model.clone());
+        fresh.initialize().unwrap();
+        assert_eq!(model.0.borrow().notifications.len(), notifications);
+        for index in [RX, TX] {
+            let memory = fresh.pool.queue(index);
+            assert_eq!(model.read_bytes(memory.bounce, 4096), vec![0; 4096]);
+            assert_eq!(model.read_bytes(memory.used(), 68), vec![0; 68]);
+            assert_eq!(fresh.queues[index].used, 0);
+            assert_eq!(fresh.queues[index].available, 0);
+            assert!(!fresh.queues[index].posted);
+        }
+        let mut output = [0xa5; 70];
+        assert_eq!(fresh.poll_rx(&mut output), Ok(None));
+        assert_eq!(fresh.poll_tx(10), Ok(None));
+        fresh.post_rx().unwrap();
+        fresh.send(&[0x64; 42], 10, 5).unwrap();
+        assert_eq!(fresh.poll_rx(&mut output), Ok(None));
+        assert_eq!(fresh.poll_tx(11), Ok(None));
+        assert_eq!(output, [0xa5; 70]);
+        assert_eq!(
+            model.read_bytes(POOL.tx_bounce + HEADER_BYTES as u64, 60),
+            [vec![0x64; 42], vec![0; 18]].concat()
+        );
+        model.receive(&fresh, &[0x75; 60]);
+        model.complete(&fresh, TX, 1, 0, 0);
+        assert_eq!(fresh.poll_rx(&mut output), Ok(Some(60)));
+        assert_eq!(output[..60], [0x75; 60]);
+        assert_eq!(output[60..], [0xa5; 10]);
+        assert_eq!(fresh.poll_tx(12), Ok(Some(60)));
+        assert_eq!(fresh.poll_rx(&mut output), Ok(None));
+        assert_eq!(fresh.poll_tx(12), Ok(None));
+        assert_eq!(model.0.borrow().notifications.len(), notifications + 2);
+    }
+}
+
+#[test]
 fn status_generation_and_link_changes_are_observed_with_a_bound() {
     let (engine, model) = online();
     model.0.borrow_mut().store(CONFIG + 6, 0, 2);
