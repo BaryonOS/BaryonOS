@@ -61,7 +61,7 @@ cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/window-sess
 python3 -B tools/test_window_session.py
 ```
 
-Op de laatste bron elk exit 0: vijf daadwerkelijke nieuwe UX-/pixelproeven
+Op productbron `ec231857` elk exit 0: vijf daadwerkelijke nieuwe UX-/pixelproeven
 (28,23 s testduur), plus de opt-in fixturetest zonder aangeleverde beelden
 (geen gegenereerd oracle of nativeclaim in die lege route), en twaalf
 runnertegenproeven. Pixel-/muisketens op vijf displays: 800x500@1,
@@ -77,9 +77,10 @@ slaagden maar Clippy weigerde de niet-uitgevoerde inner-test. Dat is
 gecorrigeerd en bovenstaande laatste run voerde alle vijf werkelijk uit.
 Log van die mislukking blijft `veld-switcher-targeted-host-attempt2.log`.
 
-## Nog open: nieuwe native deelacceptatie en integratie
+## Native deelacceptatie: geslaagd op beide schalen
 
-Pas na dit broncheckpoint:
+Uitgevoerd op dezelfde bevroren bron
+`537fee48c1c31155a51a997cd7a2236b159e9ac7`:
 
 ```sh
 export NOS_BUILD_DIR="$PWD/build/veld-switcher-20261103/scale1"
@@ -89,7 +90,7 @@ python3 -B -u tools/run_window_session.py --switcher --scale 1 --timeout 900 --b
 export NOS_BUILD_DIR="$PWD/build/veld-switcher-20261103/scale2"
 export NOS_TARGET_DIR="$PWD/target/veld-native-20261103-context-hidpi"
 python3 -B -u tools/build.py --kernel-feature native-window-session-hidpi-probe
-python3 -B -u tools/run_window_session.py --switcher --scale 2 --timeout 900 --bios-rom "$NOS_BIOS_ROM" --vga-rom "$NOS_VGA_ROM"
+python3 -B -u tools/run_window_session.py --switcher --scale 2 --timeout 1200 --bios-rom "$NOS_BIOS_ROM" --vga-rom "$NOS_VGA_ROM"
 ```
 
 De deelgate typt echte draft-/rekeninhoud, bewaart de modellen en controleert
@@ -97,7 +98,35 @@ de gehele wisselaar tegen een host-shelloracle dat echte appcaptures als
 miniatuurbron gebruikt. Annuleren/herstellen vergelijkt het volledige scherm
 met de actuele native basis, geen lege appfixture. De inputledger controleert
 preciese KEYS/INPUT_ACKS-veranderingen, ook na een volgende echte edit.
-Dit is het acceptatiecriterium, nog geen uitgevoerd native resultaat.
+Dit is uitgevoerd VM-bewijs, niet alleen het acceptatiecriterium.
+
+| Schaal | Build-exit / duur | Runner-exit / duur | Ruwe QEMU-exit | Fasen |
+|---|---|---|---|---|
+| 100% | 0 / 2,12 s | 0 / 303,55 s | 33 | 18 |
+| 200% | 0 / 6,37 s | 0 / 484,36 s | 33 | 18 |
+
+Beide rapporten hebben `passed=true`, `switcher_gate=true` en bewust
+`native_gate=false`. Bronfingerprint:
+`cc728992c0058b6391f986cff06056be91cfe23f974d5c753595cd8a59f9fae9`.
+Product-Rust blijft ongewijzigd sinds `ec231857`; vervolgfixes betroffen
+uitsluitend runner/fixture. De laatste fase bewaart de echte vervolg-edit
+vóór normale cleanup. Een niet-nul QEMU-exit anders dan de voorgeschreven
+33 zou geen geslaagde deelgate zijn.
+
+Compacte rapporten: `native-scale1.json` en `native-scale2.json`, met
+bron-, firmware-, image-, serial- en oraclehashes. Alleen de omvangrijke
+QMP-trace is vervangen door aantal entries en SHA-256 van canonieke JSON
+(`sort_keys=True`, separators `(',', ':')`). De raw-reportpaden en hashes
+blijven opgenomen. De ruwe artifacts staan lokaal onder `build/` en zijn
+geen meegecommitte binaries.
+
+Logs staan onder `$VELD_ENV/logs`; `logs.sha256` bevat relatieve namen en
+hashes, inclusief de mislukte pogingen. Controle:
+`(cd "$VELD_ENV/logs" && sha256sum -c "$OLDPWD/docs/verification/veld-switcher-20261103/logs.sha256")`.
+De geslaagde logs zijn `veld-switcher-native-scale1-attempt5.log` en
+`veld-switcher-native-scale2-attempt1.log`. Geen nieuwe 100%-herhaling
+uitgevoerd na het geslaagde resultaat. De laatste runnertegenproefreeks
+bevat dertien tests, inclusief weigering van een verloren keyedge.
 
 ## Tussenresultaat op ec231857
 
@@ -174,7 +203,11 @@ Vervolgfix bewaart eerst via echte Ctrl+S en wacht op DIRTY=0 en precies
 een nieuwe SAVE_ACK. Geen wijziging van app-/supervisor-/opslagpolicy,
 geen omzeiling van deze gegevensbehoudsgrens.
 
-CI en main-integratie zijn nog niet uitgevoerd. Geen fysieke/menselijke/audit-/
+Actuele-head CI en main-integratie zijn nog niet door deze workstream
+gevalideerd. Nieuwe normale non-probebuilds en de volledige oude
+herstel-/opslaggate zijn niet uitgevoerd. Geen fysieke/menselijke/audit-/
 releaseacceptatie, geen scorewijziging. De volledige OS-/Veld-opdracht blijft
-open. Na deze ene afgeronde milestone volgt direct een kleine concept-PR voor
-integratie, geen extra featurebatch op dezelfde branch.
+open. Bestaande concept-PR #167 is de enige integratie-PR voor deze milestone;
+geen extra featurebatch op dezelfde branch. Dit werk supersedeert #157 niet.
+`scene.rs` en `init.rs` blijven tijdelijk vrijgegeven aan General voor diens
+afzonderlijke native app-launchwerk; deze bewijsoplevering schrijft daar niet.
