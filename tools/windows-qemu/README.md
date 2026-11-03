@@ -96,10 +96,9 @@ automatisch voor iedere nieuw verpakte ZIP.
 De nieuwe versnellingsselectie is afzonderlijk met synthetische tests te
 controleren: `./Test-Acceleration.ps1` vanuit de repositorymap
 `tools/windows-qemu/`. Die test initialiseert geen hypervisor en meet geen
-snelheid. De WHPX-helper is ongewijzigd ten opzichte van de eerder lokaal op
-Windows PowerShell 5.1 en PowerShell 7 gecontroleerde versie. Dat bewijs geldt
-voor de helper en geeft deze nieuwe venstersessie geen Windows-runtimeacceptatie.
-QEMU beschrijft beperkingen
+snelheid. Windows/WHPX-runtimebewijs voor deze wijziging staat nog open;
+historische TCG-proeven gelden daarvoor niet en eerdere helpercontroles geven
+deze nieuwe venstersessie geen Windows-runtimeacceptatie. QEMU beschrijft beperkingen
 voor legacy-VGA en SIMD-toegang tot MMIO; de launcher schakelt daarvoor geen
 beveiligingsmaatregelen uit. Een modernere GPU-driver en minder
 rendertransacties zijn afzonderlijke verbeteringen.
