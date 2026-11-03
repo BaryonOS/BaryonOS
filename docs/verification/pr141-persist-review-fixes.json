@@ -43,7 +43,17 @@
   ],
   "old_code_red": "Werkelijk exit1: continuous typing must persist within each180ms interval,3!==4. Alleen test gewijzigd v\u00f3\u00f3r rode run; daarna1productieregel gewijzigd.",
   "timer_caveat": "Fake klok controleert geplande deadlines; een geblokkeerde browser kan timers later uitvoeren. sessionStorage is geen duurzame OS-opslag.",
-  "native_browser_and_full_ci": "Reguliere Node-tests volledig groen. Echte browserfocusresultaat voor de definitieve appsha wordt apart gehasht opgeslagen; native/QEMU/fullCI blijven afzonderlijk.",
+  "render_host_oracle": {
+    "source_commit": "c94a40e97622ecd854865e4171ba9004011ebd87",
+    "command": "PATH=/home/simon/.cargo/bin:/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/host-linker:$PATH CARGO_TARGET_DIR=target/pr141-render-performance cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --test render_performance",
+    "exit_status": 0,
+    "tests": 2,
+    "elapsed_seconds": 1,
+    "log": "/tmp/nieuw-os-pr141-render-performance.log",
+    "sha256": "887405d3cde668522f128e1caf2fc8237d4ccb422e6e79dfc77b65fb561d5acc",
+    "boundary": "Hostuitvoering van de echte rendererfuncties en pixeloracle, geen gast/QEMU-run of native latency."
+  },
+  "native_browser_and_full_ci": "Reguliere Node-tests volledig groen. Echte Chrome-DOM/focus op de8 frontendhashes van c94a40e9 groen, zie pr141-browser-review.json; native/QEMU/fullCI blijven afzonderlijk.",
   "progress_previous": 41,
   "progress_current": 41
 }

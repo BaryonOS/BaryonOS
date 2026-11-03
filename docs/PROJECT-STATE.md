@@ -1,6 +1,41 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Performancevervolg: native rendergrens — 3 november 2026
+## NEXT AGENT HANDOFF — PR141-persistentiereview hersteld — 3 november2026
+
+Code`c94a40e97622ecd854865e4171ba9004011ebd87`, basisfbbc94aa,
+branch`simonvanieperen-sturdy-guide`; integrator blijftf090b913.
+Echte rode regressie op oude appcode:6*60ms aanhoudend typen schrijft niet
+binnen180ms(3!==4), exit1.1regel fix behoudt eerste pendingtimer;41 volledige
+reguliere Node-hosttests daarna exit0. Laatste invoer blijft opgeslagen;
+focusout/pagehide annuleren pendingwrite en bewaren actuele draft/cursor.
+Editor bereikt via de echte openObject/requestEdit/grantSession-handlerroute.
+Resultatenmock bestaat alleen als de echte appmarkup de container bevat.
+
+Echte Chrome156-DOM/focusproef op de8 exacte frontendhashes van c94a40e9,
+WindowsNode24, localhost en eigen wegwerpprofiel: exit0,2890ms.
+Input.insertText filtert Tuinplan/Boodschappen; werkelijk actief zoekveld,
+inputnode, resultatencontainer en appshellnode blijven behouden. Parent
+verifieert bron-/rawloghashes; script, observaties en rawCDPlog opgeslagen in
+`verification/pr141-browser-review.json`. Geen geheugenloader/fakeDOM als
+browserbewijs. Geen nieuwe package, securitybypass, OS- of p95-claim.
+
+De eerder wegens ontbrekend Cargo geblokkeerde `render_performance`-
+hostoracle is nu echt uitgevoerd met bestaande Rust1.90/private linker:
+2tests exit0; dit is geen QEMU/native latency. Exacte commands en rood/groen/
+alle41Node-/rendererloghashes: `verification/pr141-persist-review-fixes.json`.
+Score41 ->41; geen criterium gesloten. Een browser kan timers later uitvoeren;
+sessionStorage is geen duurzame OS-opslag.
+
+**Open integratie, niet alleen rendering:** actuelemain is69809c2c (114
+daadwerkelijk gemerged);119/136/143/144/145 zijn na exact inhoudsbehoud als
+vervangen gesloten. Deze141-branch heeft main698 nog niet opgenomen.
+Eerstvolgend: eigen upstream/live head hercontroleren, main behoudend
+combineren, dan verse volledige CI incl. native-/netwerkpoorten en alle
+reviewthreads op de werkelijke head beoordelen. Bron-PRs pas sluiten ná
+aantoonbaar behoud op main; oude VM-/hostresultaten niet herlabelen.
+Volledige release, echte gebruikersmeting en fysieke/menselijke gates open.
+
+## Vorig checkpoint — Performancevervolg: native rendergrens — 3 november2026
 
 **Bron:** branch `simonvanieperen-sturdy-guide`, broncommit
 `40f83e3f059102fe30c8818991ba0b4c47b488d0`. Deze vervolginspectie heeft geen

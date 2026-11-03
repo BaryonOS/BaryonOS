@@ -85,6 +85,12 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR141-review (3 november2026), code`c94a40e9`: **41 ->41**.
+Debounce-uithongering echt rood/groen;41 reguliere Node-hosttests en2
+renderer-hostoracles groen. Echte Chrome-DOM/focus op dezelfde8frontendhashes
+bevestigt typen/resultaten en node-/focusbehoud. Geen native/p95/
+duurzameOS-opslag- of productacceptatie; actuele integratie-/CI-gates open.
+
 Native render-vervolginspectie (3 november 2026), bron `40f83e3f059102fe30c8818991ba0b4c47b488d0`, branch `simonvanieperen-sturdy-guide`: **41% → 41%**. De bestaande compositor begrenst repaint-batches op 32 damage-tiles, ondersteunt retained frames en gebruikt een pixel-oracle-geteste opaque-body fast path. De seriële SUR1-per-tile IPC blijft een kandidaat voor later werk, maar het native render-orakel kon niet worden uitgevoerd omdat `cargo` ontbreekt; geen snelheid gemeten of criterium gesloten. Bewijs: `verification/performance-followup-20261103.json`.
 
 P02-invoerperformance (3 november 2026), bron `f2c3354d159ae91699e0926fd6f39a769705aa14`, branch `simonvanieperen-sturdy-guide`: **41% → 41%**. Zoeken werkt alleen de resultatenlijst bij; korte invoerpieken bundelen opslagwrites en draftupdates delen onveranderde objectgeschiedenis. De complete prototypehostsuite slaagt (41 tests); de fake-DOM-test controleert render-/focusgedrag. Geen native criterium gesloten en geen browserbenchmark uitgevoerd. Bewijs: `verification/ui-performance-20261103.json`.

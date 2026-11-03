@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`40f83e3f`](https://github.com/simonvanieperen/nieuw-os/commit/40f83e3f059102fe30c8818991ba0b4c47b488d0) ·
+**Bron:** [`c94a40e9`](https://github.com/simonvanieperen/nieuw-os/commit/c94a40e97622ecd854865e4171ba9004011ebd87) ·
 **Ontwikkelbranch:** `simonvanieperen-sturdy-guide`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Native rendervervolg en P02-invoerperformance.
-P02-zoek- en invoerverbeteringen staan in commit f2c3354d; 41 prototype-hosttests slaagden, zonder browserbenchmark. In de native compositor zijn reeds begrensde batches van 32 damage-tiles, retained frames en een raster-fast-path met pixel-orakel aanwezig. Per volledige 1.248x656 app-frame blijven volgens het bestaande contract 22.386 SUR1-verzoeken en 3.198 replies. De gerichte native test is niet uitgevoerd: cargo ontbreekt (exit 127). Geen native latency gemeten of criterium gesloten. Score 41/100 blijft gelijk.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR141-review: begrensde invoeropslag, editorflush en echte browserfocus.
+41 blijft41. Echte oude141-debouncefout rood: aanhoudende60ms-invoer stelt alle writes uit voorbij180ms(3!==4).1regel timerfix houdt de eerste deadline vast; volledige41 reguliere Node-hosttests groen, inclusief editorroute/selectionStart/focusout/pagehide. Mockresultatencontainer hangt nu van werkelijke appmarkup af. Daarnaast echte Chrome156-DOM/focusproef op exact de8 frontendbestandshashes van c94a40e9 groen: Input.insertText filtert, zoekveld/focus/results/appshellnode blijven behouden; bestaande Node24/browser zonder nieuwe deps. De eerder ontbrekende render_performance-hostoracle nu2tests groen met bestaande Rust1.90/linker. Geen native runtime/latency-, duurzameOS-opslag- of productclaim; geblokkeerde browser kan timers later uitvoeren. Actuelemain698 bevat114 en vijf bewezen vervangen leafs; deze141-branch moet nog actuelemain en verse CI/netwerk/native/review afronden. Geen nieuwe punten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
