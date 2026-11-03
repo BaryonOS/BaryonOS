@@ -162,6 +162,18 @@ hostfixturebeelden in die mislukte runmap opnieuw gegenereerd; zij zijn
 dus geen ongewijzigde historische oracle-artifacts. Raw result, serial en
 nativecaptures zijn niet gewijzigd; de poging blijft mislukt.
 
+Vierde 100%-poging op `b73242dc08315c00617328e0fe3c3581d7cf1d2a`:
+probebuild exit 0 (1,98 s); runner exit 1 na 900,26 s tijdens afsluiten.
+Alle 17 fasen tot en met `switcher-real-input-restored` (280,45 s)
+doorlopen; volledige paneel-/herstelpixels, inputledger en modellen voldeden.
+Run `window-51d508cdf03743bc97447a10e6e16e95`,
+log `veld-switcher-native-scale1-attempt4.log`. Dit is geen geslaagde gate.
+Oorzaak: de runner vroeg afsluiten met de zojuist geverifieerde onbewaarde
+edit; de bestaande app weigert dat terecht met `Error::Unsaved`.
+Vervolgfix bewaart eerst via echte Ctrl+S en wacht op DIRTY=0 en precies
+een nieuwe SAVE_ACK. Geen wijziging van app-/supervisor-/opslagpolicy,
+geen omzeiling van deze gegevensbehoudsgrens.
+
 CI en main-integratie zijn nog niet uitgevoerd. Geen fysieke/menselijke/audit-/
 releaseacceptatie, geen scorewijziging. De volledige OS-/Veld-opdracht blijft
 open. Na deze ene afgeronde milestone volgt direct een kleine concept-PR voor

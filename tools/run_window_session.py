@@ -551,6 +551,11 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                      and s["MATERIAL"][-1]["DRAFT_BYTES"] == len(TEXT) + 1
                      and s["CALCULATOR"][-1]["EXPRESSION_SUM"] == volume_disk.fnv(b"2+3"))
                 report["switcher_scope"] = "Live app previews, deferred focus, key/mouse isolation, cancel/commit and resumed real input; not the complete window-session/recovery/storage gate."
+                key("ctrl", "s")
+                wait("switcher-saved-for-cleanup", lambda raw, s: complete(raw, s)
+                     and s["MATERIAL"][-1]["DIRTY"] == 0
+                     and s["MATERIAL"][-1]["SAVE_ACKS"] == baseline["MATERIAL"][-1]["SAVE_ACKS"] + 1
+                     and s["MATERIAL"][-1]["DRAFT_SUM"] == volume_disk.fnv(TEXT + b"z"))
                 key("f10")
             else:
                 move(1260, 50)
