@@ -1,6 +1,37 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR149 derde main-integratie — 3 november 2026
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:92ef380115949cebc8090cbe9bb277d147f689e92884075957df9a27e13b1e23 -->
+
+## NEXT AGENT HANDOFF — review sessiepreview en Windows-QEMU — 3 november 2026
+
+**Basis:** `2fa620c7fc8e5fc438361a7d0a360c7e1d22584d`, branch
+`coderabbit/address-review-findings/ae5fd6b3`; de reviewcorrecties zijn
+uitgevoerd boven die basis. De score blijft **41 → 41/100**: geen nieuw
+geaccepteerd productcriterium. `python3 tools/progress.py --write` en
+`--check` slaagden; de gegenereerde criteriatabel in `PROGRESS.md` en
+`docs/assets/progress.svg` bleven bytegelijk, omdat criteria, score en datum
+ongewijzigd zijn. `progress.json` en de gegenereerde README weerspiegelen dit
+checkpoint.
+
+**Gerichte controles:** preview- en packagerhosttests 58 geslaagd;
+Materiaal-app 43 Rust-tests en Clippy met `-D warnings` geslaagd. Op Linux met
+PowerShell 7.6.9 slaagden 33 synthetische acceleratietests, 23 launchertests
+en tijdelijke subprocessproeven voor QMP en de timeout. Deze controles zijn
+geen Windows- of WHPX-uitvoering. De SHA-256-waarden in historische verificatiebestanden blijven behouden;
+oude Windowsruns zijn lokaal gerapporteerd.
+
+**Open:** Windows PowerShell 5.1 en echte WHPX niet opnieuw uitgevoerd; de
+volledige CI, native QEMU-, fysieke en menselijke acceptatie evenmin. De
+vervolgstap is controle op de resulterende branch, met Windows/WHPX op een
+geschikte host indien nodig. Bij een verstreken deadline bevestigt de
+begrensde opruiming de exit na een asynchrone `Kill()` niet altijd; een
+afzonderlijk wachtbudget zou het gevraagde tijdsbudget verlengen.
+
+## Historisch checkpoint — PR149 derde main-integratie — 3 november 2026
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 **Basis:** Watch-merge `bb8877e3e1aaec304d7478510b65c8116aeb634e`, met
 ouders `416886354dbb0c6135a0740c429a3fbd4530a16d` en main

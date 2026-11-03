@@ -88,8 +88,16 @@ naar een bestaande lege directory. Dit zijn hostfixtures, geen native bewijs.
 
 ## Sessieroute en bureaublad (2 november 2026)
 
-Het opt-in kernelprofiel `native-system-session-preview` geeft de native app
-startupwoord648=1. `Controller::enable_vm_desktop` toont gebruikerskeuze,
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:351965100466bf93c40591e452a4bcc168048b02bb122a50f568e77015752f62 -->
+
+Het opt-in kernelprofiel `native-system-session-preview` zet in de kerneltabel
+het startupwoord op offset `648` op profielwaarde `1` (ingeschakeld).
+
+<!-- /coderabbit-ai-generated:v1 -->
+
+`Controller::enable_vm_desktop` toont gebruikerskeuze,
 een herkenbaar aanmeldformulier en een expliciete openbare VM-gastsessie,
 gevolgd door taakbalk, lokale programmasearch en echte Materiaalnavigatie.
 Esc in de Materiaallijst keert terug naar het bureaublad; editor/dirty-dialog

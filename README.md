@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`bb8877e3`](https://github.com/simonvanieperen/nieuw-os/commit/bb8877e3e1aaec304d7478510b65c8116aeb634e) ·
-**Ontwikkelbranch:** `simonvanieperen-reimagined-train`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR149: nieuwe primaire59-hosttestreceipt op schone Watch-main99-merge bewaren.
-41 blijft 41. Op schone Watch-merge bb8877e3 met main99 zijn59 hosttests echt opnieuw groen; cwd/HEAD/status/lock- en Rust-hashes vóór/na en volledige logs vastgelegd. Geen retrospectieve bronbinding van eerdere Watch-tijden. De UI-Rust-code blijft exact53256f82; historische scalar/Clippy/fmt behouden die bron. Assessmentbasis is niet de uiteindelijke PR-head of automatisch elke testbron. Geen nieuwe code, native/QEMU/fysieke/menselijke acceptatie of punten.
+**Bron:** [`2fa620c7`](https://github.com/simonvanieperen/nieuw-os/commit/2fa620c7fc8e5fc438361a7d0a360c7e1d22584d) ·
+**Ontwikkelbranch:** `coderabbit/address-review-findings/ae5fd6b3`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Reviewbevindingen over sessiepreview en Windows-QEMU corrigeren.
+41 blijft 41. Reviewcorrecties voor sessie-oracle, Windows-QEMU en bewijsdocumentatie; geen nieuw geaccepteerd productcriterium. De broncommit is de basis vóór de reviewcorrecties; gerichte controles en grenzen staan in PROJECT-STATE.md.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -136,6 +136,10 @@ python3 -B tools/build.py --kernel-feature native-system-session-preview
 De Windowsstarter kiest WHPX na een echte QMP-initprobe, met zichtbare
 TCG-terugval. Begrensde compositor-/tegelbatches verminderen protocolwerk;
 volledige schermopbouw blijft een ontwikkelbeperking. De score bleef bij die eerdere preview 34/100; de actuele meter staat bovenaan.
+Voor de sessiepreview met begrensde invoer- en tegelbatches op `344dc0a`
+zijn lokaal drie WHPX- en drie TCG-runs en een Auto/WHPX/SDL-start
+gerapporteerd; de cloudexecutor heeft deze Windowsruns niet gereproduceerd.
+[Bron van het Windowsrapport](docs/verification/session-desktop-20261102/local-pc-reported.json).
 [Onderzoek/ontwerp](docs/implementation/SESSION-AND-DESKTOP.md) ·
 [hardware en snelheid](docs/implementation/VM-HARDWARE-AND-PERFORMANCE.md) ·
 [proeven en reproductie](docs/verification/session-desktop-20261102/README.md).

@@ -111,13 +111,36 @@ function Test-NieuwOSWhpx {
     } catch [System.TimeoutException] {
         return [pscustomobject]@{ Ready = $false; Reason = "WHPX initialization timed out after 10 seconds." }
     } catch {
+        # QMP may close before the process has finished writing its diagnostic.
+        # Give it only the time still available in the original probe budget.
+        if ($started) {
+            try {
+                $remaining = [Math]::Max(0, 10000 - [int]$clock.ElapsedMilliseconds)
+                if ($process.HasExited -or ($remaining -gt 0 -and $process.WaitForExit($remaining))) {
+                    $remaining = [Math]::Max(0, 10000 - [int]$clock.ElapsedMilliseconds)
+                    $detail = ""
+                    if ($stderr.IsCompleted -or ($remaining -gt 0 -and $stderr.Wait($remaining))) {
+                        $detail = ($stderr.GetAwaiter().GetResult() -replace "[\r\n]+", " ").Trim()
+                        if ($detail.Length -gt 240) { $detail = $detail.Substring(0, 240) }
+                    }
+                    return [pscustomobject]@{ Ready = $false; Reason = "WHPX initialization failed (exit $($process.ExitCode)): $detail" }
+                }
+            } catch { }
+        }
         return [pscustomobject]@{ Ready = $false; Reason = "WHPX initialization probe could not complete." }
     } finally {
-        $clock.Stop()
-        if ($started -and -not $process.HasExited) {
-            $process.Kill()
-            $process.WaitForExit()
+        if ($started) {
+            try {
+                if (-not $process.HasExited) {
+                    # It may exit between HasExited and Kill; cleanup must not
+                    # replace the probe result in that race.
+                    try { $process.Kill() } catch { }
+                    $remaining = [Math]::Max(0, 10000 - [int]$clock.ElapsedMilliseconds)
+                    if ($remaining -gt 0) { $null = $process.WaitForExit([Math]::Min(5000, $remaining)) }
+                }
+            } catch { }
         }
+        $clock.Stop()
         $process.Dispose()
     }
 }

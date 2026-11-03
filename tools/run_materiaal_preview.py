@@ -334,9 +334,9 @@ def run_preview(
                 session_fixture_directory, manifest, frozen,
             )
             report["session_oracle"] = {
+                **session_fixture["metadata"],
                 "directory": str(session_fixture["directory"]),
                 "metadata_sha256": session_fixture["metadata_sha256"],
-                **session_fixture["metadata"],
             }
             publish_json(report_path, report)
         if interactive_reference_run is not None:

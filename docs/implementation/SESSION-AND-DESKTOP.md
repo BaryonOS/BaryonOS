@@ -166,11 +166,18 @@ Uitgevoerd op de werkboom boven bron `e08fb0e48c1bb0781e98357f588c2f73b6ae8500`:
 de gerichte suite slaagt met **10 tests, exit 0**; log
 `/workspace/.nieuw-os-env/session-tests.log`. `rustfmt --edition 2021 --check`
 voor de sessiemodule en de tests en `git diff --check` slagen eveneens, exit 0.
-De eerste strikte `cargo clippy --test session --offline -- -D warnings` werd
-geblokkeerd door gelijktijdig gewijzigde integratiecode: ongebruikt `label` in
-`render.rs` en `unnecessary_unwrap` in `desktop.rs` (exit 101; log
-`/workspace/.nieuw-os-env/session-clippy.log`). Dit is geen groen gezamenlijk
-lintresultaat; de integrator herhaalt de gate na afronden van die bestanden.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:8dff4dfe43779be46cf207ac94fd6ed5a384eab8b3a51682f81527b8c7d826f1 -->
+
+Historisch werd de eerste strikte `cargo clippy --test session --offline -- -D warnings`
+geblokkeerd door gelijktijdig gewijzigde integratiecode (exit 101; log
+`/workspace/.nieuw-os-env/session-clippy.log`). Een latere integratiecontrole
+op bron `344dc0a` rapporteert een geslaagde Clippy-gate voor alle targets met
+`-D warnings`; zie het [verificatierapport](../verification/session-desktop-20261102/README.md).
+Die historische uitvoering bewijst de huidige werkboom niet.
+
+<!-- /coderabbit-ai-generated:v1 -->
 Native UI-acceptatie, echte account-/sleutelpersistentie, FIDO2/biometrie,
 kernelrevoke, fysieke hardware en menselijke beoordeling vallen buiten dit
 hostbewijs en blijven open.

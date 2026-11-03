@@ -1,8 +1,9 @@
 # QEMU, pc-hardware en schermvertraging
 
 Onderzoek en afgebakende launcherwijziging, 2 november 2026. Basis:
-`e08fb0e48c1bb0781e98357f588c2f73b6ae8500`. Dit document beschrijft geen
-meting op Simons pc en geen fysieke-hardwareacceptatie.
+`e08fb0e48c1bb0781e98357f588c2f73b6ae8500`. De Windowsmetingen hieronder
+zijn lokaal gerapporteerd en niet door de cloudexecutor gereproduceerd;
+ze zijn geen fysieke-hardwareacceptatie van Nieuw OS.
 
 ## Contract en feitelijke oorzaak
 
@@ -82,7 +83,7 @@ bron-, hash- en ESP-controles.
 
 | Onderdeel | Eerstvolgende verantwoorde route | Bewijsgrens |
 |---|---|---|
-| CPU op Windows x86-64 | WHPX via Windows Hypervisor Platform en firmwarevirtualisatie | 6/6 echte helperproeven en 6/6 native Windowsruns plus Auto/WHPX/SDL-start; zie brongebonden eindrapport |
+| CPU op Windows x86-64 | WHPX via Windows Hypervisor Platform en firmwarevirtualisatie | Lokaal gerapporteerd: 6/6 helperproeven op `51d883e` en 6/6 sessieruns plus Auto/WHPX/SDL-start op `344dc0a`; niet door de cloudexecutor gereproduceerd. Zie [lokaal rapport](../verification/session-desktop-20261102/local-pc-reported.json) |
 | CPU op Linux x86-64 | KVM als QEMU-backend met bestaande toegang tot `/dev/kvm` | Onderzocht; huidige native runners blijven expliciet TCG |
 | CPU op Intel-Mac | HVF, mits QEMU/host dit aanbieden | Onderzocht, niet geïmplementeerd of getest |
 | Apple Silicon of Windows ARM | x86-64 gast vraagt architectuuremulatie; ARM-virtualisatie versnelt deze x86-64 kernel niet rechtstreeks | Andere gastarchitectuur is afzonderlijk portwerk |
@@ -123,7 +124,9 @@ een voorstel. Daarna versieerbaar dirty-regiontransport; op langere termijn
 een capabilitygebonden overdrachtsbuffer met expliciet ownership, begrensde
 lengte en intrekking. Geef apps geen raw framebuffer of DMA-recht voor snelheid.
 
-## Uitgevoerde controles
+## Controles en bewijsstatus
+
+Historisch op de Linux-cloudexecutor gerapporteerd, zonder Windows-hypervisor:
 
 - PowerShell 7.5.4 op de Linux-cloudexecutor: 33 synthetische
   versnellingsbeleid-/QMP-antwoordtests (succes, ontbrekende backend,
@@ -138,13 +141,11 @@ lengte en intrekking. Geef apps geen raw framebuffer of DMA-recht voor snelheid.
   proces-/foutafhandeling, geen Windows-hypervisor.
 - Package-hosttests omvatten hashbinding van de helper en behoud van het
   sessiepreviewprofiel. De integrator bewaart het finale commando/resultaat.
-- Drie synthetische subprocessproeven controleren de exacte LF-only
-  QMP-requestbytes en accepteren alleen bevestigde gepauzeerde initialisatie;
-  `running` en een ontbrekende quitbevestiging worden geweigerd. Dit is
-  Linux-procesbewijs zonder hypervisorinitialisatie, geen Windowsbewijs.
-- Windows PowerShell 5.1, echte WHPX-sessie, KVM/HVF, fysieke pc/periferie en
-  snelheidsvergelijking: **niet uitgevoerd**. De cloudexecutor beschrijft
-  Simons pc niet.
+- De gerapporteerde tijdelijke subprocessproeven zijn geen bewijs dat
+  `Test-NieuwOSWhpx` zelf de LF-verzoeken en status-/quitvoorwaarden afdwingt.
+- Windows PowerShell 5.1, echte WHPX-sessie en snelheidsvergelijking zijn
+  **niet door de cloudexecutor uitgevoerd**. De lokaal gerapporteerde runs
+  staan hieronder. KVM/HVF en fysieke pc/periferie zijn niet aangetoond.
 
 Rollback: draai de launcher/helper/packagewijziging terug als afzonderlijke
 commit; de expliciete `-Acceleration Tcg` behoudt ondertussen het oude
@@ -172,12 +173,13 @@ in de minimaal toegelaten QEMU 10.2.1-build.
 
 ## Lokale Windowsbevindingen van 2 november 2026
 
-De geautoriseerde lokale Codex-chat rapporteert een Ryzen 9 9950X3D met64 GiB
-en Windows 11 25H2. WHPX initialiseert zonder hostinstellingen te wijzigen.
-Op de oude bundel leverde één koude proef10,453s met WHPX tegenover19,952s
-met TCG tot exact hetzelfde volledige frame. Op bron `7648a8f` slaagde de
-vijfstappenroute met WHPX in43,824s; schermovergangen waren6,856–9,107s.
-Dat is uitvoeringsbewijs voor die specifieke bron, geen productlatentieclaim.
+De geautoriseerde lokale Codex-chat rapporteert een Ryzen 9 9950X3D met 64 GiB
+en Windows 11 25H2 en WHPX-initialisatie zonder hostinstellingen te wijzigen.
+De cloudexecutor heeft deze Windowsruns niet gereproduceerd.
+Op de oude bundel `c532ba8` rapporteert één koude proef 10,453 s met WHPX
+tegenover 19,952 s met TCG tot hetzelfde volledige frame. Voor `7648a8f`
+meldt het rapport een foutieve TCG-terugval door de HMP-helper. Dit zijn
+brongebonden meldingen, geen productlatentieclaim.
 Ruwe lokale artifacts blijven bij die chat; de gerapporteerde bron-/firmware-/
 meetgrens is vastgelegd in [local-pc-reported.json](../verification/session-desktop-20261102/local-pc-reported.json).
 
@@ -193,8 +195,9 @@ extra hardlinks, die het harnas terecht weigerde. De vervolgproef gebruikt
 LocalAppData; hardlinkcontroles blijven actief. De uiteindelijke Windowsruntime op344dc0a staat afzonderlijk in het eindbewijs;
 de oudere resultaten worden niet als uitvoering op de nieuwe bron gepresenteerd.
 
-De definitieve lokale344dc0a-reeks is afgerond:3WHPX+3TCG, alle8fasen en
-48appbeelden exact, exits0, daarna echte WindowsAuto/WHPX/SDL-start met
+De lokaal gerapporteerde `344dc0a`-reeks betreft de sessiepreview met begrensde
+invoer- en tegelbatches: 3 WHPX- en 3 TCG-runs, alle 8 fasen en
+48 appbeelden exact, exits 0, daarna Windows Auto/WHPX/SDL-start met
 launcherexit0. WHPX eerste account6,625s gemiddeld (6,481–6,823),
 gast→desktop4,070s (3,932–4,231); TCG respectievelijk13,356s en10,023s.
 Volledige route31,481s tegenover71,982s. Drie starts per backend op één pc,

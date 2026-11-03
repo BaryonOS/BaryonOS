@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "bb8877e3e1aaec304d7478510b65c8116aeb634e",
-    "branch": "simonvanieperen-reimagined-train",
-    "task": "PR149: nieuwe primaire59-hosttestreceipt op schone Watch-main99-merge bewaren",
+    "source_commit": "2fa620c7fc8e5fc438361a7d0a360c7e1d22584d",
+    "branch": "coderabbit/address-review-findings/ae5fd6b3",
+    "task": "Reviewbevindingen over sessiepreview en Windows-QEMU corrigeren",
     "previous_score": 41,
-    "summary": "41 blijft 41. Op schone Watch-merge bb8877e3 met main99 zijn59 hosttests echt opnieuw groen; cwd/HEAD/status/lock- en Rust-hashes vóór/na en volledige logs vastgelegd. Geen retrospectieve bronbinding van eerdere Watch-tijden. De UI-Rust-code blijft exact53256f82; historische scalar/Clippy/fmt behouden die bron. Assessmentbasis is niet de uiteindelijke PR-head of automatisch elke testbron. Geen nieuwe code, native/QEMU/fysieke/menselijke acceptatie of punten."
+    "summary": "41 blijft 41. Reviewcorrecties voor sessie-oracle, Windows-QEMU en bewijsdocumentatie; geen nieuw geaccepteerd productcriterium. De broncommit is de basis vóór de reviewcorrecties; gerichte controles en grenzen staan in PROJECT-STATE.md."
   },
   "tracks": [
     {

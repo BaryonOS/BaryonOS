@@ -38,6 +38,15 @@ Details en begrensd vervolg: [PRODUCT-SPEC.md](implementation/PRODUCT-SPEC.md).
 <a id="adr-056--herkenbare-sessieroute-met-expliciete-vm-bewijsgrens"></a>
 ## ADR-063 — herkenbare sessieroute met expliciete VM-bewijsgrens
 
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:f64f4c575e2c1ed3094303a0248e9aad7d3e7fbadab4db32b88988856053cf9e -->
+
+**Status:** aanvaard voor het opt-in VM-previewprofiel; echte authenticatie
+en sessiehandhaving blijven open.
+
+<!-- /coderabbit-ai-generated:v1 -->
+
 2 november 2026. De gebruikersopdracht vraagt bekende stappen uit macOS,
 Windows en Linux binnen de eigen architectuur. Accountkeuze, credentialinvoer,
 verificatie, sessieactivatie en desktop worden afzonderlijke toestanden.
@@ -59,6 +68,41 @@ onderzoeken. Auto meldt TCG-terugval; strikt Whpx faalt bij ontbrekende backend.
 Dit verandert geen hostinstellingen of beveiligingsmitigaties. CPU-versnelling
 is geen GPU-passthrough of fysieke driveracceptatie. Herzien bij echte
 accountpersistentie, auth-IPC, compositor-lock, USB/CTAP of gewijzigd rendertransport.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:f0a5c60713eff24e359a069429976c95478d9f9485b7efc06ca32ab64172cb66 -->
+
+**Afgewezen alternatieven:** een UI-lokale wachtwoordvergelijking of gedeeld
+demowachtwoord als authenticatie geeft geen vertrouwde autoriteit; automatische
+login voor echte accounts verbergt de noodzakelijke accountkeuze en controle.
+
+**Security-invariant:** een UI-toestand of zoekactie verleent geen kernelrechten
+of gebruikerssleutels. Een echte sessie vereist authentieke brokerverificatie
+én activatie; een oude reply na annuleren, wisselen of lock mag geen nieuwe
+sessie openen. De expliciete VM-gast gebruikt uitsluitend synthetische opslag.
+Werkelijke lock/revoke en afscherming zijn nog niet geïmplementeerd.
+
+**Testbewijs:** [sessiehosttests](../ui/native/tests/session.rs) toetsen onder
+meer geweigerde credentials, activatie en verlate antwoorden met een fixture,
+geen echte authdienst. De [achtstappen-QEMU-proef](verification/session-desktop-20261102/README.md)
+op bron `344dc0a` vergelijkt native apppixels met het brongebonden hostorakel;
+dit bewijst geen echte authenticatie of beveiligde lock.
+
+**Migratie/rollback:** het profiel is opt-in en migreert geen gebruikersdata;
+selecteer het bestaande Materiaalprofiel of draai de profielwijziging terug om
+de preview uit te schakelen. **Eigenaar:** hoofdagent voor sessiecontract en
+integratie; de toekomstige auth-/sessiebroker en compositor blijven aparte
+eigenaars van hun handhavingsgrenzen.
+
+**Weerlegging:** herzie de keuze wanneer een proef aantoont dat een UI-toestand
+of verlate reply zonder geldige brokeractivatie rechten of sleutels kan krijgen,
+of wanneer de expliciete gast synthetische opslag niet afdoende isoleert. Ook
+gebruikersproeven die aantonen dat de stappen niet herkenbaar of bruikbaar zijn,
+of bewijs dat dit profiel niet veilig van een echt account te onderscheiden is,
+vereisen herziening.
+
+<!-- /coderabbit-ai-generated:v1 -->
+
 Bronnen, contract en open gates: [sessieonderzoek](implementation/SESSION-AND-DESKTOP.md)
 en [hardwareonderzoek](implementation/VM-HARDWARE-AND-PERFORMANCE.md).
 

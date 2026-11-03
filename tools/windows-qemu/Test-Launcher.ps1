@@ -54,6 +54,16 @@ try {
     & $launcher -CheckOnly
     $passed++
 
+    $manifest.kernel_feature = "native-system-session-preview"
+    $manifest | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $manifestPath -Encoding UTF8
+    & $launcher -QemuPath $QemuPath -CheckOnly
+    if (Test-Path -LiteralPath (Join-Path $root "state")) {
+        throw "Session preview CheckOnly created mutable VM state."
+    }
+    $passed++
+    $manifest.kernel_feature = "native-system-materiaal"
+    $manifest | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $manifestPath -Encoding UTF8
+
     $helper = Join-Path $root "Acceleration.ps1"
     $helperOriginal = [System.IO.File]::ReadAllBytes($helper)
     $helperChanged = $helperOriginal.Clone()

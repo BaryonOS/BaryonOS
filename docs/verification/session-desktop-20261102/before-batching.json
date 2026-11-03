@@ -107,6 +107,7 @@
   },
   "qemu_implementation_sha256": "d3c1a558ad220e77a4412048c8d96b44f8c2b41c7ad2a4ecfe522a4b122fe067",
   "session_walkthrough": {
+    "hash_scope": "app_pixels_sha256 hashes only the RGB pixels in the compared app rectangle; oracle_sha256 hashes the complete oracle PPM file, including its header. These hashes are not directly comparable. The reported run compared the pixel bytes directly; the raw oracle pixels are not retained in this report for an independently computed pixel hash.",
     "stages": [
       {
         "phase": "accounts",

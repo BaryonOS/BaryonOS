@@ -525,7 +525,10 @@ class PreviewLifecycleTests(unittest.TestCase):
 
     def test_session_hook_revalidates_host_oracle_after_native_exit(self):
         fixture = {
-            "directory": self.root / "session", "metadata": {"kind": session_preview.ORACLE_KIND},
+            "directory": self.root / "session", "metadata": {
+                "kind": session_preview.ORACLE_KIND,
+                "directory": "untrusted", "metadata_sha256": "untrusted",
+            },
             "metadata_sha256": "c" * 64, "frames": {"host-only": b"host-oracle"},
         }
 
@@ -551,6 +554,35 @@ class PreviewLifecycleTests(unittest.TestCase):
         disk.assert_not_called()
         self.assertIn("host-rendered", report["scope"])
         self.assertEqual(report["session_walkthrough"]["stages"], ["HOST_ONLY_HOOK_FIXTURE"])
+        self.assertEqual(report["session_oracle"]["directory"], str(fixture["directory"]))
+        self.assertEqual(report["session_oracle"]["metadata_sha256"], fixture["metadata_sha256"])
+
+    def test_session_hook_records_oracle_metadata_change_after_native_exit(self):
+        fixture = {
+            "directory": self.root / "session", "metadata": {"kind": session_preview.ORACLE_KIND},
+            "metadata_sha256": "c" * 64, "frames": {"host-only": b"host-oracle"},
+        }
+
+        def walkthrough(control, process, directory, reference, deadline):
+            (directory / "session-material.ppm").write_bytes(self.frames["ready"])
+            return {"stages": ["HOST_ONLY_HOOK_FIXTURE"]}
+
+        with (
+            patch.object(session_preview, "load_fixture", side_effect=[
+                fixture, {**fixture, "metadata_sha256": "d" * 64},
+            ]) as load,
+            patch.object(session_preview, "run_walkthrough", side_effect=walkthrough),
+        ):
+            with self.assertRaisesRegex(ValueError, "changed during run"):
+                preview.run_preview(
+                    build_directory=self.build, bios_rom=self.files["bios"], vga_rom=self.files["vga"],
+                    session_fixture_directory=self.root / "session", timeout=240,
+                )
+        self.assertEqual(load.call_count, 2)
+        self.assertTrue(self.quit)
+        report = json.loads((self.build / "preview-result.json").read_text())
+        self.assertFalse(report["passed"])
+        self.assertIn("changed during run", report["error"])
 
 
 def session_frames():
@@ -692,11 +724,16 @@ class SessionWalkthroughTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "changed"):
                     session_preview.load_fixture(directory, manifest, frozen)
 
-    def test_nondiscriminating_rejection_or_account_return_is_rejected(self):
+    def test_nondiscriminating_transitions_or_account_return_are_rejected(self):
         frames, _ = session_frames()
         session_preview.validate_discriminating_frames(frames)
+        for left, right in zip(session_preview.PHASES, session_preview.PHASES[1:]):
+            # Preserve the separate accounts-return equality when testing its transition.
+            changed = ({left: frames[right]} if right == "accounts-return"
+                       else {right: frames[left]})
+            with self.subTest(left=left, right=right), self.assertRaises(ValueError):
+                session_preview.validate_discriminating_frames({**frames, **changed})
         for changed in (
-            {"denied": frames["personal-login"]},
             {"denied": frames["desktop"]},
             {"accounts-return": frames["personal-login"]},
         ):

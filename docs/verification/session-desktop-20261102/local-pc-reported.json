@@ -45,7 +45,7 @@
     "volume_hash_unchanged": true,
     "network": false,
     "passthrough": false,
-    "raw_report_local": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Nieuw OS\\local-pc-tests\\20261102T115023Z-native\\comparison.json"
+    "raw_report_local": "<LOCAL_BASE_DIR>\\OneDrive\\Documenten\\ChatGPT\\Nieuw OS\\local-pc-tests\\20261102T115023Z-native\\comparison.json"
   },
   "found_regression_on_7648a8f": {
     "component": "Windows HMP acceleration helper",
@@ -74,7 +74,7 @@
     ],
     "check_only": "Both PowerShell versions pass; no mutable state",
     "host_settings_changed": false,
-    "raw_report_local": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\session-preview-51d883e\\launcher-verification\\verification.json"
+    "raw_report_local": "<LOCAL_BASE_DIR>\\AppData\\Local\\NieuwOS\\Tests\\session-preview-51d883e\\launcher-verification\\verification.json"
   },
   "session_51d_windows_first_run": {
     "scope": "Reported first8-stage native WHPX walkthrough; full3x2series not complete at report time",
@@ -176,7 +176,7 @@
       "launcher_exit": 0,
       "host_settings_changed": false
     },
-    "directory_local": "C:\\Users\\simon\\AppData\\Local\\NieuwOS\\Tests\\session-preview-344dc0a",
+    "directory_local": "<LOCAL_BASE_DIR>\\AppData\\Local\\NieuwOS\\Tests\\session-preview-344dc0a",
     "comparison_sha256": "cf7ea21e524f6bc9b8775208e3e08627b54bf8f74a4086858d48f6b6a014586d",
     "local_verification_sha256": "477f70e800b94f5ab5cf5df5e35405a0046488123d2e29653edd5fdd82cd5ffe",
     "remaining_idle_cpu_observation": "After12s idle, a2.013s sample counted2.047CPU seconds for QEMU (about one logical CPU). Process accounting only; not total system energy or complete guest CPU measurement."

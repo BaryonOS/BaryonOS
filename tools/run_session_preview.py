@@ -77,12 +77,12 @@ def generate_fixture(build: Path) -> Path:
 
 
 def validate_discriminating_frames(frames: dict) -> None:
-    """A password rejection must be observable, not an unchanged-screen pass."""
+    """Every step must be observable and account return must restore the screen."""
     pixels = {name: ppm(raw)[2] for name, raw in frames.items()}
-    if (pixels["personal-login"] == pixels["denied"]
+    if (any(pixels[left] == pixels[right] for left, right in zip(PHASES, PHASES[1:]))
             or pixels["denied"] == pixels["desktop"]
             or pixels["accounts"] != pixels["accounts-return"]):
-        raise ValueError("Session oracle does not distinguish rejection and account return")
+        raise ValueError("Session oracle does not distinguish transitions or restore account return")
 
 
 def load_fixture(directory: Path, manifest: dict, frozen: str) -> dict:
