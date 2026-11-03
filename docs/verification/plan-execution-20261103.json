@@ -2,7 +2,7 @@
   "schema_version": 1,
   "date_europe_amsterdam": "2026-11-03",
   "task": "PR127 exact-head window-session host and native-build gates",
-  "source_commit": "063b44ebae2c29e38f57e29904a2f6c8fcee4df3",
+  "source_commit": "8decd2b767952b396797188ebfbc80e1a75533bf",
   "source_fingerprint_version": 3,
   "source_sha256": "b7ccd11fa114f3d4506f9b85560b7bcd51289b88cfb8054cd9e0b6537ea7122b",
   "toolchain": {
@@ -101,8 +101,75 @@
     "log_sha256": "750716ae9541d932bcc4571ba88dd6cb301b9cf3bf0cb30f975b75cd132fee06"
   },
   "native_runtime": {
-    "status": "not yet run",
-    "evidence_boundary": "Host tests and native ELF build do not establish QEMU execution, image recovery, pixels, clipboard or disk durability."
+    "command": "python3 -B -u tools/run_window_session.py --clipboard --timeout 1800 --bios-rom \"$SEABIOS_BIOS\" --vga-rom \"$SEABIOS_VGA\"",
+    "exit_code": 0,
+    "duration_seconds": 249.42,
+    "status": "passed",
+    "source_commit": "8decd2b767952b396797188ebfbc80e1a75533bf",
+    "source_sha256": "b7ccd11fa114f3d4506f9b85560b7bcd51289b88cfb8054cd9e0b6537ea7122b",
+    "run_directory": "build/plan1-native/run/window-2efc79752de94906a2d16465d3089766 (ignored build output)",
+    "result_sha256": "e954b947ada6a3419ba4c10828915accf6849c867bdb394fc2f4332ccafd8fe8",
+    "serial_sha256": "5c56d7284819ae5da228f92ab24b2f5b258d1a5d2ba5bdfd79e26d156e0bc816",
+    "volume_sha256": "246c8f9773533796718a729389c26d6103f45f04e7a83b4d06503e17c6d4e07e",
+    "capture_sha256": {
+      "boot.ppm": "ef1a4e72f662caa7e4d074dd91c6665268ccefd3946ab2f13e544fb66e623b18",
+      "recovered.ppm": "97a0d3c76dfdd2b1e9763d8531758dcfc6701686ea009da6b2f583821a6e1ef2",
+      "reopened.ppm": "caea1ff45bee427b1898cfb25759471c80f5e503df8d7d0925f77c8917a828ef"
+    },
+    "native_gate": true,
+    "clipboard_gate": true,
+    "smoke_only": false,
+    "recovery_handshake_only": false,
+    "phases": [
+      "boot",
+      "initial",
+      "editor",
+      "dirty",
+      "clipboard-copied",
+      "clipboard-rejected",
+      "clipboard-numeric",
+      "clipboard-pasted",
+      "clipboard-calculator-copied",
+      "clipboard-back",
+      "clipboard-empty",
+      "clipboard-reset",
+      "calculated",
+      "moved",
+      "recovered",
+      "rebound-editor",
+      "calculator-restored",
+      "restored-editor",
+      "clipboard-recovered-empty",
+      "saved",
+      "list",
+      "reopened"
+    ],
+    "raw_qemu_exit": 33,
+    "disk_oracle": {
+      "object": 0,
+      "revision": 1,
+      "name": "Nieuw document",
+      "length": 14,
+      "generation": 1,
+      "clocks": [1, 0],
+      "canaries_intact": true
+    },
+    "oracle_kind": "host-rendered real Controller/Frame oracle; not native execution",
+    "evidence_boundary": "QEMU TCG execution of the own-kernel window-session probe with recorded input, serial, frame checks, recovery and an independent disposable-disk oracle. The pixel oracle is host-rendered; this is not full native daily-use evidence, physical hardware, real account authentication, or NAS/network integration."
+  },
+  "hosted_ci": {
+    "pull_request": 137,
+    "url": "https://github.com/simonvanieperen/nieuw-os/pull/137",
+    "state": "open",
+    "draft": false,
+    "head_commit": "8decd2b767952b396797188ebfbc80e1a75533bf",
+    "runs_at_checkpoint": {
+      "ci": 41615664980,
+      "native_window_session": 41615664966,
+      "native_system": 41615664986,
+      "native_network_service": 41615665316
+    },
+    "status": "in progress at checkpoint; do not treat as passed until all required checks and review finish"
   },
   "private_package_manifest_sha256": "1be9f63a8c586cc4ff37da00ff6b715703524e091d103ccc60e7dd51b983a98a"
 }

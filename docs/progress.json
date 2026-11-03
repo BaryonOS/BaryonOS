@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-03",
-    "source_commit": "063b44ebae2c29e38f57e29904a2f6c8fcee4df3",
+    "source_commit": "8decd2b767952b396797188ebfbc80e1a75533bf",
     "branch": "simonvanieperen-refactored-fiesta",
     "task": "Uitvoeren PR127 exact-head native-window-gate",
     "previous_score": 41,
-    "summary": "Score blijft 41/100; hosttests en compilatie leveren geen nieuw native criteriumbewijs. De runner-tests (10), relevante Rust-hostsuites (180), Clippy/fmt en strikte preflight slagen. De eigen kernel, loader en acht-processen native venstersessieprobe bouwen met gepinde Rust 1.90; hashes staan in docs/verification/plan-execution-20261103.json. Lokale runtimegate volgt met QEMU 10.2.1/OVMF uit privé uitgepakte Ubuntu-pakketten; hosted exacte-head CI/review, fysieke tests en volledige release zijn nog open."
+    "summary": "Score blijft 41/100; deze probe sluit geen vast rubriccriterium af. De 10 runner-tests, 180 relevante Rust-hosttests, Clippy/fmt, strikte preflight en probebuild slagen. De QEMU TCG-venstersessiepoort slaagt op bronvingerafdruk b7ccd11f: 22 fasen, klembord, herstel, opnieuw openen en onafhankelijk schijforakel (14 bytes, revisie 1, canaries intact). Dit is geen fysieke hardware-, volledige dagelijkse desktop-, echte authenticatie- of NAS/netwerkacceptatie. PR #137 staat open; exacte-head hosted CI en review waren bij checkpoint nog niet klaar. Bewijs en hashes: docs/verification/plan-execution-20261103.json."
   },
   "tracks": [
     {

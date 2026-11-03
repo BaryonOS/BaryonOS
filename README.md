@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`063b44eb`](https://github.com/simonvanieperen/nieuw-os/commit/063b44ebae2c29e38f57e29904a2f6c8fcee4df3) ·
+**Bron:** [`8decd2b7`](https://github.com/simonvanieperen/nieuw-os/commit/8decd2b767952b396797188ebfbc80e1a75533bf) ·
 **Ontwikkelbranch:** `simonvanieperen-refactored-fiesta`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Uitvoeren PR127 exact-head native-window-gate.
-Score blijft 41/100; hosttests en compilatie leveren geen nieuw native criteriumbewijs. De runner-tests (10), relevante Rust-hostsuites (180), Clippy/fmt en strikte preflight slagen. De eigen kernel, loader en acht-processen native venstersessieprobe bouwen met gepinde Rust 1.90; hashes staan in docs/verification/plan-execution-20261103.json. Lokale runtimegate volgt met QEMU 10.2.1/OVMF uit privé uitgepakte Ubuntu-pakketten; hosted exacte-head CI/review, fysieke tests en volledige release zijn nog open.
+Score blijft 41/100; deze probe sluit geen vast rubriccriterium af. De 10 runner-tests, 180 relevante Rust-hosttests, Clippy/fmt, strikte preflight en probebuild slagen. De QEMU TCG-venstersessiepoort slaagt op bronvingerafdruk b7ccd11f: 22 fasen, klembord, herstel, opnieuw openen en onafhankelijk schijforakel (14 bytes, revisie 1, canaries intact). Dit is geen fysieke hardware-, volledige dagelijkse desktop-, echte authenticatie- of NAS/netwerkacceptatie. PR #137 staat open; exacte-head hosted CI en review waren bij checkpoint nog niet klaar. Bewijs en hashes: docs/verification/plan-execution-20261103.json.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

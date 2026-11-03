@@ -1,29 +1,38 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — native venstersessie op exacte branchhead — 3 november 2026
+## NEXT AGENT HANDOFF — PR127 exacte-head venstersessiepoort — 3 november 2026
 
-**Actuele branch/head:** `simonvanieperen-refactored-fiesta`,
-`063b44ebae2c29e38f57e29904a2f6c8fcee4df3`; bronvingerafdruk
+**Branch/head:** `simonvanieperen-refactored-fiesta`,
+`8decd2b767952b396797188ebfbc80e1a75533bf`; bronvingerafdruk
 `b7ccd11fa114f3d4506f9b85560b7bcd51289b88cfb8054cd9e0b6537ea7122b`.
-De gepinde Rust 1.90-toolchain en QEMU 10.2.1/OVMF/SeaBIOS/GCC zijn alleen
-voor deze sessie uit geverifieerde Ubuntu-pakketten uitgepakt; geen
-systeeminstallatie of repositorydependency.
+Rust 1.90, GCC, QEMU 10.2.1, OVMF en SeaBIOS zijn voor deze sessie uit
+geverifieerde Ubuntu-pakketten onder de privésessie uitgepakt; niets
+systeemwijd geïnstalleerd en geen repositorydependency toegevoegd.
 
-**Geslaagd:** `python3 -B tools/test_window_session.py` (10 tests); relevante
-venstersessie-, surface-, graphics-, Materiaal- en Rekenmachine-hostsuites
-(180 Rust-tests); drie Clippy- en drie fmt-checks; strikte preflight; en de
-volledige `native-window-session-probe`-build (exit 0, 11,55 s). Loader- en
-kernelhashes en ruwe logs zijn vastgelegd in
+**Geslaagd:** de eerder vastgelegde 10 runner-tests, 180 relevante Rust-tests,
+drie Clippy- en drie fmt-checks, strikte preflight en probebuild; aanvullend
+`python3 -B -u tools/run_window_session.py --clipboard --timeout 1800 --bios-rom "$SEABIOS_BIOS" --vga-rom "$SEABIOS_VGA"` (runner exit 0, 249,42 s).
+De QEMU TCG-proef passeerde 22 fasen: invoer, editor/rekenmachine,
+klembordweigering en -overdracht, compositor-/procesherstel en opnieuw openen.
+Het onafhankelijke wegwerpschijforakel vond object 0, revisie 1, 14 bytes en
+intacte canaries. Het rapport, serial, image en captures zijn gehasht in
 [`plan-execution-20261103.json`](verification/plan-execution-20261103.json).
-Dit is geen runtime-/herstel-/pixel-/klembord-/schijfbewijs.
 
-**Open:** `python3 -B -u tools/run_window_session.py --clipboard --timeout
-1800 --bios-rom "$SEABIOS_BIOS" --vga-rom "$SEABIOS_VGA"` op dezelfde
-bronvingerafdruk, met privé QEMU/OVMF en wegwerpimage; daarna inspecteer de
-ruwe fasebeelden, serial en onafhankelijke diskoracle. QEMU 10.2.1 verschilt
-van de CI-runner; de exacte-head hosted CI/review is niet gestart. Er is geen
-PR aangemaakt en geen branchregel omzeild. Geen punten toegekend; 41/100 blijft
-41/100.
+**Bewijsgrens:** dit is de eigen kernel in QEMU met de venstersessie-probe,
+geen fysieke hardware of volledige dagelijkse desktopacceptatie. De
+pixeloracle rendert de echte `Controller`/`Frame`-code op de host; het is geen
+native pixelrenderer. Dit bewijst geen echte accountauthenticatie,
+sleutel-/capability-intrekking, native NAS-/netwerkkoppeling,
+gebruikerstest, onafhankelijke audit of release.
+
+**Open:** PR #137 staat open op exact deze head (niet concept). De exacte-head
+hosted CI was deels groen; `native-window-session`, `native-system`,
+`native-network-service` en `qemu-smoke` stonden nog in de wachtrij/in uitvoering
+bij het vastleggen. CodeRabbit/review en alle overige vereiste checks moeten
+eerst actueel worden bevestigd. Geen merge of branchregel omzeild.
+Aanmeld-/sleuteldienst en end-to-end NAS/internet blijven afzonderlijke
+implementatiestappen; hiervoor is in dit checkpoint geen productcode
+gewijzigd. Score blijft **41/100**: deze poort voegt geen vast rubriccriterium toe.
 
 ## Vorig checkpoint — PR127 bewaart PR126 en alle zeven reviewfixes — 2 november 2026
 
