@@ -385,8 +385,9 @@ impl<A: PciConfigAccess> MatchedPciFunction<A> {
     ///
     /// I/O BARs are omitted. Only 32-bit and 64-bit non-prefetchable memory
     /// BARs are accepted by this initial device profile. PCI I/O decode,
-    /// memory decode, and bus mastering are disabled before probing and remain
-    /// disabled on success or failure; callers may enable only the exact
+    /// memory decode, and bus mastering remain disabled after a successful
+    /// command disable write. An earlier command read or write failure may
+    /// leave the previous command state in place. Callers may enable only the exact
     /// features needed after their resources have been validated.
     pub fn probe_memory_bars(&mut self) -> Result<[Option<PciBarGrant>; 6], PciBarError> {
         let address = self.descriptor.address;

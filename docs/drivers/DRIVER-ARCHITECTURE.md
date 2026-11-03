@@ -64,8 +64,10 @@ resource-authority gecreëerd; resources blijven kernel-toekenningen.
 registry en een devicegebonden BAR-grant voor een beperkte probe met read-only
 controller-MMIO. PCI BAR-sizing schrijft tijdelijk de configuratie-BARs en
 probeert hun oorspronkelijke waarden te herstellen. Een mislukte herstelwrite
-laat de probe falen met `PciBarError::Restore`; PCI-decode en bus mastering
-blijven uitgeschakeld.
+laat PCI-core falen met `PciBarError::Restore` (de xHCI-adapter geeft hiervoor
+`Error::InvalidBar`). PCI-decode en bus mastering blijven na een geslaagde
+disable-write uitgeschakeld; bij een eerdere command-read/-writefout kan
+de oorspronkelijke commandstatus nog gelden.
 De NVMe-crate leest `CAP`/`VS` volgens NVM Express Base Specification 2.4,
 §§3.1.1–3.1.2. De xHCI-crate matcht de USB-hostcontrollerclass volgens PCI-SIG
 PCI Code and ID Assignment Specification 1.10, §1.2, en controleert revision
@@ -90,8 +92,9 @@ descriptor en `DriverMatch`. Reads en writes naar een ander BDF worden
 geweigerd; stale descriptors en registraties die niet bij het device passen,
 worden niet gebonden. Dit is een concrete devicegrens voor PCI-configuratie.
 `MatchedPciFunction` kan na matching de memory-BARs peilen. Daarbij blijven
-I/O-decode, memory-decode en bus mastering uitgeschakeld; de probe herstelt
-BAR-registers ook bij fouten. Een `PciBarGrant` bindt het geselecteerde BDF,
+I/O-decode, memory-decode en bus mastering na de geslaagde disable-write
+uitgeschakeld; de probe probeert BAR-registers ook bij fouten te herstellen
+en rapporteert een mislukte herstelwrite. Een `PciBarGrant` bindt het geselecteerde BDF,
 de driver-ID, BAR-index en gevalideerde base/lengte. Block, netwerk en RNG
 krijgen zo'n grant vóór mapping. `Paging::map_pci_bar` weigert een ander device, een
 andere driver of BAR-index en laat uitsluitend volledige 4-KiB-pagina's

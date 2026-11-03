@@ -4,8 +4,10 @@
 //! xHCI PCI discovery and read-only controller-MMIO capability inspection.
 //!
 //! PCI BAR sizing temporarily writes configuration BARs and attempts to restore
-//! their original values. A failed restore returns `PciBarError::Restore`;
-//! PCI decoding and bus mastering remain disabled.
+//! their original values. PCI-core failures, including `PciBarError::Restore`,
+//! map to `Error::InvalidBar` here. After a successful command disable write,
+//! PCI decoding and bus mastering remain disabled; an earlier command read or
+//! write failure may leave the previous command state in place.
 //!
 //! This crate does not take controller ownership, enable bus mastering, or
 //! allocate DMA.
@@ -106,8 +108,10 @@ impl Discovery {
 ///
 /// The generic scanner is read-only. BAR probing temporarily writes the
 /// matched function's BAR registers and attempts to restore them. A failed
-/// restore returns `PciBarError::Restore`; memory decoding and bus mastering
-/// remain disabled.
+/// restore is reported by PCI core as `PciBarError::Restore` and mapped here to
+/// `Error::InvalidBar`. Memory decoding and bus mastering remain disabled after
+/// a successful command disable write. An earlier command read or write failure
+/// may leave the previous command state in place.
 pub fn discover<A: PciConfigAccess>(access: A) -> Result<Discovery, Error> {
     let mut access = access;
     let mut registry = DriverRegistry::<1>::new();
