@@ -117,8 +117,9 @@ volume-admissie uit PR148. Geen nieuw criterium of native acceptatie.
 De integratiereview staat **open**: de handoff meldt gerichte controles met
 uitvoer alleen in het sessietranscript; afzonderlijk brongebonden bewijs van
 de review ontbreekt in de checkout. De eerdere PR148-hostreceipts zijn geen
-bewijs voor deze integratiereview. De `reviewed_commit` `cc1dea7` in
-`progress.json` hoort bij de historische documentatiereview; nieuwe-head CI en
+bewijs voor deze integratiereview. De `reviewed_commit` `cc1dea7` in de
+historische [`a32eadb1:docs/progress.json`](https://github.com/simonvanieperen/nieuw-os/blob/a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e/docs/progress.json)
+hoort bij de historische documentatiereview, niet de huidige assessment; nieuwe-head CI en
 review moeten nog worden beoordeeld. Zie [de handoff](PROJECT-STATE.md).
 
 <!-- /coderabbit-ai-generated:v1 -->

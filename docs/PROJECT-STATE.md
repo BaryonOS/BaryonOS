@@ -64,8 +64,10 @@ De hierboven gemelde gerichte controles hebben alleen uitvoer in het
 sessietranscript; een afzonderlijk brongebonden integratiereviewbewijs ontbreekt
 in de checkout. De PR148-hostreceipts hieronder betreffen eerdere werkbomen en
 bewijzen deze integratiereview niet. De `reviewed_commit`-verwijzing naar
-`cc1dea7` in `docs/progress.json` is een historische review van de eerdere
-verduidelijking van documentatiestatus en hostbewijs.
+`cc1dea7` staat in de historische
+[`a32eadb1:docs/progress.json`](https://github.com/simonvanieperen/nieuw-os/blob/a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e/docs/progress.json),
+niet in de huidige assessment van deze branch. Dit betreft uitsluitend de
+eerdere verduidelijking van documentatiestatus en hostbewijs.
 
 **Eerstvolgend:** nieuwe-head CI en review beoordelen en passend reviewbewijs
 vastleggen. Native volume-acceptatie blijft afzonderlijk open.
