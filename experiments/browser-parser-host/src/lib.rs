@@ -10,11 +10,34 @@ fn is_html_title(element: ElementRef<'_>) -> bool {
     name.name() == "title" && &*name.name.ns == HTML_NAMESPACE
 }
 
+fn is_html_template(element: ElementRef<'_>) -> bool {
+    let name = element.value();
+    name.name() == "template" && &*name.name.ns == HTML_NAMESPACE
+}
+
 fn is_outside_template(element: ElementRef<'_>) -> bool {
     !element
         .ancestors()
         .filter_map(ElementRef::wrap)
-        .any(|ancestor| ancestor.value().name() == "template")
+        .any(is_html_template)
+}
+
+fn text_outside_templates(element: ElementRef<'_>) -> String {
+    let mut text = String::new();
+    let mut pending = element.children().rev().collect::<Vec<_>>();
+    while let Some(node) = pending.pop() {
+        if let Some(value) = node.value().as_text() {
+            text.push_str(value);
+            continue;
+        }
+        if let Some(child) = ElementRef::wrap(node) {
+            if is_html_template(child) {
+                continue;
+            }
+            pending.extend(child.children().rev());
+        }
+    }
+    text
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -50,7 +73,7 @@ pub fn parse_document(input: &[u8]) -> Result<PageSummary, ParseError> {
     let title = document
         .select(&title_selector)
         .find(|element| is_html_title(*element) && is_outside_template(*element))
-        .map(|element| element.text().collect::<String>().trim().to_owned());
+        .map(|element| text_outside_templates(element).trim().to_owned());
 
     let mut links = Vec::new();
     for element in document.select(&link_selector) {
@@ -66,7 +89,7 @@ pub fn parse_document(input: &[u8]) -> Result<PageSummary, ParseError> {
         };
         links.push(Link {
             href: href.to_owned(),
-            text: element.text().collect::<String>().trim().to_owned(),
+            text: text_outside_templates(element).trim().to_owned(),
         });
     }
 
@@ -145,6 +168,42 @@ mod tests {
             [Link {
                 href: "/page".to_owned(),
                 text: "Pagina-link".to_owned(),
+            }]
+        );
+    }
+
+    #[test]
+    fn does_not_treat_svg_template_as_an_html_template() {
+        let page = parse_document(
+            b"<html><body><svg><template><a href='/svg'>SVG-link</a></template></svg><a href='/html'>HTML-link</a></body></html>",
+        )
+        .unwrap();
+
+        assert_eq!(
+            page.links,
+            [
+                Link {
+                    href: "/svg".to_owned(),
+                    text: "SVG-link".to_owned(),
+                },
+                Link {
+                    href: "/html".to_owned(),
+                    text: "HTML-link".to_owned(),
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn omits_html_template_descendants_from_link_text() {
+        let page =
+            parse_document(b"<a href='/page'>Zichtbaar<template>Verborgen</template></a>").unwrap();
+
+        assert_eq!(
+            page.links,
+            [Link {
+                href: "/page".to_owned(),
+                text: "Zichtbaar".to_owned(),
             }]
         );
     }

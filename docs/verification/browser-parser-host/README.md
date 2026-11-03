@@ -20,17 +20,14 @@ een HTML5-DOM. Een CSS-selector levert een begrensde titel-/linkinventaris.
 De adapter accepteert uitsluitend door de caller gegeven bytes; zij maakt
 geen sockets, opent geen bestanden en heeft geen Nieuw-OS-interface.
 
-Zeven hosttests controleren de fixture, entity-decoding/selectorresultaten,
-ongeldige UTF-8, de limiet van 64 KiB, maximaal 64 links en het behouden van
-een `javascript:`-URL als onbetrouwbare data. De grenzen beperken de caller-
-invoer en retourvorm, niet interne heap-/tijd-/diepteconsumptie van
-`scraper`.
-
-Twee reviewregressies zijn toegevoegd: een SVG-`title` mag geen HTML-
-documenttitel opleveren, en links in `<template>` tellen niet mee in de
-documentinventaris of linklimiet. Voor de fix faalden beide nieuwe tests;
-na de fix slaagden alle zeven tests. De rood/groenuitvoer en hashes staan in
-het [reviewcorrectiebewijs](review-cleanup-20261103.md).
+De oorspronkelijke zeven hosttests controleren de fixture, entity-decoding/
+selectorresultaten, ongeldige UTF-8, de limiet van 64 KiB, maximaal 64 links
+en het behouden van een `javascript:`-URL als onbetrouwbare data. Twee
+aanvullende reviewregressies controleren dat SVG-`template` niet als HTML-
+template wordt behandeld en dat HTML-template-descendants niet in `Link.text`
+terechtkomen. De huidige testsuite telt negen tests. De actuele rood/groenlogs
+en hashes staan hieronder; de eerdere zeven-testreeks blijft als historisch
+bewijs staan in het [reviewcorrectiebewijs](review-cleanup-20261103.md).
 
 ## Dependency- en platformgrens
 
@@ -43,7 +40,9 @@ Er is geen code van derden gekopieerd.
 
 Een echte `x86_64-unknown-none`-check eindigde met exit 101: `scraper`/
 `html5ever`/`tendril` gebruiken `std`. Dit is dus uitsluitend hostbewijs en
-sluit geen OS-portgeschiktheid aan. De enginekeuze blijft open. Er zijn geen
+sluit geen OS-portgeschiktheid aan. WPE WebKit 2.54/WPEPlatform is nu de
+voorwaardelijke eerste upstream-portkandidaat; de parserproef is geen
+engineport. Er zijn geen
 CSS-styling/layout, JavaScript, netwerk/TLS/DNS, downloads, opslag, fonts,
 input, procesisolatie, compositor, native rendering of capability-integratie
 gebouwd of getest. Er is geen browser gestart en geen website opgehaald.
@@ -71,7 +70,7 @@ export CARGO_TARGET_DIR=/tmp/nieuwos-browser-parser-host/target
 | Exact commando | Resultaat |
 |---|---|
 | `python3 -B tools/dev.py /home/simon/.cargo/bin/cargo +1.90.0 fetch --offline --locked --manifest-path experiments/browser-parser-host/Cargo.toml` | exit 0 |
-| `python3 -B tools/dev.py /home/simon/.cargo/bin/cargo +1.90.0 test --offline --locked --manifest-path experiments/browser-parser-host/Cargo.toml` | exit 0; 7 tests |
+| `python3 -B tools/dev.py /home/simon/.cargo/bin/cargo +1.90.0 test --offline --locked --manifest-path experiments/browser-parser-host/Cargo.toml` | exit 0; 9 tests; werkboomlog `review-followup-green-test.log`, SHA-256 `d82cdde89a645f74eaa43821d9e6ff59417fd82a15cfd8851fa7494f60f8dccd` |
 | `python3 -B tools/dev.py /home/simon/.cargo/bin/cargo +1.90.0 clippy --offline --locked --manifest-path experiments/browser-parser-host/Cargo.toml --all-targets -- -D warnings` | exit 0 |
 | `python3 -B tools/dev.py /home/simon/.cargo/bin/cargo +1.90.0 fmt --manifest-path experiments/browser-parser-host/Cargo.toml --all -- --check` | exit 0 |
 | `python3 -B tools/dev.py /home/simon/.cargo/bin/cargo +1.90.0 check --offline --locked --manifest-path experiments/browser-parser-host/Cargo.toml --target x86_64-unknown-none` | exit 101; upstream dependency uses `std`; host-only incompatibility bevestigd |
@@ -95,13 +94,15 @@ opgehaald met `python3 -B tools/dev.py /home/simon/.cargo/bin/cargo +1.90.0 fetc
 (exit 0); de twee offline `cargo info`-commando's hierboven controleren de
 opgeslagen releasemetadata. Er is geen QEMU/native-/CI-run uitgevoerd.
 
-De volledige ruwe logs zijn alleen op de oorspronkelijke ontwikkelhost
-beschikbaar en maken geen deel uit van deze commit; hun `/tmp`-paden en hashes
-zijn geen zelfstandig reproduceerbaar bewijs. De vastgelegde uitvoersamenvatting
-is:
+De oude volledige ruwe logs zijn alleen op de oorspronkelijke ontwikkelhost
+beschikbaar; de testtelling hieronder hoort expliciet bij die eerdere
+vijf-test-run. De nieuwe rood/groenlogs staan in de werkboom onder deze map,
+maar zijn niet gecommit omdat de repository `*.log` negeert en de ruwe
+uitvoer witruimte bevat die `git diff --check` afkeurt. De onderstaande
+commando's, uitkomsten en hashes documenteren de actuele negen-testreeks.
 
 ```text
-test.log: running 5 tests; 5 passed, 0 failed, 0 ignored
+historische test.log: running 5 tests; 5 passed, 0 failed, 0 ignored
   rejects_invalid_utf8 ... ok
   rejects_documents_above_the_input_limit ... ok
   returns_script_like_links_as_untrusted_data ... ok
@@ -129,5 +130,26 @@ SHA-256 van relevante uitvoer:
 | `info-scraper.log` | `5d18dd90d69cd6faee05e82d5244a171d9dd77c20b73d0d4fcc3ef1d0d7f0749` |
 | `info-html5ever.log` | `f9942e2cd871af8ab3842f3b7675818e966f2d25d525c71a89279582073e7e08` |
 
+## Review-follow-up — 3 november 2026
+
+De twee nieuwe regressietests faalden eerst samen: de SVG-link werd onterecht
+uitgesloten en template-tekst werd opgenomen in `Link.text`. Na correctie
+slaagden alle negen parserhosttests, Clippy en rustfmt. De codevingerafdruk is
+`9cad43b371c1b4372834936235a905695f4c40db66586d901eb0541c237fa758`.
+De eerste `fmt --check` vond alleen een formatteringsverschil; `cargo fmt`
+heeft dat toegepast en de onderstaande definitieve check slaagde.
+De ruwe logs zijn lokaal opgeslagen onder
+`docs/verification/browser-parser-host/` en door `*.log` genegeerd; de tabel
+legt hun hashes vast zonder niet-bestaande Git-links te maken.
+
+| Log | Resultaat | SHA-256 |
+|---|---|---|
+| `review-followup-red.log` | 7 geslaagd, 2 gefaald vóór herstel | `6d38e64e05d64572f0779bd5ad37c18e0837f686af77ba98391799ee466f45da` |
+| `review-followup-green-test.log` | 9 geslaagd | `d82cdde89a645f74eaa43821d9e6ff59417fd82a15cfd8851fa7494f60f8dccd` |
+| `review-followup-green-clippy.log` | exit 0, `-D warnings` | `47e741d09aa9bc982f6b3cdfc5a199b7f9e991b2abf48f80d9d88d580d986c93` |
+| `review-followup-green-fmt.log` | exit 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
+| `review-followup-fmt-failure.log` | exit 1; uitsluitend formatteringsverschil, daarna gecorrigeerd | `cf100e6865d7ae8a5a886bf8ade05137bdd6a11d5d790993e4421340e4f6f020` |
+
 **Roadmap:** 41 → 41/100; geen vast criterium is met een hostparserproef
-afgetekend. Er is geen engine- of OS-architectuurbesluit genomen.
+afgetekend. WPE is een voorwaardelijke routekeuze; geen engine-build,
+Nieuw-OS-port of browserpipeline is getest.

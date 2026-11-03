@@ -28,6 +28,9 @@ Repository-implementatiebronnen (Nieuw OS SDK, commit
 [`49e83f56`](https://github.com/simonvanieperen/nieuw-os/commit/49e83f56ed083b4f7a9628559d6a37f99b986dca),
 3 november 2026): [`Received::sender`](https://github.com/simonvanieperen/nieuw-os/blob/49e83f56ed083b4f7a9628559d6a37f99b986dca/sdk/runtime/src/message.rs#L75-L120)
 en [`native::status` (K05, ABI 1.3)](https://github.com/simonvanieperen/nieuw-os/blob/49e83f56ed083b4f7a9628559d6a37f99b986dca/sdk/runtime/src/native.rs#L263-L272).
+De berichttypen, codec, sequence-/EOF-validatie en payloadlimieten zijn
+geïmplementeerd in [`nieuw-os-terminal-core` (Nieuw OS SDK, commit
+`49e83f56`)](https://github.com/simonvanieperen/nieuw-os/blob/49e83f56ed083b4f7a9628559d6a37f99b986dca/sdk/terminal-core/src/lib.rs).
 
 ## Controles
 
