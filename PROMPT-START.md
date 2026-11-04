@@ -5,7 +5,6 @@ Lees AGENTS.md, docs/PROJECT-STATE.md en docs/implementation/START-CODING.md. Le
 
 Vaste productgrenzen:
 - Eigen kernel en eigen hoogwaardige productervaring; geen Linux-distributie of bestaande kernel als basis.
-- OS-gegevens op apparaat of eigen NAS binnen eigen LAN. AI-inferentie uitsluitend op het apparaat, zonder cloudfallback. Externe apps via gescheiden rechten.
 - Quantum: postkwantumweerbaarheid plus lokale quantumuitvoering en een toekomstige eigen OS-besturingslaag voor hybride quantumhardware.
 - Open source, toegankelijk, configureerbaar en onafhankelijk van verplichte bigtechdiensten. Gebruik de gekozen productrichting; geen nieuwe conceptselectie nodig.
 

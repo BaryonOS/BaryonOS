@@ -1,6 +1,28 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR158 met main 95d79451 — 3 november 2026
+## NEXT AGENT HANDOFF — instructieonderhoud — 4 november 2026
+
+**Basis:** `8bb153092e967aae314ecde35bcf963565a87ac7`, branch
+`copilot/dream-curate-memories-20261104132442`. Vijf instructiebestanden
+verliezen verouderde beperkingen op opslaglocaties, native UI-werk en
+voortgangsrapportage. De actuele privacycontracten, lokale AI, apprechten,
+eigen kernel en bewijsgrenzen blijven ongewijzigd. **41 → 41/100**:
+geen runtimecode, criterium, gewicht of nieuwe productacceptatie.
+
+**Controles (alle exit 0):** `python3 tools/progress.py --write`,
+`python3 tools/progress.py --check`,
+`python3 -B .agents/skills/os-dev/scripts/validate_skill.py`,
+`python3 -B -m unittest discover -s .agents/skills/os-dev/tests -v`
+(zes tests) en `git diff --check`. De onafhankelijke AI-tegenvoorbeeldreview
+vond geen concrete weerleggingen; dit is geen menselijke audit.
+**Bewijsgrens:** documentatieonderhoud; geen OS-build, QEMU-, hardware- of
+menselijke acceptatie uitgevoerd. Deze controles bewijzen geen OS-functionaliteit.
+De bestaande productblokkades en historische receipts hieronder blijven gelden.
+
+**Vervolg:** beoordeel de concept-PR en haar actuele controles vóór integratie.
+Eerstvolgend lokaal commando: `python3 tools/progress.py --check`.
+
+## Historisch checkpoint — PR158 met main 95d79451 — 3 november 2026
 
 **Bronnen:** PR-head `04d727c306d13e03a192d9d002a7d44348841c9f` en
 main `95d7945110ce853a1b5827ec59f6115475691805`, branch
