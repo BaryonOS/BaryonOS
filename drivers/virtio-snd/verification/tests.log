@@ -1,20 +1,61 @@
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+   Compiling nieuw-os-virtio-snd v0.1.0 (/home/user/nieuw-os/drivers/virtio-snd)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.29s
      Running unittests src/lib.rs (target/debug/deps/nieuw_os_virtio_snd-c3ceaf91838b567f)
 
-running 11 tests
+running 51 tests
+test pcm::tests::busy_stream_refuses_a_second_request_until_completion ... ok
+test pcm::tests::capture_and_unsupported_profiles_are_never_driven ... ok
+test pcm::tests::constants_match_the_specification_header ... ok
+test pcm::tests::control_completion_requires_pending_exact_length_and_status ... ok
+test pcm::tests::f17_invalid_event_budget_fences_after_bound ... ok
+test pcm::tests::f19_second_release_is_refused_before_encoding ... ok
+test pcm::tests::fence_policy_only_for_device_violations ... ok
+test pcm::tests::lifecycle_subset_matrix_is_exact ... ok
+test pcm::tests::only_advertised_xrun_events_are_selected_never_shared_memory ... ok
+test pcm::tests::readers_never_panic_on_bad_offsets ... ok
+test pcm::tests::set_params_bounds_are_enforced_before_encoding ... ok
+test pcm::tests::set_params_wire_layout_is_exact ... ok
+test pcm::tests::events_decode_against_configuration_bounds ... ok
+test pcm::tests::simple_requests_are_eight_bytes_with_stream_id ... ok
+test pcm::tests::stream_events_count_only_while_running_for_this_stream ... ok
+test pcm::tests::tx_completion_after_stop_is_allowed_after_release_it_is_late ... ok
+test pcm::tests::tx_completion_statuses_follow_f9 ... ok
 test tests::all_failed_and_unknown_statuses_are_errors ... ok
 test tests::capture_and_unadvertised_profiles_are_not_playback ... ok
-test tests::config_bounds_and_absent_streams ... ok
 test tests::features_require_modern_and_never_ctls_or_platform_claim ... ok
+test tests::config_bounds_and_absent_streams ... ok
 test tests::malformed_fields_are_rejected ... ok
+test pcm::tests::tx_header_only_while_publication_is_allowed ... ok
 test tests::multi_record_response_assigns_ids_and_fails_on_any_bad_record ... ok
 test tests::qemu_identity_constants_match_observed_device ... ok
 test tests::ranges_are_bounded_and_overflow_checked ... ok
 test tests::readers_never_panic_on_bad_offsets ... ok
 test tests::request_and_output_selection_are_exact ... ok
 test tests::short_and_oversized_success_never_parse ... ok
+test transport_model::tests::bad_transitions_rejected ... ok
+test transport_model::tests::bad_len_or_status_fences_io_err_stops ... ok
+test transport_model::tests::f18_epoch_overflow_quarantines ... ok
+test transport_model::tests::happy_path_submit_complete_reuse ... ok
+test transport_model::tests::i1_bme_off_alone_is_not_a_fence ... ok
+test transport_model::tests::i1_frozen_while_fencing_no_selective_release ... ok
+test transport_model::tests::i1_status_zero_alone_is_not_a_fence ... ok
+test transport_model::tests::i2_completion_after_both_acks_quarantines ... ok
+test transport_model::tests::i2_stale_lease_completion_rejected_without_state_change ... ok
+test transport_model::tests::i2_unknown_or_idle_completion_fences ... ok
+test transport_model::tests::i2_used_index_moving_after_ack_quarantines ... ok
+test transport_model::tests::i3_contradicting_read_back_quarantines ... ok
+test transport_model::tests::i3_fence_budget_and_deadline_bounds ... ok
+test transport_model::tests::i3_fence_timeout_quarantines_and_keeps_pool_pinned ... ok
+test transport_model::tests::i3_late_read_back_after_deadline_quarantines ... ok
+test transport_model::tests::i3_unarmed_internal_fence_quarantines_on_tick ... ok
+test transport_model::tests::i4_invalid_revoke_deadline_quarantines_without_releasing_slots ... ok
+test transport_model::tests::i4_no_submit_after_revoke ... ok
+test transport_model::tests::i4_reinit_requires_fresh_lease ... ok
+test transport_model::tests::i5_rx_never_gets_buffers ... ok
+test transport_model::tests::i6_double_completion_rejected ... ok
+test transport_model::tests::i6_double_release_rejected ... ok
 
-test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 51 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
    Doc-tests nieuw_os_virtio_snd
 
