@@ -429,6 +429,72 @@ mod tests {
         assert_eq!(validate_used(16, u16::MAX, 0, 0, 16), Ok(16));
     }
     #[test]
+    fn every_request_size_preserves_short_reply_lengths_and_rejects_overruns() {
+        for requested in 1..=MAX_REQUEST {
+            for old in [0u16, QUEUE_SIZE - 1, u16::MAX] {
+                let next = old.wrapping_add(1);
+                for length in 0..=MAX_REQUEST + 1 {
+                    let expected = if length == 0 {
+                        Err(Error::Io)
+                    } else if length > requested {
+                        Err(Error::Protocol)
+                    } else {
+                        Ok(length)
+                    };
+                    assert_eq!(
+                        validate_used(requested, old, next, 0, length),
+                        expected,
+                        "requested={requested} old={old} length={length}"
+                    );
+                }
+                assert_eq!(
+                    validate_used(requested, old, next, 0, u32::MAX),
+                    Err(Error::Protocol)
+                );
+                for id in [
+                    1,
+                    u32::from(QUEUE_SIZE - 1),
+                    u32::from(QUEUE_SIZE),
+                    u32::MAX,
+                ] {
+                    for length in [0, 1, requested, requested + 1, u32::MAX] {
+                        assert_eq!(
+                            validate_used(requested, old, next, id, length),
+                            Err(Error::Protocol),
+                            "requested={requested} old={old} id={id} length={length}"
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn every_wrapping_index_delta_accepts_only_one_completion() {
+        for old in [0u16, QUEUE_SIZE - 1, u16::MAX] {
+            for delta in 0..=u16::MAX {
+                let next = old.wrapping_add(delta);
+                let expected = match delta {
+                    0 => Err(Error::Pending),
+                    1 => Ok(MAX_REQUEST),
+                    _ => Err(Error::Protocol),
+                };
+                assert_eq!(
+                    validate_used(MAX_REQUEST, old, next, 0, MAX_REQUEST),
+                    expected,
+                    "old={old} delta={delta}"
+                );
+                if delta == 0 {
+                    assert_eq!(
+                        validate_used(MAX_REQUEST, old, next, u32::MAX, u32::MAX),
+                        Err(Error::Pending)
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
     fn pool_pages_must_be_distinct_aligned_ram_pages() {
         let pool = RngPool {
             rings: 0x1000,
