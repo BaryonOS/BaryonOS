@@ -1,6 +1,31 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — K06 stap 1, native AP-opstart — 5 november 2026
+## NEXT AGENT HANDOFF — K06 stap 2, eigen TSS/IST en IPI's per AP — 5 november 2026
+
+**Bron:** codecommit `1993ade830ba9fbbba1d3c0913c12977599fe0e7` op
+`k06/smp-step2-percpu-ipi`. Dat is gestapeld op #201
+(`k06/smp-ap-bringup`, `047acf39`), dat op #191 staat. Main is `8bb15309`.
+**41 → 41/100**; K06 blijft open. Ontwerp: ADR-071.
+
+**Gerealiseerd:** per AP een eigen GDT/TSS (RSP0, IST1 #DF, IST2 NMI) en
+een GS-anker. Een IPI-vector 0xf0 met EOI, unicast-rondes met een exacte
+telling, parkeren via IPI, en quarantaine van alle AP's als er één doof is.
+Een AP met een afwijkende IA32_APIC_BASE wordt afgewezen.
+
+**Bewijs:** 11/11 native QEMU/TCG-gevallen over zes profielen, waaronder
+NMI en #DF op de eigen AP-IST-stack en een dove AP met quarantaine.
+Daarnaast host-tests, Clippy en fmt, plus regressie van `milestone-m2` en
+`native-rtc` (5/5). Zie [k06-smp-ipi](verification/k06-smp-ipi/README.md).
+Review door AI; alle bevindingen zijn verwerkt.
+
+**Open:** CI-beoordeling van #201 en de nieuwe stap-2-PR, plus integratie in
+de volgorde #191 → #201 → stap 2. Volgende K06-stap: een
+TLB-shootdownprotocol op deze IPI's, daarna BSP-interrupts, de
+SMP-scheduler en de herziening van ADR-024.
+**Eerstvolgend commando:**
+`NOS_BUILD_DIR=build/k06-native-smp python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
+
+## Historisch checkpoint — K06 stap 1, native AP-opstart — 5 november 2026
 
 **Bron:** codecommit `c687cd13400c7dd42822d5e47845883b6e7af717` op
 `k06/smp-ap-bringup`, gestapeld op PR #191 (`a859db98`, ACPI-handoff, staat

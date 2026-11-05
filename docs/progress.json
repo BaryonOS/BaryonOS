@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-05",
-    "source_commit": "c687cd13400c7dd42822d5e47845883b6e7af717",
+    "source_commit": "1993ade830ba9fbbba1d3c0913c12977599fe0e7",
     "assessment_basis": "source_commit",
     "reviewed_commit": "cc1dea7eeeae01448a378ee422837b0438ecc7b5",
     "reviewed_commit_context": "Historische review van de PR148-documentatiestatus en reikwijdte van hostbewijs; geen integratiereview.",
@@ -15,10 +15,10 @@
       "evidence_basis": "Git-mergeouders en handoff in docs/PROJECT-STATE.md; gerichte integratietests zijn daar gemeld met uitvoer uitsluitend in het sessietranscript. De eerdere PR148-hostreceipts zijn geen integratiereviewbewijs.",
       "missing_evidence": "Afzonderlijk, brongebonden bewijs van de integratiereview ontbreekt; nieuwe-head CI en review moeten nog worden beoordeeld."
     },
-    "branch": "k06/smp-ap-bringup",
-    "task": "K06 stap 1: native AP-opstart (MADT, INIT-SIPI-SIPI, begrensde sync-proef) gestapeld op PR #191",
+    "branch": "k06/smp-step2-percpu-ipi",
+    "task": "K06 stap 2: eigen TSS/IST per AP, GS-anker, begrensde unicast-IPI's en quarantaine (gestapeld op #201)",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Opt-in native-smp M2-profiel start AP's begrensd en fail-closed; 8 native QEMU/TCG-gevallen (1-9 vCPU's, dubbele MADT, AP-stall, registermismatch) geslaagd, zie docs/verification/k06-smp-bringup/. K06 vereist SMP-scheduling, interrupts, TLB-shootdown en adresruimtewisseling onder concurrente belasting en blijft open. Gestapeld op PR #191, nog niet op main; geen nieuwe-head CI beoordeeld. De integration_review-velden blijven historisch PR148-bewijs."
+    "summary": "41/100 blijft 41/100. In het opt-in native-smp-profiel hebben AP's nu een eigen GDT/TSS/IST en reageren ze op begrensde gerichte IPI's; een dove AP leidt tot quarantaine van alle AP's. 11 native QEMU/TCG-gevallen, waaronder NMI/#DF op de eigen AP-IST, zijn geslaagd: zie docs/verification/k06-smp-ipi/. K06 blijft open (geen SMP-scheduler, TLB-shootdown of interrupts op de BSP). Gestapeld op #201 en #191, nog niet op main. De integration_review-velden blijven historisch PR148-bewijs."
   },
   "tracks": [
     {
