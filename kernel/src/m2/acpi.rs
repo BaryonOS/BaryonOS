@@ -28,9 +28,9 @@ impl PhysicalRead for FirmwareReader<'_, '_> {
         {
             return Err(acpi::Error::Address);
         }
-        self.paging
-            .read_firmware(address, output)
-            .map_err(|_| acpi::Error::Read)
+        // SAFETY: the whole page-rounded span was checked above against the
+        // UEFI ACPI reclaim/NVS descriptors (`covers_acpi`) and the 52-bit limit.
+        unsafe { self.paging.read_firmware(address, output) }.map_err(|_| acpi::Error::Read)
     }
 }
 
