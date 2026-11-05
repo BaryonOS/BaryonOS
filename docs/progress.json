@@ -3,22 +3,22 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-05",
-    "source_commit": "222e675ba5365be4b257c118a8d7cc704a7c5aad",
+    "source_commit": "643a5a862173df976f152a9e55a83d9ab7730f53",
     "assessment_basis": "source_commit",
-    "reviewed_commit": "ea31aeb4dca56605c340f672a9decc27ade1ed1d",
-    "reviewed_commit_context": "Vorige PR185-merge met main c0e02b79; de huidige merge met c2c29c5f is nog in validatie.",
+    "reviewed_commit": "643a5a862173df976f152a9e55a83d9ab7730f53",
+    "reviewed_commit_context": "PR185-merge met main c2c29c5f; de opgeloste boom is gevalideerd, inclusief 13/13 native-smp QEMU/TCG-gevallen.",
     "integration_review": {
       "status": "open",
       "source_commit": "222e675ba5365be4b257c118a8d7cc704a7c5aad",
       "main_commit": "c2c29c5f06d9aaf8f41055acdefc14a77cf8ef77",
-      "merge_commit": "ea31aeb4dca56605c340f672a9decc27ade1ed1d",
-      "evidence_basis": "Tweeoudermerge en gerichte validatie op de opgeloste boom; exacte resultaten staan in docs/PROJECT-STATE.md.",
-      "missing_evidence": "Nieuw-head CodeQL en hosted checks moeten nog worden beoordeeld; native QEMU kon lokaal niet starten omdat qemu-system-x86_64 ontbreekt."
+      "merge_commit": "643a5a862173df976f152a9e55a83d9ab7730f53",
+      "evidence_basis": "Tweeoudermerge en gerichte validatie op de opgeloste boom, inclusief 13/13 QEMU/TCG-gevallen; details en rapporthashes staan in docs/PROJECT-STATE.md en docs/verification/pr185-main-c2c29c5f-native-smp.json.",
+      "missing_evidence": "CodeQL gaf door een time-out geen resultaat. Hosted checks op de merge-head na publicatie moeten afzonderlijk worden beoordeeld."
     },
     "branch": "copilot/driver-usb-hid-control",
     "task": "PR185: conflicten met bijgewerkte main c2c29c5f inhoudsbehoudend integreren",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. De PR185 USB HID control-request-module wordt behouden naast main's K06-, UI-, SDK- en opslagwijzigingen. Boot-protocol, kernel-core, USB, SDK, calculator, Materiaal, window-session, document-session, UI/native, graphics, volume en gerichte Python-testsets slagen; de native-smp kernelbuild slaagt. QEMU kon niet starten omdat qemu-system-x86_64 ontbreekt. Geen criterium is volledig geaccepteerd; CodeQL en hosted checks op de nieuwe head blijven open."
+    "summary": "41/100 blijft 41/100. De PR185 USB HID control-request-module wordt behouden naast main's K06-, UI-, SDK- en opslagwijzigingen. Boot-protocol, kernel-core, USB, SDK, calculator, Materiaal, window-session, document-session, UI/native, graphics, volume en gerichte Python-testsets slagen; de native-smp kernelbuild en 13/13 QEMU/TCG-gevallen slagen. Geen criterium is volledig geaccepteerd. CodeQL gaf door een time-out geen resultaat; hosted checks op de merge-head na publicatie moeten nog afzonderlijk worden beoordeeld."
   },
   "tracks": [
     {

@@ -16,15 +16,20 @@ document-session-hosttests; UI/native 84; graphics 13; volume-service 49;
 TCP-harnastests 20; Python toolsuite 205, volume-harnassen 36, SMP-serial 4 en
 ACPI-serial 3: geslaagd. Workspace- en relevante zelfstandige formatting,
 Clippy- en cross-buildcontroles slagen. De opt-in native-smp kernelbuild slaagt.
+Na beschikbaar maken van QEMU/OVMF zijn ook 13/13 QEMU/TCG-gevallen geslaagd
+over de profielen `native-smp` en zeven `test-smp-*`-profielen. De
+hashgebonden samenvatting staat in
+[PR185 native-smp-validatie](verification/pr185-main-c2c29c5f-native-smp.json).
 
-**Niet uitgevoerd:** `tools/run_smp.py --profile native-smp` kon niet starten:
-`qemu-system-x86_64` ontbreekt. Dit is geen geslaagde QEMU-proef. De lokale
-CodeQL-check en hosted checks op de nieuwe head moeten afzonderlijk worden
+**Open:** CodeQL gaf door een time-out geen resultaat; dit is geen geslaagde
+scan. Hosted checks op de nieuw gepubliceerde head moeten afzonderlijk worden
 beoordeeld.
 
-**Bewijsgrens:** de K06-QEMU-uitkomsten op main zijn aan hun broncommit
-gebonden; ze worden niet als een nieuwe uitvoering op deze merge gepresenteerd.
-Er is geen fysieke-hardware- of nieuw native QEMU-bewijs.
+**Bewijsgrens:** de QEMU-proef gebruikt QEMU 8.2.2/TCG en
+`pc-q35-8.2`; de logs melden `ACPI:UNAVAILABLE:NO_DMAR`. Dit bewijst geen
+DMA/IOMMU-capaciteit of fysieke hardwarewerking. De SMP-rapporten begrenzen de
+scope tot BSP/AP-bring-up, per-AP TSS/IST, begrensde unicast-IPI's en sync-test;
+ze bewijzen geen SMP-scheduler, TLB-shootdown of hardwarewerking.
 
 Exacte geslaagde controles (exit 0):
 `cargo +1.90.0 test --locked -p boot-protocol -p kernel-core`;
@@ -45,12 +50,20 @@ Exacte geslaagde controles (exit 0):
 `python3 -B -m unittest discover -s tools/tests -p 'test_*.py'`;
 `python3 -B -m unittest discover -s tests -p 'test_volume_*.py'`;
 `python3 -B -m unittest discover -s tests -p 'test_tcp_*.py'`;
-`NOS_BUILD_DIR=build/k06-native-smp python3 -B tools/build.py --kernel-feature native-smp`.
+`NOS_BUILD_DIR=build/k06-native-smp python3 -B tools/build.py --kernel-feature native-smp`;
+`python3 -B -u tools/run_smp.py --profile native-smp`;
+`python3 -B -u tools/run_smp.py --profile test-smp-ap-stall`;
+`python3 -B -u tools/run_smp.py --profile test-smp-ap-mismatch`;
+`python3 -B -u tools/run_smp.py --profile test-smp-ap-ipi-deaf`;
+`python3 -B -u tools/run_smp.py --profile test-smp-ap-nmi`;
+`python3 -B -u tools/run_smp.py --profile test-smp-ap-double-fault`;
+`python3 -B -u tools/run_smp.py --profile test-smp-ap-shootdown-deaf`;
+`python3 -B -u tools/run_smp.py --profile test-smp-shootdown-skipped`.
 Daarnaast slagen de genoemde SDK/UI/volume Clippy- en standalone fmt-checks;
 de precieze pakketmanifesten staan in het sessietranscript. De gerichte SMP- en
 ACPI-pythonchecks slagen respectievelijk met 4 en 3 tests. Logs zijn alleen in
-het sessietranscript beschikbaar. De QEMU-run faalt met exit 1 wegens de
-ontbrekende executable; dit is als niet-uitgevoerd gerapporteerd.
+het sessietranscript en lokale `build/k06-*/smp-report.json`-bestanden
+beschikbaar; de rapporthashes staan in de receipt.
 
 ## Historisch checkpoint — K06 stap 3, TLB-shootdown vóór frame-hergebruik — 5 november 2026
 
