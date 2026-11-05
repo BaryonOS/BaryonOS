@@ -1,5 +1,16 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+Integratie PR-wachtrij (#198 gemerged; #199 via branch `integrate/20261105-platform-batch`) op basis main `c7a61d11` (5 november 2026): **41 → 41/100**.
+Driverhostmodellen (#198), acht platformhostapps met CI-dekking, EXIF-viewer,
+agentprofielen en instructieopschoning geïntegreerd; geen criterium volledig
+geaccepteerd en geen native, fysieke of menselijke acceptatie toegevoegd.
+
+Instructieonderhoud op basis `8bb15309` (4 november 2026): **41 → 41/100**.
+Verouderde beperkingen op opslaglocaties, prototype-eerst bouwen en
+voortgangsrapportage zijn verwijderd. De actuele privacy-, native product-
+en bewijscontracten blijven leidend. Geen runtimecode, criteria, gewichten
+of bewijsstatus gewijzigd; geen nieuwe native, fysieke of menselijke acceptatie.
+
 PR158-integratie met main `95d79451` op basis `04d727c3`: **41 → 41/100**.
 De drie documentconflicten behouden beide checkpointgeschiedenissen en hun
 brongebonden bewijs. De Rust-wijzigingen uit main zijn uitsluitend commentaar;
