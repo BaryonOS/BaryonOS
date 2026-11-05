@@ -2037,6 +2037,54 @@ mod tests {
     }
 
     #[test]
+    fn release_all_dma_preflights_every_record_before_freeing_any() {
+        let mut registry = LeaseRegistry::<1>::new();
+        let mut lease = registry.lease(function(), MATCH).unwrap();
+        let mut control = Control {
+            reset_ack: true,
+            ..Control::default()
+        };
+        let mut frames = frames::<16>();
+        let before = free_count(&frames);
+        lease.authorize(DRIVER, GENERATION).unwrap();
+        lease.begin_initialization().unwrap();
+        let kept = lease
+            .allocate_dma(&mut frames, 4096, DmaDirection::DeviceWrites, |_| {})
+            .unwrap();
+        let mapped = {
+            let second = lease
+                .allocate_dma(&mut frames, 4096, DmaDirection::DeviceReads, |_| {})
+                .unwrap();
+            lease.dma_pages(&second).unwrap()[0]
+        }; // Only the first grant survives.
+        lease.enable_bus_master(&mut control).unwrap();
+        lease.ready().unwrap();
+        lease.revoke().unwrap();
+        lease.quiesce(&mut control).unwrap();
+        // A mapped page in the SECOND record must stop the release before the
+        // first record is freed: no half-freed state.
+        frames.map(mapped, false, false, false).unwrap();
+        assert_eq!(
+            lease.release_all_dma(&mut frames, |_| {}),
+            Err(Error::Frame(FrameError::Owner))
+        );
+        assert_eq!(free_count(&frames), before - 2);
+        assert_eq!(lease.phase(), Phase::Quiesced);
+        frames.unmap(mapped, false, false).unwrap();
+        lease.release_all_dma(&mut frames, |_| {}).unwrap();
+        assert_eq!(free_count(&frames), before);
+        assert_eq!(lease.phase(), Phase::Released);
+        // The still-held grant is dead: no double free or reuse.
+        assert_eq!(
+            lease.release_dma(&kept, &mut frames, |_| {}),
+            Err(Error::InvalidState)
+        );
+        assert!(lease.dma_pages(&kept).is_err());
+        assert_eq!(free_count(&frames), before);
+        registry.retire(&lease).unwrap();
+    }
+
+    #[test]
     fn release_all_dma_is_refused_while_ready() {
         let mut lease = matched();
         let mut control = Control::default();
