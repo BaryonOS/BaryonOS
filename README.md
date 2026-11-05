@@ -60,11 +60,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`04d727c3`](https://github.com/simonvanieperen/nieuw-os/commit/04d727c306d13e03a192d9d002a7d44348841c9f) ·
-**Ontwikkelbranch:** `fix/b03-test-anchors-guard`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR158: documentconflicten met main 95d79451 inhoudsbehoudend integreren.
-41/100 blijft 41/100. De drie documentconflicten behouden de B03- en PR138-checkpointgeschiedenissen en hun brongebonden bewijs. Rust-wijzigingen uit main zijn uitsluitend commentaar; de B03-ondertekenpolicy blijft ongewijzigd. De integration_review-velden blijven historisch PR148-bewijs, niet voor deze integratie. Productiesleutelbeleid en issue #41 blijven open. Geen nieuw criterium of native acceptatie; nieuwe-head CI wordt afzonderlijk beoordeeld.
+**Herbeoordeeld:** 2026-11-05 · **Rubric:** v1 ·
+**Bron:** [`c7a61d11`](https://github.com/simonvanieperen/nieuw-os/commit/c7a61d1126caa346a128fba3004fe4add4ccff61) ·
+**Ontwikkelbranch:** `integrate/20261105-platform-batch`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Integratie: driverreeks #198 en platform-/viewer-/instructiebatch #199 (#150 #165 #169 #173 #176 #182 #188 #189 #193 #194 #195).
+41/100 blijft 41/100. Geïntegreerd: USB-framing, HID boot reports/interface en PS/2-health (#198, hostmodellen); acht platformhostapps met nieuwe CI-dekking; EXIF-orientatie in de tile-viewer; OS-agentprofielen; instructieopschoning #195. Geen criterium volledig geaccepteerd: geen native app-launch, fysieke USB/HID of menselijke acceptatie. AI-reviews zijn geen menselijke audit. Open: #155 (score/B01-besluit), #181/#191/#177 FIX, calculatortrio CONFLICT.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

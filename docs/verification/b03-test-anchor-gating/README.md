@@ -30,7 +30,7 @@ issue #41 blijft open. Geen merge uitgevoerd.
 **Diagnostiekcommit:** `ceb957557af821bb95786aa505b5df41077f7403`
 
 **Basis:** `a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e`
-**Branch:** `fix/b03-test-anchors-guard`  
+**Branch:** `fix/b03-test-anchors-guard`
 **Beoordeling:** gerichte hosttests en cross-builds; geen volledige B03-acceptatie.
 
 De wijziging maakt de openbare TEST-ondertekenpolicy opt-in via

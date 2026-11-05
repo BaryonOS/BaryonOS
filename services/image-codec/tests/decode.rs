@@ -429,6 +429,34 @@ fn exif_orientation_reference_matches_asymmetric_pixel_matrix() {
 }
 
 #[test]
+fn display_to_source_coordinates_match_matrix_and_reject_out_of_bounds() {
+    for (orientation, width, height, expected) in [
+        (Orientation::Normal, 3, 2, [1, 2, 3, 4, 5, 6]),
+        (Orientation::MirrorHorizontal, 3, 2, [3, 2, 1, 6, 5, 4]),
+        (Orientation::Rotate180, 3, 2, [6, 5, 4, 3, 2, 1]),
+        (Orientation::MirrorVertical, 3, 2, [4, 5, 6, 1, 2, 3]),
+        (Orientation::Transpose, 2, 3, [1, 4, 2, 5, 3, 6]),
+        (Orientation::Rotate90, 2, 3, [4, 1, 5, 2, 6, 3]),
+        (Orientation::Transverse, 2, 3, [6, 3, 5, 2, 4, 1]),
+        (Orientation::Rotate270, 2, 3, [3, 6, 2, 5, 1, 4]),
+    ] {
+        assert_eq!(orientation.display_dimensions(3, 2), (width, height));
+        for (index, expected) in expected.into_iter().enumerate() {
+            let (x, y) = orientation
+                .source_position(index % width, index / width, 3, 2)
+                .unwrap();
+            assert_eq!(y * 3 + x + 1, expected, "{orientation:?}, pixel {index}");
+        }
+        for (x, y) in [(width, 0), (0, height), (usize::MAX, usize::MAX)] {
+            assert_eq!(orientation.source_position(x, y, 3, 2), None);
+        }
+        for (width, height) in [(0, 0), (0, 2), (3, 0)] {
+            assert_eq!(orientation.source_position(0, 0, width, height), None);
+        }
+    }
+}
+
+#[test]
 fn all_jpeg_exif_orientations_apply_for_both_tiff_byte_orders() {
     let source = include_bytes!("../fixtures/progressive.jpg");
     let raw = decode(source, limits(), &Cancellation::default()).unwrap();

@@ -86,16 +86,24 @@ niet tot productbeleid verheven; grote foto's blijven een expliciete producteis.
 | PNG | RGB8, RGBA8/transparantie, palette4+tRNS, grayscale1, gray-alpha8, Adam7RGB8 en RGBA16 met exact behoud van samples. Geen claim dat alle bitdiepte-/kleuren-/metadata-combinaties afgetekend zijn. |
 | JPEG | Huffman baselineRGB4:4:4, progressiveYCbCr4:2:0 en grayscale8; pixels worden werkelijk gedecodeerd. Geldige EXIF-orientatie 1–8 stuurt de displaypixels van `rgba8_into`; zie de metadataregel. De oorspronkelijke progressive-kwaliteitsfout is hieronder rood→groen bewezen, zonder drempelwijziging. |
 | Nog open | PNG2/andere combinaties, APNG-compositie/animatie, CMYK/YCCK, arithmetic/lossless/high-precisionJPEG, DRI/APP14 en verdere corpusdekking. `UnsupportedAnimation/Color/Precision` is een expliciete implementatiegrens, geen verborgen hardwaretoestand. |
-| Metadata | Originele bytes inclusief EXIF/ICC en ruwe decoderpixels blijven onveranderd; bronafmetingen en `pixel_hash` blijven in decoderorde. Voor JPEG past `rgba8_into` geldige EXIF-orientatie 1–8 toe op de displaypixels en -afmetingen. Een EXIF-APP1-payload groter dan `Limits::metadata_bytes` weigert het beeld met `Error::MetadataLimit`, zonder terugval naar ontbrekende orientatie. Ongeldige EXIF-structuur of -waarden worden genegeerd (geen orientatie). `metadata_transforms_applied=false` beschrijft de ruwe samples; ICC/gamma-kleurbeheer en PNG eXIf blijven buiten scope. De EXIF-tag volgt CIPA DC-008-2012, *Exchangeable image file format for digital still cameras: Exif Version 2.3* ([primaire specificatie](https://www.cipa.jp/std/documents/e/DC-008-2012_E.pdf)). Zoom/pan/export/editor moeten dit later werkelijk integreren. |
+| Metadata | Originele bytes inclusief EXIF/ICC en ruwe decoderpixels blijven onveranderd; bronafmetingen en `pixel_hash` blijven in decoderorde. Voor JPEG past `rgba8_into` geldige EXIF-orientatie 1–8 toe op de displaypixels en -afmetingen. Een EXIF-APP1-payload groter dan `Limits::metadata_bytes` weigert het beeld met `Error::MetadataLimit`, zonder terugval naar ontbrekende orientatie. Ongeldige EXIF-structuur of -waarden worden genegeerd (geen orientatie). `metadata_transforms_applied=false` beschrijft de ruwe samples; ICC/gamma-kleurbeheer en PNG eXIf blijven buiten scope. De EXIF-tag volgt CIPA DC-008-2012, *Exchangeable image file format for digital still cameras: Exif Version 2.3* ([primaire specificatie](https://www.cipa.jp/std/documents/e/DC-008-2012_E.pdf)). De app-local viewer verwerkt orientatie nu ook in tegels/zoom/pan; native viewerflow, export en editorintegratie blijven open. |
 | Annulering | Vooraf/PNG-chunkgrenzen/na decode; JPEG heeft daarnaast de echte upstream MCU-checkhook. Native proef toetst vooraf annuleren, geen gemeten mid-decode-annuleringslatentie. PNG-mid-decode vereist nog procesannulering of onderhouden incremental pad. |
 
 ## Stackgrens en eigen arena
 
-**Implementatie:** Nieuw OS, *image-viewer: render_tile*, versie
+**Historische implementatie:** Nieuw OS, *image-viewer: render_tile*, versie
 `d269f9b4` (3 november 2026), tekent nog de ruwe decoderpixels
 ([primaire rendererbron](https://github.com/simonvanieperen/nieuw-os/blob/d269f9b45a54576b39629b36de94f9cdbb9f6f71/sdk/examples/image-viewer/src/lib.rs)).
 EXIF-correctie in `rgba8_into` bewijst daarom geen georienteerde viewer of
 native gebruikersflow.
+
+**Huidige viewerconsumer:** `Orientation::display_dimensions` en de gecontroleerde
+`source_position` verbinden EXIF aan de bestaande tegelrenderer, zonder
+volledige beeldconversie. Displayafmetingen sturen Fit, zoom, pan en semantiek.
+Bronpixels, metadata en geselecteerde objectbytes blijven ongewijzigd.
+De [consumerproef](../verification/platform-m7-exif-viewer-20261103.md) beschrijft
+het nieuwe hostbewijs en de afzonderlijke native decoderregressie; een native
+viewerstart, objectportal en gebruikersflow blijven open.
 
 **Testbewijs:** Nieuw OS, *viewer-fixture en kleine image-integratieslice*,
 versie `d269f9b4` (3 november 2026): de fixture is voor de nieuwe
