@@ -28,6 +28,15 @@ def evidence(case="normal", image_pages=6):
 
 
 class EvidenceTests(unittest.TestCase):
+    def test_acpi_status_pair_does_not_change_memory_evidence(self):
+        text = evidence().replace(
+            "KS-02:PASS\n",
+            "KS-02:PASS\nACPI:UNAVAILABLE:NO_DMAR\n"
+            "DEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT\n",
+        )
+        self.assertEqual(m.validate_sequence(text, "normal", 6),
+                         m.validate_sequence(evidence(), "normal", 6))
+
     def test_each_complete_profile_has_distinct_lifecycle_and_real_oom(self):
         for case in m.CASES:
             with self.subTest(case=case):
