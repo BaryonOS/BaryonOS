@@ -80,6 +80,7 @@ dependencies = [
  "nieuw-os-sdk-runtime",
  "nieuw-os-surface-protocol",
  "ui-core",
+ "zeroize",
 ]
 
 [[package]]

@@ -1,6 +1,187 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR158 met main 95d79451 — 3 november 2026
+## NEXT AGENT HANDOFF — K06 stap 4, gepreëmpteerde kernelthreads op AP's — 5 november 2026
+
+**Bron:** `c308b1ee9d8deedcfacd923c407392222ff7a12f` op `k06/smp-step4-preempt`. De keten is #191
+(`0cfcdd4a`) → #201 (`64f8abc6`) → #202 (`58e11fd0`) → #203 (`e49e7819`) →
+stap 4. **41 → 41/100**; K06 blijft open. Ontwerp: ADR-073.
+
+**Gerealiseerd:** op elke AP preëmpt de LAPIC-timer twee kernelthreads, met
+een registercanary, voortgang tussen twee metingen en bevriezing na STOP.
+Een AP met een dode timer leidt tot quarantaine. **Bewijs:** 14/14 native
+gevallen; regressie K05 6/6, `milestone-m2` en `native-rtc` 5/5. Zie
+[k06-smp-preempt](verification/k06-smp-preempt/README.md).
+
+**Open:** merge van de keten (beslissing van Simon). Daarna volgt de
+eigenlijke SMP-scheduler voor processen: per-CPU-runqueues, lockvolgorde,
+interrupts op de BSP, een CR3-wissel per thread met shootdown voor de
+hele procesadresruimte, en de herziening van ADR-024.
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-native-smp"; python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
+
+## Historisch checkpoint — K06 stap 3, TLB-shootdown vóór frame-hergebruik — 5 november 2026
+
+**Bron:** `9c64c1dbe85290501934331a28a9ec7f61f39399` op
+`k06/smp-step3-shootdown`. De keten is #191 (`5263a5ef`) → #201
+(`cd78ea74`) → #202 (`8c694ef0`) → stap 3; main is `c7a61d11`.
+**41 → 41/100**; K06 blijft open. Ontwerp: ADR-072.
+
+**Gerealiseerd:** een vervangen kernelframe wordt pas vrijgegeven nadat
+elke AP beide vertalingen (het venster en de identity-alias) met `invlpg`
+heeft ongeldig gemaakt en de generatie van de ronde heeft bevestigd.
+Daarna volgen `free`, een volledige audit en een zichtbaarheidsprobe. Een
+ontbrekende ack zet het frame in quarantaine en reset alle AP's.
+
+**Bewijs:** 13/13 native QEMU/TCG-gevallen, waaronder een dove AP en een
+controle zonder shootdown. Bij die controle lezen alle AP's
+deterministisch het vrijgegeven frame. Regressie: K05 6/6, `milestone-m2`
+en `native-rtc` 5/5. Zie
+[k06-smp-shootdown](verification/k06-smp-shootdown/README.md).
+
+**Open:** de beslissing over #191 ligt bij Simon. Volgens de integrator
+loopt #191 achter op main, draaide de volledige CI daar niet, en staan er 6
+CodeRabbit-threads open plus de `run_cap_bench`-regel; de integrator kan
+niet op die branch schrijven. Daarna komen CI en integratie van
+#201/#202/stap 3. Volgende K06-stap: interrupts op de BSP en een
+SMP-veilige scheduler, met per-CPU-runqueues, lockvolgorde, procesbrede
+shootdown per CR3 en de herziening van ADR-024.
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-native-smp"; python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
+
+## Historisch checkpoint — K06 stap 2, eigen TSS/IST en IPI's per AP — 5 november 2026
+
+**Bron:** `486371e5a3790c7c1df817820ff4cc373c5fc42c` (stap-2-code `1993ade8` + #201-stackfix `36703f50` + main `8bb15309`) op
+`k06/smp-step2-percpu-ipi`. Dat is gestapeld op #201
+(`k06/smp-ap-bringup`, `047acf39`), dat op #191 staat. Main is `8bb15309`.
+**41 → 41/100**; K06 blijft open. Ontwerp: ADR-071.
+
+**Gerealiseerd:** per AP een eigen GDT/TSS (RSP0, IST1 #DF, IST2 NMI) en
+een GS-anker. Een IPI-vector 0xf0 met EOI, unicast-rondes met een exacte
+telling, parkeren via IPI, en quarantaine van alle AP's als er één doof is.
+Een AP met een afwijkende IA32_APIC_BASE wordt afgewezen.
+
+**Bewijs:** 11/11 native QEMU/TCG-gevallen over zes profielen, waaronder
+NMI en #DF op de eigen AP-IST-stack en een dove AP met quarantaine.
+Daarnaast host-tests, Clippy en fmt, plus regressie van `milestone-m2` en
+`native-rtc` (5/5). Zie [k06-smp-ipi](verification/k06-smp-ipi/README.md).
+Review door AI; alle bevindingen zijn verwerkt.
+
+**Open:** CI-beoordeling van #201 en de nieuwe stap-2-PR, plus integratie in
+de volgorde #191 → #201 → stap 2. Volgende K06-stap: een
+TLB-shootdownprotocol op deze IPI's, daarna BSP-interrupts, de
+SMP-scheduler en de herziening van ADR-024.
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-native-smp"; python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
+
+## Historisch checkpoint — K06 stap 1 en conflictintegratie — 5 november 2026
+
+**Historische bron van deze conflictintegratie:** PR-head
+`cd78ea74f14d8b8921aad51cc46a41c41274ab45` op `k06/smp-ap-bringup`,
+geïntegreerd met base `main` op
+`7dd91fad6d341d0c7b66b885bbe8713d2020e1df`. De PR-head bevat ook de
+device-exec/ACPI-handoff-integratie. Drie statusconflicten zijn opgelost met
+behoud van de K06-projectstatus. **41 → 41/100**: geen criteria of gewichten
+gewijzigd; K06 blijft open. De actuele PR-head en -base staan in PR #201
+en in `docs/verification/k06-smp-bringup/native-report.json`; deze sectie
+wordt niet bij iedere update-merge herschreven.
+
+**Gerealiseerd:** een opt-in M2-profiel `native-smp` (ADR-070) met
+MADT-inventaris, INIT-SIPI-SIPI, een nooit gemapte SIPI-pagina, AP-stacks met
+guards in het kernelimage, contextclaims via CAS met fail-closed time-out en
+INIT-quarantaine, registergelijkheid met de BSP en een begrensde
+atomic- en spinlockproef. Een native gevonden BSP-stack-overloop door een
+by-value MADT is hersteld; die zou alle profielen hebben geraakt.
+
+**Bewijs:** 8 native QEMU/TCG-gevallen geslaagd (1/2/4/8/9 vCPU's, single-
+en multi-TCG, capaciteit, dubbele MADT via `-acpitable`, AP-stall,
+registermismatch). Daarnaast 25 boot-protocol-tests (exit 0; 28 na de #191-tests), 4+2+10+8
+Python-harnastests, Clippy/fmt en regressie van `milestone-m2` en
+`native-rtc` (5/5). Zie
+[k06-smp-bringup](verification/k06-smp-bringup/README.md). Twee
+AI-reviews, geen menselijke audit: alle concrete bevindingen zijn verwerkt.
+
+**Controles na integratie:** `cargo +1.90.0 test --locked -p kernel-core`
+en de relevante USB-, PS/2- en Python-tests; formatting, Clippy, freestanding
+driverbuilds en native-smp kernelbuild geslaagd. `tools/progress.py --check`
+geslaagd. CodeQL op de eerste mergecommit `c014b17d` vond geen
+Actions/Python-alerts maar liep af vóór alle talen klaar waren; de
+geresynchroniseerde head is dus niet volledig gescand. Nieuwe-head hosted CI
+moet nog worden beoordeeld.
+**Open:** volledige CodeQL-dekking en native K06-QEMU-bewijs op de geïntegreerde
+head.
+Voor K06 nog nodig: per-CPU-staat, TSS/IST, IPI/TLB-shootdown, SMP-scheduler,
+lockvolgorde en herziening van ADR-024. Er is geen fysiek hardwarebewijs.
+**Eerstvolgend commando:**
+`NOS_BUILD_DIR="$PWD/build/k06-native-smp" python3 -B tools/build.py --kernel-feature native-smp`
+en daarna, met dezelfde `NOS_BUILD_DIR`,
+`NOS_BUILD_DIR="$PWD/build/k06-native-smp" python3 -B -u tools/run_smp.py --profile native-smp`
+(`run_smp.py` bouwt niet zelf).
+## Historisch checkpoint — sessie-/bibliotheekintegratie (#206) — 5 november 2026
+
+**Basis:** main `bce6cabc71184d90fc228fe2ae8215339ff7bf28`, branch `integrate/20261105-session-library`
+(PR #206). **41 → 41/100.**
+
+**Opgenomen uit #135/#147:** `ui/native`-bibliotheek, `window-session`-shell,
+`document-session`-volumeuitbreiding, `ui/graphics`-reflow/damage, kernelfeature
+`native-session-route` (alleen diagnostische tellers) en native bibliotheekgates in
+`native-window-session.yml`. **Niet opgenomen:** het sealed-generatie-0-volumeontwerp
+uit #133, dat is ingehaald door #148/ADR-064 en #205, samen met de dubbele ADR-064
+en het bijbehorende bewijs. **Integratorfixes:** Escape annuleert een hangende
+ontgrendeling, `Font::advance` schaalt mee met magnify, en de `DropRead`-test raakt nu
+werkelijk een late read.
+
+**U03:** het branchbewijs `docs/verification/materiaal-library-20261102/` claimt
+41→44, maar is hashgebonden aan `64044318`. Op main blijft U03 open, totdat de native
+bibliotheekgates op de main-merge groen zijn en de eigenaar dit bevestigt.
+**Open vervolg (CodeRabbit op #206):** hoverdamage alleen bij een hoverwissel,
+`hit()`-focus op uitgeschakelde editorknoppen, een positieve checkpointtest in
+`test_window_library.py`, de provenance-controles in `verify-ci-artifact.py` en
+documentatiebronnen.
+
+## Historisch checkpoint — integratie PR-wachtrij — 5 november 2026
+
+**Basis:** main `c7a61d1126caa346a128fba3004fe4add4ccff61` (na #198), branch `integrate/20261105-platform-batch`
+(PR #199). **41 → 41/100**; geen criterium volledig geaccepteerd.
+
+**Gemerged:** #198 = #179 #183 #187 #190 (USB-framing, HID boot reports en
+-interfacebinding, PS/2-health; hostmodellen). **In #199:** #169 #173 #176 #182
+#188 #189 #193 #194 (acht zelfstandige platformcrates, nu in de
+`component-leaves`-matrix; voorheen draaide CI er geen enkele test van),
+#165 (EXIF in tile-viewer), #150 (agentprofielen) en #195 (instructieopschoning).
+Lokaal (Rust 1.90.0): test, clippy `-D warnings`, fmt en freestanding build per
+crate exit 0; onafhankelijke AI-reviews MERGE (geen menselijke audit).
+
+**Open:** #155 vraagt Simons besluit (score 41→39, B01-criterium); #181, #191
+en #177 FIX (reviewcomments op de PR's); calculator #184/#186/#192 onderling
+CONFLICT (26+ hunks, ook in `tools/run_window_session.py`); #133, #135, #146,
+#147, #154, #157 nog niet beoordeeld; concepten #167 #185 #197 niet overgedragen;
+#196 overbodig na het besluit om alleen de Graphify-MCP te gebruiken.
+**Bewijsgrens:** geen native app-launch, fysieke USB/HID of menselijke test.
+Eerstvolgend commando: `python3 tools/progress.py --check`.
+
+## Historisch checkpoint — instructieonderhoud — 4 november 2026
+
+**Basis:** `8bb153092e967aae314ecde35bcf963565a87ac7`, branch
+`copilot/dream-curate-memories-20261104132442`. Vijf instructiebestanden
+verliezen verouderde beperkingen op opslaglocaties, native UI-werk en
+voortgangsrapportage. De actuele privacycontracten, lokale AI, apprechten,
+eigen kernel en bewijsgrenzen blijven ongewijzigd. **41 → 41/100**:
+geen runtimecode, criterium, gewicht of nieuwe productacceptatie.
+
+**Controles (alle exit 0):** `python3 tools/progress.py --write`,
+`python3 tools/progress.py --check`,
+`python3 -B .agents/skills/os-dev/scripts/validate_skill.py`,
+`python3 -B -m unittest discover -s .agents/skills/os-dev/tests -v`
+(zes tests) en `git diff --check`. De onafhankelijke AI-tegenvoorbeeldreview
+vond geen concrete weerleggingen; dit is geen menselijke audit.
+**Bewijsgrens:** documentatieonderhoud; geen OS-build, QEMU-, hardware- of
+menselijke acceptatie uitgevoerd. Deze controles bewijzen geen OS-functionaliteit.
+De bestaande productblokkades en historische receipts hieronder blijven gelden.
+
+**Vervolg:** beoordeel de concept-PR en haar actuele controles vóór integratie.
+Eerstvolgend lokaal commando: `python3 tools/progress.py --check`.
+
+## Historisch checkpoint — PR158 met main 95d79451 — 3 november 2026
 
 **Bronnen:** PR-head `04d727c306d13e03a192d9d002a7d44348841c9f` en
 main `95d7945110ce853a1b5827ec59f6115475691805`, branch

@@ -1,0 +1,1182 @@
+{
+  "calculator_result_gate": true,
+  "calculator_result_requested": true,
+  "clipboard_gate": false,
+  "clipboard_requested": false,
+  "command": [
+    "/home/simon/.copilot/session-state/7f2fb1d137004b68b9bef4b8ca72f938/files/veld-env/root/usr/bin/qemu-system-x86_64",
+    "-L",
+    ".",
+    "-machine",
+    "pc-q35-10.0",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "file:serial.txt",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-device",
+    "VGA,vgamem_mb=16,romfile=VGA.rom",
+    "-qmp",
+    "stdio",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,file=volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST"
+  ],
+  "duration_s": 121.69759716899716,
+  "immutable": {
+    "OVMF_CODE.fd": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "VGA.rom": "c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde",
+    "bios-256k.bin": "e26615f9ad430328f49ca105e570b2dc4490a08a34ea73d27cae8b809a30ee06",
+    "esp/EFI/BOOT/BOOTX64.EFI": "64c4d7c969c5e4635bb9a5ad83d9c86761ce4cff918a0bc2a809bb77e2f3e7a2",
+    "esp/kernel.elf": "3e4e6f36066db9fef47bc7609c3f96f3ce695e502758336e27a9f58e37d13ad9",
+    "volume.json": "a0dbc57a7e2b2470800e2893cc9a7bb1c63a325c537c8d2e6ad4d9bc8236c527"
+  },
+  "interaction_scope": "Native current-result selection by keyboard/mouse and actual clipboard transfer into Material; save ACK and clean exit, not complete recovery/storage/window-session acceptance.",
+  "kernel_feature": "native-window-session-probe",
+  "manifest": {
+    "document_session": false,
+    "kernel": {
+      "entry": 33554432,
+      "sections": [
+        {
+          "flags": 0,
+          "name": "",
+          "size": 0,
+          "type": 0
+        },
+        {
+          "flags": 6,
+          "name": ".text",
+          "size": 176695,
+          "type": 1
+        },
+        {
+          "flags": 50,
+          "name": ".rodata",
+          "size": 1781000,
+          "type": 1
+        },
+        {
+          "flags": 3,
+          "name": ".data",
+          "size": 1720936,
+          "type": 1
+        },
+        {
+          "flags": 3,
+          "name": ".bss",
+          "size": 3100856,
+          "type": 8
+        },
+        {
+          "flags": 0,
+          "name": ".symtab",
+          "size": 9600,
+          "type": 2
+        },
+        {
+          "flags": 0,
+          "name": ".shstrtab",
+          "size": 52,
+          "type": 3
+        },
+        {
+          "flags": 0,
+          "name": ".strtab",
+          "size": 22248,
+          "type": 3
+        }
+      ],
+      "segments": [
+        {
+          "address": 33554432,
+          "filesz": 176695,
+          "flags": 5,
+          "memsz": 176695,
+          "offset": 4096,
+          "page_end": 33734656,
+          "page_start": 33554432
+        },
+        {
+          "address": 33734656,
+          "filesz": 1781000,
+          "flags": 4,
+          "memsz": 1781000,
+          "offset": 184320,
+          "page_end": 35516416,
+          "page_start": 33734656
+        },
+        {
+          "address": 35516416,
+          "filesz": 1720936,
+          "flags": 6,
+          "memsz": 4825272,
+          "offset": 1966080,
+          "page_end": 40345600,
+          "page_start": 35516416
+        }
+      ],
+      "sha256": "3e4e6f36066db9fef47bc7609c3f96f3ce695e502758336e27a9f58e37d13ad9"
+    },
+    "kernel_feature": "native-window-session-probe",
+    "loader": {
+      "format": "AMD64 PE32+",
+      "imports": 0,
+      "sha256": "64c4d7c969c5e4635bb9a5ad83d9c86761ce4cff918a0bc2a809bb77e2f3e7a2",
+      "subsystem": "EFI_APPLICATION"
+    },
+    "loader_feature": "desktop-mode",
+    "materiaal": {
+      "apps": [
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 6,
+                "flags": 5,
+                "memsz": 6,
+                "offset": 4096,
+                "page_end": 1073745920,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1344,
+                "flags": 6,
+                "memsz": 1344,
+                "offset": 8192,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073823744,
+                "filesz": 3977,
+                "flags": 4,
+                "memsz": 3977,
+                "offset": 12288,
+                "page_end": 1073827840,
+                "page_start": 1073823744
+              },
+              {
+                "address": 1073872896,
+                "filesz": 78359,
+                "flags": 5,
+                "memsz": 78359,
+                "offset": 16384,
+                "page_end": 1073954816,
+                "page_start": 1073872896
+              }
+            ]
+          },
+          "name": "keyring-service",
+          "sha256": "c9f773d378af25f895514951825829fcbb3de1fae387b71043f78619165eba53"
+        },
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 63442,
+                "flags": 5,
+                "memsz": 63442,
+                "offset": 4096,
+                "page_end": 1073807360,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1304,
+                "flags": 6,
+                "memsz": 1304,
+                "offset": 69632,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073823744,
+                "filesz": 18298,
+                "flags": 4,
+                "memsz": 18298,
+                "offset": 73728,
+                "page_end": 1073844224,
+                "page_start": 1073823744
+              }
+            ]
+          },
+          "name": "volume-service",
+          "sha256": "41cf6cd9884a025e0ec3744067aa13e5c9b81882735662a15e1b85bdd8c68e38"
+        },
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 19,
+                "flags": 5,
+                "memsz": 19,
+                "offset": 4096,
+                "page_end": 1073745920,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1024,
+                "flags": 6,
+                "memsz": 1024,
+                "offset": 8192,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073872896,
+                "filesz": 471672,
+                "flags": 4,
+                "memsz": 471672,
+                "offset": 12288,
+                "page_end": 1074348032,
+                "page_start": 1073872896
+              },
+              {
+                "address": 1074462720,
+                "filesz": 208,
+                "flags": 6,
+                "memsz": 200704,
+                "offset": 487424,
+                "page_end": 1074663424,
+                "page_start": 1074462720
+              },
+              {
+                "address": 1074724864,
+                "filesz": 116297,
+                "flags": 5,
+                "memsz": 116297,
+                "offset": 491520,
+                "page_end": 1074843648,
+                "page_start": 1074724864
+              }
+            ]
+          },
+          "name": "materiaal-app",
+          "sha256": "6bcebe76cf205b66667594203058f4602f398eda4f325b065a934b45430f9924"
+        },
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 6,
+                "flags": 5,
+                "memsz": 6,
+                "offset": 4096,
+                "page_end": 1073745920,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1200,
+                "flags": 6,
+                "memsz": 1200,
+                "offset": 8192,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073872896,
+                "filesz": 754,
+                "flags": 4,
+                "memsz": 754,
+                "offset": 12288,
+                "page_end": 1073876992,
+                "page_start": 1073872896
+              },
+              {
+                "address": 1074003968,
+                "filesz": 12263,
+                "flags": 5,
+                "memsz": 12263,
+                "offset": 16384,
+                "page_end": 1074016256,
+                "page_start": 1074003968
+              }
+            ]
+          },
+          "name": "input-source",
+          "sha256": "2073e90695aaae9946408c25c67b57c3f913bb4b395f7ba2996d3b5e32016d0d"
+        },
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 6,
+                "flags": 5,
+                "memsz": 6,
+                "offset": 4096,
+                "page_end": 1073745920,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1200,
+                "flags": 6,
+                "memsz": 1200,
+                "offset": 8192,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073872896,
+                "filesz": 2522,
+                "flags": 4,
+                "memsz": 2522,
+                "offset": 12288,
+                "page_end": 1073876992,
+                "page_start": 1073872896
+              },
+              {
+                "address": 1074003968,
+                "filesz": 21575,
+                "flags": 5,
+                "memsz": 21575,
+                "offset": 16384,
+                "page_end": 1074028544,
+                "page_start": 1074003968
+              }
+            ]
+          },
+          "name": "input-policy",
+          "sha256": "4760a5968c70be583a8ff5b968ce5c299ef62cca0120603dbc096f911c52a713"
+        },
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 6,
+                "flags": 5,
+                "memsz": 6,
+                "offset": 4096,
+                "page_end": 1073745920,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1024,
+                "flags": 6,
+                "memsz": 1024,
+                "offset": 8192,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073872896,
+                "filesz": 799,
+                "flags": 4,
+                "memsz": 799,
+                "offset": 12288,
+                "page_end": 1073876992,
+                "page_start": 1073872896
+              },
+              {
+                "address": 1074790400,
+                "filesz": 72,
+                "flags": 6,
+                "memsz": 72,
+                "offset": 16384,
+                "page_end": 1074794496,
+                "page_start": 1074790400
+              },
+              {
+                "address": 1090519040,
+                "filesz": 9799,
+                "flags": 5,
+                "memsz": 9799,
+                "offset": 20480,
+                "page_end": 1090531328,
+                "page_start": 1090519040
+              }
+            ]
+          },
+          "name": "window-init",
+          "sha256": "c1477b3eddf3c6846dc2c8d911b92946d5fd1dff6d4357d9ad060c51242ff1a1"
+        },
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 6,
+                "flags": 5,
+                "memsz": 6,
+                "offset": 4096,
+                "page_end": 1073745920,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1024,
+                "flags": 6,
+                "memsz": 1024,
+                "offset": 8192,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073872896,
+                "filesz": 280802,
+                "flags": 4,
+                "memsz": 280802,
+                "offset": 12288,
+                "page_end": 1074155520,
+                "page_start": 1073872896
+              },
+              {
+                "address": 1074790400,
+                "filesz": 120,
+                "flags": 6,
+                "memsz": 5600120,
+                "offset": 294912,
+                "page_end": 1080393728,
+                "page_start": 1074790400
+              },
+              {
+                "address": 1090519040,
+                "filesz": 56487,
+                "flags": 5,
+                "memsz": 56487,
+                "offset": 299008,
+                "page_end": 1090576384,
+                "page_start": 1090519040
+              }
+            ]
+          },
+          "name": "window-compositor",
+          "sha256": "a9a45762d38bf15e01bbb6a2cf363407bd9026697f10add705e4532dbcdb75b8"
+        },
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 19,
+                "flags": 5,
+                "memsz": 19,
+                "offset": 4096,
+                "page_end": 1073745920,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1024,
+                "flags": 6,
+                "memsz": 1024,
+                "offset": 8192,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073872896,
+                "filesz": 285320,
+                "flags": 4,
+                "memsz": 285320,
+                "offset": 12288,
+                "page_end": 1074159616,
+                "page_start": 1073872896
+              },
+              {
+                "address": 1074462720,
+                "filesz": 208,
+                "flags": 6,
+                "memsz": 208,
+                "offset": 299008,
+                "page_end": 1074466816,
+                "page_start": 1074462720
+              },
+              {
+                "address": 1074724864,
+                "filesz": 77974,
+                "flags": 5,
+                "memsz": 77974,
+                "offset": 303104,
+                "page_end": 1074806784,
+                "page_start": 1074724864
+              }
+            ]
+          },
+          "name": "calculator-app",
+          "sha256": "0660c9422870341477d34613f74de7e2626c8643b288a01530b2810403f88f5f"
+        }
+      ],
+      "native_runtime_performed": false,
+      "passed": true,
+      "probe_controller": false
+    },
+    "profile": "native-window-session-probe",
+    "schema_version": 1,
+    "sdk_runtime": false,
+    "source_fingerprint_version": 3,
+    "source_sha256": "74eb21b6aafb03f16c96f8196468e43453205d7bb6115a256bcc114d8d90fe53"
+  },
+  "native_gate": false,
+  "passed": true,
+  "phases": {
+    "boot": {
+      "frame_sha256": "ef1a4e72f662caa7e4d074dd91c6665268ccefd3946ab2f13e544fb66e623b18",
+      "oracle": null,
+      "seconds": 25.91598228100338,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 0,
+          "CARET": 0,
+          "CURRENT": 0,
+          "ERRORS": 0,
+          "EVALUATIONS": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "FAILURES": 0,
+          "FRAMES": 1,
+          "GEN": 1,
+          "HAS_ANSWER": 0,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "ERRORS": 0,
+          "FRAMES": 1,
+          "GEN": 3,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 18446744073709551615,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "result-calculated": {
+      "frame_sha256": "9b21fbc40dad2bd0a4aa86df32d8fcbf7706d2636851558091eb2e33d7b83923",
+      "oracle": null,
+      "seconds": 49.225004744002945,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 3500000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 1,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 3832546893552709483,
+          "FAILURES": 0,
+          "FRAMES": 2,
+          "GEN": 5,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "ERRORS": 0,
+          "FRAMES": 2,
+          "GEN": 4,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 18446744073709551615,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "result-editor": {
+      "frame_sha256": "31ba36f9abee3b1aed9aa7efac85fffdeaff0f42226a1f85ca96895ffd625da7",
+      "oracle": null,
+      "seconds": 71.29664053599845,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 0,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 3500000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 1,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 3832546893552709483,
+          "FAILURES": 0,
+          "FRAMES": 5,
+          "GEN": 9,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 1,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 14695981039346656037,
+          "ERRORS": 0,
+          "FRAMES": 3,
+          "GEN": 5,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "result-focused": {
+      "frame_sha256": "0ce4df4ace21596f5293a309910e285f79f990024d6c3980c84e687c4c58f3e1",
+      "oracle": null,
+      "seconds": 46.195392312001786,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 0,
+          "CARET": 0,
+          "CURRENT": 0,
+          "ERRORS": 0,
+          "EVALUATIONS": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "FAILURES": 0,
+          "FRAMES": 1,
+          "GEN": 1,
+          "HAS_ANSWER": 0,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "ERRORS": 0,
+          "FRAMES": 2,
+          "GEN": 4,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 18446744073709551615,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "result-key-copied": {
+      "frame_sha256": "107f09ace07afa35d0ccfbbd8f661cb05448b934a8b95321ec940c6577a59e0d",
+      "oracle": null,
+      "seconds": 52.19961471800343,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 3500000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 1,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 3832546893552709483,
+          "FAILURES": 0,
+          "FRAMES": 4,
+          "GEN": 7,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "ERRORS": 0,
+          "FRAMES": 2,
+          "GEN": 4,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 18446744073709551615,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "result-key-selected": {
+      "frame_sha256": "2405b5f1fd4b4cb412c93701c3de11b4222b13028ededb36b59b01a5e0a868ae",
+      "oracle": null,
+      "seconds": 51.200414179998916,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 3500000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 1,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 3832546893552709483,
+          "FAILURES": 0,
+          "FRAMES": 3,
+          "GEN": 6,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "ERRORS": 0,
+          "FRAMES": 2,
+          "GEN": 4,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 18446744073709551615,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "result-mouse-copied": {
+      "frame_sha256": "d49ea03005e5fe13834b3352217e050c926f9d1e995b016d052cb645fcb4e4ef",
+      "oracle": null,
+      "seconds": 83.10846491600387,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 333333333,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 2,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 5008216194376873998,
+          "FAILURES": 0,
+          "FRAMES": 8,
+          "GEN": 17,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 1,
+          "DRAFT_BYTES": 3,
+          "DRAFT_SUM": 6276639196626935437,
+          "ERRORS": 0,
+          "FRAMES": 4,
+          "GEN": 6,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "result-mouse-selected": {
+      "frame_sha256": "961a5057cd99a26a15f57137163d3fff739160e22b6a6ebd754adea4bfdb91dd",
+      "oracle": null,
+      "seconds": 82.11606629299786,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 333333333,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 2,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 5008216194376873998,
+          "FAILURES": 0,
+          "FRAMES": 7,
+          "GEN": 16,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 1,
+          "DRAFT_BYTES": 3,
+          "DRAFT_SUM": 6276639196626935437,
+          "ERRORS": 0,
+          "FRAMES": 4,
+          "GEN": 6,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "result-pasted": {
+      "frame_sha256": "30bd00f42ba5454bb33615dae1f561aadee7c491f4e3b3702dfd6c13bbba9b10",
+      "oracle": null,
+      "seconds": 73.31852042500395,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 0,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 3500000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 1,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 3832546893552709483,
+          "FAILURES": 0,
+          "FRAMES": 5,
+          "GEN": 9,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 1,
+          "DRAFT_BYTES": 3,
+          "DRAFT_SUM": 6276639196626935437,
+          "ERRORS": 0,
+          "FRAMES": 4,
+          "GEN": 6,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "result-rounded": {
+      "frame_sha256": "a43ea83d33813720fecf775a06ce9164e59983c7d32163936fc33f4cfd3114e5",
+      "oracle": null,
+      "seconds": 78.46208254199883,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 333333333,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 2,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 5008216194376873998,
+          "FAILURES": 0,
+          "FRAMES": 6,
+          "GEN": 15,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 1,
+          "DRAFT_BYTES": 3,
+          "DRAFT_SUM": 6276639196626935437,
+          "ERRORS": 0,
+          "FRAMES": 4,
+          "GEN": 6,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "result-rounded-pasted": {
+      "frame_sha256": "4fc39c80bd62711afdefa06dd241090953c55548e203b0f3f89a4c3ae1205feb",
+      "oracle": null,
+      "seconds": 103.27847725400352,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 0,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 333333333,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 2,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 5008216194376873998,
+          "FAILURES": 0,
+          "FRAMES": 9,
+          "GEN": 19,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 1,
+          "DRAFT_BYTES": 11,
+          "DRAFT_SUM": 16652517790660118902,
+          "ERRORS": 0,
+          "FRAMES": 5,
+          "GEN": 9,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "result-saved-for-cleanup": {
+      "frame_sha256": "2de2c59da34304b5d7ec4cec240932a71c0af3250a643a713fc6878d45071b88",
+      "oracle": null,
+      "seconds": 121.26024118100031,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 0,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 333333333,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 2,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 5008216194376873998,
+          "FAILURES": 0,
+          "FRAMES": 9,
+          "GEN": 19,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 11,
+          "DRAFT_SUM": 16652517790660118902,
+          "ERRORS": 0,
+          "FRAMES": 6,
+          "GEN": 12,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 1,
+          "SAVED_BYTES": 11,
+          "SAVED_SUM": 16652517790660118902,
+          "SAVE_ACKS": 1,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    }
+  },
+  "qemu_implementation": {
+    "path": "/home/simon/.copilot/session-state/7f2fb1d137004b68b9bef4b8ca72f938/files/veld-env/root/usr/bin/qemu-system-x86_64",
+    "sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb"
+  },
+  "qemu_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+  "qmp_trace_summary": {
+    "canonical_sha256": "4c28b447d1bbb711005133ac02d00974422ac287f0a4ba61e4ddc2197371f032",
+    "entries": 55
+  },
+  "raw_qemu_exit": 33,
+  "raw_report": {
+    "path": "build/veld11-result-20261103/run/window-b79afae6ff7644c287c0dc7a9ce5893b/result.json",
+    "sha256": "2efbe8131ad516f180a5cfa6138aea6e43953f6d7ad631f10ce10af26adec16c"
+  },
+  "recovery_handshake_only": false,
+  "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-fictional-disco/build/veld11-result-20261103/run/window-b79afae6ff7644c287c0dc7a9ce5893b",
+  "schema_version": 1,
+  "serial_sha256": "77e41cd5d60d4aba724c159e9a0e3f20c1dd58d64a9958fbe0e8a90776516388",
+  "smoke_only": false,
+  "source_commit": "9c2a994ad8f30500e54ac228e1de0cceff267e16",
+  "source_fingerprint_version": 3,
+  "source_sha256": "74eb21b6aafb03f16c96f8196468e43453205d7bb6115a256bcc114d8d90fe53"
+}

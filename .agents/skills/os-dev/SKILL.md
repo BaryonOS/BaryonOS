@@ -66,7 +66,6 @@ Maak expliciet onderscheid tussen host/unit-tests, crosscompile, emulatorboot/ru
 - respecteer microkernel-/servicegrenzen, capabilitymodel, lokale privacycontracten en bestaande interfacecontracten;
 - behandel lokale AI, NAS/cloudkoppelingen en compatibiliteit als afzonderlijke trust boundaries;
 - gebruik de kennisbank om ontwerpkeuzes te controleren, niet om bestaande projectbesluiten ongevraagd te vervangen;
-- wijzig README/projectstatus/roadmap alleen wanneer de betreffende acceptatiepoort daadwerkelijk is aangetoond;
 - maak nooit claims als “onhackbaar”, “100% veilig” of “wiskundig foutloos” buiten een exact bewezen theorem en aannames.
 
 ## Debugging en review

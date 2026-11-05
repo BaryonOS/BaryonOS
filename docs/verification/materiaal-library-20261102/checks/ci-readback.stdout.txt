@@ -1,0 +1,56 @@
+{
+  "passed": true,
+  "github_head": "64044318c622eaacab25272611acf856a5fca5d5",
+  "ci_merge_source": {
+    "source_commit": "f6bada8333c63e0a949d8a441b8494cac56b3503",
+    "source_sha256": "069666e5406a893f64aa5d8e00298863f33f8be9cef57b6e0522b8bdf9648670",
+    "source_fingerprint_version": 3
+  },
+  "artifact_id": 13183010575,
+  "artifact_sha256": "3c7ca75a8304efb0922b6d6fc3a3beda750a71d294988a663a0711df9af7aede",
+  "runs": {
+    "regression": {
+      "passed": true,
+      "phases": 22,
+      "exact_app_images": 17,
+      "seconds": 580.541218095,
+      "report_sha256": "43db9ac1e37531fcb57010ecd75cf42a5a5ed158de5ae1748873930eafa9dc34",
+      "serial_sha256": "184027474452abf18ae4d1a76765b9a0e5cab37a64a01c53ff74b201a39a6af6",
+      "volume_sha256": "9ac6c76b016edf07e5c3c72f0ec97aa5349ee90f097da1523e708303b58dd589"
+    },
+    "write": {
+      "passed": true,
+      "phases": 10,
+      "exact_app_images": 10,
+      "seconds": 471.999901538,
+      "report_sha256": "406f2e6ffbecc4723c7b7022ec4784debeab44b63fbd714d7dbf3b5dbbfba801",
+      "serial_sha256": "7b66977ee081c84802f790599b2b752ce256d4975fda0645bff5f2677ed87e88",
+      "volume_sha256": "31a367e7c499a8a1e21e954b3328d2a08ccf02ea2b5c89ce0a114213e19467ea"
+    },
+    "cold": {
+      "passed": true,
+      "phases": 4,
+      "exact_app_images": 4,
+      "seconds": 223.4102255759999,
+      "report_sha256": "287f67bfabea18c68ccad3e5b33e8a2de26b8fac41b60d65c4e9fe8608af2863",
+      "serial_sha256": "794a7017c6f900be8472045d2deaaef698318b3860a63f8263af8a65f29d58c3",
+      "volume_sha256": "31a367e7c499a8a1e21e954b3328d2a08ccf02ea2b5c89ce0a114213e19467ea"
+    }
+  },
+  "embedded_users": {
+    "window-init": "82a89a234d5f0883c89abf6f8be23ab813c3efddbffb53926302f7cb328be170",
+    "keyring-service": "06642d5f5b7ffa6dd681677862255fef8ed6b2a66cb6bfaa807b0be549cfb8e1",
+    "volume-service": "0eb883ecc649bf0deb63f8945701c5da80591b8467a4970c8c708f5c854dfec0",
+    "materiaal-app": "bc9a4df9a4ddfe8024fad8cb2cc990393579fae1fc5379b5e83d539b508441e0",
+    "window-compositor": "a7d1877981b38b04794ce4652fc4f06c66739fb36b126518d49d8be08723a736",
+    "input-source": "0b6569b100c28135ebd1cf31d07b1fb5ec4e9616bf4aeb82dd408a65a683e20d",
+    "input-policy": "a7fb09a48ae959c3583c01f8dc85e1abb6bdc0c60a4cb3d4825ae9f28b1e9e89",
+    "calculator-app": "74b2c284b303b23fa5bbffb4dacb84c1a958fdec31933fb93f196b8221d82219"
+  },
+  "normal_package_payloads": 19,
+  "normal_package_sha256": "85d3a3453ae839444b4f2a861f5ca5a72edbcc8257fbfcbf820285f439a076aa",
+  "limits": [
+    "CI is Linux QEMU/TCG; no Windows/VMware/hardware runtime claim",
+    "volume.json metadata was not archived; actual volume bytes, all images and available immutable firmware/ESP inputs were verified"
+  ]
+}

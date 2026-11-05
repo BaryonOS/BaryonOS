@@ -249,6 +249,10 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
                 Screen::Material => 1,
                 Screen::Editor => 2,
                 Screen::ConfirmClose => 3,
+                Screen::Rename => 4,
+                Screen::Organize => 5,
+                Screen::History => 6,
+                Screen::Filter => 7,
             },
             dirty: self.controller.document().is_dirty(),
             draft_length: draft.map_or(0, |d| d.contents.len() as u64),
@@ -591,7 +595,8 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         Ok(())
     }
     /// Each iteration performs <=4 PEEK/ACK pairs, one pending save exchange,
-    /// one bounded tile transaction. Individual IPC polling is also bounded.
+    /// one bounded tile transaction and at most SCAN_LIMIT private tile renders.
+    /// Individual IPC polling is also bounded.
     /// Input/surface failure leaves document memory alive for explicit recovery.
     pub fn step(&mut self) -> Result<(), Error> {
         self.step_succeeded = false;
@@ -603,7 +608,8 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         result
     }
     /// Interactive VM profile: one bounded input/save pass, then at most four
-    /// existing tile transactions. No input, stop or save progress is serviced
+    /// existing tile transactions (at most 4 * SCAN_LIMIT tile inspections).
+    /// No input, stop or save progress is serviced
     /// between those transactions; this is a work bound, not a latency promise.
     /// The diagnostic one-tile `step` contract remains unchanged.
     pub fn step_interactive(&mut self) -> Result<(), Error> {
@@ -687,6 +693,16 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         self.input = input;
         self.surface = surface;
         self.geometry = geometry;
+        // A replacement compositor has no backing pixels from the old epoch.
+        // Repaint it densely even if document and geometry are unchanged.
+        self.damage_valid = false;
+        if self
+            .damage
+            .as_ref()
+            .is_some_and(|cache| (cache.len() as u64) < geometry.tiles())
+        {
+            self.damage = None;
+        }
         self.input_failed = false;
         self.surface_failed = false;
         self.input_responded = false;

@@ -1,0 +1,88 @@
+   Compiling zeroize v1.9.1
+   Compiling catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+   Compiling ui-core v0.1.0 (/workspace/nieuw-os/crates/ui-core)
+   Compiling nieuw-os-graphics v0.1.0 (/workspace/nieuw-os/ui/graphics)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+   Compiling nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os/sdk/catalog-client)
+   Compiling nieuw-os-input-core v0.1.0 (/workspace/nieuw-os/services/input-core)
+   Compiling volume-core v0.1.0 (/workspace/nieuw-os/services/volume)
+   Compiling noto-sans-mono-bitmap v0.3.2
+   Compiling nieuw-os-surface-protocol v0.1.0 (/workspace/nieuw-os/ui/surface-protocol)
+   Compiling nieuw-os-input-client v0.1.0 (/workspace/nieuw-os/sdk/input-client)
+   Compiling nieuw-os-document-session v0.1.0 (/workspace/nieuw-os/sdk/document-session)
+   Compiling kernel-core v0.1.0 (/workspace/nieuw-os/crates/kernel-core)
+   Compiling capability-core v0.1.0 (/workspace/nieuw-os/crates/capability-core)
+   Compiling nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os/ui/native)
+   Compiling nieuw-os-materiaal-app v0.1.0 (/workspace/nieuw-os/sdk/examples/materiaal)
+    Finished `release` profile [optimized] target(s) in 9.54s
+     Running unittests src/lib.rs (target/session-final-host/material/release/deps/nieuw_os_materiaal_app-21e4cf652027d438)
+
+running 3 tests
+test idle::tests::exact_supported_profiles_only ... ok
+test idle::tests::wait_failure_and_unexpected_mask_never_become_success ... ok
+test idle::tests::next_tick_preserves_control_condition_and_rejects_overflow ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/chain.rs (target/session-final-host/material/release/deps/chain-decda095b7af9d46)
+
+running 36 tests
+test bootstrap_rejects_aliases_invalid_handles_actors_epochs_and_scale ... ok
+test bounded_draft_rejects_large_edit_without_destroying_old_bytes ... ok
+test cancel_uses_real_abort_and_never_commits ... ok
+test clean_stop_closes_each_owner_once_without_commit ... ok
+test cancel_between_real_append_and_commit_preserves_draft ... ok
+test diagnostic_f12_counts_press_without_repeat_release_or_action ... ok
+test focus_regrant_does_not_reuse_held_control ... ok
+test fresh_presentation_preserves_draft_caret_and_active_document_upload ... ok
+test generation_change_abandons_partial_frame ... ok
+test global_outside_release_and_held_reentry_never_click ... ok
+test damage_cache_repaints_identical_pixels_with_fewer_tiles ... ok
+test clipboard_or_ack_transport_failure_never_applies_text_or_claims_ack ... ok
+test damage_cache_is_invalidated_by_compositor_replacement ... ok
+test input_failure_revokes_current_ready_flag ... ok
+test input_channel_failure_retains_unsaved_draft ... ok
+test interactive_four_tiles_use_one_idle_peek ... ok
+test idle_only_after_complete_ack_and_empty_input_preserves_new_input_and_unsaved_work ... ok
+test interactive_input_still_processes_at_most_four_offers ... ok
+test interactive_lost_tile_ack_ends_batch_and_preserves_draft ... ok
+test interactive_input_failure_keeps_draft_and_bounded_paint ... ok
+test lost_document_commit_never_claims_saved ... ok
+test lost_surface_ack_does_not_present_or_drop_draft ... ok
+test negative_display_completion_never_presents ... ok
+test independent_current_ready_is_not_stale_after_edit ... ok
+test readonly_ui_never_publishes_create_or_save ... ok
+test interactive_batch_never_certifies_partial_generation ... ok
+test received_clipboard_text_is_dropped_after_real_input_focus_cancellation ... ok
+test lost_final_replacement_frame_ack_preserves_draft_without_ready ... ok
+test real_protocol_chain_edit_save_reopen_and_separate_surface ... ok
+test scale200_uses_actual_assigned_global_pointer_coordinates ... ok
+test storage_io_failure_never_claims_saved ... ok
+test opted_in_clipboard_paste_requires_actual_reply_and_original_ack ... ok
+test retired_reply_leaves_preserve_document_and_allow_both_owner_pause ... ok
+test surface_failure_revokes_current_ready_flag ... ok
+test stale_or_small_rebind_closes_new_grants_without_losing_document ... ok
+test undersized_damage_cache_falls_back_to_full_repaints ... ok
+
+test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.89s
+
+     Running tests/elf.rs (target/session-final-host/material/release/deps/elf-92c836aa1338baca)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/semantic_actions.rs (target/session-final-host/material/release/deps/semantic_actions-09ab4bea0e3efd6d)
+
+running 2 tests
+test semantic_wrappers_reject_read_only_and_nonexistent_actions ... ok
+test semantic_wrappers_bind_actions_to_snapshot_and_keep_edits_unsaved ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nieuw_os_materiaal_app
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

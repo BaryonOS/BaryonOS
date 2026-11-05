@@ -1,0 +1,543 @@
+{
+  "schema_version": 1,
+  "evidence_level": "host-render",
+  "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+  "source_fingerprint_version": 3,
+  "source_sha256": "e4ad9f922d202ee4249b6b1dd02a02d724f6775c616ad1c46dde48bf7ee2271c",
+  "native_execution_claim": false,
+  "authentication_claim": false,
+  "physical_hardware_claim": false,
+  "command": [
+    "cargo",
+    "test",
+    "--manifest-path",
+    "ui/native/Cargo.toml",
+    "--test",
+    "session_board",
+    "--release",
+    "--offline",
+    "--locked"
+  ],
+  "command_exit_status": 0,
+  "build_profile": "release",
+  "cargo_target_directory": "build/session-final-target",
+  "artifact_environment_variable": "OS_SESSION_BOARD_DIRECTORY",
+  "ppm_output_directory": "build/session-final-images",
+  "fixture_utc": "2026-11-02T14:32:00Z",
+  "conversion": {
+    "tool": "Pillow",
+    "version": "12.3.0",
+    "mode": "RGB",
+    "lossless_pixel_comparison": true
+  },
+  "profiles": [
+    {
+      "width": 1280,
+      "height": 720,
+      "scale": 1
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "scale": 1
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "scale": 1
+    },
+    {
+      "width": 1024,
+      "height": 768,
+      "scale": 1
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "scale": 2
+    }
+  ],
+  "states": [
+    "lock",
+    "users",
+    "auth",
+    "empty-desktop",
+    "two-windows",
+    "search",
+    "settings",
+    "capability"
+  ],
+  "matrix_images": 40,
+  "board_images": 1,
+  "source_files_sha256": {
+    "sdk/examples/window-session/src/scene.rs": "ead69d27c7e8f08cbfaec3ba78654ef82b120758cfb5936b98d01c8ded1c58b2",
+    "sdk/examples/window-session/src/main.rs": "7ce27ec096ad7bedf2e3d11a000ef70415476bb2b35a430f802d8384e3a05b22",
+    "sdk/examples/window-session/src/shell.rs": "8f1b6905ad98f12e006896b0c0e453c225ab7285e3030a5098325c4da349ba6f",
+    "ui/graphics/src/text.rs": "a06ba18c2459211d63293e644a37516676db1e711fb093950205af91161bb6e9",
+    "sdk/examples/calculator/src/render.rs": "31ccfc62c37cf3587040fcde9633a43591cc86037b4ccc75bb09539dceabccfd",
+    "ui/native/tests/session_board.rs": "28dec36d58c525988e1f8b314d298782e49ab8c5d2691e5e035d50e365963a71",
+    "ui/graphics/assets/open-sans-atlas.rle": "a4e3efa8027d5eba26bea742f7350bda34380cab9d77030d21481cb06c5f2e07",
+    "ui/native/src/session.rs": "0388858099523e1b538ea5fca846b6003cd0256d31d62070d27072238071cc13"
+  },
+  "images": [
+    {
+      "path": "screenshots/1024x768-s1-auth.png",
+      "width": 1024,
+      "height": 768,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "e0e4bde86559befcb31fa753773e9afe449e9e9e4a14411de9d3f15d9781ce3f",
+      "png_sha256": "2c48c6b94c32d462962fb99fb4c89c2e0c7e72c68fb6e543bc71ae3c176da7fe",
+      "rgb_sha256": "143a424176f2c556ac3e28502ae3f461ca93e3c62d37c89e8e3836cb4f7b2a53",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1024x768-s1-capability.png",
+      "width": 1024,
+      "height": 768,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "9b4c60315c304ab335924f59c6b2279016899e5e85bd43a0e81b712fff1ccdef",
+      "png_sha256": "b446d581177ccce2ab60db9604af8833ea70f1ffdfe2d9ab0f603fbfa17fe76f",
+      "rgb_sha256": "fa9ce50849643eb20614675a48fa5281945b0dc47729188c23ef6a05cd323513",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1024x768-s1-empty-desktop.png",
+      "width": 1024,
+      "height": 768,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "27e9395cc805f07f74313e10c95c0246786ea83c91f5eac284dda08b27ca5643",
+      "png_sha256": "6bb1a2e3f0e0021d686a1c13834f96fbd4f6bf088e86d66a03f3d325a9159886",
+      "rgb_sha256": "8fdd5a1b4affec884294feeb32f3f34d22c5211795563b722d51e8d00a3bd1bc",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1024x768-s1-lock.png",
+      "width": 1024,
+      "height": 768,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "1b833e9acf1b0cf23a9c1336f60727aa0578ca90d07a0b4f09a2df18e56a2ce9",
+      "png_sha256": "7400bb0d8563fee1fdf3de9c55538a8bbe7bb0af8542afefadb7e963e569a4ea",
+      "rgb_sha256": "bc73d5c42705e558297488b65f69775bb350ac007b015fed53cad3728ef838c0",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1024x768-s1-search.png",
+      "width": 1024,
+      "height": 768,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "ba95dadfbfee701c31b740505e2c0e824a4cdd31354cb781f41c755e08692bc8",
+      "png_sha256": "d7d2c6868d4c4bcc8be53a63e8f885611d0d9c4844460c592eb1985f1a4b20df",
+      "rgb_sha256": "e7c0779951ab63b8a0aecab0e56e1ef7878189f3d38610333d6e8d45da8d7153",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1024x768-s1-settings.png",
+      "width": 1024,
+      "height": 768,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "cb900969cbba3ed7fed2162400517a6f21f353372730e7788247359da88a5ce9",
+      "png_sha256": "ee2efd5c4066d24e42fa65740a57e03fec19e1319f786f529a72f7a0fa2b1c92",
+      "rgb_sha256": "da7c1b17fd02246742f1958b0ae9169f963e5bdc9ecf73bd67ee5cec0aeaa678",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1024x768-s1-two-windows.png",
+      "width": 1024,
+      "height": 768,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "5bc91946c49e8f312bd8671de5a124c7b80b3b27ed5d8c8beb33150b414513c1",
+      "png_sha256": "0c3aa62d05e743a68192d431dfde7f0d3f571c01f5d14afe0c10c5c8ba187002",
+      "rgb_sha256": "68680bb8b53f0ed48d33067c7569eb073402e4b4c89dbeeb58c40e04a693210a",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1024x768-s1-users.png",
+      "width": 1024,
+      "height": 768,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "826d050ca3f721fbac13931b7024e9a91eab4cf2144b42d1be86766f95b6a52e",
+      "png_sha256": "8688252ac4b87c45bd7a41ed214541f3bec5d470f4fee21244ed85815d3c39fa",
+      "rgb_sha256": "e1b55ede64783802fd997d59fa5eb80afc757e3600b0a4c6d6d371c231d4981d",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1280x720-s1-auth.png",
+      "width": 1280,
+      "height": 720,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "a22e9b2297ade3ee7c26724a7225600e4d33e5caf9ab4c83623a0d39d72f9cc5",
+      "png_sha256": "e74c5737c80488b016c189dfee1a72003c74c3527448f805c19862a35df9d673",
+      "rgb_sha256": "59e4817ab73135d3228d7eaab9974bd4d81fe91492ce81fbcf01142d5f808020",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1280x720-s1-capability.png",
+      "width": 1280,
+      "height": 720,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "8df504322236d95a4a8d60217aad8a167df94aaf4590f23ffaeb37eabe45677c",
+      "png_sha256": "329101c9f4052544e90effec6318b40d65a1fd6889a1d9c6489c94be6a02e69c",
+      "rgb_sha256": "a2c0f1ad9e345e7a1cfe908e5f1adb4437c0c27729ea7ffae9659f560f359d46",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1280x720-s1-empty-desktop.png",
+      "width": 1280,
+      "height": 720,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "17fa7299c922001d5b151e4e1271a136ad397071fc5c315851c46525c0e15783",
+      "png_sha256": "fd71108d586b991d4d1ededfde10f06ae88dc9ebb08fd1813da4666dc8b35527",
+      "rgb_sha256": "c71cf484a20b46535e659371d711d096397b4caf75f2068de9ad6cb9d31dabe4",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1280x720-s1-lock.png",
+      "width": 1280,
+      "height": 720,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "d94cd939320cd0859ff5fdcf734d84f4eff8be9910da53198fbaec45b32d58de",
+      "png_sha256": "51755b6a8719139b65f8176af1d189562063d6adb5a45e34002073f141cb823c",
+      "rgb_sha256": "66e3f242cdbec4b59a99a4b78b3e0d5e12af4aef967d93781a2bfc8a5d911d0a",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1280x720-s1-search.png",
+      "width": 1280,
+      "height": 720,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "9b10fb867b88ba016a618bc16418907c9206c04502e9d028a427e25e876d3f5d",
+      "png_sha256": "1127ed5dd6036fc5437d107838740f1ba08061a20b03a9ba87e39f23e662a164",
+      "rgb_sha256": "649c93c088a8536a01aa8fc577614137840308cc165f437b8705f8664ea42aa6",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1280x720-s1-settings.png",
+      "width": 1280,
+      "height": 720,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "59640765bca8a67583f65f5ff32266c1bc8a1be9eece42c98ed8c1bf878cd365",
+      "png_sha256": "b71bca734175055f5172a85b22330618ce06abe0e4ae2843760dffba767a9a20",
+      "rgb_sha256": "41b2dc730e2b75f97b5a469272f746639f59a86b777d36e760ede5102e2097b6",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1280x720-s1-two-windows.png",
+      "width": 1280,
+      "height": 720,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "a18d7c59356158e633718e3d1472e238bcc738b7a5c85c53cab7f0f06e3c0e5f",
+      "png_sha256": "b843b3eb53849b5eef5273b44e338059f38340bcdadf2f09e4c1422341bb4614",
+      "rgb_sha256": "f0c058c9b65e737bc90e17e131c9cac6754b3855f3305c23ebb7e6eda55ee272",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1280x720-s1-users.png",
+      "width": 1280,
+      "height": 720,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "ce5465b08d25cd4c1a9a58bc094e952a483d487b199f003a37943af8903f08d2",
+      "png_sha256": "55adc0d524ba68699591c82f28aec771d4a0d9b713bc347221975d80de886c4a",
+      "rgb_sha256": "627ffc0125c746d05687fec356cdf9d1f818e39110969aa9c335ea0d4f572373",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1440x900-s1-auth.png",
+      "width": 1440,
+      "height": 900,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "a1df69a4c3702321b97a03208adb9fdfef8e45069b9e34558c5fa7df829b6ff7",
+      "png_sha256": "514ae0109bb2533997b1fde73917e27c7605257e38f695b54cd475c063fc53b3",
+      "rgb_sha256": "b6b36014ced1a51ef4629ad7412419c8df9146667a96654804e8827dde2b902c",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1440x900-s1-capability.png",
+      "width": 1440,
+      "height": 900,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "c70951e2ac634b7f5d5b63d74672ec1ab5982321c4c7b3e1290ebb7f97ce448f",
+      "png_sha256": "914d0567c5c379d50301bcc43ef7f277b18c6bbf836e8345e99e2d81b5316a32",
+      "rgb_sha256": "d1c0f7a55fb1c0b34e7e105d04518091a0c7c7dbb606d6cbafdd8dc1b727f56e",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1440x900-s1-empty-desktop.png",
+      "width": 1440,
+      "height": 900,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "f1d4a07844408e7b96e0a11af5bc1658079ab2c9a28a84a37eec19690e6d78d1",
+      "png_sha256": "dfe6babeda0b69219778f78f32ba83a4a97b84d3d23a8b5c89d0c6d5da46b184",
+      "rgb_sha256": "f8f44edbb7a1c7d8305d214ec1bd1efe9487eef67a2cc9fdd3c9df09a57a8c64",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1440x900-s1-lock.png",
+      "width": 1440,
+      "height": 900,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "5c542d9aa69b227a923dd24344d95e24e966fa85b3f93ea9b925a0f70827962d",
+      "png_sha256": "b7afd1b2c4c8999fdad56591b3fdda322cc95d04a3d62b863596b7197d26c391",
+      "rgb_sha256": "2e364db861008d63afd51b3a810bb74f2c3b202be2c8ed0448f182fd54b73bc5",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1440x900-s1-search.png",
+      "width": 1440,
+      "height": 900,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "8936f234c2855ce5c5e26d674592af47cc52aade56adadc19ef0c46668b42bef",
+      "png_sha256": "b61e0b1dbe792229d7d38585395f1e74852e44c7339dd361c7de07309e5ff2a6",
+      "rgb_sha256": "eeb3e1446547bb791ccd6d06c752a99869404de88b51c48042021d4f519cd1aa",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1440x900-s1-settings.png",
+      "width": 1440,
+      "height": 900,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "4d22c852fe1dcc853b847e3965a2d0bccf360e5c7799dffd6e86fdd579f2bd4d",
+      "png_sha256": "6020c574a3491391935f1a2c2f5154298625a1a13e571fef6a16fee50b185cfd",
+      "rgb_sha256": "74fa0cf8e8142feb29e35c74ed8405882938cdfe36d6cf003d24796ea315fe4f",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1440x900-s1-two-windows.png",
+      "width": 1440,
+      "height": 900,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "0fa330dad5515f5761d354aabb9e78da0a0af03f03c74b1bf03969726b1cc61a",
+      "png_sha256": "59e585a4eb94abcaa25b4287d710956718ad58972bd04a37fbe9507074414e2f",
+      "rgb_sha256": "60313452850b03c2846b42152d1bada4b4cf14c82091aa66c92a592ed5074341",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1440x900-s1-users.png",
+      "width": 1440,
+      "height": 900,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "3aa98b6c25c55b160b44d00f5c879863f165e0e1d342a577d376bc2efeb95e84",
+      "png_sha256": "277dd48eb32555d5eea9702301bb5d1ecca24b33dd0631d5fa4a17b52eb27ab1",
+      "rgb_sha256": "e50a8918b49edeca3da99d1993ab6d4b1e55290842e0fa648c8da4716f1fa9ae",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1920x1080-s1-auth.png",
+      "width": 1920,
+      "height": 1080,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "550b52136ee9eba5c8368c69305963b7c7d7cebe8b1fe146afc212078ebf2198",
+      "png_sha256": "94b385e4b745a34ca150f63edf750aeaf2d0d9bbce1e485d2bdd76d61d18f925",
+      "rgb_sha256": "d605fe96a7010b5970f903526bcefea3ae0dda1b5c41802d6cbe3013434adfd5",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1920x1080-s1-capability.png",
+      "width": 1920,
+      "height": 1080,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "1cce29272b9139c338c0acf1e7211f462c3f18a1ff10c69d4fde30e6524cb873",
+      "png_sha256": "68adf530b941507a0b9b5c7069d81bab97b70061d40bc43c50cc24a0444e259e",
+      "rgb_sha256": "81d1da7c944e9da20a4562d85cf17caf73e304fc00e723f6a505cb32fe920490",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1920x1080-s1-empty-desktop.png",
+      "width": 1920,
+      "height": 1080,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "ffdb4c3ecd589b638c8b548a99ef85a61a6f6ed79d9f6527eb9daa9942e0de46",
+      "png_sha256": "ed8ad7620bb99628de411e095f596e2357c9fc97a182c5192303577866b02034",
+      "rgb_sha256": "e0e828670b169f9176540e6296ecf92f826543873f9a44000a31cb57797b5f27",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1920x1080-s1-lock.png",
+      "width": 1920,
+      "height": 1080,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "00cc405c0d7262d861e621e8cd550d40a5ebe20edc404c5e309311f1f649179c",
+      "png_sha256": "877560a1ed054235366cb441a3b7b9af2e1849ae170fd0f55f6c46763771884c",
+      "rgb_sha256": "1cf940c73a42db8dc8a9aca4b7d620c27f28bd5a6fc28a2cac4be8e4f7b5cc33",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1920x1080-s1-search.png",
+      "width": 1920,
+      "height": 1080,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "1ec0c32ec74ae51d4e985b621be071e2a03462724d67ab2c98cb8e10420fe611",
+      "png_sha256": "a71d8636856476a3f2fa559ee3eaab61a82c35e31002e155a5d1c924212f50d0",
+      "rgb_sha256": "e40702a5da0bc1539a11ed673c53b96d9882cbe3d2c057b818614dd644531c97",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1920x1080-s1-settings.png",
+      "width": 1920,
+      "height": 1080,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "0cb153db2cd5f8ec0e9007c3921a852cec51c5feb6a662a1fbda1a3814b35a8e",
+      "png_sha256": "e036da7d29feb3914a41318ca1bc6149d7a391c73e7bc56198334cadd8fe2826",
+      "rgb_sha256": "6ca78b10ae6f61184c70cf26c1891ccaedbf5bca7f62f9b20ce482bdefa258f2",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1920x1080-s1-two-windows.png",
+      "width": 1920,
+      "height": 1080,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "06e8f28732aa235c3c5e7e65f83978662ca5b1797d007b8e0c58b057278f9cde",
+      "png_sha256": "a6a3c282d100a34ff6e62b167f7cc67aaff090e4f84850d4b3b8d47db92579df",
+      "rgb_sha256": "812c620edc4b964333efa776feb5b2de99c109960f4780aceb1f3a29d0f87dcd",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1920x1080-s1-users.png",
+      "width": 1920,
+      "height": 1080,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "cc8d8556df6cc0ad8e50a16b5a765d4091c362bd478c5d6f0592fdeccc8ed347",
+      "png_sha256": "5418be795497f32a05601e4ab1daa1ca974ba2932ca51549da68245c615d1c17",
+      "rgb_sha256": "e2b449662bb9aed9b885cccb674ecca55cdf6608c54090d1736696e203b34b0c",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1920x1080-s2-auth.png",
+      "width": 1920,
+      "height": 1080,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "0e4858cfba0c0941f6273f41a2f0b2a21aa7a3eb4727e0186303d50c14501363",
+      "png_sha256": "86fc74d3a4d60d8af302bc946f2696c9b951e38f86024219151d5b13a30dd9d2",
+      "rgb_sha256": "3b9db4c4ca79ab147fed9d3cc906bc4a44299ae0a1273fa43148a47da0c9153d",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1920x1080-s2-capability.png",
+      "width": 1920,
+      "height": 1080,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "b1fe82de9304105edc03c98cb1a5ce74fe40c0456c6452ee5e761cb40944c581",
+      "png_sha256": "78405992eb4ceecb3c24d856af9cf71e8cc87a567df7a595d20d8a9fd5036086",
+      "rgb_sha256": "7f6b42f0b2123884db75306c2e32f7edb80930052d089467db5ee5f2473c778b",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1920x1080-s2-empty-desktop.png",
+      "width": 1920,
+      "height": 1080,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "bcdb345f65d0815ecaef907ba13fa17af5e8f57cadbc346d7566ce9be57b1dc6",
+      "png_sha256": "9d55c78fad81db06dbdf958e39c0b03c8c6b088d8e58d5464768dd51272831b1",
+      "rgb_sha256": "b94ed4b8a739a66c94aa121e186daacc982cef9f58fdd0e499167e411ab43ae4",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1920x1080-s2-lock.png",
+      "width": 1920,
+      "height": 1080,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "f647271b0701fa6a1742afa9d566cf6af79fa81d09f839bb253663f050298d82",
+      "png_sha256": "87dd9b21da8d5ef89432085fe410fd085f29a8ce8c86279f3b737422ce12b12a",
+      "rgb_sha256": "c61c589d0bfec34ca886cc3ba2f34697b7c0b0e7036cd2dba83c68d0d6ca13c5",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1920x1080-s2-search.png",
+      "width": 1920,
+      "height": 1080,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "7cabdc3c6e0aba70e8c0ee67884429c49287a516a8e3dee240ffeebc862c10db",
+      "png_sha256": "bba4f9d34a432a11a9990d9d60f91b0f66b61efdedd5dd20c9d84f07f55c05c1",
+      "rgb_sha256": "ec1f16be41648c7af7ca61346e2db8b31343b34a913a889f1489c5fd1c506eb2",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1920x1080-s2-settings.png",
+      "width": 1920,
+      "height": 1080,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "41b577dddfd28caa6b0c30929f1bd8546d2cbfa5ade1fbf1135424c070574701",
+      "png_sha256": "ed1af4273090947f4b06dd94d0ffa5d13b5827ef8bdec5b5920e2e01cb9e7f0c",
+      "rgb_sha256": "06cd048e22953140fa7f7ed10ef119240c2913703054e955bfcc280dda695603",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1920x1080-s2-two-windows.png",
+      "width": 1920,
+      "height": 1080,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "3731c345d95670679521981629195e353e59c0ab88fbe214781166b527e0f7fb",
+      "png_sha256": "e5622270360e745bdb5aefe969bb490d8f81b5aa386812e1a37da061ac729e0f",
+      "rgb_sha256": "a7224c66bf14cdb947f3c96be56c6c1a7abf4e010ad1159b0c4f666020d88e4c",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/1920x1080-s2-users.png",
+      "width": 1920,
+      "height": 1080,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "f646222bf000787a209706f138aefd4ff50abafe4ed7ebb2735a66a5598a4e5e",
+      "png_sha256": "9ec3c2a80b8968fb58c78c249be7786ee95f30a01983417b78eca1d6f08f69ce",
+      "rgb_sha256": "f1f9a68138d73cb3f9ceb064471101d3e3f0c2316f1e969e2fccc47a016f38ba",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": true
+    },
+    {
+      "path": "screenshots/session-board-host.png",
+      "width": 1352,
+      "height": 1800,
+      "source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+      "ppm_sha256": "87668e76ffaf2b72b3da02c7cfa595c27971b0c0337a8bfda2c08c83a02dde4e",
+      "png_sha256": "b063a570d17aacc4f466a2d2ba0cbb000fe2514a0f412bf4630a393ccf87a97c",
+      "rgb_sha256": "a4bf7242b2b5e6ddf1b9ae4418963d15a7fc44e703d8f2b6b1690d43a01e1414",
+      "lossless_conversion_checked": true,
+      "rgb_equal_to_previous_artifact": false
+    }
+  ],
+  "before_board": {
+    "path": "screenshots/session-board-before-polish-host.png",
+    "source_commit": "7d1858f",
+    "preserved_byte_for_byte": true,
+    "png_sha256": "af7e6655087c0d4fd94a35431747be1b8cf19ce38c3197bc33942686f697d56b"
+  },
+  "previous_matrix_rgb_changes": [],
+  "render_log_sha256": "b77a4d883106329c40b479e23f150d65180a36d96212c78e8143d8e2b59d7438"
+}

@@ -1,0 +1,49 @@
+{
+  "kind": "host-renderer-legacy-oracle-reproduction",
+  "ui_source_commit": "74cb90c",
+  "native_claim": false,
+  "root_ui_comparison_commit": "6404431",
+  "root_render_difference": "history range glyph only; the editor code under test is unchanged",
+  "rust_probe_sha256": "1f9c4d7fa9a866ee0af24729db2e87ad89194c24effaa7adb1ca54cb093eb9cc",
+  "rlib_path": "/workspace/nieuw-os-library-ui/build/ui-target/debug/deps/libnieuw_os_materiaal-60d4073f92761fc0.rlib",
+  "rlib_sha256": "39cab74c9e7d3814a47c109d8e52a52fc06c6cb70b1520f6b67c81e406499d27",
+  "compile_command": [
+    "rustc",
+    "+1.90.0",
+    "--edition=2021",
+    "/tmp/nieuw-os-legacy-editor-oracle.rs",
+    "--extern",
+    "nieuw_os_materiaal=/workspace/nieuw-os-library-ui/build/ui-target/debug/deps/libnieuw_os_materiaal-60d4073f92761fc0.rlib",
+    "-L",
+    "dependency=/workspace/nieuw-os-library-ui/build/ui-target/debug/deps",
+    "-o",
+    "/tmp/nieuw-os-legacy-editor-oracle"
+  ],
+  "compile_exit": 0,
+  "run_command": [
+    "/tmp/nieuw-os-legacy-editor-oracle"
+  ],
+  "run_exit": 0,
+  "stdout": "layout_editor=Rect { x: 24, y: 216, width: 720, height: 256 }; old144_region_changes=51; actual_editor_changes=0; old_region_changed_bounds=293,188,299,196\n",
+  "stderr": "",
+  "old_editor": [
+    24,
+    144,
+    720,
+    328
+  ],
+  "actual_editor": [
+    24,
+    216,
+    720,
+    256
+  ],
+  "old_region_changed_pixels": 51,
+  "actual_editor_changed_pixels": 0,
+  "old_region_changed_bounds_inclusive": [
+    293,
+    188,
+    299,
+    196
+  ]
+}
