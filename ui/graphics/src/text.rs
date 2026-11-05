@@ -75,7 +75,7 @@ impl Font {
     /// flooring a prefix matches the exact placement used by the atlas drawer.
     pub fn advance(self, character: char) -> u32 {
         let first = usize::from(atlas::FONTS[self.index()].first);
-        u32::from(atlas::GLYPHS[first + index(character)].advance)
+        u32::from(atlas::GLYPHS[first + index(character)].advance) * self.factor()
     }
     pub fn measure(self, value: &str) -> u32 {
         let first = usize::from(atlas::FONTS[self.index()].first);

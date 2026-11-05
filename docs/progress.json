@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-05",
-    "source_commit": "c7a61d1126caa346a128fba3004fe4add4ccff61",
+    "source_commit": "bce6cabc71184d90fc228fe2ae8215339ff7bf28",
     "assessment_basis": "source_commit",
     "reviewed_commit": "cc1dea7eeeae01448a378ee422837b0438ecc7b5",
     "reviewed_commit_context": "Historische review van de PR148-documentatiestatus en reikwijdte van hostbewijs; geen integratiereview.",
@@ -15,10 +15,10 @@
       "evidence_basis": "Git-mergeouders en handoff in docs/PROJECT-STATE.md; gerichte integratietests zijn daar gemeld met uitvoer uitsluitend in het sessietranscript. De eerdere PR148-hostreceipts zijn geen integratiereviewbewijs.",
       "missing_evidence": "Afzonderlijk, brongebonden bewijs van de integratiereview ontbreekt; nieuwe-head CI en review moeten nog worden beoordeeld."
     },
-    "branch": "integrate/20261105-platform-batch",
-    "task": "Integratie: driverreeks #198 en platform-/viewer-/instructiebatch #199 (#150 #165 #169 #173 #176 #182 #188 #189 #193 #194 #195)",
+    "branch": "integrate/20261105-session-library",
+    "task": "Integratie #206: sessie-/bibliotheekstack uit #135/#147 zonder verlaten volume-admissieontwerp; #205 volume-overflowfix",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Geïntegreerd: USB-framing, HID boot reports/interface en PS/2-health (#198, hostmodellen); acht platformhostapps met nieuwe CI-dekking; EXIF-orientatie in de tile-viewer; OS-agentprofielen; instructieopschoning #195. Geen criterium volledig geaccepteerd: geen native app-launch, fysieke USB/HID of menselijke acceptatie. AI-reviews zijn geen menselijke audit. Open: #155 (score/B01-besluit), #181/#191/#177 FIX, calculatortrio CONFLICT."
+    "summary": "41/100 blijft 41/100. Geïntegreerd: native Materiaal-bibliotheek, sessieshell, document-session-volume-uitbreiding en de kernelfeature native-session-route (#206), plus de volume-overflowfix (#205). De claim U03 41→44 uit het branchbewijs materiaal-library-20261102 (gebonden aan 64044318) wordt op main niet overgenomen. U03 blijft open totdat de native bibliotheekgates op de main-merge groen zijn en de eigenaar acceptatie volgens de rubric bevestigt. Geen menselijke of fysieke acceptatie."
   },
   "tracks": [
     {

@@ -450,6 +450,8 @@ impl Shell {
                     let _ = self.flow.cancel();
                     self.lock();
                 }
+                // Apps may never deliver a complete frame; Escape must cancel.
+                Page::Unlocking => self.lock(),
                 Page::Search
                 | Page::Settings
                 | Page::Session

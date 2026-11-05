@@ -1,5 +1,10 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+Sessie-/bibliotheekintegratie #206 op main `bce6cabc` (5 november 2026): **41 → 41/100**.
+De U03-claim (41→44) uit het hashgebonden branchbewijs wordt op main niet
+overgenomen; U03 blijft open tot de native bibliotheekgates op main slagen
+en de eigenaar acceptatie bevestigt.
+
 Integratie PR-wachtrij (#198 gemerged; #199 via branch `integrate/20261105-platform-batch`) op basis main `c7a61d11` (5 november 2026): **41 → 41/100**.
 Driverhostmodellen (#198), acht platformhostapps met CI-dekking, EXIF-viewer,
 agentprofielen en instructieopschoning geïntegreerd; geen criterium volledig

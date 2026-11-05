@@ -53,6 +53,18 @@ fn public_guest_route_is_separate_from_unavailable_personal_auth() {
     assert!(!s.finish_unlock());
 }
 #[test]
+fn escape_cancels_a_pending_unlock_back_to_the_lock_screen() {
+    let mut s = Shell::new(true);
+    key(&mut s, PhysicalKey::Enter);
+    key(&mut s, PhysicalKey::Enter);
+    key(&mut s, PhysicalKey::Enter);
+    assert_eq!(s.page(), Page::Unlocking);
+    key(&mut s, PhysicalKey::Escape);
+    assert_eq!(s.page(), Page::Lock);
+    assert!(s.blocks_apps());
+    assert!(!s.finish_unlock());
+}
+#[test]
 fn search_finds_apps_material_settings_and_actions_without_network() {
     for (keys, expected) in [
         (

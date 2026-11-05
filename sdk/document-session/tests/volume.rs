@@ -140,7 +140,11 @@ impl Host {
         if matches!(self.fault, Fault::DropCommit) && header.operation == wire::COMMIT {
             return;
         }
-        if matches!(self.fault, Fault::DropRead) && header.operation == wire::READ {
+        // Drop a late tail read only, so the first staged read succeeds.
+        if matches!(self.fault, Fault::DropRead)
+            && header.operation == wire::READ
+            && header.aux != 0
+        {
             return;
         }
         if matches!(self.fault, Fault::DropMutation)
