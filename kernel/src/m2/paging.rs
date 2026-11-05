@@ -67,7 +67,16 @@ pub struct Paging {
     asid: u16,
     #[cfg(feature = "framebuffer")]
     framebuffer: Option<(u64, u64)>,
+    #[cfg(feature = "native-smp")]
+    lapic: Option<u64>,
 }
+/// Fixed supervisor UC/NX window for the xAPIC register page (native-smp only).
+#[cfg(feature = "native-smp")]
+pub const LAPIC_WINDOW: u64 = 0x3f1c0000;
+/// Supervisor RW/NX RAM window whose frame the native-smp shootdown proof
+/// replaces while other CPUs may still cache the old translation.
+#[cfg(feature = "native-smp")]
+pub const SHOOTDOWN_WINDOW: u64 = 0x3f1d0000;
 impl Paging {
     /// Fallible read-only seam before existing scalar map commit. The caller
     /// supplies fresh owned data frames, ordered unique VAs and one exclusive
@@ -205,11 +214,92 @@ impl Paging {
         self.framebuffer = Some((framebuffer.base, length));
         Ok(())
     }
+    /// Bootstrap-only exact mapping of the IA32_APIC_BASE register page. Must
+    /// run before `map_tables` because a new PT is zeroed through firmware
+    /// identity mappings. The base is never taken from ACPI or any request.
+    #[cfg(feature = "native-smp")]
+    pub fn map_lapic(
+        &mut self,
+        frames: &mut Frames<FRAME_COUNT>,
+        base: u64,
+    ) -> Result<(), kernel_core::Error> {
+        if self.lapic.is_some() || self.leaf(LAPIC_WINDOW) != 0 {
+            return Err(kernel_core::Error::Overlap);
+        }
+        if base == 0 || !base.is_multiple_of(PAGE) || base < PAGE * FRAME_COUNT as u64 {
+            return Err(kernel_core::Error::Range);
+        }
+        self.map_device_page(frames, LAPIC_WINDOW, base)?;
+        self.lapic = Some(base);
+        Ok(())
+    }
+    /// Leaf slot of an existing supervisor 4-KiB mapping; never allocates.
+    #[cfg(feature = "native-smp")]
+    fn existing_leaf(&self, va: u64) -> Result<(u64, usize, u64), kernel_core::Error> {
+        let mut table = self.root;
+        for shift in [39, 30, 21] {
+            let entry = read(table, ((va >> shift) & 511) as usize);
+            if entry & PRESENT == 0 || entry & (USER | 128) != 0 {
+                return Err(kernel_core::Error::Range);
+            }
+            table = entry & ADDRESS;
+        }
+        let index = ((va >> 12) & 511) as usize;
+        let leaf = read(table, index);
+        if leaf & (PRESENT | WRITE | USER | NX) != PRESENT | WRITE | NX {
+            return Err(kernel_core::Error::Permission);
+        }
+        Ok((table, index, leaf & ADDRESS))
+    }
+    /// Point SHOOTDOWN_WINDOW at `new_pa` and invalidate it on THIS CPU only.
+    /// The old frame's alias metadata is deliberately NOT released: other CPUs
+    /// may still cache it. Call `release_stale_alias` only after every CPU that
+    /// may hold the translation has acknowledged its invalidation.
+    #[cfg(feature = "native-smp")]
+    pub fn remap_window(
+        &mut self,
+        frames: &mut Frames<FRAME_COUNT>,
+        new_pa: u64,
+    ) -> Result<u64, kernel_core::Error> {
+        let (table, index, old_pa) = self.existing_leaf(SHOOTDOWN_WINDOW)?;
+        if new_pa == old_pa {
+            return Err(kernel_core::Error::Overlap);
+        }
+        frames.map(new_pa, true, false, false)?;
+        write(table, index, new_pa | PRESENT | WRITE | NX);
+        invalidate(SHOOTDOWN_WINDOW);
+        Ok(old_pa)
+    }
+    /// Release one RW/NX alias of `old_pa` after the GLOBAL invalidation of
+    /// that alias completed (its PTE is already cleared or replaced).
+    #[cfg(feature = "native-smp")]
+    pub fn release_stale_alias(
+        &mut self,
+        frames: &mut Frames<FRAME_COUNT>,
+        old_pa: u64,
+    ) -> Result<(), kernel_core::Error> {
+        frames.unmap(old_pa, true, false)
+    }
+    /// Clear a bootstrap identity RW/NX alias (va == pa) and invalidate it on
+    /// THIS CPU. As with `remap_window`, the alias metadata is kept: with one
+    /// shared CR3 another CPU may hold (even speculatively) this translation,
+    /// so `release_stale_alias` must wait for the shootdown acknowledgements.
+    #[cfg(feature = "native-smp")]
+    pub fn clear_identity(&mut self, pa: u64) -> Result<(), kernel_core::Error> {
+        let (table, index, mapped) = self.existing_leaf(pa)?;
+        if mapped != pa {
+            return Err(kernel_core::Error::Range);
+        }
+        write(table, index, 0);
+        invalidate(pa);
+        Ok(())
+    }
     #[cfg(any(
         feature = "milestone-m5",
         feature = "framebuffer",
         feature = "native-keyring",
-        feature = "native-tpm-crb"
+        feature = "native-tpm-crb",
+        feature = "native-smp"
     ))]
     fn map_device_page(
         &mut self,
@@ -273,6 +363,8 @@ impl Paging {
             asid: 0,
             #[cfg(feature = "framebuffer")]
             framebuffer: None,
+            #[cfg(feature = "native-smp")]
+            lapic: None,
         };
         result.tables[0] = root;
         result
@@ -467,6 +559,8 @@ impl Paging {
             asid,
             #[cfg(feature = "framebuffer")]
             framebuffer: kernel.framebuffer,
+            #[cfg(feature = "native-smp")]
+            lapic: kernel.lapic,
         };
         result.tables[0] = root;
         result.tables[1] = pdpt;
@@ -635,6 +729,14 @@ impl Paging {
                 self.walk(frames, observed, pa, level - 1, user, writable, nx, va);
             } else {
                 assert!(!user, "M2 has no user mappings");
+                #[cfg(feature = "native-smp")]
+                if va == LAPIC_WINDOW {
+                    // MMIO is outside the RAM ownership table; check its exact class.
+                    assert_eq!(Some(pa), self.lapic, "LAPIC physical binding");
+                    assert!(writable && nx);
+                    assert_eq!(entry & !(ADDRESS | 32 | 64), PRESENT | WRITE | NX | 8 | 16);
+                    continue;
+                }
                 #[cfg(feature = "framebuffer")]
                 if let Some((base, length)) = self.framebuffer {
                     let start = boot_protocol::graphics::FRAMEBUFFER_WINDOW;
@@ -695,7 +797,10 @@ fn write(table: u64, index: usize, value: u64) {
     }
 }
 fn invalidate(va: u64) {
-    // SAFETY: Single CPL0 CPU, PCID/PGE disabled; invalidate before alias reuse.
+    // SAFETY: CPL0, PCID/PGE disabled; invalidates only THIS CPU's TLB. All
+    // profiles but native-smp have one CPU; under native-smp a translation
+    // other CPUs may hold additionally needs the smp.rs shootdown before any
+    // alias metadata is released or the frame reused.
     unsafe {
         core::arch::asm!("invlpg [{}]",in(reg) va,options(nostack));
     }

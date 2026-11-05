@@ -8,6 +8,8 @@ pub const LABELS: [&str; 20] = [
     "7", "8", "9", "/", "C", "4", "5", "6", "*", "Wis", "1", "2", "3", "-", "(", "0", ",", "=",
     "+", ")",
 ];
+pub const RECENT_CAPACITY: usize = 8;
+pub const UNDO_CAPACITY: usize = 32;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Command {
     Insert(u8),
@@ -16,11 +18,16 @@ pub enum Command {
     Cancel,
     Backspace,
     Delete,
+    RecallOlder,
+    RecallNewer,
+    Undo,
+    Redo,
     Left(bool),
     Right(bool),
     Home(bool),
     End(bool),
     SelectAll,
+    SelectResult,
     Tab(bool),
     Activate,
 }
@@ -74,6 +81,9 @@ pub struct Model {
     caret: usize,
     anchor: usize,
     answer: Option<Evaluation>,
+    result_bytes: [u8; 32],
+    result_length: usize,
+    result_selected: bool,
     current: bool,
     notice: Notice,
     focus: usize,
@@ -85,6 +95,8 @@ pub struct Model {
     failures: u64,
     exhausted: bool,
     selecting: bool,
+    recent: Recent,
+    history: History,
     paint: PaintState,
     damage: Damage,
 }
@@ -96,12 +108,122 @@ struct PaintState {
     caret: usize,
     anchor: usize,
     answer: Option<Evaluation>,
+    result_selected: bool,
     current: bool,
     notice: Notice,
     focus: usize,
     active: bool,
     hover: Option<usize>,
     pressed: Option<usize>,
+    status: &'static str,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Formula {
+    bytes: [u8; MAX_INPUT],
+    length: usize,
+}
+impl Formula {
+    const EMPTY: Self = Self {
+        bytes: [0; MAX_INPUT],
+        length: 0,
+    };
+}
+#[derive(Clone, Copy, Debug)]
+struct RecallDraft {
+    formula: Formula,
+    caret: usize,
+    anchor: usize,
+}
+#[derive(Clone, Debug)]
+struct Recent {
+    entries: [Formula; RECENT_CAPACITY],
+    length: usize,
+    browsing: Option<usize>,
+    draft: Option<RecallDraft>,
+}
+impl Recent {
+    const fn new() -> Self {
+        Self {
+            entries: [Formula::EMPTY; RECENT_CAPACITY],
+            length: 0,
+            browsing: None,
+            draft: None,
+        }
+    }
+    fn leave(&mut self) {
+        self.browsing = None;
+        self.draft = None;
+    }
+    fn record(&mut self, formula: Formula) {
+        self.leave();
+        if self.length != 0 && self.entries[self.length - 1] == formula {
+            return;
+        }
+        if self.length == RECENT_CAPACITY {
+            self.entries.copy_within(1..RECENT_CAPACITY, 0);
+            self.length -= 1;
+        }
+        self.entries[self.length] = formula;
+        self.length += 1;
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct EditState {
+    bytes: [u8; MAX_INPUT],
+    length: usize,
+    caret: usize,
+    anchor: usize,
+}
+impl EditState {
+    const EMPTY: Self = Self {
+        bytes: [0; MAX_INPUT],
+        length: 0,
+        caret: 0,
+        anchor: 0,
+    };
+}
+#[derive(Clone, Debug)]
+struct History {
+    entries: [EditState; UNDO_CAPACITY],
+    length: usize,
+    cursor: usize,
+}
+impl History {
+    const fn new() -> Self {
+        Self {
+            entries: [EditState::EMPTY; UNDO_CAPACITY],
+            length: 0,
+            cursor: 0,
+        }
+    }
+    fn record(&mut self, before: EditState) {
+        self.entries[self.cursor..].fill(EditState::EMPTY);
+        if self.cursor == UNDO_CAPACITY {
+            self.entries.copy_within(1..UNDO_CAPACITY, 0);
+            self.cursor -= 1;
+        }
+        self.entries[self.cursor] = before;
+        self.cursor += 1;
+        self.length = self.cursor;
+    }
+    fn restore(&mut self, mut current: EditState, redo: bool) -> Option<EditState> {
+        if redo {
+            if self.cursor == self.length {
+                return None;
+            }
+            core::mem::swap(&mut current, &mut self.entries[self.cursor]);
+            self.cursor += 1;
+        } else {
+            if self.cursor == 0 {
+                return None;
+            }
+            self.cursor -= 1;
+            core::mem::swap(&mut current, &mut self.entries[self.cursor]);
+        }
+        Some(current)
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -180,6 +302,9 @@ impl Model {
             caret: 0,
             anchor: 0,
             answer: None,
+            result_bytes: [0; 32],
+            result_length: 0,
+            result_selected: false,
             current: false,
             notice: Notice::None,
             focus: 0,
@@ -191,18 +316,22 @@ impl Model {
             failures: 0,
             exhausted: false,
             selecting: false,
+            recent: Recent::new(),
+            history: History::new(),
             paint: PaintState {
                 bytes: [0; MAX_INPUT],
                 length: 0,
                 caret: 0,
                 anchor: 0,
                 answer: None,
+                result_selected: false,
                 current: false,
                 notice: Notice::None,
                 focus: 0,
                 active: true,
                 hover: None,
                 pressed: None,
+                status: "",
             },
             damage: Damage::new(true, 0),
         }
@@ -219,7 +348,10 @@ impl Model {
     /// App-local selection only; input authority is checked by the broker.
     /// An old answer or the whole expression is never a selection fallback.
     pub fn clipboard_selection(&self) -> &str {
-        if self.active && self.focus == 0 {
+        if self.active && self.result_selected && self.current && self.answer.is_some() {
+            core::str::from_utf8(&self.result_bytes[..self.result_length])
+                .expect("formatted calculator result is ASCII")
+        } else if self.active && self.focus == 0 {
             &self.expression()[self.selection()]
         } else {
             ""
@@ -234,7 +366,7 @@ impl Model {
     /// Validate every byte and the final size before erasing a selection.
     /// This edits text only; pasted operators never trigger evaluation.
     pub fn paste_clipboard(&mut self, value: &str) -> Result<(), PasteError> {
-        let error = if self.exhausted || !self.active || self.focus != 0 {
+        let error = if self.exhausted || !self.active || self.focus != 0 || self.result_selected {
             Some((PasteError::Inactive, Notice::ClipboardUnavailable))
         } else if value.is_empty() {
             Some((PasteError::Empty, Notice::ClipboardEmpty))
@@ -256,6 +388,7 @@ impl Model {
             self.clipboard_notice(notice);
             return Err(error);
         }
+        let before = self.edit_state();
         self.erase(self.selection());
         self.bytes
             .copy_within(self.caret..self.length, self.caret + value.len());
@@ -264,7 +397,7 @@ impl Model {
         self.caret += value.len();
         self.anchor = self.caret;
         self.selecting = false;
-        self.edited();
+        self.edited(before);
         Ok(())
     }
     pub const fn answer(&self) -> Option<Evaluation> {
@@ -272,6 +405,9 @@ impl Model {
     }
     pub const fn current(&self) -> bool {
         self.current
+    }
+    pub const fn result_selected(&self) -> bool {
+        self.result_selected
     }
     pub const fn notice(&self) -> Notice {
         self.notice
@@ -299,6 +435,41 @@ impl Model {
     }
     pub const fn exhausted(&self) -> bool {
         self.exhausted
+    }
+    pub const fn recent_count(&self) -> usize {
+        self.recent.length
+    }
+    pub const fn recalling(&self) -> bool {
+        self.recent.browsing.is_some()
+    }
+    pub const fn can_undo(&self) -> bool {
+        self.history.cursor != 0
+    }
+    pub const fn can_redo(&self) -> bool {
+        self.history.cursor < self.history.length
+    }
+    /// The single status line: notices first, then the most relevant hint.
+    pub fn status(&self) -> &'static str {
+        if self.notice != Notice::None {
+            self.notice.label()
+        } else if self.result_selected {
+            "Resultaat: Ctrl+C om te kopiëren"
+        } else if self.answer.is_some_and(|answer| answer.rounded) && self.current {
+            "Afgerond op 9 decimalen."
+        } else if self.current {
+            "Klik resultaat of Ctrl+R: selecteren"
+        } else if self.recalling() && self.focus == 0 {
+            "Omlaag: volgende of eigen invoer"
+        } else if self.recent_count() != 0 && self.length == 0 {
+            "Omhoog: eerdere berekening"
+        } else {
+            match (self.can_undo(), self.can_redo()) {
+                (true, true) => "Ctrl+Z: ongedaan | Ctrl+Y: opnieuw",
+                (true, false) => "Ctrl+Z: ongedaan",
+                (false, true) => "Ctrl+Y: opnieuw",
+                (false, false) => "",
+            }
+        }
     }
     pub fn paint_damage(&self, viewport: Viewport) -> PaintDamage {
         let mut out = PaintDamage {
@@ -380,13 +551,16 @@ impl Model {
         }
         self.damage.caret_min = self.damage.caret_min.min(self.caret);
         self.damage.caret_max = self.damage.caret_max.max(self.caret);
-        if (old.focus == 0 && old.active) != (self.focus == 0 && self.active) {
+        if (old.focus == 0 && old.active) != (self.focus == 0 && self.active)
+            || old.result_selected != self.result_selected
+        {
             self.damage.expression_full = true;
         }
-        self.damage.result |= old.answer != self.answer || old.current != self.current;
-        self.damage.status |= old.notice != self.notice
-            || (old.answer.is_some_and(|a| a.rounded) && old.current)
-                != (self.answer.is_some_and(|a| a.rounded) && self.current);
+        self.damage.result |= old.answer != self.answer
+            || old.current != self.current
+            || old.result_selected != self.result_selected;
+        // Every hint (selection, recall, undo, rounding) is derived from status().
+        self.damage.status |= old.notice != self.notice || old.status != self.status();
         for index in 0..20 {
             if (old.focus == index + 1 && old.active) != (self.focus == index + 1 && self.active)
                 || (old.hover == Some(index)) != (self.hover == Some(index))
@@ -401,12 +575,14 @@ impl Model {
             caret: self.caret,
             anchor: self.anchor,
             answer: self.answer,
+            result_selected: self.result_selected,
             current: self.current,
             notice: self.notice,
             focus: self.focus,
             active: self.active,
             hover: self.hover,
             pressed: self.pressed,
+            status: self.status(),
         };
         if let Some(next) = self.generation.checked_add(1) {
             self.generation = next;
@@ -414,7 +590,36 @@ impl Model {
             self.exhausted = true;
         }
     }
-    fn edited(&mut self) {
+    fn edit_state(&self) -> EditState {
+        EditState {
+            bytes: self.bytes,
+            length: self.length,
+            caret: self.caret,
+            anchor: self.anchor,
+        }
+    }
+    fn remember(&mut self, before: EditState) {
+        if before != self.edit_state() {
+            self.history.record(before);
+        }
+    }
+    /// Leaving recall with a recalled formula in place turns that replacement
+    /// into one undoable edit, so undo can always reach the unfinished draft.
+    fn leave_recall(&mut self) {
+        if let Some(draft) = self.recent.draft {
+            self.remember(EditState {
+                bytes: draft.formula.bytes,
+                length: draft.formula.length,
+                caret: draft.caret,
+                anchor: draft.anchor,
+            });
+        }
+        self.recent.leave();
+    }
+    fn edited(&mut self, before: EditState) {
+        self.leave_recall();
+        self.remember(before);
+        self.result_selected = false;
         self.current = false;
         self.notice = Notice::None;
         self.changed();
@@ -434,12 +639,62 @@ impl Model {
         self.focus = 0;
         self.changed();
     }
+    fn recall(&mut self, older: bool) {
+        if self.focus != 0 || self.recent.length == 0 {
+            return;
+        }
+        let next = match (self.recent.browsing, older) {
+            (None, false) | (Some(0), true) => return,
+            (None, true) => {
+                self.recent.draft = Some(RecallDraft {
+                    formula: Formula {
+                        bytes: self.bytes,
+                        length: self.length,
+                    },
+                    caret: self.caret,
+                    anchor: self.anchor,
+                });
+                Some(self.recent.length - 1)
+            }
+            (Some(index), true) => Some(index - 1),
+            (Some(index), false) if index + 1 < self.recent.length => Some(index + 1),
+            (Some(_), false) => None,
+        };
+        let state = match next {
+            Some(index) => {
+                let formula = self.recent.entries[index];
+                RecallDraft {
+                    formula,
+                    caret: formula.length,
+                    anchor: formula.length,
+                }
+            }
+            None => self
+                .recent
+                .draft
+                .take()
+                .expect("recall retains its starting draft"),
+        };
+        self.recent.browsing = next;
+        self.bytes = state.formula.bytes;
+        self.length = state.formula.length;
+        self.caret = state.caret;
+        self.anchor = state.anchor;
+        self.pressed = None;
+        self.current = false;
+        self.notice = Notice::None;
+        self.changed();
+    }
     pub fn command(&mut self, command: Command) {
         if self.exhausted {
             return;
         }
         self.focus_gained();
         self.selecting = false;
+        if command != Command::SelectResult && self.result_selected {
+            self.result_selected = false;
+            self.changed();
+        }
         match command {
             Command::Insert(byte) => {
                 if !matches!(
@@ -454,6 +709,7 @@ impl Model {
                     self.changed();
                     return;
                 }
+                let before = self.edit_state();
                 self.erase(range);
                 self.bytes
                     .copy_within(self.caret..self.length, self.caret + 1);
@@ -462,11 +718,21 @@ impl Model {
                 self.caret += 1;
                 self.anchor = self.caret;
                 self.focus = 0;
-                self.edited();
+                self.edited(before);
             }
             Command::Evaluate => {
+                self.leave_recall();
                 match decimal::evaluate(self.expression()) {
                     Ok(answer) => {
+                        let formatted = answer.value.format();
+                        self.result_bytes.fill(0);
+                        self.result_length = formatted.as_str().len();
+                        self.result_bytes[..self.result_length]
+                            .copy_from_slice(formatted.as_str().as_bytes());
+                        self.recent.record(Formula {
+                            bytes: self.bytes,
+                            length: self.length,
+                        });
                         self.answer = Some(answer);
                         self.current = true;
                         self.notice = Notice::None;
@@ -489,18 +755,25 @@ impl Model {
                 self.changed();
             }
             Command::Reset => {
+                self.leave_recall();
+                let before = self.edit_state();
                 self.bytes.fill(0);
                 self.length = 0;
                 self.caret = 0;
                 self.anchor = 0;
                 self.answer = None;
+                self.result_bytes.fill(0);
+                self.result_length = 0;
                 self.current = false;
                 self.notice = Notice::None;
                 self.focus = 0;
                 self.pressed = None;
+                self.remember(before);
                 self.changed();
             }
             Command::Cancel => {
+                self.leave_recall();
+                let before = self.edit_state();
                 self.bytes.fill(0);
                 self.length = 0;
                 self.caret = 0;
@@ -509,6 +782,7 @@ impl Model {
                 self.notice = Notice::None;
                 self.focus = 0;
                 self.pressed = None;
+                self.remember(before);
                 self.changed();
             }
             Command::Backspace | Command::Delete => {
@@ -521,10 +795,46 @@ impl Model {
                     }
                 }
                 if !range.is_empty() {
+                    let before = self.edit_state();
                     self.erase(range);
-                    self.edited();
+                    self.edited(before);
                 }
             }
+            Command::Undo | Command::Redo => {
+                let recalling = self.recalling();
+                if command == Command::Redo && recalling && self.can_redo() {
+                    // Redo continues the existing branch from the unfinished
+                    // draft; recording the recall here would truncate it.
+                    if let Some(draft) = self.recent.draft {
+                        self.bytes = draft.formula.bytes;
+                        self.length = draft.formula.length;
+                        self.caret = draft.caret;
+                        self.anchor = draft.anchor;
+                    }
+                    self.recent.leave();
+                } else {
+                    self.leave_recall();
+                }
+                if let Some(state) = self
+                    .history
+                    .restore(self.edit_state(), command == Command::Redo)
+                {
+                    self.bytes = state.bytes;
+                    self.length = state.length;
+                    self.caret = state.caret;
+                    self.anchor = state.anchor;
+                    self.focus = 0;
+                    self.pressed = None;
+                    // History restores formula edits, never a cached calculation.
+                    self.current = false;
+                    self.notice = Notice::None;
+                    self.changed();
+                } else if recalling {
+                    self.changed();
+                }
+            }
+            Command::RecallOlder => self.recall(true),
+            Command::RecallNewer => self.recall(false),
             Command::Left(select) => self.move_to(
                 if !select && !self.selection().is_empty() {
                     self.selection().start
@@ -548,6 +858,16 @@ impl Model {
                 self.anchor = 0;
                 self.focus = 0;
                 self.changed();
+            }
+            Command::SelectResult => {
+                if self.current && self.answer.is_some() {
+                    self.anchor = self.caret;
+                    self.result_selected = true;
+                    self.pressed = None;
+                    self.focus = 0;
+                    self.notice = Notice::None;
+                    self.changed();
+                }
             }
             Command::Tab(backwards) => {
                 self.focus = if backwards {
@@ -589,6 +909,10 @@ impl Model {
             return;
         }
         self.focus_gained();
+        if down && self.result_selected {
+            self.result_selected = false;
+            self.changed();
+        }
         self.selecting = false;
         let before = (self.hover, self.pressed, self.focus);
         let button = button.filter(|index| *index < 20);
@@ -617,6 +941,7 @@ impl Model {
             self.focus_gained();
         }
         if down {
+            self.result_selected = false;
             self.move_to(position, false);
             self.selecting = true;
         } else if self.selecting {
@@ -641,6 +966,10 @@ impl Model {
     }
     pub fn cancel_focus(&mut self) {
         self.cancel_pointer();
+        if self.result_selected {
+            self.result_selected = false;
+            self.changed();
+        }
         if self.active {
             self.active = false;
             self.changed();
@@ -669,8 +998,16 @@ impl Model {
         }
         let key = event.key;
         if m.control() {
-            if key == PhysicalKey::A {
-                self.command(Command::SelectAll);
+            let command = match key {
+                PhysicalKey::A => Command::SelectAll,
+                PhysicalKey::R if !m.shift() => Command::SelectResult,
+                PhysicalKey::Z if !m.shift() => Command::Undo,
+                PhysicalKey::Z => Command::Redo,
+                PhysicalKey::Y if !m.shift() => Command::Redo,
+                _ => return,
+            };
+            if event.action == KeyAction::Press || command == Command::SelectAll {
+                self.command(command);
             }
             return;
         }
@@ -689,6 +1026,10 @@ impl Model {
             Right => Command::Right(m.shift()),
             Home => Command::Home(m.shift()),
             End => Command::End(m.shift()),
+            Up if !m.shift() => Command::RecallOlder,
+            Down if !m.shift() => Command::RecallNewer,
+            Keypad8 if !numeric && !m.shift() => Command::RecallOlder,
+            Keypad2 if !numeric && !m.shift() => Command::RecallNewer,
             Keypad4 if !numeric => Command::Left(false),
             Keypad6 if !numeric => Command::Right(false),
             Keypad7 if !numeric => Command::Home(false),
@@ -760,6 +1101,8 @@ impl Model {
                     | Command::Tab(_)
                     | Command::Cancel
                     | Command::Reset
+                    | Command::RecallOlder
+                    | Command::RecallNewer
             )
         {
             return;
