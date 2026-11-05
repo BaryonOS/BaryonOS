@@ -44,6 +44,22 @@ pub fn write(bytes: &[u8]) {
     }
 }
 
+/// Writes `label`, `value` as 16 lowercase hex digits, and a newline.
+pub fn hex(label: &[u8], value: u64) {
+    let mut digits = [b'0'; 16];
+    for (index, byte) in digits.iter_mut().enumerate() {
+        let digit = ((value >> ((15 - index) * 4)) & 15) as u8;
+        *byte = if digit < 10 {
+            b'0' + digit
+        } else {
+            b'a' + digit - 10
+        };
+    }
+    write(label);
+    write(&digits);
+    write(b"\n");
+}
+
 pub fn fail(code: &'static [u8]) -> ! {
     init();
     write(b"M1:FAIL:");
