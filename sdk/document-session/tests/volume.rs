@@ -3,7 +3,10 @@
 use capability_core::{Cap, Engine, Message, SEND};
 use nieuw_os_catalog_client::{Delivery, Transport};
 use nieuw_os_document_session::{
-    volume::{Buffers, DocumentSession, Error, ListEntry, SaveProgress, VolumeSession},
+    volume::{
+        Buffers, DocumentSession, Error, HistoryPrefix, ListEntry, ListFilter, SaveProgress,
+        VolumeSession,
+    },
     EditMode, SaveOutcome,
 };
 use nieuw_os_sdk_runtime::{
@@ -27,12 +30,15 @@ struct MemoryDisk {
 }
 impl MemoryDisk {
     fn new() -> Self {
-        Self {
-            sectors: vec![[0; SECTOR]; VOLUME_SECTORS as usize],
+        let sectors = vec![[0; SECTOR]; VOLUME_SECTORS as usize];
+        let mut disk = Self {
+            sectors,
             writes: 0,
             fail: false,
             fail_write_at: None,
-        }
+        };
+        table::write_format_marker(&mut disk).unwrap();
+        disk
     }
 }
 impl Disk for MemoryDisk {
@@ -67,6 +73,14 @@ enum Fault {
     CapReply,
     BadReply,
     ShortRead,
+    DropMutation,
+    WrongObject,
+    RefreshRead,
+    BeforeEnqueue,
+    CrashOnReceive,
+    ChangedListClock,
+    CorruptLateRead,
+    DropRead,
 }
 
 struct Host {
@@ -126,6 +140,38 @@ impl Host {
         if matches!(self.fault, Fault::DropCommit) && header.operation == wire::COMMIT {
             return;
         }
+        // Drop a late tail read only, so the first staged read succeeds.
+        if matches!(self.fault, Fault::DropRead)
+            && header.operation == wire::READ
+            && header.aux != 0
+        {
+            return;
+        }
+        if matches!(self.fault, Fault::DropMutation)
+            && matches!(
+                header.operation,
+                wire::META | wire::COLLECTION | wire::RESTORE
+            )
+        {
+            return;
+        }
+        if matches!(self.fault, Fault::WrongObject) {
+            // A valid envelope for the other domain is still not our reply.
+            response[24..32].copy_from_slice(&(PER_DOMAIN as u64).to_le_bytes());
+        }
+        if matches!(self.fault, Fault::ChangedListClock)
+            && header.operation == wire::LIST
+            && header.aux != 0
+        {
+            let revision = volume_core::get64(&response, 32);
+            response[32..40].copy_from_slice(&(revision + 1).to_le_bytes());
+        }
+        if matches!(self.fault, Fault::RefreshRead)
+            && matches!(header.operation, wire::STAT | wire::READ)
+            && self.requests.iter().any(|h| h.operation == wire::RESTORE)
+        {
+            response = upload::wrap(wire::error_reply(&header, EPOCH, Status::Access, 0), 0);
+        }
         if matches!(self.fault, Fault::BadReply) {
             response[8] ^= 1;
         }
@@ -134,6 +180,12 @@ impl Host {
             && header.aux != 0
         {
             response = upload::wrap(wire::error_reply(&header, EPOCH, Status::Access, 0), 0);
+        }
+        if matches!(self.fault, Fault::CorruptLateRead)
+            && header.operation == wire::READ
+            && header.aux != 0
+        {
+            response[64] ^= 1;
         }
         let mut message = Message::new();
         message.tag = if matches!(self.fault, Fault::WrongTag) {
@@ -180,6 +232,9 @@ impl Host {
 struct Port(Rc<RefCell<Host>>);
 impl Transport for Port {
     fn send(&mut self, endpoint: SendEndpoint, message: &Outgoing) -> Result<(), RuntimeError> {
+        if matches!(self.0.borrow().fault, Fault::BeforeEnqueue) {
+            return Err(RuntimeError::Kernel(capability_core::Error::Again.code()));
+        }
         self.0
             .borrow_mut()
             .engine
@@ -192,6 +247,9 @@ impl Transport for Port {
     }
     fn receive(&mut self, endpoint: ReceiveEndpoint) -> Result<Received, RuntimeError> {
         let mut host = self.0.borrow_mut();
+        if matches!(host.fault, Fault::CrashOnReceive) {
+            return Err(RuntimeError::Kernel(capability_core::Error::Closed.code()));
+        }
         host.pump();
         let message = host
             .engine
@@ -828,5 +886,694 @@ fn independent_sessions_cannot_mix_upload_name_and_contents() {
         assert!(!a.is_dirty());
         assert_eq!(b.save(), Err(Error::Conflict));
         assert_eq!(b.draft().unwrap().contents, b"BBBB");
+    });
+}
+
+fn library_case(
+    mode: EditMode,
+    test: impl FnOnce(&Rc<RefCell<Host>>, &mut DocumentSession<'_, Port>),
+) {
+    let host = Host::new();
+    host.borrow_mut().seed(0, b"first");
+    let (mut d, mut o, mut s) = ([0; 1024], [0; 1024], [0; 1024]);
+    let mut editor = editor(
+        &host,
+        mode,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    editor.open(0).unwrap();
+    test(&host, &mut editor);
+}
+
+#[test]
+fn library_collections_metadata_filters_and_empty_only_delete() {
+    run(|| {
+        library_case(EditMode::ReadWrite, |host, e| {
+            assert_eq!(e.collection_stat(1).unwrap().revision, 0);
+            assert_eq!(e.update_collection(1, 0, b"Home"), Ok(1));
+            let c = e.collection_stat(1).unwrap();
+            assert!(c.present);
+            assert_eq!(c.name(), b"Home");
+            assert_ne!(c.request_id, 0);
+            assert_eq!(e.update_collection(1, 1, b"Projects"), Ok(2));
+            assert_eq!(e.set_metadata(1, 0x12, 7, 1), Ok(2));
+            assert_eq!(e.draft().unwrap().loaded_revision, 2);
+            assert!(!e.is_dirty());
+            assert_eq!(e.draft().unwrap().contents, b"first");
+            let stat = e.metadata().unwrap();
+            assert_eq!((stat.tags, stat.kind, stat.collection), (0x12, 7, 1));
+            let mut entries = [ListEntry::EMPTY; PER_DOMAIN];
+            assert_eq!(
+                e.list_filtered(ListFilter::Uncollected, &mut entries),
+                Ok(0)
+            );
+            assert_eq!(
+                e.list_filtered(ListFilter::Collection(1), &mut entries),
+                Ok(1)
+            );
+            assert_eq!((entries[0].object, entries[0].revision), (0, 2));
+            assert_eq!(
+                e.list_filtered(ListFilter::Collection(2), &mut entries),
+                Ok(0)
+            );
+            assert_eq!(
+                e.update_collection(1, 2, b""),
+                Err(Error::Service(Status::Busy))
+            );
+            assert_eq!(e.set_metadata(2, 0x12, 7, 0), Ok(3));
+            assert_eq!(e.update_collection(1, 2, b""), Ok(3));
+            assert!(!e.collection_stat(1).unwrap().present);
+            assert_eq!(
+                host.borrow().service.table().entries[0].current.name_length,
+                8
+            );
+        })
+    });
+}
+
+#[test]
+fn history_preview_is_read_only_and_restore_is_a_new_revision() {
+    run(|| {
+        library_case(EditMode::ReadWrite, |host, e| {
+            e.rename_draft(b"Current name").unwrap();
+            e.replace_contents(b"second").unwrap();
+            assert_eq!(e.save(), Ok(SaveOutcome::Saved { revision: 2 }));
+            let stat = e.metadata().unwrap();
+            assert_eq!(stat.history[0].revision, 1);
+            let writes = host.borrow().disk.writes;
+            let mut preview = [0x55; 16];
+            assert_eq!(e.read_history(2, 1, &mut preview), Ok(5));
+            assert_eq!(&preview[..5], b"first");
+            assert_eq!(&preview[5..], &[0x55; 11]);
+            assert_eq!(host.borrow().disk.writes, writes);
+            assert_eq!(e.draft().unwrap().contents, b"second");
+            assert_eq!(e.draft().unwrap().name, b"Current name");
+            assert_eq!(e.restore_history(2, 1), Ok(3));
+            assert_eq!(e.draft().unwrap().loaded_revision, 3);
+            assert_eq!(e.draft().unwrap().contents, b"first");
+            assert_eq!(e.draft().unwrap().name, b"Document");
+            assert!(!e.is_dirty());
+            let stat = e.metadata().unwrap();
+            assert_eq!(stat.history_count, 1);
+            assert_eq!(stat.history[0].revision, 2);
+            assert_eq!(e.read_history(3, 1, &mut preview), Ok(6));
+            assert_eq!(&preview[..6], b"second");
+            assert_eq!(e.save(), Ok(SaveOutcome::Unchanged { revision: 3 }));
+        })
+    });
+}
+
+#[test]
+fn readonly_library_reads_but_never_mutates() {
+    run(|| {
+        library_case(EditMode::ReadOnly, |host, e| {
+            let mut entries = [ListEntry::EMPTY; PER_DOMAIN];
+            assert_eq!(e.list_filtered(ListFilter::All, &mut entries), Ok(1));
+            assert!(!e.collection_stat(1).unwrap().present);
+            let sent = host.borrow().requests.len();
+            assert_eq!(e.update_collection(1, 0, b"Home"), Err(Error::ReadOnly));
+            assert_eq!(e.set_metadata(1, 0, 0, 0), Err(Error::ReadOnly));
+            assert_eq!(e.restore_history(1, 1), Err(Error::ReadOnly));
+            assert_eq!(host.borrow().requests.len(), sent);
+            assert_eq!(e.draft().unwrap().loaded_revision, 1);
+            assert!(!e.is_dirty());
+            host.borrow_mut().seed(0, b"second");
+            e.open(0).unwrap();
+            let mut preview = [0; 16];
+            assert_eq!(e.read_history(2, 1, &mut preview), Ok(5));
+            assert_eq!(&preview[..5], b"first");
+        })
+    });
+}
+
+#[test]
+fn library_mutations_preserve_dirty_draft_and_async_upload() {
+    run(|| {
+        library_case(EditMode::ReadWrite, |host, e| {
+            e.replace_contents(b"draft retained").unwrap();
+            let sent = host.borrow().requests.len();
+            assert_eq!(
+                e.update_collection(1, 0, b"Home"),
+                Err(Error::UnsavedChanges)
+            );
+            assert_eq!(e.set_metadata(1, 0, 0, 0), Err(Error::UnsavedChanges));
+            assert_eq!(e.restore_history(1, 1), Err(Error::UnsavedChanges));
+            assert_eq!(host.borrow().requests.len(), sent);
+            e.begin_save().unwrap();
+            let sent = host.borrow().requests.len();
+            let mut preview = [0; 16];
+            assert_eq!(e.update_collection(1, 0, b"Home"), Err(Error::Busy));
+            assert_eq!(e.set_metadata(1, 0, 0, 0), Err(Error::Busy));
+            assert_eq!(e.restore_history(1, 1), Err(Error::Busy));
+            assert_eq!(e.read_history(1, 1, &mut preview), Err(Error::Busy));
+            assert_eq!(e.collection_stat(1), Err(Error::Busy));
+            assert_eq!(host.borrow().requests.len(), sent);
+            assert!(e.is_saving());
+            assert_eq!(e.draft().unwrap().contents, b"draft retained");
+            e.cancel_save().unwrap();
+            assert_eq!(e.draft().unwrap().contents, b"draft retained");
+            assert!(e.is_dirty());
+        })
+    });
+}
+
+#[test]
+fn stale_metadata_cas_is_sticky_without_automatic_retry() {
+    run(|| {
+        library_case(EditMode::ReadWrite, |host, e| {
+            host.borrow_mut().seed(0, b"other editor");
+            assert_eq!(e.set_metadata(1, 42, 0, 0), Err(Error::Conflict));
+            assert!(e.is_conflicted());
+            assert_eq!(e.draft().unwrap().contents, b"first");
+            assert_eq!(e.draft().unwrap().loaded_revision, 1);
+            let sent = host.borrow().requests.len();
+            assert_eq!(e.set_metadata(1, 42, 0, 0), Err(Error::Conflict));
+            assert_eq!(e.update_collection(1, 0, b"Home"), Err(Error::Conflict));
+            assert_eq!(host.borrow().requests.len(), sent);
+            e.open(0).unwrap();
+            assert_eq!(e.draft().unwrap().contents, b"other editor");
+            assert_eq!(e.set_metadata(2, 42, 0, 0), Ok(3));
+        })
+    });
+}
+
+#[test]
+fn library_invalid_indices_revisions_and_domain_do_not_publish() {
+    run(|| {
+        library_case(EditMode::ReadWrite, |host, e| {
+            let sent = host.borrow().requests.len();
+            let mut entries = [ListEntry::EMPTY; PER_DOMAIN];
+            let mut preview = [0x55; 16];
+            assert_eq!(
+                e.list_filtered(ListFilter::Collection(0), &mut entries),
+                Err(Error::InvalidRequest)
+            );
+            assert_eq!(e.collection_stat(0), Err(Error::InvalidRequest));
+            assert_eq!(
+                e.collection_stat(volume_core::COLLECTIONS + 1),
+                Err(Error::InvalidRequest)
+            );
+            assert_eq!(
+                e.update_collection(1, u64::MAX, b"Home"),
+                Err(Error::InvalidRequest)
+            );
+            assert_eq!(
+                e.update_collection(1, 0, b"bad/name"),
+                Err(Error::InvalidRequest)
+            );
+            assert_eq!(e.set_metadata(2, 0, 0, 0), Err(Error::Conflict));
+            assert_eq!(
+                e.set_metadata(u64::MAX, 0, 0, 0),
+                Err(Error::InvalidRequest)
+            );
+            assert_eq!(e.set_metadata(1, 0, 0, 255), Err(Error::InvalidRequest));
+            assert_eq!(
+                e.read_history(1, 0, &mut preview),
+                Err(Error::InvalidRequest)
+            );
+            assert_eq!(
+                e.restore_history(1, volume_core::HISTORY + 1),
+                Err(Error::InvalidRequest)
+            );
+            assert_eq!(
+                e.open(PER_DOMAIN as u64),
+                Err(Error::Service(Status::Access))
+            );
+            assert_eq!(host.borrow().requests.len(), sent);
+            assert_eq!(preview, [0x55; 16]);
+            assert_eq!(e.draft().unwrap().contents, b"first");
+        })
+    });
+}
+
+#[test]
+fn dropped_library_mutation_replies_are_uncertain_and_never_retried() {
+    run(|| {
+        for operation in [wire::META, wire::COLLECTION, wire::RESTORE] {
+            library_case(EditMode::ReadWrite, |host, e| {
+                let expected = if operation == wire::RESTORE {
+                    e.replace_contents(b"second").unwrap();
+                    e.save().unwrap();
+                    2
+                } else {
+                    1
+                };
+                let prior = e.draft().unwrap().contents.to_vec();
+                host.borrow_mut().fault = Fault::DropMutation;
+                let error = match operation {
+                    wire::META => e.set_metadata(expected, 42, 0, 0),
+                    wire::COLLECTION => e.update_collection(1, 0, b"Home"),
+                    _ => e.restore_history(expected, 1),
+                }
+                .unwrap_err();
+                assert!(matches!(
+                    error,
+                    Error::Interrupted {
+                        delivery: Delivery::Enqueued,
+                        ..
+                    }
+                ));
+                assert!(e.is_uncertain());
+                assert!(e.is_closed());
+                assert_eq!(e.draft().unwrap().contents, prior);
+                assert_eq!(e.draft().unwrap().loaded_revision, expected);
+                let sent = host.borrow().requests.len();
+                e.discard_changes().unwrap();
+                assert_eq!(e.set_metadata(expected, 42, 0, 0), Err(Error::Uncertain));
+                assert_eq!(e.update_collection(1, 0, b"Home"), Err(Error::Uncertain));
+                assert_eq!(e.restore_history(expected, 1), Err(Error::Uncertain));
+                assert_eq!(host.borrow().requests.len(), sent);
+                let host = host.borrow();
+                if operation == wire::COLLECTION {
+                    assert!(host.service.table().collection(0, 1).present);
+                } else {
+                    assert_eq!(host.service.table().entries[0].revision, expected + 1);
+                }
+                assert_eq!(host.closed.len(), 2);
+            });
+        }
+    });
+}
+
+#[test]
+fn library_wrong_domain_or_malformed_mutation_reply_is_not_success() {
+    run(|| {
+        for fault in [
+            Fault::WrongObject,
+            Fault::WrongPeer,
+            Fault::BadReply,
+            Fault::CapReply,
+        ] {
+            library_case(EditMode::ReadWrite, |host, e| {
+                host.borrow_mut().fault = fault;
+                assert!(matches!(
+                    e.set_metadata(1, 42, 0, 0),
+                    Err(Error::Protocol { .. })
+                ));
+                assert!(e.is_uncertain());
+                assert!(e.is_closed());
+                assert_eq!(e.draft().unwrap().loaded_revision, 1);
+                assert_eq!(e.draft().unwrap().contents, b"first");
+                assert_eq!(host.borrow().service.table().entries[0].revision, 2);
+            });
+        }
+    });
+}
+
+#[test]
+fn library_pre_enqueue_timeout_does_not_claim_publication_or_retry() {
+    run(|| {
+        library_case(EditMode::ReadWrite, |host, e| {
+            host.borrow_mut().fault = Fault::BeforeEnqueue;
+            let sent = host.borrow().requests.len();
+            assert!(matches!(
+                e.set_metadata(1, 0, 0, 0),
+                Err(Error::Interrupted {
+                    delivery: Delivery::NotEnqueued,
+                    ..
+                })
+            ));
+            assert!(!e.is_uncertain());
+            assert!(e.is_closed());
+            assert_eq!(e.set_metadata(1, 0, 0, 0), Err(Error::Closed));
+            assert_eq!(host.borrow().requests.len(), sent);
+            assert_eq!(host.borrow().service.table().entries[0].revision, 1);
+        })
+    });
+}
+
+#[test]
+fn library_service_crash_after_enqueue_blocks_all_mutations() {
+    run(|| {
+        library_case(EditMode::ReadWrite, |host, e| {
+            host.borrow_mut().fault = Fault::CrashOnReceive;
+            assert!(matches!(
+                e.set_metadata(1, 0, 0, 0),
+                Err(Error::Interrupted {
+                    delivery: Delivery::Enqueued,
+                    ..
+                })
+            ));
+            assert!(e.is_uncertain());
+            assert!(e.is_closed());
+            assert_eq!(e.draft().unwrap().contents, b"first");
+            assert_eq!(e.set_metadata(1, 0, 0, 0), Err(Error::Uncertain));
+        })
+    });
+}
+
+#[test]
+fn acknowledged_restore_with_failed_refresh_retains_old_draft_and_blocks_save() {
+    run(|| {
+        library_case(EditMode::ReadWrite, |host, e| {
+            e.replace_contents(b"second").unwrap();
+            e.save().unwrap();
+            host.borrow_mut().fault = Fault::RefreshRead;
+            assert_eq!(
+                e.restore_history(2, 1),
+                Err(Error::CommittedRefreshFailed { revision: 3 })
+            );
+            assert!(!e.is_uncertain());
+            assert!(e.is_conflicted());
+            assert_eq!(e.draft().unwrap().contents, b"second");
+            assert_eq!(e.draft().unwrap().loaded_revision, 2);
+            assert_eq!(host.borrow().service.table().entries[0].revision, 3);
+            let sent = host.borrow().requests.len();
+            assert_eq!(e.save(), Err(Error::Conflict));
+            assert_eq!(e.restore_history(2, 1), Err(Error::Conflict));
+            assert_eq!(host.borrow().requests.len(), sent);
+            host.borrow_mut().fault = Fault::None;
+            e.open(0).unwrap();
+            assert_eq!(e.draft().unwrap().contents, b"first");
+            assert_eq!(e.draft().unwrap().loaded_revision, 3);
+        })
+    });
+}
+
+#[test]
+fn history_preview_keeps_dirty_draft_and_failed_read_keeps_output() {
+    run(|| {
+        library_case(EditMode::ReadWrite, |host, e| {
+            e.replace_contents(b"second").unwrap();
+            e.save().unwrap();
+            e.rename_draft(b"Unsaved title").unwrap();
+            e.replace_contents(b"unsaved work").unwrap();
+            let writes = host.borrow().disk.writes;
+            let mut preview = [0x55; 16];
+            assert_eq!(e.read_history(2, 1, &mut preview), Ok(5));
+            assert_eq!(e.draft().unwrap().name, b"Unsaved title");
+            assert_eq!(e.draft().unwrap().contents, b"unsaved work");
+            assert!(e.is_dirty());
+            assert_eq!(host.borrow().disk.writes, writes);
+        });
+        library_case(EditMode::ReadWrite, |host, e| {
+            host.borrow_mut().seed(0, &[4; 500]);
+            e.open(0).unwrap();
+            e.replace_contents(&[7; 500]).unwrap();
+            e.save().unwrap();
+            let expected = e.draft().unwrap().loaded_revision;
+            let mut preview = [0x55; 600];
+            assert_eq!(
+                e.read_history(expected, 1, &mut preview[..20]),
+                Err(Error::ContentTooLarge)
+            );
+            assert_eq!(preview, [0x55; 600]);
+            host.borrow_mut().fault = Fault::ShortRead;
+            assert_eq!(
+                e.read_history(expected, 1, &mut preview),
+                Err(Error::Service(Status::Access))
+            );
+            assert_eq!(preview, [0x55; 600]);
+            assert_eq!(e.draft().unwrap().contents, &[7; 500]);
+            assert_eq!(e.draft().unwrap().loaded_revision, expected);
+        });
+    });
+}
+
+#[test]
+fn stale_history_selection_cannot_restore_a_different_current_revision() {
+    run(|| {
+        library_case(EditMode::ReadWrite, |host, e| {
+            e.replace_contents(b"second").unwrap();
+            e.save().unwrap();
+            host.borrow_mut().seed(0, b"third");
+            let sent = host.borrow().requests.len();
+            assert_eq!(e.restore_history(2, 1), Err(Error::Conflict));
+            assert!(e.is_conflicted());
+            assert_eq!(host.borrow().requests.len(), sent + 1); // STAT only
+            assert!(!host.borrow().requests[sent..]
+                .iter()
+                .any(|h| h.operation == wire::RESTORE));
+            assert_eq!(e.draft().unwrap().contents, b"second");
+            assert_eq!(host.borrow().service.table().entries[0].revision, 3);
+        })
+    });
+}
+
+#[test]
+fn filtered_list_never_publishes_a_partial_or_cross_generation_result() {
+    run(|| {
+        library_case(EditMode::ReadWrite, |host, e| {
+            for object in 1..PER_DOMAIN as u64 {
+                host.borrow_mut().seed(object, b"other");
+            }
+            let mut entries = [ListEntry::EMPTY; PER_DOMAIN];
+            entries[0].revision = 99;
+            let before = entries;
+            host.borrow_mut().fault = Fault::ChangedListClock;
+            assert_eq!(
+                e.list_filtered(ListFilter::Uncollected, &mut entries),
+                Err(Error::Conflict)
+            );
+            assert_eq!(entries, before);
+            assert!(!e.is_closed());
+            host.borrow_mut().fault = Fault::WrongObject;
+            assert!(matches!(
+                e.list_filtered(ListFilter::All, &mut entries),
+                Err(Error::Protocol { .. })
+            ));
+            assert_eq!(entries, before);
+            assert!(e.is_closed());
+            assert_eq!(e.draft().unwrap().contents, b"first");
+        })
+    });
+}
+
+#[test]
+fn missing_collection_and_stale_collection_cas_preserve_the_document() {
+    run(|| {
+        library_case(EditMode::ReadWrite, |host, e| {
+            assert_eq!(
+                e.set_metadata(1, 42, 0, 1),
+                Err(Error::Service(Status::Range))
+            );
+            assert_eq!(e.draft().unwrap().loaded_revision, 1);
+            assert_eq!(e.update_collection(1, 0, b"Home"), Ok(1));
+            assert_eq!(e.update_collection(1, 0, b"Replaced"), Err(Error::Conflict));
+            let sent = host.borrow().requests.len();
+            assert_eq!(e.update_collection(1, 0, b"Replaced"), Err(Error::Conflict));
+            assert_eq!(host.borrow().requests.len(), sent);
+            assert_eq!(e.collection_stat(1).unwrap().name(), b"Home");
+            assert_eq!(e.draft().unwrap().contents, b"first");
+            assert_eq!(e.draft().unwrap().loaded_revision, 1);
+            assert_eq!(host.borrow().service.table().entries[0].collection, 0);
+        })
+    });
+}
+
+#[test]
+fn writable_app_cannot_bypass_readonly_volume_service() {
+    run(|| {
+        library_case(EditMode::ReadWrite, |host, e| {
+            e.replace_contents(b"second").unwrap();
+            e.save().unwrap();
+            let table = *host.borrow().service.table();
+            host.borrow_mut().service = Service::new(EPOCH, table, true);
+            let writes = host.borrow().disk.writes;
+            assert_eq!(
+                e.set_metadata(2, 42, 0, 0),
+                Err(Error::Service(Status::Access))
+            );
+            assert_eq!(
+                e.update_collection(1, 0, b"Home"),
+                Err(Error::Service(Status::Access))
+            );
+            assert_eq!(e.restore_history(2, 1), Err(Error::Service(Status::Access)));
+            assert_eq!(host.borrow().disk.writes, writes);
+            assert_eq!(e.draft().unwrap().contents, b"second");
+            assert_eq!(e.draft().unwrap().loaded_revision, 2);
+            assert!(!e.is_dirty());
+            assert!(!e.is_uncertain());
+        })
+    });
+}
+
+#[test]
+fn collection_table_io_failure_is_unknown_without_retry() {
+    run(|| {
+        library_case(EditMode::ReadWrite, |host, e| {
+            let writes = host.borrow().disk.writes;
+            host.borrow_mut().disk.fail_write_at = Some(writes);
+            assert_eq!(
+                e.update_collection(1, 0, b"Home"),
+                Err(Error::Service(Status::Unknown))
+            );
+            assert!(e.is_uncertain());
+            assert!(e.is_closed());
+            assert_eq!(e.draft().unwrap().contents, b"first");
+            assert_eq!(e.draft().unwrap().loaded_revision, 1);
+            let sent = host.borrow().requests.len();
+            assert_eq!(e.update_collection(1, 0, b"Home"), Err(Error::Uncertain));
+            assert_eq!(host.borrow().requests.len(), sent);
+        })
+    });
+}
+
+#[test]
+fn verified_history_prefix_uses_existing_staging_and_labels_truncation() {
+    run(|| {
+        let host = Host::new();
+        let historic = "een rustige reis langs de kust. ".repeat(100) + "één";
+        host.borrow_mut().seed(0, historic.as_bytes());
+        host.borrow_mut().seed(0, b"current");
+        let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut e = editor(
+            &host,
+            EditMode::ReadWrite,
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+        );
+        e.open(0).unwrap();
+        e.replace_contents(b"keep this draft").unwrap();
+        let writes = host.borrow().disk.writes;
+        let sent = host.borrow().requests.len();
+        let mut preview = [0x55; 2048];
+        assert_eq!(
+            e.read_history_prefix(2, 1, &mut preview),
+            Ok(HistoryPrefix {
+                copied: 2048,
+                total: historic.len(),
+                truncated: true
+            })
+        );
+        assert_eq!(&preview, &historic.as_bytes()[..2048]);
+        let h = host.borrow();
+        assert_eq!(h.disk.writes, writes);
+        let reads: Vec<_> = h.requests[sent..]
+            .iter()
+            .filter(|h| h.operation == wire::READ)
+            .collect();
+        assert_eq!(reads.len(), historic.len().div_ceil(wire::DATA));
+        assert!(reads.iter().all(|h| h.revision == 2 && h.name_length == 1));
+        assert!(reads.last().unwrap().aux >= 2048); // Tail verified beyond visible prefix.
+        drop(h);
+        assert_eq!(e.draft().unwrap().contents, b"keep this draft");
+        assert!(e.is_dirty());
+    });
+}
+
+#[test]
+fn history_prefix_never_cuts_a_utf8_character_and_readonly_can_preview() {
+    run(|| {
+        library_case(EditMode::ReadOnly, |host, e| {
+            host.borrow_mut().seed(0, "abc€".as_bytes());
+            host.borrow_mut().seed(0, b"current");
+            e.open(0).unwrap();
+            let mut out = [0x55; 8];
+            assert_eq!(
+                e.read_history_prefix(3, 1, &mut out[..5]),
+                Ok(HistoryPrefix {
+                    copied: 3,
+                    total: 6,
+                    truncated: true
+                })
+            );
+            assert_eq!(&out[..3], b"abc");
+            assert_eq!(&out[3..], &[0x55; 5]);
+            assert_eq!(
+                e.read_history_prefix(3, 1, &mut out),
+                Ok(HistoryPrefix {
+                    copied: 6,
+                    total: 6,
+                    truncated: false
+                })
+            );
+            assert_eq!(&out[..6], "abc€".as_bytes());
+            assert_eq!(
+                e.read_history_prefix(3, 1, &mut []),
+                Ok(HistoryPrefix {
+                    copied: 0,
+                    total: 6,
+                    truncated: true
+                })
+            );
+            assert_eq!(e.restore_history(3, 1), Err(Error::ReadOnly));
+        })
+    });
+}
+
+#[test]
+fn history_prefix_rejects_invalid_utf8_even_after_the_visible_prefix() {
+    run(|| {
+        library_case(EditMode::ReadWrite, |host, e| {
+            let mut binary = [b'a'; 500];
+            binary[499] = 0xff;
+            host.borrow_mut().seed(0, &binary);
+            e.open(0).unwrap();
+            e.replace_contents(b"current").unwrap();
+            e.save().unwrap();
+            let mut out = [0x55; 8];
+            assert_eq!(
+                e.read_history_prefix(3, 1, &mut out),
+                Err(Error::InvalidUtf8)
+            );
+            assert_eq!(out, [0x55; 8]);
+            assert!(!e.is_closed()); // Binary content is not a protocol violation.
+            let mut raw = [0; 500];
+            assert_eq!(e.read_history(3, 1, &mut raw), Ok(500));
+            assert_eq!(raw, binary); // Existing opaque-byte API is unchanged.
+            assert_eq!(e.draft().unwrap().contents, b"current");
+        })
+    });
+}
+
+#[test]
+fn history_prefix_tail_errors_and_timeouts_never_publish_partial_output() {
+    run(|| {
+        for fault in [Fault::ShortRead, Fault::CorruptLateRead, Fault::DropRead] {
+            library_case(EditMode::ReadWrite, |host, e| {
+                host.borrow_mut().seed(0, &[b'a'; 500]);
+                e.open(0).unwrap();
+                e.replace_contents(b"current").unwrap();
+                e.save().unwrap();
+                host.borrow_mut().fault = fault;
+                let mut out = [0x55; 8];
+                let error = e.read_history_prefix(3, 1, &mut out).unwrap_err();
+                match fault {
+                    Fault::ShortRead => assert_eq!(error, Error::Service(Status::Access)),
+                    Fault::CorruptLateRead => assert!(matches!(error, Error::Protocol { .. })),
+                    Fault::DropRead => assert!(matches!(
+                        error,
+                        Error::Interrupted {
+                            delivery: Delivery::Enqueued,
+                            ..
+                        }
+                    )),
+                    _ => unreachable!(),
+                }
+                assert_eq!(out, [0x55; 8]);
+                assert_eq!(e.draft().unwrap().contents, b"current");
+                assert_eq!(e.draft().unwrap().loaded_revision, 3);
+                assert!(!e.is_uncertain());
+                assert_eq!(host.borrow().service.table().entries[0].revision, 3);
+            });
+        }
+    });
+}
+
+#[test]
+fn history_prefix_stale_revision_or_busy_upload_preserves_output() {
+    run(|| {
+        library_case(EditMode::ReadWrite, |host, e| {
+            e.replace_contents(b"second").unwrap();
+            e.save().unwrap();
+            let mut out = [0x55; 8];
+            e.replace_contents(b"draft").unwrap();
+            e.begin_save().unwrap();
+            assert_eq!(e.read_history_prefix(2, 1, &mut out), Err(Error::Busy));
+            e.cancel_save().unwrap();
+            host.borrow_mut().seed(0, b"third");
+            assert_eq!(e.read_history_prefix(2, 1, &mut out), Err(Error::Conflict));
+            assert_eq!(out, [0x55; 8]);
+            assert_eq!(e.draft().unwrap().contents, b"draft");
+            assert!(e.is_conflicted());
+        })
     });
 }

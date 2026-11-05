@@ -60,11 +60,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`04d727c3`](https://github.com/simonvanieperen/nieuw-os/commit/04d727c306d13e03a192d9d002a7d44348841c9f) ·
-**Ontwikkelbranch:** `fix/b03-test-anchors-guard`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR158: documentconflicten met main 95d79451 inhoudsbehoudend integreren.
-41/100 blijft 41/100. De drie documentconflicten behouden de B03- en PR138-checkpointgeschiedenissen en hun brongebonden bewijs. Rust-wijzigingen uit main zijn uitsluitend commentaar; de B03-ondertekenpolicy blijft ongewijzigd. De integration_review-velden blijven historisch PR148-bewijs, niet voor deze integratie. Productiesleutelbeleid en issue #41 blijven open. Geen nieuw criterium of native acceptatie; nieuwe-head CI wordt afzonderlijk beoordeeld.
+**Herbeoordeeld:** 2026-11-05 · **Rubric:** v1 ·
+**Bron:** [`9c64c1db`](https://github.com/simonvanieperen/nieuw-os/commit/9c64c1dbe85290501934331a28a9ec7f61f39399) ·
+**Ontwikkelbranch:** `k06/smp-step3-shootdown`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 3: TLB-shootdown van alle aliassen vóór hergebruik van een fysieke pagina (gestapeld op #202).
+41/100 blijft 41/100. In het opt-in native-smp-profiel wordt een vervangen kernelframe pas vrijgegeven nadat elke AP beide vertalingen heeft ge-invlpg'd en bevestigd. Een dove AP leidt tot frame-quarantaine plus INIT; een controle zonder shootdown toont dat AP's anders het vrijgegeven frame lezen. 13 native QEMU/TCG-gevallen zijn geslaagd: zie docs/verification/k06-smp-shootdown/. K06 blijft open (geen SMP-scheduler, geen interrupts op de BSP, geen procesbrede shootdown). Gestapeld op #202, #201 en #191, nog niet op main. De integration_review-velden blijven historisch PR148-bewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

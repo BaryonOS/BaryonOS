@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-03",
+  "tested_pr": 135,
+  "tested_head": "6f15ab28a0d8dcf43b84df54fe48bec9f0f622d9",
+  "tested_merge_commit": "4234591a3ed23c7cdeee16a425bbb92694ed5a3b",
+  "source_fingerprint_version": 3,
+  "source_sha256": "1ca8615711e88eefa058c206e91cf9b52d00a4640760a7b4d9d4216cd3928408",
+  "workflow_run_id": 41614590388,
+  "job_id": 125845070302,
+  "artifact": {
+    "id": 13220607974,
+    "name": "native-network-service-evidence",
+    "bytes": 77257,
+    "downloaded_zip_sha256": "111268faf25913f9e343247ff81f1f85849085f5d84618ecbc07d9524f514508",
+    "local_zip": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr135-6f15-network.zip"
+  },
+  "cases": [
+    {
+      "case": "normal",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_seconds": 7.573335971999995,
+      "serial_sha256": "4736f9c0a0125dd80ee737a5d2029fb9f5ab8b267fbab55630da60eaf9bab685",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "app_a_terminal_receive_eof_counter_520": 2,
+      "app_b_terminal_receive_eof_counter_520": 2,
+      "service_malformed_counter_512": 8,
+      "actual_fragment_first_frames": 2,
+      "actual_fragment_tail_frames": 2
+    },
+    {
+      "case": "client-exit",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_seconds": 7.37971330500001,
+      "serial_sha256": "ddb0b906816cb9399a48472279f0cc8310f9a1e49d01b654929705cb6d48b2c9",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "app_a_terminal_receive_eof_counter_520": 0,
+      "app_b_terminal_receive_eof_counter_520": 2,
+      "service_malformed_counter_512": 4,
+      "actual_fragment_first_frames": 1,
+      "actual_fragment_tail_frames": 1
+    }
+  ],
+  "verification": {
+    "workflow_command": "gh run watch 41614590388 --repo simonvanieperen/nieuw-os --exit-status --interval 30",
+    "workflow_exit": 0,
+    "download_command": "gh api repos/simonvanieperen/nieuw-os/actions/artifacts/13220607974/zip > /home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr135-6f15-network.zip",
+    "download_exit": 0,
+    "independent_check_command": "PYTHONPATH=tools python3 -B - <<'PY'\nimport hashlib,json,zipfile\nfrom common import source_hash\nfrom run_network_service import evaluate\np='/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr135-6f15-network.zip'\nexpected='1ca8615711e88eefa058c206e91cf9b52d00a4640760a7b4d9d4216cd3928408'\nassert source_hash()==expected\nprint('ZIP_SHA256',hashlib.sha256(open(p,'rb').read()).hexdigest())\nwith zipfile.ZipFile(p) as z:\n for case in ('normal','client-exit'):\n  prefix='n01-ci-'+case+'/'\n  r=json.loads(z.read(prefix+'network-service-'+case+'-report.json'))\n  assert r['source_sha256']==expected and r['passed'] is True and r['network_service_gate'] is True\n  serial=z.read(next(n for n in z.namelist() if n.startswith(prefix+'run/') and n.endswith('/serial.txt')))\n  stderr=z.read(next(n for n in z.namelist() if n.startswith(prefix+'run/') and n.endswith('/stderr.txt')))\n  peer=json.loads(z.read(next(n for n in z.namelist() if n.startswith(prefix+'run/') and n.endswith('/network-peer.json'))))\n  assert hashlib.sha256(serial).hexdigest()==r['stdout_sha256']\n  assert hashlib.sha256(stderr).hexdigest()==r['stderr_sha256']\n  assert serial.decode()==r['stdout'] and stderr.decode()==r['stderr']\n  observed=evaluate(r,peer,case=case)\n  assert observed==r['observed']\n  counts=r['peer']['counts']; owners=2 if case=='normal' else 1\n  assert counts['udp_fragment_first_sent']==owners and counts['udp_fragment_tail_sent']==owners\n  print(case,'raw',r['raw_qemu_exit'],'seconds',r['duration_s'],'APP_A520',observed['processes']['APP_A']['520'],'APP_B520',observed['processes']['APP_B']['520'],'malformed',observed['processes']['SERVICE']['512'],'fragment_first/tail',owners,owners,'serial_sha256',r['stdout_sha256'])\nprint('PASS: raw serial/stderr hashes, current source, full peer transcript replay, fragment counts and repeated terminal EOF counters')\nPY",
+    "independent_check_exit": 0,
+    "method": "Downloaded actual artifact; independently rehashed raw serial/stderr; compared raw bytes with report; reran existing evaluate() against raw peer transcript; checked actual fragment counts and observed repeated EOF counters. Current checkout source_hash() matched both reports."
+  },
+  "scope": "Three actual isolated ring-3 processes, bounded synthetic localhost Ethernet, real guest RPCs, TCP/UDP and existing malformed/rights/reset/cleanup/backpressure cases. No Internet, TLS, physical NIC or p95 claim.",
+  "remaining": [
+    "Current combined full CI/review and guarded integration remain required before closing issue39 or superseded PR134.",
+    "Hosted foreign-volume fixture delivery remains a separate failing gate.",
+    "No new product points: N01 was already accepted on main380."
+  ],
+  "progress": {"previous": 41, "current": 41, "new_points": 0}
+}

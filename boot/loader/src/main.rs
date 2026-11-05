@@ -15,6 +15,7 @@ mod serial;
 mod signed;
 
 use boot_protocol::{
+    acpi::{AcpiHandoff, HANDOFF_OFFSET, SOURCE_ACPI_10, SOURCE_ACPI_20},
     BootInfo, ABI_MAJOR, ABI_MINOR, ADDRESS_LIMIT, KERNEL_LEN, KERNEL_START, MAGIC, MAP_LIMIT,
     PAGE_SIZE, STACK_LEN,
 };
@@ -56,6 +57,7 @@ fn page_round(n: u64) -> Result<u64> {
 /// Present only before finalization. No Drop implementation or global service pointer.
 struct Firmware {
     services: *mut efi::BootServices,
+    acpi_handoff: AcpiHandoff,
     #[cfg_attr(not(feature = "signed-boot"), allow(dead_code))]
     runtime: *mut efi::RuntimeServices,
 }
@@ -95,6 +97,7 @@ impl Firmware {
         }
         let fw = Self {
             services: table.boot_services,
+            acpi_handoff: capture_acpi_handoff(table),
             runtime: table.runtime_services,
         };
         // SAFETY: Live service, disable watchdog; zero data size permits null data.
@@ -573,6 +576,11 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
     unsafe {
         ((info_address + 128) as *mut boot_protocol::graphics::FramebufferInfo).write(framebuffer);
     }
+    // SAFETY: The zeroed, retained BootInfo page has room for this fixed-size
+    // extension at offset 192, after the optional 64-byte graphics extension.
+    unsafe {
+        ((info_address + HANDOFF_OFFSET) as *mut AcpiHandoff).write(fw.acpi_handoff);
+    }
 
     let (needed, stride) = fw.map_size()?;
     let mut capacity = map_capacity(needed, stride)?;
@@ -652,6 +660,87 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
     #[cfg(not(feature = "test-ebs-retry"))]
     let initial = None;
     fw.freeze().transfer(image, info_address, entry, initial)
+}
+
+fn capture_acpi_handoff(table: &efi::SystemTable) -> AcpiHandoff {
+    const MAX_CONFIG_TABLES: usize = 256;
+    if table.number_of_table_entries == 0 {
+        return AcpiHandoff::unavailable();
+    }
+    if table.number_of_table_entries > MAX_CONFIG_TABLES
+        || table.configuration_table.is_null()
+        || !(table.configuration_table as usize)
+            .is_multiple_of(align_of::<efi::ConfigurationTable>())
+    {
+        return AcpiHandoff::rejected();
+    }
+
+    // SAFETY: Firmware::new validated the live SystemTable and its header. UEFI
+    // owns this aligned, fixed-count configuration-table array until ExitBootServices.
+    let entries = unsafe {
+        core::slice::from_raw_parts(table.configuration_table, table.number_of_table_entries)
+    };
+    let acpi20 = find_acpi_table(entries, efi::ACPI_20_TABLE_GUID);
+    let selected = match acpi20 {
+        ConfigTableMatch::One(address) => (address, SOURCE_ACPI_20),
+        ConfigTableMatch::Many | ConfigTableMatch::Invalid => return AcpiHandoff::rejected(),
+        ConfigTableMatch::None => match find_acpi_table(entries, efi::ACPI_10_TABLE_GUID) {
+            ConfigTableMatch::One(address) => (address, SOURCE_ACPI_10),
+            ConfigTableMatch::None => return AcpiHandoff::unavailable(),
+            ConfigTableMatch::Many | ConfigTableMatch::Invalid => return AcpiHandoff::rejected(),
+        },
+    };
+    let (address, source) = selected;
+    let mut rsdp = [0u8; 36];
+    // SAFETY: UEFI's matching ACPI configuration entry provides a live RSDP
+    // address until ExitBootServices. Address arithmetic was checked; byte-wise
+    // copies are valid even when the firmware-provided pointer is unaligned.
+    unsafe {
+        ptr::copy_nonoverlapping(address as *const u8, rsdp.as_mut_ptr(), 20);
+    }
+    let length = if source == SOURCE_ACPI_10 {
+        20
+    } else {
+        // SAFETY: Same live UEFI configuration-table RSDP; the fixed four-byte
+        // length field immediately follows the legacy 20-byte prefix.
+        unsafe {
+            ptr::copy_nonoverlapping((address + 20) as *const u8, rsdp.as_mut_ptr().add(20), 4);
+        }
+        let declared = u32::from_le_bytes([rsdp[20], rsdp[21], rsdp[22], rsdp[23]]);
+        if declared != 36 {
+            return AcpiHandoff::rejected();
+        }
+        // SAFETY: The UEFI ACPI 2.0 configuration entry points to the standard
+        // fixed 36-byte RSDP; its declared length was checked before this read.
+        unsafe {
+            ptr::copy_nonoverlapping((address + 24) as *const u8, rsdp.as_mut_ptr().add(24), 12);
+        }
+        36
+    };
+    AcpiHandoff::captured(source, &rsdp[..length]).unwrap_or_else(|_| AcpiHandoff::rejected())
+}
+
+enum ConfigTableMatch {
+    None,
+    One(u64),
+    Many,
+    Invalid,
+}
+
+fn find_acpi_table(entries: &[efi::ConfigurationTable], guid: efi::Guid) -> ConfigTableMatch {
+    let mut found = None;
+    for entry in entries.iter().filter(|entry| entry.vendor_guid == guid) {
+        let address = entry.vendor_table as u64;
+        // The UEFI-supplied table pointer may be unaligned; copying bytes uses
+        // alignment-1 accesses and the kernel validates the RSDP contents.
+        if address == 0 || address.checked_add(36).is_none() {
+            return ConfigTableMatch::Invalid;
+        }
+        if found.replace(address).is_some() {
+            return ConfigTableMatch::Many;
+        }
+    }
+    found.map_or(ConfigTableMatch::None, ConfigTableMatch::One)
 }
 
 fn map_capacity(needed: usize, stride: usize) -> Result<usize> {

@@ -1,0 +1,11 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "/workspace/nieuw-os/sdk/examples/keyring/build.py"
+  ],
+  "cwd": "/workspace/nieuw-os",
+  "started_unix": 1793654675.9701118,
+  "duration_s": 4.976598739624023,
+  "returncode": 0
+}

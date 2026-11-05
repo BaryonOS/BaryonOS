@@ -97,14 +97,14 @@ def native_serial(case="normal"):
     service = dict.fromkeys(OFFSETS, 0)
     service.update({400: 1, 408: 10, 416: 66, 424: 65, 432: 100, 440: 22,
                     448: 2, 456: 2, 464: 10, 472: 3 * sum(map(len, REQUESTS)),
-                    480: 2 * sum(map(len, RESPONSES)), 488: 4, 496: 3, 512: 4, 520: 2, 528: 1})
+                    480: 2 * sum(map(len, RESPONSES)), 488: 4, 496: 3, 512: 8, 520: 2, 528: 1})
     app = dict.fromkeys(OFFSETS, 0)
     app.update({400: 1, 408: 2, 416: 1, 424: 1, 432: 9, 440: 1, 448: 3,
                 456: len(RESPONSES[0]), 464: 2, 472: 4, 480: 1, 488: 1,
-                496: 1, 504: 1, 512: 1, 528: 1})
+                496: 1, 504: 1, 512: 1, 520: 2, 528: 1})
     if case == "client-exit":
         service.update({440: 13, 448: 1, 456: 1, 464: 6, 472: 3 * len(REQUESTS[1]),
-                        480: 2 * len(RESPONSES[1]), 488: 2, 512: 2, 520: 1, 536: 1})
+                        480: 2 * len(RESPONSES[1]), 488: 2, 512: 4, 520: 1, 536: 1})
     network = {"NET_TX_SUBMITTED": 66, "NET_TX_COMPLETED": 66, "NET_RX_COMPLETED": 65,
                "NET_RX_DELIVERED": 65, "NET_DENIED": 2, "NET_TX_TIMEOUTS": 0,
                "NET_RESETS": 1, "NET_RESET_ACKS": 1}
@@ -180,6 +180,46 @@ class PeerChecks(unittest.TestCase):
             self.assertEqual(summary["counts"][name], 2)
         self.assertEqual(summary["counts"]["client_fins_acked"], 4)
         self.assertNotEqual(summary["request_sha256"][0], summary["request_sha256"][1])
+
+    def test_fragment_fixtures_have_valid_ipv4_headers_and_real_offsets(self):
+        machine = Machine()
+        for kind, flags, size in (("first", 0x2000, 16), ("tail", 2, 8 + len(UDP_PAYLOADS[0]) - 16)):
+            packet = machine.udp_packet(0, "udp-fragment-" + kind, UDP_PAYLOADS[0], fragment=kind)
+            ip = packet[14:]
+            self.assertEqual(checksum(ip[:20]), 0)
+            self.assertEqual(struct.unpack_from("!H", ip, 6)[0], flags)
+            self.assertEqual(struct.unpack_from("!H", ip, 2)[0], 20 + size)
+            self.assertEqual(ip[9], 17)
+            self.assertEqual(ip[12:20], PEER_IP + CLIENT_IP)
+        machine = Machine()
+        syn = client_tcp(8080, 40000, 100)
+        self.assertEqual(len(machine.handle(syn)), 3)
+        self.assertEqual(len(machine.handle(syn)), 1)
+        self.assertEqual(machine.counts["udp_fragment_first_sent"], 1)
+        self.assertEqual(machine.counts["udp_fragment_tail_sent"], 1)
+        for case, owners in (("normal", 2), ("client-exit", 1)):
+            summary = validate_transcript(transcript(case), case=case)
+            for kind in ("first", "tail"):
+                self.assertEqual(summary["counts"]["udp_fragment_" + kind + "_sent"], owners)
+
+    def test_native_serial_requires_fragment_rejections_not_only_old_udp_cases(self):
+        for case, old_count in (("normal", 4), ("client-exit", 2)):
+            original = native_serial(case)
+            lines = [
+                f"NETSVC:SERVICE:512:{old_count:020d}" if line.startswith("NETSVC:SERVICE:512:") else line
+                for line in original.splitlines()
+            ]
+            with self.subTest(case=case), self.assertRaisesRegex(ValueError, "fragment"):
+                sequence("\n".join(lines) + "\n", case)
+
+    def test_native_serial_requires_actual_terminal_receive_after_timeout(self):
+        for case in ("normal", "client-exit"):
+            original = native_serial(case)
+            for role in (("APP_A", "APP_B") if case == "normal" else ("APP_B",)):
+                bad = original.replace(f"NETSVC:{role}:520:00000000000000000002",
+                                       f"NETSVC:{role}:520:00000000000000000000")
+                with self.subTest(case=case, role=role), self.assertRaises(ValueError):
+                    sequence(bad, case)
 
     def test_raw_input_reply_and_summary_tampering_is_rejected(self):
         for kind in ("input", "output", "events", "counts", "time", "wire", "missing"):

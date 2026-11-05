@@ -1,0 +1,111 @@
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/library-tooling-followup/materiaal-keyring"}
+   Compiling typenum v1.20.1
+   Compiling zeroize v1.9.1
+   Compiling version_check v0.9.5
+   Compiling cmov v0.5.4
+   Compiling cfg-if v1.0.5
+   Compiling subtle v2.6.1
+   Compiling ctutils v0.4.7
+   Compiling generic-array v0.14.7
+   Compiling cpufeatures v0.2.17
+   Compiling opaque-debug v0.3.1
+   Compiling cpufeatures v0.3.1
+   Compiling rand_core v0.10.1
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+   Compiling chacha20 v0.10.2
+   Compiling hybrid-array v0.4.15
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling crypto-common v0.1.7
+   Compiling inout v0.1.4
+   Compiling universal-hash v0.5.1
+   Compiling cipher v0.4.4
+   Compiling aead v0.5.2
+   Compiling poly1305 v0.8.0
+   Compiling chacha20 v0.9.1
+   Compiling chacha20poly1305 v0.10.1
+   Compiling digest v0.11.3
+   Compiling hmac v0.13.0 (/workspace/nieuw-os/services/keyring/vendor/hmac-0.13.0)
+   Compiling sha2 v0.11.1
+   Compiling hkdf v0.13.0 (/workspace/nieuw-os/services/keyring/vendor/hkdf-0.13.0)
+   Compiling keyring-core v0.1.0 (/workspace/nieuw-os/services/keyring)
+   Compiling nieuw-os-keyring-example v0.1.0 (/workspace/nieuw-os/sdk/examples/keyring)
+    Finished `release` profile [optimized] target(s) in 3.73s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/library-tooling-followup/materiaal-volume-docs"}
+   Compiling zeroize v1.9.1
+   Compiling catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+   Compiling volume-core v0.1.0 (/workspace/nieuw-os/services/volume)
+   Compiling nieuw-os-volume-docs-example v0.1.0 (/workspace/nieuw-os/sdk/examples/volume-docs)
+    Finished `release` profile [optimized] target(s) in 1.27s
+{"command": ["cargo", "+1.90.0", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/examples/materiaal/Cargo.toml", "--features", "native", "--bin", "materiaal-app", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/library-tooling-followup/materiaal-materiaal"}
+   Compiling zeroize v1.9.1
+   Compiling catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+   Compiling ui-core v0.1.0 (/workspace/nieuw-os/crates/ui-core)
+   Compiling noto-sans-mono-bitmap v0.3.2
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+   Compiling nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os/sdk/catalog-client)
+   Compiling nieuw-os-input-core v0.1.0 (/workspace/nieuw-os/services/input-core)
+   Compiling volume-core v0.1.0 (/workspace/nieuw-os/services/volume)
+   Compiling nieuw-os-graphics v0.1.0 (/workspace/nieuw-os/ui/graphics)
+   Compiling nieuw-os-input-client v0.1.0 (/workspace/nieuw-os/sdk/input-client)
+   Compiling nieuw-os-document-session v0.1.0 (/workspace/nieuw-os/sdk/document-session)
+   Compiling nieuw-os-surface-protocol v0.1.0 (/workspace/nieuw-os/ui/surface-protocol)
+   Compiling nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os/ui/native)
+   Compiling nieuw-os-materiaal-app v0.1.0 (/workspace/nieuw-os/sdk/examples/materiaal)
+    Finished `release` profile [optimized] target(s) in 4.01s
+{"command": ["cargo", "+1.90.0", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/examples/input-service/Cargo.toml", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/library-tooling-followup/materiaal-input-service", "app_toolchain": "1.90.0", "linker": "/workspace/nieuw-os/.tools/nieuw-os/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld"}
+{"passed": true, "native_runtime_performed": false, "extra_env": {"NOS_INPUT_SOURCE_ELF": "/workspace/nieuw-os/target/library-tooling-followup/materiaal-input-service/x86_64-unknown-none/release/input-source", "NOS_INPUT_POLICY_ELF": "/workspace/nieuw-os/target/library-tooling-followup/materiaal-input-service/x86_64-unknown-none/release/input-policy"}, "apps": {"source": {"sha256": "3c8852188ddb7f5b3ded12d9caef17e63d0164c679dffee0a3183433f33111b9", "elf": {"entry": 1073741824, "segments": [{"flags": 5, "address": 1073741824, "offset": 4096, "filesz": 6, "memsz": 6, "page_start": 1073741824, "page_end": 1073745920}, {"flags": 6, "address": 1073807360, "offset": 8192, "filesz": 1200, "memsz": 1200, "page_start": 1073807360, "page_end": 1073811456}, {"flags": 4, "address": 1073872896, "offset": 12288, "filesz": 754, "memsz": 754, "page_start": 1073872896, "page_end": 1073876992}, {"flags": 5, "address": 1074003968, "offset": 16384, "filesz": 12263, "memsz": 12263, "page_start": 1074003968, "page_end": 1074016256}]}}, "policy": {"sha256": "fc7782e67787b61f8990851881b46b71f8400b1a3d781bdd18cf71d850b4f085", "elf": {"entry": 1073741824, "segments": [{"flags": 5, "address": 1073741824, "offset": 4096, "filesz": 6, "memsz": 6, "page_start": 1073741824, "page_end": 1073745920}, {"flags": 6, "address": 1073807360, "offset": 8192, "filesz": 1200, "memsz": 1200, "page_start": 1073807360, "page_end": 1073811456}, {"flags": 4, "address": 1073872896, "offset": 12288, "filesz": 2522, "memsz": 2522, "page_start": 1073872896, "page_end": 1073876992}, {"flags": 5, "address": 1074003968, "offset": 16384, "filesz": 21575, "memsz": 21575, "page_start": 1074003968, "page_end": 1074028544}]}}}}
+   Compiling zeroize v1.9.1
+   Compiling ui-core v0.1.0 (/workspace/nieuw-os/crates/ui-core)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+   Compiling nieuw-os-input-core v0.1.0 (/workspace/nieuw-os/services/input-core)
+   Compiling nieuw-os-display-client v0.1.0 (/workspace/nieuw-os/sdk/display-client)
+   Compiling nieuw-os-native-input-service v0.1.0 (/workspace/nieuw-os/sdk/examples/input-service)
+    Finished `release` profile [optimized] target(s) in 0.89s
+{"command": ["cargo", "+1.90.0", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/examples/window-session/Cargo.toml", "--features", "native,fault-injection", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/library-tooling-followup/materiaal-window-session", "app_toolchain": "1.90.0", "linker": "/workspace/nieuw-os/.tools/nieuw-os/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld"}
+{"passed": true, "native_runtime_performed": false, "extra_env": {"NOS_WINDOW_COMPOSITOR_ELF": "/workspace/nieuw-os/target/library-tooling-followup/materiaal-window-session/x86_64-unknown-none/release/window-compositor", "NOS_WINDOW_INIT_ELF": "/workspace/nieuw-os/target/library-tooling-followup/materiaal-window-session/x86_64-unknown-none/release/window-init"}, "apps": [{"name": "window-compositor", "sha256": "aa4c54964cc111facf077d62b3ce34550d72905fb6c0757023850531111e5f83", "elf": {"entry": 1073741824, "segments": [{"flags": 5, "address": 1073741824, "offset": 4096, "filesz": 6, "memsz": 6, "page_start": 1073741824, "page_end": 1073745920}, {"flags": 6, "address": 1073807360, "offset": 8192, "filesz": 1024, "memsz": 1024, "page_start": 1073807360, "page_end": 1073811456}, {"flags": 4, "address": 1073872896, "offset": 12288, "filesz": 286032, "memsz": 286032, "page_start": 1073872896, "page_end": 1074159616}, {"flags": 6, "address": 1074790400, "offset": 299008, "filesz": 184, "memsz": 5600184, "page_start": 1074790400, "page_end": 1080393728}, {"flags": 5, "address": 1090519040, "offset": 303104, "filesz": 66345, "memsz": 66345, "page_start": 1090519040, "page_end": 1090588672}]}}, {"name": "window-init", "sha256": "ddf6450aac86872380b68ccf693de2d06e390a62f4c283d97d007aff6fb0e90b", "elf": {"entry": 1073741824, "segments": [{"flags": 5, "address": 1073741824, "offset": 4096, "filesz": 6, "memsz": 6, "page_start": 1073741824, "page_end": 1073745920}, {"flags": 6, "address": 1073807360, "offset": 8192, "filesz": 1024, "memsz": 1024, "page_start": 1073807360, "page_end": 1073811456}, {"flags": 4, "address": 1073872896, "offset": 12288, "filesz": 799, "memsz": 799, "page_start": 1073872896, "page_end": 1073876992}, {"flags": 6, "address": 1074790400, "offset": 16384, "filesz": 72, "memsz": 72, "page_start": 1074790400, "page_end": 1074794496}, {"flags": 5, "address": 1090519040, "offset": 20480, "filesz": 9799, "memsz": 9799, "page_start": 1090519040, "page_end": 1090531328}]}}]}
+   Compiling zeroize v1.9.1
+   Compiling catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+   Compiling ui-core v0.1.0 (/workspace/nieuw-os/crates/ui-core)
+   Compiling nieuw-os-graphics v0.1.0 (/workspace/nieuw-os/ui/graphics)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+   Compiling nieuw-os-input-core v0.1.0 (/workspace/nieuw-os/services/input-core)
+   Compiling nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os/sdk/catalog-client)
+   Compiling nieuw-os-display-client v0.1.0 (/workspace/nieuw-os/sdk/display-client)
+   Compiling nieuw-os-surface-protocol v0.1.0 (/workspace/nieuw-os/ui/surface-protocol)
+   Compiling nieuw-os-input-client v0.1.0 (/workspace/nieuw-os/sdk/input-client)
+   Compiling nieuw-os-native-input-service v0.1.0 (/workspace/nieuw-os/sdk/examples/input-service)
+   Compiling nieuw-os-window-session v0.1.0 (/workspace/nieuw-os/sdk/examples/window-session)
+    Finished `release` profile [optimized] target(s) in 1.82s
+{"command": ["cargo", "+1.90.0", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/examples/calculator/Cargo.toml", "--features", "native", "--bin", "calculator-app", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/library-tooling-followup/materiaal-calculator"}
+{"native_runtime_performed": false, "extra_env": {"NOS_CALCULATOR_ELF": "/workspace/nieuw-os/target/library-tooling-followup/materiaal-calculator/x86_64-unknown-none/release/calculator-app"}, "calculator_app": {"sha256": "6b65d1aa481f8e42c1a92ef28358713969605bcbce1aa4fa281bdf8c0be419b9", "elf": {"entry": 1073741824, "segments": [{"flags": 5, "address": 1073741824, "offset": 4096, "filesz": 19, "memsz": 19, "page_start": 1073741824, "page_end": 1073745920}, {"flags": 6, "address": 1073807360, "offset": 8192, "filesz": 1024, "memsz": 1024, "page_start": 1073807360, "page_end": 1073811456}, {"flags": 4, "address": 1073872896, "offset": 12288, "filesz": 465608, "memsz": 465608, "page_start": 1073872896, "page_end": 1074339840}, {"flags": 6, "address": 1074790400, "offset": 479232, "filesz": 208, "memsz": 208, "page_start": 1074790400, "page_end": 1074794496}, {"flags": 5, "address": 1075052544, "offset": 483328, "filesz": 69686, "memsz": 69686, "page_start": 1075052544, "page_end": 1075126272}]}}}
+   Compiling zeroize v1.9.1
+   Compiling catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+   Compiling ui-core v0.1.0 (/workspace/nieuw-os/crates/ui-core)
+   Compiling noto-sans-mono-bitmap v0.3.2
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+   Compiling nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os/sdk/catalog-client)
+   Compiling nieuw-os-input-core v0.1.0 (/workspace/nieuw-os/services/input-core)
+   Compiling nieuw-os-surface-protocol v0.1.0 (/workspace/nieuw-os/ui/surface-protocol)
+   Compiling nieuw-os-graphics v0.1.0 (/workspace/nieuw-os/ui/graphics)
+   Compiling nieuw-os-input-client v0.1.0 (/workspace/nieuw-os/sdk/input-client)
+   Compiling nieuw-os-calculator v0.1.0 (/workspace/nieuw-os/sdk/examples/calculator)
+    Finished `release` profile [optimized] target(s) in 3.16s
+   Compiling boot-protocol v0.1.0 (/workspace/nieuw-os/crates/boot-protocol)
+   Compiling r-efi v7.1.0
+   Compiling elf-loader-core v0.1.0 (/workspace/nieuw-os/crates/elf-loader-core)
+   Compiling os-loader v0.1.0 (/workspace/nieuw-os/boot/loader)
+    Finished `release` profile [optimized] target(s) in 0.82s
+   Compiling virtio-core v0.1.0 (/workspace/nieuw-os/crates/virtio-core)
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os/kernel)
+   Compiling capability-core v0.1.0 (/workspace/nieuw-os/crates/capability-core)
+   Compiling block-protocol v0.1.0 (/workspace/nieuw-os/services/block)
+   Compiling boot-protocol v0.1.0 (/workspace/nieuw-os/crates/boot-protocol)
+   Compiling virtio-blk-driver v0.1.0 (/workspace/nieuw-os/drivers/virtio-blk)
+   Compiling virtio-rng-driver v0.1.0 (/workspace/nieuw-os/drivers/virtio-rng)
+   Compiling nieuw-os-display-client v0.1.0 (/workspace/nieuw-os/sdk/display-client)
+   Compiling kernel-core v0.1.0 (/workspace/nieuw-os/crates/kernel-core)
+   Compiling nieuw-os-ps2 v0.1.0 (/workspace/nieuw-os/drivers/ps2)
+    Finished `release` profile [optimized] target(s) in 2.82s
+Built and inspected native-window-session-probe: 3 ELF load segments

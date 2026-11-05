@@ -173,9 +173,15 @@ fn render_native_window_material_walkthrough_oracle() {
             assert_eq!(ui.view().screen, Screen::Material);
             assert_eq!(ui.view().objects.len(), 1);
             snapshot(&ui, "list", directory.as_deref());
-            for physical in [PhysicalKey::Tab, PhysicalKey::Tab, PhysicalKey::Enter] {
-                key(&mut ui, INPUT_EPOCH, &mut sequence, 1, physical, false);
-            }
+            key(&mut ui, INPUT_EPOCH, &mut sequence, 1, PhysicalKey::F, true);
+            key(
+                &mut ui,
+                INPUT_EPOCH,
+                &mut sequence,
+                1,
+                PhysicalKey::Enter,
+                false,
+            );
             assert_eq!(ui.view().screen, Screen::Editor);
             assert_eq!(ui.view().contents, Some(TEXT));
             assert_eq!(ui.view().focus, Focus::Document);
