@@ -102,6 +102,10 @@ pub enum Error {
     InvalidEvent,
     /// More than `MAX_INVALID_EVENTS` invalid events were observed.
     EventStorm,
+    /// A PCM event for this stream after a device-confirmed STOP, within the
+    /// bound of what can still be in flight (`periods + 1`). Ignore it and do
+    /// not count it in `EventBudget`; beyond the bound it is `InvalidEvent`.
+    Stale,
 }
 
 impl Error {
@@ -290,6 +294,7 @@ pub struct Stream {
     io_error: bool,
     periods: u32,
     xruns: u32,
+    stale: u32,
 }
 
 impl Stream {
@@ -306,6 +311,7 @@ impl Stream {
             io_error: false,
             periods: 0,
             xruns: 0,
+            stale: 0,
         })
     }
 
@@ -497,7 +503,19 @@ impl Stream {
         if id != self.info.id() {
             return Err(Error::InvalidStream);
         }
-        if self.state != State::Running {
+        let params = match (self.state, self.params) {
+            (State::Running, Some(params)) => params,
+            // Race with STOP: at most every period plus one XRUN was queued.
+            (State::Stopped, Some(params))
+                if self.stale <= params.buffer_bytes() / params.period_bytes() =>
+            {
+                self.stale += 1;
+                return Err(Error::Stale);
+            }
+            _ => return Err(Error::InvalidEvent),
+        };
+        // Device data is untrusted: XRUN events only when SET_PARAMS selected them.
+        if matches!(event, Event::Xrun(_)) && !params.xrun_events() {
             return Err(Error::InvalidEvent);
         }
         *counter = counter.saturating_add(1);
@@ -540,7 +558,10 @@ impl Stream {
                 self.xruns = 0;
             }
             Op::Prepare => self.state = State::Prepared,
-            Op::Start => self.state = State::Running,
+            Op::Start => {
+                self.state = State::Running;
+                self.stale = 0;
+            }
             Op::Stop => {
                 self.state = State::Stopped;
                 self.io_error = false;

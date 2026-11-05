@@ -489,20 +489,51 @@ fn events_decode_against_configuration_bounds() {
 
 #[test]
 fn stream_events_count_only_while_running_for_this_stream() {
-    let mut s = running();
+    let mut s = Stream::new(info(0, F_EVT_XRUNS)).unwrap();
+    s.set_params(4, 1920).unwrap();
+    ok(&mut s);
+    assert!(s.params().unwrap().xrun_events());
+    s.prepare().unwrap();
+    ok(&mut s);
+    s.start().unwrap();
+    ok(&mut s);
     assert_eq!(s.event(Event::PeriodElapsed(1)), Ok(()));
     assert_eq!(s.event(Event::Xrun(1)), Ok(()));
     assert_eq!((s.periods_elapsed(), s.xruns()), (1, 1));
     assert_eq!(s.event(Event::PeriodElapsed(0)), Err(Error::InvalidStream));
     assert_eq!(s.event(Event::JackConnected(0)), Err(Error::InvalidEvent));
     assert_eq!((s.periods_elapsed(), s.xruns()), (1, 1));
-    for mut idle in [stream(), configured(), prepared(), stopped()] {
+    // XRUN not selected by SET_PARAMS: device data violating the contract.
+    let mut plain = running();
+    assert!(!plain.params().unwrap().xrun_events());
+    assert_eq!(plain.event(Event::Xrun(1)), Err(Error::InvalidEvent));
+    assert_eq!(plain.xruns(), 0);
+    for mut idle in [stream(), configured(), prepared()] {
         assert_eq!(
             idle.event(Event::PeriodElapsed(1)),
             Err(Error::InvalidEvent)
         );
         assert_eq!(idle.event(Event::Xrun(1)), Err(Error::InvalidEvent));
     }
+    // Events queued before STOP completed: periods + 1 are stale, then invalid.
+    let mut late = stopped();
+    for _ in 0..=4 {
+        assert_eq!(late.event(Event::PeriodElapsed(1)), Err(Error::Stale));
+    }
+    assert_eq!(
+        late.event(Event::PeriodElapsed(1)),
+        Err(Error::InvalidEvent)
+    );
+    assert_eq!(late.periods_elapsed(), 0);
+    late.start().unwrap();
+    ok(&mut late);
+    late.stop().unwrap();
+    ok(&mut late);
+    assert_eq!(
+        late.event(Event::Xrun(1)),
+        Err(Error::Stale),
+        "START resets the bound"
+    );
     // A new SET_PARAMS resets the counters of the previous lifetime.
     s.stop().unwrap();
     ok(&mut s);
@@ -549,6 +580,7 @@ fn fence_policy_only_for_device_violations() {
         Error::InvalidStream,
         Error::InvalidJack,
         Error::InvalidEvent,
+        Error::Stale,
     ] {
         assert!(!error.requires_fence(), "{error:?}");
     }
