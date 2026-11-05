@@ -29,6 +29,24 @@ een bootstrapprofiel. Een algemene shootdown voor procesadresruimten (per
 ASID/CR3 en per range), integratie met M3-unmaps, interrupts op de BSP en
 de SMP-scheduler volgen nog; ADR-024 blijft tot dan ongewijzigd geldig.
 
+**Status:** geaccepteerd in het opt-in `native-smp`-profiel; K06 blijft open.
+
+**Alternatieven overwogen.**
+- Alleen het venster ongeldig maken en de identity-alias lokaal laten
+  vallen: verworpen na review, omdat een AP met een gedeelde CR3 die alias
+  speculatief kan cachen.
+- CR3 herladen of een volledige TLB-flush per AP: is ook correct, maar
+  grover; `invlpg` per adres volstaat hier en blijft per vertaling
+  controleerbaar.
+- PCID/INVPCID: niet gebruikt; PCID staat uit in dit profiel.
+- Het frame vrijgeven en de shootdown "lazy" achteraf doen: verworpen,
+  want dat is precies het gevaar dat het controleprofiel aantoont.
+
+**Primaire bronnen.** Intel SDM Vol. 3A: TLB-onderhoud ("Invalidation of
+TLBs and Paging-Structure Caches", "Propagation of Paging-Structure Changes
+to Multiple Processors", INVLPG als serializing instruction) en APIC (ICR
+en TPR). Ook hier verschillen de hoofdstuknummers per editie.
+
 ## ADR-071 — Eigen TSS/IST per AP en begrensde, gerichte IPI's (K06 stap 2)
 
 5 november 2026; aanvulling op ADR-070, nog steeds alleen in `native-smp`.
