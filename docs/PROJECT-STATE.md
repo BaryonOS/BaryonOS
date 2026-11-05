@@ -27,7 +27,7 @@ SMP-scheduler en de herziening van ADR-024.
 
 ## Historisch checkpoint — K06 stap 1, native AP-opstart — 5 november 2026
 
-**Bron:** codecommit `c687cd13400c7dd42822d5e47845883b6e7af717` op
+**Bron:** codecommit `36703f50450d2075117b5a5e75a9bb4ca28b49a0` (CI-stackfix, vervangt `c687cd13`) op
 `k06/smp-ap-bringup`, gestapeld op PR #191 (`a859db98`, ACPI-handoff, staat
 volgens de integrator op FIX). Main is `8bb15309`. **41 → 41/100**: er zijn
 geen criteria of gewichten gewijzigd, en K06 blijft open.
