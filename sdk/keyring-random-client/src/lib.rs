@@ -5,7 +5,7 @@
 //! a byte count. No uncertain publication is retried or silently regranted.
 use core::fmt;
 use nieuw_os_sdk_runtime::{
-    Error as RuntimeError, Handle, Outgoing, ReceiveEndpoint, Received, SendEndpoint,
+    Error as RuntimeError, Outgoing, ReceiveEndpoint, Received, SendEndpoint,
 };
 use zeroize::Zeroizing;
 
@@ -17,31 +17,9 @@ const HEADER: usize = 16;
 const PREFIX: usize = 16;
 const RANDOM: u8 = 10;
 
-/// EAGAIN must guarantee no enqueue/receive; received caps are already owned.
-pub trait Transport {
-    fn send(&mut self, endpoint: SendEndpoint, message: &Outgoing) -> Result<(), RuntimeError>;
-    fn receive(&mut self, endpoint: ReceiveEndpoint) -> Result<Received, RuntimeError>;
-    fn yield_now(&mut self) -> Result<(), RuntimeError>;
-    fn close(&mut self, handle: Handle) -> Result<(), RuntimeError>;
-}
-
 #[cfg(all(target_arch = "x86_64", target_os = "none"))]
-pub struct NativeTransport;
-#[cfg(all(target_arch = "x86_64", target_os = "none"))]
-impl Transport for NativeTransport {
-    fn send(&mut self, endpoint: SendEndpoint, message: &Outgoing) -> Result<(), RuntimeError> {
-        nieuw_os_sdk_runtime::native::send(endpoint, message)
-    }
-    fn receive(&mut self, endpoint: ReceiveEndpoint) -> Result<Received, RuntimeError> {
-        nieuw_os_sdk_runtime::native::receive(endpoint)
-    }
-    fn yield_now(&mut self) -> Result<(), RuntimeError> {
-        nieuw_os_sdk_runtime::native::yield_now()
-    }
-    fn close(&mut self, handle: Handle) -> Result<(), RuntimeError> {
-        nieuw_os_sdk_runtime::native::close(handle)
-    }
-}
+pub use nieuw_os_sdk_runtime::NativeTransport;
+pub use nieuw_os_sdk_runtime::Transport;
 
 /// Debug never formats random output. The owned current buffer is zeroized on
 /// drop, without claiming erasure of earlier transport/compiler copies.
@@ -346,6 +324,7 @@ fn decode(message: &Received, sender: u64, id: u64, length: usize) -> Option<Out
 #[cfg(test)]
 mod tests {
     use super::*;
+    use nieuw_os_sdk_runtime::Handle;
     #[test]
     fn sdk_owned_envelopes_are_zeroized_by_their_destructors() {
         fn assert_erased<T>(value: T, view: fn(&T) -> &[u8; nieuw_os_sdk_runtime::MESSAGE_SIZE]) {
