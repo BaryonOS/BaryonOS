@@ -4,8 +4,10 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
+import graphify_resume
 from graphify_resume import inspect, main
 
 
@@ -62,6 +64,43 @@ class GraphifyResumeTests(unittest.TestCase):
             r = inspect(root, expected_text=1, expected_images=0)
             self.assertTrue(all(r["final_artifacts_present"].values()))
             self.assertFalse(r["complete"])
+
+    def test_non_standard_json_numbers_are_rejected(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / ".graphify_chunk_01.json").write_text('{"nodes":[{"id":NaN}]}', encoding="utf-8")
+            result = inspect(root, expected_text=1, expected_images=0)
+            self.assertFalse(result["json_valid"])
+            self.assertIn("niet-standaard JSON-waarde", result["chunk_records"][0]["error"])
+
+    def test_unrecognized_chunk_file_is_still_json_checked(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / ".graphify_chunk_01.json").write_text('{"nodes":[]}', encoding="utf-8")
+            (root / ".graphify_chunk_18-retry.json").write_text('{"nodes":', encoding="utf-8")
+            result = inspect(root, expected_text=1, expected_images=0)
+            self.assertEqual(result["unrecognized_chunk_files"], [".graphify_chunk_18-retry.json"])
+            self.assertFalse(result["json_valid"])
+            self.assertEqual(main(["--output-dir", d, "--expected-text", "1", "--expected-images", "0"]), 1)
+
+    def test_read_error_is_recorded_instead_of_aborting(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / ".graphify_chunk_01.json").write_text('{"nodes":[]}', encoding="utf-8")
+            (root / ".graphify_chunk_02.json").write_text('{"nodes":[]}', encoding="utf-8")
+
+            def flaky(path):
+                if path.name.endswith("_01.json"):
+                    raise OSError("verdwenen tijdens scan")
+                return "0" * 64
+
+            with mock.patch.object(graphify_resume, "_sha256", flaky):
+                result = inspect(root, expected_text=2, expected_images=0)
+            self.assertEqual(result["text_chunks_found"], 2)
+            self.assertFalse(result["chunk_records"][0]["valid"])
+            self.assertIn("verdwenen", result["chunk_records"][0]["error"])
+            self.assertTrue(result["chunk_records"][1]["valid"])
+            self.assertFalse(result["json_valid"])
 
 
 if __name__ == "__main__":

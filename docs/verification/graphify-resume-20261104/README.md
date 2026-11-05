@@ -15,7 +15,8 @@
 ```bash
 cd /home/simon/projects/nieuw-os
 git fetch origin
-# Het script staat op de branch uit deze PR; eerst uit die branch ophalen of PR mergen.
+# Het script staat op de branch van deze PR: eerst die branch (of main na de merge) uitchecken.
+git switch tools/graphify-resume-checkpoints-20261104   # of: git switch main
 python3 tools/graphify_resume.py --output-dir graphify-out --expected-text 20 --expected-images 35
 python3 tools/graphify_resume.py --output-dir graphify-out --write-manifest graphify-out/resume-manifest-20261104.json
 ```

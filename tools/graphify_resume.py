@@ -24,6 +24,7 @@ FINAL_ARTIFACTS = ("graph.json", "graph.html", "GRAPH_REPORT.md")
 
 
 def _sha256(path: Path) -> str:
+    """Return the SHA-256 hex digest of a file; read in 1 MiB parts."""
     sha = hashlib.sha256()
     with path.open("rb") as stream:
         for part in iter(lambda: stream.read(1024 * 1024), b""):
@@ -31,12 +32,24 @@ def _sha256(path: Path) -> str:
     return sha.hexdigest()
 
 
+def _reject_constant(token: str) -> Any:
+    """Refuse NaN/Infinity: they are not JSON (RFC 8259), so a chunk holding them is invalid."""
+    raise ValueError(f"niet-standaard JSON-waarde geweigerd: {token}")
+
+
 def _inspect_json(path: Path) -> dict[str, Any]:
-    result: dict[str, Any] = {"name": path.name, "bytes": path.stat().st_size,
-                              "sha256": _sha256(path)}
+    """Describe one JSON file: size, hash, validity, top-level keys and list sizes.
+
+    Every read error (stat, hash, decode) is recorded on the record instead of
+    aborting the inventory, so a chunk that vanishes or is unreadable mid-scan
+    leaves an explicit invalid record and the remaining chunks are still listed.
+    """
+    result: dict[str, Any] = {"name": path.name}
     try:
+        result["bytes"] = path.stat().st_size
+        result["sha256"] = _sha256(path)
         with path.open("r", encoding="utf-8") as stream:
-            payload = json.load(stream)
+            payload = json.load(stream, parse_constant=_reject_constant)
         if not isinstance(payload, dict):
             raise ValueError("JSON-topniveau moet een object zijn")
     except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
@@ -62,7 +75,7 @@ def inspect(output_dir: Path, expected_text: int = 20, expected_images: int = 35
 
     text_groups: dict[int, list[Path]] = {}
     image_groups: dict[int, list[Path]] = {}
-    unrecognized: list[str] = []
+    unrecognized: list[Path] = []
     for path in sorted(output_dir.iterdir()):
         if not path.is_file():
             continue
@@ -74,10 +87,13 @@ def inspect(output_dir: Path, expected_text: int = 20, expected_images: int = 35
             if m:
                 image_groups.setdefault(int(m.group(1) or m.group(2)), []).append(path)
             elif "graphify" in path.name.lower() and "chunk" in path.name.lower() and path.suffix == ".json":
-                unrecognized.append(path.name)
+                unrecognized.append(path)
 
     records = [(_inspect_json(p), "text", index) for index, ps in sorted(text_groups.items()) for p in ps]
     records.extend((_inspect_json(p), "image", index) for index, ps in sorted(image_groups.items()) for p in ps)
+    # A chunk file with an unknown index is still JSON-checked, so broken
+    # content there cannot hide behind json_valid=True; its index stays None.
+    records.extend((_inspect_json(p), "unrecognized", None) for p in unrecognized)
     for rec, kind, index in records:
         rec.update({"kind": kind, "index": index})
 
@@ -107,7 +123,7 @@ def inspect(output_dir: Path, expected_text: int = 20, expected_images: int = 35
         "extra_text_indices": sorted(extra_text),
         "duplicate_text_indices": duplicate_text,
         "duplicate_image_indices": duplicate_image,
-        "unrecognized_chunk_files": unrecognized,
+        "unrecognized_chunk_files": [p.name for p in unrecognized],
         "chunk_records": [rec for rec, _, _ in records],
         "ast": ast_record if ast else "not supplied (AST output path unknown)",
         "final_artifacts_present": final_status,
@@ -124,6 +140,7 @@ def _write_new(path: Path, data: str) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """CLI entry point: print the inventory, optionally write a new manifest, return 0/1/2."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=Path("graphify-out"))
     parser.add_argument("--expected-text", type=int, default=20)
@@ -143,7 +160,19 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Tekstchunks: {result['text_chunks_found']}/{result['expected_text_chunks']}; "
           f"ontbrekende indices: {result['missing_text_indices']}")
     print(f"Afbeeldingschunks: {result['image_chunks_recognized']}/"
-          f"{result['expected_image_chunks']} herkend; naamconventie niet bevestigd")
+          f"{result['expected_image_chunks']} herkend; naamconventie niet bevestigd; "
+          f"ontbrekend bij conventionele naamgeving: {result['missing_image_indices_if_named_conventionally']}")
+    if result["unrecognized_chunk_files"]:
+        print(f"Chunkbestanden met onbekende index (wel JSON-gecontroleerd): {result['unrecognized_chunk_files']}")
+    for key, label in (("duplicate_text_indices", "Dubbele tekstindices"),
+                       ("duplicate_image_indices", "Dubbele afbeeldingsindices")):
+        for index, names in result[key].items():
+            print(f"{label}: index {index} -> {names}")
+    invalid = [rec for rec in result["chunk_records"] if not rec["valid"]]
+    if isinstance(result["ast"], dict) and not result["ast"]["valid"]:
+        invalid.append(result["ast"])
+    for rec in invalid:
+        print(f"Ongeldig JSON-bestand: {rec['name']}: {rec['error']}")
     print(f"Chunk-JSON geldig: {'ja' if result['json_valid'] else 'NEE'}")
     print("Eindproducten aanwezig: " + ", ".join(f"{k}={'ja' if v else 'nee'}"
                                                       for k, v in result['final_artifacts_present'].items()))
