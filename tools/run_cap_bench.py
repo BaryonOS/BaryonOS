@@ -12,7 +12,8 @@ import time
 import uuid
 from pathlib import Path
 
-from common import ROOT, BUILD, TARGET, environment, firmware, qemu_machine, sha256, source_hash, without_acpi_diagnostics
+from common import (ROOT, BUILD, TARGET, environment, firmware, qemu_machine, sha256, source_hash,
+                    without_acpi_diagnostics, DEVICE_EXECUTION_MARKER, EXPECTED_ACPI_MARKER)
 from run_fpu import private_path, publish_json, publish
 from run_system import check_esp
 from build_users import inspect_user
@@ -269,6 +270,10 @@ def _run(timeout, index):
     publish(run_dir / "serial.txt", stdout.encode())
     publish(run_dir / "stderr.txt", stderr.encode())
     try:
+        # A live run must carry the native ACPI pair; fixtures may omit it.
+        live = stdout.splitlines()
+        if live.count(EXPECTED_ACPI_MARKER) != 1 or live.count(DEVICE_EXECUTION_MARKER) != 1:
+            raise ValueError("Missing native ACPI boot diagnostics")
         report["observed"] = evaluate(stdout, raw, timed_out)
         bindings.attest_sources()
         bindings.attest_copies(run_dir)
