@@ -61,7 +61,7 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-05 · **Rubric:** v1 ·
-**Bron:** [`1993ade8`](https://github.com/simonvanieperen/nieuw-os/commit/1993ade830ba9fbbba1d3c0913c12977599fe0e7) ·
+**Bron:** [`486371e5`](https://github.com/simonvanieperen/nieuw-os/commit/486371e5a3790c7c1df817820ff4cc373c5fc42c) ·
 **Ontwikkelbranch:** `k06/smp-step2-percpu-ipi`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 2: eigen TSS/IST per AP, GS-anker, begrensde unicast-IPI's en quarantaine (gestapeld op #201).
 41/100 blijft 41/100. In het opt-in native-smp-profiel hebben AP's nu een eigen GDT/TSS/IST en reageren ze op begrensde gerichte IPI's; een dove AP leidt tot quarantaine van alle AP's. 11 native QEMU/TCG-gevallen, waaronder NMI/#DF op de eigen AP-IST, zijn geslaagd: zie docs/verification/k06-smp-ipi/. K06 blijft open (geen SMP-scheduler, TLB-shootdown of interrupts op de BSP). Gestapeld op #201 en #191, nog niet op main. De integration_review-velden blijven historisch PR148-bewijs.

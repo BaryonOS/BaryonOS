@@ -2,7 +2,7 @@
 
 ## NEXT AGENT HANDOFF — K06 stap 2, eigen TSS/IST en IPI's per AP — 5 november 2026
 
-**Bron:** codecommit `1993ade830ba9fbbba1d3c0913c12977599fe0e7` op
+**Bron:** `486371e5a3790c7c1df817820ff4cc373c5fc42c` (stap-2-code `1993ade8` + #201-stackfix `36703f50` + main `8bb15309`) op
 `k06/smp-step2-percpu-ipi`. Dat is gestapeld op #201
 (`k06/smp-ap-bringup`, `047acf39`), dat op #191 staat. Main is `8bb15309`.
 **41 → 41/100**; K06 blijft open. Ontwerp: ADR-071.

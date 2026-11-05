@@ -1,6 +1,6 @@
 # K06 stap 2 — eigen TSS/IST per AP en begrensde gerichte IPI's
 
-**Bron:** `1993ade830ba9fbbba1d3c0913c12977599fe0e7` op
+**Bron:** `486371e5a3790c7c1df817820ff4cc373c5fc42c` (merge met de #201-stackfix en main `8bb15309`; code van `1993ade8`) op
 `k06/smp-step2-percpu-ipi`, gestapeld op #201 (`047acf39`), dat zelf op
 #191 staat. **Datum:** 5 november 2026. **Besluit:** ADR-071.
 **Bewijsniveau:** native QEMU/TCG; geen fysieke hardware, review door AI.
@@ -44,7 +44,7 @@ Dezelfde commando's als in [stap 1](../k06-smp-bringup/README.md), nu voor
 zes profielen. Host-tests: `boot-protocol` 24, `test_smp_serial` 4
 (handgeschreven transcripts, onafhankelijk van de oracle), `test_acpi_serial`
 2, `test_rtc` 10, `test_common` 8, plus Clippy en fmt; alle exit 0.
-Regressie: `milestone-m2` slaagt met ongewijzigd `TCG/1CPU`, en
+Regressie op deze head: K05 (6/6), `milestone-m2` slaagt met ongewijzigd `TCG/1CPU`, en
 `native-rtc` slaagt in 5/5 boots.
 
 ## Review
