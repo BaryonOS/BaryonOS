@@ -469,15 +469,15 @@ class PeerMachine:
                                 recovery_segments=c.recovery_segments)
                  for port, c in self.connections.items()}
         backpressure = self.connections.get(8085)
+        # Baseline is only complete once the guest saw the real 8085 refusal.
         backpressure_complete = (
-            (backpressure is None and self.scenario == "baseline")
-            or backpressure is not None
+            backpressure is not None
             and (backpressure.phase == "refused" if self.scenario == "baseline" else
                  backpressure.closed and backpressure.data_acked and backpressure.fin_sent
                  and backpressure.ack_released and backpressure.recovery_segments > 0)
         )
         enabled = self.scenario == "loss-backpressure"
-        expected_ports = PORTS if backpressure is not None or enabled else PORTS[:-1]
+        expected_ports = PORTS
         complete = (tuple(self.connections) == expected_ports
                     and all(self.done(c) for c in self.connections.values())
                     and self.connections[8080].data_acked and self.connections[8083].data_acked

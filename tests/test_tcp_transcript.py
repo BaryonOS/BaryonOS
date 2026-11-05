@@ -17,6 +17,16 @@ def validate(peer):
     validate_transcript(peer, request_length=len(fixtures.peer.REQUEST),
                         response_length=len(fixtures.peer.RESPONSE))
 
+# Each forged mutation must fail on its own invariant, not on an unrelated check.
+REASONS = {
+    "duplicate": "precedes required server response",
+    "changed_payload": "Empty TCP payload hash changed",
+    "changed_new_data": "Changed backpressure request bytes",
+    "missing_release": "precedes required server response",
+    "missing_recovery": "Packet-derived counter differs: backpressure_recovery_segments",
+}
+
+
 def loss_backpressure_fixture(duplicates=0):
     machine = runner.peer_module.PeerMachine("loss-backpressure")
     machine.handle(fixtures.ARP)
@@ -83,10 +93,15 @@ class TranscriptTests(unittest.TestCase):
             changed = copy.deepcopy(peer)
             events = changed["events"]
             if mutation == "duplicate":
-                first = next(e for e in events if e.get("port") == 8085 and e.get("payload_length", 0) > 0)
-                duplicate = next(e for e in events if e.get("port") == 8085 and e.get("seq") == first["seq"]
-                                 and e.get("direction") == "rx" and e is not first)
-                duplicate["payload_sha256"] = "0" * 64
+                # A legal duplicate retransmission after the release, minus its re-ACK.
+                changed = loss_backpressure_fixture(1)
+                events = changed["events"]
+                release = next(i for i, e in enumerate(events) if e.get("event") == "backpressure-release-ack")
+                reack = next(i for i, e in enumerate(events) if i > release and e.get("port") == 8085
+                             and e.get("direction") == "tx" and e.get("event") == "backpressure-ack")
+                del events[reack]
+                changed["counts"]["server_frames"] -= 1
+                changed["wire_frames_sent"] = changed["counts"]["server_frames"]
             elif mutation == "changed_payload":
                 first = next(e for e in events if e.get("port") == 8085 and e.get("payload_length", 0) > 0)
                 retransmit = next(e for e in events if e.get("port") == 8085
@@ -108,8 +123,7 @@ class TranscriptTests(unittest.TestCase):
                 changed["cases"]["8085"]["recovery_segments"] = 0
             for index, event in enumerate(changed["events"], 1):
                 event["sequence"] = index
-            # A dropped release must fail on causal order, not only on final totals.
-            reason = "precedes required server response" if mutation == "missing_release" else ""
+            reason = REASONS[mutation]
             with self.subTest(mutation=mutation), self.assertRaisesRegex(ValueError, reason):
                 validate_transcript(changed, request_length=len(fixtures.peer.REQUEST),
                                     response_length=len(fixtures.peer.RESPONSE),

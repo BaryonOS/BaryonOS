@@ -261,6 +261,8 @@ class ConversationTests(unittest.TestCase):
         self.assertEqual(connect(machine, 8084), [])
         self.assertEqual(machine.handle(client(8084, options=b"\x02\x04\x05\xb4"), 4), [])
         self.assertEqual(machine.handle(client(8084, flags=peer.RST, seq=0xfffffff1), 5), [])
+        # Baseline is incomplete until the guest has seen the real 8085 refusal.
+        self.assertFalse(machine.summary()["complete"])
         disabled = connect(machine, 8085)
         self.assertEqual(server(disabled[0])["flags"], peer.RST | peer.ACK)
         result = machine.summary()

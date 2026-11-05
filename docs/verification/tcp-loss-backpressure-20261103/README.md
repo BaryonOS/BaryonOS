@@ -1,5 +1,18 @@
 # TCP loss/backpressure native probe receipt
 
+> **Samenvatting (NL, integrator 5 november 2026).** Deze opt-in-proef laat de testpeer de
+> data-ACK voor een begrensd verzoek van 8192 bytes tijdelijk achterhouden. Daarbij moet de
+> guest aantonen dat `send()` nul bytes accepteert. De peer controleert of de overlappende
+> retransmissie dezelfde verzoekbytes bevat, geeft daarna de cumulatieve ACK vrij en
+> verifieert herstel en nette afsluiting. TCP mag een herhaalde verzending anders
+> segmenteren dan het origineel. De peer vergelijkt daarom bytes per sequentiepositie, niet
+> pakketgrenzen. Bron: RFC 9293, "Transmission Control Protocol (TCP)", IETF, augustus 2022,
+> https://www.rfc-editor.org/rfc/rfc9293 (§3.8.1 Retransmission Timeout, §3.10.7.4
+> segmentverwerking). Na de integratorfix `8626e0a7` (maximaal 2 identieke duplicaten na de
+> vrijgave, strikte causaliteit, baselinegrens van 1024 bytes) is het native bewijs
+> hieronder, vastgelegd op de oude bronboom, voor de nieuwe boom **onbekend**. De Engelse
+> tekst hieronder is het oorspronkelijke receipt en is ongewijzigd.
+
 ## Scope and proof boundary
 
 Task: `GENERAL-N01-RETRANS-BACKPRESSURE`. Source base: `d10b5cdaf56774a39e3ef10463f674c6188a463a`; branch: `general-n01-retrans-backpressure`. The gate's source fingerprint is `64fd2283cedc6960c2ac70cd397cdfa70064e79a0141b1478e7eb12e7cbb2cc0`.
