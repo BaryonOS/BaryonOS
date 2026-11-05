@@ -227,8 +227,11 @@ fn run() -> ! {
                                 .ok()
                                 .filter(|slot| *slot < 2)
                                 .unwrap_or_else(|| fail(18));
-                            service.revoke(slot, tick).unwrap_or_else(|_| fail(31));
-                            revoked_at = tick.max(1);
+                            // Sampled after the receive: the loop-top tick may
+                            // predate the policy's send after a preemption.
+                            let handled = now();
+                            service.revoke(slot, handled).unwrap_or_else(|_| fail(31));
+                            revoked_at = handled.max(1);
                         }
                         _ => fail(18),
                     }

@@ -308,6 +308,13 @@ fn revoked(session: &mut Session<NativeTransport>) -> ! {
         }
         yield_now();
     }
+    // SendTcp only queued the bytes; give the service time to put them on the
+    // wire so the revocation hits a held connection, not a pending send.
+    // shortcut: fixed 10-tick settle, upgrade to a send-queue-empty state if one is added.
+    let queued = tick();
+    while tick() - queued < 10 {
+        yield_now();
+    }
     // Live and idle: the peer holds the response. Ask for the revocation.
     support::put(544, 1);
     let ready = tick();
