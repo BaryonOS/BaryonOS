@@ -31,8 +31,10 @@ CASES = {
     "ap-double-fault-ist": ("test-smp-ap-double-fault", 4, "multi", "df-ist"),
     "ap-shootdown-deaf": ("test-smp-ap-shootdown-deaf", 4, "multi", "shootdown-quarantine"),
     "shootdown-skipped-control": ("test-smp-shootdown-skipped", 4, "multi", "stale-control"),
+    "ap-timer-dead": ("test-smp-ap-timer-dead", 4, "multi", "timer-quarantine"),
 }
-QUARANTINE_OUTCOMES = ("invalid-madt", "timeout", "mismatch", "quarantine", "shootdown-quarantine")
+QUARANTINE_OUTCOMES = ("invalid-madt", "timeout", "mismatch", "quarantine", "shootdown-quarantine",
+                       "timer-quarantine")
 TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_IST:PASS"}
 
 
@@ -64,6 +66,7 @@ def expected_smp(case: str) -> list[str]:
                 f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={online}",
                 f"SMP:SHOOTDOWN:PASS:CPUS={online}",
                 f"SMP:SHOOTDOWN:VISIBLE:CPUS={online}",
+                f"SMP:PREEMPT:PASS:CPUS={online}",
                 f"SMP:PARKED:APS={online - 1}"]
 
     if outcome in ("timeout", "mismatch"):
@@ -83,10 +86,15 @@ def expected_smp(case: str) -> list[str]:
         return lines + [ipi_pass, "SMP:SHOOTDOWN:TIMEOUT:APIC=1",
                         "SMP:SHOOTDOWN:FRAME_QUARANTINED",
                         f"SMP:QUARANTINED:APS={started - 1}", f"SMP:ONLINE:1/{cpus}"]
+    if outcome == "timer-quarantine":
+        return lines + [ipi_pass, f"SMP:SHOOTDOWN:PASS:CPUS={started}",
+                        f"SMP:SHOOTDOWN:VISIBLE:CPUS={started}", "SMP:PREEMPT:TIMEOUT:APIC=1",
+                        f"SMP:QUARANTINED:APS={started - 1}", f"SMP:ONLINE:1/{cpus}"]
     if outcome == "stale-control":
         # Without the shootdown every AP must still reach the reclaimed frame.
         return lines + [ipi_pass, "SMP:SHOOTDOWN:SKIPPED",
                         f"SMP:SHOOTDOWN:STALE:APS={started - 1}",
+                        f"SMP:PREEMPT:PASS:CPUS={started}",
                         f"SMP:PARKED:APS={started - 1}"]
     if outcome == "quarantine":
         return lines + ["SMP:IPI:TIMEOUT:APIC=1", f"SMP:QUARANTINED:APS={started - 1}",
