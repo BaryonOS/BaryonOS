@@ -42,7 +42,10 @@ fn usage_and_cell_errors_have_no_success_shaped_output() {
 #[test]
 fn error_messages_show_a1_addresses_without_internal_debug_coordinates() {
     for (args, expected) in [
-        (vec!["--set", "A1", "=A1+1", "--get", "A1"], "Cel A1: circulaire celverwijzing"),
+        (
+            vec!["--set", "A1", "=A1+1", "--get", "A1"],
+            "Cel A1: circulaire celverwijzing",
+        ),
         (vec!["--get", "B1"], "Cel B1: verwezen cel ontbreekt"),
         (vec!["--get", "a1"], "Ongeldig adres 'a1'"),
     ] {

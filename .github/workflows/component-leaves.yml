@@ -48,6 +48,30 @@ jobs:
           - component: materiaal-ui
             manifest: ui/native/Cargo.toml
             toolchain: "1.90.0"
+          - component: document-import
+            manifest: sdk/examples/document-import/Cargo.toml
+            toolchain: "1.90.0"
+          - component: document-export
+            manifest: sdk/examples/document-export/Cargo.toml
+            toolchain: "1.90.0"
+          - component: image-crop
+            manifest: sdk/examples/image-crop/Cargo.toml
+            toolchain: "1.90.0"
+          - component: image-export
+            manifest: sdk/examples/image-export/Cargo.toml
+            toolchain: "1.90.0"
+          - component: audio-clip
+            manifest: sdk/examples/audio-clip/Cargo.toml
+            toolchain: "1.90.0"
+          - component: presentation
+            manifest: sdk/examples/presentation/Cargo.toml
+            toolchain: "1.90.0"
+          - component: spreadsheet
+            manifest: sdk/examples/spreadsheet/Cargo.toml
+            toolchain: "1.90.0"
+          - component: table-editor
+            manifest: sdk/examples/table-editor/Cargo.toml
+            toolchain: "1.90.0"
           - component: net-config
             manifest: services/net-config/Cargo.toml
             toolchain: "1.91.1"
