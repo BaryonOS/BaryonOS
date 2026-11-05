@@ -1,5 +1,88 @@
 # Ontwerpbesluiten
 
+## ADR-070 — Begrensde AP-opstart als eerste K06-stap
+
+5 november 2026. De kernel start applicatieprocessoren (AP's) uitsluitend in
+het opt-in M2-profiel `native-smp`, met IF=0. Dat profiel sluit bij
+compilatie M3, framebuffer, native-rtc en graphics-g0 uit. Alle bestaande
+één-CPU-invarianten (ADR-024 scratchslot, frame-allocator, paging, serieel,
+IPC, scheduler) blijven onveranderd geldig, omdat AP's die code nooit
+uitvoeren. De BSP is de enige eigenaar van frames, paging, PIT, ICR en
+seriële uitvoer.
+
+**Ontwerp.** De MADT is onbetrouwbare firmware-invoer. Alleen ingeschakelde,
+unieke processors tellen mee (maximaal 32). Een kapotte, dubbele of te grote
+MADT maakt alleen SMP ongeldig, niet de MCFG/DMAR-inventaris.
+IA32_APIC_BASE moet xAPIC-modus, ingeschakeld en BSP aangeven en gelijk zijn
+aan de MADT-basis. Alleen die exacte pagina krijgt een UC/NX-mapping, die
+`audit` net als het framebuffervenster afzonderlijk controleert.
+De SIPI-pagina is het eerste vrije ConventionalMemory-frame onder 0xA0000:
+permanent Kernel-eigendom, één keer geschreven vóór de CR3-wissel en nooit in
+onze tabellen gemapt. Zij bevat alleen 16-bitcode en een CR3-veld. De 32/64-bit-
+stap, de trampoline-GDT en AP-stacks van 16 KiB met guardpagina's staan in het
+identity-gemapte kernelimage. W^X verandert dus niet.
+
+**Gelijktijdigheid.** Een AP kiest zijn context op hardware-APIC-ID en claimt
+die met één `lock cmpxchg` STARTING→CLAIMED. Bij een time-out pakt de BSP
+dezelfde CAS STARTING→ABANDONED en reset de CPU met INIT. Een late AP draait
+dus nooit op een opgegeven stack. Iedere fout stopt verdere opstart, zonder
+paniek: het systeem blijft met de reeds gestarte CPU's werken. Kan een
+gefaalde AP niet met INIT worden gereset, dan stopt de boot als fout: er
+draait nooit een onbeheerste CPU naast de kernel. Een CPU-exception op een
+AP komt in de gedeelde M2-handlers en stopt de VM terminaal. Een MADT-
+leesfout maakt eveneens alleen de MADT ongeldig. Een AP neemt
+CR0/CR3/CR4/EFER/PAT van de BSP exact over en controleert die. Daarna voert
+hij een begrensde atomic-plus-spinlocktest uit en parkeert met `cli; hlt`.
+
+**Bewijsgrens.** QEMU q35/OVMF/TCG met 1–9 vCPU's plus negatieve gevallen;
+zie `docs/verification/k06-smp-bringup/`. Dit is geen SMP-scheduling, geen
+IPI/TLB-shootdown en geen per-CPU TSS/IST: een NMI of #DF op een AP stopt de
+VM. Fysieke hardware is niet getest en K06 is niet geaccepteerd.
+**Herzien** vóórdat een AP kernelsubsystemen, gebruikersprocessen of
+interrupts uitvoert. Dan zijn per-CPU-staat, TSS/IST, lockvolgorde,
+TLB-shootdown en de herziening van ADR-024 verplicht.
+
+**Status:** geaccepteerd als opt-in bringupprofiel (`native-smp`), niet als
+productprofiel; K06 blijft open.
+
+**Alternatieven overwogen.**
+- x2APIC-modus: uitgesteld. xAPIC-MMIO dekt het q35-profiel en firmware in
+  x2APIC-modus valt gesloten terug naar één CPU.
+- Een trampoline volledig in de lage pagina (ook 32/64-bit): verworpen. Die
+  pagina zou een uitvoerbare mapping in de kerneltabellen nodig hebben,
+  terwijl de huidige vorm haar nooit mapt (W^X ongewijzigd).
+- De LAPIC-basis uit de MADT halen: verworpen. De basis komt uitsluitend uit
+  IA32_APIC_BASE; de MADT-waarde wordt alleen vergeleken (onbetrouwbare
+  firmware-invoer).
+- Een broadcast INIT/SIPI ("all excluding self"): verworpen. Die bereikt
+  ook CPU's buiten de MADT of buiten de capaciteit, en geeft geen
+  per-CPU-time-out of quarantaine.
+
+**Primaire bronnen.**
+- Intel SDM Vol. 3A, §9.4 (MP-initialisatieprotocol, INIT-SIPI-SIPI en de
+  bijbehorende wachttijden) en §11.6 (ICR, delivery modes, SIPI-vector als
+  paginanummer onder 1 MiB).
+- Intel SDM Vol. 3A, §11.4 (IA32_APIC_BASE: BSP-, EN- en EXTD-vlaggen).
+- ACPI 6.5, §5.2.12 (MADT, structuurtypen en -lengtes, Enabled en Online
+  Capable, waarbij Online Capable gereserveerd-nul is als Enabled gezet is)
+  en §5.2.12.8 (Local APIC Address Override).
+- Vindplaatsen: *Intel® 64 and IA-32 Architectures Software Developer's
+  Manual*, Volume 3A (Intel Corporation; actuele editie,
+  https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html),
+  voor INIT-SIPI-SIPI, ICR en IA32_APIC_BASE (xAPIC/x2APIC-vlaggen),
+  MTRR/PAT en XCR0. *Advanced Configuration and Power Interface (ACPI)
+  Specification*, versie 6.5 (UEFI Forum, augustus 2022,
+  https://uefi.org/specs/ACPI/6.5/), §5.2.12 voor de MADT. *UEFI
+  Specification* 2.10 (UEFI Forum, https://uefi.org/specifications) voor
+  het geheugenmodel bij overdracht. De identity-map onder 1 MiB is
+  geverifieerd OVMF-gedrag en geen UEFI-garantie; daarom staat ze in de
+  bewijsgrens als open punt.
+- Lokaal OSDev-snapshot W003259 (MADT), uitsluitend als routekaart.
+- De SDM-hoofdstuknummers volgen recente edities. In oudere edities heten
+  dezelfde secties §8.4 (MP-initialisatie) en §10.4/§10.6 (APIC); zoek
+  bij twijfel op de sectietitel.
+
+**Uitgevoerd testbewijs:** `docs/verification/k06-smp-bringup/README.md`.
 ## ADR-SESSION-20261102 — herkenbare bediening en expliciete VM-sessiegrens
 
 De huidige gebruikersopdracht kiest herkenbare sessie-, zoek-, status- en

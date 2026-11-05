@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-05",
-    "source_commit": "bce6cabc71184d90fc228fe2ae8215339ff7bf28",
+    "source_commit": "cd78ea74f14d8b8921aad51cc46a41c41274ab45",
     "assessment_basis": "source_commit",
     "reviewed_commit": "cc1dea7eeeae01448a378ee422837b0438ecc7b5",
     "reviewed_commit_context": "Historische review van de PR148-documentatiestatus en reikwijdte van hostbewijs; geen integratiereview.",
@@ -15,10 +15,10 @@
       "evidence_basis": "Git-mergeouders en handoff in docs/PROJECT-STATE.md; gerichte integratietests zijn daar gemeld met uitvoer uitsluitend in het sessietranscript. De eerdere PR148-hostreceipts zijn geen integratiereviewbewijs.",
       "missing_evidence": "Afzonderlijk, brongebonden bewijs van de integratiereview ontbreekt; nieuwe-head CI en review moeten nog worden beoordeeld."
     },
-    "branch": "integrate/20261105-session-library",
-    "task": "Integratie #206: sessie-/bibliotheekstack uit #135/#147 zonder verlaten volume-admissieontwerp; #205 volume-overflowfix",
+    "branch": "k06/smp-ap-bringup",
+    "task": "K06 stap 1: native AP-opstart; conflictintegratie met main en device-exec/ACPI-handoff op PR #200",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Geïntegreerd: native Materiaal-bibliotheek, sessieshell, document-session-volume-uitbreiding en de kernelfeature native-session-route (#206), plus de volume-overflowfix (#205). De claim U03 41→44 uit het branchbewijs materiaal-library-20261102 (gebonden aan 64044318) wordt op main niet overgenomen. U03 blijft open totdat de native bibliotheekgates op de main-merge groen zijn en de eigenaar acceptatie volgens de rubric bevestigt. Geen menselijke of fysieke acceptatie."
+    "summary": "41/100 blijft 41/100. De K06 native-smp implementatie en eerder opgeslagen QEMU/TCG-bewijs blijven ongewijzigd. PR-head cd78ea74 is geïntegreerd met base main 7dd91fad en de device-exec/ACPI-handoff-head; drie statusconflicten zijn opgelost. Gerichte hosttests, driver-Clippy/fmt/freestanding builds, kernel native-smp build en progress-consistentiecheck slaagden. CodeQL op de eerste mergecommit c014b17d vond geen Actions/Python-alerts maar liep af vóór alle talen klaar waren; de geresynchroniseerde head is niet volledig gescand. Nieuwe-head hosted CI en native K06-QEMU op de geïntegreerde head blijven open. Geen criterium of gewicht gewijzigd; K06 blijft open. De integration_review-velden blijven historisch PR148-bewijs."
   },
   "tracks": [
     {

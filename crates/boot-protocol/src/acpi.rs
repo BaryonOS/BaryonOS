@@ -12,6 +12,9 @@ pub const HANDOFF_VERSION: u16 = 1;
 pub const MAX_TABLE_SIZE: usize = 4096;
 pub const MAX_MCFG_REGIONS: usize = 32;
 pub const MAX_DMAR_UNITS: usize = 16;
+/// Enabled processor entries retained from one MADT; more fails the MADT closed.
+pub const MAX_MADT_CPUS: usize = 32;
+const MADT_FIXED_SIZE: usize = 44;
 const ACPI_HEADER_SIZE: usize = 36;
 
 const SOURCE_NONE: u8 = 0;
@@ -116,6 +119,7 @@ pub enum Error {
     DuplicateTable,
     Mcfg,
     Dmar,
+    Madt,
     Capacity,
 }
 
@@ -157,6 +161,69 @@ const EMPTY_DMAR: DmarUnit = DmarUnit {
     include_all: false,
 };
 
+/// One enabled processor from the MADT. `apic_id` is the 8-bit xAPIC ID for
+/// type-0 entries and the 32-bit x2APIC ID for type-9 entries.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct MadtCpu {
+    pub apic_id: u32,
+    pub uid: u32,
+    pub x2apic: bool,
+}
+
+const EMPTY_CPU: MadtCpu = MadtCpu {
+    apic_id: 0,
+    uid: 0,
+    x2apic: false,
+};
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum MadtStatus {
+    Missing,
+    /// Malformed, duplicate or over-capacity MADT. SMP stays unavailable; the
+    /// other ACPI inventory is independent of this failure.
+    Invalid,
+    Valid,
+}
+
+/// Processor inventory only. Nothing here starts a processor or grants an
+/// interrupt route; the kernel revalidates the base against IA32_APIC_BASE.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Madt {
+    pub status: MadtStatus,
+    pub local_apic_base: u64,
+    pub pcat_compat: bool,
+    pub cpus: [MadtCpu; MAX_MADT_CPUS],
+    pub cpu_count: u8,
+    /// Disabled but online-capable (hot-add) entries; never started at boot.
+    pub online_capable: u8,
+    /// Disabled entries that are not online-capable.
+    pub disabled: u8,
+    pub io_apic_count: u8,
+}
+
+impl Madt {
+    const fn unavailable(status: MadtStatus) -> Self {
+        Self {
+            status,
+            local_apic_base: 0,
+            pcat_compat: false,
+            cpus: [EMPTY_CPU; MAX_MADT_CPUS],
+            cpu_count: 0,
+            online_capable: 0,
+            disabled: 0,
+            io_apic_count: 0,
+        }
+    }
+
+    pub fn cpus(&self) -> &[MadtCpu] {
+        if self.status == MadtStatus::Valid {
+            &self.cpus[..usize::from(self.cpu_count)]
+        } else {
+            &[]
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Discovery {
     pub availability: Availability,
@@ -164,6 +231,7 @@ pub struct Discovery {
     pub mcfg_count: u8,
     pub dmar: [DmarUnit; MAX_DMAR_UNITS],
     pub dmar_count: u8,
+    pub madt: Madt,
 }
 
 impl Discovery {
@@ -174,12 +242,50 @@ impl Discovery {
             mcfg_count: 0,
             dmar: [EMPTY_DMAR; MAX_DMAR_UNITS],
             dmar_count: 0,
+            madt: Madt::unavailable(MadtStatus::Missing),
         }
     }
 
     /// ACPI discovery is only inventory; no IOMMU is enabled by this interface.
     pub const fn dma_execution_allowed(self) -> bool {
         false
+    }
+
+    /// In-place equivalent of `empty`: every count gates its array, so no
+    /// stale entry stays observable and no large temporary is built.
+    fn reset(&mut self, availability: Availability) {
+        self.availability = availability;
+        self.mcfg_count = 0;
+        self.dmar_count = 0;
+        self.madt.status = MadtStatus::Missing;
+        self.madt.cpu_count = 0;
+        self.madt.online_capable = 0;
+        self.madt.disabled = 0;
+        self.madt.io_apic_count = 0;
+        self.madt.local_apic_base = 0;
+        self.madt.pcat_compat = false;
+    }
+}
+
+/// Caller-owned table buffers (8 KiB). The kernel keeps one in static
+/// bootstrap memory so discovery never puts them on its 16-KiB stack.
+pub struct Scratch {
+    root: [u8; MAX_TABLE_SIZE],
+    table: [u8; MAX_TABLE_SIZE],
+}
+
+impl Scratch {
+    pub const fn new() -> Self {
+        Self {
+            root: [0; MAX_TABLE_SIZE],
+            table: [0; MAX_TABLE_SIZE],
+        }
+    }
+}
+
+impl Default for Scratch {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -189,19 +295,42 @@ pub trait PhysicalRead {
     fn read(&mut self, address: u64, output: &mut [u8]) -> Result<(), Error>;
 }
 
-/// Discover bounded MCFG and DMAR descriptors. All tables are checksummed,
-/// length-limited, and read through `PhysicalRead`; unknown root entries are
-/// ignored after validating their address shape.
+/// Discover bounded MCFG and DMAR descriptors plus the MADT processor
+/// inventory. All tables are checksummed, length-limited, and read through
+/// `PhysicalRead`; unknown root entries are ignored after validating their
+/// address shape. MADT content errors only mark `madt` invalid.
 pub fn discover(handoff: &AcpiHandoff, reader: &mut impl PhysicalRead) -> Discovery {
-    let rsdp = match handoff.validate() {
-        Ok(Some(rsdp)) => rsdp,
-        Ok(None) => return Discovery::empty(Availability::MissingHandoff),
-        Err(_) => return Discovery::empty(Availability::RejectedHandoff),
-    };
-    discover_tables(rsdp, reader).unwrap_or_else(|_| Discovery::empty(Availability::InvalidTables))
+    let mut scratch = Scratch::new();
+    let mut result = Discovery::empty(Availability::InvalidTables);
+    discover_into(handoff, reader, &mut scratch, &mut result);
+    result
 }
 
-fn discover_tables(rsdp: &[u8], reader: &mut impl PhysicalRead) -> Result<Discovery, Error> {
+/// `discover` with caller-provided scratch and result, for small stacks.
+pub fn discover_into(
+    handoff: &AcpiHandoff,
+    reader: &mut impl PhysicalRead,
+    scratch: &mut Scratch,
+    result: &mut Discovery,
+) {
+    match handoff.validate() {
+        Ok(Some(rsdp)) => {
+            result.reset(Availability::InvalidTables);
+            if discover_tables(rsdp, reader, scratch, result).is_err() {
+                result.reset(Availability::InvalidTables);
+            }
+        }
+        Ok(None) => result.reset(Availability::MissingHandoff),
+        Err(_) => result.reset(Availability::RejectedHandoff),
+    }
+}
+
+fn discover_tables(
+    rsdp: &[u8],
+    reader: &mut impl PhysicalRead,
+    scratch: &mut Scratch,
+    result: &mut Discovery,
+) -> Result<(), Error> {
     let root_address = parse_rsdp(rsdp)?;
     let mut root_header = [0u8; ACPI_HEADER_SIZE];
     reader
@@ -220,21 +349,21 @@ fn discover_tables(rsdp: &[u8], reader: &mut impl PhysicalRead) -> Result<Discov
     {
         return Err(Error::RootShape);
     }
-    let mut root = [0u8; MAX_TABLE_SIZE];
+    let Scratch { root, table } = scratch;
     reader
         .read(root_address, &mut root[..root_length])
         .map_err(|_| Error::Read)?;
     validate_table(&root[..root_length], root_signature)?;
 
-    let mut result = Discovery::empty(Availability::InvalidTables);
     let mut saw_mcfg = false;
     let mut saw_dmar = false;
+    let mut saw_madt = false;
     let mut offset = ACPI_HEADER_SIZE;
     while offset < root_length {
         let address = if entry_size == 8 {
-            read_u64(&root, offset)?
+            read_u64(&root[..], offset)?
         } else {
-            u64::from(read_u32(&root, offset)?)
+            u64::from(read_u32(&root[..], offset)?)
         };
         if address == 0 || !address.is_multiple_of(entry_size as u64) {
             return Err(Error::Address);
@@ -251,12 +380,11 @@ fn discover_tables(rsdp: &[u8], reader: &mut impl PhysicalRead) -> Result<Discov
             if length > MAX_TABLE_SIZE {
                 return Err(Error::TableLength);
             }
-            let mut table = [0u8; MAX_TABLE_SIZE];
             reader
                 .read(address, &mut table[..length])
                 .map_err(|_| Error::Read)?;
             validate_table(&table[..length], b"MCFG")?;
-            parse_mcfg(&table[..length], &mut result)?;
+            parse_mcfg(&table[..length], result)?;
         } else if signature == b"DMAR" {
             if saw_dmar {
                 return Err(Error::DuplicateTable);
@@ -266,12 +394,33 @@ fn discover_tables(rsdp: &[u8], reader: &mut impl PhysicalRead) -> Result<Discov
             if length > MAX_TABLE_SIZE {
                 return Err(Error::TableLength);
             }
-            let mut table = [0u8; MAX_TABLE_SIZE];
             reader
                 .read(address, &mut table[..length])
                 .map_err(|_| Error::Read)?;
             validate_table(&table[..length], b"DMAR")?;
-            parse_dmar(&table[..length], &mut result)?;
+            parse_dmar(&table[..length], result)?;
+        } else if signature == b"APIC" {
+            // A second MADT is ambiguous: fail SMP closed, keep other inventory.
+            // Parsed in place: no Madt temporaries on the 16-KiB kernel stack.
+            let parsed = if saw_madt {
+                Err(Error::DuplicateTable)
+            } else {
+                saw_madt = true;
+                match table_length(&header) {
+                    // Even a rejected read only invalidates the MADT: MCFG/DMAR
+                    // discovery must not depend on the optional SMP inventory.
+                    Ok(length) => reader
+                        .read(address, &mut table[..length])
+                        .map_err(|_| Error::Read)
+                        .and_then(|()| validate_table(&table[..length], b"APIC"))
+                        .and_then(|()| parse_madt(&table[..length], &mut result.madt)),
+                    Err(error) => Err(error),
+                }
+            };
+            if parsed.is_err() {
+                result.madt.status = MadtStatus::Invalid;
+                result.madt.cpu_count = 0;
+            }
         }
         offset += entry_size;
     }
@@ -284,7 +433,7 @@ fn discover_tables(rsdp: &[u8], reader: &mut impl PhysicalRead) -> Result<Discov
     } else {
         Availability::DiscoveryComplete
     };
-    Ok(result)
+    Ok(())
 }
 
 fn parse_rsdp(rsdp: &[u8]) -> Result<u64, Error> {
@@ -442,6 +591,128 @@ fn parse_dmar(table: &[u8], result: &mut Discovery) -> Result<(), Error> {
     Ok(())
 }
 
+const MADT_LOCAL_APIC: u8 = 0;
+const MADT_IO_APIC: u8 = 1;
+const MADT_LOCAL_APIC_OVERRIDE: u8 = 5;
+const MADT_LOCAL_X2APIC: u8 = 9;
+const MADT_ENABLED: u32 = 1;
+const MADT_ONLINE_CAPABLE: u32 = 2;
+
+/// ACPI 6.5 section 5.2.12. Only interpreted structures need an exact length;
+/// every structure must be at least two bytes and lie wholly inside the table.
+/// Unknown/OEM structures are skipped. Reserved MADT and processor flag bits
+/// are ignored because they do not change which processors are started.
+///
+/// Writes into `madt` in place (it stays `Invalid` until fully accepted) so
+/// that no copy of the processor array lives on the kernel stack.
+fn parse_madt(table: &[u8], madt: &mut Madt) -> Result<(), Error> {
+    madt.status = MadtStatus::Invalid;
+    madt.cpu_count = 0;
+    madt.online_capable = 0;
+    madt.disabled = 0;
+    madt.io_apic_count = 0;
+    madt.local_apic_base = 0;
+    if table.len() < MADT_FIXED_SIZE {
+        return Err(Error::Madt);
+    }
+    madt.pcat_compat = read_u32(table, 40)? & 1 != 0;
+    let mut base = u64::from(read_u32(table, 36)?);
+    let mut saw_override = false;
+    let mut offset = MADT_FIXED_SIZE;
+    while offset < table.len() {
+        let kind = table[offset];
+        let length = usize::from(*table.get(offset + 1).ok_or(Error::Madt)?);
+        let end = offset.checked_add(length).ok_or(Error::Madt)?;
+        if length < 2 || end > table.len() {
+            return Err(Error::Madt);
+        }
+        let entry = &table[offset..end];
+        let processor = match kind {
+            MADT_LOCAL_APIC => {
+                if length != 8 {
+                    return Err(Error::Madt);
+                }
+                let apic_id = u32::from(entry[3]);
+                // 0xff is the xAPIC broadcast destination, never one CPU.
+                Some((
+                    apic_id,
+                    u32::from(entry[2]),
+                    read_u32(entry, 4)?,
+                    false,
+                    0xff,
+                ))
+            }
+            MADT_LOCAL_X2APIC => {
+                if length != 16 {
+                    return Err(Error::Madt);
+                }
+                let apic_id = read_u32(entry, 4)?;
+                Some((
+                    apic_id,
+                    read_u32(entry, 12)?,
+                    read_u32(entry, 8)?,
+                    true,
+                    u32::MAX,
+                ))
+            }
+            MADT_IO_APIC => {
+                if length != 12 {
+                    return Err(Error::Madt);
+                }
+                madt.io_apic_count = madt.io_apic_count.checked_add(1).ok_or(Error::Madt)?;
+                None
+            }
+            MADT_LOCAL_APIC_OVERRIDE => {
+                if length != 12 || saw_override {
+                    return Err(Error::Madt);
+                }
+                saw_override = true;
+                base = read_u64(entry, 4)?;
+                None
+            }
+            _ => None,
+        };
+        if let Some((apic_id, uid, flags, x2apic, broadcast)) = processor {
+            let enabled = flags & MADT_ENABLED != 0;
+            let online_capable = flags & MADT_ONLINE_CAPABLE != 0;
+            if enabled && online_capable {
+                // ACPI 6.3+: Online Capable is reserved-zero when Enabled is set.
+                return Err(Error::Madt);
+            }
+            if enabled {
+                if apic_id == broadcast
+                    || madt.cpus[..usize::from(madt.cpu_count)]
+                        .iter()
+                        .any(|cpu| cpu.apic_id == apic_id)
+                {
+                    return Err(Error::Madt);
+                }
+                let index = usize::from(madt.cpu_count);
+                if index == MAX_MADT_CPUS {
+                    return Err(Error::Capacity);
+                }
+                madt.cpus[index] = MadtCpu {
+                    apic_id,
+                    uid,
+                    x2apic,
+                };
+                madt.cpu_count += 1;
+            } else if online_capable {
+                madt.online_capable = madt.online_capable.checked_add(1).ok_or(Error::Madt)?;
+            } else {
+                madt.disabled = madt.disabled.checked_add(1).ok_or(Error::Madt)?;
+            }
+        }
+        offset = end;
+    }
+    if base == 0 || !base.is_multiple_of(PAGE_SIZE) || base >= (1 << 52) || madt.cpu_count == 0 {
+        return Err(Error::Madt);
+    }
+    madt.local_apic_base = base;
+    madt.status = MadtStatus::Valid;
+    Ok(())
+}
+
 fn table_length(header: &[u8; ACPI_HEADER_SIZE]) -> Result<usize, Error> {
     let length = usize::try_from(read_u32(header, 4)?).map_err(|_| Error::TableLength)?;
     if !(ACPI_HEADER_SIZE..=MAX_TABLE_SIZE).contains(&length) {
@@ -496,6 +767,14 @@ mod tests {
 
     use super::*;
     use std::{vec, vec::Vec};
+
+    /// Owned-result form of `discover_tables` for the RSDP-level tests:
+    /// fresh scratch and result per call, so no state carries over.
+    fn owned_tables(rsdp: &[u8], reader: &mut impl PhysicalRead) -> Result<Discovery, Error> {
+        let mut scratch = Scratch::new();
+        let mut result = Discovery::empty(Availability::InvalidTables);
+        discover_tables(rsdp, reader, &mut scratch, &mut result).map(|()| result)
+    }
 
     struct Fixture {
         tables: Vec<(u64, Vec<u8>)>,
@@ -690,14 +969,14 @@ mod tests {
         fixture.tables[0].1.push(0);
         set_length_and_checksum(&mut fixture.tables[0].1);
         assert_eq!(
-            discover_tables(&rsdp, &mut fixture).err(),
+            owned_tables(&rsdp, &mut fixture).err(),
             Some(Error::RootShape)
         );
 
         let (_, mut fixture) = valid_fixture(true);
         fixture.tables[1].1[4..8].copy_from_slice(&35u32.to_le_bytes());
         assert_eq!(
-            discover_tables(&rsdp, &mut fixture).err(),
+            owned_tables(&rsdp, &mut fixture).err(),
             Some(Error::TableLength)
         );
 
@@ -707,7 +986,7 @@ mod tests {
             .extend_from_slice(&0x2000u64.to_le_bytes());
         set_length_and_checksum(&mut fixture.tables[0].1);
         assert_eq!(
-            discover_tables(&rsdp, &mut fixture).err(),
+            owned_tables(&rsdp, &mut fixture).err(),
             Some(Error::DuplicateTable)
         );
 
@@ -725,14 +1004,14 @@ mod tests {
 
         let (_, mut fixture) = valid_fixture(false);
         fixture.tables[0].1 = table(b"RSDT", &0x2000u32.to_le_bytes());
-        let discovered = discover_tables(&rsdp, &mut fixture).unwrap();
+        let discovered = owned_tables(&rsdp, &mut fixture).unwrap();
         assert_eq!(discovered.availability, Availability::MissingDmar);
         assert_eq!(discovered.mcfg_count, 1);
 
         fixture.tables[0].1.extend_from_slice(&[0; 2]);
         set_length_and_checksum(&mut fixture.tables[0].1);
         assert_eq!(
-            discover_tables(&rsdp, &mut fixture).err(),
+            owned_tables(&rsdp, &mut fixture).err(),
             Some(Error::RootShape)
         );
     }
@@ -744,7 +1023,7 @@ mod tests {
             let (_, mut fixture) = valid_fixture(true);
             patch(&mut fixture.tables[2].1);
             checksum_byte(&mut fixture.tables[2].1, 9);
-            discover_tables(&rsdp, &mut fixture)
+            owned_tables(&rsdp, &mut fixture)
         };
         // DMA_CTRL_PLATFORM_OPT_IN (bit 2) and a 2^3-page register set are valid.
         let ok = with(&|t| {
@@ -778,6 +1057,308 @@ mod tests {
         assert_eq!(
             discover(&handoff, &mut fixture).availability,
             Availability::RejectedHandoff
+        );
+    }
+
+    fn lapic(uid: u8, apic_id: u8, flags: u32) -> Vec<u8> {
+        let mut entry = vec![MADT_LOCAL_APIC, 8, uid, apic_id];
+        entry.extend_from_slice(&flags.to_le_bytes());
+        entry
+    }
+
+    fn x2apic(apic_id: u32, flags: u32, uid: u32) -> Vec<u8> {
+        let mut entry = vec![MADT_LOCAL_X2APIC, 16, 0, 0];
+        entry.extend_from_slice(&apic_id.to_le_bytes());
+        entry.extend_from_slice(&flags.to_le_bytes());
+        entry.extend_from_slice(&uid.to_le_bytes());
+        entry
+    }
+
+    fn base_override(base: u64) -> Vec<u8> {
+        let mut entry = vec![MADT_LOCAL_APIC_OVERRIDE, 12, 0, 0];
+        entry.extend_from_slice(&base.to_le_bytes());
+        entry
+    }
+
+    fn madt(base: u32, entries: &[Vec<u8>]) -> Vec<u8> {
+        let mut body = Vec::new();
+        body.extend_from_slice(&base.to_le_bytes());
+        body.extend_from_slice(&1u32.to_le_bytes());
+        for entry in entries {
+            body.extend_from_slice(entry);
+        }
+        table(b"APIC", &body)
+    }
+
+    /// QEMU-like inventory: two enabled xAPICs, one disabled, one hot-add,
+    /// one enabled x2APIC, an I/O APIC, an override-free base and skipped
+    /// ISO/NMI/OEM structures.
+    fn qemu_like_entries() -> Vec<Vec<u8>> {
+        let mut io_apic = vec![MADT_IO_APIC, 12, 0, 0];
+        io_apic.extend_from_slice(&0xfec0_0000u32.to_le_bytes());
+        io_apic.extend_from_slice(&0u32.to_le_bytes());
+        vec![
+            lapic(0, 0, MADT_ENABLED),
+            lapic(1, 1, MADT_ENABLED),
+            lapic(2, 2, 0),
+            lapic(3, 3, MADT_ONLINE_CAPABLE),
+            x2apic(300, MADT_ENABLED, 4),
+            io_apic,
+            vec![2, 10, 0, 0, 2, 0, 0, 0, 0, 0],
+            vec![4, 6, 0xff, 0, 0, 1],
+            vec![0x80, 3, 0x55],
+        ]
+    }
+
+    /// MCFG at 0x2000 plus each MADT at 0x4000, 0x5000, ...
+    fn madt_fixture(madts: Vec<Vec<u8>>) -> (AcpiHandoff, Fixture) {
+        let (handoff, mut fixture) = valid_fixture(false);
+        let mut xsdt_body = 0x2000u64.to_le_bytes().to_vec();
+        for (index, bytes) in madts.into_iter().enumerate() {
+            let address = 0x4000 + 0x1000 * index as u64;
+            xsdt_body.extend_from_slice(&address.to_le_bytes());
+            fixture.tables.push((address, bytes));
+        }
+        fixture.tables[0] = (0x1000, table(b"XSDT", &xsdt_body));
+        (handoff, fixture)
+    }
+
+    fn discover_madt(madts: Vec<Vec<u8>>) -> Discovery {
+        let (handoff, mut fixture) = madt_fixture(madts);
+        discover(&handoff, &mut fixture)
+    }
+
+    /// MADT failure must not hide the independent PCI inventory.
+    fn assert_only_madt_invalid(discovered: Discovery) {
+        assert_eq!(discovered.madt.status, MadtStatus::Invalid);
+        assert!(discovered.madt.cpus().is_empty());
+        assert_eq!(discovered.availability, Availability::MissingDmar);
+        assert_eq!(discovered.mcfg_count, 1);
+    }
+
+    fn rechecksum(mut table: Vec<u8>) -> Vec<u8> {
+        let length = table.len() as u32;
+        table[4..8].copy_from_slice(&length.to_le_bytes());
+        checksum_byte(&mut table, 9);
+        table
+    }
+
+    #[test]
+    fn madt_inventory_keeps_only_enabled_unique_processors() {
+        let discovered = discover_madt(vec![madt(0xfee0_0000, &qemu_like_entries())]);
+        assert_eq!(discovered.availability, Availability::MissingDmar);
+        let madt = discovered.madt;
+        assert_eq!(madt.status, MadtStatus::Valid);
+        assert_eq!(madt.local_apic_base, 0xfee0_0000);
+        assert!(madt.pcat_compat);
+        assert_eq!(madt.online_capable, 1);
+        assert_eq!(madt.disabled, 1);
+        assert_eq!(madt.io_apic_count, 1);
+        let ids: Vec<(u32, u32, bool)> = madt
+            .cpus()
+            .iter()
+            .map(|cpu| (cpu.apic_id, cpu.uid, cpu.x2apic))
+            .collect();
+        assert_eq!(ids, vec![(0, 0, false), (1, 1, false), (300, 4, true)]);
+    }
+
+    #[test]
+    fn missing_madt_is_explicit_and_other_inventory_survives() {
+        let discovered = discover_madt(vec![]);
+        assert_eq!(discovered.madt.status, MadtStatus::Missing);
+        assert!(discovered.madt.cpus().is_empty());
+        assert_eq!(discovered.mcfg_count, 1);
+        let (handoff, mut fixture) = valid_fixture(true);
+        fixture.tables[0].1[9] ^= 1;
+        assert_eq!(
+            discover(&handoff, &mut fixture).madt.status,
+            MadtStatus::Missing
+        );
+    }
+
+    #[test]
+    fn single_local_apic_address_override_replaces_the_base() {
+        let mut entries = qemu_like_entries();
+        entries.push(base_override(0x1_0000_0000));
+        let discovered = discover_madt(vec![madt(0xfee0_0000, &entries)]);
+        assert_eq!(discovered.madt.status, MadtStatus::Valid);
+        assert_eq!(discovered.madt.local_apic_base, 0x1_0000_0000);
+    }
+
+    #[test]
+    fn malformed_processor_inventory_fails_only_smp_closed() {
+        let entries = qemu_like_entries;
+        let mut cases: Vec<Vec<u8>> = Vec::new();
+        let with = |extra: Vec<Vec<u8>>| {
+            let mut all = entries();
+            all.extend(extra);
+            madt(0xfee0_0000, &all)
+        };
+        cases.push(with(vec![lapic(9, 1, MADT_ENABLED)]));
+        cases.push(with(vec![x2apic(1, MADT_ENABLED, 9)]));
+        cases.push(with(vec![lapic(9, 0xff, MADT_ENABLED)]));
+        cases.push(with(vec![x2apic(u32::MAX, MADT_ENABLED, 9)]));
+        cases.push(with(vec![lapic(9, 9, MADT_ENABLED | MADT_ONLINE_CAPABLE)]));
+        cases.push(with(vec![
+            base_override(0xfee0_0000),
+            base_override(0xfee0_0000),
+        ]));
+        cases.push(with(vec![base_override(0)]));
+        cases.push(with(vec![base_override(0xfee0_0800)]));
+        cases.push(with(vec![base_override(1 << 52)]));
+        cases.push(with(vec![vec![0x80, 0]]));
+        cases.push(with(vec![vec![0x80, 1]]));
+        cases.push(with(vec![vec![0x80]]));
+        cases.push(with(vec![vec![0x80, 40, 0, 0]]));
+        let mut short_lapic = lapic(9, 9, MADT_ENABLED);
+        short_lapic[1] = 7;
+        short_lapic.pop();
+        cases.push(with(vec![short_lapic]));
+        let mut long_x2apic = x2apic(400, MADT_ENABLED, 9);
+        long_x2apic[1] = 17;
+        long_x2apic.push(0);
+        cases.push(with(vec![long_x2apic]));
+        let mut short_io_apic = vec![MADT_IO_APIC, 8];
+        short_io_apic.extend_from_slice(&[0; 6]);
+        cases.push(with(vec![short_io_apic]));
+        cases.push(madt(0, &entries()));
+        cases.push(madt(0xfee0_0010, &entries()));
+        cases.push(madt(
+            0xfee0_0000,
+            &[lapic(0, 0, 0), lapic(1, 1, MADT_ONLINE_CAPABLE)],
+        ));
+        let too_many: Vec<Vec<u8>> = (0..=MAX_MADT_CPUS as u8)
+            .map(|id| lapic(id, id, MADT_ENABLED))
+            .collect();
+        cases.push(madt(0xfee0_0000, &too_many));
+        let mut bad_checksum = madt(0xfee0_0000, &entries());
+        bad_checksum[9] ^= 1;
+        cases.push(bad_checksum);
+        let mut too_short = madt(0xfee0_0000, &[]);
+        too_short.truncate(40);
+        cases.push(rechecksum(too_short));
+        let mut oversized = madt(0xfee0_0000, &entries());
+        oversized[4..8].copy_from_slice(&(MAX_TABLE_SIZE as u32 + 1).to_le_bytes());
+        cases.push(oversized);
+        for (index, case) in cases.into_iter().enumerate() {
+            let discovered = discover_madt(vec![case]);
+            assert_eq!(
+                discovered.madt.status,
+                MadtStatus::Invalid,
+                "case {index} unexpectedly accepted"
+            );
+            assert_only_madt_invalid(discovered);
+        }
+        // Exactly the capacity is still accepted.
+        let full: Vec<Vec<u8>> = (0..MAX_MADT_CPUS as u8)
+            .map(|id| lapic(id, id, MADT_ENABLED))
+            .collect();
+        let accepted = discover_madt(vec![madt(0xfee0_0000, &full)]).madt;
+        assert_eq!(accepted.status, MadtStatus::Valid);
+        assert_eq!(accepted.cpus().len(), MAX_MADT_CPUS);
+    }
+
+    #[test]
+    fn reused_result_never_keeps_a_stale_inventory() {
+        // The kernel reuses one static Discovery and Scratch.
+        let mut scratch = Scratch::new();
+        let mut result = Discovery::empty(Availability::MissingHandoff);
+        let (handoff, mut fixture) = madt_fixture(vec![madt(0xfee0_0000, &qemu_like_entries())]);
+        discover_into(&handoff, &mut fixture, &mut scratch, &mut result);
+        assert_eq!(result.madt.status, MadtStatus::Valid);
+        assert_eq!(result.mcfg_count, 1);
+        assert_eq!(result, discover(&handoff, &mut fixture));
+        for (next, availability) in [
+            (AcpiHandoff::rejected(), Availability::RejectedHandoff),
+            (AcpiHandoff::unavailable(), Availability::MissingHandoff),
+        ] {
+            discover_into(&next, &mut fixture, &mut scratch, &mut result);
+            assert_eq!(result.availability, availability);
+            assert_eq!((result.mcfg_count, result.dmar_count), (0, 0));
+            assert_eq!(result.madt.status, MadtStatus::Missing);
+            assert!(result.madt.cpus().is_empty());
+            discover_into(&handoff, &mut fixture, &mut scratch, &mut result);
+        }
+        fixture.tables[0].1[9] ^= 1; // corrupt XSDT checksum
+        discover_into(&handoff, &mut fixture, &mut scratch, &mut result);
+        assert_eq!(result.availability, Availability::InvalidTables);
+        assert_eq!(result.mcfg_count, 0);
+        assert!(result.madt.cpus().is_empty());
+    }
+
+    #[test]
+    fn unreadable_madt_body_fails_only_smp_closed() {
+        // Header readable, body outside what the reader accepts.
+        let mut header_only = madt(0xfee0_0000, &qemu_like_entries());
+        header_only.truncate(ACPI_HEADER_SIZE);
+        assert_only_madt_invalid(discover_madt(vec![header_only]));
+    }
+
+    #[test]
+    fn a_second_madt_makes_the_processor_inventory_ambiguous() {
+        let first = madt(0xfee0_0000, &qemu_like_entries());
+        for second in [
+            first.clone(),
+            madt(0xfee0_0000, &[lapic(0, 7, MADT_ENABLED)]),
+        ] {
+            assert_only_madt_invalid(discover_madt(vec![first.clone(), second]));
+        }
+        let mut bad = madt(0xfee0_0000, &[lapic(0, 7, MADT_ENABLED)]);
+        bad[9] ^= 1;
+        assert_only_madt_invalid(discover_madt(vec![bad, first]));
+    }
+
+    #[test]
+    fn mutated_madt_never_panics_and_valid_results_keep_invariants() {
+        let original = madt(0xfee0_0000, &qemu_like_entries());
+        let mut state = 0x9e37_79b9_7f4a_7c15u64;
+        let mut next = move || {
+            state ^= state << 13;
+            state ^= state >> 7;
+            state ^= state << 17;
+            state
+        };
+        let (mut valid, mut invalid) = (0, 0);
+        for _ in 0..4000 {
+            let mut table = original.clone();
+            for _ in 0..1 + next() % 4 {
+                let index = ACPI_HEADER_SIZE + (next() as usize % (table.len() - ACPI_HEADER_SIZE));
+                table[index] = next() as u8;
+            }
+            checksum_byte(&mut table, 9);
+            // Reuse one (possibly previously valid) Madt: stale state must not survive.
+            let mut madt = Madt::unavailable(MadtStatus::Valid);
+            madt.cpu_count = MAX_MADT_CPUS as u8;
+            let result = parse_madt(&table, &mut madt);
+            assert_eq!(result.is_ok(), madt.status == MadtStatus::Valid);
+            match result {
+                Ok(()) => {
+                    valid += 1;
+                    let cpus = madt.cpus();
+                    assert!(!cpus.is_empty() && cpus.len() <= MAX_MADT_CPUS);
+                    assert!(
+                        madt.local_apic_base != 0 && madt.local_apic_base.is_multiple_of(PAGE_SIZE)
+                    );
+                    for (i, cpu) in cpus.iter().enumerate() {
+                        assert!(cpus[i + 1..]
+                            .iter()
+                            .all(|other| other.apic_id != cpu.apic_id));
+                        assert!(cpu.x2apic || cpu.apic_id < 0xff);
+                        assert!(!cpu.x2apic || cpu.apic_id != u32::MAX);
+                    }
+                }
+                Err(error) => {
+                    invalid += 1;
+                    assert!(matches!(
+                        error,
+                        Error::Madt | Error::Capacity | Error::TableLength
+                    ));
+                }
+            }
+        }
+        assert!(
+            valid > 0 && invalid > 0,
+            "mutation corpus must exercise both outcomes"
         );
     }
 }

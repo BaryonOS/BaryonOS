@@ -1,6 +1,49 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — sessie-/bibliotheekintegratie — 5 november 2026
+## NEXT AGENT HANDOFF — K06 stap 1 en conflictintegratie — 5 november 2026
+
+**Historische bron van deze conflictintegratie:** PR-head
+`cd78ea74f14d8b8921aad51cc46a41c41274ab45` op `k06/smp-ap-bringup`,
+geïntegreerd met base `main` op
+`7dd91fad6d341d0c7b66b885bbe8713d2020e1df`. De PR-head bevat ook de
+device-exec/ACPI-handoff-integratie. Drie statusconflicten zijn opgelost met
+behoud van de K06-projectstatus. **41 → 41/100**: geen criteria of gewichten
+gewijzigd; K06 blijft open. De actuele PR-head en -base staan in PR #201
+en in `docs/verification/k06-smp-bringup/native-report.json`; deze sectie
+wordt niet bij iedere update-merge herschreven.
+
+**Gerealiseerd:** een opt-in M2-profiel `native-smp` (ADR-070) met
+MADT-inventaris, INIT-SIPI-SIPI, een nooit gemapte SIPI-pagina, AP-stacks met
+guards in het kernelimage, contextclaims via CAS met fail-closed time-out en
+INIT-quarantaine, registergelijkheid met de BSP en een begrensde
+atomic- en spinlockproef. Een native gevonden BSP-stack-overloop door een
+by-value MADT is hersteld; die zou alle profielen hebben geraakt.
+
+**Bewijs:** 8 native QEMU/TCG-gevallen geslaagd (1/2/4/8/9 vCPU's, single-
+en multi-TCG, capaciteit, dubbele MADT via `-acpitable`, AP-stall,
+registermismatch). Daarnaast 25 boot-protocol-tests (exit 0; 28 na de #191-tests), 4+2+10+8
+Python-harnastests, Clippy/fmt en regressie van `milestone-m2` en
+`native-rtc` (5/5). Zie
+[k06-smp-bringup](verification/k06-smp-bringup/README.md). Twee
+AI-reviews, geen menselijke audit: alle concrete bevindingen zijn verwerkt.
+
+**Controles na integratie:** `cargo +1.90.0 test --locked -p kernel-core`
+en de relevante USB-, PS/2- en Python-tests; formatting, Clippy, freestanding
+driverbuilds en native-smp kernelbuild geslaagd. `tools/progress.py --check`
+geslaagd. CodeQL op de eerste mergecommit `c014b17d` vond geen
+Actions/Python-alerts maar liep af vóór alle talen klaar waren; de
+geresynchroniseerde head is dus niet volledig gescand. Nieuwe-head hosted CI
+moet nog worden beoordeeld.
+**Open:** volledige CodeQL-dekking en native K06-QEMU-bewijs op de geïntegreerde
+head.
+Voor K06 nog nodig: per-CPU-staat, TSS/IST, IPI/TLB-shootdown, SMP-scheduler,
+lockvolgorde en herziening van ADR-024. Er is geen fysiek hardwarebewijs.
+**Eerstvolgend commando:**
+`NOS_BUILD_DIR="$PWD/build/k06-native-smp" python3 -B tools/build.py --kernel-feature native-smp`
+en daarna, met dezelfde `NOS_BUILD_DIR`,
+`NOS_BUILD_DIR="$PWD/build/k06-native-smp" python3 -B -u tools/run_smp.py --profile native-smp`
+(`run_smp.py` bouwt niet zelf).
+## Historisch checkpoint — sessie-/bibliotheekintegratie (#206) — 5 november 2026
 
 **Basis:** main `bce6cabc71184d90fc228fe2ae8215339ff7bf28`, branch `integrate/20261105-session-library`
 (PR #206). **41 → 41/100.**

@@ -17,6 +17,16 @@ compile_error!("graphics-g0 is an IF0 bootstrap, not a ring-3/compositor profile
     any(feature = "milestone-m3", feature = "framebuffer")
 ))]
 compile_error!("native-rtc exclusively owns CMOS in the single-CPU IF0 bootstrap");
+#[cfg(all(
+    feature = "native-smp",
+    any(
+        feature = "milestone-m3",
+        feature = "framebuffer",
+        feature = "native-rtc",
+        feature = "graphics-g0"
+    )
+))]
+compile_error!("native-smp is an IF0 M2 bring-up profile; single-CPU subsystems stay excluded");
 
 use boot_protocol::{BootInfo, ADDRESS_LIMIT, PAGE_SIZE};
 use core::{arch::asm, ptr};
