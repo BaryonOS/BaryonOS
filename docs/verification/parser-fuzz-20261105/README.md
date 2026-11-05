@@ -17,6 +17,7 @@ alleen geminimaliseerde regressietests.
 | NET-1 | smoltcp 0.14.0 `wire/tcp.rs:73` via `socket/tcp.rs:1783` | expliciete `panic!` op netwerk-sequencenummer (ook release; net-stack aborteert) | **open**, canary-test |
 | NET-2 | `services/net-stack` `Stack::push_frame` | RST/ICMP-reflectie vanaf broadcast- of vreemd IPv4-adres | **hersteld** (029718c0) |
 | STOR-1 | `services/volume/src/table.rs:302` `Entry::validate` | `revision + 1` overflow op schijfbytes | **hersteld** (87e32ea8) |
+| LOAD-1 | `crates/update-core` `choose`/`decide` via `other()` | `1 - slot` bij handgebouwde `Header { active > 1 }`: panic, of in release installatiedoel 255 | **hersteld**, fail-closed `Format` (laag: niet bereikbaar vanuit schijfbytes, `decode` weigert al) |
 
 **NET-1, oorzaak:** bij SYN-ACK zet smoltcp `remote_last_ack = Some(seq)` terwijl
 `remote_last_win` 0 is. Tot het eerste ACK is verstuurd geldt dus
@@ -54,6 +55,19 @@ weigering.
 - **net-stack** willekeurige TCP/ICMP/ARP-injectie: 300k. De TCP-replayfuzz
   stopte op NET-1 bij iteratie 63.395.
 
+- **elf-loader-core** `parse`: 400k mutaties en 200k willekeurige invoer.
+  **kernel-core** `user::parse`: 800k invoer en 303k opnieuw ondertekende
+  ELF-mutaties. Gecontroleerd: geen W+X, geen overlap, alles binnen het venster
+  en de entry ligt in een X-segment.
+- **app-package-core**: manifest/app-ID 600k, `verify_package` 300k
+  (geen gewijzigde byte geaccepteerd) en een `SourceRegistry`-model van 300k.
+- **update-core**: manifest/header elk 300k, `verify_manifest` 2×300k (geen
+  gewijzigde byte geaccepteerd), `choose`/`decide` 300k en de image-digest
+  300k. Getest in release met overflow-checks; ML-DSA was in debug te traag.
+- **artifact-store-core**: 400k gevallen tegen een vijandige mock-store.
+- **image-codec** `decode`: 2M (release) plus 200k (debug), inclusief
+  IHDR tot u32::MAX.
+
 Niet gefuzzt:
 - volume `client::validate_reply`, `block/src/wire.rs`, `m6_wire.rs` en
   `objects/src/wire.rs`
@@ -76,5 +90,8 @@ gecommit. De sha256 hieronder dient alleen ter identificatie.
 | `cargo +1.90.0 test --locked -p volume-core` na fix (50 ok) | 0 | `d9ba718c` |
 | volume-core clippy `-D warnings`, `fmt --check` | 0, 0 | — |
 | `python3 -B -m unittest tests.test_volume_disk tests.test_volume_runner` (34 ok) | 0 | `bcd5de86` |
+| `cargo +1.90.0 test --locked -p update-core --lib out_of_range` vóór fix | 101 (panic `lib.rs:377`) | `426a5400` |
+| `cargo +1.90.0 test --locked -p update-core -p update-tool` na fix (16 ok) | 0 | `bf1b9957` |
+| update-core clippy `-D warnings`, `fmt --check` | 0, 0 | — |
 
 Hosted CI op de PR-head moet nog worden beoordeeld.
