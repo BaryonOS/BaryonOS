@@ -716,8 +716,13 @@ fn read(table: u64, index: usize) -> u64 {
 fn write(table: u64, index: usize, value: u64) {
     assert_eq!(table % PAGE, 0);
     assert!(index < 512);
-    // SAFETY: Exclusive owned aligned table; bootstrap-only with firmware CR3
-    // active. No references to entries exist, and this table is not yet active.
+    // SAFETY: Callers pass validated, exclusively owned PageTable pages; the
+    // u64 slot is aligned and in bounds (asserted). Before the CR3 switch tables
+    // are identity mapped by firmware, afterwards reached via our identity map or
+    // the scratch alias. No Rust references to entries exist and this single CPL0
+    // CPU is the only software writer. If the table is live under the active CR3
+    // (e.g. unmap, read_firmware), the caller invalidates the VA before relying
+    // on the new entry.
     unsafe {
         if ptr::addr_of!(SCRATCH_ENTRY).read() != 0 {
             physical(table, |p| p.cast::<u64>().add(index).write_volatile(value));
