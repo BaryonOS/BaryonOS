@@ -239,13 +239,23 @@ fn desktop_home_card_follows_the_real_library_state_and_stays_above_the_bar() {
         }
         let mut home_view = view(viewport, &[]);
         home_view.desktop = Some(&desktop);
-        assert_eq!(
-            pixel(
-                &Frame::new(home_view),
-                (card.x + card.width / 2) * scale.factor(),
-                (card.y + 8) * scale.factor()
-            ),
-            design::SURFACE,
+        let frame = Frame::new(home_view);
+        let inside = pixel(
+            &frame,
+            (card.x + card.width / 2) * scale.factor(),
+            (card.y + 8) * scale.factor(),
+        );
+        let above = pixel(
+            &frame,
+            (card.x + card.width / 2) * scale.factor(),
+            (card.y - 8) * scale.factor(),
+        );
+        // The card is dark glass over the wallpaper: dark where hit testing says.
+        assert!(
+            [16, 8, 0]
+                .iter()
+                .all(|shift| (inside >> shift) & 255 <= 0x60)
+                && inside != above,
             "home paint follows the same compact layout as hit testing"
         );
         assert_eq!(start_label, "Start");
@@ -388,5 +398,44 @@ fn disabled_primary_and_secondary_hover_keep_their_distinct_styles() {
                 expected
             );
         }
+    }
+}
+
+#[test]
+fn taskbar_pinned_app_opens_materiaal_even_after_a_search_miss() {
+    use nieuw_os_materiaal::desktop::Action;
+    for (width, height, scale) in [
+        (320, 240, Scale::Percent100),
+        (640, 536, Scale::Percent100),
+        (768, 536, Scale::Percent100),
+        (1280, 720, Scale::Percent100),
+        (800, 600, Scale::Percent200),
+    ] {
+        let viewport = Viewport::new(width, height, scale, 1).unwrap();
+        let mut desktop = Desktop::new();
+        desktop.activate(Target::Guest);
+        desktop.activate(Target::Submit);
+        assert_eq!(desktop.page(), Page::Home);
+        let bar: Vec<_> = desktop
+            .controls(viewport)
+            .into_iter()
+            .flatten()
+            .filter(|(t, _, _)| {
+                matches!(
+                    t,
+                    Target::Start | Target::Search | Target::Pinned | Target::SignOut
+                )
+            })
+            .map(|(_, r, _)| r)
+            .collect();
+        assert_eq!(bar.len(), 4);
+        for pair in bar.windows(2) {
+            assert!(pair[0].x + pair[0].width <= pair[1].x, "{width}x{height}");
+        }
+        desktop.activate(Target::Search);
+        assert!(desktop.set_query("zzz"));
+        assert!(!desktop.matches_material());
+        assert_eq!(desktop.activate(Target::Pinned), Action::OpenMaterial);
+        assert_eq!(desktop.page(), Page::Material);
     }
 }

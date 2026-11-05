@@ -121,15 +121,19 @@ impl<'a> Canvas<'a> {
         }
     }
     pub fn rounded_rect(&mut self, r: Rect, radius: u32, color: u32) {
-        self.rounded(r, radius, 0, color);
+        self.rounded(r, radius, 0, color, 255);
+    }
+    /// Frosted surface: `color` over what is already drawn, at `alpha`/255.
+    pub fn translucent_rounded_rect(&mut self, r: Rect, radius: u32, color: u32, alpha: u8) {
+        self.rounded(r, radius, 0, color, alpha);
     }
     pub fn stroke_rounded_rect(&mut self, r: Rect, radius: u32, stroke: u32, color: u32) {
         if stroke == 0 {
             return;
         }
-        self.rounded(r, radius, stroke, color);
+        self.rounded(r, radius, stroke, color, 255);
     }
-    fn rounded(&mut self, r: Rect, radius: u32, stroke: u32, color: u32) {
+    fn rounded(&mut self, r: Rect, radius: u32, stroke: u32, color: u32, alpha: u8) {
         if r.width > 1_048_576 || r.height > 1_048_576 {
             return;
         }
@@ -169,7 +173,7 @@ impl<'a> Canvas<'a> {
                         }
                     }
                 }
-                self.blend_pixel(x, y, color, (coverage * 255 / 4) as u8);
+                self.blend_pixel(x, y, color, (coverage * u32::from(alpha) / 4) as u8);
             }
         }
     }

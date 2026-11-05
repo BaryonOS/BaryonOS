@@ -29,6 +29,8 @@ pub enum Target {
     Search,
     SearchField,
     Material,
+    /// The taskbar's pinned Materiaal button; opens the same app as the card.
+    Pinned,
     SignOut,
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -264,11 +266,21 @@ impl Desktop {
                         "Zoeken",
                     )),
                     Some((
+                        Target::Pinned,
+                        Rect {
+                            x: bar_x + search_x + search_width + 8,
+                            y: bar_y + 8,
+                            width: 44,
+                            height: 44,
+                        },
+                        "Materiaal",
+                    )),
+                    Some((
                         Target::SignOut,
                         Rect {
-                            x: bar_x + bar_width - 116,
+                            x: bar_x + bar_width - 52,
                             y: bar_y + 8,
-                            width: 108,
+                            width: 44,
                             height: 44,
                         },
                         "Afmelden",
@@ -314,7 +326,6 @@ impl Desktop {
                     } else {
                         None
                     },
-                    None,
                     None,
                 ]
             }
@@ -367,6 +378,10 @@ impl Desktop {
             Target::Material
                 if matches!(self.page, Page::Home | Page::Search) && self.matches_material() =>
             {
+                self.page = Page::Material;
+                return Action::OpenMaterial;
+            }
+            Target::Pinned if matches!(self.page, Page::Home | Page::Search) => {
                 self.page = Page::Material;
                 return Action::OpenMaterial;
             }

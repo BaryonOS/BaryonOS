@@ -8,6 +8,16 @@ use nieuw_os_graphics::{Canvas, Font, Icon, Rect as GraphicRect, Size, Weight};
 pub const MAX_TEXT_ROWS: usize = 48;
 /// Fixed material nodes, pagination controls and one entry per domain object.
 pub const MAX_SEMANTIC_NODES: usize = 24 + volume_core::PER_DOMAIN;
+// Shell glass on the dark desktop. Kept here: only the shell draws on wallpaper.
+const GLASS: u32 = 0x0b1a24;
+const GLASS_RAISED: u32 = 0x1c3441;
+const GLASS_HOVER: u32 = 0x2a4a58;
+const GLASS_EDGE: u32 = 0x35525e;
+const SHELL_MUTED: u32 = 0xb8cbd6;
+const INK: u32 = 0xf1f7f8;
+const SHELL_DANGER: u32 = 0xffa494;
+/// Mint for "stays on this device": readable on glass (AA at small size).
+const PRIVATE: u32 = 0x8fdcc4;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Layout {
@@ -2035,7 +2045,12 @@ impl Paint<'_> {
         nieuw_os_graphics::theme::wallpaper(
             &mut self.canvas(),
             GraphicRect::new(0, 0, viewport.width(), viewport.height()),
-            nieuw_os_graphics::theme::MATERIAAL,
+            nieuw_os_graphics::theme::Palette {
+                desktop_start: d::DESKTOP_START,
+                desktop_end: d::DESKTOP_END,
+                glow: d::DESKTOP_GLOW,
+                ..nieuw_os_graphics::theme::MATERIAAL
+            },
         );
         let width = w.saturating_sub(48).min(440);
         let x = (w - width) / 2;
@@ -2053,23 +2068,15 @@ impl Paint<'_> {
                     width: width + 48,
                     height: if compact { h } else { 424 },
                 };
-                self.rounded(
-                    Rect {
-                        x: panel.x + 2,
-                        y: panel.y + 9,
-                        ..panel
-                    },
-                    0x122636,
-                    24,
-                );
-                self.rounded(panel, d::SURFACE, 24);
+                self.glass(panel, GLASS, 196, 28);
+                self.stroke(panel, GLASS_EDGE, 28);
                 if desktop.page() == Page::Accounts {
-                    self.title(x, y + if compact { 12 } else { 24 }, "Welkom terug");
+                    self.title_color(x, y + if compact { 12 } else { 24 }, "Welkom terug", INK);
                     self.label(
                         x,
                         y + if compact { 54 } else { 78 },
                         "Kies je werkruimte om verder te gaan.",
-                        d::MUTED,
+                        SHELL_MUTED,
                     );
                 } else {
                     self.medium(
@@ -2080,10 +2087,10 @@ impl Paint<'_> {
                         } else {
                             "Eigen gebruiker"
                         },
-                        d::TEXT,
+                        INK,
                     );
                     if !compact {
-                        self.title(
+                        self.title_color(
                             x,
                             y + 72,
                             if desktop.is_guest() {
@@ -2091,6 +2098,7 @@ impl Paint<'_> {
                             } else {
                                 "Inloggen"
                             },
+                            INK,
                         );
                     }
                     self.small(
@@ -2101,7 +2109,7 @@ impl Paint<'_> {
                         } else {
                             "Voorbeeldaccount · gebruik alleen testinvoer"
                         },
-                        d::MUTED,
+                        SHELL_MUTED,
                     );
                 }
                 for (target, r, label) in controls.into_iter().flatten() {
@@ -2110,12 +2118,8 @@ impl Paint<'_> {
                             let selected = desktop.focus() == target;
                             self.outlined(
                                 r,
-                                if selected {
-                                    d::ACCENT_SOFT
-                                } else {
-                                    d::BACKGROUND
-                                },
-                                if selected { d::ACCENT } else { d::LINE },
+                                if selected { GLASS_HOVER } else { GLASS_RAISED },
+                                if selected { d::ACCENT } else { GLASS_EDGE },
                                 14,
                             );
                             self.rounded(
@@ -2125,7 +2129,7 @@ impl Paint<'_> {
                                     width: 44,
                                     height: 44,
                                 },
-                                if selected { d::ACCENT } else { 0xe2e8ec },
+                                if selected { d::ACCENT } else { GLASS_HOVER },
                                 14,
                             );
                             self.icon(
@@ -2136,7 +2140,7 @@ impl Paint<'_> {
                                     height: 24,
                                 },
                                 Icon::User,
-                                if selected { d::SURFACE } else { d::MUTED },
+                                if selected { d::SURFACE } else { SHELL_MUTED },
                                 1,
                             );
                             self.medium(
@@ -2147,7 +2151,7 @@ impl Paint<'_> {
                                 } else {
                                     label
                                 },
-                                d::TEXT,
+                                INK,
                             );
                             self.small(
                                 r.x + 72,
@@ -2157,7 +2161,7 @@ impl Paint<'_> {
                                 } else {
                                     "Aanmelden nog niet ingesteld"
                                 },
-                                d::MUTED,
+                                SHELL_MUTED,
                             );
                             self.icon(
                                 Rect {
@@ -2167,12 +2171,23 @@ impl Paint<'_> {
                                     height: 16,
                                 },
                                 Icon::ChevronRight,
-                                d::MUTED,
+                                SHELL_MUTED,
                                 1,
                             );
                         }
                         Target::Back => {
-                            self.icon_button(r, Icon::ChevronLeft, desktop.focus() == target, true)
+                            self.shell_button(r, desktop.focus() == target);
+                            self.icon(
+                                Rect {
+                                    x: r.x + 12,
+                                    y: r.y + 12,
+                                    width: 20,
+                                    height: 20,
+                                },
+                                Icon::ChevronLeft,
+                                INK,
+                                1,
+                            );
                         }
                         Target::Password => {
                             if desktop.is_guest() {
@@ -2180,10 +2195,10 @@ impl Paint<'_> {
                                     r.x,
                                     r.y + 8,
                                     "Geen wachtwoord nodig voor de gast.",
-                                    d::MUTED,
+                                    SHELL_MUTED,
                                 );
                             } else {
-                                self.outlined(r, d::BACKGROUND, d::BORDER, 10);
+                                self.outlined(r, GLASS_RAISED, GLASS_EDGE, 10);
                                 self.icon(
                                     Rect {
                                         x: r.x + 12,
@@ -2192,7 +2207,7 @@ impl Paint<'_> {
                                         height: 20,
                                     },
                                     Icon::Lock,
-                                    d::MUTED,
+                                    SHELL_MUTED,
                                     1,
                                 );
                                 if desktop.password_len() == 0 {
@@ -2205,9 +2220,9 @@ impl Paint<'_> {
                                             "Wachtwoord"
                                         },
                                         if desktop.unavailable() {
-                                            d::DANGER
+                                            SHELL_DANGER
                                         } else {
-                                            d::MUTED
+                                            SHELL_MUTED
                                         },
                                     );
                                 } else {
@@ -2222,12 +2237,12 @@ impl Paint<'_> {
                                                 5 * factor,
                                                 5 * factor,
                                             ),
-                                            d::TEXT,
+                                            INK,
                                         );
                                     }
                                 }
                                 if desktop.focus() == target {
-                                    self.focus(r);
+                                    self.focus_color(r, INK);
                                 }
                             }
                         }
@@ -2239,13 +2254,7 @@ impl Paint<'_> {
                             ButtonStyle::Primary,
                         ),
                         Target::Fingerprint | Target::Fido2 => {
-                            self.button(
-                                r,
-                                "",
-                                desktop.focus() == target,
-                                true,
-                                ButtonStyle::Secondary,
-                            );
+                            self.shell_button(r, desktop.focus() == target);
                             self.icon(
                                 Rect {
                                     x: r.x + 12,
@@ -2258,7 +2267,7 @@ impl Paint<'_> {
                                 } else {
                                     Icon::Key
                                 },
-                                d::MUTED,
+                                SHELL_MUTED,
                                 1,
                             );
                             self.small(
@@ -2269,7 +2278,7 @@ impl Paint<'_> {
                                 } else {
                                     "FIDO2-sleutel"
                                 },
-                                d::MUTED,
+                                SHELL_MUTED,
                             );
                         }
                         _ => {}
@@ -2286,25 +2295,25 @@ impl Paint<'_> {
                         } else {
                             "Authenticatie is in deze testversie niet beschikbaar."
                         },
-                        d::MUTED,
+                        SHELL_MUTED,
                     );
                 }
             }
             Page::Home | Page::Search | Page::Material => {
                 if desktop.page() == Page::Home {
                     if !compact {
-                        self.small(32, 22, "NIEUW OS  /  WERKRUIMTE", 0xb8cbd6);
+                        self.small(32, 22, "NIEUW OS  /  WERKRUIMTE", SHELL_MUTED);
                     }
                     self.title_color(32, if compact { 8 } else { 48 }, "Je werkruimte", 0xf6fbff);
                     if !compact {
-                        self.label(32, 94, "Je materiaal, direct bij de hand.", 0xb8cbd6);
+                        self.label(32, 94, "Je materiaal, direct bij de hand.", SHELL_MUTED);
                         let badge = Rect {
                             x: w.saturating_sub(174),
                             y: 20,
                             width: 142,
                             height: 36,
                         };
-                        self.rounded(badge, 0x252a32, 18);
+                        self.glass(badge, GLASS, 176, 18);
                         self.icon(
                             Rect {
                                 x: badge.x + 12,
@@ -2321,21 +2330,19 @@ impl Paint<'_> {
                 } else {
                     let panel_width = w.saturating_sub(48).min(620);
                     let top = if compact { 40 } else { 132 };
-                    self.rounded(
-                        Rect {
-                            x: (w - panel_width) / 2,
-                            y: top,
-                            width: panel_width,
-                            height: if compact { 140 } else { 176 },
-                        },
-                        d::SURFACE,
-                        20,
-                    );
+                    let panel = Rect {
+                        x: (w - panel_width) / 2,
+                        y: top,
+                        width: panel_width,
+                        height: if compact { 140 } else { 176 },
+                    };
+                    self.glass(panel, GLASS, 214, 22);
+                    self.stroke(panel, GLASS_EDGE, 22);
                 }
                 for (target, r, _) in controls.into_iter().flatten() {
                     if target == Target::Material {
                         if desktop.page() == Page::Search {
-                            self.rounded(r, d::ACCENT_SOFT, 12);
+                            self.rounded(r, GLASS_HOVER, 12);
                             self.icon(
                                 Rect {
                                     x: r.x + 16,
@@ -2344,16 +2351,16 @@ impl Paint<'_> {
                                     height: 32,
                                 },
                                 Icon::Material,
-                                d::ACCENT,
+                                PRIVATE,
                                 1,
                             );
-                            self.medium(r.x + 60, r.y + 8, "Materiaal", d::TEXT);
+                            self.medium(r.x + 60, r.y + 8, "Materiaal", INK);
                             if !compact {
                                 self.small(
                                     r.x + 60,
                                     r.y + 40,
                                     "Documenten op dit apparaat",
-                                    d::MUTED,
+                                    SHELL_MUTED,
                                 );
                             }
                             self.icon(
@@ -2364,11 +2371,12 @@ impl Paint<'_> {
                                     height: 16,
                                 },
                                 Icon::ChevronRight,
-                                d::MUTED,
+                                SHELL_MUTED,
                                 1,
                             );
                         } else {
-                            self.outlined(r, d::SURFACE, d::LINE, 20);
+                            self.glass(r, GLASS, 188, 22);
+                            self.stroke(r, GLASS_EDGE, 22);
                             self.fill(
                                 Rect {
                                     x: r.x + 20,
@@ -2376,7 +2384,7 @@ impl Paint<'_> {
                                     width: r.width.saturating_sub(40),
                                     height: 1,
                                 },
-                                d::LINE,
+                                GLASS_EDGE,
                             );
                             self.rounded(
                                 Rect {
@@ -2385,7 +2393,7 @@ impl Paint<'_> {
                                     width: if compact { 48 } else { 64 },
                                     height: if compact { 48 } else { 64 },
                                 },
-                                0xd2eae3,
+                                0x1d4a48,
                                 18,
                             );
                             self.icon(
@@ -2396,13 +2404,13 @@ impl Paint<'_> {
                                     height: if compact { 30 } else { 44 },
                                 },
                                 Icon::Material,
-                                d::ACCENT,
+                                PRIVATE,
                                 2,
                             );
                             let text_x = r.x + if compact { 76 } else { 112 };
                             let text_y = r.y + if compact { 19 } else { 28 };
-                            self.small(text_x, text_y, "MATERIAAL", d::MUTED);
-                            self.medium(text_x, text_y + 22, "Documenten", d::TEXT);
+                            self.small(text_x, text_y, "MATERIAAL", SHELL_MUTED);
+                            self.medium(text_x, text_y + 22, "Documenten", INK);
                             if compact {
                                 self.icon(
                                     Rect {
@@ -2412,11 +2420,11 @@ impl Paint<'_> {
                                         height: 18,
                                     },
                                     Icon::ChevronRight,
-                                    d::ACCENT,
+                                    PRIVATE,
                                     1,
                                 );
                             } else {
-                                self.label(text_x, text_y + 52, "Je bibliotheek", d::MUTED);
+                                self.label(text_x, text_y + 52, "Je bibliotheek", SHELL_MUTED);
                                 self.button(
                                     Rect {
                                         x: r.x + r.width - 176,
@@ -2466,9 +2474,9 @@ impl Paint<'_> {
                                     message,
                                     content_width,
                                     if matches!(view.status, Status::Failed(_)) {
-                                        status_color(view.status)
+                                        SHELL_DANGER
                                     } else {
-                                        d::MUTED
+                                        SHELL_MUTED
                                     },
                                 );
                             } else {
@@ -2479,23 +2487,22 @@ impl Paint<'_> {
                                     .and_then(|bytes| core::str::from_utf8(bytes).ok())
                                     .unwrap_or("Naam niet leesbaar");
                                 if compact {
-                                    self.label(content_x, content_y, "Document gereed", d::MUTED);
-                                } else {
-                                    self.wrapped(
+                                    self.label(
                                         content_x,
                                         content_y,
-                                        name,
-                                        content_width,
-                                        d::TEXT,
+                                        "Document gereed",
+                                        SHELL_MUTED,
                                     );
+                                } else {
+                                    self.wrapped(content_x, content_y, name, content_width, INK);
                                 }
                             }
                         }
                         if desktop.focus() == target {
-                            self.focus(r);
+                            self.focus_color(r, INK);
                         }
                     } else if target == Target::SearchField {
-                        self.outlined(r, d::BACKGROUND, d::BORDER, 12);
+                        self.outlined(r, GLASS_RAISED, GLASS_EDGE, 12);
                         self.icon(
                             Rect {
                                 x: r.x + 12,
@@ -2504,7 +2511,7 @@ impl Paint<'_> {
                                 height: 20,
                             },
                             Icon::Search,
-                            d::MUTED,
+                            SHELL_MUTED,
                             1,
                         );
                         self.label(
@@ -2515,10 +2522,10 @@ impl Paint<'_> {
                             } else {
                                 desktop.query()
                             },
-                            d::TEXT,
+                            INK,
                         );
                         if desktop.focus() == target {
-                            self.focus(r);
+                            self.focus_color(r, INK);
                         }
                     }
                 }
@@ -2528,7 +2535,7 @@ impl Paint<'_> {
                         (w - panel_width) / 2 + 24,
                         if compact { 120 } else { 228 },
                         "Geen programma gevonden",
-                        d::MUTED,
+                        SHELL_MUTED,
                     );
                 }
                 let bar_width = w.saturating_sub(24).min(680);
@@ -2538,66 +2545,123 @@ impl Paint<'_> {
                     width: bar_width,
                     height: 60,
                 };
-                self.rounded(
-                    Rect {
-                        x: bar.x,
-                        y: bar.y + 4,
-                        ..bar
-                    },
-                    0x122c39,
-                    18,
-                );
-                self.rounded(bar, 0xf5fafb, 18);
-                for (target, r, label) in desktop.controls(viewport).into_iter().flatten().take(3) {
-                    if target == Target::Start {
-                        self.button(
-                            r,
-                            "",
-                            desktop.focus() == target,
-                            true,
-                            ButtonStyle::Secondary,
-                        );
-                        self.icon(
-                            Rect {
-                                x: r.x + 12,
-                                y: r.y + 12,
-                                width: 20,
-                                height: 20,
-                            },
-                            Icon::Apps,
-                            d::TEXT,
-                            1,
-                        );
-                        if r.width > 60 {
-                            self.small(r.x + 40, r.y + 15, "Start", d::TEXT);
+                // Frosted dark glass: the wallpaper stays visible behind the bar.
+                self.glass(bar, GLASS, 208, 18);
+                self.stroke(bar, GLASS_EDGE, 18);
+                if bar_width >= 640 {
+                    // Calm, always-on privacy status instead of prompts. Not a control.
+                    let chip = Rect {
+                        x: bar.x + bar_width - 160,
+                        y: bar.y + 16,
+                        width: 100,
+                        height: 28,
+                    };
+                    self.rounded(chip, 0x12343a, 14);
+                    self.icon(
+                        Rect {
+                            x: chip.x + 10,
+                            y: chip.y + 5,
+                            width: 18,
+                            height: 18,
+                        },
+                        Icon::Shield,
+                        PRIVATE,
+                        1,
+                    );
+                    self.small(chip.x + 34, chip.y + 6, "Lokaal", PRIVATE);
+                }
+                for (target, r, _) in desktop.controls(viewport).into_iter().flatten().take(4) {
+                    let focused = desktop.focus() == target;
+                    match target {
+                        Target::Start => {
+                            self.rounded(r, if focused { GLASS_HOVER } else { GLASS_RAISED }, 12);
+                            self.icon(
+                                Rect {
+                                    x: r.x + 12,
+                                    y: r.y + 12,
+                                    width: 20,
+                                    height: 20,
+                                },
+                                Icon::Apps,
+                                d::DESKTOP_TEXT,
+                                1,
+                            );
+                            if r.width > 60 {
+                                self.small(r.x + 40, r.y + 15, "Start", d::DESKTOP_TEXT);
+                            }
                         }
-                    } else if target == Target::Search {
-                        self.rounded(r, 0xe7eff2, 10);
-                        self.icon(
-                            Rect {
-                                x: r.x + 12,
-                                y: r.y + 12,
-                                width: 20,
-                                height: 20,
-                            },
-                            Icon::Search,
-                            d::MUTED,
-                            1,
-                        );
-                        if r.width > 96 {
-                            self.label(r.x + 44, r.y + 10, "Zoeken", d::MUTED);
+                        Target::Search => {
+                            self.rounded(r, GLASS_RAISED, 22);
+                            self.icon(
+                                Rect {
+                                    x: r.x + 14,
+                                    y: r.y + 12,
+                                    width: 20,
+                                    height: 20,
+                                },
+                                Icon::Search,
+                                SHELL_MUTED,
+                                1,
+                            );
+                            if r.width > 96 {
+                                self.label(r.x + 44, r.y + 10, "Zoeken", SHELL_MUTED);
+                            }
                         }
-                        if desktop.focus() == target {
-                            self.focus(r);
+                        Target::Pinned => {
+                            self.rounded(r, if focused { GLASS_HOVER } else { GLASS }, 12);
+                            self.rounded(
+                                Rect {
+                                    x: r.x + 6,
+                                    y: r.y + 6,
+                                    width: 32,
+                                    height: 32,
+                                },
+                                d::ACCENT,
+                                10,
+                            );
+                            self.icon(
+                                Rect {
+                                    x: r.x + 12,
+                                    y: r.y + 12,
+                                    width: 20,
+                                    height: 20,
+                                },
+                                Icon::Material,
+                                d::DESKTOP_TEXT,
+                                1,
+                            );
+                            if desktop.page() == Page::Material {
+                                // Running indicator under the app, as on every desktop.
+                                self.rounded(
+                                    Rect {
+                                        x: r.x + 16,
+                                        y: r.y + 41,
+                                        width: 12,
+                                        height: 3,
+                                    },
+                                    PRIVATE,
+                                    2,
+                                );
+                            }
                         }
-                    } else {
-                        self.button(
-                            r,
-                            label,
-                            desktop.focus() == target,
-                            true,
-                            ButtonStyle::Secondary,
-                        );
+                        _ => {
+                            self.rounded(r, if focused { GLASS_HOVER } else { GLASS }, 12);
+                            self.icon(
+                                Rect {
+                                    x: r.x + 12,
+                                    y: r.y + 12,
+                                    width: 20,
+                                    height: 20,
+                                },
+                                Icon::Power,
+                                d::DESKTOP_TEXT,
+                                1,
+                            );
+                        }
+                    }
+                    if focused {
+                        // The teal ring disappears on dark glass; use the light shell ink.
+                        self.focus_color(r, d::DESKTOP_TEXT);
                     }
                 }
             }
@@ -2640,6 +2704,9 @@ impl Paint<'_> {
         );
     }
     fn focus(&mut self, r: Rect) {
+        self.focus_color(r, d::ACCENT);
+    }
+    fn focus_color(&mut self, r: Rect, color: u32) {
         let gap = d::FOCUS_OFFSET;
         let r = Rect {
             x: r.x.saturating_sub(gap),
@@ -2653,7 +2720,31 @@ impl Paint<'_> {
             GraphicRect::new(r.x as i32, r.y as i32, r.width, r.height),
             (d::CONTROL_RADIUS + gap) * factor,
             2 * factor,
-            d::ACCENT,
+            color,
+        );
+    }
+    fn shell_button(&mut self, r: Rect, focused: bool) {
+        self.rounded(r, if focused { GLASS_HOVER } else { GLASS_RAISED }, 12);
+        self.stroke(r, GLASS_EDGE, 12);
+    }
+    fn glass(&mut self, rect: Rect, color: u32, alpha: u8, radius: u32) {
+        let r = rect.physical(self.scale);
+        let f = self.scale.factor();
+        self.canvas().translucent_rounded_rect(
+            GraphicRect::new(r.x as i32, r.y as i32, r.width, r.height),
+            radius * f,
+            color,
+            alpha,
+        );
+    }
+    fn stroke(&mut self, rect: Rect, color: u32, radius: u32) {
+        let r = rect.physical(self.scale);
+        let f = self.scale.factor();
+        self.canvas().stroke_rounded_rect(
+            GraphicRect::new(r.x as i32, r.y as i32, r.width, r.height),
+            radius * f,
+            f,
+            color,
         );
     }
     fn outlined(&mut self, r: Rect, fill: u32, border: u32, radius: u32) {

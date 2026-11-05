@@ -111,3 +111,46 @@ browsermock of schermontwerp is productbewijs, geen systeembewijs.
 Dit is een ontwerp. Het bewijst geen werkende shell, geen gebruiksgemak en
 geen gelijkwaardigheid met bestaande platforms. Herkenbaarheid wordt pas
 geclaimd na gemeten taakproeven (U06).
+
+## 7. Uiterlijk 2030 — eerste slag (5 november 2026)
+
+Status: **host-gerenderd** via de bestaande desktopfixtures in `ui/native`;
+geen nieuw native QEMU-bewijs en geen gemeten gebruiksproef.
+
+Wat is veranderd in de VM-desktop (`ui/native`, `ui/graphics`):
+
+- **Aurora-achtergrond** uit de bestaande desktoptokens (`--desktop-*`):
+  diep diagonaal verloop, iris- en teal-licht, twee dunne lichtbanden en een
+  zachte vignet. Alleen gehele getallen, dus elke tegel rendert identiek.
+- **Donker glas** in plaats van witte formulierkaarten voor inloggen,
+  werkruimte en zoeken: doorschijnend vlak met een fijne lichte rand, lichte
+  tekst. De focusring wordt op glas licht in plaats van teal (zichtbaar
+  contrast).
+- **Taakbalk volgens §2:** startknop, zoekveld, een vastgemaakte app
+  (Materiaal, met een indicator als de app open is) en rechts het systeemvak
+  met de aan/uit-knop (afmelden).
+- **Privacystatus zonder pop-up:** een rustige chip "Lokaal" met schild in het
+  systeemvak. Hij is geen bedieningselement en vraagt niets. Hij zegt alleen
+  wat waar is in deze VM-sessie: je werkruimte staat op dit apparaat. De
+  volledige indicator uit §4 (welke app netwerk, microfoon, camera of locatie
+  gebruikt) vraagt een capabilitybron die nog niet bestaat.
+
+Bewust nog niet gedaan: een klok/datum (de UI heeft geen tijdbron; de RTC-driver
+is niet tot de shell doorgetrokken), nep-apps in het startmenu, animatie en
+een echt startmenu met app-raster. Die volgen pas als er echte bronnen zijn.
+
+### Richting: wat een OS van 2030 de consument moet geven
+
+| Wat mensen nu missen | Antwoord in Nieuw OS | Bouwsteen |
+|---|---|---|
+| Privacy kost tientallen instellingen en cookie-achtige pop-ups | Privacy staat standaard aan; rechten worden één keer per **object en gevolg** gekozen bij installeren of koppelen, daarna stil; een permanente status in het systeemvak in plaats van meldingen | Capabilities, §4 privacy-indicator |
+| Werk is verspreid over apps, cloud en mappen | Zoeken en Start tonen eerst je eigen materiaal en recente context, lokaal geïndexeerd | D4, Materiaal |
+| "Waar is mijn versie van gisteren?" | Geschiedenis per bestand, terugzetten vanuit Bestanden | Materiaal-revisies |
+| Een tweede apparaat betekent een cloudaccount | Verder werken via de eigen NAS, end-to-end versleuteld | NAS-sync |
+| AI-assistenten sturen data naar de cloud | Lokale assistent in zoeken, zonder netwerkrecht | FR-L01/L02 |
+| Updates en fouten voelen eng | Ongedaan maken van updates en duidelijke herstelroutes | Signed updates, herstel |
+
+Ontwerptaal: donker glas op een levend aurora-licht, lichte inkt, één
+accentkleur (teal) plus mint voor "blijft lokaal", ruime ronde vormen (18–28
+px), duidelijke focus. Bekende indeling (§2), eigen uitstraling. Gebruiksgemak
+en "voelt modern" blijven hypotheses tot de taakproef (U06).
