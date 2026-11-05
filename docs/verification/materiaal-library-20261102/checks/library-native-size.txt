@@ -1,0 +1,24 @@
+   Compiling zeroize v1.9.1
+   Compiling catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+   Compiling ui-core v0.1.0 (/workspace/nieuw-os/crates/ui-core)
+   Compiling noto-sans-mono-bitmap v0.3.2
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+   Compiling nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os/sdk/catalog-client)
+   Compiling nieuw-os-input-core v0.1.0 (/workspace/nieuw-os/services/input-core)
+   Compiling volume-core v0.1.0 (/workspace/nieuw-os/services/volume)
+   Compiling nieuw-os-graphics v0.1.0 (/workspace/nieuw-os/ui/graphics)
+   Compiling nieuw-os-input-client v0.1.0 (/workspace/nieuw-os/sdk/input-client)
+   Compiling nieuw-os-document-session v0.1.0 (/workspace/nieuw-os/sdk/document-session)
+   Compiling nieuw-os-surface-protocol v0.1.0 (/workspace/nieuw-os/ui/surface-protocol)
+   Compiling nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os/ui/native)
+   Compiling nieuw-os-materiaal-app v0.1.0 (/workspace/nieuw-os/sdk/examples/materiaal)
+error: linking with `rust-lld` failed: exit status: 1
+  |
+  = note:  "rust-lld" "-flavor" "gnu" "/tmp/rustcXbUvPB/symbols.o" "<1 object files omitted>" "--as-needed" "-Bstatic" "/workspace/nieuw-os/target/library-size/x86_64-unknown-none/release/deps/{libnieuw_os_materiaal_app-032ff64d7ff648ac,libnieuw_os_materiaal-df2ef2486b2ebef4,libnieuw_os_graphics-873236025f9f937a,libnieuw_os_document_session-a843a5fe7588bd35,libvolume_core-825f9d8a8481d1b0,libnieuw_os_surface_protocol-c166e7cc452d70ae,libnieuw_os_input_client-15bab56401c0314e,libnieuw_os_catalog_client-9a6004359420ad46,libcatalog_core-9bd79b6e17c10437,libnieuw_os_input_core-07bb7aaa16c8d925,libui_core-49e8c2edf5646651,libnieuw_os_sdk_runtime-9d60ab57992965bb,libzeroize-0dbfdd6ebffa729c}.rlib" "<sysroot>/lib/rustlib/x86_64-unknown-none/lib/{libcore-*,libcompiler_builtins-*}.rlib" "-L" "/tmp/rustcXbUvPB/raw-dylibs" "-Bdynamic" "--eh-frame-hdr" "-z" "noexecstack" "-o" "/workspace/nieuw-os/target/library-size/x86_64-unknown-none/release/deps/materiaal_app-1f6634eb1ea05d75" "--gc-sections" "-z" "relro" "-z" "now" "--strip-debug" "-T/workspace/nieuw-os/sdk/examples/materiaal/linker.ld" "--no-pie" "--build-id=none" "-zmax-page-size=0x1000" "-Map=/workspace/nieuw-os/build/library-size/code.map"
+  = note: some arguments are omitted. use `--verbose` to show all linker arguments
+  = note: rust-lld: error: code exceeds 128 KiB
+          rust-lld: error: code exceeds 128 KiB
+          
+
+error: could not compile `nieuw-os-materiaal-app` (bin "materiaal-app") due to 1 previous error
+diagnostic_exit 101

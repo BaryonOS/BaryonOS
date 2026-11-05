@@ -1,0 +1,43 @@
+{
+  "reviewed_commit": "7d1858f9954e5a4176019eb4bd0fba170c37e38c",
+  "reviewed_files": {
+    "sdk/examples/window-session/src/main.rs": "7d597ef3e1aadf2bb195c887224ec59fa3fe32df1e551230e8473bf1223e819f",
+    "sdk/examples/window-session/src/scene.rs": "769b0614247cc96a63c5eb5c6a16e1a6c227e9655b9fd47c82ac0f1fec7bdb3a",
+    "sdk/examples/window-session/src/shell.rs": "b368df1bdd83d47003694f6d8942f3f6bff8077f5a78cf9393af1eca66ac0f8d",
+    "ui/native/src/session.rs": "0388858099523e1b538ea5fca846b6003cd0256d31d62070d27072238071cc13",
+    "sdk/examples/window-session/tests/session_shell.rs": "b919fbe49cb2e09a062eae3992ff880a3c89694fae26afb3922703ae8b0c2b8a",
+    "ui/native/tests/session.rs": "e1f387baca95a0c5fcf625a198f096d42480bb7582bba87b0ad1b9c23a62b970"
+  },
+  "scope": "Read-only AI source review, not human audit or native/hardware proof.",
+  "resolved_findings": [
+    {
+      "problem": "Shell/window actions were applied before superseded-input ACK validation.",
+      "resolution": "ACK is checked before shell handling; superseded offers cancel queues/captures and revoke clipboard then continue."
+    },
+    {
+      "problem": "Shell-consumed mouse events left the displayed pointer at old coordinates.",
+      "resolution": "Compositor pointer updates before shell hit handling."
+    }
+  ],
+  "remaining_blockers": [],
+  "checks": [
+    {
+      "command": "cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --test session_shell",
+      "exit_status": 0,
+      "passed": 7,
+      "log": "shell-review-tests.txt"
+    },
+    {
+      "command": "cargo +1.90.0 test --offline --locked --manifest-path ui/native/Cargo.toml --test session",
+      "exit_status": 0,
+      "passed": 21,
+      "log": "auth-review-tests.txt"
+    }
+  ],
+  "boundaries": [
+    "Personal authentication remains unavailable; public VM guest only.",
+    "Opaque compositor cover and input routing do not revoke storage/keyring/kernel grants or constitute authenticated session lock.",
+    "Superseded-event main guard was source-reviewed; dedicated native negative delivery is not established by these host tests.",
+    "No native/hardware or comparative security claim."
+  ]
+}

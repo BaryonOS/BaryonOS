@@ -16,7 +16,8 @@ review is door AI gedaan; er is geen menselijke audit.
   liet de BSP-stack van 16 KiB overlopen, wat native is gevonden en
   hersteld.
 - `kernel/src/m2/smp.rs` (opt-in profiel `native-smp`):
-  INIT-SIPI-SIPI-opstart met een 16-bit SIPI-pagina die nooit gemapt wordt.
+  INIT-SIPI-SIPI-opstart met een 16-bit SIPI-pagina die nooit gemapt wordt
+  (contracten en primaire bronnen: ADR-070 in `docs/DECISIONS.md`).
   De 32/64-bit-stap, de GDT en de AP-stacks met guards staan in het
   kernelimage. AP's claimen hun context op hardware-APIC-ID via
   `lock cmpxchg`, en de BSP trekt een context bij time-out met dezelfde CAS
@@ -31,7 +32,7 @@ review is door AI gedaan; er is geen menselijke audit.
   `ACPI:UNAVAILABLE:NO_DMAR` voor q35/OVMF, zodat een regressie in de
   ACPI-discovery deze gate laat falen.
 
-## Uitgevoerde native gevallen (alle exit 33 = geslaagd, geen time-out)
+## Uitgevoerde native gevallen (alle QEMU-processen eindigden met exit 33, zonder proces-time-out; `ap-stall` rapporteert bewust `AP 1 TIMEOUT`)
 
 | Profiel | Geval | vCPU's / TCG | Uitkomst |
 |---|---|---|---|
@@ -71,8 +72,10 @@ NOS_BUILD_DIR=build/k06-<profiel> python3 -B -u tools/run_smp.py --profile <prof
 `milestone-m2`, `framebuffer` en `native-rtc` slaagt.
 `native-smp`+`milestone-m3` faalt zoals bedoeld met de `compile_error`.
 
-**Niet uitgevoerd:** M3-, systeem- en desktopprofielen native, want
-native-smp combineert er niet mee. Kernel-Clippy maakt geen deel uit van
+**Niet uitgevoerd (in deze eerste ronde op `c687cd13`):** M3-, systeem- en
+desktopprofielen native, want native-smp combineert er niet mee. Na de
+CI-regressie zijn de M3-boot, K05 (6/6) en de M6C-smoke wel lokaal native
+uitgevoerd; zie de sectie 'CI-regressie hersteld (36703f50)' hieronder. Kernel-Clippy maakt geen deel uit van
 CI; lokaal geeft het alleen vier bestaande, niet-gewijzigde meldingen in
 `paging.rs` en `main.rs`. Er is geen fysieke hardware en geen
 nieuwe-head-CI op GitHub op het moment van schrijven.

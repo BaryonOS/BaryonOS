@@ -786,3 +786,61 @@ fn sparse_frames_require_one_complete_frame_and_stay_increasing() {
     commit(&mut receiver, 3, 3);
     assert_eq!(receiver.completed_frame(), Some(3));
 }
+#[test]
+fn sparse_partial_frame_keeps_peer_epoch_and_deadline_checks() {
+    let g = Geometry {
+        assigned: Rectangle {
+            x: 8,
+            y: 24,
+            width: 35,
+            height: 9,
+        },
+        ..geometry()
+    };
+    let mut receiver = Receiver::new(7, g, 10).unwrap();
+    for tile in 0..g.tiles() {
+        let r = g.rectangle(tile).unwrap();
+        let token = ready(&mut receiver, g, tile + 1, 1, tile, &vec![0; r.bytes()]);
+        receiver
+            .commit_with(token, 1, |_, _| Ok::<(), ()>(()))
+            .unwrap();
+    }
+    let begin_sparse = begin(g, 5, 2, 1);
+    assert!(matches!(
+        receiver.accept(8, 1, &begin_sparse),
+        Err(Error::Access)
+    ));
+    let mut wrong_epoch = begin_sparse.clone();
+    wrong_epoch[16..24].copy_from_slice(&12u64.to_le_bytes());
+    assert!(matches!(
+        receiver.accept(7, 1, &wrong_epoch),
+        Err(Error::Epoch)
+    ));
+    let r = g.rectangle(1).unwrap();
+    let token = ready(&mut receiver, g, 5, 2, 1, &vec![0; r.bytes()]);
+    receiver
+        .commit_with(token, 1, |_, _| Ok::<(), ()>(()))
+        .unwrap();
+    assert_eq!(receiver.completed_frame(), None);
+    assert!(matches!(
+        receiver.accept(7, 1, &begin_sparse),
+        Err(Error::Replay)
+    ));
+    let last = g.tiles() - 1;
+    let r = g.rectangle(last).unwrap();
+    let token = ready(&mut receiver, g, 6, 2, last, &vec![0; r.bytes()]);
+    let mut calls = 0;
+    let reply = receiver
+        .commit_with(token, 11, |_, _| {
+            calls += 1;
+            Ok::<(), ()>(())
+        })
+        .unwrap();
+    assert_eq!(reply.status(), Err(Error::Timeout));
+    assert_eq!(calls, 0);
+    assert_eq!(receiver.completed_frame(), None);
+    let mut replacement = Receiver::new(7, Geometry { epoch: 12, ..g }, 10).unwrap();
+    let mut first = begin(g, 1, 1, last);
+    first[16..24].copy_from_slice(&12u64.to_le_bytes());
+    assert!(matches!(replacement.accept(7, 1, &first), Err(Error::Grid)));
+}

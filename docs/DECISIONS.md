@@ -109,12 +109,53 @@ productprofiel; K06 blijft open.
 - ACPI 6.5, §5.2.12 (MADT, structuurtypen en -lengtes, Enabled en Online
   Capable, waarbij Online Capable gereserveerd-nul is als Enabled gezet is)
   en §5.2.12.8 (Local APIC Address Override).
+- Vindplaatsen: *Intel® 64 and IA-32 Architectures Software Developer's
+  Manual*, Volume 3A (Intel Corporation; actuele editie,
+  https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html),
+  voor INIT-SIPI-SIPI, ICR en IA32_APIC_BASE (xAPIC/x2APIC-vlaggen),
+  MTRR/PAT en XCR0. *Advanced Configuration and Power Interface (ACPI)
+  Specification*, versie 6.5 (UEFI Forum, augustus 2022,
+  https://uefi.org/specs/ACPI/6.5/), §5.2.12 voor de MADT. *UEFI
+  Specification* 2.10 (UEFI Forum, https://uefi.org/specifications) voor
+  het geheugenmodel bij overdracht. De identity-map onder 1 MiB is
+  geverifieerd OVMF-gedrag en geen UEFI-garantie; daarom staat ze in de
+  bewijsgrens als open punt.
 - Lokaal OSDev-snapshot W003259 (MADT), uitsluitend als routekaart.
 - De SDM-hoofdstuknummers volgen recente edities. In oudere edities heten
   dezelfde secties §8.4 (MP-initialisatie) en §10.4/§10.6 (APIC); zoek
   bij twijfel op de sectietitel.
 
 **Uitgevoerd testbewijs:** `docs/verification/k06-smp-bringup/README.md`.
+## ADR-SESSION-20261102 — herkenbare bediening en expliciete VM-sessiegrens
+
+De huidige gebruikersopdracht kiest herkenbare sessie-, zoek-, status- en
+vensterbediening rond Materiaal. Een eigen productidentiteit verbiedt geen
+bekende conventies. De nieuwe `native-session-route` blijft een openbare,
+geïsoleerde VM-proef: persoonlijke credentials worden niet verzameld zolang
+een echte auth-/sessie-/keyringdienst ontbreekt. Lock bedekt beeld en blokkeert
+appinput, maar mag niet als sleutel- of opslagcapability-intrekking worden
+gepresenteerd. FR-S02 en U02 blijven open; de bestaande meter blijft 41.
+
+Shellbeleid blijft in de userspace-compositor. Een inputoffer wordt bevestigd
+vóór een systeemactie. Appqueues en clipboardoffers worden bij afschermen
+geannuleerd; apps kunnen de vertrouwde voorgrond niet tekenen. Desktop wordt
+pas zichtbaar na beide complete SUR-frames. Diagnostische gereedheid wordt
+als laatste gepubliceerd, na een voorafgaande 0, zodat timerpreëmptie geen
+nieuwe pagina met oude gereedheid kan laten observeren.
+
+SUR1 behoudt een volledig eerste frame en actor/epoch/bounds/COMMIT/deadline-
+controles; latere sparse frames gebruiken strikt oplopende tegels en een
+verplichte eindtegel. Rebind maakt de cache ongeldig. Een opaque renderpad en
+oude/nieuwe paneelunion beperken werk, met exacte rastervergelijking tegen het
+behouden referentiepad. Geen nieuwe kernel-ABI, crypto of apparaatrechten.
+
+De geteste codebron is 703cc07; afzonderlijke route- en regressieprofielen
+slagen. Onderzoek, bronhashes, screenshots, meetgrenzen en open werk staan in
+[het uitvoeringsrapport](verification/session-quality-20261102/README.md).
+VMware blijft een aparte platformproef volgens
+[de concrete overdracht](implementation/VMWARE-WORKSTATION-TRIAL.md).
+Herzien bij echte account-/sessierechten, resize/rebind, GPU-transport of
+een gewijzigde trusted-inputgrens; een hostbeeld vervangt geen native bewijs.
 
 <a id="adr-057--vreemde-opslag-nooit-als-leeg-volume-toelaten"></a>
 ## ADR-064 — Vreemde opslag nooit als leeg volume toelaten
@@ -190,6 +231,7 @@ Historische bewijsbestanden behouden hun oorspronkelijke nummervermelding.
 | 055, begrensde GUI-rust | ADR-061 |
 | 056, eenmalig klembord | ADR-062 |
 | 056, herkenbare VM-sessieroute | ADR-063 |
+| 058, positieve volume-identiteit (historische titel) | ADR-064 |
 | 057, vreemde opslag nooit als leeg volume toelaten | ADR-064 |
 
 ## Onderzoeksbesluit J-20261102 — herkenbare basis, expliciete installatiegrens
@@ -1788,3 +1830,25 @@ de latch voorkomt dat een oude clear-repeat documenttekst wist. Herzien bij
 streaming, meer apps, veilige accountvelden of een echte sessiegrens.
 Contract, bron en nog lopende native gate: implementation/NATIVE-CLIPBOARD.md
 en verification/native-clipboard-20261102/.
+
+
+## ADR-MATERIAL-LIBRARY-20261102 — bestaande volumeobjecten native bedienen
+
+De native werkruimte ontsluit bestaande volume-v7-namen, collecties, metadata
+en twee historieplaatsen; geen nieuw wireformaat, opslagformaat of kernelrecht.
+Hernoemen blijft draft tot expliciet bewaren. Ordenen gebruikt CAS, historie
+herstelt als nieuwe revisie. Onzekere publicatie wordt niet herhaald; een
+bevestigde restore met mislukte herlezing blokkeert bewaren tot expliciet heropenen.
+Een begrensde tekstpreview valideert eerst de volledige historische versie en
+UTF-8 in de bestaande stagingbuffer. Labels maken verkorting en locatie duidelijk.
+Proportionele tekst deelt metrics/caret/selection/wrap/hittest en bewaart bytes.
+
+Het eigen scalar appspecifieke RX-budget wordt na echte131177-byte-linkermeting
+128→144KiB; vaste adressen, vijf segmenten, W^X, R/RW/stack/guard/kernelquota en
+capabilities blijven gelijk. Zie `implementation/NATIVE-MATERIAL-LIBRARY.md`.
+De native gate gebruikt volledige toegewezen appbeelden en een onafhankelijke
+schijfdecoder; koude heropening kopieert uitsluitend een opnieuw gevalideerde
+bron-/profielgebonden wegwerprun. U03 blijft open totdat de volledige route en
+regressie werkelijk slagen. Geen authenticatie-, encryptie- of hardwareclaim.
+
+<a id="adr-058--positieve-volume-identiteit-vóór-toelating-als-lege-opslag"></a>

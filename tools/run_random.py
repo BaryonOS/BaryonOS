@@ -214,7 +214,8 @@ def validate_artifacts(report: dict, frozen: str, case: str, *, qemu: str,
                 or inspect_user(path) != manifest["system"][name]["elf"] or binary not in kernel):
             raise ValueError("native program hash, ELF inspection or kernel embedding mismatch")
     initial = load_json(private_path(volume / "volume.json", regular=True))
-    empty = b"".join(bytes(volume_disk.SECTOR) if volume_disk.FIRST <= i < volume_disk.FIRST + volume_disk.VOLUME_SECTORS
+    empty = b"".join(bytes(volume_disk.SECTOR)
+                     if volume_disk.FIRST <= i < volume_disk.FIRST + volume_disk.VOLUME_SECTORS
                      else volume_disk.canary(i) for i in range(volume_disk.IMAGE_SECTORS))
     if (initial.get("variant") != "empty" or initial.get("sha256") != digest(empty)
             or report.get("before_sha256") != digest(empty)):
