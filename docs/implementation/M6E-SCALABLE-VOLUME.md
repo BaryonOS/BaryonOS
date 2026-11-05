@@ -66,6 +66,11 @@ canaries; het orakel weigert iedere wijziging daarvan.
 
 Een volledig nulvolume is de lege generatie 0; er wordt niets geformatteerd.
 
+Dit is de historische v1-regel. Voor de huidige `NOSVOL02`-dienst is impliciete
+nulvolume-admissie verwijderd: alleen expliciet vooraf geformatteerde,
+volledig geldige lege metadata wordt toegelaten. Zie ADR-064 en
+[het v2-toelatingscontract](S06-COLLECTIONS-HISTORY.md#invarianten-aanvulling-op-m6e).
+
 ## Duurzaamheidsvolgorde en invarianten
 
 1. Nieuwe inhoud gaat **uitsluitend** naar chunks die de duurzame tabel niet

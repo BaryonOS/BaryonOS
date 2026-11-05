@@ -1,0 +1,4 @@
+    Checking nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os/ui/native)
+    Checking kernel-core v0.1.0 (/workspace/nieuw-os/crates/kernel-core)
+    Checking nieuw-os-materiaal-app v0.1.0 (/workspace/nieuw-os/sdk/examples/materiaal)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.08s

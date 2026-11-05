@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-02",
+  "main": "380111b68688c981eec6abb8fab29174a29f5601",
+  "source_fingerprint_version": 3,
+  "source_sha256": "b7ccd11fa114f3d4506f9b85560b7bcd51289b88cfb8054cd9e0b6537ea7122b",
+  "postmerge_checks": {"success": 28, "failure": 0, "pending": 0},
+  "window": {
+    "run": 41535553113,
+    "artifact": 13184033801,
+    "artifact_bytes": 4419790,
+    "passed": true,
+    "native_gate": true,
+    "clipboard_gate": true,
+    "smoke_only": false,
+    "raw_qemu_exit": 33,
+    "phases": 22,
+    "duration_s": 797.8816147939999,
+    "serial_sha256": "98b5f779b8f713bf19fcc69d2836631e9c668cdf585a836ceee807b360459835",
+    "phase_screenshots_rehashed": 22,
+    "disk": {"object": 0, "revision": 1, "length": 14, "clocks": [1, 0], "canaries_intact": true},
+    "disk_content_sha256": "9a45a00fa9ff69c17e124f54c14bb14cf2c7650e8cf1c272f6631f618a19a5a5",
+    "windows_bundle_sha256": "e38f435673be9d467b200542eb043de531c2811e488b790b07f5ba449b7ad3d2",
+    "readback": "Actual source.json/report checkout and source fingerprint checked. Raw serial and all22 phase screenshot hashes independently recomputed from downloaded artifact bytes. Disk oracle and full native/clipboard gate flags checked."
+  },
+  "network": {
+    "run": 41535553158,
+    "artifact": 13183777512,
+    "artifact_bytes": 76155,
+    "normal": {
+      "passed": true,
+      "network_service_gate": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 8.826109263000035,
+      "serial_sha256": "e545fe1c3b422e4858c0ed1080e9557a3902c7f0bbaeeae96ba337286877ef05"
+    },
+    "client_exit": {
+      "passed": true,
+      "network_service_gate": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 8.120733761999986,
+      "serial_sha256": "e3b3bbc2f599965ac66694fac04e0d3ccaf8ab1692ed159a5b8cd031d0b88074"
+    },
+    "readback": "Both reports bind exactly to main380111b6 and source-v3b7ccd11f. Raw serial/stderr hashes independently recomputed; archived network-peer.json equals report.peer. Actual wire frames, denials, retry/close/reset acknowledgement and independent process cleanup observed by existing native runner."
+  },
+  "commands": [
+    {"command": "gh run watch 41535553113 --repo simonvanieperen/nieuw-os --exit-status --interval 30", "exit": 0},
+    {"command": "gh run download 41535553113 --repo simonvanieperen/nieuw-os --dir <session>/files/main380-window", "exit": 0},
+    {"command": "gh run download 41535553158 --repo simonvanieperen/nieuw-os --name native-network-service-evidence --dir <session>/files/main380-n01", "exit": 0},
+    {"command": "Python3 JSON/source/assertion and SHA256 readback of actual downloaded window/network serial, peer, phase PPM and ZIP bytes", "exit": 0}
+  ],
+  "progress": {"previous": 41, "current": 41, "new_points": 0},
+  "boundary": "Fresh hosted postmerge QEMU/TCG on exact main source, not local VM execution. N01 uses three isolated ring3 processes and controlled localhost Ethernet, not general Internet/TLS or physical NIC. U01 is the bounded interactive native session, not production authentication/U02/U03. ZIP bytes are not Windows/WHPX execution. Single durations are not p95. No physical hardware, production keys, human audit or full release acceptance."
+}

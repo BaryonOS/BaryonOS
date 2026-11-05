@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "main_commit": "69809c2cb53dfb3bd77abe5352892810fba6e82d",
+  "tested_full_pr114_head": "32b6c9e2205da783905e3e9c491f80393d8e11fd",
+  "main_tree_equals_tested_head": true,
+  "base": "cbbc9c9941b08ea5edfbd3637d494635b4fb1df0",
+  "checks": [
+    {
+      "pr": 119,
+      "head": "5a8317f130cc388e661b876b5258c9978e391460",
+      "all_noncentral_leaf_delta_paths_exact_in_main": [],
+      "central_sources_exactly_retained_in_main_archive": true,
+      "non_assessment_rubric_identical": true,
+      "readme_intro_exact_when_applicable": false
+    },
+    {
+      "pr": 136,
+      "head": "74a7b5c63f4ce10026f9573abc5a5facbfd0f4e8",
+      "all_noncentral_leaf_delta_paths_exact_in_main": [
+        {
+          "path": "docs/audit/os-completeness/README.md",
+          "sha256": "dac4e9cfb3a104c48914bba8fe6046e63ac6a69dbb79e24127f825457dd415e5"
+        },
+        {
+          "path": "docs/audit/os-completeness/accessibility-gaps.md",
+          "sha256": "9077a37b06cfc9388d7ccdd985fbd25d15c834cee871c74306977edc2e3cffbf"
+        },
+        {
+          "path": "docs/audit/os-completeness/compatibility-gaps.md",
+          "sha256": "45e001c8737adbd0b35bcba39ddd6b68fa52223724aa9cd6896c1eed530531da"
+        },
+        {
+          "path": "docs/audit/os-completeness/completeness-matrix.md",
+          "sha256": "fa795a780f0126b3f815b9d613284055ab8730c368f64686070bee26c62b718b"
+        },
+        {
+          "path": "docs/audit/os-completeness/dependency-map.md",
+          "sha256": "ed32a02d8b75522182fc71a52427ac2b78639856119551ae4b0de7e8688553a6"
+        },
+        {
+          "path": "docs/audit/os-completeness/evidence-register.md",
+          "sha256": "6c2312f05bcfb71f5bb5dc830fadfe44935dc31631614e327094056b247a77fb"
+        },
+        {
+          "path": "docs/audit/os-completeness/matrix.json",
+          "sha256": "740581cf231700bd8e6a9c68d5c08daa9262800ae819677ee6b125b81e631c18"
+        },
+        {
+          "path": "docs/audit/os-completeness/matrix.schema.json",
+          "sha256": "12306b68249fbce88af4b82395dd8abe4527da9706dc9a99e7a4df2d7799101e"
+        },
+        {
+          "path": "docs/audit/os-completeness/priorities.md",
+          "sha256": "a052b1c2eff3dded3db71b043507d0f45e867e3bd820499055ca75cb6e212763"
+        },
+        {
+          "path": "docs/audit/os-completeness/product-gaps.md",
+          "sha256": "6fc057291b8b4aa915664b118e3f0cc48d3343464d87c38b67f36ef60c3a9999"
+        },
+        {
+          "path": "docs/audit/os-completeness/recommended-roadmap.md",
+          "sha256": "80dad2c5ac428852c10c088b027dec00eb49227d8f7a642976b412b407b96cd0"
+        },
+        {
+          "path": "docs/audit/os-completeness/release-criteria-map.md",
+          "sha256": "3a5a2fb7f1b12b6a6957481f83bb94806a607495aa1e8cc246652524e392247d"
+        },
+        {
+          "path": "docs/audit/os-completeness/release-profiles.md",
+          "sha256": "c0b87d16510eac9ac8331699d59b52eb9951d0c0a87e61ed58eab392078151cb"
+        },
+        {
+          "path": "docs/audit/os-completeness/risk-register.md",
+          "sha256": "a6a481fe316e307fe2afb754117fb3039b7ce368e505a4701683d2d9fdff7783"
+        },
+        {
+          "path": "docs/audit/os-completeness/security-gaps.md",
+          "sha256": "d2303a139f53c3dea1a335997b671e369c80922b0d1bae7990440e5a5a6dc134"
+        },
+        {
+          "path": "docs/audit/os-completeness/source-baseline.md",
+          "sha256": "d00624cce78b06f311ef0955af61005eb86dec508c9980414015308c296391d3"
+        },
+        {
+          "path": "docs/audit/os-completeness/technical-gaps.md",
+          "sha256": "824b4256101ce8757ff24610019e8c1d43d05ebd6d68051ef2d1d362b1ccdfc1"
+        },
+        {
+          "path": "docs/audit/os-completeness/verification.json",
+          "sha256": "ca11fc6baef5324bafeeec7155b8e50c999465bd6d84be54677abb85f91fdfb3"
+        },
+        {
+          "path": "docs/audit/os-completeness/visual-design-gaps.md",
+          "sha256": "04ca4357cc8f1d38bef80e0cdb4d135d20c7a0904cfee747d68aebe8c6a00ae5"
+        },
+        {
+          "path": "docs/verification/pr136-integrator-check.json",
+          "sha256": "cb9889f70ef24b29fae822e4d6912c6f2e4abae552277ea831511ecc86dc4e02"
+        },
+        {
+          "path": "docs/verification/pr136-review-fixes.json",
+          "sha256": "cb2cb5cccc9ef65c1a71e00cda888f76bfe34176c34abee32a3484ad216a95d0"
+        }
+      ],
+      "central_sources_exactly_retained_in_main_archive": true,
+      "non_assessment_rubric_identical": true,
+      "readme_intro_exact_when_applicable": false
+    },
+    {
+      "pr": 143,
+      "head": "5f68a4f42a892f8b67d5487527b7a3da029f660d",
+      "all_noncentral_leaf_delta_paths_exact_in_main": [],
+      "central_sources_exactly_retained_in_main_archive": true,
+      "non_assessment_rubric_identical": true,
+      "readme_intro_exact_when_applicable": true
+    },
+    {
+      "pr": 144,
+      "head": "2ed24ac7c0df49161ddec55c88909852e4532873",
+      "all_noncentral_leaf_delta_paths_exact_in_main": [
+        {
+          "path": "CHANGELOG.md",
+          "sha256": "a8208302602fb9390d91c6c0fce210304484c86bb4cbed1e5126ac03304841fc"
+        }
+      ],
+      "central_sources_exactly_retained_in_main_archive": true,
+      "non_assessment_rubric_identical": true,
+      "readme_intro_exact_when_applicable": false
+    },
+    {
+      "pr": 145,
+      "head": "9ed9d97a51b60b4ed49878bf341d35a52c48e1df",
+      "all_noncentral_leaf_delta_paths_exact_in_main": [
+        {
+          "path": "docs/verification/security-audit-20261103.md",
+          "sha256": "2f60c9b0301b0f8c1c8dbce47229aa571e5705d7dda1fce5a9058aa4946ed141"
+        }
+      ],
+      "central_sources_exactly_retained_in_main_archive": true,
+      "non_assessment_rubric_identical": true,
+      "readme_intro_exact_when_applicable": false
+    }
+  ],
+  "policy": "Only close observed exact heads after live head recheck. Closing as retained, not a separate merge or new acceptance. Central current-state prose intentionally consolidated; exact incoming central bytes remain in main historical archive."
+}

@@ -32,6 +32,14 @@ class WindowRunnerTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 window.run(timeout=30, bios_rom=None, vga_rom=None, clipboard=True, **flags)
 
+    def test_library_cannot_reuse_an_unvalidated_or_different_mode(self):
+        for flags in ({"smoke": True}, {"recovery_handshake": True},
+                      {"clipboard": True}, {"session_route": True}):
+            with self.assertRaises(ValueError):
+                window.run(timeout=30, bios_rom=None, vga_rom=None, library=True, **flags)
+        with self.assertRaises(ValueError):
+            window.run(timeout=30, bios_rom=None, vga_rom=None, library_parent="unvalidated")
+
     def test_exact_snapshot_rejects_missing_duplicate_or_oversized_fields(self):
         raw=block()
         self.assertEqual(window.snapshots(raw,"MATERIAL")[0]["PID"],4)

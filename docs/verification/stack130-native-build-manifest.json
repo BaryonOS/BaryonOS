@@ -1,0 +1,493 @@
+{
+  "schema_version": 1,
+  "profile": "native-window-session-probe",
+  "kernel_feature": "native-window-session-probe",
+  "loader_feature": "desktop-mode",
+  "source_fingerprint_version": 3,
+  "source_sha256": "7ad8b7df9afc12fe0ba19690d4a103792564e813c69ac8714ff128f8efe71940",
+  "loader": {
+    "sha256": "e0d90a5a905c961bedd947d77d1db209a31126fa187b089df78b52029fc738b3",
+    "format": "AMD64 PE32+",
+    "subsystem": "EFI_APPLICATION",
+    "imports": 0
+  },
+  "kernel": {
+    "sha256": "763a21ee5eeb523a07cb6ed6f9114b077d201505c2b80faff6b1e89924769ce4",
+    "entry": 33554432,
+    "segments": [
+      {
+        "flags": 5,
+        "offset": 4096,
+        "address": 33554432,
+        "filesz": 177239,
+        "memsz": 177239,
+        "page_start": 33554432,
+        "page_end": 33734656
+      },
+      {
+        "flags": 4,
+        "offset": 184320,
+        "address": 33734656,
+        "filesz": 1652688,
+        "memsz": 1652688,
+        "page_start": 33734656,
+        "page_end": 35389440
+      },
+      {
+        "flags": 6,
+        "offset": 1839104,
+        "address": 35389440,
+        "filesz": 1720936,
+        "memsz": 4825272,
+        "page_start": 35389440,
+        "page_end": 40218624
+      }
+    ],
+    "sections": [
+      {
+        "name": "",
+        "type": 0,
+        "flags": 0,
+        "size": 0
+      },
+      {
+        "name": ".text",
+        "type": 1,
+        "flags": 6,
+        "size": 177239
+      },
+      {
+        "name": ".rodata",
+        "type": 1,
+        "flags": 50,
+        "size": 1652688
+      },
+      {
+        "name": ".data",
+        "type": 1,
+        "flags": 3,
+        "size": 1720936
+      },
+      {
+        "name": ".bss",
+        "type": 8,
+        "flags": 3,
+        "size": 3100856
+      },
+      {
+        "name": ".symtab",
+        "type": 2,
+        "flags": 0,
+        "size": 9600
+      },
+      {
+        "name": ".shstrtab",
+        "type": 3,
+        "flags": 0,
+        "size": 52
+      },
+      {
+        "name": ".strtab",
+        "type": 3,
+        "flags": 0,
+        "size": 22248
+      }
+    ]
+  },
+  "sdk_runtime": false,
+  "document_session": false,
+  "materiaal": {
+    "passed": true,
+    "native_runtime_performed": false,
+    "probe_controller": false,
+    "apps": [
+      {
+        "name": "keyring-service",
+        "sha256": "9bfaf10a2c4476fcecfea6d17f2577b877a4a800bef0a8ac4597576bc3434d17",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1344,
+              "memsz": 1344,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 3569,
+              "memsz": 3569,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 78359,
+              "memsz": 78359,
+              "page_start": 1073872896,
+              "page_end": 1073954816
+            }
+          ]
+        }
+      },
+      {
+        "name": "volume-service",
+        "sha256": "eee3ef93929f8ca4297f5d3a8c93f3b1d1c02976833524521abe55b492b35f7f",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 57570,
+              "memsz": 57570,
+              "page_start": 1073741824,
+              "page_end": 1073803264
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 65536,
+              "filesz": 1304,
+              "memsz": 1304,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 69632,
+              "filesz": 18282,
+              "memsz": 18282,
+              "page_start": 1073823744,
+              "page_end": 1073844224
+            }
+          ]
+        }
+      },
+      {
+        "name": "materiaal-app",
+        "sha256": "9fb4ff6426355436cfd04df049f3b9eb84472854f930fca35b21d3463c48b94d",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 19,
+              "memsz": 19,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1024,
+              "memsz": 1024,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 292040,
+              "memsz": 292040,
+              "page_start": 1073872896,
+              "page_end": 1074167808
+            },
+            {
+              "flags": 6,
+              "address": 1074462720,
+              "offset": 307200,
+              "filesz": 200,
+              "memsz": 200704,
+              "page_start": 1074462720,
+              "page_end": 1074663424
+            },
+            {
+              "flags": 5,
+              "address": 1074724864,
+              "offset": 311296,
+              "filesz": 140617,
+              "memsz": 140617,
+              "page_start": 1074724864,
+              "page_end": 1074868224
+            }
+          ]
+        }
+      },
+      {
+        "name": "input-source",
+        "sha256": "f3bddd83cd9946dd2aa3eb4c3a07d33042fb7194da86a642c2a15912b37ac601",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1200,
+              "memsz": 1200,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 754,
+              "memsz": 754,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            },
+            {
+              "flags": 5,
+              "address": 1074003968,
+              "offset": 16384,
+              "filesz": 12263,
+              "memsz": 12263,
+              "page_start": 1074003968,
+              "page_end": 1074016256
+            }
+          ]
+        }
+      },
+      {
+        "name": "input-policy",
+        "sha256": "62e8e098c4db9ef829fba90d24641ade9f2720537c0eb121a3efdbbbac72e48c",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1200,
+              "memsz": 1200,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 2522,
+              "memsz": 2522,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            },
+            {
+              "flags": 5,
+              "address": 1074003968,
+              "offset": 16384,
+              "filesz": 21575,
+              "memsz": 21575,
+              "page_start": 1074003968,
+              "page_end": 1074028544
+            }
+          ]
+        }
+      },
+      {
+        "name": "window-init",
+        "sha256": "7a7c0f3ecd518d1ac3e44664261a41987911fb4aecf601022999c8fedbf68b39",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1024,
+              "memsz": 1024,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 799,
+              "memsz": 799,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            },
+            {
+              "flags": 6,
+              "address": 1074790400,
+              "offset": 16384,
+              "filesz": 72,
+              "memsz": 72,
+              "page_start": 1074790400,
+              "page_end": 1074794496
+            },
+            {
+              "flags": 5,
+              "address": 1090519040,
+              "offset": 20480,
+              "filesz": 9799,
+              "memsz": 9799,
+              "page_start": 1090519040,
+              "page_end": 1090531328
+            }
+          ]
+        }
+      },
+      {
+        "name": "window-compositor",
+        "sha256": "007a0b826ee81a581fc3457c38428a3bb326678bc09b8abcd7d4f92a089515f5",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1024,
+              "memsz": 1024,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 286680,
+              "memsz": 286680,
+              "page_start": 1073872896,
+              "page_end": 1074159616
+            },
+            {
+              "flags": 6,
+              "address": 1074790400,
+              "offset": 299008,
+              "filesz": 184,
+              "memsz": 5600184,
+              "page_start": 1074790400,
+              "page_end": 1080393728
+            },
+            {
+              "flags": 5,
+              "address": 1090519040,
+              "offset": 303104,
+              "filesz": 75785,
+              "memsz": 75785,
+              "page_start": 1090519040,
+              "page_end": 1090596864
+            }
+          ]
+        }
+      },
+      {
+        "name": "calculator-app",
+        "sha256": "d0addc78b939d3a74dcc06104cb9bb822c91324ee120f6b3d409dc0ecf018e31",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 19,
+              "memsz": 19,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1024,
+              "memsz": 1024,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 285128,
+              "memsz": 285128,
+              "page_start": 1073872896,
+              "page_end": 1074159616
+            },
+            {
+              "flags": 6,
+              "address": 1074790400,
+              "offset": 299008,
+              "filesz": 208,
+              "memsz": 208,
+              "page_start": 1074790400,
+              "page_end": 1074794496
+            },
+            {
+              "flags": 5,
+              "address": 1075052544,
+              "offset": 303104,
+              "filesz": 77398,
+              "memsz": 77398,
+              "page_start": 1075052544,
+              "page_end": 1075130368
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

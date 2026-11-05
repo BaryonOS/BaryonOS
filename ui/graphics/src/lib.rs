@@ -2,6 +2,7 @@
 //! floating point, runtime font parser or document/storage dependency.
 #![no_std]
 #![forbid(unsafe_code)]
+pub mod damage;
 
 mod atlas;
 pub mod icon;

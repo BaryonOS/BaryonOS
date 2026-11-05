@@ -1,0 +1,18 @@
+{"command": ["cargo", "+1.90.0", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/examples/materiaal/Cargo.toml", "--features", "native", "--bin", "materiaal-app", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/library-root-native-thin"}
+   Compiling zeroize v1.9.1
+   Compiling catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+   Compiling ui-core v0.1.0 (/workspace/nieuw-os/crates/ui-core)
+   Compiling noto-sans-mono-bitmap v0.3.2
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+   Compiling volume-core v0.1.0 (/workspace/nieuw-os/services/volume)
+   Compiling nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os/sdk/catalog-client)
+   Compiling nieuw-os-input-core v0.1.0 (/workspace/nieuw-os/services/input-core)
+   Compiling nieuw-os-graphics v0.1.0 (/workspace/nieuw-os/ui/graphics)
+   Compiling nieuw-os-document-session v0.1.0 (/workspace/nieuw-os/sdk/document-session)
+   Compiling nieuw-os-input-client v0.1.0 (/workspace/nieuw-os/sdk/input-client)
+   Compiling nieuw-os-surface-protocol v0.1.0 (/workspace/nieuw-os/ui/surface-protocol)
+   Compiling nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os/ui/native)
+   Compiling nieuw-os-materiaal-app v0.1.0 (/workspace/nieuw-os/sdk/examples/materiaal)
+error: failed to prepare thin LTO module: Function Import: link error: linking module flags 'Code Model': IDs have conflicting values: 'i32 2' from core-20de545fda0f50c3.core.572336f5d4e7706a-cgu.0.rcgu.o, and 'i32 1' from nieuw_os_materiaal-cad043d0f64c3198.nieuw_os_materiaal.a6f96e55d657771d-cgu.0.rcgu.o
+
+error: could not compile `nieuw-os-materiaal-app` (bin "materiaal-app") due to 1 previous error

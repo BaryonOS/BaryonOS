@@ -1,0 +1,40 @@
+{
+  "task": "STACK130-INTEGRATE",
+  "scope": "Lokale inhoudsbehoudende integratie; geen push, PR-mutatie, merge op GitHub, scorekeuze of native-runtimeclaim.",
+  "worktree": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr130-stack",
+  "branch": "integrate/stack130-local",
+  "frozen_heads": {
+    "130_initial": "024cede12dbe16697ef6a5221d95297be0f6c56d",
+    "130": "13782f92f74725920a125a2b7a5e0ec8bc8231be",
+    "127": "5343b0a681ebc4cb9b6461bbe8d4447722eec91c",
+    "128": "b42b551cb80aedac2e88147a4ef5047db741e81b",
+    "129": "159ad799d2a94fb6542d60e26ed8bbd22bdbd752"
+  },
+  "central_metadata": "README.md, docs/progress.json, docs/PROGRESS.md, docs/PROJECT-STATE.md en docs/assets/progress.svg blijven bytegelijk aan frozen PR127. Unieke historische overlays worden afzonderlijk bewaard; parent beslist finale metadata.",
+  "invariants": [
+    "Eigen kernel en bestaande Security Floor; geen extra capability, auth-, credential-, netwerk- of opslagrecht.",
+    "PR129 openbare gast blijft fail-closed; geen echte credentials of authenticatieclaim.",
+    "Native Ctrl+K, key-releaseownership, cancel/redraw en volledige dockhoverdamage samengaan met latere shellmodaliteit.",
+    "Calculator gebruikt werkelijke proportionele expression_caret_at-pointerroute en gedeelde result/statusbounds.",
+    "SUR1 expiry/deadlines, retained opt-in, sparse eerste-volledige-framegrens, rebind, clipboard en negatieve tests behouden.",
+    "Beide TCP-status/deadlinefixes en no-user-config-probe behouden.",
+    "PR130 bibliotheek, tekstreflow, caret-affinity, history, mutatieonzekerheid en cold reopen behouden.",
+    "Geen pixelmaskers, lagere sendbudgetgrens of verzwakte native gate."
+  ],
+  "integration_decisions": [
+    "PR127 volledige protocol/client zijn de superset van PR130 sparse transport; behoud extra PR130 sparse deadline/peer/epoch-regressie.",
+    "PR128 algemene bounded Damage-module en volledige ancestry blijven behouden. Precieze PR127 model/controller journals vervangen de vroegere FULL-op-iedere-mutatie WIP-implementatie, met dezelfde presented/generation-invarianten.",
+    "Behoud PR130 palette, documentgeometrie, library en rustige sessietokens. Integreer PR127 gedeelde proportionele calculatorrenderer en volledige veld-/result-/statusdamage.",
+    "Native compositor-main niet integraal vervangen: behoud vroege input-ACK, openbare sessie, echte klok, ready/cold recovery en voeg palette-routing plus beide expiry-aanroeppaden toe.",
+    "Palet kan niet over vertrouwde shellpagina's openen; geselecteerde verborgen app wordt weer zichtbaar. Shell en palette delen de werkelijke nieuwe dockgeometrie, hoverrendering en oude/nieuwe volledige damage.",
+    "Gecombineerde pixeloracle vond echte stale-caretpixels: Layout::new miste de latere toolbarverplaatsing. Herstel controllerlayout en damage naar dezelfde for_screen/proportionele metrics als rendering; behoud ongewijzigde exacte oracle en >=90%-sendbudget.",
+    "Een afzonderlijke rood/groen-regressie bevestigt dat de nieuwe apppalette Super+L, F3 en Menu niet vóór de vertrouwde shell mag consumeren. Geef die en de bestaande native F10/F12-routes voorrang; sluit en beschadig de oude palette volledig."
+  ],
+  "validation": "Gecombineerde hosttests, fmt/Clippy, echte native targetchecks, volledige achtproces-window-build, werkelijke kernel-ELF-parser en vijf regressies voor de expliciet geautoriseerde documentdelta slagen. Exacte commando's, exits, aantallen, loghashes en source-v3 staan in stack130-validation.json. Geen nieuwe native runtime uitgevoerd.",
+  "limits": [
+    "QEMU/OVMF lokaal niet beschikbaar: geen boot-, runtime-, koude VM-, native pixel-, clipboardherstel- of Windows/WHPX-claim.",
+    "PR130-uitbreiding 024cede1..13782f92 is daarna expliciet geautoriseerd, concreet gelezen en geïntegreerd. Het zijn uitsluitend 18 document-/bewijsbestanden; geen bronconflict en source-v3 onveranderd. Verdere ongelezen live drift wordt niet opgenomen.",
+    "Historische native claims in de nieuwe bewijsbestanden blijven gebonden aan 64044318/source069666e5, niet aan deze integratie. De gearchiveerde readbackcode is niet uitgevoerd zonder bijbehorende CI-artifactdataset.",
+    "Alleen parent f090b913 is GitHub-integrator; centrale assessment en finale CI op publicatiehead blijven bij parent."
+  ]
+}

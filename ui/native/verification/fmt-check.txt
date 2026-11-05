@@ -1,4 +1,4 @@
-command: ["/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo", "+1.90.0", "fmt", "--manifest-path", "ui/native/Cargo.toml", "--", "--check"]
+command: ["/home/runner/.cargo/bin/cargo", "+1.90.0", "fmt", "--manifest-path", "ui/native/Cargo.toml", "--", "--check"]
 exit: 0
 
 stdout:
