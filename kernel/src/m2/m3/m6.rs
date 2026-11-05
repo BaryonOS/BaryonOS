@@ -1152,7 +1152,7 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
         }
         number(b"M6A:GENERATION:", value.generation);
         number(b"M6A:REQUEST_ID:", value.request_id);
-        hex(
+        serial::hex(
             b"M6A:VALUE_DIGEST:",
             wire::checksum_update(wire::FNV_OFFSET, &value.value),
         );
@@ -1201,16 +1201,6 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
     }
     serial::write(b"M6A:RESOURCES:PASS\nM6A:PASS\nM1:PASS\n");
     serial::exit(0x10)
-}
-fn hex(label: &[u8], value: u64) {
-    let mut bytes = [b'0'; 16];
-    for (i, b) in bytes.iter_mut().enumerate() {
-        let v = ((value >> ((15 - i) * 4)) & 15) as u8;
-        *b = if v < 10 { b'0' + v } else { b'a' + v - 10 };
-    }
-    serial::write(label);
-    serial::write(&bytes);
-    serial::write(b"\n");
 }
 fn case() -> u8 {
     if cfg!(feature = "test-m6a-service-errors") {
