@@ -42,6 +42,34 @@ VM. Fysieke hardware is niet getest en K06 is niet geaccepteerd.
 interrupts uitvoert. Dan zijn per-CPU-staat, TSS/IST, lockvolgorde,
 TLB-shootdown en de herziening van ADR-024 verplicht.
 
+**Status:** geaccepteerd als opt-in bringupprofiel (`native-smp`), niet als
+productprofiel; K06 blijft open.
+
+**Alternatieven overwogen.**
+- x2APIC-modus: uitgesteld. xAPIC-MMIO dekt het q35-profiel en firmware in
+  x2APIC-modus valt gesloten terug naar één CPU.
+- Een trampoline volledig in de lage pagina (ook 32/64-bit): verworpen. Die
+  pagina zou een uitvoerbare mapping in de kerneltabellen nodig hebben,
+  terwijl de huidige vorm haar nooit mapt (W^X ongewijzigd).
+- De LAPIC-basis uit de MADT halen: verworpen. De basis komt uitsluitend uit
+  IA32_APIC_BASE; de MADT-waarde wordt alleen vergeleken (onbetrouwbare
+  firmware-invoer).
+- Een broadcast INIT/SIPI ("all excluding self"): verworpen. Die bereikt
+  ook CPU's buiten de MADT of buiten de capaciteit, en geeft geen
+  per-CPU-time-out of quarantaine.
+
+**Primaire bronnen.**
+- Intel SDM Vol. 3A, §9.4 (MP-initialisatieprotocol, INIT-SIPI-SIPI en de
+  bijbehorende wachttijden) en §11.6 (ICR, delivery modes, SIPI-vector als
+  paginanummer onder 1 MiB).
+- Intel SDM Vol. 3A, §11.4 (IA32_APIC_BASE: BSP-, EN- en EXTD-vlaggen).
+- ACPI 6.5, §5.2.12 (MADT, structuurtypen en -lengtes, Enabled en Online
+  Capable, waarbij Online Capable gereserveerd-nul is als Enabled gezet is)
+  en §5.2.12.8 (Local APIC Address Override).
+- Lokaal OSDev-snapshot W003259 (MADT), uitsluitend als routekaart.
+
+**Uitgevoerd testbewijs:** `docs/verification/k06-smp-bringup/README.md`.
+
 <a id="adr-057--vreemde-opslag-nooit-als-leeg-volume-toelaten"></a>
 ## ADR-064 — Vreemde opslag nooit als leeg volume toelaten
 

@@ -52,7 +52,8 @@ OVMF-kopie.
 ## Commando's (vanuit de worktree, met de geïsoleerde toolchain)
 
 ```text
-cargo test --locked -p boot-protocol                     # 24 tests, exit 0
+cargo test --locked -p boot-protocol                     # 25 tests op 36703f50, exit 0
+                                                         # (28 op 75009e51 en later, na de #191-tests)
 cargo clippy --locked -p boot-protocol --all-targets -- -D warnings   # exit 0
 cargo fmt --all -- --check                               # exit 0
 python3 -B -m unittest discover -s tools/tests -p test_smp_serial.py   # 4 tests
