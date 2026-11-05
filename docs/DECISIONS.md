@@ -52,6 +52,24 @@ een bootstrapprofiel. Een algemene shootdown voor procesadresruimten (per
 ASID/CR3 en per range), integratie met M3-unmaps, interrupts op de BSP en
 de SMP-scheduler volgen nog; ADR-024 blijft tot dan ongewijzigd geldig.
 
+**Status:** geaccepteerd in het opt-in `native-smp`-profiel; K06 blijft open.
+
+**Alternatieven overwogen.**
+- Alleen het venster ongeldig maken en de identity-alias lokaal laten
+  vallen: verworpen na review, omdat een AP met een gedeelde CR3 die alias
+  speculatief kan cachen.
+- CR3 herladen of een volledige TLB-flush per AP: is ook correct, maar
+  grover; `invlpg` per adres volstaat hier en blijft per vertaling
+  controleerbaar.
+- PCID/INVPCID: niet gebruikt; PCID staat uit in dit profiel.
+- Het frame vrijgeven en de shootdown "lazy" achteraf doen: verworpen,
+  want dat is precies het gevaar dat het controleprofiel aantoont.
+
+**Primaire bronnen.** Intel SDM Vol. 3A: TLB-onderhoud ("Invalidation of
+TLBs and Paging-Structure Caches", "Propagation of Paging-Structure Changes
+to Multiple Processors", INVLPG als serializing instruction) en APIC (ICR
+en TPR). Ook hier verschillen de hoofdstuknummers per editie.
+
 ## ADR-071 — Eigen TSS/IST per AP en begrensde, gerichte IPI's (K06 stap 2)
 
 5 november 2026; aanvulling op ADR-070, nog steeds alleen in `native-smp`.
@@ -77,6 +95,23 @@ AP terecht; voorheen was dat een triple fault. Zie
 nog geen TLB-shootdown, SMP-scheduler of lockvolgorde voor
 kernelsubsystemen. AP's draaien dus nog steeds geen kernelsubsystemen.
 ADR-024 blijft ongewijzigd geldig. Fysieke hardware is niet getest.
+
+**Status:** geaccepteerd in het opt-in `native-smp`-profiel; K06 blijft open.
+
+**Alternatieven overwogen.**
+- Eén gedeelde TSS: onmogelijk, want een busy TSS mag maar door één CPU geladen zijn.
+- Broadcast-IPI-shorthands: verworpen, omdat die ook CPU's in firmwarebezit
+  bereiken (bijvoorbeeld na een capaciteitsgrens).
+- Een AP die niet reageert alleen loskoppelen in plaats van alle AP's te
+  resetten: verworpen, omdat een AP die geen IPI aanneemt later geen
+  shootdown kan volgen.
+- x2APIC/MSR-IPI: uitgesteld, het profiel gebruikt xAPIC-MMIO.
+
+**Primaire bronnen.** Intel SDM Vol. 3A: taakbeheer (64-bit TSS, IST en
+de busy-vlag), interrupt- en exceptionafhandeling (IST-stackwissel,
+interruptgates) en APIC (ICR, delivery modes, LVT, TPR/PPR,
+spurious-vector, EOI). De SDM-hoofdstuknummers verschillen per editie;
+zoek op sectietitel.
 
 ## ADR-070 — Begrensde AP-opstart als eerste K06-stap
 
@@ -119,6 +154,37 @@ VM. Fysieke hardware is niet getest en K06 is niet geaccepteerd.
 **Herzien** vóórdat een AP kernelsubsystemen, gebruikersprocessen of
 interrupts uitvoert. Dan zijn per-CPU-staat, TSS/IST, lockvolgorde,
 TLB-shootdown en de herziening van ADR-024 verplicht.
+
+**Status:** geaccepteerd als opt-in bringupprofiel (`native-smp`), niet als
+productprofiel; K06 blijft open.
+
+**Alternatieven overwogen.**
+- x2APIC-modus: uitgesteld. xAPIC-MMIO dekt het q35-profiel en firmware in
+  x2APIC-modus valt gesloten terug naar één CPU.
+- Een trampoline volledig in de lage pagina (ook 32/64-bit): verworpen. Die
+  pagina zou een uitvoerbare mapping in de kerneltabellen nodig hebben,
+  terwijl de huidige vorm haar nooit mapt (W^X ongewijzigd).
+- De LAPIC-basis uit de MADT halen: verworpen. De basis komt uitsluitend uit
+  IA32_APIC_BASE; de MADT-waarde wordt alleen vergeleken (onbetrouwbare
+  firmware-invoer).
+- Een broadcast INIT/SIPI ("all excluding self"): verworpen. Die bereikt
+  ook CPU's buiten de MADT of buiten de capaciteit, en geeft geen
+  per-CPU-time-out of quarantaine.
+
+**Primaire bronnen.**
+- Intel SDM Vol. 3A, §9.4 (MP-initialisatieprotocol, INIT-SIPI-SIPI en de
+  bijbehorende wachttijden) en §11.6 (ICR, delivery modes, SIPI-vector als
+  paginanummer onder 1 MiB).
+- Intel SDM Vol. 3A, §11.4 (IA32_APIC_BASE: BSP-, EN- en EXTD-vlaggen).
+- ACPI 6.5, §5.2.12 (MADT, structuurtypen en -lengtes, Enabled en Online
+  Capable, waarbij Online Capable gereserveerd-nul is als Enabled gezet is)
+  en §5.2.12.8 (Local APIC Address Override).
+- Lokaal OSDev-snapshot W003259 (MADT), uitsluitend als routekaart.
+- De SDM-hoofdstuknummers volgen recente edities. In oudere edities heten
+  dezelfde secties §8.4 (MP-initialisatie) en §10.4/§10.6 (APIC); zoek
+  bij twijfel op de sectietitel.
+
+**Uitgevoerd testbewijs:** `docs/verification/k06-smp-bringup/README.md`.
 
 <a id="adr-057--vreemde-opslag-nooit-als-leeg-volume-toelaten"></a>
 ## ADR-064 — Vreemde opslag nooit als leeg volume toelaten

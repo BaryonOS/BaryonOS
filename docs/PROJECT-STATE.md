@@ -91,7 +91,7 @@ by-value MADT is hersteld; die zou alle profielen hebben geraakt.
 
 **Bewijs:** 8 native QEMU/TCG-gevallen geslaagd (1/2/4/8/9 vCPU's, single-
 en multi-TCG, capaciteit, dubbele MADT via `-acpitable`, AP-stall,
-registermismatch). Daarnaast 24 boot-protocol-tests, 4+2+10+8
+registermismatch). Daarnaast 25 boot-protocol-tests (exit 0; 28 na de #191-tests), 4+2+10+8
 Python-harnastests, Clippy/fmt en regressie van `milestone-m2` en
 `native-rtc` (5/5). Zie
 [k06-smp-bringup](verification/k06-smp-bringup/README.md). Twee
