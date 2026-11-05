@@ -123,25 +123,49 @@ pub fn guard_pages() -> impl Iterator<Item = u64> {
     })
 }
 
-/// Per-CPU anchor reachable through IA32_GS_BASE. Offsets 0 and 12 are used
-/// by the IPI stub; `slot` identifies the AP without trusting any register.
+/// Per-CPU anchor reachable through IA32_GS_BASE. Offsets 0, 12 and 16 are
+/// used by the IPI/shootdown stubs; `slot` identifies the AP without trusting
+/// any register. `before`/`after` record what this CPU read through
+/// SHOOTDOWN_WINDOW before the remap and at the visibility probe.
 #[repr(C, align(64))]
 struct CpuLocal {
     self_ptr: AtomicU64,
     slot: AtomicU32,
     ipis: AtomicU32,
+    shootdown_ack: AtomicU32,
+    before: AtomicU32,
+    after: AtomicU32,
+    probed: AtomicU32,
 }
 const _: () = {
     assert!(core::mem::offset_of!(CpuLocal, self_ptr) == 0);
     assert!(core::mem::offset_of!(CpuLocal, ipis) == 12);
+    assert!(core::mem::offset_of!(CpuLocal, shootdown_ack) == 16);
 };
 static CPU_LOCAL: [CpuLocal; MAX_APS] = [const {
     CpuLocal {
         self_ptr: AtomicU64::new(0),
         slot: AtomicU32::new(u32::MAX),
         ipis: AtomicU32::new(0),
+        shootdown_ack: AtomicU32::new(0),
+        before: AtomicU32::new(u32::MAX),
+        after: AtomicU32::new(u32::MAX),
+        probed: AtomicU32::new(0),
     }
 }; MAX_APS];
+
+/// Shootdown request, published (Release) before the IPI that makes an AP
+/// read it; the stub acknowledges `generation` only after its `invlpg`.
+#[no_mangle]
+static NOS_SMP_SHOOTDOWN_VA: AtomicU64 = AtomicU64::new(0);
+#[no_mangle]
+static NOS_SMP_SHOOTDOWN_GEN: AtomicU32 = AtomicU32::new(0);
+static PROBE: AtomicU32 = AtomicU32::new(0);
+/// Frames A (initially behind the window) and B (its replacement).
+static SHOOTDOWN_FRAMES: [AtomicU64; 2] = [AtomicU64::new(0), AtomicU64::new(0)];
+const SHOOTDOWN_VECTOR: usize = 0xe0;
+const OLD_PATTERN: u8 = 0xa1;
+const NEW_PATTERN: u8 = 0xb2;
 // Each slot is written only by the AP that claimed the matching context.
 static mut CPU_TABLES: [arch::CpuTables; MAX_APS] = [const { arch::CpuTables::new() }; MAX_APS];
 
@@ -170,12 +194,31 @@ global_asm!(
     ".globl nos_smp_spurious_entry",
     "nos_smp_spurious_entry:",
     "    iretq",
+    // Shootdown: invalidate the published VA on THIS CPU, then acknowledge the
+    // published generation with a locked xchg (ordered after the serializing
+    // invlpg), then EOI. Clobbers nothing visible to the interrupted code.
+    ".globl nos_smp_shootdown_entry",
+    "nos_smp_shootdown_entry:",
+    "    push rax",
+    "    push rdx",
+    "    mov rax, qword ptr [rip + {va}]",
+    "    invlpg [rax]",
+    "    mov edx, dword ptr [rip + {generation}]",
+    "    mov rax, gs:[0]",
+    "    xchg dword ptr [rax + 16], edx",
+    "    mov dword ptr [{eoi}], 0",
+    "    pop rdx",
+    "    pop rax",
+    "    iretq",
     ".popsection",
     eoi = const paging::LAPIC_WINDOW + 0xb0,
+    va = sym NOS_SMP_SHOOTDOWN_VA,
+    generation = sym NOS_SMP_SHOOTDOWN_GEN,
 );
 extern "C" {
     fn nos_smp_ipi_entry();
     fn nos_smp_spurious_entry();
+    fn nos_smp_shootdown_entry();
 }
 
 // Trampoline layout (offsets inside the copied SIPI page):
@@ -320,6 +363,34 @@ fn wrmsr(msr: u32, value: u64) {
     }
 }
 
+/// Frames A and B for the shootdown proof, filled while the firmware identity
+/// map is active. A is mapped behind SHOOTDOWN_WINDOW and also identity-mapped
+/// RW/NX so the BSP can scrub it after CR3 switch; B is mapped only at remap.
+fn prepare_shootdown(
+    frames: &mut Frames<FRAME_COUNT>,
+    paging: &mut paging::Paging,
+) -> Result<(), kernel_core::Error> {
+    let old = frames.allocate(Owner::Kernel, zero)?;
+    let new = frames.allocate(Owner::Kernel, zero)?;
+    for (pa, pattern) in [(old, OLD_PATTERN), (new, NEW_PATTERN)] {
+        // SAFETY: Fresh exclusive Kernel-owned frames, identity-mapped by the
+        // still-active firmware CR3; exactly one page each is written.
+        unsafe { ptr::write_bytes(pa as *mut u8, pattern, PAGE as usize) };
+    }
+    paging.map(frames, paging::SHOOTDOWN_WINDOW, old, true, false);
+    paging.map(frames, old, old, true, false);
+    SHOOTDOWN_FRAMES[0].store(old, Ordering::Relaxed);
+    SHOOTDOWN_FRAMES[1].store(new, Ordering::Relaxed);
+    Ok(())
+}
+
+fn read_window() -> u32 {
+    // SAFETY: SHOOTDOWN_WINDOW is a permanent supervisor RW/NX kernel mapping
+    // of a Kernel-owned frame (A or B); a byte read has no side effects. Which
+    // frame a CPU reaches depends on its TLB, which is the property under test.
+    u32::from(unsafe { (paging::SHOOTDOWN_WINDOW as *const u8).read_volatile() })
+}
+
 /// Before `map_tables`/`activate`: validate IA32_APIC_BASE, map its exact page
 /// UC/NX and write the SIPI page through the still-active firmware identity map.
 pub fn prepare(
@@ -342,6 +413,7 @@ pub fn prepare(
     paging
         .map_lapic(frames, base)
         .map_err(|_| b"LAPIC_MAPPING".as_slice())?;
+    prepare_shootdown(frames, paging).map_err(|_| b"SHOOTDOWN_FRAMES".as_slice())?;
     let root = paging.root;
     // Address computation of the linked trampoline image only.
     let (start, end) = (
@@ -615,8 +687,17 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
             lapic_write(lvt, 1 << 16);
         }
     }
-    lapic_write(0x80, 0);
+    // TPR 0 accepts every class. The shootdown-deaf test raises it to class 0xe
+    // so only the 0xe0 shootdown vector is held back, never the 0xf0 IPIs.
+    let tpr = if cfg!(feature = "test-smp-ap-shootdown-deaf") && first {
+        0xe0
+    } else {
+        0
+    };
+    lapic_write(0x80, tpr);
     lapic_write(0xf0, 0x100 | SPURIOUS_VECTOR as u32);
+    // Cache the window's current translation (frame A) in this CPU's TLB.
+    local.before.store(read_window(), Ordering::Relaxed);
     context.state.store(IPI_READY, Ordering::Release);
     if cfg!(feature = "test-smp-ap-ipi-deaf") && first {
         // Online but never accepts an interrupt: the BSP must quarantine all.
@@ -636,6 +717,13 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
             unsafe {
                 asm!("mov rsp, {guard}", "push 0", "ud2", guard = in(reg) guard, options(noreturn));
             }
+        }
+        // Visibility probe: read the window through whatever this CPU's TLB
+        // now holds, then publish the result (Release) with the probe number.
+        let probe = PROBE.load(Ordering::Acquire);
+        if probe != local.probed.load(Ordering::Relaxed) {
+            local.after.store(read_window(), Ordering::Relaxed);
+            local.probed.store(probe, Ordering::Release);
         }
         if PARK.load(Ordering::Acquire) {
             break;
@@ -759,7 +847,12 @@ fn bring_up(slot: usize, apic_id: u32, vector: u32) -> (Start, bool) {
 
 /// After KS-03: report the MADT, start each enabled AP in order and run the
 /// bounded synchronization self-test. Every failure keeps a working 1-CPU boot.
-pub fn start(prepared: Prepared, madt: &Madt) {
+pub fn start(
+    prepared: Prepared,
+    madt: &Madt,
+    frames: &mut Frames<FRAME_COUNT>,
+    paging: &mut paging::Paging,
+) {
     match madt.status {
         MadtStatus::Missing => return unavailable(b"NO_MADT"),
         MadtStatus::Invalid => return unavailable(b"INVALID_MADT"),
@@ -802,6 +895,7 @@ pub fn start(prepared: Prepared, madt: &Madt) {
     // IDT is complete before the first AP can load it.
     arch::smp_gate(IPI_VECTOR, nos_smp_ipi_entry as usize as u64);
     arch::smp_gate(SPURIOUS_VECTOR, nos_smp_spurious_entry as usize as u64);
+    arch::smp_gate(SHOOTDOWN_VECTOR, nos_smp_shootdown_entry as usize as u64);
     let vector = (page / PAGE) as u32;
     let (mut online, mut x2apic, mut capacity) = (0usize, 0u64, 0u64);
     for cpu in cpus.iter().filter(|cpu| cpu.apic_id != bsp_id) {
@@ -880,7 +974,7 @@ pub fn start(prepared: Prepared, madt: &Madt) {
     serial::write(b"SMP:SYNC:PASS:CPUS=");
     decimal(online as u64 + 1);
     serial::write(b"\n");
-    ipis(online, cpus.len());
+    ipis(online, cpus.len(), frames, paging);
 }
 
 /// DONE is stored (Release) after the AP's last stress write; the AP may then
@@ -924,7 +1018,12 @@ fn quarantine_all(online: usize, total: usize) {
 
 /// Unicast only: a broadcast shorthand would also reach CPUs still owned by
 /// firmware (capacity-skipped or never started) with unknown interrupt state.
-fn ipis(online: usize, total: usize) {
+fn ipis(
+    online: usize,
+    total: usize,
+    frames: &mut Frames<FRAME_COUNT>,
+    paging: &mut paging::Paging,
+) {
     let aps = &NOS_SMP_AP_CONTEXTS[..online];
     if !within_ms(1_000, || {
         aps.iter()
@@ -974,6 +1073,9 @@ fn ipis(online: usize, total: usize) {
         }
         serial::fail(b"SMP_AP_NMI_NOT_ON_IST");
     }
+    if !shootdown(online, total, frames, paging) {
+        return;
+    }
     PARK.store(true, Ordering::Release);
     for (slot, context) in aps.iter().enumerate() {
         let apic = context.apic_id.load(Ordering::Relaxed);
@@ -989,4 +1091,101 @@ fn ipis(online: usize, total: usize) {
     serial::write(b"SMP:PARKED:APS=");
     decimal(online as u64);
     serial::write(b"\n");
+}
+
+/// TLB shootdown proof. Every AP has cached SHOOTDOWN_WINDOW -> frame A. The
+/// BSP points the window at frame B, then every AP must `invlpg` and ack the
+/// generation (vector 0xe0) BEFORE frame A's alias is released, A is scrubbed
+/// and freed, and the full page-table audit runs. A missing ack leaves A
+/// quarantined (Kernel-owned, alias held) and resets every AP. Returns false
+/// after that quarantine. `test-smp-shootdown-skipped` is the control: it omits
+/// the IPIs to show that APs then really read the reclaimed frame.
+fn shootdown(
+    online: usize,
+    total: usize,
+    frames: &mut Frames<FRAME_COUNT>,
+    paging: &mut paging::Paging,
+) -> bool {
+    let aps = &NOS_SMP_AP_CONTEXTS[..online];
+    let locals = &CPU_LOCAL[..online];
+    let old = SHOOTDOWN_FRAMES[0].load(Ordering::Relaxed);
+    let new = SHOOTDOWN_FRAMES[1].load(Ordering::Relaxed);
+    if read_window() != u32::from(OLD_PATTERN)
+        || locals
+            .iter()
+            .any(|local| local.before.load(Ordering::Acquire) != u32::from(OLD_PATTERN))
+    {
+        serial::fail(b"SMP_SHOOTDOWN_SETUP");
+    }
+    if paging.remap_window(frames, new) != Ok(old) || read_window() != u32::from(NEW_PATTERN) {
+        serial::fail(b"SMP_SHOOTDOWN_REMAP");
+    }
+    let skipped = cfg!(feature = "test-smp-shootdown-skipped");
+    if skipped {
+        serial::write(b"SMP:SHOOTDOWN:SKIPPED\n");
+    } else {
+        NOS_SMP_SHOOTDOWN_VA.store(paging::SHOOTDOWN_WINDOW, Ordering::Release);
+        NOS_SMP_SHOOTDOWN_GEN.store(1, Ordering::Release);
+        for (slot, context) in aps.iter().enumerate() {
+            let apic = context.apic_id.load(Ordering::Relaxed);
+            if !send_ipi(apic, IPI_FIXED | SHOOTDOWN_VECTOR as u32)
+                || !within_ms(100, || {
+                    locals[slot].shootdown_ack.load(Ordering::Acquire) == 1
+                })
+            {
+                serial::write(b"SMP:SHOOTDOWN:TIMEOUT:APIC=");
+                decimal(u64::from(apic));
+                serial::write(b"\nSMP:SHOOTDOWN:FRAME_QUARANTINED\n");
+                quarantine_all(online, total);
+                return false;
+            }
+        }
+    }
+    // Global invalidation is complete: frame A is now unreachable everywhere
+    // (except, deliberately, in the skipped control), so it may be reclaimed.
+    if paging.release_stale_alias(frames, old).is_err() {
+        serial::fail(b"SMP_SHOOTDOWN_RELEASE");
+    }
+    // SAFETY: `old` is the Kernel-owned frame A with its bootstrap identity RW/NX
+    // alias still mapped; no CPU can reach it through the window any more.
+    unsafe { ptr::write_bytes(old as *mut u8, 0, PAGE as usize) };
+    if paging.unmap_identity(frames, old).is_err()
+        // Contents were scrubbed above through the (now removed) alias.
+        || frames.free(old, Owner::Kernel, |_| {}).is_err()
+    {
+        serial::fail(b"SMP_SHOOTDOWN_RECLAIM");
+    }
+    paging.audit(frames);
+    if !skipped {
+        serial::write(b"SMP:SHOOTDOWN:PASS:CPUS=");
+        decimal(online as u64 + 1);
+        serial::write(b"\n");
+    }
+    PROBE.store(1, Ordering::Release);
+    for (slot, context) in aps.iter().enumerate() {
+        let apic = context.apic_id.load(Ordering::Relaxed);
+        if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
+            || !within_ms(100, || locals[slot].probed.load(Ordering::Acquire) == 1)
+        {
+            serial::write(b"SMP:SHOOTDOWN:PROBE_TIMEOUT\n");
+            quarantine_all(online, total);
+            return false;
+        }
+    }
+    let stale = locals
+        .iter()
+        .filter(|local| local.after.load(Ordering::Acquire) != u32::from(NEW_PATTERN))
+        .count();
+    if skipped {
+        serial::write(b"SMP:SHOOTDOWN:STALE:APS=");
+        decimal(stale as u64);
+        serial::write(b"\n");
+    } else if stale != 0 || read_window() != u32::from(NEW_PATTERN) {
+        serial::fail(b"SMP_SHOOTDOWN_STALE");
+    } else {
+        serial::write(b"SMP:SHOOTDOWN:VISIBLE:CPUS=");
+        decimal(online as u64 + 1);
+        serial::write(b"\n");
+    }
+    true
 }

@@ -41,7 +41,8 @@ SYSTEM_CLOCK_FEATURES = ("native-system-clock",)
 SYSTEM_FEATURES = ("native-net-service", "test-net-service-client-exit", "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc",
                    "native-smp", "test-smp-ap-stall", "test-smp-ap-mismatch", "test-smp-ap-nmi",
-                   "test-smp-ap-double-fault", "test-smp-ap-ipi-deaf", "test-m2-ro", "test-m2-nx",
+                   "test-smp-ap-double-fault", "test-smp-ap-ipi-deaf", "test-smp-ap-shootdown-deaf",
+                   "test-smp-shootdown-skipped", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
                    "milestone-m4", *(f"test-m4-{case}" for case, _ in M4_CASES),

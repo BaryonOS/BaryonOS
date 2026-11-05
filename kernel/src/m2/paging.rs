@@ -73,6 +73,10 @@ pub struct Paging {
 /// Fixed supervisor UC/NX window for the xAPIC register page (native-smp only).
 #[cfg(feature = "native-smp")]
 pub const LAPIC_WINDOW: u64 = 0x3f1c0000;
+/// Supervisor RW/NX RAM window whose frame the native-smp shootdown proof
+/// replaces while other CPUs may still cache the old translation.
+#[cfg(feature = "native-smp")]
+pub const SHOOTDOWN_WINDOW: u64 = 0x3f1d0000;
 impl Paging {
     /// Fallible read-only seam before existing scalar map commit. The caller
     /// supplies fresh owned data frames, ordered unique VAs and one exclusive
@@ -228,6 +232,67 @@ impl Paging {
         self.map_device_page(frames, LAPIC_WINDOW, base)?;
         self.lapic = Some(base);
         Ok(())
+    }
+    /// Leaf slot of an existing supervisor 4-KiB mapping; never allocates.
+    #[cfg(feature = "native-smp")]
+    fn existing_leaf(&self, va: u64) -> Result<(u64, usize, u64), kernel_core::Error> {
+        let mut table = self.root;
+        for shift in [39, 30, 21] {
+            let entry = read(table, ((va >> shift) & 511) as usize);
+            if entry & PRESENT == 0 || entry & (USER | 128) != 0 {
+                return Err(kernel_core::Error::Range);
+            }
+            table = entry & ADDRESS;
+        }
+        let index = ((va >> 12) & 511) as usize;
+        let leaf = read(table, index);
+        if leaf & (PRESENT | WRITE | USER | NX) != PRESENT | WRITE | NX {
+            return Err(kernel_core::Error::Permission);
+        }
+        Ok((table, index, leaf & ADDRESS))
+    }
+    /// Point SHOOTDOWN_WINDOW at `new_pa` and invalidate it on THIS CPU only.
+    /// The old frame's alias metadata is deliberately NOT released: other CPUs
+    /// may still cache it. Call `release_stale_alias` only after every CPU that
+    /// may hold the translation has acknowledged its invalidation.
+    #[cfg(feature = "native-smp")]
+    pub fn remap_window(
+        &mut self,
+        frames: &mut Frames<FRAME_COUNT>,
+        new_pa: u64,
+    ) -> Result<u64, kernel_core::Error> {
+        let (table, index, old_pa) = self.existing_leaf(SHOOTDOWN_WINDOW)?;
+        if new_pa == old_pa {
+            return Err(kernel_core::Error::Overlap);
+        }
+        frames.map(new_pa, true, false, false)?;
+        write(table, index, new_pa | PRESENT | WRITE | NX);
+        invalidate(SHOOTDOWN_WINDOW);
+        Ok(old_pa)
+    }
+    /// Release the window's old alias after the global invalidation completed.
+    #[cfg(feature = "native-smp")]
+    pub fn release_stale_alias(
+        &mut self,
+        frames: &mut Frames<FRAME_COUNT>,
+        old_pa: u64,
+    ) -> Result<(), kernel_core::Error> {
+        frames.unmap(old_pa, true, false)
+    }
+    /// Remove a bootstrap identity RW/NX alias (va == pa) on this CPU.
+    #[cfg(feature = "native-smp")]
+    pub fn unmap_identity(
+        &mut self,
+        frames: &mut Frames<FRAME_COUNT>,
+        pa: u64,
+    ) -> Result<(), kernel_core::Error> {
+        let (table, index, mapped) = self.existing_leaf(pa)?;
+        if mapped != pa {
+            return Err(kernel_core::Error::Range);
+        }
+        write(table, index, 0);
+        invalidate(pa);
+        frames.unmap(pa, true, false)
     }
     #[cfg(any(
         feature = "milestone-m5",
