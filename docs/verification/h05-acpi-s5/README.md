@@ -1,6 +1,6 @@
 # H05-stap — native ACPI S5-poweroff door de eigen kernel
 
-**Branch:** `hw/h05-native-acpi-s5`, op main `c2c29c5f`. **Datum:** 5 november
+**Branch:** `hw/h05-native-acpi-s5`, op main `cb3d169c` (na #204). **Datum:** 5 november
 2026. **Bewijsniveau:** native QEMU/TCG (`pc-q35-8.2`, QEMU 10.2.1, OVMF);
 geen fysieke hardware. **Score:** 41 → 41/100. H05 blijft open: de gate eist
 meting op ondersteunde apparatuur, slaap/wek en thermische/batterijfuncties.
@@ -53,7 +53,7 @@ omgedraaid (de laatste byte). Exit 33 in plaats van 0 bewijst dat er geen PM1-wr
 Duur, hashes, commando's en volledige seriële uitvoer staan in
 [native-report.json](native-report.json); beide rapporten zijn gebonden aan
 bronvingerafdruk v3
-`6cf56d7512de876251d2f1fe0253d5f817e13fe4ecf57d91ccc3a092057613e6`.
+`f60c0d61af7da029ef9e126afc7aec4913586f96a73eaa6c8b4f5c08099652e0`.
 
 ## Commando's en regressie
 
@@ -67,10 +67,19 @@ NOS_BUILD_DIR=build/corrupt python3 -B tools/run_power.py --repeat 2
 CI draait dit in `.github/workflows/native-power.yml`. Hostresultaten:
 `boot-protocol` 29 tests, waaronder de nieuwe FADT-/duplicaattest;
 `acpi-power` 22 + 2. De root-hostsuite uit `ci.yml` met 413 tests en Clippy
-`-D warnings` geeft exit 0. `tools/tests` 208/208 (`test_power` 3 nieuw),
+`-D warnings` geeft exit 0. `tools/tests` 209/209 (`test_power` 3 nieuw),
 fmt is schoon. De profielen `milestone-m2`, `milestone-m6c` en `native-smp`
 bouwen. Kernel-Clippy meldt alleen bestaande punten in `paging.rs` en
 `main.rs`, niets in de nieuwe code.
+
+## Review
+
+Een onafhankelijke AI-review (ECC rust-reviewer) vond geen blokkerende punten.
+Verwerkt: de negatieve fixture gebruikt nu de laatste byte, zodat een DSDT van
+precies 36 bytes geen indexpanic meer geeft. De PM1-schrijfvolgorde volgt nu
+ACPICA: eerst SLP_TYP met SLP_EN gewist naar PM1a en dan PM1b, daarna SLP_EN
+in dezelfde volgorde. Genoteerd zonder wijziging: de verwachtingen voor
+`0x0604` en `SCI_EN=1` horen bij het vaste q35/OVMF-profiel.
 
 ## Open
 
