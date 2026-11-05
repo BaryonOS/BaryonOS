@@ -12,6 +12,8 @@ const REQUEST: &[u8] =
     b"GET /nieuw-os-tcp HTTP/1.1\r\nHost: fixture.invalid\r\nConnection: close\r\n\r\n";
 const RESPONSE: &[u8] =
     b"HTTP/1.1 200 OK\r\nContent-Length: 20\r\nConnection: close\r\n\r\nNieuw OS native TCP\n";
+const BACKPRESSURE_HEADER: &[u8] = b"POST /nieuw-os-backpressure HTTP/1.1\r\nHost: fixture.invalid\r\nContent-Length: 8088\r\nConnection: close\r\n\r\n";
+const BACKPRESSURE_REQUEST_LEN: usize = 8192;
 const HTTP: u64 = 400;
 const REFUSED: u64 = 408;
 const RESET: u64 = 416;
@@ -119,13 +121,18 @@ enum Case {
     Reset,
     Retransmit,
     Timeout,
+    Backpressure,
 }
 
 fn exercise(stack: &mut Stack<'_>, client: Client, bridge: &mut Bridge, case: Case, index: u16) {
     support::put(240, 30 + u64::from(index));
     let start = clock();
     stack.poll(start).unwrap_or_else(|_| fail(20));
-    let timeout = if case == Case::Timeout { 300 } else { 700 };
+    let timeout = match case {
+        Case::Timeout => 300,
+        Case::Backpressure => 1500,
+        _ => 700,
+    };
     stack
         .connect(client, [192, 0, 2, 1], 8080 + index, 40000 + index, timeout)
         .unwrap_or_else(|_| fail(21));
@@ -134,7 +141,9 @@ fn exercise(stack: &mut Stack<'_>, client: Client, bridge: &mut Bridge, case: Ca
     let mut eof = false;
     let mut sent = 0usize;
     let mut received = 0usize;
+    let mut send_blocked = false;
     let mut output = [0; 256];
+    let mut request_chunk = [0; 256];
     loop {
         let now = clock();
         check(now >= start && now <= deadline, 23);
@@ -144,14 +153,40 @@ fn exercise(stack: &mut Stack<'_>, client: Client, bridge: &mut Bridge, case: Ca
             established = true;
         }
         if established && state != State::Closed {
-            if sent < REQUEST.len() && state == State::Established {
-                sent += stack
-                    .send(client, &REQUEST[sent..])
-                    .unwrap_or_else(|_| fail(25));
+            let request_len = if case == Case::Backpressure {
+                BACKPRESSURE_REQUEST_LEN
+            } else {
+                REQUEST.len()
+            };
+            if sent < request_len && state == State::Established {
+                let accepted = if case == Case::Backpressure {
+                    let length = (request_len - sent).min(request_chunk.len());
+                    for (index, byte) in request_chunk[..length].iter_mut().enumerate() {
+                        let at = sent + index;
+                        *byte = if at < BACKPRESSURE_HEADER.len() {
+                            BACKPRESSURE_HEADER[at]
+                        } else {
+                            b'X'
+                        };
+                    }
+                    stack.send(client, &request_chunk[..length])
+                } else {
+                    stack.send(client, &REQUEST[sent..])
+                }
+                .unwrap_or_else(|_| fail(25));
+                if case == Case::Backpressure && accepted == 0 {
+                    send_blocked = true;
+                }
+                sent += accepted;
             }
             match stack.receive(client, &mut output) {
                 Ok(length) if length != 0 => {
-                    check(case == Case::Http || case == Case::Retransmit, 26);
+                    check(
+                        case == Case::Http
+                            || case == Case::Retransmit
+                            || case == Case::Backpressure,
+                        26,
+                    );
                     let end = received.checked_add(length).unwrap_or_else(|| fail(27));
                     check(
                         end <= RESPONSE.len() && output[..length] == RESPONSE[received..end],
@@ -163,7 +198,15 @@ fn exercise(stack: &mut Stack<'_>, client: Client, bridge: &mut Bridge, case: Ca
                 Err(_) => fail(29),
             }
             if state == State::CloseWait {
-                check(received == RESPONSE.len() && sent == REQUEST.len(), 30);
+                let expected_request_len = if case == Case::Backpressure {
+                    BACKPRESSURE_REQUEST_LEN
+                } else {
+                    REQUEST.len()
+                };
+                check(
+                    received == RESPONSE.len() && sent == expected_request_len,
+                    30,
+                );
                 eof = true;
                 stack.close(client).unwrap_or_else(|_| fail(31));
             }
@@ -218,6 +261,18 @@ fn exercise(stack: &mut Stack<'_>, client: Client, bridge: &mut Bridge, case: Ca
                     );
                     support::put(TIMEOUT_ELAPSED, now - start);
                     bump(TIMEOUT);
+                }
+                Case::Backpressure if !established => {
+                    check(sent == 0 && received == 0 && !send_blocked, 44);
+                }
+                Case::Backpressure => {
+                    check(
+                        send_blocked
+                            && sent == BACKPRESSURE_REQUEST_LEN
+                            && received == RESPONSE.len()
+                            && eof,
+                        45,
+                    );
                 }
             }
             break;
@@ -276,6 +331,7 @@ fn main() -> ! {
         Case::Reset,
         Case::Retransmit,
         Case::Timeout,
+        Case::Backpressure,
     ]
     .into_iter()
     .enumerate()
