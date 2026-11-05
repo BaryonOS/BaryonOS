@@ -99,3 +99,4 @@ docs/verification/full-release-b02-review-followup/host/*.stdout.txt -text white
 docs/verification/sparse-frames-117/*.txt -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 docs/verification/sparse-frames-117/*.json -text
 docs/verification/sparse-frames-117/SHA256SUMS -text
+docs/verification/n04-native-revoke-20261105/** -text
