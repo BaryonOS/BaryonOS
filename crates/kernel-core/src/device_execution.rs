@@ -10,6 +10,7 @@
 //! be built from driver-supplied data. The kernel keeps exactly one
 //! `LeaseRegistry`; it is the only way to obtain a `DeviceLease`.
 use crate::{Alias, Error as FrameError, Frames, Owner, PAGE};
+use core::sync::atomic::{AtomicU64, Ordering};
 
 pub const MAX_DMA_GRANTS: usize = 16;
 pub const MAX_DMA_PAGES: usize = 16;
@@ -457,14 +458,20 @@ pub trait DeviceControl {
     ) -> Result<bool, ControlError>;
 }
 
+/// Lease nonces are unique across every registry, so a grant can never be
+/// accepted by a lease from another registry even if one is misused.
+static NEXT_LEASE_NONCE: AtomicU64 = AtomicU64::new(1);
+
 /// Kernel-owned issuer of device leases (one per kernel). It allows at most
 /// one live lease per PCI address, whatever the generation, and stamps each
-/// lease with a never-reused nonce that every grant carries and every use
-/// checks. A lease frees its address only via `retire` after `Released`; a
-/// quarantined lease keeps the address claimed (fail closed).
+/// lease with a never-reused, globally unique nonce that every grant carries
+/// and every use checks. Address exclusivity holds within one registry only;
+/// it does not compare BARs between different functions, which the kernel
+/// probe must keep disjoint. A lease frees its address only via `retire`
+/// after `Released`; a quarantined lease keeps the address claimed (fail
+/// closed).
 pub struct LeaseRegistry<const N: usize> {
     live: [Option<(PciAddress, u64)>; N],
-    next_nonce: u64,
 }
 
 impl<const N: usize> Default for LeaseRegistry<N> {
@@ -476,10 +483,7 @@ impl<const N: usize> Default for LeaseRegistry<N> {
 impl<const N: usize> LeaseRegistry<N> {
     /// Kernel-only trust input; see the module documentation.
     pub const fn new() -> Self {
-        Self {
-            live: [None; N],
-            next_nonce: 1,
-        }
+        Self { live: [None; N] }
     }
 
     pub fn lease(
@@ -500,10 +504,10 @@ impl<const N: usize> LeaseRegistry<N> {
             .iter()
             .position(Option::is_none)
             .ok_or(Error::Exhausted)?;
-        let nonce = self.next_nonce;
-        let next = nonce.checked_add(1).ok_or(Error::Exhausted)?;
+        let nonce = NEXT_LEASE_NONCE
+            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |n| n.checked_add(1))
+            .map_err(|_| Error::Exhausted)?;
         let lease = DeviceLease::matched(function, driver, nonce)?;
-        self.next_nonce = next;
         self.live[slot] = Some((function.address, nonce));
         Ok(lease)
     }
@@ -739,7 +743,9 @@ impl DeviceLease {
             .map_err(|_| Error::Hardware)
     }
 
-    /// Allocates zeroed `Owner::Kernel` frames pinned until quiescence. The
+    /// Allocates zeroed `Owner::Kernel` frames that this lease records as live
+    /// until quiescence. They are ordinary frames in the caller's pool, not
+    /// pinned against other kernel code, so the caller must not free them. The
     /// direction is only recorded (see `DmaDirection`), and no device
     /// address-width check is made: the kernel must not hand these pages to a
     /// device that cannot address them.
@@ -1786,6 +1792,32 @@ mod tests {
     }
 
     #[test]
+    fn grants_do_not_cross_leases_from_different_registries() {
+        let mut one = LeaseRegistry::<1>::new();
+        let mut two = LeaseRegistry::<1>::new();
+        let mut frames = frames::<16>();
+        let mut control = Control {
+            reset_ack: true,
+            irq_vector: 64,
+            ..Control::default()
+        };
+        let mut first = one.lease(function(), MATCH).unwrap();
+        let mut second = two.lease(function(), MATCH).unwrap();
+        let first_dma = initialize(&mut first, &mut control, &mut frames);
+        let _second_dma = initialize(&mut second, &mut control, &mut frames);
+        let first_bar = first.bar_range(0, true, true).unwrap();
+        assert!(matches!(
+            second.dma_pages(&first_dma),
+            Err(Error::Permission)
+        ));
+        assert!(matches!(
+            second.read_bar(&mut control, &first_bar, 0, 4),
+            Err(Error::StaleGeneration)
+        ));
+        assert_eq!(two.retire(&first), Err(Error::InvalidState));
+    }
+
+    #[test]
     fn grants_from_a_retired_lease_are_rejected_by_its_successor() {
         let mut registry = LeaseRegistry::<1>::new();
         let mut frames = frames::<16>();
@@ -1809,15 +1841,23 @@ mod tests {
         let new_dma = initialize(&mut second, &mut control, &mut frames);
         let held = free_count(&frames);
         let calls = control.calls;
-        assert!(second.dma_pages(&old_dma).is_err());
-        assert!(second.read_bar(&mut control, &old_bar, 0, 4).is_err());
-        assert!(second
-            .write_bar(&mut control, &old_bar, 0x10, 4, 0x1234)
-            .is_err());
-        assert!(second.read_config(&mut control, &old_config, 0, 4).is_err());
-        assert!(second
-            .acknowledge_interrupt(&mut control, &old_irq)
-            .is_err());
+        assert!(matches!(second.dma_pages(&old_dma), Err(Error::Permission)));
+        assert!(matches!(
+            second.read_bar(&mut control, &old_bar, 0, 4),
+            Err(Error::StaleGeneration)
+        ));
+        assert!(matches!(
+            second.write_bar(&mut control, &old_bar, 0x10, 4, 0x1234),
+            Err(Error::StaleGeneration)
+        ));
+        assert!(matches!(
+            second.read_config(&mut control, &old_config, 0, 4),
+            Err(Error::StaleGeneration)
+        ));
+        assert!(matches!(
+            second.acknowledge_interrupt(&mut control, &old_irq),
+            Err(Error::Permission)
+        ));
         assert_eq!(control.calls, calls);
         second.revoke().unwrap();
         second.quiesce(&mut control).unwrap();
