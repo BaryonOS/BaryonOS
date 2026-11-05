@@ -29,24 +29,39 @@ def started(cpus):
 def online(cpus):
     count = min(cpus, MAX_CPUS)
     return started(cpus) + [f"SMP:IPI:PASS:ROUNDS=3:CPUS={count}",
+                            f"SMP:SHOOTDOWN:PASS:CPUS={count}",
+                            f"SMP:SHOOTDOWN:VISIBLE:CPUS={count}",
+                            f"SMP:PREEMPT:PASS:CPUS={count}",
                             f"SMP:PARKED:APS={count - 1}"] + END
 
 
 def failed(status):
     return ["SMP:MADT:CPUS=4:DISABLED=0:HOTPLUG=0", f"SMP:AP:1:{status}",
             "SMP:BRINGUP:STOPPED", "SMP:ONLINE:1/4", "SMP:SYNC:PASS:CPUS=1",
-            "SMP:IPI:PASS:ROUNDS=3:CPUS=1", "SMP:PARKED:APS=0"] + END
+            "SMP:IPI:PASS:ROUNDS=3:CPUS=1", "SMP:SHOOTDOWN:PASS:CPUS=1",
+            "SMP:SHOOTDOWN:VISIBLE:CPUS=1", "SMP:PREEMPT:PASS:CPUS=1", "SMP:PARKED:APS=0"] + END
 
 
 DEAF = started(4) + ["SMP:IPI:TIMEOUT:APIC=1", "SMP:QUARANTINED:APS=3", "SMP:ONLINE:1/4"] + END
 NMI = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:FAULT:AP_NMI_IST:PASS"]
 DOUBLE = started(4) + ["SMP:FAULT:AP_DF_IST:PASS"]
+SHOOTDOWN_DEAF = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:TIMEOUT:APIC=1",
+                               "SMP:SHOOTDOWN:FRAME_QUARANTINED", "SMP:QUARANTINED:APS=3",
+                               "SMP:ONLINE:1/4"] + END
+STALE_CONTROL = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:SKIPPED",
+                              "SMP:SHOOTDOWN:STALE:APS=3", "SMP:PREEMPT:PASS:CPUS=4",
+                              "SMP:PARKED:APS=3"] + END
+TIMER_DEAD = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:PASS:CPUS=4",
+                           "SMP:SHOOTDOWN:VISIBLE:CPUS=4", "SMP:PREEMPT:TIMEOUT:APIC=1",
+                           "SMP:QUARANTINED:APS=3", "SMP:ONLINE:1/4"] + END
 
 VALID = {
     "one": online(1), "two-single": online(2), "four": online(4), "eight": online(8),
     "nine-capacity": online(9), "duplicate-madt": ["SMP:UNAVAILABLE:INVALID_MADT"] + END,
     "ap-stall": failed("TIMEOUT"), "ap-mismatch": failed("MISMATCH"),
     "ap-ipi-deaf": DEAF, "ap-nmi-ist": NMI, "ap-double-fault-ist": DOUBLE,
+    "ap-shootdown-deaf": SHOOTDOWN_DEAF, "shootdown-skipped-control": STALE_CONTROL,
+    "ap-timer-dead": TIMER_DEAD,
 }
 
 
@@ -63,20 +78,24 @@ class SmpSerialOracle(unittest.TestCase):
 
     def test_rejects_missing_duplicate_or_overclaimed_output(self):
         four = online(4)
+        # Mutate by marker, not index: the sequence grows with every K06 step.
+        at = lambda prefix: next(i for i, line in enumerate(four) if line.startswith(prefix))
+        swap = lambda prefix, new: four[:at(prefix)] + [new] + four[at(prefix) + 1:]
+        drop = lambda prefix: four[:at(prefix)] + four[at(prefix) + 1:]
         bad = {
             "four": [
                 four[:1] + four[2:],                      # one AP missing
                 four[:2] + four[1:],                      # AP reported twice
-                four[:5] + ["SMP:ONLINE:5/4"] + four[6:],
-                four[:6] + ["SMP:SYNC:PASS:CPUS=5"] + four[7:],
+                swap("SMP:ONLINE:", "SMP:ONLINE:5/4"),
+                swap("SMP:SYNC:", "SMP:SYNC:PASS:CPUS=5"),
                 four[:-2] + ["SMP:SYNC:PASS:CPUS=4"] + END,
                 ["SMP:MADT:CPUS=3:DISABLED=0:HOTPLUG=0"] + four[1:],
                 four[:1] + ["SMP:AP:1:TIMEOUT"] + four[2:],
-                four[:6] + four[7:],                      # sync result missing
-                four[:7] + four[8:],                      # IPI result missing
-                four[:7] + ["SMP:IPI:PASS:ROUNDS=2:CPUS=4"] + four[8:],
-                four[:8] + four[9:],                      # park result missing
-                four[:8] + ["SMP:PARKED:APS=2"] + END,
+                drop("SMP:SYNC:"),                       # sync result missing
+                drop("SMP:IPI:"),                        # IPI result missing
+                swap("SMP:IPI:", "SMP:IPI:PASS:ROUNDS=2:CPUS=4"),
+                drop("SMP:PARKED:"),                     # park result missing
+                swap("SMP:PARKED:", "SMP:PARKED:APS=2"),
                 ["SMP:UNAVAILABLE:INVALID_MADT"] + END,
                 [four[0], "SMP:AP:1:ONLINE", "SMP:AP:2:ONLINE", "SMP:AP:7:ONLINE"] + four[4:],
                 [four[0], four[2], four[1], four[3]] + four[4:],  # unique but out of order
@@ -97,11 +116,34 @@ class SmpSerialOracle(unittest.TestCase):
             "ap-double-fault-ist": [online(4), DOUBLE[:-1] + ["SMP:FAULT:AP_NMI_IST:PASS"],
                                     DOUBLE[:-1]],
             "duplicate-madt": [online(4), END],
+            # A normal run must prove the shootdown AND its visibility; a run
+            # that skipped it (stale control output) must never count as normal.
+            "eight": [[line for line in online(8) if "SHOOTDOWN:VISIBLE" not in line],
+                      [line for line in online(8) if "SHOOTDOWN:PASS" not in line],
+                      STALE_CONTROL],
+            "ap-shootdown-deaf": [online(4), DEAF,
+                                  [line for line in SHOOTDOWN_DEAF if "FRAME_QUARANTINED" not in line],
+                                  SHOOTDOWN_DEAF[:-3] + ["SMP:SHOOTDOWN:PASS:CPUS=4"] + END],
+            "shootdown-skipped-control": [
+                online(4),  # the control must not silently become a passing shootdown
+                STALE_CONTROL[:-5] + ["SMP:SHOOTDOWN:STALE:APS=2"] + STALE_CONTROL[-4:],
+                STALE_CONTROL[:-5] + ["SMP:SHOOTDOWN:STALE:APS=0"] + STALE_CONTROL[-4:]],
+            "ap-timer-dead": [online(4), TIMER_DEAD[:-4] + END,
+                              [line for line in TIMER_DEAD if "QUARANTINED" not in line]],
         }
         for case, transcripts in bad.items():
             for lines in transcripts:
                 with self.subTest(case=case, lines=lines), self.assertRaises(ValueError):
                     evaluate(case, transcript(lines), 33, False)
+
+    def test_normal_runs_must_prove_preemption(self):
+        # Separate from the table above: a second "four" key there would
+        # silently replace the existing "four" rejection cases.
+        for lines in ([line for line in online(4) if "PREEMPT" not in line], TIMER_DEAD,
+                      [line.replace("PREEMPT:PASS:CPUS=4", "PREEMPT:PASS:CPUS=3")
+                       for line in online(4)]):
+            with self.subTest(lines=lines), self.assertRaises(ValueError):
+                evaluate("four", transcript(lines), 33, False)
 
     def test_rejects_fail_markers_exit_codes_and_changed_acpi_inventory(self):
         good = transcript(online(4))

@@ -247,7 +247,7 @@ pub fn install_ap(tables: *mut CpuTables, rsp0: u64, double_top: u64, nmi_top: u
 /// (0xf0) or spurious (0xff) vector. Never a user-callable gate.
 #[cfg(feature = "native-smp")]
 pub fn smp_gate(vector: usize, address: u64) {
-    assert!(vector == 0xf0 || vector == 0xff);
+    assert!(matches!(vector, 0xd0 | 0xe0 | 0xf0 | 0xff));
     let gate = Gate {
         lo: address as u16,
         cs: 8,
