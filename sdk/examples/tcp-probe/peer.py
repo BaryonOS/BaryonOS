@@ -33,7 +33,9 @@ BACKPRESSURE_REQUEST = BACKPRESSURE_HEADER + b"X" * (8192 - len(BACKPRESSURE_HEA
 CORRUPT_RESPONSE = b"X" + RESPONSE[1:]
 MAX_FRAME = 1514
 MAX_FRAMES = 256
-MAX_PAYLOAD = 1460
+MAX_PAYLOAD = 1024
+BACKPRESSURE_MAX_PAYLOAD = 1460  # one full-MSS segment, only in the opt-in scenario
+MAX_DUPLICATE_RETRANSMISSIONS = 2
 MAX_EVENTS = 1024
 CORRUPT_DELAY = 0.25
 FIN, SYN, RST, PSH, ACK = 1, 2, 4, 8, 16
@@ -118,7 +120,7 @@ class Segment:
     payload: bytes
 
 
-def parse_tcp(frame: bytes) -> Segment:
+def parse_tcp(frame: bytes, max_payload: int = MAX_PAYLOAD) -> Segment:
     if not 54 <= len(frame) <= MAX_FRAME or frame[12:14] != b"\x08\x00":
         raise ProtocolError("not bounded IPv4 TCP")
     if frame[:6] != PEER_MAC or frame[6:12] != CLIENT_MAC:
@@ -135,7 +137,7 @@ def parse_tcp(frame: bytes) -> Segment:
     source, target, seq, ack, offset, flags, window, _, urgent = struct.unpack_from("!HHIIBBHHH", tcp)
     size = (offset >> 4) * 4
     if (offset & 15 or not 20 <= size <= min(60, len(tcp)) or flags & ~31 or urgent
-            or len(tcp) - size > MAX_PAYLOAD
+            or len(tcp) - size > max_payload
             or checksum(CLIENT_IP + PEER_IP + struct.pack("!BBH", 0, 6, len(tcp)) + tcp) != 0):
         raise ProtocolError("invalid TCP flags, checksum or bounds")
     if target not in PORTS or source != 40000 + PORTS.index(target):
@@ -178,6 +180,7 @@ class Connection:
     withheld_segment: tuple[int, int, bytes] | None = None
     ack_released: bool = False
     recovery_segments: int = 0
+    duplicate_retransmissions: int = 0
 
     @property
     def client_next(self):
@@ -268,7 +271,8 @@ class PeerMachine:
             self.counts["arp_replies"] += 1
             self.event("tx", "arp-reply", packet)
             return [packet]
-        s = parse_tcp(frame)
+        s = parse_tcp(frame, BACKPRESSURE_MAX_PAYLOAD if self.scenario == "loss-backpressure"
+                      else MAX_PAYLOAD)
         self.event("rx", "tcp", frame, port=s.target, seq=s.seq, ack=s.ack,
                    flags=s.flags, payload_length=len(s.payload),
                    payload_sha256=hashlib.sha256(s.payload).hexdigest())
@@ -412,10 +416,17 @@ class PeerMachine:
         first_seq, first_ack, first_payload = c.withheld_segment
         if s.seq == first_seq:
             received = bytes(c.request)
-            if (c.ack_released or s.ack != first_ack or s.flags not in (ACK, ACK | PSH)
+            if (s.ack != first_ack or s.flags not in (ACK, ACK | PSH)
                     or len(s.payload) < len(first_payload) or len(s.payload) > len(received)
                     or s.payload != received[:len(s.payload)]):
                 raise ProtocolError("changed or repeated backpressure retransmission")
+            if c.ack_released:
+                # Legal TCP: the guest RTO can fire again before it sees the release ACK.
+                c.duplicate_retransmissions += 1
+                if c.duplicate_retransmissions > MAX_DUPLICATE_RETRANSMISSIONS:
+                    raise ProtocolError("repeated backpressure retransmission beyond bound")
+                return [self.tcp(c, ACK, seq=c.server_start, ack=c.client_next,
+                                 label="backpressure-ack")]
             c.ack_released = True
             self.counts["backpressure_retransmissions"] += 1
             self.counts["backpressure_acks_released"] += 1

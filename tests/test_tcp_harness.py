@@ -23,6 +23,7 @@ def fixture():
     base = fixtures.connect(machine, 8083)
     fixtures.finish_http(machine, 8083, base, fixtures.request(machine, 8083, base))
     fixtures.connect(machine, 8084)
+    fixtures.connect(machine, 8085)  # baseline: the opt-in case must be actually refused
     peer = machine.summary()
     peer.update(passed=True, connected=True, error=None, rejected_frame=None,
                 wire_frames_sent=peer["counts"]["server_frames"])

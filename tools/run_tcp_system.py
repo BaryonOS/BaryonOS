@@ -39,8 +39,8 @@ def integer(values: dict, name: str, low=0, high=(1 << 64) - 1) -> int:
 
 
 def evaluate_tcp(report: dict, peer: dict, *, scenario: str = "baseline") -> None:
-    if scenario not in SCENARIOS or peer.get("scenario", "baseline") != scenario:
-        raise ValueError("TCP peer scenario changed")
+    if scenario not in SCENARIOS or peer.get("scenario") != scenario:
+        raise ValueError("missing, unknown or changed TCP peer scenario")
     if report.get("passed") is not True or report.get("kernel_feature") not in FEATURE.values():
         raise ValueError("native joint-system/TCP profile did not pass")
     digest = report.get("manifest", {}).get("system", {}).get("net_probe", {}).get("sha256")
@@ -80,10 +80,7 @@ def evaluate_tcp(report: dict, peer: dict, *, scenario: str = "baseline") -> Non
     if peer.get("corrupt_response_sha256") != CORRUPT_SHA256 or CORRUPT_SHA256 == RESPONSE_SHA256:
         raise ValueError("missing distinct corrupt-checksum response fixture")
     cases = peer.get("cases", {})
-    expected_ports = set(map(str, peer_module.PORTS))
-    if scenario == "baseline" and "8085" not in cases:
-        expected_ports.remove("8085")
-    if set(cases) != expected_ports:
+    if set(cases) != set(map(str, peer_module.PORTS)):
         raise ValueError("missing TCP scenarios")
     for port in ("8080", "8083"):
         case = cases[port]
@@ -99,8 +96,8 @@ def evaluate_tcp(report: dict, peer: dict, *, scenario: str = "baseline") -> Non
            (("8081", "refused"), ("8082", "reset"), ("8084", "blackhole"))):
         raise ValueError("wrong refused/reset/blackhole scenario")
     if scenario == "baseline":
-        if "8085" in cases and (cases["8085"].get("phase") != "refused"
-                                or integer(counts, "backpressure_disabled") != 1):
+        if (cases["8085"].get("phase") != "refused"
+                or integer(counts, "backpressure_disabled") != 1):
             raise ValueError("backpressure opt-in was not disabled by an actual refusal")
     elif (cases["8085"].get("phase") != "closed"
           or integer(counts, "backpressure_disabled") != 0

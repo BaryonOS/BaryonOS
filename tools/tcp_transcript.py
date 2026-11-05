@@ -38,6 +38,9 @@ TX_COUNTERS = {"arp-reply": "arp_replies", "syn-ack": "syn_acks",
 TX_LABELS = set(TX_COUNTERS) | {
     "request-ack", "backpressure-ack", "duplicate-client-fin-ack"
 }
+SCENARIOS = ("baseline", "loss-backpressure")
+MAX_PAYLOAD = {"baseline": 1024, "loss-backpressure": 1460}
+MAX_DUPLICATE_RETRANSMISSIONS = 2
 
 
 def _integer(value, low: int, high: int) -> int:
@@ -68,6 +71,7 @@ class _Connection:
     withheld_payload_length: int = 0
     ack_released: bool = False
     recovery_segments: int = 0
+    duplicate_retransmissions: int = 0
 
     @property
     def client_next(self) -> int:
@@ -91,8 +95,8 @@ def validate_transcript(
     cannot be reconstructed from an opaque frame hash in this compact trace.
     """
     _require(type(peer) is dict, "Missing TCP peer object")
-    _require(scenario in ("baseline", "loss-backpressure")
-             and peer.get("scenario", "baseline") == scenario, "TCP scenario changed")
+    _require(scenario in SCENARIOS and peer.get("scenario") == scenario,
+             "Missing, unknown or changed TCP scenario")
     _require(type(request_length) is int and request_length == len(REQUEST)
              and type(response_length) is int and response_length == len(RESPONSE),
              "Unexpected synthetic HTTP fixture lengths")
@@ -137,7 +141,7 @@ def validate_transcript(
         seq = _integer(event.get("seq"), 0, MASK)
         ack = _integer(event.get("ack"), 0, MASK)
         flags = _integer(event.get("flags"), 0, 31)
-        payload = _integer(event.get("payload_length"), 0, 1460)
+        payload = _integer(event.get("payload_length"), 0, MAX_PAYLOAD[scenario])
         if direction == "rx":
             payload_hash = event.get("payload_sha256")
             _require(isinstance(payload_hash, str)
@@ -209,8 +213,9 @@ def validate_transcript(
             continue
 
         _require(c is not None, "Client TCP data without SYN")
-        _require(pending is None or (port == 8085 and c.phase == "backpressure-request"),
-                 "Client event precedes required server response")
+        # Strict: the withheld data-ACK never sets `pending`; it is tracked by
+        # `withheld_seq` until its retransmission is answered by the release.
+        _require(pending is None, "Client event precedes required server response")
         if flags & RST:
             _require(port in (8081, 8082, 8084) and c.terminal() and payload == 0
                      and flags in (RST, RST | ACK) and seq == c.client_next,
@@ -249,11 +254,18 @@ def validate_transcript(
                 continue
             if seq == c.withheld_seq:
                 expected_hash = hashlib.sha256(BACKPRESSURE_REQUEST[:payload]).hexdigest()
-                _require(not c.ack_released and ack == c.withheld_ack
+                _require(ack == c.withheld_ack
                          and flags in (ACK, ACK | PSH)
                          and c.withheld_payload_length <= payload <= c.request_bytes
                          and payload_hash == expected_hash,
                          "Changed or repeated backpressure retransmission")
+                if c.ack_released:
+                    # Mirrors the peer: a guest RTO may fire again before the release ACK lands.
+                    c.duplicate_retransmissions += 1
+                    _require(c.duplicate_retransmissions <= MAX_DUPLICATE_RETRANSMISSIONS,
+                             "Repeated backpressure retransmission beyond bound")
+                    pending = answer("backpressure-ack", c, c.server_start, c.client_next, ACK)
+                    continue
                 counts["backpressure_retransmissions"] += 1
                 pending = answer("backpressure-release-ack", c, c.server_start,
                                  c.client_next, ACK)
@@ -323,8 +335,8 @@ def validate_transcript(
                 raise ValueError("Incomplete server phase")
 
     _require(pending is None, "Transcript ends before required server response")
-    expected_ports = PORTS[:-1] if scenario == "baseline" and 8085 not in connections else PORTS
-    _require(tuple(connections) == expected_ports
+    # 8085 is mandatory: refused in baseline, recovered when opted in.
+    _require(tuple(connections) == PORTS
              and all(c.terminal() for c in connections.values()), "Incomplete TCP scenarios")
     _require(peer.get("complete") is True, "Missing complete server result")
     actual_counts = peer.get("counts")
@@ -332,7 +344,7 @@ def validate_transcript(
     for name, count in counts.items():
         _require(_integer(actual_counts[name], 0, 1024) == count, "Packet-derived counter differs: " + name)
     cases = peer.get("cases")
-    _require(isinstance(cases, dict) and set(cases) == {str(p) for p in expected_ports},
+    _require(isinstance(cases, dict) and set(cases) == {str(p) for p in PORTS},
              "Missing connection summaries")
     for port, c in connections.items():
         expected_bytes = (len(BACKPRESSURE_REQUEST) if port == 8085 and scenario == "loss-backpressure"

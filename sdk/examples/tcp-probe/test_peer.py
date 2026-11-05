@@ -95,7 +95,7 @@ def finish_http(machine, port, base, packets, now=2, request_length=None):
     assert server(last[0])["flags"] == peer.ACK
 
 
-def backpressure(machine, base):
+def backpressure(machine, base, duplicates=0):
     sequence = 0xfffffff1
     first = peer.BACKPRESSURE_REQUEST[:512]
     original = client(8085, seq=sequence, ack=base, flags=peer.ACK | peer.PSH, payload=first)
@@ -109,6 +109,13 @@ def backpressure(machine, base):
     release = machine.handle(retransmit, 11)
     assert len(release) == 1
     assert server(release[0])["ack"] == (sequence + 1460) & peer.MASK
+    for extra in range(duplicates):
+        # The guest RTO fired again before the release ACK reached it.
+        again = machine.handle(client(8085, seq=sequence, ack=base, flags=peer.ACK,
+                                      payload=peer.BACKPRESSURE_REQUEST[:1460],
+                                      identification=100 + extra), 11)
+        assert len(again) == 1 and server(again[0])["ack"] == (sequence + 1460) & peer.MASK
+        assert server(again[0])["flags"] == peer.ACK
     at = 1460
     while at < len(peer.BACKPRESSURE_REQUEST):
         data = peer.BACKPRESSURE_REQUEST[at:at + 1024]
@@ -307,6 +314,68 @@ class ConversationTests(unittest.TestCase):
             40005, 8085, 0xfffffff1, connection.server_start, peer.ACK,
             4096, b"", peer.BACKPRESSURE_REQUEST[:1460]))
         self.assertEqual(server(release[0])["ack"], (0xfffffff1 + 1460) & peer.MASK)
+
+    @staticmethod
+    def released_backpressure():
+        machine = peer.PeerMachine("loss-backpressure")
+        connection = peer.Connection(8085, 40005, 0xfffffff0, b"", peer.SYN,
+                                     0x6e6f7300 + 5 * 0x1000, "backpressure-request")
+        ack = connection.server_start
+
+        def send(seq, payload, flags=peer.ACK | peer.PSH):
+            return machine.backpressure_request(connection, peer.Segment(
+                40005, 8085, seq & peer.MASK, ack, flags, 4096, b"", payload))
+        assert send(0xfffffff1, peer.BACKPRESSURE_REQUEST[:512]) == []
+        assert send(0xfffffff1 + 512, peer.BACKPRESSURE_REQUEST[512:1460]) == []
+        assert len(send(0xfffffff1, peer.BACKPRESSURE_REQUEST[:1460], peer.ACK)) == 1
+        return machine, connection, send
+
+    def test_one_duplicate_retransmission_after_release_is_reacked_and_completes(self):
+        machine = peer.PeerMachine("loss-backpressure")
+        machine.handle(ARP)
+        first_three(machine)
+        base = connect(machine, 8083)
+        finish_http(machine, 8083, base, request(machine, 8083, base))
+        connect(machine, 8084)
+        machine.handle(client(8084, options=b"\x02\x04\x05\xb4"), 4)
+        machine.handle(client(8084, flags=peer.RST, seq=0xfffffff1), 5)
+        backpressure(machine, connect(machine, 8085), duplicates=1)
+        result = machine.summary()
+        self.assertTrue(result["complete"])
+        self.assertEqual(result["counts"]["backpressure_retransmissions"], 1)
+        self.assertEqual(result["counts"]["backpressure_acks_released"], 1)
+        self.assertEqual(machine.connections[8085].duplicate_retransmissions, 1)
+
+    def test_changed_duplicate_retransmission_after_release_is_rejected(self):
+        machine, connection, send = self.released_backpressure()
+        self.assertEqual(len(send(0xfffffff1, peer.BACKPRESSURE_REQUEST[:1460], peer.ACK)), 1)
+        for changed in (peer.BACKPRESSURE_REQUEST[:1459] + b"Y",
+                        peer.BACKPRESSURE_REQUEST[:511],
+                        peer.BACKPRESSURE_REQUEST[:1461]):
+            with self.subTest(length=len(changed)), \
+                    self.assertRaisesRegex(peer.ProtocolError, "changed or repeated"):
+                send(0xfffffff1, changed, peer.ACK)
+        self.assertEqual(connection.duplicate_retransmissions, 1)
+        self.assertEqual(machine.counts["backpressure_retransmissions"], 1)
+
+    def test_unbounded_duplicate_retransmissions_after_release_are_rejected(self):
+        _, connection, send = self.released_backpressure()
+        for _ in range(peer.MAX_DUPLICATE_RETRANSMISSIONS):
+            self.assertEqual(len(send(0xfffffff1, peer.BACKPRESSURE_REQUEST[:1460], peer.ACK)), 1)
+        with self.assertRaisesRegex(peer.ProtocolError, "beyond bound"):
+            send(0xfffffff1, peer.BACKPRESSURE_REQUEST[:1460], peer.ACK)
+
+    def test_full_mss_payload_is_only_accepted_in_opt_in_scenario(self):
+        frame = client(seq=0xfffffff1, flags=peer.ACK, payload=b"x" * 1025)
+        with self.assertRaisesRegex(peer.ProtocolError, "bounds"):
+            peer.parse_tcp(frame)
+        with self.assertRaisesRegex(peer.ProtocolError, "bounds"):
+            peer.PeerMachine().handle(frame)
+        full = client(8085, seq=0xfffffff1, flags=peer.ACK, payload=b"x" * 1460)
+        self.assertEqual(len(peer.parse_tcp(full, peer.BACKPRESSURE_MAX_PAYLOAD).payload), 1460)
+        with self.assertRaisesRegex(peer.ProtocolError, "bound"):  # also over the frame bound
+            peer.parse_tcp(client(8085, seq=0xfffffff1, flags=peer.ACK, payload=b"x" * 1461),
+                           peer.BACKPRESSURE_MAX_PAYLOAD)
 
     def test_client_cannot_ack_corrupt_segment_before_valid_data(self):
         machine = peer.PeerMachine()
