@@ -163,30 +163,107 @@ pub fn install() {
     }
 }
 
-/// AP half of `install`: the same permanent GDT/IDT, but no `ltr`. The single
-/// TSS is the BSP's and is already busy; APs have no IST/TSS in this profile,
-/// so an NMI/#DF on an AP shuts the VM down instead of running on a bad stack.
+/// One AP's private descriptor tables: a GDT with the kernel's code/data
+/// descriptors and this CPU's own TSS descriptor, plus that TSS. A busy TSS
+/// may be loaded by exactly one CPU, so every AP needs its own. 256-byte
+/// alignment keeps the 160-byte payload (56-byte GDT + 104-byte packed TSS,
+/// padded to 256 bytes) inside one page.
 #[cfg(feature = "native-smp")]
-pub fn install_ap() {
-    let gdtr = Pointer {
-        limit: 55,
-        base: ptr::addr_of!(GDT) as u64,
-    };
-    let idtr = Pointer {
-        limit: 4095,
-        base: ptr::addr_of!(IDT) as u64,
-    };
-    // SAFETY: Runs on an AP with IF=0 on its own mapped stack. The BSP fully
-    // initialized GDT/IDT before publishing the AP context (Release, acquired by
-    // the claim CAS); both tables are permanent and unchanged afterwards. Only
-    // this CPU's descriptor-table registers and segment selectors change.
+#[repr(C, align(256))]
+pub struct CpuTables {
+    gdt: [u64; 7],
+    tss: Tss,
+}
+#[cfg(feature = "native-smp")]
+const _: () = assert!(
+    size_of::<Tss>() == 104
+        && core::mem::offset_of!(CpuTables, tss) == 56
+        && size_of::<CpuTables>() == 256
+        && core::mem::align_of::<CpuTables>() == 256
+);
+#[cfg(feature = "native-smp")]
+impl CpuTables {
+    pub const fn new() -> Self {
+        Self {
+            gdt: [0; 7],
+            tss: Tss {
+                reserved: 0,
+                rsp: [0; 3],
+                reserved1: 0,
+                ist: [0; 7],
+                reserved2: 0,
+                reserved3: 0,
+                io: 104,
+            },
+        }
+    }
+}
+
+/// AP half of `install`: own GDT/TSS (RSP0, IST1=#DF, IST2=NMI exactly as the
+/// BSP's gates expect) and the shared permanent IDT. Called once per AP on
+/// its own stack with IF=0; `tables` is that AP's exclusive static slot.
+#[cfg(feature = "native-smp")]
+pub fn install_ap(tables: *mut CpuTables, rsp0: u64, double_top: u64, nmi_top: u64) {
+    // SAFETY: `tables` is a permanent, 256-byte aligned static slot owned by this
+    // AP alone (selected by the claim CAS); no other CPU reads or writes it. The
+    // BSP's GDT descriptors are read-only after install(). Packed TSS fields use
+    // unaligned raw writes. The IDT is permanent and complete before any AP runs.
     unsafe {
+        let tss = ptr::addr_of_mut!((*tables).tss);
+        ptr::addr_of_mut!((*tss).rsp)
+            .cast::<u64>()
+            .write_unaligned(rsp0);
+        let ist = ptr::addr_of_mut!((*tss).ist).cast::<u64>();
+        ist.write_unaligned(double_top);
+        ist.add(1).write_unaligned(nmi_top);
+        let base = tss as u64;
+        let low = 103 | ((base & 0xffffff) << 16) | (0x89 << 40) | (((base >> 24) & 0xff) << 56);
+        let kernel = ptr::addr_of!(GDT).cast::<u64>();
+        let gdt = ptr::addr_of_mut!((*tables).gdt).cast::<u64>();
+        for i in 0..5 {
+            gdt.add(i).write(kernel.add(i).read());
+        }
+        gdt.add(5).write(low);
+        gdt.add(6).write(base >> 32);
+        let gdtr = Pointer {
+            limit: 55,
+            base: gdt as u64,
+        };
+        let idtr = Pointer {
+            limit: 4095,
+            base: ptr::addr_of!(IDT) as u64,
+        };
         asm!("lgdt [{}]",in(reg) &gdtr,options(readonly,nostack));
         asm!("push 8","lea rax, [rip + 2f]","push rax","retfq","2:","mov ax, 16","mov ds, ax","mov es, ax","mov ss, ax","xor eax,eax","mov fs, ax","mov gs, ax",out("rax") _);
+        asm!("ltr ax",in("ax") 0x28u16,options(nostack));
         asm!("lidt [{}]",in(reg) &idtr,options(readonly,nostack));
         for msr in [0xc0000100u32, 0xc0000101, 0xc0000102] {
             asm!("wrmsr",in("ecx") msr,in("eax") 0u32,in("edx") 0u32,options(nostack));
         }
+    }
+}
+
+/// BSP-only, before any AP starts: supervisor interrupt gate for the SMP IPI
+/// (0xf0) or spurious (0xff) vector. Never a user-callable gate.
+#[cfg(feature = "native-smp")]
+pub fn smp_gate(vector: usize, address: u64) {
+    assert!(matches!(vector, 0xe0 | 0xf0 | 0xff));
+    let gate = Gate {
+        lo: address as u16,
+        cs: 8,
+        ist: 0,
+        flags: 0x8e,
+        mid: (address >> 16) as u16,
+        hi: (address >> 32) as u32,
+        reserved: 0,
+    };
+    // SAFETY: Exclusive IF=0 BSP initialization of the permanent IDT before any
+    // AP has loaded it; the address is our own executable stub.
+    unsafe {
+        ptr::addr_of_mut!(IDT)
+            .cast::<Gate>()
+            .add(vector)
+            .write(gate);
     }
 }
 
@@ -309,6 +386,12 @@ extern "C" fn m2_exception(frame: *const u64) -> ! {
     // SAFETY: CPL0 read of fault address; no pointed-to data is followed/logged.
     unsafe {
         asm!("mov {}, cr2",out(reg) cr2,options(nomem,nostack));
+    }
+    // Test-only AP IST probes: accepted solely on that AP's own IST stack.
+    #[cfg(feature = "native-smp")]
+    if let Some(marker) = super::smp::ist_fault_marker(vector, error, cs, frame) {
+        serial::write(marker);
+        serial::exit(0x10);
     }
     if cfg!(feature = "test-m2-double-fault") && vector == 8 && error == 0 && cs == 8 {
         let double = ptr::addr_of!(DOUBLE) as u64;

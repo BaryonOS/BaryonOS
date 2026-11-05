@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-05 · **Rubric:** v1 ·
-**Bron:** [`cd78ea74`](https://github.com/simonvanieperen/nieuw-os/commit/cd78ea74f14d8b8921aad51cc46a41c41274ab45) ·
-**Ontwikkelbranch:** `k06/smp-ap-bringup`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 1: native AP-opstart; conflictintegratie met main en device-exec/ACPI-handoff op PR #200.
-41/100 blijft 41/100. De K06 native-smp implementatie en eerder opgeslagen QEMU/TCG-bewijs blijven ongewijzigd. PR-head cd78ea74 is geïntegreerd met base main 7dd91fad en de device-exec/ACPI-handoff-head; drie statusconflicten zijn opgelost. Gerichte hosttests, driver-Clippy/fmt/freestanding builds, kernel native-smp build en progress-consistentiecheck slaagden. CodeQL op de eerste mergecommit c014b17d vond geen Actions/Python-alerts maar liep af vóór alle talen klaar waren; de geresynchroniseerde head is niet volledig gescand. Nieuwe-head hosted CI en native K06-QEMU op de geïntegreerde head blijven open. Geen criterium of gewicht gewijzigd; K06 blijft open. De integration_review-velden blijven historisch PR148-bewijs.
+**Bron:** [`9c64c1db`](https://github.com/simonvanieperen/nieuw-os/commit/9c64c1dbe85290501934331a28a9ec7f61f39399) ·
+**Ontwikkelbranch:** `k06/smp-step3-shootdown`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 3: TLB-shootdown van alle aliassen vóór hergebruik van een fysieke pagina (gestapeld op #202).
+41/100 blijft 41/100. In het opt-in native-smp-profiel wordt een vervangen kernelframe pas vrijgegeven nadat elke AP beide vertalingen heeft ge-invlpg'd en bevestigd. Een dove AP leidt tot frame-quarantaine plus INIT; een controle zonder shootdown toont dat AP's anders het vrijgegeven frame lezen. 13 native QEMU/TCG-gevallen zijn geslaagd: zie docs/verification/k06-smp-shootdown/. K06 blijft open (geen SMP-scheduler, geen interrupts op de BSP, geen procesbrede shootdown). Gestapeld op #202, #201 en #191, nog niet op main. De integration_review-velden blijven historisch PR148-bewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
