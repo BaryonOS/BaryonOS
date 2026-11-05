@@ -303,6 +303,37 @@ struct DmaRecord {
     live: bool,
 }
 
+impl DmaRecord {
+    fn check_unmapped<const N: usize>(&self, frames: &Frames<N>) -> Result<(), Error> {
+        for address in &self.pages[..self.page_count as usize] {
+            if frames.owner(*address).map_err(Error::Frame)? != Owner::Kernel
+                || frames.alias(*address).map_err(Error::Frame)?
+                    != (Alias {
+                        writable: 0,
+                        executable: 0,
+                        total: 0,
+                    })
+            {
+                return Err(Error::Frame(FrameError::Owner));
+            }
+        }
+        Ok(())
+    }
+
+    fn free<const N: usize>(
+        &self,
+        frames: &mut Frames<N>,
+        mut zero: impl FnMut(u64),
+    ) -> Result<(), Error> {
+        for address in &self.pages[..self.page_count as usize] {
+            frames
+                .free(*address, Owner::Kernel, &mut zero)
+                .map_err(Error::Frame)?;
+        }
+        Ok(())
+    }
+}
+
 const EMPTY_DMA: DmaRecord = DmaRecord {
     id: 0,
     pages: [0; MAX_DMA_PAGES],
@@ -890,11 +921,14 @@ impl DeviceLease {
                     mode,
                 )
                 .unwrap_or(false);
+            // A drained route is released even if masking failed.
+            if drained {
+                self.interrupt = None;
+            }
             if !masked || !drained {
                 self.phase = Phase::Quarantined;
                 return Err(Error::Quarantined);
             }
-            self.interrupt = None;
             return Err(Error::Hardware);
         }
         Ok(vector)
@@ -951,7 +985,14 @@ impl DeviceLease {
         Ok(())
     }
 
+    /// A `Matched` lease has issued no grant and touched no hardware, so it
+    /// goes straight to `Released` (an abandoned match must not pin the
+    /// address); later phases must quiesce.
     pub fn revoke(&mut self) -> Result<(), Error> {
+        if self.phase == Phase::Matched {
+            self.phase = Phase::Released;
+            return Ok(());
+        }
         if !matches!(
             self.phase,
             Phase::Authorized | Phase::Initializing | Phase::Ready
@@ -1006,7 +1047,9 @@ impl DeviceLease {
                 )
                 .unwrap_or(false);
             safe &= masked && drained;
-            if masked && drained {
+            // A drained route is released even if masking failed; a later
+            // quiesce must not act on it again.
+            if drained {
                 self.interrupt = None;
                 self.interrupt_masked = true;
             }
@@ -1035,27 +1078,34 @@ impl DeviceLease {
             return Err(Error::InvalidState);
         }
         let record = self.record(grant)?;
-        for address in &record.pages[..record.page_count as usize] {
-            if frames.owner(*address).map_err(Error::Frame)? != Owner::Kernel
-                || frames.alias(*address).map_err(Error::Frame)?
-                    != (Alias {
-                        writable: 0,
-                        executable: 0,
-                        total: 0,
-                    })
-            {
-                return Err(Error::Frame(FrameError::Owner));
-            }
-        }
-        for address in &record.pages[..record.page_count as usize] {
-            frames
-                .free(*address, Owner::Kernel, &mut zero)
-                .map_err(Error::Frame)?;
-        }
+        record.check_unmapped(frames)?;
+        record.free(frames, &mut zero)?;
         self.dma[grant.slot as usize] = EMPTY_DMA;
         if self.dma.iter().all(|entry| !entry.live) {
             self.phase = Phase::Released;
         }
+        Ok(())
+    }
+
+    /// Kernel recovery for lost `DmaGrant`s: only after confirmed quiescence,
+    /// frees every live DMA record and releases the lease. Every record is
+    /// checked before any page is freed, so a refused check frees nothing.
+    pub fn release_all_dma<const N: usize>(
+        &mut self,
+        frames: &mut Frames<N>,
+        mut zero: impl FnMut(u64),
+    ) -> Result<(), Error> {
+        if self.phase != Phase::Quiesced {
+            return Err(Error::InvalidState);
+        }
+        for record in self.dma.iter().filter(|record| record.live) {
+            record.check_unmapped(frames)?;
+        }
+        for record in self.dma.iter_mut().filter(|record| record.live) {
+            record.free(frames, &mut zero)?;
+            *record = EMPTY_DMA;
+        }
+        self.phase = Phase::Released;
         Ok(())
     }
 
@@ -1918,6 +1968,129 @@ mod tests {
         bars[2] = PciBar::new(0x8000_4000, 0x1000, true).unwrap();
         bars[3] = PciBar::new(0x8000_0000, 0x100, false).unwrap();
         assert!(PciFunction::from_kernel_probe(snapshot_with_bars(bars)).is_ok());
+    }
+
+    #[test]
+    fn abandoned_match_releases_its_address_without_hardware() {
+        let mut registry = LeaseRegistry::<1>::new();
+        let mut abandoned = registry.lease(function(), MATCH).unwrap();
+        abandoned.revoke().unwrap();
+        assert_eq!(abandoned.phase(), Phase::Released);
+        registry.retire(&abandoned).unwrap();
+        let mut next = registry.lease(function(), MATCH).unwrap();
+        // The abandoned lease stays dead: it can never be authorized again.
+        assert_eq!(
+            abandoned.authorize(DRIVER, GENERATION),
+            Err(Error::InvalidState)
+        );
+        assert_eq!(abandoned.revoke(), Err(Error::InvalidState));
+        assert_eq!(registry.retire(&abandoned), Err(Error::InvalidState));
+        next.authorize(DRIVER, GENERATION).unwrap();
+    }
+
+    #[test]
+    fn lost_dma_grants_are_freed_only_after_quiescence() {
+        let mut registry = LeaseRegistry::<1>::new();
+        let mut lease = registry.lease(function(), MATCH).unwrap();
+        let mut control = Control {
+            reset_ack: true,
+            ..Control::default()
+        };
+        let mut frames = frames::<16>();
+        let before = free_count(&frames);
+        let mapped = {
+            let lost = initialize(&mut lease, &mut control, &mut frames);
+            lease.dma_pages(&lost).unwrap()[1]
+        }; // The only DmaGrant is gone here.
+        lease.revoke().unwrap();
+        assert_eq!(
+            lease.release_all_dma(&mut frames, |_| {}),
+            Err(Error::InvalidState)
+        );
+        control.reset_ack = false;
+        assert_eq!(lease.quiesce(&mut control), Err(Error::Quarantined));
+        assert_eq!(
+            lease.release_all_dma(&mut frames, |_| {}),
+            Err(Error::InvalidState)
+        );
+        assert_eq!(free_count(&frames), before - 2);
+        control.reset_ack = true;
+        lease.quiesce(&mut control).unwrap();
+        assert_eq!(lease.phase(), Phase::Quiesced);
+        // A still-mapped page refuses the whole release and frees nothing.
+        frames.map(mapped, false, false, false).unwrap();
+        assert_eq!(
+            lease.release_all_dma(&mut frames, |_| {}),
+            Err(Error::Frame(FrameError::Owner))
+        );
+        assert_eq!(free_count(&frames), before - 2);
+        assert_eq!(lease.phase(), Phase::Quiesced);
+        frames.unmap(mapped, false, false).unwrap();
+        let zeroed = core::cell::Cell::new(0);
+        lease
+            .release_all_dma(&mut frames, |_| zeroed.set(zeroed.get() + 1))
+            .unwrap();
+        assert_eq!(zeroed.get(), 2);
+        assert_eq!(free_count(&frames), before);
+        assert_eq!(lease.phase(), Phase::Released);
+        registry.retire(&lease).unwrap();
+    }
+
+    #[test]
+    fn release_all_dma_is_refused_while_ready() {
+        let mut lease = matched();
+        let mut control = Control::default();
+        let mut frames = frames::<16>();
+        let before = free_count(&frames);
+        initialize(&mut lease, &mut control, &mut frames);
+        assert_eq!(
+            lease.release_all_dma(&mut frames, |_| {}),
+            Err(Error::InvalidState)
+        );
+        assert_eq!(free_count(&frames), before - 2);
+        assert_eq!(lease.phase(), Phase::Ready);
+    }
+
+    #[test]
+    fn drained_route_is_forgotten_even_when_masking_failed() {
+        let mut lease = matched();
+        let mut control = Control {
+            reset_ack: true,
+            irq_vector: 64,
+            ..Control::default()
+        };
+        let mut frames = frames::<16>();
+        let grant = initialize(&mut lease, &mut control, &mut frames);
+        lease.revoke().unwrap();
+        control.fail_irq_mask = true;
+        assert_eq!(lease.quiesce(&mut control), Err(Error::Quarantined));
+        assert_eq!(
+            lease.release_dma(&grant, &mut frames, |_| {}),
+            Err(Error::InvalidState)
+        );
+        assert!(lease.interrupt.is_none());
+        let (masks, drains) = (control.calls[4], control.calls[7]);
+        lease.quiesce(&mut control).unwrap();
+        assert_eq!((control.calls[4], control.calls[7]), (masks, drains));
+        lease.release_dma(&grant, &mut frames, |_| {}).unwrap();
+    }
+
+    #[test]
+    fn drained_invalid_route_is_forgotten_even_when_masking_failed() {
+        let mut lease = matched();
+        lease.authorize(DRIVER, GENERATION).unwrap();
+        lease.begin_initialization().unwrap();
+        let mut control = Control {
+            reset_ack: true,
+            irq_vector: 128,
+            fail_irq_mask: true,
+            ..Control::default()
+        };
+        assert_eq!(lease.bind_interrupt(&mut control), Err(Error::Quarantined));
+        assert!(lease.interrupt.is_none());
+        lease.quiesce(&mut control).unwrap();
+        assert_eq!((control.calls[4], control.calls[7]), (1, 1));
+        assert_eq!(lease.phase(), Phase::Released);
     }
 
     #[test]
