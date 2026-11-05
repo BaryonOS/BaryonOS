@@ -17,9 +17,10 @@ fn run() -> Result<(), String> {
         .map_err(|error| format!("Tekst lezen mislukt: {error}"))?;
     let document = export(&input, MAX_OUTPUT_BYTES)
         .map_err(|error| format!("DOCX exporteren mislukt: {error:?}"))?;
-    io::stdout()
-        .lock()
-        .write_all(&document)
+    let mut out = io::stdout().lock();
+    // Explicit flush: the exit-time flush of the line buffer ignores errors.
+    out.write_all(&document)
+        .and_then(|()| out.flush())
         .map_err(|error| format!("DOCX schrijven mislukt: {error}"))
 }
 

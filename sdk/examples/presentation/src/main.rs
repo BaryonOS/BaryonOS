@@ -59,9 +59,10 @@ fn run() -> Result<(), String> {
     for pixel in pixels {
         output.extend_from_slice(&[(pixel >> 16) as u8, (pixel >> 8) as u8, pixel as u8]);
     }
-    io::stdout()
-        .lock()
-        .write_all(&output)
+    let mut out = io::stdout().lock();
+    // Explicit flush: the exit-time flush of the line buffer ignores errors.
+    out.write_all(&output)
+        .and_then(|()| out.flush())
         .map_err(|e| format!("Voorbeeld schrijven mislukt: {e}"))
 }
 

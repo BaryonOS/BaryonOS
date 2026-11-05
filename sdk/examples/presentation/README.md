@@ -70,6 +70,7 @@ dit bouwt geen parallelle broker of proceslifecycle.
 ## Uitgevoerde acceptatie
 
 ```sh
+export CARGO_TARGET_DIR="$PWD/target/platform-presentation-host"
 cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/presentation/Cargo.toml --features host-cli
 cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/presentation/Cargo.toml --features host-cli --all-targets -- -D warnings
 cargo +1.90.0 fmt --manifest-path sdk/examples/presentation/Cargo.toml -- --check
@@ -77,7 +78,7 @@ cargo +1.90.0 build --offline --locked --release --lib --manifest-path sdk/examp
 python3 -B sdk/examples/presentation/tests/interop.py target/platform-presentation-host/debug/slide-preview build/platform-presentation-evidence
 ```
 
-Zeven Rusttests, waaronder twee werkelijke processen, controleren import,
+Acht Rusttests (vijf in `tests/deck.rs`, drie werkelijke `slide-preview`-processen in `tests/cli.rs`), controleren import,
 navigatie, bronbehoud, twee echte diaframes op beide schalen, limieten,
 glyphfallback en pixelbuffers die bij fouten onveranderd blijven.
 Het zelfstandige Python-PPM-orakel controleert vier echte uitvoerframes,

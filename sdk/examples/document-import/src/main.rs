@@ -23,8 +23,9 @@ fn run() -> Result<(), String> {
         .read_to_end(&mut input)
         .map_err(|e| format!("lezen: {e}"))?;
     let text = import_docx(&input).map_err(|e| format!("import geweigerd: {e:?}"))?;
-    io::stdout()
-        .lock()
-        .write_all(text.as_bytes())
+    let mut out = io::stdout().lock();
+    // Explicit flush: the exit-time flush of the line buffer ignores errors.
+    out.write_all(text.as_bytes())
+        .and_then(|()| out.flush())
         .map_err(|e| format!("schrijven: {e}"))
 }

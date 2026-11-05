@@ -46,9 +46,10 @@ fn run() -> Result<(), String> {
     let output = wave
         .clip(start..end, drop_metadata, MAX_INPUT_BYTES)
         .map_err(|error| format!("Fragment maken mislukt: {error:?}"))?;
-    io::stdout()
-        .lock()
-        .write_all(&output)
+    let mut out = io::stdout().lock();
+    // Explicit flush: the exit-time flush of the line buffer ignores errors.
+    out.write_all(&output)
+        .and_then(|()| out.flush())
         .map_err(|error| format!("Fragment schrijven mislukt: {error}"))
 }
 

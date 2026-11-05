@@ -112,9 +112,10 @@ fn run() -> Result<(), String> {
         .write_image_data(&clipped.rgba)
         .map_err(|e| format!("PNG-pixels: {e}"))?;
     writer.finish().map_err(|e| format!("PNG-afronden: {e}"))?;
-    io::stdout()
-        .lock()
-        .write_all(&output.0)
+    let mut out = io::stdout().lock();
+    // Explicit flush: the exit-time flush of the line buffer ignores errors.
+    out.write_all(&output.0)
+        .and_then(|()| out.flush())
         .map_err(|e| format!("schrijven: {e}"))
 }
 

@@ -28,9 +28,10 @@ fn run() -> Result<(), String> {
         .map_err(|error| format!("Afbeelding lezen mislukt: {error}"))?;
     let output = convert(&input, background, MAX_OUTPUT_BYTES)
         .map_err(|error| format!("Afbeelding exporteren mislukt: {error:?}"))?;
-    io::stdout()
-        .lock()
-        .write_all(&output)
+    let mut out = io::stdout().lock();
+    // Explicit flush: the exit-time flush of the line buffer ignores errors.
+    out.write_all(&output)
+        .and_then(|()| out.flush())
         .map_err(|error| format!("BMP schrijven mislukt: {error}"))
 }
 
