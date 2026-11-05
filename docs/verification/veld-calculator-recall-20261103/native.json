@@ -1,0 +1,1282 @@
+{
+  "calculator_recall_gate": true,
+  "calculator_recall_requested": true,
+  "clipboard_gate": false,
+  "clipboard_requested": false,
+  "command": [
+    "/home/simon/.copilot/session-state/7f2fb1d137004b68b9bef4b8ca72f938/files/veld-env/root/usr/bin/qemu-system-x86_64",
+    "-L",
+    ".",
+    "-machine",
+    "pc-q35-10.0",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "file:serial.txt",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-device",
+    "VGA,vgamem_mb=16,romfile=VGA.rom",
+    "-qmp",
+    "stdio",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,file=volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST"
+  ],
+  "duration_s": 63.564446127005795,
+  "immutable": {
+    "OVMF_CODE.fd": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "VGA.rom": "c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde",
+    "bios-256k.bin": "e26615f9ad430328f49ca105e570b2dc4490a08a34ea73d27cae8b809a30ee06",
+    "esp/EFI/BOOT/BOOTX64.EFI": "64c4d7c969c5e4635bb9a5ad83d9c86761ce4cff918a0bc2a809bb77e2f3e7a2",
+    "esp/kernel.elf": "cd3b1d75a92dd68e5c16cd131c578b03f02f2e2baba8209ce7e58096568f616f",
+    "volume.json": "265021a646e64f6edd1b7ef6271b7497b224e7857d50851513c70cb4c69527c8"
+  },
+  "interaction_scope": "Native calculator recall, unfinished draft restoration, app-body pixel roundtrips and clean exit; not recovery/storage/full window-session acceptance.",
+  "kernel_feature": "native-window-session-probe",
+  "manifest": {
+    "document_session": false,
+    "kernel": {
+      "entry": 33554432,
+      "sections": [
+        {
+          "flags": 0,
+          "name": "",
+          "size": 0,
+          "type": 0
+        },
+        {
+          "flags": 6,
+          "name": ".text",
+          "size": 176695,
+          "type": 1
+        },
+        {
+          "flags": 50,
+          "name": ".rodata",
+          "size": 1781336,
+          "type": 1
+        },
+        {
+          "flags": 3,
+          "name": ".data",
+          "size": 1720936,
+          "type": 1
+        },
+        {
+          "flags": 3,
+          "name": ".bss",
+          "size": 3100856,
+          "type": 8
+        },
+        {
+          "flags": 0,
+          "name": ".symtab",
+          "size": 9600,
+          "type": 2
+        },
+        {
+          "flags": 0,
+          "name": ".shstrtab",
+          "size": 52,
+          "type": 3
+        },
+        {
+          "flags": 0,
+          "name": ".strtab",
+          "size": 22248,
+          "type": 3
+        }
+      ],
+      "segments": [
+        {
+          "address": 33554432,
+          "filesz": 176695,
+          "flags": 5,
+          "memsz": 176695,
+          "offset": 4096,
+          "page_end": 33734656,
+          "page_start": 33554432
+        },
+        {
+          "address": 33734656,
+          "filesz": 1781336,
+          "flags": 4,
+          "memsz": 1781336,
+          "offset": 184320,
+          "page_end": 35516416,
+          "page_start": 33734656
+        },
+        {
+          "address": 35516416,
+          "filesz": 1720936,
+          "flags": 6,
+          "memsz": 4825272,
+          "offset": 1966080,
+          "page_end": 40345600,
+          "page_start": 35516416
+        }
+      ],
+      "sha256": "cd3b1d75a92dd68e5c16cd131c578b03f02f2e2baba8209ce7e58096568f616f"
+    },
+    "kernel_feature": "native-window-session-probe",
+    "loader": {
+      "format": "AMD64 PE32+",
+      "imports": 0,
+      "sha256": "64c4d7c969c5e4635bb9a5ad83d9c86761ce4cff918a0bc2a809bb77e2f3e7a2",
+      "subsystem": "EFI_APPLICATION"
+    },
+    "loader_feature": "desktop-mode",
+    "materiaal": {
+      "apps": [
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 6,
+                "flags": 5,
+                "memsz": 6,
+                "offset": 4096,
+                "page_end": 1073745920,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1344,
+                "flags": 6,
+                "memsz": 1344,
+                "offset": 8192,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073823744,
+                "filesz": 3977,
+                "flags": 4,
+                "memsz": 3977,
+                "offset": 12288,
+                "page_end": 1073827840,
+                "page_start": 1073823744
+              },
+              {
+                "address": 1073872896,
+                "filesz": 78359,
+                "flags": 5,
+                "memsz": 78359,
+                "offset": 16384,
+                "page_end": 1073954816,
+                "page_start": 1073872896
+              }
+            ]
+          },
+          "name": "keyring-service",
+          "sha256": "c9f773d378af25f895514951825829fcbb3de1fae387b71043f78619165eba53"
+        },
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 63442,
+                "flags": 5,
+                "memsz": 63442,
+                "offset": 4096,
+                "page_end": 1073807360,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1304,
+                "flags": 6,
+                "memsz": 1304,
+                "offset": 69632,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073823744,
+                "filesz": 18298,
+                "flags": 4,
+                "memsz": 18298,
+                "offset": 73728,
+                "page_end": 1073844224,
+                "page_start": 1073823744
+              }
+            ]
+          },
+          "name": "volume-service",
+          "sha256": "41cf6cd9884a025e0ec3744067aa13e5c9b81882735662a15e1b85bdd8c68e38"
+        },
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 19,
+                "flags": 5,
+                "memsz": 19,
+                "offset": 4096,
+                "page_end": 1073745920,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1024,
+                "flags": 6,
+                "memsz": 1024,
+                "offset": 8192,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073872896,
+                "filesz": 471672,
+                "flags": 4,
+                "memsz": 471672,
+                "offset": 12288,
+                "page_end": 1074348032,
+                "page_start": 1073872896
+              },
+              {
+                "address": 1074462720,
+                "filesz": 208,
+                "flags": 6,
+                "memsz": 200704,
+                "offset": 487424,
+                "page_end": 1074663424,
+                "page_start": 1074462720
+              },
+              {
+                "address": 1074724864,
+                "filesz": 116297,
+                "flags": 5,
+                "memsz": 116297,
+                "offset": 491520,
+                "page_end": 1074843648,
+                "page_start": 1074724864
+              }
+            ]
+          },
+          "name": "materiaal-app",
+          "sha256": "6bcebe76cf205b66667594203058f4602f398eda4f325b065a934b45430f9924"
+        },
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 6,
+                "flags": 5,
+                "memsz": 6,
+                "offset": 4096,
+                "page_end": 1073745920,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1200,
+                "flags": 6,
+                "memsz": 1200,
+                "offset": 8192,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073872896,
+                "filesz": 754,
+                "flags": 4,
+                "memsz": 754,
+                "offset": 12288,
+                "page_end": 1073876992,
+                "page_start": 1073872896
+              },
+              {
+                "address": 1074003968,
+                "filesz": 12263,
+                "flags": 5,
+                "memsz": 12263,
+                "offset": 16384,
+                "page_end": 1074016256,
+                "page_start": 1074003968
+              }
+            ]
+          },
+          "name": "input-source",
+          "sha256": "2073e90695aaae9946408c25c67b57c3f913bb4b395f7ba2996d3b5e32016d0d"
+        },
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 6,
+                "flags": 5,
+                "memsz": 6,
+                "offset": 4096,
+                "page_end": 1073745920,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1200,
+                "flags": 6,
+                "memsz": 1200,
+                "offset": 8192,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073872896,
+                "filesz": 2522,
+                "flags": 4,
+                "memsz": 2522,
+                "offset": 12288,
+                "page_end": 1073876992,
+                "page_start": 1073872896
+              },
+              {
+                "address": 1074003968,
+                "filesz": 21575,
+                "flags": 5,
+                "memsz": 21575,
+                "offset": 16384,
+                "page_end": 1074028544,
+                "page_start": 1074003968
+              }
+            ]
+          },
+          "name": "input-policy",
+          "sha256": "4760a5968c70be583a8ff5b968ce5c299ef62cca0120603dbc096f911c52a713"
+        },
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 6,
+                "flags": 5,
+                "memsz": 6,
+                "offset": 4096,
+                "page_end": 1073745920,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1024,
+                "flags": 6,
+                "memsz": 1024,
+                "offset": 8192,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073872896,
+                "filesz": 799,
+                "flags": 4,
+                "memsz": 799,
+                "offset": 12288,
+                "page_end": 1073876992,
+                "page_start": 1073872896
+              },
+              {
+                "address": 1074790400,
+                "filesz": 72,
+                "flags": 6,
+                "memsz": 72,
+                "offset": 16384,
+                "page_end": 1074794496,
+                "page_start": 1074790400
+              },
+              {
+                "address": 1090519040,
+                "filesz": 9799,
+                "flags": 5,
+                "memsz": 9799,
+                "offset": 20480,
+                "page_end": 1090531328,
+                "page_start": 1090519040
+              }
+            ]
+          },
+          "name": "window-init",
+          "sha256": "c1477b3eddf3c6846dc2c8d911b92946d5fd1dff6d4357d9ad060c51242ff1a1"
+        },
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 6,
+                "flags": 5,
+                "memsz": 6,
+                "offset": 4096,
+                "page_end": 1073745920,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1024,
+                "flags": 6,
+                "memsz": 1024,
+                "offset": 8192,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073872896,
+                "filesz": 280802,
+                "flags": 4,
+                "memsz": 280802,
+                "offset": 12288,
+                "page_end": 1074155520,
+                "page_start": 1073872896
+              },
+              {
+                "address": 1074790400,
+                "filesz": 120,
+                "flags": 6,
+                "memsz": 5600120,
+                "offset": 294912,
+                "page_end": 1080393728,
+                "page_start": 1074790400
+              },
+              {
+                "address": 1090519040,
+                "filesz": 56487,
+                "flags": 5,
+                "memsz": 56487,
+                "offset": 299008,
+                "page_end": 1090576384,
+                "page_start": 1090519040
+              }
+            ]
+          },
+          "name": "window-compositor",
+          "sha256": "a9a45762d38bf15e01bbb6a2cf363407bd9026697f10add705e4532dbcdb75b8"
+        },
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 19,
+                "flags": 5,
+                "memsz": 19,
+                "offset": 4096,
+                "page_end": 1073745920,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1024,
+                "flags": 6,
+                "memsz": 1024,
+                "offset": 8192,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073872896,
+                "filesz": 285308,
+                "flags": 4,
+                "memsz": 285308,
+                "offset": 12288,
+                "page_end": 1074159616,
+                "page_start": 1073872896
+              },
+              {
+                "address": 1074462720,
+                "filesz": 216,
+                "flags": 6,
+                "memsz": 216,
+                "offset": 299008,
+                "page_end": 1074466816,
+                "page_start": 1074462720
+              },
+              {
+                "address": 1074724864,
+                "filesz": 78214,
+                "flags": 5,
+                "memsz": 78214,
+                "offset": 303104,
+                "page_end": 1074806784,
+                "page_start": 1074724864
+              }
+            ]
+          },
+          "name": "calculator-app",
+          "sha256": "5fad336a8c2fa8698095ca9245d3419a44fbffda44d42fd5c900ca9122d9dbd6"
+        }
+      ],
+      "native_runtime_performed": false,
+      "passed": true,
+      "probe_controller": false
+    },
+    "profile": "native-window-session-probe",
+    "schema_version": 1,
+    "sdk_runtime": false,
+    "source_fingerprint_version": 3,
+    "source_sha256": "0541b0b0e66a6fb110e1d54a7ceae07aa3a73eb0dda755db9ca8d09a2e60d2e6"
+  },
+  "native_gate": false,
+  "passed": true,
+  "phases": {
+    "boot": {
+      "frame_sha256": "ef1a4e72f662caa7e4d074dd91c6665268ccefd3946ab2f13e544fb66e623b18",
+      "oracle": null,
+      "seconds": 24.97586664800474,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 0,
+          "CARET": 0,
+          "CURRENT": 0,
+          "ERRORS": 0,
+          "EVALUATIONS": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "FAILURES": 0,
+          "FRAMES": 1,
+          "GEN": 1,
+          "HAS_ANSWER": 0,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "ERRORS": 0,
+          "FRAMES": 1,
+          "GEN": 3,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 18446744073709551615,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "recall-after-edit": {
+      "frame_sha256": "2d9bf8aa0dcdd0fc52b8ca9e7646e24c95d30337714d9d91ba8074dad080ae06",
+      "oracle": null,
+      "seconds": 61.15182535600616,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 20000000000,
+          "CARET": 3,
+          "CURRENT": 0,
+          "ERRORS": 0,
+          "EVALUATIONS": 2,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 3150071230005284570,
+          "FAILURES": 0,
+          "FRAMES": 11,
+          "GEN": 22,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "ERRORS": 0,
+          "FRAMES": 2,
+          "GEN": 4,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 18446744073709551615,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "recall-draft": {
+      "frame_sha256": "044834f6ffb3f916c6c896eb2602c35b5ab24fdafa364cdb6fb26fe8e66d4019",
+      "oracle": null,
+      "seconds": 53.14663293000194,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 20000000000,
+          "CARET": 3,
+          "CURRENT": 0,
+          "ERRORS": 0,
+          "EVALUATIONS": 2,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 10078065410237279209,
+          "FAILURES": 0,
+          "FRAMES": 4,
+          "GEN": 14,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "ERRORS": 0,
+          "FRAMES": 2,
+          "GEN": 4,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 18446744073709551615,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "recall-edit-source": {
+      "frame_sha256": "2d9bf8aa0dcdd0fc52b8ca9e7646e24c95d30337714d9d91ba8074dad080ae06",
+      "oracle": null,
+      "seconds": 58.15971719600202,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 20000000000,
+          "CARET": 3,
+          "CURRENT": 0,
+          "ERRORS": 0,
+          "EVALUATIONS": 2,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 3150071230005284570,
+          "FAILURES": 0,
+          "FRAMES": 9,
+          "GEN": 19,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "ERRORS": 0,
+          "FRAMES": 2,
+          "GEN": 4,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 18446744073709551615,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "recall-edited": {
+      "frame_sha256": "33b1f241a9e8716c5394dc82844b08a237746f3f67aebfa0f2905bab661df5d3",
+      "oracle": null,
+      "seconds": 60.165877220002585,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 20000000000,
+          "CARET": 3,
+          "CURRENT": 0,
+          "ERRORS": 0,
+          "EVALUATIONS": 2,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 3150070130493656359,
+          "FAILURES": 0,
+          "FRAMES": 10,
+          "GEN": 21,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "ERRORS": 0,
+          "FRAMES": 2,
+          "GEN": 4,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 18446744073709551615,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "recall-edited-draft": {
+      "frame_sha256": "33b1f241a9e8716c5394dc82844b08a237746f3f67aebfa0f2905bab661df5d3",
+      "oracle": null,
+      "seconds": 62.15608929700102,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 20000000000,
+          "CARET": 3,
+          "CURRENT": 0,
+          "ERRORS": 0,
+          "EVALUATIONS": 2,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 3150070130493656359,
+          "FAILURES": 0,
+          "FRAMES": 12,
+          "GEN": 23,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "ERRORS": 0,
+          "FRAMES": 2,
+          "GEN": 4,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 18446744073709551615,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "recall-explicit-evaluation": {
+      "frame_sha256": "80b248755d9f95f1099c83c7a17507f75ff7740d56f72b0bfc213db33a33aac1",
+      "oracle": null,
+      "seconds": 63.16295326600084,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 24000000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 3,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 3150070130493656359,
+          "FAILURES": 0,
+          "FRAMES": 13,
+          "GEN": 24,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "ERRORS": 0,
+          "FRAMES": 2,
+          "GEN": 4,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 18446744073709551615,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "recall-first": {
+      "frame_sha256": "4f4d583ab538ce6e37753cd0603b77a4b11fe013cf83ebcaba5c92364c0ffdcb",
+      "oracle": null,
+      "seconds": 48.124807688000146,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 5000000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 1,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "FAILURES": 0,
+          "FRAMES": 2,
+          "GEN": 5,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "ERRORS": 0,
+          "FRAMES": 2,
+          "GEN": 4,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 18446744073709551615,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "recall-focused": {
+      "frame_sha256": "0ce4df4ace21596f5293a309910e285f79f990024d6c3980c84e687c4c58f3e1",
+      "oracle": null,
+      "seconds": 45.20583415400324,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 0,
+          "CARET": 0,
+          "CURRENT": 0,
+          "ERRORS": 0,
+          "EVALUATIONS": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "FAILURES": 0,
+          "FRAMES": 1,
+          "GEN": 1,
+          "HAS_ANSWER": 0,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "ERRORS": 0,
+          "FRAMES": 2,
+          "GEN": 4,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 18446744073709551615,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "recall-latest": {
+      "frame_sha256": "2d9bf8aa0dcdd0fc52b8ca9e7646e24c95d30337714d9d91ba8074dad080ae06",
+      "oracle": null,
+      "seconds": 54.14668425000127,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 20000000000,
+          "CARET": 3,
+          "CURRENT": 0,
+          "ERRORS": 0,
+          "EVALUATIONS": 2,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 3150071230005284570,
+          "FAILURES": 0,
+          "FRAMES": 5,
+          "GEN": 15,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "ERRORS": 0,
+          "FRAMES": 2,
+          "GEN": 4,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 18446744073709551615,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "recall-next": {
+      "frame_sha256": "2d9bf8aa0dcdd0fc52b8ca9e7646e24c95d30337714d9d91ba8074dad080ae06",
+      "oracle": null,
+      "seconds": 56.137736545002554,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 20000000000,
+          "CARET": 3,
+          "CURRENT": 0,
+          "ERRORS": 0,
+          "EVALUATIONS": 2,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 3150071230005284570,
+          "FAILURES": 0,
+          "FRAMES": 7,
+          "GEN": 17,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "ERRORS": 0,
+          "FRAMES": 2,
+          "GEN": 4,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 18446744073709551615,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "recall-oldest": {
+      "frame_sha256": "56cbe5838e9ab22bd80c46e870ca9d22cf801a3f0f5a3e780f41333fa38dd4a9",
+      "oracle": null,
+      "seconds": 55.15142369000387,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 20000000000,
+          "CARET": 3,
+          "CURRENT": 0,
+          "ERRORS": 0,
+          "EVALUATIONS": 2,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "FAILURES": 0,
+          "FRAMES": 6,
+          "GEN": 16,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "ERRORS": 0,
+          "FRAMES": 2,
+          "GEN": 4,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 18446744073709551615,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "recall-own-draft": {
+      "frame_sha256": "044834f6ffb3f916c6c896eb2602c35b5ab24fdafa364cdb6fb26fe8e66d4019",
+      "oracle": null,
+      "seconds": 57.130065215002105,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 20000000000,
+          "CARET": 3,
+          "CURRENT": 0,
+          "ERRORS": 0,
+          "EVALUATIONS": 2,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 10078065410237279209,
+          "FAILURES": 0,
+          "FRAMES": 8,
+          "GEN": 18,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "ERRORS": 0,
+          "FRAMES": 2,
+          "GEN": 4,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 18446744073709551615,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "recall-second": {
+      "frame_sha256": "bb1f7f0580fdcd2e52ac95b5725bb644eef631ef2e1df885f32d2aeef7c2283a",
+      "oracle": null,
+      "seconds": 51.18483171400294,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 20000000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 2,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 3150071230005284570,
+          "FAILURES": 0,
+          "FRAMES": 3,
+          "GEN": 10,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "ERRORS": 0,
+          "FRAMES": 2,
+          "GEN": 4,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 18446744073709551615,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    }
+  },
+  "qemu_implementation": {
+    "path": "/home/simon/.copilot/session-state/7f2fb1d137004b68b9bef4b8ca72f938/files/veld-env/root/usr/bin/qemu-system-x86_64",
+    "sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb"
+  },
+  "qemu_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+  "qmp_trace_summary": {
+    "canonical_sha256": "95cd61c47d2f2dc5a7cad2c627c9e3160949641b3ade3e2ec148b2da936ca612",
+    "entries": 54
+  },
+  "raw_qemu_exit": 33,
+  "raw_report": {
+    "path": "build/veld10-recall-20261103/run/window-a44e2f969c164431b0e0b3ce9db95ccb/result.json",
+    "sha256": "519a65188be774c09c0398a5561bf1592b434ff97f0b5c0666c39196d809fd5c"
+  },
+  "recovery_handshake_only": false,
+  "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-fictional-disco/build/veld10-recall-20261103/run/window-a44e2f969c164431b0e0b3ce9db95ccb",
+  "schema_version": 1,
+  "serial_sha256": "28db0e69ba604ad46aa94c1a9b53ac7931c3cd29aebc24cf5a74c14471e1a554",
+  "smoke_only": false,
+  "source_commit": "9e5af2049c93d417c36777309e80fe257456d4e4",
+  "source_fingerprint_version": 3,
+  "source_sha256": "0541b0b0e66a6fb110e1d54a7ceae07aa3a73eb0dda755db9ca8d09a2e60d2e6"
+}

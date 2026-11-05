@@ -1,0 +1,11 @@
+   Compiling virtio-core v0.1.0 (/workspace/nieuw-os/crates/virtio-core)
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os/kernel)
+   Compiling nieuw-os-display-client v0.1.0 (/workspace/nieuw-os/sdk/display-client)
+   Compiling boot-protocol v0.1.0 (/workspace/nieuw-os/crates/boot-protocol)
+   Compiling kernel-core v0.1.0 (/workspace/nieuw-os/crates/kernel-core)
+   Compiling nieuw-os-ps2 v0.1.0 (/workspace/nieuw-os/drivers/ps2)
+   Compiling virtio-blk-driver v0.1.0 (/workspace/nieuw-os/drivers/virtio-blk)
+   Compiling virtio-rng-driver v0.1.0 (/workspace/nieuw-os/drivers/virtio-rng)
+   Compiling block-protocol v0.1.0 (/workspace/nieuw-os/services/block)
+   Compiling capability-core v0.1.0 (/workspace/nieuw-os/crates/capability-core)
+    Finished `release` profile [optimized] target(s) in 3.34s

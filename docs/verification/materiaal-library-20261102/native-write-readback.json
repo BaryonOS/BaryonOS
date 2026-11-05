@@ -1,0 +1,189 @@
+{
+  "readback_passed": true,
+  "evidence_level": "Independent artifact reread of actual native QEMU run; no physical hardware/user trial claim",
+  "commit": "64044318c622eaacab25272611acf856a5fca5d5",
+  "source_sha256": "069666e5406a893f64aa5d8e00298863f33f8be9cef57b6e0522b8bdf9648670",
+  "report": "/workspace/nieuw-os/build/library-native-final/library-write-report.json",
+  "report_sha256": "08c3fa7b3c9f51015c6bbf8fef3b65216587afde74b527c5632a2ee173f0e0e3",
+  "run_directory": "/workspace/nieuw-os/build/library-native-final/run/window-8ec48238bdc34ea1b88ca8d56dd96a32",
+  "duration_s": 382.6040468660003,
+  "serial_sha256": "a0b9664369dda5a6c58a903bb692337273da748fcfbc9c57d1513746a2e18025",
+  "volume_sha256": "31a367e7c499a8a1e21e954b3328d2a08ccf02ea2b5c89ce0a114213e19467ea",
+  "kernel_sha256": "15a3fb2703f40a8d37812ad4d318f8a2773deace8c42651360f090e1a252d910",
+  "qemu_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+  "qemu_implementation_sha256": "d3c1a558ad220e77a4412048c8d96b44f8c2b41c7ad2a4ecfe522a4b122fe067",
+  "command": [
+    "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+    "-L",
+    ".",
+    "-machine",
+    "pc-q35-10.0",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "file:serial.txt",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-device",
+    "VGA,vgamem_mb=16,romfile=VGA.rom",
+    "-qmp",
+    "stdio",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,file=volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST"
+  ],
+  "phases": {
+    "library-empty": {
+      "sha256": "26dd5dcdbaad6ce4482ce8da2b07846fda7e3f67038a95ccdccb614571d54f93",
+      "seconds": 78.72422554500008,
+      "generation": 3,
+      "save_acks": 0,
+      "last_save_ack_revision": 0
+    },
+    "library-named-draft": {
+      "sha256": "0ce948f3b949751a96338fa2e3da1bde4090302c6777c975f67f91f7b261d455",
+      "seconds": 147.22798417000013,
+      "generation": 117,
+      "save_acks": 0,
+      "last_save_ack_revision": 0
+    },
+    "library-saved": {
+      "sha256": "06ad91c1080fcf0f57c346c6fd0d02fdf10f9c43d2baedcc751e341767a70033",
+      "seconds": 149.22856281700024,
+      "generation": 120,
+      "save_acks": 1,
+      "last_save_ack_revision": 1
+    },
+    "library-organized": {
+      "sha256": "43dd0258c9e9e68423446cd22ed1802f9efd7b475647a29187b3492c91ca5e12",
+      "seconds": 154.149648394,
+      "generation": 126,
+      "save_acks": 1,
+      "last_save_ack_revision": 1
+    },
+    "library-edited": {
+      "sha256": "4ff25bf2b7b939ae4bc6019c2251ad4b5e3848602c4f63364a136c23c13f7b0c",
+      "seconds": 186.0336985870008,
+      "generation": 225,
+      "save_acks": 1,
+      "last_save_ack_revision": 1
+    },
+    "library-revision-saved": {
+      "sha256": "ddf52c4d87a788f79eb9dd4caecb79641879979ed38e8a8e8a71745f195d5232",
+      "seconds": 188.07821768800022,
+      "generation": 228,
+      "save_acks": 2,
+      "last_save_ack_revision": 3
+    },
+    "library-history": {
+      "sha256": "ab1c2470f330e77ec44abad2ba8820d604ae134d790ca61f765dd1a69bdd8e2b",
+      "seconds": 241.4625504710002,
+      "generation": 229,
+      "save_acks": 2,
+      "last_save_ack_revision": 3
+    },
+    "library-restored": {
+      "sha256": "08e4c2a83c8fefd91ac6212c265ff247d1c9f1d32012d2d23080315cbb021682",
+      "seconds": 289.9856460410001,
+      "generation": 231,
+      "save_acks": 2,
+      "last_save_ack_revision": 3
+    },
+    "library-search": {
+      "sha256": "9e584caf2ff60de99f651eccb300f9f61ab717f78087941f097030184faafa06",
+      "seconds": 333.1349224790001,
+      "generation": 238,
+      "save_acks": 2,
+      "last_save_ack_revision": 3
+    },
+    "library-opened": {
+      "sha256": "4f41ee4374861ab33015b6e90f590d87fa72e39a7c4399a213444c7df3fa450f",
+      "seconds": 381.6785942590004,
+      "generation": 239,
+      "save_acks": 2,
+      "last_save_ack_revision": 3
+    }
+  },
+  "oracle_count": 28,
+  "matched_fixture": "/workspace/nieuw-os/build/library-native-final/window-fixture-edec8bfae237406c9320afdb9a3dc49a",
+  "object": {
+    "object": 0,
+    "revision": 4,
+    "present": true,
+    "collection": 1,
+    "tags": 0,
+    "kind": 0,
+    "request_id": 17,
+    "versions": [
+      {
+        "revision": 4,
+        "length": 99,
+        "name": "Reisnotities",
+        "content_revision": null,
+        "chunks": [
+          0
+        ],
+        "content_hex": "65656e207765656b2061616e206465206b7573740a0a7765207265697a656e206d657420646520747265696e20656e206669657473656e20646f6f72206465206475696e656e0a68657420687569736a65206c69677420766c616b2062696a207a6565"
+      },
+      {
+        "revision": 3,
+        "length": 98,
+        "name": "Reisnotities",
+        "content_revision": null,
+        "chunks": [
+          1
+        ],
+        "content_hex": "65656e207765656b2061616e206465206b7573740a0a7765207665727472656b6b656e206f70207a6174657264616720656e206e656d656e206465206669657473206d65650a68657420687569736a65206c69677420766c616b2062696a207a6565"
+      }
+    ]
+  },
+  "collections": [
+    {
+      "index": 1,
+      "domain": 0,
+      "present": true,
+      "revision": 1,
+      "name": "Reis"
+    }
+  ],
+  "generation": 5,
+  "clocks": [
+    5,
+    0
+  ],
+  "clean_exit": 33,
+  "cleanup_live_processes": 0,
+  "cleanup_live_handles": 0,
+  "restarts": 0,
+  "visually_reviewed_native_phases": [
+    "library-empty",
+    "library-organized",
+    "library-history"
+  ],
+  "snapshot_revision_scope": "MATERIAL REVISION is the last ordinary save ACK in existing Evidence; loaded metadata/restore revision is bound by exact native pixels and independent disk oracle, not this field."
+}

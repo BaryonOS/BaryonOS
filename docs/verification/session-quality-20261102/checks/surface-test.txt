@@ -1,0 +1,39 @@
+   Compiling capability-core v0.1.0 (/workspace/nieuw-os/crates/capability-core)
+   Compiling nieuw-os-surface-protocol v0.1.0 (/workspace/nieuw-os/ui/surface-protocol)
+    Finished `release` profile [optimized] target(s) in 1.71s
+     Running unittests src/lib.rs (target/session-final-host/surface/release/deps/nieuw_os_surface_protocol-7bf1c06344429c2c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/client.rs (target/session-final-host/surface/release/deps/client-5b4e457e772567c4)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/protocol.rs (target/session-final-host/surface/release/deps/protocol-e90d76c1970be748)
+
+running 12 tests
+test fragment_offset_length_duplicates_and_incomplete_commit_are_not_success ... ok
+test fresh_commit_admission_clock_rejects_expired_token_without_other_messages ... ok
+test grid_has_exact_short_edges_no_overlap_and_completed_frames_are_final ... ok
+test failed_blit_cannot_create_positive_ack ... ok
+test hostile_header_and_reply_bindings_are_rejected ... ok
+test info_and_complete_tile_bind_assigned_bounds_and_only_callback_can_ack ... ok
+test known_expiry_after_malformed_input_never_completes_a_ready_tile ... ok
+test noncanonical_pixels_and_geometry_cannot_reach_blit_callback ... ok
+test sparse_frames_require_one_complete_frame_and_stay_increasing ... ok
+test sparse_partial_frame_keeps_peer_epoch_and_deadline_checks ... ok
+test timeout_retirement_and_clock_rollback_invalidate_pending_completion ... ok
+test wrong_actor_epoch_and_replayed_request_do_not_grant_a_surface ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nieuw_os_surface_protocol
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

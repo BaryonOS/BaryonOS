@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-02",
+  "task": "native-fragment-proof",
+  "base": "5cd41390f3195749eb7dd3e7fd15a1821050006f",
+  "source_fingerprint_version": 3,
+  "source_sha256": "a8c9506f8df838c667b02678b78ec8132948e4eaf6a580fedea29240968e745c",
+  "reason": "Issue39 explicitly requires fragmented-packet refusal. Existing native peer exercised corrupt and wrong-scope UDP, but did not inject real IPv4 fragment headers. This was a missing native negative fixture, not a demonstrated production packet-parser bug.",
+  "change": "For each active owner send an independent first fragment with MF and16 aligned payload bytes, and an orphan terminal fragment with offset2. Both have valid IPv4 header checksums and lengths. Send them once before the first normal SYN-ACK; preserve the existing four-frame UDP/backpressure burst and maximum four responses per action. Retransmitted SYNs do not resend fragments.",
+  "invariant": "Fragment bytes must never become an app datagram. Exact raw packet transcript requires both fragment events; native service malformed counter must now account for four refusals per active owner, while unchanged TCP/UDP success, backpressure, authority, reset and cleanup checks still pass. No packet/session rights or product limits changed.",
+  "checks": [
+    {
+      "command": "PYTHONPATH=tools python3 -B -m unittest test_network_service_peer.PeerChecks.test_fragment_fixtures_have_valid_ipv4_headers_and_real_offsets test_network_service_peer.PeerChecks.test_native_serial_requires_fragment_rejections_not_only_old_udp_cases",
+      "exit": 1,
+      "purpose": "Red: missing fragment fixture and old malformed counter accepted without fragment refusal",
+      "log": "/tmp/nieuw-os-n01-fragments-red.log",
+      "sha256": "763edb1f041b48763339482a101dc0cb9f2b08b765c0fafffdfe618a1d5b57b0"
+    },
+    {
+      "command": "PYTHONPATH=tools python3 -B -m unittest test_network_service_peer",
+      "exit": 1,
+      "purpose": "Initial six-frame reply attempt rejected by the existing four-response bound; fixed by sending fragment prelude separately, not by weakening the bound",
+      "log": "/tmp/nieuw-os-n01-fragments-initial.log",
+      "sha256": "d6257b775188f3ea02a4c1b5f784a18a0e0c5d59e5e824ca12012a9b5aabcdbc"
+    },
+    {
+      "command": "PYTHONPATH=tools python3 -B -m unittest test_network_service_peer",
+      "exit": 0,
+      "tests": 13,
+      "seconds": 0.089,
+      "log": "/tmp/nieuw-os-n01-fragments-green.log",
+      "sha256": "e98e31a234091394281549c9c1f04397e05106273fb3ae58623dc4fcfb347692"
+    },
+    {"command": "git diff --check", "exit": 0}
+  ],
+  "native": "NOT EXECUTED on this source. Existing CI normal/client-exit must run on final combined publication head. Historical main380/sourceb7 native success does not prove these new fragment cases. Issue39 remains open.",
+  "progress": {"previous": 41, "current": 41, "new_points": 0}
+}

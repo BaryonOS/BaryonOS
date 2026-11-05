@@ -32,6 +32,8 @@ native-system-session-preview = ["native-system-materiaal"]
 native-window-session = ["native-system-materiaal"]
 native-window-session-probe = ["native-window-session"]
 native-window-session-hidpi = ["native-window-session"]
+# Explicit public VM session route, reusing the existing read-only RTC syscall.
+native-session-route = ["native-window-session", "native-system-clock"]
 native-system-materiaal-probe = ["native-system-materiaal"]
 test-system-materiaal-recover = ["native-system-materiaal-probe", "test-system-recover"]
 test-system-materiaal-scale200 = ["native-system-materiaal-probe"]
