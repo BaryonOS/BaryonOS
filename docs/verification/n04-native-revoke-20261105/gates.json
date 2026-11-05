@@ -2,7 +2,7 @@
  "schema_version": 1,
  "criterion": "N04",
  "status": "open - evidence proposal, not an acceptance",
- "source_commit": "7bedac0bf0939220a13445f0c7067b2a033e6b70",
+ "source_commit": "a2a89daf21ffe3b407919955563bc5d1e72b540c",
  "clean_worktree": true,
  "host_gates": [
   {
@@ -23,7 +23,7 @@
   {
    "gate": "svc-bare",
    "exit": 0,
-   "secs": 0
+   "secs": 1
   },
   {
    "gate": "proto-test",
@@ -43,21 +43,19 @@
   {
    "gate": "build-revoke",
    "exit": 0,
-   "secs": 1
+   "secs": 2
   }
  ],
  "native_runs": [
   {
    "gate": "native-client-exit",
    "case": "client-exit",
-   "kernel_feature": "test-net-service-client-exit",
    "passed": true,
    "raw_qemu_exit": 33,
-   "duration_s": 6.657,
-   "source_commit": "7bedac0bf0939220a13445f0c7067b2a033e6b70",
-   "source_sha256": "57574763b944865eaa4a9facc65ecb4c23f26ea747ba38d9507d677ec2fcabd1",
-   "stdout_sha256": "97732315b7a8253021040acd272e155ec6b5f345619e19f6d88708baaeebb822",
-   "qemu_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+   "duration_s": 6.849,
+   "source_commit": "a2a89daf21ffe3b407919955563bc5d1e72b540c",
+   "source_sha256": "b7c234206e6946c81a70eefba17a6690126e0362aa2ede82fe63d6535f7a50a3",
+   "stdout_sha256": "ef500d8a4c05d4766a3352674f783cde0f44f4bc3f676c3b61856b56039cd789",
    "peer_passed": true,
    "peer_counts": {
     "client_frames": 25,
@@ -96,19 +94,17 @@
     "NET_RESETS": 1,
     "NET_RESET_ACKS": 1
    },
-   "run_directory": "network-service-client-exit-85c97a71ef28453f8c4d49d7b31ab3d2"
+   "run_directory": "network-service-client-exit-36075e6b2b244e36ae03fb6e2bf1fcfb"
   },
   {
    "gate": "native-normal",
    "case": "normal",
-   "kernel_feature": "native-net-service",
    "passed": true,
    "raw_qemu_exit": 33,
-   "duration_s": 6.857,
-   "source_commit": "7bedac0bf0939220a13445f0c7067b2a033e6b70",
-   "source_sha256": "57574763b944865eaa4a9facc65ecb4c23f26ea747ba38d9507d677ec2fcabd1",
-   "stdout_sha256": "ac05e109f936713552f0548ccea8589b8ae668896e5748950f89e6e979848182",
-   "qemu_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+   "duration_s": 7.2,
+   "source_commit": "a2a89daf21ffe3b407919955563bc5d1e72b540c",
+   "source_sha256": "b7c234206e6946c81a70eefba17a6690126e0362aa2ede82fe63d6535f7a50a3",
+   "stdout_sha256": "7bdf681f7650d3937c7b63f59af4d200cace5569b366aa003157287287d728a2",
    "peer_passed": true,
    "peer_counts": {
     "client_frames": 44,
@@ -147,19 +143,17 @@
     "NET_RESETS": 1,
     "NET_RESET_ACKS": 1
    },
-   "run_directory": "network-service-normal-70ca8568bc8549c2a31f98486372e843"
+   "run_directory": "network-service-normal-4f2c9d32aded4d06a1356a37da18ae8e"
   },
   {
    "gate": "native-revoke-1",
    "case": "revoke",
-   "kernel_feature": "test-net-service-revoke",
    "passed": true,
    "raw_qemu_exit": 33,
-   "duration_s": 6.95,
-   "source_commit": "7bedac0bf0939220a13445f0c7067b2a033e6b70",
-   "source_sha256": "57574763b944865eaa4a9facc65ecb4c23f26ea747ba38d9507d677ec2fcabd1",
-   "stdout_sha256": "4bd8ae151c4ed0a60fa7ddec69c8c282e6ad349a99c99c6e3c858f0840c641b9",
-   "qemu_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+   "duration_s": 7.066,
+   "source_commit": "a2a89daf21ffe3b407919955563bc5d1e72b540c",
+   "source_sha256": "b7c234206e6946c81a70eefba17a6690126e0362aa2ede82fe63d6535f7a50a3",
+   "stdout_sha256": "84ce0a3dd65a6abe3e99ebd7e10ed77011122269748996ec4ed8bfcc2dadb570",
    "peer_passed": true,
    "peer_counts": {
     "client_frames": 30,
@@ -202,16 +196,13 @@
     "NET_RESETS": 1,
     "NET_RESET_ACKS": 1
    },
-   "run_directory": "network-service-revoke-09fc898670974b9f9ef8e59616448120",
+   "run_directory": "network-service-revoke-f0cd73603947458c973049ecabfe9e02",
    "revocation": {
-    "requested_tick": 17,
-    "policy_sent_tick": 17,
-    "service_revoked_tick": 17,
-    "app_a_closed_tick": 19,
+    "requested_tick": 59,
+    "policy_sent_tick": 59,
+    "service_revoked_tick": 59,
+    "app_a_closed_tick": 61,
     "app_a_ready_to_closed_ticks": 2,
-    "app_a_denied_uses": 5,
-    "app_a_denied_opens": 2,
-    "service_revoked_mask": 1,
     "revoke_rsts": 1,
     "probe_rsts": 3
    }
@@ -219,14 +210,12 @@
   {
    "gate": "native-revoke-2",
    "case": "revoke",
-   "kernel_feature": "test-net-service-revoke",
    "passed": true,
    "raw_qemu_exit": 33,
-   "duration_s": 7.075,
-   "source_commit": "7bedac0bf0939220a13445f0c7067b2a033e6b70",
-   "source_sha256": "57574763b944865eaa4a9facc65ecb4c23f26ea747ba38d9507d677ec2fcabd1",
-   "stdout_sha256": "424bd69ab4670e86878f7533e9d31e7332ce006eaec212e6dadce774f197eee4",
-   "qemu_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+   "duration_s": 7.045,
+   "source_commit": "a2a89daf21ffe3b407919955563bc5d1e72b540c",
+   "source_sha256": "b7c234206e6946c81a70eefba17a6690126e0362aa2ede82fe63d6535f7a50a3",
+   "stdout_sha256": "81bc427c4bba8541348d28d724165efec52df6f2f7714ff6381bc72d4c36393c",
    "peer_passed": true,
    "peer_counts": {
     "client_frames": 30,
@@ -269,16 +258,13 @@
     "NET_RESETS": 1,
     "NET_RESET_ACKS": 1
    },
-   "run_directory": "network-service-revoke-9a0df33530d44a69b338090a7d5dceaa",
+   "run_directory": "network-service-revoke-f27cd0e31dcf4d25bbe9ad9fb1f95026",
    "revocation": {
-    "requested_tick": 18,
-    "policy_sent_tick": 18,
-    "service_revoked_tick": 19,
-    "app_a_closed_tick": 20,
+    "requested_tick": 58,
+    "policy_sent_tick": 58,
+    "service_revoked_tick": 59,
+    "app_a_closed_tick": 60,
     "app_a_ready_to_closed_ticks": 2,
-    "app_a_denied_uses": 5,
-    "app_a_denied_opens": 2,
-    "service_revoked_mask": 1,
     "revoke_rsts": 1,
     "probe_rsts": 3
    }
@@ -286,14 +272,12 @@
   {
    "gate": "native-revoke-3",
    "case": "revoke",
-   "kernel_feature": "test-net-service-revoke",
    "passed": true,
    "raw_qemu_exit": 33,
-   "duration_s": 7.003,
-   "source_commit": "7bedac0bf0939220a13445f0c7067b2a033e6b70",
-   "source_sha256": "57574763b944865eaa4a9facc65ecb4c23f26ea747ba38d9507d677ec2fcabd1",
-   "stdout_sha256": "e4760a4d2d4dcb77ffe67f836142af4f0ead4a23d721c090f846ab72862e36ff",
-   "qemu_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+   "duration_s": 7.165,
+   "source_commit": "a2a89daf21ffe3b407919955563bc5d1e72b540c",
+   "source_sha256": "b7c234206e6946c81a70eefba17a6690126e0362aa2ede82fe63d6535f7a50a3",
+   "stdout_sha256": "4a62444affa325ed600596f66d27b03e3b0a9027e1828975822803555957912b",
    "peer_passed": true,
    "peer_counts": {
     "client_frames": 30,
@@ -336,16 +320,13 @@
     "NET_RESETS": 1,
     "NET_RESET_ACKS": 1
    },
-   "run_directory": "network-service-revoke-48ea800812be4bd8903c2fe39b19674c",
+   "run_directory": "network-service-revoke-d17b170afe0843c4a24c81ae910b9ee0",
    "revocation": {
-    "requested_tick": 18,
-    "policy_sent_tick": 18,
-    "service_revoked_tick": 18,
-    "app_a_closed_tick": 20,
+    "requested_tick": 58,
+    "policy_sent_tick": 58,
+    "service_revoked_tick": 58,
+    "app_a_closed_tick": 60,
     "app_a_ready_to_closed_ticks": 2,
-    "app_a_denied_uses": 5,
-    "app_a_denied_opens": 2,
-    "service_revoked_mask": 1,
     "revoke_rsts": 1,
     "probe_rsts": 3
    }
@@ -353,14 +334,12 @@
   {
    "gate": "native-revoke-4",
    "case": "revoke",
-   "kernel_feature": "test-net-service-revoke",
    "passed": true,
    "raw_qemu_exit": 33,
-   "duration_s": 7.027,
-   "source_commit": "7bedac0bf0939220a13445f0c7067b2a033e6b70",
-   "source_sha256": "57574763b944865eaa4a9facc65ecb4c23f26ea747ba38d9507d677ec2fcabd1",
-   "stdout_sha256": "b7aca8c25c7bc063661c54abb92bfa167cc2c00107788b05a4fa028eaf088b74",
-   "qemu_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+   "duration_s": 6.888,
+   "source_commit": "a2a89daf21ffe3b407919955563bc5d1e72b540c",
+   "source_sha256": "b7c234206e6946c81a70eefba17a6690126e0362aa2ede82fe63d6535f7a50a3",
+   "stdout_sha256": "f3b2489b63a0ac27f1a36929aff26338f5363b91604dc916180cf24ec370c4d7",
    "peer_passed": true,
    "peer_counts": {
     "client_frames": 30,
@@ -403,16 +382,13 @@
     "NET_RESETS": 1,
     "NET_RESET_ACKS": 1
    },
-   "run_directory": "network-service-revoke-55fcf4fbf629459fb36e47711a00622c",
+   "run_directory": "network-service-revoke-d898e730a9c1436c9b63e00b0b97f8a8",
    "revocation": {
-    "requested_tick": 18,
-    "policy_sent_tick": 18,
-    "service_revoked_tick": 19,
-    "app_a_closed_tick": 20,
+    "requested_tick": 58,
+    "policy_sent_tick": 58,
+    "service_revoked_tick": 59,
+    "app_a_closed_tick": 60,
     "app_a_ready_to_closed_ticks": 2,
-    "app_a_denied_uses": 5,
-    "app_a_denied_opens": 2,
-    "service_revoked_mask": 1,
     "revoke_rsts": 1,
     "probe_rsts": 3
    }
@@ -420,14 +396,12 @@
   {
    "gate": "native-revoke-5",
    "case": "revoke",
-   "kernel_feature": "test-net-service-revoke",
    "passed": true,
    "raw_qemu_exit": 33,
-   "duration_s": 6.984,
-   "source_commit": "7bedac0bf0939220a13445f0c7067b2a033e6b70",
-   "source_sha256": "57574763b944865eaa4a9facc65ecb4c23f26ea747ba38d9507d677ec2fcabd1",
-   "stdout_sha256": "b3fbbc05b708475874e93665fc8c88909cffe0ac6ceb7f627adc2cdc040cb731",
-   "qemu_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+   "duration_s": 6.942,
+   "source_commit": "a2a89daf21ffe3b407919955563bc5d1e72b540c",
+   "source_sha256": "b7c234206e6946c81a70eefba17a6690126e0362aa2ede82fe63d6535f7a50a3",
+   "stdout_sha256": "76205a216282fc88417ec23deeafdc920a61e65c4ea25c140a3a189ac499245a",
    "peer_passed": true,
    "peer_counts": {
     "client_frames": 30,
@@ -470,16 +444,13 @@
     "NET_RESETS": 1,
     "NET_RESET_ACKS": 1
    },
-   "run_directory": "network-service-revoke-de78e404daf64f8bb1ff6f7c410ca9a6",
+   "run_directory": "network-service-revoke-c96a7e10c6394de79cb8b223a71fed6a",
    "revocation": {
-    "requested_tick": 18,
-    "policy_sent_tick": 18,
-    "service_revoked_tick": 19,
-    "app_a_closed_tick": 20,
+    "requested_tick": 57,
+    "policy_sent_tick": 57,
+    "service_revoked_tick": 58,
+    "app_a_closed_tick": 59,
     "app_a_ready_to_closed_ticks": 2,
-    "app_a_denied_uses": 5,
-    "app_a_denied_opens": 2,
-    "service_revoked_mask": 1,
     "revoke_rsts": 1,
     "probe_rsts": 3
    }

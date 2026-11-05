@@ -1,6 +1,6 @@
 # N04 — native intrekking van een per-app netwerkrecht — 5 november 2026
 
-**Bron:** `7bedac0bf0939220a13445f0c7067b2a033e6b70` op
+**Bron:** `a2a89daf21ffe3b407919955563bc5d1e72b540c` op
 `net/n04-native-revoke-20261105` (main `cb3d169c` ingemerged), schone werkboom.
 **Status:** N04 blijft **open**. Dit is een bewijsvoorstel voor één
 afgebakende stap, geen acceptatie en geen scorewijziging (41/100 → 41/100).
@@ -59,11 +59,11 @@ send de volgorde niet vervalsen. Gemeten waarden staan per run in
 tot `Closed` duurde het telkens 2 ticks. Het intrektijdstip van de dienst wordt
 ná de ontvangst van het bericht gemeten, niet aan het begin van de lus.
 
-## Uitgevoerde controles (bron `7bedac0b`)
+## Uitgevoerde controles (bron `a2a89daf`)
 
 | Gate | Resultaat |
 |---|---|
-| `services/network-service` tests (1.91.1) | 12/12, waarvan 2 nieuw |
+| `services/network-service` tests (1.91.1) | 14/14, waarvan 4 nieuw |
 | Clippy `-D warnings`, fmt, baremetal `x86_64-unknown-none` | exit 0 |
 | `network-service/protocol` tests / `sdk/net-client` tests | 6/6 / 4/4 |
 | Peer- en serialtegenvoorbeelden (`test_network_service_peer.py`) | 17/17, waarvan 3 nieuw |
@@ -110,8 +110,11 @@ Er zijn twee AI-reviews gedaan. Dat is geen menselijke audit.
   niet gebruiken". Een echte gedelegeerde helper met een eigen, beperkte
   subgrant bestaat nog niet.
 - **Een al uitgegeven frame:** een frame dat al aan het device was overgedragen,
-  blijft tot zijn echte completion staan. Dezelfde semantiek geldt bij
-  `retire_slot`; in deze proef komt het niet voor.
-- **UDP-teller:** UDP voor een ingetrokken eigenaar telt mee in
-  `malformed_frames`. Een aparte beleidsteller ontbreekt nog.
+  blijft tot zijn echte completion staan; dat is DMA-veilig. Een frame dat nog
+  niet was gepubliceerd, wordt sinds `a2a89daf` door
+  `discard_revoked_unpublished` weggegooid; alleen de abort-RST mag nog weg
+  (integratiereview #215, hosttest met mutatiecontrole).
+- **Wachttijd:** app A wacht 50 ticks voordat het om de intrekking vraagt (dat
+  is een tijdelijke oplossing in de code; de dienst heeft er ongeveer 2 nodig).
+  Is de wachttijd te kort, dan faalt de proef gesloten.
 - Geen menselijke beveiligingsaudit (B05) en geen fysieke hardwaregate.

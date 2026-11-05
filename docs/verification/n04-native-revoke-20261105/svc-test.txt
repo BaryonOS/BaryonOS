@@ -1,4 +1,5 @@
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+   Compiling nieuw-os-network-service v0.1.0 (/home/simon/projects/nieuw-os-n04/services/network-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.37s
      Running unittests src/lib.rs (target/n04-host/debug/deps/nieuw_os_network_service-23b073c5897bda37)
 
 running 0 tests
@@ -7,21 +8,23 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 
      Running tests/service.rs (target/n04-host/debug/deps/service-96bfdb6ed7dac008)
 
-running 12 tests
-test real_sender_epoch_request_and_connection_owner_are_separate_fences ... ok
-test revocation_drops_buffered_and_later_udp ... ok
+running 14 tests
 test receive_after_connect_timeout_reports_terminal_closed ... ok
-test revocation_resets_live_connection_and_denies_further_use ... ok
-test send_after_peer_reset_reports_terminal_closed ... ok
+test revocation_drops_buffered_and_later_udp ... ok
+test real_sender_epoch_request_and_connection_owner_are_separate_fences ... ok
+test revocation_discards_unpublished_data_frame_but_keeps_reset ... ok
+test revocation_edge_cases_are_idempotent_and_grant_nothing ... ok
 test subnet_broadcast_and_network_destination_are_rejected ... ok
+test send_after_peer_reset_reports_terminal_closed ... ok
+test revocation_resets_live_connection_and_denies_further_use ... ok
 test terminal_channel_failure_retires_one_slot_without_releasing_live_transmission ... ok
 test udp_corruption_scope_and_full_slot_preserve_first_datagram ... ok
 test whitelist_close_timeout_and_retire_do_not_grant_authority ... ok
-test two_ipc_owners_fill_real_tcp_buffers_recover_backpressure_and_close ... ok
 test established_connection_with_traffic_outlives_connect_deadline ... ok
+test two_ipc_owners_fill_real_tcp_buffers_recover_backpressure_and_close ... ok
 test one_owner_port_exhaustion_preserves_the_other_owners_budget ... ok
 
-test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
 
    Doc-tests nieuw_os_network_service
 
