@@ -671,6 +671,68 @@ mod tests {
         );
     }
 
+    fn set_length_and_checksum(table: &mut [u8]) {
+        let length = table.len() as u32;
+        table[4..8].copy_from_slice(&length.to_le_bytes());
+        checksum_byte(table, 9);
+    }
+
+    #[test]
+    fn rejects_root_shape_short_headers_duplicate_mcfg_and_extended_checksum() {
+        let (handoff, _) = valid_fixture(true);
+        let rsdp = handoff.validate().unwrap().unwrap().to_vec();
+
+        let (_, mut fixture) = valid_fixture(true);
+        fixture.tables[0].1.push(0);
+        set_length_and_checksum(&mut fixture.tables[0].1);
+        assert_eq!(
+            discover_tables(&rsdp, &mut fixture).err(),
+            Some(Error::RootShape)
+        );
+
+        let (_, mut fixture) = valid_fixture(true);
+        fixture.tables[1].1[4..8].copy_from_slice(&35u32.to_le_bytes());
+        assert_eq!(
+            discover_tables(&rsdp, &mut fixture).err(),
+            Some(Error::TableLength)
+        );
+
+        let (_, mut fixture) = valid_fixture(false);
+        fixture.tables[0]
+            .1
+            .extend_from_slice(&0x2000u64.to_le_bytes());
+        set_length_and_checksum(&mut fixture.tables[0].1);
+        assert_eq!(
+            discover_tables(&rsdp, &mut fixture).err(),
+            Some(Error::DuplicateTable)
+        );
+
+        let mut bad = rsdp.clone();
+        bad[32] ^= 1;
+        assert_eq!(parse_rsdp(&bad), Err(Error::Rsdp));
+    }
+
+    #[test]
+    fn rsdt_root_uses_four_byte_entries_and_checks_their_shape() {
+        let mut rsdp = [0u8; 20];
+        rsdp[..8].copy_from_slice(b"RSD PTR ");
+        rsdp[16..20].copy_from_slice(&0x1000u32.to_le_bytes());
+        rsdp[8] = 0u8.wrapping_sub(checksum(&rsdp));
+
+        let (_, mut fixture) = valid_fixture(false);
+        fixture.tables[0].1 = table(b"RSDT", &0x2000u32.to_le_bytes());
+        let discovered = discover_tables(&rsdp, &mut fixture).unwrap();
+        assert_eq!(discovered.availability, Availability::MissingDmar);
+        assert_eq!(discovered.mcfg_count, 1);
+
+        fixture.tables[0].1.extend_from_slice(&[0; 2]);
+        set_length_and_checksum(&mut fixture.tables[0].1);
+        assert_eq!(
+            discover_tables(&rsdp, &mut fixture).err(),
+            Some(Error::RootShape)
+        );
+    }
+
     #[test]
     fn rejects_bad_rsdp_checksum_and_untrusted_handoff() {
         let (mut handoff, mut fixture) = valid_fixture(true);
