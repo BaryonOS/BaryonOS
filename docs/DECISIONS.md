@@ -26,6 +26,23 @@ nog geen TLB-shootdown, SMP-scheduler of lockvolgorde voor
 kernelsubsystemen. AP's draaien dus nog steeds geen kernelsubsystemen.
 ADR-024 blijft ongewijzigd geldig. Fysieke hardware is niet getest.
 
+**Status:** geaccepteerd in het opt-in `native-smp`-profiel; K06 blijft open.
+
+**Alternatieven overwogen.**
+- Eén gedeelde TSS: onmogelijk, want een busy TSS mag maar door één CPU geladen zijn.
+- Broadcast-IPI-shorthands: verworpen, omdat die ook CPU's in firmwarebezit
+  bereiken (bijvoorbeeld na een capaciteitsgrens).
+- Een AP die niet reageert alleen loskoppelen in plaats van alle AP's te
+  resetten: verworpen, omdat een AP die geen IPI aanneemt later geen
+  shootdown kan volgen.
+- x2APIC/MSR-IPI: uitgesteld, het profiel gebruikt xAPIC-MMIO.
+
+**Primaire bronnen.** Intel SDM Vol. 3A: taakbeheer (64-bit TSS, IST en
+de busy-vlag), interrupt- en exceptionafhandeling (IST-stackwissel,
+interruptgates) en APIC (ICR, delivery modes, LVT, TPR/PPR,
+spurious-vector, EOI). De SDM-hoofdstuknummers verschillen per editie;
+zoek op sectietitel.
+
 ## ADR-070 — Begrensde AP-opstart als eerste K06-stap
 
 5 november 2026. De kernel start applicatieprocessoren (AP's) uitsluitend in
