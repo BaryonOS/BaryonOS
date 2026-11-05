@@ -1,6 +1,10 @@
 //! Device-state fixtures only; no host wall clock or hardware I/O is used.
 use nieuw_os_rtc::*;
-use std::collections::{BTreeMap, VecDeque};
+use std::{
+    cell::RefCell,
+    collections::{BTreeMap, VecDeque},
+    rc::Rc,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum IoError {
@@ -582,5 +586,173 @@ fn port_errors_restore_index_and_restore_failure_poison_prevents_more_io() {
         clock_fault(clock.read_utc().unwrap_err(), Fault::Poisoned);
         let io = clock.into_io();
         assert_eq!(io.selections.len(), if read_fails { 2 } else { 27 });
+    }
+}
+
+struct FaultingIo {
+    ports: Rc<RefCell<Ports>>,
+    calls: Rc<RefCell<Vec<IoError>>>,
+    failures: Vec<usize>,
+}
+
+impl FaultingIo {
+    fn operation(&self, kind: IoError) -> Result<(), IoError> {
+        let mut calls = self.calls.borrow_mut();
+        calls.push(kind);
+        if self.failures.contains(&calls.len()) {
+            Err(kind)
+        } else {
+            Ok(())
+        }
+    }
+}
+
+impl CmosIo for FaultingIo {
+    type Error = IoError;
+
+    fn select(&mut self, selection: IndexSelection) -> Result<(), IoError> {
+        self.operation(IoError::Select)?;
+        self.ports.borrow_mut().select(selection)
+    }
+
+    fn settle(&mut self) -> Result<(), IoError> {
+        self.operation(IoError::Settle)?;
+        self.ports.borrow_mut().settle()
+    }
+
+    fn read_data(&mut self) -> Result<u8, IoError> {
+        self.operation(IoError::Read)?;
+        self.ports.borrow_mut().read_data()
+    }
+}
+
+#[test]
+fn each_snapshot_io_failure_restores_nmi_and_retains_the_earlier_time_floor() {
+    for nmi in [NmiState::Enabled, NmiState::Masked] {
+        for operation in 1..=26 * 3 {
+            let ports = Rc::new(RefCell::new(Ports::bcd()));
+            let calls = Rc::new(RefCell::new(Vec::new()));
+            let mut clock = Rtc::new(
+                FaultingIo {
+                    ports: Rc::clone(&ports),
+                    calls: Rc::clone(&calls),
+                    failures: vec![80 + operation],
+                },
+                IndexSelection::new(15, nmi).unwrap(),
+                config(),
+            )
+            .unwrap();
+            let first = clock.read_utc().unwrap();
+            assert_eq!(calls.borrow().len(), 80);
+
+            ports.borrow_mut().bytes[9] = 0x27;
+            let kind = [IoError::Select, IoError::Settle, IoError::Read][(operation - 1) % 3];
+            assert_eq!(
+                clock.read_utc(),
+                Err(ReadError {
+                    failure: Failure::Io(kind),
+                    restore_error: None,
+                }),
+                "I/O cut {operation}, {nmi:?}"
+            );
+            assert_eq!(calls.borrow().len(), 80 + operation + 2);
+            assert!(!clock.is_poisoned());
+            assert_eq!(
+                *ports.borrow().selections.last().unwrap(),
+                IndexSelection::new(15, nmi).unwrap().encoded()
+            );
+            assert!(ports.borrow().selections.iter().all(|selection| {
+                selection & 0x80 == IndexSelection::new(15, nmi).unwrap().encoded() & 0x80
+                    && selection & 0x7f != 12
+            }));
+
+            ports.borrow_mut().bytes[9] = 0x26;
+            let recovered = clock.read_utc().unwrap();
+            assert_eq!(recovered.utc, first.utc);
+            assert_eq!(
+                recovered.rollback,
+                RollbackCheck::NotBelow {
+                    floor: first.utc,
+                    source: FloorSource::EarlierRtcReading,
+                }
+            );
+            assert_eq!(recovered.quality, Quality::UnauthenticatedRtc);
+            ports.borrow_mut().bytes[9] = 0x25;
+            clock_fault(clock.read_utc().unwrap_err(), Fault::Rollback);
+        }
+    }
+}
+
+#[test]
+fn restoration_select_or_settle_failure_preserves_both_errors_and_stops_all_io() {
+    for nmi in [NmiState::Enabled, NmiState::Masked] {
+        for operation in 1..=26 * 3 {
+            for restore_step in 1..=2 {
+                let calls = Rc::new(RefCell::new(Vec::new()));
+                let mut clock = Rtc::new(
+                    FaultingIo {
+                        ports: Rc::new(RefCell::new(Ports::bcd())),
+                        calls: Rc::clone(&calls),
+                        failures: vec![operation, operation + restore_step],
+                    },
+                    IndexSelection::new(15, nmi).unwrap(),
+                    config(),
+                )
+                .unwrap();
+                let kind = [IoError::Select, IoError::Settle, IoError::Read][(operation - 1) % 3];
+                assert_eq!(
+                    clock.read_utc(),
+                    Err(ReadError {
+                        failure: Failure::Io(kind),
+                        restore_error: Some(if restore_step == 1 {
+                            IoError::Select
+                        } else {
+                            IoError::Settle
+                        }),
+                    }),
+                    "I/O cut {operation}, restore step {restore_step}, {nmi:?}"
+                );
+                assert!(clock.is_poisoned());
+                let stopped_at = calls.borrow().len();
+                assert_eq!(stopped_at, operation + restore_step);
+                for _ in 0..2 {
+                    clock_fault(clock.read_utc().unwrap_err(), Fault::Poisoned);
+                    assert_eq!(calls.borrow().len(), stopped_at);
+                }
+            }
+        }
+    }
+}
+#[test]
+fn complete_snapshots_are_not_published_if_index_restoration_fails() {
+    for nmi in [NmiState::Enabled, NmiState::Masked] {
+        for operation in [79, 80] {
+            let calls = Rc::new(RefCell::new(Vec::new()));
+            let mut clock = Rtc::new(
+                FaultingIo {
+                    ports: Rc::new(RefCell::new(Ports::bcd())),
+                    calls: Rc::clone(&calls),
+                    failures: vec![operation],
+                },
+                IndexSelection::new(15, nmi).unwrap(),
+                config(),
+            )
+            .unwrap();
+            assert_eq!(
+                clock.read_utc(),
+                Err(ReadError {
+                    failure: Failure::Clock(Fault::RestoreFailed),
+                    restore_error: Some(if operation == 79 {
+                        IoError::Select
+                    } else {
+                        IoError::Settle
+                    }),
+                })
+            );
+            assert!(clock.is_poisoned());
+            assert_eq!(calls.borrow().len(), operation);
+            clock_fault(clock.read_utc().unwrap_err(), Fault::Poisoned);
+            assert_eq!(calls.borrow().len(), operation);
+        }
     }
 }
