@@ -2,8 +2,8 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-03",
-    "source_commit": "04d727c306d13e03a192d9d002a7d44348841c9f",
+    "date": "2026-11-05",
+    "source_commit": "c7a61d1126caa346a128fba3004fe4add4ccff61",
     "assessment_basis": "source_commit",
     "reviewed_commit": "cc1dea7eeeae01448a378ee422837b0438ecc7b5",
     "reviewed_commit_context": "Historische review van de PR148-documentatiestatus en reikwijdte van hostbewijs; geen integratiereview.",
@@ -15,10 +15,10 @@
       "evidence_basis": "Git-mergeouders en handoff in docs/PROJECT-STATE.md; gerichte integratietests zijn daar gemeld met uitvoer uitsluitend in het sessietranscript. De eerdere PR148-hostreceipts zijn geen integratiereviewbewijs.",
       "missing_evidence": "Afzonderlijk, brongebonden bewijs van de integratiereview ontbreekt; nieuwe-head CI en review moeten nog worden beoordeeld."
     },
-    "branch": "fix/b03-test-anchors-guard",
-    "task": "PR158: documentconflicten met main 95d79451 inhoudsbehoudend integreren",
+    "branch": "integrate/20261105-platform-batch",
+    "task": "Integratie: driverreeks #198 en platform-/viewer-/instructiebatch #199 (#150 #165 #169 #173 #176 #182 #188 #189 #193 #194 #195)",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. De drie documentconflicten behouden de B03- en PR138-checkpointgeschiedenissen en hun brongebonden bewijs. Rust-wijzigingen uit main zijn uitsluitend commentaar; de B03-ondertekenpolicy blijft ongewijzigd. De integration_review-velden blijven historisch PR148-bewijs, niet voor deze integratie. Productiesleutelbeleid en issue #41 blijven open. Geen nieuw criterium of native acceptatie; nieuwe-head CI wordt afzonderlijk beoordeeld."
+    "summary": "41/100 blijft 41/100. Geïntegreerd: USB-framing, HID boot reports/interface en PS/2-health (#198, hostmodellen); acht platformhostapps met nieuwe CI-dekking; EXIF-orientatie in de tile-viewer; OS-agentprofielen; instructieopschoning #195. Geen criterium volledig geaccepteerd: geen native app-launch, fysieke USB/HID of menselijke acceptatie. AI-reviews zijn geen menselijke audit. Open: #155 (score/B01-besluit), #181/#191/#177 FIX, calculatortrio CONFLICT."
   },
   "tracks": [
     {

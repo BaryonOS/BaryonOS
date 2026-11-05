@@ -10,7 +10,7 @@ import stat
 import uuid
 
 from common import (ROOT, BUILD, TARGET, environment, qemu_machine, regular_files_below, run_logged, save_json,
-                    sha256, source_hash)
+                    sha256, source_hash, without_acpi_diagnostics)
 from build_users import inspect_user
 from run import run_guest
 
@@ -110,6 +110,7 @@ def build_users() -> tuple[dict, dict]:
 def validate_sequence(stdout: str, *, wait: bool = False) -> dict:
     if not isinstance(stdout, str) or len(stdout) > 128 * 1024 or any(word in stdout for word in FORBIDDEN):
         raise ValueError("Malformed or failed native serial output")
+    stdout = without_acpi_diagnostics(stdout)
     lines = stdout.splitlines()
     if lines.count(BOOT[0]) != 1:
         raise ValueError("Missing or repeated EBS handoff")

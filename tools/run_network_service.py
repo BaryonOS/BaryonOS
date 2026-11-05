@@ -19,7 +19,8 @@ import sys
 import time
 import threading
 import uuid
-from common import ROOT, BUILD, environment, firmware, qemu_machine, sha256, source_hash
+from common import (ROOT, BUILD, environment, firmware, qemu_machine, sha256,
+                    source_hash, without_acpi_diagnostics)
 from build_users import inspect_user
 from run_fpu import private_path, publish, publish_json, load_json
 from run_system import check_esp, network_arguments
@@ -111,6 +112,7 @@ def sequence(stdout, case="normal"):
         raise ValueError("Unknown native service case")
     if not isinstance(stdout, str) or len(stdout) > 128 * 1024 or any(s in stdout for s in FORBIDDEN):
         raise ValueError("Failed/oversized actual native serial")
+    stdout = without_acpi_diagnostics(stdout)
     lines = stdout.splitlines()
     if any(lines.count(marker) != 1 for marker in REQUIRED):
         raise ValueError("Missing/duplicate required native marker")
