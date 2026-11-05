@@ -458,7 +458,7 @@ impl Model {
             "Afgerond op 9 decimalen."
         } else if self.current {
             "Klik resultaat of Ctrl+R: selecteren"
-        } else if self.recalling() {
+        } else if self.recalling() && self.focus == 0 {
             "Omlaag: volgende of eigen invoer"
         } else if self.recent_count() != 0 && self.length == 0 {
             "Omhoog: eerdere berekening"
@@ -802,7 +802,19 @@ impl Model {
             }
             Command::Undo | Command::Redo => {
                 let recalling = self.recalling();
-                self.leave_recall();
+                if command == Command::Redo && recalling && self.can_redo() {
+                    // Redo continues the existing branch from the unfinished
+                    // draft; recording the recall here would truncate it.
+                    if let Some(draft) = self.recent.draft {
+                        self.bytes = draft.formula.bytes;
+                        self.length = draft.formula.length;
+                        self.caret = draft.caret;
+                        self.anchor = draft.anchor;
+                    }
+                    self.recent.leave();
+                } else {
+                    self.leave_recall();
+                }
                 if let Some(state) = self
                     .history
                     .restore(self.edit_state(), command == Command::Redo)

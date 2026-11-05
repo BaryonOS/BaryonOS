@@ -80,6 +80,25 @@ fn editing_or_evaluating_a_recalled_formula_keeps_the_draft_reachable_by_undo() 
 }
 
 #[test]
+fn redo_while_recalling_keeps_an_existing_redo_branch() {
+    let mut model = Model::new();
+    calculate(&mut model, "2+3");
+    text(&mut model, "1");
+    model.command(Command::Insert(b'2'));
+    assert_eq!(model.expression(), "12");
+    key(&mut model, PhysicalKey::Z, true);
+    assert_eq!(model.expression(), "1");
+    assert!(model.can_redo());
+    key(&mut model, PhysicalKey::Up, false);
+    assert_eq!(model.expression(), "2+3");
+    key(&mut model, PhysicalKey::Y, true);
+    assert!(!model.recalling());
+    assert_eq!(model.expression(), "12", "redo continues from the draft");
+    key(&mut model, PhysicalKey::Z, true);
+    assert_eq!(model.expression(), "1");
+}
+
+#[test]
 fn redo_while_recalling_without_redo_branch_still_leaves_recall_visibly() {
     let mut model = Model::new();
     calculate(&mut model, "2+3");

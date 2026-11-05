@@ -554,8 +554,12 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
             elif calculator_undo:
                 move(1260, 50)
                 key("f6")
+                # Like the recall gate: wait for Material's late focus-lost frame,
+                # or later changed_outside checks may see that repaint.
                 wait("undo-focused", lambda raw, s: s["CALCULATOR"] and
+                     s["MATERIAL"] and s["MATERIAL"][-1]["GEN"] > initial["MATERIAL"][-1]["GEN"] and
                      comp(raw).get("FOCUSED") == 1 and
+                     comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"] and
                      comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
                 for chord in (("2",), ("shift", "equal"), ("3",), ("ret",)):
                     key(*chord)
