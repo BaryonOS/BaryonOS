@@ -30,9 +30,10 @@ panickt. Dit staat ook op upstream main (regel 2055, gecontroleerd op
 
 In deze stack weigert `PacketDevice::receive` ingress zolang er TX openstaat.
 De toestand ontstaat daarom alleen als het ACK niet weg kan doordat de buur
-niet ARP-opgelost is. De aanvaller moet het ISN kennen, dus on-path zijn (bijv.
-een kwaadwillende gateway). Of dit op een echt netwerk bereikbaar is, is **niet**
-vastgesteld.
+niet ARP-opgelost is. De aanvaller moet het ISN kennen; de canary leidt dat af uit de vaste
+`random_seed = 7` van de test. On-path (bijv. een kwaadwillende gateway) is één
+mogelijk scenario; welke andere routes het ISN prijsgeven, en of dit op een
+echt netwerk bereikbaar is, is **niet** vastgesteld (onbekend).
 
 Voor de oplossing is een dependencybesluit nodig van de netwerkeigenaar. Opties:
 (a) gepatchte smoltcp vendoren met `Some(seq + 1)`, of (b) wachten op upstream.

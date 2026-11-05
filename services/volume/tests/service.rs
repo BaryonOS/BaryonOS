@@ -191,7 +191,7 @@ fn adjacent_generation_checks_do_not_wrap_or_panic() {
 /// with overflow checks, a silent wrap to 0 in release. It must fail closed.
 #[test]
 fn deleted_object_revision_from_disk_does_not_overflow() {
-    let image = |revision: u64| {
+    let table = |revision: u64| {
         let mut t = Table::EMPTY;
         t.generation = revision;
         t.request_id = 1;
@@ -202,17 +202,26 @@ fn deleted_object_revision_from_disk_does_not_overflow() {
         entry.created = 1;
         entry.modified = 1;
         entry.present = false;
-        let mut sectors = vec![[0u8; SECTOR]; VOLUME_SECTORS as usize];
-        let slot = (revision % 2) * TABLE_SECTORS;
-        for index in 0..TABLE_SECTORS {
-            sectors[(slot + index) as usize] = t.encode_sector(index);
-        }
-        (sectors, t)
+        t
     };
-    // Generation 1 is the one generation a zeroed companion slot accepts.
-    let (sane, expected) = image(1);
-    assert!(recover(sane) == Ok(expected), "control image must recover");
-    assert_eq!(recover(image(u64::MAX).0), Err(Status::Corrupt));
+    // Both slots hold a valid table, so `Corrupt` can only come from the
+    // newest revision itself, not from a missing companion.
+    let image = |newest: u64| {
+        let mut sectors = vec![[0u8; SECTOR]; VOLUME_SECTORS as usize];
+        for t in [table(newest - 1), table(newest)] {
+            let slot = (t.generation % 2) * TABLE_SECTORS;
+            for index in 0..TABLE_SECTORS {
+                sectors[(slot + index) as usize] = t.encode_sector(index);
+            }
+        }
+        sectors
+    };
+    let last = u64::MAX - 1;
+    assert!(
+        recover(image(last)) == Ok(table(last)),
+        "control image one revision below the bound must recover"
+    );
+    assert_eq!(recover(image(u64::MAX)), Err(Status::Corrupt));
 }
 
 /// A delete from revision `u64::MAX - 1` would publish a tombstone at
