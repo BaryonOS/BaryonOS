@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "kind": "Werkelijk native artifact gedownload, onafhankelijk opnieuw gehasht en diskoracle opnieuw uitgevoerd",
+  "run_id": 41620192281,
+  "artifact_id": 13224240181,
+  "artifact_name": "native-window-session-evidence-and-windows-bundle",
+  "zip_sha256": "e8c2b67da1e08259e4db9bd1495e1e668c97c73a19debb587739e6feb4c6179e",
+  "pr": 114,
+  "head": "32b6c9e2205da783905e3e9c491f80393d8e11fd",
+  "base": "cbbc9c9941b08ea5edfbd3637d494635b4fb1df0",
+  "actions_test_merge_source_commit": "94f3f5a04e8dc31df9a062436262407480e0e7e9",
+  "source_sha256": "fe0fe328ef3909e2dab4386c0ba77ebf3cf6a8244301e245863b21debfde4c99",
+  "local_source_matches": true,
+  "raw_qemu_exit": 33,
+  "duration_seconds": 301.427835629,
+  "phase_frames_rehashed": 22,
+  "host_oracle_files_rehashed": 34,
+  "serial_sha256": "4075ad2f9d08094d0122b42cb58e760026efc53002af8f63d8c54b2eb1127958",
+  "raw_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "disk_oracle_rerun": {
+    "object": 0,
+    "revision": 1,
+    "name": "Nieuw document",
+    "length": 14,
+    "sha256": "9a45a00fa9ff69c17e124f54c14bb14cf2c7650e8cf1c272f6631f618a19a5a5",
+    "fnv": 2786778974461010050,
+    "generation": 1,
+    "clocks": [
+      1,
+      0
+    ],
+    "canaries_intact": true
+  },
+  "passed": true,
+  "scope": "Echte22fase venster/invoer/isolatie/herstel/klembord/schijfpoort op QEMU/TCG-x86_64 met eigen kernel. Hostgegenereerde pixeloracles zijn op zichzelf geen native uitvoering. Geen bewijs voor latere135-head, Windows-runtime, fysieke hardware, menselijke audit, volledige release of extra punten."
+}

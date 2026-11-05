@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-03",
+  "pr": 141,
+  "source_commit": "fbbc94aa562ea0a00e6faaf8a8477f8e2dc5ef59",
+  "scope": "Afzonderlijk hostprototypebewijs op frozen141, nog geen opname in deze135-bron. Geen browserbenchmark, QEMU, native OS- of productacceptatie.",
+  "review": {
+    "kind": "Statische AI-correctheidsreview, geen menselijke audit",
+    "result": "Geen concrete hoogvertrouwelijke gedragsregressie gevonden in de vier gewijzigde prototypebron-/testbestanden.",
+    "initial_node_attempt": "Node ontbrak op Linux-PATH; geen pakket geinstalleerd.",
+    "agent_memory_loader_attempt": "De agent meldde26 geslaagde tests via een aangepaste geheugenloader zonder reguliere bestandstoegang of opgeslagen log. Dit is niet gebruikt als bewijs van reguliere Node-uitvoering; de parent heeft daarna zelf de ongewijzigde bestanden met de standaard Node-runner getest."
+  },
+  "regular_file_snapshot_test": {
+    "snapshot_command": "git archive --format=tar fbbc94aa562ea0a00e6faaf8a8477f8e2dc5ef59 ui/prototype | tar -xf - -C /mnt/c/Users/simon/AppData/Local/nieuw-os/copilot-tests/pr141-fbbc-regular-20261103",
+    "snapshot_directory_was_new": true,
+    "runtime_command": "'/mnt/c/Program Files/nodejs/node.exe' --version",
+    "runtime_version": "v24.16.0",
+    "test_command": "'/mnt/c/Program Files/nodejs/node.exe' --test 'C:\\Users\\simon\\AppData\\Local\\nieuw-os\\copilot-tests\\pr141-fbbc-regular-20261103\\ui\\prototype\\tests\\state.test.mjs' 'C:\\Users\\simon\\AppData\\Local\\nieuw-os\\copilot-tests\\pr141-fbbc-regular-20261103\\ui\\prototype\\tests\\render-performance.test.mjs'",
+    "exit_status": 0,
+    "tests": 26,
+    "passed": 26,
+    "failed": 0,
+    "skipped": 0,
+    "node_reported_duration_ms": 538.6006,
+    "log": "/tmp/nieuw-os-pr141-regular-node.log",
+    "log_sha256": "57691ddcecbf2a8e34c63e8cfb3ae64c93863822d976628761241b721f5ed160"
+  },
+  "progress_previous": 41,
+  "progress_current": 41,
+  "new_points": 0
+}

@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-05 · **Rubric:** v1 ·
-**Bron:** [`c7a61d11`](https://github.com/simonvanieperen/nieuw-os/commit/c7a61d1126caa346a128fba3004fe4add4ccff61) ·
-**Ontwikkelbranch:** `integrate/20261105-platform-batch`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Integratie: driverreeks #198 en platform-/viewer-/instructiebatch #199 (#150 #165 #169 #173 #176 #182 #188 #189 #193 #194 #195).
-41/100 blijft 41/100. Geïntegreerd: USB-framing, HID boot reports/interface en PS/2-health (#198, hostmodellen); acht platformhostapps met nieuwe CI-dekking; EXIF-orientatie in de tile-viewer; OS-agentprofielen; instructieopschoning #195. Geen criterium volledig geaccepteerd: geen native app-launch, fysieke USB/HID of menselijke acceptatie. AI-reviews zijn geen menselijke audit. Open: #155 (score/B01-besluit), #181/#191/#177 FIX, calculatortrio CONFLICT.
+**Bron:** [`bce6cabc`](https://github.com/simonvanieperen/nieuw-os/commit/bce6cabc71184d90fc228fe2ae8215339ff7bf28) ·
+**Ontwikkelbranch:** `integrate/20261105-session-library`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Integratie #206: sessie-/bibliotheekstack uit #135/#147 zonder verlaten volume-admissieontwerp; #205 volume-overflowfix.
+41/100 blijft 41/100. Geïntegreerd: native Materiaal-bibliotheek, sessieshell, document-session-volume-uitbreiding en de kernelfeature native-session-route (#206), plus de volume-overflowfix (#205). De claim U03 41→44 uit het branchbewijs materiaal-library-20261102 (gebonden aan 64044318) wordt op main niet overgenomen. U03 blijft open totdat de native bibliotheekgates op de main-merge groen zijn en de eigenaar acceptatie volgens de rubric bevestigt. Geen menselijke of fysieke acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

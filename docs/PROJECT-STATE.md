@@ -1,6 +1,28 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — integratie PR-wachtrij — 5 november 2026
+## NEXT AGENT HANDOFF — sessie-/bibliotheekintegratie — 5 november 2026
+
+**Basis:** main `bce6cabc71184d90fc228fe2ae8215339ff7bf28`, branch `integrate/20261105-session-library`
+(PR #206). **41 → 41/100.**
+
+**Opgenomen uit #135/#147:** `ui/native`-bibliotheek, `window-session`-shell,
+`document-session`-volumeuitbreiding, `ui/graphics`-reflow/damage, kernelfeature
+`native-session-route` (alleen diagnostische tellers) en native bibliotheekgates in
+`native-window-session.yml`. **Niet opgenomen:** het sealed-generatie-0-volumeontwerp
+uit #133, dat is ingehaald door #148/ADR-064 en #205, samen met de dubbele ADR-064
+en het bijbehorende bewijs. **Integratorfixes:** Escape annuleert een hangende
+ontgrendeling, `Font::advance` schaalt mee met magnify, en de `DropRead`-test raakt nu
+werkelijk een late read.
+
+**U03:** het branchbewijs `docs/verification/materiaal-library-20261102/` claimt
+41→44, maar is hashgebonden aan `64044318`. Op main blijft U03 open, totdat de native
+bibliotheekgates op de main-merge groen zijn en de eigenaar dit bevestigt.
+**Open vervolg (CodeRabbit op #206):** hoverdamage alleen bij een hoverwissel,
+`hit()`-focus op uitgeschakelde editorknoppen, een positieve checkpointtest in
+`test_window_library.py`, de provenance-controles in `verify-ci-artifact.py` en
+documentatiebronnen.
+
+## Historisch checkpoint — integratie PR-wachtrij — 5 november 2026
 
 **Basis:** main `c7a61d1126caa346a128fba3004fe4add4ccff61` (na #198), branch `integrate/20261105-platform-batch`
 (PR #199). **41 → 41/100**; geen criterium volledig geaccepteerd.
