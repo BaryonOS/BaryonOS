@@ -6,6 +6,7 @@
 use core::iter::FusedIterator;
 
 pub mod boot;
+pub mod boot_interface;
 
 /// A descriptor borrowed from a validated byte range.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
