@@ -1,5 +1,11 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+Instructieonderhoud op basis `8bb15309` (4 november 2026): **41 → 41/100**.
+Verouderde beperkingen op opslaglocaties, prototype-eerst bouwen en
+voortgangsrapportage zijn verwijderd. De actuele privacy-, native product-
+en bewijscontracten blijven leidend. Geen runtimecode, criteria, gewichten
+of bewijsstatus gewijzigd; geen nieuwe native, fysieke of menselijke acceptatie.
+
 PR158-integratie met main `95d79451` op basis `04d727c3`: **41 → 41/100**.
 De drie documentconflicten behouden beide checkpointgeschiedenissen en hun
 brongebonden bewijs. De Rust-wijzigingen uit main zijn uitsluitend commentaar;

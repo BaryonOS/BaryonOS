@@ -60,11 +60,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`04d727c3`](https://github.com/simonvanieperen/nieuw-os/commit/04d727c306d13e03a192d9d002a7d44348841c9f) ·
-**Ontwikkelbranch:** `fix/b03-test-anchors-guard`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR158: documentconflicten met main 95d79451 inhoudsbehoudend integreren.
-41/100 blijft 41/100. De drie documentconflicten behouden de B03- en PR138-checkpointgeschiedenissen en hun brongebonden bewijs. Rust-wijzigingen uit main zijn uitsluitend commentaar; de B03-ondertekenpolicy blijft ongewijzigd. De integration_review-velden blijven historisch PR148-bewijs, niet voor deze integratie. Productiesleutelbeleid en issue #41 blijven open. Geen nieuw criterium of native acceptatie; nieuwe-head CI wordt afzonderlijk beoordeeld.
+**Herbeoordeeld:** 2026-11-04 · **Rubric:** v1 ·
+**Bron:** [`8bb15309`](https://github.com/simonvanieperen/nieuw-os/commit/8bb153092e967aae314ecde35bcf963565a87ac7) ·
+**Ontwikkelbranch:** `copilot/dream-curate-memories-20261104132442`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Verouderde opslag-, prototype- en voortgangsinstructies opruimen.
+41/100 blijft 41/100. Alleen verouderde instructies over opslaglocaties, prototype-eerst bouwen en het bijwerken van voortgang vervallen; de actuele privacy-, native product- en bewijscontracten blijven leidend. Geen runtimecode, criteria, gewichten of bewijsstatus gewijzigd. De reviewvelden blijven historisch PR148-bewijs; geen nieuwe native, fysieke of menselijke acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
