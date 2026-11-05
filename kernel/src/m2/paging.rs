@@ -270,7 +270,8 @@ impl Paging {
         invalidate(SHOOTDOWN_WINDOW);
         Ok(old_pa)
     }
-    /// Release the window's old alias after the global invalidation completed.
+    /// Release one RW/NX alias of `old_pa` after the GLOBAL invalidation of
+    /// that alias completed (its PTE is already cleared or replaced).
     #[cfg(feature = "native-smp")]
     pub fn release_stale_alias(
         &mut self,
@@ -279,20 +280,19 @@ impl Paging {
     ) -> Result<(), kernel_core::Error> {
         frames.unmap(old_pa, true, false)
     }
-    /// Remove a bootstrap identity RW/NX alias (va == pa) on this CPU.
+    /// Clear a bootstrap identity RW/NX alias (va == pa) and invalidate it on
+    /// THIS CPU. As with `remap_window`, the alias metadata is kept: with one
+    /// shared CR3 another CPU may hold (even speculatively) this translation,
+    /// so `release_stale_alias` must wait for the shootdown acknowledgements.
     #[cfg(feature = "native-smp")]
-    pub fn unmap_identity(
-        &mut self,
-        frames: &mut Frames<FRAME_COUNT>,
-        pa: u64,
-    ) -> Result<(), kernel_core::Error> {
+    pub fn clear_identity(&mut self, pa: u64) -> Result<(), kernel_core::Error> {
         let (table, index, mapped) = self.existing_leaf(pa)?;
         if mapped != pa {
             return Err(kernel_core::Error::Range);
         }
         write(table, index, 0);
         invalidate(pa);
-        frames.unmap(pa, true, false)
+        Ok(())
     }
     #[cfg(any(
         feature = "milestone-m5",
@@ -785,7 +785,10 @@ fn write(table: u64, index: usize, value: u64) {
     }
 }
 fn invalidate(va: u64) {
-    // SAFETY: Single CPL0 CPU, PCID/PGE disabled; invalidate before alias reuse.
+    // SAFETY: CPL0, PCID/PGE disabled; invalidates only THIS CPU's TLB. All
+    // profiles but native-smp have one CPU; under native-smp a translation
+    // other CPUs may hold additionally needs the smp.rs shootdown before any
+    // alias metadata is released or the frame reused.
     unsafe {
         core::arch::asm!("invlpg [{}]",in(reg) va,options(nostack));
     }

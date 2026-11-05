@@ -1,5 +1,34 @@
 # Ontwerpbesluiten
 
+## ADR-072 — TLB-shootdown vóór hergebruik van een fysieke pagina (K06 stap 3)
+
+5 november 2026; aanvulling op ADR-070/071, alleen in `native-smp`. Op SMP
+geldt het `Frames::unmap`-contract ("PTE wissen en TLB invalideren vóór het
+vrijgeven van metadata") voor **iedere** CPU die de vertaling kan cachen.
+Met één gedeelde CR3 kan een CPU iedere aanwezige vertaling (ook
+speculatief) cachen. Daarom geldt dit voor **alle** aliassen van het frame,
+en gaat het vrijgeven van een vervangen frame in deze volgorde:
+1. Het frame wissen terwijl de eigen bootstrap-alias nog bestaat.
+2. Beide PTE's lokaal weghalen (venster → nieuw frame, identity-alias weg)
+   en lokaal `invlpg`. De alias-metadata blijft daarbij staan.
+3. Shootdown-IPI (vector 0xe0) naar iedere AP: `invlpg` van beide
+   gepubliceerde adressen, daarna een ack van de generatie van deze ronde.
+4. Pas na álle acks: beide aliassen vrijgeven, `free` en een volledige
+   paging-audit.
+
+Ontbreekt een ack, dan blijft het oude frame in quarantaine (eigendom en
+alias behouden, nooit hergebruikt) en reset de BSP alle AP's met INIT.
+Dat is fail-closed, want een frame dat een andere CPU nog kan lezen, mag
+nooit naar een nieuwe eigenaar.
+
+**Bewijs:** iedere CPU ziet daarna aantoonbaar het nieuwe frame. Een
+controleprofiel zonder shootdown laat deterministisch zien dat alle AP's
+anders het vrijgegeven frame lezen: de test meet dus een echt gevaar. Zie
+`docs/verification/k06-smp-shootdown/`. **Open:** dit is één venster in
+een bootstrapprofiel. Een algemene shootdown voor procesadresruimten (per
+ASID/CR3 en per range), integratie met M3-unmaps, interrupts op de BSP en
+de SMP-scheduler volgen nog; ADR-024 blijft tot dan ongewijzigd geldig.
+
 ## ADR-071 — Eigen TSS/IST per AP en begrensde, gerichte IPI's (K06 stap 2)
 
 5 november 2026; aanvulling op ADR-070, nog steeds alleen in `native-smp`.

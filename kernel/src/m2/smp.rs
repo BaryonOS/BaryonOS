@@ -155,9 +155,11 @@ static CPU_LOCAL: [CpuLocal; MAX_APS] = [const {
 }; MAX_APS];
 
 /// Shootdown request, published (Release) before the IPI that makes an AP
-/// read it; the stub acknowledges `generation` only after its `invlpg`.
+/// read it: up to two VAs (0 = unused slot is never published here) and a
+/// generation that every round increments; the stub acknowledges the
+/// generation only after both `invlpg`s.
 #[no_mangle]
-static NOS_SMP_SHOOTDOWN_VA: AtomicU64 = AtomicU64::new(0);
+static NOS_SMP_SHOOTDOWN_VA: [AtomicU64; 2] = [AtomicU64::new(0), AtomicU64::new(0)];
 #[no_mangle]
 static NOS_SMP_SHOOTDOWN_GEN: AtomicU32 = AtomicU32::new(0);
 static PROBE: AtomicU32 = AtomicU32::new(0);
@@ -194,14 +196,17 @@ global_asm!(
     ".globl nos_smp_spurious_entry",
     "nos_smp_spurious_entry:",
     "    iretq",
-    // Shootdown: invalidate the published VA on THIS CPU, then acknowledge the
-    // published generation with a locked xchg (ordered after the serializing
-    // invlpg), then EOI. Clobbers nothing visible to the interrupted code.
+    // Shootdown: invalidate both published VAs on THIS CPU, then acknowledge
+    // the published generation with a locked xchg (ordered after the
+    // serializing invlpg), then EOI. Clobbers nothing visible to the
+    // interrupted code.
     ".globl nos_smp_shootdown_entry",
     "nos_smp_shootdown_entry:",
     "    push rax",
     "    push rdx",
     "    mov rax, qword ptr [rip + {va}]",
+    "    invlpg [rax]",
+    "    mov rax, qword ptr [rip + {va} + 8]",
     "    invlpg [rax]",
     "    mov edx, dword ptr [rip + {generation}]",
     "    mov rax, gs:[0]",
@@ -1093,20 +1098,22 @@ fn ipis(
     serial::write(b"\n");
 }
 
-/// TLB shootdown proof. Every AP has cached SHOOTDOWN_WINDOW -> frame A. The
-/// BSP points the window at frame B, then every AP must `invlpg` and ack the
-/// generation (vector 0xe0) BEFORE frame A's alias is released, A is scrubbed
-/// and freed, and the full page-table audit runs. A missing ack leaves A
-/// quarantined (Kernel-owned, alias held) and resets every AP. Returns false
-/// after that quarantine. `test-smp-shootdown-skipped` is the control: it omits
-/// the IPIs to show that APs then really read the reclaimed frame.
+/// TLB shootdown proof (ADR-072). Every AP has cached SHOOTDOWN_WINDOW -> A,
+/// which also has a bootstrap identity alias. With one shared CR3 any CPU may
+/// hold either translation (even speculatively), so the order is:
+/// scrub A, clear BOTH PTEs locally (window -> B, identity alias removed),
+/// shoot down BOTH VAs on every AP, and only after every ack release both
+/// aliases, free A and run the full page-table audit. A missing ack leaves A
+/// quarantined forever (owned, aliases held; the audit must then not run, as
+/// its metadata deliberately disagrees with the tables) and resets every AP.
+/// Returns false after that quarantine. `test-smp-shootdown-skipped` is the
+/// control: it omits the IPIs to show that APs then really reach frame A.
 fn shootdown(
     online: usize,
     total: usize,
     frames: &mut Frames<FRAME_COUNT>,
     paging: &mut paging::Paging,
 ) -> bool {
-    let aps = &NOS_SMP_AP_CONTEXTS[..online];
     let locals = &CPU_LOCAL[..online];
     let old = SHOOTDOWN_FRAMES[0].load(Ordering::Relaxed);
     let new = SHOOTDOWN_FRAMES[1].load(Ordering::Relaxed);
@@ -1117,40 +1124,31 @@ fn shootdown(
     {
         serial::fail(b"SMP_SHOOTDOWN_SETUP");
     }
-    if paging.remap_window(frames, new) != Ok(old) || read_window() != u32::from(NEW_PATTERN) {
+    // SAFETY: `old` is the Kernel-owned frame A with its bootstrap identity
+    // RW/NX alias still mapped. Every AP already recorded its pre-remap read
+    // (checked above); nothing else reads A, so scrubbing now leaks nothing.
+    unsafe { ptr::write_bytes(old as *mut u8, 0, PAGE as usize) };
+    if paging.remap_window(frames, new) != Ok(old)
+        || paging.clear_identity(old).is_err()
+        || read_window() != u32::from(NEW_PATTERN)
+    {
         serial::fail(b"SMP_SHOOTDOWN_REMAP");
     }
     let skipped = cfg!(feature = "test-smp-shootdown-skipped");
     if skipped {
         serial::write(b"SMP:SHOOTDOWN:SKIPPED\n");
-    } else {
-        NOS_SMP_SHOOTDOWN_VA.store(paging::SHOOTDOWN_WINDOW, Ordering::Release);
-        NOS_SMP_SHOOTDOWN_GEN.store(1, Ordering::Release);
-        for (slot, context) in aps.iter().enumerate() {
-            let apic = context.apic_id.load(Ordering::Relaxed);
-            if !send_ipi(apic, IPI_FIXED | SHOOTDOWN_VECTOR as u32)
-                || !within_ms(100, || {
-                    locals[slot].shootdown_ack.load(Ordering::Acquire) == 1
-                })
-            {
-                serial::write(b"SMP:SHOOTDOWN:TIMEOUT:APIC=");
-                decimal(u64::from(apic));
-                serial::write(b"\nSMP:SHOOTDOWN:FRAME_QUARANTINED\n");
-                quarantine_all(online, total);
-                return false;
-            }
-        }
+    } else if let Err(apic) = shootdown_round([paging::SHOOTDOWN_WINDOW, old], online) {
+        serial::write(b"SMP:SHOOTDOWN:TIMEOUT:APIC=");
+        decimal(u64::from(apic));
+        serial::write(b"\nSMP:SHOOTDOWN:FRAME_QUARANTINED\n");
+        quarantine_all(online, total);
+        return false;
     }
-    // Global invalidation is complete: frame A is now unreachable everywhere
-    // (except, deliberately, in the skipped control), so it may be reclaimed.
-    if paging.release_stale_alias(frames, old).is_err() {
-        serial::fail(b"SMP_SHOOTDOWN_RELEASE");
-    }
-    // SAFETY: `old` is the Kernel-owned frame A with its bootstrap identity RW/NX
-    // alias still mapped; no CPU can reach it through the window any more.
-    unsafe { ptr::write_bytes(old as *mut u8, 0, PAGE as usize) };
-    if paging.unmap_identity(frames, old).is_err()
-        // Contents were scrubbed above through the (now removed) alias.
+    // Global invalidation of both translations is complete (except, by design,
+    // in the control), so A's metadata may be released and the frame reused.
+    if paging.release_stale_alias(frames, old).is_err()
+        || paging.release_stale_alias(frames, old).is_err()
+        // Contents were scrubbed above, before any translation was dropped.
         || frames.free(old, Owner::Kernel, |_| {}).is_err()
     {
         serial::fail(b"SMP_SHOOTDOWN_RECLAIM");
@@ -1161,11 +1159,38 @@ fn shootdown(
         decimal(online as u64 + 1);
         serial::write(b"\n");
     }
+    probe_visibility(online, total, skipped)
+}
+
+/// One shootdown generation for `vas` on every online AP; returns the APIC ID
+/// of the first AP that does not acknowledge this exact generation in time.
+fn shootdown_round(vas: [u64; 2], online: usize) -> Result<(), u32> {
+    for (slot, va) in NOS_SMP_SHOOTDOWN_VA.iter().zip(vas) {
+        slot.store(va, Ordering::Release);
+    }
+    let generation = NOS_SMP_SHOOTDOWN_GEN.fetch_add(1, Ordering::AcqRel) + 1;
+    for (context, local) in NOS_SMP_AP_CONTEXTS[..online].iter().zip(&CPU_LOCAL) {
+        let apic = context.apic_id.load(Ordering::Relaxed);
+        if !send_ipi(apic, IPI_FIXED | SHOOTDOWN_VECTOR as u32)
+            || !within_ms(100, || {
+                local.shootdown_ack.load(Ordering::Acquire) == generation
+            })
+        {
+            return Err(apic);
+        }
+    }
+    Ok(())
+}
+
+/// Every CPU reads the window again through its current TLB; outside the
+/// control each must reach frame B.
+fn probe_visibility(online: usize, total: usize, skipped: bool) -> bool {
+    let locals = &CPU_LOCAL[..online];
     PROBE.store(1, Ordering::Release);
-    for (slot, context) in aps.iter().enumerate() {
+    for (context, local) in NOS_SMP_AP_CONTEXTS[..online].iter().zip(locals) {
         let apic = context.apic_id.load(Ordering::Relaxed);
         if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
-            || !within_ms(100, || locals[slot].probed.load(Ordering::Acquire) == 1)
+            || !within_ms(100, || local.probed.load(Ordering::Acquire) == 1)
         {
             serial::write(b"SMP:SHOOTDOWN:PROBE_TIMEOUT\n");
             quarantine_all(online, total);
