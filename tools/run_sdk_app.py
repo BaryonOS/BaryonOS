@@ -4,7 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
-from common import BUILD, save_json, source_hash
+from common import BUILD, save_json, source_hash, with_acpi_markers, without_acpi_diagnostics
 from run import run_guest
 
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "M2:PASS")
@@ -33,7 +33,7 @@ def main() -> int:
         "native-sdk-app-" + args.case,
         esp=BUILD / "esp",
         timeout=60,
-        required_markers=required,
+        required_markers=with_acpi_markers(required),
         expected_exit=33,
         forbidden_markers=("FAIL", "PANIC"),
         expected_kernel_sha256=manifest["kernel"]["sha256"],
@@ -50,7 +50,7 @@ def main() -> int:
     try:
         if guest.get("passed") is not True or guest.get("raw_qemu_exit") != 33:
             raise ValueError("guest did not pass")
-        lines = guest["stdout"].splitlines()
+        lines = without_acpi_diagnostics(guest["stdout"]).splitlines()
         start = lines.index(BOOT[0])
         tail = lines[start:]
         app_line = next(line for line in tail if line.startswith("SDKAPP:APP_COUNTER:"))

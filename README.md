@@ -60,11 +60,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`04d727c3`](https://github.com/simonvanieperen/nieuw-os/commit/04d727c306d13e03a192d9d002a7d44348841c9f) ·
-**Ontwikkelbranch:** `fix/b03-test-anchors-guard`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR158: documentconflicten met main 95d79451 inhoudsbehoudend integreren.
-41/100 blijft 41/100. De drie documentconflicten behouden de B03- en PR138-checkpointgeschiedenissen en hun brongebonden bewijs. Rust-wijzigingen uit main zijn uitsluitend commentaar; de B03-ondertekenpolicy blijft ongewijzigd. De integration_review-velden blijven historisch PR148-bewijs, niet voor deze integratie. Productiesleutelbeleid en issue #41 blijven open. Geen nieuw criterium of native acceptatie; nieuwe-head CI wordt afzonderlijk beoordeeld.
+**Herbeoordeeld:** 2026-11-05 · **Rubric:** v1 ·
+**Bron:** [`cd78ea74`](https://github.com/simonvanieperen/nieuw-os/commit/cd78ea74f14d8b8921aad51cc46a41c41274ab45) ·
+**Ontwikkelbranch:** `k06/smp-ap-bringup`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 1: native AP-opstart; conflictintegratie met main en device-exec/ACPI-handoff op PR #200.
+41/100 blijft 41/100. De K06 native-smp implementatie en eerder opgeslagen QEMU/TCG-bewijs blijven ongewijzigd. PR-head cd78ea74 is geïntegreerd met base main 7dd91fad en de device-exec/ACPI-handoff-head; drie statusconflicten zijn opgelost. Gerichte hosttests, driver-Clippy/fmt/freestanding builds, kernel native-smp build en progress-consistentiecheck slaagden. CodeQL op de eerste mergecommit c014b17d vond geen Actions/Python-alerts maar liep af vóór alle talen klaar waren; de geresynchroniseerde head is niet volledig gescand. Nieuwe-head hosted CI en native K06-QEMU op de geïntegreerde head blijven open. Geen criterium of gewicht gewijzigd; K06 blijft open. De integration_review-velden blijven historisch PR148-bewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

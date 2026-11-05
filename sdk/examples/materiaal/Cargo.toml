@@ -35,7 +35,7 @@ test = false
 bench = false
 
 [profile.release]
-# Bound the scalar renderer executable without expanding the 128-KiB code budget.
+# Bound the scalar renderer and library actions within the fixed RX code budget.
 opt-level = "s"
 panic = "abort"
 codegen-units = 1

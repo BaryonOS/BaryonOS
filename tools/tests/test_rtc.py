@@ -22,6 +22,16 @@ def fixture(base):
 
 
 class RtcVerifier(unittest.TestCase):
+    def test_acpi_diagnostics_do_not_break_rtc_marker_sequence(self):
+        base = gate.CASES["current"]
+        text = fixture(base).replace(
+            "KS-02:PASS\n",
+            "KS-02:PASS\nACPI:UNAVAILABLE:NO_DMAR\n"
+            "DEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT\n",
+        )
+        self.assertEqual(gate.evaluate(text, 33, False, base)["quality"],
+                         "UnauthenticatedRtc")
+
     def test_calendar_cases_have_independent_epoch_oracles(self):
         for case, base in gate.CASES.items():
             with self.subTest(case=case):

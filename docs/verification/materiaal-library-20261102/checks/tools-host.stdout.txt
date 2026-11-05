@@ -1,0 +1,72 @@
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-3zzublki/checkout/build/run/cap-bench-8d9fa4cb6e3b4263be2789aa7c09eb89
+Frozen guest/archive input changed: inputs/system_app.elf
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-e9s_lf11/checkout/build/run/cap-bench-6eb78d10619d439fbe4bc56344960e7e
+Frozen guest/archive input changed: OVMF_CODE.fd
+CAPBENCH passed=True raw=33; /tmp/capbench-HOST_ONLY-m0o9_ge3/checkout/build/run/cap-bench-a42ab59f85fa416ea145882c24936708
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-4jev099y/checkout/build/run/cap-bench-b421b717af514f449d27fcb87432261a
+Symlink in FPU artifact path
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-5rz01any/checkout/build/run/cap-bench-d458768603284437b9a8c61c85d1af52
+Frozen source input changed: /tmp/capbench-HOST_ONLY-5rz01any/checkout/source-code.fd
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-5rz01any/checkout/build/run/cap-bench-ba9c986f1c0d4019a5626146ebe60f12
+Frozen source input changed: /tmp/capbench-HOST_ONLY-5rz01any/checkout/source-vars.fd
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-5rz01any/checkout/build/run/cap-bench-7fdec540ca2e490c8cb65a2311a3e662
+Frozen source input changed: /tmp/capbench-HOST_ONLY-5rz01any/checkout/qemu-system-x86_64
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-5rz01any/checkout/build/run/cap-bench-3ec19e55ef23472eb722ae0848d282ab
+Frozen source input changed: /tmp/capbench-HOST_ONLY-5rz01any/checkout/build/manifest.json
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-5rz01any/checkout/build/run/cap-bench-f96d202fe52641f882bdddf8cece374a
+Frozen source input changed: /tmp/capbench-HOST_ONLY-5rz01any/checkout/build/esp/kernel.elf
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-5rz01any/checkout/build/run/cap-bench-d20dcdb3d9af4709915d6bf00fc8b068
+Frozen source input changed: /tmp/capbench-HOST_ONLY-5rz01any/checkout/build/esp/EFI/BOOT/BOOTX64.EFI
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-5rz01any/checkout/build/run/cap-bench-5418366227554ddf8ca417ad03bf1157
+Frozen source input changed: /tmp/capbench-HOST_ONLY-5rz01any/checkout/target/system-system/x86_64-unknown-none/release/system-app
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-5rz01any/checkout/build/run/cap-bench-ef91a2769ba844328ee88ad9bae301b6
+Frozen source input changed: /tmp/capbench-HOST_ONLY-5rz01any/checkout/kernel/src/m2/m3/cap_bench.rs
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-f6grd3d4/checkout/build/run/cap-bench-929fdd227e754b72ba20d8168dc5a0d9
+Frozen guest/archive input changed: OVMF_VARS.template.fd
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-f6grd3d4/checkout/build/run/cap-bench-b39240bab2f64bcdbb149980961febf5
+Frozen guest/archive input changed: inputs/manifest.json
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-f6grd3d4/checkout/build/run/cap-bench-493413a322c3491ab14780d6f904ebaf
+Frozen guest/archive input changed: inputs/frozen-inputs.json
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-f6grd3d4/checkout/build/run/cap-bench-2454f2d949c84715af24633c32d308c6
+Frozen guest/archive input changed: volume.img
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-f6grd3d4/checkout/build/run/cap-bench-7d94bdaecbb04445922714cc843e5de3
+Frozen guest/archive input changed: volume.json
+CAPBENCH passed=True raw=33; /tmp/capbench-HOST_ONLY-s71l0bcm/checkout/build/run/cap-bench-3aae90b02fac4ad2bb564328c9f5a51d
+IMAGES normal: passed=False gate=False /tmp/tmp62mxowkf/checkout/build/run/system-normal-11111111111111111111111111111111
+ValueError: changed serial
+IMAGES normal: passed=False gate=False /tmp/tmp62mxowkf/checkout/build/run/system-normal-11111111111111111111111111111111
+ValueError: source, QEMU or firmware changed during image gate
+RANDOM raw: passed=False gate=False /tmp/tmpmo4wpl9y/checkout/build/run/system-normal-11111111111111111111111111111111
+ValueError: changed serial
+RANDOM raw: passed=False gate=False /tmp/tmpmo4wpl9y/checkout/build/run/system-normal-11111111111111111111111111111111
+ValueError: source, QEMU or firmware changed during RANDOM gate
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+RTC:UTC:1793361600
+RTC:DATE:2026,10,30,12,0,0
+RTC:QUALITY:UNAUTHENTICATED
+RTC:NEGATIVE:PASS
+RTC:RESTORE:PASS
+RTC:PASS
+M2:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /tmp/tmpoll7q5ml/build/run/smoke-e7eee26bcf
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+RTC:UTC:1793361600
+RTC:DATE:2026,10,30,12,0,0
+RTC:QUALITY:UNAUTHENTICATED
+RTC:NEGATIVE:PASS
+RTC:RESTORE:PASS
+RTC:PASS
+M2:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /tmp/tmpoll7q5ml/build/run/smoke-18846dbd91

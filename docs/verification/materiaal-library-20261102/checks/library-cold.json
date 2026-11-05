@@ -1,0 +1,21 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "-u",
+    "tools/run_window_session.py",
+    "--timeout",
+    "1800",
+    "--bios-rom",
+    "/workspace/.nieuw-os-env/sysroot/usr/share/seabios/bios-256k.bin",
+    "--vga-rom",
+    "/workspace/.nieuw-os-env/sysroot/usr/share/seabios/vgabios-stdvga.bin",
+    "--library",
+    "--library-cold-parent",
+    "/workspace/nieuw-os/build/library-native-final/run/window-8ec48238bdc34ea1b88ca8d56dd96a32"
+  ],
+  "cwd": "/workspace/nieuw-os",
+  "started_unix": 1793655152.35979,
+  "duration_s": 205.8316581249237,
+  "returncode": 0
+}

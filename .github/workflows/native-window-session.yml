@@ -20,7 +20,8 @@ defaults:
 jobs:
   native-window-session:
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    # Three isolated boots: full regression, library mutation, cold reopen.
+    timeout-minutes: 75
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
       NOS_BUILD_DIR: ${{ github.workspace }}/build/window-session-ci/probe
@@ -137,6 +138,44 @@ jobs:
               digest = hashlib.file_digest(image, "sha256").hexdigest()
           (Path(os.environ["CI_EVIDENCE_DIR"]) / "native-volume.sha256").write_text(
               digest + "  " + volume.relative_to(Path.cwd()).as_posix() + "\n")
+          PY
+      - name: Native material names, collections, search and revision recovery
+        run: |
+          python3 -B -u tools/run_window_session.py \
+            --library --timeout 1800 \
+            --bios-rom /usr/share/seabios/bios-256k.bin \
+            --vga-rom /usr/share/seabios/vgabios-stdvga.bin \
+            2>&1 | tee "$CI_EVIDENCE_DIR/library-write.txt"
+          python3 -B - <<'PY'
+          import json, os
+          from pathlib import Path
+          path = Path(os.environ["NOS_BUILD_DIR"]) / "window-session-report.json"
+          report = json.loads(path.read_text())
+          assert report["passed"] is True and report["library_gate"] is True
+          assert report["library_cold"] is False and report["native_gate"] is False
+          assert report["raw_qemu_exit"] == 33 and len(report["phases"]) == 10
+          output = Path(os.environ["CI_EVIDENCE_DIR"])
+          (output / "library-write-report.json").write_bytes(path.read_bytes())
+          (output / "library-parent.txt").write_text(report["run_directory"] + "\n")
+          PY
+      - name: Cold reopen the source-bound disposable library image
+        run: |
+          read -r library_parent < "$CI_EVIDENCE_DIR/library-parent.txt"
+          python3 -B -u tools/run_window_session.py \
+            --library --library-cold-parent "$library_parent" --timeout 1800 \
+            --bios-rom /usr/share/seabios/bios-256k.bin \
+            --vga-rom /usr/share/seabios/vgabios-stdvga.bin \
+            2>&1 | tee "$CI_EVIDENCE_DIR/library-cold.txt"
+          python3 -B - <<'PY'
+          import json, os
+          from pathlib import Path
+          path = Path(os.environ["NOS_BUILD_DIR"]) / "window-session-report.json"
+          report = json.loads(path.read_text())
+          assert report["passed"] is True and report["library_gate"] is True
+          assert report["library_cold"] is True and report["native_gate"] is False
+          assert report["raw_qemu_exit"] == 33 and len(report["phases"]) == 4
+          assert report["volume_sha256"] == report["library_parent"]["volume_sha256"]
+          (Path(os.environ["CI_EVIDENCE_DIR"]) / "library-cold-report.json").write_bytes(path.read_bytes())
           PY
       - name: Build the normal window session only after native acceptance
         if: ${{ success() && steps.native-gate.outcome == 'success' }}

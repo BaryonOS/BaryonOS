@@ -1,0 +1,377 @@
+.........................................EEEEEEEEEE....E.........E..E..E...E.............F.F.......................................................................................................
+======================================================================
+ERROR: test_changed_disk_after_quit_is_rejected (test_materiaal_cold.ColdLifecycleTests.test_changed_disk_after_quit_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/nieuw-os-legacy-oracle/tools/tests/test_materiaal_cold.py", line 254, in setUp
+    self.expected = {"list": cold.cold_list_frame(self.frames),
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/nieuw-os-legacy-oracle/tools/materiaal_cold.py", line 13, in cold_list_frame
+    preview.probe.validate_frames(frames, "normal")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_probe.py", line 337, in validate_frames
+    require(not same_app_region(old, new, SAVE_STATUS), "Save did not change visible status feedback")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_display_probe.py", line 44, in require
+    raise ValueError(message)
+ValueError: Save did not change visible status feedback
+
+======================================================================
+ERROR: test_changed_source_after_exit_is_rejected (test_materiaal_cold.ColdLifecycleTests.test_changed_source_after_exit_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/nieuw-os-legacy-oracle/tools/tests/test_materiaal_cold.py", line 254, in setUp
+    self.expected = {"list": cold.cold_list_frame(self.frames),
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/nieuw-os-legacy-oracle/tools/materiaal_cold.py", line 13, in cold_list_frame
+    preview.probe.validate_frames(frames, "normal")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_probe.py", line 337, in validate_frames
+    require(not same_app_region(old, new, SAVE_STATUS), "Save did not change visible status feedback")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_display_probe.py", line 44, in require
+    raise ValueError(message)
+ValueError: Save did not change visible status feedback
+
+======================================================================
+ERROR: test_exact_cold_frames_and_disk_only_after_quit_zero (test_materiaal_cold.ColdLifecycleTests.test_exact_cold_frames_and_disk_only_after_quit_zero)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/nieuw-os-legacy-oracle/tools/tests/test_materiaal_cold.py", line 254, in setUp
+    self.expected = {"list": cold.cold_list_frame(self.frames),
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/nieuw-os-legacy-oracle/tools/materiaal_cold.py", line 13, in cold_list_frame
+    preview.probe.validate_frames(frames, "normal")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_probe.py", line 337, in validate_frames
+    require(not same_app_region(old, new, SAVE_STATUS), "Save did not change visible status feedback")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_display_probe.py", line 44, in require
+    raise ValueError(message)
+ValueError: Save did not change visible status feedback
+
+======================================================================
+ERROR: test_invalid_parent_does_not_start_vm (test_materiaal_cold.ColdLifecycleTests.test_invalid_parent_does_not_start_vm)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/nieuw-os-legacy-oracle/tools/tests/test_materiaal_cold.py", line 254, in setUp
+    self.expected = {"list": cold.cold_list_frame(self.frames),
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/nieuw-os-legacy-oracle/tools/materiaal_cold.py", line 13, in cold_list_frame
+    preview.probe.validate_frames(frames, "normal")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_probe.py", line 337, in validate_frames
+    require(not same_app_region(old, new, SAVE_STATUS), "Save did not change visible status feedback")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_display_probe.py", line 44, in require
+    raise ValueError(message)
+ValueError: Save did not change visible status feedback
+
+======================================================================
+ERROR: test_late_guest_fail_after_final_frame_cannot_pass (test_materiaal_cold.ColdLifecycleTests.test_late_guest_fail_after_final_frame_cannot_pass)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/nieuw-os-legacy-oracle/tools/tests/test_materiaal_cold.py", line 254, in setUp
+    self.expected = {"list": cold.cold_list_frame(self.frames),
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/nieuw-os-legacy-oracle/tools/materiaal_cold.py", line 13, in cold_list_frame
+    preview.probe.validate_frames(frames, "normal")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_probe.py", line 337, in validate_frames
+    require(not same_app_region(old, new, SAVE_STATUS), "Save did not change visible status feedback")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_display_probe.py", line 44, in require
+    raise ValueError(message)
+ValueError: Save did not change visible status feedback
+
+======================================================================
+ERROR: test_late_guest_panic_after_final_frame_cannot_pass (test_materiaal_cold.ColdLifecycleTests.test_late_guest_panic_after_final_frame_cannot_pass)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/nieuw-os-legacy-oracle/tools/tests/test_materiaal_cold.py", line 254, in setUp
+    self.expected = {"list": cold.cold_list_frame(self.frames),
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/nieuw-os-legacy-oracle/tools/materiaal_cold.py", line 13, in cold_list_frame
+    preview.probe.validate_frames(frames, "normal")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_probe.py", line 337, in validate_frames
+    require(not same_app_region(old, new, SAVE_STATUS), "Save did not change visible status feedback")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_display_probe.py", line 44, in require
+    raise ValueError(message)
+ValueError: Save did not change visible status feedback
+
+======================================================================
+ERROR: test_mutated_frozen_executable_is_rejected (test_materiaal_cold.ColdLifecycleTests.test_mutated_frozen_executable_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/nieuw-os-legacy-oracle/tools/tests/test_materiaal_cold.py", line 254, in setUp
+    self.expected = {"list": cold.cold_list_frame(self.frames),
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/nieuw-os-legacy-oracle/tools/materiaal_cold.py", line 13, in cold_list_frame
+    preview.probe.validate_frames(frames, "normal")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_probe.py", line 337, in validate_frames
+    require(not same_app_region(old, new, SAVE_STATUS), "Save did not change visible status feedback")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_display_probe.py", line 44, in require
+    raise ValueError(message)
+ValueError: Save did not change visible status feedback
+
+======================================================================
+ERROR: test_nonzero_exit_never_inspects_disk (test_materiaal_cold.ColdLifecycleTests.test_nonzero_exit_never_inspects_disk)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/nieuw-os-legacy-oracle/tools/tests/test_materiaal_cold.py", line 254, in setUp
+    self.expected = {"list": cold.cold_list_frame(self.frames),
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/nieuw-os-legacy-oracle/tools/materiaal_cold.py", line 13, in cold_list_frame
+    preview.probe.validate_frames(frames, "normal")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_probe.py", line 337, in validate_frames
+    require(not same_app_region(old, new, SAVE_STATUS), "Save did not change visible status feedback")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_display_probe.py", line 44, in require
+    raise ValueError(message)
+ValueError: Save did not change visible status feedback
+
+======================================================================
+ERROR: test_unmatched_list_stops_before_reopen_and_terminates_own_vm (test_materiaal_cold.ColdLifecycleTests.test_unmatched_list_stops_before_reopen_and_terminates_own_vm)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/nieuw-os-legacy-oracle/tools/tests/test_materiaal_cold.py", line 254, in setUp
+    self.expected = {"list": cold.cold_list_frame(self.frames),
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/nieuw-os-legacy-oracle/tools/materiaal_cold.py", line 13, in cold_list_frame
+    preview.probe.validate_frames(frames, "normal")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_probe.py", line 337, in validate_frames
+    require(not same_app_region(old, new, SAVE_STATUS), "Save did not change visible status feedback")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_display_probe.py", line 44, in require
+    raise ValueError(message)
+ValueError: Save did not change visible status feedback
+
+======================================================================
+ERROR: test_wrong_emulator_identity_cannot_send_input (test_materiaal_cold.ColdLifecycleTests.test_wrong_emulator_identity_cannot_send_input)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/nieuw-os-legacy-oracle/tools/tests/test_materiaal_cold.py", line 254, in setUp
+    self.expected = {"list": cold.cold_list_frame(self.frames),
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/nieuw-os-legacy-oracle/tools/materiaal_cold.py", line 13, in cold_list_frame
+    preview.probe.validate_frames(frames, "normal")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_probe.py", line 337, in validate_frames
+    require(not same_app_region(old, new, SAVE_STATUS), "Save did not change visible status feedback")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_display_probe.py", line 44, in require
+    raise ValueError(message)
+ValueError: Save did not change visible status feedback
+
+======================================================================
+ERROR: test_full_frame_composition_does_not_ignore_any_actual_pixel (test_materiaal_cold.ColdTraceTests.test_full_frame_composition_does_not_ignore_any_actual_pixel)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/nieuw-os-legacy-oracle/tools/tests/test_materiaal_cold.py", line 112, in test_full_frame_composition_does_not_ignore_any_actual_pixel
+    composed = cold.cold_list_frame(frames)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/nieuw-os-legacy-oracle/tools/materiaal_cold.py", line 13, in cold_list_frame
+    preview.probe.validate_frames(frames, "normal")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_probe.py", line 337, in validate_frames
+    require(not same_app_region(old, new, SAVE_STATUS), "Save did not change visible status feedback")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_display_probe.py", line 44, in require
+    raise ValueError(message)
+ValueError: Save did not change visible status feedback
+
+======================================================================
+ERROR: test_reference_loader_replays_native_proof_and_rejects_missing_phase (test_materiaal_preview.InteractiveBindingTests.test_reference_loader_replays_native_proof_and_rejects_missing_phase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/nieuw-os-legacy-oracle/tools/tests/test_materiaal_preview.py", line 234, in test_reference_loader_replays_native_proof_and_rejects_missing_phase
+    reference = preview.load_reference(
+                ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_preview.py", line 118, in load_reference
+    probe.validate_frames(frames, "normal")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_probe.py", line 337, in validate_frames
+    require(not same_app_region(old, new, SAVE_STATUS), "Save did not change visible status feedback")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_display_probe.py", line 44, in require
+    raise ValueError(message)
+ValueError: Save did not change visible status feedback
+
+======================================================================
+ERROR: test_drives_input_only_after_matching_ready_and_records_each_phase (test_materiaal_preview.InteractiveInputTests.test_drives_input_only_after_matching_ready_and_records_each_phase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/nieuw-os-legacy-oracle/tools/tests/test_materiaal_preview.py", line 303, in test_drives_input_only_after_matching_ready_and_records_each_phase
+    result = preview.run_interactive(
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_preview.py", line 156, in run_interactive
+    probe.validate_frames(reference["frames"], "normal")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_probe.py", line 337, in validate_frames
+    require(not same_app_region(old, new, SAVE_STATUS), "Save did not change visible status feedback")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_display_probe.py", line 44, in require
+    raise ValueError(message)
+ValueError: Save did not change visible status feedback
+
+======================================================================
+ERROR: test_expired_deadline_does_not_send_hardware_input (test_materiaal_preview.InteractiveInputTests.test_expired_deadline_does_not_send_hardware_input)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/nieuw-os-legacy-oracle/tools/tests/test_materiaal_preview.py", line 328, in test_expired_deadline_does_not_send_hardware_input
+    preview.run_interactive(
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_preview.py", line 156, in run_interactive
+    probe.validate_frames(reference["frames"], "normal")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_probe.py", line 337, in validate_frames
+    require(not same_app_region(old, new, SAVE_STATUS), "Save did not change visible status feedback")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_display_probe.py", line 44, in require
+    raise ValueError(message)
+ValueError: Save did not change visible status feedback
+
+======================================================================
+ERROR: test_unmatched_ready_pixels_never_allow_mouse_or_text_fallback (test_materiaal_preview.InteractiveInputTests.test_unmatched_ready_pixels_never_allow_mouse_or_text_fallback)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/nieuw-os-legacy-oracle/tools/tests/test_materiaal_preview.py", line 351, in test_unmatched_ready_pixels_never_allow_mouse_or_text_fallback
+    preview.run_interactive(
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_preview.py", line 156, in run_interactive
+    probe.validate_frames(reference["frames"], "normal")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_probe.py", line 337, in validate_frames
+    require(not same_app_region(old, new, SAVE_STATUS), "Save did not change visible status feedback")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_display_probe.py", line 44, in require
+    raise ValueError(message)
+ValueError: Save did not change visible status feedback
+
+======================================================================
+FAIL: test_interactive_disk_decoder_runs_after_qmp_quit_and_raw_zero (test_materiaal_preview.PreviewLifecycleTests.test_interactive_disk_decoder_runs_after_qmp_quit_and_raw_zero)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_preview.py", line 393, in run_preview
+    report["interactive"] = run_interactive(
+                            ^^^^^^^^^^^^^^^^
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_preview.py", line 156, in run_interactive
+    probe.validate_frames(reference["frames"], "normal")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_probe.py", line 337, in validate_frames
+    require(not same_app_region(old, new, SAVE_STATUS), "Save did not change visible status feedback")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_display_probe.py", line 44, in require
+    raise ValueError(message)
+ValueError: Save did not change visible status feedback
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/nieuw-os-legacy-oracle/tools/tests/test_materiaal_preview.py", line 489, in test_interactive_disk_decoder_runs_after_qmp_quit_and_raw_zero
+    result = self.run_preview(interactive=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/nieuw-os-legacy-oracle/tools/tests/test_materiaal_preview.py", line 465, in run_preview
+    return preview.run_preview(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_preview.py", line 465, in run_preview
+    process.wait(timeout=5)
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1204, in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/nieuw-os-legacy-oracle/tools/tests/test_materiaal_preview.py", line 460, in wait
+    self.assertTrue(self.quit)
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_nonzero_exit_cannot_pass_even_with_matching_frames (test_materiaal_preview.PreviewLifecycleTests.test_nonzero_exit_cannot_pass_even_with_matching_frames)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_preview.py", line 393, in run_preview
+    report["interactive"] = run_interactive(
+                            ^^^^^^^^^^^^^^^^
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_preview.py", line 156, in run_interactive
+    probe.validate_frames(reference["frames"], "normal")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_probe.py", line 337, in validate_frames
+    require(not same_app_region(old, new, SAVE_STATUS), "Save did not change visible status feedback")
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_display_probe.py", line 44, in require
+    raise ValueError(message)
+ValueError: Save did not change visible status feedback
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/nieuw-os-legacy-oracle/tools/tests/test_materiaal_preview.py", line 502, in test_nonzero_exit_cannot_pass_even_with_matching_frames
+    self.run_preview(interactive=True)
+  File "/workspace/nieuw-os-legacy-oracle/tools/tests/test_materiaal_preview.py", line 465, in run_preview
+    return preview.run_preview(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/nieuw-os-legacy-oracle/tools/run_materiaal_preview.py", line 465, in run_preview
+    process.wait(timeout=5)
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1204, in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/nieuw-os-legacy-oracle/tools/tests/test_materiaal_preview.py", line 460, in wait
+    self.assertTrue(self.quit)
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 195 tests in 25.939s
+
+FAILED (failures=2, errors=15)
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-zg59p7fe/checkout/build/run/cap-bench-f7a0b92d57b1464cb2adce0929487146
+Frozen guest/archive input changed: inputs/system_app.elf
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-3h04s01o/checkout/build/run/cap-bench-9f84a9a080f4490dab67ac85effee6a9
+Frozen guest/archive input changed: OVMF_CODE.fd
+CAPBENCH passed=True raw=33; /tmp/capbench-HOST_ONLY-a99h3b5y/checkout/build/run/cap-bench-90c243e7da2343d0b447caa8e39bb0b6
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-arik1ms9/checkout/build/run/cap-bench-85b0b032145e465b9691324f68399f33
+Symlink in FPU artifact path
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-l4zj4lxr/checkout/build/run/cap-bench-646de0c251f3470d842914cee0aee233
+Frozen source input changed: /tmp/capbench-HOST_ONLY-l4zj4lxr/checkout/source-code.fd
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-l4zj4lxr/checkout/build/run/cap-bench-d4384467149a410e81de31f95b867d69
+Frozen source input changed: /tmp/capbench-HOST_ONLY-l4zj4lxr/checkout/source-vars.fd
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-l4zj4lxr/checkout/build/run/cap-bench-fc879df340964d2aa0cbfee9772460e8
+Frozen source input changed: /tmp/capbench-HOST_ONLY-l4zj4lxr/checkout/qemu-system-x86_64
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-l4zj4lxr/checkout/build/run/cap-bench-bb8c9c8ebfb14a8f979caa9ffd2c04ee
+Frozen source input changed: /tmp/capbench-HOST_ONLY-l4zj4lxr/checkout/build/manifest.json
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-l4zj4lxr/checkout/build/run/cap-bench-4b28c8b4449c4a8a8026e9b41a0548c0
+Frozen source input changed: /tmp/capbench-HOST_ONLY-l4zj4lxr/checkout/build/esp/kernel.elf
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-l4zj4lxr/checkout/build/run/cap-bench-d2a3531508314a28a34c4fdee5f24c47
+Frozen source input changed: /tmp/capbench-HOST_ONLY-l4zj4lxr/checkout/build/esp/EFI/BOOT/BOOTX64.EFI
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-l4zj4lxr/checkout/build/run/cap-bench-58a20e0f82314edab798c445c299282f
+Frozen source input changed: /tmp/capbench-HOST_ONLY-l4zj4lxr/checkout/target/system-system/x86_64-unknown-none/release/system-app
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-l4zj4lxr/checkout/build/run/cap-bench-ea64923582dc4bebb62a77d942e17aba
+Frozen source input changed: /tmp/capbench-HOST_ONLY-l4zj4lxr/checkout/kernel/src/m2/m3/cap_bench.rs
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-tfxg8x30/checkout/build/run/cap-bench-ccc2e21f9f1d4dab9e33a860f190b08c
+Frozen guest/archive input changed: OVMF_VARS.template.fd
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-tfxg8x30/checkout/build/run/cap-bench-02a66a270b064a408034848658b1f349
+Frozen guest/archive input changed: inputs/manifest.json
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-tfxg8x30/checkout/build/run/cap-bench-b73d7a41de0149eda1f46685c2112edd
+Frozen guest/archive input changed: inputs/frozen-inputs.json
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-tfxg8x30/checkout/build/run/cap-bench-84ffa0376af84b0a8ce7aec508ae82d9
+Frozen guest/archive input changed: volume.img
+CAPBENCH passed=False raw=33; /tmp/capbench-HOST_ONLY-tfxg8x30/checkout/build/run/cap-bench-2d8350e34ee3471fbfb26f3b678041d0
+Frozen guest/archive input changed: volume.json
+CAPBENCH passed=True raw=33; /tmp/capbench-HOST_ONLY-sqzs2dyo/checkout/build/run/cap-bench-ef7afe68f6654c9c8356dc765c93d4f1
+IMAGES normal: passed=False gate=False /tmp/tmp8by4blqr/checkout/build/run/system-normal-11111111111111111111111111111111
+ValueError: changed serial
+IMAGES normal: passed=False gate=False /tmp/tmp8by4blqr/checkout/build/run/system-normal-11111111111111111111111111111111
+ValueError: source, QEMU or firmware changed during image gate
+RANDOM raw: passed=False gate=False /tmp/tmptlos3ij2/checkout/build/run/system-normal-11111111111111111111111111111111
+ValueError: changed serial
+RANDOM raw: passed=False gate=False /tmp/tmptlos3ij2/checkout/build/run/system-normal-11111111111111111111111111111111
+ValueError: source, QEMU or firmware changed during RANDOM gate
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+RTC:UTC:1793361600
+RTC:DATE:2026,10,30,12,0,0
+RTC:QUALITY:UNAUTHENTICATED
+RTC:NEGATIVE:PASS
+RTC:RESTORE:PASS
+RTC:PASS
+M2:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /tmp/tmpzim6dskk/build/run/smoke-473ea77ff7
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+RTC:UTC:1793361600
+RTC:DATE:2026,10,30,12,0,0
+RTC:QUALITY:UNAUTHENTICATED
+RTC:NEGATIVE:PASS
+RTC:RESTORE:PASS
+RTC:PASS
+M2:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /tmp/tmpzim6dskk/build/run/smoke-6e8507ca04

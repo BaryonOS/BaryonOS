@@ -1,0 +1,403 @@
+{
+  "scope": "Executed host checks; native evidence is separate. Main readiness publication subsequently validated in both source-bound 703 native profiles.",
+  "commands": [
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--manifest-path",
+        "ui/native/Cargo.toml",
+        "--offline",
+        "--locked",
+        "--release"
+      ],
+      "exit_status": 0,
+      "seconds": 12.258256547999963,
+      "log": "/workspace/nieuw-os/build/session-final-checks/native-test.txt",
+      "log_sha256": "68bc5389c2b3aa959f312d7ee632bc0b9d992b0af94efbee93e343f055f4e512",
+      "rust_tests_passed": 63
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--manifest-path",
+        "ui/native/Cargo.toml",
+        "--offline",
+        "--locked",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_status": 0,
+      "seconds": 3.7548439940001117,
+      "log": "/workspace/nieuw-os/build/session-final-checks/native-clippy.txt",
+      "log_sha256": "d998c87f27091fe39c9741ebc96e243f6980f3512b85b6a15b7fdd66001015d5"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "ui/native/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_status": 0,
+      "seconds": 0.16837916499980565,
+      "log": "/workspace/nieuw-os/build/session-final-checks/native-fmt.txt",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--manifest-path",
+        "ui/graphics/Cargo.toml",
+        "--offline",
+        "--locked",
+        "--release"
+      ],
+      "exit_status": 0,
+      "seconds": 0.766953858000079,
+      "log": "/workspace/nieuw-os/build/session-final-checks/graphics-test.txt",
+      "log_sha256": "ee10c168453bf2a0a33201e4bceedacc8a7f711dfbb12a3ea032888d545faf88",
+      "rust_tests_passed": 9
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--manifest-path",
+        "ui/graphics/Cargo.toml",
+        "--offline",
+        "--locked",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_status": 0,
+      "seconds": 0.8703990030001023,
+      "log": "/workspace/nieuw-os/build/session-final-checks/graphics-clippy.txt",
+      "log_sha256": "7cb141f4dd4f4b4f9b7456c8a8db8ee52fcbdab90defe35f22741edc3474e1a6"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "ui/graphics/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_status": 0,
+      "seconds": 0.21591925500001707,
+      "log": "/workspace/nieuw-os/build/session-final-checks/graphics-fmt.txt",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--manifest-path",
+        "sdk/examples/calculator/Cargo.toml",
+        "--offline",
+        "--locked",
+        "--release"
+      ],
+      "exit_status": 0,
+      "seconds": 6.911555306000082,
+      "log": "/workspace/nieuw-os/build/session-final-checks/calculator-test.txt",
+      "log_sha256": "00b5e5ee4a7e337090896e3dfa2fb3c2bdf0da560a932acf0e15fd63f4021fcd",
+      "rust_tests_passed": 30
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--manifest-path",
+        "sdk/examples/calculator/Cargo.toml",
+        "--offline",
+        "--locked",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_status": 0,
+      "seconds": 4.213258938000081,
+      "log": "/workspace/nieuw-os/build/session-final-checks/calculator-clippy.txt",
+      "log_sha256": "94768dba54026753df47644bf4cc3241065e253076e3efb9ca71efce0ff21a63"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "sdk/examples/calculator/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_status": 0,
+      "seconds": 0.17816831699997238,
+      "log": "/workspace/nieuw-os/build/session-final-checks/calculator-fmt.txt",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml",
+        "--offline",
+        "--locked",
+        "--release"
+      ],
+      "exit_status": 0,
+      "seconds": 10.501549309999973,
+      "log": "/workspace/nieuw-os/build/session-final-checks/material-test.txt",
+      "log_sha256": "82404d146c5d7787d9c1ef2c6f899ee850b7e5ac3506eff3d53e2b53e0d45527",
+      "rust_tests_passed": 41
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml",
+        "--offline",
+        "--locked",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_status": 0,
+      "seconds": 4.055238721000023,
+      "log": "/workspace/nieuw-os/build/session-final-checks/material-clippy.txt",
+      "log_sha256": "47960fa914e0b1a1aa41f0839856826438fb84605cbfe9af5dd55179a221baac"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_status": 0,
+      "seconds": 0.1658475389999694,
+      "log": "/workspace/nieuw-os/build/session-final-checks/material-fmt.txt",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--offline",
+        "--locked",
+        "--release"
+      ],
+      "exit_status": 0,
+      "seconds": 1.7758046989999912,
+      "log": "/workspace/nieuw-os/build/session-final-checks/surface-test.txt",
+      "log_sha256": "202855f7ead348540a70afdd400be01021fe53381ab864214cafc2b6c3c37784",
+      "rust_tests_passed": 12
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--offline",
+        "--locked",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_status": 0,
+      "seconds": 0.5693774349999785,
+      "log": "/workspace/nieuw-os/build/session-final-checks/surface-clippy.txt",
+      "log_sha256": "ae802c0ee401c31f059e8c4c66cb62e2edf6d97a6c0bd47a5bda18e43dd1e692"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_status": 0,
+      "seconds": 0.11435111900004813,
+      "log": "/workspace/nieuw-os/build/session-final-checks/surface-fmt.txt",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--release",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml"
+      ],
+      "exit_status": 0,
+      "log": "/workspace/nieuw-os/build/session-final-checks/shell-release.txt",
+      "log_sha256": "b238a4e640b04d0660977f69b739be1fe5f62500e2362c1fa273445d16127095",
+      "rust_tests_passed": 58
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_status": 0,
+      "log": "/workspace/nieuw-os/build/session-final-checks/shell-clippy-release.txt",
+      "log_sha256": "26fa6cc43e5495f9ec95074569fb0ad7457a5eef9d39401c506156526f6a8341"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--release",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--features",
+        "client"
+      ],
+      "exit_status": 0,
+      "log": "/workspace/nieuw-os/build/session-final-checks/surface-client-test.txt",
+      "log_sha256": "d4138c2e389ff13fb6c8bd665c0300f87266467d9600afd80880d521ec0be4de",
+      "rust_tests_passed": 23
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--all-targets",
+        "--features",
+        "client",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_status": 0,
+      "log": "/workspace/nieuw-os/build/session-final-checks/surface-client-clippy.txt",
+      "log_sha256": "8e5c14ec37a939c2329ea1d50766ded35b1c0a3ee5790aafc5768993ed176beb"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/test_window_session.py"
+      ],
+      "exit_status": 0,
+      "log": "/workspace/nieuw-os/build/session-final-checks/runner-publication.txt",
+      "log_sha256": "d1a695921180d2a7bcf6bc0ccc995996e16090220b9ec042ff12a1ee40bf771d"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--release",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--target",
+        "x86_64-unknown-none",
+        "--features",
+        "native,session-preview",
+        "--bins",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_status": 0,
+      "log": "/workspace/nieuw-os/build/session-final-checks/native-shell-clippy.txt",
+      "log_sha256": "fbb1ae1be53a4f019bb11c3c93ce622d4d8847330e7ede74d3a6aa05467cb308"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests"
+      ],
+      "exit_status": 0,
+      "log": "/workspace/nieuw-os/build/session-final-checks/python-tools.txt",
+      "log_sha256": "b27e0070c09546021a461395d761ff1b90ed5e331e9390182ca0c2a05e55c1ad"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_status": 0,
+      "log": "/workspace/nieuw-os/build/session-final-checks/root-fmt.txt",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/preflight.py",
+        "--strict"
+      ],
+      "exit_status": 0,
+      "log": "/workspace/nieuw-os/build/session-final-checks/preflight.json",
+      "log_sha256": "6ac765693397d79738807ec097019927a4d996cf3ce0dd9a49278ee03d0c9833"
+    }
+  ]
+}

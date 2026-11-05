@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "date_europe_amsterdam": "2026-11-03",
+  "base_commit": "2825a4a0017403212c6e609ecf0059ab5d3b0bc7",
+  "merged_main": "69809c2cb53dfb3bd77abe5352892810fba6e82d",
+  "scope": "Echte main114-opname op native135/142; vijf centrale document-/ADR-conflicten opgelost met behoud van beide inhoudsintenties, unieke ADR059-064 en historische bronnen. Geen productiecodepad verschilt van2825a4a0.",
+  "source_sha256": "2a8bf7d3e085dcb8cab2f82b14129509ca5bc09c3f5b9eaaf68058ba62b74524",
+  "production_code_unchanged_vs_base": true,
+  "single_current_handoff": true,
+  "numbered_adr_ids_unique": true,
+  "initial_adr_assertion": "Eerst daadwerkelijk mislukt door dubbel058. Consumentenbesluit058 intact; volume-identiteit064 plus oude volledige titelalias en twee huidige verwijzingen. Geen besluitinhoud gewijzigd.",
+  "checks": [
+    {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_storage_backend_replay.py' -v",
+      "exit_status": 0,
+      "log": "/tmp/nieuw-os-pr135-main698-storage.log",
+      "sha256": "0a786d2840e431e3fd4199ffca92d9dece0efcd6db9678a2d369826d4fc5f540"
+    },
+    {
+      "command": "python3 -B docs/verification/native-storage-backend-gate/verify_evidence.py",
+      "exit_status": 0,
+      "log": "/tmp/nieuw-os-pr135-main698-archive.log",
+      "sha256": "8ff699d75686b38fbadd0ff64faa4c76e47e1b58c54a9f7d52c3359a3c425212"
+    }
+  ],
+  "main114_actual_window_proof": "pr114-32b6-window-verified.json",
+  "retained_actual_heads": "main698-retained-leaves.json",
+  "not_run": "Nieuwe volledige CI/review/native gates op deze combinatie; hostedvolume-fixtureartifact/run-ID blijft ontbreken. Oudere VM-resultaten niet naar de nieuwe bron gepromoveerd.",
+  "progress_previous": 41,
+  "progress_current": 41
+}

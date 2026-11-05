@@ -163,6 +163,33 @@ pub fn install() {
     }
 }
 
+/// AP half of `install`: the same permanent GDT/IDT, but no `ltr`. The single
+/// TSS is the BSP's and is already busy; APs have no IST/TSS in this profile,
+/// so an NMI/#DF on an AP shuts the VM down instead of running on a bad stack.
+#[cfg(feature = "native-smp")]
+pub fn install_ap() {
+    let gdtr = Pointer {
+        limit: 55,
+        base: ptr::addr_of!(GDT) as u64,
+    };
+    let idtr = Pointer {
+        limit: 4095,
+        base: ptr::addr_of!(IDT) as u64,
+    };
+    // SAFETY: Runs on an AP with IF=0 on its own mapped stack. The BSP fully
+    // initialized GDT/IDT before publishing the AP context (Release, acquired by
+    // the claim CAS); both tables are permanent and unchanged afterwards. Only
+    // this CPU's descriptor-table registers and segment selectors change.
+    unsafe {
+        asm!("lgdt [{}]",in(reg) &gdtr,options(readonly,nostack));
+        asm!("push 8","lea rax, [rip + 2f]","push rax","retfq","2:","mov ax, 16","mov ds, ax","mov es, ax","mov ss, ax","xor eax,eax","mov fs, ax","mov gs, ax",out("rax") _);
+        asm!("lidt [{}]",in(reg) &idtr,options(readonly,nostack));
+        for msr in [0xc0000100u32, 0xc0000101, 0xc0000102] {
+            asm!("wrmsr",in("ecx") msr,in("eax") 0u32,in("edx") 0u32,options(nostack));
+        }
+    }
+}
+
 pub fn protection() {
     // SAFETY: CPUID has no memory effects; own scalar-only kernel target. All CR
     // and MSR operations execute at CPL0 with IF clear. NX checked before NXE.

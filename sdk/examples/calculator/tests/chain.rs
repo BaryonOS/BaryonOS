@@ -111,6 +111,7 @@ struct Host {
     clipboard_fault: ClipboardFault,
     clipboard_trace: Vec<ClipboardTrace>,
     clipboard_sequence: Option<u64>,
+    clipboard_copies: Vec<String>,
     clipboard_reply_queued: bool,
     clipboard_ack_reply_queued: bool,
 }
@@ -176,6 +177,7 @@ impl Host {
             clipboard_fault: ClipboardFault::None,
             clipboard_trace: vec![],
             clipboard_sequence: None,
+            clipboard_copies: vec![],
             clipboard_reply_queued: false,
             clipboard_ack_reply_queued: false,
         }));
@@ -248,15 +250,22 @@ impl Host {
             // CLP shares its exact app pair and Engine-authenticated peer.
             assert_eq!(m.sender_pid, APP);
             let request = clip::Request::decode(&m.data[..m.len as usize]).unwrap();
-            assert_eq!(request.header.operation, clip::Operation::Paste);
             assert_eq!(request.header.epoch, self.input_epoch);
             self.clipboard_sequence = Some(request.header.sequence);
             self.clipboard_trace
                 .push(ClipboardTrace::Requested(request.header.sequence));
+            let (status, text) = match request.header.operation {
+                clip::Operation::Paste => (clip::Status::Ok, "6/2"),
+                clip::Operation::Copy if request.text.is_empty() => (clip::Status::Empty, ""),
+                clip::Operation::Copy => {
+                    self.clipboard_copies.push(request.text.to_owned());
+                    (clip::Status::Ok, "")
+                }
+            };
             let reply = clip::Reply {
                 header: request.header,
-                status: clip::Status::Ok,
-                text: "6/2",
+                status,
+                text,
             }
             .outgoing()
             .unwrap();
@@ -717,6 +726,66 @@ fn lost_retained_reply_never_presents_or_drops_calculator_work() {
 }
 
 #[test]
+fn current_result_can_be_selected_by_pointer_or_shortcut_and_copied_over_existing_typed_pair() {
+    use nieuw_os_calculator::render::{Layout, Viewport};
+    for scale in [1, 2] {
+        for pointer in [false, true] {
+            let h = Host::new();
+            let mut a = app(&h, scale);
+            a.enable_clipboard();
+            finish(&mut a);
+            keys(
+                &h,
+                &mut a,
+                &[0x08, 0x88, 0x35, 0xb5, 0x03, 0x83, 0x1c, 0x9c],
+            );
+            finish(&mut a);
+            assert_eq!(a.model().expression(), "7/2");
+            if pointer {
+                let g = geometry();
+                let view = Viewport::new(
+                    u32::from(g.assigned.width),
+                    u32::from(g.assigned.height),
+                    scale,
+                )
+                .unwrap();
+                let bounds = Layout::new(view).result_bounds(scale);
+                let (x, y) = (
+                    g.assigned.x + (bounds.x + 8) * scale,
+                    g.assigned.y + (bounds.y + 8) * scale,
+                );
+                for buttons in [0, 1, 0] {
+                    h.borrow_mut().mouse(x, y, buttons);
+                    finish(&mut a);
+                }
+            } else {
+                keys(&h, &mut a, &[0x1d, 0x13, 0x93, 0x9d]);
+                finish(&mut a);
+            }
+            assert!(a.model().result_selected());
+            assert_eq!(a.model().clipboard_selection(), "3,5");
+            keys(&h, &mut a, &[0x1d, 0x2e, 0xae, 0x9d]);
+            finish(&mut a);
+            assert_eq!(h.borrow().clipboard_copies, ["3,5"]);
+            assert_eq!(a.model().expression(), "7/2");
+            assert_eq!(a.model().evaluations(), 1);
+            assert_eq!(a.evidence().errors, 0);
+            assert_retained_calculator_pixels(&a, &h.borrow(), scale);
+            // Actual later edit makes the cached answer stale and unselectable.
+            keys(
+                &h,
+                &mut a,
+                &[0x05, 0x85, 0x1d, 0x13, 0x93, 0x2e, 0xae, 0x9d],
+            );
+            finish(&mut a);
+            assert!(!a.model().current());
+            assert_eq!(h.borrow().clipboard_copies, ["3,5"]);
+            assert!(h.borrow().engine.check_invariants());
+            a.stop_clean().unwrap();
+        }
+    }
+}
+#[test]
 fn enabled_clipboard_pastes_only_after_real_input_ack_and_never_evaluates_text() {
     for enabled in [false, true] {
         let h = Host::new();
@@ -1125,6 +1194,96 @@ fn supervisor_retirement_detaches_both_owners_when_one_session_already_failed() 
         assert_computed_work(&a);
         assert_closed_pairs(&h.borrow(), pairs);
         assert!(h.borrow().engine.check_invariants());
+    }
+}
+#[test]
+fn recent_calculations_and_unfinished_draft_roundtrip_through_real_arrow_scan_events() {
+    for scale in [1, 2] {
+        let h = Host::new();
+        let mut a = app(&h, scale);
+        finish(&mut a);
+        keys(
+            &h,
+            &mut a,
+            &[
+                0x03, 0x83, 0x2a, 0x0d, 0x8d, 0xaa, 0x04, 0x84, 0x1c, 0x9c, 0x01, 0x81, 0x05, 0x85,
+                0x2a, 0x09, 0x89, 0xaa, 0x06, 0x86, 0x1c, 0x9c, 0x01, 0x81, 0x0a, 0x8a, 0x35, 0xb5,
+                0x03, 0x83,
+            ],
+        );
+        finish(&mut a);
+        assert_eq!(a.model().expression(), "9/2");
+        assert_eq!(a.model().evaluations(), 2);
+        let baseline = a.evidence();
+        for (scans, expression) in [
+            (&[0xe0, 0x48, 0xe0, 0xc8][..], "4*5"),
+            (&[0xe0, 0x48, 0xe0, 0xc8][..], "2+3"),
+            (&[0xe0, 0x50, 0xe0, 0xd0][..], "4*5"),
+            (&[0xe0, 0x50, 0xe0, 0xd0][..], "9/2"),
+        ] {
+            keys(&h, &mut a, scans);
+            finish(&mut a);
+            assert_eq!(a.model().expression(), expression);
+            assert_eq!(a.model().evaluations(), 2);
+            assert!(!a.model().current());
+            assert_eq!(a.evidence().presented_generation, a.model().generation());
+            assert_eq!(a.evidence().errors, 0);
+            assert!(h.borrow().engine.check_invariants());
+        }
+        assert_eq!(a.evidence().keys - baseline.keys, 8);
+        assert_eq!(a.evidence().input_acks - baseline.input_acks, 8);
+        keys(&h, &mut a, &[0x1c, 0x9c]);
+        finish(&mut a);
+        assert_eq!(a.model().evaluations(), 3);
+        assert_eq!(a.model().answer().unwrap().value.raw(), 4_500_000_000);
+        a.stop_clean().unwrap();
+    }
+}
+#[test]
+fn calculator_undo_redo_uses_authenticated_scan_events_and_commits_restored_frames() {
+    for scale in [1, 2] {
+        let h = Host::new();
+        let mut a = app(&h, scale);
+        finish(&mut a);
+        keys(
+            &h,
+            &mut a,
+            &[0x03, 0x83, 0x2a, 0x0d, 0x8d, 0xaa, 0x04, 0x84, 0x1c, 0x9c],
+        );
+        finish(&mut a);
+        assert_eq!(a.model().expression(), "2+3");
+        assert!(a.model().current());
+        let evaluations = a.model().evaluations();
+        let baseline = a.evidence();
+        // Backspace, undo, redo, undo: all decoded by the real input service.
+        for (scans, expression) in [
+            (&[0x0e, 0x8e][..], "2+"),
+            (&[0x1d, 0x2c, 0xac, 0x9d][..], "2+3"),
+            (&[0x1d, 0x15, 0x95, 0x9d][..], "2+"),
+            (&[0x1d, 0x2c, 0xac, 0x9d][..], "2+3"),
+        ] {
+            keys(&h, &mut a, scans);
+            assert_eq!(a.model().expression(), expression);
+            assert!(!a.model().current());
+            assert_eq!(a.model().evaluations(), evaluations);
+            finish(&mut a);
+            assert_eq!(
+                h.borrow().surface.completed_frame(),
+                Some(a.model().generation())
+            );
+            assert_eq!(a.evidence().presented_generation, a.model().generation());
+            assert_eq!(a.evidence().errors, 0);
+            assert!(h.borrow().engine.check_invariants());
+        }
+        assert_eq!(a.evidence().keys - baseline.keys, 14);
+        assert_eq!(a.evidence().input_acks - baseline.input_acks, 14);
+        keys(&h, &mut a, &[0x1c, 0x9c]);
+        finish(&mut a);
+        assert_eq!(a.model().evaluations(), evaluations + 1);
+        assert!(a.model().current());
+        assert_eq!(a.model().answer().unwrap().value.raw(), 5 * SCALE);
+        a.stop_clean().unwrap();
+        assert_eq!(h.borrow().closed.len(), 4);
     }
 }
 #[test]

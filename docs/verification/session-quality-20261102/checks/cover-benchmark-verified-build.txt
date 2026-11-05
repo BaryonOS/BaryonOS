@@ -1,0 +1,2 @@
+    Finished `release` profile [optimized] target(s) in 0.01s
+     Running `target/session-final-cover-bench/release/examples/cover_bench`
