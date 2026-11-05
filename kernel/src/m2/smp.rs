@@ -12,12 +12,14 @@
 //!   with one `lock cmpxchg` STARTING->CLAIMED. The BSP's timeout uses the same
 //!   CAS STARTING->ABANDONED, so a late AP can never run on a stack the BSP has
 //!   given up; a claimed-but-silent AP is reset with INIT and bring-up stops.
-//! - APs touch only their own stack, their context atomics, the read-only BSP
-//!   register snapshot and the self-test atomics/spinlock, then halt with IF=0.
-//!   They never enter allocator, paging, IPC or scheduler code. Exception: a
-//!   CPU exception on an AP enters the shared M2 handlers, which write serial
-//!   and exit the VM (IST gates triple-fault: APs have no TSS). That is a
-//!   terminal stop, never a resumed or corrupted bring-up.
+//! - APs touch only their own stacks, their context/CpuLocal atomics, the
+//!   read-only BSP register snapshot and the self-test state. They never enter
+//!   allocator, paging, IPC or the M3 scheduler. Each AP has its own TSS/IST
+//!   (ADR-071); after bring-up it waits with `sti; hlt` for bounded IPIs and
+//!   runs two preempted kernel threads with IF=1 (ADR-073), then parks with
+//!   IF=0. Serial is touched only on terminal paths: a CPU exception in the
+//!   shared M2 handlers or the unreachable no-anchor check in `smp_preempt`;
+//!   both stop the VM, never a resumed or corrupted state.
 //! - If an AP that failed cannot be reset with INIT, the boot stops (fail):
 //!   an uncontrolled CPU is never left running beside the kernel.
 use super::{arch, paging, zero, FRAME_COUNT};
@@ -146,6 +148,8 @@ struct CpuLocal {
     preempt: AtomicU32,
     counts: [AtomicU64; 2],
     saved: [AtomicU64; 3],
+    /// Set by a thread whose callee-saved registers changed across preemption.
+    corrupt: AtomicU32,
 }
 const _: () = {
     assert!(core::mem::offset_of!(CpuLocal, self_ptr) == 0);
@@ -167,6 +171,7 @@ static CPU_LOCAL: [CpuLocal; MAX_APS] = [const {
         preempt: AtomicU32::new(0),
         counts: [const { AtomicU64::new(0) }; 2],
         saved: [const { AtomicU64::new(0) }; 3],
+        corrupt: AtomicU32::new(0),
     }
 }; MAX_APS];
 
@@ -1326,10 +1331,36 @@ extern "C" fn smp_preempt(rsp: u64) -> u64 {
     local.saved[next].load(Ordering::Relaxed)
 }
 
+/// Each slice parks distinct per-CPU/per-thread values in r12-r15 (and the
+/// compiler-chosen input registers), spins long enough to be preempted many
+/// times, then checks them: a wrong save/restore in the timer stub would show
+/// up as `corrupt`, not just as a passing tick count.
 fn thread_body(local: &CpuLocal, index: usize) -> ! {
+    let seed = (u64::from(local.slot.load(Ordering::Relaxed)) << 8 | (index as u64 + 1))
+        * 0x0101_0101_0101_0101;
     loop {
+        let intact: u32;
+        // SAFETY: Pure register arithmetic and PAUSE on this thread's own
+        // stack; r12-r15 are declared clobbered, no memory is touched.
+        unsafe {
+            asm!(
+                "mov r12, {a}", "mov r13, {b}", "mov r14, {c}", "mov r15, {d}",
+                "2:", "pause", "dec {n}", "jnz 2b",
+                "xor {ok:e}, {ok:e}",
+                "cmp r12, {a}", "jne 3f", "cmp r13, {b}", "jne 3f",
+                "cmp r14, {c}", "jne 3f", "cmp r15, {d}", "jne 3f",
+                "mov {ok:e}, 1",
+                "3:",
+                a = in(reg) seed, b = in(reg) seed ^ 0x5555, c = in(reg) seed.rotate_left(17),
+                d = in(reg) !seed, n = inout(reg) 2_000u64 => _, ok = out(reg) intact,
+                out("r12") _, out("r13") _, out("r14") _, out("r15") _,
+                options(nomem, nostack),
+            );
+        }
+        if intact != 1 {
+            local.corrupt.store(1, Ordering::Release);
+        }
         local.counts[index].fetch_add(1, Ordering::Release);
-        spin_loop();
     }
 }
 extern "C" fn nos_smp_thread0() -> ! {
@@ -1406,7 +1437,20 @@ fn preemption(online: usize, total: usize) -> bool {
                     .iter()
                     .all(|count| count.load(Ordering::Acquire) != 0)
         };
-        if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32) || !within_ms(500, progressed) {
+        if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32) || !within_ms(500, progressed) || {
+            // Both threads must keep advancing between two BSP samples.
+            let before = local
+                .counts
+                .each_ref()
+                .map(|count| count.load(Ordering::Acquire));
+            !within_ms(500, || {
+                local
+                    .counts
+                    .iter()
+                    .zip(before)
+                    .all(|(count, old)| count.load(Ordering::Acquire) > old)
+            })
+        } {
             serial::write(b"SMP:PREEMPT:TIMEOUT:APIC=");
             decimal(u64::from(apic));
             serial::write(b"\n");
@@ -1423,6 +1467,27 @@ fn preemption(online: usize, total: usize) -> bool {
             serial::write(b"SMP:PREEMPT:STOP_TIMEOUT\n");
             quarantine_all(online, total);
             return false;
+        }
+    }
+    // After STOP nothing may run any more: counters and ticks stay frozen,
+    // and no thread saw its registers change across a switch.
+    let frozen = |local: &CpuLocal| {
+        (
+            local.ticks.load(Ordering::Acquire),
+            local
+                .counts
+                .each_ref()
+                .map(|count| count.load(Ordering::Acquire)),
+        )
+    };
+    let snapshot: [_; MAX_APS] = core::array::from_fn(|i| (i < online).then(|| frozen(&locals[i])));
+    wait_us(10_000);
+    for (i, local) in locals.iter().enumerate() {
+        if snapshot[i] != Some(frozen(local)) {
+            serial::fail(b"SMP_PREEMPT_RAN_AFTER_STOP");
+        }
+        if local.corrupt.load(Ordering::Acquire) != 0 {
+            serial::fail(b"SMP_PREEMPT_CONTEXT_CORRUPT");
         }
     }
     serial::write(b"SMP:PREEMPT:PASS:CPUS=");

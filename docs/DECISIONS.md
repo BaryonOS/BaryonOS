@@ -1,5 +1,28 @@
 # Ontwerpbesluiten
 
+## ADR-073 — Gepreëmpteerde kernelthreads op AP's (K06 stap 4)
+
+5 november 2026; alleen in `native-smp`, de BSP blijft IF=0. Iedere AP
+krijgt een periodieke LAPIC-timer (vector 0xd0). De stub bewaart alle 15
+GPR's op de onderbroken stack, en `smp_preempt` kiest round-robin tussen
+de thuislus en twee kernelthreads, elk op een eigen stack met guards. De
+kernel is soft-float zonder red zone; GPR's plus het CPU-interruptframe
+vormen daarom de volledige threadcontext. Er is geen FPU-, XSAVE- of
+per-thread-CR3-wissel.
+
+**Contract.** Een thread draait alleen tussen RUN en STOP. Bij STOP maskeert
+de eerstvolgende tick de timer en keert de AP terug naar zijn thuislus.
+Pas daarna meldt hij RESUMED. De BSP eist per AP minstens 8 ticks en 4
+contextwissels, en dat beide threads vooruitgang boeken. Een AP die dat
+niet haalt, wordt behandeld als een dove AP: alle AP's krijgen INIT en de
+BSP werkt alleen verder.
+
+**Bewijs:** `docs/verification/k06-smp-preempt/`. **Open:** dit zijn
+kernelthreads zonder eigen adresruimte, er is geen gedeelde runqueue of
+migratie, en er zijn geen interrupts of preëmptie op de BSP. Er is geen
+lockvolgorde voor kernelsubsystemen en geen gebruikersprocessen op AP's;
+ADR-024 is ongewijzigd. Deze stap verandert niets aan andere profielen.
+
 ## ADR-072 — TLB-shootdown vóór hergebruik van een fysieke pagina (K06 stap 3)
 
 5 november 2026; aanvulling op ADR-070/071, alleen in `native-smp`. Op SMP
