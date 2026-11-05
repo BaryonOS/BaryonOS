@@ -36,8 +36,8 @@ Regels:
 | Onderdeel | Gedrag | Keuze waar platforms verschillen |
 |---|---|---|
 | Bureaublad | Achtergrond; optioneel snelkoppelingen; rechtermuisklik: nieuw document, achtergrond wijzigen, beeldscherminstellingen | Standaard leeg bureaublad met alleen achtergrond |
-| Taakbalk | Startknop, zoekveld, vastgemaakte en geopende apps met indicator, systeemvak, klok/datum, meldingen | Onderaan, apps gecentreerd; links uitlijnen instelbaar |
-| Startmenu | Zoekveld bovenaan (direct typen zoekt), vastgemaakte apps, alle apps, recente bestanden, gebruiker en aan/uit-menu | Opent met de OS-toets of de startknop |
+| Dock | Overzichtsknop (eigen horizon-merkteken, geen "Start"), zoek-/commandoveld, vastgemaakte en geopende apps met indicator, systeemvak, klok/datum, meldingen | Zwevende capsule onderaan, gecentreerd; plek blijft herkenbaar |
+| Overzicht | Zoekveld bovenaan (direct typen zoekt), vastgemaakte apps, alle apps, recente bestanden, gebruiker en aan/uit-menu | Opent met de OS-toets of het merkteken in het dock |
 | Zoeken | Apps, instellingen en eigen bestanden, lokaal geïndexeerd; resultaten direct bij typen | Geen internetzoekopdracht standaard; alleen als de gebruiker dat aanzet en een zoekdienst kiest |
 | Vensters | Titelbalk met minimaliseren, maximaliseren en sluiten; slepen; vergroten via randen; dubbelklik op titelbalk maximaliseert | Knoppen rechts |
 | Venster schikken | Slepen naar rand of hoek, of OS-toets+pijl, zet venster op helft of kwart | — |
@@ -57,7 +57,7 @@ Regels:
 | Ctrl+Z / Ctrl+Y | Ongedaan maken / opnieuw |
 | Ctrl+S, Ctrl+A, Ctrl+F, Ctrl+P | Opslaan, alles selecteren, zoeken, afdrukken |
 | Alt+Tab, Alt+F4 | Wisselen, venster sluiten |
-| OS-toets | Startmenu met zoeken |
+| OS-toets | Overzicht met zoeken |
 | OS-toets+E / +I / +L / +D | Bestanden / Instellingen / vergrendelen / bureaublad tonen |
 | Ctrl+Alt+Delete | Vertrouwd systeemscherm (vergrendelen, wisselen, afmelden, taakbeheer) |
 | Ctrl+Shift+Esc | Taakbeheer |
@@ -112,45 +112,60 @@ Dit is een ontwerp. Het bewijst geen werkende shell, geen gebruiksgemak en
 geen gelijkwaardigheid met bestaande platforms. Herkenbaarheid wordt pas
 geclaimd na gemeten taakproeven (U06).
 
-## 7. Uiterlijk 2030 — eerste slag (5 november 2026)
+## 7. Uiterlijk 2030 — "Horizon" (5 november 2026)
 
-Status: **host-gerenderd** via de bestaande desktopfixtures in `ui/native`;
-geen nieuw native QEMU-bewijs en geen gemeten gebruiksproef.
+Status: **host-gerenderd** via de bestaande desktopfixtures in `ui/native`
+(768×536, 1280×720, 1920×1080); geen nieuw native QEMU-bewijs en geen gemeten
+gebruiksproef.
 
-Wat is veranderd in de VM-desktop (`ui/native`, `ui/graphics`):
+Gebruikersbesluit (Simon, 5 november 2026): geen "Start"-knop of een icoon
+dat aan een bestaand OS-logo doet denken, en geen vorm die aanvoelt als een
+opgepimpte klassieke taakbalk. De **plek** van de bediening blijft herkenbaar
+(onderaan, zoeken, apps, afmelden); vorm, naam en lichtbeeld zijn eigen.
 
-- **Aurora-achtergrond** uit de bestaande desktoptokens (`--desktop-*`):
-  diep diagonaal verloop, iris- en teal-licht, twee dunne lichtbanden en een
-  zachte vignet. Alleen gehele getallen, dus elke tegel rendert identiek.
-- **Donker glas** in plaats van witte formulierkaarten voor inloggen,
-  werkruimte en zoeken: doorschijnend vlak met een fijne lichte rand, lichte
-  tekst. De focusring wordt op glas licht in plaats van teal (zichtbaar
-  contrast).
-- **Taakbalk volgens §2:** startknop, zoekveld, een vastgemaakte app
-  (Materiaal, met een indicator als de app open is) en rechts het systeemvak
-  met de aan/uit-knop (afmelden).
-- **Privacystatus zonder pop-up:** een rustige chip "Lokaal" met schild in het
-  systeemvak. Hij is geen bedieningselement en vraagt niets. Hij zegt alleen
-  wat waar is in deze VM-sessie: je werkruimte staat op dit apparaat. De
-  volledige indicator uit §4 (welke app netwerk, microfoon, camera of locatie
-  gebruikt) vraagt een capabilitybron die nog niet bestaat.
+Ontwerptaal "Horizon":
 
-Bewust nog niet gedaan: een klok/datum (de UI heeft geen tijdbron; de RTC-driver
-is niet tot de shell doorgetrokken), nep-apps in het startmenu, animatie en
-een echt startmenu met app-raster. Die volgen pas als er echte bronnen zijn.
+- **Licht als materiaal.** Achtergrond: een donkere hemel boven de oplichtende
+  rand van een planeet, met atmosfeerlicht, een iris-waas en spaarzame
+  sterren. De rand wordt met 1/16-pixelprecisie berekend, zodat hij ook op
+  FHD-, QHD- en 4K-schermen strak blijft. Alleen gehele getallen, dus elke
+  tegel rendert identiek.
+- **Zwevend glas met lichtrand.** Oppervlakken zijn donker doorschijnend glas
+  met een fijne rand en een highlight van boven (`rim`). Er zijn geen witte
+  formulierkaarten.
+- **Eén commandodock** in plaats van een taakbalk: een gecentreerde capsule
+  met het eigen merkteken (een lichtende eclips boven een horizon, toegankelijk
+  label "Overzicht"), het veld "Zoek of open…", vastgemaakte apps als
+  lichtbollen met een lichtstreep zolang de app open is, privacylicht en
+  aan/uit.
+- **Privacy als licht, niet als pop-up.** Een rustige mintgroene gloed
+  "Lokaal" in het dock. Hij is geen bedieningselement en vraagt niets. Hij zegt
+  alleen wat waar is in deze VM-sessie: je werkruimte staat op dit apparaat.
+  Mint betekent overal "blijft bij jou". De volledige indicator uit §4 wacht op
+  een capabilitybron.
+- **Gecentreerde compositie** voor grote schermen: "Verder waar je was" als
+  eerste blik, in plaats van een paneel linksboven.
+
+Bewust nog niet gedaan:
+
+- een klok of datum: de UI heeft geen tijdbron;
+- nep-apps in het overzicht;
+- animatie;
+- schaal boven 2×: 8K heeft een 4×-letteratlas nodig, en de renderer kent nu
+  drie lettergroottes bij 1× en 2×;
+- grote displaytypografie: die vraagt een extra atlasgrootte.
 
 ### Richting: wat een OS van 2030 de consument moet geven
 
 | Wat mensen nu missen | Antwoord in Nieuw OS | Bouwsteen |
 |---|---|---|
-| Privacy kost tientallen instellingen en cookie-achtige pop-ups | Privacy staat standaard aan; rechten worden één keer per **object en gevolg** gekozen bij installeren of koppelen, daarna stil; een permanente status in het systeemvak in plaats van meldingen | Capabilities, §4 privacy-indicator |
-| Werk is verspreid over apps, cloud en mappen | Zoeken en Start tonen eerst je eigen materiaal en recente context, lokaal geïndexeerd | D4, Materiaal |
+| Privacy kost tientallen instellingen en cookie-achtige pop-ups | Privacy staat standaard aan; rechten worden één keer per **object en gevolg** gekozen bij installeren of koppelen, daarna stil; een permanente lichtstatus in het dock in plaats van meldingen | Capabilities, §4 privacy-indicator |
+| Werk is verspreid over apps, cloud en mappen | Eén commandoveld voor apps, materiaal en acties, lokaal geïndexeerd; "Verder waar je was" als startpunt | D4, Materiaal |
 | "Waar is mijn versie van gisteren?" | Geschiedenis per bestand, terugzetten vanuit Bestanden | Materiaal-revisies |
 | Een tweede apparaat betekent een cloudaccount | Verder werken via de eigen NAS, end-to-end versleuteld | NAS-sync |
-| AI-assistenten sturen data naar de cloud | Lokale assistent in zoeken, zonder netwerkrecht | FR-L01/L02 |
+| AI-assistenten sturen data naar de cloud | Lokale assistent in het commandoveld, zonder netwerkrecht | FR-L01/L02 |
+| Hoge-resolutieschermen zien er wazig of te klein uit | Vectorachtige, integer-exacte rendering; schaal 1×/2× nu, 3×/4× (8K) als volgende stap | Letteratlas, D6 |
 | Updates en fouten voelen eng | Ongedaan maken van updates en duidelijke herstelroutes | Signed updates, herstel |
 
-Ontwerptaal: donker glas op een levend aurora-licht, lichte inkt, één
-accentkleur (teal) plus mint voor "blijft lokaal", ruime ronde vormen (18–28
-px), duidelijke focus. Bekende indeling (§2), eigen uitstraling. Gebruiksgemak
-en "voelt modern" blijven hypotheses tot de taakproef (U06).
+"Voelt futuristisch" en gebruiksgemak blijven hypotheses tot de taakproef
+(U06).

@@ -223,14 +223,7 @@ fn desktop_home_card_follows_the_real_library_state_and_stays_above_the_bar() {
             .2;
         assert!(card.x + card.width <= viewport.logical_width());
         assert!(card.y + card.height <= logical_height - 68);
-        assert_eq!(
-            start.width,
-            if viewport.logical_width() >= 464 {
-                88
-            } else {
-                44
-            }
-        );
+        assert_eq!(start.width, 44, "the overview mark is a round 44 px target");
         if viewport.logical_width() < 640 {
             assert_eq!(card.height, 96, "narrow home uses the compact card");
             assert_eq!(card.y, 64, "narrow home leaves room for navigation");
@@ -258,7 +251,7 @@ fn desktop_home_card_follows_the_real_library_state_and_stays_above_the_bar() {
                 && inside != above,
             "home paint follows the same compact layout as hit testing"
         );
-        assert_eq!(start_label, "Start");
+        assert_eq!(start_label, "Overzicht");
     }
 
     let viewport = Viewport::new(768, 536, Scale::Percent100, 1).unwrap();

@@ -2122,15 +2122,11 @@ impl Paint<'_> {
                                 if selected { d::ACCENT } else { GLASS_EDGE },
                                 14,
                             );
-                            self.rounded(
-                                Rect {
-                                    x: r.x + 12,
-                                    y: r.y + (r.height - 44) / 2,
-                                    width: 44,
-                                    height: 44,
-                                },
-                                if selected { d::ACCENT } else { GLASS_HOVER },
-                                14,
+                            self.orb(
+                                r.x + 12,
+                                r.y + (r.height - 44) / 2,
+                                44,
+                                if selected { 0x1fa58f } else { GLASS_HOVER },
                             );
                             self.icon(
                                 Rect {
@@ -2301,12 +2297,16 @@ impl Paint<'_> {
             }
             Page::Home | Page::Search | Page::Material => {
                 if desktop.page() == Page::Home {
-                    if !compact {
-                        self.small(32, 22, "NIEUW OS  /  WERKRUIMTE", SHELL_MUTED);
-                    }
-                    self.title_color(32, if compact { 8 } else { 48 }, "Je werkruimte", 0xf6fbff);
-                    if !compact {
-                        self.label(32, 94, "Je materiaal, direct bij de hand.", SHELL_MUTED);
+                    let card = controls[5].map_or(Rect::default(), |(_, r, _)| r);
+                    if compact {
+                        self.title_color(32, 8, "Verder", INK);
+                    } else {
+                        let eyebrow = "VERDER WAAR JE WAS";
+                        let title = "Je werkruimte";
+                        let eyebrow_w = self.measure(eyebrow, Size::Small, Weight::Regular);
+                        let title_w = self.measure(title, Size::Title, Weight::Semibold);
+                        self.small((w - eyebrow_w) / 2, card.y - 92, eyebrow, PRIVATE);
+                        self.title_color((w - title_w) / 2, card.y - 66, title, INK);
                         let badge = Rect {
                             x: w.saturating_sub(174),
                             y: 20,
@@ -2314,18 +2314,8 @@ impl Paint<'_> {
                             height: 36,
                         };
                         self.glass(badge, GLASS, 176, 18);
-                        self.icon(
-                            Rect {
-                                x: badge.x + 12,
-                                y: badge.y + 9,
-                                width: 18,
-                                height: 18,
-                            },
-                            Icon::User,
-                            0xd7e5ec,
-                            1,
-                        );
-                        self.small(badge.x + 38, badge.y + 11, "Gast · VM-test", 0xd7e5ec);
+                        self.orb(badge.x + 14, badge.y + 13, 10, PRIVATE);
+                        self.small(badge.x + 34, badge.y + 11, "Gast · VM-test", SHELL_MUTED);
                     }
                 } else {
                     let panel_width = w.saturating_sub(48).min(620);
@@ -2375,8 +2365,9 @@ impl Paint<'_> {
                                 1,
                             );
                         } else {
-                            self.glass(r, GLASS, 188, 22);
-                            self.stroke(r, GLASS_EDGE, 22);
+                            self.glass(r, GLASS, 188, 24);
+                            self.stroke(r, GLASS_EDGE, 24);
+                            self.rim(r, 24);
                             self.fill(
                                 Rect {
                                     x: r.x + 20,
@@ -2386,16 +2377,15 @@ impl Paint<'_> {
                                 },
                                 GLASS_EDGE,
                             );
-                            self.rounded(
-                                Rect {
-                                    x: r.x + if compact { 14 } else { 24 },
-                                    y: r.y + if compact { 22 } else { 28 },
-                                    width: if compact { 48 } else { 64 },
-                                    height: if compact { 48 } else { 64 },
-                                },
-                                0x1d4a48,
-                                18,
-                            );
+                            // A luminous orb instead of a flat app tile.
+                            let (ox, oy, size) = if compact {
+                                (r.x + 14, r.y + 22, 48)
+                            } else {
+                                (r.x + 24, r.y + 28, 64)
+                            };
+                            self.orb(ox - 4, oy - 4, size + 8, 0x0f3a3a);
+                            self.orb(ox, oy, size, 0x1fa58f);
+                            self.orb(ox + size / 8, oy + size / 16, size * 3 / 4, 0x3fd2b2);
                             self.icon(
                                 Rect {
                                     x: r.x + if compact { 26 } else { 36 },
@@ -2404,7 +2394,7 @@ impl Paint<'_> {
                                     height: if compact { 30 } else { 44 },
                                 },
                                 Icon::Material,
-                                PRIVATE,
+                                0x05201c,
                                 2,
                             );
                             let text_x = r.x + if compact { 76 } else { 112 };
@@ -2425,17 +2415,20 @@ impl Paint<'_> {
                                 );
                             } else {
                                 self.label(text_x, text_y + 52, "Je bibliotheek", SHELL_MUTED);
-                                self.button(
-                                    Rect {
-                                        x: r.x + r.width - 176,
-                                        y: r.y + (r.height - 48) / 2,
-                                        width: 152,
-                                        height: 48,
-                                    },
-                                    "Open Materiaal",
-                                    false,
-                                    true,
-                                    ButtonStyle::Primary,
+                                let pill = Rect {
+                                    x: r.x + r.width - 176,
+                                    y: r.y + (r.height - 48) / 2,
+                                    width: 152,
+                                    height: 48,
+                                };
+                                self.rounded(pill, PRIVATE, 24);
+                                let label = "Openen";
+                                let label_w = self.measure(label, Size::Body, Weight::Semibold);
+                                self.medium(
+                                    pill.x + (pill.width - label_w) / 2,
+                                    pill.y + 12,
+                                    label,
+                                    0x05201c,
                                 );
                             }
                             let content_x = r.x + if compact { 76 } else { 24 };
@@ -2538,60 +2531,31 @@ impl Paint<'_> {
                         SHELL_MUTED,
                     );
                 }
-                let bar_width = w.saturating_sub(24).min(680);
-                let bar = Rect {
-                    x: (w - bar_width) / 2,
-                    y: h.saturating_sub(68),
-                    width: bar_width,
-                    height: 60,
-                };
-                // Frosted dark glass: the wallpaper stays visible behind the bar.
-                self.glass(bar, GLASS, 208, 18);
-                self.stroke(bar, GLASS_EDGE, 18);
-                if bar_width >= 640 {
-                    // Calm, always-on privacy status instead of prompts. Not a control.
+                let bar = crate::desktop::dock(w, h);
+                // A floating capsule of dark glass, lit from above by a rim line.
+                self.glass(bar, GLASS, 214, 28);
+                self.stroke(bar, GLASS_EDGE, 28);
+                self.rim(bar, 28);
+                let controls = desktop.controls(viewport);
+                if bar.width >= 560 {
+                    // Privacy as light, not as a prompt: a calm mint glow. Not a control.
+                    let pinned = controls[2].map_or(bar, |(_, r, _)| r);
                     let chip = Rect {
-                        x: bar.x + bar_width - 160,
-                        y: bar.y + 16,
-                        width: 100,
+                        x: pinned.x + 52,
+                        y: bar.y + 14,
+                        width: 104,
                         height: 28,
                     };
-                    self.rounded(chip, 0x12343a, 14);
-                    self.icon(
-                        Rect {
-                            x: chip.x + 10,
-                            y: chip.y + 5,
-                            width: 18,
-                            height: 18,
-                        },
-                        Icon::Shield,
-                        PRIVATE,
-                        1,
-                    );
-                    self.small(chip.x + 34, chip.y + 6, "Lokaal", PRIVATE);
+                    self.glass(chip, PRIVATE, 30, 14);
+                    self.orb(chip.x + 10, chip.y + 9, 10, PRIVATE);
+                    self.small(chip.x + 30, chip.y + 6, "Lokaal", PRIVATE);
                 }
-                for (target, r, _) in desktop.controls(viewport).into_iter().flatten().take(4) {
+                for (target, r, _) in controls.into_iter().flatten().take(4) {
                     let focused = desktop.focus() == target;
                     match target {
-                        Target::Start => {
-                            self.rounded(r, if focused { GLASS_HOVER } else { GLASS_RAISED }, 12);
-                            self.icon(
-                                Rect {
-                                    x: r.x + 12,
-                                    y: r.y + 12,
-                                    width: 20,
-                                    height: 20,
-                                },
-                                Icon::Apps,
-                                d::DESKTOP_TEXT,
-                                1,
-                            );
-                            if r.width > 60 {
-                                self.small(r.x + 40, r.y + 15, "Start", d::DESKTOP_TEXT);
-                            }
-                        }
+                        Target::Start => self.horizon_mark(r, focused),
                         Target::Search => {
-                            self.rounded(r, GLASS_RAISED, 22);
+                            self.glass(r, 0xffffff, if focused { 26 } else { 14 }, 22);
                             self.icon(
                                 Rect {
                                     x: r.x + 14,
@@ -2603,49 +2567,41 @@ impl Paint<'_> {
                                 SHELL_MUTED,
                                 1,
                             );
-                            if r.width > 96 {
-                                self.label(r.x + 44, r.y + 10, "Zoeken", SHELL_MUTED);
+                            if r.width > 120 {
+                                self.label(r.x + 44, r.y + 10, "Zoek of open…", SHELL_MUTED);
                             }
                         }
                         Target::Pinned => {
-                            self.rounded(r, if focused { GLASS_HOVER } else { GLASS }, 12);
-                            self.rounded(
-                                Rect {
-                                    x: r.x + 6,
-                                    y: r.y + 6,
-                                    width: 32,
-                                    height: 32,
-                                },
-                                d::ACCENT,
-                                10,
-                            );
+                            self.glass(r, 0xffffff, if focused { 26 } else { 0 }, 22);
+                            self.orb(r.x + 8, r.y + 8, 28, 0x1fa58f);
+                            self.orb(r.x + 11, r.y + 9, 22, 0x2fc7a8);
                             self.icon(
                                 Rect {
-                                    x: r.x + 12,
+                                    x: r.x + 13,
                                     y: r.y + 12,
-                                    width: 20,
+                                    width: 18,
                                     height: 20,
                                 },
                                 Icon::Material,
-                                d::DESKTOP_TEXT,
+                                0x05201c,
                                 1,
                             );
                             if desktop.page() == Page::Material {
-                                // Running indicator under the app, as on every desktop.
+                                // Running app: a short line of light under it.
                                 self.rounded(
                                     Rect {
-                                        x: r.x + 16,
+                                        x: r.x + 17,
                                         y: r.y + 41,
-                                        width: 12,
-                                        height: 3,
+                                        width: 10,
+                                        height: 2,
                                     },
                                     PRIVATE,
-                                    2,
+                                    1,
                                 );
                             }
                         }
                         _ => {
-                            self.rounded(r, if focused { GLASS_HOVER } else { GLASS }, 12);
+                            self.glass(r, 0xffffff, if focused { 26 } else { 0 }, 22);
                             self.icon(
                                 Rect {
                                     x: r.x + 12,
@@ -2654,14 +2610,13 @@ impl Paint<'_> {
                                     height: 20,
                                 },
                                 Icon::Power,
-                                d::DESKTOP_TEXT,
+                                SHELL_MUTED,
                                 1,
                             );
                         }
                     }
                     if focused {
-                        // The teal ring disappears on dark glass; use the light shell ink.
-                        self.focus_color(r, d::DESKTOP_TEXT);
+                        self.focus_color(r, INK);
                     }
                 }
             }
@@ -2722,6 +2677,34 @@ impl Paint<'_> {
             2 * factor,
             color,
         );
+    }
+    fn orb(&mut self, x: u32, y: u32, diameter: u32, color: u32) {
+        let f = self.scale.factor();
+        self.canvas().ellipse(
+            GraphicRect::new((x * f) as i32, (y * f) as i32, diameter * f, diameter * f),
+            color,
+        );
+    }
+    /// Light from above: a soft highlight along the top edge of a glass surface.
+    fn rim(&mut self, r: Rect, radius: u32) {
+        let inset = radius.min(r.width / 3);
+        let line = |x, width| Rect {
+            x,
+            y: r.y + 1,
+            width,
+            height: 1,
+        };
+        self.glass(line(r.x + inset, r.width - 2 * inset), 0xffffff, 46, 0);
+        self.glass(line(r.x + r.width / 4, r.width / 2), 0xbff5e8, 70, 0);
+    }
+    /// The Nieuw OS mark: an eclipse of light rising over a dark horizon.
+    fn horizon_mark(&mut self, r: Rect, focused: bool) {
+        self.glass(r, 0xffffff, if focused { 26 } else { 0 }, 22);
+        let (cx, cy) = (r.x + r.width / 2, r.y + r.height / 2);
+        self.orb(cx - 15, cy - 15, 30, 0x0f3a3a);
+        self.orb(cx - 13, cy - 13, 26, 0x6fe3c6);
+        self.orb(cx - 9, cy - 5, 18, 0x08141c);
+        self.orb(cx + 6, cy - 12, 4, 0xffffff);
     }
     fn shell_button(&mut self, r: Rect, focused: bool) {
         self.rounded(r, if focused { GLASS_HOVER } else { GLASS_RAISED }, 12);

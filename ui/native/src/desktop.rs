@@ -39,6 +39,17 @@ pub enum Action {
     OpenMaterial,
 }
 
+/// The floating command dock: one centred capsule, never a full-width bar.
+pub fn dock(width: u32, height: u32) -> Rect {
+    let dock_width = width.saturating_sub(32).min(760);
+    Rect {
+        x: (width - dock_width) / 2,
+        y: height.saturating_sub(64),
+        width: dock_width,
+        height: 56,
+    }
+}
+
 pub struct Desktop {
     flow: SessionFlow,
     page: Page,
@@ -232,59 +243,35 @@ impl Desktop {
                 None,
             ],
             Page::Home | Page::Search | Page::Material => {
-                let bar_width = w.saturating_sub(24).min(680);
-                let bar_x = (w - bar_width) / 2;
-                let bar_y = h.saturating_sub(68);
-                let roomy_bar = bar_width >= 440;
-                let start_width = if roomy_bar { 88 } else { 44 };
-                let search_x = if roomy_bar { 104 } else { 60 };
-                let search_width = bar_width
-                    .saturating_sub(if roomy_bar { 248 } else { 192 })
-                    .min(320);
+                let dock = dock(w, h);
+                let roomy = dock.width >= 560;
+                let power_x = dock.x + dock.width - 50;
+                let pinned_x = power_x - 8 - if roomy { 112 } else { 0 } - 44;
                 let panel_width = w.saturating_sub(48).min(620);
                 let panel_x = (w - panel_width) / 2;
                 let top = if compact { 40 } else { 132 };
+                let card_width = w.saturating_sub(64).min(704);
+                let button = |x| Rect {
+                    x,
+                    y: dock.y + 6,
+                    width: 44,
+                    height: 44,
+                };
                 [
-                    Some((
-                        Target::Start,
-                        Rect {
-                            x: bar_x + 8,
-                            y: bar_y + 8,
-                            width: start_width,
-                            height: 44,
-                        },
-                        "Start",
-                    )),
+                    // The horizon mark opens the overview; deliberately no "Start".
+                    Some((Target::Start, button(dock.x + 6), "Overzicht")),
                     Some((
                         Target::Search,
                         Rect {
-                            x: bar_x + search_x,
-                            y: bar_y + 8,
-                            width: search_width,
+                            x: dock.x + 58,
+                            y: dock.y + 6,
+                            width: pinned_x - 8 - (dock.x + 58),
                             height: 44,
                         },
                         "Zoeken",
                     )),
-                    Some((
-                        Target::Pinned,
-                        Rect {
-                            x: bar_x + search_x + search_width + 8,
-                            y: bar_y + 8,
-                            width: 44,
-                            height: 44,
-                        },
-                        "Materiaal",
-                    )),
-                    Some((
-                        Target::SignOut,
-                        Rect {
-                            x: bar_x + bar_width - 52,
-                            y: bar_y + 8,
-                            width: 44,
-                            height: 44,
-                        },
-                        "Afmelden",
-                    )),
+                    Some((Target::Pinned, button(pinned_x), "Materiaal")),
+                    Some((Target::SignOut, button(power_x), "Afmelden")),
                     if self.page == Page::Search {
                         Some((
                             Target::SearchField,
@@ -311,9 +298,14 @@ impl Desktop {
                                 }
                             } else {
                                 Rect {
-                                    x: 32,
-                                    y: if compact { 64 } else { 170 },
-                                    width: w.saturating_sub(64).min(704),
+                                    x: (w - card_width) / 2,
+                                    // Centred composition on large screens.
+                                    y: if compact {
+                                        64
+                                    } else {
+                                        h.saturating_sub(264).div_ceil(2).max(170)
+                                    },
+                                    width: card_width,
                                     height: if compact {
                                         96
                                     } else {
