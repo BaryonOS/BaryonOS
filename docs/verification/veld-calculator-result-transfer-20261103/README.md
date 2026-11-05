@@ -1,5 +1,12 @@
 # VELD-11: rekenresultaat naar document overnemen
 
+> **Status 5 november 2026 (integrator):** historisch branchbewijs. De functie is
+> samen met recall (#184), undo/redo (#186) en resultaatoverdracht (#192) geïntegreerd
+> via PR #209. Het native bewijs hieronder hoort bij de bronboom van de losse branch.
+> De native gate op de samengevoegde boom is **onbekend** (niet uitgevoerd). De
+> gecombineerde semantiek (recall als één undo-stap, redo behoudt de redo-tak, één
+> statusregel) staat in de PR-beschrijving van #209 en in `tests/combined.rs`.
+
 Status (3 november 2026): **OPEN PR #192**, in review en nog niet
 geïntegreerd. De eerdere fase **QUEUED-FOR-INTEGRATION** en eventuele
 OPEN-PR-LEASE betreffen de werkorganisatie, niet het actuele bestaan

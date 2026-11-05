@@ -655,6 +655,9 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                      s["MATERIAL"][-1]["SAVE_ACKS"] == pasted["MATERIAL"][-1]["SAVE_ACKS"] + 1 and
                      s["MATERIAL"][-1]["DIRTY"] == 0 and
                      s["MATERIAL"][-1]["DRAFT_SUM"] == volume_disk.fnv(b"0,333333333") and
+                     # The acknowledged save must carry the transferred bytes too.
+                     s["MATERIAL"][-1]["SAVED_BYTES"] == 11 and
+                     s["MATERIAL"][-1]["SAVED_SUM"] == volume_disk.fnv(b"0,333333333") and
                      comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"])
                 key("f10")
             else:

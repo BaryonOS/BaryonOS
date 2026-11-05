@@ -1,5 +1,12 @@
 # VELD-10: eerdere berekeningen opnieuw gebruiken
 
+> **Status 5 november 2026 (integrator):** historisch branchbewijs. De functie is
+> samen met recall (#184), undo/redo (#186) en resultaatoverdracht (#192) geïntegreerd
+> via PR #209. Het native bewijs hieronder hoort bij de bronboom van de losse branch.
+> De native gate op de samengevoegde boom is **onbekend** (niet uitgevoerd). De
+> gecombineerde semantiek (recall als één undo-stap, redo behoudt de redo-tak, één
+> statusregel) staat in de PR-beschrijving van #209 en in `tests/combined.rs`.
+
 Status: **QUEUED-FOR-INTEGRATION**, geen OPEN-PR-LEASE en dus geen nieuwe PR.
 Branch `veld/calculator-recall-20261103`, opnieuw opgehaalde mainbasis
 `6d523964ab85638d4dd981bcdb19580d18646fab`.
