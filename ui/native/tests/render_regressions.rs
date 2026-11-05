@@ -251,7 +251,7 @@ fn desktop_home_card_follows_the_real_library_state_and_stays_above_the_bar() {
                 && inside != above,
             "home paint follows the same compact layout as hit testing"
         );
-        assert_eq!(start_label, "Overzicht");
+        assert_eq!(start_label, "Zenit");
     }
 
     let viewport = Viewport::new(768, 536, Scale::Percent100, 1).unwrap();

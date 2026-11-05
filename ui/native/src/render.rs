@@ -453,9 +453,9 @@ impl<'a> Frame<'a> {
             Screen::Material | Screen::Filter => {
                 paint.material_chrome(layout, viewport);
                 if viewport.logical_height() < 360 {
-                    paint.medium(layout.content_left, 12, "Materiaal", d::TEXT);
+                    paint.medium(layout.content_left, 12, "Nebula", d::TEXT);
                 } else {
-                    paint.title(layout.content_left, layout.title_y, "Materiaal");
+                    paint.title(layout.content_left, layout.title_y, "Nebula");
                 }
                 if self.view.list_scroll > 0 || self.view.objects.len() > layout.list_rows() {
                     paint.arrow(
@@ -501,7 +501,7 @@ impl<'a> Frame<'a> {
                 paint.field(
                     layout.search,
                     self.view.workspace.query(),
-                    "Zoek in je materiaal",
+                    "Zoek in Nebula",
                     self.view.focus == Focus::Search,
                     false,
                 );
@@ -1048,7 +1048,7 @@ impl<'a> Frame<'a> {
             SemanticId::Window,
             None,
             Role::Window,
-            "Materiaal",
+            "Nebula",
             None,
             self.view.viewport.bounds(),
             None,
@@ -1060,7 +1060,7 @@ impl<'a> Frame<'a> {
                     SemanticId::Heading,
                     Some(SemanticId::Window),
                     Role::Heading,
-                    "Materiaal",
+                    "Nebula",
                     None,
                     Rect {
                         x: l.content_left,
@@ -1095,7 +1095,7 @@ impl<'a> Frame<'a> {
                     SemanticId::LibrarySearch,
                     Some(SemanticId::Window),
                     Role::TextEditor,
-                    "Zoek in je materiaal · Ctrl+F",
+                    "Zoek in Nebula · Ctrl+F",
                     Some(self.view.workspace.query()),
                     l.search,
                     Some(Focus::Search),
@@ -2075,7 +2075,7 @@ impl Paint<'_> {
                     self.label(
                         x,
                         y + if compact { 54 } else { 78 },
-                        "Kies je werkruimte om verder te gaan.",
+                        "Kies wie je bent om verder te gaan.",
                         SHELL_MUTED,
                     );
                 } else {
@@ -2105,7 +2105,7 @@ impl Paint<'_> {
                         x,
                         y + if compact { 54 } else { 126 },
                         if desktop.is_guest() {
-                            "Een openbare werkruimte voor deze test."
+                            "Een openbare sessie voor deze test."
                         } else {
                             "Voorbeeldaccount · gebruik alleen testinvoer"
                         },
@@ -2153,7 +2153,7 @@ impl Paint<'_> {
                                 r.x + 72,
                                 r.y + if compact { 30 } else { 43 },
                                 if target == Target::Guest {
-                                    "Tijdelijke VM-werkruimte"
+                                    "Tijdelijke VM-sessie"
                                 } else {
                                     "Aanmelden nog niet ingesteld"
                                 },
@@ -2285,7 +2285,7 @@ impl Paint<'_> {
                         x,
                         y + 370,
                         if desktop.page() == Page::Accounts {
-                            "Nieuw OS · lokale werkruimte"
+                            "Nieuw OS · Horizon"
                         } else if desktop.is_guest() {
                             "Gast (VM-test) · uitsluitend testgegevens"
                         } else {
@@ -2299,10 +2299,10 @@ impl Paint<'_> {
                 if desktop.page() == Page::Home {
                     let card = controls[5].map_or(Rect::default(), |(_, r, _)| r);
                     if compact {
-                        self.title_color(32, 8, "Verder", INK);
+                        self.title_color(32, 8, "Horizon", INK);
                     } else {
-                        let eyebrow = "VERDER WAAR JE WAS";
-                        let title = "Je werkruimte";
+                        let eyebrow = "HORIZON";
+                        let title = "Verder waar je was";
                         let eyebrow_w = self.measure(eyebrow, Size::Small, Weight::Regular);
                         let title_w = self.measure(title, Size::Title, Weight::Semibold);
                         self.small((w - eyebrow_w) / 2, card.y - 92, eyebrow, PRIVATE);
@@ -2344,7 +2344,7 @@ impl Paint<'_> {
                                 PRIVATE,
                                 1,
                             );
-                            self.medium(r.x + 60, r.y + 8, "Materiaal", INK);
+                            self.medium(r.x + 60, r.y + 8, "Nebula", INK);
                             if !compact {
                                 self.small(
                                     r.x + 60,
@@ -2399,7 +2399,7 @@ impl Paint<'_> {
                             );
                             let text_x = r.x + if compact { 76 } else { 112 };
                             let text_y = r.y + if compact { 19 } else { 28 };
-                            self.small(text_x, text_y, "MATERIAAL", SHELL_MUTED);
+                            self.small(text_x, text_y, "NEBULA", SHELL_MUTED);
                             self.medium(text_x, text_y + 22, "Documenten", INK);
                             if compact {
                                 self.icon(
@@ -2449,13 +2449,13 @@ impl Paint<'_> {
                                 Some(if compact {
                                     "Nog leeg"
                                 } else {
-                                    "Nog geen documenten. Maak je eerste in Materiaal."
+                                    "Nog geen documenten. Maak je eerste in Nebula."
                                 })
                             } else if !view.list_loaded {
                                 Some(if compact {
                                     "Open app"
                                 } else {
-                                    "Open Materiaal om je bibliotheek te laden."
+                                    "Open Nebula om je bibliotheek te laden."
                                 })
                             } else {
                                 None
@@ -2511,7 +2511,7 @@ impl Paint<'_> {
                             r.x + 44,
                             r.y + 10,
                             if desktop.query().is_empty() {
-                                "Zoek een programma…"
+                                "Zoek met Signaal…"
                             } else {
                                 desktop.query()
                             },
@@ -2537,7 +2537,7 @@ impl Paint<'_> {
                 self.stroke(bar, GLASS_EDGE, 28);
                 self.rim(bar, 28);
                 let controls = desktop.controls(viewport);
-                if bar.width >= 560 {
+                if bar.width > 228 {
                     // Privacy as light, not as a prompt: a calm mint glow. Not a control.
                     let pinned = controls[2].map_or(bar, |(_, r, _)| r);
                     let chip = Rect {
@@ -2555,21 +2555,30 @@ impl Paint<'_> {
                     match target {
                         Target::Start => self.horizon_mark(r, focused),
                         Target::Search => {
-                            self.glass(r, 0xffffff, if focused { 26 } else { 14 }, 22);
+                            self.glass(r, 0xffffff, if focused { 26 } else { 0 }, 22);
                             self.icon(
                                 Rect {
-                                    x: r.x + 14,
+                                    x: r.x + 12,
                                     y: r.y + 12,
                                     width: 20,
                                     height: 20,
                                 },
                                 Icon::Search,
-                                SHELL_MUTED,
+                                INK,
                                 1,
                             );
-                            if r.width > 120 {
-                                self.label(r.x + 44, r.y + 10, "Zoek of open…", SHELL_MUTED);
-                            }
+                            // Hairline between system buttons and apps.
+                            self.glass(
+                                Rect {
+                                    x: r.x + 51,
+                                    y: r.y + 10,
+                                    width: 1,
+                                    height: 24,
+                                },
+                                0xffffff,
+                                40,
+                                0,
+                            );
                         }
                         Target::Pinned => {
                             self.glass(r, 0xffffff, if focused { 26 } else { 0 }, 22);

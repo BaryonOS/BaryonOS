@@ -36,8 +36,8 @@ Regels:
 | Onderdeel | Gedrag | Keuze waar platforms verschillen |
 |---|---|---|
 | Bureaublad | Achtergrond; optioneel snelkoppelingen; rechtermuisklik: nieuw document, achtergrond wijzigen, beeldscherminstellingen | Standaard leeg bureaublad met alleen achtergrond |
-| Dock | Overzichtsknop (eigen horizon-merkteken, geen "Start"), zoek-/commandoveld, vastgemaakte en geopende apps met indicator, systeemvak, klok/datum, meldingen | Zwevende capsule onderaan, gecentreerd; plek blijft herkenbaar |
-| Overzicht | Zoekveld bovenaan (direct typen zoekt), vastgemaakte apps, alle apps, recente bestanden, gebruiker en aan/uit-menu | Opent met de OS-toets of het merkteken in het dock |
+| Orbit (dock) | Zenit-knop (eigen horizon-merkteken, geen "Start"), Signaal (zoeken), vastgemaakte en geopende apps met indicator, systeemvak, klok/datum, meldingen | Compacte zwevende capsule onderaan, gecentreerd; plek blijft herkenbaar |
+| Zenit (launcher) | Zoekveld bovenaan (direct typen zoekt), vastgemaakte apps, alle apps, recente bestanden, gebruiker en aan/uit-menu | Opent met de OS-toets of het merkteken in Orbit |
 | Zoeken | Apps, instellingen en eigen bestanden, lokaal geïndexeerd; resultaten direct bij typen | Geen internetzoekopdracht standaard; alleen als de gebruiker dat aanzet en een zoekdienst kiest |
 | Vensters | Titelbalk met minimaliseren, maximaliseren en sluiten; slepen; vergroten via randen; dubbelklik op titelbalk maximaliseert | Knoppen rechts |
 | Venster schikken | Slepen naar rand of hoek, of OS-toets+pijl, zet venster op helft of kwart | — |
@@ -57,7 +57,7 @@ Regels:
 | Ctrl+Z / Ctrl+Y | Ongedaan maken / opnieuw |
 | Ctrl+S, Ctrl+A, Ctrl+F, Ctrl+P | Opslaan, alles selecteren, zoeken, afdrukken |
 | Alt+Tab, Alt+F4 | Wisselen, venster sluiten |
-| OS-toets | Overzicht met zoeken |
+| OS-toets | Zenit met Signaal |
 | OS-toets+E / +I / +L / +D | Bestanden / Instellingen / vergrendelen / bureaublad tonen |
 | Ctrl+Alt+Delete | Vertrouwd systeemscherm (vergrendelen, wisselen, afmelden, taakbeheer) |
 | Ctrl+Shift+Esc | Taakbeheer |
@@ -134,8 +134,8 @@ Ontwerptaal "Horizon":
   met een fijne rand en een highlight van boven (`rim`). Er zijn geen witte
   formulierkaarten.
 - **Eén commandodock** in plaats van een taakbalk: een gecentreerde capsule
-  met het eigen merkteken (een lichtende eclips boven een horizon, toegankelijk
-  label "Overzicht"), het veld "Zoek of open…", vastgemaakte apps als
+  met het eigen merkteken (een lichtende eclips boven een horizon, label
+  "Zenit"), een compacte Signaal-knop in plaats van een zoekbalk, vastgemaakte apps als
   lichtbollen met een lichtstreep zolang de app open is, privacylicht en
   aan/uit.
 - **Privacy als licht, niet als pop-up.** Een rustige mintgroene gloed
@@ -154,6 +154,21 @@ Bewust nog niet gedaan:
 - schaal boven 2×: 8K heeft een 4×-letteratlas nodig, en de renderer kent nu
   drie lettergroottes bij 1× en 2×;
 - grote displaytypografie: die vraagt een extra atlasgrootte.
+
+### Namen (gebruikersbesluit 5 november 2026, familie "Kosmos")
+
+Alleen de zichtbare namen veranderen; code-identifiers en documentnamen
+(`Materiaal`, `nieuw_os_materiaal`) blijven staan om churn te voorkomen.
+
+| Bekend als | Nieuw OS | Status |
+|---|---|---|
+| Bureaublad / startscherm | **Horizon** | Zichtbaar in de VM-shell |
+| Taakbalk / dock | **Orbit** | Zichtbaar (compacte capsule) |
+| Start / launcher | **Zenit** | Zichtbaar (merkteken, label) |
+| Verkenner / bestanden (was Materiaal) | **Nebula** | Zichtbaar in shell en app |
+| Zoeken | **Signaal** | Zichtbaar (knop en zoekpaneel) |
+| Instellingen | **Kern** | Nog geen app |
+| Store | **Haven** | Nog geen app |
 
 ### Richting: wat een OS van 2030 de consument moet geven
 

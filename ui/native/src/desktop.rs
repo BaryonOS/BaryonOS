@@ -39,9 +39,10 @@ pub enum Action {
     OpenMaterial,
 }
 
-/// The floating command dock: one centred capsule, never a full-width bar.
+/// Orbit: one centred capsule that hugs its buttons, never a full-width bar.
 pub fn dock(width: u32, height: u32) -> Rect {
-    let dock_width = width.saturating_sub(32).min(760);
+    // Zenit, Signaal, pinned app, power; roomy screens add the privacy light.
+    let dock_width = if width >= 420 { 340 } else { 228 };
     Rect {
         x: (width - dock_width) / 2,
         y: height.saturating_sub(64),
@@ -99,7 +100,7 @@ impl Desktop {
     }
     pub fn matches_material(&self) -> bool {
         let needle = self.query();
-        "materiaal bestanden documenten"
+        "nebula materiaal bestanden documenten"
             .as_bytes()
             .windows(needle.len().max(1))
             .any(|candidate| candidate.eq_ignore_ascii_case(needle.as_bytes()))
@@ -244,9 +245,8 @@ impl Desktop {
             ],
             Page::Home | Page::Search | Page::Material => {
                 let dock = dock(w, h);
-                let roomy = dock.width >= 560;
                 let power_x = dock.x + dock.width - 50;
-                let pinned_x = power_x - 8 - if roomy { 112 } else { 0 } - 44;
+                let pinned_x = dock.x + 118;
                 let panel_width = w.saturating_sub(48).min(620);
                 let panel_x = (w - panel_width) / 2;
                 let top = if compact { 40 } else { 132 };
@@ -258,19 +258,10 @@ impl Desktop {
                     height: 44,
                 };
                 [
-                    // The horizon mark opens the overview; deliberately no "Start".
-                    Some((Target::Start, button(dock.x + 6), "Overzicht")),
-                    Some((
-                        Target::Search,
-                        Rect {
-                            x: dock.x + 58,
-                            y: dock.y + 6,
-                            width: pinned_x - 8 - (dock.x + 58),
-                            height: 44,
-                        },
-                        "Zoeken",
-                    )),
-                    Some((Target::Pinned, button(pinned_x), "Materiaal")),
+                    // The horizon mark opens Zenit; deliberately no "Start".
+                    Some((Target::Start, button(dock.x + 6), "Zenit")),
+                    Some((Target::Search, button(dock.x + 58), "Signaal")),
+                    Some((Target::Pinned, button(pinned_x), "Nebula")),
                     Some((Target::SignOut, button(power_x), "Afmelden")),
                     if self.page == Page::Search {
                         Some((
@@ -281,7 +272,7 @@ impl Desktop {
                                 width: panel_width - 32,
                                 height: 44,
                             },
-                            "Zoek programma's",
+                            "Signaal: zoeken",
                         ))
                     } else {
                         None
@@ -313,7 +304,7 @@ impl Desktop {
                                     },
                                 }
                             },
-                            "Materiaal",
+                            "Nebula",
                         ))
                     } else {
                         None
