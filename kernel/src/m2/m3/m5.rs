@@ -856,8 +856,8 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
         assert!(r.submits >= 8 && r.completions >= 8);
         assert_eq!(word(s, 1, 120), r.digest[0]);
         assert_eq!(word(s, 1, 128), r.digest[1]);
-        hex(b"M5:SECTOR4_DIGEST:", r.digest[0]);
-        hex(b"M5:SECTOR6_DIGEST:", r.digest[1]);
+        serial::hex(b"M5:SECTOR4_DIGEST:", r.digest[0]);
+        serial::hex(b"M5:SECTOR6_DIGEST:", r.digest[1]);
     }
     match m5_case() {
         0 => {}
@@ -936,20 +936,6 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
     }
     serial::write(b"M5:RESOURCES:PASS\nM5:PASS\nM1:PASS\n");
     serial::exit(0x10)
-}
-fn hex(label: &[u8], value: u64) {
-    let mut bytes = [b'0'; 16];
-    for (i, byte) in bytes.iter_mut().enumerate() {
-        let digit = ((value >> ((15 - i) * 4)) & 15) as u8;
-        *byte = if digit < 10 {
-            b'0' + digit
-        } else {
-            b'a' + digit - 10
-        };
-    }
-    serial::write(label);
-    serial::write(&bytes);
-    serial::write(b"\n");
 }
 fn marker() -> &'static [u8] {
     match m5_case() {

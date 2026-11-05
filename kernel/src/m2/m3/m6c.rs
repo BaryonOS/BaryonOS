@@ -1139,11 +1139,11 @@ fn print_objects(current: &journal::State) {
         number(present[object], u64::from(entry.present));
         number(lengths[object], entry.length as u64);
         number(name_lengths[object], entry.name_length as u64);
-        hex(
+        serial::hex(
             name_digests[object],
             wire::checksum_update(wire::FNV_OFFSET, &entry.name[..entry.name_length]),
         );
-        hex(
+        serial::hex(
             digests[object],
             wire::checksum_update(wire::FNV_OFFSET, &entry.value[..entry.length]),
         );
@@ -1478,19 +1478,5 @@ fn number(label: &[u8], mut value: u64) {
     }
     serial::write(label);
     serial::write(&digits[start..]);
-    serial::write(b"\n");
-}
-fn hex(label: &[u8], value: u64) {
-    let mut digits = [b'0'; 16];
-    for (index, byte) in digits.iter_mut().enumerate() {
-        let digit = ((value >> ((15 - index) * 4)) & 15) as u8;
-        *byte = if digit < 10 {
-            b'0' + digit
-        } else {
-            b'a' + digit - 10
-        };
-    }
-    serial::write(label);
-    serial::write(&digits);
     serial::write(b"\n");
 }
