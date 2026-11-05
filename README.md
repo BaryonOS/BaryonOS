@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-05 · **Rubric:** v1 ·
-**Bron:** [`cd78ea74`](https://github.com/simonvanieperen/nieuw-os/commit/cd78ea74f14d8b8921aad51cc46a41c41274ab45) ·
-**Ontwikkelbranch:** `k06/smp-ap-bringup`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 1: native AP-opstart; conflictintegratie met main en device-exec/ACPI-handoff op PR #200.
-41/100 blijft 41/100. De K06 native-smp implementatie en eerder opgeslagen QEMU/TCG-bewijs blijven ongewijzigd. PR-head cd78ea74 is geïntegreerd met base main 7dd91fad en de device-exec/ACPI-handoff-head; drie statusconflicten zijn opgelost. Gerichte hosttests, driver-Clippy/fmt/freestanding builds, kernel native-smp build en progress-consistentiecheck slaagden. CodeQL op de eerste mergecommit c014b17d vond geen Actions/Python-alerts maar liep af vóór alle talen klaar waren; de geresynchroniseerde head is niet volledig gescand. Nieuwe-head hosted CI en native K06-QEMU op de geïntegreerde head blijven open. Geen criterium of gewicht gewijzigd; K06 blijft open. De integration_review-velden blijven historisch PR148-bewijs.
+**Bron:** [`486371e5`](https://github.com/simonvanieperen/nieuw-os/commit/486371e5a3790c7c1df817820ff4cc373c5fc42c) ·
+**Ontwikkelbranch:** `k06/smp-step2-percpu-ipi`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 2: eigen TSS/IST per AP, GS-anker, begrensde unicast-IPI's en quarantaine (gestapeld op #201).
+41/100 blijft 41/100. In het opt-in native-smp-profiel hebben AP's nu een eigen GDT/TSS/IST en reageren ze op begrensde gerichte IPI's; een dove AP leidt tot quarantaine van alle AP's. 11 native QEMU/TCG-gevallen, waaronder NMI/#DF op de eigen AP-IST, zijn geslaagd: zie docs/verification/k06-smp-ipi/. K06 blijft open (geen SMP-scheduler, TLB-shootdown of interrupts op de BSP). Gestapeld op #201 en #191, nog niet op main. De integration_review-velden blijven historisch PR148-bewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

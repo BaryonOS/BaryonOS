@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""K06 step 1: verify native AP bring-up through the own-kernel native-smp profiles."""
+"""K06: verify native AP bring-up, per-AP IST and bounded IPIs (native-smp profiles)."""
 from __future__ import annotations
 import argparse
 import json
@@ -9,6 +9,7 @@ from common import BUILD, save_json, sha256, source_hash, without_acpi_diagnosti
 from run import run_guest, is_success
 
 MAX_CPUS = 8  # kernel/src/m2/smp.rs MAX_CPUS
+IPI_ROUNDS = 3  # kernel/src/m2/smp.rs IPI_ROUNDS
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "KS-03:PASS")
 END = ("M2:PASS", "M1:PASS")
 FORBIDDEN = ("FAIL", "PANIC")
@@ -25,7 +26,11 @@ CASES = {
     "duplicate-madt": ("native-smp", 4, "multi", "invalid-madt"),
     "ap-stall": ("test-smp-ap-stall", 4, "multi", "timeout"),
     "ap-mismatch": ("test-smp-ap-mismatch", 4, "multi", "mismatch"),
+    "ap-ipi-deaf": ("test-smp-ap-ipi-deaf", 4, "multi", "quarantine"),
+    "ap-nmi-ist": ("test-smp-ap-nmi", 4, "multi", "nmi-ist"),
+    "ap-double-fault-ist": ("test-smp-ap-double-fault", 4, "multi", "df-ist"),
 }
+TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_IST:PASS"}
 
 
 def duplicate_madt() -> bytes:
@@ -40,10 +45,48 @@ def duplicate_madt() -> bytes:
     return bytes(table)
 
 
+def expected_smp(case: str) -> list[str]:
+    """The exact SMP lines between KS-03 and the terminal markers.
+
+    QEMU's default flat topology numbers the BSP 0 and APs 1..n-1 in MADT order.
+    """
+    _, cpus, _, outcome = CASES[case]
+    if outcome == "invalid-madt":
+        return ["SMP:UNAVAILABLE:INVALID_MADT"]
+    madt = [f"SMP:MADT:CPUS={cpus}:DISABLED=0:HOTPLUG=0"]
+
+    def settled(online: int) -> list[str]:
+        return [f"SMP:SYNC:PASS:CPUS={online}",
+                f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={online}"]
+
+    if outcome in ("timeout", "mismatch"):
+        status = "TIMEOUT" if outcome == "timeout" else "MISMATCH"
+        return madt + [f"SMP:AP:1:{status}", "SMP:BRINGUP:STOPPED", f"SMP:ONLINE:1/{cpus}"] \
+            + settled(1) + ["SMP:PARKED:APS=0"]
+    started = min(cpus, MAX_CPUS)
+    lines = madt + [f"SMP:AP:{apic}:ONLINE" for apic in range(1, started)]
+    if cpus > MAX_CPUS:
+        lines.append(f"SMP:SKIPPED:CAPACITY={cpus - MAX_CPUS}")
+    lines += [f"SMP:ONLINE:{started}/{cpus}", f"SMP:SYNC:PASS:CPUS={started}"]
+    if outcome == "online":
+        return lines + [f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={started}",
+                        f"SMP:PARKED:APS={started - 1}"]
+    if outcome == "quarantine":
+        return lines + ["SMP:IPI:TIMEOUT:APIC=1", f"SMP:QUARANTINED:APS={started - 1}",
+                        f"SMP:ONLINE:1/{cpus}"]
+    if outcome == "nmi-ist":
+        return lines + [f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={started}", TERMINAL[outcome]]
+    if outcome == "df-ist":
+        return lines + [TERMINAL[outcome]]
+    raise ValueError("Unknown SMP outcome")
+
+
 def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> dict:
-    """Independent serial oracle: the exact SMP sequence between KS-03 and M2:PASS."""
+    """Independent serial oracle: the exact SMP sequence after KS-03."""
     profile, cpus, _, outcome = CASES[case]
-    if not is_success(raw_exit, stdout, timed_out, required_markers=BOOT + END,
+    terminal = outcome in TERMINAL
+    end = (TERMINAL[outcome],) if terminal else END
+    if not is_success(raw_exit, stdout, timed_out, required_markers=BOOT + end,
                       forbidden_markers=FORBIDDEN):
         raise ValueError("Native SMP boot/exit assertions failed")
     acpi = [line for line in stdout.splitlines() if line.startswith("ACPI:")]
@@ -57,40 +100,20 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
            for line in lines[:start]):
         raise ValueError("Unexpected marker before EBS")
     observed = lines[start:]
-    if tuple(observed[:len(BOOT)]) != BOOT or tuple(observed[-len(END):]) != END:
-        raise ValueError("Unexpected boot prefix or terminal markers")
-    smp = observed[len(BOOT):-len(END)]
-    if outcome == "invalid-madt":
-        if smp != ["SMP:UNAVAILABLE:INVALID_MADT"]:
-            raise ValueError("Duplicate MADT was not rejected exactly")
-        return {"outcome": outcome, "profile": profile, "online": 1, "ap_ids": []}
-    if not smp or smp[0] != f"SMP:MADT:CPUS={cpus}:DISABLED=0:HOTPLUG=0":
-        raise ValueError("MADT processor inventory does not match the VM")
-    online = min(cpus, MAX_CPUS) if outcome == "online" else 1
-    body = smp[1:]
-    ap_lines = [line for line in body if line.startswith("SMP:AP:")]
-    ids = []
-    for line in ap_lines:
-        match = re.fullmatch(r"SMP:AP:([0-9]+):(ONLINE|TIMEOUT|MISMATCH)", line)
-        if match is None:
-            raise ValueError("Malformed AP status")
-        ids.append(int(match[1]))
-    if len(set(ids)) != len(ids):
-        raise ValueError("An AP was reported twice")
-    # QEMU's default flat topology numbers the BSP 0 and APs 1..n-1 in MADT order.
-    if outcome == "online":
-        if ids != list(range(1, online)) or ap_lines != [f"SMP:AP:{apic}:ONLINE" for apic in ids]:
-            raise ValueError("Not every expected AP came online")
-        tail = [f"SMP:SKIPPED:CAPACITY={cpus - MAX_CPUS}"] if cpus > MAX_CPUS else []
-    else:
-        status = "TIMEOUT" if outcome == "timeout" else "MISMATCH"
-        if ids != [1] or ap_lines != [f"SMP:AP:1:{status}"]:
-            raise ValueError("The faulting AP was not rejected first and only")
-        tail = ["SMP:BRINGUP:STOPPED"]
-    expected = ap_lines + tail + [f"SMP:ONLINE:{online}/{cpus}", f"SMP:SYNC:PASS:CPUS={online}"]
-    if body != expected:
+    if tuple(observed[:len(BOOT)]) != BOOT:
+        raise ValueError("Unexpected boot prefix")
+    expected = expected_smp(case)
+    tail = observed[len(BOOT):]
+    if terminal:
+        if tail != expected:
+            raise ValueError("Unexpected SMP sequence or missing IST marker")
+    elif tail != expected + list(END):
         raise ValueError("Unexpected SMP sequence or duplicate output")
-    return {"outcome": outcome, "profile": profile, "online": online, "ap_ids": ids}
+    online = 1 if outcome in ("invalid-madt", "timeout", "mismatch", "quarantine") \
+        else min(cpus, MAX_CPUS)
+    return {"outcome": outcome, "profile": profile, "online": online,
+            "ap_ids": sorted({int(m[1]) for m in (re.fullmatch(r"SMP:AP:([0-9]+):.*", line)
+                                                   for line in expected) if m})}
 
 
 def run(cases: tuple[str, ...]) -> dict:
@@ -110,12 +133,12 @@ def run(cases: tuple[str, ...]) -> dict:
     report = {"schema_version": 1, "passed": False, "source_sha256": frozen,
               "source_fingerprint_version": 3, "manifest_sha256": manifest_hash,
               "kernel_feature": manifest["kernel_feature"],
-              "scope": ("IF0 M2 AP bring-up and bounded sync self-test in QEMU/TCG; "
-                        "no SMP scheduler, IPI/TLB shootdown, per-CPU TSS or hardware evidence"),
+              "scope": ("IF0 BSP; AP bring-up, per-AP TSS/IST, bounded unicast IPIs and sync "
+                        "self-test in QEMU/TCG; no SMP scheduler, TLB shootdown or hardware evidence"),
               "cases": []}
     save_json(destination, report)
     for case in cases:
-        _, cpus, threads, _ = CASES[case]
+        _, cpus, threads, outcome = CASES[case]
         if source_hash() != frozen or sha256(manifest_path) != manifest_hash:
             raise ValueError("SMP source or manifest changed before a run")
         tables = []
@@ -124,8 +147,9 @@ def run(cases: tuple[str, ...]) -> dict:
             fixture.parent.mkdir(parents=True, exist_ok=True)
             fixture.write_bytes(duplicate_madt())
             tables = [fixture]
+        end = (TERMINAL[outcome],) if outcome in TERMINAL else END
         guest = run_guest(
-            "smp-" + case, timeout=60, required_markers=BOOT + END,
+            "smp-" + case, timeout=60, required_markers=BOOT + end,
             forbidden_markers=FORBIDDEN, cpus=cpus, tcg_threads=threads,
             acpi_tables=tables,
             expected_kernel_sha256=manifest["kernel"]["sha256"],

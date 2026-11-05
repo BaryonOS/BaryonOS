@@ -43,6 +43,8 @@ const ONLINE: u32 = 3;
 const MISMATCH: u32 = 4;
 const DONE: u32 = 5;
 const ABANDONED: u32 = 6;
+const IPI_READY: u32 = 7;
+const PARKED: u32 = 8;
 
 const CR0: usize = 0;
 const CR4: usize = 2;
@@ -89,30 +91,92 @@ struct ApStack {
     data: [u8; 16384],
     upper: [u8; 4096],
 }
-// Kernel image .bss; both guards are left unmapped by m2::run (see is_guard).
-static mut AP_STACKS: [ApStack; MAX_APS] = [const {
-    ApStack {
-        lower: [0; 4096],
-        data: [0; 16384],
-        upper: [0; 4096],
-    }
+/// Per AP: main, #DF (IST1) and NMI (IST2) stacks, each with unmapped guards.
+const MAIN: usize = 0;
+const DOUBLE: usize = 1;
+const NMI: usize = 2;
+const STACK_KINDS: usize = 3;
+// Kernel image .bss; every guard is left unmapped by m2::run (see is_guard).
+static mut AP_STACKS: [[ApStack; STACK_KINDS]; MAX_APS] = [const {
+    [const {
+        ApStack {
+            lower: [0; 4096],
+            data: [0; 16384],
+            upper: [0; 4096],
+        }
+    }; STACK_KINDS]
 }; MAX_APS];
 const STACK_SPAN: u64 = core::mem::size_of::<ApStack>() as u64;
 const STACK_TOP: u64 = 20480;
 
-fn stack_base(slot: usize) -> u64 {
+fn stack_base(slot: usize, kind: usize) -> u64 {
     // Address computation only; no reference to the static is formed.
-    ptr::addr_of!(AP_STACKS) as u64 + slot as u64 * STACK_SPAN
+    ptr::addr_of!(AP_STACKS) as u64 + (slot * STACK_KINDS + kind) as u64 * STACK_SPAN
 }
 pub fn is_guard(page: u64) -> bool {
     guard_pages().any(|guard| guard == page)
 }
 pub fn guard_pages() -> impl Iterator<Item = u64> {
-    (0..MAX_APS).flat_map(|slot| [stack_base(slot), stack_base(slot) + STACK_TOP])
+    (0..MAX_APS * STACK_KINDS).flat_map(|index| {
+        let base = stack_base(index / STACK_KINDS, index % STACK_KINDS);
+        [base, base + STACK_TOP]
+    })
 }
 
+/// Per-CPU anchor reachable through IA32_GS_BASE. Offsets 0 and 12 are used
+/// by the IPI stub; `slot` identifies the AP without trusting any register.
+#[repr(C, align(64))]
+struct CpuLocal {
+    self_ptr: AtomicU64,
+    slot: AtomicU32,
+    ipis: AtomicU32,
+}
+const _: () = {
+    assert!(core::mem::offset_of!(CpuLocal, self_ptr) == 0);
+    assert!(core::mem::offset_of!(CpuLocal, ipis) == 12);
+};
+static CPU_LOCAL: [CpuLocal; MAX_APS] = [const {
+    CpuLocal {
+        self_ptr: AtomicU64::new(0),
+        slot: AtomicU32::new(u32::MAX),
+        ipis: AtomicU32::new(0),
+    }
+}; MAX_APS];
+// Each slot is written only by the AP that claimed the matching context.
+static mut CPU_TABLES: [arch::CpuTables; MAX_APS] = [const { arch::CpuTables::new() }; MAX_APS];
+
 static BSP_REGISTERS: [AtomicU64; REGISTERS] = [const { AtomicU64::new(0) }; REGISTERS];
+/// The BSP's IA32_APIC_BASE; an AP must match it except for the BSP flag
+/// (bit 8), or its LAPIC_WINDOW accesses would not reach its own xAPIC.
+static BSP_APIC_BASE: AtomicU64 = AtomicU64::new(0);
 static GO: AtomicBool = AtomicBool::new(false);
+static PARK: AtomicBool = AtomicBool::new(false);
+const IPI_VECTOR: usize = 0xf0;
+const SPURIOUS_VECTOR: usize = 0xff;
+const IPI_ROUNDS: u32 = 3;
+
+// IPI: count on this CPU (GS-anchored), EOI to this CPU's own xAPIC, return.
+// Spurious: architecturally no EOI. Both run with IF cleared by the gate.
+global_asm!(
+    ".pushsection .text.nos_smp_ipi,\"ax\"",
+    ".globl nos_smp_ipi_entry",
+    "nos_smp_ipi_entry:",
+    "    push rax",
+    "    mov rax, gs:[0]",
+    "    lock inc dword ptr [rax + 12]",
+    "    mov dword ptr [{eoi}], 0",
+    "    pop rax",
+    "    iretq",
+    ".globl nos_smp_spurious_entry",
+    "nos_smp_spurious_entry:",
+    "    iretq",
+    ".popsection",
+    eoi = const paging::LAPIC_WINDOW + 0xb0,
+);
+extern "C" {
+    fn nos_smp_ipi_entry();
+    fn nos_smp_spurious_entry();
+}
 
 // Trampoline layout (offsets inside the copied SIPI page):
 //   0  cli; short jmp to code      8  CR3 (patched)
@@ -313,7 +377,8 @@ fn lapic_read(offset: u64) -> u32 {
     unsafe { ((paging::LAPIC_WINDOW + offset) as *const u32).read_volatile() }
 }
 fn lapic_write(offset: u64, value: u32) {
-    // SAFETY: As lapic_read; only the BSP writes ICR/SVR, with IF=0.
+    // SAFETY: As lapic_read. The window decodes to the *executing* CPU's own
+    // xAPIC: the BSP alone writes its ICR, an AP only its own SVR/TPR/LVT/EOI.
     unsafe { ((paging::LAPIC_WINDOW + offset) as *mut u32).write_volatile(value) }
 }
 fn icr_idle() -> bool {
@@ -458,7 +523,28 @@ fn initial_apic_id() -> u32 {
 
 #[no_mangle]
 extern "C" fn smp_ap_main(context: &'static ApContext) -> ! {
-    arch::install_ap();
+    // The assembly scan only passes a pointer into NOS_SMP_AP_CONTEXTS.
+    let slot =
+        (ptr::from_ref(context) as usize - NOS_SMP_AP_CONTEXTS.as_ptr() as usize) / CONTEXT_SIZE;
+    if slot >= MAX_APS {
+        park();
+    }
+    arch::install_ap(
+        // Address only (slot < MAX_APS checked above); this AP is the slot's
+        // sole user because it holds the matching claimed context.
+        ptr::addr_of_mut!(CPU_TABLES)
+            .cast::<arch::CpuTables>()
+            .wrapping_add(slot),
+        stack_base(slot, MAIN) + STACK_TOP,
+        stack_base(slot, DOUBLE) + STACK_TOP,
+        stack_base(slot, NMI) + STACK_TOP,
+    );
+    let local = &CPU_LOCAL[slot];
+    local.slot.store(slot as u32, Ordering::Relaxed);
+    local
+        .self_ptr
+        .store(ptr::from_ref(local) as u64, Ordering::Relaxed);
+    wrmsr(0xc000_0101, ptr::from_ref(local) as u64);
     let bsp: [u64; REGISTERS] = core::array::from_fn(|i| BSP_REGISTERS[i].load(Ordering::Acquire));
     wrmsr(0x277, bsp[PAT]);
     wrmsr(0xc000_0080, bsp[EFER]);
@@ -489,7 +575,11 @@ extern "C" fn smp_ap_main(context: &'static ApContext) -> ! {
         slot.store(value, Ordering::Relaxed);
     }
     context.observed_apic.store(apic, Ordering::Relaxed);
-    let matches = observed == bsp && apic == context.apic_id.load(Ordering::Relaxed);
+    let apic_base = rdmsr(0x1b);
+    let matches = observed == bsp
+        && apic == context.apic_id.load(Ordering::Relaxed)
+        && apic_base & (1 << 8) == 0
+        && apic_base | (1 << 8) == BSP_APIC_BASE.load(Ordering::Acquire);
     context
         .state
         .store(if matches { ONLINE } else { MISMATCH }, Ordering::Release);
@@ -501,7 +591,99 @@ extern "C" fn smp_ap_main(context: &'static ApContext) -> ! {
     }
     stress();
     context.state.store(DONE, Ordering::Release);
+    ipi_phase(context, local, first)
+}
+
+/// Receive bounded unicast IPIs on vector 0xf0 until PARK: TPR 0, every
+/// implemented local LVT masked, spurious vector 0xff. An external (IOAPIC or
+/// MSI) source aimed at this APIC ID could still raise another vector; it hits
+/// an absent gate (#NP) and the shared handler stops the VM: terminal, not open.
+fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
+    // Version bits 23:16 = highest LVT index: 3 base entries (timer, LINT0/1,
+    // error), then performance (>=4), thermal (>=5) and CMCI (>=6).
+    let max_lvt = (lapic_read(0x30) >> 16) & 0xff;
+    for (lvt, minimum) in [
+        (0x320, 0),
+        (0x350, 0),
+        (0x360, 0),
+        (0x370, 0),
+        (0x340, 4),
+        (0x330, 5),
+        (0x2f0, 6),
+    ] {
+        if max_lvt >= minimum {
+            lapic_write(lvt, 1 << 16);
+        }
+    }
+    lapic_write(0x80, 0);
+    lapic_write(0xf0, 0x100 | SPURIOUS_VECTOR as u32);
+    context.state.store(IPI_READY, Ordering::Release);
+    if cfg!(feature = "test-smp-ap-ipi-deaf") && first {
+        // Online but never accepts an interrupt: the BSP must quarantine all.
+        park();
+    }
+    loop {
+        // Checked before PARK so the test cannot race into a normal park.
+        if cfg!(feature = "test-smp-ap-double-fault")
+            && first
+            && local.ipis.load(Ordering::Acquire) != 0
+        {
+            // A real overflow into this AP's lower main guard; #PF cannot push
+            // its frame there, so the CPU must switch to this AP's IST1 stack.
+            let guard = stack_base(0, MAIN) + 2048;
+            // SAFETY: Destructive test-only terminal path; no Rust code resumes
+            // on the invalid stack. The #DF handler exits the VM.
+            unsafe {
+                asm!("mov rsp, {guard}", "push 0", "ud2", guard = in(reg) guard, options(noreturn));
+            }
+        }
+        if PARK.load(Ordering::Acquire) {
+            break;
+        }
+        // SAFETY: STI's one-instruction shadow makes `sti; hlt` atomic, so an
+        // IPI that becomes pending after the PARK check still wakes this CPU.
+        // Local sources are masked; see the function comment for others.
+        unsafe { asm!("sti", "hlt", "cli") };
+    }
+    context.state.store(PARKED, Ordering::Release);
     park()
+}
+
+/// Test-only (`test-smp-ap-nmi`/`test-smp-ap-double-fault`): recognize an NMI
+/// or #DF that the CPU delivered on *this* AP's own IST stack.
+pub fn ist_fault_marker(
+    vector: u64,
+    error: u64,
+    cs: u64,
+    frame: *const u64,
+) -> Option<&'static [u8]> {
+    if !cfg!(any(
+        feature = "test-smp-ap-nmi",
+        feature = "test-smp-ap-double-fault"
+    )) || cs != 8
+    {
+        return None;
+    }
+    let anchor = rdmsr(0xc000_0101);
+    let slot = (0..MAX_APS).find(|&slot| ptr::from_ref(&CPU_LOCAL[slot]) as u64 == anchor)?;
+    let at = frame as u64;
+    let within = |kind| {
+        let base = stack_base(slot, kind);
+        at >= base + 4096 && at + 22 * 8 <= base + STACK_TOP
+    };
+    if cfg!(feature = "test-smp-ap-nmi") && vector == 2 && within(NMI) {
+        return Some(b"SMP:FAULT:AP_NMI_IST:PASS\n");
+    }
+    if cfg!(feature = "test-smp-ap-double-fault") && vector == 8 && error == 0 && within(DOUBLE) {
+        // SAFETY: The normalized exception frame on this live IST stack holds
+        // the interrupted RSP at index 20 (15 GPRs, vector, error, RIP, CS, RFLAGS).
+        let old_rsp = unsafe { frame.add(20).read() };
+        let main = stack_base(slot, MAIN);
+        if (main..main + 4096).contains(&old_rsp) {
+            return Some(b"SMP:FAULT:AP_DF_IST:PASS\n");
+        }
+    }
+    None
 }
 
 fn decimal(mut value: u64) {
@@ -536,7 +718,7 @@ fn bring_up(slot: usize, apic_id: u32, vector: u32) -> (Start, bool) {
     let context = &NOS_SMP_AP_CONTEXTS[slot];
     context
         .stack_top
-        .store(stack_base(slot) + STACK_TOP, Ordering::Relaxed);
+        .store(stack_base(slot, MAIN) + STACK_TOP, Ordering::Relaxed);
     context.apic_id.store(apic_id, Ordering::Relaxed);
     context.state.store(STARTING, Ordering::Release);
     let mut result = Start::Timeout;
@@ -616,6 +798,10 @@ pub fn start(prepared: Prepared, madt: &Madt) {
     for (slot, value) in BSP_REGISTERS.iter().zip(control_registers()) {
         slot.store(value, Ordering::Release);
     }
+    BSP_APIC_BASE.store(rdmsr(0x1b), Ordering::Release);
+    // IDT is complete before the first AP can load it.
+    arch::smp_gate(IPI_VECTOR, nos_smp_ipi_entry as usize as u64);
+    arch::smp_gate(SPURIOUS_VECTOR, nos_smp_spurious_entry as usize as u64);
     let vector = (page / PAGE) as u32;
     let (mut online, mut x2apic, mut capacity) = (0usize, 0u64, 0u64);
     for cpu in cpus.iter().filter(|cpu| cpu.apic_id != bsp_id) {
@@ -664,13 +850,10 @@ pub fn start(prepared: Prepared, madt: &Madt) {
     GO.store(true, Ordering::Release);
     stress();
     let finished = (0..200).any(|_| {
-        NOS_SMP_AP_CONTEXTS[..online]
-            .iter()
-            .all(|context| context.state.load(Ordering::Acquire) == DONE)
-            || {
-                wait_us(10_000);
-                false
-            }
+        NOS_SMP_AP_CONTEXTS[..online].iter().all(finished_stress) || {
+            wait_us(10_000);
+            false
+        }
     });
     let expected = ITERATIONS * (online as u64 + 1);
     if !finished {
@@ -678,7 +861,7 @@ pub fn start(prepared: Prepared, madt: &Madt) {
         decimal(
             NOS_SMP_AP_CONTEXTS[..online]
                 .iter()
-                .filter(|context| context.state.load(Ordering::Acquire) == DONE)
+                .filter(|context| finished_stress(context))
                 .count() as u64,
         );
         serial::write(b":TOTAL=");
@@ -696,5 +879,114 @@ pub fn start(prepared: Prepared, madt: &Madt) {
     }
     serial::write(b"SMP:SYNC:PASS:CPUS=");
     decimal(online as u64 + 1);
+    serial::write(b"\n");
+    ipis(online, cpus.len());
+}
+
+/// DONE is stored (Release) after the AP's last stress write; the AP may then
+/// already have advanced to IPI_READY, which is only reachable through DONE.
+fn finished_stress(context: &ApContext) -> bool {
+    matches!(context.state.load(Ordering::Acquire), DONE | IPI_READY)
+}
+
+const IPI_FIXED: u32 = 0x0000_4000;
+const IPI_NMI: u32 = 0x0000_4400;
+
+/// Poll `ready` every millisecond, at most `limit` ms (PIT-bounded).
+fn within_ms(limit: u32, ready: impl Fn() -> bool) -> bool {
+    (0..limit).any(|_| {
+        ready() || {
+            wait_us(1_000);
+            false
+        }
+    })
+}
+
+/// A CPU that cannot take a directed interrupt cannot join any later
+/// shootdown protocol: reset every AP with INIT and continue on the BSP.
+fn quarantine_all(online: usize, total: usize) {
+    for context in &NOS_SMP_AP_CONTEXTS[..online] {
+        if !send_ipi(context.apic_id.load(Ordering::Relaxed), IPI_INIT) {
+            serial::fail(b"SMP_AP_QUARANTINE");
+        }
+        context.state.store(ABANDONED, Ordering::Release);
+    }
+    // ICR idle is acceptance by the bus, not completion of INIT in the target;
+    // allow it to take effect before the BSP reports one CPU. A stray store by
+    // a resetting AP only touches its own context, which nothing reads anymore.
+    wait_us(1_000);
+    serial::write(b"SMP:QUARANTINED:APS=");
+    decimal(online as u64);
+    serial::write(b"\nSMP:ONLINE:1/");
+    decimal(total as u64);
+    serial::write(b"\n");
+}
+
+/// Unicast only: a broadcast shorthand would also reach CPUs still owned by
+/// firmware (capacity-skipped or never started) with unknown interrupt state.
+fn ipis(online: usize, total: usize) {
+    let aps = &NOS_SMP_AP_CONTEXTS[..online];
+    if !within_ms(1_000, || {
+        aps.iter()
+            .all(|context| context.state.load(Ordering::Acquire) == IPI_READY)
+    }) {
+        serial::write(b"SMP:IPI:NOT_READY\n");
+        return quarantine_all(online, total);
+    }
+    for round in 1..=IPI_ROUNDS {
+        for (slot, context) in aps.iter().enumerate() {
+            let apic = context.apic_id.load(Ordering::Relaxed);
+            if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
+                || !within_ms(100, || {
+                    CPU_LOCAL[slot].ipis.load(Ordering::Acquire) >= round
+                })
+            {
+                serial::write(b"SMP:IPI:TIMEOUT:APIC=");
+                decimal(u64::from(apic));
+                serial::write(b"\n");
+                return quarantine_all(online, total);
+            }
+            if cfg!(feature = "test-smp-ap-double-fault") && slot == 0 && round == 1 {
+                // That AP now faults on its own IST1 stack and ends the VM.
+                within_ms(1_000, || false);
+                serial::fail(b"SMP_AP_DF_NOT_ON_IST");
+            }
+        }
+    }
+    // During the rounds each IPI was delivered exactly once (none lost or
+    // duplicated). Later arrivals, e.g. the park IPI, are not counted here.
+    if CPU_LOCAL[..online]
+        .iter()
+        .any(|local| local.ipis.load(Ordering::Acquire) != IPI_ROUNDS)
+    {
+        serial::fail(b"SMP_IPI_COUNT");
+    }
+    serial::write(b"SMP:IPI:PASS:ROUNDS=");
+    decimal(u64::from(IPI_ROUNDS));
+    serial::write(b":CPUS=");
+    decimal(online as u64 + 1);
+    serial::write(b"\n");
+    if cfg!(feature = "test-smp-ap-nmi") && online != 0 {
+        let apic = aps[0].apic_id.load(Ordering::Relaxed);
+        if send_ipi(apic, IPI_NMI) {
+            // The AP's IST2 handler must end the VM with its marker.
+            within_ms(1_000, || false);
+        }
+        serial::fail(b"SMP_AP_NMI_NOT_ON_IST");
+    }
+    PARK.store(true, Ordering::Release);
+    for (slot, context) in aps.iter().enumerate() {
+        let apic = context.apic_id.load(Ordering::Relaxed);
+        if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
+            || !within_ms(100, || context.state.load(Ordering::Acquire) == PARKED)
+        {
+            serial::write(b"SMP:PARK:TIMEOUT:SLOT=");
+            decimal(slot as u64);
+            serial::write(b"\n");
+            return quarantine_all(online, total);
+        }
+    }
+    serial::write(b"SMP:PARKED:APS=");
+    decimal(online as u64);
     serial::write(b"\n");
 }
