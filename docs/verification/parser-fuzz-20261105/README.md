@@ -1,9 +1,11 @@
 # Parser-fuzzing van onbetrouwbare invoer — 5 november 2026
 
 **Basis:** main `d777df69`, branch `verify/parser-hardening-20261105`.
-**Bewijsniveau:** uitsluitend hostmodel (`cargo test`, dev-profiel met
-overflow-checks). Geen native, QEMU- of echt-netwerkbewijs; geen menselijke
-audit. Geen criterium in `docs/progress.json` wijzigt: **41 → 41/100**.
+**Bewijsniveau:** uitsluitend hostmodel (`cargo test`): dev-profiel met
+overflow-checks, behalve update-core (release met overflow-checks) en
+image-codec (release plus een kleinere debug-run). Geen native, QEMU- of
+echt-netwerkbewijs; geen menselijke audit. Geen criterium in
+`docs/progress.json` wijzigt: **41 → 41/100**.
 
 Methode: per gebied een tijdelijke host-harness met eigen xorshift-PRNG (geen
 nieuwe dependencies), willekeurige bytes plus mutaties van door de crate zelf
