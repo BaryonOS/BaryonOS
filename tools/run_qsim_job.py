@@ -5,7 +5,7 @@ import importlib.util
 import json
 from pathlib import Path
 import re
-from common import ROOT, BUILD, save_json, sha256, source_hash, without_acpi_diagnostics
+from common import ROOT, BUILD, save_json, sha256, source_hash, with_acpi_markers, without_acpi_diagnostics
 from run import run_guest
 
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "M2:PASS")
@@ -77,7 +77,7 @@ def run() -> dict:
     if sha256(elf) != artifact.get("binary_sha256") or elf.read_bytes() not in (BUILD / "esp/kernel.elf").read_bytes():
         raise ValueError("Selected qsim job ELF is not bound into the kernel")
     guest = run_guest(
-        "native-qsim-job", esp=BUILD / "esp", timeout=60, required_markers=REQUIRED,
+        "native-qsim-job", esp=BUILD / "esp", timeout=60, required_markers=with_acpi_markers(REQUIRED),
         expected_exit=33, forbidden_markers=FORBIDDEN,
         expected_kernel_sha256=manifest["kernel"]["sha256"],
         expected_loader_sha256=manifest["loader"]["sha256"],

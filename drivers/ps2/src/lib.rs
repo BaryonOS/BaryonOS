@@ -58,6 +58,7 @@ enum Action {
     Mode(bool),
     ReadMode,
     VerifyMode,
+    ControllerReply(u8),
     Device(u8, bool),
     Expect(u8, bool),
     Drain,
@@ -70,6 +71,16 @@ const PLAN: &[Action] = &[
     Drain,
     Command(0x20),
     ReadMode,
+    Command(0xaa),
+    ControllerReply(0x55),
+    // Self-test may reset controller state; do not rely on earlier disables.
+    Command(0xad),
+    Command(0xa7),
+    Drain,
+    Command(0xab),
+    ControllerReply(0),
+    Command(0xa9),
+    ControllerReply(0),
     Command(0x60),
     Mode(false),
     Command(0xae),
@@ -283,6 +294,19 @@ impl Controller {
                         }
                         self.mode = byte;
                     } else if byte != ((self.mode & 0x0c) | 0x40) {
+                        return Err(Fault::Controller);
+                    }
+                    self.advance(now);
+                }
+                ControllerReply(expected) => {
+                    let Some((mouse, byte)) = self.incoming(io)? else {
+                        return Ok(Progress::Pending);
+                    };
+                    if mouse {
+                        self.discarded += 1;
+                        continue;
+                    }
+                    if byte != expected {
                         return Err(Fault::Controller);
                     }
                     self.advance(now);
