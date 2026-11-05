@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-05",
-    "source_commit": "c308b1ee9d8deedcfacd923c407392222ff7a12f",
+    "source_commit": "10f6ac74cab05b693777ec60740f9352f10cfe15",
     "assessment_basis": "source_commit",
     "reviewed_commit": "cc1dea7eeeae01448a378ee422837b0438ecc7b5",
     "reviewed_commit_context": "Historische review van de PR148-documentatiestatus en reikwijdte van hostbewijs; geen integratiereview.",
@@ -15,10 +15,10 @@
       "evidence_basis": "Git-mergeouders en handoff in docs/PROJECT-STATE.md; gerichte integratietests zijn daar gemeld met uitvoer uitsluitend in het sessietranscript. De eerdere PR148-hostreceipts zijn geen integratiereviewbewijs.",
       "missing_evidence": "Afzonderlijk, brongebonden bewijs van de integratiereview ontbreekt; nieuwe-head CI en review moeten nog worden beoordeeld."
     },
-    "branch": "k06/smp-step4-preempt",
-    "task": "K06 stap 4: gepreëmpteerde round-robin-kernelthreads op AP's via de LAPIC-timer (gestapeld op #203)",
+    "branch": "docs/niet-wachten-op-ci",
+    "task": "Werkwijze: niet wachten op CI of open PR's; acceptatie op de beoordeelde ontwikkelstand (AGENTS.md)",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. In het opt-in native-smp-profiel preëmpt de LAPIC-timer op elke AP twee kernelthreads. Bewezen zijn registerbehoud over contextwissels, voortgang van beide threads en bevriezing na STOP; een dode timer leidt tot quarantaine. 14 native QEMU/TCG-gevallen zijn geslaagd: zie docs/verification/k06-smp-preempt/. K06 blijft open (geen SMP-scheduler voor processen, geen interrupts op de BSP, geen lockvolgorde). Gestapeld op #203, #202, #201 en #191, nog niet op main. De integration_review-velden blijven historisch PR148-bewijs."
+    "summary": "41/100 blijft 41/100. Alleen AGENTS.md is gewijzigd: CI en open PR's blokkeren vervolgwerk niet meer, en criteria met een aantoonbaar geslaagde native gate op de branch worden daar geaccepteerd (volgens de bestaande regel in docs/PROGRESS.md). Geen criterium, gewicht of bewijs gewijzigd."
   },
   "tracks": [
     {

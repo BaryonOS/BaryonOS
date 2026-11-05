@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-05 · **Rubric:** v1 ·
-**Bron:** [`c308b1ee`](https://github.com/simonvanieperen/nieuw-os/commit/c308b1ee9d8deedcfacd923c407392222ff7a12f) ·
-**Ontwikkelbranch:** `k06/smp-step4-preempt`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 4: gepreëmpteerde round-robin-kernelthreads op AP's via de LAPIC-timer (gestapeld op #203).
-41/100 blijft 41/100. In het opt-in native-smp-profiel preëmpt de LAPIC-timer op elke AP twee kernelthreads. Bewezen zijn registerbehoud over contextwissels, voortgang van beide threads en bevriezing na STOP; een dode timer leidt tot quarantaine. 14 native QEMU/TCG-gevallen zijn geslaagd: zie docs/verification/k06-smp-preempt/. K06 blijft open (geen SMP-scheduler voor processen, geen interrupts op de BSP, geen lockvolgorde). Gestapeld op #203, #202, #201 en #191, nog niet op main. De integration_review-velden blijven historisch PR148-bewijs.
+**Bron:** [`10f6ac74`](https://github.com/simonvanieperen/nieuw-os/commit/10f6ac74cab05b693777ec60740f9352f10cfe15) ·
+**Ontwikkelbranch:** `docs/niet-wachten-op-ci`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Werkwijze: niet wachten op CI of open PR's; acceptatie op de beoordeelde ontwikkelstand (AGENTS.md).
+41/100 blijft 41/100. Alleen AGENTS.md is gewijzigd: CI en open PR's blokkeren vervolgwerk niet meer, en criteria met een aantoonbaar geslaagde native gate op de branch worden daar geaccepteerd (volgens de bestaande regel in docs/PROGRESS.md). Geen criterium, gewicht of bewijs gewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -70,6 +70,22 @@ infrastructuur- of privacygrenzen.
 
 Na iedere afgebakende implementatiestap en vóór langdurige controles: werk PROJECT-STATE.md bij, commit broncode/lockfiles/controleerbaar bewijs en open punten, en push de werkbranch. Wacht hiermee niet tot de gehele batch klaar is. Label tussenstanden en niet-uitgevoerde tests expliciet. Controleer dat de remote branch het lokale commit-ID bevat. Laat gegenereerde binaries, caches en secrets buiten Git; bewaar compacte tekst- en hashrapporten onder docs/verification/.
 
+**Niet wachten op CI of open PR's (Simon, 5 november 2026).** CI en
+mergewachtrijen blokkeren het werk niet. Push, zet de PR op auto-merge, laat
+CI-fouten via Auto-fix of bij de volgende stap terugkomen en begin direct aan de
+eerstvolgende taak, gestapeld of parallel. Vraag niet "eerst CI afwachten?" en
+eindig een beurt niet alleen om op checks of andere PR's te wachten. Het
+bundelen van PR's en de strikte up-to-date-regel zijn een merge-techniek voor
+GitHub, geen voorwaarde om verder te bouwen. Een rode check op een eerder
+gepushte stap herstel je wanneer hij binnenkomt. Hij gaat vóór nieuw werk op
+diezelfde branch, maar houdt ander werk niet op.
+
+Acceptatiepunten volgen docs/PROGRESS.md: de meter geldt voor de beoordeelde
+ontwikkelstand. Een criterium waarvan de vereiste native gate lokaal of op de
+PR-head aantoonbaar is geslaagd, met versiegebonden bewijs, wordt op die branch
+geaccepteerd. Het wacht niet op een merge of een nieuwe CI-ronde op main. Een
+latere rode run op main of een regressie zet het criterium terug op `open`.
+
 
 ## Verplichte voortgangsmeter na iedere opdracht
 
