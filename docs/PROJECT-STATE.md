@@ -54,12 +54,14 @@ SMP-scheduler en de herziening van ADR-024.
 **Eerstvolgend commando:**
 `NOS_BUILD_DIR=build/k06-native-smp python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
 
-## Historisch checkpoint — K06 stap 1, native AP-opstart — 5 november 2026
+## Historisch checkpoint — K06 stap 1 en conflictintegratie — 5 november 2026
 
-**Bron:** codecommit `36703f50450d2075117b5a5e75a9bb4ca28b49a0` (CI-stackfix, vervangt `c687cd13`) op
-`k06/smp-ap-bringup`, gestapeld op PR #191 (`a859db98`, ACPI-handoff, staat
-volgens de integrator op FIX). Main is `8bb15309`. **41 → 41/100**: er zijn
-geen criteria of gewichten gewijzigd, en K06 blijft open.
+**Bron:** PR-head `cd78ea74f14d8b8921aad51cc46a41c41274ab45` op
+`k06/smp-ap-bringup`, geïntegreerd met base `main` op
+`7dd91fad6d341d0c7b66b885bbe8713d2020e1df`. De PR-head bevat ook de
+device-exec/ACPI-handoff-integratie. Drie statusconflicten zijn opgelost met
+behoud van de K06-projectstatus. **41 → 41/100**: geen criteria of gewichten
+gewijzigd; K06 blijft open.
 
 **Gerealiseerd:** een opt-in M2-profiel `native-smp` (ADR-070) met
 MADT-inventaris, INIT-SIPI-SIPI, een nooit gemapte SIPI-pagina, AP-stacks met
@@ -76,11 +78,40 @@ Python-harnastests, Clippy/fmt en regressie van `milestone-m2` en
 [k06-smp-bringup](verification/k06-smp-bringup/README.md). Twee
 AI-reviews, geen menselijke audit: alle concrete bevindingen zijn verwerkt.
 
-**Open:** nieuwe-head-CI van de draft-PR; integratie na de fix van #191.
+**Controles na integratie:** `cargo +1.90.0 test --locked -p kernel-core`
+en de relevante USB-, PS/2- en Python-tests; formatting, Clippy, freestanding
+driverbuilds en native-smp kernelbuild geslaagd. `tools/progress.py --check`
+geslaagd. CodeQL op de eerste mergecommit `c014b17d` vond geen
+Actions/Python-alerts maar liep af vóór alle talen klaar waren; de
+geresynchroniseerde head is dus niet volledig gescand. Nieuwe-head hosted CI
+moet nog worden beoordeeld.
+**Open:** volledige CodeQL-dekking en native K06-QEMU-bewijs op de geïntegreerde
+head.
 Voor K06 nog nodig: per-CPU-staat, TSS/IST, IPI/TLB-shootdown, SMP-scheduler,
 lockvolgorde en herziening van ADR-024. Er is geen fysiek hardwarebewijs.
 **Eerstvolgend commando:**
-`NOS_BUILD_DIR=build/k06-native-smp python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
+`python3 -B -u tools/run_smp.py --profile native-smp`.
+## Historisch checkpoint — instructieonderhoud — 4 november 2026
+
+**Basis:** `8bb153092e967aae314ecde35bcf963565a87ac7`, branch
+`copilot/dream-curate-memories-20261104132442`. Vijf instructiebestanden
+verliezen verouderde beperkingen op opslaglocaties, native UI-werk en
+voortgangsrapportage. De actuele privacycontracten, lokale AI, apprechten,
+eigen kernel en bewijsgrenzen blijven ongewijzigd. **41 → 41/100**:
+geen runtimecode, criterium, gewicht of nieuwe productacceptatie.
+
+**Controles (alle exit 0):** `python3 tools/progress.py --write`,
+`python3 tools/progress.py --check`,
+`python3 -B .agents/skills/os-dev/scripts/validate_skill.py`,
+`python3 -B -m unittest discover -s .agents/skills/os-dev/tests -v`
+(zes tests) en `git diff --check`. De onafhankelijke AI-tegenvoorbeeldreview
+vond geen concrete weerleggingen; dit is geen menselijke audit.
+**Bewijsgrens:** documentatieonderhoud; geen OS-build, QEMU-, hardware- of
+menselijke acceptatie uitgevoerd. Deze controles bewijzen geen OS-functionaliteit.
+De bestaande productblokkades en historische receipts hieronder blijven gelden.
+
+**Vervolg:** beoordeel de concept-PR en haar actuele controles vóór integratie.
+Eerstvolgend lokaal commando: `python3 tools/progress.py --check`.
 
 ## Historisch checkpoint — PR158 met main 95d79451 — 3 november 2026
 

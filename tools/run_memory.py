@@ -10,7 +10,7 @@ import shutil
 import sys
 
 from common import (ROOT, BUILD, TARGET, environment, qemu_machine, run_logged,
-                    sha256, source_hash, without_acpi_diagnostics)
+                    sha256, source_hash, with_acpi_markers, without_acpi_diagnostics)
 from build_users import inspect_user
 from run import run_guest
 from run_fpu import private_path, publish, publish_json, load_json
@@ -35,7 +35,7 @@ def endings(case: str) -> tuple[str, ...]:
 
 
 def required(case: str) -> tuple[str, ...]:
-    return BOOT + ("MEMORY:MANIFEST:PASS",) + endings(case)
+    return with_acpi_markers(BOOT + ("MEMORY:MANIFEST:PASS",) + endings(case))
 
 
 def build_users() -> tuple[dict, dict]:

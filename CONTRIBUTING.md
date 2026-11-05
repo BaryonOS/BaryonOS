@@ -16,6 +16,6 @@ Gebruik de commando's uit `docs/DEVELOPMENT.md` en `docs/TEST-STRATEGY.md`. Mini
 
 ## Pull requests
 
-Houd wijzigingen klein en beoordeelbaar. Beschrijf het beveiligingsinvariant, de relevante negatieve tests, exacte uitgevoerde commando's, bewijsgrenzen en rollback. Verruim geen capability- of trustgrens alleen om een test te laten slagen. De 0–100%-meter verandert uitsluitend wanneer een bestaand acceptatiecriterium aantoonbaar volledig is gehaald.
+Houd wijzigingen klein en beoordeelbaar. Beschrijf het beveiligingsinvariant, de relevante negatieve tests, exacte uitgevoerde commando's, bewijsgrenzen en rollback. Verruim geen capability- of trustgrens alleen om een test te laten slagen. De 0–100%-meter stijgt uitsluitend wanneer een bestaand acceptatiecriterium aantoonbaar volledig is gehaald; de assessment-velden worden wel na iedere opdracht bijgewerkt.
 
 Beveiligingsproblemen volgen `SECURITY.md`; zet geen secrets, echte gebruikersdata, productiekeys of hostschijven in tests of bewijsbundels.
