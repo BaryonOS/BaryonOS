@@ -111,6 +111,7 @@ struct Host {
     clipboard_fault: ClipboardFault,
     clipboard_trace: Vec<ClipboardTrace>,
     clipboard_sequence: Option<u64>,
+    clipboard_copies: Vec<String>,
     clipboard_reply_queued: bool,
     clipboard_ack_reply_queued: bool,
 }
@@ -176,6 +177,7 @@ impl Host {
             clipboard_fault: ClipboardFault::None,
             clipboard_trace: vec![],
             clipboard_sequence: None,
+            clipboard_copies: vec![],
             clipboard_reply_queued: false,
             clipboard_ack_reply_queued: false,
         }));
@@ -248,15 +250,22 @@ impl Host {
             // CLP shares its exact app pair and Engine-authenticated peer.
             assert_eq!(m.sender_pid, APP);
             let request = clip::Request::decode(&m.data[..m.len as usize]).unwrap();
-            assert_eq!(request.header.operation, clip::Operation::Paste);
             assert_eq!(request.header.epoch, self.input_epoch);
             self.clipboard_sequence = Some(request.header.sequence);
             self.clipboard_trace
                 .push(ClipboardTrace::Requested(request.header.sequence));
+            let (status, text) = match request.header.operation {
+                clip::Operation::Paste => (clip::Status::Ok, "6/2"),
+                clip::Operation::Copy if request.text.is_empty() => (clip::Status::Empty, ""),
+                clip::Operation::Copy => {
+                    self.clipboard_copies.push(request.text.to_owned());
+                    (clip::Status::Ok, "")
+                }
+            };
             let reply = clip::Reply {
                 header: request.header,
-                status: clip::Status::Ok,
-                text: "6/2",
+                status,
+                text,
             }
             .outgoing()
             .unwrap();
@@ -716,6 +725,66 @@ fn lost_retained_reply_never_presents_or_drops_calculator_work() {
     assert!(h.borrow().engine.check_invariants());
 }
 
+#[test]
+fn current_result_can_be_selected_by_pointer_or_shortcut_and_copied_over_existing_typed_pair() {
+    use nieuw_os_calculator::render::{Layout, Viewport};
+    for scale in [1, 2] {
+        for pointer in [false, true] {
+            let h = Host::new();
+            let mut a = app(&h, scale);
+            a.enable_clipboard();
+            finish(&mut a);
+            keys(
+                &h,
+                &mut a,
+                &[0x08, 0x88, 0x35, 0xb5, 0x03, 0x83, 0x1c, 0x9c],
+            );
+            finish(&mut a);
+            assert_eq!(a.model().expression(), "7/2");
+            if pointer {
+                let g = geometry();
+                let view = Viewport::new(
+                    u32::from(g.assigned.width),
+                    u32::from(g.assigned.height),
+                    scale,
+                )
+                .unwrap();
+                let bounds = Layout::new(view).result_bounds(scale);
+                let (x, y) = (
+                    g.assigned.x + (bounds.x + 8) * scale,
+                    g.assigned.y + (bounds.y + 8) * scale,
+                );
+                for buttons in [0, 1, 0] {
+                    h.borrow_mut().mouse(x, y, buttons);
+                    finish(&mut a);
+                }
+            } else {
+                keys(&h, &mut a, &[0x1d, 0x13, 0x93, 0x9d]);
+                finish(&mut a);
+            }
+            assert!(a.model().result_selected());
+            assert_eq!(a.model().clipboard_selection(), "3,5");
+            keys(&h, &mut a, &[0x1d, 0x2e, 0xae, 0x9d]);
+            finish(&mut a);
+            assert_eq!(h.borrow().clipboard_copies, ["3,5"]);
+            assert_eq!(a.model().expression(), "7/2");
+            assert_eq!(a.model().evaluations(), 1);
+            assert_eq!(a.evidence().errors, 0);
+            assert_retained_calculator_pixels(&a, &h.borrow(), scale);
+            // Actual later edit makes the cached answer stale and unselectable.
+            keys(
+                &h,
+                &mut a,
+                &[0x05, 0x85, 0x1d, 0x13, 0x93, 0x2e, 0xae, 0x9d],
+            );
+            finish(&mut a);
+            assert!(!a.model().current());
+            assert_eq!(h.borrow().clipboard_copies, ["3,5"]);
+            assert!(h.borrow().engine.check_invariants());
+            a.stop_clean().unwrap();
+        }
+    }
+}
 #[test]
 fn enabled_clipboard_pastes_only_after_real_input_ack_and_never_evaluates_text() {
     for enabled in [false, true] {

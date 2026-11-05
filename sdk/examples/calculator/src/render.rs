@@ -118,7 +118,10 @@ impl Layout {
     pub fn result_bounds(self, scale: u32) -> Rect {
         Rect {
             x: self.x,
-            y: self.result_y.saturating_sub(18),
+            y: self
+                .result_y
+                .saturating_sub(18)
+                .max(self.expression.y + self.expression.height),
             width: self.width,
             height: Font::new(Size::Title, Weight::Semibold, scale == 2)
                 .height()
@@ -241,6 +244,12 @@ pub fn render_tile(
     let title = Font::new(Size::Title, Weight::Semibold, view.scale == 2);
     let result_area = paint.physical(layout.result_bounds(view.scale));
     if result_area.intersects(paint.canvas.bounds()) {
+        if model.result_selected() {
+            paint.canvas.fill_rect(result_area, d::ACCENT_SOFT);
+            paint
+                .canvas
+                .stroke_rounded_rect(result_area, 0, view.scale, d::ACCENT);
+        }
         let formatted = model
             .answer()
             .map_or(Value::default(), |answer| answer.value)
@@ -412,7 +421,7 @@ impl Paint<'_> {
             self.canvas
                 .text(origin as i32, y as i32, value, font, d::TEXT);
         }
-        if model.focus() == 0 && model.active() {
+        if model.focus() == 0 && model.active() && !model.result_selected() {
             self.canvas.fill_rect(
                 GraphicRect::new(
                     (origin + caret) as i32,

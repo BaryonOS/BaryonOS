@@ -140,6 +140,17 @@ def calculator_undo_matches(state: dict, baseline: dict, expression: bytes, curr
     return all(state.get(name) == value for name, value in expected.items())
 
 
+def calculator_result_matches(state: dict, baseline: dict, expression: bytes,
+                               evaluations: int, answer: int) -> bool:
+    expected = {"EXPRESSION_BYTES": len(expression), "EXPRESSION_SUM": volume_disk.fnv(expression),
+                "CARET": len(expression), "CURRENT": 1, "EVALUATIONS": evaluations,
+                "FAILURES": 0, "ERRORS": 0, "HAS_ANSWER": 1, "READY": 1, "ACTIVE": 1,
+                "ANSWER_LOW": answer, "ANSWER_HIGH": 0}
+    expected.update({name: baseline[name] for name in
+                     ("PID", "SERVICE_GENERATION", "SURFACE_EPOCH", "INPUT_EPOCH", "PROBES", "SCALE")})
+    return all(state.get(name) == value for name, value in expected.items())
+
+
 def oracle_matches(raw: bytes, expected: bytes, name: str) -> bool:
     if name in CALCULATOR_CLIPBOARD_PHASES:
         return calculator_matches(raw, expected)
@@ -221,7 +232,8 @@ def validate_build(frozen: str, feature: str = FEATURE) -> dict:
 def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
         recovery_handshake: bool = False, clipboard: bool = False, session_route: bool = False,
         library: bool = False, library_parent: Path | None = None,
-        calculator_recall: bool = False, calculator_undo: bool = False) -> dict:
+        calculator_recall: bool = False, calculator_undo: bool = False,
+        calculator_result: bool = False) -> dict:
     if not 30 <= timeout <= 1800:
         raise ValueError("Timeout must be bounded 30..1800 seconds")
     if smoke and recovery_handshake or clipboard and (smoke or recovery_handshake):
@@ -234,7 +246,10 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
         raise ValueError("Calculator recall is a separate interaction gate")
     if calculator_undo and (smoke or recovery_handshake or clipboard or session_route or library or calculator_recall):
         raise ValueError("Calculator undo is a separate interaction gate")
-    calculator = calculator_recall or calculator_undo
+    if calculator_result and (smoke or recovery_handshake or clipboard or session_route or library
+                              or calculator_recall or calculator_undo):
+        raise ValueError("Calculator result transfer is a separate interaction gate")
+    calculator = calculator_recall or calculator_undo or calculator_result
     feature = "native-session-route" if session_route else FEATURE
     diagnostic = smoke or recovery_handshake or session_route or library
     private_path(BUILD)
@@ -291,6 +306,9 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
     if calculator_undo:
         report.update(calculator_undo_requested=True, calculator_undo_gate=False,
                       interaction_scope="Native calculator undo/redo, app-body pixel roundtrips and clean exit; not recovery/storage/full window-session acceptance.")
+    if calculator_result:
+        report.update(calculator_result_requested=True, calculator_result_gate=False,
+                      interaction_scope="Native current-result selection by keyboard/mouse and actual clipboard transfer into Material; save ACK and clean exit, not complete recovery/storage/window-session acceptance.")
     publish_json(directory / "result.json", report)
     report["boot_milestone_observations"] = {}
     def observed_serial():
@@ -572,6 +590,69 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                      calculator_undo_matches(s["CALCULATOR"][-1], baseline, b"2+3", True, 2) and
                      comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
                 key("f10")
+            elif calculator_result:
+                move(1260, 50)
+                key("f6")
+                wait("result-focused", lambda raw, s: all(s.values()) and
+                     s["MATERIAL"][-1]["GEN"] > initial["MATERIAL"][-1]["GEN"] and
+                     comp(raw).get("FOCUSED") == 1 and
+                     comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"] and
+                     comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
+                baseline = snapshots(serial(directory / "serial.txt"), "CALCULATOR")[-1]
+
+                def result_wait(name, expression, evaluations, answer, after=None):
+                    return wait(name, lambda raw, s: s["CALCULATOR"] and
+                                calculator_result_matches(s["CALCULATOR"][-1], baseline,
+                                                          expression, evaluations, answer) and
+                                (after is None or s["CALCULATOR"][-1]["GEN"] > after) and
+                                comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
+
+                for chord in (("7",), ("slash",), ("2",), ("ret",)):
+                    key(*chord)
+                calculated = result_wait("result-calculated", b"7/2", 1, 3_500_000_000)
+                key("ctrl", "r")
+                selected = result_wait("result-key-selected", b"7/2", 1, 3_500_000_000,
+                                       calculated["CALCULATOR"][-1]["GEN"])
+                if crop(captured["result-key-selected"], CALCULATOR_BODY) == crop(captured["result-calculated"], CALCULATOR_BODY):
+                    raise ValueError("Result selection has no native visual feedback")
+                key("ctrl", "c")
+                result_wait("result-key-copied", b"7/2", 1, 3_500_000_000,
+                            selected["CALCULATOR"][-1]["GEN"])
+                key("f6"); key("ret")
+                wait("result-editor", lambda raw, s: s["MATERIAL"] and
+                     s["MATERIAL"][-1]["SCREEN"] == 2 and
+                     comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"])
+                key("ctrl", "v")
+                wait("result-pasted", lambda raw, s: s["MATERIAL"] and
+                     s["MATERIAL"][-1]["DRAFT_BYTES"] == 3 and
+                     s["MATERIAL"][-1]["DRAFT_SUM"] == volume_disk.fnv(b"3,5") and
+                     s["MATERIAL"][-1]["DIRTY"] == 1 and
+                     comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"])
+                key("f6"); key("ctrl", "a")
+                for chord in (("1",), ("slash",), ("3",), ("ret",)):
+                    key(*chord)
+                rounded = result_wait("result-rounded", b"1/3", 2, 333_333_333)
+                move(1100, 230); button(True); button(False); move(1260, 50)
+                clicked = result_wait("result-mouse-selected", b"1/3", 2, 333_333_333,
+                                      rounded["CALCULATOR"][-1]["GEN"])
+                if crop(captured["result-mouse-selected"], CALCULATOR_BODY) == crop(captured["result-rounded"], CALCULATOR_BODY):
+                    raise ValueError("Mouse result selection has no native visual feedback")
+                key("ctrl", "c")
+                result_wait("result-mouse-copied", b"1/3", 2, 333_333_333,
+                            clicked["CALCULATOR"][-1]["GEN"])
+                key("f6"); key("ctrl", "a"); key("ctrl", "v")
+                pasted = wait("result-rounded-pasted", lambda raw, s: s["MATERIAL"] and
+                              s["MATERIAL"][-1]["DRAFT_BYTES"] == 11 and
+                              s["MATERIAL"][-1]["DRAFT_SUM"] == volume_disk.fnv(b"0,333333333") and
+                              s["MATERIAL"][-1]["DIRTY"] == 1 and
+                              comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"])
+                key("ctrl", "s")
+                wait("result-saved-for-cleanup", lambda raw, s: s["MATERIAL"] and
+                     s["MATERIAL"][-1]["SAVE_ACKS"] == pasted["MATERIAL"][-1]["SAVE_ACKS"] + 1 and
+                     s["MATERIAL"][-1]["DIRTY"] == 0 and
+                     s["MATERIAL"][-1]["DRAFT_SUM"] == volume_disk.fnv(b"0,333333333") and
+                     comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"])
+                key("f10")
             else:
                 move(1260, 50)
                 initial = wait("initial", lambda raw, s: all(s.values()), "initial")
@@ -712,6 +793,8 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 report["calculator_recall_gate"] = True
             if calculator_undo:
                 report["calculator_undo_gate"] = True
+            if calculator_result:
+                report["calculator_result_gate"] = True
     except Exception as error:
         report["error"] = f"{type(error).__name__}: {error}"
     finally:
@@ -759,8 +842,10 @@ if __name__ == "__main__":
     parser.add_argument("--library-cold-parent", type=Path, help="Copy only a validated successful library run's disposable image for cold reopening")
     parser.add_argument("--calculator-recall", action="store_true", help="Only recall/draft restoration, native pixel roundtrips and normal cleanup")
     parser.add_argument("--calculator-undo", action="store_true", help="Only the calculator undo/redo interaction, pixel roundtrips and normal cleanup")
+    parser.add_argument("--calculator-result", action="store_true", help="Only explicit current-result selection and clipboard transfer to Material")
     args = parser.parse_args()
     raise SystemExit(0 if run(timeout=args.timeout, bios_rom=args.bios_rom, vga_rom=args.vga_rom,
                             smoke=args.smoke_only, recovery_handshake=args.recovery_handshake_only, clipboard=args.clipboard, session_route=args.session_route,
                             library=args.library, library_parent=args.library_cold_parent,
-                            calculator_recall=args.calculator_recall, calculator_undo=args.calculator_undo)["passed"] else 1)
+                            calculator_recall=args.calculator_recall, calculator_undo=args.calculator_undo,
+                            calculator_result=args.calculator_result)["passed"] else 1)

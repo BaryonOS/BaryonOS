@@ -27,6 +27,7 @@ pub enum Command {
     Home(bool),
     End(bool),
     SelectAll,
+    SelectResult,
     Tab(bool),
     Activate,
 }
@@ -80,6 +81,9 @@ pub struct Model {
     caret: usize,
     anchor: usize,
     answer: Option<Evaluation>,
+    result_bytes: [u8; 32],
+    result_length: usize,
+    result_selected: bool,
     current: bool,
     notice: Notice,
     focus: usize,
@@ -104,6 +108,7 @@ struct PaintState {
     caret: usize,
     anchor: usize,
     answer: Option<Evaluation>,
+    result_selected: bool,
     current: bool,
     notice: Notice,
     focus: usize,
@@ -297,6 +302,9 @@ impl Model {
             caret: 0,
             anchor: 0,
             answer: None,
+            result_bytes: [0; 32],
+            result_length: 0,
+            result_selected: false,
             current: false,
             notice: Notice::None,
             focus: 0,
@@ -316,6 +324,7 @@ impl Model {
                 caret: 0,
                 anchor: 0,
                 answer: None,
+                result_selected: false,
                 current: false,
                 notice: Notice::None,
                 focus: 0,
@@ -339,7 +348,10 @@ impl Model {
     /// App-local selection only; input authority is checked by the broker.
     /// An old answer or the whole expression is never a selection fallback.
     pub fn clipboard_selection(&self) -> &str {
-        if self.active && self.focus == 0 {
+        if self.active && self.result_selected && self.current && self.answer.is_some() {
+            core::str::from_utf8(&self.result_bytes[..self.result_length])
+                .expect("formatted calculator result is ASCII")
+        } else if self.active && self.focus == 0 {
             &self.expression()[self.selection()]
         } else {
             ""
@@ -354,7 +366,7 @@ impl Model {
     /// Validate every byte and the final size before erasing a selection.
     /// This edits text only; pasted operators never trigger evaluation.
     pub fn paste_clipboard(&mut self, value: &str) -> Result<(), PasteError> {
-        let error = if self.exhausted || !self.active || self.focus != 0 {
+        let error = if self.exhausted || !self.active || self.focus != 0 || self.result_selected {
             Some((PasteError::Inactive, Notice::ClipboardUnavailable))
         } else if value.is_empty() {
             Some((PasteError::Empty, Notice::ClipboardEmpty))
@@ -393,6 +405,9 @@ impl Model {
     }
     pub const fn current(&self) -> bool {
         self.current
+    }
+    pub const fn result_selected(&self) -> bool {
+        self.result_selected
     }
     pub const fn notice(&self) -> Notice {
         self.notice
@@ -437,8 +452,12 @@ impl Model {
     pub fn status(&self) -> &'static str {
         if self.notice != Notice::None {
             self.notice.label()
+        } else if self.result_selected {
+            "Resultaat: Ctrl+C om te kopiëren"
         } else if self.answer.is_some_and(|answer| answer.rounded) && self.current {
             "Afgerond op 9 decimalen."
+        } else if self.current {
+            "Klik resultaat of Ctrl+R: selecteren"
         } else if self.recalling() {
             "Omlaag: volgende of eigen invoer"
         } else if self.recent_count() != 0 && self.length == 0 {
@@ -532,11 +551,15 @@ impl Model {
         }
         self.damage.caret_min = self.damage.caret_min.min(self.caret);
         self.damage.caret_max = self.damage.caret_max.max(self.caret);
-        if (old.focus == 0 && old.active) != (self.focus == 0 && self.active) {
+        if (old.focus == 0 && old.active) != (self.focus == 0 && self.active)
+            || old.result_selected != self.result_selected
+        {
             self.damage.expression_full = true;
         }
-        self.damage.result |= old.answer != self.answer || old.current != self.current;
-        // Every hint (recall, undo, rounding) is derived from status().
+        self.damage.result |= old.answer != self.answer
+            || old.current != self.current
+            || old.result_selected != self.result_selected;
+        // Every hint (selection, recall, undo, rounding) is derived from status().
         self.damage.status |= old.notice != self.notice || old.status != self.status();
         for index in 0..20 {
             if (old.focus == index + 1 && old.active) != (self.focus == index + 1 && self.active)
@@ -552,6 +575,7 @@ impl Model {
             caret: self.caret,
             anchor: self.anchor,
             answer: self.answer,
+            result_selected: self.result_selected,
             current: self.current,
             notice: self.notice,
             focus: self.focus,
@@ -595,6 +619,7 @@ impl Model {
     fn edited(&mut self, before: EditState) {
         self.leave_recall();
         self.remember(before);
+        self.result_selected = false;
         self.current = false;
         self.notice = Notice::None;
         self.changed();
@@ -666,6 +691,10 @@ impl Model {
         }
         self.focus_gained();
         self.selecting = false;
+        if command != Command::SelectResult && self.result_selected {
+            self.result_selected = false;
+            self.changed();
+        }
         match command {
             Command::Insert(byte) => {
                 if !matches!(
@@ -695,6 +724,11 @@ impl Model {
                 self.leave_recall();
                 match decimal::evaluate(self.expression()) {
                     Ok(answer) => {
+                        let formatted = answer.value.format();
+                        self.result_bytes.fill(0);
+                        self.result_length = formatted.as_str().len();
+                        self.result_bytes[..self.result_length]
+                            .copy_from_slice(formatted.as_str().as_bytes());
                         self.recent.record(Formula {
                             bytes: self.bytes,
                             length: self.length,
@@ -728,6 +762,8 @@ impl Model {
                 self.caret = 0;
                 self.anchor = 0;
                 self.answer = None;
+                self.result_bytes.fill(0);
+                self.result_length = 0;
                 self.current = false;
                 self.notice = Notice::None;
                 self.focus = 0;
@@ -811,6 +847,16 @@ impl Model {
                 self.focus = 0;
                 self.changed();
             }
+            Command::SelectResult => {
+                if self.current && self.answer.is_some() {
+                    self.anchor = self.caret;
+                    self.result_selected = true;
+                    self.pressed = None;
+                    self.focus = 0;
+                    self.notice = Notice::None;
+                    self.changed();
+                }
+            }
             Command::Tab(backwards) => {
                 self.focus = if backwards {
                     (self.focus + 20) % 21
@@ -851,6 +897,10 @@ impl Model {
             return;
         }
         self.focus_gained();
+        if down && self.result_selected {
+            self.result_selected = false;
+            self.changed();
+        }
         self.selecting = false;
         let before = (self.hover, self.pressed, self.focus);
         let button = button.filter(|index| *index < 20);
@@ -879,6 +929,7 @@ impl Model {
             self.focus_gained();
         }
         if down {
+            self.result_selected = false;
             self.move_to(position, false);
             self.selecting = true;
         } else if self.selecting {
@@ -903,6 +954,10 @@ impl Model {
     }
     pub fn cancel_focus(&mut self) {
         self.cancel_pointer();
+        if self.result_selected {
+            self.result_selected = false;
+            self.changed();
+        }
         if self.active {
             self.active = false;
             self.changed();
@@ -933,6 +988,7 @@ impl Model {
         if m.control() {
             let command = match key {
                 PhysicalKey::A => Command::SelectAll,
+                PhysicalKey::R if !m.shift() => Command::SelectResult,
                 PhysicalKey::Z if !m.shift() => Command::Undo,
                 PhysicalKey::Z => Command::Redo,
                 PhysicalKey::Y if !m.shift() => Command::Redo,
