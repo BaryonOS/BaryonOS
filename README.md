@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-05 · **Rubric:** v1 ·
-**Bron:** [`9c64c1db`](https://github.com/simonvanieperen/nieuw-os/commit/9c64c1dbe85290501934331a28a9ec7f61f39399) ·
-**Ontwikkelbranch:** `k06/smp-step3-shootdown`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 3: TLB-shootdown van alle aliassen vóór hergebruik van een fysieke pagina (gestapeld op #202).
-41/100 blijft 41/100. In het opt-in native-smp-profiel wordt een vervangen kernelframe pas vrijgegeven nadat elke AP beide vertalingen heeft ge-invlpg'd en bevestigd. Een dove AP leidt tot frame-quarantaine plus INIT; een controle zonder shootdown toont dat AP's anders het vrijgegeven frame lezen. 13 native QEMU/TCG-gevallen zijn geslaagd: zie docs/verification/k06-smp-shootdown/. K06 blijft open (geen SMP-scheduler, geen interrupts op de BSP, geen procesbrede shootdown). Gestapeld op #202, #201 en #191, nog niet op main. De integration_review-velden blijven historisch PR148-bewijs.
+**Bron:** [`c308b1ee`](https://github.com/simonvanieperen/nieuw-os/commit/c308b1ee9d8deedcfacd923c407392222ff7a12f) ·
+**Ontwikkelbranch:** `k06/smp-step4-preempt`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 4: gepreëmpteerde round-robin-kernelthreads op AP's via de LAPIC-timer (gestapeld op #203).
+41/100 blijft 41/100. In het opt-in native-smp-profiel preëmpt de LAPIC-timer op elke AP twee kernelthreads. Bewezen zijn registerbehoud over contextwissels, voortgang van beide threads en bevriezing na STOP; een dode timer leidt tot quarantaine. 14 native QEMU/TCG-gevallen zijn geslaagd: zie docs/verification/k06-smp-preempt/. K06 blijft open (geen SMP-scheduler voor processen, geen interrupts op de BSP, geen lockvolgorde). Gestapeld op #203, #202, #201 en #191, nog niet op main. De integration_review-velden blijven historisch PR148-bewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
