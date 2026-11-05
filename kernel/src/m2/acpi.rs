@@ -2,7 +2,10 @@ use boot_protocol::{
     acpi::{self, AcpiHandoff, Availability, PhysicalRead, HANDOFF_OFFSET, HANDOFF_SIZE},
     BootInfo, MemoryMap, PAGE_SIZE,
 };
-use core::ptr;
+use core::{
+    ptr,
+    sync::atomic::{AtomicBool, Ordering},
+};
 use kernel_core::Range;
 
 use super::{paging, serial};
@@ -34,33 +37,78 @@ impl PhysicalRead for FirmwareReader<'_, '_> {
     }
 }
 
-pub(super) fn discover(info: &BootInfo, map_bytes: &[u8], paging: &mut paging::Paging) {
+// The 8-KiB table scratch and the inventory live in static bootstrap memory:
+// on the 16-KiB BSP stack they overflowed into the guard page (M3 profiles).
+static mut SCRATCH: acpi::Scratch = acpi::Scratch::new();
+static mut DISCOVERY: acpi::Discovery = acpi::Discovery::empty(Availability::MissingHandoff);
+static DISCOVERED: AtomicBool = AtomicBool::new(false);
+
+/// Reports the bounded status pair and returns the inventory (incl. MADT).
+/// Called once, by the BSP with IF=0, before any other CPU runs.
+pub(super) fn discover(
+    info: &BootInfo,
+    map_bytes: &[u8],
+    paging: &mut paging::Paging,
+) -> &'static acpi::Discovery {
+    assert!(
+        !DISCOVERED.swap(true, Ordering::Relaxed),
+        "ACPI discovery runs once"
+    );
+    // SAFETY: The once-guard above makes these the only references ever formed
+    // to SCRATCH/DISCOVERY mutably; this runs on the single BSP with IF=0 before
+    // any AP starts. After return DISCOVERY is only read through `&'static`.
+    let (scratch, result) = unsafe {
+        (
+            &mut *ptr::addr_of_mut!(SCRATCH),
+            &mut *ptr::addr_of_mut!(DISCOVERY),
+        )
+    };
+    discover_tables(info, map_bytes, paging, scratch, result);
+    report(result.availability);
+    result
+}
+
+fn discover_tables(
+    info: &BootInfo,
+    map_bytes: &[u8],
+    paging: &mut paging::Paging,
+    scratch: &mut acpi::Scratch,
+    result: &mut acpi::Discovery,
+) {
     let Some(extension_address) = info.bootinfo_start.checked_add(HANDOFF_OFFSET) else {
-        report(Availability::RejectedHandoff);
-        return;
+        return reject(scratch, result);
     };
     let Some(bootinfo_end) = info.bootinfo_start.checked_add(info.bootinfo_len) else {
-        report(Availability::RejectedHandoff);
-        return;
+        return reject(scratch, result);
     };
     if extension_address
         .checked_add(HANDOFF_SIZE as u64)
         .is_none_or(|end| end > bootinfo_end)
     {
-        report(Availability::RejectedHandoff);
-        return;
+        return reject(scratch, result);
     }
     // SAFETY: BootInfo validation established an aligned, retained, one-page
     // handoff allocation; this extension lies within it and is copied before
     // parsing. The wire struct contains only fixed-width integers and byte arrays.
     let handoff = unsafe { ptr::read_unaligned(extension_address as *const AcpiHandoff) };
     let Ok(map) = MemoryMap::new(map_bytes, info.descriptor_size, info.descriptor_version) else {
-        report(Availability::RejectedHandoff);
-        return;
+        return reject(scratch, result);
     };
     let mut reader = FirmwareReader { paging, map };
-    let result = acpi::discover(&handoff, &mut reader);
-    report(result.availability);
+    acpi::discover_into(&handoff, &mut reader, scratch, result);
+}
+
+/// A rejected handoff validates to an error: RejectedHandoff, no reads.
+fn reject(scratch: &mut acpi::Scratch, result: &mut acpi::Discovery) {
+    acpi::discover_into(&AcpiHandoff::rejected(), &mut NoRead, scratch, result);
+}
+
+/// Reader for the rejected-handoff path, which never reads firmware memory.
+struct NoRead;
+impl PhysicalRead for NoRead {
+    fn read(&mut self, _: u64, _: &mut [u8]) -> Result<(), acpi::Error> {
+        Err(acpi::Error::Read)
+    }
 }
 
 fn covers_acpi(map: &MemoryMap<'_>, start: u64, end: u64) -> bool {

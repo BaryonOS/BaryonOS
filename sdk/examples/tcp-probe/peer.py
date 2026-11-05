@@ -19,16 +19,23 @@ CLIENT_MAC = bytes.fromhex("020000000007")
 PEER_MAC = bytes.fromhex("020000000001")
 CLIENT_IP = bytes((192, 0, 2, 2))
 PEER_IP = bytes((192, 0, 2, 1))
-PORTS = (8080, 8081, 8082, 8083, 8084)
+PORTS = (8080, 8081, 8082, 8083, 8084, 8085)
 REQUEST = b"GET /nieuw-os-tcp HTTP/1.1\r\nHost: fixture.invalid\r\nConnection: close\r\n\r\n"
 BODY = b"Nieuw OS native TCP\n"
 RESPONSE = b"HTTP/1.1 200 OK\r\nContent-Length: 20\r\nConnection: close\r\n\r\n" + BODY
+BACKPRESSURE_HEADER = (
+    b"POST /nieuw-os-backpressure HTTP/1.1\r\nHost: fixture.invalid\r\n"
+    b"Content-Length: 8088\r\nConnection: close\r\n\r\n"
+)
+BACKPRESSURE_REQUEST = BACKPRESSURE_HEADER + b"X" * (8192 - len(BACKPRESSURE_HEADER))
 # Distinct bytes make a client checksum bug observable even when its premature
 # ACK reaches this server after the valid retransmission's deadline.
 CORRUPT_RESPONSE = b"X" + RESPONSE[1:]
 MAX_FRAME = 1514
 MAX_FRAMES = 256
 MAX_PAYLOAD = 1024
+BACKPRESSURE_MAX_PAYLOAD = 1460  # one full-MSS segment, only in the opt-in scenario
+MAX_DUPLICATE_RETRANSMISSIONS = 2
 MAX_EVENTS = 1024
 CORRUPT_DELAY = 0.25
 FIN, SYN, RST, PSH, ACK = 1, 2, 4, 8, 16
@@ -113,7 +120,7 @@ class Segment:
     payload: bytes
 
 
-def parse_tcp(frame: bytes) -> Segment:
+def parse_tcp(frame: bytes, max_payload: int = MAX_PAYLOAD) -> Segment:
     if not 54 <= len(frame) <= MAX_FRAME or frame[12:14] != b"\x08\x00":
         raise ProtocolError("not bounded IPv4 TCP")
     if frame[:6] != PEER_MAC or frame[6:12] != CLIENT_MAC:
@@ -130,7 +137,7 @@ def parse_tcp(frame: bytes) -> Segment:
     source, target, seq, ack, offset, flags, window, _, urgent = struct.unpack_from("!HHIIBBHHH", tcp)
     size = (offset >> 4) * 4
     if (offset & 15 or not 20 <= size <= min(60, len(tcp)) or flags & ~31 or urgent
-            or len(tcp) - size > MAX_PAYLOAD
+            or len(tcp) - size > max_payload
             or checksum(CLIENT_IP + PEER_IP + struct.pack("!BBH", 0, 6, len(tcp)) + tcp) != 0):
         raise ProtocolError("invalid TCP flags, checksum or bounds")
     if target not in PORTS or source != 40000 + PORTS.index(target):
@@ -170,6 +177,10 @@ class Connection:
     fin_sent: bool = False
     closed: bool = False
     corrupt_due: float | None = None
+    withheld_segment: tuple[int, int, bytes] | None = None
+    ack_released: bool = False
+    recovery_segments: int = 0
+    duplicate_retransmissions: int = 0
 
     @property
     def client_next(self):
@@ -186,13 +197,18 @@ class Connection:
 
 class PeerMachine:
     """Small protocol-conforming TEST SERVER, driven by observed guest frames."""
-    def __init__(self):
+    def __init__(self, scenario: str = "baseline"):
+        if scenario not in ("baseline", "loss-backpressure"):
+            raise ValueError("unknown TCP peer scenario")
+        self.scenario = scenario
         self.connections: dict[int, Connection] = {}
         self.events: list[dict] = []
         names = ("client_frames", "server_frames", "arp_requests", "arp_replies", "syns",
                  "syn_acks", "refusals", "resets_after_get", "first_syn_dropped", "retry_syns",
                  "blackhole_syns", "blackhole_rsts", "corrupt_data_sent", "valid_data_sent",
-                 "http_requests", "valid_data_acks", "fins_sent", "client_fins_acked")
+                 "http_requests", "valid_data_acks", "fins_sent", "client_fins_acked",
+                 "backpressure_disabled", "backpressure_acks_withheld", "backpressure_retransmissions",
+                 "backpressure_acks_released", "backpressure_recovery_segments")
         self.counts = dict.fromkeys(names, 0)
         self.ip_id = 1
 
@@ -255,9 +271,11 @@ class PeerMachine:
             self.counts["arp_replies"] += 1
             self.event("tx", "arp-reply", packet)
             return [packet]
-        s = parse_tcp(frame)
+        s = parse_tcp(frame, BACKPRESSURE_MAX_PAYLOAD if self.scenario == "loss-backpressure"
+                      else MAX_PAYLOAD)
         self.event("rx", "tcp", frame, port=s.target, seq=s.seq, ack=s.ack,
-                   flags=s.flags, payload_length=len(s.payload))
+                   flags=s.flags, payload_length=len(s.payload),
+                   payload_sha256=hashlib.sha256(s.payload).hexdigest())
         c = self.connections.get(s.target)
         if s.flags & SYN:
             if s.flags != SYN or s.payload or s.ack:
@@ -269,7 +287,9 @@ class PeerMachine:
                     raise ProtocolError("fixture cases must run in order")
                 if index and not self.done(self.connections[PORTS[index - 1]]):
                     raise ProtocolError("previous connection not finished")
-                phase = "refused" if s.target == 8081 else "blackhole" if s.target == 8084 else "syn"
+                phase = ("refused" if s.target == 8081 or
+                         (s.target == 8085 and self.scenario == "baseline") else
+                         "blackhole" if s.target == 8084 else "syn")
                 c = Connection(s.target, s.source, s.seq, s.options, s.flags,
                                0x6e6f7300 + index * 0x1000, phase)
                 self.connections[s.target] = c
@@ -279,7 +299,11 @@ class PeerMachine:
                 if c.phase not in ("syn", "refused", "blackhole"):
                     raise ProtocolError("SYN after established connection")
                 c.syns += 1
-            if c.port == 8081:
+            if c.phase == "refused":
+                if c.port == 8085:
+                    self.counts["backpressure_disabled"] += 1
+                    return [self.tcp(c, RST | ACK, seq=0, ack=c.client_next,
+                                     label="backpressure-disabled")]
                 self.counts["refusals"] += 1
                 return [self.tcp(c, RST | ACK, seq=0, ack=c.client_next, label="connection-refused")]
             if c.port == 8084:
@@ -306,7 +330,9 @@ class PeerMachine:
         if c.phase == "syn":
             if s.seq != c.client_next or s.ack != c.server_start:
                 raise ProtocolError("bad handshake acknowledgment")
-            c.phase = "request"
+            c.phase = "backpressure-request" if c.port == 8085 else "request"
+        if c.port == 8085 and c.phase == "backpressure-request":
+            return self.backpressure_request(c, s)
         if c.closed and s.flags == ACK and s.seq == (c.client_next + 1) & MASK:
             if s.ack != (c.data_end + 1) & MASK or s.payload:
                 raise ProtocolError("wrong final ACK")
@@ -368,6 +394,62 @@ class PeerMachine:
             return []
         raise ProtocolError("unhandled server state")
 
+    def backpressure_request(self, c: Connection, s: Segment) -> list[bytes]:
+        if s.ack != c.server_start or s.flags not in (ACK, ACK | PSH) or s.flags & FIN:
+            raise ProtocolError("backpressure request acknowledgment/flags changed")
+        if not s.payload:
+            if s.seq != c.client_next:
+                raise ProtocolError("backpressure handshake acknowledgment changed")
+            return []
+        request = bytes(c.request)
+        if len(request) > len(BACKPRESSURE_REQUEST):
+            raise ProtocolError("backpressure request exceeded its fixed buffer")
+        if c.withheld_segment is None:
+            if s.seq != c.client_next:
+                raise ProtocolError("backpressure request sequence gap")
+            if not BACKPRESSURE_REQUEST.startswith(request + s.payload):
+                raise ProtocolError("wrong backpressure request bytes")
+            c.withheld_segment = (s.seq, s.ack, s.payload)
+            c.request.extend(s.payload)
+            self.counts["backpressure_acks_withheld"] += 1
+            return []
+        first_seq, first_ack, first_payload = c.withheld_segment
+        if s.seq == first_seq:
+            received = bytes(c.request)
+            if (s.ack != first_ack or s.flags not in (ACK, ACK | PSH)
+                    or len(s.payload) < len(first_payload) or len(s.payload) > len(received)
+                    or s.payload != received[:len(s.payload)]):
+                raise ProtocolError("changed or repeated backpressure retransmission")
+            if c.ack_released:
+                # Legal TCP: the guest RTO can fire again before it sees the release ACK.
+                c.duplicate_retransmissions += 1
+                if c.duplicate_retransmissions > MAX_DUPLICATE_RETRANSMISSIONS:
+                    raise ProtocolError("repeated backpressure retransmission beyond bound")
+                return [self.tcp(c, ACK, seq=c.server_start, ack=c.client_next,
+                                 label="backpressure-ack")]
+            c.ack_released = True
+            self.counts["backpressure_retransmissions"] += 1
+            self.counts["backpressure_acks_released"] += 1
+            return [self.tcp(c, ACK, seq=c.server_start, ack=c.client_next,
+                             label="backpressure-release-ack")]
+        if s.seq != c.client_next:
+            raise ProtocolError("backpressure request sequence gap")
+        if not BACKPRESSURE_REQUEST.startswith(request + s.payload):
+            raise ProtocolError("wrong backpressure request bytes")
+        c.request.extend(s.payload)
+        if c.ack_released:
+            c.recovery_segments += 1
+            self.counts["backpressure_recovery_segments"] += 1
+        if len(c.request) == len(BACKPRESSURE_REQUEST):
+            self.counts["http_requests"] += 1
+            return [self.valid_data(c)]
+        if len(c.request) > len(BACKPRESSURE_REQUEST):
+            raise ProtocolError("backpressure request exceeded its fixed buffer")
+        if c.ack_released:
+            return [self.tcp(c, ACK, seq=c.server_start, ack=c.client_next,
+                             label="backpressure-ack")]
+        return []
+
     def poll(self, now: float) -> list[bytes]:
         output = []
         for c in self.connections.values():
@@ -382,26 +464,54 @@ class PeerMachine:
     def summary(self) -> dict:
         cases = {str(port): dict(phase=c.phase, syns=c.syns, request_bytes=len(c.request),
                                 request_sha256=hashlib.sha256(c.request).hexdigest(),
-                                data_acked=c.data_acked, fin_sent=c.fin_sent, closed=c.closed)
+                                data_acked=c.data_acked, fin_sent=c.fin_sent, closed=c.closed,
+                                ack_released=c.ack_released,
+                                recovery_segments=c.recovery_segments)
                  for port, c in self.connections.items()}
-        complete = (tuple(self.connections) == PORTS and all(self.done(c) for c in self.connections.values())
+        backpressure = self.connections.get(8085)
+        # Baseline is only complete once the guest saw the real 8085 refusal.
+        backpressure_complete = (
+            backpressure is not None
+            and (backpressure.phase == "refused" if self.scenario == "baseline" else
+                 backpressure.closed and backpressure.data_acked and backpressure.fin_sent
+                 and backpressure.ack_released and backpressure.recovery_segments > 0)
+        )
+        enabled = self.scenario == "loss-backpressure"
+        expected_ports = PORTS
+        complete = (tuple(self.connections) == expected_ports
+                    and all(self.done(c) for c in self.connections.values())
                     and self.connections[8080].data_acked and self.connections[8083].data_acked
                     and self.counts["first_syn_dropped"] == 1 and self.counts["retry_syns"] >= 1
-                    and self.counts["corrupt_data_sent"] == 1 and self.counts["valid_data_sent"] == 2
-                    and self.counts["client_fins_acked"] == 2)
-        return dict(complete=complete, counts=dict(self.counts), cases=cases,
+                    and self.counts["corrupt_data_sent"] == 1
+                    and self.counts["valid_data_sent"] == (3 if enabled else 2)
+                    and self.counts["client_fins_acked"] == (3 if enabled else 2))
+        complete = (complete and backpressure_complete
+                    and self.counts["backpressure_disabled"] ==
+                    (int(backpressure is not None) if self.scenario == "baseline" else 0)
+                    and self.counts["backpressure_acks_withheld"] == int(enabled)
+                    and self.counts["backpressure_retransmissions"] == int(enabled)
+                    and self.counts["backpressure_acks_released"] == int(enabled)
+                    and self.counts["refusals"] == 1
+                    and (self.counts["backpressure_recovery_segments"] > 0 if enabled else
+                         self.counts["backpressure_recovery_segments"] == 0))
+        return dict(complete=complete, scenario=self.scenario, counts=dict(self.counts), cases=cases,
                     response_sha256=hashlib.sha256(RESPONSE).hexdigest(),
                     corrupt_response_sha256=hashlib.sha256(CORRUPT_RESPONSE).hexdigest(),
-                    response_body_bytes=len(BODY), events=list(self.events))
+                    response_body_bytes=len(BODY),
+                    backpressure_request_sha256=hashlib.sha256(BACKPRESSURE_REQUEST).hexdigest(),
+                    backpressure_request_bytes=len(BACKPRESSURE_REQUEST),
+                    events=list(self.events))
 
 
 class Peer:
     """One ephemeral localhost QEMU connection; no external listener or client."""
-    def __init__(self, timeout: float = 180):
+    def __init__(self, timeout: float = 180, scenario: str = "baseline"):
         if not 0 < timeout <= 180:
             raise ValueError("peer timeout outside 0..180 seconds")
+        if scenario not in ("baseline", "loss-backpressure"):
+            raise ValueError("unknown TCP peer scenario")
         self.timeout = timeout
-        self.machine = PeerMachine()
+        self.machine = PeerMachine(scenario)
         self.port = 0
         self.socket = None
         self.thread = None

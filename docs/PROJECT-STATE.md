@@ -1,6 +1,103 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — sessie-/bibliotheekintegratie — 5 november 2026
+## NEXT AGENT HANDOFF — K06 stap 3, TLB-shootdown vóór frame-hergebruik — 5 november 2026
+
+**Bron:** `9c64c1dbe85290501934331a28a9ec7f61f39399` op
+`k06/smp-step3-shootdown`. De keten is #191 (`5263a5ef`) → #201
+(`cd78ea74`) → #202 (`8c694ef0`) → stap 3; main is `c7a61d11`.
+**41 → 41/100**; K06 blijft open. Ontwerp: ADR-072.
+
+**Gerealiseerd:** een vervangen kernelframe wordt pas vrijgegeven nadat
+elke AP beide vertalingen (het venster en de identity-alias) met `invlpg`
+heeft ongeldig gemaakt en de generatie van de ronde heeft bevestigd.
+Daarna volgen `free`, een volledige audit en een zichtbaarheidsprobe. Een
+ontbrekende ack zet het frame in quarantaine en reset alle AP's.
+
+**Bewijs:** 13/13 native QEMU/TCG-gevallen, waaronder een dove AP en een
+controle zonder shootdown. Bij die controle lezen alle AP's
+deterministisch het vrijgegeven frame. Regressie: K05 6/6, `milestone-m2`
+en `native-rtc` 5/5. Zie
+[k06-smp-shootdown](verification/k06-smp-shootdown/README.md).
+
+**Open:** de beslissing over #191 ligt bij Simon. Volgens de integrator
+loopt #191 achter op main, draaide de volledige CI daar niet, en staan er 6
+CodeRabbit-threads open plus de `run_cap_bench`-regel; de integrator kan
+niet op die branch schrijven. Daarna komen CI en integratie van
+#201/#202/stap 3. Volgende K06-stap: interrupts op de BSP en een
+SMP-veilige scheduler, met per-CPU-runqueues, lockvolgorde, procesbrede
+shootdown per CR3 en de herziening van ADR-024.
+**Eerstvolgend commando:**
+`NOS_BUILD_DIR=build/k06-native-smp python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
+
+## Historisch checkpoint — K06 stap 2, eigen TSS/IST en IPI's per AP — 5 november 2026
+
+**Bron:** `486371e5a3790c7c1df817820ff4cc373c5fc42c` (stap-2-code `1993ade8` + #201-stackfix `36703f50` + main `8bb15309`) op
+`k06/smp-step2-percpu-ipi`. Dat is gestapeld op #201
+(`k06/smp-ap-bringup`, `047acf39`), dat op #191 staat. Main is `8bb15309`.
+**41 → 41/100**; K06 blijft open. Ontwerp: ADR-071.
+
+**Gerealiseerd:** per AP een eigen GDT/TSS (RSP0, IST1 #DF, IST2 NMI) en
+een GS-anker. Een IPI-vector 0xf0 met EOI, unicast-rondes met een exacte
+telling, parkeren via IPI, en quarantaine van alle AP's als er één doof is.
+Een AP met een afwijkende IA32_APIC_BASE wordt afgewezen.
+
+**Bewijs:** 11/11 native QEMU/TCG-gevallen over zes profielen, waaronder
+NMI en #DF op de eigen AP-IST-stack en een dove AP met quarantaine.
+Daarnaast host-tests, Clippy en fmt, plus regressie van `milestone-m2` en
+`native-rtc` (5/5). Zie [k06-smp-ipi](verification/k06-smp-ipi/README.md).
+Review door AI; alle bevindingen zijn verwerkt.
+
+**Open:** CI-beoordeling van #201 en de nieuwe stap-2-PR, plus integratie in
+de volgorde #191 → #201 → stap 2. Volgende K06-stap: een
+TLB-shootdownprotocol op deze IPI's, daarna BSP-interrupts, de
+SMP-scheduler en de herziening van ADR-024.
+**Eerstvolgend commando:**
+`NOS_BUILD_DIR=build/k06-native-smp python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
+
+## Historisch checkpoint — K06 stap 1 en conflictintegratie — 5 november 2026
+
+**Historische bron van deze conflictintegratie:** PR-head
+`cd78ea74f14d8b8921aad51cc46a41c41274ab45` op `k06/smp-ap-bringup`,
+geïntegreerd met base `main` op
+`7dd91fad6d341d0c7b66b885bbe8713d2020e1df`. De PR-head bevat ook de
+device-exec/ACPI-handoff-integratie. Drie statusconflicten zijn opgelost met
+behoud van de K06-projectstatus. **41 → 41/100**: geen criteria of gewichten
+gewijzigd; K06 blijft open. De actuele PR-head en -base staan in PR #201
+en in `docs/verification/k06-smp-bringup/native-report.json`; deze sectie
+wordt niet bij iedere update-merge herschreven.
+
+**Gerealiseerd:** een opt-in M2-profiel `native-smp` (ADR-070) met
+MADT-inventaris, INIT-SIPI-SIPI, een nooit gemapte SIPI-pagina, AP-stacks met
+guards in het kernelimage, contextclaims via CAS met fail-closed time-out en
+INIT-quarantaine, registergelijkheid met de BSP en een begrensde
+atomic- en spinlockproef. Een native gevonden BSP-stack-overloop door een
+by-value MADT is hersteld; die zou alle profielen hebben geraakt.
+
+**Bewijs:** 8 native QEMU/TCG-gevallen geslaagd (1/2/4/8/9 vCPU's, single-
+en multi-TCG, capaciteit, dubbele MADT via `-acpitable`, AP-stall,
+registermismatch). Daarnaast 25 boot-protocol-tests (exit 0; 28 na de #191-tests), 4+2+10+8
+Python-harnastests, Clippy/fmt en regressie van `milestone-m2` en
+`native-rtc` (5/5). Zie
+[k06-smp-bringup](verification/k06-smp-bringup/README.md). Twee
+AI-reviews, geen menselijke audit: alle concrete bevindingen zijn verwerkt.
+
+**Controles na integratie:** `cargo +1.90.0 test --locked -p kernel-core`
+en de relevante USB-, PS/2- en Python-tests; formatting, Clippy, freestanding
+driverbuilds en native-smp kernelbuild geslaagd. `tools/progress.py --check`
+geslaagd. CodeQL op de eerste mergecommit `c014b17d` vond geen
+Actions/Python-alerts maar liep af vóór alle talen klaar waren; de
+geresynchroniseerde head is dus niet volledig gescand. Nieuwe-head hosted CI
+moet nog worden beoordeeld.
+**Open:** volledige CodeQL-dekking en native K06-QEMU-bewijs op de geïntegreerde
+head.
+Voor K06 nog nodig: per-CPU-staat, TSS/IST, IPI/TLB-shootdown, SMP-scheduler,
+lockvolgorde en herziening van ADR-024. Er is geen fysiek hardwarebewijs.
+**Eerstvolgend commando:**
+`NOS_BUILD_DIR="$PWD/build/k06-native-smp" python3 -B tools/build.py --kernel-feature native-smp`
+en daarna, met dezelfde `NOS_BUILD_DIR`,
+`NOS_BUILD_DIR="$PWD/build/k06-native-smp" python3 -B -u tools/run_smp.py --profile native-smp`
+(`run_smp.py` bouwt niet zelf).
+## Historisch checkpoint — sessie-/bibliotheekintegratie (#206) — 5 november 2026
 
 **Basis:** main `bce6cabc71184d90fc228fe2ae8215339ff7bf28`, branch `integrate/20261105-session-library`
 (PR #206). **41 → 41/100.**
