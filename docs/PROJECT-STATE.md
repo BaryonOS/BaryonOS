@@ -17,7 +17,7 @@ eigenlijke SMP-scheduler voor processen: per-CPU-runqueues, lockvolgorde,
 interrupts op de BSP, een CR3-wissel per thread met shootdown voor de
 hele procesadresruimte, en de herziening van ADR-024.
 **Eerstvolgend commando:**
-`NOS_BUILD_DIR=build/k06-native-smp python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
+`export NOS_BUILD_DIR="$PWD/build/k06-native-smp"; python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
 
 ## Historisch checkpoint — K06 stap 3, TLB-shootdown vóór frame-hergebruik — 5 november 2026
 
@@ -46,7 +46,7 @@ niet op die branch schrijven. Daarna komen CI en integratie van
 SMP-veilige scheduler, met per-CPU-runqueues, lockvolgorde, procesbrede
 shootdown per CR3 en de herziening van ADR-024.
 **Eerstvolgend commando:**
-`NOS_BUILD_DIR=build/k06-native-smp python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
+`export NOS_BUILD_DIR="$PWD/build/k06-native-smp"; python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
 
 ## Historisch checkpoint — K06 stap 2, eigen TSS/IST en IPI's per AP — 5 november 2026
 
@@ -71,7 +71,7 @@ de volgorde #191 → #201 → stap 2. Volgende K06-stap: een
 TLB-shootdownprotocol op deze IPI's, daarna BSP-interrupts, de
 SMP-scheduler en de herziening van ADR-024.
 **Eerstvolgend commando:**
-`NOS_BUILD_DIR=build/k06-native-smp python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
+`export NOS_BUILD_DIR="$PWD/build/k06-native-smp"; python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
 
 ## Historisch checkpoint — K06 stap 1 en conflictintegratie — 5 november 2026
 
