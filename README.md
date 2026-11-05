@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-05 · **Rubric:** v1 ·
-**Bron:** [`486371e5`](https://github.com/simonvanieperen/nieuw-os/commit/486371e5a3790c7c1df817820ff4cc373c5fc42c) ·
-**Ontwikkelbranch:** `k06/smp-step2-percpu-ipi`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 2: eigen TSS/IST per AP, GS-anker, begrensde unicast-IPI's en quarantaine (gestapeld op #201).
-41/100 blijft 41/100. In het opt-in native-smp-profiel hebben AP's nu een eigen GDT/TSS/IST en reageren ze op begrensde gerichte IPI's; een dove AP leidt tot quarantaine van alle AP's. 11 native QEMU/TCG-gevallen, waaronder NMI/#DF op de eigen AP-IST, zijn geslaagd: zie docs/verification/k06-smp-ipi/. K06 blijft open (geen SMP-scheduler, TLB-shootdown of interrupts op de BSP). Gestapeld op #201 en #191, nog niet op main. De integration_review-velden blijven historisch PR148-bewijs.
+**Bron:** [`9c64c1db`](https://github.com/simonvanieperen/nieuw-os/commit/9c64c1dbe85290501934331a28a9ec7f61f39399) ·
+**Ontwikkelbranch:** `k06/smp-step3-shootdown`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 3: TLB-shootdown van alle aliassen vóór hergebruik van een fysieke pagina (gestapeld op #202).
+41/100 blijft 41/100. In het opt-in native-smp-profiel wordt een vervangen kernelframe pas vrijgegeven nadat elke AP beide vertalingen heeft ge-invlpg'd en bevestigd. Een dove AP leidt tot frame-quarantaine plus INIT; een controle zonder shootdown toont dat AP's anders het vrijgegeven frame lezen. 13 native QEMU/TCG-gevallen zijn geslaagd: zie docs/verification/k06-smp-shootdown/. K06 blijft open (geen SMP-scheduler, geen interrupts op de BSP, geen procesbrede shootdown). Gestapeld op #202, #201 en #191, nog niet op main. De integration_review-velden blijven historisch PR148-bewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
