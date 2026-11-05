@@ -3,6 +3,12 @@
 //! This module contains no PCI, MMIO, interrupt-controller, IOMMU, or reset
 //! hardware implementation. Its `DeviceControl` implementation must remain
 //! kernel-trusted and report observed readbacks, not driver assertions.
+//!
+//! Trust inputs: `KernelPciSnapshot`, `PciFunction::from_kernel_probe`,
+//! `DriverMatch::new` and `LeaseRegistry::new` are public only so the kernel
+//! crate can feed its own probe results and driver table in. They must never
+//! be built from driver-supplied data. The kernel keeps exactly one
+//! `LeaseRegistry`; it is the only way to obtain a `DeviceLease`.
 use crate::{Alias, Error as FrameError, Frames, Owner, PAGE};
 
 pub const MAX_DMA_GRANTS: usize = 16;
@@ -100,6 +106,7 @@ pub struct PciFunction {
     bars: [PciBar; 6],
 }
 
+/// Kernel-only trust input: the kernel's own config-space probe result.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct KernelPciSnapshot {
     pub address: PciAddress,
@@ -113,6 +120,8 @@ pub struct KernelPciSnapshot {
 }
 
 impl PciFunction {
+    /// Kernel-only trust input. Rejects BARs that overlap within the same
+    /// (memory or I/O) address space, so no two BAR grants alias each other.
     pub const fn from_kernel_probe(snapshot: KernelPciSnapshot) -> Result<Self, Error> {
         if snapshot.vendor_id == 0
             || snapshot.vendor_id == u16::MAX
@@ -120,6 +129,25 @@ impl PciFunction {
             || snapshot.generation == 0
         {
             return Err(Error::InvalidFunction);
+        }
+        let bars = &snapshot.bars;
+        let mut i = 0;
+        while i < bars.len() {
+            let mut j = i + 1;
+            while j < bars.len() {
+                let (a, b) = (bars[i], bars[j]);
+                // PciBar::new rules out base + size overflow; NONE has size 0.
+                if a.size != 0
+                    && b.size != 0
+                    && a.memory == b.memory
+                    && a.base < b.base + b.size
+                    && b.base < a.base + a.size
+                {
+                    return Err(Error::InvalidBar);
+                }
+                j += 1;
+            }
+            i += 1;
         }
         Ok(Self {
             address: snapshot.address,
@@ -153,6 +181,7 @@ pub struct DriverMatch {
 }
 
 impl DriverMatch {
+    /// Kernel-only trust input: an entry of the kernel's driver table.
     pub const fn new(
         id: DriverId,
         vendor_id: u16,
@@ -192,6 +221,9 @@ pub enum Phase {
     Released,
 }
 
+/// Recorded on the grant for the future IOMMU/driver contract. Nothing in
+/// this module enforces it: there is no IOMMU hook, so a device with bus
+/// master enabled can read and write every page of the grant.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum DmaDirection {
     DeviceReads,
@@ -209,6 +241,7 @@ pub enum InterruptMode {
 pub struct BarRange {
     function: FunctionKey,
     driver: DriverId,
+    lease: u64,
     generation: u64,
     bar: u8,
     base: u64,
@@ -282,6 +315,7 @@ const EMPTY_DMA: DmaRecord = DmaRecord {
 pub struct DmaGrant {
     function: FunctionKey,
     driver: DriverId,
+    lease: u64,
     generation: u64,
     slot: u8,
     id: u64,
@@ -291,6 +325,7 @@ pub struct DmaGrant {
 pub struct ConfigRange {
     function: FunctionKey,
     driver: DriverId,
+    lease: u64,
     generation: u64,
     offset: u16,
     length: u16,
@@ -300,6 +335,7 @@ pub struct ConfigRange {
 pub struct InterruptGrant {
     function: FunctionKey,
     driver: DriverId,
+    lease: u64,
     generation: u64,
     vector: u8,
     mode: InterruptMode,
@@ -421,9 +457,77 @@ pub trait DeviceControl {
     ) -> Result<bool, ControlError>;
 }
 
+/// Kernel-owned issuer of device leases (one per kernel). It allows at most
+/// one live lease per PCI address, whatever the generation, and stamps each
+/// lease with a never-reused nonce that every grant carries and every use
+/// checks. A lease frees its address only via `retire` after `Released`; a
+/// quarantined lease keeps the address claimed (fail closed).
+pub struct LeaseRegistry<const N: usize> {
+    live: [Option<(PciAddress, u64)>; N],
+    next_nonce: u64,
+}
+
+impl<const N: usize> Default for LeaseRegistry<N> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<const N: usize> LeaseRegistry<N> {
+    /// Kernel-only trust input; see the module documentation.
+    pub const fn new() -> Self {
+        Self {
+            live: [None; N],
+            next_nonce: 1,
+        }
+    }
+
+    pub fn lease(
+        &mut self,
+        function: PciFunction,
+        driver: DriverMatch,
+    ) -> Result<DeviceLease, Error> {
+        if self
+            .live
+            .iter()
+            .flatten()
+            .any(|(address, _)| *address == function.address)
+        {
+            return Err(Error::Duplicate);
+        }
+        let slot = self
+            .live
+            .iter()
+            .position(Option::is_none)
+            .ok_or(Error::Exhausted)?;
+        let nonce = self.next_nonce;
+        let next = nonce.checked_add(1).ok_or(Error::Exhausted)?;
+        let lease = DeviceLease::matched(function, driver, nonce)?;
+        self.next_nonce = next;
+        self.live[slot] = Some((function.address, nonce));
+        Ok(lease)
+    }
+
+    /// Frees the lease's PCI address for a new lease. Only a `Released`
+    /// lease, which rejects every further operation, can be retired.
+    pub fn retire(&mut self, lease: &DeviceLease) -> Result<(), Error> {
+        if lease.phase != Phase::Released {
+            return Err(Error::InvalidState);
+        }
+        let entry = self
+            .live
+            .iter_mut()
+            .find(|entry| **entry == Some((lease.function.address, lease.lease)))
+            .ok_or(Error::InvalidState)?;
+        *entry = None;
+        Ok(())
+    }
+}
+
 pub struct DeviceLease {
     function: FunctionKey,
     driver: DriverId,
+    lease: u64,
     phase: Phase,
     bars: [PciBar; 6],
     dma: [DmaRecord; MAX_DMA_GRANTS],
@@ -434,7 +538,7 @@ pub struct DeviceLease {
 }
 
 impl DeviceLease {
-    pub fn matched(function: PciFunction, driver: DriverMatch) -> Result<Self, Error> {
+    fn matched(function: PciFunction, driver: DriverMatch, lease: u64) -> Result<Self, Error> {
         if function.vendor_id != driver.vendor_id
             || function.device_id != driver.device_id
             || function.class != driver.class
@@ -451,6 +555,7 @@ impl DeviceLease {
                 generation: function.generation,
             },
             driver: driver.id,
+            lease,
             phase: Phase::Matched,
             bars: function.bars,
             dma: [EMPTY_DMA; MAX_DMA_GRANTS],
@@ -487,10 +592,10 @@ impl DeviceLease {
     }
 
     pub fn bar_range(&self, bar: u8, read: bool, write: bool) -> Result<BarRange, Error> {
-        if !matches!(self.phase, Phase::Initializing | Phase::Ready)
-            || bar >= self.bars.len() as u8
-            || !read && !write
-        {
+        if bar >= self.bars.len() as u8 {
+            return Err(Error::Range);
+        }
+        if !matches!(self.phase, Phase::Initializing | Phase::Ready) || !read && !write {
             return Err(Error::InvalidState);
         }
         let selected = self.bars[bar as usize];
@@ -500,6 +605,7 @@ impl DeviceLease {
         Ok(BarRange {
             function: self.function,
             driver: self.driver,
+            lease: self.lease,
             generation: self.function.generation,
             bar,
             base: selected.base,
@@ -521,6 +627,7 @@ impl DeviceLease {
         }
         if grant.function != self.function
             || grant.driver != self.driver
+            || grant.lease != self.lease
             || grant.generation != self.function.generation
         {
             return Err(Error::StaleGeneration);
@@ -574,6 +681,7 @@ impl DeviceLease {
         Ok(ConfigRange {
             function: self.function,
             driver: self.driver,
+            lease: self.lease,
             generation: self.function.generation,
             offset,
             length,
@@ -591,6 +699,7 @@ impl DeviceLease {
         }
         if grant.function != self.function
             || grant.driver != self.driver
+            || grant.lease != self.lease
             || grant.generation != self.function.generation
         {
             return Err(Error::StaleGeneration);
@@ -630,6 +739,10 @@ impl DeviceLease {
             .map_err(|_| Error::Hardware)
     }
 
+    /// Allocates zeroed `Owner::Kernel` frames pinned until quiescence. The
+    /// direction is only recorded (see `DmaDirection`), and no device
+    /// address-width check is made: the kernel must not hand these pages to a
+    /// device that cannot address them.
     pub fn allocate_dma<const N: usize>(
         &mut self,
         frames: &mut Frames<N>,
@@ -637,7 +750,10 @@ impl DeviceLease {
         direction: DmaDirection,
         mut zero: impl FnMut(u64),
     ) -> Result<DmaGrant, Error> {
-        if self.phase != Phase::Initializing || length == 0 || length > u32::MAX as usize {
+        if length > u32::MAX as usize {
+            return Err(Error::Range);
+        }
+        if self.phase != Phase::Initializing || length == 0 {
             return Err(Error::InvalidState);
         }
         let pages = length.checked_add(PAGE as usize - 1).ok_or(Error::Range)? / PAGE as usize;
@@ -668,6 +784,7 @@ impl DeviceLease {
         Ok(DmaGrant {
             function: self.function,
             driver: self.driver,
+            lease: self.lease,
             generation: self.function.generation,
             slot: slot as u8,
             id,
@@ -742,6 +859,7 @@ impl DeviceLease {
         self.interrupt = Some(InterruptGrant {
             function: self.function,
             driver: self.driver,
+            lease: self.lease,
             generation: self.function.generation,
             vector,
             mode,
@@ -838,12 +956,30 @@ impl DeviceLease {
         Ok(())
     }
 
+    /// Stops the device in a fixed order: bus master off (confirmed by
+    /// readback) so no DMA runs during the reset wait, then reset and wait,
+    /// then mask and drain the interrupt. Any unconfirmed step quarantines the
+    /// lease and keeps its DMA frames pinned. With no DMA left it is `Released`.
     pub fn quiesce<C: DeviceControl>(&mut self, control: &mut C) -> Result<(), Error> {
         if !matches!(self.phase, Phase::Revoking | Phase::Quarantined) {
             return Err(Error::InvalidState);
         }
         self.phase = Phase::Revoking;
-        let mut safe = true;
+        let disabled = control
+            .set_bus_master(
+                self.function.address,
+                self.driver,
+                self.function.generation,
+                false,
+            )
+            .is_ok()
+            && control
+                .bus_master_enabled(self.function.address, self.driver, self.function.generation)
+                .is_ok_and(|enabled| !enabled);
+        let reset = control
+            .reset_and_wait(self.function.address, self.driver, self.function.generation)
+            .unwrap_or(false);
+        let mut safe = disabled && reset;
         if let Some(interrupt) = self.interrupt {
             let masked = control
                 .mask_interrupt(
@@ -869,24 +1005,13 @@ impl DeviceLease {
                 self.interrupt_masked = true;
             }
         }
-        let reset = control
-            .reset_and_wait(self.function.address, self.driver, self.function.generation)
-            .unwrap_or(false);
-        let disabled = control
-            .set_bus_master(
-                self.function.address,
-                self.driver,
-                self.function.generation,
-                false,
-            )
-            .is_ok()
-            && control
-                .bus_master_enabled(self.function.address, self.driver, self.function.generation)
-                .is_ok_and(|enabled| !enabled);
-        safe &= reset && disabled;
         if safe {
             self.bus_master = false;
-            self.phase = Phase::Quiesced;
+            self.phase = if self.dma.iter().any(|record| record.live) {
+                Phase::Quiesced
+            } else {
+                Phase::Released
+            };
             Ok(())
         } else {
             self.phase = Phase::Quarantined;
@@ -942,7 +1067,10 @@ impl DeviceLease {
         if grant.generation != self.function.generation {
             return Err(Error::StaleGeneration);
         }
-        if grant.function != self.function || grant.driver != self.driver {
+        if grant.function != self.function
+            || grant.driver != self.driver
+            || grant.lease != self.lease
+        {
             return Err(Error::Permission);
         }
         if self.interrupt != Some(*grant) {
@@ -955,7 +1083,10 @@ impl DeviceLease {
         if grant.generation != self.function.generation {
             return Err(Error::StaleGeneration);
         }
-        if grant.function != self.function || grant.driver != self.driver {
+        if grant.function != self.function
+            || grant.driver != self.driver
+            || grant.lease != self.lease
+        {
             return Err(Error::Permission);
         }
         let record = self
@@ -1002,12 +1133,23 @@ mod tests {
         .unwrap()
     }
 
+    const MATCH: DriverMatch = DriverMatch::new(DRIVER, 0x1234, 0x5678, 1, 8, 2);
+
     fn matched() -> DeviceLease {
-        DeviceLease::matched(
-            function(),
-            DriverMatch::new(DRIVER, 0x1234, 0x5678, 1, 8, 2),
-        )
-        .unwrap()
+        LeaseRegistry::<1>::new().lease(function(), MATCH).unwrap()
+    }
+
+    fn snapshot_with_bars(bars: [PciBar; 6]) -> KernelPciSnapshot {
+        KernelPciSnapshot {
+            address: ADDRESS,
+            vendor_id: 0x1234,
+            device_id: 0x5678,
+            class: 1,
+            subclass: 8,
+            programming_interface: 2,
+            generation: GENERATION,
+            bars,
+        }
     }
 
     struct Control {
@@ -1020,6 +1162,18 @@ mod tests {
         fail_irq_sync: bool,
         fail_irq_mask: bool,
         calls: [u8; 11],
+        log: [u8; 32],
+        log_len: usize,
+    }
+
+    impl Control {
+        fn note(&mut self, call: usize) {
+            self.calls[call] += 1;
+            if self.log_len < self.log.len() {
+                self.log[self.log_len] = call as u8;
+                self.log_len += 1;
+            }
+        }
     }
 
     impl Default for Control {
@@ -1034,6 +1188,8 @@ mod tests {
                 fail_irq_sync: false,
                 fail_irq_mask: false,
                 calls: [0; 11],
+                log: [0; 32],
+                log_len: 0,
             }
         }
     }
@@ -1051,7 +1207,7 @@ mod tests {
             assert_eq!(driver, DRIVER);
             assert_eq!(generation, GENERATION);
             assert!(matches!(width, 1 | 2 | 4));
-            self.calls[10] += 1;
+            self.note(10);
             Ok(u32::from(offset))
         }
 
@@ -1067,7 +1223,7 @@ mod tests {
             assert_eq!(grant.bar_index(), 0);
             assert_eq!(grant.physical_base(), 0x8000_0000);
             assert!(matches!(width, 1 | 2 | 4 | 8));
-            self.calls[8] += 1;
+            self.note(8);
             Ok(offset + u64::from(width))
         }
 
@@ -1085,7 +1241,7 @@ mod tests {
             assert!(matches!(width, 1 | 2 | 4 | 8));
             assert_eq!(offset + u64::from(width), 0x14);
             assert_eq!(value, 0x1234);
-            self.calls[9] += 1;
+            self.note(9);
             Ok(())
         }
 
@@ -1099,7 +1255,7 @@ mod tests {
             assert_eq!(function, ADDRESS);
             assert_eq!(driver, DRIVER);
             assert_eq!(generation, GENERATION);
-            self.calls[0] += 1;
+            self.note(0);
             self.bus_master = enabled;
             Ok(())
         }
@@ -1113,7 +1269,7 @@ mod tests {
             assert_eq!(function, ADDRESS);
             assert_eq!(driver, DRIVER);
             assert_eq!(generation, GENERATION);
-            self.calls[1] += 1;
+            self.note(1);
             if self.bus_master && self.fail_enable_readback
                 || !self.bus_master && self.fail_disable_readback
             {
@@ -1131,7 +1287,7 @@ mod tests {
             assert_eq!(function, ADDRESS);
             assert_eq!(driver, DRIVER);
             assert_eq!(generation, GENERATION);
-            self.calls[2] += 1;
+            self.note(2);
             Ok(self.reset_ack)
         }
 
@@ -1144,7 +1300,7 @@ mod tests {
             assert_eq!(function, ADDRESS);
             assert_eq!(driver, DRIVER);
             assert_eq!(generation, GENERATION);
-            self.calls[3] += 1;
+            self.note(3);
             Ok((self.irq_vector, self.irq_mode))
         }
 
@@ -1161,7 +1317,7 @@ mod tests {
             assert_eq!(generation, GENERATION);
             assert_eq!(vector, self.irq_vector);
             assert_eq!(mode, self.irq_mode);
-            self.calls[4] += 1;
+            self.note(4);
             if self.fail_irq_mask {
                 Err(ControlError::Failed)
             } else {
@@ -1182,7 +1338,7 @@ mod tests {
             assert_eq!(generation, GENERATION);
             assert_eq!(vector, self.irq_vector);
             assert_eq!(mode, self.irq_mode);
-            self.calls[5] += 1;
+            self.note(5);
             Ok(())
         }
 
@@ -1199,7 +1355,7 @@ mod tests {
             assert_eq!(generation, GENERATION);
             assert_eq!(vector, self.irq_vector);
             assert_eq!(mode, self.irq_mode);
-            self.calls[6] += 1;
+            self.note(6);
             Ok(())
         }
 
@@ -1216,7 +1372,7 @@ mod tests {
             assert_eq!(generation, GENERATION);
             assert_eq!(vector, self.irq_vector);
             assert_eq!(mode, self.irq_mode);
-            self.calls[7] += 1;
+            self.note(7);
             Ok(!self.fail_irq_sync)
         }
     }
@@ -1257,15 +1413,18 @@ mod tests {
     fn exact_match_generation_and_function_bounds() {
         assert_eq!(PciAddress::new(0, 0, 32, 0), Err(Error::InvalidAddress));
         assert_eq!(PciAddress::new(0, 0, 1, 8), Err(Error::InvalidAddress));
+        let mut registry = LeaseRegistry::<1>::new();
         assert_eq!(
-            DeviceLease::matched(
-                function(),
-                DriverMatch::new(OTHER_DRIVER, 0x1235, 0x5678, 1, 8, 2)
-            )
-            .err(),
+            registry
+                .lease(
+                    function(),
+                    DriverMatch::new(OTHER_DRIVER, 0x1235, 0x5678, 1, 8, 2)
+                )
+                .err(),
             Some(Error::NoMatch)
         );
-        let mut lease = matched();
+        // A refused match does not claim the function.
+        let mut lease = registry.lease(function(), MATCH).unwrap();
         assert_eq!(
             lease.authorize(OTHER_DRIVER, GENERATION),
             Err(Error::Permission)
@@ -1279,7 +1438,8 @@ mod tests {
 
     #[test]
     fn stale_dma_and_mmio_grants_do_not_cross_device_generations() {
-        let mut old = matched();
+        let mut registry = LeaseRegistry::<1>::new();
+        let mut old = registry.lease(function(), MATCH).unwrap();
         old.authorize(DRIVER, GENERATION).unwrap();
         old.begin_initialization().unwrap();
         let mut frames = frames::<8>();
@@ -1287,17 +1447,24 @@ mod tests {
             .allocate_dma(&mut frames, 64, DmaDirection::DeviceReads, |_| {})
             .unwrap();
         let bar = old.bar_range(0, true, false).unwrap();
+        let mut control = Control {
+            reset_ack: true,
+            ..Control::default()
+        };
+        old.revoke().unwrap();
+        old.quiesce(&mut control).unwrap();
+        old.release_dma(&dma, &mut frames, |_| {}).unwrap();
+        registry.retire(&old).unwrap();
 
-        let next_generation = DeviceLease::matched(
-            function_with_generation(GENERATION + 1),
-            DriverMatch::new(DRIVER, 0x1234, 0x5678, 1, 8, 2),
-        )
-        .unwrap();
-        let mut next_generation = next_generation;
+        let mut next_generation = registry
+            .lease(function_with_generation(GENERATION + 1), MATCH)
+            .unwrap();
         next_generation.authorize(DRIVER, GENERATION + 1).unwrap();
         next_generation.begin_initialization().unwrap();
+        next_generation
+            .allocate_dma(&mut frames, 64, DmaDirection::DeviceReads, |_| {})
+            .unwrap();
         assert_eq!(next_generation.dma_pages(&dma), Err(Error::StaleGeneration));
-        let mut control = Control::default();
         assert_eq!(
             next_generation.read_bar(&mut control, &bar, 0, 4),
             Err(Error::StaleGeneration)
@@ -1399,7 +1566,7 @@ mod tests {
     }
 
     #[test]
-    fn dma_is_allocator_issued_directional_and_pinned_until_quiescence() {
+    fn dma_is_allocator_issued_direction_tagged_and_pinned_until_quiescence() {
         let mut lease = matched();
         lease.authorize(DRIVER, GENERATION).unwrap();
         lease.begin_initialization().unwrap();
@@ -1587,6 +1754,147 @@ mod tests {
         assert_eq!(
             lease.release_dma(&grant, &mut frames, |_| {}),
             Err(Error::InvalidState)
+        );
+    }
+
+    #[test]
+    fn second_live_lease_for_the_same_function_is_refused() {
+        let mut registry = LeaseRegistry::<2>::new();
+        let mut first = registry.lease(function(), MATCH).unwrap();
+        assert_eq!(
+            registry.lease(function(), MATCH).err(),
+            Some(Error::Duplicate)
+        );
+        assert_eq!(
+            registry
+                .lease(function_with_generation(GENERATION + 1), MATCH)
+                .err(),
+            Some(Error::Duplicate)
+        );
+        assert_eq!(registry.retire(&first), Err(Error::InvalidState));
+        first.authorize(DRIVER, GENERATION).unwrap();
+        first.revoke().unwrap();
+        first
+            .quiesce(&mut Control {
+                reset_ack: true,
+                ..Control::default()
+            })
+            .unwrap();
+        registry.retire(&first).unwrap();
+        assert_eq!(registry.retire(&first), Err(Error::InvalidState));
+        registry.lease(function(), MATCH).unwrap();
+    }
+
+    #[test]
+    fn grants_from_a_retired_lease_are_rejected_by_its_successor() {
+        let mut registry = LeaseRegistry::<1>::new();
+        let mut frames = frames::<16>();
+        let mut control = Control {
+            reset_ack: true,
+            irq_vector: 64,
+            ..Control::default()
+        };
+        let mut first = registry.lease(function(), MATCH).unwrap();
+        let old_dma = initialize(&mut first, &mut control, &mut frames);
+        let old_bar = first.bar_range(0, true, true).unwrap();
+        let old_config = first.config_range(0x10, 4, false).unwrap();
+        let old_irq = first.interrupt_grant().unwrap();
+        first.revoke().unwrap();
+        first.quiesce(&mut control).unwrap();
+        first.release_dma(&old_dma, &mut frames, |_| {}).unwrap();
+        registry.retire(&first).unwrap();
+
+        // Same function and generation, so slot 0 / DMA id 1 / vector 64 recur.
+        let mut second = registry.lease(function(), MATCH).unwrap();
+        let new_dma = initialize(&mut second, &mut control, &mut frames);
+        let held = free_count(&frames);
+        let calls = control.calls;
+        assert!(second.dma_pages(&old_dma).is_err());
+        assert!(second.read_bar(&mut control, &old_bar, 0, 4).is_err());
+        assert!(second
+            .write_bar(&mut control, &old_bar, 0x10, 4, 0x1234)
+            .is_err());
+        assert!(second.read_config(&mut control, &old_config, 0, 4).is_err());
+        assert!(second
+            .acknowledge_interrupt(&mut control, &old_irq)
+            .is_err());
+        assert_eq!(control.calls, calls);
+        second.revoke().unwrap();
+        second.quiesce(&mut control).unwrap();
+        assert!(second.release_dma(&old_dma, &mut frames, |_| {}).is_err());
+        assert_eq!(free_count(&frames), held);
+        second.release_dma(&new_dma, &mut frames, |_| {}).unwrap();
+        assert_eq!(second.phase(), Phase::Released);
+    }
+
+    #[test]
+    fn lease_without_dma_reaches_released_after_quiescence() {
+        let mut registry = LeaseRegistry::<1>::new();
+        let mut lease = registry.lease(function(), MATCH).unwrap();
+        lease.authorize(DRIVER, GENERATION).unwrap();
+        lease.begin_initialization().unwrap();
+        lease.revoke().unwrap();
+        lease
+            .quiesce(&mut Control {
+                reset_ack: true,
+                ..Control::default()
+            })
+            .unwrap();
+        assert_eq!(lease.phase(), Phase::Released);
+        registry.retire(&lease).unwrap();
+    }
+
+    #[test]
+    fn quiesce_disables_bus_master_before_reset_and_interrupt_drain() {
+        let mut lease = matched();
+        let mut control = Control {
+            reset_ack: true,
+            irq_vector: 64,
+            ..Control::default()
+        };
+        let mut frames = frames::<16>();
+        initialize(&mut lease, &mut control, &mut frames);
+        lease.revoke().unwrap();
+        let start = control.log_len;
+        lease.quiesce(&mut control).unwrap();
+        // set_bus_master(false), readback, reset_and_wait, mask, drain.
+        assert_eq!(&control.log[start..control.log_len], &[0, 1, 2, 4, 7]);
+    }
+
+    #[test]
+    fn kernel_probe_rejects_overlapping_bars_in_one_address_space() {
+        let mut bars = [PciBar::NONE; 6];
+        bars[0] = PciBar::new(0x8000_0000, 0x4000, true).unwrap();
+        bars[2] = PciBar::new(0x8000_2000, 0x1000, true).unwrap();
+        assert_eq!(
+            PciFunction::from_kernel_probe(snapshot_with_bars(bars)),
+            Err(Error::InvalidBar)
+        );
+        bars[2] = bars[0];
+        assert_eq!(
+            PciFunction::from_kernel_probe(snapshot_with_bars(bars)),
+            Err(Error::InvalidBar)
+        );
+        bars[2] = PciBar::new(0x8000_4000, 0x1000, true).unwrap();
+        bars[3] = PciBar::new(0x8000_0000, 0x100, false).unwrap();
+        assert!(PciFunction::from_kernel_probe(snapshot_with_bars(bars)).is_ok());
+    }
+
+    #[test]
+    fn out_of_range_arguments_report_range() {
+        let mut lease = matched();
+        lease.authorize(DRIVER, GENERATION).unwrap();
+        lease.begin_initialization().unwrap();
+        assert_eq!(lease.bar_range(6, true, false), Err(Error::Range));
+        let mut frames = frames::<8>();
+        assert_eq!(
+            lease.allocate_dma(
+                &mut frames,
+                u32::MAX as usize + 1,
+                DmaDirection::DeviceReads,
+                |_| {}
+            ),
+            Err(Error::Range)
         );
     }
 }
