@@ -125,3 +125,10 @@ updates:
       - "dependencies"
     commit-message:
       prefix: "chore(cargo)"
+    # open-pull-requests-limit applies per directory; group across directories
+    # so one dependency bump yields one PR instead of up to 59.
+    groups:
+      cargo-independent:
+        patterns:
+          - "*"
+        group-by: dependency-name
