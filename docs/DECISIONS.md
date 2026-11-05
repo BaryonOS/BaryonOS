@@ -23,6 +23,23 @@ migratie, en er zijn geen interrupts of preëmptie op de BSP. Er is geen
 lockvolgorde voor kernelsubsystemen en geen gebruikersprocessen op AP's;
 ADR-024 is ongewijzigd. Deze stap verandert niets aan andere profielen.
 
+**Status:** geaccepteerd in het opt-in `native-smp`-profiel; K06 blijft open.
+
+**Alternatieven overwogen.**
+- TSC-deadline-timer: uitgesteld, omdat die CPUID-detectie en kalibratie
+  vraagt; de periodieke LAPIC-timer volstaat voor dit bewijs.
+- Coöperatieve threads (`yield`): verworpen, omdat ze geen preëmptie
+  bewijzen.
+- Een volledige XSAVE/FXSAVE-context: niet nodig, want de kernel is
+  soft-float zonder red zone; voor gebruikersprocessen met FPU blijft dat
+  verplicht.
+
+**Primaire bronnen.** Intel SDM Vol. 3A: APIC-timer (LVT-timer, divide
+configuration, initial/current count, periodieke modus) en
+interruptafhandeling (interruptframe, uitlijning van RSP bij een
+privilege-loze interrupt, IRETQ). De hoofdstuknummers verschillen per
+editie.
+
 ## ADR-072 — TLB-shootdown vóór hergebruik van een fysieke pagina (K06 stap 3)
 
 5 november 2026; aanvulling op ADR-070/071, alleen in `native-smp`. Op SMP
