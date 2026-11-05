@@ -166,13 +166,21 @@ pub fn install() {
 /// One AP's private descriptor tables: a GDT with the kernel's code/data
 /// descriptors and this CPU's own TSS descriptor, plus that TSS. A busy TSS
 /// may be loaded by exactly one CPU, so every AP needs its own. 256-byte
-/// alignment keeps the 192-byte slot (GDT + TSS) inside one page.
+/// alignment keeps the 160-byte payload (56-byte GDT + 104-byte packed TSS,
+/// padded to 256 bytes) inside one page.
 #[cfg(feature = "native-smp")]
 #[repr(C, align(256))]
 pub struct CpuTables {
     gdt: [u64; 7],
     tss: Tss,
 }
+#[cfg(feature = "native-smp")]
+const _: () = assert!(
+    size_of::<Tss>() == 104
+        && core::mem::offset_of!(CpuTables, tss) == 56
+        && size_of::<CpuTables>() == 256
+        && core::mem::align_of::<CpuTables>() == 256
+);
 #[cfg(feature = "native-smp")]
 impl CpuTables {
     pub const fn new() -> Self {
@@ -196,7 +204,7 @@ impl CpuTables {
 /// its own stack with IF=0; `tables` is that AP's exclusive static slot.
 #[cfg(feature = "native-smp")]
 pub fn install_ap(tables: *mut CpuTables, rsp0: u64, double_top: u64, nmi_top: u64) {
-    // SAFETY: `tables` is a permanent, 64-byte aligned static slot owned by this
+    // SAFETY: `tables` is a permanent, 256-byte aligned static slot owned by this
     // AP alone (selected by the claim CAS); no other CPU reads or writes it. The
     // BSP's GDT descriptors are read-only after install(). Packed TSS fields use
     // unaligned raw writes. The IDT is permanent and complete before any AP runs.
