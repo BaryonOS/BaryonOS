@@ -40,6 +40,7 @@ IMAGE_FEATURES = ("native-system-images",)
 SYSTEM_CLOCK_FEATURES = ("native-system-clock",)
 SYSTEM_FEATURES = ("native-net-service", "test-net-service-client-exit", "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc",
+                   "native-acpi-s5", "test-acpi-s5-corrupt-dsdt",
                    "native-smp", "test-smp-ap-stall", "test-smp-ap-mismatch", "test-smp-ap-nmi",
                    "test-smp-ap-double-fault", "test-smp-ap-ipi-deaf", "test-smp-ap-shootdown-deaf",
                    "test-smp-shootdown-skipped", "test-smp-ap-timer-dead", "test-m2-ro", "test-m2-nx",

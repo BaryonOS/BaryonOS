@@ -107,6 +107,8 @@ standaard genegeerde test accepteert expliciet opgegeven externe
 QEMU-firmwaretabellen en controleert ook mutaties daarvan; ontbrekende
 fixturepaden of adressen laten die test falen, niet stil overslaan.
 Die hosttest voert geen gastcode of shutdown uit.
-De release-integrator beheert BootInfo-integratie, onafhankelijke
-kernelvalidatie, profielmanifest, native broker en de poweroff-proef. Er is
-geen H05-aftekening en geen fysieke hardwareacceptatie.
+Sinds 5 november 2026 gebruikt het kernelprofiel `native-acpi-s5` deze crate
+voor een echte native poweroff in QEMU; bewijs en grenzen staan in
+[`docs/verification/h05-acpi-s5`](../../docs/verification/h05-acpi-s5/README.md).
+Er is nog geen dienst-/gebruikersbroker, geen H05-aftekening en geen fysieke
+hardwareacceptatie.

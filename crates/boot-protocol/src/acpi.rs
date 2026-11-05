@@ -232,6 +232,10 @@ pub struct Discovery {
     pub dmar: [DmarUnit; MAX_DMAR_UNITS],
     pub dmar_count: u8,
     pub madt: Madt,
+    /// Physical address of the single FADT (`FACP`) root entry, 0 when absent
+    /// or duplicated. Only the header signature is checked here; consumers
+    /// must read and validate the table themselves.
+    pub fadt: u64,
 }
 
 impl Discovery {
@@ -243,6 +247,7 @@ impl Discovery {
             dmar: [EMPTY_DMAR; MAX_DMAR_UNITS],
             dmar_count: 0,
             madt: Madt::unavailable(MadtStatus::Missing),
+            fadt: 0,
         }
     }
 
@@ -264,6 +269,7 @@ impl Discovery {
         self.madt.io_apic_count = 0;
         self.madt.local_apic_base = 0;
         self.madt.pcat_compat = false;
+        self.fadt = 0;
     }
 }
 
@@ -295,8 +301,8 @@ pub trait PhysicalRead {
     fn read(&mut self, address: u64, output: &mut [u8]) -> Result<(), Error>;
 }
 
-/// Discover bounded MCFG and DMAR descriptors plus the MADT processor
-/// inventory. All tables are checksummed, length-limited, and read through
+/// Discover bounded MCFG and DMAR descriptors, the MADT processor
+/// inventory and the single FADT address. All tables are checksummed, length-limited, and read through
 /// `PhysicalRead`; unknown root entries are ignored after validating their
 /// address shape. MADT content errors only mark `madt` invalid.
 pub fn discover(handoff: &AcpiHandoff, reader: &mut impl PhysicalRead) -> Discovery {
@@ -358,6 +364,7 @@ fn discover_tables(
     let mut saw_mcfg = false;
     let mut saw_dmar = false;
     let mut saw_madt = false;
+    let mut saw_fadt = false;
     let mut offset = ACPI_HEADER_SIZE;
     while offset < root_length {
         let address = if entry_size == 8 {
@@ -399,6 +406,10 @@ fn discover_tables(
                 .map_err(|_| Error::Read)?;
             validate_table(&table[..length], b"DMAR")?;
             parse_dmar(&table[..length], result)?;
+        } else if signature == b"FACP" {
+            // A second FADT is ambiguous: no S5 source, other inventory stays.
+            result.fadt = if saw_fadt { 0 } else { address };
+            saw_fadt = true;
         } else if signature == b"APIC" {
             // A second MADT is ambiguous: fail SMP closed, keep other inventory.
             // Parsed in place: no Madt temporaries on the 16-KiB kernel stack.
@@ -899,6 +910,24 @@ mod tests {
         assert_eq!(discovered.dmar_count, 1);
         assert_eq!(discovered.dmar[0].register_base, 0x1000);
         assert!(!discovered.dma_execution_allowed());
+    }
+
+    #[test]
+    fn single_fadt_address_is_recorded_and_duplicates_fail_closed() {
+        let (handoff, mut fixture) = valid_fixture(false);
+        assert_eq!(discover(&handoff, &mut fixture).fadt, 0);
+        let mut xsdt_body = 0x2000u64.to_le_bytes().to_vec();
+        xsdt_body.extend_from_slice(&0x4000u64.to_le_bytes());
+        fixture.tables[0].1 = table(b"XSDT", &xsdt_body);
+        fixture.tables.push((0x4000, table(b"FACP", &[0; 80])));
+        let discovered = discover(&handoff, &mut fixture);
+        assert_eq!(discovered.fadt, 0x4000);
+        assert_eq!(discovered.mcfg_count, 1);
+        xsdt_body.extend_from_slice(&0x4000u64.to_le_bytes());
+        fixture.tables[0].1 = table(b"XSDT", &xsdt_body);
+        let discovered = discover(&handoff, &mut fixture);
+        assert_eq!(discovered.fadt, 0);
+        assert_eq!(discovered.mcfg_count, 1);
     }
 
     #[test]
