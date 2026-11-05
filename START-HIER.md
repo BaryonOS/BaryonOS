@@ -51,7 +51,7 @@ Gebruik de door Git aangeboden browser-/credential-manager-login. Bestaat `origi
 
 Dezelfde Git-workflow kan een andere remote gebruiken. Een mirror kopieert Git-geschiedenis, maar niet automatisch alle issues, CI-geheimen, instellingen en releaseprocessen. Bewaar daarom bouwscripts, besluiten en releasespecificaties in de repository.
 
-Codex is een clouddienst/modelworkflow, ook als de bestanden lokaal staan. Lokaal werken betekent niet dat alle verwerking lokaal blijft. Het toekomstige OS heeft een striktere, afzonderlijke producteis: AI uitsluitend op het apparaat en OS-data alleen op het apparaat of eigen NAS binnen eigen LAN. Codex/GitHub dienen hier uitsluitend de ontwikkeling en mogen geen runtimevereiste of kanaal voor persoonlijke OS-data worden. Controleer de actuele privacy-/gegevensinstellingen van je gebruikte account; dit pakket stelt geen specifieke bewaartermijn of vertrouwelijkheid vast.
+Codex is een clouddienst/modelworkflow, ook als de bestanden lokaal staan. Lokaal werken betekent niet dat alle verwerking lokaal blijft. Het toekomstige OS heeft een striktere, afzonderlijke producteis: AI uitsluitend op het apparaat. Codex/GitHub dienen hier uitsluitend de ontwikkeling en mogen geen runtimevereiste of kanaal voor persoonlijke OS-data worden. Controleer de actuele privacy-/gegevensinstellingen van je gebruikte account; dit pakket stelt geen specifieke bewaartermijn of vertrouwelijkheid vast.
 
 ## 5. Modelkeuze
 Stand 26 oktober 2026, op basis van OpenAI's modeldocumentatie:
