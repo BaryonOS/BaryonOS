@@ -1,6 +1,27 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — instructieonderhoud — 4 november 2026
+## NEXT AGENT HANDOFF — integratie PR-wachtrij — 5 november 2026
+
+**Basis:** main `c7a61d1126caa346a128fba3004fe4add4ccff61` (na #198), branch `integrate/20261105-platform-batch`
+(PR #199). **41 → 41/100**; geen criterium volledig geaccepteerd.
+
+**Gemerged:** #198 = #179 #183 #187 #190 (USB-framing, HID boot reports en
+-interfacebinding, PS/2-health; hostmodellen). **In #199:** #169 #173 #176 #182
+#188 #189 #193 #194 (acht zelfstandige platformcrates, nu in de
+`component-leaves`-matrix; voorheen draaide CI er geen enkele test van),
+#165 (EXIF in tile-viewer), #150 (agentprofielen) en #195 (instructieopschoning).
+Lokaal (Rust 1.90.0): test, clippy `-D warnings`, fmt en freestanding build per
+crate exit 0; onafhankelijke AI-reviews MERGE (geen menselijke audit).
+
+**Open:** #155 vraagt Simons besluit (score 41→39, B01-criterium); #181, #191
+en #177 FIX (reviewcomments op de PR's); calculator #184/#186/#192 onderling
+CONFLICT (26+ hunks, ook in `tools/run_window_session.py`); #133, #135, #146,
+#147, #154, #157 nog niet beoordeeld; concepten #167 #185 #197 niet overgedragen;
+#196 overbodig na het besluit om alleen de Graphify-MCP te gebruiken.
+**Bewijsgrens:** geen native app-launch, fysieke USB/HID of menselijke test.
+Eerstvolgend commando: `python3 tools/progress.py --check`.
+
+## Historisch checkpoint — instructieonderhoud — 4 november 2026
 
 **Basis:** `8bb153092e967aae314ecde35bcf963565a87ac7`, branch
 `copilot/dream-curate-memories-20261104132442`. Vijf instructiebestanden

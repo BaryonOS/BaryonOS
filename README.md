@@ -60,11 +60,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-04 · **Rubric:** v1 ·
-**Bron:** [`8bb15309`](https://github.com/simonvanieperen/nieuw-os/commit/8bb153092e967aae314ecde35bcf963565a87ac7) ·
-**Ontwikkelbranch:** `copilot/dream-curate-memories-20261104132442`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Verouderde opslag-, prototype- en voortgangsinstructies opruimen.
-41/100 blijft 41/100. Alleen verouderde instructies over opslaglocaties, prototype-eerst bouwen en het bijwerken van voortgang vervallen; de actuele privacy-, native product- en bewijscontracten blijven leidend. Geen runtimecode, criteria, gewichten of bewijsstatus gewijzigd. De reviewvelden blijven historisch PR148-bewijs; geen nieuwe native, fysieke of menselijke acceptatie.
+**Herbeoordeeld:** 2026-11-05 · **Rubric:** v1 ·
+**Bron:** [`c7a61d11`](https://github.com/simonvanieperen/nieuw-os/commit/c7a61d1126caa346a128fba3004fe4add4ccff61) ·
+**Ontwikkelbranch:** `integrate/20261105-platform-batch`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Integratie: driverreeks #198 en platform-/viewer-/instructiebatch #199 (#150 #165 #169 #173 #176 #182 #188 #189 #193 #194 #195).
+41/100 blijft 41/100. Geïntegreerd: USB-framing, HID boot reports/interface en PS/2-health (#198, hostmodellen); acht platformhostapps met nieuwe CI-dekking; EXIF-orientatie in de tile-viewer; OS-agentprofielen; instructieopschoning #195. Geen criterium volledig geaccepteerd: geen native app-launch, fysieke USB/HID of menselijke acceptatie. AI-reviews zijn geen menselijke audit. Open: #155 (score/B01-besluit), #181/#191/#177 FIX, calculatortrio CONFLICT.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
