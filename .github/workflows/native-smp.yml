@@ -63,6 +63,26 @@ jobs:
         run: |
           python3 -B tools/build.py --kernel-feature test-smp-ap-mismatch
           python3 -B -u tools/run_smp.py --profile test-smp-ap-mismatch
+      - name: AP that refuses directed IPIs quarantines every AP
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-ap-ipi-deaf
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-ap-ipi-deaf
+          python3 -B -u tools/run_smp.py --profile test-smp-ap-ipi-deaf
+      - name: AP NMI and double fault run on that AP's own IST stack
+        run: |
+          for profile in test-smp-ap-nmi test-smp-ap-double-fault; do
+            export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/k06-$profile"
+            python3 -B tools/build.py --kernel-feature "$profile"
+            python3 -B -u tools/run_smp.py --profile "$profile"
+          done
+      - name: TLB shootdown - deaf AP quarantines the frame; control shows stale TLBs
+        run: |
+          for profile in test-smp-ap-shootdown-deaf test-smp-shootdown-skipped test-smp-ap-timer-dead; do
+            export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/k06-$profile"
+            python3 -B tools/build.py --kernel-feature "$profile"
+            python3 -B -u tools/run_smp.py --profile "$profile"
+          done
       - name: Preserve tracked source integrity
         run: git diff --exit-code
       - name: Preserve actual run and build artifacts

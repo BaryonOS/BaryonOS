@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-05 · **Rubric:** v1 ·
-**Bron:** [`cd78ea74`](https://github.com/simonvanieperen/nieuw-os/commit/cd78ea74f14d8b8921aad51cc46a41c41274ab45) ·
-**Ontwikkelbranch:** `k06/smp-ap-bringup`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 1: native AP-opstart; conflictintegratie met main en device-exec/ACPI-handoff op PR #200.
-41/100 blijft 41/100. De K06 native-smp implementatie en eerder opgeslagen QEMU/TCG-bewijs blijven ongewijzigd. PR-head cd78ea74 is geïntegreerd met base main 7dd91fad en de device-exec/ACPI-handoff-head; drie statusconflicten zijn opgelost. Gerichte hosttests, driver-Clippy/fmt/freestanding builds, kernel native-smp build en progress-consistentiecheck slaagden. CodeQL op de eerste mergecommit c014b17d vond geen Actions/Python-alerts maar liep af vóór alle talen klaar waren; de geresynchroniseerde head is niet volledig gescand. Nieuwe-head hosted CI en native K06-QEMU op de geïntegreerde head blijven open. Geen criterium of gewicht gewijzigd; K06 blijft open. De integration_review-velden blijven historisch PR148-bewijs.
+**Bron:** [`c308b1ee`](https://github.com/simonvanieperen/nieuw-os/commit/c308b1ee9d8deedcfacd923c407392222ff7a12f) ·
+**Ontwikkelbranch:** `k06/smp-step4-preempt`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 4: gepreëmpteerde round-robin-kernelthreads op AP's via de LAPIC-timer (gestapeld op #203).
+41/100 blijft 41/100. In het opt-in native-smp-profiel preëmpt de LAPIC-timer op elke AP twee kernelthreads. Bewezen zijn registerbehoud over contextwissels, voortgang van beide threads en bevriezing na STOP; een dode timer leidt tot quarantaine. 14 native QEMU/TCG-gevallen zijn geslaagd: zie docs/verification/k06-smp-preempt/. K06 blijft open (geen SMP-scheduler voor processen, geen interrupts op de BSP, geen lockvolgorde). Gestapeld op #203, #202, #201 en #191, nog niet op main. De integration_review-velden blijven historisch PR148-bewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

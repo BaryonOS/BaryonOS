@@ -161,7 +161,7 @@ extern "C" fn run() -> ! {
     }
     serial::write(b"KS-03:PASS\n");
     #[cfg(feature = "native-smp")]
-    smp::start(smp_prepared, &_discovery.madt);
+    smp::start(smp_prepared, &_discovery.madt, frames, &mut paging);
     #[cfg(feature = "native-rtc")]
     rtc::run();
     if cfg!(feature = "test-m2-ro") {

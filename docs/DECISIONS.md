@@ -1,5 +1,135 @@
 # Ontwerpbesluiten
 
+## ADR-073 — Gepreëmpteerde kernelthreads op AP's (K06 stap 4)
+
+5 november 2026; alleen in `native-smp`, de BSP blijft IF=0. Iedere AP
+krijgt een periodieke LAPIC-timer (vector 0xd0). De stub bewaart alle 15
+GPR's op de onderbroken stack, en `smp_preempt` kiest round-robin tussen
+de thuislus en twee kernelthreads, elk op een eigen stack met guards. De
+kernel is soft-float zonder red zone; GPR's plus het CPU-interruptframe
+vormen daarom de volledige threadcontext. Er is geen FPU-, XSAVE- of
+per-thread-CR3-wissel.
+
+**Contract.** Een thread draait alleen tussen RUN en STOP. Bij STOP maskeert
+de eerstvolgende tick de timer en keert de AP terug naar zijn thuislus.
+Pas daarna meldt hij RESUMED. De BSP eist per AP minstens 8 ticks en 4
+contextwissels, en dat beide threads vooruitgang boeken. Een AP die dat
+niet haalt, wordt behandeld als een dove AP: alle AP's krijgen INIT en de
+BSP werkt alleen verder.
+
+**Bewijs:** `docs/verification/k06-smp-preempt/`. **Open:** dit zijn
+kernelthreads zonder eigen adresruimte, er is geen gedeelde runqueue of
+migratie, en er zijn geen interrupts of preëmptie op de BSP. Er is geen
+lockvolgorde voor kernelsubsystemen en geen gebruikersprocessen op AP's;
+ADR-024 is ongewijzigd. Deze stap verandert niets aan andere profielen.
+
+**Status:** geaccepteerd in het opt-in `native-smp`-profiel; K06 blijft open.
+
+**Alternatieven overwogen.**
+- TSC-deadline-timer: uitgesteld, omdat die CPUID-detectie en kalibratie
+  vraagt; de periodieke LAPIC-timer volstaat voor dit bewijs.
+- Coöperatieve threads (`yield`): verworpen, omdat ze geen preëmptie
+  bewijzen.
+- Een volledige XSAVE/FXSAVE-context: niet nodig, want de kernel is
+  soft-float zonder red zone; voor gebruikersprocessen met FPU blijft dat
+  verplicht.
+
+**Primaire bronnen.** Intel SDM Vol. 3A: APIC-timer (LVT-timer, divide
+configuration, initial/current count, periodieke modus) en
+interruptafhandeling (interruptframe, uitlijning van RSP bij een
+privilege-loze interrupt, IRETQ). De hoofdstuknummers verschillen per
+editie.
+
+## ADR-072 — TLB-shootdown vóór hergebruik van een fysieke pagina (K06 stap 3)
+
+5 november 2026; aanvulling op ADR-070/071, alleen in `native-smp`. Op SMP
+geldt het `Frames::unmap`-contract ("PTE wissen en TLB invalideren vóór het
+vrijgeven van metadata") voor **iedere** CPU die de vertaling kan cachen.
+Met één gedeelde CR3 kan een CPU iedere aanwezige vertaling (ook
+speculatief) cachen. Daarom geldt dit voor **alle** aliassen van het frame,
+en gaat het vrijgeven van een vervangen frame in deze volgorde:
+1. Het frame wissen terwijl de eigen bootstrap-alias nog bestaat.
+2. Beide PTE's lokaal weghalen (venster → nieuw frame, identity-alias weg)
+   en lokaal `invlpg`. De alias-metadata blijft daarbij staan.
+3. Shootdown-IPI (vector 0xe0) naar iedere AP: `invlpg` van beide
+   gepubliceerde adressen, daarna een ack van de generatie van deze ronde.
+4. Pas na álle acks: beide aliassen vrijgeven, `free` en een volledige
+   paging-audit.
+
+Ontbreekt een ack, dan blijft het oude frame in quarantaine (eigendom en
+alias behouden, nooit hergebruikt) en reset de BSP alle AP's met INIT.
+Dat is fail-closed, want een frame dat een andere CPU nog kan lezen, mag
+nooit naar een nieuwe eigenaar.
+
+**Bewijs:** iedere CPU ziet daarna aantoonbaar het nieuwe frame. Een
+controleprofiel zonder shootdown laat deterministisch zien dat alle AP's
+anders het vrijgegeven frame lezen: de test meet dus een echt gevaar. Zie
+`docs/verification/k06-smp-shootdown/`. **Open:** dit is één venster in
+een bootstrapprofiel. Een algemene shootdown voor procesadresruimten (per
+ASID/CR3 en per range), integratie met M3-unmaps, interrupts op de BSP en
+de SMP-scheduler volgen nog; ADR-024 blijft tot dan ongewijzigd geldig.
+
+**Status:** geaccepteerd in het opt-in `native-smp`-profiel; K06 blijft open.
+
+**Alternatieven overwogen.**
+- Alleen het venster ongeldig maken en de identity-alias lokaal laten
+  vallen: verworpen na review, omdat een AP met een gedeelde CR3 die alias
+  speculatief kan cachen.
+- CR3 herladen of een volledige TLB-flush per AP: is ook correct, maar
+  grover; `invlpg` per adres volstaat hier en blijft per vertaling
+  controleerbaar.
+- PCID/INVPCID: niet gebruikt; PCID staat uit in dit profiel.
+- Het frame vrijgeven en de shootdown "lazy" achteraf doen: verworpen,
+  want dat is precies het gevaar dat het controleprofiel aantoont.
+
+**Primaire bronnen.** Intel SDM Vol. 3A: TLB-onderhoud ("Invalidation of
+TLBs and Paging-Structure Caches", "Propagation of Paging-Structure Changes
+to Multiple Processors", INVLPG als serializing instruction) en APIC (ICR
+en TPR). Ook hier verschillen de hoofdstuknummers per editie.
+
+## ADR-071 — Eigen TSS/IST per AP en begrensde, gerichte IPI's (K06 stap 2)
+
+5 november 2026; aanvulling op ADR-070, nog steeds alleen in `native-smp`.
+Iedere AP krijgt een eigen GDT-kopie met eigen TSS (RSP0, IST1 voor #DF,
+IST2 voor NMI). De stacks daarvan staan in het kernelimage, met
+ongemapte guards. Een busy TSS wordt nooit gedeeld. IA32_GS_BASE wijst
+naar een per-CPU-anker; dat is de basis voor latere per-CPU-staat.
+
+**IPI-contract.** Vector 0xf0 is een supervisor-interruptgate. De stub telt
+de interrupt in het per-CPU-anker, geeft EOI aan de eigen xAPIC en keert
+terug. Vector 0xff is de spurious-gate. Pas nadat alle LVT's gemaskeerd
+zijn, TPR 0 is en SVR aan staat, wacht een AP met `sti; hlt`. De BSP
+verstuurt alleen unicast-IPI's. Broadcast-shorthands zijn verboden, omdat
+die CPU's in firmwarebezit zouden bereiken (bijvoorbeeld na een
+capaciteitsgrens). Per ronde moet iedere AP precies één levering tonen.
+Neemt een AP een gerichte interrupt niet aan, dan reset de BSP alle AP's
+met INIT en werkt alleen verder. Een CPU die niet op een IPI reageert, kan
+later nooit deelnemen aan TLB-shootdown. Een mislukte INIT stopt de boot.
+
+**Bewijs.** NMI en #DF op een AP komen native op de eigen IST-stack van die
+AP terecht; voorheen was dat een triple fault. Zie
+`docs/verification/k06-smp-ipi/`. **Open:** de BSP blijft IF=0, en er is
+nog geen TLB-shootdown, SMP-scheduler of lockvolgorde voor
+kernelsubsystemen. AP's draaien dus nog steeds geen kernelsubsystemen.
+ADR-024 blijft ongewijzigd geldig. Fysieke hardware is niet getest.
+
+**Status:** geaccepteerd in het opt-in `native-smp`-profiel; K06 blijft open.
+
+**Alternatieven overwogen.**
+- Eén gedeelde TSS: onmogelijk, want een busy TSS mag maar door één CPU geladen zijn.
+- Broadcast-IPI-shorthands: verworpen, omdat die ook CPU's in firmwarebezit
+  bereiken (bijvoorbeeld na een capaciteitsgrens).
+- Een AP die niet reageert alleen loskoppelen in plaats van alle AP's te
+  resetten: verworpen, omdat een AP die geen IPI aanneemt later geen
+  shootdown kan volgen.
+- x2APIC/MSR-IPI: uitgesteld, het profiel gebruikt xAPIC-MMIO.
+
+**Primaire bronnen.** Intel SDM Vol. 3A: taakbeheer (64-bit TSS, IST en
+de busy-vlag), interrupt- en exceptionafhandeling (IST-stackwissel,
+interruptgates) en APIC (ICR, delivery modes, LVT, TPR/PPR,
+spurious-vector, EOI). De SDM-hoofdstuknummers verschillen per editie;
+zoek op sectietitel.
+
 ## ADR-070 — Begrensde AP-opstart als eerste K06-stap
 
 5 november 2026. De kernel start applicatieprocessoren (AP's) uitsluitend in

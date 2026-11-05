@@ -1,6 +1,79 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — K06 stap 1 en conflictintegratie — 5 november 2026
+## NEXT AGENT HANDOFF — K06 stap 4, gepreëmpteerde kernelthreads op AP's — 5 november 2026
+
+**Bron:** `c308b1ee9d8deedcfacd923c407392222ff7a12f` op `k06/smp-step4-preempt`. De keten is #191
+(`0cfcdd4a`) → #201 (`64f8abc6`) → #202 (`58e11fd0`) → #203 (`e49e7819`) →
+stap 4. **41 → 41/100**; K06 blijft open. Ontwerp: ADR-073.
+
+**Gerealiseerd:** op elke AP preëmpt de LAPIC-timer twee kernelthreads, met
+een registercanary, voortgang tussen twee metingen en bevriezing na STOP.
+Een AP met een dode timer leidt tot quarantaine. **Bewijs:** 14/14 native
+gevallen; regressie K05 6/6, `milestone-m2` en `native-rtc` 5/5. Zie
+[k06-smp-preempt](verification/k06-smp-preempt/README.md).
+
+**Open:** merge van de keten (beslissing van Simon). Daarna volgt de
+eigenlijke SMP-scheduler voor processen: per-CPU-runqueues, lockvolgorde,
+interrupts op de BSP, een CR3-wissel per thread met shootdown voor de
+hele procesadresruimte, en de herziening van ADR-024.
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-native-smp"; python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
+
+## Historisch checkpoint — K06 stap 3, TLB-shootdown vóór frame-hergebruik — 5 november 2026
+
+**Bron:** `9c64c1dbe85290501934331a28a9ec7f61f39399` op
+`k06/smp-step3-shootdown`. De keten is #191 (`5263a5ef`) → #201
+(`cd78ea74`) → #202 (`8c694ef0`) → stap 3; main is `c7a61d11`.
+**41 → 41/100**; K06 blijft open. Ontwerp: ADR-072.
+
+**Gerealiseerd:** een vervangen kernelframe wordt pas vrijgegeven nadat
+elke AP beide vertalingen (het venster en de identity-alias) met `invlpg`
+heeft ongeldig gemaakt en de generatie van de ronde heeft bevestigd.
+Daarna volgen `free`, een volledige audit en een zichtbaarheidsprobe. Een
+ontbrekende ack zet het frame in quarantaine en reset alle AP's.
+
+**Bewijs:** 13/13 native QEMU/TCG-gevallen, waaronder een dove AP en een
+controle zonder shootdown. Bij die controle lezen alle AP's
+deterministisch het vrijgegeven frame. Regressie: K05 6/6, `milestone-m2`
+en `native-rtc` 5/5. Zie
+[k06-smp-shootdown](verification/k06-smp-shootdown/README.md).
+
+**Open:** de beslissing over #191 ligt bij Simon. Volgens de integrator
+loopt #191 achter op main, draaide de volledige CI daar niet, en staan er 6
+CodeRabbit-threads open plus de `run_cap_bench`-regel; de integrator kan
+niet op die branch schrijven. Daarna komen CI en integratie van
+#201/#202/stap 3. Volgende K06-stap: interrupts op de BSP en een
+SMP-veilige scheduler, met per-CPU-runqueues, lockvolgorde, procesbrede
+shootdown per CR3 en de herziening van ADR-024.
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-native-smp"; python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
+
+## Historisch checkpoint — K06 stap 2, eigen TSS/IST en IPI's per AP — 5 november 2026
+
+**Bron:** `486371e5a3790c7c1df817820ff4cc373c5fc42c` (stap-2-code `1993ade8` + #201-stackfix `36703f50` + main `8bb15309`) op
+`k06/smp-step2-percpu-ipi`. Dat is gestapeld op #201
+(`k06/smp-ap-bringup`, `047acf39`), dat op #191 staat. Main is `8bb15309`.
+**41 → 41/100**; K06 blijft open. Ontwerp: ADR-071.
+
+**Gerealiseerd:** per AP een eigen GDT/TSS (RSP0, IST1 #DF, IST2 NMI) en
+een GS-anker. Een IPI-vector 0xf0 met EOI, unicast-rondes met een exacte
+telling, parkeren via IPI, en quarantaine van alle AP's als er één doof is.
+Een AP met een afwijkende IA32_APIC_BASE wordt afgewezen.
+
+**Bewijs:** 11/11 native QEMU/TCG-gevallen over zes profielen, waaronder
+NMI en #DF op de eigen AP-IST-stack en een dove AP met quarantaine.
+Daarnaast host-tests, Clippy en fmt, plus regressie van `milestone-m2` en
+`native-rtc` (5/5). Zie [k06-smp-ipi](verification/k06-smp-ipi/README.md).
+Review door AI; alle bevindingen zijn verwerkt.
+
+**Open:** CI-beoordeling van #201 en de nieuwe stap-2-PR, plus integratie in
+de volgorde #191 → #201 → stap 2. Volgende K06-stap: een
+TLB-shootdownprotocol op deze IPI's, daarna BSP-interrupts, de
+SMP-scheduler en de herziening van ADR-024.
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-native-smp"; python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
+
+## Historisch checkpoint — K06 stap 1 en conflictintegratie — 5 november 2026
 
 **Historische bron van deze conflictintegratie:** PR-head
 `cd78ea74f14d8b8921aad51cc46a41c41274ab45` op `k06/smp-ap-bringup`,
