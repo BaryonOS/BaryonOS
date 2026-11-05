@@ -55,6 +55,11 @@ impl Bridge {
             }
         }
         if self.pending.is_none() {
+            // Nothing is outstanding at the broker, so the slot frame is still
+            // unpublished: drop it if it carries a revoked owner's data.
+            service
+                .discard_revoked_unpublished()
+                .unwrap_or_else(|_| fail(32));
             if let Some(frame) = service.transmission() {
                 match native::net_send(self.source, frame.bytes, 100) {
                     Ok(ticket) => {

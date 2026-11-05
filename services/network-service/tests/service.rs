@@ -1000,10 +1000,12 @@ fn revocation_drops_buffered_and_later_udp() {
         s.ingress(&datagram(0, 9000, b"before"), 0).unwrap();
         assert_eq!(s.counters().udp_received, 1);
         s.revoke(0, 0).unwrap();
-        let malformed = s.counters().malformed_frames;
+        let (malformed, rejected) = (s.counters().malformed_frames, s.counters().rejected);
         s.ingress(&datagram(0, 9000, b"after"), 0).unwrap();
         assert_eq!(s.counters().udp_received, 1);
-        assert_eq!(s.counters().malformed_frames, malformed + 1);
+        // A well-formed datagram for a revoked owner is a policy refusal.
+        assert_eq!(s.counters().malformed_frames, malformed);
+        assert_eq!(s.counters().rejected, rejected + 1);
         let reply = rpc(
             &mut s,
             0,
@@ -1012,5 +1014,147 @@ fn revocation_drops_buffered_and_later_udp() {
         );
         assert_eq!(reply.status(), Status::Access);
         assert!(reply.data().is_empty());
+    });
+}
+
+fn tcp_flags_and_payload(frame: &[u8]) -> (u8, usize) {
+    let ip = &frame[14..];
+    let header = usize::from(ip[0] & 15) * 4;
+    let total = usize::from(u16::from_be_bytes([ip[2], ip[3]]));
+    let tcp = &ip[header..total];
+    (tcp[13], tcp.len() - usize::from(tcp[12] >> 4) * 4)
+}
+
+/// Integrator review of #215: a data frame already built in the shared TX
+/// slot, but not yet handed to the device, must not leave after revocation.
+/// Only the abort's payload-free RST may follow.
+#[test]
+fn revocation_discards_unpublished_data_frame_but_keeps_reset() {
+    service!(s, configuration(), {
+        peer!(dev, peer, sockets, _handle, {
+            let mut id = 1;
+            let token = rpc(
+                &mut s,
+                0,
+                &request(Operation::OpenTcp, id, 0, 3000, PEER, 8080, &[]),
+                0,
+            )
+            .header()
+            .connection;
+            let mut tick = 0;
+            while tcp_state(&mut s, &mut id, token, tick) != ConnectionState::Established as u32 {
+                step(&mut s, &mut dev, &mut peer, &mut sockets, tick, None);
+                tick += 1;
+                assert!(tick < 100, "handshake did not complete");
+            }
+            // Drain whatever handshake frame is still queued, then build data.
+            while let Some(frame) = s.transmission() {
+                let id = frame.id;
+                dev.push(frame.bytes).unwrap();
+                s.complete_transmission(id).unwrap();
+                s.poll(tick).unwrap();
+            }
+            assert_eq!(
+                tcp_rpc(
+                    &mut s,
+                    &mut id,
+                    Operation::SendTcp,
+                    token,
+                    b"SECRETDATA",
+                    tick
+                )
+                .status(),
+                Status::Ok
+            );
+            s.poll(tick).unwrap();
+            let built = s.transmission().expect("data frame built");
+            assert_eq!(tcp_flags_and_payload(built.bytes).1, 10);
+            assert!(!s.discard_revoked_unpublished().unwrap(), "not yet revoked");
+            s.revoke(0, tick).unwrap();
+            assert!(s.discard_revoked_unpublished().unwrap());
+            assert_eq!(s.counters().revoked_frames_discarded, 1);
+            assert!(s.transmission().is_none());
+            s.poll(tick + 1).unwrap();
+            let reset = s.transmission().expect("abort RST queued");
+            let (flags, payload) = tcp_flags_and_payload(reset.bytes);
+            assert!(flags & 4 != 0 && payload == 0, "only a bare RST may follow");
+            // The RST is not owner data: the fence leaves it for publication.
+            assert!(!s.discard_revoked_unpublished().unwrap());
+            assert!(s.transmission().is_some());
+        });
+    });
+}
+
+/// Edge cases pinned by review: revoke in SynSent, twice, on a slot that never
+/// opened, and after Retire/retire_slot. None may fault or grant anything.
+#[test]
+fn revocation_edge_cases_are_idempotent_and_grant_nothing() {
+    service!(s, configuration(), {
+        let syn = rpc(
+            &mut s,
+            0,
+            &request(Operation::OpenTcp, 1, 0, 300, PEER, 8080, &[]),
+            0,
+        );
+        assert_eq!(syn.status(), Status::Ok);
+        let token = syn.header().connection;
+        s.poll(0).unwrap();
+        s.revoke(0, 0).unwrap();
+        s.revoke(0, 0).unwrap();
+        assert_eq!(s.revoked_mask(), 1);
+        assert_eq!(
+            rpc(
+                &mut s,
+                0,
+                &request(Operation::State, 2, token, 0, [0; 4], 0, &[]),
+                0
+            )
+            .header()
+            .argument,
+            ConnectionState::Closed as u32
+        );
+        // Slot 1 never opened: revocation is still a valid, closed state.
+        s.revoke(1, 0).unwrap();
+        assert_eq!(s.revoked_mask(), 3);
+        assert_eq!(
+            rpc(
+                &mut s,
+                1,
+                &request(Operation::OpenTcp, 1, 0, 300, PEER, 8090, &[]),
+                0
+            )
+            .status(),
+            Status::Access
+        );
+        for (slot, id) in [(0, 3), (1, 2)] {
+            assert_eq!(
+                rpc(
+                    &mut s,
+                    slot,
+                    &request(Operation::Retire, id, 0, 0, [0; 4], 0, &[]),
+                    0
+                )
+                .status(),
+                Status::Ok
+            );
+            // After Retire a revoke is harmless; requests stay Closed.
+            s.revoke(slot, 0).unwrap();
+        }
+        assert_eq!(s.retired_mask(), 3);
+        assert_eq!(
+            rpc(
+                &mut s,
+                0,
+                &request(Operation::OpenTcp, 4, 0, 300, PEER, 8080, &[]),
+                0
+            )
+            .status(),
+            Status::Closed
+        );
+    });
+    service!(s, configuration(), {
+        s.retire_slot(0, 0).unwrap();
+        s.revoke(0, 0).unwrap();
+        assert_eq!((s.retired_mask(), s.revoked_mask()), (1, 1));
     });
 }
