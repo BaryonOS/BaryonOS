@@ -1,33 +1,24 @@
-command: ["/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo", "+1.90.0", "tree", "--offline", "--locked", "--manifest-path", "ui/native/Cargo.toml", "-e", "features"]
+command: ["/home/runner/.cargo/bin/cargo", "+1.90.0", "tree", "--offline", "--locked", "--manifest-path", "ui/native/Cargo.toml", "-e", "features"]
 exit: 0
 
 stdout:
-nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os/ui/native)
+nieuw-os-materiaal v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/ui/native)
 ├── zeroize v1.9.1
+├── nieuw-os-graphics feature "default"
+│   └── nieuw-os-graphics v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/ui/graphics)
 ├── nieuw-os-catalog-client feature "default"
-│   └── nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os/sdk/catalog-client)
+│   └── nieuw-os-catalog-client v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/catalog-client)
 │       ├── catalog-core feature "default"
-│       │   └── catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+│       │   └── catalog-core v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/services/catalog)
 │       └── nieuw-os-sdk-runtime feature "default"
-│           └── nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+│           └── nieuw-os-sdk-runtime v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/runtime)
 │               └── zeroize v1.9.1
 ├── nieuw-os-sdk-runtime feature "default" (*)
-├── nieuw-os-document-session feature "default"
-│   └── nieuw-os-document-session v0.1.0 (/workspace/nieuw-os/sdk/document-session)
-│       ├── nieuw-os-catalog-client feature "default" (*)
-│       ├── catalog-core feature "default" (*)
-│       ├── nieuw-os-sdk-runtime feature "default" (*)
-│       └── volume-core feature "default"
-│           └── volume-core v0.1.0 (/workspace/nieuw-os/services/volume)
-│               └── catalog-core feature "default" (*)
-├── volume-core feature "default" (*)
-├── nieuw-os-graphics feature "default"
-│   └── nieuw-os-graphics v0.1.0 (/workspace/nieuw-os/ui/graphics)
 ├── nieuw-os-input-core feature "default"
-│   └── nieuw-os-input-core v0.1.0 (/workspace/nieuw-os/services/input-core)
+│   └── nieuw-os-input-core v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/services/input-core)
 │       ├── nieuw-os-sdk-runtime feature "default" (*)
 │       └── ui-core feature "default"
-│           └── ui-core v0.1.0 (/workspace/nieuw-os/crates/ui-core)
+│           └── ui-core v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/crates/ui-core)
 ├── ui-core feature "default" (*)
 ├── noto-sans-mono-bitmap feature "regular"
 │   └── noto-sans-mono-bitmap v0.3.2
@@ -39,10 +30,64 @@ nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os/ui/native)
 │   └── noto-sans-mono-bitmap v0.3.2
 ├── noto-sans-mono-bitmap feature "unicode-latin-1-supplement"
 │   └── noto-sans-mono-bitmap v0.3.2
-└── noto-sans-mono-bitmap feature "unicode-specials"
-    └── noto-sans-mono-bitmap v0.3.2
+├── noto-sans-mono-bitmap feature "unicode-specials"
+│   └── noto-sans-mono-bitmap v0.3.2
+├── nieuw-os-document-session feature "default"
+│   └── nieuw-os-document-session v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/document-session)
+│       ├── nieuw-os-catalog-client feature "default" (*)
+│       ├── catalog-core feature "default" (*)
+│       ├── nieuw-os-sdk-runtime feature "default" (*)
+│       └── volume-core feature "default"
+│           └── volume-core v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/services/volume)
+│               └── catalog-core feature "default" (*)
+└── volume-core feature "default" (*)
 [dev-dependencies]
-└── capability-core feature "default"
-    └── capability-core v0.1.0 (/workspace/nieuw-os/crates/capability-core)
+├── capability-core feature "default"
+│   └── capability-core v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/crates/capability-core)
+├── nieuw-os-calculator feature "default"
+│   └── nieuw-os-calculator v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/examples/calculator)
+│       ├── nieuw-os-graphics feature "default" (*)
+│       ├── nieuw-os-input-client feature "default"
+│       │   └── nieuw-os-input-client v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/input-client)
+│       │       ├── zeroize v1.9.1
+│       │       ├── nieuw-os-catalog-client feature "default" (*)
+│       │       ├── nieuw-os-sdk-runtime feature "default" (*)
+│       │       ├── nieuw-os-input-core feature "default" (*)
+│       │       └── ui-core feature "default" (*)
+│       ├── nieuw-os-sdk-runtime feature "default" (*)
+│       ├── nieuw-os-input-core feature "default" (*)
+│       ├── ui-core feature "default" (*)
+│       ├── nieuw-os-surface-protocol feature "client"
+│       │   └── nieuw-os-surface-protocol v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/ui/surface-protocol)
+│       │       ├── nieuw-os-catalog-client feature "default" (*)
+│       │       └── nieuw-os-sdk-runtime feature "default" (*)
+│       ├── nieuw-os-surface-protocol feature "default"
+│       │   └── nieuw-os-surface-protocol v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/ui/surface-protocol) (*)
+│       ├── noto-sans-mono-bitmap feature "regular" (*)
+│       ├── noto-sans-mono-bitmap feature "size_16" (*)
+│       ├── noto-sans-mono-bitmap feature "size_32" (*)
+│       ├── noto-sans-mono-bitmap feature "unicode-basic-latin" (*)
+│       ├── noto-sans-mono-bitmap feature "unicode-latin-1-supplement" (*)
+│       └── noto-sans-mono-bitmap feature "unicode-specials" (*)
+└── nieuw-os-window-session feature "default"
+    └── nieuw-os-window-session v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/examples/window-session)
+        ├── zeroize v1.9.1
+        ├── nieuw-os-graphics feature "default" (*)
+        ├── nieuw-os-input-client feature "default" (*)
+        ├── nieuw-os-sdk-runtime feature "default" (*)
+        ├── nieuw-os-input-core feature "default" (*)
+        ├── ui-core feature "default" (*)
+        ├── nieuw-os-surface-protocol feature "client" (*)
+        ├── nieuw-os-surface-protocol feature "default" (*)
+        ├── nieuw-os-display-client feature "default"
+        │   ├── nieuw-os-display-client v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/display-client)
+        │   │   └── nieuw-os-sdk-runtime feature "default" (*)
+        │   └── nieuw-os-display-client feature "client"
+        │       └── nieuw-os-display-client v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/display-client) (*)
+        └── nieuw-os-native-input-service feature "default"
+            └── nieuw-os-native-input-service v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/examples/input-service)
+                ├── nieuw-os-sdk-runtime feature "default" (*)
+                ├── nieuw-os-input-core feature "default" (*)
+                └── nieuw-os-display-client feature "default" (*)
 
 stderr:

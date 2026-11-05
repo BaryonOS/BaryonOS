@@ -1,0 +1,193 @@
+{
+  "source_commit": "d9ad6e5687125f4a93642c1eefb0cf4f412d939f",
+  "source_sha256": "e4ad9f922d202ee4249b6b1dd02a02d724f6775c616ad1c46dde48bf7ee2271c",
+  "scope": "host-render-only; median of three alternating samples; concurrent VM/host load; no native latency or p95 claim",
+  "samples": [
+    {
+      "scope": "host-render-only",
+      "width": 1280,
+      "height": 720,
+      "scale": 1,
+      "page": "Lock",
+      "sample": 0,
+      "reference_us": 99949,
+      "covered_us": 18821,
+      "panel_us": 7315,
+      "panel_tiles": 1080
+    },
+    {
+      "scope": "host-render-only",
+      "width": 1280,
+      "height": 720,
+      "scale": 1,
+      "page": "Lock",
+      "sample": 1,
+      "reference_us": 154864,
+      "covered_us": 32408,
+      "panel_us": 11407,
+      "panel_tiles": 1080
+    },
+    {
+      "scope": "host-render-only",
+      "width": 1280,
+      "height": 720,
+      "scale": 1,
+      "page": "Lock",
+      "sample": 2,
+      "reference_us": 144446,
+      "covered_us": 19592,
+      "panel_us": 6692,
+      "panel_tiles": 1080
+    },
+    {
+      "scope": "host-render-only",
+      "width": 1280,
+      "height": 720,
+      "scale": 1,
+      "page": "Search",
+      "sample": 0,
+      "reference_us": 135261,
+      "covered_us": 59672,
+      "panel_us": 29723,
+      "panel_tiles": 1008
+    },
+    {
+      "scope": "host-render-only",
+      "width": 1280,
+      "height": 720,
+      "scale": 1,
+      "page": "Search",
+      "sample": 1,
+      "reference_us": 181543,
+      "covered_us": 59517,
+      "panel_us": 29668,
+      "panel_tiles": 1008
+    },
+    {
+      "scope": "host-render-only",
+      "width": 1280,
+      "height": 720,
+      "scale": 1,
+      "page": "Search",
+      "sample": 2,
+      "reference_us": 181873,
+      "covered_us": 57082,
+      "panel_us": 18595,
+      "panel_tiles": 1008
+    },
+    {
+      "scope": "host-render-only",
+      "width": 1920,
+      "height": 1080,
+      "scale": 2,
+      "page": "Lock",
+      "sample": 0,
+      "reference_us": 211784,
+      "covered_us": 45143,
+      "panel_us": 25138,
+      "panel_tiles": 3852
+    },
+    {
+      "scope": "host-render-only",
+      "width": 1920,
+      "height": 1080,
+      "scale": 2,
+      "page": "Lock",
+      "sample": 1,
+      "reference_us": 260533,
+      "covered_us": 45853,
+      "panel_us": 41561,
+      "panel_tiles": 3852
+    },
+    {
+      "scope": "host-render-only",
+      "width": 1920,
+      "height": 1080,
+      "scale": 2,
+      "page": "Lock",
+      "sample": 2,
+      "reference_us": 231356,
+      "covered_us": 45329,
+      "panel_us": 23936,
+      "panel_tiles": 3852
+    },
+    {
+      "scope": "host-render-only",
+      "width": 1920,
+      "height": 1080,
+      "scale": 2,
+      "page": "Search",
+      "sample": 0,
+      "reference_us": 402233,
+      "covered_us": 138076,
+      "panel_us": 77499,
+      "panel_tiles": 3852
+    },
+    {
+      "scope": "host-render-only",
+      "width": 1920,
+      "height": 1080,
+      "scale": 2,
+      "page": "Search",
+      "sample": 1,
+      "reference_us": 403908,
+      "covered_us": 130223,
+      "panel_us": 78328,
+      "panel_tiles": 3852
+    },
+    {
+      "scope": "host-render-only",
+      "width": 1920,
+      "height": 1080,
+      "scale": 2,
+      "page": "Search",
+      "sample": 2,
+      "reference_us": 320327,
+      "covered_us": 100764,
+      "panel_us": 72872,
+      "panel_tiles": 3852
+    }
+  ],
+  "medians": [
+    {
+      "width": 1280,
+      "height": 720,
+      "scale": 1,
+      "page": "Lock",
+      "reference_us": 144446,
+      "covered_us": 19592,
+      "panel_us": 7315,
+      "panel_tiles": 1080
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "scale": 1,
+      "page": "Search",
+      "reference_us": 181543,
+      "covered_us": 59517,
+      "panel_us": 29668,
+      "panel_tiles": 1008
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "scale": 2,
+      "page": "Lock",
+      "reference_us": 231356,
+      "covered_us": 45329,
+      "panel_us": 25138,
+      "panel_tiles": 3852
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "scale": 2,
+      "page": "Search",
+      "reference_us": 402233,
+      "covered_us": 130223,
+      "panel_us": 77499,
+      "panel_tiles": 3852
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "scope": "Independent AI artifact readback in shared workspace, not a human audit or physical-hardware test",
+  "native_commit": "64044318c622eaacab25272611acf856a5fca5d5",
+  "native_source_v3": "069666e5406a893f64aa5d8e00298863f33f8be9cef57b6e0522b8bdf9648670",
+  "all_three_native_readbacks_passed": true,
+  "reports": {
+    "resource-comparison.json": {
+      "path": "/workspace/nieuw-os-library-sdk/build/library-sdk/logs/resource-comparison.json",
+      "sha256": "0f63cfa368afaebfb93a0078c245f79b13fe7c93b6dc9c8da091d4866c622b04",
+      "bytes": 5335
+    },
+    "native-library-write-readback.json": {
+      "path": "/workspace/nieuw-os-library-sdk/build/library-sdk/logs/native-library-write-readback.json",
+      "sha256": "938c5837b03f2f7b55308fe933f4618675f9513d6d7a5ed4bf15bffd6d1bf70a",
+      "bytes": 6265
+    },
+    "native-library-cold-readback.json": {
+      "path": "/workspace/nieuw-os-library-sdk/build/library-sdk/logs/native-library-cold-readback.json",
+      "sha256": "324ee9cf09000535fd347653b7a2d331ca5cf4df502b9daebfd9b10adc6fb753",
+      "bytes": 2568
+    },
+    "native-full-regression-readback.json": {
+      "path": "/workspace/nieuw-os-library-sdk/build/library-sdk/logs/native-full-regression-readback.json",
+      "sha256": "1d7c81547c88f78900403a52a4ae9407f25e9b86bc69afa738ad2a666ec8a3c2",
+      "bytes": 6305
+    }
+  },
+  "visual_review": {
+    "native_resolution": [
+      1280,
+      720
+    ],
+    "write_phases": [
+      "library-empty",
+      "library-organized",
+      "library-history"
+    ],
+    "cold_phases": [
+      "library-cold-history"
+    ],
+    "regression_phases": [
+      "reopened"
+    ],
+    "findings": "Readable proportional hierarchy, clear active window and focus, visible local/read-write/revision context, truthful history and restore labels, no clipping or technical test text in app bodies. Large page transitions remain slow; no U02/U04 or physical hardware acceptance."
+  },
+  "remaining_limits": [
+    "Only one run per gate and no p95 timing acceptance",
+    "No native high-DPI claim from host-only fixture variants",
+    "No real account authentication, biometrics, FIDO2 or screenreader acceptance",
+    "Explicitly interrupted ca503 run remains unaccepted"
+  ]
+}

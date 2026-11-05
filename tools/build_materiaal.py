@@ -6,7 +6,7 @@ from build_users import inspect_user
 from run_fpu import private_path, publish, publish_json
 
 
-def build_users(*, probe=False, window_session=False, fault_injection=False):
+def build_users(*, probe=False, window_session=False, fault_injection=False, session_preview=False):
     private_path(BUILD)
     private_path(TARGET)
     output = private_path(BUILD / "users/materiaal")
@@ -44,6 +44,7 @@ def build_users(*, probe=False, window_session=False, fault_injection=False):
         if package not in built:
             command=[sys.executable, "-B", str(ROOT / "sdk/examples" / package / "build.py")]
             if package=="window-session" and fault_injection: command.append("--fault-injection")
+            if package=="window-session" and session_preview: command.append("--session-preview")
             run_logged(command,
                        "build-materiaal-" + package,
                        extra_env={"CARGO_TARGET_DIR": str(target)})

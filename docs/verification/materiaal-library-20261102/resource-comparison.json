@@ -1,0 +1,191 @@
+{
+  "scope": "Measured ELF mappings and file sizes; excludes kernel/page-table/stack allocation, runtime heap/CPU/latency and performance acceptance",
+  "images": {
+    "old703": {
+      "path": "/workspace/nieuw-os-session-final-verified/build/final-verified/users/materiaal/materiaal-app.elf",
+      "sha256": "53cadaa1028b28ce5e15c7cc15dad2d18d9f2cbf4d846aafafbe341b2f195738",
+      "file_bytes": 634424,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 19,
+          "memsz": 19,
+          "page_start": 1073741824,
+          "page_end": 1073745920,
+          "permission": "RX",
+          "pages": 1,
+          "bss_bytes": 0
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 8192,
+          "filesz": 1024,
+          "memsz": 1024,
+          "page_start": 1073807360,
+          "page_end": 1073811456,
+          "permission": "RW",
+          "pages": 1,
+          "bss_bytes": 0
+        },
+        {
+          "flags": 4,
+          "address": 1073872896,
+          "offset": 12288,
+          "filesz": 471192,
+          "memsz": 471192,
+          "page_start": 1073872896,
+          "page_end": 1074348032,
+          "permission": "R",
+          "pages": 116,
+          "bss_bytes": 0
+        },
+        {
+          "flags": 6,
+          "address": 1074462720,
+          "offset": 487424,
+          "filesz": 208,
+          "memsz": 200704,
+          "page_start": 1074462720,
+          "page_end": 1074663424,
+          "permission": "RW",
+          "pages": 49,
+          "bss_bytes": 200496
+        },
+        {
+          "flags": 5,
+          "address": 1074724864,
+          "offset": 491520,
+          "filesz": 110809,
+          "memsz": 110809,
+          "page_start": 1074724864,
+          "page_end": 1074839552,
+          "permission": "RX",
+          "pages": 28,
+          "bss_bytes": 0
+        }
+      ],
+      "mapped_pages": 195,
+      "mapped_bytes": 798720,
+      "kernel_parser": {
+        "command": [
+          "cargo",
+          "test",
+          "--manifest-path",
+          "sdk/examples/materiaal/Cargo.toml",
+          "--features",
+          "verify-native-elf",
+          "--test",
+          "elf",
+          "--locked",
+          "--offline",
+          "--",
+          "--nocapture"
+        ],
+        "environment_NOS_MATERIAAL_ELF": "/workspace/nieuw-os-session-final-verified/build/final-verified/users/materiaal/materiaal-app.elf",
+        "exit": 0,
+        "duration_s": 3.8188283919998867,
+        "log": "/workspace/nieuw-os-library-sdk/build/library-sdk/logs/old703-kernel-elf.txt"
+      }
+    },
+    "final640": {
+      "path": "/workspace/nieuw-os/build/library-native-final/users/materiaal/materiaal-app.elf",
+      "sha256": "5fcfcb36ba409d745f9dabe71cfa2088358b14e25234017d98985238e3e63ebf",
+      "file_bytes": 481544,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 19,
+          "memsz": 19,
+          "page_start": 1073741824,
+          "page_end": 1073745920,
+          "permission": "RX",
+          "pages": 1,
+          "bss_bytes": 0
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 8192,
+          "filesz": 1024,
+          "memsz": 1024,
+          "page_start": 1073807360,
+          "page_end": 1073811456,
+          "permission": "RW",
+          "pages": 1,
+          "bss_bytes": 0
+        },
+        {
+          "flags": 4,
+          "address": 1073872896,
+          "offset": 12288,
+          "filesz": 291720,
+          "memsz": 291720,
+          "page_start": 1073872896,
+          "page_end": 1074167808,
+          "permission": "R",
+          "pages": 72,
+          "bss_bytes": 0
+        },
+        {
+          "flags": 6,
+          "address": 1074462720,
+          "offset": 307200,
+          "filesz": 200,
+          "memsz": 200704,
+          "page_start": 1074462720,
+          "page_end": 1074663424,
+          "permission": "RW",
+          "pages": 49,
+          "bss_bytes": 200504
+        },
+        {
+          "flags": 5,
+          "address": 1074724864,
+          "offset": 311296,
+          "filesz": 133817,
+          "memsz": 133817,
+          "page_start": 1074724864,
+          "page_end": 1074860032,
+          "permission": "RX",
+          "pages": 33,
+          "bss_bytes": 0
+        }
+      ],
+      "mapped_pages": 156,
+      "mapped_bytes": 638976,
+      "kernel_parser": {
+        "command": [
+          "cargo",
+          "test",
+          "--manifest-path",
+          "sdk/examples/materiaal/Cargo.toml",
+          "--features",
+          "verify-native-elf",
+          "--test",
+          "elf",
+          "--locked",
+          "--offline",
+          "--",
+          "--nocapture"
+        ],
+        "environment_NOS_MATERIAAL_ELF": "/workspace/nieuw-os/build/library-native-final/users/materiaal/materiaal-app.elf",
+        "exit": 0,
+        "duration_s": 0.07403427000008378,
+        "log": "/workspace/nieuw-os-library-sdk/build/library-sdk/logs/final640-kernel-elf.txt"
+      }
+    }
+  },
+  "delta_final_minus_old": {
+    "file_bytes": -152880,
+    "mapped_pages": -39,
+    "mapped_bytes": -159744,
+    "R_memsz": -179472,
+    "RX_text_memsz": 23008,
+    "RW_memsz": 0
+  }
+}

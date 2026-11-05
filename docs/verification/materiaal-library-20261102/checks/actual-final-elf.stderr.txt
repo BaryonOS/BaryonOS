@@ -1,0 +1,4 @@
+   Compiling nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os/ui/native)
+   Compiling nieuw-os-materiaal-app v0.1.0 (/workspace/nieuw-os/sdk/examples/materiaal)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.44s
+     Running tests/elf.rs (target/library-root-host/debug/deps/elf-ca559ea0ebf06860)

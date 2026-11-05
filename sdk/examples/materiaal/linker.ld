@@ -19,6 +19,8 @@ SECTIONS {
   ASSERT(. <= 0x400f0000, "data/BSS exceeds 256 KiB")
   . = 0x400f0000;
   .text : ALIGN(4096) { *(.text .text.*) } :code
-  ASSERT(SIZEOF(.text) <= 0x20000, "code exceeds 128 KiB")
+  /* Library actions add code, not authority. Fixed RX-only budget; all R/RW,
+     startup, entry, stack and kernel per-process quotas stay unchanged. */
+  ASSERT(SIZEOF(.text) <= 0x24000, "code exceeds 144 KiB")
   /DISCARD/ : { *(.eh_frame*) *(.comment) *(.note*) *(.llvm_addrsig) }
 }
