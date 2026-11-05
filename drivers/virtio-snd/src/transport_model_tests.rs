@@ -15,8 +15,9 @@ const L1: Lease = Lease {
     cap_generation: 1,
 };
 const OK: u32 = 0x8000;
-const IO_ERR: u32 = 0x8002;
+const IO_ERR: u32 = 0x8003;
 const BAD_MSG: u32 = 0x8001;
+const NOT_SUPP: u32 = 0x8002;
 
 fn running() -> Model {
     let mut m = Model::new(L0);
@@ -155,6 +156,11 @@ fn bad_len_or_status_fences_io_err_stops() {
     let mut m = running();
     m.submit(L1).unwrap();
     assert_eq!(m.complete(L1, 0, 8, BAD_MSG), Ok(Completion::Fenced));
+    assert_eq!(m.state(), State::Fencing);
+    // NOT_SUPP is a control status; a TX completion only knows OK/IO_ERR.
+    let mut m = running();
+    m.submit(L1).unwrap();
+    assert_eq!(m.complete(L1, 0, 8, NOT_SUPP), Ok(Completion::Fenced));
     assert_eq!(m.state(), State::Fencing);
     let mut m = running();
     m.submit(L1).unwrap();
