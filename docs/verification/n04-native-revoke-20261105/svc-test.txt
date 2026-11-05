@@ -1,5 +1,4 @@
-   Compiling nieuw-os-network-service v0.1.0 (/home/simon/projects/nieuw-os-n04/services/network-service)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.36s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
      Running unittests src/lib.rs (target/n04-host/debug/deps/nieuw_os_network_service-23b073c5897bda37)
 
 running 0 tests

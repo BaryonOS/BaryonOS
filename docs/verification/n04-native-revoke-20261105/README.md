@@ -1,6 +1,6 @@
 # N04 — native intrekking van een per-app netwerkrecht — 5 november 2026
 
-**Bron:** `611df2deb03d1645a9814c934798106310105b5e` op
+**Bron:** `7bedac0bf0939220a13445f0c7067b2a033e6b70` op
 `net/n04-native-revoke-20261105` (main `cb3d169c` ingemerged), schone werkboom.
 **Status:** N04 blijft **open**. Dit is een bewijsvoorstel voor één
 afgebakende stap, geen acceptatie en geen scorewijziging (41/100 → 41/100).
@@ -39,7 +39,9 @@ zelf met een geweigerde NIC-syscall dat het geen netwerktoegang heeft.
 - Precies één abort-RST|ACK van app A op `client_next`/`server_start`. Komt de
   ACK van de peer pas ná de abort binnen, dan antwoordt de gesloten tuple
   RFC-conform met één kale RST (`SEQ=SEG.ACK`). Elke vorm is maximaal één keer
-  toegestaan. In alle 5 runs kwamen beide vormen voor.
+  toegestaan. Vóór de wachttijd van 10 ticks (zie Reviews) kwamen beide vormen
+  in elke run voor. Met die wachttijd zag elke run van `7bedac0b` alleen de
+  abort-RST|ACK.
 - Na de intrekking komt er geen enkele SYN, data, FIN of UDP meer van app A.
   Elk zo'n frame laat de peer gesloten falen.
 - **Geen onbedoelde luisterpoorten:** een inkomende SYN naar gastpoort 22 en
@@ -53,10 +55,11 @@ Elke rol schrijft op offset 552 een absolute boot-monotone tick. Userspace
 beide: `verzoek ≤ beleid verzonden ≤ dienst ingetrokken ≤ app A ziet Closed`.
 Het beleidsproces meet zijn tick vóór de send. Daardoor kan preëmptie na de
 send de volgorde niet vervalsen. Gemeten waarden staan per run in
-[`gates.json`](gates.json); een voorbeeld is 8 ≤ 8 ≤ 8 ≤ 9, met 1 tick van
-'ready' tot `Closed`.
+[`gates.json`](gates.json). Een voorbeeld is 17 ≤ 17 ≤ 17 ≤ 19; van 'ready'
+tot `Closed` duurde het telkens 2 ticks. Het intrektijdstip van de dienst wordt
+ná de ontvangst van het bericht gemeten, niet aan het begin van de lus.
 
-## Uitgevoerde controles (bron `611df2de`)
+## Uitgevoerde controles (bron `7bedac0b`)
 
 | Gate | Resultaat |
 |---|---|
@@ -82,7 +85,17 @@ Er zijn twee AI-reviews gedaan. Dat is geen menselijke audit.
 - De eerste, onafhankelijke beveiligingsreview vond niets blokkerend. Drie van
   haar opmerkingen zijn verwerkt: de causaliteit met tijdstempels, de probe op
   de afgebroken poort, en de doc-comment over een al uitgegeven frame.
-- De tweede, adversariële review in drie lenzen staat in de PR-beschrijving.
+- De tweede review was adversarieel, in drie lenzen: autoriteit,
+  bewijssoliditeit en regressie. Elke serieuze bevinding is door twee sceptici
+  getoetst.
+  - Eén bevinding bleef staan (4/4 bevestigd): de dienst gebruikte het tick van
+    het begin van de lus als intrektijdstip. Na een preëmptie kon
+    `REVOKE_ORDER` dan onterecht falen. Dat gaf een valse fout, geen valse pass.
+    Hersteld in `7bedac0b`.
+  - Eén nit is ook verwerkt: app A meldde 'ready' al toen de bytes alleen in de
+    sendbuffer stonden. Nu wacht app A eerst 10 ticks; dit is een tijdelijke
+    oplossing, gemarkeerd in de code.
+  - De autoriteitslens vond niets.
 
 ## Open grenzen (waarom N04 open blijft)
 
