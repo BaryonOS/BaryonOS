@@ -9,7 +9,8 @@ import re
 import shutil
 import sys
 
-from common import ROOT, BUILD, TARGET, environment, qemu_machine, run_logged, sha256, source_hash
+from common import (ROOT, BUILD, TARGET, environment, qemu_machine, run_logged,
+                    sha256, source_hash, with_acpi_markers, without_acpi_diagnostics)
 from build_users import inspect_user
 from run import run_guest
 from run_fpu import private_path, publish, publish_json, load_json
@@ -34,7 +35,7 @@ def endings(case: str) -> tuple[str, ...]:
 
 
 def required(case: str) -> tuple[str, ...]:
-    return BOOT + ("MEMORY:MANIFEST:PASS",) + endings(case)
+    return with_acpi_markers(BOOT + ("MEMORY:MANIFEST:PASS",) + endings(case))
 
 
 def build_users() -> tuple[dict, dict]:
@@ -63,6 +64,7 @@ def validate_sequence(stdout: str, case: str, image_pages: int) -> dict:
             or any(word in stdout for word in FORBIDDEN)
             or type(image_pages) is not int or not 1 <= image_pages < 1500):
         raise ValueError("Invalid memory evidence or image geometry")
+    stdout = without_acpi_diagnostics(stdout)
     lines = stdout.splitlines()
     if lines.count(BOOT[0]) != 1:
         raise ValueError("Missing or repeated boot handoff")

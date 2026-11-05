@@ -5,7 +5,7 @@ import argparse
 from datetime import datetime, timezone
 import json
 import re
-from common import BUILD, save_json, sha256, source_hash
+from common import BUILD, save_json, sha256, source_hash, without_acpi_diagnostics
 from run import run_guest, is_success
 
 CASES = {
@@ -32,6 +32,7 @@ def evaluate(stdout: str, raw_exit: int | None, timed_out: bool, base: str) -> d
     if not is_success(raw_exit, stdout, timed_out, required_markers=REQUIRED,
                       forbidden_markers=FORBIDDEN):
         raise ValueError("Native RTC boot/negative/restore/exit assertions failed")
+    stdout = without_acpi_diagnostics(stdout)
     lines = stdout.splitlines()
     if lines.count(BOOT[0]) != 1:
         raise ValueError("Missing or repeated EBS handoff")
