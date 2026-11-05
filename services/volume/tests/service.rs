@@ -150,6 +150,43 @@ fn first_upload_marks_the_empty_volume_before_staging_content() {
 }
 
 #[test]
+fn committed_generation_one_with_zero_companion_is_preserved() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    client(&mut service, &mut disk, 0)
+        .write(0, 0, b"First", 1, fill(0, 1))
+        .unwrap();
+    let mut legacy = disk.settled();
+    legacy[..TABLE_SECTORS as usize].fill([0; SECTOR]);
+    assert_eq!(recover(legacy), Ok(*service.table()));
+}
+
+#[test]
+fn adjacent_generation_checks_do_not_wrap_or_panic() {
+    let valid = table::SlotScan {
+        states: [SectorState::Valid(2, 7); table::TABLE_SECTORS_USIZE],
+        format_marker: false,
+        valid: Some(2),
+    };
+    let mut mixed = table::SlotScan {
+        states: [SectorState::Zero; table::TABLE_SECTORS_USIZE],
+        format_marker: false,
+        valid: None,
+    };
+    mixed.states[0] = SectorState::Valid(u64::MAX, 8);
+    assert_eq!(table::choose([valid, mixed]), Err(Status::Corrupt));
+    let maximum = table::SlotScan {
+        states: [SectorState::Valid(u64::MAX, 8); table::TABLE_SECTORS_USIZE],
+        format_marker: false,
+        valid: Some(u64::MAX),
+    };
+    assert_eq!(table::choose([maximum, maximum]), Err(Status::Corrupt));
+    mixed.states.fill(SectorState::Invalid);
+    mixed.states[0] = SectorState::Valid(0, 7);
+    assert_eq!(table::choose([mixed, maximum]), Err(Status::Corrupt));
+}
+
+#[test]
 fn large_document_roundtrip_beyond_old_128_byte_limit() {
     let mut disk = SimDisk::new();
     let mut service = Service::new(EPOCH, Table::EMPTY, false);
