@@ -12,6 +12,7 @@
 #![no_std]
 #![forbid(unsafe_code)]
 
+pub mod archive;
 pub mod client;
 pub mod service;
 pub mod table;
