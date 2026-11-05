@@ -67,7 +67,12 @@ pub struct Paging {
     asid: u16,
     #[cfg(feature = "framebuffer")]
     framebuffer: Option<(u64, u64)>,
+    #[cfg(feature = "native-smp")]
+    lapic: Option<u64>,
 }
+/// Fixed supervisor UC/NX window for the xAPIC register page (native-smp only).
+#[cfg(feature = "native-smp")]
+pub const LAPIC_WINDOW: u64 = 0x3f1c0000;
 impl Paging {
     /// Fallible read-only seam before existing scalar map commit. The caller
     /// supplies fresh owned data frames, ordered unique VAs and one exclusive
@@ -205,11 +210,31 @@ impl Paging {
         self.framebuffer = Some((framebuffer.base, length));
         Ok(())
     }
+    /// Bootstrap-only exact mapping of the IA32_APIC_BASE register page. Must
+    /// run before `map_tables` because a new PT is zeroed through firmware
+    /// identity mappings. The base is never taken from ACPI or any request.
+    #[cfg(feature = "native-smp")]
+    pub fn map_lapic(
+        &mut self,
+        frames: &mut Frames<FRAME_COUNT>,
+        base: u64,
+    ) -> Result<(), kernel_core::Error> {
+        if self.lapic.is_some() || self.leaf(LAPIC_WINDOW) != 0 {
+            return Err(kernel_core::Error::Overlap);
+        }
+        if base == 0 || !base.is_multiple_of(PAGE) || base < PAGE * FRAME_COUNT as u64 {
+            return Err(kernel_core::Error::Range);
+        }
+        self.map_device_page(frames, LAPIC_WINDOW, base)?;
+        self.lapic = Some(base);
+        Ok(())
+    }
     #[cfg(any(
         feature = "milestone-m5",
         feature = "framebuffer",
         feature = "native-keyring",
-        feature = "native-tpm-crb"
+        feature = "native-tpm-crb",
+        feature = "native-smp"
     ))]
     fn map_device_page(
         &mut self,
@@ -273,6 +298,8 @@ impl Paging {
             asid: 0,
             #[cfg(feature = "framebuffer")]
             framebuffer: None,
+            #[cfg(feature = "native-smp")]
+            lapic: None,
         };
         result.tables[0] = root;
         result
@@ -460,6 +487,8 @@ impl Paging {
             asid,
             #[cfg(feature = "framebuffer")]
             framebuffer: kernel.framebuffer,
+            #[cfg(feature = "native-smp")]
+            lapic: kernel.lapic,
         };
         result.tables[0] = root;
         result.tables[1] = pdpt;
@@ -628,6 +657,14 @@ impl Paging {
                 self.walk(frames, observed, pa, level - 1, user, writable, nx, va);
             } else {
                 assert!(!user, "M2 has no user mappings");
+                #[cfg(feature = "native-smp")]
+                if va == LAPIC_WINDOW {
+                    // MMIO is outside the RAM ownership table; check its exact class.
+                    assert_eq!(Some(pa), self.lapic, "LAPIC physical binding");
+                    assert!(writable && nx);
+                    assert_eq!(entry & !(ADDRESS | 32 | 64), PRESENT | WRITE | NX | 8 | 16);
+                    continue;
+                }
                 #[cfg(feature = "framebuffer")]
                 if let Some((base, length)) = self.framebuffer {
                     let start = boot_protocol::graphics::FRAMEBUFFER_WINDOW;

@@ -34,33 +34,44 @@ impl PhysicalRead for FirmwareReader<'_, '_> {
     }
 }
 
-pub(super) fn discover(info: &BootInfo, map_bytes: &[u8], paging: &mut paging::Paging) {
+/// Reports the bounded status pair and returns the inventory (incl. MADT).
+pub(super) fn discover(
+    info: &BootInfo,
+    map_bytes: &[u8],
+    paging: &mut paging::Paging,
+) -> acpi::Discovery {
+    let result = discover_tables(info, map_bytes, paging);
+    report(result.availability);
+    result
+}
+
+fn discover_tables(
+    info: &BootInfo,
+    map_bytes: &[u8],
+    paging: &mut paging::Paging,
+) -> acpi::Discovery {
+    let rejected = acpi::Discovery::empty(Availability::RejectedHandoff);
     let Some(extension_address) = info.bootinfo_start.checked_add(HANDOFF_OFFSET) else {
-        report(Availability::RejectedHandoff);
-        return;
+        return rejected;
     };
     let Some(bootinfo_end) = info.bootinfo_start.checked_add(info.bootinfo_len) else {
-        report(Availability::RejectedHandoff);
-        return;
+        return rejected;
     };
     if extension_address
         .checked_add(HANDOFF_SIZE as u64)
         .is_none_or(|end| end > bootinfo_end)
     {
-        report(Availability::RejectedHandoff);
-        return;
+        return rejected;
     }
     // SAFETY: BootInfo validation established an aligned, retained, one-page
     // handoff allocation; this extension lies within it and is copied before
     // parsing. The wire struct contains only fixed-width integers and byte arrays.
     let handoff = unsafe { ptr::read_unaligned(extension_address as *const AcpiHandoff) };
     let Ok(map) = MemoryMap::new(map_bytes, info.descriptor_size, info.descriptor_version) else {
-        report(Availability::RejectedHandoff);
-        return;
+        return rejected;
     };
     let mut reader = FirmwareReader { paging, map };
-    let result = acpi::discover(&handoff, &mut reader);
-    report(result.availability);
+    acpi::discover(&handoff, &mut reader)
 }
 
 fn covers_acpi(map: &MemoryMap<'_>, start: u64, end: u64) -> bool {

@@ -13,7 +13,7 @@ pub const MAX_TABLE_SIZE: usize = 4096;
 pub const MAX_MCFG_REGIONS: usize = 32;
 pub const MAX_DMAR_UNITS: usize = 16;
 /// Enabled processor entries retained from one MADT; more fails the MADT closed.
-pub const MAX_MADT_CPUS: usize = 64;
+pub const MAX_MADT_CPUS: usize = 32;
 const MADT_FIXED_SIZE: usize = 44;
 const ACPI_HEADER_SIZE: usize = 36;
 
@@ -345,21 +345,25 @@ fn discover_tables(rsdp: &[u8], reader: &mut impl PhysicalRead) -> Result<Discov
             parse_dmar(&table[..length], &mut result)?;
         } else if signature == b"APIC" {
             // A second MADT is ambiguous: fail SMP closed, keep other inventory.
-            if saw_madt {
-                result.madt = Madt::unavailable(MadtStatus::Invalid);
+            // Parsed in place: no Madt temporaries on the 16-KiB kernel stack.
+            let parsed = if saw_madt {
+                Err(Error::DuplicateTable)
             } else {
                 saw_madt = true;
-                result.madt = match table_length(&header) {
+                match table_length(&header) {
                     Ok(length) => {
                         reader
                             .read(address, &mut table[..length])
                             .map_err(|_| Error::Read)?;
                         validate_table(&table[..length], b"APIC")
-                            .and_then(|()| parse_madt(&table[..length]))
-                            .unwrap_or(Madt::unavailable(MadtStatus::Invalid))
+                            .and_then(|()| parse_madt(&table[..length], &mut result.madt))
                     }
-                    Err(_) => Madt::unavailable(MadtStatus::Invalid),
-                };
+                    Err(error) => Err(error),
+                }
+            };
+            if parsed.is_err() {
+                result.madt.status = MadtStatus::Invalid;
+                result.madt.cpu_count = 0;
             }
         }
         offset += entry_size;
@@ -538,11 +542,19 @@ const MADT_ONLINE_CAPABLE: u32 = 2;
 /// every structure must be at least two bytes and lie wholly inside the table.
 /// Unknown/OEM structures are skipped. Reserved MADT and processor flag bits
 /// are ignored because they do not change which processors are started.
-fn parse_madt(table: &[u8]) -> Result<Madt, Error> {
+///
+/// Writes into `madt` in place (it stays `Invalid` until fully accepted) so
+/// that no copy of the processor array lives on the kernel stack.
+fn parse_madt(table: &[u8], madt: &mut Madt) -> Result<(), Error> {
+    madt.status = MadtStatus::Invalid;
+    madt.cpu_count = 0;
+    madt.online_capable = 0;
+    madt.disabled = 0;
+    madt.io_apic_count = 0;
+    madt.local_apic_base = 0;
     if table.len() < MADT_FIXED_SIZE {
         return Err(Error::Madt);
     }
-    let mut madt = Madt::unavailable(MadtStatus::Valid);
     madt.pcat_compat = read_u32(table, 40)? & 1 != 0;
     let mut base = u64::from(read_u32(table, 36)?);
     let mut saw_override = false;
@@ -637,7 +649,8 @@ fn parse_madt(table: &[u8]) -> Result<Madt, Error> {
         return Err(Error::Madt);
     }
     madt.local_apic_base = base;
-    Ok(madt)
+    madt.status = MadtStatus::Valid;
+    Ok(())
 }
 
 fn table_length(header: &[u8; ACPI_HEADER_SIZE]) -> Result<usize, Error> {
@@ -1118,13 +1131,19 @@ mod tests {
                 table[index] = next() as u8;
             }
             checksum_byte(&mut table, 9);
-            let result = parse_madt(&table);
+            // Reuse one (possibly previously valid) Madt: stale state must not survive.
+            let mut madt = Madt::unavailable(MadtStatus::Valid);
+            madt.cpu_count = MAX_MADT_CPUS as u8;
+            let result = parse_madt(&table, &mut madt);
+            assert_eq!(result.is_ok(), madt.status == MadtStatus::Valid);
             match result {
-                Ok(madt) => {
+                Ok(()) => {
                     valid += 1;
                     let cpus = madt.cpus();
                     assert!(!cpus.is_empty() && cpus.len() <= MAX_MADT_CPUS);
-                    assert!(madt.local_apic_base != 0 && madt.local_apic_base % PAGE_SIZE == 0);
+                    assert!(
+                        madt.local_apic_base != 0 && madt.local_apic_base.is_multiple_of(PAGE_SIZE)
+                    );
                     for (i, cpu) in cpus.iter().enumerate() {
                         assert!(cpus[i + 1..]
                             .iter()

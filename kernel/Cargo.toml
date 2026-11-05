@@ -11,6 +11,11 @@ test-panic = []
 test-hang = []
 milestone-m2 = []
 native-rtc = ["milestone-m2", "dep:nieuw-os-rtc"]
+# K06 step 1: opt-in AP bring-up profile. APs run a bounded sync self-test and
+# park; no scheduler, allocator, paging or IPC state is shared with them.
+native-smp = ["milestone-m2"]
+test-smp-ap-stall = ["native-smp"]
+test-smp-ap-mismatch = ["native-smp"]
 framebuffer = ["milestone-m2"]
 # Sole display/input transport; UI policy remains in isolated user services.
 display-input = ["framebuffer", "milestone-m4", "monotonic-clock", "fpu-context", "dep:nieuw-os-display-client", "dep:nieuw-os-ps2"]
