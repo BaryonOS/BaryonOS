@@ -12,6 +12,7 @@ pub mod desktop;
 pub mod render;
 pub mod session;
 pub mod text;
+pub mod workspace;
 
 pub const TILE_WIDTH: u32 = 32;
 pub const TILE_HEIGHT: u32 = 8;

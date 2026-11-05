@@ -2,13 +2,14 @@
 """Frozen real native TCP pair; the host supplies only a synthetic server."""
 from __future__ import annotations
 
+import argparse
 import hashlib
 import subprocess
 import sys
 
 from build import build
 from common import ROOT, BUILD, environment, save_json, source_hash
-from run_tcp_system import FEATURE, run_tcp_system
+from run_tcp_system import FEATURE, SCENARIOS, run_tcp_system
 
 
 def inputs() -> dict[str, str]:
@@ -28,9 +29,13 @@ def host_commands() -> list[list[str]]:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--scenario", choices=SCENARIOS, default="baseline")
+    options = parser.parse_args()
     frozen, test_inputs = source_hash(), inputs()
     summary = dict(schema_version=1, source_fingerprint_version=3, source_sha256=frozen,
-                   test_inputs=test_inputs, status="running", passed=False, host=[], stages=[])
+                   scenario=options.scenario, test_inputs=test_inputs,
+                   status="running", passed=False, host=[], stages=[])
     path = BUILD / "tcp-system-gate.json"
     save_json(path, summary)
     try:
@@ -51,7 +56,7 @@ def main() -> int:
             manifest = build(None, feature, feature)
             if case == "normal":
                 normal = manifest["kernel"]["sha256"]
-            result, volume = run_tcp_system(case, volume)
+            result, volume = run_tcp_system(case, volume, scenario=options.scenario)
             summary["stages"].append({key: result[key] for key in
                                       ("case", "passed", "network_gate", "tcp_gate", "run_directory", "raw_qemu_exit",
                                        "before_sha256", "after_sha256", "duration_s")})

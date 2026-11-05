@@ -18,7 +18,7 @@ Er bestaat spanning tussen ‘alles zelf’ en ‘zo snel mogelijk hoge zekerhei
 
 | Onderdeel | Eerste keuze | Reden en grens |
 |---|---|---|
-| Processor | x86_64, één virtuele CPU | Een afgebakende eerste implementatie; SMP wordt later apart onderzocht. |
+| Processor | x86_64, één virtuele CPU | Een afgebakende eerste implementatie. Een apart opt-in profiel start AP's begrensd (ADR-070); SMP-scheduling volgt later. |
 | Machine | QEMU, een vastgelegde q35-machineversie | Herhaalbare virtuele hardware; geen afhankelijkheid van Simons exacte laptop. |
 | Accelerator | TCG als CI-baseline; lokale acceleratie optioneel | TCG vereist geen beschikbare hardwarevirtualisatie. Gebruik geen TCG-resultaten als bewijs voor prestaties op echte hardware. |
 | Firmware | OVMF/UEFI, versies en hashes vastgelegd | Standaard bootinterface. Firmware is een afhankelijkheid en onderdeel van het dreigingsmodel. |

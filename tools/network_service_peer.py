@@ -122,7 +122,8 @@ class Machine:
                  "refusals", "resets_after_get", "first_syn_dropped", "retry_syns", "blackhole_syns",
                  "blackhole_rsts", "corrupt_data_sent", "valid_data_sent", "http_requests",
                  "valid_data_acks", "fins_sent", "client_fins_acked", "udp_requests",
-                 "udp_corrupt_sent", "udp_wrong_scope_sent", "udp_echo_sent", "udp_overflow_sent")
+                 "udp_corrupt_sent", "udp_wrong_scope_sent", "udp_echo_sent", "udp_overflow_sent",
+                 "udp_fragment_first_sent", "udp_fragment_tail_sent")
         self.counts = dict.fromkeys(names, 0)
     def event(self, direction, label, frame, **fields):
         if len(self.events) >= MAX_EVENTS:
@@ -130,8 +131,8 @@ class Machine:
         self.events.append(dict(sequence=len(self.events) + 1, direction=direction, event=label,
                                 length=len(frame), frame_sha256=hashlib.sha256(frame).hexdigest(), **fields))
         self.counts["client_frames" if direction == "rx" else "server_frames"] += 1
-    def ip(self, payload, protocol):
-        ip = struct.pack("!BBHHHBBH4s4s", 0x45, 0, 20 + len(payload), self.ip_id, 0x4000, 64, protocol, 0, PEER_IP, CLIENT_IP)
+    def ip(self, payload, protocol, flags=0x4000):
+        ip = struct.pack("!BBHHHBBH4s4s", 0x45, 0, 20 + len(payload), self.ip_id, flags, 64, protocol, 0, PEER_IP, CLIENT_IP)
         self.ip_id = (self.ip_id + 1) & 0xffff
         ip = ip[:10] + struct.pack("!H", checksum(ip)) + ip[12:]
         return (CLIENT_MAC + PEER_MAC + b"\x08\x00" + ip + payload).ljust(60, b"\0")
@@ -171,12 +172,19 @@ class Machine:
         self.counts["arp_replies"] += 1
         self.event("tx", "arp-reply", packet)
         return [packet]
-    def udp_packet(self, slot, label, payload, *, wrong=False, corrupt=False):
+    def udp_packet(self, slot, label, payload, *, wrong=False, corrupt=False, fragment=None):
         source, target = 9000 + slot + int(wrong) * 100, 45000 + slot
         udp = struct.pack("!HHHH", source, target, 8 + len(payload), 0) + payload
         value = checksum(PEER_IP + CLIENT_IP + struct.pack("!BBH", 0, 17, len(udp)) + udp) or 0xffff
         udp = udp[:6] + struct.pack("!H", value ^ int(corrupt)) + udp[8:]
-        packet = self.ip(udp, 17)
+        flags = 0x4000
+        if fragment == "first":
+            udp, flags = udp[:16], 0x2000
+        elif fragment == "tail":
+            udp, flags = udp[16:], 2
+        elif fragment is not None:
+            raise ProtocolError("unknown UDP fragment fixture")
+        packet = self.ip(udp, 17, flags)
         self.event("tx", label, packet, slot=slot, payload_length=len(payload))
         self.counts[label.replace("-", "_") + "_sent"] += 1
         return packet
@@ -257,6 +265,12 @@ class Machine:
                     self.counts["first_syn_dropped"] += 1
                     return []
                 self.counts["retry_syns"] += 1
+            if case == 0 and c.syns == 1:
+                # Independent fragments precede the handshake so the existing
+                # four-frame UDP/backpressure burst and response bound stay intact.
+                return [self.udp_packet(slot, "udp-fragment-first", UDP_PAYLOADS[slot], fragment="first"),
+                        self.udp_packet(slot, "udp-fragment-tail", UDP_PAYLOADS[slot], fragment="tail"),
+                        self.syn_ack(c)]
             return [self.syn_ack(c)]
         if c is None or s.source != c.source:
             raise ProtocolError("TCP without bound tuple")
@@ -346,6 +360,8 @@ class Machine:
                             for p in success_ports)
                     and self.counts["first_syn_dropped"] == owners and self.counts["retry_syns"] >= owners
                     and self.counts["corrupt_data_sent"] == owners and self.counts["valid_data_sent"] == 2 * owners
+                    and self.counts["udp_fragment_first_sent"] == owners
+                    and self.counts["udp_fragment_tail_sent"] == owners
                     and self.counts["client_fins_acked"] == 2 * owners)
         return dict(case=self.case, complete=complete, counts=dict(self.counts), cases=cases, events=list(self.events),
                     request_sha256=[hashlib.sha256(r).hexdigest() for r in REQUESTS],

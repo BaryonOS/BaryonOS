@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-05 · **Rubric:** v1 ·
-**Bron:** [`a66a6758`](https://github.com/simonvanieperen/nieuw-os/commit/a66a67588d5fbc780cf844c993c6e441743cacf2) ·
+**Bron:** [`222e675b`](https://github.com/simonvanieperen/nieuw-os/commit/222e675ba5365be4b257c118a8d7cc704a7c5aad) ·
 **Ontwikkelbranch:** `copilot/driver-usb-hid-control`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR185: conflicten met main c0e02b79 inhoudsbehoudend integreren.
-41/100 blijft 41/100. PR185's USB HID control-request exports zijn behouden naast main's boot- en boot-interface modules. De USB hosttests, Clippy, formatting en freestanding library build slagen; CodeQL gaf door tooltimeout geen resultaat. Geen criterium volledig geaccepteerd: geen native USB-runtime- of fysieke-HID-acceptatie. Nieuwe-head hosted checks blijven open.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR185: conflicten met bijgewerkte main c2c29c5f inhoudsbehoudend integreren.
+41/100 blijft 41/100. De PR185 USB HID control-request-module wordt behouden naast main's K06-, UI-, SDK- en opslagwijzigingen. Boot-protocol, kernel-core, USB, SDK, calculator, Materiaal, window-session, document-session, UI/native, graphics, volume en gerichte Python-testsets slagen; de native-smp kernelbuild slaagt. QEMU kon niet starten omdat qemu-system-x86_64 ontbreekt. Geen criterium is volledig geaccepteerd; CodeQL en hosted checks op de nieuwe head blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

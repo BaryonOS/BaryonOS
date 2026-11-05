@@ -1,0 +1,7 @@
+   Compiling zeroize v1.9.1
+   Compiling ui-core v0.1.0 (/workspace/nieuw-os/crates/ui-core)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+   Compiling nieuw-os-input-core v0.1.0 (/workspace/nieuw-os/services/input-core)
+   Compiling nieuw-os-display-client v0.1.0 (/workspace/nieuw-os/sdk/display-client)
+   Compiling nieuw-os-native-input-service v0.1.0 (/workspace/nieuw-os/sdk/examples/input-service)
+    Finished `release` profile [optimized] target(s) in 1.00s

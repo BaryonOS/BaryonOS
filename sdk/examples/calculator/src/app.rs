@@ -242,7 +242,9 @@ impl<I: Transport, S: Transport> App<I, S> {
                             input.changed.left() && input.buttons.left(),
                             input.changed.left() && !input.buttons.left(),
                         );
-                        if layout.expression.contains(x, y) {
+                        if layout.result_bounds(self.viewport.scale()).contains(x, y) && down {
+                            self.model.command(crate::model::Command::SelectResult);
+                        } else if layout.expression.contains(x, y) {
                             let position = render::expression_caret_at(
                                 &self.model,
                                 layout,

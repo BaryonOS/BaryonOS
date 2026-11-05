@@ -747,7 +747,7 @@ pub fn classify(slot: u64, index: u64, sector: &[u8; SECTOR]) -> SectorState {
 #[derive(Clone, Copy, Debug)]
 pub struct SlotScan {
     pub states: [SectorState; TABLE_SECTORS_USIZE],
-    format_marker: bool,
+    pub format_marker: bool,
     /// Generation of a completely valid copy.
     pub valid: Option<u64>,
 }
@@ -823,7 +823,10 @@ impl SlotScan {
         }
         self.states.iter().all(|state| match *state {
             SectorState::Zero => g == 1,
-            SectorState::Valid(found, _) => found + 1 == g || found == g + 1,
+            // Generations come from untrusted disk bytes: never overflow.
+            SectorState::Valid(found, _) => {
+                found.checked_add(1) == Some(g) || g.checked_add(1) == Some(found)
+            }
             SectorState::Invalid => true,
         })
     }
@@ -834,7 +837,7 @@ pub fn choose(slots: [SlotScan; 2]) -> Result<Option<u64>, Status> {
     let [zero, one] = slots;
     match (zero.valid, one.valid) {
         (Some(a), Some(b)) => {
-            if a.max(b) == a.min(b) + 1 {
+            if a.min(b).checked_add(1) == Some(a.max(b)) {
                 Ok(Some(Table::slot(a.max(b))))
             } else {
                 Err(Status::Corrupt)

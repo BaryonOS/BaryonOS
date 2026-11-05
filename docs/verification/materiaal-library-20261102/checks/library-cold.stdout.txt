@@ -1,0 +1,5 @@
+WINDOW phase library-cold-list 91.0
+WINDOW phase library-cold-search 94.7
+WINDOW phase library-cold-opened 139.93
+WINDOW phase library-cold-history 190.07
+{"passed": true, "native_gate": false, "error": null, "run_directory": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43", "duration_s": 191.3013658990003}

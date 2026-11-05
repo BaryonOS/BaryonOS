@@ -1,7 +1,25 @@
-command: ["/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo", "+1.90.0", "clippy", "--offline", "--locked", "--manifest-path", "ui/native/Cargo.toml", "--all-targets", "--", "-D", "warnings"]
+command: ["/home/runner/.cargo/bin/cargo", "+1.90.0", "clippy", "--offline", "--locked", "--manifest-path", "ui/native/Cargo.toml", "--all-targets", "--", "-D", "warnings"]
 exit: 0
 
 stdout:
 
 stderr:
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.06s
+    Checking zeroize v1.9.1
+    Checking catalog-core v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/services/catalog)
+    Checking nieuw-os-sdk-runtime v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/runtime)
+    Checking ui-core v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/crates/ui-core)
+    Checking nieuw-os-catalog-client v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/catalog-client)
+    Checking nieuw-os-graphics v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/ui/graphics)
+    Checking nieuw-os-input-core v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/services/input-core)
+    Checking nieuw-os-surface-protocol v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/ui/surface-protocol)
+    Checking nieuw-os-input-client v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/input-client)
+    Checking volume-core v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/services/volume)
+    Checking nieuw-os-display-client v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/display-client)
+    Checking noto-sans-mono-bitmap v0.3.2
+    Checking nieuw-os-document-session v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/document-session)
+    Checking nieuw-os-native-input-service v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/examples/input-service)
+    Checking nieuw-os-window-session v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/examples/window-session)
+    Checking capability-core v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/crates/capability-core)
+    Checking nieuw-os-calculator v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/examples/calculator)
+    Checking nieuw-os-materiaal v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/ui/native)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.69s

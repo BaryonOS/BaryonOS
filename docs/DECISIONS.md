@@ -1,5 +1,209 @@
 # Ontwerpbesluiten
 
+## ADR-072 — TLB-shootdown vóór hergebruik van een fysieke pagina (K06 stap 3)
+
+5 november 2026; aanvulling op ADR-070/071, alleen in `native-smp`. Op SMP
+geldt het `Frames::unmap`-contract ("PTE wissen en TLB invalideren vóór het
+vrijgeven van metadata") voor **iedere** CPU die de vertaling kan cachen.
+Met één gedeelde CR3 kan een CPU iedere aanwezige vertaling (ook
+speculatief) cachen. Daarom geldt dit voor **alle** aliassen van het frame,
+en gaat het vrijgeven van een vervangen frame in deze volgorde:
+1. Het frame wissen terwijl de eigen bootstrap-alias nog bestaat.
+2. Beide PTE's lokaal weghalen (venster → nieuw frame, identity-alias weg)
+   en lokaal `invlpg`. De alias-metadata blijft daarbij staan.
+3. Shootdown-IPI (vector 0xe0) naar iedere AP: `invlpg` van beide
+   gepubliceerde adressen, daarna een ack van de generatie van deze ronde.
+4. Pas na álle acks: beide aliassen vrijgeven, `free` en een volledige
+   paging-audit.
+
+Ontbreekt een ack, dan blijft het oude frame in quarantaine (eigendom en
+alias behouden, nooit hergebruikt) en reset de BSP alle AP's met INIT.
+Dat is fail-closed, want een frame dat een andere CPU nog kan lezen, mag
+nooit naar een nieuwe eigenaar.
+
+**Bewijs:** iedere CPU ziet daarna aantoonbaar het nieuwe frame. Een
+controleprofiel zonder shootdown laat deterministisch zien dat alle AP's
+anders het vrijgegeven frame lezen: de test meet dus een echt gevaar. Zie
+`docs/verification/k06-smp-shootdown/`. **Open:** dit is één venster in
+een bootstrapprofiel. Een algemene shootdown voor procesadresruimten (per
+ASID/CR3 en per range), integratie met M3-unmaps, interrupts op de BSP en
+de SMP-scheduler volgen nog; ADR-024 blijft tot dan ongewijzigd geldig.
+
+**Status:** geaccepteerd in het opt-in `native-smp`-profiel; K06 blijft open.
+
+**Alternatieven overwogen.**
+- Alleen het venster ongeldig maken en de identity-alias lokaal laten
+  vallen: verworpen na review, omdat een AP met een gedeelde CR3 die alias
+  speculatief kan cachen.
+- CR3 herladen of een volledige TLB-flush per AP: is ook correct, maar
+  grover; `invlpg` per adres volstaat hier en blijft per vertaling
+  controleerbaar.
+- PCID/INVPCID: niet gebruikt; PCID staat uit in dit profiel.
+- Het frame vrijgeven en de shootdown "lazy" achteraf doen: verworpen,
+  want dat is precies het gevaar dat het controleprofiel aantoont.
+
+**Primaire bronnen.** Intel SDM Vol. 3A: TLB-onderhoud ("Invalidation of
+TLBs and Paging-Structure Caches", "Propagation of Paging-Structure Changes
+to Multiple Processors", INVLPG als serializing instruction) en APIC (ICR
+en TPR). Ook hier verschillen de hoofdstuknummers per editie.
+
+## ADR-071 — Eigen TSS/IST per AP en begrensde, gerichte IPI's (K06 stap 2)
+
+5 november 2026; aanvulling op ADR-070, nog steeds alleen in `native-smp`.
+Iedere AP krijgt een eigen GDT-kopie met eigen TSS (RSP0, IST1 voor #DF,
+IST2 voor NMI). De stacks daarvan staan in het kernelimage, met
+ongemapte guards. Een busy TSS wordt nooit gedeeld. IA32_GS_BASE wijst
+naar een per-CPU-anker; dat is de basis voor latere per-CPU-staat.
+
+**IPI-contract.** Vector 0xf0 is een supervisor-interruptgate. De stub telt
+de interrupt in het per-CPU-anker, geeft EOI aan de eigen xAPIC en keert
+terug. Vector 0xff is de spurious-gate. Pas nadat alle LVT's gemaskeerd
+zijn, TPR 0 is en SVR aan staat, wacht een AP met `sti; hlt`. De BSP
+verstuurt alleen unicast-IPI's. Broadcast-shorthands zijn verboden, omdat
+die CPU's in firmwarebezit zouden bereiken (bijvoorbeeld na een
+capaciteitsgrens). Per ronde moet iedere AP precies één levering tonen.
+Neemt een AP een gerichte interrupt niet aan, dan reset de BSP alle AP's
+met INIT en werkt alleen verder. Een CPU die niet op een IPI reageert, kan
+later nooit deelnemen aan TLB-shootdown. Een mislukte INIT stopt de boot.
+
+**Bewijs.** NMI en #DF op een AP komen native op de eigen IST-stack van die
+AP terecht; voorheen was dat een triple fault. Zie
+`docs/verification/k06-smp-ipi/`. **Open:** de BSP blijft IF=0, en er is
+nog geen TLB-shootdown, SMP-scheduler of lockvolgorde voor
+kernelsubsystemen. AP's draaien dus nog steeds geen kernelsubsystemen.
+ADR-024 blijft ongewijzigd geldig. Fysieke hardware is niet getest.
+
+**Status:** geaccepteerd in het opt-in `native-smp`-profiel; K06 blijft open.
+
+**Alternatieven overwogen.**
+- Eén gedeelde TSS: onmogelijk, want een busy TSS mag maar door één CPU geladen zijn.
+- Broadcast-IPI-shorthands: verworpen, omdat die ook CPU's in firmwarebezit
+  bereiken (bijvoorbeeld na een capaciteitsgrens).
+- Een AP die niet reageert alleen loskoppelen in plaats van alle AP's te
+  resetten: verworpen, omdat een AP die geen IPI aanneemt later geen
+  shootdown kan volgen.
+- x2APIC/MSR-IPI: uitgesteld, het profiel gebruikt xAPIC-MMIO.
+
+**Primaire bronnen.** Intel SDM Vol. 3A: taakbeheer (64-bit TSS, IST en
+de busy-vlag), interrupt- en exceptionafhandeling (IST-stackwissel,
+interruptgates) en APIC (ICR, delivery modes, LVT, TPR/PPR,
+spurious-vector, EOI). De SDM-hoofdstuknummers verschillen per editie;
+zoek op sectietitel.
+
+## ADR-070 — Begrensde AP-opstart als eerste K06-stap
+
+5 november 2026. De kernel start applicatieprocessoren (AP's) uitsluitend in
+het opt-in M2-profiel `native-smp`, met IF=0. Dat profiel sluit bij
+compilatie M3, framebuffer, native-rtc en graphics-g0 uit. Alle bestaande
+één-CPU-invarianten (ADR-024 scratchslot, frame-allocator, paging, serieel,
+IPC, scheduler) blijven onveranderd geldig, omdat AP's die code nooit
+uitvoeren. De BSP is de enige eigenaar van frames, paging, PIT, ICR en
+seriële uitvoer.
+
+**Ontwerp.** De MADT is onbetrouwbare firmware-invoer. Alleen ingeschakelde,
+unieke processors tellen mee (maximaal 32). Een kapotte, dubbele of te grote
+MADT maakt alleen SMP ongeldig, niet de MCFG/DMAR-inventaris.
+IA32_APIC_BASE moet xAPIC-modus, ingeschakeld en BSP aangeven en gelijk zijn
+aan de MADT-basis. Alleen die exacte pagina krijgt een UC/NX-mapping, die
+`audit` net als het framebuffervenster afzonderlijk controleert.
+De SIPI-pagina is het eerste vrije ConventionalMemory-frame onder 0xA0000:
+permanent Kernel-eigendom, één keer geschreven vóór de CR3-wissel en nooit in
+onze tabellen gemapt. Zij bevat alleen 16-bitcode en een CR3-veld. De 32/64-bit-
+stap, de trampoline-GDT en AP-stacks van 16 KiB met guardpagina's staan in het
+identity-gemapte kernelimage. W^X verandert dus niet.
+
+**Gelijktijdigheid.** Een AP kiest zijn context op hardware-APIC-ID en claimt
+die met één `lock cmpxchg` STARTING→CLAIMED. Bij een time-out pakt de BSP
+dezelfde CAS STARTING→ABANDONED en reset de CPU met INIT. Een late AP draait
+dus nooit op een opgegeven stack. Iedere fout stopt verdere opstart, zonder
+paniek: het systeem blijft met de reeds gestarte CPU's werken. Kan een
+gefaalde AP niet met INIT worden gereset, dan stopt de boot als fout: er
+draait nooit een onbeheerste CPU naast de kernel. Een CPU-exception op een
+AP komt in de gedeelde M2-handlers en stopt de VM terminaal. Een MADT-
+leesfout maakt eveneens alleen de MADT ongeldig. Een AP neemt
+CR0/CR3/CR4/EFER/PAT van de BSP exact over en controleert die. Daarna voert
+hij een begrensde atomic-plus-spinlocktest uit en parkeert met `cli; hlt`.
+
+**Bewijsgrens.** QEMU q35/OVMF/TCG met 1–9 vCPU's plus negatieve gevallen;
+zie `docs/verification/k06-smp-bringup/`. Dit is geen SMP-scheduling, geen
+IPI/TLB-shootdown en geen per-CPU TSS/IST: een NMI of #DF op een AP stopt de
+VM. Fysieke hardware is niet getest en K06 is niet geaccepteerd.
+**Herzien** vóórdat een AP kernelsubsystemen, gebruikersprocessen of
+interrupts uitvoert. Dan zijn per-CPU-staat, TSS/IST, lockvolgorde,
+TLB-shootdown en de herziening van ADR-024 verplicht.
+
+**Status:** geaccepteerd als opt-in bringupprofiel (`native-smp`), niet als
+productprofiel; K06 blijft open.
+
+**Alternatieven overwogen.**
+- x2APIC-modus: uitgesteld. xAPIC-MMIO dekt het q35-profiel en firmware in
+  x2APIC-modus valt gesloten terug naar één CPU.
+- Een trampoline volledig in de lage pagina (ook 32/64-bit): verworpen. Die
+  pagina zou een uitvoerbare mapping in de kerneltabellen nodig hebben,
+  terwijl de huidige vorm haar nooit mapt (W^X ongewijzigd).
+- De LAPIC-basis uit de MADT halen: verworpen. De basis komt uitsluitend uit
+  IA32_APIC_BASE; de MADT-waarde wordt alleen vergeleken (onbetrouwbare
+  firmware-invoer).
+- Een broadcast INIT/SIPI ("all excluding self"): verworpen. Die bereikt
+  ook CPU's buiten de MADT of buiten de capaciteit, en geeft geen
+  per-CPU-time-out of quarantaine.
+
+**Primaire bronnen.**
+- Intel SDM Vol. 3A, §9.4 (MP-initialisatieprotocol, INIT-SIPI-SIPI en de
+  bijbehorende wachttijden) en §11.6 (ICR, delivery modes, SIPI-vector als
+  paginanummer onder 1 MiB).
+- Intel SDM Vol. 3A, §11.4 (IA32_APIC_BASE: BSP-, EN- en EXTD-vlaggen).
+- ACPI 6.5, §5.2.12 (MADT, structuurtypen en -lengtes, Enabled en Online
+  Capable, waarbij Online Capable gereserveerd-nul is als Enabled gezet is)
+  en §5.2.12.8 (Local APIC Address Override).
+- Vindplaatsen: *Intel® 64 and IA-32 Architectures Software Developer's
+  Manual*, Volume 3A (Intel Corporation; actuele editie,
+  https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html),
+  voor INIT-SIPI-SIPI, ICR en IA32_APIC_BASE (xAPIC/x2APIC-vlaggen),
+  MTRR/PAT en XCR0. *Advanced Configuration and Power Interface (ACPI)
+  Specification*, versie 6.5 (UEFI Forum, augustus 2022,
+  https://uefi.org/specs/ACPI/6.5/), §5.2.12 voor de MADT. *UEFI
+  Specification* 2.10 (UEFI Forum, https://uefi.org/specifications) voor
+  het geheugenmodel bij overdracht. De identity-map onder 1 MiB is
+  geverifieerd OVMF-gedrag en geen UEFI-garantie; daarom staat ze in de
+  bewijsgrens als open punt.
+- Lokaal OSDev-snapshot W003259 (MADT), uitsluitend als routekaart.
+- De SDM-hoofdstuknummers volgen recente edities. In oudere edities heten
+  dezelfde secties §8.4 (MP-initialisatie) en §10.4/§10.6 (APIC); zoek
+  bij twijfel op de sectietitel.
+
+**Uitgevoerd testbewijs:** `docs/verification/k06-smp-bringup/README.md`.
+## ADR-SESSION-20261102 — herkenbare bediening en expliciete VM-sessiegrens
+
+De huidige gebruikersopdracht kiest herkenbare sessie-, zoek-, status- en
+vensterbediening rond Materiaal. Een eigen productidentiteit verbiedt geen
+bekende conventies. De nieuwe `native-session-route` blijft een openbare,
+geïsoleerde VM-proef: persoonlijke credentials worden niet verzameld zolang
+een echte auth-/sessie-/keyringdienst ontbreekt. Lock bedekt beeld en blokkeert
+appinput, maar mag niet als sleutel- of opslagcapability-intrekking worden
+gepresenteerd. FR-S02 en U02 blijven open; de bestaande meter blijft 41.
+
+Shellbeleid blijft in de userspace-compositor. Een inputoffer wordt bevestigd
+vóór een systeemactie. Appqueues en clipboardoffers worden bij afschermen
+geannuleerd; apps kunnen de vertrouwde voorgrond niet tekenen. Desktop wordt
+pas zichtbaar na beide complete SUR-frames. Diagnostische gereedheid wordt
+als laatste gepubliceerd, na een voorafgaande 0, zodat timerpreëmptie geen
+nieuwe pagina met oude gereedheid kan laten observeren.
+
+SUR1 behoudt een volledig eerste frame en actor/epoch/bounds/COMMIT/deadline-
+controles; latere sparse frames gebruiken strikt oplopende tegels en een
+verplichte eindtegel. Rebind maakt de cache ongeldig. Een opaque renderpad en
+oude/nieuwe paneelunion beperken werk, met exacte rastervergelijking tegen het
+behouden referentiepad. Geen nieuwe kernel-ABI, crypto of apparaatrechten.
+
+De geteste codebron is 703cc07; afzonderlijke route- en regressieprofielen
+slagen. Onderzoek, bronhashes, screenshots, meetgrenzen en open werk staan in
+[het uitvoeringsrapport](verification/session-quality-20261102/README.md).
+VMware blijft een aparte platformproef volgens
+[de concrete overdracht](implementation/VMWARE-WORKSTATION-TRIAL.md).
+Herzien bij echte account-/sessierechten, resize/rebind, GPU-transport of
+een gewijzigde trusted-inputgrens; een hostbeeld vervangt geen native bewijs.
+
 <a id="adr-057--vreemde-opslag-nooit-als-leeg-volume-toelaten"></a>
 ## ADR-064 — Vreemde opslag nooit als leeg volume toelaten
 
@@ -74,6 +278,7 @@ Historische bewijsbestanden behouden hun oorspronkelijke nummervermelding.
 | 055, begrensde GUI-rust | ADR-061 |
 | 056, eenmalig klembord | ADR-062 |
 | 056, herkenbare VM-sessieroute | ADR-063 |
+| 058, positieve volume-identiteit (historische titel) | ADR-064 |
 | 057, vreemde opslag nooit als leeg volume toelaten | ADR-064 |
 
 ## Onderzoeksbesluit J-20261102 — herkenbare basis, expliciete installatiegrens
@@ -1672,3 +1877,25 @@ de latch voorkomt dat een oude clear-repeat documenttekst wist. Herzien bij
 streaming, meer apps, veilige accountvelden of een echte sessiegrens.
 Contract, bron en nog lopende native gate: implementation/NATIVE-CLIPBOARD.md
 en verification/native-clipboard-20261102/.
+
+
+## ADR-MATERIAL-LIBRARY-20261102 — bestaande volumeobjecten native bedienen
+
+De native werkruimte ontsluit bestaande volume-v7-namen, collecties, metadata
+en twee historieplaatsen; geen nieuw wireformaat, opslagformaat of kernelrecht.
+Hernoemen blijft draft tot expliciet bewaren. Ordenen gebruikt CAS, historie
+herstelt als nieuwe revisie. Onzekere publicatie wordt niet herhaald; een
+bevestigde restore met mislukte herlezing blokkeert bewaren tot expliciet heropenen.
+Een begrensde tekstpreview valideert eerst de volledige historische versie en
+UTF-8 in de bestaande stagingbuffer. Labels maken verkorting en locatie duidelijk.
+Proportionele tekst deelt metrics/caret/selection/wrap/hittest en bewaart bytes.
+
+Het eigen scalar appspecifieke RX-budget wordt na echte131177-byte-linkermeting
+128→144KiB; vaste adressen, vijf segmenten, W^X, R/RW/stack/guard/kernelquota en
+capabilities blijven gelijk. Zie `implementation/NATIVE-MATERIAL-LIBRARY.md`.
+De native gate gebruikt volledige toegewezen appbeelden en een onafhankelijke
+schijfdecoder; koude heropening kopieert uitsluitend een opnieuw gevalideerde
+bron-/profielgebonden wegwerprun. U03 blijft open totdat de volledige route en
+regressie werkelijk slagen. Geen authenticatie-, encryptie- of hardwareclaim.
+
+<a id="adr-058--positieve-volume-identiteit-vóór-toelating-als-lege-opslag"></a>
