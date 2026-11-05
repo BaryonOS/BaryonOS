@@ -27,6 +27,27 @@ Voor K06 nog nodig: per-CPU-staat, TSS/IST, IPI/TLB-shootdown, SMP-scheduler,
 lockvolgorde en herziening van ADR-024. Er is geen fysiek hardwarebewijs.
 **Eerstvolgend commando:**
 `NOS_BUILD_DIR=build/k06-native-smp python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
+## Historisch checkpoint — instructieonderhoud — 4 november 2026
+
+**Basis:** `8bb153092e967aae314ecde35bcf963565a87ac7`, branch
+`copilot/dream-curate-memories-20261104132442`. Vijf instructiebestanden
+verliezen verouderde beperkingen op opslaglocaties, native UI-werk en
+voortgangsrapportage. De actuele privacycontracten, lokale AI, apprechten,
+eigen kernel en bewijsgrenzen blijven ongewijzigd. **41 → 41/100**:
+geen runtimecode, criterium, gewicht of nieuwe productacceptatie.
+
+**Controles (alle exit 0):** `python3 tools/progress.py --write`,
+`python3 tools/progress.py --check`,
+`python3 -B .agents/skills/os-dev/scripts/validate_skill.py`,
+`python3 -B -m unittest discover -s .agents/skills/os-dev/tests -v`
+(zes tests) en `git diff --check`. De onafhankelijke AI-tegenvoorbeeldreview
+vond geen concrete weerleggingen; dit is geen menselijke audit.
+**Bewijsgrens:** documentatieonderhoud; geen OS-build, QEMU-, hardware- of
+menselijke acceptatie uitgevoerd. Deze controles bewijzen geen OS-functionaliteit.
+De bestaande productblokkades en historische receipts hieronder blijven gelden.
+
+**Vervolg:** beoordeel de concept-PR en haar actuele controles vóór integratie.
+Eerstvolgend lokaal commando: `python3 tools/progress.py --check`.
 
 ## Historisch checkpoint — PR158 met main 95d79451 — 3 november 2026
 

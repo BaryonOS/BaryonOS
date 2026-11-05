@@ -148,7 +148,8 @@ impl Orientation {
         })
     }
 
-    fn display_dimensions(self, width: usize, height: usize) -> (usize, usize) {
+    /// Dimensions after orientation, without modifying the source samples.
+    pub const fn display_dimensions(self, width: usize, height: usize) -> (usize, usize) {
         match self {
             Self::Transpose | Self::Rotate90 | Self::Transverse | Self::Rotate270 => {
                 (height, width)
@@ -157,6 +158,31 @@ impl Orientation {
                 (width, height)
             }
         }
+    }
+
+    /// Map one display pixel back to raw samples for allocation-free tile rendering.
+    /// Empty images and coordinates outside the oriented image are rejected.
+    pub fn source_position(
+        self,
+        x: usize,
+        y: usize,
+        width: usize,
+        height: usize,
+    ) -> Option<(usize, usize)> {
+        let (display_width, display_height) = self.display_dimensions(width, height);
+        if x >= display_width || y >= display_height {
+            return None;
+        }
+        Some(match self {
+            Self::Normal => (x, y),
+            Self::MirrorHorizontal => (width - 1 - x, y),
+            Self::Rotate180 => (width - 1 - x, height - 1 - y),
+            Self::MirrorVertical => (x, height - 1 - y),
+            Self::Transpose => (y, x),
+            Self::Rotate90 => (y, height - 1 - x),
+            Self::Transverse => (width - 1 - y, height - 1 - x),
+            Self::Rotate270 => (width - 1 - y, x),
+        })
     }
 
     fn display_position(self, x: usize, y: usize, width: usize, height: usize) -> (usize, usize) {
