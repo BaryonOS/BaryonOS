@@ -16,7 +16,8 @@ review is door AI gedaan; er is geen menselijke audit.
   liet de BSP-stack van 16 KiB overlopen, wat native is gevonden en
   hersteld.
 - `kernel/src/m2/smp.rs` (opt-in profiel `native-smp`):
-  INIT-SIPI-SIPI-opstart met een 16-bit SIPI-pagina die nooit gemapt wordt.
+  INIT-SIPI-SIPI-opstart met een 16-bit SIPI-pagina die nooit gemapt wordt
+  (contracten en primaire bronnen: ADR-070 in `docs/DECISIONS.md`).
   De 32/64-bit-stap, de GDT en de AP-stacks met guards staan in het
   kernelimage. AP's claimen hun context op hardware-APIC-ID via
   `lock cmpxchg`, en de BSP trekt een context bij time-out met dezelfde CAS
@@ -31,7 +32,7 @@ review is door AI gedaan; er is geen menselijke audit.
   `ACPI:UNAVAILABLE:NO_DMAR` voor q35/OVMF, zodat een regressie in de
   ACPI-discovery deze gate laat falen.
 
-## Uitgevoerde native gevallen (alle exit 33 = geslaagd, geen time-out)
+## Uitgevoerde native gevallen (alle QEMU-processen eindigden met exit 33, zonder proces-time-out; `ap-stall` rapporteert bewust `AP 1 TIMEOUT`)
 
 | Profiel | Geval | vCPU's / TCG | Uitkomst |
 |---|---|---|---|

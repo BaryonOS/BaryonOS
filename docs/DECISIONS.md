@@ -66,6 +66,17 @@ productprofiel; K06 blijft open.
 - ACPI 6.5, §5.2.12 (MADT, structuurtypen en -lengtes, Enabled en Online
   Capable, waarbij Online Capable gereserveerd-nul is als Enabled gezet is)
   en §5.2.12.8 (Local APIC Address Override).
+- Vindplaatsen: *Intel® 64 and IA-32 Architectures Software Developer's
+  Manual*, Volume 3A (Intel Corporation; actuele editie,
+  https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html),
+  voor INIT-SIPI-SIPI, ICR en IA32_APIC_BASE (xAPIC/x2APIC-vlaggen),
+  MTRR/PAT en XCR0. *Advanced Configuration and Power Interface (ACPI)
+  Specification*, versie 6.5 (UEFI Forum, augustus 2022,
+  https://uefi.org/specs/ACPI/6.5/), §5.2.12 voor de MADT. *UEFI
+  Specification* 2.10 (UEFI Forum, https://uefi.org/specifications) voor
+  het geheugenmodel bij overdracht. De identity-map onder 1 MiB is
+  geverifieerd OVMF-gedrag en geen UEFI-garantie; daarom staat ze in de
+  bewijsgrens als open punt.
 - Lokaal OSDev-snapshot W003259 (MADT), uitsluitend als routekaart.
 - De SDM-hoofdstuknummers volgen recente edities. In oudere edities heten
   dezelfde secties §8.4 (MP-initialisatie) en §10.4/§10.6 (APIC); zoek

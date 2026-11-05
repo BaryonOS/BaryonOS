@@ -2,12 +2,15 @@
 
 ## NEXT AGENT HANDOFF — K06 stap 1 en conflictintegratie — 5 november 2026
 
-**Bron:** PR-head `cd78ea74f14d8b8921aad51cc46a41c41274ab45` op
-`k06/smp-ap-bringup`, geïntegreerd met base `main` op
+**Historische bron van deze conflictintegratie:** PR-head
+`cd78ea74f14d8b8921aad51cc46a41c41274ab45` op `k06/smp-ap-bringup`,
+geïntegreerd met base `main` op
 `7dd91fad6d341d0c7b66b885bbe8713d2020e1df`. De PR-head bevat ook de
 device-exec/ACPI-handoff-integratie. Drie statusconflicten zijn opgelost met
 behoud van de K06-projectstatus. **41 → 41/100**: geen criteria of gewichten
-gewijzigd; K06 blijft open.
+gewijzigd; K06 blijft open. De actuele PR-head en -base staan in PR #201
+en in `docs/verification/k06-smp-bringup/native-report.json`; deze sectie
+wordt niet bij iedere update-merge herschreven.
 
 **Gerealiseerd:** een opt-in M2-profiel `native-smp` (ADR-070) met
 MADT-inventaris, INIT-SIPI-SIPI, een nooit gemapte SIPI-pagina, AP-stacks met
