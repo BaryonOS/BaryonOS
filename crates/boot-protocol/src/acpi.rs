@@ -768,6 +768,14 @@ mod tests {
     use super::*;
     use std::{vec, vec::Vec};
 
+    /// Owned-result form of `discover_tables` for the RSDP-level tests:
+    /// fresh scratch and result per call, so no state carries over.
+    fn owned_tables(rsdp: &[u8], reader: &mut impl PhysicalRead) -> Result<Discovery, Error> {
+        let mut scratch = Scratch::new();
+        let mut result = Discovery::empty(Availability::InvalidTables);
+        discover_tables(rsdp, reader, &mut scratch, &mut result).map(|()| result)
+    }
+
     struct Fixture {
         tables: Vec<(u64, Vec<u8>)>,
     }
@@ -961,14 +969,14 @@ mod tests {
         fixture.tables[0].1.push(0);
         set_length_and_checksum(&mut fixture.tables[0].1);
         assert_eq!(
-            discover_tables(&rsdp, &mut fixture).err(),
+            owned_tables(&rsdp, &mut fixture).err(),
             Some(Error::RootShape)
         );
 
         let (_, mut fixture) = valid_fixture(true);
         fixture.tables[1].1[4..8].copy_from_slice(&35u32.to_le_bytes());
         assert_eq!(
-            discover_tables(&rsdp, &mut fixture).err(),
+            owned_tables(&rsdp, &mut fixture).err(),
             Some(Error::TableLength)
         );
 
@@ -978,7 +986,7 @@ mod tests {
             .extend_from_slice(&0x2000u64.to_le_bytes());
         set_length_and_checksum(&mut fixture.tables[0].1);
         assert_eq!(
-            discover_tables(&rsdp, &mut fixture).err(),
+            owned_tables(&rsdp, &mut fixture).err(),
             Some(Error::DuplicateTable)
         );
 
@@ -996,14 +1004,14 @@ mod tests {
 
         let (_, mut fixture) = valid_fixture(false);
         fixture.tables[0].1 = table(b"RSDT", &0x2000u32.to_le_bytes());
-        let discovered = discover_tables(&rsdp, &mut fixture).unwrap();
+        let discovered = owned_tables(&rsdp, &mut fixture).unwrap();
         assert_eq!(discovered.availability, Availability::MissingDmar);
         assert_eq!(discovered.mcfg_count, 1);
 
         fixture.tables[0].1.extend_from_slice(&[0; 2]);
         set_length_and_checksum(&mut fixture.tables[0].1);
         assert_eq!(
-            discover_tables(&rsdp, &mut fixture).err(),
+            owned_tables(&rsdp, &mut fixture).err(),
             Some(Error::RootShape)
         );
     }
@@ -1015,7 +1023,7 @@ mod tests {
             let (_, mut fixture) = valid_fixture(true);
             patch(&mut fixture.tables[2].1);
             checksum_byte(&mut fixture.tables[2].1, 9);
-            discover_tables(&rsdp, &mut fixture)
+            owned_tables(&rsdp, &mut fixture)
         };
         // DMA_CTRL_PLATFORM_OPT_IN (bit 2) and a 2^3-page register set are valid.
         let ok = with(&|t| {
