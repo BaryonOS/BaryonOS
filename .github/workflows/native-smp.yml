@@ -1,0 +1,80 @@
+name: Native SMP bring-up (K06 step 1)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-smp-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  native-smp:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/smp-native
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/smp-host
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Rust and emulator
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+      - name: MADT parser, serial oracle and formatting
+        run: |
+          cargo +1.90.0 test --locked -p boot-protocol
+          cargo +1.90.0 clippy --locked -p boot-protocol --all-targets -- -D warnings
+          python3 -B -m unittest discover -s tools/tests -p test_smp_serial.py -v
+          python3 -B -m unittest discover -s tools/tests -p test_acpi_serial.py -v
+          cargo +1.90.0 fmt --all -- --check
+      - name: Normal, capacity and duplicate-MADT boots (1/2/4/8/9 vCPUs)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-native-smp
+        run: |
+          python3 -B tools/build.py --kernel-feature native-smp
+          python3 -B -u tools/run_smp.py --profile native-smp
+      - name: Stalled AP is timed out, reset and not counted
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-ap-stall
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-ap-stall
+          python3 -B -u tools/run_smp.py --profile test-smp-ap-stall
+      - name: AP with different control registers is rejected
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-ap-mismatch
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-ap-mismatch
+          python3 -B -u tools/run_smp.py --profile test-smp-ap-mismatch
+      - name: Preserve tracked source integrity
+        run: git diff --exit-code
+      - name: Preserve actual run and build artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: native-smp-evidence
+          path: |
+            build/k06-*/manifest.json
+            build/k06-*/smp-report.json
+            build/k06-*/acpi/
+            build/k06-*/run/smp-*/result.json
+            build/k06-*/run/smp-*/serial.txt
+            build/k06-*/run/smp-*/stderr.txt
+          if-no-files-found: error
+          retention-days: 14
