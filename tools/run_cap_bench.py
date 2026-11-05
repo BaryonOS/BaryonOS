@@ -12,7 +12,7 @@ import time
 import uuid
 from pathlib import Path
 
-from common import ROOT, BUILD, TARGET, environment, firmware, qemu_machine, sha256, source_hash
+from common import ROOT, BUILD, TARGET, environment, firmware, qemu_machine, sha256, source_hash, without_acpi_diagnostics
 from run_fpu import private_path, publish_json, publish
 from run_system import check_esp
 from build_users import inspect_user
@@ -34,7 +34,7 @@ def require(ok, reason):
 def evaluate(serial: str, raw_exit: int, timed_out: bool) -> dict:
     require(type(raw_exit) is int and raw_exit == 33 and timed_out is False, "Native benchmark did not exit successfully")
     require(len(serial.encode()) < 128 * 1024 and not any(t in serial for t in ("FAIL", "PANIC", "\0")), "Invalid serial")
-    lines = serial.splitlines()
+    lines = without_acpi_diagnostics(serial).splitlines()
     require(lines.count(BOOT[0]) == 1, "Missing/repeated boot")
     start = lines.index(BOOT[0])
     require(not any(re.search(r"BOOT:|KERNEL:|M[0-9]+:|CAPBENCH:", l) for l in lines[:start]), "Forged boot prefix")

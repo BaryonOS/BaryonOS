@@ -346,7 +346,12 @@ impl Paging {
     /// Read firmware-owned ACPI bytes through one temporary supervisor RO/NX
     /// mapping. The caller must first validate the whole span against the UEFI
     /// ACPI reclaim/NVS descriptors; no allocator ownership or alias is created.
-    pub fn read_firmware(
+    ///
+    /// # Safety
+    /// `address..address + output.len()` must lie entirely inside UEFI ACPI
+    /// reclaim/NVS memory; reading other physical ranges (e.g. MMIO) can have
+    /// side effects or raise machine checks.
+    pub(super) unsafe fn read_firmware(
         &mut self,
         address: u64,
         output: &mut [u8],

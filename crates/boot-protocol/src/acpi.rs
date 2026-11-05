@@ -525,7 +525,8 @@ fn parse_mcfg(table: &[u8], result: &mut Discovery) -> Result<(), Error> {
 fn parse_dmar(table: &[u8], result: &mut Discovery) -> Result<(), Error> {
     if table.len() < 48
         || table[36] > 63
-        || table[37] & !3 != 0
+        // INTR_REMAP, X2APIC_OPT_OUT and DMA_CTRL_PLATFORM_OPT_IN; bits 3-7 reserved.
+        || table[37] & !7 != 0
         || read_u16(table, 38)? != 0
         || table[40..48] != [0; 8]
     {
@@ -544,9 +545,12 @@ fn parse_dmar(table: &[u8], result: &mut Discovery) -> Result<(), Error> {
         }
         let structure = &table[offset..offset + length];
         if kind == 0 {
-            if length < 16 || structure[4] & !1 != 0 || structure[5] != 0 {
+            // DRHD byte 5: bits 3:0 are the register-set size exponent
+            // (2^n pages); bits 7:4 are reserved.
+            if length < 16 || structure[4] & !1 != 0 || structure[5] & 0xf0 != 0 {
                 return Err(Error::Dmar);
             }
+            let aperture = PAGE_SIZE << (structure[5] & 0x0f);
             if result.dmar_count as usize == MAX_DMAR_UNITS {
                 return Err(Error::Capacity);
             }
@@ -554,7 +558,7 @@ fn parse_dmar(table: &[u8], result: &mut Discovery) -> Result<(), Error> {
             if register_base == 0
                 || !register_base.is_multiple_of(PAGE_SIZE)
                 || register_base
-                    .checked_add(PAGE_SIZE)
+                    .checked_add(aperture)
                     .is_none_or(|end| end > (1 << 52))
             {
                 return Err(Error::Dmar);
@@ -939,6 +943,97 @@ mod tests {
         assert_eq!(
             discover(&handoff, &mut fixture).availability,
             Availability::InvalidTables
+        );
+    }
+
+    fn set_length_and_checksum(table: &mut [u8]) {
+        let length = table.len() as u32;
+        table[4..8].copy_from_slice(&length.to_le_bytes());
+        checksum_byte(table, 9);
+    }
+
+    #[test]
+    fn rejects_root_shape_short_headers_duplicate_mcfg_and_extended_checksum() {
+        let (handoff, _) = valid_fixture(true);
+        let rsdp = handoff.validate().unwrap().unwrap().to_vec();
+
+        let (_, mut fixture) = valid_fixture(true);
+        fixture.tables[0].1.push(0);
+        set_length_and_checksum(&mut fixture.tables[0].1);
+        assert_eq!(
+            discover_tables(&rsdp, &mut fixture).err(),
+            Some(Error::RootShape)
+        );
+
+        let (_, mut fixture) = valid_fixture(true);
+        fixture.tables[1].1[4..8].copy_from_slice(&35u32.to_le_bytes());
+        assert_eq!(
+            discover_tables(&rsdp, &mut fixture).err(),
+            Some(Error::TableLength)
+        );
+
+        let (_, mut fixture) = valid_fixture(false);
+        fixture.tables[0]
+            .1
+            .extend_from_slice(&0x2000u64.to_le_bytes());
+        set_length_and_checksum(&mut fixture.tables[0].1);
+        assert_eq!(
+            discover_tables(&rsdp, &mut fixture).err(),
+            Some(Error::DuplicateTable)
+        );
+
+        let mut bad = rsdp.clone();
+        bad[32] ^= 1;
+        assert_eq!(parse_rsdp(&bad), Err(Error::Rsdp));
+    }
+
+    #[test]
+    fn rsdt_root_uses_four_byte_entries_and_checks_their_shape() {
+        let mut rsdp = [0u8; 20];
+        rsdp[..8].copy_from_slice(b"RSD PTR ");
+        rsdp[16..20].copy_from_slice(&0x1000u32.to_le_bytes());
+        rsdp[8] = 0u8.wrapping_sub(checksum(&rsdp));
+
+        let (_, mut fixture) = valid_fixture(false);
+        fixture.tables[0].1 = table(b"RSDT", &0x2000u32.to_le_bytes());
+        let discovered = discover_tables(&rsdp, &mut fixture).unwrap();
+        assert_eq!(discovered.availability, Availability::MissingDmar);
+        assert_eq!(discovered.mcfg_count, 1);
+
+        fixture.tables[0].1.extend_from_slice(&[0; 2]);
+        set_length_and_checksum(&mut fixture.tables[0].1);
+        assert_eq!(
+            discover_tables(&rsdp, &mut fixture).err(),
+            Some(Error::RootShape)
+        );
+    }
+
+    #[test]
+    fn accepts_valid_dmar_flags_and_drhd_size_but_rejects_reserved_bits() {
+        let rsdp = valid_fixture(true).0.validate().unwrap().unwrap().to_vec();
+        let with = |patch: &dyn Fn(&mut Vec<u8>)| {
+            let (_, mut fixture) = valid_fixture(true);
+            patch(&mut fixture.tables[2].1);
+            checksum_byte(&mut fixture.tables[2].1, 9);
+            discover_tables(&rsdp, &mut fixture)
+        };
+        // DMA_CTRL_PLATFORM_OPT_IN (bit 2) and a 2^3-page register set are valid.
+        let ok = with(&|t| {
+            t[37] = 0b111;
+            t[53] = 3;
+        })
+        .unwrap();
+        assert_eq!(ok.availability, Availability::DiscoveryComplete);
+        assert_eq!(with(&|t| t[37] = 0b1000).err(), Some(Error::Dmar));
+        assert_eq!(with(&|t| t[53] = 0x10).err(), Some(Error::Dmar));
+        // The whole aperture, not only its first page, must stay below 2^52.
+        assert_eq!(
+            with(&|t| {
+                t[53] = 15;
+                t[56..64].copy_from_slice(&((1u64 << 52) - 0x8000).to_le_bytes());
+            })
+            .err(),
+            Some(Error::Dmar)
         );
     }
 
