@@ -9,31 +9,44 @@ from run_smp import CASES, MAX_CPUS, duplicate_madt, evaluate
 PREFIX = ("BdsDxe: starting Boot0002\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\n"
           "KS-02:PASS\nACPI:UNAVAILABLE:NO_DMAR\nDEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT\n"
           "KS-03:PASS\n")
-SUFFIX = "M2:PASS\nM1:PASS\n"
+END = ["M2:PASS", "M1:PASS"]
 
 
 def transcript(lines):
-    return PREFIX + "".join(line + "\n" for line in lines) + SUFFIX
+    return PREFIX + "".join(line + "\n" for line in lines)
+
+
+# Hand-written expectations, deliberately independent of run_smp.expected_smp.
+def started(cpus):
+    count = min(cpus, MAX_CPUS)
+    lines = [f"SMP:MADT:CPUS={cpus}:DISABLED=0:HOTPLUG=0"]
+    lines += [f"SMP:AP:{apic}:ONLINE" for apic in range(1, count)]
+    if cpus > MAX_CPUS:
+        lines.append(f"SMP:SKIPPED:CAPACITY={cpus - MAX_CPUS}")
+    return lines + [f"SMP:ONLINE:{count}/{cpus}", f"SMP:SYNC:PASS:CPUS={count}"]
 
 
 def online(cpus):
-    started = min(cpus, MAX_CPUS)
-    lines = [f"SMP:MADT:CPUS={cpus}:DISABLED=0:HOTPLUG=0"]
-    lines += [f"SMP:AP:{apic}:ONLINE" for apic in range(1, started)]
-    if cpus > MAX_CPUS:
-        lines.append(f"SMP:SKIPPED:CAPACITY={cpus - MAX_CPUS}")
-    return lines + [f"SMP:ONLINE:{started}/{cpus}", f"SMP:SYNC:PASS:CPUS={started}"]
+    count = min(cpus, MAX_CPUS)
+    return started(cpus) + [f"SMP:IPI:PASS:ROUNDS=3:CPUS={count}",
+                            f"SMP:PARKED:APS={count - 1}"] + END
 
 
 def failed(status):
     return ["SMP:MADT:CPUS=4:DISABLED=0:HOTPLUG=0", f"SMP:AP:1:{status}",
-            "SMP:BRINGUP:STOPPED", "SMP:ONLINE:1/4", "SMP:SYNC:PASS:CPUS=1"]
+            "SMP:BRINGUP:STOPPED", "SMP:ONLINE:1/4", "SMP:SYNC:PASS:CPUS=1",
+            "SMP:IPI:PASS:ROUNDS=3:CPUS=1", "SMP:PARKED:APS=0"] + END
 
+
+DEAF = started(4) + ["SMP:IPI:TIMEOUT:APIC=1", "SMP:QUARANTINED:APS=3", "SMP:ONLINE:1/4"] + END
+NMI = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:FAULT:AP_NMI_IST:PASS"]
+DOUBLE = started(4) + ["SMP:FAULT:AP_DF_IST:PASS"]
 
 VALID = {
     "one": online(1), "two-single": online(2), "four": online(4), "eight": online(8),
-    "nine-capacity": online(9), "duplicate-madt": ["SMP:UNAVAILABLE:INVALID_MADT"],
+    "nine-capacity": online(9), "duplicate-madt": ["SMP:UNAVAILABLE:INVALID_MADT"] + END,
     "ap-stall": failed("TIMEOUT"), "ap-mismatch": failed("MISMATCH"),
+    "ap-ipi-deaf": DEAF, "ap-nmi-ist": NMI, "ap-double-fault-ist": DOUBLE,
 }
 
 
@@ -45,6 +58,7 @@ class SmpSerialOracle(unittest.TestCase):
                 result = evaluate(case, transcript(lines), 33, False)
                 self.assertEqual(result["outcome"], CASES[case][3])
         self.assertEqual(evaluate("nine-capacity", transcript(online(9)), 33, False)["online"], 8)
+        self.assertEqual(evaluate("ap-ipi-deaf", transcript(DEAF), 33, False)["online"], 1)
         self.assertEqual(evaluate("ap-stall", transcript(failed("TIMEOUT")), 33, False)["ap_ids"], [1])
 
     def test_rejects_missing_duplicate_or_overclaimed_output(self):
@@ -53,21 +67,36 @@ class SmpSerialOracle(unittest.TestCase):
             "four": [
                 four[:1] + four[2:],                      # one AP missing
                 four[:2] + four[1:],                      # AP reported twice
-                four[:-2] + ["SMP:ONLINE:5/4", "SMP:SYNC:PASS:CPUS=4"],
-                four[:-1] + ["SMP:SYNC:PASS:CPUS=5"],
-                four + ["SMP:SYNC:PASS:CPUS=4"],
+                four[:5] + ["SMP:ONLINE:5/4"] + four[6:],
+                four[:6] + ["SMP:SYNC:PASS:CPUS=5"] + four[7:],
+                four[:-2] + ["SMP:SYNC:PASS:CPUS=4"] + END,
                 ["SMP:MADT:CPUS=3:DISABLED=0:HOTPLUG=0"] + four[1:],
                 four[:1] + ["SMP:AP:1:TIMEOUT"] + four[2:],
-                four[:-1],                                # sync result missing
-                ["SMP:UNAVAILABLE:INVALID_MADT"],
+                four[:6] + four[7:],                      # sync result missing
+                four[:7] + four[8:],                      # IPI result missing
+                four[:7] + ["SMP:IPI:PASS:ROUNDS=2:CPUS=4"] + four[8:],
+                four[:8] + four[9:],                      # park result missing
+                four[:8] + ["SMP:PARKED:APS=2"] + END,
+                ["SMP:UNAVAILABLE:INVALID_MADT"] + END,
                 [four[0], "SMP:AP:1:ONLINE", "SMP:AP:2:ONLINE", "SMP:AP:7:ONLINE"] + four[4:],
                 [four[0], four[2], four[1], four[3]] + four[4:],  # unique but out of order
+                DEAF,
             ],
-            "nine-capacity": [online(9)[:-3] + online(9)[-2:], online(8)],
+            "nine-capacity": [online(8), online(9)[:4] + online(9)[5:]],
             "ap-stall": [failed("TIMEOUT")[:2] + failed("TIMEOUT")[3:], failed("MISMATCH"),
                          online(4)],
-            "ap-mismatch": [failed("TIMEOUT"), [failed("MISMATCH")[0], "SMP:AP:2:MISMATCH"] + failed("MISMATCH")[2:]],
-            "duplicate-madt": [online(4), []],
+            "ap-mismatch": [failed("TIMEOUT"),
+                            [failed("MISMATCH")[0], "SMP:AP:2:MISMATCH"] + failed("MISMATCH")[2:]],
+            "ap-ipi-deaf": [online(4), DEAF[:-3] + END, DEAF[:-4] + DEAF[-3:],
+                            started(4) + ["SMP:IPI:TIMEOUT:APIC=1", "SMP:QUARANTINED:APS=2",
+                                          "SMP:ONLINE:1/4"] + END],
+            # A terminal IST case must not report a normal finish instead of the marker,
+            # and must not accept the other IST marker.
+            "ap-nmi-ist": [online(4), NMI[:-1] + ["SMP:FAULT:AP_DF_IST:PASS"], NMI + END,
+                           NMI[:-2] + NMI[-1:]],
+            "ap-double-fault-ist": [online(4), DOUBLE[:-1] + ["SMP:FAULT:AP_NMI_IST:PASS"],
+                                    DOUBLE[:-1]],
+            "duplicate-madt": [online(4), END],
         }
         for case, transcripts in bad.items():
             for lines in transcripts:
@@ -84,6 +113,10 @@ class SmpSerialOracle(unittest.TestCase):
         ):
             with self.subTest(text=text[-80:], raw=raw), self.assertRaises(ValueError):
                 evaluate("four", text, raw, timeout)
+        nmi = transcript(NMI)
+        for text, raw in ((nmi, 35), (nmi + "M1:FAIL:SMP_AP_NMI_NOT_ON_IST\n", 33)):
+            with self.subTest(raw=raw), self.assertRaises(ValueError):
+                evaluate("ap-nmi-ist", text, raw, False)
 
     def test_duplicate_madt_fixture_is_a_valid_checksummed_table(self):
         table = duplicate_madt()
