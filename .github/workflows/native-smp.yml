@@ -76,6 +76,13 @@ jobs:
             python3 -B tools/build.py --kernel-feature "$profile"
             python3 -B -u tools/run_smp.py --profile "$profile"
           done
+      - name: TLB shootdown - deaf AP quarantines the frame; control shows stale TLBs
+        run: |
+          for profile in test-smp-ap-shootdown-deaf test-smp-shootdown-skipped; do
+            export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/k06-$profile"
+            python3 -B tools/build.py --kernel-feature "$profile"
+            python3 -B -u tools/run_smp.py --profile "$profile"
+          done
       - name: Preserve tracked source integrity
         run: git diff --exit-code
       - name: Preserve actual run and build artifacts

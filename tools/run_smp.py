@@ -29,7 +29,10 @@ CASES = {
     "ap-ipi-deaf": ("test-smp-ap-ipi-deaf", 4, "multi", "quarantine"),
     "ap-nmi-ist": ("test-smp-ap-nmi", 4, "multi", "nmi-ist"),
     "ap-double-fault-ist": ("test-smp-ap-double-fault", 4, "multi", "df-ist"),
+    "ap-shootdown-deaf": ("test-smp-ap-shootdown-deaf", 4, "multi", "shootdown-quarantine"),
+    "shootdown-skipped-control": ("test-smp-shootdown-skipped", 4, "multi", "stale-control"),
 }
+QUARANTINE_OUTCOMES = ("invalid-madt", "timeout", "mismatch", "quarantine", "shootdown-quarantine")
 TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_IST:PASS"}
 
 
@@ -56,20 +59,34 @@ def expected_smp(case: str) -> list[str]:
     madt = [f"SMP:MADT:CPUS={cpus}:DISABLED=0:HOTPLUG=0"]
 
     def settled(online: int) -> list[str]:
+        """Sync, IPI rounds, completed shootdown + visibility, park."""
         return [f"SMP:SYNC:PASS:CPUS={online}",
-                f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={online}"]
+                f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={online}",
+                f"SMP:SHOOTDOWN:PASS:CPUS={online}",
+                f"SMP:SHOOTDOWN:VISIBLE:CPUS={online}",
+                f"SMP:PARKED:APS={online - 1}"]
 
     if outcome in ("timeout", "mismatch"):
         status = "TIMEOUT" if outcome == "timeout" else "MISMATCH"
         return madt + [f"SMP:AP:1:{status}", "SMP:BRINGUP:STOPPED", f"SMP:ONLINE:1/{cpus}"] \
-            + settled(1) + ["SMP:PARKED:APS=0"]
+            + settled(1)
     started = min(cpus, MAX_CPUS)
     lines = madt + [f"SMP:AP:{apic}:ONLINE" for apic in range(1, started)]
     if cpus > MAX_CPUS:
         lines.append(f"SMP:SKIPPED:CAPACITY={cpus - MAX_CPUS}")
-    lines += [f"SMP:ONLINE:{started}/{cpus}", f"SMP:SYNC:PASS:CPUS={started}"]
+    lines += [f"SMP:ONLINE:{started}/{cpus}"]
     if outcome == "online":
-        return lines + [f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={started}",
+        return lines + settled(started)
+    lines += [f"SMP:SYNC:PASS:CPUS={started}"]
+    ipi_pass = f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={started}"
+    if outcome == "shootdown-quarantine":
+        return lines + [ipi_pass, "SMP:SHOOTDOWN:TIMEOUT:APIC=1",
+                        "SMP:SHOOTDOWN:FRAME_QUARANTINED",
+                        f"SMP:QUARANTINED:APS={started - 1}", f"SMP:ONLINE:1/{cpus}"]
+    if outcome == "stale-control":
+        # Without the shootdown every AP must still reach the reclaimed frame.
+        return lines + [ipi_pass, "SMP:SHOOTDOWN:SKIPPED",
+                        f"SMP:SHOOTDOWN:STALE:APS={started - 1}",
                         f"SMP:PARKED:APS={started - 1}"]
     if outcome == "quarantine":
         return lines + ["SMP:IPI:TIMEOUT:APIC=1", f"SMP:QUARANTINED:APS={started - 1}",
@@ -109,7 +126,7 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
             raise ValueError("Unexpected SMP sequence or missing IST marker")
     elif tail != expected + list(END):
         raise ValueError("Unexpected SMP sequence or duplicate output")
-    online = 1 if outcome in ("invalid-madt", "timeout", "mismatch", "quarantine") \
+    online = 1 if outcome in QUARANTINE_OUTCOMES \
         else min(cpus, MAX_CPUS)
     return {"outcome": outcome, "profile": profile, "online": online,
             "ap_ids": sorted({int(m[1]) for m in (re.fullmatch(r"SMP:AP:([0-9]+):.*", line)
