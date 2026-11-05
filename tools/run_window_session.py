@@ -118,6 +118,17 @@ def calculator_matches(raw: bytes, expected: bytes) -> bool:
     return ppm(expected)[:2] == CALCULATOR_BODY[2:] and crop(raw, CALCULATOR_BODY) == ppm(expected)[2]
 
 
+def calculator_recall_matches(state: dict, baseline: dict, expression: bytes,
+                              current: bool, evaluations: int, answer: int) -> bool:
+    expected = {"EXPRESSION_BYTES": len(expression), "EXPRESSION_SUM": volume_disk.fnv(expression),
+                "CARET": len(expression), "CURRENT": int(current), "EVALUATIONS": evaluations,
+                "FAILURES": 0, "ERRORS": 0, "HAS_ANSWER": 1, "READY": 1, "ACTIVE": 1,
+                "ANSWER_LOW": answer, "ANSWER_HIGH": 0}
+    expected.update({name: baseline[name] for name in
+                     ("PID", "SERVICE_GENERATION", "SURFACE_EPOCH", "INPUT_EPOCH", "PROBES", "SCALE")})
+    return all(state.get(name) == value for name, value in expected.items())
+
+
 def oracle_matches(raw: bytes, expected: bytes, name: str) -> bool:
     if name in CALCULATOR_CLIPBOARD_PHASES:
         return calculator_matches(raw, expected)
@@ -198,7 +209,8 @@ def validate_build(frozen: str, feature: str = FEATURE) -> dict:
 
 def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
         recovery_handshake: bool = False, clipboard: bool = False, session_route: bool = False,
-        library: bool = False, library_parent: Path | None = None) -> dict:
+        library: bool = False, library_parent: Path | None = None,
+        calculator_recall: bool = False) -> dict:
     if not 30 <= timeout <= 1800:
         raise ValueError("Timeout must be bounded 30..1800 seconds")
     if smoke and recovery_handshake or clipboard and (smoke or recovery_handshake):
@@ -207,12 +219,14 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
         raise ValueError("The public session route is separate from the fault/clipboard gate")
     if library and (smoke or recovery_handshake or clipboard or session_route) or library_parent is not None and not library:
         raise ValueError("Library requires its separate complete walkthrough")
+    if calculator_recall and (smoke or recovery_handshake or clipboard or session_route or library):
+        raise ValueError("Calculator recall is a separate interaction gate")
     feature = "native-session-route" if session_route else FEATURE
     diagnostic = smoke or recovery_handshake or session_route or library
     private_path(BUILD)
     frozen = source_hash()
     manifest = validate_build(frozen, feature) if session_route else validate_build(frozen)
-    fixture = generate_fixture(library=True) if library else (None if diagnostic else generate_fixture(clipboard=clipboard))
+    fixture = generate_fixture(library=True) if library else (None if diagnostic or calculator_recall else generate_fixture(clipboard=clipboard))
     parent = window_library.cold_parent(library_parent, source=frozen, manifest=manifest) if library_parent is not None else None
     env = environment()
     qemu = Path(shutil.which("qemu-system-x86_64", path=env["PATH"]) or "missing")
@@ -257,6 +271,9 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                   library_requested=library, library_gate=False, library_cold=parent is not None,
                   library_parent=None if parent is None else {k: v for k, v in parent.items() if k != "image"},
                   run_directory=str(directory), qemu_sha256=qemu_hash, immutable=immutable, phases={})
+    if calculator_recall:
+        report.update(calculator_recall_requested=True, calculator_recall_gate=False,
+                      interaction_scope="Native calculator recall, unfinished draft restoration, app-body pixel roundtrips and clean exit; not recovery/storage/full window-session acceptance.")
     publish_json(directory / "result.json", report)
     report["boot_milestone_observations"] = {}
     def observed_serial():
@@ -448,6 +465,57 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 control.command("quit")
             elif smoke:
                 control.command("quit")
+            elif calculator_recall:
+                move(1260, 50)
+                key("f6")
+                wait("recall-focused", lambda raw, s: s["CALCULATOR"] and
+                     s["MATERIAL"] and s["MATERIAL"][-1]["GEN"] > initial["MATERIAL"][-1]["GEN"] and
+                     comp(raw).get("FOCUSED") == 1 and
+                     comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"] and
+                     comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
+                baseline = snapshots(serial(directory / "serial.txt"), "CALCULATOR")[-1]
+
+                def recall_wait(name, expression, current, evaluations, answer, same_as=None):
+                    state = wait(name, lambda raw, s: s["CALCULATOR"] and
+                                 calculator_recall_matches(s["CALCULATOR"][-1], baseline,
+                                                           expression, current, evaluations, answer) and
+                                 comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
+                    if name != "recall-first" and changed_outside(captured["recall-first"], captured[name], CALCULATOR_BODY):
+                        raise ValueError("Recall paint escaped the calculator body")
+                    if same_as is not None and crop(captured[name], CALCULATOR_BODY) != crop(captured[same_as], CALCULATOR_BODY):
+                        raise ValueError("Complete recall/draft app pixels differ on roundtrip")
+                    return state
+
+                for chord in (("2",), ("shift", "equal"), ("3",), ("ret",)):
+                    key(*chord)
+                recall_wait("recall-first", b"2+3", True, 1, 5_000_000_000)
+                for chord in (("esc",), ("4",), ("shift", "8"), ("5",), ("ret",)):
+                    key(*chord)
+                recall_wait("recall-second", b"4*5", True, 2, 20_000_000_000)
+                for chord in (("esc",), ("9",), ("slash",), ("2",)):
+                    key(*chord)
+                recall_wait("recall-draft", b"9/2", False, 2, 20_000_000_000)
+                for name, chord, expression, same_as in (
+                    ("recall-latest", ("up",), b"4*5", None),
+                    ("recall-oldest", ("up",), b"2+3", None),
+                    ("recall-next", ("down",), b"4*5", "recall-latest"),
+                    ("recall-own-draft", ("down",), b"9/2", "recall-draft"),
+                ):
+                    key(*chord)
+                    recall_wait(name, expression, False, 2, 20_000_000_000, same_as)
+                    if crop(captured[name], CALCULATOR_BODY) == crop(captured["recall-second"], CALCULATOR_BODY):
+                        raise ValueError("Recall did not repaint formula/stale result")
+                key("up")
+                recall_wait("recall-edit-source", b"4*5", False, 2, 20_000_000_000, "recall-latest")
+                key("backspace"); key("6")
+                recall_wait("recall-edited", b"4*6", False, 2, 20_000_000_000)
+                key("up")
+                recall_wait("recall-after-edit", b"4*5", False, 2, 20_000_000_000, "recall-latest")
+                key("down")
+                recall_wait("recall-edited-draft", b"4*6", False, 2, 20_000_000_000, "recall-edited")
+                key("ret")
+                recall_wait("recall-explicit-evaluation", b"4*6", True, 3, 24_000_000_000)
+                key("f10")
             else:
                 move(1260, 50)
                 initial = wait("initial", lambda raw, s: all(s.values()), "initial")
@@ -561,9 +629,13 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
             else:
                 if process.returncode != 33 or not raw.endswith(b"WINDOW:CLEANUP:PASS\nWINDOW:CASE:PASS\nM1:PASS\n"):
                     raise ValueError("Missing actual cleanup/normal exit")
-                if numbers(raw, "WINDOW:FAULT_SLOT") != [4] or numbers(raw, "WINDOW:FAULT_VECTOR") != [6] or numbers(raw, "WINDOW:RESTARTS") != [1]:
-                    raise ValueError("Wrong actual fault/restart")
-                report["disk_oracle"] = disk_oracle(private_path(directory / "volume.img", regular=True).read_bytes())
+                if calculator_recall:
+                    if numbers(raw, "WINDOW:RESTARTS") not in ([], [0]) or numbers(raw, "WINDOW:FAULT_SLOT"):
+                        raise ValueError("Unexpected fault during calculator recall")
+                else:
+                    if numbers(raw, "WINDOW:FAULT_SLOT") != [4] or numbers(raw, "WINDOW:FAULT_VECTOR") != [6] or numbers(raw, "WINDOW:RESTARTS") != [1]:
+                        raise ValueError("Wrong actual fault/restart")
+                    report["disk_oracle"] = disk_oracle(private_path(directory / "volume.img", regular=True).read_bytes())
             current_manifest = validate_build(frozen, feature) if session_route else validate_build(frozen)
             if source_hash() != frozen or current_manifest != manifest or sha256(qemu) != qemu_hash:
                 raise ValueError("Source/build/QEMU changed during run")
@@ -579,7 +651,9 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                     if sha256(private_path(fixture["directory"] / name, regular=True)) != digest:
                         raise ValueError("Host oracle changed")
                 report["oracle"] = fixture["metadata"]
-            report.update(passed=True, native_gate=not diagnostic, clipboard_gate=clipboard and not diagnostic, duration_s=time.monotonic() - start, serial_sha256=sha256(directory / "serial.txt"), qmp_trace=control.trace)
+            report.update(passed=True, native_gate=not diagnostic and not calculator_recall, clipboard_gate=clipboard and not diagnostic, duration_s=time.monotonic() - start, serial_sha256=sha256(directory / "serial.txt"), qmp_trace=control.trace)
+            if calculator_recall:
+                report["calculator_recall_gate"] = True
     except Exception as error:
         report["error"] = f"{type(error).__name__}: {error}"
     finally:
@@ -625,7 +699,9 @@ if __name__ == "__main__":
     parser.add_argument("--session-route", action="store_true", help="Check the separate public VM compositor session route; no authentication/security-gate claim")
     parser.add_argument("--library", action="store_true", help="Native naming, collections and history; separate from the full compositor/clipboard gate")
     parser.add_argument("--library-cold-parent", type=Path, help="Copy only a validated successful library run's disposable image for cold reopening")
+    parser.add_argument("--calculator-recall", action="store_true", help="Only recall/draft restoration, native pixel roundtrips and normal cleanup")
     args = parser.parse_args()
     raise SystemExit(0 if run(timeout=args.timeout, bios_rom=args.bios_rom, vga_rom=args.vga_rom,
                             smoke=args.smoke_only, recovery_handshake=args.recovery_handshake_only, clipboard=args.clipboard, session_route=args.session_route,
-                            library=args.library, library_parent=args.library_cold_parent)["passed"] else 1)
+                            library=args.library, library_parent=args.library_cold_parent,
+                            calculator_recall=args.calculator_recall)["passed"] else 1)

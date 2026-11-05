@@ -280,6 +280,10 @@ pub fn render_tile(
         model.notice().label()
     } else if model.answer().is_some_and(|answer| answer.rounded) && model.current() {
         "Afgerond op 9 decimalen."
+    } else if model.recalling() {
+        "Omlaag: volgende of eigen invoer"
+    } else if model.recent_count() != 0 {
+        "Omhoog: eerdere berekening"
     } else {
         ""
     };
