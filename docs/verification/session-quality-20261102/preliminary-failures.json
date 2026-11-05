@@ -1,0 +1,265 @@
+{
+  "note": "Deliberately stopped diagnostic/incomplete runs remain failed; missing compiled observations, wrong QEMU Menu qcode, and publication ordering were corrected before the final 703 proofs. Partial desktop capture prompted the complete-SUR readiness gate.",
+  "runs": [
+    {
+      "source_commit": "08f87c5ed9d78896b98998f0b131d4e55ccc312b",
+      "source_sha256": "1b8896ff56d1fc7d1f3a3c1ac462b3dc7641586e6b155e4c90ba6924f5ced8b5",
+      "run_directory": "/workspace/nieuw-os/build/session-route/run/window-9a91a2e5c69e4bb7846d245ed1cafb00",
+      "passed": false,
+      "raw_qemu_exit": 0,
+      "duration_s": 469.32705149899994,
+      "error": "TimeoutError: Native input acknowledgement missing: shell input ACK",
+      "phases": {
+        "lock": {
+          "seconds": 10.581013331999884,
+          "state": {},
+          "frame_sha256": "0de5d7a7d9c4519187d625ff50d51fe785b1e9498d0400094d8899a98043288f",
+          "oracle": null
+        },
+        "users": {
+          "seconds": 25.81768819099989,
+          "state": {},
+          "frame_sha256": "098a35f3824d804b4c15d56270d42debae7e0e22c7e2192225cc9e38c73c3709",
+          "oracle": null
+        },
+        "personal-auth": {
+          "seconds": 54.07026225199979,
+          "state": {},
+          "frame_sha256": "edc9fa2afe33b4a972fb4dcb823334d06bdf1b019c7dac112f9ab5e8905de011",
+          "oracle": null
+        },
+        "hardware-unavailable": {
+          "seconds": 76.33660937299987,
+          "state": {},
+          "frame_sha256": "72abbbbe0ef47562aa491e6b60e7f5db8115e701afb58adba964e0bfc30e765f",
+          "oracle": null
+        },
+        "lock-again": {
+          "seconds": 96.49621838099984,
+          "state": {},
+          "frame_sha256": "b6e2d90dbd0820bd0d30d1ec53edb46489a4bee0d797cea80fc44c8a071e9106",
+          "oracle": null
+        },
+        "users-again": {
+          "seconds": 115.67694941599984,
+          "state": {
+            "CALCULATOR": {
+              "PID": 8,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 1,
+              "FRAMES": 1,
+              "EVALUATIONS": 0,
+              "FAILURES": 0,
+              "EXPRESSION_BYTES": 0,
+              "EXPRESSION_SUM": 14695981039346656037,
+              "CURRENT": 0,
+              "CARET": 0,
+              "ACTIVE": 1,
+              "ANSWER_LOW": 0,
+              "ANSWER_HIGH": 0,
+              "HAS_ANSWER": 0,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 0
+            }
+          },
+          "frame_sha256": "df8ab0a0d010f91320f5e73b68a8e8fa4897094040c8e69d508d65a1cd2dda7a",
+          "oracle": null
+        },
+        "guest-auth": {
+          "seconds": 133.074803728,
+          "state": {
+            "CALCULATOR": {
+              "PID": 8,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 1,
+              "FRAMES": 1,
+              "EVALUATIONS": 0,
+              "FAILURES": 0,
+              "EXPRESSION_BYTES": 0,
+              "EXPRESSION_SUM": 14695981039346656037,
+              "CURRENT": 0,
+              "CARET": 0,
+              "ACTIVE": 1,
+              "ANSWER_LOW": 0,
+              "ANSWER_HIGH": 0,
+              "HAS_ANSWER": 0,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 0
+            }
+          },
+          "frame_sha256": "7d97717c75ce3914d186f4c6972e639f1bcabe8b3a6584b6da9012f11e1aa18b",
+          "oracle": null
+        },
+        "desktop": {
+          "seconds": 157.06904319199998,
+          "state": {
+            "CALCULATOR": {
+              "PID": 8,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 1,
+              "FRAMES": 1,
+              "EVALUATIONS": 0,
+              "FAILURES": 0,
+              "EXPRESSION_BYTES": 0,
+              "EXPRESSION_SUM": 14695981039346656037,
+              "CURRENT": 0,
+              "CARET": 0,
+              "ACTIVE": 1,
+              "ANSWER_LOW": 0,
+              "ANSWER_HIGH": 0,
+              "HAS_ANSWER": 0,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 0
+            }
+          },
+          "frame_sha256": "765f8b10d087099ad6777cdf30887631b34de7d2f514798681ada3e9221734e7",
+          "oracle": null
+        },
+        "search": {
+          "seconds": 174.35191522899981,
+          "state": {
+            "CALCULATOR": {
+              "PID": 8,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 1,
+              "FRAMES": 1,
+              "EVALUATIONS": 0,
+              "FAILURES": 0,
+              "EXPRESSION_BYTES": 0,
+              "EXPRESSION_SUM": 14695981039346656037,
+              "CURRENT": 0,
+              "CARET": 0,
+              "ACTIVE": 1,
+              "ANSWER_LOW": 0,
+              "ANSWER_HIGH": 0,
+              "HAS_ANSWER": 0,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 0
+            }
+          },
+          "frame_sha256": "8e28260ebcf9c6cc4e92b8d93751bfb87ef7d4c1c0315179076cde861a76516e",
+          "oracle": null
+        },
+        "calculator": {
+          "seconds": 192.7888396469998,
+          "state": {
+            "CALCULATOR": {
+              "PID": 8,
+              "SERVICE_GENERATION": 1,
+              "SURFACE_EPOCH": 6004795838121902081,
+              "INPUT_EPOCH": 5282247373882392577,
+              "READY": 1,
+              "GEN": 1,
+              "FRAMES": 1,
+              "EVALUATIONS": 0,
+              "FAILURES": 0,
+              "EXPRESSION_BYTES": 0,
+              "EXPRESSION_SUM": 14695981039346656037,
+              "CURRENT": 0,
+              "CARET": 0,
+              "ACTIVE": 1,
+              "ANSWER_LOW": 0,
+              "ANSWER_HIGH": 0,
+              "HAS_ANSWER": 0,
+              "SCALE": 1,
+              "ERRORS": 0,
+              "PROBES": 0
+            }
+          },
+          "frame_sha256": "ee67626e0aadab760e7ae945d0d2124aa88ddee90eb652b50c679c4d04bb8c2c",
+          "oracle": null
+        }
+      }
+    },
+    {
+      "source_commit": "21ed3ee829071b6110f843e2451fdaa30e93d77d",
+      "source_sha256": "d1350e7439f83da3f30be60f2403d38393e1f1ea22e4c78dc31f8782a90d6581",
+      "run_directory": "/workspace/nieuw-os/build/session-route/run/window-600f97188a554fe0ac4dbc78184c1ced",
+      "passed": false,
+      "raw_qemu_exit": 0,
+      "duration_s": 273.48865972499993,
+      "error": "TimeoutError: Native phase did not complete: boot",
+      "phases": {}
+    },
+    {
+      "source_commit": "813a8d0c7a427005ee966e8fc210bbaac9ddf7ed",
+      "source_sha256": "afaf6c6d3ff0df96bec65e68964661d3206c1169c9e44029994ebaf3dab626cb",
+      "run_directory": "/workspace/nieuw-os/build/session-route/run/window-dfb8a47ec3b941eb8e08a9d5be67905a",
+      "passed": false,
+      "raw_qemu_exit": 0,
+      "duration_s": 116.33377701299992,
+      "error": "TimeoutError: Native phase did not complete: desktop",
+      "phases": {
+        "lock": {
+          "seconds": 11.386427221000076,
+          "state": {},
+          "frame_sha256": "30cecd15c20bbd06539061ea1e094a7dbe9fac19a89870095ad6c6a4cffea1a8",
+          "oracle": null
+        },
+        "users": {
+          "seconds": 15.583056543000112,
+          "state": {},
+          "frame_sha256": "4057e38092e3e816b78d3d282c159d4263064ad34fb2501ac572090645fc490f",
+          "oracle": null
+        },
+        "personal-auth": {
+          "seconds": 20.043274772999894,
+          "state": {},
+          "frame_sha256": "5ed064e1fc69d4878b88584ae880641908b9ba5783695db9a33d229b49ba4cab",
+          "oracle": null
+        },
+        "hardware-unavailable": {
+          "seconds": 24.56876717199998,
+          "state": {},
+          "frame_sha256": "6aeb14f3fdb8f49243cb5765e51620fafc0437df30069da2aad56c4fe48cca35",
+          "oracle": null
+        },
+        "lock-again": {
+          "seconds": 27.843878824000058,
+          "state": {},
+          "frame_sha256": "30cecd15c20bbd06539061ea1e094a7dbe9fac19a89870095ad6c6a4cffea1a8",
+          "oracle": null
+        },
+        "users-again": {
+          "seconds": 32.51895988699994,
+          "state": {},
+          "frame_sha256": "4057e38092e3e816b78d3d282c159d4263064ad34fb2501ac572090645fc490f",
+          "oracle": null
+        },
+        "guest-auth": {
+          "seconds": 35.8239423550001,
+          "state": {},
+          "frame_sha256": "a534bc440f9a7d3e28973f9d4946212c3f518ddb40dbe0d5e89e696440847cb1",
+          "oracle": null
+        }
+      }
+    },
+    {
+      "source_commit": "813a8d0c7a427005ee966e8fc210bbaac9ddf7ed",
+      "source_sha256": "afaf6c6d3ff0df96bec65e68964661d3206c1169c9e44029994ebaf3dab626cb",
+      "run_directory": "/workspace/nieuw-os-session-final-probe/build/final-probe/run/window-58c231cc87fa411ea06d745393b09939",
+      "passed": false,
+      "raw_qemu_exit": 0,
+      "duration_s": 62.29332435099991,
+      "error": "TimeoutError: Native phase did not complete: boot",
+      "phases": {}
+    }
+  ],
+  "corrected_host_expectation": "The user panel became344 logical pixels high; exact tile assertion1080\u2192792. Subsequent58release tests pass."
+}

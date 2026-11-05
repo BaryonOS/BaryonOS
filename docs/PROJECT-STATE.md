@@ -56,12 +56,15 @@ SMP-scheduler en de herziening van ADR-024.
 
 ## Historisch checkpoint — K06 stap 1 en conflictintegratie — 5 november 2026
 
-**Bron:** PR-head `cd78ea74f14d8b8921aad51cc46a41c41274ab45` op
-`k06/smp-ap-bringup`, geïntegreerd met base `main` op
+**Historische bron van deze conflictintegratie:** PR-head
+`cd78ea74f14d8b8921aad51cc46a41c41274ab45` op `k06/smp-ap-bringup`,
+geïntegreerd met base `main` op
 `7dd91fad6d341d0c7b66b885bbe8713d2020e1df`. De PR-head bevat ook de
 device-exec/ACPI-handoff-integratie. Drie statusconflicten zijn opgelost met
 behoud van de K06-projectstatus. **41 → 41/100**: geen criteria of gewichten
-gewijzigd; K06 blijft open.
+gewijzigd; K06 blijft open. De actuele PR-head en -base staan in PR #201
+en in `docs/verification/k06-smp-bringup/native-report.json`; deze sectie
+wordt niet bij iedere update-merge herschreven.
 
 **Gerealiseerd:** een opt-in M2-profiel `native-smp` (ADR-070) met
 MADT-inventaris, INIT-SIPI-SIPI, een nooit gemapte SIPI-pagina, AP-stacks met
@@ -90,7 +93,53 @@ head.
 Voor K06 nog nodig: per-CPU-staat, TSS/IST, IPI/TLB-shootdown, SMP-scheduler,
 lockvolgorde en herziening van ADR-024. Er is geen fysiek hardwarebewijs.
 **Eerstvolgend commando:**
-`python3 -B -u tools/run_smp.py --profile native-smp`.
+`NOS_BUILD_DIR="$PWD/build/k06-native-smp" python3 -B tools/build.py --kernel-feature native-smp`
+en daarna, met dezelfde `NOS_BUILD_DIR`,
+`NOS_BUILD_DIR="$PWD/build/k06-native-smp" python3 -B -u tools/run_smp.py --profile native-smp`
+(`run_smp.py` bouwt niet zelf).
+## Historisch checkpoint — sessie-/bibliotheekintegratie (#206) — 5 november 2026
+
+**Basis:** main `bce6cabc71184d90fc228fe2ae8215339ff7bf28`, branch `integrate/20261105-session-library`
+(PR #206). **41 → 41/100.**
+
+**Opgenomen uit #135/#147:** `ui/native`-bibliotheek, `window-session`-shell,
+`document-session`-volumeuitbreiding, `ui/graphics`-reflow/damage, kernelfeature
+`native-session-route` (alleen diagnostische tellers) en native bibliotheekgates in
+`native-window-session.yml`. **Niet opgenomen:** het sealed-generatie-0-volumeontwerp
+uit #133, dat is ingehaald door #148/ADR-064 en #205, samen met de dubbele ADR-064
+en het bijbehorende bewijs. **Integratorfixes:** Escape annuleert een hangende
+ontgrendeling, `Font::advance` schaalt mee met magnify, en de `DropRead`-test raakt nu
+werkelijk een late read.
+
+**U03:** het branchbewijs `docs/verification/materiaal-library-20261102/` claimt
+41→44, maar is hashgebonden aan `64044318`. Op main blijft U03 open, totdat de native
+bibliotheekgates op de main-merge groen zijn en de eigenaar dit bevestigt.
+**Open vervolg (CodeRabbit op #206):** hoverdamage alleen bij een hoverwissel,
+`hit()`-focus op uitgeschakelde editorknoppen, een positieve checkpointtest in
+`test_window_library.py`, de provenance-controles in `verify-ci-artifact.py` en
+documentatiebronnen.
+
+## Historisch checkpoint — integratie PR-wachtrij — 5 november 2026
+
+**Basis:** main `c7a61d1126caa346a128fba3004fe4add4ccff61` (na #198), branch `integrate/20261105-platform-batch`
+(PR #199). **41 → 41/100**; geen criterium volledig geaccepteerd.
+
+**Gemerged:** #198 = #179 #183 #187 #190 (USB-framing, HID boot reports en
+-interfacebinding, PS/2-health; hostmodellen). **In #199:** #169 #173 #176 #182
+#188 #189 #193 #194 (acht zelfstandige platformcrates, nu in de
+`component-leaves`-matrix; voorheen draaide CI er geen enkele test van),
+#165 (EXIF in tile-viewer), #150 (agentprofielen) en #195 (instructieopschoning).
+Lokaal (Rust 1.90.0): test, clippy `-D warnings`, fmt en freestanding build per
+crate exit 0; onafhankelijke AI-reviews MERGE (geen menselijke audit).
+
+**Open:** #155 vraagt Simons besluit (score 41→39, B01-criterium); #181, #191
+en #177 FIX (reviewcomments op de PR's); calculator #184/#186/#192 onderling
+CONFLICT (26+ hunks, ook in `tools/run_window_session.py`); #133, #135, #146,
+#147, #154, #157 nog niet beoordeeld; concepten #167 #185 #197 niet overgedragen;
+#196 overbodig na het besluit om alleen de Graphify-MCP te gebruiken.
+**Bewijsgrens:** geen native app-launch, fysieke USB/HID of menselijke test.
+Eerstvolgend commando: `python3 tools/progress.py --check`.
+
 ## Historisch checkpoint — instructieonderhoud — 4 november 2026
 
 **Basis:** `8bb153092e967aae314ecde35bcf963565a87ac7`, branch

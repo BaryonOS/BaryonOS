@@ -51,15 +51,30 @@ struct Runtime {
     last_mask: u64,
     last_recovery: u64,
     restarts: u64,
-    #[cfg(feature = "native-window-session-probe")]
+    #[cfg(any(
+        feature = "native-window-session-probe",
+        feature = "native-session-route"
+    ))]
     app_generations: [u64; 2],
-    #[cfg(feature = "native-window-session-probe")]
+    #[cfg(any(
+        feature = "native-window-session-probe",
+        feature = "native-session-route"
+    ))]
     compositor_commits: u64,
-    #[cfg(feature = "native-window-session-probe")]
+    #[cfg(any(
+        feature = "native-window-session-probe",
+        feature = "native-session-route"
+    ))]
     compositor_sample_tick: u64,
-    #[cfg(feature = "native-window-session-probe")]
-    compositor_activity: [u64; 6],
-    #[cfg(feature = "native-window-session-probe")]
+    #[cfg(any(
+        feature = "native-window-session-probe",
+        feature = "native-session-route"
+    ))]
+    compositor_activity: [u64; 9],
+    #[cfg(any(
+        feature = "native-window-session-probe",
+        feature = "native-session-route"
+    ))]
     input_progress: [[u64; 2]; 2],
 }
 static mut RUNTIME: Runtime = Runtime {
@@ -81,15 +96,30 @@ static mut RUNTIME: Runtime = Runtime {
     last_mask: u64::MAX,
     last_recovery: u64::MAX,
     restarts: 0,
-    #[cfg(feature = "native-window-session-probe")]
+    #[cfg(any(
+        feature = "native-window-session-probe",
+        feature = "native-session-route"
+    ))]
     app_generations: [u64::MAX; 2],
-    #[cfg(feature = "native-window-session-probe")]
+    #[cfg(any(
+        feature = "native-window-session-probe",
+        feature = "native-session-route"
+    ))]
     compositor_commits: u64::MAX,
-    #[cfg(feature = "native-window-session-probe")]
+    #[cfg(any(
+        feature = "native-window-session-probe",
+        feature = "native-session-route"
+    ))]
     compositor_sample_tick: u64::MAX,
-    #[cfg(feature = "native-window-session-probe")]
-    compositor_activity: [u64::MAX; 6],
-    #[cfg(feature = "native-window-session-probe")]
+    #[cfg(any(
+        feature = "native-window-session-probe",
+        feature = "native-session-route"
+    ))]
+    compositor_activity: [u64::MAX; 9],
+    #[cfg(any(
+        feature = "native-window-session-probe",
+        feature = "native-session-route"
+    ))]
     input_progress: [[u64::MAX; 2]; 2],
 };
 fn runtime() -> &'static mut Runtime {
@@ -559,12 +589,15 @@ fn restart_checked(s: &mut State, slot: usize, a: [u64; 6]) -> Result<u64, i64> 
     runtime().input_epoch = input_epoch;
     runtime().compositor_process = process;
     runtime().presentation_retired = false;
-    #[cfg(feature = "native-window-session-probe")]
+    #[cfg(any(
+        feature = "native-window-session-probe",
+        feature = "native-session-route"
+    ))]
     {
         runtime().app_generations = [u64::MAX; 2];
         runtime().compositor_commits = u64::MAX;
         runtime().compositor_sample_tick = u64::MAX;
-        runtime().compositor_activity = [u64::MAX; 6];
+        runtime().compositor_activity = [u64::MAX; 9];
     }
     runtime().restarts = r
         .restarts
@@ -583,7 +616,10 @@ pub(super) fn observe_exit(s: &State, slot: usize, _: u64) {
     print_number(b"WINDOW:EXIT_PID:", s.processes[slot].pid);
     print_number(b"WINDOW:EXIT_CODE:", s.last_event.code);
     print_number(b"WINDOW:EXIT_STEP:", word(s, slot, 240));
-    #[cfg(feature = "native-window-session-probe")]
+    #[cfg(any(
+        feature = "native-window-session-probe",
+        feature = "native-session-route"
+    ))]
     if let Some(index) = APPS.iter().position(|candidate| *candidate == slot) {
         // Preserve the final complete app-reported snapshot in the serial
         // transcript before cleanup destroys its private pages.
@@ -627,8 +663,12 @@ pub(super) fn observe_invalid_return(s: &State, slot: usize) {
 
 /// Diagnostic observations are app-reported counters, never authority, a
 /// framebuffer oracle, or evidence that a task has succeeded. No text/keys are
-/// copied. The normal product profile omits these detailed synthetic-test logs.
-#[cfg(feature = "native-window-session-probe")]
+/// copied. Only probe and session-route builds print these counters; the
+/// normal product profile omits them.
+#[cfg(any(
+    feature = "native-window-session-probe",
+    feature = "native-session-route"
+))]
 fn snapshots(s: &State) {
     for (index, (slot, generation_at, prefix, fields)) in [
         (
@@ -736,6 +776,9 @@ fn snapshots(s: &State) {
             word(s, COMP, 496),
             word(s, COMP, 504),
             word(s, COMP, 512),
+            word(s, COMP, 520),
+            word(s, COMP, 528),
+            word(s, COMP, 424),
         ];
         let previous = *runtime();
         if previous.compositor_sample_tick == u64::MAX
@@ -762,6 +805,8 @@ fn snapshots(s: &State) {
                 (496, b"WINDOW:COMPOSITOR:POINTER_X:"),
                 (504, b"WINDOW:COMPOSITOR:POINTER_Y:"),
                 (512, b"WINDOW:COMPOSITOR:BUTTONS:"),
+                (520, b"WINDOW:COMPOSITOR:SHELL:"),
+                (528, b"WINDOW:COMPOSITOR:SHELL_READY:"),
             ] {
                 print_number(label, word(s, COMP, at));
             }
@@ -776,7 +821,10 @@ pub(super) fn poll(s: &mut State) {
     let r = *runtime();
     if r.sample_tick != s.ticks {
         runtime().sample_tick = s.ticks;
-        #[cfg(feature = "native-window-session-probe")]
+        #[cfg(any(
+            feature = "native-window-session-probe",
+            feature = "native-session-route"
+        ))]
         snapshots(s);
         if s.processes[INIT].status != Status::Dead {
             let mask = word(s, INIT, 400);
@@ -811,7 +859,10 @@ pub(super) fn poll(s: &mut State) {
         );
         return;
     }
-    #[cfg(feature = "native-window-session-probe")]
+    #[cfg(any(
+        feature = "native-window-session-probe",
+        feature = "native-session-route"
+    ))]
     {
         runtime().compositor_sample_tick = u64::MAX;
         snapshots(s);

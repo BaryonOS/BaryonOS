@@ -1,0 +1,11 @@
+WINDOW phase library-empty 78.73
+WINDOW phase library-named-draft 147.23
+WINDOW phase library-saved 149.23
+WINDOW phase library-organized 154.15
+WINDOW phase library-edited 186.04
+WINDOW phase library-revision-saved 188.08
+WINDOW phase library-history 241.46
+WINDOW phase library-restored 289.99
+WINDOW phase library-search 333.14
+WINDOW phase library-opened 381.68
+{"passed": true, "native_gate": false, "error": null, "run_directory": "/workspace/nieuw-os/build/library-native-final/run/window-8ec48238bdc34ea1b88ca8d56dd96a32", "duration_s": 382.6040468660003}

@@ -1,0 +1,51 @@
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+   Compiling typenum v1.20.1
+   Compiling version_check v0.9.5
+   Compiling cmov v0.5.4
+   Compiling ctutils v0.4.7
+   Compiling generic-array v0.14.7
+   Compiling cfg-if v1.0.5
+   Compiling nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os/sdk/catalog-client)
+   Compiling subtle v2.6.1
+   Compiling cpufeatures v0.2.17
+   Compiling opaque-debug v0.3.1
+   Compiling cpufeatures v0.3.1
+   Compiling rand_core v0.10.1
+   Compiling nieuw-os-document-session v0.1.0 (/workspace/nieuw-os/sdk/document-session)
+   Compiling nieuw-os-keyring-random-client v0.1.0 (/workspace/nieuw-os/sdk/keyring-random-client)
+   Compiling chacha20 v0.10.2
+   Compiling nieuw-os-supervisor-example v0.1.0 (/workspace/nieuw-os/sdk/examples/supervisor)
+   Compiling hybrid-array v0.4.15
+   Compiling crypto-common v0.1.7
+   Compiling inout v0.1.4
+   Compiling cipher v0.4.4
+   Compiling universal-hash v0.5.1
+   Compiling poly1305 v0.8.0
+   Compiling chacha20 v0.9.1
+   Compiling aead v0.5.2
+   Compiling chacha20poly1305 v0.10.1
+   Compiling block-buffer v0.12.1
+   Compiling crypto-common v0.2.2
+   Compiling digest v0.11.3
+   Compiling hmac v0.13.0 (/workspace/nieuw-os/services/keyring/vendor/hmac-0.13.0)
+   Compiling hkdf v0.13.0 (/workspace/nieuw-os/services/keyring/vendor/hkdf-0.13.0)
+   Compiling sha2 v0.11.1
+   Compiling keyring-core v0.1.0 (/workspace/nieuw-os/services/keyring)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.05s
+     Running unittests src/lib.rs (target/library-root-host/debug/deps/nieuw_os_catalog_client-59927afcef957486)
+     Running tests/transport.rs (target/library-root-host/debug/deps/transport-02eb64262e8c5608)
+     Running unittests src/lib.rs (target/library-root-host/debug/deps/nieuw_os_document_session-68768a309157047e)
+     Running tests/editing.rs (target/library-root-host/debug/deps/editing-f2d70c887526b7e8)
+     Running tests/volume.rs (target/library-root-host/debug/deps/volume-47730ba3c33be3ea)
+     Running unittests src/lib.rs (target/library-root-host/debug/deps/nieuw_os_keyring_random_client-3575bcfa525f216b)
+     Running tests/session.rs (target/library-root-host/debug/deps/session-8609c4715b1812b7)
+     Running unittests src/lib.rs (target/library-root-host/debug/deps/nieuw_os_sdk_runtime-4aea29512d9e8c4c)
+     Running tests/message.rs (target/library-root-host/debug/deps/message-63318dfc6514dbb3)
+     Running tests/process.rs (target/library-root-host/debug/deps/process-af0d6e656bbc2d28)
+     Running tests/tls_time.rs (target/library-root-host/debug/deps/tls_time-6a4a29832f5c824c)
+     Running unittests src/protocol.rs (target/library-root-host/debug/deps/k05_protocol-2b2a898d68dfc93c)
+   Doc-tests nieuw_os_catalog_client
+   Doc-tests nieuw_os_document_session
+   Doc-tests nieuw_os_keyring_random_client
+   Doc-tests nieuw_os_sdk_runtime
+   Doc-tests k05_protocol

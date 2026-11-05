@@ -1,0 +1,59 @@
+{
+  "readback_passed": true,
+  "evidence_level": "Fresh native QEMU boot over copied disposable image, independently reread; no hardware claim",
+  "commit": "64044318c622eaacab25272611acf856a5fca5d5",
+  "source_sha256": "069666e5406a893f64aa5d8e00298863f33f8be9cef57b6e0522b8bdf9648670",
+  "report": "/workspace/nieuw-os/build/library-native-final/library-cold-report.json",
+  "report_sha256": "fb136a9cbcf116dd2d1196f37194bd136328da4a3a0e1a77b82f77a579d0a49c",
+  "run_directory": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43",
+  "parent_directory": "/workspace/nieuw-os/build/library-native-final/run/window-8ec48238bdc34ea1b88ca8d56dd96a32",
+  "parent_report_sha256": "08c3fa7b3c9f51015c6bbf8fef3b65216587afde74b527c5632a2ee173f0e0e3",
+  "duration_s": 191.3013658990003,
+  "serial_sha256": "25daf0accade3e3f95ebd9aff4ca160fe83e35d80ff501de80d7b85fbda3bc83",
+  "volume_sha256": "31a367e7c499a8a1e21e954b3328d2a08ccf02ea2b5c89ce0a114213e19467ea",
+  "volume_byte_equal_parent": true,
+  "command_equal_parent": true,
+  "qemu_implementation_equal_parent": true,
+  "phases": {
+    "library-cold-list": {
+      "sha256": "b09ffacb8ff8d02f7acdef5fa7d721c3369cc6ff4632401cef635e8cb648ac1e",
+      "seconds": 91.00184577000073,
+      "generation": 3,
+      "save_acks": 0,
+      "last_save_ack_revision": 0
+    },
+    "library-cold-search": {
+      "sha256": "d89362cecf6ffc75fa358f7c3460dc38d42e9027180af06ebd95109704642507",
+      "seconds": 94.69931723700029,
+      "generation": 3,
+      "save_acks": 0,
+      "last_save_ack_revision": 0
+    },
+    "library-cold-opened": {
+      "sha256": "4f41ee4374861ab33015b6e90f590d87fa72e39a7c4399a213444c7df3fa450f",
+      "seconds": 139.92452000899993,
+      "generation": 9,
+      "save_acks": 0,
+      "last_save_ack_revision": 0
+    },
+    "library-cold-history": {
+      "sha256": "dce7f821b8f1b4d6c30685f77acd22ce2c39bdfd1326b24ebc2a21974e0fa4c2",
+      "seconds": 190.06885955100006,
+      "generation": 10,
+      "save_acks": 0,
+      "last_save_ack_revision": 0
+    }
+  },
+  "oracle_count": 28,
+  "matched_fixture": "/workspace/nieuw-os/build/library-native-final/window-fixture-edec8bfae237406c9320afdb9a3dc49a",
+  "generation": 5,
+  "clocks": [
+    5,
+    0
+  ],
+  "clean_exit": 33,
+  "cleanup_live_processes": 0,
+  "cleanup_live_handles": 0,
+  "restarts": 0,
+  "snapshot_revision_scope": "MATERIAL REVISION is the last ordinary save ACK in existing Evidence; loaded metadata/restore revision is bound by exact native pixels and independent disk oracle, not this field."
+}
