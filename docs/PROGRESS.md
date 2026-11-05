@@ -1,5 +1,10 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+Integratie PR-wachtrij op main `c7a61d11` (5 november 2026): **41 → 41/100**.
+Driverhostmodellen (#198), acht platformhostapps met CI-dekking, EXIF-viewer,
+agentprofielen en instructieopschoning geïntegreerd; geen criterium volledig
+geaccepteerd en geen native, fysieke of menselijke acceptatie toegevoegd.
+
 Instructieonderhoud op basis `8bb15309` (4 november 2026): **41 → 41/100**.
 Verouderde beperkingen op opslaglocaties, prototype-eerst bouwen en
 voortgangsrapportage zijn verwijderd. De actuele privacy-, native product-
