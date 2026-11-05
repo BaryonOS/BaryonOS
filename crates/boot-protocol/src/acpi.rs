@@ -250,6 +250,43 @@ impl Discovery {
     pub const fn dma_execution_allowed(self) -> bool {
         false
     }
+
+    /// In-place equivalent of `empty`: every count gates its array, so no
+    /// stale entry stays observable and no large temporary is built.
+    fn reset(&mut self, availability: Availability) {
+        self.availability = availability;
+        self.mcfg_count = 0;
+        self.dmar_count = 0;
+        self.madt.status = MadtStatus::Missing;
+        self.madt.cpu_count = 0;
+        self.madt.online_capable = 0;
+        self.madt.disabled = 0;
+        self.madt.io_apic_count = 0;
+        self.madt.local_apic_base = 0;
+        self.madt.pcat_compat = false;
+    }
+}
+
+/// Caller-owned table buffers (8 KiB). The kernel keeps one in static
+/// bootstrap memory so discovery never puts them on its 16-KiB stack.
+pub struct Scratch {
+    root: [u8; MAX_TABLE_SIZE],
+    table: [u8; MAX_TABLE_SIZE],
+}
+
+impl Scratch {
+    pub const fn new() -> Self {
+        Self {
+            root: [0; MAX_TABLE_SIZE],
+            table: [0; MAX_TABLE_SIZE],
+        }
+    }
+}
+
+impl Default for Scratch {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 /// Reads only the physical spans requested by the parser. Kernel implementations
@@ -263,15 +300,37 @@ pub trait PhysicalRead {
 /// `PhysicalRead`; unknown root entries are ignored after validating their
 /// address shape. MADT content errors only mark `madt` invalid.
 pub fn discover(handoff: &AcpiHandoff, reader: &mut impl PhysicalRead) -> Discovery {
-    let rsdp = match handoff.validate() {
-        Ok(Some(rsdp)) => rsdp,
-        Ok(None) => return Discovery::empty(Availability::MissingHandoff),
-        Err(_) => return Discovery::empty(Availability::RejectedHandoff),
-    };
-    discover_tables(rsdp, reader).unwrap_or_else(|_| Discovery::empty(Availability::InvalidTables))
+    let mut scratch = Scratch::new();
+    let mut result = Discovery::empty(Availability::InvalidTables);
+    discover_into(handoff, reader, &mut scratch, &mut result);
+    result
 }
 
-fn discover_tables(rsdp: &[u8], reader: &mut impl PhysicalRead) -> Result<Discovery, Error> {
+/// `discover` with caller-provided scratch and result, for small stacks.
+pub fn discover_into(
+    handoff: &AcpiHandoff,
+    reader: &mut impl PhysicalRead,
+    scratch: &mut Scratch,
+    result: &mut Discovery,
+) {
+    match handoff.validate() {
+        Ok(Some(rsdp)) => {
+            result.reset(Availability::InvalidTables);
+            if discover_tables(rsdp, reader, scratch, result).is_err() {
+                result.reset(Availability::InvalidTables);
+            }
+        }
+        Ok(None) => result.reset(Availability::MissingHandoff),
+        Err(_) => result.reset(Availability::RejectedHandoff),
+    }
+}
+
+fn discover_tables(
+    rsdp: &[u8],
+    reader: &mut impl PhysicalRead,
+    scratch: &mut Scratch,
+    result: &mut Discovery,
+) -> Result<(), Error> {
     let root_address = parse_rsdp(rsdp)?;
     let mut root_header = [0u8; ACPI_HEADER_SIZE];
     reader
@@ -290,24 +349,21 @@ fn discover_tables(rsdp: &[u8], reader: &mut impl PhysicalRead) -> Result<Discov
     {
         return Err(Error::RootShape);
     }
-    let mut root = [0u8; MAX_TABLE_SIZE];
+    let Scratch { root, table } = scratch;
     reader
         .read(root_address, &mut root[..root_length])
         .map_err(|_| Error::Read)?;
     validate_table(&root[..root_length], root_signature)?;
 
-    let mut result = Discovery::empty(Availability::InvalidTables);
     let mut saw_mcfg = false;
     let mut saw_dmar = false;
     let mut saw_madt = false;
-    // One reusable table buffer keeps discovery within the 16-KiB kernel stack.
-    let mut table = [0u8; MAX_TABLE_SIZE];
     let mut offset = ACPI_HEADER_SIZE;
     while offset < root_length {
         let address = if entry_size == 8 {
-            read_u64(&root, offset)?
+            read_u64(&root[..], offset)?
         } else {
-            u64::from(read_u32(&root, offset)?)
+            u64::from(read_u32(&root[..], offset)?)
         };
         if address == 0 || !address.is_multiple_of(entry_size as u64) {
             return Err(Error::Address);
@@ -328,7 +384,7 @@ fn discover_tables(rsdp: &[u8], reader: &mut impl PhysicalRead) -> Result<Discov
                 .read(address, &mut table[..length])
                 .map_err(|_| Error::Read)?;
             validate_table(&table[..length], b"MCFG")?;
-            parse_mcfg(&table[..length], &mut result)?;
+            parse_mcfg(&table[..length], result)?;
         } else if signature == b"DMAR" {
             if saw_dmar {
                 return Err(Error::DuplicateTable);
@@ -342,7 +398,7 @@ fn discover_tables(rsdp: &[u8], reader: &mut impl PhysicalRead) -> Result<Discov
                 .read(address, &mut table[..length])
                 .map_err(|_| Error::Read)?;
             validate_table(&table[..length], b"DMAR")?;
-            parse_dmar(&table[..length], &mut result)?;
+            parse_dmar(&table[..length], result)?;
         } else if signature == b"APIC" {
             // A second MADT is ambiguous: fail SMP closed, keep other inventory.
             // Parsed in place: no Madt temporaries on the 16-KiB kernel stack.
@@ -377,7 +433,7 @@ fn discover_tables(rsdp: &[u8], reader: &mut impl PhysicalRead) -> Result<Discov
     } else {
         Availability::DiscoveryComplete
     };
-    Ok(result)
+    Ok(())
 }
 
 fn parse_rsdp(rsdp: &[u8]) -> Result<u64, Error> {
@@ -1097,6 +1153,34 @@ mod tests {
         let accepted = discover_madt(vec![madt(0xfee0_0000, &full)]).madt;
         assert_eq!(accepted.status, MadtStatus::Valid);
         assert_eq!(accepted.cpus().len(), MAX_MADT_CPUS);
+    }
+
+    #[test]
+    fn reused_result_never_keeps_a_stale_inventory() {
+        // The kernel reuses one static Discovery and Scratch.
+        let mut scratch = Scratch::new();
+        let mut result = Discovery::empty(Availability::MissingHandoff);
+        let (handoff, mut fixture) = madt_fixture(vec![madt(0xfee0_0000, &qemu_like_entries())]);
+        discover_into(&handoff, &mut fixture, &mut scratch, &mut result);
+        assert_eq!(result.madt.status, MadtStatus::Valid);
+        assert_eq!(result.mcfg_count, 1);
+        assert_eq!(result, discover(&handoff, &mut fixture));
+        for (next, availability) in [
+            (AcpiHandoff::rejected(), Availability::RejectedHandoff),
+            (AcpiHandoff::unavailable(), Availability::MissingHandoff),
+        ] {
+            discover_into(&next, &mut fixture, &mut scratch, &mut result);
+            assert_eq!(result.availability, availability);
+            assert_eq!((result.mcfg_count, result.dmar_count), (0, 0));
+            assert_eq!(result.madt.status, MadtStatus::Missing);
+            assert!(result.madt.cpus().is_empty());
+            discover_into(&handoff, &mut fixture, &mut scratch, &mut result);
+        }
+        fixture.tables[0].1[9] ^= 1; // corrupt XSDT checksum
+        discover_into(&handoff, &mut fixture, &mut scratch, &mut result);
+        assert_eq!(result.availability, Availability::InvalidTables);
+        assert_eq!(result.mcfg_count, 0);
+        assert!(result.madt.cpus().is_empty());
     }
 
     #[test]
