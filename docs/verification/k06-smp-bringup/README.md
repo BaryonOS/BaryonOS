@@ -1,6 +1,6 @@
 # K06 stap 1 — native AP-opstart en begrensde SMP-synchronisatieproef
 
-**Bron:** `c687cd13400c7dd42822d5e47845883b6e7af717` op branch
+**Bron:** `36703f50450d2075117b5a5e75a9bb4ca28b49a0` (vervangt `c687cd13`) op branch
 `k06/smp-ap-bringup`, gestapeld op PR #191 (`a859db98`, begrensde
 ACPI-handoff). **Datum:** 5 november 2026. **Besluit:** ADR-070.
 **Bewijsniveau:** native QEMU/TCG (VM). Dit is geen fysieke hardware. De
@@ -89,6 +89,17 @@ kritieke of hoge punten. De volgende bevindingen zijn verwerkt in
 - Het GDT-einde onder 4 GiB werd niet gecontroleerd.
 - De oracle controleerde de AP-ID's niet.
 - Een CI-run op `main` kon worden geannuleerd.
+
+## CI-regressie hersteld (36703f50)
+
+De eerste CI op #201 faalde in 14 bestaande native gates. In M3-profielen
+liep het ge-inlinede ACPI-discoveryframe over in de stackguard van de
+BSP, direct na `KS-02`; het frame bestond uit twee tabelbuffers van 4 KiB
+plus de grotere `Discovery`. Lokaal gereproduceerd met `milestone-m3`. De
+kernel bewaart scratch en inventaris nu statisch (`discover_into`). Lokaal
+slagen opnieuw: de M3-boot, K05 (6/6), de M6C-smoke, `milestone-m2`,
+`native-rtc` (5/5) en de SMP-gate. Les: na iedere boot-protocolwijziging
+ook een M3-profiel native booten.
 
 ## Open grenzen (waarom K06 niet geaccepteerd is)
 

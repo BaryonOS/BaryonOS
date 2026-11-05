@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-05 · **Rubric:** v1 ·
-**Bron:** [`c687cd13`](https://github.com/simonvanieperen/nieuw-os/commit/c687cd13400c7dd42822d5e47845883b6e7af717) ·
+**Bron:** [`36703f50`](https://github.com/simonvanieperen/nieuw-os/commit/36703f50450d2075117b5a5e75a9bb4ca28b49a0) ·
 **Ontwikkelbranch:** `k06/smp-ap-bringup`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 1: native AP-opstart (MADT, INIT-SIPI-SIPI, begrensde sync-proef) gestapeld op PR #191.
-41/100 blijft 41/100. Opt-in native-smp M2-profiel start AP's begrensd en fail-closed; 8 native QEMU/TCG-gevallen (1-9 vCPU's, dubbele MADT, AP-stall, registermismatch) geslaagd, zie docs/verification/k06-smp-bringup/. K06 vereist SMP-scheduling, interrupts, TLB-shootdown en adresruimtewisseling onder concurrente belasting en blijft open. Gestapeld op PR #191, nog niet op main; geen nieuwe-head CI beoordeeld. De integration_review-velden blijven historisch PR148-bewijs.
+41/100 blijft 41/100. Opt-in native-smp M2-profiel start AP's begrensd en fail-closed; 8 native QEMU/TCG-gevallen (1-9 vCPU's, dubbele MADT, AP-stall, registermismatch) geslaagd, zie docs/verification/k06-smp-bringup/. Een in CI gevonden BSP-stack-overloop in M3-profielen is hersteld (36703f50). K06 vereist SMP-scheduling, interrupts, TLB-shootdown en adresruimtewisseling onder concurrente belasting en blijft open. Gestapeld op PR #191, nog niet op main; geen nieuwe-head CI beoordeeld. De integration_review-velden blijven historisch PR148-bewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
