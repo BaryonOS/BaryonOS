@@ -1,6 +1,25 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — K06 stap 4, gepreëmpteerde kernelthreads op AP's — 5 november 2026
+## NEXT AGENT HANDOFF — H05-stap, native ACPI S5-poweroff — 5 november 2026
+
+**Bron:** branch `hw/h05-native-acpi-s5`, op main `cb3d169c`. **41 → 41/100**;
+H05 blijft open, Hardware blijft 1/12. Ontwerp: ADR-074. K06-werk (hieronder)
+staat los hiervan.
+
+**Gerealiseerd:** de eigen kernel zet de VM via ACPI S5 uit, op basis van
+eigen FADT/DSDT-validatie (`drivers/acpi-power`). Tot nu toe had die crate
+geen aanroeper. Een corrupte DSDT-kopie wordt afgewezen zonder port-write.
+**Bewijs:** 5/5 poweroffs (exit 0, reset-orakel actief) en 2/2 afwijzingen
+(exit 33). Hostsuite 413 + tools 209 groen. Zie
+[h05-acpi-s5](verification/h05-acpi-s5/README.md).
+
+**Open:** ACPI-enable via SMI_CMD, een niet-delegeerbare
+poweroff-capability met flush van diensten, S3/wek, thermisch/batterij en
+fysieke hardware.
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/power-native"; python3 -B tools/build.py --kernel-feature native-acpi-s5 && python3 -B tools/run_power.py --repeat 5`.
+
+## Historisch checkpoint — K06 stap 4, gepreëmpteerde kernelthreads op AP's — 5 november 2026
 
 **Bron:** `c308b1ee9d8deedcfacd923c407392222ff7a12f` op `k06/smp-step4-preempt`. De keten is #191
 (`0cfcdd4a`) → #201 (`64f8abc6`) → #202 (`58e11fd0`) → #203 (`e49e7819`) →

@@ -1,5 +1,44 @@
 # Ontwerpbesluiten
 
+## ADR-074 — Native ACPI S5-poweroff in een IF0-bootstrapprofiel (H05-stap)
+
+5 november 2026; alleen in het opt-in profiel `native-acpi-s5` (exclusief met
+M3, framebuffer, SMP en RTC). `boot-protocol` registreert het adres van de
+enige FADT-root-entry. Een tweede FADT maakt dat adres 0 zonder de andere
+inventaris te raken. In de eenmalige discovery kopieert de kernel FADT
+(≤ 4 KiB) en DSDT (≤ 64 KiB) via `FirmwareReader`, dat uitsluitend
+ACPI-reclaim/NVS-geheugen toelaat. `drivers/acpi-power::parse_s5` valideert
+de kopie. Alleen een geldig plan leidt tot port-I/O op PM1a en eventueel
+PM1b: SLP_TYP met SLP_EN gewist, daarna SLP_EN (ACPICA-volgorde).
+
+**Contract.** Het plan wordt nooit aan een proces of via IPC gegeven; er is
+geen syscall. Een ontbrekende, onleesbare of afgewezen tabel geeft een
+`POWER:S5:*`-diagnose en de normale debug-exit, zonder port-write. De
+runner gebruikt `-action reboot=reset`, zodat een reset een tweede
+firmware-boot geeft en niet als poweroff (exit 0) kan meetellen.
+
+**Bewijs:** `docs/verification/h05-acpi-s5/`. **Open:** er is geen
+ACPI-enable via SMI_CMD, geen `_PTS`/`_TTS` en geen niet-delegeerbare
+poweroff-capability voor een dienst- of gebruikersafsluiting met flush
+vooraf. Er is geen S3/wek en geen fysieke hardware.
+
+**Status:** geaccepteerd in het opt-in profiel; H05 blijft open.
+
+**Alternatieven overwogen.**
+- Een algemene AML-interpreter, bijvoorbeeld ACPICA: verworpen voor deze stap.
+  Het is een grote geprivilegieerde parser, terwijl de begrensde
+  `_S5_`-subset volstaat voor het vaste QEMU-profiel.
+- QEMU-specifieke poort `0x604` hard schrijven: verworpen, want dat bewijst
+  niets over tabelgestuurde energiecontrole. De waarde dient nu uitsluitend
+  als onafhankelijk orakel in de runner.
+- Een poweroff-syscall nu toevoegen: uitgesteld tot er een capabilitymodel
+  is en diensten vooraf kunnen flushen.
+
+**Primaire bronnen.** ACPI 6.5 §4.8.3.2 (PM1 Control Registers, SLP_TYPx/SLP_EN)
+en §7.4.2 (`\_S5`); ACPICA `hwsleep.c` `AcpiHwLegacySleep` (tag
+`R2025_04_04`) voor de schrijfvolgorde; QEMU `v10.2.1`, `hw/acpi/ich9.c` en
+`hw/acpi/core.c` (`acpi_pm1_cnt_write`) voor het emulatorgedrag.
+
 ## ADR-073 — Gepreëmpteerde kernelthreads op AP's (K06 stap 4)
 
 5 november 2026; alleen in `native-smp`, de BSP blijft IF=0. Iedere AP
