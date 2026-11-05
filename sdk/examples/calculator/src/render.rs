@@ -276,17 +276,7 @@ pub fn render_tile(
             );
         }
     }
-    let status = if model.notice() != Notice::None {
-        model.notice().label()
-    } else if model.answer().is_some_and(|answer| answer.rounded) && model.current() {
-        "Afgerond op 9 decimalen."
-    } else if model.recalling() {
-        "Omlaag: volgende of eigen invoer"
-    } else if model.recent_count() != 0 {
-        "Omhoog: eerdere berekening"
-    } else {
-        ""
-    };
+    let status = model.status();
     let color = match model.notice() {
         Notice::ClipboardCopied => d::ACCENT,
         Notice::None => d::MUTED,

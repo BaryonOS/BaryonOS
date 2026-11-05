@@ -9,6 +9,7 @@ pub const LABELS: [&str; 20] = [
     "+", ")",
 ];
 pub const RECENT_CAPACITY: usize = 8;
+pub const UNDO_CAPACITY: usize = 32;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Command {
     Insert(u8),
@@ -19,6 +20,8 @@ pub enum Command {
     Delete,
     RecallOlder,
     RecallNewer,
+    Undo,
+    Redo,
     Left(bool),
     Right(bool),
     Home(bool),
@@ -89,6 +92,7 @@ pub struct Model {
     exhausted: bool,
     selecting: bool,
     recent: Recent,
+    history: History,
     paint: PaintState,
     damage: Damage,
 }
@@ -106,8 +110,7 @@ struct PaintState {
     active: bool,
     hover: Option<usize>,
     pressed: Option<usize>,
-    recall_available: bool,
-    recalling: bool,
+    status: &'static str,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -158,6 +161,63 @@ impl Recent {
         }
         self.entries[self.length] = formula;
         self.length += 1;
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct EditState {
+    bytes: [u8; MAX_INPUT],
+    length: usize,
+    caret: usize,
+    anchor: usize,
+}
+impl EditState {
+    const EMPTY: Self = Self {
+        bytes: [0; MAX_INPUT],
+        length: 0,
+        caret: 0,
+        anchor: 0,
+    };
+}
+#[derive(Clone, Debug)]
+struct History {
+    entries: [EditState; UNDO_CAPACITY],
+    length: usize,
+    cursor: usize,
+}
+impl History {
+    const fn new() -> Self {
+        Self {
+            entries: [EditState::EMPTY; UNDO_CAPACITY],
+            length: 0,
+            cursor: 0,
+        }
+    }
+    fn record(&mut self, before: EditState) {
+        self.entries[self.cursor..].fill(EditState::EMPTY);
+        if self.cursor == UNDO_CAPACITY {
+            self.entries.copy_within(1..UNDO_CAPACITY, 0);
+            self.cursor -= 1;
+        }
+        self.entries[self.cursor] = before;
+        self.cursor += 1;
+        self.length = self.cursor;
+    }
+    fn restore(&mut self, mut current: EditState, redo: bool) -> Option<EditState> {
+        if redo {
+            if self.cursor == self.length {
+                return None;
+            }
+            core::mem::swap(&mut current, &mut self.entries[self.cursor]);
+            self.cursor += 1;
+        } else {
+            if self.cursor == 0 {
+                return None;
+            }
+            self.cursor -= 1;
+            core::mem::swap(&mut current, &mut self.entries[self.cursor]);
+        }
+        Some(current)
     }
 }
 
@@ -249,6 +309,7 @@ impl Model {
             exhausted: false,
             selecting: false,
             recent: Recent::new(),
+            history: History::new(),
             paint: PaintState {
                 bytes: [0; MAX_INPUT],
                 length: 0,
@@ -261,8 +322,7 @@ impl Model {
                 active: true,
                 hover: None,
                 pressed: None,
-                recall_available: false,
-                recalling: false,
+                status: "",
             },
             damage: Damage::new(true, 0),
         }
@@ -316,6 +376,7 @@ impl Model {
             self.clipboard_notice(notice);
             return Err(error);
         }
+        let before = self.edit_state();
         self.erase(self.selection());
         self.bytes
             .copy_within(self.caret..self.length, self.caret + value.len());
@@ -324,7 +385,7 @@ impl Model {
         self.caret += value.len();
         self.anchor = self.caret;
         self.selecting = false;
-        self.edited();
+        self.edited(before);
         Ok(())
     }
     pub const fn answer(&self) -> Option<Evaluation> {
@@ -365,6 +426,31 @@ impl Model {
     }
     pub const fn recalling(&self) -> bool {
         self.recent.browsing.is_some()
+    }
+    pub const fn can_undo(&self) -> bool {
+        self.history.cursor != 0
+    }
+    pub const fn can_redo(&self) -> bool {
+        self.history.cursor < self.history.length
+    }
+    /// The single status line: notices first, then the most relevant hint.
+    pub fn status(&self) -> &'static str {
+        if self.notice != Notice::None {
+            self.notice.label()
+        } else if self.answer.is_some_and(|answer| answer.rounded) && self.current {
+            "Afgerond op 9 decimalen."
+        } else if self.recalling() {
+            "Omlaag: volgende of eigen invoer"
+        } else if self.recent_count() != 0 && self.length == 0 {
+            "Omhoog: eerdere berekening"
+        } else {
+            match (self.can_undo(), self.can_redo()) {
+                (true, true) => "Ctrl+Z: ongedaan | Ctrl+Y: opnieuw",
+                (true, false) => "Ctrl+Z: ongedaan",
+                (false, true) => "Ctrl+Y: opnieuw",
+                (false, false) => "",
+            }
+        }
     }
     pub fn paint_damage(&self, viewport: Viewport) -> PaintDamage {
         let mut out = PaintDamage {
@@ -450,11 +536,8 @@ impl Model {
             self.damage.expression_full = true;
         }
         self.damage.result |= old.answer != self.answer || old.current != self.current;
-        self.damage.status |= old.notice != self.notice
-            || old.recall_available != (self.recent_count() != 0)
-            || old.recalling != self.recalling()
-            || (old.answer.is_some_and(|a| a.rounded) && old.current)
-                != (self.answer.is_some_and(|a| a.rounded) && self.current);
+        // Every hint (recall, undo, rounding) is derived from status().
+        self.damage.status |= old.notice != self.notice || old.status != self.status();
         for index in 0..20 {
             if (old.focus == index + 1 && old.active) != (self.focus == index + 1 && self.active)
                 || (old.hover == Some(index)) != (self.hover == Some(index))
@@ -475,8 +558,7 @@ impl Model {
             active: self.active,
             hover: self.hover,
             pressed: self.pressed,
-            recall_available: self.recent_count() != 0,
-            recalling: self.recalling(),
+            status: self.status(),
         };
         if let Some(next) = self.generation.checked_add(1) {
             self.generation = next;
@@ -484,8 +566,35 @@ impl Model {
             self.exhausted = true;
         }
     }
-    fn edited(&mut self) {
+    fn edit_state(&self) -> EditState {
+        EditState {
+            bytes: self.bytes,
+            length: self.length,
+            caret: self.caret,
+            anchor: self.anchor,
+        }
+    }
+    fn remember(&mut self, before: EditState) {
+        if before != self.edit_state() {
+            self.history.record(before);
+        }
+    }
+    /// Leaving recall with a recalled formula in place turns that replacement
+    /// into one undoable edit, so undo can always reach the unfinished draft.
+    fn leave_recall(&mut self) {
+        if let Some(draft) = self.recent.draft {
+            self.remember(EditState {
+                bytes: draft.formula.bytes,
+                length: draft.formula.length,
+                caret: draft.caret,
+                anchor: draft.anchor,
+            });
+        }
         self.recent.leave();
+    }
+    fn edited(&mut self, before: EditState) {
+        self.leave_recall();
+        self.remember(before);
         self.current = false;
         self.notice = Notice::None;
         self.changed();
@@ -571,6 +680,7 @@ impl Model {
                     self.changed();
                     return;
                 }
+                let before = self.edit_state();
                 self.erase(range);
                 self.bytes
                     .copy_within(self.caret..self.length, self.caret + 1);
@@ -579,10 +689,10 @@ impl Model {
                 self.caret += 1;
                 self.anchor = self.caret;
                 self.focus = 0;
-                self.edited();
+                self.edited(before);
             }
             Command::Evaluate => {
-                self.recent.leave();
+                self.leave_recall();
                 match decimal::evaluate(self.expression()) {
                     Ok(answer) => {
                         self.recent.record(Formula {
@@ -611,7 +721,8 @@ impl Model {
                 self.changed();
             }
             Command::Reset => {
-                self.recent.leave();
+                self.leave_recall();
+                let before = self.edit_state();
                 self.bytes.fill(0);
                 self.length = 0;
                 self.caret = 0;
@@ -621,10 +732,12 @@ impl Model {
                 self.notice = Notice::None;
                 self.focus = 0;
                 self.pressed = None;
+                self.remember(before);
                 self.changed();
             }
             Command::Cancel => {
-                self.recent.leave();
+                self.leave_recall();
+                let before = self.edit_state();
                 self.bytes.fill(0);
                 self.length = 0;
                 self.caret = 0;
@@ -633,6 +746,7 @@ impl Model {
                 self.notice = Notice::None;
                 self.focus = 0;
                 self.pressed = None;
+                self.remember(before);
                 self.changed();
             }
             Command::Backspace | Command::Delete => {
@@ -645,8 +759,30 @@ impl Model {
                     }
                 }
                 if !range.is_empty() {
+                    let before = self.edit_state();
                     self.erase(range);
-                    self.edited();
+                    self.edited(before);
+                }
+            }
+            Command::Undo | Command::Redo => {
+                let recalling = self.recalling();
+                self.leave_recall();
+                if let Some(state) = self
+                    .history
+                    .restore(self.edit_state(), command == Command::Redo)
+                {
+                    self.bytes = state.bytes;
+                    self.length = state.length;
+                    self.caret = state.caret;
+                    self.anchor = state.anchor;
+                    self.focus = 0;
+                    self.pressed = None;
+                    // History restores formula edits, never a cached calculation.
+                    self.current = false;
+                    self.notice = Notice::None;
+                    self.changed();
+                } else if recalling {
+                    self.changed();
                 }
             }
             Command::RecallOlder => self.recall(true),
@@ -795,8 +931,15 @@ impl Model {
         }
         let key = event.key;
         if m.control() {
-            if key == PhysicalKey::A {
-                self.command(Command::SelectAll);
+            let command = match key {
+                PhysicalKey::A => Command::SelectAll,
+                PhysicalKey::Z if !m.shift() => Command::Undo,
+                PhysicalKey::Z => Command::Redo,
+                PhysicalKey::Y if !m.shift() => Command::Redo,
+                _ => return,
+            };
+            if event.action == KeyAction::Press || command == Command::SelectAll {
+                self.command(command);
             }
             return;
         }
