@@ -94,6 +94,8 @@ native-system-tcp = ["native-system-net", "monotonic-clock", "fpu-context"]
 # Reusable ring-3 network service and two IPC-only clients; separate manifest.
 native-net-service = ["native-system-tcp"]
 test-net-service-client-exit = ["native-net-service"]
+# N04: a fourth ring-3 policy process revokes one app's live destination grant.
+test-net-service-revoke = ["native-net-service"]
 test-system-tcp-recover = ["native-system-tcp", "test-system-recover"]
 # B01 entropy broker + Key Service profile: virtio-rng broker, two services, one app.
 native-keyring = ["milestone-m4", "dep:virtio-rng-driver"]

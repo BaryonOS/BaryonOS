@@ -205,16 +205,31 @@ fn run() -> ! {
                         let _ = native::close_received_caps(&message);
                         fail(17)
                     }
+                    let p = message.payload();
+                    let word = |at: usize| u64::from_le_bytes(p[at..at + 8].try_into().unwrap());
+                    // Only the kernel-authenticated policy PID on this private
+                    // endpoint may stop the service or withdraw an app grant.
                     if message.sender() != pid
                         || message.tag() != CONTROL
-                        || message.payload().len() != 16
-                        || message.payload()[..8] != *b"NETSTOP1"
-                        || u64::from_le_bytes(message.payload()[8..16].try_into().unwrap()) != epoch
+                        || !matches!(p.len(), 16 | 24)
+                        || word(8) != epoch
                     {
                         fail(18)
                     }
-                    drain = true;
-                    service.retire_all(tick).unwrap_or_else(|_| fail(19));
+                    match (&p[..8], p.len()) {
+                        (b"NETSTOP1", 16) => {
+                            drain = true;
+                            service.retire_all(tick).unwrap_or_else(|_| fail(19));
+                        }
+                        (b"NETRVK01", 24) => {
+                            let slot = usize::try_from(word(16))
+                                .ok()
+                                .filter(|slot| *slot < 2)
+                                .unwrap_or_else(|| fail(18));
+                            service.revoke(slot, tick).unwrap_or_else(|_| fail(31));
+                        }
+                        _ => fail(18),
+                    }
                 }
                 Err(e) if e.is_again() => {}
                 Err(_) => fail(20),
@@ -295,6 +310,7 @@ fn run() -> ! {
             (512, c.malformed_frames),
             (520, c.dropped_datagrams),
             (536, u64::from(disabled[0]) | (u64::from(disabled[1]) << 1)),
+            (544, service.revoked_mask()),
         ] {
             support::put(at, value)
         }

@@ -95,6 +95,8 @@ jobs:
             python3 -B -u tools/run_network_service.py --case normal
           NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/n01-ci-client-exit" \
             python3 -B -u tools/run_network_service.py --case client-exit
+          NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/n01-ci-revoke" \
+            python3 -B -u tools/run_network_service.py --case revoke
       - name: Preserve tracked source integrity
         run: |
           git diff --exit-code

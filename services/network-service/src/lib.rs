@@ -65,6 +65,7 @@ struct Owner {
     deadline: u64,
     timed_out: bool,
     retired: bool,
+    revoked: bool,
     udp: [u8; DATA],
     udp_len: Option<usize>,
     neighbor: NeighborSlot,
@@ -139,6 +140,7 @@ impl<'a> Service<'a> {
                 deadline: 0,
                 timed_out: false,
                 retired: false,
+                revoked: false,
                 udp: [0; DATA],
                 udp_len: None,
                 neighbor: NeighborSlot::new(local).map_err(|_| Fault::Configuration)?,
@@ -221,6 +223,7 @@ impl<'a> Service<'a> {
                     for (i, owner) in self.owners.iter_mut().enumerate() {
                         let d = self.config.destinations[i];
                         if !owner.retired
+                            && !owner.revoked
                             && packet.destination_mac() == self.config.link.mac
                             && packet.destination_address() == self.config.link.ipv4
                             && packet.source_address() == d.ipv4
@@ -297,6 +300,28 @@ impl<'a> Service<'a> {
         self.needs_poll = true;
         Ok(())
     }
+    /// Trusted policy-authority notification, never an app RPC: withdraws one
+    /// owner's destination grant for the rest of this epoch. A live connection
+    /// is aborted (the stack queues a TCP RST) and buffered UDP is dropped.
+    /// Afterwards every data/open operation of that owner answers `Access`;
+    /// only State, CloseTcp and Retire stay available for cleanup.
+    pub fn revoke(&mut self, slot: usize, now: u64) -> Result<(), Fault> {
+        self.time(now)?;
+        let owner = self.owners.get_mut(slot).ok_or(Fault::Configuration)?;
+        owner.revoked = true;
+        owner.closing = true;
+        owner.udp.fill(0);
+        owner.udp_len = None;
+        owner.neighbor.cancel();
+        self.stack
+            .cancel(owner.client)
+            .map_err(|_| Fault::Transport)?;
+        self.needs_poll = true;
+        Ok(())
+    }
+    pub fn revoked_mask(&self) -> u64 {
+        u64::from(self.owners[0].revoked) | u64::from(self.owners[1].revoked) << 1
+    }
     pub fn clean(&self) -> bool {
         !self.needs_poll
             && self.retired_mask() == 3
@@ -366,6 +391,15 @@ impl<'a> Service<'a> {
         if self.owners[slot].retired {
             self.counters.rejected = self.counters.rejected.saturating_add(1);
             return Ok(refusal(h, Status::Closed));
+        }
+        if self.owners[slot].revoked
+            && !matches!(
+                h.operation,
+                Operation::State | Operation::CloseTcp | Operation::Retire
+            )
+        {
+            self.counters.rejected = self.counters.rejected.saturating_add(1);
+            return Ok(refusal(h, Status::Access));
         }
         let d = self.config.destinations[slot];
         if matches!(h.operation, Operation::OpenTcp | Operation::SendUdp)

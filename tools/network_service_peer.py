@@ -34,7 +34,11 @@ BODIES = (b"Nieuw OS service A\n", b"Nieuw OS service B\n")
 RESPONSES = tuple(b"HTTP/1.1 200 OK\r\nContent-Length: 19\r\nConnection: close\r\n\r\n" + b for b in BODIES)
 UDP_PAYLOADS = (b"Nieuw OS UDP app A", b"Nieuw OS UDP app B")
 CORRUPT_DELAY = 0.25
-CASES = ("normal", "client-exit")
+CASES = ("normal", "client-exit", "revoke")
+# N04 revoke case: inbound SYNs to guest ports nobody listens on. The guest
+# must answer each with RST, never SYN-ACK (no implicit listening port).
+PROBES = {22: 50000, 443: 50001}
+PROBE_ISN = 0x70726f00
 
 def owner(port: int) -> tuple[int, int]:
     if port not in PORTS:
@@ -42,7 +46,7 @@ def owner(port: int) -> tuple[int, int]:
     return (0, port - 8080) if port < 8090 else (1, port - 8090)
 
 
-def tcp_segment(frame: bytes):
+def tcp_segment(frame: bytes, probe: bool = False):
     if not 54 <= len(frame) <= MAX_FRAME or frame[12:14] != b"\x08\x00":
         raise ProtocolError("not bounded IPv4 TCP")
     if frame[:6] != PEER_MAC or frame[6:12] != CLIENT_MAC:
@@ -61,9 +65,13 @@ def tcp_segment(frame: bytes):
             or len(tcp) - size > 1024
             or checksum(CLIENT_IP + PEER_IP + struct.pack("!BBH", 0, 6, len(tcp)) + tcp)):
         raise ProtocolError("invalid TCP checksum, flags or bounds")
-    owner(target)
-    if not 40000 <= source < 40010:
-        raise ProtocolError("unexpected local TCP port")
+    if probe:
+        if PROBES.get(source) != target:
+            raise ProtocolError("probe reply outside probe tuple")
+    else:
+        owner(target)
+        if not 40000 <= source < 40010:
+            raise ProtocolError("unexpected local TCP port")
     options, at = tcp[20:size], 0
     while at < len(options):
         kind = options[at]
@@ -96,6 +104,7 @@ class Connection:
     fin_sent: bool = False
     closed: bool = False
     corrupt_due: float | None = None
+    resets: set = field(default_factory=set)
     @property
     def client_next(self):
         return (self.isn + 1 + len(self.request)) & MASK
@@ -112,8 +121,9 @@ class Machine:
         if case not in CASES:
             raise ValueError("unknown native service peer case")
         self.case = case
-        self.ports = PORTS if case == "normal" else (8084, *range(8090, 8095))
+        self.ports = PORTS if case == "normal" else (8084 if case == "client-exit" else 8080, *range(8090, 8095))
         self.slots = (0, 1) if case == "normal" else (1,)
+        self.probes = {}
         self.connections = {}
         self.events = []
         self.udp = set()
@@ -123,7 +133,8 @@ class Machine:
                  "blackhole_rsts", "corrupt_data_sent", "valid_data_sent", "http_requests",
                  "valid_data_acks", "fins_sent", "client_fins_acked", "udp_requests",
                  "udp_corrupt_sent", "udp_wrong_scope_sent", "udp_echo_sent", "udp_overflow_sent",
-                 "udp_fragment_first_sent", "udp_fragment_tail_sent")
+                 "udp_fragment_first_sent", "udp_fragment_tail_sent", "probe_syns", "probe_rsts",
+                 "held_requests", "revoke_rsts")
         self.counts = dict.fromkeys(names, 0)
     def event(self, direction, label, frame, **fields):
         if len(self.events) >= MAX_EVENTS:
@@ -156,7 +167,27 @@ class Machine:
                         payload=RESPONSES[owner(c.port)[0]], label="http-data")
     @staticmethod
     def done(c):
-        return c.closed or c.phase in ("refused", "reset", "blackhole")
+        return c.closed or c.phase in ("refused", "reset", "blackhole", "revoked")
+    def held(self, port):
+        return self.case == "revoke" and port == 8080
+    def probe(self, guest_port):
+        tcp = struct.pack("!HHIIBBHHH", PROBES[guest_port], guest_port, PROBE_ISN + guest_port, 0,
+                          5 << 4, SYN, 4096, 0, 0)
+        value = checksum(PEER_IP + CLIENT_IP + struct.pack("!BBH", 0, 6, len(tcp)) + tcp)
+        packet = self.ip(tcp[:16] + struct.pack("!H", value) + tcp[18:], 6)
+        self.probes[guest_port] = "sent"
+        self.counts["probe_syns"] += 1
+        self.event("tx", "probe-syn", packet, port=guest_port)
+        return packet
+    def probe_reply(self, frame):
+        s = tcp_segment(frame, probe=True)
+        if (self.probes.get(s.source) != "sent" or s.flags != RST | ACK or s.seq != 0 or s.payload
+                or s.ack != (PROBE_ISN + s.source + 1) & MASK):
+            raise ProtocolError("probe answered other than one exact RST")
+        self.probes[s.source] = "reset"
+        self.counts["probe_rsts"] += 1
+        self.event("rx", "probe-rst", frame, port=s.source)
+        return []
     def arp(self, frame):
         broadcast = frame[:6] == b"\xff" * 6 and frame[32:38] == b"\xff" * 6
         if (len(frame) not in (42, 60) or frame[:6] not in (b"\xff" * 6, PEER_MAC)
@@ -229,6 +260,9 @@ class Machine:
             return self.arp(frame)
         if len(frame) > 23 and frame[12:14] == b"\x08\x00" and frame[23] == 17:
             return self.udp_request(frame)
+        if (self.case == "revoke" and len(frame) >= 38 and frame[12:14] == b"\x08\x00"
+                and frame[23] == 6 and struct.unpack_from("!H", frame, 34)[0] in PROBES):
+            return self.probe_reply(frame)
         s = tcp_segment(frame)
         slot, relative = owner(s.target)
         expected_source = 40000 if self.case == "client-exit" and s.target == 8084 else 40000 + slot + 2 * relative
@@ -265,6 +299,10 @@ class Machine:
                     self.counts["first_syn_dropped"] += 1
                     return []
                 self.counts["retry_syns"] += 1
+            if self.held(s.target):
+                if c.syns != 1:
+                    raise ProtocolError("held connection SYN retransmitted")
+                return [self.probe(22), self.probe(443), self.syn_ack(c)]
             if case == 0 and c.syns == 1:
                 # Independent fragments precede the handshake so the existing
                 # four-frame UDP/backpressure burst and response bound stay intact.
@@ -274,6 +312,19 @@ class Machine:
             return [self.syn_ack(c)]
         if c is None or s.source != c.source:
             raise ProtocolError("TCP without bound tuple")
+        if s.flags & RST and self.held(s.target):
+            # Revocation aborts the live, idle connection: the abort's RST|ACK
+            # at the next client sequence, never data, FIN or a new SYN. If the
+            # held ACK reaches the guest after the abort, the closed tuple may
+            # also answer it with a bare RST (SEQ=SEG.ACK); each form at most once.
+            if (c.phase not in ("held", "revoked") or s.payload or s.flags not in (RST, RST | ACK)
+                    or s.seq != c.client_next or s.ack != (c.server_start if s.flags & ACK else 0)
+                    or s.flags in c.resets):
+                raise ProtocolError("unexpected revocation reset")
+            c.resets.add(s.flags)
+            c.phase = "revoked"
+            self.counts["revoke_rsts"] += 1
+            return []
         if s.flags & RST:
             if case not in (1, 2, 4) or s.payload or s.flags not in (RST, RST | ACK) or s.seq != c.client_next:
                 raise ProtocolError("unexpected client RST")
@@ -283,7 +334,7 @@ class Machine:
             if case == 4:
                 self.counts["blackhole_rsts"] += 1
             return []
-        if not s.flags & ACK or s.flags & ~(ACK | PSH | FIN) or c.phase in ("refused", "reset", "blackhole"):
+        if not s.flags & ACK or s.flags & ~(ACK | PSH | FIN) or c.phase in ("refused", "reset", "blackhole", "revoked"):
             raise ProtocolError("data outside established connection")
         if c.phase == "syn":
             if s.seq != c.client_next or s.ack != c.server_start:
@@ -306,6 +357,10 @@ class Machine:
             if len(c.request) < len(REQUESTS[slot]):
                 return [self.tcp(c, ACK, seq=c.server_start, ack=c.client_next, label="request-ack")]
             self.counts["http_requests"] += 1
+            if self.held(s.target):
+                c.phase = "held"
+                self.counts["held_requests"] += 1
+                return [self.tcp(c, ACK, seq=c.server_start, ack=c.client_next, label="request-held-ack")]
             if case == 2:
                 c.phase = "reset"
                 self.counts["resets_after_get"] += 1
@@ -319,6 +374,10 @@ class Machine:
             return [self.valid_data(c)]
         if s.payload:
             raise ProtocolError("extra HTTP request bytes")
+        if c.phase == "held":
+            if s.ack != c.server_start or s.flags & FIN:
+                raise ProtocolError("held connection closed or acknowledged unsent data")
+            return []
         if c.phase == "corrupt-delay":
             if s.ack != c.server_start or s.flags & FIN:
                 raise ProtocolError("client acknowledged corrupt TCP bytes")
@@ -363,6 +422,16 @@ class Machine:
                     and self.counts["udp_fragment_first_sent"] == owners
                     and self.counts["udp_fragment_tail_sent"] == owners
                     and self.counts["client_fins_acked"] == 2 * owners)
+        if self.case == "revoke":
+            held = self.connections.get(8080)
+            complete = (complete and held is not None and held.phase == "revoked"
+                        and bytes(held.request) == REQUESTS[0] and not held.data_acked
+                        and self.counts["held_requests"] == 1 and RST | ACK in held.resets
+                        and self.counts["revoke_rsts"] == len(held.resets)
+                        and self.probes == {22: "reset", 443: "reset"}
+                        and self.counts["probe_syns"] == self.counts["probe_rsts"] == 2)
+        elif self.probes or any(self.counts[k] for k in ("probe_syns", "probe_rsts", "held_requests", "revoke_rsts")):
+            complete = False
         return dict(case=self.case, complete=complete, counts=dict(self.counts), cases=cases, events=list(self.events),
                     request_sha256=[hashlib.sha256(r).hexdigest() for r in REQUESTS],
                     response_sha256=[hashlib.sha256(r).hexdigest() for r in RESPONSES],

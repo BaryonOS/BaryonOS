@@ -886,3 +886,131 @@ fn send_after_peer_reset_reports_terminal_closed() {
         });
     });
 }
+
+/// N04: a trusted revocation aborts the live connection on the wire and every
+/// later open/data operation of that owner fails with Access, while the other
+/// owner keeps its own grant and cleanup operations remain available.
+#[test]
+fn revocation_resets_live_connection_and_denies_further_use() {
+    service!(s, configuration(), {
+        peer!(dev, peer, sockets, handle, {
+            let mut id = 1;
+            let token = rpc(
+                &mut s,
+                0,
+                &request(Operation::OpenTcp, id, 0, 3000, PEER, 8080, &[]),
+                0,
+            )
+            .header()
+            .connection;
+            let mut tick = 0;
+            while tcp_state(&mut s, &mut id, token, tick) != ConnectionState::Established as u32 {
+                step(&mut s, &mut dev, &mut peer, &mut sockets, tick, None);
+                tick += 1;
+                assert!(tick < 100, "handshake did not complete");
+            }
+            assert_eq!(
+                tcp_rpc(&mut s, &mut id, Operation::SendTcp, token, b"hi", tick).status(),
+                Status::Ok
+            );
+            while sockets.get_mut::<Socket>(handle).recv_queue() < 2 {
+                step(&mut s, &mut dev, &mut peer, &mut sockets, tick, None);
+                tick += 1;
+                assert!(tick < 200, "data did not reach the peer");
+            }
+            assert_eq!(s.revoked_mask(), 0);
+            s.revoke(0, tick).unwrap();
+            assert_eq!(s.revoked_mask(), 1);
+            while sockets.get_mut::<Socket>(handle).is_active() {
+                step(&mut s, &mut dev, &mut peer, &mut sockets, tick, None);
+                tick += 1;
+                assert!(tick < 300, "peer never observed the reset");
+            }
+            assert_eq!(
+                tcp_state(&mut s, &mut id, token, tick),
+                ConnectionState::Closed as u32
+            );
+            let rejected = s.counters().rejected;
+            let (sent, opened) = (s.counters().sent, s.counters().opened);
+            for (op, port, data) in [
+                (Operation::SendTcp, 0, &b"x"[..]),
+                (Operation::ReceiveTcp, 0, &[][..]),
+                (Operation::OpenTcp, 8081, &[][..]),
+                (Operation::SendUdp, 9000, &b"u"[..]),
+                (Operation::ReceiveUdp, 0, &[][..]),
+            ] {
+                id += 1;
+                let address = if port == 0 { [0; 4] } else { PEER };
+                let t = if matches!(op, Operation::SendTcp | Operation::ReceiveTcp) {
+                    token
+                } else {
+                    0
+                };
+                let argument = if op == Operation::OpenTcp {
+                    300
+                } else {
+                    data.len() as u32
+                };
+                assert_eq!(
+                    rpc(
+                        &mut s,
+                        0,
+                        &request(op, id, t, argument, address, port, data),
+                        tick
+                    )
+                    .status(),
+                    Status::Access,
+                    "{op:?} after revocation"
+                );
+            }
+            assert_eq!(s.counters().rejected, rejected + 5);
+            assert_eq!((s.counters().sent, s.counters().opened), (sent, opened));
+            assert!(
+                s.transmission().is_none(),
+                "denied requests emitted traffic"
+            );
+            // The other owner's grant is independent of the revocation.
+            assert_eq!(
+                rpc(
+                    &mut s,
+                    1,
+                    &request(Operation::OpenTcp, 1, 0, 300, PEER, 8090, &[]),
+                    tick
+                )
+                .status(),
+                Status::Ok
+            );
+            for (op, t) in [(Operation::CloseTcp, token), (Operation::Retire, 0)] {
+                assert_eq!(
+                    tcp_rpc(&mut s, &mut id, op, t, &[], tick).status(),
+                    Status::Ok
+                );
+            }
+            assert_eq!(s.retired_mask(), 1);
+            assert_eq!(s.revoke(2, tick), Err(Fault::Configuration));
+        });
+    });
+}
+
+/// Revocation also drops a datagram already buffered for the owner and stops
+/// accepting new ones; nothing reaches a later ReceiveUdp.
+#[test]
+fn revocation_drops_buffered_and_later_udp() {
+    service!(s, configuration(), {
+        s.ingress(&datagram(0, 9000, b"before"), 0).unwrap();
+        assert_eq!(s.counters().udp_received, 1);
+        s.revoke(0, 0).unwrap();
+        let malformed = s.counters().malformed_frames;
+        s.ingress(&datagram(0, 9000, b"after"), 0).unwrap();
+        assert_eq!(s.counters().udp_received, 1);
+        assert_eq!(s.counters().malformed_frames, malformed + 1);
+        let reply = rpc(
+            &mut s,
+            0,
+            &request(Operation::ReceiveUdp, 1, 0, 0, [0; 4], 0, &[]),
+            0,
+        );
+        assert_eq!(reply.status(), Status::Access);
+        assert!(reply.data().is_empty());
+    });
+}
