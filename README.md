@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-05 · **Rubric:** v1 ·
-**Bron:** [`36703f50`](https://github.com/simonvanieperen/nieuw-os/commit/36703f50450d2075117b5a5e75a9bb4ca28b49a0) ·
+**Bron:** [`cd78ea74`](https://github.com/simonvanieperen/nieuw-os/commit/cd78ea74f14d8b8921aad51cc46a41c41274ab45) ·
 **Ontwikkelbranch:** `k06/smp-ap-bringup`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 1: native AP-opstart (MADT, INIT-SIPI-SIPI, begrensde sync-proef) gestapeld op PR #191.
-41/100 blijft 41/100. Opt-in native-smp M2-profiel start AP's begrensd en fail-closed; 8 native QEMU/TCG-gevallen (1-9 vCPU's, dubbele MADT, AP-stall, registermismatch) geslaagd, zie docs/verification/k06-smp-bringup/. Een in CI gevonden BSP-stack-overloop in M3-profielen is hersteld (36703f50). K06 vereist SMP-scheduling, interrupts, TLB-shootdown en adresruimtewisseling onder concurrente belasting en blijft open. Gestapeld op PR #191, nog niet op main; geen nieuwe-head CI beoordeeld. De integration_review-velden blijven historisch PR148-bewijs.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 1: native AP-opstart; conflictintegratie met main en device-exec/ACPI-handoff op PR #200.
+41/100 blijft 41/100. De K06 native-smp implementatie en eerder opgeslagen QEMU/TCG-bewijs blijven ongewijzigd. PR-head cd78ea74 is geïntegreerd met base main 7dd91fad en de device-exec/ACPI-handoff-head; drie statusconflicten zijn opgelost. Gerichte hosttests, driver-Clippy/fmt/freestanding builds, kernel native-smp build en progress-consistentiecheck slaagden. CodeQL op de eerste mergecommit c014b17d vond geen Actions/Python-alerts maar liep af vóór alle talen klaar waren; de geresynchroniseerde head is niet volledig gescand. Nieuwe-head hosted CI en native K06-QEMU op de geïntegreerde head blijven open. Geen criterium of gewicht gewijzigd; K06 blijft open. De integration_review-velden blijven historisch PR148-bewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
