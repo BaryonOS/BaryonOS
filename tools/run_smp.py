@@ -77,13 +77,14 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
         ids.append(int(match[1]))
     if len(set(ids)) != len(ids):
         raise ValueError("An AP was reported twice")
+    # QEMU's default flat topology numbers the BSP 0 and APs 1..n-1 in MADT order.
     if outcome == "online":
-        if len(ids) != online - 1 or ap_lines != [f"SMP:AP:{apic}:ONLINE" for apic in ids]:
+        if ids != list(range(1, online)) or ap_lines != [f"SMP:AP:{apic}:ONLINE" for apic in ids]:
             raise ValueError("Not every expected AP came online")
         tail = [f"SMP:SKIPPED:CAPACITY={cpus - MAX_CPUS}"] if cpus > MAX_CPUS else []
     else:
         status = "TIMEOUT" if outcome == "timeout" else "MISMATCH"
-        if len(ids) != 1 or ap_lines != [f"SMP:AP:{ids[0]}:{status}"]:
+        if ids != [1] or ap_lines != [f"SMP:AP:1:{status}"]:
             raise ValueError("The faulting AP was not rejected first and only")
         tail = ["SMP:BRINGUP:STOPPED"]
     expected = ap_lines + tail + [f"SMP:ONLINE:{online}/{cpus}", f"SMP:SYNC:PASS:CPUS={online}"]

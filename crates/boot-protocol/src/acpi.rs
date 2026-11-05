@@ -351,13 +351,13 @@ fn discover_tables(rsdp: &[u8], reader: &mut impl PhysicalRead) -> Result<Discov
             } else {
                 saw_madt = true;
                 match table_length(&header) {
-                    Ok(length) => {
-                        reader
-                            .read(address, &mut table[..length])
-                            .map_err(|_| Error::Read)?;
-                        validate_table(&table[..length], b"APIC")
-                            .and_then(|()| parse_madt(&table[..length], &mut result.madt))
-                    }
+                    // Even a rejected read only invalidates the MADT: MCFG/DMAR
+                    // discovery must not depend on the optional SMP inventory.
+                    Ok(length) => reader
+                        .read(address, &mut table[..length])
+                        .map_err(|_| Error::Read)
+                        .and_then(|()| validate_table(&table[..length], b"APIC"))
+                        .and_then(|()| parse_madt(&table[..length], &mut result.madt)),
                     Err(error) => Err(error),
                 }
             };
@@ -1097,6 +1097,14 @@ mod tests {
         let accepted = discover_madt(vec![madt(0xfee0_0000, &full)]).madt;
         assert_eq!(accepted.status, MadtStatus::Valid);
         assert_eq!(accepted.cpus().len(), MAX_MADT_CPUS);
+    }
+
+    #[test]
+    fn unreadable_madt_body_fails_only_smp_closed() {
+        // Header readable, body outside what the reader accepts.
+        let mut header_only = madt(0xfee0_0000, &qemu_like_entries());
+        header_only.truncate(ACPI_HEADER_SIZE);
+        assert_only_madt_invalid(discover_madt(vec![header_only]));
     }
 
     #[test]

@@ -1,5 +1,47 @@
 # Ontwerpbesluiten
 
+## ADR-070 — Begrensde AP-opstart als eerste K06-stap
+
+5 november 2026. De kernel start applicatieprocessoren (AP's) uitsluitend in
+het opt-in M2-profiel `native-smp`, met IF=0. Dat profiel sluit bij
+compilatie M3, framebuffer, native-rtc en graphics-g0 uit. Alle bestaande
+één-CPU-invarianten (ADR-024 scratchslot, frame-allocator, paging, serieel,
+IPC, scheduler) blijven onveranderd geldig, omdat AP's die code nooit
+uitvoeren. De BSP is de enige eigenaar van frames, paging, PIT, ICR en
+seriële uitvoer.
+
+**Ontwerp.** De MADT is onbetrouwbare firmware-invoer. Alleen ingeschakelde,
+unieke processors tellen mee (maximaal 32). Een kapotte, dubbele of te grote
+MADT maakt alleen SMP ongeldig, niet de MCFG/DMAR-inventaris.
+IA32_APIC_BASE moet xAPIC-modus, ingeschakeld en BSP aangeven en gelijk zijn
+aan de MADT-basis. Alleen die exacte pagina krijgt een UC/NX-mapping, die
+`audit` net als het framebuffervenster afzonderlijk controleert.
+De SIPI-pagina is het eerste vrije ConventionalMemory-frame onder 0xA0000:
+permanent Kernel-eigendom, één keer geschreven vóór de CR3-wissel en nooit in
+onze tabellen gemapt. Zij bevat alleen 16-bitcode en een CR3-veld. De 32/64-bit-
+stap, de trampoline-GDT en AP-stacks van 16 KiB met guardpagina's staan in het
+identity-gemapte kernelimage. W^X verandert dus niet.
+
+**Gelijktijdigheid.** Een AP kiest zijn context op hardware-APIC-ID en claimt
+die met één `lock cmpxchg` STARTING→CLAIMED. Bij een time-out pakt de BSP
+dezelfde CAS STARTING→ABANDONED en reset de CPU met INIT. Een late AP draait
+dus nooit op een opgegeven stack. Iedere fout stopt verdere opstart, zonder
+paniek: het systeem blijft met de reeds gestarte CPU's werken. Kan een
+gefaalde AP niet met INIT worden gereset, dan stopt de boot als fout: er
+draait nooit een onbeheerste CPU naast de kernel. Een CPU-exception op een
+AP komt in de gedeelde M2-handlers en stopt de VM terminaal. Een MADT-
+leesfout maakt eveneens alleen de MADT ongeldig. Een AP neemt
+CR0/CR3/CR4/EFER/PAT van de BSP exact over en controleert die. Daarna voert
+hij een begrensde atomic-plus-spinlocktest uit en parkeert met `cli; hlt`.
+
+**Bewijsgrens.** QEMU q35/OVMF/TCG met 1–9 vCPU's plus negatieve gevallen;
+zie `docs/verification/k06-smp-bringup/`. Dit is geen SMP-scheduling, geen
+IPI/TLB-shootdown en geen per-CPU TSS/IST: een NMI of #DF op een AP stopt de
+VM. Fysieke hardware is niet getest en K06 is niet geaccepteerd.
+**Herzien** vóórdat een AP kernelsubsystemen, gebruikersprocessen of
+interrupts uitvoert. Dan zijn per-CPU-staat, TSS/IST, lockvolgorde,
+TLB-shootdown en de herziening van ADR-024 verplicht.
+
 <a id="adr-057--vreemde-opslag-nooit-als-leeg-volume-toelaten"></a>
 ## ADR-064 — Vreemde opslag nooit als leeg volume toelaten
 

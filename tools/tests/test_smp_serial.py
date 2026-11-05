@@ -60,11 +60,13 @@ class SmpSerialOracle(unittest.TestCase):
                 four[:1] + ["SMP:AP:1:TIMEOUT"] + four[2:],
                 four[:-1],                                # sync result missing
                 ["SMP:UNAVAILABLE:INVALID_MADT"],
+                [four[0], "SMP:AP:1:ONLINE", "SMP:AP:2:ONLINE", "SMP:AP:7:ONLINE"] + four[4:],
+                [four[0], four[2], four[1], four[3]] + four[4:],  # unique but out of order
             ],
             "nine-capacity": [online(9)[:-3] + online(9)[-2:], online(8)],
             "ap-stall": [failed("TIMEOUT")[:2] + failed("TIMEOUT")[3:], failed("MISMATCH"),
                          online(4)],
-            "ap-mismatch": [failed("TIMEOUT")],
+            "ap-mismatch": [failed("TIMEOUT"), [failed("MISMATCH")[0], "SMP:AP:2:MISMATCH"] + failed("MISMATCH")[2:]],
             "duplicate-madt": [online(4), []],
         }
         for case, transcripts in bad.items():

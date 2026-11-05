@@ -11,7 +11,8 @@ permissions:
 
 concurrency:
   group: native-smp-${{ github.ref }}
-  cancel-in-progress: true
+  # Never cancel evidence for an earlier main commit; only superseded PR heads.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 defaults:
   run:

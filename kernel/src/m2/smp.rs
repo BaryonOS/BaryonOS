@@ -14,7 +14,12 @@
 //!   given up; a claimed-but-silent AP is reset with INIT and bring-up stops.
 //! - APs touch only their own stack, their context atomics, the read-only BSP
 //!   register snapshot and the self-test atomics/spinlock, then halt with IF=0.
-//!   They never enter allocator, paging, IPC, scheduler or serial code.
+//!   They never enter allocator, paging, IPC or scheduler code. Exception: a
+//!   CPU exception on an AP enters the shared M2 handlers, which write serial
+//!   and exit the VM (IST gates triple-fault: APs have no TSS). That is a
+//!   terminal stop, never a resumed or corrupted bring-up.
+//! - If an AP that failed cannot be reset with INIT, the boot stops (fail):
+//!   an uncontrolled CPU is never left running beside the kernel.
 use super::{arch, paging, zero, FRAME_COUNT};
 use crate::serial;
 use boot_protocol::acpi::{Madt, MadtStatus};
@@ -23,7 +28,7 @@ use core::{
     cell::UnsafeCell,
     hint::spin_loop,
     ptr,
-    sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering},
+    sync::atomic::{fence, AtomicBool, AtomicU32, AtomicU64, Ordering},
 };
 use kernel_core::{Frames, Owner, PAGE};
 
@@ -151,6 +156,7 @@ global_asm!(
     "    .quad 0x00cf9b000000ffff",
     "    .quad 0x00cf93000000ffff",
     "    .quad 0x00af9b000000ffff",
+    ".globl nos_smp_gdt_end",
     "nos_smp_gdt_end:",
     ".popsection",
     ".pushsection .text.nos_smp_ap,\"ax\"",
@@ -214,6 +220,7 @@ global_asm!(
 extern "C" {
     static nos_smp_trampoline_start: u8;
     static nos_smp_trampoline_end: u8;
+    static nos_smp_gdt_end: u8;
 }
 const TRAMPOLINE_CR3: u64 = 8;
 
@@ -278,7 +285,15 @@ pub fn prepare(
         ptr::addr_of!(nos_smp_trampoline_end) as u64,
     );
     let length = end - start;
-    if length > PAGE || root >= 1 << 32 || !root.is_multiple_of(PAGE) || end >= 1 << 32 {
+    // The 32-bit stages address the GDT and entry32 (both below gdt_end in this
+    // image) with 32-bit absolute operands; the kernel links below 0x03000000.
+    let image_end = ptr::addr_of!(nos_smp_gdt_end) as u64;
+    if length > PAGE
+        || root >= 1 << 32
+        || !root.is_multiple_of(PAGE)
+        || end >= 1 << 32
+        || image_end >= 1 << 32
+    {
         return Err(b"TRAMPOLINE_LAYOUT");
     }
     // SAFETY: `page` is an exclusive Kernel-owned ConventionalMemory frame below
@@ -308,6 +323,9 @@ fn icr_idle() -> bool {
     })
 }
 fn send_ipi(apic_id: u32, low: u32) -> bool {
+    // Every context/register publication precedes the IPI that makes an AP read
+    // it; volatile MMIO is not ordered against atomics by the language alone.
+    fence(Ordering::SeqCst);
     if !icr_idle() {
         return false;
     }
@@ -332,8 +350,10 @@ fn outb(port: u16, value: u8) {
         asm!("out dx, al", in("dx") port, in("al") value, options(nomem, nostack));
     }
 }
-/// Busy-wait on PIT channel 2 (mode 0, gated through port 0x61). Bounded: a
-/// missing timer returns false instead of hanging the boot.
+/// Busy-wait on PIT channel 2 (mode 0, gated through port 0x61). At most
+/// 0xffff ticks (~54.9 ms); callers use <= 10 ms. Bounded and fail-closed: a
+/// missing timer, or a floating bus that already reads OUT2 high after arming,
+/// returns false instead of collapsing the wait or hanging the boot.
 fn wait_us(us: u32) -> bool {
     let ticks = (u64::from(us) * 1_193_182)
         .div_ceil(1_000_000)
@@ -343,9 +363,13 @@ fn wait_us(us: u32) -> bool {
     outb(0x43, 0xb0);
     outb(0x42, ticks as u8);
     outb(0x42, (ticks >> 8) as u8);
+    // Mode 0 drives OUT2 low on the control word; high now means no real PIT.
+    if inb(0x61) & 0x20 != 0 {
+        return false;
+    }
     outb(0x61, control | 0x01);
     // PAUSE also lets a round-robin hypervisor (single-thread TCG) run the APs.
-    let expired = (0..20_000_000u32).any(|_| {
+    let expired = (0..2_000_000u32).any(|_| {
         spin_loop();
         inb(0x61) & 0x20 != 0
     });
@@ -506,7 +530,9 @@ enum Start {
     Ipi,
 }
 
-fn bring_up(slot: usize, apic_id: u32, vector: u32) -> Start {
+/// Returns the outcome and, for every non-online outcome, whether the CPU was
+/// confirmed reset with INIT (false means it may still be running).
+fn bring_up(slot: usize, apic_id: u32, vector: u32) -> (Start, bool) {
     let context = &NOS_SMP_AP_CONTEXTS[slot];
     context
         .stack_top
@@ -524,7 +550,7 @@ fn bring_up(slot: usize, apic_id: u32, vector: u32) -> Start {
         wait_us(200);
         for _ in 0..100 {
             match context.state.load(Ordering::Acquire) {
-                ONLINE => return Start::Online,
+                ONLINE => return (Start::Online, true),
                 MISMATCH => {
                     result = Start::Mismatch;
                     break;
@@ -539,13 +565,14 @@ fn bring_up(slot: usize, apic_id: u32, vector: u32) -> Start {
     }
     // Fail closed: an unclaimed context is retired by the same CAS the AP uses;
     // a claimed one keeps its stack forever. Either way the CPU is reset (INIT).
-    let _ =
-        context
-            .state
-            .compare_exchange(STARTING, ABANDONED, Ordering::AcqRel, Ordering::Acquire);
-    let _ = send_ipi(apic_id, IPI_INIT);
+    // A failed CAS only means the AP already claimed; INIT handles both cases.
+    context
+        .state
+        .compare_exchange(STARTING, ABANDONED, Ordering::AcqRel, Ordering::Acquire)
+        .ok();
+    let quarantined = send_ipi(apic_id, IPI_INIT);
     context.state.store(ABANDONED, Ordering::Release);
-    result
+    (result, quarantined)
 }
 
 /// After KS-03: report the MADT, start each enabled AP in order and run the
@@ -600,7 +627,7 @@ pub fn start(prepared: Prepared, madt: &Madt) {
             capacity += 1;
             continue;
         }
-        let outcome = bring_up(online, cpu.apic_id, vector);
+        let (outcome, quarantined) = bring_up(online, cpu.apic_id, vector);
         serial::write(b"SMP:AP:");
         decimal(u64::from(cpu.apic_id));
         serial::write(match outcome {
@@ -610,6 +637,10 @@ pub fn start(prepared: Prepared, madt: &Madt) {
             Start::Ipi => b":IPI_ERROR\n",
         });
         if !matches!(outcome, Start::Online) {
+            if !quarantined {
+                // The AP may still be running; GO must never be published.
+                serial::fail(b"SMP_AP_QUARANTINE");
+            }
             serial::write(b"SMP:BRINGUP:STOPPED\n");
             break;
         }
