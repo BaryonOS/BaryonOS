@@ -20,7 +20,7 @@ def validate(peer):
 # Each forged mutation must fail on its own invariant, not on an unrelated check.
 REASONS = {
     "duplicate": "precedes required server response",
-    "changed_payload": "Empty TCP payload hash changed",
+    "changed_payload": "Changed or repeated backpressure retransmission",
     "changed_new_data": "Changed backpressure request bytes",
     "missing_release": "precedes required server response",
     "missing_recovery": "Packet-derived counter differs: backpressure_recovery_segments",
@@ -104,9 +104,10 @@ class TranscriptTests(unittest.TestCase):
                 changed["wire_frames_sent"] = changed["counts"]["server_frames"]
             elif mutation == "changed_payload":
                 first = next(e for e in events if e.get("port") == 8085 and e.get("payload_length", 0) > 0)
+                # The data retransmission, not the empty handshake ACK with the same seq.
                 retransmit = next(e for e in events if e.get("port") == 8085
                                   and e.get("direction") == "rx" and e.get("seq") == first["seq"]
-                                  and e is not first)
+                                  and e.get("payload_length", 0) > 0 and e is not first)
                 retransmit["payload_sha256"] = "0" * 64
             elif mutation == "changed_new_data":
                 first = next(e for e in events if e.get("port") == 8085 and e.get("payload_length", 0) > 0)

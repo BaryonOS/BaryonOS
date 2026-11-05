@@ -12,6 +12,12 @@
 > vrijgave, strikte causaliteit, baselinegrens van 1024 bytes) is het native bewijs
 > hieronder, vastgelegd op de oude bronboom, voor de nieuwe boom **onbekend**. De Engelse
 > tekst hieronder is het oorspronkelijke receipt en is ongewijzigd.
+>
+> **Actueel hostbewijs (branch-head na `8626e0a7`):** `python3 -B -m unittest discover -s sdk/examples/tcp-probe -p test_peer.py`
+> 21/21 OK en `python3 -B -m unittest discover -s tests -p 'test_tcp_*.py'` 20/20 OK.
+> **Native QEMU** (`tools/test_tcp_system.py --scenario baseline|loss-backpressure`) is na
+> deze fix **niet uitgevoerd**; de status op de nieuwe boom is onbekend. De 17/17-receipt
+> hieronder is historisch.
 
 ## Scope and proof boundary
 
