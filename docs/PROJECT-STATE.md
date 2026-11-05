@@ -39,7 +39,10 @@ head.
 Voor K06 nog nodig: per-CPU-staat, TSS/IST, IPI/TLB-shootdown, SMP-scheduler,
 lockvolgorde en herziening van ADR-024. Er is geen fysiek hardwarebewijs.
 **Eerstvolgend commando:**
-`python3 -B -u tools/run_smp.py --profile native-smp`.
+`NOS_BUILD_DIR="$PWD/build/k06-native-smp" python3 -B tools/build.py --kernel-feature native-smp`
+en daarna, met dezelfde `NOS_BUILD_DIR`,
+`NOS_BUILD_DIR="$PWD/build/k06-native-smp" python3 -B -u tools/run_smp.py --profile native-smp`
+(`run_smp.py` bouwt niet zelf).
 ## Historisch checkpoint — sessie-/bibliotheekintegratie (#206) — 5 november 2026
 
 **Basis:** main `bce6cabc71184d90fc228fe2ae8215339ff7bf28`, branch `integrate/20261105-session-library`

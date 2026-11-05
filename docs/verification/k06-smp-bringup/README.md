@@ -72,8 +72,10 @@ NOS_BUILD_DIR=build/k06-<profiel> python3 -B -u tools/run_smp.py --profile <prof
 `milestone-m2`, `framebuffer` en `native-rtc` slaagt.
 `native-smp`+`milestone-m3` faalt zoals bedoeld met de `compile_error`.
 
-**Niet uitgevoerd:** M3-, systeem- en desktopprofielen native, want
-native-smp combineert er niet mee. Kernel-Clippy maakt geen deel uit van
+**Niet uitgevoerd (in deze eerste ronde op `c687cd13`):** M3-, systeem- en
+desktopprofielen native, want native-smp combineert er niet mee. Na de
+CI-regressie zijn de M3-boot, K05 (6/6) en de M6C-smoke wel lokaal native
+uitgevoerd; zie de sectie 'CI-regressie hersteld (36703f50)' hieronder. Kernel-Clippy maakt geen deel uit van
 CI; lokaal geeft het alleen vier bestaande, niet-gewijzigde meldingen in
 `paging.rs` en `main.rs`. Er is geen fysieke hardware en geen
 nieuwe-head-CI op GitHub op het moment van schrijven.
