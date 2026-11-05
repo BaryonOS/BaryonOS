@@ -15,15 +15,9 @@ BUILD = Path(os.environ.get("NOS_BUILD_DIR", str(ROOT / "build"))).resolve()
 TARGET = Path(os.environ.get("NOS_TARGET_DIR", str(ROOT / "target"))).resolve()
 LOCAL = Path(os.environ.get("LOCALAPPDATA", str(ROOT / ".tools"))) / "nieuw-os"
 QEMU_MACHINES = ("pc-q35-10.0", "pc-q35-8.2", "pc-q35-7.2")
-ACPI_STATUS_MARKERS = frozenset({
-    "ACPI:UNAVAILABLE:NO_HANDOFF",
-    "ACPI:UNAVAILABLE:BAD_HANDOFF",
-    "ACPI:UNAVAILABLE:INVALID_TABLES",
-    "ACPI:UNAVAILABLE:NO_MCFG",
-    "ACPI:UNAVAILABLE:NO_DMAR",
-    "ACPI:UNAVAILABLE:NO_DMAR_UNITS",
-    "ACPI:DISCOVERY:MCFG_DMAR",
-})
+# Pinned q35/OVMF profile without an IOMMU: MCFG present, DMAR absent. Any
+# other ACPI status (rejected handoff, invalid tables, ...) is a gate failure.
+EXPECTED_ACPI_MARKER = "ACPI:UNAVAILABLE:NO_DMAR"
 DEVICE_EXECUTION_MARKER = "DEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT"
 
 
@@ -38,7 +32,7 @@ def without_acpi_diagnostics(stdout: str) -> str:
     if not acpi and not execution:
         return stdout
     if (len(acpi) != 1 or len(execution) != 1
-            or values[acpi[0]] not in ACPI_STATUS_MARKERS
+            or values[acpi[0]] != EXPECTED_ACPI_MARKER
             or values[execution[0]] != DEVICE_EXECUTION_MARKER
             or execution[0] != acpi[0] + 1
             or acpi[0] == 0 or acpi[0] + 2 >= len(values)
@@ -47,6 +41,12 @@ def without_acpi_diagnostics(stdout: str) -> str:
         raise ValueError("Malformed or misplaced ACPI boot diagnostics")
     del lines[acpi[0]:acpi[0] + 2]
     return "".join(lines)
+
+
+def with_acpi_markers(required: tuple[str, ...]) -> tuple[str, ...]:
+    """Require the native ACPI status pair directly after KS-02 in a live run."""
+    at = required.index("KS-02:PASS") + 1
+    return required[:at] + (EXPECTED_ACPI_MARKER, DEVICE_EXECUTION_MARKER) + required[at:]
 
 
 def qemu_machine(value: str | None = None) -> str:

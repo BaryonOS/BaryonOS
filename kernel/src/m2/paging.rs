@@ -331,6 +331,8 @@ impl Paging {
         if output.is_empty() {
             return Ok(());
         }
+        // SAFETY: CPUID is available in long mode and the leaf is checked before
+        // querying the physical-address-width field.
         let width = unsafe {
             if core::arch::x86_64::__cpuid(0x80000000).eax < 0x80000008 {
                 return Err(kernel_core::Error::Range);
