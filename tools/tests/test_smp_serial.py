@@ -78,20 +78,24 @@ class SmpSerialOracle(unittest.TestCase):
 
     def test_rejects_missing_duplicate_or_overclaimed_output(self):
         four = online(4)
+        # Mutate by marker, not index: the sequence grows with every K06 step.
+        at = lambda prefix: next(i for i, line in enumerate(four) if line.startswith(prefix))
+        swap = lambda prefix, new: four[:at(prefix)] + [new] + four[at(prefix) + 1:]
+        drop = lambda prefix: four[:at(prefix)] + four[at(prefix) + 1:]
         bad = {
             "four": [
                 four[:1] + four[2:],                      # one AP missing
                 four[:2] + four[1:],                      # AP reported twice
-                four[:5] + ["SMP:ONLINE:5/4"] + four[6:],
-                four[:6] + ["SMP:SYNC:PASS:CPUS=5"] + four[7:],
+                swap("SMP:ONLINE:", "SMP:ONLINE:5/4"),
+                swap("SMP:SYNC:", "SMP:SYNC:PASS:CPUS=5"),
                 four[:-2] + ["SMP:SYNC:PASS:CPUS=4"] + END,
                 ["SMP:MADT:CPUS=3:DISABLED=0:HOTPLUG=0"] + four[1:],
                 four[:1] + ["SMP:AP:1:TIMEOUT"] + four[2:],
-                four[:6] + four[7:],                      # sync result missing
-                four[:7] + four[8:],                      # IPI result missing
-                four[:7] + ["SMP:IPI:PASS:ROUNDS=2:CPUS=4"] + four[8:],
-                four[:8] + four[9:],                      # park result missing
-                four[:8] + ["SMP:PARKED:APS=2"] + END,
+                drop("SMP:SYNC:"),                       # sync result missing
+                drop("SMP:IPI:"),                        # IPI result missing
+                swap("SMP:IPI:", "SMP:IPI:PASS:ROUNDS=2:CPUS=4"),
+                drop("SMP:PARKED:"),                     # park result missing
+                swap("SMP:PARKED:", "SMP:PARKED:APS=2"),
                 ["SMP:UNAVAILABLE:INVALID_MADT"] + END,
                 [four[0], "SMP:AP:1:ONLINE", "SMP:AP:2:ONLINE", "SMP:AP:7:ONLINE"] + four[4:],
                 [four[0], four[2], four[1], four[3]] + four[4:],  # unique but out of order
