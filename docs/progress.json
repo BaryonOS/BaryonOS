@@ -2,8 +2,8 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-03",
-    "source_commit": "04d727c306d13e03a192d9d002a7d44348841c9f",
+    "date": "2026-11-05",
+    "source_commit": "c687cd13400c7dd42822d5e47845883b6e7af717",
     "assessment_basis": "source_commit",
     "reviewed_commit": "cc1dea7eeeae01448a378ee422837b0438ecc7b5",
     "reviewed_commit_context": "Historische review van de PR148-documentatiestatus en reikwijdte van hostbewijs; geen integratiereview.",
@@ -15,10 +15,10 @@
       "evidence_basis": "Git-mergeouders en handoff in docs/PROJECT-STATE.md; gerichte integratietests zijn daar gemeld met uitvoer uitsluitend in het sessietranscript. De eerdere PR148-hostreceipts zijn geen integratiereviewbewijs.",
       "missing_evidence": "Afzonderlijk, brongebonden bewijs van de integratiereview ontbreekt; nieuwe-head CI en review moeten nog worden beoordeeld."
     },
-    "branch": "fix/b03-test-anchors-guard",
-    "task": "PR158: documentconflicten met main 95d79451 inhoudsbehoudend integreren",
+    "branch": "k06/smp-ap-bringup",
+    "task": "K06 stap 1: native AP-opstart (MADT, INIT-SIPI-SIPI, begrensde sync-proef) gestapeld op PR #191",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. De drie documentconflicten behouden de B03- en PR138-checkpointgeschiedenissen en hun brongebonden bewijs. Rust-wijzigingen uit main zijn uitsluitend commentaar; de B03-ondertekenpolicy blijft ongewijzigd. De integration_review-velden blijven historisch PR148-bewijs, niet voor deze integratie. Productiesleutelbeleid en issue #41 blijven open. Geen nieuw criterium of native acceptatie; nieuwe-head CI wordt afzonderlijk beoordeeld."
+    "summary": "41/100 blijft 41/100. Opt-in native-smp M2-profiel start AP's begrensd en fail-closed; 8 native QEMU/TCG-gevallen (1-9 vCPU's, dubbele MADT, AP-stall, registermismatch) geslaagd, zie docs/verification/k06-smp-bringup/. K06 vereist SMP-scheduling, interrupts, TLB-shootdown en adresruimtewisseling onder concurrente belasting en blijft open. Gestapeld op PR #191, nog niet op main; geen nieuwe-head CI beoordeeld. De integration_review-velden blijven historisch PR148-bewijs."
   },
   "tracks": [
     {

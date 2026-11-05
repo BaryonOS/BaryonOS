@@ -1,6 +1,34 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR158 met main 95d79451 — 3 november 2026
+## NEXT AGENT HANDOFF — K06 stap 1, native AP-opstart — 5 november 2026
+
+**Bron:** codecommit `c687cd13400c7dd42822d5e47845883b6e7af717` op
+`k06/smp-ap-bringup`, gestapeld op PR #191 (`a859db98`, ACPI-handoff, staat
+volgens de integrator op FIX). Main is `8bb15309`. **41 → 41/100**: er zijn
+geen criteria of gewichten gewijzigd, en K06 blijft open.
+
+**Gerealiseerd:** een opt-in M2-profiel `native-smp` (ADR-070) met
+MADT-inventaris, INIT-SIPI-SIPI, een nooit gemapte SIPI-pagina, AP-stacks met
+guards in het kernelimage, contextclaims via CAS met fail-closed time-out en
+INIT-quarantaine, registergelijkheid met de BSP en een begrensde
+atomic- en spinlockproef. Een native gevonden BSP-stack-overloop door een
+by-value MADT is hersteld; die zou alle profielen hebben geraakt.
+
+**Bewijs:** 8 native QEMU/TCG-gevallen geslaagd (1/2/4/8/9 vCPU's, single-
+en multi-TCG, capaciteit, dubbele MADT via `-acpitable`, AP-stall,
+registermismatch). Daarnaast 24 boot-protocol-tests, 4+2+10+8
+Python-harnastests, Clippy/fmt en regressie van `milestone-m2` en
+`native-rtc` (5/5). Zie
+[k06-smp-bringup](verification/k06-smp-bringup/README.md). Twee
+AI-reviews, geen menselijke audit: alle concrete bevindingen zijn verwerkt.
+
+**Open:** nieuwe-head-CI van de draft-PR; integratie na de fix van #191.
+Voor K06 nog nodig: per-CPU-staat, TSS/IST, IPI/TLB-shootdown, SMP-scheduler,
+lockvolgorde en herziening van ADR-024. Er is geen fysiek hardwarebewijs.
+**Eerstvolgend commando:**
+`NOS_BUILD_DIR=build/k06-native-smp python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
+
+## Historisch checkpoint — PR158 met main 95d79451 — 3 november 2026
 
 **Bronnen:** PR-head `04d727c306d13e03a192d9d002a7d44348841c9f` en
 main `95d7945110ce853a1b5827ec59f6115475691805`, branch

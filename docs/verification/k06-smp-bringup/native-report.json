@@ -1,0 +1,295 @@
+{
+  "schema_version": 1,
+  "task": "K06 step 1 - native AP bring-up and bounded SMP sync self-test",
+  "source_commit": "c687cd13400c7dd42822d5e47845883b6e7af717",
+  "branch": "k06/smp-ap-bringup",
+  "stacked_on": "PR #191 head a859db98d88d7137e294585fc9fc495f6371d636",
+  "date": "2026-11-05",
+  "evidence_level": "native QEMU/TCG (VM); not physical hardware; AI review, not human audit",
+  "environment": {
+    "qemu": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)",
+    "machine": "pc-q35-8.2",
+    "cpu": "qemu64",
+    "firmware": "OVMF_CODE_4M/OVMF_VARS_4M (isolated .tools copy)"
+  },
+  "profiles": [
+    {
+      "kernel_feature": "native-smp",
+      "passed": true,
+      "source_sha256": "278bc07e2bf6d6a16f380e2cde79b523fb1522c6e3f55e8dd82303af0ee316c2",
+      "manifest_sha256": "84562cdf6fab000eeaa6e695dbfbcf3c6d362d5840f4d08ae42c62f42e0e95de",
+      "kernel_elf_sha256": "0465d4b8f98b2ecb44282c889f0bf41af8d443865f66edfb870744ed5c209627",
+      "loader_sha256": "29c6ea9cfc64eb44adf8c0355797782d5e6234d40a87cabe95cea1da76adbd72",
+      "cases": [
+        {
+          "case": "one",
+          "cpus": 1,
+          "tcg_threads": "single",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 1.96,
+          "serial_sha256": "fcd84ab566f9d9e31e42c688be9e9d7b0216adefc763da8f5d5493ecee8ed395",
+          "smp_lines": [
+            "ACPI:UNAVAILABLE:NO_DMAR",
+            "SMP:MADT:CPUS=1:DISABLED=0:HOTPLUG=0",
+            "SMP:ONLINE:1/1",
+            "SMP:SYNC:PASS:CPUS=1"
+          ],
+          "observed": {
+            "outcome": "online",
+            "profile": "native-smp",
+            "online": 1,
+            "ap_ids": []
+          }
+        },
+        {
+          "case": "two-single",
+          "cpus": 2,
+          "tcg_threads": "single",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 2.03,
+          "serial_sha256": "247074d16943cb06fe6ea42ffcf89c09539384beb07d78c882228f8b3e9f0af6",
+          "smp_lines": [
+            "ACPI:UNAVAILABLE:NO_DMAR",
+            "SMP:MADT:CPUS=2:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:ONLINE",
+            "SMP:ONLINE:2/2",
+            "SMP:SYNC:PASS:CPUS=2"
+          ],
+          "observed": {
+            "outcome": "online",
+            "profile": "native-smp",
+            "online": 2,
+            "ap_ids": [
+              1
+            ]
+          }
+        },
+        {
+          "case": "four",
+          "cpus": 4,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 2.17,
+          "serial_sha256": "1dd2a6dfb35358b516dc1da128af1d63abe68e6049f1e12efa3f5779ee7b35ee",
+          "smp_lines": [
+            "ACPI:UNAVAILABLE:NO_DMAR",
+            "SMP:MADT:CPUS=4:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:ONLINE",
+            "SMP:AP:2:ONLINE",
+            "SMP:AP:3:ONLINE",
+            "SMP:ONLINE:4/4",
+            "SMP:SYNC:PASS:CPUS=4"
+          ],
+          "observed": {
+            "outcome": "online",
+            "profile": "native-smp",
+            "online": 4,
+            "ap_ids": [
+              1,
+              2,
+              3
+            ]
+          }
+        },
+        {
+          "case": "eight",
+          "cpus": 8,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 2.48,
+          "serial_sha256": "c3245ebf5805a586caecb1bed260f253194d125edf9b0c45b78d29929c5973ff",
+          "smp_lines": [
+            "ACPI:UNAVAILABLE:NO_DMAR",
+            "SMP:MADT:CPUS=8:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:ONLINE",
+            "SMP:AP:2:ONLINE",
+            "SMP:AP:3:ONLINE",
+            "SMP:AP:4:ONLINE",
+            "SMP:AP:5:ONLINE",
+            "SMP:AP:6:ONLINE",
+            "SMP:AP:7:ONLINE",
+            "SMP:ONLINE:8/8",
+            "SMP:SYNC:PASS:CPUS=8"
+          ],
+          "observed": {
+            "outcome": "online",
+            "profile": "native-smp",
+            "online": 8,
+            "ap_ids": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ]
+          }
+        },
+        {
+          "case": "nine-capacity",
+          "cpus": 9,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 2.48,
+          "serial_sha256": "1620b2a078f11bb5b6937016040c830b7a7fa5200cdae2d3576a8a12101a78dd",
+          "smp_lines": [
+            "ACPI:UNAVAILABLE:NO_DMAR",
+            "SMP:MADT:CPUS=9:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:ONLINE",
+            "SMP:AP:2:ONLINE",
+            "SMP:AP:3:ONLINE",
+            "SMP:AP:4:ONLINE",
+            "SMP:AP:5:ONLINE",
+            "SMP:AP:6:ONLINE",
+            "SMP:AP:7:ONLINE",
+            "SMP:SKIPPED:CAPACITY=1",
+            "SMP:ONLINE:8/9",
+            "SMP:SYNC:PASS:CPUS=8"
+          ],
+          "observed": {
+            "outcome": "online",
+            "profile": "native-smp",
+            "online": 8,
+            "ap_ids": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ]
+          }
+        },
+        {
+          "case": "duplicate-madt",
+          "cpus": 4,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 2.1,
+          "serial_sha256": "25fc18accbab7805810a034a528a5815df7ea18b2391256f3b8819ffe74d2612",
+          "smp_lines": [
+            "ACPI:UNAVAILABLE:NO_DMAR",
+            "SMP:UNAVAILABLE:INVALID_MADT"
+          ],
+          "observed": {
+            "outcome": "invalid-madt",
+            "profile": "native-smp",
+            "online": 1,
+            "ap_ids": []
+          },
+          "acpi_table_sha256": "90d8601f42ba0c647f3465f57f578b527a453e5a3c1167eda0a4ce448696e88e"
+        }
+      ]
+    },
+    {
+      "kernel_feature": "test-smp-ap-stall",
+      "passed": true,
+      "source_sha256": "278bc07e2bf6d6a16f380e2cde79b523fb1522c6e3f55e8dd82303af0ee316c2",
+      "manifest_sha256": "f90eb8386a70080bcf76b4f9f4445a2a935566fe57250d2ae9132129b4a18ed8",
+      "kernel_elf_sha256": "5b16543394497a7494d6b634d54fa591c970918494b0dae5dc64ee6813ccc4e4",
+      "loader_sha256": "29c6ea9cfc64eb44adf8c0355797782d5e6234d40a87cabe95cea1da76adbd72",
+      "cases": [
+        {
+          "case": "ap-stall",
+          "cpus": 4,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 3.09,
+          "serial_sha256": "857f136ee76fa492799fe6362f837cfd14d56b2212c480d6f4315f6d4f8bfe86",
+          "smp_lines": [
+            "ACPI:UNAVAILABLE:NO_DMAR",
+            "SMP:MADT:CPUS=4:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:TIMEOUT",
+            "SMP:BRINGUP:STOPPED",
+            "SMP:ONLINE:1/4",
+            "SMP:SYNC:PASS:CPUS=1"
+          ],
+          "observed": {
+            "outcome": "timeout",
+            "profile": "test-smp-ap-stall",
+            "online": 1,
+            "ap_ids": [
+              1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "kernel_feature": "test-smp-ap-mismatch",
+      "passed": true,
+      "source_sha256": "278bc07e2bf6d6a16f380e2cde79b523fb1522c6e3f55e8dd82303af0ee316c2",
+      "manifest_sha256": "be90c5e499f04c0236c2da673f1f467c806f826a596620d1868d228d349881ed",
+      "kernel_elf_sha256": "4a829ef0790554ca06509d5991e4a8faf0da5c78f68932de969207beedd2785a",
+      "loader_sha256": "29c6ea9cfc64eb44adf8c0355797782d5e6234d40a87cabe95cea1da76adbd72",
+      "cases": [
+        {
+          "case": "ap-mismatch",
+          "cpus": 4,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 2.09,
+          "serial_sha256": "3c8d4e48097b6b42e84875583a65cb676fc949a4f147a237a5b21a3044e9774c",
+          "smp_lines": [
+            "ACPI:UNAVAILABLE:NO_DMAR",
+            "SMP:MADT:CPUS=4:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:MISMATCH",
+            "SMP:BRINGUP:STOPPED",
+            "SMP:ONLINE:1/4",
+            "SMP:SYNC:PASS:CPUS=1"
+          ],
+          "observed": {
+            "outcome": "mismatch",
+            "profile": "test-smp-ap-mismatch",
+            "online": 1,
+            "ap_ids": [
+              1
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "regression": {
+    "milestone-m2 own-cr3-frame-ownership-wx": "PASSED True; -smp 1; tcg,thread=single; profile TCG/1CPU",
+    "native-rtc run_rtc.py --case all": "5/5 boots expectation_pass=True"
+  },
+  "host_checks": [
+    "HEAD=c687cd13400c7dd42822d5e47845883b6e7af717",
+    "boot-protocol-test exit=0 0.1s",
+    "boot-protocol-clippy exit=0 0.1s",
+    "fmt-check exit=0 0.6s",
+    "oracle-tests exit=0 0.1s",
+    "acpi-serial-tests exit=0 0.0s",
+    "rtc-harness-tests exit=0 0.1s",
+    "common-tests exit=0 0.1s",
+    "build-native-smp exit=0 1.4s",
+    "gate-native-smp exit=0 14.5s",
+    "build-test-smp-ap-stall exit=0 0.7s",
+    "gate-test-smp-ap-stall exit=0 3.4s",
+    "build-test-smp-ap-mismatch exit=0 0.7s",
+    "gate-test-smp-ap-mismatch exit=0 2.4s",
+    "build-m2=0",
+    "gate-m2=0",
+    "build-rtc=0",
+    "gate-rtc=0"
+  ]
+}

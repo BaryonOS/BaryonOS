@@ -60,11 +60,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`04d727c3`](https://github.com/simonvanieperen/nieuw-os/commit/04d727c306d13e03a192d9d002a7d44348841c9f) ·
-**Ontwikkelbranch:** `fix/b03-test-anchors-guard`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR158: documentconflicten met main 95d79451 inhoudsbehoudend integreren.
-41/100 blijft 41/100. De drie documentconflicten behouden de B03- en PR138-checkpointgeschiedenissen en hun brongebonden bewijs. Rust-wijzigingen uit main zijn uitsluitend commentaar; de B03-ondertekenpolicy blijft ongewijzigd. De integration_review-velden blijven historisch PR148-bewijs, niet voor deze integratie. Productiesleutelbeleid en issue #41 blijven open. Geen nieuw criterium of native acceptatie; nieuwe-head CI wordt afzonderlijk beoordeeld.
+**Herbeoordeeld:** 2026-11-05 · **Rubric:** v1 ·
+**Bron:** [`c687cd13`](https://github.com/simonvanieperen/nieuw-os/commit/c687cd13400c7dd42822d5e47845883b6e7af717) ·
+**Ontwikkelbranch:** `k06/smp-ap-bringup`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 1: native AP-opstart (MADT, INIT-SIPI-SIPI, begrensde sync-proef) gestapeld op PR #191.
+41/100 blijft 41/100. Opt-in native-smp M2-profiel start AP's begrensd en fail-closed; 8 native QEMU/TCG-gevallen (1-9 vCPU's, dubbele MADT, AP-stall, registermismatch) geslaagd, zie docs/verification/k06-smp-bringup/. K06 vereist SMP-scheduling, interrupts, TLB-shootdown en adresruimtewisseling onder concurrente belasting en blijft open. Gestapeld op PR #191, nog niet op main; geen nieuwe-head CI beoordeeld. De integration_review-velden blijven historisch PR148-bewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
