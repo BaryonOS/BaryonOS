@@ -67,6 +67,9 @@ productprofiel; K06 blijft open.
   Capable, waarbij Online Capable gereserveerd-nul is als Enabled gezet is)
   en §5.2.12.8 (Local APIC Address Override).
 - Lokaal OSDev-snapshot W003259 (MADT), uitsluitend als routekaart.
+- De SDM-hoofdstuknummers volgen recente edities. In oudere edities heten
+  dezelfde secties §8.4 (MP-initialisatie) en §10.4/§10.6 (APIC); zoek
+  bij twijfel op de sectietitel.
 
 **Uitgevoerd testbewijs:** `docs/verification/k06-smp-bringup/README.md`.
 
