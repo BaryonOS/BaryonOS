@@ -215,6 +215,10 @@ fn exercise(
                         !established && sent == 0 && received == 0 && observed - start >= timeout,
                         36,
                     );
+                    for _ in 0..2 {
+                        check(session.receive(connection, &mut out) == Ok(Read::End), 56);
+                        bump(520);
+                    }
                     bump(496)
                 }
             }

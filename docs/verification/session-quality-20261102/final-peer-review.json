@@ -1,0 +1,20 @@
+{
+  "scope": "Independent AI source review of auth/shell/overlay/input/diagnostic publication and sparse bounds; not a human audit or exhaustive security scan",
+  "functional_source_commit": "703cc0705471062ffb1483a16f42a2e580a6fdf7",
+  "source_sha256": "e4ad9f922d202ee4249b6b1dd02a02d724f6775c616ad1c46dde48bf7ee2271c",
+  "findings_resolved": [
+    "Trusted shell action follows actual input ACK; Superseded cancels without effect",
+    "Opaque foreground updates pointer and blocks body recipients",
+    "Panel shrink unions old and new bounds; inactive hidden window clears old pixels",
+    "Desktop reveal waits for both complete native SUR frames",
+    "Diagnostic ready flag is cleared before publishing fields and written last; volatile stores on single CPU",
+    "Session-route observations compile separately from fault injection",
+    "QEMU PC Menu is compose0xdd, not XF86MenuKB menu0x9e"
+  ],
+  "remaining_known_limits": [
+    "No real user enrollment/authentication or keyring/capability revoke on cover",
+    "Cold complete app frames and guest-to-desktop delay miss daily usability targets",
+    "Resize, native screenreader/IME and hardware/providers remain unproved"
+  ],
+  "open_blocker_in_reviewed_public_vm_slice": false
+}

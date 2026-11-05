@@ -1,0 +1,131 @@
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+test render_native_session_walkthrough_oracle ... ok
+test render_desktop_foundation_at_reference_scales ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.54s
+
+
+running 32 tests
+test clipboard_selection_and_paste_keep_utf8_and_storage_state_atomic ... ok
+test compact_layout_keeps_a_real_object_and_full_control_targets_visible ... ok
+test conflict_revocation_and_io_error_keep_unconfirmed_work_visible ... ok
+test dirty_close_defaults_to_cancel_and_only_explicit_discard_loses_edits ... ok
+test abort_retains_draft_and_does_not_publish_an_unsaved_revision ... ok
+test display_epoch_stale_frame_and_failed_present_keep_repaint_pending ... ok
+test explicit_cleanup_refuses_dirty_and_never_reconfirms_closed_work ... ok
+test fresh_input_epoch_preserves_draft_and_cannot_inherit_a_pressed_button ... ok
+test mouse_click_uses_real_ps2_buttons_and_release_must_match ... ok
+test lost_commit_never_becomes_saved_or_automatic_replay ... ok
+test pointer_only_cancel_requires_fresh_down_after_outside_release_and_reentry ... ok
+test narrow_list_pointer_paging_reaches_real_objects_in_both_directions ... ok
+test readonly_and_unsupported_utf8_do_not_corrupt_bytes ... ok
+test real_ps2_edit_stream_commit_list_and_reopen ... ok
+test replay_cancel_and_old_focus_cannot_trigger_a_new_edit ... ok
+test semantic_actions_revalidate_current_controls_and_persist_only_on_save ... ok
+test semantic_tree_bounds_maximum_material_page_and_dirty_dialog ... ok
+test sr05_dialog_tab_and_shift_tab_wrap_without_leaving_modal ... ok
+test bounded_buffers_full_input_and_64kib_document_are_not_silent_truncation ... ok
+test sr06_failed_save_blocks_editor_save_actions ... ok
+test sr06_failed_save_blocks_modal_save_actions ... ok
+test sr05_escape_preserves_dirty_document_from_every_dialog_focus ... ok
+test sr06_fresh_revoke_during_modal_save_restores_document_focus ... ok
+test sr06_read_only_and_io_failures_keep_truthful_editor_state ... ok
+test utf8_navigation_wrap_crlf_tabs_and_range_boundaries_are_checked ... ok
+test vm_desktop_cancel_cannot_release_an_old_account_click ... ok
+test vm_desktop_controls_remain_inside_supported_viewports ... ok
+test sr08_uncertain_semantics_never_offer_save_or_replay ... ok
+test vm_desktop_guest_navigation_semantics_and_storage ... ok
+test wrong_reply_identity_cannot_populate_a_fake_object_list ... ok
+test real_raster_tiles_have_guards_clipping_lowercase_and_semantic_focus ... ok
+test actual_raster_scenes_for_manual_host_inspection ... ok
+
+test result: ok. 32 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.14s
+
+
+running 8 tests
+test a_held_confirm_button_cannot_cross_into_a_different_workspace_dialog ... ok
+test cancelled_names_and_stale_semantic_actions_preserve_document_and_disk ... ok
+test filtered_creation_uses_the_entire_domain_and_search_reads_real_names_only ... ok
+test history_readonly_preview_does_not_advertise_or_perform_a_restore ... ok
+test collection_success_followed_by_stale_object_failure_is_truthful_and_nonreplaying ... ok
+test history_page_keys_expose_all_wrapped_preview_rows_without_editing ... ok
+test verified_shortened_history_preview_can_restore_the_complete_large_document ... ok
+test new_workspace_controls_stay_visible_and_tab_focus_has_a_semantic_node ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 1 test
+test native_library_walkthrough_and_cold_controller_oracles ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.52s
+
+
+running 4 tests
+test soft_wrap_end_and_pointer_affinity_keep_the_previous_visual_row ... ok
+test crlf_is_one_break_and_tabs_use_four_space_stops ... ok
+test proportional_caret_accumulates_the_same_unrounded_advance_as_renderer ... ok
+test wrap_hits_clamp_to_original_utf8_boundaries_and_visual_line_ends ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 4 tests
+test window_semantic_bounds_match_physical_viewport_at_100_and_200_percent ... ok
+test semantics_budget_includes_paging_and_preserves_short_output ... ok
+test disabled_primary_and_secondary_hover_keep_their_distinct_styles ... ok
+test primary_buttons_preserve_accent_and_focus_when_hovered_at_both_scales ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 16.16s
+
+
+running 21 tests
+test cancellation_account_switch_method_switch_and_lock_reject_delayed_replies ... ok
+test clock_regression_and_deadline_overflow_fail_closed ... ok
+test complete_reply_binding_includes_account_and_method ... ok
+test authentication_grant_still_requires_successful_service_activation ... ok
+test consumed_assertion_cannot_activate_twice_or_survive_logout_or_lock ... ok
+test deadline_expires_pending_reply_and_already_granted_activation ... ok
+test guest_is_an_explicit_separate_profile_and_never_an_authenticated_identity ... ok
+test input_is_bounded_masks_only_length_and_method_switch_discards_password ... ok
+test lock_and_unlock_do_not_restore_guest_or_user_identity ... ok
+test malformed_retry_deadline_does_not_enable_immediate_retry ... ok
+test denial_timeout_and_failed_activation_never_open_a_session ... ok
+test native_default_rejects_every_password_and_clears_it ... ok
+test missing_removed_cancelled_sensor_and_service_failure_never_become_success ... ok
+test pin_and_recovery_require_their_own_bounded_secret_entry ... ok
+test reply_binding_rejects_another_boot_session_or_purpose ... ok
+test retry_has_a_new_request_and_old_success_cannot_satisfy_it ... ok
+test retry_cache_does_not_evict_a_still_locked_account ... ok
+test submission_error_clears_password_and_never_records_a_pending_request ... ok
+test retry_policy_survives_method_account_cancel_and_lock_switches ... ok
+test wrong_password_and_default_all_methods_are_closed ... ok
+test service_failure_or_removed_hardware_during_begin_or_activation_is_closed ... ok
+
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+test render_eight_session_states_at_reference_resolutions ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 22.11s
+
+
+running 3 tests
+test render_window_draft_focus_loss_and_input_rebind_oracle ... ok
+test render_window_clipboard_oracles ... ok
+test render_native_window_material_walkthrough_oracle ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.79s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

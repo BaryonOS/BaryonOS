@@ -1,0 +1,6375 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "native_gate": true,
+  "smoke_only": false,
+  "recovery_handshake_only": false,
+  "clipboard_requested": true,
+  "clipboard_gate": true,
+  "source_sha256": "069666e5406a893f64aa5d8e00298863f33f8be9cef57b6e0522b8bdf9648670",
+  "source_commit": "64044318c622eaacab25272611acf856a5fca5d5",
+  "source_fingerprint_version": 3,
+  "kernel_feature": "native-window-session-probe",
+  "session_route_requested": false,
+  "session_route_gate": false,
+  "manifest": {
+    "schema_version": 1,
+    "profile": "native-window-session-probe",
+    "kernel_feature": "native-window-session-probe",
+    "loader_feature": "desktop-mode",
+    "source_fingerprint_version": 3,
+    "source_sha256": "069666e5406a893f64aa5d8e00298863f33f8be9cef57b6e0522b8bdf9648670",
+    "loader": {
+      "sha256": "43a296579b8594ba1efdd2d4017791d2625f5c4f70726a1a82e07fad6ac6d6ea",
+      "format": "AMD64 PE32+",
+      "subsystem": "EFI_APPLICATION",
+      "imports": 0
+    },
+    "kernel": {
+      "sha256": "15a3fb2703f40a8d37812ad4d318f8a2773deace8c42651360f090e1a252d910",
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "offset": 4096,
+          "address": 33554432,
+          "filesz": 177239,
+          "memsz": 177239,
+          "page_start": 33554432,
+          "page_end": 33734656
+        },
+        {
+          "flags": 4,
+          "offset": 184320,
+          "address": 33734656,
+          "filesz": 1803408,
+          "memsz": 1803408,
+          "page_start": 33734656,
+          "page_end": 35540992
+        },
+        {
+          "flags": 6,
+          "offset": 1990656,
+          "address": 35540992,
+          "filesz": 1720936,
+          "memsz": 4825272,
+          "page_start": 35540992,
+          "page_end": 40370176
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "size": 0
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "size": 177239
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 50,
+          "size": 1803408
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "size": 1720936
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "flags": 3,
+          "size": 3100856
+        },
+        {
+          "name": ".symtab",
+          "type": 2,
+          "flags": 0,
+          "size": 9600
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "size": 52
+        },
+        {
+          "name": ".strtab",
+          "type": 3,
+          "flags": 0,
+          "size": 22248
+        }
+      ]
+    },
+    "sdk_runtime": false,
+    "document_session": false,
+    "materiaal": {
+      "passed": true,
+      "native_runtime_performed": false,
+      "probe_controller": false,
+      "apps": [
+        {
+          "name": "keyring-service",
+          "sha256": "b8e12f74dbdc0016cded50f913d8e0d7a420fa3f4960e2d699e32b4bb5b30fe4",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 6,
+                "memsz": 6,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1344,
+                "memsz": 1344,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073823744,
+                "offset": 12288,
+                "filesz": 3377,
+                "memsz": 3377,
+                "page_start": 1073823744,
+                "page_end": 1073827840
+              },
+              {
+                "flags": 5,
+                "address": 1073872896,
+                "offset": 16384,
+                "filesz": 78407,
+                "memsz": 78407,
+                "page_start": 1073872896,
+                "page_end": 1073954816
+              }
+            ]
+          }
+        },
+        {
+          "name": "volume-service",
+          "sha256": "aa6ab477ec3eca0021aed1083aa7e3028608dc87ec1233ad3d5f2a89d2af4e83",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 57570,
+                "memsz": 57570,
+                "page_start": 1073741824,
+                "page_end": 1073803264
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 65536,
+                "filesz": 1304,
+                "memsz": 1304,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073823744,
+                "offset": 69632,
+                "filesz": 18018,
+                "memsz": 18018,
+                "page_start": 1073823744,
+                "page_end": 1073844224
+              }
+            ]
+          }
+        },
+        {
+          "name": "materiaal-app",
+          "sha256": "5fcfcb36ba409d745f9dabe71cfa2088358b14e25234017d98985238e3e63ebf",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 19,
+                "memsz": 19,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1024,
+                "memsz": 1024,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 291720,
+                "memsz": 291720,
+                "page_start": 1073872896,
+                "page_end": 1074167808
+              },
+              {
+                "flags": 6,
+                "address": 1074462720,
+                "offset": 307200,
+                "filesz": 200,
+                "memsz": 200704,
+                "page_start": 1074462720,
+                "page_end": 1074663424
+              },
+              {
+                "flags": 5,
+                "address": 1074724864,
+                "offset": 311296,
+                "filesz": 133817,
+                "memsz": 133817,
+                "page_start": 1074724864,
+                "page_end": 1074860032
+              }
+            ]
+          }
+        },
+        {
+          "name": "input-source",
+          "sha256": "3c8852188ddb7f5b3ded12d9caef17e63d0164c679dffee0a3183433f33111b9",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 6,
+                "memsz": 6,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1200,
+                "memsz": 1200,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 754,
+                "memsz": 754,
+                "page_start": 1073872896,
+                "page_end": 1073876992
+              },
+              {
+                "flags": 5,
+                "address": 1074003968,
+                "offset": 16384,
+                "filesz": 12263,
+                "memsz": 12263,
+                "page_start": 1074003968,
+                "page_end": 1074016256
+              }
+            ]
+          }
+        },
+        {
+          "name": "input-policy",
+          "sha256": "fc7782e67787b61f8990851881b46b71f8400b1a3d781bdd18cf71d850b4f085",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 6,
+                "memsz": 6,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1200,
+                "memsz": 1200,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 2522,
+                "memsz": 2522,
+                "page_start": 1073872896,
+                "page_end": 1073876992
+              },
+              {
+                "flags": 5,
+                "address": 1074003968,
+                "offset": 16384,
+                "filesz": 21575,
+                "memsz": 21575,
+                "page_start": 1074003968,
+                "page_end": 1074028544
+              }
+            ]
+          }
+        },
+        {
+          "name": "window-init",
+          "sha256": "ddf6450aac86872380b68ccf693de2d06e390a62f4c283d97d007aff6fb0e90b",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 6,
+                "memsz": 6,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1024,
+                "memsz": 1024,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 799,
+                "memsz": 799,
+                "page_start": 1073872896,
+                "page_end": 1073876992
+              },
+              {
+                "flags": 6,
+                "address": 1074790400,
+                "offset": 16384,
+                "filesz": 72,
+                "memsz": 72,
+                "page_start": 1074790400,
+                "page_end": 1074794496
+              },
+              {
+                "flags": 5,
+                "address": 1090519040,
+                "offset": 20480,
+                "filesz": 9799,
+                "memsz": 9799,
+                "page_start": 1090519040,
+                "page_end": 1090531328
+              }
+            ]
+          }
+        },
+        {
+          "name": "window-compositor",
+          "sha256": "aa4c54964cc111facf077d62b3ce34550d72905fb6c0757023850531111e5f83",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 6,
+                "memsz": 6,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1024,
+                "memsz": 1024,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 286032,
+                "memsz": 286032,
+                "page_start": 1073872896,
+                "page_end": 1074159616
+              },
+              {
+                "flags": 6,
+                "address": 1074790400,
+                "offset": 299008,
+                "filesz": 184,
+                "memsz": 5600184,
+                "page_start": 1074790400,
+                "page_end": 1080393728
+              },
+              {
+                "flags": 5,
+                "address": 1090519040,
+                "offset": 303104,
+                "filesz": 66345,
+                "memsz": 66345,
+                "page_start": 1090519040,
+                "page_end": 1090588672
+              }
+            ]
+          }
+        },
+        {
+          "name": "calculator-app",
+          "sha256": "6b65d1aa481f8e42c1a92ef28358713969605bcbce1aa4fa281bdf8c0be419b9",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 19,
+                "memsz": 19,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1024,
+                "memsz": 1024,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 465608,
+                "memsz": 465608,
+                "page_start": 1073872896,
+                "page_end": 1074339840
+              },
+              {
+                "flags": 6,
+                "address": 1074790400,
+                "offset": 479232,
+                "filesz": 208,
+                "memsz": 208,
+                "page_start": 1074790400,
+                "page_end": 1074794496
+              },
+              {
+                "flags": 5,
+                "address": 1075052544,
+                "offset": 483328,
+                "filesz": 69686,
+                "memsz": 69686,
+                "page_start": 1075052544,
+                "page_end": 1075126272
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "command": [
+    "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+    "-L",
+    ".",
+    "-machine",
+    "pc-q35-10.0",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "file:serial.txt",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-device",
+    "VGA,vgamem_mb=16,romfile=VGA.rom",
+    "-qmp",
+    "stdio",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,file=volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST"
+  ],
+  "library_requested": false,
+  "library_gate": false,
+  "library_cold": false,
+  "library_parent": null,
+  "run_directory": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8",
+  "qemu_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+  "immutable": {
+    "VGA.rom": "88277c3ebff60fe83696d99d44b7eee4426112ee1763c87347c30a5b75781932",
+    "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+    "bios-256k.bin": "fc6d2ea888862e6b26d53fb877ab712324726eb8f44eb6baf076c64a31f1c3fb",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "volume.json": "5e44db3e69e4cb3bea8f95a2c37a99aaf5dcefe786a343726798decbb7d2d52c",
+    "esp/kernel.elf": "15a3fb2703f40a8d37812ad4d318f8a2773deace8c42651360f090e1a252d910",
+    "esp/EFI/BOOT/BOOTX64.EFI": "43a296579b8594ba1efdd2d4017791d2625f5c4f70726a1a82e07fad6ac6d6ea"
+  },
+  "phases": {
+    "boot": {
+      "seconds": 87.63773086299989,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 3,
+          "FRAMES": 1,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 1,
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "OBJECT": 18446744073709551615,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 1,
+          "FRAMES": 1,
+          "EVALUATIONS": 0,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "CURRENT": 0,
+          "CARET": 0,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 0,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "dc91900e57ad1bc8907dc86b8f164ffbe267ddf75df3353fb2a5f6435ef5b4b7",
+      "oracle": null
+    },
+    "initial": {
+      "seconds": 90.30963444900044,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 3,
+          "FRAMES": 1,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 1,
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "OBJECT": 18446744073709551615,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 1,
+          "FRAMES": 1,
+          "EVALUATIONS": 0,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "CURRENT": 0,
+          "CARET": 0,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 0,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "26dd5dcdbaad6ce4482ce8da2b07846fda7e3f67038a95ccdccb614571d54f93",
+      "oracle": "initial"
+    },
+    "editor": {
+      "seconds": 137.7530612390001,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 4,
+          "FRAMES": 2,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 14695981039346656037,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 1,
+          "FRAMES": 1,
+          "EVALUATIONS": 0,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "CURRENT": 0,
+          "CARET": 0,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 0,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "8f15643aa016bf8d6a7bbfda03784f18636e4483b32afa8e056af02eccde3e34",
+      "oracle": "editor",
+      "last_input_to_verified_app_image_s": 47.43378111099992,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "dirty": {
+      "seconds": 142.88417664999997,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 18,
+          "FRAMES": 3,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 1,
+          "FRAMES": 1,
+          "EVALUATIONS": 0,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "CURRENT": 0,
+          "CARET": 0,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 0,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "0ca6e88535b9dfbb503196b7dede7ed7ed8ec72154566c58e6dce5a3baabfef9",
+      "oracle": "dirty",
+      "last_input_to_verified_app_image_s": 1.1692643209999005,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "clipboard-copied": {
+      "seconds": 145.6011933990003,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 18,
+          "FRAMES": 3,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 1,
+          "FRAMES": 1,
+          "EVALUATIONS": 0,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "CURRENT": 0,
+          "CARET": 0,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 0,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "8767b4e176ab92c5eb60e3728fdcb3b32e0f79580e26391b0e7b4b89d4aae61c",
+      "oracle": "clipboard-copied",
+      "last_input_to_verified_app_image_s": 2.3148313740002777,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "clipboard-rejected": {
+      "seconds": 158.2322067969999,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 21,
+          "FRAMES": 5,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 1,
+          "FRAMES": 1,
+          "EVALUATIONS": 0,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "CURRENT": 0,
+          "CARET": 0,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 0,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "c082fbaf0da9aed68dd7ba4937d9450855b24ee27f2a41832403909656623044",
+      "oracle": "clipboard-unsupported",
+      "last_input_to_verified_app_image_s": 12.3952062999997,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "clipboard-numeric": {
+      "seconds": 164.51485868300006,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 24,
+          "FRAMES": 6,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 1,
+          "DRAFT_SUM": 12638136623020744290,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 1,
+          "FRAMES": 1,
+          "EVALUATIONS": 0,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "CURRENT": 0,
+          "CARET": 0,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 0,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "c4cc265e3545ffd553709889ce3367bbe672853754fc9b97ed7ad7ba811a3968",
+      "oracle": "clipboard-numeric",
+      "last_input_to_verified_app_image_s": 4.813349668000228,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "clipboard-pasted": {
+      "seconds": 189.39132273999985,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 25,
+          "FRAMES": 7,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 1,
+          "DRAFT_SUM": 12638136623020744290,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 5,
+          "FRAMES": 2,
+          "EVALUATIONS": 0,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 1,
+          "EXPRESSION_SUM": 12638136623020744290,
+          "CURRENT": 0,
+          "CARET": 1,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 0,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "8d15656d439f0c3c4f0034510780e4bf9aa276df9b372107a13c9b303db02225",
+      "oracle": "clipboard-pasted",
+      "last_input_to_verified_app_image_s": 24.491797202999805,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "clipboard-calculator-copied": {
+      "seconds": 210.33611432599992,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 25,
+          "FRAMES": 7,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 1,
+          "DRAFT_SUM": 12638136623020744290,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 9,
+          "FRAMES": 3,
+          "EVALUATIONS": 0,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6271855221533535501,
+          "CURRENT": 0,
+          "CARET": 3,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 0,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "640227921b2fe85eb2143160861bf830e6255c05dcda06426492b3ba6e2fc901",
+      "oracle": "clipboard-calculator-copied",
+      "last_input_to_verified_app_image_s": 19.16329407699959,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "clipboard-back": {
+      "seconds": 216.17751547599983,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 26,
+          "FRAMES": 8,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 3,
+          "DRAFT_SUM": 6271855221533535501,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 9,
+          "FRAMES": 3,
+          "EVALUATIONS": 0,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6271855221533535501,
+          "CURRENT": 0,
+          "CARET": 3,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 0,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "3765287cb9fb0e81c67ed7f8fd67484f8a2db69b40e54dcb63fcc7728cba2e4c",
+      "oracle": "clipboard-back",
+      "last_input_to_verified_app_image_s": 4.516751027999817,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "clipboard-empty": {
+      "seconds": 220.16416691999984,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 26,
+          "FRAMES": 8,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 3,
+          "DRAFT_SUM": 6271855221533535501,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 9,
+          "FRAMES": 3,
+          "EVALUATIONS": 0,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6271855221533535501,
+          "CURRENT": 0,
+          "CARET": 3,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 0,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "8922ece9caa052e543eb4c56a8b354558764bc5fc9e5b2fdd60805fa72fb82d0",
+      "oracle": "clipboard-empty",
+      "last_input_to_verified_app_image_s": 3.385320087000764,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "clipboard-reset": {
+      "seconds": 230.52287600599993,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 44,
+          "FRAMES": 10,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 9,
+          "FRAMES": 3,
+          "EVALUATIONS": 0,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6271855221533535501,
+          "CURRENT": 0,
+          "CARET": 3,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 0,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "9a83e76e34584c43773cf38d1a3e0a9b3b9150977132a1bf06e72616313c9b47",
+      "oracle": "dirty",
+      "last_input_to_verified_app_image_s": 2.2013462210006765,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "calculated": {
+      "seconds": 256.4425827260002,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 45,
+          "FRAMES": 11,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 17,
+          "FRAMES": 4,
+          "EVALUATIONS": 1,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "CURRENT": 1,
+          "CARET": 3,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 5000000000,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 1,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "6134606ba25cf2bcf5a2fd87e702fea0830db4853512227befdfbc7d6bc36653",
+      "oracle": null
+    },
+    "moved": {
+      "seconds": 259.81686777400046,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 45,
+          "FRAMES": 11,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 17,
+          "FRAMES": 4,
+          "EVALUATIONS": 1,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "CURRENT": 1,
+          "CARET": 3,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 5000000000,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 1,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "730c77e26e86697c1bc0913f6335242ccc856ecf84483f0a64829597f1587c98",
+      "oracle": null
+    },
+    "recovered": {
+      "seconds": 341.42730272599965,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 47,
+          "FRAMES": 12,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 18,
+          "FRAMES": 5,
+          "EVALUATIONS": 1,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "CURRENT": 1,
+          "CARET": 3,
+          "ACTIVE": 0,
+          "ANSWER_LOW": 5000000000,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 1,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        }
+      },
+      "frame_sha256": "a905b6c1efe87282c5fb6fdd9846f5801eabc8b4e36240da287b8413cfef4956",
+      "oracle": null
+    },
+    "rebound-editor": {
+      "seconds": 345.1862308210002,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 47,
+          "FRAMES": 12,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 18,
+          "FRAMES": 5,
+          "EVALUATIONS": 1,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "CURRENT": 1,
+          "CARET": 3,
+          "ACTIVE": 0,
+          "ANSWER_LOW": 5000000000,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 1,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        }
+      },
+      "frame_sha256": "c46beb7d1decc3d6f6d885d6c1ce0eef52ee12bb6894c1454041a8e15ac91c54",
+      "oracle": "dirty-rebound",
+      "last_input_to_verified_app_image_s": 85.07759480599998,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "calculator-restored": {
+      "seconds": 371.98152533899975,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 48,
+          "FRAMES": 13,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 20,
+          "FRAMES": 6,
+          "EVALUATIONS": 2,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "CURRENT": 1,
+          "CARET": 3,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 5000000000,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 1,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        }
+      },
+      "frame_sha256": "0b85d50ce7b790d5be98cff6c894d9f8d623510045e4ecf8ba3552dc5f347fb6",
+      "oracle": null
+    },
+    "restored-editor": {
+      "seconds": 383.2224807100001,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 50,
+          "FRAMES": 14,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 20,
+          "FRAMES": 6,
+          "EVALUATIONS": 2,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "CURRENT": 1,
+          "CARET": 3,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 5000000000,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 1,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        }
+      },
+      "frame_sha256": "cdcfb9727439907eac7c928469c34786245ec6ed231832c7e0e4901a468441bf",
+      "oracle": "dirty-recovered",
+      "last_input_to_verified_app_image_s": 4.185032801000489,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "clipboard-recovered-empty": {
+      "seconds": 386.7860039269999,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 50,
+          "FRAMES": 14,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 20,
+          "FRAMES": 6,
+          "EVALUATIONS": 2,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "CURRENT": 1,
+          "CARET": 3,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 5000000000,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 1,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        }
+      },
+      "frame_sha256": "f151cd2d20d963e1868df064f26f9d2c3ea6ae5b39e18286bc10dec6bb0e3c05",
+      "oracle": "clipboard-recovered-empty",
+      "last_input_to_verified_app_image_s": 3.5332279719996222,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "saved": {
+      "seconds": 389.8280257010001,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 54,
+          "FRAMES": 16,
+          "SAVE_ACKS": 1,
+          "REVISION": 1,
+          "SAVED_BYTES": 14,
+          "SAVED_SUM": 2786778974461010050,
+          "SCREEN": 2,
+          "DIRTY": 0,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 20,
+          "FRAMES": 6,
+          "EVALUATIONS": 2,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "CURRENT": 1,
+          "CARET": 3,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 5000000000,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 1,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        }
+      },
+      "frame_sha256": "d79663e458d1968ddf7d9963ad1420e37686e60349dda6708624056235a0c6ec",
+      "oracle": "saved",
+      "last_input_to_verified_app_image_s": 3.0112152159999823,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "list": {
+      "seconds": 441.0676670749999,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 56,
+          "FRAMES": 17,
+          "SAVE_ACKS": 1,
+          "REVISION": 1,
+          "SAVED_BYTES": 14,
+          "SAVED_SUM": 2786778974461010050,
+          "SCREEN": 1,
+          "DIRTY": 0,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 21,
+          "FRAMES": 7,
+          "EVALUATIONS": 2,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "CURRENT": 1,
+          "CARET": 3,
+          "ACTIVE": 0,
+          "ANSWER_LOW": 5000000000,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 1,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        }
+      },
+      "frame_sha256": "9df777b24a35a8cbb577902f4ab92d6fd3b21140febfdec7fe81f342180ab6a7",
+      "oracle": "list",
+      "last_input_to_verified_app_image_s": 51.19181398700039,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "reopened": {
+      "seconds": 486.1896822010003,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 58,
+          "FRAMES": 18,
+          "SAVE_ACKS": 1,
+          "REVISION": 1,
+          "SAVED_BYTES": 14,
+          "SAVED_SUM": 2786778974461010050,
+          "SCREEN": 2,
+          "DIRTY": 0,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 2,
+          "SURFACE_EPOCH": 6004795838121902082,
+          "INPUT_EPOCH": 5282247373882392578,
+          "READY": 1,
+          "GEN": 21,
+          "FRAMES": 7,
+          "EVALUATIONS": 2,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "CURRENT": 1,
+          "CARET": 3,
+          "ACTIVE": 0,
+          "ANSWER_LOW": 5000000000,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 1,
+          "SCALE": 1,
+          "ERRORS": 1,
+          "PROBES": 10
+        }
+      },
+      "frame_sha256": "1c30e837a35ebbde27bcaf6e297ec80878fad068b79dad53285108daaf00ae2e",
+      "oracle": "reopened",
+      "last_input_to_verified_app_image_s": 44.71199700800025,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    }
+  },
+  "boot_milestone_observations": {
+    "firmware_exit": {
+      "first_observed_seconds": 2.2551453059995765,
+      "scope": "host monotonic polling bound; not exact guest duration"
+    },
+    "kernel_entry": {
+      "first_observed_seconds": 2.2551494019999154,
+      "scope": "host monotonic polling bound; not exact guest duration"
+    },
+    "kernel_memory_ready": {
+      "first_observed_seconds": 2.761673985000016,
+      "scope": "host monotonic polling bound; not exact guest duration"
+    },
+    "process_manifest_ready": {
+      "first_observed_seconds": 3.4724246080004377,
+      "scope": "host monotonic polling bound; not exact guest duration"
+    },
+    "required_services_ready": {
+      "first_observed_seconds": 9.159767703000398,
+      "scope": "host monotonic polling bound; not exact guest duration"
+    },
+    "calculator_complete_frame": {
+      "first_observed_seconds": 43.0222982209998,
+      "scope": "host monotonic polling bound; not exact guest duration"
+    },
+    "material_complete_frame": {
+      "first_observed_seconds": 87.6281433590002,
+      "scope": "host monotonic polling bound; not exact guest duration"
+    }
+  },
+  "qemu_implementation": {
+    "path": "/workspace/.nieuw-os-env/sysroot/usr/bin/qemu-system-x86_64",
+    "sha256": "d3c1a558ad220e77a4412048c8d96b44f8c2b41c7ad2a4ecfe522a4b122fe067"
+  },
+  "raw_qemu_exit": 33,
+  "disk_oracle": {
+    "object": 0,
+    "revision": 1,
+    "name": "Nieuw document",
+    "length": 14,
+    "sha256": "9a45a00fa9ff69c17e124f54c14bb14cf2c7650e8cf1c272f6631f618a19a5a5",
+    "fnv": 2786778974461010050,
+    "generation": 1,
+    "clocks": [
+      1,
+      0
+    ],
+    "canaries_intact": true
+  },
+  "oracle": {
+    "kind": "host-rendered real Controller/Frame oracle; not native execution",
+    "source_sha256": "069666e5406a893f64aa5d8e00298863f33f8be9cef57b6e0522b8bdf9648670",
+    "source_fingerprint_version": 3,
+    "generator_command": [
+      "cargo",
+      "+1.90.0",
+      "test",
+      "--offline",
+      "--locked",
+      "--manifest-path",
+      "/workspace/nieuw-os/ui/native/Cargo.toml",
+      "--test",
+      "window_native_fixture",
+      "--",
+      "--nocapture"
+    ],
+    "generator_commands": [
+      [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "/workspace/nieuw-os/ui/native/Cargo.toml",
+        "--test",
+        "window_native_fixture",
+        "--",
+        "--nocapture"
+      ],
+      [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "/workspace/nieuw-os/sdk/examples/calculator/Cargo.toml",
+        "--test",
+        "clipboard_native_fixture",
+        "--",
+        "--nocapture"
+      ]
+    ],
+    "clipboard_oracles": true,
+    "library_oracles": false,
+    "generator_exit": 0,
+    "files_sha256": {
+      "880x510-initial.ppm": "14b4d8c6529e96cac54854b566989b43e663a7824ee3900416f87bc9aafef717",
+      "880x510-editor.ppm": "b8721e935189a3e026c0aece63a5228f5b2eae96de41e9ff86954ba6b5c9a030",
+      "880x510-dirty.ppm": "bc55d1b8a61a2862789375d86757c337a825046946206187f02200c69deffe4b",
+      "880x510-saved.ppm": "7f6de4365ff9ba8125067134378f1c629b3cf1489e83bb6c0014423488653478",
+      "880x510-list.ppm": "a29734541781ad92faf753b05e00269c39e80dc6a92ebc47bfffb5e1df058396",
+      "880x510-reopened.ppm": "b27d6416d50bf56e5e885a0bccc5806e55f80aaa63eb109531670c6ab8e754de",
+      "880x510-dirty-focus-lost.ppm": "237da43c443415841a21bd7a664074471f6aaae0d4727d8d4e29031fd0ec470b",
+      "880x510-dirty-rebound.ppm": "237da43c443415841a21bd7a664074471f6aaae0d4727d8d4e29031fd0ec470b",
+      "880x510-dirty-recovered.ppm": "bc55d1b8a61a2862789375d86757c337a825046946206187f02200c69deffe4b",
+      "880x510-clipboard-copied.ppm": "671e33537f12139c0afb5e76542a8e2634607c4c4eadc45cc6d7724f2e0c079b",
+      "880x510-clipboard-numeric.ppm": "c4a17cc01aa0428c88b4e51ac25ed8e6ecd1c92573fb228791cce02830a3dab3",
+      "880x510-clipboard-back.ppm": "f07cf5ac3df99dcd1c44a850eb30e82022bbf7e93e7628559450ed673487a205",
+      "880x510-clipboard-empty.ppm": "5ed388d125f415807517ac50a5a500513755d08444a47291b3c78b7afd265fb3",
+      "880x510-clipboard-recovered-empty.ppm": "2a76a2fdd36b7a1640bd6f4d6a68f1435a2b61a7511289f1f4620c14e489c5a9",
+      "1120x660-initial.ppm": "1d3c35e520e9e5d9d04b6ee1d1d4b32167b301e06461eef128b9d4b9d717fbbd",
+      "1120x660-editor.ppm": "9afe9e93efee96965e7d6785af7cd671edc52dcdf603943966ca2c0eef0dfbd4",
+      "1120x660-dirty.ppm": "109b808335f7ec24209169679f9118f25f79cc72576d94b6c616a635a8ee2c45",
+      "1120x660-saved.ppm": "647c4da86e003767f7c80148da89f3d99b1184f5ba7716c966807667ae8a71ce",
+      "1120x660-list.ppm": "2d61c04d33ac8ea25a7c40e9010432b8ec698c42314e2c521a0c6ac1543224a6",
+      "1120x660-reopened.ppm": "351dac36b49bfc4e954f3fc0cabc96178befba98f4e50b5672cfe66090157246",
+      "1120x660-dirty-focus-lost.ppm": "3b9bebbc3dafe81d274ce042755daa59828a943d5f0142202e43481b1b0e942e",
+      "1120x660-dirty-rebound.ppm": "3b9bebbc3dafe81d274ce042755daa59828a943d5f0142202e43481b1b0e942e",
+      "1120x660-dirty-recovered.ppm": "109b808335f7ec24209169679f9118f25f79cc72576d94b6c616a635a8ee2c45",
+      "1120x660-clipboard-copied.ppm": "f2bf9c4dd2f76cfd507a7117089cc441d91f6f1555e20a0460bacc898c10257a",
+      "1120x660-clipboard-numeric.ppm": "8536544154e476f61242abbf720013a17cc26035da2f7b1dfd25416acca2fb29",
+      "1120x660-clipboard-back.ppm": "8d2bcacbcf8c4835665cb86d5c733c6826f0cc7bd561fe604bebdf2ca7981f46",
+      "1120x660-clipboard-empty.ppm": "305a40c5799704dffbddb2259135566fbc17b91118debd82685e84918df812f8",
+      "1120x660-clipboard-recovered-empty.ppm": "0a42b797910b14a886000f0fa8f257750864a67b087166557c4322d09bb7307a",
+      "calculator-320x484-clipboard-unsupported.ppm": "e67286e5fbd5227d9e0a95258431f6a93880aa8d57108d9e18bae9a1f5c74349",
+      "calculator-320x484-clipboard-pasted.ppm": "6b9d1fc8acdbc62fd3910c655d597642d6d30dd6c610dc43c7d992063e737469",
+      "calculator-320x484-clipboard-calculator-copied.ppm": "be879b96268f9f59179e1499a2d156475d70dfc977c8f9cc60bcdfb5e75c202b",
+      "calculator-640x608-clipboard-unsupported.ppm": "2a912a0e5f1c05a8f6f2adabd36b03b0cf842ee31df58837878937a418e7b491",
+      "calculator-640x608-clipboard-pasted.ppm": "f8b8ccb2fa30e589e221c8984f1594cacaa5549925cdcc5c84a3a9efd89df524",
+      "calculator-640x608-clipboard-calculator-copied.ppm": "d01d82f14b4cebde04d0ce0205323c3dd25f62be97ded771e9f00037bb7145c5"
+    }
+  },
+  "duration_s": 487.00677922999967,
+  "serial_sha256": "adfff13d7040ba54a5ac479ea321640f53f05e51fbed497225d3089d39bfcb03",
+  "qmp_trace": [
+    {
+      "request": {
+        "execute": "qmp_capabilities",
+        "id": 1
+      },
+      "response": {
+        "return": {},
+        "id": 1
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 2,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 2
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 3,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            },
+            {
+              "type": "rel",
+              "data": {
+                "axis": "y",
+                "value": 50
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 3
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 4,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 4
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 5,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 5
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 6,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 6
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 7,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 7
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 8,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 8
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 9,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 9
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 10,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 10
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 11,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 11
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 12,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 12
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 13,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 13
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 14,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 14
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 15,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 15
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 16,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 12
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 16
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 17,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 17
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 18,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ret"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 18
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 19,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 19
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 20,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "n"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 20
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 21,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "i"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 21
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 22,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "e"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 22
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 23,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "u"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 23
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 24,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "w"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 24
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 25,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "spc"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 25
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 26,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "o"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 26
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 27,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "s"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 27
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 28,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "spc"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 28
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 29,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "w"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 29
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 30,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "e"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 30
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 31,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "r"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 31
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 32,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "k"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 32
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 33,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "t"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 33
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 34,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 34
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 35,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ctrl"
+            },
+            {
+              "type": "qcode",
+              "data": "a"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 35
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 36,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ctrl"
+            },
+            {
+              "type": "qcode",
+              "data": "c"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 36
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 37,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 37
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 38,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 38
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 39,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 39
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 40,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 40
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 41,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 41
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 42,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 42
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 43,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 43
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 44,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 44
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 45,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 45
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 46,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "f6"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 46
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 47,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ctrl"
+            },
+            {
+              "type": "qcode",
+              "data": "v"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 47
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 48,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 48
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 49,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 49
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 50,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 50
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 51,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 51
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 52,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 52
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 53,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 53
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 54,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 54
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 55,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 55
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 56,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 56
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 57,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 57
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 58,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 58
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 59,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 59
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 60,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 60
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 61,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 61
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 62,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 62
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 63,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 63
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 64,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 64
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 65,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 65
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 66,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 66
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 67,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 67
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 68,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 68
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 69,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 69
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 70,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 70
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 71,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 71
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 72,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 72
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 73,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 73
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 74,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 74
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 75,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 75
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 76,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 76
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 77,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 77
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 78,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 78
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 79,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 79
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 80,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 80
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 81,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 81
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 82,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 82
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 83,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 83
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 84,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 84
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 85,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 85
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 86,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 86
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 87,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 87
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 88,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 88
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 89,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 89
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 90,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 90
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 91,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 91
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 92,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 92
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 93,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 93
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 94,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 94
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 95,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 95
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 96,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 96
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 97,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 97
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 98,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 98
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 99,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 99
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 100,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 100
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 101,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "f6"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 101
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 102,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "3"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 102
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 103,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ctrl"
+            },
+            {
+              "type": "qcode",
+              "data": "a"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 103
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 104,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ctrl"
+            },
+            {
+              "type": "qcode",
+              "data": "c"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 104
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 105,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 105
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 106,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "f6"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 106
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 107,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ctrl"
+            },
+            {
+              "type": "qcode",
+              "data": "v"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 107
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 108,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 108
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 109,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "shift"
+            },
+            {
+              "type": "qcode",
+              "data": "equal"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 109
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 110,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "4"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 110
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 111,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ctrl"
+            },
+            {
+              "type": "qcode",
+              "data": "a"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 111
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 112,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ctrl"
+            },
+            {
+              "type": "qcode",
+              "data": "c"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 112
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 113,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 113
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 114,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ctrl"
+            },
+            {
+              "type": "qcode",
+              "data": "a"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 114
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 115,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "backspace"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 115
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 116,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "f6"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 116
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 117,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ctrl"
+            },
+            {
+              "type": "qcode",
+              "data": "v"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 117
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 118,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 118
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 119,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ctrl"
+            },
+            {
+              "type": "qcode",
+              "data": "shift"
+            },
+            {
+              "type": "qcode",
+              "data": "delete"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 119
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 120,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ctrl"
+            },
+            {
+              "type": "qcode",
+              "data": "v"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 120
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 121,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 121
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 122,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 122
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 123,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 123
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 124,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 124
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 125,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 125
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 126,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 126
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 127,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 127
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 128,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 128
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 129,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 129
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 130,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 130
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 131,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 131
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 132,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 132
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 133,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 133
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 134,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 134
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 135,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ctrl"
+            },
+            {
+              "type": "qcode",
+              "data": "a"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 135
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 136,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ctrl"
+            },
+            {
+              "type": "qcode",
+              "data": "c"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 136
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 137,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ctrl"
+            },
+            {
+              "type": "qcode",
+              "data": "a"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 137
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 138,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "n"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 138
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 139,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "i"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 139
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 140,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "e"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 140
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 141,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "u"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 141
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 142,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "w"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 142
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 143,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "spc"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 143
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 144,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "o"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 144
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 145,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "s"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 145
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 146,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "spc"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 146
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 147,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "w"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 147
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 148,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "e"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 148
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 149,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "r"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 149
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 150,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "k"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 150
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 151,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "t"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 151
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 152,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 152
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 153,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "f6"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 153
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 154,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "2"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 154
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 155,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "shift"
+            },
+            {
+              "type": "qcode",
+              "data": "equal"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 155
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 156,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "3"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 156
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 157,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ret"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 157
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 158,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 158
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 159,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -96
+              }
+            },
+            {
+              "type": "rel",
+              "data": {
+                "axis": "y",
+                "value": 68
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 159
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 160,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 160
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 161,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -8
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 161
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 162,
+        "arguments": {
+          "events": [
+            {
+              "type": "btn",
+              "data": {
+                "down": true,
+                "button": "left"
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 162
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 163,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -96
+              }
+            },
+            {
+              "type": "rel",
+              "data": {
+                "axis": "y",
+                "value": -18
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 163
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 164,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -64
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 164
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 165,
+        "arguments": {
+          "events": [
+            {
+              "type": "btn",
+              "data": {
+                "down": false,
+                "button": "left"
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 165
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 166,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 166
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 167,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 167
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 168,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 168
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 169,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 169
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 170,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 170
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 171,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 171
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 172,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 172
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 173,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 173
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 174,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 174
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 175,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "f6"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 175
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 176,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "f12"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 176
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 177,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 177
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 178,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            },
+            {
+              "type": "rel",
+              "data": {
+                "axis": "y",
+                "value": 50
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 178
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 179,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 179
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 180,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 180
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 181,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 181
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 182,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 182
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 183,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 183
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 184,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 184
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 185,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 185
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 186,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 186
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 187,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 187
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 188,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 188
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 189,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 189
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 190,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 190
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 191,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 12
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 191
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 192,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 192
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 193,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -96
+              }
+            },
+            {
+              "type": "rel",
+              "data": {
+                "axis": "y",
+                "value": 68
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 193
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 194,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 194
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 195,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -8
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 195
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 196,
+        "arguments": {
+          "events": [
+            {
+              "type": "btn",
+              "data": {
+                "down": true,
+                "button": "left"
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 196
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 197,
+        "arguments": {
+          "events": [
+            {
+              "type": "btn",
+              "data": {
+                "down": false,
+                "button": "left"
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 197
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 198,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            },
+            {
+              "type": "rel",
+              "data": {
+                "axis": "y",
+                "value": -68
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 198
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 199,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 199
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 200,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 8
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 200
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 201,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ret"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 201
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 202,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 202
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 203,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -96
+              }
+            },
+            {
+              "type": "rel",
+              "data": {
+                "axis": "y",
+                "value": 40
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 203
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 204,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 204
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 205,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 205
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 206,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 206
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 207,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 207
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 208,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 208
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 209,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 209
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 210,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 210
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 211,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 211
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 212,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": -96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 212
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 213,
+        "arguments": {
+          "events": [
+            {
+              "type": "btn",
+              "data": {
+                "down": true,
+                "button": "left"
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 213
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 214,
+        "arguments": {
+          "events": [
+            {
+              "type": "btn",
+              "data": {
+                "down": false,
+                "button": "left"
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 214
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 215,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            },
+            {
+              "type": "rel",
+              "data": {
+                "axis": "y",
+                "value": -40
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 215
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 216,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 216
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 217,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 217
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 218,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 218
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 219,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 219
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 220,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 220
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 221,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 221
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 222,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 222
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 223,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 223
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 224,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 224
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 225,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "right"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 225
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 226,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 226
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 227,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 227
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 228,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 228
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 229,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 229
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 230,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 230
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 231,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 231
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 232,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 232
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 233,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 233
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 234,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 234
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 235,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 235
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 236,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 236
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 237,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 237
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 238,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 238
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 239,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 239
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 240,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 240
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 241,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 241
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 242,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 242
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 243,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 243
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 244,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ctrl"
+            },
+            {
+              "type": "qcode",
+              "data": "v"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 244
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 245,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 245
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 246,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 246
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 247,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 247
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 248,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 248
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 249,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 249
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 250,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 250
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 251,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 251
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 252,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 252
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 253,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 253
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 254,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 254
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 255,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 255
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 256,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 256
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 257,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 257
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 258,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 258
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 259,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 259
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 260,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ctrl"
+            },
+            {
+              "type": "qcode",
+              "data": "s"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 260
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 261,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 261
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 262,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "esc"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 262
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 263,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 263
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 264,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ctrl"
+            },
+            {
+              "type": "qcode",
+              "data": "f"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 264
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 265,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ret"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 265
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 266,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-82244a4910a14f758aa9624c1094b9a8/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 266
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 267,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "f10"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 267
+      }
+    }
+  ],
+  "qemu_host_cpu": {
+    "user_seconds": 487.76,
+    "system_seconds": 2.6,
+    "scope": "POSIX reaped child CPU during this QEMU invocation; excludes host fixture generation, not guest CPU cycles or scanout latency"
+  }
+}

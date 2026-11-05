@@ -25,6 +25,7 @@ from run_graphics import QmpPipe, ppm
 from run_system import check_esp, check_image
 from run_materiaal_probe import disk_oracle, TEXT, TEXT_SUM
 import volume_disk
+import window_library
 
 FEATURE = "native-window-session-probe"
 NAMES = {"window-init", "window-compositor", "materiaal-app", "calculator-app",
@@ -109,11 +110,13 @@ SNAPSHOT_FIELDS = {
                  "SAVE_ACKS", "REVISION", "SAVED_BYTES", "SAVED_SUM", "SCREEN", "DIRTY", "DRAFT_BYTES", "DRAFT_SUM", "OBJECT", "SCALE", "ERRORS", "PROBES"},
     "CALCULATOR": {"PID", "SERVICE_GENERATION", "SURFACE_EPOCH", "INPUT_EPOCH", "READY", "GEN", "FRAMES",
                    "EVALUATIONS", "FAILURES", "EXPRESSION_BYTES", "EXPRESSION_SUM", "CURRENT", "CARET", "ACTIVE", "SCALE", "ERRORS", "ANSWER_LOW", "ANSWER_HIGH", "HAS_ANSWER", "PROBES"},
-    "COMPOSITOR": {"GENERATION", "PID", "COMMITS", "INPUT", "REJECTED", "FOCUSED", "MOVES", "SWITCHES", "MATERIAL", "CALCULATOR", "FATAL", "POINTER_X", "POINTER_Y", "BUTTONS"},
+    "COMPOSITOR": {"GENERATION", "PID", "COMMITS", "INPUT", "REJECTED", "FOCUSED", "MOVES", "SWITCHES", "MATERIAL", "CALCULATOR", "FATAL", "POINTER_X", "POINTER_Y", "BUTTONS", "SHELL", "SHELL_READY"},
 }
 
 
-def generate_fixture(*, clipboard: bool = False) -> dict:
+def generate_fixture(*, clipboard: bool = False, library: bool = False) -> dict:
+    if clipboard and library:
+        raise ValueError("Library and clipboard have separate complete oracles")
     directory = private_path(BUILD / ("window-fixture-" + uuid.uuid4().hex))
     directory.mkdir(parents=True)
     frozen = source_hash()
@@ -121,7 +124,8 @@ def generate_fixture(*, clipboard: bool = False) -> dict:
     env["CARGO_TARGET_DIR"] = str(private_path(TARGET / "window-fixture"))
     env["OS_WINDOW_FIXTURE_DIRECTORY"] = str(directory)
     command = ["cargo", "+1.90.0", "test", "--offline", "--locked", "--manifest-path",
-               str(ROOT / "ui/native/Cargo.toml"), "--test", "window_native_fixture", "--", "--nocapture"]
+               str(ROOT / "ui/native/Cargo.toml"), "--test",
+               "library_native_fixture" if library else "window_native_fixture", "--", "--nocapture"]
     commands = [command]
     if clipboard:
         commands.append(["cargo", "+1.90.0", "test", "--offline", "--locked", "--manifest-path",
@@ -136,7 +140,7 @@ def generate_fixture(*, clipboard: bool = False) -> dict:
         raise ValueError("Host fixture failed or source changed: " + str(directory))
     hashes, frames = {}, {}
     for size in ("880x510", "1120x660"):
-        for phase in FIXTURE_PHASES + (CLIPBOARD_PHASES if clipboard else ()):
+        for phase in (window_library.PHASES if library else FIXTURE_PHASES) + (CLIPBOARD_PHASES if clipboard else ()):
             path = private_path(directory / f"{size}-{phase}.ppm", regular=True)
             if path.stat().st_size > 3 * 1120 * 660 + 128:
                 raise ValueError("Oversized oracle")
@@ -160,7 +164,7 @@ def generate_fixture(*, clipboard: bool = False) -> dict:
                     frames[phase] = raw
     metadata = dict(kind="host-rendered real Controller/Frame oracle; not native execution",
                     source_sha256=frozen, source_fingerprint_version=3, generator_command=command,
-                    generator_commands=commands, clipboard_oracles=clipboard,
+                    generator_commands=commands, clipboard_oracles=clipboard, library_oracles=library,
                     generator_exit=result.returncode, files_sha256=hashes)
     publish_json(directory / "fixture.json", metadata)
     return dict(directory=directory, metadata=metadata, frames=frames)
@@ -180,6 +184,39 @@ def material_matches(raw: bytes, expected: bytes) -> bool:
 
 def calculator_matches(raw: bytes, expected: bytes) -> bool:
     return ppm(expected)[:2] == CALCULATOR_BODY[2:] and crop(raw, CALCULATOR_BODY) == ppm(expected)[2]
+
+
+def calculator_recall_matches(state: dict, baseline: dict, expression: bytes,
+                              current: bool, evaluations: int, answer: int) -> bool:
+    expected = {"EXPRESSION_BYTES": len(expression), "EXPRESSION_SUM": volume_disk.fnv(expression),
+                "CARET": len(expression), "CURRENT": int(current), "EVALUATIONS": evaluations,
+                "FAILURES": 0, "ERRORS": 0, "HAS_ANSWER": 1, "READY": 1, "ACTIVE": 1,
+                "ANSWER_LOW": answer, "ANSWER_HIGH": 0}
+    expected.update({name: baseline[name] for name in
+                     ("PID", "SERVICE_GENERATION", "SURFACE_EPOCH", "INPUT_EPOCH", "PROBES", "SCALE")})
+    return all(state.get(name) == value for name, value in expected.items())
+
+
+def calculator_undo_matches(state: dict, baseline: dict, expression: bytes, current: bool,
+                            evaluations: int) -> bool:
+    expected = {"EXPRESSION_BYTES": len(expression), "EXPRESSION_SUM": volume_disk.fnv(expression),
+                "CARET": len(expression), "CURRENT": int(current), "EVALUATIONS": evaluations,
+                "FAILURES": 0, "ERRORS": 0, "HAS_ANSWER": 1,
+                "ANSWER_LOW": 5_000_000_000, "ANSWER_HIGH": 0, "READY": 1, "ACTIVE": 1}
+    expected.update({name: baseline[name] for name in
+                     ("PID", "SERVICE_GENERATION", "SURFACE_EPOCH", "INPUT_EPOCH", "PROBES", "SCALE")})
+    return all(state.get(name) == value for name, value in expected.items())
+
+
+def calculator_result_matches(state: dict, baseline: dict, expression: bytes,
+                               evaluations: int, answer: int) -> bool:
+    expected = {"EXPRESSION_BYTES": len(expression), "EXPRESSION_SUM": volume_disk.fnv(expression),
+                "CARET": len(expression), "CURRENT": 1, "EVALUATIONS": evaluations,
+                "FAILURES": 0, "ERRORS": 0, "HAS_ANSWER": 1, "READY": 1, "ACTIVE": 1,
+                "ANSWER_LOW": answer, "ANSWER_HIGH": 0}
+    expected.update({name: baseline[name] for name in
+                     ("PID", "SERVICE_GENERATION", "SURFACE_EPOCH", "INPUT_EPOCH", "PROBES", "SCALE")})
+    return all(state.get(name) == value for name, value in expected.items())
 
 
 def oracle_matches(raw: bytes, expected: bytes, name: str) -> bool:
@@ -243,11 +280,18 @@ def numbers(raw: bytes, name: str) -> list[int]:
     return [int(m[1]) for m in re.finditer(rb"(?:^|\n)" + re.escape(name.encode()) + rb":([0-9]{20})\n", raw)]
 
 
-def validate_build(frozen: str, scale: int = 1) -> dict:
+def validate_build(frozen: str, feature: str = FEATURE, scale: int = 1) -> dict:
     switcher_geometry(scale)
     manifest = load_json(private_path(BUILD / "manifest.json", regular=True))
-    feature = FEATURE if scale == 1 else "native-window-session-hidpi-probe"
-    loader = "desktop-mode" if scale == 1 else "desktop-hidpi"
+    expected_feature = FEATURE if scale == 1 else "native-window-session-hidpi-probe"
+    if feature == "native-session-route":
+        if scale != 1:
+            raise ValueError("The public session route requires the 100% profile")
+        loader = "desktop-mode"
+    else:
+        if feature != expected_feature:
+            raise ValueError("Window feature does not match the requested scale")
+        loader = "desktop-mode" if scale == 1 else "desktop-hidpi"
     if (manifest.get("kernel_feature") != feature or manifest.get("loader_feature") != loader
             or manifest.get("source_sha256") != frozen or manifest.get("source_fingerprint_version") != 3):
         raise ValueError("Build the unchanged native window probe first")
@@ -265,19 +309,41 @@ def validate_build(frozen: str, scale: int = 1) -> dict:
 
 def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
         recovery_handshake: bool = False, clipboard: bool = False,
-        switcher: bool = False, scale: int = 1) -> dict:
+        switcher: bool = False, scale: int = 1, session_route: bool = False,
+        library: bool = False, library_parent: Path | None = None,
+        calculator_recall: bool = False, calculator_undo: bool = False,
+        calculator_result: bool = False) -> dict:
     if not 30 <= timeout <= 1800:
         raise ValueError("Timeout must be bounded 30..1800 seconds")
     if smoke and recovery_handshake or clipboard and (smoke or recovery_handshake):
         raise ValueError("Clipboard requires the full native gate; choose one diagnostic mode")
     if switcher and (smoke or recovery_handshake or clipboard) or scale != 1 and not switcher:
         raise ValueError("Switcher is a separate native part gate; scale 2 requires --switcher")
+    if session_route and (smoke or recovery_handshake or clipboard or switcher or library
+                          or calculator_recall or calculator_undo or calculator_result):
+        raise ValueError("The public session route is separate from the fault/clipboard gate")
+    if library and (smoke or recovery_handshake or clipboard or session_route or switcher
+                    or calculator_recall or calculator_undo or calculator_result) or library_parent is not None and not library:
+        raise ValueError("Library requires its separate complete walkthrough")
+    if calculator_recall and (smoke or recovery_handshake or clipboard or session_route or library or switcher
+                              or calculator_undo or calculator_result):
+        raise ValueError("Calculator recall is a separate interaction gate")
+    if calculator_undo and (smoke or recovery_handshake or clipboard or session_route or library or switcher or calculator_recall or calculator_result):
+        raise ValueError("Calculator undo is a separate interaction gate")
+    if calculator_result and (smoke or recovery_handshake or clipboard or session_route or library or switcher
+                              or calculator_recall or calculator_undo):
+        raise ValueError("Calculator result transfer is a separate interaction gate")
+    calculator = calculator_recall or calculator_undo or calculator_result
     width, height, body, calc_body, switcher_bounds = switcher_geometry(scale)
-    diagnostic = smoke or recovery_handshake
+    feature = ("native-session-route" if session_route else
+               "native-window-session-hidpi-probe" if switcher and scale == 2 else FEATURE)
+    diagnostic = smoke or recovery_handshake or session_route or library
     private_path(BUILD)
     frozen = source_hash()
-    manifest = validate_build(frozen, scale)
-    fixture = None if diagnostic or switcher else (generate_fixture(clipboard=True) if clipboard else generate_fixture())
+    manifest = validate_build(frozen, feature, scale)
+    fixture = (generate_fixture(library=True) if library else
+               None if diagnostic or switcher or calculator else generate_fixture(clipboard=clipboard))
+    parent = window_library.cold_parent(library_parent, source=frozen, manifest=manifest) if library_parent is not None else None
     env = environment()
     qemu = Path(shutil.which("qemu-system-x86_64", path=env["PATH"]) or "missing")
     qemu_hash = sha256(qemu)
@@ -292,7 +358,10 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
         if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or not 0 < info.st_size <= limit:
             raise ValueError("Invalid external firmware/ROM")
         publish(directory / name, original.read_bytes())
-    volume_disk.create_image(directory / "volume.img", "empty")
+    if parent is None:
+        volume_disk.create_image(directory / "volume.img", "empty")
+    else:
+        publish(directory / "volume.img", parent["image"])
     check_image(directory / "volume.img")
     immutable = {p.relative_to(directory).as_posix(): sha256(p) for p in directory.rglob("*")
                  if p.is_file() and p.name not in {"OVMF_VARS.fd", "volume.img"}}
@@ -307,23 +376,59 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                "-object", "rng-random,id=rng0,filename=/dev/urandom", "-device", "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
                "-drive", "if=none,id=volume,format=raw,cache=writeback,file=volume.img",
                "-device", "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST"]
+    if parent is not None and (parent["qemu_sha256"] != qemu_hash or parent["command"] != command):
+        raise ValueError("Cold library emulator or configuration differs from parent")
     start = time.monotonic()
     deadline = start + timeout
-    report = dict(schema_version=1, passed=False, native_gate=False, smoke_only=diagnostic,
+    report = dict(schema_version=1, passed=False, native_gate=False, smoke_only=diagnostic and not library,
                   recovery_handshake_only=recovery_handshake, clipboard_requested=clipboard, clipboard_gate=False, source_sha256=frozen,
                   source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                   source_fingerprint_version=3, kernel_feature=manifest["kernel_feature"], manifest=manifest, command=command,
                   switcher_requested=switcher, switcher_gate=False, scale=scale, viewport=[width, height],
+                  session_route_requested=session_route, session_route_gate=False,
+                  library_requested=library, library_gate=False, library_cold=parent is not None,
+                  library_parent=None if parent is None else {k: v for k, v in parent.items() if k != "image"},
                   run_directory=str(directory), qemu_sha256=qemu_hash, immutable=immutable, phases={})
+    if calculator_recall:
+        report.update(calculator_recall_requested=True, calculator_recall_gate=False,
+                      interaction_scope="Native calculator recall, unfinished draft restoration, app-body pixel roundtrips and clean exit; not recovery/storage/full window-session acceptance.")
+    if calculator_undo:
+        report.update(calculator_undo_requested=True, calculator_undo_gate=False,
+                      interaction_scope="Native calculator undo/redo, app-body pixel roundtrips and clean exit; not recovery/storage/full window-session acceptance.")
+    if calculator_result:
+        report.update(calculator_result_requested=True, calculator_result_gate=False,
+                      interaction_scope="Native current-result selection by keyboard/mouse and actual clipboard transfer into Material; save ACK and clean exit, not complete recovery/storage/window-session acceptance.")
     publish_json(directory / "result.json", report)
+    report["boot_milestone_observations"] = {}
+    def observed_serial():
+        raw = serial(directory / "serial.txt")
+        # First-observed host bounds, never invented guest phase durations.
+        for label, marker in (
+            ("firmware_exit", b"BOOT:EBS_OK\n"),
+            ("kernel_entry", b"KERNEL:ENTRY\n"),
+            ("kernel_memory_ready", b"KS-03:PASS\n"),
+            ("process_manifest_ready", b"WINDOW:MANIFEST:PASS\n"),
+            ("required_services_ready", b"WINDOW:INITMASK:00000000000000000031\n"),
+            ("material_complete_frame", b"WINDOW:MATERIAL:READY:00000000000000000001\n"),
+            ("calculator_complete_frame", b"WINDOW:CALCULATOR:READY:00000000000000000001\n"),
+        ):
+            if marker in raw and label not in report["boot_milestone_observations"]:
+                report["boot_milestone_observations"][label] = {
+                    "first_observed_seconds": time.monotonic() - start,
+                    "scope": "host monotonic polling bound; not exact guest duration"}
+        return raw
     process = control = None
+    cpu_before = None
     try:
         with (directory / "stderr.txt").open("xb") as stderr:
+            cpu_before = os.times() if os.name == "posix" else None
             process = subprocess.Popen(command, cwd=directory, env=env, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr, bufsize=0)
             control = QmpPipe(process, deadline)
 
             implementation = Path(os.readlink(f"/proc/{process.pid}/exe"))
             implementation_hash = sha256(implementation)
+            if parent is not None and parent["qemu_implementation_sha256"] != implementation_hash:
+                raise ValueError("Cold library QEMU implementation differs from parent")
             report["qemu_implementation"] = {"path": str(implementation), "sha256": implementation_hash}
             captured = {}
             group_generation = [1]
@@ -335,7 +440,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
             def observe(label, predicate, *, timeout_s=None):
                 observation_deadline = deadline if timeout_s is None else min(deadline, time.monotonic() + timeout_s)
                 while True:
-                    raw = serial(directory / "serial.txt")
+                    raw = observed_serial()
                     if predicate(raw):
                         return raw
                     if process.poll() is not None or time.monotonic() >= observation_deadline:
@@ -345,7 +450,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
             action_started = [None]
             def wait(name, predicate, oracle=None, image_check=None):
                 while True:
-                    raw = serial(directory / "serial.txt")
+                    raw = observed_serial()
                     state = {role: snapshots(raw, role) for role in ("MATERIAL", "CALCULATOR")}
                     if predicate(raw, state):
                         path = private_path(directory / "candidate.ppm", regular=(directory / "candidate.ppm").exists())
@@ -372,7 +477,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                     time.sleep(0.05)
 
             def key(*keys):
-                raw = serial(directory / "serial.txt")
+                raw = observed_serial()
                 current = comp(raw)
                 if current.get("GENERATION") != group_generation[0]:
                     raise ValueError("Keyboard injection lacks a current compositor observation")
@@ -406,8 +511,64 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 move(x, y); button(True); button(False)
                 observe("mouse focus", lambda raw: comp(raw).get("GENERATION") == group_generation[0] and comp(raw).get("FOCUSED") == index)
 
-            initial = None if recovery_handshake else wait("boot", lambda raw, s: all(s.values()) and 31 in numbers(raw, "WINDOW:INITMASK"))
-            if recovery_handshake:
+            initial = None if recovery_handshake or session_route or library else wait("boot", lambda raw, s: all(s.values()) and 31 in numbers(raw, "WINDOW:INITMASK"))
+            if library:
+                observe("library app frames", lambda raw:
+                    all(snapshots(raw, role) for role in ("MATERIAL", "CALCULATOR"))
+                    and comp(raw).get("GENERATION") == 1)
+                move(1260, 50)
+                window_library.walkthrough(key=key, wait=wait, cold=parent is not None)
+                key("f10")
+            elif session_route:
+                # These are real compositor/input states plus unmasked captured
+                # frames. They do not certify a credential/keyring boundary or
+                # the existing crash/storage/clipboard gate.
+                def shell_page(name, page):
+                    return wait(name, lambda raw, state: comp(raw).get("SHELL") == page
+                                and comp(raw).get("SHELL_READY") == 1)
+
+                def shell_key(*codes):
+                    before = comp(observed_serial())["INPUT"]
+                    control.command("send-key", {"keys": [{"type": "qcode", "data": k} for k in codes], "hold-time": 1})
+                    observe("shell input ACK", lambda raw: comp(raw).get("INPUT", 0) > before)
+
+                shell_page("lock", 0)
+                observe("bounded app input counters", lambda raw: all(numbers(raw, f"WINDOW:{r}:KEYS") for r in ("MATERIAL", "CALCULATOR")))
+                before = {r: numbers(observed_serial(), f"WINDOW:{r}:KEYS")[-1]
+                          for r in ("MATERIAL", "CALCULATOR")}
+                shell_key("ret"); shell_page("users", 1)
+                shell_key("tab"); shell_key("ret"); shell_page("personal-auth", 2)
+                shell_key("ret"); shell_key("tab"); shell_key("ret")
+                shell_key("tab"); shell_key("ret")
+                shell_page("hardware-unavailable", 2)
+                raw = observed_serial()
+                after = {r: numbers(raw, f"WINDOW:{r}:KEYS")[-1] for r in before}
+                if before != after:
+                    raise ValueError("Trusted shell leaked authentication input into an app")
+                shell_key("esc"); shell_page("lock-again", 0)
+                shell_key("ret"); shell_page("users-again", 1)
+                shell_key("ret"); shell_page("guest-auth", 2)
+                unlock_started = time.monotonic()
+                shell_key("ret"); shell_page("desktop", 4)
+                report["guest_to_desktop_observed_s"] = time.monotonic() - unlock_started
+                shell_key("f3"); shell_page("search", 5)
+                for code in ("r", "e", "k"): shell_key(code)
+                shell_key("ret"); shell_page("calculator", 4)
+                if comp(observed_serial()).get("FOCUSED") != 1:
+                    raise ValueError("Search did not activate the correct native app")
+                shell_key("compose"); shell_page("session-menu", 8)
+                shell_key("tab"); shell_key("tab"); shell_key("ret"); shell_page("settings", 6)
+                shell_key("esc"); shell_page("desktop-again", 4)
+                shell_key("meta_l", "l"); shell_page("covered", 0)
+                shell_key("ret"); shell_page("users-return", 1)
+                shell_key("ret"); shell_page("guest-return", 2)
+                shell_key("ret"); shell_page("desktop-return", 4)
+                shell_key("compose"); shell_page("shutdown-menu", 8)
+                for _ in range(3): shell_key("tab")
+                control.command("send-key", {"keys": [{"type": "qcode", "data": "ret"}], "hold-time": 1})
+                report["blocked_app_keys_before"] = before
+                report["blocked_app_keys_after"] = after
+            elif recovery_handshake:
                 # Exercise the actual busy-RPC cancellation/retire/rebind path
                 # before waiting for full app paints. This never certifies
                 # pixels, preserved work, persistence or the complete U01 gate.
@@ -556,11 +717,170 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                      and s["MATERIAL"][-1]["DIRTY"] == 0
                      and s["MATERIAL"][-1]["SAVE_ACKS"] == baseline["MATERIAL"][-1]["SAVE_ACKS"] + 1
                      and s["MATERIAL"][-1]["DRAFT_SUM"] == volume_disk.fnv(TEXT + b"z"))
+            elif calculator_recall:
+                move(1260, 50)
+                key("f6")
+                wait("recall-focused", lambda raw, s: s["CALCULATOR"] and
+                     s["MATERIAL"] and s["MATERIAL"][-1]["GEN"] > initial["MATERIAL"][-1]["GEN"] and
+                     comp(raw).get("FOCUSED") == 1 and
+                     comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"] and
+                     comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
+                baseline = snapshots(serial(directory / "serial.txt"), "CALCULATOR")[-1]
+
+                def recall_wait(name, expression, current, evaluations, answer, same_as=None):
+                    state = wait(name, lambda raw, s: s["CALCULATOR"] and
+                                 calculator_recall_matches(s["CALCULATOR"][-1], baseline,
+                                                           expression, current, evaluations, answer) and
+                                 comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
+                    if name != "recall-first" and changed_outside(captured["recall-first"], captured[name], CALCULATOR_BODY):
+                        raise ValueError("Recall paint escaped the calculator body")
+                    if same_as is not None and crop(captured[name], CALCULATOR_BODY) != crop(captured[same_as], CALCULATOR_BODY):
+                        raise ValueError("Complete recall/draft app pixels differ on roundtrip")
+                    return state
+
+                for chord in (("2",), ("shift", "equal"), ("3",), ("ret",)):
+                    key(*chord)
+                recall_wait("recall-first", b"2+3", True, 1, 5_000_000_000)
+                for chord in (("esc",), ("4",), ("shift", "8"), ("5",), ("ret",)):
+                    key(*chord)
+                recall_wait("recall-second", b"4*5", True, 2, 20_000_000_000)
+                for chord in (("esc",), ("9",), ("slash",), ("2",)):
+                    key(*chord)
+                recall_wait("recall-draft", b"9/2", False, 2, 20_000_000_000)
+                for name, chord, expression, same_as in (
+                    ("recall-latest", ("up",), b"4*5", None),
+                    ("recall-oldest", ("up",), b"2+3", None),
+                    ("recall-next", ("down",), b"4*5", "recall-latest"),
+                    ("recall-own-draft", ("down",), b"9/2", "recall-draft"),
+                ):
+                    key(*chord)
+                    recall_wait(name, expression, False, 2, 20_000_000_000, same_as)
+                    if crop(captured[name], CALCULATOR_BODY) == crop(captured["recall-second"], CALCULATOR_BODY):
+                        raise ValueError("Recall did not repaint formula/stale result")
+                key("up")
+                recall_wait("recall-edit-source", b"4*5", False, 2, 20_000_000_000, "recall-latest")
+                key("backspace"); key("6")
+                recall_wait("recall-edited", b"4*6", False, 2, 20_000_000_000)
+                key("up")
+                recall_wait("recall-after-edit", b"4*5", False, 2, 20_000_000_000, "recall-latest")
+                key("down")
+                recall_wait("recall-edited-draft", b"4*6", False, 2, 20_000_000_000, "recall-edited")
+                key("ret")
+                recall_wait("recall-explicit-evaluation", b"4*6", True, 3, 24_000_000_000)
+                key("f10")
+            elif calculator_undo:
+                move(1260, 50)
+                key("f6")
+                # Like the recall gate: wait for Material's late focus-lost frame,
+                # or later changed_outside checks may see that repaint.
+                wait("undo-focused", lambda raw, s: s["CALCULATOR"] and
+                     s["MATERIAL"] and s["MATERIAL"][-1]["GEN"] > initial["MATERIAL"][-1]["GEN"] and
+                     comp(raw).get("FOCUSED") == 1 and
+                     comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"] and
+                     comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
+                for chord in (("2",), ("shift", "equal"), ("3",), ("ret",)):
+                    key(*chord)
+                calculated = wait("undo-calculated", lambda raw, s: s["CALCULATOR"] and
+                                  s["CALCULATOR"][-1]["CURRENT"] == 1 and
+                                  s["CALCULATOR"][-1]["EVALUATIONS"] == 1 and
+                                  comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
+                baseline = calculated["CALCULATOR"][-1]
+                if not calculator_undo_matches(baseline, baseline, b"2+3", True, 1):
+                    raise ValueError("Calculator baseline differs from actual typed 2+3")
+                for name, chord, expression, same_as in (
+                    ("undo-deleted", ("backspace",), b"2+", None),
+                    ("undo-restored", ("ctrl", "z"), b"2+3", None),
+                    ("undo-redone", ("ctrl", "y"), b"2+", "undo-deleted"),
+                    ("undo-restored-again", ("ctrl", "z"), b"2+3", "undo-restored"),
+                    ("undo-shift-redone", ("ctrl", "shift", "z"), b"2+", "undo-deleted"),
+                    ("undo-final-restored", ("ctrl", "z"), b"2+3", "undo-restored"),
+                ):
+                    key(*chord)
+                    wait(name, lambda raw, s: s["CALCULATOR"] and
+                         calculator_undo_matches(s["CALCULATOR"][-1], baseline, expression, False, 1) and
+                         comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
+                    image = captured[name]
+                    if changed_outside(captured["undo-calculated"], image, CALCULATOR_BODY):
+                        raise ValueError("Undo paint escaped the calculator body")
+                    if crop(image, CALCULATOR_BODY) == crop(captured["undo-calculated"], CALCULATOR_BODY):
+                        raise ValueError("Undo did not repaint formula/stale result")
+                    if same_as is not None and crop(image, CALCULATOR_BODY) != crop(captured[same_as], CALCULATOR_BODY):
+                        raise ValueError("Complete undo/redo app pixels differ on roundtrip")
+                key("ret")
+                wait("undo-explicit-evaluation", lambda raw, s: s["CALCULATOR"] and
+                     calculator_undo_matches(s["CALCULATOR"][-1], baseline, b"2+3", True, 2) and
+                     comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
+                key("f10")
+            elif calculator_result:
+                move(1260, 50)
+                key("f6")
+                wait("result-focused", lambda raw, s: all(s.values()) and
+                     s["MATERIAL"][-1]["GEN"] > initial["MATERIAL"][-1]["GEN"] and
+                     comp(raw).get("FOCUSED") == 1 and
+                     comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"] and
+                     comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
+                baseline = snapshots(serial(directory / "serial.txt"), "CALCULATOR")[-1]
+
+                def result_wait(name, expression, evaluations, answer, after=None):
+                    return wait(name, lambda raw, s: s["CALCULATOR"] and
+                                calculator_result_matches(s["CALCULATOR"][-1], baseline,
+                                                          expression, evaluations, answer) and
+                                (after is None or s["CALCULATOR"][-1]["GEN"] > after) and
+                                comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
+
+                for chord in (("7",), ("slash",), ("2",), ("ret",)):
+                    key(*chord)
+                calculated = result_wait("result-calculated", b"7/2", 1, 3_500_000_000)
+                key("ctrl", "r")
+                selected = result_wait("result-key-selected", b"7/2", 1, 3_500_000_000,
+                                       calculated["CALCULATOR"][-1]["GEN"])
+                if crop(captured["result-key-selected"], CALCULATOR_BODY) == crop(captured["result-calculated"], CALCULATOR_BODY):
+                    raise ValueError("Result selection has no native visual feedback")
+                key("ctrl", "c")
+                result_wait("result-key-copied", b"7/2", 1, 3_500_000_000,
+                            selected["CALCULATOR"][-1]["GEN"])
+                key("f6"); key("ret")
+                wait("result-editor", lambda raw, s: s["MATERIAL"] and
+                     s["MATERIAL"][-1]["SCREEN"] == 2 and
+                     comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"])
+                key("ctrl", "v")
+                wait("result-pasted", lambda raw, s: s["MATERIAL"] and
+                     s["MATERIAL"][-1]["DRAFT_BYTES"] == 3 and
+                     s["MATERIAL"][-1]["DRAFT_SUM"] == volume_disk.fnv(b"3,5") and
+                     s["MATERIAL"][-1]["DIRTY"] == 1 and
+                     comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"])
+                key("f6"); key("ctrl", "a")
+                for chord in (("1",), ("slash",), ("3",), ("ret",)):
+                    key(*chord)
+                rounded = result_wait("result-rounded", b"1/3", 2, 333_333_333)
+                move(1100, 230); button(True); button(False); move(1260, 50)
+                clicked = result_wait("result-mouse-selected", b"1/3", 2, 333_333_333,
+                                      rounded["CALCULATOR"][-1]["GEN"])
+                if crop(captured["result-mouse-selected"], CALCULATOR_BODY) == crop(captured["result-rounded"], CALCULATOR_BODY):
+                    raise ValueError("Mouse result selection has no native visual feedback")
+                key("ctrl", "c")
+                result_wait("result-mouse-copied", b"1/3", 2, 333_333_333,
+                            clicked["CALCULATOR"][-1]["GEN"])
+                key("f6"); key("ctrl", "a"); key("ctrl", "v")
+                pasted = wait("result-rounded-pasted", lambda raw, s: s["MATERIAL"] and
+                              s["MATERIAL"][-1]["DRAFT_BYTES"] == 11 and
+                              s["MATERIAL"][-1]["DRAFT_SUM"] == volume_disk.fnv(b"0,333333333") and
+                              s["MATERIAL"][-1]["DIRTY"] == 1 and
+                              comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"])
+                key("ctrl", "s")
+                wait("result-saved-for-cleanup", lambda raw, s: s["MATERIAL"] and
+                     s["MATERIAL"][-1]["SAVE_ACKS"] == pasted["MATERIAL"][-1]["SAVE_ACKS"] + 1 and
+                     s["MATERIAL"][-1]["DIRTY"] == 0 and
+                     s["MATERIAL"][-1]["DRAFT_SUM"] == volume_disk.fnv(b"0,333333333") and
+                     # The acknowledged save must carry the transferred bytes too.
+                     s["MATERIAL"][-1]["SAVED_BYTES"] == 11 and
+                     s["MATERIAL"][-1]["SAVED_SUM"] == volume_disk.fnv(b"0,333333333") and
+                     comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"])
                 key("f10")
             else:
                 move(1260, 50)
                 initial = wait("initial", lambda raw, s: all(s.values()), "initial")
-                initial_comp = comp(serial(directory / "serial.txt"))
+                initial_comp = comp(observed_serial())
                 if any(initial[r][-1]["PROBES"] != 3 for r in initial):
                     raise ValueError("Missing initial real CPL3 isolation refusals")
                 key("ret")
@@ -608,7 +928,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 key("f6")
                 key("f12")
                 recovered = wait("recovered", lambda raw, s: 1 in numbers(raw, "WINDOW:RECOVERIES") and all(s.values()) and all(s[r][-1]["SERVICE_GENERATION"] == 2 and s[r][-1]["PROBES"] == 10 for r in s) and comp(raw).get("GENERATION") == 2 and comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"] and comp(raw).get("CALCULATOR") == s["CALCULATOR"][-1]["GEN"])
-                recovered_comp = comp(serial(directory / "serial.txt"))
+                recovered_comp = comp(observed_serial())
                 if recovered_comp["PID"] == initial_comp["PID"]:
                     raise ValueError("Recovery reused the compositor process")
                 for field in ("PID", "DRAFT_BYTES", "DRAFT_SUM", "DIRTY", "SAVE_ACKS", "OBJECT"):
@@ -643,13 +963,28 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 wait("saved", lambda raw, s: s["MATERIAL"] and s["MATERIAL"][-1]["SAVE_ACKS"] == 1 and s["MATERIAL"][-1]["DIRTY"] == 0, "saved")
                 key("esc")
                 wait("list", lambda raw, s: s["MATERIAL"] and s["MATERIAL"][-1]["SCREEN"] == 1, "list")
-                key("tab"); key("tab"); key("ret")
+                key("ctrl", "f"); key("ret")
                 wait("reopened", lambda raw, s: s["MATERIAL"] and s["MATERIAL"][-1]["SCREEN"] == 2 and s["MATERIAL"][-1]["DIRTY"] == 0 and s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM, "reopened")
                 key("f10")
             process.wait(timeout=max(0.1, deadline - time.monotonic()))
-            raw = serial(directory / "serial.txt")
+            raw = observed_serial()
             report["raw_qemu_exit"] = process.returncode
-            if diagnostic:
+            if library:
+                if process.returncode != 33 or not raw.endswith(b"WINDOW:CLEANUP:PASS\nWINDOW:CASE:PASS\nM1:PASS\n"):
+                    raise ValueError("Library did not shut down with verified cleanup")
+                disk_path = private_path(directory / "volume.img", regular=True)
+                report["disk_oracle"] = window_library.disk_oracle(disk_path.read_bytes())
+                report["volume_sha256"] = sha256(disk_path)
+                if parent is not None:
+                    current_parent = window_library.cold_parent(library_parent, source=frozen, manifest=manifest)
+                    if current_parent != parent or disk_path.read_bytes() != parent["image"]:
+                        raise ValueError("Cold reopen changed the image or its parent evidence")
+                report["library_gate"] = True
+            elif session_route:
+                if process.returncode != 33 or not raw.endswith(b"WINDOW:CLEANUP:PASS\nWINDOW:CASE:PASS\nM1:PASS\n"):
+                    raise ValueError("Public session route did not shut down with verified cleanup")
+                report["session_route_gate"] = True
+            elif diagnostic:
                 if process.returncode != 0:
                     raise ValueError("Smoke QEMU quit failed")
             else:
@@ -658,11 +993,15 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 if switcher:
                     if numbers(raw, "WINDOW:FAULT_SLOT") or numbers(raw, "WINDOW:RESTARTS") != [0]:
                         raise ValueError("Unexpected fault/restart in switcher part gate")
-                elif numbers(raw, "WINDOW:FAULT_SLOT") != [4] or numbers(raw, "WINDOW:FAULT_VECTOR") != [6] or numbers(raw, "WINDOW:RESTARTS") != [1]:
-                    raise ValueError("Wrong actual fault/restart")
-                if not switcher:
+                elif calculator:
+                    if numbers(raw, "WINDOW:RESTARTS") not in ([], [0]) or numbers(raw, "WINDOW:FAULT_SLOT"):
+                        raise ValueError("Unexpected fault during calculator interaction")
+                else:
+                    if numbers(raw, "WINDOW:FAULT_SLOT") != [4] or numbers(raw, "WINDOW:FAULT_VECTOR") != [6] or numbers(raw, "WINDOW:RESTARTS") != [1]:
+                        raise ValueError("Wrong actual fault/restart")
                     report["disk_oracle"] = disk_oracle(private_path(directory / "volume.img", regular=True).read_bytes())
-            if source_hash() != frozen or validate_build(frozen, scale) != manifest or sha256(qemu) != qemu_hash:
+            current_manifest = validate_build(frozen, feature, scale)
+            if source_hash() != frozen or current_manifest != manifest or sha256(qemu) != qemu_hash:
                 raise ValueError("Source/build/QEMU changed during run")
             if {name: sha256(private_path(directory / name, regular=True)) for name in immutable} != immutable or {name: sha256(Path(name)) for name in originals} != originals:
                 raise ValueError("Immutable inputs changed during run")
@@ -676,9 +1015,16 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                     if sha256(private_path(fixture["directory"] / name, regular=True)) != digest:
                         raise ValueError("Host oracle changed")
                 report["oracle"] = fixture["metadata"]
-            report.update(passed=True, native_gate=not diagnostic and not switcher, switcher_gate=switcher,
-                          clipboard_gate=clipboard and not diagnostic, duration_s=time.monotonic() - start,
-                          serial_sha256=sha256(directory / "serial.txt"), qmp_trace=control.trace)
+            report.update(passed=True, native_gate=not diagnostic and not calculator and not switcher,
+                          switcher_gate=switcher, clipboard_gate=clipboard and not diagnostic,
+                          duration_s=time.monotonic() - start, serial_sha256=sha256(directory / "serial.txt"),
+                          qmp_trace=control.trace)
+            if calculator_recall:
+                report["calculator_recall_gate"] = True
+            if calculator_undo:
+                report["calculator_undo_gate"] = True
+            if calculator_result:
+                report["calculator_result_gate"] = True
     except Exception as error:
         report["error"] = f"{type(error).__name__}: {error}"
     finally:
@@ -692,6 +1038,12 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 process.kill(); process.wait(timeout=5)
         if process is not None:
             report["raw_qemu_exit"] = process.returncode
+            if cpu_before is not None:
+                cpu_after = os.times()
+                report["qemu_host_cpu"] = {
+                    "user_seconds": cpu_after.children_user - cpu_before.children_user,
+                    "system_seconds": cpu_after.children_system - cpu_before.children_system,
+                    "scope": "POSIX reaped child CPU during this QEMU invocation; excludes host fixture generation, not guest CPU cycles or scanout latency"}
         report["duration_s"] = time.monotonic() - start
         if control is not None:
             report["qmp_trace"] = control.trace
@@ -717,7 +1069,17 @@ if __name__ == "__main__":
     parser.add_argument("--clipboard", action="store_true", help="Include genuine bounded clipboard exchange, clear and post-fault empty checks")
     parser.add_argument("--switcher", action="store_true", help="Separate window-switcher interaction/pixel part gate, not full session acceptance")
     parser.add_argument("--scale", type=int, choices=(1, 2), default=1, help="Switcher profile: 1=100%%, 2=200%%; default session stays 100%%")
+    parser.add_argument("--session-route", action="store_true", help="Check the separate public VM compositor session route; no authentication/security-gate claim")
+    parser.add_argument("--library", action="store_true", help="Native naming, collections and history; separate from the full compositor/clipboard gate")
+    parser.add_argument("--library-cold-parent", type=Path, help="Copy only a validated successful library run's disposable image for cold reopening")
+    parser.add_argument("--calculator-recall", action="store_true", help="Only recall/draft restoration, native pixel roundtrips and normal cleanup")
+    parser.add_argument("--calculator-undo", action="store_true", help="Only the calculator undo/redo interaction, pixel roundtrips and normal cleanup")
+    parser.add_argument("--calculator-result", action="store_true", help="Only explicit current-result selection and clipboard transfer to Material")
     args = parser.parse_args()
     raise SystemExit(0 if run(timeout=args.timeout, bios_rom=args.bios_rom, vga_rom=args.vga_rom,
                             smoke=args.smoke_only, recovery_handshake=args.recovery_handshake_only,
-                            clipboard=args.clipboard, switcher=args.switcher, scale=args.scale)["passed"] else 1)
+                            clipboard=args.clipboard, switcher=args.switcher, scale=args.scale,
+                            session_route=args.session_route,
+                            library=args.library, library_parent=args.library_cold_parent,
+                            calculator_recall=args.calculator_recall, calculator_undo=args.calculator_undo,
+                            calculator_result=args.calculator_result)["passed"] else 1)

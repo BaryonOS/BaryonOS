@@ -19,7 +19,8 @@ import sys
 import time
 import threading
 import uuid
-from common import ROOT, BUILD, environment, firmware, qemu_machine, sha256, source_hash
+from common import (ROOT, BUILD, environment, firmware, qemu_machine, sha256,
+                    source_hash, without_acpi_diagnostics)
 from build_users import inspect_user
 from run_fpu import private_path, publish, publish_json, load_json
 from run_system import check_esp, network_arguments
@@ -111,6 +112,7 @@ def sequence(stdout, case="normal"):
         raise ValueError("Unknown native service case")
     if not isinstance(stdout, str) or len(stdout) > 128 * 1024 or any(s in stdout for s in FORBIDDEN):
         raise ValueError("Failed/oversized actual native serial")
+    stdout = without_acpi_diagnostics(stdout)
     lines = stdout.splitlines()
     if any(lines.count(marker) != 1 for marker in REQUIRED):
         raise ValueError("Missing/duplicate required native marker")
@@ -176,8 +178,8 @@ def sequence(stdout, case="normal"):
     if (any(service[k] != v for k, v in fixed.items()) or service[408] < 1
             or service[432] < (40 if normal else 20) or service[440] < (22 if normal else 13)):
         raise ValueError("Native service reuse/cleanup/authority evidence differs")
-    if service[512] < 2 * owners or service[520] < owners:
-        raise ValueError("Native malformed UDP/backpressure proof missing")
+    if service[512] < 4 * owners or service[520] < owners:
+        raise ValueError("Native fragment/malformed UDP/backpressure proof missing")
     for role in ROLES[1:]:
         app = found[role]
         if not normal and role == "APP_A":
@@ -187,7 +189,7 @@ def sequence(stdout, case="normal"):
                 raise ValueError("Disconnected app case did not execute exactly its bounded setup")
         else:
             exact = {408: 2, 416: 1, 424: 1, 432: 9, 440: 1, 456: len(RESPONSES[0]),
-                     464: 2, 472: 4, 480: 1, 488: 1, 496: 1, 504: 1, 512: 1, 520: 0, 536: 0}
+                     464: 2, 472: 4, 480: 1, 488: 1, 496: 1, 504: 1, 512: 1, 520: 2, 536: 0}
             if any(app[k] != v for k, v in exact.items()) or app[448] < 3:
                 raise ValueError("Native app success/refusal/reopen evidence differs: " + role)
     expected_net = {"NET_TX_SUBMITTED", "NET_TX_COMPLETED", "NET_RX_COMPLETED", "NET_RX_DELIVERED",

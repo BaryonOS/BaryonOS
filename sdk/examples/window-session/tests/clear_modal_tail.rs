@@ -14,13 +14,13 @@ fn assert_product_wiring() {
                     }
                     _ => ClearAction::Pass,
                 };
-                match event {
-                    Event::Key(_) if palette_key => {}
-                    Event::Key(_) if clear != ClearAction::Pass => {
-                        if clear == ClearAction::Clear {
-                            clipboard.clear(&queues).unwrap_or_else(|_| fail(39));
+                if !effect.consumed {
+                    match event {
+                        Event::Key(_) if clear != ClearAction::Pass => {
+                            if clear == ClearAction::Clear {
+                                clipboard.clear(&queues).unwrap_or_else(|_| fail(39));
+                            }
                         }
-                    }
 "#;
     assert!(
         main.contains(expected.trim_matches('\n')),

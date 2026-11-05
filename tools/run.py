@@ -44,7 +44,13 @@ def is_success(returncode, stdout, timed_out=False, *, required_markers=MARKERS,
 def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
               expected_exit=33, forbidden_markers=FAIL_MARKERS, m5_case=None, m5_seed=None,
               expected_kernel_sha256=None, expected_loader_sha256=None, memory_mib=256,
-              rtc_base=None, tpm_socket=None):
+              rtc_base=None, tpm_socket=None, cpus=1, tcg_threads="single",
+              acpi_tables=()):
+    # Defaults keep every existing profile byte-identical (-smp 1, single TCG).
+    if type(cpus) is not int or not 1 <= cpus <= 16:
+        raise ValueError("cpus must be an explicit integer in [1,16]")
+    if tcg_threads not in ("single", "multi"):
+        raise ValueError("tcg_threads must be single or multi")
     rtc_arguments = []
     if rtc_base is not None:
         # A controlled UTC calendar, never a host wall-clock fallback.
@@ -91,12 +97,18 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
     # Use paths relative to cwd: drive-letter colons and commas are not passed
     # through QEMU's file-option parser, and the FAT tree cannot change mid-run.
     run_rel = run_dir.relative_to(ROOT).as_posix()
-    args = [qemu, "-machine", machine, "-accel", "tcg,thread=single", "-cpu", "qemu64", "-smp", "1", "-m", f"{memory_mib}M", "-nodefaults", "-display", "none", "-monitor", "none", "-serial", "stdio", "-nic", "none", "-no-reboot",
+    args = [qemu, "-machine", machine, "-accel", f"tcg,thread={tcg_threads}", "-cpu", "qemu64", "-smp", str(cpus), "-m", f"{memory_mib}M", "-nodefaults", "-display", "none", "-monitor", "none", "-serial", "stdio", "-nic", "none", "-no-reboot",
             "-drive", f"if=pflash,unit=0,format=raw,readonly=on,file={run_rel}/OVMF_CODE.fd",
             "-drive", f"if=pflash,unit=1,format=raw,file={run_rel}/OVMF_VARS.fd",
             "-drive", f"if=virtio,index=0,format=raw,readonly=on,file=fat:{run_rel}/esp",
             "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"]
     args += rtc_arguments
+    for table in acpi_tables:
+        # Generated firmware-table fixtures only, never host ACPI tables.
+        table = Path(table).resolve(strict=True)
+        if not table.is_relative_to(BUILD.resolve()) or not table.is_file():
+            raise ValueError("ACPI table fixtures must be generated files under this build root")
+        args += ["-acpitable", f"file={table.relative_to(ROOT).as_posix()}"]
     if tpm_socket is not None:
         control = Path(tpm_socket).resolve(strict=True)
         if not control.is_relative_to(BUILD.resolve()) or not control.is_socket():
@@ -132,7 +144,7 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
                                   data_required=m5_case not in ("no-device", "reset-timeout"))
         artifacts["test-disk.img"] = sha256(disk_path)
     git = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True)
-    report = {"label": label, "started_utc": started, "duration_s": time.monotonic()-start, "timeout_s": timeout, "timed_out": timed_out, "raw_qemu_exit": rc, "expected_exit": expected_exit, "required_markers": list(required_markers), "forbidden_markers": list(forbidden_markers), "passed": is_success(rc, stdout, timed_out, required_markers=required_markers, expected_exit=expected_exit, forbidden_markers=forbidden_markers), "command": args, "qemu_version": version, "profile": f"development-package; {machine}/qemu64/TCG/1CPU/{memory_mib}MiB", "base_commit": git.stdout.strip() if git.returncode == 0 else None, "source_fingerprint_version": 3, "source_sha256": source_hash(), "artifact_sha256": artifacts, "firmware_source": [str(code), str(variables)], "run_directory": str(run_dir), "stdout": stdout, "stderr": stderr}
+    report = {"label": label, "started_utc": started, "duration_s": time.monotonic()-start, "timeout_s": timeout, "timed_out": timed_out, "raw_qemu_exit": rc, "expected_exit": expected_exit, "required_markers": list(required_markers), "forbidden_markers": list(forbidden_markers), "passed": is_success(rc, stdout, timed_out, required_markers=required_markers, expected_exit=expected_exit, forbidden_markers=forbidden_markers), "command": args, "qemu_version": version, "profile": f"development-package; {machine}/qemu64/TCG{'' if tcg_threads == 'single' else '-MT'}/{cpus}CPU/{memory_mib}MiB", "base_commit": git.stdout.strip() if git.returncode == 0 else None, "source_fingerprint_version": 3, "source_sha256": source_hash(), "artifact_sha256": artifacts, "firmware_source": [str(code), str(variables)], "run_directory": str(run_dir), "stdout": stdout, "stderr": stderr}
     report.update(expected_artifact_sha256=expected_artifacts, artifact_binding_passed=artifact_binding_passed)
     report['passed'] = report['passed'] and artifact_binding_passed
     if disk_result is not None:

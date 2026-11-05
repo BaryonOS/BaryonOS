@@ -22,7 +22,11 @@ def fixture():
     for name, numbers in rounds.items():
         values.update({name + "_COUNT": 144, name + "_TSC_SUM": sum(numbers),
                        name + "_TSC_MIN": min(numbers), name + "_TSC_MAX": max(numbers)})
-    lines = list(gate.BOOT) + [f"CAPBENCH:{name}:{values[name]:020d}" for name in gate.FIELDS]
+    boot = list(gate.BOOT)
+    # Native serial carries the ACPI status pair between KS-02 and KS-03.
+    at = boot.index("KS-02:PASS") + 1
+    boot[at:at] = [gate.EXPECTED_ACPI_MARKER, gate.DEVICE_EXECUTION_MARKER]
+    lines = boot + [f"CAPBENCH:{name}:{values[name]:020d}" for name in gate.FIELDS]
     for index in range(values["ROUNDS"]):
         lines += [f"CAPBENCH:ROUND_VARIANT:{(index + position) % 3:020d}" for position in range(3)]
         lines += [f"CAPBENCH:ROUND_{name}_TSC:{rounds[name][index]:020d}" for name in gate.VARIANTS]
