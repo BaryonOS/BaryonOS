@@ -365,12 +365,15 @@ pub fn walk<S: Source>(
     let expected = input.sum;
     let mut trailer = [0; TRAILER];
     input.exact(&mut trailer)?;
+    if total != content_bytes || trailer[..8] != END || get64(&trailer, 8) != expected {
+        return Err(Status::Corrupt);
+    }
     let mut extra = [0; 1];
-    if total != content_bytes
-        || trailer[..8] != END
-        || get64(&trailer, 8) != expected
-        || input.source.get(&mut extra)? != 0
-    {
+    let got = input.source.get(&mut extra)?;
+    if got > extra.len() {
+        return Err(Status::Protocol);
+    }
+    if got != 0 {
         return Err(Status::Corrupt);
     }
     Ok(Summary {

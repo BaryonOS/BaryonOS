@@ -212,6 +212,25 @@ fn overlong_source_count_is_a_protocol_error() {
 }
 
 #[test]
+fn overlong_count_at_end_of_stream_is_a_protocol_error() {
+    /// Serves a valid archive, then claims 2 bytes for the 1-byte EOF probe.
+    struct LiarAtEnd<'a>(Reader<'a>);
+    impl Source for LiarAtEnd<'_> {
+        fn get(&mut self, buffer: &mut [u8]) -> Result<usize, Status> {
+            if self.0.at == self.0.bytes.len() {
+                return Ok(buffer.len() + 1);
+            }
+            self.0.get(buffer)
+        }
+    }
+    let bytes = exported(500);
+    assert_eq!(
+        archive::verify(&mut LiarAtEnd(reader(&bytes)), &mut scratch()),
+        Err(Status::Protocol)
+    );
+}
+
+#[test]
 fn full_or_failing_destination_never_reports_success() {
     let mut disk = SimDisk::new();
     let mut service = Service::new(EPOCH, Table::EMPTY, false);
@@ -546,16 +565,25 @@ fn deleted_destination_slot_is_restored_over_its_tombstone() {
 }
 
 /// Answers COMMIT (optionally after forwarding it) or META with a failure.
+/// With `skew_stat`, the first STAT reply after that fault reports another
+/// content sum (revision, name and length unchanged).
 struct Faulty<'a> {
     inner: Local<'a>,
     operation: u16,
     forward: bool,
     status: Status,
     done: bool,
+    skew_stat: bool,
 }
 impl Transport for Faulty<'_> {
     fn call(&mut self, request: &[u8; wire::SIZE]) -> Result<[u8; wire::SIZE], Status> {
         let header = wire::header(request);
+        if self.done && self.skew_stat && header.operation == wire::STAT {
+            self.skew_stat = false;
+            let mut reply = self.inner.call(request)?;
+            reply[64 + 32] ^= 1; // content sum in the STAT data
+            return Ok(reply);
+        }
         if self.done || header.operation != self.operation {
             return self.inner.call(request);
         }
@@ -578,7 +606,12 @@ impl Transport for Faulty<'_> {
 
 type Outcome = Result<Report, (Status, Report)>;
 
-fn faulty_restore(operation: u16, forward: bool, status: Status) -> (Outcome, Service, SimDisk) {
+fn faulty_restore(
+    operation: u16,
+    forward: bool,
+    status: Status,
+    skew_stat: bool,
+) -> (Outcome, Service, SimDisk) {
     let bytes = exported(64);
     let mut disk = SimDisk::new();
     let mut service = Service::new(EPOCH, Table::EMPTY, false);
@@ -594,6 +627,7 @@ fn faulty_restore(operation: u16, forward: bool, status: Status) -> (Outcome, Se
                 forward,
                 status,
                 done: false,
+                skew_stat,
             },
             EPOCH,
             3000,
@@ -606,12 +640,14 @@ fn faulty_restore(operation: u16, forward: bool, status: Status) -> (Outcome, Se
 #[test]
 fn unknown_commit_is_resolved_by_stat() {
     // The commit landed: the object counts as restored and gets its metadata.
-    let (result, mut service, mut disk) = faulty_restore(wire::COMMIT, true, Status::Unknown);
+    let (result, mut service, mut disk) =
+        faulty_restore(wire::COMMIT, true, Status::Unknown, false);
     assert_eq!(result.unwrap().restored, 0b10_0011);
     let stat = client(&mut service, &mut disk, 1).stat(8).unwrap();
     assert_eq!((stat.tags, stat.collection), (0x55, 1));
     // The commit never arrived: the restore stops and does not claim it.
-    let (result, mut service, mut disk) = faulty_restore(wire::COMMIT, false, Status::Unknown);
+    let (result, mut service, mut disk) =
+        faulty_restore(wire::COMMIT, false, Status::Unknown, false);
     let (status, report) = result.unwrap_err();
     assert_eq!((status, report.restored), (Status::Unknown, 0));
     assert_eq!(
@@ -621,8 +657,22 @@ fn unknown_commit_is_resolved_by_stat() {
 }
 
 #[test]
+fn unknown_commit_with_another_content_sum_is_not_claimed() {
+    // The commit landed, but STAT reports another content sum: not ours.
+    let (result, mut service, mut disk) = faulty_restore(wire::COMMIT, true, Status::Unknown, true);
+    let (status, report) = result.unwrap_err();
+    assert_eq!(
+        (status, report.restored, report.bare),
+        (Status::Unknown, 0, 0)
+    );
+    // No META reached the service: the landed object kept bare metadata.
+    let stat = client(&mut service, &mut disk, 1).stat(8).unwrap();
+    assert_eq!((stat.tags, stat.kind, stat.collection), (0, 0, 0));
+}
+
+#[test]
 fn failed_metadata_is_reported_as_bare() {
-    let (result, mut service, mut disk) = faulty_restore(wire::META, false, Status::Io);
+    let (result, mut service, mut disk) = faulty_restore(wire::META, false, Status::Io, false);
     let (status, report) = result.unwrap_err();
     assert_eq!(
         (status, report.restored, report.bare),

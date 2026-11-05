@@ -65,18 +65,23 @@ bytes meldt dan er gevraagd zijn, levert `Protocol` op; elke andere afwijking le
 
 ## Bewijs en open punten
 
-Hostbewijs (musl-target, Rust 1.90.0, toegang via de echte volume-client en -service):
+Hostbewijs (gnu-hosttarget, Rust 1.90.0, toegang via de echte volume-client en -service):
 round-trip na verlies van de bron en koude herstart van het doel; elke prefix, elke
 bitflip (bits 0x01 en 0x80 op iedere byte) en een extra byte worden geweigerd;
-een vol doel op 40 grenzen; gelijktijdige wijziging van een gelist object en
+een te hoge bron-telling geeft `Protocol`, ook bij de EOF-controle na de trailer;
+een vol doel op 132 falende grenzen (elke 37e byte en de laatste byte) en succes
+bij precies de archiefgrootte; gelijktijdige wijziging van een gelist object en
 van een nieuw object; inhoud die de dienstsom tegenspreekt; conflicten zonder
-overschrijven; quota tijdens restore; ongeldig domein. Mutatieproeven op de
-naamconflict-, EOF-, generatie-, inhoudssom-, collectie- en protocolcontrole
-laten elk een test falen. Opnieuw verzegelde, niet-canonieke records (20 gevallen)
-worden geweigerd; `Unknown` (wel/niet geland), mislukte META, een tombstone-slot en
-dubbele bronnamen zijn getest. Niet door een test gedekt: de inhoudssom-
-vergelijking bij `Unknown` en de lengtecontrole list/stat bij export (alleen
-relevant als een andere schrijver of de dienst zelf afwijkt).
+overschrijven; quota tijdens restore; ongeldig domein. Van 13 mutatieproeven laten
+er 11 een test falen (naamconflict, EOF, beide `Protocol`-controles, generatie,
+inhoudssom bij export en bij `Unknown`, collectie-mapping, `bare`, revisie 0,
+naamopvulling); zie het bewijsbestand. Opnieuw verzegelde, niet-canonieke records
+(20 gevallen) worden geweigerd; `Unknown` (wel/niet geland, en geland met een
+andere inhoudssom), mislukte META, een tombstone-slot en dubbele bronnamen zijn
+getest. Niet door een test gedekt: het weglaten van de revisievergelijking bij
+`Unknown` (een revisie die één te ver ligt wordt wel gevangen) en de lengtecontrole
+list/stat bij export (alleen relevant als een andere schrijver of de dienst zelf
+afwijkt).
 
 Open voor S09/FR-O06: native back-upportaal met een door de gebruiker gekozen
 doelvolume en capability, native QEMU-proef met een tweede virtuele schijf,

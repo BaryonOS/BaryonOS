@@ -10,46 +10,53 @@ Specificatie: [S09-BACKUP-ARCHIVE.md](../../implementation/S09-BACKUP-ARCHIVE.md
 
 | Bestand | sha256 |
 |---|---|
-| services/volume/src/archive.rs | `08561b0c8e81430aeacfd56245fc0fef9016a5a534f03da3c5686ed8eb1addfd` |
-| services/volume/tests/archive.rs | `5b80f59d3c2323ba9f40e8dc86d46ae059304498ef062d203ee5941a34a10cce` |
+| services/volume/src/archive.rs | `df9988210e12c95bc9a45e6cca0babb69f9fc242ca2e620dc1f5f6bdf287201b` |
+| services/volume/tests/archive.rs | `80fa05143e7bf56cef789ebb0f0ca84d4319fcb7bbd17d03d47e12c04eec7479` |
 | services/volume/src/lib.rs | `8381d94c77080519751f30bedd398348c32448d5645b89a3ddc3261b9bf2226a` |
-| docs/implementation/S09-BACKUP-ARCHIVE.md | `4484b3da2ba218fdf6bc5dceb7cc97d66999c1d660aa45c7611501f8d071f589` |
+| docs/implementation/S09-BACKUP-ARCHIVE.md | `08452612f947b1cacf3a196d6a699c78c30d2692a691eecf0d9d0b54bd4c72a5` |
 
 ## Uitgevoerde commando's (Rust 1.90.0)
 
-De lokale WSL-omgeving heeft geen `cc`. De host-tests draaiden daarom op
-`x86_64-unknown-linux-musl` met `rust-lld`
-(`-C linker-flavor=ld.lld -C link-self-contained=yes`). CI draait de gewone
+Na de CodeRabbit-review opnieuw gedraaid op de gnu-hosttarget, met de lokale
+toolchain uit `.tools/nieuw-os` (eigen `cc`-linker). CI draait dezelfde
 gnu-route via `.github/workflows/ci.yml`, die `-p volume-core` al dekt.
 
 | Commando | Exit | Resultaat |
 |---|---|---|
-| `cargo +1.90.0 test --locked --target x86_64-unknown-linux-musl -p volume-core --test archive` | 0 | 15/15 |
-| `cargo +1.90.0 test --locked --target x86_64-unknown-linux-musl -p volume-core` | 0 | 64 geslaagd, 0 gefaald (alle targets) |
-| `cargo +1.90.0 clippy --locked --target x86_64-unknown-linux-musl -p volume-core --all-targets -- -D warnings` | 0 | geen waarschuwingen |
-| `cargo +1.90.0 build --locked -p volume-core --target x86_64-unknown-none` | 0 | freestanding no_std build |
-| `cargo +1.90.0 fmt -p volume-core -- --check` | 0 | — |
+| `cargo test --locked -p volume-core --test archive` | 0 | 17/17 |
+| `cargo test --locked -p volume-core` | 0 | 66 geslaagd, 0 gefaald (alle targets), waarvan 17 nieuw |
+| `cargo clippy --locked -p volume-core --all-targets -- -D warnings` | 0 | geen waarschuwingen |
+| `cargo build --locked -p volume-core --target x86_64-unknown-none` | 0 | freestanding no_std build |
+| `cargo fmt -p volume-core -- --check` | 0 | — |
 
 ## Mutatieproeven
 
-Elke mutatie is tijdelijk aangebracht en daarna bytegelijk teruggezet.
+Opnieuw uitgevoerd na de review-fixes (de oorspronkelijke telling van 11 bij een
+lijst van 10 was niet meer te reconstrueren). Elke mutatie is tijdelijk in
+`archive.rs` aangebracht, daarna is `cargo test --locked -p volume-core --test archive`
+gedraaid en is het bestand bytegelijk teruggezet (sha256 hierboven gecontroleerd).
 
-**Laten elk ten minste één test falen (11):**
-- naamconflict bij restore;
-- EOF na de trailer;
-- de eindcontrole op de generatie (`list`);
-- de controle op de inhoudssom van de dienst;
-- de mapping naar een vreemde collectie;
-- `Protocol` bij een te hoge bron-telling;
-- de revisiecontrole bij `Unknown`;
-- de `bare`-markering;
-- de weigering van revisie 0;
-- de opvulling van namen.
+**Laten elk ten minste één test falen (11 van 13):**
+- naamconflict bij restore genegeerd → `restore_never_overwrites_objects_names_or_collections`;
+- EOF-controle na de trailer weg → `every_truncation_flip_and_trailing_byte_is_rejected`;
+- `Protocol` → `Corrupt` bij een te hoge telling op de EOF-probe → `overlong_count_at_end_of_stream_is_a_protocol_error`;
+- `Protocol` → `Corrupt` bij een te hoge bron-telling in `In::exact` → `overlong_source_count_is_a_protocol_error`;
+- eindcontrole op de generatie (`list`) weg → `concurrent_change_makes_export_stale`;
+- inhoudssom van de dienst bij export weg → `export_rejects_content_that_contradicts_the_service_sum`;
+- vreemde doelcollectie als bruikbaar behandeld → `restore_never_overwrites_objects_names_or_collections`;
+- inhoudssomvergelijking bij `Unknown` weg → `unknown_commit_with_another_content_sum_is_not_claimed`;
+- `bare`-markering weg → `failed_metadata_is_reported_as_bare`;
+- weigering van revisie 0 weg → `resealed_non_canonical_records_are_rejected`;
+- opvulling van objectnamen niet gecontroleerd → `resealed_non_canonical_records_are_rejected`.
 
-**Overleven (2):** de vergelijking van de inhoudssom bij `Unknown` en de controle
-`stat.length != list.length` bij export. Beide zijn verdediging tegen een
-andere schrijver of een afwijkende dienst en worden in de huidige tests niet
-geraakt.
+**Overleven (2):**
+- de revisievergelijking bij `Unknown` helemaal weg (de controles op naam,
+  lengte en inhoudssom blijven staan). Een revisie die één te ver ligt
+  (`checked_add(2)`) wordt wel gevangen door `unknown_commit_is_resolved_by_stat`;
+- de controle `stat.length != list.length` bij export.
+
+Beide zijn verdediging tegen een andere schrijver of een afwijkende dienst en
+worden in de huidige tests niet los geraakt.
 
 ## Review
 
