@@ -186,6 +186,35 @@ fn adjacent_generation_checks_do_not_wrap_or_panic() {
     assert_eq!(table::choose([mixed, maximum]), Err(Status::Corrupt));
 }
 
+/// A sealed table with a deleted object at revision `u64::MAX` (all other
+/// invariants intact) overflowed `revision + 1` in entry validation: a panic
+/// with overflow checks, a silent wrap to 0 in release. It must fail closed.
+#[test]
+fn deleted_object_revision_from_disk_does_not_overflow() {
+    let image = |revision: u64| {
+        let mut t = Table::EMPTY;
+        t.generation = revision;
+        t.request_id = 1;
+        t.clocks[0] = revision;
+        let entry = &mut t.entries[0];
+        entry.revision = revision;
+        entry.request_id = 1;
+        entry.created = 1;
+        entry.modified = 1;
+        entry.present = false;
+        let mut sectors = vec![[0u8; SECTOR]; VOLUME_SECTORS as usize];
+        let slot = (revision % 2) * TABLE_SECTORS;
+        for index in 0..TABLE_SECTORS {
+            sectors[(slot + index) as usize] = t.encode_sector(index);
+        }
+        (sectors, t)
+    };
+    // Generation 1 is the one generation a zeroed companion slot accepts.
+    let (sane, expected) = image(1);
+    assert!(recover(sane) == Ok(expected), "control image must recover");
+    assert_eq!(recover(image(u64::MAX).0), Err(Status::Corrupt));
+}
+
 #[test]
 fn large_document_roundtrip_beyond_old_128_byte_limit() {
     let mut disk = SimDisk::new();
