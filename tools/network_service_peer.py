@@ -37,7 +37,8 @@ CORRUPT_DELAY = 0.25
 CASES = ("normal", "client-exit", "revoke")
 # N04 revoke case: inbound SYNs to guest ports nobody listens on. The guest
 # must answer each with RST, never SYN-ACK (no implicit listening port).
-PROBES = {22: 50000, 443: 50001}
+# Port 40000 (app A's aborted local port) is probed only after the revocation.
+PROBES = {22: 50000, 443: 50001, 40000: 50002}
 PROBE_ISN = 0x70726f00
 
 def owner(port: int) -> tuple[int, int]:
@@ -260,8 +261,8 @@ class Machine:
             return self.arp(frame)
         if len(frame) > 23 and frame[12:14] == b"\x08\x00" and frame[23] == 17:
             return self.udp_request(frame)
-        if (self.case == "revoke" and len(frame) >= 38 and frame[12:14] == b"\x08\x00"
-                and frame[23] == 6 and struct.unpack_from("!H", frame, 34)[0] in PROBES):
+        if (self.case == "revoke" and len(frame) >= 38 and frame[12:14] == b"\x08\x00" and frame[23] == 6
+                and PROBES.get(struct.unpack_from("!H", frame, 34)[0]) == struct.unpack_from("!H", frame, 36)[0]):
             return self.probe_reply(frame)
         s = tcp_segment(frame)
         slot, relative = owner(s.target)
@@ -321,10 +322,12 @@ class Machine:
                     or s.seq != c.client_next or s.ack != (c.server_start if s.flags & ACK else 0)
                     or s.flags in c.resets):
                 raise ProtocolError("unexpected revocation reset")
+            first = not c.resets
             c.resets.add(s.flags)
             c.phase = "revoked"
             self.counts["revoke_rsts"] += 1
-            return []
+            # The aborted local port must not accept a new inbound connection.
+            return [self.probe(40000)] if first else []
         if s.flags & RST:
             if case not in (1, 2, 4) or s.payload or s.flags not in (RST, RST | ACK) or s.seq != c.client_next:
                 raise ProtocolError("unexpected client RST")
@@ -428,8 +431,8 @@ class Machine:
                         and bytes(held.request) == REQUESTS[0] and not held.data_acked
                         and self.counts["held_requests"] == 1 and RST | ACK in held.resets
                         and self.counts["revoke_rsts"] == len(held.resets)
-                        and self.probes == {22: "reset", 443: "reset"}
-                        and self.counts["probe_syns"] == self.counts["probe_rsts"] == 2)
+                        and self.probes == {22: "reset", 443: "reset", 40000: "reset"}
+                        and self.counts["probe_syns"] == self.counts["probe_rsts"] == 3)
         elif self.probes or any(self.counts[k] for k in ("probe_syns", "probe_rsts", "held_requests", "revoke_rsts")):
             complete = False
         return dict(case=self.case, complete=complete, counts=dict(self.counts), cases=cases, events=list(self.events),

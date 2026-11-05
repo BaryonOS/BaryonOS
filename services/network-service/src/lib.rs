@@ -304,7 +304,9 @@ impl<'a> Service<'a> {
     /// owner's destination grant for the rest of this epoch. A live connection
     /// is aborted (the stack queues a TCP RST) and buffered UDP is dropped.
     /// Afterwards every data/open operation of that owner answers `Access`;
-    /// only State, CloseTcp and Retire stay available for cleanup.
+    /// only State, CloseTcp and Retire stay available for cleanup. As with
+    /// `retire_slot`, a frame already handed to the device stays pinned until
+    /// its real completion; revocation never fakes a discard of DMA-live data.
     pub fn revoke(&mut self, slot: usize, now: u64) -> Result<(), Fault> {
         self.time(now)?;
         let owner = self.owners.get_mut(slot).ok_or(Fault::Configuration)?;

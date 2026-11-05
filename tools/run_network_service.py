@@ -29,7 +29,7 @@ from network_service_peer import Peer, validate_transcript, REQUESTS, RESPONSES,
 FEATURE = "native-net-service"
 FEATURES = {"normal": FEATURE, "client-exit": "test-net-service-client-exit", "revoke": "test-net-service-revoke"}
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "M2:PASS")
-OFFSETS = (240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528, 536, 544)
+OFFSETS = (240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528, 536, 544, 552)
 ROLES = ("SERVICE", "APP_A", "APP_B")
 REVOKE_ROLES = ROLES + ("POLICY",)
 REQUIRED = BOOT + ("NETSVC:MANIFEST:PASS", "NETSVC:CLEANUP:PASS", "NETSVC:PASS", "M1:PASS")
@@ -187,6 +187,8 @@ def sequence(stdout, case="normal"):
              480: 2 * sum(map(len, RESPONSES)) if normal else 2 * len(RESPONSES[1]),
              488: 4 if normal else 2 + revoke, 496: 3, 504: 0, 536: 1 if case == "client-exit" else 0,
              544: int(revoke)}
+    if not revoke:
+        fixed[552] = 0
     if (any(service[k] != v for k, v in fixed.items()) or service[408] < 1
             # Revoke: app B's client-exit bound minus app A's 2, plus app A's 8.
             or service[432] < (40 if normal else 20) or service[440] < (22 if normal else 19 if revoke else 13)):
@@ -198,7 +200,7 @@ def sequence(stdout, case="normal"):
         if revoke and role == "APP_A":
             # Helper-route and out-of-grant opens denied, one live request,
             # prompt end after revocation, then five denied uses (offset 432).
-            exact = {offset: 0 for offset in OFFSETS if offset not in (400, 448, 504, 528)}
+            exact = {offset: 0 for offset in OFFSETS if offset not in (400, 448, 504, 528, 552)}
             exact.update({424: 2, 432: 5, 440: 1, 480: 1, 544: 2})
             if any(app[k] != v for k, v in exact.items()) or app[448] < 1 or not 0 <= app[504] < 500:
                 raise ValueError("Revoked app did not see a prompt reset and denied reuse")
@@ -209,13 +211,16 @@ def sequence(stdout, case="normal"):
                 raise ValueError("Disconnected app case did not execute exactly its bounded setup")
         else:
             exact = {408: 2, 416: 1, 424: 1, 432: 9, 440: 1, 456: len(RESPONSES[0]),
-                     464: 2, 472: 4, 480: 1, 488: 1, 496: 1, 504: 1, 512: 1, 520: 2, 536: 0, 544: 0}
+                     464: 2, 472: 4, 480: 1, 488: 1, 496: 1, 504: 1, 512: 1, 520: 2, 536: 0, 544: 0, 552: 0}
             if any(app[k] != v for k, v in exact.items()) or app[448] < 3:
                 raise ValueError("Native app success/refusal/reopen evidence differs: " + role)
     if revoke:
         policy = found["POLICY"]
-        if any(policy[k] != (1 if k in (400, 528, 544) else 0) for k in OFFSETS):
+        if any(policy[k] != (1 if k in (400, 528, 544) else 0) for k in OFFSETS if k != 552):
             raise ValueError("Policy authority did more than one authenticated revocation")
+        # One boot-monotonic clock: request <= policy send <= service revoke <= app A sees Closed.
+        if not revoke_ticks <= policy[552] <= service[552] <= found["APP_A"][552]:
+            raise ValueError("Revocation evidence is not causally ordered")
     expected_net = {"NET_TX_SUBMITTED", "NET_TX_COMPLETED", "NET_RX_COMPLETED", "NET_RX_DELIVERED",
                     "NET_DENIED", "NET_TX_TIMEOUTS", "NET_RESETS", "NET_RESET_ACKS"}
     if set(network) != expected_net:

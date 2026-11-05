@@ -252,15 +252,19 @@ fn policy() -> ! {
     body[8..16].copy_from_slice(&epoch.to_le_bytes());
     body[16..].copy_from_slice(&target.to_le_bytes());
     let message = Outgoing::new(u64::from_le_bytes(*b"NETCTL01"), &body).unwrap();
-    loop {
-        check(tick() - start < 3000, 84);
+    // Sampled before each attempt: the service cannot handle the message
+    // before the successful send, even if this process is preempted after it.
+    let sent = loop {
+        let at = tick();
+        check(at - start < 3000, 84);
         match native::send(control, &message) {
-            Ok(()) => break,
+            Ok(()) => break at,
             Err(e) if e.is_again() => yield_now(),
             Err(_) => fail(85),
         }
-    }
+    };
     support::put(544, 1);
+    support::put(552, sent);
     native::close(control.handle()).unwrap_or_else(|_| fail(86));
     support::put(528, 1);
     native::exit(0)
@@ -316,7 +320,9 @@ fn revoked(session: &mut Session<NativeTransport>) -> ! {
             _ => fail(68),
         }
     }
-    support::put(504, tick() - ready);
+    let closed = tick();
+    support::put(504, closed - ready);
+    support::put(552, closed);
     let mut out = [0; DATA];
     for (ok, code) in [
         (session.send(connection, b"x").map(|_| ()) == denied, 69),

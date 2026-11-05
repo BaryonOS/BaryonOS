@@ -81,12 +81,13 @@ def transcript(case="normal"):
             # A's live request is held; the guest answers both probes with
             # RST, then the revocation aborts A (plus the bare RST race).
             feed(client_tcp(8080, 40000, 100))
-            for guest, peer in PROBES.items():
+            for guest, peer in ((g, PROBES[g]) for g in (22, 443)):
                 feed(client_tcp(peer, guest, 0, PROBE_ISN + guest + 1, RST | ACK))
             c = machine.connections[8080]
             feed(client_tcp(8080, 40000, c.client_next, c.server_start, ACK))
             feed(client_tcp(8080, 40000, c.client_next, c.server_start, ACK | PSH, REQUESTS[0]))
             feed(client_tcp(8080, 40000, c.client_next, c.server_start, RST | ACK))
+            feed(client_tcp(50002, 40000, 0, PROBE_ISN + 40000 + 1, RST | ACK))
             feed(client_tcp(8080, 40000, c.client_next, 0, RST))
             feed(client_tcp(8090, 40001, 200))
         else:
@@ -120,7 +121,7 @@ def native_serial(case="normal"):
                         480: 2 * len(RESPONSES[1]), 488: 2, 512: 4, 520: 1, 536: 1})
     if case == "revoke":
         service.update({440: 19, 448: 1, 456: 1, 464: 6, 472: 3 * len(REQUESTS[1]) + len(REQUESTS[0]),
-                        480: 2 * len(RESPONSES[1]), 488: 3, 512: 4, 520: 1, 544: 1})
+                        480: 2 * len(RESPONSES[1]), 488: 3, 512: 4, 520: 1, 544: 1, 552: 10})
     network = {"NET_TX_SUBMITTED": 66, "NET_TX_COMPLETED": 66, "NET_RX_COMPLETED": 65,
                "NET_RX_DELIVERED": 65, "NET_DENIED": 3 if case == "revoke" else 2, "NET_TX_TIMEOUTS": 0,
                "NET_RESETS": 1, "NET_RESET_ACKS": 1}
@@ -134,10 +135,10 @@ def native_serial(case="normal"):
             values.update({400: 1, 424: 1, 440: 1, 480: 1, 528: 1, 536: 1})
         if role == "APP_A" and case == "revoke":
             values = dict.fromkeys(OFFSETS, 0)
-            values.update({400: 1, 424: 2, 432: 5, 440: 1, 448: 1, 480: 1, 504: 3, 528: 1, 544: 2})
+            values.update({400: 1, 424: 2, 432: 5, 440: 1, 448: 1, 480: 1, 504: 3, 528: 1, 544: 2, 552: 12})
         if role == "POLICY":
             values = dict.fromkeys(OFFSETS, 0)
-            values.update({400: 1, 528: 1, 544: 1})
+            values.update({400: 1, 528: 1, 544: 1, 552: 9})
         lines.extend(f"NETSVC:{role}:{offset}:{values[offset]:020d}" for offset in OFFSETS)
     lines.extend(f"SYSTEM:{name}:{value:020d}" for name, value in network.items())
     lines.extend(["NETSVC:APP_A_EXIT_TICKS:00000000000000000030", "NETSVC:APP_B_EXIT_TICKS:00000000000000000500", "NETSVC:ENTROPY_BYTES:00000000000000000008", "NETSVC:CLEANUP:PASS", "NETSVC:PASS", "M1:PASS"])
@@ -150,7 +151,7 @@ class PeerChecks(unittest.TestCase):
         summary = validate_transcript(value, case="revoke")
         self.assertTrue(summary["complete"])
         self.assertEqual(summary["cases"]["8080"]["phase"], "revoked")
-        self.assertEqual((summary["counts"]["probe_rsts"], summary["counts"]["revoke_rsts"]), (2, 2))
+        self.assertEqual((summary["counts"]["probe_rsts"], summary["counts"]["revoke_rsts"]), (3, 2))
         for wrong in ("normal", "client-exit"):
             with self.assertRaises(ProtocolError):
                 validate_transcript(value, case=wrong)
@@ -159,7 +160,7 @@ class PeerChecks(unittest.TestCase):
             machine = Machine("revoke")
             machine.handle(client_tcp(8080, 40000, 100))
             if drop != "probe":
-                for guest, peer in PROBES.items():
+                for guest, peer in ((g, PROBES[g]) for g in (22, 443)):
                     machine.handle(client_tcp(peer, guest, 0, PROBE_ISN + guest + 1, RST | ACK))
             c = machine.connections[8080]
             machine.handle(client_tcp(8080, 40000, c.client_next, c.server_start, ACK | PSH, REQUESTS[0]))
@@ -185,6 +186,8 @@ class PeerChecks(unittest.TestCase):
             "data-after-reset": lambda m, c: [m.handle(client_tcp(8080, 40000, c.client_next, c.server_start, RST | ACK)),
                                               m.handle(client_tcp(8080, 40000, c.client_next, c.server_start, ACK | PSH, b"x"))],
             "new-syn": lambda m, c: m.handle(client_tcp(8081, 40002, 1)),
+            "unsolicited-40000-probe-reply": lambda m, c: m.handle(
+                client_tcp(50002, 40000, 0, PROBE_ISN + 40001, RST | ACK)),
             "udp": lambda m, c: m.handle(client_udp(0)),
             "fin-while-held": lambda m, c: m.handle(client_tcp(8080, 40000, c.client_next, c.server_start, FIN | ACK)),
         }
@@ -208,6 +211,9 @@ class PeerChecks(unittest.TestCase):
             ("NETSVC:POLICY:448:00000000000000000000", "NETSVC:POLICY:448:00000000000000000001"),
             ("NETSVC:SERVICE:544:00000000000000000001", "NETSVC:SERVICE:544:00000000000000000000"),
             ("SYSTEM:NET_DENIED:00000000000000000003", "SYSTEM:NET_DENIED:00000000000000000002"),
+            # Causal order: service revocation after app A saw Closed, or policy send before the request.
+            ("NETSVC:SERVICE:552:00000000000000000010", "NETSVC:SERVICE:552:00000000000000000013"),
+            ("NETSVC:POLICY:552:00000000000000000009", "NETSVC:POLICY:552:00000000000000000007"),
         ):
             bad = good.replace(old, new)
             self.assertNotEqual(bad, good)

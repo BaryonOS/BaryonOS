@@ -4,15 +4,15 @@ use super::*;
 use capability_core::{PROCESS_EXITED, RECV, SEND};
 
 const EPOCH: u64 = 1;
-const OFFSETS: [u64; 20] = [
+const OFFSETS: [u64; 21] = [
     240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528, 536,
-    544,
+    544, 552,
 ];
 /// N04 revoke case: a fourth process is the policy authority for the service.
 const REVOKE: bool = cfg!(feature = "test-net-service-revoke");
 pub(super) const PROCESSES: usize = if REVOKE { 4 } else { 3 };
 struct Evidence {
-    snapshots: [Option<[u64; 20]>; 4],
+    snapshots: [Option<[u64; 21]>; 4],
     kernel_tables: usize,
     exits: [u64; 4],
     revoke_requested: u64,
@@ -183,7 +183,7 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _: u64) {
         slot < PROCESSES && evidence().snapshots[slot].is_none(),
         b"EXIT_SLOT",
     );
-    let mut values = [0; 20];
+    let mut values = [0; 21];
     for (i, at) in OFFSETS.iter().enumerate() {
         values[i] = word(s, slot, *at);
     }
@@ -293,7 +293,7 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
 }
 /// N04: app B keeps its full N01 behaviour; app A saw its live connection end
 /// promptly after the policy revocation and every later use denied.
-fn check_revoke(service: &[u64; 20]) {
+fn check_revoke(service: &[u64; 21]) {
     let e = evidence();
     require(
         service[7] == 1
@@ -331,12 +331,15 @@ fn check_revoke(service: &[u64; 20]) {
             && policy[18] == 0,
         b"POLICY_EVIDENCE",
     );
+    // Causal order on one boot-monotonic clock: kernel request, policy send,
+    // service revocation, then app A observing its connection closed.
+    let (requested, sent, handled, closed) = (e.revoke_requested, policy[20], service[20], a[20]);
     require(
-        e.revoke_requested != 0 && e.exits[3] >= e.revoke_requested,
+        requested != 0 && requested <= sent && sent <= handled && handled <= closed,
         b"REVOKE_ORDER",
     );
 }
-fn check_full_app(app: &[u64; 20]) {
+fn check_full_app(app: &[u64; 21]) {
     require(
         app[2] == 2
             && app[3] == 1
@@ -351,11 +354,12 @@ fn check_full_app(app: &[u64; 20]) {
             && app[14] == 1
             && app[15] == 1
             && app[18] == 0
-            && app[19] == 0,
+            && app[19] == 0
+            && app[20] == 0,
         b"APP_EVIDENCE",
     );
 }
-fn check_n01(service: &[u64; 20]) {
+fn check_n01(service: &[u64; 21]) {
     let departing = cfg!(feature = "test-net-service-client-exit");
     let udp = if departing { 1 } else { 2 };
     require(
@@ -367,7 +371,8 @@ fn check_n01(service: &[u64; 20]) {
             && service[15] >= 2 * udp
             && service[16] >= udp
             && service[18] == u64::from(departing)
-            && service[19] == 0,
+            && service[19] == 0
+            && service[20] == 0,
         b"SERVICE_EVIDENCE",
     );
     for (index, app) in evidence().snapshots[1..].iter().flatten().enumerate() {

@@ -193,6 +193,7 @@ fn run() -> ! {
     let mut pending: [Option<wire::Packet>; 2] = [None, None];
     let mut disabled = [false; 2];
     let mut drain = false;
+    let mut revoked_at = 0;
     support::put(400, 1);
     loop {
         let tick = now();
@@ -227,6 +228,7 @@ fn run() -> ! {
                                 .filter(|slot| *slot < 2)
                                 .unwrap_or_else(|| fail(18));
                             service.revoke(slot, tick).unwrap_or_else(|_| fail(31));
+                            revoked_at = tick.max(1);
                         }
                         _ => fail(18),
                     }
@@ -311,6 +313,7 @@ fn run() -> ! {
             (520, c.dropped_datagrams),
             (536, u64::from(disabled[0]) | (u64::from(disabled[1]) << 1)),
             (544, service.revoked_mask()),
+            (552, revoked_at),
         ] {
             support::put(at, value)
         }
