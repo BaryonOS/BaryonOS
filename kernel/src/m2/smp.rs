@@ -823,13 +823,10 @@ pub fn start(prepared: Prepared, madt: &Madt) {
     GO.store(true, Ordering::Release);
     stress();
     let finished = (0..200).any(|_| {
-        NOS_SMP_AP_CONTEXTS[..online]
-            .iter()
-            .all(|context| finished_stress(context))
-            || {
-                wait_us(10_000);
-                false
-            }
+        NOS_SMP_AP_CONTEXTS[..online].iter().all(finished_stress) || {
+            wait_us(10_000);
+            false
+        }
     });
     let expected = ITERATIONS * (online as u64 + 1);
     if !finished {
