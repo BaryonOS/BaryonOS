@@ -1,25 +1,34 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — integratie PR-wachtrij — 5 november 2026
+## NEXT AGENT HANDOFF — PR185 met main c0e02b79 — 5 november 2026
 
-**Basis:** main `c7a61d1126caa346a128fba3004fe4add4ccff61` (na #198), branch `integrate/20261105-platform-batch`
-(PR #199). **41 → 41/100**; geen criterium volledig geaccepteerd.
+**Bronnen:** PR-head `a66a67588d5fbc780cf844c993c6e441743cacf2`, main
+`c0e02b79e69d167788e17f79e480eecdd749d453`, merge
+`ea31aeb4dca56605c340f672a9decc27ade1ed1d` op
+`copilot/driver-usb-hid-control`. Het enige conflict was
+`drivers/usb/src/lib.rs`: alle drie exports (`boot`, `boot_interface`,
+`hid_control`) blijven behouden. De merge heeft twee ouders.
 
-**Gemerged:** #198 = #179 #183 #187 #190 (USB-framing, HID boot reports en
--interfacebinding, PS/2-health; hostmodellen). **In #199:** #169 #173 #176 #182
-#188 #189 #193 #194 (acht zelfstandige platformcrates, nu in de
-`component-leaves`-matrix; voorheen draaide CI er geen enkele test van),
-#165 (EXIF in tile-viewer), #150 (agentprofielen) en #195 (instructieopschoning).
-Lokaal (Rust 1.90.0): test, clippy `-D warnings`, fmt en freestanding build per
-crate exit 0; onafhankelijke AI-reviews MERGE (geen menselijke audit).
+**Gerichte controles op de opgeloste boom:** USB-hosttests, Clippy, rustfmt en
+de `x86_64-unknown-none`-freestanding library build zijn geslaagd. Buildartefacten
+zijn verwijderd. De CodeQL-toolaanroep eindigde met een time-out en leverde
+geen scanresultaat. Geen native USB/QEMU- of fysieke-HID-proef uitgevoerd.
+Er is geen USB-/hardwarecriterium geaccepteerd.
 
-**Open:** #155 vraagt Simons besluit (score 41→39, B01-criterium); #181, #191
-en #177 FIX (reviewcomments op de PR's); calculator #184/#186/#192 onderling
-CONFLICT (26+ hunks, ook in `tools/run_window_session.py`); #133, #135, #146,
-#147, #154, #157 nog niet beoordeeld; concepten #167 #185 #197 niet overgedragen;
-#196 overbodig na het besluit om alleen de Graphify-MCP te gebruiken.
-**Bewijsgrens:** geen native app-launch, fysieke USB/HID of menselijke test.
-Eerstvolgend commando: `python3 tools/progress.py --check`.
+**Voortgang:** **41 → 41/100**. Er is geen volledig geaccepteerd criterium
+gewijzigd. De lokale score is een roadmap, niet bewijs van native USB-werking.
+
+**Vervolg:** laat hosted checks op deze merge-head evalueren wanneer GitHub de
+nieuwe run meldt; de oude-head checks zijn door de merge vervangen. Er is geen
+nieuwe beoordeling van die checks in deze overdracht.
+
+Uitgevoerde commando's (elk exit 0):
+`cargo +1.90.0 test --locked --manifest-path drivers/usb/Cargo.toml`;
+`cargo +1.90.0 clippy --locked --manifest-path drivers/usb/Cargo.toml --all-targets -- -D warnings`;
+`cargo +1.90.0 fmt --manifest-path drivers/usb/Cargo.toml -- --check`;
+`RUSTFLAGS='-C no-redzone=yes -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2' cargo +1.90.0 build --locked --release --lib --target x86_64-unknown-none --manifest-path drivers/usb/Cargo.toml`.
+Logs zijn alleen in het sessietranscript beschikbaar; er zijn geen duurzame
+logbestanden aangemaakt.
 
 ## Historisch checkpoint — instructieonderhoud — 4 november 2026
 

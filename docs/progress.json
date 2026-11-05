@@ -3,22 +3,22 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-05",
-    "source_commit": "c7a61d1126caa346a128fba3004fe4add4ccff61",
+    "source_commit": "a66a67588d5fbc780cf844c993c6e441743cacf2",
     "assessment_basis": "source_commit",
-    "reviewed_commit": "cc1dea7eeeae01448a378ee422837b0438ecc7b5",
-    "reviewed_commit_context": "Historische review van de PR148-documentatiestatus en reikwijdte van hostbewijs; geen integratiereview.",
+    "reviewed_commit": "ea31aeb4dca56605c340f672a9decc27ade1ed1d",
+    "reviewed_commit_context": "PR185-head met main c0e02b79 geïntegreerd; gerichte USB-componentcontroles uitgevoerd.",
     "integration_review": {
       "status": "open",
-      "source_commit": "47ec535f15bb10912dbc6cbf1af3de9df0c6c226",
-      "main_commit": "8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2",
-      "merge_commit": "7412d0bb4b8ef2d146fc5b942bec8d6f370470e5",
-      "evidence_basis": "Git-mergeouders en handoff in docs/PROJECT-STATE.md; gerichte integratietests zijn daar gemeld met uitvoer uitsluitend in het sessietranscript. De eerdere PR148-hostreceipts zijn geen integratiereviewbewijs.",
-      "missing_evidence": "Afzonderlijk, brongebonden bewijs van de integratiereview ontbreekt; nieuwe-head CI en review moeten nog worden beoordeeld."
+      "source_commit": "a66a67588d5fbc780cf844c993c6e441743cacf2",
+      "main_commit": "c0e02b79e69d167788e17f79e480eecdd749d453",
+      "merge_commit": "ea31aeb4dca56605c340f672a9decc27ade1ed1d",
+      "evidence_basis": "Tweeoudermerge en gerichte USB-componenttests, Clippy, formatting en freestanding build; exacte commando's staan in docs/PROJECT-STATE.md.",
+      "missing_evidence": "Nieuwe-head hosted checks moeten nog worden geëvalueerd; de lokale CodeQL-aanroep eindigde door tooltimeout zonder scanresultaat."
     },
-    "branch": "integrate/20261105-platform-batch",
-    "task": "Integratie: driverreeks #198 en platform-/viewer-/instructiebatch #199 (#150 #165 #169 #173 #176 #182 #188 #189 #193 #194 #195)",
+    "branch": "copilot/driver-usb-hid-control",
+    "task": "PR185: conflicten met main c0e02b79 inhoudsbehoudend integreren",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Geïntegreerd: USB-framing, HID boot reports/interface en PS/2-health (#198, hostmodellen); acht platformhostapps met nieuwe CI-dekking; EXIF-orientatie in de tile-viewer; OS-agentprofielen; instructieopschoning #195. Geen criterium volledig geaccepteerd: geen native app-launch, fysieke USB/HID of menselijke acceptatie. AI-reviews zijn geen menselijke audit. Open: #155 (score/B01-besluit), #181/#191/#177 FIX, calculatortrio CONFLICT."
+    "summary": "41/100 blijft 41/100. PR185's USB HID control-request exports zijn behouden naast main's boot- en boot-interface modules. De USB hosttests, Clippy, formatting en freestanding library build slagen; CodeQL gaf door tooltimeout geen resultaat. Geen criterium volledig geaccepteerd: geen native USB-runtime- of fysieke-HID-acceptatie. Nieuwe-head hosted checks blijven open."
   },
   "tracks": [
     {
