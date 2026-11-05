@@ -200,6 +200,128 @@ fn session(body: &[u8]) -> Vec<u8> {
 fn startup<'a>(out: &'a mut [u8]) -> codec::Command<'a> {
     codec::encode(Request::Startup(Startup::Clear), out).unwrap()
 }
+
+struct FaultingModel {
+    model: Model,
+    calls: Rc<RefCell<usize>>,
+    fail_at: Option<usize>,
+    after_access: bool,
+}
+
+impl FaultingModel {
+    fn access<T>(
+        &mut self,
+        operation: impl FnOnce(&mut Model) -> Result<T, IoError>,
+    ) -> Result<T, IoError> {
+        let call = {
+            let mut calls = self.calls.borrow_mut();
+            *calls += 1;
+            *calls
+        };
+        let fail = self.fail_at == Some(call);
+        if fail && !self.after_access {
+            return Err(IoError);
+        }
+        let result = operation(&mut self.model);
+        if fail {
+            Err(IoError)
+        } else {
+            result
+        }
+    }
+}
+
+impl Io for FaultingModel {
+    fn read32(&mut self, r: Register) -> Result<u32, IoError> {
+        self.access(|model| model.read32(r))
+    }
+    fn write32(&mut self, r: Register, value: u32) -> Result<(), IoError> {
+        self.access(|model| model.write32(r, value))
+    }
+    fn read_buffer(&mut self, offset: usize, out: &mut [u8]) -> Result<(), IoError> {
+        self.access(|model| model.read_buffer(offset, out))
+    }
+    fn write_buffer(&mut self, offset: usize, bytes: &[u8]) -> Result<(), IoError> {
+        self.access(|model| model.write_buffer(offset, bytes))
+    }
+    fn quarantine(&mut self) {
+        self.model.quarantine();
+    }
+}
+
+fn startup_lifecycle(t: &mut Transport<FaultingModel>) -> Result<(), Failure> {
+    let acquire = t.acquire(0, 100)?;
+    assert!(!t.poll_ready(acquire, 1)?);
+    assert!(t.poll_ready(acquire, 2)?);
+    let mut command = [0; 128];
+    let execute = t.execute(&startup(&mut command), 3, 20, 5)?;
+    assert_eq!(t.poll(execute, 4)?, Poll::Complete(Response::Empty));
+    let release = t.release(5, 20)?;
+    assert!(!t.poll_released(release, 6)?);
+    assert!(t.poll_released(release, 7)?);
+    Ok(())
+}
+
+#[test]
+fn each_lifecycle_io_failure_quarantines_once_without_replay_or_detach() {
+    let state = Rc::new(RefCell::new(State::new()));
+    state.borrow_mut().auto_response = Some(empty());
+    let calls = Rc::new(RefCell::new(0));
+    let mut baseline = Transport::new(FaultingModel {
+        model: Model(state),
+        calls: calls.clone(),
+        fail_at: None,
+        after_access: false,
+    });
+    startup_lifecycle(&mut baseline).unwrap();
+    let total = *calls.borrow();
+    assert!(total > 100);
+    assert!(baseline.detach().is_ok());
+
+    for after_access in [false, true] {
+        for fail_at in 1..=total {
+            let state = Rc::new(RefCell::new(State::new()));
+            state.borrow_mut().auto_response = Some(empty());
+            let calls = Rc::new(RefCell::new(0));
+            let mut t = Transport::new(FaultingModel {
+                model: Model(state.clone()),
+                calls: calls.clone(),
+                fail_at: Some(fail_at),
+                after_access,
+            });
+            let failure = startup_lifecycle(&mut t).unwrap_err();
+            assert_eq!(failure.fault, Fault::Io, "position={fail_at}");
+            assert_eq!(*calls.borrow(), fail_at, "injection must be reached");
+            assert_eq!(t.phase(), Phase::Quarantined);
+            let trace_length = state.borrow().trace.len();
+            let buffer = state.borrow().buffer;
+            let starts = state.borrow().writes(Register::Start, 1);
+            let mut command = [0; 128];
+            for _ in 0..3 {
+                assert!(t.acquire(8, 20).is_err());
+                assert!(t.execute(&startup(&mut command), 8, 20, 5).is_err());
+                assert!(t.release(8, 20).is_err());
+                assert!(t.detach().is_err());
+            }
+            assert_eq!(*calls.borrow(), fail_at);
+            assert_eq!(state.borrow().trace.len(), trace_length);
+            assert_eq!(state.borrow().buffer, buffer);
+            assert_eq!(state.borrow().writes(Register::Start, 1), starts);
+            drop(t);
+            assert_eq!(state.borrow().trace.len(), trace_length);
+            assert_eq!(
+                state
+                    .borrow()
+                    .trace
+                    .iter()
+                    .filter(|access| matches!(access, Access::Quarantine))
+                    .count(),
+                1
+            );
+        }
+    }
+}
+
 #[test]
 fn explicit_commands_are_big_endian_and_errors_preserve_output() {
     let mut b = [0xa5; 128];
