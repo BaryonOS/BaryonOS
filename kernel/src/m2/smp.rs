@@ -146,6 +146,9 @@ static CPU_LOCAL: [CpuLocal; MAX_APS] = [const {
 static mut CPU_TABLES: [arch::CpuTables; MAX_APS] = [const { arch::CpuTables::new() }; MAX_APS];
 
 static BSP_REGISTERS: [AtomicU64; REGISTERS] = [const { AtomicU64::new(0) }; REGISTERS];
+/// The BSP's IA32_APIC_BASE; an AP must match it except for the BSP flag
+/// (bit 8), or its LAPIC_WINDOW accesses would not reach its own xAPIC.
+static BSP_APIC_BASE: AtomicU64 = AtomicU64::new(0);
 static GO: AtomicBool = AtomicBool::new(false);
 static PARK: AtomicBool = AtomicBool::new(false);
 const IPI_VECTOR: usize = 0xf0;
@@ -572,7 +575,11 @@ extern "C" fn smp_ap_main(context: &'static ApContext) -> ! {
         slot.store(value, Ordering::Relaxed);
     }
     context.observed_apic.store(apic, Ordering::Relaxed);
-    let matches = observed == bsp && apic == context.apic_id.load(Ordering::Relaxed);
+    let apic_base = rdmsr(0x1b);
+    let matches = observed == bsp
+        && apic == context.apic_id.load(Ordering::Relaxed)
+        && apic_base & (1 << 8) == 0
+        && apic_base | (1 << 8) == BSP_APIC_BASE.load(Ordering::Acquire);
     context
         .state
         .store(if matches { ONLINE } else { MISMATCH }, Ordering::Release);
@@ -587,11 +594,26 @@ extern "C" fn smp_ap_main(context: &'static ApContext) -> ! {
     ipi_phase(context, local, first)
 }
 
-/// Receive bounded unicast IPIs on vector 0xf0 until PARK; never any other
-/// interrupt source: TPR 0, every LVT masked, spurious vector 0xff.
+/// Receive bounded unicast IPIs on vector 0xf0 until PARK: TPR 0, every
+/// implemented local LVT masked, spurious vector 0xff. An external (IOAPIC or
+/// MSI) source aimed at this APIC ID could still raise another vector; it hits
+/// an absent gate (#NP) and the shared handler stops the VM: terminal, not open.
 fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
-    for lvt in [0x320, 0x330, 0x340, 0x350, 0x360, 0x370] {
-        lapic_write(lvt, 1 << 16);
+    // Version bits 23:16 = highest LVT index: 3 base entries (timer, LINT0/1,
+    // error), then performance (>=4), thermal (>=5) and CMCI (>=6).
+    let max_lvt = (lapic_read(0x30) >> 16) & 0xff;
+    for (lvt, minimum) in [
+        (0x320, 0),
+        (0x350, 0),
+        (0x360, 0),
+        (0x370, 0),
+        (0x340, 4),
+        (0x330, 5),
+        (0x2f0, 6),
+    ] {
+        if max_lvt >= minimum {
+            lapic_write(lvt, 1 << 16);
+        }
     }
     lapic_write(0x80, 0);
     lapic_write(0xf0, 0x100 | SPURIOUS_VECTOR as u32);
@@ -600,7 +622,8 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
         // Online but never accepts an interrupt: the BSP must quarantine all.
         park();
     }
-    while !PARK.load(Ordering::Acquire) {
+    loop {
+        // Checked before PARK so the test cannot race into a normal park.
         if cfg!(feature = "test-smp-ap-double-fault")
             && first
             && local.ipis.load(Ordering::Acquire) != 0
@@ -614,9 +637,12 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
                 asm!("mov rsp, {guard}", "push 0", "ud2", guard = in(reg) guard, options(noreturn));
             }
         }
+        if PARK.load(Ordering::Acquire) {
+            break;
+        }
         // SAFETY: STI's one-instruction shadow makes `sti; hlt` atomic, so an
         // IPI that becomes pending after the PARK check still wakes this CPU.
-        // The only deliverable vectors are the IPI and spurious gates.
+        // Local sources are masked; see the function comment for others.
         unsafe { asm!("sti", "hlt", "cli") };
     }
     context.state.store(PARKED, Ordering::Release);
@@ -772,6 +798,7 @@ pub fn start(prepared: Prepared, madt: &Madt) {
     for (slot, value) in BSP_REGISTERS.iter().zip(control_registers()) {
         slot.store(value, Ordering::Release);
     }
+    BSP_APIC_BASE.store(rdmsr(0x1b), Ordering::Release);
     // IDT is complete before the first AP can load it.
     arch::smp_gate(IPI_VECTOR, nos_smp_ipi_entry as usize as u64);
     arch::smp_gate(SPURIOUS_VECTOR, nos_smp_spurious_entry as usize as u64);
@@ -884,6 +911,10 @@ fn quarantine_all(online: usize, total: usize) {
         }
         context.state.store(ABANDONED, Ordering::Release);
     }
+    // ICR idle is acceptance by the bus, not completion of INIT in the target;
+    // allow it to take effect before the BSP reports one CPU. A stray store by
+    // a resetting AP only touches its own context, which nothing reads anymore.
+    wait_us(1_000);
     serial::write(b"SMP:QUARANTINED:APS=");
     decimal(online as u64);
     serial::write(b"\nSMP:ONLINE:1/");
@@ -915,9 +946,15 @@ fn ipis(online: usize, total: usize) {
                 serial::write(b"\n");
                 return quarantine_all(online, total);
             }
+            if cfg!(feature = "test-smp-ap-double-fault") && slot == 0 && round == 1 {
+                // That AP now faults on its own IST1 stack and ends the VM.
+                within_ms(1_000, || false);
+                serial::fail(b"SMP_AP_DF_NOT_ON_IST");
+            }
         }
     }
-    // Exactly one delivery per IPI: no lost, duplicated or foreign interrupt.
+    // During the rounds each IPI was delivered exactly once (none lost or
+    // duplicated). Later arrivals, e.g. the park IPI, are not counted here.
     if CPU_LOCAL[..online]
         .iter()
         .any(|local| local.ipis.load(Ordering::Acquire) != IPI_ROUNDS)

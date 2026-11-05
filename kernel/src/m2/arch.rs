@@ -165,9 +165,10 @@ pub fn install() {
 
 /// One AP's private descriptor tables: a GDT with the kernel's code/data
 /// descriptors and this CPU's own TSS descriptor, plus that TSS. A busy TSS
-/// may be loaded by exactly one CPU, so every AP needs its own.
+/// may be loaded by exactly one CPU, so every AP needs its own. 256-byte
+/// alignment keeps the 192-byte slot (GDT + TSS) inside one page.
 #[cfg(feature = "native-smp")]
-#[repr(C, align(64))]
+#[repr(C, align(256))]
 pub struct CpuTables {
     gdt: [u64; 7],
     tss: Tss,
