@@ -25,7 +25,12 @@ if [ -x "tools/qemu-smoke-test.sh" ]; then
         echo "❌ QEMU smoke test gefaald." >&2
         exit 2
     fi
+elif [ "${GATE_REQUIRE_QEMU:-0}" = "1" ]; then
+    echo "❌ QEMU smoke test vereist, maar tools/qemu-smoke-test.sh ontbreekt." >&2
+    exit 2
+else
+    echo "⚠️  QEMU smoke test niet uitgevoerd (tools/qemu-smoke-test.sh ontbreekt)."
 fi
 
-echo "✅ Alle gates geslaagd!"
+echo "✅ Alle uitgevoerde gates geslaagd!"
 exit 0
