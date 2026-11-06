@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
-**Bron:** [`5481d407`](https://github.com/simonvanieperen/nieuw-os/commit/5481d4071d33c15d4ed7f83fe55e17a48237efb4) ·
-**Ontwikkelbranch:** `feat/k06-5b-spin-irq`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5b: gecontroleerd spinnen met IF=1 op KERNEL/ASPACE (aanvulling ADR-074).
-41/100 blijft 41/100. K06 stap 5b laat een AP die op KERNEL/ASPACE wacht een kort interruptvenster openen, zodat een shootdown van de lockhouder geen deadlock geeft. Er zijn een hosttest, een native fixture en een doof controleprofiel. Native QEMU-bewijs is nog niet uitgevoerd en K06 vraagt een volledige SMP-scheduler (5b-2 t/m 5f), dus K06 blijft open.
+**Bron:** [`bdcced5e`](https://github.com/simonvanieperen/nieuw-os/commit/bdcced5e28dd33a6aa27ea50b2c45616ac0e64f2) ·
+**Ontwikkelbranch:** `feat/k06-5c-preempt-lock`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5c: geen preëmptie met een vastgehouden of bewaakte KERNEL/ASPACE-lock (aanvulling ADR-074).
+41/100 blijft 41/100. K06 stap 5c stelt een timerwissel uit zolang de lockdepset van een CPU niet leeg is, en stopt met SMP:LOCKDEP:HELD_ACROSS_SWITCH bij een schending. Er zijn een native fixture in SMP:PREEMPT:PASS en een negatief profiel. Native QEMU-bewijs is nog niet uitgevoerd en K06 vraagt een volledige SMP-scheduler (5b-2, 5c-2 t/m 5f), dus K06 blijft open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
