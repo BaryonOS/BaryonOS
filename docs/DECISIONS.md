@@ -1976,3 +1976,28 @@ bron-/profielgebonden wegwerprun. U03 blijft open totdat de volledige route en
 regressie werkelijk slagen. Geen authenticatie-, encryptie- of hardwareclaim.
 
 <a id="adr-058--positieve-volume-identiteit-vóór-toelating-als-lege-opslag"></a>
+
+## ADR-CI-RUNNERS-20261106 — Linux-CI alleen op de Unraid-runners
+
+Status: aangenomen, 6 november 2026 (opdracht Simon, PR #241).
+
+**Besluit:**
+- Elke workflowjob draait op `[self-hosted, Linux, X64, unraid, build]`.
+- Persoonlijke machines (`MSIMON-wsl`, de Windows-host `MSIMON`) voeren geen PR-code uit.
+- GitHub-hosted runners gebruiken we niet zonder expliciete toestemming, vanwege het budget.
+- Artifacts zijn kortlevend (3 dagen). Bewijs van record blijft compact in `docs/verification/`.
+- De verplichte checks `host-quality` en `qemu-smoke` (ci.yml) krijgen geen padfilter.
+  Een overgeslagen workflow zou anders een eeuwig wachtende verplichte check opleveren.
+- Niet-verplichte gates slaan PR's over die alleen `docs/**` of `*.md` in de root wijzigen.
+- Een push naar main draait alles.
+
+**Reden:**
+- Het label `[self-hosted, Linux]` matchte ook een WSL-runner die als de gewone gebruiker
+  draaide, met toegang tot diens credentials.
+- Zo'n 6 GB aan artifacts liet groene gates rood eindigen op de uploadstap.
+
+**Grenzen:**
+- De Unraid-runners en hun containerisolatie, sudo-rechten en mounts zijn hier niet
+  beoordeeld.
+- De twee Tower-runners delen één fysieke host. Daardoor draaien er maximaal twee zware jobs
+  tegelijk, maar CPU, RAM en I/O van die host zijn niet gemeten.
