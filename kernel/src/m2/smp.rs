@@ -14,7 +14,8 @@
 //!   given up; a claimed-but-silent AP is reset with INIT and bring-up stops.
 //! - APs touch only their own stacks, their context/CpuLocal atomics, the
 //!   read-only BSP register snapshot and the self-test state. They never enter
-//!   allocator, paging, IPC or the M3 scheduler. Each AP has its own TSS/IST
+//!   the allocator, page-table changes, IPC or the M3 scheduler; since step
+//!   5b-2 they map a temporary page only through their own scratch slot (ADR-075). Each AP has its own TSS/IST
 //!   (ADR-071); after bring-up it waits with `sti; hlt` for bounded IPIs and
 //!   runs two preempted kernel threads with IF=1 (ADR-073), then a per-CPU
 //!   run queue of kernel threads in two address spaces (step 5d-1), then
@@ -40,7 +41,7 @@ use smp_lock::{
 };
 
 /// Total CPUs (BSP plus APs) this profile starts; further MADT CPUs are skipped.
-pub const MAX_CPUS: usize = 8;
+pub const MAX_CPUS: usize = paging::MAX_CPUS;
 const MAX_APS: usize = MAX_CPUS - 1;
 
 const IDLE: u32 = 0;
@@ -173,6 +174,8 @@ struct CpuLocal {
     /// Audit F8 ring-3 GS fixture: phase and entries taken from CPL3.
     gs_state: AtomicU32,
     user_ticks: AtomicU32,
+    /// Step 5b-2 scratch fixture: 1 once this AP finished its share.
+    scratched: AtomicU32,
 }
 impl CpuLocal {
     const fn new() -> Self {
@@ -200,6 +203,7 @@ impl CpuLocal {
             cr3_switches: AtomicU32::new(0),
             gs_state: AtomicU32::new(0),
             user_ticks: AtomicU32::new(0),
+            scratched: AtomicU32::new(0),
         }
     }
 }
@@ -816,6 +820,11 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
             lapic_write(LVT_TIMER, TIMER_VECTOR as u32);
             lapic_write(TIMER_INITIAL, 20_000);
         }
+        // Scratch phase (step 5b-2): this AP's share, concurrent with the others.
+        if SCRATCH_RUN.load(Ordering::Acquire) && local.scratched.load(Ordering::Relaxed) == 0 {
+            scratch_work(local.slot.load(Ordering::Relaxed) as usize + 1);
+            local.scratched.store(1, Ordering::Release);
+        }
         // Spin phase (step 5b): wait for the KERNEL-level lock the BSP holds.
         // IF is 0 from the store of 1 on; only the lock's own window opens it.
         if SPIN.load(Ordering::Acquire) && local.spun.load(Ordering::Relaxed) == 0 {
@@ -978,6 +987,9 @@ pub fn start(
         .self_ptr
         .store(ptr::from_ref(&BSP_LOCAL) as u64, Ordering::Relaxed);
     wrmsr(0xc000_0101, ptr::from_ref(&BSP_LOCAL) as u64);
+    // K-2: every CPU's scratch slot, before any AP can start; from here on
+    // page tables are reached through the BSP's slot (index 0).
+    paging.begin_scratch(frames);
     // GS-10: without FSGSBASE ring 3 cannot write GS_BASE directly, and
     // without SCE there is no `syscall` entry, which would need its own
     // unconditional swapgs. Every AP adopts exactly these registers and is
@@ -1211,6 +1223,7 @@ fn ipis(
         || !preemption(online, total)
         || !spin_window(online, total)
         || !schedule(online, total)
+        || !scratch(online, total, frames)
         || !gs_user(online, total)
     {
         return;
@@ -1408,6 +1421,15 @@ fn any_cpu() -> Option<&'static CpuLocal> {
     core::iter::once(&BSP_LOCAL)
         .chain(CPU_LOCAL.iter())
         .find(|local| ptr::from_ref(*local) as u64 == anchor)
+}
+
+/// This CPU's index for its scratch slot (K-2): BSP 0, AP slot + 1.
+pub fn cpu_index() -> usize {
+    match any_cpu() {
+        Some(local) if ptr::eq(local, &BSP_LOCAL) => 0,
+        Some(local) => local.slot.load(Ordering::Relaxed) as usize + 1,
+        None => serial::fail(b"SMP_SCRATCH_ANCHOR"),
+    }
 }
 
 /// True on an AP (its GS anchor is in CPU_LOCAL); false on the BSP.
@@ -2093,6 +2115,126 @@ fn schedule(online: usize, total: usize) -> bool {
         }
     }
     serial::write(b"SMP:SCHED:PASS:CPUS=");
+    decimal(online as u64 + 1);
+    serial::write(b"\n");
+    true
+}
+
+// Step 5b-2 (ADR-075, K-1/K-2): every CPU zeroes, fills and checks its OWN
+// frame through its OWN scratch slot, concurrently, then takes KERNEL to bump
+// a counter that only the lock protects. `test-smp-shared-scratch` puts every
+// CPU in slot 0 (the old global slot) and must report the crossing.
+const SCRATCH_ROUNDS: u32 = 1024;
+const KERNEL_ROUNDS: u64 = 1000;
+static SCRATCH_RUN: AtomicBool = AtomicBool::new(false);
+static SCRATCH_FRAMES: [AtomicU64; MAX_CPUS] = [const { AtomicU64::new(0) }; MAX_CPUS];
+/// Plain load + store, never an atomic RMW: correct only under KERNEL.
+static SCRATCH_COUNT: AtomicU64 = AtomicU64::new(0);
+static SCRATCH_CROSSED: AtomicBool = AtomicBool::new(false);
+
+/// Terminal: a CPU saw another CPU in its scratch slot (a busy PTE or a
+/// foreign pattern), `SMP:SCRATCH:CROSS:CPU=<index>`. One CPU reports; any
+/// other that also detects it stops silently. Pass only in the control.
+pub fn scratch_cross() -> ! {
+    if SCRATCH_CROSSED.swap(true, Ordering::AcqRel) {
+        park();
+    }
+    serial::write(b"SMP:SCRATCH:CROSS:CPU=");
+    decimal(cpu_index() as u64);
+    serial::write(b"\n");
+    if cfg!(feature = "test-smp-shared-scratch") {
+        serial::exit(0x10);
+    }
+    serial::fail(b"SMP_SCRATCH_CROSS")
+}
+
+/// One CPU's share (BSP: 0, AP: slot + 1), IF=0.
+fn scratch_work(cpu: usize) {
+    let pa = SCRATCH_FRAMES[cpu].load(Ordering::Acquire);
+    let byte = 0xa5 ^ cpu as u8;
+    let word = u64::from_ne_bytes([byte; 8]);
+    for _ in 0..SCRATCH_ROUNDS {
+        paging::zero_dynamic(pa);
+        // SAFETY: the slot maps exactly this CPU's own Kernel-owned frame;
+        // one page is written through the callback's pointer only.
+        paging::physical(pa, |p| unsafe { ptr::write_bytes(p, byte, PAGE as usize) });
+        let intact = paging::physical(pa, |p| {
+            // SAFETY: as above; 512 aligned u64 reads within the one page.
+            (0..PAGE as usize / 8)
+                .all(|i| unsafe { p.cast::<u64>().add(i).read_volatile() } == word)
+        });
+        if !intact {
+            scratch_cross();
+        }
+    }
+    for _ in 0..KERNEL_ROUNDS {
+        let _kernel = lock::KERNEL.lock_irqsave();
+        assert!(lock::kernel_held());
+        SCRATCH_COUNT.store(SCRATCH_COUNT.load(Ordering::Relaxed) + 1, Ordering::Relaxed);
+    }
+}
+
+/// BSP: give every online CPU its own frame, run all shares concurrently and
+/// require every pattern intact, KERNEL_ROUNDS per CPU counted and lockdep
+/// empty. APs get 500 ms after the BSP's own share; a silent AP is quarantined.
+fn scratch(online: usize, total: usize, frames: &mut Frames<FRAME_COUNT>) -> bool {
+    for frame in &SCRATCH_FRAMES[..=online] {
+        let pa = frames
+            .allocate(Owner::Kernel, paging::zero_dynamic)
+            .unwrap_or_else(|_| serial::fail(b"SMP_SCRATCH_FRAMES"));
+        frame.store(pa, Ordering::Relaxed);
+    }
+    let aps = &NOS_SMP_AP_CONTEXTS[..online];
+    let locals = &CPU_LOCAL[..online];
+    SCRATCH_RUN.store(true, Ordering::Release);
+    for context in aps {
+        let apic = context.apic_id.load(Ordering::Relaxed);
+        if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32) {
+            serial::write(b"SMP:SCRATCH:TIMEOUT:APIC=");
+            decimal(u64::from(apic));
+            serial::write(b"\n");
+            quarantine_all(online, total);
+            return false;
+        }
+    }
+    scratch_work(0);
+    if !within_ms(500, || {
+        locals
+            .iter()
+            .all(|local| local.scratched.load(Ordering::Acquire) == 1)
+    }) {
+        serial::write(b"SMP:SCRATCH:TIMEOUT\n");
+        quarantine_all(online, total);
+        return false;
+    }
+    if cfg!(feature = "test-smp-shared-scratch") {
+        serial::fail(b"SMP_SCRATCH_NO_CROSS");
+    }
+    if SCRATCH_COUNT.load(Ordering::Acquire) != KERNEL_ROUNDS * (online as u64 + 1) {
+        serial::fail(b"SMP_SCRATCH_LOST_UPDATE");
+    }
+    if lockdep().load(Ordering::Relaxed) != 0
+        || locals
+            .iter()
+            .any(|local| local.lockdep.load(Ordering::Acquire) != 0)
+    {
+        serial::fail(b"SMP_SCRATCH_LOCKDEP_LEFT");
+    }
+    // Every slot PTE was cleared and invalidated by its own CPU; no CPU uses
+    // another slot's VA, so the frames are free to reuse.
+    for frame in &SCRATCH_FRAMES[..=online] {
+        if frames
+            .free(
+                frame.load(Ordering::Relaxed),
+                Owner::Kernel,
+                paging::zero_dynamic,
+            )
+            .is_err()
+        {
+            serial::fail(b"SMP_SCRATCH_RECLAIM");
+        }
+    }
+    serial::write(b"SMP:SCRATCH:PASS:CPUS=");
     decimal(online as u64 + 1);
     serial::write(b"\n");
     true

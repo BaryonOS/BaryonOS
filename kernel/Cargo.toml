@@ -29,6 +29,7 @@ test-smp-double-run = ["native-smp"]
 test-smp-gs-user = ["native-smp"]
 test-smp-gs-iret-fault = ["native-smp"]
 test-smp-gs-nmi-user = ["native-smp"]
+test-smp-shared-scratch = ["native-smp"]
 framebuffer = ["milestone-m2"]
 # Sole display/input transport; UI policy remains in isolated user services.
 display-input = ["framebuffer", "milestone-m4", "monotonic-clock", "fpu-context", "dep:nieuw-os-display-client", "dep:nieuw-os-ps2"]

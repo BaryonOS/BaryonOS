@@ -1,7 +1,10 @@
 //! Only 4-KiB leaves. Tables are exclusive PageTable(0) allocations, never freed
 //! while active. Mapping changes are bootstrap-only until M3 supplies invalidation.
 use super::{zero, FRAME_COUNT};
-use core::ptr;
+use core::{
+    ptr,
+    sync::atomic::{AtomicU64, Ordering},
+};
 use kernel_core::{Alias, Frames, Owner, PAGE};
 const PRESENT: u64 = 1;
 const WRITE: u64 = 2;
@@ -9,9 +12,19 @@ const USER: u64 = 4;
 const NX: u64 = 1 << 63;
 const ADDRESS: u64 = 0x000f_ffff_ffff_f000;
 const MAX_TABLES: usize = 256;
-pub const SCRATCH: u64 = 0x3fffe000;
+/// CPUs (BSP plus APs) with a scratch slot; smp.rs starts at most this many.
+pub const MAX_CPUS: usize = 8;
+/// K-2 (ADR-075): CPU i maps its temporary page only at SCRATCH + i*4096. All
+/// slots share one PT (the one FIRMWARE_SCRATCH uses), so one CPU keeps the
+/// same table count as the old single slot.
+pub const SCRATCH: u64 = 0x3fff0000;
 const FIRMWARE_SCRATCH: u64 = 0x3fffd000;
-static mut SCRATCH_ENTRY: u64 = 0;
+const _: () = assert!(
+    SCRATCH >> 21 == FIRMWARE_SCRATCH >> 21 && SCRATCH + MAX_CPUS as u64 * PAGE <= FIRMWARE_SCRATCH
+);
+/// PTE address of each CPU's slot, written once by `begin_scratch` before any
+/// AP starts (published by the AP start protocol), then read-only.
+static SCRATCH_ENTRY: [AtomicU64; MAX_CPUS] = [const { AtomicU64::new(0) }; MAX_CPUS];
 static mut EXECUTABLE: [bool; FRAME_COUNT] = [false; FRAME_COUNT];
 static mut OBSERVED: [Alias; FRAME_COUNT] = [Alias {
     writable: 0,
@@ -566,7 +579,7 @@ impl Paging {
         result.tables[1] = pdpt;
         result
     }
-    #[cfg(feature = "milestone-m3")]
+    #[cfg(any(feature = "milestone-m3", feature = "native-smp"))]
     pub fn unmap(&mut self, frames: &mut Frames<FRAME_COUNT>, va: u64) {
         let (table, index) = self.location(va);
         let entry = read(table, index);
@@ -594,7 +607,7 @@ impl Paging {
         self.map(frames, pa, pa, false, false);
         invalidate(pa);
     }
-    #[cfg(feature = "milestone-m3")]
+    #[cfg(any(feature = "milestone-m3", feature = "native-smp"))]
     fn location(&self, va: u64) -> (u64, usize) {
         let mut table = self.root;
         for shift in [39, 30, 21] {
@@ -605,13 +618,18 @@ impl Paging {
         }
         (table, ((va >> 12) & 511) as usize)
     }
-    #[cfg(feature = "milestone-m3")]
+    /// Record every CPU's slot PTE (K-2). Slot 0 was mapped only to create
+    /// the shared PT; the other slots' PTEs must be absent.
+    #[cfg(any(feature = "milestone-m3", feature = "native-smp"))]
     pub fn begin_scratch(&mut self, frames: &mut Frames<FRAME_COUNT>) {
         let (table, index) = self.location(SCRATCH);
         self.unmap(frames, SCRATCH);
-        // SAFETY: Initial scratch PT is identitymapped, permanent and exclusive.
-        unsafe {
-            ptr::addr_of_mut!(SCRATCH_ENTRY).write(table + index as u64 * 8);
+        for cpu in 0..MAX_CPUS {
+            assert_eq!(read(table, index + cpu), 0);
+        }
+        // The scratch PT is identity-mapped, permanent and exclusive.
+        for (cpu, entry) in SCRATCH_ENTRY.iter().enumerate() {
+            entry.store(table + (index + cpu) as u64 * 8, Ordering::Release);
         }
     }
     #[cfg(feature = "milestone-m3")]
@@ -729,6 +747,14 @@ impl Paging {
                 self.walk(frames, observed, pa, level - 1, user, writable, nx, va);
             } else {
                 assert!(!user, "M2 has no user mappings");
+                if (SCRATCH..SCRATCH + MAX_CPUS as u64 * PAGE).contains(&va)
+                    && scratch_active()
+                    && va == scratch_slot().0
+                {
+                    // This CPU's slot maps the table being read right now (the
+                    // walk's own transient alias); every other slot must be empty.
+                    continue;
+                }
                 #[cfg(feature = "native-smp")]
                 if va == LAPIC_WINDOW {
                     // MMIO is outside the RAM ownership table; check its exact class.
@@ -771,7 +797,7 @@ fn read(table: u64, index: usize) -> u64 {
     // u64 accesses are naturally aligned, no concurrent hardware table writers
     // except CPU A/D bits; volatile observes those and stores preserve ownership.
     unsafe {
-        if ptr::addr_of!(SCRATCH_ENTRY).read() != 0 {
+        if scratch_active() {
             physical(table, |p| p.cast::<u64>().add(index).read_volatile())
         } else {
             (table as *const u64).add(index).read_volatile()
@@ -784,12 +810,13 @@ fn write(table: u64, index: usize, value: u64) {
     // SAFETY: Callers pass validated, exclusively owned PageTable pages; the
     // u64 slot is aligned and in bounds (asserted). Before the CR3 switch tables
     // are identity mapped by firmware, afterwards reached via our identity map or
-    // the scratch alias. No Rust references to entries exist and this single CPL0
-    // CPU is the only software writer. If the table is live under the active CR3
+    // the scratch alias. No Rust references to entries exist and the CPU holding
+    // KERNEL (M3) or the BSP (native-smp, ADR-070) is the only software writer.
+    // If the table is live under the active CR3
     // (e.g. unmap, read_firmware), the caller invalidates the VA before relying
     // on the new entry.
     unsafe {
-        if ptr::addr_of!(SCRATCH_ENTRY).read() != 0 {
+        if scratch_active() {
             physical(table, |p| p.cast::<u64>().add(index).write_volatile(value));
         } else {
             (table as *mut u64).add(index).write_volatile(value);
@@ -805,9 +832,42 @@ fn invalidate(va: u64) {
         core::arch::asm!("invlpg [{}]",in(reg) va,options(nostack));
     }
 }
+/// Scratch slots exist (after `begin_scratch`); before that, firmware or our
+/// identity map reaches tables and frames directly.
+fn scratch_active() -> bool {
+    SCRATCH_ENTRY[0].load(Ordering::Acquire) != 0
+}
+#[cfg(not(feature = "native-smp"))]
+fn cpu_index() -> usize {
+    0
+}
+#[cfg(feature = "native-smp")]
+fn cpu_index() -> usize {
+    // The negative control shares slot 0 on every CPU (the old global slot).
+    if cfg!(feature = "test-smp-shared-scratch") {
+        0
+    } else {
+        super::smp::cpu_index()
+    }
+}
+/// This CPU's scratch slot (K-2): its VA and PTE address, nobody else's. The
+/// index bound is the assert that no CPU reaches outside the slot table.
+fn scratch_slot() -> (u64, *mut u64) {
+    let cpu = cpu_index();
+    let entry = SCRATCH_ENTRY[cpu].load(Ordering::Acquire) as *mut u64;
+    assert!(!entry.is_null());
+    (SCRATCH + cpu as u64 * PAGE, entry)
+}
+/// A slot found in use: a nested scratch operation, or (native-smp) another
+/// CPU in the same slot.
+fn scratch_busy() -> ! {
+    #[cfg(feature = "native-smp")]
+    super::smp::scratch_cross();
+    #[cfg(not(feature = "native-smp"))]
+    panic!("scratch slot busy");
+}
 fn zero_page(pa: u64) {
-    // SAFETY: Read immutable-after-setup single-CPU scratch-entry address.
-    if unsafe { ptr::addr_of!(SCRATCH_ENTRY).read() } == 0 {
+    if !scratch_active() {
         zero(pa);
     } else {
         zero_dynamic(pa);
@@ -821,15 +881,17 @@ pub fn zero_dynamic(pa: u64) {
         }
     });
 }
-/// One temporary supervisor RW/NX page. IF=0 and no nested callbacks. The caller
-/// owns the frame (or the allocator's unpublished zeroing transition). The PTE is
-/// removed and locally invalidated before ownership can be published or freed.
+/// One temporary supervisor RW/NX page in this CPU's slot. IF=0 and no nested
+/// callbacks. The caller owns the frame (or the allocator's unpublished zeroing
+/// transition). The PTE is removed and locally invalidated before ownership can
+/// be published or freed; no other CPU ever uses this slot's VA (K-2).
 pub fn physical<R>(pa: u64, operation: impl FnOnce(*mut u8) -> R) -> R {
     assert_eq!(pa % PAGE, 0);
     assert!(pa != 0 && pa < PAGE * FRAME_COUNT as u64);
-    // SAFETY: Scratch PT permanently retained/identitymapped; all callers run on
-    // one CPU, IF=0, no nested scratch operation, and hold exclusive allocator or
-    // table access. Raw pointer exists only for this synchronous callback.
+    // SAFETY: Scratch PT permanently retained/identitymapped; the slot and its
+    // PTE belong to this CPU alone (K-2), IF=0 so nothing on this CPU nests a
+    // scratch operation (a busy PTE stops), and the caller has exclusive access
+    // to the frame. Raw pointer exists only for this synchronous callback.
     unsafe {
         assert!(
             !ptr::addr_of!(EXECUTABLE)
@@ -838,14 +900,15 @@ pub fn physical<R>(pa: u64, operation: impl FnOnce(*mut u8) -> R) -> R {
                 .read(),
             "scratch cannot alias executable frame writable"
         );
-        let entry = ptr::addr_of!(SCRATCH_ENTRY).read() as *mut u64;
-        assert!(!entry.is_null());
-        assert_eq!(entry.read_volatile(), 0);
+        let (va, entry) = scratch_slot();
+        if entry.read_volatile() != 0 {
+            scratch_busy();
+        }
         entry.write_volatile(pa | PRESENT | WRITE | NX);
-        invalidate(SCRATCH);
-        let result = operation(SCRATCH as *mut u8);
+        invalidate(va);
+        let result = operation(va as *mut u8);
         entry.write_volatile(0);
-        invalidate(SCRATCH);
+        invalidate(va);
         result
     }
 }
@@ -856,14 +919,15 @@ pub fn physical_read<R>(pa: u64, operation: impl FnOnce(*const u8) -> R) -> R {
     // SAFETY: Same serialized scratch lifetime as physical(), but a supervisor
     // RO/NX alias cannot violate W^X even when reading executable input pages.
     unsafe {
-        let entry = ptr::addr_of!(SCRATCH_ENTRY).read() as *mut u64;
-        assert!(!entry.is_null());
-        assert_eq!(entry.read_volatile(), 0);
+        let (va, entry) = scratch_slot();
+        if entry.read_volatile() != 0 {
+            scratch_busy();
+        }
         entry.write_volatile(pa | PRESENT | NX);
-        invalidate(SCRATCH);
-        let result = operation(SCRATCH as *const u8);
+        invalidate(va);
+        let result = operation(va as *const u8);
         entry.write_volatile(0);
-        invalidate(SCRATCH);
+        invalidate(va);
         result
     }
 }

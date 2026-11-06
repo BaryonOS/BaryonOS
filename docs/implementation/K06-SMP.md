@@ -216,7 +216,7 @@ omgekeerde volgorde en moet die marker geven (§9).
 
 ---
 
-## 5. Herziening ADR-024 (voorgesteld als ADR-074)
+## 5. Herziening ADR-024 (vastgelegd als ADR-075, stap 5b-2)
 
 ADR-024 eist zelf een herziening "bij SMP". Voorgestelde nieuwe tekst:
 
@@ -362,7 +362,7 @@ onbereikbaar, maar het contract geldt vooruit.
 |---|---|---|---|
 | 5a | Ticketlock + irqsave + lockdep + per-CPU-blok voor de BSP | `kernel/src/m2/smp.rs` of een nieuw `kernel/src/m2/lock.rs` [te verifiëren: moduleconventie] | hosttests van de lock (loom/stress op de host), native lockdep-negatief |
 | 5b | Gecontroleerd spinnen met IF=1 op `KERNEL`/`ASPACE` (§4.3, aanvulling ADR-074); alleen AP's | `crates/smp-lock`, `kernel/src/m2/lock.rs`, `smp.rs`-fixture | `SMP:SPIN:PASS`; controle `test-smp-spin-irq-off` → `SMP:SPIN:SHOOTDOWN_TIMEOUT` + quarantaine |
-| 5b-2 | `KERNEL`-lock om alle M3-syscalls; scratchslot per CPU; ADR-075 | M3-entrypoint, paging-scratchcode, `docs/DECISIONS.md` | volle `milestone-m2`- en M3-regressie op 1 CPU, ongewijzigd |
+| 5b-2 | `KERNEL`-lock om alle M3-syscalls; scratchslot per CPU; ADR-075 (gerealiseerd) | `lock.rs`, `m3.rs`, `paging.rs`, `smp.rs`-fixture, `docs/DECISIONS.md` | `SMP:SCRATCH:PASS:CPUS=n`; controle `test-smp-shared-scratch` → `SMP:SCRATCH:CROSS:CPU=n`; volle `milestone-m2`- en M3-regressie op 1 CPU, ongewijzigd |
 | 5c | Preëmptie uitgesteld zolang lockdep niet leeg is (vastgehouden of bewaakte lock); `HELD_ACROSS_SWITCH` bij schending (aanvulling ADR-074) | `smp.rs` | lockfixture in `SMP:PREEMPT:PASS`; `test-smp-held-across-switch` → marker |
 | 5c-2 | BSP LAPIC-timer + idle met `sti; hlt`; PIT blijft de klok | `smp.rs`, idle-lus | `native-rtc` 5/5, monotone-klokcheck, BSP-preëmptiecanary |
 | 5d(-1) | Runqueues per AP, threadstatus-CAS (INV-3), 0xe8-wekken, CR3-wissel §6.3 met `active_cpus` (INV-4), met kernelthreads in twee adresruimten (aanvulling ADR-074) | `crates/smp-lock` (`sched`), `smp.rs` | `SMP:SCHED:PASS:CPUS=n`; `test-smp-double-run` → `SMP:SCHED:DOUBLE_RUN` |
@@ -417,6 +417,10 @@ Profielen: 1, 2, 4 en 8 vCPU's; zowel single- als multi-thread-TCG (`-accel tcg,
     GS-7-fixup herstelt het anker → `SMP:GS:IRET_FIXUP:PASS`.
 17. `test-smp-gs-nmi-user`: een NMI naar een AP in CPL3 met gebruikers-GS → AP herkend via het
     IST-adres, zonder GS → `SMP:FAULT:AP_NMI_IST:PASS`.
+
+18. `test-smp-shared-scratch` (controleprofiel, stap 5b-2): alle CPU's in scratchslot 0 →
+    `SMP:SCRATCH:CROSS:CPU=n` (bezette slot-PTE of vreemd patroon). Dat bewijst dat
+    `SMP:SCRATCH:PASS` een echt gevaar meet.
 
 **Regressie (ongewijzigd groen):** `milestone-m2` (TCG/1CPU), K05 6/6, `native-rtc` 5/5,
 alle stap-1–4-gevallen (14/14), host-tests `boot-protocol`, `tools/tests`, Clippy, fmt.

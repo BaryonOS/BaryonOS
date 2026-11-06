@@ -152,7 +152,7 @@ static mut RUNTIME: Runtime = Runtime {
     finish_counters: [0; 2],
 };
 fn runtime() -> &'static mut Runtime {
-    // SAFETY: The single CPU enters here with IF0 on the permanent kernel stack.
+    // SAFETY: Entered with KERNEL held and IF0 on the permanent kernel stack.
     // Callers end each borrow before re-entry, scheduling or cleanup/detach.
     unsafe { &mut *ptr::addr_of_mut!(RUNTIME) }
 }

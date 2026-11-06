@@ -39,6 +39,7 @@ CASES = {
     "gs-user": ("test-smp-gs-user", 4, "multi", "gs-user"),
     "gs-iret-fault": ("test-smp-gs-iret-fault", 4, "multi", "gs-iret-fault"),
     "gs-nmi-user": ("test-smp-gs-nmi-user", 4, "multi", "gs-nmi-user"),
+    "shared-scratch": ("test-smp-shared-scratch", 4, "multi", "shared-scratch"),
 }
 QUARANTINE_OUTCOMES = ("invalid-madt", "timeout", "mismatch", "quarantine", "shootdown-quarantine",
                        "timer-quarantine", "spin-quarantine")
@@ -47,10 +48,13 @@ TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_I
             "held-across-switch": "SMP:LOCKDEP:HELD_ACROSS_SWITCH",
             "double-run": "SMP:SCHED:DOUBLE_RUN",
             "gs-iret-fault": "SMP:GS:IRET_FIXUP:PASS",
-            "gs-nmi-user": "SMP:FAULT:AP_NMI_IST:PASS"}
+            "gs-nmi-user": "SMP:FAULT:AP_NMI_IST:PASS",
+            "shared-scratch": "SMP:SCRATCH:CROSS:CPU=*"}
 # Audit F8: the GS fixture prints the runtime CR4 (decimal); FSGSBASE (bit 16)
 # must be clear, the value itself may differ per firmware.
 GS_CR4 = "SMP:GS:CR4=*"
+# Step 5b-2: which CPU first sees the shared slot crossed varies per run.
+SCRATCH_CROSS = re.compile(r"SMP:SCRATCH:CROSS:CPU=([0-9])")
 # Step 5a: the BSP lock self-test after smp::start, on every non-terminal path.
 LOCKDEP_PASS = "SMP:LOCKDEP:PASS"
 
@@ -78,7 +82,8 @@ def expected_smp(case: str) -> list[str]:
     madt = [f"SMP:MADT:CPUS={cpus}:DISABLED=0:HOTPLUG=0"]
 
     def settled(online: int) -> list[str]:
-        """Sync, IPI rounds, shootdown + visibility, preemption, spin, scheduler, park."""
+        """Sync, IPI rounds, shootdown + visibility, preemption, spin, scheduler,
+        per-CPU scratch slots under KERNEL, park."""
         return [f"SMP:SYNC:PASS:CPUS={online}",
                 f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={online}",
                 f"SMP:SHOOTDOWN:PASS:CPUS={online}",
@@ -86,6 +91,7 @@ def expected_smp(case: str) -> list[str]:
                 f"SMP:PREEMPT:PASS:CPUS={online}",
                 f"SMP:SPIN:PASS:CPUS={online}",
                 f"SMP:SCHED:PASS:CPUS={online}",
+                f"SMP:SCRATCH:PASS:CPUS={online}",
                 f"SMP:PARKED:APS={online - 1}"]
 
     if outcome in ("timeout", "mismatch"):
@@ -110,6 +116,9 @@ def expected_smp(case: str) -> list[str]:
         return lines + settled(started)[:-1] + [GS_CR4, TERMINAL[outcome]]
     if outcome == "double-run":
         # Step 5d-1: thread 0 queued on two APs; the second dispatch must refuse.
+        return lines + settled(started)[:-3] + [TERMINAL[outcome]]
+    if outcome == "shared-scratch":
+        # Step 5b-2 control: one slot for every CPU must be caught crossing.
         return lines + settled(started)[:-2] + [TERMINAL[outcome]]
     lines += [f"SMP:SYNC:PASS:CPUS={started}"]
     ipi_pass = f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={started}"
@@ -132,6 +141,7 @@ def expected_smp(case: str) -> list[str]:
                         f"SMP:PREEMPT:PASS:CPUS={started}",
                         f"SMP:SPIN:PASS:CPUS={started}",
                         f"SMP:SCHED:PASS:CPUS={started}",
+                        f"SMP:SCRATCH:PASS:CPUS={started}",
                         f"SMP:PARKED:APS={started - 1}"]
     if outcome == "spin-quarantine":
         # Without the interrupt window a CPU waiting for KERNEL is deaf.
@@ -150,11 +160,17 @@ def expected_smp(case: str) -> list[str]:
     raise ValueError("Unknown SMP outcome")
 
 
+def required_end(outcome: str) -> tuple[str, ...]:
+    """Exact terminal lines for is_success; wildcard markers are checked in the tail."""
+    end = (TERMINAL[outcome],) if outcome in TERMINAL else END
+    return tuple(marker for marker in end if not marker.endswith("*"))
+
+
 def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> dict:
     """Independent serial oracle: the exact SMP sequence after KS-03."""
     profile, cpus, _, outcome = CASES[case]
     terminal = outcome in TERMINAL
-    end = (TERMINAL[outcome],) if terminal else END
+    end = required_end(outcome)
     if not is_success(raw_exit, stdout, timed_out, required_markers=BOOT + end,
                       forbidden_markers=FORBIDDEN):
         raise ValueError("Native SMP boot/exit assertions failed")
@@ -177,6 +193,9 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
         cr4 = re.fullmatch(r"SMP:GS:CR4=([0-9]{1,20})", line)
         if cr4 and int(cr4[1]) & (1 << 16) == 0:
             line = GS_CR4
+        cross = SCRATCH_CROSS.fullmatch(line)
+        if cross and int(cross[1]) < min(cpus, MAX_CPUS):
+            line = TERMINAL["shared-scratch"]
         tail.append(line)
     if terminal:
         if tail != expected:
@@ -211,7 +230,8 @@ def run(cases: tuple[str, ...]) -> dict:
                         "self-test, TLB shootdown, AP preemption (deferred while a lock is held or "
                         "awaited), AP spin with IF window, per-AP run queues of kernel threads "
                         "in two address spaces (0xe8 wake, CR3 switch with active_cpus), a ring-3 "
-                        "GS fixture per AP in test-smp-gs-* profiles (swapgs discipline) and BSP "
+                        "GS fixture per AP in test-smp-gs-* profiles (swapgs discipline), a "
+                        "scratch slot per CPU plus the KERNEL lock under contention, and BSP "
                         "ticket-lock/lockdep self-test in "
                         "QEMU/TCG; no ring-3 processes (M3) on APs, no hardware evidence"),
               "cases": []}
@@ -226,7 +246,7 @@ def run(cases: tuple[str, ...]) -> dict:
             fixture.parent.mkdir(parents=True, exist_ok=True)
             fixture.write_bytes(duplicate_madt())
             tables = [fixture]
-        end = (TERMINAL[outcome],) if outcome in TERMINAL else END
+        end = required_end(outcome)
         guest = run_guest(
             "smp-" + case, timeout=60, required_markers=BOOT + end,
             forbidden_markers=FORBIDDEN, cpus=cpus, tcg_threads=threads,

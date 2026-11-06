@@ -44,6 +44,81 @@ MISMATCH geweigerd.
 #MC op een eigen IST-stack, AMD-null-selectorgedrag (niet testbaar onder TCG) en hardwarebewijs.
 AI-review is geen menselijke audit (B05).
 
+## ADR-075 — Eén KERNEL-lock om de M3-entry en een scratchslot per CPU (K06 stap 5b-2; herziening ADR-024)
+
+6 november 2026. **Probleem:** ring 3 op AP's (5d-2) betekent dat twee CPU's tegelijk een
+syscall of fault kunnen afhandelen. De M3-staat (`STATE`), de frame-allocator, paging, IPC-wachtrijen,
+quota en de supervisor zijn tot nu toe alleen beschermd door "één CPU, IF=0". Het ene globale
+scratchslot uit ADR-024 laat twee CPU's elkaars frame nullen of lezen: een lek of corruptie tussen
+processen (INV-2). Deze stap maakt de kernel SMP-veilig **zonder** het één-CPU-gedrag te
+veranderen. M3 blijft uitgesloten van `native-smp` tot 5d-2.
+
+**Besluit (normatief: K-1..K-5 in `docs/implementation/k06-steps/01-5b-2-kernel-lock-scratch.md`):**
+- **K-1 Eén kernelsectie.** `lock::KERNEL: IrqLock<()>` (niveau 10) beschermt elke mutatie van
+  `STATE`, de frame-allocator, paging, IPC-wachtrijen, quota en de supervisor. `m3_event` neemt
+  de lock direct na de entry-stub en geeft hem pas vrij vlak vóór de terugkeer naar de stub.
+  Vóór de lock leest `m3_event` alleen het CS van zijn eigen onderbroken frame. Zo houdt een
+  kernel-exception binnen een vastgehouden sectie de marker `M3:FAIL:KERNEL_EXCEPTION` en gaat
+  hij niet als lockdep-fout eindigen. `m3::start` neemt de lock vóór de opbouw van `STATE`.
+  `lock::kernel_held()` (het lockdep-bit van deze CPU) wordt in `select`/`cleanup`
+  gecontroleerd met een `debug_assert`, en in de native fixture met een `assert`.
+- **INV-7 en de sprong naar ring 3.** `complete_round` en `m3::start` hervatten user-mode met
+  `jmp m3_restore` vanuit een diepe aanroep, zonder de stack van `m3_event` af te wikkelen. Een
+  lokale guard zou daar nooit vallen: KERNEL bleef dan bezet en het volgende event liep vast. De
+  guard staat daarom in één slot (`KERNEL_GUARD`) dat alleen de houder aanraakt, dus de lock zelf
+  maakt de toegang exclusief. `kernel_leave()` zit vóór elke `return` naar de stub en in
+  `resume()`, de enige weg naar `m3_restore` vanuit Rust. Geen lock gaat over een wissel.
+- **Eén-CPU-profielen.** `lock.rs` compileert nu ook voor M3, met één lockdep-woord en zonder
+  GS-anker. Op één CPU neemt de lock altijd direct, zonder wachter en zonder IF-venster (K-3).
+  Idle met `sti; hlt` blijft binnen de sectie: de IRQ0-idleroute raakt alleen ruwe tellers. Op
+  SMP moet idle de sectie verlaten (5c-2/5d-2).
+- **K-4.** SAFETY-teksten in `m3.rs` en `m3/*.rs` noemen "KERNEL held" als grond, niet langer
+  "single CPU".
+
+**Herziening ADR-024 (K06-SMP §5, punt 1–7):**
+1. Mappingarena ongewijzigd, 2048 mappings per proces, statisch. Toegang onder `KERNEL`;
+   `ASPACE[pid]` volgt wanneer er fijnmazige locks komen.
+2. **Scratchslot per CPU (K-2).** CPU *i* gebruikt alleen VA `SCRATCH + i·4096` (`SCRATCH =
+   0x3fff0000`, 8 slots, supervisor RW/NX of RO/NX). Alle slots delen de PT van `FIRMWARE_SCRATCH`
+   (compile-time assert), dus één CPU houdt hetzelfde aantal tabellen. Het adres bestaat alleen
+   via `paging::scratch_slot()`, met index `smp::cpu_index()` (BSP 0, AP slot+1, via het
+   GS-anker) of altijd 0 zonder `native-smp`. Invalidatie blijft lokaal (`invlpg`). Een bezette
+   slot-PTE stopt: `SMP:SCRATCH:CROSS` op SMP, anders een panic.
+   *Restrisico:* een speculatief gecachete vreemde slot-entry wordt architecturaal nooit gebruikt,
+   maar speculatieve side-channels daarop vallen buiten dit model.
+3. De weigering van een executable alias en de RO/NX-helper blijven ongewijzigd.
+4. Er komt nog steeds geen identity-map van vrij RAM of MMIO.
+5. ASID blijft een interne teller en PCID blijft uit.
+6. Een wijziging in de gedeelde kernelhelft, behalve het eigen scratchslot, vereist een
+   shootdown naar alle online CPU's (ADR-072).
+7. **Herzien bij:** PCID, fijnmazige subsysteemlocks, idle buiten de sectie (5c-2), M3 op AP's
+   (5d-2), DMA/IOMMU of een nieuwe mapping-API. De grote lock begrenst de parallelle
+   syscall-doorvoer (R02-risico, geen K06-eis).
+
+**Gevolg voor `native-smp`:** de BSP roept `begin_scratch` aan in `smp::start`, direct na zijn
+GS-anker en vóór de eerste AP. Daarna leest en schrijft hij paging via zijn eigen slot.
+`Paging::audit` slaat alleen het actieve slot van de lezende CPU over: de walk zelf mapt de
+gelezen tabel daar. Elk ander slot moet leeg zijn. AP's mappen een tijdelijke pagina alleen in
+hun eigen slot; allocator- en paginatabelwijzigingen blijven BSP-only (ADR-070).
+
+**Bewijs:** native fixture na `SMP:SCHED:PASS`, vóór `SMP:GS:*` en `SMP:PARKED`. Elke CPU
+nult, vult (`0xa5 ^ index`) en controleert 1024 keer zijn eigen frame via zijn eigen slot,
+tegelijk met de andere CPU's. Daarna neemt elke CPU 1000 keer `KERNEL` en verhoogt een teller
+met een losse load en store. De eis is: alle patronen intact, teller = 1000 × CPU's, lockdep
+leeg → `SMP:SCRATCH:PASS:CPUS=n`. Het controleprofiel `test-smp-shared-scratch` (alle CPU's in
+slot 0, 4 vCPU's) moet `SMP:SCRATCH:CROSS:CPU=<n>` geven en exit 0x10. Die marker meldt zowel
+een bezette slot-PTE als een vreemd patroon. Native resultaten en commando's staan in
+`docs/PROJECT-STATE.md`.
+
+**Afwijkingen van de taakspec:** de deadline van 500 ms begint pas nadat de BSP zijn eigen deel
+heeft afgerond; de M2-PIT-helpers meten geen totale looptijd. De guard staat in een slot in
+plaats van in `let _k`, om de reden hierboven. De SCRATCH-VA verschuift van `0x3fffe000` naar
+`0x3fff0000`; de tabel is dezelfde. De fixtureframes worden na de proef vrijgegeven: elke CPU
+heeft zijn slot-PTE zelf gewist en geïnvalideerd, en geen CPU raakt een vreemd slot-VA aan.
+
+**Open:** KERNEL op het M3-pad op AP's en idle buiten de sectie (5c-2/5d-2), fijnmazige locks,
+hardwarebewijs. QEMU-TCG modelleert geen speculatie. AI-review is geen menselijke audit (B05).
+
 ## ADR-074 — Ticketlock, irqsave en lockdep per CPU (K06 stap 5a)
 
 6 november 2026; alleen in `native-smp`. Dit is de eerste stap naar een
@@ -1132,7 +1207,7 @@ ID, datum, status, context, alternatieven, besluit, onderbouwing/bronnen, gevolg
 
 **ADR-023 — Alleen WB-capabele normale ConventionalMemory, cachebits gecombineerd.** De eerste M2-run faalde vóór KS-02 doordat OVMF `0x0f` meldt en de allocator uitsluitend exact WB accepteerde. UEFI-attributen beschrijven mogelijkheden; UC/WC/WT/WB mogen samen voorkomen. De allocator vereist WB, staat uitsluitend deze vier cachebits toe en weigert overige/bijzondere attributen. Bron: TianoCore/EDK II, `edk2-stable202508`, [UefiSpec.h, EFI_MEMORY_DESCRIPTOR en cachebits](https://github.com/tianocore/edk2/blob/edk2-stable202508/MdePkg/Include/Uefi/UefiSpec.h), gecontroleerd 27 oktober 2026. De huidige package is daarmee niet als exact die firmwareversie geïdentificeerd. Regressie test zowel `0x0f` als geweigerde special/unknown-bits; echte M2-poort slaagt. Andere platformprofielen vereisen opnieuw beoordeling van geheugenattributen; geen stil reclaim van Loader/BootServices/runtime/ACPI-geheugen.
 
-**ADR-024 — Statische2048-mappingarena en één tijdelijk scratchslot.** Iedere procescontext heeft de contractcapaciteit2048 mappings; grote metadata staat statisch buiten de16KiB-kernelstack. PID is monotoneu64; interne ASID is afzonderlijk begrensd. Allocatorzeroing/tabeltoegang gebruikt een tijdelijk supervisor/NX-slot, met invalidatie vóór gebruik en na clear. Een writable scratchalias naar een executable fysiek frame wordt geweigerd; readonly input heeft een aparte RO/NX-helper. Geen willekeurige identitymap van vrije RAM/gaten/MMIO. Bewijs: kernelbron ed09818, volle M2/M3-gate, echte67-userpage/BSS-zero-regressie en per-processcleanupbalans. Herzie bij SMP/DMA/nieuwe mapping-API; de serialisatie geldt alleen in het huidige één-CPU/één-threadprofiel. Herstel via een consistente eerdere bronversie in een afzonderlijke checkout, zonder huidige wijzigingen te wissen.
+**ADR-024 — Statische2048-mappingarena en één tijdelijk scratchslot.** Iedere procescontext heeft de contractcapaciteit2048 mappings; grote metadata staat statisch buiten de16KiB-kernelstack. PID is monotoneu64; interne ASID is afzonderlijk begrensd. Allocatorzeroing/tabeltoegang gebruikt een tijdelijk supervisor/NX-slot, met invalidatie vóór gebruik en na clear. Een writable scratchalias naar een executable fysiek frame wordt geweigerd; readonly input heeft een aparte RO/NX-helper. Geen willekeurige identitymap van vrije RAM/gaten/MMIO. Bewijs: kernelbron ed09818, volle M2/M3-gate, echte67-userpage/BSS-zero-regressie en per-processcleanupbalans. Herzie bij SMP/DMA/nieuwe mapping-API; de serialisatie geldt alleen in het huidige één-CPU/één-threadprofiel. **Herzien door ADR-075** (KERNEL-lock en scratchslot per CPU). Herstel via een consistente eerdere bronversie in een afzonderlijke checkout, zonder huidige wijzigingen te wissen.
 
 **ADR-025 — Safe vaste capability-engine met afzonderlijke usercopygrens.** `capability-core` is eigen dependencyvrije no_std-code zonder unsafe/heap; de kernel bewaakt userpointers, syscallvolgorde en320-byte-kopieën. Engine-receive commit pas na volledige outputvalidatie, daarna volgt de in dit profiel onfeilbare bytecopy. Rootautoriteit komt uitsluitend uit het statische testmanifest, niet uit een algemene userspace-objectlookup. Revoke trekt afstammelingen in; exit ook eigen/issued autoriteit. Gesloten objecttombstones blijven bestaan tot laatste ref. Hosttests vergelijken de volledige Engine-toestand; kernelchecksums zijn diagnostiek. Bewijs:21coretests,alle acht echte M4-cases en onafhankelijke gerichte review. Herzie vóór threads/sharedmemory/DMA/dynamische applicatie- of objecttypen; geen extrapolatie naar zulke garanties. Geen boot-ABI-wijziging of hostconfigmigratie.
 

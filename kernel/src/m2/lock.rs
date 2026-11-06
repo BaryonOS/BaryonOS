@@ -7,6 +7,9 @@
 //! restores IF. Lockdep is active in every native-smp
 //! build; the bounded spin with its STUCK marker only in debug builds. Step
 //! 5b: waiters for KERNEL/ASPACE spin with a `sti; pause; cli` window (APs).
+//! Step 5b-2 (ADR-075): also built for M3, where one CPU owns a single lockdep
+//! word and `KERNEL` serializes every M3 event (K-1).
+#[cfg(feature = "native-smp")]
 use super::smp;
 use core::{
     arch::asm,
@@ -14,6 +17,38 @@ use core::{
     sync::atomic::Ordering,
 };
 use smp_lock::{level, Guard, Lockdep, TicketLock};
+
+/// One-CPU profiles (M3): the same interface as `smp`, without GS anchors.
+/// Every lock use runs with IF=0 on the only CPU, so one word is exact.
+#[cfg(not(feature = "native-smp"))]
+mod smp {
+    use core::sync::atomic::AtomicU64;
+    static LOCKDEP: AtomicU64 = AtomicU64::new(0);
+    pub fn lockdep() -> &'static AtomicU64 {
+        &LOCKDEP
+    }
+    pub fn on_ap() -> bool {
+        false
+    }
+    pub fn lockdep_order(_: smp_lock::Order) -> ! {
+        crate::serial::fail(b"LOCKDEP_ORDER")
+    }
+    pub fn lockdep_lifo(_: smp_lock::Order) -> ! {
+        crate::serial::fail(b"LOCKDEP_LIFO")
+    }
+    pub fn lock_stuck(_: &[u8]) -> ! {
+        crate::serial::fail(b"LOCK_STUCK")
+    }
+}
+
+/// K-1 (ADR-075): the one kernel section. Every mutation of M3 `STATE`, the
+/// frame allocator, paging, IPC queues, quota and the supervisor holds it.
+pub static KERNEL: IrqLock<()> = IrqLock::new(level::KERNEL, b"KERNEL", ());
+
+/// True while this CPU holds (or awaits) `KERNEL`: its lockdep bit.
+pub fn kernel_held() -> bool {
+    smp::lockdep().load(Ordering::Relaxed) & (1 << level::KERNEL) != 0
+}
 
 pub struct IrqLock<T> {
     level: u8,
@@ -110,11 +145,14 @@ impl<T> Drop for IrqGuard<'_, T> {
     }
 }
 
+#[cfg(feature = "native-smp")]
 static OUTER: IrqLock<u32> = IrqLock::new(level::KERNEL, b"KERNEL", 0);
+#[cfg(feature = "native-smp")]
 static INNER: IrqLock<u32> = IrqLock::new(level::FRAMES, b"FRAMES", 0);
 
 /// BSP, after `smp::start`, IF=0: the allowed order nests and fully unwinds;
 /// the negative profile takes the reverse order and must stop with the marker.
+#[cfg(feature = "native-smp")]
 pub fn selftest() {
     {
         let mut outer = OUTER.lock_irqsave();

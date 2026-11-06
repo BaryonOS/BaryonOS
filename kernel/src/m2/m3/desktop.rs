@@ -73,7 +73,7 @@ static mut OBSERVATION: Observation = Observation {
     sample_tick: u64::MAX,
 };
 fn observation() -> &'static mut Observation {
-    // SAFETY: Single CPU, IF=0, nonreentrant scheduler callbacks. No borrow is
+    // SAFETY: KERNEL held, IF=0, nonreentrant scheduler callbacks. No borrow is
     // held over cleanup/scheduling or a nested call to this accessor.
     unsafe { &mut *ptr::addr_of_mut!(OBSERVATION) }
 }
