@@ -40,6 +40,8 @@ CASES = {
     "gs-iret-fault": ("test-smp-gs-iret-fault", 4, "multi", "gs-iret-fault"),
     "gs-nmi-user": ("test-smp-gs-nmi-user", 4, "multi", "gs-nmi-user"),
     "shared-scratch": ("test-smp-shared-scratch", 4, "multi", "shared-scratch"),
+    "lock-in-handler": ("test-smp-lock-in-handler", 2, "multi", "lock-in-handler"),
+    "lockpair-order": ("test-smp-lockpair-order", 2, "multi", "lockpair-order"),
 }
 QUARANTINE_OUTCOMES = ("invalid-madt", "timeout", "mismatch", "quarantine", "shootdown-quarantine",
                        "timer-quarantine", "spin-quarantine")
@@ -49,7 +51,9 @@ TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_I
             "double-run": "SMP:SCHED:DOUBLE_RUN",
             "gs-iret-fault": "SMP:GS:IRET_FIXUP:PASS",
             "gs-nmi-user": "SMP:FAULT:AP_NMI_IST:PASS",
-            "shared-scratch": "SMP:SCRATCH:CROSS:CPU=*"}
+            "shared-scratch": "SMP:SCRATCH:CROSS:CPU=*",
+            "lock-in-handler": "SMP:LOCKDEP:IN_HANDLER:10",
+            "lockpair-order": "SMP:LOCKDEP:ORDER:20->20"}
 # Audit F8: the GS fixture prints the runtime CR4 (decimal); FSGSBASE (bit 16)
 # must be clear, the value itself may differ per firmware.
 GS_CR4 = "SMP:GS:CR4=*"
@@ -83,7 +87,7 @@ def expected_smp(case: str) -> list[str]:
 
     def settled(online: int) -> list[str]:
         """Sync, IPI rounds, shootdown + visibility, preemption, spin, scheduler,
-        per-CPU scratch slots under KERNEL, park."""
+        per-CPU scratch slots under KERNEL, lock_pair rounds, park."""
         return [f"SMP:SYNC:PASS:CPUS={online}",
                 f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={online}",
                 f"SMP:SHOOTDOWN:PASS:CPUS={online}",
@@ -92,6 +96,7 @@ def expected_smp(case: str) -> list[str]:
                 f"SMP:SPIN:PASS:CPUS={online}",
                 f"SMP:SCHED:PASS:CPUS={online}",
                 f"SMP:SCRATCH:PASS:CPUS={online}",
+                f"SMP:LOCKPAIR:PASS:CPUS={online}",
                 f"SMP:PARKED:APS={online - 1}"]
 
     if outcome in ("timeout", "mismatch"):
@@ -116,9 +121,15 @@ def expected_smp(case: str) -> list[str]:
         return lines + settled(started)[:-1] + [GS_CR4, TERMINAL[outcome]]
     if outcome == "double-run":
         # Step 5d-1: thread 0 queued on two APs; the second dispatch must refuse.
-        return lines + settled(started)[:-3] + [TERMINAL[outcome]]
+        return lines + settled(started)[:-4] + [TERMINAL[outcome]]
     if outcome == "shared-scratch":
         # Step 5b-2 control: one slot for every CPU must be caught crossing.
+        return lines + settled(started)[:-3] + [TERMINAL[outcome]]
+    if outcome == "lock-in-handler":
+        # Audit F3 (LD-1): the first 0xe8 handler takes KERNEL in the scheduler phase.
+        return lines + settled(started)[:-4] + [TERMINAL[outcome]]
+    if outcome == "lockpair-order":
+        # Audit F4 (LD-3): two ASPACE locks taken loose and descending, after scratch.
         return lines + settled(started)[:-2] + [TERMINAL[outcome]]
     lines += [f"SMP:SYNC:PASS:CPUS={started}"]
     ipi_pass = f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={started}"
@@ -142,6 +153,7 @@ def expected_smp(case: str) -> list[str]:
                         f"SMP:SPIN:PASS:CPUS={started}",
                         f"SMP:SCHED:PASS:CPUS={started}",
                         f"SMP:SCRATCH:PASS:CPUS={started}",
+                        f"SMP:LOCKPAIR:PASS:CPUS={started}",
                         f"SMP:PARKED:APS={started - 1}"]
     if outcome == "spin-quarantine":
         # Without the interrupt window a CPU waiting for KERNEL is deaf.
@@ -231,7 +243,8 @@ def run(cases: tuple[str, ...]) -> dict:
                         "awaited), AP spin with IF window, per-AP run queues of kernel threads "
                         "in two address spaces (0xe8 wake, CR3 switch with active_cpus), a ring-3 "
                         "GS fixture per AP in test-smp-gs-* profiles (swapgs discipline), a "
-                        "scratch slot per CPU plus the KERNEL lock under contention, and BSP "
+                        "scratch slot per CPU plus the KERNEL lock under contention, ASPACE lock_pair "
+                        "rounds on every CPU (KERNEL/ASPACE refused in handlers), and BSP "
                         "ticket-lock/lockdep self-test in "
                         "QEMU/TCG; no ring-3 processes (M3) on APs, no hardware evidence"),
               "cases": []}

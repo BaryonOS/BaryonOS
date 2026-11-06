@@ -9,23 +9,38 @@
 //! 5b: waiters for KERNEL/ASPACE spin with a `sti; pause; cli` window (APs).
 //! Step 5b-2 (ADR-075): also built for M3, where one CPU owns a single lockdep
 //! word and `KERNEL` serializes every M3 event (K-1).
+//! Audit F3/F4 (ADR-077): KERNEL/ASPACE are refused inside an interrupt
+//! handler (LD-1) and their window opens only outside one (LD-2); two locks of
+//! one level only through `lock_pair`, by ascending key (LD-3/LD-4).
 #[cfg(feature = "native-smp")]
 use super::smp;
 use core::{
     arch::asm,
+    cell::UnsafeCell,
     ops::{Deref, DerefMut},
-    sync::atomic::Ordering,
+    sync::atomic::{AtomicU64, Ordering},
 };
-use smp_lock::{level, Guard, Lockdep, TicketLock};
+use smp_lock::{level, Guard, Lockdep, Order, TicketLock};
 
 /// One-CPU profiles (M3): the same interface as `smp`, without GS anchors.
-/// Every lock use runs with IF=0 on the only CPU, so one word is exact.
+/// Every lock use runs with IF=0 on the only CPU, so one state is exact. The
+/// M3 entry path does not count IDT nesting (no GS anchor): depth stays 0.
 #[cfg(not(feature = "native-smp"))]
 mod smp {
+    use super::LockdepCell;
     use core::sync::atomic::AtomicU64;
     static LOCKDEP: AtomicU64 = AtomicU64::new(0);
+    static STATE: LockdepCell = LockdepCell::new();
     pub fn lockdep() -> &'static AtomicU64 {
         &LOCKDEP
+    }
+    pub fn with_lockdep<R>(f: impl FnOnce(&mut smp_lock::Lockdep) -> R) -> R {
+        // SAFETY: the only CPU, IF=0 inside every lock operation, and `f`
+        // (a lockdep method) never re-enters.
+        unsafe { STATE.update(&LOCKDEP, f) }
+    }
+    pub fn irq_depth() -> u32 {
+        0
     }
     pub fn on_ap() -> bool {
         false
@@ -36,8 +51,40 @@ mod smp {
     pub fn lockdep_lifo(_: smp_lock::Order) -> ! {
         crate::serial::fail(b"LOCKDEP_LIFO")
     }
+    pub fn lockdep_in_handler(_: u8) -> ! {
+        crate::serial::fail(b"LOCKDEP_IN_HANDLER")
+    }
     pub fn lock_stuck(_: &[u8]) -> ! {
         crate::serial::fail(b"LOCK_STUCK")
+    }
+}
+
+/// One CPU's full lockdep state (keys and pair counts, audit F4). Its held
+/// levels are mirrored into an `AtomicU64` that other CPUs and the preempt
+/// handler read.
+pub struct LockdepCell(UnsafeCell<Lockdep>);
+
+// SAFETY: a cell is only touched through `update`, whose contract confines
+// it to its own CPU with IF=0; other CPUs read only the atomic mirror.
+unsafe impl Sync for LockdepCell {}
+
+impl LockdepCell {
+    pub const fn new() -> Self {
+        Self(UnsafeCell::new(Lockdep::new()))
+    }
+
+    /// Run `f` on the state, then mirror its held levels into `mirror`.
+    ///
+    /// # Safety
+    /// Only the CPU that owns this cell, with IF=0, and `f` must not call
+    /// `update` again: then this is the only live reference to the state.
+    pub unsafe fn update<R>(&self, mirror: &AtomicU64, f: impl FnOnce(&mut Lockdep) -> R) -> R {
+        // SAFETY: exclusive per the caller's contract above; the cell holds
+        // an initialized, aligned `Lockdep` for its whole 'static life.
+        let dep = unsafe { &mut *self.0.get() };
+        let result = f(dep);
+        mirror.store(dep.held_mask(), Ordering::Relaxed);
+        result
     }
 }
 
@@ -52,38 +99,86 @@ pub fn kernel_held() -> bool {
 
 pub struct IrqLock<T> {
     level: u8,
+    /// LD-3 order within a level (ASPACE: pid, RUNQ: CPU index).
+    key: u32,
     name: &'static [u8],
     inner: TicketLock<T>,
 }
 
 impl<T> IrqLock<T> {
+    /// A lock that is never paired with another of its level (key 0).
     pub const fn new(level: u8, name: &'static [u8], value: T) -> Self {
+        Self::keyed(level, name, 0, value)
+    }
+
+    /// A lock that `lock_pair` may take together with another of its level.
+    pub const fn keyed(level: u8, name: &'static [u8], key: u32, value: T) -> Self {
         Self {
             level,
+            key,
             name,
             inner: TicketLock::new(value),
         }
     }
 
     pub fn lock_irqsave(&self) -> IrqGuard<'_, T> {
+        self.take(false)
+    }
+
+    /// LD-3: take `self` and `other` (same level) by ascending key, whatever
+    /// the argument order, so two CPUs pairing the same locks cannot deadlock.
+    /// Returns (lower key, higher key): bind it as `let (low, high) = ...` so
+    /// `high` drops first (LD-4); dropping the tuple whole releases `low`
+    /// first and stops with the LIFO marker. One lock twice, equal keys or
+    /// different levels have no order and stop with the order marker.
+    pub fn lock_pair<'a>(&'a self, other: &'a Self) -> (IrqGuard<'a, T>, IrqGuard<'a, T>) {
+        if self.level != other.level || self.key == other.key {
+            smp::lockdep_order(Order {
+                held: self.level,
+                wanted: other.level,
+            });
+        }
+        let (low, high) = if self.key < other.key {
+            (self, other)
+        } else {
+            (other, self)
+        };
+        let low = low.take(false);
+        (low, high.take(true))
+    }
+
+    fn take(&self, paired: bool) -> IrqGuard<'_, T> {
         let flags: u64;
         // SAFETY: CPL0; reads RFLAGS through the stack (balanced push/pop) and
         // masks maskable interrupts on this CPU only. No other memory is touched.
         unsafe { asm!("pushfq", "pop {}", "cli", out(reg) flags) };
-        let held = smp::lockdep();
-        let mut dep = Lockdep::from_bits(held.load(Ordering::Relaxed));
-        if let Err(order) = dep.acquire(self.level) {
+        // LD-1 (audit F3): a handler never takes KERNEL/ASPACE, so the window
+        // below can never open inside one.
+        let in_handler = smp::irq_depth() != 0;
+        if in_handler && self.level <= level::ASPACE {
+            smp::lockdep_in_handler(self.level);
+        }
+        let recorded = smp::with_lockdep(|dep| {
+            if paired {
+                dep.acquire_paired(self.level, self.key)
+            } else {
+                dep.acquire(self.level, self.key)
+            }
+        });
+        if let Err(order) = recorded {
             smp::lockdep_order(order);
         }
-        held.store(dep.bits(), Ordering::Relaxed);
         // Step 5b (spec §4.3): a waiter for KERNEL/ASPACE opens a short
         // interrupt window between polls, so it can still acknowledge a
         // shootdown from the holder. Safe because lockdep (above) proved every
-        // held level is below the handler levels (RUNQ and up) and handlers
-        // never take KERNEL/ASPACE. APs only: the BSP's interrupt sources are
-        // defined in step 5c-2. `test-smp-spin-irq-off` is the deaf control.
-        let window =
-            self.level <= level::ASPACE && !cfg!(feature = "test-smp-spin-irq-off") && smp::on_ap();
+        // held level is below the handler levels (RUNQ and up) and LD-1 keeps
+        // handlers off KERNEL/ASPACE; LD-2 opens it only outside a handler.
+        // APs only: the BSP's interrupt sources are defined in step 5c-2.
+        // `test-smp-spin-irq-off` is the deaf control.
+        let window = self.level <= level::ASPACE
+            && !in_handler
+            && !cfg!(feature = "test-smp-spin-irq-off")
+            && smp::on_ap();
         let relax = || {
             if window {
                 // SAFETY: CPL0 on an AP whose IDT covers every unmasked
@@ -103,6 +198,7 @@ impl<T> IrqLock<T> {
         IrqGuard {
             guard: Some(guard),
             level: self.level,
+            key: self.key,
             interrupts: flags & (1 << 9) != 0,
         }
     }
@@ -112,6 +208,7 @@ impl<T> IrqLock<T> {
 pub struct IrqGuard<'a, T> {
     guard: Option<Guard<'a, T>>,
     level: u8,
+    key: u32,
     interrupts: bool,
 }
 
@@ -131,12 +228,9 @@ impl<T> DerefMut for IrqGuard<'_, T> {
 impl<T> Drop for IrqGuard<'_, T> {
     fn drop(&mut self) {
         drop(self.guard.take());
-        let held = smp::lockdep();
-        let mut dep = Lockdep::from_bits(held.load(Ordering::Relaxed));
-        if let Err(order) = dep.release(self.level) {
+        if let Err(order) = smp::with_lockdep(|dep| dep.release(self.level, self.key)) {
             smp::lockdep_lifo(order);
         }
-        held.store(dep.bits(), Ordering::Relaxed);
         if self.interrupts {
             // SAFETY: restores the IF=1 this CPU had before `lock_irqsave`,
             // after the lock and its lockdep level are released.

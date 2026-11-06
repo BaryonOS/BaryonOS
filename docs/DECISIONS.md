@@ -1,5 +1,53 @@
 # Ontwerpbesluiten
 
+## ADR-077 — Lockdep met handlercontext en lockparen per niveau (K06, auditbevindingen F3/F4)
+
+6 november 2026; aanvulling op ADR-074, effect alleen in `native-smp` (M3 bouwt de lockcode mee
+met diepte 0). Taakspec: `docs/implementation/k06-steps/02-F3-F4-lockdep-context.md`.
+**Probleem:** F3: dat handlers nooit `KERNEL`/`ASPACE` nemen, stond alleen in commentaar. Een
+handler die ze toch nam op een CPU zonder locks slaagde in lockdep en opende het
+`sti; pause; cli`-venster binnen de handler (geneste interrupts op dezelfde stack). F4: lockdep
+had één bit per niveau, dus een IPC-kopie tussen twee adresruimten (twee `ASPACE`) of een
+migratie (twee `RUNQ`) gaf een valse `SMP:LOCKDEP:ORDER`.
+
+**Besluit (normatief):**
+- **LD-1 Context.** `CpuLocal.irq_depth` telt de geneste IDT-entries van deze CPU. Elke GS-stub
+  (0xf0, 0xe0, en 0xd0/0xe8 in het gedeelde timerlichaam) doet `inc gs:[irq_depth]` direct na
+  `gs_entry!` en `dec` direct vóór `gs_exit!`. Na een threadwissel hoort elke exit nog steeds bij
+  één entry op dezelfde CPU. NMI/#DF/#MC (geen GS, GS-6) en de terminale exceptiestub tellen
+  niet mee; zij keren niet terug en nemen geen locks. `lock_irqsave` op niveau ≤ `ASPACE` met
+  diepte > 0 geeft `SMP:LOCKDEP:IN_HANDLER:<niveau>` en stopt, vóór lockdep en vóór het spinnen.
+- **LD-2.** Het venster opent alleen bij diepte 0 (naast de bestaande voorwaarden uit 5b).
+- **LD-3 Paren.** Twee locks van één niveau alleen via `IrqLock::lock_pair(a, b)`. Die neemt ze
+  op oplopende sleutel, ongeacht de argumentvolgorde. De sleutel ligt vast bij de constructie
+  (`IrqLock::keyed`): pid voor `ASPACE`, CPU-index (AP-slot + 1) voor `RUNQ`. `Lockdep` houdt per
+  niveau een teller (0/1/2, als bits in `held` en `pairs`) en de genomen sleutels bij. Een
+  tweede acquire op een vastgehouden niveau via `acquire` (dus buiten `lock_pair`), een derde
+  lock, of een tweede helft met een lagere of gelijke sleutel geeft `SMP:LOCKDEP:ORDER`. Dezelfde
+  lock twee keer, gelijke sleutels of verschillende niveaus stoppen ook met die marker (geen
+  zelf-deadlock).
+- **LD-4 LIFO blijft.** `release(level, key)` eist het hoogste niveau én de laatst genomen
+  sleutel; van een paar gaat de tweede eerst. Het vrijgeven van een niet-vastgehouden lock is
+  een kernelbug (panic).
+- **Interface.** `Lockdep::acquire(level, key)`, `acquire_paired(level, key)` (alleen de tweede
+  helft van `lock_pair`; de spec noemt "buiten `lock_pair`", dus lockdep moet dat onderscheiden),
+  `release(level, key)`, `held_mask()`. `from_bits`/`bits` vervallen. De volledige staat staat per
+  CPU in `lock::LockdepCell` (alleen deze CPU, IF=0); het bestaande `AtomicU64` blijft als spiegel
+  van `held_mask` voor `kernel_held()`, de preempt-uitstelcontrole en de BSP-controles.
+  `lock_pair` geeft `(lage sleutel, hoge sleutel)`; met `let (low, high) = …` valt `high` eerst.
+  Wie het tupel als geheel dropt, geeft `low` eerst vrij en stopt met de LIFO-marker.
+
+**Bewijs:** zie `docs/verification/k06-f3f4-lockdep/`.
+
+**Buiten scope:** meer dan twee locks van één niveau, een runtime-eigenaar per lock (stap 05),
+het SERIAL-niveau 70 (past nog niet in het 64-bitsmasker; stap 03), een loom-model van
+`TicketLock` (F-T1; nieuwe dependency eerst toetsen, zie het bewijs).
+
+**Bewijs (samengevat):** native QEMU/TCG 24/24 SMP-gevallen over 19 profielen op één bron, met
+`SMP:LOCKPAIR:PASS:CPUS=1/2/4/8/8`, `SMP:LOCKDEP:IN_HANDLER:10` en `SMP:LOCKDEP:ORDER:20->20`;
+M2/M3, rtc, K05 en K07 ongewijzigd groen; propertytest tegen een referentiemodel. Geen CI of
+hardware.
+
 ## ADR-076 — `swapgs`-discipline voor het per-CPU-GS-anker (K06, auditbevinding F8)
 
 6 november 2026; geldt voor alle profielen, met effect alleen in `native-smp`. ADR-075 blijft
