@@ -194,12 +194,24 @@ impl Lockdep {
     }
 
     /// Forget `level`; releasing a level that is not held is a kernel bug.
-    pub fn release(&mut self, level: u8) {
+    /// Release must be LIFO (audit F2): each guard restores its own saved IF,
+    /// so dropping an outer guard first would re-enable interrupts while an
+    /// inner (handler-level) lock is still held. `Err` leaves the set unchanged.
+    pub fn release(&mut self, level: u8) -> Result<(), Order> {
         assert!(
             level < 64 && self.held & (1 << level) != 0,
             "lockdep: release of unheld level"
         );
-        self.held &= !(1 << level);
+        match self.highest() {
+            Some(held) if held != level => Err(Order {
+                held,
+                wanted: level,
+            }),
+            _ => {
+                self.held &= !(1 << level);
+                Ok(())
+            }
+        }
     }
 
     /// At a context switch only the levels in `allowed` (the RUNQ hand-over,
@@ -342,10 +354,10 @@ mod tests {
                 wanted: 30
             })
         );
-        dep.release(level::FRAMES);
+        dep.release(level::FRAMES).unwrap();
         dep.acquire(level::ASPACE).unwrap();
-        dep.release(level::ASPACE);
-        dep.release(level::KERNEL);
+        dep.release(level::ASPACE).unwrap();
+        dep.release(level::KERNEL).unwrap();
         assert_eq!(dep, Lockdep::new());
 
         let mut reverse = Lockdep::new();
@@ -377,6 +389,27 @@ mod tests {
     #[test]
     #[should_panic(expected = "unheld")]
     fn lockdep_rejects_unbalanced_release() {
-        Lockdep::new().release(level::KERNEL);
+        let _ = Lockdep::new().release(level::KERNEL);
+    }
+
+    #[test]
+    fn lockdep_rejects_out_of_order_release() {
+        // F2: KERNEL (IF=1 saved) then RUNQ; dropping KERNEL first would `sti`
+        // with RUNQ held, letting a tick deadlock on this CPU's own RUNQ.
+        let mut dep = Lockdep::new();
+        dep.acquire(level::KERNEL).unwrap();
+        dep.acquire(level::RUNQ).unwrap();
+        let both = dep.bits();
+        assert_eq!(
+            dep.release(level::KERNEL),
+            Err(Order {
+                held: level::RUNQ,
+                wanted: level::KERNEL
+            })
+        );
+        assert_eq!(dep.bits(), both);
+        dep.release(level::RUNQ).unwrap();
+        dep.release(level::KERNEL).unwrap();
+        assert_eq!(dep, Lockdep::new());
     }
 }

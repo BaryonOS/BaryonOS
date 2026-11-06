@@ -3,7 +3,8 @@
 //! Interrupt and lock contract (spec §4.1, §4.3): `lock_irqsave` saves
 //! RFLAGS.IF, masks interrupts, records the level in this CPU's lockdep set
 //! (a violation stops the VM), then spins. The guard releases the lock, drops
-//! the level and only then restores IF. Lockdep is active in every native-smp
+//! the level (LIFO only, audit F2; otherwise the VM stops) and only then
+//! restores IF. Lockdep is active in every native-smp
 //! build; the bounded spin with its STUCK marker only in debug builds. Step
 //! 5b: waiters for KERNEL/ASPACE spin with a `sti; pause; cli` window (APs).
 use super::smp;
@@ -97,7 +98,9 @@ impl<T> Drop for IrqGuard<'_, T> {
         drop(self.guard.take());
         let held = smp::lockdep();
         let mut dep = Lockdep::from_bits(held.load(Ordering::Relaxed));
-        dep.release(self.level);
+        if let Err(order) = dep.release(self.level) {
+            smp::lockdep_lifo(order);
+        }
         held.store(dep.bits(), Ordering::Relaxed);
         if self.interrupts {
             // SAFETY: restores the IF=1 this CPU had before `lock_irqsave`,
