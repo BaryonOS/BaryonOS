@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
-**Bron:** [`e7f99d59`](https://github.com/simonvanieperen/nieuw-os/commit/e7f99d5939a52922f1c15127c8f54895634bdce8) ·
-**Ontwikkelbranch:** `docs/graphify-mcp-methode`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Werkwijze: één Graphify-methode (alleen de gehoste MCP) voor alle AI's (AGENTS.md, CLAUDE.md, Copilot-instructies).
-41/100 blijft 41/100. Alleen agentinstructies zijn gewijzigd: iedere AI gebruikt uitsluitend de gehoste Graphify-MCP (geen lokale graphify-run of graphify-out/), CLAUDE.md laadt AGENTS.md en Copilot krijgt dezelfde regel. Geen criterium, gewicht of bewijs gewijzigd.
+**Bron:** [`bf84f753`](https://github.com/simonvanieperen/nieuw-os/commit/bf84f7532e3a9e56aecb37b60f93265df12b62a7) ·
+**Ontwikkelbranch:** `feat/agent-pipeline`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Werkwijze: autonome agentpipeline in tools/ (issue → L0 → executor → CI-gelijke gate → PR).
+41/100 blijft 41/100. Alleen ontwikkeltooling en AGENTS.md zijn gewijzigd: tools/agent_gate.py draait exact de CI-stappen plus progress.py --check, en tools/agent_pipeline.py zet gelabelde issues om in L0-spec, executor, gate en PR. Geen criterium, gewicht of OS-bewijs gewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
