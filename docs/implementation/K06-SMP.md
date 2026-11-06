@@ -246,9 +246,12 @@ ADR-024 eist zelf een herziening "bij SMP". Voorgestelde nieuwe tekst:
 
 - `PerCpu { index, apic_id, runq: RUNQ lock<FixedQueue<Tid, N>>, current: Option<Tid>,
   idle_tid, scratch_va, tss, lockdep, need_resched: AtomicBool, timer_ticks: AtomicU64 }`
-  via het GS-anker.
-- `Thread { tid, pid, state: AtomicU8 {READY, RUNNING(cpu), BLOCKED, DEAD}, home_cpu,
-  kstack, fxsave: [u8; 512] align 16, gpr_frame }`.
+  via het GS-anker. De idle-thread is de thuislus van de CPU (`sti; hlt; cli`, stap 6.3.9;
+  in de fixture `CpuLocal.saved[0]`); hij staat nooit in een queue (BW-4, ADR-078).
+- `Thread { tid, pid, state: AtomicU32 {READY, RUNNING(cpu), BLOCKING, READY_PENDING, BLOCKED,
+  DEAD_PENDING, DEAD}, queued: AtomicBool, home_cpu, kstack, fxsave: [u8; 512] align 16,
+  gpr_frame }`. Overgangen alleen via `smp_lock::sched` (één atomaire stap per functie,
+  ADR-078); `queued` wordt gezet door `RunQueue::push` en gewist door `pop` (BW-2).
   [te verifiëren: hoe de huidige M3-procesentry thread en proces combineert; dit wordt
   één thread per proces zolang M3 geen threads heeft]
 - `Process.active_cpus: AtomicU64` (bit per CPU-index; `MAX_CPUS = 8` past ruim).
@@ -272,9 +275,13 @@ ADR-024 eist zelf een herziening "bij SMP". Voorgestelde nieuwe tekst:
 2. `held_mask` moet leeg zijn (lockdep).
 3. FXSAVE van de huidige thread `T` naar `T.fxsave` (ADR-045: na de laatste Rust-code van de
    oude context, vóór de CR3-selectie).
-4. `lock_irqsave(RUNQ[c])`; `T.state`: RUNNING(c) → READY (in de queue) of BLOCKED/DEAD
-   (niet in de queue). Kies de volgende `U` (round-robin); `U.state` READY → RUNNING(c)
-   met `compare_exchange` (INV-3; mislukt het, dan volgt `SMP:SCHED:DOUBLE_RUN` en stop).
+4. `lock_irqsave(RUNQ[c])`; `T.state`: RUNNING(c) → READY (in de queue), BLOCKING → BLOCKED
+   (niet in de queue), READY_PENDING → READY (in de queue) of DEAD_PENDING (terug in de queue,
+   om bij een latere wissel te worden opgeruimd; §6.4). Kies de volgende `U` (round-robin);
+   `U.state` READY → RUNNING(c) met `compare_exchange` (INV-3; mislukt het, dan volgt
+   `SMP:SCHED:DOUBLE_RUN` en stop). Een gepopte DEAD_PENDING-thread wordt DEAD zodra geen CPU
+   meer op zijn stack staat, anders weer in de queue. Een tweede push van een thread die al in
+   een queue staat geeft `SMP:SCHED:DOUBLE_ENQUEUE` en stop (BW-2).
 5. **Adresruimtewissel:** als `U.pid != T.pid`:
    a. `U.process.active_cpus.fetch_or(1<<c, SeqCst)` **vóór** de CR3-load;
    b. `mov cr3, U.process.cr3`;
@@ -290,13 +297,24 @@ ADR-024 eist zelf een herziening "bij SMP". Voorgestelde nieuwe tekst:
 
 ### 6.4 Wekken en kill over CPU's heen
 
+- **Blokkeren in twee fasen (BW-1, ADR-078).** De thread zelf: `block_prepare`
+  (RUNNING(c) → BLOCKING) vóórdat of terwijl hij zijn wachtvoorwaarde controleert onder de lock
+  van de waker; daarna de lock los (INV-7) en een wissel vragen (tick of eigen 0xe8). De wissel
+  doet `block_commit`: BLOCKING → BLOCKED, of READY_PENDING → READY als er intussen gewekt is.
+  Een voorwaarde die na `block_prepare` al waar blijkt, regelt de thread met `wake` op zichzelf.
 - Een thread op CPU *d* wekken vanaf CPU *c* (bijvoorbeeld IPC-antwoord, ADR-053):
-  onder `KERNEL` → `lock_irqsave(RUNQ[d])` → BLOCKED→READY, enqueue → unlock → als *d* ≠ *c*,
-  een 0xe8-IPI naar *d*. De IPI is een hint: *d* controleert zijn queue altijd zelf.
-- Kill van een thread die op *d* RUNNING is: markeer `DEAD_PENDING`, stuur 0xe8 en wacht
-  begrensd (deadline gelijk aan de shootdown-deadline) tot *d* `state = DEAD` publiceert
-  bij zijn eerstvolgende wissel. Pas daarna volgt de bestaande `cleanup` (K05) en de
-  adresruimte-shootdown (§7.2). Geen ack binnen de deadline → INV-5.
+  onder `KERNEL` → `lock_irqsave(RUNQ[d])` → `wake`: BLOCKED→READY en enqueue, of
+  BLOCKING→READY_PENDING (geen enqueue; de wissel van *d* zet hem terug) → unlock → als hij
+  in een queue is gezet en *d* ≠ *c*, een 0xe8-IPI naar *d*. De IPI is een hint: *d*
+  controleert zijn queue altijd zelf. Een `wake` op een thread die nog RUNNING is, doet niets:
+  die controleert zijn voorwaarde na `block_prepare`.
+- Kill (BW-3): `kill_request` zet elke levende toestand op `DEAD_PENDING`; was hij BLOCKED,
+  dan zet de killer hem in de queue van *d*. Stuur 0xe8 en wacht begrensd
+  (`SHOOTDOWN_DEADLINE_MS`, gelijk aan de shootdown-deadline) op `DEAD`. *d* zet een stervende
+  huidige thread bij de wissel terug in zijn queue; de eerstvolgende wissel die hem popt,
+  publiceert `DEAD` met `kill_commit`, en alleen als de stub `on_cpu` al heeft gewist (F1).
+  Pas daarna volgt de bestaande `cleanup` (K05) en de adresruimte-shootdown (§7.2). Geen
+  `DEAD` binnen de deadline → INV-5 (tot stap 05: `SMP:KILL:TIMEOUT:APIC=<n>` en quarantaine).
 
 ### 6.5 Preëmptie
 
