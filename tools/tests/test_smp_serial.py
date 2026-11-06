@@ -64,6 +64,8 @@ SPIN_DEAF = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:PASS:CP
                           "SMP:SHOOTDOWN:VISIBLE:CPUS=4", "SMP:PREEMPT:PASS:CPUS=4",
                           "SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=1", "SMP:QUARANTINED:APS=3",
                           "SMP:ONLINE:1/4"] + END
+HELD_ACROSS = started(2) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=2", "SMP:SHOOTDOWN:PASS:CPUS=2",
+                            "SMP:SHOOTDOWN:VISIBLE:CPUS=2", "SMP:LOCKDEP:HELD_ACROSS_SWITCH"]
 
 VALID = {
     "one": online(1), "two-single": online(2), "four": online(4), "eight": online(8),
@@ -72,7 +74,7 @@ VALID = {
     "ap-ipi-deaf": DEAF, "ap-nmi-ist": NMI, "ap-double-fault-ist": DOUBLE,
     "ap-shootdown-deaf": SHOOTDOWN_DEAF, "shootdown-skipped-control": STALE_CONTROL,
     "ap-timer-dead": TIMER_DEAD, "lockdep-order": LOCKDEP_ORDER,
-    "spin-irq-off-control": SPIN_DEAF,
+    "spin-irq-off-control": SPIN_DEAF, "held-across-switch": HELD_ACROSS,
 }
 
 
@@ -172,6 +174,21 @@ class SmpSerialOracle(unittest.TestCase):
             with self.subTest(case=case, lines=lines[-6:]), self.assertRaises(ValueError):
                 evaluate(case, transcript(lines), 33, False)
         self.assertEqual(evaluate("spin-irq-off-control", transcript(SPIN_DEAF), 33, False)["online"], 1)
+
+    def test_switch_with_a_held_lock_is_terminal_and_exact(self):
+        # Step 5c: the no-deferral profile must stop at the marker, inside the
+        # preemption phase; a PASS there, or the marker elsewhere, is rejected.
+        for case, lines in (
+            ("held-across-switch", online(2)),
+            ("held-across-switch", HELD_ACROSS[:-1] + ["SMP:PREEMPT:PASS:CPUS=2"]),
+            ("held-across-switch", HELD_ACROSS + ["SMP:PREEMPT:PASS:CPUS=2"]),
+            ("held-across-switch", HELD_ACROSS[:-2] + HELD_ACROSS[-1:]),
+            ("two-single", HELD_ACROSS),
+            ("two-single", online(2)[:-4] + ["SMP:LOCKDEP:HELD_ACROSS_SWITCH"] + online(2)[-4:]),
+        ):
+            with self.subTest(case=case, lines=lines[-4:]), self.assertRaises(ValueError):
+                evaluate(case, transcript(lines), 33, False)
+        self.assertEqual(evaluate("held-across-switch", transcript(HELD_ACROSS), 33, False)["online"], 2)
 
     def test_lock_self_test_is_required_and_terminal_order_is_exact(self):
         for case, text in (

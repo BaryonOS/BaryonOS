@@ -34,11 +34,13 @@ CASES = {
     "ap-timer-dead": ("test-smp-ap-timer-dead", 4, "multi", "timer-quarantine"),
     "lockdep-order": ("test-smp-lockdep-order", 2, "multi", "lockdep-order"),
     "spin-irq-off-control": ("test-smp-spin-irq-off", 4, "multi", "spin-quarantine"),
+    "held-across-switch": ("test-smp-held-across-switch", 2, "multi", "held-across-switch"),
 }
 QUARANTINE_OUTCOMES = ("invalid-madt", "timeout", "mismatch", "quarantine", "shootdown-quarantine",
                        "timer-quarantine", "spin-quarantine")
 TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_IST:PASS",
-            "lockdep-order": "SMP:LOCKDEP:ORDER:30->10"}
+            "lockdep-order": "SMP:LOCKDEP:ORDER:30->10",
+            "held-across-switch": "SMP:LOCKDEP:HELD_ACROSS_SWITCH"}
 # Step 5a: the BSP lock self-test after smp::start, on every non-terminal path.
 LOCKDEP_PASS = "SMP:LOCKDEP:PASS"
 
@@ -91,6 +93,10 @@ def expected_smp(case: str) -> list[str]:
         return lines + settled(started) + [TERMINAL[outcome]]
     lines += [f"SMP:SYNC:PASS:CPUS={started}"]
     ipi_pass = f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={started}"
+    if outcome == "held-across-switch":
+        # Step 5c without deferral: the first tick in a lock wait switches threads.
+        return lines + [ipi_pass, f"SMP:SHOOTDOWN:PASS:CPUS={started}",
+                        f"SMP:SHOOTDOWN:VISIBLE:CPUS={started}", TERMINAL[outcome]]
     if outcome == "shootdown-quarantine":
         return lines + [ipi_pass, "SMP:SHOOTDOWN:TIMEOUT:APIC=1",
                         "SMP:SHOOTDOWN:FRAME_QUARANTINED",
@@ -176,7 +182,8 @@ def run(cases: tuple[str, ...]) -> dict:
               "source_fingerprint_version": 3, "manifest_sha256": manifest_hash,
               "kernel_feature": manifest["kernel_feature"],
               "scope": ("IF0 BSP; AP bring-up, per-AP TSS/IST, bounded unicast IPIs and sync "
-                        "self-test, TLB shootdown, AP preemption, AP spin with IF window and BSP "
+                        "self-test, TLB shootdown, AP preemption (deferred while a lock is held or "
+                        "awaited), AP spin with IF window and BSP "
                         "ticket-lock/lockdep self-test in "
                         "QEMU/TCG; no SMP scheduler or hardware evidence"),
               "cases": []}

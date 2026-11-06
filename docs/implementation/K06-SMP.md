@@ -346,7 +346,8 @@ onbereikbaar, maar het contract geldt vooruit.
 | 5a | Ticketlock + irqsave + lockdep + per-CPU-blok voor de BSP | `kernel/src/m2/smp.rs` of een nieuw `kernel/src/m2/lock.rs` [te verifiëren: moduleconventie] | hosttests van de lock (loom/stress op de host), native lockdep-negatief |
 | 5b | Gecontroleerd spinnen met IF=1 op `KERNEL`/`ASPACE` (§4.3, aanvulling ADR-074); alleen AP's | `crates/smp-lock`, `kernel/src/m2/lock.rs`, `smp.rs`-fixture | `SMP:SPIN:PASS`; controle `test-smp-spin-irq-off` → `SMP:SPIN:SHOOTDOWN_TIMEOUT` + quarantaine |
 | 5b-2 | `KERNEL`-lock om alle M3-syscalls; scratchslot per CPU; ADR-075 | M3-entrypoint, paging-scratchcode, `docs/DECISIONS.md` | volle `milestone-m2`- en M3-regressie op 1 CPU, ongewijzigd |
-| 5c | BSP LAPIC-timer + idle met `sti; hlt`; PIT blijft de klok | `smp.rs`, idle-lus | `native-rtc` 5/5, monotone-klokcheck, BSP-preëmptiecanary |
+| 5c | Preëmptie uitgesteld zolang lockdep niet leeg is (vastgehouden of bewaakte lock); `HELD_ACROSS_SWITCH` bij schending (aanvulling ADR-074) | `smp.rs` | lockfixture in `SMP:PREEMPT:PASS`; `test-smp-held-across-switch` → marker |
+| 5c-2 | BSP LAPIC-timer + idle met `sti; hlt`; PIT blijft de klok | `smp.rs`, idle-lus | `native-rtc` 5/5, monotone-klokcheck, BSP-preëmptiecanary |
 | 5d | Runqueues per CPU; gebruikersprocessen op AP's; CR3-wissel §6.3; 0xe8 | M3-scheduler, `smp.rs` | K05 6/6 op 4 vCPU's; `SMP:SCHED:CPUS=n` met user-werk op elke CPU |
 | 5e | Procesbrede shootdown §7.1/7.2 | paging/unmap, cleanup | dove-AP-negatief, controle zonder shootdown (moet stale-read tonen) |
 | 5f | Migratiefixture + concurrente stress + K06-acceptatie | testfixtures, `tools/run_smp.py`, `docs/verification/k06-smp-sched/` | §9 compleet; progress K06 → accepted |
@@ -378,7 +379,8 @@ Profielen: 1, 2, 4 en 8 vCPU's; zowel single- als multi-thread-TCG (`-accel tcg,
 
 **Negatief (moet de juiste marker en fail-closed gedrag geven):**
 7. `test-smp-lockdep-order`: omgekeerde lockvolgorde → `SMP:LOCKDEP:ORDER`.
-8. `test-smp-held-across-switch` → `SMP:LOCKDEP:HELD_ACROSS_SWITCH`.
+8. `test-smp-held-across-switch` (stap 5c: preëmptie zonder uitstel bij een bewaakte lock) →
+   `SMP:LOCKDEP:HELD_ACROSS_SWITCH`.
 9. `test-smp-proc-shootdown-deaf`: één AP negeert 0xe0 → frame in quarantaine, INIT voor
    alle AP's, threads naar de BSP, de boot gaat verder als één CPU.
 10. `test-smp-proc-no-shootdown` (controleprofiel): zonder shootdown leest P in test 3 het

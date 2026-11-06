@@ -1,6 +1,39 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — K06 stap 5b, gecontroleerd spinnen met IF=1 — 6 november 2026
+## NEXT AGENT HANDOFF — K06 stap 5c, geen preëmptie met een actieve lock — 6 november 2026
+
+**Bron:** `bdcced5e` op `feat/k06-5c-preempt-lock`, gestapeld op 5b (`b7cb7ce7`, PR #227).
+Taakspec: `/tmp/task_spec_5c.md` (lokaal); ontwerp: aanvulling stap 5c in ADR-074.
+**41 → 41/100**; K06 blijft open.
+
+**Gerealiseerd:** `smp_preempt` stelt een tick uit (`CpuLocal.deferred`) zolang de
+lockdepset van de CPU niet leeg is, dus zolang een KERNEL/ASPACE-lock wordt vastgehouden
+of in het 5b-venster bewaakt. Dat geldt ook voor STOP. Een wissel met een niet-lege set
+geeft `SMP:LOCKDEP:HELD_ACROSS_SWITCH` en stopt. Native fixture in `SMP:PREEMPT:PASS`:
+de BSP houdt een lock op KERNEL-niveau terwijl de draaiende thread op elke AP erop wacht.
+Eis: `deferred` stijgt, `switches` blijft staan en hervat na het vrijgeven. Het negatieve
+profiel `test-smp-held-across-switch` moet de marker geven, met exit 0x10.
+
+**Bewijs (lokaal):** `tools/gate.sh` exit 0 (502 geslaagd, 1 ignored, 34 s),
+`test_smp_serial.py` 8/8, `cargo fmt --check` (workspace en kernel) schoon, clippy
+`smp-lock -D warnings` schoon. Kernelbuilds `native-smp`, `test-smp-held-across-switch`
+en `milestone-m2` slagen. **Niet uitgevoerd:** native QEMU (geen QEMU in deze
+WSL-omgeving), dus `native-smp.yml` op de PR.
+**Native (later, QEMU 10.2.1 + OVMF van de host, `tools/run_smp.py`):** `native-smp` 6/6
+(one, two-single, four, eight, nine-capacity, duplicate-madt), `test-smp-held-across-switch`
+1/1 (marker, raw 33), `test-smp-lockdep-order` 1/1 en `test-smp-spin-irq-off` 1/1
+(`SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=1` + quarantaine). Rapporten in `build/k06-*/smp-report.json`
+(lokaal, niet in Git). Een fout die de 5d-sessie vond: zonder IF-venster kreeg de 5c-fixture in
+`test-smp-spin-irq-off` nooit een tick (`SMP_PREEMPT_LOCK_NO_TICK`). Opgelost: dat controleprofiel
+slaat de fixture over.
+
+**Open:** 5b-2 (KERNEL-lock om M3-syscalls, scratchslot per CPU, ADR-075), 5c-2
+(BSP-LAPIC-timer + idle `sti; hlt`, BSP-venster), en daarna 5d t/m 5f. Er is nog geen
+runtimecheck dat handlers geen KERNEL/ASPACE nemen.
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-held-across-switch"; python3 -B tools/build.py --kernel-feature test-smp-held-across-switch && python3 -B -u tools/run_smp.py --profile test-smp-held-across-switch`.
+
+## Historisch checkpoint — K06 stap 5b, gecontroleerd spinnen met IF=1 — 6 november 2026
 
 **Bron:** `5481d407` op `feat/k06-5b-spin-irq` (main `5ae0757d` met #225 = 5a, plus de
 lokale `tools/gate.sh`). Taakspec: `/tmp/task_spec_5b.md` (lokaal); ontwerp:

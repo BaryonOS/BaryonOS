@@ -45,7 +45,7 @@ impl<T> IrqLock<T> {
         // shootdown from the holder. Safe because lockdep (above) proved every
         // held level is below the handler levels (RUNQ and up) and handlers
         // never take KERNEL/ASPACE. APs only: the BSP's interrupt sources are
-        // defined in step 5c. `test-smp-spin-irq-off` is the deaf control.
+        // defined in step 5c-2. `test-smp-spin-irq-off` is the deaf control.
         let window =
             self.level <= level::ASPACE && !cfg!(feature = "test-smp-spin-irq-off") && smp::on_ap();
         let relax = || {

@@ -155,6 +155,9 @@ struct CpuLocal {
     /// Step 5b spin phase: 1 = about to wait for SPIN_LOCK (IF=0 from here),
     /// 2 = got it and released it again.
     spun: AtomicU32,
+    /// Step 5c: timer ticks not switched because this CPU held or awaited a
+    /// lock (lockdep non-empty); written by this CPU's handler only.
+    deferred: AtomicU32,
 }
 impl CpuLocal {
     const fn new() -> Self {
@@ -175,6 +178,7 @@ impl CpuLocal {
             corrupt: AtomicU32::new(0),
             lockdep: AtomicU64::new(0),
             spun: AtomicU32::new(0),
+            deferred: AtomicU32::new(0),
         }
     }
 }
@@ -1348,6 +1352,16 @@ pub fn lock_stuck(name: &[u8]) -> ! {
     serial::fail(b"SMP_LOCK_STUCK")
 }
 
+/// Terminal report (spec §4.4): a context switch with a lock held or awaited.
+/// Only the deliberate negative profile counts it as a pass.
+fn held_across_switch() -> ! {
+    serial::write(b"SMP:LOCKDEP:HELD_ACROSS_SWITCH\n");
+    if cfg!(feature = "test-smp-held-across-switch") {
+        serial::exit(0x10);
+    }
+    serial::fail(b"SMP_LOCKDEP_HELD_ACROSS_SWITCH")
+}
+
 /// Round-robin over home (0) and the two threads (1, 2). After STOP the timer
 /// is masked and the home loop resumes; threads are never run again.
 #[no_mangle]
@@ -1358,6 +1372,14 @@ extern "C" fn smp_preempt(rsp: u64) -> u64 {
         serial::fail(b"SMP_PREEMPT_ANCHOR");
     };
     local.ticks.fetch_add(1, Ordering::Relaxed);
+    // Step 5c (INV-5c): a tick can only arrive with locks held or awaited in
+    // the 5b `sti; pause; cli` window. Lockdep is per CPU, not per thread, so
+    // switching (or STOP's switch home) waits for a later tick.
+    let busy = local.lockdep.load(Ordering::Relaxed) != 0;
+    if busy && !cfg!(feature = "test-smp-held-across-switch") {
+        local.deferred.fetch_add(1, Ordering::Release);
+        return rsp;
+    }
     let current = local.current.load(Ordering::Relaxed) as usize;
     local.saved[current].store(rsp, Ordering::Relaxed);
     let next = if PREEMPT.load(Ordering::Acquire) == PREEMPT_STOP {
@@ -1369,6 +1391,9 @@ extern "C" fn smp_preempt(rsp: u64) -> u64 {
         1
     };
     if next != current {
+        if busy {
+            held_across_switch();
+        }
         local.switches.fetch_add(1, Ordering::Relaxed);
     }
     local.current.store(next as u32, Ordering::Release);
@@ -1403,6 +1428,11 @@ fn thread_body(local: &CpuLocal, index: usize) -> ! {
         }
         if intact != 1 {
             local.corrupt.store(1, Ordering::Release);
+        }
+        // Step 5c: wait for the BSP's KERNEL-level lock (IF=1 thread, so the
+        // 5b window lets ticks in while lockdep is non-empty).
+        if PREEMPT_LOCKED.load(Ordering::Acquire) {
+            *PREEMPT_LOCK.lock_irqsave() += 1;
         }
         local.counts[index].fetch_add(1, Ordering::Release);
     }
@@ -1502,6 +1532,11 @@ fn preemption(online: usize, total: usize) -> bool {
             return false;
         }
     }
+    // Without the 5b IF window no tick reaches a lock waiter, so the 5b deaf
+    // control skips this proof and must fail later, in `spin_window`.
+    if !cfg!(feature = "test-smp-spin-irq-off") {
+        preempt_under_lock(locals);
+    }
     PREEMPT.store(PREEMPT_STOP, Ordering::Release);
     for (context, local) in aps.iter().zip(locals) {
         let apic = context.apic_id.load(Ordering::Relaxed);
@@ -1538,6 +1573,48 @@ fn preemption(online: usize, total: usize) -> bool {
     decimal(online as u64 + 1);
     serial::write(b"\n");
     true
+}
+
+/// Step 5c test lock (KERNEL level), taken by the AP threads while LOCKED.
+static PREEMPT_LOCK: lock::IrqLock<u32> = lock::IrqLock::new(level::KERNEL, b"KERNEL", 0);
+static PREEMPT_LOCKED: AtomicBool = AtomicBool::new(false);
+
+/// INV-5c proof: while the BSP holds a KERNEL-level lock, the thread waiting
+/// for it on every AP keeps its CPU. Ticks arrive in its IF window and are
+/// deferred (`deferred` rises) while `switches` stays put; after the release
+/// switching resumes. Runs with every AP's timer proven live, so a missing
+/// tick or a switch here is a broken invariant, not a deaf AP: fail closed.
+fn preempt_under_lock(locals: &[CpuLocal]) {
+    let held = PREEMPT_LOCK.lock_irqsave();
+    PREEMPT_LOCKED.store(true, Ordering::Release);
+    for local in locals {
+        // The first deferred tick means the running thread is now the waiter.
+        let start = local.deferred.load(Ordering::Acquire);
+        if !within_ms(500, || local.deferred.load(Ordering::Acquire) > start) {
+            serial::fail(b"SMP_PREEMPT_LOCK_NO_TICK");
+        }
+        let (first, switches) = (
+            local.deferred.load(Ordering::Acquire),
+            local.switches.load(Ordering::Acquire),
+        );
+        if !within_ms(500, || local.deferred.load(Ordering::Acquire) >= first + 2)
+            || local.switches.load(Ordering::Acquire) != switches
+        {
+            serial::fail(b"SMP_PREEMPT_LOCK_SWITCHED");
+        }
+    }
+    let switches: [u32; MAX_APS] = core::array::from_fn(|i| {
+        locals
+            .get(i)
+            .map_or(0, |l| l.switches.load(Ordering::Acquire))
+    });
+    drop(held);
+    PREEMPT_LOCKED.store(false, Ordering::Release);
+    for (local, before) in locals.iter().zip(switches) {
+        if !within_ms(500, || local.switches.load(Ordering::Acquire) > before) {
+            serial::fail(b"SMP_PREEMPT_LOCK_NOT_RESUMED");
+        }
+    }
 }
 
 /// Step 5b test lock (KERNEL level); used only by the spin phase below.
