@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-06",
-    "source_commit": "394bba37e2d9172d369be0f7245a2eac8b2f0a3f",
+    "source_commit": "6307e3f8ebbc5a24550e7c07700bc885c97359f0",
     "assessment_basis": "source_commit",
     "reviewed_commit": "cc1dea7eeeae01448a378ee422837b0438ecc7b5",
     "reviewed_commit_context": "Historische review van de PR148-documentatiestatus en reikwijdte van hostbewijs; geen integratiereview.",
@@ -15,10 +15,10 @@
       "evidence_basis": "Git-mergeouders en handoff in docs/PROJECT-STATE.md; gerichte integratietests zijn daar gemeld met uitvoer uitsluitend in het sessietranscript. De eerdere PR148-hostreceipts zijn geen integratiereviewbewijs.",
       "missing_evidence": "Afzonderlijk, brongebonden bewijs van de integratiereview ontbreekt; nieuwe-head CI en review moeten nog worden beoordeeld."
     },
-    "branch": "fix/k06-f3-f4-lockdep",
-    "task": "K06 auditbevindingen F3/F4: lockdep met handlercontext en lockparen per niveau (ADR-077)",
+    "branch": "fix/k06-f5-f7-diagnostics",
+    "task": "K06 auditbevindingen F5/F7: begrensde lockspin ook in release (STUCK) en SERIAL-lock per regel (aanvulling ADR-074)",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Lockdep herkent nu handlercontext (irq_depth per CPU; KERNEL/ASPACE in een handler stopt met SMP:LOCKDEP:IN_HANDLER) en staat twee locks van één niveau alleen toe via lock_pair, op oplopende sleutel en LIFO (ADR-077). Lokaal native QEMU: 24/24 SMP-gevallen over 19 profielen met SMP:LOCKPAIR:PASS en de twee nieuwe controles; M2/M3, rtc, K05 en K07 ongewijzigd groen. Zie docs/verification/k06-f3f4-lockdep/. K06 blijft open: loom-model, 5c-2, 5d-2, 5e en 5f ontbreken; geen CI- of hardwarebewijs."
+    "summary": "41/100 blijft 41/100. Een vastgelopen lock geeft nu ook in releasebuilds SMP:LOCK:STUCK met niveau en CPU binnen 400 ms (TSC geijkt tegen de PIT), en elke seriële regel gaat onder SERIAL heel naar buiten; terminale paden gebruiken try_lock met '!'. Lokaal native QEMU: 26/26 SMP-gevallen over 21 profielen, test-smp-lock-stuck en de controle zonder lock (10/10 runs vermengd); M2/M3, rtc, K05 en K07 groen, 36/37 seriële labels byte-gelijk (SUPERVISOR:TICKS wijkt binnen een timingtelling af, open). Zie docs/verification/k06-f5f7-diagnostics/. K06 blijft open: loom-model, 5c-2, 5d-2, 5e en 5f ontbreken; geen CI- of hardwarebewijs."
   },
   "tracks": [
     {

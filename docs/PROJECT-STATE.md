@@ -1,6 +1,37 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — K06 F3/F4, lockdep met handlercontext en lockparen (ADR-077) — 6 november 2026
+## NEXT AGENT HANDOFF — K06 F5/F7, STUCK ook in release en SERIAL-lock per regel (aanvulling ADR-074) — 6 november 2026
+
+**Bron:** `6307e3f8` op `fix/k06-f5-f7-diagnostics` (worktree `nieuw-os-k06-f5f7`, concept-PR #238),
+gestapeld op `feat/k06-5b2-kernel-lock` (#234, `59476e17`, inclusief F3/F4 #237). Taakspec:
+`docs/implementation/k06-steps/03-F5-F7-stuck-serial.md`. **41 → 41/100**; K06 blijft open.
+
+**Gerealiseerd:** DG-1: `IrqLock` spint in elk `native-smp`-image (ook release) met een
+tijdsgrens van `LOCK_STUCK_MS = 4 × SHOOTDOWN_DEADLINE_MS` (400 ms). De BSP ijkt de TSC vóór de
+eerste IPI tegen PIT-kanaal 2. Marker `SMP:LOCK:STUCK:<niveau>:CPU=<n>`. DG-2: `serial.rs`
+heeft `SERIAL: IrqLock<()>` (70, irqsave) en een regelbuffer per CPU, zodat de bestaande
+schrijfplekken ongewijzigd blijven. Terminale paden (`m2_exception` met NMI/#DF, panic, `fail`,
+`lock_stuck`) schrijven via `write_terminal` (begrensde `try_lock`, anders `!`). DG-3: zonder
+`native-smp` en vóór het GS-anker gaat alles direct naar de UART. Fixture `SMP:SER`/`SMP:SERIAL:PASS`,
+negatief `test-smp-lock-stuck` en controle `test-smp-serial-unlocked`. `IrqLock` heeft geen
+`name` meer.
+
+**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG, bron `6161dde6…`):** zie
+`docs/verification/k06-f5f7-diagnostics/`. SMP 26/26 over 21 profielen; controle zonder lock
+10/10 runs vermengd; M2/M3, rtc, K05 en K07 exit 0 op nieuw en basis; seriële uitvoer 36/37
+labels byte-gelijk na normalisatie van meetwaarden; oracle 16/16; fmt schoon; kernel-clippy
+gelijk aan de basis; `tools/gate.sh` exit 0 (511 geslaagd, 1 ignored; QEMU-smoke-script ontbreekt).
+**Niet uitgevoerd:** CI op de gestapelde PR, M4 (#235), hardware.
+
+**Open:** (1) `SUPERVISOR:TICKS` in `supervisor-quota`: basis 30/30/29, nieuw 31/32/31 (een
+wandkloktelling, oorzaak niet aangetoond, byte-gelijkheid voor die regel niet bewezen).
+(2) `smp_lock::Lockdep` kent alleen niveaus 0..=63, dus SERIAL (70) wordt niet vastgelegd
+(shortcut); verbreed de crate als een niveau boven 63 ordening nodig heeft. (3) De PIT-tijdsbasis
+loopt via de TSC (shortcut tot stap 06). Volgende stap: 04 (F16/F17) of 05 (F19/F15).
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-lock-stuck"; python3 -B tools/build.py --kernel-feature test-smp-lock-stuck && python3 -B -u tools/run_smp.py --profile test-smp-lock-stuck`.
+
+## Historisch checkpoint — K06 F3/F4, lockdep met handlercontext en lockparen (ADR-077) — 6 november 2026
 
 **Bron:** `394bba37` op `fix/k06-f3-f4-lockdep` (worktree `nieuw-os-k06-f3f4`), gestapeld op
 `feat/k06-5b2-kernel-lock` (#234, `de7a07b5`). Taakspec: `docs/implementation/k06-steps/02-F3-F4-lockdep-context.md`

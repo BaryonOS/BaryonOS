@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
-**Bron:** [`394bba37`](https://github.com/simonvanieperen/nieuw-os/commit/394bba37e2d9172d369be0f7245a2eac8b2f0a3f) ·
-**Ontwikkelbranch:** `fix/k06-f3-f4-lockdep`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 auditbevindingen F3/F4: lockdep met handlercontext en lockparen per niveau (ADR-077).
-41/100 blijft 41/100. Lockdep herkent nu handlercontext (irq_depth per CPU; KERNEL/ASPACE in een handler stopt met SMP:LOCKDEP:IN_HANDLER) en staat twee locks van één niveau alleen toe via lock_pair, op oplopende sleutel en LIFO (ADR-077). Lokaal native QEMU: 24/24 SMP-gevallen over 19 profielen met SMP:LOCKPAIR:PASS en de twee nieuwe controles; M2/M3, rtc, K05 en K07 ongewijzigd groen. Zie docs/verification/k06-f3f4-lockdep/. K06 blijft open: loom-model, 5c-2, 5d-2, 5e en 5f ontbreken; geen CI- of hardwarebewijs.
+**Bron:** [`6307e3f8`](https://github.com/simonvanieperen/nieuw-os/commit/6307e3f8ebbc5a24550e7c07700bc885c97359f0) ·
+**Ontwikkelbranch:** `fix/k06-f5-f7-diagnostics`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 auditbevindingen F5/F7: begrensde lockspin ook in release (STUCK) en SERIAL-lock per regel (aanvulling ADR-074).
+41/100 blijft 41/100. Een vastgelopen lock geeft nu ook in releasebuilds SMP:LOCK:STUCK met niveau en CPU binnen 400 ms (TSC geijkt tegen de PIT), en elke seriële regel gaat onder SERIAL heel naar buiten; terminale paden gebruiken try_lock met '!'. Lokaal native QEMU: 26/26 SMP-gevallen over 21 profielen, test-smp-lock-stuck en de controle zonder lock (10/10 runs vermengd); M2/M3, rtc, K05 en K07 groen, 36/37 seriële labels byte-gelijk (SUPERVISOR:TICKS wijkt binnen een timingtelling af, open). Zie docs/verification/k06-f5f7-diagnostics/. K06 blijft open: loom-model, 5c-2, 5d-2, 5e en 5f ontbreken; geen CI- of hardwarebewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
