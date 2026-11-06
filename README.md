@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
-**Bron:** [`edb252db`](https://github.com/simonvanieperen/nieuw-os/commit/edb252dbc91f3fa83c12d6aaf7008a5184cb74d3) ·
-**Ontwikkelbranch:** `feat/k06-5a-ticketlock-lockdep`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5a: ticketlock, irqsave en lockdep per CPU (ADR-074).
-41/100 blijft 41/100. K06 stap 5a voegt een ticketlock, irqsave en lockdep toe, met hosttests en een negatief native profiel. Native QEMU-bewijs is nog niet uitgevoerd en K06 vraagt een volledige SMP-scheduler (stap 5b t/m 5f), dus K06 blijft open.
+**Bron:** [`5ae0757d`](https://github.com/simonvanieperen/nieuw-os/commit/5ae0757de82217ba0961ce580a6d7d530988fc5c) ·
+**Ontwikkelbranch:** `docs/k06-step-specs`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** L0-specificaties voor de resterende K06-stappen (5b-2 t/m 5f, auditfixes F3–F19).
+41/100 blijft 41/100. Alleen ontwerpdocumenten: negen L0-specificaties voor de resterende K06-stappen in docs/implementation/k06-steps/. Geen code, build of native test; K06 blijft open. K07 blijft behaald (single-CPU); het SMP-herbewijs zit in stap 5f.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
