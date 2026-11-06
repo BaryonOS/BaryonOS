@@ -15,8 +15,6 @@ pub mod catalog;
 pub mod protocol;
 pub mod store;
 
-use app_package_core::SourceVerifiedExecutable;
-
 pub const IDENTITY_LEN: usize = 144;
 pub const MAX_PACKAGE_LEN: usize = app_package_core::MANIFEST_LEN + app_package_core::MAX_IMAGE_LEN;
 
@@ -33,18 +31,6 @@ pub struct PackageIdentity {
 }
 
 impl PackageIdentity {
-    pub fn from_verified(package: &SourceVerifiedExecutable<'_>) -> Self {
-        let manifest = package.executable().manifest();
-        Self {
-            app_id: *manifest.app_id.as_bytes(),
-            source_id: *package.source_id().as_bytes(),
-            source_generation: package.source_generation(),
-            version: manifest.version,
-            image_length: manifest.image_length,
-            image_sha256: manifest.image_sha256,
-        }
-    }
-
     pub const fn app_id(&self) -> &[u8; app_package_core::APP_ID_LEN] {
         &self.app_id
     }

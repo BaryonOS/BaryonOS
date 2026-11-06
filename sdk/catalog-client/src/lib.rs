@@ -5,39 +5,13 @@
 use catalog_core::client::{Client, Error as ClientError, TransportFailure};
 pub use catalog_core::client::{Document, Operation, Reply};
 pub use catalog_core::wire::Status;
-use nieuw_os_sdk_runtime::{
-    Error as RuntimeError, Handle, Outgoing, ReceiveEndpoint, Received, SendEndpoint,
-};
+use nieuw_os_sdk_runtime::{Error as RuntimeError, Outgoing, ReceiveEndpoint, SendEndpoint};
 
 pub const MAX_POLL_BUDGET: usize = 1_000_000;
 
-/// A send error with EAGAIN must guarantee that no message was enqueued. A
-/// successful receive owns the real kernel-delivered cap handles in Received.
-pub trait Transport {
-    fn send(&mut self, endpoint: SendEndpoint, message: &Outgoing) -> Result<(), RuntimeError>;
-    fn receive(&mut self, endpoint: ReceiveEndpoint) -> Result<Received, RuntimeError>;
-    fn yield_now(&mut self) -> Result<(), RuntimeError>;
-    fn close(&mut self, handle: Handle) -> Result<(), RuntimeError>;
-}
-
 #[cfg(all(target_arch = "x86_64", target_os = "none"))]
-pub struct NativeTransport;
-
-#[cfg(all(target_arch = "x86_64", target_os = "none"))]
-impl Transport for NativeTransport {
-    fn send(&mut self, endpoint: SendEndpoint, message: &Outgoing) -> Result<(), RuntimeError> {
-        nieuw_os_sdk_runtime::native::send(endpoint, message)
-    }
-    fn receive(&mut self, endpoint: ReceiveEndpoint) -> Result<Received, RuntimeError> {
-        nieuw_os_sdk_runtime::native::receive(endpoint)
-    }
-    fn yield_now(&mut self) -> Result<(), RuntimeError> {
-        nieuw_os_sdk_runtime::native::yield_now()
-    }
-    fn close(&mut self, handle: Handle) -> Result<(), RuntimeError> {
-        nieuw_os_sdk_runtime::native::close(handle)
-    }
-}
+pub use nieuw_os_sdk_runtime::NativeTransport;
+pub use nieuw_os_sdk_runtime::Transport;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Delivery {

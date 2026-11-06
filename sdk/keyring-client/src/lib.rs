@@ -7,39 +7,14 @@ use core::fmt;
 pub use keyring_core::records::{RecordContext, RecordKind};
 pub use keyring_core::{health::HealthFailure, State, Status, MAX_PLAINTEXT, MAX_SEALED};
 use keyring_core::{wire, DOMAINS, KEYS_PER_DOMAIN, NONCE_BYTES, TAG_BYTES};
-use nieuw_os_sdk_runtime::{
-    Error as RuntimeError, Handle, Outgoing, ReceiveEndpoint, Received, SendEndpoint,
-};
+use nieuw_os_sdk_runtime::{Error as RuntimeError, Outgoing, ReceiveEndpoint, SendEndpoint};
 use zeroize::{Zeroize, Zeroizing};
 
 pub const MAX_POLL_BUDGET: usize = 1_000_000;
 
-/// EAGAIN on send must mean nothing was enqueued. `Received` owns any actual
-/// kernel-delivered handles until this client explicitly closes them.
-pub trait Transport {
-    fn send(&mut self, endpoint: SendEndpoint, message: &Outgoing) -> Result<(), RuntimeError>;
-    fn receive(&mut self, endpoint: ReceiveEndpoint) -> Result<Received, RuntimeError>;
-    fn yield_now(&mut self) -> Result<(), RuntimeError>;
-    fn close(&mut self, handle: Handle) -> Result<(), RuntimeError>;
-}
-
 #[cfg(all(target_arch = "x86_64", target_os = "none"))]
-pub struct NativeTransport;
-#[cfg(all(target_arch = "x86_64", target_os = "none"))]
-impl Transport for NativeTransport {
-    fn send(&mut self, endpoint: SendEndpoint, message: &Outgoing) -> Result<(), RuntimeError> {
-        nieuw_os_sdk_runtime::native::send(endpoint, message)
-    }
-    fn receive(&mut self, endpoint: ReceiveEndpoint) -> Result<Received, RuntimeError> {
-        nieuw_os_sdk_runtime::native::receive(endpoint)
-    }
-    fn yield_now(&mut self) -> Result<(), RuntimeError> {
-        nieuw_os_sdk_runtime::native::yield_now()
-    }
-    fn close(&mut self, handle: Handle) -> Result<(), RuntimeError> {
-        nieuw_os_sdk_runtime::native::close(handle)
-    }
-}
+pub use nieuw_os_sdk_runtime::NativeTransport;
+pub use nieuw_os_sdk_runtime::Transport;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct KeyIndex(u8);
@@ -681,6 +656,7 @@ impl<T: Transport> Session<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use nieuw_os_sdk_runtime::{Handle, Received};
 
     #[derive(Default)]
     struct Port {

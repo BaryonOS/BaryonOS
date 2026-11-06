@@ -27,12 +27,12 @@ use crate::serial;
 use boot_protocol::acpi::{Madt, MadtStatus};
 use core::{
     arch::{asm, global_asm},
-    cell::UnsafeCell,
     hint::spin_loop,
     ptr,
     sync::atomic::{fence, AtomicBool, AtomicU32, AtomicU64, Ordering},
 };
 use kernel_core::{Frames, Owner, PAGE};
+use smp_lock::TicketLock;
 
 /// Total CPUs (BSP plus APs) this profile starts; further MADT CPUs are skipped.
 pub const MAX_CPUS: usize = 8;
@@ -150,30 +150,39 @@ struct CpuLocal {
     saved: [AtomicU64; 3],
     /// Set by a thread whose callee-saved registers changed across preemption.
     corrupt: AtomicU32,
+    /// Held lock levels (step 5a, `smp_lock::Lockdep`); this CPU only, IF=0.
+    lockdep: AtomicU64,
+}
+impl CpuLocal {
+    const fn new() -> Self {
+        Self {
+            self_ptr: AtomicU64::new(0),
+            slot: AtomicU32::new(u32::MAX),
+            ipis: AtomicU32::new(0),
+            shootdown_ack: AtomicU32::new(0),
+            before: AtomicU32::new(u32::MAX),
+            after: AtomicU32::new(u32::MAX),
+            probed: AtomicU32::new(0),
+            ticks: AtomicU32::new(0),
+            switches: AtomicU32::new(0),
+            current: AtomicU32::new(0),
+            preempt: AtomicU32::new(0),
+            counts: [const { AtomicU64::new(0) }; 2],
+            saved: [const { AtomicU64::new(0) }; 3],
+            corrupt: AtomicU32::new(0),
+            lockdep: AtomicU64::new(0),
+        }
+    }
 }
 const _: () = {
     assert!(core::mem::offset_of!(CpuLocal, self_ptr) == 0);
     assert!(core::mem::offset_of!(CpuLocal, ipis) == 12);
     assert!(core::mem::offset_of!(CpuLocal, shootdown_ack) == 16);
 };
-static CPU_LOCAL: [CpuLocal; MAX_APS] = [const {
-    CpuLocal {
-        self_ptr: AtomicU64::new(0),
-        slot: AtomicU32::new(u32::MAX),
-        ipis: AtomicU32::new(0),
-        shootdown_ack: AtomicU32::new(0),
-        before: AtomicU32::new(u32::MAX),
-        after: AtomicU32::new(u32::MAX),
-        probed: AtomicU32::new(0),
-        ticks: AtomicU32::new(0),
-        switches: AtomicU32::new(0),
-        current: AtomicU32::new(0),
-        preempt: AtomicU32::new(0),
-        counts: [const { AtomicU64::new(0) }; 2],
-        saved: [const { AtomicU64::new(0) }; 3],
-        corrupt: AtomicU32::new(0),
-    }
-}; MAX_APS];
+static CPU_LOCAL: [CpuLocal; MAX_APS] = [const { CpuLocal::new() }; MAX_APS];
+/// CPU index 0 (spec §3.1.3): same GS-anchor path as the APs. Kept outside
+/// CPU_LOCAL so AP-only lookups (`this_cpu`, IST markers) still miss the BSP.
+static BSP_LOCAL: CpuLocal = CpuLocal::new();
 
 /// Shootdown request, published (Release) before the IPI that makes an AP
 /// read it: up to two VAs (0 = unused slot is never published here) and a
@@ -549,60 +558,27 @@ fn wait_us(us: u32) -> bool {
     expired
 }
 
-/// A minimal test-and-test-and-set lock. Closure-scoped so no guard can leak
-/// past the critical section; panics abort the kernel, so none unwinds it.
-pub struct SpinLock<T> {
-    locked: AtomicBool,
-    value: UnsafeCell<T>,
-}
-// SAFETY: `with` grants &mut T to exactly one CPU at a time (Acquire/Release).
-unsafe impl<T: Send> Sync for SpinLock<T> {}
-impl<T> SpinLock<T> {
-    pub const fn new(value: T) -> Self {
-        Self {
-            locked: AtomicBool::new(false),
-            value: UnsafeCell::new(value),
-        }
-    }
-    pub fn with<R>(&self, operation: impl FnOnce(&mut T) -> R) -> R {
-        while self
-            .locked
-            .compare_exchange_weak(false, true, Ordering::Acquire, Ordering::Relaxed)
-            .is_err()
-        {
-            while self.locked.load(Ordering::Relaxed) {
-                spin_loop();
-            }
-        }
-        // SAFETY: The successful Acquire CAS makes this CPU the only holder until
-        // the Release store below; no reference escapes the closure.
-        let result = operation(unsafe { &mut *self.value.get() });
-        self.locked.store(false, Ordering::Release);
-        result
-    }
-}
-
 const ITERATIONS: u64 = 20_000;
 static ATOMIC_TOTAL: AtomicU64 = AtomicU64::new(0);
-static LOCKED_TOTAL: SpinLock<u64> = SpinLock::new(0);
+static LOCKED_TOTAL: TicketLock<u64> = TicketLock::new(0);
 static INSIDE: AtomicU32 = AtomicU32::new(0);
 static VIOLATIONS: AtomicU32 = AtomicU32::new(0);
 
 fn stress() {
     for _ in 0..ITERATIONS {
         ATOMIC_TOTAL.fetch_add(1, Ordering::Relaxed);
-        LOCKED_TOTAL.with(|total| {
-            if INSIDE.fetch_add(1, Ordering::Relaxed) != 0 {
-                VIOLATIONS.fetch_add(1, Ordering::Relaxed);
-            }
-            // Split read/write widens the window a broken lock would lose.
-            // SAFETY: Exclusive &mut from the lock; volatile keeps both accesses.
-            let value = unsafe { ptr::read_volatile(total) };
-            spin_loop();
-            // SAFETY: Same exclusive location.
-            unsafe { ptr::write_volatile(total, value + 1) };
-            INSIDE.fetch_sub(1, Ordering::Relaxed);
-        });
+        let mut total = LOCKED_TOTAL.lock();
+        if INSIDE.fetch_add(1, Ordering::Relaxed) != 0 {
+            VIOLATIONS.fetch_add(1, Ordering::Relaxed);
+        }
+        // Split read/write widens the window a broken lock would lose.
+        // SAFETY: Exclusive &mut from the guard; volatile keeps both accesses.
+        let value = unsafe { ptr::read_volatile(&*total) };
+        spin_loop();
+        // SAFETY: Same exclusive location.
+        unsafe { ptr::write_volatile(&mut *total, value + 1) };
+        INSIDE.fetch_sub(1, Ordering::Relaxed);
+        drop(total);
     }
 }
 
@@ -903,6 +879,10 @@ pub fn start(
     frames: &mut Frames<FRAME_COUNT>,
     paging: &mut paging::Paging,
 ) {
+    BSP_LOCAL
+        .self_ptr
+        .store(ptr::from_ref(&BSP_LOCAL) as u64, Ordering::Relaxed);
+    wrmsr(0xc000_0101, ptr::from_ref(&BSP_LOCAL) as u64);
     match madt.status {
         MadtStatus::Missing => return unavailable(b"NO_MADT"),
         MadtStatus::Invalid => return unavailable(b"INVALID_MADT"),
@@ -1014,9 +994,7 @@ pub fn start(
         serial::write(b"\n");
         serial::fail(b"SMP_SYNC_TIMEOUT");
     }
-    if ATOMIC_TOTAL.load(Ordering::Acquire) != expected
-        || LOCKED_TOTAL.with(|total| *total) != expected
-    {
+    if ATOMIC_TOTAL.load(Ordering::Acquire) != expected || *LOCKED_TOTAL.lock() != expected {
         serial::fail(b"SMP_SYNC_LOST_UPDATE");
     }
     if VIOLATIONS.load(Ordering::Acquire) != 0 {
@@ -1302,6 +1280,53 @@ fn this_cpu() -> Option<&'static CpuLocal> {
     CPU_LOCAL
         .iter()
         .find(|local| ptr::from_ref(*local) as u64 == anchor)
+}
+
+/// Any CPU's anchor (BSP or AP) by IA32_GS_BASE; `None` before `start` set it.
+fn any_cpu() -> Option<&'static CpuLocal> {
+    let anchor = rdmsr(0xc000_0101);
+    core::iter::once(&BSP_LOCAL)
+        .chain(CPU_LOCAL.iter())
+        .find(|local| ptr::from_ref(*local) as u64 == anchor)
+}
+
+/// This CPU's held lock levels; IF=0, so no handler interleaves the update.
+pub fn lockdep() -> &'static AtomicU64 {
+    match any_cpu() {
+        Some(local) => &local.lockdep,
+        None => serial::fail(b"SMP_LOCKDEP_ANCHOR"),
+    }
+}
+
+/// Terminal lock-order report (spec §4.4): `SMP:LOCKDEP:ORDER:<held>-><wanted>`.
+/// Only the deliberate negative profile counts it as a pass.
+pub fn lockdep_order(order: smp_lock::Order) -> ! {
+    serial::write(b"SMP:LOCKDEP:ORDER:");
+    decimal(u64::from(order.held));
+    serial::write(b"->");
+    decimal(u64::from(order.wanted));
+    serial::write(b"\n");
+    if cfg!(feature = "test-smp-lockdep-order") {
+        serial::exit(0x10);
+    }
+    serial::fail(b"SMP_LOCKDEP_ORDER")
+}
+
+/// Terminal bounded-spin report: `SMP:LOCK:STUCK:<name>:CPU=<slot>`.
+pub fn lock_stuck(name: &[u8]) -> ! {
+    serial::write(b"SMP:LOCK:STUCK:");
+    serial::write(name);
+    serial::write(b":CPU=");
+    let cpu = any_cpu().map_or(u64::MAX, |local| {
+        if ptr::eq(local, &BSP_LOCAL) {
+            0
+        } else {
+            u64::from(local.slot.load(Ordering::Relaxed)) + 1
+        }
+    });
+    decimal(cpu);
+    serial::write(b"\n");
+    serial::fail(b"SMP_LOCK_STUCK")
 }
 
 /// Round-robin over home (0) and the two threads (1, 2). After STOP the timer
