@@ -1,6 +1,33 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — K06 stap 5c, geen preëmptie met een actieve lock — 6 november 2026
+## NEXT AGENT HANDOFF — K06 stap 5d-1, runqueues per AP en CR3-wissel — 6 november 2026
+
+**Bron:** `7079f788` op `feat/k06-5d-runqueues` (worktree `nieuw-os-k06-5d`), gestapeld op
+#228 (5c, `b593930c`) en #227 (5b). Taakspec: `/tmp/task_spec_5d.md` (lokaal); ontwerp:
+aanvulling stap 5d-1 in ADR-074. **41 → 41/100**; K06 blijft open.
+
+**Splitsing:** 5d uit spec §8 vraagt ook ring-3-processen op AP's. Dat kan pas na 5b-2
+(KERNEL-lock om M3, scratchslot per CPU); anders muteren twee CPU's de M3-staat en het ene
+scratchslot tegelijk (INV-2). Daarom: 5d-1 (dit) en 5d-2 (ring-3 op AP's, poort K05 6/6 op
+4 vCPU's).
+
+**Gerealiseerd:** `smp_lock::sched` (RunQueue en threadstatus-CAS, INV-3). `sched_switch`
+draait in het timerpad ná het 5c-uitstel; CR3-wissel volgens §6.3 met `ACTIVE` (INV-4);
+wekvector 0xe8. Fixture `SMP:SCHED:PASS:CPUS=n` met 2 kernelthreads per AP in twee
+adresruimten, de tweede cross-CPU gewekt. Negatief profiel `test-smp-double-run` →
+`SMP:SCHED:DOUBLE_RUN`.
+
+**Bewijs (lokaal, native QEMU 10.2.1/OVMF/TCG):** 18/18 gevallen over 13 SMP-profielen,
+zie `docs/verification/k06-smp-sched/`. `tools/gate.sh` exit 0 (505 geslaagd, 1 ignored;
+QEMU-smoke ontbreekt in de repo), M2-gate geslaagd, `test_smp_serial.py` 9/9, fmt en clippy
+schoon. **Niet uitgevoerd:** CI (`native-smp.yml`) op de PR, en K05 op meerdere vCPU's
+(hoort bij 5d-2).
+
+**Open:** 5b-2, 5c-2, daarna 5d-2 (ring-3 op AP's, FXSAVE in de wissel), 5e en 5f.
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-native-smp"; python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
+
+## Historisch checkpoint — K06 stap 5c, geen preëmptie met een actieve lock — 6 november 2026
 
 **Bron:** `bdcced5e` op `feat/k06-5c-preempt-lock`, gestapeld op 5b (`b7cb7ce7`, PR #227).
 Taakspec: `/tmp/task_spec_5c.md` (lokaal); ontwerp: aanvulling stap 5c in ADR-074.

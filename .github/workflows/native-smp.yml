@@ -103,6 +103,12 @@ jobs:
         run: |
           python3 -B tools/build.py --kernel-feature test-smp-held-across-switch
           python3 -B -u tools/run_smp.py --profile test-smp-held-across-switch
+      - name: A thread queued on two CPUs is refused with the double-run marker
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-double-run
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-double-run
+          python3 -B -u tools/run_smp.py --profile test-smp-double-run
       - name: Preserve tracked source integrity
         run: git diff --exit-code
       - name: Preserve actual run and build artifacts

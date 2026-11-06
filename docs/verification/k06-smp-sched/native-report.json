@@ -1,0 +1,596 @@
+{
+  "schema_version": 1,
+  "task": "K06 step 5d-1 - per-AP run queues, 0xe8 wake and CR3 switch with active_cpus (kernel threads)",
+  "source_commit": "7079f788c4b334dc9843c7559cc629e834efaa02",
+  "branch": "feat/k06-5d-runqueues",
+  "stacked_on": "feat/k06-5c-preempt-lock b593930c (PR #228) -> feat/k06-5b-spin-irq (PR #227)",
+  "date": "2026-11-06",
+  "host": "WSL2, QEMU 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3), /usr/share/OVMF/OVMF_CODE_4M.fd, machine pc-q35-10.0",
+  "evidence_level": "native QEMU/TCG (VM); not physical hardware; AI review, not human audit",
+  "profiles": [
+    {
+      "kernel_feature": "native-smp",
+      "passed": true,
+      "source_sha256": "f76bde09f358a91bbd4c1d9664d83ff69b36fc7b62a9cf42051520521c7c1f90",
+      "manifest_sha256": "6f97be557e6ef3488438a8f6eb9eb6caaf5787e5b137c7ecb7a7220739882ada",
+      "kernel_elf_sha256": "bac89ca15f85972dd45da52c3fcbc45cfdd1a026737de03a1308b5284dc9f924",
+      "loader_sha256": "a63b83d939404bf327c3d7f105c7c0f0bd29cfd71c6c9f2c626c30a578de1afb",
+      "cases": [
+        {
+          "case": "one",
+          "cpus": 1,
+          "tcg_threads": "single",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 1.89,
+          "serial_sha256": "0805aa20fe98467ff9a1d0771a29b477d5ddc38994c2e2ae72c94532dd3578bd",
+          "smp_lines": [
+            "SMP:MADT:CPUS=1:DISABLED=0:HOTPLUG=0",
+            "SMP:ONLINE:1/1",
+            "SMP:SYNC:PASS:CPUS=1",
+            "SMP:IPI:PASS:ROUNDS=3:CPUS=1",
+            "SMP:SHOOTDOWN:PASS:CPUS=1",
+            "SMP:SHOOTDOWN:VISIBLE:CPUS=1",
+            "SMP:PREEMPT:PASS:CPUS=1",
+            "SMP:SPIN:PASS:CPUS=1",
+            "SMP:SCHED:PASS:CPUS=1",
+            "SMP:PARKED:APS=0",
+            "SMP:LOCKDEP:PASS",
+            "M2:PASS",
+            "M1:PASS"
+          ]
+        },
+        {
+          "case": "two-single",
+          "cpus": 2,
+          "tcg_threads": "single",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 1.96,
+          "serial_sha256": "48f86addf9e0b8adab7eb90529feb578b457d19fc896a1e3d4dc0be5934c4fc2",
+          "smp_lines": [
+            "SMP:MADT:CPUS=2:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:ONLINE",
+            "SMP:ONLINE:2/2",
+            "SMP:SYNC:PASS:CPUS=2",
+            "SMP:IPI:PASS:ROUNDS=3:CPUS=2",
+            "SMP:SHOOTDOWN:PASS:CPUS=2",
+            "SMP:SHOOTDOWN:VISIBLE:CPUS=2",
+            "SMP:PREEMPT:PASS:CPUS=2",
+            "SMP:SPIN:PASS:CPUS=2",
+            "SMP:SCHED:PASS:CPUS=2",
+            "SMP:PARKED:APS=1",
+            "SMP:LOCKDEP:PASS",
+            "M2:PASS",
+            "M1:PASS"
+          ]
+        },
+        {
+          "case": "four",
+          "cpus": 4,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 2.91,
+          "serial_sha256": "d9df72bee6c7785833c487ea422a76d98467577bb16de608cc0cdd6be7cf6ade",
+          "smp_lines": [
+            "SMP:MADT:CPUS=4:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:ONLINE",
+            "SMP:AP:2:ONLINE",
+            "SMP:AP:3:ONLINE",
+            "SMP:ONLINE:4/4",
+            "SMP:SYNC:PASS:CPUS=4",
+            "SMP:IPI:PASS:ROUNDS=3:CPUS=4",
+            "SMP:SHOOTDOWN:PASS:CPUS=4",
+            "SMP:SHOOTDOWN:VISIBLE:CPUS=4",
+            "SMP:PREEMPT:PASS:CPUS=4",
+            "SMP:SPIN:PASS:CPUS=4",
+            "SMP:SCHED:PASS:CPUS=4",
+            "SMP:PARKED:APS=3",
+            "SMP:LOCKDEP:PASS",
+            "M2:PASS",
+            "M1:PASS"
+          ]
+        },
+        {
+          "case": "eight",
+          "cpus": 8,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 5.68,
+          "serial_sha256": "bd2c558af345258694c4199c4fef2998c76b783c41aa973622669c824f5b7704",
+          "smp_lines": [
+            "SMP:MADT:CPUS=8:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:ONLINE",
+            "SMP:AP:2:ONLINE",
+            "SMP:AP:3:ONLINE",
+            "SMP:AP:4:ONLINE",
+            "SMP:AP:5:ONLINE",
+            "SMP:AP:6:ONLINE",
+            "SMP:AP:7:ONLINE",
+            "SMP:ONLINE:8/8",
+            "SMP:SYNC:PASS:CPUS=8",
+            "SMP:IPI:PASS:ROUNDS=3:CPUS=8",
+            "SMP:SHOOTDOWN:PASS:CPUS=8",
+            "SMP:SHOOTDOWN:VISIBLE:CPUS=8",
+            "SMP:PREEMPT:PASS:CPUS=8",
+            "SMP:SPIN:PASS:CPUS=8",
+            "SMP:SCHED:PASS:CPUS=8",
+            "SMP:PARKED:APS=7",
+            "SMP:LOCKDEP:PASS",
+            "M2:PASS",
+            "M1:PASS"
+          ]
+        },
+        {
+          "case": "nine-capacity",
+          "cpus": 9,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 5.5,
+          "serial_sha256": "3b7bff50cceb4cd683665565e05095791250d05788b101e0d95650e979162930",
+          "smp_lines": [
+            "SMP:MADT:CPUS=9:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:ONLINE",
+            "SMP:AP:2:ONLINE",
+            "SMP:AP:3:ONLINE",
+            "SMP:AP:4:ONLINE",
+            "SMP:AP:5:ONLINE",
+            "SMP:AP:6:ONLINE",
+            "SMP:AP:7:ONLINE",
+            "SMP:SKIPPED:CAPACITY=1",
+            "SMP:ONLINE:8/9",
+            "SMP:SYNC:PASS:CPUS=8",
+            "SMP:IPI:PASS:ROUNDS=3:CPUS=8",
+            "SMP:SHOOTDOWN:PASS:CPUS=8",
+            "SMP:SHOOTDOWN:VISIBLE:CPUS=8",
+            "SMP:PREEMPT:PASS:CPUS=8",
+            "SMP:SPIN:PASS:CPUS=8",
+            "SMP:SCHED:PASS:CPUS=8",
+            "SMP:PARKED:APS=7",
+            "SMP:LOCKDEP:PASS",
+            "M2:PASS",
+            "M1:PASS"
+          ]
+        },
+        {
+          "case": "duplicate-madt",
+          "cpus": 4,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 1.97,
+          "serial_sha256": "f283cea0cadb99e363f04e2d7c90d908704dc5510465fdabb8a654f7d98156d1",
+          "smp_lines": [
+            "SMP:UNAVAILABLE:INVALID_MADT",
+            "SMP:LOCKDEP:PASS",
+            "M2:PASS",
+            "M1:PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "kernel_feature": "test-smp-double-run",
+      "passed": true,
+      "source_sha256": "f76bde09f358a91bbd4c1d9664d83ff69b36fc7b62a9cf42051520521c7c1f90",
+      "manifest_sha256": "8ff9004c92db4c15274d8df713a929189b5de664b5a78e608e1896038b7a63ef",
+      "kernel_elf_sha256": "963f1064ef3446e4063eba3fad11b816bc7e885e1011071ae3a222552c6967ff",
+      "loader_sha256": "a63b83d939404bf327c3d7f105c7c0f0bd29cfd71c6c9f2c626c30a578de1afb",
+      "cases": [
+        {
+          "case": "double-run",
+          "cpus": 4,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 2.99,
+          "serial_sha256": "cfb38f3bb57dab7dd51ec15087370d744d00e8e47078c7d319bb7f07e3e36e65",
+          "smp_lines": [
+            "SMP:MADT:CPUS=4:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:ONLINE",
+            "SMP:AP:2:ONLINE",
+            "SMP:AP:3:ONLINE",
+            "SMP:ONLINE:4/4",
+            "SMP:SYNC:PASS:CPUS=4",
+            "SMP:IPI:PASS:ROUNDS=3:CPUS=4",
+            "SMP:SHOOTDOWN:PASS:CPUS=4",
+            "SMP:SHOOTDOWN:VISIBLE:CPUS=4",
+            "SMP:PREEMPT:PASS:CPUS=4",
+            "SMP:SPIN:PASS:CPUS=4",
+            "SMP:SCHED:DOUBLE_RUN"
+          ]
+        }
+      ]
+    },
+    {
+      "kernel_feature": "test-smp-held-across-switch",
+      "passed": true,
+      "source_sha256": "f76bde09f358a91bbd4c1d9664d83ff69b36fc7b62a9cf42051520521c7c1f90",
+      "manifest_sha256": "faf4f2547338ef298275cc2bdbfdaa7789896e015e08ee7e5333c90d220733d2",
+      "kernel_elf_sha256": "73e11f88726276da70343842e4535ceb9a276b1cabac984a0fbf292dd51f13bc",
+      "loader_sha256": "a63b83d939404bf327c3d7f105c7c0f0bd29cfd71c6c9f2c626c30a578de1afb",
+      "cases": [
+        {
+          "case": "held-across-switch",
+          "cpus": 2,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 1.98,
+          "serial_sha256": "81f85b32e9630893e59a9486ccff5ede8db0a9d6858d6cc36ad28f71cb40291d",
+          "smp_lines": [
+            "SMP:MADT:CPUS=2:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:ONLINE",
+            "SMP:ONLINE:2/2",
+            "SMP:SYNC:PASS:CPUS=2",
+            "SMP:IPI:PASS:ROUNDS=3:CPUS=2",
+            "SMP:SHOOTDOWN:PASS:CPUS=2",
+            "SMP:SHOOTDOWN:VISIBLE:CPUS=2",
+            "SMP:LOCKDEP:HELD_ACROSS_SWITCH"
+          ]
+        }
+      ]
+    },
+    {
+      "kernel_feature": "test-smp-lockdep-order",
+      "passed": true,
+      "source_sha256": "f76bde09f358a91bbd4c1d9664d83ff69b36fc7b62a9cf42051520521c7c1f90",
+      "manifest_sha256": "9069192706b7c97dd111332b5c7d2a0ddb31cc8fabcd799a4fd995caa585e8b2",
+      "kernel_elf_sha256": "6b9b30c3e109388b9af671be6816588c1dc63ccd5531eba2cc21a96d204d9edc",
+      "loader_sha256": "a63b83d939404bf327c3d7f105c7c0f0bd29cfd71c6c9f2c626c30a578de1afb",
+      "cases": [
+        {
+          "case": "lockdep-order",
+          "cpus": 2,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 1.98,
+          "serial_sha256": "5b2ebb8e4a040bab6ac5bc279b2ffc0dc456df0cac5a2221b33d859a28be8143",
+          "smp_lines": [
+            "SMP:MADT:CPUS=2:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:ONLINE",
+            "SMP:ONLINE:2/2",
+            "SMP:SYNC:PASS:CPUS=2",
+            "SMP:IPI:PASS:ROUNDS=3:CPUS=2",
+            "SMP:SHOOTDOWN:PASS:CPUS=2",
+            "SMP:SHOOTDOWN:VISIBLE:CPUS=2",
+            "SMP:PREEMPT:PASS:CPUS=2",
+            "SMP:SPIN:PASS:CPUS=2",
+            "SMP:SCHED:PASS:CPUS=2",
+            "SMP:PARKED:APS=1",
+            "SMP:LOCKDEP:ORDER:30->10"
+          ]
+        }
+      ]
+    },
+    {
+      "kernel_feature": "test-smp-spin-irq-off",
+      "passed": true,
+      "source_sha256": "f76bde09f358a91bbd4c1d9664d83ff69b36fc7b62a9cf42051520521c7c1f90",
+      "manifest_sha256": "57ce8953da4d919686f2a77c862b8599dc04c400fe9de769fb1832eb938c2de7",
+      "kernel_elf_sha256": "d5dfb3acc51c6c14275c6cdb4e4d97bf9e4d94dfa7fe5b8043cc05f7fd06854a",
+      "loader_sha256": "a63b83d939404bf327c3d7f105c7c0f0bd29cfd71c6c9f2c626c30a578de1afb",
+      "cases": [
+        {
+          "case": "spin-irq-off-control",
+          "cpus": 4,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 3.01,
+          "serial_sha256": "c1333c9a82dbd266f6172f2c17591514229814aa46253c02352214f391bebe55",
+          "smp_lines": [
+            "SMP:MADT:CPUS=4:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:ONLINE",
+            "SMP:AP:2:ONLINE",
+            "SMP:AP:3:ONLINE",
+            "SMP:ONLINE:4/4",
+            "SMP:SYNC:PASS:CPUS=4",
+            "SMP:IPI:PASS:ROUNDS=3:CPUS=4",
+            "SMP:SHOOTDOWN:PASS:CPUS=4",
+            "SMP:SHOOTDOWN:VISIBLE:CPUS=4",
+            "SMP:PREEMPT:PASS:CPUS=4",
+            "SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=1",
+            "SMP:QUARANTINED:APS=3",
+            "SMP:ONLINE:1/4",
+            "SMP:LOCKDEP:PASS",
+            "M2:PASS",
+            "M1:PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "kernel_feature": "test-smp-ap-timer-dead",
+      "passed": true,
+      "source_sha256": "f76bde09f358a91bbd4c1d9664d83ff69b36fc7b62a9cf42051520521c7c1f90",
+      "manifest_sha256": "736506ad5ca3865c5990cc125a6f62465c108ffe73f16367dea4673e913c96f5",
+      "kernel_elf_sha256": "78a1923f56ac3175e44727633bed1cfa36307407e522ff35282f811e34468a22",
+      "loader_sha256": "a63b83d939404bf327c3d7f105c7c0f0bd29cfd71c6c9f2c626c30a578de1afb",
+      "cases": [
+        {
+          "case": "ap-timer-dead",
+          "cpus": 4,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 3.28,
+          "serial_sha256": "b93a7887d371eaa89d1db5076638b76fc297fb39e102a085f09afc69e2ff5c43",
+          "smp_lines": [
+            "SMP:MADT:CPUS=4:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:ONLINE",
+            "SMP:AP:2:ONLINE",
+            "SMP:AP:3:ONLINE",
+            "SMP:ONLINE:4/4",
+            "SMP:SYNC:PASS:CPUS=4",
+            "SMP:IPI:PASS:ROUNDS=3:CPUS=4",
+            "SMP:SHOOTDOWN:PASS:CPUS=4",
+            "SMP:SHOOTDOWN:VISIBLE:CPUS=4",
+            "SMP:PREEMPT:TIMEOUT:APIC=1",
+            "SMP:QUARANTINED:APS=3",
+            "SMP:ONLINE:1/4",
+            "SMP:LOCKDEP:PASS",
+            "M2:PASS",
+            "M1:PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "kernel_feature": "test-smp-shootdown-skipped",
+      "passed": true,
+      "source_sha256": "f76bde09f358a91bbd4c1d9664d83ff69b36fc7b62a9cf42051520521c7c1f90",
+      "manifest_sha256": "8b5531b7ceb0febc80addc1c3772c4577b37e9fbdd6cc114ab06a94179a3f363",
+      "kernel_elf_sha256": "b4f180c074908ee78805bdfe9cc4bfa058775933621993ca5c2bc506b21a8bf7",
+      "loader_sha256": "a63b83d939404bf327c3d7f105c7c0f0bd29cfd71c6c9f2c626c30a578de1afb",
+      "cases": [
+        {
+          "case": "shootdown-skipped-control",
+          "cpus": 4,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 2.99,
+          "serial_sha256": "a645c8d84501a5dc01e5096a480493b195d9427b60e5317148f4e379a941085a",
+          "smp_lines": [
+            "SMP:MADT:CPUS=4:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:ONLINE",
+            "SMP:AP:2:ONLINE",
+            "SMP:AP:3:ONLINE",
+            "SMP:ONLINE:4/4",
+            "SMP:SYNC:PASS:CPUS=4",
+            "SMP:IPI:PASS:ROUNDS=3:CPUS=4",
+            "SMP:SHOOTDOWN:SKIPPED",
+            "SMP:SHOOTDOWN:STALE:APS=3",
+            "SMP:PREEMPT:PASS:CPUS=4",
+            "SMP:SPIN:PASS:CPUS=4",
+            "SMP:SCHED:PASS:CPUS=4",
+            "SMP:PARKED:APS=3",
+            "SMP:LOCKDEP:PASS",
+            "M2:PASS",
+            "M1:PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "kernel_feature": "test-smp-ap-shootdown-deaf",
+      "passed": true,
+      "source_sha256": "f76bde09f358a91bbd4c1d9664d83ff69b36fc7b62a9cf42051520521c7c1f90",
+      "manifest_sha256": "1c74f2489ac1b6ed5f2579b514cfaf1e8ee5697e9fe0c5be62e6bce4db44acd6",
+      "kernel_elf_sha256": "cff09358618e3cb16a07036b29968743febd0ae5279d58315387dddd5d9ddf64",
+      "loader_sha256": "a63b83d939404bf327c3d7f105c7c0f0bd29cfd71c6c9f2c626c30a578de1afb",
+      "cases": [
+        {
+          "case": "ap-shootdown-deaf",
+          "cpus": 4,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 2.88,
+          "serial_sha256": "e2ecf00b62843fd351c01b91817142ed350ea8ae540cea0230603f48a6fc2a60",
+          "smp_lines": [
+            "SMP:MADT:CPUS=4:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:ONLINE",
+            "SMP:AP:2:ONLINE",
+            "SMP:AP:3:ONLINE",
+            "SMP:ONLINE:4/4",
+            "SMP:SYNC:PASS:CPUS=4",
+            "SMP:IPI:PASS:ROUNDS=3:CPUS=4",
+            "SMP:SHOOTDOWN:TIMEOUT:APIC=1",
+            "SMP:SHOOTDOWN:FRAME_QUARANTINED",
+            "SMP:QUARANTINED:APS=3",
+            "SMP:ONLINE:1/4",
+            "SMP:LOCKDEP:PASS",
+            "M2:PASS",
+            "M1:PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "kernel_feature": "test-smp-ap-ipi-deaf",
+      "passed": true,
+      "source_sha256": "f76bde09f358a91bbd4c1d9664d83ff69b36fc7b62a9cf42051520521c7c1f90",
+      "manifest_sha256": "9af188d95ae6d949b37b67aa83625e1bc40960652ad8c224931fa3f46c4ee8d7",
+      "kernel_elf_sha256": "918cbfed925544e9dae0956e3ec237a11e686f1e1fbeac745193695499abb49e",
+      "loader_sha256": "a63b83d939404bf327c3d7f105c7c0f0bd29cfd71c6c9f2c626c30a578de1afb",
+      "cases": [
+        {
+          "case": "ap-ipi-deaf",
+          "cpus": 4,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 2.31,
+          "serial_sha256": "20ed3444d84088cbe38a2796d556254cc8d38c3d388e62173e4108dec67641da",
+          "smp_lines": [
+            "SMP:MADT:CPUS=4:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:ONLINE",
+            "SMP:AP:2:ONLINE",
+            "SMP:AP:3:ONLINE",
+            "SMP:ONLINE:4/4",
+            "SMP:SYNC:PASS:CPUS=4",
+            "SMP:IPI:TIMEOUT:APIC=1",
+            "SMP:QUARANTINED:APS=3",
+            "SMP:ONLINE:1/4",
+            "SMP:LOCKDEP:PASS",
+            "M2:PASS",
+            "M1:PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "kernel_feature": "test-smp-ap-nmi",
+      "passed": true,
+      "source_sha256": "f76bde09f358a91bbd4c1d9664d83ff69b36fc7b62a9cf42051520521c7c1f90",
+      "manifest_sha256": "5119068ceb1907a6333c352e260e09afce4ffdf5fd36112ab5623590ba992261",
+      "kernel_elf_sha256": "8a8a0cc34fd2575f91160b5f2d242077b1e11365089d490368b1856c0724aa85",
+      "loader_sha256": "a63b83d939404bf327c3d7f105c7c0f0bd29cfd71c6c9f2c626c30a578de1afb",
+      "cases": [
+        {
+          "case": "ap-nmi-ist",
+          "cpus": 4,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 2.76,
+          "serial_sha256": "0ae4b3ccbe1e5035dc45718de8a347dfea23b114e5ed8047906686ea58efb509",
+          "smp_lines": [
+            "SMP:MADT:CPUS=4:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:ONLINE",
+            "SMP:AP:2:ONLINE",
+            "SMP:AP:3:ONLINE",
+            "SMP:ONLINE:4/4",
+            "SMP:SYNC:PASS:CPUS=4",
+            "SMP:IPI:PASS:ROUNDS=3:CPUS=4",
+            "SMP:FAULT:AP_NMI_IST:PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "kernel_feature": "test-smp-ap-double-fault",
+      "passed": true,
+      "source_sha256": "f76bde09f358a91bbd4c1d9664d83ff69b36fc7b62a9cf42051520521c7c1f90",
+      "manifest_sha256": "1dfd5e1bc8eee0c65191322448d7349bd69d4ac7a270ad97066de9bb29029ff7",
+      "kernel_elf_sha256": "9419af56fe8c0da379dc474071ed032d1ee7cb01cd8a850f7eb20d1d8d8f0706",
+      "loader_sha256": "a63b83d939404bf327c3d7f105c7c0f0bd29cfd71c6c9f2c626c30a578de1afb",
+      "cases": [
+        {
+          "case": "ap-double-fault-ist",
+          "cpus": 4,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 2.99,
+          "serial_sha256": "089efa58022d4be0c13b06669ac8068959aa5ffa0d6009e7140ca8599caedb5f",
+          "smp_lines": [
+            "SMP:MADT:CPUS=4:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:ONLINE",
+            "SMP:AP:2:ONLINE",
+            "SMP:AP:3:ONLINE",
+            "SMP:ONLINE:4/4",
+            "SMP:SYNC:PASS:CPUS=4",
+            "SMP:FAULT:AP_DF_IST:PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "kernel_feature": "test-smp-ap-stall",
+      "passed": true,
+      "source_sha256": "f76bde09f358a91bbd4c1d9664d83ff69b36fc7b62a9cf42051520521c7c1f90",
+      "manifest_sha256": "ef3a188120d43bbd21266918934f7fbbe257e2d3ff39a99a6a6826db3010a8dd",
+      "kernel_elf_sha256": "4a877d23d908b64e556b2edfa222bade41d07de933aa18f8022370670c36d2b9",
+      "loader_sha256": "a63b83d939404bf327c3d7f105c7c0f0bd29cfd71c6c9f2c626c30a578de1afb",
+      "cases": [
+        {
+          "case": "ap-stall",
+          "cpus": 4,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 3.02,
+          "serial_sha256": "8ab27a351a788fa96e51701c2461e0c1e419e77e16dbcf42860933e8a8fa7862",
+          "smp_lines": [
+            "SMP:MADT:CPUS=4:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:TIMEOUT",
+            "SMP:BRINGUP:STOPPED",
+            "SMP:ONLINE:1/4",
+            "SMP:SYNC:PASS:CPUS=1",
+            "SMP:IPI:PASS:ROUNDS=3:CPUS=1",
+            "SMP:SHOOTDOWN:PASS:CPUS=1",
+            "SMP:SHOOTDOWN:VISIBLE:CPUS=1",
+            "SMP:PREEMPT:PASS:CPUS=1",
+            "SMP:SPIN:PASS:CPUS=1",
+            "SMP:SCHED:PASS:CPUS=1",
+            "SMP:PARKED:APS=0",
+            "SMP:LOCKDEP:PASS",
+            "M2:PASS",
+            "M1:PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "kernel_feature": "test-smp-ap-mismatch",
+      "passed": true,
+      "source_sha256": "f76bde09f358a91bbd4c1d9664d83ff69b36fc7b62a9cf42051520521c7c1f90",
+      "manifest_sha256": "f536e397ab3ad6ed161eb3d911706cc17cffb7212c70a1e9d58b04bade6d77b7",
+      "kernel_elf_sha256": "c891642c363d5f0dd88b43b81727d72b144d02a938ea9c96bc5261f7f61b145d",
+      "loader_sha256": "a63b83d939404bf327c3d7f105c7c0f0bd29cfd71c6c9f2c626c30a578de1afb",
+      "cases": [
+        {
+          "case": "ap-mismatch",
+          "cpus": 4,
+          "tcg_threads": "multi",
+          "passed": true,
+          "raw_qemu_exit": 33,
+          "timed_out": false,
+          "duration_s": 2.0,
+          "serial_sha256": "51744b18a6716a85291e8c1412c0fb418a9e412431b1d5301c95e67c4d271272",
+          "smp_lines": [
+            "SMP:MADT:CPUS=4:DISABLED=0:HOTPLUG=0",
+            "SMP:AP:1:MISMATCH",
+            "SMP:BRINGUP:STOPPED",
+            "SMP:ONLINE:1/4",
+            "SMP:SYNC:PASS:CPUS=1",
+            "SMP:IPI:PASS:ROUNDS=3:CPUS=1",
+            "SMP:SHOOTDOWN:PASS:CPUS=1",
+            "SMP:SHOOTDOWN:VISIBLE:CPUS=1",
+            "SMP:PREEMPT:PASS:CPUS=1",
+            "SMP:SPIN:PASS:CPUS=1",
+            "SMP:SCHED:PASS:CPUS=1",
+            "SMP:PARKED:APS=0",
+            "SMP:LOCKDEP:PASS",
+            "M2:PASS",
+            "M1:PASS"
+          ]
+        }
+      ]
+    }
+  ]
+}

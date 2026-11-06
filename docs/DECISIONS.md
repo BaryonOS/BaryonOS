@@ -82,6 +82,34 @@ vrijgeven loopt `switches` weer op. Het negatieve profiel
 0x10. Lokaal: serial-oracle en kernelbuilds. **Native QEMU staat open**
 (`native-smp.yml`).
 
+**Aanvulling stap 5d-1 (6 november 2026): runqueues per AP en CR3-wissel (spec
+§6.1–6.4).** Stap 5d is gesplitst. Ring-3-processen op AP's (5d-2) vereisen eerst de
+KERNEL-lock om M3 en een scratchslot per CPU (5b-2). Zonder die lock muteren twee
+CPU's de M3-staat en het ene globale scratchslot tegelijk (INV-2). 5d-1 bouwt de
+schedulerkern met kernelthreads:
+- `smp_lock::sched`: FIFO-`RunQueue` met vaste capaciteit en een statuswoord per
+  thread. Een thread komt alleen op CPU *c* via CAS READY → RUNNING(*c*) (INV-3);
+  teruggeven gaat via RUNNING(*c*) → READY (Release, na het opslaan van RSP). Een
+  mislukte CAS of een volle queue geeft `SMP:SCHED:DOUBLE_RUN` en stopt.
+- `sched_switch` draait in het timerpad, ná het 5c-uitstel, dus met lege lockdep
+  (INV-7). Het houdt alleen RUNQ (niveau 40) vast, voor de overdracht en de
+  CR3-wissel, en geeft die vóór IRETQ terug.
+- Adresruimtewissel volgens §6.3: `ACTIVE[nieuw] |= c` → `mov cr3` →
+  `ACTIVE[oud] &= !c`, met SeqCst (INV-4). De testruimten zijn PML4-kopieën van de
+  kernel-root: zelfde kernelhelft, geen user-mappings. *shortcut: de twee rootframes
+  worden niet vrijgegeven; echte procesruimten komen in 5d-2.*
+- Vector 0xe8 (wekken): de stub telt en neemt het timerpad. `arch::smp_gate` laat
+  0xe8 toe, als supervisorgate.
+- Geen FXSAVE in deze wissel: kernelthreads zijn soft-float. FPU-context hoort bij
+  ring-3 in 5d-2 (ADR-045).
+
+Bewijs: `SMP:SCHED:PASS:CPUS=n` na `SMP:SPIN:PASS`. Twee threads per AP, één per
+ruimte; de tweede wordt cross-CPU gewekt met 0xe8. Elke AP wisselt ten minste 4× van
+CR3, en elke thread controleert met IF=0 zijn CR3 en zijn `ACTIVE`-bit. Na STOP staat
+iedere AP thuis onder de kernel-CR3, is `ACTIVE` leeg en staat de voortgang stil. Het
+negatieve profiel `test-smp-double-run` zet thread 0 in twee queues en moet de marker
+geven, met exit 0x10. Native lokaal: zie `docs/verification/k06-smp-sched/`.
+
 **Alternatieven overwogen.** De bestaande TTAS-lock: vervangen, omdat die
 niet FIFO is en onder TCG kan uithongeren. Lockdep alleen in debugbuilds:
 verworpen, omdat de native gate releasebuilds draait.

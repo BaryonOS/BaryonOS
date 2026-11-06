@@ -348,7 +348,8 @@ onbereikbaar, maar het contract geldt vooruit.
 | 5b-2 | `KERNEL`-lock om alle M3-syscalls; scratchslot per CPU; ADR-075 | M3-entrypoint, paging-scratchcode, `docs/DECISIONS.md` | volle `milestone-m2`- en M3-regressie op 1 CPU, ongewijzigd |
 | 5c | Preëmptie uitgesteld zolang lockdep niet leeg is (vastgehouden of bewaakte lock); `HELD_ACROSS_SWITCH` bij schending (aanvulling ADR-074) | `smp.rs` | lockfixture in `SMP:PREEMPT:PASS`; `test-smp-held-across-switch` → marker |
 | 5c-2 | BSP LAPIC-timer + idle met `sti; hlt`; PIT blijft de klok | `smp.rs`, idle-lus | `native-rtc` 5/5, monotone-klokcheck, BSP-preëmptiecanary |
-| 5d | Runqueues per CPU; gebruikersprocessen op AP's; CR3-wissel §6.3; 0xe8 | M3-scheduler, `smp.rs` | K05 6/6 op 4 vCPU's; `SMP:SCHED:CPUS=n` met user-werk op elke CPU |
+| 5d(-1) | Runqueues per AP, threadstatus-CAS (INV-3), 0xe8-wekken, CR3-wissel §6.3 met `active_cpus` (INV-4), met kernelthreads in twee adresruimten (aanvulling ADR-074) | `crates/smp-lock` (`sched`), `smp.rs` | `SMP:SCHED:PASS:CPUS=n`; `test-smp-double-run` → `SMP:SCHED:DOUBLE_RUN` |
+| 5d-2 | Ring-3-processen op AP's met dezelfde kern (na 5b-2 en 5c-2; INV-2) | M3-scheduler, `smp.rs` | K05 6/6 op 4 vCPU's; `SMP:SCHED:CPUS=n` met user-werk op elke CPU |
 | 5e | Procesbrede shootdown §7.1/7.2 | paging/unmap, cleanup | dove-AP-negatief, controle zonder shootdown (moet stale-read tonen) |
 | 5f | Migratiefixture + concurrente stress + K06-acceptatie | testfixtures, `tools/run_smp.py`, `docs/verification/k06-smp-sched/` | §9 compleet; progress K06 → accepted |
 

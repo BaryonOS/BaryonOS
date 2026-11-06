@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
-**Bron:** [`bdcced5e`](https://github.com/simonvanieperen/nieuw-os/commit/bdcced5e28dd33a6aa27ea50b2c45616ac0e64f2) ·
-**Ontwikkelbranch:** `feat/k06-5c-preempt-lock`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5c: geen preëmptie met een vastgehouden of bewaakte KERNEL/ASPACE-lock (aanvulling ADR-074).
-41/100 blijft 41/100. K06 stap 5c stelt een timerwissel uit zolang de lockdepset van een CPU niet leeg is, en stopt met SMP:LOCKDEP:HELD_ACROSS_SWITCH bij een schending. Er zijn een native fixture in SMP:PREEMPT:PASS en een negatief profiel. Native QEMU-bewijs is nog niet uitgevoerd en K06 vraagt een volledige SMP-scheduler (5b-2, 5c-2 t/m 5f), dus K06 blijft open.
+**Bron:** [`7079f788`](https://github.com/simonvanieperen/nieuw-os/commit/7079f788c4b334dc9843c7559cc629e834efaa02) ·
+**Ontwikkelbranch:** `feat/k06-5d-runqueues`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5d-1: runqueues per AP, threadstatus-CAS, 0xe8-wekken en CR3-wissel met active_cpus (kernelthreads; aanvulling ADR-074).
+41/100 blijft 41/100. K06 stap 5d-1 voegt de SMP-schedulerkern toe: runqueue per AP, dispatch via CAS (INV-3), wekken over CPU's heen met 0xe8 en een CR3-wissel met active_cpus (INV-4). Bewezen met kernelthreads in twee adresruimten; lokaal native QEMU 18/18 over 13 SMP-profielen. K06 blijft open: ring-3-processen op AP's (5d-2, na 5b-2), BSP-timer (5c-2), procesbrede shootdown (5e) en stress/migratie (5f) ontbreken, en CI is niet gedraaid.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
