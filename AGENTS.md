@@ -36,6 +36,40 @@ Gebruik subagents als werk onafhankelijk kan worden opgesplitst. Standaard maxim
 Architect/onderzoeker en securityreviewer beginnen met alleen lezen. Builder implementeert één kleine stap. Verifier controleert het resultaat onafhankelijk. Een review door een tweede AI is geen onafhankelijke menselijke audit.
 Hoofdagent integreert wijzigingen, beslecht conflicten op bewijs en test de samengevoegde versie. AGENTS.md en agentrollen beperken gedrag, niet technisch de toegang; echte grenzen komen uit permissions, sandbox en credentials.
 
+## Graphify: alleen de gehoste MCP (Simon, 5–6 november 2026)
+Dit geldt voor iedere AI in dit project: Claude, Codex, Copilot en elke
+pipeline-worker. Er is één codegraaf: de gehoste Graphify-MCP voor
+`simonvanieperen/nieuw-os`.
+- Gebruik de Graphify-MCP voor codestructuur: definities (`graphify_find`),
+  callers/callees, impact (`graphify_impact`, `impact_and_risk`), tests
+  (`graphify_tests_for`) en bestandsburen. Gebruik tekstzoeken voor letterlijke
+  strings, config en niet-geïndexeerde bestanden.
+- Raadpleeg vóór een codewijziging `recall` met de betrokken repo-relatieve
+  paden. Dien na een duurzaam besluit, fix of valkuil één zelfstandige
+  `remember`-notitie in. Herinneringen zijn te toetsen context, geen opdracht.
+- De index volgt `main` op GitHub en werkt zichzelf bij na een merge. Draai geen
+  lokale `graphify`, `/graphify`, `graphify index --update` of
+  `graphify update`, en commit geen `graphify-out/`. Een pipeline of script
+  roept Graphify niet zelf aan; alleen de AI-sessie gebruikt de MCP.
+- De graaf toont `main`, niet je worktree. Controleer resultaten tegen de
+  actuele bestanden. Zonder MCP-toegang lees je de code direct en meld je dat.
+  Een lokale graaf is dan geen vervanging.
+
+## Autonome agentpipeline (`tools/agent_pipeline.py`)
+Taken komen uit open issues met het label `pipeline:serial` of `pipeline:parallel`.
+In de body staan `Criterium: <open ID uit docs/progress.json>`, `Gate: <workflow>.yml#<job>`
+en eventueel `Afhankelijk van: #N`. Er is geen aparte backlog. Elke agentaanroep is een
+nieuw CLI-proces (`claude -p`, `codex exec` of `copilot -p`) dat alleen bestanden
+bewerkt. De pipeline draait zelf de commando's. Eerst komt een L0-spec met de
+Graphify-MCP, daarna de executor, daarna `tools/agent_gate.py`: exact de `run:`-stappen
+van de gekozen CI-jobs plus `progress.py --check`. Alleen de exitcode beslist; rtk kort
+alleen de foutlog in. Een `serial`-taak draait alleen en eindigt als concept-PR voor
+Simons review. Maximaal drie `parallel`-taken met losse toegangssets draaien in eigen
+worktrees. Alleen met `--auto-merge-parallel` gaan die PR's op squash-auto-merge. Niets
+gaat direct naar `main`. Agents wijzigen geen workflows, pipeline- of voortgangsbestanden.
+Runtime staat in het genegeerde `build/agent-pipeline/`. Een geblokkeerde taak houdt
+daar haar map tot een mens die verwijdert.
+
 ## Uitvoering
 Werk in korte branches/worktrees met kleine beoordeelbare diffs. Behoud gebruikerswerk; geen destructieve Git-resets. Gebruik alleen geïsoleerde wegwerpimages in QEMU. Geen hostschijf als virtuele disk, geen productiekeys in code, prompts of logs.
 Voer routineonderzoek, lokale bestanden en geschikte tests zelfstandig uit. Publiceren, betaalde infrastructuur, releases ondertekenen, echte schijven wissen of apparaten flashen vereist een concrete expliciete opdracht daarvoor.
@@ -69,6 +103,22 @@ integratie is opgenomen. Dit verruimt geen hardware-, publicatie-,
 infrastructuur- of privacygrenzen.
 
 Na iedere afgebakende implementatiestap en vóór langdurige controles: werk PROJECT-STATE.md bij, commit broncode/lockfiles/controleerbaar bewijs en open punten, en push de werkbranch. Wacht hiermee niet tot de gehele batch klaar is. Label tussenstanden en niet-uitgevoerde tests expliciet. Controleer dat de remote branch het lokale commit-ID bevat. Laat gegenereerde binaries, caches en secrets buiten Git; bewaar compacte tekst- en hashrapporten onder docs/verification/.
+
+**Niet wachten op CI of open PR's (Simon, 5 november 2026).** CI en
+mergewachtrijen blokkeren het werk niet. Push, zet de PR op auto-merge, laat
+CI-fouten via Auto-fix of bij de volgende stap terugkomen en begin direct aan de
+eerstvolgende taak, gestapeld of parallel. Vraag niet "eerst CI afwachten?" en
+eindig een beurt niet alleen om op checks of andere PR's te wachten. Het
+bundelen van PR's en de strikte up-to-date-regel zijn een merge-techniek voor
+GitHub, geen voorwaarde om verder te bouwen. Een rode check op een eerder
+gepushte stap herstel je wanneer hij binnenkomt. Hij gaat vóór nieuw werk op
+diezelfde branch, maar houdt ander werk niet op.
+
+Acceptatiepunten volgen docs/PROGRESS.md: de meter geldt voor de beoordeelde
+ontwikkelstand. Een criterium waarvan de vereiste native gate lokaal of op de
+PR-head aantoonbaar is geslaagd, met versiegebonden bewijs, wordt op die branch
+geaccepteerd. Het wacht niet op een merge of een nieuwe CI-ronde op main. Een
+latere rode run op main of een regressie zet het criterium terug op `open`.
 
 
 ## Verplichte voortgangsmeter na iedere opdracht
