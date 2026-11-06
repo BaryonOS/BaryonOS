@@ -35,6 +35,11 @@ def wake_kill(count):
     return [f"SMP:WAKE:{status}:CPUS={count}", f"SMP:KILL:{status}:CPUS={count}"]
 
 
+def icr(count):
+    """Audit F19: the AP1/AP2 exchange needs two APs."""
+    return f"SMP:ICR:PASS:ROUNDS=10000:CPUS={count}" if count >= 3 else f"SMP:ICR:SKIPPED:CPUS={count}"
+
+
 def online(cpus):
     count = min(cpus, MAX_CPUS)
     return started(cpus) + [f"SMP:IPI:PASS:ROUNDS=3:CPUS={count}",
@@ -44,7 +49,7 @@ def online(cpus):
                             f"SMP:SPIN:PASS:CPUS={count}",
                             f"SMP:SCHED:PASS:CPUS={count}"] + wake_kill(count) + [
                             f"SMP:SCRATCH:PASS:CPUS={count}",
-                            f"SMP:LOCKPAIR:PASS:CPUS={count}",
+                            f"SMP:LOCKPAIR:PASS:CPUS={count}", icr(count),
                             f"SMP:PARKED:APS={count - 1}"] + END
 
 
@@ -54,7 +59,7 @@ def failed(status):
             "SMP:IPI:PASS:ROUNDS=3:CPUS=1", "SMP:SHOOTDOWN:PASS:CPUS=1",
             "SMP:SHOOTDOWN:VISIBLE:CPUS=1", "SMP:PREEMPT:PASS:CPUS=1", "SMP:SPIN:PASS:CPUS=1",
             "SMP:SCHED:PASS:CPUS=1"] + wake_kill(1) + [
-            "SMP:SCRATCH:PASS:CPUS=1", "SMP:LOCKPAIR:PASS:CPUS=1",
+            "SMP:SCRATCH:PASS:CPUS=1", "SMP:LOCKPAIR:PASS:CPUS=1", icr(1),
             "SMP:PARKED:APS=0"] + END
 
 
@@ -67,7 +72,7 @@ SHOOTDOWN_DEAF = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:TI
 STALE_CONTROL = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:SKIPPED",
                               "SMP:SHOOTDOWN:STALE:APS=3", "SMP:PREEMPT:PASS:CPUS=4",
                               "SMP:SPIN:PASS:CPUS=4", "SMP:SCHED:PASS:CPUS=4"] + wake_kill(4) + [
-                              "SMP:SCRATCH:PASS:CPUS=4", "SMP:LOCKPAIR:PASS:CPUS=4",
+                              "SMP:SCRATCH:PASS:CPUS=4", "SMP:LOCKPAIR:PASS:CPUS=4", icr(4),
                               "SMP:PARKED:APS=3"] + END
 LOCKDEP_ORDER = online(2)[:-2] + ["SMP:LOCKDEP:ORDER:30->10"]
 TIMER_DEAD = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:PASS:CPUS=4",
@@ -80,18 +85,22 @@ SPIN_DEAF = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:PASS:CP
 HELD_ACROSS = started(2) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=2", "SMP:SHOOTDOWN:PASS:CPUS=2",
                             "SMP:SHOOTDOWN:VISIBLE:CPUS=2", "SMP:LOCKDEP:HELD_ACROSS_SWITCH"]
 # BW-2 (audit F17): the second push of thread 0 is refused at the push itself.
-DOUBLE_RUN = online(4)[:-8] + ["SMP:SCHED:DOUBLE_ENQUEUE"]
+DOUBLE_RUN = online(4)[:-9] + ["SMP:SCHED:DOUBLE_ENQUEUE"]
 # Step 5b-2 control: every CPU in scratch slot 0; any CPU may see the crossing.
-SHARED = online(4)[:-5] + ["SMP:SCRATCH:CROSS:CPU=2"]
+SHARED = online(4)[:-6] + ["SMP:SCRATCH:CROSS:CPU=2"]
 # Audit F3 (LD-1): the first 0xe8 handler takes KERNEL, in the scheduler phase.
-LOCK_IN_HANDLER = online(2)[:-8] + ["SMP:LOCKDEP:IN_HANDLER:10"]
+LOCK_IN_HANDLER = online(2)[:-9] + ["SMP:LOCKDEP:IN_HANDLER:10"]
 # Audit F4 (LD-3): two ASPACE locks taken loose and descending, after scratch.
-LOCKPAIR_ORDER = online(2)[:-4] + ["SMP:LOCKDEP:ORDER:20->20"]
+LOCKPAIR_ORDER = online(2)[:-5] + ["SMP:LOCKDEP:ORDER:20->20"]
 # Audit F8: the ring-3 GS fixture runs after the scheduler phase (CR4 = 104 is
 # DE|PAE|MCE as printed under OVMF/TCG; only FSGSBASE, bit 16, is checked).
 # BW-3: the kill target on AP3 (APIC 3) ignores 0xe8; INV-5 quarantine follows.
-RESCHED_DEAF = online(4)[:-6] + ["SMP:KILL:TIMEOUT:APIC=3", "SMP:QUARANTINED:APS=3",
+RESCHED_DEAF = online(4)[:-7] + ["SMP:KILL:TIMEOUT:APIC=3", "SMP:QUARANTINED:APS=3",
                                  "SMP:ONLINE:1/4"] + END
+# Audit F19 control: without the ICR lock AP1's 0xe8 is carried to AP1 itself.
+ICR_RACE = online(4)[:-4] + ["SMP:ICR:MISROUTED"]
+# Audit F15 (IQ-3): AP2 is deaf holding KERNEL; the BSP stops instead of INIT.
+LOCK_HELD = started(4) + ["SMP:IPI:TIMEOUT:APIC=2", "SMP:QUARANTINE:LOCK_HELD:10:CPU=2"]
 GS_USER = online(4)[:-3] + ["SMP:GS:CR4=104", "SMP:GS:PASS:CPUS=4"] + online(4)[-3:]
 GS_IRET = online(4)[:-3] + ["SMP:GS:CR4=104", "SMP:GS:IRET_FIXUP:PASS"]
 GS_NMI = online(4)[:-3] + ["SMP:GS:CR4=104", "SMP:FAULT:AP_NMI_IST:PASS"]
@@ -107,7 +116,8 @@ VALID = {
     "double-run": DOUBLE_RUN, "gs-user": GS_USER, "gs-iret-fault": GS_IRET,
     "gs-nmi-user": GS_NMI, "shared-scratch": SHARED,
     "lock-in-handler": LOCK_IN_HANDLER, "lockpair-order": LOCKPAIR_ORDER,
-    "resched-deaf": RESCHED_DEAF,
+    "resched-deaf": RESCHED_DEAF, "icr-race-control": ICR_RACE,
+    "quarantine-lock-held": LOCK_HELD,
 }
 
 
@@ -253,7 +263,7 @@ class SmpSerialOracle(unittest.TestCase):
             ("resched-deaf", online(4)),                                   # kill not deaf
             ("resched-deaf", [line for line in RESCHED_DEAF if "QUARANTINED" not in line]),
             ("resched-deaf", [line.replace("APIC=3", "APIC=1") for line in RESCHED_DEAF]),
-            ("resched-deaf", online(4)[:-6] + ["SMP:KILL:PASS:CPUS=4"] + RESCHED_DEAF[-5:]),
+            ("resched-deaf", online(4)[:-7] + ["SMP:KILL:PASS:CPUS=4"] + RESCHED_DEAF[-5:]),
         ):
             with self.subTest(case=case, lines=lines[-6:]), self.assertRaises(ValueError):
                 evaluate(case, transcript(lines), 33, False)
@@ -315,13 +325,43 @@ class SmpSerialOracle(unittest.TestCase):
                       for line in online(4)]),
             ("lock-in-handler", online(2)),                              # not detected
             ("lock-in-handler", LOCK_IN_HANDLER[:-1] + ["SMP:LOCKDEP:IN_HANDLER:20"]),
-            ("lock-in-handler", online(2)[:-5] + LOCK_IN_HANDLER[-1:]),  # after KILL:PASS
+            ("lock-in-handler", online(2)[:-6] + LOCK_IN_HANDLER[-1:]),  # after KILL:PASS
             ("lockpair-order", online(2)),                               # pair order missed
             ("lockpair-order", LOCKPAIR_ORDER[:-1] + ["SMP:LOCKDEP:ORDER:30->10"]),
             ("lockpair-order", LOCKPAIR_ORDER + END),
         ):
             with self.subTest(case=case, lines=lines[-3:]), self.assertRaises(ValueError):
                 evaluate(case, transcript(lines), 33, False)
+
+    def test_icr_exchange_is_required_and_its_controls_stay_terminal(self):
+        # Audit F19/F15: every run with two APs proves the ICR exchange; the race
+        # control must report the misrouted IPI, and a deaf AP holding a lock
+        # must stop the system instead of being reset.
+        for case, lines in (
+            ("four", [line for line in online(4) if "SMP:ICR:" not in line]),
+            ("four", [line.replace("ICR:PASS:ROUNDS=10000:CPUS=4", "ICR:SKIPPED:CPUS=4")
+                      for line in online(4)]),
+            ("four", [line.replace("ROUNDS=10000:CPUS=4", "ROUNDS=9999:CPUS=4") for line in online(4)]),
+            ("four", ICR_RACE),
+            ("two-single", [line.replace("ICR:SKIPPED:CPUS=2", "ICR:PASS:ROUNDS=10000:CPUS=2")
+                            for line in online(2)]),
+            ("icr-race-control", online(4)),                             # race not seen
+            ("icr-race-control", ICR_RACE[:-1] + ["SMP:ICR:TIMEOUT"]),
+            ("four", ICR_RACE[:-1] + ["SMP:ICR:LOST"]),
+            ("icr-race-control", ICR_RACE + END),
+            ("quarantine-lock-held", DEAF),                              # INIT despite KERNEL
+            ("quarantine-lock-held", LOCK_HELD[:-1] + ["SMP:QUARANTINE:LOCK_HELD:40:CPU=2"]),
+            ("quarantine-lock-held", LOCK_HELD[:-1] + ["SMP:QUARANTINE:LOCK_HELD:10:CPU=1"]),
+            ("quarantine-lock-held", LOCK_HELD + ["SMP:QUARANTINED:APS=3", "SMP:ONLINE:1/4"] + END),
+            ("ap-ipi-deaf", LOCK_HELD),
+        ):
+            with self.subTest(case=case, lines=lines[-3:]), self.assertRaises(ValueError):
+                evaluate(case, transcript(lines), 33, False)
+
+    def test_icr_race_accepts_misrouted_or_lost(self):
+        for marker in ("SMP:ICR:MISROUTED", "SMP:ICR:LOST"):
+            lines = ICR_RACE[:-1] + [marker]
+            self.assertEqual(evaluate("icr-race-control", transcript(lines), 33, False)["online"], 4)
 
     def test_lock_self_test_is_required_and_terminal_order_is_exact(self):
         for case, text in (

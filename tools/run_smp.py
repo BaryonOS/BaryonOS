@@ -10,6 +10,7 @@ from run import run_guest, is_success
 
 MAX_CPUS = 8  # kernel/src/m2/smp.rs MAX_CPUS
 IPI_ROUNDS = 3  # kernel/src/m2/smp.rs IPI_ROUNDS
+ICR_ROUNDS = 10000  # kernel/src/m2/smp.rs ICR_ROUNDS
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "KS-03:PASS")
 END = ("M2:PASS", "M1:PASS")
 FORBIDDEN = ("FAIL", "PANIC")
@@ -43,6 +44,8 @@ CASES = {
     "lock-in-handler": ("test-smp-lock-in-handler", 2, "multi", "lock-in-handler"),
     "lockpair-order": ("test-smp-lockpair-order", 2, "multi", "lockpair-order"),
     "resched-deaf": ("test-smp-resched-deaf", 4, "multi", "kill-quarantine"),
+    "icr-race-control": ("test-smp-icr-race", 4, "multi", "icr-race"),
+    "quarantine-lock-held": ("test-smp-quarantine-lock-held", 4, "multi", "lock-held"),
 }
 QUARANTINE_OUTCOMES = ("invalid-madt", "timeout", "mismatch", "quarantine", "shootdown-quarantine",
                        "timer-quarantine", "spin-quarantine", "kill-quarantine")
@@ -54,12 +57,17 @@ TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_I
             "gs-nmi-user": "SMP:FAULT:AP_NMI_IST:PASS",
             "shared-scratch": "SMP:SCRATCH:CROSS:CPU=*",
             "lock-in-handler": "SMP:LOCKDEP:IN_HANDLER:10",
-            "lockpair-order": "SMP:LOCKDEP:ORDER:20->20"}
+            "lockpair-order": "SMP:LOCKDEP:ORDER:20->20",
+            "icr-race": "SMP:ICR:*",
+            "lock-held": "SMP:QUARANTINE:LOCK_HELD:10:CPU=2"}
 # Audit F8: the GS fixture prints the runtime CR4 (decimal); FSGSBASE (bit 16)
 # must be clear, the value itself may differ per firmware.
 GS_CR4 = "SMP:GS:CR4=*"
 # Step 5b-2: which CPU first sees the shared slot crossed varies per run.
 SCRATCH_CROSS = re.compile(r"SMP:SCRATCH:CROSS:CPU=([0-9])")
+# Audit F19 control: AP1's 0xe8 lands on AP1 itself (MISROUTED), or merges
+# there with AP2's pending one (LOST); either shows the replaced destination.
+ICR_RACE_SEEN = ("SMP:ICR:MISROUTED", "SMP:ICR:LOST")
 # Step 5a: the BSP lock self-test after smp::start, on every non-terminal path.
 LOCKDEP_PASS = "SMP:LOCKDEP:PASS"
 
@@ -89,8 +97,10 @@ def expected_smp(case: str) -> list[str]:
     def settled(online: int) -> list[str]:
         """Sync, IPI rounds, shootdown + visibility, preemption, spin, scheduler,
         block/wake ping-pong and kill (skipped without APs), per-CPU scratch
-        slots under KERNEL, lock_pair rounds, park."""
+        slots under KERNEL, lock_pair rounds, the AP1/AP2 ICR exchange (skipped
+        below two APs), park."""
         bw = "SKIPPED" if online == 1 else "PASS"
+        icr = f"SMP:ICR:PASS:ROUNDS={ICR_ROUNDS}" if online >= 3 else "SMP:ICR:SKIPPED"
         return [f"SMP:SYNC:PASS:CPUS={online}",
                 f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={online}",
                 f"SMP:SHOOTDOWN:PASS:CPUS={online}",
@@ -102,6 +112,7 @@ def expected_smp(case: str) -> list[str]:
                 f"SMP:KILL:{bw}:CPUS={online}",
                 f"SMP:SCRATCH:PASS:CPUS={online}",
                 f"SMP:LOCKPAIR:PASS:CPUS={online}",
+                f"{icr}:CPUS={online}",
                 f"SMP:PARKED:APS={online - 1}"]
 
     if outcome in ("timeout", "mismatch"):
@@ -126,20 +137,24 @@ def expected_smp(case: str) -> list[str]:
         return lines + settled(started)[:-1] + [GS_CR4, TERMINAL[outcome]]
     if outcome == "double-run":
         # BW-2 (audit F17): thread 0 pushed onto a second AP; the push refuses.
-        return lines + settled(started)[:-6] + [TERMINAL[outcome]]
+        return lines + settled(started)[:-7] + [TERMINAL[outcome]]
     if outcome == "shared-scratch":
         # Step 5b-2 control: one slot for every CPU must be caught crossing.
-        return lines + settled(started)[:-3] + [TERMINAL[outcome]]
+        return lines + settled(started)[:-4] + [TERMINAL[outcome]]
     if outcome == "lock-in-handler":
         # Audit F3 (LD-1): the first 0xe8 handler takes KERNEL in the scheduler phase.
-        return lines + settled(started)[:-6] + [TERMINAL[outcome]]
+        return lines + settled(started)[:-7] + [TERMINAL[outcome]]
     if outcome == "kill-quarantine":
         # BW-3: the kill target (thread 2 on AP slot 2 = APIC 3) ignores 0xe8.
-        return lines + settled(started)[:-4] + ["SMP:KILL:TIMEOUT:APIC=3",
+        return lines + settled(started)[:-5] + ["SMP:KILL:TIMEOUT:APIC=3",
                                                 f"SMP:QUARANTINED:APS={started - 1}",
                                                 f"SMP:ONLINE:1/{cpus}"]
     if outcome == "lockpair-order":
         # Audit F4 (LD-3): two ASPACE locks taken loose and descending, after scratch.
+        return lines + settled(started)[:-3] + [TERMINAL[outcome]]
+    if outcome == "icr-race":
+        # Audit F19 control: without the ICR lock a 0xd0 between ICR high and
+        # low carries AP1's 0xe8 to AP1 itself.
         return lines + settled(started)[:-2] + [TERMINAL[outcome]]
     lines += [f"SMP:SYNC:PASS:CPUS={started}"]
     ipi_pass = f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={started}"
@@ -166,6 +181,7 @@ def expected_smp(case: str) -> list[str]:
                         f"SMP:KILL:PASS:CPUS={started}",
                         f"SMP:SCRATCH:PASS:CPUS={started}",
                         f"SMP:LOCKPAIR:PASS:CPUS={started}",
+                        f"SMP:ICR:PASS:ROUNDS={ICR_ROUNDS}:CPUS={started}",
                         f"SMP:PARKED:APS={started - 1}"]
     if outcome == "spin-quarantine":
         # Without the interrupt window a CPU waiting for KERNEL is deaf.
@@ -174,6 +190,9 @@ def expected_smp(case: str) -> list[str]:
                         f"SMP:PREEMPT:PASS:CPUS={started}",
                         "SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=1",
                         f"SMP:QUARANTINED:APS={started - 1}", f"SMP:ONLINE:1/{cpus}"]
+    if outcome == "lock-held":
+        # Audit F15 (IQ-3): AP2 is deaf while it holds KERNEL; stop, no INIT report.
+        return lines + ["SMP:IPI:TIMEOUT:APIC=2", TERMINAL[outcome]]
     if outcome == "quarantine":
         return lines + ["SMP:IPI:TIMEOUT:APIC=1", f"SMP:QUARANTINED:APS={started - 1}",
                         f"SMP:ONLINE:1/{cpus}"]
@@ -217,6 +236,8 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
         cr4 = re.fullmatch(r"SMP:GS:CR4=([0-9]{1,20})", line)
         if cr4 and int(cr4[1]) & (1 << 16) == 0:
             line = GS_CR4
+        if line in ICR_RACE_SEEN:
+            line = TERMINAL["icr-race"]
         cross = SCRATCH_CROSS.fullmatch(line)
         if cross and int(cross[1]) < min(cpus, MAX_CPUS):
             line = TERMINAL["shared-scratch"]
@@ -257,7 +278,9 @@ def run(cases: tuple[str, ...]) -> dict:
                         "block/wake ping-pong and a bounded kill across APs (queued bit), a ring-3 "
                         "GS fixture per AP in test-smp-gs-* profiles (swapgs discipline), a "
                         "scratch slot per CPU plus the KERNEL lock under contention, ASPACE lock_pair "
-                        "rounds on every CPU (KERNEL/ASPACE refused in handlers), and BSP "
+                        "rounds on every CPU (KERNEL/ASPACE refused in handlers), an AP1/AP2 0xe8 "
+                        "exchange with IPIs from the handler under a per-CPU ICR lock, a stop "
+                        "instead of INIT for a deaf AP that holds a lock, and BSP "
                         "ticket-lock/lockdep self-test in "
                         "QEMU/TCG; no ring-3 processes (M3) on APs, no hardware evidence"),
               "cases": []}
