@@ -134,9 +134,14 @@ fn panic(info: &core::panic::PanicInfo<'_>) -> ! {
             *digit = b'0' + (n % 10) as u8;
             n /= 10;
         }
-        serial::write(b"M2:PANIC_LINE:");
-        serial::write(&digits);
-        serial::write(b"\n");
+        // DG-2: a terminal line, whole and without waiting for SERIAL.
+        let mut line = serial::Line::new();
+        serial::write_terminal(
+            line.push(b"M2:PANIC_LINE:")
+                .push(&digits)
+                .push(b"\n")
+                .as_bytes(),
+        );
     }
     #[cfg(not(feature = "milestone-m2"))]
     let _ = info;

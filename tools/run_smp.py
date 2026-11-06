@@ -49,6 +49,8 @@ CASES = {
     "bsp-spin-irq-off-control": ("test-smp-bsp-spin-irq-off", 4, "multi", "bsp-spin-timeout"),
     "proc-shootdown-deaf": ("test-smp-proc-shootdown-deaf", 4, "multi", "proc-shootdown-quarantine"),
     "proc-no-shootdown-control": ("test-smp-proc-no-shootdown", 4, "multi", "proc-stale-read"),
+    "lock-stuck": ("test-smp-lock-stuck", 2, "multi", "lock-stuck"),
+    "serial-unlocked-control": ("test-smp-serial-unlocked", 4, "multi", "serial-torn"),
 }
 QUARANTINE_OUTCOMES = ("invalid-madt", "timeout", "mismatch", "quarantine", "shootdown-quarantine",
                        "timer-quarantine", "spin-quarantine", "kill-quarantine",
@@ -65,7 +67,8 @@ TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_I
             "icr-race": "SMP:ICR:*",
             "lock-held": "SMP:QUARANTINE:LOCK_HELD:10:CPU=2",
             "bsp-spin-timeout": "SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=0",
-            "proc-stale-read": "SMP:SHOOTDOWN:STALE_READ"}
+            "proc-stale-read": "SMP:SHOOTDOWN:STALE_READ",
+            "lock-stuck": "SMP:LOCK:STUCK:10:CPU=1"}
 # Audit F8: the GS fixture prints the runtime CR4 (decimal); FSGSBASE (bit 16)
 # must be clear, the value itself may differ per firmware.
 GS_CR4 = "SMP:GS:CR4=*"
@@ -84,6 +87,43 @@ RATIO_BAND = range(50_000, 75_001)
 # The BSP's 0xe8 wake latency in microseconds; the kernel stops at >= 100 ms.
 IDLE_WAKE = "SMP:IDLE:WAKE_US=*"
 IDLE_WAKE_LIMIT_US = 100_000
+
+# Audit F7 (DG-2): every CPU that ran the sync test writes these lines at once,
+# in fragments; each must arrive whole, in order per CPU, before SERIAL_PASS.
+SERIAL_LINES = 200  # kernel/src/m2/smp.rs SERIAL_LINES
+SERIAL_LINE = re.compile(r"SMP:SER:([0-9]):([0-9]{1,3})")
+SERIAL_PASS = "SMP:SERIAL:PASS"
+
+
+def serial_lines(lines: list[str], control: bool = False) -> tuple[list[str], dict[int, list[int]]]:
+    """Split the F7 fixture lines from the rest; a line that is not whole fails.
+
+    The fixture runs between the first SMP:ONLINE line and SERIAL_PASS; a line
+    that only contains a fixture line (two writers mixed) is torn. `control`
+    (no SERIAL lock): drop every fixture-phase line and require a torn one.
+    """
+    rest, seen, phase, torn = [], {}, "before", False
+    for line in lines:
+        # RATIO is written before GO, before any AP writes a fixture line.
+        if control and phase == "open" and line != SERIAL_PASS and not line.startswith("SMP:TIMER:RATIO:"):
+            torn |= SERIAL_LINE.fullmatch(line) is None
+            continue
+        if "SMP:SER:" in line:
+            match = SERIAL_LINE.fullmatch(line)
+            if match is None:
+                raise ValueError("Torn serial line: two CPUs mixed one marker")
+            if phase != "open":
+                raise ValueError("Serial fixture line outside its phase")
+            seen.setdefault(int(match[1]), []).append(int(match[2]))
+            continue
+        if phase == "before" and line.startswith("SMP:ONLINE:"):
+            phase = "open"
+        elif phase == "open" and line == SERIAL_PASS:
+            phase = "closed"
+        rest.append(line)
+    if control and not torn:
+        raise ValueError("Unlocked control showed no mixed line")
+    return rest, seen
 
 
 def duplicate_madt() -> bytes:
@@ -123,10 +163,11 @@ def expected_smp(case: str) -> list[str]:
         without APs), scheduler, block/wake ping-pong and kill (skipped without
         APs), per-CPU scratch slots under KERNEL, lock_pair rounds, the AP1/AP2
         ICR exchange (skipped below two APs), step 5e isolation and unmap race
-        in two real spaces (skipped without APs), park."""
+        in two real spaces (skipped without APs), park. The serial fixture
+        (audit F7) ends before sync."""
         bw = "SKIPPED" if online == 1 else "PASS"
         icr = f"SMP:ICR:PASS:ROUNDS={ICR_ROUNDS}" if online >= 3 else "SMP:ICR:SKIPPED"
-        return [RATIO,
+        return [RATIO, SERIAL_PASS,
                 f"SMP:SYNC:PASS:CPUS={online}",
                 f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={online}",
                 f"SMP:SHOOTDOWN:PASS:CPUS={online}",
@@ -153,7 +194,8 @@ def expected_smp(case: str) -> list[str]:
     if cpus > MAX_CPUS:
         lines.append(f"SMP:SKIPPED:CAPACITY={cpus - MAX_CPUS}")
     lines += [f"SMP:ONLINE:{started}/{cpus}"]
-    if outcome == "online":
+    if outcome in ("online", "serial-torn"):
+        # serial-torn (control, DG-2): without SERIAL the fixture must mix lines.
         return lines + settled(started)
     if outcome == "lockdep-order":
         # KERNEL(10) taken while FRAMES(30) is held: stop before the PASS line.
@@ -201,7 +243,10 @@ def expected_smp(case: str) -> list[str]:
     if outcome == "proc-stale-read":
         # Step 5e control: without the round AP1 reads the reused frame.
         return lines + settled(started)[:-2] + [TERMINAL[outcome]]
-    lines += [RATIO, f"SMP:SYNC:PASS:CPUS={started}"]
+    if outcome == "lock-stuck":
+        # Audit F5 (DG-1): the AP waiting for the BSP's lock reports it, release build.
+        return lines + settled(started)[:4] + [TERMINAL[outcome]]
+    lines += [RATIO, SERIAL_PASS, f"SMP:SYNC:PASS:CPUS={started}"]
     ipi_pass = f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={started}"
     if outcome == "held-across-switch":
         # Step 5c without deferral: the first tick in a lock wait switches threads.
@@ -262,6 +307,13 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
     profile, cpus, _, outcome = CASES[case]
     terminal = outcome in TERMINAL
     end = required_end(outcome)
+    # DG-2: `!` marks a terminal line written without SERIAL: only the last
+    # line of a terminal profile may carry it (the exact sequence checks it).
+    unlocked = stdout.splitlines()
+    if terminal and unlocked and unlocked[-1].startswith("!"):
+        stdout = "\n".join(unlocked[:-1] + [unlocked[-1][1:]]) + "\n"
+    if any(line.startswith("!") for line in stdout.splitlines()):
+        raise ValueError("Unlocked (!) serial line that is not the terminal marker")
     if not is_success(raw_exit, stdout, timed_out, required_markers=BOOT + end,
                       forbidden_markers=FORBIDDEN):
         raise ValueError("Native SMP boot/exit assertions failed")
@@ -279,8 +331,15 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
     if tuple(observed[:len(BOOT)]) != BOOT:
         raise ValueError("Unexpected boot prefix")
     expected = expected_smp(case)
+    control = outcome == "serial-torn"
+    body, seen = serial_lines(observed[len(BOOT):], control)
+    writers = next((int(m[1]) for m in (re.fullmatch(r"SMP:ONLINE:([0-9]+)/[0-9]+", line)
+                                        for line in body) if m), 0)
+    if not control and seen != {cpu: list(range(SERIAL_LINES))
+                                for cpu in range(writers if SERIAL_PASS in expected else 0)}:
+        raise ValueError("Serial fixture lines missing, duplicated or out of order")
     tail = []
-    for line in observed[len(BOOT):]:
+    for line in body:
         cr4 = re.fullmatch(r"SMP:GS:CR4=([0-9]{1,20})", line)
         if cr4 and int(cr4[1]) & (1 << 16) == 0:
             line = GS_CR4
@@ -338,7 +397,9 @@ def run(cases: tuple[str, ...]) -> dict:
                         "clock under load, calibrated LAPIC/PIT ratio, BSP preemption, BSP as "
                         "shootdown target while it spins on KERNEL, BSP idle wake and a "
                         "deferred 0xe8 honoured at lock release, per-process TLB shootdown aimed at "
-                        "active_cpus with isolation and an unmap race in two real spaces, and BSP "
+                        "active_cpus with isolation and an unmap race in two real spaces, whole serial "
+                        "lines under the SERIAL lock from every CPU at once (an unlocked control "
+                        "must mix), a time-bounded lock wait reported as STUCK in release builds, and BSP "
                         "ticket-lock/lockdep self-test in "
                         "QEMU/TCG; no ring-3 processes (M3) on APs, no hardware evidence"),
               "cases": []}

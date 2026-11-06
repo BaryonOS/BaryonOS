@@ -216,8 +216,8 @@ class GsDiscipline(unittest.TestCase):
         for path in M2.glob("*.rs"):
             uses = [line for block in asm_blocks(path) for line in block if "gs:" in line]
             self.assertEqual(bool(uses), path.name == "smp.rs", path.name)
-        self.assertIn('#[cfg(feature = "native-smp")]\nmod smp;',
-                      (M2.parent / "m2.rs").read_text(encoding="utf-8"))
+        self.assertRegex((M2.parent / "m2.rs").read_text(encoding="utf-8"),
+                         r'#\[cfg\(feature = "native-smp"\)\]\n(pub\(crate\) )?mod smp;')
 
 
 if __name__ == "__main__":
