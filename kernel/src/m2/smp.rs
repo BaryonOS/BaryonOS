@@ -850,6 +850,7 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
 /// NMI from CPL3 still runs with the user's GS_BASE). `test-smp-gs-iret-fault`:
 /// a faulting `iretq` to CPL3 whose GS was fixed up. `test-smp-gs-user`: a
 /// supervisor #PF near address 0 is a GS-relative read through a user GS.
+/// `test-smp-shared-scratch`: a supervisor #PF in scratch slot 0.
 pub fn ist_fault_marker(
     vector: u64,
     error: u64,
@@ -858,6 +859,15 @@ pub fn ist_fault_marker(
     cr2: u64,
     frame: *const u64,
 ) -> Option<&'static [u8]> {
+    // Control only: another CPU cleared the shared slot's PTE under this
+    // access. That is the crossing too; report it once, never as a fault.
+    if cfg!(feature = "test-smp-shared-scratch")
+        && vector == 14
+        && cs == 8
+        && (paging::SCRATCH..paging::SCRATCH + PAGE).contains(&cr2)
+    {
+        scratch_cross();
+    }
     if cfg!(feature = "test-smp-gs-user") && vector == 14 && cs == 8 && cr2 < PAGE {
         serial::write(b"SMP:GS:HIJACK\n");
         return None;
