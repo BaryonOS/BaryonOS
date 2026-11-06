@@ -19,6 +19,13 @@ profiel `test-smp-held-across-switch` moet de marker geven, met exit 0x10.
 `smp-lock -D warnings` schoon. Kernelbuilds `native-smp`, `test-smp-held-across-switch`
 en `milestone-m2` slagen. **Niet uitgevoerd:** native QEMU (geen QEMU in deze
 WSL-omgeving), dus `native-smp.yml` op de PR.
+**Native (later, QEMU 10.2.1 + OVMF van de host, `tools/run_smp.py`):** `native-smp` 6/6
+(one, two-single, four, eight, nine-capacity, duplicate-madt), `test-smp-held-across-switch`
+1/1 (marker, raw 33), `test-smp-lockdep-order` 1/1 en `test-smp-spin-irq-off` 1/1
+(`SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=1` + quarantaine). Rapporten in `build/k06-*/smp-report.json`
+(lokaal, niet in Git). Een fout die de 5d-sessie vond: zonder IF-venster kreeg de 5c-fixture in
+`test-smp-spin-irq-off` nooit een tick (`SMP_PREEMPT_LOCK_NO_TICK`). Opgelost: dat controleprofiel
+slaat de fixture over.
 
 **Open:** 5b-2 (KERNEL-lock om M3-syscalls, scratchslot per CPU, ADR-075), 5c-2
 (BSP-LAPIC-timer + idle `sti; hlt`, BSP-venster), en daarna 5d t/m 5f. Er is nog geen

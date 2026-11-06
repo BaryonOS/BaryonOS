@@ -30,7 +30,7 @@ defaults:
 
 jobs:
   artifact-store-core:
-    runs-on: ubuntu-24.04
+    runs-on: self-hosted
     timeout-minutes: 15
     env:
       CARGO_TARGET_DIR: ${{ github.workspace }}/target/artifact-store-quality

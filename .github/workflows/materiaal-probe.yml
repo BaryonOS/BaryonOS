@@ -35,7 +35,7 @@ defaults:
 
 jobs:
   materiaal-probe:
-    runs-on: ubuntu-24.04
+    runs-on: self-hosted
     # Bounded but generous. Two VM limits apply, and the guest one fires
     # first: the probe kernel's watchdog fails after 20,000 PIT ticks at
     # ~100 Hz, about 200 s of guest time (kernel/src/m2/m3/desktop.rs, prints
