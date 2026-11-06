@@ -6,7 +6,9 @@
 //! the level (LIFO only, audit F2; otherwise the VM stops) and only then
 //! restores IF. Lockdep is active in every native-smp
 //! build; the bounded spin with its STUCK marker only in debug builds. Step
-//! 5b: waiters for KERNEL/ASPACE spin with a `sti; pause; cli` window (APs).
+//! 5b: waiters for KERNEL/ASPACE spin with a `sti; pause; cli` window (APs;
+//! since 5c-2 every CPU whose sources are all gated, BSP included). Step 5c-2
+//! (BT-4): releasing the last lock back to IF=1 honours a deferred 0xe8.
 //! Step 5b-2 (ADR-075): also built for M3, where one CPU owns a single lockdep
 //! word and `KERNEL` serializes every M3 event (K-1).
 //! Audit F3/F4 (ADR-077): KERNEL/ASPACE are refused inside an interrupt
@@ -44,9 +46,10 @@ mod smp {
     pub fn irq_depth() -> u32 {
         0
     }
-    pub fn on_ap() -> bool {
+    pub fn irq_ready() -> bool {
         false
     }
+    pub fn resched_on_release() {}
     pub fn lockdep_order(_: smp_lock::Order) -> ! {
         crate::serial::fail(b"LOCKDEP_ORDER")
     }
@@ -193,15 +196,16 @@ impl<T> IrqLock<T> {
         // shootdown from the holder. Safe because lockdep (above) proved every
         // held level is below the handler levels (RUNQ and up) and LD-1 keeps
         // handlers off KERNEL/ASPACE; LD-2 opens it only outside a handler.
-        // APs only: the BSP's interrupt sources are defined in step 5c-2.
-        // `test-smp-spin-irq-off` is the deaf control.
+        // Step 5c-2 (BT-2/S3): on every CPU, BSP included, once all of its
+        // unmasked sources have IDT gates (`irq_ready`). `test-smp-spin-irq-off`
+        // is the deaf control.
         let window = self.level <= level::ASPACE
             && !in_handler
             && !cfg!(feature = "test-smp-spin-irq-off")
-            && smp::on_ap();
+            && smp::irq_ready();
         let relax = || {
             if window {
-                // SAFETY: CPL0 on an AP whose IDT covers every unmasked
+                // SAFETY: CPL0 on a CPU whose IDT covers every unmasked
                 // source; STI's shadow covers PAUSE, so a pending interrupt is
                 // taken only before CLI. No lock this CPU holds is taken by a
                 // handler, and the saved IF in `flags` is unchanged.
@@ -256,6 +260,11 @@ impl<T> Drop for IrqGuard<'_, T> {
             smp::lockdep_lifo(order);
         }
         if self.interrupts {
+            // BT-4: the last lock is gone and IF=1 returns outside a handler,
+            // the next safe place for a reschedule deferred meanwhile.
+            if smp::lockdep().load(Ordering::Relaxed) == 0 && smp::irq_depth() == 0 {
+                smp::resched_on_release();
+            }
             // SAFETY: restores the IF=1 this CPU had before `lock_irqsave`,
             // after the lock and its lockdep level are released.
             unsafe { asm!("sti", options(nomem, nostack)) };

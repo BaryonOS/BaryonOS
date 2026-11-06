@@ -1,5 +1,79 @@
 # Ontwerpbesluiten
 
+## ADR-080 — BSP-timer, PIT-klok, idle en reschedule-vlag op de BSP (K06 stap 5c-2, auditbevindingen F6/F9/F11/F13)
+
+6 november 2026; effect alleen in `native-smp`. Taakspec:
+`docs/implementation/k06-steps/06-5c-2-bsp-timer-idle.md`. Aanvulling op ADR-073 (preëmptie op de
+AP's) en ADR-074 (spinvenster S1/S3). **Probleem:** de BSP had geen preëmptie, geen idle met
+interrupts en geen spinvenster. Spint de BSP op `KERNEL` terwijl een AP een shootdown start, dan
+neemt hij 0xe0 niet aan en volgt een valse quarantaine van alle AP's (F6). 0xe8 sprong naar het
+timerpad en telde als tick (F11). De LAPIC-timer was ongekalibreerd (F9).
+
+**Vastgesteld (spec §0 "te verifiëren"):** `native-smp` sluit M3 uit (`compile_error` in
+`main.rs`), dus de PIC-programmering in `m3.rs` en Sys3 bestaan in dit profiel niet. De BSP draaide
+er tot nu toe volledig met IF=0 en programmeerde de 8259 niet. Dit besluit voert daarom in
+`native-smp` zelf de PIT-IRQ0-klok in; het M3-pad (`m3.rs`, Sys3) is ongewijzigd. In QEMU levert de
+8259 alleen aan de LINT0 van de eerste CPU (virtual wire); de AP's maskeren LINT0 al sinds stap 2.
+
+**Besluit (normatief):**
+- **BT-1 Eén klok.** `bsp_timer_init` (BSP, IF=0, na de bring-up en vóór `GO`) remapt de 8259 naar
+  0x20/0x28, maskeert alles behalve IRQ0 en zet PIT-kanaal 0 als rate generator op deler 1193
+  (1000,15 Hz). De IRQ0-stub (vector 0x20, geen GS, geen lock) telt `CLOCK_TICKS` en stuurt een
+  PIC-EOI. Hij controleert met het LAPIC-ID dat hij op de BSP draait; een AP die IRQ0 krijgt, stopt
+  de VM met `SMP:CLOCK:AP_IRQ0`. Spurious IRQ7 (0x27) krijgt de spurious-stub. De LAPIC-timer
+  levert alleen preëmptieticks.
+- **BT-2 BSP gelijk aan een AP.** De BSP krijgt 0xd0 met deler 16 (`start_timer`), dezelfde
+  INV-5c-uitstel en dezelfde switchregels (`bsp_switch`; het home-context is op de BSP de
+  orkestrator en draait daarom mee in de rotatie). `CpuLocal.irq_ready` wordt per CPU gezet zodra
+  elke ongemaskeerde bron een IDT-gate heeft: op een AP na het maskeren van de LVT's in
+  `ipi_phase`, op de BSP aan het eind van `bsp_timer_init` (LINT0 = ExtINT voor de PIC, LINT1 =
+  NMI naar vector 2, alle overige LVT's gemaskeerd; gates 0x20, 0x27, 0xd0, 0xe0, 0xe8, 0xf0,
+  0xff). Het vensterpredicaat in `lock.rs` wordt `level <= ASPACE && irq_depth == 0 && irq_ready`
+  (was `on_ap()`).
+- **BT-3 Idle.** `idle_halt` is de enige `sti; hlt; cli`. Hij controleert een lege lockdep-set en
+  de kernel-CR3 (`KERNEL_CR3`, nu al in `bsp_timer_init` gezet) en stopt anders met
+  `SMP_IDLE_STATE`. Gebruikt door de AP-home-lus en door de BSP (`idle_until`).
+- **BT-4 Reschedule-vlag.** De 0xe8-stub telt `resched_count` vóór hij het timerlichaam in springt.
+  `smp_preempt` vergelijkt dat met `resched_seen`: verschil = 0xe8 (`need_resched = true`, geen
+  tick), anders 0xd0 (`tick_count += 1`). Velden hernoemd: `ticks` → `tick_count`, `resched` →
+  `resched_count`. Een door INV-5c uitgestelde 0xe8 blijft als `need_resched` staan. Een
+  `IrqGuard` die de laatste lock vrijgeeft en IF=1 herstelt buiten een handler, roept
+  `resched_on_release` aan: die zet een staande vlag om in een self-0xe8, die direct na de `sti`
+  binnenkomt en wisselt. Elk ander switchpunt wist de vlag. De ICR-fixture wisselt nooit en wist
+  de vlag zelf.
+- **BT-5 Gekalibreerde band.** `bsp_timer_init` meet over 100 ms van PIT-kanaal 2 zowel de LAPIC-
+  timer (deler 16) als de TSC en logt `SMP:TIMER:RATIO:<LAPIC-ticks per PIT-IRQ0-tick>`. **De band
+  is vooraf vastgelegd op [50 000, 75 000]**, voor QEMU's APIC-timerklok van 1 GHz (verwacht
+  62 500); de oracle (`tools/run_smp.py`, `RATIO_BAND`) weigert alles daarbuiten en de band wordt
+  niet achteraf verruimd. Een andere band (andere hypervisor of echte hardware) vergt een nieuw
+  besluit. `TSC_PER_MS` dient als tijdbasis voor begrensde wachten op AP's, die de PIT niet
+  aanraken (ADR-070).
+- **BT-6 Contract kernelthreads (F13).** Fixture-kernelthreads (stap 4, 5d-1, F16 en de BSP-threads
+  van deze stap) draaien met IF=1 als "pseudo-user": hun terugkeer naar IF=1 geldt als het veilige
+  punt van BT-4. Echte kernelcode blijft IF=0 (spec §4.3); IF=1 alleen in user mode, in de idle-
+  context en in het begrensde `sti; pause; cli`-venster van een KERNEL/ASPACE-wachter.
+
+**Bewijs:** native fixtures in `native-smp` (na `SMP:SPIN:PASS`, vóór `SMP:SCHED:PASS`):
+`SMP:CLOCK:PASS` (alle AP's belast, de BSP idle't door 500 IRQ0-ticks; duur op de PIT-gekalibreerde
+TSC binnen 1% van 499 923 µs; de klok gaat nooit terug), `SMP:BSP_PREEMPT:PASS` (twee BSP-threads
+met registercanaries, ≥8 ticks en ≥4 wissels, beide threads lopen door, bevroren na stop),
+`SMP:BSP_SPIN:PASS` (AP1 houdt KERNEL, wacht tot de BSP erop spint, stuurt een shootdown naar alleen
+de BSP; ack binnen 100 ms, geen quarantaine) en `SMP:IDLE:WAKE_US=<n>` + `SMP:IDLE:PASS` (idle-wek
+door AP1 met 0xe8, latentie gelogd en < 100 ms; daarna een BSP-thread die wacht op een lock van AP1
+terwijl de timer gemaskeerd is: AP1's 0xe8 wordt uitgesteld en pas de release wisselt). Zonder AP:
+`SMP:BSP_SPIN:SKIPPED`/`SMP:IDLE:SKIPPED`. Controle `test-smp-bsp-spin-irq-off`: het BSP-venster
+blijft dicht → `SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=0`, exit 0x10. Mutant zonder de release-hook
+(lokaal, niet gecommit): `SMP:IDLE:RESCHED_LOST`. Zie `docs/verification/k06-5c2-bsp-timer/`.
+
+**Grenzen en shortcuts:** QEMU/TCG, geen hardwarebewijs. De TSC wordt als constant en gelijk op
+alle CPU's aangenomen (QEMU/KVM); echte hardware vraagt eerst een invariant-TSC-controle. De
+ratio wordt alleen gelogd; `TIMER_INITIAL` blijft 20 000 (ongewijzigde tickperiode). De BSP heeft
+nog geen run queue: `ADOPTED` (ADR-079) wordt nog niet leeggehaald; dat moet de stap die de BSP
+een queue geeft (5d-2 of 5f). Een IRQ0 die langer dan één periode wacht (BSP met IF=0) gaat
+verloren; de klok telt alleen ticks die de BSP in een IF=1-context krijgt. Dat is voor een
+tickklok inherent en wordt door de klokcheck tijdens idle gemeten, niet tijdens IF=0-werk. Buiten
+scope: TSC-deadline, tickless idle, IOAPIC-routering, energiebeheer (H05).
+
 ## ADR-079 — ICR-lock per CPU en quarantaine stopt bij een gehouden lock (K06, auditbevindingen F19/F15)
 
 6 november 2026; effect alleen in `native-smp` (het eigenaarsveld bestaat in elke build, maar

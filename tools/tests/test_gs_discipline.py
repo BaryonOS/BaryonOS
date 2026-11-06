@@ -19,6 +19,9 @@ LABEL = re.compile(r"^\s*([A-Za-z_.$][\w.$]*):")
 GS_STUBS = {"nos_smp_ipi_entry", "nos_smp_shootdown_entry", "nos_smp_timer_entry",
             "nos_smp_resched_entry"}
 NO_GS_STUBS = {"nos_smp_spurious_entry"}
+# Step 5c-2: the PIT IRQ0 clock stub (BSP, CPL0 only) touches no GS and returns
+# through the spurious stub's reviewed `iretq`.
+JOIN_STUBS = {"nos_smp_clock_entry"}
 # Stubs that only normalize the frame and jump to the shared prologue.
 COMMON_STUBS = {"m3_timer", "m3_syscall"}
 EXITS = {"nos_iret_user_ipi", "nos_iret_user_shootdown", "nos_iret_user_timer",
@@ -115,7 +118,12 @@ class GsDiscipline(unittest.TestCase):
         self.assertEqual([label_of(self.lines[i - 1]) for i in raw], sorted(NO_GS_STUBS))
         entries = {label for line in self.lines if (label := label_of(line))
                    and re.fullmatch(r"nos_smp_\w+_entry|m3_timer|m3_syscall", label)}
-        self.assertEqual(entries, GS_STUBS | NO_GS_STUBS | COMMON_STUBS)
+        self.assertEqual(entries, GS_STUBS | NO_GS_STUBS | JOIN_STUBS | COMMON_STUBS)
+        for stub in sorted(JOIN_STUBS):
+            with self.subTest(stub=stub):
+                body = region(self.lines, stub, ends_stub)
+                self.assertFalse(any(re.search(r"gs:|swapgs|@ENTRY|@EXIT", line) for line in body))
+                self.assertIn("jmp nos_smp_spurious_entry", body)
 
     def test_gs_stubs_start_with_exactly_one_prologue(self):
         # Rules 2/3 (GS-3, GS-4): the prologue is the first instruction and the

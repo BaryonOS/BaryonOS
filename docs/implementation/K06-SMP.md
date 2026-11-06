@@ -110,7 +110,11 @@ bringup doen.
 4. **Nieuw:** LAPIC-timer op de BSP met dezelfde vector 0xd0 en dezelfde deler als de AP's.
    De PIT-IRQ0 blijft **alleen op de BSP** de bron van de monotone klok (ADR-045 Sys3,
    ADR-053). De LAPIC-timer levert alleen preëmptieticks en wordt niet als klok gebruikt.
-   [te verifiëren: de huidige IRQ0-route (8259 of IOAPIC) en of die gemaskeerd naar AP's blijft]
+   **Geverifieerd en gebouwd (stap 5c-2, ADR-080):** `native-smp` sluit M3 uit, dus daar bestond
+   geen PIC-programmering of Sys3. `bsp_timer_init` remapt de 8259 naar 0x20/0x28 (alleen IRQ0
+   open), zet PIT-kanaal 0 op ~1 kHz en levert via LINT0 (ExtINT) alleen aan de BSP; AP's maskeren
+   LINT0. De IOAPIC wordt niet gebruikt. Daarbij: kalibratie LAPIC/PIT (`SMP:TIMER:RATIO`, band in
+   ADR-080), `irq_ready` op de BSP en de idle-context (`idle_halt`).
 5. Daarna pas de M3-init (procestabel, manifest, eerste processen) **onder de kernellock** (§4).
 6. BSP zet IF=1 alleen in user mode en in de idle-lus (`sti; hlt; cli`, het bestaande
    ADR-053-patroon). Kernelcode draait verder met IF=0, behalve waar §4.3 dat toestaat.
@@ -126,7 +130,8 @@ bringup doen.
 
 | Vector | Doel | Ontvanger |
 |---|---|---|
-| 0x20 (of de bestaande IRQ0-vector) [te verifiëren] | PIT, monotone klok | alleen BSP |
+| 0x20 | PIT-IRQ0 via de 8259 (ExtINT op LINT0), monotone klok (ADR-080) | alleen BSP |
+| 0x27 | spurious IRQ7 van de 8259 | alleen BSP |
 | 0xd0 | LAPIC-timer, preëmptie | alle CPU's |
 | 0xe0 | TLB-shootdown | doel-CPU's uit `active_cpus` of alle online |
 | 0xe8 | **nieuw:** reschedule/kill-IPI | één doel-CPU |
@@ -318,10 +323,13 @@ ADR-024 eist zelf een herziening "bij SMP". Voorgestelde nieuwe tekst:
 
 ### 6.5 Preëmptie
 
-LAPIC-timer 0xd0 op elke CPU, periodiek, dezelfde deler als ADR-073. De handler doet alleen:
-`timer_ticks += 1`; bij elk *k*-de tick `need_resched = true`; EOI. Kalibratie tegen de PIT is
-**niet** nodig voor K06 (de klok komt uit de PIT), maar het aantal ticks per PIT-tick wordt
-in de gate gelogd. [ongekalibreerd, zie ADR-073 "Open"]
+LAPIC-timer 0xd0 op elke CPU, BSP inbegrepen (stap 5c-2), periodiek, dezelfde deler als
+ADR-073. Gebouwd (ADR-080, BT-4): 0xd0 telt `tick_count` en is een switchpunt; 0xe8 telt apart
+`resched_count` (geen tick meer, F11) en zet `need_resched`. Een door INV-5c uitgestelde 0xe8
+blijft als vlag staan tot het volgende switchpunt: de release van de laatste lock terug naar IF=1
+(self-0xe8), idle of een latere entry met lege lockdep. Kalibratie tegen de PIT is **niet** nodig
+voor K06 (de klok komt uit de PIT); het aantal LAPIC-ticks per PIT-tick wordt bij de boot gemeten,
+gelogd (`SMP:TIMER:RATIO`) en door de gate tegen een vooraf vastgelegde band getoetst.
 
 ---
 
