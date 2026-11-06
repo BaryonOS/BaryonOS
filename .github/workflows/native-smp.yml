@@ -137,6 +137,18 @@ jobs:
             python3 -B tools/build.py --kernel-feature "$profile"
             python3 -B -u tools/run_smp.py --profile "$profile"
           done
+      - name: Without the ICR lock a handler IPI replaces the destination (control, audit F19)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-icr-race
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-icr-race
+          python3 -B -u tools/run_smp.py --profile test-smp-icr-race
+      - name: A deaf AP holding KERNEL stops the system instead of INIT (audit F15)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-quarantine-lock-held
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-quarantine-lock-held
+          python3 -B -u tools/run_smp.py --profile test-smp-quarantine-lock-held
       - name: Preserve tracked source integrity
         run: git diff --exit-code
       - name: Preserve actual run and build artifacts

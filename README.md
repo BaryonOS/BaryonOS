@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
-**Bron:** [`880d6d74`](https://github.com/simonvanieperen/nieuw-os/commit/880d6d740fe396de2dda94c1a9094694b4b25f55) ·
-**Ontwikkelbranch:** `fix/k06-f16-f17-sched-protocol`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 auditbevindingen F16/F17: blokkeren, wekken en doden zonder lost-wakeup, queued-bit (ADR-078).
-41/100 blijft 41/100. Het schedulerprotocol blokkeert nu in twee fasen (BLOCKING/READY_PENDING, geen lost wakeup), weigert een dubbele enqueue bij de push (queued-bit, SMP:SCHED:DOUBLE_ENQUEUE) en doodt een draaiende thread begrensd: DEAD pas nadat de stack is verlaten (ADR-078). Lokaal native QEMU: 25/25 SMP-gevallen over 20 profielen met SMP:WAKE:PASS (10.000 ping-pongrondes) en SMP:KILL:PASS, plus test-smp-double-run en het nieuwe test-smp-resched-deaf; M2/M3, rtc, K05 en K07 ongewijzigd groen. Hostmodellen zijn uitputtend over interleavings, niet loom. Zie docs/verification/k06-f16f17-sched/. K06 blijft open: loom-model, 05, 5c-2, 5e, 5d-2 en 5f ontbreken; geen CI- of hardwarebewijs.
+**Bron:** [`ad0d87b9`](https://github.com/simonvanieperen/nieuw-os/commit/ad0d87b9f92cac80407a3871882827a6f9f7280c) ·
+**Ontwikkelbranch:** `fix/k06-f19-f15-icr-quarantine`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 auditbevindingen F19/F15: ICR-lock per CPU en quarantaine stopt bij een gehouden lock (ADR-079).
+41/100 blijft 41/100. send_ipi schrijft ICR-hoog/-laag nu onder een ICR-lock per CPU (niveau 60, irqsave), elke IrqLock legt zijn houder vast, en quarantaine van een dove AP die KERNEL of een RUNQ vasthoudt stopt het systeem (SMP:QUARANTINE:LOCK_HELD:niveau:CPU=n) in plaats van INIT; READY-threads gaan naar de BSP, de lopende thread geldt als gecrasht (ADR-079). Lokaal native QEMU: 27/27 SMP-gevallen over 22 profielen met SMP:ICR:PASS:ROUNDS=10000 (AP1 en AP2 over en weer, IPI's ook vanuit de handler), de controle test-smp-icr-race (SMP:ICR:LOST zonder lock) en test-smp-quarantine-lock-held; bestaande dove-AP-profielen ongewijzigd. Zie docs/verification/k06-f19f15-icr/. K06 blijft open: loom-model, 5c-2, 5e, 5d-2 en 5f ontbreken; een dode ticketwachter wordt nog niet gezien; geen CI- of hardwarebewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

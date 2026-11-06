@@ -1,8 +1,9 @@
 //! K06 step 1 (native-smp only): bounded application-processor bring-up.
 //!
 //! Ownership and concurrency model, see ADR-070:
-//! - The BSP alone owns frames, paging, serial, the PIT and the xAPIC ICR. It
-//!   prepares everything with IF=0 before the first IPI.
+//! - The BSP alone owns frames, paging, serial and the PIT. It prepares
+//!   everything with IF=0 before the first IPI. Every CPU writes only its own
+//!   xAPIC ICR, under its own ICR lock (IQ-1, ADR-079).
 //! - The SIPI page below 1 MiB is a Kernel-owned frame written once through the
 //!   firmware identity map before our CR3 switch; it holds 16-bit code and a
 //!   CR3 slot only and is never mapped in the kernel tables. 32/64-bit code,
@@ -183,6 +184,11 @@ struct CpuLocal {
     lockdep_state: lock::LockdepCell,
     /// F4 fixture: 1 once this AP finished its `lock_pair` rounds.
     paired: AtomicU32,
+    /// IQ-1 (audit F19): ICR high, ICR low and the delivery wait of this CPU.
+    icr: lock::IrqLock<()>,
+    /// F19 fixture: 0xe8 IPIs this AP sent to its partner, and its result.
+    icr_sent: AtomicU32,
+    icr_done: AtomicU32,
 }
 impl CpuLocal {
     const fn new() -> Self {
@@ -214,6 +220,9 @@ impl CpuLocal {
             irq_depth: AtomicU32::new(0),
             lockdep_state: lock::LockdepCell::new(),
             paired: AtomicU32::new(0),
+            icr: lock::IrqLock::new(level::ICR, b"ICR", ()),
+            icr_sent: AtomicU32::new(0),
+            icr_done: AtomicU32::new(0),
         }
     }
 }
@@ -566,7 +575,7 @@ fn lapic_read(offset: u64) -> u32 {
 }
 fn lapic_write(offset: u64, value: u32) {
     // SAFETY: As lapic_read. The window decodes to the *executing* CPU's own
-    // xAPIC: the BSP alone writes its ICR, an AP only its own SVR/TPR/LVT/EOI.
+    // xAPIC; its ICR only in `send_ipi`, under that CPU's ICR lock.
     unsafe { ((paging::LAPIC_WINDOW + offset) as *mut u32).write_volatile(value) }
 }
 fn icr_idle() -> bool {
@@ -579,10 +588,16 @@ fn send_ipi(apic_id: u32, low: u32) -> bool {
     // Every context/register publication precedes the IPI that makes an AP read
     // it; volatile MMIO is not ordered against atomics by the language alone.
     fence(Ordering::SeqCst);
+    // IQ-1 (audit F19): a handler on this CPU sends too; between the two
+    // writes it would replace our destination. The race control omits it.
+    let _icr = (!cfg!(feature = "test-smp-icr-race")).then(|| anchored().icr.lock_irqsave());
     if !icr_idle() {
         return false;
     }
     lapic_write(0x310, apic_id << 24);
+    if cfg!(feature = "test-smp-icr-race") {
+        icr_race_window();
+    }
     lapic_write(0x300, low);
     icr_idle()
 }
@@ -784,6 +799,11 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
         // Online but never accepts an interrupt: the BSP must quarantine all.
         park();
     }
+    if cfg!(feature = "test-smp-quarantine-lock-held") && local.slot.load(Ordering::Relaxed) == 1 {
+        // AP2 goes deaf holding KERNEL: IQ-3 must stop the system, not INIT.
+        core::mem::forget(lock::KERNEL.lock_irqsave());
+        park();
+    }
     loop {
         // Checked before PARK so the test cannot race into a normal park.
         if cfg!(feature = "test-smp-ap-double-fault")
@@ -848,6 +868,14 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
         if PAIR_RUN.load(Ordering::Acquire) && local.paired.load(Ordering::Relaxed) == 0 {
             pair_work(local.slot.load(Ordering::Relaxed) as usize + 1);
             local.paired.store(1, Ordering::Release);
+        }
+        // ICR phase (audit F19): AP1 and AP2 exchange 0xe8 under their own ticks.
+        let slot = local.slot.load(Ordering::Relaxed) as usize;
+        if ICR_RUN.load(Ordering::Acquire)
+            && slot < 2
+            && local.icr_done.load(Ordering::Relaxed) == 0
+        {
+            icr_work(local, slot);
         }
         // Spin phase (step 5b): wait for the KERNEL-level lock the BSP holds.
         // IF is 0 from the store of 1 on; only the lock's own window opens it.
@@ -1178,22 +1206,96 @@ fn within_ms(limit: u32, ready: impl Fn() -> bool) -> bool {
 
 /// A CPU that cannot take a directed interrupt cannot join any later
 /// shootdown protocol: reset every AP with INIT and continue on the BSP.
+/// Every AP is checked first (IQ-3): one AP's RUNQ lock may be held by another.
 fn quarantine_all(online: usize, total: usize) {
-    for context in &NOS_SMP_AP_CONTEXTS[..online] {
-        if !send_ipi(context.apic_id.load(Ordering::Relaxed), IPI_INIT) {
-            serial::fail(b"SMP_AP_QUARANTINE");
-        }
-        context.state.store(ABANDONED, Ordering::Release);
-    }
-    // ICR idle is acceptance by the bus, not completion of INIT in the target;
-    // allow it to take effect before the BSP reports one CPU. A stray store by
-    // a resetting AP only touches its own context, which nothing reads anymore.
-    wait_us(1_000);
+    (0..online).for_each(stop_if_held);
+    (0..online).for_each(quarantine_cpu);
     serial::write(b"SMP:QUARANTINED:APS=");
     decimal(online as u64);
     serial::write(b"\nSMP:ONLINE:1/");
     decimal(total as u64);
     serial::write(b"\n");
+}
+
+/// IQ-3 (ADR-079): the lowest lock level CPU index `cpu` holds. KERNEL and the
+/// run queues are this kernel's only shared IrqLocks; ASPACE, FRAMES and
+/// SHOOTDOWN must join here once they exist as locks.
+fn held_by(cpu: usize) -> Option<u8> {
+    let cpu = Some(cpu as u8);
+    core::iter::once(&lock::KERNEL)
+        .map(|kernel| (kernel.owner(), kernel.level()))
+        .chain(RUNQ.iter().map(|queue| (queue.owner(), queue.level())))
+        .find_map(|(owner, level)| (owner == cpu).then_some(level))
+}
+
+/// IQ-3: a lock held by a CPU that INIT resets stays held forever, and the
+/// state under it is unknown: stop (fail-closed), never break the lock.
+fn stop_if_held(slot: usize) {
+    let Some(level) = held_by(slot + 1) else {
+        return;
+    };
+    serial::write(b"SMP:QUARANTINE:LOCK_HELD:");
+    decimal(u64::from(level));
+    serial::write(b":CPU=");
+    decimal(slot as u64 + 1);
+    serial::write(b"\n");
+    if cfg!(feature = "test-smp-quarantine-lock-held") {
+        serial::exit(0x10);
+    }
+    serial::fail(b"SMP_QUARANTINE_LOCK_HELD")
+}
+
+/// Threads of a quarantined CPU (IQ-3), one bit per tid: READY ones handed to
+/// the BSP, the one it ran (or was still on the stack of) crashed.
+// shortcut: the BSP has no run queue before step 5c-2, so ADOPTED is recorded
+// and not yet run; 5c-2 must drain it.
+static ADOPTED: AtomicU64 = AtomicU64::new(0);
+static CRASHED: AtomicU64 = AtomicU64::new(0);
+const _: () = assert!(SCHED_THREADS <= 64);
+
+/// IQ-3/IQ-4: reset one deaf AP, on the BSP only. Its owner fields are checked
+/// again once INIT took effect: a deaf AP that still ran may have taken a lock
+/// after the first check.
+fn quarantine_cpu(slot: usize) {
+    if on_ap() {
+        serial::fail(b"SMP_QUARANTINE_ON_AP");
+    }
+    let context = &NOS_SMP_AP_CONTEXTS[slot];
+    stop_if_held(slot);
+    if !send_ipi(context.apic_id.load(Ordering::Relaxed), IPI_INIT) {
+        serial::fail(b"SMP_AP_QUARANTINE");
+    }
+    context.state.store(ABANDONED, Ordering::Release);
+    // ICR idle is acceptance by the bus, not completion of INIT in the target;
+    // allow it to take effect. A stray store by a resetting AP only touches its
+    // own context, which nothing reads anymore.
+    wait_us(1_000);
+    stop_if_held(slot);
+    {
+        let mut queue = RUNQ[slot].lock_irqsave();
+        while let Some(tid) = queue.pop(&THREAD_QUEUED) {
+            let index = tid as usize;
+            if THREAD_STATE[index].load(Ordering::Acquire) == sched::READY
+                && !THREAD_ON_CPU[index].load(Ordering::Acquire)
+            {
+                ADOPTED.fetch_or(1 << tid, Ordering::Release);
+            } else {
+                crash(tid);
+            }
+        }
+    }
+    let current = CPU_LOCAL[slot].sched_cur.load(Ordering::Acquire);
+    if current != HOME {
+        crash(current);
+    }
+}
+
+/// The context of a thread on a reset CPU is gone: it dies, never migrates.
+// shortcut: these are kernel threads without a process, so the K05 fault route
+// has nothing to end; ring-3 threads on APs (step 5d-2) must take that route.
+fn crash(tid: u32) {
+    sched::kill_request(&THREAD_STATE[tid as usize]).ok();
+    CRASHED.fetch_or(1 << tid, Ordering::Release);
 }
 
 /// Unicast only: a broadcast shorthand would also reach CPUs still owned by
@@ -1260,6 +1362,7 @@ fn ipis(
         || !block_wake_kill(online, total)
         || !scratch(online, total, frames)
         || !lock_pairs(online, total)
+        || !icr(online, total)
         || !gs_user(online, total)
     {
         return;
@@ -1588,6 +1691,15 @@ extern "C" fn smp_preempt(rsp: u64) -> Resume {
         serial::fail(b"SMP_PREEMPT_ANCHOR");
     };
     local.ticks.fetch_add(1, Ordering::Relaxed);
+    // F19 fixture: during the ICR phase every entry sends one IPI from the
+    // handler (to itself, 0xf0) and resumes the interrupted context.
+    if ICR_RUN.load(Ordering::Acquire) {
+        let own = apic_of(local.slot.load(Ordering::Relaxed) as usize);
+        if !send_ipi(own, IPI_FIXED | IPI_VECTOR as u32) {
+            ICR_FAULT.store(true, Ordering::Release);
+        }
+        return Resume { rsp, left: 0 };
+    }
     // LD-1 control: from the first 0xe8 on, this handler takes KERNEL and
     // must stop with SMP:LOCKDEP:IN_HANDLER:10 before spinning.
     if cfg!(feature = "test-smp-lock-in-handler") && local.resched.load(Ordering::Relaxed) != 0 {
@@ -2357,7 +2469,7 @@ extern "C" fn nos_smp_bw_thread(tid: u64) -> ! {
 }
 
 fn kill_timeout(apic: u32, online: usize, total: usize) -> bool {
-    // INV-5; the policy for a deaf CPU with locks held follows in step 05.
+    // INV-5; a deaf CPU that holds a lock stops the system (IQ-3).
     serial::write(b"SMP:KILL:TIMEOUT:APIC=");
     decimal(u64::from(apic));
     serial::write(b"\n");
@@ -2656,6 +2768,130 @@ fn lock_pairs(online: usize, total: usize) -> bool {
         serial::fail(b"SMP_LOCKPAIR_LOCKDEP_LEFT");
     }
     serial::write(b"SMP:LOCKPAIR:PASS:CPUS=");
+    decimal(online as u64 + 1);
+    serial::write(b"\n");
+    true
+}
+
+// Audit F19 (IQ-1): AP1 and AP2 send each other ICR_ROUNDS 0xe8 IPIs from
+// thread context while every 0xd0/0xe8 entry on them sends an IPI from the
+// handler. A destination replaced between the two ICR writes shows up as a
+// count mismatch. `test-smp-icr-race` drops the lock and lets one 0xd0 in.
+const ICR_ROUNDS: u32 = 10_000;
+const ICR_PASSED: u32 = 1;
+const ICR_TIMEOUT: u32 = 2;
+static ICR_RUN: AtomicBool = AtomicBool::new(false);
+static ICR_FAULT: AtomicBool = AtomicBool::new(false);
+static ICR_RACED: AtomicBool = AtomicBool::new(false);
+
+/// Race control only: once, on AP1 in thread context, wait between the two
+/// ICR writes until one 0xd0 tick was taken; its handler's own IPI then
+/// overwrites the destination. (A one-shot count of 1 stalled QEMU/TCG.)
+fn icr_race_window() {
+    let Some(local) = this_cpu() else {
+        return;
+    };
+    if ICR_RUN.load(Ordering::Acquire)
+        && local.slot.load(Ordering::Relaxed) == 0
+        && irq_depth() == 0
+        && !ICR_RACED.swap(true, Ordering::Relaxed)
+    {
+        let before = local.ticks.load(Ordering::Relaxed);
+        for _ in 0..1 << 24 {
+            // SAFETY: CPL0 AP thread context of the ICR phase, which holds no
+            // lock; every unmasked source has an IDT entry. Test-only window.
+            unsafe { asm!("sti", "pause", "cli") };
+            if local.ticks.load(Ordering::Relaxed) != before {
+                break;
+            }
+        }
+    }
+}
+
+/// AP side, IF=0 in the home loop. Each send waits for the partner's count to
+/// reach it, so at most one 0xe8 is in flight per direction (an IRR bit never
+/// merges two) and the counts must match exactly. IQ-4: a missing ack is only
+/// reported (`icr_done`); the BSP decides.
+fn icr_work(local: &CpuLocal, slot: usize) {
+    let (partner, apic) = (&CPU_LOCAL[slot ^ 1], apic_of(slot ^ 1));
+    start_timer();
+    let mut done = ICR_PASSED;
+    for round in 1..=ICR_ROUNDS {
+        if !send_ipi(apic, IPI_FIXED | RESCHED_VECTOR as u32) {
+            done = ICR_TIMEOUT;
+            break;
+        }
+        local.icr_sent.store(round, Ordering::Release);
+        let acked = (0..1 << 16).any(|_| {
+            // SAFETY: as in `icr_race_window`; IF is 0 again after `cli`.
+            unsafe { asm!("sti", "pause", "cli") };
+            partner.resched.load(Ordering::Acquire) >= round
+        });
+        if !acked {
+            done = ICR_TIMEOUT;
+            break;
+        }
+    }
+    lapic_write(LVT_TIMER, MASKED | TIMER_VECTOR as u32);
+    local.icr_done.store(done, Ordering::Release);
+}
+
+/// Terminal verdict of the ICR phase; only the race control counts it a pass.
+fn icr_verdict(marker: &[u8]) -> ! {
+    serial::write(marker);
+    if cfg!(feature = "test-smp-icr-race") {
+        serial::exit(0x10);
+    }
+    serial::fail(b"SMP_ICR")
+}
+
+/// BSP: received 0xe8 on each AP = sent by its partner, ICR_ROUNDS each way.
+fn icr(online: usize, total: usize) -> bool {
+    if online < 2 {
+        serial::write(b"SMP:ICR:SKIPPED:CPUS=");
+        decimal(online as u64 + 1);
+        serial::write(b"\n");
+        return true;
+    }
+    let pair = &CPU_LOCAL[..2];
+    for local in pair {
+        local.resched.store(0, Ordering::Relaxed);
+    }
+    ICR_RUN.store(true, Ordering::Release);
+    if !(0..2).all(|slot| send_ipi(apic_of(slot), IPI_FIXED | IPI_VECTOR as u32))
+        || !within_ms(WAKE_DEADLINE_MS, || {
+            pair.iter()
+                .all(|local| local.icr_done.load(Ordering::Acquire) != 0)
+        })
+    {
+        serial::write(b"SMP:ICR:TIMEOUT\n");
+        quarantine_all(online, total);
+        return false;
+    }
+    // Both timers are masked; let a last handler IPI land before counting.
+    wait_us(10_000);
+    ICR_RUN.store(false, Ordering::Release);
+    let got = |slot: usize| pair[slot].resched.load(Ordering::Acquire);
+    let sent = |slot: usize| pair[slot].icr_sent.load(Ordering::Acquire);
+    if got(0) > sent(1) || got(1) > sent(0) {
+        icr_verdict(b"SMP:ICR:MISROUTED\n");
+    }
+    if got(0) != sent(1)
+        || got(1) != sent(0)
+        || pair.iter().any(|local| {
+            local.icr_sent.load(Ordering::Acquire) != ICR_ROUNDS
+                || local.icr_done.load(Ordering::Acquire) != ICR_PASSED
+        })
+        || ICR_FAULT.load(Ordering::Acquire)
+    {
+        icr_verdict(b"SMP:ICR:LOST\n");
+    }
+    if cfg!(feature = "test-smp-icr-race") {
+        serial::fail(b"SMP_ICR_RACE_MISSED");
+    }
+    serial::write(b"SMP:ICR:PASS:ROUNDS=");
+    decimal(u64::from(ICR_ROUNDS));
+    serial::write(b":CPUS=");
     decimal(online as u64 + 1);
     serial::write(b"\n");
     true

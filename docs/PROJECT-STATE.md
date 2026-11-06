@@ -1,6 +1,36 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — K06 F16/F17, blokkeren, wekken en doden zonder lost-wakeup (ADR-078) — 6 november 2026
+## NEXT AGENT HANDOFF — K06 F19/F15, ICR-lock per CPU en quarantaine stopt bij een gehouden lock (ADR-079) — 6 november 2026
+
+**Bron:** branch `fix/k06-f19-f15-icr-quarantine` (worktree `nieuw-os-k06-f19`), gestapeld op
+`feat/k06-5b2-kernel-lock` (`81b648ba`, met F16/F17 uit #239). Taakspec:
+`docs/implementation/k06-steps/05-F19-F15-icr-quarantine.md`; ontwerp ADR-079. **41 → 41/100**;
+K06 blijft open.
+
+**Gerealiseerd:** IQ-1: `CpuLocal.icr` (niveau 60, irqsave) om idle-wacht, ICR-hoog, ICR-laag en
+afsluitende wacht in `send_ipi`. IQ-2: `IrqLock.owner` (CPU-index of `FREE`) en `owner()`/`level()`.
+IQ-3: `quarantine_all` controleert eerst alle AP's, daarna per AP `quarantine_cpu`: controle →
+INIT → 1 ms → hercontrole → READY-threads naar `ADOPTED`, de lopende thread `crash`
+(`kill_request`). Een gehouden KERNEL/RUNQ geeft `SMP:QUARANTINE:LOCK_HELD:<niveau>:CPU=<n>` en
+een stop. IQ-4: `quarantine_cpu` op een AP stopt. Native fase `icr` na LOCKPAIR:
+`SMP:ICR:PASS:ROUNDS=10000:CPUS=n` (onder twee AP's `SKIPPED`). Nieuwe profielen
+`test-smp-icr-race` en `test-smp-quarantine-lock-held`, ook in `native-smp.yml`.
+
+**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG, bron `dc44d588…`):** zie
+`docs/verification/k06-f19f15-icr/`. SMP 27/27 over 22 profielen, alle bestaande dove-AP-profielen
+ongewijzigd. M2 8/8 en M3 22/22, rtc, K05, K07;
+`cargo test -p smp-lock` 24+1, clippy en fmt schoon, oracle 15/15, GS-lint 8/8; `tools/gate.sh` exit 0
+(518 geslaagd, 1 ignored; QEMU-smoke-script ontbreekt).
+**Niet uitgevoerd:** CI op de gestapelde PR, hardware, M4 (pad-bug, #235).
+
+**Open:** een AP die als *wachter* in een ticketlock sterft, wordt door IQ-3 niet gezien
+(alleen eigenaren); `ADOPTED` wacht op de BSP-runqueue (5c-2); de K05-route bij een crash geldt
+pas voor ring-3-threads (5d-2); ASPACE/FRAMES/SHOOTDOWN moeten in `held_by` zodra ze locks zijn;
+of een AP in 08 zelf een shootdown start (IQ-4). Volgende stap: 06 (5c-2, BSP-timer en idle).
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-quarantine-lock-held"; python3 -B tools/build.py --kernel-feature test-smp-quarantine-lock-held && python3 -B -u tools/run_smp.py --profile test-smp-quarantine-lock-held`.
+
+## Historisch checkpoint — K06 F16/F17, blokkeren, wekken en doden zonder lost-wakeup (ADR-078) — 6 november 2026
 
 **Bron:** `880d6d74` op `fix/k06-f16-f17-sched-protocol` (worktree `nieuw-os-k06-f16`), gestapeld op
 `feat/k06-5b2-kernel-lock` (#234, `59476e17`, met F3/F4 uit #237). Taakspec:

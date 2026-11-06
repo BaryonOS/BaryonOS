@@ -1,5 +1,60 @@
 # Ontwerpbesluiten
 
+## ADR-079 — ICR-lock per CPU en quarantaine stopt bij een gehouden lock (K06, auditbevindingen F19/F15)
+
+6 november 2026; effect alleen in `native-smp` (het eigenaarsveld bestaat in elke build, maar
+één-CPU-profielen schrijven er alleen CPU 0 in). Taakspec:
+`docs/implementation/k06-steps/05-F19-F15-icr-quarantine.md`. Aanvulling op ADR-071 (quarantaine
+van een dove AP) en ADR-072 (shootdown-deadline). **Probleem:** F19: `send_ipi` schreef ICR-hoog
+(0x310) en ICR-laag (0x300) zonder lock. Een handler op dezelfde CPU die tussen die twee
+schrijfacties zelf een IPI stuurt, vervangt de bestemming. F15: `quarantine_all` reset een dove
+AP met INIT, ook als die AP `KERNEL` of een `RUNQ` vasthoudt. Die lock blijft dan voor altijd
+dicht, en de BSP blokkeert bij de volgende acquire.
+
+**Besluit (normatief):**
+- **IQ-1 ICR atomair per CPU.** `CpuLocal.icr` is een `IrqLock` op niveau 60 (ICR). `send_ipi`
+  neemt die lock (irqsave) om de idle-wacht, ICR-hoog, ICR-laag en de afsluitende idle-wacht.
+  Het is de enige plek die 0x310/0x300 schrijft. Een lock per CPU volstaat: elke xAPIC heeft zijn
+  eigen ICR, dus alleen een handler op dezelfde CPU kan ertussen komen, en irqsave sluit die uit.
+  Handlers mogen niveau 60 nemen (LD-1 weigert alleen KERNEL/ASPACE).
+- **IQ-2 Elke lock kent zijn eigenaar.** `IrqLock` heeft een `AtomicU8 owner`: de CPU-index van
+  de houder (BSP 0, AP slot + 1) direct na het verkrijgen, `FREE` (0xff) vóór het vrijgeven. De
+  ticketlogica verandert niet. `IrqLock::owner()` en `level()` zijn de leesinterface.
+- **IQ-3 Beleid bij een dode CPU.** `quarantine_all` controleert eerst alle AP's
+  (`stop_if_held`) en roept daarna per AP `quarantine_cpu(slot)` aan. Er wordt eerst gecontroleerd
+  omdat de RUNQ-lock van de ene AP door een andere AP vastgehouden kan worden.
+  `quarantine_cpu`: alleen op de BSP; controle, INIT, 1 ms wachten, opnieuw controleren (een dove
+  AP die nog draaide, kan na de eerste controle een lock genomen hebben). Daarna gaan de
+  READY-threads uit zijn queue naar de BSP (`ADOPTED`), en de thread die hij draaide (of op wiens
+  stack hij nog stond) geldt als gecrasht (`kill_request`, `CRASHED`). Er wordt niets gemigreerd.
+  Gecontroleerd worden de eigenaarsvelden van `lock::KERNEL` en alle `RUNQ`; ASPACE, FRAMES en
+  SHOOTDOWN bestaan nog niet als `IrqLock` en moeten aan `held_by` worden toegevoegd zodra ze er
+  zijn. Houdt de AP iets vast, dan volgt `SMP:QUARANTINE:LOCK_HELD:<laagste niveau>:CPU=<n>` en
+  een systeemstop (`serial::fail`, of exit 0x10 in `test-smp-quarantine-lock-held`). Een lock
+  losbreken mag niet.
+- **IQ-4 Een AP initieert nooit quarantaine.** `quarantine_cpu` op een AP stopt met
+  `SMP_QUARANTINE_ON_AP`. Een AP die in de ICR-fixture geen ack krijgt, meldt dat alleen via
+  `icr_done`; de BSP beslist. Een 0xe8 naar de BSP volgt pas met 5c-2 (de BSP neemt nu geen
+  interrupts aan). Nagegaan: geen AP-pad roept `quarantine_all` aan. Of een AP in 08 zelf een
+  shootdown start, blijft een open vraag voor 08.
+
+**Bewijs:** native fixture `SMP:ICR:PASS:ROUNDS=10000` (AP1↔AP2, elk 10.000 0xe8 met ack vóór
+de volgende, terwijl elke 0xd0/0xe8-entry vanuit de handler een self-IPI 0xf0 stuurt). Controle
+`test-smp-icr-race`: zonder lock en met één 0xd0 tussen hoog en laag op AP1 ziet de oracle
+`SMP:ICR:LOST` (AP1's 0xe8 komt op AP1 terecht en smelt daar samen met de 0xe8 van AP2) of
+`SMP:ICR:MISROUTED`. `test-smp-quarantine-lock-held`: AP2 neemt KERNEL en wordt doof →
+`SMP:QUARANTINE:LOCK_HELD:10:CPU=2`, exit 0x10, geen hang. Zie `docs/verification/k06-f19f15-icr/`.
+
+**Grenzen en shortcuts:** de BSP heeft vóór 5c-2 geen run queue, dus `ADOPTED` wordt bijgehouden
+maar nog niet gedraaid; 5c-2 moet die leeghalen. Kernelthreads hebben geen proces, dus de
+K05-faultroute heeft bij een crash niets te beëindigen; ring-3-threads op AP's (5d-2) moeten die
+route nemen. Een AP die als *wachter* in een ticketlock sterft, houdt zijn ticket vast. Die lock
+loopt daarna ook vast, maar wordt door IQ-3 (alleen eigenaar) niet gezien. De testlock
+`SPIN_LOCK` in `test-smp-spin-irq-off` is precies zo'n geval (bewust onbruikbaar na de controle).
+Voor KERNEL/RUNQ is dit een open punt; de lockdep-spiegel (gehouden *of afgewacht*) zou het
+kunnen dekken. Buiten scope: herstel na een dode eigenaar, x2APIC (ICR in één MSR-schrijfactie),
+broadcast-IPI's.
+
 ## ADR-078 — Schedulerprotocol: blokkeren in twee fasen, queued-bit en begrensde kill (K06, auditbevindingen F16/F17)
 
 6 november 2026; effect alleen in `native-smp`. Taakspec:

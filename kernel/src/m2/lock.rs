@@ -12,13 +12,15 @@
 //! Audit F3/F4 (ADR-077): KERNEL/ASPACE are refused inside an interrupt
 //! handler (LD-1) and their window opens only outside one (LD-2); two locks of
 //! one level only through `lock_pair`, by ascending key (LD-3/LD-4).
+//! Audit F15 (ADR-079, IQ-2): in native-smp builds a lock records the CPU
+//! index of its holder, so the BSP can refuse to quarantine a CPU that holds it.
 #[cfg(feature = "native-smp")]
 use super::smp;
 use core::{
     arch::asm,
     cell::UnsafeCell,
     ops::{Deref, DerefMut},
-    sync::atomic::{AtomicU64, Ordering},
+    sync::atomic::{AtomicU64, AtomicU8, Ordering},
 };
 use smp_lock::{level, Guard, Lockdep, Order, TicketLock};
 
@@ -56,6 +58,9 @@ mod smp {
     }
     pub fn lock_stuck(_: &[u8]) -> ! {
         crate::serial::fail(b"LOCK_STUCK")
+    }
+    pub fn cpu_index() -> usize {
+        0
     }
 }
 
@@ -103,7 +108,12 @@ pub struct IrqLock<T> {
     key: u32,
     name: &'static [u8],
     inner: TicketLock<T>,
+    /// IQ-2: CPU index of the holder, `FREE` otherwise. Written by the holder
+    /// only, outside the ticket logic; read by the BSP before an INIT.
+    owner: AtomicU8,
 }
+
+const FREE: u8 = u8::MAX;
 
 impl<T> IrqLock<T> {
     /// A lock that is never paired with another of its level (key 0).
@@ -118,7 +128,17 @@ impl<T> IrqLock<T> {
             key,
             name,
             inner: TicketLock::new(value),
+            owner: AtomicU8::new(FREE),
         }
+    }
+
+    pub fn level(&self) -> u8 {
+        self.level
+    }
+
+    /// IQ-2: the CPU index (BSP 0, AP slot + 1) that holds this lock now.
+    pub fn owner(&self) -> Option<u8> {
+        Some(self.owner.load(Ordering::Acquire)).filter(|&cpu| cpu != FREE)
     }
 
     pub fn lock_irqsave(&self) -> IrqGuard<'_, T> {
@@ -195,8 +215,10 @@ impl<T> IrqLock<T> {
         } else {
             self.inner.lock_with(relax)
         };
+        self.owner.store(smp::cpu_index() as u8, Ordering::Release);
         IrqGuard {
             guard: Some(guard),
+            owner: &self.owner,
             level: self.level,
             key: self.key,
             interrupts: flags & (1 << 9) != 0,
@@ -207,6 +229,7 @@ impl<T> IrqLock<T> {
 /// `!Send` through the inner guard: never carried across a context switch.
 pub struct IrqGuard<'a, T> {
     guard: Option<Guard<'a, T>>,
+    owner: &'a AtomicU8,
     level: u8,
     key: u32,
     interrupts: bool,
@@ -227,6 +250,7 @@ impl<T> DerefMut for IrqGuard<'_, T> {
 
 impl<T> Drop for IrqGuard<'_, T> {
     fn drop(&mut self) {
+        self.owner.store(FREE, Ordering::Release);
         drop(self.guard.take());
         if let Err(order) = smp::with_lockdep(|dep| dep.release(self.level, self.key)) {
             smp::lockdep_lifo(order);
