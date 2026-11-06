@@ -55,6 +55,21 @@ pipeline-worker. Er is één codegraaf: de gehoste Graphify-MCP voor
   actuele bestanden. Zonder MCP-toegang lees je de code direct en meld je dat.
   Een lokale graaf is dan geen vervanging.
 
+## Autonome agentpipeline (`tools/agent_pipeline.py`)
+Taken komen uit open issues met het label `pipeline:serial` of `pipeline:parallel`.
+In de body staan `Criterium: <open ID uit docs/progress.json>`, `Gate: <workflow>.yml#<job>`
+en eventueel `Afhankelijk van: #N`. Er is geen aparte backlog. Elke agentaanroep is een
+nieuw CLI-proces (`claude -p`, `codex exec` of `copilot -p`) dat alleen bestanden
+bewerkt. De pipeline draait zelf de commando's. Eerst komt een L0-spec met de
+Graphify-MCP, daarna de executor, daarna `tools/agent_gate.py`: exact de `run:`-stappen
+van de gekozen CI-jobs plus `progress.py --check`. Alleen de exitcode beslist; rtk kort
+alleen de foutlog in. Een `serial`-taak draait alleen en eindigt als concept-PR voor
+Simons review. Maximaal drie `parallel`-taken met losse toegangssets draaien in eigen
+worktrees. Alleen met `--auto-merge-parallel` gaan die PR's op squash-auto-merge. Niets
+gaat direct naar `main`. Agents wijzigen geen workflows, pipeline- of voortgangsbestanden.
+Runtime staat in het genegeerde `build/agent-pipeline/`. Een geblokkeerde taak houdt
+daar haar map tot een mens die verwijdert.
+
 ## Uitvoering
 Werk in korte branches/worktrees met kleine beoordeelbare diffs. Behoud gebruikerswerk; geen destructieve Git-resets. Gebruik alleen geïsoleerde wegwerpimages in QEMU. Geen hostschijf als virtuele disk, geen productiekeys in code, prompts of logs.
 Voer routineonderzoek, lokale bestanden en geschikte tests zelfstandig uit. Publiceren, betaalde infrastructuur, releases ondertekenen, echte schijven wissen of apparaten flashen vereist een concrete expliciete opdracht daarvoor.
