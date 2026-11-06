@@ -47,9 +47,12 @@ CASES = {
     "icr-race-control": ("test-smp-icr-race", 4, "multi", "icr-race"),
     "quarantine-lock-held": ("test-smp-quarantine-lock-held", 4, "multi", "lock-held"),
     "bsp-spin-irq-off-control": ("test-smp-bsp-spin-irq-off", 4, "multi", "bsp-spin-timeout"),
+    "proc-shootdown-deaf": ("test-smp-proc-shootdown-deaf", 4, "multi", "proc-shootdown-quarantine"),
+    "proc-no-shootdown-control": ("test-smp-proc-no-shootdown", 4, "multi", "proc-stale-read"),
 }
 QUARANTINE_OUTCOMES = ("invalid-madt", "timeout", "mismatch", "quarantine", "shootdown-quarantine",
-                       "timer-quarantine", "spin-quarantine", "kill-quarantine")
+                       "timer-quarantine", "spin-quarantine", "kill-quarantine",
+                       "proc-shootdown-quarantine")
 TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_IST:PASS",
             "lockdep-order": "SMP:LOCKDEP:ORDER:30->10",
             "held-across-switch": "SMP:LOCKDEP:HELD_ACROSS_SWITCH",
@@ -61,7 +64,8 @@ TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_I
             "lockpair-order": "SMP:LOCKDEP:ORDER:20->20",
             "icr-race": "SMP:ICR:*",
             "lock-held": "SMP:QUARANTINE:LOCK_HELD:10:CPU=2",
-            "bsp-spin-timeout": "SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=0"}
+            "bsp-spin-timeout": "SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=0",
+            "proc-stale-read": "SMP:SHOOTDOWN:STALE_READ"}
 # Audit F8: the GS fixture prints the runtime CR4 (decimal); FSGSBASE (bit 16)
 # must be clear, the value itself may differ per firmware.
 GS_CR4 = "SMP:GS:CR4=*"
@@ -118,7 +122,8 @@ def expected_smp(case: str) -> list[str]:
         BSP as shootdown target and idle wake + deferred resched, both skipped
         without APs), scheduler, block/wake ping-pong and kill (skipped without
         APs), per-CPU scratch slots under KERNEL, lock_pair rounds, the AP1/AP2
-        ICR exchange (skipped below two APs), park."""
+        ICR exchange (skipped below two APs), step 5e isolation and unmap race
+        in two real spaces (skipped without APs), park."""
         bw = "SKIPPED" if online == 1 else "PASS"
         icr = f"SMP:ICR:PASS:ROUNDS={ICR_ROUNDS}" if online >= 3 else "SMP:ICR:SKIPPED"
         return [RATIO,
@@ -135,6 +140,8 @@ def expected_smp(case: str) -> list[str]:
                 f"SMP:SCRATCH:PASS:CPUS={online}",
                 f"SMP:LOCKPAIR:PASS:CPUS={online}",
                 f"{icr}:CPUS={online}",
+                f"SMP:ISOLATION:{bw}:CPUS={online}",
+                f"SMP:UNMAP_RACE:{bw}:CPUS={online}",
                 f"SMP:PARKED:APS={online - 1}"]
 
     if outcome in ("timeout", "mismatch"):
@@ -159,21 +166,21 @@ def expected_smp(case: str) -> list[str]:
         return lines + settled(started)[:-1] + [GS_CR4, TERMINAL[outcome]]
     if outcome == "double-run":
         # BW-2 (audit F17): thread 0 pushed onto a second AP; the push refuses.
-        return lines + settled(started)[:-7] + [TERMINAL[outcome]]
+        return lines + settled(started)[:-9] + [TERMINAL[outcome]]
     if outcome == "shared-scratch":
         # Step 5b-2 control: one slot for every CPU must be caught crossing.
-        return lines + settled(started)[:-4] + [TERMINAL[outcome]]
+        return lines + settled(started)[:-6] + [TERMINAL[outcome]]
     if outcome == "lock-in-handler":
         # Audit F3 (LD-1): the first 0xe8 handler takes KERNEL in the scheduler phase.
-        return lines + settled(started)[:-7] + [TERMINAL[outcome]]
+        return lines + settled(started)[:-9] + [TERMINAL[outcome]]
     if outcome == "kill-quarantine":
         # BW-3: the kill target (thread 2 on AP slot 2 = APIC 3) ignores 0xe8.
-        return lines + settled(started)[:-5] + ["SMP:KILL:TIMEOUT:APIC=3",
+        return lines + settled(started)[:-7] + ["SMP:KILL:TIMEOUT:APIC=3",
                                                 f"SMP:QUARANTINED:APS={started - 1}",
                                                 f"SMP:ONLINE:1/{cpus}"]
     if outcome == "lockpair-order":
         # Audit F4 (LD-3): two ASPACE locks taken loose and descending, after scratch.
-        return lines + settled(started)[:-3] + [TERMINAL[outcome]]
+        return lines + settled(started)[:-5] + [TERMINAL[outcome]]
     if outcome == "bsp-spin-timeout":
         # Step 5c-2 control: with the BSP window shut, AP1's round to the BSP
         # (APIC 0) while the BSP spins on KERNEL must time out.
@@ -183,6 +190,16 @@ def expected_smp(case: str) -> list[str]:
     if outcome == "icr-race":
         # Audit F19 control: without the ICR lock a 0xd0 between ICR high and
         # low carries AP1's 0xe8 to AP1 itself.
+        return lines + settled(started)[:-4] + [TERMINAL[outcome]]
+    if outcome == "proc-shootdown-quarantine":
+        # Step 5e: AP1 (the reader in space A) ignores A's round; the frame
+        # stays quarantined, every AP is reset and the boot continues on one CPU.
+        return lines + settled(started)[:-2] + ["SMP:SHOOTDOWN:TIMEOUT:APIC=1",
+                                                "SMP:SHOOTDOWN:FRAME_QUARANTINED",
+                                                f"SMP:QUARANTINED:APS={started - 1}",
+                                                f"SMP:ONLINE:1/{cpus}"]
+    if outcome == "proc-stale-read":
+        # Step 5e control: without the round AP1 reads the reused frame.
         return lines + settled(started)[:-2] + [TERMINAL[outcome]]
     lines += [RATIO, f"SMP:SYNC:PASS:CPUS={started}"]
     ipi_pass = f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={started}"
@@ -211,6 +228,8 @@ def expected_smp(case: str) -> list[str]:
                         f"SMP:SCRATCH:PASS:CPUS={started}",
                         f"SMP:LOCKPAIR:PASS:CPUS={started}",
                         f"SMP:ICR:PASS:ROUNDS={ICR_ROUNDS}:CPUS={started}",
+                        f"SMP:ISOLATION:PASS:CPUS={started}",
+                        f"SMP:UNMAP_RACE:PASS:CPUS={started}",
                         f"SMP:PARKED:APS={started - 1}"]
     if outcome == "spin-quarantine":
         # Without the interrupt window a CPU waiting for KERNEL is deaf.
@@ -318,7 +337,8 @@ def run(cases: tuple[str, ...]) -> dict:
                         "instead of INIT for a deaf AP that holds a lock, the BSP's PIT IRQ0 "
                         "clock under load, calibrated LAPIC/PIT ratio, BSP preemption, BSP as "
                         "shootdown target while it spins on KERNEL, BSP idle wake and a "
-                        "deferred 0xe8 honoured at lock release, and BSP "
+                        "deferred 0xe8 honoured at lock release, per-process TLB shootdown aimed at "
+                        "active_cpus with isolation and an unmap race in two real spaces, and BSP "
                         "ticket-lock/lockdep self-test in "
                         "QEMU/TCG; no ring-3 processes (M3) on APs, no hardware evidence"),
               "cases": []}

@@ -53,6 +53,12 @@ def icr(count):
     return f"SMP:ICR:PASS:ROUNDS=10000:CPUS={count}" if count >= 3 else f"SMP:ICR:SKIPPED:CPUS={count}"
 
 
+def proc(count):
+    """Step 5e: isolation and unmap race in two real spaces need one AP."""
+    status = "SKIPPED" if count == 1 else "PASS"
+    return [f"SMP:ISOLATION:{status}:CPUS={count}", f"SMP:UNMAP_RACE:{status}:CPUS={count}"]
+
+
 def online(cpus):
     count = min(cpus, MAX_CPUS)
     return started(cpus) + [f"SMP:IPI:PASS:ROUNDS=3:CPUS={count}",
@@ -62,7 +68,7 @@ def online(cpus):
                             f"SMP:SPIN:PASS:CPUS={count}"] + bsp(count) + [
                             f"SMP:SCHED:PASS:CPUS={count}"] + wake_kill(count) + [
                             f"SMP:SCRATCH:PASS:CPUS={count}",
-                            f"SMP:LOCKPAIR:PASS:CPUS={count}", icr(count),
+                            f"SMP:LOCKPAIR:PASS:CPUS={count}", icr(count), *proc(count),
                             f"SMP:PARKED:APS={count - 1}"] + END
 
 
@@ -72,7 +78,7 @@ def failed(status):
             "SMP:IPI:PASS:ROUNDS=3:CPUS=1", "SMP:SHOOTDOWN:PASS:CPUS=1",
             "SMP:SHOOTDOWN:VISIBLE:CPUS=1", "SMP:PREEMPT:PASS:CPUS=1",
             "SMP:SPIN:PASS:CPUS=1"] + bsp(1) + ["SMP:SCHED:PASS:CPUS=1"] + wake_kill(1) + [
-            "SMP:SCRATCH:PASS:CPUS=1", "SMP:LOCKPAIR:PASS:CPUS=1", icr(1),
+            "SMP:SCRATCH:PASS:CPUS=1", "SMP:LOCKPAIR:PASS:CPUS=1", icr(1), *proc(1),
             "SMP:PARKED:APS=0"] + END
 
 
@@ -87,7 +93,7 @@ STALE_CONTROL = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:SKI
                               "SMP:SPIN:PASS:CPUS=4"] + bsp(4) + [
                               "SMP:SCHED:PASS:CPUS=4"] + wake_kill(4) + [
                               "SMP:SCRATCH:PASS:CPUS=4", "SMP:LOCKPAIR:PASS:CPUS=4", icr(4),
-                              "SMP:PARKED:APS=3"] + END
+                              *proc(4), "SMP:PARKED:APS=3"] + END
 LOCKDEP_ORDER = online(2)[:-2] + ["SMP:LOCKDEP:ORDER:30->10"]
 TIMER_DEAD = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:PASS:CPUS=4",
                            "SMP:SHOOTDOWN:VISIBLE:CPUS=4", "SMP:PREEMPT:TIMEOUT:APIC=1",
@@ -99,25 +105,30 @@ SPIN_DEAF = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:PASS:CP
 HELD_ACROSS = started(2) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=2", "SMP:SHOOTDOWN:PASS:CPUS=2",
                             "SMP:SHOOTDOWN:VISIBLE:CPUS=2", "SMP:LOCKDEP:HELD_ACROSS_SWITCH"]
 # BW-2 (audit F17): the second push of thread 0 is refused at the push itself.
-DOUBLE_RUN = online(4)[:-9] + ["SMP:SCHED:DOUBLE_ENQUEUE"]
+DOUBLE_RUN = online(4)[:-11] + ["SMP:SCHED:DOUBLE_ENQUEUE"]
 # Step 5b-2 control: every CPU in scratch slot 0; any CPU may see the crossing.
-SHARED = online(4)[:-6] + ["SMP:SCRATCH:CROSS:CPU=2"]
+SHARED = online(4)[:-8] + ["SMP:SCRATCH:CROSS:CPU=2"]
 # Audit F3 (LD-1): the first 0xe8 handler takes KERNEL, in the scheduler phase.
-LOCK_IN_HANDLER = online(2)[:-9] + ["SMP:LOCKDEP:IN_HANDLER:10"]
+LOCK_IN_HANDLER = online(2)[:-11] + ["SMP:LOCKDEP:IN_HANDLER:10"]
 # Audit F4 (LD-3): two ASPACE locks taken loose and descending, after scratch.
-LOCKPAIR_ORDER = online(2)[:-5] + ["SMP:LOCKDEP:ORDER:20->20"]
+LOCKPAIR_ORDER = online(2)[:-7] + ["SMP:LOCKDEP:ORDER:20->20"]
 # Audit F8: the ring-3 GS fixture runs after the scheduler phase (CR4 = 104 is
 # DE|PAE|MCE as printed under OVMF/TCG; only FSGSBASE, bit 16, is checked).
 # BW-3: the kill target on AP3 (APIC 3) ignores 0xe8; INV-5 quarantine follows.
-RESCHED_DEAF = online(4)[:-7] + ["SMP:KILL:TIMEOUT:APIC=3", "SMP:QUARANTINED:APS=3",
+RESCHED_DEAF = online(4)[:-9] + ["SMP:KILL:TIMEOUT:APIC=3", "SMP:QUARANTINED:APS=3",
                                  "SMP:ONLINE:1/4"] + END
 # Audit F19 control: without the ICR lock AP1's 0xe8 is carried to AP1 itself.
-ICR_RACE = online(4)[:-4] + ["SMP:ICR:MISROUTED"]
+ICR_RACE = online(4)[:-6] + ["SMP:ICR:MISROUTED"]
 # Audit F15 (IQ-3): AP2 is deaf holding KERNEL; the BSP stops instead of INIT.
 LOCK_HELD = started(4) + ["SMP:IPI:TIMEOUT:APIC=2", "SMP:QUARANTINE:LOCK_HELD:10:CPU=2"]
 # Step 5c-2 control: the BSP window shut, AP1's round to the BSP times out.
 BSP_SPIN_DEAF = online(4)[:online(4).index("SMP:BSP_PREEMPT:PASS:CPUS=4") + 1] + [
     "SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=0"]
+# Step 5e: AP1 ignores space A's round; the frame stays quarantined, the boot goes on.
+PROC_DEAF = online(4)[:-4] + ["SMP:SHOOTDOWN:TIMEOUT:APIC=1", "SMP:SHOOTDOWN:FRAME_QUARANTINED",
+                              "SMP:QUARANTINED:APS=3", "SMP:ONLINE:1/4"] + END
+# Step 5e control: without the round the reader sees the reused frame.
+PROC_STALE = online(4)[:-4] + ["SMP:SHOOTDOWN:STALE_READ"]
 GS_USER = online(4)[:-3] + ["SMP:GS:CR4=104", "SMP:GS:PASS:CPUS=4"] + online(4)[-3:]
 GS_IRET = online(4)[:-3] + ["SMP:GS:CR4=104", "SMP:GS:IRET_FIXUP:PASS"]
 GS_NMI = online(4)[:-3] + ["SMP:GS:CR4=104", "SMP:FAULT:AP_NMI_IST:PASS"]
@@ -135,6 +146,7 @@ VALID = {
     "lock-in-handler": LOCK_IN_HANDLER, "lockpair-order": LOCKPAIR_ORDER,
     "resched-deaf": RESCHED_DEAF, "icr-race-control": ICR_RACE,
     "quarantine-lock-held": LOCK_HELD, "bsp-spin-irq-off-control": BSP_SPIN_DEAF,
+    "proc-shootdown-deaf": PROC_DEAF, "proc-no-shootdown-control": PROC_STALE,
 }
 
 
@@ -459,6 +471,24 @@ class SmpSerialOracle(unittest.TestCase):
         self.assertEqual(struct.unpack_from("<I", table, 4)[0], len(table))
         self.assertEqual(sum(table) % 256, 0)
         self.assertEqual(table[44:52], bytes([0, 8, 0, 0, 1, 0, 0, 0]))
+
+
+    def test_process_shootdown_is_required_and_its_controls_are_exact(self):
+        # Step 5e: a normal run must prove isolation and the unmap race; the
+        # deaf AP must quarantine the frame; the control must show the stale read.
+        for case, lines in (
+            ("four", [line for line in online(4) if "SMP:UNMAP_RACE:" not in line]),
+            ("four", [line for line in online(4) if "SMP:ISOLATION:" not in line]),
+            ("four", [line.replace("UNMAP_RACE:PASS", "UNMAP_RACE:SKIPPED") for line in online(4)]),
+            ("one", [line.replace("SKIPPED", "PASS") for line in online(1)]),
+            ("four", online(4)[:-3] + ["SMP:SHOOTDOWN:STALE_READ"] + online(4)[-3:]),
+            ("proc-shootdown-deaf", online(4)),
+            ("proc-shootdown-deaf", [line for line in PROC_DEAF if "FRAME_QUARANTINED" not in line]),
+            ("proc-no-shootdown-control", online(4)),  # the control must not pass silently
+            ("proc-no-shootdown-control", PROC_STALE[:-1] + ["SMP:UNMAP_RACE:PASS:CPUS=4"] + END),
+        ):
+            with self.subTest(case=case, lines=lines[-4:]), self.assertRaises(ValueError):
+                evaluate(case, transcript(lines), 33, False)
 
 
 if __name__ == "__main__":

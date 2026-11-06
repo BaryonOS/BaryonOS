@@ -15,7 +15,7 @@
 //! any live state --kill_request--> DEAD_PENDING --kill_commit (stack left)--> DEAD
 //! ```
 
-use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 
 pub const READY: u32 = 0;
 /// Off every CPU and in no queue; only [`wake`] or [`kill_request`] moves it.
@@ -129,6 +129,27 @@ pub fn claim_stack(on_cpu: &AtomicBool) -> bool {
     on_cpu
         .compare_exchange(false, true, Ordering::Acquire, Ordering::Relaxed)
         .is_ok()
+}
+
+/// Spec §6.3 step 5 (INV-4): CPU index `cpu` moves from space `from` to
+/// `to` (None = the kernel CR3). The new bit is set before `load_cr3` and the
+/// old one cleared after it, so `active[s]` is at every instant a superset of
+/// the CPUs that may cache space `s` (step 5e PS-1 targets rely on it).
+pub fn switch_space(
+    active: &[AtomicU64],
+    cpu: usize,
+    from: Option<usize>,
+    to: Option<usize>,
+    load_cr3: impl FnOnce(),
+) {
+    let bit = 1u64 << cpu;
+    if let Some(to) = to {
+        active[to].fetch_or(bit, Ordering::SeqCst);
+    }
+    load_cr3();
+    if let Some(from) = from {
+        active[from].fetch_and(!bit, Ordering::SeqCst);
+    }
 }
 
 /// FIFO ring of thread IDs; no allocator. BW-2: `queued[tid]`, shared by all
@@ -734,5 +755,74 @@ mod tests {
         // Teeth: DEAD at the switch itself lets the cleanup race the stub.
         let (_, bad) = explore(&Kill::new(true));
         assert_eq!(bad, Some("cleanup while a CPU is on the stack"));
+    }
+
+    /// During the CR3 load both spaces' bits are set, so no instant exists in
+    /// which a CPU may cache a space whose bit is clear.
+    #[test]
+    fn switch_space_sets_before_and_clears_after_the_load() {
+        let active = [AtomicU64::new(0), AtomicU64::new(0)];
+        switch_space(&active, 3, None, Some(0), || {
+            assert_eq!(active[0].load(SC), 1 << 3)
+        });
+        switch_space(&active, 3, Some(0), Some(1), || {
+            assert_eq!((active[0].load(SC), active[1].load(SC)), (1 << 3, 1 << 3));
+        });
+        switch_space(&active, 3, Some(1), None, || {
+            assert_eq!(active[1].load(SC), 1 << 3)
+        });
+        assert_eq!((active[0].load(SC), active[1].load(SC)), (0, 0));
+    }
+
+    /// Host model of PS-1 with a fake CR3 (audit §5): CPUs switch between two
+    /// spaces and the kernel CR3; at its CR3 load a CPU "caches" the PTE
+    /// version it reads then (the stalest choice). The initiator bumps the
+    /// version (the PTE change), fences and snapshots `targets`; any CPU
+    /// outside `targets` that is in the space must already hold the new version.
+    #[test]
+    fn model_active_snapshot_covers_every_stale_cpu() {
+        const CPUS: usize = 3;
+        const ROUNDS: u64 = 20_000;
+        let active = Arc::new([AtomicU64::new(0), AtomicU64::new(0)]);
+        let pte = Arc::new(AtomicU64::new(0));
+        // Per CPU: space + 1 (0 = kernel CR3) in the low byte, version above it.
+        let cr3: Arc<[AtomicU64; CPUS]> = Arc::new([const { AtomicU64::new(0) }; CPUS]);
+        let stop = Arc::new(AtomicBool::new(false));
+        let switchers: Vec<_> = (0..CPUS)
+            .map(|cpu| {
+                let (active, pte, cr3, stop) =
+                    (active.clone(), pte.clone(), cr3.clone(), stop.clone());
+                thread::spawn(move || {
+                    let mut from = None;
+                    let mut step = cpu;
+                    while !stop.load(SC) {
+                        step += 1;
+                        let to = [None, Some(0), Some(1)][step % 3];
+                        switch_space(&active[..], cpu, from, to, || {
+                            let space = to.map_or(0, |s| s as u64 + 1);
+                            cr3[cpu].store(space | pte.load(SC) << 8, SC);
+                        });
+                        from = to;
+                    }
+                })
+            })
+            .collect();
+        for round in 1..=ROUNDS {
+            let space = (round % 2) as usize;
+            pte.store(round, SC);
+            std::sync::atomic::fence(SC);
+            let targets = active[space].load(SC);
+            for cpu in (0..CPUS).filter(|cpu| targets >> cpu & 1 == 0) {
+                let seen = cr3[cpu].load(SC);
+                if seen & 0xff == space as u64 + 1 {
+                    assert!(
+                        seen >> 8 >= round,
+                        "CPU {cpu} caches space {space} outside targets"
+                    );
+                }
+            }
+        }
+        stop.store(true, SC);
+        switchers.into_iter().for_each(|t| t.join().unwrap());
     }
 }
