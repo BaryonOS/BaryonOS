@@ -37,9 +37,14 @@ PROTECTED = (".github/", "tools/agent_gate.py", "tools/agent_pipeline.py", "tool
              "tools/progress.py", "AGENTS.md", "CLAUDE.md", "docs/progress.json")
 ALWAYS_ALLOWED = ("Cargo.lock",)
 RATE_LIMIT = re.compile(r"rate.?limit|usage limit|quota|too many requests|\b429\b", re.I)
+# Read-only Graphify tools as the Claude CLI names the claude.ai connector; every other
+# connector and Bash stay denied in headless mode.
+GRAPHIFY_READ = ",".join(f"mcp__claude_ai_Graphify__{tool}" for tool in (
+    "graphify_find", "graphify_callers", "graphify_callees", "graphify_impact",
+    "impact_and_risk", "graphify_tests_for", "graphify_file_neighbors", "query_graph", "recall"))
 # Each engine edits files only; the pipeline runs every command itself.
 ENGINES = {
-    "claude": ["claude", "-p", "--permission-mode", "acceptEdits"],
+    "claude": ["claude", "-p", "--permission-mode", "acceptEdits", "--allowedTools", GRAPHIFY_READ],
     "codex": ["codex", "exec", "--full-auto"],
     "copilot": ["copilot", "--allow-tool", "write", "-p"],
 }
