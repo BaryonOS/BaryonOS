@@ -45,6 +45,8 @@ jobs:
           cargo +1.90.0 test --locked -p smp-lock
           cargo +1.90.0 clippy --locked -p smp-lock --all-targets -- -D warnings
           python3 -B -m unittest discover -s tools/tests -p test_smp_serial.py -v
+          # Audit F8: static swapgs/lfence discipline (sole evidence for GS-5).
+          python3 -B -m unittest discover -s tools/tests -p test_gs_discipline.py -v
           python3 -B -m unittest discover -s tools/tests -p test_acpi_serial.py -v
           cargo +1.90.0 fmt --all -- --check
       - name: Normal, capacity and duplicate-MADT boots (1/2/4/8/9 vCPUs)
@@ -109,6 +111,13 @@ jobs:
         run: |
           python3 -B tools/build.py --kernel-feature test-smp-double-run
           python3 -B -u tools/run_smp.py --profile test-smp-double-run
+      - name: Ring 3 with its own GS on every AP; faulting iretq and NMI from CPL3 (audit F8)
+        run: |
+          for profile in test-smp-gs-user test-smp-gs-iret-fault test-smp-gs-nmi-user; do
+            export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/k06-$profile"
+            python3 -B tools/build.py --kernel-feature "$profile"
+            python3 -B -u tools/run_smp.py --profile "$profile"
+          done
       - name: Preserve tracked source integrity
         run: git diff --exit-code
       - name: Preserve actual run and build artifacts

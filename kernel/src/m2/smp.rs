@@ -250,16 +250,20 @@ const IPI_ROUNDS: u32 = 3;
 
 // IPI: count on this CPU (GS-anchored), EOI to this CPU's own xAPIC, return.
 // Spurious: architecturally no EOI. Both run with IF cleared by the gate.
+// Every stub that uses GS starts with `arch::gs_entry!` and returns through
+// `arch::gs_exit!` (audit F8): from CPL3, GS_BASE holds what ring 3 chose.
 global_asm!(
     ".pushsection .text.nos_smp_ipi,\"ax\"",
     ".globl nos_smp_ipi_entry",
     "nos_smp_ipi_entry:",
+    arch::gs_entry!("8"),
     "    push rax",
     "    mov rax, gs:[0]",
     "    lock inc dword ptr [rax + 12]",
     "    mov dword ptr [{eoi}], 0",
     "    pop rax",
-    "    iretq",
+    arch::gs_exit!("nos_iret_user_ipi"),
+    // Touches neither memory nor GS; a CPL3 return keeps the user GS (lint).
     ".globl nos_smp_spurious_entry",
     "nos_smp_spurious_entry:",
     "    iretq",
@@ -269,6 +273,7 @@ global_asm!(
     // interrupted code.
     ".globl nos_smp_shootdown_entry",
     "nos_smp_shootdown_entry:",
+    arch::gs_entry!("8"),
     "    push rax",
     "    push rdx",
     "    mov rax, qword ptr [rip + {va}]",
@@ -281,7 +286,7 @@ global_asm!(
     "    mov dword ptr [{eoi}], 0",
     "    pop rdx",
     "    pop rax",
-    "    iretq",
+    arch::gs_exit!("nos_iret_user_shootdown"),
     ".popsection",
     eoi = const paging::LAPIC_WINDOW + 0xb0,
     va = sym NOS_SMP_SHOOTDOWN_VA,
@@ -973,6 +978,15 @@ pub fn start(
         .self_ptr
         .store(ptr::from_ref(&BSP_LOCAL) as u64, Ordering::Relaxed);
     wrmsr(0xc000_0101, ptr::from_ref(&BSP_LOCAL) as u64);
+    // GS-10: without FSGSBASE ring 3 cannot write GS_BASE directly, and
+    // without SCE there is no `syscall` entry, which would need its own
+    // unconditional swapgs. Every AP adopts exactly these registers and is
+    // rejected (MISMATCH) unless it reads them back identically.
+    let registers = control_registers();
+    if registers[CR4] & (1 << 16) != 0 || registers[EFER] & 1 != 0 {
+        serial::write(b"SMP:GS:PRECONDITION\n");
+        serial::fail(b"SMP_GS_PRECONDITION");
+    }
     match madt.status {
         MadtStatus::Missing => return unavailable(b"NO_MADT"),
         MadtStatus::Invalid => return unavailable(b"INVALID_MADT"),
@@ -1345,6 +1359,10 @@ global_asm!(
     ".pushsection .text.nos_smp_timer,\"ax\"",
     ".globl nos_smp_timer_entry",
     "nos_smp_timer_entry:",
+    arch::gs_entry!("8"),
+    // 0xe8 joins here, after its own prologue (GS-3: one swapgs per entry).
+    ".globl nos_smp_timer_body",
+    "nos_smp_timer_body:",
     "    push rax", "    push rcx", "    push rdx", "    push rbx", "    push rbp",
     "    push rsi", "    push rdi", "    push r8", "    push r9", "    push r10",
     "    push r11", "    push r12", "    push r13", "    push r14", "    push r15",
@@ -1361,9 +1379,7 @@ global_asm!(
     "    pop r15", "    pop r14", "    pop r13", "    pop r12", "    pop r11",
     "    pop r10", "    pop r9", "    pop r8", "    pop rdi", "    pop rsi",
     "    pop rbp", "    pop rbx", "    pop rdx", "    pop rcx", "    pop rax",
-    ".globl nos_iret_user_timer",
-    "nos_iret_user_timer:",
-    "    iretq",
+    arch::gs_exit!("nos_iret_user_timer"),
     ".popsection",
     preempt = sym smp_preempt,
     eoi = const paging::LAPIC_WINDOW + 0xb0,
@@ -1836,11 +1852,12 @@ global_asm!(
     ".pushsection .text.nos_smp_resched,\"ax\"",
     ".globl nos_smp_resched_entry",
     "nos_smp_resched_entry:",
+    arch::gs_entry!("8"),
     "    push rax",
     "    mov rax, gs:[0]",
     "    lock inc dword ptr [rax + {resched}]",
     "    pop rax",
-    "    jmp nos_smp_timer_entry",
+    "    jmp nos_smp_timer_body",
     ".popsection",
     resched = const core::mem::offset_of!(CpuLocal, resched),
 );
@@ -2183,12 +2200,16 @@ fn gs_switch(local: &CpuLocal, rsp: u64) -> Resume {
         GS_ARMED => {
             local.saved[0].store(rsp, Ordering::Relaxed);
             let top = stack_base(slot, THREADS[0]) + STACK_TOP;
-            let rip = if cfg!(feature = "test-smp-gs-iret-fault") {
-                0x8000_0000_0000_0000 // non-canonical: the iretq must fault
+            // N2: SS 0x13 is the DPL0 data descriptor with RPL3, so `iretq`
+            // raises #GP(0x10) at CPL0, after the exit swapgs. (QEMU-TCG does
+            // not check a non-canonical RIP on `iretq`; that #GP came from CPL3.)
+            let ss = if cfg!(feature = "test-smp-gs-iret-fault") {
+                0x13
             } else {
-                USER_CODE + 16 * (slot as u64 & 1)
+                0x1b
             };
-            let frame = initial_frame(top - 20 * 8, [rip, 0x23, 0x202, USER_CODE + PAGE, 0x1b], 0);
+            let rip = USER_CODE + 16 * (slot as u64 & 1);
+            let frame = initial_frame(top - 20 * 8, [rip, 0x23, 0x202, USER_CODE + PAGE, ss], 0);
             arch::ap_rsp0(ap_tables(slot), top);
             // SAFETY: GS_ROOT maps the kernel half exactly like the kernel CR3.
             unsafe {

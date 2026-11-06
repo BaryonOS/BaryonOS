@@ -6,6 +6,48 @@ use core::{
     ptr,
 };
 
+/// GS discipline (audit F8, ADR-075 GS-1..GS-10). Entry prologue of an
+/// IRQ/IPI stub, `cs` = offset of the CPU frame's CS from RSP: `swapgs` iff
+/// that frame came from CPL3 (GS-2), then `lfence` on the join so a
+/// mispredicted branch cannot reach a GS-relative load (GS-5). Nothing that
+/// uses GS, calls or enters Rust may precede it (GS-4).
+#[cfg(feature = "native-smp")]
+macro_rules! gs_entry {
+    ($cs:literal) => {
+        concat!(
+            "test byte ptr [rsp+",
+            $cs,
+            "], 3\n",
+            "jz 7f\n",
+            "swapgs\n",
+            "7:\n",
+            "lfence\n"
+        )
+    };
+}
+/// Exit epilogue directly before `iretq` (RSP at the CPU frame): `swapgs`
+/// iff the frame being restored is CPL3 (GS-2), IF=0 up to `iretq` (GS-8).
+/// `$label` marks the `iretq` for the GS-7 fixup in `m2_exception_common`.
+#[cfg(any(feature = "native-smp", feature = "milestone-m3"))]
+macro_rules! gs_exit {
+    ($label:literal) => {
+        concat!(
+            "test byte ptr [rsp+8], 3\n",
+            "jz 7f\n",
+            "swapgs\n",
+            "7:\n",
+            ".globl ",
+            $label,
+            "\n",
+            $label,
+            ":\n",
+            "iretq\n"
+        )
+    };
+}
+#[cfg(feature = "native-smp")]
+pub(super) use {gs_entry, gs_exit};
+
 #[repr(C, align(4096))]
 pub struct Stack {
     lower: [u8; 4096],
@@ -460,27 +502,32 @@ extern "C" fn m2_exception(frame: *const u64) -> ! {
 
 // All GPRs are saved before entering Rust. The call stack is SysV aligned and DF
 // cleared. No floating point context is used. Non-returning M2 failure path.
+// GS (audit F8): every vector except NMI (2), #DF (8) and #MC (18) runs the
+// prologue in `m2_exception_common` (CS at +24 after EX normalized the frame).
+// A faulting `iretq` to CPL3 reports CS=8 with the user GS already loaded, so
+// a frame RIP equal to one of the `nos_iret_user_*` labels also swaps (GS-7).
+// The paranoid vectors never swap or use GS and stay terminal (GS-6).
 global_asm!(
     r#"
 .section .text
-.macro EX n, err=0
+.macro EX n, err=0, path=m2_exception_common
 .global m2_exc_\n
 m2_exc_\n:
 .if \err == 0
  push 0
 .endif
  push \n
- jmp m2_exception_common
+ jmp \path
 .endm
 EX 0
 EX 1
-EX 2
+EX 2,0,m2_exception_paranoid
 EX 3
 EX 4
 EX 5
 EX 6
 EX 7
-EX 8,1
+EX 8,1,m2_exception_paranoid
 EX 9
 EX 10,1
 EX 11,1
@@ -490,7 +537,7 @@ EX 14,1
 EX 15
 EX 16
 EX 17,1
-EX 18
+EX 18,0,m2_exception_paranoid
 EX 19
 EX 20
 EX 21,1
@@ -505,6 +552,26 @@ EX 29,1
 EX 30,1
 EX 31
 m2_exception_common:
+ test byte ptr [rsp+24],3
+ jnz 7f
+.if {smp}
+ cmp qword ptr [rsp+16],offset nos_iret_user_timer
+ je 7f
+ cmp qword ptr [rsp+16],offset nos_iret_user_ipi
+ je 7f
+ cmp qword ptr [rsp+16],offset nos_iret_user_shootdown
+ je 7f
+.endif
+.if {m3}
+ cmp qword ptr [rsp+16],offset nos_iret_user_m3
+ je 7f
+.endif
+ jmp 8f
+7:
+ swapgs
+8:
+ lfence
+m2_exception_paranoid:
  cld
  push rax
  push rcx
@@ -530,7 +597,9 @@ exception_addresses:
 .quad m2_exc_8,m2_exc_9,m2_exc_10,m2_exc_11,m2_exc_12,m2_exc_13,m2_exc_14,m2_exc_15
 .quad m2_exc_16,m2_exc_17,m2_exc_18,m2_exc_19,m2_exc_20,m2_exc_21,m2_exc_22,m2_exc_23
 .quad m2_exc_24,m2_exc_25,m2_exc_26,m2_exc_27,m2_exc_28,m2_exc_29,m2_exc_30,m2_exc_31
-"#
+"#,
+    smp = const cfg!(feature = "native-smp") as u8,
+    m3 = const cfg!(feature = "milestone-m3") as u8,
 );
 
 #[cfg(not(feature = "milestone-m3"))]
@@ -546,7 +615,8 @@ m2_dispatch:
 );
 #[cfg(feature = "milestone-m3")]
 global_asm!(
-    r#"
+    concat!(
+        r#"
 .section .text
 .global m3_timer
 m3_timer:
@@ -562,6 +632,8 @@ m2_dispatch:
  cmp qword ptr [rsp+120],2
  je m3_terminal
  cmp qword ptr [rsp+120],8
+ je m3_terminal
+ cmp qword ptr [rsp+120],18
  je m3_terminal
  cmp qword ptr [rsp+120],32
  jne m3_user_entry
@@ -619,12 +691,15 @@ m3_restore:
  pop rcx
  pop rax
  add rsp,16
- iretq
+"#,
+        gs_exit!("nos_iret_user_m3"),
+        r#"
 m3_terminal:
  mov rdi,rsp
  and rsp,-16
  call m2_exception
  ud2
-"#,
+"#
+    ),
     fpu_context = const cfg!(feature = "fpu-context") as u8,
 );
