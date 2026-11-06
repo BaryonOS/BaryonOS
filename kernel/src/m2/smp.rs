@@ -1532,8 +1532,10 @@ fn preemption(online: usize, total: usize) -> bool {
             return false;
         }
     }
-    if !preempt_under_lock(locals) {
-        return false;
+    // Without the 5b IF window no tick reaches a lock waiter, so the 5b deaf
+    // control skips this proof and must fail later, in `spin_window`.
+    if !cfg!(feature = "test-smp-spin-irq-off") {
+        preempt_under_lock(locals);
     }
     PREEMPT.store(PREEMPT_STOP, Ordering::Release);
     for (context, local) in aps.iter().zip(locals) {
@@ -1582,7 +1584,7 @@ static PREEMPT_LOCKED: AtomicBool = AtomicBool::new(false);
 /// deferred (`deferred` rises) while `switches` stays put; after the release
 /// switching resumes. Runs with every AP's timer proven live, so a missing
 /// tick or a switch here is a broken invariant, not a deaf AP: fail closed.
-fn preempt_under_lock(locals: &[CpuLocal]) -> bool {
+fn preempt_under_lock(locals: &[CpuLocal]) {
     let held = PREEMPT_LOCK.lock_irqsave();
     PREEMPT_LOCKED.store(true, Ordering::Release);
     for local in locals {
@@ -1613,7 +1615,6 @@ fn preempt_under_lock(locals: &[CpuLocal]) -> bool {
             serial::fail(b"SMP_PREEMPT_LOCK_NOT_RESUMED");
         }
     }
-    true
 }
 
 /// Step 5b test lock (KERNEL level); used only by the spin phase below.
