@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
-**Bron:** [`e7f99d59`](https://github.com/simonvanieperen/nieuw-os/commit/e7f99d5939a52922f1c15127c8f54895634bdce8) ·
-**Ontwikkelbranch:** `docs/graphify-mcp-methode`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Werkwijze: één Graphify-methode (alleen de gehoste MCP) voor alle AI's (AGENTS.md, CLAUDE.md, Copilot-instructies).
-41/100 blijft 41/100. Alleen agentinstructies zijn gewijzigd: iedere AI gebruikt uitsluitend de gehoste Graphify-MCP (geen lokale graphify-run of graphify-out/), CLAUDE.md laadt AGENTS.md en Copilot krijgt dezelfde regel. Geen criterium, gewicht of bewijs gewijzigd.
+**Bron:** [`edb252db`](https://github.com/simonvanieperen/nieuw-os/commit/edb252dbc91f3fa83c12d6aaf7008a5184cb74d3) ·
+**Ontwikkelbranch:** `feat/k06-5a-ticketlock-lockdep`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5a: ticketlock, irqsave en lockdep per CPU (ADR-074).
+41/100 blijft 41/100. K06 stap 5a voegt een ticketlock, irqsave en lockdep toe, met hosttests en een negatief native profiel. Native QEMU-bewijs is nog niet uitgevoerd en K06 vraagt een volledige SMP-scheduler (stap 5b t/m 5f), dus K06 blijft open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

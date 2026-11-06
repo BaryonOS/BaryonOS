@@ -629,7 +629,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn abi_version_encodes_major_and_minor_in_separate_halves() {
+    fn abi_version_packs_major_high_and_minor_low() {
         assert_eq!(abi_version(0, 0), 0);
         assert_eq!(abi_version(1, 0), 0x0001_0000);
         assert_eq!(abi_version(0, 1), 1);
