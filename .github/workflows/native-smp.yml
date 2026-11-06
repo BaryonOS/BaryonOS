@@ -91,6 +91,12 @@ jobs:
         run: |
           python3 -B tools/build.py --kernel-feature test-smp-lockdep-order
           python3 -B -u tools/run_smp.py --profile test-smp-lockdep-order
+      - name: A CPU waiting for KERNEL without the IF window is deaf (control)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-spin-irq-off
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-spin-irq-off
+          python3 -B -u tools/run_smp.py --profile test-smp-spin-irq-off
       - name: Preserve tracked source integrity
         run: git diff --exit-code
       - name: Preserve actual run and build artifacts

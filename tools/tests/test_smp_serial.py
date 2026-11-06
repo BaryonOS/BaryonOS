@@ -35,6 +35,7 @@ def online(cpus):
                             f"SMP:SHOOTDOWN:PASS:CPUS={count}",
                             f"SMP:SHOOTDOWN:VISIBLE:CPUS={count}",
                             f"SMP:PREEMPT:PASS:CPUS={count}",
+                            f"SMP:SPIN:PASS:CPUS={count}",
                             f"SMP:PARKED:APS={count - 1}"] + END
 
 
@@ -42,7 +43,8 @@ def failed(status):
     return ["SMP:MADT:CPUS=4:DISABLED=0:HOTPLUG=0", f"SMP:AP:1:{status}",
             "SMP:BRINGUP:STOPPED", "SMP:ONLINE:1/4", "SMP:SYNC:PASS:CPUS=1",
             "SMP:IPI:PASS:ROUNDS=3:CPUS=1", "SMP:SHOOTDOWN:PASS:CPUS=1",
-            "SMP:SHOOTDOWN:VISIBLE:CPUS=1", "SMP:PREEMPT:PASS:CPUS=1", "SMP:PARKED:APS=0"] + END
+            "SMP:SHOOTDOWN:VISIBLE:CPUS=1", "SMP:PREEMPT:PASS:CPUS=1", "SMP:SPIN:PASS:CPUS=1",
+            "SMP:PARKED:APS=0"] + END
 
 
 DEAF = started(4) + ["SMP:IPI:TIMEOUT:APIC=1", "SMP:QUARANTINED:APS=3", "SMP:ONLINE:1/4"] + END
@@ -53,11 +55,15 @@ SHOOTDOWN_DEAF = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:TI
                                "SMP:ONLINE:1/4"] + END
 STALE_CONTROL = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:SKIPPED",
                               "SMP:SHOOTDOWN:STALE:APS=3", "SMP:PREEMPT:PASS:CPUS=4",
-                              "SMP:PARKED:APS=3"] + END
+                              "SMP:SPIN:PASS:CPUS=4", "SMP:PARKED:APS=3"] + END
 LOCKDEP_ORDER = online(2)[:-2] + ["SMP:LOCKDEP:ORDER:30->10"]
 TIMER_DEAD = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:PASS:CPUS=4",
                            "SMP:SHOOTDOWN:VISIBLE:CPUS=4", "SMP:PREEMPT:TIMEOUT:APIC=1",
                            "SMP:QUARANTINED:APS=3", "SMP:ONLINE:1/4"] + END
+SPIN_DEAF = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:PASS:CPUS=4",
+                          "SMP:SHOOTDOWN:VISIBLE:CPUS=4", "SMP:PREEMPT:PASS:CPUS=4",
+                          "SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=1", "SMP:QUARANTINED:APS=3",
+                          "SMP:ONLINE:1/4"] + END
 
 VALID = {
     "one": online(1), "two-single": online(2), "four": online(4), "eight": online(8),
@@ -66,6 +72,7 @@ VALID = {
     "ap-ipi-deaf": DEAF, "ap-nmi-ist": NMI, "ap-double-fault-ist": DOUBLE,
     "ap-shootdown-deaf": SHOOTDOWN_DEAF, "shootdown-skipped-control": STALE_CONTROL,
     "ap-timer-dead": TIMER_DEAD, "lockdep-order": LOCKDEP_ORDER,
+    "spin-irq-off-control": SPIN_DEAF,
 }
 
 
@@ -130,8 +137,8 @@ class SmpSerialOracle(unittest.TestCase):
                                   SHOOTDOWN_DEAF[:-3] + ["SMP:SHOOTDOWN:PASS:CPUS=4"] + END],
             "shootdown-skipped-control": [
                 online(4),  # the control must not silently become a passing shootdown
-                STALE_CONTROL[:-5] + ["SMP:SHOOTDOWN:STALE:APS=2"] + STALE_CONTROL[-4:],
-                STALE_CONTROL[:-5] + ["SMP:SHOOTDOWN:STALE:APS=0"] + STALE_CONTROL[-4:]],
+                STALE_CONTROL[:-6] + ["SMP:SHOOTDOWN:STALE:APS=2"] + STALE_CONTROL[-5:],
+                STALE_CONTROL[:-6] + ["SMP:SHOOTDOWN:STALE:APS=0"] + STALE_CONTROL[-5:]],
             "ap-timer-dead": [online(4), TIMER_DEAD[:-4] + END,
                               [line for line in TIMER_DEAD if "QUARANTINED" not in line]],
         }
@@ -148,6 +155,23 @@ class SmpSerialOracle(unittest.TestCase):
                        for line in online(4)]):
             with self.subTest(lines=lines), self.assertRaises(ValueError):
                 evaluate("four", transcript(lines), 33, False)
+
+    def test_normal_runs_must_prove_the_spin_window(self):
+        # A normal run must show the spin phase; the deaf control must never
+        # pass as a normal run, report a PASS, or skip the quarantine.
+        for case, lines in (
+            ("four", [line for line in online(4) if "SMP:SPIN:" not in line]),
+            ("four", SPIN_DEAF),
+            ("four", [line.replace("SPIN:PASS:CPUS=4", "SPIN:PASS:CPUS=3") for line in online(4)]),
+            ("spin-irq-off-control", online(4)),
+            ("spin-irq-off-control", SPIN_DEAF[:-5] + ["SMP:SPIN:PASS:CPUS=4"] + END),
+            ("spin-irq-off-control", [line for line in SPIN_DEAF if "QUARANTINED" not in line]),
+            ("spin-irq-off-control", [line.replace("SPIN:SHOOTDOWN_TIMEOUT", "SHOOTDOWN:TIMEOUT")
+                                      for line in SPIN_DEAF]),
+        ):
+            with self.subTest(case=case, lines=lines[-6:]), self.assertRaises(ValueError):
+                evaluate(case, transcript(lines), 33, False)
+        self.assertEqual(evaluate("spin-irq-off-control", transcript(SPIN_DEAF), 33, False)["online"], 1)
 
     def test_lock_self_test_is_required_and_terminal_order_is_exact(self):
         for case, text in (

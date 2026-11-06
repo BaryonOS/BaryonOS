@@ -33,6 +33,33 @@ ADR-024 krijgt daarmee ADR-075, niet ADR-074 zoals de spec voorstelde.
 Lockdep heeft één bit per niveau, dus twee RUNQ-locks tegelijk vragen in
 stap 5d een nestteller. Spinnen met IF=1 op KERNEL/ASPACE (§4.3) volgt in 5b.
 
+**Aanvulling stap 5b (6 november 2026): gecontroleerd spinnen met IF=1.** Wie
+wacht op een lock van niveau KERNEL of ASPACE, opent tussen twee pollingen een
+venster `sti; pause; cli`. Een CPU die zo wacht, kan daardoor nog een shootdown
+(0xe0) bevestigen van de lockhouder, die zelf met IF=0 op die ack wacht. Zonder
+venster ontstaat een deadlock. Afbakening:
+- Alleen voor niveau ≤ ASPACE. Alle andere niveaus spinnen met IF=0, omdat RUNQ,
+  ICR en SERIAL ook vanuit handlers worden genomen.
+- Lockdep legt het niveau vast vóór het spinnen. Een wachter houdt dus hoogstens
+  KERNEL vast, en dat ligt onder elk handlerniveau. Handlers nemen nooit
+  KERNEL/ASPACE; dat is in deze stap een structuurcontract, zonder runtimecheck.
+- Alleen op AP's (`smp::on_ap`). De BSP krijgt het venster in 5c, zodra zijn
+  interruptbronnen vastliggen.
+- De bewaarde IF van vóór `lock_irqsave` verandert niet. Release-builds spinnen
+  onbegrensd via `TicketLock::lock_with`.
+- **Voorwaarde voor 5c/5d:** voordat een timer wordt gewapend op een CPU die
+  KERNEL/ASPACE neemt, mag de preëmptiehandler niet wisselen zolang de
+  lockdepset niet leeg is (INV-7). In 5b is de AP-timer in de spinfase al gemaskeerd.
+
+Bewijs: een native fixture na PREEMPT. De BSP houdt een lock op KERNEL-niveau
+terwijl elke AP er met IF=0 op wacht, en eist binnen 100 ms een shootdown-ack
+van iedere AP (`SMP:SPIN:PASS`). Het controleprofiel `test-smp-spin-irq-off`
+(zonder venster) moet `SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=1` geven, gevolgd door
+quarantaine. Dat bewijst dat de fixture een echt gevaar meet. Lokaal: de
+hosttest `lock_with`, de serial-oracle en kernelbuilds. **Native QEMU staat
+open** (`native-smp.yml`). De oude 5b-inhoud (KERNEL-lock om M3-syscalls,
+scratchslot per CPU, ADR-075) schuift door naar stap 5b-2.
+
 **Alternatieven overwogen.** De bestaande TTAS-lock: vervangen, omdat die
 niet FIFO is en onder TCG kan uithongeren. Lockdep alleen in debugbuilds:
 verworpen, omdat de native gate releasebuilds draait.

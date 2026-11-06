@@ -22,7 +22,7 @@
 //!   both stop the VM, never a resumed or corrupted state.
 //! - If an AP that failed cannot be reset with INIT, the boot stops (fail):
 //!   an uncontrolled CPU is never left running beside the kernel.
-use super::{arch, paging, zero, FRAME_COUNT};
+use super::{arch, lock, paging, zero, FRAME_COUNT};
 use crate::serial;
 use boot_protocol::acpi::{Madt, MadtStatus};
 use core::{
@@ -32,7 +32,7 @@ use core::{
     sync::atomic::{fence, AtomicBool, AtomicU32, AtomicU64, Ordering},
 };
 use kernel_core::{Frames, Owner, PAGE};
-use smp_lock::TicketLock;
+use smp_lock::{level, TicketLock};
 
 /// Total CPUs (BSP plus APs) this profile starts; further MADT CPUs are skipped.
 pub const MAX_CPUS: usize = 8;
@@ -152,6 +152,9 @@ struct CpuLocal {
     corrupt: AtomicU32,
     /// Held lock levels (step 5a, `smp_lock::Lockdep`); this CPU only, IF=0.
     lockdep: AtomicU64,
+    /// Step 5b spin phase: 1 = about to wait for SPIN_LOCK (IF=0 from here),
+    /// 2 = got it and released it again.
+    spun: AtomicU32,
 }
 impl CpuLocal {
     const fn new() -> Self {
@@ -171,6 +174,7 @@ impl CpuLocal {
             saved: [const { AtomicU64::new(0) }; 3],
             corrupt: AtomicU32::new(0),
             lockdep: AtomicU64::new(0),
+            spun: AtomicU32::new(0),
         }
     }
 }
@@ -751,6 +755,13 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
             }
             _ => {}
         }
+        // Spin phase (step 5b): wait for the KERNEL-level lock the BSP holds.
+        // IF is 0 from the store of 1 on; only the lock's own window opens it.
+        if SPIN.load(Ordering::Acquire) && local.spun.load(Ordering::Relaxed) == 0 {
+            local.spun.store(1, Ordering::Release);
+            *SPIN_LOCK.lock_irqsave() += 1;
+            local.spun.store(2, Ordering::Release);
+        }
         if PARK.load(Ordering::Acquire) {
             break;
         }
@@ -1102,7 +1113,10 @@ fn ipis(
         }
         serial::fail(b"SMP_AP_NMI_NOT_ON_IST");
     }
-    if !shootdown(online, total, frames, paging) || !preemption(online, total) {
+    if !shootdown(online, total, frames, paging)
+        || !preemption(online, total)
+        || !spin_window(online, total)
+    {
         return;
     }
     PARK.store(true, Ordering::Release);
@@ -1288,6 +1302,11 @@ fn any_cpu() -> Option<&'static CpuLocal> {
     core::iter::once(&BSP_LOCAL)
         .chain(CPU_LOCAL.iter())
         .find(|local| ptr::from_ref(*local) as u64 == anchor)
+}
+
+/// True on an AP (its GS anchor is in CPU_LOCAL); false on the BSP.
+pub fn on_ap() -> bool {
+    this_cpu().is_some()
 }
 
 /// This CPU's held lock levels; IF=0, so no handler interleaves the update.
@@ -1516,6 +1535,60 @@ fn preemption(online: usize, total: usize) -> bool {
         }
     }
     serial::write(b"SMP:PREEMPT:PASS:CPUS=");
+    decimal(online as u64 + 1);
+    serial::write(b"\n");
+    true
+}
+
+/// Step 5b test lock (KERNEL level); used only by the spin phase below.
+static SPIN_LOCK: lock::IrqLock<u32> = lock::IrqLock::new(level::KERNEL, b"KERNEL", 0);
+static SPIN: AtomicBool = AtomicBool::new(false);
+
+/// Spin proof (spec §4.3): while the BSP holds a KERNEL-level lock, every AP
+/// waits for it with IF=0 and must still acknowledge a shootdown round,
+/// through the lock's `sti; pause; cli` window. In `test-smp-spin-irq-off`
+/// (no window) the first waiter is deaf: the round times out and every AP is
+/// reset before the BSP lets go of the lock, which stays unusable afterwards.
+fn spin_window(online: usize, total: usize) -> bool {
+    let aps = &NOS_SMP_AP_CONTEXTS[..online];
+    let locals = &CPU_LOCAL[..online];
+    let held = SPIN_LOCK.lock_irqsave();
+    SPIN.store(true, Ordering::Release);
+    for (context, local) in aps.iter().zip(locals) {
+        let apic = context.apic_id.load(Ordering::Relaxed);
+        if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
+            || !within_ms(100, || local.spun.load(Ordering::Acquire) == 1)
+        {
+            serial::write(b"SMP:SPIN:TIMEOUT:APIC=");
+            decimal(u64::from(apic));
+            serial::write(b"\n");
+            quarantine_all(online, total);
+            return false;
+        }
+    }
+    // Every AP now waits with IF=0; an invlpg of the current window is harmless.
+    let window = paging::SHOOTDOWN_WINDOW;
+    if let Err(apic) = shootdown_round([window, window], online) {
+        serial::write(b"SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=");
+        decimal(u64::from(apic));
+        serial::write(b"\n");
+        quarantine_all(online, total);
+        drop(held);
+        return false;
+    }
+    drop(held);
+    for local in locals {
+        if !within_ms(100, || local.spun.load(Ordering::Acquire) == 2) {
+            serial::fail(b"SMP_SPIN_NOT_GRANTED");
+        }
+        if local.lockdep.load(Ordering::Acquire) != 0 {
+            serial::fail(b"SMP_SPIN_LOCKDEP_LEFT");
+        }
+    }
+    if *SPIN_LOCK.lock_irqsave() != online as u32 {
+        serial::fail(b"SMP_SPIN_COUNT");
+    }
+    serial::write(b"SMP:SPIN:PASS:CPUS=");
     decimal(online as u64 + 1);
     serial::write(b"\n");
     true

@@ -4,7 +4,8 @@
 //! RFLAGS.IF, masks interrupts, records the level in this CPU's lockdep set
 //! (a violation stops the VM), then spins. The guard releases the lock, drops
 //! the level and only then restores IF. Lockdep is active in every native-smp
-//! build; the bounded spin with its STUCK marker only in debug builds.
+//! build; the bounded spin with its STUCK marker only in debug builds. Step
+//! 5b: waiters for KERNEL/ASPACE spin with a `sti; pause; cli` window (APs).
 use super::smp;
 use core::{
     arch::asm,
@@ -39,12 +40,29 @@ impl<T> IrqLock<T> {
             smp::lockdep_order(order);
         }
         held.store(dep.bits(), Ordering::Relaxed);
+        // Step 5b (spec §4.3): a waiter for KERNEL/ASPACE opens a short
+        // interrupt window between polls, so it can still acknowledge a
+        // shootdown from the holder. Safe because lockdep (above) proved every
+        // held level is below the handler levels (RUNQ and up) and handlers
+        // never take KERNEL/ASPACE. APs only: the BSP's interrupt sources are
+        // defined in step 5c. `test-smp-spin-irq-off` is the deaf control.
+        let window =
+            self.level <= level::ASPACE && !cfg!(feature = "test-smp-spin-irq-off") && smp::on_ap();
+        let relax = || {
+            if window {
+                // SAFETY: CPL0 on an AP whose IDT covers every unmasked
+                // source; STI's shadow covers PAUSE, so a pending interrupt is
+                // taken only before CLI. No lock this CPU holds is taken by a
+                // handler, and the saved IF in `flags` is unchanged.
+                unsafe { asm!("sti", "pause", "cli") };
+            }
+        };
         let guard = if cfg!(debug_assertions) {
             self.inner
-                .lock_bounded(1 << 24, || {})
+                .lock_bounded(1 << 24, relax)
                 .unwrap_or_else(|_| smp::lock_stuck(self.name))
         } else {
-            self.inner.lock()
+            self.inner.lock_with(relax)
         };
         IrqGuard {
             guard: Some(guard),

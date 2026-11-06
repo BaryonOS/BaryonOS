@@ -33,9 +33,10 @@ CASES = {
     "shootdown-skipped-control": ("test-smp-shootdown-skipped", 4, "multi", "stale-control"),
     "ap-timer-dead": ("test-smp-ap-timer-dead", 4, "multi", "timer-quarantine"),
     "lockdep-order": ("test-smp-lockdep-order", 2, "multi", "lockdep-order"),
+    "spin-irq-off-control": ("test-smp-spin-irq-off", 4, "multi", "spin-quarantine"),
 }
 QUARANTINE_OUTCOMES = ("invalid-madt", "timeout", "mismatch", "quarantine", "shootdown-quarantine",
-                       "timer-quarantine")
+                       "timer-quarantine", "spin-quarantine")
 TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_IST:PASS",
             "lockdep-order": "SMP:LOCKDEP:ORDER:30->10"}
 # Step 5a: the BSP lock self-test after smp::start, on every non-terminal path.
@@ -65,12 +66,13 @@ def expected_smp(case: str) -> list[str]:
     madt = [f"SMP:MADT:CPUS={cpus}:DISABLED=0:HOTPLUG=0"]
 
     def settled(online: int) -> list[str]:
-        """Sync, IPI rounds, completed shootdown + visibility, park."""
+        """Sync, IPI rounds, completed shootdown + visibility, preemption, spin, park."""
         return [f"SMP:SYNC:PASS:CPUS={online}",
                 f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={online}",
                 f"SMP:SHOOTDOWN:PASS:CPUS={online}",
                 f"SMP:SHOOTDOWN:VISIBLE:CPUS={online}",
                 f"SMP:PREEMPT:PASS:CPUS={online}",
+                f"SMP:SPIN:PASS:CPUS={online}",
                 f"SMP:PARKED:APS={online - 1}"]
 
     if outcome in ("timeout", "mismatch"):
@@ -102,7 +104,15 @@ def expected_smp(case: str) -> list[str]:
         return lines + [ipi_pass, "SMP:SHOOTDOWN:SKIPPED",
                         f"SMP:SHOOTDOWN:STALE:APS={started - 1}",
                         f"SMP:PREEMPT:PASS:CPUS={started}",
+                        f"SMP:SPIN:PASS:CPUS={started}",
                         f"SMP:PARKED:APS={started - 1}"]
+    if outcome == "spin-quarantine":
+        # Without the interrupt window a CPU waiting for KERNEL is deaf.
+        return lines + [ipi_pass, f"SMP:SHOOTDOWN:PASS:CPUS={started}",
+                        f"SMP:SHOOTDOWN:VISIBLE:CPUS={started}",
+                        f"SMP:PREEMPT:PASS:CPUS={started}",
+                        "SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=1",
+                        f"SMP:QUARANTINED:APS={started - 1}", f"SMP:ONLINE:1/{cpus}"]
     if outcome == "quarantine":
         return lines + ["SMP:IPI:TIMEOUT:APIC=1", f"SMP:QUARANTINED:APS={started - 1}",
                         f"SMP:ONLINE:1/{cpus}"]
@@ -166,7 +176,8 @@ def run(cases: tuple[str, ...]) -> dict:
               "source_fingerprint_version": 3, "manifest_sha256": manifest_hash,
               "kernel_feature": manifest["kernel_feature"],
               "scope": ("IF0 BSP; AP bring-up, per-AP TSS/IST, bounded unicast IPIs and sync "
-                        "self-test, TLB shootdown, AP preemption and BSP ticket-lock/lockdep self-test in "
+                        "self-test, TLB shootdown, AP preemption, AP spin with IF window and BSP "
+                        "ticket-lock/lockdep self-test in "
                         "QEMU/TCG; no SMP scheduler or hardware evidence"),
               "cases": []}
     save_json(destination, report)

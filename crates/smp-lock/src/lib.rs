@@ -56,8 +56,15 @@ impl<T> TicketLock<T> {
 
     /// Unbounded spin (release builds, after lockdep proved the order).
     pub fn lock(&self) -> Guard<'_, T> {
+        self.lock_with(|| {})
+    }
+
+    /// Unbounded spin, calling `relax` between polls (step 5b: the kernel's
+    /// `sti; pause; cli` window for KERNEL/ASPACE, spec §4.3).
+    pub fn lock_with(&self, mut relax: impl FnMut()) -> Guard<'_, T> {
         let ticket = self.next.fetch_add(1, Ordering::Relaxed);
         while self.owner.load(Ordering::Acquire) != ticket {
+            relax();
             spin_loop();
         }
         Guard::new(self)
@@ -274,6 +281,34 @@ mod tests {
         let fresh = TicketLock::new(1);
         assert_eq!(*fresh.lock_bounded(1, || {}).unwrap(), 1);
         assert_eq!(*fresh.try_lock().unwrap(), 1);
+    }
+
+    #[test]
+    fn lock_with_relaxes_while_waiting() {
+        use std::sync::atomic::AtomicU64;
+        let lock = Arc::new(TicketLock::new(0u32));
+        let relaxed = Arc::new(AtomicU64::new(0));
+        let held = lock.lock();
+        let waiter = {
+            let (lock, relaxed) = (Arc::clone(&lock), Arc::clone(&relaxed));
+            thread::spawn(move || {
+                *lock.lock_with(|| {
+                    relaxed.fetch_add(1, Ordering::Relaxed);
+                }) += 1;
+            })
+        };
+        // The holder releases only after the waiter has demonstrably relaxed.
+        while relaxed.load(Ordering::Relaxed) == 0 {
+            thread::yield_now();
+        }
+        assert_eq!(*held, 0, "waiter got in while the lock was held");
+        drop(held);
+        waiter.join().unwrap();
+        assert_eq!(*lock.lock(), 1);
+        // Uncontended: granted at once, relax never runs.
+        let mut calls = 0;
+        drop(TicketLock::new(()).lock_with(|| calls += 1));
+        assert_eq!(calls, 0);
     }
 
     #[test]
