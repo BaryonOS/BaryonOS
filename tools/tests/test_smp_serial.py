@@ -69,6 +69,11 @@ SPIN_DEAF = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:PASS:CP
 HELD_ACROSS = started(2) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=2", "SMP:SHOOTDOWN:PASS:CPUS=2",
                             "SMP:SHOOTDOWN:VISIBLE:CPUS=2", "SMP:LOCKDEP:HELD_ACROSS_SWITCH"]
 DOUBLE_RUN = online(4)[:-4] + ["SMP:SCHED:DOUBLE_RUN"]
+# Audit F8: the ring-3 GS fixture runs after the scheduler phase (CR4 = 104 is
+# DE|PAE|MCE as printed under OVMF/TCG; only FSGSBASE, bit 16, is checked).
+GS_USER = online(4)[:-3] + ["SMP:GS:CR4=104", "SMP:GS:PASS:CPUS=4"] + online(4)[-3:]
+GS_IRET = online(4)[:-3] + ["SMP:GS:CR4=104", "SMP:GS:IRET_FIXUP:PASS"]
+GS_NMI = online(4)[:-3] + ["SMP:GS:CR4=104", "SMP:FAULT:AP_NMI_IST:PASS"]
 
 VALID = {
     "one": online(1), "two-single": online(2), "four": online(4), "eight": online(8),
@@ -78,7 +83,8 @@ VALID = {
     "ap-shootdown-deaf": SHOOTDOWN_DEAF, "shootdown-skipped-control": STALE_CONTROL,
     "ap-timer-dead": TIMER_DEAD, "lockdep-order": LOCKDEP_ORDER,
     "spin-irq-off-control": SPIN_DEAF, "held-across-switch": HELD_ACROSS,
-    "double-run": DOUBLE_RUN,
+    "double-run": DOUBLE_RUN, "gs-user": GS_USER, "gs-iret-fault": GS_IRET,
+    "gs-nmi-user": GS_NMI,
 }
 
 
@@ -208,6 +214,30 @@ class SmpSerialOracle(unittest.TestCase):
             with self.subTest(case=case, lines=lines[-3:]), self.assertRaises(ValueError):
                 evaluate(case, transcript(lines), 33, False)
         self.assertEqual(evaluate("double-run", transcript(DOUBLE_RUN), 33, False)["online"], 4)
+
+    def test_gs_fixture_is_exact_and_its_markers_stay_in_their_profiles(self):
+        # Audit F8: the red run (old stubs) must be rejected, FSGSBASE must be
+        # clear, and no GS marker may appear in a profile that does not own it.
+        red = online(4)[:-3] + ["SMP:GS:CR4=104", "SMP:GS:HIJACK", "M2:FAIL:KERNEL_EXCEPTION"]
+        fsgsbase = str(104 | 1 << 16)
+        for case, lines in (
+            ("gs-user", red),
+            ("gs-user", online(4)),
+            ("gs-user", [line.replace("=104", "=" + fsgsbase) for line in GS_USER]),
+            ("gs-user", [line for line in GS_USER if "CR4" not in line]),
+            ("gs-user", GS_USER[:-4] + ["SMP:GS:ANCHOR_LOST"] + GS_USER[-3:]),
+            ("gs-user", [line.replace("GS:PASS:CPUS=4", "GS:PASS:CPUS=3") for line in GS_USER]),
+            ("gs-iret-fault", GS_USER),
+            ("gs-iret-fault", GS_IRET[:-2] + GS_IRET[-1:]),
+            ("gs-nmi-user", NMI),
+            ("gs-nmi-user", GS_IRET),
+            ("four", GS_USER),
+            ("ap-nmi-ist", GS_NMI),
+            ("double-run", GS_IRET),
+        ):
+            with self.subTest(case=case, lines=lines[-3:]), self.assertRaises(ValueError):
+                evaluate(case, transcript(lines), 33, False)
+        self.assertEqual(evaluate("gs-user", transcript(GS_USER), 33, False)["online"], 4)
 
     def test_lock_self_test_is_required_and_terminal_order_is_exact(self):
         for case, text in (

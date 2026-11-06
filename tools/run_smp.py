@@ -36,13 +36,21 @@ CASES = {
     "spin-irq-off-control": ("test-smp-spin-irq-off", 4, "multi", "spin-quarantine"),
     "held-across-switch": ("test-smp-held-across-switch", 2, "multi", "held-across-switch"),
     "double-run": ("test-smp-double-run", 4, "multi", "double-run"),
+    "gs-user": ("test-smp-gs-user", 4, "multi", "gs-user"),
+    "gs-iret-fault": ("test-smp-gs-iret-fault", 4, "multi", "gs-iret-fault"),
+    "gs-nmi-user": ("test-smp-gs-nmi-user", 4, "multi", "gs-nmi-user"),
 }
 QUARANTINE_OUTCOMES = ("invalid-madt", "timeout", "mismatch", "quarantine", "shootdown-quarantine",
                        "timer-quarantine", "spin-quarantine")
 TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_IST:PASS",
             "lockdep-order": "SMP:LOCKDEP:ORDER:30->10",
             "held-across-switch": "SMP:LOCKDEP:HELD_ACROSS_SWITCH",
-            "double-run": "SMP:SCHED:DOUBLE_RUN"}
+            "double-run": "SMP:SCHED:DOUBLE_RUN",
+            "gs-iret-fault": "SMP:GS:IRET_FIXUP:PASS",
+            "gs-nmi-user": "SMP:FAULT:AP_NMI_IST:PASS"}
+# Audit F8: the GS fixture prints the runtime CR4 (decimal); FSGSBASE (bit 16)
+# must be clear, the value itself may differ per firmware.
+GS_CR4 = "SMP:GS:CR4=*"
 # Step 5a: the BSP lock self-test after smp::start, on every non-terminal path.
 LOCKDEP_PASS = "SMP:LOCKDEP:PASS"
 
@@ -94,6 +102,12 @@ def expected_smp(case: str) -> list[str]:
     if outcome == "lockdep-order":
         # KERNEL(10) taken while FRAMES(30) is held: stop before the PASS line.
         return lines + settled(started) + [TERMINAL[outcome]]
+    if outcome == "gs-user":
+        # Audit F8 N1: ring 3 with its own GS on every AP, after the scheduler.
+        done = settled(started)
+        return lines + done[:-1] + [GS_CR4, f"SMP:GS:PASS:CPUS={started}", done[-1]]
+    if outcome in ("gs-iret-fault", "gs-nmi-user"):
+        return lines + settled(started)[:-1] + [GS_CR4, TERMINAL[outcome]]
     if outcome == "double-run":
         # Step 5d-1: thread 0 queued on two APs; the second dispatch must refuse.
         return lines + settled(started)[:-2] + [TERMINAL[outcome]]
@@ -158,7 +172,12 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
     if tuple(observed[:len(BOOT)]) != BOOT:
         raise ValueError("Unexpected boot prefix")
     expected = expected_smp(case)
-    tail = observed[len(BOOT):]
+    tail = []
+    for line in observed[len(BOOT):]:
+        cr4 = re.fullmatch(r"SMP:GS:CR4=([0-9]{1,20})", line)
+        if cr4 and int(cr4[1]) & (1 << 16) == 0:
+            line = GS_CR4
+        tail.append(line)
     if terminal:
         if tail != expected:
             raise ValueError("Unexpected SMP sequence or missing IST marker")
@@ -191,9 +210,10 @@ def run(cases: tuple[str, ...]) -> dict:
               "scope": ("IF0 BSP; AP bring-up, per-AP TSS/IST, bounded unicast IPIs and sync "
                         "self-test, TLB shootdown, AP preemption (deferred while a lock is held or "
                         "awaited), AP spin with IF window, per-AP run queues of kernel threads "
-                        "in two address spaces (0xe8 wake, CR3 switch with active_cpus) and BSP "
+                        "in two address spaces (0xe8 wake, CR3 switch with active_cpus), a ring-3 "
+                        "GS fixture per AP in test-smp-gs-* profiles (swapgs discipline) and BSP "
                         "ticket-lock/lockdep self-test in "
-                        "QEMU/TCG; no ring-3 processes on APs, no hardware evidence"),
+                        "QEMU/TCG; no ring-3 processes (M3) on APs, no hardware evidence"),
               "cases": []}
     save_json(destination, report)
     for case in cases:

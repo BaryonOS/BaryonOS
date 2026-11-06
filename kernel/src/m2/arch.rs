@@ -243,6 +243,20 @@ pub fn install_ap(tables: *mut CpuTables, rsp0: u64, double_top: u64, nmi_top: u
     }
 }
 
+/// RSP0 of one AP's own TSS (the stack a CPL3 interrupt lands on). Only the
+/// owning AP calls this, with IF=0, for its exclusive `tables` slot.
+#[cfg(feature = "native-smp")]
+pub fn ap_rsp0(tables: *mut CpuTables, rsp0: u64) {
+    // SAFETY: `tables` is the caller's own permanent CpuTables slot (see
+    // install_ap); the packed field is written unaligned. The CPU reads RSP0
+    // only on the next privilege change, which cannot happen while IF=0 here.
+    unsafe {
+        ptr::addr_of_mut!((*tables).tss.rsp)
+            .cast::<u64>()
+            .write_unaligned(rsp0);
+    }
+}
+
 /// BSP-only, before any AP starts: supervisor interrupt gate for the SMP IPI
 /// (0xf0), spurious (0xff), shootdown (0xe0), timer (0xd0) or reschedule
 /// (0xe8) vector. Never a user-callable gate.
@@ -390,7 +404,7 @@ extern "C" fn m2_exception(frame: *const u64) -> ! {
     }
     // Test-only AP IST probes: accepted solely on that AP's own IST stack.
     #[cfg(feature = "native-smp")]
-    if let Some(marker) = super::smp::ist_fault_marker(vector, error, cs, frame) {
+    if let Some(marker) = super::smp::ist_fault_marker(vector, error, rip, cs, cr2, frame) {
         serial::write(marker);
         serial::exit(0x10);
     }

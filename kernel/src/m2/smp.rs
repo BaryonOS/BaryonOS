@@ -170,6 +170,9 @@ struct CpuLocal {
     sched_state: AtomicU32,
     resched: AtomicU32,
     cr3_switches: AtomicU32,
+    /// Audit F8 ring-3 GS fixture: phase and entries taken from CPL3.
+    gs_state: AtomicU32,
+    user_ticks: AtomicU32,
 }
 impl CpuLocal {
     const fn new() -> Self {
@@ -195,6 +198,8 @@ impl CpuLocal {
             sched_state: AtomicU32::new(0),
             resched: AtomicU32::new(0),
             cr3_switches: AtomicU32::new(0),
+            gs_state: AtomicU32::new(0),
+            user_ticks: AtomicU32::new(0),
         }
     }
 }
@@ -283,6 +288,7 @@ global_asm!(
     generation = sym NOS_SMP_SHOOTDOWN_GEN,
 );
 extern "C" {
+    static nos_iret_user_timer: u8;
     fn nos_smp_ipi_entry();
     fn nos_smp_spurious_entry();
     fn nos_smp_shootdown_entry();
@@ -493,6 +499,9 @@ pub fn prepare(
         paging.map(frames, pa, pa, true, false);
         root.store(pa, Ordering::Relaxed);
     }
+    if GS_FIXTURE {
+        prepare_gs(frames, paging).map_err(|_| b"GS_FIXTURE".as_slice())?;
+    }
     let root = paging.root;
     // Address computation of the linked trampoline image only.
     let (start, end) = (
@@ -648,11 +657,9 @@ extern "C" fn smp_ap_main(context: &'static ApContext) -> ! {
         park();
     }
     arch::install_ap(
-        // Address only (slot < MAX_APS checked above); this AP is the slot's
-        // sole user because it holds the matching claimed context.
-        ptr::addr_of_mut!(CPU_TABLES)
-            .cast::<arch::CpuTables>()
-            .wrapping_add(slot),
+        // slot < MAX_APS checked above; this AP is the slot's sole user
+        // because it holds the matching claimed context.
+        ap_tables(slot),
         stack_base(slot, MAIN) + STACK_TOP,
         stack_base(slot, DOUBLE) + STACK_TOP,
         stack_base(slot, NMI) + STACK_TOP,
@@ -794,6 +801,16 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
             local.sched_state.store(ARMED, Ordering::Release);
             start_timer();
         }
+        // Audit F8 fixture: a one-shot tick from here enters ring 3.
+        if GS_FIXTURE
+            && GS.load(Ordering::Acquire) == PREEMPT_RUN
+            && local.gs_state.load(Ordering::Relaxed) == 0
+        {
+            local.gs_state.store(GS_ARMED, Ordering::Release);
+            lapic_write(TIMER_DIVIDE, 0x3);
+            lapic_write(LVT_TIMER, TIMER_VECTOR as u32);
+            lapic_write(TIMER_INITIAL, 20_000);
+        }
         // Spin phase (step 5b): wait for the KERNEL-level lock the BSP holds.
         // IF is 0 from the store of 1 on; only the lock's own window opens it.
         if SPIN.load(Ordering::Acquire) && local.spun.load(Ordering::Relaxed) == 0 {
@@ -813,32 +830,55 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
     park()
 }
 
-/// Test-only (`test-smp-ap-nmi`/`test-smp-ap-double-fault`): recognize an NMI
-/// or #DF that the CPU delivered on *this* AP's own IST stack.
+/// Test-only markers. `test-smp-ap-nmi`/`test-smp-ap-double-fault`/
+/// `test-smp-gs-nmi-user`: an NMI or #DF that the CPU delivered on an AP's own
+/// IST stack; the AP is identified by that stack's address, never by GS (an
+/// NMI from CPL3 still runs with the user's GS_BASE). `test-smp-gs-iret-fault`:
+/// a faulting `iretq` to CPL3 whose GS was fixed up. `test-smp-gs-user`: a
+/// supervisor #PF near address 0 is a GS-relative read through a user GS.
 pub fn ist_fault_marker(
     vector: u64,
     error: u64,
+    rip: u64,
     cs: u64,
+    cr2: u64,
     frame: *const u64,
 ) -> Option<&'static [u8]> {
-    if !cfg!(any(
-        feature = "test-smp-ap-nmi",
-        feature = "test-smp-ap-double-fault"
-    )) || cs != 8
+    if cfg!(feature = "test-smp-gs-user") && vector == 14 && cs == 8 && cr2 < PAGE {
+        serial::write(b"SMP:GS:HIJACK\n");
+        return None;
+    }
+    if cfg!(feature = "test-smp-gs-iret-fault")
+        && matches!(vector, 11..=13)
+        && cs == 8
+        && rip == ptr::addr_of!(nos_iret_user_timer) as u64
+        && this_cpu().is_some()
+    {
+        return Some(b"SMP:GS:IRET_FIXUP:PASS\n");
+    }
+    let nmi_user = cfg!(feature = "test-smp-gs-nmi-user") && cs & 3 == 3;
+    if !(nmi_user
+        || cfg!(any(
+            feature = "test-smp-ap-nmi",
+            feature = "test-smp-ap-double-fault"
+        )) && cs == 8)
     {
         return None;
     }
-    let anchor = rdmsr(0xc000_0101);
-    let slot = (0..MAX_APS).find(|&slot| ptr::from_ref(&CPU_LOCAL[slot]) as u64 == anchor)?;
     let at = frame as u64;
-    let within = |kind| {
+    let within = |slot, kind| {
         let base = stack_base(slot, kind);
         at >= base + 4096 && at + 22 * 8 <= base + STACK_TOP
     };
-    if cfg!(feature = "test-smp-ap-nmi") && vector == 2 && within(NMI) {
+    let slot = (0..MAX_APS).find(|&slot| within(slot, NMI) || within(slot, DOUBLE))?;
+    if (nmi_user || cfg!(feature = "test-smp-ap-nmi")) && vector == 2 && within(slot, NMI) {
         return Some(b"SMP:FAULT:AP_NMI_IST:PASS\n");
     }
-    if cfg!(feature = "test-smp-ap-double-fault") && vector == 8 && error == 0 && within(DOUBLE) {
+    if cfg!(feature = "test-smp-ap-double-fault")
+        && vector == 8
+        && error == 0
+        && within(slot, DOUBLE)
+    {
         // SAFETY: The normalized exception frame on this live IST stack holds
         // the interrupted RSP at index 20 (15 GPRs, vector, error, RIP, CS, RFLAGS).
         let old_rsp = unsafe { frame.add(20).read() };
@@ -1157,6 +1197,7 @@ fn ipis(
         || !preemption(online, total)
         || !spin_window(online, total)
         || !schedule(online, total)
+        || !gs_user(online, total)
     {
         return;
     }
@@ -1320,6 +1361,8 @@ global_asm!(
     "    pop r15", "    pop r14", "    pop r13", "    pop r12", "    pop r11",
     "    pop r10", "    pop r9", "    pop r8", "    pop rdi", "    pop rsi",
     "    pop rbp", "    pop rbx", "    pop rdx", "    pop rcx", "    pop rax",
+    ".globl nos_iret_user_timer",
+    "nos_iret_user_timer:",
     "    iretq",
     ".popsection",
     preempt = sym smp_preempt,
@@ -1431,6 +1474,9 @@ extern "C" fn smp_preempt(rsp: u64) -> Resume {
     let Some(local) = this_cpu() else {
         // A timer interrupt on a CPU without an anchor is impossible by
         // construction (only APs arm it); stop rather than run unknown state.
+        if GS.load(Ordering::Acquire) != 0 {
+            serial::write(b"SMP:GS:ANCHOR_LOST\n");
+        }
         serial::fail(b"SMP_PREEMPT_ANCHOR");
     };
     local.ticks.fetch_add(1, Ordering::Relaxed);
@@ -1441,6 +1487,9 @@ extern "C" fn smp_preempt(rsp: u64) -> Resume {
     if busy && !cfg!(feature = "test-smp-held-across-switch") {
         local.deferred.fetch_add(1, Ordering::Release);
         return Resume { rsp, left: 0 };
+    }
+    if GS_FIXTURE && GS.load(Ordering::Acquire) != 0 {
+        return gs_switch(local, rsp);
     }
     if SCHED.load(Ordering::Acquire) != 0 {
         return sched_switch(local, rsp, busy);
@@ -1522,13 +1571,19 @@ extern "C" fn nos_smp_thread1() -> ! {
 /// pops and `iretq` enter `entry` with IF=1 and a SysV-aligned stack.
 fn thread_frame(slot: usize, kind: usize, entry: u64, arg: u64) -> u64 {
     let top = stack_base(slot, kind) + STACK_TOP;
-    let frame = top - 8 - 20 * 8;
-    let iret = [entry, 0x08, 0x202, top - 8, 0x10];
-    // SAFETY: [frame, top) lies in a guarded thread stack (kind THREADS[i] of
-    // a claimed slot) that is unused, or whose step-4 thread was frozen at STOP
-    // and is never resumed; 21 aligned u64 slots are written: 15 GPRs (rdi =
-    // `arg`, slot 8 in pop order), the 5-word frame, a zero return address the
-    // never-returning entry cannot use.
+    let frame = initial_frame(top - 8 - 20 * 8, [entry, 0x08, 0x202, top - 8, 0x10], arg);
+    // SAFETY: As in `initial_frame`: a zero return address the
+    // never-returning entry cannot use, still inside the same thread stack.
+    unsafe { ((top - 8) as *mut u64).write(0) };
+    frame
+}
+
+/// 15 GPRs (rdi = `arg`, slot 8 in pop order) and the 5-word CPU frame at
+/// `frame`, as the timer stub pops them.
+fn initial_frame(frame: u64, iret: [u64; 5], arg: u64) -> u64 {
+    // SAFETY: callers pass 20 aligned u64 slots inside a guarded thread stack
+    // (kind THREADS[i] of a claimed slot) that is unused, or whose earlier
+    // thread was frozen at its phase's STOP and is never resumed.
     unsafe {
         for i in 0..15 {
             (frame as *mut u64)
@@ -1538,7 +1593,6 @@ fn thread_frame(slot: usize, kind: usize, entry: u64, arg: u64) -> u64 {
         for (i, value) in iret.into_iter().enumerate() {
             (frame as *mut u64).add(15 + i).write(value);
         }
-        ((top - 8) as *mut u64).write(0);
     }
     frame
 }
@@ -2022,6 +2076,241 @@ fn schedule(online: usize, total: usize) -> bool {
         }
     }
     serial::write(b"SMP:SCHED:PASS:CPUS=");
+    decimal(online as u64 + 1);
+    serial::write(b"\n");
+    true
+}
+
+// Audit F8 fixture (test-smp-gs-*, spec §4): one ring-3 thread per AP, whose
+// code loads its own GS selector and then spins, so every later kernel entry
+// arrives with a GS_BASE that ring 3 chose. A one-shot tick from the home loop
+// enters ring 3 (TSS.RSP0 = that thread's stack, CR3 = GS_ROOT); the BSP then
+// sends 0xf0/0xe0/0xe8, the 0xe8 path arms the periodic timer, and STOP returns
+// home. GS_ROOT shares the kernel half (PDPT[0] and every other PML4 entry)
+// and adds one user RX page at USER_CODE in a private PDPT[1].
+const GS_FIXTURE: bool = cfg!(any(
+    feature = "test-smp-gs-user",
+    feature = "test-smp-gs-iret-fault",
+    feature = "test-smp-gs-nmi-user"
+));
+/// 0, then PREEMPT_RUN / PREEMPT_STOP for the GS phase.
+static GS: AtomicU32 = AtomicU32::new(0);
+const GS_ARMED: u32 = 1;
+const GS_USER: u32 = 2;
+const GS_PERIODIC: u32 = 3;
+const GS_RESUMED: u32 = 4;
+const USER_CODE: u64 = 0x4000_0000;
+const ENTRY_ADDRESS: u64 = 0x000f_ffff_ffff_f000;
+/// Ring-3 code: variant A (`mov ax, 0x1b; mov gs, ax`) at 0, variant B
+/// (`xor eax, eax; mov gs, ax`) at 16, each followed by `pause; jmp -4`.
+const USER_CODE_BYTES: [u8; 24] = [
+    0x66, 0xb8, 0x1b, 0x00, 0x8e, 0xe8, 0xf3, 0x90, 0xeb, 0xfc, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc,
+    0x31, 0xc0, 0x8e, 0xe8, 0xf3, 0x90, 0xeb, 0xfc,
+];
+/// GS_ROOT, its PDPT, PD and PT, then the user code frame.
+static GS_FRAMES: [AtomicU64; 5] = [const { AtomicU64::new(0) }; 5];
+
+/// Before the CR3 switch: four table frames, identity-mapped RW/NX so the BSP
+/// can fill them later, and the code frame, written now through the firmware
+/// identity map and never mapped by the kernel (only user RX in GS_ROOT).
+// shortcut: the five frames are never freed; real user spaces come in 5d-2.
+fn prepare_gs(
+    frames: &mut Frames<FRAME_COUNT>,
+    paging: &mut paging::Paging,
+) -> Result<(), kernel_core::Error> {
+    for (index, slot) in GS_FRAMES.iter().enumerate() {
+        let pa = frames.allocate(Owner::Kernel, zero)?;
+        if index < 4 {
+            paging.map(frames, pa, pa, true, false);
+        }
+        slot.store(pa, Ordering::Relaxed);
+    }
+    let code = GS_FRAMES[4].load(Ordering::Relaxed);
+    // SAFETY: fresh exclusive Kernel-owned frame, identity-mapped by the still
+    // active firmware CR3; 24 bytes of our own constant are copied into it.
+    unsafe {
+        ptr::copy_nonoverlapping(
+            USER_CODE_BYTES.as_ptr(),
+            code as *mut u8,
+            USER_CODE_BYTES.len(),
+        );
+    }
+    Ok(())
+}
+
+/// BSP, after `schedule` recorded KERNEL_CR3. False if the kernel already
+/// uses PDPT[1] (the user slot), which would make the copy diverge.
+fn build_gs_root() -> bool {
+    let [root, pdpt, pd, pt, code] = GS_FRAMES.each_ref().map(|f| f.load(Ordering::Relaxed));
+    let kernel = (KERNEL_CR3.load(Ordering::Relaxed) & ROOT_MASK) as *const u64;
+    // SAFETY: the four table frames are exclusive, Kernel-owned and
+    // identity-mapped RW (prepare_gs); the active PML4 and its PDPT are
+    // identity-mapped by `map_tables`. No CPU uses GS_ROOT yet.
+    unsafe {
+        ptr::copy_nonoverlapping(kernel, root as *mut u64, 512);
+        let kernel_pdpt = (kernel.read() & ENTRY_ADDRESS) as *const u64;
+        ptr::copy_nonoverlapping(kernel_pdpt, pdpt as *mut u64, 512);
+        if kernel.read() & 1 == 0 || (pdpt as *const u64).add(1).read() != 0 {
+            return false;
+        }
+        (root as *mut u64).write(pdpt | 7);
+        (pdpt as *mut u64).add(1).write(pd | 7);
+        (pd as *mut u64).write(pt | 7);
+        // Present | User, read-only and executable: the only user leaf.
+        (pt as *mut u64).write(code | 5);
+    }
+    true
+}
+
+fn ap_tables(slot: usize) -> *mut arch::CpuTables {
+    // Address only; the caller is the AP that owns this slot.
+    ptr::addr_of_mut!(CPU_TABLES)
+        .cast::<arch::CpuTables>()
+        .wrapping_add(slot)
+}
+
+/// The GS phase of `smp_preempt` on an AP (IF=0, lockdep empty).
+fn gs_switch(local: &CpuLocal, rsp: u64) -> Resume {
+    let slot = local.slot.load(Ordering::Relaxed) as usize;
+    // SAFETY: `rsp` is the timer stub's frame: 15 GPRs, then RIP and CS.
+    let cs = unsafe { (rsp as *const u64).add(16).read() };
+    if cs & 3 == 3 {
+        // `this_cpu` matched this AP's anchor although ring 3 owned GS.
+        local.user_ticks.fetch_add(1, Ordering::Release);
+    }
+    let same = Resume { rsp, left: 0 };
+    match local.gs_state.load(Ordering::Relaxed) {
+        GS_ARMED => {
+            local.saved[0].store(rsp, Ordering::Relaxed);
+            let top = stack_base(slot, THREADS[0]) + STACK_TOP;
+            let rip = if cfg!(feature = "test-smp-gs-iret-fault") {
+                0x8000_0000_0000_0000 // non-canonical: the iretq must fault
+            } else {
+                USER_CODE + 16 * (slot as u64 & 1)
+            };
+            let frame = initial_frame(top - 20 * 8, [rip, 0x23, 0x202, USER_CODE + PAGE, 0x1b], 0);
+            arch::ap_rsp0(ap_tables(slot), top);
+            // SAFETY: GS_ROOT maps the kernel half exactly like the kernel CR3.
+            unsafe {
+                asm!("mov cr3, {}", in(reg) GS_FRAMES[0].load(Ordering::Relaxed), options(nostack));
+            }
+            local.gs_state.store(GS_USER, Ordering::Release);
+            Resume {
+                rsp: frame,
+                left: 0,
+            }
+        }
+        GS_USER => {
+            start_timer();
+            local.gs_state.store(GS_PERIODIC, Ordering::Release);
+            same
+        }
+        GS_PERIODIC if GS.load(Ordering::Acquire) == PREEMPT_STOP => {
+            lapic_write(LVT_TIMER, MASKED | TIMER_VECTOR as u32);
+            // SAFETY: back to the kernel CR3 for the home loop (same kernel half).
+            unsafe {
+                asm!("mov cr3, {}", in(reg) KERNEL_CR3.load(Ordering::Relaxed), options(nostack));
+            }
+            arch::ap_rsp0(ap_tables(slot), stack_base(slot, MAIN) + STACK_TOP);
+            local.gs_state.store(GS_RESUMED, Ordering::Release);
+            Resume {
+                rsp: local.saved[0].load(Ordering::Relaxed),
+                left: 0,
+            }
+        }
+        _ => same,
+    }
+}
+
+fn gs_timeout(apic: u32, online: usize, total: usize) -> bool {
+    serial::write(b"SMP:GS:TIMEOUT:APIC=");
+    decimal(u64::from(apic));
+    serial::write(b"\n");
+    quarantine_all(online, total);
+    false
+}
+
+/// BSP (spec §4 N1-N3): every AP in ring 3 with a GS it chose must count
+/// 0xf0, 0xe0 and 0xe8 and its CPL3 ticks in its OWN anchor, then come home.
+fn gs_user(online: usize, total: usize) -> bool {
+    if !GS_FIXTURE || online == 0 {
+        return true;
+    }
+    serial::write(b"SMP:GS:CR4=");
+    decimal(control_registers()[CR4]);
+    serial::write(b"\n");
+    if !build_gs_root() {
+        serial::fail(b"SMP_GS_FIXTURE");
+    }
+    let aps = &NOS_SMP_AP_CONTEXTS[..online];
+    let locals = &CPU_LOCAL[..online];
+    GS.store(PREEMPT_RUN, Ordering::Release);
+    for (context, local) in aps.iter().zip(locals) {
+        let apic = context.apic_id.load(Ordering::Relaxed);
+        if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
+            || !within_ms(500, || local.gs_state.load(Ordering::Acquire) == GS_USER)
+        {
+            return gs_timeout(apic, online, total);
+        }
+        if cfg!(feature = "test-smp-gs-iret-fault") {
+            // That AP's first exit to ring 3 faults and its handler ends the VM.
+            within_ms(1_000, || false);
+            serial::fail(b"SMP_GS_IRET_NO_FIXUP");
+        }
+    }
+    // Each user thread loads its GS selector as its first instruction.
+    wait_us(1_000);
+    if cfg!(feature = "test-smp-gs-nmi-user") {
+        if send_ipi(aps[0].apic_id.load(Ordering::Relaxed), IPI_NMI) {
+            within_ms(1_000, || false);
+        }
+        serial::fail(b"SMP_GS_NMI_NOT_ON_IST");
+    }
+    for (context, local) in aps.iter().zip(locals) {
+        let apic = context.apic_id.load(Ordering::Relaxed);
+        let base = local.ipis.load(Ordering::Acquire);
+        for round in 1..=IPI_ROUNDS {
+            if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
+                || !within_ms(100, || local.ipis.load(Ordering::Acquire) >= base + round)
+            {
+                return gs_timeout(apic, online, total);
+            }
+        }
+    }
+    let window = paging::SHOOTDOWN_WINDOW;
+    if let Err(apic) = shootdown_round([window, window], online) {
+        return gs_timeout(apic, online, total);
+    }
+    for (context, local) in aps.iter().zip(locals) {
+        let apic = context.apic_id.load(Ordering::Relaxed);
+        let resched = local.resched.load(Ordering::Acquire);
+        if !send_ipi(apic, IPI_FIXED | RESCHED_VECTOR as u32)
+            || !within_ms(500, || {
+                local.resched.load(Ordering::Acquire) > resched
+                    && local.gs_state.load(Ordering::Acquire) == GS_PERIODIC
+                    && local.user_ticks.load(Ordering::Acquire) >= MIN_TICKS
+            })
+        {
+            return gs_timeout(apic, online, total);
+        }
+    }
+    GS.store(PREEMPT_STOP, Ordering::Release);
+    if !within_ms(200, || {
+        locals
+            .iter()
+            .all(|local| local.gs_state.load(Ordering::Acquire) == GS_RESUMED)
+    }) {
+        serial::write(b"SMP:GS:STOP_TIMEOUT\n");
+        quarantine_all(online, total);
+        return false;
+    }
+    if locals
+        .iter()
+        .any(|local| local.lockdep.load(Ordering::Acquire) != 0)
+    {
+        serial::fail(b"SMP_GS_LOCKDEP_LEFT");
+    }
+    serial::write(b"SMP:GS:PASS:CPUS=");
     decimal(online as u64 + 1);
     serial::write(b"\n");
     true
