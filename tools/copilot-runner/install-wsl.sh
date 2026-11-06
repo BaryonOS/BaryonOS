@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Installeert de Copilot-runner als aparte gebruiker in de bestaande WSL-Ubuntu.
 # Geen isolatie: deze gebruiker heeft sudo zonder wachtwoord, dus root in deze distro
-# (ADR-CI-COPILOT-WSL-20261106). Gebruik:
-#   sudo bash tools/copilot-runner/install-wsl.sh "$(gh api -X POST repos/simonvanieperen/nieuw-os/actions/runners/registration-token --jq .token)"
+# (ADR-CI-COPILOT-WSL-20261106). Gebruik (token via stdin, zodat het niet in de sudo-log komt):
+#   gh api -X POST repos/simonvanieperen/nieuw-os/actions/runners/registration-token --jq .token | sudo bash tools/copilot-runner/install-wsl.sh
 set -euo pipefail
 
-TOKEN="${1:?registratietoken ontbreekt (1 uur geldig, zie kop van dit script)}"
+TOKEN=$(head -c 200 | tr -d '[:space:]')
+[ -n "$TOKEN" ] || { echo "registratietoken ontbreekt op stdin (zie kop van dit script)" >&2; exit 1; }
 [ "$(id -u)" = 0 ] || { echo "draai dit script met sudo" >&2; exit 1; }
 
 RUNNER_USER=copilot-runner
@@ -40,7 +41,7 @@ if [ ! -f "$RUNNER_DIR/.runner" ]; then
     "https://github.com/actions/runner/releases/download/v$VERSION/actions-runner-linux-x64-$VERSION.tar.gz"
   echo "$SHA256  $TARBALL" | sha256sum -c -
   install -d -o "$RUNNER_USER" -g "$RUNNER_USER" "$RUNNER_DIR"
-  sudo -u "$RUNNER_USER" tar xzf "$TARBALL" -C "$RUNNER_DIR"
+  tar xzf "$TARBALL" -C "$RUNNER_DIR" && chown -R "$RUNNER_USER:" "$RUNNER_DIR"
   rm -f "$TARBALL"
   "$RUNNER_DIR/bin/installdependencies.sh"
   sudo -u "$RUNNER_USER" -H bash -c "cd '$RUNNER_DIR' && ./config.sh --unattended --replace \
