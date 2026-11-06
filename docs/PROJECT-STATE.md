@@ -1,32 +1,36 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — K06 stap 5d-2a, M3-ring-3-processen op elke online CPU (ADR-081) — 6 november 2026
+## NEXT AGENT HANDOFF — K06 stap 5d-2a/b, M3-ring-3-processen op elke CPU met FPU-context per CPU (ADR-081) — 7 november 2026
 
-**Bron:** `efe75124` op `feat/k06-5d2-ring3-smp` (worktree `nieuw-os-k06-5d2`), gestapeld op
-`feat/k06-5e-proc-shootdown` (#244). Daarin is F5/F7 (#238) opgenomen (merge `fb7a23cd` + correctie
-`4444eb52`), zodat voorwaarde 03 van spec 08 §0 vervuld is. Taakspec:
+**Bron:** `ca0b7e5f` op `feat/k06-5d2-ring3-smp` (worktree `nieuw-os-k06-5d2`, concept-PR #247),
+gestapeld op `feat/k06-5e-proc-shootdown` (#244), met F5/F7 (#238) erin (merge `fb7a23cd` +
+correctie `4444eb52`; voorwaarde 03 van spec 08 §0). Taakspec:
 `docs/implementation/k06-steps/08-5d-2-ring3-on-aps.md`. **41 → 41/100**; K06 blijft open.
 
-**Gerealiseerd (deelstap a):** profiel `native-smp-m3` (R3-1). Na de SMP-zelftests wachten de AP's,
-`m3_go` geeft elke CPU een M3-servicestack en een 0xd0-tick, daarna draait het basis-M3-manifest
-(16 processen) op alle online CPU's. `home` bij spawn = de kortste queue (R3-2). `current` per CPU,
-elke entry onder `KERNEL`, RSP0 per CPU en de servicestack via het GS-anker (R3-4). INV-4 met
-`active`-bits; INV-1: eerst alle PTE's, dan een kernelronde, dan pas vrijgeven. Idle zonder
-`KERNEL`; stop-the-world met één stopper. Negatief `test-smp-m3-fault`: `ud2` op AP2 stopt alleen
-dat proces. Bijvangst: `build_spaces` (5e) gaf een #DF door stack-overflow in het M3-build; de
-testruimten staan nu statisch.
+**Gerealiseerd:** (a) Profiel `native-smp-m3`: het basis-M3-manifest (16 processen) draait op
+alle online CPU's. Thuis-CPU bij spawn, `current` per CPU, elke entry onder `KERNEL`, RSP0 en
+servicestack per CPU, INV-4-bits, eerst een kernelronde en dan pas vrijgeven, idle zonder
+`KERNEL`, stop-the-world met één stopper. Een appfault op AP2 stopt alleen dat proces. (b) R3-3:
+FPU-context per CPU (FXSAVE na de entry, FXRSTOR direct vóór de pops). Alle processen zijn
+FPU-canaries; vereist zijn 1000 wissels per CPU, gevolgd door een beeldcontrole door de kernel.
+De controle zonder FXRSTOR moet falen.
 
-**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG):** zie `docs/verification/k06-5d2a-ring3-smp/`. SMP 37/37
-over 29 profielen (M3: 2, 4 single-thread TCG, 4 en 8 vCPU's + AP2-fault), oracle 22/22, GS-lint
-8/8, M2/M3 22, K05 6/6, K07, rtc, IPC-wait, FPU, fmt, smp-lock en `tools/gate.sh` exit 0 (520/1).
-**Niet uitgevoerd:** CI, hardware, menselijke audit, M4 (#235).
+**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG):** `docs/verification/k06-5d2a-ring3-smp/` (`efe75124`) en
+`docs/verification/k06-5d2b-fpu/` (`ca0b7e5f`): SMP 38/38 over 30 profielen; M2/M3, K05, K07, rtc,
+IPC-wait, FPU en `tools/gate.sh` groen. **Niet uitgevoerd:** CI, hardware, menselijke audit, M4 (#235).
 
-**Open:** (1) De rest van spec 08 §4: FPU-canary (R3-3), IPC-ping-pong over CPU's (R3-5),
-usercopy onder `ASPACE` (R3-6), K05 op SMP met spawn na GO (R3-7), GS N1-N3 met M3. (2) De
-`SMP:CLOCK`-zelftest (1%-band, 5c-2) faalt soms onder TCG, ook op de basis. De band is niet
-verruimd; dit moet in 09 worden onderzocht. (3) Shortcuts uit ADR-081.
+**Open (5d-2c):** (1) IPC-ping-pong over CPU's (R3-5). Daarvoor moeten M4 en `ipc-wait` naar
+SMP: 0xe8 bij Waiting→Ready voor een proces met een andere thuis-CPU, `refresh` in `smp_idle`,
+`lock_pair(ASPACE)` bij de kopie, en een ping-pongprogramma zonder nieuwe syscall. (2) Usercopy
+onder `ASPACE` (R3-6). (3) K05 op SMP met spawn na GO en kill over CPU's (R3-7). (4) GS N1-N3 met
+M3-processen. (5) De `SMP:CLOCK`-zelftest (1%-band) is onder TCG soms te krap, ook op de basis;
+de band is niet verruimd. (6) Shortcuts uit ADR-081.
 **Eerstvolgend commando:**
 `export NOS_BUILD_DIR="$PWD/build/k06-native-smp-m3"; python3 -B tools/build.py --kernel-feature native-smp-m3 && python3 -B -u tools/run_smp.py --profile native-smp-m3`.
+
+## Historisch checkpoint — K06 stap 5d-2a, M3-ring-3-processen op elke online CPU (ADR-081) — 6 november 2026
+
+Zie `docs/verification/k06-5d2a-ring3-smp/` (bron `efe75124`).
 
 ## Historisch checkpoint — K06 stap 5e, procesbrede TLB-shootdown op `active_cpus` (aanvulling ADR-072/-075) — 6 november 2026
 

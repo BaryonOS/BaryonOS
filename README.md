@@ -60,11 +60,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
-**Bron:** [`efe75124`](https://github.com/simonvanieperen/nieuw-os/commit/efe7512459efc144a42bcc54b8a27c369311ff70) ·
+**Herbeoordeeld:** 2026-11-07 · **Rubric:** v1 ·
+**Bron:** [`ca0b7e5f`](https://github.com/simonvanieperen/nieuw-os/commit/ca0b7e5f875c9e22759c3514088c35e43d3eaaea) ·
 **Ontwikkelbranch:** `feat/k06-5d2-ring3-smp`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5d-2a: M3-ring-3-processen op elke online CPU (ADR-081), met F5/F7 in de stapel.
-41/100 blijft 41/100. In het nieuwe profiel native-smp-m3 draait het basis-M3-manifest (16 ring-3-processen) verdeeld over alle online CPU's: home bij spawn, current per CPU, entry onder KERNEL, kernelronde vóór vrijgeven en stop-the-world. Native lokaal: SMP 37/37 over 29 profielen (M3 op 2/4/8 vCPU's en een AP2-appfault die alleen dat proces stopt), M2/M3, K05, K07, rtc, IPC-wait, FPU en gate.sh groen. K06 blijft open: FPU-canary, IPC over CPU's, usercopy onder ASPACE, K05 op SMP en de §9-matrix (09) ontbreken; de SMP:CLOCK-zelftest is onder TCG timinggevoelig, ook op de basis.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5d-2a/b: M3-ring-3-processen op elke online CPU met FPU-context per CPU (ADR-081).
+41/100 blijft 41/100. In native-smp-m3 draaien 16 ring-3-processen verdeeld over alle online CPU's, elk een FPU-canary: 1000 wissels per CPU, daarna een kernelcontrole van ST0/XMM0/XMM15 in elk FXSAVE-beeld; de controle zonder FXRSTOR faalt zoals bedoeld en een appfault op AP2 stopt alleen dat proces. Native lokaal: SMP 38/38 over 30 profielen, M2/M3, K05, K07, rtc, IPC-wait, FPU en gate.sh groen. K06 blijft open: IPC over CPU's, usercopy onder ASPACE, K05 op SMP en de §9-matrix (09) ontbreken.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

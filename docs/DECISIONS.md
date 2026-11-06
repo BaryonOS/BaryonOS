@@ -54,9 +54,26 @@ zelftest). Beide ruimten staan nu statisch.
 twee CPU's tegelijk draait, een frame wordt vrijgegeven voordat elke CPU de kernelronde heeft
 bevestigd, of een appfault op AP2 meer stopt dan dat ene proces.
 
-**Open (5d-2b/c):** FPU in de wissel (R3-3), IPC over CPU's met 0xe8 en `lock_pair` (R3-5),
-usercopy onder `ASPACE` (R3-6), quota per proces (R3-7) en K05 op SMP, Ring-3-GS N1-N3 met
-M3-processen.
+**Aanvulling 5d-2b (R3-3, FPU in de wissel):** `native-smp-m3` neemt `fpu-context` mee
+(CR0/CR4/EFER zet `arch::protection` vóór de AP-bringup; de AP's nemen ze exact over, ADR-070).
+Het beeld van het lopende proces staat per CPU in `CpuLocal.m3_fpu` (`fpu::select` schrijft
+het). De entry haalt het na de `swapgs` op via `nos_smp_m3_fpu` en doet de FXSAVE vóór enige
+Rust-code. De exit doet de FXRSTOR direct vóór de GPR-pops via `nos_smp_m3_fxrstor`: RSP is dan
+de opgeslagen context in STATE en geen stack, dus de helper wordt met `jmp` bereikt en verlaten
+(ADR-045). De diagnosetellers lopen met `lock inc`. Bewijs: elk SMP-proces is een FPU-canary
+(probe-modus 19: `st0`, `xmm0` en `xmm15` met eigen waarden, elke lusronde gecontroleerd, `int3`
+bij afwijking). De eindvoorwaarde eist 1000 wissels per CPU. Daarna controleert de kernel
+ST0/XMM0/XMM15 in elk opgeslagen beeld (`SMP:M3:FPU:PASS`). De controle
+`test-smp-m3-fpu-skip` laat de FXRSTOR weg en moet `SMP:M3:FPU:CORRUPT:CONTROL` geven. Een
+`int3` vanuit CPL3 komt via de DPL0-gate binnen als #GP met foutcode 0x1a; beide vormen gelden
+als canary-alarm.
+
+**Open (5d-2c en verder):** IPC over CPU's (R3-5) vraagt M4 (capability-engine) plus
+`ipc-wait` op SMP. Concreet: `wait::refresh` moet bij Waiting→Ready voor een proces met een
+andere `home` 0xe8 sturen, `smp_idle` moet eerst `refresh` draaien, de kopie tussen
+adresruimten moet `lock_pair(ASPACE[a], ASPACE[b])` nemen, en er is een ping-pongprogramma met
+10 000 rondes nodig (geen nieuwe syscall, INV-6). Verder: usercopy onder `ASPACE` (R3-6), quota
+per proces en K05 op SMP met spawn na GO (R3-7), en Ring-3-GS N1-N3 met M3-processen.
 
 ## ADR-080 — BSP-timer, PIT-klok, idle en reschedule-vlag op de BSP (K06 stap 5c-2, auditbevindingen F6/F9/F11/F13)
 
