@@ -24,6 +24,9 @@ COMMON_STUBS = {"m3_timer", "m3_syscall"}
 EXITS = {"nos_iret_user_ipi", "nos_iret_user_shootdown", "nos_iret_user_timer",
          "nos_iret_user_m3"}
 PARANOID = {2, 8, 18}
+# LD-1 (audit F3): the per-CPU IDT nesting counter, `CpuLocal::irq_depth`.
+DEPTH_INC = "inc dword ptr gs:[{depth}]"
+DEPTH_DEC = "dec dword ptr gs:[{depth}]"
 
 
 def string_end(text: str, start: int) -> tuple[str, int]:
@@ -126,7 +129,24 @@ class GsDiscipline(unittest.TestCase):
         resched = region(self.lines, "nos_smp_resched_entry", ends_stub)
         self.assertEqual(resched[-1], "jmp nos_smp_timer_body")
         timer = region(self.lines, "nos_smp_timer_entry", lambda line: line.startswith("push"))
-        self.assertEqual(timer, ["@ENTRY 8", ".globl nos_smp_timer_body", "nos_smp_timer_body:"])
+        self.assertEqual(timer, ["@ENTRY 8", ".globl nos_smp_timer_body", "nos_smp_timer_body:",
+                                 DEPTH_INC])
+
+    def test_gs_stubs_count_their_nesting_once(self):
+        # Audit F3 (LD-1): the first instruction after the prologue counts the
+        # entry and the last before each exit uncounts it; 0xe8 is counted
+        # once, in the timer body it joins.
+        for stub in ("nos_smp_ipi_entry", "nos_smp_shootdown_entry"):
+            with self.subTest(stub=stub):
+                body = region(self.lines, stub, ends_stub)
+                self.assertEqual(body[1], DEPTH_INC)
+                self.assertEqual(sum("{depth}" in line for line in body), 2)
+        resched = region(self.lines, "nos_smp_resched_entry", ends_stub)
+        self.assertFalse(any("{depth}" in line for line in resched))
+        exits = [i for i, line in enumerate(self.lines)
+                 if line.startswith("@EXIT nos_iret_user_") and line != "@EXIT nos_iret_user_m3"]
+        self.assertEqual(len(exits), 3)
+        self.assertTrue(all(self.lines[i - 1] == DEPTH_DEC for i in exits))
 
     def test_exception_prologue_and_fixup_list(self):
         # Rules 2/4 (GS-4, GS-7): checked prologue before any push; every

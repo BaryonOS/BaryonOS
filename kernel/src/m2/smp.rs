@@ -176,6 +176,13 @@ struct CpuLocal {
     user_ticks: AtomicU32,
     /// Step 5b-2 scratch fixture: 1 once this AP finished its share.
     scratched: AtomicU32,
+    /// LD-1 (audit F3): IDT entries this CPU is nested in. Every GS stub
+    /// counts it after `gs_entry!` and before `gs_exit!`; this CPU only.
+    irq_depth: AtomicU32,
+    /// Full lockdep state behind the `lockdep` mirror (audit F4).
+    lockdep_state: lock::LockdepCell,
+    /// F4 fixture: 1 once this AP finished its `lock_pair` rounds.
+    paired: AtomicU32,
 }
 impl CpuLocal {
     const fn new() -> Self {
@@ -204,6 +211,9 @@ impl CpuLocal {
             gs_state: AtomicU32::new(0),
             user_ticks: AtomicU32::new(0),
             scratched: AtomicU32::new(0),
+            irq_depth: AtomicU32::new(0),
+            lockdep_state: lock::LockdepCell::new(),
+            paired: AtomicU32::new(0),
         }
     }
 }
@@ -256,16 +266,20 @@ const IPI_ROUNDS: u32 = 3;
 // Spurious: architecturally no EOI. Both run with IF cleared by the gate.
 // Every stub that uses GS starts with `arch::gs_entry!` and returns through
 // `arch::gs_exit!` (audit F8): from CPL3, GS_BASE holds what ring 3 chose.
+// Right after the prologue and right before the epilogue each counts its
+// nesting in `irq_depth` (LD-1); the interrupted flags are in the CPU frame.
 global_asm!(
     ".pushsection .text.nos_smp_ipi,\"ax\"",
     ".globl nos_smp_ipi_entry",
     "nos_smp_ipi_entry:",
     arch::gs_entry!("8"),
+    "    inc dword ptr gs:[{depth}]",
     "    push rax",
     "    mov rax, gs:[0]",
     "    lock inc dword ptr [rax + 12]",
     "    mov dword ptr [{eoi}], 0",
     "    pop rax",
+    "    dec dword ptr gs:[{depth}]",
     arch::gs_exit!("nos_iret_user_ipi"),
     // Touches neither memory nor GS; a CPL3 return keeps the user GS (lint).
     ".globl nos_smp_spurious_entry",
@@ -278,6 +292,7 @@ global_asm!(
     ".globl nos_smp_shootdown_entry",
     "nos_smp_shootdown_entry:",
     arch::gs_entry!("8"),
+    "    inc dword ptr gs:[{depth}]",
     "    push rax",
     "    push rdx",
     "    mov rax, qword ptr [rip + {va}]",
@@ -290,11 +305,13 @@ global_asm!(
     "    mov dword ptr [{eoi}], 0",
     "    pop rdx",
     "    pop rax",
+    "    dec dword ptr gs:[{depth}]",
     arch::gs_exit!("nos_iret_user_shootdown"),
     ".popsection",
     eoi = const paging::LAPIC_WINDOW + 0xb0,
     va = sym NOS_SMP_SHOOTDOWN_VA,
     generation = sym NOS_SMP_SHOOTDOWN_GEN,
+    depth = const core::mem::offset_of!(CpuLocal, irq_depth),
 );
 extern "C" {
     static nos_iret_user_timer: u8;
@@ -825,6 +842,11 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
             scratch_work(local.slot.load(Ordering::Relaxed) as usize + 1);
             local.scratched.store(1, Ordering::Release);
         }
+        // Pair phase (audit F4): this AP's lock_pair rounds, concurrent.
+        if PAIR_RUN.load(Ordering::Acquire) && local.paired.load(Ordering::Relaxed) == 0 {
+            pair_work(local.slot.load(Ordering::Relaxed) as usize + 1);
+            local.paired.store(1, Ordering::Release);
+        }
         // Spin phase (step 5b): wait for the KERNEL-level lock the BSP holds.
         // IF is 0 from the store of 1 on; only the lock's own window opens it.
         if SPIN.load(Ordering::Acquire) && local.spun.load(Ordering::Relaxed) == 0 {
@@ -1234,6 +1256,7 @@ fn ipis(
         || !spin_window(online, total)
         || !schedule(online, total)
         || !scratch(online, total, frames)
+        || !lock_pairs(online, total)
         || !gs_user(online, total)
     {
         return;
@@ -1384,8 +1407,11 @@ global_asm!(
     "nos_smp_timer_entry:",
     arch::gs_entry!("8"),
     // 0xe8 joins here, after its own prologue (GS-3: one swapgs per entry).
+    // LD-1 counts here for both vectors. A switch resumes another stack, but
+    // every exit on this CPU still pairs with one entry on this CPU.
     ".globl nos_smp_timer_body",
     "nos_smp_timer_body:",
+    "    inc dword ptr gs:[{depth}]",
     "    push rax", "    push rcx", "    push rdx", "    push rbx", "    push rbp",
     "    push rsi", "    push rdi", "    push r8", "    push r9", "    push r10",
     "    push r11", "    push r12", "    push r13", "    push r14", "    push r15",
@@ -1402,10 +1428,12 @@ global_asm!(
     "    pop r15", "    pop r14", "    pop r13", "    pop r12", "    pop r11",
     "    pop r10", "    pop r9", "    pop r8", "    pop rdi", "    pop rsi",
     "    pop rbp", "    pop rbx", "    pop rdx", "    pop rcx", "    pop rax",
+    "    dec dword ptr gs:[{depth}]",
     arch::gs_exit!("nos_iret_user_timer"),
     ".popsection",
     preempt = sym smp_preempt,
     eoi = const paging::LAPIC_WINDOW + 0xb0,
+    depth = const core::mem::offset_of!(CpuLocal, irq_depth),
 );
 
 const LVT_TIMER: u64 = 0x320;
@@ -1447,26 +1475,55 @@ pub fn on_ap() -> bool {
     this_cpu().is_some()
 }
 
-/// This CPU's held lock levels; IF=0, so no handler interleaves the update.
+fn anchored() -> &'static CpuLocal {
+    any_cpu().unwrap_or_else(|| serial::fail(b"SMP_LOCKDEP_ANCHOR"))
+}
+
+/// This CPU's held lock levels (mirror); IF=0, so no handler interleaves.
 pub fn lockdep() -> &'static AtomicU64 {
-    match any_cpu() {
-        Some(local) => &local.lockdep,
-        None => serial::fail(b"SMP_LOCKDEP_ANCHOR"),
-    }
+    &anchored().lockdep
+}
+
+/// Update this CPU's full lockdep state and its mirror (IF=0 by the caller).
+pub fn with_lockdep<R>(f: impl FnOnce(&mut smp_lock::Lockdep) -> R) -> R {
+    let local = anchored();
+    // SAFETY: this CPU's own cell; every caller (`IrqLock`) runs with IF=0,
+    // and `f` is a lockdep method that never re-enters.
+    unsafe { local.lockdep_state.update(&local.lockdep, f) }
+}
+
+/// LD-1: IDT entries this CPU is nested in (0 = not in a handler).
+pub fn irq_depth() -> u32 {
+    anchored().irq_depth.load(Ordering::Relaxed)
 }
 
 /// Terminal lock-order report (spec §4.4): `SMP:LOCKDEP:ORDER:<held>-><wanted>`.
-/// Only the deliberate negative profile counts it as a pass.
+/// Only the deliberate negative profiles count it as a pass.
 pub fn lockdep_order(order: smp_lock::Order) -> ! {
     serial::write(b"SMP:LOCKDEP:ORDER:");
     decimal(u64::from(order.held));
     serial::write(b"->");
     decimal(u64::from(order.wanted));
     serial::write(b"\n");
-    if cfg!(feature = "test-smp-lockdep-order") {
+    if cfg!(any(
+        feature = "test-smp-lockdep-order",
+        feature = "test-smp-lockpair-order"
+    )) {
         serial::exit(0x10);
     }
     serial::fail(b"SMP_LOCKDEP_ORDER")
+}
+
+/// Terminal report (LD-1, audit F3): KERNEL/ASPACE wanted inside an interrupt
+/// handler, `SMP:LOCKDEP:IN_HANDLER:<level>`.
+pub fn lockdep_in_handler(level: u8) -> ! {
+    serial::write(b"SMP:LOCKDEP:IN_HANDLER:");
+    decimal(u64::from(level));
+    serial::write(b"\n");
+    if cfg!(feature = "test-smp-lock-in-handler") {
+        serial::exit(0x10);
+    }
+    serial::fail(b"SMP_LOCKDEP_IN_HANDLER")
 }
 
 /// Terminal report (audit F2): a guard dropped while a higher level is held,
@@ -1528,6 +1585,11 @@ extern "C" fn smp_preempt(rsp: u64) -> Resume {
         serial::fail(b"SMP_PREEMPT_ANCHOR");
     };
     local.ticks.fetch_add(1, Ordering::Relaxed);
+    // LD-1 control: from the first 0xe8 on, this handler takes KERNEL and
+    // must stop with SMP:LOCKDEP:IN_HANDLER:10 before spinning.
+    if cfg!(feature = "test-smp-lock-in-handler") && local.resched.load(Ordering::Relaxed) != 0 {
+        drop(lock::KERNEL.lock_irqsave());
+    }
     // Step 5c (INV-5c): a tick can only arrive with locks held or awaited in
     // the 5b `sti; pause; cli` window. Lockdep is per CPU, not per thread, so
     // switching (or STOP's switch home) waits for a later tick.
@@ -1861,8 +1923,16 @@ static SCHED: AtomicU32 = AtomicU32::new(0);
 /// Online APs during the phase: thread `tid` runs on AP `tid % aps`, in space
 /// 0 if `tid < aps` (READY at start) and space 1 otherwise (BLOCKED, woken).
 static SCHED_APS: AtomicU32 = AtomicU32::new(0);
-static RUNQ: [lock::IrqLock<RunQueue<SCHED_THREADS>>; MAX_APS] =
-    [const { lock::IrqLock::new(level::RUNQ, b"RUNQ", RunQueue::new()) }; MAX_APS];
+/// Keyed by CPU index (AP slot + 1), the LD-3 order for a RUNQ `lock_pair`.
+static RUNQ: [lock::IrqLock<RunQueue<SCHED_THREADS>>; MAX_APS] = {
+    let mut queues = [const { lock::IrqLock::new(level::RUNQ, b"RUNQ", RunQueue::new()) }; MAX_APS];
+    let mut slot = 0;
+    while slot < MAX_APS {
+        queues[slot] = lock::IrqLock::keyed(level::RUNQ, b"RUNQ", slot as u32 + 1, RunQueue::new());
+        slot += 1;
+    }
+    queues
+};
 static THREAD_STATE: [AtomicU32; SCHED_THREADS] =
     [const { AtomicU32::new(sched::BLOCKED) }; SCHED_THREADS];
 static THREAD_RSP: [AtomicU64; SCHED_THREADS] = [const { AtomicU64::new(0) }; SCHED_THREADS];
@@ -2245,6 +2315,85 @@ fn scratch(online: usize, total: usize, frames: &mut Frames<FRAME_COUNT>) -> boo
         }
     }
     serial::write(b"SMP:SCRATCH:PASS:CPUS=");
+    decimal(online as u64 + 1);
+    serial::write(b"\n");
+    true
+}
+
+/// Audit F4 fixture (LD-3): two ASPACE-level locks keyed like pids 1 and 2.
+/// Both counters only ever change together, under the pair.
+static PAIR: [lock::IrqLock<u64>; 2] = [
+    lock::IrqLock::keyed(level::ASPACE, b"ASPACE", 1, 0),
+    lock::IrqLock::keyed(level::ASPACE, b"ASPACE", 2, 0),
+];
+static PAIR_RUN: AtomicBool = AtomicBool::new(false);
+const PAIR_ROUNDS: u64 = 1000;
+
+/// One CPU's rounds, IF=0. Odd CPU indexes name the pair the other way round,
+/// so with two or more APs some always ask in opposite argument order.
+fn pair_work(cpu: usize) {
+    let (a, b) = if cpu % 2 == 0 {
+        (&PAIR[0], &PAIR[1])
+    } else {
+        (&PAIR[1], &PAIR[0])
+    };
+    for _ in 0..PAIR_ROUNDS {
+        let (mut low, mut high) = a.lock_pair(b);
+        if *low != *high {
+            serial::fail(b"SMP_LOCKPAIR_TORN");
+        }
+        *low += 1;
+        *high += 1;
+    }
+}
+
+/// BSP: every online CPU runs PAIR_ROUNDS concurrently; no deadlock, no
+/// marker, every round counted in both locks and lockdep empty afterwards.
+/// `test-smp-lockpair-order` takes the two loose and descending instead.
+fn lock_pairs(online: usize, total: usize) -> bool {
+    if cfg!(feature = "test-smp-lockpair-order") {
+        let _second = PAIR[1].lock_irqsave();
+        let _first = PAIR[0].lock_irqsave();
+        serial::fail(b"SMP_LOCKPAIR_ORDER_MISSED");
+    }
+    let aps = &NOS_SMP_AP_CONTEXTS[..online];
+    let locals = &CPU_LOCAL[..online];
+    PAIR_RUN.store(true, Ordering::Release);
+    for context in aps {
+        let apic = context.apic_id.load(Ordering::Relaxed);
+        if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32) {
+            serial::write(b"SMP:LOCKPAIR:TIMEOUT:APIC=");
+            decimal(u64::from(apic));
+            serial::write(b"\n");
+            quarantine_all(online, total);
+            return false;
+        }
+    }
+    pair_work(0);
+    if !within_ms(2_000, || {
+        locals
+            .iter()
+            .all(|local| local.paired.load(Ordering::Acquire) == 1)
+    }) {
+        serial::write(b"SMP:LOCKPAIR:TIMEOUT\n");
+        quarantine_all(online, total);
+        return false;
+    }
+    let rounds = PAIR_ROUNDS * (online as u64 + 1);
+    let (low, high) = PAIR[0].lock_pair(&PAIR[1]);
+    if *low != rounds || *high != rounds {
+        serial::fail(b"SMP_LOCKPAIR_LOST_UPDATE");
+    }
+    drop(high);
+    drop(low);
+    if lockdep().load(Ordering::Relaxed) != 0
+        || locals
+            .iter()
+            .any(|local| local.lockdep.load(Ordering::Acquire) != 0)
+    {
+        serial::fail(b"SMP_LOCKPAIR_LOCKDEP_LEFT");
+    }
+    serial::write(b"SMP:LOCKPAIR:PASS:CPUS=");
     decimal(online as u64 + 1);
     serial::write(b"\n");
     true
