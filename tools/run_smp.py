@@ -42,6 +42,8 @@ CASES = {
     "shared-scratch": ("test-smp-shared-scratch", 4, "multi", "shared-scratch"),
     "lock-in-handler": ("test-smp-lock-in-handler", 2, "multi", "lock-in-handler"),
     "lockpair-order": ("test-smp-lockpair-order", 2, "multi", "lockpair-order"),
+    "lock-stuck": ("test-smp-lock-stuck", 2, "multi", "lock-stuck"),
+    "serial-unlocked-control": ("test-smp-serial-unlocked", 4, "multi", "serial-torn"),
 }
 QUARANTINE_OUTCOMES = ("invalid-madt", "timeout", "mismatch", "quarantine", "shootdown-quarantine",
                        "timer-quarantine", "spin-quarantine")
@@ -53,7 +55,8 @@ TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_I
             "gs-nmi-user": "SMP:FAULT:AP_NMI_IST:PASS",
             "shared-scratch": "SMP:SCRATCH:CROSS:CPU=*",
             "lock-in-handler": "SMP:LOCKDEP:IN_HANDLER:10",
-            "lockpair-order": "SMP:LOCKDEP:ORDER:20->20"}
+            "lockpair-order": "SMP:LOCKDEP:ORDER:20->20",
+            "lock-stuck": "SMP:LOCK:STUCK:10:CPU=1"}
 # Audit F8: the GS fixture prints the runtime CR4 (decimal); FSGSBASE (bit 16)
 # must be clear, the value itself may differ per firmware.
 GS_CR4 = "SMP:GS:CR4=*"
@@ -61,6 +64,41 @@ GS_CR4 = "SMP:GS:CR4=*"
 SCRATCH_CROSS = re.compile(r"SMP:SCRATCH:CROSS:CPU=([0-9])")
 # Step 5a: the BSP lock self-test after smp::start, on every non-terminal path.
 LOCKDEP_PASS = "SMP:LOCKDEP:PASS"
+# Audit F7 (DG-2): every CPU that ran the sync test writes these lines at once,
+# in fragments; each must arrive whole, in order per CPU, before SERIAL_PASS.
+SERIAL_LINES = 200  # kernel/src/m2/smp.rs SERIAL_LINES
+SERIAL_LINE = re.compile(r"SMP:SER:([0-9]):([0-9]{1,3})")
+SERIAL_PASS = "SMP:SERIAL:PASS"
+
+
+def serial_lines(lines: list[str], control: bool = False) -> tuple[list[str], dict[int, list[int]]]:
+    """Split the F7 fixture lines from the rest; a line that is not whole fails.
+
+    The fixture runs between the first SMP:ONLINE line and SERIAL_PASS; a line
+    that only contains a fixture line (two writers mixed) is torn. `control`
+    (no SERIAL lock): drop every fixture-phase line and require a torn one.
+    """
+    rest, seen, phase, torn = [], {}, "before", False
+    for line in lines:
+        if control and phase == "open" and line != SERIAL_PASS:
+            torn |= SERIAL_LINE.fullmatch(line) is None
+            continue
+        if "SMP:SER:" in line:
+            match = SERIAL_LINE.fullmatch(line)
+            if match is None:
+                raise ValueError("Torn serial line: two CPUs mixed one marker")
+            if phase != "open":
+                raise ValueError("Serial fixture line outside its phase")
+            seen.setdefault(int(match[1]), []).append(int(match[2]))
+            continue
+        if phase == "before" and line.startswith("SMP:ONLINE:"):
+            phase = "open"
+        elif phase == "open" and line == SERIAL_PASS:
+            phase = "closed"
+        rest.append(line)
+    if control and not torn:
+        raise ValueError("Unlocked control showed no mixed line")
+    return rest, seen
 
 
 def duplicate_madt() -> bytes:
@@ -86,9 +124,9 @@ def expected_smp(case: str) -> list[str]:
     madt = [f"SMP:MADT:CPUS={cpus}:DISABLED=0:HOTPLUG=0"]
 
     def settled(online: int) -> list[str]:
-        """Sync, IPI rounds, shootdown + visibility, preemption, spin, scheduler,
+        """Serial fixture, sync, IPI rounds, shootdown + visibility, preemption, spin, scheduler,
         per-CPU scratch slots under KERNEL, lock_pair rounds, park."""
-        return [f"SMP:SYNC:PASS:CPUS={online}",
+        return [SERIAL_PASS, f"SMP:SYNC:PASS:CPUS={online}",
                 f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={online}",
                 f"SMP:SHOOTDOWN:PASS:CPUS={online}",
                 f"SMP:SHOOTDOWN:VISIBLE:CPUS={online}",
@@ -108,7 +146,8 @@ def expected_smp(case: str) -> list[str]:
     if cpus > MAX_CPUS:
         lines.append(f"SMP:SKIPPED:CAPACITY={cpus - MAX_CPUS}")
     lines += [f"SMP:ONLINE:{started}/{cpus}"]
-    if outcome == "online":
+    if outcome in ("online", "serial-torn"):
+        # serial-torn (control, DG-2): without SERIAL the fixture must mix lines.
         return lines + settled(started)
     if outcome == "lockdep-order":
         # KERNEL(10) taken while FRAMES(30) is held: stop before the PASS line.
@@ -131,7 +170,10 @@ def expected_smp(case: str) -> list[str]:
     if outcome == "lockpair-order":
         # Audit F4 (LD-3): two ASPACE locks taken loose and descending, after scratch.
         return lines + settled(started)[:-2] + [TERMINAL[outcome]]
-    lines += [f"SMP:SYNC:PASS:CPUS={started}"]
+    if outcome == "lock-stuck":
+        # Audit F5 (DG-1): the AP waiting for the BSP's lock reports it, release build.
+        return lines + settled(started)[:3] + [TERMINAL[outcome]]
+    lines += [SERIAL_PASS, f"SMP:SYNC:PASS:CPUS={started}"]
     ipi_pass = f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={started}"
     if outcome == "held-across-switch":
         # Step 5c without deferral: the first tick in a lock wait switches threads.
@@ -183,6 +225,13 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
     profile, cpus, _, outcome = CASES[case]
     terminal = outcome in TERMINAL
     end = required_end(outcome)
+    # DG-2: `!` marks a terminal line written without SERIAL: only the last
+    # line of a terminal profile may carry it (the exact sequence checks it).
+    unlocked = stdout.splitlines()
+    if terminal and unlocked and unlocked[-1].startswith("!"):
+        stdout = "\n".join(unlocked[:-1] + [unlocked[-1][1:]]) + "\n"
+    if any(line.startswith("!") for line in stdout.splitlines()):
+        raise ValueError("Unlocked (!) serial line that is not the terminal marker")
     if not is_success(raw_exit, stdout, timed_out, required_markers=BOOT + end,
                       forbidden_markers=FORBIDDEN):
         raise ValueError("Native SMP boot/exit assertions failed")
@@ -200,8 +249,15 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
     if tuple(observed[:len(BOOT)]) != BOOT:
         raise ValueError("Unexpected boot prefix")
     expected = expected_smp(case)
+    control = outcome == "serial-torn"
+    body, seen = serial_lines(observed[len(BOOT):], control)
+    writers = next((int(m[1]) for m in (re.fullmatch(r"SMP:ONLINE:([0-9]+)/[0-9]+", line)
+                                        for line in body) if m), 0)
+    if not control and seen != {cpu: list(range(SERIAL_LINES))
+                                for cpu in range(writers if SERIAL_PASS in expected else 0)}:
+        raise ValueError("Serial fixture lines missing, duplicated or out of order")
     tail = []
-    for line in observed[len(BOOT):]:
+    for line in body:
         cr4 = re.fullmatch(r"SMP:GS:CR4=([0-9]{1,20})", line)
         if cr4 and int(cr4[1]) & (1 << 16) == 0:
             line = GS_CR4
@@ -244,7 +300,9 @@ def run(cases: tuple[str, ...]) -> dict:
                         "in two address spaces (0xe8 wake, CR3 switch with active_cpus), a ring-3 "
                         "GS fixture per AP in test-smp-gs-* profiles (swapgs discipline), a "
                         "scratch slot per CPU plus the KERNEL lock under contention, ASPACE lock_pair "
-                        "rounds on every CPU (KERNEL/ASPACE refused in handlers), and BSP "
+                        "rounds on every CPU (KERNEL/ASPACE refused in handlers), whole serial lines "
+                        "under the SERIAL lock from every CPU at once (an unlocked control must mix), "
+                        "a time-bounded lock wait reported as STUCK in release builds, and BSP "
                         "ticket-lock/lockdep self-test in "
                         "QEMU/TCG; no ring-3 processes (M3) on APs, no hardware evidence"),
               "cases": []}

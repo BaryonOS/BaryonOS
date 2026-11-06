@@ -4,7 +4,7 @@ from pathlib import Path
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from run_smp import CASES, MAX_CPUS, duplicate_madt, evaluate
+from run_smp import CASES, MAX_CPUS, SERIAL_LINES, duplicate_madt, evaluate
 
 PREFIX = ("BdsDxe: starting Boot0002\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\n"
           "KS-02:PASS\nACPI:UNAVAILABLE:NO_DMAR\nDEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT\n"
@@ -12,10 +12,21 @@ PREFIX = ("BdsDxe: starting Boot0002\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS
 END = ["M2:PASS", "M1:PASS"]
 
 
-def transcript(lines, lockdep=True):
-    """Non-terminal runs end with the step-5a lock self-test before END."""
+def fixture(cpus):
+    """F7: each CPU's numbered lines, interleaved line by line (never torn)."""
+    return [f"SMP:SER:{cpu}:{seq}" for seq in range(SERIAL_LINES) for cpu in range(cpus)]
+
+
+def transcript(lines, lockdep=True, serial=True):
+    """Non-terminal runs end with the step-5a lock self-test before END; the F7
+    lines of every CPU that ran the sync test precede SMP:SERIAL:PASS."""
     if lockdep and lines[-2:] == END:
         lines = lines[:-2] + ["SMP:LOCKDEP:PASS"] + END
+    if serial and "SMP:SERIAL:PASS" in lines:
+        at = lines.index("SMP:SERIAL:PASS")
+        cpus = int(next(line for line in lines if line.startswith("SMP:ONLINE:"))
+                   .split(":")[2].split("/")[0])
+        lines = lines[:at] + fixture(cpus) + lines[at:]
     return PREFIX + "".join(line + "\n" for line in lines)
 
 
@@ -26,7 +37,7 @@ def started(cpus):
     lines += [f"SMP:AP:{apic}:ONLINE" for apic in range(1, count)]
     if cpus > MAX_CPUS:
         lines.append(f"SMP:SKIPPED:CAPACITY={cpus - MAX_CPUS}")
-    return lines + [f"SMP:ONLINE:{count}/{cpus}", f"SMP:SYNC:PASS:CPUS={count}"]
+    return lines + [f"SMP:ONLINE:{count}/{cpus}", "SMP:SERIAL:PASS", f"SMP:SYNC:PASS:CPUS={count}"]
 
 
 def online(cpus):
@@ -44,7 +55,7 @@ def online(cpus):
 
 def failed(status):
     return ["SMP:MADT:CPUS=4:DISABLED=0:HOTPLUG=0", f"SMP:AP:1:{status}",
-            "SMP:BRINGUP:STOPPED", "SMP:ONLINE:1/4", "SMP:SYNC:PASS:CPUS=1",
+            "SMP:BRINGUP:STOPPED", "SMP:ONLINE:1/4", "SMP:SERIAL:PASS", "SMP:SYNC:PASS:CPUS=1",
             "SMP:IPI:PASS:ROUNDS=3:CPUS=1", "SMP:SHOOTDOWN:PASS:CPUS=1",
             "SMP:SHOOTDOWN:VISIBLE:CPUS=1", "SMP:PREEMPT:PASS:CPUS=1", "SMP:SPIN:PASS:CPUS=1",
             "SMP:SCHED:PASS:CPUS=1", "SMP:SCRATCH:PASS:CPUS=1", "SMP:LOCKPAIR:PASS:CPUS=1",
@@ -79,6 +90,8 @@ SHARED = online(4)[:-5] + ["SMP:SCRATCH:CROSS:CPU=2"]
 LOCK_IN_HANDLER = online(2)[:-6] + ["SMP:LOCKDEP:IN_HANDLER:10"]
 # Audit F4 (LD-3): two ASPACE locks taken loose and descending, after scratch.
 LOCKPAIR_ORDER = online(2)[:-4] + ["SMP:LOCKDEP:ORDER:20->20"]
+# Audit F5 (DG-1): the AP waits for a lock the BSP never frees, after the IPI rounds.
+LOCK_STUCK = started(2) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=2", "SMP:LOCK:STUCK:10:CPU=1"]
 # Audit F8: the ring-3 GS fixture runs after the scheduler phase (CR4 = 104 is
 # DE|PAE|MCE as printed under OVMF/TCG; only FSGSBASE, bit 16, is checked).
 GS_USER = online(4)[:-3] + ["SMP:GS:CR4=104", "SMP:GS:PASS:CPUS=4"] + online(4)[-3:]
@@ -96,6 +109,7 @@ VALID = {
     "double-run": DOUBLE_RUN, "gs-user": GS_USER, "gs-iret-fault": GS_IRET,
     "gs-nmi-user": GS_NMI, "shared-scratch": SHARED,
     "lock-in-handler": LOCK_IN_HANDLER, "lockpair-order": LOCKPAIR_ORDER,
+    "lock-stuck": LOCK_STUCK, "serial-unlocked-control": online(4),
 }
 
 
@@ -104,7 +118,10 @@ class SmpSerialOracle(unittest.TestCase):
         self.assertEqual(set(VALID), set(CASES))
         for case, lines in VALID.items():
             with self.subTest(case=case):
-                result = evaluate(case, transcript(lines), 33, False)
+                text = transcript(lines)
+                if case == "serial-unlocked-control":
+                    text = text.replace("SMP:SER:1:7\nSMP:SER:2:7\n", "SMP:SER:1:SMP:SER:2:7\n7\n")
+                result = evaluate(case, text, 33, False)
                 self.assertEqual(result["outcome"], CASES[case][3])
         self.assertEqual(evaluate("nine-capacity", transcript(online(9)), 33, False)["online"], 8)
         self.assertEqual(evaluate("ap-ipi-deaf", transcript(DEAF), 33, False)["online"], 1)
@@ -321,6 +338,72 @@ class SmpSerialOracle(unittest.TestCase):
         for text, raw in ((nmi, 35), (nmi + "M1:FAIL:SMP_AP_NMI_NOT_ON_IST\n", 33)):
             with self.subTest(raw=raw), self.assertRaises(ValueError):
                 evaluate("ap-nmi-ist", text, raw, False)
+
+    def test_serial_lines_are_whole_ordered_and_complete(self):
+        """F7 (DG-2): one torn, missing, reordered or misplaced line fails the run."""
+        good = transcript(online(4))
+        line = "SMP:SER:2:7\n"
+        self.assertEqual(good.count(line), 1)
+        torn = good.replace("SMP:SER:1:7\n" + line, "SMP:SER:1:SMP:SER:2:7\n7\n")
+        for text in (
+            torn,                                                         # mixed bytes
+            good.replace("SMP:SER:2:7\n", "SMP:SE\nR:2:7\n"),             # split line
+            good.replace(line, ""),                                       # lost line
+            good.replace(line, line * 2),                                 # repeated line
+            good.replace("SMP:SER:2:8\n", "").replace("SMP:SER:2:7\n",
+                                                        "SMP:SER:2:8\nSMP:SER:2:7\n"),
+            good.replace("SMP:SERIAL:PASS\n", "").replace("SMP:ONLINE:4/4\n",
+                                                          "SMP:ONLINE:4/4\nSMP:SERIAL:PASS\n"),
+            transcript(online(4), serial=False),                          # fixture absent
+            good.replace("SMP:SYNC:PASS", "SMP:SER:0:0\nSMP:SYNC:PASS"),    # after PASS
+        ):
+            with self.subTest(text=text[-60:]), self.assertRaises(ValueError):
+                evaluate("four", text, 33, False)
+        # Interleaving between whole lines is allowed (the order of CPUs is free).
+        swapped = good.replace("SMP:SER:2:7\nSMP:SER:3:7\n", "SMP:SER:3:7\nSMP:SER:2:7\n")
+        self.assertEqual(evaluate("four", swapped, 33, False)["online"], 4)
+        # A stopped bring-up leaves only the BSP's lines.
+        self.assertEqual(evaluate("ap-stall", transcript(failed("TIMEOUT")), 33, False)["online"], 1)
+
+    def test_unlocked_control_must_show_a_mixed_line(self):
+        """Spec §4 control: without SERIAL a run with only whole lines fails."""
+        good = transcript(online(4))
+        with self.assertRaises(ValueError):
+            evaluate("serial-unlocked-control", good, 33, False)
+        mixed = good.replace("SMP:SER:0:3\nSMP:SER:1:3\n", "SMSMP:SERP:SER:0:3\n:1:3\n")
+        self.assertEqual(evaluate("serial-unlocked-control", mixed, 33, False)["online"], 4)
+        # Outside the fixture phase the exact sequence still holds.
+        with self.assertRaises(ValueError):
+            evaluate("serial-unlocked-control", mixed.replace("SMP:SPIN:PASS:CPUS=4\n", ""), 33, False)
+        # The locked profile rejects the same mixed transcript.
+        with self.assertRaises(ValueError):
+            evaluate("four", mixed, 33, False)
+
+    def test_unlocked_line_may_only_be_the_terminal_marker(self):
+        """DG-2: `!` marks a terminal line written without SERIAL."""
+        stuck = transcript(LOCK_STUCK)
+        bang = stuck.replace("SMP:LOCK:STUCK:10:CPU=1", "!SMP:LOCK:STUCK:10:CPU=1")
+        self.assertEqual(evaluate("lock-stuck", bang, 33, False)["online"], 2)
+        for case, text in (
+            ("four", transcript(online(4)).replace("SMP:SYNC:PASS", "!SMP:SYNC:PASS")),
+            ("four", transcript(online(4)).replace("M1:PASS", "!M1:PASS")),      # not terminal
+            ("lock-stuck", bang + "!SMP:LOCK:STUCK:10:CPU=1\n"),
+            ("lock-stuck", stuck.replace("SMP:IPI:PASS", "!SMP:IPI:PASS")),
+        ):
+            with self.subTest(case=case), self.assertRaises(ValueError):
+                evaluate(case, text, 33, False)
+
+    def test_stuck_lock_is_reported_in_its_profile_only(self):
+        """F5 (DG-1): the stuck marker ends its own profile and fails all others."""
+        for case, text in (
+            ("lock-stuck", transcript(started(2) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=2"])),
+            ("lock-stuck", transcript(LOCK_STUCK[:-1] + ["SMP:LOCK:STUCK:70:CPU=1"])),
+            ("lock-stuck", transcript(LOCK_STUCK[:-1] + ["SMP:LOCK:STUCK:10:CPU=0"])),
+            ("four", transcript(started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4",
+                                              "SMP:LOCK:STUCK:10:CPU=1"])),
+        ):
+            with self.subTest(case=case, text=text[-40:]), self.assertRaises(ValueError):
+                evaluate(case, text, 33, False)
 
     def test_duplicate_madt_fixture_is_a_valid_checksummed_table(self):
         table = duplicate_madt()

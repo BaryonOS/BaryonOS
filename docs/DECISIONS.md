@@ -299,6 +299,47 @@ geven, met exit 0x10. Native lokaal: zie `docs/verification/k06-smp-sched/`.
 niet FIFO is en onder TCG kan uithongeren. Lockdep alleen in debugbuilds:
 verworpen, omdat de native gate releasebuilds draait.
 
+**Aanvulling auditfixes F5/F7 (6 november 2026, K06-audit, L0-spec
+`docs/implementation/k06-steps/03-F5-F7-stuck-serial.md`).**
+- **F5, begrensd wachten ook in release (DG-1).** De begrensde spin hing aan
+  `cfg!(debug_assertions)`, maar elke native gate bouwt `--release`: een deadlock werd
+  dan een host-timeout zonder diagnose. Nu kiest `cfg(feature = "native-smp")` de
+  begrensde variant. Alle `test-smp-*`-profielen erven die feature. De grens is een
+  tijd: `LOCK_STUCK_MS = 4 × SHOOTDOWN_DEADLINE_MS` = 400 ms, gerekend vanaf de eerste
+  gecontesteerde poll. Overschrijding geeft `SMP:LOCK:STUCK:<niveau>:CPU=<n>` en stopt
+  de VM. Eén-CPU-profielen (M3) blijven onbegrensd: daar is geen wachter.
+- **Tijdsbasis, afwijking van de letter van de spec.** De spec zegt "gemeten met de
+  PIT-klok". Maar de PIT is van de BSP (ADR-070) en een AP mag hem niet aanraken. De BSP
+  ijkt daarom vóór de eerste IPI 10 ms PIT-kanaal 2 tegen de TSC (`TSC_PER_MS`). Een
+  wachter op welke CPU dan ook leest alleen de TSC. De PIT blijft dus de tijdsbasis,
+  maar de meting tijdens het spinnen loopt via de TSC. Aanname: de TSC loopt met een
+  vaste snelheid (QEMU/TCG, KVM). *shortcut: vervang dit door de gekalibreerde TSC van
+  stap 06.* Mislukt de ijking, dan stopt de boot met `M1:FAIL:SMP_TSC_CALIBRATION`.
+- **F7, één regel is ondeelbaar (DG-2).** `serial.rs` heeft onder `native-smp` een
+  `static SERIAL: IrqLock<()>` op niveau 70 (irqsave, begrensd volgens DG-1).
+  `serial::write` verzamelt fragmenten in een regelbuffer per CPU (IF=0). Bij de
+  newline gaat de hele regel in één keer onder `SERIAL` naar buiten. Zo bleven de ruim
+  tweehonderd bestaande schrijfplekken ongewijzigd. Terminale paden (de gedeelde
+  exceptionhandler met NMI/#DF, `panic`, `fail`, `lock_stuck`) schrijven met
+  `write_terminal`: een begrensde `try_lock` zonder lockdep. Lukt die niet, dan gaat de
+  regel toch naar buiten, met `!` ervoor. De host-oracle accepteert `!` alleen op de
+  laatste regel van een terminaal profiel.
+- **Bevinding: lockdep kent geen niveau 70.** `smp_lock::Lockdep` houdt niveaus 0..=63
+  bij in één `u64` (`assert!(level < 64)`). `SERIAL = 70` was tot nu toe nooit gebruikt.
+  *shortcut: `SERIAL` wordt niet in het lockdepwoord vastgelegd.* Het is het hoogste
+  niveau en een leaf (`write_raw` neemt geen lock), en het wordt alleen met IF=0
+  vastgehouden. Een herintreding op dezelfde CPU ziet DG-1 als `SMP:LOCK:STUCK:70`.
+  Verbreed `Lockdep` (crate `smp-lock`, buiten deze stap) zodra een niveau boven 63
+  ordening nodig heeft.
+- **DG-3.** Zonder `native-smp`, en vóór `smp::start` het GS-anker zet, gaan de bytes
+  ongewijzigd en direct naar de UART. `fail` en `panic` stellen hun regel nu eerst
+  samen, met byte-gelijke uitvoer.
+- **Bewijs.** In elk `native-smp`-image schrijft elke CPU na de synctest 200 regels
+  `SMP:SER:<cpu>:<seq>` in fragmenten, door elkaar. Daarna volgt `SMP:SERIAL:PASS`. De
+  host eist elke regel heel, per CPU de volgorde 0..199, en geen regel buiten die fase.
+  `test-smp-lock-stuck` (2 vCPU's): de BSP houdt een KERNEL-niveaulock vast. Verwacht:
+  `SMP:LOCK:STUCK:10:CPU=1`, exit 0x10. Native lokaal: `docs/verification/k06-f5f7-diagnostics/`.
+
 ## ADR-073 — Gepreëmpteerde kernelthreads op AP's (K06 stap 4)
 
 5 november 2026; alleen in `native-smp`, de BSP blijft IF=0. Iedere AP

@@ -257,6 +257,62 @@ static BSP_REGISTERS: [AtomicU64; REGISTERS] = [const { AtomicU64::new(0) }; REG
 /// (bit 8), or its LAPIC_WINDOW accesses would not reach its own xAPIC.
 static BSP_APIC_BASE: AtomicU64 = AtomicU64::new(0);
 static GO: AtomicBool = AtomicBool::new(false);
+
+/// Every shootdown ack (and the other per-AP handshakes) is awaited this long.
+const SHOOTDOWN_DEADLINE_MS: u32 = 100;
+/// DG-1 (audit F5): a lock wait longer than this is a deadlock, in every
+/// native-smp image.
+const LOCK_STUCK_MS: u64 = 4 * SHOOTDOWN_DEADLINE_MS as u64;
+/// TSC ticks per millisecond, measured once by the BSP against PIT channel 2
+/// before any AP starts; 0 until then (no second CPU can wait before that).
+/// shortcut: the PIT is the time base, but a waiter reads the TSC because
+/// APs never touch the BSP-owned PIT (ADR-070); assumes a constant-rate TSC
+/// (QEMU/TCG, KVM). Replace by the calibrated TSC of step 06.
+static TSC_PER_MS: AtomicU64 = AtomicU64::new(0);
+
+fn rdtsc() -> u64 {
+    let (low, high): (u32, u32);
+    // SAFETY: CPL0 read of the time-stamp counter; no memory is accessed.
+    unsafe { asm!("rdtsc", out("eax") low, out("edx") high, options(nomem, nostack)) };
+    u64::from(high) << 32 | u64::from(low)
+}
+
+/// BSP, IF=0, before the first IPI: 10 ms on the PIT against the TSC.
+fn calibrate_tsc() {
+    let start = rdtsc();
+    if !wait_us(10_000) {
+        serial::fail(b"SMP_TSC_CALIBRATION");
+    }
+    let per_ms = (rdtsc().wrapping_sub(start) / 10).max(1);
+    TSC_PER_MS.store(per_ms, Ordering::Release);
+}
+
+/// TSC value after which a lock wait that starts now is stuck (DG-1).
+pub fn stuck_deadline() -> u64 {
+    rdtsc().saturating_add(LOCK_STUCK_MS * TSC_PER_MS.load(Ordering::Acquire))
+}
+
+pub fn past(deadline: u64) -> bool {
+    rdtsc() > deadline
+}
+
+/// F7 fixture (DG-2): lines every CPU writes at once, in fragments, so the
+/// host can see each line arrive whole and in order per CPU.
+const SERIAL_LINES: u64 = 200;
+fn serial_lines() {
+    let cpu = cpu_index() as u64;
+    for seq in 0..SERIAL_LINES {
+        serial::write(b"SMP:SER:");
+        decimal(cpu);
+        serial::write(b":");
+        decimal(seq);
+        serial::write(b"\n");
+    }
+}
+
+/// `test-smp-lock-stuck`: a KERNEL-level lock the BSP takes and never frees.
+static STUCK_TEST: lock::IrqLock<()> = lock::IrqLock::new(level::KERNEL, ());
+static STUCK_GO: AtomicBool = AtomicBool::new(false);
 static PARK: AtomicBool = AtomicBool::new(false);
 const IPI_VECTOR: usize = 0xf0;
 const SPURIOUS_VECTOR: usize = 0xff;
@@ -741,6 +797,7 @@ extern "C" fn smp_ap_main(context: &'static ApContext) -> ! {
         spin_loop();
     }
     stress();
+    serial_lines();
     context.state.store(DONE, Ordering::Release);
     ipi_phase(context, local, first)
 }
@@ -853,6 +910,9 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
             local.spun.store(1, Ordering::Release);
             *SPIN_LOCK.lock_irqsave() += 1;
             local.spun.store(2, Ordering::Release);
+        }
+        if cfg!(feature = "test-smp-lock-stuck") && first && STUCK_GO.load(Ordering::Acquire) {
+            drop(STUCK_TEST.lock_irqsave());
         }
         if PARK.load(Ordering::Acquire) {
             break;
@@ -1036,6 +1096,7 @@ pub fn start(
         MadtStatus::Invalid => return unavailable(b"INVALID_MADT"),
         MadtStatus::Valid => {}
     }
+    calibrate_tsc();
     let cpus = madt.cpus();
     serial::write(b"SMP:MADT:CPUS=");
     decimal(cpus.len() as u64);
@@ -1123,6 +1184,7 @@ pub fn start(
     serial::write(b"\n");
     GO.store(true, Ordering::Release);
     stress();
+    serial_lines();
     let finished = (0..200).any(|_| {
         NOS_SMP_AP_CONTEXTS[..online].iter().all(finished_stress) || {
             wait_us(10_000);
@@ -1149,6 +1211,8 @@ pub fn start(
     if VIOLATIONS.load(Ordering::Acquire) != 0 {
         serial::fail(b"SMP_SYNC_EXCLUSION");
     }
+    // Every CPU finished its lines (DONE); wholeness is the host's check.
+    serial::write(b"SMP:SERIAL:PASS\n");
     serial::write(b"SMP:SYNC:PASS:CPUS=");
     decimal(online as u64 + 1);
     serial::write(b"\n");
@@ -1243,6 +1307,17 @@ fn ipis(
     serial::write(b":CPUS=");
     decimal(online as u64 + 1);
     serial::write(b"\n");
+    if cfg!(feature = "test-smp-lock-stuck") && online != 0 {
+        // F5 (DG-1): the first AP must report the wait within LOCK_STUCK_MS.
+        let _held = STUCK_TEST.lock_irqsave();
+        STUCK_GO.store(true, Ordering::Release);
+        send_ipi(
+            aps[0].apic_id.load(Ordering::Relaxed),
+            IPI_FIXED | IPI_VECTOR as u32,
+        );
+        within_ms(1_000, || false);
+        serial::fail(b"SMP_LOCK_STUCK_MISSED");
+    }
     if cfg!(feature = "test-smp-ap-nmi") && online != 0 {
         let apic = aps[0].apic_id.load(Ordering::Relaxed);
         if send_ipi(apic, IPI_NMI) {
@@ -1352,7 +1427,7 @@ fn shootdown_round(vas: [u64; 2], online: usize) -> Result<(), u32> {
     for (context, local) in NOS_SMP_AP_CONTEXTS[..online].iter().zip(&CPU_LOCAL) {
         let apic = context.apic_id.load(Ordering::Relaxed);
         if !send_ipi(apic, IPI_FIXED | SHOOTDOWN_VECTOR as u32)
-            || !within_ms(100, || {
+            || !within_ms(SHOOTDOWN_DEADLINE_MS, || {
                 local.shootdown_ack.load(Ordering::Acquire) == generation
             })
         {
@@ -1463,11 +1538,18 @@ fn any_cpu() -> Option<&'static CpuLocal> {
 
 /// This CPU's index for its scratch slot (K-2): BSP 0, AP slot + 1.
 pub fn cpu_index() -> usize {
-    match any_cpu() {
-        Some(local) if ptr::eq(local, &BSP_LOCAL) => 0,
-        Some(local) => local.slot.load(Ordering::Relaxed) as usize + 1,
-        None => serial::fail(b"SMP_SCRATCH_ANCHOR"),
-    }
+    anchored_index().unwrap_or_else(|| serial::fail(b"SMP_SCRATCH_ANCHOR"))
+}
+
+/// This CPU's index (BSP 0, AP slot + 1), `None` before `start` set its anchor.
+pub fn anchored_index() -> Option<usize> {
+    any_cpu().map(|local| {
+        if ptr::eq(local, &BSP_LOCAL) {
+            0
+        } else {
+            local.slot.load(Ordering::Relaxed) as usize + 1
+        }
+    })
 }
 
 /// True on an AP (its GS anchor is in CPU_LOCAL); false on the BSP.
@@ -1537,20 +1619,22 @@ pub fn lockdep_lifo(order: smp_lock::Order) -> ! {
     serial::fail(b"SMP_LOCKDEP_LIFO")
 }
 
-/// Terminal bounded-spin report: `SMP:LOCK:STUCK:<name>:CPU=<slot>`.
-pub fn lock_stuck(name: &[u8]) -> ! {
-    serial::write(b"SMP:LOCK:STUCK:");
-    serial::write(name);
-    serial::write(b":CPU=");
-    let cpu = any_cpu().map_or(u64::MAX, |local| {
-        if ptr::eq(local, &BSP_LOCAL) {
-            0
-        } else {
-            u64::from(local.slot.load(Ordering::Relaxed)) + 1
-        }
-    });
-    decimal(cpu);
-    serial::write(b"\n");
+/// Terminal bounded-spin report (DG-1): `SMP:LOCK:STUCK:<level>:CPU=<n>`,
+/// written without waiting (the stuck lock may be `SERIAL` itself).
+/// Only the deliberate negative profile counts it as a pass.
+pub fn lock_stuck(level: u8) -> ! {
+    let mut line = serial::Line::new();
+    line.push(b"SMP:LOCK:STUCK:")
+        .decimal(u64::from(level))
+        .push(b":CPU=");
+    match anchored_index() {
+        Some(cpu) => line.decimal(cpu as u64),
+        None => line.push(b"?"),
+    };
+    serial::write_terminal(line.push(b"\n").as_bytes());
+    if cfg!(feature = "test-smp-lock-stuck") {
+        serial::exit(0x10);
+    }
     serial::fail(b"SMP_LOCK_STUCK")
 }
 
@@ -1815,7 +1899,7 @@ fn preemption(online: usize, total: usize) -> bool {
 }
 
 /// Step 5c test lock (KERNEL level), taken by the AP threads while LOCKED.
-static PREEMPT_LOCK: lock::IrqLock<u32> = lock::IrqLock::new(level::KERNEL, b"KERNEL", 0);
+static PREEMPT_LOCK: lock::IrqLock<u32> = lock::IrqLock::new(level::KERNEL, 0);
 static PREEMPT_LOCKED: AtomicBool = AtomicBool::new(false);
 
 /// INV-5c proof: while the BSP holds a KERNEL-level lock, the thread waiting
@@ -1857,7 +1941,7 @@ fn preempt_under_lock(locals: &[CpuLocal]) {
 }
 
 /// Step 5b test lock (KERNEL level); used only by the spin phase below.
-static SPIN_LOCK: lock::IrqLock<u32> = lock::IrqLock::new(level::KERNEL, b"KERNEL", 0);
+static SPIN_LOCK: lock::IrqLock<u32> = lock::IrqLock::new(level::KERNEL, 0);
 static SPIN: AtomicBool = AtomicBool::new(false);
 
 /// Spin proof (spec §4.3): while the BSP holds a KERNEL-level lock, every AP
@@ -1925,10 +2009,10 @@ static SCHED: AtomicU32 = AtomicU32::new(0);
 static SCHED_APS: AtomicU32 = AtomicU32::new(0);
 /// Keyed by CPU index (AP slot + 1), the LD-3 order for a RUNQ `lock_pair`.
 static RUNQ: [lock::IrqLock<RunQueue<SCHED_THREADS>>; MAX_APS] = {
-    let mut queues = [const { lock::IrqLock::new(level::RUNQ, b"RUNQ", RunQueue::new()) }; MAX_APS];
+    let mut queues = [const { lock::IrqLock::new(level::RUNQ, RunQueue::new()) }; MAX_APS];
     let mut slot = 0;
     while slot < MAX_APS {
-        queues[slot] = lock::IrqLock::keyed(level::RUNQ, b"RUNQ", slot as u32 + 1, RunQueue::new());
+        queues[slot] = lock::IrqLock::keyed(level::RUNQ, slot as u32 + 1, RunQueue::new());
         slot += 1;
     }
     queues
@@ -2323,8 +2407,8 @@ fn scratch(online: usize, total: usize, frames: &mut Frames<FRAME_COUNT>) -> boo
 /// Audit F4 fixture (LD-3): two ASPACE-level locks keyed like pids 1 and 2.
 /// Both counters only ever change together, under the pair.
 static PAIR: [lock::IrqLock<u64>; 2] = [
-    lock::IrqLock::keyed(level::ASPACE, b"ASPACE", 1, 0),
-    lock::IrqLock::keyed(level::ASPACE, b"ASPACE", 2, 0),
+    lock::IrqLock::keyed(level::ASPACE, 1, 0),
+    lock::IrqLock::keyed(level::ASPACE, 2, 0),
 ];
 static PAIR_RUN: AtomicBool = AtomicBool::new(false);
 const PAIR_ROUNDS: u64 = 1000;

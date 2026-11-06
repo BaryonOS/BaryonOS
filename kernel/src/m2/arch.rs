@@ -447,7 +447,7 @@ extern "C" fn m2_exception(frame: *const u64) -> ! {
     // Test-only AP IST probes: accepted solely on that AP's own IST stack.
     #[cfg(feature = "native-smp")]
     if let Some(marker) = super::smp::ist_fault_marker(vector, error, rip, cs, cr2, frame) {
-        serial::write(marker);
+        serial::write_terminal(marker);
         serial::exit(0x10);
     }
     if cfg!(feature = "test-m2-double-fault") && vector == 8 && error == 0 && cs == 8 {
@@ -470,17 +470,17 @@ extern "C" fn m2_exception(frame: *const u64) -> ! {
             && old_rsp >= main
             && old_rsp < main + 4096
         {
-            serial::write(b"M2:FAULT:DF_IST:PASS\n");
+            serial::write_terminal(b"M2:FAULT:DF_IST:PASS\n");
             serial::exit(0x11);
         }
     }
     let supervisor = cs == 8 && error & 4 == 0;
     if cfg!(feature = "test-m2-kernel-fault") && vector == 6 && error == 0 && cs == 8 {
-        serial::write(b"M2:FAULT:KERNEL_UD:PASS\n");
+        serial::write_terminal(b"M2:FAULT:KERNEL_UD:PASS\n");
     }
     if vector == 14 && supervisor {
         if cfg!(feature = "test-m2-ro") && cr2 == super::text_start() && error & 0x1f == 3 {
-            serial::write(b"M2:FAULT:RO:PASS\n");
+            serial::write_terminal(b"M2:FAULT:RO:PASS\n");
             serial::exit(0x10);
         }
         if cfg!(feature = "test-m2-nx")
@@ -488,15 +488,15 @@ extern "C" fn m2_exception(frame: *const u64) -> ! {
             && rip == cr2
             && error & 0x1f == 17
         {
-            serial::write(b"M2:FAULT:NX:PASS\n");
+            serial::write_terminal(b"M2:FAULT:NX:PASS\n");
             serial::exit(0x10);
         }
         if cfg!(feature = "test-m2-absent") && cr2 == 0 && error & 0x1f == 0 {
-            serial::write(b"M2:FAULT:ABSENT:PASS\n");
+            serial::write_terminal(b"M2:FAULT:ABSENT:PASS\n");
             serial::exit(0x10);
         }
     }
-    serial::write(b"M2:FAIL:KERNEL_EXCEPTION\n");
+    serial::write_terminal(b"M2:FAIL:KERNEL_EXCEPTION\n");
     serial::exit(0x11)
 }
 
