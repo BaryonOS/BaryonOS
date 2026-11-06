@@ -65,7 +65,7 @@ jobs:
           key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
       - name: Disposable QEMU and explicit firmware and notices
         run: |
-          dpkg -s qemu-system-x86 ovmf seabios >/dev/null 2>&1 || { sudo apt-get update && sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf seabios; }
+          dpkg -s qemu-system-x86 ovmf seabios >/dev/null 2>&1 || { echo "::warning::ontbreekt in runner-image: qemu-system-x86 ovmf seabios"; sudo apt-get update; sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf seabios; }
           for path in \
             "$OS_OVMF_CODE" "$OS_OVMF_VARS" \
             /usr/share/seabios/bios-256k.bin \

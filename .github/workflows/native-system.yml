@@ -35,7 +35,7 @@ jobs:
           rustup target add --toolchain 1.91.1 x86_64-unknown-none
       - name: Disposable emulator and matching firmware package
         run: |
-          dpkg -s qemu-system-x86 ovmf swtpm >/dev/null 2>&1 || { sudo apt-get update && sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf swtpm; }
+          dpkg -s qemu-system-x86 ovmf swtpm >/dev/null 2>&1 || { echo "::warning::ontbreekt in runner-image: qemu-system-x86 ovmf swtpm"; sudo apt-get update; sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf swtpm; }
       - name: Strict preflight
         run: python3 -B tools/preflight.py --strict
       - name: Fetch locked build dependencies before offline native builders
