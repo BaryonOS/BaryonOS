@@ -1,6 +1,32 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — K06 stap 5a, ticketlock, irqsave en lockdep — 6 november 2026
+## NEXT AGENT HANDOFF — K06 stap 5b, gecontroleerd spinnen met IF=1 — 6 november 2026
+
+**Bron:** `5481d407` op `feat/k06-5b-spin-irq` (main `5ae0757d` met #225 = 5a, plus de
+lokale `tools/gate.sh`). Taakspec: `/tmp/task_spec_5b.md` (lokaal); ontwerp:
+aanvulling stap 5b in ADR-074. **41 → 41/100**; K06 blijft open.
+
+**Gerealiseerd:** `TicketLock::lock_with` (onbegrensd met relax). `IrqLock` opent voor
+KERNEL/ASPACE op AP's een venster `sti; pause; cli` tussen pollingen. Daarnaast een native
+fixture na PREEMPT: de BSP houdt een KERNEL-lock vast terwijl elke AP met IF=0 wacht, en eist
+een shootdown-ack (`SMP:SPIN:PASS`). Het dove controleprofiel `test-smp-spin-irq-off`
+moet `SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=1` geven, gevolgd door quarantaine.
+
+**Bewijs (lokaal):** `tools/gate.sh` exit 0 (502 geslaagd, 1 ignored), `test_smp_serial.py`
+7/7, `cargo fmt --check` (workspace en kernel) schoon, clippy `smp-lock -D warnings` schoon.
+Kernelbuilds `native-smp`, `test-smp-spin-irq-off`, `test-smp-lockdep-order` en
+`milestone-m2` slagen. **Niet uitgevoerd:** native QEMU (geen QEMU in deze WSL-omgeving),
+dus `native-smp.yml` op de PR. De bredere `tools/tests`-discovery geeft 2 importfouten
+(`test_tpm`, `test_materiaal_cold`); die staan er ook zonder deze wijziging.
+
+**Open:** voordat een timer wordt gewapend op een CPU die KERNEL/ASPACE neemt, moet de
+preëmptie worden uitgesteld zolang lockdep niet leeg is. Er is nog geen runtimecheck dat
+handlers geen KERNEL/ASPACE nemen. Volgende stap: 5b-2 (KERNEL-lock om M3-syscalls,
+scratchslot per CPU, ADR-075), daarna 5c t/m 5f.
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-spin-irq-off"; python3 -B tools/build.py --kernel-feature test-smp-spin-irq-off && python3 -B -u tools/run_smp.py --profile test-smp-spin-irq-off`.
+
+## Historisch checkpoint — K06 stap 5a, ticketlock, irqsave en lockdep — 6 november 2026
 
 **Bron:** branch `feat/k06-5a-ticketlock-lockdep` op main `2c7edaf5`; spec
 `docs/implementation/K06-SMP.md` (§4, stap 5a). **41 → 41/100**; K06 blijft open.
