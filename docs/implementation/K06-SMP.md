@@ -407,6 +407,8 @@ onbereikbaar, maar het contract geldt vooruit.
 | 5d(-1) | Runqueues per AP, threadstatus-CAS (INV-3), 0xe8-wekken, CR3-wissel §6.3 met `active_cpus` (INV-4), met kernelthreads in twee adresruimten (aanvulling ADR-074) | `crates/smp-lock` (`sched`), `smp.rs` | `SMP:SCHED:PASS:CPUS=n`; `test-smp-double-run` → `SMP:SCHED:DOUBLE_RUN` |
 | F8 | `swapgs`-discipline in alle IDT-stubs (INV-8, ADR-076); ring-3-GS-fixture | `arch.rs`, `smp.rs`, `tools/tests/test_gs_discipline.py` | rood op de oude stubs; `SMP:GS:PASS`, `SMP:GS:IRET_FIXUP:PASS`, NMI vanuit CPL3; statische lint |
 | 5d-2 | Ring-3-processen op AP's met dezelfde kern (na 5b-2 en 5c-2; INV-2) | M3-scheduler, `smp.rs` | K05 6/6 op 4 vCPU's; `SMP:SCHED:CPUS=n` met user-werk op elke CPU |
+| 5d-2a | **Gebouwd (ADR-081):** profiel `native-smp-m3`, basis-M3-manifest op elke online CPU (home bij spawn, `current` per CPU, entry onder `KERNEL`, kernelronde vóór vrijgeven, stop-the-world) | `m3.rs`, `smp.rs`, `arch.rs` | `SMP:M3:CPU=<i>:USER_TICKS>0:SWITCHES>=4`, `SMP:SCHED:CPUS=n` op 2/4/8 vCPU's; `test-smp-m3-fault` → `SMP:M3:K03:PASS` |
+| 5d-2b/c | Open: FPU in de wissel, IPC over CPU's (0xe8, `lock_pair`), usercopy onder `ASPACE`, K05 op SMP, GS N1-N3 met M3 | `m3.rs`, `smp.rs` | spec 08 §4 |
 | 5e | Procesbrede shootdown §7.1/7.2 (gerealiseerd voor de fixture-ruimten, §7.2a) | paging/unmap, cleanup | dove-AP-negatief, controle zonder shootdown (moet stale-read tonen) |
 | 5f | Migratiefixture + concurrente stress + K06-acceptatie | testfixtures, `tools/run_smp.py`, `docs/verification/k06-smp-sched/` | §9 compleet; progress K06 → accepted |
 

@@ -5,6 +5,9 @@
 (`fix/k06-f5-f7-diagnostics`, PR #238). **Bewijsniveau:** native QEMU 10.2.1/OVMF/TCG op de
 WSL-host. Geen CI, geen hardware, review door AI. **Score:** 41 → 41/100.
 
+**Correctie:** de mergecommit `fb7a23cd` miste de locknaam-correctie in de index (compileerde niet
+voor `native-smp`); die staat in `4444eb52`. Het bewijs hieronder is op `fb7a23cd` + `4444eb52` gedraaid.
+
 ## Waarom
 De L0-spec van 5d-2 (`08-5d-2-ring3-on-aps.md` §0) eist stap 01–07 en F8 in de stapel. Stap 03
 (F5/F7) hing nog aan een oudere `feat/k06-5b2-kernel-lock` en zat niet onder 5e.

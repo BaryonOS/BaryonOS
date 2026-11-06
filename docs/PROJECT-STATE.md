@@ -1,6 +1,34 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — K06 stap 5e, procesbrede TLB-shootdown op `active_cpus` (aanvulling ADR-072/-075) — 6 november 2026
+## NEXT AGENT HANDOFF — K06 stap 5d-2a, M3-ring-3-processen op elke online CPU (ADR-081) — 6 november 2026
+
+**Bron:** `efe75124` op `feat/k06-5d2-ring3-smp` (worktree `nieuw-os-k06-5d2`), gestapeld op
+`feat/k06-5e-proc-shootdown` (#244). Daarin is F5/F7 (#238) opgenomen (merge `fb7a23cd` + correctie
+`4444eb52`), zodat voorwaarde 03 van spec 08 §0 vervuld is. Taakspec:
+`docs/implementation/k06-steps/08-5d-2-ring3-on-aps.md`. **41 → 41/100**; K06 blijft open.
+
+**Gerealiseerd (deelstap a):** profiel `native-smp-m3` (R3-1). Na de SMP-zelftests wachten de AP's,
+`m3_go` geeft elke CPU een M3-servicestack en een 0xd0-tick, daarna draait het basis-M3-manifest
+(16 processen) op alle online CPU's. `home` bij spawn = de kortste queue (R3-2). `current` per CPU,
+elke entry onder `KERNEL`, RSP0 per CPU en de servicestack via het GS-anker (R3-4). INV-4 met
+`active`-bits; INV-1: eerst alle PTE's, dan een kernelronde, dan pas vrijgeven. Idle zonder
+`KERNEL`; stop-the-world met één stopper. Negatief `test-smp-m3-fault`: `ud2` op AP2 stopt alleen
+dat proces. Bijvangst: `build_spaces` (5e) gaf een #DF door stack-overflow in het M3-build; de
+testruimten staan nu statisch.
+
+**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG):** zie `docs/verification/k06-5d2a-ring3-smp/`. SMP 37/37
+over 29 profielen (M3: 2, 4 single-thread TCG, 4 en 8 vCPU's + AP2-fault), oracle 22/22, GS-lint
+8/8, M2/M3 22, K05 6/6, K07, rtc, IPC-wait, FPU, fmt, smp-lock en `tools/gate.sh` exit 0 (520/1).
+**Niet uitgevoerd:** CI, hardware, menselijke audit, M4 (#235).
+
+**Open:** (1) De rest van spec 08 §4: FPU-canary (R3-3), IPC-ping-pong over CPU's (R3-5),
+usercopy onder `ASPACE` (R3-6), K05 op SMP met spawn na GO (R3-7), GS N1-N3 met M3. (2) De
+`SMP:CLOCK`-zelftest (1%-band, 5c-2) faalt soms onder TCG, ook op de basis. De band is niet
+verruimd; dit moet in 09 worden onderzocht. (3) Shortcuts uit ADR-081.
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-native-smp-m3"; python3 -B tools/build.py --kernel-feature native-smp-m3 && python3 -B -u tools/run_smp.py --profile native-smp-m3`.
+
+## Historisch checkpoint — K06 stap 5e, procesbrede TLB-shootdown op `active_cpus` (aanvulling ADR-072/-075) — 6 november 2026
 
 **Bron:** `730ce80a` op `feat/k06-5e-proc-shootdown` (worktree `nieuw-os-k06-5e`), gestapeld op
 `feat/k06-5c2-bsp-timer` (`0d197dc1`). Taakspec: `docs/implementation/k06-steps/07-5e-process-shootdown.md`

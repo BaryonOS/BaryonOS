@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
-**Bron:** [`730ce80a`](https://github.com/simonvanieperen/nieuw-os/commit/730ce80a384d6dce32f464d6429a0485d5950945) ·
-**Ontwikkelbranch:** `feat/k06-5e-proc-shootdown`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5e: procesbrede TLB-shootdown op active_cpus (aanvulling ADR-072/-075, auditbevinding F18).
-41/100 blijft 41/100. De TLB-shootdown is procesbreed (PS-1..PS-5): shootdown_process mikt alleen op ACTIVE[space] minus de eigen CPU, shootdown_kernel op alle online CPU's; één gepubliceerde ronde onder SHOOTDOWN, een Rust-handler die alleen bij de eigen CR3 of de kernelhelft flusht en altijd ackt, metadata pas na alle acks vrij (Paging::unmap_shot) en echte testruimten in plaats van PML4-kopieën. Native fixture: isolatie en unmap-race met een gecontroleerde #PF, plus twee negatieve profielen en een hostmodel van de ACTIVE-supersetregel. K06 blijft open: ring 3 op AP's (5d-2) en de acceptatiematrix (5f) ontbreken nog, en het M3-pad draait niet onder native-smp. Lokaal QEMU/TCG-bewijs; geen CI op de gestapelde PR, geen hardware, geen menselijke audit.
+**Bron:** [`efe75124`](https://github.com/simonvanieperen/nieuw-os/commit/efe7512459efc144a42bcc54b8a27c369311ff70) ·
+**Ontwikkelbranch:** `feat/k06-5d2-ring3-smp`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5d-2a: M3-ring-3-processen op elke online CPU (ADR-081), met F5/F7 in de stapel.
+41/100 blijft 41/100. In het nieuwe profiel native-smp-m3 draait het basis-M3-manifest (16 ring-3-processen) verdeeld over alle online CPU's: home bij spawn, current per CPU, entry onder KERNEL, kernelronde vóór vrijgeven en stop-the-world. Native lokaal: SMP 37/37 over 29 profielen (M3 op 2/4/8 vCPU's en een AP2-appfault die alleen dat proces stopt), M2/M3, K05, K07, rtc, IPC-wait, FPU en gate.sh groen. K06 blijft open: FPU-canary, IPC over CPU's, usercopy onder ASPACE, K05 op SMP en de §9-matrix (09) ontbreken; de SMP:CLOCK-zelftest is onder TCG timinggevoelig, ook op de basis.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

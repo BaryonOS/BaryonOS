@@ -1,5 +1,63 @@
 # Ontwerpbesluiten
 
+## ADR-081 — M3-ring-3-processen op elke online CPU (K06 stap 5d-2a)
+
+6 november 2026; effect alleen in het nieuwe profiel `native-smp-m3` (en zijn negatieve variant
+`test-smp-m3-fault`). Taakspec: `docs/implementation/k06-steps/08-5d-2-ring3-on-aps.md`. Bouwt op
+ADR-074 t/m -080. **Probleem:** na de zelftests parkeerden alle AP's; `native-smp` sloot M3 uit
+(`compile_error`). Geen AP deed productiewerk.
+
+**Besluit (R3-1 t/m R3-4, deelstap a):**
+1. **Profiel.** `native-smp-m3 = native-smp + milestone-m3`; de `compile_error` vervalt alleen
+   daarvoor. Het profiel draagt in deze deelstap alleen het basis-M3-manifest (16 processen);
+   `fpu-context`, `ipc-wait`, M4 en de supervisor zijn er nog met een `compile_error` uitgesloten.
+   Alle andere profielen blijven één CPU.
+2. **Overdracht.** `smp::start` draait alle zelftests ongewijzigd en laat de AP's daarna in hun
+   thuislus (`SMP:M3:WAITING:APS=n`) in plaats van te parkeren. `m3::start` bouwt de procestabel
+   onder `KERNEL`, waarna `smp::m3_go` de BSP-LAPIC-timer maskeert, elke online CPU een
+   M3-servicestack geeft (BSP: MAIN; AP: zijn MAIN-stack), gate 0xd0 op `m3_ap_timer` zet en
+   `M3_GO` vrijgeeft. Een AP start dan zijn LAPIC-tick (~10 ms) en gaat `m3::ap_main` in.
+3. **Plaatsing (R3-2, spec §6.2).** Bij spawn `home` = de online CPU met de minste levende
+   processen, de laagste index bij gelijkspel. `select` kiest alleen processen met `home` = deze
+   CPU. Geen migratie, geen load balancing. Daarmee draait een proces op hoogstens één CPU
+   (INV-3).
+4. **Entry (R3-4).** Elke M3-entry neemt `KERNEL` (ADR-075). Binnen `KERNEL` is `State.current`
+   altijd van de houder: `load_current` zet de waarde van deze CPU erin, `kernel_leave` zet hem
+   terug in `CPU_CURRENT`. De stub haalt de servicestack na zijn `swapgs` via het GS-anker
+   (`nos_smp_m3_stack`); TSS.RSP0 wordt per CPU gezet (`smp::rsp0`). De AP-tick 0xd0 doet vanuit
+   CPL3 de volledige M3-entry. Vanuit CPL0 (idle, of een spinvenster van `KERNEL`) geeft hij
+   alleen EOI en keert terug via de beoordeelde `iretq` van de spurious-stub. Op de BSP blijft
+   PIT-IRQ0 de M3-tick en de klok. Een IRQ0 tijdens een CPL0-wacht wordt geteld en onder `KERNEL`
+   in `ticks` opgenomen.
+5. **Adresruimte (INV-4).** `Process.active` krijgt de bit van deze CPU vóór de CR3-load en
+   verliest hem na de load van de kernel-CR3 bij de entry. `cleanup` weigert een proces dat nog
+   op een andere CPU actief is (`SMP:M3:REMOTE_ACTIVE`).
+6. **Vrijgeven (INV-1, spec §5 punt 6).** `cleanup` wist op SMP eerst alle PTE's (gebruikershelft
+   en kernelaliassen), doet dan één kernelronde naar alle online CPU's (`shootdown_kernel`,
+   CR3-reload) en geeft pas daarna de frames vrij.
+7. **Idle en einde (INV-7).** Een CPU zonder klaar proces laat `KERNEL` los vóór `sti; hlt`.
+   Het einde van de fixture is een stop-the-world: de stoppende CPU laat `KERNEL` los, elke andere
+   CPU parkeert bij zijn volgende entry met de kernel-CR3 en IF=0 (zonder STATE aan te raken) en
+   verlaat `ONLINE_CPUS`. Daarna volgen de cleanup en de balanscontrole.
+
+**Shortcuts (vastgelegd):** (a) een spawn na `M3_GO` wordt geweigerd (een assert), omdat die
+kernelhelft-rondes vereist; dat komt met K05 op SMP. (b) Een kernelronde zonder ack stopt de VM
+(`SMP:M3:SHOOTDOWN_TIMEOUT`) in plaats van quarantaine plus migratie naar de BSP (spec §6.2(a));
+dat volgt in 09. (c) De M3-tick van een AP is een vaste LAPIC-telling (625 000, ~10 ms bij de
+ADR-080-ratio), niet per CPU geijkt.
+
+**Bijvangst:** `build_spaces` (5e) gaf de twee testruimten als waarde terug. Dat kostte ~13 KiB
+van de 16-KiB MAIN-stack. In het grotere M3-build gaf dat een #DF (stack-overflow in de
+zelftest). Beide ruimten staan nu statisch.
+
+**Weerlegd als:** een CPU zonder user-ticks of met minder dan 4 wissels eindigt, een proces op
+twee CPU's tegelijk draait, een frame wordt vrijgegeven voordat elke CPU de kernelronde heeft
+bevestigd, of een appfault op AP2 meer stopt dan dat ene proces.
+
+**Open (5d-2b/c):** FPU in de wissel (R3-3), IPC over CPU's met 0xe8 en `lock_pair` (R3-5),
+usercopy onder `ASPACE` (R3-6), quota per proces (R3-7) en K05 op SMP, Ring-3-GS N1-N3 met
+M3-processen.
+
 ## ADR-080 — BSP-timer, PIT-klok, idle en reschedule-vlag op de BSP (K06 stap 5c-2, auditbevindingen F6/F9/F11/F13)
 
 6 november 2026; effect alleen in `native-smp`. Taakspec:
