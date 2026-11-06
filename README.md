@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
-**Bron:** [`7079f788`](https://github.com/simonvanieperen/nieuw-os/commit/7079f788c4b334dc9843c7559cc629e834efaa02) ·
-**Ontwikkelbranch:** `feat/k06-5d-runqueues`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5d-1: runqueues per AP, threadstatus-CAS, 0xe8-wekken en CR3-wissel met active_cpus (kernelthreads; aanvulling ADR-074).
-41/100 blijft 41/100. K06 stap 5d-1 voegt de SMP-schedulerkern toe: runqueue per AP, dispatch via CAS (INV-3), wekken over CPU's heen met 0xe8 en een CR3-wissel met active_cpus (INV-4). Bewezen met kernelthreads in twee adresruimten; lokaal native QEMU 18/18 over 13 SMP-profielen. K06 blijft open: ring-3-processen op AP's (5d-2, na 5b-2), BSP-timer (5c-2), procesbrede shootdown (5e) en stress/migratie (5f) ontbreken, en CI is niet gedraaid.
+**Bron:** [`600cee93`](https://github.com/simonvanieperen/nieuw-os/commit/600cee9369bc0cfc2c7c0226902ed7fb24a3f090) ·
+**Ontwikkelbranch:** `fix/k06-f1-f2-lifo-oncpu`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06-auditfixes F1 (on_cpu-overdracht van de stack bij yield/dispatch) en F2 (LIFO-afdwinging in lockdep), aanvulling ADR-074.
+41/100 blijft 41/100. Twee Hoog-bevindingen uit de K06-audit zijn gerepareerd: F2 (lockdep eist een release in LIFO-volgorde, zodat IF niet te vroeg wordt hersteld) en F1 (een CPU geeft de stack van een thread pas vrij na mov rsp; de switch wacht nooit). Lokaal native QEMU 18/18 over 13 SMP-profielen, plus herhalingen; zie docs/verification/k06-audit-f1-f2/. K06 blijft open: F8 (per-CPU-anker of swapgs), 5b-2, 5c-2, 5d-2, 5e en 5f ontbreken.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
