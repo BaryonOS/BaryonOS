@@ -36,6 +36,7 @@ def online(cpus):
                             f"SMP:SHOOTDOWN:VISIBLE:CPUS={count}",
                             f"SMP:PREEMPT:PASS:CPUS={count}",
                             f"SMP:SPIN:PASS:CPUS={count}",
+                            f"SMP:SCHED:PASS:CPUS={count}",
                             f"SMP:PARKED:APS={count - 1}"] + END
 
 
@@ -44,7 +45,7 @@ def failed(status):
             "SMP:BRINGUP:STOPPED", "SMP:ONLINE:1/4", "SMP:SYNC:PASS:CPUS=1",
             "SMP:IPI:PASS:ROUNDS=3:CPUS=1", "SMP:SHOOTDOWN:PASS:CPUS=1",
             "SMP:SHOOTDOWN:VISIBLE:CPUS=1", "SMP:PREEMPT:PASS:CPUS=1", "SMP:SPIN:PASS:CPUS=1",
-            "SMP:PARKED:APS=0"] + END
+            "SMP:SCHED:PASS:CPUS=1", "SMP:PARKED:APS=0"] + END
 
 
 DEAF = started(4) + ["SMP:IPI:TIMEOUT:APIC=1", "SMP:QUARANTINED:APS=3", "SMP:ONLINE:1/4"] + END
@@ -55,7 +56,8 @@ SHOOTDOWN_DEAF = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:TI
                                "SMP:ONLINE:1/4"] + END
 STALE_CONTROL = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:SKIPPED",
                               "SMP:SHOOTDOWN:STALE:APS=3", "SMP:PREEMPT:PASS:CPUS=4",
-                              "SMP:SPIN:PASS:CPUS=4", "SMP:PARKED:APS=3"] + END
+                              "SMP:SPIN:PASS:CPUS=4", "SMP:SCHED:PASS:CPUS=4",
+                              "SMP:PARKED:APS=3"] + END
 LOCKDEP_ORDER = online(2)[:-2] + ["SMP:LOCKDEP:ORDER:30->10"]
 TIMER_DEAD = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:PASS:CPUS=4",
                            "SMP:SHOOTDOWN:VISIBLE:CPUS=4", "SMP:PREEMPT:TIMEOUT:APIC=1",
@@ -66,6 +68,7 @@ SPIN_DEAF = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:PASS:CP
                           "SMP:ONLINE:1/4"] + END
 HELD_ACROSS = started(2) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=2", "SMP:SHOOTDOWN:PASS:CPUS=2",
                             "SMP:SHOOTDOWN:VISIBLE:CPUS=2", "SMP:LOCKDEP:HELD_ACROSS_SWITCH"]
+DOUBLE_RUN = online(4)[:-4] + ["SMP:SCHED:DOUBLE_RUN"]
 
 VALID = {
     "one": online(1), "two-single": online(2), "four": online(4), "eight": online(8),
@@ -75,6 +78,7 @@ VALID = {
     "ap-shootdown-deaf": SHOOTDOWN_DEAF, "shootdown-skipped-control": STALE_CONTROL,
     "ap-timer-dead": TIMER_DEAD, "lockdep-order": LOCKDEP_ORDER,
     "spin-irq-off-control": SPIN_DEAF, "held-across-switch": HELD_ACROSS,
+    "double-run": DOUBLE_RUN,
 }
 
 
@@ -189,6 +193,21 @@ class SmpSerialOracle(unittest.TestCase):
             with self.subTest(case=case, lines=lines[-4:]), self.assertRaises(ValueError):
                 evaluate(case, transcript(lines), 33, False)
         self.assertEqual(evaluate("held-across-switch", transcript(HELD_ACROSS), 33, False)["online"], 2)
+
+    def test_scheduler_phase_is_required_and_double_run_is_terminal(self):
+        # Step 5d-1: a normal run must show the scheduler phase for every CPU;
+        # the double-run profile must stop at its marker right after SPIN.
+        for case, lines in (
+            ("four", [line for line in online(4) if "SMP:SCHED:" not in line]),
+            ("four", [line.replace("SCHED:PASS:CPUS=4", "SCHED:PASS:CPUS=3") for line in online(4)]),
+            ("four", DOUBLE_RUN),
+            ("double-run", online(4)),
+            ("double-run", DOUBLE_RUN[:-1] + ["SMP:SCHED:PASS:CPUS=4", "SMP:SCHED:DOUBLE_RUN"]),
+            ("double-run", DOUBLE_RUN + ["SMP:PARKED:APS=3"]),
+        ):
+            with self.subTest(case=case, lines=lines[-3:]), self.assertRaises(ValueError):
+                evaluate(case, transcript(lines), 33, False)
+        self.assertEqual(evaluate("double-run", transcript(DOUBLE_RUN), 33, False)["online"], 4)
 
     def test_lock_self_test_is_required_and_terminal_order_is_exact(self):
         for case, text in (

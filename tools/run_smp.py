@@ -35,12 +35,14 @@ CASES = {
     "lockdep-order": ("test-smp-lockdep-order", 2, "multi", "lockdep-order"),
     "spin-irq-off-control": ("test-smp-spin-irq-off", 4, "multi", "spin-quarantine"),
     "held-across-switch": ("test-smp-held-across-switch", 2, "multi", "held-across-switch"),
+    "double-run": ("test-smp-double-run", 4, "multi", "double-run"),
 }
 QUARANTINE_OUTCOMES = ("invalid-madt", "timeout", "mismatch", "quarantine", "shootdown-quarantine",
                        "timer-quarantine", "spin-quarantine")
 TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_IST:PASS",
             "lockdep-order": "SMP:LOCKDEP:ORDER:30->10",
-            "held-across-switch": "SMP:LOCKDEP:HELD_ACROSS_SWITCH"}
+            "held-across-switch": "SMP:LOCKDEP:HELD_ACROSS_SWITCH",
+            "double-run": "SMP:SCHED:DOUBLE_RUN"}
 # Step 5a: the BSP lock self-test after smp::start, on every non-terminal path.
 LOCKDEP_PASS = "SMP:LOCKDEP:PASS"
 
@@ -68,13 +70,14 @@ def expected_smp(case: str) -> list[str]:
     madt = [f"SMP:MADT:CPUS={cpus}:DISABLED=0:HOTPLUG=0"]
 
     def settled(online: int) -> list[str]:
-        """Sync, IPI rounds, completed shootdown + visibility, preemption, spin, park."""
+        """Sync, IPI rounds, shootdown + visibility, preemption, spin, scheduler, park."""
         return [f"SMP:SYNC:PASS:CPUS={online}",
                 f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={online}",
                 f"SMP:SHOOTDOWN:PASS:CPUS={online}",
                 f"SMP:SHOOTDOWN:VISIBLE:CPUS={online}",
                 f"SMP:PREEMPT:PASS:CPUS={online}",
                 f"SMP:SPIN:PASS:CPUS={online}",
+                f"SMP:SCHED:PASS:CPUS={online}",
                 f"SMP:PARKED:APS={online - 1}"]
 
     if outcome in ("timeout", "mismatch"):
@@ -91,6 +94,9 @@ def expected_smp(case: str) -> list[str]:
     if outcome == "lockdep-order":
         # KERNEL(10) taken while FRAMES(30) is held: stop before the PASS line.
         return lines + settled(started) + [TERMINAL[outcome]]
+    if outcome == "double-run":
+        # Step 5d-1: thread 0 queued on two APs; the second dispatch must refuse.
+        return lines + settled(started)[:-2] + [TERMINAL[outcome]]
     lines += [f"SMP:SYNC:PASS:CPUS={started}"]
     ipi_pass = f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={started}"
     if outcome == "held-across-switch":
@@ -111,6 +117,7 @@ def expected_smp(case: str) -> list[str]:
                         f"SMP:SHOOTDOWN:STALE:APS={started - 1}",
                         f"SMP:PREEMPT:PASS:CPUS={started}",
                         f"SMP:SPIN:PASS:CPUS={started}",
+                        f"SMP:SCHED:PASS:CPUS={started}",
                         f"SMP:PARKED:APS={started - 1}"]
     if outcome == "spin-quarantine":
         # Without the interrupt window a CPU waiting for KERNEL is deaf.
@@ -183,9 +190,10 @@ def run(cases: tuple[str, ...]) -> dict:
               "kernel_feature": manifest["kernel_feature"],
               "scope": ("IF0 BSP; AP bring-up, per-AP TSS/IST, bounded unicast IPIs and sync "
                         "self-test, TLB shootdown, AP preemption (deferred while a lock is held or "
-                        "awaited), AP spin with IF window and BSP "
+                        "awaited), AP spin with IF window, per-AP run queues of kernel threads "
+                        "in two address spaces (0xe8 wake, CR3 switch with active_cpus) and BSP "
                         "ticket-lock/lockdep self-test in "
-                        "QEMU/TCG; no SMP scheduler or hardware evidence"),
+                        "QEMU/TCG; no ring-3 processes on APs, no hardware evidence"),
               "cases": []}
     save_json(destination, report)
     for case in cases:

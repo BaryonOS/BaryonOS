@@ -16,8 +16,9 @@
 //!   read-only BSP register snapshot and the self-test state. They never enter
 //!   allocator, paging, IPC or the M3 scheduler. Each AP has its own TSS/IST
 //!   (ADR-071); after bring-up it waits with `sti; hlt` for bounded IPIs and
-//!   runs two preempted kernel threads with IF=1 (ADR-073), then parks with
-//!   IF=0. Serial is touched only on terminal paths: a CPU exception in the
+//!   runs two preempted kernel threads with IF=1 (ADR-073), then a per-CPU
+//!   run queue of kernel threads in two address spaces (step 5d-1), then
+//!   parks with IF=0. Serial is touched only on terminal paths: a CPU exception in the
 //!   shared M2 handlers or the unreachable no-anchor check in `smp_preempt`;
 //!   both stop the VM, never a resumed or corrupted state.
 //! - If an AP that failed cannot be reset with INIT, the boot stops (fail):
@@ -32,7 +33,11 @@ use core::{
     sync::atomic::{fence, AtomicBool, AtomicU32, AtomicU64, Ordering},
 };
 use kernel_core::{Frames, Owner, PAGE};
-use smp_lock::{level, TicketLock};
+use smp_lock::{
+    level,
+    sched::{self, RunQueue},
+    TicketLock,
+};
 
 /// Total CPUs (BSP plus APs) this profile starts; further MADT CPUs are skipped.
 pub const MAX_CPUS: usize = 8;
@@ -158,6 +163,13 @@ struct CpuLocal {
     /// Step 5c: timer ticks not switched because this CPU held or awaited a
     /// lock (lockdep non-empty); written by this CPU's handler only.
     deferred: AtomicU32,
+    /// Step 5d-1 scheduler: running thread (HOME = the home loop), ARMED /
+    /// RESUMED (stopped at home), 0xe8 reschedule IPIs received and CR3
+    /// switches. Written by this CPU only, read by the BSP.
+    sched_cur: AtomicU32,
+    sched_state: AtomicU32,
+    resched: AtomicU32,
+    cr3_switches: AtomicU32,
 }
 impl CpuLocal {
     const fn new() -> Self {
@@ -179,6 +191,10 @@ impl CpuLocal {
             lockdep: AtomicU64::new(0),
             spun: AtomicU32::new(0),
             deferred: AtomicU32::new(0),
+            sched_cur: AtomicU32::new(HOME),
+            sched_state: AtomicU32::new(0),
+            resched: AtomicU32::new(0),
+            cr3_switches: AtomicU32::new(0),
         }
     }
 }
@@ -271,6 +287,7 @@ extern "C" {
     fn nos_smp_spurious_entry();
     fn nos_smp_shootdown_entry();
     fn nos_smp_timer_entry();
+    fn nos_smp_resched_entry();
 }
 
 // Trampoline layout (offsets inside the copied SIPI page):
@@ -466,6 +483,16 @@ pub fn prepare(
         .map_lapic(frames, base)
         .map_err(|_| b"LAPIC_MAPPING".as_slice())?;
     prepare_shootdown(frames, paging).map_err(|_| b"SHOOTDOWN_FRAMES".as_slice())?;
+    // Step 5d-1: one PML4 frame per test address space, identity-mapped RW/NX
+    // so the BSP can fill it after the CR3 switch (`schedule`).
+    // shortcut: the two frames are never freed; a real process space comes in 5d-2.
+    for root in &SPACE_ROOT {
+        let pa = frames
+            .allocate(Owner::Kernel, zero)
+            .map_err(|_| b"SCHED_ROOTS".as_slice())?;
+        paging.map(frames, pa, pa, true, false);
+        root.store(pa, Ordering::Relaxed);
+    }
     let root = paging.root;
     // Address computation of the linked trampoline image only.
     let (start, end) = (
@@ -759,6 +786,14 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
             }
             _ => {}
         }
+        // Scheduler phase (step 5d-1): start from home; the first tick dispatches.
+        if SCHED.load(Ordering::Acquire) == PREEMPT_RUN
+            && local.sched_state.load(Ordering::Relaxed) == 0
+        {
+            local.sched_cur.store(HOME, Ordering::Relaxed);
+            local.sched_state.store(ARMED, Ordering::Release);
+            start_timer();
+        }
         // Spin phase (step 5b): wait for the KERNEL-level lock the BSP holds.
         // IF is 0 from the store of 1 on; only the lock's own window opens it.
         if SPIN.load(Ordering::Acquire) && local.spun.load(Ordering::Relaxed) == 0 {
@@ -942,6 +977,7 @@ pub fn start(
     arch::smp_gate(SPURIOUS_VECTOR, nos_smp_spurious_entry as usize as u64);
     arch::smp_gate(SHOOTDOWN_VECTOR, nos_smp_shootdown_entry as usize as u64);
     arch::smp_gate(TIMER_VECTOR, nos_smp_timer_entry as usize as u64);
+    arch::smp_gate(RESCHED_VECTOR, nos_smp_resched_entry as usize as u64);
     let vector = (page / PAGE) as u32;
     let (mut online, mut x2apic, mut capacity) = (0usize, 0u64, 0u64);
     for cpu in cpus.iter().filter(|cpu| cpu.apic_id != bsp_id) {
@@ -1120,6 +1156,7 @@ fn ipis(
     if !shootdown(online, total, frames, paging)
         || !preemption(online, total)
         || !spin_window(online, total)
+        || !schedule(online, total)
     {
         return;
     }
@@ -1380,6 +1417,9 @@ extern "C" fn smp_preempt(rsp: u64) -> u64 {
         local.deferred.fetch_add(1, Ordering::Release);
         return rsp;
     }
+    if SCHED.load(Ordering::Acquire) != 0 {
+        return sched_switch(local, rsp, busy);
+    }
     let current = local.current.load(Ordering::Relaxed) as usize;
     local.saved[current].store(rsp, Ordering::Relaxed);
     let next = if PREEMPT.load(Ordering::Acquire) == PREEMPT_STOP {
@@ -1452,17 +1492,20 @@ extern "C" fn nos_smp_thread1() -> ! {
 
 /// Build an initial frame on a fresh thread stack so that the timer stub's
 /// pops and `iretq` enter `entry` with IF=1 and a SysV-aligned stack.
-fn thread_frame(slot: usize, kind: usize, entry: u64) -> u64 {
+fn thread_frame(slot: usize, kind: usize, entry: u64, arg: u64) -> u64 {
     let top = stack_base(slot, kind) + STACK_TOP;
     let frame = top - 8 - 20 * 8;
     let iret = [entry, 0x08, 0x202, top - 8, 0x10];
-    // SAFETY: [frame, top) lies in this AP's own guarded thread stack (kind
-    // THREADS[i] of its claimed slot), which no code has used yet; 21 aligned
-    // u64 slots are written: 15 zero GPRs, the 5-word frame, a zero return
-    // address the never-returning entry cannot use.
+    // SAFETY: [frame, top) lies in a guarded thread stack (kind THREADS[i] of
+    // a claimed slot) that is unused, or whose step-4 thread was frozen at STOP
+    // and is never resumed; 21 aligned u64 slots are written: 15 GPRs (rdi =
+    // `arg`, slot 8 in pop order), the 5-word frame, a zero return address the
+    // never-returning entry cannot use.
     unsafe {
         for i in 0..15 {
-            (frame as *mut u64).add(i).write(0);
+            (frame as *mut u64)
+                .add(i)
+                .write(if i == 8 { arg } else { 0 });
         }
         for (i, value) in iret.into_iter().enumerate() {
             (frame as *mut u64).add(15 + i).write(value);
@@ -1477,11 +1520,11 @@ fn thread_frame(slot: usize, kind: usize, entry: u64) -> u64 {
 fn arm_preemption(local: &CpuLocal, first: bool) {
     let slot = local.slot.load(Ordering::Relaxed) as usize;
     local.saved[1].store(
-        thread_frame(slot, THREADS[0], nos_smp_thread0 as usize as u64),
+        thread_frame(slot, THREADS[0], nos_smp_thread0 as usize as u64, 0),
         Ordering::Relaxed,
     );
     local.saved[2].store(
-        thread_frame(slot, THREADS[1], nos_smp_thread1 as usize as u64),
+        thread_frame(slot, THREADS[1], nos_smp_thread1 as usize as u64, 0),
         Ordering::Relaxed,
     );
     local.current.store(0, Ordering::Relaxed);
@@ -1489,6 +1532,10 @@ fn arm_preemption(local: &CpuLocal, first: bool) {
     if cfg!(feature = "test-smp-ap-timer-dead") && first {
         return;
     }
+    start_timer();
+}
+
+fn start_timer() {
     lapic_write(TIMER_DIVIDE, 0x3);
     lapic_write(LVT_TIMER, TIMER_PERIODIC | TIMER_VECTOR as u32);
     lapic_write(TIMER_INITIAL, 20_000);
@@ -1665,6 +1712,266 @@ fn spin_window(online: usize, total: usize) -> bool {
         serial::fail(b"SMP_SPIN_COUNT");
     }
     serial::write(b"SMP:SPIN:PASS:CPUS=");
+    decimal(online as u64 + 1);
+    serial::write(b"\n");
+    true
+}
+
+// Step 5d-1 (spec §6): a run queue per AP and kernel threads in two address
+// spaces. A thread's state word (`smp_lock::sched`) is the only way onto a CPU
+// (INV-3); a CR3 switch keeps `ACTIVE` a superset of the CPUs that may cache a
+// space (INV-4). Ring-3 processes on APs follow in 5d-2, after 5b-2 (INV-2).
+const RESCHED_VECTOR: usize = 0xe8;
+const SCHED_THREADS: usize = 2 * MAX_APS;
+const HOME: u32 = u32::MAX;
+const ROOT_MASK: u64 = !0xfff;
+/// 0, then PREEMPT_RUN / PREEMPT_STOP for the scheduler phase.
+static SCHED: AtomicU32 = AtomicU32::new(0);
+/// Online APs during the phase: thread `tid` runs on AP `tid % aps`, in space
+/// 0 if `tid < aps` (READY at start) and space 1 otherwise (BLOCKED, woken).
+static SCHED_APS: AtomicU32 = AtomicU32::new(0);
+static RUNQ: [lock::IrqLock<RunQueue<SCHED_THREADS>>; MAX_APS] =
+    [const { lock::IrqLock::new(level::RUNQ, b"RUNQ", RunQueue::new()) }; MAX_APS];
+static THREAD_STATE: [AtomicU32; SCHED_THREADS] =
+    [const { AtomicU32::new(sched::BLOCKED) }; SCHED_THREADS];
+static THREAD_RSP: [AtomicU64; SCHED_THREADS] = [const { AtomicU64::new(0) }; SCHED_THREADS];
+static PROGRESS: [AtomicU64; SCHED_THREADS] = [const { AtomicU64::new(0) }; SCHED_THREADS];
+static SPACE_ROOT: [AtomicU64; 2] = [AtomicU64::new(0), AtomicU64::new(0)];
+static KERNEL_CR3: AtomicU64 = AtomicU64::new(0);
+/// `active_cpus` per space (spec §6.1), bit = CPU index (BSP 0, AP slot + 1).
+static ACTIVE: [AtomicU64; 2] = [AtomicU64::new(0), AtomicU64::new(0)];
+/// Set by a thread that ran under a CR3 or bitmap other than its own space's.
+static SCHED_FAULT: AtomicU32 = AtomicU32::new(0);
+
+// Reschedule IPI (spec §6.4): count it on this CPU, then take the timer path,
+// which saves the GPRs, may switch, and sends the EOI. RAX is restored first.
+global_asm!(
+    ".pushsection .text.nos_smp_resched,\"ax\"",
+    ".globl nos_smp_resched_entry",
+    "nos_smp_resched_entry:",
+    "    push rax",
+    "    mov rax, gs:[0]",
+    "    lock inc dword ptr [rax + {resched}]",
+    "    pop rax",
+    "    jmp nos_smp_timer_entry",
+    ".popsection",
+    resched = const core::mem::offset_of!(CpuLocal, resched),
+);
+
+fn space(tid: u32) -> Option<usize> {
+    (tid != HOME).then(|| usize::from(tid >= SCHED_APS.load(Ordering::Relaxed)))
+}
+
+/// Terminal report (spec §9.11): a thread was found running on another CPU.
+fn double_run() -> ! {
+    serial::write(b"SMP:SCHED:DOUBLE_RUN\n");
+    if cfg!(feature = "test-smp-double-run") {
+        serial::exit(0x10);
+    }
+    serial::fail(b"SMP_SCHED_DOUBLE_RUN")
+}
+
+/// Spec §6.3 step 5: the new space's bit is set before the CR3 load and the
+/// old one cleared after it, so `ACTIVE` never misses a CPU that may cache it.
+fn switch_space(cpu: usize, from: Option<usize>, to: Option<usize>) {
+    let bit = 1u64 << cpu;
+    if let Some(to) = to {
+        ACTIVE[to].fetch_or(bit, Ordering::SeqCst);
+    }
+    let root = to.map_or(&KERNEL_CR3, |to| &SPACE_ROOT[to]);
+    // SAFETY: the kernel CR3, or a PML4 copied entry for entry from it (same
+    // kernel half, no user mappings): code, stacks, GS anchor and the LAPIC
+    // window stay mapped. PCID is off, so the load flushes this CPU's TLB.
+    unsafe { asm!("mov cr3, {}", in(reg) root.load(Ordering::Relaxed), options(nostack)) };
+    if let Some(from) = from {
+        ACTIVE[from].fetch_and(!bit, Ordering::SeqCst);
+    }
+}
+
+/// Context switch on an AP (spec §6.3), IF=0 and lockdep empty on entry. The
+/// RUNQ lock covers the state hand-over and the CR3 switch; STOP returns home.
+fn sched_switch(local: &CpuLocal, rsp: u64, busy: bool) -> u64 {
+    let slot = local.slot.load(Ordering::Relaxed) as usize;
+    let cpu = slot + 1;
+    let current = local.sched_cur.load(Ordering::Relaxed);
+    let stop = SCHED.load(Ordering::Acquire) == PREEMPT_STOP;
+    let mut queue = RUNQ[slot].lock_irqsave();
+    if current == HOME {
+        local.saved[0].store(rsp, Ordering::Relaxed);
+    } else {
+        THREAD_RSP[current as usize].store(rsp, Ordering::Relaxed);
+        if sched::yield_cpu(&THREAD_STATE[current as usize], cpu).is_err()
+            || queue.push(current).is_err()
+        {
+            double_run();
+        }
+    }
+    let next = if stop {
+        HOME
+    } else {
+        queue.pop().unwrap_or(HOME)
+    };
+    if next != HOME && sched::dispatch(&THREAD_STATE[next as usize], cpu).is_err() {
+        double_run();
+    }
+    if busy && next != current {
+        held_across_switch();
+    }
+    let (from, to) = (space(current), space(next));
+    if from != to {
+        switch_space(cpu, from, to);
+        local.cr3_switches.fetch_add(1, Ordering::Release);
+    }
+    drop(queue);
+    if stop {
+        lapic_write(LVT_TIMER, MASKED | TIMER_VECTOR as u32);
+        local.sched_state.store(RESUMED, Ordering::Release);
+    }
+    local.sched_cur.store(next, Ordering::Relaxed);
+    match next {
+        HOME => local.saved[0].load(Ordering::Relaxed),
+        tid => THREAD_RSP[tid as usize].load(Ordering::Relaxed),
+    }
+}
+
+/// Every pass checks, with IF=0, that this CPU runs under the thread's own
+/// space root and has its bit in that space's `ACTIVE`, then counts progress.
+extern "C" fn nos_smp_sched_thread(tid: u64) -> ! {
+    let tid = tid as usize;
+    let own = usize::from(tid >= SCHED_APS.load(Ordering::Relaxed) as usize);
+    loop {
+        let cr3: u64;
+        // SAFETY: CLI and a CR3 read in this CPL0 thread; IF is restored below.
+        unsafe { asm!("cli", "mov {}, cr3", out(reg) cr3, options(nomem, nostack)) };
+        let intact = this_cpu().is_some_and(|local| {
+            let bit = 1u64 << (local.slot.load(Ordering::Relaxed) + 1);
+            cr3 & ROOT_MASK == SPACE_ROOT[own].load(Ordering::Relaxed)
+                && ACTIVE[own].load(Ordering::SeqCst) & bit != 0
+        });
+        // SAFETY: re-enables interrupts for this preemptible kernel thread.
+        unsafe { asm!("sti", options(nomem, nostack)) };
+        if !intact {
+            SCHED_FAULT.store(1, Ordering::Release);
+        }
+        PROGRESS[tid].fetch_add(1, Ordering::Release);
+        for _ in 0..500 {
+            spin_loop();
+        }
+    }
+}
+
+fn sched_timeout(apic: u32, online: usize, total: usize) -> bool {
+    serial::write(b"SMP:SCHED:TIMEOUT:APIC=");
+    decimal(u64::from(apic));
+    serial::write(b"\n");
+    quarantine_all(online, total);
+    false
+}
+
+/// BSP: run 2 threads per AP from per-CPU queues, one of each space, the
+/// second woken cross-CPU with 0xe8 (spec §6.4). Every AP must dispatch both
+/// and switch CR3 repeatedly; after STOP every AP is home under the kernel CR3
+/// with no `ACTIVE` bit left. A silent AP is a deaf AP (quarantine).
+fn schedule(online: usize, total: usize) -> bool {
+    let aps = &NOS_SMP_AP_CONTEXTS[..online];
+    let locals = &CPU_LOCAL[..online];
+    if online != 0 {
+        let cr3: u64;
+        // SAFETY: CPL0 register read.
+        unsafe { asm!("mov {}, cr3", out(reg) cr3, options(nomem, nostack)) };
+        KERNEL_CR3.store(cr3, Ordering::Relaxed);
+        for root in &SPACE_ROOT {
+            // SAFETY: both PML4 frames are identity-mapped (ours RW by
+            // `prepare`, the active one by `map_tables`); ours is Kernel-owned,
+            // exclusive and not yet any CPU's CR3; 512 aligned u64 are copied.
+            unsafe {
+                ptr::copy_nonoverlapping(
+                    (cr3 & ROOT_MASK) as *const u64,
+                    root.load(Ordering::Relaxed) as *mut u64,
+                    512,
+                );
+            }
+        }
+        SCHED_APS.store(online as u32, Ordering::Relaxed);
+        for tid in 0..2 * online {
+            // Stack: slot tid/2's thread stacks, frozen since the step-4 STOP.
+            let entry = nos_smp_sched_thread as usize as u64;
+            let frame = thread_frame(tid / 2, THREADS[tid % 2], entry, tid as u64);
+            THREAD_RSP[tid].store(frame, Ordering::Relaxed);
+        }
+        for (slot, queue) in RUNQ[..online].iter().enumerate() {
+            THREAD_STATE[slot].store(sched::READY, Ordering::Release);
+            if queue.lock_irqsave().push(slot as u32).is_err() {
+                serial::fail(b"SMP_SCHED_QUEUE");
+            }
+        }
+        if cfg!(feature = "test-smp-double-run") && online >= 2 {
+            // Thread 0 queued on a second AP as well: dispatch must refuse.
+            let _ = RUNQ[1].lock_irqsave().push(0);
+        }
+        SCHED.store(PREEMPT_RUN, Ordering::Release);
+        for (slot, context) in aps.iter().enumerate() {
+            let apic = context.apic_id.load(Ordering::Relaxed);
+            if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
+                || !within_ms(500, || PROGRESS[slot].load(Ordering::Acquire) != 0)
+            {
+                return sched_timeout(apic, online, total);
+            }
+        }
+        for (slot, (context, local)) in aps.iter().zip(locals).enumerate() {
+            let (apic, tid) = (context.apic_id.load(Ordering::Relaxed), online + slot);
+            {
+                let mut queue = RUNQ[slot].lock_irqsave();
+                if sched::wake(&THREAD_STATE[tid]).is_err() || queue.push(tid as u32).is_err() {
+                    serial::fail(b"SMP_SCHED_WAKE");
+                }
+            }
+            let (here, woken) = (&PROGRESS[slot], &PROGRESS[tid]);
+            if !send_ipi(apic, IPI_FIXED | RESCHED_VECTOR as u32)
+                || !within_ms(500, || {
+                    local.resched.load(Ordering::Acquire) != 0
+                        && woken.load(Ordering::Acquire) != 0
+                        && local.cr3_switches.load(Ordering::Acquire) >= MIN_SWITCHES
+                })
+                || {
+                    let before = (here.load(Ordering::Acquire), woken.load(Ordering::Acquire));
+                    !within_ms(500, || {
+                        here.load(Ordering::Acquire) > before.0
+                            && woken.load(Ordering::Acquire) > before.1
+                    })
+                }
+            {
+                return sched_timeout(apic, online, total);
+            }
+        }
+        SCHED.store(PREEMPT_STOP, Ordering::Release);
+        if !within_ms(200, || {
+            locals
+                .iter()
+                .all(|local| local.sched_state.load(Ordering::Acquire) == RESUMED)
+        }) {
+            serial::write(b"SMP:SCHED:STOP_TIMEOUT\n");
+            quarantine_all(online, total);
+            return false;
+        }
+        let snapshot: [u64; SCHED_THREADS] =
+            core::array::from_fn(|tid| PROGRESS[tid].load(Ordering::Acquire));
+        wait_us(10_000);
+        if (0..SCHED_THREADS).any(|tid| PROGRESS[tid].load(Ordering::Acquire) != snapshot[tid]) {
+            serial::fail(b"SMP_SCHED_RAN_AFTER_STOP");
+        }
+        if ACTIVE.iter().any(|bits| bits.load(Ordering::SeqCst) != 0)
+            || locals
+                .iter()
+                .any(|local| local.lockdep.load(Ordering::Acquire) != 0)
+        {
+            serial::fail(b"SMP_SCHED_ACTIVE_LEFT");
+        }
+        if SCHED_FAULT.load(Ordering::Acquire) != 0 {
+            serial::fail(b"SMP_SCHED_SPACE");
+        }
+    }
+    serial::write(b"SMP:SCHED:PASS:CPUS=");
     decimal(online as u64 + 1);
     serial::write(b"\n");
     true
