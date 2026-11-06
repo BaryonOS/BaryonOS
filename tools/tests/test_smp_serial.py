@@ -12,7 +12,10 @@ PREFIX = ("BdsDxe: starting Boot0002\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS
 END = ["M2:PASS", "M1:PASS"]
 
 
-def transcript(lines):
+def transcript(lines, lockdep=True):
+    """Non-terminal runs end with the step-5a lock self-test before END."""
+    if lockdep and lines[-2:] == END:
+        lines = lines[:-2] + ["SMP:LOCKDEP:PASS"] + END
     return PREFIX + "".join(line + "\n" for line in lines)
 
 
@@ -51,6 +54,7 @@ SHOOTDOWN_DEAF = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:TI
 STALE_CONTROL = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:SKIPPED",
                               "SMP:SHOOTDOWN:STALE:APS=3", "SMP:PREEMPT:PASS:CPUS=4",
                               "SMP:PARKED:APS=3"] + END
+LOCKDEP_ORDER = online(2)[:-2] + ["SMP:LOCKDEP:ORDER:30->10"]
 TIMER_DEAD = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:PASS:CPUS=4",
                            "SMP:SHOOTDOWN:VISIBLE:CPUS=4", "SMP:PREEMPT:TIMEOUT:APIC=1",
                            "SMP:QUARANTINED:APS=3", "SMP:ONLINE:1/4"] + END
@@ -61,7 +65,7 @@ VALID = {
     "ap-stall": failed("TIMEOUT"), "ap-mismatch": failed("MISMATCH"),
     "ap-ipi-deaf": DEAF, "ap-nmi-ist": NMI, "ap-double-fault-ist": DOUBLE,
     "ap-shootdown-deaf": SHOOTDOWN_DEAF, "shootdown-skipped-control": STALE_CONTROL,
-    "ap-timer-dead": TIMER_DEAD,
+    "ap-timer-dead": TIMER_DEAD, "lockdep-order": LOCKDEP_ORDER,
 }
 
 
@@ -144,6 +148,23 @@ class SmpSerialOracle(unittest.TestCase):
                        for line in online(4)]):
             with self.subTest(lines=lines), self.assertRaises(ValueError):
                 evaluate("four", transcript(lines), 33, False)
+
+    def test_lock_self_test_is_required_and_terminal_order_is_exact(self):
+        for case, text in (
+            ("four", transcript(online(4), lockdep=False)),           # self-test missing
+            ("four", transcript(online(4)[:-2] + ["SMP:LOCKDEP:PASS"] * 2 + END, lockdep=False)),
+            ("four", transcript(online(4)[:-3] + ["SMP:LOCKDEP:PASS"] + online(4)[-3:],
+                                lockdep=False)),                      # before PARKED
+            ("ap-ipi-deaf", transcript(DEAF, lockdep=False)),
+            ("lockdep-order", transcript(online(2))),                  # order not detected
+            ("lockdep-order", transcript(LOCKDEP_ORDER[:-1] + ["SMP:LOCKDEP:ORDER:10->30"])),
+            ("lockdep-order", transcript(LOCKDEP_ORDER[:-1] + ["SMP:LOCKDEP:PASS",
+                                                               LOCKDEP_ORDER[-1]])),
+            ("lockdep-order", transcript(LOCKDEP_ORDER + END)),
+        ):
+            with self.subTest(case=case, text=text[-90:]), self.assertRaises(ValueError):
+                evaluate(case, text, 33, False)
+        self.assertEqual(evaluate("lockdep-order", transcript(LOCKDEP_ORDER), 33, False)["online"], 2)
 
     def test_rejects_fail_markers_exit_codes_and_changed_acpi_inventory(self):
         good = transcript(online(4))

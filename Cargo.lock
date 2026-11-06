@@ -458,6 +458,7 @@ dependencies = [
  "nieuw-os-rtc",
  "nieuw-os-tpm-crb",
  "object-core",
+ "smp-lock",
  "ui-core",
  "virtio-blk-driver",
  "virtio-core",
@@ -585,6 +586,10 @@ checksum = "28d567dcbaf0049cb8ac2608a76cd95ff9e4412e1899d389ee400918ca7537f5"
 dependencies = [
  "digest 0.11.3",
 ]
+
+[[package]]
+name = "smp-lock"
+version = "0.1.0"
 
 [[package]]
 name = "sponge-cursor"
