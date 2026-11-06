@@ -31,6 +31,7 @@ use boot_protocol::acpi::{Madt, MadtStatus};
 use core::{
     arch::{asm, global_asm},
     hint::spin_loop,
+    mem::MaybeUninit,
     ptr,
     sync::atomic::{fence, AtomicBool, AtomicU32, AtomicU64, Ordering},
 };
@@ -218,6 +219,9 @@ struct CpuLocal {
     irq_ready: AtomicBool,
     /// Step 5e: 0xe0 rounds this CPU's handler acknowledged (PS-1 target check).
     shootdowns: AtomicU32,
+    /// Step 5d-2 (R3-4): top of this CPU's M3 service stack, read by the M3
+    /// entry stub through `nos_smp_m3_stack` after its swapgs.
+    m3_stack: AtomicU64,
 }
 impl CpuLocal {
     const fn new() -> Self {
@@ -256,6 +260,7 @@ impl CpuLocal {
             resched_seen: AtomicU32::new(0),
             irq_ready: AtomicBool::new(false),
             shootdowns: AtomicU32::new(0),
+            m3_stack: AtomicU64::new(0),
         }
     }
 }
@@ -996,6 +1001,10 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
         if cfg!(feature = "test-smp-lock-stuck") && first && STUCK_GO.load(Ordering::Acquire) {
             drop(STUCK_TEST.lock_irqsave());
         }
+        #[cfg(feature = "native-smp-m3")]
+        if M3_GO.load(Ordering::Acquire) {
+            m3_ap_enter(local);
+        }
         if PARK.load(Ordering::Acquire) {
             break;
         }
@@ -1515,15 +1524,22 @@ fn ipis(
     }
     // After the kernel-only audit in `shootdown`: user aliases now exist
     // until `proc_shootdown` exits both spaces and audits again.
-    let mut spaces = build_spaces(frames, paging);
+    let spaces = build_spaces(frames, paging);
     if !schedule(online, total)
         || !block_wake_kill(online, total)
         || !scratch(online, total, frames)
         || !lock_pairs(online, total)
         || !icr(online, total)
-        || !proc_shootdown(online, total, frames, paging, &mut spaces)
+        || !proc_shootdown(online, total, frames, paging, spaces)
         || !gs_user(online, total)
     {
+        return;
+    }
+    if cfg!(feature = "native-smp-m3") {
+        // Step 5d-2: the APs stay in their home loop until `m3_go`.
+        serial::write(b"SMP:M3:WAITING:APS=");
+        decimal(online as u64);
+        serial::write(b"\n");
         return;
     }
     PARK.store(true, Ordering::Release);
@@ -3816,21 +3832,44 @@ fn race_fixup(frame: *const u64) -> ! {
 
 /// Two real spaces (spec 07 §3): own PML4, PDPT, PD and PT, the kernel half
 /// shared through PDPT entry 0 (PS-4), and a different User frame at SPACE_VA.
-fn build_spaces(frames: &mut Frames<FRAME_COUNT>, paging: &paging::Paging) -> [paging::Paging; 2] {
-    core::array::from_fn(|space| {
-        let mut user = paging::Paging::new_user(frames, paging, space as u16 + 1);
-        let byte = SPACE_PATTERN[space] as u8;
-        let pa = frames
-            .allocate(Owner::User(space as u64 + 1, Kind::Data), |pa| {
-                // SAFETY: the fresh, unpublished frame through this CPU's
-                // scratch slot; exactly one page is written.
-                paging::physical(pa, |p| unsafe { ptr::write_bytes(p, byte, PAGE as usize) })
-            })
-            .unwrap_or_else(|_| serial::fail(b"SMP_SPACE_FRAMES"));
-        user.map_user(frames, SPACE_VA, pa, true, false);
-        SPACE_ROOT[space].store(user.root, Ordering::Relaxed);
-        user
-    })
+fn build_spaces(
+    frames: &mut Frames<FRAME_COUNT>,
+    paging: &paging::Paging,
+) -> &'static mut [paging::Paging; 2] {
+    let slots = ptr::addr_of_mut!(SPACES).cast::<paging::Paging>();
+    for space in 0..2 {
+        let user = build_space(frames, paging, space);
+        // SAFETY: BSP only, IF=0, called once per boot (`start`): the static
+        // is written exactly once per element and borrowed only below.
+        unsafe { slots.add(space).write(user) };
+    }
+    // SAFETY: both elements were initialized above; this is the only borrow.
+    unsafe { (*ptr::addr_of_mut!(SPACES)).assume_init_mut() }
+}
+
+/// Step 5d-2: the two fixture spaces live here, not on MAIN. As a by-value
+/// array they cost ~13 KiB of the 16-KiB MAIN stack under `start` (8.5 KiB
+/// for `build_spaces` alone), which the larger M3 build overflowed (#DF).
+static mut SPACES: MaybeUninit<[paging::Paging; 2]> = MaybeUninit::uninit();
+
+#[inline(never)]
+fn build_space(
+    frames: &mut Frames<FRAME_COUNT>,
+    paging: &paging::Paging,
+    space: usize,
+) -> paging::Paging {
+    let mut user = paging::Paging::new_user(frames, paging, space as u16 + 1);
+    let byte = SPACE_PATTERN[space] as u8;
+    let pa = frames
+        .allocate(Owner::User(space as u64 + 1, Kind::Data), |pa| {
+            // SAFETY: the fresh, unpublished frame through this CPU's
+            // scratch slot; exactly one page is written.
+            paging::physical(pa, |p| unsafe { ptr::write_bytes(p, byte, PAGE as usize) })
+        })
+        .unwrap_or_else(|_| serial::fail(b"SMP_SPACE_FRAMES"));
+    user.map_user(frames, SPACE_VA, pa, true, false);
+    SPACE_ROOT[space].store(user.root, Ordering::Relaxed);
+    user
 }
 
 extern "C" fn nos_smp_proc_thread(tid: u64) -> ! {
@@ -4298,4 +4337,152 @@ fn gs_user(online: usize, total: usize) -> bool {
     decimal(online as u64 + 1);
     serial::write(b"\n");
     true
+}
+
+// ---- K06 step 5d-2 (R3-1..R3-4, ADR-081): M3 ring-3 processes on every CPU ----
+//
+// After the self-tests the APs wait in their home loop. `m3_go` (BSP, KERNEL
+// held, after the M3 setup) gives each online CPU its M3 service stack, puts
+// the M3 tick on 0xd0 and releases M3_GO; each AP then starts its LAPIC timer
+// and enters `m3::ap_main`, which never returns. Every M3 entry takes KERNEL
+// (R3-4); a process runs only on its home CPU (R3-2), so its translations live
+// only there. `m3_stop` ends the M3 phase: every other CPU parks at its next
+// entry (kernel CR3, IF=0, halted forever) and leaves ONLINE_CPUS.
+
+#[cfg(feature = "native-smp-m3")]
+static M3_GO: AtomicBool = AtomicBool::new(false);
+#[cfg(feature = "native-smp-m3")]
+static M3_STOP: AtomicBool = AtomicBool::new(false);
+/// CPU index bits of the CPUs `m3_park` halted.
+#[cfg(feature = "native-smp-m3")]
+static M3_PARKED: AtomicU64 = AtomicU64::new(0);
+/// LAPIC initial count of the AP's M3 tick: ~10 ms at divide 16 on QEMU's
+/// 1 GHz APIC timer clock (ADR-080 band), the BSP's PIT M3 tick is 10 ms too.
+#[cfg(feature = "native-smp-m3")]
+const M3_TICK: u32 = 625_000;
+/// Bound for `m3_stop`: an AP in ring 3 enters at its next tick (10 ms).
+#[cfg(feature = "native-smp-m3")]
+const M3_STOP_MS: u64 = 1_000;
+
+#[cfg(feature = "native-smp-m3")]
+global_asm!(
+    ".pushsection .text.nos_smp_m3,\"ax\"",
+    // Called by the M3 entry stub after its swapgs (CPL3 origin only, GS-1):
+    // RAX = this CPU's M3 service stack top. Clobbers RAX only.
+    ".globl nos_smp_m3_stack",
+    "nos_smp_m3_stack:",
+    "    mov rax, gs:[{stack}]",
+    "    ret",
+    ".popsection",
+    stack = const core::mem::offset_of!(CpuLocal, m3_stack),
+);
+
+/// BSP, KERNEL held, IF=0, after the M3 setup and before the first resume.
+/// `timer` is the M3 0xd0 stub; the BSP keeps the PIT (vector 32) as tick.
+#[cfg(feature = "native-smp-m3")]
+pub fn m3_go(timer: u64) {
+    lapic_write(LVT_TIMER, MASKED | TIMER_VECTOR as u32);
+    BSP_LOCAL
+        .m3_stack
+        .store(arch::service_stack(), Ordering::Relaxed);
+    let online = ONLINE_CPUS.load(Ordering::Acquire);
+    for cpu in 1..MAX_CPUS {
+        if online & (1 << cpu) != 0 {
+            CPU_LOCAL[cpu - 1]
+                .m3_stack
+                .store(stack_base(cpu - 1, MAIN) + STACK_TOP, Ordering::Relaxed);
+        }
+    }
+    arch::smp_gate(TIMER_VECTOR, timer);
+    M3_GO.store(true, Ordering::Release);
+    for cpu in 1..MAX_CPUS {
+        if online & (1 << cpu) != 0 {
+            send_ipi(apic_of_cpu(cpu), IPI_FIXED | IPI_VECTOR as u32);
+        }
+    }
+    serial::write(b"SMP:M3:GO:CPUS=");
+    decimal(u64::from(online.count_ones()));
+    serial::write(b"\n");
+}
+
+/// AP home loop after M3_GO: periodic M3 tick, then the M3 scheduler.
+#[cfg(feature = "native-smp-m3")]
+fn m3_ap_enter(local: &CpuLocal) -> ! {
+    if local.lockdep.load(Ordering::Relaxed) != 0 {
+        serial::fail(b"SMP_M3_ENTER_LOCKED");
+    }
+    lapic_write(TIMER_DIVIDE, 0x3);
+    lapic_write(LVT_TIMER, TIMER_PERIODIC | TIMER_VECTOR as u32);
+    lapic_write(TIMER_INITIAL, M3_TICK);
+    super::m3::ap_main()
+}
+
+/// The CPU index bits that run M3 processes (bit 0 = BSP).
+#[cfg(feature = "native-smp-m3")]
+pub fn online_mask() -> u64 {
+    ONLINE_CPUS.load(Ordering::Acquire)
+}
+
+/// R3-4: TSS.RSP0 of the executing CPU.
+#[cfg(feature = "native-smp-m3")]
+pub fn rsp0(top: u64) {
+    match cpu_index() {
+        0 => arch::process_stack(top),
+        cpu => arch::ap_rsp0(ap_tables(cpu - 1), top),
+    }
+}
+
+/// This CPU's M3 service stack top (the BSP's is the M2 MAIN stack).
+#[cfg(feature = "native-smp-m3")]
+pub fn m3_stack() -> u64 {
+    anchored().m3_stack.load(Ordering::Relaxed)
+}
+
+/// End of interrupt for a LAPIC source (the M3 0xd0 tick from CPL3).
+#[cfg(feature = "native-smp-m3")]
+pub fn eoi() {
+    lapic_write(0xb0, 0);
+}
+
+#[cfg(feature = "native-smp-m3")]
+pub fn m3_stopping() -> bool {
+    M3_STOP.load(Ordering::Acquire)
+}
+
+/// Caller holds no lock: the end of the M3 phase reached this CPU. Kernel
+/// CR3 (no user translation stays reachable), IF=0, halted forever.
+#[cfg(feature = "native-smp-m3")]
+pub fn m3_park() -> ! {
+    if lockdep().load(Ordering::Relaxed) != 0 {
+        serial::fail(b"SMP_M3_PARK_LOCKED");
+    }
+    lapic_write(LVT_TIMER, MASKED | TIMER_VECTOR as u32);
+    // SAFETY: the kernel root maps this code and stack like every user root.
+    unsafe {
+        asm!("mov cr3, {}", in(reg) KERNEL_CR3.load(Ordering::Relaxed), options(nostack));
+    }
+    M3_PARKED.fetch_or(1 << cpu_index(), Ordering::Release);
+    park()
+}
+
+/// Caller holds no lock. Stops the M3 phase on every other online CPU; true
+/// once each parked, which then leaves ONLINE_CPUS (no later round targets a
+/// halted CPU). False (and the VM must stop) if one did not park in time.
+#[cfg(feature = "native-smp-m3")]
+pub fn m3_stop() -> bool {
+    let me = 1u64 << cpu_index();
+    M3_STOP.store(true, Ordering::Release);
+    let others = ONLINE_CPUS.load(Ordering::Acquire) & !me;
+    for cpu in 1..MAX_CPUS {
+        if others & (1 << cpu) != 0 {
+            send_ipi(apic_of_cpu(cpu), IPI_FIXED | IPI_VECTOR as u32);
+        }
+    }
+    let parked = within_tsc(M3_STOP_MS, || {
+        M3_PARKED.load(Ordering::Acquire) & others == others
+    });
+    if parked {
+        ONLINE_CPUS.store(me, Ordering::Release);
+    }
+    parked
 }

@@ -42,6 +42,11 @@ test-smp-proc-no-shootdown = ["native-smp"]
 # serial control without the SERIAL lock.
 test-smp-lock-stuck = ["native-smp"]
 test-smp-serial-unlocked = ["native-smp"]
+# K06 step 5d-2 (R3-1): M3 ring-3 processes on the APs; the only profile in
+# which native-smp and milestone-m3 meet.
+native-smp-m3 = ["native-smp", "milestone-m3"]
+# 5d-2 negative: an app fault on AP2 stops only that process (K03 under SMP).
+test-smp-m3-fault = ["native-smp-m3"]
 framebuffer = ["milestone-m2"]
 # Sole display/input transport; UI policy remains in isolated user services.
 display-input = ["framebuffer", "milestone-m4", "monotonic-clock", "fpu-context", "dep:nieuw-os-display-client", "dep:nieuw-os-ps2"]

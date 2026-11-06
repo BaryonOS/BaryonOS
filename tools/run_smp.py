@@ -50,6 +50,12 @@ CASES = {
     "proc-shootdown-deaf": ("test-smp-proc-shootdown-deaf", 4, "multi", "proc-shootdown-quarantine"),
     "proc-no-shootdown-control": ("test-smp-proc-no-shootdown", 4, "multi", "proc-stale-read"),
     "lock-stuck": ("test-smp-lock-stuck", 2, "multi", "lock-stuck"),
+    # K06 step 5d-2: the base M3 manifest on every online CPU (R3-1).
+    "m3-two": ("native-smp-m3", 2, "multi", "m3"),
+    "m3-four-single": ("native-smp-m3", 4, "single", "m3"),
+    "m3-four": ("native-smp-m3", 4, "multi", "m3"),
+    "m3-eight": ("native-smp-m3", 8, "multi", "m3"),
+    "m3-fault-ap2": ("test-smp-m3-fault", 4, "multi", "m3-fault"),
     "serial-unlocked-control": ("test-smp-serial-unlocked", 4, "multi", "serial-torn"),
 }
 QUARANTINE_OUTCOMES = ("invalid-madt", "timeout", "mismatch", "quarantine", "shootdown-quarantine",
@@ -194,6 +200,9 @@ def expected_smp(case: str) -> list[str]:
     if cpus > MAX_CPUS:
         lines.append(f"SMP:SKIPPED:CAPACITY={cpus - MAX_CPUS}")
     lines += [f"SMP:ONLINE:{started}/{cpus}"]
+    if outcome in M3_OUTCOMES:
+        # Step 5d-2: every self-test as usual, then the APs wait for M3_GO.
+        return lines + settled(started)[:-1] + [f"SMP:M3:WAITING:APS={started - 1}"]
     if outcome in ("online", "serial-torn"):
         # serial-torn (control, DG-2): without SERIAL the fixture must mix lines.
         return lines + settled(started)
@@ -296,6 +305,24 @@ def expected_smp(case: str) -> list[str]:
     raise ValueError("Unknown SMP outcome")
 
 
+# K06 step 5d-2: the base M3 manifest on every online CPU after the self-tests.
+M3_OUTCOMES = ("m3", "m3-fault")
+M3_CPU = re.compile(r"SMP:M3:CPU=([0-9]):USER_TICKS=([0-9]{1,20}):SWITCHES=([0-9]{1,20})")
+M3_MIN_SWITCHES = 4  # kernel/src/m2/m3.rs smp_progress
+
+
+def m3_end(outcome: str, online: int) -> list[str]:
+    """After M2:PASS: GO, (the AP2 fault), per CPU user ticks > 0 and >= 4
+    switches, cleanup balance, (K03) and the pass line."""
+    fault = outcome == "m3-fault"
+    return (["M2:PASS", f"SMP:M3:GO:CPUS={online}"]
+            + (["SMP:M3:FAULT:UD:CPU=2"] if fault else [])
+            + [f"SMP:M3:CPU={cpu}:USER_TICKS=*:SWITCHES=*" for cpu in range(online)]
+            + [f"SMP:SCHED:CPUS={online}", "SMP:M3:CLEANUP:PASS"]
+            + (["SMP:M3:K03:PASS"] if fault else [])
+            + [f"SMP:M3:PASS:CPUS={online}", "M1:PASS"])
+
+
 def required_end(outcome: str) -> tuple[str, ...]:
     """Exact terminal lines for is_success; wildcard markers are checked in the tail."""
     end = (TERMINAL[outcome],) if outcome in TERMINAL else END
@@ -351,6 +378,9 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
         wake = re.fullmatch(r"SMP:IDLE:WAKE_US=([0-9]{1,20})", line)
         if wake and int(wake[1]) < IDLE_WAKE_LIMIT_US:
             line = IDLE_WAKE
+        m3_cpu = M3_CPU.fullmatch(line)
+        if m3_cpu and int(m3_cpu[2]) > 0 and int(m3_cpu[3]) >= M3_MIN_SWITCHES:
+            line = f"SMP:M3:CPU={m3_cpu[1]}:USER_TICKS=*:SWITCHES=*"
         cross = SCRATCH_CROSS.fullmatch(line)
         if cross and int(cross[1]) < min(cpus, MAX_CPUS):
             line = TERMINAL["shared-scratch"]
@@ -358,6 +388,9 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
     if terminal:
         if tail != expected:
             raise ValueError("Unexpected SMP sequence or missing IST marker")
+    elif outcome in M3_OUTCOMES:
+        if tail != expected + [LOCKDEP_PASS] + m3_end(outcome, min(cpus, MAX_CPUS)):
+            raise ValueError("Unexpected SMP M3 sequence, idle CPU or missing cleanup")
     elif tail != expected + [LOCKDEP_PASS] + list(END):
         raise ValueError("Unexpected SMP sequence or duplicate output")
     online = 1 if outcome in QUARANTINE_OUTCOMES \

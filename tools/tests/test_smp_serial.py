@@ -84,6 +84,18 @@ def online(cpus):
                             f"SMP:PARKED:APS={count - 1}"] + END
 
 
+def m3(cpus, fault=False):
+    """Step 5d-2: every self-test, the APs wait, then the M3 phase on each CPU."""
+    count = min(cpus, MAX_CPUS)
+    return (online(cpus)[:-3] + [f"SMP:M3:WAITING:APS={count - 1}", "SMP:LOCKDEP:PASS",
+                                 "M2:PASS", f"SMP:M3:GO:CPUS={count}"]
+            + (["SMP:M3:FAULT:UD:CPU=2"] if fault else [])
+            + [f"SMP:M3:CPU={cpu}:USER_TICKS={60 + cpu}:SWITCHES=76" for cpu in range(count)]
+            + [f"SMP:SCHED:CPUS={count}", "SMP:M3:CLEANUP:PASS"]
+            + (["SMP:M3:K03:PASS"] if fault else [])
+            + [f"SMP:M3:PASS:CPUS={count}", "M1:PASS"])
+
+
 def failed(status):
     return ["SMP:MADT:CPUS=4:DISABLED=0:HOTPLUG=0", f"SMP:AP:1:{status}",
             "SMP:BRINGUP:STOPPED", "SMP:ONLINE:1/4", RATIO, "SMP:SERIAL:PASS", "SMP:SYNC:PASS:CPUS=1",
@@ -162,10 +174,38 @@ VALID = {
     "quarantine-lock-held": LOCK_HELD, "bsp-spin-irq-off-control": BSP_SPIN_DEAF,
     "proc-shootdown-deaf": PROC_DEAF, "proc-no-shootdown-control": PROC_STALE,
     "lock-stuck": LOCK_STUCK, "serial-unlocked-control": online(4),
+    "m3-two": m3(2), "m3-four-single": m3(4), "m3-four": m3(4), "m3-eight": m3(8),
+    "m3-fault-ap2": m3(4, fault=True),
 }
 
 
 class SmpSerialOracle(unittest.TestCase):
+    def test_m3_phase_needs_ring3_work_and_switches_on_every_cpu(self):
+        good = m3(4)
+        cpu2 = good.index("SMP:M3:CPU=2:USER_TICKS=62:SWITCHES=76")
+        broken = {
+            "idle CPU": good[:cpu2] + ["SMP:M3:CPU=2:USER_TICKS=0:SWITCHES=76"] + good[cpu2 + 1:],
+            "too few switches": good[:cpu2] + ["SMP:M3:CPU=2:USER_TICKS=62:SWITCHES=3"]
+            + good[cpu2 + 1:],
+            "missing CPU": good[:cpu2] + good[cpu2 + 1:],
+            "no cleanup balance": [line for line in good if line != "SMP:M3:CLEANUP:PASS"],
+            "parked instead of waiting": [line.replace("SMP:M3:WAITING:APS=3", "SMP:PARKED:APS=3")
+                                          for line in good],
+            "unexpected fault": good[:good.index("SMP:M3:GO:CPUS=4") + 1]
+            + ["SMP:M3:FAULT:UD:CPU=2"] + good[good.index("SMP:M3:GO:CPUS=4") + 1:],
+        }
+        for name, lines in broken.items():
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                evaluate("m3-four", transcript(lines, lockdep=False), 33, False)
+        fault = m3(4, fault=True)
+        for name, lines in {
+            "no K03": [line for line in fault if line != "SMP:M3:K03:PASS"],
+            "fault on another CPU": [line.replace("FAULT:UD:CPU=2", "FAULT:UD:CPU=1")
+                                     for line in fault],
+            "no fault": m3(4)}.items():
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                evaluate("m3-fault-ap2", transcript(lines, lockdep=False), 33, False)
+
     def test_every_case_accepts_its_exact_sequence(self):
         self.assertEqual(set(VALID), set(CASES))
         for case, lines in VALID.items():

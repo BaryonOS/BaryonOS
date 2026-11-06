@@ -632,6 +632,24 @@ m3_syscall:
  push 0
  push 128
  jmp m2_exception_common
+ .if {smp_m3}
+// Step 5d-2: an AP's M3 tick (LAPIC 0xd0). From CPL3 the full M3 entry; from
+// CPL0 (idle hlt or a KERNEL wait window) only EOI, no GS, stack or Rust,
+// then the reviewed `iretq` of the spurious stub (like the 5c-2 clock stub).
+.global m3_ap_timer
+m3_ap_timer:
+ test byte ptr [rsp+8],3
+ jz 1f
+ push 0
+ push 0xd0
+ jmp m2_exception_common
+1:
+ push rax
+ movabs rax,{lapic_eoi}
+ mov dword ptr [rax],0
+ pop rax
+ jmp nos_smp_spurious_entry
+ .endif
 m2_dispatch:
  cmp qword ptr [rsp+120],2
  je m3_terminal
@@ -643,8 +661,13 @@ m2_dispatch:
  jne m3_user_entry
  cmp qword ptr [rsp+144],8
  jne m3_user_entry
+ .if {smp_m3}
+ // Step 5d-2: a BSP waiting for KERNEL opens its IF window (5b), so IRQ0 may
+ // arrive in any CPL0 wait; it is counted and folded into ticks under KERNEL.
+ .else
  cmp byte ptr [rip+m3_idle_active],1
  jne m3_terminal
+ .endif
  inc qword ptr [rip+m3_idle_wakeups]
  mov al,0x20
  out 0x20,al
@@ -663,7 +686,13 @@ m3_user_entry:
  inc qword ptr [rip+m3_fpu_saves]
  .endif
  mov rdi,rsp
+ .if {smp_m3}
+ // R3-4: this CPU's service stack (GS anchor, after the entry swapgs).
+ call nos_smp_m3_stack
+ mov rsp,rax
+ .else
  mov rsp,[rip+m3_service_stack]
+ .endif
  and rsp,-16
  call m3_event
 .global m3_restore
@@ -706,4 +735,10 @@ m3_terminal:
 "#
     ),
     fpu_context = const cfg!(feature = "fpu-context") as u8,
+    smp_m3 = const cfg!(feature = "native-smp-m3") as u8,
+    lapic_eoi = const LAPIC_EOI,
 );
+#[cfg(feature = "native-smp-m3")]
+const LAPIC_EOI: u64 = super::paging::LAPIC_WINDOW + 0xb0;
+#[cfg(all(feature = "milestone-m3", not(feature = "native-smp-m3")))]
+const LAPIC_EOI: u64 = 0;

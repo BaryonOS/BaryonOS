@@ -20,13 +20,24 @@ compile_error!("native-rtc exclusively owns CMOS in the single-CPU IF0 bootstrap
 #[cfg(all(
     feature = "native-smp",
     any(
-        feature = "milestone-m3",
+        all(feature = "milestone-m3", not(feature = "native-smp-m3")),
         feature = "framebuffer",
         feature = "native-rtc",
         feature = "graphics-g0"
     )
 ))]
 compile_error!("native-smp is an IF0 M2 bring-up profile; single-CPU subsystems stay excluded");
+// R3-1: native-smp-m3 runs only the base M3 manifest; every M3 service profile stays one CPU.
+#[cfg(all(
+    feature = "native-smp-m3",
+    any(
+        feature = "fpu-context",
+        feature = "ipc-wait",
+        feature = "milestone-m4",
+        feature = "native-supervisor"
+    )
+))]
+compile_error!("native-smp-m3 carries only the base M3 manifest in step 5d-2a");
 
 use boot_protocol::{BootInfo, ADDRESS_LIMIT, PAGE_SIZE};
 use core::{arch::asm, ptr};

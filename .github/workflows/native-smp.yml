@@ -174,6 +174,13 @@ jobs:
         run: |
           python3 -B tools/build.py --kernel-feature test-smp-serial-unlocked
           python3 -B -u tools/run_smp.py --profile test-smp-serial-unlocked
+      - name: M3 ring-3 processes on every CPU (2/4/8 vCPUs) and an AP2 app fault (step 5d-2)
+        run: |
+          for profile in native-smp-m3 test-smp-m3-fault; do
+            export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/k06-$profile"
+            python3 -B tools/build.py --kernel-feature "$profile"
+            python3 -B -u tools/run_smp.py --profile "$profile"
+          done
       - name: Preserve tracked source integrity
         run: git diff --exit-code
       - name: Preserve actual run and build artifacts

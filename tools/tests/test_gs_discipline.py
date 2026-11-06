@@ -23,7 +23,9 @@ NO_GS_STUBS = {"nos_smp_spurious_entry"}
 # through the spurious stub's reviewed `iretq`.
 JOIN_STUBS = {"nos_smp_clock_entry"}
 # Stubs that only normalize the frame and jump to the shared prologue.
-COMMON_STUBS = {"m3_timer", "m3_syscall"}
+# Step 5d-2: `m3_ap_timer` (AP M3 tick) joins the prologue from CPL3; its CPL0
+# path only EOIs and returns through the spurious stub's reviewed `iretq`.
+COMMON_STUBS = {"m3_timer", "m3_syscall", "m3_ap_timer"}
 EXITS = {"nos_iret_user_ipi", "nos_iret_user_shootdown", "nos_iret_user_timer",
          "nos_iret_user_m3"}
 PARANOID = {2, 8, 18}
@@ -117,7 +119,7 @@ class GsDiscipline(unittest.TestCase):
         raw = [i for i, line in enumerate(self.lines) if line == "iretq"]
         self.assertEqual([label_of(self.lines[i - 1]) for i in raw], sorted(NO_GS_STUBS))
         entries = {label for line in self.lines if (label := label_of(line))
-                   and re.fullmatch(r"nos_smp_\w+_entry|m3_timer|m3_syscall", label)}
+                   and re.fullmatch(r"nos_smp_\w+_entry|m3_timer|m3_syscall|m3_ap_timer", label)}
         self.assertEqual(entries, GS_STUBS | NO_GS_STUBS | JOIN_STUBS | COMMON_STUBS)
         for stub in sorted(JOIN_STUBS):
             with self.subTest(stub=stub):
