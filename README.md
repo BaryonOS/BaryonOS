@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
-**Bron:** [`91e84b75`](https://github.com/simonvanieperen/nieuw-os/commit/91e84b752656f60e595743a757fcc8de5622812f) ·
-**Ontwikkelbranch:** `fix/k06-f8-swapgs`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06-auditbevinding F8: swapgs-discipline voor het per-CPU-GS-anker in alle IDT-stubs (ADR-076, GS-1..GS-10).
-41/100 blijft 41/100. De kritieke bevinding F8 is gerepareerd. Ring 3 kon GS_BASE kiezen, waarna IPI-stubs via gs:[0] naar gebruikersgeheugen schreven. Elke stub die GS gebruikt, doet nu swapgs op basis van de frame-CS met lfence. Een faulting iretq krijgt een fixup, en NMI/#DF/#MC zijn GS-vrij. Rood eerst (SMP:GS:HIJACK op de oude stubs), daarna lokaal native QEMU 21/21 SMP-gevallen, de M2-gate, K05 6/6 en native-fpu. Een statische lint borgt de lfence. Zie docs/verification/k06-f8-swapgs/. K06 blijft open: 5b-2, 5c-2, 5d-2, 5e, 5f en de overige auditpunten ontbreken; geen CI- of hardwarebewijs.
+**Bron:** [`48dcae6a`](https://github.com/simonvanieperen/nieuw-os/commit/48dcae6ad5e5a13aee24265e23dfbce9eff4e330) ·
+**Ontwikkelbranch:** `feat/k06-5b2-kernel-lock`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5b-2: KERNEL-lock om de M3-entry en scratchslot per CPU (ADR-075, herziening ADR-024).
+41/100 blijft 41/100. M3-events lopen nu onder één KERNEL-lock (ook het hervatten na een ronde), en elke CPU heeft een eigen scratchslot in plaats van één globaal slot (ADR-075). Lokaal native QEMU: 22/22 SMP-gevallen over 17 profielen, met SMP:SCRATCH:PASS en het rode controleprofiel test-smp-shared-scratch (12/12). De één-CPU-regressie bleef ongewijzigd groen: M2/M3/M4, K05, K07, rtc 5/5, ipc-wait, fpu en memory. Zie docs/verification/k06-5b2-kernel-lock/. K06 blijft open: 5c-2, 5d-2, 5e en 5f ontbreken; geen CI- of hardwarebewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

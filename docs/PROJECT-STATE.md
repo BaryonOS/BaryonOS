@@ -1,6 +1,40 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — K06 auditbevinding F8 (`swapgs`-discipline, ADR-076) — 6 november 2026
+## NEXT AGENT HANDOFF — K06 stap 5b-2, KERNEL-lock en scratchslot per CPU (ADR-075) — 6 november 2026
+
+**Bron:** `48dcae6a` op `feat/k06-5b2-kernel-lock` (worktree `nieuw-os-k06-5b2`), gestapeld op
+`fix/k06-f8-swapgs` (#231, `7ffdacfa`). Taakspec: `docs/implementation/k06-steps/01-5b-2-kernel-lock-scratch.md`
+(branch `docs/k06-step-specs`); ontwerp ADR-075. **41 → 41/100**; K06 blijft open.
+
+**Gerealiseerd:** `lock::KERNEL` met `kernel_held()`; `lock.rs` bouwt ook voor M3, met een
+lockdep-woord voor één CPU. `m3_event` neemt KERNEL na de CS-check en geeft hem vrij vlak vóór
+de stub. `m3::start`/`complete_round` hervatten via `resume()`, dat KERNEL eerst vrijgeeft: de
+guard staat in een slot dat de lock zelf beschermt, want `complete_round` springt naar ring 3
+zonder af te wikkelen. SAFETY-teksten in `m3.rs` en `m3/*.rs` noemen KERNEL als grond.
+`SCRATCH_ENTRY` is per CPU (`SCRATCH + i·4096`, 8 slots, dezelfde PT). De audit slaat alleen
+het actieve slot van de lezende CPU over. Native fixture `SMP:SCRATCH:PASS` en controle
+`test-smp-shared-scratch` (`SMP:SCRATCH:CROSS:CPU=n`; een #PF op het gedeelde slot telt mee).
+
+**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG):** zie `docs/verification/k06-5b2-kernel-lock/`. Volledige
+SMP-matrix 17 profielen op `48dcae6a`; controle 12/12 rood zoals bedoeld. Eén-CPU-regressie
+(op de werkboom van `f6912a63` vóór fmt; daarna zijn alleen opmaak en een
+controle-only-cfg in `smp.rs` veranderd): `test_milestones.py --through m4` (M2 8/8, M3 22/22,
+M4 12/12), `test_supervisor.py` (K05 6 stappen), `test_resource_pressure.py` (K07),
+`run_rtc.py --case all` 5/5, `run_ipc_wait.py`, `run_fpu.py` en `test-fpu-wait`;
+`test_memory_system.py` op de schone commit. Alle 198 kernelprofielen uit `build.py` bouwen
+(de update-profielen met `--image-version 2`). `tools/gate.sh` exit 0 (507 geslaagd, 1 ignored).
+`cargo fmt --check` (workspace en kernel) en clippy `smp-lock -D warnings` zijn schoon,
+`test_smp_serial.py` 11/11. **Niet uitgevoerd:** `native-smp.yml`/CI op de PR (een gestapelde
+base draait geen native-smp-CI), fysieke hardware. `tools/test_milestones.py:160` heeft een
+hardgecodeerd `build/users`-pad, waardoor M4 faalt met een eigen `NOS_BUILD_DIR` (losse taak).
+
+**Open:** idle (`sti; hlt`) staat nog binnen de KERNEL-sectie (5c-2) en M3 op AP's (5d-2). De
+500-ms-deadline begint na het BSP-deel. Fijnmazige locks vallen buiten K06. Volgende stap:
+5c-2 (BSP-timer en idle), daarna 5d-2.
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-shared-scratch"; python3 -B tools/build.py --kernel-feature test-smp-shared-scratch && python3 -B -u tools/run_smp.py --profile test-smp-shared-scratch`.
+
+## Historisch checkpoint — K06 auditbevinding F8 (`swapgs`-discipline, ADR-076) — 6 november 2026
 
 **Bron:** `91e84b75` op `fix/k06-f8-swapgs` (worktree `nieuw-os-k06-f8`), gestapeld op
 `fix/k06-f1-f2-lifo-oncpu` (#230, `5dccf290`). Ontwerp: ADR-076, K06-SMP.md INV-8 (GS-1..GS-10).
