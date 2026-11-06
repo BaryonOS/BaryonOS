@@ -629,6 +629,15 @@ mod tests {
     use super::*;
 
     #[test]
+    fn abi_version_encodes_major_and_minor_in_separate_halves() {
+        assert_eq!(abi_version(0, 0), 0);
+        assert_eq!(abi_version(1, 0), 0x0001_0000);
+        assert_eq!(abi_version(0, 1), 1);
+        assert_eq!(abi_version(u16::MAX, u16::MAX), u32::MAX);
+        assert_eq!(abi_version(0x1234, 0xABCD), 0x1234_ABCD);
+    }
+
+    #[test]
     fn app_id_syntax_preserves_canonical_and_padding_boundaries() {
         for (text, expected) in [
             ("org.example.app", true),
