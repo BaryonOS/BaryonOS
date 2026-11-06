@@ -1031,6 +1031,9 @@ impl State {
         } else if smp_faulter {
             // 5d-2 negative: this process executes ud2 on AP2 (K03 under SMP).
             14
+        } else if cfg!(feature = "native-smp-m3") {
+            // R3-3: every SMP process is an FPU canary with its own values.
+            19
         } else if mode() == 17 {
             2
         } else if mode() == 15 {
@@ -2023,7 +2026,7 @@ fn event(source: *const u64) -> *const u64 {
         };
         let counter = read_word(state.processes[current].physical(DATA + 8));
         #[cfg(feature = "native-smp-m3")]
-        smp_fault(state, current, vector);
+        smp_fault(state, current, vector, context[16]);
         #[cfg(not(feature = "native-smp-m3"))]
         state.observer_fault(current, &context, counter);
         #[cfg(feature = "native-smp-m3")]
@@ -2350,13 +2353,39 @@ fn smp_idle() -> ! {
 /// An app fault in the SMP manifest. Only the deliberate negative case (ud2
 /// in slot 2 on AP2) is expected; it stops just that process (K03).
 #[cfg(feature = "native-smp-m3")]
-fn smp_fault(state: &mut State, slot: usize, vector: u64) {
+fn smp_fault(state: &mut State, slot: usize, vector: u64, error: u64) {
+    // `int3` from CPL3 is #BP, or #GP with the IDT selector 3*8+2 when gate 3
+    // is DPL0 (the M2 exception gates are).
+    if vector == 3 || vector == 13 && error == 3 * 8 + 2 {
+        // The FPU canary saw another process's or a lost x87/SSE state.
+        let mut line = serial::Line::new();
+        line.push(b"SMP:M3:FPU:CORRUPT")
+            .push(if cfg!(feature = "test-smp-m3-fpu-skip") {
+                b":CONTROL"
+            } else {
+                b""
+            })
+            .push(b"\n");
+        serial::write(line.as_bytes());
+        if cfg!(feature = "test-smp-m3-fpu-skip") {
+            serial::exit(0x10);
+        }
+    }
     let expected = cfg!(feature = "test-smp-m3-fault")
         && slot == 2
         && vector == 6
         && cpu() == 2
         && state.processes[slot].home == 2;
     state.unexpected |= !expected;
+    if !expected {
+        let mut line = serial::Line::new();
+        line.push(b"SMP:M3:FAULT:VECTOR=")
+            .decimal(vector)
+            .push(b":CPU=")
+            .decimal(cpu() as u64)
+            .push(b"\n");
+        serial::write(line.as_bytes());
+    }
     if expected {
         print_decimal(b"SMP:M3:FAULT:UD:CPU=", cpu() as u64);
     }
@@ -2368,7 +2397,8 @@ fn smp_fault(state: &mut State, slot: usize, vector: u64) {
 /// stop the other CPUs, check cleanup balance and end the VM.
 #[cfg(feature = "native-smp-m3")]
 fn smp_progress(state: &mut State) {
-    const MIN_SWITCHES: u64 = 4;
+    // Spec 08 §4: the FPU canary must survive 1000 switches on every CPU.
+    const MIN_SWITCHES: u64 = 1000;
     let live = |p: &&Process| p.status != Status::Dead;
     for p in state.processes[..state.amount].iter().filter(live) {
         assert_eq!(read_word(p.physical(DATA + 16)), p.pattern);
@@ -2416,6 +2446,7 @@ fn smp_progress(state: &mut State) {
         serial::write(line.as_bytes());
     }
     print_decimal(b"SMP:SCHED:CPUS=", u64::from(online.count_ones()));
+    smp_fpu_evidence(state);
     for slot in 0..state.amount {
         if state.processes[slot].status != Status::Dead {
             // The parked CPUs loaded the kernel CR3 before halting.
@@ -2439,4 +2470,32 @@ fn print_decimal(label: &[u8], value: u64) {
     let mut line = serial::Line::new();
     line.push(label).decimal(value).push(b"\n");
     serial::write(line.as_bytes());
+}
+
+/// R3-3 evidence after the stop, before cleanup: each live canary's last
+/// FXSAVE image (written by its own CPU) holds its own ST0, XMM0 and XMM15;
+/// every CPU saved and restored images.
+#[cfg(feature = "native-smp-m3")]
+fn smp_fpu_evidence(state: &State) {
+    // ST0's 64-bit significand: the pattern (bit 62 set) normalized by one.
+    const ST0: usize = 32;
+    const XMM0: usize = 160;
+    const XMM15: usize = 160 + 15 * 16;
+    let mut checked = 0;
+    for (slot, p) in state.processes[..state.amount].iter().enumerate() {
+        if p.status == Status::Dead {
+            continue;
+        }
+        if fpu::image_qword(slot, XMM0) != p.pattern
+            || fpu::image_qword(slot, XMM15) != !p.pattern
+            || fpu::image_qword(slot, ST0) != p.pattern << 1
+        {
+            serial::write(b"SMP:M3:FPU:IMAGE_MISMATCH\n");
+            serial::fail(b"SMP_M3_FPU_IMAGE");
+        }
+        checked += 1;
+    }
+    let (saves, restores) = fpu::counts();
+    assert!(saves > 0 && restores > 0);
+    print_decimal(b"SMP:M3:FPU:PASS:PROCESSES=", checked);
 }

@@ -58,6 +58,30 @@ pub(super) fn select(slot: usize) {
     unsafe {
         ptr::addr_of_mut!(m3_fpu_current).write(image as u64);
     }
+    // R3-3: on SMP the exit path reads this CPU's own slot.
+    #[cfg(feature = "native-smp-m3")]
+    super::smp::set_m3_fpu(image as u64);
+}
+
+/// Step 5d-2 FPU canary evidence: one little-endian qword of a saved image
+/// (KERNEL held; the owner is not running, its last FXSAVE is complete).
+#[cfg(feature = "native-smp-m3")]
+pub(super) fn image_qword(slot: usize, offset: usize) -> u64 {
+    assert!(offset % 8 == 0 && offset <= 504);
+    // SAFETY: owned, aligned, permanent 512-byte image; read-only access.
+    unsafe { address(slot).add(offset).cast::<u64>().read() }
+}
+
+/// Totals of the assembly counters (diagnostic, `lock inc` on SMP).
+#[cfg(feature = "native-smp-m3")]
+pub(super) fn counts() -> (u64, u64) {
+    // SAFETY: plain reads of two permanent counters, KERNEL held.
+    unsafe {
+        (
+            ptr::addr_of!(m3_fpu_saves).read_volatile(),
+            ptr::addr_of!(m3_fpu_restores).read_volatile(),
+        )
+    }
 }
 
 /// Separate observer fixture; never enables rights or supplies process results.

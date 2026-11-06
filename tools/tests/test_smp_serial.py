@@ -90,8 +90,9 @@ def m3(cpus, fault=False):
     return (online(cpus)[:-3] + [f"SMP:M3:WAITING:APS={count - 1}", "SMP:LOCKDEP:PASS",
                                  "M2:PASS", f"SMP:M3:GO:CPUS={count}"]
             + (["SMP:M3:FAULT:UD:CPU=2"] if fault else [])
-            + [f"SMP:M3:CPU={cpu}:USER_TICKS={60 + cpu}:SWITCHES=76" for cpu in range(count)]
-            + [f"SMP:SCHED:CPUS={count}", "SMP:M3:CLEANUP:PASS"]
+            + [f"SMP:M3:CPU={cpu}:USER_TICKS={980 + cpu}:SWITCHES=1000" for cpu in range(count)]
+            + [f"SMP:SCHED:CPUS={count}", f"SMP:M3:FPU:PASS:PROCESSES={15 if fault else 16}",
+               "SMP:M3:CLEANUP:PASS"]
             + (["SMP:M3:K03:PASS"] if fault else [])
             + [f"SMP:M3:PASS:CPUS={count}", "M1:PASS"])
 
@@ -176,17 +177,21 @@ VALID = {
     "lock-stuck": LOCK_STUCK, "serial-unlocked-control": online(4),
     "m3-two": m3(2), "m3-four-single": m3(4), "m3-four": m3(4), "m3-eight": m3(8),
     "m3-fault-ap2": m3(4, fault=True),
+    "m3-fpu-skip-control": m3(4)[:m3(4).index("SMP:M3:GO:CPUS=4") + 1]
+    + ["SMP:M3:FPU:CORRUPT:CONTROL"],
 }
 
 
 class SmpSerialOracle(unittest.TestCase):
     def test_m3_phase_needs_ring3_work_and_switches_on_every_cpu(self):
         good = m3(4)
-        cpu2 = good.index("SMP:M3:CPU=2:USER_TICKS=62:SWITCHES=76")
+        cpu2 = good.index("SMP:M3:CPU=2:USER_TICKS=982:SWITCHES=1000")
         broken = {
-            "idle CPU": good[:cpu2] + ["SMP:M3:CPU=2:USER_TICKS=0:SWITCHES=76"] + good[cpu2 + 1:],
-            "too few switches": good[:cpu2] + ["SMP:M3:CPU=2:USER_TICKS=62:SWITCHES=3"]
+            "idle CPU": good[:cpu2] + ["SMP:M3:CPU=2:USER_TICKS=0:SWITCHES=1000"] + good[cpu2 + 1:],
+            "too few switches": good[:cpu2] + ["SMP:M3:CPU=2:USER_TICKS=982:SWITCHES=999"]
             + good[cpu2 + 1:],
+            "no FPU evidence": [line for line in good if not line.startswith("SMP:M3:FPU:")],
+            "canary corrupt": good[:cpu2] + ["SMP:M3:FPU:CORRUPT"] + good[cpu2:],
             "missing CPU": good[:cpu2] + good[cpu2 + 1:],
             "no cleanup balance": [line for line in good if line != "SMP:M3:CLEANUP:PASS"],
             "parked instead of waiting": [line.replace("SMP:M3:WAITING:APS=3", "SMP:PARKED:APS=3")

@@ -222,6 +222,8 @@ struct CpuLocal {
     /// Step 5d-2 (R3-4): top of this CPU's M3 service stack, read by the M3
     /// entry stub through `nos_smp_m3_stack` after its swapgs.
     m3_stack: AtomicU64,
+    /// Step 5d-2 (R3-3): this CPU's current M3 FXSAVE image (`fpu::select`).
+    m3_fpu: AtomicU64,
 }
 impl CpuLocal {
     const fn new() -> Self {
@@ -261,6 +263,7 @@ impl CpuLocal {
             irq_ready: AtomicBool::new(false),
             shootdowns: AtomicU32::new(0),
             m3_stack: AtomicU64::new(0),
+            m3_fpu: AtomicU64::new(0),
         }
     }
 }
@@ -4373,9 +4376,31 @@ global_asm!(
     "nos_smp_m3_stack:",
     "    mov rax, gs:[{stack}]",
     "    ret",
+    // R3-3, entry: RAX = this CPU's current FXSAVE image. Clobbers RAX only.
+    ".globl nos_smp_m3_fpu",
+    "nos_smp_m3_fpu:",
+    "    mov rax, gs:[{fpu}]",
+    "    ret",
+    // R3-3, exit (ADR-045): the FXRSTOR directly before the GPR pops; RSP
+    // holds the saved context, so it is reached and left by jumps.
+    ".globl nos_smp_m3_fxrstor",
+    "nos_smp_m3_fxrstor:",
+    "    mov rax, gs:[{fpu}]",
+    "    .if {skip} == 0",
+    "    fxrstor64 [rax]",
+    "    .endif",
+    "    jmp m3_fxrstor_done",
     ".popsection",
     stack = const core::mem::offset_of!(CpuLocal, m3_stack),
+    fpu = const core::mem::offset_of!(CpuLocal, m3_fpu),
+    skip = const cfg!(feature = "test-smp-m3-fpu-skip") as u8,
 );
+
+/// R3-3: the image the next M3 exit of this CPU restores (KERNEL held).
+#[cfg(feature = "native-smp-m3")]
+pub fn set_m3_fpu(image: u64) {
+    anchored().m3_fpu.store(image, Ordering::Relaxed);
+}
 
 /// BSP, KERNEL held, IF=0, after the M3 setup and before the first resume.
 /// `timer` is the M3 0xd0 stub; the BSP keeps the PIT (vector 32) as tick.

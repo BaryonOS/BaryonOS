@@ -31,13 +31,13 @@ compile_error!("native-smp is an IF0 M2 bring-up profile; single-CPU subsystems 
 #[cfg(all(
     feature = "native-smp-m3",
     any(
-        feature = "fpu-context",
+        feature = "native-fpu",
         feature = "ipc-wait",
         feature = "milestone-m4",
         feature = "native-supervisor"
     )
 ))]
-compile_error!("native-smp-m3 carries only the base M3 manifest in step 5d-2a");
+compile_error!("native-smp-m3 carries only the base M3 manifest in step 5d-2");
 
 use boot_protocol::{BootInfo, ADDRESS_LIMIT, PAGE_SIZE};
 use core::{arch::asm, ptr};

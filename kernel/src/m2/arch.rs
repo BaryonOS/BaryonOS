@@ -681,9 +681,16 @@ m3_user_entry:
  .if {fpu_context}
  // GPRs already saved. The current owned aligned image is supervisor-only
  // mapped in every user CR3. Save before any Rust or another process runs.
+ .if {smp_m3}
+ // R3-3: this CPU's current image (GS anchor, after the entry swapgs).
+ call nos_smp_m3_fpu
+ fxsave64 [rax]
+ lock inc qword ptr [rip+m3_fpu_saves]
+ .else
  mov rax,[rip+m3_fpu_current]
  fxsave64 [rax]
  inc qword ptr [rip+m3_fpu_saves]
+ .endif
  .endif
  mov rdi,rsp
  .if {smp_m3}
@@ -703,9 +710,18 @@ m3_restore:
  jne 9f
  // Final restore occurs after ALL Rust, under the selected user root. These
  // pages are supervisor-only and permanent; only GPR pops/iret follow it.
+ .if {smp_m3}
+ // RSP is the saved context in STATE, not a stack: no call. The helper reads
+ // this CPU's image through GS (still the kernel anchor) and jumps back.
+ jmp nos_smp_m3_fxrstor
+.global m3_fxrstor_done
+m3_fxrstor_done:
+ lock inc qword ptr [rip+m3_fpu_restores]
+ .else
  mov rax,[rip+m3_fpu_current]
  fxrstor64 [rax]
  inc qword ptr [rip+m3_fpu_restores]
+ .endif
 9:
  .endif
  pop r15

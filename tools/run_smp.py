@@ -56,6 +56,7 @@ CASES = {
     "m3-four": ("native-smp-m3", 4, "multi", "m3"),
     "m3-eight": ("native-smp-m3", 8, "multi", "m3"),
     "m3-fault-ap2": ("test-smp-m3-fault", 4, "multi", "m3-fault"),
+    "m3-fpu-skip-control": ("test-smp-m3-fpu-skip", 4, "multi", "m3-fpu-corrupt"),
     "serial-unlocked-control": ("test-smp-serial-unlocked", 4, "multi", "serial-torn"),
 }
 QUARANTINE_OUTCOMES = ("invalid-madt", "timeout", "mismatch", "quarantine", "shootdown-quarantine",
@@ -74,7 +75,8 @@ TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_I
             "lock-held": "SMP:QUARANTINE:LOCK_HELD:10:CPU=2",
             "bsp-spin-timeout": "SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=0",
             "proc-stale-read": "SMP:SHOOTDOWN:STALE_READ",
-            "lock-stuck": "SMP:LOCK:STUCK:10:CPU=1"}
+            "lock-stuck": "SMP:LOCK:STUCK:10:CPU=1",
+            "m3-fpu-corrupt": "SMP:M3:FPU:CORRUPT:CONTROL"}
 # Audit F8: the GS fixture prints the runtime CR4 (decimal); FSGSBASE (bit 16)
 # must be clear, the value itself may differ per firmware.
 GS_CR4 = "SMP:GS:CR4=*"
@@ -203,6 +205,11 @@ def expected_smp(case: str) -> list[str]:
     if outcome in M3_OUTCOMES:
         # Step 5d-2: every self-test as usual, then the APs wait for M3_GO.
         return lines + settled(started)[:-1] + [f"SMP:M3:WAITING:APS={started - 1}"]
+    if outcome == "m3-fpu-corrupt":
+        # Control: without the SMP FXRSTOR a canary sees a foreign state (int3).
+        return lines + settled(started)[:-1] + [f"SMP:M3:WAITING:APS={started - 1}", LOCKDEP_PASS,
+                                                "M2:PASS", f"SMP:M3:GO:CPUS={started}",
+                                                TERMINAL[outcome]]
     if outcome in ("online", "serial-torn"):
         # serial-torn (control, DG-2): without SERIAL the fixture must mix lines.
         return lines + settled(started)
@@ -308,17 +315,18 @@ def expected_smp(case: str) -> list[str]:
 # K06 step 5d-2: the base M3 manifest on every online CPU after the self-tests.
 M3_OUTCOMES = ("m3", "m3-fault")
 M3_CPU = re.compile(r"SMP:M3:CPU=([0-9]):USER_TICKS=([0-9]{1,20}):SWITCHES=([0-9]{1,20})")
-M3_MIN_SWITCHES = 4  # kernel/src/m2/m3.rs smp_progress
+M3_MIN_SWITCHES = 1000  # kernel/src/m2/m3.rs smp_progress (spec 08 §4 FPU canary)
 
 
 def m3_end(outcome: str, online: int) -> list[str]:
-    """After M2:PASS: GO, (the AP2 fault), per CPU user ticks > 0 and >= 4
-    switches, cleanup balance, (K03) and the pass line."""
+    """After M2:PASS: GO, (the AP2 fault), per CPU user ticks > 0 and >= 1000
+    switches, every live canary's own FPU image, cleanup balance, (K03), pass."""
     fault = outcome == "m3-fault"
     return (["M2:PASS", f"SMP:M3:GO:CPUS={online}"]
             + (["SMP:M3:FAULT:UD:CPU=2"] if fault else [])
             + [f"SMP:M3:CPU={cpu}:USER_TICKS=*:SWITCHES=*" for cpu in range(online)]
-            + [f"SMP:SCHED:CPUS={online}", "SMP:M3:CLEANUP:PASS"]
+            + [f"SMP:SCHED:CPUS={online}",
+               f"SMP:M3:FPU:PASS:PROCESSES={15 if fault else 16}", "SMP:M3:CLEANUP:PASS"]
             + (["SMP:M3:K03:PASS"] if fault else [])
             + [f"SMP:M3:PASS:CPUS={online}", "M1:PASS"])
 
