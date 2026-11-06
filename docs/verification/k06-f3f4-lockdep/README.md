@@ -14,6 +14,8 @@ review door AI. **Score:** 41 → 41/100. K06 blijft open.
   geen marker, beide tellers tellen elke ronde en lockdep is daarna overal leeg.
 - `test-smp-lock-in-handler` (2 vCPU's): de 0xe8-handler neemt KERNEL →
   `SMP:LOCKDEP:IN_HANDLER:10`, exit 0x10. Dat bewijst ook dat de stubs `irq_depth` echt ophogen.
+  Mutant (wegwerp-worktree op `394bba37`, niet gecommit): zonder `inc`/`dec` in het timerlichaam
+  neemt de handler KERNEL ongemerkt, de run loopt door tot `SMP:SCHED:PASS` en het profiel faalt.
 - `test-smp-lockpair-order` (2 vCPU's): twee ASPACE-locks los en dalend genomen →
   `SMP:LOCKDEP:ORDER:20->20`, exit 0x10.
 - Alle 17 bestaande profielen geven ongewijzigd hun marker (de normale reeks heeft één regel
