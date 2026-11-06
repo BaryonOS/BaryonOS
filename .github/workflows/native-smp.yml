@@ -42,6 +42,8 @@ jobs:
         run: |
           cargo +1.90.0 test --locked -p boot-protocol
           cargo +1.90.0 clippy --locked -p boot-protocol --all-targets -- -D warnings
+          cargo +1.90.0 test --locked -p smp-lock
+          cargo +1.90.0 clippy --locked -p smp-lock --all-targets -- -D warnings
           python3 -B -m unittest discover -s tools/tests -p test_smp_serial.py -v
           python3 -B -m unittest discover -s tools/tests -p test_acpi_serial.py -v
           cargo +1.90.0 fmt --all -- --check
@@ -83,6 +85,12 @@ jobs:
             python3 -B tools/build.py --kernel-feature "$profile"
             python3 -B -u tools/run_smp.py --profile "$profile"
           done
+      - name: Reverse lock order stops with the lockdep marker
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-lockdep-order
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-lockdep-order
+          python3 -B -u tools/run_smp.py --profile test-smp-lockdep-order
       - name: Preserve tracked source integrity
         run: git diff --exit-code
       - name: Preserve actual run and build artifacts

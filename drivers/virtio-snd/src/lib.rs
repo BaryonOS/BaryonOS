@@ -7,6 +7,8 @@
 //! device grant, broker, app permission or audio playback. Capture is never
 //! selected. Callers pass exactly the device-written used-length bytes.
 
+pub mod pcm;
+
 pub const VIRTIO_SND_DEVICE_ID: u16 = 25;
 pub const VIRTIO_SND_PCI_DEVICE_ID: u16 = 0x1040 + VIRTIO_SND_DEVICE_ID;
 
@@ -14,8 +16,9 @@ const VERSION_1: u64 = 1 << 32;
 const ACCESS_PLATFORM: u64 = 1 << 33;
 const F_CTLS: u64 = 1 << 0;
 
+use pcm::S_OK;
+
 const R_PCM_INFO: u32 = 0x0100;
-const S_OK: u32 = 0x8000;
 const HDR_BYTES: usize = 4;
 const CONFIG_BYTES: usize = 12;
 const QUERY_BYTES: usize = 16;
@@ -269,6 +272,29 @@ impl StreamInfo {
 
     pub const fn is_output(self) -> bool {
         self.direction == D_OUTPUT
+    }
+
+    /// Advertised `VIRTIO_SND_PCM_F_*` bits (validated, reserved bits clear).
+    pub const fn features(self) -> u32 {
+        self.features
+    }
+
+    /// Advertised `VIRTIO_SND_PCM_FMT_*` bit map.
+    pub const fn formats(self) -> u64 {
+        self.formats
+    }
+
+    /// Advertised `VIRTIO_SND_PCM_RATE_*` bit map.
+    pub const fn rates(self) -> u64 {
+        self.rates
+    }
+
+    pub const fn channels_min(self) -> u8 {
+        self.channels_min
+    }
+
+    pub const fn channels_max(self) -> u8 {
+        self.channels_max
     }
 
     /// Selects the initial output profile; not a permanent product limit.

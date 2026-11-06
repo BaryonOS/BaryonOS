@@ -60,11 +60,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-05 · **Rubric:** v1 ·
-**Bron:** [`c308b1ee`](https://github.com/simonvanieperen/nieuw-os/commit/c308b1ee9d8deedcfacd923c407392222ff7a12f) ·
-**Ontwikkelbranch:** `k06/smp-step4-preempt`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 4: gepreëmpteerde round-robin-kernelthreads op AP's via de LAPIC-timer (gestapeld op #203).
-41/100 blijft 41/100. In het opt-in native-smp-profiel preëmpt de LAPIC-timer op elke AP twee kernelthreads. Bewezen zijn registerbehoud over contextwissels, voortgang van beide threads en bevriezing na STOP; een dode timer leidt tot quarantaine. 14 native QEMU/TCG-gevallen zijn geslaagd: zie docs/verification/k06-smp-preempt/. K06 blijft open (geen SMP-scheduler voor processen, geen interrupts op de BSP, geen lockvolgorde). Gestapeld op #203, #202, #201 en #191, nog niet op main. De integration_review-velden blijven historisch PR148-bewijs.
+**Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
+**Bron:** [`edb252db`](https://github.com/simonvanieperen/nieuw-os/commit/edb252dbc91f3fa83c12d6aaf7008a5184cb74d3) ·
+**Ontwikkelbranch:** `feat/k06-5a-ticketlock-lockdep`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5a: ticketlock, irqsave en lockdep per CPU (ADR-074).
+41/100 blijft 41/100. K06 stap 5a voegt een ticketlock, irqsave en lockdep toe, met hosttests en een negatief native profiel. Native QEMU-bewijs is nog niet uitgevoerd en K06 vraagt een volledige SMP-scheduler (stap 5b t/m 5f), dus K06 blijft open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

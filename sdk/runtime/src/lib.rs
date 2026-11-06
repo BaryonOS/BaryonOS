@@ -23,6 +23,35 @@ pub use network::{NetworkSource, NET_FRAME_MAX};
 #[cfg(all(target_arch = "x86_64", target_os = "none"))]
 pub mod native;
 
+/// Syscall seam for request/reply clients. EAGAIN on send must guarantee that
+/// nothing was enqueued; a successful receive owns the kernel-delivered cap
+/// handles in `Received` until the client closes them.
+pub trait Transport {
+    fn send(&mut self, endpoint: SendEndpoint, message: &Outgoing) -> Result<(), Error>;
+    fn receive(&mut self, endpoint: ReceiveEndpoint) -> Result<Received, Error>;
+    fn yield_now(&mut self) -> Result<(), Error>;
+    fn close(&mut self, handle: Handle) -> Result<(), Error>;
+}
+
+#[cfg(all(target_arch = "x86_64", target_os = "none"))]
+pub struct NativeTransport;
+
+#[cfg(all(target_arch = "x86_64", target_os = "none"))]
+impl Transport for NativeTransport {
+    fn send(&mut self, endpoint: SendEndpoint, message: &Outgoing) -> Result<(), Error> {
+        native::send(endpoint, message)
+    }
+    fn receive(&mut self, endpoint: ReceiveEndpoint) -> Result<Received, Error> {
+        native::receive(endpoint)
+    }
+    fn yield_now(&mut self) -> Result<(), Error> {
+        native::yield_now()
+    }
+    fn close(&mut self, handle: Handle) -> Result<(), Error> {
+        native::close(handle)
+    }
+}
+
 pub const ABI_MAJOR: u64 = 1;
 pub const ABI_MAX_MINOR: u64 = 11;
 

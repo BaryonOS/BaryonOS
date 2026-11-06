@@ -1,4 +1,4 @@
-source src/transport_model.rs sha256 d1bec93006e9682039d6f96bec2bd54287b6e34063a68473f8a6a7b75fe0073c
+source src/transport_model.rs sha256 335b6b4bd38183b3e03976145f21a11da001454173645c8a6b5fe65e9afbca88
 command cargo +1.90.0 test --offline --locked -q transport_model
 M1 CAUGHT exit=101 I1 fence accepts status 0 without BME-off read-back
   delta: 'if !(self.status_zero && self.bme_off) {' -> 'if !self.status_zero {'
@@ -20,6 +20,7 @@ M3 CAUGHT exit=101 I3 fence timeout goes Offline instead of Quarantined
   red: transport_model::tests::i3_fence_timeout_quarantines_and_keeps_pool_pinned
 M4 CAUGHT exit=101 I4 submit after revoke allowed (revoked check removed)
   delta: '        if self.revoked {\n            return Err(Reject::Revoked);\n        }\n        self.live()?;' -> '        self.live()?;'
+  red: transport_model::tests::i4_invalid_revoke_deadline_quarantines_without_releasing_slots
   red: transport_model::tests::i4_no_submit_after_revoke
 M5 CAUGHT exit=101 I5 rx buffer allowed
   delta: 'Err(Reject::RxForbidden)' -> 'Ok(())'
@@ -32,5 +33,5 @@ M6 CAUGHT exit=101 I6 double completion accepted (any slot counts as published)
 M7 CAUGHT exit=101 I6/F19 double release accepted
   delta: 'if self.released {' -> 'if false {'
   red: transport_model::tests::i6_double_release_rejected
-restored sha256 d1bec93006e9682039d6f96bec2bd54287b6e34063a68473f8a6a7b75fe0073c OK
+restored sha256 335b6b4bd38183b3e03976145f21a11da001454173645c8a6b5fe65e9afbca88 OK
 caught 7/7
