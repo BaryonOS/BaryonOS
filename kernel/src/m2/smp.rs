@@ -128,10 +128,26 @@ pub fn is_guard(page: u64) -> bool {
     guard_pages().any(|guard| guard == page)
 }
 pub fn guard_pages() -> impl Iterator<Item = u64> {
-    (0..MAX_APS * STACK_KINDS).flat_map(|index| {
-        let base = stack_base(index / STACK_KINDS, index % STACK_KINDS);
-        [base, base + STACK_TOP]
-    })
+    (0..MAX_APS * STACK_KINDS)
+        .map(|index| stack_base(index / STACK_KINDS, index % STACK_KINDS))
+        .chain((0..BSP_THREADS).map(bsp_stack_base))
+        .flat_map(|base| [base, base + STACK_TOP])
+}
+
+/// Step 5c-2: the BSP's two preemptible kernel threads (BT-2), guarded like
+/// the AP stacks. Only the BSP touches them, in its own phases.
+const BSP_THREADS: usize = 2;
+static mut BSP_STACKS: [ApStack; BSP_THREADS] = [const {
+    ApStack {
+        lower: [0; 4096],
+        data: [0; 16384],
+        upper: [0; 4096],
+    }
+}; BSP_THREADS];
+
+fn bsp_stack_base(index: usize) -> u64 {
+    // Address computation only; no reference to the static is formed.
+    ptr::addr_of!(BSP_STACKS) as u64 + index as u64 * STACK_SPAN
 }
 
 /// Per-CPU anchor reachable through IA32_GS_BASE. Offsets 0, 12 and 16 are
@@ -147,9 +163,10 @@ struct CpuLocal {
     before: AtomicU32,
     after: AtomicU32,
     probed: AtomicU32,
-    // Preemption (step 4): touched only by this AP's own handler/threads,
-    // read by the BSP. saved[0] is the interrupted home loop, [1..] threads.
-    ticks: AtomicU32,
+    // Preemption (step 4, BSP since 5c-2): touched only by this CPU's own
+    // handler/threads. saved[0] is the interrupted home loop, [1..] threads.
+    // `tick_count` counts 0xd0 only, `resched_count` 0xe8 only (BT-4, F11).
+    tick_count: AtomicU32,
     switches: AtomicU32,
     current: AtomicU32,
     preempt: AtomicU32,
@@ -170,7 +187,7 @@ struct CpuLocal {
     /// switches. Written by this CPU only, read by the BSP.
     sched_cur: AtomicU32,
     sched_state: AtomicU32,
-    resched: AtomicU32,
+    resched_count: AtomicU32,
     cr3_switches: AtomicU32,
     /// Audit F8 ring-3 GS fixture: phase and entries taken from CPL3.
     gs_state: AtomicU32,
@@ -189,6 +206,16 @@ struct CpuLocal {
     /// F19 fixture: 0xe8 IPIs this AP sent to its partner, and its result.
     icr_sent: AtomicU32,
     icr_done: AtomicU32,
+    /// BT-4 (audit F11): a 0xe8 that was not yet honoured by a switch. Set by
+    /// this CPU's handler, kept while INV-5c defers it, cleared by the switch
+    /// or by the release of this CPU's last lock (`resched_on_release`).
+    need_resched: AtomicBool,
+    /// `resched_count` as last seen by `smp_preempt`: a difference means the
+    /// entry is a 0xe8 (its stub counted before joining), otherwise a 0xd0.
+    resched_seen: AtomicU32,
+    /// BT-2/S3: every unmasked interrupt source of this CPU has an IDT gate,
+    /// so a KERNEL/ASPACE waiter may open its `sti; pause; cli` window.
+    irq_ready: AtomicBool,
 }
 impl CpuLocal {
     const fn new() -> Self {
@@ -200,7 +227,7 @@ impl CpuLocal {
             before: AtomicU32::new(u32::MAX),
             after: AtomicU32::new(u32::MAX),
             probed: AtomicU32::new(0),
-            ticks: AtomicU32::new(0),
+            tick_count: AtomicU32::new(0),
             switches: AtomicU32::new(0),
             current: AtomicU32::new(0),
             preempt: AtomicU32::new(0),
@@ -212,7 +239,7 @@ impl CpuLocal {
             deferred: AtomicU32::new(0),
             sched_cur: AtomicU32::new(HOME),
             sched_state: AtomicU32::new(0),
-            resched: AtomicU32::new(0),
+            resched_count: AtomicU32::new(0),
             cr3_switches: AtomicU32::new(0),
             gs_state: AtomicU32::new(0),
             user_ticks: AtomicU32::new(0),
@@ -223,6 +250,9 @@ impl CpuLocal {
             icr: lock::IrqLock::new(level::ICR, b"ICR", ()),
             icr_sent: AtomicU32::new(0),
             icr_done: AtomicU32::new(0),
+            need_resched: AtomicBool::new(false),
+            resched_seen: AtomicU32::new(0),
+            irq_ready: AtomicBool::new(false),
         }
     }
 }
@@ -318,14 +348,38 @@ global_asm!(
     "    pop rax",
     "    dec dword ptr gs:[{depth}]",
     arch::gs_exit!("nos_iret_user_shootdown"),
+    // BT-1 clock: PIT IRQ0 through the 8259 PIC (ExtINT on the BSP's LINT0;
+    // no LAPIC EOI). Touches neither GS nor a lock and arrives only at CPL0
+    // on the BSP; an AP that takes it refutes BT-1 and stops the VM. Its
+    // iretq is the spurious stub's (lint: one reviewed raw iretq).
+    ".globl nos_smp_clock_entry",
+    "nos_smp_clock_entry:",
+    "    push rax",
+    "    mov eax, dword ptr [{lapic_id}]",
+    "    shr eax, 24",
+    "    cmp eax, dword ptr [rip + {bsp}]",
+    "    jne 2f",
+    "    lock inc qword ptr [rip + {clock}]",
+    "    mov al, 0x20",
+    "    out 0x20, al",
+    "    pop rax",
+    "    jmp nos_smp_spurious_entry",
+    "2:",
+    "    and rsp, -16",
+    "    call {on_ap}",
     ".popsection",
     eoi = const paging::LAPIC_WINDOW + 0xb0,
     va = sym NOS_SMP_SHOOTDOWN_VA,
     generation = sym NOS_SMP_SHOOTDOWN_GEN,
     depth = const core::mem::offset_of!(CpuLocal, irq_depth),
+    lapic_id = const paging::LAPIC_WINDOW + 0x20,
+    bsp = sym BSP_APIC_ID,
+    clock = sym CLOCK_TICKS,
+    on_ap = sym smp_clock_on_ap,
 );
 extern "C" {
     static nos_iret_user_timer: u8;
+    fn nos_smp_clock_entry();
     fn nos_smp_ipi_entry();
     fn nos_smp_spurious_entry();
     fn nos_smp_shootdown_entry();
@@ -792,6 +846,8 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
     };
     lapic_write(0x80, tpr);
     lapic_write(0xf0, 0x100 | SPURIOUS_VECTOR as u32);
+    // BT-2/S3: only 0xd0/0xe0/0xe8/0xf0/0xff can reach this AP, all gated.
+    local.irq_ready.store(true, Ordering::Relaxed);
     // Cache the window's current translation (frame A) in this CPU's TLB.
     local.before.store(read_window(), Ordering::Relaxed);
     context.state.store(IPI_READY, Ordering::Release);
@@ -835,7 +891,7 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
             (PREEMPT_RUN, 0) => arm_preemption(local, first),
             (PREEMPT_STOP, ARMED)
                 if local.current.load(Ordering::Acquire) == 0
-                    && local.ticks.load(Ordering::Relaxed) != 0 =>
+                    && local.tick_count.load(Ordering::Relaxed) != 0 =>
             {
                 local.preempt.store(RESUMED, Ordering::Release);
             }
@@ -884,13 +940,29 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
             *SPIN_LOCK.lock_irqsave() += 1;
             local.spun.store(2, Ordering::Release);
         }
+        // Step 5c-2: load for the clock check, then AP1's part of the BSP
+        // spin and idle phases (each phase word is reset by the BSP after it).
+        while CLOCK_LOAD.load(Ordering::Acquire) {
+            CLOCK_WORK.fetch_add(1, Ordering::Relaxed);
+            spin_loop();
+        }
+        if slot == 0 {
+            if BSP_SPIN.load(Ordering::Acquire) == STEP_RUN {
+                bsp_spin_work();
+            }
+            match IDLE_PHASE.load(Ordering::Acquire) {
+                STEP_RUN => idle_wake_work(),
+                IDLE_DEFER => idle_defer_work(),
+                _ => {}
+            }
+        }
         if PARK.load(Ordering::Acquire) {
             break;
         }
-        // SAFETY: STI's one-instruction shadow makes `sti; hlt` atomic, so an
-        // IPI that becomes pending after the PARK check still wakes this CPU.
+        // STI's one-instruction shadow makes `sti; hlt` atomic, so an IPI
+        // that becomes pending after the PARK check still wakes this CPU.
         // Local sources are masked; see the function comment for others.
-        unsafe { asm!("sti", "hlt", "cli") };
+        idle_halt();
     }
     context.state.store(PARKED, Ordering::Release);
     park()
@@ -1106,6 +1178,10 @@ pub fn start(
     arch::smp_gate(SHOOTDOWN_VECTOR, nos_smp_shootdown_entry as usize as u64);
     arch::smp_gate(TIMER_VECTOR, nos_smp_timer_entry as usize as u64);
     arch::smp_gate(RESCHED_VECTOR, nos_smp_resched_entry as usize as u64);
+    // BT-2: the PIC's IRQ0 (the clock) and its spurious IRQ7, remapped to 0x20.
+    arch::smp_gate(CLOCK_VECTOR, nos_smp_clock_entry as usize as u64);
+    arch::smp_gate(CLOCK_VECTOR + 7, nos_smp_spurious_entry as usize as u64);
+    BSP_APIC_ID.store(bsp_id, Ordering::Relaxed);
     let vector = (page / PAGE) as u32;
     let (mut online, mut x2apic, mut capacity) = (0usize, 0u64, 0u64);
     for cpu in cpus.iter().filter(|cpu| cpu.apic_id != bsp_id) {
@@ -1151,6 +1227,7 @@ pub fn start(
     serial::write(b"/");
     decimal(cpus.len() as u64);
     serial::write(b"\n");
+    bsp_timer_init();
     GO.store(true, Ordering::Release);
     stress();
     let finished = (0..200).any(|_| {
@@ -1247,8 +1324,9 @@ fn stop_if_held(slot: usize) {
 
 /// Threads of a quarantined CPU (IQ-3), one bit per tid: READY ones handed to
 /// the BSP, the one it ran (or was still on the stack of) crashed.
-// shortcut: the BSP has no run queue before step 5c-2, so ADOPTED is recorded
-// and not yet run; 5c-2 must drain it.
+// shortcut: the BSP has no run queue; step 5c-2 gave it a timer and an idle
+// context, not a queue (spec 06 §3). ADOPTED is recorded and not yet run; the
+// step that gives the BSP a run queue (5d-2 or 5f) must drain it.
 static ADOPTED: AtomicU64 = AtomicU64::new(0);
 static CRASHED: AtomicU64 = AtomicU64::new(0);
 const _: () = assert!(SCHED_THREADS <= 64);
@@ -1358,6 +1436,10 @@ fn ipis(
     if !shootdown(online, total, frames, paging)
         || !preemption(online, total)
         || !spin_window(online, total)
+        || !clock(online, total)
+        || !bsp_preempt(online)
+        || !bsp_spin(online, total)
+        || !idle(online, total)
         || !schedule(online, total)
         || !block_wake_kill(online, total)
         || !scratch(online, total, frames)
@@ -1577,7 +1659,7 @@ pub fn cpu_index() -> usize {
 }
 
 /// True on an AP (its GS anchor is in CPU_LOCAL); false on the BSP.
-pub fn on_ap() -> bool {
+fn on_ap() -> bool {
     this_cpu().is_some()
 }
 
@@ -1679,21 +1761,39 @@ struct Resume {
 }
 
 /// Round-robin over home (0) and the two threads (1, 2). After STOP the timer
-/// is masked and the home loop resumes; threads are never run again.
+/// is masked and the home loop resumes; threads are never run again. The BSP
+/// (step 5c-2) takes the same entry, deferral and switch rules (BT-2).
 #[no_mangle]
 extern "C" fn smp_preempt(rsp: u64) -> Resume {
-    let Some(local) = this_cpu() else {
+    let Some(local) = any_cpu() else {
         // A timer interrupt on a CPU without an anchor is impossible by
-        // construction (only APs arm it); stop rather than run unknown state.
+        // construction (anchors precede every arm); stop rather than run
+        // unknown state.
         if GS.load(Ordering::Acquire) != 0 {
             serial::write(b"SMP:GS:ANCHOR_LOST\n");
         }
         serial::fail(b"SMP_PREEMPT_ANCHOR");
     };
-    local.ticks.fetch_add(1, Ordering::Relaxed);
-    // F19 fixture: during the ICR phase every entry sends one IPI from the
-    // handler (to itself, 0xf0) and resumes the interrupted context.
-    if ICR_RUN.load(Ordering::Acquire) {
+    let bsp = ptr::eq(local, &BSP_LOCAL);
+    // BT-4 (audit F11): the 0xe8 stub counted `resched_count` before joining
+    // this body, with IF=0 throughout, so a changed count means this entry is
+    // that 0xe8; anything else is a 0xd0 tick. Only a 0xe8 asks to switch.
+    let resched = local.resched_count.load(Ordering::Relaxed);
+    if local.resched_seen.swap(resched, Ordering::Relaxed) != resched {
+        local.need_resched.store(true, Ordering::Relaxed);
+        if bsp {
+            BSP_WAKE_TSC
+                .compare_exchange(0, rdtsc(), Ordering::Relaxed, Ordering::Relaxed)
+                .ok();
+        }
+    } else {
+        local.tick_count.fetch_add(1, Ordering::Relaxed);
+    }
+    // F19 fixture: during the ICR phase every AP entry sends one IPI from the
+    // handler (to itself, 0xf0) and resumes the interrupted context; it never
+    // switches, so its 0xe8 are only counted.
+    if !bsp && ICR_RUN.load(Ordering::Acquire) {
+        local.need_resched.store(false, Ordering::Relaxed);
         let own = apic_of(local.slot.load(Ordering::Relaxed) as usize);
         if !send_ipi(own, IPI_FIXED | IPI_VECTOR as u32) {
             ICR_FAULT.store(true, Ordering::Release);
@@ -1702,16 +1802,25 @@ extern "C" fn smp_preempt(rsp: u64) -> Resume {
     }
     // LD-1 control: from the first 0xe8 on, this handler takes KERNEL and
     // must stop with SMP:LOCKDEP:IN_HANDLER:10 before spinning.
-    if cfg!(feature = "test-smp-lock-in-handler") && local.resched.load(Ordering::Relaxed) != 0 {
+    if cfg!(feature = "test-smp-lock-in-handler")
+        && !bsp
+        && local.resched_count.load(Ordering::Relaxed) != 0
+    {
         drop(lock::KERNEL.lock_irqsave());
     }
     // Step 5c (INV-5c): a tick can only arrive with locks held or awaited in
     // the 5b `sti; pause; cli` window. Lockdep is per CPU, not per thread, so
-    // switching (or STOP's switch home) waits for a later tick.
+    // switching (or STOP's switch home) waits for a later tick. A deferred
+    // 0xe8 stays in `need_resched` (BT-4).
     let busy = local.lockdep.load(Ordering::Relaxed) != 0;
     if busy && !cfg!(feature = "test-smp-held-across-switch") {
         local.deferred.fetch_add(1, Ordering::Release);
         return Resume { rsp, left: 0 };
+    }
+    // Every path below is a switch point, so a pending reschedule is honoured.
+    local.need_resched.store(false, Ordering::Relaxed);
+    if bsp {
+        return bsp_switch(local, rsp, busy);
     }
     if GS_FIXTURE && GS.load(Ordering::Acquire) != 0 {
         return gs_switch(local, rsp);
@@ -1747,8 +1856,9 @@ extern "C" fn smp_preempt(rsp: u64) -> Resume {
 /// times, then checks them: a wrong save/restore in the timer stub would show
 /// up as `corrupt`, not just as a passing tick count.
 fn thread_body(local: &CpuLocal, index: usize) -> ! {
+    // The BSP's slot is u32::MAX: wrap instead of overflowing.
     let seed = (u64::from(local.slot.load(Ordering::Relaxed)) << 8 | (index as u64 + 1))
-        * 0x0101_0101_0101_0101;
+        .wrapping_mul(0x0101_0101_0101_0101);
     loop {
         let intact: u32;
         // SAFETY: Pure register arithmetic and PAUSE on this thread's own
@@ -1780,13 +1890,13 @@ fn thread_body(local: &CpuLocal, index: usize) -> ! {
     }
 }
 extern "C" fn nos_smp_thread0() -> ! {
-    match this_cpu() {
+    match any_cpu() {
         Some(local) => thread_body(local, 0),
         None => park(),
     }
 }
 extern "C" fn nos_smp_thread1() -> ! {
-    match this_cpu() {
+    match any_cpu() {
         Some(local) => thread_body(local, 1),
         None => park(),
     }
@@ -1795,7 +1905,11 @@ extern "C" fn nos_smp_thread1() -> ! {
 /// Build an initial frame on a fresh thread stack so that the timer stub's
 /// pops and `iretq` enter `entry` with IF=1 and a SysV-aligned stack.
 fn thread_frame(slot: usize, kind: usize, entry: u64, arg: u64) -> u64 {
-    let top = stack_base(slot, kind) + STACK_TOP;
+    frame_below(stack_base(slot, kind) + STACK_TOP, entry, arg)
+}
+
+/// `thread_frame` for the guarded thread stack ending at `top`.
+fn frame_below(top: u64, entry: u64, arg: u64) -> u64 {
     let frame = initial_frame(top - 8 - 20 * 8, [entry, 0x08, 0x202, top - 8, 0x10], arg);
     // SAFETY: As in `initial_frame`: a zero return address the
     // never-returning entry cannot use, still inside the same thread stack.
@@ -1858,7 +1972,7 @@ fn preemption(online: usize, total: usize) -> bool {
     for (context, local) in aps.iter().zip(locals) {
         let apic = context.apic_id.load(Ordering::Relaxed);
         let progressed = || {
-            local.ticks.load(Ordering::Acquire) >= MIN_TICKS
+            local.tick_count.load(Ordering::Acquire) >= MIN_TICKS
                 && local.switches.load(Ordering::Acquire) >= MIN_SWITCHES
                 && local
                     .counts
@@ -1906,7 +2020,7 @@ fn preemption(online: usize, total: usize) -> bool {
     // and no thread saw its registers change across a switch.
     let frozen = |local: &CpuLocal| {
         (
-            local.ticks.load(Ordering::Acquire),
+            local.tick_count.load(Ordering::Acquire),
             local
                 .counts
                 .each_ref()
@@ -2025,6 +2139,568 @@ fn spin_window(online: usize, total: usize) -> bool {
     true
 }
 
+// Step 5c-2 (spec 06, ADR-080): the BSP gets the PIT clock (BT-1), its own
+// 0xd0 timer under the AP rules (BT-2), an idle context (BT-3), reschedule as
+// a flag instead of a tick (BT-4) and a calibrated LAPIC/PIT ratio (BT-5).
+const CLOCK_VECTOR: usize = 0x20;
+/// PIT channel 0 divisor: 1 193 182 Hz / 1193 = 1000.15 Hz (0.99985 ms/tick).
+const PIT_DIVISOR: u16 = 1193;
+const PIT_HZ: u64 = 1_193_182;
+const TIMER_CURRENT: u64 = 0x390;
+/// BT-1: PIT IRQ0 ticks since `bsp_timer_init`; written by the IRQ0 stub only.
+static CLOCK_TICKS: AtomicU64 = AtomicU64::new(0);
+static BSP_APIC_ID: AtomicU32 = AtomicU32::new(u32::MAX);
+/// TSC ticks per millisecond, measured once by the BSP against PIT channel 2.
+/// APs time their bounded waits with it: they never touch the BSP-owned PIT
+/// (ADR-070).
+// shortcut: assumes a constant-rate TSC that is equal on every CPU (QEMU/TCG,
+// KVM); hardware support needs an invariant-TSC check first (H-track).
+static TSC_PER_MS: AtomicU64 = AtomicU64::new(0);
+/// TSC at the BSP's first 0xe8 of the idle-wake check (0 = none yet).
+static BSP_WAKE_TSC: AtomicU64 = AtomicU64::new(0);
+
+fn rdtsc() -> u64 {
+    let (low, high): (u32, u32);
+    // SAFETY: RDTSC only reads the time-stamp counter into EDX:EAX.
+    unsafe { asm!("rdtsc", out("eax") low, out("edx") high, options(nomem, nostack)) };
+    u64::from(high) << 32 | u64::from(low)
+}
+
+/// Poll `ready` on any CPU for at most `ms` milliseconds of calibrated TSC.
+fn within_tsc(ms: u64, ready: impl Fn() -> bool) -> bool {
+    let end = rdtsc().saturating_add(ms * TSC_PER_MS.load(Ordering::Acquire));
+    loop {
+        if ready() {
+            return true;
+        }
+        if rdtsc() > end {
+            return ready();
+        }
+        spin_loop();
+    }
+}
+
+/// BSP idle context: idle (BT-3) until `ready`, at most `ms` ms of TSC. The
+/// clock (IRQ0, ~1 kHz) ends every `hlt`, so the bound is always checked.
+fn idle_until(ms: u64, ready: impl Fn() -> bool) -> bool {
+    let end = rdtsc().saturating_add(ms * TSC_PER_MS.load(Ordering::Acquire));
+    loop {
+        if ready() {
+            return true;
+        }
+        if rdtsc() > end {
+            return ready();
+        }
+        idle_halt();
+    }
+}
+
+/// BT-3: the only `sti; hlt; cli`, in a CPU's idle (home) context. It runs
+/// under the kernel CR3 with an empty lockdep set, or the VM stops.
+fn idle_halt() {
+    let cr3: u64;
+    // SAFETY: CPL0 register read.
+    unsafe { asm!("mov {}, cr3", out(reg) cr3, options(nomem, nostack)) };
+    let kernel = KERNEL_CR3.load(Ordering::Relaxed);
+    if lockdep().load(Ordering::Relaxed) != 0 || (kernel != 0 && (cr3 ^ kernel) & ROOT_MASK != 0) {
+        serial::fail(b"SMP_IDLE_STATE");
+    }
+    // SAFETY: CPL0 idle context with IF=0 and every unmasked source gated.
+    // STI's shadow covers HLT, so an interrupt that became pending before HLT
+    // still ends it; handlers may change memory, hence no `nomem`.
+    unsafe { asm!("sti", "hlt", "cli") };
+}
+
+/// BSP, IF=0, after bring-up and before GO (spec 06 §3, `bsp_timer_init`).
+fn bsp_timer_init() {
+    let cr3: u64;
+    // SAFETY: CPL0 register read.
+    unsafe { asm!("mov {}, cr3", out(reg) cr3, options(nomem, nostack)) };
+    KERNEL_CR3.store(cr3, Ordering::Relaxed);
+    // BT-5: the LAPIC timer (divide 16, as on the APs) and the TSC, both
+    // against 100 ms of PIT channel 2.
+    lapic_write(TIMER_DIVIDE, 0x3);
+    lapic_write(LVT_TIMER, MASKED | TIMER_VECTOR as u32);
+    lapic_write(TIMER_INITIAL, u32::MAX);
+    let tsc = rdtsc();
+    if !(0..10).all(|_| wait_us(10_000)) {
+        serial::fail(b"SMP_TIMER_CALIBRATION");
+    }
+    let lapic = u64::from(u32::MAX - lapic_read(TIMER_CURRENT));
+    let tsc = rdtsc().wrapping_sub(tsc);
+    lapic_write(TIMER_INITIAL, 0);
+    TSC_PER_MS.store((tsc / 100).max(1), Ordering::Release);
+    // LAPIC ticks per PIT IRQ0 tick: 100 ms hold PIT_HZ / 10 / PIT_DIVISOR.
+    serial::write(b"SMP:TIMER:RATIO:");
+    decimal(lapic * 10 * u64::from(PIT_DIVISOR) / PIT_HZ);
+    serial::write(b"\n");
+    // BT-2: LINT0 delivers the PIC (ExtINT), LINT1 the NMI (vector 2, gated
+    // by the M2 IDT); every other local source but the still-masked timer is
+    // masked. TPR 0 and the spurious vector were set in `start`.
+    let max_lvt = (lapic_read(0x30) >> 16) & 0xff;
+    for (lvt, minimum, value) in [
+        (0x350, 0, 0x700),
+        (0x360, 0, 0x400),
+        (0x370, 0, MASKED),
+        (0x340, 4, MASKED),
+        (0x330, 5, MASKED),
+        (0x2f0, 6, MASKED),
+    ] {
+        if max_lvt >= minimum {
+            lapic_write(lvt, value);
+        }
+    }
+    lapic_write(0x80, 0);
+    // BT-1: the 8259 pair remapped to 0x20/0x28 with everything but IRQ0
+    // masked; PIT channel 0 as a rate generator. Channel 2 (`wait_us`) keeps
+    // its own control word; IRQ0 touches neither.
+    for (port, value) in [
+        (0x20, 0x11),
+        (0xa0, 0x11),
+        (0x21, CLOCK_VECTOR as u8),
+        (0xa1, CLOCK_VECTOR as u8 + 8),
+        (0x21, 4),
+        (0xa1, 2),
+        (0x21, 1),
+        (0xa1, 1),
+        (0x21, 0xfe),
+        (0xa1, 0xff),
+    ] {
+        outb(port, value);
+    }
+    outb(0x43, 0x34);
+    outb(0x40, PIT_DIVISOR as u8);
+    outb(0x40, (PIT_DIVISOR >> 8) as u8);
+    // S3: IRQ0/IRQ7 (0x20/0x27), 0xd0, 0xe0, 0xe8, 0xf0 and 0xff are gated
+    // (`start`), so a BSP waiter may now open its window. The control keeps
+    // the BSP window shut.
+    if !cfg!(feature = "test-smp-bsp-spin-irq-off") {
+        BSP_LOCAL.irq_ready.store(true, Ordering::Relaxed);
+    }
+}
+
+/// BT-1 refuted: an AP took the PIT IRQ0 (terminal, from the IRQ0 stub).
+extern "C" fn smp_clock_on_ap() -> ! {
+    serial::write(b"SMP:CLOCK:AP_IRQ0\n");
+    serial::fail(b"SMP_CLOCK_AP_IRQ0")
+}
+
+/// BT-2/S3: this CPU may open a KERNEL/ASPACE wait's interrupt window.
+pub fn irq_ready() -> bool {
+    anchored().irq_ready.load(Ordering::Relaxed)
+}
+
+/// BT-4: a guard released this CPU's last lock and is about to restore IF=1
+/// outside a handler (a kernel thread's pseudo-user context, BT-6). A 0xe8
+/// that INV-5c deferred meanwhile becomes a self 0xe8, taken right after that
+/// `sti`. IF=0 here, so no handler interleaves the swap; the ICR guard of the
+/// send restores IF=0 and calls back with the flag already clear.
+pub fn resched_on_release() {
+    let local = anchored();
+    if local.need_resched.swap(false, Ordering::Relaxed)
+        && !send_ipi(lapic_read(0x20) >> 24, IPI_FIXED | RESCHED_VECTOR as u32)
+    {
+        serial::fail(b"SMP_RESCHED_ON_RELEASE");
+    }
+}
+
+/// BSP phase of `smp_preempt`: 0 none (stay), ROTATE home -> thread0 ->
+/// thread1 -> home, DEFER home <-> the deferred-resched thread.
+static BSP_PHASE: AtomicU32 = AtomicU32::new(0);
+const BSP_ROTATE: u32 = 1;
+const BSP_DEFER: u32 = 2;
+
+/// The BSP's switch (IF=0, lockdep empty outside the held-across control).
+/// Home is the orchestrator, so unlike an AP it takes part in the rotation.
+fn bsp_switch(local: &CpuLocal, rsp: u64, busy: bool) -> Resume {
+    let current = local.current.load(Ordering::Relaxed) as usize;
+    local.saved[current].store(rsp, Ordering::Relaxed);
+    let next = match BSP_PHASE.load(Ordering::Acquire) {
+        BSP_ROTATE => (current + 1) % 3,
+        BSP_DEFER => usize::from(current == 0),
+        _ => current,
+    };
+    if next != current {
+        if busy {
+            held_across_switch();
+        }
+        local.switches.fetch_add(1, Ordering::Relaxed);
+    }
+    local.current.store(next as u32, Ordering::Release);
+    Resume {
+        rsp: local.saved[next].load(Ordering::Relaxed),
+        left: 0,
+    }
+}
+
+/// IRQ0 ticks the BSP idles through for the clock check.
+const CLOCK_SPAN: u64 = 500;
+static CLOCK_LOAD: AtomicBool = AtomicBool::new(false);
+static CLOCK_WORK: AtomicU64 = AtomicU64::new(0);
+
+/// Idle until the clock reaches `target`; the TSC then, or None at `bound`.
+/// Every read checks that the clock never goes back.
+fn clock_at(target: u64, bound: u64, last: &mut u64) -> Option<u64> {
+    loop {
+        let now = CLOCK_TICKS.load(Ordering::Acquire);
+        if now < *last {
+            serial::fail(b"SMP_CLOCK_NOT_MONOTONIC");
+        }
+        *last = now;
+        if now >= target {
+            return Some(rdtsc());
+        }
+        if rdtsc() > bound {
+            return None;
+        }
+        idle_halt();
+    }
+}
+
+/// BT-1 under SMP load (spec 06 §4 "Klok"): every AP spins while the BSP
+/// idles through CLOCK_SPAN IRQ0 ticks; on the PIT-calibrated TSC they must
+/// last the PIT's own period within 1%, and the clock never goes back. A lost
+/// IRQ0 shows up as a longer span.
+fn clock(online: usize, total: usize) -> bool {
+    CLOCK_LOAD.store(true, Ordering::Release);
+    for context in &NOS_SMP_AP_CONTEXTS[..online] {
+        let apic = context.apic_id.load(Ordering::Relaxed);
+        if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32) {
+            CLOCK_LOAD.store(false, Ordering::Release);
+            serial::write(b"SMP:CLOCK:TIMEOUT:APIC=");
+            decimal(u64::from(apic));
+            serial::write(b"\n");
+            quarantine_all(online, total);
+            return false;
+        }
+    }
+    let per_ms = TSC_PER_MS.load(Ordering::Acquire);
+    let bound = rdtsc().saturating_add(4 * CLOCK_SPAN * per_ms);
+    let mut last = CLOCK_TICKS.load(Ordering::Acquire);
+    let first = last + 1;
+    let start = clock_at(first, bound, &mut last);
+    let end = start.and_then(|_| clock_at(first + CLOCK_SPAN, bound, &mut last));
+    CLOCK_LOAD.store(false, Ordering::Release);
+    let (Some(start), Some(end)) = (start, end) else {
+        serial::write(b"SMP:CLOCK:STOPPED\n");
+        serial::fail(b"SMP_CLOCK_STOPPED")
+    };
+    let us = (end - start) * 1000 / per_ms;
+    let expected = CLOCK_SPAN * u64::from(PIT_DIVISOR) * 1_000_000 / PIT_HZ;
+    if us.abs_diff(expected) * 100 > expected {
+        serial::write(b"SMP:CLOCK:DRIFT:US=");
+        decimal(us);
+        serial::write(b"\n");
+        serial::fail(b"SMP_CLOCK_DRIFT");
+    }
+    if online != 0 && CLOCK_WORK.load(Ordering::Acquire) == 0 {
+        serial::fail(b"SMP_CLOCK_NO_LOAD");
+    }
+    serial::write(b"SMP:CLOCK:PASS:CPUS=");
+    decimal(online as u64 + 1);
+    serial::write(b"\n");
+    true
+}
+
+/// BT-2 on the BSP (spec 06 §4 "BSP-preëmptie", step 4's proof on its own
+/// CPU): two kernel threads with register canaries and the home context
+/// share the BSP under its 0xd0 timer; home checks progress in its slices and
+/// idles (BT-3) otherwise. Only this CPU is involved, so a stall is a broken
+/// invariant, not a deaf AP: fail closed.
+fn bsp_preempt(online: usize) -> bool {
+    let local = &BSP_LOCAL;
+    let entries = [
+        nos_smp_thread0 as usize as u64,
+        nos_smp_thread1 as usize as u64,
+    ];
+    for (index, entry) in entries.into_iter().enumerate() {
+        let frame = frame_below(bsp_stack_base(index) + STACK_TOP, entry, 0);
+        local.saved[index + 1].store(frame, Ordering::Relaxed);
+    }
+    local.current.store(0, Ordering::Relaxed);
+    BSP_PHASE.store(BSP_ROTATE, Ordering::Release);
+    start_timer();
+    let counts = || {
+        local
+            .counts
+            .each_ref()
+            .map(|count| count.load(Ordering::Acquire))
+    };
+    let progressed = || {
+        local.tick_count.load(Ordering::Acquire) >= MIN_TICKS
+            && local.switches.load(Ordering::Acquire) >= MIN_SWITCHES
+            && counts().iter().all(|&count| count != 0)
+    };
+    if !idle_until(500, progressed) || {
+        let before = counts();
+        !idle_until(500, || {
+            counts().iter().zip(before).all(|(&now, old)| now > old)
+        })
+    } {
+        serial::fail(b"SMP_BSP_PREEMPT_TIMEOUT");
+    }
+    // Home runs this, so the threads are off the CPU; mask and stop the timer.
+    lapic_write(LVT_TIMER, MASKED | TIMER_VECTOR as u32);
+    lapic_write(TIMER_INITIAL, 0);
+    BSP_PHASE.store(0, Ordering::Release);
+    let frozen = (local.switches.load(Ordering::Acquire), counts());
+    wait_us(10_000);
+    if frozen != (local.switches.load(Ordering::Acquire), counts()) {
+        serial::fail(b"SMP_BSP_PREEMPT_RAN_AFTER_STOP");
+    }
+    if local.corrupt.load(Ordering::Acquire) != 0 {
+        serial::fail(b"SMP_BSP_PREEMPT_CONTEXT_CORRUPT");
+    }
+    serial::write(b"SMP:BSP_PREEMPT:PASS:CPUS=");
+    decimal(online as u64 + 1);
+    serial::write(b"\n");
+    true
+}
+
+/// Shared phase words of AP1's parts (BSP_SPIN, IDLE_PHASE) and their outcomes.
+const STEP_RUN: u32 = 1;
+const STEP_HELD: u32 = 2;
+const STEP_ACKED: u32 = 3;
+const STEP_TIMEOUT: u32 = 4;
+static BSP_SPIN: AtomicU32 = AtomicU32::new(0);
+
+/// AP1, IF=0 in its home loop: take KERNEL, wait until the BSP awaits it
+/// (its lockdep records KERNEL before spinning), then shoot down the BSP
+/// alone; the ack can only come through the BSP's window. The outcome is
+/// published before KERNEL is released, so the BSP reads it under KERNEL.
+fn bsp_spin_work() {
+    let kernel = lock::KERNEL.lock_irqsave();
+    BSP_SPIN.store(STEP_HELD, Ordering::Release);
+    let deadline = u64::from(SHOOTDOWN_DEADLINE_MS);
+    let bsp_waits = || BSP_LOCAL.lockdep.load(Ordering::Acquire) & (1 << level::KERNEL) != 0;
+    let acked = within_tsc(deadline, bsp_waits) && {
+        for slot in &NOS_SMP_SHOOTDOWN_VA {
+            slot.store(paging::SHOOTDOWN_WINDOW, Ordering::Release);
+        }
+        let generation = NOS_SMP_SHOOTDOWN_GEN.fetch_add(1, Ordering::AcqRel) + 1;
+        send_ipi(
+            BSP_APIC_ID.load(Ordering::Relaxed),
+            IPI_FIXED | SHOOTDOWN_VECTOR as u32,
+        ) && within_tsc(deadline, || {
+            BSP_LOCAL.shootdown_ack.load(Ordering::Acquire) == generation
+        })
+    };
+    BSP_SPIN.store(
+        if acked { STEP_ACKED } else { STEP_TIMEOUT },
+        Ordering::Release,
+    );
+    drop(kernel);
+}
+
+/// Spec 06 §4 "BSP als shootdowndoel": AP1 holds KERNEL and starts a round
+/// aimed at the BSP alone while the BSP spins on KERNEL. The ack must arrive
+/// within the deadline through the BSP's window, without quarantine. In
+/// `test-smp-bsp-spin-irq-off` the BSP window stays shut and the round must
+/// time out (terminal marker, no INIT of anything).
+fn bsp_spin(online: usize, total: usize) -> bool {
+    if online == 0 {
+        serial::write(b"SMP:BSP_SPIN:SKIPPED:CPUS=1\n");
+        return true;
+    }
+    let apic = apic_of(0);
+    BSP_SPIN.store(STEP_RUN, Ordering::Release);
+    if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
+        || !within_ms(100, || BSP_SPIN.load(Ordering::Acquire) == STEP_HELD)
+    {
+        serial::write(b"SMP:BSP_SPIN:TIMEOUT:APIC=");
+        decimal(u64::from(apic));
+        serial::write(b"\n");
+        quarantine_all(online, total);
+        return false;
+    }
+    drop(lock::KERNEL.lock_irqsave());
+    if BSP_SPIN.swap(0, Ordering::AcqRel) != STEP_ACKED {
+        serial::write(b"SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=");
+        decimal(u64::from(BSP_APIC_ID.load(Ordering::Relaxed)));
+        serial::write(b"\n");
+        if cfg!(feature = "test-smp-bsp-spin-irq-off") {
+            serial::exit(0x10);
+        }
+        serial::fail(b"SMP_BSP_SPIN_TIMEOUT");
+    }
+    if cfg!(feature = "test-smp-bsp-spin-irq-off") {
+        serial::fail(b"SMP_BSP_SPIN_WINDOW_OPEN");
+    }
+    serial::write(b"SMP:BSP_SPIN:PASS:CPUS=");
+    decimal(online as u64 + 1);
+    serial::write(b"\n");
+    true
+}
+
+/// IDLE_PHASE word: STEP_RUN (wake), IDLE_DEFER, then IDLE_DONE once AP1
+/// took its part (CAS, so a later BSP request is never overwritten).
+const IDLE_DEFER: u32 = 2;
+const IDLE_DONE: u32 = 3;
+static IDLE_PHASE: AtomicU32 = AtomicU32::new(0);
+static IDLE_HALTING: AtomicBool = AtomicBool::new(false);
+static IDLE_SENT_TSC: AtomicU64 = AtomicU64::new(0);
+/// AP1's outcome of the deferred-resched part, and the BSP thread's progress.
+static IDLE_AP: AtomicU32 = AtomicU32::new(0);
+static IDLE_THREAD: AtomicU32 = AtomicU32::new(0);
+static IDLE_LOCK: lock::IrqLock<u32> = lock::IrqLock::new(level::KERNEL, b"KERNEL", 0);
+
+/// AP1, part 1: once the BSP idles, wake it with one 0xe8 and record when.
+fn idle_wake_work() {
+    if IDLE_PHASE
+        .compare_exchange(STEP_RUN, IDLE_DONE, Ordering::AcqRel, Ordering::Acquire)
+        .is_err()
+    {
+        return;
+    }
+    if within_tsc(100, || IDLE_HALTING.load(Ordering::Acquire)) {
+        IDLE_SENT_TSC.store(rdtsc(), Ordering::Release);
+        send_ipi(
+            BSP_APIC_ID.load(Ordering::Relaxed),
+            IPI_FIXED | RESCHED_VECTOR as u32,
+        );
+    }
+}
+
+/// AP1, part 2, IF=0 in its home loop: hold IDLE_LOCK until the BSP thread
+/// waits for it, send the BSP one 0xe8 and see INV-5c defer it, then release.
+/// Bounded throughout; the outcome is published before the release.
+fn idle_defer_work() {
+    if IDLE_PHASE
+        .compare_exchange(IDLE_DEFER, IDLE_DONE, Ordering::AcqRel, Ordering::Acquire)
+        .is_err()
+    {
+        return;
+    }
+    let guard = IDLE_LOCK.lock_irqsave();
+    let deferred = BSP_LOCAL.deferred.load(Ordering::Acquire);
+    IDLE_AP.store(STEP_HELD, Ordering::Release);
+    let ok = within_tsc(100, || {
+        BSP_LOCAL.lockdep.load(Ordering::Acquire) & (1 << level::KERNEL) != 0
+    }) && send_ipi(
+        BSP_APIC_ID.load(Ordering::Relaxed),
+        IPI_FIXED | RESCHED_VECTOR as u32,
+    ) && within_tsc(100, || {
+        BSP_LOCAL.deferred.load(Ordering::Acquire) > deferred
+    });
+    IDLE_AP.store(
+        if ok { STEP_ACKED } else { STEP_TIMEOUT },
+        Ordering::Release,
+    );
+    drop(guard);
+}
+
+/// BSP thread of part 2 (IF=1, pseudo-user, BT-6): wait for IDLE_LOCK while
+/// AP1 sends the deferred 0xe8; the release must then switch away (BT-4).
+/// Never resumed after that switch, so the code below runs only if it failed.
+extern "C" fn nos_smp_bsp_defer() -> ! {
+    IDLE_THREAD.store(1, Ordering::Release);
+    let guard = IDLE_LOCK.lock_irqsave();
+    IDLE_THREAD.store(2, Ordering::Release);
+    drop(guard);
+    for _ in 0..1 << 20 {
+        spin_loop();
+    }
+    if IDLE_AP.load(Ordering::Acquire) != STEP_ACKED {
+        serial::write(b"SMP:IDLE:AP_TIMEOUT\n");
+        serial::fail(b"SMP_IDLE_AP_TIMEOUT");
+    }
+    serial::write(b"SMP:IDLE:RESCHED_LOST\n");
+    serial::fail(b"SMP_IDLE_RESCHED_LOST")
+}
+
+fn idle_timeout(apic: u32, online: usize, total: usize) -> bool {
+    serial::write(b"SMP:IDLE:TIMEOUT:APIC=");
+    decimal(u64::from(apic));
+    serial::write(b"\n");
+    quarantine_all(online, total);
+    false
+}
+
+/// Spec 06 §4 "Idle-wek" and "Uitgestelde resched" (one marker). Part 1: the
+/// BSP idles (timer masked) until AP1's 0xe8 wakes it; the latency from send
+/// to handler is logged. Part 2: with the timer still masked, a BSP thread
+/// waits for a lock AP1 holds; AP1's 0xe8 is deferred (INV-5c) and only the
+/// release of the lock switches the thread away (BT-4). Needs one AP.
+fn idle(online: usize, total: usize) -> bool {
+    if online == 0 {
+        serial::write(b"SMP:IDLE:SKIPPED:CPUS=1\n");
+        return true;
+    }
+    let (apic, local) = (apic_of(0), &BSP_LOCAL);
+    let resched = local.resched_count.load(Ordering::Acquire);
+    BSP_WAKE_TSC.store(0, Ordering::Relaxed);
+    IDLE_PHASE.store(STEP_RUN, Ordering::Release);
+    if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32) {
+        return idle_timeout(apic, online, total);
+    }
+    IDLE_HALTING.store(true, Ordering::Release);
+    let woken = idle_until(200, || {
+        local.resched_count.load(Ordering::Acquire) != resched
+    });
+    IDLE_HALTING.store(false, Ordering::Release);
+    if !woken {
+        return idle_timeout(apic, online, total);
+    }
+    let (sent, woke) = (
+        IDLE_SENT_TSC.load(Ordering::Acquire),
+        BSP_WAKE_TSC.load(Ordering::Acquire),
+    );
+    let latency = woke.saturating_sub(sent) * 1000 / TSC_PER_MS.load(Ordering::Acquire);
+    serial::write(b"SMP:IDLE:WAKE_US=");
+    decimal(latency);
+    serial::write(b"\n");
+    if sent == 0 || woke == 0 || latency >= 100_000 {
+        serial::fail(b"SMP_IDLE_WAKE");
+    }
+    // Part 2. From here only a 0xe8 can switch the BSP: its timer is masked.
+    let frame = frame_below(
+        bsp_stack_base(0) + STACK_TOP,
+        nos_smp_bsp_defer as usize as u64,
+        0,
+    );
+    local.saved[1].store(frame, Ordering::Relaxed);
+    local.current.store(0, Ordering::Relaxed);
+    let (switches, deferred) = (
+        local.switches.load(Ordering::Acquire),
+        local.deferred.load(Ordering::Acquire),
+    );
+    BSP_PHASE.store(BSP_DEFER, Ordering::Release);
+    IDLE_PHASE.store(IDLE_DEFER, Ordering::Release);
+    if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
+        || !within_ms(100, || IDLE_AP.load(Ordering::Acquire) == STEP_HELD)
+    {
+        BSP_PHASE.store(0, Ordering::Release);
+        return idle_timeout(apic, online, total);
+    }
+    if !send_ipi(
+        BSP_APIC_ID.load(Ordering::Relaxed),
+        IPI_FIXED | RESCHED_VECTOR as u32,
+    ) {
+        serial::fail(b"SMP_IDLE_SELF_IPI");
+    }
+    // The pending self 0xe8 switches to the thread in the first idle window;
+    // the thread's release switches back here. A stuck thread never returns,
+    // but its own waits are bounded and end the VM.
+    let returned = idle_until(500, || IDLE_THREAD.load(Ordering::Acquire) == 2);
+    BSP_PHASE.store(0, Ordering::Release);
+    if !returned
+        || local.current.load(Ordering::Acquire) != 0
+        || IDLE_THREAD.load(Ordering::Acquire) != 2
+        || IDLE_AP.load(Ordering::Acquire) != STEP_ACKED
+        || local.deferred.load(Ordering::Acquire) <= deferred
+        || local.switches.load(Ordering::Acquire) != switches + 2
+        || local.lockdep.load(Ordering::Acquire) != 0
+        || local.need_resched.load(Ordering::Acquire)
+    {
+        serial::fail(b"SMP_IDLE_DEFER");
+    }
+    IDLE_PHASE.store(0, Ordering::Release);
+    serial::write(b"SMP:IDLE:PASS:CPUS=");
+    decimal(online as u64 + 1);
+    serial::write(b"\n");
+    true
+}
+
 // Step 5d-1 (spec §6): a run queue per AP and kernel threads in two address
 // spaces. A thread's state word (`smp_lock::sched`) is the only way onto a CPU
 // (INV-3); a CR3 switch keeps `ACTIVE` a superset of the CPUs that may cache a
@@ -2081,7 +2757,7 @@ global_asm!(
     "    pop rax",
     "    jmp nos_smp_timer_body",
     ".popsection",
-    resched = const core::mem::offset_of!(CpuLocal, resched),
+    resched = const core::mem::offset_of!(CpuLocal, resched_count),
 );
 
 fn space(tid: u32) -> Option<usize> {
@@ -2320,7 +2996,7 @@ fn schedule(online: usize, total: usize) -> bool {
             let (here, woken) = (&PROGRESS[slot], &PROGRESS[tid]);
             if !send_ipi(apic, IPI_FIXED | RESCHED_VECTOR as u32)
                 || !within_ms(500, || {
-                    local.resched.load(Ordering::Acquire) != 0
+                    local.resched_count.load(Ordering::Acquire) != 0
                         && woken.load(Ordering::Acquire) != 0
                         && local.cr3_switches.load(Ordering::Acquire) >= MIN_SWITCHES
                 })
@@ -2796,12 +3472,12 @@ fn icr_race_window() {
         && irq_depth() == 0
         && !ICR_RACED.swap(true, Ordering::Relaxed)
     {
-        let before = local.ticks.load(Ordering::Relaxed);
+        let before = local.tick_count.load(Ordering::Relaxed);
         for _ in 0..1 << 24 {
             // SAFETY: CPL0 AP thread context of the ICR phase, which holds no
             // lock; every unmasked source has an IDT entry. Test-only window.
             unsafe { asm!("sti", "pause", "cli") };
-            if local.ticks.load(Ordering::Relaxed) != before {
+            if local.tick_count.load(Ordering::Relaxed) != before {
                 break;
             }
         }
@@ -2825,7 +3501,7 @@ fn icr_work(local: &CpuLocal, slot: usize) {
         let acked = (0..1 << 16).any(|_| {
             // SAFETY: as in `icr_race_window`; IF is 0 again after `cli`.
             unsafe { asm!("sti", "pause", "cli") };
-            partner.resched.load(Ordering::Acquire) >= round
+            partner.resched_count.load(Ordering::Acquire) >= round
         });
         if !acked {
             done = ICR_TIMEOUT;
@@ -2855,7 +3531,10 @@ fn icr(online: usize, total: usize) -> bool {
     }
     let pair = &CPU_LOCAL[..2];
     for local in pair {
-        local.resched.store(0, Ordering::Relaxed);
+        // Both timers are masked, so no entry interleaves; keep the 0xe8
+        // detection of `smp_preempt` (BT-4) in step with the reset count.
+        local.resched_count.store(0, Ordering::Relaxed);
+        local.resched_seen.store(0, Ordering::Relaxed);
     }
     ICR_RUN.store(true, Ordering::Release);
     if !(0..2).all(|slot| send_ipi(apic_of(slot), IPI_FIXED | IPI_VECTOR as u32))
@@ -2871,7 +3550,7 @@ fn icr(online: usize, total: usize) -> bool {
     // Both timers are masked; let a last handler IPI land before counting.
     wait_us(10_000);
     ICR_RUN.store(false, Ordering::Release);
-    let got = |slot: usize| pair[slot].resched.load(Ordering::Acquire);
+    let got = |slot: usize| pair[slot].resched_count.load(Ordering::Acquire);
     let sent = |slot: usize| pair[slot].icr_sent.load(Ordering::Acquire);
     if got(0) > sent(1) || got(1) > sent(0) {
         icr_verdict(b"SMP:ICR:MISROUTED\n");
@@ -3103,10 +3782,10 @@ fn gs_user(online: usize, total: usize) -> bool {
     }
     for (context, local) in aps.iter().zip(locals) {
         let apic = context.apic_id.load(Ordering::Relaxed);
-        let resched = local.resched.load(Ordering::Acquire);
+        let resched = local.resched_count.load(Ordering::Acquire);
         if !send_ipi(apic, IPI_FIXED | RESCHED_VECTOR as u32)
             || !within_ms(500, || {
-                local.resched.load(Ordering::Acquire) > resched
+                local.resched_count.load(Ordering::Acquire) > resched
                     && local.gs_state.load(Ordering::Acquire) == GS_PERIODIC
                     && local.user_ticks.load(Ordering::Acquire) >= MIN_TICKS
             })

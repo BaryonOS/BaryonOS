@@ -35,6 +35,7 @@ test-smp-lock-in-handler = ["native-smp"]
 test-smp-lockpair-order = ["native-smp"]
 test-smp-icr-race = ["native-smp"]
 test-smp-quarantine-lock-held = ["native-smp"]
+test-smp-bsp-spin-irq-off = ["native-smp"]
 framebuffer = ["milestone-m2"]
 # Sole display/input transport; UI policy remains in isolated user services.
 display-input = ["framebuffer", "milestone-m4", "monotonic-clock", "fpu-context", "dep:nieuw-os-display-client", "dep:nieuw-os-ps2"]

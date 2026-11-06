@@ -26,7 +26,20 @@ def started(cpus):
     lines += [f"SMP:AP:{apic}:ONLINE" for apic in range(1, count)]
     if cpus > MAX_CPUS:
         lines.append(f"SMP:SKIPPED:CAPACITY={cpus - MAX_CPUS}")
-    return lines + [f"SMP:ONLINE:{count}/{cpus}", f"SMP:SYNC:PASS:CPUS={count}"]
+    return lines + [f"SMP:ONLINE:{count}/{cpus}", RATIO, f"SMP:SYNC:PASS:CPUS={count}"]
+
+
+# Step 5c-2: QEMU's 1 GHz APIC timer clock / 16 gives 62 500 per PIT tick.
+RATIO = "SMP:TIMER:RATIO:62500"
+
+
+def bsp(count):
+    """Step 5c-2 BSP phases; the shootdown target and idle wake need one AP."""
+    lines = [f"SMP:CLOCK:PASS:CPUS={count}", f"SMP:BSP_PREEMPT:PASS:CPUS={count}"]
+    if count == 1:
+        return lines + ["SMP:BSP_SPIN:SKIPPED:CPUS=1", "SMP:IDLE:SKIPPED:CPUS=1"]
+    return lines + [f"SMP:BSP_SPIN:PASS:CPUS={count}", "SMP:IDLE:WAKE_US=412",
+                    f"SMP:IDLE:PASS:CPUS={count}"]
 
 
 def wake_kill(count):
@@ -46,7 +59,7 @@ def online(cpus):
                             f"SMP:SHOOTDOWN:PASS:CPUS={count}",
                             f"SMP:SHOOTDOWN:VISIBLE:CPUS={count}",
                             f"SMP:PREEMPT:PASS:CPUS={count}",
-                            f"SMP:SPIN:PASS:CPUS={count}",
+                            f"SMP:SPIN:PASS:CPUS={count}"] + bsp(count) + [
                             f"SMP:SCHED:PASS:CPUS={count}"] + wake_kill(count) + [
                             f"SMP:SCRATCH:PASS:CPUS={count}",
                             f"SMP:LOCKPAIR:PASS:CPUS={count}", icr(count),
@@ -55,10 +68,10 @@ def online(cpus):
 
 def failed(status):
     return ["SMP:MADT:CPUS=4:DISABLED=0:HOTPLUG=0", f"SMP:AP:1:{status}",
-            "SMP:BRINGUP:STOPPED", "SMP:ONLINE:1/4", "SMP:SYNC:PASS:CPUS=1",
+            "SMP:BRINGUP:STOPPED", "SMP:ONLINE:1/4", RATIO, "SMP:SYNC:PASS:CPUS=1",
             "SMP:IPI:PASS:ROUNDS=3:CPUS=1", "SMP:SHOOTDOWN:PASS:CPUS=1",
-            "SMP:SHOOTDOWN:VISIBLE:CPUS=1", "SMP:PREEMPT:PASS:CPUS=1", "SMP:SPIN:PASS:CPUS=1",
-            "SMP:SCHED:PASS:CPUS=1"] + wake_kill(1) + [
+            "SMP:SHOOTDOWN:VISIBLE:CPUS=1", "SMP:PREEMPT:PASS:CPUS=1",
+            "SMP:SPIN:PASS:CPUS=1"] + bsp(1) + ["SMP:SCHED:PASS:CPUS=1"] + wake_kill(1) + [
             "SMP:SCRATCH:PASS:CPUS=1", "SMP:LOCKPAIR:PASS:CPUS=1", icr(1),
             "SMP:PARKED:APS=0"] + END
 
@@ -71,7 +84,8 @@ SHOOTDOWN_DEAF = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:TI
                                "SMP:ONLINE:1/4"] + END
 STALE_CONTROL = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:SKIPPED",
                               "SMP:SHOOTDOWN:STALE:APS=3", "SMP:PREEMPT:PASS:CPUS=4",
-                              "SMP:SPIN:PASS:CPUS=4", "SMP:SCHED:PASS:CPUS=4"] + wake_kill(4) + [
+                              "SMP:SPIN:PASS:CPUS=4"] + bsp(4) + [
+                              "SMP:SCHED:PASS:CPUS=4"] + wake_kill(4) + [
                               "SMP:SCRATCH:PASS:CPUS=4", "SMP:LOCKPAIR:PASS:CPUS=4", icr(4),
                               "SMP:PARKED:APS=3"] + END
 LOCKDEP_ORDER = online(2)[:-2] + ["SMP:LOCKDEP:ORDER:30->10"]
@@ -101,6 +115,9 @@ RESCHED_DEAF = online(4)[:-7] + ["SMP:KILL:TIMEOUT:APIC=3", "SMP:QUARANTINED:APS
 ICR_RACE = online(4)[:-4] + ["SMP:ICR:MISROUTED"]
 # Audit F15 (IQ-3): AP2 is deaf holding KERNEL; the BSP stops instead of INIT.
 LOCK_HELD = started(4) + ["SMP:IPI:TIMEOUT:APIC=2", "SMP:QUARANTINE:LOCK_HELD:10:CPU=2"]
+# Step 5c-2 control: the BSP window shut, AP1's round to the BSP times out.
+BSP_SPIN_DEAF = online(4)[:online(4).index("SMP:BSP_PREEMPT:PASS:CPUS=4") + 1] + [
+    "SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=0"]
 GS_USER = online(4)[:-3] + ["SMP:GS:CR4=104", "SMP:GS:PASS:CPUS=4"] + online(4)[-3:]
 GS_IRET = online(4)[:-3] + ["SMP:GS:CR4=104", "SMP:GS:IRET_FIXUP:PASS"]
 GS_NMI = online(4)[:-3] + ["SMP:GS:CR4=104", "SMP:FAULT:AP_NMI_IST:PASS"]
@@ -117,7 +134,7 @@ VALID = {
     "gs-nmi-user": GS_NMI, "shared-scratch": SHARED,
     "lock-in-handler": LOCK_IN_HANDLER, "lockpair-order": LOCKPAIR_ORDER,
     "resched-deaf": RESCHED_DEAF, "icr-race-control": ICR_RACE,
-    "quarantine-lock-held": LOCK_HELD,
+    "quarantine-lock-held": LOCK_HELD, "bsp-spin-irq-off-control": BSP_SPIN_DEAF,
 }
 
 
@@ -357,6 +374,47 @@ class SmpSerialOracle(unittest.TestCase):
         ):
             with self.subTest(case=case, lines=lines[-3:]), self.assertRaises(ValueError):
                 evaluate(case, transcript(lines), 33, False)
+
+    def test_bsp_phases_are_required_and_the_bsp_window_control_stays_terminal(self):
+        # Step 5c-2: every run proves the clock, a calibrated ratio inside the
+        # ADR-080 band and BSP preemption; with an AP also the BSP as shootdown
+        # target and the idle wake (latency below 100 ms). Without APs those two
+        # are skipped, never passed. The shut-window control must time out on
+        # the BSP (APIC 0) and stop there.
+        four, one = online(4), online(1)
+        mutate = lambda lines, old, new: [line.replace(old, new) for line in lines]
+        for case, lines in (
+            ("four", [line for line in four if "SMP:TIMER:RATIO:" not in line]),
+            ("four", mutate(four, RATIO, "SMP:TIMER:RATIO:49999")),
+            ("four", mutate(four, RATIO, "SMP:TIMER:RATIO:75001")),
+            ("four", mutate(four, RATIO, "SMP:TIMER:RATIO:")),
+            ("four", [line for line in four if "SMP:CLOCK:" not in line]),
+            ("four", mutate(four, "SMP:CLOCK:PASS:CPUS=4", "SMP:CLOCK:DRIFT:US=520000")),
+            ("four", [line for line in four if "SMP:BSP_PREEMPT:" not in line]),
+            ("four", [line for line in four if "SMP:BSP_SPIN:" not in line]),
+            ("four", mutate(four, "BSP_SPIN:PASS:CPUS=4", "BSP_SPIN:SKIPPED:CPUS=1")),
+            ("four", [line for line in four if "SMP:IDLE:PASS" not in line]),
+            ("four", [line for line in four if "SMP:IDLE:WAKE_US" not in line]),
+            ("four", mutate(four, "WAKE_US=412", "WAKE_US=100000")),
+            ("four", mutate(four, "WAKE_US=412", "WAKE_US=")),
+            ("four", BSP_SPIN_DEAF),
+            ("one", mutate(one, "SKIPPED:CPUS=1", "PASS:CPUS=1")),
+            ("one", one[:one.index("SMP:IDLE:SKIPPED:CPUS=1")] + ["SMP:IDLE:WAKE_US=412"]
+             + one[one.index("SMP:IDLE:SKIPPED:CPUS=1"):]),
+            ("bsp-spin-irq-off-control", four),                       # window not shut
+            ("bsp-spin-irq-off-control", mutate(BSP_SPIN_DEAF, "APIC=0", "APIC=1")),
+            ("bsp-spin-irq-off-control", BSP_SPIN_DEAF[:-1] + ["SMP:BSP_SPIN:PASS:CPUS=4"]),
+            ("bsp-spin-irq-off-control", BSP_SPIN_DEAF + END),
+            ("bsp-spin-irq-off-control", BSP_SPIN_DEAF[:-2] + BSP_SPIN_DEAF[-1:]),
+            ("spin-irq-off-control", BSP_SPIN_DEAF),
+        ):
+            with self.subTest(case=case, lines=lines[-3:]), self.assertRaises(ValueError):
+                evaluate(case, transcript(lines), 33, False)
+        for value in ("50000", "75000"):
+            lines = mutate(four, RATIO, "SMP:TIMER:RATIO:" + value)
+            self.assertEqual(evaluate("four", transcript(lines), 33, False)["online"], 4)
+        self.assertEqual(evaluate("bsp-spin-irq-off-control", transcript(BSP_SPIN_DEAF), 33,
+                                  False)["online"], 4)
 
     def test_icr_race_accepts_misrouted_or_lost(self):
         for marker in ("SMP:ICR:MISROUTED", "SMP:ICR:LOST"):
