@@ -1,6 +1,31 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — K06 stap 5d-1, runqueues per AP en CR3-wissel — 6 november 2026
+## NEXT AGENT HANDOFF — K06 auditfixes F1 (on_cpu) en F2 (LIFO-lockdep) — 6 november 2026
+
+**Bron:** `600cee93` op `fix/k06-f1-f2-lifo-oncpu` (worktree `nieuw-os-k06-5d`), gestapeld op
+`feat/k06-5d-runqueues` (`76c67f22`). Ontwerp: aanvulling "auditfixes F1/F2" in ADR-074.
+**41 → 41/100**; K06 blijft open.
+
+**Gerealiseerd:** F2: `Lockdep::release` eist LIFO; een release buiten volgorde geeft
+`SMP:LOCKDEP:LIFO:<held>-><released>` en stopt, vóórdat IF wordt hersteld. F1: vlag
+`THREAD_ON_CPU` per thread, gewist door de timerstub na `mov rsp` (`Resume` in RAX:RDX).
+`sched_switch` claimt de vlag met een CAS en wacht nooit; bij een mislukte claim gaat de thread
+terug in de queue en draait de CPU thuis.
+
+**Bewijs (lokaal, native QEMU 10.2.1/OVMF/TCG):** 18/18 over 13 SMP-profielen; herhaald
+`double-run` 10/10 en `four`/`eight`/`two-single` elk 5/5. Zie
+`docs/verification/k06-audit-f1-f2/`. `tools/gate.sh` exit 0 (507 geslaagd, 1 ignored; de
+gate bouwt de native-smp-kernel niet en de QEMU-smoke ontbreekt). Hosttests
+`lockdep_rejects_out_of_order_release` en `stack_is_never_shared_after_early_ready`.
+**Niet uitgevoerd:** CI op de PR (een gestapelde base start `native-smp.yml` niet), en een native
+negatief profiel voor LIFO of de F1-race.
+
+**Open uit de audit:** F8 (GS-anker of `swapgs`, blokkeert ring 3), 5b-2/F20, F3, F4, F16, F17,
+F19 en F15; daarna 5c-2, 5e, 5d-2 en 5f.
+**Eerstvolgend commando:**
+`export NOS_TARGET_DIR="$PWD/target/k06" NOS_BUILD_DIR="$PWD/build/k06-native-smp"; python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
+
+## Historisch checkpoint — K06 stap 5d-1, runqueues per AP en CR3-wissel — 6 november 2026
 
 **Bron:** `7079f788` op `feat/k06-5d-runqueues` (worktree `nieuw-os-k06-5d`), gestapeld op
 #228 (5c, `b593930c`) en #227 (5b). Taakspec: `/tmp/task_spec_5d.md` (lokaal); ontwerp:

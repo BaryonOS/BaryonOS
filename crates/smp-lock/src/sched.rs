@@ -5,7 +5,7 @@
 //! only a `compare_exchange` READY -> RUNNING(cpu) may put a thread on a CPU,
 //! so a thread that is (wrongly) queued twice can never run twice at once.
 
-use core::sync::atomic::{AtomicU32, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
 pub const READY: u32 = 0;
 pub const BLOCKED: u32 = 1;
@@ -36,6 +36,18 @@ pub fn wake(state: &AtomicU32) -> Result<(), u32> {
     state
         .compare_exchange(BLOCKED, READY, Ordering::Release, Ordering::Relaxed)
         .map(drop)
+}
+
+/// Audit F1: a CPU publishes READY ([`yield_cpu`]) while it still runs on the
+/// thread's stack, and leaves that stack only in the interrupt stub. The
+/// thread's `on_cpu` flag is cleared (Release) by that stub after `mov rsp`;
+/// a dispatcher must claim it (Acquire) before resuming the thread. Never
+/// spin on it inside the switch (two CPUs could wait on each other): on
+/// `false`, give the thread back with [`yield_cpu`] and requeue it.
+pub fn claim_stack(on_cpu: &AtomicBool) -> bool {
+    on_cpu
+        .compare_exchange(false, true, Ordering::Acquire, Ordering::Relaxed)
+        .is_ok()
 }
 
 /// FIFO ring of thread IDs; no allocator. Capacity equals the thread count,
@@ -122,6 +134,46 @@ mod tests {
         assert_eq!(yield_cpu(&state, 2), Err(running(1)));
         yield_cpu(&state, 1).unwrap();
         dispatch(&state, 2).unwrap();
+    }
+
+    #[test]
+    fn stack_is_never_shared_after_early_ready() {
+        use std::sync::atomic::AtomicBool;
+        // F1 model: CPU A publishes READY, keeps using the stack, then leaves
+        // it (`on_cpu` cleared, as the stub does). CPU B dispatches the thread
+        // as soon as it is READY and may resume it only after claiming it.
+        for _ in 0..200 {
+            let state = Arc::new(AtomicU32::new(READY));
+            let on_cpu = Arc::new(AtomicBool::new(false));
+            let a_on_stack = Arc::new(AtomicBool::new(false));
+            dispatch(&state, 0).unwrap();
+            assert!(claim_stack(&on_cpu));
+            a_on_stack.store(true, Ordering::Relaxed);
+            let b = {
+                let (state, on_cpu, a_on_stack) = (
+                    Arc::clone(&state),
+                    Arc::clone(&on_cpu),
+                    Arc::clone(&a_on_stack),
+                );
+                thread::spawn(move || loop {
+                    if dispatch(&state, 1).is_err() {
+                        continue;
+                    }
+                    if claim_stack(&on_cpu) {
+                        assert!(!a_on_stack.load(Ordering::Relaxed), "stack shared");
+                        return;
+                    }
+                    yield_cpu(&state, 1).unwrap();
+                })
+            };
+            yield_cpu(&state, 0).unwrap();
+            for _ in 0..1000 {
+                std::hint::spin_loop();
+            }
+            a_on_stack.store(false, Ordering::Relaxed);
+            on_cpu.store(false, Ordering::Release);
+            b.join().unwrap();
+        }
     }
 
     #[test]

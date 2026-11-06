@@ -1297,7 +1297,8 @@ fn probe_visibility(online: usize, total: usize, skipped: bool) -> bool {
 // Preemption (K06 step 4): the AP's LAPIC timer (vector 0xd0) saves every
 // GPR on the interrupted stack, lets `smp_preempt` choose the next stack and
 // resumes it. Kernel code is soft-float with no red zone, so the GPRs plus the
-// CPU's interrupt frame are the complete thread context. 15 pushes + the
+// CPU's interrupt frame are the complete thread context. `smp_preempt`
+// returns `Resume` in RAX:RDX (SysV, two INTEGER eightbytes). 15 pushes + the
 // 5-word frame keep RSP 16-byte aligned for the call (the CPU aligns first).
 global_asm!(
     ".pushsection .text.nos_smp_timer,\"ax\"",
@@ -1310,6 +1311,11 @@ global_asm!(
     "    mov rdi, rsp",
     "    call {preempt}",
     "    mov rsp, rax",
+    // Audit F1: off the old stack now; let other CPUs resume its thread.
+    "    test rdx, rdx",
+    "    jz 2f",
+    "    mov byte ptr [rdx], 0",
+    "2:",
     "    mov dword ptr [{eoi}], 0",
     "    pop r15", "    pop r14", "    pop r13", "    pop r12", "    pop r11",
     "    pop r10", "    pop r9", "    pop r8", "    pop rdi", "    pop rsi",
@@ -1372,6 +1378,17 @@ pub fn lockdep_order(order: smp_lock::Order) -> ! {
     serial::fail(b"SMP_LOCKDEP_ORDER")
 }
 
+/// Terminal report (audit F2): a guard dropped while a higher level is held,
+/// `SMP:LOCKDEP:LIFO:<held>-><released>`. Its saved IF must not be restored.
+pub fn lockdep_lifo(order: smp_lock::Order) -> ! {
+    serial::write(b"SMP:LOCKDEP:LIFO:");
+    decimal(u64::from(order.held));
+    serial::write(b"->");
+    decimal(u64::from(order.wanted));
+    serial::write(b"\n");
+    serial::fail(b"SMP_LOCKDEP_LIFO")
+}
+
 /// Terminal bounded-spin report: `SMP:LOCK:STUCK:<name>:CPU=<slot>`.
 pub fn lock_stuck(name: &[u8]) -> ! {
     serial::write(b"SMP:LOCK:STUCK:");
@@ -1399,10 +1416,18 @@ fn held_across_switch() -> ! {
     serial::fail(b"SMP_LOCKDEP_HELD_ACROSS_SWITCH")
 }
 
+/// Stack to resume and the address of an `on_cpu` flag (audit F1) the stub
+/// clears once it left the old stack; 0 = nothing to clear.
+#[repr(C)]
+struct Resume {
+    rsp: u64,
+    left: u64,
+}
+
 /// Round-robin over home (0) and the two threads (1, 2). After STOP the timer
 /// is masked and the home loop resumes; threads are never run again.
 #[no_mangle]
-extern "C" fn smp_preempt(rsp: u64) -> u64 {
+extern "C" fn smp_preempt(rsp: u64) -> Resume {
     let Some(local) = this_cpu() else {
         // A timer interrupt on a CPU without an anchor is impossible by
         // construction (only APs arm it); stop rather than run unknown state.
@@ -1415,7 +1440,7 @@ extern "C" fn smp_preempt(rsp: u64) -> u64 {
     let busy = local.lockdep.load(Ordering::Relaxed) != 0;
     if busy && !cfg!(feature = "test-smp-held-across-switch") {
         local.deferred.fetch_add(1, Ordering::Release);
-        return rsp;
+        return Resume { rsp, left: 0 };
     }
     if SCHED.load(Ordering::Acquire) != 0 {
         return sched_switch(local, rsp, busy);
@@ -1437,7 +1462,10 @@ extern "C" fn smp_preempt(rsp: u64) -> u64 {
         local.switches.fetch_add(1, Ordering::Relaxed);
     }
     local.current.store(next as u32, Ordering::Release);
-    local.saved[next].load(Ordering::Relaxed)
+    Resume {
+        rsp: local.saved[next].load(Ordering::Relaxed),
+        left: 0,
+    }
 }
 
 /// Each slice parks distinct per-CPU/per-thread values in r12-r15 (and the
@@ -1736,6 +1764,10 @@ static RUNQ: [lock::IrqLock<RunQueue<SCHED_THREADS>>; MAX_APS] =
 static THREAD_STATE: [AtomicU32; SCHED_THREADS] =
     [const { AtomicU32::new(sched::BLOCKED) }; SCHED_THREADS];
 static THREAD_RSP: [AtomicU64; SCHED_THREADS] = [const { AtomicU64::new(0) }; SCHED_THREADS];
+/// Audit F1: set while a CPU is on the thread's stack (`sched::claim_stack`),
+/// cleared by the timer stub only after it switched away from that stack.
+static THREAD_ON_CPU: [AtomicBool; SCHED_THREADS] =
+    [const { AtomicBool::new(false) }; SCHED_THREADS];
 static PROGRESS: [AtomicU64; SCHED_THREADS] = [const { AtomicU64::new(0) }; SCHED_THREADS];
 static SPACE_ROOT: [AtomicU64; 2] = [AtomicU64::new(0), AtomicU64::new(0)];
 static KERNEL_CR3: AtomicU64 = AtomicU64::new(0);
@@ -1791,7 +1823,7 @@ fn switch_space(cpu: usize, from: Option<usize>, to: Option<usize>) {
 
 /// Context switch on an AP (spec §6.3), IF=0 and lockdep empty on entry. The
 /// RUNQ lock covers the state hand-over and the CR3 switch; STOP returns home.
-fn sched_switch(local: &CpuLocal, rsp: u64, busy: bool) -> u64 {
+fn sched_switch(local: &CpuLocal, rsp: u64, busy: bool) -> Resume {
     let slot = local.slot.load(Ordering::Relaxed) as usize;
     let cpu = slot + 1;
     let current = local.sched_cur.load(Ordering::Relaxed);
@@ -1807,13 +1839,22 @@ fn sched_switch(local: &CpuLocal, rsp: u64, busy: bool) -> u64 {
             double_run();
         }
     }
-    let next = if stop {
+    let mut next = if stop {
         HOME
     } else {
         queue.pop().unwrap_or(HOME)
     };
     if next != HOME && sched::dispatch(&THREAD_STATE[next as usize], cpu).is_err() {
         double_run();
+    }
+    // Audit F1: the CPU that last ran `next` may still be on its stack. Do not
+    // wait for it here; requeue and run home until the next tick.
+    if next != HOME && next != current && !sched::claim_stack(&THREAD_ON_CPU[next as usize]) {
+        if sched::yield_cpu(&THREAD_STATE[next as usize], cpu).is_err() || queue.push(next).is_err()
+        {
+            double_run();
+        }
+        next = HOME;
     }
     if busy && next != current {
         held_across_switch();
@@ -1829,9 +1870,17 @@ fn sched_switch(local: &CpuLocal, rsp: u64, busy: bool) -> u64 {
         local.sched_state.store(RESUMED, Ordering::Release);
     }
     local.sched_cur.store(next, Ordering::Relaxed);
-    match next {
-        HOME => local.saved[0].load(Ordering::Relaxed),
-        tid => THREAD_RSP[tid as usize].load(Ordering::Relaxed),
+    let left = if current != HOME && next != current {
+        ptr::from_ref(&THREAD_ON_CPU[current as usize]) as u64
+    } else {
+        0
+    };
+    Resume {
+        rsp: match next {
+            HOME => local.saved[0].load(Ordering::Relaxed),
+            tid => THREAD_RSP[tid as usize].load(Ordering::Relaxed),
+        },
+        left,
     }
 }
 

@@ -110,6 +110,24 @@ iedere AP thuis onder de kernel-CR3, is `ACTIVE` leeg en staat de voortgang stil
 negatieve profiel `test-smp-double-run` zet thread 0 in twee queues en moet de marker
 geven, met exit 0x10. Native lokaal: zie `docs/verification/k06-smp-sched/`.
 
+**Aanvulling auditfixes F1/F2 (6 november 2026, K06-audit).**
+- **F2, LIFO-release.** Elke `IrqGuard` herstelt zijn eigen IF. Als een buitenste
+  guard eerder vrijkomt dan een binnenste, zou `sti` volgen terwijl de binnenste lock
+  (bijv. RUNQ) nog vastzit. Een tick zou dan vastlopen op de eigen RUNQ.
+  `Lockdep::release` eist nu `level == highest()`. Anders stopt de VM met
+  `SMP:LOCKDEP:LIFO:<held>-><released>`, vóórdat IF wordt hersteld.
+- **F1, overdracht van de stack.** `yield_cpu` publiceert READY terwijl de CPU nog
+  op de stack van de thread draait. Die stack verlaat de CPU pas in de stub, met
+  `mov rsp`. Een vlag per thread, `THREAD_ON_CPU`, regelt de overdracht.
+  `smp_preempt` geeft `Resume {rsp, left}` terug in RAX:RDX. De stub wist
+  `[left]` direct na `mov rsp`; op x86 is dat een release-store. `sched_switch` claimt
+  de vlag van de volgende thread met een CAS (Acquire). **Er wordt in de wissel nooit
+  gewacht.** Twee CPU's die van thread ruilen zouden anders met IF=0 op elkaar wachten.
+  Mislukt de claim, dan gaat de thread terug via RUNNING(*c*) → READY. Hij komt achter
+  in de eigen queue en de CPU draait die tick thuis. Dit is hetzelfde patroon als
+  `on_cpu` in Linux, maar zonder wachten in de switch. *Grens: de double-run-test blijft
+  timingafhankelijk (F17, een `queued`-bit, staat nog open).*
+
 **Alternatieven overwogen.** De bestaande TTAS-lock: vervangen, omdat die
 niet FIFO is en onder TCG kan uithongeren. Lockdep alleen in debugbuilds:
 verworpen, omdat de native gate releasebuilds draait.
