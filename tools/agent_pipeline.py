@@ -181,7 +181,8 @@ def run_agent(prompt: str, cwd: Path, log: Path, order: list[str]) -> str:
         command = ENGINES[name]
         if not shutil.which(command[0]):
             continue
-        done = subprocess.run([*command, prompt], cwd=cwd, capture_output=True, text=True)
+        done = subprocess.run([*command, prompt], cwd=cwd, capture_output=True, text=True,
+                              stdin=subprocess.DEVNULL)
         with log.open("a", encoding="utf-8") as out:
             out.write(f"## engine {name} exit {done.returncode}\n{done.stdout}\n{done.stderr}\n")
         if done.returncode == 0:
