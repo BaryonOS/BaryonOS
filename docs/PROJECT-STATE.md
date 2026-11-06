@@ -1,6 +1,33 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — K06 auditfixes F1 (on_cpu) en F2 (LIFO-lockdep) — 6 november 2026
+## NEXT AGENT HANDOFF — K06 auditbevinding F8 (`swapgs`-discipline, ADR-076) — 6 november 2026
+
+**Bron:** `91e84b75` op `fix/k06-f8-swapgs` (worktree `nieuw-os-k06-f8`), gestapeld op
+`fix/k06-f1-f2-lifo-oncpu` (#230, `5dccf290`). Ontwerp: ADR-076, K06-SMP.md INV-8 (GS-1..GS-10).
+**41 → 41/100**; K06 blijft open.
+
+**Gerealiseerd:** `arch::gs_entry!`/`gs_exit!` (één definitie) in de stubs 0xd0/0xe0/0xe8/0xf0 en
+`m3_restore`. In `m2_exception_common` dezelfde proloog met de GS-7-fixup voor een faulting
+`iretq`. NMI/#DF/#MC lopen via `m2_exception_paranoid` (GS-vrij, terminaal). GS-10-check op de BSP.
+Ring-3-GS-fixture `test-smp-gs-{user,iret-fault,nmi-user}` en statische lint
+`tools/tests/test_gs_discipline.py`.
+
+**Bewijs (lokaal, native QEMU 10.2.1/OVMF/TCG):** eerst rood: `c2f1bed0` geeft `SMP:GS:HIJACK`.
+Groen: 21/21 SMP-gevallen over 16 profielen, M2-gate, K05 6/6, native-fpu en fpu-wait. Een
+mutant zonder GS-7 laat N2 falen. Zie `docs/verification/k06-f8-swapgs/`. `tools/gate.sh` exit 0
+(507 geslaagd, 1 ignored; QEMU-smoke-script ontbreekt). Clippy schoon voor `smp-lock` en
+`boot-protocol`.
+**Niet uitgevoerd/open:** CI (een gestapelde base start `native-smp.yml` niet), hardware,
+speculatie (alleen statisch). Kernel-clippy `-D warnings` faalt al vóór deze wijziging
+(paging/main/serial). Afwijkingen: N2 via SS=0x13 (TCG controleert canonieke RIP bij `iretq`
+niet); VA 0 niet user-gemapt.
+
+**Open uit de audit:** 5b-2/F20, F3, F4, F16, F17, F19, F15, het selectorlek (vóór 5d-2) en
+SMEP/SMAP; daarna 5c-2, 5e, 5d-2 en 5f.
+**Eerstvolgend commando:**
+`export NOS_TARGET_DIR="$PWD/target/smp-native" NOS_BUILD_DIR="$PWD/build/k06-test-smp-gs-user"; python3 -B tools/build.py --kernel-feature test-smp-gs-user && python3 -B -u tools/run_smp.py --profile test-smp-gs-user`.
+
+## Historisch checkpoint — K06 auditfixes F1 (on_cpu) en F2 (LIFO-lockdep) — 6 november 2026
 
 **Bron:** `600cee93` op `fix/k06-f1-f2-lifo-oncpu` (worktree `nieuw-os-k06-5d`), gestapeld op
 `feat/k06-5d-runqueues` (`76c67f22`). Ontwerp: aanvulling "auditfixes F1/F2" in ADR-074.

@@ -1,4 +1,4 @@
-"""Audit F8 / ADR-075: static GS discipline of the IDT stubs (spec §5).
+"""Audit F8 / ADR-076: static GS discipline of the IDT stubs (spec §5).
 
 STATIC check only: QEMU-TCG does not model speculation, so this is the sole
 evidence for GS-5 (`lfence` on the join). It reads the `global_asm!` blocks in

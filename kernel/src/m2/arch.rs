@@ -6,7 +6,7 @@ use core::{
     ptr,
 };
 
-/// GS discipline (audit F8, ADR-075 GS-1..GS-10). Entry prologue of an
+/// GS discipline (audit F8, ADR-076 GS-1..GS-10). Entry prologue of an
 /// IRQ/IPI stub, `cs` = offset of the CPU frame's CS from RSP: `swapgs` iff
 /// that frame came from CPL3 (GS-2), then `lfence` on the join so a
 /// mispredicted branch cannot reach a GS-relative load (GS-5). Nothing that

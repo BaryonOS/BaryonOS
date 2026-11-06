@@ -1,5 +1,49 @@
 # Ontwerpbesluiten
 
+## ADR-076 — `swapgs`-discipline voor het per-CPU-GS-anker (K06, auditbevinding F8)
+
+6 november 2026; geldt voor alle profielen, met effect alleen in `native-smp`. ADR-075 blijft
+gereserveerd voor 5b-2. **Probleem:** het per-CPU-anker (`CpuLocal`) staat in
+`IA32_GS_BASE`, maar de IDT-stubs 0xf0, 0xe0 en 0xe8 volgden `gs:[0]` zonder `swapgs`. Ring 3
+kan GS_BASE zonder rechten op 0 zetten (`mov gs, 0x1b`; de DPL3-datadescriptor heeft base 0),
+waarna elke IPI een pointer uit gebruikersgeheugen volgt en daar locked naartoe schrijft (SMEP
+en SMAP staan uit). Dat blokkeert ring 3 op AP's (5d-2).
+
+**Besluit (normatief: GS-1..GS-10 in `docs/implementation/K06-SMP.md` INV-8):**
+- In CPL0 staat het anker van deze CPU in GS_BASE en de gebruikerswaarde in KERNEL_GS_BASE; in
+  CPL3 is het andersom. Bij entry volgt `swapgs` alleen als CS in het hardwareframe van díe entry
+  RPL3 heeft. Bij exit geldt hetzelfde voor het frame dat `iretq` herstelt (na een wissel
+  eventueel van een andere thread). Er wordt geen eerdere beslissing onthouden.
+- Eén definitie: `arch::gs_entry!` (`test; jz; swapgs; lfence` als eerste instructies, vóór
+  elke push of `gs:`-operand) en `arch::gs_exit!` (`test; jz; swapgs` direct vóór een gelabelde
+  `iretq`, met IF=0). 0xe8 springt na zijn eigen proloog naar het timerlichaam: één `swapgs` per
+  entry.
+- Exceptions: dezelfde proloog in `m2_exception_common`. Een `iretq` naar CPL3 die faalt
+  (#GP/#SS/#NP) meldt CS=8 terwijl de user-GS al geladen is. Een frame-RIP gelijk aan een
+  `nos_iret_user_*`-label swapt daarom ook, en het pad blijft terminaal. NMI, #DF en #MC lopen
+  via `m2_exception_paranoid`: nooit `swapgs` of GS, terminaal. Het IST-stackadres
+  identificeert de AP. M3 stuurt #MC nu ook naar `m3_terminal`.
+- Voorwaarde: CR4.FSGSBASE=0 en EFER.SCE=0, anders `SMP:GS:PRECONDITION` en stop. FSGSBASE,
+  `syscall`/`sysret`, user-TLS via GS en NMI's die terugkeren vergen elk een nieuw ADR.
+
+**Bewijs:** rood eerst. Commit `c2f1bed0` (fixture op de oude stubs) geeft
+`SMP:GS:HIJACK` en `M2:FAIL:KERNEL_EXCEPTION`. Daarna, op de fix, N1 `SMP:GS:PASS:CPUS=4`, N2
+`SMP:GS:IRET_FIXUP:PASS` en N3 `SMP:FAULT:AP_NMI_IST:PASS` (QEMU-TCG, 4 vCPU's). Een mutant
+zonder de GS-7-labelvergelijking laat N2 falen. De statische lint `tools/tests/test_gs_discipline.py`
+is het enige bewijs voor de `lfence` (TCG modelleert geen speculatie) en keurt de oude stubs af.
+Zie `docs/verification/k06-f8-swapgs/`.
+
+**Afwijkingen van de taakspec:** VA 0 is in de fixture niet als user-pagina gemapt, omdat die
+in de gedeelde kernel-PD valt. Het rode bewijs is daarom de supervisor-#PF op cr2<4096, niet een
+schrijfactie in een schildwachtpagina. N2 gebruikt SS=0x13 in plaats van een niet-canonieke RIP:
+QEMU-TCG controleert die RIP bij `iretq` niet (de #GP kwam vanuit CPL3). Op echte hardware is dat
+niet getest. De GS-10-check draait op de BSP; AP's nemen exact diens CR4/EFER over of worden als
+MISMATCH geweigerd.
+
+**Open:** SMEP/SMAP (aparte hardening), het selectorlek tussen processen op één CPU (vóór 5d-2),
+#MC op een eigen IST-stack, AMD-null-selectorgedrag (niet testbaar onder TCG) en hardwarebewijs.
+AI-review is geen menselijke audit (B05).
+
 ## ADR-074 — Ticketlock, irqsave en lockdep per CPU (K06 stap 5a)
 
 6 november 2026; alleen in `native-smp`. Dit is de eerste stap naar een

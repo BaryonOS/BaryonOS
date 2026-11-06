@@ -1,0 +1,4 @@
+244ae63f01c4f3411d9d2cc53a169ac340569e2c191d7acac4e7bcecdd927472  docs/verification/k06-f8-swapgs/green/gs-iret-fault-serial.txt
+7cbc2dae66460616b49b28fb038d08393211d9d140f501c7a503c27e9533deb9  docs/verification/k06-f8-swapgs/green/gs-nmi-user-serial.txt
+9f543244e8698ceb2a7cf5d0df1b9be5f36b0afc927ec81a3fb7a2e39e74db8a  docs/verification/k06-f8-swapgs/green/gs-user-serial.txt
+76bfc6085ffe7aea44fd60e6704451c0321002cd64da36ac1b4d7df445a77b46  docs/verification/k06-f8-swapgs/green/native-report.json

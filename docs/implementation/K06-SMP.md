@@ -74,6 +74,23 @@ Elke invariant heeft een weerlegging; de weerlegging wordt een negatieve test (�
 - **INV-7 Geen lock over een contextwissel.** Bij een wissel houdt een CPU geen lock vast,
   behalve de runqueue-overdracht uit §6.3. Er is geen lock die een thread kan vasthouden
   terwijl hij geparkeerd is.
+- **INV-8 GS-discipline (ADR-076, auditbevinding F8).** Elke kernelentry vanuit CPL3 gebruikt
+  het GS-anker pas na `swapgs` en `lfence`; ring 3 kan GS_BASE nooit in kernelcontext brengen.
+  - GS-1: tussen proloog en epiloog bevat GS_BASE het anker van deze CPU en KERNEL_GS_BASE de
+    gebruikerswaarde; in CPL3 andersom.
+  - GS-2: `swapgs` alleen als `CS & 3 == 3` in het frame van díe entry, of van het frame dat
+    `iretq` herstelt.
+  - GS-3: hoogstens één entry-`swapgs`.
+  - GS-4: geen `gs:`, `call` of Rust vóór de proloog.
+  - GS-5: `lfence` op het join-punt.
+  - GS-6: NMI/#DF/#MC nooit `swapgs` of GS; terminaal, de CPU volgt uit het IST-adres.
+  - GS-7: een frame-RIP op een `nos_iret_user_*`-label (een faulting `iretq`) swapt ook.
+  - GS-8: IF=0 van de exit-`swapgs` tot `iretq`.
+  - GS-9: geen `mov gs` of GS-MSR-schrijfactie na de init.
+  - GS-10: CR4.FSGSBASE=0 en EFER.SCE=0.
+
+  *Weerlegd als* een IPI, tick of exception vanuit CPL3 met een door ring 3 gekozen GS_BASE
+  ergens anders telt of schrijft dan in het eigen `CpuLocal` (§9 test 15–17).
 
 ---
 
@@ -349,6 +366,7 @@ onbereikbaar, maar het contract geldt vooruit.
 | 5c | Preëmptie uitgesteld zolang lockdep niet leeg is (vastgehouden of bewaakte lock); `HELD_ACROSS_SWITCH` bij schending (aanvulling ADR-074) | `smp.rs` | lockfixture in `SMP:PREEMPT:PASS`; `test-smp-held-across-switch` → marker |
 | 5c-2 | BSP LAPIC-timer + idle met `sti; hlt`; PIT blijft de klok | `smp.rs`, idle-lus | `native-rtc` 5/5, monotone-klokcheck, BSP-preëmptiecanary |
 | 5d(-1) | Runqueues per AP, threadstatus-CAS (INV-3), 0xe8-wekken, CR3-wissel §6.3 met `active_cpus` (INV-4), met kernelthreads in twee adresruimten (aanvulling ADR-074) | `crates/smp-lock` (`sched`), `smp.rs` | `SMP:SCHED:PASS:CPUS=n`; `test-smp-double-run` → `SMP:SCHED:DOUBLE_RUN` |
+| F8 | `swapgs`-discipline in alle IDT-stubs (INV-8, ADR-076); ring-3-GS-fixture | `arch.rs`, `smp.rs`, `tools/tests/test_gs_discipline.py` | rood op de oude stubs; `SMP:GS:PASS`, `SMP:GS:IRET_FIXUP:PASS`, NMI vanuit CPL3; statische lint |
 | 5d-2 | Ring-3-processen op AP's met dezelfde kern (na 5b-2 en 5c-2; INV-2) | M3-scheduler, `smp.rs` | K05 6/6 op 4 vCPU's; `SMP:SCHED:CPUS=n` met user-werk op elke CPU |
 | 5e | Procesbrede shootdown §7.1/7.2 | paging/unmap, cleanup | dove-AP-negatief, controle zonder shootdown (moet stale-read tonen) |
 | 5f | Migratiefixture + concurrente stress + K06-acceptatie | testfixtures, `tools/run_smp.py`, `docs/verification/k06-smp-sched/` | §9 compleet; progress K06 → accepted |
@@ -392,6 +410,13 @@ Profielen: 1, 2, 4 en 8 vCPU's; zowel single- als multi-thread-TCG (`-accel tcg,
     canary moet afgaan.
 14. `test-smp-spin-irq-off` (controleprofiel, stap 5b): wachten op `KERNEL` zonder IF-venster →
     de wachtende AP bevestigt de shootdown niet → `SMP:SPIN:SHOOTDOWN_TIMEOUT` en INIT voor alle AP's.
+15. `test-smp-gs-user` (F8, INV-8): ring 3 op elke AP laadt zelf GS (0x1b of null). 0xf0, 0xe0,
+    0xe8 en ticks vanuit CPL3 tellen in het eigen anker → `SMP:GS:PASS`. Op de oude stubs gaf
+    dit `SMP:GS:HIJACK` (rood bewijs).
+16. `test-smp-gs-iret-fault`: een `iretq` naar CPL3 faalt (SS 0x13) na de exit-`swapgs` → de
+    GS-7-fixup herstelt het anker → `SMP:GS:IRET_FIXUP:PASS`.
+17. `test-smp-gs-nmi-user`: een NMI naar een AP in CPL3 met gebruikers-GS → AP herkend via het
+    IST-adres, zonder GS → `SMP:FAULT:AP_NMI_IST:PASS`.
 
 **Regressie (ongewijzigd groen):** `milestone-m2` (TCG/1CPU), K05 6/6, `native-rtc` 5/5,
 alle stap-1–4-gevallen (14/14), host-tests `boot-protocol`, `tools/tests`, Clippy, fmt.
