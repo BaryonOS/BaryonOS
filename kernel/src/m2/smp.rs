@@ -239,6 +239,8 @@ static PROBE: AtomicU32 = AtomicU32::new(0);
 /// Frames A (initially behind the window) and B (its replacement).
 static SHOOTDOWN_FRAMES: [AtomicU64; 2] = [AtomicU64::new(0), AtomicU64::new(0)];
 const SHOOTDOWN_VECTOR: usize = 0xe0;
+/// Per-AP ack wait of a shootdown (ADR-072); a kill waits as long (spec §6.4).
+const SHOOTDOWN_DEADLINE_MS: u32 = 100;
 const TIMER_VECTOR: usize = 0xd0;
 /// BSP-driven preemption phase: idle -> run -> stop.
 static PREEMPT: AtomicU32 = AtomicU32::new(0);
@@ -1255,6 +1257,7 @@ fn ipis(
         || !preemption(online, total)
         || !spin_window(online, total)
         || !schedule(online, total)
+        || !block_wake_kill(online, total)
         || !scratch(online, total, frames)
         || !lock_pairs(online, total)
         || !gs_user(online, total)
@@ -1352,7 +1355,7 @@ fn shootdown_round(vas: [u64; 2], online: usize) -> Result<(), u32> {
     for (context, local) in NOS_SMP_AP_CONTEXTS[..online].iter().zip(&CPU_LOCAL) {
         let apic = context.apic_id.load(Ordering::Relaxed);
         if !send_ipi(apic, IPI_FIXED | SHOOTDOWN_VECTOR as u32)
-            || !within_ms(100, || {
+            || !within_ms(SHOOTDOWN_DEADLINE_MS, || {
                 local.shootdown_ack.load(Ordering::Acquire) == generation
             })
         {
@@ -1916,12 +1919,14 @@ fn spin_window(online: usize, total: usize) -> bool {
 // space (INV-4). Ring-3 processes on APs follow in 5d-2, after 5b-2 (INV-2).
 const RESCHED_VECTOR: usize = 0xe8;
 const SCHED_THREADS: usize = 2 * MAX_APS;
+/// This CPU's idle thread (BW-4): the home loop (`sti; hlt; cli`, spec §6.3
+/// step 9), saved in `CpuLocal::saved[0]`, never queued, run under the kernel CR3.
 const HOME: u32 = u32::MAX;
 const ROOT_MASK: u64 = !0xfff;
-/// 0, then PREEMPT_RUN / PREEMPT_STOP for the scheduler phase.
+/// 0, then PREEMPT_RUN / PREEMPT_STOP for a scheduler phase.
 static SCHED: AtomicU32 = AtomicU32::new(0);
-/// Online APs during the phase: thread `tid` runs on AP `tid % aps`, in space
-/// 0 if `tid < aps` (READY at start) and space 1 otherwise (BLOCKED, woken).
+/// First thread in space 1: threads below it run in space 0. The 5d-1 phase
+/// sets the online AP count (thread `tid` on AP `tid % aps`); the F16 phase 2.
 static SCHED_APS: AtomicU32 = AtomicU32::new(0);
 /// Keyed by CPU index (AP slot + 1), the LD-3 order for a RUNQ `lock_pair`.
 static RUNQ: [lock::IrqLock<RunQueue<SCHED_THREADS>>; MAX_APS] = {
@@ -1939,6 +1944,9 @@ static THREAD_RSP: [AtomicU64; SCHED_THREADS] = [const { AtomicU64::new(0) }; SC
 /// Audit F1: set while a CPU is on the thread's stack (`sched::claim_stack`),
 /// cleared by the timer stub only after it switched away from that stack.
 static THREAD_ON_CPU: [AtomicBool; SCHED_THREADS] =
+    [const { AtomicBool::new(false) }; SCHED_THREADS];
+/// BW-2: set while the thread is in some run queue (`RunQueue::push`/`pop`).
+static THREAD_QUEUED: [AtomicBool; SCHED_THREADS] =
     [const { AtomicBool::new(false) }; SCHED_THREADS];
 static PROGRESS: [AtomicU64; SCHED_THREADS] = [const { AtomicU64::new(0) }; SCHED_THREADS];
 static SPACE_ROOT: [AtomicU64; 2] = [AtomicU64::new(0), AtomicU64::new(0)];
@@ -1977,6 +1985,69 @@ fn double_run() -> ! {
     serial::fail(b"SMP_SCHED_DOUBLE_RUN")
 }
 
+/// Terminal report (BW-2, audit F17): a thread already in a run queue was
+/// pushed again. Caught at the push itself, so independent of timing.
+fn double_enqueue() -> ! {
+    serial::write(b"SMP:SCHED:DOUBLE_ENQUEUE\n");
+    if cfg!(feature = "test-smp-double-run") {
+        serial::exit(0x10);
+    }
+    serial::fail(b"SMP_SCHED_DOUBLE_ENQUEUE")
+}
+
+fn enqueue(queue: &mut RunQueue<SCHED_THREADS>, tid: u32) {
+    if queue.push(tid, &THREAD_QUEUED).is_err() {
+        double_enqueue();
+    }
+}
+
+/// Spec §6.3 step 4 for a thread leaving this CPU: back into the queue when
+/// READY (a yield, or READY_PENDING: a wake met the block, BW-1) or dying (a
+/// later switch reaps it, BW-3); out of every queue when BLOCKED.
+fn leave(queue: &mut RunQueue<SCHED_THREADS>, tid: u32, cpu: usize) {
+    let state = &THREAD_STATE[tid as usize];
+    let requeue = match sched::yield_cpu(state, cpu) {
+        Ok(()) | Err(sched::DEAD_PENDING) => true,
+        Err(sched::BLOCKING | sched::READY_PENDING) => match sched::block_commit(state) {
+            Ok(requeue) => requeue,
+            Err(sched::DEAD_PENDING) => true,
+            Err(_) => double_run(),
+        },
+        Err(_) => double_run(),
+    };
+    if requeue {
+        enqueue(queue, tid);
+    }
+}
+
+/// Round robin over the queue as it is now. A dying thread is reaped once no
+/// CPU is on its stack (BW-3: DEAD only after the stub cleared `on_cpu`), else
+/// requeued for a later switch. HOME (idle) when nothing can run.
+fn pick(queue: &mut RunQueue<SCHED_THREADS>, current: u32, cpu: usize) -> u32 {
+    for _ in 0..queue.len() {
+        let Some(tid) = queue.pop(&THREAD_QUEUED) else {
+            break;
+        };
+        let (state, on_cpu) = (&THREAD_STATE[tid as usize], &THREAD_ON_CPU[tid as usize]);
+        match sched::dispatch(state, cpu) {
+            // Audit F1: the CPU that last ran `tid` may still be on its stack.
+            // Do not wait for it here; requeue and run home until the next tick.
+            Ok(()) if tid != current && !sched::claim_stack(on_cpu) => {
+                leave(queue, tid, cpu);
+                return HOME;
+            }
+            Ok(()) => return tid,
+            Err(sched::DEAD_PENDING) => {
+                if sched::kill_commit(state, on_cpu).is_err() {
+                    enqueue(queue, tid);
+                }
+            }
+            Err(_) => double_run(),
+        }
+    }
+    HOME
+}
+
 /// Spec §6.3 step 5: the new space's bit is set before the CR3 load and the
 /// old one cleared after it, so `ACTIVE` never misses a CPU that may cache it.
 fn switch_space(cpu: usize, from: Option<usize>, to: Option<usize>) {
@@ -1996,6 +2067,7 @@ fn switch_space(cpu: usize, from: Option<usize>, to: Option<usize>) {
 
 /// Context switch on an AP (spec §6.3), IF=0 and lockdep empty on entry. The
 /// RUNQ lock covers the state hand-over and the CR3 switch; STOP returns home.
+/// BLOCKING/READY_PENDING/DEAD_PENDING are settled in `leave` and `pick`.
 fn sched_switch(local: &CpuLocal, rsp: u64, busy: bool) -> Resume {
     let slot = local.slot.load(Ordering::Relaxed) as usize;
     let cpu = slot + 1;
@@ -2006,29 +2078,13 @@ fn sched_switch(local: &CpuLocal, rsp: u64, busy: bool) -> Resume {
         local.saved[0].store(rsp, Ordering::Relaxed);
     } else {
         THREAD_RSP[current as usize].store(rsp, Ordering::Relaxed);
-        if sched::yield_cpu(&THREAD_STATE[current as usize], cpu).is_err()
-            || queue.push(current).is_err()
-        {
-            double_run();
-        }
+        leave(&mut queue, current, cpu);
     }
-    let mut next = if stop {
+    let next = if stop {
         HOME
     } else {
-        queue.pop().unwrap_or(HOME)
+        pick(&mut queue, current, cpu)
     };
-    if next != HOME && sched::dispatch(&THREAD_STATE[next as usize], cpu).is_err() {
-        double_run();
-    }
-    // Audit F1: the CPU that last ran `next` may still be on its stack. Do not
-    // wait for it here; requeue and run home until the next tick.
-    if next != HOME && next != current && !sched::claim_stack(&THREAD_ON_CPU[next as usize]) {
-        if sched::yield_cpu(&THREAD_STATE[next as usize], cpu).is_err() || queue.push(next).is_err()
-        {
-            double_run();
-        }
-        next = HOME;
-    }
     if busy && next != current {
         held_across_switch();
     }
@@ -2124,13 +2180,12 @@ fn schedule(online: usize, total: usize) -> bool {
         }
         for (slot, queue) in RUNQ[..online].iter().enumerate() {
             THREAD_STATE[slot].store(sched::READY, Ordering::Release);
-            if queue.lock_irqsave().push(slot as u32).is_err() {
-                serial::fail(b"SMP_SCHED_QUEUE");
-            }
+            enqueue(&mut queue.lock_irqsave(), slot as u32);
         }
         if cfg!(feature = "test-smp-double-run") && online >= 2 {
-            // Thread 0 queued on a second AP as well: dispatch must refuse.
-            let _ = RUNQ[1].lock_irqsave().push(0);
+            // Thread 0 queued on a second AP as well: the push itself must
+            // refuse (BW-2), in every run, before any AP can dispatch it.
+            enqueue(&mut RUNQ[1].lock_irqsave(), 0);
         }
         SCHED.store(PREEMPT_RUN, Ordering::Release);
         for (slot, context) in aps.iter().enumerate() {
@@ -2145,9 +2200,10 @@ fn schedule(online: usize, total: usize) -> bool {
             let (apic, tid) = (context.apic_id.load(Ordering::Relaxed), online + slot);
             {
                 let mut queue = RUNQ[slot].lock_irqsave();
-                if sched::wake(&THREAD_STATE[tid]).is_err() || queue.push(tid as u32).is_err() {
+                if sched::wake(&THREAD_STATE[tid]) != Ok(true) {
                     serial::fail(b"SMP_SCHED_WAKE");
                 }
+                enqueue(&mut queue, tid as u32);
             }
             let (here, woken) = (&PROGRESS[slot], &PROGRESS[tid]);
             if !send_ipi(apic, IPI_FIXED | RESCHED_VECTOR as u32)
@@ -2167,28 +2223,8 @@ fn schedule(online: usize, total: usize) -> bool {
                 return sched_timeout(apic, online, total);
             }
         }
-        SCHED.store(PREEMPT_STOP, Ordering::Release);
-        if !within_ms(200, || {
-            locals
-                .iter()
-                .all(|local| local.sched_state.load(Ordering::Acquire) == RESUMED)
-        }) {
-            serial::write(b"SMP:SCHED:STOP_TIMEOUT\n");
-            quarantine_all(online, total);
+        if !stop_scheduler(online, total) {
             return false;
-        }
-        let snapshot: [u64; SCHED_THREADS] =
-            core::array::from_fn(|tid| PROGRESS[tid].load(Ordering::Acquire));
-        wait_us(10_000);
-        if (0..SCHED_THREADS).any(|tid| PROGRESS[tid].load(Ordering::Acquire) != snapshot[tid]) {
-            serial::fail(b"SMP_SCHED_RAN_AFTER_STOP");
-        }
-        if ACTIVE.iter().any(|bits| bits.load(Ordering::SeqCst) != 0)
-            || locals
-                .iter()
-                .any(|local| local.lockdep.load(Ordering::Acquire) != 0)
-        {
-            serial::fail(b"SMP_SCHED_ACTIVE_LEFT");
         }
         if SCHED_FAULT.load(Ordering::Acquire) != 0 {
             serial::fail(b"SMP_SCHED_SPACE");
@@ -2198,6 +2234,232 @@ fn schedule(online: usize, total: usize) -> bool {
     decimal(online as u64 + 1);
     serial::write(b"\n");
     true
+}
+
+/// End of a scheduler phase: every AP returns home under the kernel CR3 with
+/// no thread running afterwards, no `ACTIVE` bit and no lock left.
+fn stop_scheduler(online: usize, total: usize) -> bool {
+    let locals = &CPU_LOCAL[..online];
+    SCHED.store(PREEMPT_STOP, Ordering::Release);
+    if !within_ms(200, || {
+        locals
+            .iter()
+            .all(|local| local.sched_state.load(Ordering::Acquire) == RESUMED)
+    }) {
+        serial::write(b"SMP:SCHED:STOP_TIMEOUT\n");
+        quarantine_all(online, total);
+        return false;
+    }
+    let snapshot: [u64; SCHED_THREADS] =
+        core::array::from_fn(|tid| PROGRESS[tid].load(Ordering::Acquire));
+    wait_us(10_000);
+    if (0..SCHED_THREADS).any(|tid| PROGRESS[tid].load(Ordering::Acquire) != snapshot[tid]) {
+        serial::fail(b"SMP_SCHED_RAN_AFTER_STOP");
+    }
+    if ACTIVE.iter().any(|bits| bits.load(Ordering::SeqCst) != 0)
+        || locals
+            .iter()
+            .any(|local| local.lockdep.load(Ordering::Acquire) != 0)
+    {
+        serial::fail(b"SMP_SCHED_ACTIVE_LEFT");
+    }
+    true
+}
+
+// Audit F16/F17 (ADR-078): blocking, waking and killing across CPUs. Kernel
+// threads A (tid 0) and B (tid 1) hand a turn to each other under KERNEL
+// 10 000 times, each blocking until the other wakes it (BW-1); then the BSP
+// kills thread K (tid 2, alone in space 1) while it runs (BW-3). A, B and K run
+// on AP1, AP2 and AP3; with fewer APs they share (tid % APs).
+const WAKE_ROUNDS: u64 = 10_000;
+const WAKE_DEADLINE_MS: u32 = 20_000;
+const KILLED: usize = 2;
+/// Online APs in the F16 phase (thread placement).
+static BW_APS: AtomicU32 = AtomicU32::new(0);
+/// The "mailbox": whose turn it is (tid 0 or 1). Only touched under KERNEL.
+static TURN: AtomicU32 = AtomicU32::new(0);
+
+fn bw_slot(tid: usize) -> usize {
+    tid % BW_APS.load(Ordering::Relaxed) as usize
+}
+
+fn apic_of(slot: usize) -> u32 {
+    NOS_SMP_AP_CONTEXTS[slot].apic_id.load(Ordering::Relaxed)
+}
+
+/// Spec §6.4 from CPU index `from`, with KERNEL held (the guard proves it):
+/// RUNQ[slot] -> BLOCKED->READY and enqueue -> unlock -> 0xe8 if that is
+/// another CPU. A BLOCKING target only becomes READY_PENDING: its own switch
+/// requeues it. False if the IPI could not be sent.
+fn wake_on(tid: usize, slot: usize, from: usize, _kernel: &lock::IrqGuard<'_, ()>) -> bool {
+    let enqueued = {
+        let mut queue = RUNQ[slot].lock_irqsave();
+        let enqueued = sched::wake(&THREAD_STATE[tid]) == Ok(true);
+        if enqueued {
+            enqueue(&mut queue, tid as u32);
+        }
+        enqueued
+    };
+    !enqueued || slot + 1 == from || send_ipi(apic_of(slot), IPI_FIXED | RESCHED_VECTOR as u32)
+}
+
+/// A switch on this CPU now: a self 0xe8, sent with IF=0 so no other thread
+/// on this CPU can interleave its own ICR write, and taken right after `sti`.
+fn resched_self(apic: u32) {
+    // SAFETY: CPL0 kernel thread; IF is restored right after the ICR write.
+    unsafe { asm!("cli", options(nomem, nostack)) };
+    let sent = send_ipi(apic, IPI_FIXED | RESCHED_VECTOR as u32);
+    // SAFETY: as above; the pending 0xe8 is delivered after `sti`'s shadow.
+    unsafe { asm!("sti", options(nomem, nostack)) };
+    if !sent {
+        SCHED_FAULT.store(1, Ordering::Release);
+    }
+}
+
+/// A and B: take a turn when it is ours, else block (BW-1 phase 1) under the
+/// same KERNEL that the waker holds, drop KERNEL (no lock over the switch,
+/// BW-5) and switch. K: spin until killed; `test-smp-resched-deaf` first
+/// raises TPR to class 0xe so this AP holds back 0xd0 and 0xe8 (deaf to the kill).
+extern "C" fn nos_smp_bw_thread(tid: u64) -> ! {
+    let tid = tid as usize;
+    let Some(local) = this_cpu() else { park() };
+    let slot = local.slot.load(Ordering::Relaxed) as usize;
+    if tid == KILLED {
+        if cfg!(feature = "test-smp-resched-deaf") {
+            lapic_write(0x80, 0xe0);
+        }
+        loop {
+            PROGRESS[KILLED].fetch_add(1, Ordering::Release);
+            for _ in 0..500 {
+                spin_loop();
+            }
+        }
+    }
+    let (cpu, partner) = (slot + 1, 1 - tid);
+    loop {
+        let kernel = lock::KERNEL.lock_irqsave();
+        if PROGRESS[tid].load(Ordering::Relaxed) < WAKE_ROUNDS
+            && TURN.load(Ordering::Relaxed) == tid as u32
+        {
+            PROGRESS[tid].fetch_add(1, Ordering::Release);
+            TURN.store(partner as u32, Ordering::Relaxed);
+            if !wake_on(partner, bw_slot(partner), cpu, &kernel) {
+                SCHED_FAULT.store(1, Ordering::Release);
+            }
+            continue;
+        }
+        if sched::block_prepare(&THREAD_STATE[tid], cpu).is_err() {
+            SCHED_FAULT.store(1, Ordering::Release);
+        }
+        drop(kernel);
+        resched_self(apic_of(slot));
+    }
+}
+
+fn kill_timeout(apic: u32, online: usize, total: usize) -> bool {
+    // INV-5; the policy for a deaf CPU with locks held follows in step 05.
+    serial::write(b"SMP:KILL:TIMEOUT:APIC=");
+    decimal(u64::from(apic));
+    serial::write(b"\n");
+    quarantine_all(online, total);
+    false
+}
+
+/// BSP: the F16/F17 phase on a clean scheduler (every AP home since the 5d-1
+/// STOP). Ping-pong: both counters reach WAKE_ROUNDS and both threads end
+/// BLOCKED. Kill: DEAD within the deadline, then off its stack, in no queue,
+/// frozen, and its space active on no CPU.
+fn block_wake_kill(online: usize, total: usize) -> bool {
+    if online == 0 {
+        serial::write(b"SMP:WAKE:SKIPPED:CPUS=1\nSMP:KILL:SKIPPED:CPUS=1\n");
+        return true;
+    }
+    for queue in &RUNQ[..online] {
+        let mut queue = queue.lock_irqsave();
+        while queue.pop(&THREAD_QUEUED).is_some() {}
+    }
+    SCHED_APS.store(2, Ordering::Relaxed);
+    BW_APS.store(online as u32, Ordering::Relaxed);
+    TURN.store(0, Ordering::Relaxed);
+    for tid in 0..=KILLED {
+        PROGRESS[tid].store(0, Ordering::Relaxed);
+        THREAD_STATE[tid].store(sched::BLOCKED, Ordering::Relaxed);
+        // Stack: slot tid/2's thread stacks, frozen since the 5d-1 STOP.
+        let entry = nos_smp_bw_thread as usize as u64;
+        let frame = thread_frame(tid / 2, THREADS[tid % 2], entry, tid as u64);
+        THREAD_RSP[tid].store(frame, Ordering::Relaxed);
+    }
+    for local in &CPU_LOCAL[..online] {
+        local.sched_state.store(0, Ordering::Release);
+    }
+    for tid in 0..KILLED {
+        let mut queue = RUNQ[bw_slot(tid)].lock_irqsave();
+        THREAD_STATE[tid].store(sched::READY, Ordering::Release);
+        enqueue(&mut queue, tid as u32);
+    }
+    SCHED.store(PREEMPT_RUN, Ordering::Release);
+    for slot in 0..online {
+        if !send_ipi(apic_of(slot), IPI_FIXED | IPI_VECTOR as u32) {
+            return sched_timeout(apic_of(slot), online, total);
+        }
+    }
+    let rounds = |tid: usize| PROGRESS[tid].load(Ordering::Acquire);
+    if !within_ms(WAKE_DEADLINE_MS, || {
+        rounds(0) == WAKE_ROUNDS && rounds(1) == WAKE_ROUNDS
+    }) || !within_ms(100, || {
+        (0..KILLED).all(|tid| THREAD_STATE[tid].load(Ordering::Acquire) == sched::BLOCKED)
+    }) || SCHED_FAULT.load(Ordering::Acquire) != 0
+    {
+        serial::write(b"SMP:WAKE:TIMEOUT:A=");
+        decimal(rounds(0));
+        serial::write(b":B=");
+        decimal(rounds(1));
+        serial::write(b"\n");
+        quarantine_all(online, total);
+        return false;
+    }
+    serial::write(b"SMP:WAKE:PASS:CPUS=");
+    decimal(online as u64 + 1);
+    serial::write(b"\n");
+    let (slot, state) = (bw_slot(KILLED), &THREAD_STATE[KILLED]);
+    let apic = apic_of(slot);
+    {
+        let mut queue = RUNQ[slot].lock_irqsave();
+        state.store(sched::READY, Ordering::Release);
+        enqueue(&mut queue, KILLED as u32);
+    }
+    if !send_ipi(apic, IPI_FIXED | RESCHED_VECTOR as u32) || !within_ms(500, || rounds(KILLED) != 0)
+    {
+        return sched_timeout(apic, online, total);
+    }
+    {
+        let mut queue = RUNQ[slot].lock_irqsave();
+        match sched::kill_request(state) {
+            Ok(sched::BLOCKED) => enqueue(&mut queue, KILLED as u32),
+            Ok(_) => {}
+            Err(_) => serial::fail(b"SMP_KILL_TWICE"),
+        }
+    }
+    if !send_ipi(apic, IPI_FIXED | RESCHED_VECTOR as u32)
+        || !within_ms(SHOOTDOWN_DEADLINE_MS, || {
+            state.load(Ordering::Acquire) == sched::DEAD
+        })
+    {
+        return kill_timeout(apic, online, total);
+    }
+    let last = rounds(KILLED);
+    wait_us(10_000);
+    if THREAD_ON_CPU[KILLED].load(Ordering::Acquire)
+        || THREAD_QUEUED[KILLED].load(Ordering::Acquire)
+        || ACTIVE[1].load(Ordering::SeqCst) != 0
+        || rounds(KILLED) != last
+    {
+        serial::fail(b"SMP_KILL_NOT_DEAD");
+    }
+    serial::write(b"SMP:KILL:PASS:CPUS=");
+    decimal(online as u64 + 1);
+    serial::write(b"\n");
+    stop_scheduler(online, total)
 }
 
 // Step 5b-2 (ADR-075, K-1/K-2): every CPU zeroes, fills and checks its OWN

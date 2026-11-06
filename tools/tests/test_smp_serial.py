@@ -29,6 +29,12 @@ def started(cpus):
     return lines + [f"SMP:ONLINE:{count}/{cpus}", f"SMP:SYNC:PASS:CPUS={count}"]
 
 
+def wake_kill(count):
+    """Audit F16/F17: ping-pong and kill need at least one AP."""
+    status = "SKIPPED" if count == 1 else "PASS"
+    return [f"SMP:WAKE:{status}:CPUS={count}", f"SMP:KILL:{status}:CPUS={count}"]
+
+
 def online(cpus):
     count = min(cpus, MAX_CPUS)
     return started(cpus) + [f"SMP:IPI:PASS:ROUNDS=3:CPUS={count}",
@@ -36,7 +42,7 @@ def online(cpus):
                             f"SMP:SHOOTDOWN:VISIBLE:CPUS={count}",
                             f"SMP:PREEMPT:PASS:CPUS={count}",
                             f"SMP:SPIN:PASS:CPUS={count}",
-                            f"SMP:SCHED:PASS:CPUS={count}",
+                            f"SMP:SCHED:PASS:CPUS={count}"] + wake_kill(count) + [
                             f"SMP:SCRATCH:PASS:CPUS={count}",
                             f"SMP:LOCKPAIR:PASS:CPUS={count}",
                             f"SMP:PARKED:APS={count - 1}"] + END
@@ -47,7 +53,8 @@ def failed(status):
             "SMP:BRINGUP:STOPPED", "SMP:ONLINE:1/4", "SMP:SYNC:PASS:CPUS=1",
             "SMP:IPI:PASS:ROUNDS=3:CPUS=1", "SMP:SHOOTDOWN:PASS:CPUS=1",
             "SMP:SHOOTDOWN:VISIBLE:CPUS=1", "SMP:PREEMPT:PASS:CPUS=1", "SMP:SPIN:PASS:CPUS=1",
-            "SMP:SCHED:PASS:CPUS=1", "SMP:SCRATCH:PASS:CPUS=1", "SMP:LOCKPAIR:PASS:CPUS=1",
+            "SMP:SCHED:PASS:CPUS=1"] + wake_kill(1) + [
+            "SMP:SCRATCH:PASS:CPUS=1", "SMP:LOCKPAIR:PASS:CPUS=1",
             "SMP:PARKED:APS=0"] + END
 
 
@@ -59,7 +66,7 @@ SHOOTDOWN_DEAF = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:TI
                                "SMP:ONLINE:1/4"] + END
 STALE_CONTROL = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:SKIPPED",
                               "SMP:SHOOTDOWN:STALE:APS=3", "SMP:PREEMPT:PASS:CPUS=4",
-                              "SMP:SPIN:PASS:CPUS=4", "SMP:SCHED:PASS:CPUS=4",
+                              "SMP:SPIN:PASS:CPUS=4", "SMP:SCHED:PASS:CPUS=4"] + wake_kill(4) + [
                               "SMP:SCRATCH:PASS:CPUS=4", "SMP:LOCKPAIR:PASS:CPUS=4",
                               "SMP:PARKED:APS=3"] + END
 LOCKDEP_ORDER = online(2)[:-2] + ["SMP:LOCKDEP:ORDER:30->10"]
@@ -72,15 +79,19 @@ SPIN_DEAF = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:PASS:CP
                           "SMP:ONLINE:1/4"] + END
 HELD_ACROSS = started(2) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=2", "SMP:SHOOTDOWN:PASS:CPUS=2",
                             "SMP:SHOOTDOWN:VISIBLE:CPUS=2", "SMP:LOCKDEP:HELD_ACROSS_SWITCH"]
-DOUBLE_RUN = online(4)[:-6] + ["SMP:SCHED:DOUBLE_RUN"]
+# BW-2 (audit F17): the second push of thread 0 is refused at the push itself.
+DOUBLE_RUN = online(4)[:-8] + ["SMP:SCHED:DOUBLE_ENQUEUE"]
 # Step 5b-2 control: every CPU in scratch slot 0; any CPU may see the crossing.
 SHARED = online(4)[:-5] + ["SMP:SCRATCH:CROSS:CPU=2"]
 # Audit F3 (LD-1): the first 0xe8 handler takes KERNEL, in the scheduler phase.
-LOCK_IN_HANDLER = online(2)[:-6] + ["SMP:LOCKDEP:IN_HANDLER:10"]
+LOCK_IN_HANDLER = online(2)[:-8] + ["SMP:LOCKDEP:IN_HANDLER:10"]
 # Audit F4 (LD-3): two ASPACE locks taken loose and descending, after scratch.
 LOCKPAIR_ORDER = online(2)[:-4] + ["SMP:LOCKDEP:ORDER:20->20"]
 # Audit F8: the ring-3 GS fixture runs after the scheduler phase (CR4 = 104 is
 # DE|PAE|MCE as printed under OVMF/TCG; only FSGSBASE, bit 16, is checked).
+# BW-3: the kill target on AP3 (APIC 3) ignores 0xe8; INV-5 quarantine follows.
+RESCHED_DEAF = online(4)[:-6] + ["SMP:KILL:TIMEOUT:APIC=3", "SMP:QUARANTINED:APS=3",
+                                 "SMP:ONLINE:1/4"] + END
 GS_USER = online(4)[:-3] + ["SMP:GS:CR4=104", "SMP:GS:PASS:CPUS=4"] + online(4)[-3:]
 GS_IRET = online(4)[:-3] + ["SMP:GS:CR4=104", "SMP:GS:IRET_FIXUP:PASS"]
 GS_NMI = online(4)[:-3] + ["SMP:GS:CR4=104", "SMP:FAULT:AP_NMI_IST:PASS"]
@@ -96,6 +107,7 @@ VALID = {
     "double-run": DOUBLE_RUN, "gs-user": GS_USER, "gs-iret-fault": GS_IRET,
     "gs-nmi-user": GS_NMI, "shared-scratch": SHARED,
     "lock-in-handler": LOCK_IN_HANDLER, "lockpair-order": LOCKPAIR_ORDER,
+    "resched-deaf": RESCHED_DEAF,
 }
 
 
@@ -219,12 +231,33 @@ class SmpSerialOracle(unittest.TestCase):
             ("four", [line.replace("SCHED:PASS:CPUS=4", "SCHED:PASS:CPUS=3") for line in online(4)]),
             ("four", DOUBLE_RUN),
             ("double-run", online(4)),
-            ("double-run", DOUBLE_RUN[:-1] + ["SMP:SCHED:PASS:CPUS=4", "SMP:SCHED:DOUBLE_RUN"]),
+            ("double-run", DOUBLE_RUN[:-1] + ["SMP:SCHED:PASS:CPUS=4", "SMP:SCHED:DOUBLE_ENQUEUE"]),
             ("double-run", DOUBLE_RUN + ["SMP:PARKED:APS=3"]),
+            ("double-run", DOUBLE_RUN[:-1] + ["SMP:SCHED:DOUBLE_RUN"]),  # timing, not the push
         ):
             with self.subTest(case=case, lines=lines[-3:]), self.assertRaises(ValueError):
                 evaluate(case, transcript(lines), 33, False)
         self.assertEqual(evaluate("double-run", transcript(DOUBLE_RUN), 33, False)["online"], 4)
+
+    def test_wake_and_kill_phases_are_required_and_the_deaf_kill_quarantines(self):
+        # Audit F16/F17: every run with APs proves ping-pong and kill for all
+        # CPUs; without APs both are reported skipped, never passed. The deaf
+        # control must time out on AP3 and quarantine, never pass.
+        for case, lines in (
+            ("four", [line for line in online(4) if "SMP:WAKE:" not in line]),
+            ("four", [line for line in online(4) if "SMP:KILL:" not in line]),
+            ("four", [line.replace("WAKE:PASS:CPUS=4", "WAKE:PASS:CPUS=3") for line in online(4)]),
+            ("four", [line.replace("KILL:PASS", "KILL:SKIPPED") for line in online(4)]),
+            ("one", [line.replace("SKIPPED", "PASS") for line in online(1)]),
+            ("four", RESCHED_DEAF),
+            ("resched-deaf", online(4)),                                   # kill not deaf
+            ("resched-deaf", [line for line in RESCHED_DEAF if "QUARANTINED" not in line]),
+            ("resched-deaf", [line.replace("APIC=3", "APIC=1") for line in RESCHED_DEAF]),
+            ("resched-deaf", online(4)[:-6] + ["SMP:KILL:PASS:CPUS=4"] + RESCHED_DEAF[-5:]),
+        ):
+            with self.subTest(case=case, lines=lines[-6:]), self.assertRaises(ValueError):
+                evaluate(case, transcript(lines), 33, False)
+        self.assertEqual(evaluate("resched-deaf", transcript(RESCHED_DEAF), 33, False)["online"], 1)
 
     def test_gs_fixture_is_exact_and_its_markers_stay_in_their_profiles(self):
         # Audit F8: the red run (old stubs) must be rejected, FSGSBASE must be
@@ -268,7 +301,7 @@ class SmpSerialOracle(unittest.TestCase):
             ("shared-scratch", SHARED[:-1] + ["SMP:SCRATCH:PASS:CPUS=4", SHARED[-1]]),
             ("shared-scratch", SHARED + SHARED[-1:]),                   # two reporters
             ("shared-scratch", SHARED + ["SMP:PARKED:APS=3"]),
-            ("shared-scratch", SHARED[:-2] + SHARED[-1:]),              # before SCHED:PASS
+            ("shared-scratch", SHARED[:-2] + SHARED[-1:]),              # before KILL:PASS
         ):
             with self.subTest(case=case, lines=lines[-3:]), self.assertRaises(ValueError):
                 evaluate(case, transcript(lines), 33, False)
@@ -282,7 +315,7 @@ class SmpSerialOracle(unittest.TestCase):
                       for line in online(4)]),
             ("lock-in-handler", online(2)),                              # not detected
             ("lock-in-handler", LOCK_IN_HANDLER[:-1] + ["SMP:LOCKDEP:IN_HANDLER:20"]),
-            ("lock-in-handler", online(2)[:-5] + LOCK_IN_HANDLER[-1:]),  # after SCHED:PASS
+            ("lock-in-handler", online(2)[:-5] + LOCK_IN_HANDLER[-1:]),  # after KILL:PASS
             ("lockpair-order", online(2)),                               # pair order missed
             ("lockpair-order", LOCKPAIR_ORDER[:-1] + ["SMP:LOCKDEP:ORDER:30->10"]),
             ("lockpair-order", LOCKPAIR_ORDER + END),

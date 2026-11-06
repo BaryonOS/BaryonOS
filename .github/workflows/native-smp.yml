@@ -105,12 +105,18 @@ jobs:
         run: |
           python3 -B tools/build.py --kernel-feature test-smp-held-across-switch
           python3 -B -u tools/run_smp.py --profile test-smp-held-across-switch
-      - name: A thread queued on two CPUs is refused with the double-run marker
+      - name: A second push of a queued thread is refused at the push (audit F17)
         env:
           NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-double-run
         run: |
           python3 -B tools/build.py --kernel-feature test-smp-double-run
           python3 -B -u tools/run_smp.py --profile test-smp-double-run
+      - name: A kill aimed at an AP that ignores 0xe8 times out and quarantines (audit F16)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-resched-deaf
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-resched-deaf
+          python3 -B -u tools/run_smp.py --profile test-smp-resched-deaf
       - name: Ring 3 with its own GS on every AP; faulting iretq and NMI from CPL3 (audit F8)
         run: |
           for profile in test-smp-gs-user test-smp-gs-iret-fault test-smp-gs-nmi-user; do
