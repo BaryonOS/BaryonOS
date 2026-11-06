@@ -60,6 +60,28 @@ hosttest `lock_with`, de serial-oracle en kernelbuilds. **Native QEMU staat
 open** (`native-smp.yml`). De oude 5b-inhoud (KERNEL-lock om M3-syscalls,
 scratchslot per CPU, ADR-075) schuift door naar stap 5b-2.
 
+**Aanvulling stap 5c (6 november 2026): geen wissel met een vastgehouden of
+bewaakte lock (INV-7).** Lockdep geldt per CPU, niet per thread. Een timertick
+(0xd0) kan alleen binnenkomen met een lock vastgehouden of bewaakt via het
+5b-venster: binnen een vastgehouden sectie is IF=0. `smp_preempt` stelt zo'n tick
+daarom uit wanneer de lockdepset van deze CPU niet leeg is. De onderbroken context
+hervat ongewijzigd, telt `deferred`, en een latere tick probeert het opnieuw. Dat
+geldt ook voor STOP, de wissel naar home. Een wissel die toch met een niet-lege set
+plaatsvindt, geeft `SMP:LOCKDEP:HELD_ACROSS_SWITCH` en stopt (spec §4.4).
+- Geen `need_resched` of directe herplanning bij het vrijgeven: de volgende tick
+  volstaat. *shortcut: wissel wacht hoogstens één timerperiode; herzien in 5d als de
+  runqueue-latentie dat vraagt.*
+- De BSP-LAPIC-timer en idle met `sti; hlt` (de oude 5c) heten nu 5c-2. Het
+  BSP-venster uit 5b volgt daar.
+
+Bewijs: opgevouwen in `SMP:PREEMPT:PASS`. De BSP houdt een lock op KERNEL-niveau
+terwijl de draaiende thread op elke AP erop wacht. Eis: `deferred` stijgt,
+`switches` blijft gelijk over ten minste twee uitgestelde ticks, en na het
+vrijgeven loopt `switches` weer op. Het negatieve profiel
+`test-smp-held-across-switch` (zonder uitstel) moet de marker geven, met exit
+0x10. Lokaal: serial-oracle en kernelbuilds. **Native QEMU staat open**
+(`native-smp.yml`).
+
 **Alternatieven overwogen.** De bestaande TTAS-lock: vervangen, omdat die
 niet FIFO is en onder TCG kan uithongeren. Lockdep alleen in debugbuilds:
 verworpen, omdat de native gate releasebuilds draait.
