@@ -16,7 +16,7 @@ concurrency:
 jobs:
   host-quality:
     name: host-quality
-    runs-on: [self-hosted, Linux]
+    runs-on: [self-hosted, Linux, X64, unraid, build]
     timeout-minutes: 30
     steps:
       - name: Checkout
@@ -149,7 +149,7 @@ jobs:
   qemu-smoke:
     name: qemu-smoke
     needs: host-quality
-    runs-on: [self-hosted, Linux]
+    runs-on: [self-hosted, Linux, X64, unraid, build]
     timeout-minutes: 30
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
@@ -174,8 +174,7 @@ jobs:
           key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
       - name: Install disposable emulator dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+          dpkg -s qemu-system-x86 ovmf >/dev/null 2>&1 || { echo "::warning::ontbreekt in runner-image: qemu-system-x86 ovmf"; sudo apt-get update; sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf; }
       - name: Preflight
         run: python3 -B tools/preflight.py --strict
       - name: Baseline M6c smoke
