@@ -60,11 +60,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-05 · **Rubric:** v1 ·
-**Bron:** [`10f6ac74`](https://github.com/simonvanieperen/nieuw-os/commit/10f6ac74cab05b693777ec60740f9352f10cfe15) ·
-**Ontwikkelbranch:** `docs/niet-wachten-op-ci`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Werkwijze: niet wachten op CI of open PR's; acceptatie op de beoordeelde ontwikkelstand (AGENTS.md).
-41/100 blijft 41/100. Alleen AGENTS.md is gewijzigd: CI en open PR's blokkeren vervolgwerk niet meer, en criteria met een aantoonbaar geslaagde native gate op de branch worden daar geaccepteerd (volgens de bestaande regel in docs/PROGRESS.md). Geen criterium, gewicht of bewijs gewijzigd.
+**Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
+**Bron:** [`e7f99d59`](https://github.com/simonvanieperen/nieuw-os/commit/e7f99d5939a52922f1c15127c8f54895634bdce8) ·
+**Ontwikkelbranch:** `docs/graphify-mcp-methode`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Werkwijze: één Graphify-methode (alleen de gehoste MCP) voor alle AI's (AGENTS.md, CLAUDE.md, Copilot-instructies).
+41/100 blijft 41/100. Alleen agentinstructies zijn gewijzigd: iedere AI gebruikt uitsluitend de gehoste Graphify-MCP (geen lokale graphify-run of graphify-out/), CLAUDE.md laadt AGENTS.md en Copilot krijgt dezelfde regel. Geen criterium, gewicht of bewijs gewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

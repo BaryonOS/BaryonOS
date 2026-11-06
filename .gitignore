@@ -31,3 +31,6 @@ Thumbs.db
 
 __pycache__/
 *.pyc
+
+# Lokale Graphify-uitvoer; alleen de gehoste MCP is in gebruik (AGENTS.md)
+/graphify-out/

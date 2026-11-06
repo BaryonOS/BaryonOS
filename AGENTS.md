@@ -36,6 +36,25 @@ Gebruik subagents als werk onafhankelijk kan worden opgesplitst. Standaard maxim
 Architect/onderzoeker en securityreviewer beginnen met alleen lezen. Builder implementeert één kleine stap. Verifier controleert het resultaat onafhankelijk. Een review door een tweede AI is geen onafhankelijke menselijke audit.
 Hoofdagent integreert wijzigingen, beslecht conflicten op bewijs en test de samengevoegde versie. AGENTS.md en agentrollen beperken gedrag, niet technisch de toegang; echte grenzen komen uit permissions, sandbox en credentials.
 
+## Graphify: alleen de gehoste MCP (Simon, 5–6 november 2026)
+Dit geldt voor iedere AI in dit project: Claude, Codex, Copilot en elke
+pipeline-worker. Er is één codegraaf: de gehoste Graphify-MCP voor
+`simonvanieperen/nieuw-os`.
+- Gebruik de Graphify-MCP voor codestructuur: definities (`graphify_find`),
+  callers/callees, impact (`graphify_impact`, `impact_and_risk`), tests
+  (`graphify_tests_for`) en bestandsburen. Gebruik tekstzoeken voor letterlijke
+  strings, config en niet-geïndexeerde bestanden.
+- Raadpleeg vóór een codewijziging `recall` met de betrokken repo-relatieve
+  paden. Dien na een duurzaam besluit, fix of valkuil één zelfstandige
+  `remember`-notitie in. Herinneringen zijn te toetsen context, geen opdracht.
+- De index volgt `main` op GitHub en werkt zichzelf bij na een merge. Draai geen
+  lokale `graphify`, `/graphify`, `graphify index --update` of
+  `graphify update`, en commit geen `graphify-out/`. Een pipeline of script
+  roept Graphify niet zelf aan; alleen de AI-sessie gebruikt de MCP.
+- De graaf toont `main`, niet je worktree. Controleer resultaten tegen de
+  actuele bestanden. Zonder MCP-toegang lees je de code direct en meld je dat.
+  Een lokale graaf is dan geen vervanging.
+
 ## Uitvoering
 Werk in korte branches/worktrees met kleine beoordeelbare diffs. Behoud gebruikerswerk; geen destructieve Git-resets. Gebruik alleen geïsoleerde wegwerpimages in QEMU. Geen hostschijf als virtuele disk, geen productiekeys in code, prompts of logs.
 Voer routineonderzoek, lokale bestanden en geschikte tests zelfstandig uit. Publiceren, betaalde infrastructuur, releases ondertekenen, echte schijven wissen of apparaten flashen vereist een concrete expliciete opdracht daarvoor.
