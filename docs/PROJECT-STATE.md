@@ -1,6 +1,37 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — K06 F3/F4, lockdep met handlercontext en lockparen (ADR-077) — 6 november 2026
+## NEXT AGENT HANDOFF — K06 F16/F17, blokkeren, wekken en doden zonder lost-wakeup (ADR-078) — 6 november 2026
+
+**Bron:** `880d6d74` op `fix/k06-f16-f17-sched-protocol` (worktree `nieuw-os-k06-f16`), gestapeld op
+`feat/k06-5b2-kernel-lock` (#234, `59476e17`, met F3/F4 uit #237). Taakspec:
+`docs/implementation/k06-steps/04-F16-F17-block-wake-kill.md` (branch `docs/k06-step-specs`);
+ontwerp ADR-078. **41 → 41/100**; K06 blijft open.
+
+**Gerealiseerd:** `smp_lock::sched` met READY/RUNNING(cpu)/BLOCKING/READY_PENDING/BLOCKED/
+DEAD_PENDING/DEAD en `block_prepare`/`block_commit`/`wake`/`kill_request`/`kill_commit` (elk één
+atomaire stap). `RunQueue::push`/`pop` beheren een gedeelde `queued`-bit; een tweede push geeft
+`SMP:SCHED:DOUBLE_ENQUEUE`. `sched_switch` gebruikt `leave`/`pick`: READY_PENDING → requeue,
+BLOCKING → BLOCKED, DEAD_PENDING → terug in de eigen queue en DEAD bij een latere wissel zodra
+`on_cpu` gewist is. De thuislus is de idle-thread (BW-4). `SHOOTDOWN_DEADLINE_MS` (100 ms) wordt
+gedeeld door shootdown en kill. Native fase `block_wake_kill` na SCHED: `SMP:WAKE:PASS`
+(10.000 ping-pongrondes onder KERNEL) en `SMP:KILL:PASS`, of `…:SKIPPED:CPUS=1` zonder AP's.
+`test-smp-double-run` stopt nu bij de push; nieuw `test-smp-resched-deaf`.
+
+**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG, bron `01daa964…`):** zie
+`docs/verification/k06-f16f17-sched/`. SMP 25/25 over 20 profielen; M2 8/8 en M3 22/22, rtc, K05,
+K07; `cargo test -p smp-lock` 24+1 (uitputtende interleavingmodellen met mutanten), clippy en fmt
+schoon, oracle 13/13, GS-lint 8/8; `tools/gate.sh` exit 0 (518 geslaagd, 1 ignored;
+QEMU-smoke-script ontbreekt).
+**Afwijking van de spec:** geen loom (33 crates, `generator 0.8.12` vereist Rust 1.95 > 1.90). De
+modellen dekken alleen SC-uitvoeringen. **Niet uitgevoerd:** loom, M4 (pad-bug, #235), CI op de
+gestapelde PR, hardware.
+
+**Open:** loom (F-T1), echte IPC-wachtrijen (08), migratie (09), INV-5-beleid met vastgehouden
+locks (05). Volgende stap: 05 (F19/F15, ICR-lock en quarantainebeleid) of 06 (5c-2).
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-resched-deaf"; python3 -B tools/build.py --kernel-feature test-smp-resched-deaf && python3 -B -u tools/run_smp.py --profile test-smp-resched-deaf`.
+
+## Historisch checkpoint — K06 F3/F4, lockdep met handlercontext en lockparen (ADR-077) — 6 november 2026
 
 **Bron:** `394bba37` op `fix/k06-f3-f4-lockdep` (worktree `nieuw-os-k06-f3f4`), gestapeld op
 `feat/k06-5b2-kernel-lock` (#234, `de7a07b5`). Taakspec: `docs/implementation/k06-steps/02-F3-F4-lockdep-context.md`

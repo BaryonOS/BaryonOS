@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
-**Bron:** [`394bba37`](https://github.com/simonvanieperen/nieuw-os/commit/394bba37e2d9172d369be0f7245a2eac8b2f0a3f) ·
-**Ontwikkelbranch:** `fix/k06-f3-f4-lockdep`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 auditbevindingen F3/F4: lockdep met handlercontext en lockparen per niveau (ADR-077).
-41/100 blijft 41/100. Lockdep herkent nu handlercontext (irq_depth per CPU; KERNEL/ASPACE in een handler stopt met SMP:LOCKDEP:IN_HANDLER) en staat twee locks van één niveau alleen toe via lock_pair, op oplopende sleutel en LIFO (ADR-077). Lokaal native QEMU: 24/24 SMP-gevallen over 19 profielen met SMP:LOCKPAIR:PASS en de twee nieuwe controles; M2/M3, rtc, K05 en K07 ongewijzigd groen. Zie docs/verification/k06-f3f4-lockdep/. K06 blijft open: loom-model, 5c-2, 5d-2, 5e en 5f ontbreken; geen CI- of hardwarebewijs.
+**Bron:** [`880d6d74`](https://github.com/simonvanieperen/nieuw-os/commit/880d6d740fe396de2dda94c1a9094694b4b25f55) ·
+**Ontwikkelbranch:** `fix/k06-f16-f17-sched-protocol`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 auditbevindingen F16/F17: blokkeren, wekken en doden zonder lost-wakeup, queued-bit (ADR-078).
+41/100 blijft 41/100. Het schedulerprotocol blokkeert nu in twee fasen (BLOCKING/READY_PENDING, geen lost wakeup), weigert een dubbele enqueue bij de push (queued-bit, SMP:SCHED:DOUBLE_ENQUEUE) en doodt een draaiende thread begrensd: DEAD pas nadat de stack is verlaten (ADR-078). Lokaal native QEMU: 25/25 SMP-gevallen over 20 profielen met SMP:WAKE:PASS (10.000 ping-pongrondes) en SMP:KILL:PASS, plus test-smp-double-run en het nieuwe test-smp-resched-deaf; M2/M3, rtc, K05 en K07 ongewijzigd groen. Hostmodellen zijn uitputtend over interleavings, niet loom. Zie docs/verification/k06-f16f17-sched/. K06 blijft open: loom-model, 05, 5c-2, 5e, 5d-2 en 5f ontbreken; geen CI- of hardwarebewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

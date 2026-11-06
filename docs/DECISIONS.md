@@ -1,5 +1,66 @@
 # Ontwerpbesluiten
 
+## ADR-078 — Schedulerprotocol: blokkeren in twee fasen, queued-bit en begrensde kill (K06, auditbevindingen F16/F17)
+
+6 november 2026; effect alleen in `native-smp`. Taakspec:
+`docs/implementation/k06-steps/04-F16-F17-block-wake-kill.md`; spec `K06-SMP.md` §6.1, §6.3
+en §6.4 bijgewerkt. **Probleem:** F16: `smp_lock::sched` kende geen RUNNING→BLOCKED, geen
+DEAD(_PENDING) en geen kill. Een thread die besluit te blokkeren terwijl een waker op een andere
+CPU al wekt, verloor die wake (`wake` gaf `Err(RUNNING)`). F17: een dubbele enqueue werd pas bij
+een latere `dispatch` gezien, dus de double-run-test hing van timing af.
+
+**Besluit (normatief):**
+- **Toestanden** (`AtomicU32`): READY 0, BLOCKED 1, BLOCKING 2, READY_PENDING 3, DEAD_PENDING 4,
+  DEAD 5, RUNNING(cpu) = 8 + cpu. Elke overgang is één atomaire stap (CAS of `fetch_update`
+  met een pure stapfunctie): `dispatch`, `yield_cpu`, `block_prepare`, `block_commit`, `wake`,
+  `kill_request`, `kill_commit`.
+- **BW-1 Geen verloren wake.** De thread doet `block_prepare` (RUNNING(c)→BLOCKING) onder de
+  lock van zijn waker of vóór het controleren van zijn voorwaarde (SeqCst), geeft de lock vrij
+  en vraagt een wissel. `wake` zet BLOCKED→READY (de waker zet hem in de queue en stuurt 0xe8)
+  of BLOCKING→READY_PENDING (geen enqueue). De wissel doet `block_commit`: BLOCKING→BLOCKED of
+  READY_PENDING→READY plus requeue. Een voorwaarde die na `block_prepare` al waar is, regelt de
+  thread met `wake` op zichzelf.
+- **BW-2 Eén keer in een queue.** `queued[tid]`, gedeeld door alle queues: `RunQueue::push`
+  CAS 0→1, `pop` 1→0. Een tweede push geeft `SMP:SCHED:DOUBLE_ENQUEUE` en stop
+  (`test-smp-double-run`: exit 0x10).
+- **BW-3 Begrensde kill.** `kill_request`: elke levende toestand → DEAD_PENDING; was hij BLOCKED,
+  dan zet de killer hem in de queue van *d*. Daarna 0xe8 en wachten op DEAD binnen
+  `SHOOTDOWN_DEADLINE_MS` (100 ms, dezelfde constante als de shootdown-acks). *d* zet een
+  stervende huidige thread bij de wissel terug in zijn eigen queue en verlaat de stack. De
+  eerstvolgende wissel die hem popt, doet `kill_commit`: DEAD alleen als `on_cpu` gewist is
+  (F1), anders opnieuw in de queue. Een DEAD-thread staat nergens in een queue en geen CPU staat
+  op zijn stack. Geen DEAD binnen de deadline → `SMP:KILL:TIMEOUT:APIC=<n>` en quarantaine van
+  alle AP's (INV-5; het beleid met vastgehouden locks volgt in stap 05).
+- **BW-4 Idle per CPU.** De idle-thread is de bestaande thuislus van elke AP (`sti; hlt; cli`,
+  context in `CpuLocal.saved[0]`, `HOME`). Die staat nooit in een queue en draait onder de
+  kernel-CR3. Een aparte idle-threadstack voegt hier niets toe.
+- **BW-5** ongewijzigd: geen lock over de wissel, alleen RUNQ binnen de wissel.
+
+**Afwijking van de taakspec:** de spec vraagt loom-modellen. Loom 0.7.2 is geen dependency
+geworden. Dat zou 33 nieuwe crates betekenen met build scripts (`cc`, `rustversion`, `generator`),
+en `generator 0.8.12` vereist Rust 1.95 terwijl de toolchain op 1.90 is gepind. Volgens AGENTS.md
+moeten herkomst, licentie, onderhoud en build scripts eerst getoetst worden. In plaats daarvan
+draaien uitputtende interleavingmodellen in `sched.rs` (zonder dependency). Ze proberen elke
+volgorde van de atomaire stappen van de echte functies: block/wake met twee threads en een waker,
+en kill tijdens RUNNING met F1-claim en stub. Elk model heeft een mutant die het moet weerleggen:
+het 5d-1-protocol verliest een wake, en een DEAD die op de stack wordt gepubliceerd laat de
+cleanup racen. Grens: alleen sequentieel consistente uitvoeringen, geen zwakkere ordeningen.
+Loom blijft een open punt (F-T1).
+
+**Fixture:** threads A/B op AP1/AP2 geven 10.000 keer een beurt door onder `lock::KERNEL`. Ze
+blokkeren met `block_prepare` onder KERNEL en vragen de wissel met een eigen 0xe8 (IF=0 rond de
+ICR-schrijfactie). Daarna doodt de BSP thread K (alleen in ruimte 1) op AP3. Met minder AP's
+delen de threads CPU's (`tid % AP's`); zonder AP's meldt de kernel `SMP:WAKE/KILL:SKIPPED`.
+`test-smp-resched-deaf`: K zet TPR op klasse 0xe, waardoor AP3 0xd0/0xe8 niet aanneemt.
+
+**Bewijs:** zie `docs/verification/k06-f16f17-sched/`: native QEMU/TCG 25/25 SMP-gevallen over 20
+profielen op één bron (`SMP:WAKE:PASS`/`SMP:KILL:PASS` voor 2/4/8/8 CPU's,
+`SMP:SCHED:DOUBLE_ENQUEUE`, `SMP:KILL:TIMEOUT:APIC=3`); M2/M3, rtc, K05 en K07 ongewijzigd groen.
+Geen CI of hardware.
+
+**Buiten scope:** de echte M3-IPC-wachtrijen (stap 08), migratie (09), het INV-5-beleid met
+vastgehouden locks (05), K05-cleanup en procesbrede shootdown na DEAD (07).
+
 ## ADR-077 — Lockdep met handlercontext en lockparen per niveau (K06, auditbevindingen F3/F4)
 
 6 november 2026; aanvulling op ADR-074, effect alleen in `native-smp` (M3 bouwt de lockcode mee

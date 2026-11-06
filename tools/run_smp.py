@@ -42,13 +42,14 @@ CASES = {
     "shared-scratch": ("test-smp-shared-scratch", 4, "multi", "shared-scratch"),
     "lock-in-handler": ("test-smp-lock-in-handler", 2, "multi", "lock-in-handler"),
     "lockpair-order": ("test-smp-lockpair-order", 2, "multi", "lockpair-order"),
+    "resched-deaf": ("test-smp-resched-deaf", 4, "multi", "kill-quarantine"),
 }
 QUARANTINE_OUTCOMES = ("invalid-madt", "timeout", "mismatch", "quarantine", "shootdown-quarantine",
-                       "timer-quarantine", "spin-quarantine")
+                       "timer-quarantine", "spin-quarantine", "kill-quarantine")
 TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_IST:PASS",
             "lockdep-order": "SMP:LOCKDEP:ORDER:30->10",
             "held-across-switch": "SMP:LOCKDEP:HELD_ACROSS_SWITCH",
-            "double-run": "SMP:SCHED:DOUBLE_RUN",
+            "double-run": "SMP:SCHED:DOUBLE_ENQUEUE",
             "gs-iret-fault": "SMP:GS:IRET_FIXUP:PASS",
             "gs-nmi-user": "SMP:FAULT:AP_NMI_IST:PASS",
             "shared-scratch": "SMP:SCRATCH:CROSS:CPU=*",
@@ -87,7 +88,9 @@ def expected_smp(case: str) -> list[str]:
 
     def settled(online: int) -> list[str]:
         """Sync, IPI rounds, shootdown + visibility, preemption, spin, scheduler,
-        per-CPU scratch slots under KERNEL, lock_pair rounds, park."""
+        block/wake ping-pong and kill (skipped without APs), per-CPU scratch
+        slots under KERNEL, lock_pair rounds, park."""
+        bw = "SKIPPED" if online == 1 else "PASS"
         return [f"SMP:SYNC:PASS:CPUS={online}",
                 f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={online}",
                 f"SMP:SHOOTDOWN:PASS:CPUS={online}",
@@ -95,6 +98,8 @@ def expected_smp(case: str) -> list[str]:
                 f"SMP:PREEMPT:PASS:CPUS={online}",
                 f"SMP:SPIN:PASS:CPUS={online}",
                 f"SMP:SCHED:PASS:CPUS={online}",
+                f"SMP:WAKE:{bw}:CPUS={online}",
+                f"SMP:KILL:{bw}:CPUS={online}",
                 f"SMP:SCRATCH:PASS:CPUS={online}",
                 f"SMP:LOCKPAIR:PASS:CPUS={online}",
                 f"SMP:PARKED:APS={online - 1}"]
@@ -120,14 +125,19 @@ def expected_smp(case: str) -> list[str]:
     if outcome in ("gs-iret-fault", "gs-nmi-user"):
         return lines + settled(started)[:-1] + [GS_CR4, TERMINAL[outcome]]
     if outcome == "double-run":
-        # Step 5d-1: thread 0 queued on two APs; the second dispatch must refuse.
-        return lines + settled(started)[:-4] + [TERMINAL[outcome]]
+        # BW-2 (audit F17): thread 0 pushed onto a second AP; the push refuses.
+        return lines + settled(started)[:-6] + [TERMINAL[outcome]]
     if outcome == "shared-scratch":
         # Step 5b-2 control: one slot for every CPU must be caught crossing.
         return lines + settled(started)[:-3] + [TERMINAL[outcome]]
     if outcome == "lock-in-handler":
         # Audit F3 (LD-1): the first 0xe8 handler takes KERNEL in the scheduler phase.
-        return lines + settled(started)[:-4] + [TERMINAL[outcome]]
+        return lines + settled(started)[:-6] + [TERMINAL[outcome]]
+    if outcome == "kill-quarantine":
+        # BW-3: the kill target (thread 2 on AP slot 2 = APIC 3) ignores 0xe8.
+        return lines + settled(started)[:-4] + ["SMP:KILL:TIMEOUT:APIC=3",
+                                                f"SMP:QUARANTINED:APS={started - 1}",
+                                                f"SMP:ONLINE:1/{cpus}"]
     if outcome == "lockpair-order":
         # Audit F4 (LD-3): two ASPACE locks taken loose and descending, after scratch.
         return lines + settled(started)[:-2] + [TERMINAL[outcome]]
@@ -152,6 +162,8 @@ def expected_smp(case: str) -> list[str]:
                         f"SMP:PREEMPT:PASS:CPUS={started}",
                         f"SMP:SPIN:PASS:CPUS={started}",
                         f"SMP:SCHED:PASS:CPUS={started}",
+                        f"SMP:WAKE:PASS:CPUS={started}",
+                        f"SMP:KILL:PASS:CPUS={started}",
                         f"SMP:SCRATCH:PASS:CPUS={started}",
                         f"SMP:LOCKPAIR:PASS:CPUS={started}",
                         f"SMP:PARKED:APS={started - 1}"]
@@ -241,7 +253,8 @@ def run(cases: tuple[str, ...]) -> dict:
               "scope": ("IF0 BSP; AP bring-up, per-AP TSS/IST, bounded unicast IPIs and sync "
                         "self-test, TLB shootdown, AP preemption (deferred while a lock is held or "
                         "awaited), AP spin with IF window, per-AP run queues of kernel threads "
-                        "in two address spaces (0xe8 wake, CR3 switch with active_cpus), a ring-3 "
+                        "in two address spaces (0xe8 wake, CR3 switch with active_cpus), two-phase "
+                        "block/wake ping-pong and a bounded kill across APs (queued bit), a ring-3 "
                         "GS fixture per AP in test-smp-gs-* profiles (swapgs discipline), a "
                         "scratch slot per CPU plus the KERNEL lock under contention, ASPACE lock_pair "
                         "rounds on every CPU (KERNEL/ASPACE refused in handlers), and BSP "
