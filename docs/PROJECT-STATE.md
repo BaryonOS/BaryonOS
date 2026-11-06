@@ -1,6 +1,33 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — K06 stap 5b-2, KERNEL-lock en scratchslot per CPU (ADR-075) — 6 november 2026
+## NEXT AGENT HANDOFF — K06 F3/F4, lockdep met handlercontext en lockparen (ADR-077) — 6 november 2026
+
+**Bron:** `394bba37` op `fix/k06-f3-f4-lockdep` (worktree `nieuw-os-k06-f3f4`), gestapeld op
+`feat/k06-5b2-kernel-lock` (#234, `de7a07b5`). Taakspec: `docs/implementation/k06-steps/02-F3-F4-lockdep-context.md`
+(branch `docs/k06-step-specs`); ontwerp ADR-077. **41 → 41/100**; K06 blijft open.
+
+**Gerealiseerd:** LD-1: `CpuLocal.irq_depth`, opgehoogd na `gs_entry!` en verlaagd vóór
+`gs_exit!` in de stubs 0xf0/0xe0 en het timerlichaam (0xd0/0xe8). KERNEL/ASPACE in een handler
+geeft `SMP:LOCKDEP:IN_HANDLER:<niveau>`. LD-2: het venster alleen bij diepte 0. LD-3/LD-4:
+`Lockdep` met per niveau een teller (0/1/2) en sleutels, `acquire`/`acquire_paired`/`release`
+met sleutel en `IrqLock::keyed` + `lock_pair` (oplopende sleutel, `(low, high)`). `RUNQ` heeft
+nu sleutel = CPU-index. Volledige staat per CPU in `lock::LockdepCell`; het `AtomicU64` blijft
+als spiegel. Fixture `SMP:LOCKPAIR:PASS:CPUS=n` en controles `test-smp-lock-in-handler` en
+`test-smp-lockpair-order`; GS-lint controleert de teller.
+
+**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG, bron `5ea3759b…`):** zie
+`docs/verification/k06-f3f4-lockdep/`. SMP 24/24 over 19 profielen; M2 8/8 en M3 22/22, rtc, K05,
+K07; `cargo test -p smp-lock` 18 (incl. propertytest), clippy en fmt schoon, oracle 13/13, GS-lint
+8/8; `tools/gate.sh` exit 0 (511 geslaagd, 1 ignored; QEMU-smoke-script ontbreekt).
+**Niet uitgevoerd:** loom-model van `TicketLock` (nieuwe dependency nog niet getoetst), M4
+(pad-bug, #235), CI op de gestapelde PR, hardware.
+
+**Open:** loom (F-T1), ASPACE-paren nog zonder echte IPC-gebruiker (komt met 5d-2/IPC op SMP).
+Volgende stap: 03 (F5/F7, begrensde spin in release en SERIAL-lock) of 05 (F19/F15).
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-lock-in-handler"; python3 -B tools/build.py --kernel-feature test-smp-lock-in-handler && python3 -B -u tools/run_smp.py --profile test-smp-lock-in-handler`.
+
+## Historisch checkpoint — K06 stap 5b-2, KERNEL-lock en scratchslot per CPU (ADR-075) — 6 november 2026
 
 **Bron:** `48dcae6a` op `feat/k06-5b2-kernel-lock` (worktree `nieuw-os-k06-5b2`), gestapeld op
 `fix/k06-f8-swapgs` (#231, `7ffdacfa`). Taakspec: `docs/implementation/k06-steps/01-5b-2-kernel-lock-scratch.md`

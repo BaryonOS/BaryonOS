@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
-**Bron:** [`48dcae6a`](https://github.com/simonvanieperen/nieuw-os/commit/48dcae6ad5e5a13aee24265e23dfbce9eff4e330) ·
-**Ontwikkelbranch:** `feat/k06-5b2-kernel-lock`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5b-2: KERNEL-lock om de M3-entry en scratchslot per CPU (ADR-075, herziening ADR-024).
-41/100 blijft 41/100. M3-events lopen nu onder één KERNEL-lock (ook het hervatten na een ronde), en elke CPU heeft een eigen scratchslot in plaats van één globaal slot (ADR-075). Lokaal native QEMU: 22/22 SMP-gevallen over 17 profielen, met SMP:SCRATCH:PASS en het rode controleprofiel test-smp-shared-scratch (12/12). De één-CPU-regressie bleef ongewijzigd groen: M2/M3/M4, K05, K07, rtc 5/5, ipc-wait, fpu en memory. Zie docs/verification/k06-5b2-kernel-lock/. K06 blijft open: 5c-2, 5d-2, 5e en 5f ontbreken; geen CI- of hardwarebewijs.
+**Bron:** [`394bba37`](https://github.com/simonvanieperen/nieuw-os/commit/394bba37e2d9172d369be0f7245a2eac8b2f0a3f) ·
+**Ontwikkelbranch:** `fix/k06-f3-f4-lockdep`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 auditbevindingen F3/F4: lockdep met handlercontext en lockparen per niveau (ADR-077).
+41/100 blijft 41/100. Lockdep herkent nu handlercontext (irq_depth per CPU; KERNEL/ASPACE in een handler stopt met SMP:LOCKDEP:IN_HANDLER) en staat twee locks van één niveau alleen toe via lock_pair, op oplopende sleutel en LIFO (ADR-077). Lokaal native QEMU: 24/24 SMP-gevallen over 19 profielen met SMP:LOCKPAIR:PASS en de twee nieuwe controles; M2/M3, rtc, K05 en K07 ongewijzigd groen. Zie docs/verification/k06-f3f4-lockdep/. K06 blijft open: loom-model, 5c-2, 5d-2, 5e en 5f ontbreken; geen CI- of hardwarebewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
