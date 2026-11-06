@@ -2,6 +2,8 @@
 //! Copies boot input before any frame reuse. The old loader allocations are retained.
 mod acpi;
 mod arch;
+#[cfg(feature = "native-smp")]
+mod lock;
 #[cfg(feature = "milestone-m3")]
 mod m3;
 pub(crate) mod paging;
@@ -164,6 +166,8 @@ extern "C" fn run() -> ! {
     serial::write(b"KS-03:PASS\n");
     #[cfg(feature = "native-smp")]
     smp::start(smp_prepared, &_discovery.madt, frames, &mut paging);
+    #[cfg(feature = "native-smp")]
+    lock::selftest();
     #[cfg(feature = "native-rtc")]
     rtc::run();
     if cfg!(feature = "test-m2-ro") {

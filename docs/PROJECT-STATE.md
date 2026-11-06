@@ -1,10 +1,35 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — H05-stap, native ACPI S5-poweroff — 5 november 2026
+## NEXT AGENT HANDOFF — K06 stap 5a, ticketlock, irqsave en lockdep — 6 november 2026
+
+**Bron:** branch `feat/k06-5a-ticketlock-lockdep` op main `2c7edaf5`; spec
+`docs/implementation/K06-SMP.md` (§4, stap 5a). **41 → 41/100**; K06 blijft open.
+Ontwerp: ADR-074.
+
+De H05-stap voor native ACPI S5-poweroff is ook geïntegreerd; zie het
+checkpoint hieronder. H05 blijft open.
+
+**Gerealiseerd:** `crates/smp-lock` (ticketlock en lockdep),
+`kernel/src/m2/lock.rs` (`IrqLock`), een GS-anker voor de BSP, een BSP-zelftest
+(`SMP:LOCKDEP:PASS`) en het negatieve profiel `test-smp-lockdep-order`. De
+AP-stresstest draait nu op de ticketlock.
+
+**Bewijs (lokaal):** `tools/gate.sh` exit 0, met 483 hosttests waarvan 8 nieuw.
+`test_smp_serial.py` 6/6. Kernelbuilds `native-smp`, `test-smp-lockdep-order`
+en `milestone-m2` slagen. `cargo fmt --check` en clippy op `smp-lock` zijn schoon.
+**Niet uitgevoerd:** native QEMU (geen QEMU in deze WSL-omgeving). Die staat
+open voor `native-smp.yml` op de PR.
+
+**Open:** stap 5b (KERNEL-lock om M3-syscalls, scratchslot per CPU, ADR-075)
+t/m 5f; zie de spec §8.
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-lockdep-order"; python3 -B tools/build.py --kernel-feature test-smp-lockdep-order && python3 -B -u tools/run_smp.py --profile test-smp-lockdep-order`.
+
+## H05-checkpoint — native ACPI S5-poweroff — 5 november 2026
 
 **Bron:** branch `hw/h05-native-acpi-s5`, op main `cb3d169c`. **41 → 41/100**;
-H05 blijft open, Hardware blijft 1/12. Ontwerp: ADR-074. K06-werk (hieronder)
-staat los hiervan.
+H05 blijft open, Hardware blijft 1/12. Ontwerp: ADR-076. K06-werk staat los
+hiervan.
 
 **Gerealiseerd:** de eigen kernel zet de VM via ACPI S5 uit, op basis van
 eigen FADT/DSDT-validatie (`drivers/acpi-power`). Tot nu toe had die crate
@@ -16,8 +41,6 @@ geen aanroeper. Een corrupte DSDT-kopie wordt afgewezen zonder port-write.
 **Open:** ACPI-enable via SMI_CMD, een niet-delegeerbare
 poweroff-capability met flush van diensten, S3/wek, thermisch/batterij en
 fysieke hardware.
-**Eerstvolgend commando:**
-`export NOS_BUILD_DIR="$PWD/build/power-native"; python3 -B tools/build.py --kernel-feature native-acpi-s5 && python3 -B tools/run_power.py --repeat 5`.
 
 ## Historisch checkpoint — K06 stap 4, gepreëmpteerde kernelthreads op AP's — 5 november 2026
 

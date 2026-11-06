@@ -1,6 +1,43 @@
 # Ontwerpbesluiten
 
-## ADR-074 — Native ACPI S5-poweroff in een IF0-bootstrapprofiel (H05-stap)
+## ADR-074 — Ticketlock, irqsave en lockdep per CPU (K06 stap 5a)
+
+6 november 2026; alleen in `native-smp`. Dit is de eerste stap naar een
+SMP-scheduler voor processen (spec K06 §4). De crate `crates/smp-lock`
+(no_std, host-testbaar) levert een FIFO-ticketlock (Mellor-Crummey & Scott)
+en `Lockdep`. In `kernel/src/m2/lock.rs` staat `IrqLock`: die bewaart
+RFLAGS.IF, doet `cli`, legt het lockniveau vast in de lockdepset van deze
+CPU en spint daarna. Bij het vrijgeven komt eerst de release, dan het
+wissen van het niveau, en pas daarna het herstel van IF. De BSP krijgt een
+eigen GS-anker (CPU-index 0), los van de AP-ankers. AP-specifieke lookups
+(preëmptie, IST-markers) blijven de BSP dus missen.
+
+**Lockvolgorde (buiten → binnen):** KERNEL 10, ASPACE 20, FRAMES 30,
+RUNQ 40, SHOOTDOWN 50, ICR 60, SERIAL 70. Een CPU neemt alleen een niveau
+dat strikt hoger ligt dan alles wat hij al vasthoudt. Een schending stopt
+de VM met `SMP:LOCKDEP:ORDER:<held>-><wanted>`. Lockdep is in elke
+`native-smp`-build actief. De begrensde spin met `SMP:LOCK:STUCK` is alleen
+actief in debugbuilds.
+
+**Bewijs (stand van deze commit):** hosttests in `smp-lock`: uitsluiting
+onder 8 threads (vangt een mutant zonder wachtlus), FIFO, wrap,
+ordeschending, held-across-switch en een compile_fail-test voor een
+`Send`-guard. De AP-stresstest gebruikt nu deze ticketlock. De serial-oracle
+eist `SMP:LOCKDEP:PASS` op elk niet-terminaal pad. Het negatieve profiel
+`test-smp-lockdep-order` moet `SMP:LOCKDEP:ORDER:30->10` geven. **Native
+QEMU-uitvoering staat nog open** (workflow `native-smp.yml`).
+
+**Open:** nog niets gebruikt `IrqLock` buiten de zelftest. De KERNEL-lock om
+M3-syscalls en de scratchslot per CPU volgen in stap 5b; de herziening van
+ADR-024 krijgt daarmee ADR-075, niet ADR-074 zoals de spec voorstelde.
+Lockdep heeft één bit per niveau, dus twee RUNQ-locks tegelijk vragen in
+stap 5d een nestteller. Spinnen met IF=1 op KERNEL/ASPACE (§4.3) volgt in 5b.
+
+**Alternatieven overwogen.** De bestaande TTAS-lock: vervangen, omdat die
+niet FIFO is en onder TCG kan uithongeren. Lockdep alleen in debugbuilds:
+verworpen, omdat de native gate releasebuilds draait.
+
+## ADR-076 — Native ACPI S5-poweroff in een IF0-bootstrapprofiel (H05-stap)
 
 5 november 2026; alleen in het opt-in profiel `native-acpi-s5` (exclusief met
 M3, framebuffer, SMP en RTC). `boot-protocol` registreert het adres van de
