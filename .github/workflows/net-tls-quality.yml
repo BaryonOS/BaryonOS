@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   net-tls-quality:
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux]
     timeout-minutes: 15
     steps:
       - name: Checkout
