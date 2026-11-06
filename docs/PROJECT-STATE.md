@@ -1,6 +1,28 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — K06 stap 4, gepreëmpteerde kernelthreads op AP's — 5 november 2026
+## NEXT AGENT HANDOFF — K06 stap 5a, ticketlock, irqsave en lockdep — 6 november 2026
+
+**Bron:** branch `feat/k06-5a-ticketlock-lockdep` op main `2c7edaf5`; spec
+`docs/implementation/K06-SMP.md` (§4, stap 5a). **41 → 41/100**; K06 blijft open.
+Ontwerp: ADR-074.
+
+**Gerealiseerd:** `crates/smp-lock` (ticketlock en lockdep),
+`kernel/src/m2/lock.rs` (`IrqLock`), een GS-anker voor de BSP, een BSP-zelftest
+(`SMP:LOCKDEP:PASS`) en het negatieve profiel `test-smp-lockdep-order`. De
+AP-stresstest draait nu op de ticketlock.
+
+**Bewijs (lokaal):** `tools/gate.sh` exit 0, met 483 hosttests waarvan 8 nieuw.
+`test_smp_serial.py` 6/6. Kernelbuilds `native-smp`, `test-smp-lockdep-order`
+en `milestone-m2` slagen. `cargo fmt --check` en clippy op `smp-lock` zijn schoon.
+**Niet uitgevoerd:** native QEMU (geen QEMU in deze WSL-omgeving). Die staat
+open voor `native-smp.yml` op de PR.
+
+**Open:** stap 5b (KERNEL-lock om M3-syscalls, scratchslot per CPU, ADR-075)
+t/m 5f; zie de spec §8.
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-lockdep-order"; python3 -B tools/build.py --kernel-feature test-smp-lockdep-order && python3 -B -u tools/run_smp.py --profile test-smp-lockdep-order`.
+
+## Historisch checkpoint — K06 stap 4, gepreëmpteerde kernelthreads op AP's — 5 november 2026
 
 **Bron:** `c308b1ee9d8deedcfacd923c407392222ff7a12f` op `k06/smp-step4-preempt`. De keten is #191
 (`0cfcdd4a`) → #201 (`64f8abc6`) → #202 (`58e11fd0`) → #203 (`e49e7819`) →

@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-06",
-    "source_commit": "bf84f7532e3a9e56aecb37b60f93265df12b62a7",
+    "source_commit": "edb252dbc91f3fa83c12d6aaf7008a5184cb74d3",
     "assessment_basis": "source_commit",
     "reviewed_commit": "cc1dea7eeeae01448a378ee422837b0438ecc7b5",
     "reviewed_commit_context": "Historische review van de PR148-documentatiestatus en reikwijdte van hostbewijs; geen integratiereview.",
@@ -15,10 +15,10 @@
       "evidence_basis": "Git-mergeouders en handoff in docs/PROJECT-STATE.md; gerichte integratietests zijn daar gemeld met uitvoer uitsluitend in het sessietranscript. De eerdere PR148-hostreceipts zijn geen integratiereviewbewijs.",
       "missing_evidence": "Afzonderlijk, brongebonden bewijs van de integratiereview ontbreekt; nieuwe-head CI en review moeten nog worden beoordeeld."
     },
-    "branch": "feat/agent-pipeline",
-    "task": "Werkwijze: autonome agentpipeline in tools/ (issue → L0 → executor → CI-gelijke gate → PR)",
+    "branch": "feat/k06-5a-ticketlock-lockdep",
+    "task": "K06 stap 5a: ticketlock, irqsave en lockdep per CPU (ADR-074)",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Alleen ontwikkeltooling en AGENTS.md zijn gewijzigd: tools/agent_gate.py draait exact de CI-stappen plus progress.py --check, en tools/agent_pipeline.py zet gelabelde issues om in L0-spec, executor, gate en PR. Geen criterium, gewicht of OS-bewijs gewijzigd."
+    "summary": "41/100 blijft 41/100. K06 stap 5a voegt een ticketlock, irqsave en lockdep toe, met hosttests en een negatief native profiel. Native QEMU-bewijs is nog niet uitgevoerd en K06 vraagt een volledige SMP-scheduler (stap 5b t/m 5f), dus K06 blijft open."
   },
   "tracks": [
     {

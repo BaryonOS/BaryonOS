@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
-**Bron:** [`bf84f753`](https://github.com/simonvanieperen/nieuw-os/commit/bf84f7532e3a9e56aecb37b60f93265df12b62a7) ·
-**Ontwikkelbranch:** `feat/agent-pipeline`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Werkwijze: autonome agentpipeline in tools/ (issue → L0 → executor → CI-gelijke gate → PR).
-41/100 blijft 41/100. Alleen ontwikkeltooling en AGENTS.md zijn gewijzigd: tools/agent_gate.py draait exact de CI-stappen plus progress.py --check, en tools/agent_pipeline.py zet gelabelde issues om in L0-spec, executor, gate en PR. Geen criterium, gewicht of OS-bewijs gewijzigd.
+**Bron:** [`edb252db`](https://github.com/simonvanieperen/nieuw-os/commit/edb252dbc91f3fa83c12d6aaf7008a5184cb74d3) ·
+**Ontwikkelbranch:** `feat/k06-5a-ticketlock-lockdep`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5a: ticketlock, irqsave en lockdep per CPU (ADR-074).
+41/100 blijft 41/100. K06 stap 5a voegt een ticketlock, irqsave en lockdep toe, met hosttests en een negatief native profiel. Native QEMU-bewijs is nog niet uitgevoerd en K06 vraagt een volledige SMP-scheduler (stap 5b t/m 5f), dus K06 blijft open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
