@@ -4,6 +4,7 @@
 /sdk/heap-allocator/target/
 /sdk/examples/memory/target/
 /sdk/examples/*/target/
+/sdk/app-management/target/
 /ui/*/target/
 /services/input-core/target/
 /drivers/rtc/target/
