@@ -3,6 +3,7 @@ name: Resource pressure acceptance
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore: ['docs/**', '*.md']
 
 permissions:
   contents: read
@@ -13,7 +14,7 @@ concurrency:
 
 jobs:
   k07-native:
-    runs-on: [self-hosted, Linux]
+    runs-on: [self-hosted, Linux, X64, unraid, build]
     timeout-minutes: 30
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
@@ -29,8 +30,7 @@ jobs:
           rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
       - name: Disposable QEMU/OVMF
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+          dpkg -s qemu-system-x86 ovmf >/dev/null 2>&1 || { sudo apt-get update && sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf; }
       - name: K07 combined native gate
         shell: bash
         run: |

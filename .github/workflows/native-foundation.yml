@@ -3,6 +3,7 @@ name: Native RANDOM and image foundation acceptance
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore: ['docs/**', '*.md']
   push:
     branches: [main]
 
@@ -19,7 +20,7 @@ defaults:
 
 jobs:
   native-foundation:
-    runs-on: [self-hosted, Linux]
+    runs-on: [self-hosted, Linux, X64, unraid, build]
     timeout-minutes: 40
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
@@ -48,8 +49,7 @@ jobs:
           key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
       - name: Disposable QEMU and matching OVMF package
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+          dpkg -s qemu-system-x86 ovmf >/dev/null 2>&1 || { sudo apt-get update && sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf; }
           test -f "$OS_OVMF_CODE"
           test -f "$OS_OVMF_VARS"
           mkdir -p "$NOS_BUILD_DIR/logs"
@@ -185,4 +185,4 @@ jobs:
           name: native-foundation-evidence
           path: build/foundation-ci/
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 3

@@ -3,6 +3,7 @@ name: Windows QEMU native Materiaal test bundle
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore: ['docs/**', '*.md']
   push:
     branches: [main]
 
@@ -19,7 +20,7 @@ defaults:
 
 jobs:
   package-and-verify:
-    runs-on: [self-hosted, Linux]
+    runs-on: [self-hosted, Linux, X64, unraid, build]
     timeout-minutes: 30
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
@@ -36,8 +37,7 @@ jobs:
       - name: Install pinned Rust toolchain and VM firmware
         run: |
           rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf seabios
+          dpkg -s qemu-system-x86 ovmf seabios >/dev/null 2>&1 || { sudo apt-get update && sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf seabios; }
           mkdir -p "$NOS_BUILD_DIR"
       - name: Strict environment inventory
         run: python3 -B tools/preflight.py --strict > "$NOS_BUILD_DIR/preflight.json"
@@ -81,4 +81,4 @@ jobs:
             build/windows-qemu/preview-run/materiaal-*/stderr.txt
             build/windows-qemu/preview-run/materiaal-*/preview.ppm
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 3

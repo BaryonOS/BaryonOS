@@ -3,6 +3,7 @@ name: Native window session and Windows QEMU bundle
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore: ['docs/**', '*.md']
   push:
     branches: [main]
 
@@ -19,7 +20,7 @@ defaults:
 
 jobs:
   native-window-session:
-    runs-on: [self-hosted, Linux]
+    runs-on: [self-hosted, Linux, X64, unraid, build]
     # Three isolated boots: full regression, library mutation, cold reopen.
     timeout-minutes: 75
     env:
@@ -64,8 +65,7 @@ jobs:
           key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
       - name: Disposable QEMU and explicit firmware and notices
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf seabios
+          dpkg -s qemu-system-x86 ovmf seabios >/dev/null 2>&1 || { sudo apt-get update && sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf seabios; }
           for path in \
             "$OS_OVMF_CODE" "$OS_OVMF_VARS" \
             /usr/share/seabios/bios-256k.bin \
@@ -239,4 +239,4 @@ jobs:
             build/window-session-ci/normal/users/materiaal/build-report.json
             build/window-session-ci/normal/logs/
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 3
