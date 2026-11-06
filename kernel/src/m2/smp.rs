@@ -249,7 +249,7 @@ impl CpuLocal {
             irq_depth: AtomicU32::new(0),
             lockdep_state: lock::LockdepCell::new(),
             paired: AtomicU32::new(0),
-            icr: lock::IrqLock::new(level::ICR, b"ICR", ()),
+            icr: lock::IrqLock::new(level::ICR, ()),
             icr_sent: AtomicU32::new(0),
             icr_done: AtomicU32::new(0),
             need_resched: AtomicBool::new(false),
@@ -280,7 +280,7 @@ static ROUND_GEN: AtomicU32 = AtomicU32::new(0);
 static ROUND_TARGETS: AtomicU64 = AtomicU64::new(0);
 /// Above this many pages a round reloads CR3 instead of `invlpg` per page.
 const ROUND_INVLPG_MAX: u64 = 32;
-static SHOOTDOWN: lock::IrqLock<()> = lock::IrqLock::new(level::SHOOTDOWN, b"SHOOTDOWN", ());
+static SHOOTDOWN: lock::IrqLock<()> = lock::IrqLock::new(level::SHOOTDOWN, ());
 /// CPU index bits of every CPU that takes part in rounds (PS-4): the BSP and
 /// the online APs; back to the BSP alone after a quarantine.
 static ONLINE_CPUS: AtomicU64 = AtomicU64::new(1);
@@ -2717,7 +2717,7 @@ static IDLE_SENT_TSC: AtomicU64 = AtomicU64::new(0);
 /// AP1's outcome of the deferred-resched part, and the BSP thread's progress.
 static IDLE_AP: AtomicU32 = AtomicU32::new(0);
 static IDLE_THREAD: AtomicU32 = AtomicU32::new(0);
-static IDLE_LOCK: lock::IrqLock<u32> = lock::IrqLock::new(level::KERNEL, b"KERNEL", 0);
+static IDLE_LOCK: lock::IrqLock<u32> = lock::IrqLock::new(level::KERNEL, 0);
 
 /// AP1, part 1: once the BSP idles, wake it with one 0xe8 and record when.
 fn idle_wake_work() {
@@ -3750,8 +3750,8 @@ const ISO_DEADLINE_MS: u32 = 20_000;
 const RACE_FAULT: u32 = 0x100;
 /// Spec §4.2 level 20, keyed by the fixture pid (space + 1).
 static ASPACE: [lock::IrqLock<()>; 2] = [
-    lock::IrqLock::keyed(level::ASPACE, b"ASPACE", 1, ()),
-    lock::IrqLock::keyed(level::ASPACE, b"ASPACE", 2, ()),
+    lock::IrqLock::keyed(level::ASPACE, 1, ()),
+    lock::IrqLock::keyed(level::ASPACE, 2, ()),
 ];
 static ISO_FAULT: AtomicBool = AtomicBool::new(false);
 static RACE_RUN: AtomicBool = AtomicBool::new(false);
