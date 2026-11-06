@@ -329,6 +329,11 @@ veranderen. M3 blijft uitgesloten van `native-smp` tot 5d-2.
 5. ASID blijft een interne teller en PCID blijft uit.
 6. Een wijziging in de gedeelde kernelhelft, behalve het eigen scratchslot, vereist een
    shootdown naar alle online CPU's (ADR-072).
+   *Aanvulling stap 5e:* gebouwd als `shootdown_kernel` (doelset `ONLINE_CPUS & !self`). De
+   kernelhelft is precies PDPT-entry 0 (één PD). Elke ruimte deelt die PD via de pointer
+   (`Paging::new_user`). Er wordt dus niets gekopieerd dat uit de pas kan lopen, en er is nooit een
+   nieuwe PML4-entry nodig. In `native-smp` controleren asserts dat er geen kernelmapping boven 1 GiB
+   komt en dat de kernelroot buiten entry 0 leeg is.
 7. **Herzien bij:** PCID, fijnmazige subsysteemlocks, idle buiten de sectie (5c-2), M3 op AP's
    (5d-2), DMA/IOMMU of een nieuwe mapping-API. De grote lock begrenst de parallelle
    syscall-doorvoer (R02-risico, geen K06-eis).
@@ -559,6 +564,37 @@ ASID/CR3 en per range), integratie met M3-unmaps, interrupts op de BSP en
 de SMP-scheduler volgen nog; ADR-024 blijft tot dan ongewijzigd geldig.
 
 **Status:** geaccepteerd in het opt-in `native-smp`-profiel; K06 blijft open.
+
+**Aanvulling 6 november 2026 — procesbrede shootdown op `active_cpus` (K06 stap 5e, auditbevinding
+F18).** Taakspec `docs/implementation/k06-steps/07-5e-process-shootdown.md`. De ronde is algemeen
+geworden (`smp.rs`):
+- **PS-1:** `shootdown_process(space, start, pages)` neemt na de PTE-wijziging een `fence(SeqCst)` en
+  de snapshot `targets = ACTIVE[space] & !self`. Alleen die CPU's krijgen 0xe0. De wisselvolgorde
+  (bit aan vóór de CR3-load, uit erna; §6.3 stap 5) maakt `ACTIVE` een superset van wie de oude
+  vertaling kan cachen.
+- **PS-2:** één gepubliceerde ronde `{root, start, pages, gen}` onder het lock `SHOOTDOWN`
+  (niveau 50). Een ronde met `root = 0` geldt voor de gedeelde kernelhelft. Tot 32 pagina's gebruikt
+  de handler `invlpg` per pagina, daarboven een CR3-reload. De handler (`smp_shootdown`, Rust achter
+  een stub die de caller-saved registers bewaart) flusht alleen als zijn CR3 de gepubliceerde root
+  is, of bij de kernelhelft. Hij ackt **altijd** met de generatie en telt per CPU zijn rondes.
+  "pid" is in de fixture de ruimte-index; de handler vergelijkt de root, niet een pid.
+- **PS-3:** `Paging::unmap_shot` wist de PTE en invalideert lokaal. Daarna volgt de ronde en pas na
+  alle acks het vrijgeven van de alias-metadata, dus pas daarna kan `free` slagen. Ontbreekt een ack,
+  dan blijven de metadata staan (quarantaine) en volgt het IQ-3-beleid (ADR-079).
+- **PS-4:** `shootdown_kernel` gaat naar alle online CPU's (`ONLINE_CPUS`, ook de BSP als een AP de
+  ronde start). De wachttijd loopt op de gekalibreerde TSC, zodat elke CPU een ronde kan starten; de
+  ronde van AP1 naar de BSP uit stap 5c-2 gebruikt nu dezelfde functie.
+- **PS-5:** de fixture verwijdert een ruimte pas als `ACTIVE` 0 is. Hij unmapt met een ronde, doet een
+  ronde over de hele user-GiB (CR3-reload op elk doel, dus ook paging-structure caches weg) en geeft
+  daarna de tabellen vrij. Er wordt gecontroleerd dat geen levende ruimte een vrij frame noemt en dat
+  `ACTIVE` van een dode ruimte 0 is.
+
+**Bewijs (lokaal, QEMU/TCG):** zie `docs/verification/k06-5e-proc-shootdown/`: isolatie 10 000×
+per ruimte, unmap-race met een gecontroleerde #PF, doelset per CPU geteld, en beide negatieve
+profielen. **Open:** M3-processen draaien niet onder `native-smp` (`compile_error`), dus de M3-unmap-
+en cleanuproute en de engine-`check_invariants` zijn niet gewijzigd. Dat volgt met 5d-2. Er is nog
+geen rechtenverlagings-API zonder aanroeper (YAGNI); die volgt hetzelfde `unmap_shot`-patroon.
+FRAMES is nog geen lock: alleen de BSP heeft `&mut Frames`.
 
 **Alternatieven overwogen.**
 - Alleen het venster ongeldig maken en de identity-alias lokaal laten

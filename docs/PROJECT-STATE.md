@@ -1,6 +1,37 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — K06 stap 5c-2, BSP-timer, PIT-klok, idle en reschedule-vlag (ADR-080) — 6 november 2026
+## NEXT AGENT HANDOFF — K06 stap 5e, procesbrede TLB-shootdown op `active_cpus` (aanvulling ADR-072/-075) — 6 november 2026
+
+**Bron:** `730ce80a` op `feat/k06-5e-proc-shootdown` (worktree `nieuw-os-k06-5e`), gestapeld op
+`feat/k06-5c2-bsp-timer` (`0d197dc1`). Taakspec: `docs/implementation/k06-steps/07-5e-process-shootdown.md`
+(L0, branch `docs/k06-step-specs`, PR #232). **41 → 41/100**; K06 blijft open.
+
+**Gerealiseerd:** PS-1 `shootdown_process(space, start, pages)`: snapshot `ACTIVE[space] & !self`
+na `fence(SeqCst)`. PS-2: één gepubliceerde ronde `{root, start, pages, gen}` onder `SHOOTDOWN`
+(niveau 50). De 0xe0-handler staat nu in Rust: flush alleen bij de eigen CR3 of de kernelhelft
+(≤ 32 pagina's `invlpg`, anders een CR3-reload), daarna altijd een ack en een teller per CPU.
+De deadline loopt op de TSC, dus ook een AP kan een ronde starten (de ronde van AP1 naar de BSP uit
+5c-2 gebruikt dezelfde functie). PS-3: `Paging::unmap_shot` (PTE wissen → ronde → metadata vrij).
+PS-4: `shootdown_kernel` naar `ONLINE_CPUS`. De kernelhelft is PDPT[0], gedeeld via de pointer;
+asserts houden dat zo. PS-5: `exit_space` met een ronde over de hele user-GiB, regels "levende ruimte
+noemt geen vrij frame" en "`ACTIVE` van een dode ruimte is 0". Echte testruimten (`build_spaces`)
+vervangen de PML4-kopieën. Fixture na ICR: `SMP:ISOLATION` (10 000×) en `SMP:UNMAP_RACE`
+(gecontroleerde #PF via fixup; doelset per CPU geteld). Controles `test-smp-proc-shootdown-deaf`
+en `test-smp-proc-no-shootdown`, ook in `native-smp.yml`. `smp-lock::sched::switch_space` krijgt
+een hostmodel met nep-CR3. IQ-3 `held_by` kent nu ook ASPACE en SHOOTDOWN.
+
+**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG, bron `fdc7ab04…`):** zie `docs/verification/k06-5e-proc-shootdown/`. SMP 30/30 over 25 profielen; M2 8/8 en M3 22/22; `cargo test -p smp-lock` 26+1 (hostmodel, rood met de verkeerde volgorde); oracle + GS-lint 25/25; `tools/gate.sh` exit 0 (520 geslaagd, 1 ignored; QEMU-smoke-script ontbreekt).
+**Niet uitgevoerd:** CI op de gestapelde PR, hardware, menselijke audit, M4 (pad-bug, #235).
+
+**Open:** het M3-pad (`m3.rs`-cleanup, engine-`check_invariants`) is niet gewijzigd, omdat M3 niet
+onder `native-smp` draait (`compile_error`); dat volgt met 08 (5d-2). Er is nog geen
+rechtenverlagings-API (er is geen aanroeper). FRAMES is nog geen lock. `feat/k06-5c2-bsp-timer`
+stond bij de start niet op de remote; deze branch draagt die commits mee.
+Volgende stap: 08 (5d-2, ring-3-processen op AP's).
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-proc-shootdown-deaf"; python3 -B tools/build.py --kernel-feature test-smp-proc-shootdown-deaf && python3 -B -u tools/run_smp.py --profile test-smp-proc-shootdown-deaf`.
+
+## Historisch checkpoint — K06 stap 5c-2, BSP-timer, PIT-klok, idle en reschedule-vlag (ADR-080) — 6 november 2026
 
 **Bron:** `5020b904` op `feat/k06-5c2-bsp-timer` (worktree `nieuw-os-k06-5c2`), gestapeld op
 `feat/k06-5b2-kernel-lock` (`068fd857`, met F3/F4, F16/F17 en F19/F15). Taakspec:

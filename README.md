@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
-**Bron:** [`5020b904`](https://github.com/simonvanieperen/nieuw-os/commit/5020b904b99c7e8f4974fc52269bf30cc0806ba5) ·
-**Ontwikkelbranch:** `feat/k06-5c2-bsp-timer`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5c-2: BSP-timer, PIT-klok, idle en reschedule-vlag op de BSP (ADR-080).
-41/100 blijft 41/100. De BSP krijgt dezelfde timer-, idle- en spinvensterregels als een AP (ADR-080): native-smp programmeert zelf de 8259 en PIT-kanaal 0 (IRQ0 alleen naar de BSP, monotone klok), de BSP krijgt 0xd0 met INV-5c-uitstel, irq_ready opent het lockvenster ook op de BSP, idle_halt is de enige sti;hlt;cli, 0xe8 telt apart en zet need_resched (een uitgestelde 0xe8 wisselt bij de release van de laatste lock) en de LAPIC/PIT-ratio wordt gekalibreerd tegen een vooraf vastgelegde band. Lokaal native QEMU: 28/28 SMP-gevallen over 23 profielen met SMP:CLOCK, SMP:BSP_PREEMPT, SMP:BSP_SPIN en SMP:IDLE, de controle test-smp-bsp-spin-irq-off (SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=0) en een rode mutant zonder release-hook; M2/M3, rtc 5/5 en K05 ongewijzigd groen. Zie docs/verification/k06-5c2-bsp-timer/. K06 blijft open: loom-model, 5e, 5d-2 en 5f ontbreken; ADOPTED wacht op een BSP-runqueue; geen CI- of hardwarebewijs.
+**Bron:** [`730ce80a`](https://github.com/simonvanieperen/nieuw-os/commit/730ce80a384d6dce32f464d6429a0485d5950945) ·
+**Ontwikkelbranch:** `feat/k06-5e-proc-shootdown`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5e: procesbrede TLB-shootdown op active_cpus (aanvulling ADR-072/-075, auditbevinding F18).
+41/100 blijft 41/100. De TLB-shootdown is procesbreed (PS-1..PS-5): shootdown_process mikt alleen op ACTIVE[space] minus de eigen CPU, shootdown_kernel op alle online CPU's; één gepubliceerde ronde onder SHOOTDOWN, een Rust-handler die alleen bij de eigen CR3 of de kernelhelft flusht en altijd ackt, metadata pas na alle acks vrij (Paging::unmap_shot) en echte testruimten in plaats van PML4-kopieën. Native fixture: isolatie en unmap-race met een gecontroleerde #PF, plus twee negatieve profielen en een hostmodel van de ACTIVE-supersetregel. K06 blijft open: ring 3 op AP's (5d-2) en de acceptatiematrix (5f) ontbreken nog, en het M3-pad draait niet onder native-smp. Lokaal QEMU/TCG-bewijs; geen CI op de gestapelde PR, geen hardware, geen menselijke audit.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
