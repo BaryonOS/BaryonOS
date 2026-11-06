@@ -1,6 +1,42 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — K06 F19/F15, ICR-lock per CPU en quarantaine stopt bij een gehouden lock (ADR-079) — 6 november 2026
+## NEXT AGENT HANDOFF — K06 stap 5c-2, BSP-timer, PIT-klok, idle en reschedule-vlag (ADR-080) — 6 november 2026
+
+**Bron:** `5020b904` op `feat/k06-5c2-bsp-timer` (worktree `nieuw-os-k06-5c2`), gestapeld op
+`feat/k06-5b2-kernel-lock` (`068fd857`, met F3/F4, F16/F17 en F19/F15). Taakspec:
+`docs/implementation/k06-steps/06-5c-2-bsp-timer-idle.md`; ontwerp ADR-080. **41 → 41/100**;
+K06 blijft open.
+
+**Vastgesteld:** `native-smp` sluit M3 uit, dus daar bestonden geen PIC-programmering en geen Sys3;
+de BSP draaide volledig met IF=0. De PIT-IRQ0-klok is daarom in `native-smp` zelf gebouwd.
+
+**Gerealiseerd:** BT-1: `bsp_timer_init` (vóór `GO`) remapt de 8259 (alleen IRQ0 → 0x20), PIT-kanaal
+0 op ~1 kHz, IRQ0-stub telt `CLOCK_TICKS` en stopt bij een AP. BT-2: 0xd0 op de BSP (deler 16),
+INV-5c-uitstel en `bsp_switch`; `CpuLocal.irq_ready`; vensterpredicaat in `lock.rs`
+`level <= ASPACE && irq_depth == 0 && irq_ready`. BT-3: `idle_halt` (lege lockdep, kernel-CR3).
+BT-4 (F11): 0xe8 telt `resched_count` en zet `need_resched`, geen tick meer; een uitgestelde 0xe8
+wordt bij de release van de laatste lock een self-0xe8 (`resched_on_release`). BT-5 (F9):
+LAPIC/PIT- en TSC-kalibratie, `SMP:TIMER:RATIO`, band [50 000, 75 000] vooraf in ADR-080. BT-6:
+contract kernelthreads in ADR-080. Fixtures `SMP:CLOCK`, `SMP:BSP_PREEMPT`, `SMP:BSP_SPIN`,
+`SMP:IDLE:WAKE_US` + `SMP:IDLE` (na SPIN, vóór SCHED); controle `test-smp-bsp-spin-irq-off`, ook in
+`native-smp.yml`.
+
+**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG, bron `412e6740…`):** zie
+`docs/verification/k06-5c2-bsp-timer/`. SMP 28/28 over 23 profielen (ratio 62 559–62 871,
+wake 39–248 µs); rode mutant zonder release-hook → `SMP:IDLE:RESCHED_LOST`.
+M2 8/8 en M3 22/22, rtc 5/5, K05 6/6; `cargo test -p smp-lock` 24+1, `-p boot-protocol` 28,
+clippy en fmt schoon, oracle 16/16, GS-lint 8/8; `tools/gate.sh` exit 0 (518 geslaagd, 1 ignored;
+QEMU-smoke-script ontbreekt).
+**Niet uitgevoerd:** CI op de gestapelde PR, hardware, M4 (pad-bug, #235), kernel-clippy (faalt al
+op de basis, geen nieuwe meldingen).
+
+**Open:** `ADOPTED` (ADR-079) wacht nog steeds op een BSP-runqueue (5d-2 of 5f); TSC als constant
+aangenomen (hardware: invariant-TSC-controle); de klokafwijking wordt bij PASS niet gelogd.
+Volgende stap: 07 (5e, procesbrede shootdown op `active_cpus`).
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-bsp-spin-irq-off"; python3 -B tools/build.py --kernel-feature test-smp-bsp-spin-irq-off && python3 -B -u tools/run_smp.py --profile test-smp-bsp-spin-irq-off`.
+
+## Historisch checkpoint — K06 F19/F15, ICR-lock per CPU en quarantaine stopt bij een gehouden lock (ADR-079) — 6 november 2026
 
 **Bron:** branch `fix/k06-f19-f15-icr-quarantine` (worktree `nieuw-os-k06-f19`), gestapeld op
 `feat/k06-5b2-kernel-lock` (`81b648ba`, met F16/F17 uit #239). Taakspec:
