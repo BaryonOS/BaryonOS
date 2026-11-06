@@ -3,6 +3,21 @@ set -euo pipefail
 
 echo "🔄 Start de autonome nieuw-os Agent Loop..."
 
+# Alleen in een schone werkboom op een werkbranch: `git add -A` hieronder
+# commit dan uitsluitend wat deze loop zelf heeft gemaakt.
+BRANCH=$(git branch --show-current)
+if [ -z "$BRANCH" ] || [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
+    echo "❌ Start de loop op een eigen werkbranch, niet op '${BRANCH:-detached HEAD}'." >&2
+    exit 2
+fi
+if [ -n "$(git status --porcelain)" ]; then
+    echo "❌ Werkboom niet schoon; commit of stash eerst je eigen werk." >&2
+    exit 2
+fi
+SPEC_FILE=$(mktemp "${TMPDIR:-/tmp}/nieuw_os_task.XXXXXX")
+trap 'rm -f "$SPEC_FILE"' EXIT
+PREVIOUS_TASK=""
+
 while true; do
     echo "--------------------------------------------------"
     echo "📋 [Stap 1] Bepaal eerstvolgende openstaande taak via progress.json..."
@@ -24,10 +39,17 @@ print('ALL_DONE')
         break
     fi
 
+    # Een geslaagde gate sluit geen criterium (native bewijs en review blijven nodig):
+    # dezelfde open taak twee keer achter elkaar betekent stoppen, niet herhalen.
+    if [ "$NEXT_TASK" = "$PREVIOUS_TASK" ]; then
+        echo "⏸️  $NEXT_TASK staat nog open na een geslaagde iteratie; de loop stopt voor review." >&2
+        exit 3
+    fi
+    PREVIOUS_TASK="$NEXT_TASK"
+
     echo "🎯 Volgende doel gedetecteerd: $NEXT_TASK"
 
-    # Maak een tijdelijke specificatie aan voor deze iteratie
-    SPEC_FILE="/tmp/nieuw_os_current_task.md"
+    # Tijdelijke specificatie voor deze iteratie (eigen mktemp-bestand, zie boven)
     echo "Implementeer de volgende openstaande mijlpaal: $NEXT_TASK. Raadpleeg de gehoste Graphify MCP voor afhankelijkheden en structuren. Schrijf minimale, veilige code volgens AGENTS.md en Ponytail." > "$SPEC_FILE"
 
     echo "🚀 [Stap 2] Start schone Claude Code sessie voor deze taak..."
