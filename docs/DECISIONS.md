@@ -2001,3 +2001,30 @@ Status: aangenomen, 6 november 2026 (opdracht Simon, PR #241).
   beoordeeld.
 - De twee Tower-runners delen één fysieke host. Daardoor draaien er maximaal twee zware jobs
   tegelijk, maar CPU, RAM en I/O van die host zijn niet gemeten.
+
+## ADR-CI-COPILOT-WSL-20261106 — Copilot coding agent op de eigen WSL-Ubuntu
+
+Status: aangenomen, 6 november 2026 (opdracht Simon). Uitzondering op
+ADR-CI-RUNNERS-20261106 ("persoonlijke machines voeren geen PR-code uit"), alleen voor
+de Copilot coding agent.
+
+**Besluit:**
+- `copilot-setup-steps.yml` laat de agent draaien op `[self-hosted, Linux, X64, copilot-wsl]`.
+  Gewone CI vraagt `unraid` en `build` en komt daar dus niet terecht.
+- De runner draait in de bestaande WSL-Ubuntu van Simons pc als gebruiker
+  `copilot-runner`, met sudo zonder wachtwoord, lid van `kvm`, met QEMU, OVMF, swtpm en
+  Rust 1.90.0. Installatie: `tools/copilot-runner/install-wsl.sh`.
+- De ingebouwde Copilot-firewall staat uit, want GitHub ondersteunt die niet op
+  self-hosted runners.
+
+**Reden:** het Actions-budget blokkeerde de agent op GitHub-hosted runners. Simon koos
+uitdrukkelijk voor de bestaande Ubuntu boven een geïsoleerde Hyper-V-VM.
+
+**Grenzen (bewust geaccepteerd):**
+- Geen isolatie. Sudo is root in de distro. Daarmee heeft de agent toegang tot Simons
+  bestanden en logins in die distro (`gh`, Claude, SSH), tot `/mnt/c`, tot Windows via
+  interop, tot het LAN en tot Tailscale. Alles wat de agent leest, zoals issues, PR's en
+  webpagina's, kan zo invloed hebben op wat er op deze pc gebeurt.
+- De runner is persistent, niet per job opgeschoond.
+- De agent draait alleen als de pc aanstaat en de WSL-distro actief is.
+- Of agent-sessies op self-hosted runners nog Actions-budget verbruiken, is niet gemeten.
