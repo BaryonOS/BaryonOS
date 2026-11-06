@@ -16,7 +16,7 @@ concurrency:
 jobs:
   nas-workspace:
     name: nas-${{ matrix.crate }}-host-target
-    runs-on: ubuntu-24.04
+    runs-on: self-hosted
     timeout-minutes: 10
     strategy:
       fail-fast: false
@@ -73,7 +73,7 @@ jobs:
 
   nas-native-normal-cold:
     name: nas-native-normal-cold
-    runs-on: ubuntu-24.04
+    runs-on: self-hosted
     timeout-minutes: 20
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
