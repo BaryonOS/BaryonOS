@@ -4465,13 +4465,19 @@ pub fn m3_park() -> ! {
     park()
 }
 
-/// Caller holds no lock. Stops the M3 phase on every other online CPU; true
-/// once each parked, which then leaves ONLINE_CPUS (no later round targets a
+/// KERNEL held: ends the M3 phase. Every other CPU checks the flag right
+/// after its own `kernel_enter`, so no second CPU can start a stop.
+#[cfg(feature = "native-smp-m3")]
+pub fn m3_stop_begin() {
+    M3_STOP.store(true, Ordering::Release);
+}
+
+/// After `m3_stop_begin`, with no lock held: true once every other online
+/// CPU parked, which then leaves ONLINE_CPUS (no later round targets a
 /// halted CPU). False (and the VM must stop) if one did not park in time.
 #[cfg(feature = "native-smp-m3")]
-pub fn m3_stop() -> bool {
+pub fn m3_stop_wait() -> bool {
     let me = 1u64 << cpu_index();
-    M3_STOP.store(true, Ordering::Release);
     let others = ONLINE_CPUS.load(Ordering::Acquire) & !me;
     for cpu in 1..MAX_CPUS {
         if others & (1 << cpu) != 0 {

@@ -2385,10 +2385,12 @@ fn smp_progress(state: &mut State) {
     if !done && !state.unexpected {
         return;
     }
-    // The stopping CPU releases KERNEL so the others can park at their next
-    // entry; they touch nothing of STATE before parking (`load_current`).
+    // The flag goes up under KERNEL, so this CPU is the only stopper. It
+    // then releases KERNEL so the others can park at their next entry; they
+    // touch nothing of STATE before parking (`load_current`).
+    smp::m3_stop_begin();
     kernel_leave();
-    let stopped = smp::m3_stop();
+    let stopped = smp::m3_stop_wait();
     kernel_enter();
     if !stopped {
         serial::write(b"SMP:M3:STOP:TIMEOUT\n");
