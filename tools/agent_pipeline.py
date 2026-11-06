@@ -44,7 +44,8 @@ GRAPHIFY_READ = ",".join(f"mcp__claude_ai_Graphify__{tool}" for tool in (
     "impact_and_risk", "graphify_tests_for", "graphify_file_neighbors", "query_graph", "recall"))
 # Each engine edits files only; the pipeline runs every command itself.
 ENGINES = {
-    "claude": ["claude", "-p", "--permission-mode", "acceptEdits", "--allowedTools", GRAPHIFY_READ],
+    # `=` form: --allowedTools is variadic and would otherwise swallow the prompt.
+    "claude": ["claude", "-p", "--permission-mode", "acceptEdits", f"--allowedTools={GRAPHIFY_READ}"],
     "codex": ["codex", "exec", "--full-auto"],
     "copilot": ["copilot", "--allow-tool", "write", "-p"],
 }
