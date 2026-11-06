@@ -19,7 +19,7 @@ defaults:
 
 jobs:
   native-rtc:
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux]
     timeout-minutes: 15
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2

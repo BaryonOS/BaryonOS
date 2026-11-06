@@ -20,7 +20,7 @@ defaults:
 
 jobs:
   native-smp:
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux]
     timeout-minutes: 20
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
