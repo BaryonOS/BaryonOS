@@ -13,8 +13,8 @@ Drie reparaties: STOR-1, NET-2 en LOAD-1. De NET-1-smoltcp-canary bewaakt een
 nog open defect. Bewijsformulering over wrap zonder overflowcontroles
 gecorrigeerd naar codeafleiding; die route is niet opnieuw gemeten.
 
-**Werkelijk gecontroleerd:** de verschillen met main zijn exact de negen
-PR-paden; 55 lokaal geraadpleegde bron-/bewijsbestanden zijn tegen hun Git
+**Werkelijk gecontroleerd op integratiebron `69265f4b`, vóór dit documentatiecheckpoint:**
+de verschillen met de toenmalige main zijn exact de negen PR-paden; 55 lokaal geraadpleegde bron-/bewijsbestanden zijn tegen hun Git
 blob-ID gecontroleerd. `python3 -B -m unittest discover -s tests
 -p 'test_volume_*.py'`: exit 0, 34 tests. Dit is hostbewijs, geen VM-run.
 Receipt: `docs/verification/parser-fuzz-20261105/integration-20261107.json`.
@@ -29,6 +29,38 @@ registreert de uiteindelijke CI-resultaten met SHA en run-URL.
 head; bij een gewijzigde main de integratie opnieuw controleren zonder het
 werk van PR #235 te overschrijven. Alleen squashen als branchregels, inhoud,
 passende tests en concrete reviews dit toelaten.
+
+**Main-verversing binnen dezelfde opdracht:** de inmiddels gemergde PR #235
+op main `5cf3d3fa17eed4005e5f97ce9ba6da84cbb3280d` is opgenomen bovenop
+`5120d9ef`. De acht product-/testbestanden van PR #211 blijven byte voor byte
+behouden. De milestone-runnerfix, PR235-receipt en onderstaande historische
+overdracht blijven aanwezig. De 34 hosttests en het oorspronkelijke receipt
+blijven aan integratiebron `69265f4b` gebonden; controles op de nieuwe
+gezamenlijke head moeten afzonderlijk slagen.
+
+## Historisch checkpoint — PR #235: buildpaden en CI-basis — 7 november 2026
+
+**Bron:** PR #235, branch `fix/tm-ipc-probe-build-dir`, oorspronkelijke head
+`bff194b51d51a9702ee9fb9ad4cf3de9580327fb`, geïntegreerd met main
+`9bc5f5270ffe2a8f4a214dd4d58c4290a4de6bec`. **41 → 41/100**; geen criterium wijzigt.
+
+**Gerealiseerd:** de vier `BUILD`-padcorrecties blijven behouden; `test_m2`
+en `test_m4` hebben nu een docstring. De bestaande CI-reparatie uit #241
+komt via main mee, inclusief de afgebakende Unraid-runnerlabels. Er zijn
+geen nieuwe workflow- of branchregelwijzigingen.
+
+**Controle:** Python-syntax en AST-vergelijking slagen; buiten de twee nieuwe
+docstrings is de uitvoerbare runner gelijk aan de oorspronkelijke PR-head.
+Rubric, criteria, gewichten en bewijsverwijzingen blijven gelijk.
+Bronhashes en bewijsgrenzen: [PR235-review](verification/pr235-review-20261107.json).
+**Niet uitgevoerd in deze sessie:** Rust-/QEMU-gates; Cargo en QEMU ontbreken.
+De oorspronkelijke PR meldt een geslaagde M2–M4-run; dit is hier niet opnieuw bewezen.
+
+**Open:** nieuwe `host-quality` en `qemu-smoke` op de bijgewerkte PR-head,
+reviewcontrole en squash-auto-merge binnen de bestaande main-regels. De
+oude jobs zonder stappen gebruiken nog de hosted-runnerconfiguratie;
+herstart die niet. Optionele artifact-uploadfouten blijven afzonderlijk zichtbaar.
+**Eerstvolgend commando:** `gh pr checks 235 --repo simonvanieperen/nieuw-os`.
 
 ## Historisch checkpoint — CI-herstel: Unraid-runners en artifactquota — 6 november 2026
 

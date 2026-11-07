@@ -69,5 +69,16 @@
     "after": 41,
     "criteria_changed": []
   },
-  "rollback": "Revert the PR squash commit after integration; no disk-format, ABI or dependency changes."
+  "rollback": "Revert the PR squash commit after integration; no disk-format, ABI or dependency changes.",
+  "main_refresh": {
+    "main_commit": "5cf3d3fa17eed4005e5f97ce9ba6da84cbb3280d",
+    "previous_pr_head": "5120d9ef91af3ceb0da407f054863bad1e93a6a2",
+    "product_blobs_preserved": 8,
+    "preserved_incoming_files": [
+      "tools/test_milestones.py",
+      "docs/PROGRESS.md",
+      "docs/verification/pr235-review-20261107.json"
+    ],
+    "scope": "Integration metadata only; preceding local results remain bound to source_commit. Current combined-head CI is still pending at this checkpoint."
+  }
 }
