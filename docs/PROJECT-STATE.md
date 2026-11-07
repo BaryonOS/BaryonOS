@@ -1,6 +1,36 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — CI-herstel: Unraid-runners en artifactquota — 6 november 2026
+## NEXT AGENT HANDOFF — PR #211 parserintegratie — 7 november 2026
+
+**Bron:** `verify/parser-hardening-20261105`, integratiecommit
+`69265f4b1d1220ea3eee6a9358ca09dc5a8b5e7d`; ouders PR `328ac91d` en main
+`9bc5f527`. **41 → 41/100**; geen criterium gewijzigd. Deze opdracht behandelt
+uitsluitend PR #211; PR #235 wordt in een andere sessie afgehandeld.
+
+**Gerealiseerd:** main zonder wijziging van de negen PR-bestanden opgenomen.
+De bestaande Unraid-workflows, gates en branchregels blijven behouden.
+Drie reparaties: STOR-1, NET-2 en LOAD-1. De NET-1-smoltcp-canary bewaakt een
+nog open defect. Bewijsformulering over wrap zonder overflowcontroles
+gecorrigeerd naar codeafleiding; die route is niet opnieuw gemeten.
+
+**Werkelijk gecontroleerd:** de verschillen met main zijn exact de negen
+PR-paden; 55 lokaal geraadpleegde bron-/bewijsbestanden zijn tegen hun Git
+blob-ID gecontroleerd. `python3 -B -m unittest discover -s tests
+-p 'test_volume_*.py'`: exit 0, 34 tests. Dit is hostbewijs, geen VM-run.
+Receipt: `docs/verification/parser-fuzz-20261105/integration-20261107.json`.
+
+**Open bij dit checkpoint:** nieuwe-head CI, directe netwerk-/volume-/update-
+gates en actuele reviews. Lokaal zijn Rust en QEMU niet beschikbaar. De oude
+rode CI geeft geen geldige acceptatie van deze nieuwe bron. Er zijn geen
+workflowchecks versoepeld of quota-artefacten verwijderd. De PR-beschrijving
+registreert de uiteindelijke CI-resultaten met SHA en run-URL.
+
+**Eerstvolgende controle:** status, jobs en logs van PR #211 op de actuele
+head; bij een gewijzigde main de integratie opnieuw controleren zonder het
+werk van PR #235 te overschrijven. Alleen squashen als branchregels, inhoud,
+passende tests en concrete reviews dit toelaten.
+
+## Historisch checkpoint — CI-herstel: Unraid-runners en artifactquota — 6 november 2026
 
 **Bron:** branch `ci/unraid-runner-labels` op main `d18aac4e`, PR #241. **41 → 41/100**;
 geen criterium wijzigt. Besluit: ADR-CI-RUNNERS-20261106.

@@ -19,7 +19,7 @@ alleen geminimaliseerde regressietests.
 | NET-1 | smoltcp 0.14.0 `wire/tcp.rs:73` via `socket/tcp.rs:1783` | expliciete `panic!` op netwerk-sequencenummer (ook release; net-stack aborteert) | **open**, canary-test |
 | NET-2 | `services/net-stack` `Stack::push_frame` | RST/ICMP-reflectie vanaf broadcast- of vreemd IPv4-adres | **hersteld** (029718c0) |
 | STOR-1 | `services/volume/src/table.rs:302` `Entry::validate` | `revision + 1` overflow op schijfbytes | **hersteld** (87e32ea8) |
-| LOAD-1 | `crates/update-core` `choose`/`decide` via `other()` | `1 - slot` bij handgebouwde `Header { active > 1 }`: panic, of in release installatiedoel 255 | **hersteld**, fail-closed `Format` (laag: niet bereikbaar vanuit schijfbytes, `decode` weigert al) |
+| LOAD-1 | `crates/update-core` `choose`/`decide` via `other()` | `1 - slot` bij handgebouwde `Header { active > 1 }`: panic met overflowcontroles; bij uitgeschakelde overflowcontroles is installatiedoel 255 uit de code afgeleid, niet afzonderlijk gemeten | **hersteld**, fail-closed `Format` (laag: niet bereikbaar vanuit schijfbytes, `decode` weigert al) |
 
 **NET-1, oorzaak:** bij SYN-ACK zet smoltcp `remote_last_ack = Some(seq)` terwijl
 `remote_last_win` 0 is. Tot het eerste ACK is verstuurd geldt dus
@@ -41,10 +41,13 @@ Een upstreammelding is een publicatie en is niet verstuurd. Test:
 `known_defect_half_space_segment_before_first_ack_panics_smoltcp` in
 `services/net-stack/tests/hostile_ingress.rs`; die faalt zodra het defect weg is.
 
-**STOR-1:** in release wrapte de waarde naar 0. Met `history_count == 0` werd
-het image dan geaccepteerd en gaf elke commit `Full`; geen geheugen- of
-rechtenprobleem. Het Python-model `tools/volume_disk.py` spiegelt nu dezelfde
-weigering.
+**STOR-1:** bij uitgeschakelde overflowcontroles volgt uit de code een wrap
+naar 0. Met `history_count == 0` zou het image dan worden geaccepteerd en zou
+elke commit `Full` geven. Deze wraproute is niet afzonderlijk uitgevoerd;
+een releaseprofiel schakelt overflowcontroles niet noodzakelijk uit. De
+gemeten regressie is de panic met overflowcontroles. Geen geheugen- of
+rechtenprobleem vastgesteld. Het Python-model `tools/volume_disk.py` spiegelt
+nu dezelfde weigering.
 
 ## Zonder bevinding gefuzzt (iteraties)
 
@@ -98,3 +101,26 @@ gecommit. De sha256 hieronder dient alleen ter identificatie.
 | update-core clippy `-D warnings`, `fmt --check` | 0, 0 | — |
 
 Hosted CI op de PR-head moet nog worden beoordeeld.
+
+## Integratiecheckpoint — 7 november 2026
+
+PR #211 bevat drie reparaties (STOR-1, NET-2 en LOAD-1); NET-1 blijft open.
+Integratiebron `69265f4b1d1220ea3eee6a9358ca09dc5a8b5e7d` combineert
+PR-bron `328ac91d7b0b5cfa1424972ecf1453ccdc24f25b` met main
+`9bc5f5270ffe2a8f4a214dd4d58c4290a4de6bec`. De negen oorspronkelijke
+PR-bestanden zijn bij die merge byte voor byte behouden; de main-wijzigingen
+overlapten geen PR-pad. De bestaande Unraid-runnerconfiguratie en gates zijn
+ongewijzigd overgenomen.
+
+De Python-schijfmodel- en runnertests zijn opnieuw uitgevoerd op exacte
+bronbestanden van deze integratie: `python3 -B -m unittest discover -s tests
+-p 'test_volume_*.py'`, exit 0, 34 tests. Dit is hostbewijs; het start geen VM.
+De lokale sessie bevat geen Rust- of QEMU-toolchain. Nieuwe Rust-/native
+validatie wordt daarom door de bestaande GitHub Actions uitgevoerd en was
+bij dit checkpoint nog niet afgerond. Oude hostresultaten hierboven blijven
+historisch bewijs, geen uitslag van deze integratie.
+
+De brongebonden checkpointreceipt staat in `integration-20261107.json`.
+De PR-beschrijving koppelt de uiteindelijke CI-resultaten aan hun head-SHA en
+run-URL. Graphify is aanvullende statische review, geen vervanging voor die
+tests. Geen nieuw productcriterium geaccepteerd: 41 blijft 41/100.
