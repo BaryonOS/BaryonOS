@@ -296,10 +296,14 @@ impl Entry {
                 && self.tags == 0
                 && self.kind == 0;
         }
+        // Revisions come from untrusted disk bytes: u64::MAX fails closed.
         let mut newer = if self.present {
             self.current.revision
         } else {
-            self.revision + 1
+            match self.revision.checked_add(1) {
+                Some(bound) => bound,
+                None => return false,
+            }
         };
         for (index, version) in self.history.iter().enumerate() {
             if index < self.history_count {

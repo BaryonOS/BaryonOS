@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-07 · **Rubric:** v1 ·
-**Bron:** [`bff194b5`](https://github.com/simonvanieperen/nieuw-os/commit/bff194b51d51a9702ee9fb9ad4cf3de9580327fb) ·
-**Ontwikkelbranch:** `fix/tm-ipc-probe-build-dir`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR #235: NOS_BUILD_DIR-padfix, functiedocumentatie en actuele CI-basis.
-41/100 blijft 41/100. De padfix op PR-bron bff194b5 wordt gecombineerd met main 9bc5f52 en twee docstrings. Alleen testtooling en statusdocumentatie; geen nieuw geaccepteerd OS-criterium. Nieuwe-head CI blijft afzonderlijk vereist.
+**Bron:** [`69265f4b`](https://github.com/simonvanieperen/nieuw-os/commit/69265f4b1d1220ea3eee6a9358ca09dc5a8b5e7d) ·
+**Ontwikkelbranch:** `verify/parser-hardening-20261105`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR #211: parserreparaties op actuele main integreren en verifiëren.
+41/100 blijft 41/100. Drie bestaande parserreparaties worden geïntegreerd; 34 Python-hosttests slagen. Rust/native CI en integratiereview zijn bij dit checkpoint nog open. NET-1 blijft een bekende open canary; geen nieuw productcriterium geaccepteerd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
