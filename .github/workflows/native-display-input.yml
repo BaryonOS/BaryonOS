@@ -3,6 +3,7 @@ name: Native display and input acceptance
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore: ['docs/**', '*.md']
   push:
     branches: [main]
 
@@ -19,7 +20,7 @@ defaults:
 
 jobs:
   native-display-input:
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, unraid, build]
     timeout-minutes: 30
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
@@ -47,8 +48,7 @@ jobs:
           key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
       - name: Disposable QEMU and explicit OVMF/VGA firmware
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf seabios
+          dpkg -s qemu-system-x86 ovmf seabios >/dev/null 2>&1 || { echo "::warning::ontbreekt in runner-image: qemu-system-x86 ovmf seabios"; sudo apt-get update; sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf seabios; }
           test -f "$OS_OVMF_CODE"
           test -f "$OS_OVMF_VARS"
           test -f /usr/share/seabios/vgabios-stdvga.bin
@@ -127,4 +127,4 @@ jobs:
           name: native-display-input-evidence
           path: build/display-input-ci/
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 3

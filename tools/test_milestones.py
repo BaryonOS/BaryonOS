@@ -12,6 +12,11 @@ from gate_contract import M3_CASES, M3_NONFAULT_CASES, M4_CASES
 from run import run_gate_case
 
 def test_m2():
+    """Run M2 host and native memory gates, saving results under ``BUILD``.
+
+    Require each host check and guest observation to pass. On failure, save
+    the error, attempt to restore the default image, and re-raise the failure.
+    """
     path = BUILD / "m2-test-results.json"
     suite = {"phase": "M2", "status": "running", "passed": False,
              "started_utc": datetime.now(timezone.utc).isoformat(), "results": []}
@@ -138,6 +143,12 @@ def test_m3():
 
 
 def test_m4():
+    """Run M4 host, IPC-artifact, and native capability gates under ``BUILD``.
+
+    Use the configured build directory for the IPC ELF and evidence logs.
+    Persist the suite outcome and re-raise failures after attempting to
+    restore the default image.
+    """
     path = BUILD / "m4-test-results.json"
     suite = {"phase": "M4", "status": "running", "passed": False,
              "started_utc": datetime.now(timezone.utc).isoformat(), "results": []}

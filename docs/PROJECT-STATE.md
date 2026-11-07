@@ -1,6 +1,63 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — K06 stap 5a, ticketlock, irqsave en lockdep — 6 november 2026
+## NEXT AGENT HANDOFF — PR #235: buildpaden en CI-basis — 7 november 2026
+
+**Bron:** PR #235, branch `fix/tm-ipc-probe-build-dir`, oorspronkelijke head
+`bff194b51d51a9702ee9fb9ad4cf3de9580327fb`, geïntegreerd met main
+`9bc5f5270ffe2a8f4a214dd4d58c4290a4de6bec`. **41 → 41/100**; geen criterium wijzigt.
+
+**Gerealiseerd:** de vier `BUILD`-padcorrecties blijven behouden; `test_m2`
+en `test_m4` hebben nu een docstring. De bestaande CI-reparatie uit #241
+komt via main mee, inclusief de afgebakende Unraid-runnerlabels. Er zijn
+geen nieuwe workflow- of branchregelwijzigingen.
+
+**Controle:** Python-syntax en AST-vergelijking slagen; buiten de twee nieuwe
+docstrings is de uitvoerbare runner gelijk aan de oorspronkelijke PR-head.
+Rubric, criteria, gewichten en bewijsverwijzingen blijven gelijk.
+Bronhashes en bewijsgrenzen: [PR235-review](verification/pr235-review-20261107.json).
+**Niet uitgevoerd in deze sessie:** Rust-/QEMU-gates; Cargo en QEMU ontbreken.
+De oorspronkelijke PR meldt een geslaagde M2–M4-run; dit is hier niet opnieuw bewezen.
+
+**Open:** nieuwe `host-quality` en `qemu-smoke` op de bijgewerkte PR-head,
+reviewcontrole en squash-auto-merge binnen de bestaande main-regels. De
+oude jobs zonder stappen gebruiken nog de hosted-runnerconfiguratie;
+herstart die niet. Optionele artifact-uploadfouten blijven afzonderlijk zichtbaar.
+**Eerstvolgend commando:** `gh pr checks 235 --repo simonvanieperen/nieuw-os`.
+
+## Historisch checkpoint — CI-herstel: Unraid-runners en artifactquota — 6 november 2026
+
+**Bron:** branch `ci/unraid-runner-labels` op main `d18aac4e`, PR #241. **41 → 41/100**;
+geen criterium wijzigt. Besluit: ADR-CI-RUNNERS-20261106.
+
+**Gerealiseerd:**
+- Alle 21 workflows draaien op `[self-hosted, Linux, X64, unraid, build]`. Het oude label
+  `[self-hosted, Linux]` matchte ook `MSIMON-wsl`. Dat is WSL op Simons eigen pc, waar
+  PR-code als gebruiker `simon` draaide.
+- `upload-artifact` bewaart nu 3 dagen.
+- `apt-get` draait alleen als `dpkg` de pakketten mist.
+- PR's die alleen `docs/**` of `*.md` in de root wijzigen, slaan de niet-verplichte gates over.
+
+**Diagnose (6 nov, GitHub-API en joblogs):**
+- ~75% van de rode jobs faalde alleen op de uploadstap met "Artifact storage quota has been
+  hit" (~6 GB live). De teststappen zelf waren groen. Dit is een infrafout.
+- Jobs met 0 stappen van vóór ~19:00 UTC: budgetstop van de hosted runners.
+- Echte codefout: `test_gs_discipline` in #238.
+- Onbeslist (code of capaciteit): 8-vCPU-timeout in native-smp op de K06-keten.
+
+**Ingrepen met toestemming van Simon:**
+- Runnerservice `MSIMON-wsl` gestopt (`systemctl` is inactive, GitHub meldt hem offline).
+- 38 wachtende PR-runs geannuleerd.
+- Artifacts ouder dan 24 uur verwijderd.
+
+**Open:**
+- CI-resultaat van #241 op de Unraid-runners.
+- PR's #213, #210 en #233 brengen eigen workflows met `ubuntu-24.04` mee. Die moeten op
+  de unraid-labelset voor ze mergen.
+- PR-integratievolgorde: zie de PR-beschrijving van #241.
+
+**Eerstvolgend commando:** `gh pr checks 241 --repo simonvanieperen/nieuw-os`.
+
+## Historisch checkpoint — K06 stap 5a, ticketlock, irqsave en lockdep — 6 november 2026
 
 **Bron:** branch `feat/k06-5a-ticketlock-lockdep` op main `2c7edaf5`; spec
 `docs/implementation/K06-SMP.md` (§4, stap 5a). **41 → 41/100**; K06 blijft open.

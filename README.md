@@ -60,11 +60,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
-**Bron:** [`edb252db`](https://github.com/simonvanieperen/nieuw-os/commit/edb252dbc91f3fa83c12d6aaf7008a5184cb74d3) ·
-**Ontwikkelbranch:** `feat/k06-5a-ticketlock-lockdep`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5a: ticketlock, irqsave en lockdep per CPU (ADR-074).
-41/100 blijft 41/100. K06 stap 5a voegt een ticketlock, irqsave en lockdep toe, met hosttests en een negatief native profiel. Native QEMU-bewijs is nog niet uitgevoerd en K06 vraagt een volledige SMP-scheduler (stap 5b t/m 5f), dus K06 blijft open.
+**Herbeoordeeld:** 2026-11-07 · **Rubric:** v1 ·
+**Bron:** [`bff194b5`](https://github.com/simonvanieperen/nieuw-os/commit/bff194b51d51a9702ee9fb9ad4cf3de9580327fb) ·
+**Ontwikkelbranch:** `fix/tm-ipc-probe-build-dir`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR #235: NOS_BUILD_DIR-padfix, functiedocumentatie en actuele CI-basis.
+41/100 blijft 41/100. De padfix op PR-bron bff194b5 wordt gecombineerd met main 9bc5f52 en twee docstrings. Alleen testtooling en statusdocumentatie; geen nieuw geaccepteerd OS-criterium. Nieuwe-head CI blijft afzonderlijk vereist.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -35,7 +35,7 @@ defaults:
 
 jobs:
   materiaal-probe:
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, unraid, build]
     # Bounded but generous. Two VM limits apply, and the guest one fires
     # first: the probe kernel's watchdog fails after 20,000 PIT ticks at
     # ~100 Hz, about 200 s of guest time (kernel/src/m2/m3/desktop.rs, prints
@@ -78,8 +78,7 @@ jobs:
         # and the probe binds the exact ROM it copied in result.json
         # (frozen_artifacts["VGA.rom"]), so the input stays verifiable.
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf seabios
+          dpkg -s qemu-system-x86 ovmf seabios >/dev/null 2>&1 || { echo "::warning::ontbreekt in runner-image: qemu-system-x86 ovmf seabios"; sudo apt-get update; sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf seabios; }
           test -f "$OS_OVMF_CODE"
           test -f "$OS_OVMF_VARS"
           test -f "$VGA_ROM"
@@ -163,4 +162,4 @@ jobs:
           name: materiaal-probe-evidence
           path: build/materiaal-probe-ci/
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 3
