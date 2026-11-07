@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
-**Bron:** [`edb252db`](https://github.com/simonvanieperen/nieuw-os/commit/edb252dbc91f3fa83c12d6aaf7008a5184cb74d3) ·
-**Ontwikkelbranch:** `feat/k06-5a-ticketlock-lockdep`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5a: ticketlock, irqsave en lockdep per CPU (ADR-074).
-41/100 blijft 41/100. K06 stap 5a voegt een ticketlock, irqsave en lockdep toe, met hosttests en een negatief native profiel. Native QEMU-bewijs is nog niet uitgevoerd en K06 vraagt een volledige SMP-scheduler (stap 5b t/m 5f), dus K06 blijft open.
+**Bron:** [`d18aac4e`](https://github.com/simonvanieperen/nieuw-os/commit/d18aac4e8921cb95e91c7a4237b182297896248f) ·
+**Ontwikkelbranch:** `ci/unraid-runner-labels`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** CI-herstel: alleen Unraid-runners, artifact-retentie, docs-PR's slaan zware gates over.
+41/100 blijft 41/100. Alleen CI-infrastructuur gewijzigd (runnerlabels, artifact-retentie, padfilters); geen OS-functionaliteit, geen criterium verandert van status.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
