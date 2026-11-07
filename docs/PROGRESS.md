@@ -1,5 +1,11 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+PR #235-herstel (7 november 2026), PR-bron `bff194b5` met main `9bc5f52`:
+**41 → 41/100**. Alleen buildpadcorrecties, twee functiedocstrings en een
+actuele CI-basis; geen criterium of gewicht gewijzigd. Syntax-/AST-controle
+slagen; geen nieuwe native uitvoering in deze sessie. Nieuwe-head CI blijft
+vereist. Zie [het reviewbewijs](verification/pr235-review-20261107.json).
+
 Sessie-/bibliotheekintegratie #206 op main `bce6cabc` (5 november 2026): **41 → 41/100**.
 De U03-claim (41→44) uit het hashgebonden branchbewijs wordt op main niet
 overgenomen; U03 blijft open tot de native bibliotheekgates op main slagen

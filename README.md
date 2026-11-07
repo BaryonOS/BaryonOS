@@ -60,11 +60,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
-**Bron:** [`d18aac4e`](https://github.com/simonvanieperen/nieuw-os/commit/d18aac4e8921cb95e91c7a4237b182297896248f) ·
-**Ontwikkelbranch:** `ci/unraid-runner-labels`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** CI-herstel: alleen Unraid-runners, artifact-retentie, docs-PR's slaan zware gates over.
-41/100 blijft 41/100. Alleen CI-infrastructuur gewijzigd (runnerlabels, artifact-retentie, padfilters); geen OS-functionaliteit, geen criterium verandert van status.
+**Herbeoordeeld:** 2026-11-07 · **Rubric:** v1 ·
+**Bron:** [`bff194b5`](https://github.com/simonvanieperen/nieuw-os/commit/bff194b51d51a9702ee9fb9ad4cf3de9580327fb) ·
+**Ontwikkelbranch:** `fix/tm-ipc-probe-build-dir`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR #235: NOS_BUILD_DIR-padfix, functiedocumentatie en actuele CI-basis.
+41/100 blijft 41/100. De padfix op PR-bron bff194b5 wordt gecombineerd met main 9bc5f52 en twee docstrings. Alleen testtooling en statusdocumentatie; geen nieuw geaccepteerd OS-criterium. Nieuwe-head CI blijft afzonderlijk vereist.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

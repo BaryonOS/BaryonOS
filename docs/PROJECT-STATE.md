@@ -1,6 +1,30 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — CI-herstel: Unraid-runners en artifactquota — 6 november 2026
+## NEXT AGENT HANDOFF — PR #235: buildpaden en CI-basis — 7 november 2026
+
+**Bron:** PR #235, branch `fix/tm-ipc-probe-build-dir`, oorspronkelijke head
+`bff194b51d51a9702ee9fb9ad4cf3de9580327fb`, geïntegreerd met main
+`9bc5f5270ffe2a8f4a214dd4d58c4290a4de6bec`. **41 → 41/100**; geen criterium wijzigt.
+
+**Gerealiseerd:** de vier `BUILD`-padcorrecties blijven behouden; `test_m2`
+en `test_m4` hebben nu een docstring. De bestaande CI-reparatie uit #241
+komt via main mee, inclusief de afgebakende Unraid-runnerlabels. Er zijn
+geen nieuwe workflow- of branchregelwijzigingen.
+
+**Controle:** Python-syntax en AST-vergelijking slagen; buiten de twee nieuwe
+docstrings is de uitvoerbare runner gelijk aan de oorspronkelijke PR-head.
+Rubric, criteria, gewichten en bewijsverwijzingen blijven gelijk.
+Bronhashes en bewijsgrenzen: [PR235-review](verification/pr235-review-20261107.json).
+**Niet uitgevoerd in deze sessie:** Rust-/QEMU-gates; Cargo en QEMU ontbreken.
+De oorspronkelijke PR meldt een geslaagde M2–M4-run; dit is hier niet opnieuw bewezen.
+
+**Open:** nieuwe `host-quality` en `qemu-smoke` op de bijgewerkte PR-head,
+reviewcontrole en squash-auto-merge binnen de bestaande main-regels. De
+oude jobs zonder stappen gebruiken nog de hosted-runnerconfiguratie;
+herstart die niet. Optionele artifact-uploadfouten blijven afzonderlijk zichtbaar.
+**Eerstvolgend commando:** `gh pr checks 235 --repo simonvanieperen/nieuw-os`.
+
+## Historisch checkpoint — CI-herstel: Unraid-runners en artifactquota — 6 november 2026
 
 **Bron:** branch `ci/unraid-runner-labels` op main `d18aac4e`, PR #241. **41 → 41/100**;
 geen criterium wijzigt. Besluit: ADR-CI-RUNNERS-20261106.

@@ -2,8 +2,8 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-06",
-    "source_commit": "d18aac4e8921cb95e91c7a4237b182297896248f",
+    "date": "2026-11-07",
+    "source_commit": "bff194b51d51a9702ee9fb9ad4cf3de9580327fb",
     "assessment_basis": "source_commit",
     "reviewed_commit": "cc1dea7eeeae01448a378ee422837b0438ecc7b5",
     "reviewed_commit_context": "Historische review van de PR148-documentatiestatus en reikwijdte van hostbewijs; geen integratiereview.",
@@ -15,10 +15,10 @@
       "evidence_basis": "Git-mergeouders en handoff in docs/PROJECT-STATE.md; gerichte integratietests zijn daar gemeld met uitvoer uitsluitend in het sessietranscript. De eerdere PR148-hostreceipts zijn geen integratiereviewbewijs.",
       "missing_evidence": "Afzonderlijk, brongebonden bewijs van de integratiereview ontbreekt; nieuwe-head CI en review moeten nog worden beoordeeld."
     },
-    "branch": "ci/unraid-runner-labels",
-    "task": "CI-herstel: alleen Unraid-runners, artifact-retentie, docs-PR's slaan zware gates over",
+    "branch": "fix/tm-ipc-probe-build-dir",
+    "task": "PR #235: NOS_BUILD_DIR-padfix, functiedocumentatie en actuele CI-basis",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Alleen CI-infrastructuur gewijzigd (runnerlabels, artifact-retentie, padfilters); geen OS-functionaliteit, geen criterium verandert van status."
+    "summary": "41/100 blijft 41/100. De padfix op PR-bron bff194b5 wordt gecombineerd met main 9bc5f52 en twee docstrings. Alleen testtooling en statusdocumentatie; geen nieuw geaccepteerd OS-criterium. Nieuwe-head CI blijft afzonderlijk vereist."
   },
   "tracks": [
     {
