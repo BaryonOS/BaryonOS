@@ -1,96 +1,114 @@
-# Afzonderlijke publicatiekandidaat — 8 november 2026
+# Afzonderlijke publicatiekandidaat — hervat 8 november 2026
 
-**Deze gecontroleerde bronmomentopname is voorbereid voor een onafhankelijke
-nieuwe repository; de oorspronkelijke Nieuw-OS-repository en haar geschiedenis
-blijven privé. Er is nog geen nieuwe repository gepubliceerd.**
+**Deze bronmomentopname is voorbereid voor een nieuwe, onafhankelijke repository.
+De huidige `simonvanieperen/nieuw-os` is nog privé; de afwijkende bestemming
+`simonvanieperen/nieuw-os-public` is niet bevestigd of aangemaakt.**
 
-De basis is vóór opslag bijgewerkt naar main `5b2189824c32145ad5c110429517dfcea3f2720f` (PR #250): acht documentatiebestanden, alle exact op Git-blob-ID gecontroleerd. Productcode is sinds de volledig gecontroleerde snapshot `363b486b` ongewijzigd. Het bevestigde openbare richtingbesluit is behouden.
+De hervatting heeft het eerdere werk daadwerkelijk teruggevonden: het auditdossier
+staat in PR #259 en de kandidaat in concept-PR #260. De vorige kandidaat op
+`83d5ee35380d0c48ac2e1890614840461bdd2d01` is lokaal volledig teruggevonden:
+6.468 bestanden met exact Git-tree `2502db4122acd92b93fc5dda972920d59b9ba507`.
+Die versie is het herstelpunt, niet de uiteindelijke hash van de bijgewerkte boom.
 
-## Waarom deze scope
+## Waarom een afzonderlijke publicatie nodig is
 
-De oorspronkelijke bron bevat een geïntegreerde OSDev-/boekcollectie.
-Voor concreet behouden proza uit een wiki-import uit 2006 is geen
-herpublicatiegrant aangetoond. De upstream wiki vermeldt gemengde
-licenties en vroeg afzonderlijke verklaringen voor oudere bijdragen.
-Een gewone verwijdercommit zou de oude kopieën in Git- en PR-refs
-bereikbaar laten. Deze kandidaat neemt die collectie en oude Git-objecten
-daarom niet over.
+De oorspronkelijke bron bevat een geïntegreerde OSDev-/boekcollectie. Voor twee
+daadwerkelijk behouden prozapassages uit een wiki-import uit 2006 is geen
+herpublicatiegrant vastgesteld. Dit is geen oordeel dat de gehele wiki onvrij is
+of dat de eigen kernelcode dit probleem heeft. Het dossier in PR #259 vermeldt
+pagina W001473, de bronblob en passagehashes zonder de betrokken tekst opnieuw
+in de openbare kandidaat over te nemen.
 
-De praktische uitsluitingsgrens is `.agents/skills/os-dev/`: 78 bestanden,
-16.304.389 bronbytes. Dat is geen afkeuring van ieder bestand. Het boek,
-eigen bronhulpmiddelen en metadata kunnen later afzonderlijk onder hun
-passende voorwaarden worden teruggebracht. De leerroute verwijst nu naar
-de primaire online bronnen.
+Verwijderen uit de nieuwste commit verwijdert eerdere Git- en PR-kopieën niet.
+Ook de volledige reguliere Actions-historie van de oorspronkelijke repository
+is niet afgetekend. De afzonderlijke kandidaat importeert die geschiedenis,
+oude PR-refs, issues, wiki, discussies, Actions-runs, artifacts en caches niet.
 
-## Exacte samenstelling
+De praktische uitsluitingsgrens blijft `.agents/skills/os-dev/`: 78 bestanden,
+16.304.389 bronbytes. De eigen OS-code blijft behouden. Het boek, eigen
+bronhulpmiddelen en metadata kunnen later afzonderlijk onder hun passende
+voorwaarden worden opgenomen. De huidige leerroute verwijst naar primaire
+online bronnen. De oorspronkelijke repository blijft intact en privé.
 
-| Onderdeel | Bron |
+## Actuele samenstelling
+
+| Onderdeel | Vastgelegde bron |
 |---|---|
-| Eigen OS-code, tests, bestaande bewijsbestanden en documentatie | main `363b486b06023d3d578f8eca2b23ff49045a1757` |
-| 21 hosted-workflows en nieuwe hostcache | PR #249, `d3d8e3e0a3b0b455b1832bdc53220352c2b20960` |
-| Bewijscollector, lokale action, tests en bijbehorende documentatie | PR #251, `5c291cff3b9c28e4948aeb36adda3acc6ee6a8ab` |
-| Uitsluitingen | De 78 skillbestanden en de private auditworkflow |
-| Aanvullingen | Officiële MPL-2.0-tekst, exact padregister, licentiescope, componentregister en dit publicatiecheckpoint |
+| Productcode en oorspronkelijke bewijsbestanden | `363b486b06023d3d578f8eca2b23ff49045a1757` |
+| Main inclusief besluit openbare ontwikkeling uit #250 | `5b2189824c32145ad5c110429517dfcea3f2720f` |
+| Herstelde eerdere kandidaat | #260, `83d5ee35380d0c48ac2e1890614840461bdd2d01` |
+| Actuele hosted CI en vaste tools | #249, `0de9d805a99de22e404cba188362950d8d0f4e39` |
+| Actuele bewijscollector, tests en reviewreparaties | #251, `dc6c6bca7fdadf078275999294f8d1c275fa6ffa` |
 
-Alle 6.524 bestanden van de main-basissnapshot en de 45 geselecteerde
-overlaybronbestanden uit #249/#251 zijn gecontroleerd tegen hun Git-blob-ID's. De
-componentinventaris verifieert 112 exacte registryversies en alle 361
-checksumvermeldingen in 62 lockfiles. Bestaande vendor-/fontlicenties
-blijven behouden; [LICENSING.md](../LICENSING.md) en
-[THIRD-PARTY.md](../THIRD-PARTY.md) leggen de afbakening vast.
+De bijgewerkte kandidaat bevat Python 3.12.12, het gehashte PyYAML 6.0.3-wheel,
+de vaste QEMU-/firmwarepakketten en de relevante bestaande host-/QEMU-gates uit
+#249. De collector en de bijbehorende foutafhandeling uit #251 blijven behouden.
+De extra compacte diagnostiek van `qemu-smoke` gebruikt eveneens de gedeelde
+bewaaractie; de exacte integratie en daadwerkelijk uitgevoerde controles staan
+in [het hervattingsbewijs](verification/publication-resume-20261108.json).
 
-De [integratieprovenance](verification/publication-candidate-20261108.json)
-beschrijft de tussenstand na de CI-/broncollectieaanpassingen. De latere
-licentie- en checkpointintegratie wordt afzonderlijk in het eindmanifest
-vastgelegd in het [eindmanifest](verification/publication-final-20261108.json),
-zodat de tussenstand niet als eindhash wordt gebruikt.
+De officiële MPL-2.0-tekst en het exacte padregister blijven leidend voor eigen
+software. Nieuwe eigen CI-configuratie is aan `MPL-2.0-FILES.txt` toegevoegd.
+Externe componenten, fonts en notices behouden hun afzonderlijke voorwaarden;
+documentatie en assets krijgen geen algemene MPL-toepassing. Zie
+[LICENSING.md](../LICENSING.md) en [THIRD-PARTY.md](../THIRD-PARTY.md).
 
-## Uitgevoerde controles
+## Bewijs en grenzen
 
-- 15 host-unittests voor de bewijscollector: geslaagd.
-- Actionlint voor alle 21 workflows: geslaagd; optionele externe
-  shellcheck/pyflakes niet gebruikt.
-- 470 statische beleids-/integratiecontroles: geslaagd; alle 24 jobs
-  gebruiken `ubuntu-24.04`, alle 32 externe action-aanroepen in de workflows zijn
-  volledig SHA-gepind en 15 aanroepen gebruiken de beoordeelde lokale action.
-- Voortgangsgenerator: **41/100**, zonder wijziging van criteria of bewijs.
-- De actuele bron, inclusief gecomprimeerde bewijsbestanden en beelden,
-  is in de oorspronkelijke publicatiecontrole onderzocht. De laatste
-  kandidaatcontrole is aan het eindmanifest gebonden: 37 Gitleaks-kandidaten
-  zijn verklaard (35 bestaande, ongewijzigde locaties en twee
-  workflow-SHA-256-vermeldingen uit #251); geen onopgeloste secretbevinding.
+Het eerdere onderzoek controleerde alle 6.524 bestanden van bron `363b486b`,
+112 exacte registryversies en 361 checksumvermeldingen in 62 lockfiles. De
+latere main-documentatie en geselecteerde CI-overlays zijn afzonderlijk aan hun
+Git-blobs verbonden. De hervatting verifieert de nieuwe combinatie en legt de
+werkelijke commando's, exitcodes, aantallen en bronhashes opnieuw vast.
 
-Er is geen nieuwe Rust-build, QEMU-acceptatie of fysieke hardwaretest op
-deze samengestelde boom uitgevoerd. De bronpublicatie accepteert daardoor
-geen nieuw productcriterium. Historische testresultaten blijven gebonden
-aan hun oorspronkelijke bron; R03 en de volledige productrelease blijven open.
+De eerdere 470 beleidscontroles horen bij de oude kandidaat. Ze worden niet als
+herhaling op deze gewijzigde CI-configuratie gepresenteerd. Ook de historische
+native uitslagen en echte artifactquota-terugval uit #251 blijven aan hun
+oorspronkelijke bron en GitHub-runs gebonden.
 
-## Publicatie-uitvoering na scopekeuze
+Het actuele [eindmanifest](verification/publication-final-20261108.json) bevat
+de nieuwe bestandsinventaris, wijzigingen, MPL-scopehash en inhoudsdigest.
+De digest sorteert expliciet op UTF-8-bytes van het repositoryrelatieve pad;
+alleen het eindmanifest zelf wordt ervan uitgesloten. De private reviewcommit
+heeft nog ouders in de oude repository. Alleen de bronboom, zonder die ouders,
+mag naar een eventueel nieuw publicatiedoel worden overgebracht.
 
-Het voorgestelde doel is `simonvanieperen/nieuw-os-public`, met een nieuwe
-geschiedenis die geen oude commits, branches of PR-refs erft. Bestaande
-issues, wiki, discussies, Actions-runs, logarchieven en caches worden niet
-geïmporteerd. De oude repository blijft privé en intact.
+Er is geen nieuwe Rust-/QEMU-acceptatie op deze samengestelde boom uitgevoerd.
+De oude kandidaatrun 42513558667 had voor `host-quality` geen runner of stappen;
+`qemu-smoke` was overgeslagen. De eerdere GitHub-runmelding noemt een Actions-
+budgetblokkade. Dat is geen geslaagde test en wordt niet omzeild met zwakkere
+branchregels of een gefingeerde groene uitslag. De score blijft **41/100**;
+R03 en de volledige productrelease blijven open.
 
-De nieuwe repository krijgt geen eigen runnerregistraties en geen
-overgenomen secrets. Actions gebruikt leestokens, toegestane SHA-gepinde
-actions en goedkeuring voor externe bijdragen. De bestaande relevante
-host-/QEMU-gates worden in de nieuwe branchregels aangehouden. De echte
-CI-uitvoering en zichtbaarheid worden na afloop gecontroleerd; een
-voorbereide configuratie is geen groen testresultaat.
+## Uitvoering na keuze van de bestemming
 
-Dit verandert de bestemming uit de oorspronkelijke opdracht en vraagt
-daarom een expliciete scopekeuze. Er wordt geen toestemming verondersteld
-om de oorspronkelijke geschiedenis te herschrijven of te verwijderen.
+Het concrete voorstel is `simonvanieperen/nieuw-os-public` met een nieuwe
+geschiedenis. De huidige `nieuw-os` behoudt haar naam, inhoud, branches, PR's,
+wiki en logarchieven in privévorm. Er worden geen oorspronkelijke Git-objecten,
+secrets of eigen runnerregistraties naar het nieuwe doel overgenomen.
+
+De nieuwe repository gebruikt standaard GitHub-runners en de bestaande
+relevante host-/QEMU-gates. Repository- en Actions-instellingen moeten op het
+werkelijke nieuwe doel worden gecontroleerd. Werkelijke CI-uitvoering en
+openbaarheid worden na publicatie apart vastgesteld.
+
+De oorspronkelijke gebruikersopdracht autoriseert openbaarmaking van de
+bestaande repository na afgeronde controle. Een andere repository met nieuwe
+geschiedenis is een materiële wijziging van dat doel en is nog niet gekozen.
+Deze concept-PR blijft daarom zonder auto-merge en is niet bedoeld als gewone
+cleanup-merge in de oorspronkelijke main. Geen geschiedenis is herschreven of
+verwijderd en geen zichtbaarheid of facturering is aangepast.
 
 ## Bronnen
 
 OSDev Wiki-bijdragers. (2011). *OSDev Wiki:License*.
 https://wiki.osdev.org/OSDev_Wiki:License
 
-Combuster. (2011, 8 juli). *OSDev Wiki Relicensing statements*
-[Oorspronkelijke beheerdersverklaring].
-https://forum.osdev.org/viewtopic.php?t=23838
+OSDev Wiki-bijdragers. (2011). *OSDev Wiki:Copyrights*.
+https://wiki.osdev.org/OSDev_Wiki:Copyrights
+
+GitHub. (z.d.). *Removing sensitive data from a repository*.
+https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository
 
 Mozilla. (z.d.). *Mozilla Public License, version 2.0*.
 https://www.mozilla.org/en-US/MPL/2.0/

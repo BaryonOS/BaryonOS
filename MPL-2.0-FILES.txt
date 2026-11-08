@@ -1,5 +1,8 @@
 .cargo/config.toml
 .github/actions/preserve-evidence/action.yml
+.github/actions/setup-python/action.yml
+.github/actions/setup-python/requirements.txt
+.github/actions/setup-qemu/action.yml
 .github/dependabot.yml
 .github/workflows/app-management-quality.yml
 .github/workflows/artifact-store-quality.yml
@@ -152,9 +155,11 @@ kernel/build.rs
 kernel/linker.ld
 kernel/src/framebuffer.rs
 kernel/src/graphics.rs
+kernel/src/m2.rs
 kernel/src/m2/acpi.rs
 kernel/src/m2/arch.rs
 kernel/src/m2/lock.rs
+kernel/src/m2/m3.rs
 kernel/src/m2/m3/cap_bench.rs
 kernel/src/m2/m3/desktop.rs
 kernel/src/m2/m3/desktop_gate.rs
@@ -189,11 +194,9 @@ kernel/src/m2/m3/wait.rs
 kernel/src/m2/m3/wait_fixture.rs
 kernel/src/m2/m3/window_retirement.rs
 kernel/src/m2/m3/window_session.rs
-kernel/src/m2/m3.rs
 kernel/src/m2/paging.rs
 kernel/src/m2/rtc.rs
 kernel/src/m2/smp.rs
-kernel/src/m2.rs
 kernel/src/main.rs
 kernel/src/memory.rs
 kernel/src/serial.rs

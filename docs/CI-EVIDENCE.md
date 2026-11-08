@@ -7,7 +7,7 @@ test, build, validator of bewijscollector blijft wel een fout.
 
 ## Normale runs
 
-De vijftien workflows die bewijs bewaren gebruiken
+De zestien workflows die bewijs bewaren gebruiken
 `.github/actions/preserve-evidence/action.yml`. De action leest alleen de
 expliciet opgegeven bestaande bewijsselectie en doet het volgende:
 
@@ -37,6 +37,13 @@ selecteren.
 
 GitHub telt runlogs en job summaries niet mee voor het artifactopslagquotum.
 Hun normale retentie blijft gelden; dit beleid verkort die niet.
+
+De publicatiekandidaat voegt ook de nieuwe `qemu-smoke`-diagnostiek uit
+PR #249 aan deze gedeelde route toe. De 53 expliciete rapport-/logpaden en
+de oorspronkelijke `warn`-policy bij ontbrekende bestanden blijven behouden.
+De collector en tests blijven verplicht; alleen de opslagpogingen zijn
+best effort. Dit is een integratiewijziging ten opzichte van de afzonderlijke
+CI-PR's, geen bewijs van een nieuwe QEMU-uitvoering.
 
 ## Volledig archief voor hercontrole
 

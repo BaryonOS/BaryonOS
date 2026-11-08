@@ -36,6 +36,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
       - name: Rust 1.90.0 and tools
         run: |
           rustup toolchain install 1.90.0 --profile minimal
@@ -84,6 +86,8 @@ jobs:
     timeout-minutes: 20
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
       NOS_BUILD_DIR: ${{ github.workspace }}/build/nas-native-ci
       NOS_TARGET_DIR: ${{ github.workspace }}/target/nas-native-ci
       CARGO_TARGET_DIR: ${{ github.workspace }}/target/nas-native-ci
@@ -92,13 +96,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
       - name: Rust 1.90.0 and actual native targets
         run: |
           rustup toolchain install 1.90.0 --profile minimal
           rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
-      - name: Disposable QEMU and matching OVMF package
-        run: |
-          dpkg -s qemu-system-x86 ovmf >/dev/null 2>&1 || { echo "::warning::ontbreekt in runner-image: qemu-system-x86 ovmf"; sudo apt-get update; sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf; }
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
       - name: Strict preflight and exact checkout identity
         shell: bash
         run: |

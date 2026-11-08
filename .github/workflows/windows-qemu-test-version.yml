@@ -40,10 +40,17 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
       - name: Install pinned Rust toolchain and VM firmware
         run: |
           rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
-          dpkg -s qemu-system-x86 ovmf seabios >/dev/null 2>&1 || { echo "::warning::ontbreekt in runner-image: qemu-system-x86 ovmf seabios"; sudo apt-get update; sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf seabios; }
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Ubuntu emulator package diagnostics
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash
+        run: |
           mkdir -p "$NOS_BUILD_DIR"
       - name: Strict environment inventory
         run: python3 -B tools/preflight.py --strict > "$NOS_BUILD_DIR/preflight.json"

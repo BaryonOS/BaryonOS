@@ -5,6 +5,12 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      full_evidence:
+        description: 'Also attempt the complete selected QEMU diagnostic archive'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -23,6 +29,10 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+        with:
+          host-dependencies: 'true'
       - name: Node 24.22.1
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
@@ -66,6 +76,12 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_volume_*.py'
           python3 -m unittest discover -s tests -p 'test_system_*.py'
           python3 -m unittest discover -s tools/tests -p 'test_*.py'
+      - name: Runner and QEMU harness host tests
+        shell: bash
+        run: |
+          for pattern in test_common.py test_preflight.py test_build_paths.py test_guest_harness.py test_m1_artifact_binding.py 'test_m6c_*.py'; do
+            python3 -B -m unittest discover -s tests -p "$pattern"
+          done
       - name: Root Rust host tests
         run: |
           cargo +1.90.0 test --locked -p boot-protocol -p elf-loader-core -p kernel-core -p capability-core -p virtio-core -p ui-core -p virtio-blk-driver -p block-protocol -p object-core -p catalog-core -p volume-core -p keyring-core -p virtio-rng-driver -p virtio-net-driver -p driver-core -p pci-core -p update-core -p update-tool
@@ -152,11 +168,15 @@ jobs:
     timeout-minutes: 30
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
       - name: Rust 1.90.0 and targets
         shell: bash
         run: |
@@ -171,9 +191,19 @@ jobs:
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
           key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
-      - name: Install disposable emulator dependencies
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Record CI toolchain diagnostics
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash
         run: |
-          dpkg -s qemu-system-x86 ovmf >/dev/null 2>&1 || { echo "::warning::ontbreekt in runner-image: qemu-system-x86 ovmf"; sudo apt-get update; sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf; }
+          mkdir -p build/ci-toolchain
+          cp "$RUNNER_TEMP/nieuw-os-qemu-environment.txt" build/ci-toolchain/emulator.txt
+          {
+            python3 --version
+            rustc +1.90.0 --version
+            cargo +1.90.0 --version
+          } | tee build/ci-toolchain/languages.txt
       - name: Preflight
         run: python3 -B tools/preflight.py --strict
       - name: Baseline M6c smoke
@@ -228,3 +258,67 @@ jobs:
           NOS_TARGET_DIR="$PWD/target/ci-sdk-denied" \
           CARGO_TARGET_DIR="$PWD/target/ci-sdk-denied" \
           python3 -B tools/run_sdk_app.py --case denied
+      - name: Preserve compact QEMU diagnostics
+        if: ${{ always() }}
+        # Tests and the bounded collector remain mandatory. Upload failures are
+        # reported by the shared action without discarding run-log evidence.
+        uses: ./.github/actions/preserve-evidence
+        with:
+          name: qemu-smoke-evidence
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
+          if-no-files-found: warn
+          path: |
+            build/ci-toolchain/emulator.txt
+            build/ci-toolchain/languages.txt
+            build/manifest.json
+            build/logs/*.json
+            build/logs/*.stdout.txt
+            build/logs/*.stderr.txt
+            build/run/m6c-normal-*/build-manifest.json
+            build/run/m6c-normal-*/volume-manifest.json
+            build/run/m6c-normal-*/result.json
+            build/run/m6c-normal-*/serial.txt
+            build/run/m6c-normal-*/stderr.txt
+            build/ci-document/manifest.json
+            build/ci-document/logs/*.json
+            build/ci-document/logs/*.stdout.txt
+            build/ci-document/logs/*.stderr.txt
+            build/ci-document/document-session-gate/result.json
+            build/ci-document/document-session-gate/*.stdout.txt
+            build/ci-document/document-session-gate/*.stderr.txt
+            build/ci-document/run/m6c-document-session-normal-*/build-manifest.json
+            build/ci-document/run/m6c-document-session-normal-*/volume-manifest.json
+            build/ci-document/run/m6c-document-session-normal-*/result.json
+            build/ci-document/run/m6c-document-session-normal-*/serial.txt
+            build/ci-document/run/m6c-document-session-normal-*/stderr.txt
+            build/ci-document/run/m6c-document-session-recover-*/build-manifest.json
+            build/ci-document/run/m6c-document-session-recover-*/volume-manifest.json
+            build/ci-document/run/m6c-document-session-recover-*/result.json
+            build/ci-document/run/m6c-document-session-recover-*/serial.txt
+            build/ci-document/run/m6c-document-session-recover-*/stderr.txt
+            build/ci-qsim-job/manifest.json
+            build/ci-qsim-job/users/qsim-job/build-report.json
+            build/ci-qsim-job/native-qsim-job-result.json
+            build/ci-qsim-job/logs/*.json
+            build/ci-qsim-job/logs/*.stdout.txt
+            build/ci-qsim-job/logs/*.stderr.txt
+            build/ci-qsim-job/run/native-qsim-job-*/result.json
+            build/ci-qsim-job/run/native-qsim-job-*/serial.txt
+            build/ci-qsim-job/run/native-qsim-job-*/stderr.txt
+            build/ci-sdk-normal/manifest.json
+            build/ci-sdk-normal/native-sdk-app-normal.json
+            build/ci-sdk-normal/logs/*.json
+            build/ci-sdk-normal/logs/*.stdout.txt
+            build/ci-sdk-normal/logs/*.stderr.txt
+            build/ci-sdk-normal/run/native-sdk-app-normal-*/result.json
+            build/ci-sdk-normal/run/native-sdk-app-normal-*/serial.txt
+            build/ci-sdk-normal/run/native-sdk-app-normal-*/stderr.txt
+            build/ci-sdk-denied/manifest.json
+            build/ci-sdk-denied/native-sdk-app-denied.json
+            build/ci-sdk-denied/logs/*.json
+            build/ci-sdk-denied/logs/*.stdout.txt
+            build/ci-sdk-denied/logs/*.stderr.txt
+            build/ci-sdk-denied/run/native-sdk-app-denied-*/result.json
+            build/ci-sdk-denied/run/native-sdk-app-denied-*/serial.txt
+            build/ci-sdk-denied/run/native-sdk-app-denied-*/stderr.txt

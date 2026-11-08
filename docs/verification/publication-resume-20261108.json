@@ -1,0 +1,343 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-11-08T19:33:27.889126+00:00",
+  "repository": "simonvanieperen/nieuw-os",
+  "task": "Hervat publicatiecontrole; actualiseer de gecontroleerde private kandidaat zonder publicatiescope te wijzigen",
+  "recovered_candidate": {
+    "commit": "83d5ee35380d0c48ac2e1890614840461bdd2d01",
+    "git_tree": "2502db4122acd92b93fc5dda972920d59b9ba507",
+    "files": 6468,
+    "all_bytes_and_modes_matched": true
+  },
+  "recovered_audit": {
+    "commit": "014018be9307c623a3b5165beab4243d310683df",
+    "git_tree": "445ce9265d8d2720b789fb1d0630eb21dd7003c5",
+    "files": 6545,
+    "all_bytes_and_modes_matched": true
+  },
+  "main": {
+    "commit": "5b2189824c32145ad5c110429517dfcea3f2720f",
+    "git_tree": "aeba905b32fc1d721943b06196da8d57c2a1ea3e",
+    "files": 6525
+  },
+  "integrated_sources": {
+    "hosted_ci": "0de9d805a99de22e404cba188362950d8d0f4e39",
+    "evidence_storage": "dc6c6bca7fdadf078275999294f8d1c275fa6ffa"
+  },
+  "verified_ci_inputs": 73,
+  "product_preservation": {
+    "files": 1685,
+    "bytes_and_modes_equal_to_main": true,
+    "extra_files": 0,
+    "changed_files": 0
+  },
+  "validation": {
+    "host_tests": {
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "commands": [
+        {
+          "command": [
+            "python3",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_ci_evidence*.py",
+            "-v"
+          ],
+          "cwd": ".",
+          "exit_code": 0,
+          "duration_seconds": 1.164,
+          "tests": 15,
+          "log": "docs/verification/publication-resume-20261108/test_ci_evidenceall.py.log"
+        },
+        {
+          "command": [
+            "python3",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_common.py",
+            "-v"
+          ],
+          "cwd": ".",
+          "exit_code": 0,
+          "duration_seconds": 0.125,
+          "tests": 8,
+          "log": "docs/verification/publication-resume-20261108/test_common.py.log"
+        },
+        {
+          "command": [
+            "python3",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_preflight.py",
+            "-v"
+          ],
+          "cwd": ".",
+          "exit_code": 0,
+          "duration_seconds": 0.278,
+          "tests": 24,
+          "log": "docs/verification/publication-resume-20261108/test_preflight.py.log"
+        },
+        {
+          "command": [
+            "python3",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_build_paths.py",
+            "-v"
+          ],
+          "cwd": ".",
+          "exit_code": 0,
+          "duration_seconds": 0.129,
+          "tests": 3,
+          "log": "docs/verification/publication-resume-20261108/test_build_paths.py.log"
+        },
+        {
+          "command": [
+            "python3",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_guest_harness.py",
+            "-v"
+          ],
+          "cwd": ".",
+          "exit_code": 0,
+          "duration_seconds": 0.073,
+          "tests": 7,
+          "log": "docs/verification/publication-resume-20261108/test_guest_harness.py.log"
+        },
+        {
+          "command": [
+            "python3",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_m1_artifact_binding.py",
+            "-v"
+          ],
+          "cwd": ".",
+          "exit_code": 0,
+          "duration_seconds": 0.169,
+          "tests": 8,
+          "log": "docs/verification/publication-resume-20261108/test_m1_artifact_binding.py.log"
+        },
+        {
+          "command": [
+            "python3",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_m6c_*.py",
+            "-v"
+          ],
+          "cwd": ".",
+          "exit_code": 0,
+          "duration_seconds": 1.015,
+          "tests": 49,
+          "log": "docs/verification/publication-resume-20261108/test_m6c_all.py.log"
+        }
+      ],
+      "total_tests": 114,
+      "all_exit_zero": true
+    },
+    "static_integration": {
+      "command": [
+        "python3",
+        "-B",
+        "<private-resume-workspace>/verify_ci_integration.py"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "check_count": 587,
+      "counts": {
+        "workflows": 21,
+        "jobs": 24,
+        "python_setup_calls": 24,
+        "qemu_setup_calls": 17,
+        "evidence_calls": 16,
+        "workflow_external_actions": 32,
+        "qemu_diagnostic_paths": 53
+      },
+      "report": "docs/verification/publication-resume-20261108/integration-checks.json",
+      "verifier_sha256": "09d26f5581b10bd3058face695b41a7b6718c525ad29f2269163ea2b4ccb2dc5"
+    },
+    "actionlint": {
+      "command": [
+        "actionlint",
+        "-shellcheck=",
+        "-pyflakes=",
+        ".github/workflows/*.yml"
+      ],
+      "cwd": ".",
+      "version": "1.7.12",
+      "workflows": 21,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "external_shellcheck_pyflakes_executed": false
+    },
+    "progress_check": {
+      "command": [
+        "python3",
+        "-B",
+        "tools/progress.py",
+        "--check"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "score": 41
+    },
+    "new_python_bytecode_or_conflict_files": false
+  },
+  "logs": [
+    {
+      "path": "docs/verification/publication-resume-20261108/test_build_paths.py.log",
+      "sha256": "e35781e91f6e12ddd432ab5533db4bb30c877d68fe7c3bf9ad368a505fb4f520",
+      "bytes": 568
+    },
+    {
+      "path": "docs/verification/publication-resume-20261108/test_ci_evidenceall.py.log",
+      "sha256": "2f0cb79f605a176536d005350e12f59dbcdab7702e602d2589b6a1653f0060c4",
+      "bytes": 3303
+    },
+    {
+      "path": "docs/verification/publication-resume-20261108/test_common.py.log",
+      "sha256": "0991a87ebe96dd854664285d06989e8cb029bf6cace9cec2179f5e93e556df3d",
+      "bytes": 1406
+    },
+    {
+      "path": "docs/verification/publication-resume-20261108/test_guest_harness.py.log",
+      "sha256": "7aa9d73e5513fa975f550543317072206f8b549949197afefdfb1f1892903197",
+      "bytes": 1190
+    },
+    {
+      "path": "docs/verification/publication-resume-20261108/test_m1_artifact_binding.py.log",
+      "sha256": "42136a6fa58d53a460c14f051ea348aed68dbc6abc479ba85e76b2d0823f5c4e",
+      "bytes": 1522
+    },
+    {
+      "path": "docs/verification/publication-resume-20261108/test_m6c_all.py.log",
+      "sha256": "2f6bcae56f6b663aef1d0d868a1daab33347d06446a0fa3b2ccafea7b18baac7",
+      "bytes": 7757
+    },
+    {
+      "path": "docs/verification/publication-resume-20261108/test_preflight.py.log",
+      "sha256": "25a8ddcff7a80662f5682a05b90f16a7db6ac5ff16da80ba2893c83c6bc20a94",
+      "bytes": 4019
+    }
+  ],
+  "license": {
+    "mpl_files": 864,
+    "newly_listed_first_party_files": [
+      ".github/actions/setup-python/action.yml",
+      ".github/actions/setup-python/requirements.txt",
+      ".github/actions/setup-qemu/action.yml"
+    ],
+    "external_notices_preserved": true,
+    "excluded_source_collection": ".agents/skills/os-dev/"
+  },
+  "secret_scan": {
+    "scanner": "Gitleaks 8.30.1",
+    "scope": "Complete assembled directory with archive depth 2 and decode depth 5; default rules, empty ignore file, inline allowances ignored",
+    "exit_code": 1,
+    "candidates": 40,
+    "unresolved": 0,
+    "unchanged_previous_locations": 37,
+    "new_verified_workflow_digest_locations": 3,
+    "triage": "docs/verification/publication-20261108/candidate-secret-triage.json",
+    "finalization": "A final repeat checks that the completed evidence/manifest files introduce no unreviewed findings."
+  },
+  "history_reverification": {
+    "copilot_logs": 250,
+    "copilot_bytes": 46116151,
+    "file_hash_or_size_mismatches": 0,
+    "current_copilot_runs": 301,
+    "jobs_without_steps": 51,
+    "new_unexecuted_runs": [
+      42512296065,
+      42512255442
+    ],
+    "historical_scanner_records": 508,
+    "current_source_scanner_candidates": 36,
+    "full_regular_actions_history_cleared": false,
+    "queued_audit_run": 42511223167,
+    "queued_audit_has_steps_or_artifacts": false
+  },
+  "historical_github_ci_observation": {
+    "head": "83d5ee35380d0c48ac2e1890614840461bdd2d01",
+    "run": 42513558667,
+    "host_quality_job": 128831584411,
+    "host_quality_conclusion": "failure",
+    "runner_id": 0,
+    "executed_steps": 0,
+    "qemu_smoke_conclusion": "skipped",
+    "budget_message_source": "Prior saved PR260 description; fresh API confirms no runner or executed steps. Direct check annotations are not exposed by the connector."
+  },
+  "progress": {
+    "before": 41,
+    "after": 41,
+    "criteria_and_weights_unchanged": true
+  },
+  "publication": {
+    "original_repository_visibility": "private",
+    "existing_repository_clearance": false,
+    "proposed_new_repository": "simonvanieperen/nieuw-os-public",
+    "scope_confirmed": false,
+    "new_repository_created": false,
+    "history_rewrite": false,
+    "old_history_import": false,
+    "visibility_changed": false,
+    "billing_changed": false
+  },
+  "limits": [
+    "No new Rust compilation, native QEMU execution, GitHub runner execution or artifact upload.",
+    "Local Python 3.12.14 differs from the CI pin 3.12.12; complete setup execution on a GitHub runner remains unverified.",
+    "The 587 integration checks compare source/configuration; they do not execute GitHub expressions or replace native gates.",
+    "Historical imported CI reports stay bound to their original commits and are not test results for this assembled candidate.",
+    "The original repository remains uncleared because of the concrete rights gap and incomplete historical coverage. A new independent publication destination remains a user scope decision.",
+    "The private review commit has historical parents; only its source tree may be imported into a new repository."
+  ],
+  "independent_review": {
+    "kind": "second AI read-only source/configuration review",
+    "blockers": 0,
+    "scope": [
+      "All 21 workflow run commands, job settings, dependencies and permissions against verified PR249 inputs",
+      "All 16 evidence selections, missing-file policies and full_evidence guards",
+      "Exact source bytes of setup actions and collector against PR249/PR251",
+      "No remaining OSDev invocations and no new unsafe shell interpolation found"
+    ],
+    "limits": "No additional test suite, hosted execution, native QEMU run or human audit."
+  }
+}

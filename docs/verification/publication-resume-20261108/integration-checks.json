@@ -1,0 +1,2394 @@
+{
+  "schema_version": 1,
+  "sources": {
+    "PR249": "0de9d805a99de22e404cba188362950d8d0f4e39",
+    "PR251": "dc6c6bca7fdadf078275999294f8d1c275fa6ffa"
+  },
+  "counts": {
+    "workflows": 21,
+    "jobs": 24,
+    "python_setup_calls": 24,
+    "qemu_setup_calls": 17,
+    "evidence_calls": 16,
+    "workflow_external_actions": 32,
+    "qemu_diagnostic_paths": 53
+  },
+  "checks": [
+    {
+      "name": "yaml:.github/workflows/app-management-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "preserved-jobs-settings-and-tests:.github/workflows/app-management-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "no-skill-tests:.github/workflows/app-management-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "no-workflow-write-permissions:.github/workflows/app-management-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "all-archive-sites-preserved:.github/workflows/app-management-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/app-management-quality.yml:app-package-quality",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/app-management-quality.yml:app-package-quality",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/app-management-quality.yml:app-package-quality:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/app-management-quality.yml:app-package-quality:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/app-management-quality.yml:app-package-quality:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/app-management-quality.yml:app-package-quality:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/app-management-quality.yml:app-package-quality:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/app-management-quality.yml:app-package-quality:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/app-management-quality.yml:app-package-quality:4",
+      "passed": true
+    },
+    {
+      "name": "yaml:.github/workflows/artifact-store-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "preserved-jobs-settings-and-tests:.github/workflows/artifact-store-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "no-skill-tests:.github/workflows/artifact-store-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "no-workflow-write-permissions:.github/workflows/artifact-store-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "all-archive-sites-preserved:.github/workflows/artifact-store-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/artifact-store-quality.yml:artifact-store-core",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/artifact-store-quality.yml:artifact-store-core",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/artifact-store-quality.yml:artifact-store-core:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/artifact-store-quality.yml:artifact-store-core:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/artifact-store-quality.yml:artifact-store-core:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/artifact-store-quality.yml:artifact-store-core:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/artifact-store-quality.yml:artifact-store-core:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/artifact-store-quality.yml:artifact-store-core:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/artifact-store-quality.yml:artifact-store-core:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/artifact-store-quality.yml:artifact-store-core:5",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/artifact-store-quality.yml:artifact-store-core:6",
+      "passed": true
+    },
+    {
+      "name": "shared-action-trigger:.github/workflows/artifact-store-quality.yml:pull_request:.github/actions/setup-python/**",
+      "passed": true
+    },
+    {
+      "name": "shared-action-trigger:.github/workflows/artifact-store-quality.yml:push:.github/actions/setup-python/**",
+      "passed": true
+    },
+    {
+      "name": "yaml:.github/workflows/ci.yml",
+      "passed": true
+    },
+    {
+      "name": "preserved-jobs-settings-and-tests:.github/workflows/ci.yml",
+      "passed": true
+    },
+    {
+      "name": "no-skill-tests:.github/workflows/ci.yml",
+      "passed": true
+    },
+    {
+      "name": "no-workflow-write-permissions:.github/workflows/ci.yml",
+      "passed": true
+    },
+    {
+      "name": "all-archive-sites-preserved:.github/workflows/ci.yml",
+      "passed": true
+    },
+    {
+      "name": "archive-name-path-policy:.github/workflows/ci.yml:0",
+      "passed": true
+    },
+    {
+      "name": "evidence-remains-mandatory:.github/workflows/ci.yml:0",
+      "passed": true
+    },
+    {
+      "name": "full-evidence-dispatch-only:.github/workflows/ci.yml:0",
+      "passed": true
+    },
+    {
+      "name": "manual-full-archive-default-off:.github/workflows/ci.yml",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/ci.yml:host-quality",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/ci.yml:host-quality",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:host-quality:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/ci.yml:host-quality:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:host-quality:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/ci.yml:host-quality:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:host-quality:2",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/ci.yml:host-quality:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:host-quality:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:host-quality:4",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/ci.yml:host-quality:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:host-quality:5",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/ci.yml:host-quality:5",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:host-quality:6",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:host-quality:7",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:host-quality:8",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:host-quality:9",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:host-quality:10",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:host-quality:11",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:host-quality:12",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:host-quality:13",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:host-quality:14",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:host-quality:15",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:host-quality:16",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:host-quality:17",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:host-quality:18",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:host-quality:19",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/ci.yml:qemu-smoke",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/ci.yml:qemu-smoke",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:qemu-smoke:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/ci.yml:qemu-smoke:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:qemu-smoke:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/ci.yml:qemu-smoke:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:qemu-smoke:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:qemu-smoke:3",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/ci.yml:qemu-smoke:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:qemu-smoke:4",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/ci.yml:qemu-smoke:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:qemu-smoke:5",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:qemu-smoke:6",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:qemu-smoke:7",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:qemu-smoke:8",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:qemu-smoke:9",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:qemu-smoke:10",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:qemu-smoke:11",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/ci.yml:qemu-smoke:12",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/ci.yml:qemu-smoke:12",
+      "passed": true
+    },
+    {
+      "name": "yaml:.github/workflows/component-leaves.yml",
+      "passed": true
+    },
+    {
+      "name": "preserved-jobs-settings-and-tests:.github/workflows/component-leaves.yml",
+      "passed": true
+    },
+    {
+      "name": "no-skill-tests:.github/workflows/component-leaves.yml",
+      "passed": true
+    },
+    {
+      "name": "no-workflow-write-permissions:.github/workflows/component-leaves.yml",
+      "passed": true
+    },
+    {
+      "name": "all-archive-sites-preserved:.github/workflows/component-leaves.yml",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/component-leaves.yml:component-quality",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/component-leaves.yml:component-quality",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/component-leaves.yml:component-quality:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/component-leaves.yml:component-quality:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/component-leaves.yml:component-quality:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/component-leaves.yml:component-quality:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/component-leaves.yml:component-quality:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/component-leaves.yml:component-quality:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/component-leaves.yml:component-quality:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/component-leaves.yml:component-quality:5",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/component-leaves.yml:component-quality:6",
+      "passed": true
+    },
+    {
+      "name": "yaml:.github/workflows/entropy-keys.yml",
+      "passed": true
+    },
+    {
+      "name": "preserved-jobs-settings-and-tests:.github/workflows/entropy-keys.yml",
+      "passed": true
+    },
+    {
+      "name": "no-skill-tests:.github/workflows/entropy-keys.yml",
+      "passed": true
+    },
+    {
+      "name": "no-workflow-write-permissions:.github/workflows/entropy-keys.yml",
+      "passed": true
+    },
+    {
+      "name": "all-archive-sites-preserved:.github/workflows/entropy-keys.yml",
+      "passed": true
+    },
+    {
+      "name": "archive-name-path-policy:.github/workflows/entropy-keys.yml:0",
+      "passed": true
+    },
+    {
+      "name": "evidence-remains-mandatory:.github/workflows/entropy-keys.yml:0",
+      "passed": true
+    },
+    {
+      "name": "full-evidence-dispatch-only:.github/workflows/entropy-keys.yml:0",
+      "passed": true
+    },
+    {
+      "name": "manual-full-archive-default-off:.github/workflows/entropy-keys.yml",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/entropy-keys.yml:b01-native-supervisor",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/entropy-keys.yml:b01-native-supervisor",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/entropy-keys.yml:b01-native-supervisor:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/entropy-keys.yml:b01-native-supervisor:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/entropy-keys.yml:b01-native-supervisor:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/entropy-keys.yml:b01-native-supervisor:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/entropy-keys.yml:b01-native-supervisor:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/entropy-keys.yml:b01-native-supervisor:3",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/entropy-keys.yml:b01-native-supervisor:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/entropy-keys.yml:b01-native-supervisor:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/entropy-keys.yml:b01-native-supervisor:5",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/entropy-keys.yml:b01-native-supervisor:6",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/entropy-keys.yml:b01-native-supervisor:6",
+      "passed": true
+    },
+    {
+      "name": "yaml:.github/workflows/materiaal-probe.yml",
+      "passed": true
+    },
+    {
+      "name": "preserved-jobs-settings-and-tests:.github/workflows/materiaal-probe.yml",
+      "passed": true
+    },
+    {
+      "name": "no-skill-tests:.github/workflows/materiaal-probe.yml",
+      "passed": true
+    },
+    {
+      "name": "no-workflow-write-permissions:.github/workflows/materiaal-probe.yml",
+      "passed": true
+    },
+    {
+      "name": "all-archive-sites-preserved:.github/workflows/materiaal-probe.yml",
+      "passed": true
+    },
+    {
+      "name": "archive-name-path-policy:.github/workflows/materiaal-probe.yml:0",
+      "passed": true
+    },
+    {
+      "name": "evidence-remains-mandatory:.github/workflows/materiaal-probe.yml:0",
+      "passed": true
+    },
+    {
+      "name": "full-evidence-dispatch-only:.github/workflows/materiaal-probe.yml:0",
+      "passed": true
+    },
+    {
+      "name": "manual-full-archive-default-off:.github/workflows/materiaal-probe.yml",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/materiaal-probe.yml:materiaal-probe",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/materiaal-probe.yml:materiaal-probe",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/materiaal-probe.yml:materiaal-probe:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/materiaal-probe.yml:materiaal-probe:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/materiaal-probe.yml:materiaal-probe:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/materiaal-probe.yml:materiaal-probe:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/materiaal-probe.yml:materiaal-probe:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/materiaal-probe.yml:materiaal-probe:3",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/materiaal-probe.yml:materiaal-probe:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/materiaal-probe.yml:materiaal-probe:4",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/materiaal-probe.yml:materiaal-probe:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/materiaal-probe.yml:materiaal-probe:5",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/materiaal-probe.yml:materiaal-probe:6",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/materiaal-probe.yml:materiaal-probe:7",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/materiaal-probe.yml:materiaal-probe:8",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/materiaal-probe.yml:materiaal-probe:9",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/materiaal-probe.yml:materiaal-probe:10",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/materiaal-probe.yml:materiaal-probe:11",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/materiaal-probe.yml:materiaal-probe:12",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/materiaal-probe.yml:materiaal-probe:13",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/materiaal-probe.yml:materiaal-probe:13",
+      "passed": true
+    },
+    {
+      "name": "yaml:.github/workflows/nas-core.yml",
+      "passed": true
+    },
+    {
+      "name": "preserved-jobs-settings-and-tests:.github/workflows/nas-core.yml",
+      "passed": true
+    },
+    {
+      "name": "no-skill-tests:.github/workflows/nas-core.yml",
+      "passed": true
+    },
+    {
+      "name": "no-workflow-write-permissions:.github/workflows/nas-core.yml",
+      "passed": true
+    },
+    {
+      "name": "all-archive-sites-preserved:.github/workflows/nas-core.yml",
+      "passed": true
+    },
+    {
+      "name": "archive-name-path-policy:.github/workflows/nas-core.yml:0",
+      "passed": true
+    },
+    {
+      "name": "evidence-remains-mandatory:.github/workflows/nas-core.yml:0",
+      "passed": true
+    },
+    {
+      "name": "full-evidence-dispatch-only:.github/workflows/nas-core.yml:0",
+      "passed": true
+    },
+    {
+      "name": "manual-full-archive-default-off:.github/workflows/nas-core.yml",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/nas-core.yml:nas-workspace",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/nas-core.yml:nas-workspace",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/nas-core.yml:nas-workspace:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/nas-core.yml:nas-workspace:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/nas-core.yml:nas-workspace:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/nas-core.yml:nas-workspace:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/nas-core.yml:nas-workspace:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/nas-core.yml:nas-workspace:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/nas-core.yml:nas-workspace:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/nas-core.yml:nas-workspace:5",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/nas-core.yml:nas-workspace:6",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/nas-core.yml:nas-workspace:7",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/nas-core.yml:nas-workspace:8",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/nas-core.yml:nas-workspace:9",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/nas-core.yml:nas-native-normal-cold",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/nas-core.yml:nas-native-normal-cold",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/nas-core.yml:nas-native-normal-cold:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/nas-core.yml:nas-native-normal-cold:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/nas-core.yml:nas-native-normal-cold:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/nas-core.yml:nas-native-normal-cold:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/nas-core.yml:nas-native-normal-cold:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/nas-core.yml:nas-native-normal-cold:3",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/nas-core.yml:nas-native-normal-cold:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/nas-core.yml:nas-native-normal-cold:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/nas-core.yml:nas-native-normal-cold:5",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/nas-core.yml:nas-native-normal-cold:6",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/nas-core.yml:nas-native-normal-cold:7",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/nas-core.yml:nas-native-normal-cold:7",
+      "passed": true
+    },
+    {
+      "name": "yaml:.github/workflows/native-display-input.yml",
+      "passed": true
+    },
+    {
+      "name": "preserved-jobs-settings-and-tests:.github/workflows/native-display-input.yml",
+      "passed": true
+    },
+    {
+      "name": "no-skill-tests:.github/workflows/native-display-input.yml",
+      "passed": true
+    },
+    {
+      "name": "no-workflow-write-permissions:.github/workflows/native-display-input.yml",
+      "passed": true
+    },
+    {
+      "name": "all-archive-sites-preserved:.github/workflows/native-display-input.yml",
+      "passed": true
+    },
+    {
+      "name": "archive-name-path-policy:.github/workflows/native-display-input.yml:0",
+      "passed": true
+    },
+    {
+      "name": "evidence-remains-mandatory:.github/workflows/native-display-input.yml:0",
+      "passed": true
+    },
+    {
+      "name": "full-evidence-dispatch-only:.github/workflows/native-display-input.yml:0",
+      "passed": true
+    },
+    {
+      "name": "manual-full-archive-default-off:.github/workflows/native-display-input.yml",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/native-display-input.yml:native-display-input",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/native-display-input.yml:native-display-input",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-display-input.yml:native-display-input:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/native-display-input.yml:native-display-input:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-display-input.yml:native-display-input:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/native-display-input.yml:native-display-input:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-display-input.yml:native-display-input:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-display-input.yml:native-display-input:3",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/native-display-input.yml:native-display-input:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-display-input.yml:native-display-input:4",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/native-display-input.yml:native-display-input:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-display-input.yml:native-display-input:5",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-display-input.yml:native-display-input:6",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-display-input.yml:native-display-input:7",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-display-input.yml:native-display-input:8",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-display-input.yml:native-display-input:9",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-display-input.yml:native-display-input:10",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-display-input.yml:native-display-input:11",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-display-input.yml:native-display-input:12",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-display-input.yml:native-display-input:13",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-display-input.yml:native-display-input:14",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-display-input.yml:native-display-input:15",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/native-display-input.yml:native-display-input:15",
+      "passed": true
+    },
+    {
+      "name": "yaml:.github/workflows/native-foundation.yml",
+      "passed": true
+    },
+    {
+      "name": "preserved-jobs-settings-and-tests:.github/workflows/native-foundation.yml",
+      "passed": true
+    },
+    {
+      "name": "no-skill-tests:.github/workflows/native-foundation.yml",
+      "passed": true
+    },
+    {
+      "name": "no-workflow-write-permissions:.github/workflows/native-foundation.yml",
+      "passed": true
+    },
+    {
+      "name": "all-archive-sites-preserved:.github/workflows/native-foundation.yml",
+      "passed": true
+    },
+    {
+      "name": "archive-name-path-policy:.github/workflows/native-foundation.yml:0",
+      "passed": true
+    },
+    {
+      "name": "evidence-remains-mandatory:.github/workflows/native-foundation.yml:0",
+      "passed": true
+    },
+    {
+      "name": "full-evidence-dispatch-only:.github/workflows/native-foundation.yml:0",
+      "passed": true
+    },
+    {
+      "name": "manual-full-archive-default-off:.github/workflows/native-foundation.yml",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/native-foundation.yml:native-foundation",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/native-foundation.yml:native-foundation",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-foundation.yml:native-foundation:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/native-foundation.yml:native-foundation:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-foundation.yml:native-foundation:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/native-foundation.yml:native-foundation:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-foundation.yml:native-foundation:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-foundation.yml:native-foundation:3",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/native-foundation.yml:native-foundation:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-foundation.yml:native-foundation:4",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/native-foundation.yml:native-foundation:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-foundation.yml:native-foundation:5",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-foundation.yml:native-foundation:6",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-foundation.yml:native-foundation:7",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-foundation.yml:native-foundation:8",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-foundation.yml:native-foundation:9",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-foundation.yml:native-foundation:10",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-foundation.yml:native-foundation:11",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-foundation.yml:native-foundation:12",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-foundation.yml:native-foundation:13",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-foundation.yml:native-foundation:14",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-foundation.yml:native-foundation:15",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-foundation.yml:native-foundation:16",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-foundation.yml:native-foundation:17",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-foundation.yml:native-foundation:18",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/native-foundation.yml:native-foundation:18",
+      "passed": true
+    },
+    {
+      "name": "yaml:.github/workflows/native-rtc.yml",
+      "passed": true
+    },
+    {
+      "name": "preserved-jobs-settings-and-tests:.github/workflows/native-rtc.yml",
+      "passed": true
+    },
+    {
+      "name": "no-skill-tests:.github/workflows/native-rtc.yml",
+      "passed": true
+    },
+    {
+      "name": "no-workflow-write-permissions:.github/workflows/native-rtc.yml",
+      "passed": true
+    },
+    {
+      "name": "all-archive-sites-preserved:.github/workflows/native-rtc.yml",
+      "passed": true
+    },
+    {
+      "name": "archive-name-path-policy:.github/workflows/native-rtc.yml:0",
+      "passed": true
+    },
+    {
+      "name": "evidence-remains-mandatory:.github/workflows/native-rtc.yml:0",
+      "passed": true
+    },
+    {
+      "name": "full-evidence-dispatch-only:.github/workflows/native-rtc.yml:0",
+      "passed": true
+    },
+    {
+      "name": "manual-full-archive-default-off:.github/workflows/native-rtc.yml",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/native-rtc.yml:native-rtc",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/native-rtc.yml:native-rtc",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-rtc.yml:native-rtc:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/native-rtc.yml:native-rtc:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-rtc.yml:native-rtc:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/native-rtc.yml:native-rtc:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-rtc.yml:native-rtc:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-rtc.yml:native-rtc:3",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/native-rtc.yml:native-rtc:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-rtc.yml:native-rtc:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-rtc.yml:native-rtc:5",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-rtc.yml:native-rtc:6",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-rtc.yml:native-rtc:7",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-rtc.yml:native-rtc:8",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/native-rtc.yml:native-rtc:8",
+      "passed": true
+    },
+    {
+      "name": "yaml:.github/workflows/native-smp.yml",
+      "passed": true
+    },
+    {
+      "name": "preserved-jobs-settings-and-tests:.github/workflows/native-smp.yml",
+      "passed": true
+    },
+    {
+      "name": "no-skill-tests:.github/workflows/native-smp.yml",
+      "passed": true
+    },
+    {
+      "name": "no-workflow-write-permissions:.github/workflows/native-smp.yml",
+      "passed": true
+    },
+    {
+      "name": "all-archive-sites-preserved:.github/workflows/native-smp.yml",
+      "passed": true
+    },
+    {
+      "name": "archive-name-path-policy:.github/workflows/native-smp.yml:0",
+      "passed": true
+    },
+    {
+      "name": "evidence-remains-mandatory:.github/workflows/native-smp.yml:0",
+      "passed": true
+    },
+    {
+      "name": "full-evidence-dispatch-only:.github/workflows/native-smp.yml:0",
+      "passed": true
+    },
+    {
+      "name": "manual-full-archive-default-off:.github/workflows/native-smp.yml",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/native-smp.yml:native-smp",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/native-smp.yml:native-smp",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-smp.yml:native-smp:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/native-smp.yml:native-smp:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-smp.yml:native-smp:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/native-smp.yml:native-smp:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-smp.yml:native-smp:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-smp.yml:native-smp:3",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/native-smp.yml:native-smp:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-smp.yml:native-smp:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-smp.yml:native-smp:5",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-smp.yml:native-smp:6",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-smp.yml:native-smp:7",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-smp.yml:native-smp:8",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-smp.yml:native-smp:9",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-smp.yml:native-smp:10",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-smp.yml:native-smp:11",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-smp.yml:native-smp:12",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-smp.yml:native-smp:13",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/native-smp.yml:native-smp:13",
+      "passed": true
+    },
+    {
+      "name": "yaml:.github/workflows/native-system.yml",
+      "passed": true
+    },
+    {
+      "name": "preserved-jobs-settings-and-tests:.github/workflows/native-system.yml",
+      "passed": true
+    },
+    {
+      "name": "no-skill-tests:.github/workflows/native-system.yml",
+      "passed": true
+    },
+    {
+      "name": "no-workflow-write-permissions:.github/workflows/native-system.yml",
+      "passed": true
+    },
+    {
+      "name": "all-archive-sites-preserved:.github/workflows/native-system.yml",
+      "passed": true
+    },
+    {
+      "name": "archive-name-path-policy:.github/workflows/native-system.yml:0",
+      "passed": true
+    },
+    {
+      "name": "evidence-remains-mandatory:.github/workflows/native-system.yml:0",
+      "passed": true
+    },
+    {
+      "name": "full-evidence-dispatch-only:.github/workflows/native-system.yml:0",
+      "passed": true
+    },
+    {
+      "name": "manual-full-archive-default-off:.github/workflows/native-system.yml",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/native-system.yml:native-system",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/native-system.yml:native-system",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-system.yml:native-system:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/native-system.yml:native-system:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-system.yml:native-system:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/native-system.yml:native-system:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-system.yml:native-system:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-system.yml:native-system:3",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/native-system.yml:native-system:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-system.yml:native-system:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-system.yml:native-system:5",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-system.yml:native-system:6",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-system.yml:native-system:7",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-system.yml:native-system:8",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-system.yml:native-system:9",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-system.yml:native-system:10",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-system.yml:native-system:11",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-system.yml:native-system:12",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-system.yml:native-system:13",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-system.yml:native-system:14",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-system.yml:native-system:15",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-system.yml:native-system:16",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-system.yml:native-system:17",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/native-system.yml:native-system:17",
+      "passed": true
+    },
+    {
+      "name": "yaml:.github/workflows/native-window-session.yml",
+      "passed": true
+    },
+    {
+      "name": "preserved-jobs-settings-and-tests:.github/workflows/native-window-session.yml",
+      "passed": true
+    },
+    {
+      "name": "no-skill-tests:.github/workflows/native-window-session.yml",
+      "passed": true
+    },
+    {
+      "name": "no-workflow-write-permissions:.github/workflows/native-window-session.yml",
+      "passed": true
+    },
+    {
+      "name": "all-archive-sites-preserved:.github/workflows/native-window-session.yml",
+      "passed": true
+    },
+    {
+      "name": "archive-name-path-policy:.github/workflows/native-window-session.yml:0",
+      "passed": true
+    },
+    {
+      "name": "evidence-remains-mandatory:.github/workflows/native-window-session.yml:0",
+      "passed": true
+    },
+    {
+      "name": "full-evidence-dispatch-only:.github/workflows/native-window-session.yml:0",
+      "passed": true
+    },
+    {
+      "name": "manual-full-archive-default-off:.github/workflows/native-window-session.yml",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/native-window-session.yml:native-window-session",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/native-window-session.yml:native-window-session",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-window-session.yml:native-window-session:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/native-window-session.yml:native-window-session:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-window-session.yml:native-window-session:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/native-window-session.yml:native-window-session:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-window-session.yml:native-window-session:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-window-session.yml:native-window-session:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-window-session.yml:native-window-session:4",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/native-window-session.yml:native-window-session:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-window-session.yml:native-window-session:5",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/native-window-session.yml:native-window-session:5",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-window-session.yml:native-window-session:6",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-window-session.yml:native-window-session:7",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-window-session.yml:native-window-session:8",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-window-session.yml:native-window-session:9",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-window-session.yml:native-window-session:10",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-window-session.yml:native-window-session:11",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-window-session.yml:native-window-session:12",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-window-session.yml:native-window-session:13",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-window-session.yml:native-window-session:14",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-window-session.yml:native-window-session:15",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-window-session.yml:native-window-session:16",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-window-session.yml:native-window-session:17",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-window-session.yml:native-window-session:18",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/native-window-session.yml:native-window-session:19",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/native-window-session.yml:native-window-session:19",
+      "passed": true
+    },
+    {
+      "name": "yaml:.github/workflows/net-broker-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "preserved-jobs-settings-and-tests:.github/workflows/net-broker-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "no-skill-tests:.github/workflows/net-broker-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "no-workflow-write-permissions:.github/workflows/net-broker-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "all-archive-sites-preserved:.github/workflows/net-broker-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "archive-name-path-policy:.github/workflows/net-broker-quality.yml:0",
+      "passed": true
+    },
+    {
+      "name": "evidence-remains-mandatory:.github/workflows/net-broker-quality.yml:0",
+      "passed": true
+    },
+    {
+      "name": "full-evidence-dispatch-only:.github/workflows/net-broker-quality.yml:0",
+      "passed": true
+    },
+    {
+      "name": "manual-full-archive-default-off:.github/workflows/net-broker-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/net-broker-quality.yml:net-broker-quality",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/net-broker-quality.yml:net-broker-quality",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-broker-quality.yml:net-broker-quality:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/net-broker-quality.yml:net-broker-quality:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-broker-quality.yml:net-broker-quality:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/net-broker-quality.yml:net-broker-quality:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-broker-quality.yml:net-broker-quality:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-broker-quality.yml:net-broker-quality:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-broker-quality.yml:net-broker-quality:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-broker-quality.yml:net-broker-quality:5",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/net-broker-quality.yml:native-network-service",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/net-broker-quality.yml:native-network-service",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-broker-quality.yml:native-network-service:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/net-broker-quality.yml:native-network-service:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-broker-quality.yml:native-network-service:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/net-broker-quality.yml:native-network-service:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-broker-quality.yml:native-network-service:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-broker-quality.yml:native-network-service:3",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/net-broker-quality.yml:native-network-service:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-broker-quality.yml:native-network-service:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-broker-quality.yml:native-network-service:5",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-broker-quality.yml:native-network-service:6",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-broker-quality.yml:native-network-service:7",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-broker-quality.yml:native-network-service:8",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-broker-quality.yml:native-network-service:9",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/net-broker-quality.yml:native-network-service:9",
+      "passed": true
+    },
+    {
+      "name": "yaml:.github/workflows/net-tls-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "preserved-jobs-settings-and-tests:.github/workflows/net-tls-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "no-skill-tests:.github/workflows/net-tls-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "no-workflow-write-permissions:.github/workflows/net-tls-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "all-archive-sites-preserved:.github/workflows/net-tls-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/net-tls-quality.yml:net-tls-quality",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/net-tls-quality.yml:net-tls-quality",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-tls-quality.yml:net-tls-quality:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/net-tls-quality.yml:net-tls-quality:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-tls-quality.yml:net-tls-quality:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/net-tls-quality.yml:net-tls-quality:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-tls-quality.yml:net-tls-quality:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-tls-quality.yml:net-tls-quality:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-tls-quality.yml:net-tls-quality:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-tls-quality.yml:net-tls-quality:5",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-tls-quality.yml:net-tls-quality:6",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/net-tls-quality.yml:net-tls-quality:7",
+      "passed": true
+    },
+    {
+      "name": "yaml:.github/workflows/process-management.yml",
+      "passed": true
+    },
+    {
+      "name": "preserved-jobs-settings-and-tests:.github/workflows/process-management.yml",
+      "passed": true
+    },
+    {
+      "name": "no-skill-tests:.github/workflows/process-management.yml",
+      "passed": true
+    },
+    {
+      "name": "no-workflow-write-permissions:.github/workflows/process-management.yml",
+      "passed": true
+    },
+    {
+      "name": "all-archive-sites-preserved:.github/workflows/process-management.yml",
+      "passed": true
+    },
+    {
+      "name": "archive-name-path-policy:.github/workflows/process-management.yml:0",
+      "passed": true
+    },
+    {
+      "name": "evidence-remains-mandatory:.github/workflows/process-management.yml:0",
+      "passed": true
+    },
+    {
+      "name": "full-evidence-dispatch-only:.github/workflows/process-management.yml:0",
+      "passed": true
+    },
+    {
+      "name": "manual-full-archive-default-off:.github/workflows/process-management.yml",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/process-management.yml:k05-native-supervisor",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/process-management.yml:k05-native-supervisor",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/process-management.yml:k05-native-supervisor:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/process-management.yml:k05-native-supervisor:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/process-management.yml:k05-native-supervisor:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/process-management.yml:k05-native-supervisor:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/process-management.yml:k05-native-supervisor:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/process-management.yml:k05-native-supervisor:3",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/process-management.yml:k05-native-supervisor:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/process-management.yml:k05-native-supervisor:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/process-management.yml:k05-native-supervisor:5",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/process-management.yml:k05-native-supervisor:6",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/process-management.yml:k05-native-supervisor:6",
+      "passed": true
+    },
+    {
+      "name": "yaml:.github/workflows/resource-pressure.yml",
+      "passed": true
+    },
+    {
+      "name": "preserved-jobs-settings-and-tests:.github/workflows/resource-pressure.yml",
+      "passed": true
+    },
+    {
+      "name": "no-skill-tests:.github/workflows/resource-pressure.yml",
+      "passed": true
+    },
+    {
+      "name": "no-workflow-write-permissions:.github/workflows/resource-pressure.yml",
+      "passed": true
+    },
+    {
+      "name": "all-archive-sites-preserved:.github/workflows/resource-pressure.yml",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/resource-pressure.yml:k07-native",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/resource-pressure.yml:k07-native",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/resource-pressure.yml:k07-native:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/resource-pressure.yml:k07-native:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/resource-pressure.yml:k07-native:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/resource-pressure.yml:k07-native:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/resource-pressure.yml:k07-native:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/resource-pressure.yml:k07-native:3",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/resource-pressure.yml:k07-native:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/resource-pressure.yml:k07-native:4",
+      "passed": true
+    },
+    {
+      "name": "yaml:.github/workflows/signed-updates.yml",
+      "passed": true
+    },
+    {
+      "name": "preserved-jobs-settings-and-tests:.github/workflows/signed-updates.yml",
+      "passed": true
+    },
+    {
+      "name": "no-skill-tests:.github/workflows/signed-updates.yml",
+      "passed": true
+    },
+    {
+      "name": "no-workflow-write-permissions:.github/workflows/signed-updates.yml",
+      "passed": true
+    },
+    {
+      "name": "all-archive-sites-preserved:.github/workflows/signed-updates.yml",
+      "passed": true
+    },
+    {
+      "name": "archive-name-path-policy:.github/workflows/signed-updates.yml:0",
+      "passed": true
+    },
+    {
+      "name": "evidence-remains-mandatory:.github/workflows/signed-updates.yml:0",
+      "passed": true
+    },
+    {
+      "name": "full-evidence-dispatch-only:.github/workflows/signed-updates.yml:0",
+      "passed": true
+    },
+    {
+      "name": "manual-full-archive-default-off:.github/workflows/signed-updates.yml",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/signed-updates.yml:b03-native-update",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/signed-updates.yml:b03-native-update",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/signed-updates.yml:b03-native-update:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/signed-updates.yml:b03-native-update:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/signed-updates.yml:b03-native-update:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/signed-updates.yml:b03-native-update:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/signed-updates.yml:b03-native-update:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/signed-updates.yml:b03-native-update:3",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/signed-updates.yml:b03-native-update:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/signed-updates.yml:b03-native-update:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/signed-updates.yml:b03-native-update:5",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/signed-updates.yml:b03-native-update:6",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/signed-updates.yml:b03-native-update:7",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/signed-updates.yml:b03-native-update:7",
+      "passed": true
+    },
+    {
+      "name": "yaml:.github/workflows/storage-resilience.yml",
+      "passed": true
+    },
+    {
+      "name": "preserved-jobs-settings-and-tests:.github/workflows/storage-resilience.yml",
+      "passed": true
+    },
+    {
+      "name": "no-skill-tests:.github/workflows/storage-resilience.yml",
+      "passed": true
+    },
+    {
+      "name": "no-workflow-write-permissions:.github/workflows/storage-resilience.yml",
+      "passed": true
+    },
+    {
+      "name": "all-archive-sites-preserved:.github/workflows/storage-resilience.yml",
+      "passed": true
+    },
+    {
+      "name": "archive-name-path-policy:.github/workflows/storage-resilience.yml:0",
+      "passed": true
+    },
+    {
+      "name": "evidence-remains-mandatory:.github/workflows/storage-resilience.yml:0",
+      "passed": true
+    },
+    {
+      "name": "full-evidence-dispatch-only:.github/workflows/storage-resilience.yml:0",
+      "passed": true
+    },
+    {
+      "name": "manual-full-archive-default-off:.github/workflows/storage-resilience.yml",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/storage-resilience.yml:s08",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/storage-resilience.yml:s08",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/storage-resilience.yml:s08:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/storage-resilience.yml:s08:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/storage-resilience.yml:s08:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/storage-resilience.yml:s08:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/storage-resilience.yml:s08:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/storage-resilience.yml:s08:3",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/storage-resilience.yml:s08:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/storage-resilience.yml:s08:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/storage-resilience.yml:s08:5",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/storage-resilience.yml:s08:6",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/storage-resilience.yml:s08:6",
+      "passed": true
+    },
+    {
+      "name": "shared-action-trigger:.github/workflows/storage-resilience.yml:pull_request:.github/actions/setup-python/**",
+      "passed": true
+    },
+    {
+      "name": "shared-action-trigger:.github/workflows/storage-resilience.yml:pull_request:.github/actions/setup-qemu/**",
+      "passed": true
+    },
+    {
+      "name": "shared-action-trigger:.github/workflows/storage-resilience.yml:pull_request:.github/actions/preserve-evidence/**",
+      "passed": true
+    },
+    {
+      "name": "yaml:.github/workflows/volume-acceptance.yml",
+      "passed": true
+    },
+    {
+      "name": "preserved-jobs-settings-and-tests:.github/workflows/volume-acceptance.yml",
+      "passed": true
+    },
+    {
+      "name": "no-skill-tests:.github/workflows/volume-acceptance.yml",
+      "passed": true
+    },
+    {
+      "name": "no-workflow-write-permissions:.github/workflows/volume-acceptance.yml",
+      "passed": true
+    },
+    {
+      "name": "all-archive-sites-preserved:.github/workflows/volume-acceptance.yml",
+      "passed": true
+    },
+    {
+      "name": "archive-name-path-policy:.github/workflows/volume-acceptance.yml:0",
+      "passed": true
+    },
+    {
+      "name": "evidence-remains-mandatory:.github/workflows/volume-acceptance.yml:0",
+      "passed": true
+    },
+    {
+      "name": "full-evidence-dispatch-only:.github/workflows/volume-acceptance.yml:0",
+      "passed": true
+    },
+    {
+      "name": "manual-full-archive-default-off:.github/workflows/volume-acceptance.yml",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/volume-acceptance.yml:m6e",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/volume-acceptance.yml:m6e",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/volume-acceptance.yml:m6e:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/volume-acceptance.yml:m6e:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/volume-acceptance.yml:m6e:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/volume-acceptance.yml:m6e:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/volume-acceptance.yml:m6e:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/volume-acceptance.yml:m6e:3",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/volume-acceptance.yml:m6e:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/volume-acceptance.yml:m6e:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/volume-acceptance.yml:m6e:5",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/volume-acceptance.yml:m6e:6",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/volume-acceptance.yml:m6e:6",
+      "passed": true
+    },
+    {
+      "name": "shared-action-trigger:.github/workflows/volume-acceptance.yml:pull_request:.github/actions/setup-python/**",
+      "passed": true
+    },
+    {
+      "name": "shared-action-trigger:.github/workflows/volume-acceptance.yml:pull_request:.github/actions/setup-qemu/**",
+      "passed": true
+    },
+    {
+      "name": "shared-action-trigger:.github/workflows/volume-acceptance.yml:pull_request:.github/actions/preserve-evidence/**",
+      "passed": true
+    },
+    {
+      "name": "yaml:.github/workflows/windows-qemu-test-version.yml",
+      "passed": true
+    },
+    {
+      "name": "preserved-jobs-settings-and-tests:.github/workflows/windows-qemu-test-version.yml",
+      "passed": true
+    },
+    {
+      "name": "no-skill-tests:.github/workflows/windows-qemu-test-version.yml",
+      "passed": true
+    },
+    {
+      "name": "no-workflow-write-permissions:.github/workflows/windows-qemu-test-version.yml",
+      "passed": true
+    },
+    {
+      "name": "all-archive-sites-preserved:.github/workflows/windows-qemu-test-version.yml",
+      "passed": true
+    },
+    {
+      "name": "archive-name-path-policy:.github/workflows/windows-qemu-test-version.yml:0",
+      "passed": true
+    },
+    {
+      "name": "evidence-remains-mandatory:.github/workflows/windows-qemu-test-version.yml:0",
+      "passed": true
+    },
+    {
+      "name": "full-evidence-dispatch-only:.github/workflows/windows-qemu-test-version.yml:0",
+      "passed": true
+    },
+    {
+      "name": "manual-full-archive-default-off:.github/workflows/windows-qemu-test-version.yml",
+      "passed": true
+    },
+    {
+      "name": "hosted-runner:.github/workflows/windows-qemu-test-version.yml:package-and-verify",
+      "passed": true
+    },
+    {
+      "name": "mandatory-job:.github/workflows/windows-qemu-test-version.yml:package-and-verify",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/windows-qemu-test-version.yml:package-and-verify:0",
+      "passed": true
+    },
+    {
+      "name": "immutable-action:.github/workflows/windows-qemu-test-version.yml:package-and-verify:0",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/windows-qemu-test-version.yml:package-and-verify:1",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/windows-qemu-test-version.yml:package-and-verify:1",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/windows-qemu-test-version.yml:package-and-verify:2",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/windows-qemu-test-version.yml:package-and-verify:3",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/windows-qemu-test-version.yml:package-and-verify:3",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/windows-qemu-test-version.yml:package-and-verify:4",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/windows-qemu-test-version.yml:package-and-verify:5",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/windows-qemu-test-version.yml:package-and-verify:6",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/windows-qemu-test-version.yml:package-and-verify:7",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/windows-qemu-test-version.yml:package-and-verify:8",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/windows-qemu-test-version.yml:package-and-verify:9",
+      "passed": true
+    },
+    {
+      "name": "mandatory-step:.github/workflows/windows-qemu-test-version.yml:package-and-verify:10",
+      "passed": true
+    },
+    {
+      "name": "local-action-present:.github/workflows/windows-qemu-test-version.yml:package-and-verify:10",
+      "passed": true
+    },
+    {
+      "name": "evidence-action-exact-PR251",
+      "passed": true
+    },
+    {
+      "name": "only-uploads-best-effort",
+      "passed": true
+    },
+    {
+      "name": "setup-exact-PR249:.github/actions/setup-python/action.yml",
+      "passed": true
+    },
+    {
+      "name": "setup-exact-PR249:.github/actions/setup-python/requirements.txt",
+      "passed": true
+    },
+    {
+      "name": "setup-exact-PR249:.github/actions/setup-qemu/action.yml",
+      "passed": true
+    },
+    {
+      "name": "collector-exact-PR251:tools/ci_evidence.py",
+      "passed": true
+    },
+    {
+      "name": "collector-exact-PR251:tests/test_ci_evidence.py",
+      "passed": true
+    },
+    {
+      "name": "composite-immutable-action:preserve-evidence:3",
+      "passed": true
+    },
+    {
+      "name": "composite-immutable-action:preserve-evidence:4",
+      "passed": true
+    },
+    {
+      "name": "composite-immutable-action:preserve-evidence:5",
+      "passed": true
+    },
+    {
+      "name": "composite-immutable-action:setup-python:0",
+      "passed": true
+    },
+    {
+      "name": "collector-test-once",
+      "passed": true
+    },
+    {
+      "name": "qemu-needs-host",
+      "passed": true
+    },
+    {
+      "name": "qemu-53-diagnostic-paths",
+      "passed": true
+    },
+    {
+      "name": "private-workflow-excluded",
+      "passed": true
+    },
+    {
+      "name": "corpus-excluded",
+      "passed": true
+    },
+    {
+      "name": "expected-workflow-job-setup-counts",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "checked_workflow_sha256": {
+    ".github/workflows/app-management-quality.yml": "4bb60164d78c71231e23e56d92df6f1db705b6c2925f0e0f8a31f79b06f889ac",
+    ".github/workflows/artifact-store-quality.yml": "244cf9be1133cee2a44cb779f89c36730d549a63b327ba913501a365ce44d963",
+    ".github/workflows/ci.yml": "7133494b0e56c26e03bdc3c2dddfb3e7af8efa79ec2f9faa82651ff0142a0c37",
+    ".github/workflows/component-leaves.yml": "a8639267218208640ff35a140aa270bdeb1aec4690db2722b66b5d0ed3c33424",
+    ".github/workflows/entropy-keys.yml": "9f4cdacc81e86e2095b2033cee5081f9c0d6e253c9e05e7103982083d2ba7c6f",
+    ".github/workflows/materiaal-probe.yml": "aa1459d424aa37fa928f604b67f191c470d1249e06fa7dba4d0c463d911bc144",
+    ".github/workflows/nas-core.yml": "6a210032b895e6d489c6e3050931cb10e0c78e422a8c5e68cabe64dc1fbdc815",
+    ".github/workflows/native-display-input.yml": "c89539d156a60616a1f0d6a0e96e352e19b885c092350406cb6a24cff06c9ffb",
+    ".github/workflows/native-foundation.yml": "812e3d8245e7d5955c6588eb0c415dbb0fc2b1397736fadb1574265607635d23",
+    ".github/workflows/native-rtc.yml": "6d3080c848e4d3468056ce6fd0d93181419fe969ebb8f1c9fecfd8a295e7951f",
+    ".github/workflows/native-smp.yml": "c3043a3dd8999e9c572af5d0f7868b5362d81d5e7f34e64f0aa387e99060c7f2",
+    ".github/workflows/native-system.yml": "bf77d661d1b50366d0908bce8379f228f8902ba843b6f556096d6c301806c2a2",
+    ".github/workflows/native-window-session.yml": "3081b9f96b455e0164dd874ab6b7f4d8999eaf6ac8d3d1575f495fa3b394f793",
+    ".github/workflows/net-broker-quality.yml": "36dc64b4df02817c515131d292e41370c8bff2127f7389006ccd5addd7062e6b",
+    ".github/workflows/net-tls-quality.yml": "ec29839d139960b9092bd256ef67bd49098a4afe2a4326744072f4c4934abd33",
+    ".github/workflows/process-management.yml": "6beb24ea5f056512e3bf62c76ba3f05b2376b3caa3e3cf85047337ba7bdd4bb8",
+    ".github/workflows/resource-pressure.yml": "df3a28bf33302dbd02ce9777945ef9df48adf0d299a8a737a8f95e85e26cf87d",
+    ".github/workflows/signed-updates.yml": "a632d95c34db068a4e8fdcc2db9f80effe56d893e7bd4974f708dd5c1bad850d",
+    ".github/workflows/storage-resilience.yml": "03d5bc5f34a464d94a86003b40c16d9e96c99d4a3129a616e06153fb7848445e",
+    ".github/workflows/volume-acceptance.yml": "4300a486b565a9120914a396609dea7af83d25aff34bbb65c91040822aa5972e",
+    ".github/workflows/windows-qemu-test-version.yml": "1bf6ba2d821b59147aae2696541eb8a39185b68c5ef688d94e30dc6f6e9968b1"
+  },
+  "limits": [
+    "Static source comparison; no GitHub expression engine execution",
+    "No Rust build, native QEMU run or successful GitHub artifact upload"
+  ]
+}

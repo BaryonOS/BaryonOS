@@ -1,6 +1,39 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — schone publicatiekandidaat — 8 november 2026
+## NEXT AGENT HANDOFF — publicatiekandidaat hervat — 8 november 2026
+
+**Herstelpunt:** PR #260 op `83d5ee35380d0c48ac2e1890614840461bdd2d01`,
+tree `2502db4122acd92b93fc5dda972920d59b9ba507`; alle 6.468 oorspronkelijke
+kandidaatbestanden en hun modes opnieuw verbonden. Main blijft `5b218982`.
+**Nieuwe integratie:** #249 op `0de9d805` en #251 op `dc6c6bca`.
+Werkbranch `publication/clean-candidate-20261108`; **41 → 41/100**.
+
+**Bijgewerkt:** gedeelde gepinde Python-/QEMU-setup, bestaande aanvullende
+hosttests, begrensde QEMU-diagnostiek via de bewijsactie en actuele CI-ADR's.
+De uitsluiting van de OSDev-collectie/private auditworkflow blijft behouden.
+Eigen productcode, externe notices en de vaste productcriteria zijn behouden.
+De MPL-padlijst en het eindmanifest beschrijven de actuele kandidaat.
+
+**Bewijs:** het [hervattingsrapport](verification/publication-resume-20261108.json)
+vermeldt de werkelijke lokale controles, bronhashes en secrettriage.
+Historisch testbewijs blijft aan de oorspronkelijke bron gebonden.
+Geen nieuwe native Rust-/QEMU-acceptatie op deze combinatie uitgevoerd.
+
+**Open:** gebruiker moet kiezen of de gecontroleerde bron in een nieuwe
+`simonvanieperen/nieuw-os-public` mag worden gepubliceerd. De oorspronkelijke
+opdracht om `nieuw-os` openbaar te maken is bevestigd; een ander doel is
+nog niet gekozen. De huidige repository blijft privé wegens het concrete
+rechtenprobleem in oude Git-/PR-inhoud en onvolledig afgetekende historie.
+PR #260 blijft concept zonder auto-merge; de private commitouders mogen
+niet worden geïmporteerd in de nieuwe openbare geschiedenis.
+
+**Eerstvolgende stap:** na de scopekeuze de vastgelegde bronboom opnieuw
+op identiteit controleren, het gekozen doel zonder historische objecten
+aanmaken en daarna zichtbaarheid, repository-instellingen en werkelijke CI
+vaststellen. Geen budgetwijziging, history rewrite of branchregelomzeiling.
+R03 en de volledige productrelease blijven open.
+
+## Historisch checkpoint — eerste schone publicatiekandidaat — 8 november 2026
 
 **Bron:** main `363b486b06023d3d578f8eca2b23ff49045a1757`, gecombineerd met
 hosted-workflows uit #249 (`d3d8e3e`) en bewijsopslag uit #251 (`5c291cff`).

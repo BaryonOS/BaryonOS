@@ -1,0 +1,1185 @@
+{
+  "schema_version": 1,
+  "repository": "simonvanieperen/nieuw-os",
+  "task": "R-CANDIDATE: resume private publication candidate CI integration",
+  "starting_review_commit": "83d5ee35380d0c48ac2e1890614840461bdd2d01",
+  "starting_tree": "2502db4122acd92b93fc5dda972920d59b9ba507",
+  "starting_local_bytes_and_modes_exact": true,
+  "starting_file_count": 6468,
+  "source_commits": {
+    "hosted_ci": "0de9d805a99de22e404cba188362950d8d0f4e39",
+    "evidence_storage": "dc6c6bca7fdadf078275999294f8d1c275fa6ffa"
+  },
+  "remote_input_blobs_verified": 73,
+  "remote_input_bytes": 408732,
+  "integration_decisions": [
+    "Three-way merged all 21 current PR249 workflows with the existing publication candidate; preserved exact required tests, runner settings and gates apart from excluded corpus checks and the existing additional collector test.",
+    "Added exact PR249 Python 3.12.12 setup, hash-pinned PyYAML wheel, fixed Ubuntu snapshot QEMU/firmware/swtpm setup and source-bound diagnostic reports.",
+    "Copied the PR251 collector and tests with docstring additions; copied its expanded historical verifier and source-bound review evidence.",
+    "Resolved the sole ci.yml conflict by retaining corpus exclusion and new required runner/QEMU harness tests.",
+    "Routed new qemu-smoke diagnostic selection through the unchanged PR251 preserve-evidence action; all 53 paths and original warn policy preserved; only upload attempts are continue-on-error.",
+    "Added full_evidence workflow_dispatch input with default false to ci.yml; full archive expressions require workflow_dispatch.",
+    "Added shared setup action paths to the three path-filtered workflows, including both pull_request and push filters where present.",
+    "Updated docs/CI.md and docs/CI-EVIDENCE.md for candidate-specific composition and separate historical evidence."
+  ],
+  "added_first_party_source_files": [
+    ".github/actions/setup-python/action.yml",
+    ".github/actions/setup-python/requirements.txt",
+    ".github/actions/setup-qemu/action.yml"
+  ],
+  "source_changes": [
+    {
+      "path": ".github/actions/setup-python/action.yml",
+      "status": "added",
+      "git_blob": "f6ac2486ccdd390f5ee2c911980f2e806b444729",
+      "sha256": "a7f16024464cead0ef1e3edbe3f860b1ebf91910e2c1d459951e7d3aa0c52219",
+      "size_bytes": 941,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "f6ac2486ccdd390f5ee2c911980f2e806b444729",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": ".github/actions/setup-python/requirements.txt",
+      "status": "added",
+      "git_blob": "4bbb4c36b99725245ca7614f86007e35fa72a337",
+      "sha256": "e77583c50ce6dbe4fe69359b171621bc1468d6ab19b4b77d94c8f86c8bf7ce1c",
+      "size_bytes": 235,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "4bbb4c36b99725245ca7614f86007e35fa72a337",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": ".github/actions/setup-qemu/action.yml",
+      "status": "added",
+      "git_blob": "05b7d207c0742defc30c1fd8210043a3cc5f8b72",
+      "sha256": "7ca59a4e8a284e5e1c5317329be81005a179c5e327675953a2c6219686b573df",
+      "size_bytes": 3634,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "05b7d207c0742defc30c1fd8210043a3cc5f8b72",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/app-management-quality.yml",
+      "status": "modified",
+      "git_blob": "6d0977a78426033a86f3530fa076f299a5cfb905",
+      "sha256": "4bb60164d78c71231e23e56d92df6f1db705b6c2925f0e0f8a31f79b06f889ac",
+      "size_bytes": 2016,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "6d0977a78426033a86f3530fa076f299a5cfb905",
+          "role": "249-new",
+          "matches_final_bytes": true
+        },
+        {
+          "commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+          "git_blob": "33e2d1976147b4a666f8249809ff3f9a6fc718cb",
+          "role": "249-base",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/artifact-store-quality.yml",
+      "status": "modified",
+      "git_blob": "475ce498cdcffea11a865c996696d99e476b12c3",
+      "sha256": "244cf9be1133cee2a44cb779f89c36730d549a63b327ba913501a365ce44d963",
+      "size_bytes": 1858,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "6fc6015f4e1ca61c2645fcb1cca68828fe6383ad",
+          "role": "249-new",
+          "matches_final_bytes": false
+        },
+        {
+          "commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+          "git_blob": "b79dfcb9e45c123669ba35e2a3db439a38517789",
+          "role": "249-base",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "status": "modified",
+      "git_blob": "d7b98dbbac588a52ac5405550f59c569a5fd1168",
+      "sha256": "7133494b0e56c26e03bdc3c2dddfb3e7af8efa79ec2f9faa82651ff0142a0c37",
+      "size_bytes": 17100,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "5494175c28ada5f6dcea6858afe0d12b57759a5c",
+          "role": "249-new",
+          "matches_final_bytes": false
+        },
+        {
+          "commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+          "git_blob": "46b5feb64d9f05b68b081a1e6280eafba82a94cf",
+          "role": "249-base",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/component-leaves.yml",
+      "status": "modified",
+      "git_blob": "d782c6f672551255bca78e69b855a568edeb7e17",
+      "sha256": "a8639267218208640ff35a140aa270bdeb1aec4690db2722b66b5d0ed3c33424",
+      "size_bytes": 4850,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "d782c6f672551255bca78e69b855a568edeb7e17",
+          "role": "249-new",
+          "matches_final_bytes": true
+        },
+        {
+          "commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+          "git_blob": "428049ff9b2ea7f7f3cc2c415e739adbc996a14e",
+          "role": "249-base",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/entropy-keys.yml",
+      "status": "modified",
+      "git_blob": "28329507e4512abb94360a676684557bb482c428",
+      "sha256": "9f4cdacc81e86e2095b2033cee5081f9c0d6e253c9e05e7103982083d2ba7c6f",
+      "size_bytes": 1938,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "6bb746593163a89d137e34cd018f25603106975a",
+          "role": "249-new",
+          "matches_final_bytes": false
+        },
+        {
+          "commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+          "git_blob": "2edb842f826cc2e32f12cb63c2bd3e5da535fdb9",
+          "role": "249-base",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/materiaal-probe.yml",
+      "status": "modified",
+      "git_blob": "ddfcccee0b45bb1aab80371859479ed3edd37a9a",
+      "sha256": "aa1459d424aa37fa928f604b67f191c470d1249e06fa7dba4d0c463d911bc144",
+      "size_bytes": 8130,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "6546354e0780a1430c07a465f7805eb8c2320091",
+          "role": "249-new",
+          "matches_final_bytes": false
+        },
+        {
+          "commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+          "git_blob": "6b9e06b80cd683f0df59e958675adb0ec5b5c40e",
+          "role": "249-base",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/nas-core.yml",
+      "status": "modified",
+      "git_blob": "c4a541888a57a25a53db2d52aeeb27a2525841c3",
+      "sha256": "6a210032b895e6d489c6e3050931cb10e0c78e422a8c5e68cabe64dc1fbdc815",
+      "size_bytes": 6141,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "21a8fe21dcdab504683ec22d42705c8863a3ca5d",
+          "role": "249-new",
+          "matches_final_bytes": false
+        },
+        {
+          "commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+          "git_blob": "6aab40f82ebb10839006fea16ecb258a845a1581",
+          "role": "249-base",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/native-display-input.yml",
+      "status": "modified",
+      "git_blob": "4ed4b8e7527d638b627898a107f1f2983f7d8bde",
+      "sha256": "c89539d156a60616a1f0d6a0e96e352e19b885c092350406cb6a24cff06c9ffb",
+      "size_bytes": 6320,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "6a82cabcca396dfcca1be78f53bace5d2ea70d88",
+          "role": "249-new",
+          "matches_final_bytes": false
+        },
+        {
+          "commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+          "git_blob": "19d5cf0e45eb3dbf516a5a9bc1df509ff2105133",
+          "role": "249-base",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/native-foundation.yml",
+      "status": "modified",
+      "git_blob": "c28ea363cd98c3e5d13bb2c6e52896b85d790671",
+      "sha256": "812e3d8245e7d5955c6588eb0c415dbb0fc2b1397736fadb1574265607635d23",
+      "size_bytes": 11657,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "93e35b0da6026d182097175fd9f76b771c60c2bd",
+          "role": "249-new",
+          "matches_final_bytes": false
+        },
+        {
+          "commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+          "git_blob": "d2142bcdadc1bc42e30c207e1fc33ff8632752ee",
+          "role": "249-base",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/native-rtc.yml",
+      "status": "modified",
+      "git_blob": "e69a8609fdf1e55d73497012e28e3dadceb1e91c",
+      "sha256": "6d3080c848e4d3468056ce6fd0d93181419fe969ebb8f1c9fecfd8a295e7951f",
+      "size_bytes": 2635,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "c33dc91d5cb45c9c4922ec15468b1b4b2820b3a7",
+          "role": "249-new",
+          "matches_final_bytes": false
+        },
+        {
+          "commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+          "git_blob": "cb7cb0d035c7f525d2e327dca4f056682e20370a",
+          "role": "249-base",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/native-smp.yml",
+      "status": "modified",
+      "git_blob": "3876f207bce2da51eefce87a77bd7aea5f3df44e",
+      "sha256": "c3043a3dd8999e9c572af5d0f7868b5362d81d5e7f34e64f0aa387e99060c7f2",
+      "size_bytes": 5069,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "4d9e5099c2445dd73d22ad0518ae88079d593766",
+          "role": "249-new",
+          "matches_final_bytes": false
+        },
+        {
+          "commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+          "git_blob": "9f7da38d002a9fa6e72d07550942c4eba99d5901",
+          "role": "249-base",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/native-system.yml",
+      "status": "modified",
+      "git_blob": "a7da303c2938db974c09a424ae1d12bb2dbaab8a",
+      "sha256": "bf77d661d1b50366d0908bce8379f228f8902ba843b6f556096d6c301806c2a2",
+      "size_bytes": 8643,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "2f5ac5822131ff08dd9ecbcddb38566b1196cf22",
+          "role": "249-new",
+          "matches_final_bytes": false
+        },
+        {
+          "commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+          "git_blob": "bee218352c1f7934dd70c722c685db25673794bd",
+          "role": "249-base",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/native-window-session.yml",
+      "status": "modified",
+      "git_blob": "a53e9631de0ff90e378c5b65bfac7b7e2b39f9fb",
+      "sha256": "3081b9f96b455e0164dd874ab6b7f4d8999eaf6ac8d3d1575f495fa3b394f793",
+      "size_bytes": 13193,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "e1bb721c106aa16aebc893baea1c5da0f186e0ee",
+          "role": "249-new",
+          "matches_final_bytes": false
+        },
+        {
+          "commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+          "git_blob": "8d1f77f1dda55ba879870e5ec2beb20e68208c5b",
+          "role": "249-base",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/net-broker-quality.yml",
+      "status": "modified",
+      "git_blob": "618c69216a4e0b93f544349434d2fb2b4363f94b",
+      "sha256": "36dc64b4df02817c515131d292e41370c8bff2127f7389006ccd5addd7062e6b",
+      "size_bytes": 5344,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "49613ccdb24d985748c9ee7ffcbb677201dec3c1",
+          "role": "249-new",
+          "matches_final_bytes": false
+        },
+        {
+          "commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+          "git_blob": "b3d2d62e7aa631a5343b58b39f067b544ff2ff22",
+          "role": "249-base",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/net-tls-quality.yml",
+      "status": "modified",
+      "git_blob": "a47bd1597cf7556c0902fccf417bce06d0d6f713",
+      "sha256": "ec29839d139960b9092bd256ef67bd49098a4afe2a4326744072f4c4934abd33",
+      "size_bytes": 1490,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "a47bd1597cf7556c0902fccf417bce06d0d6f713",
+          "role": "249-new",
+          "matches_final_bytes": true
+        },
+        {
+          "commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+          "git_blob": "2cc90ccd8bf11feba252197d6067344741ed10e2",
+          "role": "249-base",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/process-management.yml",
+      "status": "modified",
+      "git_blob": "a64ad3e759288352b2448cda494e18dbd185cde1",
+      "sha256": "6beb24ea5f056512e3bf62c76ba3f05b2376b3caa3e3cf85047337ba7bdd4bb8",
+      "size_bytes": 1975,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "c3e2a9330804bc57a6164f5d97e0b3e7f0af84ac",
+          "role": "249-new",
+          "matches_final_bytes": false
+        },
+        {
+          "commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+          "git_blob": "df96a81ac6e4ee7e3d2f639a32a658df69f01d10",
+          "role": "249-base",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/resource-pressure.yml",
+      "status": "modified",
+      "git_blob": "a29c64ea656855eb44c04fedc392a0f1e265e02f",
+      "sha256": "df3a28bf33302dbd02ce9777945ef9df48adf0d299a8a737a8f95e85e26cf87d",
+      "size_bytes": 1329,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "a29c64ea656855eb44c04fedc392a0f1e265e02f",
+          "role": "249-new",
+          "matches_final_bytes": true
+        },
+        {
+          "commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+          "git_blob": "f46f590f91fe5528862f77b523100662f51768ee",
+          "role": "249-base",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/signed-updates.yml",
+      "status": "modified",
+      "git_blob": "096af0f68bbe99cad62aba820040a016ee8f52f4",
+      "sha256": "a632d95c34db068a4e8fdcc2db9f80effe56d893e7bd4974f708dd5c1bad850d",
+      "size_bytes": 2124,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "3bacb05660516f903285f9e5f9e4ae8d3d2fd33b",
+          "role": "249-new",
+          "matches_final_bytes": false
+        },
+        {
+          "commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+          "git_blob": "f447979c55bc9ff5fbd09b44f25d1cc30b584798",
+          "role": "249-base",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/storage-resilience.yml",
+      "status": "modified",
+      "git_blob": "9b99932a49ac9129e2b0c371d3ac143ea66f5e58",
+      "sha256": "03d5bc5f34a464d94a86003b40c16d9e96c99d4a3129a616e06153fb7848445e",
+      "size_bytes": 2400,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "7b1b4c9b786fcb5e4bd495e3eca1f8fa6e384624",
+          "role": "249-new",
+          "matches_final_bytes": false
+        },
+        {
+          "commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+          "git_blob": "287b5c354f28bf9ed7bd91a1e8103b8c091211d1",
+          "role": "249-base",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/volume-acceptance.yml",
+      "status": "modified",
+      "git_blob": "96c2a7aa04a66dd26127b86e36790dd1cdb23b3d",
+      "sha256": "4300a486b565a9120914a396609dea7af83d25aff34bbb65c91040822aa5972e",
+      "size_bytes": 2505,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "6e1d80c4213be0a82cdb67a217bfca463c986da0",
+          "role": "249-new",
+          "matches_final_bytes": false
+        },
+        {
+          "commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+          "git_blob": "c7ab3b5f58df783d7b4debd222166140431cd9d4",
+          "role": "249-base",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/windows-qemu-test-version.yml",
+      "status": "modified",
+      "git_blob": "c4bc9956c6cd736ddf01ff93e020bb0d0ceb64e7",
+      "sha256": "1bf6ba2d821b59147aae2696541eb8a39185b68c5ef688d94e30dc6f6e9968b1",
+      "size_bytes": 4214,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "1d71bf957b9497d99dd2640296fcfc7dc31c3b81",
+          "role": "249-new",
+          "matches_final_bytes": false
+        },
+        {
+          "commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+          "git_blob": "b56656d74faaa4a24b9c27d1dcf6b299c48f44d4",
+          "role": "249-base",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": "docs/CI-EVIDENCE.md",
+      "status": "modified",
+      "git_blob": "1e66106c710cbda411bbcb2491db9f438fce50b2",
+      "sha256": "9acefbaf0c4b763d671be159a84370cae86295d067af4e25d1058b197fe40e29",
+      "size_bytes": 6397,
+      "mode": "100644",
+      "sources": []
+    },
+    {
+      "path": "docs/CI.md",
+      "status": "added",
+      "git_blob": "221bb1da2d783ca29890b8f9e0bab800c16e7b0c",
+      "sha256": "dc41d9c096dc58c67d5ab73fe34033d8c1f7400c29efdb35e16fbf15260a9c1e",
+      "size_bytes": 8797,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "802ec0642a784be5c88a78bb95ce658e72d01d61",
+          "role": "249-new",
+          "matches_final_bytes": false
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-artifact-storage-20261108/review-collector-tests.txt",
+      "status": "added",
+      "git_blob": "fe11c500c29f4c5acae42b1d3ce3c3bb63dfb8c2",
+      "sha256": "302084514ae721ccaea1b07a197aacd2e674ec6dba59ce3280a8eedc25a480c3",
+      "size_bytes": 3303,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "dc6c6bca7fdadf078275999294f8d1c275fa6ffa",
+          "git_blob": "fe11c500c29f4c5acae42b1d3ce3c3bb63dfb8c2",
+          "role": "251-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-artifact-storage-20261108/review-followup.json",
+      "status": "added",
+      "git_blob": "e987f7018cafb54270ee32d64e53e9d938e2136e",
+      "sha256": "6b80dd13cea86790356527c3de42b5a7ab6facb72936d652a4416a072ff1a971",
+      "size_bytes": 7365,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "dc6c6bca7fdadf078275999294f8d1c275fa6ffa",
+          "git_blob": "e987f7018cafb54270ee32d64e53e9d938e2136e",
+          "role": "251-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-artifact-storage-20261108/review-workflow-checks.json",
+      "status": "added",
+      "git_blob": "60285c7b7a511c9f278f2615ca6c18f29f103862",
+      "sha256": "9c005330e566a91b4474214b7f77cc5150b6a87e01fe2d28815cdca143b6458d",
+      "size_bytes": 41536,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "dc6c6bca7fdadf078275999294f8d1c275fa6ffa",
+          "git_blob": "60285c7b7a511c9f278f2615ca6c18f29f103862",
+          "role": "251-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-artifact-storage-20261108/runtime-quota-evidence.json",
+      "status": "added",
+      "git_blob": "6cbb17dd92932b07229a21ab601c6bb6834d9567",
+      "sha256": "26621533f15ed59809a3883a125085f0c6e6e202601092aa83e4ba4e471dd799",
+      "size_bytes": 4743,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "dc6c6bca7fdadf078275999294f8d1c275fa6ffa",
+          "git_blob": "6cbb17dd92932b07229a21ab601c6bb6834d9567",
+          "role": "251-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-artifact-storage-20261108/verify_workflows.py",
+      "status": "modified",
+      "git_blob": "854a64f9ef4c453e612917e2d750c40474564947",
+      "sha256": "9e15806f4e0df9714ca5da419901694cbe9eaca5525a48f24a7d056cdbb10873",
+      "size_bytes": 18099,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "dc6c6bca7fdadf078275999294f8d1c275fa6ffa",
+          "git_blob": "854a64f9ef4c453e612917e2d750c40474564947",
+          "role": "251-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-packages-20261108.json",
+      "status": "added",
+      "git_blob": "bb4c8a2478ffa7120c718774d86ce9a66956505b",
+      "sha256": "4e8e7b931a51c933e1ebcb904956d587d0acc36b7e29e84292121a2c7de8106b",
+      "size_bytes": 10967,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "bb4c8a2478ffa7120c718774d86ce9a66956505b",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-resume-249-20261108.json",
+      "status": "added",
+      "git_blob": "5d7889cc8b2723971db4744d0e3b4b1371c7126f",
+      "sha256": "0e0c75baa9ac1b2e1fdc727cda433141655444ef98d67ff6194596db66119859",
+      "size_bytes": 18749,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "5d7889cc8b2723971db4744d0e3b4b1371c7126f",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-standard-runners-20261108.json",
+      "status": "added",
+      "git_blob": "5e77eb66443c06a23e9f9913f1da10a65169a7a2",
+      "sha256": "5902a1b7eaed607cba47519ec668b92b84a8a3b8d69bcf86418a2624559a4e4b",
+      "size_bytes": 14216,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "5e77eb66443c06a23e9f9913f1da10a65169a7a2",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-standard-runners-20261108/agent-pipeline-Gate.log",
+      "status": "added",
+      "git_blob": "ac26c0332584330b9431bd8ad5281bbac0d6cfeb",
+      "sha256": "0027d35b45398a7ba9c68b451bc8527aca33ffb26ebe324bb5ebae44c6342cff",
+      "size_bytes": 105,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "ac26c0332584330b9431bd8ad5281bbac0d6cfeb",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-standard-runners-20261108/download.log",
+      "status": "added",
+      "git_blob": "73d1de55cf0c74f0f0cf0ebabb0aab0c0fe18ed2",
+      "sha256": "bddac6b97e95dbf5c533ed74bad943a89cf7818dcd09a4e9bd924bca370de6aa",
+      "size_bytes": 3826,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "73d1de55cf0c74f0f0cf0ebabb0aab0c0fe18ed2",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-standard-runners-20261108/install-simulate.log",
+      "status": "added",
+      "git_blob": "31bdeea20cc0434418bcfb5e3337e5727631e445",
+      "sha256": "186afe65103d36d1505715e18e36d501900259150518690976699ac04013a538",
+      "size_bytes": 4044,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "31bdeea20cc0434418bcfb5e3337e5727631e445",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-standard-runners-20261108/install.log",
+      "status": "added",
+      "git_blob": "061fcabb2ed1f5c78ba1a1c53903572111ed9a34",
+      "sha256": "22aa59e6225b9d5923916e9135cf830d12f7b8d6c010590f154127d2be955f22",
+      "size_bytes": 163,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "061fcabb2ed1f5c78ba1a1c53903572111ed9a34",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-standard-runners-20261108/invalid-input.log",
+      "status": "added",
+      "git_blob": "c85edbf5f2d97b5eee52bb9859581f103631076e",
+      "sha256": "af677342877e371fc8396a9406f86aa052577466c57311c1c6193a1b948dcbee",
+      "size_bytes": 43,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "c85edbf5f2d97b5eee52bb9859581f103631076e",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-standard-runners-20261108/isolated-update.log",
+      "status": "added",
+      "git_blob": "3671c45e3eb8269ef856e921491d086a393b6ba0",
+      "sha256": "89845585ffa6ce76f8791a2f3660a63361e2c1c9854d245e2d768eafe48fb424",
+      "size_bytes": 1013,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "3671c45e3eb8269ef856e921491d086a393b6ba0",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-standard-runners-20261108/qemu-tool-probe.json",
+      "status": "added",
+      "git_blob": "e16d24cf4d53fe086446954bdde2fddf02b7a8d4",
+      "sha256": "9a81a596b6197f48269bbc855681176cf2a3839401b1431354b1266bf4688c42",
+      "size_bytes": 12125,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "e16d24cf4d53fe086446954bdde2fddf02b7a8d4",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-standard-runners-20261108/test_build_paths.log",
+      "status": "added",
+      "git_blob": "f7d07a77c04bd2b01fc4cde4f21e406b6ef197a1",
+      "sha256": "5279d1fc9a1ced44f9c96da1414ef59e4676f963fbad52e7a1a2903538819b0d",
+      "size_bytes": 101,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "f7d07a77c04bd2b01fc4cde4f21e406b6ef197a1",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-standard-runners-20261108/test_common.log",
+      "status": "added",
+      "git_blob": "7329aa50f8607766649755768bcdcaa5f9b89656",
+      "sha256": "8642a1ac72c63530bbaa2c1f2526767cc3b14a928c117e4bff18cd4c4a88ad42",
+      "size_bytes": 106,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "7329aa50f8607766649755768bcdcaa5f9b89656",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-standard-runners-20261108/test_document_session_all.log",
+      "status": "added",
+      "git_blob": "728c495cfce8f6d79ceead60968a6c3e1bda1293",
+      "sha256": "34517651229df87bfad3056a8fb410aa5e147ace08d54b224b64baf3497168ad",
+      "size_bytes": 134,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "728c495cfce8f6d79ceead60968a6c3e1bda1293",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-standard-runners-20261108/test_guest_harness.log",
+      "status": "added",
+      "git_blob": "d1ba8a3aca3c3f292ee01213d3d5cd3fdc344696",
+      "sha256": "83166b089fbcb82fac63f22522fa6ae99bb5e46368cd35d756277fd463dd6346",
+      "size_bytes": 105,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "d1ba8a3aca3c3f292ee01213d3d5cd3fdc344696",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-standard-runners-20261108/test_m1_artifact_binding.log",
+      "status": "added",
+      "git_blob": "898f1ea0e467c02e3dbcd2fa5838b254eea0e947",
+      "sha256": "d2c6a9bc981a90f83741abca5675fff24e991855bfffa05d538f02e5aa9ee5cc",
+      "size_bytes": 106,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "898f1ea0e467c02e3dbcd2fa5838b254eea0e947",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-standard-runners-20261108/test_m6c_all.log",
+      "status": "added",
+      "git_blob": "35f3f7aeaf12706e748cc5d52912d0f606ef7f02",
+      "sha256": "6e99c627e5dc24d04487db891d708d5f1f3ab49614f8a2fb731bb255ed296101",
+      "size_bytes": 206,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "35f3f7aeaf12706e748cc5d52912d0f606ef7f02",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-standard-runners-20261108/test_preflight.log",
+      "status": "added",
+      "git_blob": "92107a68ae2dc80d9f4e0b209f04edc2f2f906d2",
+      "sha256": "6f5b50c98e0b1a734f011ec07067cb59fb2b8572a0d6f32453fb985dd07cd73d",
+      "size_bytes": 123,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "92107a68ae2dc80d9f4e0b209f04edc2f2f906d2",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-standard-runners-20261108/test_system_all-complete-snapshot.log",
+      "status": "added",
+      "git_blob": "7d748ac194e79780ca3f00eb68897887ec496daf",
+      "sha256": "6b907c3ab97727db42e3bb3d622665f813f49a0e89ca856193675b0ee9667947",
+      "size_bytes": 145,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "7d748ac194e79780ca3f00eb68897887ec496daf",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "docs/verification/ci-standard-runners-20261108/test_volume_all.log",
+      "status": "added",
+      "git_blob": "51c247518fd1e6223d19098b491000f1e9c9fd08",
+      "sha256": "6b5c2df8a0fd5586a859cba2f4c611c9431ef27da7877b31c82ae1ee81f45a3d",
+      "size_bytes": 136,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "0de9d805a99de22e404cba188362950d8d0f4e39",
+          "git_blob": "51c247518fd1e6223d19098b491000f1e9c9fd08",
+          "role": "249-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "tests/test_ci_evidence.py",
+      "status": "modified",
+      "git_blob": "f562b4702ec41dd3395eefb0ea6bb4ff6f271333",
+      "sha256": "8b4abe1b71ced36c4d1a498c4b129667e9e8724280e2f4cbf3033a1615a0c8b7",
+      "size_bytes": 15117,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "dc6c6bca7fdadf078275999294f8d1c275fa6ffa",
+          "git_blob": "f562b4702ec41dd3395eefb0ea6bb4ff6f271333",
+          "role": "251-new",
+          "matches_final_bytes": true
+        }
+      ]
+    },
+    {
+      "path": "tools/ci_evidence.py",
+      "status": "modified",
+      "git_blob": "421b0929142a0855d8ffad9d22ddcadcf8c42f4f",
+      "sha256": "2aedeae1ff61dc0bf5efb9543c068662dca03787346e6aa3a164985d788f81c0",
+      "size_bytes": 21861,
+      "mode": "100644",
+      "sources": [
+        {
+          "commit": "dc6c6bca7fdadf078275999294f8d1c275fa6ffa",
+          "git_blob": "421b0929142a0855d8ffad9d22ddcadcf8c42f4f",
+          "role": "251-new",
+          "matches_final_bytes": true
+        }
+      ]
+    }
+  ],
+  "source_change_count": 52,
+  "validation": {
+    "host_tests": {
+      "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "commands": [
+        {
+          "command": [
+            "python3",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_ci_evidence*.py",
+            "-v"
+          ],
+          "cwd": ".",
+          "exit_code": 0,
+          "duration_seconds": 1.164,
+          "tests": 15,
+          "log": "docs/verification/publication-resume-20261108/test_ci_evidenceall.py.log"
+        },
+        {
+          "command": [
+            "python3",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_common.py",
+            "-v"
+          ],
+          "cwd": ".",
+          "exit_code": 0,
+          "duration_seconds": 0.125,
+          "tests": 8,
+          "log": "docs/verification/publication-resume-20261108/test_common.py.log"
+        },
+        {
+          "command": [
+            "python3",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_preflight.py",
+            "-v"
+          ],
+          "cwd": ".",
+          "exit_code": 0,
+          "duration_seconds": 0.278,
+          "tests": 24,
+          "log": "docs/verification/publication-resume-20261108/test_preflight.py.log"
+        },
+        {
+          "command": [
+            "python3",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_build_paths.py",
+            "-v"
+          ],
+          "cwd": ".",
+          "exit_code": 0,
+          "duration_seconds": 0.129,
+          "tests": 3,
+          "log": "docs/verification/publication-resume-20261108/test_build_paths.py.log"
+        },
+        {
+          "command": [
+            "python3",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_guest_harness.py",
+            "-v"
+          ],
+          "cwd": ".",
+          "exit_code": 0,
+          "duration_seconds": 0.073,
+          "tests": 7,
+          "log": "docs/verification/publication-resume-20261108/test_guest_harness.py.log"
+        },
+        {
+          "command": [
+            "python3",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_m1_artifact_binding.py",
+            "-v"
+          ],
+          "cwd": ".",
+          "exit_code": 0,
+          "duration_seconds": 0.169,
+          "tests": 8,
+          "log": "docs/verification/publication-resume-20261108/test_m1_artifact_binding.py.log"
+        },
+        {
+          "command": [
+            "python3",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-p",
+            "test_m6c_*.py",
+            "-v"
+          ],
+          "cwd": ".",
+          "exit_code": 0,
+          "duration_seconds": 1.015,
+          "tests": 49,
+          "log": "docs/verification/publication-resume-20261108/test_m6c_all.py.log"
+        }
+      ],
+      "total_tests": 114,
+      "all_exit_zero": true
+    },
+    "static_integration": {
+      "command": [
+        "python3",
+        "-B",
+        "<private-resume-workspace>/verify_ci_integration.py"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "check_count": 587,
+      "counts": {
+        "workflows": 21,
+        "jobs": 24,
+        "python_setup_calls": 24,
+        "qemu_setup_calls": 17,
+        "evidence_calls": 16,
+        "workflow_external_actions": 32,
+        "qemu_diagnostic_paths": 53
+      },
+      "report": "docs/verification/publication-resume-20261108/integration-checks.json",
+      "verifier_sha256": "09d26f5581b10bd3058face695b41a7b6718c525ad29f2269163ea2b4ccb2dc5"
+    },
+    "actionlint": {
+      "command": [
+        "actionlint",
+        "-shellcheck=",
+        "-pyflakes=",
+        ".github/workflows/*.yml"
+      ],
+      "cwd": ".",
+      "version": "1.7.12",
+      "workflows": 21,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "external_shellcheck_pyflakes_executed": false
+    },
+    "progress_check": {
+      "command": [
+        "python3",
+        "-B",
+        "tools/progress.py",
+        "--check"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "score": 41
+    },
+    "new_python_bytecode_or_conflict_files": false
+  },
+  "limits": [
+    "No new Rust compilation, native QEMU execution, GitHub runner execution or artifact upload.",
+    "Local Python 3.12.14 differs from the CI pin 3.12.12; complete setup execution on a GitHub runner remains unverified.",
+    "The 587 integration checks compare source/configuration; they do not execute GitHub expressions or replace native gates.",
+    "Historical imported CI reports stay bound to their original commits and are not test results for this assembled candidate.",
+    "Root owns final secret scan, licence register, publication manifest, checkpoint, remote commit and any visibility action."
+  ],
+  "no_product_source_change_by_this_task": true,
+  "public_destination_decision_pending": true,
+  "scope": "The recorded commands were actually executed before this evidence copy. Private source staging is not included; exact upstream blob identities are recorded separately.",
+  "remote_repository_mutation_performed_by_builder": false
+}

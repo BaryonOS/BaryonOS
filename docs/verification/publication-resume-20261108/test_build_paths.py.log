@@ -1,0 +1,8 @@
+test_external_build_fails_before_creation_or_tool_invocation (test_build_paths.PrivateBuildRoots.test_external_build_fails_before_creation_or_tool_invocation) ... ok
+test_similarly_named_sibling_is_not_inside_the_checkout (test_build_paths.PrivateBuildRoots.test_similarly_named_sibling_is_not_inside_the_checkout) ... ok
+test_symlink_cannot_disguise_an_external_build_root (test_build_paths.PrivateBuildRoots.test_symlink_cannot_disguise_an_external_build_root) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.004s
+
+OK

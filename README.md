@@ -49,6 +49,11 @@ De samenstelling, uitgevoerde controles en resterende bewijsgrenzen staan
 in [PUBLICATION.md](docs/PUBLICATION.md). Er is geen nieuwe volledige
 Rust-/QEMU-acceptatie van deze samengestelde kandidaat uitgevoerd.
 
+De hervatte kandidaat bevat nu de actuele CI-versies uit #249 en #251, met
+vaste Python-/QEMU-tools en gecontroleerde integratie van testbewijs. De exacte
+controles en open publicatiekeuze staan in het
+[hervattingsrapport](docs/verification/publication-resume-20261108.json).
+
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
@@ -81,10 +86,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-08 · **Rubric:** v1 ·
-**Bron:** [`5b218982`](https://github.com/simonvanieperen/nieuw-os/commit/5b2189824c32145ad5c110429517dfcea3f2720f) ·
+**Bron:** [`83d5ee35`](https://github.com/simonvanieperen/nieuw-os/commit/83d5ee35380d0c48ac2e1890614840461bdd2d01) ·
 **Ontwikkelbranch:** `publication/clean-candidate-20261108`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Schone publicatiekandidaat met afgebakende MPL-licentie en hosted CI voorbereiden.
-41/100 blijft 41/100. De kandidaat bevat gecontroleerde bron zonder gebundelde OSDev-collectie, scoped MPL-notices en de combinatie van hosted CI en quota-onafhankelijke bewijsopslag. Nieuwe bestemming/publicatie wacht op scopekeuze; geen nieuw native productbewijs.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Publicatiecontrole hervatten en kandidaat met actuele CI vastleggen.
+41/100 blijft 41/100. De bestaande audit en bronbinding zijn hersteld; de schone kandidaat krijgt de actuele CI-versies. Publicatie van een onafhankelijke nieuwe repository vraagt nog een keuze van de gebruiker. Geen nieuw native productbewijs en geen gewijzigde criteria.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

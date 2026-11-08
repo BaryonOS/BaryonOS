@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-08",
-    "source_commit": "5b2189824c32145ad5c110429517dfcea3f2720f",
+    "source_commit": "83d5ee35380d0c48ac2e1890614840461bdd2d01",
     "assessment_basis": "source_commit",
     "branch": "publication/clean-candidate-20261108",
-    "task": "Schone publicatiekandidaat met afgebakende MPL-licentie en hosted CI voorbereiden",
+    "task": "Publicatiecontrole hervatten en kandidaat met actuele CI vastleggen",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. De kandidaat bevat gecontroleerde bron zonder gebundelde OSDev-collectie, scoped MPL-notices en de combinatie van hosted CI en quota-onafhankelijke bewijsopslag. Nieuwe bestemming/publicatie wacht op scopekeuze; geen nieuw native productbewijs."
+    "summary": "41/100 blijft 41/100. De bestaande audit en bronbinding zijn hersteld; de schone kandidaat krijgt de actuele CI-versies. Publicatie van een onafhankelijke nieuwe repository vraagt nog een keuze van de gebruiker. Geen nieuw native productbewijs en geen gewijzigde criteria."
   },
   "tracks": [
     {

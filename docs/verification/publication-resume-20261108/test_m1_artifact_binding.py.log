@@ -1,0 +1,13 @@
+test_bad_candidate_is_rejected_before_host_tests_or_guest (test_m1_artifact_binding.SnapshotArtifactBinding.test_bad_candidate_is_rejected_before_host_tests_or_guest) ... ok
+test_gate_uses_private_builds_for_cold_boots_and_negative_fixtures (test_m1_artifact_binding.SnapshotArtifactBinding.test_gate_uses_private_builds_for_cold_boots_and_negative_fixtures) ... ok
+test_guard_reads_copied_snapshot_not_original_esp (test_m1_artifact_binding.SnapshotArtifactBinding.test_guard_reads_copied_snapshot_not_original_esp) ... ok
+test_intentional_unbound_missing_kernel_fixture_can_still_run (test_m1_artifact_binding.SnapshotArtifactBinding.test_intentional_unbound_missing_kernel_fixture_can_still_run) ... ok
+test_matching_snapshot_reaches_runner_with_recorded_binding (test_m1_artifact_binding.SnapshotArtifactBinding.test_matching_snapshot_reaches_runner_with_recorded_binding) ... ok
+test_private_candidate_survives_later_public_esp_replacement (test_m1_artifact_binding.SnapshotArtifactBinding.test_private_candidate_survives_later_public_esp_replacement) ... ok
+test_stale_kernel_in_shared_esp_is_rejected_before_any_child (test_m1_artifact_binding.SnapshotArtifactBinding.test_stale_kernel_in_shared_esp_is_rejected_before_any_child) ... ok
+test_wrong_loader_snapshot_is_also_rejected_before_any_child (test_m1_artifact_binding.SnapshotArtifactBinding.test_wrong_loader_snapshot_is_also_rejected_before_any_child) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.044s
+
+OK

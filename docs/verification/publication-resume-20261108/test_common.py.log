@@ -1,0 +1,13 @@
+test_only_explicit_versioned_profiles_and_no_silent_fallback (test_common.MachineSelection.test_only_explicit_versioned_profiles_and_no_silent_fallback) ... ok
+test_inherited_package_manifest_and_job_codec_are_source_inputs (test_common.QuantumSourceBinding.test_inherited_package_manifest_and_job_codec_are_source_inputs) ... ok
+test_windows_and_posix_path_order_bind_the_same_source_bytes (test_common.QuantumSourceBinding.test_windows_and_posix_path_order_bind_the_same_source_bytes) ... ok
+test_timeout_saves_partial_output_and_metadata_before_reraising (test_common.RunLoggedTimeout.test_timeout_saves_partial_output_and_metadata_before_reraising) ... ok
+test_hash_helpers_preserve_sha256_format_and_validation (test_common.SharedArtifactHelpers.test_hash_helpers_preserve_sha256_format_and_validation) ... ok
+test_tree_listing_guards_each_path_before_returning_regular_files (test_common.SharedArtifactHelpers.test_tree_listing_guards_each_path_before_returning_regular_files) ... ok
+test_tree_listing_preserves_relative_paths_for_callers (test_common.SharedArtifactHelpers.test_tree_listing_preserves_relative_paths_for_callers) ... ok
+test_tree_listing_refuses_a_link_before_including_its_target (test_common.SharedArtifactHelpers.test_tree_listing_refuses_a_link_before_including_its_target) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.014s
+
+OK
