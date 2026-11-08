@@ -1,0 +1,37 @@
+test_active_qemu_disk_cannot_differ_from_checked_after_image (__main__.ArtifactTests.test_active_qemu_disk_cannot_differ_from_checked_after_image) ... ok
+test_capture_cannot_use_validly_hashed_final_serial_as_old_phase (__main__.ArtifactTests.test_capture_cannot_use_validly_hashed_final_serial_as_old_phase) ... ok
+test_cold_offline_replay_requires_recomputed_normal_byte_chain (__main__.ArtifactTests.test_cold_offline_replay_requires_recomputed_normal_byte_chain) ... ok
+test_cold_parent_is_recomputed_and_cannot_be_user_image (__main__.ArtifactTests.test_cold_parent_is_recomputed_and_cannot_be_user_image) ... ok
+test_exact_build_and_all_frozen_run_proof_replays (__main__.ArtifactTests.test_exact_build_and_all_frozen_run_proof_replays) ... ok
+test_failed_preflight_retires_old_pass_without_launch (__main__.ArtifactTests.test_failed_preflight_retires_old_pass_without_launch) ... ok
+test_fatal_diagnostics_get_only_one_second_grace_and_no_success (__main__.ArtifactTests.test_fatal_diagnostics_get_only_one_second_grace_and_no_success) ... ok
+test_final_image_errors_publish_failed_reports (__main__.ArtifactTests.test_final_image_errors_publish_failed_reports) ... ok
+test_guest_timeout_diagnostics_are_structured_but_never_success (__main__.ArtifactTests.test_guest_timeout_diagnostics_are_structured_but_never_success) ... ok
+test_report_cannot_replace_serial_exit_qmp_prefix_or_capture_hash (__main__.ArtifactTests.test_report_cannot_replace_serial_exit_qmp_prefix_or_capture_hash) ... ok
+test_stale_source_changed_elf_and_nonembedded_binary_fail (__main__.ArtifactTests.test_stale_source_changed_elf_and_nonembedded_binary_fail) ... ok
+test_symlink_hardlink_and_outside_build_paths_fail (__main__.ArtifactTests.test_symlink_hardlink_and_outside_build_paths_fail) ... ok
+test_empty_truncated_or_escaping_regions_cannot_certify_pixels (__main__.EditorPixelOracleTests.test_empty_truncated_or_escaping_regions_cannot_certify_pixels) ... ok
+test_every_editor_edge_and_each_rgb_byte_remain_protected (__main__.EditorPixelOracleTests.test_every_editor_edge_and_each_rgb_byte_remain_protected) ... ok
+test_region_comparison_has_no_unchecked_row_or_column (__main__.EditorPixelOracleTests.test_region_comparison_has_no_unchecked_row_or_column) ... ok
+test_revision_caption_can_change_with_real_visible_save_feedback (__main__.EditorPixelOracleTests.test_revision_caption_can_change_with_real_visible_save_feedback) ... ok
+test_revision_or_control_change_cannot_replace_visible_save_status (__main__.EditorPixelOracleTests.test_revision_or_control_change_cannot_replace_visible_save_status) ... ok
+test_acpi_boot_markers_are_exact_unique_and_in_position (__main__.GrammarTests.test_acpi_boot_markers_are_exact_unique_and_in_position)
+Malformed diagnostics cannot disappear or certify a different boot. ... ok
+test_acpi_boot_prefixes_are_incremental_and_never_finish (__main__.GrammarTests.test_acpi_boot_prefixes_are_incremental_and_never_finish)
+The observed ACPI prefix and every partial boot record need more evidence. ... ok
+test_actual_frame_checks_reject_identical_wrong_geometry_and_chrome (__main__.GrammarTests.test_actual_frame_checks_reject_identical_wrong_geometry_and_chrome) ... ok
+test_barrier_cannot_replace_list_then_real_reopen (__main__.GrammarTests.test_barrier_cannot_replace_list_then_real_reopen) ... ok
+test_complete_normal_and_readonly_transcripts (__main__.GrammarTests.test_complete_normal_and_readonly_transcripts) ... ok
+test_independent_disk_checks_actual_text_and_scope (__main__.GrammarTests.test_independent_disk_checks_actual_text_and_scope) ... ok
+test_keyboard_case_reaches_the_same_document_stages_without_pointer_events (__main__.GrammarTests.test_keyboard_case_reaches_the_same_document_stages_without_pointer_events) ... ok
+test_missing_duplicate_reordered_unknown_and_oversized_fail (__main__.GrammarTests.test_missing_duplicate_reordered_unknown_and_oversized_fail) ... ok
+test_partial_snapshot_is_never_ready (__main__.GrammarTests.test_partial_snapshot_is_never_ready) ... ok
+test_qmp_script_is_only_correlated_hardware_actions_and_frames (__main__.GrammarTests.test_qmp_script_is_only_correlated_hardware_actions_and_frames) ... ok
+test_readonly_rejects_any_write_or_commit (__main__.GrammarTests.test_readonly_rejects_any_write_or_commit) ... ok
+test_source_and_focus_gates_precede_actual_snapshots (__main__.GrammarTests.test_source_and_focus_gates_precede_actual_snapshots) ... ok
+test_sparse_counts_accepted_and_incomplete_first_frame_rejected (__main__.SparseFrameCounters.test_sparse_counts_accepted_and_incomplete_first_frame_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 30 tests in 15.415s
+
+OK

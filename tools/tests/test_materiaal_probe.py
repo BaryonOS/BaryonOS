@@ -17,6 +17,9 @@ import run_fpu as f
 from test_display_probe import user_elf
 
 
+ACPI_DIAGNOSTICS = ("ACPI:UNAVAILABLE:NO_DMAR", "DEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT")
+
+
 def snapshots(case="normal"):
     values=[]
     for i,name in enumerate(d.PHASES[case],1):
@@ -35,6 +38,7 @@ def snapshots(case="normal"):
 
 def serial(case="normal"):
     text="\n".join((*d.BOOT,"MATERIAAL:MANIFEST:PASS",*d.GATES))+"\n";prefixes=[]
+    text=text.replace("KS-02:PASS\n", "KS-02:PASS\n"+"\n".join(ACPI_DIAGNOSTICS)+"\n", 1)
     for value in snapshots(case):
         text+="MATERIAAL:SNAPSHOT:BEGIN\n"+"".join(f"MATERIAAL:{name}:{value[name]:020d}\n" for name in d.FIELDS)+"MATERIAAL:SNAPSHOT:END\n"
         prefixes.append(text.encode())
@@ -142,6 +146,50 @@ class GrammarTests(unittest.TestCase):
             parsed=d.transcript(serial(case)[0],case,final=True)
             self.assertTrue(parsed["finished"])
             self.assertEqual(list(d.phases(parsed,case,complete=True)),list(d.PHASES[case]))
+
+    def test_acpi_boot_prefixes_are_incremental_and_never_finish(self):
+        """The observed ACPI prefix and every partial boot record need more evidence."""
+        raw=serial()[0]
+        observed=raw[:raw.index(b"KS-03:PASS")]
+        self.assertFalse(d.transcript(observed)["finished"])
+        opening=raw[:raw.index((d.GATES[0]+"\n").encode())]
+        for end in range(len(opening)+1):
+            with self.subTest(end=end):
+                parsed=d.transcript(opening[:end])
+                self.assertFalse(parsed["finished"])
+                self.assertEqual(parsed["gates"],[])
+                self.assertEqual(parsed["snapshots"],[])
+                with self.assertRaises(ValueError):
+                    d.transcript(opening[:end],final=True)
+
+    def test_acpi_boot_markers_are_exact_unique_and_in_position(self):
+        """Malformed diagnostics cannot disappear or certify a different boot."""
+        raw=serial()[0]
+        acpi,device=((value+"\n").encode() for value in ACPI_DIAGNOSTICS)
+        pair=acpi+device
+        bare=raw.replace(pair,b"",1)
+        alternatives={
+            "missing pair":bare,
+            "missing ACPI":raw.replace(acpi,b"",1),
+            "missing device":raw.replace(device,b"",1),
+            "duplicate ACPI":raw.replace(acpi,acpi+acpi,1),
+            "duplicate device":raw.replace(device,device+device,1),
+            "reversed pair":raw.replace(pair,device+acpi,1),
+            "different ACPI":raw.replace(acpi,b"ACPI:DISCOVERY:MCFG_DMAR\n",1),
+            "different device":raw.replace(device,b"DEVICE-EXECUTION:ALLOWED:ADAPTER_PRESENT\n",1),
+            "before KS-02":bare.replace(b"KS-02:PASS\n",pair+b"KS-02:PASS\n",1),
+            "after KS-03":bare.replace(b"KS-03:PASS\n",b"KS-03:PASS\n"+pair,1),
+            "missing KS-03":raw.replace(b"KS-03:PASS\n",b"",1),
+            "before handoff":pair+raw,
+            "after final markers":raw+pair,
+        }
+        for name,altered in alternatives.items():
+            for final in (False,True):
+                with self.subTest(name=name,final=final),self.assertRaises(ValueError):
+                    d.transcript(altered,final=final)
+        for prefix in (acpi,device,pair):
+            with self.subTest(prefix=prefix),self.assertRaises(ValueError):
+                d.transcript(prefix)
 
     def test_partial_snapshot_is_never_ready(self):
         raw,prefixes=serial();at=prefixes[0].index(b"MATERIAAL:SNAPSHOT:END")
