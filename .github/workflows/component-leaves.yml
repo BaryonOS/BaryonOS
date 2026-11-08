@@ -3,6 +3,7 @@ name: Component leaf quality
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore: ['docs/**', '*.md']
   push:
     branches: [main]
   workflow_dispatch:
@@ -21,7 +22,7 @@ defaults:
 jobs:
   component-quality:
     name: component-quality (${{ matrix.component }})
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, unraid, build]
     timeout-minutes: 15
     strategy:
       fail-fast: false
