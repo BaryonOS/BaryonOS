@@ -1,6 +1,49 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — openbare projectrichting — 8 november 2026
+## NEXT AGENT HANDOFF — Discussies en templates — 8 november 2026
+
+**Onderzoeksbron:** main `363b486b06023d3d578f8eca2b23ff49045a1757`;
+**integratiebasis:** main `5b2189824c32145ad5c110429517dfcea3f2720f`
+(PR #250, openbare projectrichting). Werkbranch
+`community/discussions-templates-20261108`. **41 → 41/100**; criteria,
+gewichten en bestaand acceptatiebewijs blijven ongewijzigd. Deze opdracht
+betreft uitsluitend community-inrichting; CI-, artifact- en publicatiewerk
+in andere PR's blijft bij de betreffende eigenaren.
+
+**Gerealiseerd:** de volledige Git-boom (6.524 bestanden) geïnventariseerd en
+de bronbestanden tegen Git-blobs gecontroleerd. De Graphify-index kwam met
+deze main overeen. Actieve contracten, codegebieden, tests, bestaande
+templates en open issues/PR's onderzocht; geen regel-voor-regel securityaudit.
+Zes bestaande lege discussiecategorieën ingericht en vijf startdiscussies
+gepubliceerd: [wegwijzer #252](https://github.com/simonvanieperen/nieuw-os/discussions/252)
+(vastgezet), [release #253](https://github.com/simonvanieperen/nieuw-os/discussions/253),
+[desktop #254](https://github.com/simonvanieperen/nieuw-os/discussions/254),
+[NAS #255](https://github.com/simonvanieperen/nieuw-os/discussions/255) en
+[TLS #256](https://github.com/simonvanieperen/nieuw-os/discussions/256).
+
+**Repositorywijziging:** drie issueformulieren, één Markdown-taaktemplate,
+issuekeuzescherm, vier categorieformulieren, PR-template en
+[communitywegwijzer](COMMUNITY.md), met links in README en CONTRIBUTING.
+Formulieren kennen geen pipeline-labels toe. Alleen beoordeelde pipeline-
+taken gebruiken de bestaande letterlijke `Criterium:`-/`Gate:`-regels.
+Beveiligingsmeldingen volgen SECURITY.md; geen nieuw meldadres of licentie.
+
+**Controles:** YAML-/veldstructuur en repositorylinks gecontroleerd; een
+ingevuld taaktemplate door de bestaande pipelineparser gelezen, inclusief
+de weigering zonder uitvoeringslabel. `python3 tools/progress.py --write`
+en `python3 tools/progress.py --check`: exit 0, 41/100 consistent.
+Categorieformaten en slugs zijn in GitHub bevestigd. Brongebonden overzicht:
+[communitycontrole](verification/community-20261108.json).
+
+**Open bij dit checkpoint:** [PR #258](https://github.com/simonvanieperen/nieuw-os/pull/258)
+is na de conceptfase gereed voor review; squash-auto-merge is ingesteld.
+Opname volgt de vereiste checks en branchregels; daarna de live formulierweergave controleren.
+Een branchbestand maakt een template nog niet actief. Geen nieuwe Rust-,
+QEMU-, fysieke of menselijke acceptatie uitgevoerd of geclaimd.
+**Eerstvolgende stap:** de checks op de geïntegreerde PR-head volgen;
+na opname de issuekeuze en vier discussieformulieren in GitHub openen. Wijzig geen branchregels om dit af te dwingen.
+
+## Checkpoint — openbare projectrichting uit PR #250 — 8 november 2026
 
 **Bron:** `main` op `363b486b06023d3d578f8eca2b23ff49045a1757`; documentatiebranch
 `docs/public-development-direction-20261108`. **41 → 41/100**; alle criteria,

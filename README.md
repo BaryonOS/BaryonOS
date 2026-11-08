@@ -29,6 +29,10 @@ en de volledige acceptatieopdracht in
 [FULL-TEST-RELEASE.md](docs/FULL-TEST-RELEASE.md). Proeven en builds zijn
 geen bewijs van een complete release of ondersteuning van fysieke hardware.
 
+**Meedoen:** [Discussies](https://github.com/simonvanieperen/nieuw-os/discussions)
+voor vragen en voorstellen · [Melding of taak](https://github.com/simonvanieperen/nieuw-os/issues/new/choose)
+· [Communitywegwijzer](docs/COMMUNITY.md) · [Bijdragen](CONTRIBUTING.md).
+
 ## Openbare ontwikkeling en licentie
 
 **Bevestigd op 8 november 2026:** Nieuw OS kiest voor openbare ontwikkeling.
@@ -74,10 +78,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-08 · **Rubric:** v1 ·
-**Bron:** [`363b486b`](https://github.com/simonvanieperen/nieuw-os/commit/363b486b06023d3d578f8eca2b23ff49045a1757) ·
-**Ontwikkelbranch:** `docs/public-development-direction-20261108`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Openbare ontwikkeling bevestigen met het bestaande MPL-2.0-plan als controlebasis.
-41/100 blijft 41/100. De openbare ontwikkelrichting en MPL-2.0-controlebasis voor eigen OS-code zijn bevestigd. Licentiecontrole, daadwerkelijke publicatie en R03 blijven open; geen nieuw productcriterium of native testbewijs.
+**Bron:** [`5b218982`](https://github.com/simonvanieperen/nieuw-os/commit/5b2189824c32145ad5c110429517dfcea3f2720f) ·
+**Ontwikkelbranch:** `community/discussions-templates-20261108`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Discussies en bijdrageformulieren inrichten na repositoryonderzoek.
+41/100 blijft 41/100. Communitycategorieën, startdiscussies, issue- en discussieformulieren, PR-template en routing toegevoegd. YAML-, link- en pipelineparsercontrole; geen runtimecode, nieuwe native acceptatie of criteriumwijziging. Activering van templates volgt de bestaande PR- en branchregels. De openbare ontwikkelrichting en MPL-2.0-controlebasis uit PR #250 zijn bij integratie behouden; publicatiecontroles blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
