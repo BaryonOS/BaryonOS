@@ -16,7 +16,7 @@ concurrency:
 jobs:
   host-quality:
     name: host-quality
-    runs-on: [self-hosted, Linux, X64, unraid, build]
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - name: Checkout
@@ -53,20 +53,19 @@ jobs:
             services/net-protocol/target/debug
             experiments/quantum/target/debug
             experiments/quantum/job-protocol/target/debug
-          key: host-rust-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml', '**/Cargo.lock', '**/Cargo.toml', '**/.cargo/config.toml', '**/build.rs') }}
+          key: host-rust-v2-ubuntu-24.04-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml', '**/Cargo.lock', '**/Cargo.toml', '**/.cargo/config.toml', '**/build.rs') }}
       - name: Fetch locked workspace dependencies before offline Python harnesses
         # The snapshot-wipe harness builds capability-core offline. Cargo still
         # resolves the workspace closure, including update-core's dependencies.
         run: cargo +1.90.0 fetch --locked --manifest-path Cargo.toml
       - name: Python syntax and DocumentSession host tests
         run: |
-          python3 -m compileall -q tools tests userspace/tests experiments/quantum/native experiments/quantum/native/job .agents/skills/os-dev
+          python3 -m compileall -q tools tests userspace/tests experiments/quantum/native experiments/quantum/native/job
+          python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'
           python3 -m unittest discover -s tests -p 'test_document_session_*.py'
           python3 -m unittest discover -s tests -p 'test_volume_*.py'
           python3 -m unittest discover -s tests -p 'test_system_*.py'
           python3 -m unittest discover -s tools/tests -p 'test_*.py'
-          python3 .agents/skills/os-dev/scripts/validate_skill.py
-          python3 -m unittest discover -s .agents/skills/os-dev/tests -p 'test_*.py'
       - name: Root Rust host tests
         run: |
           cargo +1.90.0 test --locked -p boot-protocol -p elf-loader-core -p kernel-core -p capability-core -p virtio-core -p ui-core -p virtio-blk-driver -p block-protocol -p object-core -p catalog-core -p volume-core -p keyring-core -p virtio-rng-driver -p virtio-net-driver -p driver-core -p pci-core -p update-core -p update-tool
@@ -149,7 +148,7 @@ jobs:
   qemu-smoke:
     name: qemu-smoke
     needs: host-quality
-    runs-on: [self-hosted, Linux, X64, unraid, build]
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2

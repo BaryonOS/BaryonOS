@@ -1,0 +1,1121 @@
+{
+  "schema_version": 1,
+  "state": "private review candidate; no new repository created",
+  "prepared_at_utc": "2026-11-08T19:04:06.647933+00:00",
+  "source_code_snapshot": "363b486b06023d3d578f8eca2b23ff49045a1757",
+  "integration_base_commit": "5b2189824c32145ad5c110429517dfcea3f2720f",
+  "integration_base_tree": "aeba905b32fc1d721943b06196da8d57c2a1ea3e",
+  "overlay_commits": {
+    "hosted_runners": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+    "evidence_storage": "5c291cff3b9c28e4948aeb36adda3acc6ee6a8ab"
+  },
+  "source_integrity": {
+    "original_main_blobs_verified": 6524,
+    "overlay_blobs_verified": 45,
+    "new_main_documentation_blobs_verified": 8,
+    "preserved_product_files_byte_equal": 1685
+  },
+  "files_before_this_manifest": 6467,
+  "bytes_before_this_manifest": 49780414,
+  "tree_digest_excluding_this_manifest": "f37f02fb972c685381c0eae1867c13acb449fb9ec1ccbec5dce1fecdf80b2a5e",
+  "tree_digest_format": "SHA256 of sorted UTF-8 records: mode + space + path + NUL + Git-blob-SHA1 + LF",
+  "excluded_from_digest": [
+    "docs/verification/publication-final-20261108.json"
+  ],
+  "changes": [
+    {
+      "path": ".agents/skills/os-dev/BRONNEN-EN-LICENTIES.md",
+      "status": "deleted",
+      "before_git_blob": "61317082e806bcfb0928b3b45892a16019a7975a",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/CHANGELOG.md",
+      "status": "deleted",
+      "before_git_blob": "16150d14332f13c900e1cb3e7cd4a539ea263b33",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/CONTROLEVERSLAG-REPOSITORY.md",
+      "status": "deleted",
+      "before_git_blob": "105a4a4e6bc0ec4f6f985dd3193f9ddd75f669fd",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/README-REPOSITORY.md",
+      "status": "deleted",
+      "before_git_blob": "3ef3d805eae41eb30550c7134e29f63cda78e17d",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/SKILL.md",
+      "status": "deleted",
+      "before_git_blob": "c540e9660ad184d29c5c0383d9237d114c856f01",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/agents/openai.yaml",
+      "status": "deleted",
+      "before_git_blob": "a14eab766e8df3957613b71add84a59062735113",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/assets/book.pdf",
+      "status": "deleted",
+      "before_git_blob": "43088f6be8790ad6c7cddf343b818adfe9806d8a",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/assets/change-report.md",
+      "status": "deleted",
+      "before_git_blob": "b4ef50890694f4d00c7868ff65d1aa9d36163fd2",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/assets/figures/boek-p012-figuur1.png",
+      "status": "deleted",
+      "before_git_blob": "8704960736ff4058e6fe8ea78dd4163492ca1157",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/assets/figures/boek-p012-volledige-pagina.png",
+      "status": "deleted",
+      "before_git_blob": "b822bfc7de175dac6d1493ee313a518eb84dfc6f",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/assets/figures/boek-p034-figuur1.png",
+      "status": "deleted",
+      "before_git_blob": "6ee18385b700adc92711b2a820c612da3d4bb5df",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/assets/figures/boek-p034-volledige-pagina.png",
+      "status": "deleted",
+      "before_git_blob": "bf14e5a930260c568d6a0c819f5e5235acce6582",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/assets/figures/boek-p054-figuur1.png",
+      "status": "deleted",
+      "before_git_blob": "4ec4c2cece9cf07a63b1db76e11e214a37ee853d",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/assets/figures/boek-p054-volledige-pagina.png",
+      "status": "deleted",
+      "before_git_blob": "8bf513544ca43eefb60ae474329baf271604317d",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/assets/source-manifest.json",
+      "status": "deleted",
+      "before_git_blob": "f5b1aa97be7e95403aa07714fcaf851d43e35e38",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/assets/task-brief.md",
+      "status": "deleted",
+      "before_git_blob": "dc05fceb4e4cc9332691962c89855732dc523cec",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/assets/wiki-media-references.json",
+      "status": "deleted",
+      "before_git_blob": "6183c5fef56a23d6e383ae88d37af125998153f7",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/assets/wiki-revision-metadata.jsonl.gz",
+      "status": "deleted",
+      "before_git_blob": "e1ea9243786f986442c1a4ba0a68f0d8ef322655",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/assets/wiki-siteinfo.xml",
+      "status": "deleted",
+      "before_git_blob": "755dd08584ec669a2d24807b28cefa0a4afdd9cf",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/SOURCE-MAP.md",
+      "status": "deleted",
+      "before_git_blob": "6a15dfdfdef4efa9fee94b19a140963456c297e4",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/boek-leeswijzer.md",
+      "status": "deleted",
+      "before_git_blob": "3c99e0a34106b94d86d747c785581cc047509cb2",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/corpus/boek.md",
+      "status": "deleted",
+      "before_git_blob": "d2a8ced0d73728ded8063a629f4b428350ab6fa1",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/corpus/wiki-01.md",
+      "status": "deleted",
+      "before_git_blob": "fd12be69749831dce85cfc0eb5663fc989e73acc",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/corpus/wiki-02.md",
+      "status": "deleted",
+      "before_git_blob": "6fae7d8dd19a8a2c9bd7ed8feec29f092564230b",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/corpus/wiki-03.md",
+      "status": "deleted",
+      "before_git_blob": "eed046a7e16deb19f510ac890f6c36e2baff10aa",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/corpus/wiki-04.md",
+      "status": "deleted",
+      "before_git_blob": "7032ca33e56cf2268c297db572d06ca1682a0c34",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/corpus/wiki-05.md",
+      "status": "deleted",
+      "before_git_blob": "bc7e604bc6f84d0733094da2391cfa4c0df32006",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/corpus/wiki-06.md",
+      "status": "deleted",
+      "before_git_blob": "00b3e6636fdfc60db0ae174c12e661a36cd96ae9",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/corpus/wiki-07.md",
+      "status": "deleted",
+      "before_git_blob": "540e2dd2b12c70455b03af2e1a31d7f9637b3832",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/corpus/wiki-08.md",
+      "status": "deleted",
+      "before_git_blob": "f49db82e213cf568bde46b6c8aaed1f06485b676",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/corpus/wiki-09.md",
+      "status": "deleted",
+      "before_git_blob": "b64d23c50547fd964183d2b12e15042320178fd1",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/corpus/wiki-10.md",
+      "status": "deleted",
+      "before_git_blob": "33f4fe3f92ef8d7252bbe86a608c0a6077c291dd",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/corpus/wiki-11.md",
+      "status": "deleted",
+      "before_git_blob": "2f2c764d7e3bdece4507991ec1957addc89851c8",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/corpus/wiki-12.md",
+      "status": "deleted",
+      "before_git_blob": "c0b42219f2bc80c8b3ef5452eb239ce51a1d4c42",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/corpus/wiki-13.md",
+      "status": "deleted",
+      "before_git_blob": "df6fd8e664fe072fc12f2280951385ef6f17610f",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/corpus/wiki-14.md",
+      "status": "deleted",
+      "before_git_blob": "399743532afbb902ee82a8c58acffe686bcdb7bb",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/corpus/wiki-15.md",
+      "status": "deleted",
+      "before_git_blob": "7d9199f03e3cd08fd2af9ab4c16400c0c8e2d332",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/expanded-main-page.md",
+      "status": "deleted",
+      "before_git_blob": "43e64ed7e603285fd502469e2b1906c14b757c56",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/figuurbeschrijvingen.md",
+      "status": "deleted",
+      "before_git_blob": "bcf57e6e9a43ef3569de0db6f01ea48e98073010",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/kennisgids.md",
+      "status": "deleted",
+      "before_git_blob": "ffc74c6d15f46869121ab654903a5ff90f192df0",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/onderwerpenroute.md",
+      "status": "deleted",
+      "before_git_blob": "f44307469d1bd9e07a58cbf71b71b53808cf9d48",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/pagina-index.md",
+      "status": "deleted",
+      "before_git_blob": "3374079bfaa0353ee934e0b169b98a9c44b7fd39",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/source-index.json",
+      "status": "deleted",
+      "before_git_blob": "ff1d5db768139d7f20465c59bfe058aa6a81e977",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/01-start.md",
+      "status": "deleted",
+      "before_git_blob": "3eab45606424b3b054105e4d8b176df7d8a25999",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/02-architectuur.md",
+      "status": "deleted",
+      "before_git_blob": "d9d385fe44dce2fe9dca348c34bfad95e4298b53",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/03-talen.md",
+      "status": "deleted",
+      "before_git_blob": "983db4e48c566a1d6a8863395429fccb2e82ac52",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/04-toolchain.md",
+      "status": "deleted",
+      "before_git_blob": "420ab9aa25c03d3ca3188f4f8a5a781c3db78592",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/05-boot.md",
+      "status": "deleted",
+      "before_git_blob": "e2c523f5dcbb7fcbd610cd31b0fd260f687d2f6c",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/06-x86.md",
+      "status": "deleted",
+      "before_git_blob": "09d44974a0324a56d3bf5fdd1961ea2533e5e506",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/07-interrupts.md",
+      "status": "deleted",
+      "before_git_blob": "538de0896be3f7f6aa0bce3142c9c1e91fd1cd47",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/08-geheugen.md",
+      "status": "deleted",
+      "before_git_blob": "3ab81efed73e761545461129e5073498c036c32f",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/09-processen.md",
+      "status": "deleted",
+      "before_git_blob": "903c84a49fc64762a14519670f4b2267a9f8b1dd",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/10-synchronisatie.md",
+      "status": "deleted",
+      "before_git_blob": "2df9bf56835d450ded0e8fdc65a6ebee649ae6de",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/11-ipc.md",
+      "status": "deleted",
+      "before_git_blob": "e1f8a66fb04fd2cf36c920f598f1720405b9f387",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/12-executables.md",
+      "status": "deleted",
+      "before_git_blob": "a01e1357088858ed19c6002798aab992d623a712",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/13-drivers.md",
+      "status": "deleted",
+      "before_git_blob": "a8b0f7860363402714d45094fab03d0c3ef64632",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/14-platform.md",
+      "status": "deleted",
+      "before_git_blob": "60649c653712766a312da2510d6bb0e8154ec22f",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/15-opslag.md",
+      "status": "deleted",
+      "before_git_blob": "6afa725278a833f89a5dbbbb1390fec38b694028",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/16-bestanden.md",
+      "status": "deleted",
+      "before_git_blob": "3f2ec2987c1aae13f36266cd47e312ff8ecf7dcf",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/17-netwerk.md",
+      "status": "deleted",
+      "before_git_blob": "fda3df9918f1cb7157719b8aafc7bb08ae497eca",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/18-usb-invoer.md",
+      "status": "deleted",
+      "before_git_blob": "2e417a8c5c6a1a225396d31f1d8bbc21889b2ca2",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/19-grafisch.md",
+      "status": "deleted",
+      "before_git_blob": "7ac316e3bc91c498d23a73ee9a582a81f438fb5c",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/20-audio.md",
+      "status": "deleted",
+      "before_git_blob": "8a9b2d06ea8e17265b2ff335b2d016e29b675fbe",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/21-beveiliging.md",
+      "status": "deleted",
+      "before_git_blob": "24c84dbc8a6da5692601980f6e01ac20e92aa709",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/22-testen.md",
+      "status": "deleted",
+      "before_git_blob": "903ed1afd419c8a1d547c95c5a304de13bfc4d43",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/23-andere-architecturen.md",
+      "status": "deleted",
+      "before_git_blob": "a0b7bab5fa143ad2545173ce930db126f1ffce7c",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/themas/24-bronnen.md",
+      "status": "deleted",
+      "before_git_blob": "a5ac0719755a11351e8c3d741132b402f1ed547b",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/workflows/01-sources-and-explanation.md",
+      "status": "deleted",
+      "before_git_blob": "8821ca153d60f840dc51341ed03a78082399eef0",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/workflows/02-implementation-and-testing.md",
+      "status": "deleted",
+      "before_git_blob": "d461053d3037b0f2180ae0b847f65aeff60a65f9",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/workflows/03-boot-and-memory.md",
+      "status": "deleted",
+      "before_git_blob": "e38709978f9f54903e75f4797543ef8796133353",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/workflows/04-isolation-and-concurrency.md",
+      "status": "deleted",
+      "before_git_blob": "f49740e0f3ae884284bf9ebec41d2870a739eb96",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/workflows/05-devices-and-data.md",
+      "status": "deleted",
+      "before_git_blob": "de0411ab3b806de1562fde49a013245b39fcf1ac",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/workflows/06-debugging-and-review.md",
+      "status": "deleted",
+      "before_git_blob": "e24a418aa61fa293a78d51cc2869a5ff0f6a33d7",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/references/workflows/07-nieuw-os.md",
+      "status": "deleted",
+      "before_git_blob": "3b7c65f7246f82a674a6b2a71d5158f831f860ae",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/scripts/build_corpus.py",
+      "status": "deleted",
+      "before_git_blob": "088a824f1dc3bf2b916fd2bbb5ab8ba77621263d",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/scripts/validate_skill.py",
+      "status": "deleted",
+      "before_git_blob": "db1d07541503f75556f452809e958281bfb2caa9",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/scripts/zoeken.py",
+      "status": "deleted",
+      "before_git_blob": "b9f77e3923b9548fcbad57fa9d42d58af29e2b23",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".agents/skills/os-dev/tests/test_zoeken.py",
+      "status": "deleted",
+      "before_git_blob": "e9894a10f7bf4ae7b998d74541a9d72550df7ff3",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".github/actions/preserve-evidence/action.yml",
+      "status": "added",
+      "before_git_blob": null,
+      "after_git_blob": "907731c03c376174f2189e59d166a3295adf32d0",
+      "after_sha256": "6a110d0eda5b059ab9c827976b913ab8291aa2a8c6e23eebd99e62ef09bc744f",
+      "after_bytes": 7908
+    },
+    {
+      "path": ".github/workflows/app-management-quality.yml",
+      "status": "modified",
+      "before_git_blob": "f39605f849cb0b2cecf524ce2a9a628476f64105",
+      "after_git_blob": "33e2d1976147b4a666f8249809ff3f9a6fc718cb",
+      "after_sha256": "aced3de768a565ef9f5db0bd16d142cc5a98b9a338670754b744b804a781c763",
+      "after_bytes": 1943
+    },
+    {
+      "path": ".github/workflows/artifact-store-quality.yml",
+      "status": "modified",
+      "before_git_blob": "22837b80b76b354d21f6c10c6f22bb648bfadc95",
+      "after_git_blob": "b79dfcb9e45c123669ba35e2a3db439a38517789",
+      "after_sha256": "38c701795adacf395c1df62e58fcdc574a2bc93fec574ab176ae91d32f24566a",
+      "after_bytes": 1705
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "status": "modified",
+      "before_git_blob": "b77aa159c979b610f1787ba3cf4dd8f8b36cff38",
+      "after_git_blob": "8de1cf6aa879d2e1c7de3d09ac7fd9e6bb63b4c2",
+      "after_sha256": "6c60acd0e7e66a4b37bb83bea7085a8c2d1401f690e43d188c2c30feb1f0435b",
+      "after_bytes": 12518
+    },
+    {
+      "path": ".github/workflows/component-leaves.yml",
+      "status": "modified",
+      "before_git_blob": "9bdf76e96edbfe46c25dc84169270ee1d0deb014",
+      "after_git_blob": "428049ff9b2ea7f7f3cc2c415e739adbc996a14e",
+      "after_sha256": "e5a76ae5c014d1209d5c1fc87486e0be0f2a4c93918d26b3600fd5dc510d7cbd",
+      "after_bytes": 4777
+    },
+    {
+      "path": ".github/workflows/entropy-keys.yml",
+      "status": "modified",
+      "before_git_blob": "1a8c3f9be9c2121aafc55412b10d4ca9a52d75eb",
+      "after_git_blob": "d7a210d566e6b4887571c15357e9b066428d3478",
+      "after_sha256": "fa56e10ef8ac875dec8824e9cc1717bd8198e9bb04b8f6fc3d365650ef187c64",
+      "after_bytes": 1957
+    },
+    {
+      "path": ".github/workflows/materiaal-probe.yml",
+      "status": "modified",
+      "before_git_blob": "2ca96a8728a5dc8b8a4993a697078100ad365920",
+      "after_git_blob": "aa6cda0e2517a6d94d7b490c0236e9c38d0cfdc9",
+      "after_sha256": "5d2c866de65949b9db741ce1669851aabc617a8683e99ea0f4473562248fad58",
+      "after_bytes": 8700
+    },
+    {
+      "path": ".github/workflows/nas-core.yml",
+      "status": "modified",
+      "before_git_blob": "142419d9d57c86e5e31df0fde0b31aad5f60c5d5",
+      "after_git_blob": "525654b9f40ac4e06ac77688286217a320b9a281",
+      "after_sha256": "01d58950e1c2902fec07887430dac1b5bfd8005e2c8b19e3a7c2151ee7b550a8",
+      "after_bytes": 6104
+    },
+    {
+      "path": ".github/workflows/native-display-input.yml",
+      "status": "modified",
+      "before_git_blob": "7a5d526b74475067369433c9dbb99ac478613835",
+      "after_git_blob": "6ffa78883ce8f024f5a14677c7a08446d2291b64",
+      "after_sha256": "19a082dfad54cf5b1fadca3d5842bca4b6ca4c23c1bcdb5e8bdd287242dcdd33",
+      "after_bytes": 6364
+    },
+    {
+      "path": ".github/workflows/native-foundation.yml",
+      "status": "modified",
+      "before_git_blob": "d0931a400c3ce41e1bf742b26df41e0adc3de1f4",
+      "after_git_blob": "31aa5043fcd829818af4333d1438a2e4ffa6db8b",
+      "after_sha256": "613c473927011c2e8de620b49ec9b78948b8304abd6a55a57187f3d7b5108e0d",
+      "after_bytes": 11672
+    },
+    {
+      "path": ".github/workflows/native-rtc.yml",
+      "status": "modified",
+      "before_git_blob": "de1a1af9e3767ce017cd6e7202d0c810fdd644e1",
+      "after_git_blob": "a8d6cc2468440fb97ab59c27b16cf6570c0255df",
+      "after_sha256": "44b521995a582618079f543e8ba0365ba6bd148d292500f8020a6e8fccec571a",
+      "after_bytes": 2579
+    },
+    {
+      "path": ".github/workflows/native-smp.yml",
+      "status": "modified",
+      "before_git_blob": "b0c14da121582e2b92671c9fa587b0be9086becf",
+      "after_git_blob": "211e000b0e7516e0ab21edb4ddfd334b2eb8aaf3",
+      "after_sha256": "46346706139380315ad02498d9471a0a9fabeed522d4655dc2ba5c7eb9a16475",
+      "after_bytes": 5138
+    },
+    {
+      "path": ".github/workflows/native-system.yml",
+      "status": "modified",
+      "before_git_blob": "7188edc9516b3ef52a4487f790f2ba6fbd3642d3",
+      "after_git_blob": "128b2a75e7245f0313233f00fe8d515bf4a63bb2",
+      "after_sha256": "62d482b4d97be8b97678680ed480c9106847a7736f3f755043281eb6e4e6b4fb",
+      "after_bytes": 8667
+    },
+    {
+      "path": ".github/workflows/native-window-session.yml",
+      "status": "modified",
+      "before_git_blob": "4e5bd99771feb8be0733b1dea5ecabb479f8242f",
+      "after_git_blob": "08d8023ac39713812cc7c8abc9373c4887a23b26",
+      "after_sha256": "d78333eb9bac5709016668a993b6c81ff2956eb155315ce75d02edadd4124de0",
+      "after_bytes": 13240
+    },
+    {
+      "path": ".github/workflows/net-broker-quality.yml",
+      "status": "modified",
+      "before_git_blob": "1db8b1c63c0587bded8df384fd0c3537621ae554",
+      "after_git_blob": "d7b4f48dea190ef5b37133a30349087069e35e72",
+      "after_sha256": "0c710ef95a5bae0b3d34b82eede4fc71103319b563293ac30a02ad2dff36dbad",
+      "after_bytes": 5282
+    },
+    {
+      "path": ".github/workflows/net-tls-quality.yml",
+      "status": "modified",
+      "before_git_blob": "fb7f63d4aaab053ca14e4f6de2f28a663b026549",
+      "after_git_blob": "2cc90ccd8bf11feba252197d6067344741ed10e2",
+      "after_sha256": "7ca5bec4f966a6ce8d77fb98d507e90f1061bd66129de25120bb2442b42cf7db",
+      "after_bytes": 1417
+    },
+    {
+      "path": ".github/workflows/private-publication-audit.yml",
+      "status": "deleted",
+      "before_git_blob": "694e8ff26da70d0e05a071b534283685d648b654",
+      "after_git_blob": null,
+      "after_sha256": null,
+      "after_bytes": 0
+    },
+    {
+      "path": ".github/workflows/process-management.yml",
+      "status": "modified",
+      "before_git_blob": "54647f10122decc92035aa5500e182bd76e38847",
+      "after_git_blob": "60a85fc588ac6d9339ec1870625b820fdf6dcf52",
+      "after_sha256": "64f1b03fe60058cc221d430969bb336c92602b887e720749c930d6102d0df8e5",
+      "after_bytes": 1994
+    },
+    {
+      "path": ".github/workflows/resource-pressure.yml",
+      "status": "modified",
+      "before_git_blob": "1e1d3b37d88e7fb14477d1738078ed879b3fd943",
+      "after_git_blob": "f46f590f91fe5528862f77b523100662f51768ee",
+      "after_sha256": "578eb41b7527403b6a96a506e2750f2eee5b0382bc7d013be80d76187a19d1f6",
+      "after_bytes": 1344
+    },
+    {
+      "path": ".github/workflows/signed-updates.yml",
+      "status": "modified",
+      "before_git_blob": "5871d6d8f63881a724c034841b78f0d65fdeb755",
+      "after_git_blob": "165cb83262ae5ff68ded080983fa495ebe112436",
+      "after_sha256": "59b92b312c91c522f06ea834cda227fe5b0025ffac1db7a9afe2cffaa06f2991",
+      "after_bytes": 2143
+    },
+    {
+      "path": ".github/workflows/storage-resilience.yml",
+      "status": "modified",
+      "before_git_blob": "9d3d41fd7e1c146ab513ac5dfabd00c0918f78c6",
+      "after_git_blob": "dca123c319bb3dc8cc81bb775267d2187a5073eb",
+      "after_sha256": "d88278b07d9d38208e6a40af163b13b031fd53200c62250f2302471c02243056",
+      "after_bytes": 2337
+    },
+    {
+      "path": ".github/workflows/volume-acceptance.yml",
+      "status": "modified",
+      "before_git_blob": "e4c9b8d131b73b54533ea28cbee1d9f05831b0d2",
+      "after_git_blob": "89190068f07b746c2ffcd39d70b2d21b5c920393",
+      "after_sha256": "af1013106bb98c8ef931b53b55e75dc501d658d913454e294be90f8b2ad41b5b",
+      "after_bytes": 2442
+    },
+    {
+      "path": ".github/workflows/windows-qemu-test-version.yml",
+      "status": "modified",
+      "before_git_blob": "261624cfdf047db7227731e496e926fc15942cee",
+      "after_git_blob": "511c67bf6a18b2dd997d729a507eb6336664d156",
+      "after_sha256": "10d6dbaf5719478982d8ff20eb2e36aada651d4cae9ac120b3612543a8480972",
+      "after_bytes": 4182
+    },
+    {
+      "path": "AGENTS.md",
+      "status": "modified",
+      "before_git_blob": "881f9eb0674f3178997c09643c6539a654c74690",
+      "after_git_blob": "a863b2693822c6997e3986292ded72e3e65e27c5",
+      "after_sha256": "d43580941cf9802270ede456008e60c47fc8582a80ad32de5a33699c3affd5ae",
+      "after_bytes": 18010
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "status": "modified",
+      "before_git_blob": "d9f685cdccc3537febcc9f89cf0d981097794b76",
+      "after_git_blob": "4cd0b0a553d831a61b95bf124eb4feb45907f420",
+      "after_sha256": "0491e7578a2f398f42d0342551751ca0273d7e47bca453d775561c7ae488426f",
+      "after_bytes": 2026
+    },
+    {
+      "path": "LICENSE",
+      "status": "added",
+      "before_git_blob": null,
+      "after_git_blob": "d0a1fa1482eea82e19510e7920cbe3a03e41f691",
+      "after_sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
+      "after_bytes": 16726
+    },
+    {
+      "path": "LICENSE-PLAN.md",
+      "status": "modified",
+      "before_git_blob": "f573deb9572246d76057eba77198e2f9462d9de6",
+      "after_git_blob": "04b16a9ddd97eb7b4d7e8401fcb5c86ee59c8ed4",
+      "after_sha256": "9369ae27545852c2e64ee79f4cf03a22d2f65876e602c521891f93b3ca33fc85",
+      "after_bytes": 1441
+    },
+    {
+      "path": "LICENSING.md",
+      "status": "added",
+      "before_git_blob": null,
+      "after_git_blob": "d4cdd0ca2f3ca587ed9c76b2ed05117d00b82d3e",
+      "after_sha256": "51620c6edfdd5790c1215f494c45a219a31194ebe32fe3fb725d557272e95d2a",
+      "after_bytes": 6645
+    },
+    {
+      "path": "MPL-2.0-FILES.txt",
+      "status": "added",
+      "before_git_blob": null,
+      "after_git_blob": "14c142ad154be3de592415422ca7e2b1c80b909c",
+      "after_sha256": "e28809974cb9cd12b4d408045b9820176c358c189e7cc2391603c63fa4f31675",
+      "after_bytes": 28306
+    },
+    {
+      "path": "README.md",
+      "status": "modified",
+      "before_git_blob": "414c83b97296918c677eda078f915d6d9ac2557a",
+      "after_git_blob": "b57d48df3e20650e309be40ccfb40ebd3a81c24c",
+      "after_sha256": "eb64af917d5231d1c076d85e005dfb580bfe51f3060e4dbcf9774fce281883c8",
+      "after_bytes": 22240
+    },
+    {
+      "path": "THIRD-PARTY.md",
+      "status": "added",
+      "before_git_blob": null,
+      "after_git_blob": "a34d99e37f13d3484166e1df01f362457847f3f7",
+      "after_sha256": "540d26f5ddda7f7163a02706c6047fb21ccee7896bff2baa7abb24676c26b444",
+      "after_bytes": 3330
+    },
+    {
+      "path": "docs/CI-EVIDENCE.md",
+      "status": "added",
+      "before_git_blob": null,
+      "after_git_blob": "1af536b82df08cdfc5658d7d62e2df4d664d1701",
+      "after_sha256": "fd1d32546d72b0bd4519c112e12dfcf294f79bf413b7c907bbb1d546b9fcd562",
+      "after_bytes": 5971
+    },
+    {
+      "path": "docs/DECISIONS.md",
+      "status": "modified",
+      "before_git_blob": "27dd3c31ea9f4d8d79e584a1c8dae08c43c470a6",
+      "after_git_blob": "1e96942d694a1ab81994165729de4f3e56458697",
+      "after_sha256": "ef63dfe9fb0edcba7f559ef9f35d6abfee39dc530478c52c776b78859690ea4f",
+      "after_bytes": 142117
+    },
+    {
+      "path": "docs/KNOWLEDGE-MAP.md",
+      "status": "modified",
+      "before_git_blob": "ae57ada3ece8e869578dfdcbecafaa56442f2133",
+      "after_git_blob": "3d48e5c224f0f556df050e51f0607895eb2dbf02",
+      "after_sha256": "fce04f7cac0068d070904e0a66e4ae370d496c05d286a9188f93cc12545b2f7a",
+      "after_bytes": 11627
+    },
+    {
+      "path": "docs/OSDEV-LEERROUTE.md",
+      "status": "modified",
+      "before_git_blob": "4b1f987c8fcb0d6b68c2d819d83a9665afd7474a",
+      "after_git_blob": "e72b7e68702f5bae688550c86e4ffe72919b3042",
+      "after_sha256": "417468d69ada2e3dd257d1fc226dfa011248a4317a5ad4f877667d3fc117b8db",
+      "after_bytes": 3193
+    },
+    {
+      "path": "docs/PROJECT-STATE.md",
+      "status": "modified",
+      "before_git_blob": "321533e5c76aae3fd1a4cecfe56d634ffcecfb4a",
+      "after_git_blob": "c50210325345a22c7b5ae51ada6c2087e1797775",
+      "after_sha256": "f008556a414cbcaf61bb825e4cd9ad3ec26bdf3acfb2afb7f7426ccb4cd9263f",
+      "after_bytes": 101997
+    },
+    {
+      "path": "docs/PUBLICATION.md",
+      "status": "added",
+      "before_git_blob": null,
+      "after_git_blob": "4d23bd4fd82ebdc88adb809ff5d08924e401cbf6",
+      "after_sha256": "c79a84ee9477ad16d058f5975add9d0796ddb89cf4b89e8f33a6e0af3ea0e9a6",
+      "after_bytes": 5157
+    },
+    {
+      "path": "docs/implementation/EUROPE-AND-RELEASE.md",
+      "status": "modified",
+      "before_git_blob": "08119f04e9ab1ca4212226685c18583c2f4063dc",
+      "after_git_blob": "3527df92d56e52f31c74cebe5683fb7c30d52d92",
+      "after_sha256": "d519f2a1a075604fbd91d9f19dcf4b717a820bd0e3079f700cfca273385c641e",
+      "after_bytes": 10074
+    },
+    {
+      "path": "docs/progress.json",
+      "status": "modified",
+      "before_git_blob": "6ca2ca7491d33aa0dbdb8108ecb623ed05d0ca31",
+      "after_git_blob": "31088f5397fa10e8958e323fc8d71875f3ec9770",
+      "after_sha256": "7d30b92c20ac451eda945ff8f5d4b78b58b5b6b105ad6b5721ac26a846b42414",
+      "after_bytes": 22963
+    },
+    {
+      "path": "docs/verification/ci-artifact-storage-20261108.json",
+      "status": "added",
+      "before_git_blob": null,
+      "after_git_blob": "5da123e71c1356ca0e9dc1c0270824d3a3141a75",
+      "after_sha256": "8baf71da5e2f1db42e2eb9ec5b0cc8e2638d3590bcc55954a21e63bb101e1270",
+      "after_bytes": 7452
+    },
+    {
+      "path": "docs/verification/ci-artifact-storage-20261108/collector-tests.txt",
+      "status": "added",
+      "before_git_blob": null,
+      "after_git_blob": "5c7436c97fe20feacf30b2ab1eec1d315e71cbec",
+      "after_sha256": "f687eed8873a6db64ed769bf1a4d429195bb2a20417ecba2746c3328c3244487",
+      "after_bytes": 2225
+    },
+    {
+      "path": "docs/verification/ci-artifact-storage-20261108/verify_workflows.py",
+      "status": "added",
+      "before_git_blob": null,
+      "after_git_blob": "05e361693eef71c16b6c7ac684637285affaddd2",
+      "after_sha256": "af6764e4288dd7b93b0b3e2f357c0c299b76c40001a300938dfaef5b40b62872",
+      "after_bytes": 14960
+    },
+    {
+      "path": "docs/verification/ci-artifact-storage-20261108/workflow-checks.json",
+      "status": "added",
+      "before_git_blob": null,
+      "after_git_blob": "101c8ce7af3584a533703a79d7b455bacc5be3ee",
+      "after_sha256": "6037cb38576a7edf4fa07d5537fa9d5d9f7549c17d9ddad8f5f658d4a5d34c18",
+      "after_bytes": 40111
+    },
+    {
+      "path": "docs/verification/publication-20261108/DEPENDENCY-LICENSES.md",
+      "status": "added",
+      "before_git_blob": null,
+      "after_git_blob": "cd01cfe2843804dec43b531176777ab6280c5bf2",
+      "after_sha256": "60601a07db28cc0e555b3ecb4ec788a7eefc711ebedcca50ca2ded23292ab6ad",
+      "after_bytes": 5921
+    },
+    {
+      "path": "docs/verification/publication-20261108/PUBLIC-CANDIDATE-LICENSE-REVIEW.md",
+      "status": "added",
+      "before_git_blob": null,
+      "after_git_blob": "ead76f82b2efd1983bb8e3f2c74aa000a1b10ae3",
+      "after_sha256": "e21dd329250941dd75a79933b849231f2fa216ae021ab88c166d0ed3c5d61e02",
+      "after_bytes": 12516
+    },
+    {
+      "path": "docs/verification/publication-20261108/candidate-secret-triage.json",
+      "status": "added",
+      "before_git_blob": null,
+      "after_git_blob": "8d9b0f86c93e8296cd49c0ce7ff38e14a0bc66e2",
+      "after_sha256": "be44fe651a36300c9786360fd5483206ba4c871ff751ec0f4236acbd51f520d8",
+      "after_bytes": 9971
+    },
+    {
+      "path": "docs/verification/publication-20261108/dependency-license-inventory.redacted.json",
+      "status": "added",
+      "before_git_blob": null,
+      "after_git_blob": "7617cf01a18d32290173ef6b7d8e31c25520cc3e",
+      "after_sha256": "3dab0a8e045867d6608dfc914cacb717aee86db87f8f96ea3bb7d975356b5231",
+      "after_bytes": 135780
+    },
+    {
+      "path": "docs/verification/publication-20261108/public-candidate-authorship.redacted.json",
+      "status": "added",
+      "before_git_blob": null,
+      "after_git_blob": "c12890fcc6ee1877560d595afb51376ea13185d0",
+      "after_sha256": "2530793a1c84c5dfff27d515605dfc63604b812dbcefbfb390d43a3e3b5c22fb",
+      "after_bytes": 29742
+    },
+    {
+      "path": "docs/verification/publication-20261108/public-candidate-fonts-and-validation.redacted.json",
+      "status": "added",
+      "before_git_blob": null,
+      "after_git_blob": "08c548738f8701db9201a83c824b3e15a216363d",
+      "after_sha256": "5f816c22a54b21b4e51625b904b8a7f2420272636cff85688948c3fd68bc97e7",
+      "after_bytes": 5479
+    },
+    {
+      "path": "docs/verification/publication-20261108/public-candidate-scope-evidence.json",
+      "status": "added",
+      "before_git_blob": null,
+      "after_git_blob": "f36d993156ade8ef4e4c107dc7a06d831a3b5b99",
+      "after_sha256": "74f84c532fe79f4d41a8b7641a81d95ba401f2944635eb1bc88af8b001ed41d0",
+      "after_bytes": 145386
+    },
+    {
+      "path": "docs/verification/publication-candidate-20261108.json",
+      "status": "added",
+      "before_git_blob": null,
+      "after_git_blob": "a74318c38a12afd7cddc42b0e0b057eb7d2f95a9",
+      "after_sha256": "054d385a8cb31d1088053669d499bd6a0d8b87d9cdb396fb5bbe0ef0676b7615",
+      "after_bytes": 51604
+    },
+    {
+      "path": "tests/test_ci_evidence.py",
+      "status": "added",
+      "before_git_blob": null,
+      "after_git_blob": "84de62f127811bfa5a22344f9024c7853e2a998f",
+      "after_sha256": "63aa13b4dbc6227516d5397a1a065d84271e521fd67bac234425686553852a1c",
+      "after_bytes": 13484
+    },
+    {
+      "path": "tools/ci_evidence.py",
+      "status": "added",
+      "before_git_blob": null,
+      "after_git_blob": "724adab95e3891ae6bbaeda3bf320ee0970d2a81",
+      "after_sha256": "ba227eb9f857b3a41e3f499bf2ecda39e1c513ca73a5a935e5c5c1c9c584d951",
+      "after_bytes": 20309
+    }
+  ],
+  "change_counts": {
+    "added": 21,
+    "modified": 31,
+    "deleted": 79
+  },
+  "license": {
+    "own_software": "MPL-2.0",
+    "exact_file_count": 861,
+    "scope_file": "MPL-2.0-FILES.txt",
+    "scope_sha256": "e28809974cb9cd12b4d408045b9820176c358c189e7cc2391603c63fa4f31675",
+    "official_license_sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
+    "external_font_metadata_excluded": "ui/graphics/src/atlas.rs"
+  },
+  "validation": {
+    "collector_tests": 15,
+    "collector_exit_code": 0,
+    "actionlint_workflows": 21,
+    "actionlint_exit_code": 0,
+    "static_policy_checks": 470,
+    "static_policy_exit_code": 0,
+    "hosted_jobs": 24,
+    "workflow_external_actions_pinned": 32,
+    "composite_upload_actions_pinned": 3,
+    "progress_check_exit_code": 0,
+    "progress_score": 41,
+    "gitleaks_exit_code": 1,
+    "gitleaks_candidates": 37,
+    "gitleaks_unresolved": 0,
+    "gitleaks_triage": "publication-20261108/candidate-secret-triage.json",
+    "native_rust_or_qemu_run": false
+  },
+  "publication": {
+    "proposed_repository": "simonvanieperen/nieuw-os-public",
+    "scope_confirmed": false,
+    "created": false,
+    "history_import": false,
+    "old_repository_remains_private": true,
+    "old_repository_rename_or_history_rewrite": false,
+    "new_self_hosted_runners": false
+  },
+  "limits": [
+    "No fresh native acceptance of the assembled candidate",
+    "Historical tests remain bound to their original source",
+    "No licence grant claimed for missing old wiki prose",
+    "Existing repository historical Actions coverage is not the publication scope of this new candidate"
+  ]
+}

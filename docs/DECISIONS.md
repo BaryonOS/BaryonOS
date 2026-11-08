@@ -2049,3 +2049,34 @@ verleende rechten of verspreide kopieën niet automatisch in.
 **Bronnen:** de gebruikersopdracht van 8 november 2026; het bestaande
 licentieplan; Mozilla's officiële MPL-2.0-tekst en FAQ, met volledige
 bronvermeldingen in [LICENSE-PLAN.md](../LICENSE-PLAN.md).
+
+## ADR-CI-EVIDENCE-20261108 — testuitslag los van artifactopslag
+
+**Datum:** 8 november 2026. Opdracht Simon: artifactopslag mag het bewaren
+van testbewijs en de workflow niet blijven blokkeren. Op main `363b486b`
+slagen de onderzochte native tests, maar upload-artifact weigert nieuwe
+archieven wegens quota. Drie dagen retentie was al ingesteld.
+
+**Besluit:** alle vijftien bewijsuploads gebruiken één lokale composite
+action. Die schrijft eerst begrensde rapporten, bronbinding en ontbrekende
+bestanden naar runlog/summary en een compact receipt. Alleen de uploads
+zijn best effort; tests, builds, validators en de collector blijven
+verplicht. De oorspronkelijke error/warn-keuze voor geheel ontbrekend
+bewijs blijft behouden. Werkelijke upload-outcomes zijn apart zichtbaar.
+
+Normale rapportarchieven zijn begrensd en blijven drie dagen beschikbaar.
+Ruwe images, frames en buildmappen worden uitsluitend op handmatig verzoek
+als volledig archief geüpload, met één dag retentie. Windows-test-ZIPs
+blijven apart beschikbaar na geslaagde controles als hun upload lukt, ook
+één dag. Bij een volledig archief is geen tweede ZIP-upload nodig.
+
+Een rapport met hash vervangt geen ruwe bytes voor onafhankelijke
+hercontrole. Native acceptatievoorwaarden, downloadstatus en vaste
+voortgangscriteria worden niet versoepeld. De runnerkeuze, toolversies,
+checknamen, betaalinstellingen en opslagrechten wijzigen door dit besluit
+niet. Geen artifacts of workflowruns worden ongericht verwijderd.
+
+**Herzien wanneer:** een volgende job artifacts moet downloaden, een echte
+releaselevering verplicht wordt, of het meetbare rapportbudget structureel
+te klein blijkt. Een benodigde artifactoverdracht krijgt dan een eigen
+verplichte leveringsgate. Werkwijze, bronnen en rollback: [CI-EVIDENCE.md](CI-EVIDENCE.md).

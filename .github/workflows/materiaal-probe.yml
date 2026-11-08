@@ -21,6 +21,11 @@ name: Native Materiaal probe acceptance
 # watchdog. No automatic retry or continue-on-error: that would hide timing.
 on:
   workflow_dispatch:
+    inputs:
+      full_evidence:
+        description: 'Also retain raw images, frames and builds for 1 day'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -35,7 +40,7 @@ defaults:
 
 jobs:
   materiaal-probe:
-    runs-on: [self-hosted, Linux, X64, unraid, build]
+    runs-on: ubuntu-24.04
     # Bounded but generous. Two VM limits apply, and the guest one fires
     # first: the probe kernel's watchdog fails after 20,000 PIT ticks at
     # ~100 Hz, about 200 s of guest time (kernel/src/m2/m3/desktop.rs, prints
@@ -155,11 +160,11 @@ jobs:
                   if key in report:
                       print(f"- {key}: {report[key]}")
           PY
-      - name: Preserve bound inputs, raw frames and failure reports
+      - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: ./.github/actions/preserve-evidence
         with:
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: materiaal-probe-evidence
           path: build/materiaal-probe-ci/
-          if-no-files-found: error
-          retention-days: 3

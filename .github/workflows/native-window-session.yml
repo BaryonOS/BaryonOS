@@ -1,6 +1,12 @@
 name: Native window session and Windows QEMU bundle
 
 on:
+  workflow_dispatch:
+    inputs:
+      full_evidence:
+        description: 'Also retain raw images, frames and builds for 1 day'
+        type: boolean
+        default: false
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths-ignore: ['docs/**', '*.md']
@@ -20,7 +26,7 @@ defaults:
 
 jobs:
   native-window-session:
-    runs-on: [self-hosted, Linux, X64, unraid, build]
+    runs-on: ubuntu-24.04
     # Three isolated boots: full regression, library mutation, cold reopen.
     timeout-minutes: 75
     env:
@@ -215,10 +221,13 @@ jobs:
         run: |
           mkdir -p "$CI_EVIDENCE_DIR"
           printf '%s\n' "$CI_JOB_STATUS" > "$CI_EVIDENCE_DIR/job-status.txt"
-      - name: Preserve native evidence and the optional Windows bundle
+      - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: ./.github/actions/preserve-evidence
         with:
+          package-path: build/window-session-ci/evidence/NieuwOS-Venstersessie-Windows-QEMU.zip
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: native-window-session-evidence-and-windows-bundle
           path: |
             build/window-session-ci/evidence/
@@ -238,5 +247,3 @@ jobs:
             build/window-session-ci/normal/manifest.json
             build/window-session-ci/normal/users/materiaal/build-report.json
             build/window-session-ci/normal/logs/
-          if-no-files-found: error
-          retention-days: 3

@@ -29,18 +29,25 @@ en de volledige acceptatieopdracht in
 [FULL-TEST-RELEASE.md](docs/FULL-TEST-RELEASE.md). Proeven en builds zijn
 geen bewijs van een complete release of ondersteuning van fysieke hardware.
 
-## Openbare ontwikkeling en licentie
+## Publicatie en licentie
 
-**Bevestigd op 8 november 2026:** Nieuw OS kiest voor openbare ontwikkeling.
-Het bestaande **MPL-2.0-plan voor de eigen OS-code** is het uitgangspunt voor
-de licentiecontrole. De projectlicentie is nog niet toegepast; rechten,
-afhankelijkheden, notices en voorwaarden voor documentatie, assets en extern
-bronmateriaal worden vóór publicatie gecontroleerd.
+Openbare ontwikkeling is op 8 november 2026 bevestigd in
+[ADR-PUBLIC-DEVELOPMENT-20261108](docs/DECISIONS.md#adr-public-development-20261108--openbare-ontwikkeling-met-mpl-20-als-controlebasis).
 
-[Licentieplan en open controles](LICENSE-PLAN.md) ·
-[Vastgelegd besluit](docs/DECISIONS.md#adr-public-development-20261108--openbare-ontwikkeling-met-mpl-20-als-controlebasis).
-De daadwerkelijke openbaarmaking volgt na de publicatiecontroles; dit
-richtingbesluit is geen claim van een voltooide productrelease.
+**Reviewbare publicatiekandidaat, 8 november 2026.** Deze bron is voorbereid
+voor een afzonderlijke openbare repository met nieuwe geschiedenis.
+De bestaande `simonvanieperen/nieuw-os` blijft bij dit checkpoint privé;
+de nieuwe bestemming is nog niet aangemaakt of gepubliceerd.
+
+De eigen software in [MPL-2.0-FILES.txt](MPL-2.0-FILES.txt) valt onder
+[MPL-2.0](LICENSE), met de expliciete uitzonderingen in
+[LICENSING.md](LICENSING.md). Externe componenten behouden hun eigen
+[licenties](THIRD-PARTY.md). De gebundelde OSDev-/boekcollectie ontbreekt
+in deze publicatiescope; de eigen OS-code blijft behouden.
+
+De samenstelling, uitgevoerde controles en resterende bewijsgrenzen staan
+in [PUBLICATION.md](docs/PUBLICATION.md). Er is geen nieuwe volledige
+Rust-/QEMU-acceptatie van deze samengestelde kandidaat uitgevoerd.
 
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
@@ -74,10 +81,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-08 · **Rubric:** v1 ·
-**Bron:** [`363b486b`](https://github.com/simonvanieperen/nieuw-os/commit/363b486b06023d3d578f8eca2b23ff49045a1757) ·
-**Ontwikkelbranch:** `docs/public-development-direction-20261108`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Openbare ontwikkeling bevestigen met het bestaande MPL-2.0-plan als controlebasis.
-41/100 blijft 41/100. De openbare ontwikkelrichting en MPL-2.0-controlebasis voor eigen OS-code zijn bevestigd. Licentiecontrole, daadwerkelijke publicatie en R03 blijven open; geen nieuw productcriterium of native testbewijs.
+**Bron:** [`5b218982`](https://github.com/simonvanieperen/nieuw-os/commit/5b2189824c32145ad5c110429517dfcea3f2720f) ·
+**Ontwikkelbranch:** `publication/clean-candidate-20261108`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Schone publicatiekandidaat met afgebakende MPL-licentie en hosted CI voorbereiden.
+41/100 blijft 41/100. De kandidaat bevat gecontroleerde bron zonder gebundelde OSDev-collectie, scoped MPL-notices en de combinatie van hosted CI en quota-onafhankelijke bewijsopslag. Nieuwe bestemming/publicatie wacht op scopekeuze; geen nieuw native productbewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -309,7 +316,7 @@ De eigen Rust-kernel start via de eigen UEFI-loader in QEMU, draait geïsoleerde
 
 M6b is hervat vanaf `main` (`1f24f99`) op [codex/m6b-storage-errors](https://github.com/simonvanieperen/nieuw-os/tree/codex/m6b-storage-errors). De status staat per spoor in PROJECT-STATE.md. [PR #3](https://github.com/simonvanieperen/nieuw-os/pull/3) bewaart de M5-historie; de oude testmatrix staat in [ACCEPTANCE.md](docs/verification/m5/ACCEPTANCE.md).
 
-De oudere M5-leesproef blijft selecteerbaar via `python tools/build.py --kernel-feature milestone-m5` en `python tools/run.py --smoke --milestone m5`. Er is nog geen interactieve native desktop. Kerneltransport en QEMU-device zijn vertrouwd; geen IOMMU- of fysieke-hardwarebewijs. De uitvoerroute staat in DEVELOPMENT.md. Openbare ontwikkeling is op 8 november 2026 als richting bevestigd; de concrete publicatie en licentietoepassing volgen de open controles in LICENSE-PLAN.md.
+De oudere M5-leesproef blijft selecteerbaar via `python tools/build.py --kernel-feature milestone-m5` en `python tools/run.py --smoke --milestone m5`. Er is nog geen interactieve native desktop. Kerneltransport en QEMU-device zijn vertrouwd; geen IOMMU- of fysieke-hardwarebewijs. De uitvoerroute staat in DEVELOPMENT.md. De reikwijdte van de toegepaste softwarelicentie staat in LICENSING.md; daadwerkelijke publicatie van deze kandidaat volgt na de scopekeuze.
 
 ## Projectrichting en verder lezen
 

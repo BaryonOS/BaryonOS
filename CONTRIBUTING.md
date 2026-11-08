@@ -19,3 +19,11 @@ Gebruik de commando's uit `docs/DEVELOPMENT.md` en `docs/TEST-STRATEGY.md`. Mini
 Houd wijzigingen klein en beoordeelbaar. Beschrijf het beveiligingsinvariant, de relevante negatieve tests, exacte uitgevoerde commando's, bewijsgrenzen en rollback. Verruim geen capability- of trustgrens alleen om een test te laten slagen. De 0–100%-meter stijgt uitsluitend wanneer een bestaand acceptatiecriterium aantoonbaar volledig is gehaald; de assessment-velden worden wel na iedere opdracht bijgewerkt.
 
 Beveiligingsproblemen volgen `SECURITY.md`; zet geen secrets, echte gebruikersdata, productiekeys of hostschijven in tests of bewijsbundels.
+
+## Licentie van bijdragen
+
+Wijzigingen aan de MPL-gedekte software volgen MPL-2.0. De exacte
+bestandscope, uitzonderingen en voorwaarden voor nieuw of overgenomen
+materiaal staan in [LICENSING.md](LICENSING.md). Vermeld herkomst en
+behoud externe notices; lever alleen materiaal waarvoor je de benodigde
+rechten hebt. Het project neemt door een bijdrage geen auteursrecht over.

@@ -1,6 +1,0 @@
-interface:
-  display_name: "OS Dev"
-  short_description: "Besturingssystemen ontwerpen, bouwen, testen en debuggen"
-  default_prompt: "Gebruik $os-dev voor deze OS-ontwikkeltaak. Raadpleeg de meegeleverde bronnen, lees de actuele projectinstructies en werk de gevraagde wijziging uit met controleerbare tests."
-policy:
-  allow_implicit_invocation: true

@@ -1,0 +1,1372 @@
+{
+  "schema_version": 1,
+  "created_at_utc": "2026-11-08T18:51:29.099166+00:00",
+  "state": "local-review-candidate-before-root-licensing-and-progress-integration",
+  "not_a_publication_or_licence_clearance": true,
+  "origin": {
+    "repository": "simonvanieperen/nieuw-os",
+    "base_sha": "363b486b06023d3d578f8eca2b23ff49045a1757",
+    "pr249_head": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+    "pr251_head": "5c291cff3b9c28e4948aeb36adda3acc6ee6a8ab",
+    "overlay_git_blob_verification": "All 21 PR249 and all 24 selected PR251 local source files matched remote Git blob IDs before copying."
+  },
+  "boundaries": {
+    "git_history_included": false,
+    "remote_mutations_performed": false,
+    "bundled_osdev_skill_included": false,
+    "license_and_notices": "Reserved for root integration; no license files added by this task.",
+    "progress_and_project_state": "README.md, docs/PROJECT-STATE.md, docs/DECISIONS.md, docs/progress.json, docs/PROGRESS.md and docs/assets/progress.svg are byte-identical to main at this snapshot."
+  },
+  "counts": {
+    "base_files": 6524,
+    "candidate_files_including_this_manifest": 6454,
+    "removed": 79,
+    "modified": 24,
+    "added_including_this_manifest": 9
+  },
+  "tree_hash": {
+    "algorithm": "SHA-256",
+    "definition": "UTF-8 sorted lines: relative_path + NUL + file_sha256 + LF; excludes this manifest.",
+    "sha256": "fb02ce37f1086a276f99ed0fee44635b1f9d9e83fdf9ece7427cf90010cbe564"
+  },
+  "validation": [
+    {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py' -v",
+      "exit_code": 0,
+      "tests": 15,
+      "scope": "Collector host-unit tests only; no QEMU, native build or GitHub job."
+    },
+    {
+      "command": "actionlint -shellcheck= -pyflakes= .github/workflows/*.yml",
+      "exit_code": 0,
+      "workflows": 21,
+      "scope": "Workflow syntax and expressions; optional external shellcheck and pyflakes not run."
+    },
+    {
+      "command": "python3 -B verify_clean_candidate.py",
+      "exit_code": 0,
+      "checks": 470,
+      "workflows": 21,
+      "jobs": 24,
+      "remote_action_calls": 32,
+      "reviewed_local_action_calls": 15,
+      "scope": "Static policy and exact integration checks; no GitHub job, Rust build or QEMU execution."
+    }
+  ],
+  "validation_record_hashes": [
+    {
+      "name": "clean-collector-tests.txt",
+      "sha256": "edad1fbeb045d206cdf878883ca34bfc817de0c79bc87966a104c9658cfe5ca5",
+      "bytes": 2238
+    },
+    {
+      "name": "clean-actionlint.txt",
+      "sha256": "7596d6668bf70cfd87b50bc58bc6b84a2db9bd9c6023c77b7e30563055159fb8",
+      "bytes": 36
+    },
+    {
+      "name": "clean-candidate-policy.json",
+      "sha256": "242a11fc2d94a72f015a7ed749c6e799647ff03a2cbe192207d57872acee5715",
+      "bytes": 58004
+    },
+    {
+      "name": "verify_clean_candidate.py",
+      "sha256": "9efe9a9e0b220bc57c5d45e5b0634c1452b8ef4384d85c75ff10b78a5938c506",
+      "bytes": 6191
+    }
+  ],
+  "not_executed": [
+    "GitHub Actions execution of this combined tree",
+    "Rust build",
+    "QEMU acceptance",
+    "Full OS security assessment",
+    "Publication or repository creation"
+  ],
+  "changes": [
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/BRONNEN-EN-LICENTIES.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "f8d0512d7bcf5b47f512d6c16b0e1d854ade22f6a970f9a53ffcac5e33da5932",
+        "bytes": 3181
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/CHANGELOG.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "beb429d229bd1b03118b51d63b124f593ad82e8023d1d4ce9cb1e5c5bf917047",
+        "bytes": 869
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/CONTROLEVERSLAG-REPOSITORY.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "34842568d0dac774ca0755f9af4c91c2a04020ed456b32e311333493d06f186b",
+        "bytes": 376
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/README-REPOSITORY.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "7203b4d7098c7bc43e7a4bb8194b024ed4bafbdb7b1c687afab2c14e73a8fbfb",
+        "bytes": 506
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/SKILL.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "dea79c1ea6a7b4b27219cfd8d223b9f077cb127b839bd192f209e88bdfccdb11",
+        "bytes": 5848
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/agents/openai.yaml",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "2ec99f55c65c9d9527afdce944160d53b48492787d6b7af52891d81940e2e5a0",
+        "bytes": 353
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/assets/book.pdf",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "5a68a45b3d81b1a7fc45fe5d950f79b969824388ad2501f9fd3e664b83fce023",
+        "bytes": 499301
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/assets/change-report.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "eb7aa4d69cc22f31e1caf0ee5ef6171d512d6fba9ae1c0c971fbfdaf68b78f61",
+        "bytes": 1113
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/assets/figures/boek-p012-figuur1.png",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "9302ba33c91b4c6caefd4c631b2e1ee50983b0545fe1e99e46eb5f81beed3f59",
+        "bytes": 7721
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/assets/figures/boek-p012-volledige-pagina.png",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "fbedcbbcf030b6b687729985116024538677f714223c095c997286022af3c9b5",
+        "bytes": 135975
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/assets/figures/boek-p034-figuur1.png",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "e469e6b1cf2a0347cf572c5436270c28508a7cc2c719706030fd57af6313a6a2",
+        "bytes": 18215
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/assets/figures/boek-p034-volledige-pagina.png",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "8a4869b4fbfb9090a70d9cd4e7ec2d57fc74be02c63328b39273208f2306b9bc",
+        "bytes": 47338
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/assets/figures/boek-p054-figuur1.png",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "3b20d086e53f41ef90592949a885b0c88ed7a6664665e585d576a49ddf7eed67",
+        "bytes": 24114
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/assets/figures/boek-p054-volledige-pagina.png",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "549aec015b30e917397c406bf8a2bfc8488f9f9d3475fa17e7d4224dd8005906",
+        "bytes": 97911
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/assets/source-manifest.json",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "6873432ac6fde084ecd0c50b67c12cf693b27de38b498d69af199d3ec31f4f14",
+        "bytes": 1379
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/assets/task-brief.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "6d43029e125f8bfe211e1fd54ec33e3161d14b07e7ae499ed48f4a34ad430b41",
+        "bytes": 920
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/assets/wiki-media-references.json",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "3d7c0c513bb85b4ce454bdcc8a59753e40479435b0fce8a0f1f1e18833182f90",
+        "bytes": 28559
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/assets/wiki-revision-metadata.jsonl.gz",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "81ebfb410f41aec8f228545ecdd65515cbb3dfed4d033988f14f9813c95d8c42",
+        "bytes": 1517217
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/assets/wiki-siteinfo.xml",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "9ba7b01f0350e311083d1bcbd6fa4cbecd0e78d9bcb9022ef2240ecda0bbd5c3",
+        "bytes": 1717
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/SOURCE-MAP.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "8b7da9365cec5c1724b2f2f57a3d3904609d77a7d960153be0fe7dbe5e9a731f",
+        "bytes": 3528
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/boek-leeswijzer.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "16df9cb62fa4df0f4b2cc2fcbc7ca5343e830f6f6e36d59cd0502b09ab24c0de",
+        "bytes": 11621
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/corpus/boek.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "02acf175a9d5afb953c9bd1ad26e308436719da0bd9881d1411f4cacaca69648",
+        "bytes": 156294
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/corpus/wiki-01.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "a279e1d67ecd03def062aba495c2a10ff898357213412374ee9dd46d839d0179",
+        "bytes": 779309
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/corpus/wiki-02.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "978aa99e9a5ada485fcee0f168a56c44fb51c4deba7d9ed538c283f91ea25247",
+        "bytes": 769917
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/corpus/wiki-03.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "a48148f17028199f51c68766e6c7d9679acd0e3e97deddd7d15d50c339fa8756",
+        "bytes": 779837
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/corpus/wiki-04.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "16803bfbf19be94728bf021df57084543304ef0fb8467e5ac117855a8e67de92",
+        "bytes": 779157
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/corpus/wiki-05.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "0fdafedbdfc22e479cbbc6fb62bf6978d9753a93fc4466e0eaf4acae473bdb21",
+        "bytes": 779052
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/corpus/wiki-06.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "d695829d5256c28b3541bcad3a1c77d64e50eb560eb38f8b7a5a90e370ab32ce",
+        "bytes": 777346
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/corpus/wiki-07.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "3cea0d7a9c465e9d0627ed3e8d52def8f2df917e510fda7fc5c4d802c2628650",
+        "bytes": 778368
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/corpus/wiki-08.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "9c638791eb40f16186cfd5aa3aa1d869e72e901bb11896e50825cd34776cad99",
+        "bytes": 779404
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/corpus/wiki-09.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "4b63781bf35496b7a4d1965d58865428da187491c7602c34531164a444411091",
+        "bytes": 778106
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/corpus/wiki-10.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "a59912bf8fffc210bba3e384dd801d9fe36ac77a7c52948d165a62be02b38ec6",
+        "bytes": 775263
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/corpus/wiki-11.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "814f97815bf96a7b1f444c13f1bfc91beb4add3399e9613a07ed56c3b4860e93",
+        "bytes": 773800
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/corpus/wiki-12.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "1fa06894a183c63ec02f0c912a3a2b29242b0668e53bdeef051a97c735f8881a",
+        "bytes": 776286
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/corpus/wiki-13.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "28295a3bd2bd15f49eee54d6895e67265324fb0e5d518abd7c68a864fc8de22b",
+        "bytes": 771004
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/corpus/wiki-14.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "c1ca0dd7bcdb2c8d8f0815bab2a5ec38520466e474ba7f8db377572e059f5ad8",
+        "bytes": 779751
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/corpus/wiki-15.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "77d70f5c42eaa4d683bb241941c8e273d9742d092b672bbc9e8d7ec41736740c",
+        "bytes": 61104
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/expanded-main-page.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "f45c81b273fc40d3a7f09e7b372df0f44625f2b78617d75f8ad0e1ebab84d8ac",
+        "bytes": 12581
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/figuurbeschrijvingen.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "adbf5bb1ba4ca189588c520e1257102048737ea0dc386503d3e368f9fbd27576",
+        "bytes": 1662
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/kennisgids.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "e524201f866c2317da5f023f4750c154c0579757dcfa273b633ed454f52804c6",
+        "bytes": 14834
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/onderwerpenroute.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "dd19c575af3ba718e711660986c433550253eab6cf68b64f47f214cc8810792a",
+        "bytes": 3585
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/pagina-index.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "bc5870a5b98202746462659f5f5aec229e4b2c4cefae93620de3b74a52852975",
+        "bytes": 441906
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/source-index.json",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "9a4284331b4f19077afd7e6ceec369f19be0435ea3991ff089678c25b2d77054",
+        "bytes": 2188916
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/01-start.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "5d0ad20550daaef2759bfcd89692b2576558acd5becc4b457fdb8f962cd892d5",
+        "bytes": 7656
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/02-architectuur.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "851a2e4df8ba968335671fa29d169d22715bc7117c31fe0a8ed461d9b8a1486b",
+        "bytes": 3779
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/03-talen.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "637292817bae421fce158d69b125b66e87843f95f6bdb44a0feb41ca2df1d4df",
+        "bytes": 4469
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/04-toolchain.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "cf8ed40cc631813396471ccd485c317bfca4c316da6cc0263da8b288611c25ea",
+        "bytes": 5612
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/05-boot.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "18c48357b6a516e02b1e3fd60716f353586923a21b99fd9487c86bba9b4921ac",
+        "bytes": 6560
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/06-x86.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "56b28ee2e504f6899e05eec29eae115d43b9c5c6ca6d1819a11b8542a0259843",
+        "bytes": 9446
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/07-interrupts.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "463729fe85e754128a80440a8eebb55e19b0f5e51bf7542880e588cee193bc10",
+        "bytes": 4449
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/08-geheugen.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "ee0f19c500018eaff4f0a464f847d1d18d13c226c42350a27dfbd36b7a8c2481",
+        "bytes": 4870
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/09-processen.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "24f061211fea4af9cdd1a0fc896786d0b19485d4de50c61e05da893078b3e5f8",
+        "bytes": 3315
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/10-synchronisatie.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "8e8aa131a84e43cdcb74384b4c2695e618ee53e7fbc32096fcc5244624fceeee",
+        "bytes": 2434
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/11-ipc.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "8afbfacfbbd874de7fd955bbfc37619e7ebbeb48c1b8a3d30e642e0619c85f09",
+        "bytes": 2627
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/12-executables.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "682bdfc9f20e60890bb65b623dfb68bd909fbcf999bf0f30c7e6f6fb4e20f138",
+        "bytes": 2568
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/13-drivers.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "3531a8c2fcd8bcce5cff58f65cb578d3765fb498d69ae13f87d96095af647d99",
+        "bytes": 4731
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/14-platform.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "f54087a0255cf5c731bd0b509961f1a81ebedbd0cc840d04347eb99464ee14da",
+        "bytes": 2717
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/15-opslag.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "50980957eb6add7602de0e457e7ecf7a4e781b9f05a6d841d1c79b557e152d7a",
+        "bytes": 3996
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/16-bestanden.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "0b8b947f2f819102ee30160e34a82885f686e5370bda95fe24163c25fe2dc51a",
+        "bytes": 3621
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/17-netwerk.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "fc5d9df9524053b3896f0e8d91db9ff5e85a76c951ac36b6e2997374a04a5968",
+        "bytes": 2948
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/18-usb-invoer.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "f17873c4e336a8b683c142e540db470e93ae1fd1fa76fe8aa41e0d490afcac32",
+        "bytes": 2779
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/19-grafisch.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "63f352f126eed4180faff3a93b5033f64a4a66fbf1b2eabd9cd6d03542942c0b",
+        "bytes": 4146
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/20-audio.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "e3b96a51f526c45358e88cbfcda9e1f668c7c822ef5f46b631388edad801ea3f",
+        "bytes": 1508
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/21-beveiliging.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "07f830f73434888437cddfdc17c25c2952d4f4bc102a4bb500999c6bb88a2702",
+        "bytes": 2221
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/22-testen.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "3dfde7640a06c8ee545c3655e595f7a605385d4e9eac758a824961d6fe61db09",
+        "bytes": 4293
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/23-andere-architecturen.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "a77a558b3a9f7ff5763789d44838385f62f1d66f75cbf93abcffd5b2b089590d",
+        "bytes": 6485
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/themas/24-bronnen.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "7c364626fc6568fead19fdc6378a803f4047f4a695355a58a8654baf7ef68177",
+        "bytes": 5015
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/workflows/01-sources-and-explanation.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "c899a865fdba9782404e4f4a38ec195111881283ce5c38143a806241d649898b",
+        "bytes": 2641
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/workflows/02-implementation-and-testing.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "89e60c31b9d50152f4689bc5cc6ba0a81ed9c03bb6dfd697cbc6d6542127da87",
+        "bytes": 3175
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/workflows/03-boot-and-memory.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "83145e8597d83052b548b771cf27795a45d9e0fd1042d655dff261a037b54a08",
+        "bytes": 3266
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/workflows/04-isolation-and-concurrency.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "d9333dd217b159f1574974143313bc17f3007fc1dff7f9ef7bec026da367a16d",
+        "bytes": 3001
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/workflows/05-devices-and-data.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "246e38500c5b04168bba4a3da85c92e49537ed5979161e0414864b4f7314f910",
+        "bytes": 3117
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/workflows/06-debugging-and-review.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "479ee217cbeae3163b84691e6393d845ddfead85e0152d9953a3f14c91cee5a5",
+        "bytes": 2448
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/references/workflows/07-nieuw-os.md",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "8d0e5c350fee6a4dc45ced230df9abf1e1f9df3d0302de6744ca26b7ada6f848",
+        "bytes": 3055
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/scripts/build_corpus.py",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "567bf4283f22b72259739594486b43bf5d791c166a7471bc46e348d278308185",
+        "bytes": 9432
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/scripts/validate_skill.py",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "7fc524ac2c7bafbfbf4aeb6f9a70f7b6f2c8a6ca9da75a63e8e3d05cd2667d81",
+        "bytes": 2286
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/scripts/zoeken.py",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "204a6a406d5a6afb6fd48a20d1cbdd362b4b339ded4fe10e2284f299e7473a8b",
+        "bytes": 3254
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "removed",
+      "path": ".agents/skills/os-dev/tests/test_zoeken.py",
+      "reason": "Exclude complete bundled OSDev/book skill corpus from the clean snapshot.",
+      "base": {
+        "sha256": "ad0e0df1531dedf34a2b787d1ff3c317f850bb89334f45ad15c303f99a1bc50a",
+        "bytes": 1225
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "added",
+      "path": ".github/actions/preserve-evidence/action.yml",
+      "reason": "Copy exact reviewed PR251 content; prior verification records describe PR251, not new native acceptance.",
+      "candidate": {
+        "sha256": "6a110d0eda5b059ab9c827976b913ab8291aa2a8c6e23eebd99e62ef09bc744f",
+        "bytes": 7908
+      },
+      "overlay_source_git_blobs": {
+        "pr251": "907731c03c376174f2189e59d166a3295adf32d0"
+      }
+    },
+    {
+      "change": "modified",
+      "path": ".github/workflows/app-management-quality.yml",
+      "reason": "Apply reviewed GitHub-hosted runner selection from PR249.",
+      "base": {
+        "sha256": "b42368d9580593838e8df5d418c7b676d6166256ab4d6049f329d3b606d2b50a",
+        "bytes": 1971
+      },
+      "candidate": {
+        "sha256": "aced3de768a565ef9f5db0bd16d142cc5a98b9a338670754b744b804a781c763",
+        "bytes": 1943
+      },
+      "overlay_source_git_blobs": {
+        "pr249": "33e2d1976147b4a666f8249809ff3f9a6fc718cb"
+      }
+    },
+    {
+      "change": "modified",
+      "path": ".github/workflows/artifact-store-quality.yml",
+      "reason": "Apply reviewed GitHub-hosted runner selection from PR249.",
+      "base": {
+        "sha256": "e3d3f94807da0d9fca0c8895e02dfaa308c0175eb3e525822226d847dc3243e8",
+        "bytes": 1733
+      },
+      "candidate": {
+        "sha256": "38c701795adacf395c1df62e58fcdc574a2bc93fec574ab176ae91d32f24566a",
+        "bytes": 1705
+      },
+      "overlay_source_git_blobs": {
+        "pr249": "b79dfcb9e45c123669ba35e2a3db439a38517789"
+      }
+    },
+    {
+      "change": "modified",
+      "path": ".github/workflows/ci.yml",
+      "reason": "Apply reviewed GitHub-hosted runner selection from PR249. Retain reviewed evidence collection from PR251. Retain host-cache isolation; remove only the absent skill compile argument and its two validation commands.",
+      "base": {
+        "sha256": "130c1dd061072ddfa9324a587dc3fdd7f2862ad455f8fbbf550df15fa36e8102",
+        "bytes": 12657
+      },
+      "candidate": {
+        "sha256": "6c60acd0e7e66a4b37bb83bea7085a8c2d1401f690e43d188c2c30feb1f0435b",
+        "bytes": 12518
+      },
+      "overlay_source_git_blobs": {
+        "pr249": "46b5feb64d9f05b68b081a1e6280eafba82a94cf",
+        "pr251": "eadbc9b4f561d7087f5154f7bd64dd106bcbbccd"
+      }
+    },
+    {
+      "change": "modified",
+      "path": ".github/workflows/component-leaves.yml",
+      "reason": "Apply reviewed GitHub-hosted runner selection from PR249.",
+      "base": {
+        "sha256": "3cc6320073c8966e3f4b415c3cd769e766b9ac89cb72cfb544fe7f82d3338f3f",
+        "bytes": 4805
+      },
+      "candidate": {
+        "sha256": "e5a76ae5c014d1209d5c1fc87486e0be0f2a4c93918d26b3600fd5dc510d7cbd",
+        "bytes": 4777
+      },
+      "overlay_source_git_blobs": {
+        "pr249": "428049ff9b2ea7f7f3cc2c415e739adbc996a14e"
+      }
+    },
+    {
+      "change": "modified",
+      "path": ".github/workflows/entropy-keys.yml",
+      "reason": "Apply reviewed GitHub-hosted runner selection from PR249. Retain reviewed evidence collection from PR251.",
+      "base": {
+        "sha256": "ace89ec7a50cc7a5f23918eec3aa06780505fb86120051610855675dc0b20466",
+        "bytes": 1732
+      },
+      "candidate": {
+        "sha256": "fa56e10ef8ac875dec8824e9cc1717bd8198e9bb04b8f6fc3d365650ef187c64",
+        "bytes": 1957
+      },
+      "overlay_source_git_blobs": {
+        "pr249": "2edb842f826cc2e32f12cb63c2bd3e5da535fdb9",
+        "pr251": "a56f4ab2c7bdd97c1542f9f53e1a665dcc13dae2"
+      }
+    },
+    {
+      "change": "modified",
+      "path": ".github/workflows/materiaal-probe.yml",
+      "reason": "Apply reviewed GitHub-hosted runner selection from PR249. Retain reviewed evidence collection from PR251.",
+      "base": {
+        "sha256": "5f352c992def1d6140e6dfdfcef3eba82fe9e7011a632ab655fa6b91865767f8",
+        "bytes": 8531
+      },
+      "candidate": {
+        "sha256": "5d2c866de65949b9db741ce1669851aabc617a8683e99ea0f4473562248fad58",
+        "bytes": 8700
+      },
+      "overlay_source_git_blobs": {
+        "pr249": "6b9e06b80cd683f0df59e958675adb0ec5b5c40e",
+        "pr251": "a19bf4989fe0bcc2791c51d0ce0c69b91596e604"
+      }
+    },
+    {
+      "change": "modified",
+      "path": ".github/workflows/nas-core.yml",
+      "reason": "Apply reviewed GitHub-hosted runner selection from PR249. Retain reviewed evidence collection from PR251.",
+      "base": {
+        "sha256": "e6c2f8afd333733049584d25b1e10bd7155731a90a121a5c0aec312ceed0fe57",
+        "bytes": 5949
+      },
+      "candidate": {
+        "sha256": "01d58950e1c2902fec07887430dac1b5bfd8005e2c8b19e3a7c2151ee7b550a8",
+        "bytes": 6104
+      },
+      "overlay_source_git_blobs": {
+        "pr249": "6aab40f82ebb10839006fea16ecb258a845a1581",
+        "pr251": "f56ede22c66aee4c9ca8d4ea5f471a6fb7b6fca8"
+      }
+    },
+    {
+      "change": "modified",
+      "path": ".github/workflows/native-display-input.yml",
+      "reason": "Apply reviewed GitHub-hosted runner selection from PR249. Retain reviewed evidence collection from PR251.",
+      "base": {
+        "sha256": "acfba03e079c4b7371894c78b1cf5f375368f5d385bb79090b6f81628ea749b0",
+        "bytes": 6174
+      },
+      "candidate": {
+        "sha256": "19a082dfad54cf5b1fadca3d5842bca4b6ca4c23c1bcdb5e8bdd287242dcdd33",
+        "bytes": 6364
+      },
+      "overlay_source_git_blobs": {
+        "pr249": "19d5cf0e45eb3dbf516a5a9bc1df509ff2105133",
+        "pr251": "c256f8964a778fb7911bb1691d22965a7e03d656"
+      }
+    },
+    {
+      "change": "modified",
+      "path": ".github/workflows/native-foundation.yml",
+      "reason": "Apply reviewed GitHub-hosted runner selection from PR249. Retain reviewed evidence collection from PR251.",
+      "base": {
+        "sha256": "13e5dd3aeb75be150e9fec4c6006f5875ca90ef700fec9c2f2ff9df9d9455620",
+        "bytes": 11489
+      },
+      "candidate": {
+        "sha256": "613c473927011c2e8de620b49ec9b78948b8304abd6a55a57187f3d7b5108e0d",
+        "bytes": 11672
+      },
+      "overlay_source_git_blobs": {
+        "pr249": "d2142bcdadc1bc42e30c207e1fc33ff8632752ee",
+        "pr251": "7aef838594e69caff12fc2b96e7200491cf18b8e"
+      }
+    },
+    {
+      "change": "modified",
+      "path": ".github/workflows/native-rtc.yml",
+      "reason": "Apply reviewed GitHub-hosted runner selection from PR249. Retain reviewed evidence collection from PR251.",
+      "base": {
+        "sha256": "46fc1e0c31ef0d8ee91f35ebe42c26b4f26d76cb9f8ddd77d41eb7b0009d8a63",
+        "bytes": 2375
+      },
+      "candidate": {
+        "sha256": "44b521995a582618079f543e8ba0365ba6bd148d292500f8020a6e8fccec571a",
+        "bytes": 2579
+      },
+      "overlay_source_git_blobs": {
+        "pr249": "cb7cb0d035c7f525d2e327dca4f056682e20370a",
+        "pr251": "74215051b2881b3cfd33e83380abe535b8156419"
+      }
+    },
+    {
+      "change": "modified",
+      "path": ".github/workflows/native-smp.yml",
+      "reason": "Apply reviewed GitHub-hosted runner selection from PR249. Retain reviewed evidence collection from PR251.",
+      "base": {
+        "sha256": "ebbc57ad42a0fd6647aacc49075db0c974aeb97915c77b479e110624d024954d",
+        "bytes": 4934
+      },
+      "candidate": {
+        "sha256": "46346706139380315ad02498d9471a0a9fabeed522d4655dc2ba5c7eb9a16475",
+        "bytes": 5138
+      },
+      "overlay_source_git_blobs": {
+        "pr249": "9f7da38d002a9fa6e72d07550942c4eba99d5901",
+        "pr251": "5df4012d3557b968e86e8a9c020cccf8f93b5d86"
+      }
+    },
+    {
+      "change": "modified",
+      "path": ".github/workflows/native-system.yml",
+      "reason": "Apply reviewed GitHub-hosted runner selection from PR249. Retain reviewed evidence collection from PR251.",
+      "base": {
+        "sha256": "cd188299852c15ecc3fa07b6e187b1635f1ead70d61cdb549f7a0c29332b6d93",
+        "bytes": 8468
+      },
+      "candidate": {
+        "sha256": "62d482b4d97be8b97678680ed480c9106847a7736f3f755043281eb6e4e6b4fb",
+        "bytes": 8667
+      },
+      "overlay_source_git_blobs": {
+        "pr249": "bee218352c1f7934dd70c722c685db25673794bd",
+        "pr251": "c3d9db689867b85de20a4a9990be5e9b875cbb4d"
+      }
+    },
+    {
+      "change": "modified",
+      "path": ".github/workflows/native-window-session.yml",
+      "reason": "Apply reviewed GitHub-hosted runner selection from PR249. Retain reviewed evidence collection from PR251.",
+      "base": {
+        "sha256": "da5d7af0b8d28eaa5d864853113b7e1c3c913775f409e115ccc64186e9e2fa52",
+        "bytes": 12957
+      },
+      "candidate": {
+        "sha256": "d78333eb9bac5709016668a993b6c81ff2956eb155315ce75d02edadd4124de0",
+        "bytes": 13240
+      },
+      "overlay_source_git_blobs": {
+        "pr249": "8d1f77f1dda55ba879870e5ec2beb20e68208c5b",
+        "pr251": "fd5a1b3f5b1a2a818f3ad8eed1747c7119197ab1"
+      }
+    },
+    {
+      "change": "modified",
+      "path": ".github/workflows/net-broker-quality.yml",
+      "reason": "Apply reviewed GitHub-hosted runner selection from PR249. Retain reviewed evidence collection from PR251.",
+      "base": {
+        "sha256": "90487e55c3b91cf840f6639e440a3caf44bdde42031db19e742ac71ee24740e1",
+        "bytes": 5124
+      },
+      "candidate": {
+        "sha256": "0c710ef95a5bae0b3d34b82eede4fc71103319b563293ac30a02ad2dff36dbad",
+        "bytes": 5282
+      },
+      "overlay_source_git_blobs": {
+        "pr249": "b3d2d62e7aa631a5343b58b39f067b544ff2ff22",
+        "pr251": "4264ec16f85c549f5182f0467d5822d348567fcb"
+      }
+    },
+    {
+      "change": "modified",
+      "path": ".github/workflows/net-tls-quality.yml",
+      "reason": "Apply reviewed GitHub-hosted runner selection from PR249.",
+      "base": {
+        "sha256": "2c1f55e0eb60d69d922cea76f32bf67950109bccaaf6f1165c7b402bf51c4681",
+        "bytes": 1445
+      },
+      "candidate": {
+        "sha256": "7ca5bec4f966a6ce8d77fb98d507e90f1061bd66129de25120bb2442b42cf7db",
+        "bytes": 1417
+      },
+      "overlay_source_git_blobs": {
+        "pr249": "2cc90ccd8bf11feba252197d6067344741ed10e2"
+      }
+    },
+    {
+      "change": "removed",
+      "path": ".github/workflows/private-publication-audit.yml",
+      "reason": "Remove private-history audit workflow from the clean snapshot.",
+      "base": {
+        "sha256": "9d6281aca8c96c8ec24238e07918c86e37d7d18b3721777406f10679148e5929",
+        "bytes": 5475
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "modified",
+      "path": ".github/workflows/process-management.yml",
+      "reason": "Apply reviewed GitHub-hosted runner selection from PR249. Retain reviewed evidence collection from PR251.",
+      "base": {
+        "sha256": "080b27e6b250b784a6a9b7eca3ae4f6b718f36b6eb6e53b623f71b04e5495503",
+        "bytes": 1769
+      },
+      "candidate": {
+        "sha256": "64f1b03fe60058cc221d430969bb336c92602b887e720749c930d6102d0df8e5",
+        "bytes": 1994
+      },
+      "overlay_source_git_blobs": {
+        "pr249": "df96a81ac6e4ee7e3d2f639a32a658df69f01d10",
+        "pr251": "a3589505fe8493769fe5ca78fcc253838c05bec3"
+      }
+    },
+    {
+      "change": "modified",
+      "path": ".github/workflows/resource-pressure.yml",
+      "reason": "Apply reviewed GitHub-hosted runner selection from PR249.",
+      "base": {
+        "sha256": "d36decf229161d35aa6f509f83588e7e74e535eceebdbf8b01ba02d53329a29c",
+        "bytes": 1372
+      },
+      "candidate": {
+        "sha256": "578eb41b7527403b6a96a506e2750f2eee5b0382bc7d013be80d76187a19d1f6",
+        "bytes": 1344
+      },
+      "overlay_source_git_blobs": {
+        "pr249": "f46f590f91fe5528862f77b523100662f51768ee"
+      }
+    },
+    {
+      "change": "modified",
+      "path": ".github/workflows/signed-updates.yml",
+      "reason": "Apply reviewed GitHub-hosted runner selection from PR249. Retain reviewed evidence collection from PR251.",
+      "base": {
+        "sha256": "61322a7d8897749a233c081d344cccd6d864ada2464823623df19792ef236edb",
+        "bytes": 1918
+      },
+      "candidate": {
+        "sha256": "59b92b312c91c522f06ea834cda227fe5b0025ffac1db7a9afe2cffaa06f2991",
+        "bytes": 2143
+      },
+      "overlay_source_git_blobs": {
+        "pr249": "f447979c55bc9ff5fbd09b44f25d1cc30b584798",
+        "pr251": "351f83508619fca955c8533838e5797f5804558f"
+      }
+    },
+    {
+      "change": "modified",
+      "path": ".github/workflows/storage-resilience.yml",
+      "reason": "Apply reviewed GitHub-hosted runner selection from PR249. Retain reviewed evidence collection from PR251.",
+      "base": {
+        "sha256": "e8a6c27eae52a7e98f724cb17c70cc80f32a5f34f390a7b02678eb5a01e497d4",
+        "bytes": 2050
+      },
+      "candidate": {
+        "sha256": "d88278b07d9d38208e6a40af163b13b031fd53200c62250f2302471c02243056",
+        "bytes": 2337
+      },
+      "overlay_source_git_blobs": {
+        "pr249": "287b5c354f28bf9ed7bd91a1e8103b8c091211d1",
+        "pr251": "8c77e162d97cc7afdee3233ebacdca7f651f9532"
+      }
+    },
+    {
+      "change": "modified",
+      "path": ".github/workflows/volume-acceptance.yml",
+      "reason": "Apply reviewed GitHub-hosted runner selection from PR249. Retain reviewed evidence collection from PR251.",
+      "base": {
+        "sha256": "ca0df74097ee0f454047a90482cd913f45f47b3bb375909e707fa13c2f9682dd",
+        "bytes": 2156
+      },
+      "candidate": {
+        "sha256": "af1013106bb98c8ef931b53b55e75dc501d658d913454e294be90f8b2ad41b5b",
+        "bytes": 2442
+      },
+      "overlay_source_git_blobs": {
+        "pr249": "c7ab3b5f58df783d7b4debd222166140431cd9d4",
+        "pr251": "1621eae62f359b684195646633b30a6636d3ebac"
+      }
+    },
+    {
+      "change": "modified",
+      "path": ".github/workflows/windows-qemu-test-version.yml",
+      "reason": "Apply reviewed GitHub-hosted runner selection from PR249. Retain reviewed evidence collection from PR251.",
+      "base": {
+        "sha256": "cb232c14781b6e9477a88adcb81153853f0c2d3debb15653f330f905b610beb6",
+        "bytes": 3907
+      },
+      "candidate": {
+        "sha256": "10d6dbaf5719478982d8ff20eb2e36aada651d4cae9ac120b3612543a8480972",
+        "bytes": 4182
+      },
+      "overlay_source_git_blobs": {
+        "pr249": "b56656d74faaa4a24b9c27d1dcf6b299c48f44d4",
+        "pr251": "4baf24b61f30d63a9798c97ac86b76209d6612ff"
+      }
+    },
+    {
+      "change": "modified",
+      "path": "AGENTS.md",
+      "reason": "Replace only the current bundled-learning-source route with upstream URLs; retain historical references elsewhere.",
+      "base": {
+        "sha256": "7f41555b57022dcaeba160b3de87fc7a362f4d6b75194d9d8798d20756a43382",
+        "bytes": 17792
+      },
+      "candidate": {
+        "sha256": "d43580941cf9802270ede456008e60c47fc8582a80ad32de5a33699c3affd5ae",
+        "bytes": 18010
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "added",
+      "path": "docs/CI-EVIDENCE.md",
+      "reason": "Copy exact reviewed PR251 content; prior verification records describe PR251, not new native acceptance.",
+      "candidate": {
+        "sha256": "fd1d32546d72b0bd4519c112e12dfcf294f79bf413b7c907bbb1d546b9fcd562",
+        "bytes": 5971
+      },
+      "overlay_source_git_blobs": {
+        "pr251": "1af536b82df08cdfc5658d7d62e2df4d664d1701"
+      }
+    },
+    {
+      "change": "modified",
+      "path": "docs/KNOWLEDGE-MAP.md",
+      "reason": "Replace only the current bundled-learning-source route with upstream URLs; retain historical references elsewhere.",
+      "base": {
+        "sha256": "288ff5ed0f3dde4c0200fa50405581eb279526a87460c5e0cedfec9e34c3d319",
+        "bytes": 11509
+      },
+      "candidate": {
+        "sha256": "fce04f7cac0068d070904e0a66e4ae370d496c05d286a9188f93cc12545b2f7a",
+        "bytes": 11627
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "modified",
+      "path": "docs/OSDEV-LEERROUTE.md",
+      "reason": "Replace only the current bundled-learning-source route with upstream URLs; retain historical references elsewhere.",
+      "base": {
+        "sha256": "31e6bc6145c99fb7d265126ad68de07abb3eee82aaa9933865eb5e0a799d3f88",
+        "bytes": 3233
+      },
+      "candidate": {
+        "sha256": "417468d69ada2e3dd257d1fc226dfa011248a4317a5ad4f877667d3fc117b8db",
+        "bytes": 3193
+      },
+      "overlay_source_git_blobs": {}
+    },
+    {
+      "change": "added",
+      "path": "docs/verification/ci-artifact-storage-20261108.json",
+      "reason": "Copy exact reviewed PR251 content; prior verification records describe PR251, not new native acceptance.",
+      "candidate": {
+        "sha256": "8baf71da5e2f1db42e2eb9ec5b0cc8e2638d3590bcc55954a21e63bb101e1270",
+        "bytes": 7452
+      },
+      "overlay_source_git_blobs": {
+        "pr251": "5da123e71c1356ca0e9dc1c0270824d3a3141a75"
+      }
+    },
+    {
+      "change": "added",
+      "path": "docs/verification/ci-artifact-storage-20261108/collector-tests.txt",
+      "reason": "Copy exact reviewed PR251 content; prior verification records describe PR251, not new native acceptance.",
+      "candidate": {
+        "sha256": "f687eed8873a6db64ed769bf1a4d429195bb2a20417ecba2746c3328c3244487",
+        "bytes": 2225
+      },
+      "overlay_source_git_blobs": {
+        "pr251": "5c7436c97fe20feacf30b2ab1eec1d315e71cbec"
+      }
+    },
+    {
+      "change": "added",
+      "path": "docs/verification/ci-artifact-storage-20261108/verify_workflows.py",
+      "reason": "Copy exact reviewed PR251 content; prior verification records describe PR251, not new native acceptance.",
+      "candidate": {
+        "sha256": "af6764e4288dd7b93b0b3e2f357c0c299b76c40001a300938dfaef5b40b62872",
+        "bytes": 14960
+      },
+      "overlay_source_git_blobs": {
+        "pr251": "05e361693eef71c16b6c7ac684637285affaddd2"
+      }
+    },
+    {
+      "change": "added",
+      "path": "docs/verification/ci-artifact-storage-20261108/workflow-checks.json",
+      "reason": "Copy exact reviewed PR251 content; prior verification records describe PR251, not new native acceptance.",
+      "candidate": {
+        "sha256": "6037cb38576a7edf4fa07d5537fa9d5d9f7549c17d9ddad8f5f658d4a5d34c18",
+        "bytes": 40111
+      },
+      "overlay_source_git_blobs": {
+        "pr251": "101c8ce7af3584a533703a79d7b455bacc5be3ee"
+      }
+    },
+    {
+      "change": "added",
+      "path": "docs/verification/publication-candidate-20261108.json",
+      "reason": "This provenance manifest; its own hash is intentionally omitted to avoid self-reference."
+    },
+    {
+      "change": "added",
+      "path": "tests/test_ci_evidence.py",
+      "reason": "Copy exact reviewed PR251 content; prior verification records describe PR251, not new native acceptance.",
+      "candidate": {
+        "sha256": "63aa13b4dbc6227516d5397a1a065d84271e521fd67bac234425686553852a1c",
+        "bytes": 13484
+      },
+      "overlay_source_git_blobs": {
+        "pr251": "84de62f127811bfa5a22344f9024c7853e2a998f"
+      }
+    },
+    {
+      "change": "added",
+      "path": "tools/ci_evidence.py",
+      "reason": "Copy exact reviewed PR251 content; prior verification records describe PR251, not new native acceptance.",
+      "candidate": {
+        "sha256": "ba227eb9f857b3a41e3f499bf2ecda39e1c513ca73a5a935e5c5c1c9c584d951",
+        "bytes": 20309
+      },
+      "overlay_source_git_blobs": {
+        "pr251": "724adab95e3891ae6bbaeda3bf320ee0970d2a81"
+      }
+    }
+  ]
+}

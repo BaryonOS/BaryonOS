@@ -1,6 +1,12 @@
 name: FR-I01 joint native system acceptance
 
 on:
+  workflow_dispatch:
+    inputs:
+      full_evidence:
+        description: 'Also retain raw images, frames and builds for 1 day'
+        type: boolean
+        default: false
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths-ignore: ['docs/**', '*.md']
@@ -16,7 +22,7 @@ concurrency:
 
 jobs:
   native-system:
-    runs-on: [self-hosted, Linux, X64, unraid, build]
+    runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
@@ -111,11 +117,12 @@ jobs:
           NOS_TARGET_DIR: ${{ github.workspace }}/target/memory-ci
           CARGO_TARGET_DIR: ${{ github.workspace }}/target/memory-ci-host
         run: python3 -B -u tools/test_memory_system.py
-      - name: Preserve evidence and the tested final build
+      - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: ./.github/actions/preserve-evidence
         with:
-          retention-days: 3
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: native-system-evidence
           path: |
             build/ipc-wait-ci/
@@ -168,4 +175,3 @@ jobs:
             build/tcp-ci/run/system-*/volume.after.img
             build/tcp-ci/esp/
             docs/verification/full-release-tcp-ci/
-          if-no-files-found: error

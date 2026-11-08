@@ -1,6 +1,12 @@
 name: Storage resilience acceptance
 
 on:
+  workflow_dispatch:
+    inputs:
+      full_evidence:
+        description: 'Also retain raw images, frames and builds for 1 day'
+        type: boolean
+        default: false
   pull_request:
     paths:
       - 'tools/**'
@@ -15,7 +21,7 @@ on:
       - 'Cargo.lock'
       - 'rust-toolchain.toml'
       - '.github/workflows/storage-resilience.yml'
-  workflow_dispatch:
+      - '.github/actions/preserve-evidence/**'
 
 permissions:
   contents: read
@@ -27,7 +33,7 @@ concurrency:
 jobs:
   s08:
     name: s08-native-resilience
-    runs-on: [self-hosted, Linux, X64, unraid, build]
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
@@ -51,11 +57,12 @@ jobs:
         run: python3 -B tools/preflight.py --strict
       - name: S08 native resilience gate
         run: python3 -B -u tools/test_storage_resilience.py
-      - name: Upload S08 report
+      - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: ./.github/actions/preserve-evidence
         with:
-          retention-days: 3
+          job-status: ${{ job.status }}
+          if-no-files-found: warn
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: s08-storage-resilience-report
           path: build/ci-s08/s08-storage-resilience.json
-          if-no-files-found: warn

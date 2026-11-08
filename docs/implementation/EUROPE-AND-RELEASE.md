@@ -37,14 +37,22 @@ Gebruik synthetische gegevens in CI en Codex. Releasebewijs bevat versie, config
 ## Bevestigde richting en licentiecontrole
 
 **Besluit 8 november 2026:** openbare ontwikkeling is de bevestigde
-projectrichting. Het bestaande [LICENSE-PLAN.md](../../LICENSE-PLAN.md)
-met MPL-2.0 voor eigen OS-code is het bevestigde uitgangspunt voor de
-licentiecontrole. De toepassing van de licentie, rechten op documentatie/
-assets/bijdragen en externe bronmaterialen moeten nog worden gecontroleerd;
-deze bevestiging tekent geen publicatie of productrelease af. Zie
-[ADR-PUBLIC-DEVELOPMENT-20261108](../DECISIONS.md#adr-public-development-20261108--openbare-ontwikkeling-met-mpl-20-als-controlebasis).
+projectrichting. MPL-2.0 voor eigen OS-code is het vastgelegde
+controlekader in [ADR-PUBLIC-DEVELOPMENT-20261108](../DECISIONS.md#adr-public-development-20261108--openbare-ontwikkeling-met-mpl-20-als-controlebasis).
 
-**MPL-2.0** is de aanbevolen standaard voor eigen OS-code: copyleft op bestandsniveau houdt verspreide wijzigingen aan gedekte bestanden beschikbaar, terwijl afzonderlijke componenten andere compatibele licenties kunnen hebben. Bij distributie van binaries moet bijbehorende gedekte broncode beschikbaar zijn; bestaande notices blijven behouden. [10] Dit document past de licentie nog niet toe. Vóór publiceren: controleer rechthebbenden en afhankelijkheden, voeg de officiële tekst en passende notices toe en leg asset-/modellicenties afzonderlijk vast. MPL maakt derdenapps niet vanzelf open source en regelt geen privacygarantie.
+**Toepassing in deze afzonderlijke kandidaat:** de ongewijzigde MPL-2.0-tekst
+staat in [LICENSE](../../LICENSE); [LICENSING.md](../../LICENSING.md) en
+[MPL-2.0-FILES.txt](../../MPL-2.0-FILES.txt) bakenen de 861 eigen
+softwarebestanden af. Externe code en fonts behouden hun eigen voorwaarden;
+documentatie en assets krijgen geen automatische MPL-licentie. De
+geïmporteerde kenniscollectie valt buiten deze publicatiescope.
+
+Het copyleft geldt voor gedekte bestanden; afzonderlijke componenten kunnen
+andere voorwaarden houden. Bij verspreiding van binaries hoort de
+bijbehorende gedekte broncode beschikbaar te zijn en blijven externe notices
+nodig. [10] Een bronpublicatie bewijst geen productveiligheid of volledige
+releaseacceptatie. De daadwerkelijke nieuwe repository wacht nog op de
+scopekeuze en publicatiestap volgens [PUBLICATION.md](../PUBLICATION.md).
 
 ## Primaire bronnen
 

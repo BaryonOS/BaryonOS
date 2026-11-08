@@ -1,0 +1,123 @@
+{
+  "baseline_commit": "363b486b06023d3d578f8eca2b23ff49045a1757",
+  "candidate_provenance_file": "docs/verification/publication-candidate-20261108.json",
+  "candidate_provenance_sha256": "054d385a8cb31d1088053669d499bd6a0d8b87d9cdb396fb5bbe0ef0676b7615",
+  "font_mapping": [
+    {
+      "path": "ui/graphics/src/atlas.rs",
+      "bytes": 344324,
+      "sha256": "65f52768f2719b5a23bd0499a44d4472b5558f85e8cc93c69e8125eb88bc2950",
+      "git_blob": "6d136badebb4a46570903d1a774a13fb350e6fbe",
+      "terms_or_classification": "Apache-2.0",
+      "treatment": "Excluded; generated Open Sans glyph metrics/row offsets and atlas reference",
+      "in_mpl_list": false
+    },
+    {
+      "path": "ui/graphics/assets/open-sans-atlas.rle",
+      "bytes": 193017,
+      "sha256": "a4e3efa8027d5eba26bea742f7350bda34380cab9d77030d21481cb06c5f2e07",
+      "git_blob": "921a6d42da3fc49220a4f3d79cbc62bb09cde980",
+      "terms_or_classification": "Apache-2.0",
+      "treatment": "Excluded; derived Open Sans coverage atlas",
+      "in_mpl_list": false
+    },
+    {
+      "path": "ui/graphics/assets/font-provenance.json",
+      "bytes": 1393,
+      "sha256": "924a7f85977bf54270f45107bf7d18220eb4e7b1e4b240af78d3ec0eb803e704",
+      "git_blob": "9ba78c7651c3adb581e47d549c8037574586c6e5",
+      "terms_or_classification": "Provenance record; no MPL grant applied",
+      "treatment": "Excluded; hashes and pinned source metadata",
+      "in_mpl_list": false
+    },
+    {
+      "path": "ui/graphics/THIRD-PARTY.md",
+      "bytes": 1149,
+      "sha256": "12edb62082689ef35c8d665259318609b5c359560c9895b5f74ae0b833bb9d28",
+      "git_blob": "6ce1dc9b02aaa25e9406cb9d2b128e3217f94e69",
+      "terms_or_classification": "Third-party notice; no MPL grant applied",
+      "treatment": "Excluded; source attribution and version-specific Apache-2.0 evidence",
+      "in_mpl_list": false
+    },
+    {
+      "path": "ui/graphics/licenses/Apache-2.0.txt",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "git_blob": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+      "terms_or_classification": "Apache-2.0 license text",
+      "treatment": "Excluded; preserved full license text",
+      "in_mpl_list": false
+    },
+    {
+      "path": "ui/graphics/scripts/generate_font.py",
+      "bytes": 3874,
+      "sha256": "0595c48acada83f7b351edf5bf0d33ae0064f2976307e5847204f6aad1d405ee",
+      "git_blob": "f83187e671410e0a7d0c2d6cab1c58727874ccf6",
+      "terms_or_classification": "MPL-2.0 candidate",
+      "treatment": "Included; project generator, not a grant for generated font output",
+      "in_mpl_list": true
+    },
+    {
+      "path": "crates/ui-core/src/font.rs",
+      "bytes": 2344,
+      "sha256": "e233a760b514e14824f63dce64775afc8913af728a4bcd498dcf499336f032fa",
+      "git_blob": "89a681dc82a8a2d7058d9640e753b0daeccda016",
+      "terms_or_classification": "MPL-2.0 candidate",
+      "treatment": "Included; source explicitly declares original project diagnostic glyph patterns",
+      "in_mpl_list": true
+    },
+    {
+      "path": "ui/native/licenses/NotoSansMono-OFL.txt",
+      "bytes": 4395,
+      "sha256": "e2e177a32561584d4fc13aaa3cd8e53758a12910f013fe9ca125419111722029",
+      "git_blob": "7d7fbd8f759f04ce523b623abe68f2eee27b1d72",
+      "terms_or_classification": "OFL-1.1",
+      "treatment": "Excluded; font copyright and complete OFL conditions",
+      "in_mpl_list": false
+    },
+    {
+      "path": "ui/native/licenses/noto-sans-mono-bitmap-MIT.txt",
+      "bytes": 1073,
+      "sha256": "d084589aca58e74853c2d03f8a1f7b6f3a13f1fcc4b0c451f30455da09c624b7",
+      "git_blob": "bd4c2a068923022f80fe696f35eeaf2be3f8194c",
+      "terms_or_classification": "MIT",
+      "treatment": "Excluded; external Rust crate notice",
+      "in_mpl_list": false
+    },
+    {
+      "path": "sdk/examples/compositor/licenses/NotoSansMono-OFL.txt",
+      "bytes": 4395,
+      "sha256": "e2e177a32561584d4fc13aaa3cd8e53758a12910f013fe9ca125419111722029",
+      "git_blob": "7d7fbd8f759f04ce523b623abe68f2eee27b1d72",
+      "terms_or_classification": "OFL-1.1",
+      "treatment": "Excluded; font copyright and complete OFL conditions",
+      "in_mpl_list": false
+    },
+    {
+      "path": "sdk/examples/compositor/licenses/noto-sans-mono-bitmap-MIT.txt",
+      "bytes": 1073,
+      "sha256": "d084589aca58e74853c2d03f8a1f7b6f3a13f1fcc4b0c451f30455da09c624b7",
+      "git_blob": "bd4c2a068923022f80fe696f35eeaf2be3f8194c",
+      "terms_or_classification": "MIT",
+      "treatment": "Excluded; external Rust crate notice",
+      "in_mpl_list": false
+    }
+  ],
+  "open_sans_atlas_hash_matches_provenance": true,
+  "checks": {
+    "all_scope_paths_present": true,
+    "all_scope_paths_unique": true,
+    "listed_file_count": 861,
+    "external_font_metadata_excluded": true,
+    "known_vendor_trees_excluded": true,
+    "documentation_tree_excluded": true,
+    "new_ci_software_included": true,
+    "official_mpl_text_unchanged": true
+  },
+  "limits": [
+    "The small ui-core glyph table has an explicit project-authorship statement; that statement is evidence, not independent proof of authorship.",
+    "Noto font data is used through the pinned external crate; own calling code does not relicense the font data.",
+    "Generated ELF blobs embedded via environment-bound include_bytes retain all applicable component terms.",
+    "Test assets and documentary evidence outside the path allowlist receive no new license here."
+  ]
+}

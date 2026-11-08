@@ -1,0 +1,3165 @@
+{
+  "schema": "nieuw-os-publication-license-inventory-v1",
+  "repository": "simonvanieperen/nieuw-os",
+  "source_commit": "363b486b06023d3d578f8eca2b23ff49045a1757",
+  "generated_at_utc": "2026-11-08T18:39:21.205231+00:00",
+  "registry_retrieved_at_utc": "2026-11-08T18:34:34.101165+00:00",
+  "scope": {
+    "cargo_manifests": 96,
+    "all_cargo_toml_files": 99,
+    "cargo_lockfiles": 62,
+    "unique_registry_packages": 112,
+    "vendored_source_packages": 3,
+    "git_tree_blobs": 6524,
+    "complete_release_sbom": false,
+    "git_history_audit": false,
+    "registry_dependency_instances_in_lockfiles": 361
+  },
+  "method": [
+    "Read all Cargo.toml and Cargo.lock files from the exact GitHub commit.",
+    "Query crates.io version metadata for each unique registry package.",
+    "Compare official checksum with the lockfile checksum; 112 of 112 match.",
+    "Read all nine component THIRD-PARTY.md files and bundled license texts for vendored packages and fonts."
+  ],
+  "redaction": "No author email addresses, contributor identities, environment variables, machine paths, secrets, raw logs or extracted third-party source are included.",
+  "interpretation": [
+    "Registry metadata records publisher declarations, not a per-line legal opinion on each downloaded upstream source file.",
+    "Cargo.lock includes optional, target-specific and build dependencies; this inventory is not proof that all packages are shipped.",
+    "A source repository declaring an external dependency is not the same distribution as a binary containing it. Binary packages need their complete applicable notices and source obligations.",
+    "The available_license_route field records an option supported by upstream metadata; it does not relicense vendored files or the repository.",
+    "No package is restricted to GPL/LGPL-only terms in these 112 registry declarations.",
+    "The OSDev/Little OS Book collection is inventoried separately and is not covered by these Cargo declarations."
+  ],
+  "summary": {
+    "all_registry_metadata_retrieved": true,
+    "all_registry_checksums_match": true,
+    "unknown_registry_license_count": 0,
+    "registry_license_expression_counts": {
+      "0BSD OR MIT OR Apache-2.0": 1,
+      "MIT OR Apache-2.0": 65,
+      "Apache-2.0 OR MIT": 14,
+      "MIT/Apache-2.0": 3,
+      "Unlicense OR MIT": 3,
+      "BSD-3-Clause": 3,
+      "MIT OR Apache-2.0 OR BSD-1-Clause": 1,
+      "MIT": 5,
+      "Apache-2.0/MIT": 1,
+      "0BSD": 2,
+      "MIT OR Zlib OR Apache-2.0": 2,
+      "MIT OR Apache-2.0 OR LGPL-2.1-or-later": 1,
+      "Apache-2.0 AND ISC": 1,
+      "Apache-2.0 OR ISC OR MIT": 1,
+      "ISC": 2,
+      "(MIT OR Apache-2.0) AND Unicode-3.0": 1,
+      "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT": 1,
+      "Zlib": 1,
+      "MIT OR Apache-2.0 OR Zlib": 4
+    }
+  },
+  "component_notices": [
+    {
+      "path": "experiments/quantum/THIRD-PARTY.md",
+      "git_blob_sha": "30df032c995aaa9091f25509cbb54ceec3fedfc4"
+    },
+    {
+      "path": "sdk/examples/compositor/THIRD-PARTY.md",
+      "git_blob_sha": "cd268d3996d22b1344e9e36ce5f70b91e9a86105"
+    },
+    {
+      "path": "sdk/examples/document-import/THIRD-PARTY.md",
+      "git_blob_sha": "2b88ba9108eb4b1c964b012929c9ee44b0ca9300"
+    },
+    {
+      "path": "sdk/examples/image-crop/THIRD-PARTY.md",
+      "git_blob_sha": "ad09927b5995c1ecdb9d387ad9d6568142dead64"
+    },
+    {
+      "path": "sdk/heap-allocator/THIRD-PARTY.md",
+      "git_blob_sha": "605bac75eb02d29ae05f8d744448cd138383f93d"
+    },
+    {
+      "path": "services/image-codec/THIRD-PARTY.md",
+      "git_blob_sha": "2bdbad0f0abce5fef708961ca5bb1f5997a2c75a"
+    },
+    {
+      "path": "services/net-stack/THIRD-PARTY.md",
+      "git_blob_sha": "50615fd271297f85712fa47f76ce35637866028a"
+    },
+    {
+      "path": "ui/graphics/THIRD-PARTY.md",
+      "git_blob_sha": "6ce1dc9b02aaa25e9406cb9d2b128e3217f94e69"
+    },
+    {
+      "path": "ui/native/THIRD-PARTY.md",
+      "git_blob_sha": "ee3e1dfe257438cb07fdb68eb6a38f33f863ea16"
+    }
+  ],
+  "packages": [
+    {
+      "name": "adler2",
+      "version": "2.0.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/adler2/2.0.1",
+      "registry_license_expression": "0BSD OR MIT OR Apache-2.0",
+      "normalized_license_expression": "0BSD OR MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/image-crop/Cargo.lock",
+          "git_blob_sha": "7c375372a9f899a35a429c9a9bd8b8f016787d4e"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "aead",
+      "version": "0.5.2",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "d122413f284cf2d62fb1b7db97e02edb8cda96d769b16e443a4f6195e35662b0",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/aead/0.5.2",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "autocfg",
+      "version": "1.5.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/autocfg/1.5.1",
+      "registry_license_expression": "Apache-2.0 OR MIT",
+      "normalized_license_expression": "Apache-2.0 OR MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "bitflags",
+      "version": "1.3.2",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/bitflags/1.3.2",
+      "registry_license_expression": "MIT/Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/network-service/Cargo.lock",
+          "git_blob_sha": "d840bd38aa3daeeec1824143ca97280cc20fa804"
+        },
+        {
+          "path": "sdk/examples/tcp-probe/Cargo.lock",
+          "git_blob_sha": "ed877c58aabc8e7f352cac2dc6bdcd6521554b96"
+        },
+        {
+          "path": "services/net-broker/Cargo.lock",
+          "git_blob_sha": "5a8252a366dec802aedb43a200e90de5d5e78d13"
+        },
+        {
+          "path": "services/net-config/Cargo.lock",
+          "git_blob_sha": "3a300d83a8e4f97ee7acd3d14f19118ea9f9f1b5"
+        },
+        {
+          "path": "services/net-stack/Cargo.lock",
+          "git_blob_sha": "14b3bf5472cf6e249cd1541dabefd20320cecda2"
+        },
+        {
+          "path": "services/network-service/Cargo.lock",
+          "git_blob_sha": "b060eb2344c9f04fa7b238d422670cc8456b018f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "bitflags",
+      "version": "2.13.2",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "3ded4057c258ba199e2d26386d3af3780957ecaee6c4ef4041c6b4b8b97c0b06",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/bitflags/2.13.2",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/image-crop/Cargo.lock",
+          "git_blob_sha": "7c375372a9f899a35a429c9a9bd8b8f016787d4e"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "block-buffer",
+      "version": "0.10.4",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "3078c7629b62d3f0439517fa394996acacc5cbc91c5a20d8c658e77abd503a71",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/block-buffer/0.10.4",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "experiments/ai/model-store-contract/Cargo.lock",
+          "git_blob_sha": "c33c1862f420fd45e0e28c4cc74f19312630d546"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "block-buffer",
+      "version": "0.12.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "d2f6c7dbe95a6ed67ad9f18e57daf93a2f034c524b99fd2b76d18fdfeb6660aa",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/block-buffer/0.12.1",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "byteorder",
+      "version": "1.5.0",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/byteorder/1.5.0",
+      "registry_license_expression": "Unlicense OR MIT",
+      "normalized_license_expression": "Unlicense OR MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/network-service/Cargo.lock",
+          "git_blob_sha": "d840bd38aa3daeeec1824143ca97280cc20fa804"
+        },
+        {
+          "path": "sdk/examples/tcp-probe/Cargo.lock",
+          "git_blob_sha": "ed877c58aabc8e7f352cac2dc6bdcd6521554b96"
+        },
+        {
+          "path": "services/net-broker/Cargo.lock",
+          "git_blob_sha": "5a8252a366dec802aedb43a200e90de5d5e78d13"
+        },
+        {
+          "path": "services/net-config/Cargo.lock",
+          "git_blob_sha": "3a300d83a8e4f97ee7acd3d14f19118ea9f9f1b5"
+        },
+        {
+          "path": "services/net-stack/Cargo.lock",
+          "git_blob_sha": "14b3bf5472cf6e249cd1541dabefd20320cecda2"
+        },
+        {
+          "path": "services/network-service/Cargo.lock",
+          "git_blob_sha": "b060eb2344c9f04fa7b238d422670cc8456b018f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "cc",
+      "version": "1.10.0",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "86e055fa6e3e40ad6187ba25b6855eeb635d5271f8e0f0e1e9a5826b8d75bea0",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/cc/1.10.0",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "cfg-if",
+      "version": "1.0.5",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/cfg-if/1.0.5",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "experiments/ai/model-store-contract/Cargo.lock",
+          "git_blob_sha": "c33c1862f420fd45e0e28c4cc74f19312630d546"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        },
+        {
+          "path": "sdk/examples/image-crop/Cargo.lock",
+          "git_blob_sha": "7c375372a9f899a35a429c9a9bd8b8f016787d4e"
+        },
+        {
+          "path": "sdk/examples/network-service/Cargo.lock",
+          "git_blob_sha": "d840bd38aa3daeeec1824143ca97280cc20fa804"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/examples/tcp-probe/Cargo.lock",
+          "git_blob_sha": "ed877c58aabc8e7f352cac2dc6bdcd6521554b96"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        },
+        {
+          "path": "services/net-broker/Cargo.lock",
+          "git_blob_sha": "5a8252a366dec802aedb43a200e90de5d5e78d13"
+        },
+        {
+          "path": "services/net-config/Cargo.lock",
+          "git_blob_sha": "3a300d83a8e4f97ee7acd3d14f19118ea9f9f1b5"
+        },
+        {
+          "path": "services/net-stack/Cargo.lock",
+          "git_blob_sha": "14b3bf5472cf6e249cd1541dabefd20320cecda2"
+        },
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        },
+        {
+          "path": "services/network-service/Cargo.lock",
+          "git_blob_sha": "b060eb2344c9f04fa7b238d422670cc8456b018f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "chacha20",
+      "version": "0.10.2",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "65c35e4b699c7e15ccbe7ee35c005e4fc0a278d22238a2857e6ce2dadeda1b06",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/chacha20/0.10.2",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "chacha20",
+      "version": "0.9.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "c3613f74bd2eac03dad61bd53dbe620703d4371614fe0bc3b9f04dd36fe4e818",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/chacha20/0.9.1",
+      "registry_license_expression": "Apache-2.0 OR MIT",
+      "normalized_license_expression": "Apache-2.0 OR MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "chacha20poly1305",
+      "version": "0.10.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "10cd79432192d1c0f4e1a0fef9527696cc039165d729fb41b3f4f4f354c2dc35",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/chacha20poly1305/0.10.1",
+      "registry_license_expression": "Apache-2.0 OR MIT",
+      "normalized_license_expression": "Apache-2.0 OR MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "cipher",
+      "version": "0.4.4",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "773f3b9af64447d2ce9850330c473515014aa235e6a783b02db81ff39e4a3dad",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/cipher/0.4.4",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "cmov",
+      "version": "0.5.4",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "0c9ea0ac24bc397ab3c98583a3c9ba74fa56b09a4449bbe172b9b1ddb016027a",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/cmov/0.5.4",
+      "registry_license_expression": "Apache-2.0 OR MIT",
+      "normalized_license_expression": "Apache-2.0 OR MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "cpufeatures",
+      "version": "0.2.17",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "59ed5838eebb26a2bb2e58f6d5b5316989ae9d08bab10e0e6d103e656d1b0280",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/cpufeatures/0.2.17",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "experiments/ai/model-store-contract/Cargo.lock",
+          "git_blob_sha": "c33c1862f420fd45e0e28c4cc74f19312630d546"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "cpufeatures",
+      "version": "0.3.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "5ca28b0ae3115b884660db4118d803791fd6756b6e88f39c0f3f7859060d7566",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/cpufeatures/0.3.1",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "crc32fast",
+      "version": "1.5.4",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "5f97d3416d5337d15c4b0d78c8c91df922ca143f57ec20e2d1c188333047ef04",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/crc32fast/1.5.4",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/image-crop/Cargo.lock",
+          "git_blob_sha": "7c375372a9f899a35a429c9a9bd8b8f016787d4e"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "crypto-common",
+      "version": "0.1.7",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "78c8292055d1c1df0cce5d180393dc8cce0abec0a7102adb6c7b1eef6016d60a",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/crypto-common/0.1.7",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "experiments/ai/model-store-contract/Cargo.lock",
+          "git_blob_sha": "c33c1862f420fd45e0e28c4cc74f19312630d546"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "crypto-common",
+      "version": "0.2.2",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "ce6e4c961d6cd6c9a86db418387425e8bdeaf05b3c8bc1411e6dca4c252f1453",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/crypto-common/0.2.2",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "ctutils",
+      "version": "0.4.7",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "a2376ffd6f96d8a9db59875b4b6b0237d6900b5baf64279714e05493ce64828a",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/ctutils/0.4.7",
+      "registry_license_expression": "Apache-2.0 OR MIT",
+      "normalized_license_expression": "Apache-2.0 OR MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "curve25519-dalek",
+      "version": "4.1.3",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "97fb8b7c4503de7d6ae7b42ab72a5a59857b4c937ec27a3d4539dba95b5ab2be",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/curve25519-dalek/4.1.3",
+      "registry_license_expression": "BSD-3-Clause",
+      "normalized_license_expression": "BSD-3-Clause",
+      "available_license_route": "BSD-3-Clause",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "curve25519-dalek-derive",
+      "version": "0.1.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "f46882e17999c6cc590af592290432be3bce0428cb0d5f8b6715e4dc7b383eb3",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/curve25519-dalek-derive/0.1.1",
+      "registry_license_expression": "MIT/Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "digest",
+      "version": "0.10.7",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "9ed9a281f7bc9b7576e61468ba615a66a5c8cfdff42420a70aa82701a3b1e292",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/digest/0.10.7",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "experiments/ai/model-store-contract/Cargo.lock",
+          "git_blob_sha": "c33c1862f420fd45e0e28c4cc74f19312630d546"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "digest",
+      "version": "0.11.3",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "f1dd6dbb5841937940781866fa1281a1ff7bd3bf827091440879f9994983d5c2",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/digest/0.11.3",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "ed25519",
+      "version": "2.2.3",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "115531babc129696a58c64a4fef0a8bf9e9698629fb97e9e40767d235cfbcd53",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/ed25519/2.2.3",
+      "registry_license_expression": "Apache-2.0 OR MIT",
+      "normalized_license_expression": "Apache-2.0 OR MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "ed25519-dalek",
+      "version": "2.2.0",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "70e796c081cee67dc755e1a36a0a172b897fab85fc3f6bc48307991f64e4eca9",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/ed25519-dalek/2.2.0",
+      "registry_license_expression": "BSD-3-Clause",
+      "normalized_license_expression": "BSD-3-Clause",
+      "available_license_route": "BSD-3-Clause",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "fdeflate",
+      "version": "0.3.7",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "1e6853b52649d4ac5c0bd02320cddc5ba956bdb407c4b75a2c6b75bf51500f8c",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/fdeflate/0.3.7",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/image-crop/Cargo.lock",
+          "git_blob_sha": "7c375372a9f899a35a429c9a9bd8b8f016787d4e"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "fiat-crypto",
+      "version": "0.2.9",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "28dea519a9695b9977216879a3ebfddf92f1c08c05d984f8996aecd6ecdc811d",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/fiat-crypto/0.2.9",
+      "registry_license_expression": "MIT OR Apache-2.0 OR BSD-1-Clause",
+      "normalized_license_expression": "MIT OR Apache-2.0 OR BSD-1-Clause",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "find-msvc-tools",
+      "version": "0.1.15",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "1c66915cc5391097de7a2b0b972e8505aa33c0df401fd3a6811dbdb32881ba48",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/find-msvc-tools/0.1.15",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "flate2",
+      "version": "1.1.10",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "6e634e2e0ebac1ee034020da1ca582e17ffe4e0f5e985823721e168928136dcb",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/flate2/1.1.10",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/image-crop/Cargo.lock",
+          "git_blob_sha": "7c375372a9f899a35a429c9a9bd8b8f016787d4e"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "generic-array",
+      "version": "0.14.7",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "85649ca51fd72272d7821adaf274ad91c288277713d9c18820d8499a7ff69e9a",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/generic-array/0.14.7",
+      "registry_license_expression": "MIT",
+      "normalized_license_expression": "MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "experiments/ai/model-store-contract/Cargo.lock",
+          "git_blob_sha": "c33c1862f420fd45e0e28c4cc74f19312630d546"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "getrandom",
+      "version": "0.2.17",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "ff2abc00be7fca6ebc474524697ae276ad847ad0a6b3faa4bcb027e9a4614ad0",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/getrandom/0.2.17",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "hash32",
+      "version": "0.3.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "47d60b12902ba28e2730cd37e95b8c9223af2808df9e902d4df49588d1470606",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/hash32/0.3.1",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/network-service/Cargo.lock",
+          "git_blob_sha": "d840bd38aa3daeeec1824143ca97280cc20fa804"
+        },
+        {
+          "path": "sdk/examples/tcp-probe/Cargo.lock",
+          "git_blob_sha": "ed877c58aabc8e7f352cac2dc6bdcd6521554b96"
+        },
+        {
+          "path": "services/net-broker/Cargo.lock",
+          "git_blob_sha": "5a8252a366dec802aedb43a200e90de5d5e78d13"
+        },
+        {
+          "path": "services/net-config/Cargo.lock",
+          "git_blob_sha": "3a300d83a8e4f97ee7acd3d14f19118ea9f9f1b5"
+        },
+        {
+          "path": "services/net-stack/Cargo.lock",
+          "git_blob_sha": "14b3bf5472cf6e249cd1541dabefd20320cecda2"
+        },
+        {
+          "path": "services/network-service/Cargo.lock",
+          "git_blob_sha": "b060eb2344c9f04fa7b238d422670cc8456b018f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "heapless",
+      "version": "0.9.3",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "25ba4bd83f9415b58b4ed8dc5714c76e626a105be4646c02630ad730ad3b5aa4",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/heapless/0.9.3",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/network-service/Cargo.lock",
+          "git_blob_sha": "d840bd38aa3daeeec1824143ca97280cc20fa804"
+        },
+        {
+          "path": "sdk/examples/tcp-probe/Cargo.lock",
+          "git_blob_sha": "ed877c58aabc8e7f352cac2dc6bdcd6521554b96"
+        },
+        {
+          "path": "services/net-broker/Cargo.lock",
+          "git_blob_sha": "5a8252a366dec802aedb43a200e90de5d5e78d13"
+        },
+        {
+          "path": "services/net-config/Cargo.lock",
+          "git_blob_sha": "3a300d83a8e4f97ee7acd3d14f19118ea9f9f1b5"
+        },
+        {
+          "path": "services/net-stack/Cargo.lock",
+          "git_blob_sha": "14b3bf5472cf6e249cd1541dabefd20320cecda2"
+        },
+        {
+          "path": "services/network-service/Cargo.lock",
+          "git_blob_sha": "b060eb2344c9f04fa7b238d422670cc8456b018f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "hex-literal",
+      "version": "0.4.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "6fe2267d4ed49bc07b63801559be28c718ea06c4738b7a03c94df7386d2cde46",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/hex-literal/0.4.1",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "hex-literal",
+      "version": "1.0.0",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "bcaaec4551594c969335c98c903c1397853d4198408ea609190f420500f6be71",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/hex-literal/1.0.0",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "hkdf",
+      "version": "0.12.4",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "7b5f8eb2ad728638ea2c7d47a21db23b7b58a72ed6a38256b8a1849f15fbbdf7",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/hkdf/0.12.4",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "hmac",
+      "version": "0.12.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "6c49c37c09c17a53d937dfbb742eb3a961d65a994e6bcdcf37e7399d0cc8ab5e",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/hmac/0.12.1",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "hybrid-array",
+      "version": "0.4.15",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "27f864f10dfb56725ce5ce5472bc52252c8f93a4ab86327122cebf62c5f59a17",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/hybrid-array/0.4.15",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "inout",
+      "version": "0.1.4",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "879f10e63c20629ecabbb64a8010319738c66a5cd0c29b02d63d272b03751d01",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/inout/0.1.4",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "itoa",
+      "version": "1.0.18",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/itoa/1.0.18",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "experiments/quantum/Cargo.lock",
+          "git_blob_sha": "09531ece2e5f56fe0f3adc4e94b392f016a19ced"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "kdf",
+      "version": "0.1.0",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "fb9652713a34bd7a2f539adcab233163943bed9c685970db62eb3cb264d625a1",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/kdf/0.1.0",
+      "registry_license_expression": "Apache-2.0 OR MIT",
+      "normalized_license_expression": "Apache-2.0 OR MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "keccak",
+      "version": "0.2.2",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "d8f198d1db720e4940b5a493201d199d9f24f568f8f746bd13706243a2f71598",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/keccak/0.2.2",
+      "registry_license_expression": "Apache-2.0 OR MIT",
+      "normalized_license_expression": "Apache-2.0 OR MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "libc",
+      "version": "0.2.191",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "65cd87c9a6d60536580b316ad985726104730a5151c99845f2490428ef91240a",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/libc/0.2.191",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "experiments/ai/model-store-contract/Cargo.lock",
+          "git_blob_sha": "c33c1862f420fd45e0e28c4cc74f19312630d546"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        },
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "linked_list_allocator",
+      "version": "0.10.6",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "2b23ac50abb8261cb38c6e2a7192d3302e0836dac1628f6a93b82b4fad185897",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/linked_list_allocator/0.10.6",
+      "registry_license_expression": "Apache-2.0/MIT",
+      "normalized_license_expression": "Apache-2.0 OR MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/image-probe/Cargo.lock",
+          "git_blob_sha": "9d631f80504dd075e3402e1c7b487d7a93362b63"
+        },
+        {
+          "path": "sdk/examples/memory/Cargo.lock",
+          "git_blob_sha": "6c26e2715991f464136ebc3c2a4fab1614f243e7"
+        },
+        {
+          "path": "sdk/heap-allocator/Cargo.lock",
+          "git_blob_sha": "d9b73196cdd8ac31ecdf50712adbc7f43d42fd1e"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "log",
+      "version": "0.4.29",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "5e5032e24019045c762d3c0f28f5b6b8bbf38563a65908389bf7978758920897",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/log/0.4.29",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/image-codec/vendor/zune-jpeg-0.5.16-rc3/Cargo.lock",
+          "git_blob_sha": "53bf43a86abdf3d8fcf194aba555ddfee87fea05"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "managed",
+      "version": "0.8.0",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "0ca88d725a0a943b096803bd34e73a4437208b6077654cc4ecb2947a5f91618d",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/managed/0.8.0",
+      "registry_license_expression": "0BSD",
+      "normalized_license_expression": "0BSD",
+      "available_license_route": "0BSD",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/network-service/Cargo.lock",
+          "git_blob_sha": "d840bd38aa3daeeec1824143ca97280cc20fa804"
+        },
+        {
+          "path": "sdk/examples/tcp-probe/Cargo.lock",
+          "git_blob_sha": "ed877c58aabc8e7f352cac2dc6bdcd6521554b96"
+        },
+        {
+          "path": "services/net-broker/Cargo.lock",
+          "git_blob_sha": "5a8252a366dec802aedb43a200e90de5d5e78d13"
+        },
+        {
+          "path": "services/net-config/Cargo.lock",
+          "git_blob_sha": "3a300d83a8e4f97ee7acd3d14f19118ea9f9f1b5"
+        },
+        {
+          "path": "services/net-stack/Cargo.lock",
+          "git_blob_sha": "14b3bf5472cf6e249cd1541dabefd20320cecda2"
+        },
+        {
+          "path": "services/network-service/Cargo.lock",
+          "git_blob_sha": "b060eb2344c9f04fa7b238d422670cc8456b018f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "memchr",
+      "version": "2.7.6",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "f52b00d39961fc5b2736ea853c9cc86238e165017a493d1d5c8eac6bdc4cc273",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/memchr/2.7.6",
+      "registry_license_expression": "Unlicense OR MIT",
+      "normalized_license_expression": "Unlicense OR MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/document-import/Cargo.lock",
+          "git_blob_sha": "b8bd1a19dfde4852bffa71f29eee3db60991b0e3"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "memchr",
+      "version": "2.8.3",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/memchr/2.8.3",
+      "registry_license_expression": "Unlicense OR MIT",
+      "normalized_license_expression": "Unlicense OR MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "experiments/quantum/Cargo.lock",
+          "git_blob_sha": "09531ece2e5f56fe0f3adc4e94b392f016a19ced"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "miniz_oxide",
+      "version": "0.8.9",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "1fa76a2c86f704bdb222d66965fb3d63269ce38518b83cb0575fca855ebb6316",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/miniz_oxide/0.8.9",
+      "registry_license_expression": "MIT OR Zlib OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Zlib OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/image-crop/Cargo.lock",
+          "git_blob_sha": "7c375372a9f899a35a429c9a9bd8b8f016787d4e"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "miniz_oxide",
+      "version": "0.9.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "b63fbc4a50860e98e7b2aa7804ded1db5cbc3aff9193adaff57a6931bf7c4b4c",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/miniz_oxide/0.9.1",
+      "registry_license_expression": "MIT OR Zlib OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Zlib OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/image-crop/Cargo.lock",
+          "git_blob_sha": "7c375372a9f899a35a429c9a9bd8b8f016787d4e"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "ml-dsa",
+      "version": "0.1.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "add6b9d92e496f16f4526d68ff29da1483aba4b119baeab8bed3b9e3544a6f3d",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/ml-dsa/0.1.1",
+      "registry_license_expression": "Apache-2.0 OR MIT",
+      "normalized_license_expression": "Apache-2.0 OR MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "module-lattice",
+      "version": "0.2.3",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "0c61b87c9683ab7cb1c6871d261ad5479b6b10ceb52c4352aaca3b5d35a8febe",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/module-lattice/0.2.3",
+      "registry_license_expression": "Apache-2.0 OR MIT",
+      "normalized_license_expression": "Apache-2.0 OR MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "noto-sans-mono-bitmap",
+      "version": "0.3.2",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "f102c477fd4ec864c149803bf606ecc23bc9329602ec0f99073a728abf454abc",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/noto-sans-mono-bitmap/0.3.2",
+      "registry_license_expression": "MIT",
+      "normalized_license_expression": "MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/calculator/Cargo.lock",
+          "git_blob_sha": "ae0e2c06835668579e5040c5a80e2d2ce3458517"
+        },
+        {
+          "path": "sdk/examples/compositor/Cargo.lock",
+          "git_blob_sha": "e5fe55df2c417dff5ca2bff8b83e5d4f15b3bb08"
+        },
+        {
+          "path": "sdk/examples/materiaal/Cargo.lock",
+          "git_blob_sha": "14601fa6378e26c08631507f95df2aba9217e944"
+        },
+        {
+          "path": "sdk/examples/spreadsheet/Cargo.lock",
+          "git_blob_sha": "d14a5f2b58ff68e5f0152e3d43fc3fc433c032b1"
+        },
+        {
+          "path": "ui/native/Cargo.lock",
+          "git_blob_sha": "d9319462843da2486f68d56029e3498301794c07"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary",
+      "additional_asset_terms": "Embedded Noto Sans Mono font data is under OFL-1.1, separately preserved in ui/native and sdk/examples/compositor notices; crate MIT metadata alone is incomplete for font data."
+    },
+    {
+      "name": "num-traits",
+      "version": "0.2.19",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/num-traits/0.2.19",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "once_cell",
+      "version": "1.21.4",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/once_cell/1.21.4",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "opaque-debug",
+      "version": "0.3.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "c08d65885ee38876c4f86fa503fb49d7b507c2b62552df7c70b2fce627e06381",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/opaque-debug/0.3.1",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "png",
+      "version": "0.18.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "60769b8b31b2a9f263dae2776c37b1b28ae246943cf719eb6946a1db05128a61",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/png/0.18.1",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/image-crop/Cargo.lock",
+          "git_blob_sha": "7c375372a9f899a35a429c9a9bd8b8f016787d4e"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "poly1305",
+      "version": "0.8.0",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "8159bd90725d2df49889a078b54f4f79e87f1f8a8444194cdca81d38f5393abf",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/poly1305/0.8.0",
+      "registry_license_expression": "Apache-2.0 OR MIT",
+      "normalized_license_expression": "Apache-2.0 OR MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "proc-macro2",
+      "version": "1.0.107",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/proc-macro2/1.0.107",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "experiments/quantum/Cargo.lock",
+          "git_blob_sha": "09531ece2e5f56fe0f3adc4e94b392f016a19ced"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "quote",
+      "version": "1.0.47",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/quote/1.0.47",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "experiments/quantum/Cargo.lock",
+          "git_blob_sha": "09531ece2e5f56fe0f3adc4e94b392f016a19ced"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "r-efi",
+      "version": "7.1.0",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "b0ff379dd174eec5b2cab797063a2e7592dfcf0bf0323a50eeee724ee3537f13",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/r-efi/7.1.0",
+      "registry_license_expression": "MIT OR Apache-2.0 OR LGPL-2.1-or-later",
+      "normalized_license_expression": "MIT OR Apache-2.0 OR LGPL-2.1-or-later",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "rand_core",
+      "version": "0.10.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "63b8176103e19a2643978565ca18b50549f6101881c443590420e4dc998a3c69",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/rand_core/0.10.1",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "ring",
+      "version": "0.17.14",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "a4689e6c2294d81e88dc6261c768b63bc4fcdb852be6d1352498b114f61383b7",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/ring/0.17.14",
+      "registry_license_expression": "Apache-2.0 AND ISC",
+      "normalized_license_expression": "Apache-2.0 AND ISC",
+      "available_license_route": "Apache-2.0 AND ISC",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary",
+      "binary_distribution_note": "Preserve complete upstream package notices; Apache-2.0 AND ISC is a conjunction, not a license choice."
+    },
+    {
+      "name": "roxmltree",
+      "version": "0.21.2",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "9da7f59328b09405b181fee1018925fad50f157afb43c0c0f5c522c256dd5907",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/roxmltree/0.21.2",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/document-import/Cargo.lock",
+          "git_blob_sha": "b8bd1a19dfde4852bffa71f29eee3db60991b0e3"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "rustc_version",
+      "version": "0.4.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "cfcb3a22ef46e85b45de6ee7e79d063319ebb6594faafcf1c225ea92ab6e9b92",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/rustc_version/0.4.1",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "rustls",
+      "version": "0.23.46",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "48e13bd8c0e9365c43cfa5c9e8f9ad49d3c8444926c9aac819e0e4dc503c8fdf",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/rustls/0.23.46",
+      "registry_license_expression": "Apache-2.0 OR ISC OR MIT",
+      "normalized_license_expression": "Apache-2.0 OR ISC OR MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "rustls-pki-types",
+      "version": "1.15.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "2f4925028c7eb5d1fcdaf196971378ed9d2c1c4efc7dc5d011256f76c99c0a96",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/rustls-pki-types/1.15.1",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "rustls-webpki",
+      "version": "0.103.16",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "4443b1b6d39d7c663139942cc4558262562d2c84123bb6282ef177009ca8b281",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/rustls-webpki/0.103.16",
+      "registry_license_expression": "ISC",
+      "normalized_license_expression": "ISC",
+      "available_license_route": "ISC",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "semver",
+      "version": "1.0.28",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "8a7852d02fc848982e0c167ef163aaff9cd91dc640ba85e263cb1ce46fae51cd",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/semver/1.0.28",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "serde",
+      "version": "1.0.229",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "4148590afebada386688f18773da617792bf2ef03ffc1e4cbd2b1d45b023e0ba",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/serde/1.0.229",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "experiments/quantum/Cargo.lock",
+          "git_blob_sha": "09531ece2e5f56fe0f3adc4e94b392f016a19ced"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "serde_core",
+      "version": "1.0.229",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "67dca2c9c51e58a4791a4b1ed58308b39c64224d349a935ab5039aa360942a48",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/serde_core/1.0.229",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "experiments/quantum/Cargo.lock",
+          "git_blob_sha": "09531ece2e5f56fe0f3adc4e94b392f016a19ced"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "serde_derive",
+      "version": "1.0.229",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "e7a5d71263a5a7d47b41f6b3f06ba276f10cc18b0931f1799f710578e2309348",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/serde_derive/1.0.229",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "experiments/quantum/Cargo.lock",
+          "git_blob_sha": "09531ece2e5f56fe0f3adc4e94b392f016a19ced"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "serde_json",
+      "version": "1.0.154",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "e7e9cc8b1b85264074fbcc02a88680c4096b1e47df8f739dceb03bf482f04bd6",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/serde_json/1.0.154",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "experiments/quantum/Cargo.lock",
+          "git_blob_sha": "09531ece2e5f56fe0f3adc4e94b392f016a19ced"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "sha2",
+      "version": "0.10.9",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/sha2/0.10.9",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "experiments/ai/model-store-contract/Cargo.lock",
+          "git_blob_sha": "c33c1862f420fd45e0e28c4cc74f19312630d546"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "sha2",
+      "version": "0.11.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "47d7069beb7d6ac7b9acd1039986e73443f24234f41074da099d6f994ac9ad19",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/sha2/0.11.1",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "shake",
+      "version": "0.1.0",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "09057cb2149ad4cbd2da1e26b351f9a4c354219421229c69c3063e6f61947c4a",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/shake/0.1.0",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "shlex",
+      "version": "2.0.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/shlex/2.0.1",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "signature",
+      "version": "2.2.0",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "77549399552de45a898a580c1b41d445bf730df867cc44e6c0233bbc4b8329de",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/signature/2.2.0",
+      "registry_license_expression": "Apache-2.0 OR MIT",
+      "normalized_license_expression": "Apache-2.0 OR MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "signature",
+      "version": "3.0.0",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "28d567dcbaf0049cb8ac2608a76cd95ff9e4412e1899d389ee400918ca7537f5",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/signature/3.0.0",
+      "registry_license_expression": "Apache-2.0 OR MIT",
+      "normalized_license_expression": "Apache-2.0 OR MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "simd-adler32",
+      "version": "0.3.10",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "3a219298ac11a56ea9a6d2120044824d6f01aeb034955e7af7bc16858527deea",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/simd-adler32/0.3.10",
+      "registry_license_expression": "MIT",
+      "normalized_license_expression": "MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/image-crop/Cargo.lock",
+          "git_blob_sha": "7c375372a9f899a35a429c9a9bd8b8f016787d4e"
+        },
+        {
+          "path": "sdk/examples/image-export/Cargo.lock",
+          "git_blob_sha": "bca473f9fb1d6c959ef1fda43a2331967235fd66"
+        },
+        {
+          "path": "sdk/examples/image-probe/Cargo.lock",
+          "git_blob_sha": "9d631f80504dd075e3402e1c7b487d7a93362b63"
+        },
+        {
+          "path": "sdk/examples/image-viewer/Cargo.lock",
+          "git_blob_sha": "9ad1b8102cd76e01e530870f52c00ddfbfb79106"
+        },
+        {
+          "path": "services/image-codec/Cargo.lock",
+          "git_blob_sha": "09d3b7256c70a5bb90ca1edce04357268ae62814"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "smoltcp",
+      "version": "0.14.0",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "b6f8b28ad56c6e35524a37dd492af5d1a47e31e1a4d175cd12f89c075f01980f",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/smoltcp/0.14.0",
+      "registry_license_expression": "0BSD",
+      "normalized_license_expression": "0BSD",
+      "available_license_route": "0BSD",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/network-service/Cargo.lock",
+          "git_blob_sha": "d840bd38aa3daeeec1824143ca97280cc20fa804"
+        },
+        {
+          "path": "sdk/examples/tcp-probe/Cargo.lock",
+          "git_blob_sha": "ed877c58aabc8e7f352cac2dc6bdcd6521554b96"
+        },
+        {
+          "path": "services/net-broker/Cargo.lock",
+          "git_blob_sha": "5a8252a366dec802aedb43a200e90de5d5e78d13"
+        },
+        {
+          "path": "services/net-config/Cargo.lock",
+          "git_blob_sha": "3a300d83a8e4f97ee7acd3d14f19118ea9f9f1b5"
+        },
+        {
+          "path": "services/net-stack/Cargo.lock",
+          "git_blob_sha": "14b3bf5472cf6e249cd1541dabefd20320cecda2"
+        },
+        {
+          "path": "services/network-service/Cargo.lock",
+          "git_blob_sha": "b060eb2344c9f04fa7b238d422670cc8456b018f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "spin",
+      "version": "0.12.3",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "0134f9043ed38b087ac4f7d4af44c79e2c9e5094421fe3164f435ce585953b10",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/spin/0.12.3",
+      "registry_license_expression": "MIT",
+      "normalized_license_expression": "MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "sponge-cursor",
+      "version": "0.1.0",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "3a0219bd7d979d58245a4f41f695e1ac9f8befdffadd7f61f1bae9e39abc6620",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/sponge-cursor/0.1.0",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "stable_deref_trait",
+      "version": "1.2.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "6ce2be8dc25455e1f91df71bfa12ad37d7af1092ae736f3a6cd0e37bc7810596",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/stable_deref_trait/1.2.1",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/network-service/Cargo.lock",
+          "git_blob_sha": "d840bd38aa3daeeec1824143ca97280cc20fa804"
+        },
+        {
+          "path": "sdk/examples/tcp-probe/Cargo.lock",
+          "git_blob_sha": "ed877c58aabc8e7f352cac2dc6bdcd6521554b96"
+        },
+        {
+          "path": "services/net-broker/Cargo.lock",
+          "git_blob_sha": "5a8252a366dec802aedb43a200e90de5d5e78d13"
+        },
+        {
+          "path": "services/net-config/Cargo.lock",
+          "git_blob_sha": "3a300d83a8e4f97ee7acd3d14f19118ea9f9f1b5"
+        },
+        {
+          "path": "services/net-stack/Cargo.lock",
+          "git_blob_sha": "14b3bf5472cf6e249cd1541dabefd20320cecda2"
+        },
+        {
+          "path": "services/network-service/Cargo.lock",
+          "git_blob_sha": "b060eb2344c9f04fa7b238d422670cc8456b018f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "subtle",
+      "version": "2.6.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/subtle/2.6.1",
+      "registry_license_expression": "BSD-3-Clause",
+      "normalized_license_expression": "BSD-3-Clause",
+      "available_license_route": "BSD-3-Clause",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        },
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "syn",
+      "version": "2.0.119",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "872831b642d1a07999a962a351ed35b955ea2cfc8f3862091e2a240a84f17297",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/syn/2.0.119",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "syn",
+      "version": "3.0.9",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "d78c8dee4c7bf0e14673097256fed6142ce9d3b85a408189d07482442145823b",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/syn/3.0.9",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "experiments/quantum/Cargo.lock",
+          "git_blob_sha": "09531ece2e5f56fe0f3adc4e94b392f016a19ced"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "typenum",
+      "version": "1.20.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "b6f5e870be6c3b371b77fe0ee0bafb859fa4964b4404c27de1d380043c4dda20",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/typenum/1.20.1",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "experiments/ai/model-store-contract/Cargo.lock",
+          "git_blob_sha": "c33c1862f420fd45e0e28c4cc74f19312630d546"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "unicode-ident",
+      "version": "1.0.27",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "a2c754d6c33795a1c324727428e5a7dedb5b06195f9890bdbcba760d3e246563",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/unicode-ident/1.0.27",
+      "registry_license_expression": "(MIT OR Apache-2.0) AND Unicode-3.0",
+      "normalized_license_expression": "(MIT OR Apache-2.0) AND Unicode-3.0",
+      "available_license_route": "(MIT AND Unicode-3.0)",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "experiments/quantum/Cargo.lock",
+          "git_blob_sha": "09531ece2e5f56fe0f3adc4e94b392f016a19ced"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary",
+      "binary_distribution_note": "Unicode-3.0 obligation is additional to the selected MIT or Apache-2.0 option."
+    },
+    {
+      "name": "universal-hash",
+      "version": "0.5.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "fc1de2c688dc15305988b563c3854064043356019f97a4b46276fe734c4f07ea",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/universal-hash/0.5.1",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "untrusted",
+      "version": "0.9.0",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "8ecb6da28b8a351d773b68d5825ac39017e680750f980f3a1a85cd8dd28a47c1",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/untrusted/0.9.0",
+      "registry_license_expression": "ISC",
+      "normalized_license_expression": "ISC",
+      "available_license_route": "ISC",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "version_check",
+      "version": "0.9.5",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/version_check/0.9.5",
+      "registry_license_expression": "MIT/Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "experiments/ai/model-store-contract/Cargo.lock",
+          "git_blob_sha": "c33c1862f420fd45e0e28c4cc74f19312630d546"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "wasi",
+      "version": "0.11.1+wasi-snapshot-preview1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "ccf3ec651a847eb01de73ccad15eb7d99f80485de043efb2f370cd654f4ea44b",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/wasi/0.11.1%2Bwasi-snapshot-preview1",
+      "registry_license_expression": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+      "normalized_license_expression": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "windows-sys",
+      "version": "0.52.0",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "282be5f36a8ce781fad8c8ae18fa3f9beff57ec1b52cb3de0789201425d9a33d",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/windows-sys/0.52.0",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "windows-targets",
+      "version": "0.52.6",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "9b724f72796e036ab90c1021d4780d4d3d648aca59e491e6b98e725b84e99973",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/windows-targets/0.52.6",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "windows_aarch64_gnullvm",
+      "version": "0.52.6",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "32a4622180e7a0ec044bb555404c800bc9fd9ec262ec147edd5989ccd0c02cd3",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/windows_aarch64_gnullvm/0.52.6",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "windows_aarch64_msvc",
+      "version": "0.52.6",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "09ec2a7bb152e2252b53fa7803150007879548bc709c039df7627cabbd05d469",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/windows_aarch64_msvc/0.52.6",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "windows_i686_gnu",
+      "version": "0.52.6",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "8e9b5ad5ab802e97eb8e295ac6720e509ee4c243f69d781394014ebfe8bbfa0b",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/windows_i686_gnu/0.52.6",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "windows_i686_gnullvm",
+      "version": "0.52.6",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "0eee52d38c090b3caa76c563b86c3a4bd71ef1a819287c19d586d7334ae8ed66",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/windows_i686_gnullvm/0.52.6",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "windows_i686_msvc",
+      "version": "0.52.6",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "240948bc05c5e7c6dabba28bf89d89ffce3e303022809e73deaefe4f6ec56c66",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/windows_i686_msvc/0.52.6",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "windows_x86_64_gnu",
+      "version": "0.52.6",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "147a5c80aabfbf0c7d901cb5895d1de30ef2907eb21fbbab29ca94c5b08b1a78",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/windows_x86_64_gnu/0.52.6",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "windows_x86_64_gnullvm",
+      "version": "0.52.6",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "24d5b23dc417412679681396f2b49f3de8c1473deb516bd34410872eff51ed0d",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/windows_x86_64_gnullvm/0.52.6",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "windows_x86_64_msvc",
+      "version": "0.52.6",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/windows_x86_64_msvc/0.52.6",
+      "registry_license_expression": "MIT OR Apache-2.0",
+      "normalized_license_expression": "MIT OR Apache-2.0",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "zeroize",
+      "version": "1.9.1",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "e13084392c5e4bc371903e2935a5eaeed24905a7511356b883835e18a78f6879",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/zeroize/1.9.1",
+      "registry_license_expression": "Apache-2.0 OR MIT",
+      "normalized_license_expression": "Apache-2.0 OR MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "Cargo.lock",
+          "git_blob_sha": "573078ffa39fda78d1a8799a7957e0dc56f7fd1e"
+        },
+        {
+          "path": "experiments/quantum/native/job/Cargo.lock",
+          "git_blob_sha": "6ca7efa951a2091984b6434ad2576471d4297dac"
+        },
+        {
+          "path": "sdk/Cargo.lock",
+          "git_blob_sha": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+        },
+        {
+          "path": "sdk/app-management/Cargo.lock",
+          "git_blob_sha": "f6417144a24cd85d63cf5aaf21b8ce478f03978f"
+        },
+        {
+          "path": "sdk/display-client/Cargo.lock",
+          "git_blob_sha": "7e1381fb6c365d4cbcfe52ec8725cf5e14abd0a6"
+        },
+        {
+          "path": "sdk/examples/calculator/Cargo.lock",
+          "git_blob_sha": "ae0e2c06835668579e5040c5a80e2d2ce3458517"
+        },
+        {
+          "path": "sdk/examples/compositor/Cargo.lock",
+          "git_blob_sha": "e5fe55df2c417dff5ca2bff8b83e5d4f15b3bb08"
+        },
+        {
+          "path": "sdk/examples/desktop-init/Cargo.lock",
+          "git_blob_sha": "6b02afbfabeaec2e3459d3e828e6bf52a2e6fbe9"
+        },
+        {
+          "path": "sdk/examples/display-input-probe/Cargo.lock",
+          "git_blob_sha": "66e68f51ec94c4a358105e42fdaa1ec2da7715ca"
+        },
+        {
+          "path": "sdk/examples/image-probe/Cargo.lock",
+          "git_blob_sha": "9d631f80504dd075e3402e1c7b487d7a93362b63"
+        },
+        {
+          "path": "sdk/examples/image-viewer/Cargo.lock",
+          "git_blob_sha": "9ad1b8102cd76e01e530870f52c00ddfbfb79106"
+        },
+        {
+          "path": "sdk/examples/input-service/Cargo.lock",
+          "git_blob_sha": "09545671d1e1c3c51cf939f24976cb2efeb8108d"
+        },
+        {
+          "path": "sdk/examples/ipc-wait-probe/Cargo.lock",
+          "git_blob_sha": "23fbbf2773008c0e8c1f7e6ac5e7f764d8810ed3"
+        },
+        {
+          "path": "sdk/examples/materiaal/Cargo.lock",
+          "git_blob_sha": "14601fa6378e26c08631507f95df2aba9217e944"
+        },
+        {
+          "path": "sdk/examples/memory/Cargo.lock",
+          "git_blob_sha": "6c26e2715991f464136ebc3c2a4fab1614f243e7"
+        },
+        {
+          "path": "sdk/examples/net-probe/Cargo.lock",
+          "git_blob_sha": "43e280786ba6cb9d9752b417a4777a5936155b97"
+        },
+        {
+          "path": "sdk/examples/network-service/Cargo.lock",
+          "git_blob_sha": "d840bd38aa3daeeec1824143ca97280cc20fa804"
+        },
+        {
+          "path": "sdk/examples/random-probe/Cargo.lock",
+          "git_blob_sha": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+        },
+        {
+          "path": "sdk/examples/spreadsheet/Cargo.lock",
+          "git_blob_sha": "d14a5f2b58ff68e5f0152e3d43fc3fc433c032b1"
+        },
+        {
+          "path": "sdk/examples/tcp-probe/Cargo.lock",
+          "git_blob_sha": "ed877c58aabc8e7f352cac2dc6bdcd6521554b96"
+        },
+        {
+          "path": "sdk/examples/window-session/Cargo.lock",
+          "git_blob_sha": "bdc77dc8ffa867a2004b2a53af154cbd824ec6f2"
+        },
+        {
+          "path": "sdk/input-client/Cargo.lock",
+          "git_blob_sha": "13faede0b49dd5b6488304b512996466488fce9e"
+        },
+        {
+          "path": "sdk/keyring-client/Cargo.lock",
+          "git_blob_sha": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+        },
+        {
+          "path": "sdk/net-client/Cargo.lock",
+          "git_blob_sha": "012d70965085fbb2141eaf5983a43c6ea7d69145"
+        },
+        {
+          "path": "services/input-core/Cargo.lock",
+          "git_blob_sha": "4b9e12d5eed6d7669bebc5a2081e349c6aaaccc8"
+        },
+        {
+          "path": "services/nas/native-probe/Cargo.lock",
+          "git_blob_sha": "04ef73df5b241eb16556c1e39b4c85c55bd65879"
+        },
+        {
+          "path": "services/net-tls/Cargo.lock",
+          "git_blob_sha": "2ad83041d182b2a0c80b8ab272961d07c04a91ea"
+        },
+        {
+          "path": "ui/native/Cargo.lock",
+          "git_blob_sha": "d9319462843da2486f68d56029e3498301794c07"
+        },
+        {
+          "path": "ui/surface-protocol/Cargo.lock",
+          "git_blob_sha": "e3eb003098809270aac31dd365d40b6cee0eac85"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "zlib-rs",
+      "version": "0.6.8",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "b268e58e7c693d7c271f93ffc4ba3b380412554231c85bf61ca7af91042a4112",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/zlib-rs/0.6.8",
+      "registry_license_expression": "Zlib",
+      "normalized_license_expression": "Zlib",
+      "available_license_route": "Zlib",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/image-crop/Cargo.lock",
+          "git_blob_sha": "7c375372a9f899a35a429c9a9bd8b8f016787d4e"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "zmij",
+      "version": "1.0.23",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/zmij/1.0.23",
+      "registry_license_expression": "MIT",
+      "normalized_license_expression": "MIT",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "experiments/quantum/Cargo.lock",
+          "git_blob_sha": "09531ece2e5f56fe0f3adc4e94b392f016a19ced"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "zune-core",
+      "version": "0.5.3",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "d56377fd46368984a170bc5aac5567e52ca5da874caa60bea39fcbca78fb658b",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/zune-core/0.5.3",
+      "registry_license_expression": "MIT OR Apache-2.0 OR Zlib",
+      "normalized_license_expression": "MIT OR Apache-2.0 OR Zlib",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/image-crop/Cargo.lock",
+          "git_blob_sha": "7c375372a9f899a35a429c9a9bd8b8f016787d4e"
+        },
+        {
+          "path": "sdk/examples/image-export/Cargo.lock",
+          "git_blob_sha": "bca473f9fb1d6c959ef1fda43a2331967235fd66"
+        },
+        {
+          "path": "sdk/examples/image-probe/Cargo.lock",
+          "git_blob_sha": "9d631f80504dd075e3402e1c7b487d7a93362b63"
+        },
+        {
+          "path": "sdk/examples/image-viewer/Cargo.lock",
+          "git_blob_sha": "9ad1b8102cd76e01e530870f52c00ddfbfb79106"
+        },
+        {
+          "path": "services/image-codec/Cargo.lock",
+          "git_blob_sha": "09d3b7256c70a5bb90ca1edce04357268ae62814"
+        },
+        {
+          "path": "services/image-codec/diagnostics/Cargo.lock",
+          "git_blob_sha": "61cca41556d87808ef53e5d3531a70df536a1242"
+        },
+        {
+          "path": "services/image-codec/vendor/zune-jpeg-0.5.16-rc3/Cargo.lock",
+          "git_blob_sha": "53bf43a86abdf3d8fcf194aba555ddfee87fea05"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "zune-inflate",
+      "version": "0.2.54",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "73ab332fe2f6680068f3582b16a24f90ad7096d5d39b974d1c0aff0125116f02",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/zune-inflate/0.2.54",
+      "registry_license_expression": "MIT OR Apache-2.0 OR Zlib",
+      "normalized_license_expression": "MIT OR Apache-2.0 OR Zlib",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/document-import/Cargo.lock",
+          "git_blob_sha": "b8bd1a19dfde4852bffa71f29eee3db60991b0e3"
+        },
+        {
+          "path": "sdk/examples/image-crop/Cargo.lock",
+          "git_blob_sha": "7c375372a9f899a35a429c9a9bd8b8f016787d4e"
+        },
+        {
+          "path": "sdk/examples/image-export/Cargo.lock",
+          "git_blob_sha": "bca473f9fb1d6c959ef1fda43a2331967235fd66"
+        },
+        {
+          "path": "sdk/examples/image-probe/Cargo.lock",
+          "git_blob_sha": "9d631f80504dd075e3402e1c7b487d7a93362b63"
+        },
+        {
+          "path": "sdk/examples/image-viewer/Cargo.lock",
+          "git_blob_sha": "9ad1b8102cd76e01e530870f52c00ddfbfb79106"
+        },
+        {
+          "path": "services/image-codec/Cargo.lock",
+          "git_blob_sha": "09d3b7256c70a5bb90ca1edce04357268ae62814"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "zune-jpeg",
+      "version": "0.5.16-rc3",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "df4c448e855250a3ffd70f393894383667d049c05eca66dcdb4d3f2f194e90c6",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/zune-jpeg/0.5.16-rc3",
+      "registry_license_expression": "MIT OR Apache-2.0 OR Zlib",
+      "normalized_license_expression": "MIT OR Apache-2.0 OR Zlib",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "services/image-codec/diagnostics/Cargo.lock",
+          "git_blob_sha": "61cca41556d87808ef53e5d3531a70df536a1242"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    },
+    {
+      "name": "zune-png",
+      "version": "0.5.2",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_checksum_sha256": "5a321146329f7617ba0a5b26982cba45b7ce78163135aba78be25850aefcea80",
+      "registry_metadata_url": "https://crates.io/api/v1/crates/zune-png/0.5.2",
+      "registry_license_expression": "MIT OR Apache-2.0 OR Zlib",
+      "normalized_license_expression": "MIT OR Apache-2.0 OR Zlib",
+      "available_license_route": "MIT",
+      "registry_checksum_matches_all_lockfiles": true,
+      "locked_by": [
+        {
+          "path": "sdk/examples/image-crop/Cargo.lock",
+          "git_blob_sha": "7c375372a9f899a35a429c9a9bd8b8f016787d4e"
+        },
+        {
+          "path": "sdk/examples/image-export/Cargo.lock",
+          "git_blob_sha": "bca473f9fb1d6c959ef1fda43a2331967235fd66"
+        },
+        {
+          "path": "sdk/examples/image-probe/Cargo.lock",
+          "git_blob_sha": "9d631f80504dd075e3402e1c7b487d7a93362b63"
+        },
+        {
+          "path": "sdk/examples/image-viewer/Cargo.lock",
+          "git_blob_sha": "9ad1b8102cd76e01e530870f52c00ddfbfb79106"
+        },
+        {
+          "path": "services/image-codec/Cargo.lock",
+          "git_blob_sha": "09d3b7256c70a5bb90ca1edce04357268ae62814"
+        }
+      ],
+      "distribution_scope": "declared/locked registry dependency; this record is not evidence the crate is linked into every binary"
+    }
+  ],
+  "vendored_sources": [
+    {
+      "path": "services/image-codec/vendor/zune-jpeg-0.5.16-rc3",
+      "name": "zune-jpeg",
+      "declared_license_expression": "MIT OR Apache-2.0 OR Zlib",
+      "license_files": [
+        {
+          "path": "services/image-codec/vendor/zune-jpeg-0.5.16-rc3/LICENSE-APACHE",
+          "git_blob_sha": "261eeb9e9f8b2b4b0d119366dda99c6fd7d35c64"
+        },
+        {
+          "path": "services/image-codec/vendor/zune-jpeg-0.5.16-rc3/LICENSE-MIT",
+          "git_blob_sha": "4d832b8fc1d8f8e39cbb14d064220ecc8c0b73e3"
+        },
+        {
+          "path": "services/image-codec/vendor/zune-jpeg-0.5.16-rc3/LICENSE-ZLIB",
+          "git_blob_sha": "bc5a7835a2ea9e1891ff93fb40080afff2a255e0"
+        }
+      ]
+    },
+    {
+      "path": "services/keyring/vendor/hkdf-0.13.0",
+      "name": "hkdf",
+      "declared_license_expression": "MIT OR Apache-2.0",
+      "license_files": [
+        {
+          "path": "services/keyring/vendor/hkdf-0.13.0/LICENSE-APACHE",
+          "git_blob_sha": "53b7ccd84d6bc60ea07a91f1fbed31b3ac8252a0"
+        },
+        {
+          "path": "services/keyring/vendor/hkdf-0.13.0/LICENSE-MIT",
+          "git_blob_sha": "c0d07816bc2840dac35ca95a5e4df85c50a23952"
+        }
+      ]
+    },
+    {
+      "path": "services/keyring/vendor/hmac-0.13.0",
+      "name": "hmac",
+      "declared_license_expression": "MIT OR Apache-2.0",
+      "license_files": [
+        {
+          "path": "services/keyring/vendor/hmac-0.13.0/LICENSE-APACHE",
+          "git_blob_sha": "78173fa2e753d614bb0aa5ad125ddbbe70b282c4"
+        },
+        {
+          "path": "services/keyring/vendor/hmac-0.13.0/LICENSE-MIT",
+          "git_blob_sha": "8dcb85b30273aab0c3d6e47e151680a061c47cf7"
+        }
+      ]
+    }
+  ]
+}

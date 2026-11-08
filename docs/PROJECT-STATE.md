@@ -1,6 +1,39 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — openbare projectrichting — 8 november 2026
+## NEXT AGENT HANDOFF — schone publicatiekandidaat — 8 november 2026
+
+**Bron:** main `363b486b06023d3d578f8eca2b23ff49045a1757`, gecombineerd met
+hosted-workflows uit #249 (`d3d8e3e`) en bewijsopslag uit #251 (`5c291cff`).
+Werkbranch `publication/clean-candidate-20261108`. **41 → 41/100**;
+criteria, gewichten en bestaand native bewijs blijven gelijk.
+
+**Voorbereid:** onafhankelijke publicatiescope zonder de 78 bestanden van
+de gebundelde OSDev-skill en zonder private auditworkflow. Eigen OS-code
+blijft behouden. MPL-2.0 is exact afgebakend via `MPL-2.0-FILES.txt` en
+`LICENSING.md`; extern materiaal behoudt eigen voorwaarden. CI gebruikt
+uitsluitend GitHub-hosted Ubuntu 24.04. Alleen ontbrekende lokale
+leerbronaanroepen/verwijzingen zijn aangepast; historische auditverwijzingen
+hieronder blijven herkenbaar als historie.
+
+**Bewijs:** 15 collector-hosttests, actionlint voor 21 workflows en 470
+statische integratiecontroles geslaagd. Dit zijn geen uitgevoerde native
+Rust/QEMU-gates op de gecombineerde boom. Bestaande bewijsbestanden uit
+#251 blijven aan die bron gebonden. Exacte samenstelling en eindcontrole:
+[PUBLICATION.md](PUBLICATION.md).
+
+**Open:** keuze voor de afwijkende bestemming `nieuw-os-public` en de
+feitelijke publicatiestap. Huidige `nieuw-os` blijft privé met alle historie,
+branches, PR's en logs; geen history rewrite of repohernoeming uitgevoerd.
+Deze branch is uitsluitend een reviewbare kandidaat en mag niet als gewone
+cleanup-PR in de oorspronkelijke main worden gemerged. Een nieuwe repo
+mag geen oude Git-/PR-/Actions-objecten of eigen runners erven.
+
+**Eerstvolgend commando:** `python3 -B tools/progress.py --check`.
+Publiceer alleen de opnieuw geverifieerde kandidaat naar de gekozen
+bestemming, zonder de bestaande strikte checks fictief groen te maken.
+R03 en de volledige productrelease blijven open.
+
+## Historisch checkpoint — openbare projectrichting — 8 november 2026
 
 **Bron:** `main` op `363b486b06023d3d578f8eca2b23ff49045a1757`; documentatiebranch
 `docs/public-development-direction-20261108`. **41 → 41/100**; alle criteria,

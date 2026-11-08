@@ -1,0 +1,871 @@
+{
+  "repository": "simonvanieperen/nieuw-os",
+  "source_commit": "363b486b06023d3d578f8eca2b23ff49045a1757",
+  "metadata_source": "https://api.github.com/repos/simonvanieperen/nieuw-os/commits?sha=363b486b06023d3d578f8eca2b23ff49045a1757&per_page=100&page=1",
+  "complete_reachable_main_history": true,
+  "retrieved_pages": {
+    "1": 98,
+    "2": 0,
+    "3": 0,
+    "4": 0
+  },
+  "reachable_commit_count": 98,
+  "oldest_commit": "04bb3a388efd6b873177b6b3bc650f9ebfd19ba6",
+  "oldest_commit_has_no_parents": true,
+  "github_author_logins": {
+    "simonvanieperen": 96,
+    "coderabbitai[bot]": 2
+  },
+  "github_committer_logins": {
+    "web-flow": 97,
+    "simonvanieperen": 1
+  },
+  "coauthor_trailers_by_category": {
+    "ai_or_automation_label": 522,
+    "repository_owner_label": 44
+  },
+  "observations": [
+    "All 98 reachable main commit authors are linked either to the repository owner's GitHub account (96) or CodeRabbit's bot account (2).",
+    "The co-author names observed are owner labels or named AI/automation labels; no additional independent human author identity was observed in those trailers.",
+    "Git authorship, bot attribution, squashed co-author trailers, and merge activity are provenance evidence, not an assignment of copyright.",
+    "The repository's pre-publication CONTRIBUTING.md has no verified retrospective CLA/DCO or copyright-transfer record.",
+    "The owner's instruction supports preparing the scoped MPL candidate. It does not establish ownership of third-party contributions.",
+    "AI assistance is not a warranty of originality, non-infringement, or exclusive copyright. Account-specific provider terms and underlying prompts were not verified.",
+    "Other branches and historical PR refs are outside this authorship inventory; the proposed clean export does not inherit them."
+  ],
+  "redaction": "No personal author names, email addresses, account credentials, commit messages, or code bodies are included.",
+  "commits": [
+    {
+      "commit": "363b486b06023d3d578f8eca2b23ff49045a1757",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "6e429de98b5c692ccceaa12973818eecb1622062",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "5cf3d3fa17eed4005e5f97ce9ba6da84cbb3280d",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "9bc5f5270ffe2a8f4a214dd4d58c4290a4de6bec",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "d18aac4e8921cb95e91c7a4237b182297896248f",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "8ad1bcf1851db75ca28bf1b7e511a59722d80e73",
+      "github_author_login": "coderabbitai[bot]",
+      "github_committer_login": "web-flow",
+      "git_author_category": "ai_or_automation_label",
+      "coauthor_categories": [
+        "ai_or_automation_label",
+        "repository_owner_label"
+      ]
+    },
+    {
+      "commit": "6ad79506d1757338e0c60a059b385d7ed75028c8",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "5ae0757de82217ba0961ce580a6d7d530988fc5c",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "2c7edaf54a6a1f5836a9efe18ef6561209e73e11",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "bf84f7532e3a9e56aecb37b60f93265df12b62a7",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "e7f99d5939a52922f1c15127c8f54895634bdce8",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "2a00d75669e5039f47000f77f6a8aab5f644d39b",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "10f6ac74cab05b693777ec60740f9352f10cfe15",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "a61bb1dadfb47e82f362575d81a05fa220c837b0",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "cb3d169c02f76c0ae0aa312c63c0bc31d25efc79",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label",
+        "repository_owner_label"
+      ]
+    },
+    {
+      "commit": "c2c29c5f06d9aaf8f41055acdefc14a77cf8ef77",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "0256d5ca9ce9b101e7e56576c8ccda7cd6eb09c2",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label",
+        "repository_owner_label"
+      ]
+    },
+    {
+      "commit": "9bab3d7aeaac5983b46234f53d037df1acd15af8",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label",
+        "repository_owner_label"
+      ]
+    },
+    {
+      "commit": "d777df69704dc0732bd3819275facc52ce5e2fa6",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "79978df55ef02df324a7642c14c1b627501de009",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "1f5f249d0dbb211ac5f8cf98aee735f7ad169708",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "bce6cabc71184d90fc228fe2ae8215339ff7bf28",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "c0e02b79e69d167788e17f79e480eecdd749d453",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "7dd91fad6d341d0c7b66b885bbe8713d2020e1df",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "c7a61d1126caa346a128fba3004fe4add4ccff61",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "8bb153092e967aae314ecde35bcf963565a87ac7",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "a438201b1e1e77eb52af7c2ee86408daf31ca0e8",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "8a59804d5402d2018bc8854ba60eb8889c16ea5e",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "a5221444d8285250a497e0d72cbd3ab5b647fc16",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "508922ac9e5954a0a241f6bfed3f55707f1cbb6e",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "e120a97fdfa90a2cd4917267c8053aa7ca190f4d",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "681f1137e411d6c6fe536bd2bf499c27b34832be",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "6d523964ab85638d4dd981bcdb19580d18646fab",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "ab85d6339ce5bdddb10a2de171d0c1b04e4b62ff",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label",
+        "repository_owner_label"
+      ]
+    },
+    {
+      "commit": "d10b5cdaf56774a39e3ef10463f674c6188a463a",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "78ff7c03b015ad16fe665ae7df9fe239d078e08d",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "1c6872063fab055211eff48fce11496db39728be",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "95d7945110ce853a1b5827ec59f6115475691805",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "repository_owner_label",
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "d686bd54e766aed542e9918d1a37dcce434f18e2",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "5c66ec57aaf8eb411a83b8d6e42320ddc379383c",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "0e3b9e7f02ee7556e4b713fa58c9cd9e6b26a740",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "99d132768fd72276caa4a3b3e9a09f8f1909f0ed",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "d115cc96c19ac4371baed77409a23d1adddffaf0",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "69809c2cb53dfb3bd77abe5352892810fba6e82d",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "cbbc9c9941b08ea5edfbd3637d494635b4fb1df0",
+      "github_author_login": "coderabbitai[bot]",
+      "github_committer_login": "web-flow",
+      "git_author_category": "ai_or_automation_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "380111b68688c981eec6abb8fab29174a29f5601",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "74a34d05ef5591b782a0da9da34e4669910d0722",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "e08fb0e48c1bb0781e98357f588c2f73b6ae8500",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "c0b7147b601dd3d8fdfe266bf5fa1a74a4c93534",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "1833148958d668eaef64abb6206194074d2aadd1",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "484ac33d644a58f957a56fce2ab526802da81a50",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "c210366dd0f40c61c9f06f251bf525bebdbfbf90",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "d791a342cc3bdb107245692f2f542d88d5fda7f1",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "9a6703d339f9248fc58d470523644193ec92cd45",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "ca45a7dabe6a040921de03bdc2fad3e5045a75ba",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "94c8908ee363d06a5be51417c5cae635549d566f",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "748e29b7455ca4213a6bf3ba3808c3097458263d",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label",
+        "repository_owner_label"
+      ]
+    },
+    {
+      "commit": "0ade8014c8179241dcfc68ea0ba8083664691240",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "f52dab50af281dab2c94ab2c9e31aaabd299246a",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label",
+        "repository_owner_label"
+      ]
+    },
+    {
+      "commit": "ad2b981fe1f2bcccb03cb776b2281d32529d2f00",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "5c334f9ac3100f1c0e503e4f0ac4353a4a35154e",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "970c7713e0c40adc50b4ae5ac665602b2d44d6c2",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "9f0173545ec0b0170a7e34d2d2ec618a9db0f3fb",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "6d3bbf0aab07bbcf9b36a9bd74d668adc22f9922",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "73ebc1e169b893eb5aba4b4f8ac06d7798136de3",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "383636193faedc65b80c748c5bc4df28676dc2d3",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "00e6af5db4d315d2536471ccbce1cb1f4cf14958",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "f63a0c1b56fdcd28e43579aa6e9c5a56e1e2cbdb",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "c92238b038088a59c28a496880ca878b34eda8f5",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "621eeaf3a9e736b9c8369b653d044a99eb73c162",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "8b603549c27e2d0c2247272de53b6fa713a4cb5e",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "092ee525316bae03091fdb7eb6e8c69bfdbb7558",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label"
+      ]
+    },
+    {
+      "commit": "78a96aed97d05d5847cebad6fdd09410de2decf1",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "6e12dcbbd4a37d404dd5a60bc2c8a8e32d2d187e",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "a47ddebacedd438a62c427d7cb8bd64589cb7fd6",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "b9c7cf8f4e1804f0333e8fba8862941190224155",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "a4b71ccf598353543b1c75d63b056e5d5933fa06",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "30879ffe295c4e73ff973006f8b789f94c210b21",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "357124d05c85a1d77cc1ac01fcc53f9c960b9898",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "ee0d59d03512eb18728878fbd149c8ed7500d9e7",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "7fb8c722fc853692251e26fcdcea0ed86954ef15",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "60752bb0e27cf270b03e137ad5ff8834323c88fb",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "51dc38ebe82ac3ace16a52a904ecfe59551210d1",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "87e4f04b8d2e5527f873d3815aebfb047eb68273",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "4c5ca27373df35e4bd801362c6e6bd8cae191df7",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "dbd9a89736023be6f04fb5c2c1a8f842f266134f",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "6c8fa6ae90d5b374ba7fd0a8f34ebb55b7faa145",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "34a0e9ce499f19ad6bd9bc4f3cc36d2c5682ed05",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "629788108e48c178cefad738eec48ab300383409",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "c75804ecc5e9e173cca38028f100ffa4b46d4b4d",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "5ba4da74a2ad091612b48e277acd0f02536f4c4b",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "391f02e9394cb96f37096c995dabcb7d624ba36b",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    },
+    {
+      "commit": "1f24f994bff1b2c7cb0a026b600c5c4948140cfe",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label",
+        "repository_owner_label"
+      ]
+    },
+    {
+      "commit": "5a58a7436d7903f45940a3be1c4e7edce236e6a7",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label",
+        "repository_owner_label"
+      ]
+    },
+    {
+      "commit": "9faa453d7789e32e7b185efdb0135abc646fca74",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "web-flow",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": [
+        "ai_or_automation_label",
+        "repository_owner_label"
+      ]
+    },
+    {
+      "commit": "04bb3a388efd6b873177b6b3bc650f9ebfd19ba6",
+      "github_author_login": "simonvanieperen",
+      "github_committer_login": "simonvanieperen",
+      "git_author_category": "repository_owner_label",
+      "coauthor_categories": []
+    }
+  ]
+}
+
