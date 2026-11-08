@@ -55,7 +55,7 @@ static mut RUNTIME: Runtime = Runtime {
     reset_acks: 0,
 };
 fn runtime() -> &'static mut Runtime {
-    // SAFETY: Single CPU, IF=0, permanent service stack. No borrow survives
+    // SAFETY: KERNEL held, IF=0, permanent service stack. No borrow survives
     // scheduling, a syscall return or re-entry; no raw user reference is stored.
     unsafe { &mut *ptr::addr_of_mut!(RUNTIME) }
 }
@@ -197,7 +197,7 @@ fn write(plans: &[Option<CopyPlan>; PARTS], bytes: &[u8]) {
             paging::physical(chunk.physical, |destination| {
                 for i in 0..n {
                     // SAFETY: The entire caller-owned writable range was validated
-                    // before any copy. One CPU, IF=0; mappings cannot change here.
+                    // before any copy. KERNEL held, IF=0; mappings cannot change here.
                     // Copies stop at actual frame length and preserve output tail.
                     unsafe {
                         destination

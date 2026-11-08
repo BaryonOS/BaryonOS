@@ -300,11 +300,15 @@ pub fn ap_rsp0(tables: *mut CpuTables, rsp0: u64) {
 }
 
 /// BSP-only, before any AP starts: supervisor interrupt gate for the SMP IPI
-/// (0xf0), spurious (0xff), shootdown (0xe0), timer (0xd0) or reschedule
-/// (0xe8) vector. Never a user-callable gate.
+/// (0xf0), spurious (0xff), shootdown (0xe0), timer (0xd0), reschedule
+/// (0xe8), or the PIC's clock IRQ0 (0x20) and spurious IRQ7 (0x27) vector
+/// (step 5c-2). Never a user-callable gate.
 #[cfg(feature = "native-smp")]
 pub fn smp_gate(vector: usize, address: u64) {
-    assert!(matches!(vector, 0xd0 | 0xe0 | 0xe8 | 0xf0 | 0xff));
+    assert!(matches!(
+        vector,
+        0x20 | 0x27 | 0xd0 | 0xe0 | 0xe8 | 0xf0 | 0xff
+    ));
     let gate = Gate {
         lo: address as u16,
         cs: 8,

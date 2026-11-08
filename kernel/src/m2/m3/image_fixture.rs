@@ -241,7 +241,7 @@ mod native {
     static mut OBSERVER: Observer = Observer::new();
 
     fn observer() -> &'static mut Observer {
-        // SAFETY: Current single CPU, IF=0 fixture callbacks. No accessor borrow
+        // SAFETY: KERNEL held, IF=0 fixture callbacks. No accessor borrow
         // crosses scheduling, IPC, another accessor or user execution.
         unsafe { &mut *ptr::addr_of_mut!(OBSERVER) }
     }

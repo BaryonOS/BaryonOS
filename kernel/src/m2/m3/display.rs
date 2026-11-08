@@ -20,7 +20,7 @@ static mut DISPLAY: Runtime = Runtime {
     denied: 0,
 };
 fn runtime() -> &'static mut Runtime {
-    // SAFETY: Single CPU/IF0; every borrow ends before return/scheduling, and
+    // SAFETY: KERNEL held, IF0; every borrow ends before return/scheduling, and
     // no user reference or user pointer is retained in this private state.
     unsafe { &mut *ptr::addr_of_mut!(DISPLAY) }
 }

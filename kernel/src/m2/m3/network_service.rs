@@ -18,7 +18,7 @@ static mut EVIDENCE: Evidence = Evidence {
     exits: [0; 3],
 };
 fn evidence() -> &'static mut Evidence {
-    // SAFETY: One CPU, IF=0; no borrow survives a scheduling point or cleanup.
+    // SAFETY: KERNEL held, IF=0; no borrow survives a scheduling point or cleanup.
     unsafe { &mut *ptr::addr_of_mut!(EVIDENCE) }
 }
 fn fail(reason: &[u8]) -> ! {

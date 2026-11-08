@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
-**Bron:** [`91e84b75`](https://github.com/simonvanieperen/nieuw-os/commit/91e84b752656f60e595743a757fcc8de5622812f) ·
-**Ontwikkelbranch:** `fix/k06-f8-swapgs`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06-auditbevinding F8: swapgs-discipline voor het per-CPU-GS-anker in alle IDT-stubs (ADR-076, GS-1..GS-10).
-41/100 blijft 41/100. De kritieke bevinding F8 is gerepareerd. Ring 3 kon GS_BASE kiezen, waarna IPI-stubs via gs:[0] naar gebruikersgeheugen schreven. Elke stub die GS gebruikt, doet nu swapgs op basis van de frame-CS met lfence. Een faulting iretq krijgt een fixup, en NMI/#DF/#MC zijn GS-vrij. Rood eerst (SMP:GS:HIJACK op de oude stubs), daarna lokaal native QEMU 21/21 SMP-gevallen, de M2-gate, K05 6/6 en native-fpu. Een statische lint borgt de lfence. Zie docs/verification/k06-f8-swapgs/. K06 blijft open: 5b-2, 5c-2, 5d-2, 5e, 5f en de overige auditpunten ontbreken; geen CI- of hardwarebewijs.
+**Bron:** [`5020b904`](https://github.com/simonvanieperen/nieuw-os/commit/5020b904b99c7e8f4974fc52269bf30cc0806ba5) ·
+**Ontwikkelbranch:** `feat/k06-5c2-bsp-timer`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5c-2: BSP-timer, PIT-klok, idle en reschedule-vlag op de BSP (ADR-080).
+41/100 blijft 41/100. De BSP krijgt dezelfde timer-, idle- en spinvensterregels als een AP (ADR-080): native-smp programmeert zelf de 8259 en PIT-kanaal 0 (IRQ0 alleen naar de BSP, monotone klok), de BSP krijgt 0xd0 met INV-5c-uitstel, irq_ready opent het lockvenster ook op de BSP, idle_halt is de enige sti;hlt;cli, 0xe8 telt apart en zet need_resched (een uitgestelde 0xe8 wisselt bij de release van de laatste lock) en de LAPIC/PIT-ratio wordt gekalibreerd tegen een vooraf vastgelegde band. Lokaal native QEMU: 28/28 SMP-gevallen over 23 profielen met SMP:CLOCK, SMP:BSP_PREEMPT, SMP:BSP_SPIN en SMP:IDLE, de controle test-smp-bsp-spin-irq-off (SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=0) en een rode mutant zonder release-hook; M2/M3, rtc 5/5 en K05 ongewijzigd groen. Zie docs/verification/k06-5c2-bsp-timer/. K06 blijft open: loom-model, 5e, 5d-2 en 5f ontbreken; ADOPTED wacht op een BSP-runqueue; geen CI- of hardwarebewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

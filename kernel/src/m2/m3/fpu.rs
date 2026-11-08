@@ -32,7 +32,7 @@ fn address(slot: usize) -> *mut u8 {
 }
 pub(super) fn clear(slot: usize) {
     let image = address(slot);
-    // SAFETY: One CPU, IF=0, owned permanent supervisor-only metadata. The user
+    // SAFETY: KERNEL held, IF=0, owned permanent supervisor-only metadata. The user
     // entry save has finished before cleanup; it cannot run during this wipe.
     unsafe { ptr::write_bytes(image, 0, 512) };
 }
@@ -51,7 +51,7 @@ pub(super) fn initialize(slot: usize) {
 pub(super) fn select(slot: usize) {
     let image = address(slot);
     assert_eq!(image as usize & 15, 0);
-    // SAFETY: IF=0, single-CPU. Set only a validated owned pointer; the terminal
+    // SAFETY: IF=0, KERNEL held. Set only a validated owned pointer; the terminal
     // assembly path restores this image AFTER all Rust and immediately before
     // pop/iret. Context was initialized or saved by actual FXSAVE64, so its
     // MXCSR is valid. No references to this image survive a user return.
@@ -94,7 +94,7 @@ pub(super) mod fixture {
         first_b_loops: 0,
     };
     fn evidence() -> &'static mut Evidence {
-        // SAFETY: This fixture runs only under the single-CPU IF=0 event loop.
+        // SAFETY: This fixture runs only under the KERNEL-held IF=0 event loop.
         unsafe { &mut *ptr::addr_of_mut!(EVIDENCE) }
     }
     fn require(ok: bool, why: &[u8]) {
@@ -230,7 +230,7 @@ pub(super) mod fixture {
                     .all(|x| *x == 0);
             require(zero, b"CONTEXT_WIPE");
             // SAFETY: IF=0, no user is live. Assembly cannot update either
-            // permanent single-CPU diagnostic counter during these reads.
+            // permanent diagnostic counter (KERNEL held) during these reads.
             let saves = unsafe { ptr::addr_of!(m3_fpu_saves).read() };
             // SAFETY: Same stopped-user/IF=0 counter ownership as above.
             let restores = unsafe { ptr::addr_of!(m3_fpu_restores).read() };
