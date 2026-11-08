@@ -1,0 +1,57 @@
+name: CI, build of testbewijs
+description: Een mislukte workflow, lokale build, testgate of ontbrekend bewijs onderzoeken
+title: "ci: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Houd testfalen, infrastructuurproblemen en ontbrekende artifacts apart.
+        Een uploadfout zegt niet dat de test zelf faalde; ontbrekend bewijs is geen geslaagde acceptatie.
+        Gebruik geschoonde logregels en synthetische gegevens. Kwetsbaarheden volgen
+        [SECURITY.md](https://github.com/simonvanieperen/nieuw-os/blob/main/SECURITY.md).
+  - type: input
+    id: source
+    attributes:
+      label: Broncommit en PR
+      description: De daadwerkelijk geteste SHA en eventuele PR; niet alleen de branchnaam.
+    validations:
+      required: true
+  - type: textarea
+    id: run
+    attributes:
+      label: Workflow, job en run
+      description: Link naar de run/job en naam van de falende stap. Bij lokaal werk het exacte commando en featureprofiel.
+    validations:
+      required: true
+  - type: dropdown
+    id: failure_stage
+    attributes:
+      label: Waar stopt de uitvoering?
+      options:
+        - Wachtrij of runnerstart
+        - Toolchain, dependencies of build
+        - Test of assertion
+        - Timeout of vastloper
+        - Artifact-upload, opslag of ophalen van bewijs
+        - Nog onbekend
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Werkelijk resultaat
+      description: Exacte foutmelding en exitstatus. Welke tests zijn gestart, afgerond of niet uitgevoerd? Vermeld het onderscheid tussen hosttest, native VM-test en fysieke proef.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Omgeving en reproductie
+      description: Runner/host, relevante toolversies en bij QEMU firmware, accelerator, vCPU's en RAM. Noem een herhaling of lokale reproductie, of schrijf niet uitgevoerd. Behoud dezelfde testgrenzen.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Beschikbaar of ontbrekend bewijs
+      description: Bereikbare geschoonde logs/rapporten, artifactnaam en hashes indien beschikbaar. Geef aan wat ontbreekt en welke eerdere run op dezelfde bron wel werkte; verwijder mislukte resultaten niet om de melding groen te maken.

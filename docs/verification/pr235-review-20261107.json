@@ -1,0 +1,52 @@
+{
+  "task": "PR #235 review and CI recovery",
+  "date": "2026-11-07",
+  "pull_request": "https://github.com/simonvanieperen/nieuw-os/pull/235",
+  "original_head": "bff194b51d51a9702ee9fb9ad4cf3de9580327fb",
+  "integrated_main": "9bc5f5270ffe2a8f4a214dd4d58c4290a4de6bec",
+  "source_file": "tools/test_milestones.py",
+  "source_sha256": "3d6c0bf9c91469fdbb5b3a513c04270f047d44fcd2e5d9f82e10b57f2119184a",
+  "original_source_sha256": "c12422c6c9989f48acf09ebe8131a392a77d7ed4c8f564f13cb5663296d09de9",
+  "checks": [
+    {
+      "check": "Python compile(source, filename, exec)",
+      "status": "passed"
+    },
+    {
+      "check": "AST equality after removing the two newly added top-level function docstrings",
+      "status": "passed"
+    },
+    {
+      "check": "Rubric unchanged outside assessment; accepted score 41/100",
+      "status": "passed"
+    },
+    {
+      "command": "python3 tools/progress.py --write",
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 tools/progress.py --check",
+      "status": "passed",
+      "exit_code": 0
+    }
+  ],
+  "review": "De vier bestaande BUILD-padwijzigingen komen overeen met de builder en run_logged. Een tweede AI-bronreview vond geen blocker; dit is geen menselijke audit.",
+  "not_run": [
+    "Rust build/test",
+    "QEMU/OVMF milestone M2-M4 gate"
+  ],
+  "reason_not_run": "Deze uitvoeromgeving bevat geen Cargo of QEMU. De native run in de oorspronkelijke PR-beschrijving is historische auteursrapportage, niet hier opnieuw uitgevoerd.",
+  "ci": {
+    "status": "pending_new_head",
+    "required_checks": [
+      "host-quality",
+      "qemu-smoke"
+    ],
+    "policy": "Behoud de bestaande branchregels; geen bypass, geen synthetische checkresultaten."
+  },
+  "progress": {
+    "before": 41,
+    "after": 41
+  }
+}

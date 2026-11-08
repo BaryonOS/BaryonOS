@@ -3,6 +3,7 @@ name: B03 signed updates acceptance
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore: ['docs/**', '*.md']
   push:
     branches: [main]
 
@@ -16,7 +17,7 @@ concurrency:
 jobs:
   b03-native-update:
     name: b03-native-update
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, unraid, build]
     timeout-minutes: 60
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
@@ -32,8 +33,7 @@ jobs:
           rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
       - name: Disposable QEMU and OVMF
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+          dpkg -s qemu-system-x86 ovmf >/dev/null 2>&1 || { echo "::warning::ontbreekt in runner-image: qemu-system-x86 ovmf"; sudo apt-get update; sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf; }
       - name: Strict preflight
         run: python3 -B tools/preflight.py --strict
       - name: Fetch locked SDK dependencies before offline native builds
@@ -44,6 +44,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
+          retention-days: 3
           name: b03-update-reports
           path: |
             build/update-gate.json
