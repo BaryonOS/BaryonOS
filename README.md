@@ -1,8 +1,8 @@
-# Nieuw OS — eigen kernel, sessieroute en bureaublad
+# Baryon OS — eigen kernel, sessieroute en bureaublad
 
 ## Project in het kort
 
-Nieuw OS is een onderzoeksproject voor een zelfstandig besturingssysteem met
+Baryon OS is een onderzoeksproject voor een zelfstandig besturingssysteem met
 een eigen x86_64-kernel en een eigen productervaring rond documenten en
 collecties: **Materiaal**. Het is geen Linux-distributie en gebruikt geen
 bestaande OS-kernel als basis. Veiligheid en privacy steunen onder meer op
@@ -46,6 +46,41 @@ bronmateriaal worden in de afzonderlijke licentiecontrole beoordeeld.
 De repository is openbaar. De licentiecontrole en productacceptatie blijven
 afzonderlijke trajecten; openbare broncode is geen voltooide productrelease.
 
+## Waarom de naam Baryon OS?
+
+Baryon OS ontleent zijn naam aan **baryonen**: samengestelde deeltjes zoals
+protonen en neutronen, de bouwstenen van atoomkernen. Gewone baryonen worden
+in het quarkmodel beschreven met drie valentiequarks, gebonden door de sterke
+wisselwerking. Die samenhang vormt de inspiratie voor de naam
+(CERN, z.d.; CMS Collaboration, 2022).
+
+- **Samenhang door modulariteit.** Een kleine eigen kernel, afzonderlijke
+  systeemdiensten en een eigen gebruikersomgeving vormen samen het OS.
+  Het drietal valentiequarks is een metafoor voor die samenhang; deze functionele
+  driedeling zegt niets over het aantal processorringen.
+- **Een zorgvuldig opgebouwde basis.** De microkernelrichting houdt de
+  vertrouwde kern beperkt. Systeemdiensten draaien zoveel mogelijk als
+  geïsoleerde processen buiten de kernel, met expliciete bevoegdheden.
+  Het doel is fouten te begrenzen en herstel beheersbaar te maken.
+  Welke uitval kan worden opgevangen, hangt af van de implementatie,
+  onderlinge afhankelijkheden en hardwaretoegang.
+- **Vernieuwing door onderzoek.** Onderzoek naar moeilijk waarneembare
+  baryonische materie blijft nieuwe kennis opleveren, zoals metingen aan
+  heet gas tussen clusters van sterrenstelsels (European Space Agency, 2025).
+  Voor Baryon OS staat die onderzoekende houding voor zelfstandig ontwerpen,
+  meten en verbeteren.
+
+Stabiliteit, veiligheid en prestaties zijn toetsbare ontwikkeldoelen.
+De [projectstatus](docs/PROJECT-STATE.md) beschrijft wat daadwerkelijk is
+geïmplementeerd en getest; de [teststrategie](docs/TEST-STRATEGY.md) legt de
+bewijsgrenzen vast.
+
+**Bronnen bij de naam**
+
+- CERN. (z.d.). [*Hadron*](https://opendata.cern.ch/glossary/Hadron). CERN Open Data Portal.
+- CMS Collaboration. (2022, 13 juni). [*How are the quarks moving?*](https://cms.cern/news/how-are-quarks-moving). CERN.
+- European Space Agency. (2025, 19 juni). [*“The models were right”: Astronomers find ‘missing’ matter*](https://www.esa.int/Science_Exploration/Space_Science/XMM-Newton/The_models_were_right_astronomers_find_missing_matter).
+
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
@@ -78,10 +113,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-08 · **Rubric:** v1 ·
-**Bron:** [`8c8b5283`](https://github.com/simonvanieperen/nieuw-os/commit/8c8b528306f9d0e474c6b5d338cead904564c2df) ·
-**Ontwikkelbranch:** `ci/materiaal-boot-diagnostics-20261108`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Runneropruiming en herstel van de incrementele Materiaal-bootparser.
-41/100 blijft 41/100. De hosted hoofd-CI slaagt op main 8c8b5283. Oude main-runs zijn vervangen en de ingehaalde PR #251 is gesloten. De Materiaal-proef op 1f3e7b6a toonde een parsermismatch met twee verwachte bootdiagnoses. Deze working tree vereist het exacte diagnostiekpaar in de incrementele grammatica; verkeerde, ontbrekende, dubbele en misplaatste meldingen blijven fouten. Brongebonden controles staan in docs/verification/materiaal-boot-parser-20261108/. Nieuwe native Materiaal-acceptatie blijft afzonderlijk te toetsen; geen productcriterium of gewicht gewijzigd.
+**Bron:** [`4c7147da`](https://github.com/simonvanieperen/nieuw-os/commit/4c7147dae955cbf1ba44d91258ef451b96169f72) ·
+**Ontwikkelbranch:** `docs/baryon-name-20261108`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Naamverklaring Baryon OS op primaire bronnen controleren en in README opnemen.
+De README gebruikt Baryon OS en licht de naam toe met primaire natuurkundige bronnen en begrensde architectuurclaims. Alleen documentatie en assessment gewijzigd; geen runtimecode, acceptatiecriterium, gewicht of nieuw native bewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -317,7 +352,7 @@ De oudere M5-leesproef blijft selecteerbaar via `python tools/build.py --kernel-
 
 ## Projectrichting en verder lezen
 
-Nieuw OS bouwt een eigen Rust-kernel met expliciete bevoegdheden en afzonderlijke
+Baryon OS bouwt een eigen Rust-kernel met expliciete bevoegdheden en afzonderlijke
 systeemdiensten, plus een oorspronkelijke productervaring: **Materiaal**.
 Documenten en collecties staan centraal; apps zijn verwisselbare gereedschappen.
 De eigen kernel is geen fork van een bestaand besturingssysteem. Rust/LLVM,

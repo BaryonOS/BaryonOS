@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-08",
-    "source_commit": "8c8b528306f9d0e474c6b5d338cead904564c2df",
+    "source_commit": "4c7147dae955cbf1ba44d91258ef451b96169f72",
     "assessment_basis": "working_tree",
-    "branch": "ci/materiaal-boot-diagnostics-20261108",
-    "task": "Runneropruiming en herstel van de incrementele Materiaal-bootparser",
+    "branch": "docs/baryon-name-20261108",
+    "task": "Naamverklaring Baryon OS op primaire bronnen controleren en in README opnemen",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. De hosted hoofd-CI slaagt op main 8c8b5283. Oude main-runs zijn vervangen en de ingehaalde PR #251 is gesloten. De Materiaal-proef op 1f3e7b6a toonde een parsermismatch met twee verwachte bootdiagnoses. Deze working tree vereist het exacte diagnostiekpaar in de incrementele grammatica; verkeerde, ontbrekende, dubbele en misplaatste meldingen blijven fouten. Brongebonden controles staan in docs/verification/materiaal-boot-parser-20261108/. Nieuwe native Materiaal-acceptatie blijft afzonderlijk te toetsen; geen productcriterium of gewicht gewijzigd."
+    "summary": "De README gebruikt Baryon OS en licht de naam toe met primaire natuurkundige bronnen en begrensde architectuurclaims. Alleen documentatie en assessment gewijzigd; geen runtimecode, acceptatiecriterium, gewicht of nieuw native bewijs."
   },
   "tracks": [
     {

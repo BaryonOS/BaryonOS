@@ -1,6 +1,31 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Materiaal-bootparser na runnerherstel — 8 november 2026
+## NEXT AGENT HANDOFF — Naamverklaring Baryon OS — 8 november 2026
+
+**Bron en scope:** working tree op main `4c7147dae955cbf1ba44d91258ef451b96169f72`,
+branch `docs/baryon-name-20261108`. De README gebruikt Baryon OS als projectnaam
+met een gecontroleerde verklaring. De bestaande repositorynaam en technische
+identifiers blijven behouden. Dit is documentatie, geen nieuwe OS-functionaliteit.
+
+**Inhoud:** een baryon is een samengesteld deeltje; gewone baryonen worden
+beschreven met drie valentiequarks. De drie functionele hoofdlagen zijn een
+naammetafoor, geen drie processorringen. Isolatie en beperkte bevoegdheden
+zijn ontwerpkeuzes; prestaties en herstel vragen afgebakend bewijs. De
+README verwijst naar CERN/CMS en ESA. Het besluit staat in
+[ADR-BARYON-NAME-20261108](DECISIONS.md#adr-baryon-name-20261108--naamverklaring-in-de-readme).
+
+**Controle en grens:** `python3 tools/progress.py --write`,
+`python3 tools/progress.py --check` en `git diff --check` slagen.
+De criteria en gewichten zijn behouden: **41 → 41/100**. Geen nieuwe
+Rust-, QEMU- of fysieke-hardwaretests voor deze documentatiewijziging.
+
+**Hervatten:** controleer de actuele PR-head, vereiste CI en reviewbevindingen.
+Het technische vervolg uit het checkpoint hieronder blijft open: beoordeel
+de aparte native Materiaal-proef op haar eigen bron. Naamgeving levert geen
+nieuw bewijs voor die gate. Eerste lokale documentatiecontrole:
+`python3 tools/progress.py --check`.
+
+## Historisch checkpoint — Materiaal-bootparser na runnerherstel — 8 november 2026
 
 **Bron:** working tree op main `8c8b528306f9d0e474c6b5d338cead904564c2df`,
 branch `ci/materiaal-boot-diagnostics-20261108`. PR #249 en #261 zijn
