@@ -13,11 +13,17 @@
     "original_main_blobs_verified": 6524,
     "overlay_blobs_verified": 45,
     "new_main_documentation_blobs_verified": 8,
-    "preserved_product_files_byte_equal": 1685
+    "preserved_product_files_byte_equal": 1685,
+    "executable_modes_preserved_from_git": [
+      "sdk/examples/keyring/build.py",
+      "sdk/examples/supervisor/build.py",
+      "services/net-tls/verification/qemu-diagnostic-wrapper.txt",
+      "tools/test_resource_pressure.py"
+    ]
   },
   "files_before_this_manifest": 6467,
   "bytes_before_this_manifest": 49780414,
-  "tree_digest_excluding_this_manifest": "f37f02fb972c685381c0eae1867c13acb449fb9ec1ccbec5dce1fecdf80b2a5e",
+  "tree_digest_excluding_this_manifest": "2752d0a1893092fcdd96382ae4a88ae9e17cdc726781ce8306583ce00208e59c",
   "tree_digest_format": "SHA256 of sorted UTF-8 records: mode + space + path + NUL + Git-blob-SHA1 + LF",
   "excluded_from_digest": [
     "docs/verification/publication-final-20261108.json"
