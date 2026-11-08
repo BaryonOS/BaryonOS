@@ -3,6 +3,7 @@ name: Native CMOS RTC acceptance
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore: ['docs/**', '*.md']
   push:
     branches: [main]
 
@@ -19,7 +20,7 @@ defaults:
 
 jobs:
   native-rtc:
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, unraid, build]
     timeout-minutes: 15
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
@@ -36,8 +37,7 @@ jobs:
       - name: Pinned Rust and emulator
         run: |
           rustup toolchain install 1.90.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+          dpkg -s qemu-system-x86 ovmf >/dev/null 2>&1 || { echo "::warning::ontbreekt in runner-image: qemu-system-x86 ovmf"; sudo apt-get update; sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf; }
           mkdir -p "$NOS_BUILD_DIR/logs"
       - name: Host oracles, RTC codec and formatting
         run: |
@@ -58,4 +58,4 @@ jobs:
           name: native-rtc-evidence
           path: build/rtc-native/
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 3

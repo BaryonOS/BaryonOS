@@ -472,7 +472,20 @@ impl<'a> Stack<'a> {
     pub fn can_receive_frame(&self) -> bool {
         self.device.can_receive()
     }
+    /// IPv4 not link-unicast to our configured address is dropped as `Ok`:
+    /// smoltcp 0.14 answers such TCP/UDP with RST/ICMP sourced from the
+    /// broadcast or foreign address (reflection, RFC 1122 3.2.2). This client
+    /// engine has no other legitimate IPv4 ingress; ARP is not IPv4.
     pub fn push_frame(&mut self, frame: &[u8]) -> Result<(), Error> {
+        if (14..=FRAME_BYTES).contains(&frame.len()) && frame[12..14] == [8, 0] {
+            let to_us = frame
+                .get(30..34)
+                .zip(self.configuration)
+                .is_some_and(|(dst, address)| dst == address.ipv4);
+            if frame[0] & 1 != 0 || !to_us {
+                return Ok(());
+            }
+        }
         self.device.push(frame)
     }
     pub fn transmission(&self) -> Option<Transmission<'_>> {
