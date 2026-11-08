@@ -1,5 +1,10 @@
 # Ontwerpbesluiten
 
+**Projecteigenaar:** Simon van Ieperen.
+De ik-vorm bij persoonlijke besluiten, opdrachten en bevoegdheden verwijst
+in dit document naar de projecteigenaar. Broncitaten behouden hun
+oorspronkelijke spreker.
+
 ## ADR-074 — Ticketlock, irqsave en lockdep per CPU (K06 stap 5a)
 
 6 november 2026; alleen in `native-smp`. Dit is de eerste stap naar een
@@ -252,7 +257,7 @@ productprofiel; K06 blijft open.
 **Uitgevoerd testbewijs:** `docs/verification/k06-smp-bringup/README.md`.
 ## ADR-SESSION-20261102 — herkenbare bediening en expliciete VM-sessiegrens
 
-De huidige gebruikersopdracht kiest herkenbare sessie-, zoek-, status- en
+De huidige projectopdracht vereist herkenbare sessie-, zoek-, status- en
 vensterbediening rond Materiaal. Een eigen productidentiteit verbiedt geen
 bekende conventies. De nieuwe `native-session-route` blijft een openbare,
 geïsoleerde VM-proef: persoonlijke credentials worden niet verzameld zolang
@@ -381,8 +386,8 @@ Details en begrensd vervolg: [PRODUCT-SPEC.md](implementation/PRODUCT-SPEC.md).
 <a id="adr-056--herkenbare-sessieroute-met-expliciete-vm-bewijsgrens"></a>
 ## ADR-063 — herkenbare sessieroute met expliciete VM-bewijsgrens
 
-2 november 2026. De gebruikersopdracht vraagt bekende stappen uit macOS,
-Windows en Linux binnen de eigen architectuur. Accountkeuze, credentialinvoer,
+2 november 2026. De sessieroute moet de bekende stappen uit macOS,
+Windows en Linux volgen, binnen de eigen architectuur. Accountkeuze, credentialinvoer,
 verificatie, sessieactivatie en desktop worden afzonderlijke toestanden.
 Een app-lokale UI of een wachtwoordvergelijking in de renderer verleent geen
 kernelrechten. Alleen een toekomstige geauthenticeerde auth-/sessiebroker mag
@@ -410,8 +415,8 @@ en [hardwareonderzoek](implementation/VM-HARDWARE-AND-PERFORMANCE.md).
 
 30 oktober 2026; vastlegging van de operationele besluiten uit PR #75.
 Dit beschrijft de toen geregistreerde rollen en overdrachten, geen bewezen
-identiteit van huidige sessies. Actuele expliciete opdrachten van Simon gaan
-vóór routineafspraken tussen agents. Zijn huidige opdracht om issues en pull
+identiteit van huidige sessies. Mijn actuele expliciete opdrachten gaan
+vóór routineafspraken tussen agents. Mijn huidige opdracht om issues en pull
 requests op te lossen en geschikt werk te squash-mergen geeft het
 integratiemandaat; actuele broncontrole, repositoryregels en relevante gates
 blijven gelden. Dit besluit kondigt geen nieuwe mergepauze of vrijgave af.
@@ -430,7 +435,7 @@ blijven gelden. Dit besluit kondigt geen nieuwe mergepauze of vrijgave af.
   Gevolg: één operationele integrator binnen de overgedragen scope; actuele
   head/base/gates opnieuw controleren bij iedere integratiemutatie en bestaand
   werk inhoudsbehoudend verenigen. Een accountnaam of verstreken tijd bewijst
-  geen sessie-identiteit of overdracht. Herzien bij een nieuw gebruikersmandaat,
+  geen sessie-identiteit of overdracht. Herzien bij een nieuw mandaat van mij,
   een aantoonbare tweede schrijver of een gewijzigde inhoudelijke scope.
   De afzonderlijke incident-/pauzeregistratie in de bron wordt hier bewaard
   als historische status, niet opnieuw uitgevaardigd. [OP1] [OP2]
@@ -460,7 +465,7 @@ blijven gelden. Dit besluit kondigt geen nieuwe mergepauze of vrijgave af.
 
 ## ADR-058 — Herkenbare consumentenbediening op de eigen kernel
 
-**Datum/status:** 30 oktober 2026; gebruikersbesluit van Simon, vastgelegd
+**Datum/status:** 30 oktober 2026; mijn projectbesluit, vastgelegd
 in PR #114. Leidend boven de eerdere eisen dat het hoofdscherm geen
 bestaande desktop mag nabootsen en dat er geen dock of taakbalk komt
 (PRODUCT-SPEC §1 en §5, het verbod op interactioneel nabouwen in
@@ -501,7 +506,7 @@ het bekende pad, nooit een vervanging ervan.
   en [DESKTOP-SHELL.md](implementation/DESKTOP-SHELL.md).
 
 **Herzien** na gebruikersproeven (U06) die aantonen dat een conventie voor de
-doelgroep slechter werkt, of bij een nieuw expliciet besluit van Simon.
+doelgroep slechter werkt, of wanneer ik expliciet een ander besluit neem.
 Rollback: dit ADR intrekken en de eerdere teksten weer leidend maken.
 
 # ADR-054 — Gedeeld immutable artifact-storecontract
@@ -602,7 +607,7 @@ De verificatiekern ontvangt bij elke verificatie een expliciete `SourceId` en
 verwachte bron-generatie; de appbundel kiest nooit zelf haar trust anchor.
 Keyrotatie en intrekking zijn compare-and-swap-operaties op die generatie.
 Intrekking blokkeert nieuwe pakketverificaties/updates maar verwijdert of
-blokkeert reeds geïnstalleerde apps niet; Simon koos dat gedrag expliciet.
+blokkeert reeds geïnstalleerde apps niet; dit is mijn expliciete keuze.
 Verwijdering van apps/data is een afzonderlijke gebruikershandeling.
 
 `SourceRegistry` is momenteel een vaste in-memory kern van acht slots.
@@ -849,8 +854,8 @@ parallelle mutaties, nieuwe I/O-foutmodellen of andere hardware.
 
 ## ADR-032 — Vaste 100-puntenroadmap met verplichte herbeoordeling
 
-**Datum/status/eigenaar:** 28 oktober 2026; aanvaard en uitgevoerd op expliciete
-gebruikersopdracht. De hoofdagent bezit de gedeelde voortgangsbestanden.
+**Datum/status/eigenaar:** 28 oktober 2026; aanvaard en uitgevoerd op mijn expliciete
+opdracht. De hoofdagent bezit de gedeelde voortgangsbestanden.
 
 **Besluit:** `docs/progress.json` bevat vaste, binaire acceptatiecriteria met
 gewichten die samen 100 vormen. De generator maakt de README, criteriatabel
@@ -933,9 +938,9 @@ bare-metal targetdocumentatie in het M6c-contract. Dit is een projectbesluit.
 
 ## ADR-027 — Internet en versleutelde persoonlijke NAS-ruimte
 
-**Datum/status:** 27 oktober 2026; aanvaard op expliciete gebruikersopdracht, met geteste hostproef N01 en browsermock. Native integratie staat open. **Eigenaar:** hoofdagent voor contract/integratie; afzonderlijke service- en productbuilders.
+**Datum/status:** 27 oktober 2026; aanvaard op mijn expliciete opdracht, met geteste hostproef N01 en browsermock. Native integratie staat open. **Eigenaar:** hoofdagent voor contract/integratie; afzonderlijke service- en productbuilders.
 
-**Context:** de gebruiker wil internet, een NAS-rol binnen hetzelfde OS en opslagruimte aanbieden aan vrienden/familie. De host moet zijn ruimte kunnen terugnemen zonder toestemming van de gast, terwijl de inhoud voor hem versleuteld blijft. Dit herziet ADR-006 en de eerdere beperking tot eigen NAS/eigen LAN.
+**Context:** ik wil internet, een NAS-rol binnen hetzelfde OS en de mogelijkheid om opslagruimte aan vrienden en familie aan te bieden. De host moet zijn ruimte kunnen terugnemen zonder toestemming van de gast, terwijl de inhoud voor hem versleuteld blijft. Dit herziet ADR-006 en de eerdere beperking tot eigen NAS/eigen LAN.
 
 **Alternatieven:** alleen eigen LAN handhaven voldoet niet aan de nieuwe opdracht; een leverancierscloud of beheerderssleutel voor gastinhoud schendt de privacygrens; gastconsent als vereiste voor verwijderen ontneemt de hardware-eigenaar zijn beheerrecht.
 
@@ -949,21 +954,21 @@ bare-metal targetdocumentatie in het M6c-contract. Dit is een projectbesluit.
 
 **Bronnen:** Node.js v24.22.1 Crypto (https://nodejs.org/docs/latest-v24.x/api/crypto.html), RFC 8446 (https://www.rfc-editor.org/rfc/rfc8446.html) en NIST SP 800-207 (https://doi.org/10.6028/NIST.SP.800-207), geraadpleegd 27 oktober 2026. Functionele keuze en adminverwijderrecht zijn projectbesluiten. Exact contract: implementation/NAS-SHARING-AND-INTERNET.md en LOCAL-PRIVACY-CONTRACT.md revisie 3.
 
-**Migratie/rollback/herziening:** geen bestaande echte NAS, router, kernel-ABI of M6a-image wordt gewijzigd. Bewaar oudere M1–M6a-resultaten. N01 kan als afzonderlijke featurecommit worden teruggedraaid; geen destructieve reset van gebruikerswerk. Herzie bij bewijs van key-/nonceproblemen, multi-writerintegratie, andere transport-/opslaglaag of een nieuwe gebruikersinstructie. Oude LAN-only teksten zijn op de actieve leesroutes bijgewerkt.
+**Migratie/rollback/herziening:** geen bestaande echte NAS, router, kernel-ABI of M6a-image wordt gewijzigd. Bewaar oudere M1–M6a-resultaten. N01 kan als afzonderlijke featurecommit worden teruggedraaid; geen destructieve reset van gebruikerswerk. Herzie bij bewijs van key-/nonceproblemen, multi-writerintegratie, andere transport-/opslaglaag of een nieuwe instructie van mij. Oude LAN-only teksten zijn op de actieve leesroutes bijgewerkt.
 De oorspronkelijke revisie-5-principes hieronder zijn behouden als projectbesluiten. Uitvoeringsbesluiten vanaf ADR-019 beschrijven de gebouwde richting; actuele M1–M5-testuitkomsten en grenzen staan in PROJECT-STATE.md.
 
 | ID | Besluit | Reden | Herzien als |
 |---|---|---|---|
-| ADR-001 | Eigen kernel; geen bestaande kernel als basis | Expliciete gebruikerswens | Simon bewust de projectscope verandert |
+| ADR-001 | Eigen kernel; geen bestaande kernel als basis | Mijn expliciete projectkeuze | Ik de projectscope bewust verander |
 | ADR-002 | Rust no_std + minimaal assembly | Kleine expliciete onveilige grens | Target/tooling dit aantoonbaar verhindert |
 | ADR-003 | x86_64 QEMU q35, UEFI, software-emulatie baseline | Controleerbare eerste testomgeving | Praktische toolchainbeperking wordt aangetoond |
 | ADR-004 | Kleine capability-gebaseerde microkernel als richting | Autoriteit expliciet en TCB klein houden | Prototypes aantoonbare problemen met complexiteit/latency tonen |
 | ADR-005 | Standaarden en gecontroleerde bibliotheken toestaan | Zelf crypto/alle tools bouwen vergroot risico en scope | Herkomst/licentie/onderhoud onacceptabel is |
-| ADR-006, herzien door ADR-027 | Lokaal account, geen OS-telemetrie, lokale data of E2EE naar gekoppelde eigen/gedeelde persoonlijke NAS; internet per peer expliciet | Expliciete gebruikersuitbreiding 27 oktober 2026 | Alleen na expliciete gewijzigde gebruikersopdracht |
+| ADR-006, herzien door ADR-027 | Lokaal account, geen OS-telemetrie, lokale data of E2EE naar gekoppelde eigen/gedeelde persoonlijke NAS; internet per peer expliciet | Mijn expliciete uitbreiding, 27 oktober 2026 | Alleen nadat ik de opdracht expliciet wijzig |
 | ADR-007 | PQC-voorbereiding vanaf ontwerp; integratie pas met echte use case | Protocol- en sleutelmigratie voorkomen | Relevante standaarden/implementaties wijzigen |
 | ADR-008, herzien | Product-/interactieonderzoek parallel vanaf M0; echte systeemintegratie volgt bewezen kernfuncties | Originaliteit en hoogwaardige UX moeten het systeem mede sturen | Bijstelling op experimenten, geen stille reductie tot standaarddesktop |
 | ADR-009 | Geen kernelbrede claims over formeel bewijs | Eigen code erft geen seL4-bewijs | Afgebakend daadwerkelijk geverifieerd resultaat bestaat |
-| ADR-010 | AI-inferentie uitsluitend op apparaat; geen netwerkrecht of cloudfallback | Expliciete gebruikerscorrectie | Alleen na expliciete gewijzigde gebruikersopdracht |
+| ADR-010 | AI-inferentie uitsluitend op apparaat; geen netwerkrecht of cloudfallback | Mijn expliciete correctie | Alleen nadat ik de opdracht expliciet wijzig |
 | ADR-011 | Installeerbare derdenapps met gescheiden bestands-, NAS- en netwerkrechten | Toegankelijk ecosysteem zonder impliciet vertrouwen | Acceptatietests tonen ontbrekende grens |
 | ADR-012 | Quantum als derde onderzoeksspoor vanaf M0: PQC, lokale QPU-uitvoering en hybride systeemport | Oorspronkelijke ambitie expliciet behouden | Bijstelling alleen met onderbouwd onderzoek; privacycontract blijft gelden |
 
@@ -989,7 +994,7 @@ ID, datum, status, context, alternatieven, besluit, onderbouwing/bronnen, gevolg
 
 **ADR-021 — Statische GOT in .data.** De compiler produceert vijf statisch opgeloste pointers. Die staan expliciet in de bestaande RW-.data-outputsectie; er komt geen runtime-relocatieverwerker of extra segment. De buildinspectie blijft dynamische metadata, relocaties en onbekende allocatable secties weigeren. De drie ELF-laadsegmenten en hashes staan in docs/verification/boot-manifest.json. M1 controleert segmentintentie; echte W^X-afdwinging blijft M2.
 
-**ADR-022 — Voortgang per stap naar GitHub.** De gebruiker wil het project bij verbruikslimieten volledig kunnen hervatten. Broncode, lockfiles, compacte bewijsrapporten en open punten gaan daarom na elke afgebakende stap en vóór lange controles naar de privéwerkbranch. Een checkpoint mag onvoltooide controles bevatten mits expliciet gemarkeerd. Codespaces is niet vereist voor deze bewaarroutine; een Codespace is niet gestart. Main blijft de startspecificatie totdat de concept-PR is beoordeeld.
+**ADR-022 — Voortgang per stap naar GitHub.** Het project moet bij verbruikslimieten volledig te hervatten zijn. Broncode, lockfiles, compacte bewijsrapporten en open punten gaan daarom na elke afgebakende stap en vóór lange controles naar de privéwerkbranch. Een checkpoint mag onvoltooide controles bevatten mits expliciet gemarkeerd. Codespaces is niet vereist voor deze bewaarroutine; een Codespace is niet gestart. Main blijft de startspecificatie totdat de concept-PR is beoordeeld.
 
 **ADR-023 — Alleen WB-capabele normale ConventionalMemory, cachebits gecombineerd.** De eerste M2-run faalde vóór KS-02 doordat OVMF `0x0f` meldt en de allocator uitsluitend exact WB accepteerde. UEFI-attributen beschrijven mogelijkheden; UC/WC/WT/WB mogen samen voorkomen. De allocator vereist WB, staat uitsluitend deze vier cachebits toe en weigert overige/bijzondere attributen. Bron: TianoCore/EDK II, `edk2-stable202508`, [UefiSpec.h, EFI_MEMORY_DESCRIPTOR en cachebits](https://github.com/tianocore/edk2/blob/edk2-stable202508/MdePkg/Include/Uefi/UefiSpec.h), gecontroleerd 27 oktober 2026. De huidige package is daarmee niet als exact die firmwareversie geïdentificeerd. Regressie test zowel `0x0f` als geweigerde special/unknown-bits; echte M2-poort slaagt. Andere platformprofielen vereisen opnieuw beoordeling van geheugenattributen; geen stil reclaim van Loader/BootServices/runtime/ACPI-geheugen.
 
@@ -1157,8 +1162,8 @@ datamigratie in deze documentatiestap.
 **Datum/status/eigenaar:** 28 oktober 2026; aanvaard architectuurdoel, nog geen
 native provideradapter. Opslag-/securityeigenaar beheert formaat en keygrens.
 
-**Context:** de eerdere revisie verbood leverancierscloud volledig. De gebruiker
-wil desgewenst bestaande algemene opslag zoals OneDrive/Google Drive kunnen
+**Context:** de eerdere revisie verbood leverancierscloud volledig. Ik wil
+desgewenst bestaande algemene opslag zoals OneDrive en Google Drive kunnen
 benutten zonder die provider leesrecht op de opgeslagen inhoud te geven.
 
 **Alternatieven:** absolute provideruitsluiting beperkt keuze; provider-native
@@ -1221,7 +1226,7 @@ nog niet native afgedwongen.
 
 **Context:** begrijpelijke voorbeelden en kritische vragen kunnen privacykeuzes
 duidelijker maken, maar herhaalde waarschuwingen kunnen de ervaring verstoren.
-De gebruiker wil die privacy-popups volledig kunnen uitschakelen.
+Educatieve privacyuitleg moet volledig uit te schakelen zijn.
 
 **Besluit:** de UI scheidt (a) noodzakelijke beslissingen over nieuwe
 capabilities van (b) educatieve privacyuitleg. Educatieve uitleg kan globaal
@@ -1981,7 +1986,7 @@ regressie werkelijk slagen. Geen authenticatie-, encryptie- of hardwareclaim.
 
 Status: runnerkeuze vervangen door ADR-CI-HOSTED-20261108; overige afspraken
 over artifacts en verplichte checks blijven gelden. Oorspronkelijk aangenomen
-op 6 november 2026 (opdracht Simon, PR #241).
+op 6 november 2026 (mijn opdracht, PR #241).
 
 **Besluit:**
 - Elke workflowjob draait op `[self-hosted, Linux, X64, unraid, build]`.
@@ -2006,7 +2011,7 @@ op 6 november 2026 (opdracht Simon, PR #241).
 
 ## ADR-CI-HOSTED-20261108 — Standaard GitHub-hosted Ubuntu-runners
 
-Status: aangenomen, 8 november 2026, op expliciete opdracht van Simon om de
+Status: aangenomen, 8 november 2026, op mijn expliciete opdracht om de
 workflows van self-hosted naar GitHub-hosted runners om te zetten.
 
 **Besluit:** alle 24 jobdefinities in de 21 bestaande workflows gebruiken
@@ -2052,7 +2057,7 @@ migratie, zonder andere bronwijzigingen of branchregels aan te passen.
 
 ## ADR-CI-PINS-20261108 — Vaste tools voor reguliere hosted CI
 
-Status: aangenomen, 8 november 2026, op Simons vervolgopdracht. Dit besluit
+Status: aangenomen, 8 november 2026, op mijn vervolgopdracht. Dit besluit
 vult ADR-CI-HOSTED-20261108 aan en vervangt daar de losse installatie van
 ontbrekende emulatorpakketten. Het betreft 21 reguliere workflows; de
 later toegevoegde private publicatie-audit behoudt zijn afzonderlijke scope.
@@ -2084,8 +2089,8 @@ Bronnen, versies, uitvoering en herzieningsroute: [CI.md](CI.md),
 
 ## ADR-PUBLIC-DEVELOPMENT-20261108 — Openbare ontwikkeling met MPL-2.0 als controlebasis
 
-**Status:** aangenomen als projectrichting op 8 november 2026, op expliciete
-opdracht van Simon. Licentiecontrole en daadwerkelijke publicatie blijven open.
+**Status:** aangenomen als projectrichting op 8 november 2026, op mijn expliciete
+opdracht. Licentiecontrole en daadwerkelijke publicatie blijven open.
 
 **Besluit:** Nieuw OS kiest voor openbare ontwikkeling. Het bestaande
 [LICENSE-PLAN.md](../LICENSE-PLAN.md) blijft de basis voor de licentiecontrole,
@@ -2126,7 +2131,7 @@ vereisen. Een wijziging van de openbare projectrichting vraagt een nieuw
 expliciet projectbesluit. Het terugzetten van documentatie trekt reeds
 verleende rechten of verspreide kopieën niet automatisch in.
 
-**Bronnen:** de gebruikersopdracht van 8 november 2026; het bestaande
+**Bronnen:** mijn opdracht van 8 november 2026; het bestaande
 licentieplan; Mozilla's officiële MPL-2.0-tekst en FAQ, met volledige
 bronvermeldingen in [LICENSE-PLAN.md](../LICENSE-PLAN.md).
 
@@ -2136,7 +2141,7 @@ bronvermeldingen in [LICENSE-PLAN.md](../LICENSE-PLAN.md).
 in PR #251; opname in main volgt de bestaande checks en reviewregels.
 **Eigenaar:** Simon van Ieperen.
 
-**Datum:** 8 november 2026. Opdracht Simon: artifactopslag mag het bewaren
+**Datum:** 8 november 2026. Mijn opdracht: artifactopslag mag het bewaren
 van testbewijs en de workflow niet blijven blokkeren. Op main `363b486b`
 slagen de onderzochte native tests, maar upload-artifact weigert nieuwe
 archieven wegens quota. Drie dagen retentie was al ingesteld.

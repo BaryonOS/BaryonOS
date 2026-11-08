@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-08",
-    "source_commit": "8c8b528306f9d0e474c6b5d338cead904564c2df",
+    "source_commit": "4c7147dae955cbf1ba44d91258ef451b96169f72",
     "assessment_basis": "working_tree",
-    "branch": "ci/materiaal-boot-diagnostics-20261108",
-    "task": "Runneropruiming en herstel van de incrementele Materiaal-bootparser",
+    "branch": "docs/professionele-projectstem-20261108",
+    "task": "Projectdocumentatie redigeren naar een directe, professionele eigen stem",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. De hosted hoofd-CI slaagt op main 8c8b5283. Oude main-runs zijn vervangen en de ingehaalde PR #251 is gesloten. De Materiaal-proef op 1f3e7b6a toonde een parsermismatch met twee verwachte bootdiagnoses. Deze working tree vereist het exacte diagnostiekpaar in de incrementele grammatica; verkeerde, ontbrekende, dubbele en misplaatste meldingen blijven fouten. Brongebonden controles staan in docs/verification/materiaal-boot-parser-20261108/. Nieuwe native Materiaal-acceptatie blijft afzonderlijk te toetsen; geen productcriterium of gewicht gewijzigd."
+    "summary": "41/100 blijft 41/100. Projectdoelen, besluiten, instructies en verslagteksten zijn herschreven in directe projecttaal, met de ik-vorm voor persoonlijke keuzes en ervaringen. Technische contracten, productcriteria, gewichten, bewijsstatus en bronverwijzingen blijven behouden. Exacte historische bronkopieën, ruwe logs, auteursvermeldingen en technische namen blijven ongewijzigd. Deze redactie levert geen nieuwe OS-functionaliteit of productacceptatie op."
   },
   "tracks": [
     {

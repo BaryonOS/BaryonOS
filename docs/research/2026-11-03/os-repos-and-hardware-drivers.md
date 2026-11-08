@@ -4,7 +4,7 @@
 **Onderzochte Nieuw OS-basis:** `99d132768fd72276caa4a3b3e9a09f8f1909f0ed`
 **Status:** documentatieonderzoek en voorstel; geen architectuurbesluit, codeport of hardwaretest.
 
-Aanvulling na twee extra door de gebruiker genoemde repositories: Nieuw OS-bron
+Aanvulling na twee extra door mij aangedragen repositories: Nieuw OS-bron
 `9e13e7be17845e03256dd451de57419eb242e376` (3 november 2026).
 Aanvulling na de organisatieverwijzing `rust-osdev`: Nieuw OS-bron
 `47cc895b4de6bfde02f294399ebc777c67575d24` (3 november 2026).

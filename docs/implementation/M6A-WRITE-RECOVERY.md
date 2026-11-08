@@ -1,6 +1,6 @@
 # M6a — WRITE, FLUSH en herstel op wegwerpvolume
 
-27 oktober 2026. Gekozen bouwbasis v1 op `448974b` (M5), branch `codex/m6a-write-recovery`. Gebruikersopdracht: zelfstandig implementeren, werkelijk QEMU-testen en na afgebakende stappen bron/resultaten privé pushen. Dit document bevat criteria, geen geclaimde testresultaten.
+27 oktober 2026. Gekozen bouwbasis v1 op `448974b` (M5), branch `codex/m6a-write-recovery`. Mijn opdracht: zelfstandig implementeren, werkelijk QEMU-testen en na afgebakende stappen bron/resultaten privé pushen. Dit document bevat criteria, geen geclaimde testresultaten.
 
 ## Invariant en bewijsgrens
 

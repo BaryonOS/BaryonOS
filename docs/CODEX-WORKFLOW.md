@@ -1,5 +1,5 @@
 # Codex: rollen, context en toetsbare resultaten
-Onderzoeksdatum: 26 oktober 2026. Dit is de voorgestelde projectwerkwijze; de meegeleverde configuratie is syntactisch controleerbaar maar nog niet in Simons Codex-installatie beproefd.
+Onderzoeksdatum: 26 oktober 2026. Dit is de voorgestelde projectwerkwijze; de meegeleverde configuratie is syntactisch controleerbaar maar nog niet in mijn Codex-installatie beproefd.
 
 ## Eén coördinator
 De hoofdchat bezit de planning en integreert wijzigingen. Een agent krijgt één doel en een beperkte schrijfzone. Standaard maximaal drie subagents; sequentieel werken als de taken op elkaar wachten. Extra agents kosten context, tokens en integratiewerk.
