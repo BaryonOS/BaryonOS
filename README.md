@@ -78,10 +78,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-08 · **Rubric:** v1 ·
-**Bron:** [`39586927`](https://github.com/simonvanieperen/nieuw-os/commit/39586927bea616c9c1e427689f97413320b28383) ·
+**Bron:** [`338bec8c`](https://github.com/simonvanieperen/nieuw-os/commit/338bec8ca34ba8eb2451eb660a0f1790c194efd2) ·
 **Ontwikkelbranch:** `ci/github-hosted-runners-20261108`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Publieke GitHub Actions stroomlijnen op standaard hosted runners.
-41/100 blijft 41/100. Runner- en artifactwijzigingen geïntegreerd in bestaande PR #249; 23 workflows op ubuntu-24.04, parallelle vereiste checks, minder dubbele triggers en componentjobs, bijgewerkte hostcache en hosted Copilot-setup. 248 Python-tests en 179 shellsyntaxcontroles slagen lokaal; bestaande testcommando’s en bewijsselecties behouden. Nieuwe GitHub-uitvoering wordt afzonderlijk beoordeeld. Geen productcriterium, gewicht of native acceptatie toegevoegd.
+41/100 blijft 41/100. Runner- en artifactwijzigingen geïntegreerd in bestaande PR #249; 23 workflows op ubuntu-24.04, parallelle vereiste checks, minder dubbele triggers en componentjobs, bijgewerkte hostcache en hosted Copilot-setup. De 248 Python-tests en 179 shellsyntaxcontroles zijn lokaal bewijs voor de working tree op integratiebasis 39586927, gepubliceerd als broncommit 338bec8c; [het controleverslag met bronhashes](docs/verification/ci-public-runners-20261108.json) bindt dat bewijs aan de geteste bestanden. De 224 tests behoren tot het eerdere checkpoint d3d8e3e0. Bestaande testcommando’s en bewijsselecties behouden; GitHub-uitvoering wordt afzonderlijk beoordeeld. Geen productcriterium, gewicht of native acceptatie toegevoegd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

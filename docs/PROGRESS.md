@@ -1,9 +1,14 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
-Publieke hosted CI (8 november 2026), integratiebasis `3195e659`: **41 → 41/100**.
-23 workflows met standaardrunners; 248 lokale Python-tests en 179 shellsyntax-
-controles geslaagd. Native gates, productcriteria en gewichten behouden.
-[Configuratie en bewijs](verification/ci-public-runners-20261108.json).
+Publieke hosted CI (8 november 2026), gepubliceerde bron `338bec8c` op
+integratiebasis `39586927` (dezelfde boom als lokaal `3195e659`): **41 → 41/100**.
+23 workflows met standaardrunners; 248 Python-tests en 179 shellsyntaxcontroles
+zijn lokaal uitgevoerd op de in het rapport gehashte working tree, later
+gepubliceerd als `338bec8c`. De 224 tests verderop horen bij een eerder checkpoint.
+Op GitHub slagen bij het afzonderlijke checkpoint 39 van 40 Actions-jobs;
+de venstersessietest loopt nog. Native gates, productcriteria en gewichten behouden.
+[Lokaal brongebonden bewijs](verification/ci-public-runners-20261108.json) ·
+[GitHub-checkpoint](verification/ci-public-runners-20261108/hosted-checkpoint.json).
 
 PR #249 hervat (8 november 2026), bron `575a5040` met main `5b218982`:
 **41 → 41/100**. Vier documentconflicten opgelost met behoud van de

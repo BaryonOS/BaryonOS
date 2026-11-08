@@ -20,8 +20,9 @@ expliciet opgegeven bestaande bewijsselectie en doet het volgende:
    deze selectie. Ontbrekende, te grote en uitgesloten bestanden blijven
    zichtbaar in het receipt.
 3. Probeer het compacte pakket als `<oude-artifactnaam>-reports` te uploaden:
-   drie dagen bewaartijd, compressieniveau 9. Alleen deze upload heeft
-   `continue-on-error: true`.
+   drie dagen bewaartijd, compressieniveau 9. De compacte upload, de volledige
+   upload en de afzonderlijke Windows-pakketupload hebben alle drie
+   `continue-on-error: true` en zijn dus best effort.
 4. Toon de werkelijke uploaduitkomst via `steps.<id>.outcome`, met alleen
    bij succes een download-URL. Bij een quotafout blijft het al geschreven
    runbewijs beschikbaar.

@@ -13,7 +13,13 @@ werkbranch is pas de standaard voor nieuwe main-runs na samenvoeging.
 
 **Bewijs:** de lokale host- en configuratiecontroles staan in
 [het integratierapport](verification/ci-public-runners-20261108.json).
-Dit is geen bewijs dat alle native tests op de nieuwe GitHub-runner slagen.
+Op de gepubliceerde bron `338bec8c` zijn vervolgens 39 van de 40 gestarte
+Actions-jobs geslaagd, waaronder beide verplichte checks, de volledige
+SMP-suite en de Copilot-setup. De venstersessietest liep bij die waarneming
+nog; er was geen mislukte job. De echte runnerlabels, uitslagen, tijden en
+geslaagde compacte QEMU-upload staan in het
+[GitHub-checkpoint](verification/ci-public-runners-20261108/hosted-checkpoint.json).
+Dit checkpoint is geen einduitslag van de nog lopende test of van latere commits.
 De eerder gemeten budgetblokkade op de toen nog private repository is
 historisch bewijs; zij wordt niet als actuele uitvoeringsuitslag gebruikt.
 

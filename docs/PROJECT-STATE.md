@@ -1,6 +1,42 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — publieke hosted CI geïntegreerd — 8 november 2026
+## NEXT AGENT HANDOFF — hosted CI uitgevoerd, review afgerond in bron — 8 november 2026
+
+**Bron:** PR #249, `338bec8ca34ba8eb2451eb660a0f1790c194efd2`, op
+integratiebasis `39586927`; huidige vervolgwijzigingen betreffen uitsluitend
+documentatie, het historische verificatiescript en nieuw opgeslagen bewijs.
+Werkbranch `ci/github-hosted-runners-20261108`; score **41 → 41/100**.
+
+**Werkelijk uitgevoerd op GitHub:** bij de waarneming van 21:17:57 UTC slagen
+39 van 40 Actions-jobs op bron `338bec8c`. De verplichte `host-quality` en
+`qemu-smoke` starten parallel en slagen op echte `ubuntu-24.04`-runners;
+ook de volledige SMP-suite en hosted Copilot-setup slagen. De compacte
+QEMU-upload is beschikbaar (97.119 bytes, drie dagen retentie). De lange
+venstersessietest loopt nog; geen mislukte job vastgesteld. Zie het
+[brongebonden GitHub-checkpoint](verification/ci-public-runners-20261108/hosted-checkpoint.json).
+De historische 8-vCPU-timeout is in deze run niet opgetreden; geen geval of
+tijdslimiet is versoepeld.
+
+**Reviewvervolg:** de uploadbeschrijving noemt alle drie best-effort uploads;
+het gegenereerde README onderscheidt integratiebasis, geteste working tree
+en gepubliceerde bron. De 224 tests zijn expliciet historisch; de 248 lokale
+tests en 179 shellsyntaxcontroles blijven aan hun oorspronkelijke hashes
+gebonden. Het verificatiescript gebruikt de gepubliceerde configuratie als
+vaste baseline en registreert nieuwe workflows zonder verzonnen vergelijking.
+Alle **202 actuele configuratie-/bewijscontroles** slagen, exit 0; bronhashes
+en afzonderlijke vergelijkingen staan in
+[review-workflow-checks.json](verification/ci-public-runners-20261108/review-workflow-checks.json).
+De workflowbestanden, productcode en testcommando's zijn sinds `338bec8c`
+ongewijzigd.
+
+**Eerstvolgende stap:** publiceer dit beperkte reviewvervolg op dezelfde PR,
+handel de drie concrete reviewthreads af en behoud squash-auto-merge volgens
+de bestaande branchregels. Nieuwe-head CI en review moeten nog volgen;
+geen merge of volledige native einduitslag geclaimd. Sluit PR #251 pas na
+aantoonbare opname via #249 in main. De oude Copilot-WSL-keuze uit #245 mag
+niet opnieuw worden ingevoerd.
+
+## Historisch checkpoint — publieke hosted CI geïntegreerd — 8 november 2026
 
 **Bron:** main `0cf49b584f9264e676d62168caeb2230669ca538`, runner-PR #249
 `0de9d805` en artifact-PR #251 `dc6c6bca`; lokale integratiebasis `3195e659`.
