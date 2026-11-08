@@ -1,6 +1,38 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR #211 parserintegratie — 7 november 2026
+## NEXT AGENT HANDOFF — openbare projectrichting — 8 november 2026
+
+**Bron:** `main` op `363b486b06023d3d578f8eca2b23ff49045a1757`; documentatiebranch
+`docs/public-development-direction-20261108`. **41 → 41/100**; alle criteria,
+gewichten, statussen en bestaande bewijsverwijzingen blijven gelijk.
+
+**Bevestigd:** Simon kiest voor openbare ontwikkeling. Het bestaande
+MPL-2.0-plan voor eigen OS-code is het uitgangspunt voor de licentiecontrole.
+Dit staat in `LICENSE-PLAN.md`, ADR-PUBLIC-DEVELOPMENT-20261108, de README en
+`implementation/EUROPE-AND-RELEASE.md`. De vijf bestaande licentievoorwaarden
+zijn niet afgetekend. Het meegebundelde OSDev-/boekmateriaal heeft afzonderlijke
+rechten en is expliciet onderdeel van de nog open publicatiecontrole.
+
+**Controle en bewijsgrens:** 56 actuele bron-/bewijsbestanden zijn via GitHub
+opgehaald en byte voor byte tegen hun Git-blob-ID gecontroleerd. De bestaande
+voortgangsgenerator en documentatievergelijking zijn op deze bron uitgevoerd;
+uitkomsten staan in [het controlerapport](verification/public-development-20261108.json).
+Dit is documentatiecontrole, geen volledige licentieaudit, secretscan,
+nieuwe Rust-/QEMU-test, menselijke juridische beoordeling of productacceptatie.
+
+**Open:** rechten-/componentinventaris, licentietoepassing, passende notices,
+bijdragenvoorwaarden en de overige publicatiecontroles. De repository was
+bij controle privé. GitHub-hosted runners worden behandeld in
+[PR #249](https://github.com/simonvanieperen/nieuw-os/pull/249); deze opdracht
+verandert geen workflows, zichtbaarheid of branchregels. R03 blijft open.
+
+**Eerstvolgende inhoudelijke stap:** voer de vijf bestaande controles in
+`LICENSE-PLAN.md` uit op de werkelijk te publiceren bron en geschiedenis,
+inclusief alle workspaces en `.agents/skills/os-dev/`.
+Concrete publicatie volgt pas nadat de controles zijn afgehandeld.
+Eerstvolgend documentatiecommando: `python3 -B tools/progress.py --check`.
+
+## Historisch checkpoint — PR #211 parserintegratie — 7 november 2026
 
 **Bron:** `verify/parser-hardening-20261105`, integratiecommit
 `69265f4b1d1220ea3eee6a9358ca09dc5a8b5e7d`; ouders PR `328ac91d` en main
