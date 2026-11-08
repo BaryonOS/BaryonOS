@@ -3,14 +3,14 @@
 mod acpi;
 mod arch;
 #[cfg(any(feature = "native-smp", feature = "milestone-m3"))]
-mod lock;
+pub(crate) mod lock;
 #[cfg(feature = "milestone-m3")]
 mod m3;
 pub(crate) mod paging;
 #[cfg(any(feature = "native-rtc", feature = "native-system-clock"))]
 mod rtc;
 #[cfg(feature = "native-smp")]
-mod smp;
+pub(crate) mod smp;
 use crate::serial;
 use boot_protocol::{BootInfo, MemoryMap, MAP_LIMIT};
 use core::{arch::asm, mem::MaybeUninit, ptr};

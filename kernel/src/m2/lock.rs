@@ -4,8 +4,8 @@
 //! RFLAGS.IF, masks interrupts, records the level in this CPU's lockdep set
 //! (a violation stops the VM), then spins. The guard releases the lock, drops
 //! the level (LIFO only, audit F2; otherwise the VM stops) and only then
-//! restores IF. Lockdep is active in every native-smp
-//! build; the bounded spin with its STUCK marker only in debug builds. Step
+//! restores IF. Lockdep and the time-bounded spin with its STUCK marker are
+//! active in every native-smp build, release included (audit F5, DG-1). Step
 //! 5b: waiters for KERNEL/ASPACE spin with a `sti; pause; cli` window (APs;
 //! since 5c-2 every CPU whose sources are all gated, BSP included). Step 5c-2
 //! (BT-4): releasing the last lock back to IF=1 honours a deferred 0xe8.
@@ -59,7 +59,13 @@ mod smp {
     pub fn lockdep_in_handler(_: u8) -> ! {
         crate::serial::fail(b"LOCKDEP_IN_HANDLER")
     }
-    pub fn lock_stuck(_: &[u8]) -> ! {
+    pub fn stuck_deadline() -> u64 {
+        0
+    }
+    pub fn past(_: u64) -> bool {
+        false
+    }
+    pub fn lock_stuck(_: u8) -> ! {
         crate::serial::fail(b"LOCK_STUCK")
     }
     pub fn cpu_index() -> usize {
@@ -98,7 +104,7 @@ impl LockdepCell {
 
 /// K-1 (ADR-075): the one kernel section. Every mutation of M3 `STATE`, the
 /// frame allocator, paging, IPC queues, quota and the supervisor holds it.
-pub static KERNEL: IrqLock<()> = IrqLock::new(level::KERNEL, b"KERNEL", ());
+pub static KERNEL: IrqLock<()> = IrqLock::new(level::KERNEL, ());
 
 /// True while this CPU holds (or awaits) `KERNEL`: its lockdep bit.
 pub fn kernel_held() -> bool {
@@ -109,7 +115,6 @@ pub struct IrqLock<T> {
     level: u8,
     /// LD-3 order within a level (ASPACE: pid, RUNQ: CPU index).
     key: u32,
-    name: &'static [u8],
     inner: TicketLock<T>,
     /// IQ-2: CPU index of the holder, `FREE` otherwise. Written by the holder
     /// only, outside the ticket logic; read by the BSP before an INIT.
@@ -120,16 +125,15 @@ const FREE: u8 = u8::MAX;
 
 impl<T> IrqLock<T> {
     /// A lock that is never paired with another of its level (key 0).
-    pub const fn new(level: u8, name: &'static [u8], value: T) -> Self {
-        Self::keyed(level, name, 0, value)
+    pub const fn new(level: u8, value: T) -> Self {
+        Self::keyed(level, 0, value)
     }
 
     /// A lock that `lock_pair` may take together with another of its level.
-    pub const fn keyed(level: u8, name: &'static [u8], key: u32, value: T) -> Self {
+    pub const fn keyed(level: u8, key: u32, value: T) -> Self {
         Self {
             level,
             key,
-            name,
             inner: TicketLock::new(value),
             owner: AtomicU8::new(FREE),
         }
@@ -146,6 +150,14 @@ impl<T> IrqLock<T> {
 
     pub fn lock_irqsave(&self) -> IrqGuard<'_, T> {
         self.take(false)
+    }
+
+    /// Terminal paths only (DG-2: NMI, #DF, panic, a stuck lock): take the
+    /// lock if it is free right now, without lockdep and without touching IF.
+    /// The caller stops the VM afterwards, so no lock order can follow.
+    #[cfg(feature = "native-smp")]
+    pub fn try_terminal(&self) -> Option<Guard<'_, T>> {
+        self.inner.try_lock()
     }
 
     /// LD-3: take `self` and `other` (same level) by ascending key, whatever
@@ -181,14 +193,16 @@ impl<T> IrqLock<T> {
         if in_handler && self.level <= level::ASPACE {
             smp::lockdep_in_handler(self.level);
         }
-        let recorded = smp::with_lockdep(|dep| {
-            if paired {
-                dep.acquire_paired(self.level, self.key)
-            } else {
-                dep.acquire(self.level, self.key)
-            }
+        let recorded = tracked(self.level).then(|| {
+            smp::with_lockdep(|dep| {
+                if paired {
+                    dep.acquire_paired(self.level, self.key)
+                } else {
+                    dep.acquire(self.level, self.key)
+                }
+            })
         });
-        if let Err(order) = recorded {
+        if let Some(Err(order)) = recorded {
             smp::lockdep_order(order);
         }
         // Step 5b (spec §4.3): a waiter for KERNEL/ASPACE opens a short
@@ -212,10 +226,18 @@ impl<T> IrqLock<T> {
                 unsafe { asm!("sti", "pause", "cli") };
             }
         };
-        let guard = if cfg!(debug_assertions) {
-            self.inner
-                .lock_bounded(1 << 24, relax)
-                .unwrap_or_else(|_| smp::lock_stuck(self.name))
+        // DG-1 (audit F5): every native-smp image, release included, bounds the
+        // wait in time; the deadline starts at the first contended poll. The
+        // one-CPU profiles never have a waiter and spin unbounded.
+        let guard = if cfg!(feature = "native-smp") {
+            let mut deadline = None;
+            self.inner.lock_with(|| {
+                relax();
+                let limit = *deadline.get_or_insert_with(smp::stuck_deadline);
+                if smp::past(limit) {
+                    smp::lock_stuck(self.level);
+                }
+            })
         } else {
             self.inner.lock_with(relax)
         };
@@ -228,6 +250,15 @@ impl<T> IrqLock<T> {
             interrupts: flags & (1 << 9) != 0,
         }
     }
+}
+
+/// Levels the lockdep word records (`smp_lock::Lockdep` holds 0..=63).
+/// shortcut: SERIAL (70, audit F7) is the top level and a leaf (`write_raw`
+/// takes no lock) and is held only with IF=0, so it is not recorded; a
+/// re-entry would show up as `SMP:LOCK:STUCK:70` (DG-1). Widen `Lockdep`
+/// when a level above 63 needs ordering.
+const fn tracked(level: u8) -> bool {
+    level < 64
 }
 
 /// `!Send` through the inner guard: never carried across a context switch.
@@ -256,8 +287,10 @@ impl<T> Drop for IrqGuard<'_, T> {
     fn drop(&mut self) {
         self.owner.store(FREE, Ordering::Release);
         drop(self.guard.take());
-        if let Err(order) = smp::with_lockdep(|dep| dep.release(self.level, self.key)) {
-            smp::lockdep_lifo(order);
+        if tracked(self.level) {
+            if let Err(order) = smp::with_lockdep(|dep| dep.release(self.level, self.key)) {
+                smp::lockdep_lifo(order);
+            }
         }
         if self.interrupts {
             // BT-4: the last lock is gone and IF=1 returns outside a handler,
@@ -273,9 +306,9 @@ impl<T> Drop for IrqGuard<'_, T> {
 }
 
 #[cfg(feature = "native-smp")]
-static OUTER: IrqLock<u32> = IrqLock::new(level::KERNEL, b"KERNEL", 0);
+static OUTER: IrqLock<u32> = IrqLock::new(level::KERNEL, 0);
 #[cfg(feature = "native-smp")]
-static INNER: IrqLock<u32> = IrqLock::new(level::FRAMES, b"FRAMES", 0);
+static INNER: IrqLock<u32> = IrqLock::new(level::FRAMES, 0);
 
 /// BSP, after `smp::start`, IF=0: the allowed order nests and fully unwinds;
 /// the negative profile takes the reverse order and must stop with the marker.

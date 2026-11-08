@@ -2,8 +2,8 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-06",
-    "source_commit": "730ce80a384d6dce32f464d6429a0485d5950945",
+    "date": "2026-11-07",
+    "source_commit": "ca0b7e5f875c9e22759c3514088c35e43d3eaaea",
     "assessment_basis": "source_commit",
     "reviewed_commit": "cc1dea7eeeae01448a378ee422837b0438ecc7b5",
     "reviewed_commit_context": "Historische review van de PR148-documentatiestatus en reikwijdte van hostbewijs; geen integratiereview.",
@@ -15,10 +15,10 @@
       "evidence_basis": "Git-mergeouders en handoff in docs/PROJECT-STATE.md; gerichte integratietests zijn daar gemeld met uitvoer uitsluitend in het sessietranscript. De eerdere PR148-hostreceipts zijn geen integratiereviewbewijs.",
       "missing_evidence": "Afzonderlijk, brongebonden bewijs van de integratiereview ontbreekt; nieuwe-head CI en review moeten nog worden beoordeeld."
     },
-    "branch": "feat/k06-5e-proc-shootdown",
-    "task": "K06 stap 5e: procesbrede TLB-shootdown op active_cpus (aanvulling ADR-072/-075, auditbevinding F18)",
+    "branch": "feat/k06-5d2-ring3-smp",
+    "task": "K06 stap 5d-2a/b: M3-ring-3-processen op elke online CPU met FPU-context per CPU (ADR-081)",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. De TLB-shootdown is procesbreed (PS-1..PS-5): shootdown_process mikt alleen op ACTIVE[space] minus de eigen CPU, shootdown_kernel op alle online CPU's; één gepubliceerde ronde onder SHOOTDOWN, een Rust-handler die alleen bij de eigen CR3 of de kernelhelft flusht en altijd ackt, metadata pas na alle acks vrij (Paging::unmap_shot) en echte testruimten in plaats van PML4-kopieën. Native fixture: isolatie en unmap-race met een gecontroleerde #PF, plus twee negatieve profielen en een hostmodel van de ACTIVE-supersetregel. K06 blijft open: ring 3 op AP's (5d-2) en de acceptatiematrix (5f) ontbreken nog, en het M3-pad draait niet onder native-smp. Lokaal QEMU/TCG-bewijs; geen CI op de gestapelde PR, geen hardware, geen menselijke audit."
+    "summary": "41/100 blijft 41/100. In native-smp-m3 draaien 16 ring-3-processen verdeeld over alle online CPU's, elk een FPU-canary: 1000 wissels per CPU, daarna een kernelcontrole van ST0/XMM0/XMM15 in elk FXSAVE-beeld; de controle zonder FXRSTOR faalt zoals bedoeld en een appfault op AP2 stopt alleen dat proces. Native lokaal: SMP 38/38 over 30 profielen, M2/M3, K05, K07, rtc, IPC-wait, FPU en gate.sh groen. K06 blijft open: IPC over CPU's, usercopy onder ASPACE, K05 op SMP en de §9-matrix (09) ontbreken."
   },
   "tracks": [
     {

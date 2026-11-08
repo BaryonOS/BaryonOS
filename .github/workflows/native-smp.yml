@@ -162,6 +162,25 @@ jobs:
             python3 -B tools/build.py --kernel-feature "$profile"
             python3 -B -u tools/run_smp.py --profile "$profile"
           done
+      - name: A lock the BSP never frees is reported as STUCK in a release build (F5)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-lock-stuck
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-lock-stuck
+          python3 -B -u tools/run_smp.py --profile test-smp-lock-stuck
+      - name: Without the SERIAL lock CPUs mix a line (control, F7)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-serial-unlocked
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-serial-unlocked
+          python3 -B -u tools/run_smp.py --profile test-smp-serial-unlocked
+      - name: M3 ring-3 processes on every CPU (2/4/8 vCPUs) and an AP2 app fault (step 5d-2)
+        run: |
+          for profile in native-smp-m3 test-smp-m3-fault; do
+            export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/k06-$profile"
+            python3 -B tools/build.py --kernel-feature "$profile"
+            python3 -B -u tools/run_smp.py --profile "$profile"
+          done
       - name: Preserve tracked source integrity
         run: git diff --exit-code
       - name: Preserve actual run and build artifacts
