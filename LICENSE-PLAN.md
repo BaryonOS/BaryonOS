@@ -2,7 +2,7 @@
 
 ## Bevestigd projectbesluit — 8 november 2026
 
-Ik heb **gekozen voor openbare ontwikkeling van Nieuw OS**.
+Er is **gekozen voor openbare ontwikkeling van Nieuw OS**.
 Het bestaande MPL-2.0-plan is het **bevestigde uitgangspunt voor de
 licentiecontrole**, met MPL-2.0 als beoogde licentie voor de eigen OS-code.
 Dit vervangt de eerdere onbesliste ontwikkelrichting; het besluit past de

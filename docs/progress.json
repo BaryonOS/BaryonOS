@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-08",
-    "source_commit": "b53a576a04f7cd5df3fc92cf32d2ceeb0c4939aa",
+    "date": "2026-11-09",
+    "source_commit": "1d5bc01e632fd5bab429f3befc9e9546c9f7661c",
     "assessment_basis": "working_tree",
-    "branch": "docs/baryon-name-20261108",
-    "task": "PR #264: conflicten met main 9ff3a691 oplossen met behoud van naamverklaring en projectredactie",
+    "branch": "docs/wetenschappelijke-schrijfstijl-20261109",
+    "task": "Projectdocumentatie corrigeren naar onpersoonlijke wetenschappelijke schrijfstijl",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. De Baryon-naamverklaring en de professionele projectredactie uit main zijn verenigd. Alleen documentatieconflicten en integratieassessment gewijzigd; technische contracten, criteria, gewichten en bewijsstatus blijven behouden. Geen nieuwe OS-functionaliteit of native acceptatie."
+    "summary": "41/100 blijft 41/100. De ik-/wij-vorm en persoonlijke auteursvertelling zijn in de eigen documentatie vervangen door onpersoonlijke, wetenschappelijke formuleringen. De eerdere schrijfafspraak uit PR #263 is vervallen. Besluiten, bevoegdheden, technische contracten, criteria, gewichten en bewijsstatus blijven behouden; oorspronkelijke citaten, vaste bewijsarchieven en technische identifiers zijn ongewijzigd. De naamverklaring van Baryon OS blijft behouden. Geen nieuwe OS-functionaliteit of productacceptatie."
   },
   "tracks": [
     {

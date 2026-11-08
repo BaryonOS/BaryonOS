@@ -120,4 +120,4 @@ De eerstvolgende kernelmijlpaal blijft de lopende M6a-eindverificatie. N01 wordt
 - Rescorla, E. (2018). *The Transport Layer Security (TLS) protocol version 1.3* (RFC 8446). IETF. https://www.rfc-editor.org/rfc/rfc8446.html
 - Rose, S., Borchert, O., Mitchell, S., & Connelly, S. (2020). *Zero trust architecture* (NIST SP 800-207). NIST. https://doi.org/10.6028/NIST.SP.800-207
 
-Primaire bronnen gecontroleerd 27 oktober 2026. De functionele rolkeuze en het eenzijdige hostverwijderrecht volgen uit mijn expliciete opdracht. Deze bronnen keuren de implementatie niet goed.
+Primaire bronnen gecontroleerd 27 oktober 2026. De functionele rolkeuze en het eenzijdige hostverwijderrecht volgen uit de expliciet vastgelegde projectopdracht. Deze bronnen keuren de implementatie niet goed.

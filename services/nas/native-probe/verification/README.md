@@ -36,7 +36,7 @@ opaquebytes zijn **geen E2EE-bewijs**.
 
 ## Exacte uitgevoerde commando's
 
-De bestaande binaries uit de door mij verstrekte toolprefix zijn alleen
+De bestaande binaries uit de voor deze proef verstrekte toolprefix zijn alleen
 gelezen. Er zijn geen tools geïnstalleerd of opgehaald en er is geen
 gedeelde buildmap beschreven:
 

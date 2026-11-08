@@ -174,7 +174,7 @@ wel een compacte noodzakelijke grantvraag openen.
 - **PX-07:** visuele vergelijking controleert originaliteit en samenhang zonder
   te claimen dat subjectieve “mooier dan Office” al bewezen is.
 
-Status: **besluit voor de eerste implementatie**, 26 oktober 2026. De bronnenvergelijking en conceptkeuze zijn nu uitgevoerd. Gebruikersonderzoek, grafische implementatie en native OS-integratie zijn nog niet uitgevoerd. Codex hoeft vóór P2 geen nieuwe brede conceptstudie te starten. Alleen een concreet vastgesteld conflict of een expliciete correctie van mij heropent de keuze.
+Status: **besluit voor de eerste implementatie**, 26 oktober 2026. De bronnenvergelijking en conceptkeuze zijn nu uitgevoerd. Gebruikersonderzoek, grafische implementatie en native OS-integratie zijn nog niet uitgevoerd. Codex hoeft vóór P2 geen nieuwe brede conceptstudie te starten. Alleen een concreet vastgesteld conflict of een expliciete correctie door de projecteigenaar heropent de keuze.
 
 ## 1. Gekozen productlogica
 
@@ -182,7 +182,7 @@ Status: **besluit voor de eerste implementatie**, 26 oktober 2026. De bronnenver
 
 Dit is een werknaam voor het interactiemodel, geen definitieve OS- of merknaam. Het ontwerp is eigen synthese, geen bewezen wereldprimeur. Een oorspronkelijke productervaring vraagt geen onbekend bestandssysteem voor de eerste proef.
 
-De gebruiker kan ook een app rechtstreeks openen via Gereedschap; daarmee blijft de bediening toegankelijk voor mensen die vanuit een programma denken. Het hoofdscherm wordt geen appstartscherm of decoratieve imitatie van een bestaande desktop. De eerste navigatievraag is: **waar wil ik aan werken?**
+De gebruiker kan ook een app rechtstreeks openen via Gereedschap; daarmee blijft de bediening toegankelijk voor mensen die vanuit een programma denken. Het hoofdscherm wordt geen appstartscherm of decoratieve imitatie van een bestaande desktop. De eerste navigatiekeuze betreft **het materiaal waaraan wordt gewerkt**.
 
 ## 2. Drie concepten op dezelfde vijf taken
 
@@ -200,8 +200,8 @@ Onderstaande vergelijking is ontwerpwerk, geen gemeten gebruikersproef.
 
 ### Vergelijking met bekende patronen
 
-- Windows Snap ordent appvensters en kan groepen herstellen; macOS Spaces verdeelt vensters over meerdere bureaubladen. Die patronen tonen ruimtelijke organisatie, maar bepalen niet ons objecteigenaarschap of rechtenmodel (Microsoft, z.d.; Apple, z.d.).
-- Flatpak-portalen demonstreren dat een concrete bestandskeuze toegang kan verlenen zonder brede bestandstoegang. Het principe van een systeemportaal is dus bekend. Ons voorstel maakt gegevenslocatie, objecthistorie en tijdelijke gereedschapstoegang onderdeel van één doorlopende ervaring; dit is een ontworpen combinatie, geen claim dat bestaande systemen zulke onderdelen nooit hebben (Flatpak Project, z.d.).
+- Windows Snap ordent appvensters en kan groepen herstellen; macOS Spaces verdeelt vensters over meerdere bureaubladen. Die patronen tonen ruimtelijke organisatie, maar bepalen niet het objecteigenaarschap of rechtenmodel van Nieuw OS (Microsoft, z.d.; Apple, z.d.).
+- Flatpak-portalen demonstreren dat een concrete bestandskeuze toegang kan verlenen zonder brede bestandstoegang. Het principe van een systeemportaal is dus bekend. Het voorgestelde ontwerp maakt gegevenslocatie, objecthistorie en tijdelijke gereedschapstoegang onderdeel van één doorlopende ervaring; dit is een ontworpen combinatie, geen claim dat bestaande systemen zulke onderdelen nooit hebben (Flatpak Project, z.d.).
 - WCAG 2.2 levert toetsbare criteria voor het webprototype. Gebruik die voor P2; een geslaagd webprototype verklaart het toekomstige native OS niet automatisch toegankelijk of wettelijk conform (W3C, 2024).
 
 ## 3. P2 is bevroren op zeven schermen

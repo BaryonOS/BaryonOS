@@ -68,7 +68,7 @@ stilzwijgend hergebruikt.
 
 Intrekking blokkeert nieuwe packageverificatie en updates via die bron.
 Reeds geïnstalleerde apps blijven startbaar; data of apps worden niet stil
-verwijderd. Dit volgt uit mijn besluit van 30 oktober 2026. Beheer van bronkeuze en
+verwijderd. Dit volgt uit het besluit van 30 oktober 2026. Beheer van bronkeuze en
 rotatie vereist afzonderlijke gebruikersautorisatie. Deze vaste array is
 alleen een in-memory policy-core: geen consent-UI, capabilitycontrole,
 duurzame bronregistratie of transacties. Acht bronnen is geen productlimiet.
