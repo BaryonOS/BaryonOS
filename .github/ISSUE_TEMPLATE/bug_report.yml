@@ -1,80 +1,80 @@
-name: Bug melden
-description: Een reproduceerbaar defect in het OS, een app of een prototype
+name: Bug report
+description: Report a reproducible defect in the OS, an application, or a prototype
 title: "bug: "
 body:
   - type: markdown
     attributes:
       value: |
-        Bekijk eerst de [bestaande issues](https://github.com/simonvanieperen/nieuw-os/issues).
-        Gebruik het CI-formulier voor build-, workflow- en testbewijsproblemen.
-        Deel geen secrets, sleutels of echte gebruikersgegevens. Mogelijke kwetsbaarheden
-        volgen [SECURITY.md](https://github.com/simonvanieperen/nieuw-os/blob/main/SECURITY.md);
-        plaats hier geen exploiteerbare details.
+        Search [existing issues](https://github.com/simonvanieperen/BaryonOS/issues) first.
+        Use the CI form for build, workflow, and test-evidence problems.
+        Do not include secrets, keys, or real user data. Potential vulnerabilities
+        follow [SECURITY.md](https://github.com/simonvanieperen/BaryonOS/blob/main/SECURITY.md);
+        do not post exploitable details here.
   - type: dropdown
     id: subsystem
     attributes:
-      label: Onderdeel
+      label: Subsystem
       options:
-        - Boot, kernel, processen of IPC
-        - Opslag, encryptie of herstel
-        - Drivers, invoer of energiebeheer
-        - Desktop, Materiaal of toegankelijkheid
-        - Netwerk, NAS of synchronisatie
-        - SDK, apps of pakketbeheer
-        - Lokale AI of quantum-runtime
-        - Hostprototype
-        - Anders of nog onbekend
+        - Boot, kernel, processes, or IPC
+        - Storage, encryption, or recovery
+        - Drivers, input, or power management
+        - Desktop, Materiaal, or accessibility
+        - Networking, NAS, or synchronisation
+        - SDK, applications, or packages
+        - Local AI or quantum runtime
+        - Host prototype
+        - Other or unknown
     validations:
       required: true
   - type: dropdown
     id: execution
     attributes:
-      label: Waar treedt het op?
+      label: Where does this occur?
       options:
-        - Hosttest of hostprototype
-        - Eigen OS in QEMU
-        - Eigen OS in een andere VM
-        - Eigen OS op een fysiek apparaat
-        - Nog niet vastgesteld
+        - Host test or host prototype
+        - Baryon OS in QEMU
+        - Baryon OS in another VM
+        - Baryon OS on physical hardware
+        - Not yet established
     validations:
       required: true
   - type: input
     id: source
     attributes:
-      label: Geteste bron of image
-      description: Commit-SHA, PR of downloadversie; schrijf onbekend als je dit niet kunt vinden.
+      label: Tested revision or image
+      description: Commit SHA, PR, or downloaded version; state unknown if unavailable.
     validations:
       required: true
   - type: textarea
     id: problem
     attributes:
-      label: Wat gaat er mis?
-      description: Beschrijf het waargenomen gedrag, de gevolgen en wat je verwachtte.
+      label: Observed problem
+      description: Describe the actual behaviour, its impact, and the expected behaviour.
     validations:
       required: true
   - type: textarea
     id: reproduce
     attributes:
-      label: Reproduceerstappen
-      description: De kleinste route met concrete handelingen of commando's, inputs en featureprofiel. Vermeld hoe vaak het gebeurt.
+      label: Steps to reproduce
+      description: Minimal steps with commands, inputs, and feature profile. Include frequency.
     validations:
       required: true
   - type: textarea
     id: environment
     attributes:
-      label: Omgeving
-      description: Host-OS en architectuur. Bij een VM ook QEMU/firmware, accelerator, vCPU's en RAM; bij builds de toolversies. Onbekende of niet-relevante onderdelen mogen zo worden benoemd.
+      label: Environment
+      description: Host OS and architecture; for VMs include QEMU/firmware, accelerator, vCPUs, and RAM; for builds include tool versions. Mark unavailable or irrelevant fields accordingly.
     validations:
       required: true
   - type: textarea
     id: evidence
     attributes:
-      label: Bewijs en laatst werkende versie
-      description: Geschoonde foutmelding, exitstatus, relevante logregels, screenshot of bereikbare bewijslink. Noem de laatste goede commit als het een regressie is; een lokaal logpad alleen is voor anderen niet leesbaar.
+      label: Evidence and last known working version
+      description: Sanitised error, exit code, log excerpts, screenshot, or accessible evidence URL. Give the previous working commit for regressions; a local log path alone is not accessible to others.
   - type: checkboxes
     id: data_check
     attributes:
-      label: Controle
+      label: Submission check
       options:
-        - label: Ik heb de melding en bijlagen gecontroleerd op secrets, sleutels en echte gebruikersgegevens.
+        - label: I checked this report and its attachments for secrets, keys, and real user data.
           required: true

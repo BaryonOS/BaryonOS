@@ -1,40 +1,42 @@
-title: "[Ontwerp] "
+title: "[Design] "
 body:
   - type: markdown
     attributes:
       value: |
-        Bespreek hier technische keuzes en voorstellen voordat ze een uitvoerbare taak worden. Een voorstel wijzigt nog geen contract of acceptatiecriterium.
-        Begin bij de relevante [projectcontracten](https://github.com/simonvanieperen/nieuw-os/blob/main/docs/COMMUNITY.md#leidende-projectbronnen). Deel kwetsbaarheidsdetails volgens [SECURITY.md](https://github.com/simonvanieperen/nieuw-os/blob/main/SECURITY.md).
+        Discuss technical designs before they become implementation tasks.
+        A proposal does not alter an accepted contract or criterion.
+        Start with the [project contracts](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/COMMUNITY.md#authoritative-project-records).
+        Follow [SECURITY.md](https://github.com/simonvanieperen/BaryonOS/blob/main/SECURITY.md) for vulnerability details.
   - type: textarea
     id: problem
     attributes:
-      label: Probleem en huidige situatie
-      description: Welke concrete vraag vraagt om een ontwerpbesluit? Verwijs naar de huidige interface, code of afspraak en vermeld de bronversie waar nodig.
+      label: Problem and current state
+      description: Which concrete question requires a design decision? Link current interfaces, code, or contracts and identify the revision.
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
-      label: Voorstel en alternatieven
-      description: Beschrijf de aanbevolen route, een bruikbaar alternatief en de belangrijkste afwegingen. Benoem ook wat buiten deze stap valt.
+      label: Proposal and alternatives
+      description: Describe the recommended approach, a viable alternative, and the main trade-offs. State what is out of scope.
     validations:
       required: true
   - type: textarea
     id: boundaries
     attributes:
-      label: Interfaces en vertrouwensgrenzen
-      description: Welke componenten, rechten, gegevensstromen of afhankelijkheden veranderen? Behoud de eigen kernel, Security Floor en het privacycontract; licht toe als geen grens verandert.
+      label: Interfaces and trust boundaries
+      description: Which components, authorities, data flows, or dependencies change? Preserve the independent kernel, Security Floor, and privacy contract. Explain if no boundary changes.
     validations:
       required: true
   - type: textarea
     id: validation
     attributes:
-      label: Onderzoek en acceptatie
-      description: Welk klein experiment of welke controle maakt de keuze toetsbaar? Scheid hostproef, compilatie, native QEMU, fysieke hardware en menselijke review; noem open aannames en relevante criterium-ID's.
+      label: Research and acceptance
+      description: Which experiment or check can validate the choice? Distinguish host tests, builds, native QEMU, physical hardware, and human review; identify assumptions and criterion IDs.
     validations:
       required: true
   - type: textarea
     id: references
     attributes:
-      label: Gerelateerde bronnen en werk
-      description: Links naar bestaande issues, discussies, besluiten, specificaties en primaire technische bronnen. Vermeld bij externe specificaties de versie of datum.
+      label: Related evidence and work
+      description: Link issues, discussions, decisions, specifications, and primary technical sources. Include versions or dates for external specifications.

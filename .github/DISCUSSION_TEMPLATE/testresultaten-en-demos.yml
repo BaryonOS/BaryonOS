@@ -1,49 +1,51 @@
-title: "[Testresultaat] "
+title: "[Test result] "
 body:
   - type: markdown
     attributes:
       value: |
-        Deel reproduceerbare experimenten, testresultaten en demo's, inclusief mislukte of gedeeltelijke uitkomsten. Gebruik synthetische gegevens en geschoonde logs.
-        Een discussie vervangt geen versiegebonden acceptatiebewijs in de repository. Zie de [teststrategie](https://github.com/simonvanieperen/nieuw-os/blob/main/docs/TEST-STRATEGY.md) en [volledige testrelease](https://github.com/simonvanieperen/nieuw-os/blob/main/docs/FULL-TEST-RELEASE.md). Volg voor kwetsbaarheden [SECURITY.md](https://github.com/simonvanieperen/nieuw-os/blob/main/SECURITY.md).
+        Share reproducible experiments, test results, and demos, including
+        failed or partial results. Use synthetic data and sanitised logs.
+        A discussion does not replace revision-bound acceptance evidence.
+        See the [test strategy](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/TEST-STRATEGY.md)
+        and [full release test plan](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/FULL-TEST-RELEASE.md).
+        For vulnerabilities, follow [SECURITY.md](https://github.com/simonvanieperen/BaryonOS/blob/main/SECURITY.md).
   - type: dropdown
     id: evidence_layer
     attributes:
-      label: Bewijslaag
-      description: Kies de laag waarop dit resultaat werkelijk is waargenomen.
+      label: Evidence level
+      description: Select the level at which the result was actually observed.
       options:
-        - Hosttest of hostprototype
-        - Compilatie of artifactinspectie
-        - Native uitvoering in QEMU
-        - Fysieke hardware
-        - Menselijke gebruikersproef of externe review
-        - Ontwerp of simulatie zonder native uitvoering
+        - Host test or host prototype
+        - Build or artifact inspection
+        - Native QEMU execution
+        - Physical hardware
+        - Human usability test or external review
+        - Design or simulation without native execution
     validations:
       required: true
   - type: input
     id: source
     attributes:
-      label: Bronversie en artifact
-      description: Commit of exacte geteste bron; voeg waar relevant branch, image-ID of SHA-256 toe. Benoem ontbrekende versiegegevens expliciet.
+      label: Revision and artifact
+      description: Commit or exact tested source; include branch, image ID, or SHA-256 where relevant. State missing revision information.
     validations:
       required: true
   - type: textarea
     id: procedure
     attributes:
-      label: Opstelling en herhalen
-      description: Exacte commando's of bedieningsstappen, testinputs en relevante versies/profielen. Bij QEMU horen machine, CPU, accelerator, firmware en schijfconditie erbij; een bestaand configuratierapport mag deze gegevens leveren.
+      label: Setup and reproduction
+      description: Exact commands or actions, test inputs, and relevant versions/profiles. For QEMU include machine, CPU, accelerator, firmware, and disk state; an existing configuration report may provide these details.
     validations:
       required: true
   - type: textarea
     id: result
     attributes:
-      label: Verwacht, waargenomen en bewijs
-      description: Wat moest gebeuren en wat gebeurde er werkelijk? Noem exitstatus of fout/timeout, geslaagde en mislukte gevallen en links naar CI-run, rapport, log, screenshot of video. Geef alleen relevante geschoonde fragmenten.
+      label: Expected result, observations, and evidence
+      description: What should have happened, and what actually happened? Include exit codes, errors/timeouts, passing/failing cases, and accessible CI/report/log/screenshot/video links. Quote only relevant sanitised excerpts.
     validations:
       required: true
   - type: textarea
     id: limits
     attributes:
-      label: Bewijsgrens en vervolg
-      description: Welke aannames, niet-uitgevoerde controles of integratiestappen blijven open? Verwijs zo mogelijk naar bestaande issues en FR-/rubric-ID's; een deelproef sluit niet automatisch een criterium.
-    validations:
-      required: true
+      label: Evidence limitations and follow-up
+      description: Which assumptions, unexecuted checks, or integration steps remain? Link existing issues and FR/rubric IDs; a partial experiment does not automatically satisfy a criterion.

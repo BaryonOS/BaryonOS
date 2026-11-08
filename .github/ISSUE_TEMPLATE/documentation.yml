@@ -1,34 +1,35 @@
-name: Documentatie corrigeren
-description: Een onduidelijke uitleg, verouderde status of onvoldoende onderbouwde claim melden
+name: Documentation correction
+description: Report unclear documentation, outdated status, or a claim lacking evidence
 title: "docs: "
 body:
   - type: markdown
     attributes:
       value: |
-        De actuele bron en bewijsgrens zijn leidend. Een oude testuitslag geldt niet vanzelf voor nieuwe code.
-        Gebruik [Vragen en hulp](https://github.com/simonvanieperen/nieuw-os/discussions/categories/vragen-en-hulp)
-        als je vooral uitleg zoekt. Deel geen gevoelige gegevens of kwetsbaarheidsdetails.
+        Current sources and evidence limitations take precedence. An old test
+        result does not automatically apply to new code.
+        Use [Questions and support](https://github.com/simonvanieperen/BaryonOS/discussions/categories/vragen-en-hulp)
+        for general explanations. Do not share sensitive data or vulnerability details.
   - type: input
     id: location
     attributes:
-      label: Bestand, pagina of link
-      description: Geef de precieze sectie en liefst een URL met commit of versie.
+      label: File, section, or URL
+      description: Give the exact location, preferably with a revision-specific URL.
     validations:
       required: true
   - type: textarea
     id: problem
     attributes:
-      label: Wat klopt niet of is onduidelijk?
-      description: Citeer alleen het relevante fragment en beschrijf het gevolg voor lezen, uitvoeren of beoordelen.
+      label: What is incorrect or unclear?
+      description: Quote only the relevant excerpt and explain its impact on understanding, execution, or review.
     validations:
       required: true
   - type: textarea
     id: correction
     attributes:
-      label: Gewenste correctie
-      description: Welke uitleg ontbreekt of welke tekst moet veranderen? Een precieze vervangtekst is welkom, maar niet verplicht.
+      label: Proposed correction
+      description: What explanation is missing or what text needs revision? Suggested replacement wording is welcome but optional.
   - type: textarea
     id: sources
     attributes:
-      label: Onderbouwing
-      description: Relevante code, versiegebonden testresultaten of primaire bron met titel, organisatie, datum/versie en URL. Benoem wat nog niet te verifiëren is.
+      label: Supporting evidence
+      description: Relevant code, revision-specific test results, or primary source with title, organisation, date/version, and URL. Clearly label anything that cannot yet be verified.

@@ -1,57 +1,58 @@
 ---
-name: Ontwikkeltaak
-about: Een afgebakende implementatie met concrete acceptatie en bewijsgrens
-title: "taak: "
+name: Implementation task
+about: A scoped implementation task with explicit acceptance and evidence limitations
+title: "task: "
 ---
 
 <!--
-Gebruik dit template nadat het doel voldoende duidelijk is. Bespreek onbesliste
-product- of architectuurkeuzes eerst in Discussions en link het besluit hieronder.
-Lees AGENTS.md, relevante lokale instructies en docs/TASK-TEMPLATE.md.
+Use this template once the goal is sufficiently defined. Discuss unresolved
+product or architecture decisions in Discussions before creating an actionable issue.
+Read AGENTS.md, relevant local instructions, and docs/TASK-TEMPLATE.md.
 
-Gebruik het metadata-blok alleen voor een taak in de autonome pipeline.
-Verwijder het blok voor handmatig onderhoud zonder open rubriccriterium en
-beschrijf de relevante controles onder Acceptatie en bewijs.
-Voor de pipeline vervang je de velden: Criterium moet één open ID uit
-docs/progress.json zijn. Gate noemt één of meer bestaande workflow.yml#job
-verwijzingen, gescheiden door spaties. Dit zijn geplande controles, geen uitslagen.
-Voeg alleen bij echte afhankelijkheden in het blok een regel toe zoals
-`Afhankelijk van: #12 #34`; laat die regel anders weg.
-Verwijder deze uitleg voor het indienen.
+The metadata block below is only for tasks accepted into the autonomous pipeline.
+Remove it for manual maintenance tasks with no open rubric criterion, and
+describe the checks under Acceptance and evidence instead.
+
+Pipeline parser keys MUST remain exactly "Criterium:", "Gate:", and optionally
+"Afhankelijk van:". Set Criterium to one open ID from docs/progress.json.
+Gate contains one or more existing workflow.yml#job references, separated by
+spaces. These are planned checks, not results. Include "Afhankelijk van: #12 #34"
+only when real dependencies exist. Remove this guidance before submitting.
 -->
 
-## Taakmetadata
+## Pipeline metadata
 
 ```text
-Criterium: VUL_OPEN_ID_IN
-Gate: VUL_WORKFLOW.yml#VUL_JOB_IN
+Criterium: INSERT_OPEN_ID
+Gate: INSERT_WORKFLOW.yml#INSERT_JOB
 ```
 
-## Doel en samenhang
+## Goal and context
 
-Welk concreet probleem lost deze stap op? Link de relevante discussie, ADR,
-FR-acceptatie-ID en bestaande issues/PR's; voorkom een tweede uitvoering van hetzelfde werk.
+What specific problem is solved by this step? Link the relevant discussion,
+ADR, FR acceptance ID, and existing issues/PRs. Avoid duplicating implementation work.
 
-## Scope en interfaces
+## Scope and interfaces
 
-- Basiscommit en relevante bronbestanden:
-- Toegestane schrijfbestanden en eigenaar van gedeelde interfaces:
-- Te behouden invariant, capability-/privacygrens en eventuele dependency- of formaatgevolgen:
-- Buiten scope:
+- Base commit and relevant source files:
+- Allowed files to modify and owner of shared interfaces:
+- Invariant to preserve, capability/privacy boundary, and dependency or format implications:
+- Out of scope:
 
-## Acceptatie en bewijs
+## Acceptance and evidence
 
-- Waarneembaar resultaat en exact uit te voeren commando's/gates:
-- Passende positieve én negatieve gevallen, inclusief falen/herstel waar relevant:
-- Vereist bewijsniveau: host, native VM, fysiek of menselijke controle:
-- Vast te leggen bron-/imageversie, exitstatus en bereikbare log-/rapport-/hashverwijzingen:
-- Wat deze stap nog niet bewijst en hoe hij kan worden teruggedraaid:
+- Observable result and exact commands/gates to run:
+- Appropriate positive and negative cases, including failure/recovery where applicable:
+- Required evidence level: host, native VM, physical, or human review:
+- Recorded source/image revision, exit codes, and accessible log/report/hash references:
+- What this step does not prove and how to revert it:
 
-## Uitvoering
+## Execution
 
-Een maintainer beoordeelt scope, afhankelijkheden en gates en kiest zo nodig
-**één** label: `pipeline:serial` of `pipeline:parallel`. Dit template start zelf
-geen agent en kent geen label, eigenaar of voortgangspunten toe. Wijzigingen aan
-pipeline, workflows en andere beschermde bestanden volgen een afzonderlijk
-beoordeelde PR, niet de autonome pipeline. Gebruik uitsluitend synthetische
-testgegevens; mogelijke kwetsbaarheden volgen [SECURITY.md](https://github.com/simonvanieperen/nieuw-os/blob/main/SECURITY.md).
+A maintainer reviews the scope, dependencies, and gates and, where appropriate,
+assigns exactly one label: `pipeline:serial` or `pipeline:parallel`.
+This template does not start an agent, assign a label/owner, or award progress points.
+Changes to pipeline infrastructure, workflows, or other protected files require
+a separately reviewed PR, not the autonomous pipeline.
+Use synthetic test data only. For potential vulnerabilities, follow
+[SECURITY.md](https://github.com/simonvanieperen/BaryonOS/blob/main/SECURITY.md).

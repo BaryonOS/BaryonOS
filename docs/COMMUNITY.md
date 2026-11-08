@@ -57,6 +57,8 @@ Gate: <workflow>.yml#<job>
 Afhankelijk van: #<issue-number>
 ```
 
+GitHub form fields become Markdown; a heading titled “Criterion” does not replace the required literal `Criterium:` line.
+
 The dependency line is optional; `Gate:` may contain multiple job references separated by spaces. Pipeline labels and technical change boundaries remain under maintainer control.
 
 The four discussion forms are stored under `.github/DISCUSSION_TEMPLATE/`. Their filenames follow the existing category slugs. Renaming a category therefore also requires checking the matching form and links above.

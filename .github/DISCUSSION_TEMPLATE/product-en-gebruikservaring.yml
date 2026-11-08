@@ -1,43 +1,46 @@
-title: "[Gebruikservaring] "
+title: "[User experience] "
 body:
   - type: markdown
     attributes:
       value: |
-        Bespreek hier dagelijkse gebruikstaken, desktopbediening, onboarding, toegankelijkheid en begrijpelijke rechten. Je hoeft geen programmeur te zijn.
-        De [desktoprichting](https://github.com/simonvanieperen/nieuw-os/blob/main/docs/implementation/DESKTOP-SHELL.md) en het [privacycontract](https://github.com/simonvanieperen/nieuw-os/blob/main/docs/LOCAL-PRIVACY-CONTRACT.md) zijn het uitgangspunt. Gebruik voorbeelden zonder persoonlijke gegevens.
+        Discuss everyday tasks, desktop interaction, onboarding, accessibility,
+        and understandable permissions. Programming experience is not required.
+        The [desktop specification](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/implementation/DESKTOP-SHELL.md)
+        and [privacy contract](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/LOCAL-PRIVACY-CONTRACT.md)
+        are the starting points. Use examples without personal data.
   - type: textarea
     id: task
     attributes:
-      label: Gebruiker en taak
-      description: Wie wil wat bereiken, in welke situatie? Beschrijf een gewone handeling, zoals een document terugvinden, een apparaat koppelen of met het toetsenbord werken.
+      label: User and task
+      description: Who is trying to achieve what? Describe an everyday action such as finding a document, pairing a device, or using the keyboard.
     validations:
       required: true
   - type: dropdown
     id: context
     attributes:
-      label: Waarop is je bijdrage gebaseerd?
+      label: What is this based on?
       options:
-        - Ontwerp of idee, nog niet uitgevoerd
-        - Browserprototype
-        - Native Nieuw OS in QEMU
-        - Bestaande proef op fysieke hardware
-        - Nog niet bekend
+        - Design or idea, not implemented
+        - Browser prototype
+        - Native Baryon OS in QEMU
+        - Existing physical-hardware experiment
+        - Unknown
     validations:
       required: true
   - type: textarea
     id: experience
     attributes:
-      label: Gewenste ervaring en huidige knelpunten
-      description: Wat verwacht je, wat gebeurt er nu en waarom belemmert dat de taak? Neem relevante toetsenbord-, focus-, schaal-, taal- of herstelproblemen mee.
+      label: Desired experience and current obstacles
+      description: What is expected, what happens now, and how does it prevent the task? Include relevant keyboard, focus, scaling, language, or recovery problems.
     validations:
       required: true
   - type: textarea
     id: suggestion
     attributes:
-      label: Voorstel
-      description: Welke verandering zou helpen? Beschrijf ook hoe je zou merken dat de taak daarna goed lukt. Een voorstel is niet verplicht.
+      label: Suggested change
+      description: What might help, and how would a successful task be recognised? A proposal is optional.
   - type: textarea
     id: evidence
     attributes:
-      label: Voorbeelden en context
-      description: Deel eventueel een schermbeeld, schets, korte stappen, versie/commit of verwante discussie. Label simulaties; een afbeelding alleen bewijst geen werkende native functie.
+      label: Examples and context
+      description: Optionally share a screenshot, sketch, steps, version/commit, or related discussion. Label simulations; an image alone does not prove native functionality.

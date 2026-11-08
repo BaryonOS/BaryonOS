@@ -1,42 +1,45 @@
-title: "[Vraag] "
+title: "[Question] "
 body:
   - type: markdown
     attributes:
       value: |
-        Stel hier een vraag over Nieuw OS of vraag hulp bij bouwen, testen of bijdragen. Een reproduceerbaar defect kan naar [Issues](https://github.com/simonvanieperen/nieuw-os/issues/new/choose).
-        Zie de [wegwijzer](https://github.com/simonvanieperen/nieuw-os/blob/main/docs/COMMUNITY.md). Deel geen secrets, persoonlijke gegevens of exploiteerbare details; volg [SECURITY.md](https://github.com/simonvanieperen/nieuw-os/blob/main/SECURITY.md).
+        Ask a question about Baryon OS or request help with building, testing,
+        or contributing. Reproducible defects belong in [Issues](https://github.com/simonvanieperen/BaryonOS/issues/new/choose).
+        See the [community guide](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/COMMUNITY.md).
+        Do not share secrets, personal data, or exploitable details; follow
+        [SECURITY.md](https://github.com/simonvanieperen/BaryonOS/blob/main/SECURITY.md).
   - type: dropdown
     id: area
     attributes:
-      label: Onderdeel
+      label: Topic
       options:
-        - Beginnen of bijdragen
-        - Boot, kernel, processen en capabilities
-        - Drivers en hardware
-        - Opslag en herstel
-        - Desktop, Materiaal en toegankelijkheid
-        - Netwerk, NAS en meerdere apparaten
-        - Apps en SDK
-        - Privacy, sleutelbeheer en updates
-        - Lokale AI of quantumonderzoek
-        - Build, CI en testbewijs
-        - Documentatie of nog onbekend
+        - Getting started or contributing
+        - Boot, kernel, processes, and capabilities
+        - Drivers and hardware
+        - Storage and recovery
+        - Desktop, Materiaal, and accessibility
+        - Networking, NAS, and multiple devices
+        - Apps and SDK
+        - Privacy, key management, and updates
+        - Local AI or quantum research
+        - Build, CI, and test evidence
+        - Documentation or unknown
     validations:
       required: true
   - type: textarea
     id: question
     attributes:
-      label: Je vraag
-      description: Wat wil je begrijpen of bereiken, en waar loop je vast?
+      label: Your question
+      description: What are you trying to understand or achieve, and what is preventing progress?
     validations:
       required: true
   - type: textarea
     id: context
     attributes:
-      label: Relevante context
-      description: Indien van toepassing, geef een bronlink of commit, host/VM, profiel en gebruikte commando's. Vermeld of het om een hostprototype, build of native uitvoering gaat.
+      label: Relevant context
+      description: If applicable, include a source link or commit, host/VM, feature profile, and commands used. Distinguish host prototype, build, and native execution.
   - type: textarea
     id: attempted
     attributes:
-      label: Al gelezen of geprobeerd
-      description: Deel relevante documentatie, eerdere discussies en de uitkomst van je eigen poging. Een korte geschoonde foutmelding helpt.
+      label: Already read or tried
+      description: Link relevant documentation or discussions and describe your attempts and results. A short sanitised error helps.
